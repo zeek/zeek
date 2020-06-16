@@ -169,13 +169,14 @@ BEGIN	{
 	args["RC"] = \
 		"(const NameExpr* n, const ConstExpr* c, const FieldExpr* f)"
 
-	# Assignments to record fields "x$f = y".
-	args["FV"] = "(const NameExpr* n1, int field, const NameExpr* n2)"
-	args["FC"] = "(const NameExpr* n, int field, const ConstExpr* c)"
+	# Assignments to record fields "x$f = y".  The type should be that
+	# of "x$f", and is used to select the correct assignment sequence.
+	args["FV"] = "(const NameExpr* n1, int field, const BroType* t, const NameExpr* n2)"
+	args["FC"] = "(const NameExpr* n, int field, const BroType* t, const ConstExpr* c)"
 
-	# Same for "x$f = y$g".
-	args["FFV"] = "(const NameExpr* n1, int f1, const NameExpr* n2, int f2)"
-	args["FFC"] = "(const NameExpr* n, int f1, const ConstExpr* c, int f2)"
+	# Same for "x$f = y$g"T
+	args["FFV"] = "(const NameExpr* n1, int f1, const BroType* t, const NameExpr* n2, int f2)"
+	args["FFC"] = "(const NameExpr* n, int f1, const BroType* t, const ConstExpr* c, int f2)"
 
 	# Vanilla assignments "x=y".
 	args["XV"] = "(const NameExpr* n1, const NameExpr* n2)"
@@ -663,19 +664,30 @@ function build_assignment_dispatch3(op, type, is_var, is_field)
 
 	atype = type (is_field ? "F" : "") (is_var ? "V" : "C")
 
-	custom_method = \
-		"auto t = " type_base "->Type().get();\n" \
-		"\tauto tag = t->Tag();\n" \
+	if ( type == "F" )
+		{
+		# t is passed into field-assignment methods
+		custom_method = ""
+		any_cond_targ = "t"
+		}
+	else
+		{
+		custom_method = "auto t = " type_base "->Type().get();\n\t"
+		any_cond_targ = targ "->Type()"
+		}
+
+	custom_method = custom_method \
+		"auto tag = t->Tag();\n" \
 		"\tauto i_t = t->InternalType();\n" \
 		"\tZInst z;"
 
 	if ( type in method_extra_prefix )
 		custom_method = custom_method "\n\t" method_extra_prefix[type]
 
-	# Do the "ANY" case first, since it is dispatched on the
-	# type of n1 rather than n2.
+	# Do the "ANY" case first, since it is dispatched on the type of n1
+	# rather than n2 (other than for record field assignments).
 	custom_method = custom_method "\n\t" \
-		build_assign_case(op, atype, "ANY", targ "->Type()->Tag() == TYPE_ANY", is_var, is_field)
+		build_assign_case(op, atype, "ANY", any_cond_targ "->Tag() == TYPE_ANY", is_var, is_field)
 
 	for ( flavor in is_managed )
 		custom_method = custom_method \
@@ -1494,7 +1506,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 				print ("\telse\n\t\treporter->InternalError(\"bad internal type\");") >methods_f
 			}
 		else
-			print (part1 full_op part2) >methods_f
+			print (part1 full_op suffix part2) >methods_f
 		}
 	else
 		print ("\treturn AddInst(GenInst(this, " \

@@ -253,6 +253,61 @@ bool Expr::IsReducedConditional(Reducer* c) const
 	}
 	}
 
+bool Expr::IsReducedFieldAssignment(Reducer* c) const
+	{
+	if ( ! IsFieldAssignable(this) )
+		return false;
+
+	if ( tag == EXPR_CONST )
+		return true;
+
+	if ( tag == EXPR_NAME )
+		return IsReduced(c);
+
+	return HasReducedOps(c);
+	}
+
+bool Expr::IsFieldAssignable(const Expr* e) const
+	{
+	switch ( e->Tag() ) {
+	case EXPR_NAME:
+	case EXPR_CONST:
+	case EXPR_CLONE:
+	case EXPR_NOT:
+	case EXPR_COMPLEMENT:
+	case EXPR_POSITIVE:
+	case EXPR_NEGATE:
+	case EXPR_ADD:
+	case EXPR_SUB:
+	case EXPR_TIMES:
+	case EXPR_DIVIDE:
+	case EXPR_MOD:
+	case EXPR_AND:
+	case EXPR_OR:
+	case EXPR_XOR:
+	case EXPR_AND_AND:
+	case EXPR_OR_OR:
+	case EXPR_FIELD:
+	case EXPR_HAS_FIELD:
+	case EXPR_IN:
+	case EXPR_SIZE:
+		return true;
+
+	// These would not be hard to add in principle, but at the expense
+	// of some added complexity in the templator.  Seems unlikely the
+	// actual performance gain would make that worth it.
+	// case EXPR_LT:
+	// case EXPR_LE:
+	// case EXPR_EQ:
+	// case EXPR_NE:
+	// case EXPR_GE:
+	// case EXPR_GT:
+
+	default:
+		return false;
+	}
+	}
+
 Expr* Expr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -311,6 +366,16 @@ Expr* Expr::ReduceToConditional(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	default:
 		return Reduce(c, red_stmt);
 	}
+	}
+
+Expr* Expr::ReduceToFieldAssignment(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( ! IsFieldAssignable(this) || tag == EXPR_NAME )
+		return ReduceToSingleton(c, red_stmt);
+
+	red_stmt = ReduceToSingletons(c);
+
+	return this->Ref();
 	}
 
 const CompiledStmt Expr::Compile(Compiler* c) const
@@ -3946,7 +4011,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		IntrusivePtr<Expr> lhs_e =
 			{AdoptRef{}, field_e->Op()->Reduce(c, lhs_stmt)};
 		IntrusivePtr<Expr> rhs_e =
-			{AdoptRef{}, op2->ReduceToSingleton(c, rhs_stmt)};
+			{AdoptRef{}, op2->ReduceToFieldAssignment(c, rhs_stmt)};
 
 		red_stmt = MergeStmts(rhs_reduce, lhs_stmt, rhs_stmt);
 
@@ -4759,10 +4824,7 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 
 bool FieldLHSAssignExpr::IsReduced(Reducer* c) const
 	{
-	if ( ! (op1->IsSingleton(c) && op2->IsReduced(c)) )
-		printf("oops: %s\n", obj_desc(op2));
-		
-	ASSERT(op1->IsSingleton(c) && op2->IsReduced(c));
+	ASSERT(op1->IsSingleton(c) && op2->IsReducedFieldAssignment(c));
 	return true;
 	}
 
@@ -4813,13 +4875,26 @@ const CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
 	auto rhs = Op2();
 
 	if ( rhs->Tag() == EXPR_NAME )
-		return c->Field_LHS_AssignFV(lhs, field, rhs->AsNameExpr());
+		return c->Field_LHS_AssignFV(lhs, field, Type().get(),
+						rhs->AsNameExpr());
 
 	if ( rhs->Tag() == EXPR_CONST )
-		return c->Field_LHS_AssignFC(lhs, field, rhs->AsConstExpr());
+		return c->Field_LHS_AssignFC(lhs, field, Type().get(),
+						rhs->AsConstExpr());
 
 	auto r1 = rhs->GetOp1();
 	auto r2 = rhs->GetOp2();
+
+	if ( rhs->Tag() == EXPR_FIELD )
+		{
+		auto rhs_f = rhs->AsFieldExpr();
+		if ( r1->Tag() == EXPR_NAME )
+			return c->Field_LHS_AssignFFV(lhs, field, Type().get(),
+					r1->AsNameExpr(), rhs_f->Field());
+		else
+			return c->Field_LHS_AssignFFC(lhs, field, Type().get(),
+					r1->AsConstExpr(), rhs_f->Field());
+		}
 
 	if ( r1 && r1->IsConst() )
 #include "CompilerOpsFieldsDefsC1.h"

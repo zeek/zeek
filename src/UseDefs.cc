@@ -448,6 +448,14 @@ UDs UseDefs::ExprUDs(const Expr* e)
 		AddInExprUDs(uds, e);
 		break;
 
+	case EXPR_FIELD_LHS_ASSIGN:
+		{
+		AddInExprUDs(uds, e->GetOp1().get());
+		auto rhs_UDs = ExprUDs(e->GetOp2().get());
+		uds = UD_Union(uds, rhs_UDs);
+		break;
+		}
+
 	case EXPR_INCR:
 	case EXPR_DECR:
 		AddInExprUDs(uds, e->GetOp1()->AsRefExpr()->GetOp1().get());

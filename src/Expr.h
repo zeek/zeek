@@ -174,6 +174,11 @@ public:
 	// used in a conditional.
 	bool IsReducedConditional(Reducer* c) const;
 
+	// True if the expression is reduced to a form that can be
+	// used in a field assignment.
+	bool IsReducedFieldAssignment(Reducer* c) const;
+	bool IsFieldAssignable(const Expr* e) const;
+
 	// Returns a set of predecessor statements in red_stmt (which might
 	// be nil if no reduction necessary), and the reduced version of
 	// the expression, suitable for replacing previous uses.  The
@@ -192,6 +197,10 @@ public:
 
 	// Reduces the expression to one that can appear as a conditional.
 	Expr* ReduceToConditional(Reducer* c, IntrusivePtr<Stmt>& red_stmt);
+
+	// Reduces the expression to one that can appear as a field
+	// assignment.
+	Expr* ReduceToFieldAssignment(Reducer* c, IntrusivePtr<Stmt>& red_stmt);
 
 	virtual Expr* Inline(Inliner* inl)	{ return this->Ref(); }
 
@@ -986,7 +995,8 @@ protected:
 // An internal class for reduced form.
 class FieldLHSAssignExpr : public BinaryExpr {
 public:
-	// "op1$field = op2", reduced.
+	// "op1$field = RHS", where RHS is reduced with respect to
+	// ReduceToFieldAssignment().
 	FieldLHSAssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2,
 				const char* field_name, int field);
 

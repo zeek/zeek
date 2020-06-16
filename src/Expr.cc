@@ -285,8 +285,6 @@ bool Expr::IsFieldAssignable(const Expr* e) const
 	case EXPR_AND:
 	case EXPR_OR:
 	case EXPR_XOR:
-	case EXPR_AND_AND:
-	case EXPR_OR_OR:
 	case EXPR_FIELD:
 	case EXPR_HAS_FIELD:
 	case EXPR_IN:
@@ -302,6 +300,12 @@ bool Expr::IsFieldAssignable(const Expr* e) const
 	// case EXPR_NE:
 	// case EXPR_GE:
 	// case EXPR_GT:
+
+	// These could be added if we subsetted them to versions for
+	// which we know it's safe to evaluate both operands.  Again
+	// likely not worth it.
+	// case EXPR_AND_AND:
+	// case EXPR_OR_OR:
 
 	default:
 		return false;

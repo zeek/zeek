@@ -4814,8 +4814,21 @@ const CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
 
 	if ( rhs->Tag() == EXPR_NAME )
 		return c->Field_LHS_AssignFV(lhs, field, rhs->AsNameExpr());
-	else
+
+	if ( rhs->Tag() == EXPR_CONST )
 		return c->Field_LHS_AssignFC(lhs, field, rhs->AsConstExpr());
+
+	auto r1 = rhs->GetOp1();
+	auto r2 = rhs->GetOp2();
+
+	if ( r1 && r1->IsConst() )
+#include "CompilerOpsFieldsDefsC1.h"
+
+	else if ( r2 && r2->IsConst() )
+#include "CompilerOpsFieldsDefsC2.h"
+
+	else
+#include "CompilerOpsFieldsDefsV.h"
 	}
 
 IntrusivePtr<Expr> FieldLHSAssignExpr::Duplicate()

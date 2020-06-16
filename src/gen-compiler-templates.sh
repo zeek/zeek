@@ -107,11 +107,11 @@ BEGIN	{
 	exprV["VLC"] = "lhs, r1->AsListExpr(), r2->AsConstExpr()"
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
 
-	field_exprC1["VC"] = "lhs, r1->AsConstExpr(), i";
-	field_exprC1["VCV"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr(), i"
-	field_exprC2["VVC"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr(), i"
-	field_exprV["VV"] = "lhs, r1->AsNameExpr(), i"
-	field_exprV["VVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), i"
+	field_exprC1["VC"] = "lhs, r1->AsConstExpr(), field";
+	field_exprC1["VCV"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr(), field"
+	field_exprC2["VVC"] = "lhs, r1->AsNameExpr(), r2->AsConstExpr(), field"
+	field_exprV["VV"] = "lhs, r1->AsNameExpr(), field"
+	field_exprV["VVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), field"
 
 	accessors["i"] = accessors["I"] = ".int_val"
 	accessors["u"] = accessors["U"] = ".uint_val"
@@ -1167,7 +1167,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		if ( field_op )
 			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
 				field \
-				"(lhs, r1->AsNameExpr(), rhs->AsHasFieldExpr()->Field(), i);") >fieldsV_f
+				"(lhs, r1->AsNameExpr(), rhs->AsHasFieldExpr()->Field(), field);") >fieldsV_f
 		}
 
 	else if ( expr_op && is_rep )
@@ -1415,7 +1415,17 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 					continue
 
 				invoke1 = (part1 full_op_no_sub "_")
-				invoke2 = ((is_vec ? vec : (is_cond ? cond : "")) part2)
+
+				if ( is_field )
+					invoke2 = field
+				else if ( is_vec )
+					invoke2 = vec
+				else if ( is_cond )
+					invoke2 = cond
+				else
+					invoke2 = ""
+
+				invoke2 = invoke2 part2
 
 				build_method_conditional(o, ++n)
 				print (invoke1 o invoke2) >methods_f

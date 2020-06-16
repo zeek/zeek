@@ -631,20 +631,20 @@ head_1:		TOK_ID opt_ws arg_begin
 				// (e.g. ones at global scope that may be used to implement
 				// the BIF itself).
 				fprintf(fp_func_h,
-					"namespace zeek { %sextern BifReturnVal %s_bif(::Frame* frame, const zeek::Args*);%s }\n",
+					"namespace zeek { %sextern BifReturnVal %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				// This is the deprecated, legacy, version of the BIF that
 				// forwards to the "canonical" version.  It also does have
 				// a "bro_" prefix in the name itself, but no "_bif" suffix.
 				fprintf(fp_func_h,
-					"%s [[deprecated(\"Remove in v4.1.  Use zeek::%s_bif.\")]] inline BifReturnVal bro_%s(::Frame* frame, const zeek::Args* args)",
+					"%s [[deprecated(\"Remove in v4.1.  Use zeek::%s_bif.\")]] inline BifReturnVal bro_%s(zeek::detail::Frame* frame, const zeek::Args* args)",
 					decl.c_namespace_start.c_str(), decl.c_fullname.c_str(), decl.bare_name.c_str());
 				fprintf(fp_func_h, " { return zeek::%s_bif(frame, args); } %s\n",
 					decl.c_fullname.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,
-					"BifReturnVal zeek::%s_bif(::Frame* frame, const zeek::Args* %s)",
+					"BifReturnVal zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
 				record_bif_item(decl.bro_fullname.c_str(), "FUNCTION");

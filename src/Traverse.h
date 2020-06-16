@@ -5,8 +5,8 @@
 #include "TraverseTypes.h"
 
 class Func;
-class Scope;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
@@ -34,7 +34,7 @@ public:
 	virtual TraversalCode PreDecl(const zeek::detail::ID*) { return TC_CONTINUE; }
 	virtual TraversalCode PostDecl(const zeek::detail::ID*) { return TC_CONTINUE; }
 
-	Scope* current_scope;
+	zeek::detail::Scope* current_scope;
 };
 
 TraversalCode traverse_all(TraversalCallback* cb);

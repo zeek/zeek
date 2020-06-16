@@ -57,7 +57,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::d
 		return;
 		}
 
-	Scope* global = global_scope();
+	zeek::detail::Scope* global = zeek::detail::global_scope();
 	const auto& syms = global->Vars();
 
 	zeek::detail::ID* nextid;
@@ -214,7 +214,7 @@ static int dbg_backtrace_internal(int start, int end)
 
 	for ( int i = start; i >= end; --i )
 		{
-		const Frame* f = g_frame_stack[i];
+		const zeek::detail::Frame* f = g_frame_stack[i];
 		const zeek::detail::Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
 		string context = get_context_description(stmt, f);

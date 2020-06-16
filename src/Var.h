@@ -6,7 +6,6 @@
 #include "ID.h"
 #include "Type.h"
 
-class Scope;
 class EventHandlerPtr;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
@@ -15,6 +14,7 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 
 namespace zeek::detail {
 using StmtPtr = zeek::IntrusivePtr<zeek::detail::Stmt>;
@@ -53,7 +53,7 @@ extern void begin_func(zeek::detail::IDPtr id, const char* module_name,
 extern void end_func(zeek::detail::StmtPtr body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
-extern id_list gather_outer_ids(Scope* scope, zeek::detail::Stmt* body);
+extern id_list gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_val().")]]
 extern zeek::Val* internal_val(const char* name);

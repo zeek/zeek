@@ -349,7 +349,7 @@ struct val_converter {
 			if ( ! name )
 				return nullptr;
 
-			const auto& id = global_scope()->Find(*name);
+			const auto& id = zeek::detail::global_scope()->Find(*name);
 			if ( ! id )
 				return nullptr;
 
@@ -693,7 +693,7 @@ struct type_checker {
 			if ( ! name )
 				return false;
 
-			const auto& id = global_scope()->Find(*name);
+			const auto& id = zeek::detail::global_scope()->Find(*name);
 			if ( ! id )
 				return false;
 
@@ -1112,12 +1112,12 @@ struct data_type_getter {
 		}
 };
 
-zeek::EnumValPtr bro_broker::get_data_type(zeek::RecordVal* v, Frame* frame)
+zeek::EnumValPtr bro_broker::get_data_type(zeek::RecordVal* v, zeek::detail::Frame* frame)
 	{
 	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}
 
-broker::data& bro_broker::opaque_field_to_data(zeek::RecordVal* v, Frame* f)
+broker::data& bro_broker::opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f)
 	{
 	const auto& d = v->GetField(0);
 

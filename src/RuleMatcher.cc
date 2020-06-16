@@ -1274,7 +1274,7 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 
 static zeek::Val* get_bro_val(const char* label)
 	{
-	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
+	auto id = zeek::detail::lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		{
 		rules_error("unknown script-level identifier", label);

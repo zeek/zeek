@@ -129,7 +129,7 @@ void Func::AddBody(zeek::detail::StmtPtr /* new_body */,
 	Internal("Func::AddBody called");
 	}
 
-void Func::SetScope(ScopePtr newscope)
+void Func::SetScope(zeek::detail::ScopePtr newscope)
 	{
 	scope = std::move(newscope);
 	}
@@ -179,7 +179,7 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 TraversalCode Func::Traverse(TraversalCallback* cb) const
 	{
 	// FIXME: Make a fake scope for builtins?
-	Scope* old_scope = cb->current_scope;
+	zeek::detail::Scope* old_scope = cb->current_scope;
 	cb->current_scope = scope.get();
 
 	TraversalCode tc = cb->PreFunction(this);
@@ -299,13 +299,13 @@ bool BroFunc::IsPure() const
 		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
-zeek::Val* Func::Call(val_list* args, Frame* parent) const
+zeek::Val* Func::Call(val_list* args, zeek::detail::Frame* parent) const
 	{
 	auto zargs = zeek::val_list_to_args(*args);
 	return Invoke(&zargs, parent).release();
 	};
 
-zeek::ValPtr BroFunc::Invoke(zeek::Args* args, Frame* parent) const
+zeek::ValPtr BroFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -331,7 +331,7 @@ zeek::ValPtr BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 		return Flavor() == zeek::FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
-	auto f = zeek::make_intrusive<Frame>(frame_size, this, args);
+	auto f = zeek::make_intrusive<zeek::detail::Frame>(frame_size, this, args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -479,7 +479,7 @@ void BroFunc::AddBody(zeek::detail::StmtPtr new_body,
 	sort(bodies.begin(), bodies.end());
 	}
 
-void BroFunc::AddClosure(id_list ids, Frame* f)
+void BroFunc::AddClosure(id_list ids, zeek::detail::Frame* f)
 	{
 	if ( ! f )
 		return;
@@ -488,7 +488,7 @@ void BroFunc::AddClosure(id_list ids, Frame* f)
 	SetClosureFrame(f);
 	}
 
-bool BroFunc::StrengthenClosureReference(Frame* f)
+bool BroFunc::StrengthenClosureReference(zeek::detail::Frame* f)
 	{
 	if ( closure != f )
 		return false;
@@ -501,7 +501,7 @@ bool BroFunc::StrengthenClosureReference(Frame* f)
 	return true;
 	}
 
-void BroFunc::SetClosureFrame(Frame* f)
+void BroFunc::SetClosureFrame(zeek::detail::Frame* f)
 	{
 	if ( closure )
 		reporter->InternalError("Tried to override closure for BroFunc %s.",
@@ -521,7 +521,7 @@ void BroFunc::SetClosureFrame(Frame* f)
 
 bool BroFunc::UpdateClosure(const broker::vector& data)
 	{
-	auto result = Frame::Unserialize(data);
+	auto result = zeek::detail::Frame::Unserialize(data);
 
 	if ( ! result.first )
 		return false;
@@ -559,7 +559,7 @@ FuncPtr BroFunc::DoClone()
 
 broker::expected<broker::data> BroFunc::SerializeClosure() const
 	{
-	return Frame::Serialize(closure, outer_ids);
+	return zeek::detail::Frame::Serialize(closure, outer_ids);
 	}
 
 void BroFunc::Describe(ODesc* d) const
@@ -597,7 +597,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
 	is_pure = arg_is_pure;
 
-	const auto& id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+	const auto& id = zeek::detail::lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
@@ -616,7 +616,7 @@ bool BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-zeek::ValPtr BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
+zeek::ValPtr BuiltinFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -881,7 +881,7 @@ static int get_func_priority(const std::vector<zeek::detail::AttrPtr>& attrs)
 	return priority;
 	}
 
-function_ingredients::function_ingredients(ScopePtr scope, zeek::detail::StmtPtr body)
+function_ingredients::function_ingredients(zeek::detail::ScopePtr scope, zeek::detail::StmtPtr body)
 	{
 	frame_size = scope->Length();
 	inits = scope->GetInits();

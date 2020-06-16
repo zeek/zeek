@@ -30,7 +30,7 @@ namespace bro_broker {
 
 static inline zeek::Val* get_option(const char* option)
 	{
-	const auto& id = global_scope()->Find(option);
+	const auto& id = zeek::detail::global_scope()->Find(option);
 
 	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Unknown Broker option %s", option);
@@ -70,7 +70,7 @@ const broker::endpoint_info Manager::NoPeer{{}, {}};
 int Manager::script_scope = 0;
 
 struct scoped_reporter_location {
-	scoped_reporter_location(Frame* frame)
+	scoped_reporter_location(zeek::detail::Frame* frame)
 		{
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 		}
@@ -413,7 +413,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( peer_count == 0 )
 		return true;
 
-	const auto& i = global_scope()->Find(id);
+	const auto& i = zeek::detail::global_scope()->Find(id);
 
 	if ( ! i )
 		return false;
@@ -699,7 +699,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, zeek::Val* event)
 	return true;
 	}
 
-zeek::RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
+zeek::RecordVal* Manager::MakeEvent(val_list* args, zeek::detail::Frame* frame)
 	{
 	auto rval = new zeek::RecordVal(zeek::BifType::Record::Broker::Event);
 	auto arg_vec = zeek::make_intrusive<zeek::VectorVal>(vector_of_data_type);
@@ -1188,7 +1188,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	++statistics.num_ids_incoming;
 	auto id_name = std::move(iu.id_name());
 	auto id_value = std::move(iu.id_value());
-	const auto& id = global_scope()->Find(id_name);
+	const auto& id = zeek::detail::global_scope()->Find(id_name);
 
 	if ( ! id )
 		{

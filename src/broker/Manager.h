@@ -21,9 +21,9 @@
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
 
-class Frame;
 class Func;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
 namespace zeek {
 using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
@@ -231,7 +231,7 @@ public:
 	 * @return an `Event` record value.  If an invalid event or arguments
 	 * were supplied the optional "name" field will not be set.
 	 */
-	zeek::RecordVal* MakeEvent(val_list* args, Frame* frame);
+	zeek::RecordVal* MakeEvent(val_list* args, zeek::detail::Frame* frame);
 
 	/**
 	 * Register interest in peer event messages that use a certain topic prefix.

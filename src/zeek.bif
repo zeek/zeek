@@ -1914,7 +1914,7 @@ function packet_source%(%): PacketSource
 function global_sizes%(%): var_sizes
 	%{
 	auto sizes = zeek::make_intrusive<zeek::TableVal>(IntrusivePtr{zeek::NewRef{}, var_sizes});
-	const auto& globals = global_scope()->Vars();
+	const auto& globals = zeek::detail::global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
@@ -1942,7 +1942,7 @@ function global_ids%(%): id_table
 	%{
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
 	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
-	const auto& globals = global_scope()->Vars();
+	const auto& globals = zeek::detail::global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
@@ -1974,7 +1974,7 @@ function global_ids%(%): id_table
 ##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
-	const auto& i = global_scope()->Find(id->CheckString());
+	const auto& i = zeek::detail::global_scope()->Find(id->CheckString());
 	if ( ! i )
 		return zeek::make_intrusive<zeek::StringVal>("<unknown id>");
 
@@ -1997,7 +1997,7 @@ function record_fields%(rec: any%): record_field_table
 
 	if ( rec->GetType()->Tag() == zeek::TYPE_STRING )
 		{
-		const auto& id = global_scope()->Find(rec->AsStringVal()->ToStdString());
+		const auto& id = zeek::detail::global_scope()->Find(rec->AsStringVal()->ToStdString());
 
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
@@ -3905,7 +3905,7 @@ static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 static bool mmdb_try_open_loc ()
 	{
 	// City database is always preferred over Country database.
-	const auto& mmdb_dir_val = global_scope()->Find("mmdb_dir")->GetVal();
+	const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )
@@ -3933,7 +3933,7 @@ static bool mmdb_try_open_loc ()
 
 static bool mmdb_try_open_asn ()
 	{
-	const auto& mmdb_dir_val = global_scope()->Find("mmdb_dir")->GetVal();
+	const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )

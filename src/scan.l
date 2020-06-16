@@ -179,7 +179,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ##<.* {
 	std::string hint(cur_enum_type && last_id_tok ?
-	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
+	            make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
 
 	zeekygen_mgr->PostComment(yytext + 3, hint);
 }
@@ -693,7 +693,7 @@ static int load_files(const char* orig_file)
 	// was done when we're finished processing it.
 	if ( ! did_module_restore )
 		{
-		file_stack.push_back(new FileInfo(current_module));
+		file_stack.push_back(new FileInfo(zeek::detail::current_module));
 		did_module_restore = true;
 		}
 	else
@@ -776,7 +776,7 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	const auto& i = lookup_ID(id, current_module.c_str());
+	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( ! i )
 		{
@@ -789,7 +789,7 @@ void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	const auto& i = lookup_ID(id, current_module.c_str());
+	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( i )
 		{
@@ -1077,5 +1077,5 @@ FileInfo::~FileInfo()
 	yylloc.first_line = yylloc.last_line = line_number = line;
 
 	if ( restore_module != "" )
-		current_module = restore_module;
+		zeek::detail::current_module = restore_module;
 	}

@@ -48,7 +48,7 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 	}
 
 static bool publish_event_args(val_list& args, const BroString* topic,
-                               Frame* frame)
+                               zeek::detail::Frame* frame)
 	{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
@@ -185,7 +185,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	static Func* topic_func = 0;
 
 	if ( ! topic_func )
-		topic_func = global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
+		topic_func = zeek::detail::global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
 
 	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
@@ -222,7 +222,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	static Func* topic_func = 0;
 
 	if ( ! topic_func )
-		topic_func = global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
+		topic_func = zeek::detail::global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
 
 	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);

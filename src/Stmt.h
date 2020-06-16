@@ -14,7 +14,8 @@
 #include "TraverseTypes.h"
 
 class CompositeHash;
-class Frame;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
 namespace zeek::detail {
 

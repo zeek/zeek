@@ -17,20 +17,13 @@
 #include "ZeekArgs.h"
 #include "BifReturnVal.h"
 
-class Frame;
-class Scope;
-using ScopePtr = zeek::IntrusivePtr<Scope>;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
-
-namespace zeek::detail {
-using IDPtr = zeek::IntrusivePtr<ID>;
-using StmtPtr = zeek::IntrusivePtr<Stmt>;
-}
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
 namespace caf {
 template <class> class expected;
@@ -40,6 +33,15 @@ namespace broker {
 class data;
 using vector = std::vector<data>;
 using caf::expected;
+}
+
+namespace zeek {
+
+namespace detail {
+using ScopePtr = zeek::IntrusivePtr<zeek::detail::Scope>;
+using IDPtr = zeek::IntrusivePtr<ID>;
+using StmtPtr = zeek::IntrusivePtr<Stmt>;
+}
 }
 
 class Func;
@@ -69,7 +71,7 @@ public:
 	bool HasBodies() const	{ return bodies.size(); }
 
 	[[deprecated("Remove in v4.1. Use Invoke() instead.")]]
-	zeek::Val* Call(val_list* args, Frame* parent = nullptr) const;
+	zeek::Val* Call(val_list* args, zeek::detail::Frame* parent = nullptr) const;
 
 	/**
 	 * Calls a Zeek function.
@@ -78,7 +80,7 @@ public:
 	 * @return  the return value of the function call.
 	 */
 	virtual zeek::ValPtr Invoke(
-		zeek::Args* args, Frame* parent = nullptr) const = 0;
+		zeek::Args* args, zeek::detail::Frame* parent = nullptr) const = 0;
 
 	/**
 	 * A version of Invoke() taking a variable number of individual arguments.
@@ -98,8 +100,8 @@ public:
 	                     const std::vector<zeek::detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
-	virtual void SetScope(ScopePtr newscope);
-	virtual Scope* GetScope() const		{ return scope.get(); }
+	virtual void SetScope(zeek::detail::ScopePtr newscope);
+	virtual zeek::detail::Scope* GetScope() const		{ return scope.get(); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	virtual zeek::FuncType* FType() const { return type.get(); }
@@ -134,7 +136,7 @@ protected:
 	                       zeek::FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
-	ScopePtr scope;
+	zeek::detail::ScopePtr scope;
 	Kind kind;
 	uint32_t unique_id;
 	zeek::FuncTypePtr type;
@@ -152,7 +154,7 @@ public:
 	~BroFunc() override;
 
 	bool IsPure() const override;
-	zeek::ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
+	zeek::ValPtr Invoke(zeek::Args* args, zeek::detail::Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -161,7 +163,7 @@ public:
 	 * @param ids IDs that are captured by the closure.
 	 * @param f the closure to be captured.
 	 */
-	void AddClosure(id_list ids, Frame* f);
+	void AddClosure(id_list ids, zeek::detail::Frame* f);
 
 	/**
 	 * Replaces the current closure with one built from *data*
@@ -174,7 +176,7 @@ public:
 	 * If the function's closure is a weak reference to the given frame,
 	 * upgrade to a strong reference of a shallow clone of that frame.
 	 */
-	bool StrengthenClosureReference(Frame* f);
+	bool StrengthenClosureReference(zeek::detail::Frame* f);
 
 	/**
 	 * Serializes this function's closure.
@@ -210,7 +212,7 @@ protected:
 	 *
 	 * @param f the frame to be cloned.
 	 */
-	void SetClosureFrame(Frame* f);
+	void SetClosureFrame(zeek::detail::Frame* f);
 
 private:
 	size_t frame_size;
@@ -218,11 +220,11 @@ private:
 	// List of the outer IDs used in the function.
 	id_list outer_ids;
 	// The frame the BroFunc was initialized in.
-	Frame* closure = nullptr;
+	zeek::detail::Frame* closure = nullptr;
 	bool weak_closure_ref = false;
 };
 
-using built_in_func = BifReturnVal (*)(Frame* frame, const zeek::Args* args);
+using built_in_func = BifReturnVal (*)(zeek::detail::Frame* frame, const zeek::Args* args);
 
 class BuiltinFunc final : public Func {
 public:
@@ -230,7 +232,7 @@ public:
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	zeek::ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
+	zeek::ValPtr Invoke(zeek::Args* args, zeek::detail::Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -263,14 +265,14 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(ScopePtr scope, zeek::detail::StmtPtr body);
+	function_ingredients(zeek::detail::ScopePtr scope, zeek::detail::StmtPtr body);
 
 	zeek::detail::IDPtr id;
 	zeek::detail::StmtPtr body;
 	std::vector<zeek::detail::IDPtr> inits;
 	int frame_size;
 	int priority;
-	ScopePtr scope;
+	zeek::detail::ScopePtr scope;
 };
 
 extern std::vector<CallInfo> call_stack;

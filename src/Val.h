@@ -41,7 +41,8 @@ class RE_Matcher;
 
 class CompositeHash;
 class HashKey;
-class Frame;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
 extern double bro_start_network_time;
 
@@ -980,7 +981,7 @@ public:
 	// If the &default attribute is not a function, or the functon has
 	// already been initialized, this does nothing. Otherwise, evaluates
 	// the function in the frame allowing it to capture its closure.
-	void InitDefaultFunc(Frame* f);
+	void InitDefaultFunc(zeek::detail::Frame* f);
 
 	unsigned int MemoryAllocation() const override;
 

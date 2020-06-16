@@ -130,7 +130,7 @@ zeek::TypePtr OpaqueVal::UnserializeType(const broker::data& data)
 		if ( ! name )
 			return nullptr;
 
-		const auto& id = global_scope()->Find(*name);
+		const auto& id = zeek::detail::global_scope()->Find(*name);
 		if ( ! id )
 			return nullptr;
 

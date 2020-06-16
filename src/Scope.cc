@@ -10,7 +10,9 @@
 #include "Reporter.h"
 #include "module_util.h"
 
-typedef PList<Scope> scope_list;
+namespace zeek::detail {
+
+using scope_list = PList<Scope>;
 
 static scope_list scopes;
 static Scope* top_scope;
@@ -119,10 +121,9 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-const zeek::detail::IDPtr& lookup_ID(
-	const char* name, const char* curr_module,
-	bool no_global, bool same_module_only,
-	bool check_export)
+const zeek::detail::IDPtr& lookup_ID(const char* name, const char* curr_module,
+                                     bool no_global, bool same_module_only,
+                                     bool check_export)
 	{
 	std::string fullname = make_full_var_name(curr_module, name);
 
@@ -138,14 +139,14 @@ const zeek::detail::IDPtr& lookup_ID(
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
 				reporter->Error("identifier is not exported: %s",
-				      fullname.c_str());
+				                fullname.c_str());
 
 			return id;
 			}
 		}
 
 	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
-	     ! same_module_only) )
+	                     ! same_module_only) )
 		{
 		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		return global_scope()->Find(globalname);
@@ -154,9 +155,8 @@ const zeek::detail::IDPtr& lookup_ID(
 	return zeek::detail::ID::nil;
 	}
 
-zeek::detail::IDPtr install_ID(
-	const char* name, const char* module_name,
-	bool is_global, bool is_export)
+zeek::detail::IDPtr install_ID(const char* name, const char* module_name,
+                               bool is_global, bool is_export)
 	{
 	if ( scopes.empty() && ! is_global )
 		reporter->InternalError("local identifier in global scope");
@@ -220,3 +220,14 @@ Scope* global_scope()
 	{
 	return scopes.empty() ? 0 : scopes.front();
 	}
+
+}
+
+const zeek::detail::IDPtr& lookup_ID(
+	const char* name, const char* module,
+	bool no_global,
+	bool same_module_only,
+	bool check_export)
+{
+	return zeek::detail::lookup_ID(name, module, no_global, same_module_only, check_export);
+}

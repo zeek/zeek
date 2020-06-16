@@ -113,7 +113,9 @@ extern int brolex();
  * Part of the module facility: while parsing, keep track of which
  * module to put things in.
  */
-std::string current_module = GLOBAL_MODULE_NAME;
+std::string zeek::detail::current_module = GLOBAL_MODULE_NAME;
+std::string& current_module = zeek::detail::current_module;
+
 bool is_export = false; // true if in an export {} block
 
 /*
@@ -494,9 +496,9 @@ expr:
 	|	'$' TOK_ID func_params '='
 			{
 			func_hdr_location = @1;
-			auto func_id = current_scope()->GenerateTemporary("anonymous-function");
+			auto func_id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
-			begin_func(std::move(func_id), current_module.c_str(),
+			begin_func(std::move(func_id), zeek::detail::current_module.c_str(),
 		   	           zeek::FUNC_FLAVOR_FUNCTION, false,
 			           {zeek::AdoptRef{}, $3});
 			}
@@ -657,15 +659,15 @@ expr:
 	|	TOK_ID
 			{
 			set_location(@1);
-			auto id = lookup_ID($1, current_module.c_str());
+			auto id = zeek::detail::lookup_ID($1, zeek::detail::current_module.c_str());
 
 			if ( ! id )
 				{
 				if ( ! in_debug )
 					{
 /*	// CHECK THAT THIS IS NOT GLOBAL.
-					id = install_ID($1, current_module.c_str(),
-							false, is_export);
+					id = install_ID($1, zeek::detail::current_module.c_str(),
+							        false, is_export);
 */
 
 					yyerror(fmt("unknown identifier %s", $1));
@@ -803,7 +805,7 @@ enum_body_elem:
 			if ( $3->GetType()->Tag() != zeek::TYPE_COUNT )
 				reporter->Error("enumerator is not a count constant");
 			else
-				cur_enum_type->AddName(current_module, $1,
+				cur_enum_type->AddName(zeek::detail::current_module, $1,
 				                       $3->InternalUnsigned(), is_export, $4);
 			}
 
@@ -820,7 +822,7 @@ enum_body_elem:
 			{
 			set_location(@1);
 			assert(cur_enum_type);
-			cur_enum_type->AddName(current_module, $1, is_export, $2);
+			cur_enum_type->AddName(zeek::detail::current_module, $1, is_export, $2);
 			}
 	;
 
@@ -1071,8 +1073,8 @@ formal_args_decl:
 decl:
 		TOK_MODULE TOK_ID ';'
 			{
-			current_module = $2;
-			zeekygen_mgr->ModuleUsage(::filename, current_module);
+			zeek::detail::current_module = $2;
+			zeekygen_mgr->ModuleUsage(::filename, zeek::detail::current_module);
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
@@ -1178,7 +1180,7 @@ func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			begin_func(id, current_module.c_str(),
+			begin_func(id, zeek::detail::current_module.c_str(),
 				zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
 				std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
@@ -1193,7 +1195,7 @@ func_hdr:
 				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
-			begin_func({zeek::NewRef{}, $2}, current_module.c_str(),
+			begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
 				   zeek::FUNC_FLAVOR_EVENT, 0, {zeek::NewRef{}, $3},
 				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
@@ -1202,14 +1204,14 @@ func_hdr:
 			{
 			$3->ClearYieldType(zeek::FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(zeek::base_type(zeek::TYPE_BOOL));
-			begin_func({zeek::NewRef{}, $2}, current_module.c_str(),
+			begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
 				   zeek::FUNC_FLAVOR_HOOK, 0, {zeek::NewRef{}, $3},
 				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
-			begin_func({zeek::NewRef{}, $3}, current_module.c_str(),
+			begin_func({zeek::NewRef{}, $3}, zeek::detail::current_module.c_str(),
 				   zeek::FUNC_FLAVOR_EVENT, 1, {zeek::NewRef{}, $4},
 				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$5});
 			$$ = $4;
@@ -1258,8 +1260,8 @@ lambda_body:
 			// a lambda expression.
 
 			// Gather the ingredients for a BroFunc from the current scope
-			auto ingredients = std::make_unique<function_ingredients>(zeek::IntrusivePtr{zeek::NewRef{}, current_scope()}, zeek::IntrusivePtr{zeek::AdoptRef{}, $3});
-			id_list outer_ids = gather_outer_ids(pop_scope().get(), ingredients->body.get());
+			auto ingredients = std::make_unique<function_ingredients>(zeek::IntrusivePtr{zeek::NewRef{}, zeek::detail::current_scope()}, zeek::IntrusivePtr{zeek::AdoptRef{}, $3});
+			id_list outer_ids = gather_outer_ids(zeek::detail::pop_scope().get(), ingredients->body.get());
 
 			$$ = new zeek::detail::LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}
@@ -1273,8 +1275,8 @@ anonymous_function:
 begin_func:
 		func_params
 			{
-			auto id = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func(id, current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::AdoptRef{}, $1});
+			auto id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
+			begin_func(id, zeek::detail::current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::AdoptRef{}, $1});
 			$$ = id.release();
 			}
 	;
@@ -1609,7 +1611,7 @@ event:
 		TOK_ID '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			const auto& id = lookup_ID($1, current_module.c_str());
+			const auto& id = zeek::detail::lookup_ID($1, zeek::detail::current_module.c_str());
 
 			if ( id )
 				{
@@ -1667,12 +1669,12 @@ case_type:
 			{
 			const char* name = $4;
 			zeek::TypePtr type{zeek::AdoptRef{}, $2};
-			auto case_var = lookup_ID(name, current_module.c_str());
+			auto case_var = zeek::detail::lookup_ID(name, zeek::detail::current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )
 				case_var->Error("already a global identifier");
 			else
-				case_var = install_ID(name, current_module.c_str(), false, false);
+				case_var = zeek::detail::install_ID(name, zeek::detail::current_module.c_str(), false, false);
 
 			add_local(case_var, std::move(type), zeek::detail::INIT_NONE, nullptr, nullptr,
 			          VAR_REGULAR);
@@ -1688,7 +1690,7 @@ for_head:
 			// body so that we execute these actions - defining
 			// the local variable - prior to parsing the body,
 			// which might refer to the variable.
-			auto loop_var = lookup_ID($3, current_module.c_str());
+			auto loop_var = zeek::detail::lookup_ID($3, zeek::detail::current_module.c_str());
 
 			if ( loop_var )
 				{
@@ -1698,8 +1700,8 @@ for_head:
 
 			else
 				{
-				loop_var = install_ID($3, current_module.c_str(),
-						      false, false);
+				loop_var = zeek::detail::install_ID($3, zeek::detail::current_module.c_str(),
+				                                    false, false);
 				}
 
 			id_list* loop_vars = new id_list;
@@ -1716,12 +1718,12 @@ for_head:
 		TOK_FOR '(' TOK_ID ',' TOK_ID TOK_IN expr ')'
 			{
 			set_location(@1, @8);
-			const char* module = current_module.c_str();
+			const char* module = zeek::detail::current_module.c_str();
 
 			// Check for previous definitions of key and
 			// value variables.
-			auto key_var = lookup_ID($3, module);
-			auto val_var = lookup_ID($5, module);
+			auto key_var = zeek::detail::lookup_ID($3, module);
+			auto val_var = zeek::detail::lookup_ID($5, module);
 
 			// Validate previous definitions as needed.
 			if ( key_var )
@@ -1730,7 +1732,7 @@ for_head:
 					key_var->Error("global variable used in for loop");
 				}
 			else
-				key_var = install_ID($3, module, false, false);
+				key_var = zeek::detail::install_ID($3, module, false, false);
 
 			if ( val_var )
 				{
@@ -1738,7 +1740,7 @@ for_head:
 					val_var->Error("global variable used in for loop");
 				}
 			else
-				val_var = install_ID($5, module, false, false);
+				val_var = zeek::detail::install_ID($5, module, false, false);
 
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(key_var.release());
@@ -1749,10 +1751,10 @@ for_head:
 		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
 			{
 			set_location(@1, @10);
-			const char* module = current_module.c_str();
+			const char* module = zeek::detail::current_module.c_str();
 
 			// Validate value variable
-			auto val_var = lookup_ID($7, module);
+			auto val_var = zeek::detail::lookup_ID($7, module);
 
 			if ( val_var )
 				{
@@ -1760,7 +1762,7 @@ for_head:
 					val_var->Error("global variable used in for loop");
 				}
 			else
-				val_var = install_ID($7, module, false, false);
+				val_var = zeek::detail::install_ID($7, module, false, false);
 
 			$$ = new zeek::detail::ForStmt($4, {zeek::AdoptRef{}, $9}, std::move(val_var));
 			}
@@ -1780,7 +1782,7 @@ local_id:
 		TOK_ID
 			{
 			set_location(@1);
-			auto id = lookup_ID($1, current_module.c_str());
+			auto id = zeek::detail::lookup_ID($1, zeek::detail::current_module.c_str());
 			$$ = id.release();
 
 			if ( $$ )
@@ -1792,8 +1794,8 @@ local_id:
 
 			else
 				{
-				$$ = install_ID($1, current_module.c_str(),
-						false, is_export).release();
+				$$ = zeek::detail::install_ID($1, zeek::detail::current_module.c_str(),
+				                              false, is_export).release();
 				}
 			}
 	;
@@ -1817,7 +1819,7 @@ global_or_event_id:
 		TOK_ID
 			{
 			set_location(@1);
-			auto id = lookup_ID($1, current_module.c_str(), false,
+			auto id = zeek::detail::lookup_ID($1, zeek::detail::current_module.c_str(), false,
 			                    defining_global_ID);
 			$$ = id.release();
 
@@ -1842,10 +1844,10 @@ global_or_event_id:
 				{
 				const char* module_name =
 					resolving_global_ID ?
-						current_module.c_str() : 0;
+						zeek::detail::current_module.c_str() : 0;
 
-				$$ = install_ID($1, module_name,
-						true, is_export).release();
+				$$ = zeek::detail::install_ID($1, module_name,
+				                              true, is_export).release();
 				}
 			}
 	;
@@ -1855,7 +1857,7 @@ resolve_id:
 		TOK_ID
 			{
 			set_location(@1);
-			auto id = lookup_ID($1, current_module.c_str());
+			auto id = zeek::detail::lookup_ID($1, zeek::detail::current_module.c_str());
 			$$ = id.release();
 
 			if ( ! $$ )

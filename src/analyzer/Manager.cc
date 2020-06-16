@@ -90,7 +90,7 @@ void Manager::InitPreScript()
 
 void Manager::InitPostScript()
 	{
-	const auto& id = global_scope()->Find("Tunnel::vxlan_ports");
+	const auto& id = zeek::detail::global_scope()->Find("Tunnel::vxlan_ports");
 
 	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Tunnel::vxlan_ports not defined");

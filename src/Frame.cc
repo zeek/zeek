@@ -11,7 +11,9 @@
 #include "Val.h"
 #include "ID.h"
 
-std::vector<Frame*> g_frame_stack;
+std::vector<zeek::detail::Frame*> g_frame_stack;
+
+namespace zeek::detail {
 
 Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 	{
@@ -616,3 +618,5 @@ Frame::UnserializeOffsetMap(const broker::vector& data)
 
 	return std::make_pair(true, std::move(rval));
 	}
+
+}

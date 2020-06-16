@@ -1131,11 +1131,11 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		return;
 		}
 
-	auto id = lookup_ID(name, module_name.c_str());
+	auto id = zeek::detail::lookup_ID(name, module_name.c_str());
 
 	if ( ! id )
 		{
-		id = install_ID(name, module_name.c_str(), true, is_export);
+		id = zeek::detail::install_ID(name, module_name.c_str(), true, is_export);
 		id->SetType({zeek::NewRef{}, this});
 		id->SetEnumConst();
 
@@ -1733,7 +1733,7 @@ TypePtr merge_types(const TypePtr& arg_t1,
 		// Doing a lookup here as a roundabout way of ref-ing t1, without
 		// changing the function params which has t1 as const and also
 		// (potentially) avoiding a pitfall mentioned earlier about clones.
-		const auto& id = global_scope()->Find(t1->GetName());
+		const auto& id = zeek::detail::global_scope()->Find(t1->GetName());
 
 		if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
 			// It should make most sense to return the real type here rather

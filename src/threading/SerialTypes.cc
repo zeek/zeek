@@ -542,7 +542,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 					// Enums are not a base-type, so need to look it up.
 					const auto& sv = val->val.set_val.vals[0]->val.string_val;
 					std::string enum_name(sv.data, sv.length);
-					const auto& enum_id = global_scope()->Find(enum_name);
+					const auto& enum_id = zeek::detail::global_scope()->Find(enum_name);
 
 					if ( ! enum_id )
 						{
@@ -607,7 +607,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 			// let's try looking it up by global ID.
-			const auto& id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+			const auto& id = zeek::detail::lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
 
 			if ( ! id || ! id->IsEnumConst() )
 				{

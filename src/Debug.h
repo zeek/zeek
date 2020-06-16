@@ -11,8 +11,10 @@
 #include <map>
 #include <string>
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+
 namespace zeek {
 template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<Val>;
@@ -30,7 +32,6 @@ struct ParseLocationRec {
 class StmtLocMapping;
 typedef PQueue<StmtLocMapping> Filemap; // mapping for a single file
 
-class Frame;
 class DbgBreakpoint;
 class DbgWatch;
 class DbgDisplay;
@@ -39,7 +40,9 @@ class StmtHashFn;
 typedef std::map<int, DbgBreakpoint*> BPIDMapType;
 typedef std::multimap<const zeek::detail::Stmt*, DbgBreakpoint*> BPMapType;
 
+namespace zeek {
 extern std::string current_module;
+}
 
 class TraceState {
 public:
@@ -100,7 +103,7 @@ protected:
 	int next_bp_id, next_watch_id, next_display_id;
 
 private:
-	Frame* dbg_locals; // unused
+	zeek::detail::Frame* dbg_locals; // unused
 };
 
 // Source line -> statement mapping.
@@ -147,8 +150,8 @@ std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 // Debugging hooks.
 
 // Return true to continue execution, false to abort.
-bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f);
-bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, zeek::Val* result, stmt_flow_type* flow);
+bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f);
+bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, stmt_flow_type* flow);
 
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
@@ -172,9 +175,9 @@ zeek::ValPtr dbg_eval_expr(const char* expr);
 int dbg_read_internal_state();
 
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
-std::string get_context_description(const zeek::detail::Stmt* stmt, const Frame* frame);
+std::string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detail::Frame* frame);
 
-extern Frame* g_dbg_locals;	// variables created within debugger context
+extern zeek::detail::Frame* g_dbg_locals;	// variables created within debugger context
 
 extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 

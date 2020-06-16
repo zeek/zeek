@@ -34,12 +34,12 @@ zeek::VectorTypePtr zeek::id::index_vec;
 
 const zeek::detail::IDPtr& zeek::id::find(std::string_view name)
 	{
-	return global_scope()->Find(name);
+	return zeek::detail::global_scope()->Find(name);
 	}
 
 const zeek::TypePtr& zeek::id::find_type(std::string_view name)
 	{
-	auto id = global_scope()->Find(name);
+	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find type named: %s",
@@ -50,7 +50,7 @@ const zeek::TypePtr& zeek::id::find_type(std::string_view name)
 
 const zeek::ValPtr& zeek::id::find_val(std::string_view name)
 	{
-	auto id = global_scope()->Find(name);
+	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find variable named: %s",
@@ -61,7 +61,7 @@ const zeek::ValPtr& zeek::id::find_val(std::string_view name)
 
 const zeek::ValPtr& zeek::id::find_const(std::string_view name)
 	{
-	auto id = global_scope()->Find(name);
+	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find variable named: %s",
@@ -366,7 +366,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 
 	// FIXME: Perhaps we should be checking at other than global scope.
 	else if ( val && IsFunc(val->GetType()->Tag()) &&
-		  cb->current_scope == global_scope() )
+		  cb->current_scope == zeek::detail::global_scope() )
 		{
 		tc = val->AsFunc()->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);

@@ -44,7 +44,7 @@ std::map<string, Filemap*> g_dbgfilemaps;
 // current context; you don't want to do it after a step or next
 // command unless you've exited a function.
 static bool step_or_next_pending = false;
-static Frame* last_frame;
+static zeek::detail::Frame* last_frame;
 
 DebuggerState::DebuggerState()
 	{
@@ -55,7 +55,7 @@ DebuggerState::DebuggerState()
 	BreakFromSignal(false);
 
 	// ### Don't choose this arbitrary size! Extend Frame.
-	dbg_locals = new Frame(1024, /* func = */ nullptr, /* fn_args = */ nullptr);
+	dbg_locals = new zeek::detail::Frame(1024, /* func = */ nullptr, /* fn_args = */ nullptr);
 	}
 
 DebuggerState::~DebuggerState()
@@ -197,11 +197,11 @@ void get_first_statement(zeek::detail::Stmt* list, zeek::detail::Stmt*& first, L
 static void parse_function_name(vector<ParseLocationRec>& result,
 				ParseLocationRec& plr, const string& s)
 	{ // function name
-	const auto& id = lookup_ID(s.c_str(), current_module.c_str());
+	const auto& id = zeek::detail::lookup_ID(s.c_str(), zeek::detail::current_module.c_str());
 
 	if ( ! id )
 		{
-		string fullname = make_full_var_name(current_module.c_str(), s.c_str());
+		string fullname = make_full_var_name(zeek::detail::current_module.c_str(), s.c_str());
 		debug_msg("Function %s not defined.\n", fullname.c_str());
 		plr.type = plrUnknown;
 		return;
@@ -728,7 +728,7 @@ static char* get_prompt(bool reset_counter = false)
 	return prompt;
 	}
 
-string get_context_description(const zeek::detail::Stmt* stmt, const Frame* frame)
+string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detail::Frame* frame)
 	{
 	ODesc d;
 	const BroFunc* func = frame ? frame->GetFunction() : nullptr;
@@ -769,12 +769,12 @@ int dbg_handle_debug_input()
 		g_debugger_state.BreakFromSignal(false);
 		}
 
-	Frame* curr_frame = g_frame_stack.back();
+	zeek::detail::Frame* curr_frame = g_frame_stack.back();
 	const BroFunc* func = curr_frame->GetFunction();
 	if ( func )
-		current_module = extract_module_name(func->Name());
+		zeek::detail::current_module = extract_module_name(func->Name());
 	else
-		current_module = GLOBAL_MODULE_NAME;
+		zeek::detail::current_module = GLOBAL_MODULE_NAME;
 
 	const zeek::detail::Stmt* stmt = curr_frame->GetNextStmt();
 	if ( ! stmt )
@@ -840,7 +840,7 @@ int dbg_handle_debug_input()
 
 
 // Return true to continue execution, false to abort.
-bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f)
+bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f)
 	{
 	if ( ! g_policy_debug ||
 	     stmt->Tag() == STMT_LIST || stmt->Tag() == STMT_NULL )
@@ -905,7 +905,7 @@ bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f)
 	return true;
 	}
 
-bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, zeek::Val* result, stmt_flow_type* flow)
+bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, stmt_flow_type* flow)
 	{
 	// Handle the case where someone issues a "next" debugger command,
 	// but we're at a return statement, so the next statement is in
@@ -959,7 +959,7 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 	if ( ! (frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size())  )
 		reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
 
-	Frame* frame = g_frame_stack[frame_idx];
+	zeek::detail::Frame* frame = g_frame_stack[frame_idx];
 	if ( ! (frame)  )
 		reporter->InternalError("Assertion failed: frame");
 
@@ -967,7 +967,7 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 	if ( func )
 		{
 		Ref(func->GetScope());
-		push_existing_scope(func->GetScope());
+		zeek::detail::push_existing_scope(func->GetScope());
 		}
 
 	// ### Possibly push a debugger-local scope?
@@ -1001,7 +1001,7 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 		result = g_curr_debug_expr->Eval(frame);
 
 	if ( func )
-		pop_scope();
+		zeek::detail::pop_scope();
 
 	delete g_curr_debug_expr;
 	g_curr_debug_expr = nullptr;

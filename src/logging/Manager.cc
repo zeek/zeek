@@ -1177,7 +1177,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 
 	if ( ! found_filter_match )
 		{
-		const auto& id = global_scope()->Find("Log::default_rotation_interval");
+		const auto& id = zeek::detail::global_scope()->Find("Log::default_rotation_interval");
 		assert(id);
 		winfo->interval = id->GetVal()->AsInterval();
 		}
@@ -1520,7 +1520,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	Func* func = winfo->postprocessor;
 	if ( ! func )
 		{
-		const auto& id = global_scope()->Find("Log::__default_rotation_postprocessor");
+		const auto& id = zeek::detail::global_scope()->Find("Log::__default_rotation_postprocessor");
 		assert(id);
 		func = id->GetVal()->AsFunc();
 		}

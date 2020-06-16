@@ -17,15 +17,14 @@
 #include "Val.h"
 #include "ZeekArgs.h"
 
-class Frame;
-class Scope;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 struct function_ingredients;
 
 namespace zeek {
 template <class T> class IntrusivePtr;
-}
 
-namespace zeek::detail {
+namespace detail {
 
 using IDPtr = zeek::IntrusivePtr<ID>;
 
@@ -965,7 +964,8 @@ extern bool expr_greater(const Expr* e1, const Expr* e2);
 inline bool is_vector(Expr* e)	{ return e->GetType()->Tag() == TYPE_VECTOR; }
 inline bool is_vector(const ExprPtr& e)	{ return is_vector(e.get()); }
 
-}
+} // namespace detail
+} // namespace zeek
 
 using Expr [[deprecated("Remove in v4.1. Use zeek::detail::Expr instead.")]] = zeek::detail::Expr;
 using NameExpr [[deprecated("Remove in v4.1. Use zeek::detail::NameExpr instead.")]] = zeek::detail::NameExpr;

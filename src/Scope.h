@@ -12,21 +12,21 @@
 #include "IntrusivePtr.h"
 #include "TraverseTypes.h"
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Type, zeek);
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
 
 namespace zeek {
-	template <class T> class IntrusivePtr;
 
-	class Type;
-	using TypePtr = zeek::IntrusivePtr<zeek::Type>;
-}
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+template <class T> class IntrusivePtr;
+using TypePtr = zeek::IntrusivePtr<Type>;
 
-namespace zeek::detail {
-	class Attr;
-	using AttrPtr = zeek::IntrusivePtr<Attr>;
-	using IDPtr = zeek::IntrusivePtr<ID>;
-}
+namespace detail {
+
+using AttrPtr = zeek::IntrusivePtr<Attr>;
+using IDPtr = zeek::IntrusivePtr<ID>;
 
 class Scope;
 using ScopePtr = zeek::IntrusivePtr<Scope>;
@@ -88,9 +88,6 @@ protected:
 	std::vector<zeek::detail::IDPtr> inits;
 };
 
-
-extern bool in_debug;
-
 // If no_global is true, don't search in the default "global" namespace.
 extern const zeek::detail::IDPtr& lookup_ID(
 	const char* name, const char* module,
@@ -113,3 +110,26 @@ extern Scope* global_scope();
 
 // Current module (identified by its name).
 extern std::string current_module;
+
+} // namespace detail
+} // namespace zeek
+
+extern bool in_debug;
+
+using Scope [[deprecated("Remove in v4.1. Use zeek::detail::Scope instead.")]] = zeek::detail::Scope;
+extern std::string& current_module [[deprecated("Remove in v4.1. Use zeek::detail::current_module.")]];
+
+constexpr auto install_ID [[deprecated("Remove in v4.1 Use zeek::detail::install_ID instead.")]] = zeek::detail::install_ID;
+constexpr auto push_scope [[deprecated("Remove in v4.1 Use zeek::detail::push_scope instead.")]] = zeek::detail::push_scope;
+constexpr auto push_existing_scope[[deprecated("Remove in v4.1 Use zeek::detail::push_existing_scope instead.")]] = zeek::detail::push_existing_scope;
+constexpr auto pop_scope [[deprecated("Remove in v4.1 Use zeek::detail::pop_scope instead.")]] = zeek::detail::pop_scope;
+constexpr auto current_scope [[deprecated("Remove in v4.1 Use zeek::detail::current_scope instead.")]] = zeek::detail::current_scope;
+constexpr auto global_scope [[deprecated("Remove in v4.1 Use zeek::detail::global_scope instead.")]] = zeek::detail::global_scope;
+
+// Because of the use of default arguments, this function can't be aliased like the rest.
+[[deprecated("Remove in v4.1 Use zeek::detail::lookup_ID instead.")]]
+extern const zeek::detail::IDPtr& lookup_ID(
+  const char* name, const char* module,
+  bool no_global = false,
+  bool same_module_only = false,
+  bool check_export = true);

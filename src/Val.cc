@@ -383,7 +383,7 @@ void Val::ValDescribeReST(ODesc* d) const
 #ifdef DEBUG
 detail::ID* Val::GetID() const
 	{
-	return bound_id ? global_scope()->Find(bound_id).get() : nullptr;
+	return bound_id ? zeek::detail::global_scope()->Find(bound_id).get() : nullptr;
 	}
 
 void Val::SetID(detail::ID* id)
@@ -2331,7 +2331,7 @@ bool TableVal::CheckAndAssign(ValPtr index, ValPtr new_val)
 	return Assign(std::move(index), std::move(new_val));
 	}
 
-void TableVal::InitDefaultFunc(Frame* f)
+void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
 	{
 	// Value aready initialized.
 	if ( def_val )

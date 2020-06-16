@@ -12,5 +12,5 @@ else
     cd build
     make -j ${ZEEK_CI_CPUS} install
     cd ..
-    tar -czf build.tgz ${CIRRUS_WORKING_DIR}/install
+    tar -czf ${CIRRUS_WORKING_DIR}/build.tgz ${CIRRUS_WORKING_DIR}/install
 fi

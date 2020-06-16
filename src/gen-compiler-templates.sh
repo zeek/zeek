@@ -174,7 +174,7 @@ BEGIN	{
 	args["FV"] = "(const NameExpr* n1, int field, const BroType* t, const NameExpr* n2)"
 	args["FC"] = "(const NameExpr* n, int field, const BroType* t, const ConstExpr* c)"
 
-	# Same for "x$f = y$g"T
+	# Same for "x$f = y$g".
 	args["FFV"] = "(const NameExpr* n1, int f1, const BroType* t, const NameExpr* n2, int f2)"
 	args["FFC"] = "(const NameExpr* n, int f1, const BroType* t, const ConstExpr* c, int f2)"
 

@@ -1,0 +1,4 @@
+[supervisor:STDERR] [grault] (stderr) supervised node zeek_init()
+received termination signal
+[supervisor:STDERR] [grault] received termination signal
+[supervisor:STDERR] [grault] (stderr) supervised node zeek_done()

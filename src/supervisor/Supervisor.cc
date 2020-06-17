@@ -44,8 +44,11 @@ extern "C" {
 #endif
 
 using namespace zeek;
+using zeek::detail::SupervisedNode;
+using zeek::detail::SupervisorNode;
+using zeek::detail::SupervisorStemHandle;
 
-std::optional<Supervisor::SupervisedNode> Supervisor::supervised_node;
+std::optional<SupervisedNode> Supervisor::supervised_node;
 
 namespace {
 
@@ -68,29 +71,29 @@ struct Stem {
 
 	~Stem();
 
-	Supervisor::SupervisedNode Run();
+	SupervisedNode Run();
 
-	std::optional<Supervisor::SupervisedNode> Poll();
+	std::optional<SupervisedNode> Poll();
 
-	std::optional<Supervisor::SupervisedNode> Revive();
+	std::optional<SupervisedNode> Revive();
 
 	void Reap();
 
-	std::variant<bool, Supervisor::SupervisedNode> Spawn(Supervisor::Node* node);
+	std::variant<bool, SupervisedNode> Spawn(SupervisorNode* node);
 
 	int AliveNodeCount() const;
 
 	void KillNodes(int signal);
 
-	void KillNode(Supervisor::Node* node, int signal) const;
+	void KillNode(SupervisorNode* node, int signal) const;
 
-	void Destroy(Supervisor::Node* node) const;
+	void Destroy(SupervisorNode* node) const;
 
-	bool Wait(Supervisor::Node* node, int options) const;
+	bool Wait(SupervisorNode* node, int options) const;
 
 	void Shutdown(int exit_code);
 
-	void ReportStatus(const Supervisor::Node& node) const;
+	void ReportStatus(const SupervisorNode& node) const;
 
 	void Log(std::string_view type, const char* format, va_list args) const;
 
@@ -102,7 +105,7 @@ struct Stem {
 	int last_signal = -1;
 	std::unique_ptr<zeek::detail::Flare> signal_flare;
 	std::unique_ptr<zeek::detail::PipePair> pipe;
-	std::map<std::string, Supervisor::Node> nodes;
+	std::map<std::string, SupervisorNode> nodes;
 	std::string msg_buffer;
 	bool shutting_down = false;
 };
@@ -181,7 +184,7 @@ void zeek::detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 		                                           interval));
 	}
 
-Supervisor::Supervisor(Supervisor::Config cfg, StemHandle sh)
+Supervisor::Supervisor(Supervisor::Config cfg, SupervisorStemHandle sh)
 	: config(std::move(cfg)), stem_pid(sh.pid), stem_pipe(std::move(sh.pipe))
 	{
 	stem_stdout.pipe = std::move(sh.stdout_pipe);
@@ -618,7 +621,7 @@ void Stem::Reap()
 		}
 	}
 
-bool Stem::Wait(Supervisor::Node* node, int options) const
+bool Stem::Wait(SupervisorNode* node, int options) const
 	{
 	if ( node->pid <= 0 )
 		{
@@ -671,7 +674,7 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 	return true;
 	}
 
-void Stem::KillNode(Supervisor::Node* node, int signal) const
+void Stem::KillNode(SupervisorNode* node, int signal) const
 	{
 	if ( node->pid <= 0 )
 		{
@@ -699,7 +702,7 @@ static int get_kill_signal(int attempts, int max_attempts)
 	return SIGKILL;
 	}
 
-void Stem::Destroy(Supervisor::Node* node) const
+void Stem::Destroy(SupervisorNode* node) const
 	{
 	constexpr auto max_term_attempts = 13;
 	constexpr auto kill_delay = 2;
@@ -727,7 +730,7 @@ void Stem::Destroy(Supervisor::Node* node) const
 		}
 	}
 
-std::optional<Supervisor::SupervisedNode> Stem::Revive()
+std::optional<SupervisedNode> Stem::Revive()
 	{
 	constexpr auto attempts_before_delay_increase = 3;
 	constexpr auto delay_increase_factor = 2;
@@ -763,8 +766,8 @@ std::optional<Supervisor::SupervisedNode> Stem::Revive()
 
 		auto spawn_res = Spawn(&node);
 
-		if ( std::holds_alternative<Supervisor::SupervisedNode>(spawn_res) )
-			return std::get<Supervisor::SupervisedNode>(spawn_res);
+		if ( std::holds_alternative<SupervisedNode>(spawn_res) )
+			return std::get<SupervisedNode>(spawn_res);
 
 		if ( std::get<bool>(spawn_res) )
 			LogError("Supervised node '%s' (PID %d) revived after premature exit",
@@ -776,7 +779,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Revive()
 	return {};
 	}
 
-std::variant<bool, Supervisor::SupervisedNode> Stem::Spawn(Supervisor::Node* node)
+std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node)
 	{
 	auto ppid = getpid();
 	auto fork_res = fork_with_stdio_redirect(fmt("node %s", node->Name().data()));
@@ -794,7 +797,7 @@ std::variant<bool, Supervisor::SupervisedNode> Stem::Spawn(Supervisor::Node* nod
 		setsignal(SIGCHLD, SIG_DFL);
 		setsignal(SIGTERM, SIG_DFL);
 		zeek::set_thread_name(fmt("zeek.%s", node->Name().data()));
-		Supervisor::SupervisedNode rval;
+		SupervisedNode rval;
 		rval.config = node->config;
 		rval.parent_pid = ppid;
 		return rval;
@@ -877,7 +880,7 @@ void Stem::Shutdown(int exit_code)
 		}
 	}
 
-void Stem::ReportStatus(const Supervisor::Node& node) const
+void Stem::ReportStatus(const SupervisorNode& node) const
 	{
 	std::string msg = fmt("status %s %d", node.Name().data(), node.pid);
 	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
@@ -916,7 +919,7 @@ void Stem::LogError(const char* format, ...) const
 	va_end(args);
 	}
 
-Supervisor::SupervisedNode Stem::Run()
+SupervisedNode Stem::Run()
 	{
 	for ( ; ; )
 		{
@@ -931,7 +934,7 @@ Supervisor::SupervisedNode Stem::Run()
 	return {};
 	}
 
-std::optional<Supervisor::SupervisedNode> Stem::Poll()
+std::optional<SupervisedNode> Stem::Poll()
 	{
 	std::map<std::string, int> node_pollfd_indices;
 	constexpr auto fixed_fd_count = 2;
@@ -1062,8 +1065,8 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 			DBG_STEM("Stem creating node: %s (PID %d)", node.Name().data(), node.pid);
 			auto spawn_res = Spawn(&node);
 
-			if ( std::holds_alternative<Supervisor::SupervisedNode>(spawn_res) )
-				return std::get<Supervisor::SupervisedNode>(spawn_res);
+			if ( std::holds_alternative<SupervisedNode>(spawn_res) )
+				return std::get<SupervisedNode>(spawn_res);
 
 			ReportStatus(node);
 			}
@@ -1085,8 +1088,8 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 
 			auto spawn_res = Spawn(&node);
 
-			if ( std::holds_alternative<Supervisor::SupervisedNode>(spawn_res) )
-				return std::get<Supervisor::SupervisedNode>(spawn_res);
+			if ( std::holds_alternative<SupervisedNode>(spawn_res) )
+				return std::get<SupervisedNode>(spawn_res);
 
 			ReportStatus(node);
 			}
@@ -1097,7 +1100,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 	return {};
 	}
 
-std::optional<Supervisor::StemHandle> Supervisor::CreateStem(bool supervisor_mode)
+std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
 	{
 	// If the Stem needs to be re-created via fork()/exec(), then the necessary
 	// state information is communicated via ZEEK_STEM env. var.
@@ -1157,12 +1160,12 @@ std::optional<Supervisor::StemHandle> Supervisor::CreateStem(bool supervisor_mod
 		return {};
 		}
 
-	StemHandle sh;
+	SupervisorStemHandle sh;
 	sh.pipe = std::move(ss.pipe);
 	sh.pid = pid;
 	sh.stdout_pipe = std::move(fork_res.stdout_pipe);
 	sh.stderr_pipe = std::move(fork_res.stderr_pipe);
-	return std::optional<Supervisor::StemHandle>(std::move(sh));
+	return std::optional<SupervisorStemHandle>(std::move(sh));
 	}
 
 static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)
@@ -1356,7 +1359,7 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	return rval;
 	}
 
-RecordValPtr Supervisor::Node::ToRecord() const
+RecordValPtr SupervisorNode::ToRecord() const
 	{
 	const auto& rt = zeek::BifType::Record::Supervisor::NodeStatus;
 	auto rval = zeek::make_intrusive<zeek::RecordVal>(rt);
@@ -1388,7 +1391,7 @@ static ValPtr supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterR
 	}
 	}
 
-bool Supervisor::SupervisedNode::InitCluster() const
+bool SupervisedNode::InitCluster() const
 	{
 	if ( config.cluster.empty() )
 		return false;
@@ -1435,7 +1438,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 	return true;
 	}
 
-void Supervisor::SupervisedNode::Init(zeek::Options* options) const
+void SupervisedNode::Init(zeek::Options* options) const
 	{
 	const auto& node_name = config.name;
 

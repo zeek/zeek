@@ -240,9 +240,12 @@ protected:
 	bool ParseAnswer(DNS_MsgInfo* msg,
 			const u_char*& data, int& len, const u_char* start);
 
+    u_char* ExtractName(const u_char*& data, int& len,
+                        u_char* label, int label_len,
+                        const u_char* msg_start);
 	u_char* ExtractName(const u_char*& data, int& len,
 				u_char* label, int label_len,
-				const u_char* msg_start);
+				const u_char* msg_start, bool downcase);
 	bool ExtractLabel(const u_char*& data, int& len,
 			 u_char*& label, int& label_len,
 			 const u_char* msg_start);
@@ -308,7 +311,7 @@ protected:
 				const u_char* msg_start);
 	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
 					const u_char*& data, int& len,
-					BroString* question_name);
+					BroString* question_name, BroString* original_name);
 
 	analyzer::Analyzer* analyzer;
 	bool first_message;

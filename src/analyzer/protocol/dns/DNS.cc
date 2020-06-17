@@ -171,7 +171,7 @@ bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 	u_char name[513];
 	int name_len = sizeof(name) - 1;
 
-	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
+	u_char* name_end = ExtractName(data, len, name, name_len, msg_start, false);
 	if ( ! name_end )
 		return false;
 
@@ -196,9 +196,16 @@ bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 
 	if ( dns_event && ! msg->skip_event )
 		{
-		BroString* question_name =
-			new BroString(name, name_end - name, true);
-		SendReplyOrRejectEvent(msg, dns_event, data, len, question_name);
+	    BroString* original_name = new BroString(name, name_end - name, true);
+
+	    // Downcase the Name to normalize it
+        for ( u_char* np = name; np < name_end; ++np )
+            if ( isupper(*np) )
+                *np = tolower(*np);
+        BroString* question_name =
+                new BroString(name, name_end - name, true);
+
+		SendReplyOrRejectEvent(msg, dns_event, data, len, question_name, original_name);
 		}
 	else
 		{
@@ -354,8 +361,14 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	}
 
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
+                                     u_char* name, int name_len,
+                                     const u_char* msg_start) {
+    return DNS_Interpreter::ExtractName(data, len, name, name_len, msg_start, true);
+}
+
+u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
 					u_char* name, int name_len,
-					const u_char* msg_start)
+					const u_char* msg_start, bool downcase)
 	{
 	u_char* name_start = name;
 
@@ -375,9 +388,10 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
 		}
 
 	// Convert labels to lower case for consistency.
-	for ( u_char* np = name_start; np < name; ++np )
-		if ( isupper(*np) )
-			*np = tolower(*np);
+	if (downcase)
+        for ( u_char* np = name_start; np < name; ++np )
+            if ( isupper(*np) )
+                *np = tolower(*np);
 
 	return name;
 	}
@@ -1388,7 +1402,8 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 						EventHandlerPtr event,
 						const u_char*& data, int& len,
-						BroString* question_name)
+						BroString* question_name,
+						BroString* original_name)
 	{
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
@@ -1400,7 +1415,8 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 		msg->BuildHdrVal(),
 		make_intrusive<StringVal>(question_name),
 		val_mgr->Count(qtype),
-		val_mgr->Count(qclass)
+		val_mgr->Count(qclass),
+		make_intrusive<StringVal>(original_name)
 	);
 	}
 

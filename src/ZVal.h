@@ -97,7 +97,16 @@ inline bool IsManagedType(const IntrusivePtr<BroType>& t)
 inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 
 // Deletes a managed value.
-extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
+// extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
+inline void DeleteManagedType(ZAMValUnion& v, const BroType* t)
+	{
+	Unref(v.managed_val);
+	}
+inline void DeleteAndZeroManagedType(ZAMValUnion& v, const BroType* t)
+	{
+	Unref(v.managed_val);
+	v.managed_val = nullptr;
+	}
 
 
 typedef vector<ZAMValUnion> ZVU_vec;
@@ -165,9 +174,10 @@ public:
 			GrowVector(n + 1);
 
 		if ( managed_yt )
-			SetManagedElement(n, v);
-		else
-			zvec[n] = v;
+			DeleteManagedType(zvec[n], managed_yt);
+			// SetManagedElement(n, v);
+
+		zvec[n] = v;
 		}
 
 	void Insert(unsigned int index, ZAMValUnion& element)
@@ -177,7 +187,8 @@ public:
 		if ( index < zvec.size() )
 			{
 			it = std::next(zvec.begin(), index);
-			DeleteIfManaged(index);
+			if ( managed_yt )
+				DeleteIfManaged(index);
 			}
 		else
 			it = zvec.end();
@@ -187,7 +198,9 @@ public:
 
 	void Remove(unsigned int index)
 		{
-		DeleteIfManaged(index);
+		if ( managed_yt )
+			DeleteIfManaged(index);
+
 		auto it = std::next(zvec.begin(), index);
 		zvec.erase(it);
 		}
@@ -240,7 +253,8 @@ public:
 	void Assign(unsigned int field, ZAMValUnion v)
 		{
 		if ( IsInRecord(field) && IsManaged(field) )
-			Delete(field);
+			Unref(zvec[field].managed_val);
+			// Delete(field);
 
 		zvec[field] = v;
 
@@ -282,7 +296,8 @@ public:
 	void DeleteField(unsigned int field)
 		{
 		if ( IsInRecord(field) && IsManaged(field) )
-			DeleteManagedType(zvec[field], FieldType(field));
+			Unref(zvec[field].managed_val);
+			// DeleteManagedType(zvec[field], FieldType(field));
 
 		auto mask = 1UL << field;
 		is_in_record &= ~mask;
@@ -314,8 +329,11 @@ protected:
 		}
 
 	// Removes the given field.
+	// The current definition takes advantage of the fact that
+	// we know that DeleteManagedType() ignores the type provided to it.
 	void Delete(unsigned int field)
-		{ DeleteManagedType(zvec[field], FieldType(field)); }
+		// { DeleteManagedType(zvec[field], FieldType(field)); }
+		{ DeleteManagedType(zvec[field], nullptr); }
 
 	void DeleteManagedMembers();
 

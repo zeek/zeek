@@ -50,6 +50,7 @@ bool IsManagedType(const BroType* t)
 	}
 	}
 
+#if 0
 void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	{
 	switch ( t->Tag() ) {
@@ -77,6 +78,7 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 		reporter->InternalError("type inconsistency in DeleteManagedType");
 	}
 	}
+#endif
 
 
 ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
@@ -263,6 +265,8 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
+	// ### Shouldn't be called.
+	ASSERT(0);
 	auto& zn = zvec[n];
 
 	switch ( managed_yt->Tag() ) {
@@ -354,8 +358,9 @@ void ZAM_record::DeleteManagedMembers()
 		if ( IsInRecord(i) && IsManaged(i) )
 			{
 			auto& zvi = zvec[i];
-			auto rti = FieldType(i);
-			DeleteManagedType(zvi, rti);
+			DeleteManagedType(zvi, nullptr);
+			// auto rti = FieldType(i);
+			// DeleteManagedType(zvi, rti);
 			}
 		}
 	}

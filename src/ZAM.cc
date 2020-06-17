@@ -848,7 +848,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	for ( auto i = 0; i < managed_slots.size(); ++i )
 		{
 		auto& v = frame[managed_slots[i]];
-		DeleteManagedType(v, managed_slot_types[i]);
+		DeleteManagedType(v, nullptr);
+		// DeleteManagedType(v, managed_slot_types[i]);
 		}
 
 	delete [] frame;

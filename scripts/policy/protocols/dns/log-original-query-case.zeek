@@ -14,6 +14,6 @@ export {
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count, original_query: string)
     {
-    if ( ! c$dns?$original_query )
+    if ( c?$dns && ! c$dns?$original_query )
         c$dns$original_query = original_query;
     }

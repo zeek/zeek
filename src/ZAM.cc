@@ -356,6 +356,20 @@ Stmt* ZAM::CompileBody()
 		if ( inst->AssignsToSlot1() )
 			CheckSlotAssignment(inst->v1, inst);
 
+		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
+		     inst->op == OP_NEXT_TABLE_ITER_VV )
+			{
+			// Sigh, need to special-case these as they
+			// assign to an arbitrary long list of variables.
+			auto iter_vars = inst->c.iter_info;
+			for ( auto v : iter_vars->loop_vars )
+				CheckSlotAssignment(v, inst);
+
+			// No need to check the additional "var" associated
+			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
+			// a slot-1 assignment.
+			}
+
 		int s1, s2, s3, s4;
 
 		if ( ! inst->UsesSlots(s1, s2, s3, s4) )

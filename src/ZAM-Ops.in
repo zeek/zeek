@@ -819,6 +819,7 @@ eval ii->value_var_type = z.t
 eval frame[z.v1].iter_info = ii
 
 internal-op Next-Table-Iter
+op1-read
 # v1 = iteration info
 # v2 = branch target if loop done
 type VV
@@ -869,6 +870,7 @@ eval frame[z.v1].iter_info = ii
 
 # v1 = iteration variable
 # v2 = iteration info
+# v3 = branch target if loop done
 internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
@@ -888,6 +890,7 @@ eval frame[z.v1].iter_info = ii
 
 # v1 = iteration variable
 # v2 = iteration info
+# v3 = branch target if loop done
 internal-op Next-String-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
@@ -900,6 +903,7 @@ eval frame[z.v1].string_val = sv
 eval ++ii->iter
 
 internal-op End-Loop
+op1-read
 type V
 eval auto ii = frame[z.v1].iter_info
 eval if ( ii->c ) ii->loop_vals->StopIteration(ii->c)

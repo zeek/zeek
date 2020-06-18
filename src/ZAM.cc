@@ -795,15 +795,22 @@ void ZAM::ReMapFrame()
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)
 	{
-	// Greedy algorithm: find the first suitable frame.  In principle
-	// we could perhaps do better using a more powerful allocation
-	// method like graph coloring, but far and away the bulk of our
-	// variables are short-lived temporaries, for which greedy should
-	// work fine.
+	// A greedy algorithm for this is to simply find the first suitable
+	// frame slot.  We do that with one twist: we also look for a
+	// compatible slot for which its current end-of-scope is exactly
+	// the start-of-scope for the new identifier.  The advantage of
+	// doing so is that this commonly occurs for code like "a.1 = a"
+	// from resolving parameters to inlined functions, and if "a.1" and
+	// "a" share the same slot then we can elide the assignment.
+	//
+	// In principle we could perhaps do better than greedy using a more
+	// powerful allocation method like graph coloring.  However, far and
+	// away the bulk of our variables are short-lived temporaries,
+	// for which greedy should work fine.
 	bool is_managed = IsManagedType(id->Type());
 
-	int i;
-	for ( i = 0; i < shared_frame_denizens.size(); ++i )
+	int apt_slot = -1;
+	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
 		{
 		auto& s = shared_frame_denizens[i];
 
@@ -815,13 +822,26 @@ void ZAM::ReMapVar(const ID* id, int slot, int inst)
 		// refer to the same slot.
 
 		if ( s.scope_end <= inst && s.is_managed == is_managed )
+			{
 			// It's compatible.
-			break;
+
+			if ( s.scope_end == inst )
+				{
+				// It ends right on the money.
+				apt_slot = i;
+				break;
+				}
+
+			else if ( apt_slot < 0 )
+				// We haven't found a candidate yet, take
+				// this one, but keep looking.
+				apt_slot = i;
+			}
 		}
 
 	int scope_end = denizen_ending[slot]->inst_num;
 
-	if ( i == shared_frame_denizens.size() )
+	if ( apt_slot < 0 )
 		{
 		// No compatible existing slot.  Create a new one.
 		FrameSharingInfo info;
@@ -835,7 +855,7 @@ void ZAM::ReMapVar(const ID* id, int slot, int inst)
 	else
 		{
 		// Add to existing slot.
-		auto& s = shared_frame_denizens[i];
+		auto& s = shared_frame_denizens[apt_slot];
 
 		s.ids.push_back(id);
 		s.id_start.push_back(inst);

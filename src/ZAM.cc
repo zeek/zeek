@@ -323,22 +323,7 @@ Stmt* ZAM::CompileBody()
 		}
 
 	if ( ! analysis_options.no_ZAM_opt )
-		{
 		OptimizeInsts();
-
-		printf("denizens for %s\n", func->Name());
-		for ( auto i = 1; i < frame_denizens.size(); ++i )
-			{
-			auto id = frame_denizens[i];
-			printf("denizen%s %s begins at %d, ends at %d\n",
-				id->IsGlobal() ? " (global)" : "",
-				id->Name(),
-				denizen_beginning.count(i) ?
-					denizen_beginning[i]->inst_num : -1,
-				denizen_ending.count(i) ?
-					denizen_ending[i]->inst_num : -1);
-			}
-		}
 
 	// Move branches to dead code forward to their successor live code.
 	for ( auto i = 0; i < insts1.size(); ++i )
@@ -553,6 +538,8 @@ void ZAM::OptimizeInsts()
 			something_changed = true;
 		}
 	while ( something_changed );
+
+	ReMapFrame();
 	}
 
 bool ZAM::RemoveDeadCode()
@@ -628,50 +615,6 @@ bool ZAM::CollapseGoTos()
 	return did_collapse;
 	}
 
-void ZAM::ComputeFrameLifetimes()
-	{
-	// Start analysis from scratch, since we can do this repeatedly.
-	inst_beginnings.clear();
-	inst_endings.clear();
-
-	denizen_beginning.clear();
-	denizen_ending.clear();
-
-	for ( auto i = 0; i < insts1.size(); ++i )
-		{
-		auto inst = insts1[i];
-		if ( ! inst->live )
-			continue;
-
-		if ( inst->AssignsToSlot1() )
-			CheckSlotAssignment(inst->v1, inst);
-
-		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
-		     inst->op == OP_NEXT_TABLE_ITER_VV )
-			{
-			// Sigh, need to special-case these as they
-			// assign to an arbitrary long list of variables.
-			auto iter_vars = inst->c.iter_info;
-			for ( auto v : iter_vars->loop_vars )
-				CheckSlotAssignment(v, inst);
-
-			// No need to check the additional "var" associated
-			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
-			// a slot-1 assignment.
-			}
-
-		int s1, s2, s3, s4;
-
-		if ( ! inst->UsesSlots(s1, s2, s3, s4) )
-			continue;
-
-		CheckSlotUse(s1, inst);
-		CheckSlotUse(s2, inst);
-		CheckSlotUse(s3, inst);
-		CheckSlotUse(s4, inst);
-		}
-	}
-
 bool ZAM::PruneGlobally()
 	{
 	bool did_prune = false;
@@ -712,6 +655,194 @@ bool ZAM::PruneGlobally()
 	return did_prune;
 	}
 
+void ZAM::ComputeFrameLifetimes()
+	{
+	// Start analysis from scratch, since we can do this repeatedly.
+	inst_beginnings.clear();
+	inst_endings.clear();
+
+	denizen_beginning.clear();
+	denizen_ending.clear();
+
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->AssignsToSlot1() )
+			CheckSlotAssignment(inst->v1, inst);
+
+		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
+		     inst->op == OP_NEXT_TABLE_ITER_VV )
+			{
+			// Sigh, need to special-case these as they
+			// assign to an arbitrary long list of variables.
+			auto iter_vars = inst->c.iter_info;
+			for ( auto v : iter_vars->loop_vars )
+				CheckSlotAssignment(v, inst);
+
+			// No need to check the additional "var" associated
+			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
+			// a slot-1 assignment.
+			}
+
+		if ( inst->op == OP_SYNC_GLOBALS_X )
+			{
+			// Extend the lifetime of any modified globals.
+			for ( auto g : modified_globals )
+				{
+				int gs = frame_layout[g];
+				if ( denizen_beginning.count(gs) == 0 )
+					// Global hasn't been loaded yet.
+					continue;
+
+				ExtendLifetime(gs, EndOfLoop(inst));
+				}
+			}
+
+		int s1, s2, s3, s4;
+
+		if ( ! inst->UsesSlots(s1, s2, s3, s4) )
+			continue;
+
+		CheckSlotUse(s1, inst);
+		CheckSlotUse(s2, inst);
+		CheckSlotUse(s3, inst);
+		CheckSlotUse(s4, inst);
+		}
+	}
+
+void ZAM::ReMapFrame()
+	{
+	// Note, we manage the remapping as 0-based.  This ultimately
+	// needs to be translated into 1-based due to the assumption
+	// that the "temporary register" slot is zero.  Eventually we
+	// should just treat it and the "extra" slots as we do any other
+	// identifier.
+	
+	// General approach: go sequentially through the instructions,
+	// see which variables begin their lifetime at each, and at
+	// that point remap the variables to a suitable frame slot.
+
+#if 1
+	printf("%s denizens:\n", func->Name());
+	for ( auto i = 1; i < frame_denizens.size(); ++i )
+		{
+		auto id = frame_denizens[i];
+		printf("denizen%s %s begins at %d, ends at %d\n",
+			id->IsGlobal() ? " (global)" : "",
+			id->Name(),
+			denizen_beginning.count(i) ?
+				denizen_beginning[i]->inst_num : -1,
+			denizen_ending.count(i) ?
+				denizen_ending[i]->inst_num : -1);
+		}
+
+	printf("%s inst structures:\n", func->Name());
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+
+		if ( inst_beginnings.count(inst) > 0 )
+			{
+			printf("%d:", i);
+
+			auto vars = inst_beginnings[inst];
+			for ( auto v : vars )
+				printf(" %s", v->Name());
+
+			printf("\n");
+			}
+		}
+#endif
+
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+
+		if ( inst_beginnings.count(inst) == 0 )
+			continue;
+
+		auto vars = inst_beginnings[inst];
+		for ( auto v : vars )
+			{
+			// Don't remap variables whose values aren't actually
+			// used.
+			int slot = frame_layout[v];
+			if ( denizen_ending.count(slot) > 0 )
+				ReMapVar(v, slot, i);
+			}
+		}
+
+	printf("%s frame remapping:\n", func->Name());
+
+	for ( auto frame_elem : frame_layout )
+		printf("frame[%d] = %s\n", frame_elem.second, frame_elem.first->Name());
+	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+		{
+		auto& s = shared_frame_denizens[i];
+		printf("*%d (%s) %lu #%d->#%d:",
+			i, s.is_managed ? "M" : "N",
+			s.ids.size(), s.id_start[0], s.scope_end);
+
+		for ( auto j = 0; j < s.ids.size(); ++j )
+			printf(" %s (%d)", s.ids[j]->Name(), s.id_start[j]);
+
+		printf("\n");
+		}
+	}
+
+void ZAM::ReMapVar(const ID* id, int slot, int inst)
+	{
+	// Greedy algorithm: find the first suitable frame.  In principle
+	// we could perhaps do better using a more powerful allocation
+	// method like graph coloring, but far and away the bulk of our
+	// variables are short-lived temporaries, for which greedy should
+	// work fine.
+	bool is_managed = IsManagedType(id->Type());
+
+	int i;
+	for ( i = 0; i < shared_frame_denizens.size(); ++i )
+		{
+		auto& s = shared_frame_denizens[i];
+
+		// Note that the following test is <= rather than <.
+		// This is because assignment in instructions happens
+		// after using any variables to compute the value
+		// to assign.  ZAM instructions are careful to
+		// allow operands and assignment destinations to
+		// refer to the same slot.
+
+		if ( s.scope_end <= inst && s.is_managed == is_managed )
+			// It's compatible.
+			break;
+		}
+
+	int scope_end = denizen_ending[slot]->inst_num;
+
+	if ( i == shared_frame_denizens.size() )
+		{
+		// No compatible existing slot.  Create a new one.
+		FrameSharingInfo info;
+		info.ids.push_back(id);
+		info.id_start.push_back(inst);
+		info.scope_end = scope_end;
+		info.is_managed = is_managed;
+		shared_frame_denizens.push_back(info);
+		}
+
+	else
+		{
+		// Add to existing slot.
+		auto& s = shared_frame_denizens[i];
+
+		s.ids.push_back(id);
+		s.id_start.push_back(inst);
+		s.scope_end = scope_end;
+		}
+	}
+
 void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 	{
 	if ( slot <= 0 )
@@ -729,24 +860,13 @@ void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 	// we expand the lifetime beginning to the start of any loop
 	// region.
 	if ( ! reducer->IsTemporary(frame_denizens[slot]) )
-		{
-		int i = inst->inst_num;
+		inst = BeginningOfLoop(inst);
 
-		while ( i >= 0 && insts1[i]->inside_loop )
-			--i;
+	SetLifetimeStart(slot, inst);
+	}
 
-		if ( i != inst->inst_num )
-			{
-			// We moved backwards to just beyond a loop that inst
-			// is part of.  Move to that loop's (live) beginning.
-			++i;
-			while ( i != inst->inst_num && ! insts1[i]->live )
-				++i;
-
-			inst = insts1[i];
-			}
-		}
-
+void ZAM::SetLifetimeStart(int slot, const ZInst* inst)
+	{
 	if ( denizen_beginning.count(slot) > 0 )
 		{
 		// Beginning of denizen's lifetime already seen, nothing
@@ -784,24 +904,13 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 	// See comment above about temporaries not having their values
 	// extend around loop bodies.
 	if ( ! reducer->IsTemporary(frame_denizens[slot]) )
-		{
-		int i = inst->inst_num;
+		inst = EndOfLoop(inst);
 
-		while ( i < insts1.size() && insts1[i]->inside_loop )
-			++i;
+	ExtendLifetime(slot, inst);
+	}
 
-		if ( i != inst->inst_num )
-			{
-			// We moved forewards to just beyond a loop that inst
-			// is part of.  Move to that loop's (live) end.
-			--i;
-			while ( i != inst->inst_num && ! insts1[i]->live )
-				--i;
-
-			inst = insts1[i];
-			}
-		}
-
+void ZAM::ExtendLifetime(int slot, const ZInst* inst)
+	{
 	if ( denizen_ending.count(slot) > 0 )
 		{
 		// End of denizen's lifetime already seen.  Check for
@@ -835,8 +944,46 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 			inst_endings[inst] = denizens;
 			}
 
-		inst_beginnings[inst].insert(frame_denizens[slot]);
+		inst_endings[inst].insert(frame_denizens[slot]);
 		}
+	}
+
+const ZInst* ZAM::BeginningOfLoop(const ZInst* inst) const
+	{
+	auto i = inst->inst_num;
+
+	while ( i >= 0 && insts1[i]->inside_loop )
+		--i;
+
+	if ( i == inst->inst_num )
+		return inst;
+
+	// We moved backwards to just beyond a loop that inst
+	// is part of.  Move to that loop's (live) beginning.
+	++i;
+	while ( i != inst->inst_num && ! insts1[i]->live )
+		++i;
+
+	return insts1[i];
+	}
+
+const ZInst* ZAM::EndOfLoop(const ZInst* inst) const
+	{
+	auto i = inst->inst_num;
+
+	while ( i < insts1.size() && insts1[i]->inside_loop )
+		++i;
+
+	if ( i == inst->inst_num )
+		return inst;
+
+	// We moved forwards to just beyond a loop that inst
+	// is part of.  Move to that loop's (live) end.
+	--i;
+	while ( i != inst->inst_num && ! insts1[i]->live )
+		--i;
+
+	return insts1[i];
 	}
 
 bool ZAM::VarIsAssigned(int slot) const
@@ -2337,6 +2484,10 @@ const CompiledStmt ZAM::Return(const ReturnStmt* r)
 	// inlined ones.  See the coment in for STMT_RETURN's in
 	// RD_Decorate::PostStmt for why we can't simply propagate
 	// RDs in this case.
+	//
+	// In addition, by sync'ing here rather than deferring we
+	// provide opportunities to double-up the frame slot used
+	// by the global.
 	SyncGlobals(r);
 
 	if ( retvars.size() == 0 )
@@ -2891,7 +3042,7 @@ void ZAM::SyncGlobals(const BroObj* o)
 	SyncGlobals(pf->globals, o);
 	}
 
-void ZAM::SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o)
+void ZAM::SyncGlobals(std::unordered_set<ID*>& globals, const BroObj* o)
 	{
 	auto mgr = reducer->GetDefSetsMgr();
 	auto entry_rds = mgr->GetPreMaxRDs(body);
@@ -2901,14 +3052,17 @@ void ZAM::SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o)
 
 	bool could_be_dirty = false;
 
-	for ( auto g : g )
+	for ( auto g : globals )
 		{
 		auto g_di = mgr->GetConstID_DI(g);
 		auto entry_dps = entry_rds->GetDefPoints(g_di);
 		auto curr_dps = curr_rds->GetDefPoints(g_di);
 
 		if ( ! entry_rds->SameDefPoints(entry_dps, curr_dps) )
+			{
+			modified_globals.insert(g);
 			could_be_dirty = true;
+			}
 		}
 
 	if ( could_be_dirty )

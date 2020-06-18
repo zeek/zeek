@@ -66,6 +66,26 @@ extern ZAMOp1Flavor op1_flavor[];
 // Maps ZAM frame slots to associated identifiers.   
 typedef std::vector<ID*> FrameMap;
 
+// Maps ZAM frame slots to information for sharing across multiple identifiers.
+class FrameSharingInfo {
+public:
+	// The IDs sharing the slot.
+	std::vector<const ID*> ids;
+
+	// The statement number where a given identifier starts its scope,
+	// parallel to "ids".
+	std::vector<int> id_start;
+
+	// The current end of the frame slot's scope.  Gets updated as
+	// new IDs are added to share the slot.
+	int scope_end;
+
+	// Whether this is a managed from slot.
+	bool is_managed;
+};
+
+typedef std::vector<FrameSharingInfo> FrameReMap;
+
 // A ZAM instruction.
 class ZInst {
 public:

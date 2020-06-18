@@ -145,13 +145,33 @@ protected:
 	// (including consideration for loops).
 	void ComputeFrameLifetimes();
 
+	// Given final frame lifetime information, remaps frame members
+	// with non-overlapping lifetimes to share slots.
+	void ReMapFrame();
+
+	// Computes the remapping for a variable currently in the given slot,
+	// whose scope begins at the given instruction.
+	void ReMapVar(const ID* id, int slot, int inst);
+
 	// Look to initialize the beginning of local lifetime based on slot
-	// assignment at instruction i.
+	// assignment at instruction inst.
 	void CheckSlotAssignment(int slot, const ZInst* inst);
 
+	// Track that a local's lifetime begins at the given statement.
+	void SetLifetimeStart(int slot, const ZInst* inst);
+
 	// Look for extension of local lifetime based on slot usage
-	// at instruction i.
+	// at instruction inst.
 	void CheckSlotUse(int slot, const ZInst* inst);
+
+	// Extend (or create) the end of a local's lifetime.
+	void ExtendLifetime(int slot, const ZInst* inst);
+
+	// Returns the (live) instruction at the beginning/end of the loop
+	// within which the given instruction lies; or that instruction
+	// itself if it's not inside a loop.
+	const ZInst* BeginningOfLoop(const ZInst* inst) const;
+	const ZInst* EndOfLoop(const ZInst* inst) const;
 
 	// True if any statement other than a frame sync assigns to the
 	// given slot.
@@ -395,6 +415,14 @@ protected:
 	// statements).
 	FrameMap frame_denizens;
 
+	// The same, but for remapping identifiers to share frame slots.
+	//
+	// IMPORTANT: we manage this as zero-based.  As long as the
+	// "temporary register" slot is presumed to reside at slot 0,
+	// we need to be careful in how we interpret offsets into
+	// this vector.
+	FrameReMap shared_frame_denizens;
+
 	// A type for mapping an instruction to a set of locals associated
 	// with it.
 	typedef std::unordered_map<const ZInst*, std::unordered_set<const ID*>>
@@ -423,6 +451,9 @@ protected:
 	// and their corresponding type tags.
 	std::vector<int> managed_slots;
 	std::vector<const BroType*> managed_slot_types;
+
+	// Which globals are potentially ever modified.
+	std::unordered_set<const ID*> modified_globals;
 
 	// The following are used for switch statements, mapping the
 	// switch value (which can be any atomic type) to a branch target.

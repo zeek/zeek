@@ -172,6 +172,10 @@ public:
 	// are not branches.
 	bool IsUnconditionalBranch() const	{ return op == OP_GOTO_V; }
 
+	// True if this instruction has side effects when executed, so
+	// should not be pruned even if it has a dead assignment.
+	bool HasSideEffects() const;
+
 	// True if the given instruction assigns to the frame location
 	// given by slot 1 (v1).
 	bool AssignsToSlot1() const;

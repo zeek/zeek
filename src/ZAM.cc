@@ -323,7 +323,22 @@ Stmt* ZAM::CompileBody()
 		}
 
 	if ( ! analysis_options.no_ZAM_opt )
+		{
 		OptimizeInsts();
+
+		printf("denizens for %s\n", func->Name());
+		for ( auto i = 1; i < frame_denizens.size(); ++i )
+			{
+			auto id = frame_denizens[i];
+			printf("denizen%s %s begins at %d, ends at %d\n",
+				id->IsGlobal() ? " (global)" : "",
+				id->Name(),
+				denizen_beginning.count(i) ?
+					denizen_beginning[i]->inst_num : -1,
+				denizen_ending.count(i) ?
+					denizen_ending[i]->inst_num : -1);
+			}
+		}
 
 	// Move branches to dead code forward to their successor live code.
 	for ( auto i = 0; i < insts1.size(); ++i )
@@ -510,6 +525,30 @@ void ZAM::OptimizeInsts()
 
 		ComputeFrameLifetimes();
 
+#if 0
+		printf("current code:\n");
+		for ( int i = 0; i < insts1.size(); ++i )
+			{
+			auto& inst = insts1[i];
+			printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
+				inst->inside_loop ? " (loop)" : "");
+			inst->Dump(frame_denizens);
+			}
+
+		printf("denizens for %s\n", func->Name());
+		for ( auto i = 1; i < frame_denizens.size(); ++i )
+			{
+			auto id = frame_denizens[i];
+			printf("denizen%s %s begins at %d, ends at %d\n",
+				id->IsGlobal() ? " (global)" : "",
+				id->Name(),
+				denizen_beginning.count(i) ?
+					denizen_beginning[i]->inst_num : -1,
+				denizen_ending.count(i) ?
+					denizen_ending[i]->inst_num : -1);
+			}
+#endif
+
 		if ( PruneGlobally() )
 			something_changed = true;
 		}
@@ -631,19 +670,6 @@ void ZAM::ComputeFrameLifetimes()
 		CheckSlotUse(s3, inst);
 		CheckSlotUse(s4, inst);
 		}
-
-	printf("denizens for %s\n", func->Name());
-	for ( auto i = 1; i < frame_denizens.size(); ++i )
-		{
-		auto id = frame_denizens[i];
-		printf("denizen%s %s begins at %d, ends at %d\n",
-			id->IsGlobal() ? " (global)" : "",
-			id->Name(),
-			denizen_beginning.count(i) ?
-				denizen_beginning[i]->inst_num : -1,
-			denizen_ending.count(i) ?
-				denizen_ending[i]->inst_num : -1);
-		}
 	}
 
 bool ZAM::PruneGlobally()
@@ -667,6 +693,19 @@ bool ZAM::PruneGlobally()
 			{
 			did_prune = true;
 			KillInst(inst);
+			}
+
+		if ( inst->AssignsToSlot1() && ! inst->HasSideEffects() )
+			{
+			int slot = inst->v1;
+			if ( slot > 0 && slot < frame_denizens.size() &&
+			     ! frame_denizens[slot]->IsGlobal() &&
+			     denizen_ending.count(slot) == 0 )
+				{
+				did_prune = true;
+				// We don't use this assignment.
+				KillInst(inst);
+				}
 			}
 		}
 

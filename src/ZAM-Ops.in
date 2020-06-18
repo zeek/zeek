@@ -1146,11 +1146,13 @@ eval frame[z.v1].list_val = ValVecToListVal(frame[z.v2].vvec, z.v3)
 
 # Interprets the statement's expression as a stand-alone statement.
 internal-op Interpret-Expr
+side-effects
 type X
 eval (void) z.e->Eval(f) /* this could invoke us recursively */
 
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
+side-effects
 type V
 eval auto v = z.e->Eval(f) /* this could invoke us recursively */
 eval AssignV1(BuildVal(v, z.t))
@@ -1158,6 +1160,7 @@ eval AssignV1(BuildVal(v, z.t))
 # Interprets the statement's expression and assigns the result to v1,
 # where v1 is an "any" type.
 internal-op Interpret-Expr-Any
+side-effects
 type V
 eval frame[z.v1].any_val = z.e->Eval(f).release()
 
@@ -1278,6 +1281,7 @@ eval frame[z.v1].string_val = sv
 # take the raw enum value, as it appears that that's all that's ever
 # actually used.
 internal-op Log-Write
+side-effects
 type VVV
 eval auto id = frame[z.v2].ToVal(log_ID_enum_type)
 eval auto columns = frame[z.v3].ToVal(z.t)
@@ -1285,6 +1289,7 @@ eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
 internal-op Log-Write
+side-effects
 type VVC
 eval auto id = z.c.ToVal(log_ID_enum_type)
 eval auto columns = frame[z.v2].ToVal(z.t)
@@ -1292,6 +1297,7 @@ eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
 internal-op Broker-Flush-Logs
+side-effects
 type V
 eval frame[z.v1].uint_val = broker_mgr->FlushLogBuffers()
 

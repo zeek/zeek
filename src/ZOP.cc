@@ -22,6 +22,11 @@ ZAMOp1Flavor op1_flavor[] = {
 	OP1_INTERNAL,	// OP_NOP
 };
 
+bool op_side_effects[] = {
+#include "ZAM-OpSideEffects.h"
+	false,	// OP_NOP
+};
+
 
 bool ZInst::DoesNotContinue() const
 	{
@@ -70,6 +75,11 @@ int ZInst::NumFrameSlots() const
 	case OP_VVVC_I2_I3:	return 1;
 	case OP_VVVC_I1_I2_I3:	return 0;
 	}
+	}
+
+bool ZInst::HasSideEffects() const
+	{
+	return op_side_effects[op];
 	}
 
 bool ZInst::AssignsToSlot1() const

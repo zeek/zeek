@@ -17,6 +17,7 @@ BEGIN	{
 	ops_f = add_file("ZAM-OpsDefs.h")
 	ops_names_f = add_file("ZAM-OpsNamesDefs.h")
 	op1_flavors_f = add_file("ZAM-Op1FlavorsDefs.h")
+	side_effects_f = add_file("ZAM-OpSideEffects.h")
 	ops_direct_f = add_file("CompilerOpsDirectDefs.h")
 	ops_eval_f = add_file("ZAM-OpsEvalDefs.h")
 	vec1_eval_f = add_file("ZAM-Vec1EvalDefs.h")
@@ -334,6 +335,8 @@ $1 == "op1-internal"	{ op1_flavor = "OP1_INTERNAL"; next }
 $1 == "op-accessor"	{ op1_accessor = op2_accessor = $2; next }
 $1 == "op1-accessor"	{ op1_accessor = $2; next }
 $1 == "op2-accessor"	{ op2_accessor = $2; next }
+
+$1 == "side-effects"	{ side_effects = 1; next; }
 
 $1 == "field-op"	{ field_op = 1; next }
 $1 == "no-const"	{ no_const = 1; next }
@@ -1035,7 +1038,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		print ("\tcase " full_op cond ":\treturn \"" tolower(orig_op) \
 			"-" type orig_suffix "-cond" "\";") >ops_names_f
 
-	flavor1 = op1_flavor ? op1_flavor : "OP1_WRITE";
+	flavor1 = op1_flavor ? op1_flavor : "OP1_WRITE"
 	print ("\t", flavor1 ",\t// " full_op) >op1_flavors_f
 	if ( field_op )
 		print ("\t", flavor1 ",\t// " full_op field) >op1_flavors_f
@@ -1043,6 +1046,15 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		print ("\t", flavor1 ",\t// " full_op vec) >op1_flavors_f
 	if ( cond_op )
 		print ("\t", "OP1_READ" ",\t// " full_op cond) >op1_flavors_f
+
+	se = side_effects ? "true" : "false"
+	print ("\t", se ",\t// " full_op) >side_effects_f
+	if ( field_op )
+		print ("\t", se ",\t// " full_op field) >side_effects_f
+	if ( do_vec )
+		print ("\t", se ",\t// " full_op vec) >side_effects_f
+	if ( cond_op )
+		print ("\t", se ",\t// " full_op cond) >side_effects_f
 
 	if ( no_eval )
 		print ("\tcase " full_op ":\tbreak;") >ops_eval_f
@@ -1534,7 +1546,7 @@ function clear_vars()
 	field_eval = no_eval = mix_eval = multi_eval = eval_blank = ""
 	field_op = cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
 	vector = binary_op = internal_op = ""
-	op1_flavor = direct_method = direct_op = ""
+	side_effects = op1_flavor = direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""
 	ev_mix1 = ev_mix2 = ""

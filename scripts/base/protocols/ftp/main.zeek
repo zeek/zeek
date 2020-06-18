@@ -60,6 +60,20 @@ event zeek_init() &priority=5
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &read_expire=5mins;
 
+function minimize_info(info: Info): Info
+	{
+	# Just minimal data for sending to other remote Zeek processes.
+	# Generally, only data that's consistent across an entire FTP session or
+	# relevant to an expected data transfer would even be usable.
+	local rval: Info;
+	rval$ts = info$ts;
+	rval$uid= info$uid;
+	rval$id= info$id;
+	rval$user = info$user;
+	rval$passive = info$passive;
+	rval$pending_commands = PendingCmds();
+	}
+
 ## A set of commands where the argument can be expected to refer
 ## to a file or directory.
 const file_cmds = {
@@ -153,7 +167,7 @@ event sync_add_expected_data(s: Info, chan: ExpectedDataChannel)
 	{
 @if ( Cluster::local_node_type() == Cluster::PROXY ||
       Cluster::local_node_type() == Cluster::MANAGER )
-	Broker::publish(Cluster::worker_topic, sync_add_expected_data, s, chan);
+	Broker::publish(Cluster::worker_topic, sync_add_expected_data, minimize_info(s), chan);
 @else
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
 	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
@@ -181,7 +195,7 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	                            Analyzer::ANALYZER_FTP_DATA,
 	                            5mins);
 @if ( Cluster::is_enabled() )
-	Broker::publish(ftp_relay_topic(), sync_add_expected_data, s, chan);
+	Broker::publish(ftp_relay_topic(), sync_add_expected_data, minimize_info(s), chan);
 @endif
 	}
 

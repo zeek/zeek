@@ -1,4 +1,28 @@
 
+3.2.0-dev.794 | 2020-06-18 20:04:06 +0000
+
+  * Minimize data published for expected FTP data channel analysis
+
+    Previously, more data than could effectively be utilized by any remote
+    Zeek was published (e.g. full list of pending commands or other
+    transient state that may add up to non-trivial amount of bytes). (Jon Siwek, Corelight)
+
+  * GH-998: Fix Reporter::conn_weird() to handle expired connections
+
+    This introduces a new sampling state-map for expired connections to fix
+    segfaults that previously occured when passing in a `connection` record
+    to `Reporter::conn_weird()` for which the internal `Connection` object
+    had already been expired and deleted.  This also introduces a new event
+    called `expired_conn_weird`, which is similar to `conn_weird`, except
+    the full `connection` record is no longer available, just the `conn_id`
+    and UID string. (Jon Siwek, Corelight)
+
+  * Place build file in explicit location for benchmarking to work correctly (Tim Wojtulewicz, Corelight)
+
+  * Update highwayhash submodule to upstream.
+    This includes a patch by us, which fixes the compile on AARCH64.
+    Fixes GH-1006. (Johanna Amann, Corelight)
+
 3.2.0-dev.788 | 2020-06-15 11:04:20 -0700
 
   * Fix location where CI places build.tgz (Jon Siwek, Corelight)

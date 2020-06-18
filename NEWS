@@ -51,6 +51,10 @@ New Functionality
 - Add ``flags`` parameters to ``rdp_connect_request``,
   ``rdp_negotiation_response``, and ``rdp_negotiation_failure`` events.
 
+- ``Reporter::conn_weird`` now correctly handles weirds for expired connections,
+  for which no connection state information is available in the core anymore. These
+  cases will raise the new ``expired_conn_weird`` event.
+
 Changed Functionality
 ---------------------
 

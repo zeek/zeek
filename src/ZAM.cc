@@ -329,6 +329,55 @@ Stmt* ZAM::CompileBody()
 			inst->target = insts1[idx];
 		}
 
+	// Compute which instructions are inside loops.
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+		if ( ! inst->live )
+			continue;
+
+		auto t = inst->target;
+		if ( ! t || t == pending_inst )
+			continue;
+
+		if ( t->inst_num < i )
+			for ( auto j = t->inst_num; j <= i; ++j )
+				insts1[j]->inside_loop = true;
+		}
+
+	// Determine the lifetime (first instruction to last) of each local.
+
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->AssignsToSlot1() )
+			CheckSlotAssignment(inst->v1, inst);
+
+		int s1, s2, s3, s4;
+
+		if ( ! inst->UsesSlots(s1, s2, s3, s4) )
+			continue;
+
+		CheckSlotUse(s1, inst);
+		CheckSlotUse(s2, inst);
+		CheckSlotUse(s3, inst);
+		CheckSlotUse(s4, inst);
+		}
+
+	printf("locals for %s\n", func->Name());
+	for ( auto i = 1; i < frame_denizens.size(); ++i )
+		{
+		auto id = frame_denizens[i];
+		printf("local%s %s begins at %d, ends at %d\n",
+			id->IsGlobal() ? " (global)" : "",
+			id->Name(),
+			local_beginning.count(i) ? local_beginning[i]->inst_num : -1,
+			local_ending.count(i) ? local_ending[i]->inst_num : -1);
+		}
+
 	// Construct the final program with the dead code eliminated
 	// and branches resolved.
 
@@ -461,6 +510,121 @@ void ZAM::Init()
 			managed_slots.push_back(slot.second);
 			managed_slot_types.push_back(t);
 			}
+		}
+	}
+
+void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
+	{
+	if ( slot <= 0 )
+		// Either no slot, or the temporary slot.
+		return;
+
+	if ( slot >= frame_denizens.size() )
+		// One of the "extra" slots.  We need to consolidate
+		// these, too, but for now we defer on doing so.
+		return;
+
+	int i = inst->inst_num;
+
+	while ( i >= 0 && (insts1[i]->inside_loop || ! insts1[i]->live) )
+		--i;
+
+	if ( i != inst->inst_num )
+		{
+		// We moved backwards to just beyond a loop that inst is
+		// part of.  Move to that loop's (live) beginning.
+		++i;
+		while ( i != inst->inst_num && ! insts1[i]->live )
+			++i;
+
+		inst = insts1[i];
+		}
+
+	if ( local_beginning.count(slot) > 0 )
+		{
+		// Beginning of local's lifetime already seen, nothing
+		// more to do other than check for consistency.
+		ASSERT(local_beginning[slot]->inst_num <= inst->inst_num);
+		}
+
+	else
+		{ // local begins here
+		local_beginning[slot] = inst;
+
+		if ( inst_beginnings.count(inst) == 0 )
+			{
+			// Need to create a set to track the locals
+			// beginning at the instruction.
+			std::unordered_set<const ID*> locals;
+			inst_beginnings[inst] = locals;
+			}
+
+		inst_beginnings[inst].insert(frame_denizens[slot]);
+		}
+	}
+
+void ZAM::CheckSlotUse(int slot, const ZInst* inst)
+	{
+	if ( slot <= 0 )
+		// Either no slot, or the temporary slot.
+		return;
+
+	if ( slot >= frame_denizens.size() )
+		// One of the "extra" slots.  We need to consolidate
+		// these, too, but for now we defer on doing so.
+		return;
+
+	int i = inst->inst_num;
+
+	while ( i < insts1.size() &&
+		(insts1[i]->inside_loop || ! insts1[i]->live) )
+		++i;
+
+	if ( i != inst->inst_num )
+		{
+		// We moved forewards to just beyond a loop that inst is
+		// part of.  Move to that loop's (live) end.
+		--i;
+		while ( i != inst->inst_num && ! insts1[i]->live )
+			--i;
+
+		inst = insts1[i];
+		}
+
+	if ( local_ending.count(slot) > 0 )
+		{
+		// End of local's lifetime already seen.  Check for
+		// consistency and then extend as needed.
+		auto old_inst = local_ending[slot];
+		ASSERT(old_inst->inst_num <= inst->inst_num);
+
+		if ( old_inst->inst_num < inst->inst_num )
+			{
+			// Extend.
+			inst_endings[old_inst].erase(frame_denizens[slot]);
+
+			if ( inst_endings.count(inst) == 0 )
+				{
+				std::unordered_set<const ID*> locals;
+				inst_endings[inst] = locals;
+				}
+
+			inst_endings[inst].insert(frame_denizens[slot]);
+			local_ending.at(slot) = inst;
+			}
+		}
+
+	else
+		{ // first time seeing a use of this local
+		local_ending[slot] = inst;
+
+		if ( inst_endings.count(inst) == 0 )
+			{
+			std::unordered_set<const ID*> locals;
+			inst_endings[inst] = locals;
+			}
+
+		inst_beginnings[inst].insert(frame_denizens[slot]);
 		}
 	}
 
@@ -1000,7 +1164,7 @@ bool ZAM::BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args)
 
 	case 0x2:	// 2nd argument a constant; flip!
 		z = ZInst(OP_SUB_BYTES_VViV, nslot, v2, v4, v3);
-		z.op_type = OP_VVVV_I3;
+		z.op_type = OP_VVVV_I4;
 		break;
 
 	case 0x3:	// both 2nd and third are constants
@@ -1020,7 +1184,7 @@ bool ZAM::BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args)
 
 	case 0x6:	// first and second constant - flip!
 		z = ZInst(OP_SUB_BYTES_ViVC, nslot, v4, v3, c);
-		z.op_type = OP_VVVC_I2;
+		z.op_type = OP_VVVC_I3;
 		break;
 
 	case 0x7:	// whole shebang
@@ -1452,16 +1616,23 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 		// Note, we fill in is_return by hand since it's already
 		// an int_val, doesn't need translation.
 		if ( timeout->Tag() == EXPR_CONST )
+			{
 			z = GenInst(this, OP_WHEN_VVVC, timeout->AsConstExpr());
+			z.op_type = OP_VVVC_I1_I2_I3;
+			z.v3 = is_return;
+			}
 		else
+			{
 			z = GenInst(this, OP_WHEN_VVVV, timeout->AsNameExpr());
-
-		z.v4 = is_return;
+			z.op_type = OP_VVVV_I2_I3_I4;
+			z.v4 = is_return;
+			}
 		}
 
 	else
 		{
 		z = GenInst(this, OP_WHEN_VV);
+		z.op_type = OP_VV_I1_I2;
 		z.v1 = is_return;
 		}
 
@@ -1479,8 +1650,17 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 		auto t_body = timeout_body->Compile(this);
 		auto t_done = ReturnX();
 
-		z.v2 = branch_past_blocks.stmt_num + 1;
-		z.v3 = when_done.stmt_num + 1;
+		if ( timeout->Tag() == EXPR_CONST )
+			{
+			z.v1 = branch_past_blocks.stmt_num + 1;
+			z.v2 = when_done.stmt_num + 1;
+			}
+		else
+			{
+			z.v2 = branch_past_blocks.stmt_num + 1;
+			z.v3 = when_done.stmt_num + 1;
+			}
+
 		SetGoTo(branch_past_blocks, GoToTargetBeyond(t_done));
 
 		return t_done;
@@ -2056,9 +2236,8 @@ const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
 
 const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 	{
-	auto z = ZInst(OP_INIT_VECTOR_VV, FrameSlot(id), id->Offset());
+	auto z = ZInst(OP_INIT_VECTOR_V, FrameSlot(id));
 	z.SetType(vt);
-	z.op_type = OP_VV_FRAME;
 	return AddInst(z);
 	}
 
@@ -2345,7 +2524,8 @@ void ZAM::Dump()
 	for ( int i = 0; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
-		printf("%d%s: ", i, inst->live ? "" : " (dead)");
+		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
+			inst->inside_loop ? " (loop)" : "");
 		inst->Dump(frame_denizens);
 		}
 

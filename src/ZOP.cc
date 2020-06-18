@@ -54,6 +54,7 @@ int ZInst::NumFrameSlots() const
 	case OP_VE:	return 1;
 
 	case OP_V_I1:	return 0;
+	case OP_VV_I1_I2:	return 0;
 	case OP_VV_FRAME:	return 1;
 	case OP_VVc:	return 2;
 	case OP_VC_ID:	return 1;
@@ -62,19 +63,19 @@ int ZInst::NumFrameSlots() const
 	case OP_VVV_I3:	return 2;
 	case OP_VVV_I2_I3:	return 1;
 
-	case OP_VVVV_I3:	return 3;
 	case OP_VVVV_I4:	return 3;
 	case OP_VVVV_I3_I4:	return 2;
-	case OP_VVVC_I2:	return 2;
+	case OP_VVVV_I2_I3_I4:	return 1;
 	case OP_VVVC_I3:	return 2;
 	case OP_VVVC_I2_I3:	return 1;
+	case OP_VVVC_I1_I2_I3:	return 0;
 	}
 	}
 
 bool ZInst::AssignsToSlot1() const
 	{
 	auto fl = op1_flavor[op];
-	return fl == OP1_WRITE || fl == OP1_READ_WRITE;
+	return fl == OP1_WRITE || fl == OP1_READ_WRITE || fl == OP1_INTERNAL;
 	}
 
 bool ZInst::UsesSlot(int slot) const
@@ -87,18 +88,21 @@ bool ZInst::UsesSlot(int slot) const
 	case OP_X:
 	case OP_C:
 	case OP_E:
+	case OP_V_I1:
+	case OP_VV_I1_I2:
+	case OP_VVVC_I1_I2_I3:
 		return false;
 
 	case OP_V:
 	case OP_VC:
 	case OP_VE:
-	case OP_V_I1:
 	case OP_VV_FRAME:
 	case OP_VC_ID:
 	case OP_VV_I2:
 	case OP_VVC_I2:
 	case OP_VVV_I2_I3:
 	case OP_VVVC_I2_I3:
+	case OP_VVVV_I2_I3_I4:
 		return v1_match;
 
 	case OP_VV:
@@ -106,13 +110,11 @@ bool ZInst::UsesSlot(int slot) const
 	case OP_VVC:
 	case OP_VVV_I3:
 	case OP_VVVV_I3_I4:
-	case OP_VVVC_I2:
 	case OP_VVVC_I3:
 		return v1_match || v2 == slot;
 
 	case OP_VVV:
 	case OP_VVVC:
-	case OP_VVVV_I3:
 	case OP_VVVV_I4:
 		return v1_match || v2 == slot || v3 == slot;
 
@@ -121,7 +123,75 @@ bool ZInst::UsesSlot(int slot) const
 	}
 	}
 
-const char* ZInst::VName(int max_n, int n, const frame_map& frame_ids) const
+bool ZInst::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
+	{
+	s1 = s2 = s3 = s4 = -1;
+
+	auto fl = op1_flavor[op];
+	auto v1_relevant = fl == OP1_READ || fl == OP1_READ_WRITE;
+
+	switch ( op_type ) {
+	case OP_X:
+	case OP_C:
+	case OP_E:
+	case OP_V_I1:
+	case OP_VV_I1_I2:
+	case OP_VVVC_I1_I2_I3:
+		return false;
+
+	case OP_V:
+	case OP_VC:
+	case OP_VE:
+	case OP_VV_FRAME:
+	case OP_VC_ID:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VVV_I2_I3:
+	case OP_VVVC_I2_I3:
+	case OP_VVVV_I2_I3_I4:
+		if ( ! v1_relevant )
+			return false;
+
+		s1 = v1;
+		return true;
+
+	case OP_VV:
+	case OP_VVc:
+	case OP_VVC:
+	case OP_VVV_I3:
+	case OP_VVVV_I3_I4:
+	case OP_VVVC_I3:
+		s1 = v2;
+
+		if ( v1_relevant )
+			s2 = v1;
+
+		return true;
+
+	case OP_VVV:
+	case OP_VVVC:
+	case OP_VVVV_I4:
+		s1 = v2;
+		s2 = v3;
+
+		if ( v1_relevant )
+			s3 = v1;
+
+		return true;
+
+	case OP_VVVV:
+		s1 = v1;
+		s2 = v2;
+		s3 = v3;
+
+		if ( v1_relevant )
+			s4 = v1;
+
+		return true;
+	}
+	}
+
+const char* ZInst::VName(int max_n, int n, const FrameMap& frame_ids) const
 	{
 	if ( n > max_n )
 		return nullptr;
@@ -137,7 +207,7 @@ const char* ZInst::VName(int max_n, int n, const frame_map& frame_ids) const
 	return copy_string(fmt("%d (%s)", slot, frame_ids[slot]->Name()));
 	}
 
-void ZInst::Dump(const frame_map& frame_ids) const
+void ZInst::Dump(const FrameMap& frame_ids) const
 	{
 	printf("%s ", ZOP_name(op));
 	if ( t && 0 )
@@ -219,6 +289,10 @@ void ZInst::Dump(const frame_map& frame_ids) const
 		printf("%s, %d", id1, v2);
 		break;
 
+	case OP_VV_I1_I2:
+		printf("%d, %d", v1, v2);
+		break;
+
 	case OP_VVC_I2:
 		printf("%s, %d, %s", id1, v2, ConstDump());
 		break;
@@ -231,7 +305,6 @@ void ZInst::Dump(const frame_map& frame_ids) const
 		printf("%s, %d, %d", id1, v2, v3);
 		break;
 
-	case OP_VVVV_I3:
 	case OP_VVVV_I4:
 		printf("%s, %s, %s, %d", id1, id2, id3, v4);
 		break;
@@ -240,13 +313,20 @@ void ZInst::Dump(const frame_map& frame_ids) const
 		printf("%s, %s, %d, %d", id1, id2, v3, v4);
 		break;
 
-	case OP_VVVC_I2:
+	case OP_VVVV_I2_I3_I4:
+		printf("%s, %d, %d, %d", id1, v2, v3, v4);
+		break;
+
 	case OP_VVVC_I3:
 		printf("%s, %s, %d, %s", id1, id2, v3, ConstDump());
 		break;
 
 	case OP_VVVC_I2_I3:
 		printf("%s, %d, %d, %s", id1, v2, v3, ConstDump());
+		break;
+
+	case OP_VVVC_I1_I2_I3:
+		printf("%d, %d, %d, %s", v1, v2, v3, ConstDump());
 		break;
 	}
 

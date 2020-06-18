@@ -24,11 +24,32 @@ typedef enum {
 // Used for low-level optimization (so important that they're correct),
 // and for dumping statements.
 typedef enum {
-	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_VVVC, OP_C, OP_VC, OP_VVC,
-	OP_E, OP_VE, OP_VV_FRAME, OP_VVc, OP_VC_ID,
-	OP_V_I1, OP_VV_I2, OP_VVC_I2, OP_VVV_I3, OP_VVV_I2_I3,
-	OP_VVVV_I3, OP_VVVV_I4, OP_VVVV_I3_I4,
-	OP_VVVC_I2, OP_VVVC_I3, OP_VVVC_I2_I3,
+	OP_X, OP_E, OP_C, OP_V, OP_V_I1,
+
+	OP_VE,
+	OP_VC,
+	OP_VC_ID,
+	OP_VV,
+	OP_VV_I2,
+	OP_VV_I1_I2,
+	OP_VV_FRAME,
+
+	OP_VVC,
+	OP_VVC_I2,
+	OP_VVc,
+	OP_VVV,
+	OP_VVV_I3,
+	OP_VVV_I2_I3,
+
+	OP_VVVC,
+	OP_VVVC_I3,
+	OP_VVVC_I2_I3,
+	OP_VVVC_I1_I2_I3,
+	OP_VVVV,
+	OP_VVVV_I4,
+	OP_VVVV_I3_I4,
+	OP_VVVV_I2_I3_I4,
+
 } ZAMOpType;
 
 // Possible "flavors" for an operator's first slot.
@@ -43,7 +64,7 @@ typedef enum {
 extern ZAMOp1Flavor op1_flavor[];
 
 // Maps ZAM frame slots to associated identifiers.   
-typedef std::vector<ID*> frame_map;
+typedef std::vector<ID*> FrameMap;
 
 // A ZAM instruction.
 class ZInst {
@@ -155,10 +176,13 @@ public:
 	// given by slot 1 (v1).
 	bool AssignsToSlot1() const;
 
-	// True if the given instruction uses the value in given frame slot.
-	// (Assigning to the slot does not constitute using the value.)
-	// Does not include storing to the interpreter frame.
+	// True if the given instruction uses the value in the given frame
+	// slot. (Assigning to the slot does not constitute using the value.)
 	bool UsesSlot(int slot) const;
+
+	// Returns the slots used (not assigned to).  Any slot not used
+	// is set to -1.  Returns true if at least one slot was used.
+	bool UsesSlots(int& s1, int& s2, int& s3, int& s4) const;
 
 	bool IsFrameLoad() const
 		{ return op == OP_LOAD_VAL_VV || op == OP_LOAD_ANY_VAL_VV; }
@@ -168,9 +192,9 @@ public:
 	bool IsFrameSync() const
 		{ return IsFrameLoad() || IsFrameStore(); }
 
-	const char* VName(int max_n, int n, const frame_map& frame_ids) const;
+	const char* VName(int max_n, int n, const FrameMap& frame_ids) const;
 	int NumFrameSlots() const;
-	void Dump(const frame_map& frame_ids) const;
+	void Dump(const FrameMap& frame_ids) const;
 	const char* ConstDump() const;
 
 
@@ -235,6 +259,10 @@ public:
 	// Whether the instruction should be included in final code
 	// generation.
 	bool live = true;
+
+	// Whether the instruction is inside a block that could be
+	// visited more than once due to backware control flow.
+	bool inside_loop = false;
 
 	// Branch target, prior to concretizing into PC target.
 	ZInst* target = nullptr;

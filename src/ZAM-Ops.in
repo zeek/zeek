@@ -916,9 +916,9 @@ eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, frame[z.v1].do
 
 op When
 type VVVC
-eval auto when_body = new ResumptionAM(this, z.v2)
-eval auto timeout_body = new ResumptionAM(this, z.v3)
-eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, z.c.double_val, f, z.v4, z.stmt->GetLocationInfo())
+eval auto when_body = new ResumptionAM(this, z.v1)
+eval auto timeout_body = new ResumptionAM(this, z.v2)
+eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, z.c.double_val, f, z.v3, z.stmt->GetLocationInfo())
 
 op When
 type VV
@@ -1004,10 +1004,8 @@ eval auto r = new RecordVal(z.t->AsRecordType())
 eval Unref(frame[z.v1].record_val)
 eval frame[z.v1].record_val = r
 
-# v1 is the frame element being initialized
-# v2 is its slot in the interpreted frame
 internal-op Init-Vector
-type VV
+type V
 eval auto vt = z.t->AsVectorType()
 eval auto yt = vt->YieldType()
 eval auto vec = new VectorVal(vt)

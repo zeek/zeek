@@ -127,6 +127,14 @@ protected:
 	// Second argument is which instruction slot holds the branch target.
 	const CompiledStmt GenCond(const Expr* e, int& branch_v);
 
+	// Look to initialize the beginning of local lifetime based on slot
+	// assignment at instruction i.
+	void CheckSlotAssignment(int slot, const ZInst* inst);
+
+	// Look for extension of local lifetime based on slot usage
+	// at instruction i.
+	void CheckSlotUse(int slot, const ZInst* inst);
+
 	// Optimizing the low-level compiled instructions.
 	void OptimizeInsts();
 
@@ -378,8 +386,33 @@ protected:
 	// Maps identifiers to their frame location.
 	std::unordered_map<const ID*, int> frame_layout;
 
-	// Inverse mapping, used for dumping statements.
-	frame_map frame_denizens;
+	// Inverse mapping, used for tracking frame usage (and for dumping
+	// statements).
+	FrameMap frame_denizens;
+
+	// A type for mapping an instruction to a set of locals associated
+	// with it.
+	typedef std::unordered_map<const ZInst*, std::unordered_set<const ID*>>
+		AssociatedLocals;
+
+	// Maps (live) instructions to which locals begin their lifetime
+	// via an initialization at that instruction, if any ...  (it can
+	// be more than one local due to extending lifetimes to span loop
+	// bodies)
+	AssociatedLocals inst_beginnings;
+
+	// ... and which *set* of locals has their last usage at the
+	// given instruction.  (These are inst1 instructions, prior to
+	// removing dead instructions, compressing the frames, etc.)
+	AssociatedLocals inst_endings;
+
+	// A type for inverse mappings.
+	typedef std::unordered_map<int, const ZInst*> AssociatedInsts;
+
+	// Inverse mappings: for a given local's frame slot, where its
+	// lifetime begins and ends.
+	AssociatedInsts local_beginning;
+	AssociatedInsts local_ending;
 
 	// Which frame slots need clearing/deleting on entry/exit,
 	// and their corresponding type tags.

@@ -297,18 +297,33 @@ Stmt* ZAM::CompileBody()
 	if ( catches.size() > 0 )
 		reporter->InternalError("untargeted inline return");
 
-	if ( ! analysis_options.no_ZAM_opt )
-		OptimizeInsts();
-
 	// Make sure we have a (pseudo-)instruction at the end so we
 	// can use it as a branch label.
 	if ( ! pending_inst )
 		pending_inst = new ZInst();
 
-	// Now concretize instruction numbers in inst1 so we can
+	// Concretize instruction numbers in inst1 so we can
 	// easily move through the code.
 	for ( auto i = 0; i < insts1.size(); ++i )
 		insts1[i]->inst_num = i;
+
+	// Compute which instructions are inside loops.
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+
+		auto t = inst->target;
+		if ( ! t || t == pending_inst )
+			continue;
+
+		if ( t->inst_num < i )
+			// Backward branch.
+			for ( auto j = t->inst_num; j <= i; ++j )
+				insts1[j]->inside_loop = true;
+		}
+
+	if ( ! analysis_options.no_ZAM_opt )
+		OptimizeInsts();
 
 	// Move branches to dead code forward to their successor live code.
 	for ( auto i = 0; i < insts1.size(); ++i )
@@ -327,69 +342,6 @@ Stmt* ZAM::CompileBody()
 			inst->target = pending_inst;
 		else
 			inst->target = insts1[idx];
-		}
-
-	// Compute which instructions are inside loops.
-	for ( auto i = 0; i < insts1.size(); ++i )
-		{
-		auto inst = insts1[i];
-		if ( ! inst->live )
-			continue;
-
-		auto t = inst->target;
-		if ( ! t || t == pending_inst )
-			continue;
-
-		if ( t->inst_num < i )
-			for ( auto j = t->inst_num; j <= i; ++j )
-				insts1[j]->inside_loop = true;
-		}
-
-	// Determine the lifetime (first instruction to last) of each local.
-
-	for ( auto i = 0; i < insts1.size(); ++i )
-		{
-		auto inst = insts1[i];
-		if ( ! inst->live )
-			continue;
-
-		if ( inst->AssignsToSlot1() )
-			CheckSlotAssignment(inst->v1, inst);
-
-		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
-		     inst->op == OP_NEXT_TABLE_ITER_VV )
-			{
-			// Sigh, need to special-case these as they
-			// assign to an arbitrary long list of variables.
-			auto iter_vars = inst->c.iter_info;
-			for ( auto v : iter_vars->loop_vars )
-				CheckSlotAssignment(v, inst);
-
-			// No need to check the additional "var" associated
-			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
-			// a slot-1 assignment.
-			}
-
-		int s1, s2, s3, s4;
-
-		if ( ! inst->UsesSlots(s1, s2, s3, s4) )
-			continue;
-
-		CheckSlotUse(s1, inst);
-		CheckSlotUse(s2, inst);
-		CheckSlotUse(s3, inst);
-		CheckSlotUse(s4, inst);
-		}
-
-	printf("locals for %s\n", func->Name());
-	for ( auto i = 1; i < frame_denizens.size(); ++i )
-		{
-		auto id = frame_denizens[i];
-		printf("local%s %s begins at %d, ends at %d\n",
-			id->IsGlobal() ? " (global)" : "",
-			id->Name(),
-			local_beginning.count(i) ? local_beginning[i]->inst_num : -1,
-			local_ending.count(i) ? local_ending[i]->inst_num : -1);
 		}
 
 	// Construct the final program with the dead code eliminated
@@ -540,7 +492,7 @@ void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 
 	int i = inst->inst_num;
 
-	while ( i >= 0 && (insts1[i]->inside_loop || ! insts1[i]->live) )
+	while ( i >= 0 && insts1[i]->inside_loop )
 		--i;
 
 	if ( i != inst->inst_num )
@@ -554,23 +506,23 @@ void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 		inst = insts1[i];
 		}
 
-	if ( local_beginning.count(slot) > 0 )
+	if ( denizen_beginning.count(slot) > 0 )
 		{
-		// Beginning of local's lifetime already seen, nothing
+		// Beginning of denizen's lifetime already seen, nothing
 		// more to do other than check for consistency.
-		ASSERT(local_beginning[slot]->inst_num <= inst->inst_num);
+		ASSERT(denizen_beginning[slot]->inst_num <= inst->inst_num);
 		}
 
 	else
-		{ // local begins here
-		local_beginning[slot] = inst;
+		{ // denizen begins here
+		denizen_beginning[slot] = inst;
 
 		if ( inst_beginnings.count(inst) == 0 )
 			{
-			// Need to create a set to track the locals
+			// Need to create a set to track the denizens
 			// beginning at the instruction.
-			std::unordered_set<const ID*> locals;
-			inst_beginnings[inst] = locals;
+			std::unordered_set<const ID*> denizens;
+			inst_beginnings[inst] = denizens;
 			}
 
 		inst_beginnings[inst].insert(frame_denizens[slot]);
@@ -590,8 +542,7 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 
 	int i = inst->inst_num;
 
-	while ( i < insts1.size() &&
-		(insts1[i]->inside_loop || ! insts1[i]->live) )
+	while ( i < insts1.size() && insts1[i]->inside_loop )
 		++i;
 
 	if ( i != inst->inst_num )
@@ -605,11 +556,11 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 		inst = insts1[i];
 		}
 
-	if ( local_ending.count(slot) > 0 )
+	if ( denizen_ending.count(slot) > 0 )
 		{
-		// End of local's lifetime already seen.  Check for
+		// End of denizen's lifetime already seen.  Check for
 		// consistency and then extend as needed.
-		auto old_inst = local_ending[slot];
+		auto old_inst = denizen_ending[slot];
 		ASSERT(old_inst->inst_num <= inst->inst_num);
 
 		if ( old_inst->inst_num < inst->inst_num )
@@ -619,23 +570,23 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 
 			if ( inst_endings.count(inst) == 0 )
 				{
-				std::unordered_set<const ID*> locals;
-				inst_endings[inst] = locals;
+				std::unordered_set<const ID*> denizens;
+				inst_endings[inst] = denizens;
 				}
 
 			inst_endings[inst].insert(frame_denizens[slot]);
-			local_ending.at(slot) = inst;
+			denizen_ending.at(slot) = inst;
 			}
 		}
 
 	else
-		{ // first time seeing a use of this local
-		local_ending[slot] = inst;
+		{ // first time seeing a use of this denizen
+		denizen_ending[slot] = inst;
 
 		if ( inst_endings.count(inst) == 0 )
 			{
-			std::unordered_set<const ID*> locals;
-			inst_endings[inst] = locals;
+			std::unordered_set<const ID*> denizens;
+			inst_endings[inst] = denizens;
 			}
 
 		inst_beginnings[inst].insert(frame_denizens[slot]);
@@ -675,6 +626,8 @@ void ZAM::OptimizeInsts()
 			something_changed = true;
 		}
 	while ( something_changed );
+
+	ComputeFrameLifetimes();
 	}
 
 bool ZAM::RemoveDeadCode()
@@ -775,6 +728,56 @@ bool ZAM::PruneGlobally()
 		}
 
 	return did_prune;
+	}
+
+void ZAM::ComputeFrameLifetimes()
+	{
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->AssignsToSlot1() )
+			CheckSlotAssignment(inst->v1, inst);
+
+		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
+		     inst->op == OP_NEXT_TABLE_ITER_VV )
+			{
+			// Sigh, need to special-case these as they
+			// assign to an arbitrary long list of variables.
+			auto iter_vars = inst->c.iter_info;
+			for ( auto v : iter_vars->loop_vars )
+				CheckSlotAssignment(v, inst);
+
+			// No need to check the additional "var" associated
+			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
+			// a slot-1 assignment.
+			}
+
+		int s1, s2, s3, s4;
+
+		if ( ! inst->UsesSlots(s1, s2, s3, s4) )
+			continue;
+
+		CheckSlotUse(s1, inst);
+		CheckSlotUse(s2, inst);
+		CheckSlotUse(s3, inst);
+		CheckSlotUse(s4, inst);
+		}
+
+	printf("denizens for %s\n", func->Name());
+	for ( auto i = 1; i < frame_denizens.size(); ++i )
+		{
+		auto id = frame_denizens[i];
+		printf("denizen%s %s begins at %d, ends at %d\n",
+			id->IsGlobal() ? " (global)" : "",
+			id->Name(),
+			denizen_beginning.count(i) ?
+				denizen_beginning[i]->inst_num : -1,
+			denizen_ending.count(i) ?
+				denizen_ending[i]->inst_num : -1);
+		}
 	}
 
 bool ZAM::VarIsAssigned(int slot) const

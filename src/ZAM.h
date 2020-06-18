@@ -148,6 +148,11 @@ protected:
 	// analysis.  True if something got pruned.
 	bool PruneGlobally();
 
+	// For the current state of inst1, compute lifetimes of frame
+	// denizens in terms of first-instruction-to-last-instruction
+	// (including consideration for loops).
+	void ComputeFrameLifetimes();
+
 	// True if any statement other than a frame sync assigns to the
 	// given slot.
 	bool VarIsAssigned(int slot) const;
@@ -395,13 +400,13 @@ protected:
 	typedef std::unordered_map<const ZInst*, std::unordered_set<const ID*>>
 		AssociatedLocals;
 
-	// Maps (live) instructions to which locals begin their lifetime
-	// via an initialization at that instruction, if any ...  (it can
-	// be more than one local due to extending lifetimes to span loop
-	// bodies)
+	// Maps (live) instructions to which frame denizens begin their
+	// lifetime via an initialization at that instruction, if any ...
+	// (it can be more than one local due to extending lifetimes to
+	// span loop bodies)
 	AssociatedLocals inst_beginnings;
 
-	// ... and which *set* of locals has their last usage at the
+	// ... and which frame denizens had their last usage at the
 	// given instruction.  (These are inst1 instructions, prior to
 	// removing dead instructions, compressing the frames, etc.)
 	AssociatedLocals inst_endings;
@@ -409,10 +414,10 @@ protected:
 	// A type for inverse mappings.
 	typedef std::unordered_map<int, const ZInst*> AssociatedInsts;
 
-	// Inverse mappings: for a given local's frame slot, where its
+	// Inverse mappings: for a given frame denizen's slot, where its
 	// lifetime begins and ends.
-	AssociatedInsts local_beginning;
-	AssociatedInsts local_ending;
+	AssociatedInsts denizen_beginning;
+	AssociatedInsts denizen_ending;
 
 	// Which frame slots need clearing/deleting on entry/exit,
 	// and their corresponding type tags.

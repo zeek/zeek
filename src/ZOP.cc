@@ -180,9 +180,9 @@ bool ZInst::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 		return true;
 
 	case OP_VVVV:
-		s1 = v1;
-		s2 = v2;
-		s3 = v3;
+		s1 = v2;
+		s2 = v3;
+		s3 = v4;
 
 		if ( v1_relevant )
 			s4 = v1;

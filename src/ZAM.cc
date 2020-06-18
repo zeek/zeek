@@ -725,7 +725,7 @@ void ZAM::ReMapFrame()
 	// see which variables begin their lifetime at each, and at
 	// that point remap the variables to a suitable frame slot.
 
-#if 1
+#if 0
 	printf("%s denizens:\n", func->Name());
 	for ( auto i = 1; i < frame_denizens.size(); ++i )
 		{
@@ -775,10 +775,9 @@ void ZAM::ReMapFrame()
 			}
 		}
 
+#if 0
 	printf("%s frame remapping:\n", func->Name());
 
-	for ( auto frame_elem : frame_layout )
-		printf("frame[%d] = %s\n", frame_elem.second, frame_elem.first->Name());
 	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
 		{
 		auto& s = shared_frame_denizens[i];
@@ -791,6 +790,7 @@ void ZAM::ReMapFrame()
 
 		printf("\n");
 		}
+#endif
 	}
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)

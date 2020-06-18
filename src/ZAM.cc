@@ -723,20 +723,28 @@ void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 		// these, too, but for now we defer on doing so.
 		return;
 
-	int i = inst->inst_num;
-
-	while ( i >= 0 && insts1[i]->inside_loop )
-		--i;
-
-	if ( i != inst->inst_num )
+	// We construct temporaries such that their values are never
+	// used earlier than their definitions in loop bodies.  For
+	// other denizens, however, they can be, so in those cases
+	// we expand the lifetime beginning to the start of any loop
+	// region.
+	if ( ! reducer->IsTemporary(frame_denizens[slot]) )
 		{
-		// We moved backwards to just beyond a loop that inst is
-		// part of.  Move to that loop's (live) beginning.
-		++i;
-		while ( i != inst->inst_num && ! insts1[i]->live )
-			++i;
+		int i = inst->inst_num;
 
-		inst = insts1[i];
+		while ( i >= 0 && insts1[i]->inside_loop )
+			--i;
+
+		if ( i != inst->inst_num )
+			{
+			// We moved backwards to just beyond a loop that inst
+			// is part of.  Move to that loop's (live) beginning.
+			++i;
+			while ( i != inst->inst_num && ! insts1[i]->live )
+				++i;
+
+			inst = insts1[i];
+			}
 		}
 
 	if ( denizen_beginning.count(slot) > 0 )
@@ -773,20 +781,25 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 		// these, too, but for now we defer on doing so.
 		return;
 
-	int i = inst->inst_num;
-
-	while ( i < insts1.size() && insts1[i]->inside_loop )
-		++i;
-
-	if ( i != inst->inst_num )
+	// See comment above about temporaries not having their values
+	// extend around loop bodies.
+	if ( ! reducer->IsTemporary(frame_denizens[slot]) )
 		{
-		// We moved forewards to just beyond a loop that inst is
-		// part of.  Move to that loop's (live) end.
-		--i;
-		while ( i != inst->inst_num && ! insts1[i]->live )
-			--i;
+		int i = inst->inst_num;
 
-		inst = insts1[i];
+		while ( i < insts1.size() && insts1[i]->inside_loop )
+			++i;
+
+		if ( i != inst->inst_num )
+			{
+			// We moved forewards to just beyond a loop that inst
+			// is part of.  Move to that loop's (live) end.
+			--i;
+			while ( i != inst->inst_num && ! insts1[i]->live )
+				--i;
+
+			inst = insts1[i];
+			}
 		}
 
 	if ( denizen_ending.count(slot) > 0 )

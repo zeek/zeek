@@ -479,120 +479,6 @@ void ZAM::Init()
 		}
 	}
 
-void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
-	{
-	if ( slot <= 0 )
-		// Either no slot, or the temporary slot.
-		return;
-
-	if ( slot >= frame_denizens.size() )
-		// One of the "extra" slots.  We need to consolidate
-		// these, too, but for now we defer on doing so.
-		return;
-
-	int i = inst->inst_num;
-
-	while ( i >= 0 && insts1[i]->inside_loop )
-		--i;
-
-	if ( i != inst->inst_num )
-		{
-		// We moved backwards to just beyond a loop that inst is
-		// part of.  Move to that loop's (live) beginning.
-		++i;
-		while ( i != inst->inst_num && ! insts1[i]->live )
-			++i;
-
-		inst = insts1[i];
-		}
-
-	if ( denizen_beginning.count(slot) > 0 )
-		{
-		// Beginning of denizen's lifetime already seen, nothing
-		// more to do other than check for consistency.
-		ASSERT(denizen_beginning[slot]->inst_num <= inst->inst_num);
-		}
-
-	else
-		{ // denizen begins here
-		denizen_beginning[slot] = inst;
-
-		if ( inst_beginnings.count(inst) == 0 )
-			{
-			// Need to create a set to track the denizens
-			// beginning at the instruction.
-			std::unordered_set<const ID*> denizens;
-			inst_beginnings[inst] = denizens;
-			}
-
-		inst_beginnings[inst].insert(frame_denizens[slot]);
-		}
-	}
-
-void ZAM::CheckSlotUse(int slot, const ZInst* inst)
-	{
-	if ( slot <= 0 )
-		// Either no slot, or the temporary slot.
-		return;
-
-	if ( slot >= frame_denizens.size() )
-		// One of the "extra" slots.  We need to consolidate
-		// these, too, but for now we defer on doing so.
-		return;
-
-	int i = inst->inst_num;
-
-	while ( i < insts1.size() && insts1[i]->inside_loop )
-		++i;
-
-	if ( i != inst->inst_num )
-		{
-		// We moved forewards to just beyond a loop that inst is
-		// part of.  Move to that loop's (live) end.
-		--i;
-		while ( i != inst->inst_num && ! insts1[i]->live )
-			--i;
-
-		inst = insts1[i];
-		}
-
-	if ( denizen_ending.count(slot) > 0 )
-		{
-		// End of denizen's lifetime already seen.  Check for
-		// consistency and then extend as needed.
-		auto old_inst = denizen_ending[slot];
-		ASSERT(old_inst->inst_num <= inst->inst_num);
-
-		if ( old_inst->inst_num < inst->inst_num )
-			{
-			// Extend.
-			inst_endings[old_inst].erase(frame_denizens[slot]);
-
-			if ( inst_endings.count(inst) == 0 )
-				{
-				std::unordered_set<const ID*> denizens;
-				inst_endings[inst] = denizens;
-				}
-
-			inst_endings[inst].insert(frame_denizens[slot]);
-			denizen_ending.at(slot) = inst;
-			}
-		}
-
-	else
-		{ // first time seeing a use of this denizen
-		denizen_ending[slot] = inst;
-
-		if ( inst_endings.count(inst) == 0 )
-			{
-			std::unordered_set<const ID*> denizens;
-			inst_endings[inst] = denizens;
-			}
-
-		inst_beginnings[inst].insert(frame_denizens[slot]);
-		}
-	}
-
 void ZAM::OptimizeInsts()
 	{
 	// Do accounting for targeted statements.
@@ -777,6 +663,120 @@ void ZAM::ComputeFrameLifetimes()
 				denizen_beginning[i]->inst_num : -1,
 			denizen_ending.count(i) ?
 				denizen_ending[i]->inst_num : -1);
+		}
+	}
+
+void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
+	{
+	if ( slot <= 0 )
+		// Either no slot, or the temporary slot.
+		return;
+
+	if ( slot >= frame_denizens.size() )
+		// One of the "extra" slots.  We need to consolidate
+		// these, too, but for now we defer on doing so.
+		return;
+
+	int i = inst->inst_num;
+
+	while ( i >= 0 && insts1[i]->inside_loop )
+		--i;
+
+	if ( i != inst->inst_num )
+		{
+		// We moved backwards to just beyond a loop that inst is
+		// part of.  Move to that loop's (live) beginning.
+		++i;
+		while ( i != inst->inst_num && ! insts1[i]->live )
+			++i;
+
+		inst = insts1[i];
+		}
+
+	if ( denizen_beginning.count(slot) > 0 )
+		{
+		// Beginning of denizen's lifetime already seen, nothing
+		// more to do other than check for consistency.
+		ASSERT(denizen_beginning[slot]->inst_num <= inst->inst_num);
+		}
+
+	else
+		{ // denizen begins here
+		denizen_beginning[slot] = inst;
+
+		if ( inst_beginnings.count(inst) == 0 )
+			{
+			// Need to create a set to track the denizens
+			// beginning at the instruction.
+			std::unordered_set<const ID*> denizens;
+			inst_beginnings[inst] = denizens;
+			}
+
+		inst_beginnings[inst].insert(frame_denizens[slot]);
+		}
+	}
+
+void ZAM::CheckSlotUse(int slot, const ZInst* inst)
+	{
+	if ( slot <= 0 )
+		// Either no slot, or the temporary slot.
+		return;
+
+	if ( slot >= frame_denizens.size() )
+		// One of the "extra" slots.  We need to consolidate
+		// these, too, but for now we defer on doing so.
+		return;
+
+	int i = inst->inst_num;
+
+	while ( i < insts1.size() && insts1[i]->inside_loop )
+		++i;
+
+	if ( i != inst->inst_num )
+		{
+		// We moved forewards to just beyond a loop that inst is
+		// part of.  Move to that loop's (live) end.
+		--i;
+		while ( i != inst->inst_num && ! insts1[i]->live )
+			--i;
+
+		inst = insts1[i];
+		}
+
+	if ( denizen_ending.count(slot) > 0 )
+		{
+		// End of denizen's lifetime already seen.  Check for
+		// consistency and then extend as needed.
+		auto old_inst = denizen_ending[slot];
+		ASSERT(old_inst->inst_num <= inst->inst_num);
+
+		if ( old_inst->inst_num < inst->inst_num )
+			{
+			// Extend.
+			inst_endings[old_inst].erase(frame_denizens[slot]);
+
+			if ( inst_endings.count(inst) == 0 )
+				{
+				std::unordered_set<const ID*> denizens;
+				inst_endings[inst] = denizens;
+				}
+
+			inst_endings[inst].insert(frame_denizens[slot]);
+			denizen_ending.at(slot) = inst;
+			}
+		}
+
+	else
+		{ // first time seeing a use of this denizen
+		denizen_ending[slot] = inst;
+
+		if ( inst_endings.count(inst) == 0 )
+			{
+			std::unordered_set<const ID*> denizens;
+			inst_endings[inst] = denizens;
+			}
+
+		inst_beginnings[inst].insert(frame_denizens[slot]);
 		}
 	}
 

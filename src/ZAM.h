@@ -127,14 +127,6 @@ protected:
 	// Second argument is which instruction slot holds the branch target.
 	const CompiledStmt GenCond(const Expr* e, int& branch_v);
 
-	// Look to initialize the beginning of local lifetime based on slot
-	// assignment at instruction i.
-	void CheckSlotAssignment(int slot, const ZInst* inst);
-
-	// Look for extension of local lifetime based on slot usage
-	// at instruction i.
-	void CheckSlotUse(int slot, const ZInst* inst);
-
 	// Optimizing the low-level compiled instructions.
 	void OptimizeInsts();
 
@@ -152,6 +144,14 @@ protected:
 	// denizens in terms of first-instruction-to-last-instruction
 	// (including consideration for loops).
 	void ComputeFrameLifetimes();
+
+	// Look to initialize the beginning of local lifetime based on slot
+	// assignment at instruction i.
+	void CheckSlotAssignment(int slot, const ZInst* inst);
+
+	// Look for extension of local lifetime based on slot usage
+	// at instruction i.
+	void CheckSlotUse(int slot, const ZInst* inst);
 
 	// True if any statement other than a frame sync assigns to the
 	// given slot.

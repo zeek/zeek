@@ -3015,11 +3015,16 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 	ZInst z;
 
 	if ( n )
-		z = ZInst(OP_SCHEDULE_ViHL, FrameSlot(n),
-					is_interval, build_indices);
+		{
+		z = ZInst(OP_SCHEDULE_ViHL, build_indices, FrameSlot(n),
+					is_interval);
+		z.op_type = OP_VVV_I3;
+		}
 	else
-		z = ZInst(OP_SCHEDULE_CiHL, is_interval,
-					build_indices, c);
+		{
+		z = ZInst(OP_SCHEDULE_CiHL, build_indices, is_interval, c);
+		z.op_type = OP_VVC_I2;
+		}
 
 	z.event_handler = h;
 

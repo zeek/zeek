@@ -722,7 +722,6 @@ public:
 	explicit TableEntryVal(IntrusivePtr<Val> v)
 		: val(std::move(v))
 		{
-		last_access_time = network_time;
 		expire_access_time =
 			int(network_time - bro_start_network_time);
 		}
@@ -745,8 +744,6 @@ protected:
 	friend class TableVal;
 
 	IntrusivePtr<Val> val;
-	double last_access_time;
-
 	// The next entry stores seconds since Bro's start.  We use ints here
 	// to save a few bytes, as we do not need a high resolution for these
 	// anyway.

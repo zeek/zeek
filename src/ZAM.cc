@@ -508,12 +508,12 @@ void ZAM::OptimizeInsts()
 		while ( CollapseGoTos() )
 			something_changed = true;
 
+		ComputeFrameLifetimes();
+
 		if ( PruneGlobally() )
 			something_changed = true;
 		}
 	while ( something_changed );
-
-	ComputeFrameLifetimes();
 	}
 
 bool ZAM::RemoveDeadCode()
@@ -589,35 +589,15 @@ bool ZAM::CollapseGoTos()
 	return did_collapse;
 	}
 
-bool ZAM::PruneGlobally()
-	{
-	bool did_prune = false;
-
-	for ( int i = 0; i < insts1.size(); ++i )
-		{
-		auto inst = insts1[i];
-
-		if ( ! inst->live )
-			continue;
-
-		if ( inst->IsFrameStore() && ! VarIsAssigned(inst->v1) )
-			{
-			did_prune = true;
-			KillInst(inst);
-			}
-
-		if ( inst->IsFrameLoad() && ! VarIsUsed(inst->v1) )
-			{
-			did_prune = true;
-			KillInst(inst);
-			}
-		}
-
-	return did_prune;
-	}
-
 void ZAM::ComputeFrameLifetimes()
 	{
+	// Start analysis from scratch, since we can do this repeatedly.
+	inst_beginnings.clear();
+	inst_endings.clear();
+
+	denizen_beginning.clear();
+	denizen_ending.clear();
+
 	for ( auto i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
@@ -664,6 +644,33 @@ void ZAM::ComputeFrameLifetimes()
 			denizen_ending.count(i) ?
 				denizen_ending[i]->inst_num : -1);
 		}
+	}
+
+bool ZAM::PruneGlobally()
+	{
+	bool did_prune = false;
+
+	for ( int i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->IsFrameStore() && ! VarIsAssigned(inst->v1) )
+			{
+			did_prune = true;
+			KillInst(inst);
+			}
+
+		if ( inst->IsFrameLoad() && ! VarIsUsed(inst->v1) )
+			{
+			did_prune = true;
+			KillInst(inst);
+			}
+		}
+
+	return did_prune;
 	}
 
 void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)

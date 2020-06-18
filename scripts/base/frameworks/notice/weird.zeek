@@ -406,6 +406,17 @@ event conn_weird(name: string, c: connection, addl: string)
 	weird(i);
 	}
 
+event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string)
+	{
+	local i = Info($ts=network_time(), $name=name, $uid=uid, $id=id,
+	               $identifier=id_string(id));
+
+	if ( addl != "" )
+		i$addl = addl;
+
+	weird(i);
+	}
+
 event flow_weird(name: string, src: addr, dst: addr, addl: string)
 	{
 	# We add the source and destination as port 0/unknown because that is

@@ -937,6 +937,8 @@ eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(z.stmt, "mismatch in 
 eval Unref(v)
 
 op Print
+# You might think that versions of Print should have the "side-effects"
+# attribute, but it's not needed due to the "op1-read" attribute.
 op1-read
 type O
 eval auto vvec = frame[z.v1].vvec

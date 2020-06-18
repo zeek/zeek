@@ -1,4 +1,8 @@
 
+3.2.0-dev.796 | 2020-06-18 20:40:59 +0000
+
+  * cmake: Make musl support more distro agnostic (Andrew Benson)
+
 3.2.0-dev.794 | 2020-06-18 20:04:06 +0000
 
   * Minimize data published for expected FTP data channel analysis

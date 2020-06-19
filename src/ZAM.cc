@@ -336,6 +336,9 @@ Stmt* ZAM::CompileBody()
 	for ( auto i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
+		if ( ! inst->live )
+			continue;
+
 		auto t = inst->target;
 
 		if ( ! t )
@@ -1107,7 +1110,12 @@ void ZAM::KillInst(ZInst* i)
 
 ZInst* ZAM::FindLiveTarget(ZInst* goto_target)
 	{
+	if ( goto_target == pending_inst )
+		return goto_target;
+
 	int idx = goto_target->inst_num;
+	ASSERT(idx >= 0 && idx <= insts1.size());
+
 	while ( idx < insts1.size() && ! insts1[idx]->live )
 		++idx;
 

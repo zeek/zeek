@@ -671,8 +671,9 @@ bool ZAM::PruneGlobally()
 		if ( inst->AssignsToSlot1() && ! inst->HasSideEffects() )
 			{
 			int slot = inst->v1;
-			if ( slot > 0 && slot < frame_denizens.size() &&
-			     ! frame_denizens[slot]->IsGlobal() &&
+			ASSERT(slot >= 0 && slot < frame_denizens.size());
+
+			if ( ! frame_denizens[slot]->IsGlobal() &&
 			     denizen_ending.count(slot) == 0 )
 				{
 				did_prune = true;
@@ -745,12 +746,6 @@ void ZAM::ComputeFrameLifetimes()
 
 void ZAM::ReMapFrame()
 	{
-	// Note, we manage the remapping as 0-based.  This ultimately
-	// needs to be translated into 1-based due to the assumption
-	// that the "temporary register" slot is zero.  Eventually we
-	// should just treat it and the "extra" slots as we do any other
-	// identifier.
-	
 	// General approach: go sequentially through the instructions,
 	// see which variables begin their lifetime at each, and at
 	// that point remap the variables to a suitable frame slot.
@@ -787,8 +782,6 @@ void ZAM::ReMapFrame()
 		}
 #endif
 
-	// This may require adjustment for the "temporary register"
-	// and "extra" slots.
 	frame1_to_frame2.resize(frame_layout1.size(), -1);
 	managed_slots.clear();
 
@@ -841,11 +834,8 @@ void ZAM::ReMapFrame()
 		if ( inst->AssignsToSlot1() )
 			{
 			auto v1 = inst->v1;
-			ASSERT(v1 >= 0);
-			if ( v1 > n1_slots )
-				printf("skipping inst %d\n", i);
-			else
-				inst->v1 = frame1_to_frame2[v1];
+			ASSERT(v1 >= 0 && v1 < n1_slots);
+			inst->v1 = frame1_to_frame2[v1];
 			}
 
 		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
@@ -855,7 +845,7 @@ void ZAM::ReMapFrame()
 			auto iter_vars = inst->c.iter_info;
 			for ( auto& v : iter_vars->loop_vars )
 				{
-				ASSERT(v > 0 && v < n1_slots);
+				ASSERT(v >= 0 && v < n1_slots);
 				v = frame1_to_frame2[v];
 				}
 			}
@@ -922,8 +912,7 @@ void ZAM::ReMapVar(const ID* id, int slot, int inst)
 		shared_frame_denizens.push_back(info);
 
 		if ( is_managed )
-			// See below for the +1 here.
-			managed_slots.push_back(apt_slot + 1);
+			managed_slots.push_back(apt_slot);
 		}
 
 	auto& s = shared_frame_denizens[apt_slot];
@@ -932,22 +921,12 @@ void ZAM::ReMapVar(const ID* id, int slot, int inst)
 	s.id_start.push_back(inst);
 	s.scope_end = scope_end;
 
-	// ### This is apt_slot + 1 because, at least for now, we internally
-	// represent frame2 slots as 0-based, but actually on the frame as
-	// 1-based.
-	frame1_to_frame2[slot] = apt_slot + 1;
+	frame1_to_frame2[slot] = apt_slot;
 	}
 
 void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 	{
-	if ( slot <= 0 )
-		// Either no slot, or the temporary slot.
-		return;
-
-	if ( slot >= frame_denizens.size() )
-		// One of the "extra" slots.  We need to consolidate
-		// these, too, but for now we defer on doing so.
-		return;
+	ASSERT(slot >= 0 && slot < frame_denizens.size());
 
 	// We construct temporaries such that their values are never
 	// used earlier than their definitions in loop bodies.  For
@@ -987,14 +966,7 @@ void ZAM::SetLifetimeStart(int slot, const ZInst* inst)
 
 void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 	{
-	if ( slot <= 0 )
-		// Either no slot, or the temporary slot.
-		return;
-
-	if ( slot >= frame_denizens.size() )
-		// One of the "extra" slots.  We need to consolidate
-		// these, too, but for now we defer on doing so.
-		return;
+	ASSERT(slot >= 0 && slot < frame_denizens.size());
 
 	// See comment above about temporaries not having their values
 	// extend around loop bodies.
@@ -2847,7 +2819,7 @@ void ZAM::Dump()
 
 		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
 			{
-			printf("frame2[%d] =", i + 1);
+			printf("frame2[%d] =", i);
 			for ( auto& id : shared_frame_denizens[i].ids )
 				printf(" %s", id->Name());
 			printf("\n");

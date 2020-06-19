@@ -416,11 +416,6 @@ protected:
 	FrameMap frame_denizens;
 
 	// The same, but for remapping identifiers to shared frame slots.
-	//
-	// IMPORTANT: we manage this as zero-based.  As long as the
-	// "temporary register" slot is presumed to reside at slot 0,
-	// we need to be careful in how we interpret offsets into
-	// this vector.
 	FrameReMap shared_frame_denizens;
 
 	// The same, but renumbered to take into account removal of

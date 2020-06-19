@@ -188,6 +188,15 @@ protected:
 	// other statements.
 	void KillInst(ZInst* i);
 
+	// Given a GoTo target, find its live equivalent (first instruction
+	// at that location or beyond that's live).
+	ZInst* FindLiveTarget(ZInst* goto_target);
+
+	// Given an instruction that has a slot associated with the
+	// given target, updates the slot to correspond with the current
+	// (final) location of the target.
+	void RetargetBranch(ZInst* inst, ZInst* target, int target_slot);
+
 	friend class ResumptionAM;
 
 	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
@@ -302,6 +311,7 @@ protected:
 			SetV3(s, l);
 		}
 
+	void SetTarget(ZInst* inst, const InstLabel l, int slot);
 	void SetV1(CompiledStmt s, const InstLabel l);
 	void SetV2(CompiledStmt s, const InstLabel l);
 	void SetV3(CompiledStmt s, const InstLabel l);

@@ -325,6 +325,8 @@ Stmt* ZAM::CompileBody()
 			// Backward branch.
 			for ( auto j = t->inst_num; j <= i; ++j )
 				insts1[j]->inside_loop = true;
+
+		ASSERT(! inst->target2 || inst->target2->inst_num > i);
 		}
 
 	if ( ! analysis_options.no_ZAM_opt )
@@ -336,17 +338,13 @@ Stmt* ZAM::CompileBody()
 		auto inst = insts1[i];
 		auto t = inst->target;
 
-		if ( ! t || t->live )
+		if ( ! t )
 			continue;
 
-		int idx = t->inst_num;
-		while ( idx < insts1.size() && ! insts1[idx]->live )
-			++idx;
+		inst->target = FindLiveTarget(t);
 
-		if ( idx == insts1.size() )
-			inst->target = pending_inst;
-		else
-			inst->target = insts1[idx];
+		if ( inst->target2 )
+			inst->target2 = FindLiveTarget(inst->target2);
 		}
 
 	// Construct the final program with the dead code eliminated
@@ -382,21 +380,11 @@ Stmt* ZAM::CompileBody()
 
 		if ( inst->target )
 			{
-			int t;	// instruction number of target
+			RetargetBranch(inst, inst->target, inst->target_slot);
 
-			if ( inst->target == pending_inst )
-				t = insts2.size();
-			else
-				t = inst->target->inst_num;
-
-			switch ( inst->target_slot ) {
-			case 1:	inst->v1 = t; break;
-			case 2:	inst->v2 = t; break;
-			case 3:	inst->v3 = t; break;
-
-			default:
-				reporter->InternalError("bad GoTo target");
-			}
+			if ( inst->target2 )
+				RetargetBranch(inst, inst->target2,
+						inst->target2_slot);
 			}
 		}
 
@@ -513,8 +501,12 @@ void ZAM::OptimizeInsts()
 	{
 	// Do accounting for targeted statements.
 	for ( auto& i : insts1 )
+		{
 		if ( i->target && i->target->live )
 			++(i->target->num_labels);
+		if ( i->target2 && i->target2->live )
+			++(i->target2->num_labels);
+		}
 
 #define TALLY_SWITCH_TARGETS(switches) \
 	for ( auto& targs : switches ) \
@@ -606,6 +598,9 @@ bool ZAM::CollapseGoTos()
 		auto t = i0->target;
 		if ( ! t )
 			continue;
+
+		// Note, we don't bother optimizing target2 if present,
+		// as those are very rare.
 
 		if ( t->IsUnconditionalBranch() )
 			{ // Collapse branch-to-branch.
@@ -1106,6 +1101,39 @@ void ZAM::KillInst(ZInst* i)
 	i->live = false;
 	if ( i->target )
 		--(i->target->num_labels);
+	if ( i->target2 )
+		--(i->target2->num_labels);
+	}
+
+ZInst* ZAM::FindLiveTarget(ZInst* goto_target)
+	{
+	int idx = goto_target->inst_num;
+	while ( idx < insts1.size() && ! insts1[idx]->live )
+		++idx;
+
+	if ( idx == insts1.size() )
+		return pending_inst;
+	else
+		return insts1[idx];
+	}
+
+void ZAM::RetargetBranch(ZInst* inst, ZInst* target, int target_slot)
+	{
+	int t;	// instruction number of target
+
+	if ( target == pending_inst )
+		t = insts2.size();
+	else
+		t = target->inst_num;
+
+	switch ( target_slot ) {
+	case 1:	inst->v1 = t; break;
+	case 2:	inst->v2 = t; break;
+	case 3:	inst->v3 = t; break;
+
+	default:
+		reporter->InternalError("bad GoTo target");
+	}
 	}
 
 void ZAM::StmtDescribe(ODesc* d) const
@@ -1921,7 +1949,7 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 
 	z.non_const_e = cond;
 
-	AddInst(z);
+	auto when_eval = AddInst(z);
 
 	auto branch_past_blocks = GoToStub();
 
@@ -1935,13 +1963,13 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 
 		if ( timeout->Tag() == EXPR_CONST )
 			{
-			z.v1 = branch_past_blocks.stmt_num + 1;
-			z.v2 = when_done.stmt_num + 1;
+			SetV1(when_eval, GoToTargetBeyond(branch_past_blocks));
+			SetV2(when_eval, GoToTargetBeyond(when_done));
 			}
 		else
 			{
-			z.v2 = branch_past_blocks.stmt_num + 1;
-			z.v3 = when_done.stmt_num + 1;
+			SetV2(when_eval, GoToTargetBeyond(branch_past_blocks));
+			SetV3(when_eval, GoToTargetBeyond(when_done));
 			}
 
 		SetGoTo(branch_past_blocks, GoToTargetBeyond(t_done));
@@ -1951,7 +1979,7 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 
 	else
 		{
-		z.v2 = branch_past_blocks.stmt_num + 1;
+		SetV2(when_eval, GoToTargetBeyond(branch_past_blocks));
 		SetGoTo(branch_past_blocks, GoToTargetBeyond(when_done));
 
 		return when_done;
@@ -3232,11 +3260,25 @@ CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
 	return CompiledStmt(s.stmt_num - 1);
 	}
 
+void ZAM::SetTarget(ZInst* inst, const InstLabel l, int slot)
+	{
+	if ( inst->target )
+		{
+		ASSERT(! inst->target2);
+		inst->target2 = l;
+		inst->target2_slot = slot;
+		}
+	else
+		{
+		inst->target = l;
+		inst->target_slot = slot;
+		}
+	}
+
 void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
-	inst->target = l;
-	inst->target_slot = 1;
+	SetTarget(inst, l, 1);
 	ASSERT(inst->op_type == OP_V || inst->op_type == OP_V_I1);
 	inst->op_type = OP_V_I1;
 	}
@@ -3244,8 +3286,7 @@ void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
-	inst->target = l;
-	inst->target_slot = 2;
+	SetTarget(inst, l, 2);
 
 	if ( inst->op_type == OP_VV )
 		inst->op_type = OP_VV_I2;
@@ -3260,8 +3301,8 @@ void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
-	inst->target = l;
-	inst->target_slot = 3;
+	SetTarget(inst, l, 3);
+
 	ASSERT(inst->op_type == OP_VVV || inst->op_type == OP_VVV_I3 ||
 		inst->op_type == OP_VVV_I2_I3);
 	if ( inst->op_type != OP_VVV_I2_I3 )

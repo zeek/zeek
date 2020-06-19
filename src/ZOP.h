@@ -300,6 +300,10 @@ public:
 	ZInst* target = nullptr;
 	int target_slot = 0;	// which of v1/v2/v3 should hold the target
 
+	// "when" statements, alas, need two goto targets ...
+	ZInst* target2 = nullptr;
+	int target2_slot = 0;	// which of v1/v2/v3 should hold the target
+
 	// The final PC location of the statement.  -1 indicates not
 	// yet assigned.
 	int inst_num = -1;

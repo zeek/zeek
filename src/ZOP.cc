@@ -298,9 +298,10 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 
 	const ID* id;
 
-	if ( remappings )
+	if ( remappings && live )
 		{ // Find which identifier manifests at this instruction.
-		ASSERT(slot >= 0);
+		ASSERT(slot >= 0 && slot < remappings->size());
+
 		auto& map = (*remappings)[slot];
 
 		int i;
@@ -314,7 +315,7 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 			ASSERT(i > 0);
 			}
 
-		id = map.ids[i];
+		id = map.ids[i-1];
 		}
 
 	else

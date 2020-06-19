@@ -707,6 +707,7 @@ eval timer_mgr->Add(timer)
 
 op Schedule
 type CiHL
+op1-read
 custom-method return CompileSchedule(nullptr, c, i, h, l);
 eval double dt = z.c.double_val
 eval if ( z.v2 ) dt += network_time
@@ -719,6 +720,7 @@ eval timer_mgr->Add(timer)
 
 op Event
 type HL
+op1-read
 custom-method return CompileEvent(h, l);
 eval mgr.Enqueue(z.event_handler, std::move(*frame[z.v1].vvec))
 eval delete frame[z.v1].vvec
@@ -1130,12 +1132,14 @@ eval frame[z.v1].vvec = new val_vec
 
 # Appends v2 to the vector pointed to by v1.
 internal-op Set-Val-Vec
+op1-read
 type VV
 eval auto v = frame[z.v2].ToVal(z.t)
 eval frame[z.v1].vvec->push_back(v)
 
 # Appends c to the vector pointed to by v1.
 internal-op Set-Val-Vec
+op1-read
 type VC
 eval auto c = z.c.ToVal(z.t)
 eval frame[z.v1].vvec->push_back(c)

@@ -389,17 +389,14 @@ Stmt* ZAM::CompileBody()
 		}
 
 	// Update remapped frame denizens, if any.
-	if ( shared_frame_denizens.size() > 0 )
+	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
 		{
-		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
-			{
-			auto info = shared_frame_denizens[i];
+		auto& info = shared_frame_denizens[i];
 
-			for ( auto& start : info.id_start )
-				start = inst1_to_inst2[start];
+		for ( auto& start : info.id_start )
+			start = inst1_to_inst2[start];
 
-			shared_frame_denizens_final.push_back(info);
-			}
+		shared_frame_denizens_final.push_back(info);
 		}
 
 	delete pending_inst;
@@ -961,7 +958,10 @@ void ZAM::SetLifetimeStart(int slot, const ZInst* inst)
 
 void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 	{
-	ASSERT(slot >= 0 && slot < frame_denizens.size());
+	if ( slot < 0 )
+		return;
+
+	ASSERT(slot < frame_denizens.size());
 
 	// See comment above about temporaries not having their values
 	// extend around loop bodies.
@@ -2987,7 +2987,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 
 	auto z = ZInst(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, n);
-	z.op_type = n2 ? OP_VVV_I3 : OP_VVC_I2;
+	z.op_type = OP_VVV_I3;
 	AddInst(z);
 
 	ZOp op;

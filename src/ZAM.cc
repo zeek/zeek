@@ -442,16 +442,8 @@ void ZAM::Init()
 	auto args = scope->OrderedVars();
 	auto nparam = func->FType()->Args()->NumFields();
 
-	// Use slot 0 for the temporary register.  Note that this choice
-	// interacts with tracking globals, which we assume are in slots
-	// 1 .. num_globals.
-	register_slot = frame_size++;
-	frame_denizens.push_back(nullptr);
-
 	num_globals = pf->globals.size();
 
-	// Important that we added globals to the frame first, as we
-	// assume we can loop from 1 .. num_globals to iterate over them.
 	for ( auto g : pf->globals )
 		{
 		GlobalInfo info;
@@ -460,6 +452,10 @@ void ZAM::Init()
 		global_id_to_info[g] = globals.size();
 		globals.push_back(info);
 		}
+
+	auto temp_reg = new ID("#reg#", SCOPE_FUNCTION, false);
+	temp_reg->SetType(base_type(TYPE_VOID));
+	register_slot = AddToFrame(temp_reg);
 
 	::Ref(scope);
 	push_existing_scope(scope);

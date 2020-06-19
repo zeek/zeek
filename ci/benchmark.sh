@@ -5,9 +5,9 @@ ZEEK_BENCHMARK_ENDPOINT="/zeek"
 # Setting this causes any command failures to immediately cause the script to fail.
 set -e
 
-# Don't do this for any branch that isn't from the main zeek repo.
-# TODO: is it possible to do this from cirrus.yml instead of here?
-if [ "${CIRRUS_REPO_OWNER}" != "zeek" ]; then
+# Don't do this unless the user has access to the encrypted variables. This will
+# basically exclude any PR that doesn't come from the main zeek repo.
+if [ "${CIRRUS_USER_PERMISSION}" != "admin" -a "${CIRRUS_USER_PERMISSION}" != "write" ]; then
     echo "Benchmarks are skipped for repositories outside of the main Zeek project"
     exit 0
 fi

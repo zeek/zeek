@@ -1547,11 +1547,17 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 		loop_condition = c->OptExpr(loop_condition);
 	else
 		{
-		if ( ! c->IsPruning() && IsReduced(c) )
-			return this->Ref();
-
-		auto lc = loop_condition->ReduceToConditional(c, loop_cond_stmt);
-		loop_condition = {AdoptRef{}, lc};
+		if ( IsReduced(c) )
+			{
+			if ( ! c->IsPruning() )
+				return this->Ref();
+			}
+		else
+			{
+			auto lc = loop_condition->ReduceToConditional(c,
+								loop_cond_stmt);
+			loop_condition = {AdoptRef{}, lc};
+			}
 		}
 
 	body = {AdoptRef{}, body->Reduce(c)};

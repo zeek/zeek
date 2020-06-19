@@ -80,7 +80,7 @@ public:
 	// new IDs are added to share the slot.
 	int scope_end;
 
-	// Whether this is a managed from slot.
+	// Whether this is a managed slot.
 	bool is_managed;
 };
 
@@ -208,6 +208,9 @@ public:
 	// is set to -1.  Returns true if at least one slot was used.
 	bool UsesSlots(int& s1, int& s2, int& s3, int& s4) const;
 
+	// Updates used (not assigned) slots per the given mapping.
+	void UpdateSlots(std::vector<int>& slot_mapping);
+
 	bool IsFrameLoad() const
 		{ return op == OP_LOAD_VAL_VV || op == OP_LOAD_ANY_VAL_VV; }
 	bool IsFrameStore() const
@@ -216,9 +219,14 @@ public:
 	bool IsFrameSync() const
 		{ return IsFrameLoad() || IsFrameStore(); }
 
-	const char* VName(int max_n, int n, const FrameMap& frame_ids) const;
+	const char* VName(int max_n, int n, const FrameMap* frame_ids,
+				const FrameReMap* remappings) const;
 	int NumFrameSlots() const;
-	void Dump(const FrameMap& frame_ids) const;
+
+	// If "remappings" is non-nil, then it is used instead of frame_ids.
+	void Dump(const FrameMap* frame_ids, const FrameReMap* remappings)
+		const;
+
 	const char* ConstDump() const;
 
 

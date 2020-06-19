@@ -408,20 +408,29 @@ protected:
 	Reducer* reducer;
 	ProfileFunc* pf;
 
-	// Maps identifiers to their frame location.
-	std::unordered_map<const ID*, int> frame_layout;
+	// Maps identifiers to their (unique) frame location.
+	std::unordered_map<const ID*, int> frame_layout1;
 
 	// Inverse mapping, used for tracking frame usage (and for dumping
 	// statements).
 	FrameMap frame_denizens;
 
-	// The same, but for remapping identifiers to share frame slots.
+	// The same, but for remapping identifiers to shared frame slots.
 	//
 	// IMPORTANT: we manage this as zero-based.  As long as the
 	// "temporary register" slot is presumed to reside at slot 0,
 	// we need to be careful in how we interpret offsets into
 	// this vector.
 	FrameReMap shared_frame_denizens;
+
+	// The same, but renumbered to take into account removal of
+	// dead statements.
+	FrameReMap shared_frame_denizens_final;
+
+	// Maps frame1 slots to frame2 slots.  A value < 0 means the
+	// variable doesn't exist in frame2 - it's an error to encounter
+	// one of these when remapping instructions!
+	std::vector<int> frame1_to_frame2;
 
 	// A type for mapping an instruction to a set of locals associated
 	// with it.

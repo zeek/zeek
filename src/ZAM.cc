@@ -352,9 +352,20 @@ Stmt* ZAM::CompileBody()
 	if ( pending_inst )
 		pending_inst->live = false;
 
+	// Maps inst1 instructions to where they are in inst2.
+	// Dead instructions map to -1.
+	std::vector<int> inst1_to_inst2;
+
 	for ( auto i = 0; i < insts1.size(); ++i )
+		{
 		if ( insts1[i]->live )
+			{
+			inst1_to_inst2.push_back(insts2.size());
 			insts2.push_back(insts1[i]);
+			}
+		else
+			inst1_to_inst2.push_back(-1);
+		}
 
 	// Re-concretize instruction numbers, and concretize GoTo's.
 	for ( auto i = 0; i < insts2.size(); ++i )
@@ -381,6 +392,20 @@ Stmt* ZAM::CompileBody()
 			default:
 				reporter->InternalError("bad GoTo target");
 			}
+			}
+		}
+
+	// Update remapped frame denizens, if any.
+	if ( shared_frame_denizens.size() > 0 )
+		{
+		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+			{
+			auto info = shared_frame_denizens[i];
+
+			for ( auto& start : info.id_start )
+				start = inst1_to_inst2[start];
+
+			shared_frame_denizens_final.push_back(info);
 			}
 		}
 
@@ -466,7 +491,7 @@ void ZAM::Init()
 				reporter->Warning("%s unused", a->Name());
 			}
 
-	for ( auto& slot : frame_layout )
+	for ( auto& slot : frame_layout1 )
 		{
 		// Look for locals with values of types for which
 		// we do explicit memory management on (re)assignment.
@@ -692,7 +717,7 @@ void ZAM::ComputeFrameLifetimes()
 			// Extend the lifetime of any modified globals.
 			for ( auto g : modified_globals )
 				{
-				int gs = frame_layout[g];
+				int gs = frame_layout1[g];
 				if ( denizen_beginning.count(gs) == 0 )
 					// Global hasn't been loaded yet.
 					continue;
@@ -757,6 +782,11 @@ void ZAM::ReMapFrame()
 		}
 #endif
 
+	// This may require adjustment for the "temporary register"
+	// and "extra" slots.
+	frame1_to_frame2.resize(frame_layout1.size(), -1);
+	managed_slots.clear();
+
 	for ( auto i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
@@ -769,13 +799,13 @@ void ZAM::ReMapFrame()
 			{
 			// Don't remap variables whose values aren't actually
 			// used.
-			int slot = frame_layout[v];
+			int slot = frame_layout1[v];
 			if ( denizen_ending.count(slot) > 0 )
 				ReMapVar(v, slot, i);
 			}
 		}
 
-#if 0
+#if 1
 	printf("%s frame remapping:\n", func->Name());
 
 	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
@@ -791,6 +821,42 @@ void ZAM::ReMapFrame()
 		printf("\n");
 		}
 #endif
+
+	// Gulp - now rewrite every instruction to update its slot usage.
+
+	int n1_slots = frame1_to_frame2.size();
+
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->AssignsToSlot1() )
+			{
+			auto v1 = inst->v1;
+			ASSERT(v1 >= 0);
+			if ( v1 >= n1_slots )
+				printf("skipping inst %d\n", i);
+			else
+				inst->v1 = frame1_to_frame2[v1];
+			}
+
+		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
+		     inst->op == OP_NEXT_TABLE_ITER_VV )
+			{
+			// Rewrite iteration variables.
+			auto iter_vars = inst->c.iter_info;
+			for ( auto& v : iter_vars->loop_vars )
+				{
+				ASSERT(v > 0 && v < n1_slots);
+				v = frame1_to_frame2[v];
+				}
+			}
+
+		inst->UpdateSlots(frame1_to_frame2);
+		}
 	}
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)
@@ -844,23 +910,27 @@ void ZAM::ReMapVar(const ID* id, int slot, int inst)
 	if ( apt_slot < 0 )
 		{
 		// No compatible existing slot.  Create a new one.
+		apt_slot = shared_frame_denizens.size();
+
 		FrameSharingInfo info;
-		info.ids.push_back(id);
-		info.id_start.push_back(inst);
-		info.scope_end = scope_end;
 		info.is_managed = is_managed;
 		shared_frame_denizens.push_back(info);
+
+		if ( is_managed )
+			// See below for the +1 here.
+			managed_slots.push_back(apt_slot + 1);
 		}
 
-	else
-		{
-		// Add to existing slot.
-		auto& s = shared_frame_denizens[apt_slot];
+	auto& s = shared_frame_denizens[apt_slot];
 
-		s.ids.push_back(id);
-		s.id_start.push_back(inst);
-		s.scope_end = scope_end;
-		}
+	s.ids.push_back(id);
+	s.id_start.push_back(inst);
+	s.scope_end = scope_end;
+
+	// ### This is apt_slot + 1 because, at least for now, we internally
+	// represent frame2 slots as 0-based, but actually on the frame as
+	// 1-based.
+	frame1_to_frame2[slot] = apt_slot + 1;
 	}
 
 void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
@@ -1201,12 +1271,6 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 		int profile_pc;
 		double profile_CPU;
 		const Expr* profile_expr;
-
-		if ( 0 )
-			{
-			printf("executing %d: ", pc);
-			z.Dump(frame_denizens);
-			}
 
 		if ( do_profile )
 			{
@@ -2720,7 +2784,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 
 int ZAM::AddToFrame(ID* id)
 	{
-	frame_layout[id] = frame_size;
+	frame_layout1[id] = frame_size;
 	frame_denizens.push_back(id);
 	return frame_size++;
 	}
@@ -2756,34 +2820,56 @@ void ZAM::ProfileExecution() const
 		{
 		printf("%s %d %d %.06f ", func->Name(), i,
 			(*inst_count)[i], (*inst_CPU)[i]);
-		insts2[i]->Dump(frame_denizens);
+		insts2[i]->Dump(&frame_denizens, &shared_frame_denizens_final);
 		}
 	}
 
 void ZAM::Dump()
 	{
-	for ( auto frame_elem : frame_layout )
+	bool remapped_frame = ! analysis_options.no_ZAM_opt;
+
+	if ( remapped_frame )
+		printf("Original frame:\n");
+
+	for ( auto frame_elem : frame_layout1 )
 		printf("frame[%d] = %s\n", frame_elem.second, frame_elem.first->Name());
+
+	if ( remapped_frame )
+		{
+		printf("Final frame:\n");
+
+		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+			{
+			printf("frame2[%d] =", i + 1);
+			for ( auto& id : shared_frame_denizens[i].ids )
+				printf(" %s", id->Name());
+			printf("\n");
+			}
+		}
 
 	if ( insts2.size() > 0 )
 		printf("Pre-removal of dead code:\n");
+
+	auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
 
 	for ( int i = 0; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
 		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
 			inst->inside_loop ? " (loop)" : "");
-		inst->Dump(frame_denizens);
+		inst->Dump(&frame_denizens, remappings);
 		}
 
 	if ( insts2.size() > 0 )
 		printf("Final code:\n");
 
+	remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
+
 	for ( int i = 0; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
 		printf("%d%s: ", i, inst->live ? "" : " (dead)");
-		inst->Dump(frame_denizens);
+		inst->Dump(&frame_denizens, remappings);
 		}
 
 	for ( int i = 0; i < int_cases.size(); ++i )
@@ -3258,9 +3344,9 @@ int ZAM::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 
 int ZAM::RawSlot(const ID* id)
 	{
-	auto id_slot = frame_layout.find(id);
+	auto id_slot = frame_layout1.find(id);
 
-	if ( id_slot == frame_layout.end() )
+	if ( id_slot == frame_layout1.end() )
 		reporter->InternalError("ID %s missing from frame layout", id->Name());
 
 	return id_slot->second;
@@ -3268,7 +3354,7 @@ int ZAM::RawSlot(const ID* id)
 
 bool ZAM::HasFrameSlot(const ID* id) const
 	{
-	return frame_layout.find(id) != frame_layout.end();
+	return frame_layout1.find(id) != frame_layout1.end();
 	}
 
 int ZAM::NewSlot()

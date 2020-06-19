@@ -84,8 +84,42 @@ bool ZInst::HasSideEffects() const
 
 bool ZInst::AssignsToSlot1() const
 	{
-	auto fl = op1_flavor[op];
-	return fl == OP1_WRITE || fl == OP1_READ_WRITE || fl == OP1_INTERNAL;
+	switch ( op_type ) {
+	case OP_X:
+	case OP_C:
+	case OP_E:
+	case OP_V_I1:
+	case OP_VV_I1_I2:
+	case OP_VVVC_I1_I2_I3:
+		return false;
+
+	// We use this ginormous set of cases rather than "default" so
+	// that when we add a new operand type, we have to consider
+	// its behavior here.
+	case OP_V:
+	case OP_VC:
+	case OP_VE:
+	case OP_VV_FRAME:
+	case OP_VC_ID:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VVV_I2_I3:
+	case OP_VVVC_I2_I3:
+	case OP_VVVV_I2_I3_I4:
+	case OP_VV:
+	case OP_VVc:
+	case OP_VVC:
+	case OP_VVV_I3:
+	case OP_VVVV_I3_I4:
+	case OP_VVVC_I3:
+	case OP_VVV:
+	case OP_VVVC:
+	case OP_VVVV_I4:
+	case OP_VVVV:
+		auto fl = op1_flavor[op];
+		return fl == OP1_WRITE || fl == OP1_READ_WRITE ||
+			fl == OP1_INTERNAL;
+	}
 	}
 
 bool ZInst::UsesSlot(int slot) const
@@ -201,7 +235,61 @@ bool ZInst::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 	}
 	}
 
-const char* ZInst::VName(int max_n, int n, const FrameMap& frame_ids) const
+void ZInst::UpdateSlots(std::vector<int>& slot_mapping)
+	{
+	switch ( op_type ) {
+	case OP_X:
+	case OP_C:
+	case OP_E:
+	case OP_V_I1:
+	case OP_VV_I1_I2:
+	case OP_VVVC_I1_I2_I3:
+		return;	// so we don't do any v1 remapping.
+
+	case OP_V:
+	case OP_VC:
+	case OP_VE:
+	case OP_VV_FRAME:
+	case OP_VC_ID:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VVV_I2_I3:
+	case OP_VVVC_I2_I3:
+	case OP_VVVV_I2_I3_I4:
+		break;
+
+	case OP_VV:
+	case OP_VVc:
+	case OP_VVC:
+	case OP_VVV_I3:
+	case OP_VVVV_I3_I4:
+	case OP_VVVC_I3:
+		v2 = slot_mapping[v2];
+		break;
+
+	case OP_VVV:
+	case OP_VVVC:
+	case OP_VVVV_I4:
+		v2 = slot_mapping[v2];
+		v3 = slot_mapping[v3];
+		break;
+
+	case OP_VVVV:
+		v2 = slot_mapping[v2];
+		v3 = slot_mapping[v3];
+		v4 = slot_mapping[v4];
+		break;
+	}
+
+	// Note, unlike for UsesSlots we do *not* include OP1_READ_WRITE
+	// here, because such instructions will already have v1 remapped
+	// given it's an assignment target.
+	if ( op1_flavor[op] == OP1_READ )
+		v1 = slot_mapping[v1];
+	}
+
+const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
+				const FrameReMap* remappings) const
 	{
 	if ( n > max_n )
 		return nullptr;
@@ -211,13 +299,39 @@ const char* ZInst::VName(int max_n, int n, const FrameMap& frame_ids) const
 	if ( slot == 0 )
 		return copy_string("<reg0>");
 
-	if ( slot >= frame_ids.size() )
+	if ( remappings && slot >= remappings->size() )
 		return copy_string(fmt("extra-slot %d", slot));
 
-	return copy_string(fmt("%d (%s)", slot, frame_ids[slot]->Name()));
+	if ( ! remappings && slot >= frame_ids->size() )
+		return copy_string(fmt("extra-slot %d", slot));
+
+	const ID* id;
+
+	if ( remappings )
+		{ // Find which identifier manifests at this instruction.
+		auto& map = (*remappings)[slot];
+
+		int i;
+		for ( i = 0; i < map.ids.size(); ++i )
+			if ( map.id_start[i] > inst_num )
+				// Went too far.
+				break;
+
+		if ( i < map.ids.size() )
+			{
+			ASSERT(i > 0);
+			}
+
+		id = map.ids[i - 1];
+		}
+
+	else
+		id = (*frame_ids)[slot];
+
+	return copy_string(fmt("%d (%s)", slot, id->Name()));
 	}
 
-void ZInst::Dump(const FrameMap& frame_ids) const
+void ZInst::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 	{
 	printf("%s ", ZOP_name(op));
 	if ( t && 0 )
@@ -225,10 +339,10 @@ void ZInst::Dump(const FrameMap& frame_ids) const
 
 	int n = NumFrameSlots();
 
-	auto id1 = VName(n, 1, frame_ids);
-	auto id2 = VName(n, 2, frame_ids);
-	auto id3 = VName(n, 3, frame_ids);
-	auto id4 = VName(n, 4, frame_ids);
+	auto id1 = VName(n, 1, frame_ids, remappings);
+	auto id2 = VName(n, 2, frame_ids, remappings);
+	auto id3 = VName(n, 3, frame_ids, remappings);
+	auto id4 = VName(n, 4, frame_ids, remappings);
 
 	switch ( op_type ) {
 	case OP_X:

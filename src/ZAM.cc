@@ -706,11 +706,21 @@ void ZAM::ComputeFrameLifetimes()
 			// assign to an arbitrary long list of variables.
 			auto iter_vars = inst->c.iter_info;
 			for ( auto v : iter_vars->loop_vars )
+				{
 				CheckSlotAssignment(v, inst);
+
+				// Also mark it as a usage.  Otherwise,
+				// we risk pruning the variable if it
+				// happens to not be used, which will
+				// mess up the iteration logic.
+				ExtendLifetime(v, inst);
+				}
 
 			// No need to check the additional "var" associated
 			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
-			// a slot-1 assignment.
+			// a slot-1 assignment.  However, similar to other
+			// loop variables, mark this as a usasge.
+			ExtendLifetime(inst->v1, inst);
 			}
 
 		if ( inst->op == OP_SYNC_GLOBALS_X )

@@ -1033,11 +1033,12 @@ eval frame[z.v1].table_val = t
 
 op Sync-Globals
 type X
-eval for ( auto i = 1; i <= num_globals; ++i ) {
+eval for ( auto i = 0; i < num_globals; ++i ) {
 eval	if ( global_state[i] == GS_DIRTY ) {
-eval		auto id = frame_denizens[i]
+eval		auto id = globals[i].id
+eval		auto slot = globals[i].slot
 eval		auto t = id->Type()
-eval		auto v = frame[i].ToVal(t)
+eval		auto v = frame[slot].ToVal(t)
 eval		id->SetVal(v)
 eval	}
 eval	global_state[i] = GS_UNLOADED
@@ -1082,20 +1083,20 @@ eval frame[z.v1].any_val = v.release()
 
 internal-op Load-Global
 op1-internal
-type VC
-eval if ( global_state[z.v1] == GS_UNLOADED ) {
+type VVC
+eval if ( global_state[z.v2] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
 eval	AssignV1(BuildVal(v, z.t))
-eval	global_state[z.v1] = GS_CLEAN
+eval	global_state[z.v2] = GS_CLEAN
 eval }
 
 internal-op Load-Any-Global
 op1-internal
-type VC
-eval if ( global_state[z.v1] == GS_UNLOADED ) {
+type VVC
+eval if ( global_state[z.v2] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
 eval	frame[z.v1].any_val = v.release()
-eval	global_state[z.v1] = GS_CLEAN
+eval	global_state[z.v2] = GS_CLEAN
 eval }
 
 internal-op Store-Val

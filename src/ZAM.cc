@@ -75,6 +75,9 @@ public:
 };
 
 
+// The dynamic state of a global.  Used to construct an array indexed in
+// parallel with the globals[] array, which tracks the associated static
+// information.
 typedef enum {
 	GS_UNLOADED,	// global hasn't been loaded
 	GS_CLEAN,	// global has been loaded but not modified
@@ -450,7 +453,13 @@ void ZAM::Init()
 	// Important that we added globals to the frame first, as we
 	// assume we can loop from 1 .. num_globals to iterate over them.
 	for ( auto g : pf->globals )
-		(void) AddToFrame(g);
+		{
+		GlobalInfo info;
+		info.id = g;
+		info.slot = AddToFrame(g);
+		global_id_to_info[g] = globals.size();
+		globals.push_back(info);
+		}
 
 	::Ref(scope);
 	push_existing_scope(scope);
@@ -1233,11 +1242,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
 	auto frame = new ZAMValUnion[frame_size];
-	auto global_state = num_globals > 0 ?
-					// We use +1 so we can index/loop
-					// from 1 .. num_globals
-					new GlobalState[num_globals + 1] :
-					nullptr;
+	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
+						nullptr;
 	int pc = start_pc;
 	int end_pc = insts2.size();
 
@@ -1257,7 +1263,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	bool do_profile = analysis_options.report_profile;
 
 	// All globals start out unloaded.
-	for ( auto i = 1; i <= num_globals; ++i )
+	for ( auto i = 0; i < num_globals; ++i )
 		global_state[i] = GS_UNLOADED;
 
 	// Clear slots for which we do explicit memory management.
@@ -1632,10 +1638,12 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 		{
 		a_s.SetType(n->Type());
 
-		if ( n->Id()->IsGlobal() )
+		auto id = n->Id();
+		if ( id->IsGlobal() )
 			{
 			AddInst(a_s);
-			a_s = ZInst(OP_DIRTY_GLOBAL_V, RawSlot(n));
+			a_s = ZInst(OP_DIRTY_GLOBAL_V, global_id_to_info[id]);
+			a_s.op_type = OP_V_I1;
 			}
 		}
 
@@ -2722,7 +2730,10 @@ const CompiledStmt ZAM::AddInst(const ZInst& inst)
 	auto dirty_global_slot = mark_dirty;
 	mark_dirty = -1;
 
-	return AddInst(ZInst(OP_DIRTY_GLOBAL_V, dirty_global_slot));
+	auto dirty_inst = ZInst(OP_DIRTY_GLOBAL_V, dirty_global_slot);
+	dirty_inst.op_type = OP_V_I1;
+
+	return AddInst(dirty_inst);
 	}
 
 const Stmt* ZAM::LastStmt() const
@@ -2770,14 +2781,14 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 	bool is_any = IsAny(id->Type());
 	ZOp op;
 
-	op = is_any ? OP_LOAD_ANY_GLOBAL_VC : OP_LOAD_GLOBAL_VC;
+	op = is_any ? OP_LOAD_ANY_GLOBAL_VVC : OP_LOAD_GLOBAL_VVC;
 
 	auto slot = RawSlot(id);
 
-	ZInst z(op, slot);
+	ZInst z(op, slot, global_id_to_info[id]);
 	z.c.id_val = id;
 	z.SetType(id->Type());
-	z.op_type = OP_VC_ID;
+	z.op_type = OP_VVC_ID;
 
 	return AddInst(z);
 	}
@@ -3324,14 +3335,14 @@ int ZAM::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 
 	case OP1_WRITE:
 		if ( id->IsGlobal() )
-			mark_dirty = slot;
+			mark_dirty = global_id_to_info[id];
 		break;
 
         case OP1_READ_WRITE:
 		if ( id->IsGlobal() )
 			{
 			(void) LoadGlobal(frame_denizens[slot]);
-			mark_dirty = slot;
+			mark_dirty = global_id_to_info[id];
 			}
 		break;
 

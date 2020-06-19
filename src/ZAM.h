@@ -461,6 +461,18 @@ protected:
 	std::vector<int> managed_slots;
 	std::vector<const BroType*> managed_slot_types;
 
+	// Static information about globals used in the function.  There's
+	// a parallel array "global_state" that's constructed
+	// per-function-invocation that dynamically tracks whether a
+	// global is loaded, clean, or dirty.
+	class GlobalInfo {
+	public:
+		ID* id;
+		int slot;
+	};
+	std::vector<GlobalInfo> globals;
+	std::unordered_map<const ID*, int> global_id_to_info;	// inverse
+
 	// Which globals are potentially ever modified.
 	std::unordered_set<const ID*> modified_globals;
 

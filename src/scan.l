@@ -978,23 +978,17 @@ int yywrap()
 		return 0;
 
 	// Add redef statements for any X=Y command line parameters.
-	if ( params.size() > 0 )
+	if ( ! params.empty() )
 		{
 		std::string policy;
 
-		for ( unsigned int i = 0; i < params.size(); ++i )
+		for ( const auto& pi : params )
 			{
-			std::string pi = params[i];
-			auto first_non_id_char = 0;
+			auto p = pi.data();
 
-			for ( size_t j = 0; j < pi.size(); ++j )
-				{
-				if ( ! isalnum(pi[j]) && pi[j] != '_' && pi[j] != ':' )
-					break;
+			while ( isalnum(*p) || *p == '_' || *p == ':' ) ++p;
 
-				++first_non_id_char;
-				}
-
+			auto first_non_id_char = p - pi.data();
 			auto eq_idx = pi.find('=', first_non_id_char);
 			// Omit the '=' from op just to make fmt string below clearer.
 			auto op = pi.substr(first_non_id_char, eq_idx - first_non_id_char);
@@ -1010,7 +1004,7 @@ int yywrap()
 				}
 
 			// Interpret the value based on the identifier's type.
-			// So far, that just means quoting the value for strings types.
+			// So far, that just means quoting the value for string types.
 			const auto& type = id->GetType();
 
 			if ( ! type )

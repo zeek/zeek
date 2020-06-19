@@ -984,34 +984,54 @@ int yywrap()
 
 		for ( unsigned int i = 0; i < params.size(); ++i )
 			{
-			char* param = copy_string(params[i].c_str());
-			char* eq = strchr(param, '=');
-			char* val = eq + 1;
+			std::string pi = params[i];
+			auto first_non_id_char = 0;
 
-			*eq = '\0';
-
-			if ( strlen(val) == 0 )
+			for ( size_t j = 0; j < pi.size(); ++j )
 				{
-				delete [] param;
+				if ( ! isalnum(pi[j]) && pi[j] != '_' && pi[j] != ':' )
+					break;
+
+				++first_non_id_char;
+				}
+
+			auto eq_idx = pi.find('=', first_non_id_char);
+			// Omit the '=' from op just to make fmt string below clearer.
+			auto op = pi.substr(first_non_id_char, eq_idx - first_non_id_char);
+			auto id_str = pi.substr(0, first_non_id_char);
+			auto val_str = pi.substr(eq_idx + 1);
+			const auto& id = zeek::id::find(id_str);
+
+			if ( ! id )
+				{
+				reporter->Error("unknown identifier '%s' in command-line options",
+				                id_str.data());
 				continue;
 				}
 
-			// Try to find the type of the param, and interpret
-			// the value intelligently for that type.  (So far,
-			// that just means quoting the value if it's a
-			// string type.)  If no type is found, the value
-			// is left unchanged.
-			std::string opt_quote;	// no optional quote by default
-			const auto& param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
-			Val* v = param_id ? param_id->GetVal().get() : nullptr;
+			// Interpret the value based on the identifier's type.
+			// So far, that just means quoting the value for strings types.
+			const auto& type = id->GetType();
 
-			if ( v && v->GetType() && v->GetType()->Tag() == zeek::TYPE_STRING )
-				opt_quote = "\"";	// use quotes
+			if ( ! type )
+				{
+				reporter->Error("can't set value of '%s' in command-line "
+				                "options: unknown type", id_str.data());
+				continue;
+				}
 
-			policy += std::string("redef ") + param + "="
-					+ opt_quote + val + opt_quote + ";";
+			if ( val_str.empty() && ! zeek::IsString(type->Tag()) )
+				{
+				reporter->Error("must assign non-empty value to '%s' in "
+				                "command-line options", id_str.data());
+				continue;
+				}
 
-			delete [] param;
+			auto use_quotes = zeek::IsString(type->Tag());
+			auto fmt_str = use_quotes ? "redef %s %s= \"%s\";"
+			                          : "redef %s %s= %s;";
+
+			policy += fmt(fmt_str, id_str.data(), op.data(), val_str.data());
 			}
 
 		params.clear();

@@ -1,0 +1,4 @@
+mystr, default
+mynum, 0
+mytable, {"zero":"0","one":"1"}
+MyMod::str, def

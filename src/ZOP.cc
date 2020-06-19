@@ -296,16 +296,6 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 
 	int slot = n == 1 ? v1 : (n == 2 ? v2 : (n == 3 ? v3 : v4));
 
-	if ( slot == 0 )
-		return copy_string("<reg0>");
-
-	// ### fix > as >=
-	if ( remappings && slot > remappings->size() )
-		return copy_string(fmt("extra-slot %d", slot));
-
-	if ( ! remappings && slot >= frame_ids->size() )
-		return copy_string(fmt("extra-slot %d", slot));
-
 	const ID* id;
 
 	if ( remappings )

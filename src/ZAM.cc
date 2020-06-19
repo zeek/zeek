@@ -100,7 +100,9 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1)
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, int i)
 	{
-	return ZInst(op, m->Frame1Slot(v1, op), i);
+	auto z = ZInst(op, m->Frame1Slot(v1, op), i);
+	z.op_type = OP_VV_I2;
+	return z;
 	}
 
 ZInst GenInst(ZAM* m, ZOp op, const ConstExpr* c, const NameExpr* v1, int i)

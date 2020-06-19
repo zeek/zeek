@@ -1,4 +1,11 @@
 
+3.2.0-dev.798 | 2020-06-19 13:25:02 -0700
+
+  * Remove last_access_time from TableEntryVal. (Johanna Amann, Corelight)
+
+    Turns out - this was no longer used. And it takes up at least 8 bytes
+    of space for every single table/set entry.
+
 3.2.0-dev.796 | 2020-06-18 20:40:59 +0000
 
   * cmake: Make musl support more distro agnostic (Andrew Benson)

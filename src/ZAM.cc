@@ -709,18 +709,22 @@ void ZAM::ComputeFrameLifetimes()
 				{
 				CheckSlotAssignment(v, inst);
 
-				// Also mark it as a usage.  Otherwise,
-				// we risk pruning the variable if it
-				// happens to not be used, which will
-				// mess up the iteration logic.
-				ExtendLifetime(v, inst);
+				// Also mark it as usage throughout the
+				// loop.  Otherwise, we risk pruning the
+				// variable if it happens to not be used
+				// (which will mess up the iteration logic)
+				// or doubling it up with some other value
+				// inside the loop (which will fail when
+				// the loop var has memory management
+				// associated with it).
+				ExtendLifetime(v, EndOfLoop(inst));
 				}
 
 			// No need to check the additional "var" associated
 			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
 			// a slot-1 assignment.  However, similar to other
 			// loop variables, mark this as a usasge.
-			ExtendLifetime(inst->v1, inst);
+			ExtendLifetime(inst->v1, EndOfLoop(inst));
 			}
 
 		if ( inst->op == OP_SYNC_GLOBALS_X )
@@ -857,6 +861,20 @@ void ZAM::ReMapFrame()
 
 		inst->UpdateSlots(frame1_to_frame2);
 		}
+
+	// Similarly for tracking globals, where we prune globals that
+	// didn't wind up being used.  (This can happen because they're
+	// only used in interpreted expressions.)
+	std::vector<GlobalInfo> used_globals;
+
+	for ( auto& g : globals )
+		{
+		g.slot = frame1_to_frame2[g.slot];
+		if ( g.slot >= 0 )
+			used_globals.push_back(g);
+		}
+
+	globals = used_globals;
 	}
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)

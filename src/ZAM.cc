@@ -804,7 +804,7 @@ void ZAM::ReMapFrame()
 	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
 		{
 		auto& s = shared_frame_denizens[i];
-		printf("*%d (%s) %lu #%d->#%d:",
+		printf("*%d (%s) %lu [%d->%d]:",
 			i, s.is_managed ? "M" : "N",
 			s.ids.size(), s.id_start[0], s.scope_end);
 

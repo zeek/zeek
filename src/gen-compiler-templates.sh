@@ -1041,7 +1041,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	flavor1 = op1_flavor ? op1_flavor : "OP1_WRITE"
 	print ("\t", flavor1 ",\t// " full_op) >op1_flavors_f
 	if ( field_op )
-		print ("\t", flavor1 ",\t// " full_op field) >op1_flavors_f
+		print ("\t", "OP1_READ" ",\t// " full_op field) >op1_flavors_f
 	if ( do_vec )
 		print ("\t", flavor1 ",\t// " full_op vec) >op1_flavors_f
 	if ( cond_op )

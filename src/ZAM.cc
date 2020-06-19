@@ -453,9 +453,7 @@ void ZAM::Init()
 		globals.push_back(info);
 		}
 
-	auto temp_reg = new ID("#reg#", SCOPE_FUNCTION, false);
-	temp_reg->SetType(base_type(TYPE_VOID));
-	register_slot = AddToFrame(temp_reg);
+	register_slot = NewSlot();
 
 	::Ref(scope);
 	push_existing_scope(scope);
@@ -3366,7 +3364,13 @@ bool ZAM::HasFrameSlot(const ID* id) const
 
 int ZAM::NewSlot()
 	{
-	return frame_size++;
+	char buf[8192];
+	snprintf(buf, sizeof buf, "#internal-%d#", frame_size);
+
+	auto internal_reg = new ID(buf, SCOPE_FUNCTION, false);
+	internal_reg->SetType(base_type(TYPE_VOID));
+
+	return AddToFrame(internal_reg);
 	}
 
 int ZAM::RegisterSlot()

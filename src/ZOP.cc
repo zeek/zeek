@@ -299,7 +299,8 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 	if ( slot == 0 )
 		return copy_string("<reg0>");
 
-	if ( remappings && slot >= remappings->size() )
+	// ### fix > as >=
+	if ( remappings && slot > remappings->size() )
 		return copy_string(fmt("extra-slot %d", slot));
 
 	if ( ! remappings && slot >= frame_ids->size() )
@@ -309,7 +310,8 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 
 	if ( remappings )
 		{ // Find which identifier manifests at this instruction.
-		auto& map = (*remappings)[slot];
+		ASSERT(slot > 0);
+		auto& map = (*remappings)[slot - 1];
 
 		int i;
 		for ( i = 0; i < map.ids.size(); ++i )

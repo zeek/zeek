@@ -837,7 +837,7 @@ void ZAM::ReMapFrame()
 			{
 			auto v1 = inst->v1;
 			ASSERT(v1 >= 0);
-			if ( v1 >= n1_slots )
+			if ( v1 > n1_slots )
 				printf("skipping inst %d\n", i);
 			else
 				inst->v1 = frame1_to_frame2[v1];

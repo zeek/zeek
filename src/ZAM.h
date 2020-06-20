@@ -167,11 +167,13 @@ protected:
 	// Extend (or create) the end of a local's lifetime.
 	void ExtendLifetime(int slot, const ZInst* inst);
 
-	// Returns the (live) instruction at the beginning/end of the loop
+	// Returns the (live) instruction at the beginning/end of the loop(s)
 	// within which the given instruction lies; or that instruction
-	// itself if it's not inside a loop.
-	const ZInst* BeginningOfLoop(const ZInst* inst) const;
-	const ZInst* EndOfLoop(const ZInst* inst) const;
+	// itself if it's not inside a loop.  The second argument specifies
+	// the loop depth.  For example, a value of '2' means "extend to
+	// the beginning/end of any loop(s) of depth >= 2".
+	const ZInst* BeginningOfLoop(const ZInst* inst, int depth) const;
+	const ZInst* EndOfLoop(const ZInst* inst, int depth) const;
 
 	// True if any statement other than a frame sync assigns to the
 	// given slot.

@@ -292,9 +292,15 @@ public:
 	// generation.
 	bool live = true;
 
-	// Whether the instruction is inside a block that could be
-	// visited more than once due to backware control flow.
-	bool inside_loop = false;
+	// Whether the instruction is the beginning of a loop, meaning
+	// it's the target of backward control flow.
+	bool loop_start = false;
+
+	// How deep the instruction is within loop bodies (for all
+	// instructions in a loop, not just their beginnings).  For
+	// example, a value of 2 means the instruction is inside a
+	// loop that itself is inside one more loop.
+	int loop_depth = 0;
 
 	// Branch target, prior to concretizing into PC target.
 	ZInst* target = nullptr;

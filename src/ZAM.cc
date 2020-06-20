@@ -322,9 +322,34 @@ Stmt* ZAM::CompileBody()
 			continue;
 
 		if ( t->inst_num < i )
-			// Backward branch.
-			for ( auto j = t->inst_num; j <= i; ++j )
-				insts1[j]->inside_loop = true;
+			{
+			auto j = t->inst_num;
+
+			if ( ! t->loop_start )
+				{
+				// Loop is newly discovered.
+				t->loop_start = true;
+				}
+			else
+				{
+				// We're extending an existing loop.  Find
+				// its current end.
+				auto depth = t->loop_depth;
+				while ( j < i &&
+					insts1[j]->loop_depth == depth )
+					++j;
+
+				ASSERT(insts1[j]->loop_depth == depth - 1);
+				}
+
+			// Run from j's current position to i, bumping
+			// the loop depth.
+			while ( j <= i )
+				{
+				++insts1[j]->loop_depth;
+				++j;
+				}
+			}
 
 		ASSERT(! inst->target2 || inst->target2->inst_num > i);
 		}
@@ -533,15 +558,6 @@ void ZAM::OptimizeInsts()
 		ComputeFrameLifetimes();
 
 #if 0
-		printf("current code:\n");
-		for ( int i = 0; i < insts1.size(); ++i )
-			{
-			auto& inst = insts1[i];
-			printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
-				inst->inside_loop ? " (loop)" : "");
-			inst->Dump(frame_denizens);
-			}
-
 		printf("denizens for %s\n", func->Name());
 		for ( auto i = 1; i < frame_denizens.size(); ++i )
 			{
@@ -715,6 +731,8 @@ void ZAM::ComputeFrameLifetimes()
 			{
 			// These assign to an arbitrary long list of variables.
 			auto iter_vars = inst->c.iter_info;
+			auto depth = inst->loop_depth;
+
 			for ( auto v : iter_vars->loop_vars )
 				{
 				CheckSlotAssignment(v, inst);
@@ -727,7 +745,7 @@ void ZAM::ComputeFrameLifetimes()
 				// inside the loop (which will fail when
 				// the loop var has memory management
 				// associated with it).
-				ExtendLifetime(v, EndOfLoop(inst));
+				ExtendLifetime(v, EndOfLoop(inst, depth));
 				}
 
 			// No need to check the additional "var" associated
@@ -735,7 +753,7 @@ void ZAM::ComputeFrameLifetimes()
 			// a slot-1 assignment.  However, similar to other
 			// loop variables, mark this as a usasge.
 			if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
-				ExtendLifetime(inst->v1, EndOfLoop(inst));
+				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
 			}
 			break;
 
@@ -749,7 +767,7 @@ void ZAM::ComputeFrameLifetimes()
 					// Global hasn't been loaded yet.
 					continue;
 
-				ExtendLifetime(gs, EndOfLoop(inst));
+				ExtendLifetime(gs, EndOfLoop(inst, 1));
 				}
 			}
 			break;
@@ -766,7 +784,8 @@ void ZAM::ComputeFrameLifetimes()
 			ASSERT(i < insts1.size() - 1);
 			auto succ = insts1[i+1];
 			ASSERT(succ->live);
-			ExtendLifetime(inst->v2, EndOfLoop(succ));
+			auto depth = succ->loop_depth;
+			ExtendLifetime(inst->v2, EndOfLoop(succ, depth));
 
 			// Important: we skip the usual UsesSlots analysis
 			// below since we've already set it, and don't want
@@ -1024,7 +1043,7 @@ void ZAM::CheckSlotAssignment(int slot, const ZInst* inst)
 	// we expand the lifetime beginning to the start of any loop
 	// region.
 	if ( ! reducer->IsTemporary(frame_denizens[slot]) )
-		inst = BeginningOfLoop(inst);
+		inst = BeginningOfLoop(inst, 1);
 
 	SetLifetimeStart(slot, inst);
 	}
@@ -1062,9 +1081,20 @@ void ZAM::CheckSlotUse(int slot, const ZInst* inst)
 	ASSERT(slot < frame_denizens.size());
 
 	// See comment above about temporaries not having their values
-	// extend around loop bodies.
-	if ( ! reducer->IsTemporary(frame_denizens[slot]) )
-		inst = EndOfLoop(inst);
+	// extend around loop bodies.  HOWEVER if a temporary is
+	// defined at a lower loop depth than that for this instruction,
+	// then we extend its lifetime to the end of this instruction's
+	// loop.
+	if ( reducer->IsTemporary(frame_denizens[slot]) )
+		{
+		ASSERT(denizen_beginning.count(slot) > 0);
+		int definition_depth = denizen_beginning[slot]->loop_depth;
+
+		if ( inst->loop_depth > definition_depth )
+			inst = EndOfLoop(inst, inst->loop_depth);
+		}
+	else
+		inst = EndOfLoop(inst, 1);
 
 	ExtendLifetime(slot, inst);
 	}
@@ -1082,7 +1112,7 @@ void ZAM::ExtendLifetime(int slot, const ZInst* inst)
 		// extended lifetimes, as that can happen if they're
 		// used as a "for" loop-over target, which already
 		// extends lifetime across the body of the loop.
-		if ( inst->inside_loop &&
+		if ( inst->loop_depth > 0 &&
 		     reducer->IsTemporary(frame_denizens[slot]) &&
 		     old_inst->inst_num >= inst->inst_num )
 			return;
@@ -1119,11 +1149,11 @@ void ZAM::ExtendLifetime(int slot, const ZInst* inst)
 		}
 	}
 
-const ZInst* ZAM::BeginningOfLoop(const ZInst* inst) const
+const ZInst* ZAM::BeginningOfLoop(const ZInst* inst, int depth) const
 	{
 	auto i = inst->inst_num;
 
-	while ( i >= 0 && insts1[i]->inside_loop )
+	while ( i >= 0 && insts1[i]->loop_depth >= depth )
 		--i;
 
 	if ( i == inst->inst_num )
@@ -1138,11 +1168,11 @@ const ZInst* ZAM::BeginningOfLoop(const ZInst* inst) const
 	return insts1[i];
 	}
 
-const ZInst* ZAM::EndOfLoop(const ZInst* inst) const
+const ZInst* ZAM::EndOfLoop(const ZInst* inst, int depth) const
 	{
 	auto i = inst->inst_num;
 
-	while ( i < insts1.size() && insts1[i]->inside_loop )
+	while ( i < insts1.size() && insts1[i]->loop_depth >= depth )
 		++i;
 
 	if ( i == inst->inst_num )
@@ -2988,8 +3018,9 @@ void ZAM::Dump()
 	for ( int i = 0; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
+		auto depth = inst->loop_depth;
 		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
-			inst->inside_loop ? " (loop)" : "");
+			depth ? fmt(" (loop %d)", depth) : "");
 		inst->Dump(&frame_denizens, remappings);
 		}
 
@@ -3001,8 +3032,9 @@ void ZAM::Dump()
 	for ( int i = 0; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
+		auto depth = inst->loop_depth;
 		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
-			inst->inside_loop ? " (loop)" : "");
+			depth ? fmt(" (loop %d)", depth) : "");
 		inst->Dump(&frame_denizens, remappings);
 		}
 

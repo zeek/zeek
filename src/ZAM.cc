@@ -468,8 +468,6 @@ void ZAM::Init()
 		globals.push_back(info);
 		}
 
-	register_slot = NewSlot();
-
 	::Ref(scope);
 	push_existing_scope(scope);
 
@@ -3549,6 +3547,9 @@ int ZAM::NewSlot()
 
 int ZAM::RegisterSlot()
 	{
+	if ( register_slot < 0 )
+		register_slot = NewSlot();
+
 	return register_slot;
 	}
 

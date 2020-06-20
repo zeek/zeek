@@ -504,7 +504,7 @@ protected:
 	void DumpStrCases(int i) const;
 
 	int frame_size;
-	int register_slot;
+	int register_slot = -1;
 	int num_globals;
 	bool error_seen = false;
 

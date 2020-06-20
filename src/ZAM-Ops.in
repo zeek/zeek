@@ -1084,7 +1084,6 @@ eval IntrusivePtr<Val> v = {NewRef{}, f->NthElement(z.v2)}
 eval frame[z.v1].any_val = v.release()
 
 internal-op Load-Global
-op1-internal
 type VVC
 eval if ( global_state[z.v2] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
@@ -1093,7 +1092,6 @@ eval	global_state[z.v2] = GS_CLEAN
 eval }
 
 internal-op Load-Any-Global
-op1-internal
 type VVC
 eval if ( global_state[z.v2] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}

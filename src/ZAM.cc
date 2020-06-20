@@ -953,6 +953,20 @@ void ZAM::ReMapFrame()
 			continue;
 			}
 
+		case OP_DIRTY_GLOBAL_V:
+			{
+			// Slot v1 of this is an index into globals[]
+			// rather than a frame.
+			int g = inst->v1;
+			ASSERT(remapped_globals[g] >= 0);
+			inst->v1 = remapped_globals[g];
+
+			// We *don't* want to UpdateSlots below as
+			// that's based on interpreting v1 as slots
+			// rather than an index into globals
+			continue;
+			}
+
 		default:
 			break;
 		}
@@ -2943,7 +2957,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 	ZInst z(op, slot, global_id_to_info[id]);
 	z.c.id_val = id;
 	z.SetType(id->Type());
-	z.op_type = OP_VVC_ID;
+	z.op_type = OP_ViC_ID;
 
 	return AddInst(z);
 	}

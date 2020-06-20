@@ -1311,8 +1311,20 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
 
 // Managed assignments to frame[s.v1].
+#define AssignV1T(v, t) { \
+	if ( z.is_managed ) \
+		{ \
+		/* It's important to hold a reference to v here prior \
+		   to the deletion in case frame[z.v1] points to v. */ \
+		auto v2 = v; \
+		DeleteManagedType(frame[z.v1], t); \
+		frame[z.v1] = v2; \
+		} \
+	else \
+		frame[z.v1] = v; \
+	}
+
 #define AssignV1(v) AssignV1T(v, z.t)
-#define AssignV1T(v, t) { if ( z.is_managed ) DeleteManagedType(frame[z.v1], t); frame[z.v1] = v; }
 
 	// Return value, or nil if none.
 	const ZAMValUnion* ret_u;

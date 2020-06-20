@@ -219,6 +219,12 @@ public:
 	bool IsFrameSync() const
 		{ return IsFrameLoad() || IsFrameStore(); }
 
+	bool IsLoad() const
+		{
+		return IsFrameLoad() || op == OP_LOAD_GLOBAL_VVC ||
+			op == OP_LOAD_ANY_GLOBAL_VVC;
+		}
+
 	const char* VName(int max_n, int n, const FrameMap* frame_ids,
 				const FrameReMap* remappings) const;
 	int NumFrameSlots() const;

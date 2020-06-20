@@ -680,7 +680,7 @@ bool ZAM::PruneGlobally()
 			KillInst(inst);
 			}
 
-		if ( inst->IsFrameLoad() && ! VarIsUsed(inst->v1) )
+		if ( inst->IsLoad() && ! VarIsUsed(inst->v1) )
 			{
 			did_prune = true;
 			KillInst(inst);

@@ -623,17 +623,26 @@ bool ZAM::CollapseGoTos()
 		bool branches_into_dead = false;
 		while ( j < insts1.size() && ! insts1[j]->live )
 			{
-			++j;
 			if ( t == insts1[j] )
 				branches_into_dead = true;
+			++j;
 			}
 
 		// j now points to the first live instruction after i.
 		if ( branches_into_dead ||
 		     (j < insts1.size() && t == insts1[j]) )
 			{ // i0 is branch-to-next-statement
-			i0->live = false;
 			--t->num_labels;
+
+			if ( i0->IsUnconditionalBranch() )
+				// no point in keeping the branch
+				i0->live = false;
+			else
+				{
+				// Update i0 to target the live instruction.
+				i0->target = insts1[j];
+				++i0->target->num_labels;
+				}
 			}
 		}
 

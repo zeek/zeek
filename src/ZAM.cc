@@ -555,21 +555,6 @@ void ZAM::OptimizeInsts()
 
 		ComputeFrameLifetimes();
 
-#if 0
-		printf("denizens for %s\n", func->Name());
-		for ( auto i = 1; i < frame_denizens.size(); ++i )
-			{
-			auto id = frame_denizens[i];
-			printf("denizen%s %s begins at %d, ends at %d\n",
-				id->IsGlobal() ? " (global)" : "",
-				id->Name(),
-				denizen_beginning.count(i) ?
-					denizen_beginning[i]->inst_num : -1,
-				denizen_ending.count(i) ?
-					denizen_ending[i]->inst_num : -1);
-			}
-#endif
-
 		if ( PruneUnused() )
 			something_changed = true;
 		}
@@ -855,38 +840,6 @@ void ZAM::ReMapFrame()
 	// see which variables begin their lifetime at each, and at
 	// that point remap the variables to a suitable frame slot.
 
-#if 0
-	printf("%s denizens:\n", func->Name());
-	for ( auto i = 1; i < frame_denizens.size(); ++i )
-		{
-		auto id = frame_denizens[i];
-		printf("denizen%s %s begins at %d, ends at %d\n",
-			id->IsGlobal() ? " (global)" : "",
-			id->Name(),
-			denizen_beginning.count(i) ?
-				denizen_beginning[i]->inst_num : -1,
-			denizen_ending.count(i) ?
-				denizen_ending[i]->inst_num : -1);
-		}
-
-	printf("%s inst structures:\n", func->Name());
-	for ( auto i = 0; i < insts1.size(); ++i )
-		{
-		auto inst = insts1[i];
-
-		if ( inst_beginnings.count(inst) > 0 )
-			{
-			printf("%d:", i);
-
-			auto vars = inst_beginnings[inst];
-			for ( auto v : vars )
-				printf(" %s", v->Name());
-
-			printf("\n");
-			}
-		}
-#endif
-
 	frame1_to_frame2.resize(frame_layout1.size(), -1);
 	managed_slots.clear();
 
@@ -908,7 +861,7 @@ void ZAM::ReMapFrame()
 			}
 		}
 
-#if 1
+#if 0
 	printf("%s frame remapping:\n", func->Name());
 
 	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )

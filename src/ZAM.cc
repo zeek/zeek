@@ -699,11 +699,12 @@ void ZAM::ComputeFrameLifetimes()
 		if ( inst->AssignsToSlot1() )
 			CheckSlotAssignment(inst->v1, inst);
 
-		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
-		     inst->op == OP_NEXT_TABLE_ITER_VV )
+		// Some special-casing.
+		switch ( inst->op ) {
+		case OP_NEXT_TABLE_ITER_VV:
+		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
 			{
-			// Sigh, need to special-case these as they
-			// assign to an arbitrary long list of variables.
+			// These assign to an arbitrary long list of variables.
 			auto iter_vars = inst->c.iter_info;
 			for ( auto v : iter_vars->loop_vars )
 				{
@@ -724,10 +725,12 @@ void ZAM::ComputeFrameLifetimes()
 			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
 			// a slot-1 assignment.  However, similar to other
 			// loop variables, mark this as a usasge.
-			ExtendLifetime(inst->v1, EndOfLoop(inst));
+			if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
+				ExtendLifetime(inst->v1, EndOfLoop(inst));
 			}
+			break;
 
-		if ( inst->op == OP_SYNC_GLOBALS_X )
+		case OP_SYNC_GLOBALS_X:
 			{
 			// Extend the lifetime of any modified globals.
 			for ( auto g : modified_globals )
@@ -740,6 +743,31 @@ void ZAM::ComputeFrameLifetimes()
 				ExtendLifetime(gs, EndOfLoop(inst));
 				}
 			}
+			break;
+
+		case OP_INIT_TABLE_LOOP_VVC:
+		case OP_INIT_VECTOR_LOOP_VV:
+		case OP_INIT_STRING_LOOP_VV:
+			{
+			// For all of these, the scope of the aggregate
+			// being looped over is the entire loop, even
+			// if it doesn't directly appear in it, and not
+			// just the initializer.  For all three, the
+			// aggregate is in v2.
+			ASSERT(i < insts1.size() - 1);
+			auto succ = insts1[i+1];
+			ASSERT(succ->live);
+			ExtendLifetime(inst->v2, EndOfLoop(succ));
+
+			// Important: we skip the usual UsesSlots analysis
+			// below since we've already set it, and don't want
+			// to perturb ExtendLifetime's consistency check.
+			continue;
+			}
+
+		default:
+			break;
+		}
 
 		int s1, s2, s3, s4;
 

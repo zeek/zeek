@@ -1066,7 +1066,18 @@ void ZAM::ExtendLifetime(int slot, const ZInst* inst)
 		{
 		// End of denizen's lifetime already seen.  Check for
 		// consistency and then extend as needed.
+
 		auto old_inst = denizen_ending[slot];
+
+		// Don't complain for temporaries that already have
+		// extended lifetimes, as that can happen if they're
+		// used as a "for" loop-over target, which already
+		// extends lifetime across the body of the loop.
+		if ( inst->inside_loop &&
+		     reducer->IsTemporary(frame_denizens[slot]) &&
+		     old_inst->inst_num >= inst->inst_num )
+			return;
+
 		ASSERT(old_inst->inst_num <= inst->inst_num);
 
 		if ( old_inst->inst_num < inst->inst_num )

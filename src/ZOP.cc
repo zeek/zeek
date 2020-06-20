@@ -306,9 +306,17 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 
 		int i;
 		for ( i = 0; i < map.ids.size(); ++i )
-			if ( map.id_start[i] > inst_num )
+			{
+			// If the slot is right at the boundary between
+			// two identifiers, then it matters whether this
+			// is slot 1 (starts right here) vs. slot > 1
+			// (ignore change right at the boundary and stick
+			// with older value).
+			if ( (n == 1 && map.id_start[i] > inst_num) ||
+			     (n > 1 && map.id_start[i] >= inst_num) )
 				// Went too far.
 				break;
+			}
 
 		if ( i < map.ids.size() )
 			{

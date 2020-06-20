@@ -1115,7 +1115,12 @@ void ZAM::ExtendLifetime(int slot, const ZInst* inst)
 		     old_inst->inst_num >= inst->inst_num )
 			return;
 
-		ASSERT(old_inst->inst_num <= inst->inst_num);
+		// We expect to only be extending the slot's lifetime ...
+		// *unless* we're inside a nested loop, in which case 
+		// the slot might have already been extended to the
+		// end of the outer loop.
+		ASSERT(old_inst->inst_num <= inst->inst_num ||
+			inst->loop_depth > 1);
 
 		if ( old_inst->inst_num < inst->inst_num )
 			{

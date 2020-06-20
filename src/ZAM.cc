@@ -1698,17 +1698,29 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	if ( columns->Tag() != EXPR_NAME )
 		return false;
 
-	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
 	auto columns_n = columns->AsNameExpr();
 	auto col_slot = FrameSlot(columns_n);
 
 	ZInst z;
 
-	if ( id->Tag() == EXPR_CONST )
-		z = ZInst(OP_LOG_WRITE_VVC, nslot, col_slot, id->AsConstExpr());
+	if ( n )
+		{
+		int nslot = Frame1Slot(n, OP1_WRITE);
+		if ( id->Tag() == EXPR_CONST )
+			z = ZInst(OP_LOG_WRITE_VVC, nslot, col_slot,
+					id->AsConstExpr());
+		else
+			z = ZInst(OP_LOG_WRITE_VVV, nslot,
+					FrameSlot(id->AsNameExpr()), col_slot);
+		}
 	else
-		z = ZInst(OP_LOG_WRITE_VVV, nslot, FrameSlot(id->AsNameExpr()),
-				col_slot);
+		{
+		if ( id->Tag() == EXPR_CONST )
+			z = ZInst(OP_LOG_WRITE_VC, col_slot, id->AsConstExpr());
+		else
+			z = ZInst(OP_LOG_WRITE_VV, FrameSlot(id->AsNameExpr()),
+					col_slot);
+		}
 
 	z.SetType(columns_n->Type());
 
@@ -1719,8 +1731,12 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 
 bool ZAM::BuiltIn_Broker__flush_logs(const NameExpr* n, const expr_list& args)
 	{
-	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
-	AddInst(ZInst(OP_BROKER_FLUSH_LOGS_V, nslot));
+	if ( n )
+		AddInst(ZInst(OP_BROKER_FLUSH_LOGS_V,
+				Frame1Slot(n, OP1_WRITE)));
+	else
+		AddInst(ZInst(OP_BROKER_FLUSH_LOGS_X));
+
 	return true;
 	}
 

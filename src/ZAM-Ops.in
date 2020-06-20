@@ -1280,11 +1280,14 @@ eval frame[z.v1].string_val = sv
 # is generally a constant (enum) *if we inlined*, but otherwise a
 # parameter, so we support both VVV ad VVC.
 #
-# It's actually the case that the return value is pretty much always ignored.
+# It's actually the case that the return value is pretty much always
+# ignored ... plus optimization can elide it away.  See the second
+# pair of built-ins for versions that discard the return value.
 #
 # Could speed things up further by modifying the Write method to just
 # take the raw enum value, as it appears that that's all that's ever
 # actually used.
+
 internal-op Log-Write
 side-effects
 type VVV
@@ -1301,10 +1304,32 @@ eval auto columns = frame[z.v2].ToVal(z.t)
 eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
+# Versions that discard the return value.
+internal-op Log-Write
+side-effects
+op1-read
+type VV
+eval auto id = frame[z.v1].ToVal(log_ID_enum_type)
+eval auto columns = frame[z.v2].ToVal(z.t)
+eval (void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
+
+internal-op Log-Write
+side-effects
+op1-read
+type VC
+eval auto id = z.c.ToVal(log_ID_enum_type)
+eval auto columns = frame[z.v1].ToVal(z.t)
+eval (void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
+
 internal-op Broker-Flush-Logs
 side-effects
 type V
 eval frame[z.v1].uint_val = broker_mgr->FlushLogBuffers()
+
+internal-op Broker-Flush-Logs
+side-effects
+type X
+eval (void) broker_mgr->FlushLogBuffers()
 
 internal-op Get-Port-Transport-Proto
 type VV

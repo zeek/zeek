@@ -700,8 +700,6 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
 	{
-	// We need a pair-value set mechanism here to dump useful information
-	// out to the policy side of the house if rdlength > 0.
 
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_EDNS_addl,
@@ -710,13 +708,79 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 			msg->BuildEDNS_Val()
 		);
 
-	// Currently EDNS supports the movement of type:data pairs
-	// in the RR_DATA section.  Here's where we should put together
-	// a corresponding mechanism.
-	if ( rdlength > 0 )
-		{ // deal with data
-		data += rdlength;
-		len -= rdlength;
+	// parse EDNS options
+	while ( len > 0 )
+		{
+		uint16_t option_code = ExtractShort(data, len);
+		int option_len = ExtractShort(data, len);
+		len -= option_len;
+
+		// TODO: Implement additional option codes
+		switch ( option_code )
+			{
+			case TYPE_ECS:
+				{
+				struct EDNS_ECS opt;
+				uint16_t ecs_family = ExtractShort(data, option_len);
+				uint16_t source_scope = ExtractShort(data, option_len);
+				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
+				opt.ecs_scp_pfx_len = source_scope & 0xff;
+
+				// ADDRESS, variable number of octets, contains either an IPv4 or
+				// IPv6 address, depending on FAMILY, which MUST be truncated to the
+				// number of bits indicated by the SOURCE PREFIX-LENGTH field,
+				// padding with 0 bits to pad to the end of the last octet needed.
+				if ( ecs_family == L3_IPV4)
+					{
+					opt.ecs_family = make_intrusive<StringVal>("v4");
+					uint32_t addr = 0;
+					for (uint16_t shift_factor = 3; option_len > 0; option_len--)
+						{
+						addr |= data[0] << (shift_factor * 8);
+						data++;
+						shift_factor--;
+						}
+					addr = htonl(addr);
+					opt.ecs_addr = make_intrusive<AddrVal>(addr);
+					}
+				else if ( ecs_family == L3_IPV6 )
+					{
+					opt.ecs_family = make_intrusive<StringVal>("v6");
+					uint32_t addr[4] = { 0 };
+					for (uint16_t i = 0, shift_factor = 15; option_len > 0; option_len--)
+						{
+						addr[i / 4] |= data[0] << ((shift_factor % 4) * 8);
+						data++;
+						i++;
+						shift_factor--;
+						}
+
+					for (uint8_t i = 0; i < 4; i++)
+						{
+						addr[i] = htonl(addr[i]);
+						}
+					opt.ecs_addr = make_intrusive<AddrVal>(addr);
+					}
+				else
+					{
+					// non ipv4/ipv6 family address
+					data += option_len;
+					break;
+					}
+
+				analyzer->EnqueueConnEvent(dns_EDNS_ecs,
+					analyzer->ConnVal(),
+					msg->BuildHdrVal(),
+					msg->BuildEDNS_ECS_Val(&opt)
+				);
+				break;
+				}
+			default:
+				{
+				data += option_len;
+				break;
+				}
+			}
 		}
 
 	return true;
@@ -1514,6 +1578,19 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 	r->Assign(6, zeek::val_mgr->Count(z));
 	r->Assign(7, zeek::make_intrusive<zeek::IntervalVal>(double(ttl), Seconds));
 	r->Assign(8, zeek::val_mgr->Count(is_query));
+
+	return r;
+	}
+
+zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_ECS_Val(struct EDNS_ECS* opt)
+	{
+	static auto dns_edns_ecs = zeek::id::find_type<zeek::RecordType>("dns_edns_ecs");
+	auto r = make_intrusive<RecordVal>(dns_edns_ecs);
+
+	r->Assign(0, opt->ecs_family);
+	r->Assign(1, val_mgr->Count(opt->ecs_src_pfx_len));
+	r->Assign(2, val_mgr->Count(opt->ecs_scp_pfx_len));
+	r->Assign(3, opt->ecs_addr);
 
 	return r;
 	}

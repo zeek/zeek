@@ -28,6 +28,7 @@ typedef enum {
 
 	OP_VE,
 	OP_VC,
+	OP_Vc,
 	OP_VV,
 	OP_VV_I2,
 	OP_VV_I1_I2,

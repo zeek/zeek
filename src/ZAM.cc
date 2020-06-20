@@ -715,7 +715,7 @@ bool ZAM::PruneUnused()
 
 				case OP_LOG_WRITE_VVC:
 					inst->op = OP_LOG_WRITE_VC;
-					inst->op_type = OP_VC;
+					inst->op_type = OP_Vc;
 					inst->v1 = inst->v2;
 					break;
 
@@ -1749,8 +1749,11 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 		{
 		int nslot = Frame1Slot(n, OP1_WRITE);
 		if ( id->Tag() == EXPR_CONST )
+			{
 			z = ZInst(OP_LOG_WRITE_VVC, nslot, col_slot,
 					id->AsConstExpr());
+			z.op_type = OP_VVc;
+			}
 		else
 			z = ZInst(OP_LOG_WRITE_VVV, nslot,
 					FrameSlot(id->AsNameExpr()), col_slot);
@@ -1758,7 +1761,10 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	else
 		{
 		if ( id->Tag() == EXPR_CONST )
+			{
 			z = ZInst(OP_LOG_WRITE_VC, col_slot, id->AsConstExpr());
+			z.op_type = OP_Vc;
+			}
 		else
 			z = ZInst(OP_LOG_WRITE_VV, FrameSlot(id->AsNameExpr()),
 					col_slot);

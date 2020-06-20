@@ -78,6 +78,32 @@ int ZInst::NumFrameSlots() const
 	}
 	}
 
+bool ZInst::IsDirectAssignment() const
+	{
+	if ( op_type != OP_VV )
+		return false;
+
+	switch ( op ) {
+	case OP_ASSIGN_VVi_N:
+	case OP_ASSIGN_VVi_A:
+	case OP_ASSIGN_VVi_O:
+	case OP_ASSIGN_VVi_P:
+	case OP_ASSIGN_VVi_R:
+	case OP_ASSIGN_VVi_S:
+	case OP_ASSIGN_VVi_F:
+	case OP_ASSIGN_VVi_T:
+	case OP_ASSIGN_VVi_V:
+	case OP_ASSIGN_VVi_L:
+	case OP_ASSIGN_VVi_f:
+	case OP_ASSIGN_VVi_t:
+	case OP_ASSIGN_VVi:
+		return true;
+
+	default:
+		return false;
+	}
+	}
+
 bool ZInst::HasSideEffects() const
 	{
 	return op_side_effects[op];

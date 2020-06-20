@@ -948,6 +948,8 @@ void ZAM::ReMapFrame()
 	num_globals = globals.size();
 
 	// Gulp - now rewrite every instruction to update its slot usage.
+	// In the process, if an instruction becomes a direct assignment
+	// of <slot-n> = <slot-n>, then we remove it.
 
 	int n1_slots = frame1_to_frame2.size();
 
@@ -1014,6 +1016,9 @@ void ZAM::ReMapFrame()
 		}
 
 		inst->UpdateSlots(frame1_to_frame2);
+
+		if ( inst->IsDirectAssignment() && inst->v1 == inst->v2 )
+			KillInst(inst);
 		}
 	}
 

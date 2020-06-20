@@ -193,6 +193,9 @@ public:
 	// are not branches.
 	bool IsUnconditionalBranch() const	{ return op == OP_GOTO_V; }
 
+	// True if this instruction is of the form "v1 = v2".
+	bool IsDirectAssignment() const;
+
 	// True if this instruction has side effects when executed, so
 	// should not be pruned even if it has a dead assignment.
 	bool HasSideEffects() const;

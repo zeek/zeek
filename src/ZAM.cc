@@ -3001,7 +3001,8 @@ void ZAM::Dump()
 	for ( int i = 0; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
-		printf("%d%s: ", i, inst->live ? "" : " (dead)");
+		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
+			inst->inside_loop ? " (loop)" : "");
 		inst->Dump(&frame_denizens, remappings);
 		}
 

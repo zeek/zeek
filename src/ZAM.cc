@@ -973,6 +973,8 @@ void ZAM::ReMapFrame()
 		if ( inst->IsDirectAssignment() && inst->v1 == inst->v2 )
 			KillInst(inst);
 		}
+
+	frame_size = shared_frame_denizens.size();
 	}
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)

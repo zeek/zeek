@@ -136,9 +136,9 @@ protected:
 	// Collapse chains of gotos.  True if some collapsing happened.
 	bool CollapseGoTos();
 
-	// Prune statements that are unnecessary given just global
-	// analysis.  True if something got pruned.
-	bool PruneGlobally();
+	// Prune statements that are unnecessary.  True if something got
+	// pruned.
+	bool PruneUnused();
 
 	// For the current state of inst1, compute lifetimes of frame
 	// denizens in terms of first-instruction-to-last-instruction

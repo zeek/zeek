@@ -570,7 +570,7 @@ void ZAM::OptimizeInsts()
 			}
 #endif
 
-		if ( PruneGlobally() )
+		if ( PruneUnused() )
 			something_changed = true;
 		}
 	while ( something_changed );
@@ -663,7 +663,7 @@ bool ZAM::CollapseGoTos()
 	return did_collapse;
 	}
 
-bool ZAM::PruneGlobally()
+bool ZAM::PruneUnused()
 	{
 	bool did_prune = false;
 

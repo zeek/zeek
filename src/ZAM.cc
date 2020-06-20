@@ -857,6 +857,28 @@ void ZAM::ReMapFrame()
 		}
 #endif
 
+	// Update the globals we track, where we prune globals that
+	// didn't wind up being used.  (This can happen because they're
+	// only used in interpreted expressions.)
+	std::vector<GlobalInfo> used_globals;
+	std::vector<int> remapped_globals;
+
+	for ( auto i = 0; i < globals.size(); ++i )
+		{
+		auto& g = globals[i];
+		g.slot = frame1_to_frame2[g.slot];
+		if ( g.slot >= 0 )
+			{
+			remapped_globals.push_back(used_globals.size());
+			used_globals.push_back(g);
+			}
+		else
+			remapped_globals.push_back(-1);
+		}
+
+	globals = used_globals;
+	num_globals = globals.size();
+
 	// Gulp - now rewrite every instruction to update its slot usage.
 
 	int n1_slots = frame1_to_frame2.size();
@@ -875,8 +897,10 @@ void ZAM::ReMapFrame()
 			inst->v1 = frame1_to_frame2[v1];
 			}
 
-		if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
-		     inst->op == OP_NEXT_TABLE_ITER_VV )
+		// Handle special cases.
+		switch ( inst->op ) {
+		case OP_NEXT_TABLE_ITER_VV:
+		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
 			{
 			// Rewrite iteration variables.
 			auto iter_vars = inst->c.iter_info;
@@ -886,23 +910,29 @@ void ZAM::ReMapFrame()
 				v = frame1_to_frame2[v];
 				}
 			}
+			break;
+
+		case OP_LOAD_GLOBAL_VVC:
+		case OP_LOAD_ANY_GLOBAL_VVC:
+			{
+			// Slot v2 of these is the index into globals[]
+			// rather than a frame.
+			int g = inst->v2;
+			ASSERT(remapped_globals[g] >= 0);
+			inst->v2 = remapped_globals[g];
+
+			// We *don't* want to UpdateSlots below as
+			// that's based on interpreting v2 as slots
+			// rather than an index into globals
+			continue;
+			}
+
+		default:
+			break;
+		}
 
 		inst->UpdateSlots(frame1_to_frame2);
 		}
-
-	// Similarly for tracking globals, where we prune globals that
-	// didn't wind up being used.  (This can happen because they're
-	// only used in interpreted expressions.)
-	std::vector<GlobalInfo> used_globals;
-
-	for ( auto& g : globals )
-		{
-		g.slot = frame1_to_frame2[g.slot];
-		if ( g.slot >= 0 )
-			used_globals.push_back(g);
-		}
-
-	globals = used_globals;
 	}
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)

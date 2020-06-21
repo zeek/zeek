@@ -149,6 +149,10 @@ protected:
 	// with non-overlapping lifetimes to share slots.
 	void ReMapFrame();
 
+	// Given final frame lifetime information, remaps slots in
+	// the interpreter frame.
+	void ReMapInterpreterFrame();
+
 	// Computes the remapping for a variable currently in the given slot,
 	// whose scope begins at the given instruction.
 	void ReMapVar(const ID* id, int slot, int inst);
@@ -467,6 +471,9 @@ protected:
 	// and their corresponding type tags.
 	std::vector<int> managed_slots;
 	std::vector<const BroType*> managed_slot_types;
+
+	// Which locals appear in interpreted expressions.
+	std::unordered_set<const ID*> interpreter_locals;
 
 	// Static information about globals used in the function.  There's
 	// a parallel array "global_state" that's constructed

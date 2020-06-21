@@ -35,6 +35,12 @@ double ZOP_CPU[OP_NOP+1];
 std::unordered_map<const Expr*, double> expr_CPU;
 
 
+// Tracks per function its maximum remapped interpreter frame size.  We
+// can't do this when compiling individual functions since for event handlers
+// and hooks it needs to be computed across all of their bodies.
+std::unordered_map<const Func*, int> remapped_intrp_frame_sizes;
+
+
 void report_ZOP_profile()
 	{
 	for ( int i = 1; i <= OP_NOP; ++i )
@@ -561,6 +567,7 @@ void ZAM::OptimizeInsts()
 	while ( something_changed );
 
 	ReMapFrame();
+	ReMapInterpreterFrame();
 	}
 
 bool ZAM::RemoveDeadCode()
@@ -975,6 +982,59 @@ void ZAM::ReMapFrame()
 		}
 
 	frame_size = shared_frame_denizens.size();
+	}
+
+void ZAM::ReMapInterpreterFrame()
+	{
+	// Maps identifiers to their offset in the interpreter frame.
+	std::unordered_map<const ID*, int> interpreter_slots;
+
+	// First, track function parameters.  We could elide this
+	// if we decide to alter the calling sequence for compiled
+	// functions.
+	auto args = scope->OrderedVars();
+	auto nparam = func->FType()->Args()->NumFields();
+	int next_interp_slot = 0;
+
+	for ( const auto& a : args )
+		{
+		if ( --nparam < 0 )
+			break;
+
+		ASSERT(a->Offset() == next_interp_slot);
+		interpreter_slots[a.get()] = next_interp_slot;
+		++next_interp_slot;
+		}
+
+	for ( auto& sf : shared_frame_denizens )
+		{
+		// Interpreter slot to use for these shared denizens, if any.
+		int cohort_slot = -1;
+
+		for ( auto& id : sf.ids )
+			{
+			if ( interpreter_locals.count(id) == 0 )
+				continue;
+
+			// Need a slot for this ID.
+			if ( cohort_slot < 0 )
+				// New slot.
+				cohort_slot = next_interp_slot++;
+
+			interpreter_slots[id] = cohort_slot;
+			}
+		}
+
+	// It's conceivable that there are some locals that only live
+	// in interpreter-land, depending on what sort of expressions
+	// we defer to the interpreter.
+	for ( auto& id : interpreter_locals )
+		if ( interpreter_slots.count(id) == 0 )
+			interpreter_slots[id] = next_interp_slot++;
+
+	if ( remapped_intrp_frame_sizes.count(func) == 0 ||
+	     remapped_intrp_frame_sizes[func] < next_interp_slot )
+		remapped_intrp_frame_sizes[func] = next_interp_slot;
 	}
 
 void ZAM::ReMapVar(const ID* id, int slot, int inst)
@@ -2945,6 +3005,9 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 	{
 	if ( id->AsType() )
 		reporter->InternalError("don't know how to compile local variable that's a type not a value");
+
+	if ( ! is_load )
+		interpreter_locals.insert(id);
 
 	bool is_any = IsAny(id->Type());
 

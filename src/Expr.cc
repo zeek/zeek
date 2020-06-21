@@ -88,7 +88,7 @@ bool Expr::CanDel() const
 
 void Expr::Add(Frame* /* f */)
 	{
-	Internal("Expr::Delete called");
+	Internal("Expr::Add called");
 	}
 
 void Expr::Delete(Frame* /* f */)

@@ -631,12 +631,14 @@ eval Unref(frame[z.v1].vector_val)
 eval frame[z.v1].vector_val = vv
 
 unary-expr-op To-Any-Coerce
+op-type X
 set-type $2
-eval ZAMValUnion($1.ToVal(z.t), base_type_no_ref(TYPE_ANY))
+eval AssignV1(ZAMValUnion(frame[z.v2].ToVal(z.t), base_type_no_ref(TYPE_ANY)))
 
 unary-expr-op From-Any-Coerce
+op-type X
 set-type $1
-eval ZAMValUnion({NewRef{}, $1.any_val}, z.t)
+eval AssignV1(ZAMValUnion({NewRef{}, frame[z.v2].any_val}, z.t))
 
 
 ########## Aggregate Assignments ##########

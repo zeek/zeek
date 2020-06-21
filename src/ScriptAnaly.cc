@@ -1520,7 +1520,11 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	f->ReplaceBody(body, new_body_ptr);
 	body = new_body_ptr;
 
-	f->GrowFrameSize(rc->NumTemps() + rc->NumNewLocals());
+	int new_frame_size =
+		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
+
+	if ( new_frame_size > f->FrameSize() )
+		f->SetFrameSize(new_frame_size);
 
 	if ( analysis_options.optimize )
 		{

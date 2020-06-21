@@ -115,7 +115,12 @@ void Inliner::Analyze()
 void Inliner::InlineFunction(FuncInfo* f)
 	{
 	max_inlined_frame_size = 0;
-	curr_frame_size = f->func->FrameSize();
+
+	// It's important that we take the current frame size from the
+	// *scope* and not f->func.  The latter tracks the maximum required
+	// across all bodies, but we want to track the size for this
+	// particular body.
+	curr_frame_size = f->scope->Length();
 
 	bool dump = false;
 
@@ -123,7 +128,11 @@ void Inliner::InlineFunction(FuncInfo* f)
 		printf("%s body before inlining:\n%s\n", f->func->Name(), obj_desc(f->body));
 
 	f->body->Inline(this);
-	f->func->GrowFrameSize(max_inlined_frame_size);
+
+	int new_frame_size = curr_frame_size + max_inlined_frame_size;
+
+	if ( new_frame_size > f->func->FrameSize() )
+		f->func->SetFrameSize(new_frame_size);
 
 	if ( dump )
 		printf("%s body after inlining:\n%s\n", f->func->Name(), obj_desc(f->body));
@@ -177,7 +186,7 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 
 	auto body_dup = body->Duplicate();
 
-	// Recursive inline the body - necessary now that we no longer
+	// Recursively inline the body - necessary now that we no longer
 	// build up in-lines from leaves.  This is safe to do because
 	// we've ensured there are no recursive loops ...
 	// ... but we have to be careful in accounting for the frame

@@ -171,7 +171,7 @@ public:
 	IntrusivePtr<Stmt> CurrentBody()		{ return current_body; }
 	const IntrusivePtr<Stmt> CurrentBody() const	{ return current_body; }
 
-	void GrowFrameSize(int size_incr)	{ frame_size += size_incr; }
+	void SetFrameSize(int new_size)		{ frame_size = new_size; }
 	int FrameSize() const			{ return frame_size; }
 
 	/** Sets this function's outer_id list. */

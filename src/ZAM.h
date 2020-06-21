@@ -545,6 +545,10 @@ protected:
 	int xfer_pc = 0;
 };
 
+// Invokes after compiling all of the function bodies.
+class FuncInfo;
+extern void finalize_functions(const std::vector<FuncInfo*>& funcs);
+
 extern void report_ZOP_profile();
 
 extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);

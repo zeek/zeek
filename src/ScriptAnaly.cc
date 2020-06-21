@@ -1726,6 +1726,8 @@ void analyze_scripts()
 			}
 		}
 
+	finalize_functions(funcs);
+
 	delete inl;
 	}
 

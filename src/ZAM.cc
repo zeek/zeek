@@ -40,6 +40,34 @@ std::unordered_map<const Expr*, double> expr_CPU;
 // and hooks it needs to be computed across all of their bodies.
 std::unordered_map<const Func*, int> remapped_intrp_frame_sizes;
 
+void finalize_functions(const std::vector<FuncInfo*>& funcs)
+	{
+	// Given we've now compiled all of the function bodies, we
+	// can reset the interpreter frame sizes of each function
+	// to be the maximum needed to accommodate all of its
+	// remapped bodies.
+
+	if ( remapped_intrp_frame_sizes.size() == 0 )
+		// We didn't do remapping.
+		return;
+
+	for ( auto& f : funcs )
+		{
+		auto func = f->func;
+
+		if ( remapped_intrp_frame_sizes.count(func) == 0 )
+			// We didn't compile this function, presumably
+			// because it contained something like a "when"
+			// statement.
+			continue;
+
+		// Note, because functions with multiple bodies appear
+		// in "funcs" multiple times, but the following doesn't
+		// hurt to do more than once.
+		func->SetFrameSize(remapped_intrp_frame_sizes[func]);
+		}
+	}
+
 
 void report_ZOP_profile()
 	{

@@ -155,7 +155,7 @@ protected:
 
 	// Computes the remapping for a variable currently in the given slot,
 	// whose scope begins at the given instruction.
-	void ReMapVar(const ID* id, int slot, int inst);
+	void ReMapVar(ID* id, int slot, int inst);
 
 	// Look to initialize the beginning of local lifetime based on slot
 	// assignment at instruction inst.
@@ -445,7 +445,7 @@ protected:
 
 	// A type for mapping an instruction to a set of locals associated
 	// with it.
-	typedef std::unordered_map<const ZInst*, std::unordered_set<const ID*>>
+	typedef std::unordered_map<const ZInst*, std::unordered_set<ID*>>
 		AssociatedLocals;
 
 	// Maps (live) instructions to which frame denizens begin their

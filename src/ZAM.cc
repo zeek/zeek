@@ -996,6 +996,10 @@ void ZAM::ReMapInterpreterFrame()
 	auto nparam = func->FType()->Args()->NumFields();
 	int next_interp_slot = 0;
 
+	// Track old-interpreter-slots-to-new, so we can update LOAD
+	// and STORE instructions.
+	std::unordered_map<int, int> old_intrp_slot_to_new;
+
 	for ( const auto& a : args )
 		{
 		if ( --nparam < 0 )
@@ -1003,6 +1007,7 @@ void ZAM::ReMapInterpreterFrame()
 
 		ASSERT(a->Offset() == next_interp_slot);
 		interpreter_slots[a.get()] = next_interp_slot;
+		old_intrp_slot_to_new[a->Offset()] = next_interp_slot;
 		++next_interp_slot;
 		}
 
@@ -1016,12 +1021,22 @@ void ZAM::ReMapInterpreterFrame()
 			if ( interpreter_locals.count(id) == 0 )
 				continue;
 
+			if ( interpreter_slots.count(id) > 0 )
+				// We already mapped this, presumably because
+				// it's a parameter.
+				continue;
+
 			// Need a slot for this ID.
 			if ( cohort_slot < 0 )
 				// New slot.
 				cohort_slot = next_interp_slot++;
 
+			ASSERT(old_intrp_slot_to_new.count(id->Offset()) == 0);
 			interpreter_slots[id] = cohort_slot;
+			old_intrp_slot_to_new[id->Offset()] = cohort_slot;
+
+			// Make the leap!
+			id->SetOffset(cohort_slot);
 			}
 		}
 
@@ -1032,12 +1047,32 @@ void ZAM::ReMapInterpreterFrame()
 		if ( interpreter_slots.count(id) == 0 )
 			interpreter_slots[id] = next_interp_slot++;
 
+	// Update frame sizes for functions that might have more than
+	// one body.
 	if ( remapped_intrp_frame_sizes.count(func) == 0 ||
 	     remapped_intrp_frame_sizes[func] < next_interp_slot )
 		remapped_intrp_frame_sizes[func] = next_interp_slot;
+
+	// Rewrite references to interpreter slots to reflect remapped
+	// locations.
+
+	for ( auto i = 0; i < insts1.size(); ++i )
+		{
+		auto inst = insts1[i];
+
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->op_type == OP_VV_FRAME )
+			{
+			// All of these use v2 for the intepreter slot.
+			ASSERT(old_intrp_slot_to_new.count(inst->v2) > 0);
+			inst->v2 = old_intrp_slot_to_new[inst->v2];
+			}
+		}
 	}
 
-void ZAM::ReMapVar(const ID* id, int slot, int inst)
+void ZAM::ReMapVar(ID* id, int slot, int inst)
 	{
 	// A greedy algorithm for this is to simply find the first suitable
 	// frame slot.  We do that with one twist: we also look for a
@@ -1139,7 +1174,7 @@ void ZAM::SetLifetimeStart(int slot, const ZInst* inst)
 			{
 			// Need to create a set to track the denizens
 			// beginning at the instruction.
-			std::unordered_set<const ID*> denizens;
+			std::unordered_set<ID*> denizens;
 			inst_beginnings[inst] = denizens;
 			}
 
@@ -1205,7 +1240,7 @@ void ZAM::ExtendLifetime(int slot, const ZInst* inst)
 
 			if ( inst_endings.count(inst) == 0 )
 				{
-				std::unordered_set<const ID*> denizens;
+				std::unordered_set<ID*> denizens;
 				inst_endings[inst] = denizens;
 				}
 
@@ -1220,7 +1255,7 @@ void ZAM::ExtendLifetime(int slot, const ZInst* inst)
 
 		if ( inst_endings.count(inst) == 0 )
 			{
-			std::unordered_set<const ID*> denizens;
+			std::unordered_set<ID*> denizens;
 			inst_endings[inst] = denizens;
 			}
 

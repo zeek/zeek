@@ -70,8 +70,10 @@ typedef std::vector<ID*> FrameMap;
 // Maps ZAM frame slots to information for sharing across multiple identifiers.
 class FrameSharingInfo {
 public:
-	// The IDs sharing the slot.
-	std::vector<const ID*> ids;
+	// The IDs sharing the slot.  IDs need to be non-const so we
+	// can manipulate them, for example by changing their interpreter
+	// frame offset.
+	std::vector<ID*> ids;
 
 	// The statement number where a given identifier starts its scope,
 	// parallel to "ids".

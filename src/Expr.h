@@ -19,7 +19,9 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
-struct function_ingredients;
+
+namespace zeek::detail { struct function_ingredients; }
+using function_ingredients [[deprecated("Remove in v4.1. Use zeek::detail::function_ingredients.")]] = zeek::detail::function_ingredients;
 
 namespace zeek {
 template <class T> class IntrusivePtr;

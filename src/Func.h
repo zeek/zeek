@@ -41,8 +41,6 @@ namespace detail {
 using ScopePtr = zeek::IntrusivePtr<zeek::detail::Scope>;
 using IDPtr = zeek::IntrusivePtr<ID>;
 using StmtPtr = zeek::IntrusivePtr<Stmt>;
-}
-}
 
 class Func;
 using FuncPtr = zeek::IntrusivePtr<Func>;
@@ -244,13 +242,6 @@ protected:
 	bool is_pure;
 };
 
-
-extern void builtin_error(const char* msg);
-extern void builtin_error(const char* msg, zeek::ValPtr);
-extern void builtin_error(const char* msg, BroObj* arg);
-extern void init_builtin_funcs();
-extern void init_builtin_funcs_subdirs();
-
 extern bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call);
 
 struct CallInfo {
@@ -265,14 +256,14 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(zeek::detail::ScopePtr scope, zeek::detail::StmtPtr body);
+	function_ingredients(ScopePtr scope, StmtPtr body);
 
-	zeek::detail::IDPtr id;
-	zeek::detail::StmtPtr body;
-	std::vector<zeek::detail::IDPtr> inits;
+	IDPtr id;
+	StmtPtr body;
+	std::vector<IDPtr> inits;
 	int frame_size;
 	int priority;
-	zeek::detail::ScopePtr scope;
+	ScopePtr scope;
 };
 
 extern std::vector<CallInfo> call_stack;
@@ -281,3 +272,37 @@ extern std::string render_call_stack();
 
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
+
+} // namespace detail
+
+// These methods are used by BIFs, so they're in the public namespace.
+extern void emit_builtin_error(const char* msg);
+extern void emit_builtin_error(const char* msg, zeek::ValPtr);
+extern void emit_builtin_error(const char* msg, BroObj* arg);
+
+} // namespace zeek
+
+using Func [[deprecated("Remove in v4.1. Use zeek::detail::Func.")]] = zeek::detail::Func;
+using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::BroFunc.")]] = zeek::detail::BroFunc;
+using BuiltinFunc [[deprecated("Remove in v4.1. Use zeek::detail::BroFunc.")]] = zeek::detail::BuiltinFunc;
+using CallInfo [[deprecated("Remove in v4.1. Use zeek::detail::CallInfo.")]] = zeek::detail::CallInfo;
+using function_ingredients [[deprecated("Remove in v4.1. Use zeek::detail::function_ingredients.")]] = zeek::detail::function_ingredients;
+
+constexpr auto check_built_in_call [[deprecated("Remove in v4.1. Use zeek::detail::check_built_in_call.")]] = zeek::detail::check_built_in_call;
+constexpr auto render_call_stack [[deprecated("Remove in v4.1. Use zeek::detail::render_call_stack.")]] = zeek::detail::render_call_stack;
+
+// TODO: these are still here because of how all of the bif code gets included in Func.c. There could be a
+// renamed version inside the namespace, but the way that the code gets included complicates the matter. It
+// might need to be revisited after everything is namespaced everywhere else.
+void init_builtin_funcs();
+void init_builtin_funcs_subdirs();
+
+// TODO: do call_stack and did_builtin_init need to be aliased?
+
+// These have to be implemented as actual methods due to function overloading breaking the use of aliases.
+[[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
+extern void builtin_error(const char* msg);
+[[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
+extern void builtin_error(const char* msg, zeek::ValPtr);
+[[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
+extern void builtin_error(const char* msg, BroObj* arg);

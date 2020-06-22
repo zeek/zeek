@@ -23,7 +23,7 @@ function Supervisor::__status%(node: string%): Supervisor::Status
 	%{
 	if ( ! zeek::supervisor_mgr )
 		{
-		builtin_error("supervisor mode not enabled");
+		zeek::emit_builtin_error("supervisor mode not enabled");
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Supervisor::Status);
 		}
 
@@ -34,7 +34,7 @@ function Supervisor::__create%(node: Supervisor::NodeConfig%): string
 	%{
 	if ( ! zeek::supervisor_mgr )
 		{
-		builtin_error("supervisor mode not enabled");
+		zeek::emit_builtin_error("supervisor mode not enabled");
 		return zeek::make_intrusive<zeek::StringVal>("supervisor mode not enabled");
 		}
 
@@ -46,7 +46,7 @@ function Supervisor::__destroy%(node: string%): bool
 	%{
 	if ( ! zeek::supervisor_mgr )
 		{
-		builtin_error("supervisor mode not enabled");
+		zeek::emit_builtin_error("supervisor mode not enabled");
 		return val_mgr->Bool(false);
 		}
 
@@ -58,7 +58,7 @@ function Supervisor::__restart%(node: string%): bool
 	%{
 	if ( ! zeek::supervisor_mgr )
 		{
-		builtin_error("supervisor mode not enabled");
+		zeek::emit_builtin_error("supervisor mode not enabled");
 		return val_mgr->Bool(false);
 		}
 
@@ -83,7 +83,7 @@ function Supervisor::__node%(%): Supervisor::NodeConfig
 	%{
 	if ( ! zeek::Supervisor::ThisNode() )
 		{
-		builtin_error("not a supervised process");
+		zeek::emit_builtin_error("not a supervised process");
 		const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
 		auto rval = zeek::make_intrusive<zeek::RecordVal>(rt);
 		rval->Assign<zeek::StringVal>(rt->FieldOffset("name"), "<invalid>");
@@ -107,6 +107,6 @@ function Supervisor::__stem_pid%(%): int
 	if ( zeek::Supervisor::ThisNode() )
 		return val_mgr->Int(zeek::Supervisor::ThisNode()->parent_pid);
 
-	builtin_error("supervisor mode not enabled and not a supervised node");
+	zeek::emit_builtin_error("supervisor mode not enabled and not a supervised node");
 	return val_mgr->Int(-1);
 	%}

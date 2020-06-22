@@ -123,7 +123,7 @@ public:
 	/**
 	 * Sets the callback when a certificate cache hit is encountered
 	 */
-	static void SetCertificateCacheHitCallback(FuncPtr func)
+	static void SetCertificateCacheHitCallback(zeek::detail::FuncPtr func)
 		{ cache_hit_callback = std::move(func); }
 
 protected:
@@ -142,7 +142,7 @@ private:
 	/** X509 stores associated with global script-layer values */
 	inline static std::map<zeek::Val*, X509_STORE*> x509_stores = std::map<zeek::Val*, X509_STORE*>();
 	inline static zeek::TableValPtr certificate_cache = nullptr;
-	inline static FuncPtr cache_hit_callback = nullptr;
+	inline static zeek::detail::FuncPtr cache_hit_callback = nullptr;
 };
 
 /**

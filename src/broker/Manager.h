@@ -21,10 +21,10 @@
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
 
-class Func;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
+
 namespace zeek {
 using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
 }
@@ -400,7 +400,7 @@ private:
 	int peer_count;
 
 	size_t log_batch_size;
-	Func* log_topic_func;
+	zeek::detail::Func* log_topic_func;
 	zeek::VectorTypePtr vector_of_data_type;
 	zeek::EnumType* log_id_type;
 	zeek::EnumType* writer_id_type;

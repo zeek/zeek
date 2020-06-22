@@ -44,10 +44,10 @@ using namespace std;
 
 namespace zeek {
 
-Val::Val(Func* f) : Val({NewRef{}, f})
+Val::Val(zeek::detail::Func* f) : Val({NewRef{}, f})
 	{}
 
-Val::Val(FuncPtr f)
+Val::Val(zeek::detail::FuncPtr f)
 	: val(f.release()), type(val.func_val->GetType())
 	{}
 
@@ -155,7 +155,7 @@ ValPtr Val::DoClone(CloneState* state)
 	return nullptr;
  	}
 
-FuncPtr Val::AsFuncPtr() const
+zeek::detail::FuncPtr Val::AsFuncPtr() const
 	{
 	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
 	return {NewRef{}, val.func_val};
@@ -1858,7 +1858,7 @@ ValPtr TableVal::Default(const ValPtr& index)
 		return nullptr;
 		}
 
-	const Func* f = def_val->AsFunc();
+	const zeek::detail::Func* f = def_val->AsFunc();
 	Args vl;
 
 	if ( index->GetType()->Tag() == TYPE_LIST )
@@ -2056,7 +2056,7 @@ void TableVal::CallChangeFunc(const Val* index,
 			return;
 			}
 
-		const Func* f = thefunc->AsFunc();
+		const zeek::detail::Func* f = thefunc->AsFunc();
 		auto lv = index->AsListVal();
 
 		Args vl;
@@ -2514,7 +2514,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 			return 0;
 			}
 
-		const Func* f = vf->AsFunc();
+		const zeek::detail::Func* f = vf->AsFunc();
 		Args vl;
 
 		const auto& func_args = f->GetType()->ParamList()->GetTypes();

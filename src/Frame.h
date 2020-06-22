@@ -16,8 +16,7 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-class BroFunc;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroFunc, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
 

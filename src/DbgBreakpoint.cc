@@ -351,7 +351,7 @@ void DbgBreakpoint::PrintHitMsg()
 		{
 		ODesc d;
 		zeek::detail::Frame* f = g_frame_stack.back();
-		const BroFunc* func = f->GetFunction();
+		const zeek::detail::BroFunc* func = f->GetFunction();
 
 		if ( func )
 			func->DescribeDebug (&d, f->GetFuncArgs());

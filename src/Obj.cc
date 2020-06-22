@@ -98,7 +98,7 @@ void BroObj::Internal(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
-	auto rcs = render_call_stack();
+	auto rcs = zeek::detail::render_call_stack();
 
 	if ( rcs.empty() )
 		reporter->InternalError("%s", d.Description());

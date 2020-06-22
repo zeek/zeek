@@ -260,7 +260,7 @@ X509_STORE* file_analysis::X509::GetRootStore(zeek::TableVal* root_certs)
 		::X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
-			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
+			zeek::emit_builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
 			return nullptr;
 			}
 

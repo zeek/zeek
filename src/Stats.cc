@@ -352,7 +352,7 @@ SampleLogger::~SampleLogger()
 	Unref(load_samples);
 	}
 
-void SampleLogger::FunctionSeen(const Func* func)
+void SampleLogger::FunctionSeen(const zeek::detail::Func* func)
 	{
 	auto idx = zeek::make_intrusive<zeek::StringVal>(func->Name());
 	load_samples->Assign(std::move(idx), nullptr);

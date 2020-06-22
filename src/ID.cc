@@ -74,7 +74,7 @@ const zeek::ValPtr& zeek::id::find_const(std::string_view name)
 	return id->GetVal();
 	}
 
-FuncPtr zeek::id::find_func(std::string_view name)
+zeek::detail::FuncPtr zeek::id::find_func(std::string_view name)
 	{
 	const auto& v = zeek::id::find_val(name);
 
@@ -643,7 +643,7 @@ void ID::UpdateValID()
 	}
 #endif
 
-void ID::AddOptionHandler(FuncPtr callback, int priority)
+void ID::AddOptionHandler(zeek::detail::FuncPtr callback, int priority)
 	{
 	option_handlers.emplace(priority, std::move(callback));
 	}

@@ -104,7 +104,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 
 	if ( field_width > 128 || precision > 128 )
 		{
-		builtin_error("excessive field width or precision");
+		zeek::emit_builtin_error("excessive field width or precision");
 		return;
 		}
 
@@ -130,7 +130,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 	s.SetStyle(RAW_STYLE);
 
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
-		builtin_error("precision specified for non-floating point");
+		zeek::emit_builtin_error("precision specified for non-floating point");
 
 	switch ( *fmt ) {
 	case 'D':
@@ -138,7 +138,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 		{
 		if ( t != zeek::TYPE_TIME )
 			{
-			builtin_error("bad type for Date/Time format", v);
+			zeek::emit_builtin_error("bad type for Date/Time format", v);
 			break;
 			}
 
@@ -190,7 +190,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 
 		else if ( ! check_fmt_type(t, ok_d_fmt) )
 			{
-			builtin_error("bad type for %d/%x format", v);
+			zeek::emit_builtin_error("bad type for %d/%x format", v);
 			break;
 			}
 
@@ -233,7 +233,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 		{
 		if ( ! check_fmt_type(t, ok_f_fmt) )
 			{
-			builtin_error("bad type for floating-point format", v);
+			zeek::emit_builtin_error("bad type for floating-point format", v);
 			break;
 			}
 
@@ -244,7 +244,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 		break;
 
 	default:
-		builtin_error("bad format");
+		zeek::emit_builtin_error("bad format");
 	}
 
 	// Left-padding with whitespace, if any.
@@ -411,7 +411,7 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 		if ( key->GetType()->Tag() != zeek::TYPE_STRING ||
 		     val->GetType()->Tag() != zeek::TYPE_STRING )
 			{
-			builtin_error("system_env() needs a table[string] of string");
+			zeek::emit_builtin_error("system_env() needs a table[string] of string");
 			return false;
 			}
 
@@ -489,7 +489,7 @@ function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->GetType()->Tag() != zeek::TYPE_TABLE )
 		{
-		builtin_error("system_env() requires a table argument");
+		zeek::emit_builtin_error("system_env() requires a table argument");
 		return val_mgr->Int(-1);
 		}
 
@@ -1159,7 +1159,7 @@ function clear_table%(v: any%): any
 	if ( v->GetType()->Tag() == zeek::TYPE_TABLE )
 		v->AsTableVal()->RemoveAll();
 	else
-		builtin_error("clear_table() requires a table/set argument");
+		zeek::emit_builtin_error("clear_table() requires a table/set argument");
 
 	return nullptr;
 	%}
@@ -1265,7 +1265,7 @@ function resize%(aggr: any, newsize: count%) : count
 	%{
 	if ( aggr->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
-		builtin_error("resize() operates on vectors");
+		zeek::emit_builtin_error("resize() operates on vectors");
 		return nullptr;
 		}
 
@@ -1285,7 +1285,7 @@ function any_set%(v: any%) : bool
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR ||
 	     v->GetType()->Yield()->Tag() != zeek::TYPE_BOOL )
 		{
-		builtin_error("any_set() requires vector of bool");
+		zeek::emit_builtin_error("any_set() requires vector of bool");
 		return val_mgr->False();
 		}
 
@@ -1314,7 +1314,7 @@ function all_set%(v: any%) : bool
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR ||
 	     v->GetType()->Yield()->Tag() != zeek::TYPE_BOOL )
 		{
-		builtin_error("all_set() requires vector of bool");
+		zeek::emit_builtin_error("all_set() requires vector of bool");
 		return val_mgr->False();
 		}
 
@@ -1327,7 +1327,7 @@ function all_set%(v: any%) : bool
 	%}
 
 %%{
-static Func* sort_function_comp = nullptr;
+static zeek::detail::Func* sort_function_comp = nullptr;
 static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
 
 bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
@@ -1405,22 +1405,22 @@ function sort%(v: any, ...%) : any
 
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
-		builtin_error("sort() requires vector");
+		zeek::emit_builtin_error("sort() requires vector");
 		return rval;
 		}
 
 	const auto& elt_type = v->GetType()->Yield();
-	Func* comp = 0;
+	zeek::detail::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
-		builtin_error("sort() called with extraneous argument");
+		zeek::emit_builtin_error("sort() called with extraneous argument");
 
 	if ( @ARG@.size() == 2 )
 		{
 		Val* comp_val = @ARG@[1].get();
 		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
-			builtin_error("second argument to sort() needs to be comparison function");
+			zeek::emit_builtin_error("second argument to sort() needs to be comparison function");
 			return rval;
 			}
 
@@ -1428,7 +1428,7 @@ function sort%(v: any, ...%) : any
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
+		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
 
 	auto& vv = *v->AsVector();
 
@@ -1439,7 +1439,7 @@ function sort%(v: any, ...%) : any
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
 		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
-			builtin_error("invalid comparison function in call to sort()");
+			zeek::emit_builtin_error("invalid comparison function in call to sort()");
 			return rval;
 			}
 
@@ -1475,22 +1475,22 @@ function order%(v: any, ...%) : index_vec
 
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
-		builtin_error("order() requires vector");
+		zeek::emit_builtin_error("order() requires vector");
 		return result_v;
 		}
 
 	const auto& elt_type = v->GetType()->Yield();
-	Func* comp = 0;
+	zeek::detail::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
-		builtin_error("order() called with extraneous argument");
+		zeek::emit_builtin_error("order() called with extraneous argument");
 
 	if ( @ARG@.size() == 2 )
 		{
 		Val* comp_val = @ARG@[1].get();
 		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
-			builtin_error("second argument to order() needs to be comparison function");
+			zeek::emit_builtin_error("second argument to order() needs to be comparison function");
 			return zeek::ValPtr{zeek::NewRef{}, v};
 			}
 
@@ -1498,7 +1498,7 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for order() with non-integral types");
+		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
 
 	auto& vv = *v->AsVector();
 	auto n = vv.size();
@@ -1520,7 +1520,7 @@ function order%(v: any, ...%) : index_vec
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
 		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
-			builtin_error("invalid comparison function in call to order()");
+			zeek::emit_builtin_error("invalid comparison function in call to order()");
 			return zeek::ValPtr{zeek::NewRef{}, v};
 			}
 
@@ -1674,13 +1674,13 @@ function fmt%(...%): string
 
 	if ( n < static_cast<int>(@ARGC@) - 1 )
 		{
-		builtin_error("too many arguments for format", fmt_v);
+		zeek::emit_builtin_error("too many arguments for format", fmt_v);
 		return val_mgr->EmptyString();
 		}
 
 	else if ( n >= static_cast<int>(@ARGC@) )
 		{
-		builtin_error("too few arguments for format", fmt_v);
+		zeek::emit_builtin_error("too few arguments for format", fmt_v);
 		return val_mgr->EmptyString();
 		}
 
@@ -2252,7 +2252,7 @@ function counts_to_addr%(v: index_vec%): addr
 		}
 	else
 		{
-		builtin_error("invalid vector size", @ARG@[0]);
+		zeek::emit_builtin_error("invalid vector size", @ARG@[0]);
 		uint32_t bytes[4];
 		memset(bytes, 0, sizeof(bytes));
 		return zeek::make_intrusive<zeek::AddrVal>(bytes);
@@ -2268,7 +2268,7 @@ function enum_to_int%(e: any%): int
 	%{
 	if ( e->GetType()->Tag() != zeek::TYPE_ENUM )
 		{
-		builtin_error("enum_to_int() requires enum value");
+		zeek::emit_builtin_error("enum_to_int() requires enum value");
 		return val_mgr->Int(-1);
 		}
 
@@ -2293,7 +2293,7 @@ function to_int%(str: string%): int
 	// Not clear we should complain.  For example, is " 205 "
 	// a legal conversion?
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		builtin_error("bad conversion to integer", @ARG@[0]);
+		zeek::emit_builtin_error("bad conversion to integer", @ARG@[0]);
 #endif
 
 	return val_mgr->Int(i);
@@ -2309,7 +2309,7 @@ function int_to_count%(n: int%): count
 	%{
 	if ( n < 0 )
 		{
-		builtin_error("bad conversion to count", @ARG@[0]);
+		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
 		n = 0;
 		}
 	return val_mgr->Count(n);
@@ -2325,7 +2325,7 @@ function int_to_count%(n: int%): count
 function double_to_count%(d: double%): count
 	%{
 	if ( d < 0.0 )
-		builtin_error("bad conversion to count", @ARG@[0]);
+		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
 
 	return val_mgr->Count(bro_uint_t(rint(d)));
 	%}
@@ -2347,7 +2347,7 @@ function to_count%(str: string%): count
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{
-		builtin_error("bad conversion to count", @ARG@[0]);
+		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
         u = 0;
         }
 
@@ -2448,7 +2448,7 @@ function to_addr%(ip: string%): addr
 	else
 		{
 		ret = zeek::make_intrusive<zeek::AddrVal>(IPAddr());
-		builtin_error("failed converting string to IP address", ip);
+		zeek::emit_builtin_error("failed converting string to IP address", ip);
 		}
 
 	delete [] s;
@@ -2483,7 +2483,7 @@ function to_subnet%(sn: string%): subnet
 	IPPrefix tmp;
 
 	if ( ! IPPrefix::ConvertString(s, &tmp) )
-		builtin_error("failed converting string to IP prefix", sn);
+		zeek::emit_builtin_error("failed converting string to IP prefix", sn);
 
 	auto ret = zeek::make_intrusive<zeek::SubNetVal>(tmp);
 	delete [] s;
@@ -2544,7 +2544,7 @@ function to_double%(str: string%): double
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
 		{
-		builtin_error("bad conversion to double", @ARG@[0]);
+		zeek::emit_builtin_error("bad conversion to double", @ARG@[0]);
 		d = 0;
 		}
 
@@ -2562,7 +2562,7 @@ function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
 		{
-		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
+		zeek::emit_builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
 		return zeek::make_intrusive<zeek::AddrVal>(uint32_t(0));
 		}
 
@@ -2583,7 +2583,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	uint32_t a = 0;
 
 	if ( b->Len() < 4 )
-		builtin_error("too short a string as input to raw_bytes_to_v4_addr()");
+		zeek::emit_builtin_error("too short a string as input to raw_bytes_to_v4_addr()");
 
 	else
 		{
@@ -2621,7 +2621,7 @@ function to_port%(s: string%): port
             }
         }
 
-    builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
+    zeek::emit_builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
     return val_mgr->Port(port, TRANSPORT_UNKNOWN);
 	%}
 
@@ -2636,7 +2636,7 @@ function bytestring_to_double%(s: string%): double
 	%{
 	if ( s->Len() != sizeof(double) )
 		{
-		builtin_error("bad conversion to double");
+		zeek::emit_builtin_error("bad conversion to double");
 		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
 		}
 
@@ -2733,7 +2733,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		}
 	}
 
-	builtin_error("unsupported byte length for bytestring_to_count");
+	zeek::emit_builtin_error("unsupported byte length for bytestring_to_count");
 	return val_mgr->Count(0);
 	%}
 
@@ -2758,7 +2758,7 @@ function ptr_name_to_addr%(s: string%): addr
 			a, a+1, a+2, a+3, ss) != 5
 			|| strcmp(ss, "in-addr.arpa") != 0 )
 			{
-			builtin_error("bad PTR name", @ARG@[0]);
+			zeek::emit_builtin_error("bad PTR name", @ARG@[0]);
 			addr = 0;
 			}
 		else
@@ -2782,7 +2782,7 @@ function ptr_name_to_addr%(s: string%): addr
 			b+7, b+6, b+5, b+4, b+3, b+2, b+1, b, ss) != 33
 			|| strcmp(ss, "ip6.arpa") != 0 )
 			{
-			builtin_error("bad PTR name", @ARG@[0]);
+			zeek::emit_builtin_error("bad PTR name", @ARG@[0]);
 			memset(addr6, 0, sizeof addr6);
 			}
 		else
@@ -2946,7 +2946,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	Connection* conn = sessions->FindConnection(cid);
 	if ( ! conn )
 		{
-		builtin_error("connection ID not a known connection", cid);
+		zeek::emit_builtin_error("connection ID not a known connection", cid);
 		return val_mgr->EmptyString();
 		}
 
@@ -3247,7 +3247,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		{
-		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
+		zeek::emit_builtin_error("unknown connection id in get_conn_transport_proto()", cid);
 		return zeek::id::transport_proto->GetVal(0);
 		}
 
@@ -3297,7 +3297,7 @@ function lookup_connection%(cid: conn_id%): connection
 	if ( conn )
 		return conn->ConnVal();
 
-	builtin_error("connection ID not a known connection", cid);
+	zeek::emit_builtin_error("connection ID not a known connection", cid);
 
 	// Return a dummy connection record.
 	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
@@ -3554,7 +3554,7 @@ function lookup_addr%(host: addr%) : string
 
 	if ( ! trigger)
 		{
-		builtin_error("lookup_addr() can only be called inside a when-condition");
+		zeek::emit_builtin_error("lookup_addr() can only be called inside a when-condition");
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 		}
 
@@ -3583,7 +3583,7 @@ function lookup_hostname_txt%(host: string%) : string
 
 	if ( ! trigger)
 		{
-		builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
+		zeek::emit_builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 		}
 
@@ -3612,7 +3612,7 @@ function lookup_hostname%(host: string%) : addr_set
 
 	if ( ! trigger)
 		{
-		builtin_error("lookup_hostname() can only be called inside a when-condition");
+		zeek::emit_builtin_error("lookup_hostname() can only be called inside a when-condition");
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 		}
 
@@ -4009,7 +4009,7 @@ function lookup_location%(a: addr%) : geo_location
 			if ( ! did_mmdb_loc_db_error )
 				{
 				did_mmdb_loc_db_error = true;
-				builtin_error("Failed to open GeoIP location database");
+				zeek::emit_builtin_error("Failed to open GeoIP location database");
 				}
 
 			return location;
@@ -4061,7 +4061,7 @@ function lookup_location%(a: addr%) : geo_location
 
 	if ( ! missing_geoip_reported )
 		{
-		builtin_error("Zeek was not configured for GeoIP support");
+		zeek::emit_builtin_error("Zeek was not configured for GeoIP support");
 		missing_geoip_reported = 1;
 		}
 #endif
@@ -4092,7 +4092,7 @@ function lookup_asn%(a: addr%) : count
 			if ( ! did_mmdb_asn_db_error )
 				{
 				did_mmdb_asn_db_error = true;
-				builtin_error("Failed to open GeoIP ASN database");
+				zeek::emit_builtin_error("Failed to open GeoIP ASN database");
 				}
 
 			return val_mgr->Count(0);
@@ -4118,7 +4118,7 @@ function lookup_asn%(a: addr%) : count
 
 	if ( ! missing_geoip_reported )
 		{
-		builtin_error("Zeek was not configured for GeoIP ASN support");
+		zeek::emit_builtin_error("Zeek was not configured for GeoIP ASN support");
 		missing_geoip_reported = 1;
 		}
 #endif
@@ -4503,8 +4503,8 @@ function mkdir%(f: string%): bool
 		     && S_ISDIR(filestat.st_mode) )
 			return val_mgr->True();
 
-		builtin_error(fmt("cannot create directory '%s': %s", filename,
-		                  strerror(error)));
+		zeek::emit_builtin_error(fmt("cannot create directory '%s': %s", filename,
+		                             strerror(error)));
 		return val_mgr->False();
 		}
 	else
@@ -4528,8 +4528,8 @@ function rmdir%(d: string%): bool
 
 	if ( rmdir(dirname) < 0 )
 		{
-		builtin_error(fmt("cannot remove directory '%s': %s", dirname,
-		                  strerror(errno)));
+		zeek::emit_builtin_error(fmt("cannot remove directory '%s': %s", dirname,
+		                             strerror(errno)));
 		return val_mgr->False();
 		}
 	else
@@ -4552,8 +4552,8 @@ function unlink%(f: string%): bool
 
 	if ( unlink(filename) < 0 )
 		{
-		builtin_error(fmt("cannot unlink file '%s': %s", filename,
-		                  strerror(errno)));
+		zeek::emit_builtin_error(fmt("cannot unlink file '%s': %s", filename,
+		                             strerror(errno)));
 		return val_mgr->False();
 		}
 	else
@@ -4578,8 +4578,8 @@ function rename%(src_f: string, dst_f: string%): bool
 
 	if ( rename(src_filename, dst_filename) < 0 )
 		{
-		builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
-		                  dst_filename, strerror(errno)));
+		zeek::emit_builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
+		                             dst_filename, strerror(errno)));
 		return val_mgr->False();
 		}
 	else
@@ -5028,7 +5028,7 @@ function preserve_prefix%(a: addr, width: count%): any
 	if ( ip_anon )
 		{
 		if ( a->AsAddr().GetFamily() == IPv6 )
-			builtin_error("preserve_prefix() not supported for IPv6 addresses");
+			zeek::emit_builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
 			{
 			const uint32_t* bytes;
@@ -5054,7 +5054,7 @@ function preserve_subnet%(a: subnet%): any
 	if ( ip_anon )
 		{
 		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
-			builtin_error("preserve_subnet() not supported for IPv6 addresses");
+			zeek::emit_builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
 			{
 			const uint32_t* bytes;
@@ -5087,11 +5087,11 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();
 	if ( anon_class < 0 || anon_class >= zeek::detail::NUM_ADDR_ANONYMIZATION_CLASSES )
-		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
+		zeek::emit_builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
 	if ( a->AsAddr().GetFamily() == IPv6 )
 		{
-		builtin_error("anonymize_addr() not supported for IPv6 addresses");
+		zeek::emit_builtin_error("anonymize_addr() not supported for IPv6 addresses");
 		return nullptr;
 		}
 	else

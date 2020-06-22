@@ -138,7 +138,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 function edit%(arg_s: string, arg_edit_char: string%): string
 	%{
 	if ( arg_edit_char->Len() != 1 )
-		builtin_error("not exactly one edit character", @ARG@[1]);
+		zeek::emit_builtin_error("not exactly one edit character", @ARG@[1]);
 
 	const u_char* s = arg_s->Bytes();
 	const u_char* edit_s = arg_edit_char->Bytes();

@@ -4051,8 +4051,8 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
 		     did_builtin_init &&
 		     (func_val = func->Eval(nullptr)) )
 			{
-			::Func* f = func_val->AsFunc();
-			if ( f->GetKind() == Func::BUILTIN_FUNC &&
+			zeek::detail::Func* f = func_val->AsFunc();
+			if ( f->GetKind() == zeek::detail::Func::BUILTIN_FUNC &&
 			     ! check_built_in_call((BuiltinFunc*) f, this) )
 				SetError();
 			}
@@ -4072,7 +4072,7 @@ bool CallExpr::IsPure() const
 	if ( ! func_val )
 		return false;
 
-	::Func* f = func_val->AsFunc();
+	zeek::detail::Func* f = func_val->AsFunc();
 
 	// Only recurse for built-in functions, as recursing on script
 	// functions can lead to infinite recursion if the function being
@@ -4080,7 +4080,7 @@ bool CallExpr::IsPure() const
 	// or indirectly).
 	bool pure = false;
 
-	if ( f->GetKind() == Func::BUILTIN_FUNC )
+	if ( f->GetKind() == zeek::detail::Func::BUILTIN_FUNC )
 		pure = f->IsPure() && args->IsPure();
 
 	return pure;
@@ -4114,7 +4114,7 @@ ValPtr CallExpr::Eval(Frame* f) const
 
 	if ( func_val && v )
 		{
-		const ::Func* funcv = func_val->AsFunc();
+		const zeek::detail::Func* funcv = func_val->AsFunc();
 		const CallExpr* current_call = f ? f->GetCall() : nullptr;
 
 		if ( f )

@@ -182,7 +182,7 @@ type Cluster::Pool: record;
 ## Returns: true if the message is sent.
 function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	%{
-	static Func* topic_func = 0;
+	static zeek::detail::Func* topic_func = nullptr;
 
 	if ( ! topic_func )
 		topic_func = zeek::detail::global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
@@ -219,7 +219,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 ## Returns: true if the message is sent.
 function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	%{
-	static Func* topic_func = 0;
+	static zeek::detail::Func* topic_func = nullptr;
 
 	if ( ! topic_func )
 		topic_func = zeek::detail::global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();

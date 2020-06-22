@@ -6,9 +6,10 @@
 #include "List.h"
 
 class CCL;
-class Func;
 class NFA_State;
 class EquivClass;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
 
 typedef PList<NFA_State> NFA_state_list;
 
@@ -21,7 +22,7 @@ typedef PList<NFA_State> NFA_state_list;
 #define NUM_SYM 258
 
 #define SYM_EPSILON 259
-#define SYM_CCL 260    
+#define SYM_CCL 260
 
 
 class NFA_State : public BroObj  {

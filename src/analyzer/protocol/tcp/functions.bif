@@ -132,9 +132,9 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 
 	// Return some sort of error value.
 	if ( ! c )
-		builtin_error("unknown connection id in get_contents_file()", cid);
+		zeek::emit_builtin_error("unknown connection id in get_contents_file()", cid);
 	else
-		builtin_error("no contents file for given direction");
+		zeek::emit_builtin_error("no contents file for given direction");
 
 	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(stderr, "-", "w"));
 	%}

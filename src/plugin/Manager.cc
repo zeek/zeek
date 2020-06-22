@@ -617,7 +617,7 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	}
 
 std::pair<bool, zeek::ValPtr>
-Manager::HookCallFunction(const Func* func, zeek::detail::Frame* parent,
+Manager::HookCallFunction(const zeek::detail::Func* func, zeek::detail::Frame* parent,
                           zeek::Args* vecargs) const
 	{
 	HookArgumentList args;

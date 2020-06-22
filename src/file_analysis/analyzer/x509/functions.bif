@@ -29,7 +29,8 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
 	if ( ! untrusted_certs )
 		{
-		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_get_error(),NULL)));
+		zeek::emit_builtin_error(fmt("Untrusted certificate stack initialization error: %s",
+		                       ERR_error_string(ERR_get_error(),NULL)));
 		return 0;
 		}
 
@@ -45,7 +46,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);
-			builtin_error(fmt("No certificate in opaque in stack"));
+			zeek::emit_builtin_error(fmt("No certificate in opaque in stack"));
 			return 0;
 			}
 
@@ -233,7 +234,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	const auto& sv = certs_vec->At(index);
 	if ( ! sv )
 		{
-		builtin_error("undefined value in certificate vector");
+		zeek::emit_builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
 
@@ -242,7 +243,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		builtin_error(fmt("No certificate in opaque"));
+		zeek::emit_builtin_error(fmt("No certificate in opaque"));
 		return x509_result_record(-1, "No certificate in opaque");
 		}
 
@@ -519,7 +520,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	const auto& sv = certs_vec->At(index);
 	if ( !sv )
 		{
-		builtin_error("undefined value in certificate vector");
+		zeek::emit_builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
 	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
@@ -527,7 +528,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		builtin_error(fmt("No certificate in opaque"));
+		zeek::emit_builtin_error(fmt("No certificate in opaque"));
 		return x509_result_record(-1, "No certificate in opaque");
 		}
 
@@ -774,7 +775,7 @@ zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigne
 	X509 *cert_x509 = cert_handle->GetCertificate();
 	if ( cert_x509 == nullptr )
 		{
-		builtin_error("cannot get cert from opaque");
+		zeek::emit_builtin_error("cannot get cert from opaque");
 		return nullptr;
 		}
 
@@ -782,14 +783,14 @@ zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigne
 	X509_NAME *issuer_name = X509_get_issuer_name(cert_x509);
 	if ( subject_name == nullptr || issuer_name == nullptr )
 		{
-		builtin_error("fail to get subject/issuer name from certificate");
+		zeek::emit_builtin_error("fail to get subject/issuer name from certificate");
 		return nullptr;
 		}
 
 	const EVP_MD *dgst = hash_to_evp(hash_alg);
 	if ( dgst == nullptr )
 		{
-		builtin_error("Unknown hash algorithm.");
+		zeek::emit_builtin_error("Unknown hash algorithm.");
 		return nullptr;
 		}
 
@@ -809,7 +810,7 @@ zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigne
 		int pklen = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(cert_x509), &spki);
 		if ( ! pklen )
 			{
-			builtin_error("Could not get SPKI");
+			zeek::emit_builtin_error("Could not get SPKI");
 			return nullptr;
 			}
 		res = EVP_Digest(spki, pklen, md, &len, dgst, nullptr);
@@ -818,7 +819,7 @@ zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigne
 
 	if ( ! res )
 		{
-		builtin_error("Could not perform hash");
+		zeek::emit_builtin_error("Could not perform hash");
 		return nullptr;
 		}
 

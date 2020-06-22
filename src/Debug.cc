@@ -146,7 +146,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 			loc = *stmt->GetLocationInfo();
 		else
 			{
-			const BroFunc* f = g_frame_stack.back()->GetFunction();
+			const zeek::detail::BroFunc* f = g_frame_stack.back()->GetFunction();
 			if ( f )
 				loc = *f->GetLocationInfo();
 			}
@@ -221,8 +221,8 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	const Func* func = id->GetVal()->AsFunc();
-	const vector<Func::Body>& bodies = func->GetBodies();
+	const zeek::detail::Func* func = id->GetVal()->AsFunc();
+	const vector<zeek::detail::Func::Body>& bodies = func->GetBodies();
 
 	if ( bodies.size() == 0 )
 		{
@@ -731,7 +731,7 @@ static char* get_prompt(bool reset_counter = false)
 string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detail::Frame* frame)
 	{
 	ODesc d;
-	const BroFunc* func = frame ? frame->GetFunction() : nullptr;
+	const zeek::detail::BroFunc* func = frame ? frame->GetFunction() : nullptr;
 
 	if ( func )
 		func->DescribeDebug(&d, frame->GetFuncArgs());
@@ -770,7 +770,7 @@ int dbg_handle_debug_input()
 		}
 
 	zeek::detail::Frame* curr_frame = g_frame_stack.back();
-	const BroFunc* func = curr_frame->GetFunction();
+	const zeek::detail::BroFunc* func = curr_frame->GetFunction();
 	if ( func )
 		zeek::detail::current_module = extract_module_name(func->Name());
 	else
@@ -963,7 +963,7 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 	if ( ! (frame)  )
 		reporter->InternalError("Assertion failed: frame");
 
-	const BroFunc* func = frame->GetFunction();
+	const zeek::detail::BroFunc* func = frame->GetFunction();
 	if ( func )
 		{
 		Ref(func->GetScope());

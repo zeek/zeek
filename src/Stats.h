@@ -9,10 +9,10 @@
 #include <sys/resource.h>
 #include <stdint.h>
 
-class Func;
 class Location;
 class BroFile;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 
 // Object called by SegmentProfiler when it is done and reports its
@@ -94,7 +94,7 @@ public:
 
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
-	void FunctionSeen(const Func* func);
+	void FunctionSeen(const zeek::detail::Func* func);
 	void LocationSeen(const Location* loc);
 
 protected:

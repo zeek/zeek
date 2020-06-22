@@ -30,8 +30,6 @@ template<typename T> class PDict;
 class IterCookie;
 
 class BroString;
-class BroFunc;
-class Func;
 class BroFile;
 class PrefixTable;
 class IPAddr;
@@ -43,13 +41,18 @@ class CompositeHash;
 class HashKey;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroFunc, zeek::detail);
 
 extern double bro_start_network_time;
 
 namespace zeek {
 
-using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+namespace detail {
 using FuncPtr = zeek::IntrusivePtr<Func>;
+}
+
+using BroFilePtr = zeek::IntrusivePtr<BroFile>;
 
 class Val;
 class PortVal;
@@ -93,7 +96,7 @@ union BroValUnion {
 	double double_val;
 
 	BroString* string_val;
-	Func* func_val;
+	zeek::detail::Func* func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
@@ -120,7 +123,7 @@ union BroValUnion {
 	constexpr BroValUnion(BroString* value) noexcept
 		: string_val(value) {}
 
-	constexpr BroValUnion(Func* value) noexcept
+	constexpr BroValUnion(zeek::detail::Func* value) noexcept
 		: func_val(value) {}
 
 	constexpr BroValUnion(BroFile* value) noexcept
@@ -143,8 +146,8 @@ public:
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Val(Func* f);
-	explicit Val(FuncPtr f);
+	explicit Val(zeek::detail::Func* f);
+	explicit Val(zeek::detail::FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(BroFile* f);
@@ -233,7 +236,7 @@ public:
 	CONST_ACCESSOR2(zeek::TYPE_INTERVAL, double, double_val, AsInterval)
 	CONST_ACCESSOR2(zeek::TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
-	CONST_ACCESSOR(zeek::TYPE_FUNC, Func*, func_val, AsFunc)
+	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::detail::Func*, func_val, AsFunc)
 	CONST_ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
 	CONST_ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
@@ -269,12 +272,12 @@ public:
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
 	// ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
-	ACCESSOR(zeek::TYPE_FUNC, Func*, func_val, AsFunc)
+	ACCESSOR(zeek::TYPE_FUNC, zeek::detail::Func*, func_val, AsFunc)
 	ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
-	FuncPtr AsFuncPtr() const;
+	zeek::detail::FuncPtr AsFuncPtr() const;
 
 	const IPPrefix& AsSubNet()
 		{

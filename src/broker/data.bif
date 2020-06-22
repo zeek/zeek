@@ -48,7 +48,7 @@ function Broker::__opaque_clone_through_serialization%(d: any%): any
 
 	if ( ! x )
 		{
-		builtin_error("cannot serialize object to clone");
+		zeek::emit_builtin_error("cannot serialize object to clone");
         	return val_mgr->False();
 		}
 
@@ -83,7 +83,7 @@ function Broker::__set_contains%(s: Broker::Data, key: any%): bool
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return val_mgr->False();
 		}
 
@@ -99,7 +99,7 @@ function Broker::__set_insert%(s: Broker::Data, key: any%): bool
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return val_mgr->False();
 		}
 
@@ -114,7 +114,7 @@ function Broker::__set_remove%(s: Broker::Data, key: any%): bool
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return val_mgr->False();
 		}
 
@@ -150,7 +150,7 @@ function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Brok
 
 	if ( set_it->it == set_it->dat.end() )
 		{
-		builtin_error("attempt to retrieve value of invalid set iterator");
+		zeek::emit_builtin_error("attempt to retrieve value of invalid set iterator");
 		return rval;
 		}
 
@@ -187,7 +187,7 @@ function Broker::__table_contains%(t: Broker::Data, key: any%): bool
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return val_mgr->False();
 		}
 
@@ -203,7 +203,7 @@ function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 		}
 
@@ -211,7 +211,7 @@ function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::
 
 	if ( ! v )
 		{
-		builtin_error("invalid Broker data conversion for value argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for value argument");
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 		}
 
@@ -238,7 +238,7 @@ function Broker::__table_remove%(t: Broker::Data, key: any%): Broker::Data
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 		}
 
@@ -263,7 +263,7 @@ function Broker::__table_lookup%(t: Broker::Data, key: any%): Broker::Data
 
 	if ( ! k )
 		{
-		builtin_error("invalid Broker data conversion for key argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for key argument");
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 		}
 
@@ -308,7 +308,7 @@ function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): 
 
 	if ( ti->it == ti->dat.end() )
 		{
-		builtin_error("attempt to retrieve value of invalid table iterator");
+		zeek::emit_builtin_error("attempt to retrieve value of invalid table iterator");
 		return rval;
 		}
 
@@ -345,7 +345,7 @@ function Broker::__vector_insert%(v: Broker::Data, idx:count, d: any%): bool
 
 	if ( ! item )
 		{
-		builtin_error("invalid Broker data conversion for item argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for item argument");
 		return val_mgr->False();
 		}
 
@@ -362,7 +362,7 @@ function Broker::__vector_replace%(v: Broker::Data, idx: count, d: any%): Broker
 
 	if ( ! item )
 		{
-		builtin_error("invalid Broker data conversion for item argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for item argument");
 		return val_mgr->False();
 		}
 
@@ -427,7 +427,7 @@ function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%)
 
 	if ( vi->it == vi->dat.end() )
 		{
-		builtin_error("attempt to retrieve value of invalid vector iterator");
+		zeek::emit_builtin_error("attempt to retrieve value of invalid vector iterator");
 		return rval;
 		}
 
@@ -458,7 +458,7 @@ function Broker::__record_assign%(r: Broker::Data, idx: count, d: any%): bool
 
 	if ( ! item )
 		{
-		builtin_error("invalid Broker data conversion for item argument");
+		zeek::emit_builtin_error("invalid Broker data conversion for item argument");
 		return val_mgr->False();
 		}
 
@@ -506,7 +506,7 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 
 	if ( ri->it == ri->dat.end() )
 		{
-		builtin_error("attempt to retrieve value of invalid record iterator");
+		zeek::emit_builtin_error("attempt to retrieve value of invalid record iterator");
 		return rval;
 		}
 

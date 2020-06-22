@@ -307,7 +307,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 		// we can later access the ID even if no implementations have been
 		// defined.
 		std::vector<zeek::detail::IDPtr> inits;
-		auto f = zeek::make_intrusive<BroFunc>(id, nullptr, inits, 0, 0);
+		auto f = zeek::make_intrusive<zeek::detail::BroFunc>(id, nullptr, inits, 0, 0);
 		id->SetVal(zeek::make_intrusive<zeek::Val>(std::move(f)));
 		}
 	}
@@ -644,8 +644,8 @@ TraversalCode OuterIDBindingFinder::PostExpr(const zeek::detail::Expr* expr)
 
 void end_func(zeek::detail::StmtPtr body)
 	{
-	auto ingredients = std::make_unique<function_ingredients>(zeek::detail::pop_scope(),
-	                                                          std::move(body));
+	auto ingredients = std::make_unique<zeek::detail::function_ingredients>(zeek::detail::pop_scope(),
+	                                                                        std::move(body));
 
 	if ( ingredients->id->HasVal() )
 		ingredients->id->GetVal()->AsFunc()->AddBody(
@@ -655,7 +655,7 @@ void end_func(zeek::detail::StmtPtr body)
 			ingredients->priority);
 	else
 		{
-		auto f = zeek::make_intrusive<BroFunc>(
+		auto f = zeek::make_intrusive<zeek::detail::BroFunc>(
 			ingredients->id,
 			ingredients->body,
 			ingredients->inits,
@@ -781,7 +781,7 @@ zeek::Type* internal_type(const char* name)
 	return zeek::id::find_type(name).get();
 	}
 
-Func* internal_func(const char* name)
+zeek::detail::Func* internal_func(const char* name)
 	{
 	const auto& v = zeek::id::find_val(name);
 

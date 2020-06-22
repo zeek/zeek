@@ -34,8 +34,8 @@ struct Manager::Filter {
 	zeek::Val* fval;
 	string name;
 	zeek::EnumVal* id;
-	Func* pred;
-	Func* path_func;
+	zeek::detail::Func* pred;
+	zeek::detail::Func* path_func;
 	string path;
 	zeek::Val* path_val;
 	zeek::EnumVal* writer;
@@ -43,12 +43,12 @@ struct Manager::Filter {
 	zeek::TableVal* field_name_map;
 	string scope_sep;
 	string ext_prefix;
-	Func* ext_func;
+	zeek::detail::Func* ext_func;
 	int num_ext_fields;
 	bool local;
 	bool remote;
 	double interval;
-	Func* postprocessor;
+	zeek::detail::Func* postprocessor;
 
 	int num_fields;
 	threading::Field** fields;
@@ -66,7 +66,7 @@ struct Manager::WriterInfo {
 	double open_time;
 	Timer* rotation_timer;
 	double interval;
-	Func* postprocessor;
+	zeek::detail::Func* postprocessor;
 	WriterFrontend* writer;
 	WriterBackend::WriterInfo* info;
 	bool from_remote;
@@ -264,7 +264,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 		}
 
 	const auto& event_val = sval->GetField("ev");
-	Func* event = event_val ? event_val->AsFunc() : nullptr;
+	zeek::detail::Func* event = event_val ? event_val->AsFunc() : nullptr;
 
 	if ( event )
 		{
@@ -997,7 +997,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 	case zeek::TYPE_FUNC:
 		{
 		ODesc d;
-		const Func* f = val->AsFunc();
+		const zeek::detail::Func* f = val->AsFunc();
 		f->Describe(&d);
 		const char* s = d.Description();
 		lval->val.string_val.data = copy_string(s);
@@ -1517,7 +1517,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	info->Assign(4, zeek::make_intrusive<zeek::TimeVal>(close));
 	info->Assign(5, val_mgr->Bool(terminating));
 
-	Func* func = winfo->postprocessor;
+	zeek::detail::Func* func = winfo->postprocessor;
 	if ( ! func )
 		{
 		const auto& id = zeek::detail::global_scope()->Find("Log::__default_rotation_postprocessor");

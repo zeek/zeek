@@ -55,7 +55,7 @@ function Broker::__listen%(a: string, p: port%): port
 
 	if ( ! p->IsTCP() )
 		{
-		builtin_error("listen port must use tcp");
+		zeek::emit_builtin_error("listen port must use tcp");
 		return val_mgr->Port(0, TRANSPORT_UNKNOWN);
 		}
 
@@ -69,7 +69,7 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 
 	if ( ! p->IsTCP() )
 		{
-		builtin_error("remote connection port must use tcp");
+		zeek::emit_builtin_error("remote connection port must use tcp");
 		return val_mgr->False();
 		}
 
@@ -83,7 +83,7 @@ function Broker::__unpeer%(a: string, p: port%): bool
 
 	if ( ! p->IsTCP() )
 		{
-		builtin_error("remote connection port must use tcp");
+		zeek::emit_builtin_error("remote connection port must use tcp");
 		return val_mgr->False();
 		}
 

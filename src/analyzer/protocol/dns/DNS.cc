@@ -196,14 +196,14 @@ bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 
 	if ( dns_event && ! msg->skip_event )
 		{
-	    BroString* original_name = new BroString(name, name_end - name, true);
+		BroString* original_name = new BroString(name, name_end - name, true);
 
-	    // Downcase the Name to normalize it
-        for ( u_char* np = name; np < name_end; ++np )
-            if ( isupper(*np) )
-                *np = tolower(*np);
-        BroString* question_name =
-                new BroString(name, name_end - name, true);
+		// Downcase the Name to normalize it
+		for ( u_char* np = name; np < name_end; ++np )
+			if ( isupper(*np) )
+				*np = tolower(*np);
+
+		BroString* question_name = new BroString(name, name_end - name, true);
 
 		SendReplyOrRejectEvent(msg, dns_event, data, len, question_name, original_name);
 		}
@@ -361,9 +361,9 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	}
 
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
-                                     u_char* name, int name_len,
-                                     const u_char* msg_start) {
-    return DNS_Interpreter::ExtractName(data, len, name, name_len, msg_start, true);
+					u_char* name, int name_len,
+					const u_char* msg_start) {
+	return DNS_Interpreter::ExtractName(data, len, name, name_len, msg_start, true);
 }
 
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
@@ -389,9 +389,9 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
 
 	// Convert labels to lower case for consistency.
 	if (downcase)
-        for ( u_char* np = name_start; np < name; ++np )
-            if ( isupper(*np) )
-                *np = tolower(*np);
+		for ( u_char* np = name_start; np < name; ++np )
+			if ( isupper(*np) )
+				*np = tolower(*np);
 
 	return name;
 	}

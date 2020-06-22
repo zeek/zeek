@@ -246,6 +246,7 @@ bool Expr::IsReducedConditional(Reducer* c) const
 	case EXPR_GE:
 	case EXPR_LT:
 	case EXPR_GT:
+	case EXPR_HAS_FIELD:
 		return HasReducedOps(c);
 
 	default:
@@ -365,6 +366,10 @@ Expr* Expr::ReduceToConditional(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 			return new_me;
 			}
 
+		return this->Ref();
+
+	case EXPR_HAS_FIELD:
+		red_stmt = ReduceToSingletons(c);
 		return this->Ref();
 
 	default:

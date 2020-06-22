@@ -273,6 +273,16 @@ expr-op Has-Field
 type Ri
 eval frame[z.v1].int_val = (frame[z.v2].record_val->RawFields()->HasField(z.v3))
 
+internal-op Has-Field-Cond
+op1-read
+type VVV
+eval if ( ! frame[z.v1].record_val->RawFields()->HasField(z.v2) ) { pc = z.v3; continue; }
+
+internal-op Not-Has-Field-Cond
+op1-read
+type VVV
+eval if ( frame[z.v1].record_val->RawFields()->HasField(z.v2) ) { pc = z.v3; continue; }
+
 expr-op In
 type VVV
 custom-method return CompileInExpr($*);

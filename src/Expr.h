@@ -97,6 +97,7 @@ struct function_ingredients;
 
 class Reducer;
 class Inliner;
+class IfStmt;
 class CompiledStmt;
 class Compiler;
 class ZAM;
@@ -406,6 +407,10 @@ protected:
 	// both of which are marked as [[noreturn]].
 	[[noreturn]] void RuntimeError(const std::string& msg) const;
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
+
+	// The following is to allow IfStmt::Compile to directly alter
+	// the tag of certain conditional statements.
+	friend class IfStmt;
 
 	Expr* original;
 	BroExprTag tag;

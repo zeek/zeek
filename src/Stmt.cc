@@ -708,6 +708,39 @@ const CompiledStmt IfStmt::Compile(Compiler* c) const
 	if ( block2->Tag() == STMT_NULL )
 		block2 = nullptr;
 
+	if ( ! block1 && ! block2 )
+		// No need to evaluate conditional as it ought to be
+		// side-effect free in reduced form.
+		return c->EmptyStmt();
+
+	if ( ! block1 )
+		{
+		// See if we're able to invert the conditional.  If not,
+		// then Compiler::IfElse() will need to deal with inverting
+		// the test.  But we try here first, since some conditionals
+		// blow up into zillions of different operators depending on
+		// the type of their operands, so it's much simpler to deal
+		// with them now.
+		bool did_swap = false;
+
+		switch ( e->Tag() ) {
+		case EXPR_EQ:	e->tag = EXPR_NE; did_swap = true; break;
+		case EXPR_NE:	e->tag = EXPR_EQ; did_swap = true; break;
+		case EXPR_LT:	e->tag = EXPR_GE; did_swap = true; break;
+		case EXPR_LE:	e->tag = EXPR_GT; did_swap = true; break;
+		case EXPR_GE:	e->tag = EXPR_LT; did_swap = true; break;
+		case EXPR_GT:	e->tag = EXPR_LE; did_swap = true; break;
+
+		default: break;
+		}
+
+		if ( did_swap )
+			{
+			block1 = block2;
+			block2 = nullptr;
+			}
+		}
+
 	return c->IfElse(e.get(), block1.get(), block2.get());
 	}
 

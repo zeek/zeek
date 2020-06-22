@@ -2208,6 +2208,31 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 	else
 		{
 		auto s2_end = s2->Compile(this);
+
+		// For complex conditionals, we need to invert their
+		// sense since we're switching to "if ( ! cond ) s2".
+		auto z = insts1[cond_stmt.stmt_num];
+
+		switch ( z->op ) {
+		case OP_IF_ELSE_VV:
+		case OP_IF_VV:
+		case OP_IF_NOT_VV:
+			// These are generated correctly above, no need
+			// to fix up.
+			break;
+
+		case OP_HAS_FIELD_COND_VVV:
+			z->op = OP_NOT_HAS_FIELD_COND_VVV;
+			break;
+
+		case OP_NOT_HAS_FIELD_COND_VVV:
+			z->op = OP_HAS_FIELD_COND_VVV;
+			break;
+
+		default:
+			reporter->InternalError("inconsistency in ZAM::IfElse");
+		}
+
 		SetV(cond_stmt, GoToTargetBeyond(s2_end), branch_v);
 		return s2_end;
 		}
@@ -2222,6 +2247,16 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 	NameExpr* n2 = nullptr;
 	ConstExpr* c = nullptr;
 
+	if ( e->Tag() == EXPR_HAS_FIELD )
+		{
+		auto hf = e->AsHasFieldExpr();
+		auto z = GenInst(this, OP_HAS_FIELD_COND_VVV, op1->AsNameExpr(),
+					hf->Field());
+		z.op_type = OP_VVV_I2_I3;
+		branch_v = 3;
+		return AddInst(z);
+		}
+
 	if ( op1->Tag() == EXPR_NAME )
 		{
 		n1 = op1->AsNameExpr();
@@ -2231,6 +2266,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 		else
 			c = op2->AsConstExpr();
 		}
+
 	else
 		{
 		c = op1->AsConstExpr();

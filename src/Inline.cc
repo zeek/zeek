@@ -17,13 +17,21 @@ void Inliner::Analyze()
 		{
 		std::unordered_set<const Func*> cs;
 
+		// Aspirational ....
+		non_recursive_funcs.insert(f->func);
+
 		for ( auto& func : f->pf->script_calls )
 			{
 			cs.insert(func);
 
-			if ( func == f->func &&
-			     analysis_options.report_recursive )
-				printf("%s is directly recursive\n", func->Name());
+			if ( func == f->func )
+				{
+				if ( analysis_options.report_recursive )
+					printf("%s is directly recursive\n",
+						func->Name());
+
+				non_recursive_funcs.erase(func);
+				}
 			}
 
 		call_set[f->func] = cs;
@@ -59,18 +67,27 @@ void Inliner::Analyze()
 				// For each called function, pull up *its*
 				// set of called functions.
 				for ( auto& ccc : call_set[cc] )
+					{
 					// For each of those, if we don't
 					// already have it, add it.
-					if ( c.second.find(ccc) == c.second.end() )
-						{
-						addls.insert(ccc);
+					if ( c.second.count(ccc) > 0 )
+						// We have it.
+						continue;
 
-						if ( ccc == c.first &&
-						     analysis_options.report_recursive )
-							printf("%s is indirectly recursive, called by %s\n",
-								c.first->Name(),
-								cc->Name());
-						}
+					addls.insert(ccc);
+
+					if ( ccc != c.first )
+						// Non-recursive.
+						continue;
+
+					if ( analysis_options.report_recursive )
+						printf("%s is indirectly recursive, called by %s\n",
+							c.first->Name(),
+							cc->Name());
+
+					non_recursive_funcs.erase(c.first);
+					non_recursive_funcs.erase(cc);
+					}
 				}
 
 			if ( addls.size() > 0 )
@@ -83,18 +100,12 @@ void Inliner::Analyze()
 			}
 		}
 
-	std::unordered_set<const Func*> recursives;
-
-	for ( auto& c : call_set )
-		if ( c.second.find(c.first) != c.second.end() )
-			recursives.insert(c.first);
-
 	std::unordered_set<FuncInfo*> candidates;
 
 	for ( auto& f : funcs )
 		// Candidates are non-event, non-hook, non-recursive functions.
 		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     recursives.count(f->func) == 0 )
+		     non_recursive_funcs.count(f->func) > 0 )
 			inline_ables.insert(f->func);
 
 	for ( auto& f : funcs )

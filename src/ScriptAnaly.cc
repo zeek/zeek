@@ -16,6 +16,9 @@
 #include "module_util.h"
 
 
+std::unordered_set<const Func*> non_recursive_funcs;
+
+
 // Helper class that tracks definitions gathered in a block that either
 // need to be propagated to the beginning of the block or to the end.
 // Used for RD propagation due to altered control flow (next/break/fallthrough).

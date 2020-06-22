@@ -3429,6 +3429,37 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 		return AddInst(z);
 		}
 
+	// Also somewhat common is a 2-element index.  Here, one of the
+	// elements might be a constant, which makes things a bit messier.
+
+	if ( n == 2 && n2 &&
+	     (l_e[0]->Tag() == EXPR_NAME || l_e[1]->Tag() == EXPR_NAME) )
+		{
+		auto is_name0 = l_e[0]->Tag() == EXPR_NAME;
+		auto is_name1 = l_e[1]->Tag() == EXPR_NAME;
+
+		auto l_e0_n = is_name0 ? l_e[0]->AsNameExpr() : nullptr;
+		auto l_e1_n = is_name1 ? l_e[1]->AsNameExpr() : nullptr;
+
+		auto l_e0_c = is_name0 ? nullptr : l_e[0]->AsConstExpr();
+		auto l_e1_c = is_name1 ? nullptr : l_e[1]->AsConstExpr();
+
+		ZInst z;
+
+		if ( l_e0_n && l_e1_n )
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVV,
+					n1, l_e0_n, l_e1_n, n2);
+		else if ( l_e0_n )
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVC,
+					n1, l_e0_n, n2, l_e1_c);
+		else
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VCV,
+					n1, l_e1_n, n2, l_e0_c);
+
+		z.t = (is_name0 ? l_e0_n : l_e1_n)->Type().release();
+		return AddInst(z);
+		}
+
 	auto build_indices = InternalBuildVals(l);
 
 	auto z = ZInst(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,

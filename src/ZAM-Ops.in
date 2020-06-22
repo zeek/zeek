@@ -352,6 +352,42 @@ type VVV
 eval auto op1 = frame[z.v2].ToVal(z.t)
 eval frame[z.v1].int_val = frame[z.v3].table_val->Lookup(op1.get()) != nullptr
 
+# Variants for indexing two values, one of which might be a constant.
+# We set the instructions's type to be that of the first variable index.
+# We get the second variable's type, or that of a constant in either
+# position, by digging it out of the table's type.
+
+internal-op Val2-Is-In-Table
+type VVV
+eval auto& tt_ind = *frame[z.v4].table_val->Type()->AsTableType()->IndexTypes()
+eval auto op1 = frame[z.v2].ToVal(z.t)
+eval auto op2 = frame[z.v3].ToVal(tt_ind[1])
+eval ListVal lv(TYPE_ANY)
+eval lv.Append(op1.release())
+eval lv.Append(op2.release())
+eval frame[z.v1].int_val = frame[z.v4].table_val->Lookup(&lv) != nullptr
+
+internal-op Val2-Is-In-Table
+type VVC
+eval auto& tt_ind = *frame[z.v4].table_val->Type()->AsTableType()->IndexTypes()
+eval auto op1 = frame[z.v2].ToVal(z.t)
+eval auto op2 = z.c.ToVal(tt_ind[1])
+eval ListVal lv(TYPE_ANY)
+eval lv.Append(op1.release())
+eval lv.Append(op2.release())
+eval frame[z.v1].int_val = frame[z.v4].table_val->Lookup(&lv) != nullptr
+
+internal-op Val2-Is-In-Table
+type VCV
+eval auto& tt_ind = *frame[z.v4].table_val->Type()->AsTableType()->IndexTypes()
+eval auto op1 = z.c.ToVal(tt_ind[0])
+eval auto op2 = frame[z.v3].ToVal(z.t)
+eval ListVal lv(TYPE_ANY)
+eval lv.Append(op1.release())
+eval lv.Append(op2.release())
+eval frame[z.v1].int_val = frame[z.v4].table_val->Lookup(&lv) != nullptr
+
+
 internal-op Const-Is-In-Table
 type VCV
 eval auto op1 = z.c.ToVal(z.t)

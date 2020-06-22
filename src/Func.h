@@ -2,13 +2,10 @@
 
 #pragma once
 
-#include "BroList.h"
-#include "Obj.h"
-#include "IntrusivePtr.h"
+#include "Frame.h"
 #include "StmtBase.h"
 #include "Type.h" /* for function_flavor */
 #include "TraverseTypes.h"
-#include "ZeekArgs.h"
 
 #include <utility>
 #include <memory>
@@ -174,6 +171,8 @@ public:
 	void SetFrameSize(int new_size)		{ frame_size = new_size; }
 	int FrameSize() const			{ return frame_size; }
 
+	void UseStaticFrame();
+
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(id_list ids)
 		{ outer_ids = std::move(ids); }
@@ -205,6 +204,10 @@ private:
 	// The frame the BroFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
+
+	// For non-recursive compiled functions, a static frame rather
+	// than creating/clearing/deleting one dynamically for every call.
+	IntrusivePtr<Frame> static_frame;
 
 	// The most recently added/updated body.
 	IntrusivePtr<Stmt> current_body;

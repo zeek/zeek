@@ -270,7 +270,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* c,
 	}
 
 
-ZAM::ZAM(const BroFunc* f, Scope* _scope, Stmt* _body,
+ZAM::ZAM(BroFunc* f, Scope* _scope, Stmt* _body,
 		UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
 	{
 	tag = STMT_COMPILED;
@@ -288,6 +288,18 @@ ZAM::ZAM(const BroFunc* f, Scope* _scope, Stmt* _body,
 
 ZAM::~ZAM()
 	{
+	if ( fixed_frame )
+		{
+		// Free slots with explicit memory management.
+		for ( auto i = 0; i < managed_slots.size(); ++i )
+			{
+			auto& v = fixed_frame[managed_slots[i]];
+			DeleteManagedType(v, nullptr);
+			}
+
+		delete[] fixed_frame;
+		}
+
 	Unref(body);
 	delete inst_count;
 	delete CPU_time;
@@ -482,6 +494,16 @@ Stmt* ZAM::CompileBody()
 	else
 		inst_count = nullptr;
 
+	if ( non_recursive )
+		{
+		fixed_frame = new ZAMValUnion[frame_size];
+
+		for ( auto i = 0; i < managed_slots.size(); ++i )
+			fixed_frame[managed_slots[i]].managed_val = nullptr;
+
+		func->UseStaticFrame();
+		}
+
 	return this;
 	}
 
@@ -552,6 +574,8 @@ void ZAM::Init()
 			managed_slot_types.push_back(t);
 			}
 		}
+
+	non_recursive = non_recursive_funcs.count(func) > 0;
 	}
 
 void ZAM::OptimizeInsts()
@@ -1523,7 +1547,6 @@ IntrusivePtr<Val> ZAM::Exec(Frame* f, stmt_flow_type& flow) const
 IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
-	auto frame = new ZAMValUnion[frame_size];
 	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
 						nullptr;
 	int pc = start_pc;
@@ -1560,9 +1583,17 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	for ( auto i = 0; i < num_globals; ++i )
 		global_state[i] = GS_UNLOADED;
 
-	// Clear slots for which we do explicit memory management.
-	for ( auto s : managed_slots )
-		frame[s].managed_val = nullptr;
+	ZAMValUnion* frame;
+
+	if ( fixed_frame )
+		frame = fixed_frame;
+	else
+		{
+		frame = new ZAMValUnion[frame_size];
+		// Clear slots for which we do explicit memory management.
+		for ( auto s : managed_slots )
+			frame[s].managed_val = nullptr;
+		}
 
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
@@ -1615,15 +1646,19 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 	auto result = ret_type ? ret_u->ToVal(ret_type) : nullptr;
 
-	// Free those slots for which we do explicit memory management.
-	for ( auto i = 0; i < managed_slots.size(); ++i )
+	if ( ! fixed_frame )
 		{
-		auto& v = frame[managed_slots[i]];
-		DeleteManagedType(v, nullptr);
-		// DeleteManagedType(v, managed_slot_types[i]);
+		// Free those slots for which we do explicit memory management.
+		for ( auto i = 0; i < managed_slots.size(); ++i )
+			{
+			auto& v = frame[managed_slots[i]];
+			DeleteManagedType(v, nullptr);
+			// DeleteManagedType(v, managed_slot_types[i]);
+			}
+
+		delete [] frame;
 		}
 
-	delete [] frame;
 	delete [] global_state;
 
 	// Clear any error state.

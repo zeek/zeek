@@ -117,6 +117,13 @@ public:
 	void SetFunction(BroFunc* func)	{ function = func; }
 
 	/**
+	 * Change the arguments that the frame is associated with.
+	 *
+	 * @param args the new arguments to associate the frame with.
+	 */
+	void SetArguments(const zeek::Args* fn_args)	{ func_args = fn_args; }
+
+	/**
 	 * Sets the next statement to be executed in the context of the frame.
 	 *
 	 * @param stmt the statement to set it to.

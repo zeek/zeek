@@ -23,7 +23,7 @@ typedef ZInst* InstLabel;
 
 class ZAM : public Compiler {
 public:
-	ZAM(const BroFunc* f, Scope* scope, Stmt* body,
+	ZAM(BroFunc* f, Scope* scope, Stmt* body,
 		UseDefs* ud, Reducer* rd, ProfileFunc* pf);
 	~ZAM() override;
 
@@ -417,7 +417,7 @@ protected:
 	// (and/or no return value generated).
 	vector<const NameExpr*> retvars;
 
-	const BroFunc* func;
+	BroFunc* func;
 	Scope* scope;
 	Stmt* body;
 	UseDefs* ud;
@@ -514,6 +514,11 @@ protected:
 	int register_slot = -1;
 	int num_globals;
 	bool error_seen = false;
+	bool non_recursive = false;
+
+	// This is non-nil if the function is (asserted to be) non-recursive,
+	// in which case we pre-allocate this.
+	ZAMValUnion* fixed_frame = nullptr;
 
 	// Most recent instruction, other than for housekeeping.
 	int top_main_inst;

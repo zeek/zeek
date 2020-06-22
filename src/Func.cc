@@ -325,7 +325,15 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 		return Flavor() == FUNC_FLAVOR_HOOK ? IntrusivePtr{AdoptRef{}, val_mgr->GetTrue()} : nullptr;
 		}
 
-	auto f = make_intrusive<Frame>(frame_size, this, &args);
+	IntrusivePtr<Frame> f;
+
+	if ( static_frame )
+		{
+		f = static_frame;
+		f->SetArguments(&args);
+		}
+	else
+		f = make_intrusive<Frame>(frame_size, this, &args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -369,7 +377,8 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 				f->SetElement(j, arg->Ref());
 			}
 
-		f->Reset(args.size());
+		if ( ! static_frame )
+			f->Reset(args.size());
 
 		try
 			{
@@ -560,6 +569,11 @@ IntrusivePtr<Func> BroFunc::DoClone()
 broker::expected<broker::data> BroFunc::SerializeClosure() const
 	{
 	return Frame::Serialize(closure, outer_ids);
+	}
+
+void BroFunc::UseStaticFrame()
+	{
+	static_frame = make_intrusive<Frame>(frame_size, this, nullptr);
 	}
 
 void BroFunc::Describe(ODesc* d) const

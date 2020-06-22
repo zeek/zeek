@@ -3413,7 +3413,22 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 					const NameExpr* n2, const ConstExpr* c)
 	{
-	int n = l->Exprs().length();
+	auto& l_e = l->Exprs();
+	int n = l_e.length();
+
+	// Look for a very common special case: l is a single-element list
+	// holding a NameExpr, and n2 is present rather than c.  For these,
+	// we can save a lot of cycles by not building out a val-vec and
+	// then transforming it into a list-val.
+
+	if ( n == 1 && l_e[0]->Tag() == EXPR_NAME && n2 )
+		{
+		auto l_e0_n = l_e[0]->AsNameExpr();
+		auto z = GenInst(this, OP_VAL_IS_IN_TABLE_VVV, n1, l_e0_n, n2);
+		z.t = l_e0_n->Type().release();
+		return AddInst(z);
+		}
+
 	auto build_indices = InternalBuildVals(l);
 
 	auto z = ZInst(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,

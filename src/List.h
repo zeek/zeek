@@ -26,9 +26,6 @@
 #include <cassert>
 #include "util.h"
 
-// TODO: this can be removed in v3.1 when List::sort() is removed
-typedef int (*list_cmp_func)(const void* v1, const void* v2);
-
 enum class ListOrder : int { ORDERED, UNORDERED };
 
 template<typename T, ListOrder Order = ListOrder::ORDERED>

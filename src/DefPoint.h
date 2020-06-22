@@ -10,7 +10,7 @@
 typedef enum {
 	NO_DEF,
 	STMT_DEF,
-	// The following includes assignments, +=, vec+=, $, $? ...
+	// The following includes assignments, +=, vec+=, $, ?$ ...
 	// ... plus names (for implicit creation of records upon
 	// seeing use) and calls (for aggregates).
 	EXPR_DEF,

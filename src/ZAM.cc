@@ -810,6 +810,29 @@ void ZAM::ComputeFrameLifetimes()
 
 		// Some special-casing.
 		switch ( inst->op ) {
+		case OP_INTERPRET_EXPR_X:
+		case OP_INTERPRET_EXPR_V:
+		case OP_INTERPRET_EXPR_ANY_V:
+			{
+			// Usually if these refer to locals, those will have
+			// STORE's just before the instruction, which will
+			// have extended their lifetime anyway.  However,
+			// the STORE can get elided because the local hasn't
+			// had its value set; in that case, though, it's
+			// still incorrect to double it up with another
+			// local that might *also* appear in the expression.
+			// We could try to control for that possibility,
+			// but it's a lot safer to just treat locals as
+			// having lifetimes that extend through their
+			// appearance in expressions.
+			ProfileFunc expr_pf;
+			inst->e->Traverse(&expr_pf);
+
+			for ( auto l : expr_pf.locals )
+				ExtendLifetime(RawSlot(l), EndOfLoop(inst, 1));
+			}
+			break;
+
 		case OP_NEXT_TABLE_ITER_VV:
 		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
 			{
@@ -1067,6 +1090,17 @@ void ZAM::ReMapInterpreterFrame()
 		{
 		// Interpreter slot to use for these shared denizens, if any.
 		int cohort_slot = -1;
+
+		// First check to see whether this cohort already has a
+		// slot, which will happen if it includes a parameter.
+		for ( auto& id : sf.ids )
+			{
+			if ( interpreter_slots.count(id) > 0 )
+				{
+				ASSERT(cohort_slot < 0);
+				cohort_slot = interpreter_slots[id];
+				}
+			}
 
 		for ( auto& id : sf.ids )
 			{

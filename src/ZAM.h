@@ -381,8 +381,9 @@ protected:
 
 	bool HasFrameSlot(const ID* id) const;
 
-	int NewSlot();
-	int RegisterSlot();
+	int NewSlot(const IntrusivePtr<BroType>& t)
+		{ return NewSlot(IsManagedType(t)); }
+	int NewSlot(bool is_managed);
 
 	void SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o);
 
@@ -514,7 +515,6 @@ protected:
 	void DumpStrCases(int i) const;
 
 	int frame_size;
-	int register_slot = -1;
 	int num_globals;
 	bool error_seen = false;
 	bool non_recursive = false;

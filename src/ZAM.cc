@@ -2370,7 +2370,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 
 		else
 			{ // Both are constants, assign first to temporary.
-			auto slot = RegisterSlot();
+			auto slot = NewSlot(c0->Type());
 			auto z = ZInst(OP_ASSIGN_CONST_VC, slot, c0);
 			z.CheckIfManaged(c0);
 			(void) AddInst(z);
@@ -2564,7 +2564,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		{
 		// Weird to have a constant switch expression, enough
 		// so that it doesn't seem worth optimizing.
-		slot = RegisterSlot();
+		slot = NewSlot(c->Type());
 		auto z = ZInst(OP_ASSIGN_CONST_VC, slot, c);
 		z.CheckIfManaged(c);
 		(void) AddInst(z);
@@ -2751,7 +2751,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 
 	auto body_end = EmptyStmt();
 
-	auto tmp = RegisterSlot();
+	auto tmp = NewSlot(true);	// true since we know "any" is managed
 
 	int slot = v ? FrameSlot(v) : 0;
 
@@ -2928,8 +2928,8 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		{
 		// Turn into a VVC assignment by assigning the index to
 		// a temporary.
-		auto tmp = RegisterSlot();
 		auto c = op2->AsConstExpr();
+		auto tmp = NewSlot(c->Type());
 		auto z = ZInst(OP_ASSIGN_CONST_VC, tmp, c);
 		z.CheckIfManaged(c);
 
@@ -2992,7 +2992,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	ZAMValUnion ii_val;
 	ii_val.iter_info = ii;
 
-	auto info = NewSlot();
+	auto info = NewSlot(false);	// false <- IterInfo isn't managed
 	auto z = ZInst(OP_INIT_TABLE_LOOP_VVC, info, FrameSlot(val));
 	z.c = ii_val;
 	z.op_type = OP_VVc;
@@ -3030,7 +3030,7 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	ZAMValUnion ii_val;
 	ii_val.iter_info = ii;
 
-	auto info = NewSlot();
+	auto info = NewSlot(false);
 	auto z = ZInst(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
 	z.c = ii_val;
 	z.op_type = OP_VVc;
@@ -3053,7 +3053,7 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	ZAMValUnion ii_val;
 	ii_val.iter_info = new IterInfo();
 
-	auto info = NewSlot();
+	auto info = NewSlot(false);
 	auto z = ZInst(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
 	z.c = ii_val;
 	z.op_type = OP_VVc;
@@ -3224,7 +3224,7 @@ int ZAM::InternalBuildVals(const ListExpr* l)
 	{
 	auto exprs = l->Exprs();
 	int n = exprs.length();
-	auto tmp = RegisterSlot();
+	auto tmp = NewSlot(false);	// val_vec's aren't managed
 
 	auto z = ZInst(OP_CREATE_VAL_VEC_V, tmp, n);
 	z.op_type = OP_VV_I2;
@@ -3610,7 +3610,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			{
 			// Ugh, both are constants.  Assign first to
 			// a temporary.
-			auto slot = RegisterSlot();
+			auto slot = NewSlot(l_e0_c->Type());
 			auto z = ZInst(OP_ASSIGN_CONST_VC, slot, l_e0_c);
 			z.CheckIfManaged(l_e0_c);
 			(void) AddInst(z);
@@ -4028,23 +4028,20 @@ bool ZAM::HasFrameSlot(const ID* id) const
 	return frame_layout1.find(id) != frame_layout1.end();
 	}
 
-int ZAM::NewSlot()
+int ZAM::NewSlot(bool is_managed)
 	{
 	char buf[8192];
 	snprintf(buf, sizeof buf, "#internal-%d#", frame_size);
 
+	// In the following, all that matters is that for managed
+	// types we pick a tag that will be viewed as managed, and
+	// vice versa.
+	auto tag = is_managed ? TYPE_TABLE : TYPE_VOID;
+
 	auto internal_reg = new ID(buf, SCOPE_FUNCTION, false);
-	internal_reg->SetType(base_type(TYPE_VOID));
+	internal_reg->SetType(base_type(tag));
 
 	return AddToFrame(internal_reg);
-	}
-
-int ZAM::RegisterSlot()
-	{
-	if ( register_slot < 0 )
-		register_slot = NewSlot();
-
-	return register_slot;
 	}
 
 bool ZAM::CheckAnyType(const BroType* any_type, const BroType* expected_type,

@@ -240,6 +240,29 @@ bool Expr::IsReducedConditional(Reducer* c) const
 	case EXPR_NAME:
 		return IsReduced(c);
 
+	case EXPR_IN:
+		{
+		auto op1 = GetOp1();
+		auto op2 = GetOp2();
+
+		if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
+			return NonReduced(this);
+
+		if ( op2->Type()->Tag() != TYPE_TABLE || ! op2->IsReduced(c) )
+			return NonReduced(this);
+
+		if ( op1->Tag() == EXPR_LIST )
+			{
+			auto l1 = op1->AsListExpr();
+			auto& l1_e = l1->Exprs();
+
+			if ( l1_e.length() < 1 || l1_e.length() > 2 )
+				return NonReduced(this);
+			}
+
+		return true;
+		}
+
 	case EXPR_EQ:
 	case EXPR_NE:
 	case EXPR_LE:
@@ -346,7 +369,46 @@ Expr* Expr::ReduceToConditional(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return this->Ref();
 
 	case EXPR_NAME:
+		if ( c->Optimizing() )
+			return this->Ref();
+
 		return Reduce(c, red_stmt);
+
+	case EXPR_IN:
+		{
+		// This is complicated because there are lots of forms
+		// of "in" expressions, and we're only interested in
+		// those with 1 or 2 indices, into a table.
+		auto op1 = GetOp1();
+		auto op2 = GetOp2();
+
+		if ( c->Optimizing() )
+			return Reduce(c, red_stmt);
+
+		if ( op2->Type()->Tag() != TYPE_TABLE )
+			// Not a table de-reference.
+			return Reduce(c, red_stmt);
+
+		if ( op1->Tag() == EXPR_LIST )
+			{
+			auto l1 = op1->AsListExpr();
+			auto& l1_e = l1->Exprs();
+
+			if ( l1_e.length() < 1 || l1_e.length() > 2 )
+				// Wrong number of indices.
+				return Reduce(c, red_stmt);
+			}
+
+		if ( ! op1->IsReduced(c) || ! op2->IsReduced(c) )
+			{
+			auto red2_stmt = ReduceToSingletons(c);
+			auto res = ReduceToConditional(c, red_stmt);
+			red_stmt = MergeStmts(red2_stmt, red_stmt);
+			return res;
+			}
+
+		return this->Ref();
+		}
 
 	case EXPR_EQ:
 	case EXPR_NE:

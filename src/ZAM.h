@@ -313,14 +313,17 @@ protected:
 			SetV1(s, l);
 		else if ( v == 2 )
 			SetV2(s, l);
-		else
+		else if ( v == 3 )
 			SetV3(s, l);
+		else
+			SetV4(s, l);
 		}
 
 	void SetTarget(ZInst* inst, const InstLabel l, int slot);
 	void SetV1(CompiledStmt s, const InstLabel l);
 	void SetV2(CompiledStmt s, const InstLabel l);
 	void SetV3(CompiledStmt s, const InstLabel l);
+	void SetV4(CompiledStmt s, const InstLabel l);
 	void SetGoTo(CompiledStmt s, const InstLabel targ)
 		{ SetV1(s, targ); }
 

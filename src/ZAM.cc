@@ -1474,6 +1474,7 @@ void ZAM::RetargetBranch(ZInst* inst, ZInst* target, int target_slot)
 	case 1:	inst->v1 = t; break;
 	case 2:	inst->v2 = t; break;
 	case 3:	inst->v3 = t; break;
+	case 4:	inst->v4 = t; break;
 
 	default:
 		reporter->InternalError("bad GoTo target");
@@ -2224,9 +2225,43 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		case OP_HAS_FIELD_COND_VVV:
 			z->op = OP_NOT_HAS_FIELD_COND_VVV;
 			break;
-
 		case OP_NOT_HAS_FIELD_COND_VVV:
 			z->op = OP_HAS_FIELD_COND_VVV;
+			break;
+
+		case OP_VAL_IS_IN_TABLE_COND_VVV:
+			z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVV;
+			break;
+		case OP_VAL_IS_NOT_IN_TABLE_COND_VVV:
+			z->op = OP_VAL_IS_IN_TABLE_COND_VVV;
+			break;
+
+		case OP_CONST_IS_IN_TABLE_COND_VVC:
+			z->op = OP_CONST_IS_NOT_IN_TABLE_COND_VVC;
+			break;
+		case OP_CONST_IS_NOT_IN_TABLE_COND_VVC:
+			z->op = OP_CONST_IS_IN_TABLE_COND_VVC;
+			break;
+
+		case OP_VAL2_IS_IN_TABLE_COND_VVVV:
+			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV;
+			break;
+		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV:
+			z->op = OP_VAL2_IS_IN_TABLE_COND_VVVV;
+			break;
+
+		case OP_VAL2_IS_IN_TABLE_COND_VVVC:
+			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC;
+			break;
+		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC:
+			z->op = OP_VAL2_IS_IN_TABLE_COND_VVVC;
+			break;
+
+		case OP_VAL2_IS_IN_TABLE_COND_VVCV:
+			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV;
+			break;
+		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV:
+			z->op = OP_VAL2_IS_IN_TABLE_COND_VVCV;
 			break;
 
 		default:
@@ -2254,6 +2289,98 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 					hf->Field());
 		z.op_type = OP_VVV_I2_I3;
 		branch_v = 3;
+		return AddInst(z);
+		}
+
+	if ( e->Tag() == EXPR_IN )
+		{
+		auto op1 = e->GetOp1();
+		auto op2 = e->GetOp2()->AsNameExpr();
+
+		// First, deal with the easy cases: it's a single index.
+		if ( op1->Tag() == EXPR_LIST )
+			{
+			auto& ind = op1->AsListExpr()->Exprs();
+			if ( ind.length() == 1 )
+				op1 = {NewRef{}, ind[0]};
+			}
+
+		if ( op1->Tag() == EXPR_NAME )
+			{
+			auto z = GenInst(this, OP_VAL_IS_IN_TABLE_COND_VVV,
+						op1->AsNameExpr(), op2, 0);
+			z.t = op1->Type().release();
+			branch_v = 3;
+			return AddInst(z);
+			}
+
+		if ( op1->Tag() == EXPR_CONST )
+			{
+			auto z = GenInst(this, OP_CONST_IS_IN_TABLE_COND_VVC,
+						op2, op1->AsConstExpr(), 0);
+			z.t = op1->Type().release();
+			branch_v = 2;
+			return AddInst(z);
+			}
+
+		// Now the harder case: 2 indexes.  (Any number here other
+		// than two should have been disallowed due to how we reduce
+		// conditional expressions.)
+
+		auto& ind = op1->AsListExpr()->Exprs();
+		ASSERT(ind.length() == 2);
+
+		auto ind0 = ind[0];
+		auto ind1 = ind[1];
+
+		auto name0 = ind0->Tag() == EXPR_NAME;
+		auto name1 = ind1->Tag() == EXPR_NAME;
+
+		auto n0 = name0 ? ind0->AsNameExpr() : nullptr;
+		auto n1 = name1 ? ind1->AsNameExpr() : nullptr;
+
+		auto c0 = name0 ? nullptr : ind0->AsConstExpr();
+		auto c1 = name1 ? nullptr : ind1->AsConstExpr();
+
+		ZInst z;
+
+		if ( name0 && name1 )
+			{
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVV,
+					n0, n1, op2, 0);
+			branch_v = 4;
+			z.t = n0->Type().release();
+			}
+
+		else if ( name0 )
+			{
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVC,
+					n0, op2, c1, 0);
+			branch_v = 3;
+			z.t = n0->Type().release();
+			}
+
+		else if ( name1 )
+			{
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVCV,
+					n1, op2, c0, 0);
+			branch_v = 3;
+			z.t = n1->Type().release();
+			}
+
+		else
+			{ // Both are constants, assign first to temporary.
+			auto slot = RegisterSlot();
+			auto z = ZInst(OP_ASSIGN_CONST_VC, slot, c0);
+			z.CheckIfManaged(c0);
+			(void) AddInst(z);
+
+			z = ZInst(OP_VAL2_IS_IN_TABLE_COND_VVVC,
+					slot, FrameSlot(op2), 0, c1);
+			z.op_type = OP_VVVC_I3;
+			z.t = c0->Type().release();
+			}
+
 		return AddInst(z);
 		}
 
@@ -3416,21 +3543,33 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 	auto& l_e = l->Exprs();
 	int n = l_e.length();
 
-	// Look for a very common special case: l is a single-element list
-	// holding a NameExpr, and n2 is present rather than c.  For these,
-	// we can save a lot of cycles by not building out a val-vec and
-	// then transforming it into a list-val.
-
-	if ( n == 1 && l_e[0]->Tag() == EXPR_NAME && n2 )
+	// Look for a very common special case: l is a single-element list,
+	// and n2 is present rather than c.  For these, we can save a lot
+	// of cycles by not building out a val-vec and then transforming it
+	// into a list-val.
+	if ( n == 1 && n2 )
 		{
-		auto l_e0_n = l_e[0]->AsNameExpr();
-		auto z = GenInst(this, OP_VAL_IS_IN_TABLE_VVV, n1, l_e0_n, n2);
-		z.t = l_e0_n->Type().release();
+		ZInst z;
+
+		if ( l_e[0]->Tag() == EXPR_NAME )
+			{
+			auto l_e0_n = l_e[0]->AsNameExpr();
+			z = GenInst(this, OP_VAL_IS_IN_TABLE_VVV, n1,
+						l_e0_n, n2);
+			}
+
+		else
+			{
+			auto l_e0_c = l_e[0]->AsConstExpr();
+			z = GenInst(this, OP_CONST_IS_IN_TABLE_VCV, n1, l_e0_c, n2);
+			}
+
+		z.t = l_e[0]->Type().release();
 		return AddInst(z);
 		}
 
-	// Also somewhat common is a 2-element index.  Here, one of the
-	// elements might be a constant, which makes things a bit messier.
+	// Also somewhat common is a 2-element index.  Here, one or both of
+	// the elements might be a constant, which makes things messier.
 
 	if ( n == 2 && n2 &&
 	     (l_e[0]->Tag() == EXPR_NAME || l_e[1]->Tag() == EXPR_NAME) )
@@ -3447,16 +3586,41 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 		ZInst z;
 
 		if ( l_e0_n && l_e1_n )
-			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVV,
+			{
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVV,
 					n1, l_e0_n, l_e1_n, n2);
-		else if ( l_e0_n )
-			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVC,
-					n1, l_e0_n, n2, l_e1_c);
-		else
-			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VCV,
-					n1, l_e1_n, n2, l_e0_c);
+			z.t = l_e0_n->Type().release();
+			}
 
-		z.t = (is_name0 ? l_e0_n : l_e1_n)->Type().release();
+		else if ( l_e0_n )
+			{
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVC,
+					n1, l_e0_n, n2, l_e1_c);
+			z.t = l_e0_n->Type().release();
+			}
+
+		else if ( l_e1_n )
+			{
+			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVCV,
+					n1, l_e1_n, n2, l_e0_c);
+			z.t = l_e1_n->Type().release();
+			}
+
+		else
+			{
+			// Ugh, both are constants.  Assign first to
+			// a temporary.
+			auto slot = RegisterSlot();
+			auto z = ZInst(OP_ASSIGN_CONST_VC, slot, l_e0_c);
+			z.CheckIfManaged(l_e0_c);
+			(void) AddInst(z);
+
+			z = ZInst(OP_VAL2_IS_IN_TABLE_VVVC, FrameSlot(n1),
+					slot, FrameSlot(n2), l_e1_c);
+			z.op_type = OP_VVVC;
+			z.t = l_e0_c->Type().release();
+			}
+
 		return AddInst(z);
 		}
 
@@ -3784,6 +3948,16 @@ void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 		inst->op_type == OP_VVV_I2_I3);
 	if ( inst->op_type != OP_VVV_I2_I3 )
 		inst->op_type = OP_VVV_I3;
+	}
+
+void ZAM::SetV4(CompiledStmt s, const InstLabel l)
+	{
+	auto inst = insts1[s.stmt_num];
+	SetTarget(inst, l, 4);
+
+	ASSERT(inst->op_type == OP_VVVV || inst->op_type == OP_VVVV_I4);
+	if ( inst->op_type != OP_VVVV_I4 )
+		inst->op_type = OP_VVVV_I4;
 	}
 
 

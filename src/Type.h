@@ -13,7 +13,7 @@
 #include <map>
 #include <list>
 
-// BRO types.
+// Zeek types.
 
 enum TypeTag {
 	TYPE_VOID,      // 0

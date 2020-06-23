@@ -1402,7 +1402,7 @@ BroType* base_type_no_ref(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
 
-	// We could check here that "tag" actually corresponds to a BRO
+	// We could check here that "tag" actually corresponds to a Zeek
 	// basic type.
 
 	int t = int(tag);

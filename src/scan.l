@@ -139,7 +139,7 @@ public:
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
 // top of the stack.
-static PList<FileInfo> file_stack;
+static zeek::PList<FileInfo> file_stack;
 
 #define RET_CONST(v) \
 	{ \
@@ -835,8 +835,8 @@ void do_atendif()
 // Be careful to never delete things from this list, as the strings
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
-static name_list input_files;
-static name_list essential_input_files;
+static zeek::name_list input_files;
+static zeek::name_list essential_input_files;
 
 void add_essential_input_file(const char* file)
 	{
@@ -871,7 +871,7 @@ void add_input_file_at_front(const char* file)
 		input_files.push_front(copy_string(file));
 	}
 
-void add_to_name_list(char* s, char delim, name_list& nl)
+void add_to_name_list(char* s, char delim, zeek::name_list& nl)
 	{
 	while ( s )
 		{
@@ -917,7 +917,7 @@ int yywrap()
 	// Stack is now empty.
 	while ( essential_input_files.length() > 0 || input_files.length() > 0 )
 		{
-		name_list& files = essential_input_files.length() > 0 ?
+		zeek::name_list& files = essential_input_files.length() > 0 ?
 		             essential_input_files : input_files;
 
 		if ( load_files(files[0]) )

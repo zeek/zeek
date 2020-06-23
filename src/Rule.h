@@ -14,8 +14,8 @@ class RuleAction;
 class RuleHdrTest;
 class Rule;
 
-typedef PList<Rule> rule_list;
-typedef std::map<std::string, Rule*> rule_dict;
+using rule_list = zeek::PList<Rule>;
+using rule_dict = std::map<std::string, Rule*>;
 
 class Rule {
 public:
@@ -58,9 +58,9 @@ private:
 
 	void SortHdrTests();
 
-	typedef PList<RuleAction> rule_action_list;
-	typedef PList<RuleCondition> rule_condition_list;
-	typedef PList<RuleHdrTest> rule_hdr_test_list;
+	using rule_action_list = zeek::PList<RuleAction>;
+	using rule_condition_list = zeek::PList<RuleCondition>;
+	using rule_hdr_test_list = zeek::PList<RuleHdrTest>;
 
 	rule_hdr_test_list hdr_tests;
 	rule_condition_list conditions;
@@ -74,7 +74,7 @@ private:
 		bool negate;	// negate test
 	};
 
-	typedef PList<Precond> precond_list;
+	using precond_list = zeek::PList<Precond>;
 
 	precond_list preconds;
 	rule_list dependents;	// rules w/ us as a precondition
@@ -92,7 +92,7 @@ private:
 		uint32_t depth;
 	};
 
-	typedef PList<Pattern> pattern_list;
+	using pattern_list = zeek::PList<Pattern>;
 	pattern_list patterns;
 
 	Rule* next;	// Linkage within RuleHdrTest tree:

@@ -620,7 +620,7 @@ public:
 	const char* id = nullptr;
 };
 
-using type_decl_list = PList<TypeDecl>;
+using type_decl_list = zeek::PList<TypeDecl>;
 
 class RecordType final : public Type {
 public:

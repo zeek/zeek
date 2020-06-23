@@ -28,12 +28,12 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
-		const PDict<zeek::TableEntryVal>* tbl = val->AsTable();
+		const zeek::PDict<zeek::TableEntryVal>* tbl = val->AsTable();
 
 		if ( tbl->Length() == 0 )
 			return rval;
 
-		IterCookie* c = tbl->InitForIteration();
+		zeek::IterCookie* c = tbl->InitForIteration();
 		HashKey* k;
 
 		while ( tbl->NextEntry(k, c) )

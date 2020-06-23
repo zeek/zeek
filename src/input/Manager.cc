@@ -99,8 +99,8 @@ public:
 	zeek::RecordType* rtype;
 	zeek::RecordType* itype;
 
-	PDict<InputHash>* currDict;
-	PDict<InputHash>* lastDict;
+	zeek::PDict<InputHash>* currDict;
+	zeek::PDict<InputHash>* lastDict;
 
 	zeek::detail::Func* pred;
 
@@ -273,7 +273,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 		{
 		// create config mapping in ReaderInfo. Has to be done before the construction of reader_obj.
 		HashKey* k;
-		IterCookie* c = info->config->AsTable()->InitForIteration();
+		zeek::IterCookie* c = info->config->AsTable()->InitForIteration();
 
 		zeek::TableEntryVal* v;
 		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
@@ -674,9 +674,9 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 	stream->itype = idx->Ref()->AsRecordType();
 	stream->event = event ? event_registry->Lookup(event->Name()) : nullptr;
 	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
-	stream->currDict = new PDict<InputHash>;
+	stream->currDict = new zeek::PDict<InputHash>;
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
-	stream->lastDict = new PDict<InputHash>;
+	stream->lastDict = new zeek::PDict<InputHash>;
 	stream->lastDict->SetDeleteFunc(input_hash_delete_func);
 	stream->want_record = ( want_record->InternalInt() == 1 );
 
@@ -1319,7 +1319,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	TableStream* stream = (TableStream*) i;
 
 	// lastdict contains all deleted entries and should be empty apart from that
-	IterCookie *c = stream->lastDict->InitForIteration();
+	zeek::IterCookie *c = stream->lastDict->InitForIteration();
 	stream->lastDict->MakeRobustCookie(c);
 	InputHash* ih;
 	HashKey *lastDictIdxKey;
@@ -1372,7 +1372,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	delete(stream->lastDict);
 
 	stream->lastDict = stream->currDict;
-	stream->currDict = new PDict<InputHash>;
+	stream->currDict = new zeek::PDict<InputHash>;
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 
 #ifdef DEBUG

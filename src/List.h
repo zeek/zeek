@@ -26,6 +26,10 @@
 #include <cassert>
 #include "util.h"
 
+//enum class [[deprecated("Remove in v4.1. Use zeek::ListOrder instead.")]] ListOrder : int { ORDERED, UNORDERED };
+
+namespace zeek {
+
 enum class ListOrder : int { ORDERED, UNORDERED };
 
 template<typename T, ListOrder Order = ListOrder::ORDERED>
@@ -331,7 +335,11 @@ template<typename T, ListOrder Order = ListOrder::ORDERED>
 using PList = List<T*, Order>;
 
 // Popular type of list: list of strings.
-typedef PList<char> name_list;
+using name_list = PList<char>;
+
+} // namespace zeek
+
+using ListOrder [[deprecated("Remove in v4.1. Use zeek::ListOrder instead.")]] = zeek::ListOrder;
 
 // Macro to visit each list element in turn.
 #define loop_over_list(list, iterator)  \

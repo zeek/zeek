@@ -190,7 +190,7 @@ protected:
 	StmtPtr s;
 };
 
-using case_list = PList<Case>;
+using case_list = zeek::PList<Case>;
 
 class SwitchStmt final : public ExprStmt {
 public:
@@ -229,7 +229,7 @@ protected:
 	case_list* cases;
 	int default_case_idx;
 	CompositeHash* comp_hash;
-	PDict<int> case_label_value_map;
+	zeek::PDict<int> case_label_value_map;
 	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 

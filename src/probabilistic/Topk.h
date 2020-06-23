@@ -166,7 +166,7 @@ private:
 	zeek::TypePtr type;
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
-	PDict<Element>* elementDict;
+	zeek::PDict<Element>* elementDict;
 	uint64_t size; // how many elements are we tracking?
 	uint64_t numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?

@@ -36,7 +36,7 @@ typedef int AcceptIdx;
 typedef std::set<AcceptIdx> AcceptingSet;
 typedef uint64_t MatchPos;
 typedef std::map<AcceptIdx, MatchPos> AcceptingMatchSet;
-typedef name_list string_list;
+typedef zeek::name_list string_list;
 
 typedef enum { MATCH_ANYWHERE, MATCH_EXACTLY, } match_type;
 
@@ -128,7 +128,7 @@ protected:
 
 	std::map<std::string, std::string> defs;
 	std::map<std::string, CCL*> ccl_dict;
-	PList<CCL> ccl_list;
+	zeek::PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;
 	DFA_Machine* dfa;

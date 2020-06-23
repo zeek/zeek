@@ -12,7 +12,7 @@
 
 namespace zeek::detail {
 
-using scope_list = PList<Scope>;
+using scope_list = zeek::PList<Scope>;
 
 static scope_list scopes;
 static Scope* top_scope;

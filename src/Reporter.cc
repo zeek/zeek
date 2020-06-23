@@ -73,7 +73,7 @@ void Reporter::InitOptions()
 	auto wl_table = wl_val->AsTable();
 
 	HashKey* k;
-	IterCookie* c = wl_table->InitForIteration();
+	zeek::IterCookie* c = wl_table->InitForIteration();
 	zeek::TableEntryVal* v;
 
 	while ( (v = wl_table->NextEntry(k, c)) )

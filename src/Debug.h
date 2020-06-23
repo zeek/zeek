@@ -30,7 +30,7 @@ struct ParseLocationRec {
 };
 
 class StmtLocMapping;
-typedef PQueue<StmtLocMapping> Filemap; // mapping for a single file
+typedef zeek::PQueue<StmtLocMapping> Filemap; // mapping for a single file
 
 class DbgBreakpoint;
 class DbgWatch;

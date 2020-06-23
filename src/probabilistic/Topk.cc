@@ -35,7 +35,7 @@ HashKey* TopkVal::GetHash(Val* v) const
 
 TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	{
-	elementDict = new PDict<Element>;
+	elementDict = new zeek::PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
 	numElements = 0;
@@ -45,7 +45,7 @@ TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 
 TopkVal::TopkVal() : OpaqueVal(topk_type)
 	{
-	elementDict = new PDict<Element>;
+	elementDict = new zeek::PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = 0;
 	numElements = 0;

@@ -29,8 +29,7 @@ using ListValPtr = zeek::IntrusivePtr<ListVal>;
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
 }
 
-
-typedef PList<DNS_Mgr_Request> DNS_mgr_request_list;
+using DNS_mgr_request_list = zeek::PList<DNS_Mgr_Request>;
 
 struct nb_dns_info;
 struct nb_dns_result;

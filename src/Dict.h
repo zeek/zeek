@@ -2,27 +2,31 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include "List.h"
 #include "Hash.h"
 
-class Dictionary;
-class DictEntry;
-class IterCookie;
-
-// Type indicating whether the dictionary should keep track of the order
-// of insertions.
-enum dict_order { ORDERED, UNORDERED };
+ZEEK_FORWARD_DECLARE_NAMESPACED(DictEntry, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
 
 // Type for function to be called when deleting elements.
 typedef void (*dict_delete_func)(void*);
+
+namespace zeek {
+
+// Type indicating whether the dictionary should keep track of the order
+// of insertions.
+enum DictOrder { ORDERED, UNORDERED };
 
 // A dict_delete_func that just calls delete.
 extern void generic_delete_func(void*);
 
 class Dictionary {
 public:
-	explicit Dictionary(dict_order ordering = UNORDERED,
-			int initial_size = 0);
+	explicit Dictionary(DictOrder ordering = UNORDERED,
+	                    int initial_size = 0);
+
 	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
@@ -125,10 +129,10 @@ private:
 	void DeInit();
 
 	// Internal version of Insert().
-	void* Insert(DictEntry* entry, bool copy_key);
+	void* Insert(zeek::detail::DictEntry* entry, bool copy_key);
 
-	void* DoRemove(DictEntry* entry, hash_t h,
-			PList<DictEntry>* chain, int chain_offset);
+	void* DoRemove(zeek::detail::DictEntry* entry, hash_t h,
+	               zeek::PList<zeek::detail::DictEntry>* chain, int chain_offset);
 
 	int NextPrime(int n) const;
 	bool IsPrime(int n) const;
@@ -158,7 +162,7 @@ private:
 	// When we're resizing, we'll have tbl (old) and tbl2 (new)
 	// tbl_next_ind keeps track of how much we've moved to tbl2
 	// (it's the next index we're going to move).
-	PList<DictEntry>** tbl = nullptr;
+	zeek::PList<zeek::detail::DictEntry>** tbl = nullptr;
 	int num_buckets = 0;
 	int num_entries = 0;
 	int max_num_entries = 0;
@@ -167,7 +171,7 @@ private:
 	double den_thresh = 0.0;
 
 	// Resizing table (replicates tbl above).
-	PList<DictEntry>** tbl2 = nullptr;
+	zeek::PList<zeek::detail::DictEntry>** tbl2 = nullptr;
 	int num_buckets2 = 0;
 	int num_entries2 = 0;
 	int max_num_entries2 = 0;
@@ -177,16 +181,16 @@ private:
 
 	hash_t tbl_next_ind = 0;
 
-	PList<DictEntry>* order = nullptr;
+	zeek::PList<zeek::detail::DictEntry>* order = nullptr;
 	dict_delete_func delete_func = nullptr;
 
-	PList<IterCookie> cookies;
+	zeek::PList<IterCookie> cookies;
 };
 
 template<typename T>
 class PDict : public Dictionary {
 public:
-	explicit PDict(dict_order ordering = UNORDERED, int initial_size = 0) :
+	explicit PDict(DictOrder ordering = UNORDERED, int initial_size = 0) :
 		Dictionary(ordering, initial_size) {}
 	T* Lookup(const char* key) const
 		{
@@ -221,3 +225,8 @@ public:
 	T* RemoveEntry(const HashKey& key)
 		{ return (T*) Remove(key.Key(), key.Size(), key.Hash()); }
 };
+
+} //namespace zeek
+
+using Dictionary [[deprecated("Remove in v4.1. Use zeek::Dictionary instead.")]] = zeek::Dictionary;
+template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;

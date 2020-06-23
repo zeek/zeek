@@ -93,7 +93,7 @@ public:
 	 * @see Dictionary#InitForIteration
 	 * @return an iterator that may be used to loop over analyzers in the set.
 	 */
-	IterCookie* InitForIteration() const
+	zeek::IterCookie* InitForIteration() const
 		{ return analyzer_map.InitForIteration(); }
 
 	/**
@@ -103,7 +103,7 @@ public:
 	 * @return the next analyzer in the set or a null pointer if there is no
 	 *         more left (in that case the cookie is also deleted).
 	 */
-	file_analysis::Analyzer* NextEntry(IterCookie* c)
+	file_analysis::Analyzer* NextEntry(zeek::IterCookie* c)
 		{ return analyzer_map.NextEntry(c); }
 
 protected:
@@ -145,7 +145,7 @@ private:
 
 	File* file;                                  /**< File which owns the set */
 	CompositeHash* analyzer_hash;                /**< AnalyzerArgs hashes. */
-	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
+	zeek::PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**
 	 * Abstract base class for analyzer set modifications.

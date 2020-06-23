@@ -25,9 +25,12 @@
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
+namespace zeek {
 template<typename T> class PDict;
+};
+template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
 
-class IterCookie;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
 
 class BroString;
 class BroFile;
@@ -99,7 +102,7 @@ union BroValUnion {
 	zeek::detail::Func* func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
-	PDict<TableEntryVal>* table_val;
+	zeek::PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
 	std::vector<ValPtr>* vector_val;
 
@@ -132,7 +135,7 @@ union BroValUnion {
 	constexpr BroValUnion(RE_Matcher* value) noexcept
 		: re_val(value) {}
 
-	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
+	constexpr BroValUnion(zeek::PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
 };
 
@@ -237,7 +240,7 @@ public:
 	CONST_ACCESSOR2(zeek::TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
 	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::detail::Func*, func_val, AsFunc)
-	CONST_ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
+	CONST_ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
 	CONST_ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
@@ -385,7 +388,7 @@ protected:
 		: type(std::move(t))
 		{}
 
-	ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
+	ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsNonConstTable)
 	ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.

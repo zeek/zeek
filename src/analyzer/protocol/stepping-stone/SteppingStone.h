@@ -70,14 +70,14 @@ protected:
 class SteppingStoneManager {
 public:
 
-	PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
+	zeek::PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
 		{ return ordered_endps; }
 
 	// Use postfix ++, since the first ID needs to be even.
 	int NextID()			{ return endp_cnt++; }
 
 protected:
-	PQueue<SteppingStoneEndpoint> ordered_endps;
+	zeek::PQueue<SteppingStoneEndpoint> ordered_endps;
 	int endp_cnt = 0;
 };
 

@@ -11,7 +11,7 @@ class EquivClass;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
 
-typedef PList<NFA_State> NFA_state_list;
+using NFA_state_list = zeek::PList<NFA_State>;
 
 #define NO_ACCEPT 0
 

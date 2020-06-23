@@ -394,7 +394,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -498,7 +498,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -562,7 +562,7 @@ void File::EndOfFile()
 	done = true;
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -595,7 +595,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		}
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{

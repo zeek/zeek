@@ -3,17 +3,17 @@
 
 TEST_CASE("list construction")
 	{
-	List<int> list;
+	zeek::List<int> list;
 	CHECK(list.empty());
 
-	List<int> list2(10);
+	zeek::List<int> list2(10);
 	CHECK(list2.empty());
 	CHECK(list2.max() == 10);
 	}
 
 TEST_CASE("list operation")
 	{
-	List<int> list({ 1, 2, 3 });
+	zeek::List<int> list({ 1, 2, 3 });
 	CHECK(list.size() == 3);
 	CHECK(list.max() == 3);
 	CHECK(list[0] == 1);
@@ -85,7 +85,7 @@ TEST_CASE("list operation")
 
 TEST_CASE("list iteration")
 	{
-	List<int> list({ 1, 2, 3, 4});
+	zeek::List<int> list({ 1, 2, 3, 4});
 
 	int index = 1;
 	for ( int v : list )
@@ -98,7 +98,7 @@ TEST_CASE("list iteration")
 
 TEST_CASE("plists")
 	{
-	PList<int> list;
+	zeek::PList<int> list;
 	list.push_back(new int(1));
 	list.push_back(new int(2));
 	list.push_back(new int(3));
@@ -117,7 +117,7 @@ TEST_CASE("plists")
 
 TEST_CASE("unordered list operation")
 	{
-	List<int, ListOrder::UNORDERED> list({1, 2, 3, 4});
+	zeek::List<int, zeek::ListOrder::UNORDERED> list({1, 2, 3, 4});
 	CHECK(list.size() == 4);
 
 	// An unordered list doesn't maintain the ordering of the elements when

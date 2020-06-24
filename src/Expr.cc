@@ -776,6 +776,14 @@ Expr* NameExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	return c->UpdateName(this);
 	}
 
+IntrusivePtr<Expr> NameExpr::Duplicate()
+	{
+	// We need to create a replicate because Reaching Defs for different
+	// instances of the name need to be kept distinct, and these are
+	// done based on the pointer to the NameExpr.
+	return make_intrusive<NameExpr>(id, in_const_init);
+	}
+
 TraversalCode NameExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);

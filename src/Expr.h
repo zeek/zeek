@@ -209,7 +209,8 @@ public:
 
 	// Returns a duplciate of the expression.  For atomic expressions
 	// that can be safely shared across multiple function bodies
-	// (due to inline-ing), can return just a reference, per the
+	// (due to inline-ing), and that won't have Reaching Definitions
+	// tied to an individual copy, we can return just a reference, per the
 	// default here.
 	virtual IntrusivePtr<Expr> Duplicate()
 		{ return {NewRef{}, this}; }
@@ -436,6 +437,8 @@ public:
 	bool WillTransform(Reducer* c) const override
 		{ return ! IsReduced(c); }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

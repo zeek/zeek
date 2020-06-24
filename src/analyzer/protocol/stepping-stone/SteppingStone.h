@@ -7,12 +7,12 @@
 
 class NetSessions;
 
-namespace analyzer { namespace stepping_stone {
+namespace analyzer::stepping_stone {
 
 class SteppingStoneEndpoint;
 class SteppingStoneManager;
 
-class SteppingStoneEndpoint : public BroObj {
+class SteppingStoneEndpoint : public zeek::BroObj {
 public:
 	SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m);
 	~SteppingStoneEndpoint() override;
@@ -81,4 +81,4 @@ protected:
 	int endp_cnt = 0;
 };
 
-} } // namespace analyzer::*
+} // namespace analyzer::stepping_stone

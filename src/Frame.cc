@@ -55,7 +55,7 @@ Frame::~Frame()
 
 void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	{
-	::Ref(func);
+	zeek::Ref(func);
 
 	if ( ! functions_with_closure_frame_reference )
 		functions_with_closure_frame_reference = std::make_unique<std::vector<BroFunc*>>();
@@ -493,7 +493,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	outer_ids = std::move(arg_outer_ids);
 
 	for ( auto& i : outer_ids )
-		::Ref(i);
+		zeek::Ref(i);
 
 	closure = c;
 	if ( closure )

@@ -2076,7 +2076,7 @@ const TypePtr& base_type(zeek::TypeTag tag)
 		{
 		base_types[tag] = zeek::make_intrusive<Type>(tag, true);
 		// Give the base types a pseudo-location for easier identification.
-		Location l(type_name(tag), 0, 0, 0, 0);
+		zeek::detail::Location l(type_name(tag), 0, 0, 0, 0);
 		base_types[tag]->SetLocationInfo(&l);
 		}
 

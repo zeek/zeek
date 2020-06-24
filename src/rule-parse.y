@@ -104,7 +104,7 @@ rule_list:
 rule:
 		TOK_SIGNATURE TOK_IDENT
 			{
-			Location l(current_rule_file, rules_line_number+1, 0, 0, 0);
+			zeek::detail::Location l(current_rule_file, rules_line_number+1, 0, 0, 0);
 			current_rule = new Rule(yylval.str, l);
 			}
 		'{' rule_attr_list '}'
@@ -440,7 +440,7 @@ void rules_error(const char* msg, const char* addl)
 
 void rules_error(Rule* r, const char* msg)
 	{
-	const Location& l = r->GetLocation();
+	const zeek::detail::Location& l = r->GetLocation();
 	reporter->Error("Error in signature %s (%s:%d): %s\n",
 			r->ID(), l.filename, l.first_line, msg);
 	rule_matcher->SetParseError();

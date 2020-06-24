@@ -251,7 +251,7 @@ public:
 	/**
 	 * Constructor with a location argument.
 	 */
-	explicit HookArgument(const Location* location)	{ type = LOCATION; arg.loc = location; }
+	explicit HookArgument(const zeek::detail::Location* location)	{ type = LOCATION; arg.loc = location; }
 
 	/**
 	 * Constructor with a zeek::Args argument.
@@ -374,7 +374,7 @@ private:
 		const zeek::Args* args;
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
-		const Location* loc;
+		const zeek::detail::Location* loc;
 	} arg;
 
 	// Outside union because these have dtors.
@@ -621,7 +621,7 @@ protected:
 	 *
 	 * @param handler The object being interested in.
 	 */
-	void RequestBroObjDtor(BroObj* obj);
+	void RequestBroObjDtor(zeek::BroObj* obj);
 
 	// Hook functions.
 
@@ -829,7 +829,7 @@ protected:
 	 */
 	virtual bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
 	                          const Connection* conn, const val_list* addl, bool location,
-	                          const Location* location1, const Location* location2,
+	                          const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                          bool time, const std::string& message);
 
 	// Meta hooks.

@@ -24,7 +24,7 @@ class DFA_State;
 class DFA_Machine;
 class DFA_State;
 
-class DFA_State : public BroObj {
+class DFA_State : public zeek::BroObj {
 public:
 	DFA_State(int state_num, const EquivClass* ec,
 			NFA_state_list* nfa_states, AcceptingSet* accept);
@@ -109,7 +109,7 @@ private:
 	std::map<DigestStr, DFA_State*> states;
 };
 
-class DFA_Machine : public BroObj {
+class DFA_Machine : public zeek::BroObj {
 public:
 	DFA_Machine(NFA_Machine* n, EquivClass* ec);
 	~DFA_Machine() override;

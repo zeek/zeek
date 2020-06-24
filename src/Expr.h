@@ -98,7 +98,7 @@ public:
 
 	BroExprTag Tag() const	{ return tag; }
 
-	Expr* Ref()			{ ::Ref(this); return this; }
+	Expr* Ref()			{ zeek::Ref(this); return this; }
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.

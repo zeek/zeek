@@ -9,11 +9,11 @@
 #include <sys/resource.h>
 #include <stdint.h>
 
-class Location;
 class BroFile;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
@@ -22,7 +22,7 @@ public:
 	SegmentStatsReporter()	{ }
 	virtual ~SegmentStatsReporter()	{ }
 
-	virtual void SegmentProfile(const char* name, const Location* loc,
+	virtual void SegmentProfile(const char* name, const zeek::detail::Location* loc,
 					double dtime, int dmem) = 0;
 };
 
@@ -44,7 +44,7 @@ public:
 		}
 
 	SegmentProfiler(SegmentStatsReporter* arg_reporter,
-				const Location* arg_loc)
+	                const zeek::detail::Location* arg_loc)
 	    : reporter(arg_reporter), name(), loc(arg_loc), initial_rusage()
 		{
 		if ( reporter )
@@ -63,7 +63,7 @@ protected:
 
 	SegmentStatsReporter* reporter;
 	const char* name;
-	const Location* loc;
+	const zeek::detail::Location* loc;
 	struct rusage initial_rusage;
 };
 
@@ -77,8 +77,8 @@ public:
 	BroFile* File()	{ return file; }
 
 protected:
-	void SegmentProfile(const char* name, const Location* loc,
-				double dtime, int dmem) override;
+	void SegmentProfile(const char* name, const zeek::detail::Location* loc,
+	                    double dtime, int dmem) override;
 
 private:
 	BroFile* file;
@@ -95,11 +95,11 @@ public:
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
 	void FunctionSeen(const zeek::detail::Func* func);
-	void LocationSeen(const Location* loc);
+	void LocationSeen(const zeek::detail::Location* loc);
 
 protected:
-	void SegmentProfile(const char* name, const Location* loc,
-				double dtime, int dmem) override;
+	void SegmentProfile(const char* name, const zeek::detail::Location* loc,
+	                    double dtime, int dmem) override;
 
 	zeek::TableVal* load_samples;
 };

@@ -136,7 +136,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 	fprintf(trace_file, "%.6f ", network_time);
 
 	const zeek::detail::Stmt* stmt;
-	Location loc;
+	zeek::detail::Location loc;
 	loc.filename = nullptr;
 
 	if ( g_frame_stack.size() > 0 && g_frame_stack.back() )
@@ -174,7 +174,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 
 // Helper functions.
-void get_first_statement(zeek::detail::Stmt* list, zeek::detail::Stmt*& first, Location& loc)
+void get_first_statement(zeek::detail::Stmt* list, zeek::detail::Stmt*& first, zeek::detail::Location& loc)
 	{
 	if ( ! list )
 		{
@@ -244,7 +244,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			for ( unsigned int i = 0; i < bodies.size(); ++i )
 				{
 				zeek::detail::Stmt* first;
-				Location stmt_loc;
+				zeek::detail::Location stmt_loc;
 				get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 				debug_msg("[%d] %s:%d\n", i+1, stmt_loc.filename, stmt_loc.first_line);
 				}
@@ -287,7 +287,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 
 	// Find first atomic (non-STMT_LIST) statement
 	zeek::detail::Stmt* first;
-	Location stmt_loc;
+	zeek::detail::Location stmt_loc;
 
 	if ( body )
 		{
@@ -738,7 +738,7 @@ string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detai
 	else
 		d.Add("<unknown function>", 0);
 
-	Location loc;
+	zeek::detail::Location loc;
 	if ( stmt )
 		loc = *stmt->GetLocationInfo();
 	else
@@ -780,7 +780,7 @@ int dbg_handle_debug_input()
 	if ( ! stmt )
 		reporter->InternalError("Assertion failed: stmt != 0");
 
-	const Location loc = *stmt->GetLocationInfo();
+	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 
 	if ( ! step_or_next_pending || g_frame_stack.back() != last_frame )
 		{

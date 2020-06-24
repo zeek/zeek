@@ -89,7 +89,7 @@ public:
 
 	bool already_did_list;	// did we already do a 'list' command?
 
-	Location last_loc;	// used by 'list'; the last location listed
+	zeek::detail::Location last_loc;	// used by 'list'; the last location listed
 
 	BPIDMapType breakpoints;	// BPID -> Breakpoint
 	std::vector<DbgWatch*> watches;
@@ -111,14 +111,14 @@ private:
 class StmtLocMapping {
 public:
 	StmtLocMapping()	{ }
-	StmtLocMapping(const Location* l, zeek::detail::Stmt* s)	{ loc = *l; stmt = s; }
+	StmtLocMapping(const zeek::detail::Location* l, zeek::detail::Stmt* s)	{ loc = *l; stmt = s; }
 
 	bool StartsAfter(const StmtLocMapping* m2);
-	const Location& Loc() const	{ return loc; }
+	const zeek::detail::Location& Loc() const	{ return loc; }
 	zeek::detail::Stmt* Statement() const		{ return stmt; }
 
 protected:
-	Location loc;
+	zeek::detail::Location loc;
 	zeek::detail::Stmt* stmt;
 };
 

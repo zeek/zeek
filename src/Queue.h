@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <string.h>
 #include <iterator>
 
 // Queue.h --

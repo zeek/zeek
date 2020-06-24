@@ -305,4 +305,4 @@ extern void builtin_error(const char* msg);
 [[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
 extern void builtin_error(const char* msg, zeek::ValPtr);
 [[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
-extern void builtin_error(const char* msg, BroObj* arg);
+extern void builtin_error(const char* msg, zeek::BroObj* arg);

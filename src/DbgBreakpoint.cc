@@ -153,7 +153,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 		function_name = make_full_var_name(zeek::detail::current_module.c_str(),
 		                                   loc_s.c_str());
 		at_stmt = plr.stmt;
-		const Location* loc = at_stmt->GetLocationInfo();
+		const zeek::detail::Location* loc = at_stmt->GetLocationInfo();
 		snprintf(description, sizeof(description), "%s at %s:%d",
 		         function_name.c_str(), loc->filename, loc->last_line);
 
@@ -176,7 +176,7 @@ bool DbgBreakpoint::SetLocation(zeek::detail::Stmt* stmt)
 	SetEnable(true);
 	AddToGlobalMap();
 
-	const Location* loc = stmt->GetLocationInfo();
+	const zeek::detail::Location* loc = stmt->GetLocationInfo();
 	snprintf(description, sizeof(description), "%s:%d",
 		      loc->filename, loc->last_line);
 
@@ -356,7 +356,7 @@ void DbgBreakpoint::PrintHitMsg()
 		if ( func )
 			func->DescribeDebug (&d, f->GetFuncArgs());
 
-		const Location* loc = at_stmt->GetLocationInfo();
+		const zeek::detail::Location* loc = at_stmt->GetLocationInfo();
 
 		debug_msg("Breakpoint %d, %s at %s:%d\n",
 			 GetID(), d.Description(),

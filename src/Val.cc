@@ -3191,7 +3191,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 ValPtr check_and_promote(ValPtr v,
                          const Type* t,
                          bool is_init,
-                         const Location* expr_location)
+                         const zeek::detail::Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;

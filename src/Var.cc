@@ -122,7 +122,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 		{
 		if ( id->IsRedefinable() || (! init && attr && ! zeek::IsFunc(id->GetType()->Tag())) )
 			{
-			BroObj* redef_obj = init ? (BroObj*) init.get() : (BroObj*) t.get();
+			zeek::BroObj* redef_obj = init ? (zeek::BroObj*) init.get() : (zeek::BroObj*) t.get();
 			if ( dt != VAR_REDEF )
 				id->Warn("redefinition requires \"redef\"", redef_obj, true);
 			}
@@ -336,8 +336,8 @@ zeek::detail::StmtPtr add_local(
 			id->Error("can't use += / -= for initializations of local variables");
 
 		// copy Location to the stack, because AssignExpr may free "init"
-		const Location location = init->GetLocationInfo() ?
-		        *init->GetLocationInfo() : no_location;
+		const zeek::detail::Location location = init->GetLocationInfo() ?
+			*init->GetLocationInfo() : zeek::detail::no_location;
 
 		auto name_expr = zeek::make_intrusive<zeek::detail::NameExpr>(id, dt == VAR_CONST);
 		auto assign_expr = zeek::make_intrusive<zeek::detail::AssignExpr>(std::move(name_expr),

@@ -14,11 +14,11 @@
 
 class EventMgr;
 
-class Event final : public BroObj {
+class Event final : public zeek::BroObj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
 	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-	      BroObj* obj = nullptr);
+	      zeek::BroObj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
@@ -41,14 +41,14 @@ protected:
 	zeek::Args args;
 	SourceID src;
 	analyzer::ID aid;
-	BroObj* obj;
+	zeek::BroObj* obj;
 	Event* next_event;
 };
 
 extern uint64_t num_events_queued;
 extern uint64_t num_events_dispatched;
 
-class EventMgr final : public BroObj, public iosource::IOSource {
+class EventMgr final : public zeek::BroObj, public iosource::IOSource {
 public:
 	EventMgr();
 	~EventMgr() override;
@@ -64,7 +64,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+			TimerMgr* mgr = nullptr, zeek::BroObj* obj = nullptr);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
 	// function always takes ownership of decrementing the reference count of
@@ -75,7 +75,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+			TimerMgr* mgr = nullptr, zeek::BroObj* obj = nullptr);
 
 	// Same as QueueEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
@@ -84,7 +84,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+			TimerMgr* mgr = nullptr, zeek::BroObj* obj = nullptr);
 
 	/**
 	 * Adds an event to the queue.  If no handler is found for the event
@@ -100,7 +100,7 @@ public:
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
 	             SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-	             BroObj* obj = nullptr);
+	             zeek::BroObj* obj = nullptr);
 
 	/**
 	 * A version of Enqueue() taking a variable number of arguments.

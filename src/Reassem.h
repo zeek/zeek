@@ -251,7 +251,7 @@ private:
 	DataBlockMap block_map;
 };
 
-class Reassembler : public BroObj {
+class Reassembler : public zeek::BroObj {
 public:
 	Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
 	~Reassembler() override	{}

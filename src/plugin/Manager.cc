@@ -865,9 +865,10 @@ bool Manager::HookLogWrite(const std::string& writer,
 	}
 
 bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-			   const Connection* conn, const val_list* addl, bool location,
-			   const Location* location1, const Location* location2,
-			   bool time, const std::string& message)
+                           const Connection* conn, const val_list* addl, bool location,
+                           const zeek::detail::Location* location1,
+                           const zeek::detail::Location* location2,
+                           bool time, const std::string& message)
 
 	{
 	HookArgumentList args;

@@ -172,7 +172,7 @@ public:
 
 	~Val() override;
 
-	Val* Ref()			{ ::Ref(this); return this; }
+	Val* Ref()			{ zeek::Ref(this); return this; }
 	ValPtr Clone();
 
 	bool IsZero() const;
@@ -1376,7 +1376,7 @@ protected:
 // true, then the checking is done in the context of an initialization.
 extern ValPtr check_and_promote(
 	ValPtr v, const zeek::Type* t, bool is_init,
-	const Location* expr_location = nullptr);
+	const zeek::detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);

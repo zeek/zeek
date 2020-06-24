@@ -165,7 +165,7 @@ void Reporter::ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt,
 	throw InterpreterException();
 	}
 
-void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
+void Reporter::RuntimeError(const zeek::detail::Location* location, const char* fmt, ...)
 	{
 	++errors;
 	PushLocation(location);
@@ -469,11 +469,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			{
 			ODesc d;
 
-			std::pair<const Location*, const Location*> locs = locations.back();
+			std::pair<const zeek::detail::Location*, const zeek::detail::Location*> locs = locations.back();
 
 			if ( locs.first )
 				{
-				if ( locs.first != &no_location )
+				if ( locs.first != &zeek::detail::no_location )
 					locs.first->Describe(&d);
 
 				else
@@ -483,7 +483,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 					{
 					d.Add(" and ");
 
-					if ( locs.second != &no_location )
+					if ( locs.second != &zeek::detail::no_location )
 						locs.second->Describe(&d);
 
 					else

@@ -31,7 +31,7 @@ void Brofiler::AddStmt(zeek::detail::Stmt* s)
 	if ( ignoring != 0 )
 		return;
 
-	::Ref(s);
+	zeek::Ref(s);
 	stmts.push_back(s);
 	}
 

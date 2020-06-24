@@ -126,8 +126,6 @@ extern zeek::detail::Expr* g_curr_debug_expr;
 extern bool in_debug;
 extern const char* g_curr_debug_error;
 
-#define YYLTYPE yyltype
-
 static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
@@ -135,7 +133,7 @@ bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
-static Location func_hdr_location;
+static zeek::detail::Location func_hdr_location;
 zeek::EnumType* cur_enum_type = nullptr;
 static zeek::detail::ID* cur_decl_type_id = nullptr;
 
@@ -267,7 +265,7 @@ bro:
 
 			// Any objects creates from here on out should not
 			// have file positions associated with them.
-			set_location(no_location);
+			set_location(zeek::detail::no_location);
 			}
 	|
 		/* Silly way of allowing the debugger to call yyparse()

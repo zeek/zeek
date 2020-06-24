@@ -65,7 +65,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 
 namespace analyzer { class Analyzer; }
 
-class Connection final : public BroObj {
+class Connection final : public zeek::BroObj {
 public:
 	Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);

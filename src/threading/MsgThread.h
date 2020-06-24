@@ -8,7 +8,7 @@
 #include "iosource/IOSource.h"
 #include "Flare.h"
 
-class BroObj;
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroObj, zeek);
 
 namespace threading {
 

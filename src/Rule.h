@@ -19,7 +19,7 @@ using rule_dict = std::map<std::string, Rule*>;
 
 class Rule {
 public:
-	Rule(const char* arg_id, const Location& arg_location)
+	Rule(const char* arg_id, const zeek::detail::Location& arg_location)
 		{
 		id = copy_string(arg_id);
 		idx = rule_counter++;
@@ -47,7 +47,7 @@ public:
 			uint32_t offset = 0, uint32_t depth = INT_MAX);
 	void AddRequires(const char* id, bool opposite_direction, bool negate);
 
-	const Location& GetLocation() const	{ return location; }
+	const zeek::detail::Location& GetLocation() const	{ return location; }
 
 	void PrintDebug();
 
@@ -98,7 +98,7 @@ private:
 	Rule* next;	// Linkage within RuleHdrTest tree:
 			// Ptr to next rule using the same RuleHdrTests
 
-	Location location;
+	zeek::detail::Location location;
 
 	// Rules and payloads are numbered individually.
 	static unsigned int rule_counter;

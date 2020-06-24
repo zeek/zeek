@@ -876,7 +876,7 @@ void builtin_error(const char* msg, zeek::ValPtr arg)
 	zeek::emit_builtin_error(msg, arg);
 	}
 
-void builtin_error(const char* msg, BroObj* arg)
+void builtin_error(const char* msg, zeek::BroObj* arg)
 	{
 	zeek::emit_builtin_error(msg, arg);
 	}

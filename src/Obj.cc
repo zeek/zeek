@@ -10,6 +10,9 @@
 #include "File.h"
 #include "plugin/Manager.h"
 
+namespace zeek {
+namespace detail {
+
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 
@@ -48,6 +51,8 @@ bool Location::operator==(const Location& l) const
 		return false;
 	}
 
+} // namespace detail
+
 int BroObj::suppress_errors = 0;
 
 BroObj::~BroObj()
@@ -58,7 +63,7 @@ BroObj::~BroObj()
 	delete location;
 	}
 
-void BroObj::Warn(const char* msg, const BroObj* obj2, bool pinpoint_only, const Location* expr_location) const
+void BroObj::Warn(const char* msg, const BroObj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
@@ -66,7 +71,7 @@ void BroObj::Warn(const char* msg, const BroObj* obj2, bool pinpoint_only, const
 	reporter->PopLocation();
 	}
 
-void BroObj::Error(const char* msg, const BroObj* obj2, bool pinpoint_only, const Location* expr_location) const
+void BroObj::Error(const char* msg, const BroObj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	if ( suppress_errors )
 		return;
@@ -127,7 +132,7 @@ void BroObj::AddLocation(ODesc* d) const
 	location->Describe(d);
 	}
 
-bool BroObj::SetLocationInfo(const Location* start, const Location* end)
+bool BroObj::SetLocationInfo(const detail::Location* start, const detail::Location* end)
 	{
 	if ( ! start || ! end )
 		return false;
@@ -135,20 +140,20 @@ bool BroObj::SetLocationInfo(const Location* start, const Location* end)
 	if ( end->filename && ! streq(start->filename, end->filename) )
 		return false;
 
-	if ( location && (start == &no_location || end == &no_location) )
+	if ( location && (start == &zeek::detail::no_location || end == &zeek::detail::no_location) )
 		// We already have a better location, so don't use this one.
 		return true;
 
 	delete location;
 
-	location = new Location(start->filename,
-				start->first_line, end->last_line,
-				start->first_column, end->last_column);
+	location = new detail::Location(start->filename,
+	                                start->first_line, end->last_line,
+	                                start->first_column, end->last_column);
 
 	return true;
 	}
 
-void BroObj::UpdateLocationEndInfo(const Location& end)
+void BroObj::UpdateLocationEndInfo(const detail::Location& end)
 	{
 	if ( ! location )
 		SetLocationInfo(&end, &end);
@@ -158,15 +163,15 @@ void BroObj::UpdateLocationEndInfo(const Location& end)
 	}
 
 void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
-			bool pinpoint_only, const Location* expr_location) const
+                   bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	d->SetShort();
 
 	d->Add(s1);
 	PinPoint(d, obj2, pinpoint_only);
 
-	const Location* loc2 = nullptr;
-	if ( obj2 && obj2->GetLocationInfo() != &no_location &&
+	const detail::Location* loc2 = nullptr;
+	if ( obj2 && obj2->GetLocationInfo() != &zeek::detail::no_location &&
 		 *obj2->GetLocationInfo() != *GetLocationInfo() )
 		loc2 = obj2->GetLocationInfo();
 	else if ( expr_location )
@@ -188,11 +193,11 @@ void BroObj::PinPoint(ODesc* d, const BroObj* obj2, bool pinpoint_only) const
 	d->Add(")");
 	}
 
-void print(const BroObj* obj)
+void BroObj::Print() const
 	{
 	static BroFile fstderr(stderr);
 	ODesc d(DESC_READABLE, &fstderr);
-	obj->Describe(&d);
+	Describe(&d);
 	d.Add("\n");
 	}
 
@@ -205,4 +210,11 @@ void bad_ref(int type)
 void bro_obj_delete_func(void* v)
 	{
 	Unref((BroObj*) v);
+	}
+
+} // namespace zeek
+
+void print(const zeek::BroObj* obj)
+	{
+	obj->Print();
 	}

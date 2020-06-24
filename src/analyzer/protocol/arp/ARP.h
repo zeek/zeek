@@ -30,9 +30,9 @@ extern "C" {
 #include <pcap.h>
 }
 
-namespace analyzer { namespace arp {
+namespace analyzer::arp {
 
-class ARP_Analyzer : public BroObj {
+class ARP_Analyzer : public zeek::BroObj {
 public:
 	ARP_Analyzer();
 	~ARP_Analyzer() override;
@@ -57,4 +57,4 @@ protected:
 	void Corrupted(const char* string);
 };
 
-} } // namespace analyzer::*
+} // namespace analyzer::arp

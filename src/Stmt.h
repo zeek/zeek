@@ -38,7 +38,7 @@ public:
 
 	virtual ValPtr Exec(Frame* f, stmt_flow_type& flow) const = 0;
 
-	Stmt* Ref()			{ ::Ref(this); return this; }
+	Stmt* Ref()			{ zeek::Ref(this); return this; }
 
 	bool SetLocationInfo(const Location* loc) override
 		{ return Stmt::SetLocationInfo(loc, loc); }

@@ -319,8 +319,8 @@ void ProfileLogger::Log()
 		}
 	}
 
-void ProfileLogger::SegmentProfile(const char* name, const Location* loc,
-					double dtime, int dmem)
+void ProfileLogger::SegmentProfile(const char* name, const zeek::detail::Location* loc,
+                                   double dtime, int dmem)
 	{
 	if ( name )
 		file->Write(fmt("%.06f segment-%s dt=%.06f dmem=%d\n",
@@ -358,15 +358,15 @@ void SampleLogger::FunctionSeen(const zeek::detail::Func* func)
 	load_samples->Assign(std::move(idx), nullptr);
 	}
 
-void SampleLogger::LocationSeen(const Location* loc)
+void SampleLogger::LocationSeen(const zeek::detail::Location* loc)
 	{
 	auto idx = zeek::make_intrusive<zeek::StringVal>(loc->filename);
 	load_samples->Assign(std::move(idx), nullptr);
 	}
 
 void SampleLogger::SegmentProfile(const char* /* name */,
-					const Location* /* loc */,
-					double dtime, int dmem)
+                                  const zeek::detail::Location* /* loc */,
+                                  double dtime, int dmem)
 	{
 	if ( load_sample )
 		mgr.Enqueue(load_sample,

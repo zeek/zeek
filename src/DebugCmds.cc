@@ -336,7 +336,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	if ( ! stmt )
 		reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
-	const Location loc = *stmt->GetLocationInfo();
+	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 	g_debugger_state.last_loc = loc;
 	g_debugger_state.already_did_list = false;
 

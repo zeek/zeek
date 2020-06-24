@@ -4,17 +4,16 @@
 
 #include "util.h"
 
-class BroObj;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroObj, zeek);
 
 class DbgWatch {
 public:
-	explicit DbgWatch(BroObj* var_to_watch);
+	explicit DbgWatch(zeek::BroObj* var_to_watch);
 	explicit DbgWatch(zeek::detail::Expr* expr_to_watch);
 	~DbgWatch();
 
 protected:
-	BroObj* var;
+	zeek::BroObj* var;
 	zeek::detail::Expr* expr;
 };

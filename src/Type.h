@@ -350,7 +350,7 @@ public:
 		return tag == TYPE_TABLE && Yield();
 		}
 
-	Type* Ref()		{ ::Ref(this); return this; }
+	Type* Ref()		{ zeek::Ref(this); return this; }
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;

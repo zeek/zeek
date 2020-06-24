@@ -441,7 +441,8 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 
 bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event,
                           const Connection* conn, const val_list* addl, bool location,
-                          const Location* location1, const Location* location2,
+                          const zeek::detail::Location* location1,
+                          const zeek::detail::Location* location2,
                           bool time, const std::string& message)
 	{
 	return true;

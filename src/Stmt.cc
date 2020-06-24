@@ -643,12 +643,7 @@ bool IfStmt::IsReduced(Reducer* c) const
 
 Stmt* IfStmt::DoReduce(Reducer* c)
 	{
-	s1 = {AdoptRef{}, s1->Reduce(c)};
-	s2 = {AdoptRef{}, s2->Reduce(c)};
-
-	if ( s1->Tag() == STMT_NULL && s2->Tag() == STMT_NULL )
-		return TransformMe(new NullStmt, c);
-
+	// First, assess some fundamental transformations.
 	if ( e->Tag() == EXPR_NOT )
 		{
 		auto s1_orig = s1;
@@ -657,6 +652,40 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 
 		e = e->GetOp1();
 		}
+
+	if ( e->Tag() == EXPR_OR_OR )
+		{
+		// Expand "if ( a || b ) s1 else s2" to
+		// "if ( a ) s1 else { if ( b ) s1 else s2 }"
+		auto a = e->GetOp1();
+		auto b = e->GetOp2();
+
+		auto s1_dup = s1 ? s1->Duplicate() : nullptr;
+		s2 = make_intrusive<IfStmt>(b, s1_dup, s2);
+		e = a;
+
+		return DoReduce(c);
+		}
+
+	if ( e->Tag() == EXPR_AND_AND )
+		{
+		// Expand "if ( a && b ) s1 else s2" to
+		// "if ( a ) { if ( b ) s1 else s2 } else s2"
+		auto a = e->GetOp1();
+		auto b = e->GetOp2();
+
+		auto s2_dup = s2 ? s2->Duplicate() : nullptr;
+		s1 = make_intrusive<IfStmt>(b, s1, s2_dup);
+		e = a;
+
+		return DoReduce(c);
+		}
+
+	s1 = {AdoptRef{}, s1->Reduce(c)};
+	s2 = {AdoptRef{}, s2->Reduce(c)};
+
+	if ( s1->Tag() == STMT_NULL && s2->Tag() == STMT_NULL )
+		return TransformMe(new NullStmt, c);
 
 	IntrusivePtr<Stmt> red_e_stmt;
 

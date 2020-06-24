@@ -1075,7 +1075,7 @@ protected:
 	                    OnChangeType tpe);
 
 	// Sends data on to backing Broker Store
-	void SendToStore(const Val* index, const Val* new_value, OnChangeType tpe);
+	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 

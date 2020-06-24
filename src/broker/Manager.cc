@@ -1076,6 +1076,22 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			}
 		table->Remove(*zeek_key, false);
 		}
+	else if ( auto expire = broker::store_event::expire::make(msg) )
+		{
+		// We just ignore expirys - expiring information on the Zeek side is handled by Zeek itself.
+#ifdef DEBUG
+		// let's only debug log for stores that we know.
+		auto storehandle = broker_mgr->LookupStore(expire.store_id());
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
+		DBG_LOG(DBG_BROKER, "Store %s: Store expired key %s", expire.store_id().c_str(), to_string(expire.key()).c_str());
+#endif /* DEBUG */
+		}
 	else
 		{
 		reporter->Error("ProcessStoreEvent: Unhandled event type");

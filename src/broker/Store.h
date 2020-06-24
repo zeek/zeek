@@ -47,6 +47,25 @@ inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
 	}
 
 /**
+ * Convert an expiry from a double (used to Zeek) to the format required by Broker
+ * @param e: expire interval as double; 0 if no expiry
+ * @return expire interval in broker format
+ */
+static broker::optional<broker::timespan> convert_expiry(double e)
+	{
+	broker::optional<broker::timespan> ts;
+
+	if ( e )
+		{
+		broker::timespan x;
+		broker::convert(e, x);
+		ts = x;
+		}
+
+	return ts;
+	}
+
+/**
  * Used for asynchronous data store queries which use "when" statements.
  */
 class StoreQueryCallback {

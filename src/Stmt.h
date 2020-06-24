@@ -114,6 +114,7 @@ protected:
 	bool IsPure() const override;
 	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
+	bool NoFlowAfter(bool ignore_break) const override;
 
 	void Inline(Inliner* inl) override;
 
@@ -182,6 +183,7 @@ protected:
 	bool IsPure() const override;
 	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
+	bool NoFlowAfter(bool ignore_break) const override;
 
 	void Inline(Inliner* inl) override;
 
@@ -303,6 +305,9 @@ protected:
 
 	IntrusivePtr<Stmt> Duplicate() override;
 
+	// Note, no need for a NoFlowAfter method because the loop might
+	// execute zero times, so it's always the default of "false".
+
 	IntrusivePtr<Expr> loop_condition;
 	IntrusivePtr<Stmt> stmt_loop_condition;
 	IntrusivePtr<Stmt> loop_cond_stmt;
@@ -338,6 +343,9 @@ protected:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	// Note, no need for a NoFlowAfter method because the loop might
+	// execute zero times, so it's always the default of "false".
+
 	IntrusivePtr<Stmt> Duplicate() override;
 
 	id_list* loop_vars;
@@ -357,6 +365,9 @@ public:
 
 	bool IsPure() const override;
 
+	bool NoFlowAfter(bool ignore_break) const override
+		{ return true; }
+
 	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -373,6 +384,9 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	bool IsPure() const override;
+
+	bool NoFlowAfter(bool ignore_break) const override
+		{ return ! ignore_break; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -411,6 +425,9 @@ public:
 	Stmt* DoReduce(Reducer* c) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	bool NoFlowAfter(bool ignore_break) const override
+		{ return true; }
+
 	IntrusivePtr<Stmt> Duplicate() override;
 
 	void StmtDescribe(ODesc* d) const override;
@@ -443,6 +460,10 @@ public:
 	// have a reduction method to support the optimizer pass.
 	Stmt* DoReduce(Reducer* c) override;
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	// Note, no need for a NoFlowAfter method because anything that
+	// has "NoFlowAfter" inside the body still gets caught and we
+	// continue afterwards.
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -498,9 +519,7 @@ protected:
 
 	bool IsPure() const override;
 	bool IsReduced(Reducer* c) const override;
-
-	// True if there's definitely no control flow past the statement.
-	bool NoFlowAfter(const Stmt* s) const;
+	bool NoFlowAfter(bool ignore_break) const override;
 
 	stmt_list* stmts;
 };

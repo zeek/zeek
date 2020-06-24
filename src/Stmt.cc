@@ -714,6 +714,18 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
+bool IfStmt::NoFlowAfter(bool ignore_break) const
+	{
+	if ( s1 && s2 )
+		return s1->NoFlowAfter(ignore_break) &&
+			s2->NoFlowAfter(ignore_break);
+
+	// Assuming the test isn't constant, the non-existent branch
+	// could be picked, so flow definitely continues afterwards.
+	// (Constant branches will be pruned during reduciton.)
+	return false;
+	}
+
 void IfStmt::Inline(Inliner* inl)
 	{
 	ExprStmt::Inline(inl);
@@ -1310,6 +1322,27 @@ Stmt* SwitchStmt::DoReduce(Reducer* rc)
 		}
 
 	return this->Ref();
+	}
+
+bool SwitchStmt::NoFlowAfter(bool ignore_break) const
+	{
+	bool control_reaches_end = false;
+	bool default_seen_with_no_flow_after = false;
+	for ( const auto& c : *Cases() )
+		{
+		if ( ! c->Body()->NoFlowAfter(true) )
+			return false;
+
+		if ( (! c->ExprCases() ||
+		      c->ExprCases()->Exprs().length() == 0) &&
+		     (! c->TypeCases() ||
+		      c->TypeCases()->length() == 0) )
+			// We saw the default, and the test before this
+			// one established that it has no flow after it.
+			default_seen_with_no_flow_after = true;
+		}
+
+	return default_seen_with_no_flow_after;
 	}
 
 void SwitchStmt::Inline(Inliner* inl)
@@ -2483,24 +2516,20 @@ bool StmtList::IsReduced(Reducer* c) const
 		if ( ! s_i->IsReduced(c) )
 			return false;
 
-		if ( NoFlowAfter(s_i) && i < n - 1 )
+		if ( s_i->NoFlowAfter(false) && i < n - 1 )
 			return false;
 		}
 
 	return true;
 	}
 
-bool StmtList::NoFlowAfter(const Stmt* s) const
+bool StmtList::NoFlowAfter(bool ignore_break) const
 	{
-	switch ( s->Tag() ) {
-	case STMT_NEXT:
-	case STMT_BREAK:
-	case STMT_RETURN:
-		return true;
+	for ( auto& s : Stmts() )
+		if ( s->NoFlowAfter(ignore_break) )
+			return true;
 
-	default:
-		return false;
-	}
+	return false;
 	}
 
 Stmt* StmtList::DoReduce(Reducer* c)
@@ -2515,7 +2544,7 @@ Stmt* StmtList::DoReduce(Reducer* c)
 		if ( ReduceStmt(i, f_stmts, c) )
 			did_change = true;
 
-		if ( NoFlowAfter(Stmts()[i]) && i < n - 1 )
+		if ( i < n - 1 && Stmts()[i]->NoFlowAfter(false) )
 			{
 			did_change = true;
 			break;

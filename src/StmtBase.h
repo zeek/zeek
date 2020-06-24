@@ -59,6 +59,13 @@ public:
 	Stmt* Reduce(Reducer* c);
 	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }
 
+	// True if there's definitely no control flow past the statement.
+	// The argument governs whether to ignore "break" statements, given
+	// they mean two different things depending on whether they're in
+	// a loop or a switch (sigh).
+	virtual bool NoFlowAfter(bool ignore_break) const
+		{ return false; }
+
 	// Returns a duplicate of the statement so that modifications
 	// can be made to statements from inlining function bodies - or
 	// to the originals - without affecting other instances.

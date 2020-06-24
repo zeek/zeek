@@ -93,7 +93,7 @@ public:
 	// Add s as a counted string.
 	void AddCS(const char* s);
 
-	void AddBytes(const BroString* s);
+	void AddBytes(const zeek::BroString* s);
 
 	void Add(const char* s1, const char* s2)
 		{ Add(s1); Add(s2); }
@@ -130,7 +130,7 @@ public:
 	const char* Description() const		{ return (const char*) base; }
 
 	const u_char* Bytes() const	{ return (const u_char *) base; }
-	byte_vec TakeBytes()
+	zeek::byte_vec TakeBytes()
 		{
 		const void* t = base;
 		base = nullptr;
@@ -139,7 +139,7 @@ public:
 		// Don't clear offset, as we want to still support
 		// subsequent calls to Len().
 
-		return byte_vec(t);
+		return zeek::byte_vec(t);
 		}
 
 	int Len() const		{ return offset; }

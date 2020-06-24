@@ -87,23 +87,23 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const BroString* principal,
-                                                       const BroString* ciphertext,
+zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::BroString* principal,
+                                                       const zeek::BroString* ciphertext,
                                                        const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( !krb_available )
 		return nullptr;
 
-	BroString delim("/");
+	zeek::BroString delim("/");
 	int pos = principal->FindSubstring(&delim);
 	if ( pos == -1 )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
-	std::unique_ptr<BroString> service = unique_ptr<BroString>(principal->GetSubstring(0, pos));
-	std::unique_ptr<BroString> hostname = unique_ptr<BroString>(principal->GetSubstring(pos + 1, -1));
+	std::unique_ptr<zeek::BroString> service = unique_ptr<zeek::BroString>(principal->GetSubstring(0, pos));
+	std::unique_ptr<zeek::BroString> hostname = unique_ptr<zeek::BroString>(principal->GetSubstring(pos + 1, -1));
 	if ( !service || !hostname )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());

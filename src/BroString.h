@@ -10,12 +10,14 @@
 
 #include <sys/types.h>
 
-typedef u_char* byte_vec;
-
 // Forward declaration, for helper functions that convert (sub)string vectors
 // to and from policy-level representations.
 //
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
+
+namespace zeek {
+
+typedef u_char* byte_vec;
 
 class BroString {
 public:
@@ -82,10 +84,10 @@ public:
 		ESC_SER  = (1 << 7),
 	};
 
-	static const int EXPANDED_STRING =	// the original style
+	static constexpr int EXPANDED_STRING =	// the original style
 		ESC_HEX;
 
-	static const int BRO_STRING_LITERAL =	// as in a Bro string literal
+	static constexpr int BRO_STRING_LITERAL =	// as in a Bro string literal
 		ESC_ESC | ESC_QUOT | ESC_HEX;
 
 	// Renders a string into a newly allocated character array that
@@ -184,3 +186,10 @@ extern BroString* concatenate(std::vector<data_chunk_t>& v);
 extern BroString* concatenate(BroString::Vec& v);
 extern BroString* concatenate(BroString::CVec& v);
 extern void delete_strings(std::vector<const BroString*>& v);
+
+} // namespace zeek
+
+using BroString [[deprecated("Remove in v4.1. Use zeek::BroString instead.")]] = zeek::BroString;
+using BroStringLenCmp [[deprecated("Remove in v4.1. Use zeek::BroStringLenCmp instead.")]] = zeek::BroStringLenCmp;
+using byte_vec [[deprecated("Remove in v4.1. Use zeek::byte_vec instead.")]] = zeek::byte_vec;
+using data_chunk_t [[deprecated("Remove in v4.1. Use zeek::data_chunk_t instead.")]] = zeek::data_chunk_t;

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "zeek-config.h"
 #include <string>
 
-class BroString;
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroString, zeek);
 class Connection;
 
 // Maybe we should have a base class for generic decoders?
@@ -57,5 +58,5 @@ protected:
 
 };
 
-BroString* decode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);
-BroString* encode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);
+zeek::BroString* decode_base64(const zeek::BroString* s, const zeek::BroString* a = nullptr, Connection* conn = nullptr);
+zeek::BroString* encode_base64(const zeek::BroString* s, const zeek::BroString* a = nullptr, Connection* conn = nullptr);

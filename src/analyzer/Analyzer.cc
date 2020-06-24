@@ -941,7 +941,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	{
 	if ( packet_contents && len > 0 )
 		{
-		BroString* cbs = new BroString(data, len, true);
+		zeek::BroString* cbs = new zeek::BroString(data, len, true);
 		auto contents = zeek::make_intrusive<zeek::StringVal>(cbs);
 		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}

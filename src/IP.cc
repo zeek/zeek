@@ -38,7 +38,7 @@ static zeek::VectorValPtr BuildOptionsVal(const u_char* data, int len)
 			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(1, val_mgr->Count(opt->ip6o_len));
 			rv->Assign(2, zeek::make_intrusive<zeek::StringVal>(
-			        new BroString(data + off, opt->ip6o_len, true)));
+			        new zeek::BroString(data + off, opt->ip6o_len, true)));
 			data += opt->ip6o_len + off;
 			len -= opt->ip6o_len + off;
 			}
@@ -108,7 +108,7 @@ zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 		rv->Assign(2, val_mgr->Count(rt->ip6r_type));
 		rv->Assign(3, val_mgr->Count(rt->ip6r_segleft));
 		uint16_t off = 4 * sizeof(uint8_t);
-		rv->Assign(4, zeek::make_intrusive<zeek::StringVal>(new BroString(data + off, Length() - off, true)));
+		rv->Assign(4, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data + off, Length() - off, true)));
 		}
 		break;
 
@@ -141,7 +141,7 @@ zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 			// Payload Len was non-zero for this header.
 			rv->Assign(4, val_mgr->Count(ntohl(((uint32_t*)data)[2])));
 			uint16_t off = 3 * sizeof(uint32_t);
-			rv->Assign(5, zeek::make_intrusive<zeek::StringVal>(new BroString(data + off, Length() - off, true)));
+			rv->Assign(5, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data + off, Length() - off, true)));
 			}
 		}
 		break;

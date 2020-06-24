@@ -461,7 +461,7 @@ void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(new BroString(terminal, len, false))
+			zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(terminal, len, false))
 		);
 	}
 

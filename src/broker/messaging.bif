@@ -47,7 +47,7 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 	return rval;
 	}
 
-static bool publish_event_args(val_list& args, const BroString* topic,
+static bool publish_event_args(val_list& args, const zeek::BroString* topic,
                                zeek::detail::Frame* frame)
 	{
 	bro_broker::Manager::ScriptScopeGuard ssg;

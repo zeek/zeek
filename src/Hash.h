@@ -27,8 +27,8 @@
 #include "ZeekArgs.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroString, zeek);
 
-class BroString;
 class BifReturnVal;
 namespace zeek::BifFunc {
 	extern BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
@@ -215,7 +215,7 @@ public:
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
 	explicit HashKey(const char* s);
-	explicit HashKey(const BroString* s);
+	explicit HashKey(const zeek::BroString* s);
 	~HashKey()
 		{
 		if ( is_our_dynamic )

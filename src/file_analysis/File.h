@@ -370,7 +370,7 @@ protected:
 
 		bool full;
 		uint64_t size;
-		BroString::CVec chunks;
+		zeek::BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
 
 	WeirdStateMap weird_state;

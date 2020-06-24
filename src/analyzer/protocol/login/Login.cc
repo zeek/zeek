@@ -327,8 +327,8 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 			{
 			if ( username )
 				{
-				const BroString* u = username->AsString();
-				const byte_vec ub = u->Bytes();
+				const zeek::BroString* u = username->AsString();
+				const zeek::byte_vec ub = u->Bytes();
 				const char* us = (const char*) ub;
 				if ( ! streq(val, us) )
 					Confused("multiple_USERs", val);
@@ -600,7 +600,7 @@ zeek::Val* Login_Analyzer::PopUserTextVal()
 	char* s = PopUserText();
 
 	if ( s )
-		return new zeek::StringVal(new BroString(true, byte_vec(s), strlen(s)));
+		return new zeek::StringVal(new zeek::BroString(true, zeek::byte_vec(s), strlen(s)));
 	else
 		return val_mgr->EmptyString()->Ref();
 	}

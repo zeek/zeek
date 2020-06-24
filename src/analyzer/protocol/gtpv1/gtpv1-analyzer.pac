@@ -106,7 +106,7 @@ zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
 			break;
 		default:
 			ev->Assign(3, zeek::make_intrusive<zeek::StringVal>(
-			  new BroString((const u_char*) d, len, false)));
+			  new zeek::BroString((const u_char*) d, len, false)));
 			break;
 		}
 		}
@@ -116,8 +116,8 @@ zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
 
 zeek::ValPtr BuildAccessPointName(const InformationElement* ie)
 	{
-	BroString* bs = new BroString((const u_char*) ie->ap_name()->value().data(),
-	                              ie->ap_name()->value().length(), false);
+	zeek::BroString* bs = new zeek::BroString((const u_char*) ie->ap_name()->value().data(),
+	                                          ie->ap_name()->value().length(), false);
 	return zeek::make_intrusive<zeek::StringVal>(bs);
 	}
 
@@ -125,7 +125,7 @@ zeek::ValPtr BuildProtoConfigOptions(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->proto_config_opts()->value().data();
 	int len = ie->proto_config_opts()->value().length();
-	return zeek::make_intrusive<zeek::StringVal>(new BroString(d, len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(d, len, false));
 	}
 
 zeek::ValPtr BuildGSN_Addr(const InformationElement* ie)
@@ -142,7 +142,7 @@ zeek::ValPtr BuildGSN_Addr(const InformationElement* ie)
 		ev->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
 		  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
 	else
-		ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new BroString((const u_char*) d, len, false)));
+		ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}
@@ -151,7 +151,7 @@ zeek::ValPtr BuildMSISDN(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->msisdn()->value().data();
 	int len = ie->msisdn()->value().length();
-	return zeek::make_intrusive<zeek::StringVal>(new BroString(d, len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(d, len, false));
 	}
 
 zeek::ValPtr BuildQoS_Profile(const InformationElement* ie)
@@ -162,7 +162,7 @@ zeek::ValPtr BuildQoS_Profile(const InformationElement* ie)
 	int len = ie->qos_profile()->data().length();
 
 	ev->Assign(0, val_mgr->Count(ie->qos_profile()->alloc_retention_priority()));
-	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new BroString(d, len, false)));
+	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(d, len, false)));
 
 	return ev;
 	}
@@ -171,21 +171,21 @@ zeek::ValPtr BuildTrafficFlowTemplate(const InformationElement* ie)
 	{
 	const uint8* d = ie->traffic_flow_template()->value().data();
 	int len = ie->traffic_flow_template()->value().length();
-	return zeek::make_intrusive<zeek::StringVal>(new BroString((const u_char*) d, len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const u_char*) d, len, false));
 	}
 
 zeek::ValPtr BuildTriggerID(const InformationElement* ie)
 	{
 	const uint8* d = ie->trigger_id()->value().data();
 	int len = ie->trigger_id()->value().length();
-	return zeek::make_intrusive<zeek::StringVal>(new BroString((const u_char*) d, len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const u_char*) d, len, false));
 	}
 
 zeek::ValPtr BuildOMC_ID(const InformationElement* ie)
 	{
 	const uint8* d = ie->omc_id()->value().data();
 	int len = ie->omc_id()->value().length();
-	return zeek::make_intrusive<zeek::StringVal>(new BroString((const u_char*) d, len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const u_char*) d, len, false));
 	}
 
 zeek::ValPtr BuildPrivateExt(const InformationElement* ie)
@@ -196,7 +196,7 @@ zeek::ValPtr BuildPrivateExt(const InformationElement* ie)
 	int len = ie->private_ext()->value().length();
 
 	ev->Assign(0, val_mgr->Count(ie->private_ext()->id()));
-	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new BroString((const u_char*) d, len, false)));
+	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}

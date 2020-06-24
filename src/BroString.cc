@@ -18,8 +18,10 @@
 #define DEBUG_STR(msg)
 #endif
 
-const int BroString::EXPANDED_STRING;
-const int BroString::BRO_STRING_LITERAL;
+namespace zeek {
+
+constexpr int BroString::EXPANDED_STRING;
+constexpr int BroString::BRO_STRING_LITERAL;
 
 // This constructor forces the user to specify arg_final_NUL.  When str
 // is a *normal* NUL-terminated string, make arg_n == strlen(str) and
@@ -484,3 +486,5 @@ void delete_strings(std::vector<const BroString*>& v)
 		delete v[i];
 	v.clear();
 	}
+
+} // namespace zeek

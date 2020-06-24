@@ -31,8 +31,11 @@ template<typename T> class PDict;
 template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroString, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroFunc, zeek::detail);
 
-class BroString;
 class BroFile;
 class PrefixTable;
 class IPAddr;
@@ -42,10 +45,6 @@ class RE_Matcher;
 
 class CompositeHash;
 class HashKey;
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(BroFunc, zeek::detail);
 
 extern double bro_start_network_time;
 

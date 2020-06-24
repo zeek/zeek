@@ -958,7 +958,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			if ( ! state->matched_by_patterns.is_member(r) )
 				{
 				state->matched_by_patterns.push_back(r);
-				BroString* s = new BroString(data, data_len, false);
+				zeek::BroString* s = new zeek::BroString(data, data_len, false);
 				state->matched_text.push_back(s);
 				}
 
@@ -998,7 +998,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 		}
 	}
 
-bool RuleMatcher::ExecRulePurely(Rule* r, BroString* s,
+bool RuleMatcher::ExecRulePurely(Rule* r, zeek::BroString* s,
 				 RuleEndpointState* state, bool eos)
 	{
 	if ( is_member_of(state->matched_rules, r->Index()) )
@@ -1377,7 +1377,7 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
 
 char* id_to_str(const char* id)
 	{
-	const BroString* src;
+	const zeek::BroString* src;
 	char* dst;
 
 	zeek::Val* v = get_bro_val(id);

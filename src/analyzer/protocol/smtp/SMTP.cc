@@ -183,7 +183,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			delete line_after_gap;
 
 			line_after_gap =
-				new BroString((const u_char *) line, length, true);
+				new zeek::BroString((const u_char *) line, length, true);
 			}
 
 		else if ( state == SMTP_IN_DATA && line[0] == '.' && length == 1 )

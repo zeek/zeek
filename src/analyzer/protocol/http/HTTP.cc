@@ -361,7 +361,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	{
 	if ( mime::istrequal(h->get_name(), "content-length") )
 		{
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		if ( ! mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
@@ -388,7 +388,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	else if ( mime::istrequal(h->get_name(), "content-range") &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		string byte_unit(vt.data, vt.length);
 		vt = h->get_value_after_token();
 		string byte_range(vt.data, vt.length);
@@ -479,7 +479,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		else // reply_ongoing
 			http_version = http_message->analyzer->GetReplyVersionNumber();
 
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		if ( mime::istrequal(vt, "chunked") &&
 		     http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
 			chunked_transfer_state = BEFORE_CHUNK;
@@ -487,7 +487,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 	else if ( mime::istrequal(h->get_name(), "content-encoding") )
 		{
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		if ( mime::istrequal(vt, "gzip") || mime::istrequal(vt, "x-gzip") )
 			encoding = GZIP;
 		if ( mime::istrequal(vt, "deflate") )
@@ -762,7 +762,7 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( http_entity_data )
 		MyHTTP_Analyzer()->HTTP_EntityData(is_orig,
-		        new BroString(reinterpret_cast<const u_char*>(buf), len, false));
+		        new zeek::BroString(reinterpret_cast<const u_char*>(buf), len, false));
 	}
 
 bool HTTP_Message::RequestBuffer(int* plen, char** pbuf)
@@ -1368,14 +1368,14 @@ void HTTP_Analyzer::HTTP_Event(const char* category, zeek::StringValPtr detail)
 zeek::StringValPtr
 HTTP_Analyzer::TruncateURI(const zeek::StringValPtr& uri)
 	{
-	const BroString* str = uri->AsString();
+	const zeek::BroString* str = uri->AsString();
 
 	if ( truncate_http_URI >= 0 && str->Len() > truncate_http_URI )
 		{
 		u_char* s = new u_char[truncate_http_URI + 4];
 		memcpy(s, str->Bytes(), truncate_http_URI);
 		memcpy(s + truncate_http_URI, "...", 4);
-		return zeek::make_intrusive<zeek::StringVal>(new BroString(true, s, truncate_http_URI+3));
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(true, s, truncate_http_URI+3));
 		}
 	else
 		return uri;
@@ -1495,7 +1495,7 @@ void HTTP_Analyzer::RequestClash(zeek::Val* /* clash_val */)
 	RequestMade(true, "request clash");
 	}
 
-const BroString* HTTP_Analyzer::UnansweredRequestMethod()
+const zeek::BroString* HTTP_Analyzer::UnansweredRequestMethod()
 	{
 	return unanswered_requests.empty() ? nullptr : unanswered_requests.front()->AsString();
 	}
@@ -1579,7 +1579,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 	//     MUST NOT include a message-body. All other responses do include a
 	//     message-body, although it MAY be of zero length.
 
-	const BroString* method = UnansweredRequestMethod();
+	const zeek::BroString* method = UnansweredRequestMethod();
 
 	if ( method && strncasecmp((const char*) (method->Bytes()), "HEAD", method->Len()) == 0 )
 		return HTTP_BODY_NOT_EXPECTED;
@@ -1622,8 +1622,8 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 			is_orig ?  Rule::HTTP_REQUEST_HEADER :
 					Rule::HTTP_REPLY_HEADER;
 
-		data_chunk_t hd_name = h->get_name();
-		data_chunk_t hd_value = h->get_value();
+		zeek::data_chunk_t hd_name = h->get_name();
+		zeek::data_chunk_t hd_value = h->get_value();
 
 		Conn()->Match(rule, (const u_char*) hd_name.data, hd_name.length,
 				is_orig, true, false, true);
@@ -1648,7 +1648,7 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 		}
 	}
 
-void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
+void HTTP_Analyzer::HTTP_EntityData(bool is_orig, zeek::BroString* entity_data)
 	{
 	if ( http_entity_data )
 		EnqueueConnEvent(http_entity_data,
@@ -1711,11 +1711,11 @@ void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
 	*p++ = encode_hex(ch & 0xf);
 	}
 
-BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
-			analyzer::Analyzer* analyzer)
+zeek::BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
+                                              analyzer::Analyzer* analyzer)
 	{
-	byte_vec decoded_URI = new u_char[line_end - line + 1];
-	byte_vec URI_p = decoded_URI;
+	zeek::byte_vec decoded_URI = new u_char[line_end - line + 1];
+	zeek::byte_vec URI_p = decoded_URI;
 
 	while ( line < line_end )
 		{
@@ -1807,5 +1807,5 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 
 	URI_p[0] = 0;
 
-	return new BroString(true, decoded_URI, URI_p - decoded_URI);
+	return new zeek::BroString(true, decoded_URI, URI_p - decoded_URI);
 	}

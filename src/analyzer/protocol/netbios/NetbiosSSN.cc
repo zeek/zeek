@@ -125,11 +125,11 @@ void NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 	// FIND THE NUL-TERMINATED NAME STRINGS HERE!
 	// Not sure what's in them, so we don't keep them currently.
 
-	BroString* srcname = new BroString((char*) data);
+	zeek::BroString* srcname = new zeek::BroString((char*) data);
 	data += srcname->Len()+1;
 	len -= srcname->Len();
 
-	BroString* dstname = new BroString((char*) data);
+	zeek::BroString* dstname = new zeek::BroString((char*) data);
 	data += dstname->Len()+1;
 	len -= dstname->Len();
 
@@ -324,11 +324,11 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 		analyzer->EnqueueConnEvent(event,
 		                           analyzer->ConnVal(),
 		                           val_mgr->Bool(is_orig),
-		                           zeek::make_intrusive<zeek::StringVal>(new BroString(data, len, false)));
+		                           zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data, len, false)));
 	else
 		analyzer->EnqueueConnEvent(event,
 		                           analyzer->ConnVal(),
-		                           zeek::make_intrusive<zeek::StringVal>(new BroString(data, len, false)));
+		                           zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data, len, false)));
 	}
 
 

@@ -14,13 +14,14 @@
 #include <ctype.h>
 typedef int (*cce_func)(int);
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(BroString, zeek);
+
 class CCL;
 class NFA_Machine;
 class DFA_Machine;
 class Specific_RE_Matcher;
 class RE_Matcher;
 class DFA_State;
-class BroString;
 
 extern int case_insensitive;
 extern CCL* curr_ccl;
@@ -81,7 +82,7 @@ public:
 	void ConvertCCLs();
 
 	bool MatchAll(const char* s);
-	bool MatchAll(const BroString* s);
+	bool MatchAll(const zeek::BroString* s);
 
 	// Compiles a set of regular expressions simultaniously.
 	// 'idx' contains indizes associated with the expressions.
@@ -94,10 +95,10 @@ public:
 	// if the pattern matches empty strings, matching continues
 	// in an attempt to match at least one character.
 	int Match(const char* s);
-	int Match(const BroString* s);
+	int Match(const zeek::BroString* s);
 
 	int LongestMatch(const char* s);
-	int LongestMatch(const BroString* s);
+	int LongestMatch(const zeek::BroString* s);
 	int LongestMatch(const u_char* bv, int n);
 
 	EquivClass* EC()		{ return &equiv_class; }
@@ -191,7 +192,7 @@ public:
 	// Returns true if s exactly matches the pattern, false otherwise.
 	bool MatchExactly(const char* s)
 		{ return re_exact->MatchAll(s); }
-	bool MatchExactly(const BroString* s)
+	bool MatchExactly(const zeek::BroString* s)
 		{ return re_exact->MatchAll(s); }
 
 	// Returns the position in s just beyond where the first match
@@ -200,14 +201,14 @@ public:
 	// in an attempt to match at least one character.
 	int MatchAnywhere(const char* s)
 		{ return re_anywhere->Match(s); }
-	int MatchAnywhere(const BroString* s)
+	int MatchAnywhere(const zeek::BroString* s)
 		{ return re_anywhere->Match(s); }
 
 	// Note: it matches the *longest* prefix and returns the
 	// length of matched prefix. It returns -1 on mismatch.
 	int MatchPrefix(const char* s)
 		{ return re_exact->LongestMatch(s); }
-	int MatchPrefix(const BroString* s)
+	int MatchPrefix(const zeek::BroString* s)
 		{ return re_exact->LongestMatch(s); }
 	int MatchPrefix(const u_char* s, int n)
 		{ return re_exact->LongestMatch(s, n); }

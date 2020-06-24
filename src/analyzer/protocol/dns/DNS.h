@@ -129,10 +129,10 @@ struct EDNS_ADDITIONAL {		// size
 };
 
 struct TSIG_DATA {
-	BroString* alg_name;
+	zeek::BroString* alg_name;
 	unsigned long time_s;
 	unsigned short time_ms;
-	BroString* sig;
+	zeek::BroString* sig;
 	unsigned short fudge;
 	unsigned short orig_id;
 	unsigned short rr_error;
@@ -146,15 +146,15 @@ struct RRSIG_DATA {
 	unsigned long sig_exp;			// 32
 	unsigned long sig_incep;		// 32
 	unsigned short key_tag;			//16
-	BroString* signer_name;
-	BroString* signature;
+	zeek::BroString* signer_name;
+	zeek::BroString* signature;
 };
 
 struct DNSKEY_DATA {
 	unsigned short dflags;			// 16 : ExtractShort(data, len)
 	unsigned short dalgorithm;		// 8
 	unsigned short dprotocol;		// 8
-	BroString* public_key;			// Variable lenght Public Key
+	zeek::BroString* public_key;			// Variable lenght Public Key
 };
 
 struct NSEC3_DATA {
@@ -162,9 +162,9 @@ struct NSEC3_DATA {
 	unsigned short nsec_hash_algo;
 	unsigned short nsec_iter;
 	unsigned short nsec_salt_len;
-	BroString* nsec_salt;
+	zeek::BroString* nsec_salt;
 	unsigned short nsec_hlen;
-	BroString* nsec_hash;
+	zeek::BroString* nsec_hash;
 	zeek::VectorValPtr bitmaps;
 };
 
@@ -172,7 +172,7 @@ struct DS_DATA {
 	unsigned short key_tag;			// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short digest_type;		// 8
-	BroString* digest_val;			// Variable lenght Digest of DNSKEY RR
+	zeek::BroString* digest_val;			// Variable lenght Digest of DNSKEY RR
 };
 
 class DNS_MsgInfo {
@@ -249,9 +249,9 @@ protected:
 
 	uint16_t ExtractShort(const u_char*& data, int& len);
 	uint32_t ExtractLong(const u_char*& data, int& len);
-	void ExtractOctets(const u_char*& data, int& len, BroString** p);
+	void ExtractOctets(const u_char*& data, int& len, zeek::BroString** p);
 
-	BroString* ExtractStream(const u_char*& data, int& len, int sig_len);
+	zeek::BroString* ExtractStream(const u_char*& data, int& len, int sig_len);
 
 	bool ParseRR_Name(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
@@ -308,7 +308,8 @@ protected:
 				const u_char* msg_start);
 	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
 					const u_char*& data, int& len,
-					BroString* question_name, BroString* original_name);
+					zeek::BroString* question_name,
+					zeek::BroString* original_name);
 
 	analyzer::Analyzer* analyzer;
 	bool first_message;

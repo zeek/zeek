@@ -10,6 +10,8 @@
 #include "Desc.h"
 #include "zlib.h"
 
+namespace plugin::Zeek_AsciiWriter { class Plugin; }
+
 namespace logging { namespace writer {
 
 class Ascii : public WriterBackend {
@@ -35,6 +37,10 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
+	friend class plugin::Zeek_AsciiWriter::Plugin;
+
+	static void RotateLeftoverLogs();
+
 	bool IsSpecial(const std::string &path) 	{ return path.find("/dev/") == 0; }
 	bool WriteHeader(const std::string& path);
 	bool WriteHeaderField(const std::string& key, const std::string& value);

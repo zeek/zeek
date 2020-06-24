@@ -1,10 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <ctime>
+#include <cstdio>
 #include <string>
+#include <vector>
+#include <memory>
+#include <optional>
+
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 
+#include "Func.h"
+#include "supervisor/Supervisor.h"
+#include "logging/Manager.h"
 #include "threading/SerialTypes.h"
 
 #include "Ascii.h"
@@ -15,6 +27,160 @@ using namespace logging::writer;
 using namespace threading;
 using threading::Value;
 using threading::Field;
+
+static constexpr auto shadow_file_prefix = ".shadow.";
+
+/**
+ * Information about an leftover log file: that is, one that a previous
+ * process was in the middle of writing, but never completed a rotation
+ * for whatever reason (prematurely crashed/killed).
+ */
+struct LeftoverLog {
+	/*
+	 * Name of leftover log, relative to working dir.
+	 */
+	std::string filename;
+
+	/*
+	 * File extension of the leftover log (e.g. ".log").
+	 */
+	std::string extension;
+
+	/*
+	 * Name of shadow file associated with the log.
+	 * The shadow file's existence is what indicates the presence of
+	 * an "leftover log" and may contain the name of a postprocessing
+	 * function that's supposed to be called after rotating (only
+	 * named if that function differs from the default).  Upon
+	 * completing a rotation, the shadow file can be deleted.
+	 */
+	std::string shadow_filename;
+
+	/**
+	 * Name of a function to call to postprocess the log file after
+	 * rotating.
+	 */
+	std::string post_proc_func;
+
+	/**
+	 * The time at which the shadow file was created.  This is used
+	 * as the log file's "opening time" for rotation purposes.
+	 */
+	time_t open_time;
+
+	/**
+	 * Time of the log file's last modification.  This is used
+	 * as the log file's "closing time" for rotation purposes.
+	 */
+	time_t close_time;
+
+	/**
+	 * Set the an error message explaining any error that happened while
+	 * trying to parse the shadow file and construct an object.
+	 */
+	std::string error;
+
+	/**
+	 * Return the name of the log without file extension (this is
+	 * what's called "path" in other logging framework parlance).
+	 * E.g. the name of "conn.log" is just "conn".
+	 */
+	std::string Name() const
+		{ return filename.substr(0, filename.size() - extension.size()); }
+
+	/**
+	 * The path to which the log file should be rotated (before
+	 * calling any postprocessing function).
+	 */
+	std::string RotationPath() const
+		{ return log_mgr->FormatRotationPath(Name(), open_time) + extension; }
+
+	/**
+	 * Performs the rename() call to rotate the file and returns whether
+	 * it succeeded.
+	 */
+	bool Rename() const
+		{ return rename(filename.data(), RotationPath().data()) == 0; }
+
+	/**
+	 * Deletes the shadow file and returns whether it succeeded.
+	 */
+	bool DeleteShadow() const
+		{ return unlink(shadow_filename.data()) == 0; }
+};
+
+static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
+	{
+	char errbuf[512];
+	auto sfname = shadow_file_prefix + fname;
+
+	LeftoverLog rval;
+	rval.filename = fname;
+	rval.shadow_filename = std::move(sfname);
+
+	auto sf_stream = fopen(rval.shadow_filename.data(), "r");
+
+	if ( ! sf_stream )
+		{
+		bro_strerror_r(errno, errbuf, sizeof(errbuf));
+		rval.error = "Failed to open " + rval.shadow_filename + ": " + errbuf;
+		return rval;
+		}
+
+	fseek(sf_stream, 0, SEEK_END);
+	auto sf_len = ftell(sf_stream);
+	fseek(sf_stream, 0, SEEK_SET);
+
+	auto sf_content = std::make_unique<char[]>(sf_len);
+	auto bytes_read = fread(sf_content.get(), 1, sf_len, sf_stream);
+
+	if ( bytes_read != static_cast<size_t>(sf_len) )
+		{
+		rval.error = "Failed to read contents of " + rval.shadow_filename;
+		return rval;
+		}
+
+	fclose(sf_stream);
+	std::string_view sf_view(sf_content.get(), sf_len);
+	auto sf_lines = tokenize_string(sf_view, '\n');
+
+	if ( sf_lines.size() < 2 )
+		{
+		snprintf(errbuf, sizeof(errbuf),
+		         "Found leftover log, '%s', but the associated shadow file, "
+		         "'%s', required to process it is invalid",
+		         rval.filename.data(), rval.shadow_filename.data());
+		rval.error = errbuf;
+		return rval;
+		}
+
+	rval.extension = sf_lines[0];
+	rval.post_proc_func = sf_lines[1];
+
+	struct stat st;
+
+	// Use shadow file's modification time as creation time.
+	if ( stat(rval.shadow_filename.data(), &st) != 0 )
+		{
+		bro_strerror_r(errno, errbuf, sizeof(errbuf));
+		rval.error = "Failed to stat " + rval.shadow_filename + ": " + errbuf;
+		return rval;
+		}
+
+	rval.open_time = st.st_ctime;
+
+	// Use log file's modification time for closing time.
+	if ( stat(rval.filename.data(), &st) != 0 )
+		{
+		bro_strerror_r(errno, errbuf, sizeof(errbuf));
+		rval.error = "Failed to stat " + rval.filename + ": " + errbuf;
+		return rval;
+		}
+
+	rval.close_time = st.st_mtime;
+
+	return rval;
+	}
 
 Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
@@ -261,12 +427,45 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = IsSpecial(path) ? path : path + "." + LogExt();
+	fname = path;
 
-	if ( gzip_level > 0 )
+	if ( ! IsSpecial(fname) )
 		{
-		fname += ".";
-		fname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+		std::string ext = "." + LogExt();
+
+		if ( gzip_level > 0 )
+			{
+			ext += ".";
+			ext += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+			}
+
+		fname += ext;
+
+		bool use_shadow = zeek::Supervisor::ThisNode() && info.rotation_interval > 0;
+
+		if ( use_shadow )
+			{
+			auto sfname = shadow_file_prefix + fname;
+			auto sfd = open(sfname.data(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+
+			if ( sfd < 0 )
+				{
+				Error(Fmt("cannot open %s: %s", sfname.data(), Strerror(errno)));
+				return false;
+				}
+
+			safe_write(sfd, ext.data(), ext.size());
+			safe_write(sfd, "\n", 1);
+
+			auto ppf = info.post_proc_func;
+
+			if ( ppf )
+				safe_write(sfd, ppf, strlen(ppf));
+
+			safe_write(sfd, "\n", 1);
+
+			safe_close(sfd);
+			}
 		}
 
 	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
@@ -459,6 +658,20 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 		return false;
 		}
 
+	bool use_shadow = zeek::Supervisor::ThisNode() && Info().rotation_interval > 0;
+
+	if ( use_shadow )
+		{
+		auto sfname = shadow_file_prefix + fname;
+
+		if ( unlink(sfname.data()) != 0 )
+			{
+			Error(Fmt("cannot unlink %s: %s", sfname.data(), Strerror(errno)));
+			FinishedRotation();
+			return false;
+			}
+		}
+
 	if ( ! FinishedRotation(nname.c_str(), fname.c_str(), open, close, terminating) )
 		{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
@@ -478,6 +691,114 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 	{
 	// Nothing to do.
 	return true;
+	}
+
+static std::vector<LeftoverLog> find_leftover_logs()
+	{
+	std::vector<LeftoverLog> rval;
+	std::vector<std::string> stale_shadow_files;
+	auto prefix_len = strlen(shadow_file_prefix);
+
+	auto d = opendir(".");
+	struct dirent* dp;
+
+	while ( (dp = readdir(d)) )
+		{
+		if ( strncmp(dp->d_name, shadow_file_prefix, prefix_len) != 0 )
+			continue;
+
+		std::string log_name = dp->d_name + prefix_len;
+
+		if ( is_file(log_name) )
+			{
+			if ( auto ll = parse_shadow_log(log_name) )
+				{
+				if ( ll->error.empty() )
+					rval.emplace_back(std::move(*ll));
+				else
+					reporter->Error("failed to process leftover log '%s': %s",
+					                log_name.data(), ll->error.data());
+				}
+			}
+		else
+			// There was a log here.  It's gone now.
+			stale_shadow_files.emplace_back(dp->d_name);
+		}
+
+	for ( const auto& f : stale_shadow_files )
+		if ( unlink(f.data()) != 0 )
+			reporter->Error("cannot unlink %s: %s", f.data(), strerror(errno));
+
+	closedir(d);
+	return rval;
+	}
+
+void Ascii::RotateLeftoverLogs()
+	{
+	if ( ! zeek::Supervisor::ThisNode() )
+		return;
+
+	// Log file crash recovery: if there's still leftover shadow files from the
+	// ASCII log writer, attempt to rotate their associated log file.  Ideally
+	// may be better if the ASCII writer itself could implement the entire
+	// crash recovery logic itself without being called from external, but (1)
+	// this does need to get called from a particular point in the
+	// initialization process (after zeek_init()) and (2) the nature of writers
+	// being instantiated lazily means that trying to rotate a leftover log
+	// only upon seeing that an open() will clobber something means they'll
+	// possibly not be rotated in a timely manner (e.g. a log files that are
+	// rarely written to).  So the logic below drives the entire leftover log
+	// crash recovery process for a supervised node upon startup.
+	auto leftover_logs = find_leftover_logs();
+
+	for ( const auto& ll : leftover_logs )
+		{
+		if ( ! ll.Rename() )
+			reporter->FatalError("Found leftover/unprocessed log '%s', but "
+								 "failed to rotate it: %s",
+								 ll.filename.data(), strerror(errno));
+
+		if ( ! ll.DeleteShadow() )
+			// Unusual failure to report, but not strictly fatal.
+			reporter->Error("Failed to unlink %s: %s",
+			                ll.shadow_filename.data(), strerror(errno));
+
+		static auto rt = zeek::id::find_type<zeek::RecordType>("Log::RotationInfo");
+		static auto writer_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
+		static auto writer_idx = writer_type->Lookup("Log", "WRITER_ASCII");
+		static auto writer_val = writer_type->GetVal(writer_idx);
+
+		auto info = make_intrusive<RecordVal>(rt);
+		info->Assign(0, writer_val);
+		info->Assign(1, make_intrusive<StringVal>(ll.RotationPath()));
+		info->Assign(2, make_intrusive<StringVal>(ll.Name()));
+		info->Assign(3, make_intrusive<TimeVal>(ll.open_time));
+		info->Assign(4, make_intrusive<TimeVal>(ll.close_time));
+		info->Assign(5, val_mgr->False());
+
+		auto ppf = ll.post_proc_func.empty() ? "Log::__default_rotation_postprocessor"
+		                                     : ll.post_proc_func.data();
+
+		auto func = zeek::id::find_func(ppf);
+
+		if ( ! func )
+			reporter->Error("Postprocessing log '%s' failed: "
+							"no such function: '%s'",
+							ll.filename.data(), ppf);
+
+
+		try
+			{
+			func->Invoke(std::move(info));
+			reporter->Info("Rotated/postprocessed leftover log '%s'",
+			               ll.filename.data());
+			}
+		catch ( InterpreterException& e )
+			{
+			reporter->Info("Postprocess function '%s' failed for leftover log '%s'",
+			               ppf, ll.filename.data());
+			}
+		}
 	}
 
 string Ascii::LogExt()

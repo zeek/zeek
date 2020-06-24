@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <ctime>
+#include <string_view>
+
 #include "../Val.h"
 #include "../Tag.h"
 #include "../EventHandler.h"
@@ -26,6 +29,19 @@ class RotationFinishedMessage;
  */
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
+
+	/**
+	 * Returns a formatted string representing the given time.  This
+	 * string is used in the log file rotation process.
+	 */
+	static std::string FormatRotationTime(time_t t);
+
+	/**
+	 * Returns a formatted string representing the file rotation path.  This
+	 * string is used in the log file rotation process.
+	 */
+	static std::string FormatRotationPath(std::string_view path, time_t t);
+
 	/**
 	 * Constructor.
 	 */

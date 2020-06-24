@@ -26,7 +26,7 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-const zeek::IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
+const zeek::FuncTypePtr& EventHandler::GetType(bool check_export)
 	{
 	if ( type )
 		return type;
@@ -44,7 +44,7 @@ const zeek::IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_expor
 	return type;
 	}
 
-void EventHandler::SetFunc(zeek::IntrusivePtr<Func> f)
+void EventHandler::SetFunc(FuncPtr f)
 	{ local = std::move(f); }
 
 void EventHandler::SetLocalHandler(Func* f)

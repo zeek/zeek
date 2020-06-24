@@ -8,23 +8,23 @@
 %}
 
 %header{
-	zeek::IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t);
-	zeek::IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t);
-	zeek::IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm);
-	zeek::IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm);
-	zeek::IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7);
+	ValPtr proc_ntp_short(const NTP_Short_Time* t);
+	ValPtr proc_ntp_timestamp(const NTP_Time* t);
+	RecordValPtr BuildNTPStdMsg(NTP_std_msg* nsm);
+	RecordValPtr BuildNTPControlMsg(NTP_control_msg* ncm);
+	RecordValPtr BuildNTPMode7Msg(NTP_mode7_msg* m7);
 %}
 
 
 %code{
-	zeek::IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t)
+	ValPtr proc_ntp_short(const NTP_Short_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0 )
 			return zeek::make_intrusive<IntervalVal>(0.0);
 		return zeek::make_intrusive<IntervalVal>(t->seconds() + t->fractions()*FRAC_16);
 		}
 
-	zeek::IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t)
+	ValPtr proc_ntp_timestamp(const NTP_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0)
 			return zeek::make_intrusive<TimeVal>(0.0);
@@ -32,7 +32,7 @@
 		}
 
 	// This builds the standard msg record
-	zeek::IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm)
+	RecordValPtr BuildNTPStdMsg(NTP_std_msg* nsm)
 		{
 		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::StandardMessage);
 
@@ -85,7 +85,7 @@
 		}
 
 	// This builds the control msg record
-	zeek::IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm)
+	RecordValPtr BuildNTPControlMsg(NTP_control_msg* ncm)
 		{
 		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::ControlMessage);
 
@@ -110,7 +110,7 @@
 		}
 
 	// This builds the mode7 msg record
-	zeek::IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7)
+	RecordValPtr BuildNTPMode7Msg(NTP_mode7_msg* m7)
 		{
 		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Mode7Message);
 

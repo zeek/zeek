@@ -1,10 +1,10 @@
 
 %header{
-zeek::IntrusivePtr<StringVal> array_to_string(vector<uint8> *a);
+StringValPtr array_to_string(vector<uint8> *a);
 %}
 
 %code{
-zeek::IntrusivePtr<StringVal> array_to_string(vector<uint8> *a)
+StringValPtr array_to_string(vector<uint8> *a)
 	{
 	int len = a->size();
 	auto tmp = std::make_unique<char[]>(len);

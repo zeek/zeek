@@ -7,11 +7,11 @@
 %}
 
 %header{
-zeek::IntrusivePtr<VectorVal> proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error);
+VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error);
 %}
 
 %code{
-zeek::IntrusivePtr<VectorVal> proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
+VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
 {
 	auto vv = zeek::make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Type_Value_Vector"));
 

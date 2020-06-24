@@ -3,7 +3,7 @@ refine flow SIP_Flow += {
 	%member{
 		int content_length;
 		bool build_headers;
-		std::vector<zeek::IntrusivePtr<Val>> headers;
+		std::vector<ValPtr> headers;
 	%}
 
 	%init{
@@ -104,7 +104,7 @@ refine flow SIP_Flow += {
 		%{
 		static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
 		RecordVal* header_record = new RecordVal(mime_header_rec);
-		zeek::IntrusivePtr<StringVal> name_val;
+		StringValPtr name_val;
 
 		if ( name.length() > 0 )
 			{

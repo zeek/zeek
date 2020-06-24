@@ -17,6 +17,8 @@
 #include "../IntrusivePtr.h"
 
 class BroFile;
+using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+
 class Rule;
 class Connection;
 class IP_Hdr;
@@ -34,6 +36,8 @@ class OutputHandler;
 using analyzer_list = std::list<Analyzer*>;
 typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
+
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 /**
  * Class to receive processed output from an anlyzer.
@@ -556,7 +560,7 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::ConnVal().
 	 */
-	const zeek::IntrusivePtr<RecordVal>& ConnVal();
+	const RecordValPtr& ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -604,7 +608,7 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, zeek::IntrusivePtr<Val>>>
+	    std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
 		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -911,7 +915,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, zeek::IntrusivePtr<BroFile> f);
+	virtual void SetContentsFile(unsigned int direction, BroFilePtr f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -921,7 +925,7 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual zeek::IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const;
+	virtual BroFilePtr GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the

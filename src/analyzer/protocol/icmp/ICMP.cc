@@ -219,7 +219,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 		}
 	}
 
-zeek::IntrusivePtr<RecordVal>
+RecordValPtr
 ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
                             int icmpv6, const IP_Hdr* ip_hdr)
 	{
@@ -305,7 +305,7 @@ TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t*
 	return proto;
 	}
 
-zeek::IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
+RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	{
 	const IP_Hdr ip_hdr_data((const struct ip*) data, false);
 	const IP_Hdr* ip_hdr = &ip_hdr_data;
@@ -372,7 +372,7 @@ zeek::IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP4Context(int len, const 
 	return iprec;
 	}
 
-zeek::IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
+RecordValPtr ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	{
 	int DF = 0, MF = 0, bad_hdr_len = 0;
 	TransportProto proto = TRANSPORT_UNKNOWN;
@@ -469,7 +469,7 @@ void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-void ICMP_Analyzer::UpdateEndpointVal(const zeek::IntrusivePtr<Val>& endp_arg, bool is_orig)
+void ICMP_Analyzer::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig)
 	{
 	Conn()->EnableStatusUpdateTimer();
 
@@ -722,7 +722,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		);
 	}
 
-zeek::IntrusivePtr<VectorVal> ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
+VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 	{
 	static auto icmp6_nd_option_type = zeek::id::find_type<zeek::RecordType>("icmp6_nd_option");
 	static auto icmp6_nd_prefix_info_type = zeek::id::find_type<zeek::RecordType>("icmp6_nd_prefix_info");

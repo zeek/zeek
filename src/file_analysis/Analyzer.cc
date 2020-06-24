@@ -19,7 +19,7 @@ void file_analysis::Analyzer::SetAnalyzerTag(const file_analysis::Tag& arg_tag)
 	}
 
 file_analysis::Analyzer::Analyzer(file_analysis::Tag arg_tag,
-                                  zeek::IntrusivePtr<RecordVal> arg_args,
+                                  RecordValPtr arg_args,
                                   File* arg_file)
 	: tag(arg_tag),
 	  args(std::move(arg_args)),
@@ -30,7 +30,7 @@ file_analysis::Analyzer::Analyzer(file_analysis::Tag arg_tag,
 	id = ++id_counter;
 	}
 
-file_analysis::Analyzer::Analyzer(zeek::IntrusivePtr<RecordVal> arg_args, File* arg_file)
+file_analysis::Analyzer::Analyzer(RecordValPtr arg_args, File* arg_file)
 	: Analyzer({}, std::move(arg_args), arg_file)
 	{}
 

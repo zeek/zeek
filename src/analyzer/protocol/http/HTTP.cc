@@ -613,7 +613,7 @@ HTTP_Message::~HTTP_Message()
 	delete [] entity_data_buffer;
 	}
 
-zeek::IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
+RecordValPtr HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	{
 	static auto http_message_stat = zeek::id::find_type<zeek::RecordType>("http_message_stat");
 	auto stat = zeek::make_intrusive<RecordVal>(http_message_stat);
@@ -1355,7 +1355,7 @@ void HTTP_Analyzer::HTTP_Event(const char* category, const char* detail)
 	HTTP_Event(category, zeek::make_intrusive<StringVal>(detail));
 	}
 
-void HTTP_Analyzer::HTTP_Event(const char* category, zeek::IntrusivePtr<StringVal> detail)
+void HTTP_Analyzer::HTTP_Event(const char* category, StringValPtr detail)
 	{
 	if ( http_event )
 		// DEBUG_MSG("%.6f http_event\n", network_time);
@@ -1365,8 +1365,8 @@ void HTTP_Analyzer::HTTP_Event(const char* category, zeek::IntrusivePtr<StringVa
 			std::move(detail));
 	}
 
-zeek::IntrusivePtr<StringVal>
-HTTP_Analyzer::TruncateURI(const zeek::IntrusivePtr<StringVal>& uri)
+StringValPtr
+HTTP_Analyzer::TruncateURI(const StringValPtr& uri)
 	{
 	const BroString* str = uri->AsString();
 

@@ -49,8 +49,8 @@ public:
 	// from waiting_on_hole above; and is computed in a different fashion).
 	uint64_t NumUndeliveredBytes() const;
 
-	void SetContentsFile(zeek::IntrusivePtr<BroFile> f);
-	const zeek::IntrusivePtr<BroFile>& GetContentsFile() const	{ return record_contents_file; }
+	void SetContentsFile(BroFilePtr f);
+	const BroFilePtr& GetContentsFile() const	{ return record_contents_file; }
 
 	void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
 
@@ -89,9 +89,9 @@ private:
 	void Undelivered(uint64_t up_to_seq) override;
 	void Gap(uint64_t seq, uint64_t len);
 
-	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const zeek::IntrusivePtr<BroFile>& f);
-	void RecordBlock(const DataBlock& b, const zeek::IntrusivePtr<BroFile>& f);
-	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::IntrusivePtr<BroFile>& f);
+	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const BroFilePtr& f);
+	void RecordBlock(const DataBlock& b, const BroFilePtr& f);
+	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const BroFilePtr& f);
 
 	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
@@ -108,7 +108,7 @@ private:
 	bool in_delivery;
 	analyzer::tcp::TCP_Flags flags;
 
-	zeek::IntrusivePtr<BroFile> record_contents_file;	// file on which to reassemble contents
+	BroFilePtr record_contents_file;	// file on which to reassemble contents
 
 	Analyzer* dst_analyzer;
 	TCP_Analyzer* tcp_analyzer;

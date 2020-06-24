@@ -1102,7 +1102,7 @@ std::string Supervisor::NodeConfig::ToJSON() const
 	return ToRecord()->ToJSON(false, re.get())->ToStdString();
 	}
 
-zeek::IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
+RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	{
 	const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
 	auto rval = zeek::make_intrusive<RecordVal>(rt);
@@ -1156,7 +1156,7 @@ zeek::IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	return rval;
 	}
 
-zeek::IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
+RecordValPtr Supervisor::Node::ToRecord() const
 	{
 	const auto& rt = zeek::BifType::Record::Supervisor::NodeStatus;
 	auto rval = zeek::make_intrusive<RecordVal>(rt);
@@ -1170,7 +1170,7 @@ zeek::IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	}
 
 
-static zeek::IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
+static ValPtr supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
 	static auto node_type = zeek::id::find_type<zeek::EnumType>("Cluster::NodeType");
 
@@ -1312,7 +1312,7 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 		options->scripts_to_load.emplace_back(s);
 	}
 
-zeek::IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
+RecordValPtr Supervisor::Status(std::string_view node_name)
 	{
 	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
 	const auto& tt = zeek::BifType::Record::Supervisor::Status->GetFieldType("nodes");

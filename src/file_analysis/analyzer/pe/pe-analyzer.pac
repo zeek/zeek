@@ -5,12 +5,12 @@
 %}
 
 %header{
-zeek::IntrusivePtr<VectorVal> process_rvas(const RVAS* rvas);
-zeek::IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len);
+VectorValPtr process_rvas(const RVAS* rvas);
+TableValPtr characteristics_to_bro(uint32_t c, uint8_t len);
 %}
 
 %code{
-zeek::IntrusivePtr<VectorVal> process_rvas(const RVAS* rva_table)
+VectorValPtr process_rvas(const RVAS* rva_table)
 	{
 	auto rvas = zeek::make_intrusive<VectorVal>(zeek::id::index_vec);
 
@@ -20,7 +20,7 @@ zeek::IntrusivePtr<VectorVal> process_rvas(const RVAS* rva_table)
 	return rvas;
 	}
 
-zeek::IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len)
+TableValPtr characteristics_to_bro(uint32_t c, uint8_t len)
 	{
 	uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
 	auto char_set = zeek::make_intrusive<TableVal>(zeek::id::count_set);

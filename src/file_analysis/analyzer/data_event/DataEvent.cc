@@ -11,7 +11,7 @@
 
 using namespace file_analysis;
 
-DataEvent::DataEvent(zeek::IntrusivePtr<RecordVal> args, File* file,
+DataEvent::DataEvent(RecordValPtr args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
 	                          std::move(args), file),
@@ -19,7 +19,7 @@ DataEvent::DataEvent(zeek::IntrusivePtr<RecordVal> args, File* file,
 	{
 	}
 
-file_analysis::Analyzer* DataEvent::Instantiate(zeek::IntrusivePtr<RecordVal> args,
+file_analysis::Analyzer* DataEvent::Instantiate(RecordValPtr args,
                                                 File* file)
 	{
 	const auto& chunk_val = args->GetField("chunk_event");

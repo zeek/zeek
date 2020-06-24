@@ -6,7 +6,6 @@
 
 #include "broker/Data.h"
 #include "CompHash.h"
-#include "IntrusivePtr.h"
 #include "Reporter.h"
 #include "Dict.h"
 
@@ -18,7 +17,7 @@ static void topk_element_hash_delete_func(void* val)
 	delete e;
 	}
 
-void TopkVal::Typify(zeek::IntrusivePtr<zeek::Type> t)
+void TopkVal::Typify(zeek::TypePtr t)
 	{
 	assert(!hash && !type);
 	type = std::move(t);
@@ -176,14 +175,14 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-zeek::IntrusivePtr<Val> TopkVal::DoClone(CloneState* state)
+ValPtr TopkVal::DoClone(CloneState* state)
 	{
 	auto clone = zeek::make_intrusive<TopkVal>(size);
 	clone->Merge(this);
 	return state->NewClone(this, std::move(clone));
 	}
 
-zeek::IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
+VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -269,7 +268,7 @@ uint64_t TopkVal::GetSum() const
 	return sum;
 	}
 
-void TopkVal::Encountered(zeek::IntrusivePtr<Val> encountered)
+void TopkVal::Encountered(ValPtr encountered)
 	{
 	// ok, let's see if we already know this one.
 

@@ -11,20 +11,20 @@
 
 namespace bro_broker {
 
-extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
+extern zeek::OpaqueTypePtr opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-zeek::IntrusivePtr<EnumVal> query_status(bool success);
+EnumValPtr query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a failure.
  */
-inline zeek::IntrusivePtr<RecordVal> query_result()
+inline RecordValPtr query_result()
 	{
 	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
@@ -37,7 +37,7 @@ inline zeek::IntrusivePtr<RecordVal> query_result()
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a success.
  */
-inline zeek::IntrusivePtr<RecordVal> query_result(zeek::IntrusivePtr<RecordVal> data)
+inline RecordValPtr query_result(RecordValPtr data)
 	{
 	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(true));
@@ -62,7 +62,7 @@ public:
 		Unref(trigger);
 		}
 
-	void Result(const zeek::IntrusivePtr<RecordVal>& result)
+	void Result(const RecordValPtr& result)
 		{
 		trigger->Cache(call, result.get());
 		trigger->Release();

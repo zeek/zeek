@@ -145,7 +145,7 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	zeek::IntrusivePtr<RecordVal> BuildMessageStat(bool interrupted, const char* msg);
+	RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
 };
 
 class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
@@ -156,7 +156,7 @@ public:
 	void HTTP_EntityData(bool is_orig, BroString* entity_data);
 	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
-	void HTTP_Event(const char* category, zeek::IntrusivePtr<StringVal> detail);
+	void HTTP_Event(const char* category, StringValPtr detail);
 
 	void SkipEntityData(bool is_orig);
 
@@ -237,7 +237,7 @@ protected:
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 
-	zeek::IntrusivePtr<StringVal> TruncateURI(const zeek::IntrusivePtr<StringVal>& uri);
+	StringValPtr TruncateURI(const StringValPtr& uri);
 
 	int request_state, reply_state;
 	int num_requests, num_replies;
@@ -257,19 +257,19 @@ protected:
 	// in a reply.
 	std::string upgrade_protocol;
 
-	zeek::IntrusivePtr<StringVal> request_method;
+	StringValPtr request_method;
 
 	// request_URI is in the original form (may contain '%<hex><hex>'
 	// sequences).
-	zeek::IntrusivePtr<StringVal> request_URI;
+	StringValPtr request_URI;
 
 	// unescaped_URI does not contain escaped sequences.
-	zeek::IntrusivePtr<StringVal> unescaped_URI;
+	StringValPtr unescaped_URI;
 
-	std::queue<zeek::IntrusivePtr<StringVal>> unanswered_requests;
+	std::queue<StringValPtr> unanswered_requests;
 
 	int reply_code;
-	zeek::IntrusivePtr<StringVal> reply_reason_phrase;
+	StringValPtr reply_reason_phrase;
 
 	tcp::ContentLine_Analyzer* content_line_orig;
 	tcp::ContentLine_Analyzer* content_line_resp;

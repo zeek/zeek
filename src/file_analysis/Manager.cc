@@ -263,7 +263,7 @@ bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
 	{ return SetExtractionLimit(file_id, {zeek::NewRef{}, args}, n); }
 
 bool Manager::SetExtractionLimit(const string& file_id,
-                                 zeek::IntrusivePtr<RecordVal> args, uint64_t n) const
+                                 RecordValPtr args, uint64_t n) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -278,7 +278,7 @@ bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	{ return AddAnalyzer(file_id, tag, {zeek::NewRef{}, args}); }
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                          zeek::IntrusivePtr<RecordVal> args) const
+                          RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -293,7 +293,7 @@ bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& ta
 	{ return RemoveAnalyzer(file_id, tag, {zeek::NewRef{}, args}); }
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                             zeek::IntrusivePtr<RecordVal> args) const
+                             RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -458,7 +458,7 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f)
 	{ return InstantiateAnalyzer(tag, {zeek::NewRef{}, args}, f); }
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
-                                       zeek::IntrusivePtr<RecordVal> args,
+                                       RecordValPtr args,
                                        File* f) const
 	{
 	Component* c = Lookup(tag);
@@ -517,7 +517,7 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	return *(matches.begin()->second.begin());
 	}
 
-zeek::IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+VectorValPtr file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
 	static auto mime_matches = zeek::id::find_type<zeek::VectorType>("mime_matches");
 	static auto mime_match = zeek::id::find_type<zeek::RecordType>("mime_match");

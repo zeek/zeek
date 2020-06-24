@@ -1,12 +1,12 @@
 %header{
-	zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts);
-	zeek::IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val);
-	zeek::IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
+	ValPtr filetime2brotime(uint64_t ts);
+	RecordValPtr build_version_record(NTLM_Version* val);
+	RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
 %}
 
 %code{
 	// This is replicated from the SMB analyzer. :(
-	zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts)
+	ValPtr filetime2brotime(uint64_t ts)
 		{
 		double secs = (ts / 10000000.0);
 
@@ -17,7 +17,7 @@
 		return bro_ts;
 		}
 
-	zeek::IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val)
+	RecordValPtr build_version_record(NTLM_Version* val)
 		{
 		auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Version);
 		result->Assign(0, val_mgr->Count(${val.major_version}));
@@ -28,7 +28,7 @@
 		return result;
 		}
 
-	zeek::IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
+	RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
 		{
 		auto flags = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
 		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));

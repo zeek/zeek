@@ -94,7 +94,7 @@ public:
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
-	const zeek::IntrusivePtr<EnumVal>& AsVal() const;
+	const EnumValPtr& AsVal() const;
 
 	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
 	EnumVal* AsEnumVal() const;
@@ -122,7 +122,7 @@ protected:
 	 *
 	 * @param val An enum value of script type \c Log::Writer.
 	 */
-	explicit Tag(zeek::IntrusivePtr<EnumVal> val);
+	explicit Tag(EnumValPtr val);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Tag(EnumVal* val);

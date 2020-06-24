@@ -13,7 +13,12 @@
 #include <sys/types.h> // for u_char
 
 namespace broker { class data; }
+
 class OpaqueVal;
+using OpaqueValPtr = zeek::IntrusivePtr<OpaqueVal>;
+
+class BloomFilterVal;
+using BloomFilterValPtr = zeek::IntrusivePtr<BloomFilterVal>;
 
 /**
   * Singleton that registers all available all available types of opaque
@@ -21,7 +26,7 @@ class OpaqueVal;
   */
 class OpaqueMgr {
 public:
-	using Factory = zeek::IntrusivePtr<OpaqueVal> ();
+	using Factory = OpaqueValPtr ();
 
 	/**
 	 * Return's a unique ID for the type of an opaque value.
@@ -45,7 +50,7 @@ public:
 	 * is unknown, this will return null.
 	 *
 	 */
-	zeek::IntrusivePtr<OpaqueVal> Instantiate(const std::string& id) const;
+	OpaqueValPtr Instantiate(const std::string& id) const;
 
 	/** Returns the global manager singleton object. */
 	static OpaqueMgr* mgr();
@@ -72,7 +77,7 @@ private:
     broker::expected<broker::data> DoSerialize() const override;             \
     bool DoUnserialize(const broker::data& data) override; \
     const char* OpaqueName() const override { return #T; } \
-    static zeek::IntrusivePtr<OpaqueVal> OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
+    static OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
 #define __OPAQUE_MERGE(a, b) a ## b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
@@ -89,7 +94,7 @@ class OpaqueVal : public Val {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit OpaqueVal(zeek::OpaqueType* t);
-	explicit OpaqueVal(zeek::IntrusivePtr<zeek::OpaqueType> t);
+	explicit OpaqueVal(zeek::OpaqueTypePtr t);
 	~OpaqueVal() override;
 
 	/**
@@ -106,7 +111,7 @@ public:
 	 * @param data Broker representation as returned by *Serialize()*.
 	 * @return unserialized instances with reference count at +1
 	 */
-	static zeek::IntrusivePtr<OpaqueVal> Unserialize(const broker::data& data);
+	static OpaqueValPtr Unserialize(const broker::data& data);
 
 protected:
 	friend class Val;
@@ -142,19 +147,19 @@ protected:
 	 * may also override this with a more efficient custom clone
 	 * implementation of their own.
 	 */
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 	/**
 	 * Helper function for derived class that need to record a type
 	 * during serialization.
 	 */
-	static broker::expected<broker::data> SerializeType(const zeek::IntrusivePtr<zeek::Type>& t);
+	static broker::expected<broker::data> SerializeType(const zeek::TypePtr& t);
 
 	/**
 	 * Helper function for derived class that need to restore a type
 	 * during unserialization. Returns the type at reference count +1.
 	 */
-	static zeek::IntrusivePtr<zeek::Type> UnserializeType(const broker::data& data);
+	static zeek::TypePtr UnserializeType(const broker::data& data);
 };
 
 namespace probabilistic {
@@ -178,21 +183,21 @@ public:
 	bool IsValid() const;
 	bool Init();
 	bool Feed(const void* data, size_t size);
-	zeek::IntrusivePtr<StringVal> Get();
+	StringValPtr Get();
 
 protected:
 	static void digest_one(EVP_MD_CTX* h, const Val* v);
-	static void digest_one(EVP_MD_CTX* h, const zeek::IntrusivePtr<Val>& v);
+	static void digest_one(EVP_MD_CTX* h, const ValPtr& v);
 
 	HashVal()	{ valid = false; }
 
 	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
 	explicit HashVal(zeek::OpaqueType* t);
-	explicit HashVal(zeek::IntrusivePtr<zeek::OpaqueType> t);
+	explicit HashVal(zeek::OpaqueTypePtr t);
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
-	virtual zeek::IntrusivePtr<StringVal> DoGet();
+	virtual StringValPtr DoGet();
 
 private:
 	// This flag exists because Get() can only be called once.
@@ -221,14 +226,14 @@ public:
 	MD5Val();
 	~MD5Val();
 
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	zeek::IntrusivePtr<StringVal> DoGet() override;
+	StringValPtr DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(MD5Val)
 private:
@@ -244,14 +249,14 @@ public:
 	SHA1Val();
 	~SHA1Val();
 
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	zeek::IntrusivePtr<StringVal> DoGet() override;
+	StringValPtr DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
@@ -267,14 +272,14 @@ public:
 	SHA256Val();
 	~SHA256Val();
 
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	zeek::IntrusivePtr<StringVal> DoGet() override;
+	StringValPtr DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
@@ -302,12 +307,12 @@ public:
 	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
 
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
-	const zeek::IntrusivePtr<zeek::Type>& Type() const
+	const zeek::TypePtr& Type() const
 		{ return type; }
 
-	bool Typify(zeek::IntrusivePtr<zeek::Type> type);
+	bool Typify(zeek::TypePtr type);
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
@@ -315,8 +320,8 @@ public:
 	bool Empty() const;
 	std::string InternalState() const;
 
-	static zeek::IntrusivePtr<BloomFilterVal> Merge(const BloomFilterVal* x,
-	                                          const BloomFilterVal* y);
+	static BloomFilterValPtr Merge(const BloomFilterVal* x,
+	                               const BloomFilterVal* y);
 
 protected:
 	friend class Val;
@@ -328,7 +333,7 @@ private:
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
-	zeek::IntrusivePtr<zeek::Type> type;
+	zeek::TypePtr type;
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 };
@@ -339,14 +344,14 @@ public:
 	explicit CardinalityVal(probabilistic::CardinalityCounter*);
 	~CardinalityVal() override;
 
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 	void Add(const Val* val);
 
-	const zeek::IntrusivePtr<zeek::Type>& Type() const
+	const zeek::TypePtr& Type() const
 		{ return type; }
 
-	bool Typify(zeek::IntrusivePtr<zeek::Type> type);
+	bool Typify(zeek::TypePtr type);
 
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 
@@ -355,7 +360,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
-	zeek::IntrusivePtr<zeek::Type> type;
+	zeek::TypePtr type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
 };
@@ -363,8 +368,8 @@ private:
 class ParaglobVal : public OpaqueVal {
 public:
 	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
-	zeek::IntrusivePtr<VectorVal> Get(StringVal* &pattern);
-	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
+	VectorValPtr Get(StringVal* &pattern);
+	ValPtr DoClone(CloneState* state) override;
 	bool operator==(const ParaglobVal& other) const;
 
 protected:

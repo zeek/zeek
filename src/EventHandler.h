@@ -10,6 +10,7 @@
 #include <string>
 
 class Func;
+using FuncPtr = zeek::IntrusivePtr<Func>;
 
 class EventHandler {
 public:
@@ -17,19 +18,19 @@ public:
 
 	const char* Name()	{ return name.data(); }
 
-	const zeek::IntrusivePtr<Func>& GetFunc()
+	const FuncPtr& GetFunc()
 		{ return local; }
 
 	[[deprecated("Remove in v4.1.  Use GetFunc().")]]
 	Func* LocalHandler()	{ return local.get(); }
 
-	const zeek::IntrusivePtr<zeek::FuncType>& GetType(bool check_export = true);
+	const zeek::FuncTypePtr& GetType(bool check_export = true);
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::FuncType* FType(bool check_export = true)
 		{ return GetType().get(); }
 
-	void SetFunc(zeek::IntrusivePtr<Func> f);
+	void SetFunc(FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Use SetFunc().")]]
 	void SetLocalHandler(Func* f);
@@ -68,8 +69,8 @@ private:
 	void NewEvent(zeek::Args* vl);	// Raise new_event() meta event.
 
 	std::string name;
-	zeek::IntrusivePtr<Func> local;
-	zeek::IntrusivePtr<zeek::FuncType> type;
+	FuncPtr local;
+	zeek::FuncTypePtr type;
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.

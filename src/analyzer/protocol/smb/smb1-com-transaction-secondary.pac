@@ -17,7 +17,7 @@ refine connection SMB_Conn += {
 
 	auto parameters = zeek::make_intrusive<StringVal>(${val.parameters}.length(),
 	                                            (const char*)${val.parameters}.data());
-	zeek::IntrusivePtr<StringVal> payload_str;
+	StringValPtr payload_str;
 	SMB1_transaction_data* payload = nullptr;
 
 	if ( ${val.data_count} > 0 )

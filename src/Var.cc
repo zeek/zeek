@@ -19,9 +19,9 @@
 
 using namespace zeek::detail;
 
-static zeek::IntrusivePtr<Val> init_val(zeek::detail::Expr* init,
-                                        const zeek::Type* t,
-                                        zeek::IntrusivePtr<Val> aggr)
+static ValPtr init_val(zeek::detail::Expr* init,
+                       const zeek::Type* t,
+                       ValPtr aggr)
 	{
 	try
 		{
@@ -33,9 +33,9 @@ static zeek::IntrusivePtr<Val> init_val(zeek::detail::Expr* init,
 		}
 	}
 
-static bool add_prototype(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::Type* t,
-                          std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>* attrs,
-                          const zeek::IntrusivePtr<zeek::detail::Expr>& init)
+static bool add_prototype(const zeek::detail::IDPtr& id, zeek::Type* t,
+                          std::vector<AttrPtr>* attrs,
+                          const zeek::detail::ExprPtr& init)
 	{
 	if ( ! zeek::IsFunc(id->GetType()->Tag()) )
 		return false;
@@ -111,10 +111,10 @@ static bool add_prototype(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::
 	return true;
 	}
 
-static void make_var(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::IntrusivePtr<zeek::Type> t,
+static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
                      zeek::detail::InitClass c,
-                     zeek::IntrusivePtr<zeek::detail::Expr> init,
-                     std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attr,
+                     zeek::detail::ExprPtr init,
+                     std::unique_ptr<std::vector<AttrPtr>> attr,
                      decl_type dt,
                      bool do_init)
 	{
@@ -244,7 +244,7 @@ static void make_var(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::Intru
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			zeek::IntrusivePtr<Val> aggr;
+			ValPtr aggr;
 
 			if ( t->Tag() == zeek::TYPE_RECORD )
 				{
@@ -264,7 +264,7 @@ static void make_var(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::Intru
 			else if ( t->Tag() == zeek::TYPE_VECTOR )
 				aggr = zeek::make_intrusive<VectorVal>(zeek::cast_intrusive<zeek::VectorType>(t));
 
-			zeek::IntrusivePtr<Val> v;
+			ValPtr v;
 
 			if ( init )
 				{
@@ -306,24 +306,27 @@ static void make_var(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::Intru
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		std::vector<zeek::IntrusivePtr<zeek::detail::ID>> inits;
+		std::vector<zeek::detail::IDPtr> inits;
 		auto f = zeek::make_intrusive<BroFunc>(id, nullptr, inits, 0, 0);
 		id->SetVal(zeek::make_intrusive<Val>(std::move(f)));
 		}
 	}
 
-void add_global(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::IntrusivePtr<zeek::Type> t,
-                zeek::detail::InitClass c, zeek::IntrusivePtr<zeek::detail::Expr> init,
-                std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attr,
-                decl_type dt)
+void add_global(
+	const zeek::detail::IDPtr& id,
+	zeek::TypePtr t,
+	zeek::detail::InitClass c, zeek::detail::ExprPtr init,
+	std::unique_ptr<std::vector<AttrPtr>> attr,
+	decl_type dt)
 	{
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
-zeek::IntrusivePtr<zeek::detail::Stmt> add_local(zeek::IntrusivePtr<zeek::detail::ID> id, zeek::IntrusivePtr<zeek::Type> t,
-                                           zeek::detail::InitClass c, zeek::IntrusivePtr<zeek::detail::Expr> init,
-                                           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attr,
-                                           decl_type dt)
+zeek::detail::StmtPtr add_local(
+	zeek::detail::IDPtr id, zeek::TypePtr t,
+	zeek::detail::InitClass c, zeek::detail::ExprPtr init,
+	std::unique_ptr<std::vector<AttrPtr>> attr,
+	decl_type dt)
 	{
 	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
 
@@ -352,10 +355,10 @@ zeek::IntrusivePtr<zeek::detail::Stmt> add_local(zeek::IntrusivePtr<zeek::detail
 		}
 	}
 
-extern zeek::IntrusivePtr<zeek::detail::Expr> add_and_assign_local(
-	zeek::IntrusivePtr<zeek::detail::ID> id,
-	zeek::IntrusivePtr<zeek::detail::Expr> init,
-	zeek::IntrusivePtr<Val> val)
+extern zeek::detail::ExprPtr add_and_assign_local(
+	zeek::detail::IDPtr id,
+	zeek::detail::ExprPtr init,
+	ValPtr val)
 	{
 	make_var(id, nullptr, zeek::detail::INIT_FULL, init, nullptr, VAR_REGULAR, false);
 	auto name_expr = zeek::make_intrusive<zeek::detail::NameExpr>(std::move(id));
@@ -363,12 +366,12 @@ extern zeek::IntrusivePtr<zeek::detail::Expr> add_and_assign_local(
 		std::move(name_expr), std::move(init), false, std::move(val));
 	}
 
-void add_type(zeek::detail::ID* id, zeek::IntrusivePtr<zeek::Type> t,
-              std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attr)
+void add_type(zeek::detail::ID* id, zeek::TypePtr t,
+              std::unique_ptr<std::vector<AttrPtr>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
-	zeek::IntrusivePtr<zeek::Type> tnew;
+	zeek::TypePtr tnew;
 
 	if ( (t->Tag() == zeek::TYPE_RECORD || t->Tag() == zeek::TYPE_ENUM) &&
 	     old_type_name.empty() )
@@ -406,10 +409,10 @@ static void transfer_arg_defaults(zeek::RecordType* args, zeek::RecordType* recv
 
 		if ( ! recv_i->attrs )
 			{
-			std::vector<zeek::IntrusivePtr<zeek::detail::Attr>> a{def};
+			std::vector<AttrPtr> a{def};
 			recv_i->attrs = zeek::make_intrusive<zeek::detail::Attributes>(std::move(a),
-			                                                         recv_i->type,
-			                                                         true, false);
+			                                                               recv_i->type,
+			                                                               true, false);
 			}
 
 		else if ( ! recv_i->attrs->Find(zeek::detail::ATTR_DEFAULT) )
@@ -417,7 +420,7 @@ static void transfer_arg_defaults(zeek::RecordType* args, zeek::RecordType* recv
 		}
 	}
 
-static zeek::detail::Attr* find_attr(const std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>* al,
+static zeek::detail::Attr* find_attr(const std::vector<AttrPtr>* al,
                                      zeek::detail::AttrTag tag)
 	{
 	if ( ! al )
@@ -465,10 +468,10 @@ static bool canonical_arg_types_match(const zeek::FuncType* decl, const zeek::Fu
 	return true;
 	}
 
-void begin_func(zeek::IntrusivePtr<zeek::detail::ID> id, const char* module_name,
+void begin_func(zeek::detail::IDPtr id, const char* module_name,
                 zeek::FunctionFlavor flavor, bool is_redef,
-                zeek::IntrusivePtr<zeek::FuncType> t,
-                std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs)
+                zeek::FuncTypePtr t,
+                std::unique_ptr<std::vector<AttrPtr>> attrs)
 	{
 	if ( flavor == zeek::FUNC_FLAVOR_EVENT )
 		{
@@ -639,7 +642,7 @@ TraversalCode OuterIDBindingFinder::PostExpr(const zeek::detail::Expr* expr)
 	return TC_CONTINUE;
 	}
 
-void end_func(zeek::IntrusivePtr<zeek::detail::Stmt> body)
+void end_func(zeek::detail::StmtPtr body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 

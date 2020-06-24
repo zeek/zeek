@@ -472,7 +472,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	auto idx_val = fval->GetFieldOrDefault("idx");
 	zeek::RecordType* idx = idx_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
-	zeek::IntrusivePtr<zeek::RecordType> val;
+	zeek::RecordTypePtr val;
 	auto val_val = fval->GetFieldOrDefault("val");
 
 	if ( val_val )
@@ -929,7 +929,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const zeek::RecordType *r
 			{
 			string name = nameprepend + rec->FieldName(i);
 			const char* secondary = nullptr;
-			zeek::IntrusivePtr<Val> c;
+			ValPtr c;
 			zeek::TypeTag ty = rec->GetFieldType(i)->Tag();
 			zeek::TypeTag st = zeek::TYPE_VOID;
 			bool optional = false;
@@ -991,7 +991,7 @@ bool Manager::ForceUpdate(const string &name)
 
 Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	{
-	zeek::IntrusivePtr<Val> idxval;
+	ValPtr idxval;
 
 	zeek::RecordType *type = r->GetType()->AsRecordType();
 
@@ -1159,7 +1159,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	// call stream first to determine if we really add / change the entry
 	if ( stream->pred && ! convert_error )
 		{
-		zeek::IntrusivePtr<EnumVal> ev;
+		EnumValPtr ev;
 		int startpos = 0;
 		bool pred_convert_error = false;
 		predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
@@ -1230,7 +1230,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 
 	assert(idxval);
 
-	zeek::IntrusivePtr<Val> oldval;
+	ValPtr oldval;
 	if ( updated == true )
 		{
 		assert(stream->num_val_fields > 0);
@@ -1326,9 +1326,9 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	while ( ( ih = stream->lastDict->NextEntry(lastDictIdxKey, c) ) )
 		{
-		zeek::IntrusivePtr<Val> val;
-		zeek::IntrusivePtr<Val> predidx;
-		zeek::IntrusivePtr<EnumVal> ev;
+		ValPtr val;
+		ValPtr predidx;
+		EnumValPtr ev;
 		int startpos = 0;
 
 		if ( stream->pred || stream->event )
@@ -1541,7 +1541,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 	if ( stream->pred || stream->event )
 		{
 		bool updated = false;
-		zeek::IntrusivePtr<Val> oldval;
+		ValPtr oldval;
 
 		if ( stream->num_val_fields > 0 )
 			{
@@ -1559,7 +1559,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		// predicate if we want the update or not
 		if ( stream->pred )
 			{
-			zeek::IntrusivePtr<EnumVal> ev;
+			EnumValPtr ev;
 			int startpos = 0;
 			bool pred_convert_error = false;
 			Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
@@ -2435,7 +2435,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 	// send our script level error event
 	if ( i->error_event )
 		{
-		zeek::IntrusivePtr<EnumVal> ev;
+		EnumValPtr ev;
 		switch (et)
 			{
 			case ErrorType::INFO:

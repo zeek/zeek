@@ -524,7 +524,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 		case zeek::TYPE_TABLE:
 			{
-			zeek::IntrusivePtr<zeek::TypeList> set_index;
+			zeek::TypeListPtr set_index;
 			if ( val->val.set_val.size == 0 && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
 				set_index = zeek::make_intrusive<zeek::TypeList>();
@@ -535,7 +535,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				if ( stag == zeek::TYPE_VOID )
 					stag = val->val.set_val.vals[0]->type;
 
-				zeek::IntrusivePtr<zeek::Type> index_type;
+				zeek::TypePtr index_type;
 
 				if ( stag == zeek::TYPE_ENUM )
 					{
@@ -575,7 +575,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 		case zeek::TYPE_VECTOR:
 			{
-			zeek::IntrusivePtr<zeek::Type> type;
+			zeek::TypePtr type;
 
 			if ( val->val.vector_val.size == 0  && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.

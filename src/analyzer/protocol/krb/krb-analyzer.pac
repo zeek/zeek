@@ -1,12 +1,12 @@
 %header{
-zeek::IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts);
-zeek::IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
+RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts);
+RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
 
 bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
 %}
 
 %code{
-zeek::IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts)
+RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
 	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
 
@@ -27,7 +27,7 @@ zeek::IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts)
 	return rv;
 }
 
-zeek::IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
+RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
 	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
 
@@ -201,7 +201,7 @@ refine connection KRB_Conn += {
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
-		auto make_arg = [this, msg]() -> zeek::IntrusivePtr<RecordVal>
+		auto make_arg = [this, msg]() -> RecordValPtr
 			{
 			auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
 

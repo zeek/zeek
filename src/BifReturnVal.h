@@ -5,6 +5,7 @@
 #include "IntrusivePtr.h"
 
 class Val;
+using ValPtr = zeek::IntrusivePtr<Val>;
 
 /**
  * A simple wrapper class to use for the return value of BIFs so that
@@ -24,5 +25,5 @@ public:
 	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
 	BifReturnVal(Val* v) noexcept;
 
-	zeek::IntrusivePtr<Val> rval;
+	ValPtr rval;
 };

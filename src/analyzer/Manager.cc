@@ -576,7 +576,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
 			       Val* analyzer, double timeout)
 	{
-	zeek::IntrusivePtr<EnumVal> ev{zeek::NewRef{}, analyzer->AsEnumVal()};
+	EnumValPtr ev{zeek::NewRef{}, analyzer->AsEnumVal()};
 	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(),
 	                        Tag(std::move(ev)), timeout);
 	}

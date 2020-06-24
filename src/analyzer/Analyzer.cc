@@ -710,7 +710,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	if ( ! protocol_violation )
 		return;
 
-	zeek::IntrusivePtr<StringVal> r;
+	StringValPtr r;
 
 	if ( data && len )
 		{
@@ -794,7 +794,7 @@ RecordVal* Analyzer::BuildConnVal()
 	return conn->ConnVal()->Ref()->AsRecordVal();
 	}
 
-const zeek::IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+const RecordValPtr& Analyzer::ConnVal()
 	{
 	return conn->ConnVal();
 	}
@@ -926,12 +926,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-                                             zeek::IntrusivePtr<BroFile> /* f */)
+                                             BroFilePtr /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-zeek::IntrusivePtr<BroFile> TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+BroFilePtr TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;

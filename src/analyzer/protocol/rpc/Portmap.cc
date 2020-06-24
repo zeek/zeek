@@ -79,7 +79,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 				     int reply_len)
 	{
 	EventHandlerPtr event;
-	zeek::IntrusivePtr<Val> reply;
+	ValPtr reply;
 	int success = (status == BifEnum::RPC_SUCCESS);
 
 	switch ( c->Proc() ) {
@@ -189,7 +189,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 	return true;
 	}
 
-zeek::IntrusivePtr<Val> PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
+ValPtr PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	{
 	static auto pm_mapping = zeek::id::find_type<zeek::RecordType>("pm_mapping");
 	auto mapping = zeek::make_intrusive<RecordVal>(pm_mapping);
@@ -207,7 +207,7 @@ zeek::IntrusivePtr<Val> PortmapperInterp::ExtractMapping(const u_char*& buf, int
 	return mapping;
 	}
 
-zeek::IntrusivePtr<Val> PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
+ValPtr PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	{
 	static auto pm_port_request = zeek::id::find_type<zeek::RecordType>("pm_port_request");
 	auto pr = zeek::make_intrusive<RecordVal>(pm_port_request);
@@ -225,7 +225,7 @@ zeek::IntrusivePtr<Val> PortmapperInterp::ExtractPortRequest(const u_char*& buf,
 	return pr;
 	}
 
-zeek::IntrusivePtr<Val> PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
+ValPtr PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	{
 	static auto pm_callit_request = zeek::id::find_type<zeek::RecordType>("pm_callit_request");
 	auto c = zeek::make_intrusive<RecordVal>(pm_callit_request);
@@ -262,7 +262,7 @@ uint32_t PortmapperInterp::CheckPort(uint32_t port)
 	return port;
 	}
 
-void PortmapperInterp::Event(EventHandlerPtr f, zeek::IntrusivePtr<Val> request, BifEnum::rpc_status status, zeek::IntrusivePtr<Val> reply)
+void PortmapperInterp::Event(EventHandlerPtr f, ValPtr request, BifEnum::rpc_status status, ValPtr reply)
 	{
 	if ( ! f )
 		return;

@@ -216,7 +216,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierInfo* Manager::CreateIdentifierInfo(zeek::IntrusivePtr<zeek::detail::ID> id, ScriptInfo* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script)
 	{
 	const auto& id_name = id->Name();
 	auto prev = identifiers.GetInfo(id_name);
@@ -247,7 +247,7 @@ IdentifierInfo* Manager::CreateIdentifierInfo(zeek::IntrusivePtr<zeek::detail::I
 	return rval;
 	}
 
-void Manager::StartType(zeek::IntrusivePtr<zeek::detail::ID> id)
+void Manager::StartType(zeek::detail::IDPtr id)
 	{
 	if ( disabled )
 		return;
@@ -278,7 +278,7 @@ static bool IsEnumType(zeek::detail::ID* id)
 	return id->IsType() ? id->GetType()->Tag() == zeek::TYPE_ENUM : false;
 	}
 
-void Manager::Identifier(zeek::IntrusivePtr<zeek::detail::ID> id)
+void Manager::Identifier(zeek::detail::IDPtr id)
 	{
 	if ( disabled )
 		return;
@@ -361,7 +361,8 @@ void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* fiel
 	}
 
 void Manager::Redef(const zeek::detail::ID* id, const string& path,
-                    zeek::detail::InitClass ic, zeek::IntrusivePtr<zeek::detail::Expr> init_expr)
+                    zeek::detail::InitClass ic,
+                    zeek::detail::ExprPtr init_expr)
 	{
 	if ( disabled )
 		return;

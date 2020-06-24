@@ -117,17 +117,17 @@ StringVal* new_string_val(const char* data, const char* end_of_data)
 StringVal* new_string_val(const data_chunk_t buf)
 	{ return to_string_val(buf).release(); }
 
-zeek::IntrusivePtr<StringVal> to_string_val(int length, const char* data)
+StringValPtr to_string_val(int length, const char* data)
 	{
 	return zeek::make_intrusive<StringVal>(length, data);
 	}
 
-zeek::IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data)
+StringValPtr to_string_val(const char* data, const char* end_of_data)
 	{
 	return zeek::make_intrusive<StringVal>(end_of_data - data, data);
 	}
 
-zeek::IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf)
+StringValPtr to_string_val(const data_chunk_t buf)
 	{
 	return to_string_val(buf.length, buf.data);
 	}
@@ -1301,7 +1301,7 @@ void MIME_Entity::DebugPrintHeaders()
 RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 	{ return ToHeaderVal(h).release(); }
 
-zeek::IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
+RecordValPtr MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
 	static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
 	auto header_record = zeek::make_intrusive<RecordVal>(mime_header_rec);
@@ -1316,7 +1316,7 @@ zeek::IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	{ return ToHeaderTable(hlist).release(); }
 
-zeek::IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
+TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
 	static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
 	auto t = zeek::make_intrusive<TableVal>(mime_header_list);

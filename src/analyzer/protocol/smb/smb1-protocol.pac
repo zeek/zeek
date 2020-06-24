@@ -3,11 +3,11 @@
 %}
 
 %header{
-	zeek::IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr);
+	RecordValPtr SMBHeaderVal(SMB_Header* hdr);
 %}
 
 %code{
-	zeek::IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr)
+	RecordValPtr SMBHeaderVal(SMB_Header* hdr)
 		{
 		auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Header);
 

@@ -14,10 +14,15 @@
 #include "WeirdState.h"
 
 class Connection;
-class RecordVal;
 class EventHandlerPtr;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
+namespace zeek {
+using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
+}
+
+class RecordVal;
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace file_analysis {
 
@@ -39,7 +44,7 @@ public:
 	/**
 	 * @return the wrapped \c fa_file record value, #val.
 	 */
-	const zeek::IntrusivePtr<RecordVal>& ToVal() const
+	const RecordValPtr& ToVal() const
 		{ return val; }
 
 	[[deprecated("Remove in v4.1.  Use ToVal().")]]
@@ -75,7 +80,7 @@ public:
 	 * @param bytes new limit.
 	 * @return false if no extraction analyzer is active, else true.
 	 */
-	bool SetExtractionLimit(zeek::IntrusivePtr<RecordVal> args, uint64_t bytes);
+	bool SetExtractionLimit(RecordValPtr args, uint64_t bytes);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
 	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
@@ -123,7 +128,7 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(file_analysis::Tag tag, zeek::IntrusivePtr<RecordVal> args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
 	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
@@ -134,7 +139,7 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(file_analysis::Tag tag, zeek::IntrusivePtr<RecordVal> args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
 	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
@@ -338,7 +343,7 @@ protected:
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
 	static int Idx(const std::string& field_name, const zeek::RecordType* type);
-	static int Idx(const std::string& field_name, const zeek::IntrusivePtr<zeek::RecordType>& type)
+	static int Idx(const std::string& field_name, const zeek::RecordTypePtr& type)
 		{ return Idx(field_name, type.get()); }
 
 	/**
@@ -348,7 +353,7 @@ protected:
 
 protected:
 	std::string id;                 /**< A pretty hash that likely identifies file */
-	zeek::IntrusivePtr<RecordVal> val;            /**< \c fa_file from script layer. */
+	RecordValPtr val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */

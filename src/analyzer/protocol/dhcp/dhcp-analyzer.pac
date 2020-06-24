@@ -1,8 +1,8 @@
 
 refine flow DHCP_Flow += {
 	%member{
-		zeek::IntrusivePtr<RecordVal> options;
-		zeek::IntrusivePtr<VectorVal> all_options;
+		RecordValPtr options;
+		VectorValPtr all_options;
 	%}
 
 	%init{

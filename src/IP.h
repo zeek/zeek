@@ -20,6 +20,9 @@ class IPAddr;
 class RecordVal;
 class VectorVal;
 
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
+
 #ifdef ENABLE_MOBILE_IPV6
 
 #ifndef IPPROTO_MOBILITY
@@ -136,8 +139,8 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	zeek::IntrusivePtr<RecordVal> ToVal(zeek::IntrusivePtr<VectorVal> chain) const;
-	zeek::IntrusivePtr<RecordVal> ToVal() const;
+	RecordValPtr ToVal(VectorValPtr chain) const;
+	RecordValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
@@ -229,7 +232,7 @@ public:
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
-	zeek::IntrusivePtr<VectorVal> ToVal() const;
+	VectorValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	VectorVal* BuildVal() const;
@@ -526,7 +529,7 @@ public:
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
 	 */
-	zeek::IntrusivePtr<RecordVal> ToIPHdrVal() const;
+	RecordValPtr ToIPHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToIPHdrVal() instead.")]]
 	RecordVal* BuildIPHdrVal() const;
@@ -535,7 +538,7 @@ public:
 	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
-	zeek::IntrusivePtr<RecordVal> ToPktHdrVal() const;
+	RecordValPtr ToPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
@@ -544,7 +547,7 @@ public:
 	 * Same as above, but simply add our values into the record at the
 	 * specified starting index.
 	 */
-	zeek::IntrusivePtr<RecordVal> ToPktHdrVal(zeek::IntrusivePtr<RecordVal> pkt_hdr, int sindex) const;
+	RecordValPtr ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;

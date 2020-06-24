@@ -417,7 +417,7 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	            "%s", name);
 	}
 
-void Reporter::Weird(zeek::IntrusivePtr<RecordVal> conn_id, zeek::IntrusivePtr<StringVal> uid,
+void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
                      const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);

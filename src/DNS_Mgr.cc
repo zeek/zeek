@@ -122,9 +122,9 @@ public:
 		return req_host ? req_host : req_addr.AsString();
 		}
 
-	zeek::IntrusivePtr<ListVal> Addrs();
-	zeek::IntrusivePtr<TableVal> AddrsSet();	// addresses returned as a set
-	zeek::IntrusivePtr<StringVal> Host();
+	ListValPtr Addrs();
+	TableValPtr AddrsSet();	// addresses returned as a set
+	StringValPtr Host();
 
 	double CreationTime() const	{ return creation_time; }
 
@@ -155,11 +155,11 @@ protected:
 
 	int num_names;
 	char** names;
-	zeek::IntrusivePtr<StringVal> host_val;
+	StringValPtr host_val;
 
 	int num_addrs;
 	IPAddr* addrs;
-	zeek::IntrusivePtr<ListVal> addrs_val;
+	ListValPtr addrs_val;
 
 	double creation_time;
 	int map_type;
@@ -173,7 +173,7 @@ void DNS_Mgr_mapping_delete_func(void* v)
 	delete (DNS_Mapping*) v;
 	}
 
-static zeek::IntrusivePtr<TableVal> empty_addr_set()
+static TableValPtr empty_addr_set()
 	{
 	auto addr_t = zeek::base_type(zeek::TYPE_ADDR);
 	auto set_index = zeek::make_intrusive<zeek::TypeList>(addr_t);
@@ -276,7 +276,7 @@ DNS_Mapping::~DNS_Mapping()
 	delete [] addrs;
 	}
 
-zeek::IntrusivePtr<ListVal> DNS_Mapping::Addrs()
+ListValPtr DNS_Mapping::Addrs()
 	{
 	if ( failed )
 		return nullptr;
@@ -292,7 +292,7 @@ zeek::IntrusivePtr<ListVal> DNS_Mapping::Addrs()
 	return addrs_val;
 	}
 
-zeek::IntrusivePtr<TableVal> DNS_Mapping::AddrsSet() {
+TableValPtr DNS_Mapping::AddrsSet() {
 	auto l = Addrs();
 
 	if ( ! l )
@@ -301,7 +301,7 @@ zeek::IntrusivePtr<TableVal> DNS_Mapping::AddrsSet() {
 	return l->ToSetVal();
 	}
 
-zeek::IntrusivePtr<StringVal> DNS_Mapping::Host()
+StringValPtr DNS_Mapping::Host()
 	{
 	if ( failed || num_names == 0 || ! names[0] )
 		return nullptr;
@@ -461,7 +461,7 @@ void DNS_Mgr::InitPostScript()
 	LoadCache(fopen(cache_name, "r"));
 	}
 
-static zeek::IntrusivePtr<TableVal> fake_name_lookup_result(const char* name)
+static TableValPtr fake_name_lookup_result(const char* name)
 	{
 	hash128_t hash;
 	KeyedHash::StaticHash128(name, strlen(name), &hash);
@@ -485,7 +485,7 @@ static const char* fake_addr_lookup_result(const IPAddr& addr)
 	return tmp;
 	}
 
-zeek::IntrusivePtr<TableVal> DNS_Mgr::LookupHost(const char* name)
+TableValPtr DNS_Mgr::LookupHost(const char* name)
 	{
 	if ( mode == DNS_FAKE )
 		return fake_name_lookup_result(name);
@@ -542,7 +542,7 @@ zeek::IntrusivePtr<TableVal> DNS_Mgr::LookupHost(const char* name)
 	}
 	}
 
-zeek::IntrusivePtr<Val> DNS_Mgr::LookupAddr(const IPAddr& addr)
+ValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
 	InitSource();
 
@@ -698,7 +698,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
-					zeek::IntrusivePtr<ListVal> l1, zeek::IntrusivePtr<ListVal> l2)
+					ListValPtr l1, ListValPtr l2)
 	{
 	if ( ! e )
 		return;
@@ -714,7 +714,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 	mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
 	}
 
-zeek::IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
+ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
 	auto r = zeek::make_intrusive<RecordVal>(dm_rec);
 
@@ -870,7 +870,7 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 		Event(dns_mapping_altered, new_dm, std::move(prev_delta), std::move(new_delta));
 	}
 
-zeek::IntrusivePtr<ListVal> DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
+ListValPtr DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 	{
 	auto delta = zeek::make_intrusive<ListVal>(zeek::TYPE_ADDR);
 
@@ -980,7 +980,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
-zeek::IntrusivePtr<TableVal> DNS_Mgr::LookupNameInCache(const string& name)
+TableValPtr DNS_Mgr::LookupNameInCache(const string& name)
 	{
 	HostMap::iterator it = host_mappings.find(name);
 	if ( it == host_mappings.end() )
@@ -1030,7 +1030,7 @@ const char* DNS_Mgr::LookupTextInCache(const string& name)
 	}
 
 static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
-                              zeek::IntrusivePtr<TableVal> result)
+                              TableValPtr result)
 	{
 	callback->Resolved(result.get());
 	delete callback;

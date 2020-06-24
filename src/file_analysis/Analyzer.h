@@ -7,6 +7,7 @@
 #include <sys/types.h> // for u_char
 
 class RecordVal;
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace file_analysis {
 
@@ -95,7 +96,7 @@ public:
 	/**
 	 * @return the AnalyzerArgs associated with the analyzer.
 	 */
-	const zeek::IntrusivePtr<RecordVal>& GetArgs() const
+	const RecordValPtr& GetArgs() const
 		{ return args; }
 
 	[[deprecated("Remove in v4.1.  Use GetArgs().")]]
@@ -151,8 +152,7 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(file_analysis::Tag arg_tag, zeek::IntrusivePtr<RecordVal> arg_args,
-	         File* arg_file);
+	Analyzer(file_analysis::Tag arg_tag, RecordValPtr arg_args, File* arg_file);
 
 	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
 	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
@@ -166,7 +166,7 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(zeek::IntrusivePtr<RecordVal> arg_args, File* arg_file);
+	Analyzer(RecordValPtr arg_args, File* arg_file);
 
 	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
 	Analyzer(RecordVal* arg_args, File* arg_file);
@@ -175,7 +175,7 @@ private:
 
 	ID id;	/**< Unique instance ID. */
 	file_analysis::Tag tag;	/**< The particular type of the analyzer instance. */
-	zeek::IntrusivePtr<RecordVal> args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
+	RecordValPtr args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
 	bool got_stream_delivery;
 	bool skip;

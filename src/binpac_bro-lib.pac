@@ -7,7 +7,7 @@
 %}
 
 %code{
-zeek::IntrusivePtr<StringVal> utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
+StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
 	{
 	std::string resultstring;
 

@@ -2,14 +2,14 @@
 #     http://msdn.microsoft.com/en-us/library/cc246497(v=PROT.13).aspx
 
 %header{
-zeek::IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr);
-zeek::IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id);
-zeek::IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val);
-zeek::IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv);
+RecordValPtr BuildSMB2HeaderVal(SMB2_Header* hdr);
+RecordValPtr BuildSMB2GUID(SMB2_guid* file_id);
+RecordValPtr smb2_file_attrs_to_bro(SMB2_file_attributes* val);
+RecordValPtr BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv);
 %}
 
 %code{
-zeek::IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr)
+RecordValPtr BuildSMB2HeaderVal(SMB2_Header* hdr)
 	{
 	auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Header);
 	r->Assign(0, val_mgr->Count(${hdr.credit_charge}));
@@ -25,7 +25,7 @@ zeek::IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id)
+RecordValPtr BuildSMB2GUID(SMB2_guid* file_id)
 	{
 	auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::GUID);
 	r->Assign(0, val_mgr->Count(${file_id.persistent}));
@@ -33,7 +33,7 @@ zeek::IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val)
+RecordValPtr smb2_file_attrs_to_bro(SMB2_file_attributes* val)
 	{
 	auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::FileAttrs);
 	r->Assign(0, val_mgr->Bool(${val.read_only}));
@@ -54,7 +54,7 @@ zeek::IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
+RecordValPtr BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 	{
 	auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::NegotiateContextValue);
 

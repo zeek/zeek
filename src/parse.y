@@ -82,7 +82,6 @@
 #include "Desc.h"
 #include "Expr.h"
 #include "Func.h"
-#include "IntrusivePtr.h"
 #include "Stmt.h"
 #include "Val.h"
 #include "Var.h"
@@ -167,7 +166,7 @@ static void parser_redef_enum (zeek::detail::ID *id)
 	}
 
 static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_list> fields,
-                          std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs)
+                          std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs)
 	{
 	std::set<zeek::Type*> types = zeek::Type::GetAliases(id->Name());
 
@@ -199,9 +198,9 @@ static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_
 		}
 	}
 
-static zeek::IntrusivePtr<zeek::detail::Attributes>
-make_attributes(std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>* attrs,
-                zeek::IntrusivePtr<zeek::Type> t, bool in_record, bool is_global)
+static zeek::detail::AttributesPtr
+make_attributes(std::vector<zeek::detail::AttrPtr>* attrs,
+                zeek::TypePtr t, bool in_record, bool is_global)
 	{
 	if ( ! attrs )
 		return nullptr;
@@ -250,7 +249,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::Case* c_case;
 	zeek::detail::case_list* case_l;
 	zeek::detail::Attr* attr;
-	std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>* attr_l;
+	std::vector<zeek::detail::AttrPtr>* attr_l;
 	zeek::detail::AttrTag attrtag;
 }
 
@@ -516,8 +515,8 @@ expr:
 			{
 			set_location(@1, @3);
 			$$ = new zeek::detail::NotExpr(zeek::make_intrusive<zeek::detail::InExpr>(
-			        zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $1},
-			        zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $3}));
+			        zeek::detail::ExprPtr{zeek::AdoptRef{}, $1},
+			        zeek::detail::ExprPtr{zeek::AdoptRef{}, $3}));
 			}
 
 	|	'[' expr_list ']'
@@ -562,14 +561,14 @@ expr:
 		opt_attr
 			{ // the ++in_init fixes up the parsing of "[x] = y"
 			set_location(@1, @5);
-			std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs{$7};
+			std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs{$7};
 			$$ = new zeek::detail::TableConstructorExpr({zeek::AdoptRef{}, $4}, std::move(attrs));
 			}
 
 	|	TOK_SET '(' opt_expr_list ')' opt_attr
 			{
 			set_location(@1, @4);
-			std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs{$5};
+			std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs{$5};
 			$$ = new zeek::detail::SetConstructorExpr({zeek::AdoptRef{}, $3}, std::move(attrs));
 			}
 
@@ -603,7 +602,7 @@ expr:
 				case zeek::TYPE_RECORD:
 					{
 					auto rce = zeek::make_intrusive<zeek::detail::RecordConstructorExpr>(
-						zeek::IntrusivePtr<zeek::detail::ListExpr>{zeek::AdoptRef{}, $4});
+						zeek::detail::ListExprPtr{zeek::AdoptRef{}, $4});
 					auto rt = zeek::cast_intrusive<zeek::RecordType>(ctor_type);
 					$$ = new zeek::detail::RecordCoerceExpr(std::move(rce), std::move(rt));
 					}
@@ -729,7 +728,7 @@ expr:
 	|       '|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
-			zeek::IntrusivePtr<zeek::detail::Expr> e{zeek::AdoptRef{}, $2};
+			zeek::detail::ExprPtr e{zeek::AdoptRef{}, $2};
 
 			if ( zeek::IsIntegral(e->GetType()->Tag()) )
 				e = zeek::make_intrusive<zeek::detail::ArithCoerceExpr>(std::move(e), zeek::TYPE_INT);
@@ -1083,7 +1082,7 @@ decl:
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
+			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_REGULAR);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
@@ -1092,7 +1091,7 @@ decl:
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
+			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_OPTION);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
@@ -1101,7 +1100,7 @@ decl:
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
+			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_CONST);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
@@ -1109,9 +1108,9 @@ decl:
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			zeek::IntrusivePtr<zeek::detail::Expr> init{zeek::AdoptRef{}, $5};
+			zeek::detail::ExprPtr init{zeek::AdoptRef{}, $5};
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, init,
-			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
+			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_REDEF);
 			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
@@ -1137,7 +1136,7 @@ decl:
 				$3->Error("unknown identifier");
 			else
 				extend_record($3, std::unique_ptr<zeek::type_decl_list>($8),
-				              std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>($11));
+				              std::unique_ptr<std::vector<zeek::detail::AttrPtr>>($11));
 			}
 
 	|	TOK_TYPE global_id ':'
@@ -1147,7 +1146,7 @@ decl:
 			cur_decl_type_id = 0;
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			add_type(id.get(), {zeek::AdoptRef{}, $5},
-			         std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6});
+			         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6});
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
@@ -1181,7 +1180,7 @@ func_hdr:
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			begin_func(id, current_module.c_str(),
 				zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
-				std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$4});
+				std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			zeekygen_mgr->Identifier(std::move(id));
 			}
@@ -1196,7 +1195,7 @@ func_hdr:
 
 			begin_func({zeek::NewRef{}, $2}, current_module.c_str(),
 				   zeek::FUNC_FLAVOR_EVENT, 0, {zeek::NewRef{}, $3},
-				   std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$4});
+				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
@@ -1205,14 +1204,14 @@ func_hdr:
 			$3->SetYieldType(zeek::base_type(zeek::TYPE_BOOL));
 			begin_func({zeek::NewRef{}, $2}, current_module.c_str(),
 				   zeek::FUNC_FLAVOR_HOOK, 0, {zeek::NewRef{}, $3},
-				   std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$4});
+				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func({zeek::NewRef{}, $3}, current_module.c_str(),
 				   zeek::FUNC_FLAVOR_EVENT, 1, {zeek::NewRef{}, $4},
-				   std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$5});
+				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$5});
 			$$ = $4;
 			}
 	;
@@ -1321,12 +1320,12 @@ index_slice:
 			{
 			set_location(@1, @6);
 
-			auto low = $3 ? zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $3} :
+			auto low = $3 ? zeek::detail::ExprPtr{zeek::AdoptRef{}, $3} :
 			                zeek::make_intrusive<zeek::detail::ConstExpr>(val_mgr->Count(0));
 
-			auto high = $5 ? zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $5} :
+			auto high = $5 ? zeek::detail::ExprPtr{zeek::AdoptRef{}, $5} :
 			                 zeek::make_intrusive<zeek::detail::SizeExpr>(
-			                     zeek::IntrusivePtr<zeek::detail::Expr>{zeek::NewRef{}, $1});
+			                     zeek::detail::ExprPtr{zeek::NewRef{}, $1});
 
 			if ( ! zeek::IsIntegral(low->GetType()->Tag()) || ! zeek::IsIntegral(high->GetType()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");
@@ -1347,7 +1346,7 @@ attr_list:
 			{ $1->emplace_back(zeek::AdoptRef{}, $2); }
 	|	attr
 			{
-			$$ = new std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>;
+			$$ = new std::vector<zeek::detail::AttrPtr>;
 			$$->emplace_back(zeek::AdoptRef{}, $1);
 			}
 	;
@@ -1517,7 +1516,7 @@ stmt:
 			set_location(@1, @7);
 			$$ = add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
 			               {zeek::AdoptRef{}, $5},
-			               std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
+			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			               VAR_REGULAR).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
@@ -1528,7 +1527,7 @@ stmt:
 			set_location(@1, @6);
 			$$ = add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
 			               {zeek::AdoptRef{}, $5},
-			               std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
+			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			               VAR_CONST).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
@@ -1667,7 +1666,7 @@ case_type:
 	|	TOK_TYPE type TOK_AS TOK_ID
 			{
 			const char* name = $4;
-			zeek::IntrusivePtr<zeek::Type> type{zeek::AdoptRef{}, $2};
+			zeek::TypePtr type{zeek::AdoptRef{}, $2};
 			auto case_var = lookup_ID(name, current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )

@@ -25,7 +25,7 @@ const char* attr_name(AttrTag t)
 	return attr_names[int(t)];
 	}
 
-Attr::Attr(AttrTag t, zeek::IntrusivePtr<Expr> e)
+Attr::Attr(AttrTag t, ExprPtr e)
 	: expr(std::move(e))
 	{
 	tag = t;
@@ -37,7 +37,7 @@ Attr::Attr(AttrTag t)
 	{
 	}
 
-void Attr::SetAttrExpr(zeek::IntrusivePtr<zeek::detail::Expr> e)
+void Attr::SetAttrExpr(ExprPtr e)
 	{ expr = std::move(e); }
 
 void Attr::Describe(ODesc* d) const
@@ -136,7 +136,7 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, zeek::IntrusivePtr<Type> t, bool arg_in_record, bool is_global)
+Attributes::Attributes(attr_list* a, TypePtr t, bool arg_in_record, bool is_global)
 	{
 	attrs_list.resize(a->length());
 	attrs.reserve(a->length());
@@ -155,15 +155,13 @@ Attributes::Attributes(attr_list* a, zeek::IntrusivePtr<Type> t, bool arg_in_rec
 	delete a;
 	}
 
-Attributes::Attributes(zeek::IntrusivePtr<Type> t,
-                       bool arg_in_record, bool is_global)
-    : Attributes(std::vector<zeek::IntrusivePtr<Attr>>{}, std::move(t),
+Attributes::Attributes(TypePtr t, bool arg_in_record, bool is_global)
+    : Attributes(std::vector<AttrPtr>{}, std::move(t),
                  arg_in_record, is_global)
     {}
 
-Attributes::Attributes(std::vector<zeek::IntrusivePtr<Attr>> a,
-                       zeek::IntrusivePtr<Type> t,
-                       bool arg_in_record, bool is_global)
+Attributes::Attributes(std::vector<AttrPtr> a,
+                       TypePtr t, bool arg_in_record, bool is_global)
 	: type(std::move(t))
 	{
 	attrs_list.resize(a.size());
@@ -181,7 +179,7 @@ Attributes::Attributes(std::vector<zeek::IntrusivePtr<Attr>> a,
 		AddAttr(std::move(attr));
 	}
 
-void Attributes::AddAttr(zeek::IntrusivePtr<Attr> attr)
+void Attributes::AddAttr(AttrPtr attr)
 	{
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
@@ -212,7 +210,7 @@ void Attributes::AddAttr(zeek::IntrusivePtr<Attr> attr)
 		}
 	}
 
-void Attributes::AddAttrs(const zeek::IntrusivePtr<Attributes>& a)
+void Attributes::AddAttrs(const AttributesPtr& a)
 	{
 	for ( const auto& attr : a->GetAttrs() )
 		AddAttr(attr);
@@ -235,7 +233,7 @@ Attr* Attributes::FindAttr(AttrTag t) const
 	return nullptr;
 	}
 
-const zeek::IntrusivePtr<Attr>& Attributes::Find(AttrTag t) const
+const AttrPtr& Attributes::Find(AttrTag t) const
 	{
 	for ( const auto& a : attrs )
 		if ( a->Tag() == t )

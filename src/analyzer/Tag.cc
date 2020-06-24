@@ -16,7 +16,7 @@ analyzer::Tag& analyzer::Tag::operator=(const analyzer::Tag& other)
 	return *this;
 	}
 
-const zeek::IntrusivePtr<EnumVal>& analyzer::Tag::AsVal() const
+const EnumValPtr& analyzer::Tag::AsVal() const
 	{
 	return ::Tag::AsVal(analyzer_mgr->GetTagType());
 	}
@@ -26,7 +26,7 @@ EnumVal* analyzer::Tag::AsEnumVal() const
 	return AsVal().get();
 	}
 
-analyzer::Tag::Tag(zeek::IntrusivePtr<EnumVal> val)
+analyzer::Tag::Tag(EnumValPtr val)
 	: ::Tag(std::move(val))
 	{ }
 

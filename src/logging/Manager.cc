@@ -730,14 +730,14 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 		if ( filter->path_func )
 			{
-			zeek::IntrusivePtr<Val> path_arg;
+			ValPtr path_arg;
 
 			if ( filter->path_val )
 				path_arg = {zeek::NewRef{}, filter->path_val};
 			else
 				path_arg = val_mgr->EmptyString();
 
-			zeek::IntrusivePtr<Val> rec_arg;
+			ValPtr rec_arg;
 			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
 
 			if ( rt->Tag() == zeek::TYPE_RECORD )
@@ -1048,7 +1048,7 @@ threading::Value* Manager::ValToLogVal(Val* val, zeek::Type* ty)
 threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
                                                RecordVal* columns)
 	{
-	zeek::IntrusivePtr<RecordVal> ext_rec;
+	RecordValPtr ext_rec;
 
 	if ( filter->num_ext_fields > 0 )
 		{

@@ -8,13 +8,13 @@
 #
 
 %header{
-	zeek::IntrusivePtr<VectorVal> bytestring_to_coils(const bytestring& coils, uint quantity);
-	zeek::IntrusivePtr<RecordVal> HeaderToVal(ModbusTCP_TransportHeader* header);
-	zeek::IntrusivePtr<VectorVal> create_vector_of_count();
+	VectorValPtr bytestring_to_coils(const bytestring& coils, uint quantity);
+	RecordValPtr HeaderToVal(ModbusTCP_TransportHeader* header);
+	VectorValPtr create_vector_of_count();
 	%}
 
 %code{
-	zeek::IntrusivePtr<VectorVal> bytestring_to_coils(const bytestring& coils, uint quantity)
+	VectorValPtr bytestring_to_coils(const bytestring& coils, uint quantity)
 		{
 		auto modbus_coils = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusCoils);
 
@@ -27,7 +27,7 @@
 		return modbus_coils;
 		}
 
-	zeek::IntrusivePtr<RecordVal> HeaderToVal(ModbusTCP_TransportHeader* header)
+	RecordValPtr HeaderToVal(ModbusTCP_TransportHeader* header)
 		{
 		auto modbus_header = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::ModbusHeaders);
 		modbus_header->Assign(0, val_mgr->Count(header->tid()));
@@ -37,7 +37,7 @@
 		return modbus_header;
 		}
 
-	zeek::IntrusivePtr<VectorVal> create_vector_of_count()
+	VectorValPtr create_vector_of_count()
 		{
 		auto vt = zeek::make_intrusive<zeek::VectorType>(zeek::base_type(zeek::TYPE_COUNT));
 		auto vv = zeek::make_intrusive<VectorVal>(std::move(vt));

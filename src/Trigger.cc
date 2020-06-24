@@ -151,7 +151,7 @@ Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
 		arg_frame->SetDelayed();
 		}
 
-	zeek::IntrusivePtr<Val> timeout_val;
+	ValPtr timeout_val;
 
 	if ( arg_timeout )
 		{
@@ -264,7 +264,7 @@ bool Trigger::Eval()
 
 	f->SetTrigger({zeek::NewRef{}, this});
 
-	zeek::IntrusivePtr<Val> v;
+	ValPtr v;
 
 	try
 		{
@@ -348,8 +348,8 @@ void Trigger::Timeout()
 	if ( timeout_stmts )
 		{
 		stmt_flow_type flow;
-		zeek::IntrusivePtr<Frame> f{zeek::AdoptRef{}, frame->Clone()};
-		zeek::IntrusivePtr<Val> v;
+		FramePtr f{zeek::AdoptRef{}, frame->Clone()};
+		ValPtr v;
 
 		try
 			{

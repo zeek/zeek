@@ -627,7 +627,7 @@ refine flow DHCP_Flow += {
 		%{
 		auto client_id = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::ClientID);
 		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
-		zeek::IntrusivePtr<StringVal> sv;
+		StringValPtr sv;
 
 		if ( ${v.client_id.hwtype} == 0 )
 			sv = zeek::make_intrusive<StringVal>(${v.client_id.hwaddr}.length(),

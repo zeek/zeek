@@ -254,7 +254,7 @@ void TCP_Endpoint::AckReceived(uint64_t seq)
 		contents_processor->AckReceived(seq);
 	}
 
-void TCP_Endpoint::SetContentsFile(zeek::IntrusivePtr<BroFile> f)
+void TCP_Endpoint::SetContentsFile(BroFilePtr f)
 	{
 	contents_file = std::move(f);
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);

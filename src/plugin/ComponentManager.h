@@ -4,7 +4,6 @@
 #include <list>
 #include <string>
 
-#include "IntrusivePtr.h"
 #include "Type.h"
 #include "Var.h" // for add_type()
 #include "Val.h"
@@ -52,7 +51,7 @@ public:
 	/**
 	 * @return The enum type associated with the script-layer "Tag".
 	 */
-	const zeek::IntrusivePtr<zeek::EnumType>& GetTagType() const;
+	const zeek::EnumTypePtr& GetTagType() const;
 
 	[[deprecated("Remove in v4.1.  Use GetTagType() instead.")]]
 	zeek::EnumType* GetTagEnumType() const;
@@ -71,7 +70,7 @@ public:
 	 * @param val A component's enum value.
 	 * @return The canonical component name.
 	 */
-	const std::string& GetComponentName(zeek::IntrusivePtr<EnumVal> val) const;
+	const std::string& GetComponentName(EnumValPtr val) const;
 
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr argument instead.")]]
 	const std::string& GetComponentName(Val* val) const;
@@ -128,7 +127,7 @@ public:
 
 private:
 	std::string module; /**< Script layer module in which component tags live. */
-	zeek::IntrusivePtr<zeek::EnumType> tag_enum_type; /**< Enum type of component tags. */
+	zeek::EnumTypePtr tag_enum_type; /**< Enum type of component tags. */
 	std::map<std::string, C*> components_by_name;
 	std::map<T, C*> components_by_tag;
 	std::map<int, C*> components_by_val;
@@ -163,7 +162,7 @@ std::list<C*> ComponentManager<T, C>::GetComponents() const
 	}
 
 template <class T, class C>
-const zeek::IntrusivePtr<zeek::EnumType>& ComponentManager<T, C>::GetTagType() const
+const zeek::EnumTypePtr& ComponentManager<T, C>::GetTagType() const
 	{
 	return tag_enum_type;
 	}
@@ -193,7 +192,7 @@ const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	}
 
 template <class T, class C>
-const std::string& ComponentManager<T, C>::GetComponentName(zeek::IntrusivePtr<EnumVal> val) const
+const std::string& ComponentManager<T, C>::GetComponentName(EnumValPtr val) const
 	{
 	return GetComponentName(T(std::move(val)));
 	}

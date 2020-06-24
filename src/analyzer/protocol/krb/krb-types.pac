@@ -1,19 +1,19 @@
 # Fundamental KRB types
 
 %header{
-zeek::IntrusivePtr<Val> GetStringFromPrincipalName(const KRB_Principal_Name* pname);
+ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
-zeek::IntrusivePtr<VectorVal> proc_cipher_list(const Array* list);
+VectorValPtr proc_cipher_list(const Array* list);
 
-zeek::IntrusivePtr<VectorVal> proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list);
-zeek::IntrusivePtr<RecordVal> proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr);
+VectorValPtr proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list);
+RecordValPtr proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr);
 
-zeek::IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list);
-zeek::IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket);
+VectorValPtr proc_tickets(const KRB_Ticket_Sequence* list);
+RecordValPtr proc_ticket(const KRB_Ticket* ticket);
 %}
 
 %code{
-zeek::IntrusivePtr<Val> GetStringFromPrincipalName(const KRB_Principal_Name* pname)
+ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 {
 	if ( pname->data()->size() == 1 )
 		return to_stringval(pname->data()[0][0]->encoding()->content());
@@ -25,7 +25,7 @@ zeek::IntrusivePtr<Val> GetStringFromPrincipalName(const KRB_Principal_Name* pna
 	return zeek::make_intrusive<StringVal>("unknown");
 }
 
-zeek::IntrusivePtr<VectorVal> proc_cipher_list(const Array* list)
+VectorValPtr proc_cipher_list(const Array* list)
 {
 	auto ciphers = zeek::make_intrusive<VectorVal>(zeek::id::index_vec);
 	for ( uint i = 0; i < list->data()->size(); ++i )
@@ -33,7 +33,7 @@ zeek::IntrusivePtr<VectorVal> proc_cipher_list(const Array* list)
 	return ciphers;
 }
 
-zeek::IntrusivePtr<VectorVal> proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list)
+VectorValPtr proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list)
 {
 	auto addrs = zeek::make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Host_Address_Vector"));
 
@@ -45,7 +45,7 @@ zeek::IntrusivePtr<VectorVal> proc_host_address_list(const BroAnalyzer a, const 
 	return addrs;
 }
 
-zeek::IntrusivePtr<RecordVal> proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
+RecordValPtr proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 {
 	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Host_Address);
 	const auto& addr_bytes = addr->address()->data()->content();
@@ -92,7 +92,7 @@ zeek::IntrusivePtr<RecordVal> proc_host_address(const BroAnalyzer a, const KRB_H
 	return rv;
 }
 
-zeek::IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list)
+VectorValPtr proc_tickets(const KRB_Ticket_Sequence* list)
 	{
 	auto tickets = zeek::make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Ticket_Vector"));
 
@@ -105,7 +105,7 @@ zeek::IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list)
 	return tickets;
 	}
 
-zeek::IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket)
+RecordValPtr proc_ticket(const KRB_Ticket* ticket)
 	{
 	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Ticket);
 

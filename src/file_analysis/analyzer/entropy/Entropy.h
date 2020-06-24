@@ -31,7 +31,7 @@ public:
 	 * @return the new Entropy analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
 	                                            File* file);
 
 	/**
@@ -66,7 +66,7 @@ protected:
 	 * @param hv specific hash calculator object.
 	 * @param kind human readable name of the hash algorithm to use.
 	 */
-	Entropy(zeek::IntrusivePtr<RecordVal> args, File* file);
+	Entropy(RecordValPtr args, File* file);
 
 	/**
 	 * If some file contents have been seen, finalizes the entropy of them and

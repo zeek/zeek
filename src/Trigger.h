@@ -8,6 +8,7 @@
 #include "Notifier.h"
 #include "iosource/IOSource.h"
 #include "util.h"
+#include "IntrusivePtr.h"
 
 class Frame;
 class Val;
@@ -114,6 +115,8 @@ private:
 	using ValCache = std::map<const zeek::detail::CallExpr*, Val*>;
 	ValCache cache;
 };
+
+using TriggerPtr = zeek::IntrusivePtr<Trigger>;
 
 class Manager final : public iosource::IOSource {
 public:

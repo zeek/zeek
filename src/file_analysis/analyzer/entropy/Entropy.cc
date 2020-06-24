@@ -9,7 +9,7 @@
 
 using namespace file_analysis;
 
-Entropy::Entropy(zeek::IntrusivePtr<RecordVal> args, File* file)
+Entropy::Entropy(RecordValPtr args, File* file)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("ENTROPY"),
                               std::move(args), file)
 	{
@@ -23,7 +23,7 @@ Entropy::~Entropy()
 	Unref(entropy);
 	}
 
-file_analysis::Analyzer* Entropy::Instantiate(zeek::IntrusivePtr<RecordVal> args,
+file_analysis::Analyzer* Entropy::Instantiate(RecordValPtr args,
                                               File* file)
 	{
 	return new Entropy(std::move(args), file);

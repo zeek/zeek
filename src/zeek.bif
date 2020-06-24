@@ -1328,9 +1328,9 @@ function all_set%(v: any%) : bool
 
 %%{
 static Func* sort_function_comp = nullptr;
-static std::vector<const zeek::IntrusivePtr<Val>*> index_map;	// used for indirect sorting to support order()
+static std::vector<const ValPtr*> index_map;	// used for indirect sorting to support order()
 
-bool sort_function(const zeek::IntrusivePtr<Val>& a, const zeek::IntrusivePtr<Val>& b)
+bool sort_function(const ValPtr& a, const ValPtr& b)
 	{
 	// Sort missing values as "high".
 	if ( ! a )
@@ -1349,7 +1349,7 @@ bool indirect_sort_function(size_t a, size_t b)
 	return sort_function(*index_map[a], *index_map[b]);
 	}
 
-bool signed_sort_function (const zeek::IntrusivePtr<Val>& a, const zeek::IntrusivePtr<Val>& b)
+bool signed_sort_function (const ValPtr& a, const ValPtr& b)
 	{
 	if ( ! a )
 		return 0;
@@ -1362,7 +1362,7 @@ bool signed_sort_function (const zeek::IntrusivePtr<Val>& a, const zeek::Intrusi
 	return ia < ib;
 	}
 
-bool unsigned_sort_function (const zeek::IntrusivePtr<Val>& a, const zeek::IntrusivePtr<Val>& b)
+bool unsigned_sort_function (const ValPtr& a, const ValPtr& b)
 	{
 	if ( ! a )
 		return 0;
@@ -1401,7 +1401,7 @@ bool indirect_unsigned_sort_function(size_t a, size_t b)
 ## .. zeek:see:: order
 function sort%(v: any, ...%) : any
 	%{
-	zeek::IntrusivePtr<Val> rval{zeek::NewRef{}, v};
+	ValPtr rval{zeek::NewRef{}, v};
 
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
@@ -1491,7 +1491,7 @@ function order%(v: any, ...%) : index_vec
 		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
 			builtin_error("second argument to order() needs to be comparison function");
-			return zeek::IntrusivePtr<Val>{zeek::NewRef{}, v};
+			return ValPtr{zeek::NewRef{}, v};
 			}
 
 		comp = comp_val->AsFunc();
@@ -1521,7 +1521,7 @@ function order%(v: any, ...%) : index_vec
 		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");
-			return zeek::IntrusivePtr<Val>{zeek::NewRef{}, v};
+			return ValPtr{zeek::NewRef{}, v};
 			}
 
 		sort_function_comp = comp;
@@ -2440,7 +2440,7 @@ function count_to_port%(num: count, proto: transport_proto%): port
 function to_addr%(ip: string%): addr
 	%{
 	char* s = ip->AsString()->Render();
-	zeek::IntrusivePtr<Val> ret;
+	ValPtr ret;
 	in6_addr tmp;
 
 	if ( IPAddr::ConvertString(s, &tmp) )
@@ -3209,7 +3209,7 @@ function is_icmp_port%(p: port%): bool
 	%}
 
 %%{
-static zeek::IntrusivePtr<EnumVal> map_conn_type(TransportProto tp)
+static EnumValPtr map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
@@ -3862,8 +3862,8 @@ static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
 	return mmdb_lookup(addr, result, true);
 	}
 
-static zeek::IntrusivePtr<Val> mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
-                                             int data_type )
+static ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
+                            int data_type )
 	{
 	switch (status)
 		{
@@ -4623,7 +4623,7 @@ function get_file_name%(f: file%): string
 ## .. zeek:see:: rotate_file_by_name calc_next_rotate
 function rotate_file%(f: file%): rotate_info
 	%{
-	zeek::IntrusivePtr<RecordVal> info{zeek::AdoptRef{}, f->Rotate()};
+	RecordValPtr info{zeek::AdoptRef{}, f->Rotate()};
 
 	if ( info )
 		return info;

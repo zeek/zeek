@@ -21,7 +21,7 @@
 
 using namespace file_analysis;
 
-static zeek::IntrusivePtr<TableVal> empty_connection_table()
+static TableValPtr empty_connection_table()
 	{
 	auto tbl_index = zeek::make_intrusive<zeek::TypeList>(zeek::id::conn_id);
 	tbl_index->Append(zeek::id::conn_id);
@@ -30,7 +30,7 @@ static zeek::IntrusivePtr<TableVal> empty_connection_table()
 	return zeek::make_intrusive<TableVal>(std::move(tbl_type));
 	}
 
-static zeek::IntrusivePtr<RecordVal> get_conn_id_val(const Connection* conn)
+static RecordValPtr get_conn_id_val(const Connection* conn)
 	{
 	auto v = zeek::make_intrusive<RecordVal>(zeek::id::conn_id);
 	v->Assign(0, zeek::make_intrusive<AddrVal>(conn->OrigAddr()));
@@ -206,7 +206,7 @@ void File::SetTimeoutInterval(double interval)
 bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
 	{ return SetExtractionLimit({zeek::NewRef{}, args}, bytes); }
 
-bool File::SetExtractionLimit(zeek::IntrusivePtr<RecordVal> args, uint64_t bytes)
+bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes)
 	{
 	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"),
 	                             std::move(args));
@@ -256,7 +256,7 @@ void File::ScheduleInactivityTimer() const
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{ return AddAnalyzer(tag, {zeek::NewRef{}, args}); }
 
-bool File::AddAnalyzer(file_analysis::Tag tag, zeek::IntrusivePtr<RecordVal> args)
+bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
@@ -270,7 +270,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, zeek::IntrusivePtr<RecordVal> arg
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{ return RemoveAnalyzer(tag, {zeek::NewRef{}, args}); }
 
-bool File::RemoveAnalyzer(file_analysis::Tag tag, zeek::IntrusivePtr<RecordVal> args)
+bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());

@@ -14,11 +14,11 @@
 
 using namespace std;
 
-zeek::IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_data_type;
-zeek::IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_set_iterator;
-zeek::IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_table_iterator;
-zeek::IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_vector_iterator;
-zeek::IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_record_iterator;
+zeek::OpaqueTypePtr bro_broker::opaque_of_data_type;
+zeek::OpaqueTypePtr bro_broker::opaque_of_set_iterator;
+zeek::OpaqueTypePtr bro_broker::opaque_of_table_iterator;
+zeek::OpaqueTypePtr bro_broker::opaque_of_vector_iterator;
+zeek::OpaqueTypePtr bro_broker::opaque_of_record_iterator;
 
 static bool data_type_check(const broker::data& d, zeek::Type* t);
 
@@ -73,7 +73,7 @@ TEST_CASE("converting Broker to Zeek protocol constants")
 	}
 
 struct val_converter {
-	using result_type = zeek::IntrusivePtr<Val>;
+	using result_type = ValPtr;
 
 	zeek::Type* type;
 
@@ -779,7 +779,7 @@ static bool data_type_check(const broker::data& d, zeek::Type* t)
 	return caf::visit(type_checker{t}, d);
 	}
 
-zeek::IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, zeek::Type* type)
+ValPtr bro_broker::data_to_val(broker::data d, zeek::Type* type)
 	{
 	if ( type->Tag() == zeek::TYPE_ANY )
 		return bro_broker::make_data_val(move(d));
@@ -1010,7 +1010,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 	return broker::ec::invalid_data;
 	}
 
-zeek::IntrusivePtr<RecordVal> bro_broker::make_data_val(Val* v)
+RecordValPtr bro_broker::make_data_val(Val* v)
 	{
 	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
@@ -1023,7 +1023,7 @@ zeek::IntrusivePtr<RecordVal> bro_broker::make_data_val(Val* v)
 	return rval;
 	}
 
-zeek::IntrusivePtr<RecordVal> bro_broker::make_data_val(broker::data d)
+RecordValPtr bro_broker::make_data_val(broker::data d)
 	{
 	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data);
 	rval->Assign(0, zeek::make_intrusive<DataVal>(move(d)));
@@ -1031,7 +1031,7 @@ zeek::IntrusivePtr<RecordVal> bro_broker::make_data_val(broker::data d)
 	}
 
 struct data_type_getter {
-	using result_type = zeek::IntrusivePtr<EnumVal>;
+	using result_type = EnumValPtr;
 
 	result_type operator()(broker::none)
 		{
@@ -1112,7 +1112,7 @@ struct data_type_getter {
 		}
 };
 
-zeek::IntrusivePtr<EnumVal> bro_broker::get_data_type(RecordVal* v, Frame* frame)
+EnumValPtr bro_broker::get_data_type(RecordVal* v, Frame* frame)
 	{
 	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}
@@ -1142,12 +1142,12 @@ bool bro_broker::DataVal::canCastTo(zeek::Type* t) const
 	return data_type_check(data, t);
 	}
 
-zeek::IntrusivePtr<Val> bro_broker::DataVal::castTo(zeek::Type* t)
+ValPtr bro_broker::DataVal::castTo(zeek::Type* t)
 	{
 	return data_to_val(data, t);
 	}
 
-const zeek::IntrusivePtr<zeek::Type>& bro_broker::DataVal::ScriptDataType()
+const zeek::TypePtr& bro_broker::DataVal::ScriptDataType()
 	{
 	static auto script_data_type = zeek::id::find_type("Broker::Data");
 	return script_data_type;

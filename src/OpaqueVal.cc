@@ -40,7 +40,7 @@ OpaqueMgr* OpaqueMgr::mgr()
 OpaqueVal::OpaqueVal(zeek::OpaqueType* t) : OpaqueVal({zeek::NewRef{}, t})
 	{}
 
-OpaqueVal::OpaqueVal(zeek::IntrusivePtr<zeek::OpaqueType> t) : Val(std::move(t))
+OpaqueVal::OpaqueVal(zeek::OpaqueTypePtr t) : Val(std::move(t))
 	{}
 
 OpaqueVal::~OpaqueVal()
@@ -58,7 +58,7 @@ const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
 	return x->first;
 	}
 
-zeek::IntrusivePtr<OpaqueVal> OpaqueMgr::Instantiate(const std::string& id) const
+OpaqueValPtr OpaqueMgr::Instantiate(const std::string& id) const
 	{
 	auto x = _types.find(id);
 	return x != _types.end() ? (*x->second)() : nullptr;
@@ -75,7 +75,7 @@ broker::expected<broker::data> OpaqueVal::Serialize() const
 	return {broker::vector{std::move(type), std::move(*d)}};
 	}
 
-zeek::IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
+OpaqueValPtr OpaqueVal::Unserialize(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
 
@@ -96,7 +96,7 @@ zeek::IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
 	return val;
 	}
 
-broker::expected<broker::data> OpaqueVal::SerializeType(const zeek::IntrusivePtr<zeek::Type>& t)
+broker::expected<broker::data> OpaqueVal::SerializeType(const zeek::TypePtr& t)
 	{
 	if ( t->InternalType() == zeek::TYPE_INTERNAL_ERROR )
 		return broker::ec::invalid_data;
@@ -112,7 +112,7 @@ broker::expected<broker::data> OpaqueVal::SerializeType(const zeek::IntrusivePtr
 	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
-zeek::IntrusivePtr<zeek::Type> OpaqueVal::UnserializeType(const broker::data& data)
+zeek::TypePtr OpaqueVal::UnserializeType(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
@@ -145,7 +145,7 @@ zeek::IntrusivePtr<zeek::Type> OpaqueVal::UnserializeType(const broker::data& da
 	return zeek::base_type(static_cast<zeek::TypeTag>(*tag));
 	}
 
-zeek::IntrusivePtr<Val> OpaqueVal::DoClone(CloneState* state)
+ValPtr OpaqueVal::DoClone(CloneState* state)
 	{
 	auto d = OpaqueVal::Serialize();
 	if ( ! d )
@@ -169,7 +169,7 @@ bool HashVal::Init()
 	return valid;
 	}
 
-zeek::IntrusivePtr<StringVal> HashVal::Get()
+StringValPtr HashVal::Get()
 	{
 	if ( ! valid )
 		return val_mgr->EmptyString();
@@ -200,13 +200,13 @@ bool HashVal::DoFeed(const void*, size_t)
 	return false;
 	}
 
-zeek::IntrusivePtr<StringVal> HashVal::DoGet()
+StringValPtr HashVal::DoGet()
 	{
 	assert(! "missing implementation of DoGet()");
 	return val_mgr->EmptyString();
 	}
 
-HashVal::HashVal(zeek::IntrusivePtr<zeek::OpaqueType> t) : OpaqueVal(std::move(t))
+HashVal::HashVal(zeek::OpaqueTypePtr t) : OpaqueVal(std::move(t))
 	{
 	valid = false;
 	}
@@ -239,12 +239,12 @@ void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 		}
 	}
 
-void HashVal::digest_one(EVP_MD_CTX* h, const zeek::IntrusivePtr<Val>& v)
+void HashVal::digest_one(EVP_MD_CTX* h, const ValPtr& v)
 	{
 	digest_one(h, v.get());
 	}
 
-zeek::IntrusivePtr<Val> MD5Val::DoClone(CloneState* state)
+ValPtr MD5Val::DoClone(CloneState* state)
 	{
 	auto out = zeek::make_intrusive<MD5Val>();
 
@@ -275,7 +275,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 	return true;
 	}
 
-zeek::IntrusivePtr<StringVal> MD5Val::DoGet()
+StringValPtr MD5Val::DoGet()
 	{
 	if ( ! IsValid() )
 		return val_mgr->EmptyString();
@@ -364,7 +364,7 @@ SHA1Val::~SHA1Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
-zeek::IntrusivePtr<Val> SHA1Val::DoClone(CloneState* state)
+ValPtr SHA1Val::DoClone(CloneState* state)
 	{
 	auto out = zeek::make_intrusive<SHA1Val>();
 
@@ -395,7 +395,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 	return true;
 	}
 
-zeek::IntrusivePtr<StringVal> SHA1Val::DoGet()
+StringValPtr SHA1Val::DoGet()
 	{
 	if ( ! IsValid() )
 		return val_mgr->EmptyString();
@@ -487,7 +487,7 @@ SHA256Val::~SHA256Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
-zeek::IntrusivePtr<Val> SHA256Val::DoClone(CloneState* state)
+ValPtr SHA256Val::DoClone(CloneState* state)
 	{
 	auto out = zeek::make_intrusive<SHA256Val>();
 
@@ -518,7 +518,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 	return true;
 	}
 
-zeek::IntrusivePtr<StringVal> SHA256Val::DoGet()
+StringValPtr SHA256Val::DoGet()
 	{
 	if ( ! IsValid() )
 		return val_mgr->EmptyString();
@@ -711,7 +711,7 @@ BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
 	bloom_filter = bf;
 	}
 
-zeek::IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
+ValPtr BloomFilterVal::DoClone(CloneState* state)
 	{
 	if ( bloom_filter )
 		{
@@ -723,7 +723,7 @@ zeek::IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
 	return state->NewClone(this, zeek::make_intrusive<BloomFilterVal>());
 	}
 
-bool BloomFilterVal::Typify(zeek::IntrusivePtr<zeek::Type> arg_type)
+bool BloomFilterVal::Typify(zeek::TypePtr arg_type)
 	{
 	if ( type )
 		return false;
@@ -765,8 +765,8 @@ std::string BloomFilterVal::InternalState() const
 	return bloom_filter->InternalState();
 	}
 
-zeek::IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
-                                                   const BloomFilterVal* y)
+BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x,
+                                        const BloomFilterVal* y)
 	{
 	if ( x->Type() && // any one 0 is ok here
 	     y->Type() &&
@@ -876,13 +876,13 @@ CardinalityVal::~CardinalityVal()
 	delete hash;
 	}
 
-zeek::IntrusivePtr<Val> CardinalityVal::DoClone(CloneState* state)
+ValPtr CardinalityVal::DoClone(CloneState* state)
 	{
 	return state->NewClone(this,
 			       zeek::make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
 	}
 
-bool CardinalityVal::Typify(zeek::IntrusivePtr<zeek::Type> arg_type)
+bool CardinalityVal::Typify(zeek::TypePtr arg_type)
 	{
 	if ( type )
 		return false;
@@ -957,7 +957,7 @@ ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p)
 	this->internal_paraglob = std::move(p);
 	}
 
-zeek::IntrusivePtr<VectorVal> ParaglobVal::Get(StringVal* &pattern)
+VectorValPtr ParaglobVal::Get(StringVal* &pattern)
 	{
 	auto rval = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
 	std::string string_pattern (reinterpret_cast<const char*>(pattern->Bytes()), pattern->Len());
@@ -1018,7 +1018,7 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-zeek::IntrusivePtr<Val> ParaglobVal::DoClone(CloneState* state)
+ValPtr ParaglobVal::DoClone(CloneState* state)
 	{
 	try {
 		return zeek::make_intrusive<ParaglobVal>

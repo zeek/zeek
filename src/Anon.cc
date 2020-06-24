@@ -358,9 +358,9 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 	return nullptr;
 	}
 
-static zeek::IntrusivePtr<TableVal> anon_preserve_orig_addr;
-static zeek::IntrusivePtr<TableVal> anon_preserve_resp_addr;
-static zeek::IntrusivePtr<TableVal> anon_preserve_other_addr;
+static TableValPtr anon_preserve_orig_addr;
+static TableValPtr anon_preserve_resp_addr;
+static TableValPtr anon_preserve_other_addr;
 
 void zeek::detail::init_ip_addr_anonymizers()
 	{

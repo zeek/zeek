@@ -753,7 +753,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			return rval;
 			}
 
-		zeek::IntrusivePtr<RecordVal> data_val;
+		RecordValPtr data_val;
 
 		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
 			data_val = {zeek::NewRef{}, (*args)[i]->AsRecordVal()};

@@ -16,7 +16,7 @@ input::Tag& input::Tag::operator=(const input::Tag& other)
 	return *this;
 	}
 
-const zeek::IntrusivePtr<EnumVal>& input::Tag::AsVal() const
+const EnumValPtr& input::Tag::AsVal() const
 	{
 	return ::Tag::AsVal(input_mgr->GetTagType());
 	}
@@ -26,7 +26,7 @@ EnumVal* input::Tag::AsEnumVal() const
 	return AsVal().get();
 	}
 
-input::Tag::Tag(zeek::IntrusivePtr<EnumVal> val)
+input::Tag::Tag(EnumValPtr val)
 	: ::Tag(std::move(val))
 	{ }
 

@@ -328,7 +328,7 @@ void BroFile::RaiseOpenEvent()
 	if ( ! ::file_opened )
 		return;
 
-	zeek::IntrusivePtr<BroFile> bf{zeek::NewRef{}, this};
+	BroFilePtr bf{zeek::NewRef{}, this};
 	Event* event = new ::Event(::file_opened, {zeek::make_intrusive<Val>(std::move(bf))});
 	mgr.Dispatch(event, true);
 	}
@@ -346,7 +346,7 @@ double BroFile::Size()
 	return s.st_size;
 	}
 
-zeek::IntrusivePtr<BroFile> BroFile::Get(const char* name)
+BroFilePtr BroFile::Get(const char* name)
 	{
 	for ( const auto &el : open_files )
 		if ( el.first == name )

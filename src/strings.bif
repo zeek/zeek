@@ -199,9 +199,9 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 	return 1;
 	}
 
-static zeek::IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
-                                               RE_Matcher* re, int incl_sep,
-                                               int max_num_sep)
+static VectorValPtr do_split_string(StringVal* str_val,
+                                    RE_Matcher* re, int incl_sep,
+                                    int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
 	auto rval = zeek::make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("string_vec"));
@@ -686,7 +686,7 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 
 	BroSubstring::Vec* subseq =
 		smith_waterman(s1->AsString(), s2->AsString(), sw_params);
-	auto result = zeek::IntrusivePtr<VectorVal>{zeek::AdoptRef{}, BroSubstring::VecToPolicy(subseq)};
+	auto result = VectorValPtr{zeek::AdoptRef{}, BroSubstring::VecToPolicy(subseq)};
 	delete_each(subseq);
 	delete subseq;
 

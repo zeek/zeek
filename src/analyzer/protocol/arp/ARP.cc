@@ -226,7 +226,7 @@ void ARP_Analyzer::RREvent(EventHandlerPtr e,
 AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)
 	{ return ToAddrVal(addr).release(); }
 
-zeek::IntrusivePtr<AddrVal> ARP_Analyzer::ToAddrVal(const void* addr)
+AddrValPtr ARP_Analyzer::ToAddrVal(const void* addr)
 	{
 	// ### For now, we only handle IPv4 addresses.
 	return zeek::make_intrusive<AddrVal>(*(const uint32_t*) addr);
@@ -235,7 +235,7 @@ zeek::IntrusivePtr<AddrVal> ARP_Analyzer::ToAddrVal(const void* addr)
 StringVal* ARP_Analyzer::EthAddrToStr(const u_char* addr)
 	{ return ToEthAddrStr(addr).release(); }
 
-zeek::IntrusivePtr<StringVal> ARP_Analyzer::ToEthAddrStr(const u_char* addr)
+StringValPtr ARP_Analyzer::ToEthAddrStr(const u_char* addr)
 	{
 	char buf[1024];
 	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",

@@ -82,7 +82,7 @@ void Expr::Delete(Frame* /* f */)
 	Internal("Expr::Delete called");
 	}
 
-zeek::IntrusivePtr<Expr> Expr::MakeLvalue()
+ExprPtr Expr::MakeLvalue()
 	{
 	if ( ! IsError() )
 		ExprError("can't be assigned to");
@@ -96,12 +96,12 @@ void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
 	Internal("Expr::EvalIntoAggregate called");
 	}
 
-void Expr::Assign(Frame* /* f */, zeek::IntrusivePtr<Val> /* v */)
+void Expr::Assign(Frame* /* f */, ValPtr /* v */)
 	{
 	Internal("Expr::Assign called");
 	}
 
-zeek::IntrusivePtr<zeek::Type> Expr::InitType() const
+zeek::TypePtr Expr::InitType() const
 	{
 	return type;
 	}
@@ -116,7 +116,7 @@ bool Expr::IsPure() const
 	return true;
 	}
 
-zeek::IntrusivePtr<Val> Expr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr Expr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( aggr )
 		{
@@ -182,7 +182,7 @@ void Expr::Canonicize()
 	{
 	}
 
-void Expr::SetType(zeek::IntrusivePtr<zeek::Type> t)
+void Expr::SetType(zeek::TypePtr t)
 	{
 	if ( ! type || type->Tag() != zeek::TYPE_ERROR )
 		type = std::move(t);
@@ -215,7 +215,7 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 		}
 	}
 
-NameExpr::NameExpr(zeek::IntrusivePtr<ID> arg_id, bool const_init)
+NameExpr::NameExpr(zeek::detail::IDPtr arg_id, bool const_init)
 	: Expr(EXPR_NAME), id(std::move(arg_id))
 	{
 	in_const_init = const_init;
@@ -230,9 +230,9 @@ NameExpr::NameExpr(zeek::IntrusivePtr<ID> arg_id, bool const_init)
 		h->SetUsed();
 	}
 
-zeek::IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
+ValPtr NameExpr::Eval(Frame* f) const
 	{
-	zeek::IntrusivePtr<Val> v;
+	ValPtr v;
 
 	if ( id->IsType() )
 		return zeek::make_intrusive<Val>(id->GetType(), true);
@@ -256,7 +256,7 @@ zeek::IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 		}
 	}
 
-zeek::IntrusivePtr<Expr> NameExpr::MakeLvalue()
+ExprPtr NameExpr::MakeLvalue()
 	{
 	if ( id->IsType() )
 		ExprError("Type name is not an lvalue");
@@ -270,7 +270,7 @@ zeek::IntrusivePtr<Expr> NameExpr::MakeLvalue()
 	return zeek::make_intrusive<RefExpr>(IntrusivePtr{zeek::NewRef{}, this});
 	}
 
-void NameExpr::Assign(Frame* f, zeek::IntrusivePtr<Val> v)
+void NameExpr::Assign(Frame* f, ValPtr v)
 	{
 	if ( id->IsGlobal() )
 		id->SetVal(std::move(v));
@@ -309,7 +309,7 @@ void NameExpr::ExprDescribe(ODesc* d) const
 		}
 	}
 
-ConstExpr::ConstExpr(zeek::IntrusivePtr<Val> arg_val)
+ConstExpr::ConstExpr(ValPtr arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
 	if ( val->GetType()->Tag() == zeek::TYPE_LIST && val->AsListVal()->Length() == 1 )
@@ -323,7 +323,7 @@ void ConstExpr::ExprDescribe(ODesc* d) const
 	val->Describe(d);
 	}
 
-zeek::IntrusivePtr<Val> ConstExpr::Eval(Frame* /* f */) const
+ValPtr ConstExpr::Eval(Frame* /* f */) const
 	{
 	return {zeek::NewRef{}, Value()};
 	}
@@ -337,14 +337,14 @@ TraversalCode ConstExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-UnaryExpr::UnaryExpr(BroExprTag arg_tag, zeek::IntrusivePtr<Expr> arg_op)
+UnaryExpr::UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op)
 	: Expr(arg_tag), op(std::move(arg_op))
 	{
 	if ( op->IsError() )
 		SetError();
 	}
 
-zeek::IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
+ValPtr UnaryExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -357,7 +357,7 @@ zeek::IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 	if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
 		{
 		VectorVal* v_op = v->AsVectorVal();
-		zeek::IntrusivePtr<zeek::VectorType> out_t;
+		zeek::VectorTypePtr out_t;
 
 		if ( GetType()->Tag() == zeek::TYPE_ANY )
 			out_t = v->GetType<zeek::VectorType>();
@@ -397,7 +397,7 @@ TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-zeek::IntrusivePtr<Val> UnaryExpr::Fold(Val* v) const
+ValPtr UnaryExpr::Fold(Val* v) const
 	{
 	return {zeek::NewRef{}, v};
 	}
@@ -426,7 +426,7 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 		}
 	}
 
-zeek::IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
+ValPtr BinaryExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -523,7 +523,7 @@ void BinaryExpr::ExprDescribe(ODesc* d) const
 	op2->Describe(d);
 	}
 
-zeek::IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
+ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	{
 	InternalTypeTag it = v1->GetType()->InternalType();
 
@@ -690,7 +690,7 @@ zeek::IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 		return val_mgr->Int(i3);
 	}
 
-zeek::IntrusivePtr<Val> BinaryExpr::StringFold(Val* v1, Val* v2) const
+ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const
 	{
 	const BroString* s1 = v1->AsString();
 	const BroString* s2 = v2->AsString();
@@ -725,7 +725,7 @@ zeek::IntrusivePtr<Val> BinaryExpr::StringFold(Val* v1, Val* v2) const
 	}
 
 
-zeek::IntrusivePtr<Val> BinaryExpr::PatternFold(Val* v1, Val* v2) const
+ValPtr BinaryExpr::PatternFold(Val* v1, Val* v2) const
 	{
 	const RE_Matcher* re1 = v1->AsPattern();
 	const RE_Matcher* re2 = v2->AsPattern();
@@ -740,7 +740,7 @@ zeek::IntrusivePtr<Val> BinaryExpr::PatternFold(Val* v1, Val* v2) const
 	return zeek::make_intrusive<PatternVal>(res);
 	}
 
-zeek::IntrusivePtr<Val> BinaryExpr::SetFold(Val* v1, Val* v2) const
+ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 	{
 	TableVal* tv1 = v1->AsTableVal();
 	TableVal* tv2 = v2->AsTableVal();
@@ -800,7 +800,7 @@ zeek::IntrusivePtr<Val> BinaryExpr::SetFold(Val* v1, Val* v2) const
 	return val_mgr->Bool(res);
 	}
 
-zeek::IntrusivePtr<Val> BinaryExpr::AddrFold(Val* v1, Val* v2) const
+ValPtr BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	IPAddr a1 = v1->AsAddr();
 	IPAddr a2 = v2->AsAddr();
@@ -834,7 +834,7 @@ zeek::IntrusivePtr<Val> BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	return val_mgr->Bool(result);
 	}
 
-zeek::IntrusivePtr<Val> BinaryExpr::SubNetFold(Val* v1, Val* v2) const
+ValPtr BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	{
 	const IPPrefix& n1 = v1->AsSubNet();
 	const IPPrefix& n2 = v2->AsSubNet();
@@ -886,7 +886,7 @@ void BinaryExpr::PromoteType(TypeTag t, bool is_vector)
 		SetType(base_type(t));
 	}
 
-CloneExpr::CloneExpr(zeek::IntrusivePtr<Expr> arg_op)
+CloneExpr::CloneExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_CLONE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -895,7 +895,7 @@ CloneExpr::CloneExpr(zeek::IntrusivePtr<Expr> arg_op)
 	SetType(op->GetType());
 	}
 
-zeek::IntrusivePtr<Val> CloneExpr::Eval(Frame* f) const
+ValPtr CloneExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -906,12 +906,12 @@ zeek::IntrusivePtr<Val> CloneExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-zeek::IntrusivePtr<Val> CloneExpr::Fold(Val* v) const
+ValPtr CloneExpr::Fold(Val* v) const
 	{
 	return v->Clone();
 	}
 
-IncrExpr::IncrExpr(BroExprTag arg_tag, zeek::IntrusivePtr<Expr> arg_op)
+IncrExpr::IncrExpr(BroExprTag arg_tag, ExprPtr arg_op)
 	: UnaryExpr(arg_tag, arg_op->MakeLvalue())
 	{
 	if ( IsError() )
@@ -938,7 +938,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, zeek::IntrusivePtr<Expr> arg_op)
 		}
 	}
 
-zeek::IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
+ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	{
 	bro_int_t k = v->CoerceToInt();
 
@@ -962,7 +962,7 @@ zeek::IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	}
 
 
-zeek::IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
+ValPtr IncrExpr::Eval(Frame* f) const
 	{
 	auto v = op->Eval(f);
 
@@ -971,7 +971,7 @@ zeek::IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 
 	if ( is_vector(v) )
 		{
-		zeek::IntrusivePtr<VectorVal> v_vec{zeek::NewRef{}, v->AsVectorVal()};
+		VectorValPtr v_vec{zeek::NewRef{}, v->AsVectorVal()};
 
 		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
@@ -999,7 +999,7 @@ bool IncrExpr::IsPure() const
 	return false;
 	}
 
-ComplementExpr::ComplementExpr(zeek::IntrusivePtr<Expr> arg_op)
+ComplementExpr::ComplementExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_COMPLEMENT, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1014,12 +1014,12 @@ ComplementExpr::ComplementExpr(zeek::IntrusivePtr<Expr> arg_op)
 		SetType(base_type(zeek::TYPE_COUNT));
 	}
 
-zeek::IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
+ValPtr ComplementExpr::Fold(Val* v) const
 	{
 	return val_mgr->Count(~ v->InternalUnsigned());
 	}
 
-NotExpr::NotExpr(zeek::IntrusivePtr<Expr> arg_op)
+NotExpr::NotExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_NOT, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1033,12 +1033,12 @@ NotExpr::NotExpr(zeek::IntrusivePtr<Expr> arg_op)
 		SetType(base_type(zeek::TYPE_BOOL));
 	}
 
-zeek::IntrusivePtr<Val> NotExpr::Fold(Val* v) const
+ValPtr NotExpr::Fold(Val* v) const
 	{
 	return val_mgr->Bool(! v->InternalInt());
 	}
 
-PosExpr::PosExpr(zeek::IntrusivePtr<Expr> arg_op)
+PosExpr::PosExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_POSITIVE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1047,7 +1047,7 @@ PosExpr::PosExpr(zeek::IntrusivePtr<Expr> arg_op)
 	const auto& t = IsVector(op->GetType()->Tag()) ? op->GetType()->Yield() : op->GetType();
 
 	TypeTag bt = t->Tag();
-	zeek::IntrusivePtr<zeek::Type> base_result_type;
+	zeek::TypePtr base_result_type;
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
@@ -1063,7 +1063,7 @@ PosExpr::PosExpr(zeek::IntrusivePtr<Expr> arg_op)
 		SetType(std::move(base_result_type));
 	}
 
-zeek::IntrusivePtr<Val> PosExpr::Fold(Val* v) const
+ValPtr PosExpr::Fold(Val* v) const
 	{
 	TypeTag t = v->GetType()->Tag();
 
@@ -1073,7 +1073,7 @@ zeek::IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 		return val_mgr->Int(v->CoerceToInt());
 	}
 
-NegExpr::NegExpr(zeek::IntrusivePtr<Expr> arg_op)
+NegExpr::NegExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_NEGATE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1082,7 +1082,7 @@ NegExpr::NegExpr(zeek::IntrusivePtr<Expr> arg_op)
 	const auto& t = IsVector(op->GetType()->Tag()) ? op->GetType()->Yield() : op->GetType();
 
 	TypeTag bt = t->Tag();
-	zeek::IntrusivePtr<zeek::Type> base_result_type;
+	zeek::TypePtr base_result_type;
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
@@ -1098,7 +1098,7 @@ NegExpr::NegExpr(zeek::IntrusivePtr<Expr> arg_op)
 		SetType(std::move(base_result_type));
 	}
 
-zeek::IntrusivePtr<Val> NegExpr::Fold(Val* v) const
+ValPtr NegExpr::Fold(Val* v) const
 	{
 	if ( v->GetType()->Tag() == zeek::TYPE_DOUBLE )
 		return zeek::make_intrusive<DoubleVal>(- v->InternalDouble());
@@ -1108,7 +1108,7 @@ zeek::IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 		return val_mgr->Int(- v->CoerceToInt());
 	}
 
-SizeExpr::SizeExpr(zeek::IntrusivePtr<Expr> arg_op)
+SizeExpr::SizeExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_SIZE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1120,7 +1120,7 @@ SizeExpr::SizeExpr(zeek::IntrusivePtr<Expr> arg_op)
 		SetType(base_type(zeek::TYPE_COUNT));
 	}
 
-zeek::IntrusivePtr<Val> SizeExpr::Eval(Frame* f) const
+ValPtr SizeExpr::Eval(Frame* f) const
 	{
 	auto v = op->Eval(f);
 
@@ -1130,12 +1130,12 @@ zeek::IntrusivePtr<Val> SizeExpr::Eval(Frame* f) const
 	return Fold(v.get());
 	}
 
-zeek::IntrusivePtr<Val> SizeExpr::Fold(Val* v) const
+ValPtr SizeExpr::Fold(Val* v) const
 	{
 	return v->SizeVal();
 	}
 
-AddExpr::AddExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
+AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     : BinaryExpr(EXPR_ADD, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1151,7 +1151,7 @@ AddExpr::AddExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_
 	if ( IsVector(bt2) )
 		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
-	zeek::IntrusivePtr<zeek::Type> base_result_type;
+	zeek::TypePtr base_result_type;
 
 	if ( bt2 == zeek::TYPE_INTERVAL && ( bt1 == zeek::TYPE_TIME || bt1 == zeek::TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
@@ -1182,7 +1182,7 @@ void AddExpr::Canonicize()
 		SwapOps();
 	}
 
-AddToExpr::AddToExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
+AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1) ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
@@ -1228,7 +1228,7 @@ AddToExpr::AddToExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> 
 		ExprError("requires two arithmetic or two string operands");
 	}
 
-zeek::IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
+ValPtr AddToExpr::Eval(Frame* f) const
 	{
 	auto v1 = op1->Eval(f);
 
@@ -1259,7 +1259,7 @@ zeek::IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
-SubExpr::SubExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
+SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_SUB, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1276,7 +1276,7 @@ SubExpr::SubExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	zeek::IntrusivePtr<zeek::Type> base_result_type;
+	zeek::TypePtr base_result_type;
 
 	if ( bt2 == zeek::TYPE_INTERVAL && ( bt1 == zeek::TYPE_TIME || bt1 == zeek::TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
@@ -1307,8 +1307,7 @@ SubExpr::SubExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_
 		}
 	}
 
-RemoveFromExpr::RemoveFromExpr(zeek::IntrusivePtr<Expr> arg_op1,
-							   zeek::IntrusivePtr<Expr> arg_op2)
+RemoveFromExpr::RemoveFromExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1325,7 +1324,7 @@ RemoveFromExpr::RemoveFromExpr(zeek::IntrusivePtr<Expr> arg_op1,
 		ExprError("requires two arithmetic operands");
 	}
 
-zeek::IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
+ValPtr RemoveFromExpr::Eval(Frame* f) const
 	{
 	auto v1 = op1->Eval(f);
 
@@ -1346,7 +1345,7 @@ zeek::IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
-TimesExpr::TimesExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
+TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_TIMES, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1384,8 +1383,7 @@ void TimesExpr::Canonicize()
 		SwapOps();
 	}
 
-DivideExpr::DivideExpr(zeek::IntrusivePtr<Expr> arg_op1,
-                       zeek::IntrusivePtr<Expr> arg_op2)
+DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_DIVIDE, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1427,7 +1425,7 @@ DivideExpr::DivideExpr(zeek::IntrusivePtr<Expr> arg_op1,
 		ExprError("requires arithmetic operands");
 	}
 
-zeek::IntrusivePtr<Val> DivideExpr::AddrFold(Val* v1, Val* v2) const
+ValPtr DivideExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	uint32_t mask;
 
@@ -1452,7 +1450,7 @@ zeek::IntrusivePtr<Val> DivideExpr::AddrFold(Val* v1, Val* v2) const
 	return zeek::make_intrusive<SubNetVal>(a, mask);
 	}
 
-ModExpr::ModExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
+ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_MOD, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1474,9 +1472,7 @@ ModExpr::ModExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_
 		ExprError("requires integral operands");
 	}
 
-BoolExpr::BoolExpr(BroExprTag arg_tag,
-				   zeek::IntrusivePtr<Expr> arg_op1,
-                   zeek::IntrusivePtr<Expr> arg_op2)
+BoolExpr::BoolExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1507,7 +1503,7 @@ BoolExpr::BoolExpr(BroExprTag arg_tag,
 		ExprError("requires boolean operands");
 	}
 
-zeek::IntrusivePtr<Val> BoolExpr::DoSingleEval(Frame* f, zeek::IntrusivePtr<Val> v1, Expr* op2) const
+ValPtr BoolExpr::DoSingleEval(Frame* f, ValPtr v1, Expr* op2) const
 	{
 	if ( ! v1 )
 		return nullptr;
@@ -1529,7 +1525,7 @@ zeek::IntrusivePtr<Val> BoolExpr::DoSingleEval(Frame* f, zeek::IntrusivePtr<Val>
 		}
 	}
 
-zeek::IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
+ValPtr BoolExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -1551,8 +1547,8 @@ zeek::IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 	// a vector in order to find out its length.
 	if ( ! (is_vec1 && is_vec2) )
 		{ // Only one is a vector.
-		zeek::IntrusivePtr<Val> scalar_v;
-		zeek::IntrusivePtr<VectorVal> vector_v;
+		ValPtr scalar_v;
+		VectorValPtr vector_v;
 
 		if ( is_vec1 )
 			{
@@ -1568,7 +1564,7 @@ zeek::IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 		if ( ! scalar_v || ! vector_v )
 			return nullptr;
 
-		zeek::IntrusivePtr<VectorVal> result;
+		VectorValPtr result;
 
 		// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 		bool is_and = (tag == EXPR_AND_AND);
@@ -1622,9 +1618,7 @@ zeek::IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 	return result;
 	}
 
-BitExpr::BitExpr(BroExprTag arg_tag,
-                 zeek::IntrusivePtr<Expr> arg_op1,
-                 zeek::IntrusivePtr<Expr> arg_op2)
+BitExpr::BitExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1676,9 +1670,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
-EqExpr::EqExpr(BroExprTag arg_tag,
-               zeek::IntrusivePtr<Expr> arg_op1,
-               zeek::IntrusivePtr<Expr> arg_op2)
+EqExpr::EqExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1763,7 +1755,7 @@ void EqExpr::Canonicize()
 		SwapOps();
 	}
 
-zeek::IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
+ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( op1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
@@ -1779,9 +1771,7 @@ zeek::IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
-RelExpr::RelExpr(BroExprTag arg_tag,
-                 zeek::IntrusivePtr<Expr> arg_op1,
-                 zeek::IntrusivePtr<Expr> arg_op2)
+RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -1838,9 +1828,7 @@ void RelExpr::Canonicize()
 		}
 	}
 
-CondExpr::CondExpr(zeek::IntrusivePtr<Expr> arg_op1,
-                   zeek::IntrusivePtr<Expr> arg_op2,
-                   zeek::IntrusivePtr<Expr> arg_op3)
+CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
 	: Expr(EXPR_COND),
 	  op1(std::move(arg_op1)), op2(std::move(arg_op2)), op3(std::move(arg_op3))
 	{
@@ -1901,7 +1889,7 @@ CondExpr::CondExpr(zeek::IntrusivePtr<Expr> arg_op1,
 		}
 	}
 
-zeek::IntrusivePtr<Val> CondExpr::Eval(Frame* f) const
+ValPtr CondExpr::Eval(Frame* f) const
 	{
 	if ( ! is_vector(op1) )
 		{
@@ -1987,7 +1975,7 @@ void CondExpr::ExprDescribe(ODesc* d) const
 	op3->Describe(d);
 	}
 
-RefExpr::RefExpr(zeek::IntrusivePtr<Expr> arg_op)
+RefExpr::RefExpr(ExprPtr arg_op)
 	: UnaryExpr(EXPR_REF, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1999,20 +1987,20 @@ RefExpr::RefExpr(zeek::IntrusivePtr<Expr> arg_op)
 		SetType(op->GetType());
 	}
 
-zeek::IntrusivePtr<Expr> RefExpr::MakeLvalue()
+ExprPtr RefExpr::MakeLvalue()
 	{
 	return {zeek::NewRef{}, this};
 	}
 
-void RefExpr::Assign(Frame* f, zeek::IntrusivePtr<Val> v)
+void RefExpr::Assign(Frame* f, ValPtr v)
 	{
 	op->Assign(f, std::move(v));
 	}
 
-AssignExpr::AssignExpr(zeek::IntrusivePtr<Expr> arg_op1,
-                       zeek::IntrusivePtr<Expr> arg_op2,
-                       bool arg_is_init, zeek::IntrusivePtr<Val> arg_val,
-                       const zeek::IntrusivePtr<Attributes>& attrs)
+AssignExpr::AssignExpr(ExprPtr arg_op1,
+                       ExprPtr arg_op2,
+                       bool arg_is_init, ValPtr arg_val,
+                       const AttributesPtr& attrs)
 	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
@@ -2044,7 +2032,7 @@ AssignExpr::AssignExpr(zeek::IntrusivePtr<Expr> arg_op1,
 	SetLocationInfo(op1->GetLocationInfo(), op2->GetLocationInfo());
 	}
 
-bool AssignExpr::TypeCheck(const zeek::IntrusivePtr<Attributes>& attrs)
+bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 	{
 	TypeTag bt1 = op1->GetType()->Tag();
 	TypeTag bt2 = op2->GetType()->Tag();
@@ -2079,10 +2067,10 @@ bool AssignExpr::TypeCheck(const zeek::IntrusivePtr<Attributes>& attrs)
 
 	if ( bt1 == zeek::TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
-		std::unique_ptr<std::vector<zeek::IntrusivePtr<Attr>>> attr_copy;
+		std::unique_ptr<std::vector<AttrPtr>> attr_copy;
 
 		if ( attrs )
-	        attr_copy = std::make_unique<std::vector<zeek::IntrusivePtr<Attr>>>(attrs->GetAttrs());
+			attr_copy = std::make_unique<std::vector<AttrPtr>>(attrs->GetAttrs());
 
 		bool empty_list_assignment = (op2->AsListExpr()->Exprs().empty());
 
@@ -2173,13 +2161,13 @@ bool AssignExpr::TypeCheck(const zeek::IntrusivePtr<Attributes>& attrs)
 					return false;
 					}
 
-				std::unique_ptr<std::vector<zeek::IntrusivePtr<Attr>>> attr_copy;
+				std::unique_ptr<std::vector<AttrPtr>> attr_copy;
 
 
 				if ( sce->GetAttrs() )
 					{
 					const auto& a = sce->GetAttrs()->GetAttrs();
-					attr_copy = std::make_unique<std::vector<zeek::IntrusivePtr<Attr>>>(a);
+					attr_copy = std::make_unique<std::vector<AttrPtr>>(a);
 					}
 
 				int errors_before = reporter->Errors();
@@ -2247,7 +2235,7 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 	}
 
 
-zeek::IntrusivePtr<Val> AssignExpr::Eval(Frame* f) const
+ValPtr AssignExpr::Eval(Frame* f) const
 	{
 	if ( is_init )
 		{
@@ -2268,7 +2256,7 @@ zeek::IntrusivePtr<Val> AssignExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
-zeek::IntrusivePtr<zeek::Type> AssignExpr::InitType() const
+zeek::TypePtr AssignExpr::InitType() const
 	{
 	if ( op1->Tag() != EXPR_LIST )
 		{
@@ -2334,7 +2322,7 @@ void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) con
 		RuntimeError("type clash in table assignment");
 	}
 
-zeek::IntrusivePtr<Val> AssignExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( ! aggr )
 		{
@@ -2434,13 +2422,12 @@ bool AssignExpr::IsPure() const
 	return false;
 	}
 
-IndexSliceAssignExpr::IndexSliceAssignExpr(zeek::IntrusivePtr<Expr> op1,
-                                           zeek::IntrusivePtr<Expr> op2, bool is_init)
+IndexSliceAssignExpr::IndexSliceAssignExpr(ExprPtr op1, ExprPtr op2, bool is_init)
 	: AssignExpr(std::move(op1), std::move(op2), is_init)
 	{
 	}
 
-zeek::IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
+ValPtr IndexSliceAssignExpr::Eval(Frame* f) const
 	{
 	if ( is_init )
 		{
@@ -2454,8 +2441,7 @@ zeek::IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-IndexExpr::IndexExpr(zeek::IntrusivePtr<Expr> arg_op1,
-                     zeek::IntrusivePtr<ListExpr> arg_op2, bool arg_is_slice)
+IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
 	: BinaryExpr(EXPR_INDEX, std::move(arg_op1), std::move(arg_op2)),
 	  is_slice(arg_is_slice)
 	{
@@ -2562,7 +2548,7 @@ void IndexExpr::Delete(Frame* f)
 	v1->AsTableVal()->Remove(*v2);
 	}
 
-zeek::IntrusivePtr<Expr> IndexExpr::MakeLvalue()
+ExprPtr IndexExpr::MakeLvalue()
 	{
 	if ( IsString(op1->GetType()->Tag()) )
 		ExprError("cannot assign to string index expression");
@@ -2570,7 +2556,7 @@ zeek::IntrusivePtr<Expr> IndexExpr::MakeLvalue()
 	return zeek::make_intrusive<RefExpr>(IntrusivePtr{zeek::NewRef{}, this});
 	}
 
-zeek::IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
+ValPtr IndexExpr::Eval(Frame* f) const
 	{
 	auto v1 = op1->Eval(f);
 
@@ -2631,12 +2617,12 @@ static int get_slice_index(int idx, int len)
 	return idx;
 	}
 
-zeek::IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
+ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( IsError() )
 		return nullptr;
 
-	zeek::IntrusivePtr<Val> v;
+	ValPtr v;
 
 	switch ( v1->GetType()->Tag() ) {
 	case zeek::TYPE_VECTOR:
@@ -2716,7 +2702,7 @@ zeek::IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 	return nullptr;
 	}
 
-void IndexExpr::Assign(Frame* f, zeek::IntrusivePtr<Val> v)
+void IndexExpr::Assign(Frame* f, ValPtr v)
 	{
 	if ( IsError() )
 		return;
@@ -2836,7 +2822,7 @@ TraversalCode IndexExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-FieldExpr::FieldExpr(zeek::IntrusivePtr<Expr> arg_op, const char* arg_field_name)
+FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)),
 	  field_name(copy_string(arg_field_name)), td(nullptr), field(0)
 	{
@@ -2868,7 +2854,7 @@ FieldExpr::~FieldExpr()
 	delete [] field_name;
 	}
 
-zeek::IntrusivePtr<Expr> FieldExpr::MakeLvalue()
+ExprPtr FieldExpr::MakeLvalue()
 	{
 	return zeek::make_intrusive<RefExpr>(IntrusivePtr{zeek::NewRef{}, this});
 	}
@@ -2878,7 +2864,7 @@ bool FieldExpr::CanDel() const
 	return td->GetAttr(ATTR_DEFAULT) || td->GetAttr(ATTR_OPTIONAL);
 	}
 
-void FieldExpr::Assign(Frame* f, zeek::IntrusivePtr<Val> v)
+void FieldExpr::Assign(Frame* f, ValPtr v)
 	{
 	if ( IsError() )
 		return;
@@ -2895,7 +2881,7 @@ void FieldExpr::Delete(Frame* f)
 	Assign(f, nullptr);
 	}
 
-zeek::IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
+ValPtr FieldExpr::Fold(Val* v) const
 	{
 	if ( const auto& result = v->AsRecordVal()->GetField(field) )
 		return result;
@@ -2927,8 +2913,7 @@ void FieldExpr::ExprDescribe(ODesc* d) const
 		d->Add(field);
 	}
 
-HasFieldExpr::HasFieldExpr(zeek::IntrusivePtr<Expr> arg_op,
-                           const char* arg_field_name)
+HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_HAS_FIELD, std::move(arg_op)),
 	  field_name(arg_field_name), field(0)
 	{
@@ -2956,7 +2941,7 @@ HasFieldExpr::~HasFieldExpr()
 	delete field_name;
 	}
 
-zeek::IntrusivePtr<Val> HasFieldExpr::Fold(Val* v) const
+ValPtr HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
 	return val_mgr->Bool(rv->GetField(field) != nullptr);
@@ -2977,7 +2962,7 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 		d->Add(field);
 	}
 
-RecordConstructorExpr::RecordConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list)
+RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 	: UnaryExpr(EXPR_RECORD_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3011,7 +2996,7 @@ RecordConstructorExpr::~RecordConstructorExpr()
 	{
 	}
 
-zeek::IntrusivePtr<Val> RecordConstructorExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	auto v = Eval(nullptr);
 
@@ -3019,7 +3004,7 @@ zeek::IntrusivePtr<Val> RecordConstructorExpr::InitVal(const zeek::Type* t, zeek
 		{
 		RecordVal* rv = v->AsRecordVal();
 		auto bt = const_cast<zeek::Type*>(t);
-		zeek::IntrusivePtr<RecordType> rt{zeek::NewRef{}, bt->AsRecordType()};
+		RecordTypePtr rt{zeek::NewRef{}, bt->AsRecordType()};
 		auto aggr_rec = zeek::cast_intrusive<RecordVal>(std::move(aggr));
 		auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec));
 
@@ -3031,7 +3016,7 @@ zeek::IntrusivePtr<Val> RecordConstructorExpr::InitVal(const zeek::Type* t, zeek
 	return nullptr;
 	}
 
-zeek::IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
+ValPtr RecordConstructorExpr::Fold(Val* v) const
 	{
 	ListVal* lv = v->AsListVal();
 	auto rt = zeek::cast_intrusive<RecordType>(type);
@@ -3054,9 +3039,9 @@ void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-TableConstructorExpr::TableConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list,
-                                           std::unique_ptr<std::vector<zeek::IntrusivePtr<Attr>>> arg_attrs,
-                                           zeek::IntrusivePtr<zeek::Type> arg_type)
+TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
+                                           std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
+                                           zeek::TypePtr arg_type)
 	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3134,7 +3119,7 @@ TableConstructorExpr::TableConstructorExpr(zeek::IntrusivePtr<ListExpr> construc
 		}
 	}
 
-zeek::IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
+ValPtr TableConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3150,7 +3135,7 @@ zeek::IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-zeek::IntrusivePtr<Val> TableConstructorExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3158,7 +3143,7 @@ zeek::IntrusivePtr<Val> TableConstructorExpr::InitVal(const zeek::Type* t, zeek:
 	auto tt = GetType<TableType>();
 
 	auto tval = aggr ?
-	        zeek::IntrusivePtr<TableVal>{zeek::AdoptRef{}, aggr.release()->AsTableVal()} :
+	        TableValPtr{zeek::AdoptRef{}, aggr.release()->AsTableVal()} :
 	        zeek::make_intrusive<TableVal>(std::move(tt), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
@@ -3175,9 +3160,9 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add(")");
 	}
 
-SetConstructorExpr::SetConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list,
-                                       std::unique_ptr<std::vector<zeek::IntrusivePtr<Attr>>> arg_attrs,
-                                       zeek::IntrusivePtr<zeek::Type> arg_type)
+SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
+                                       std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
+                                       zeek::TypePtr arg_type)
 	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3243,7 +3228,7 @@ SetConstructorExpr::SetConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_
 		}
 	}
 
-zeek::IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
+ValPtr SetConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3261,7 +3246,7 @@ zeek::IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-zeek::IntrusivePtr<Val> SetConstructorExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3269,7 +3254,7 @@ zeek::IntrusivePtr<Val> SetConstructorExpr::InitVal(const zeek::Type* t, zeek::I
 	const auto& index_type = t->AsTableType()->GetIndices();
 	auto tt = GetType<TableType>();
 	auto tval = aggr ?
-	        zeek::IntrusivePtr<TableVal>{zeek::AdoptRef{}, aggr.release()->AsTableVal()} :
+	        TableValPtr{zeek::AdoptRef{}, aggr.release()->AsTableVal()} :
 	        zeek::make_intrusive<TableVal>(std::move(tt), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
@@ -3294,8 +3279,8 @@ void SetConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add(")");
 	}
 
-VectorConstructorExpr::VectorConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list,
-                                             zeek::IntrusivePtr<zeek::Type> arg_type)
+VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list,
+                                             zeek::TypePtr arg_type)
 	: UnaryExpr(EXPR_VECTOR_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3337,7 +3322,7 @@ VectorConstructorExpr::VectorConstructorExpr(zeek::IntrusivePtr<ListExpr> constr
 		ExprError("inconsistent types in vector constructor");
 	}
 
-zeek::IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
+ValPtr VectorConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3359,14 +3344,14 @@ zeek::IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
 	return vec;
 	}
 
-zeek::IntrusivePtr<Val> VectorConstructorExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
 
 	auto vt = GetType<zeek::VectorType>();
 	auto vec = aggr ?
-	        zeek::IntrusivePtr<VectorVal>{zeek::AdoptRef{}, aggr.release()->AsVectorVal()} :
+	        VectorValPtr{zeek::AdoptRef{}, aggr.release()->AsVectorVal()} :
 	        zeek::make_intrusive<VectorVal>(std::move(vt));
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
@@ -3392,8 +3377,7 @@ void VectorConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add(")");
 	}
 
-FieldAssignExpr::FieldAssignExpr(const char* arg_field_name,
-                                 zeek::IntrusivePtr<Expr> value)
+FieldAssignExpr::FieldAssignExpr(const char* arg_field_name, ExprPtr value)
 	: UnaryExpr(EXPR_FIELD_ASSIGN, std::move(value)), field_name(arg_field_name)
 	{
 	SetType(op->GetType());
@@ -3439,7 +3423,7 @@ void FieldAssignExpr::ExprDescribe(ODesc* d) const
 	op->Describe(d);
 	}
 
-ArithCoerceExpr::ArithCoerceExpr(zeek::IntrusivePtr<Expr> arg_op, TypeTag t)
+ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
 : UnaryExpr(EXPR_ARITH_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -3468,7 +3452,7 @@ ArithCoerceExpr::ArithCoerceExpr(zeek::IntrusivePtr<Expr> arg_op, TypeTag t)
 		ExprError("bad coercion value");
 	}
 
-zeek::IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
+ValPtr ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 	{
 	switch ( t ) {
 	case zeek::TYPE_INTERNAL_DOUBLE:
@@ -3486,7 +3470,7 @@ zeek::IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t
 	}
 	}
 
-zeek::IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
+ValPtr ArithCoerceExpr::Fold(Val* v) const
 	{
 	InternalTypeTag t = type->InternalType();
 
@@ -3517,8 +3501,7 @@ zeek::IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 	return result;
 	}
 
-RecordCoerceExpr::RecordCoerceExpr(zeek::IntrusivePtr<Expr> arg_op,
-                                   zeek::IntrusivePtr<RecordType> r)
+RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, zeek::RecordTypePtr r)
 	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op)),
 	  map(nullptr), map_size(0)
 	{
@@ -3630,13 +3613,13 @@ RecordCoerceExpr::~RecordCoerceExpr()
 	delete [] map;
 	}
 
-zeek::IntrusivePtr<Val> RecordCoerceExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();
 		auto bt = const_cast<zeek::Type*>(t);
-		zeek::IntrusivePtr<RecordType> rt{zeek::NewRef{}, bt->AsRecordType()};
+		zeek::RecordTypePtr rt{zeek::NewRef{}, bt->AsRecordType()};
 		auto aggr_rec = zeek::cast_intrusive<RecordVal>(std::move(aggr));
 
 		if ( auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec)) )
@@ -3647,7 +3630,7 @@ zeek::IntrusivePtr<Val> RecordCoerceExpr::InitVal(const zeek::Type* t, zeek::Int
 	return nullptr;
 	}
 
-zeek::IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
+ValPtr RecordCoerceExpr::Fold(Val* v) const
 	{
 	auto val = zeek::make_intrusive<RecordVal>(GetType<RecordType>());
 	RecordType* val_type = val->GetType()->AsRecordType();
@@ -3728,8 +3711,7 @@ zeek::IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 	return val;
 	}
 
-TableCoerceExpr::TableCoerceExpr(zeek::IntrusivePtr<Expr> arg_op,
-                                 zeek::IntrusivePtr<TableType> r)
+TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, zeek::TableTypePtr r)
 	: UnaryExpr(EXPR_TABLE_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -3749,7 +3731,7 @@ TableCoerceExpr::~TableCoerceExpr()
 	{
 	}
 
-zeek::IntrusivePtr<Val> TableCoerceExpr::Fold(Val* v) const
+ValPtr TableCoerceExpr::Fold(Val* v) const
 	{
 	TableVal* tv = v->AsTableVal();
 
@@ -3759,8 +3741,7 @@ zeek::IntrusivePtr<Val> TableCoerceExpr::Fold(Val* v) const
 	return zeek::make_intrusive<TableVal>(GetType<TableType>(), tv->GetAttrs());
 	}
 
-VectorCoerceExpr::VectorCoerceExpr(zeek::IntrusivePtr<Expr> arg_op,
-                                   zeek::IntrusivePtr<zeek::VectorType> v)
+VectorCoerceExpr::VectorCoerceExpr(ExprPtr arg_op, zeek::VectorTypePtr v)
 	: UnaryExpr(EXPR_VECTOR_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -3780,7 +3761,7 @@ VectorCoerceExpr::~VectorCoerceExpr()
 	{
 	}
 
-zeek::IntrusivePtr<Val> VectorCoerceExpr::Fold(Val* v) const
+ValPtr VectorCoerceExpr::Fold(Val* v) const
 	{
 	VectorVal* vv = v->AsVectorVal();
 
@@ -3807,8 +3788,7 @@ void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 		mgr.Enqueue(event, std::move(args));
 	}
 
-ScheduleExpr::ScheduleExpr(zeek::IntrusivePtr<Expr> arg_when,
-                           zeek::IntrusivePtr<EventExpr> arg_event)
+ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)
 	: Expr(EXPR_SCHEDULE),
 	  when(std::move(arg_when)), event(std::move(arg_event))
 	{
@@ -3828,7 +3808,7 @@ bool ScheduleExpr::IsPure() const
 	return false;
 	}
 
-zeek::IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
+ValPtr ScheduleExpr::Eval(Frame* f) const
 	{
 	if ( terminating )
 		return nullptr;
@@ -3886,7 +3866,7 @@ void ScheduleExpr::ExprDescribe(ODesc* d) const
 		event->Describe(d);
 	}
 
-InExpr::InExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
+InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_IN, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -3963,7 +3943,7 @@ InExpr::InExpr(zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op
 		}
 	}
 
-zeek::IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
+ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( v1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
@@ -3997,8 +3977,7 @@ zeek::IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	return val_mgr->Bool(res);
 	}
 
-CallExpr::CallExpr(zeek::IntrusivePtr<Expr> arg_func,
-                   zeek::IntrusivePtr<ListExpr> arg_args, bool in_hook)
+CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
 	: Expr(EXPR_CALL), func(std::move(arg_func)), args(std::move(arg_args))
 	{
 	if ( func->IsError() || args->IsError() )
@@ -4058,7 +4037,7 @@ CallExpr::CallExpr(zeek::IntrusivePtr<Expr> arg_func,
 			SetType(yield);
 
 		// Check for call to built-ins that can be statically analyzed.
-		zeek::IntrusivePtr<Val> func_val;
+		ValPtr func_val;
 
 		if ( func->Tag() == EXPR_NAME &&
 		     // This is cheating, but without it processing gets
@@ -4107,7 +4086,7 @@ bool CallExpr::IsPure() const
 	return pure;
 	}
 
-zeek::IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
+ValPtr CallExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -4129,7 +4108,7 @@ zeek::IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 			}
 		}
 
-	zeek::IntrusivePtr<Val> ret;
+	ValPtr ret;
 	auto func_val = func->Eval(f);
 	auto v = eval_list(f, args.get());
 
@@ -4238,7 +4217,7 @@ Scope* LambdaExpr::GetScope() const
 	return ingredients->scope.get();
 	}
 
-zeek::IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
+ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = zeek::make_intrusive<BroFunc>(
 		ingredients->id,
@@ -4274,7 +4253,7 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-EventExpr::EventExpr(const char* arg_name, zeek::IntrusivePtr<ListExpr> arg_args)
+EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
 	: Expr(EXPR_EVENT), name(arg_name), args(std::move(arg_args))
 	{
 	EventHandler* h = event_registry->Lookup(name);
@@ -4316,7 +4295,7 @@ EventExpr::EventExpr(const char* arg_name, zeek::IntrusivePtr<ListExpr> arg_args
 		}
 	}
 
-zeek::IntrusivePtr<Val> EventExpr::Eval(Frame* f) const
+ValPtr EventExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -4359,7 +4338,7 @@ ListExpr::ListExpr() : Expr(EXPR_LIST)
 	SetType(zeek::make_intrusive<TypeList>());
 	}
 
-ListExpr::ListExpr(zeek::IntrusivePtr<Expr> e) : Expr(EXPR_LIST)
+ListExpr::ListExpr(ExprPtr e) : Expr(EXPR_LIST)
 	{
 	SetType(zeek::make_intrusive<TypeList>());
 	Append(std::move(e));
@@ -4371,7 +4350,7 @@ ListExpr::~ListExpr()
 		Unref(expr);
 	}
 
-void ListExpr::Append(zeek::IntrusivePtr<Expr> e)
+void ListExpr::Append(ExprPtr e)
 	{
 	exprs.push_back(e.release());
 	((TypeList*) type.get())->Append(exprs.back()->GetType());
@@ -4386,7 +4365,7 @@ bool ListExpr::IsPure() const
 	return true;
 	}
 
-zeek::IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
+ValPtr ListExpr::Eval(Frame* f) const
 	{
 	auto v = zeek::make_intrusive<ListVal>(zeek::TYPE_ANY);
 
@@ -4406,7 +4385,7 @@ zeek::IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
 	return v;
 	}
 
-zeek::IntrusivePtr<zeek::Type> ListExpr::InitType() const
+zeek::TypePtr ListExpr::InitType() const
 	{
 	if ( exprs.empty() )
 		{
@@ -4464,7 +4443,7 @@ zeek::IntrusivePtr<zeek::Type> ListExpr::InitType() const
 		}
 	}
 
-zeek::IntrusivePtr<Val> ListExpr::InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	// While fairly similar to the EvalIntoAggregate() code,
 	// we keep this separate since it also deals with initialization
@@ -4608,7 +4587,7 @@ zeek::IntrusivePtr<Val> ListExpr::InitVal(const zeek::Type* t, zeek::IntrusivePt
 	return aggr;
 	}
 
-zeek::IntrusivePtr<Val> ListExpr::AddSetInit(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const
+ValPtr ListExpr::AddSetInit(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( aggr->GetType()->Tag() != zeek::TYPE_TABLE )
 		Internal("bad aggregate in ListExpr::InitVal");
@@ -4619,7 +4598,7 @@ zeek::IntrusivePtr<Val> ListExpr::AddSetInit(const zeek::Type* t, zeek::Intrusiv
 
 	for ( const auto& expr : exprs )
 		{
-		zeek::IntrusivePtr<Val> element;
+		ValPtr element;
 
 		if ( expr->GetType()->IsSet() )
 			// A set to flatten.
@@ -4674,7 +4653,7 @@ void ListExpr::ExprDescribe(ODesc* d) const
 		}
 	}
 
-zeek::IntrusivePtr<Expr> ListExpr::MakeLvalue()
+ExprPtr ListExpr::MakeLvalue()
 	{
 	for ( const auto & expr : exprs )
 		if ( expr->Tag() != EXPR_NAME )
@@ -4683,7 +4662,7 @@ zeek::IntrusivePtr<Expr> ListExpr::MakeLvalue()
 	return zeek::make_intrusive<RefExpr>(IntrusivePtr{zeek::NewRef{}, this});
 	}
 
-void ListExpr::Assign(Frame* f, zeek::IntrusivePtr<Val> v)
+void ListExpr::Assign(Frame* f, ValPtr v)
 	{
 	ListVal* lv = v->AsListVal();
 
@@ -4709,8 +4688,8 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-RecordAssignExpr::RecordAssignExpr(const zeek::IntrusivePtr<Expr>& record,
-                                   const zeek::IntrusivePtr<Expr>& init_list, bool is_init)
+RecordAssignExpr::RecordAssignExpr(const ExprPtr& record,
+                                   const ExprPtr& init_list, bool is_init)
 	{
 	const expr_list& inits = init_list->AsListExpr()->Exprs();
 
@@ -4751,7 +4730,7 @@ RecordAssignExpr::RecordAssignExpr(const zeek::IntrusivePtr<Expr>& record,
 			if ( lhs->HasField(field_name) )
 				{
 				auto fe_lhs = zeek::make_intrusive<FieldExpr>(record, field_name);
-				zeek::IntrusivePtr<Expr> fe_rhs = {zeek::NewRef{}, rf->Op()};
+				ExprPtr fe_rhs = {zeek::NewRef{}, rf->Op()};
 				Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
 				}
 			else
@@ -4771,7 +4750,7 @@ RecordAssignExpr::RecordAssignExpr(const zeek::IntrusivePtr<Expr>& record,
 		}
 	}
 
-CastExpr::CastExpr(zeek::IntrusivePtr<Expr> arg_op, zeek::IntrusivePtr<zeek::Type> t)
+CastExpr::CastExpr(ExprPtr arg_op, zeek::TypePtr t)
 	: UnaryExpr(EXPR_CAST, std::move(arg_op))
 	{
 	auto stype = Op()->GetType();
@@ -4782,7 +4761,7 @@ CastExpr::CastExpr(zeek::IntrusivePtr<Expr> arg_op, zeek::IntrusivePtr<zeek::Typ
 		ExprError("cast not supported");
 	}
 
-zeek::IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
+ValPtr CastExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -4819,13 +4798,13 @@ void CastExpr::ExprDescribe(ODesc* d) const
 	GetType()->Describe(d);
 	}
 
-IsExpr::IsExpr(zeek::IntrusivePtr<Expr> arg_op, zeek::IntrusivePtr<zeek::Type> arg_t)
+IsExpr::IsExpr(ExprPtr arg_op, zeek::TypePtr arg_t)
 	: UnaryExpr(EXPR_IS, std::move(arg_op)), t(std::move(arg_t))
 	{
 	SetType(zeek::base_type(zeek::TYPE_BOOL));
 	}
 
-zeek::IntrusivePtr<Val> IsExpr::Fold(Val* v) const
+ValPtr IsExpr::Fold(Val* v) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -4840,8 +4819,7 @@ void IsExpr::ExprDescribe(ODesc* d) const
 	t->Describe(d);
 	}
 
-zeek::IntrusivePtr<Expr> get_assign_expr(zeek::IntrusivePtr<Expr> op1,
-                                   zeek::IntrusivePtr<Expr> op2, bool is_init)
+ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 	{
 	if ( op1->GetType()->Tag() == zeek::TYPE_RECORD &&
 	     op2->GetType()->Tag() == zeek::TYPE_LIST )
@@ -4857,7 +4835,7 @@ zeek::IntrusivePtr<Expr> get_assign_expr(zeek::IntrusivePtr<Expr> op1,
 			std::move(op1), std::move(op2), is_init);
 	}
 
-zeek::IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, zeek::Type* t)
+ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 	{
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
@@ -5044,10 +5022,10 @@ bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
 	return true;
 	}
 
-std::optional<std::vector<zeek::IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l)
+std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l)
 	{
 	const expr_list& e = l->Exprs();
-	auto rval = std::make_optional<std::vector<zeek::IntrusivePtr<Val>>>();
+	auto rval = std::make_optional<std::vector<ValPtr>>();
 	rval->reserve(e.length());
 
 	for ( const auto& expr : e )

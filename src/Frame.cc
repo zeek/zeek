@@ -7,7 +7,6 @@
 
 #include "Func.h"
 #include "Desc.h"
-#include "IntrusivePtr.h"
 #include "Trigger.h"
 #include "Val.h"
 #include "ID.h"
@@ -65,7 +64,7 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 void Frame::SetElement(int n, Val* v)
 	{ SetElement(n, {zeek::AdoptRef{}, v}); }
 
-void Frame::SetElement(int n, zeek::IntrusivePtr<Val> v)
+void Frame::SetElement(int n, ValPtr v)
 	{
 	ClearElement(n);
 	frame[n] = {std::move(v), false};
@@ -77,7 +76,7 @@ void Frame::SetElementWeak(int n, Val* v)
 	frame[n] = {{zeek::AdoptRef{}, v}, true};
 	}
 
-void Frame::SetElement(const zeek::detail::ID* id, zeek::IntrusivePtr<Val> v)
+void Frame::SetElement(const zeek::detail::ID* id, ValPtr v)
 	{
 	if ( closure )
 		{
@@ -106,7 +105,7 @@ void Frame::SetElement(const zeek::detail::ID* id, zeek::IntrusivePtr<Val> v)
 	SetElement(id->Offset(), std::move(v));
 	}
 
-const zeek::IntrusivePtr<Val>& Frame::GetElementByID(const zeek::detail::ID* id) const
+const ValPtr& Frame::GetElementByID(const zeek::detail::ID* id) const
 	{
 	if ( closure )
 		{
@@ -173,7 +172,7 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-static bool val_is_func(const zeek::IntrusivePtr<Val>& v, BroFunc* func)
+static bool val_is_func(const ValPtr& v, BroFunc* func)
 	{
 	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
 		return false;
@@ -348,14 +347,14 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 	return {std::move(rval)};
 	}
 
-std::pair<bool, zeek::IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& data)
+std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
 
 	id_list outer_ids;
 	OffsetMap offset_map;
-	zeek::IntrusivePtr<Frame> closure;
+	FramePtr closure;
 
 	auto where = data.begin();
 
@@ -505,7 +504,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(zeek::IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger)
+void Frame::SetTrigger(zeek::detail::trigger::TriggerPtr arg_trigger)
 	{
 	trigger = std::move(arg_trigger);
 	}

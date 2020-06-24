@@ -15,7 +15,7 @@ class PE : public file_analysis::Analyzer {
 public:
 	~PE();
 
-	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
 	                                            File* file)
 		{ return new PE(std::move(args), file); }
 
@@ -24,7 +24,7 @@ public:
 	virtual bool EndOfFile();
 
 protected:
-	PE(zeek::IntrusivePtr<RecordVal> args, File* file);
+	PE(RecordValPtr args, File* file);
 	binpac::PE::File* interp;
 	binpac::PE::MockConnection* conn;
 	bool done;

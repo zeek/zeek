@@ -15,11 +15,11 @@
 
 using namespace analyzer::bittorrent;
 
-static zeek::IntrusivePtr<zeek::TableType> bt_tracker_headers;
-static zeek::IntrusivePtr<zeek::RecordType> bittorrent_peer;
-static zeek::IntrusivePtr<zeek::TableType> bittorrent_peer_set;
-static zeek::IntrusivePtr<zeek::RecordType> bittorrent_benc_value;
-static zeek::IntrusivePtr<zeek::TableType> bittorrent_benc_dir;
+static zeek::TableTypePtr bt_tracker_headers;
+static zeek::RecordTypePtr bittorrent_peer;
+static zeek::TableTypePtr bittorrent_peer_set;
+static zeek::RecordTypePtr bittorrent_benc_value;
+static zeek::TableTypePtr bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 : tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)

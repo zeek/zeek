@@ -1358,7 +1358,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 		{
 		auto option_list = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::TCP::OptionList);
 
-		auto add_option_data = [](const zeek::IntrusivePtr<RecordVal>& rv, const u_char* odata, int olen)
+		auto add_option_data = [](const RecordValPtr& rv, const u_char* odata, int olen)
 			{
 			if ( olen <= 2 )
 				return;
@@ -1584,7 +1584,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::IntrusivePtr<BroFile> f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFilePtr f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1601,7 +1601,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::IntrusivePtr<Br
 		}
 	}
 
-zeek::IntrusivePtr<BroFile> TCP_Analyzer::GetContentsFile(unsigned int direction) const
+BroFilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:

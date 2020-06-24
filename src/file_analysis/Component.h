@@ -9,6 +9,7 @@
 #include "../zeek-config.h"
 
 class RecordVal;
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace file_analysis {
 
@@ -26,7 +27,7 @@ class Component : public zeek::plugin::Component,
                   public plugin::TaggedComponent<file_analysis::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);
-	using factory_function = Analyzer* (*)(zeek::IntrusivePtr<RecordVal> args, File* file);
+	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);
 
 	/**
 	 * Constructor.

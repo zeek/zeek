@@ -20,11 +20,17 @@
 class Val;
 class Frame;
 class Scope;
+using ScopePtr = zeek::IntrusivePtr<Scope>;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
+
+namespace zeek::detail {
+using IDPtr = zeek::IntrusivePtr<ID>;
+using StmtPtr = zeek::IntrusivePtr<Stmt>;
+}
 
 namespace caf {
 template <class> class expected;
@@ -36,9 +42,12 @@ using vector = std::vector<data>;
 using caf::expected;
 }
 
+class Func;
+using FuncPtr = zeek::IntrusivePtr<Func>;
+
 class Func : public BroObj {
 public:
-	static inline const zeek::IntrusivePtr<Func> nil;
+	static inline const FuncPtr nil;
 
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
@@ -50,7 +59,7 @@ public:
 	zeek::FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
-		zeek::IntrusivePtr<zeek::detail::Stmt> stmts;
+		zeek::detail::StmtPtr stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
@@ -68,7 +77,7 @@ public:
 	 * @param parent  the frame from which the function is being called.
 	 * @return  the return value of the function call.
 	 */
-	virtual zeek::IntrusivePtr<Val> Invoke(
+	virtual ValPtr Invoke(
 		zeek::Args* args, Frame* parent = nullptr) const = 0;
 
 	/**
@@ -77,8 +86,8 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 	  std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>,
-	                        zeek::IntrusivePtr<Val>>,
-		zeek::IntrusivePtr<Val>>
+	                        ValPtr>,
+		ValPtr>
 	Invoke(Args&&... args) const
 		{
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
@@ -86,17 +95,17 @@ public:
 		}
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(zeek::IntrusivePtr<zeek::detail::Stmt> new_body,
-	                     const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& new_inits,
+	virtual void AddBody(zeek::detail::StmtPtr new_body,
+	                     const std::vector<zeek::detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
-	virtual void SetScope(zeek::IntrusivePtr<Scope> newscope);
+	virtual void SetScope(ScopePtr newscope);
 	virtual Scope* GetScope() const		{ return scope.get(); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	virtual zeek::FuncType* FType() const { return type.get(); }
 
-	const zeek::IntrusivePtr<zeek::FuncType>& GetType() const
+	const zeek::FuncTypePtr& GetType() const
 		{ return type; }
 
 	Kind GetKind() const	{ return kind; }
@@ -107,12 +116,12 @@ public:
 	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const zeek::Args* args) const;
 
-	virtual zeek::IntrusivePtr<Func> DoClone();
+	virtual FuncPtr DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
-	static const zeek::IntrusivePtr<Func>& GetFuncPtrByID(uint32_t id)
+	static const FuncPtr& GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? Func::nil : unique_ids[id]; }
 
 protected:
@@ -122,29 +131,29 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for checking result of plugin hook.
-	void CheckPluginResult(bool handled, const zeek::IntrusivePtr<Val>& hook_result,
+	void CheckPluginResult(bool handled, const ValPtr& hook_result,
 	                       zeek::FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
-	zeek::IntrusivePtr<Scope> scope;
+	ScopePtr scope;
 	Kind kind;
 	uint32_t unique_id;
-	zeek::IntrusivePtr<zeek::FuncType> type;
+	zeek::FuncTypePtr type;
 	std::string name;
-	static inline std::vector<zeek::IntrusivePtr<Func>> unique_ids;
+	static inline std::vector<FuncPtr> unique_ids;
 };
 
 
 class BroFunc final : public Func {
 public:
-	BroFunc(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::IntrusivePtr<zeek::detail::Stmt> body,
-	        const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& inits,
+	BroFunc(const zeek::detail::IDPtr& id, zeek::detail::StmtPtr body,
+	        const std::vector<zeek::detail::IDPtr>& inits,
 	        size_t frame_size, int priority);
 
 	~BroFunc() override;
 
 	bool IsPure() const override;
-	zeek::IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
+	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -175,8 +184,8 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(zeek::IntrusivePtr<zeek::detail::Stmt> new_body,
-	             const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& new_inits,
+	void AddBody(zeek::detail::StmtPtr new_body,
+	             const std::vector<zeek::detail::IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
@@ -187,14 +196,14 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	zeek::IntrusivePtr<zeek::detail::Stmt> AddInits(
-		zeek::IntrusivePtr<zeek::detail::Stmt> body,
-		const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& inits);
+	zeek::detail::StmtPtr AddInits(
+		zeek::detail::StmtPtr body,
+		const std::vector<zeek::detail::IDPtr>& inits);
 
 	/**
 	 * Clones this function along with its closures.
 	 */
-	zeek::IntrusivePtr<Func> DoClone() override;
+	FuncPtr DoClone() override;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -222,7 +231,7 @@ public:
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	zeek::IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
+	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -236,7 +245,7 @@ protected:
 
 
 extern void builtin_error(const char* msg);
-extern void builtin_error(const char* msg, zeek::IntrusivePtr<Val>);
+extern void builtin_error(const char* msg, ValPtr);
 extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
@@ -255,14 +264,14 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(zeek::IntrusivePtr<Scope> scope, zeek::IntrusivePtr<zeek::detail::Stmt> body);
+	function_ingredients(ScopePtr scope, zeek::detail::StmtPtr body);
 
-	zeek::IntrusivePtr<zeek::detail::ID> id;
-	zeek::IntrusivePtr<zeek::detail::Stmt> body;
-	std::vector<zeek::IntrusivePtr<zeek::detail::ID>> inits;
+	zeek::detail::IDPtr id;
+	zeek::detail::StmtPtr body;
+	std::vector<zeek::detail::IDPtr> inits;
 	int frame_size;
 	int priority;
-	zeek::IntrusivePtr<Scope> scope;
+	ScopePtr scope;
 };
 
 extern std::vector<CallInfo> call_stack;

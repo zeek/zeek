@@ -8,7 +8,7 @@
 %}
 
 %code{
-zeek::IntrusivePtr<AddrVal> binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
+AddrValPtr binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
 	{
 	if ( a->size() == 1 )
 		{
@@ -26,7 +26,7 @@ zeek::IntrusivePtr<AddrVal> binpac::Unified2::Flow::unified2_addr_to_bro_addr(st
 		}
 	}
 
-zeek::IntrusivePtr<Val> binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
+ValPtr binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
 	{
 	TransportProto proto = TRANSPORT_UNKNOWN;
 	switch ( p ) {
@@ -42,8 +42,8 @@ zeek::IntrusivePtr<Val> binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
 refine flow Flow += {
 
 	%member{
-		zeek::IntrusivePtr<AddrVal> unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
-		zeek::IntrusivePtr<Val> to_port(uint16_t n, uint8_t p);
+		AddrValPtr unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
+		ValPtr to_port(uint16_t n, uint8_t p);
 	%}
 
 	%init{

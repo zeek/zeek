@@ -5,12 +5,12 @@
 %}
 
 %header{
-zeek::IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl);
+VectorValPtr name_list_to_vector(const bytestring& nl);
 %}
 
 %code{
 // Copied from IRC_Analyzer::SplitWords
-zeek::IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl)
+VectorValPtr name_list_to_vector(const bytestring& nl)
 	{
 	auto vv = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
 

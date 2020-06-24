@@ -948,7 +948,7 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern int line_number;
 extern const char* filename;
 
-zeek::IntrusivePtr<Val> dbg_eval_expr(const char* expr)
+ValPtr dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
@@ -983,7 +983,7 @@ zeek::IntrusivePtr<Val> dbg_eval_expr(const char* expr)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Parse the thing into an expr.
-	zeek::IntrusivePtr<Val> result;
+	ValPtr result;
 	if ( yyparse() )
 		{
 		if ( g_curr_debug_error )

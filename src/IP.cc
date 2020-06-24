@@ -13,7 +13,7 @@
 #include "BroString.h"
 #include "Reporter.h"
 
-static zeek::IntrusivePtr<VectorVal> BuildOptionsVal(const u_char* data, int len)
+static VectorValPtr BuildOptionsVal(const u_char* data, int len)
 	{
 	auto vv = zeek::make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("ip6_options"));
 
@@ -49,9 +49,9 @@ static zeek::IntrusivePtr<VectorVal> BuildOptionsVal(const u_char* data, int len
 	return vv;
 	}
 
-zeek::IntrusivePtr<RecordVal> IPv6_Hdr::ToVal(zeek::IntrusivePtr<VectorVal> chain) const
+RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 	{
-	zeek::IntrusivePtr<RecordVal> rv;
+	RecordValPtr rv;
 
 	switch ( type ) {
 	case IPPROTO_IPV6:
@@ -298,7 +298,7 @@ zeek::IntrusivePtr<RecordVal> IPv6_Hdr::ToVal(zeek::IntrusivePtr<VectorVal> chai
 	return rv;
 	}
 
-zeek::IntrusivePtr<RecordVal> IPv6_Hdr::ToVal() const
+RecordValPtr IPv6_Hdr::ToVal() const
 	{ return ToVal(nullptr); }
 
 RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
@@ -326,9 +326,9 @@ IPAddr IP_Hdr::DstAddr() const
 	return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->DstAddr();
 	}
 
-zeek::IntrusivePtr<RecordVal> IP_Hdr::ToIPHdrVal() const
+RecordValPtr IP_Hdr::ToIPHdrVal() const
 	{
-	zeek::IntrusivePtr<RecordVal> rval;
+	RecordValPtr rval;
 
 	if ( ip4 )
 		{
@@ -356,7 +356,7 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 	return ToIPHdrVal().release();
 	}
 
-zeek::IntrusivePtr<RecordVal> IP_Hdr::ToPktHdrVal() const
+RecordValPtr IP_Hdr::ToPktHdrVal() const
 	{
 	static auto pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("pkt_hdr");
 	return ToPktHdrVal(zeek::make_intrusive<RecordVal>(pkt_hdr_type), 0);
@@ -367,7 +367,7 @@ RecordVal* IP_Hdr::BuildPktHdrVal() const
 	return ToPktHdrVal().release();
 	}
 
-zeek::IntrusivePtr<RecordVal> IP_Hdr::ToPktHdrVal(zeek::IntrusivePtr<RecordVal> pkt_hdr, int sindex) const
+RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 	{
 	static auto tcp_hdr_type = zeek::id::find_type<zeek::RecordType>("tcp_hdr");
 	static auto udp_hdr_type = zeek::id::find_type<zeek::RecordType>("udp_hdr");
@@ -676,7 +676,7 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 	}
 #endif
 
-zeek::IntrusivePtr<VectorVal> IPv6_Hdr_Chain::ToVal() const
+VectorValPtr IPv6_Hdr_Chain::ToVal() const
 	{
 	static auto ip6_ext_hdr_type = zeek::id::find_type<zeek::RecordType>("ip6_ext_hdr");
 	static auto ip6_hopopts_type = zeek::id::find_type<zeek::RecordType>("ip6_hopopts");

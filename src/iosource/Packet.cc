@@ -2,7 +2,6 @@
 #include "Sessions.h"
 #include "Desc.h"
 #include "IP.h"
-#include "IntrusivePtr.h"
 #include "iosource/Manager.h"
 #include "Var.h"
 
@@ -592,7 +591,7 @@ void Packet::ProcessLayer2()
 	hdr_size = (pdata - data);
 }
 
-zeek::IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
+RecordValPtr Packet::ToRawPktHdrVal() const
 	{
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
 	static auto l2_hdr_type = zeek::id::find_type<zeek::RecordType>("l2_hdr");
@@ -674,7 +673,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	return ToRawPktHdrVal().release();
 	}
 
-zeek::IntrusivePtr<Val> Packet::FmtEUI48(const u_char* mac) const
+ValPtr Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",

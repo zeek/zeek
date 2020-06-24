@@ -17,7 +17,7 @@
 using namespace file_analysis;
 
 X509Common::X509Common(const file_analysis::Tag& arg_tag,
-                       zeek::IntrusivePtr<RecordVal> arg_args, File* arg_file)
+                       RecordValPtr arg_args, File* arg_file)
 	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{
 	}
@@ -298,7 +298,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-zeek::IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
+StringValPtr file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();

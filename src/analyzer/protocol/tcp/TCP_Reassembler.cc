@@ -92,7 +92,7 @@ uint64_t TCP_Reassembler::NumUndeliveredBytes() const
 	return last_block.upper - last_reassem_seq;
 	}
 
-void TCP_Reassembler::SetContentsFile(zeek::IntrusivePtr<BroFile> f)
+void TCP_Reassembler::SetContentsFile(BroFilePtr f)
 	{
 	if ( ! f->IsOpen() )
 		{
@@ -317,7 +317,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 		}
 	}
 
-void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const zeek::IntrusivePtr<BroFile>& f)
+void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const BroFilePtr& f)
 	{
 	auto it = block_list.Begin();
 
@@ -348,7 +348,7 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const z
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(const DataBlock& b, const zeek::IntrusivePtr<BroFile>& f)
+void TCP_Reassembler::RecordBlock(const DataBlock& b, const BroFilePtr& f)
 	{
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
@@ -363,7 +363,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const zeek::IntrusivePtr<B
 		);
 	}
 
-void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::IntrusivePtr<BroFile>& f)
+void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const BroFilePtr& f)
 	{
 	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;

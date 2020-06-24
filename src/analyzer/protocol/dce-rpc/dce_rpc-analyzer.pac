@@ -83,7 +83,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_bind_ack )
 			{
-			zeek::IntrusivePtr<StringVal> sec_addr;
+			StringValPtr sec_addr;
 
 			// Remove the null from the end of the string if it's there.
 			if ( ${bind.sec_addr}.length() > 0 &&

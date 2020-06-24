@@ -1,13 +1,13 @@
 %header{
-zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts);
-zeek::IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
+ValPtr filetime2brotime(uint64_t ts);
+ValPtr time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
 
-zeek::IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
+RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
                                                 uint64_t create, uint64_t change);
 %}
 
 %code{
-zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts)
+ValPtr filetime2brotime(uint64_t ts)
 	{
 	// Bro can't support times back to the 1600's
 	// so we subtract a lot of seconds.
@@ -15,7 +15,7 @@ zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts)
 	return zeek::make_intrusive<TimeVal>(secs);
 	}
 
-zeek::IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
+ValPtr time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	{
 	tm lTime;
 	lTime.tm_sec = ${t.two_seconds} * 2;
@@ -29,7 +29,7 @@ zeek::IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	return zeek::make_intrusive<TimeVal>(lResult + tz);
 	}
 
-zeek::IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
+RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
                                                 uint64_t create, uint64_t change)
 	{
 	auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB::MACTimes);

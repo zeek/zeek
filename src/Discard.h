@@ -9,6 +9,7 @@
 class IP_Hdr;
 class Val;
 class Func;
+using FuncPtr = zeek::IntrusivePtr<Func>;
 
 class Discarder {
 public:
@@ -22,10 +23,10 @@ public:
 protected:
 	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
 
-	zeek::IntrusivePtr<Func> check_ip;
-	zeek::IntrusivePtr<Func> check_tcp;
-	zeek::IntrusivePtr<Func> check_udp;
-	zeek::IntrusivePtr<Func> check_icmp;
+	FuncPtr check_ip;
+	FuncPtr check_tcp;
+	FuncPtr check_udp;
+	FuncPtr check_icmp;
 
 	// Maximum amount of application data passed to filtering functions.
 	int discarder_maxlen;

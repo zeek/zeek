@@ -342,7 +342,7 @@ RecordVal* Connection::BuildConnVal()
 	return ConnVal()->Ref()->AsRecordVal();
 	}
 
-const zeek::IntrusivePtr<RecordVal>& Connection::ConnVal()
+const RecordValPtr& Connection::ConnVal()
 	{
 	if ( ! conn_val )
 		{

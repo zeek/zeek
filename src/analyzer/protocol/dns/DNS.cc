@@ -1260,7 +1260,7 @@ bool DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	return true;
 	}
 
-static zeek::IntrusivePtr<StringVal>
+static StringValPtr
 extract_char_string(analyzer::Analyzer* analyzer,
                     const u_char*& data, int& len, int& rdlen)
 	{
@@ -1300,7 +1300,7 @@ bool DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 		}
 
 	auto char_strings = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
-	zeek::IntrusivePtr<StringVal> char_string;
+	StringValPtr char_string;
 
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
 		char_strings->Assign(char_strings->Size(), std::move(char_string));
@@ -1328,7 +1328,7 @@ bool DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
 		}
 
 	auto char_strings = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
-	zeek::IntrusivePtr<StringVal> char_string;
+	StringValPtr char_string;
 
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
 		char_strings->Assign(char_strings->Size(), std::move(char_string));
@@ -1446,7 +1446,7 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	skip_event = 0;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildHdrVal()
+RecordValPtr DNS_MsgInfo::BuildHdrVal()
 	{
 	static auto dns_msg = zeek::id::find_type<zeek::RecordType>("dns_msg");
 	auto r = zeek::make_intrusive<RecordVal>(dns_msg);
@@ -1468,7 +1468,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildHdrVal()
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildAnswerVal()
+RecordValPtr DNS_MsgInfo::BuildAnswerVal()
 	{
 	static auto dns_answer = zeek::id::find_type<zeek::RecordType>("dns_answer");
 	auto r = zeek::make_intrusive<RecordVal>(dns_answer);
@@ -1482,7 +1482,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildAnswerVal()
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildEDNS_Val()
+RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 	{
 	// We have to treat the additional record type in EDNS differently
 	// than a regular resource record.
@@ -1518,7 +1518,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildEDNS_Val()
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
+RecordValPtr DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	{
 	static auto dns_tsig_additional = zeek::id::find_type<zeek::RecordType>("dns_tsig_additional");
 	auto r = zeek::make_intrusive<RecordVal>(dns_tsig_additional);
@@ -1538,7 +1538,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
+RecordValPtr DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	{
 	static auto dns_rrsig_rr = zeek::id::find_type<zeek::RecordType>("dns_rrsig_rr");
 	auto r = zeek::make_intrusive<RecordVal>(dns_rrsig_rr);
@@ -1559,7 +1559,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
+RecordValPtr DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	{
 	static auto dns_dnskey_rr = zeek::id::find_type<zeek::RecordType>("dns_dnskey_rr");
 	auto r = zeek::make_intrusive<RecordVal>(dns_dnskey_rr);
@@ -1575,7 +1575,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
+RecordValPtr DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	{
 	static auto dns_nsec3_rr = zeek::id::find_type<zeek::RecordType>("dns_nsec3_rr");
 	auto r = zeek::make_intrusive<RecordVal>(dns_nsec3_rr);
@@ -1595,7 +1595,7 @@ zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	return r;
 	}
 
-zeek::IntrusivePtr<RecordVal> DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
+RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	{
 	static auto dns_ds_rr = zeek::id::find_type<zeek::RecordType>("dns_ds_rr");
 	auto r = zeek::make_intrusive<RecordVal>(dns_ds_rr);

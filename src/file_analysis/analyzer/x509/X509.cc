@@ -23,7 +23,7 @@
 
 using namespace file_analysis;
 
-file_analysis::X509::X509(zeek::IntrusivePtr<RecordVal> args, file_analysis::File* file)
+file_analysis::X509::X509(RecordValPtr args, file_analysis::File* file)
 	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"),
 	                                        std::move(args), file)
 	{
@@ -113,7 +113,7 @@ bool file_analysis::X509::EndOfFile()
 	return false;
 	}
 
-zeek::IntrusivePtr<RecordVal> file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
+RecordValPtr file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
@@ -340,10 +340,10 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		return;
 		}
 
-	zeek::IntrusivePtr<VectorVal> names;
-	zeek::IntrusivePtr<VectorVal> emails;
-	zeek::IntrusivePtr<VectorVal> uris;
-	zeek::IntrusivePtr<VectorVal> ips;
+	VectorValPtr names;
+	VectorValPtr emails;
+	VectorValPtr uris;
+	VectorValPtr ips;
 
 	bool otherfields = false;
 
@@ -443,7 +443,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES_free(altname);
 	}
 
-zeek::IntrusivePtr<StringVal> file_analysis::X509::KeyCurve(EVP_PKEY* key)
+StringValPtr file_analysis::X509::KeyCurve(EVP_PKEY* key)
 	{
 	assert(key != nullptr);
 
@@ -543,7 +543,7 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
-zeek::IntrusivePtr<Val> X509Val::DoClone(CloneState* state)
+ValPtr X509Val::DoClone(CloneState* state)
 	{
 	auto copy = zeek::make_intrusive<X509Val>();
 	if ( certificate )

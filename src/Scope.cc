@@ -15,8 +15,8 @@ typedef PList<Scope> scope_list;
 static scope_list scopes;
 static Scope* top_scope;
 
-Scope::Scope(zeek::IntrusivePtr<zeek::detail::ID> id,
-             std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> al)
+Scope::Scope(zeek::detail::IDPtr id,
+             std::unique_ptr<std::vector<zeek::detail::AttrPtr>> al)
 	: scope_id(std::move(id)), attrs(std::move(al))
 	{
 	return_type = nullptr;
@@ -35,7 +35,7 @@ Scope::Scope(zeek::IntrusivePtr<zeek::detail::ID> id,
 		}
 	}
 
-const zeek::IntrusivePtr<zeek::detail::ID>& Scope::Find(std::string_view name) const
+const zeek::detail::IDPtr& Scope::Find(std::string_view name) const
 	{
 	auto entry = local.find(name);
 
@@ -45,7 +45,7 @@ const zeek::IntrusivePtr<zeek::detail::ID>& Scope::Find(std::string_view name) c
 	return zeek::detail::ID::nil;
 	}
 
-zeek::IntrusivePtr<zeek::detail::ID> Scope::Remove(std::string_view name)
+zeek::detail::IDPtr Scope::Remove(std::string_view name)
 	{
 	auto entry = local.find(name);
 
@@ -59,12 +59,12 @@ zeek::IntrusivePtr<zeek::detail::ID> Scope::Remove(std::string_view name)
 	return nullptr;
 	}
 
-zeek::IntrusivePtr<zeek::detail::ID> Scope::GenerateTemporary(const char* name)
+zeek::detail::IDPtr Scope::GenerateTemporary(const char* name)
 	{
 	return zeek::make_intrusive<zeek::detail::ID>(name, zeek::detail::SCOPE_FUNCTION, false);
 	}
 
-std::vector<zeek::IntrusivePtr<zeek::detail::ID>> Scope::GetInits()
+std::vector<zeek::detail::IDPtr> Scope::GetInits()
 	{
 	auto rval = std::move(inits);
 	inits = {};
@@ -119,7 +119,7 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-const zeek::IntrusivePtr<zeek::detail::ID>& lookup_ID(
+const zeek::detail::IDPtr& lookup_ID(
 	const char* name, const char* curr_module,
 	bool no_global, bool same_module_only,
 	bool check_export)
@@ -154,7 +154,7 @@ const zeek::IntrusivePtr<zeek::detail::ID>& lookup_ID(
 	return zeek::detail::ID::nil;
 	}
 
-zeek::IntrusivePtr<zeek::detail::ID> install_ID(
+zeek::detail::IDPtr install_ID(
 	const char* name, const char* module_name,
 	bool is_global, bool is_export)
 	{
@@ -191,14 +191,14 @@ void push_existing_scope(Scope* scope)
 	scopes.push_back(scope);
 	}
 
-void push_scope(zeek::IntrusivePtr<zeek::detail::ID> id,
-                std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs)
+void push_scope(zeek::detail::IDPtr id,
+                std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs)
 	{
 	top_scope = new Scope(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);
 	}
 
-zeek::IntrusivePtr<Scope> pop_scope()
+ScopePtr pop_scope()
 	{
 	if ( scopes.empty() )
 		reporter->InternalError("scope underflow");

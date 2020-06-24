@@ -4,7 +4,7 @@
 %}
 
 %code{
-zeek::IntrusivePtr<RecordVal> BuildGTPv1Hdr(const GTPv1_Header* pdu)
+RecordValPtr BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
 	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::gtpv1_hdr);
 
@@ -28,12 +28,12 @@ zeek::IntrusivePtr<RecordVal> BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	return rv;
 	}
 
-static zeek::IntrusivePtr<Val> BuildIMSI(const InformationElement* ie)
+static ValPtr BuildIMSI(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->imsi()->value());
 	}
 
-static zeek::IntrusivePtr<Val> BuildRAI(const InformationElement* ie)
+static ValPtr BuildRAI(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::gtp_rai);
 	ev->Assign(0, val_mgr->Count(ie->rai()->mcc()));
@@ -43,47 +43,47 @@ static zeek::IntrusivePtr<Val> BuildRAI(const InformationElement* ie)
 	return ev;
 	}
 
-static zeek::IntrusivePtr<Val> BuildRecovery(const InformationElement* ie)
+static ValPtr BuildRecovery(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->recovery()->restart_counter());
 	}
 
-static zeek::IntrusivePtr<Val> BuildSelectionMode(const InformationElement* ie)
+static ValPtr BuildSelectionMode(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->selection_mode()->mode());
 	}
 
-static zeek::IntrusivePtr<Val> BuildTEID1(const InformationElement* ie)
+static ValPtr BuildTEID1(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->teid1()->value());
 	}
 
-static zeek::IntrusivePtr<Val> BuildTEID_ControlPlane(const InformationElement* ie)
+static ValPtr BuildTEID_ControlPlane(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->teidcp()->value());
 	}
 
-static zeek::IntrusivePtr<Val> BuildNSAPI(const InformationElement* ie)
+static ValPtr BuildNSAPI(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->nsapi()->nsapi());
 	}
 
-static zeek::IntrusivePtr<Val> BuildChargingCharacteristics(const InformationElement* ie)
+static ValPtr BuildChargingCharacteristics(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->charging_characteristics()->value());
 	}
 
-static zeek::IntrusivePtr<Val> BuildTraceReference(const InformationElement* ie)
+static ValPtr BuildTraceReference(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->trace_reference()->value());
 	}
 
-static zeek::IntrusivePtr<Val> BuildTraceType(const InformationElement* ie)
+static ValPtr BuildTraceType(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->trace_type()->value());
 	}
 
-zeek::IntrusivePtr<Val> BuildEndUserAddr(const InformationElement* ie)
+ValPtr BuildEndUserAddr(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::gtp_end_user_addr);
 	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
@@ -114,21 +114,21 @@ zeek::IntrusivePtr<Val> BuildEndUserAddr(const InformationElement* ie)
 	return ev;
 	}
 
-zeek::IntrusivePtr<Val> BuildAccessPointName(const InformationElement* ie)
+ValPtr BuildAccessPointName(const InformationElement* ie)
 	{
 	BroString* bs = new BroString((const u_char*) ie->ap_name()->value().data(),
 	                              ie->ap_name()->value().length(), false);
 	return zeek::make_intrusive<StringVal>(bs);
 	}
 
-zeek::IntrusivePtr<Val> BuildProtoConfigOptions(const InformationElement* ie)
+ValPtr BuildProtoConfigOptions(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->proto_config_opts()->value().data();
 	int len = ie->proto_config_opts()->value().length();
 	return zeek::make_intrusive<StringVal>(new BroString(d, len, false));
 	}
 
-zeek::IntrusivePtr<Val> BuildGSN_Addr(const InformationElement* ie)
+ValPtr BuildGSN_Addr(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::gtp_gsn_addr);
 
@@ -147,14 +147,14 @@ zeek::IntrusivePtr<Val> BuildGSN_Addr(const InformationElement* ie)
 	return ev;
 	}
 
-zeek::IntrusivePtr<Val> BuildMSISDN(const InformationElement* ie)
+ValPtr BuildMSISDN(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->msisdn()->value().data();
 	int len = ie->msisdn()->value().length();
 	return zeek::make_intrusive<StringVal>(new BroString(d, len, false));
 	}
 
-zeek::IntrusivePtr<Val> BuildQoS_Profile(const InformationElement* ie)
+ValPtr BuildQoS_Profile(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::gtp_qos_profile);
 
@@ -167,28 +167,28 @@ zeek::IntrusivePtr<Val> BuildQoS_Profile(const InformationElement* ie)
 	return ev;
 	}
 
-zeek::IntrusivePtr<Val> BuildTrafficFlowTemplate(const InformationElement* ie)
+ValPtr BuildTrafficFlowTemplate(const InformationElement* ie)
 	{
 	const uint8* d = ie->traffic_flow_template()->value().data();
 	int len = ie->traffic_flow_template()->value().length();
 	return zeek::make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-zeek::IntrusivePtr<Val> BuildTriggerID(const InformationElement* ie)
+ValPtr BuildTriggerID(const InformationElement* ie)
 	{
 	const uint8* d = ie->trigger_id()->value().data();
 	int len = ie->trigger_id()->value().length();
 	return zeek::make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-zeek::IntrusivePtr<Val> BuildOMC_ID(const InformationElement* ie)
+ValPtr BuildOMC_ID(const InformationElement* ie)
 	{
 	const uint8* d = ie->omc_id()->value().data();
 	int len = ie->omc_id()->value().length();
 	return zeek::make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-zeek::IntrusivePtr<Val> BuildPrivateExt(const InformationElement* ie)
+ValPtr BuildPrivateExt(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::gtp_private_extension);
 
@@ -201,22 +201,22 @@ zeek::IntrusivePtr<Val> BuildPrivateExt(const InformationElement* ie)
 	return ev;
 	}
 
-static zeek::IntrusivePtr<Val> BuildCause(const InformationElement* ie)
+static ValPtr BuildCause(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->cause()->value());
 	}
 
-static zeek::IntrusivePtr<Val> BuildReorderReq(const InformationElement* ie)
+static ValPtr BuildReorderReq(const InformationElement* ie)
 	{
 	return val_mgr->Bool(ie->reorder_req()->req());
 	}
 
-static zeek::IntrusivePtr<Val> BuildChargingID(const InformationElement* ie)
+static ValPtr BuildChargingID(const InformationElement* ie)
 	{
 	return val_mgr->Count(ie->charging_id()->value());;
 	}
 
-zeek::IntrusivePtr<Val> BuildChargingGatewayAddr(const InformationElement* ie)
+ValPtr BuildChargingGatewayAddr(const InformationElement* ie)
 	{
 	const uint8* d = ie->charging_gateway_addr()->value().data();
 	int len = ie->charging_gateway_addr()->value().length();
@@ -228,7 +228,7 @@ zeek::IntrusivePtr<Val> BuildChargingGatewayAddr(const InformationElement* ie)
 		return nullptr;
 	}
 
-static zeek::IntrusivePtr<Val> BuildTeardownInd(const InformationElement* ie)
+static ValPtr BuildTeardownInd(const InformationElement* ie)
 	{
 	return val_mgr->Bool(ie->teardown_ind()->ind());
 	}

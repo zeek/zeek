@@ -375,7 +375,7 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
-std::pair<bool, zeek::IntrusivePtr<Val>>
+std::pair<bool, ValPtr>
 Plugin::HookFunctionCall(const Func* func, Frame* parent,
                          zeek::Args* args)
 	{

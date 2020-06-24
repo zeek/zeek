@@ -114,16 +114,16 @@ vector<string> params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
-zeek::IntrusivePtr<zeek::OpaqueType> md5_type;
-zeek::IntrusivePtr<zeek::OpaqueType> sha1_type;
-zeek::IntrusivePtr<zeek::OpaqueType> sha256_type;
-zeek::IntrusivePtr<zeek::OpaqueType> entropy_type;
-zeek::IntrusivePtr<zeek::OpaqueType> cardinality_type;
-zeek::IntrusivePtr<zeek::OpaqueType> topk_type;
-zeek::IntrusivePtr<zeek::OpaqueType> bloomfilter_type;
-zeek::IntrusivePtr<zeek::OpaqueType> x509_opaque_type;
-zeek::IntrusivePtr<zeek::OpaqueType> ocsp_resp_opaque_type;
-zeek::IntrusivePtr<zeek::OpaqueType> paraglob_type;
+zeek::OpaqueTypePtr md5_type;
+zeek::OpaqueTypePtr sha1_type;
+zeek::OpaqueTypePtr sha256_type;
+zeek::OpaqueTypePtr entropy_type;
+zeek::OpaqueTypePtr cardinality_type;
+zeek::OpaqueTypePtr topk_type;
+zeek::OpaqueTypePtr bloomfilter_type;
+zeek::OpaqueTypePtr x509_opaque_type;
+zeek::OpaqueTypePtr ocsp_resp_opaque_type;
+zeek::OpaqueTypePtr paraglob_type;
 
 // Keep copy of command line
 int bro_argc;

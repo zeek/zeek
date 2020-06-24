@@ -113,19 +113,17 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 	return true;
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateRequest(zeek::IntrusivePtr<RecordVal> args,
-                                                  File* file)
+file_analysis::Analyzer* OCSP::InstantiateRequest(RecordValPtr args, File* file)
 	{
 	return new OCSP(std::move(args), file, true);
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateReply(zeek::IntrusivePtr<RecordVal> args,
-                                                File* file)
+file_analysis::Analyzer* OCSP::InstantiateReply(RecordValPtr args, File* file)
 	{
 	return new OCSP(std::move(args), file, false);
 	}
 
-file_analysis::OCSP::OCSP(zeek::IntrusivePtr<RecordVal> args, file_analysis::File* file,
+file_analysis::OCSP::OCSP(RecordValPtr args, file_analysis::File* file,
                           bool arg_request)
 	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"),
 	                                        std::move(args), file),
@@ -211,9 +209,9 @@ typedef struct ocsp_basic_response_st {
     STACK_OF(X509) *certs;
 } OCSP_BASICRESP;
 */
-static zeek::IntrusivePtr<StringVal> parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
-                                                              BIO* bio, char* buf,
-                                                              size_t buf_len)
+static StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
+                                             BIO* bio, char* buf,
+                                             size_t buf_len)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;
@@ -285,7 +283,7 @@ static zeek::IntrusivePtr<StringVal> parse_basic_resp_sig_alg(OCSP_BASICRESP* ba
 	return rval;
 	}
 
-static zeek::IntrusivePtr<Val> parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
+static ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;

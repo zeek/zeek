@@ -11,7 +11,7 @@
 #include <openssl/err.h>
 
 // construct an error record
-static zeek::IntrusivePtr<RecordVal> x509_result_record(uint64_t num, const char* reason, zeek::IntrusivePtr<Val> chainVector = nullptr)
+static RecordValPtr x509_result_record(uint64_t num, const char* reason, ValPtr chainVector = nullptr)
 	{
 	auto rrecord = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::X509::Result);
 
@@ -215,7 +215,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ##              x509_get_certificate_string x509_verify
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
-	zeek::IntrusivePtr<RecordVal> rval;
+	RecordValPtr rval;
 	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
@@ -542,7 +542,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	int result = X509_verify_cert(csc);
 
-	zeek::IntrusivePtr<VectorVal> chainVector;
+	VectorValPtr chainVector;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
@@ -761,7 +761,7 @@ sct_verify_err:
  * 1 -> issuer name
  * 2 -> pubkey
  */
-zeek::IntrusivePtr<StringVal> x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
+StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
 	{
 	assert(cert_handle);
 

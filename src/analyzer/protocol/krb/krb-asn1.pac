@@ -2,20 +2,20 @@
 %include ../asn1/asn1.pac
 
 %header{
-    zeek::IntrusivePtr<Val> GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
-    zeek::IntrusivePtr<Val> GetTimeFromAsn1(StringVal* atime, int64 usecs);
+    ValPtr GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
+    ValPtr GetTimeFromAsn1(StringVal* atime, int64 usecs);
 %}
 
 %code{
 
-zeek::IntrusivePtr<Val> GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
+ValPtr GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
 	{
 	auto atime_bytestring = to_stringval(atime->time());
 	auto result = GetTimeFromAsn1(atime_bytestring.get(), usecs);
 	return result;
 	}
 
-zeek::IntrusivePtr<Val> GetTimeFromAsn1(StringVal* atime, int64 usecs)
+ValPtr GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	{
 	time_t lResult = 0;
 

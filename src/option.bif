@@ -7,9 +7,8 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, const zeek::IntrusivePtr<zeek::detail::ID>& i,
-                                               zeek::IntrusivePtr<Val> val,
-                                               StringVal* location)
+static bool call_option_handlers_and_set_value(StringVal* name, const zeek::detail::IDPtr& i,
+                                               ValPtr val, StringVal* location)
 	{
 	if ( i->HasOptionHandlers() )
 		{

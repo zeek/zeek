@@ -5,7 +5,7 @@
 
 using namespace file_analysis;
 
-Unified2::Unified2(zeek::IntrusivePtr<RecordVal> args, File* file)
+Unified2::Unified2(RecordValPtr args, File* file)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("UNIFIED2"), std::move(args), file)
 	{
 	interp = new binpac::Unified2::Unified2_Analyzer(this);
@@ -16,7 +16,7 @@ Unified2::~Unified2()
 	delete interp;
 	}
 
-file_analysis::Analyzer* Unified2::Instantiate(zeek::IntrusivePtr<RecordVal> args, File* file)
+file_analysis::Analyzer* Unified2::Instantiate(RecordValPtr args, File* file)
 	{
 	return new Unified2(std::move(args), file);
 	}

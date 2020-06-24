@@ -22,7 +22,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	zeek::IntrusivePtr<RecordVal> callarg;
+	RecordValPtr callarg;
 
 	switch ( proc ) {
 		case BifEnum::MOUNT3::PROC_NULL:
@@ -69,7 +69,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			       double last_time, int reply_len)
 	{
 	EventHandlerPtr event = nullptr;
-	zeek::IntrusivePtr<Val> reply;
+	ValPtr reply;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -203,14 +203,14 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	return vl;
 	}
 
-zeek::IntrusivePtr<EnumVal> MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
+EnumValPtr MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
 	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
 	return rval;
     }
 
-zeek::IntrusivePtr<StringVal> MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
+StringValPtr MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	{
 	int fh_n;
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
@@ -221,7 +221,7 @@ zeek::IntrusivePtr<StringVal> MOUNT_Interp::mount3_fh(const u_char*& buf, int& n
 	return zeek::make_intrusive<StringVal>(new BroString(fh, fh_n, false));
 	}
 
-zeek::IntrusivePtr<StringVal> MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
+StringValPtr MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	{
 	int name_len;
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
@@ -232,15 +232,15 @@ zeek::IntrusivePtr<StringVal> MOUNT_Interp::mount3_filename(const u_char*& buf, 
 	return zeek::make_intrusive<StringVal>(new BroString(name, name_len, false));
 	}
 
-zeek::IntrusivePtr<RecordVal> MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
+RecordValPtr MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
 	{
 	auto dirmntargs = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::dirmntargs_t);
 	dirmntargs->Assign(0, mount3_filename(buf, n));
 	return dirmntargs;
 	}
 
-zeek::IntrusivePtr<RecordVal> MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
-		     BifEnum::MOUNT3::status_t status)
+RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
+                                            BifEnum::MOUNT3::status_t status)
 	{
 	auto rep = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::mnt_reply_t);
 

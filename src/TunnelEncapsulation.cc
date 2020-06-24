@@ -16,7 +16,7 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 		}
 	}
 
-zeek::IntrusivePtr<RecordVal> EncapsulatingConn::ToVal() const
+RecordValPtr EncapsulatingConn::ToVal() const
 	{
 	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Tunnel::EncapsulatingConn);
 

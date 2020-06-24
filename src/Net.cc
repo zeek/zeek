@@ -194,7 +194,7 @@ void net_init(const std::optional<std::string>& interface,
 					     writefile, pkt_dumper->ErrorMsg());
 
 		if ( const auto& id = global_scope()->Find("trace_output_file") )
-			id->SetVal(zeek::make_intrusive<StringVal>(writefile));
+			id->SetVal(zeek::make_intrusive<zeek::StringVal>(writefile));
 		else
 			reporter->Error("trace_output_file not defined in bro.init");
 		}

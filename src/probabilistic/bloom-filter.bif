@@ -46,7 +46,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
                                  name->Len());
 	const Hasher* h = new DoubleHasher(optimal_k, seed);
 
-	return zeek::make_intrusive<BloomFilterVal>(new BasicBloomFilter(h, cells));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a basic Bloom filter. This function serves as a low-level
@@ -86,7 +86,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 				       name->Len());
 	const Hasher* h = new DoubleHasher(k, seed);
 
-	return zeek::make_intrusive<BloomFilterVal>(new BasicBloomFilter(h, cells));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a counting Bloom filter.
@@ -130,7 +130,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 	while ( max >>= 1 )
 		++width;
 
-	return zeek::make_intrusive<BloomFilterVal>(new CountingBloomFilter(h, cells, width));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new CountingBloomFilter(h, cells, width));
 	%}
 
 ## Adds an element to a Bloom filter.
@@ -245,5 +245,5 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
-	return zeek::make_intrusive<StringVal>(bfv->InternalState());
+	return zeek::make_intrusive<zeek::StringVal>(bfv->InternalState());
 	%}

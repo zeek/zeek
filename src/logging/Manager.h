@@ -46,7 +46,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool CreateStream(EnumVal* id, RecordVal* stream);
+	bool CreateStream(zeek::EnumVal* id, zeek::RecordVal* stream);
 
 	/**
 	 * Remove a log stream, stopping all threads.
@@ -56,7 +56,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool RemoveStream(EnumVal* id);
+	bool RemoveStream(zeek::EnumVal* id);
 
 	/**
 	 * Enables a log log stream.
@@ -66,7 +66,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool EnableStream(EnumVal* id);
+	bool EnableStream(zeek::EnumVal* id);
 
 	/**
 	 * Disables a log stream.
@@ -76,7 +76,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool DisableStream(EnumVal* id);
+	bool DisableStream(zeek::EnumVal* id);
 
 	/**
 	 * Adds a filter to a log stream.
@@ -88,7 +88,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool AddFilter(EnumVal* id, RecordVal* filter);
+	bool AddFilter(zeek::EnumVal* id, zeek::RecordVal* filter);
 
 	/**
 	 * Removes a filter from a log stream.
@@ -100,7 +100,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool RemoveFilter(EnumVal* id, StringVal* name);
+	bool RemoveFilter(zeek::EnumVal* id, zeek::StringVal* name);
 
 	/**
 	 * Removes a filter from a log stream.
@@ -112,7 +112,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool RemoveFilter(EnumVal* id, const std::string& name);
+	bool RemoveFilter(zeek::EnumVal* id, const std::string& name);
 
 	/**
 	 * Write a record to a log stream.
@@ -125,7 +125,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool Write(EnumVal* id, RecordVal* columns);
+	bool Write(zeek::EnumVal* id, zeek::RecordVal* columns);
 
 	/**
 	 * Create a new log writer frontend. This is exposed so that the
@@ -146,8 +146,8 @@ public:
 	 *
 	 * @return Returns true if the writer was successfully created.
 	 */
-	bool CreateWriterForRemoteLog(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-				      int num_fields, const threading::Field* const* fields);
+	bool CreateWriterForRemoteLog(zeek::EnumVal* id, zeek::EnumVal* writer, WriterBackend::WriterInfo* info,
+	                              int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Writes out log entries that have already passed through all
@@ -165,8 +165,8 @@ public:
 	 * @param vals An array of log values to write, of size num_fields.
 	 * The method takes ownership of the array.
 	 */
-	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, const std::string& path,
-			     int num_fields, threading::Value** vals);
+	bool WriteFromRemote(zeek::EnumVal* stream, zeek::EnumVal* writer, const std::string& path,
+	                     int num_fields, threading::Value** vals);
 
 	/**
 	 * Announces all instantiated writers to a given Broker peer.
@@ -184,7 +184,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool SetBuf(EnumVal* id, bool enabled);
+	bool SetBuf(zeek::EnumVal* id, bool enabled);
 
 	/**
 	 * Flushes a log stream. This flushed all associated writers.
@@ -194,7 +194,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool Flush(EnumVal* id);
+	bool Flush(zeek::EnumVal* id);
 
 	/**
 	 * Signals the manager to shutdown at Bro's termination.
@@ -206,25 +206,25 @@ public:
 	 * @param stream_id the stream to enable remote logs for.
 	 * @return true if remote logs are enabled.
 	 */
-	bool EnableRemoteLogs(EnumVal* stream_id);
+	bool EnableRemoteLogs(zeek::EnumVal* stream_id);
 
 	/**
 	 * Disable remote logs for a given stream.
 	 * @param stream_id the stream to disable remote logs for.
 	 * @return true if remote logs are disabled.
 	 */
-	bool DisableRemoteLogs(EnumVal* stream_id);
+	bool DisableRemoteLogs(zeek::EnumVal* stream_id);
 
 	/**
 	 * @return true if remote logs are enabled for a given stream.
 	 */
-	bool RemoteLogsAreEnabled(EnumVal* stream_id);
+	bool RemoteLogsAreEnabled(zeek::EnumVal* stream_id);
 
 	/**
 	 * @return the type which corresponds to the columns in a log entry for
 	 * a given log stream.
 	 */
-	zeek::RecordType* StreamColumns(EnumVal* stream_id);
+	zeek::RecordType* StreamColumns(zeek::EnumVal* stream_id);
 
 protected:
 	friend class WriterFrontend;
@@ -234,18 +234,19 @@ protected:
 
 	// Instantiates a new WriterBackend of the given type (note that
 	// doing so creates a new thread!).
-	WriterBackend* CreateBackend(WriterFrontend* frontend, EnumVal* tag);
+	WriterBackend* CreateBackend(WriterFrontend* frontend, zeek::EnumVal* tag);
 
 	//// Function also used by the RemoteSerializer.
 
 	// Takes ownership of fields and info.
-	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-				int num_fields, const threading::Field* const* fields,
-				bool local, bool remote, bool from_remote, const std::string& instantiating_filter="");
+	WriterFrontend* CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, WriterBackend::WriterInfo* info,
+	                             int num_fields, const threading::Field* const* fields,
+	                             bool local, bool remote, bool from_remote,
+	                             const std::string& instantiating_filter="");
 
 	// Signals that a file has been rotated.
 	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
-			      double open, double close, bool success, bool terminating);
+	                      double open, double close, bool success, bool terminating);
 
 	// Deletes the values as passed into Write().
 	void DeleteVals(int num_fields, threading::Value** vals);
@@ -256,13 +257,14 @@ private:
 	struct WriterInfo;
 
 	bool TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* rt,
-			    TableVal* include, TableVal* exclude, const std::string& path, const std::list<int>& indices);
+	                    zeek::TableVal* include, zeek::TableVal* exclude,
+	                    const std::string& path, const std::list<int>& indices);
 
 	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
-				    RecordVal* columns);
+	                                      zeek::RecordVal* columns);
 
-	threading::Value* ValToLogVal(Val* val, zeek::Type* ty = nullptr);
-	Stream* FindStream(EnumVal* id);
+	threading::Value* ValToLogVal(zeek::Val* val, zeek::Type* ty = nullptr);
+	Stream* FindStream(zeek::EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);
 	void Rotate(WriterInfo* info);

@@ -21,10 +21,9 @@ class Frame;
 class Func;
 class Event;
 
-using ValPtr = zeek::IntrusivePtr<Val>;
-
 namespace zeek {
 template <class T> class IntrusivePtr;
+using ValPtr = zeek::IntrusivePtr<Val>;
 }
 
 namespace threading {

@@ -5,12 +5,12 @@
 #include <vector>
 #include "BroList.h"
 
-class Val;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 namespace zeek {
 
 template <class T> class IntrusivePtr;
-using Args = std::vector<zeek::IntrusivePtr<Val>>;
+using Args = std::vector<zeek::IntrusivePtr<zeek::Val>>;
 
 /**
  * Converts a legacy-style argument list for use in modern Zeek function

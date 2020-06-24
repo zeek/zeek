@@ -68,11 +68,11 @@ public:
 
 	// Helper methods for vectors:
 	//
-	static VectorVal* VecToPolicy(Vec* vec);
-	static Vec* VecFromPolicy(VectorVal* vec);
+	static zeek::VectorVal* VecToPolicy(Vec* vec);
+	static Vec* VecFromPolicy(zeek::VectorVal* vec);
 	static char* VecToString(Vec* vec);
 	static BroString::IdxVec* GetOffsetsVec(const Vec* vec,
-						unsigned int index);
+	                                        unsigned int index);
 
 private:
 	typedef std::map<std::string, void*> DataMap;

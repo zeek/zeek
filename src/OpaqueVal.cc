@@ -15,6 +15,8 @@
 #include <broker/data.hh>
 #include <broker/error.hh>
 
+namespace zeek {
+
 // Helper to retrieve a broker value out of a broker::vector at a specified
 // index, and casted to the expected destination type.
 template<typename S, typename V, typename D>
@@ -1035,3 +1037,5 @@ ValPtr ParaglobVal::DoClone(CloneState* state)
 		return nullptr;
 		}
 	}
+
+}

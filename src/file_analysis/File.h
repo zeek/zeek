@@ -16,13 +16,12 @@
 class Connection;
 class EventHandlerPtr;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 namespace zeek {
+using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
 using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
 }
-
-class RecordVal;
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace file_analysis {
 
@@ -44,11 +43,11 @@ public:
 	/**
 	 * @return the wrapped \c fa_file record value, #val.
 	 */
-	const RecordValPtr& ToVal() const
+	const zeek::RecordValPtr& ToVal() const
 		{ return val; }
 
 	[[deprecated("Remove in v4.1.  Use ToVal().")]]
-	RecordVal* GetVal() const
+	zeek::RecordVal* GetVal() const
 		{ return val.get(); }
 
 	/**
@@ -80,10 +79,10 @@ public:
 	 * @param bytes new limit.
 	 * @return false if no extraction analyzer is active, else true.
 	 */
-	bool SetExtractionLimit(RecordValPtr args, uint64_t bytes);
+	bool SetExtractionLimit(zeek::RecordValPtr args, uint64_t bytes);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
+	bool SetExtractionLimit(zeek::RecordVal* args, uint64_t bytes);
 
 	/**
 	 * @return value of the "id" field from #val record.
@@ -128,10 +127,10 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(file_analysis::Tag tag, RecordValPtr args);
+	bool AddAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
+	bool AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
@@ -139,10 +138,10 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args);
 
 	/**
 	 * Signal that this analyzer can be deleted once it's safe to do so.
@@ -353,7 +352,7 @@ protected:
 
 protected:
 	std::string id;                 /**< A pretty hash that likely identifies file */
-	RecordValPtr val;            /**< \c fa_file from script layer. */
+	zeek::RecordValPtr val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */

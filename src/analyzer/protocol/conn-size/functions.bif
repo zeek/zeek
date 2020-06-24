@@ -3,7 +3,7 @@
 #include "Reporter.h"
 #include "Sessions.h"
 
-static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
+static analyzer::Analyzer* GetConnsizeAnalyzer(zeek::Val* cid)
 	{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
@@ -139,7 +139,7 @@ function get_current_conn_duration_threshold%(cid: conn_id%): interval
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return zeek::make_intrusive<IntervalVal>(0.0);
+		return zeek::make_intrusive<zeek::IntervalVal>(0.0);
 
-	return zeek::make_intrusive<IntervalVal>(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetDurationThreshold());
+	return zeek::make_intrusive<zeek::IntervalVal>(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetDurationThreshold());
 	%}

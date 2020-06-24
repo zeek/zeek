@@ -240,7 +240,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 					Conn()->ConnVal(),
 					val_mgr->Bool(IsOrig()),
-					zeek::make_intrusive<StringVal>(buf)
+					zeek::make_intrusive<zeek::StringVal>(buf)
 				);
 			}
 		}

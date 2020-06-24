@@ -23,11 +23,11 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_publish )
 			{
-			auto m = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::MQTT::PublishMsg);
+			auto m = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MQTT::PublishMsg);
 			m->Assign(0, val_mgr->Bool(${msg.dup}));
 			m->Assign(1, val_mgr->Count(${msg.qos}));
 			m->Assign(2, val_mgr->Bool(${msg.retain}));
-			m->Assign<StringVal>(3, ${msg.topic.str}.length(),
+			m->Assign<zeek::StringVal>(3, ${msg.topic.str}.length(),
 			                     reinterpret_cast<const char*>(${msg.topic.str}.begin()));
 
 			auto len = ${msg.payload}.length();
@@ -37,7 +37,7 @@ refine flow MQTT_Flow += {
 			if ( len > static_cast<int>(max) )
 				len = max;
 
-			m->Assign<StringVal>(4, len,
+			m->Assign<zeek::StringVal>(4, len,
 			                     reinterpret_cast<const char*>(${msg.payload}.begin()));
 
 			m->Assign(5, val_mgr->Count(${msg.payload}.length()));

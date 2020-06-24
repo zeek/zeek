@@ -94,7 +94,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
 					ConnVal(),
-					zeek::make_intrusive<IntervalVal>(duration_thresh),
+					zeek::make_intrusive<zeek::IntervalVal>(duration_thresh),
 					val_mgr->Bool(is_orig)
 			);
 			duration_thresh = 0;
@@ -167,11 +167,11 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 	CheckThresholds(true);
 	}
 
-void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
+void ConnSize_Analyzer::UpdateConnVal(zeek::RecordVal *conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
-	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
+	zeek::RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
+	zeek::RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
 
 	// endpoint is the RecordType from NetVar.h
 	int pktidx = zeek::id::endpoint->FieldOffset("num_pkts");

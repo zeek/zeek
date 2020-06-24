@@ -6,6 +6,6 @@
 BifReturnVal::BifReturnVal(std::nullptr_t) noexcept
 	{}
 
-BifReturnVal::BifReturnVal(Val* v) noexcept
+BifReturnVal::BifReturnVal(zeek::Val* v) noexcept
 	: rval(zeek::AdoptRef{}, v)
 	{}

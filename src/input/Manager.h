@@ -12,7 +12,7 @@
 #include "threading/SerialTypes.h"
 #include "Tag.h"
 
-class RecordVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
 namespace input {
 
@@ -44,7 +44,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool CreateTableStream(RecordVal* description);
+	bool CreateTableStream(zeek::RecordVal* description);
 
 	/**
 	 * Creates a new input stream which sends events for read input data.
@@ -55,7 +55,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool CreateEventStream(RecordVal* description);
+	bool CreateEventStream(zeek::RecordVal* description);
 
 	/**
 	 * Creates a new input stream which will forward the data from the data
@@ -67,7 +67,7 @@ public:
 	 * @param description A record of the script type \c
 	 * Input::AnalysisDescription
 	 */
-	bool CreateAnalysisStream(RecordVal* description);
+	bool CreateAnalysisStream(zeek::RecordVal* description);
 
 	/**
 	 * Force update on a input stream. Forces a re-read of the whole
@@ -143,7 +143,7 @@ protected:
 
 	// Instantiates a new ReaderBackend of the given type (note that
 	// doing so creates a new thread!).
-	ReaderBackend* CreateBackend(ReaderFrontend* frontend, EnumVal* tag);
+	ReaderBackend* CreateBackend(ReaderFrontend* frontend, zeek::EnumVal* tag);
 
 	// Function called from the ReaderBackend to notify the manager that
 	// a stream has been removed or a stream has been closed. Used to
@@ -180,7 +180,7 @@ private:
 	// protected definitions are wrappers around this function.
 	bool RemoveStream(Stream* i);
 
-	bool CreateStream(Stream*, RecordVal* description);
+	bool CreateStream(Stream*, zeek::RecordVal* description);
 
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
@@ -194,7 +194,7 @@ private:
 	int PutTable(Stream* i, const threading::Value* const *vals);
 
 	// SendEntry and Put implementation for Event stream.
-	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
+	int SendEventStreamEvent(Stream* i, zeek::EnumVal* type, const threading::Value* const *vals);
 
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
@@ -203,7 +203,7 @@ private:
 
 	// Send events
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
-	void SendEvent(EventHandlerPtr ev, std::list<Val*> events) const;
+	void SendEvent(EventHandlerPtr ev, std::list<zeek::Val*> events) const;
 
 	// Implementation of SendEndOfData (send end_of_data event).
 	void SendEndOfData(const Stream *i);
@@ -222,19 +222,19 @@ private:
 	int CopyValue(char *data, const int startpos, const threading::Value* val) const;
 
 	// Convert Threading::Value to an internal Bro Type (works with Records).
-	Val* ValueToVal(const Stream* i, const threading::Value* val, zeek::Type* request_type, bool& have_error) const;
+	zeek::Val* ValueToVal(const Stream* i, const threading::Value* val, zeek::Type* request_type, bool& have_error) const;
 
 	// Convert Threading::Value to an internal Bro list type.
-	Val* ValueToIndexVal(const Stream* i, int num_fields, const zeek::RecordType* type, const threading::Value* const *vals, bool& have_error) const;
+	zeek::Val* ValueToIndexVal(const Stream* i, int num_fields, const zeek::RecordType* type, const threading::Value* const *vals, bool& have_error) const;
 
 	// Converts a threading::value to a record type. Mostly used by
 	// ValueToVal.
-	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, zeek::RecordType *request_type, int* position, bool& have_error) const;
+	zeek::RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, zeek::RecordType *request_type, int* position, bool& have_error) const;
 
-	Val* RecordValToIndexVal(RecordVal *r) const;
+	zeek::Val* RecordValToIndexVal(zeek::RecordVal *r) const;
 
 	// Converts a Bro ListVal to a RecordVal given the record type.
-	RecordVal* ListValToRecordVal(ListVal* list, zeek::RecordType *request_type, int* position) const;
+	zeek::RecordVal* ListValToRecordVal(zeek::ListVal* list, zeek::RecordType *request_type, int* position) const;
 
 	// Internally signal errors, warnings, etc.
 	// These are sent on to input scriptland and reporter.log

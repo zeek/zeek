@@ -27,7 +27,6 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
-class Val;
 class BroFile;
 class IntSet;
 class IP_Hdr;
@@ -36,6 +35,8 @@ class RE_Match_State;
 class Specific_RE_Matcher;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 namespace analyzer {
 	namespace pia { class PIA; }
@@ -304,8 +305,8 @@ public:
 		unsigned int misses;	// # cache misses
 	};
 
-	Val* BuildRuleStateValue(const Rule* rule,
-					const RuleEndpointState* state) const;
+	zeek::Val* BuildRuleStateValue(const Rule* rule,
+	                               const RuleEndpointState* state) const;
 
 	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
 	void DumpStats(BroFile* f);

@@ -13,19 +13,22 @@
 #include "IPAddr.h"
 #include "util.h"
 
-template <class T> class IntrusivePtr;
-class Val;
-class ListVal;
-class TableVal;
 class Func;
 class EventHandler;
 class DNS_Mgr_Request;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
+
+namespace zeek {
+template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<Val>;
 using ListValPtr = zeek::IntrusivePtr<ListVal>;
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
+}
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 
 typedef PList<DNS_Mgr_Request> DNS_mgr_request_list;
 
@@ -54,9 +57,9 @@ public:
 
 	// Looks up the address or addresses of the given host, and returns
 	// a set of addr.
-	TableValPtr LookupHost(const char* host);
+	zeek::TableValPtr LookupHost(const char* host);
 
-	ValPtr LookupAddr(const IPAddr& addr);
+	zeek::ValPtr LookupAddr(const IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
@@ -66,7 +69,7 @@ public:
 	bool Save();
 
 	const char* LookupAddrInCache(const IPAddr& addr);
-	TableValPtr LookupNameInCache(const std::string& name);
+	zeek::TableValPtr LookupNameInCache(const std::string& name);
 	const char* LookupTextInCache(const std::string& name);
 
 	// Support for async lookups.
@@ -76,7 +79,7 @@ public:
 		virtual ~LookupCallback()	{ }
 
 		virtual void Resolved(const char* name)	{ };
-		virtual void Resolved(TableVal* addrs)	{ };
+		virtual void Resolved(zeek::TableVal* addrs)	{ };
 		virtual void Timeout() = 0;
 	};
 
@@ -104,15 +107,15 @@ protected:
 
 	void Event(EventHandlerPtr e, DNS_Mapping* dm);
 	void Event(EventHandlerPtr e, DNS_Mapping* dm,
-	           ListValPtr l1, ListValPtr l2);
+	           zeek::ListValPtr l1, zeek::ListValPtr l2);
 	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
-	ValPtr BuildMappingVal(DNS_Mapping* dm);
+	zeek::ValPtr BuildMappingVal(DNS_Mapping* dm);
 
 	void AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r);
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
-	ListValPtr AddrListDelta(ListVal* al1, ListVal* al2);
-	void DumpAddrList(FILE* f, ListVal* al);
+	zeek::ListValPtr AddrListDelta(zeek::ListVal* al1, zeek::ListVal* al2);
+	void DumpAddrList(FILE* f, zeek::ListVal* al);
 
 	typedef std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
 	typedef std::map<IPAddr, DNS_Mapping*> AddrMap;
@@ -183,7 +186,7 @@ protected:
 			processed = true;
 			}
 
-		void Resolved(TableVal* addrs)
+		void Resolved(zeek::TableVal* addrs)
 			{
 			for ( CallbackList::iterator i = callbacks.begin();
 			      i != callbacks.end(); ++i )

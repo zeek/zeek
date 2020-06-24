@@ -60,7 +60,7 @@ extern	RETSIGTYPE sig_handler(int signo);
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
-static const std::pair<bool, ValPtr> empty_hook_result(false, nullptr);
+static const std::pair<bool, zeek::ValPtr> empty_hook_result(false, nullptr);
 
 std::string render_call_stack()
 	{
@@ -216,7 +216,7 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-void Func::CheckPluginResult(bool handled, const ValPtr& hook_result,
+void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
                              zeek::FunctionFlavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
@@ -299,13 +299,13 @@ bool BroFunc::IsPure() const
 		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
-Val* Func::Call(val_list* args, Frame* parent) const
+zeek::Val* Func::Call(val_list* args, Frame* parent) const
 	{
 	auto zargs = zeek::val_list_to_args(*args);
 	return Invoke(&zargs, parent).release();
 	};
 
-ValPtr BroFunc::Invoke(zeek::Args* args, Frame* parent) const
+zeek::ValPtr BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -357,7 +357,7 @@ ValPtr BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 		}
 
 	stmt_flow_type flow = FLOW_NEXT;
-	ValPtr result;
+	zeek::ValPtr result;
 
 	for ( const auto& body : bodies )
 		{
@@ -604,7 +604,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->GetType<zeek::FuncType>();
-	id->SetVal(zeek::make_intrusive<Val>(zeek::IntrusivePtr{zeek::NewRef{}, this}));
+	id->SetVal(zeek::make_intrusive<zeek::Val>(zeek::IntrusivePtr{zeek::NewRef{}, this}));
 	}
 
 BuiltinFunc::~BuiltinFunc()
@@ -616,7 +616,7 @@ bool BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-ValPtr BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
+zeek::ValPtr BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -667,10 +667,10 @@ void BuiltinFunc::Describe(ODesc* d) const
 
 void builtin_error(const char* msg)
 	{
-	builtin_error(msg, ValPtr{});
+	builtin_error(msg, zeek::ValPtr{});
 	}
 
-void builtin_error(const char* msg, ValPtr arg)
+void builtin_error(const char* msg, zeek::ValPtr arg)
 	{
 	builtin_error(msg, arg.get());
 	}

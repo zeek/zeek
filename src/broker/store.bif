@@ -121,7 +121,7 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return zeek::make_intrusive<StringVal>(handle->store.name());
+	return zeek::make_intrusive<zeek::StringVal>(handle->store.name());
 	%}
 
 function Broker::__exists%(h: opaque of Broker::Store,

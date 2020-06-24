@@ -42,7 +42,7 @@ public:
 	/**
 	 * Returns the initial value of the identifier.
 	 */
-	const ValPtr& InitialVal() const
+	const zeek::ValPtr& InitialVal() const
 		{ return initial_val; }
 
 	/**
@@ -175,7 +175,7 @@ private:
 
 	std::vector<std::string> comments;
 	zeek::detail::IDPtr id;
-	ValPtr initial_val;
+	zeek::ValPtr initial_val;
 	redef_list redefs;
 	record_field_map fields;
 	RecordField* last_field_seen;

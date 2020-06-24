@@ -313,7 +313,7 @@ void ProfileLogger::Log()
 	if ( profiling_update )
 		{
 		mgr.Dispatch(new Event(profiling_update, {
-					zeek::make_intrusive<Val>(zeek::IntrusivePtr{zeek::NewRef{}, file}),
+					zeek::make_intrusive<zeek::Val>(zeek::IntrusivePtr{zeek::NewRef{}, file}),
 					val_mgr->Bool(expensive),
 					}));
 		}
@@ -344,7 +344,7 @@ SampleLogger::SampleLogger()
 	if ( ! load_sample_info )
 		load_sample_info = zeek::id::find_type("load_sample_info")->AsTableType();
 
-	load_samples = new TableVal({zeek::NewRef{}, load_sample_info});
+	load_samples = new zeek::TableVal({zeek::NewRef{}, load_sample_info});
 	}
 
 SampleLogger::~SampleLogger()
@@ -354,13 +354,13 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	auto idx = zeek::make_intrusive<StringVal>(func->Name());
+	auto idx = zeek::make_intrusive<zeek::StringVal>(func->Name());
 	load_samples->Assign(std::move(idx), nullptr);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
 	{
-	auto idx = zeek::make_intrusive<StringVal>(loc->filename);
+	auto idx = zeek::make_intrusive<zeek::StringVal>(loc->filename);
 	load_samples->Assign(std::move(idx), nullptr);
 	}
 
@@ -371,7 +371,7 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 	if ( load_sample )
 		mgr.Enqueue(load_sample,
 		            zeek::IntrusivePtr{zeek::NewRef{}, load_samples},
-		            zeek::make_intrusive<IntervalVal>(dtime, Seconds),
+		            zeek::make_intrusive<zeek::IntervalVal>(dtime, Seconds),
 		            val_mgr->Int(dmem)
 		);
 	}

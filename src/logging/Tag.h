@@ -5,7 +5,7 @@
 #include "zeek-config.h"
 #include "../Tag.h"
 
-class EnumVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 
 namespace zeek::plugin {
 	template <class T> class TaggedComponent;
@@ -94,10 +94,10 @@ public:
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
-	const EnumValPtr& AsVal() const;
+	const zeek::EnumValPtr& AsVal() const;
 
 	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal() const;
+	zeek::EnumVal* AsEnumVal() const;
 
 	static const Tag Error;
 
@@ -122,10 +122,10 @@ protected:
 	 *
 	 * @param val An enum value of script type \c Log::Writer.
 	 */
-	explicit Tag(EnumValPtr val);
+	explicit Tag(zeek::EnumValPtr val);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Tag(EnumVal* val);
+	explicit Tag(zeek::EnumVal* val);
 };
 
 }

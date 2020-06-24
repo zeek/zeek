@@ -8,26 +8,26 @@
 %}
 
 %header{
-AddrValPtr network_address_to_val(const ASN1Encoding* na);
-AddrValPtr network_address_to_val(const NetworkAddress* na);
-ValPtr     asn1_obj_to_val(const ASN1Encoding* obj);
+zeek::AddrValPtr network_address_to_val(const ASN1Encoding* na);
+zeek::AddrValPtr network_address_to_val(const NetworkAddress* na);
+zeek::ValPtr     asn1_obj_to_val(const ASN1Encoding* obj);
 
-RecordValPtr build_hdr(const Header* header);
-RecordValPtr build_hdrV3(const Header* header);
-VectorValPtr build_bindings(const VarBindList* vbl);
-RecordValPtr build_pdu(const CommonPDU* pdu);
-RecordValPtr build_trap_pdu(const TrapPDU* pdu);
-RecordValPtr build_bulk_pdu(const GetBulkRequestPDU* pdu);
+zeek::RecordValPtr build_hdr(const Header* header);
+zeek::RecordValPtr build_hdrV3(const Header* header);
+zeek::VectorValPtr build_bindings(const VarBindList* vbl);
+zeek::RecordValPtr build_pdu(const CommonPDU* pdu);
+zeek::RecordValPtr build_trap_pdu(const TrapPDU* pdu);
+zeek::RecordValPtr build_bulk_pdu(const GetBulkRequestPDU* pdu);
 %}
 
 %code{
 
-AddrValPtr network_address_to_val(const NetworkAddress* na)
+zeek::AddrValPtr network_address_to_val(const NetworkAddress* na)
 	{
 	return network_address_to_val(na->encoding());
 	}
 
-AddrValPtr network_address_to_val(const ASN1Encoding* na)
+zeek::AddrValPtr network_address_to_val(const ASN1Encoding* na)
 	{
 	bytestring const& bs = na->content();
 
@@ -35,16 +35,16 @@ AddrValPtr network_address_to_val(const ASN1Encoding* na)
 	// but standards don't seem to currently make any provisions for IPv6,
 	// so ignore anything that can't be IPv4.
 	if ( bs.length() != 4 )
-		return zeek::make_intrusive<AddrVal>(IPAddr());
+		return zeek::make_intrusive<zeek::AddrVal>(IPAddr());
 
 	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
 	uint32 network_order = extract_uint32(data);
-	return zeek::make_intrusive<AddrVal>(ntohl(network_order));
+	return zeek::make_intrusive<zeek::AddrVal>(ntohl(network_order));
 	}
 
-ValPtr asn1_obj_to_val(const ASN1Encoding* obj)
+zeek::ValPtr asn1_obj_to_val(const ASN1Encoding* obj)
 	{
-	RecordValPtr rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::ObjectValue);
+	zeek::RecordValPtr rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::ObjectValue);
 	uint8 tag = obj->meta()->tag();
 
 	rval->Assign(0, val_mgr->Count(tag));
@@ -85,20 +85,20 @@ ValPtr asn1_obj_to_val(const ASN1Encoding* obj)
 	return rval;
 	}
 
-ValPtr time_ticks_to_val(const TimeTicks* tt)
+zeek::ValPtr time_ticks_to_val(const TimeTicks* tt)
 	{
 	return asn1_integer_to_val(tt->asn1_integer(), zeek::TYPE_COUNT);
 	}
 
-RecordValPtr build_hdr(const Header* header)
+zeek::RecordValPtr build_hdr(const Header* header)
 	{
-	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::Header);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::Header);
 	rv->Assign(0, val_mgr->Count(header->version()));
 
 	switch ( header->version() ) {
 	case SNMPV1_TAG:
 		{
-		auto v1 = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::HeaderV1);
+		auto v1 = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::HeaderV1);
 		v1->Assign(0, asn1_octet_string_to_val(header->v1()->community()));
 		rv->Assign(1, std::move(v1));
 		}
@@ -106,7 +106,7 @@ RecordValPtr build_hdr(const Header* header)
 
 	case SNMPV2_TAG:
 		{
-		auto v2 = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::HeaderV2);
+		auto v2 = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::HeaderV2);
 		v2->Assign(0, asn1_octet_string_to_val(header->v2()->community()));
 		rv->Assign(2, std::move(v2));
 		}
@@ -122,9 +122,9 @@ RecordValPtr build_hdr(const Header* header)
 	return rv;
 	}
 
-RecordValPtr build_hdrV3(const Header* header)
+zeek::RecordValPtr build_hdrV3(const Header* header)
 	{
-	auto v3 = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::HeaderV3);
+	auto v3 = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::HeaderV3);
 	const v3Header* v3hdr = header->v3();
 	const v3HeaderData* global_data = v3hdr->global_data();
 	bytestring const& flags = global_data->flags()->encoding()->content();
@@ -142,7 +142,7 @@ RecordValPtr build_hdrV3(const Header* header)
 	if ( v3hdr->next()->tag() == ASN1_SEQUENCE_TAG )
 		{
 		const v3ScopedPDU* spdu = v3hdr->plaintext_pdu();
-		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::ScopedPDU_Context);
+		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::ScopedPDU_Context);
 		rv->Assign(0, asn1_octet_string_to_val(spdu->context_engine_id()));
 		rv->Assign(1, asn1_octet_string_to_val(spdu->context_name()));
 		v3->Assign(8, std::move(rv));
@@ -151,14 +151,14 @@ RecordValPtr build_hdrV3(const Header* header)
 	return v3;
 	}
 
-VectorValPtr build_bindings(const VarBindList* vbl)
+zeek::VectorValPtr build_bindings(const VarBindList* vbl)
 	{
-	auto vv = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::SNMP::Bindings);
+	auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::SNMP::Bindings);
 
 	for ( size_t i = 0; i < vbl->bindings()->size(); ++i )
 		{
 		VarBind* vb = (*vbl->bindings())[i];
-		auto binding = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::Binding);
+		auto binding = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::Binding);
 		binding->Assign(0, asn1_oid_to_val(vb->name()->oid()));
 		binding->Assign(1, asn1_obj_to_val(vb->value()->encoding()));
 		vv->Assign(i, std::move(binding));
@@ -167,9 +167,9 @@ VectorValPtr build_bindings(const VarBindList* vbl)
 	return vv;
 	}
 
-RecordValPtr build_pdu(const CommonPDU* pdu)
+zeek::RecordValPtr build_pdu(const CommonPDU* pdu)
 	{
-	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::PDU);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::PDU);
 	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), zeek::TYPE_INT));
 	rv->Assign(1, asn1_integer_to_val(pdu->error_status(), zeek::TYPE_INT));
 	rv->Assign(2, asn1_integer_to_val(pdu->error_index(), zeek::TYPE_INT));
@@ -177,9 +177,9 @@ RecordValPtr build_pdu(const CommonPDU* pdu)
 	return rv;
 	}
 
-RecordValPtr build_trap_pdu(const TrapPDU* pdu)
+zeek::RecordValPtr build_trap_pdu(const TrapPDU* pdu)
 	{
-	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::TrapPDU);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::TrapPDU);
 	rv->Assign(0, asn1_oid_to_val(pdu->enterprise()));
 	rv->Assign(1, network_address_to_val(pdu->agent_addr()));
 	rv->Assign(2, asn1_integer_to_val(pdu->generic_trap(), zeek::TYPE_INT));
@@ -189,9 +189,9 @@ RecordValPtr build_trap_pdu(const TrapPDU* pdu)
 	return rv;
 	}
 
-RecordValPtr build_bulk_pdu(const GetBulkRequestPDU* pdu)
+zeek::RecordValPtr build_bulk_pdu(const GetBulkRequestPDU* pdu)
 	{
-	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::BulkPDU);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::BulkPDU);
 	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), zeek::TYPE_INT));
 	rv->Assign(1, asn1_integer_to_val(pdu->non_repeaters(), zeek::TYPE_COUNT));
 	rv->Assign(2, asn1_integer_to_val(pdu->max_repititions(), zeek::TYPE_COUNT));

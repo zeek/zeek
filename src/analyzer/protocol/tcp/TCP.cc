@@ -42,8 +42,8 @@ namespace { // local namespace
 static const int ORIG = 1;
 static const int RESP = 2;
 
-static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
-                                       const struct tcphdr* tcp)
+static zeek::RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
+                                             const struct tcphdr* tcp)
 	{
 	int winscale = -1;
 	int MSS = 0;
@@ -108,7 +108,7 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 		}
 
 	static auto SYN_packet = zeek::id::find_type<zeek::RecordType>("SYN_packet");
-	RecordVal* v = new RecordVal(SYN_packet);
+	auto* v = new zeek::RecordVal(SYN_packet);
 
 	v->Assign(0, val_mgr->Bool(is_orig));
 	v->Assign(1, val_mgr->Bool(int(ip->DF())));
@@ -789,13 +789,13 @@ void TCP_Analyzer::GeneratePacketEvent(
 	EnqueueConnEvent(tcp_packet,
 		ConnVal(),
 		val_mgr->Bool(is_orig),
-		zeek::make_intrusive<StringVal>(flags.AsString()),
+		zeek::make_intrusive<zeek::StringVal>(flags.AsString()),
 		val_mgr->Count(rel_seq),
 		val_mgr->Count(flags.ACK() ? rel_ack : 0),
 		val_mgr->Count(len),
 		// We need the min() here because Ethernet padding can lead to
 		// caplen > len.
-		zeek::make_intrusive<StringVal>(std::min(caplen, len), (const char*) data)
+		zeek::make_intrusive<zeek::StringVal>(std::min(caplen, len), (const char*) data)
 	);
 	}
 
@@ -1097,7 +1097,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( flags.SYN() )
 		{
 		syn_weirds(flags, endpoint, len);
-		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
+		zeek::RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
 		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
 		            base_seq, ack_seq);
 
@@ -1285,10 +1285,10 @@ void TCP_Analyzer::FlipRoles()
 	resp->is_orig = !resp->is_orig;
 	}
 
-void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+void TCP_Analyzer::UpdateConnVal(zeek::RecordVal *conn_val)
 	{
-	RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
+	zeek::RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
+	zeek::RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
 
 	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
 	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));
@@ -1356,23 +1356,23 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 	if ( tcp_options )
 		{
-		auto option_list = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::TCP::OptionList);
+		auto option_list = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::TCP::OptionList);
 
-		auto add_option_data = [](const RecordValPtr& rv, const u_char* odata, int olen)
+		auto add_option_data = [](const zeek::RecordValPtr& rv, const u_char* odata, int olen)
 			{
 			if ( olen <= 2 )
 				return;
 
 			auto data_len = olen - 2;
 			auto data = reinterpret_cast<const char*>(odata + 2);
-			rv->Assign(2, zeek::make_intrusive<StringVal>(data_len, data));
+			rv->Assign(2, zeek::make_intrusive<zeek::StringVal>(data_len, data));
 			};
 
 		for ( const auto& o : opts )
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			auto option_record = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::TCP::Option);
+			auto option_record = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
 			option_record->Assign(0, val_mgr->Count(kind));
 			option_record->Assign(1, val_mgr->Count(length));
@@ -1423,7 +1423,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					auto p = reinterpret_cast<const uint32_t*>(o + 2);
 					auto num_pointers = (length - 2) / 4;
 					auto vt = zeek::id::index_vec;
-					auto sack = zeek::make_intrusive<VectorVal>(std::move(vt));
+					auto sack = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
 
 					for ( auto i = 0; i < num_pointers; ++i )
 						sack->Assign(sack->Size(), val_mgr->Count(ntohl(p[i])));
@@ -2076,10 +2076,10 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 	return false;
 	}
 
-RecordVal* TCPStats_Endpoint::BuildStats()
+zeek::RecordVal* TCPStats_Endpoint::BuildStats()
 	{
 	static auto endpoint_stats = zeek::id::find_type<zeek::RecordType>("endpoint_stats");
-	RecordVal* stats = new RecordVal(endpoint_stats);
+	auto* stats = new zeek::RecordVal(endpoint_stats);
 
 	stats->Assign(0, val_mgr->Count(num_pkts));
 	stats->Assign(1, val_mgr->Count(num_rxmit));

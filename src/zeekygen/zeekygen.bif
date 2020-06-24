@@ -9,9 +9,9 @@
 #include "zeekygen/ScriptInfo.h"
 #include "util.h"
 
-static StringValPtr comments_to_val(const vector<string>& comments)
+static zeek::StringValPtr comments_to_val(const vector<string>& comments)
 	{
-	return zeek::make_intrusive<StringVal>(implode_string_vector(comments));
+	return zeek::make_intrusive<zeek::StringVal>(implode_string_vector(comments));
 	}
 %%}
 

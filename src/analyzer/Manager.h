@@ -101,7 +101,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool EnableAnalyzer(EnumVal* tag);
+	bool EnableAnalyzer(zeek::EnumVal* tag);
 
 	/**
 	 * Enables an analyzer type. Disabled analyzers will not be
@@ -122,7 +122,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool DisableAnalyzer(EnumVal* tag);
+	bool DisableAnalyzer(zeek::EnumVal* tag);
 
 	/**
 	 * Disables all currently registered analyzers.
@@ -150,7 +150,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 */
-	bool IsEnabled(EnumVal* tag);
+	bool IsEnabled(zeek::EnumVal* tag);
 
 	/**
 	 * Registers a well-known port for an analyzer. Once registered,
@@ -164,7 +164,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(EnumVal* tag, PortVal* port);
+	bool RegisterAnalyzerForPort(zeek::EnumVal* tag, zeek::PortVal* port);
 
 	/**
 	 * Registers a well-known port for an analyzer. Once registered,
@@ -193,7 +193,7 @@ public:
 	 * registered for the analyzer).
 	 *
 	 */
-	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
+	bool UnregisterAnalyzerForPort(zeek::EnumVal* tag, zeek::PortVal* port);
 
 	/**
 	 * Unregisters a well-known port for an anlyzers.
@@ -269,7 +269,7 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-				TransportProto proto, const Tag& analyzer, double timeout);
+	                      TransportProto proto, const Tag& analyzer, double timeout);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -293,8 +293,8 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-				TransportProto proto, const char* analyzer,
-				double timeout);
+	                      TransportProto proto, const char* analyzer,
+	                      double timeout);
 
 	/**
 	 * Searched for analyzers scheduled to be attached to a given connection
@@ -311,7 +311,8 @@ public:
 	 *
 	 * @return True if at least one scheduled analyzer was found.
 	 */
-	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = nullptr);
+	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true,
+	                             TransportLayerAnalyzer* parent = nullptr);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -332,8 +333,8 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
-			      Val* analyzer, double timeout);
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, zeek::PortVal* resp_p,
+	                      zeek::Val* analyzer, double timeout);
 
 	/**
 	 * @return the UDP port numbers to be associated with VXLAN traffic.
@@ -346,7 +347,7 @@ private:
 	using tag_set = std::set<Tag>;
 	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 
-	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
+	tag_set* LookupPort(zeek::PortVal* val, bool add_if_not_found);
 	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);

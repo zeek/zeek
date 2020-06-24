@@ -1,8 +1,6 @@
 #pragma once
 
 class Connection;
-class Val;
-class PortVal;
 
 namespace analyzer { class Analyzer; }
 
@@ -17,32 +15,32 @@ namespace analyzer { class Analyzer; }
 
 namespace binpac {
 
-typedef analyzer::Analyzer* BroAnalyzer;
-typedef file_analysis::Analyzer BroFileAnalyzer;
-typedef Val* BroVal;
-typedef PortVal* BroPortVal;
-typedef StringVal* BroStringVal;
+using BroAnalyzer = analyzer::Analyzer*;
+using BroFileAnalyzer = file_analysis::Analyzer;
+using BroVal = zeek::Val*;
+using BroPortVal = zeek::PortVal*;
+using BroStringVal = zeek::StringVal*;
 
 [[deprecated("Remove in v4.1.  Use StringVal constructor directly.")]]
-inline StringVal* string_to_val(string const &str)
+inline zeek::StringVal* string_to_val(string const &str)
 	{
-	return new StringVal(str.c_str());
+	return new zeek::StringVal(str.c_str());
 	}
 
 [[deprecated("Remove in v4.1.  Use binpac::to_stringval() instead.")]]
-inline StringVal* bytestring_to_val(const_bytestring const &str)
+inline zeek::StringVal* bytestring_to_val(const_bytestring const &str)
 	{
-	return new StringVal(str.length(), (const char*) str.begin());
+	return new zeek::StringVal(str.length(), (const char*) str.begin());
 	}
 
-inline StringValPtr to_stringval(const_bytestring const& str)
+inline zeek::StringValPtr to_stringval(const_bytestring const& str)
     {
-	return zeek::make_intrusive<StringVal>(str.length(), (const char*) str.begin());
+	return zeek::make_intrusive<zeek::StringVal>(str.length(), (const char*) str.begin());
     }
 
-StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16);
 
 [[deprecated("Remove in v4.1.  Use utf16_to_utf8_val() instead.")]]
-StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16);
 
 } // namespace binpac

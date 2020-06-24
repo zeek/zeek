@@ -107,8 +107,8 @@ public:
 	 */
 	template <class... Args>
 	std::enable_if_t<
-	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
+		std::is_convertible_v<
+			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
 	Enqueue(const EventHandlerPtr& h, Args&&... args)
 		{ return Enqueue(h, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -143,7 +143,7 @@ protected:
 	Event* tail;
 	SourceID current_src;
 	analyzer::ID current_aid;
-	RecordVal* src_val;
+	zeek::RecordVal* src_val;
 	bool draining;
 	zeek::detail::Flare queue_flare;
 };

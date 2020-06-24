@@ -338,14 +338,14 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 	return result;
 	}
 
-VectorVal* BroString:: VecToPolicy(Vec* vec)
+zeek::VectorVal* BroString:: VecToPolicy(Vec* vec)
 	{
-	auto result = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
+	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
 		BroString* string = (*vec)[i];
-		auto val = zeek::make_intrusive<StringVal>(string->Len(),
+		auto val = zeek::make_intrusive<zeek::StringVal>(string->Len(),
 		                                           (const char*) string->Bytes());
 		result->Assign(i+1, std::move(val));
 		}
@@ -353,7 +353,7 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 	return result.release();
 	}
 
-BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
+BroString::Vec* BroString::VecFromPolicy(zeek::VectorVal* vec)
 	{
 	Vec* result = new Vec();
 

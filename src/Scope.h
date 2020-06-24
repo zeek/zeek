@@ -12,9 +12,10 @@
 #include "IntrusivePtr.h"
 #include "TraverseTypes.h"
 
-template <class T> class IntrusivePtr;
 
 namespace zeek {
+	template <class T> class IntrusivePtr;
+
 	class Type;
 	using TypePtr = zeek::IntrusivePtr<zeek::Type>;
 }

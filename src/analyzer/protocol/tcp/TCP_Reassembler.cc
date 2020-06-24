@@ -41,8 +41,8 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		static auto tcp_content_delivery_ports_orig = zeek::id::find_val<TableVal>("tcp_content_delivery_ports_orig");
-		static auto tcp_content_delivery_ports_resp = zeek::id::find_val<TableVal>("tcp_content_delivery_ports_resp");
+		static auto tcp_content_delivery_ports_orig = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_orig");
+		static auto tcp_content_delivery_ports_resp = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_resp");
 		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
 		                                         TRANSPORT_TCP);
 		const auto& ports = IsOrig() ?
@@ -359,7 +359,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const BroFilePtr& f)
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 			Endpoint()->Conn()->ConnVal(),
 			val_mgr->Bool(IsOrig()),
-			zeek::make_intrusive<StringVal>("TCP reassembler content write failure")
+			zeek::make_intrusive<zeek::StringVal>("TCP reassembler content write failure")
 		);
 	}
 
@@ -374,7 +374,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const Br
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 			Endpoint()->Conn()->ConnVal(),
 			val_mgr->Bool(IsOrig()),
-			zeek::make_intrusive<StringVal>("TCP reassembler gap write failure")
+			zeek::make_intrusive<zeek::StringVal>("TCP reassembler gap write failure")
 		);
 	}
 
@@ -453,9 +453,9 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 
 		tcp_analyzer->EnqueueConnEvent(rexmit_inconsistency,
 			tcp_analyzer->ConnVal(),
-			zeek::make_intrusive<StringVal>(b1_s),
-			zeek::make_intrusive<StringVal>(b2_s),
-			zeek::make_intrusive<StringVal>(flags.AsString())
+			zeek::make_intrusive<zeek::StringVal>(b1_s),
+			zeek::make_intrusive<zeek::StringVal>(b2_s),
+			zeek::make_intrusive<zeek::StringVal>(flags.AsString())
 		);
 		}
 	}
@@ -611,7 +611,7 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 			tcp_analyzer->ConnVal(),
 			val_mgr->Bool(IsOrig()),
 			val_mgr->Count(seq),
-			zeek::make_intrusive<StringVal>(len, (const char*) data)
+			zeek::make_intrusive<zeek::StringVal>(len, (const char*) data)
 		);
 
 	// Q. Can we say this because it is already checked in DataSent()?

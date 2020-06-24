@@ -72,7 +72,7 @@ CompositeHash::~CompositeHash()
 
 // Computes the piece of the hash for Val*, returning the new kp.
 char* CompositeHash::SingleValHash(bool type_check, char* kp0,
-				   zeek::Type* bt, Val* v, bool optional) const
+                                   zeek::Type* bt, zeek::Val* v, bool optional) const
 	{
 	char* kp1 = nullptr;
 	zeek::InternalTypeTag t = bt->InternalType();
@@ -176,7 +176,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		case zeek::TYPE_RECORD:
 			{
 			char* kp = kp0;
-			RecordVal* rv = v->AsRecordVal();
+			zeek::RecordVal* rv = v->AsRecordVal();
 			zeek::RecordType* rt = bt->AsRecordType();
 			int num_fields = rt->NumFields();
 
@@ -203,13 +203,13 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		case zeek::TYPE_TABLE:
 			{
 			int* kp = AlignAndPadType<int>(kp0);
-			TableVal* tv = v->AsTableVal();
+			zeek::TableVal* tv = v->AsTableVal();
 			*kp = tv->Size();
 			kp1 = reinterpret_cast<char*>(kp+1);
 
 			auto tbl = tv->AsTable();
 			auto it = tbl->InitForIteration();
-			auto lv = zeek::make_intrusive<ListVal>(zeek::TYPE_ANY);
+			auto lv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
 			struct HashKeyComparer {
 				bool operator()(const HashKey* a, const HashKey* b) const
@@ -262,7 +262,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		case zeek::TYPE_VECTOR:
 			{
 			unsigned int* kp = AlignAndPadType<unsigned int>(kp0);
-			VectorVal* vv = v->AsVectorVal();
+			zeek::VectorVal* vv = v->AsVectorVal();
 			zeek::VectorType* vt = v->GetType()->AsVectorType();
 			*kp = vv->Size();
 			kp1 = reinterpret_cast<char*>(kp+1);
@@ -290,12 +290,12 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		case zeek::TYPE_LIST:
 			{
 			int* kp = AlignAndPadType<int>(kp0);
-			ListVal* lv = v->AsListVal();
+			zeek::ListVal* lv = v->AsListVal();
 			*kp = lv->Length();
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
-				Val* v = lv->Idx(i).get();
+				zeek::Val* v = lv->Idx(i).get();
 				if ( ! (kp1 = SingleValHash(type_check, kp1, v->GetType().get(), v,
 				                            false)) )
 					return nullptr;
@@ -336,7 +336,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	}
 
 
-std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_check) const
+std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool type_check) const
 	{
 	auto v = &argv;
 
@@ -345,12 +345,12 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_c
 
 	if ( is_complex_type && v->GetType()->Tag() != zeek::TYPE_LIST )
 		{
-		ListVal lv(zeek::TYPE_ANY);
+		zeek::ListVal lv(zeek::TYPE_ANY);
 
 		// Cast away const to use ListVal - but since we
 		// re-introduce const on the recursive call, it should
 		// be okay; the only thing is that the ListVal unref's it.
-		Val* ncv = (Val*) v;
+		zeek::Val* ncv = (zeek::Val*) v;
 		lv.Append({zeek::NewRef{}, ncv});
 		return MakeHashKey(lv, type_check);
 		}
@@ -388,7 +388,7 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_c
 	return std::make_unique<HashKey>((k == key), (void*) k, kp - k);
 	}
 
-std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
+std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v, bool type_check) const
 	{
 	if ( v->GetType()->Tag() == zeek::TYPE_LIST )
 		{
@@ -450,9 +450,9 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const Val* v, bool 
 	}
 	}
 
-int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
-				     bool type_check, int sz, bool optional,
-				     bool calc_static_size) const
+int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const zeek::Val* v,
+                                     bool type_check, int sz, bool optional,
+                                     bool calc_static_size) const
 	{
 	zeek::InternalTypeTag t = bt->InternalType();
 
@@ -509,7 +509,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 
 		case zeek::TYPE_RECORD:
 			{
-			const RecordVal* rv = v ? v->AsRecordVal() : nullptr;
+			const zeek::RecordVal* rv = v ? v->AsRecordVal() : nullptr;
 			zeek::RecordType* rt = bt->AsRecordType();
 			int num_fields = rt->NumFields();
 
@@ -535,7 +535,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 				return (optional && ! calc_static_size) ? sz : 0;
 
 			sz = SizeAlign(sz, sizeof(int));
-			TableVal* tv = const_cast<TableVal*>(v->AsTableVal());
+			zeek::TableVal* tv = const_cast<zeek::TableVal*>(v->AsTableVal());
 			auto lv = tv->ToListVal();
 			for ( int i = 0; i < tv->Size(); ++i )
 				{
@@ -564,7 +564,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 				return (optional && ! calc_static_size) ? sz : 0;
 
 			sz = SizeAlign(sz, sizeof(unsigned int));
-			VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
+			zeek::VectorVal* vv = const_cast<zeek::VectorVal*>(v->AsVectorVal());
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
 				const auto& val = vv->At(i);
@@ -586,7 +586,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 				return (optional && ! calc_static_size) ? sz : 0;
 
 			sz = SizeAlign(sz, sizeof(int));
-			ListVal* lv = const_cast<ListVal*>(v->AsListVal());
+			zeek::ListVal* lv = const_cast<zeek::ListVal*>(v->AsListVal());
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
 				sz = SingleTypeKeySize(lv->Idx(i)->GetType().get(), lv->Idx(i).get(),
@@ -623,7 +623,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 	return sz;
 	}
 
-int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
+int CompositeHash::ComputeKeySize(const zeek::Val* v, bool type_check, bool calc_static_size) const
 	{
 	const auto& tl = type->GetTypes();
 
@@ -709,16 +709,16 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 	return offset;
 	}
 
-ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
+zeek::ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
 	{
-	auto l = zeek::make_intrusive<ListVal>(zeek::TYPE_ANY);
+	auto l = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 	const auto& tl = type->GetTypes();
 	const char* kp = (const char*) k.Key();
 	const char* const k_end = kp + k.Size();
 
 	for ( const auto& type : tl )
 		{
-		ValPtr v;
+		zeek::ValPtr v;
 		kp = RecoverOneVal(k, kp, k_end, type.get(), &v, false);
 		ASSERT(v);
 		l->Append(std::move(v));
@@ -733,7 +733,7 @@ ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
 const char* CompositeHash::RecoverOneVal(
 	const HashKey& k, const char* kp0,
 	const char* const k_end, zeek::Type* t,
-	ValPtr* pval, bool optional) const
+	zeek::ValPtr* pval, bool optional) const
 	{
 	// k->Size() == 0 for a single empty string.
 	if ( kp0 >= k_end && k.Size() > 0 )
@@ -804,11 +804,11 @@ const char* CompositeHash::RecoverOneVal(
 		kp1 = reinterpret_cast<const char*>(kp+1);
 
 		if ( tag == zeek::TYPE_INTERVAL )
-			*pval = zeek::make_intrusive<IntervalVal>(*kp, 1.0);
+			*pval = zeek::make_intrusive<zeek::IntervalVal>(*kp, 1.0);
 		else if ( tag == zeek::TYPE_TIME )
-			*pval = zeek::make_intrusive<TimeVal>(*kp);
+			*pval = zeek::make_intrusive<zeek::TimeVal>(*kp);
 		else
-			*pval = zeek::make_intrusive<DoubleVal>(*kp);
+			*pval = zeek::make_intrusive<zeek::DoubleVal>(*kp);
 		}
 		break;
 
@@ -821,7 +821,7 @@ const char* CompositeHash::RecoverOneVal(
 
 		switch ( tag ) {
 		case zeek::TYPE_ADDR:
-			*pval = zeek::make_intrusive<AddrVal>(addr);
+			*pval = zeek::make_intrusive<zeek::AddrVal>(addr);
 			break;
 
 		default:
@@ -836,7 +836,7 @@ const char* CompositeHash::RecoverOneVal(
 		{
 		const uint32_t* const kp = AlignType<uint32_t>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+5);
-		*pval = zeek::make_intrusive<SubNetVal>(kp, kp[4]);
+		*pval = zeek::make_intrusive<zeek::SubNetVal>(kp, kp[4]);
 		}
 		break;
 
@@ -854,7 +854,7 @@ const char* CompositeHash::RecoverOneVal(
 			if ( ! f )
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
-			*pval = zeek::make_intrusive<Val>(f);
+			*pval = zeek::make_intrusive<zeek::Val>(f);
 			const auto& pvt = (*pval)->GetType();
 
 			if ( ! pvt )
@@ -894,7 +894,7 @@ const char* CompositeHash::RecoverOneVal(
 				reporter->InternalError("failed compiling table/set key pattern: %s",
 				                        re->PatternText());
 
-			*pval = zeek::make_intrusive<PatternVal>(re);
+			*pval = zeek::make_intrusive<zeek::PatternVal>(re);
 			}
 			break;
 
@@ -904,11 +904,11 @@ const char* CompositeHash::RecoverOneVal(
 			zeek::RecordType* rt = t->AsRecordType();
 			int num_fields = rt->NumFields();
 
-			std::vector<ValPtr> values;
+			std::vector<zeek::ValPtr> values;
 			int i;
 			for ( i = 0; i < num_fields; ++i )
 				{
-				ValPtr v;
+				zeek::ValPtr v;
 
 				zeek::detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->Find(zeek::detail::ATTR_OPTIONAL));
@@ -931,7 +931,7 @@ const char* CompositeHash::RecoverOneVal(
 
 			ASSERT(int(values.size()) == num_fields);
 
-			auto rv = zeek::make_intrusive<RecordVal>(zeek::IntrusivePtr{zeek::NewRef{}, rt});
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::IntrusivePtr{zeek::NewRef{}, rt});
 
 			for ( int i = 0; i < num_fields; ++i )
 				rv->Assign(i, std::move(values[i]));
@@ -948,18 +948,18 @@ const char* CompositeHash::RecoverOneVal(
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			zeek::TableType* tt = t->AsTableType();
-			auto tv = zeek::make_intrusive<TableVal>(zeek::IntrusivePtr{zeek::NewRef{}, tt});
+			auto tv = zeek::make_intrusive<zeek::TableVal>(zeek::IntrusivePtr{zeek::NewRef{}, tt});
 
 			for ( int i = 0; i < n; ++i )
 				{
-				ValPtr key;
+				zeek::ValPtr key;
 				kp1 = RecoverOneVal(k, kp1, k_end, tt->GetIndices().get(), &key, false);
 
 				if ( t->IsSet() )
 					tv->Assign(std::move(key), nullptr);
 				else
 					{
-					ValPtr value;
+					zeek::ValPtr value;
 					kp1 = RecoverOneVal(k, kp1, k_end, tt->Yield().get(), &value,
 					                    false);
 					tv->Assign(std::move(key), std::move(value));
@@ -977,7 +977,7 @@ const char* CompositeHash::RecoverOneVal(
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			zeek::VectorType* vt = t->AsVectorType();
-			auto vv = zeek::make_intrusive<VectorVal>(zeek::IntrusivePtr{zeek::NewRef{}, vt});
+			auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::IntrusivePtr{zeek::NewRef{}, vt});
 
 			for ( unsigned int i = 0; i < n; ++i )
 				{
@@ -987,7 +987,7 @@ const char* CompositeHash::RecoverOneVal(
 				kp = AlignType<unsigned int>(kp1);
 				unsigned int have_val = *kp;
 				kp1 = reinterpret_cast<const char*>(kp+1);
-				ValPtr value;
+				zeek::ValPtr value;
 
 				if ( have_val )
 					kp1 = RecoverOneVal(k, kp1, k_end, vt->Yield().get(), &value,
@@ -1007,11 +1007,11 @@ const char* CompositeHash::RecoverOneVal(
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			zeek::TypeList* tl = t->AsTypeList();
-			auto lv = zeek::make_intrusive<ListVal>(zeek::TYPE_ANY);
+			auto lv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
 			for ( int i = 0; i < n; ++i )
 				{
-				ValPtr v;
+				zeek::ValPtr v;
 				zeek::Type* it = tl->GetTypes()[i].get();
 				kp1 = RecoverOneVal(k, kp1, k_end, it, &v, false);
 				lv->Append(std::move(v));
@@ -1047,7 +1047,7 @@ const char* CompositeHash::RecoverOneVal(
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			}
 
-		*pval = zeek::make_intrusive<StringVal>(new BroString((const byte_vec) kp1, n, true));
+		*pval = zeek::make_intrusive<zeek::StringVal>(new BroString((const byte_vec) kp1, n, true));
 		kp1 += n;
 		}
 		break;

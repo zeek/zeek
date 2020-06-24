@@ -23,15 +23,16 @@
 
 #include <stdlib.h>
 
-class BroString;
 
 // to allow bro_md5_hmac access to the hmac seed
 #include "ZeekArgs.h"
-class Val;
+
+//ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+class BroString;
 class Frame;
 class BifReturnVal;
 namespace zeek::BifFunc {
-	extern BifReturnVal md5_hmac_bif(Frame* frame, const zeek::Args*);
+	extern BifReturnVal md5_hmac_bif(::Frame* frame, const zeek::Args*);
 }
 
 typedef uint64_t hash_t;

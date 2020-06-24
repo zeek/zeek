@@ -10,8 +10,10 @@
 
 class CompositeHash;
 
-class RecordVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+}
 
 namespace file_analysis {
 
@@ -45,7 +47,7 @@ public:
 	 * @param args an \c AnalyzerArgs record.
 	 * @return pointer to an analyzer instance, or a null pointer if not found.
 	 */
-	Analyzer* Find(const file_analysis::Tag& tag, RecordValPtr args);
+	Analyzer* Find(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Attach an analyzer to #file immediately.
@@ -53,7 +55,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was instantiated/attached, else false.
 	 */
-	bool Add(const file_analysis::Tag& tag, RecordValPtr args);
+	bool Add(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Queue the attachment of an analyzer to #file.
@@ -63,7 +65,7 @@ public:
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
 	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag,
-	                                  RecordValPtr args);
+	                                  zeek::RecordValPtr args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -71,7 +73,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return false if analyzer didn't exist and so wasn't removed, else true.
 	 */
-	bool Remove(const file_analysis::Tag& tag, RecordValPtr args);
+	bool Remove(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Queue the removal of an analyzer from #file.
@@ -79,7 +81,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer exists at time of call, else false;
 	 */
-	bool QueueRemove(const file_analysis::Tag& tag, RecordValPtr args);
+	bool QueueRemove(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Perform all queued modifications to the current analyzer set.
@@ -113,7 +115,7 @@ protected:
 	 * @return the hash key calculated from \a args
 	 */
 	std::unique_ptr<HashKey> GetKey(const file_analysis::Tag& tag,
-	                                RecordValPtr args) const;
+	                                zeek::RecordValPtr args) const;
 
 	/**
 	 * Create an instance of a file analyzer.
@@ -122,7 +124,7 @@ protected:
 	 * @return a new file analyzer instance.
 	 */
 	file_analysis::Analyzer* InstantiateAnalyzer(const file_analysis::Tag& tag,
-	                                             RecordValPtr args) const;
+	                                             zeek::RecordValPtr args) const;
 
 	/**
 	 * Insert an analyzer instance in to the set.

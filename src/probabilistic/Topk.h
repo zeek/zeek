@@ -27,11 +27,11 @@ struct Bucket {
 
 struct Element {
 	uint64_t epsilon;
-	ValPtr value;
+	zeek::ValPtr value;
 	Bucket* parent;
 };
 
-class TopkVal : public OpaqueVal {
+class TopkVal : public zeek::OpaqueVal {
 
 public:
 	/**
@@ -55,7 +55,7 @@ public:
 	 *
 	 * @param value The encountered element
 	 */
-	void Encountered(ValPtr value);
+	void Encountered(zeek::ValPtr value);
 
 	/**
 	 * Get the first *k* elements of the result vector. At the moment,
@@ -66,7 +66,7 @@ public:
 	 *
 	 * @returns The top-k encountered elements
 	 */
-	VectorValPtr GetTopK(int k) const;
+	zeek::VectorValPtr GetTopK(int k) const;
 
 	/**
 	 * Get the current count tracked in the top-k data structure for a
@@ -125,7 +125,7 @@ public:
 	 *
 	 * @returns cloned TopkVal
 	 */
-	ValPtr DoClone(CloneState* state) override;
+	zeek::ValPtr DoClone(CloneState* state) override;
 
 	DECLARE_OPAQUE_VALUE(TopkVal)
 
@@ -153,7 +153,7 @@ private:
 	 * @returns HashKey for value
 	 */
 	HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
-	HashKey* GetHash(const ValPtr& v) const
+	HashKey* GetHash(const zeek::ValPtr& v) const
 		{ return GetHash(v.get()); }
 
 	/**

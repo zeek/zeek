@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <vector>
 #include <string>
 #include <iosfwd>
@@ -13,7 +15,7 @@ typedef u_char* byte_vec;
 // Forward declaration, for helper functions that convert (sub)string vectors
 // to and from policy-level representations.
 //
-class VectorVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
 
 class BroString {
 public:
@@ -134,8 +136,8 @@ public:
 	Vec* Split(const IdxVec& indices) const;
 
 	// Helper functions for vectors:
-	static VectorVal* VecToPolicy(Vec* vec);
-	static Vec* VecFromPolicy(VectorVal* vec);
+	static zeek::VectorVal* VecToPolicy(Vec* vec);
+	static Vec* VecFromPolicy(zeek::VectorVal* vec);
 	static char* VecToString(const Vec* vec);
 
 protected:

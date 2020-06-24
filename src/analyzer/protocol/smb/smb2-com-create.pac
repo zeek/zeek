@@ -16,7 +16,7 @@ refine connection SMB_Conn += {
 
 		if ( smb2_create_request )
 			{
-			auto requestinfo = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CreateRequest);
+			auto requestinfo = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::CreateRequest);
 			requestinfo->Assign(0, std::move(filename));
 			requestinfo->Assign(1, val_mgr->Count(${val.disposition}));
 			requestinfo->Assign(2, val_mgr->Count(${val.create_options}));
@@ -33,7 +33,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_create_response )
 			{
-			auto responseinfo = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CreateResponse);
+			auto responseinfo = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::CreateResponse);
 			responseinfo->Assign(0, BuildSMB2GUID(${val.file_id}));
 			responseinfo->Assign(1, val_mgr->Count(${val.eof}));
 			responseinfo->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
@@ -45,7 +45,7 @@ refine connection SMB_Conn += {
 			zeek::BifEvent::enqueue_smb2_create_response(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
-												   std::move(responseinfo));
+			                                       std::move(responseinfo));
 			}
 
 		return true;

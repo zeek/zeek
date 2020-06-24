@@ -43,7 +43,7 @@ public:
 	 * @return the new DataEvent analyzer instance or a null pointer if
 	 *         no "chunk_event" or "stream_event" field was specfied in \a args.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
 	                                            File* file);
 
 protected:
@@ -57,7 +57,7 @@ protected:
 	 * @param se pointer to event handler which will be called to receive
 	 *        sequential file data.
 	 */
-	DataEvent(RecordValPtr args, File* file,
+	DataEvent(zeek::RecordValPtr args, File* file,
 	          EventHandlerPtr ce, EventHandlerPtr se);
 
 private:

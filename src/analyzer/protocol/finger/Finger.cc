@@ -70,8 +70,8 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 			EnqueueConnEvent(finger_request,
 				ConnVal(),
 				val_mgr->Bool(long_cnt),
-				zeek::make_intrusive<StringVal>(at - line, line),
-				zeek::make_intrusive<StringVal>(end_of_line - host, host)
+				zeek::make_intrusive<zeek::StringVal>(at - line, line),
+				zeek::make_intrusive<zeek::StringVal>(end_of_line - host, host)
 			);
 
 		Conn()->Match(Rule::FINGER, (const u_char *) line,
@@ -87,7 +87,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 
 		EnqueueConnEvent(finger_reply,
 			ConnVal(),
-			zeek::make_intrusive<StringVal>(end_of_line - line, line)
+			zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line)
 		);
 		}
 	}

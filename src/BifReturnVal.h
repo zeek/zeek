@@ -2,10 +2,13 @@
 
 #pragma once
 
+#include "zeek-config.h"
 #include "IntrusivePtr.h"
 
-class Val;
-using ValPtr = zeek::IntrusivePtr<Val>;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+namespace zeek {
+using ValPtr = zeek::IntrusivePtr<zeek::Val>;
+}
 
 /**
  * A simple wrapper class to use for the return value of BIFs so that
@@ -23,7 +26,7 @@ public:
 	BifReturnVal(std::nullptr_t) noexcept;
 
 	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
-	BifReturnVal(Val* v) noexcept;
+	BifReturnVal(zeek::Val* v) noexcept;
 
-	ValPtr rval;
+	zeek::ValPtr rval;
 };

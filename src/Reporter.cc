@@ -74,7 +74,7 @@ void Reporter::InitOptions()
 
 	HashKey* k;
 	IterCookie* c = wl_table->InitForIteration();
-	TableEntryVal* v;
+	zeek::TableEntryVal* v;
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
@@ -345,7 +345,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return false;
 	}
 
-bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
+bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id)
 	{
 	auto conn_tuple = std::make_tuple(conn_id.GetField("orig_h")->AsAddr(),
 	                                  conn_id.GetField("resp_h")->AsAddr(),
@@ -384,7 +384,7 @@ void Reporter::Weird(const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
+	WeirdHelper(net_weird, {new zeek::StringVal(addl)}, "%s", name);
 	}
 
 void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
@@ -398,7 +398,7 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -413,11 +413,11 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
+void Reporter::Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
                      const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
@@ -429,7 +429,7 @@ void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
 		}
 
 	WeirdHelper(expired_conn_weird,
-	            {conn_id.release(), uid.release(), new StringVal(addl)},
+	            {conn_id.release(), uid.release(), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -444,7 +444,7 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, c
 		}
 
 	WeirdHelper(flow_weird,
-	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
+	            {new zeek::AddrVal(orig), new zeek::AddrVal(resp), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -558,12 +558,12 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(zeek::make_intrusive<TimeVal>(network_time ? network_time : current_time()));
+			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(network_time ? network_time : current_time()));
 
-		vl.emplace_back(zeek::make_intrusive<StringVal>(buffer));
+		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(buffer));
 
 		if ( location )
-			vl.emplace_back(zeek::make_intrusive<StringVal>(loc_str.c_str()));
+			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(loc_str.c_str()));
 
 		if ( conn )
 			vl.emplace_back(conn->ConnVal());

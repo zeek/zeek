@@ -20,7 +20,7 @@ static bool is_string_set(const zeek::Type* type)
 	return index_types[0]->Tag() == zeek::TYPE_STRING;
 	}
 
-std::set<std::string> val_to_topic_set(Val* val)
+std::set<std::string> val_to_topic_set(zeek::Val* val)
 	{
 	std::set<std::string> rval;
 
@@ -28,7 +28,7 @@ std::set<std::string> val_to_topic_set(Val* val)
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
-		const PDict<TableEntryVal>* tbl = val->AsTable();
+		const PDict<zeek::TableEntryVal>* tbl = val->AsTable();
 
 		if ( tbl->Length() == 0 )
 			return rval;

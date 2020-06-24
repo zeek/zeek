@@ -797,7 +797,7 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
 	static auto record_field = zeek::id::find_type<RecordType>("record_field");
 	static auto record_field_table = zeek::id::find_type<TableType>("record_field_table");
-	auto rval = zeek::make_intrusive<TableVal>(record_field_table);
+	auto rval = zeek::make_intrusive<zeek::TableVal>(record_field_table);
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
@@ -810,14 +810,14 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		bool logged = (fd->attrs && fd->GetAttr(zeek::detail::ATTR_LOG) != nullptr);
 
-		auto nr = zeek::make_intrusive<RecordVal>(record_field);
+		auto nr = zeek::make_intrusive<zeek::RecordVal>(record_field);
 
 		string s = container_type_name(ft.get());
-		nr->Assign(0, zeek::make_intrusive<StringVal>(s));
+		nr->Assign(0, zeek::make_intrusive<zeek::StringVal>(s));
 		nr->Assign(1, val_mgr->Bool(logged));
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
-		auto field_name = zeek::make_intrusive<StringVal>(FieldName(i));
+		auto field_name = zeek::make_intrusive<zeek::StringVal>(FieldName(i));
 		rval->Assign(std::move(field_name), std::move(nr));
 		}
 
@@ -1163,7 +1163,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = zeek::make_intrusive<EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, val);
+		vals[val] = zeek::make_intrusive<zeek::EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, val);
 
 	set<Type*> types = Type::GetAliases(GetName());
 	set<Type*>::const_iterator it;
@@ -1218,7 +1218,7 @@ const EnumValPtr& EnumType::GetVal(bro_int_t i)
 
 	if ( it == vals.end() )
 		{
-		auto ev = zeek::make_intrusive<EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, i);
+		auto ev = zeek::make_intrusive<zeek::EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, i);
 		return vals.emplace(i, std::move(ev)).first->second;
 		}
 

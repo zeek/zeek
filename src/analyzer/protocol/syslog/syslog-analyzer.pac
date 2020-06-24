@@ -20,7 +20,7 @@ flow Syslog_Flow
 			    connection()->bro_analyzer()->Conn(),
 			    ${m.PRI.facility},
 			    ${m.PRI.severity},
-			    zeek::make_intrusive<StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
+			    zeek::make_intrusive<zeek::StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
 			    );
 		else
 			zeek::BifEvent::enqueue_syslog_message(
@@ -28,7 +28,7 @@ flow Syslog_Flow
 			    connection()->bro_analyzer()->Conn(),
 			    999,
 			    999,
-			    zeek::make_intrusive<StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
+			    zeek::make_intrusive<zeek::StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
 			    );
 
 		return true;

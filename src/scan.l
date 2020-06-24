@@ -203,22 +203,22 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 	/* IPv6 literal constant patterns */
 {IP6}	{
-	RET_CONST(new AddrVal(extract_ip(yytext)))
+	RET_CONST(new zeek::AddrVal(extract_ip(yytext)))
 }
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len, true)))
+	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len, true)))
 }
 
 	/* IPv4 literal constant patterns */
-({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
+({D}"."){3}{D}		RET_CONST(new zeek::AddrVal(yytext))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
+	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
 [!%*/+\-,:;<=>?()\[\]{}~$|&^]	return yytext[0];
@@ -346,11 +346,11 @@ when	return TOK_WHEN;
 			rval = std::string(path) + "/" + rval;
 		}
 
-	RET_CONST(new StringVal(rval.c_str()));
+	RET_CONST(new zeek::StringVal(rval.c_str()));
 	}
 
 @FILENAME	{
-	RET_CONST(new StringVal(SafeBasename(::filename).result));
+	RET_CONST(new zeek::StringVal(SafeBasename(::filename).result));
 	}
 
 @load{WS}{FILE}	{
@@ -480,7 +480,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 {D}		{
 		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
-{FLOAT}		RET_CONST(new DoubleVal(atof(yytext)))
+{FLOAT}		RET_CONST(new zeek::DoubleVal(atof(yytext)))
 
 {D}"/tcp"	{
 		uint32_t p = atoi(yytext);
@@ -519,12 +519,12 @@ F	RET_CONST(val_mgr->False()->Ref())
 		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
-{FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
-{FLOAT}{OWS}hr(s?)	RET_CONST(new IntervalVal(atof(yytext),Hours))
-{FLOAT}{OWS}min(s?)	RET_CONST(new IntervalVal(atof(yytext),Minutes))
-{FLOAT}{OWS}sec(s?)	RET_CONST(new IntervalVal(atof(yytext),Seconds))
-{FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
-{FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
+{FLOAT}{OWS}day(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Days))
+{FLOAT}{OWS}hr(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Hours))
+{FLOAT}{OWS}min(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Minutes))
+{FLOAT}{OWS}sec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Seconds))
+{FLOAT}{OWS}msec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Milliseconds))
+{FLOAT}{OWS}usec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Microseconds))
 
 "0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
@@ -560,7 +560,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 
 	s[i-1] = '\0';
 
-	RET_CONST(new StringVal(new BroString(1, (byte_vec) s, i-1)))
+	RET_CONST(new zeek::StringVal(new BroString(1, (byte_vec) s, i-1)))
 	}
 
 <RE>([^/\\\n]|{ESCSEQ})+	{
@@ -749,7 +749,7 @@ void do_atif(zeek::detail::Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	ValPtr val;
+	zeek::ValPtr val;
 
 	if ( cb.local_names.empty() )
 		val = expr->Eval(nullptr);

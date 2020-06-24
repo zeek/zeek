@@ -96,8 +96,8 @@ function error%(%): string
 		{
 		const char* err = ps->ErrorMsg();
 		if ( *err )
-			return zeek::make_intrusive<StringVal>(err);
+			return zeek::make_intrusive<zeek::StringVal>(err);
 		}
 
-	return zeek::make_intrusive<StringVal>("no error");
+	return zeek::make_intrusive<zeek::StringVal>("no error");
 	%}

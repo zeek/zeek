@@ -342,7 +342,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 			val_mgr->Count(c->Version()),
 			val_mgr->Count(c->Proc()),
 			zeek::BifType::Enum::rpc_status->GetVal(status),
-			zeek::make_intrusive<TimeVal>(c->StartTime()),
+			zeek::make_intrusive<zeek::TimeVal>(c->StartTime()),
 			val_mgr->Count(c->CallLen()),
 			val_mgr->Count(reply_len)
 		);

@@ -16,8 +16,6 @@
 #include "IntrusivePtr.h"
 #include "util.h"
 
-class RecordVal;
-
 namespace zeek {
 	class Type;
 	using TypePtr = zeek::IntrusivePtr<zeek::Type>;
@@ -26,6 +24,7 @@ using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
 class BroFile;
 using BroFilePtr = zeek::IntrusivePtr<BroFile>;
@@ -66,7 +65,7 @@ public:
 	void Describe(ODesc* d) const override;
 
 	// Rotates the logfile. Returns rotate_info.
-	RecordVal* Rotate();
+	zeek::RecordVal* Rotate();
 
 	// Set &raw_output attribute.
 	void SetAttrs(zeek::detail::Attributes* attrs);

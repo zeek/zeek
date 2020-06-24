@@ -3,7 +3,7 @@ refine flow SIP_Flow += {
 	%member{
 		int content_length;
 		bool build_headers;
-		std::vector<ValPtr> headers;
+		std::vector<zeek::ValPtr> headers;
 	%}
 
 	%init{
@@ -68,7 +68,7 @@ refine flow SIP_Flow += {
 	function build_sip_headers_val(): BroVal
 		%{
 		static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
-		TableVal* t = new TableVal(mime_header_list);
+		auto* t = new zeek::TableVal(mime_header_list);
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
@@ -103,13 +103,13 @@ refine flow SIP_Flow += {
 	function build_sip_header_val(name: const_bytestring, value: const_bytestring): BroVal
 		%{
 		static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
-		RecordVal* header_record = new RecordVal(mime_header_rec);
-		StringValPtr name_val;
+		auto* header_record = new zeek::RecordVal(mime_header_rec);
+		zeek::StringValPtr name_val;
 
 		if ( name.length() > 0 )
 			{
 			// Make it all uppercase.
-			name_val = zeek::make_intrusive<StringVal>(name.length(), (const char*) name.begin());
+			name_val = zeek::make_intrusive<zeek::StringVal>(name.length(), (const char*) name.begin());
 			name_val->ToUpper();
 			}
 		else

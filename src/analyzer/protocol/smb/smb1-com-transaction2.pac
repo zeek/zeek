@@ -24,7 +24,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_transaction2_request )
 			{
-			auto args = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Trans2_Args);
+			auto args = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::Trans2_Args);
 			args->Assign(0, val_mgr->Count(${val.total_param_count}));
 			args->Assign(1, val_mgr->Count(${val.total_data_count}));
 			args->Assign(2, val_mgr->Count(${val.max_param_count}));
@@ -131,7 +131,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_trans2_find_first2_request )
 			{
-			auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Find_First2_Request_Args);
+			auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::Find_First2_Request_Args);
 			result->Assign(0, val_mgr->Count(${val.search_attrs}));
 			result->Assign(1, val_mgr->Count(${val.search_count}));
 			result->Assign(2, val_mgr->Count(${val.flags}));
@@ -139,9 +139,9 @@ refine connection SMB_Conn += {
 			result->Assign(4, val_mgr->Count(${val.search_storage_type}));
 			result->Assign(5, smb_string2stringval(${val.file_name}));
 			zeek::BifEvent::enqueue_smb1_trans2_find_first2_request(bro_analyzer(),
-			                                                  bro_analyzer()->Conn(),
-															  SMBHeaderVal(header),
-															  std::move(result));
+			                                                        bro_analyzer()->Conn(),
+			                                                        SMBHeaderVal(header),
+			                                                        std::move(result));
 
 			}
 		return true;

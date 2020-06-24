@@ -47,12 +47,12 @@ public:
 protected:
 
 	[[deprecated("Remove in v4.1.  Use ToAddrVal().")]]
-	AddrVal* ConstructAddrVal(const void* addr);
+	zeek::AddrVal* ConstructAddrVal(const void* addr);
 	[[deprecated("Remove in v4.1.  Use ToEthAddrStr().")]]
-	StringVal* EthAddrToStr(const u_char* addr);
+	zeek::StringVal* EthAddrToStr(const u_char* addr);
 
-	AddrValPtr ToAddrVal(const void* addr);
-	StringValPtr ToEthAddrStr(const u_char* addr);
+	zeek::AddrValPtr ToAddrVal(const void* addr);
+	zeek::StringValPtr ToEthAddrStr(const u_char* addr);
 	void BadARP(const struct arp_pkthdr* hdr, const char* string);
 	void Corrupted(const char* string);
 };

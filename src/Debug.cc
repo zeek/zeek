@@ -905,7 +905,7 @@ bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f)
 	return true;
 	}
 
-bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow)
+bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, zeek::Val* result, stmt_flow_type* flow)
 	{
 	// Handle the case where someone issues a "next" debugger command,
 	// but we're at a return statement, so the next statement is in
@@ -948,7 +948,7 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern int line_number;
 extern const char* filename;
 
-ValPtr dbg_eval_expr(const char* expr)
+zeek::ValPtr dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
@@ -983,7 +983,7 @@ ValPtr dbg_eval_expr(const char* expr)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Parse the thing into an expr.
-	ValPtr result;
+	zeek::ValPtr result;
 	if ( yyparse() )
 		{
 		if ( g_curr_debug_error )

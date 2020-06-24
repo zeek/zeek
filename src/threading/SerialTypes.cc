@@ -436,7 +436,7 @@ void Value::delete_value_ptr_array(Value** vals, int num_fields)
 	delete [] vals;
 	}
 
-Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_error)
+zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_error)
 	{
 	if ( have_error )
 		return nullptr;
@@ -456,18 +456,18 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			return val_mgr->Count(val->val.int_val).release();
 
 		case zeek::TYPE_DOUBLE:
-			return new DoubleVal(val->val.double_val);
+			return new zeek::DoubleVal(val->val.double_val);
 
 		case zeek::TYPE_TIME:
-			return new TimeVal(val->val.double_val);
+			return new zeek::TimeVal(val->val.double_val);
 
 		case zeek::TYPE_INTERVAL:
-			return new IntervalVal(val->val.double_val);
+			return new zeek::IntervalVal(val->val.double_val);
 
 		case zeek::TYPE_STRING:
 			{
-			BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
-			return new StringVal(s);
+			auto* s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+			return new zeek::StringVal(s);
 			}
 
 		case zeek::TYPE_PORT:
@@ -489,7 +489,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					assert(false);
 				}
 
-			AddrVal* addrval = new AddrVal(*addr);
+			auto* addrval = new zeek::AddrVal(*addr);
 			delete addr;
 			return addrval;
 			}
@@ -510,7 +510,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					assert(false);
 				}
 
-			SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+			auto* subnetval = new zeek::SubNetVal(*addr, val->val.subnet_val.length);
 			delete addr;
 			return subnetval;
 			}
@@ -519,7 +519,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			{
 			RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
 			re->Compile();
-			return new PatternVal(re);
+			return new zeek::PatternVal(re);
 			}
 
 		case zeek::TYPE_TABLE:
@@ -563,10 +563,10 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				}
 
 			auto s = zeek::make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
-			TableVal* t = new TableVal(std::move(s));
+			auto* t = new zeek::TableVal(std::move(s));
 			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
-				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
+				zeek::Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
 				t->Assign({zeek::AdoptRef{}, assignval}, nullptr);
 				}
 
@@ -590,7 +590,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				}
 
 			auto vt = zeek::make_intrusive<zeek::VectorType>(std::move(type));
-			auto v = zeek::make_intrusive<VectorVal>(std::move(vt));
+			auto v = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
 
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
 				{

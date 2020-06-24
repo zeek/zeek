@@ -1,14 +1,14 @@
 %header{
-RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts);
-RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
+zeek::RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts);
+zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
 
-bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
+bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
 %}
 
 %code{
-RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts)
+zeek::RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
-	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
 
 	rv->Assign(0, val_mgr->Bool(opts->forwardable()));
 	rv->Assign(1, val_mgr->Bool(opts->forwarded()));
@@ -27,9 +27,9 @@ RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts)
 	return rv;
 }
 
-RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
+zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
-	auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
 
 	rv->Assign(0, asn1_integer_to_val(msg->pvno()->data(), zeek::TYPE_COUNT));
 	rv->Assign(1, asn1_integer_to_val(msg->msg_type()->data(), zeek::TYPE_COUNT));
@@ -93,7 +93,7 @@ RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_
 }
 
 
-bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
+bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
 {
 	uint ctime_i = 0, stime_i = 0;
 	int64 ctime_usecs = 0, stime_usecs = 0;
@@ -201,9 +201,9 @@ refine connection KRB_Conn += {
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
-		auto make_arg = [this, msg]() -> RecordValPtr
+		auto make_arg = [this, msg]() -> zeek::RecordValPtr
 			{
-			auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, zeek::TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, zeek::TYPE_COUNT));
@@ -244,7 +244,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
 			{
-			auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
 			proc_error_arguments(rv.get(), ${msg.args1}, 0);
 			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, zeek::TYPE_COUNT));
 			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
@@ -258,7 +258,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_request )
 			{
-			auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::AP_Options);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::AP_Options);
 			rv->Assign(0, val_mgr->Bool(${msg.ap_options.use_session_key}));
 			rv->Assign(1, val_mgr->Bool(${msg.ap_options.mutual_required}));
 
@@ -289,7 +289,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_safe )
 			{
-			auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, zeek::TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, zeek::TYPE_COUNT));

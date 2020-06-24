@@ -11,14 +11,12 @@
 #include <map>
 #include <string>
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 namespace zeek {
 template <class T> class IntrusivePtr;
-}
-
-class Val;
 using ValPtr = zeek::IntrusivePtr<Val>;
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+}
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
@@ -150,7 +148,7 @@ std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 
 // Return true to continue execution, false to abort.
 bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f);
-bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
+bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, zeek::Val* result, stmt_flow_type* flow);
 
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
@@ -166,7 +164,7 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-ValPtr dbg_eval_expr(const char* expr);
+zeek::ValPtr dbg_eval_expr(const char* expr);
 
 // Extra debugging facilities.
 // TODO: current connections, memory allocated, other internal data structures.

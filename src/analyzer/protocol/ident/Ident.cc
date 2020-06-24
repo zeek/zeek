@@ -149,7 +149,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 					ConnVal(),
 					val_mgr->Port(local_port, TRANSPORT_TCP),
 					val_mgr->Port(remote_port, TRANSPORT_TCP),
-					zeek::make_intrusive<StringVal>(end_of_line - line, line)
+					zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line)
 				);
 			}
 
@@ -182,8 +182,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 				ConnVal(),
 				val_mgr->Port(local_port, TRANSPORT_TCP),
 				val_mgr->Port(remote_port, TRANSPORT_TCP),
-				zeek::make_intrusive<StringVal>(end_of_line - line, line),
-				zeek::make_intrusive<StringVal>(sys_type_s)
+				zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
+				zeek::make_intrusive<zeek::StringVal>(sys_type_s)
 			);
 			}
 		}

@@ -18,7 +18,7 @@ public:
 	~UDP_Analyzer() override;
 
 	void Init() override;
-	void UpdateConnVal(RecordVal *conn_val) override;
+	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
@@ -39,7 +39,7 @@ protected:
 	bro_int_t request_len, reply_len;
 
 private:
-	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
+	void UpdateEndpointVal(zeek::RecordVal* endp, bool is_orig);
 
 #define HIST_ORIG_DATA_PKT 0x1
 #define HIST_RESP_DATA_PKT 0x2

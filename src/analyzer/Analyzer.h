@@ -23,6 +23,10 @@ class Rule;
 class Connection;
 class IP_Hdr;
 
+namespace zeek {
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+}
+
 namespace analyzer {
 
 namespace tcp { class TCP_ApplicationAnalyzer; }
@@ -36,8 +40,6 @@ class OutputHandler;
 using analyzer_list = std::list<Analyzer*>;
 typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
-
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 /**
  * Class to receive processed output from an anlyzer.
@@ -547,20 +549,20 @@ public:
 	 *
 	 * @param conn_val The connenction value being updated.
 	 */
-	virtual void UpdateConnVal(RecordVal *conn_val);
+	virtual void UpdateConnVal(zeek::RecordVal *conn_val);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::BuildConnVal().
 	 */
 	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
-	RecordVal* BuildConnVal();
+	zeek::RecordVal* BuildConnVal();
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnVal().
 	 */
-	const RecordValPtr& ConnVal();
+	const zeek::RecordValPtr& ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -573,7 +575,7 @@ public:
 	 * Connection::Event().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead (note it doesn't automatically ad the connection argument).")]]
-	void Event(EventHandlerPtr f, Val* v1, Val* v2 = nullptr);
+	void Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2 = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -607,8 +609,8 @@ public:
 	 */
 	template <class... Args>
 	std::enable_if_t<
-	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
+		std::is_convertible_v<
+			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
 		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 

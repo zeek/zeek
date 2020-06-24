@@ -94,7 +94,7 @@ function Broker::__unpeer%(a: string, p: port%): bool
 function Broker::__peers%(%): PeerInfos
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = zeek::make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("Broker::PeerInfos"));
+	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<VectorType>("Broker::PeerInfos"));
 	auto i = 0;
 
 	for ( auto& p : broker_mgr->Peers() )
@@ -102,23 +102,23 @@ function Broker::__peers%(%): PeerInfos
 		const auto& pi = zeek::id::find_type<RecordType>("Broker::PeerInfo");
 		const auto& ei = zeek::id::find_type<RecordType>("Broker::EndpointInfo");
 		const auto& ni = zeek::id::find_type<RecordType>("Broker::NetworkInfo");
-		auto peer_info = zeek::make_intrusive<RecordVal>(pi);
-		auto endpoint_info = zeek::make_intrusive<RecordVal>(ei);
-		auto network_info = zeek::make_intrusive<RecordVal>(ni);
+		auto peer_info = zeek::make_intrusive<zeek::RecordVal>(pi);
+		auto endpoint_info = zeek::make_intrusive<zeek::RecordVal>(ei);
+		auto network_info = zeek::make_intrusive<zeek::RecordVal>(ni);
 		auto n = p.peer.network;
 
 		if ( n )
 			{
-			network_info->Assign(0, zeek::make_intrusive<AddrVal>(IPAddr(n->address)));
+			network_info->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(n->address)));
 			network_info->Assign(1, val_mgr->Port(n->port, TRANSPORT_TCP));
 			}
 		else
 			{
-			network_info->Assign(0, zeek::make_intrusive<AddrVal>("0.0.0.0"));
+			network_info->Assign(0, zeek::make_intrusive<zeek::AddrVal>("0.0.0.0"));
 			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
-		endpoint_info->Assign(0, zeek::make_intrusive<StringVal>(to_string(p.peer.node)));
+		endpoint_info->Assign(0, zeek::make_intrusive<zeek::StringVal>(to_string(p.peer.node)));
 		endpoint_info->Assign(1, std::move(network_info));
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;
@@ -135,5 +135,5 @@ function Broker::__peers%(%): PeerInfos
 function Broker::__node_id%(%): string
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	return zeek::make_intrusive<StringVal>(broker_mgr->NodeID());
+	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
 	%}

@@ -3,12 +3,12 @@
 %}
 
 %header{
-	ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t);
-	ValPtr asn1_integer_to_val(const ASN1Integer* i, zeek::TypeTag t);
-	StringValPtr asn1_oid_to_val(const ASN1Encoding* oid);
-	StringValPtr asn1_oid_to_val(const ASN1ObjectIdentifier* oid);
-	StringValPtr asn1_octet_string_to_val(const ASN1Encoding* s);
-	StringValPtr asn1_octet_string_to_val(const ASN1OctetString* s);
+	zeek::ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t);
+	zeek::ValPtr asn1_integer_to_val(const ASN1Integer* i, zeek::TypeTag t);
+	zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid);
+	zeek::StringValPtr asn1_oid_to_val(const ASN1ObjectIdentifier* oid);
+	zeek::StringValPtr asn1_octet_string_to_val(const ASN1Encoding* s);
+	zeek::StringValPtr asn1_octet_string_to_val(const ASN1OctetString* s);
 %}
 
 ############################## ASN.1 Encodings
@@ -102,12 +102,12 @@ function binary_to_int64(bs: bytestring): int64
 
 %code{
 
-ValPtr asn1_integer_to_val(const ASN1Integer* i, zeek::TypeTag t)
+zeek::ValPtr asn1_integer_to_val(const ASN1Integer* i, zeek::TypeTag t)
 	{
 	return asn1_integer_to_val(i->encoding(), t);
 	}
 
-ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t)
+zeek::ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t)
 	{
 	auto v = binary_to_int64(i->content());
 
@@ -125,12 +125,12 @@ ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t)
 	}
 	}
 
-StringValPtr asn1_oid_to_val(const ASN1ObjectIdentifier* oid)
+zeek::StringValPtr asn1_oid_to_val(const ASN1ObjectIdentifier* oid)
 	{
 	return asn1_oid_to_val(oid->encoding());
 	}
 
-StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
+zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 	{
 	vector<uint64> oid_components;
 	vector<vector<uint8> > subidentifiers;
@@ -191,17 +191,17 @@ StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 			}
 		}
 
-	return zeek::make_intrusive<StringVal>(rval);
+	return zeek::make_intrusive<zeek::StringVal>(rval);
 	}
 
-StringValPtr asn1_octet_string_to_val(const ASN1OctetString* s)
+zeek::StringValPtr asn1_octet_string_to_val(const ASN1OctetString* s)
 	{
 	return asn1_octet_string_to_val(s->encoding());
 	}
 
-StringValPtr asn1_octet_string_to_val(const ASN1Encoding* s)
+zeek::StringValPtr asn1_octet_string_to_val(const ASN1Encoding* s)
 	{
 	bytestring const& bs = s->content();
-	return zeek::make_intrusive<StringVal>(bs.length(), reinterpret_cast<const char*>(bs.data()));
+	return zeek::make_intrusive<zeek::StringVal>(bs.length(), reinterpret_cast<const char*>(bs.data()));
 	}
 %}

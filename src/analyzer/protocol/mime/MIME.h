@@ -10,12 +10,14 @@
 #include "Reporter.h"
 #include "analyzer/Analyzer.h"
 
-class TableVal;
-class StringVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 class Base64Converter;
 
+namespace zeek {
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
 using StringValPtr = zeek::IntrusivePtr<StringVal>;
+}
 
 namespace analyzer { namespace mime {
 
@@ -102,11 +104,11 @@ public:
 	MIME_Entity* Parent() const { return parent; }
 	int MIMEContentType() const { return content_type; }
 	[[deprecated("Remove in v4.1.  Use GetContentType().")]]
-	StringVal* ContentType() const { return content_type_str.get(); }
+	zeek::StringVal* ContentType() const { return content_type_str.get(); }
 	[[deprecated("Remove in v4.1.  Use GetContentSubType().")]]
-	StringVal* ContentSubType() const { return content_subtype_str.get(); }
-	const StringValPtr& GetContentType() const { return content_type_str; }
-	const StringValPtr& GetContentSubType() const { return content_subtype_str; }
+	zeek::StringVal* ContentSubType() const { return content_subtype_str.get(); }
+	const zeek::StringValPtr& GetContentType() const { return content_type_str; }
+	const zeek::StringValPtr& GetContentSubType() const { return content_subtype_str; }
 	int ContentTransferEncoding() const { return content_encoding; }
 
 protected:
@@ -162,8 +164,8 @@ protected:
 	int current_field_type;
 	int need_to_parse_parameters;
 
-	StringValPtr content_type_str;
-	StringValPtr content_subtype_str;
+	zeek::StringValPtr content_type_str;
+	zeek::StringValPtr content_subtype_str;
 	BroString* content_encoding_str;
 	BroString* multipart_boundary;
 
@@ -234,12 +236,12 @@ protected:
 	bool finished;
 
 	[[deprecated("Remove in v4.1.  Use ToHeaderVal().")]]
-	RecordVal* BuildHeaderVal(MIME_Header* h);
+	zeek::RecordVal* BuildHeaderVal(MIME_Header* h);
 	[[deprecated("Remove in v4.1.  Use ToHeaderTable().")]]
-	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
+	zeek::TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
 
-	RecordValPtr ToHeaderVal(MIME_Header* h);
-	TableValPtr ToHeaderTable(MIME_HeaderList& hlist);
+	zeek::RecordValPtr ToHeaderVal(MIME_Header* h);
+	zeek::TableValPtr ToHeaderTable(MIME_HeaderList& hlist);
 };
 
 class MIME_Mail final : public MIME_Message {
@@ -276,17 +278,16 @@ protected:
 	std::string cur_entity_id;
 };
 
-
 extern bool is_null_data_chunk(data_chunk_t b);
 [[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(int length, const char* data);
+extern zeek::StringVal* new_string_val(int length, const char* data);
 [[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(const char* data, const char* end_of_data);
+extern zeek::StringVal* new_string_val(const char* data, const char* end_of_data);
 [[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(const data_chunk_t buf);
-extern StringValPtr to_string_val(int length, const char* data);
-extern StringValPtr to_string_val(const char* data, const char* end_of_data);
-extern StringValPtr to_string_val(const data_chunk_t buf);
+extern zeek::StringVal* new_string_val(const data_chunk_t buf);
+extern zeek::StringValPtr to_string_val(int length, const char* data);
+extern zeek::StringValPtr to_string_val(const char* data, const char* end_of_data);
+extern zeek::StringValPtr to_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
 extern bool istrequal(data_chunk_t s, const char* t);
 extern bool is_lws(char ch);

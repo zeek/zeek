@@ -82,8 +82,8 @@ void File_Analyzer::Identify()
 		EnqueueConnEvent(
 			file_transferred,
 			ConnVal(),
-			zeek::make_intrusive<StringVal>(buffer_len, buffer),
-			zeek::make_intrusive<StringVal>("<unknown>"),
-			zeek::make_intrusive<StringVal>(match)
+			zeek::make_intrusive<zeek::StringVal>(buffer_len, buffer),
+			zeek::make_intrusive<zeek::StringVal>("<unknown>"),
+			zeek::make_intrusive<zeek::StringVal>(match)
 		);
 	}

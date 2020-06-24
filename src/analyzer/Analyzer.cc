@@ -710,18 +710,18 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	if ( ! protocol_violation )
 		return;
 
-	StringValPtr r;
+	zeek::StringValPtr r;
 
 	if ( data && len )
 		{
 		const char *tmp = copy_string(reason);
-		r = zeek::make_intrusive<StringVal>(fmt("%s [%s%s]", tmp,
-		                                        fmt_bytes(data, min(40, len)),
-		                                        len > 40 ? "..." : ""));
+		r = zeek::make_intrusive<zeek::StringVal>(fmt("%s [%s%s]", tmp,
+		                                              fmt_bytes(data, min(40, len)),
+		                                              len > 40 ? "..." : ""));
 		delete [] tmp;
 		}
 	else
-		r = zeek::make_intrusive<StringVal>(reason);
+		r = zeek::make_intrusive<zeek::StringVal>(reason);
 
 	const auto& tval = tag.AsVal();
 	mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
@@ -783,18 +783,18 @@ unsigned int Analyzer::MemoryAllocation() const
 	return mem;
 	}
 
-void Analyzer::UpdateConnVal(RecordVal *conn_val)
+void Analyzer::UpdateConnVal(zeek::RecordVal *conn_val)
 	{
 	LOOP_OVER_CHILDREN(i)
 		(*i)->UpdateConnVal(conn_val);
 	}
 
-RecordVal* Analyzer::BuildConnVal()
+zeek::RecordVal* Analyzer::BuildConnVal()
 	{
 	return conn->ConnVal()->Ref()->AsRecordVal();
 	}
 
-const RecordValPtr& Analyzer::ConnVal()
+const zeek::RecordValPtr& Analyzer::ConnVal()
 	{
 	return conn->ConnVal();
 	}
@@ -804,7 +804,7 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 	conn->Event(f, this, name);
 	}
 
-void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
+void Analyzer::Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2)
 	{
 	zeek::IntrusivePtr val1{zeek::AdoptRef{}, v1};
 	zeek::IntrusivePtr val2{zeek::AdoptRef{}, v2};
@@ -942,7 +942,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	if ( packet_contents && len > 0 )
 		{
 		BroString* cbs = new BroString(data, len, true);
-		auto contents = zeek::make_intrusive<StringVal>(cbs);
+		auto contents = zeek::make_intrusive<zeek::StringVal>(cbs);
 		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}
 	}

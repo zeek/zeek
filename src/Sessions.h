@@ -61,7 +61,7 @@ public:
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
 	// no such connection or the Val is ill-formed.
-	Connection* FindConnection(Val* v);
+	Connection* FindConnection(zeek::Val* v);
 
 	void Remove(Connection* c);
 	void Remove(FragReassembler* f);

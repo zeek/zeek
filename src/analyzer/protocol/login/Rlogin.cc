@@ -231,7 +231,7 @@ void Rlogin_Analyzer::ClientUserName(const char* s)
 		return;
 		}
 
-	client_name = new StringVal(s);
+	client_name = new zeek::StringVal(s);
 	}
 
 void Rlogin_Analyzer::ServerUserName(const char* s)
@@ -246,6 +246,6 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
 			ConnVal(),
-			zeek::make_intrusive<StringVal>(s)
+			zeek::make_intrusive<zeek::StringVal>(s)
 		);
 	}

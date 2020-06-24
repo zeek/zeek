@@ -18,13 +18,13 @@ public:
 	bool Undelivered(uint64_t offset, uint64_t len) override;
 	bool EndOfFile() override;
 
-	static file_analysis::Analyzer* InstantiateRequest(RecordValPtr args,
+	static file_analysis::Analyzer* InstantiateRequest(zeek::RecordValPtr args,
 	                                                   File* file);
-	static file_analysis::Analyzer* InstantiateReply(RecordValPtr args,
+	static file_analysis::Analyzer* InstantiateReply(zeek::RecordValPtr args,
 	                                                 File* file);
 
 protected:
-	OCSP(RecordValPtr args, File* file, bool request);
+	OCSP(zeek::RecordValPtr args, File* file, bool request);
 
 private:
 	void ParseResponse(OCSP_RESPONSE*);

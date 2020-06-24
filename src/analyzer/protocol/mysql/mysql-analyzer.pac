@@ -8,11 +8,11 @@ refine flow MySQL_Flow += {
 			if ( ${msg.version} == 10 )
 				zeek::BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
 				                                       connection()->bro_analyzer()->Conn(),
-				                                       zeek::make_intrusive<StringVal>(c_str(${msg.handshake10.server_version})));
+				                                       zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake10.server_version})));
 			if ( ${msg.version} == 9 )
 				zeek::BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
 				                                       connection()->bro_analyzer()->Conn(),
-				                                       zeek::make_intrusive<StringVal>(c_str(${msg.handshake9.server_version})));
+				                                       zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake9.server_version})));
 			}
 		return true;
 		%}
@@ -27,11 +27,11 @@ refine flow MySQL_Flow += {
 			if ( ${msg.version} == 10 )
 				zeek::BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
 				                                  connection()->bro_analyzer()->Conn(),
-				                                  zeek::make_intrusive<StringVal>(c_str(${msg.v10_response.username})));
+				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.username})));
 			if ( ${msg.version} == 9 )
 				zeek::BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
 				                                  connection()->bro_analyzer()->Conn(),
-				                                  zeek::make_intrusive<StringVal>(c_str(${msg.v9_response.username})));
+				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v9_response.username})));
 			}
 		return true;
 		%}
@@ -83,11 +83,11 @@ refine flow MySQL_Flow += {
 			return true;
 
 		auto vt = zeek::id::string_vec;
-		auto vv = zeek::make_intrusive<VectorVal>(std::move(vt));
+		auto vv = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
 
 		auto& bstring = ${msg.row.first_field.val};
 		auto ptr = reinterpret_cast<const char*>(bstring.data());
-		vv->Assign(vv->Size(), zeek::make_intrusive<StringVal>(bstring.length(), ptr));
+		vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(bstring.length(), ptr));
 
 		auto& fields = *${msg.row.fields};
 
@@ -95,7 +95,7 @@ refine flow MySQL_Flow += {
 			{
 			auto& bstring = f->val();
 			auto ptr = reinterpret_cast<const char*>(bstring.data());
-			vv->Assign(vv->Size(), zeek::make_intrusive<StringVal>(bstring.length(), ptr));
+			vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(bstring.length(), ptr));
 			}
 
 		zeek::BifEvent::enqueue_mysql_result_row(connection()->bro_analyzer(),

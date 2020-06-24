@@ -2,15 +2,18 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdint.h>
 
 class Func;
-class TableVal;
 class Location;
 class BroFile;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
@@ -98,7 +101,7 @@ protected:
 	void SegmentProfile(const char* name, const Location* loc,
 				double dtime, int dmem) override;
 
-	TableVal* load_samples;
+	zeek::TableVal* load_samples;
 };
 
 

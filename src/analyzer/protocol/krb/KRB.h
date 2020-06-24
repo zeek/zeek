@@ -25,9 +25,9 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
-	StringValPtr GetAuthenticationInfo(const BroString* principal,
-	                                   const BroString* ciphertext,
-	                                   const bro_uint_t enctype);
+	zeek::StringValPtr GetAuthenticationInfo(const BroString* principal,
+	                                         const BroString* ciphertext,
+	                                         const bro_uint_t enctype);
 
 protected:
 

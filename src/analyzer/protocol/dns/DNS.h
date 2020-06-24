@@ -165,7 +165,7 @@ struct NSEC3_DATA {
 	BroString* nsec_salt;
 	unsigned short nsec_hlen;
 	BroString* nsec_hash;
-	VectorValPtr bitmaps;
+	zeek::VectorValPtr bitmaps;
 };
 
 struct DS_DATA {
@@ -179,14 +179,14 @@ class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
 
-	RecordValPtr BuildHdrVal();
-	RecordValPtr BuildAnswerVal();
-	RecordValPtr BuildEDNS_Val();
-	RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
-	RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
-	RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
-	RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
-	RecordValPtr BuildDS_Val(struct DS_DATA*);
+	zeek::RecordValPtr BuildHdrVal();
+	zeek::RecordValPtr BuildAnswerVal();
+	zeek::RecordValPtr BuildEDNS_Val();
+	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
+	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
+	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
+	zeek::RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
+	zeek::RecordValPtr BuildDS_Val(struct DS_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -203,7 +203,7 @@ public:
 	int arcount;	///< number of additional RRs
 	int is_query;	///< whether it came from the session initiator
 
-	StringValPtr query_name;
+	zeek::StringValPtr query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
 	uint32_t ttl;

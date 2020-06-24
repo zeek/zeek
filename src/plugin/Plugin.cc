@@ -375,7 +375,7 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
-std::pair<bool, ValPtr>
+std::pair<bool, zeek::ValPtr>
 Plugin::HookFunctionCall(const Func* func, Frame* parent,
                          zeek::Args* args)
 	{
@@ -395,9 +395,9 @@ Plugin::HookFunctionCall(const Func* func, Frame* parent,
 	return {handled, {zeek::AdoptRef{}, result}};
 	}
 
-std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
+std::pair<bool, zeek::Val*> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
 	{
-	std::pair<bool, Val*> result(false, NULL);
+	std::pair<bool, zeek::Val*> result(false, NULL);
 	return result;
 	}
 

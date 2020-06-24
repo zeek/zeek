@@ -3,13 +3,13 @@
 %}
 
 %header{
-	RecordValPtr SMBHeaderVal(SMB_Header* hdr);
+	zeek::RecordValPtr SMBHeaderVal(SMB_Header* hdr);
 %}
 
 %code{
-	RecordValPtr SMBHeaderVal(SMB_Header* hdr)
+	zeek::RecordValPtr SMBHeaderVal(SMB_Header* hdr)
 		{
-		auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Header);
+		auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::Header);
 
 		//unsigned int status = 0;
 		//

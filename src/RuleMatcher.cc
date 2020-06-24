@@ -78,12 +78,12 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	level = 0;
 	}
 
-Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
-					const RuleEndpointState* state) const
+zeek::Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
+                                            const RuleEndpointState* state) const
 	{
 	static auto signature_state = zeek::id::find_type<zeek::RecordType>("signature_state");
-	RecordVal* val = new RecordVal(signature_state);
-	val->Assign(0, zeek::make_intrusive<StringVal>(rule->ID()));
+	auto* val = new zeek::RecordVal(signature_state);
+	val->Assign(0, zeek::make_intrusive<zeek::StringVal>(rule->ID()));
 	val->Assign(1, state->GetAnalyzer()->ConnVal());
 	val->Assign(2, val_mgr->Bool(state->is_orig));
 	val->Assign(3, val_mgr->Count(state->payload_size));
@@ -1272,7 +1272,7 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 		DumpStateStats(f, h);
 	}
 
-static Val* get_bro_val(const char* label)
+static zeek::Val* get_bro_val(const char* label)
 	{
 	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
@@ -1288,7 +1288,7 @@ static Val* get_bro_val(const char* label)
 // Converts an atomic Val and appends it to the list.  For subnet types,
 // if the prefix_vector param isn't null, appending to that is preferred
 // over appending to the masked val list.
-static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
+static bool val_to_maskedval(zeek::Val* v, maskedvalue_list* append_to,
                              vector<IPPrefix>* prefix_vector)
 	{
 	MaskedValue* mval = new MaskedValue;
@@ -1358,7 +1358,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
                          vector<IPPrefix>* prefix_vector)
 	{
-	Val* v = get_bro_val(id);
+	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
 		return;
 
@@ -1380,7 +1380,7 @@ char* id_to_str(const char* id)
 	const BroString* src;
 	char* dst;
 
-	Val* v = get_bro_val(id);
+	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
 		goto error;
 
@@ -1403,7 +1403,7 @@ error:
 
 uint32_t id_to_uint(const char* id)
 	{
-	Val* v = get_bro_val(id);
+	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
 		return 0;
 

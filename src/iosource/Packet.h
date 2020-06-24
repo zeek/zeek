@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include "zeek-config.h"
 
 #include <string>
 
@@ -13,17 +14,17 @@ typedef struct bpf_timeval pkt_timeval;
 typedef struct timeval pkt_timeval;
 #endif
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+
 namespace zeek {
 template <class T> class IntrusivePtr;
+using ValPtr = zeek::IntrusivePtr<zeek::Val>;
+using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
 }
 
-class Val;
 class ODesc;
 class IP_Hdr;
-class RecordVal;
-
-using ValPtr = zeek::IntrusivePtr<Val>;
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -135,10 +136,10 @@ public:
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
 	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
-	RecordValPtr ToRawPktHdrVal() const;
+	zeek::RecordValPtr ToRawPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
-	RecordVal* BuildPktHdrVal() const;
+	zeek::RecordVal* BuildPktHdrVal() const;
 
 	/**
 	 * Static method returning the link-layer header size for a given
@@ -232,7 +233,7 @@ private:
 	void Weird(const char* name);
 
 	// Renders an MAC address into its ASCII representation.
-	ValPtr FmtEUI48(const u_char* mac) const;
+	zeek::ValPtr FmtEUI48(const u_char* mac) const;
 
 	// True if we need to delete associated packet memory upon
 	// destruction.

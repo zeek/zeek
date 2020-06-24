@@ -234,7 +234,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::ID* id;
 	id_list* id_l;
 	zeek::detail::InitClass ic;
-	Val* val;
+	zeek::Val* val;
 	RE_Matcher* re;
 	zeek::detail::Expr* expr;
 	zeek::detail::EventExpr* event_expr;
@@ -722,7 +722,7 @@ expr:
 				re->MakeCaseInsensitive();
 
 			re->Compile();
-			$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<PatternVal>(re));
+			$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<zeek::PatternVal>(re));
 			}
 
 	|       '|' expr '|'	%prec '('
@@ -1879,7 +1879,7 @@ opt_no_test_block:
 
 opt_deprecated:
 		TOK_ATTR_DEPRECATED
-			{ $$ = new zeek::detail::ConstExpr(zeek::make_intrusive<StringVal>("")); }
+			{ $$ = new zeek::detail::ConstExpr(zeek::make_intrusive<zeek::StringVal>("")); }
 	|
 		TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
@@ -1891,7 +1891,7 @@ opt_deprecated:
 				$3->Describe(&d);
 				reporter->Error("'&deprecated=%s' must use a string literal",
 				                d.Description());
-				$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<StringVal>(""));
+				$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<zeek::StringVal>(""));
 				}
 			}
 	|

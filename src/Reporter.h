@@ -21,15 +21,14 @@ class Connection;
 class Location;
 class Reporter;
 class EventHandlerPtr;
-class RecordVal;
-class StringVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
-}
-
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 using StringValPtr = zeek::IntrusivePtr<StringVal>;
+}
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -102,7 +101,7 @@ public:
 	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(RecordValPtr conn_id, StringValPtr uid,
+	void Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
@@ -275,7 +274,7 @@ private:
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
-	bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
+	bool PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id);
 
 	bool EmitToStderr(bool flag)
 		{ return flag || ! after_zeek_init; }

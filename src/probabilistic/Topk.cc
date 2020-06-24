@@ -175,14 +175,14 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-ValPtr TopkVal::DoClone(CloneState* state)
+zeek::ValPtr TopkVal::DoClone(CloneState* state)
 	{
 	auto clone = zeek::make_intrusive<TopkVal>(size);
 	clone->Merge(this);
 	return state->NewClone(this, std::move(clone));
 	}
 
-VectorValPtr TopkVal::GetTopK(int k) const // returns vector
+zeek::VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -191,7 +191,7 @@ VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 		}
 
 	auto v = zeek::make_intrusive<zeek::VectorType>(type);
-	auto t = zeek::make_intrusive<VectorVal>(std::move(v));
+	auto t = zeek::make_intrusive<zeek::VectorVal>(std::move(v));
 
 	// this does no estimation if the results is correct!
 	// in any case - just to make this future-proof (and I am lazy) - this can return more than k.
@@ -268,7 +268,7 @@ uint64_t TopkVal::GetSum() const
 	return sum;
 	}
 
-void TopkVal::Encountered(ValPtr encountered)
+void TopkVal::Encountered(zeek::ValPtr encountered)
 	{
 	// ok, let's see if we already know this one.
 

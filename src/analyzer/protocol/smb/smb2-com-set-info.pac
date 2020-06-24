@@ -93,11 +93,11 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fullea )
 			{
-			auto eas = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::SMB2::FileEAs);
+			auto eas = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::SMB2::FileEAs);
 
 			for ( auto i = 0u; i < ${val.ea_vector}->size(); ++i )
 				{
-				auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::FileEA);
+				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::FileEA);
 				r->Assign(0, smb2_string2stringval(${val.ea_vector[i].ea_name}));
 				r->Assign(1, smb2_string2stringval(${val.ea_vector[i].ea_value}));
 
@@ -192,7 +192,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fscontrol )
 			{
-			auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Fscontrol);
+			auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::Fscontrol);
 			r->Assign(0, val_mgr->Int(${val.free_space_start_filtering}));
 			r->Assign(1, val_mgr->Int(${val.free_space_start_threshold}));
 			r->Assign(2, val_mgr->Int(${val.free_space_stop_filtering}));

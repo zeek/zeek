@@ -13,25 +13,25 @@
 #include <string_view>
 #include <vector>
 
-class Val;
-using ValPtr = zeek::IntrusivePtr<Val>;
-
 class Func;
 using FuncPtr = zeek::IntrusivePtr<Func>;
 
-namespace zeek { class Type; }
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
-using TypePtr = zeek::IntrusivePtr<zeek::Type>;
-using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
-using TableTypePtr = zeek::IntrusivePtr<zeek::TableType>;
-using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
-using EnumTypePtr = zeek::IntrusivePtr<zeek::EnumType>;
+namespace zeek {
+	class Type;
+	using TypePtr = zeek::IntrusivePtr<zeek::Type>;
+	using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
+	using TableTypePtr = zeek::IntrusivePtr<zeek::TableType>;
+	using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
+	using EnumTypePtr = zeek::IntrusivePtr<zeek::EnumType>;
+	using ValPtr = zeek::IntrusivePtr<zeek::Val>;
+}
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
 
 namespace zeek::detail {
 

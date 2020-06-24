@@ -16,20 +16,20 @@ analyzer::Tag& analyzer::Tag::operator=(const analyzer::Tag& other)
 	return *this;
 	}
 
-const EnumValPtr& analyzer::Tag::AsVal() const
+const zeek::EnumValPtr& analyzer::Tag::AsVal() const
 	{
 	return ::Tag::AsVal(analyzer_mgr->GetTagType());
 	}
 
-EnumVal* analyzer::Tag::AsEnumVal() const
+zeek::EnumVal* analyzer::Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-analyzer::Tag::Tag(EnumValPtr val)
+analyzer::Tag::Tag(zeek::EnumValPtr val)
 	: ::Tag(std::move(val))
 	{ }
 
-analyzer::Tag::Tag(EnumVal* val)
+analyzer::Tag::Tag(zeek::EnumVal* val)
 	: ::Tag({zeek::NewRef{}, val})
 	{ }

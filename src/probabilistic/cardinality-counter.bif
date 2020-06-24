@@ -23,7 +23,7 @@ module GLOBAL;
 function hll_cardinality_init%(err: double, confidence: double%): opaque of cardinality
 	%{
 	CardinalityCounter* c = new CardinalityCounter(err, confidence);
-	auto cv = zeek::make_intrusive<CardinalityVal>(c);
+	auto cv = zeek::make_intrusive<zeek::CardinalityVal>(c);
 
 	return cv;
 	%}
@@ -113,7 +113,7 @@ function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 
 	double estimate = h->Size();
 
-	return zeek::make_intrusive<DoubleVal>(estimate);
+	return zeek::make_intrusive<zeek::DoubleVal>(estimate);
 	%}
 
 ## Copy a HLL cardinality counter.
@@ -129,7 +129,7 @@ function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardin
 	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
 	CardinalityCounter* h = cv->Get();
 	CardinalityCounter* h2 = new CardinalityCounter(*h);
-	auto out = zeek::make_intrusive<CardinalityVal>(h2);
+	auto out = zeek::make_intrusive<zeek::CardinalityVal>(h2);
 
 	return out;
 	%}

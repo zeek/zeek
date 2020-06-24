@@ -29,11 +29,14 @@ class RuleHdrTest;
 class Specific_RE_Matcher;
 class RuleEndpointState;
 class EncapsulationStack;
-class Val;
-class RecordVal;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecorVal, zeek);
+
+namespace zeek {
 using ValPtr = zeek::IntrusivePtr<Val>;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+}
 
 namespace analyzer { class TransportLayerAnalyzer; }
 
@@ -167,12 +170,12 @@ public:
 	void EnableStatusUpdateTimer();
 
 	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
-	RecordVal* BuildConnVal();
+	zeek::RecordVal* BuildConnVal();
 
 	/**
 	 * Returns the associated "connection" record.
 	 */
-	const RecordValPtr& ConnVal();
+	const zeek::RecordValPtr& ConnVal();
 
 	void AppendAddl(const char* str);
 
@@ -197,7 +200,7 @@ public:
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead (note it doesn't automatically add the connection argument).")]]
-	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = nullptr);
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
@@ -237,8 +240,8 @@ public:
 	 */
 	template <class... Args>
 	std::enable_if_t<
-	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
+		std::is_convertible_v<
+			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
 	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
 		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -358,7 +361,7 @@ protected:
 	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
-	RecordValPtr conn_val;
+	zeek::RecordValPtr conn_val;
 	LoginConn* login_conn;	// either nil, or this
 	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.

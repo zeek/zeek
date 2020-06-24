@@ -163,10 +163,10 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 ## Returns: Current weird sampling whitelist
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
-	auto set = zeek::make_intrusive<TableVal>(zeek::id::string_set);
+	auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
-		auto idx = zeek::make_intrusive<StringVal>(el);
+		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
 		}
 	return set;
@@ -242,7 +242,7 @@ function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 ## Returns: weird sampling duration.
 function Reporter::get_weird_sampling_duration%(%) : interval
 	%{
-	return zeek::make_intrusive<IntervalVal>(reporter->GetWeirdSamplingDuration());
+	return zeek::make_intrusive<zeek::IntervalVal>(reporter->GetWeirdSamplingDuration());
 	%}
 
 ## Sets the current weird sampling duration. Please note that

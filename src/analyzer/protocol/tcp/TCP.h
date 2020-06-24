@@ -64,7 +64,7 @@ public:
 	BroFilePtr GetContentsFile(unsigned int direction) const override;
 
 	// From Analyzer.h
-	void UpdateConnVal(RecordVal *conn_val) override;
+	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
 	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
@@ -267,7 +267,7 @@ public:
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
 			const IP_Hdr* ip, const struct tcphdr* tp);
 
-	RecordVal* BuildStats();
+	zeek::RecordVal* BuildStats();
 
 protected:
 	TCP_Endpoint* endp;

@@ -322,15 +322,13 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 
 	if ( is_orig >= 0 )
 		analyzer->EnqueueConnEvent(event,
-			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
-			zeek::make_intrusive<StringVal>(new BroString(data, len, false))
-		);
+		                           analyzer->ConnVal(),
+		                           val_mgr->Bool(is_orig),
+		                           zeek::make_intrusive<zeek::StringVal>(new BroString(data, len, false)));
 	else
 		analyzer->EnqueueConnEvent(event,
-			analyzer->ConnVal(),
-			zeek::make_intrusive<StringVal>(new BroString(data, len, false))
-		);
+		                           analyzer->ConnVal(),
+		                           zeek::make_intrusive<zeek::StringVal>(new BroString(data, len, false)));
 	}
 
 

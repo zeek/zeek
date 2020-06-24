@@ -87,7 +87,8 @@ int perftools_profile = 0;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-ValManager* val_mgr = nullptr;
+zeek::ValManager* zeek::val_mgr = nullptr;
+zeek::ValManager*& val_mgr = zeek::val_mgr;
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
@@ -220,7 +221,7 @@ void done_with_network()
 		mgr.Drain();
 		// Don't propagate this event to remote clients.
 		mgr.Dispatch(new Event(net_done,
-		                       {zeek::make_intrusive<TimeVal>(timer_mgr->Time())}),
+		                       {zeek::make_intrusive<zeek::TimeVal>(timer_mgr->Time())}),
 		             true);
 		}
 
@@ -689,7 +690,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-		id->SetVal(zeek::make_intrusive<StringVal>(*options.pcap_filter));
+		id->SetVal(zeek::make_intrusive<zeek::StringVal>(*options.pcap_filter));
 		}
 
 	auto all_signature_files = options.signature_files;
@@ -843,9 +844,8 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 				continue;
 
 			mgr.Enqueue(zeek_script_loaded,
-				zeek::make_intrusive<StringVal>(i->name.c_str()),
-				val_mgr->Count(i->include_level)
-			);
+			            zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
+			            val_mgr->Count(i->include_level));
 			}
 		}
 

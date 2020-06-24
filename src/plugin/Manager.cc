@@ -616,7 +616,7 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
-std::pair<bool, ValPtr>
+std::pair<bool, zeek::ValPtr>
 Manager::HookCallFunction(const Func* func, Frame* parent,
                           zeek::Args* vecargs) const
 	{
@@ -638,7 +638,7 @@ Manager::HookCallFunction(const Func* func, Frame* parent,
 
 	hook_list* l = hooks[zeek::plugin::HOOK_CALL_FUNCTION];
 
-	std::pair<bool, ValPtr> rval{false, nullptr};
+	std::pair<bool, zeek::ValPtr> rval{false, nullptr};
 
 	if ( l )
 		{

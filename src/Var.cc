@@ -19,9 +19,9 @@
 
 using namespace zeek::detail;
 
-static ValPtr init_val(zeek::detail::Expr* init,
-                       const zeek::Type* t,
-                       ValPtr aggr)
+static zeek::ValPtr init_val(zeek::detail::Expr* init,
+                             const zeek::Type* t,
+                             zeek::ValPtr aggr)
 	{
 	try
 		{
@@ -244,11 +244,11 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			ValPtr aggr;
+			zeek::ValPtr aggr;
 
 			if ( t->Tag() == zeek::TYPE_RECORD )
 				{
-				aggr = zeek::make_intrusive<RecordVal>(zeek::cast_intrusive<zeek::RecordType>(t));
+				aggr = zeek::make_intrusive<zeek::RecordVal>(zeek::cast_intrusive<zeek::RecordType>(t));
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.
@@ -258,13 +258,13 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 				}
 
 			else if ( t->Tag() == zeek::TYPE_TABLE )
-				aggr = zeek::make_intrusive<TableVal>(zeek::cast_intrusive<zeek::TableType>(t),
+				aggr = zeek::make_intrusive<zeek::TableVal>(zeek::cast_intrusive<zeek::TableType>(t),
 				                                id->GetAttrs());
 
 			else if ( t->Tag() == zeek::TYPE_VECTOR )
-				aggr = zeek::make_intrusive<VectorVal>(zeek::cast_intrusive<zeek::VectorType>(t));
+				aggr = zeek::make_intrusive<zeek::VectorVal>(zeek::cast_intrusive<zeek::VectorType>(t));
 
-			ValPtr v;
+			zeek::ValPtr v;
 
 			if ( init )
 				{
@@ -308,7 +308,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 		// defined.
 		std::vector<zeek::detail::IDPtr> inits;
 		auto f = zeek::make_intrusive<BroFunc>(id, nullptr, inits, 0, 0);
-		id->SetVal(zeek::make_intrusive<Val>(std::move(f)));
+		id->SetVal(zeek::make_intrusive<zeek::Val>(std::move(f)));
 		}
 	}
 
@@ -358,7 +358,7 @@ zeek::detail::StmtPtr add_local(
 extern zeek::detail::ExprPtr add_and_assign_local(
 	zeek::detail::IDPtr id,
 	zeek::detail::ExprPtr init,
-	ValPtr val)
+	zeek::ValPtr val)
 	{
 	make_var(id, nullptr, zeek::detail::INIT_FULL, init, nullptr, VAR_REGULAR, false);
 	auto name_expr = zeek::make_intrusive<zeek::detail::NameExpr>(std::move(id));
@@ -661,7 +661,7 @@ void end_func(zeek::detail::StmtPtr body)
 			ingredients->frame_size,
 			ingredients->priority);
 
-		ingredients->id->SetVal(zeek::make_intrusive<Val>(std::move(f)));
+		ingredients->id->SetVal(zeek::make_intrusive<zeek::Val>(std::move(f)));
 		ingredients->id->SetConst();
 		}
 
@@ -672,7 +672,7 @@ void end_func(zeek::detail::StmtPtr body)
 	ingredients.release();
 	}
 
-Val* internal_val(const char* name)
+zeek::Val* internal_val(const char* name)
 	{
 	return zeek::id::find_val(name).get();
 	}
@@ -697,12 +697,12 @@ id_list gather_outer_ids(Scope* scope, zeek::detail::Stmt* body)
 	return idl;
 	}
 
-Val* internal_const_val(const char* name)
+zeek::Val* internal_const_val(const char* name)
 	{
 	return zeek::id::find_const(name).get();
 	}
 
-Val* opt_internal_val(const char* name)
+zeek::Val* opt_internal_val(const char* name)
 	{
 	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	return id ? id->GetVal().get() : nullptr;
@@ -732,7 +732,7 @@ bro_uint_t opt_internal_unsigned(const char* name)
 	return v ? v->InternalUnsigned() : 0;
 	}
 
-StringVal* opt_internal_string(const char* name)
+zeek::StringVal* opt_internal_string(const char* name)
 	{
 	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return nullptr;
@@ -740,7 +740,7 @@ StringVal* opt_internal_string(const char* name)
 	return v ? v->AsStringVal() : nullptr;
 	}
 
-TableVal* opt_internal_table(const char* name)
+zeek::TableVal* opt_internal_table(const char* name)
 	{
 	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return nullptr;
@@ -748,22 +748,22 @@ TableVal* opt_internal_table(const char* name)
 	return v ? v->AsTableVal() : nullptr;
 	}
 
-ListVal* internal_list_val(const char* name)
+zeek::ListVal* internal_list_val(const char* name)
 	{
 	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		return nullptr;
 
-	Val* v = id->GetVal().get();
+	zeek::Val* v = id->GetVal().get();
 
 	if ( v )
 		{
 		if ( v->GetType()->Tag() == zeek::TYPE_LIST )
-			return (ListVal*) v;
+			return (zeek::ListVal*) v;
 
 		else if ( v->GetType()->IsSet() )
 			{
-			TableVal* tv = v->AsTableVal();
+			zeek::TableVal* tv = v->AsTableVal();
 			auto lv = tv->ToPureListVal();
 			return lv.release();
 			}

@@ -11,12 +11,12 @@
 #include <openssl/err.h>
 
 // construct an error record
-static RecordValPtr x509_result_record(uint64_t num, const char* reason, ValPtr chainVector = nullptr)
+static zeek::RecordValPtr x509_result_record(uint64_t num, const char* reason, zeek::ValPtr chainVector = nullptr)
 	{
-	auto rrecord = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::X509::Result);
+	auto rrecord = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::Result);
 
 	rrecord->Assign(0, val_mgr->Int(num));
-	rrecord->Assign(1, zeek::make_intrusive<StringVal>(reason));
+	rrecord->Assign(1, zeek::make_intrusive<zeek::StringVal>(reason));
 	if ( chainVector )
 		rrecord->Assign(2, std::move(chainVector));
 
@@ -24,7 +24,7 @@ static RecordValPtr x509_result_record(uint64_t num, const char* reason, ValPtr 
 	}
 
 // get all cretificates starting at the second one (assuming the first one is the host certificate)
-STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
+STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 	{
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
 	if ( ! untrusted_certs )
@@ -215,13 +215,13 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ##              x509_get_certificate_string x509_verify
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
-	RecordValPtr rval;
+	zeek::RecordValPtr rval;
 	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 
 
-	VectorVal *certs_vec = certs->AsVectorVal();
+	zeek::VectorVal *certs_vec = certs->AsVectorVal();
 	if ( certs_vec->Size() < 1 )
 		{
 		reporter->Error("No certificates given in vector");
@@ -507,7 +507,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 		return x509_result_record(-1, "Problem initializing root store");
 
 
-	VectorVal *certs_vec = certs->AsVectorVal();
+	zeek::VectorVal *certs_vec = certs->AsVectorVal();
 	if ( ! certs_vec || certs_vec->Size() < 1 )
 		{
 		reporter->Error("No certificates given in vector");
@@ -542,7 +542,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	int result = X509_verify_cert(csc);
 
-	VectorValPtr chainVector;
+	zeek::VectorValPtr chainVector;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
@@ -556,7 +556,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 			}
 
 		int num_certs = sk_X509_num(chain);
-		chainVector = zeek::make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("x509_opaque_vector"));
+		chainVector = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<VectorType>("x509_opaque_vector"));
 
 		for ( int i = 0; i < num_certs; i++ )
 			{
@@ -761,7 +761,7 @@ sct_verify_err:
  * 1 -> issuer name
  * 2 -> pubkey
  */
-StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
+zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
 	{
 	assert(cert_handle);
 
@@ -824,7 +824,7 @@ StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int 
 
 	assert( len <= sizeof(md) );
 
-	return zeek::make_intrusive<StringVal>(len, reinterpret_cast<const char*>(md));
+	return zeek::make_intrusive<zeek::StringVal>(len, reinterpret_cast<const char*>(md));
 	}
 %%}
 

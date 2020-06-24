@@ -8,10 +8,10 @@
 
 class Scope;
 class EventHandlerPtr;
-class StringVal;
-class TableVal;
-class ListVal;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
@@ -40,7 +40,7 @@ extern zeek::detail::StmtPtr add_local(
 extern zeek::detail::ExprPtr add_and_assign_local(
 	zeek::detail::IDPtr id,
 	zeek::detail::ExprPtr init,
-	ValPtr val = nullptr);
+	zeek::ValPtr val = nullptr);
 
 extern void add_type(zeek::detail::ID* id, zeek::TypePtr t,
                      std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr);
@@ -56,13 +56,13 @@ extern void end_func(zeek::detail::StmtPtr body);
 extern id_list gather_outer_ids(Scope* scope, zeek::detail::Stmt* body);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_val().")]]
-extern Val* internal_val(const char* name);
+extern zeek::Val* internal_val(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_const().")]]
-extern Val* internal_const_val(const char* name); // internal error if not const
+extern zeek::Val* internal_const_val(const char* name); // internal error if not const
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
-extern Val* opt_internal_val(const char* name);	// returns nil if not defined
+extern zeek::Val* opt_internal_val(const char* name);	// returns nil if not defined
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern double opt_internal_double(const char* name);
@@ -74,13 +74,13 @@ extern bro_int_t opt_internal_int(const char* name);
 extern bro_uint_t opt_internal_unsigned(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
-extern StringVal* opt_internal_string(const char* name);
+extern zeek::StringVal* opt_internal_string(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
-extern TableVal* opt_internal_table(const char* name);	// nil if not defined
+extern zeek::TableVal* opt_internal_table(const char* name);	// nil if not defined
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find(), zeek::id::find_val(), and/or TableVal::ToPureListVal().")]]
-extern ListVal* internal_list_val(const char* name);
+extern zeek::ListVal* internal_list_val(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_type().")]]
 extern zeek::Type* internal_type(const char* name);

@@ -29,7 +29,9 @@ namespace trigger {
 }
 }
 
+namespace zeek {
 using ValPtr = zeek::IntrusivePtr<Val>;
+}
 
 class Frame;
 using FramePtr = zeek::IntrusivePtr<Frame>;
@@ -56,21 +58,21 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
-	const ValPtr& GetElement(int n) const
+	const zeek::ValPtr& GetElement(int n) const
 		{ return frame[n].val; }
 
 	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
-	Val* NthElement(int n) const	{ return frame[n].val.get(); }
+	zeek::Val* NthElement(int n) const	{ return frame[n].val.get(); }
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*.
 	 * @param n the index to set
 	 * @param v the value to set it to
 	 */
-	void SetElement(int n, ValPtr v);
+	void SetElement(int n, zeek::ValPtr v);
 
 	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]]
-	void SetElement(int n, Val* v);
+	void SetElement(int n, zeek::Val* v);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -79,8 +81,8 @@ public:
 	 * @param id the ID to associate
 	 * @param v the value to associate it with
 	 */
-	void SetElement(const zeek::detail::ID* id, ValPtr v);
-	void SetElement(const zeek::detail::IDPtr& id, ValPtr v)
+	void SetElement(const zeek::detail::ID* id, zeek::ValPtr v);
+	void SetElement(const zeek::detail::IDPtr& id, zeek::ValPtr v)
 		{ SetElement(id.get(), std::move(v)); }
 
 	/**
@@ -90,11 +92,11 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	const ValPtr& GetElementByID(const zeek::detail::IDPtr& id) const
+	const zeek::ValPtr& GetElementByID(const zeek::detail::IDPtr& id) const
 		{ return GetElementByID(id.get()); }
 
 	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
-	Val* GetElement(const zeek::detail::ID* id) const
+	zeek::Val* GetElement(const zeek::detail::ID* id) const
 		{ return GetElementByID(id).get(); }
 
 	/**
@@ -254,13 +256,13 @@ private:
 	using OffsetMap = std::unordered_map<std::string, int>;
 
 	struct Element {
-		ValPtr val;
+		zeek::ValPtr val;
 		// Weak reference is used to prevent circular reference memory leaks
 		// in lambdas/closures.
 		bool weak_ref;
 	};
 
-	const ValPtr& GetElementByID(const zeek::detail::ID* id) const;
+	const zeek::ValPtr& GetElementByID(const zeek::detail::ID* id) const;
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*, but does
@@ -270,7 +272,7 @@ private:
 	 * @param v the value to set it to (caller has not Ref'd and Frame will
 	 * not Unref it)
 	 */
-	void SetElementWeak(int n, Val* v);
+	void SetElementWeak(int n, zeek::Val* v);
 
 	/**
 	 * Clone an element at an offset into other frame if not equal to a given

@@ -120,8 +120,7 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bittorrent_peer_weird )
 		EnqueueConnEvent(bittorrent_peer_weird,
-			ConnVal(),
-			val_mgr->Bool(orig),
-			zeek::make_intrusive<StringVal>(msg)
-		);
+		                 ConnVal(),
+		                 val_mgr->Bool(orig),
+		                 zeek::make_intrusive<zeek::StringVal>(msg));
 	}

@@ -17,10 +17,13 @@
 #include "Val.h"
 #include "ZeekArgs.h"
 
-template <class T> class IntrusivePtr;
 class Frame;
 class Scope;
 struct function_ingredients;
+
+namespace zeek {
+template <class T> class IntrusivePtr;
+}
 
 namespace zeek::detail {
 

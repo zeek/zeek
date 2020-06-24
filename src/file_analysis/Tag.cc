@@ -18,20 +18,20 @@ file_analysis::Tag& file_analysis::Tag::operator=(const file_analysis::Tag& othe
 	return *this;
 	}
 
-const EnumValPtr& file_analysis::Tag::AsVal() const
+const zeek::EnumValPtr& file_analysis::Tag::AsVal() const
 	{
 	return ::Tag::AsVal(file_mgr->GetTagType());
 	}
 
-EnumVal* file_analysis::Tag::AsEnumVal() const
+zeek::EnumVal* file_analysis::Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-file_analysis::Tag::Tag(EnumValPtr val)
+file_analysis::Tag::Tag(zeek::EnumValPtr val)
 	: ::Tag(std::move(val))
 	{ }
 
-file_analysis::Tag::Tag(EnumVal* val)
+file_analysis::Tag::Tag(zeek::EnumVal* val)
 	: ::Tag({zeek::NewRef{}, val})
 	{ }

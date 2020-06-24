@@ -26,6 +26,7 @@
 #define ICMP_PORT_MASK	0x30000
 
 template<typename T> class PDict;
+
 class IterCookie;
 
 class BroString;
@@ -33,6 +34,18 @@ class BroFunc;
 class Func;
 class BroFile;
 class PrefixTable;
+class IPAddr;
+class IPPrefix;
+class StateAccess;
+class RE_Matcher;
+
+class CompositeHash;
+class HashKey;
+class Frame;
+
+extern double bro_start_network_time;
+
+namespace zeek {
 
 using BroFilePtr = zeek::IntrusivePtr<BroFile>;
 using FuncPtr = zeek::IntrusivePtr<Func>;
@@ -61,13 +74,6 @@ using StringValPtr = zeek::IntrusivePtr<StringVal>;
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
 using ValPtr = zeek::IntrusivePtr<Val>;
 using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
-
-class IPAddr;
-class IPPrefix;
-
-class StateAccess;
-
-class RE_Matcher;
 
 union BroValUnion {
 	// Used for bool, int, enum.
@@ -712,8 +718,6 @@ protected:
 	zeek::TypeTag tag;
 };
 
-extern double bro_start_network_time;
-
 class TableEntryVal {
 public:
 	explicit TableEntryVal(ValPtr v)
@@ -760,10 +764,6 @@ public:
 protected:
 	TableVal* table;
 };
-
-class CompositeHash;
-class HashKey;
-class Frame;
 
 class TableVal final : public Val, public notifier::Modifiable {
 public:
@@ -1400,3 +1400,26 @@ extern bool can_cast_value_to_type(const Val* v, zeek::Type* t);
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
 extern bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t);
+
+}
+
+using Val [[deprecated("Remove in v4.1. Use zeek::Val instead.")]] = zeek::Val;
+using PortVal [[deprecated("Remove in v4.1. Use zeek::PortVal instead.")]] = zeek::PortVal;
+using AddrVal [[deprecated("Remove in v4.1. Use zeek::AddrVal instead.")]] = zeek::AddrVal;
+using SubNetVal [[deprecated("Remove in v4.1. Use zeek::SubNetVal instead.")]] = zeek::SubNetVal;
+using PatternVal [[deprecated("Remove in v4.1. Use zeek::PatternVal instead.")]] = zeek::PatternVal;
+using TableVal [[deprecated("Remove in v4.1. Use zeek::TableVal instead.")]] = zeek::TableVal;
+using TableValTimer [[deprecated("Remove in v4.1. Use zeek::TableVal instead.")]] = zeek::TableValTimer;
+using RecordVal [[deprecated("Remove in v4.1. Use zeek::RecordVal instead.")]] = zeek::RecordVal;
+using ListVal [[deprecated("Remove in v4.1. Use zeek::ListVal instead.")]] = zeek::ListVal;
+using StringVal [[deprecated("Remove in v4.1. Use zeek::StringVal instead.")]] = zeek::StringVal;
+using EnumVal [[deprecated("Remove in v4.1. Use zeek::EnumVal instead.")]] = zeek::EnumVal;
+using VectorVal [[deprecated("Remove in v4.1. Use zeek::VectorVal instead.")]] = zeek::VectorVal;
+using TableEntryVal [[deprecated("Remove in v4.1. Use zeek::TableEntryVal instead.")]] = zeek::TableEntryVal;
+using TimeVal [[deprecated("Remove in v4.1. Use zeek::TimeVal instead.")]] = zeek::TimeVal;
+using DoubleVal [[deprecated("Remove in v4.1. Use zeek::DoubleVal instead.")]] = zeek::DoubleVal;
+using IntervalVal [[deprecated("Remove in v4.1. Use zeek::IntervalVal instead.")]] = zeek::IntervalVal;
+using ValManager [[deprecated("Remove in v4.1. Use zeek::ValManager instead.")]] = zeek::ValManager;
+
+// Alias for zeek::val_mgr.
+extern zeek::ValManager*& val_mgr;

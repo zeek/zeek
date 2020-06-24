@@ -1,10 +1,10 @@
 
 %header{
-StringValPtr array_to_string(vector<uint8> *a);
+zeek::StringValPtr array_to_string(vector<uint8> *a);
 %}
 
 %code{
-StringValPtr array_to_string(vector<uint8> *a)
+zeek::StringValPtr array_to_string(vector<uint8> *a)
 	{
 	int len = a->size();
 	auto tmp = std::make_unique<char[]>(len);
@@ -14,7 +14,7 @@ StringValPtr array_to_string(vector<uint8> *a)
 	while ( len > 0 && tmp[len-1] == '\0' )
 		--len;
 
-	return zeek::make_intrusive<StringVal>(len, tmp.get());
+	return zeek::make_intrusive<zeek::StringVal>(len, tmp.get());
 	}
 %}
 
@@ -25,8 +25,8 @@ refine connection SOCKS_Conn += {
 		if ( socks_request )
 			{
 			static auto socks_address = zeek::id::find_type<zeek::RecordType>("SOCKS::Address");
-			auto sa = zeek::make_intrusive<RecordVal>(socks_address);
-			sa->Assign(0, zeek::make_intrusive<AddrVal>(htonl(${request.addr})));
+			auto sa = zeek::make_intrusive<zeek::RecordVal>(socks_address);
+			sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(${request.addr})));
 
 			if ( ${request.v4a} )
 				sa->Assign(1, array_to_string(${request.name}));
@@ -50,8 +50,8 @@ refine connection SOCKS_Conn += {
 		if ( socks_reply )
 			{
 			static auto socks_address = zeek::id::find_type<zeek::RecordType>("SOCKS::Address");
-			auto sa = zeek::make_intrusive<RecordVal>(socks_address);
-			sa->Assign(0, zeek::make_intrusive<AddrVal>(htonl(${reply.addr})));
+			auto sa = zeek::make_intrusive<zeek::RecordVal>(socks_address);
+			sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(${reply.addr})));
 
 			zeek::BifEvent::enqueue_socks_reply(bro_analyzer(),
 			                              bro_analyzer()->Conn(),
@@ -83,22 +83,22 @@ refine connection SOCKS_Conn += {
 			}
 
 		static auto socks_address = zeek::id::find_type<zeek::RecordType>("SOCKS::Address");
-		auto sa = zeek::make_intrusive<RecordVal>(socks_address);
+		auto sa = zeek::make_intrusive<zeek::RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${request.remote_name.addr_type} )
 			{
 			case 1:
-				sa->Assign(0, zeek::make_intrusive<AddrVal>(htonl(${request.remote_name.ipv4})));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(${request.remote_name.ipv4})));
 				break;
 
 			case 3:
-				sa->Assign(1, zeek::make_intrusive<StringVal>(${request.remote_name.domain_name.name}.length(),
+				sa->Assign(1, zeek::make_intrusive<zeek::StringVal>(${request.remote_name.domain_name.name}.length(),
 				                         (const char*) ${request.remote_name.domain_name.name}.data()));
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<AddrVal>(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network)));
 				break;
 
 			default:
@@ -123,22 +123,22 @@ refine connection SOCKS_Conn += {
 	function socks5_reply(reply: SOCKS5_Reply): bool
 		%{
 		static auto socks_address = zeek::id::find_type<zeek::RecordType>("SOCKS::Address");
-		auto sa = zeek::make_intrusive<RecordVal>(socks_address);
+		auto sa = zeek::make_intrusive<zeek::RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${reply.bound.addr_type} )
 			{
 			case 1:
-				sa->Assign(0, zeek::make_intrusive<AddrVal>(htonl(${reply.bound.ipv4})));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(${reply.bound.ipv4})));
 				break;
 
 			case 3:
-				sa->Assign(1, zeek::make_intrusive<StringVal>(${reply.bound.domain_name.name}.length(),
+				sa->Assign(1, zeek::make_intrusive<zeek::StringVal>(${reply.bound.domain_name.name}.length(),
 				                         (const char*) ${reply.bound.domain_name.name}.data()));
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<AddrVal>(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network)));
 				break;
 
 			default:
@@ -164,8 +164,8 @@ refine connection SOCKS_Conn += {
 		if ( ! socks_login_userpass_request )
 			return true;
 
-		auto user = zeek::make_intrusive<StringVal>(${request.username}.length(), (const char*) ${request.username}.begin());
-		auto pass = zeek::make_intrusive<StringVal>(${request.password}.length(), (const char*) ${request.password}.begin());
+		auto user = zeek::make_intrusive<zeek::StringVal>(${request.username}.length(), (const char*) ${request.username}.begin());
+		auto pass = zeek::make_intrusive<zeek::StringVal>(${request.password}.length(), (const char*) ${request.password}.begin());
 
 		zeek::BifEvent::enqueue_socks_login_userpass_request(bro_analyzer(),
 		                                               bro_analyzer()->Conn(),

@@ -4,8 +4,8 @@
 
 #include "List.h"
 
-class Val;
-using val_list = PList<Val>;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+using val_list = PList<zeek::Val>;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 using expr_list = PList<zeek::detail::Expr>;

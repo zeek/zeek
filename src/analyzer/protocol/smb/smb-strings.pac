@@ -3,7 +3,7 @@
 %}
 
 %code{
-StringValPtr binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_t>* data)
+zeek::StringValPtr binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_t>* data)
 	{
 	int length = data->size();
 	auto buf = std::make_unique<uint8[]>(length);
@@ -15,7 +15,7 @@ StringValPtr binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_t>* da
 	return utf16_to_utf8_val(bro_analyzer()->Conn(), bs);
 	}
 
-StringValPtr binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
+zeek::StringValPtr binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
 	{
 	if ( s->unicode() == false )
 		{
@@ -31,18 +31,18 @@ StringValPtr binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
 		if ( length > 0 && buf[length-1] == 0x00 )
 			length--;
 
-		return zeek::make_intrusive<StringVal>(length, buf.get());
+		return zeek::make_intrusive<zeek::StringVal>(length, buf.get());
 		}
 	else
 		return uint8s_to_stringval(s->u()->s());
 	}
 
-StringValPtr binpac::SMB::SMB_Conn::smb_string2stringval(SMB_string* s)
+zeek::StringValPtr binpac::SMB::SMB_Conn::smb_string2stringval(SMB_string* s)
 	{
 	return extract_string(s);
 	}
 
-StringValPtr binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string* s)
+zeek::StringValPtr binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string* s)
 	{
 	return uint8s_to_stringval(s->s());
 	}
@@ -50,10 +50,10 @@ StringValPtr binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string* s)
 
 refine connection SMB_Conn += {
 	%member{
-		StringValPtr uint8s_to_stringval(std::vector<uint8_t>* data);
-		StringValPtr extract_string(SMB_string* s);
-		StringValPtr smb_string2stringval(SMB_string* s);
-		StringValPtr smb2_string2stringval(SMB2_string* s);
+		zeek::StringValPtr uint8s_to_stringval(std::vector<uint8_t>* data);
+		zeek::StringValPtr extract_string(SMB_string* s);
+		zeek::StringValPtr smb_string2stringval(SMB_string* s);
+		zeek::StringValPtr smb2_string2stringval(SMB2_string* s);
 
 		SMB_unicode_string* me;
 	%}

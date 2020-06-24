@@ -7,9 +7,10 @@
 #include "IntrusivePtr.h"
 
 class IP_Hdr;
-class Val;
 class Func;
 using FuncPtr = zeek::IntrusivePtr<Func>;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 class Discarder {
 public:
@@ -21,7 +22,7 @@ public:
 	bool NextPacket(const IP_Hdr* ip, int len, int caplen);
 
 protected:
-	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
+	zeek::Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
 
 	FuncPtr check_ip;
 	FuncPtr check_tcp;

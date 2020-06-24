@@ -205,17 +205,17 @@ static void print_log(const std::vector<ValPtr>& vals)
 	{
 	static auto plval = lookup_enum_val("Log", "PRINTLOG");
 	static auto lpli = zeek::id::find_type<RecordType>("Log::PrintLogInfo");
-	auto record = zeek::make_intrusive<RecordVal>(lpli);
-	auto vec = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
+	auto record = zeek::make_intrusive<zeek::RecordVal>(lpli);
+	auto vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	for ( const auto& val : vals )
 		{
 		ODesc d(DESC_READABLE);
 		val->Describe(&d);
-		vec->Assign(vec->Size(), zeek::make_intrusive<StringVal>(d.Description()));
+		vec->Assign(vec->Size(), zeek::make_intrusive<zeek::StringVal>(d.Description()));
 		}
 
-	record->Assign(0, zeek::make_intrusive<TimeVal>(network_time));
+	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(network_time));
 	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}
@@ -1181,7 +1181,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
 		TableVal* tv = v->AsTableVal();
-		const PDict<TableEntryVal>* loop_vals = tv->AsTable();
+		const PDict<zeek::TableEntryVal>* loop_vals = tv->AsTable();
 
 		if ( ! loop_vals->Length() )
 			return nullptr;
@@ -1248,7 +1248,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			auto sv = zeek::make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
+			auto sv = zeek::make_intrusive<zeek::StringVal>(1, (const char*) sval->Bytes() + i);
 			f->SetElement((*loop_vars)[0], std::move(sv));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1654,14 +1654,14 @@ ValPtr InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:
-			v = zeek::make_intrusive<RecordVal>(zeek::cast_intrusive<RecordType>(t));
+			v = zeek::make_intrusive<zeek::RecordVal>(zeek::cast_intrusive<RecordType>(t));
 			break;
 		case TYPE_VECTOR:
-			v = zeek::make_intrusive<VectorVal>(zeek::cast_intrusive<VectorType>(t));
+			v = zeek::make_intrusive<zeek::VectorVal>(zeek::cast_intrusive<VectorType>(t));
 			break;
 		case TYPE_TABLE:
-			v = zeek::make_intrusive<TableVal>(zeek::cast_intrusive<TableType>(t),
-			                                   aggr->GetAttrs());
+			v = zeek::make_intrusive<zeek::TableVal>(zeek::cast_intrusive<TableType>(t),
+			                                         aggr->GetAttrs());
 			break;
 		default:
 			break;

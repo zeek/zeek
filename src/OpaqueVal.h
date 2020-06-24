@@ -14,6 +14,13 @@
 
 namespace broker { class data; }
 
+namespace probabilistic {
+	class BloomFilter;
+	class CardinalityCounter;
+}
+
+namespace zeek {
+
 class OpaqueVal;
 using OpaqueValPtr = zeek::IntrusivePtr<OpaqueVal>;
 
@@ -72,18 +79,18 @@ private:
 
 /** Macro to insert into an OpaqueVal-derived class's declaration. */
 #define DECLARE_OPAQUE_VALUE(T)                            \
-    friend class OpaqueMgr::Register<T>;                   \
+	friend class zeek::OpaqueMgr::Register<T>; \
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();            \
     broker::expected<broker::data> DoSerialize() const override;             \
     bool DoUnserialize(const broker::data& data) override; \
     const char* OpaqueName() const override { return #T; } \
-    static OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
+    static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
 #define __OPAQUE_MERGE(a, b) a ## b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
 
 /** Macro to insert into an OpaqueVal-derived class's implementation file. */
-#define IMPLEMENT_OPAQUE_VALUE(T) static OpaqueMgr::Register<T> __OPAQUE_ID(__LINE__)(#T);
+#define IMPLEMENT_OPAQUE_VALUE(T) static zeek::OpaqueMgr::Register<T> __OPAQUE_ID(__LINE__)(#T);
 
 /**
  * Base class for all opaque values. Opaque values are types that are managed
@@ -161,11 +168,6 @@ protected:
 	 */
 	static zeek::TypePtr UnserializeType(const broker::data& data);
 };
-
-namespace probabilistic {
-	class BloomFilter;
-	class CardinalityCounter;
-}
 
 class HashVal : public OpaqueVal {
 public:
@@ -339,7 +341,7 @@ private:
 };
 
 
-class CardinalityVal: public OpaqueVal {
+class CardinalityVal : public OpaqueVal {
 public:
 	explicit CardinalityVal(probabilistic::CardinalityCounter*);
 	~CardinalityVal() override;
@@ -380,3 +382,16 @@ protected:
 private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 };
+
+}
+
+using OpaqueMgr [[deprecated("Remove in v4.1. Use zeek::OpaqueMgr instead.")]] = zeek::OpaqueMgr;
+using OpaqueVal [[deprecated("Remove in v4.1. Use zeek::OpaqueVal instead.")]] = zeek::OpaqueVal;
+using HashVal [[deprecated("Remove in v4.1. Use zeek::HashVal instead.")]] = zeek::HashVal;
+using MD5Val [[deprecated("Remove in v4.1. Use zeek::MD5Val instead.")]] = zeek::MD5Val;
+using SHA1Val [[deprecated("Remove in v4.1. Use zeek::SHA1Val instead.")]] = zeek::SHA1Val;
+using SHA256Val [[deprecated("Remove in v4.1. Use zeek::SHA256Val instead.")]] = zeek::SHA256Val;
+using EntropyVal [[deprecated("Remove in v4.1. Use zeek::EntropyVal instead.")]] = zeek::EntropyVal;
+using BloomFilterVal [[deprecated("Remove in v4.1. Use zeek::BloomFilterVal instead.")]] = zeek::BloomFilterVal;
+using CardinalityVal [[deprecated("Remove in v4.1. Use zeek::CardinalityVal instead.")]] = zeek::CardinalityVal;
+using ParaglobVal [[deprecated("Remove in v4.1. Use zeek::ParaglobVal instead.")]] = zeek::ParaglobVal;

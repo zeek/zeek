@@ -17,11 +17,11 @@
 #include "ZeekArgs.h"
 #include "BifReturnVal.h"
 
-class Val;
 class Frame;
 class Scope;
 using ScopePtr = zeek::IntrusivePtr<Scope>;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
@@ -69,7 +69,7 @@ public:
 	bool HasBodies() const	{ return bodies.size(); }
 
 	[[deprecated("Remove in v4.1. Use Invoke() instead.")]]
-	Val* Call(val_list* args, Frame* parent = nullptr) const;
+	zeek::Val* Call(val_list* args, Frame* parent = nullptr) const;
 
 	/**
 	 * Calls a Zeek function.
@@ -77,7 +77,7 @@ public:
 	 * @param parent  the frame from which the function is being called.
 	 * @return  the return value of the function call.
 	 */
-	virtual ValPtr Invoke(
+	virtual zeek::ValPtr Invoke(
 		zeek::Args* args, Frame* parent = nullptr) const = 0;
 
 	/**
@@ -85,9 +85,8 @@ public:
 	 */
 	template <class... Args>
 	std::enable_if_t<
-	  std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>,
-	                        ValPtr>,
-		ValPtr>
+		std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>,
+		zeek::ValPtr>
 	Invoke(Args&&... args) const
 		{
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
@@ -131,7 +130,7 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for checking result of plugin hook.
-	void CheckPluginResult(bool handled, const ValPtr& hook_result,
+	void CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 	                       zeek::FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
@@ -153,7 +152,7 @@ public:
 	~BroFunc() override;
 
 	bool IsPure() const override;
-	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
+	zeek::ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -231,7 +230,7 @@ public:
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
+	zeek::ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -245,7 +244,7 @@ protected:
 
 
 extern void builtin_error(const char* msg);
-extern void builtin_error(const char* msg, ValPtr);
+extern void builtin_error(const char* msg, zeek::ValPtr);
 extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();

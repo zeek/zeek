@@ -14,20 +14,21 @@
 #include <list>
 #include <optional>
 
-class Val;
-class EnumVal;
-class TableVal;
-
-using ValPtr = zeek::IntrusivePtr<Val>;
-using EnumValPtr = zeek::IntrusivePtr<EnumVal>;
-using TableValPtr = zeek::IntrusivePtr<TableVal>;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
-namespace zeek::detail {
+namespace zeek {
+using ValPtr = zeek::IntrusivePtr<Val>;
+using EnumValPtr = zeek::IntrusivePtr<EnumVal>;
+using TableValPtr = zeek::IntrusivePtr<TableVal>;
+
+namespace detail {
 using ListExprPtr = zeek::IntrusivePtr<ListExpr>;
+}
 }
 
 namespace zeek {
@@ -671,7 +672,7 @@ public:
 	zeek::IntrusivePtr<T> GetFieldType(int field_index) const
 		{ return zeek::cast_intrusive<T>((*types)[field_index]->type); }
 
-	ValPtr FieldDefault(int field) const;
+	zeek::ValPtr FieldDefault(int field) const;
 
 	// A field's offset is its position in the type_decl_list,
 	// starting at 0.  Returns negative if the field doesn't exist.
@@ -693,7 +694,7 @@ public:
 	 * @param rv  an optional record value, if given the values of
 	 * all fields will be provided in the returned table.
 	 */
-	TableValPtr GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
+	zeek::TableValPtr GetRecordFieldsVal(const zeek::RecordVal* rv = nullptr) const;
 
 	// Returns null if all is ok, otherwise a pointer to an error message.
 	const char* AddFields(const type_decl_list& types,
@@ -791,7 +792,7 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	const EnumValPtr& GetVal(bro_int_t i);
+	const zeek::EnumValPtr& GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,
@@ -804,7 +805,7 @@ protected:
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
 
-	using ValMap = std::unordered_map<bro_int_t, EnumValPtr>;
+	using ValMap = std::unordered_map<bro_int_t, zeek::EnumValPtr>;
 	ValMap vals;
 
 	// The counter is initialized to 0 and incremented on every implicit

@@ -7,8 +7,8 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, const zeek::detail::IDPtr& i,
-                                               ValPtr val, StringVal* location)
+static bool call_option_handlers_and_set_value(zeek::StringVal* name, const zeek::detail::IDPtr& i,
+                                               zeek::ValPtr val, zeek::StringVal* location)
 	{
 	if ( i->HasOptionHandlers() )
 		{
@@ -101,7 +101,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		     val->GetType()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
-			auto tv = zeek::make_intrusive<TableVal>(
+			auto tv = zeek::make_intrusive<zeek::TableVal>(
 			        zeek::cast_intrusive<TableType>(i->GetType()),
 			        i->GetVal()->AsTableVal()->GetAttrs());
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);

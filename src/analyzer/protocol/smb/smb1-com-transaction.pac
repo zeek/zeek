@@ -5,7 +5,7 @@ enum Trans_subcommands {
 };
 
 %code{
-	StringValPtr SMB_Conn::transaction_data_to_val(SMB1_transaction_data* payload)
+	zeek::StringValPtr SMB_Conn::transaction_data_to_val(SMB1_transaction_data* payload)
 		{
 		switch ( payload->trans_type() ) {
 		case SMB_PIPE:
@@ -26,7 +26,7 @@ refine connection SMB_Conn += {
 	%member{
 		map<uint16, bool> is_file_a_pipe;
 
-		static StringValPtr transaction_data_to_val(SMB1_transaction_data* payload);
+		static zeek::StringValPtr transaction_data_to_val(SMB1_transaction_data* payload);
 	%}
 
 	function get_is_file_a_pipe(id: uint16): bool
@@ -53,9 +53,9 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_request )
 			return false;
 
-		auto parameters = zeek::make_intrusive<StringVal>(${val.parameters}.length(),
+		auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(),
 		                                                  (const char*)${val.parameters}.data());
-		StringValPtr payload_str;
+		zeek::StringValPtr payload_str;
 
 		if ( ${val.data_count} > 0 )
 			payload_str = transaction_data_to_val(${val.data});
@@ -78,9 +78,9 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_response )
 			return false;
 
-		auto parameters = zeek::make_intrusive<StringVal>(${val.parameters}.length(),
+		auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(),
 		                                                  (const char*)${val.parameters}.data());
-		StringValPtr payload_str;
+		zeek::StringValPtr payload_str;
 
 		if ( ${val.data_count} > 0 )
 			payload_str = transaction_data_to_val(${val.data[0]});

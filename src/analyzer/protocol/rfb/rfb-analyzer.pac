@@ -52,7 +52,7 @@ refine flow RFB_Flow += {
 			auto name_ptr = &((*vec_ptr)[0]);
 			zeek::BifEvent::enqueue_rfb_server_parameters(
 			    connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-			    zeek::make_intrusive<StringVal>(${msg.name}->size(), (const char*)name_ptr),
+			    zeek::make_intrusive<zeek::StringVal>(${msg.name}->size(), (const char*)name_ptr),
 			    ${msg.width},
 			    ${msg.height});
 			}

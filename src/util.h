@@ -381,8 +381,8 @@ FILE* open_package(std::string& path, const std::string& mode = "r");
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if
 // given (open time is set network time).
-class RecordVal;
-extern FILE* rotate_file(const char* name, RecordVal* rotate_info);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+extern FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info);
 
 // This mimics the script-level function with the same name.
 const char* log_file_name(const char* tag);

@@ -7,14 +7,14 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_message )
 			return false;
 
-		auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::RADIUS::Message);
+		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RADIUS::Message);
 		result->Assign(0, val_mgr->Count(${msg.code}));
 		result->Assign(1, val_mgr->Count(${msg.trans_id}));
 		result->Assign(2, to_stringval(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
 			{
-			auto attributes = zeek::make_intrusive<TableVal>(zeek::BifType::Table::RADIUS::Attributes);
+			auto attributes = zeek::make_intrusive<zeek::TableVal>(zeek::BifType::Table::RADIUS::Attributes);
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
 				{
@@ -22,17 +22,17 @@ refine flow RADIUS_Flow += {
 
 				// Do we already have a vector of attributes for this type?
 				auto current = attributes->FindOrDefault(index);
-				ValPtr val = to_stringval(${msg.attributes[i].value});
+				zeek::ValPtr val = to_stringval(${msg.attributes[i].value});
 
 				if ( current )
 					{
-					VectorVal* vcurrent = current->AsVectorVal();
+					zeek::VectorVal* vcurrent = current->AsVectorVal();
 					vcurrent->Assign(vcurrent->Size(), std::move(val));
 					}
 
 				else
 					{
-					auto attribute_list = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::RADIUS::AttributeList);
+					auto attribute_list = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::RADIUS::AttributeList);
 					attribute_list->Assign((unsigned int)0, std::move(val));
 					attributes->Assign(std::move(index), std::move(attribute_list));
 					}

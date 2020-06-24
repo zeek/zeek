@@ -61,22 +61,22 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
-void Frame::SetElement(int n, Val* v)
+void Frame::SetElement(int n, zeek::Val* v)
 	{ SetElement(n, {zeek::AdoptRef{}, v}); }
 
-void Frame::SetElement(int n, ValPtr v)
+void Frame::SetElement(int n, zeek::ValPtr v)
 	{
 	ClearElement(n);
 	frame[n] = {std::move(v), false};
 	}
 
-void Frame::SetElementWeak(int n, Val* v)
+void Frame::SetElementWeak(int n, zeek::Val* v)
 	{
 	ClearElement(n);
 	frame[n] = {{zeek::AdoptRef{}, v}, true};
 	}
 
-void Frame::SetElement(const zeek::detail::ID* id, ValPtr v)
+void Frame::SetElement(const zeek::detail::ID* id, zeek::ValPtr v)
 	{
 	if ( closure )
 		{
@@ -105,7 +105,7 @@ void Frame::SetElement(const zeek::detail::ID* id, ValPtr v)
 	SetElement(id->Offset(), std::move(v));
 	}
 
-const ValPtr& Frame::GetElementByID(const zeek::detail::ID* id) const
+const zeek::ValPtr& Frame::GetElementByID(const zeek::detail::ID* id) const
 	{
 	if ( closure )
 		{
@@ -172,7 +172,7 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-static bool val_is_func(const ValPtr& v, BroFunc* func)
+static bool val_is_func(const zeek::ValPtr& v, BroFunc* func)
 	{
 	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
 		return false;

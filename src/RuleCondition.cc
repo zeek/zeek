@@ -173,7 +173,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	args.emplace_back(zeek::AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.emplace_back(zeek::make_intrusive<StringVal>(len, (const char*) data));
+		args.emplace_back(zeek::make_intrusive<zeek::StringVal>(len, (const char*) data));
 	else
 		args.emplace_back(val_mgr->EmptyString());
 

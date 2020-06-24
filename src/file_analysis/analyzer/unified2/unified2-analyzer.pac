@@ -8,25 +8,25 @@
 %}
 
 %code{
-AddrValPtr binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
+zeek::AddrValPtr binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
 	{
 	if ( a->size() == 1 )
 		{
-		return zeek::make_intrusive<AddrVal>(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
+		return zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
 		}
 	else if ( a->size() == 4 )
 		{
 		uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
-		return zeek::make_intrusive<AddrVal>(IPAddr(IPv6, tmp, IPAddr::Host));
+		return zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, tmp, IPAddr::Host));
 		}
 	else
 		{
 		// Should never reach here.
-		return zeek::make_intrusive<AddrVal>(1);
+		return zeek::make_intrusive<zeek::AddrVal>(1);
 		}
 	}
 
-ValPtr binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
+zeek::ValPtr binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
 	{
 	TransportProto proto = TRANSPORT_UNKNOWN;
 	switch ( p ) {
@@ -42,8 +42,8 @@ ValPtr binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
 refine flow Flow += {
 
 	%member{
-		AddrValPtr unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
-		ValPtr to_port(uint16_t n, uint8_t p);
+		zeek::AddrValPtr unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
+		zeek::ValPtr to_port(uint16_t n, uint8_t p);
 	%}
 
 	%init{
@@ -71,10 +71,10 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
+			auto ids_event = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
-			ids_event->Assign(2, zeek::make_intrusive<TimeVal>(ts_to_double(${ev.ts})));
+			ids_event->Assign(2, zeek::make_intrusive<zeek::TimeVal>(ts_to_double(${ev.ts})));
 			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
 			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
 			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
@@ -97,10 +97,10 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
+			auto ids_event = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
-			ids_event->Assign(2, zeek::make_intrusive<TimeVal>(ts_to_double(${ev.ts})));
+			ids_event->Assign(2, zeek::make_intrusive<zeek::TimeVal>(ts_to_double(${ev.ts})));
 			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
 			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
 			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
@@ -128,11 +128,11 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_packet )
 			{
-			auto packet = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::Packet);
+			auto packet = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Unified2::Packet);
 			packet->Assign(0, val_mgr->Count(${pkt.sensor_id}));
 			packet->Assign(1, val_mgr->Count(${pkt.event_id}));
 			packet->Assign(2, val_mgr->Count(${pkt.event_second}));
-			packet->Assign(3, zeek::make_intrusive<TimeVal>(ts_to_double(${pkt.packet_ts})));
+			packet->Assign(3, zeek::make_intrusive<zeek::TimeVal>(ts_to_double(${pkt.packet_ts})));
 			packet->Assign(4, val_mgr->Count(${pkt.link_type}));
 			packet->Assign(5, to_stringval(${pkt.packet_data}));
 

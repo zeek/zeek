@@ -15,8 +15,8 @@ class BifReturnVal {
 public:
 
 	template <typename T>
-	BifReturnVal(IntrusivePtr<T> v) noexcept
-		: rval(AdoptRef{}, v.release())
+	BifReturnVal(zeek::IntrusivePtr<T> v) noexcept
+		: rval(zeek::AdoptRef{}, v.release())
 		{ }
 
 	BifReturnVal(std::nullptr_t) noexcept;
@@ -24,5 +24,5 @@ public:
 	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
 	BifReturnVal(Val* v) noexcept;
 
-	IntrusivePtr<Val> rval;
+	zeek::IntrusivePtr<Val> rval;
 };

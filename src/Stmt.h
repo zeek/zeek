@@ -29,7 +29,7 @@ public:
 
 	~Stmt() override;
 
-	virtual IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const = 0;
+	virtual zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const = 0;
 
 	Stmt* Ref()			{ ::Ref(this); return this; }
 
@@ -93,17 +93,17 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l);
+	ExprListStmt(BroStmtTag t, zeek::IntrusivePtr<ListExpr> arg_l);
 
 	~ExprListStmt() override;
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	virtual IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
-	                                 stmt_flow_type& flow) const = 0;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	virtual zeek::IntrusivePtr<Val> DoExec(std::vector<zeek::IntrusivePtr<Val>> vals,
+	                                       stmt_flow_type& flow) const = 0;
 
 	void Describe(ODesc* d) const override;
 
-	IntrusivePtr<ListExpr> l;
+	zeek::IntrusivePtr<ListExpr> l;
 };
 
 class PrintStmt final : public ExprListStmt {
@@ -112,16 +112,16 @@ public:
 	explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) { }
 
 protected:
-	IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
-	                         stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> DoExec(std::vector<zeek::IntrusivePtr<Val>> vals,
+	                               stmt_flow_type& flow) const override;
 };
 
 class ExprStmt : public Stmt {
 public:
-	explicit ExprStmt(IntrusivePtr<Expr> e);
+	explicit ExprStmt(zeek::IntrusivePtr<Expr> e);
 	~ExprStmt() override;
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const Expr* StmtExpr() const	{ return e.get(); }
 
@@ -130,18 +130,18 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ExprStmt(BroStmtTag t, IntrusivePtr<Expr> e);
+	ExprStmt(BroStmtTag t, zeek::IntrusivePtr<Expr> e);
 
-	virtual IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
+	virtual zeek::IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
 	bool IsPure() const override;
 
-	IntrusivePtr<Expr> e;
+	zeek::IntrusivePtr<Expr> e;
 };
 
 class IfStmt final : public ExprStmt {
 public:
-	IfStmt(IntrusivePtr<Expr> test, IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2);
+	IfStmt(zeek::IntrusivePtr<Expr> test, zeek::IntrusivePtr<Stmt> s1, zeek::IntrusivePtr<Stmt> s2);
 	~IfStmt() override;
 
 	const Stmt* TrueBranch() const	{ return s1.get(); }
@@ -152,16 +152,16 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
-	IntrusivePtr<Stmt> s1;
-	IntrusivePtr<Stmt> s2;
+	zeek::IntrusivePtr<Stmt> s1;
+	zeek::IntrusivePtr<Stmt> s2;
 };
 
 class Case final : public BroObj {
 public:
-	Case(IntrusivePtr<ListExpr> c, id_list* types, IntrusivePtr<Stmt> arg_s);
+	Case(zeek::IntrusivePtr<ListExpr> c, id_list* types, zeek::IntrusivePtr<Stmt> arg_s);
 	~Case() override;
 
 	const ListExpr* ExprCases() const	{ return expr_cases.get(); }
@@ -178,16 +178,16 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	IntrusivePtr<ListExpr> expr_cases;
+	zeek::IntrusivePtr<ListExpr> expr_cases;
 	id_list* type_cases;
-	IntrusivePtr<Stmt> s;
+	zeek::IntrusivePtr<Stmt> s;
 };
 
 using case_list = PList<Case>;
 
 class SwitchStmt final : public ExprStmt {
 public:
-	SwitchStmt(IntrusivePtr<Expr> index, case_list* cases);
+	SwitchStmt(zeek::IntrusivePtr<Expr> index, case_list* cases);
 	~SwitchStmt() override;
 
 	const case_list* Cases() const	{ return cases; }
@@ -197,7 +197,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
 	// Initialize composite hash and case label map.
@@ -228,40 +228,40 @@ protected:
 
 class AddStmt final : public ExprStmt {
 public:
-	explicit AddStmt(IntrusivePtr<Expr> e);
+	explicit AddStmt(zeek::IntrusivePtr<Expr> e);
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
 class DelStmt final : public ExprStmt {
 public:
-	explicit DelStmt(IntrusivePtr<Expr> e);
+	explicit DelStmt(zeek::IntrusivePtr<Expr> e);
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
 class EventStmt final : public ExprStmt {
 public:
-	explicit EventStmt(IntrusivePtr<EventExpr> e);
+	explicit EventStmt(zeek::IntrusivePtr<EventExpr> e);
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<EventExpr> event_expr;
+	zeek::IntrusivePtr<EventExpr> event_expr;
 };
 
 class WhileStmt final : public Stmt {
 public:
 
-	WhileStmt(IntrusivePtr<Expr> loop_condition, IntrusivePtr<Stmt> body);
+	WhileStmt(zeek::IntrusivePtr<Expr> loop_condition, zeek::IntrusivePtr<Stmt> body);
 	~WhileStmt() override;
 
 	bool IsPure() const override;
@@ -271,20 +271,20 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	IntrusivePtr<Expr> loop_condition;
-	IntrusivePtr<Stmt> body;
+	zeek::IntrusivePtr<Expr> loop_condition;
+	zeek::IntrusivePtr<Stmt> body;
 };
 
 class ForStmt final : public ExprStmt {
 public:
-	ForStmt(id_list* loop_vars, IntrusivePtr<Expr> loop_expr);
+	ForStmt(id_list* loop_vars, zeek::IntrusivePtr<Expr> loop_expr);
 	// Special constructor for key value for loop.
-	ForStmt(id_list* loop_vars, IntrusivePtr<Expr> loop_expr, IntrusivePtr<ID> val_var);
+	ForStmt(id_list* loop_vars, zeek::IntrusivePtr<Expr> loop_expr, zeek::IntrusivePtr<ID> val_var);
 	~ForStmt() override;
 
-	void AddBody(IntrusivePtr<Stmt> arg_body)	{ body = std::move(arg_body); }
+	void AddBody(zeek::IntrusivePtr<Stmt> arg_body)	{ body = std::move(arg_body); }
 
 	const id_list* LoopVar() const	{ return loop_vars; }
 	const Expr* LoopExpr() const	{ return e.get(); }
@@ -297,20 +297,20 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 
 	id_list* loop_vars;
-	IntrusivePtr<Stmt> body;
+	zeek::IntrusivePtr<Stmt> body;
 	// Stores the value variable being used for a key value for loop.
 	// Always set to nullptr unless special constructor is called.
-	IntrusivePtr<ID> value_var;
+	zeek::IntrusivePtr<ID> value_var;
 };
 
 class NextStmt final : public Stmt {
 public:
 	NextStmt() : Stmt(STMT_NEXT)	{ }
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -324,7 +324,7 @@ class BreakStmt final : public Stmt {
 public:
 	BreakStmt() : Stmt(STMT_BREAK)	{ }
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -338,7 +338,7 @@ class FallthroughStmt final : public Stmt {
 public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -350,9 +350,9 @@ protected:
 
 class ReturnStmt final : public ExprStmt {
 public:
-	explicit ReturnStmt(IntrusivePtr<Expr> e);
+	explicit ReturnStmt(zeek::IntrusivePtr<Expr> e);
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	void Describe(ODesc* d) const override;
 };
@@ -362,7 +362,7 @@ public:
 	StmtList();
 	~StmtList() override;
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const stmt_list& Stmts() const	{ return stmts; }
 	stmt_list& Stmts()		{ return stmts; }
@@ -382,7 +382,7 @@ public:
 	EventBodyList() : StmtList()
 		{ topmost = false; tag = STMT_EVENT_BODY_LIST; }
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -396,11 +396,11 @@ protected:
 
 class InitStmt final : public Stmt {
 public:
-	explicit InitStmt(std::vector<IntrusivePtr<ID>> arg_inits);
+	explicit InitStmt(std::vector<zeek::IntrusivePtr<ID>> arg_inits);
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	const std::vector<IntrusivePtr<ID>>& Inits() const
+	const std::vector<zeek::IntrusivePtr<ID>>& Inits() const
 		{ return inits; }
 
 	void Describe(ODesc* d) const override;
@@ -408,14 +408,14 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	std::vector<IntrusivePtr<ID>> inits;
+	std::vector<zeek::IntrusivePtr<ID>> inits;
 };
 
 class NullStmt final : public Stmt {
 public:
 	NullStmt() : Stmt(STMT_NULL)	{ }
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -426,12 +426,12 @@ public:
 class WhenStmt final : public Stmt {
 public:
 	// s2 is null if no timeout block given.
-	WhenStmt(IntrusivePtr<Expr> cond,
-	         IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2,
-	         IntrusivePtr<Expr> timeout, bool is_return);
+	WhenStmt(zeek::IntrusivePtr<Expr> cond,
+	         zeek::IntrusivePtr<Stmt> s1, zeek::IntrusivePtr<Stmt> s2,
+	         zeek::IntrusivePtr<Expr> timeout, bool is_return);
 	~WhenStmt() override;
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	zeek::IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
 	const Expr* Cond() const	{ return cond.get(); }
@@ -444,10 +444,10 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Expr> cond;
-	IntrusivePtr<Stmt> s1;
-	IntrusivePtr<Stmt> s2;
-	IntrusivePtr<Expr> timeout;
+	zeek::IntrusivePtr<Expr> cond;
+	zeek::IntrusivePtr<Stmt> s1;
+	zeek::IntrusivePtr<Stmt> s2;
+	zeek::IntrusivePtr<Expr> timeout;
 	bool is_return;
 };
 

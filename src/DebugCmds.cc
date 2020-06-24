@@ -15,7 +15,6 @@
 #include "Desc.h"
 #include "DbgBreakpoint.h"
 #include "ID.h"
-#include "IntrusivePtr.h"
 #include "Frame.h"
 #include "Func.h"
 #include "Stmt.h"

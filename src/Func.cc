@@ -1,3 +1,4 @@
+
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
@@ -59,7 +60,7 @@ extern	RETSIGTYPE sig_handler(int signo);
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
-static const std::pair<bool, IntrusivePtr<Val>> empty_hook_result(false, nullptr);
+static const std::pair<bool, zeek::IntrusivePtr<Val>> empty_hook_result(false, nullptr);
 
 std::string render_call_stack()
 	{
@@ -110,34 +111,34 @@ std::string render_call_stack()
 Func::Func()
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back({NewRef{}, this});
+	unique_ids.push_back({zeek::NewRef{}, this});
 	}
 
 Func::Func(Kind arg_kind) : kind(arg_kind)
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back({NewRef{}, this});
+	unique_ids.push_back({zeek::NewRef{}, this});
 	}
 
 Func::~Func() = default;
 
-void Func::AddBody(IntrusivePtr<zeek::detail::Stmt> /* new_body */,
-                   const std::vector<IntrusivePtr<zeek::detail::ID>>& /* new_inits */,
+void Func::AddBody(zeek::IntrusivePtr<zeek::detail::Stmt> /* new_body */,
+                   const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& /* new_inits */,
                    size_t /* new_frame_size */, int /* priority */)
 	{
 	Internal("Func::AddBody called");
 	}
 
-void Func::SetScope(IntrusivePtr<Scope> newscope)
+void Func::SetScope(zeek::IntrusivePtr<Scope> newscope)
 	{
 	scope = std::move(newscope);
 	}
 
-IntrusivePtr<Func> Func::DoClone()
+zeek::IntrusivePtr<Func> Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
 	// that is different across instances.
-	return {NewRef{}, this};
+	return {zeek::NewRef{}, this};
 	}
 
 void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
@@ -215,7 +216,7 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
+void Func::CheckPluginResult(bool handled, const zeek::IntrusivePtr<Val>& hook_result,
                              zeek::FunctionFlavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
@@ -268,8 +269,8 @@ void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 	}
 	}
 
-BroFunc::BroFunc(const IntrusivePtr<zeek::detail::ID>& arg_id, IntrusivePtr<zeek::detail::Stmt> arg_body,
-                 const std::vector<IntrusivePtr<zeek::detail::ID>>& aggr_inits,
+BroFunc::BroFunc(const zeek::IntrusivePtr<zeek::detail::ID>& arg_id, zeek::IntrusivePtr<zeek::detail::Stmt> arg_body,
+                 const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& aggr_inits,
                  size_t arg_frame_size, int priority)
 	: Func(BRO_FUNC)
 	{
@@ -304,7 +305,7 @@ Val* Func::Call(val_list* args, Frame* parent) const
 	return Invoke(&zargs, parent).release();
 	};
 
-IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
+zeek::IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -330,7 +331,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 		return Flavor() == zeek::FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
-	auto f = make_intrusive<Frame>(frame_size, this, args);
+	auto f = zeek::make_intrusive<Frame>(frame_size, this, args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -338,7 +339,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	// Hand down any trigger.
 	if ( parent )
 		{
-		f->SetTrigger({NewRef{}, parent->GetTrigger()});
+		f->SetTrigger({zeek::NewRef{}, parent->GetTrigger()});
 		f->SetCall(parent->GetCall());
 		}
 
@@ -356,7 +357,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 		}
 
 	stmt_flow_type flow = FLOW_NEXT;
-	IntrusivePtr<Val> result;
+	zeek::IntrusivePtr<Val> result;
 
 	for ( const auto& body : bodies )
 		{
@@ -449,8 +450,8 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	return result;
 	}
 
-void BroFunc::AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
-                      const std::vector<IntrusivePtr<zeek::detail::ID>>& new_inits,
+void BroFunc::AddBody(zeek::IntrusivePtr<zeek::detail::Stmt> new_body,
+                      const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& new_inits,
                       size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
@@ -540,11 +541,11 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 	}
 
 
-IntrusivePtr<Func> BroFunc::DoClone()
+zeek::IntrusivePtr<Func> BroFunc::DoClone()
 	{
 	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	auto other = IntrusivePtr{AdoptRef{}, new BroFunc()};
+	auto other = zeek::IntrusivePtr{zeek::AdoptRef{}, new BroFunc()};
 
 	CopyStateInto(other.get());
 
@@ -574,13 +575,14 @@ void BroFunc::Describe(ODesc* d) const
 		}
 	}
 
-IntrusivePtr<zeek::detail::Stmt> BroFunc::AddInits(IntrusivePtr<zeek::detail::Stmt> body,
-                                                   const std::vector<IntrusivePtr<zeek::detail::ID>>& inits)
+zeek::IntrusivePtr<zeek::detail::Stmt> BroFunc::AddInits(
+	zeek::IntrusivePtr<zeek::detail::Stmt> body,
+	const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& inits)
 	{
 	if ( inits.empty() )
 		return body;
 
-	auto stmt_series = make_intrusive<zeek::detail::StmtList>();
+	auto stmt_series = zeek::make_intrusive<zeek::detail::StmtList>();
 	stmt_series->Stmts().push_back(new zeek::detail::InitStmt(inits));
 	stmt_series->Stmts().push_back(body.release());
 
@@ -588,7 +590,7 @@ IntrusivePtr<zeek::detail::Stmt> BroFunc::AddInits(IntrusivePtr<zeek::detail::St
 	}
 
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
-			bool arg_is_pure)
+                         bool arg_is_pure)
 : Func(BUILTIN_FUNC)
 	{
 	func = arg_func;
@@ -602,7 +604,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->GetType<zeek::FuncType>();
-	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
+	id->SetVal(zeek::make_intrusive<Val>(zeek::IntrusivePtr{zeek::NewRef{}, this}));
 	}
 
 BuiltinFunc::~BuiltinFunc()
@@ -614,7 +616,7 @@ bool BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-IntrusivePtr<Val> BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
+zeek::IntrusivePtr<Val> BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -665,10 +667,10 @@ void BuiltinFunc::Describe(ODesc* d) const
 
 void builtin_error(const char* msg)
 	{
-	builtin_error(msg, IntrusivePtr<Val>{});
+	builtin_error(msg, zeek::IntrusivePtr<Val>{});
 	}
 
-void builtin_error(const char* msg, IntrusivePtr<Val> arg)
+void builtin_error(const char* msg, zeek::IntrusivePtr<Val> arg)
 	{
 	builtin_error(msg, arg.get());
 	}
@@ -844,7 +846,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 
 // Gets a function's priority from its Scope's attributes. Errors if it sees any
 // problems.
-static int get_func_priority(const std::vector<IntrusivePtr<zeek::detail::Attr>>& attrs)
+static int get_func_priority(const std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>& attrs)
 	{
 	int priority = 0;
 
@@ -879,7 +881,7 @@ static int get_func_priority(const std::vector<IntrusivePtr<zeek::detail::Attr>>
 	return priority;
 	}
 
-function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<zeek::detail::Stmt> body)
+function_ingredients::function_ingredients(zeek::IntrusivePtr<Scope> scope, zeek::IntrusivePtr<zeek::detail::Stmt> body)
 	{
 	frame_size = scope->Length();
 	inits = scope->GetInits();

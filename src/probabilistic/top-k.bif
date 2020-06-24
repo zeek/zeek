@@ -14,7 +14,7 @@
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_init%(size: count%): opaque of topk
 	%{
-	auto v = make_intrusive<probabilistic::TopkVal>(size);
+	auto v = zeek::make_intrusive<probabilistic::TopkVal>(size);
 	return v;
 	%}
 
@@ -34,7 +34,7 @@ function topk_add%(handle: opaque of topk, value: any%): any
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	h->Encountered({NewRef{}, value});
+	h->Encountered({zeek::NewRef{}, value});
 
 	return nullptr;
 	%}

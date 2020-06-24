@@ -167,7 +167,7 @@ static void parser_redef_enum (zeek::detail::ID *id)
 	}
 
 static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_list> fields,
-                          std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs)
+                          std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs)
 	{
 	std::set<zeek::Type*> types = zeek::Type::GetAliases(id->Name());
 
@@ -199,14 +199,14 @@ static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_
 		}
 	}
 
-static IntrusivePtr<zeek::detail::Attributes>
-make_attributes(std::vector<IntrusivePtr<zeek::detail::Attr>>* attrs,
-                IntrusivePtr<zeek::Type> t, bool in_record, bool is_global)
+static zeek::IntrusivePtr<zeek::detail::Attributes>
+make_attributes(std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>* attrs,
+                zeek::IntrusivePtr<zeek::Type> t, bool in_record, bool is_global)
 	{
 	if ( ! attrs )
 		return nullptr;
 
-	auto rval = make_intrusive<zeek::detail::Attributes>(std::move(*attrs), std::move(t),
+	auto rval = zeek::make_intrusive<zeek::detail::Attributes>(std::move(*attrs), std::move(t),
 	                                       in_record, is_global);
 	delete attrs;
 	return rval;
@@ -250,7 +250,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::Case* c_case;
 	zeek::detail::case_list* case_l;
 	zeek::detail::Attr* attr;
-	std::vector<IntrusivePtr<zeek::detail::Attr>>* attr_l;
+	std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>* attr_l;
 	zeek::detail::AttrTag attrtag;
 }
 
@@ -300,157 +300,157 @@ expr:
 	|	TOK_COPY '(' expr ')'
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::CloneExpr({AdoptRef{}, $3});
+			$$ = new zeek::detail::CloneExpr({zeek::AdoptRef{}, $3});
 			}
 
 	|	TOK_INCR expr
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::IncrExpr(zeek::detail::EXPR_INCR, {AdoptRef{}, $2});
+			$$ = new zeek::detail::IncrExpr(zeek::detail::EXPR_INCR, {zeek::AdoptRef{}, $2});
 			}
 
 	|	TOK_DECR expr
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::IncrExpr(zeek::detail::EXPR_DECR, {AdoptRef{}, $2});
+			$$ = new zeek::detail::IncrExpr(zeek::detail::EXPR_DECR, {zeek::AdoptRef{}, $2});
 			}
 
 	|	'!' expr
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::NotExpr({AdoptRef{}, $2});
+			$$ = new zeek::detail::NotExpr({zeek::AdoptRef{}, $2});
 			}
 
 	|	'~' expr
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::ComplementExpr({AdoptRef{}, $2});
+			$$ = new zeek::detail::ComplementExpr({zeek::AdoptRef{}, $2});
 			}
 
 	|	'-' expr	%prec '!'
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::NegExpr({AdoptRef{}, $2});
+			$$ = new zeek::detail::NegExpr({zeek::AdoptRef{}, $2});
 			}
 
 	|	'+' expr	%prec '!'
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::PosExpr({AdoptRef{}, $2});
+			$$ = new zeek::detail::PosExpr({zeek::AdoptRef{}, $2});
 			}
 
 	|	expr '+' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::AddExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::AddExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_ADD_TO expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::AddToExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::AddToExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '-' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::SubExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::SubExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_REMOVE_FROM expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::RemoveFromExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::RemoveFromExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '*' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::TimesExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::TimesExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '/' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::DivideExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '%' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::ModExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::ModExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '&' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::BitExpr(zeek::detail::EXPR_AND, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::BitExpr(zeek::detail::EXPR_AND, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '|' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::BitExpr(zeek::detail::EXPR_OR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::BitExpr(zeek::detail::EXPR_OR, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '^' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::BitExpr(zeek::detail::EXPR_XOR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::BitExpr(zeek::detail::EXPR_XOR, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_AND_AND expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::BoolExpr(zeek::detail::EXPR_AND_AND, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::BoolExpr(zeek::detail::EXPR_AND_AND, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_OR_OR expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::BoolExpr(zeek::detail::EXPR_OR_OR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::BoolExpr(zeek::detail::EXPR_OR_OR, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_EQ expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::EqExpr(zeek::detail::EXPR_EQ, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::EqExpr(zeek::detail::EXPR_EQ, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_NE expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::EqExpr(zeek::detail::EXPR_NE, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::EqExpr(zeek::detail::EXPR_NE, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '<' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_LT, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_LT, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_LE expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_LE, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_LE, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '>' expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_GT, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_GT, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_GE expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_GE, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::RelExpr(zeek::detail::EXPR_GE, {zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '?' expr ':' expr
 			{
 			set_location(@1, @5);
-			$$ = new zeek::detail::CondExpr({AdoptRef{}, $1}, {AdoptRef{}, $3}, {AdoptRef{}, $5});
+			$$ = new zeek::detail::CondExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5});
 			}
 
 	|	expr '=' expr
@@ -462,20 +462,20 @@ expr:
 				                " in arbitrary expression contexts, only"
 				                " as a statement");
 
-			$$ = zeek::detail::get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init).release();
+			$$ = zeek::detail::get_assign_expr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3}, in_init).release();
 			}
 
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
-			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
+			$$ = add_and_assign_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $4},
 			                          val_mgr->True()).release();
 			}
 
 	|	expr '[' expr_list ']'
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::IndexExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::IndexExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	index_slice
@@ -483,13 +483,13 @@ expr:
 	|	expr '$' TOK_ID
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::FieldExpr({AdoptRef{}, $1}, $3);
+			$$ = new zeek::detail::FieldExpr({zeek::AdoptRef{}, $1}, $3);
 			}
 
 	|	'$' TOK_ID '=' expr
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::FieldAssignExpr($2, {AdoptRef{}, $4});
+			$$ = new zeek::detail::FieldAssignExpr($2, {zeek::AdoptRef{}, $4});
 			}
 
 	|	'$' TOK_ID func_params '='
@@ -499,25 +499,25 @@ expr:
 			func_id->SetInferReturnType(true);
 			begin_func(std::move(func_id), current_module.c_str(),
 		   	           zeek::FUNC_FLAVOR_FUNCTION, false,
-			           {AdoptRef{}, $3});
+			           {zeek::AdoptRef{}, $3});
 			}
 		 lambda_body
 			{
-			$$ = new zeek::detail::FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
+			$$ = new zeek::detail::FieldAssignExpr($2, zeek::IntrusivePtr{zeek::AdoptRef{}, $6});
 			}
 
 	|	expr TOK_IN expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::InExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::InExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	expr TOK_NOT_IN expr
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::NotExpr(make_intrusive<zeek::detail::InExpr>(
-			        IntrusivePtr<zeek::detail::Expr>{AdoptRef{}, $1},
-			        IntrusivePtr<zeek::detail::Expr>{AdoptRef{}, $3}));
+			$$ = new zeek::detail::NotExpr(zeek::make_intrusive<zeek::detail::InExpr>(
+			        zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $1},
+			        zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $3}));
 			}
 
 	|	'[' expr_list ']'
@@ -540,7 +540,7 @@ expr:
 				}
 
 			if ( is_record_ctor )
-				$$ = new zeek::detail::RecordConstructorExpr({AdoptRef{}, $2});
+				$$ = new zeek::detail::RecordConstructorExpr({zeek::AdoptRef{}, $2});
 			else
 				$$ = $2;
 			}
@@ -548,35 +548,35 @@ expr:
 	|	'[' ']'
 			{
 			// We interpret this as an empty record constructor.
-			$$ = new zeek::detail::RecordConstructorExpr(make_intrusive<zeek::detail::ListExpr>());
+			$$ = new zeek::detail::RecordConstructorExpr(zeek::make_intrusive<zeek::detail::ListExpr>());
 			}
 
 
 	|	TOK_RECORD '(' expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::RecordConstructorExpr({AdoptRef{}, $3});
+			$$ = new zeek::detail::RecordConstructorExpr({zeek::AdoptRef{}, $3});
 			}
 
 	|	TOK_TABLE '(' { ++in_init; } opt_expr_list ')' { --in_init; }
 		opt_attr
 			{ // the ++in_init fixes up the parsing of "[x] = y"
 			set_location(@1, @5);
-			std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs{$7};
-			$$ = new zeek::detail::TableConstructorExpr({AdoptRef{}, $4}, std::move(attrs));
+			std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs{$7};
+			$$ = new zeek::detail::TableConstructorExpr({zeek::AdoptRef{}, $4}, std::move(attrs));
 			}
 
 	|	TOK_SET '(' opt_expr_list ')' opt_attr
 			{
 			set_location(@1, @4);
-			std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs{$5};
-			$$ = new zeek::detail::SetConstructorExpr({AdoptRef{}, $3}, std::move(attrs));
+			std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>> attrs{$5};
+			$$ = new zeek::detail::SetConstructorExpr({zeek::AdoptRef{}, $3}, std::move(attrs));
 			}
 
 	|	TOK_VECTOR '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::VectorConstructorExpr({AdoptRef{}, $3});
+			$$ = new zeek::detail::VectorConstructorExpr({zeek::AdoptRef{}, $3});
 			}
 
 	|	expr '('
@@ -602,23 +602,23 @@ expr:
 				switch ( ctor_type->Tag() ) {
 				case zeek::TYPE_RECORD:
 					{
-					auto rce = make_intrusive<zeek::detail::RecordConstructorExpr>(
-						IntrusivePtr<zeek::detail::ListExpr>{AdoptRef{}, $4});
-					auto rt = cast_intrusive<zeek::RecordType>(ctor_type);
+					auto rce = zeek::make_intrusive<zeek::detail::RecordConstructorExpr>(
+						zeek::IntrusivePtr<zeek::detail::ListExpr>{zeek::AdoptRef{}, $4});
+					auto rt = zeek::cast_intrusive<zeek::RecordType>(ctor_type);
 					$$ = new zeek::detail::RecordCoerceExpr(std::move(rce), std::move(rt));
 					}
 					break;
 
 				case zeek::TYPE_TABLE:
 					if ( ctor_type->IsTable() )
-						$$ = new zeek::detail::TableConstructorExpr({AdoptRef{}, $4}, 0, ctor_type);
+						$$ = new zeek::detail::TableConstructorExpr({zeek::AdoptRef{}, $4}, 0, ctor_type);
 					else
-						$$ = new zeek::detail::SetConstructorExpr({AdoptRef{}, $4}, 0, ctor_type);
+						$$ = new zeek::detail::SetConstructorExpr({zeek::AdoptRef{}, $4}, 0, ctor_type);
 
 					break;
 
 				case zeek::TYPE_VECTOR:
-					$$ = new zeek::detail::VectorConstructorExpr({AdoptRef{}, $4}, ctor_type);
+					$$ = new zeek::detail::VectorConstructorExpr({zeek::AdoptRef{}, $4}, ctor_type);
 					break;
 
 				default:
@@ -628,7 +628,7 @@ expr:
 				}
 
 			else
-				$$ = new zeek::detail::CallExpr({AdoptRef{}, $1}, {AdoptRef{}, $4}, in_hook > 0);
+				$$ = new zeek::detail::CallExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $4}, in_hook > 0);
 			}
 
 	|	TOK_HOOK { ++in_hook; } expr
@@ -643,7 +643,7 @@ expr:
 	|	expr TOK_HAS_FIELD TOK_ID
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::HasFieldExpr({AdoptRef{}, $1}, $3);
+			$$ = new zeek::detail::HasFieldExpr({zeek::AdoptRef{}, $1}, $3);
 			}
 
 	|	anonymous_function
@@ -652,7 +652,7 @@ expr:
 	|	TOK_SCHEDULE expr '{' event '}'
 			{
 			set_location(@1, @5);
-			$$ = new zeek::detail::ScheduleExpr({AdoptRef{}, $2}, {AdoptRef{}, $4});
+			$$ = new zeek::detail::ScheduleExpr({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $4});
 			}
 
 	|	TOK_ID
@@ -709,7 +709,7 @@ expr:
 	|	TOK_CONSTANT
 			{
 			set_location(@1);
-			$$ = new zeek::detail::ConstExpr({AdoptRef{}, $1});
+			$$ = new zeek::detail::ConstExpr({zeek::AdoptRef{}, $1});
 			}
 
 	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
@@ -723,16 +723,16 @@ expr:
 				re->MakeCaseInsensitive();
 
 			re->Compile();
-			$$ = new zeek::detail::ConstExpr(make_intrusive<PatternVal>(re));
+			$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<PatternVal>(re));
 			}
 
 	|       '|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
-			IntrusivePtr<zeek::detail::Expr> e{AdoptRef{}, $2};
+			zeek::IntrusivePtr<zeek::detail::Expr> e{zeek::AdoptRef{}, $2};
 
 			if ( zeek::IsIntegral(e->GetType()->Tag()) )
-				e = make_intrusive<zeek::detail::ArithCoerceExpr>(std::move(e), zeek::TYPE_INT);
+				e = zeek::make_intrusive<zeek::detail::ArithCoerceExpr>(std::move(e), zeek::TYPE_INT);
 
 			$$ = new zeek::detail::SizeExpr(std::move(e));
 			}
@@ -740,13 +740,13 @@ expr:
 	|       expr TOK_AS type
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::CastExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::CastExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|       expr TOK_IS type
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::IsExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			$$ = new zeek::detail::IsExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 	;
 
@@ -754,13 +754,13 @@ expr_list:
 		expr_list ',' expr
 			{
 			set_location(@1, @3);
-			$1->Append({AdoptRef{}, $3});
+			$1->Append({zeek::AdoptRef{}, $3});
 			}
 
 	|	expr
 			{
 			set_location(@1);
-			$$ = new zeek::detail::ListExpr({AdoptRef{}, $1});
+			$$ = new zeek::detail::ListExpr({zeek::AdoptRef{}, $1});
 			}
 	;
 
@@ -899,13 +899,13 @@ type:
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
 				{
 				set_location(@1, @6);
-				$$ = new zeek::TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
+				$$ = new zeek::TableType({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $6});
 				}
 
 	|	TOK_SET '[' type_list ']'
 				{
 				set_location(@1, @4);
-				$$ = new zeek::SetType({AdoptRef{}, $3}, nullptr);
+				$$ = new zeek::SetType({zeek::AdoptRef{}, $3}, nullptr);
 				}
 
 	|	TOK_RECORD '{'
@@ -951,7 +951,7 @@ type:
 	|	TOK_VECTOR TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new zeek::VectorType({AdoptRef{}, $3});
+				$$ = new zeek::VectorType({zeek::AdoptRef{}, $3});
 				}
 
 	|	TOK_FUNCTION func_params
@@ -963,19 +963,19 @@ type:
 	|	TOK_EVENT '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new zeek::FuncType({AdoptRef{}, $3}, nullptr, zeek::FUNC_FLAVOR_EVENT);
+				$$ = new zeek::FuncType({zeek::AdoptRef{}, $3}, nullptr, zeek::FUNC_FLAVOR_EVENT);
 				}
 
 	|	TOK_HOOK '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new zeek::FuncType({AdoptRef{}, $3}, zeek::base_type(zeek::TYPE_BOOL), zeek::FUNC_FLAVOR_HOOK);
+				$$ = new zeek::FuncType({zeek::AdoptRef{}, $3}, zeek::base_type(zeek::TYPE_BOOL), zeek::FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new zeek::FileType({AdoptRef{}, $3});
+				$$ = new zeek::FileType({zeek::AdoptRef{}, $3});
 				}
 
 	|	TOK_FILE
@@ -1011,11 +1011,11 @@ type:
 
 type_list:
 		type_list ',' type
-			{ $1->AppendEvenIfNotPure({AdoptRef{}, $3}); }
+			{ $1->AppendEvenIfNotPure({zeek::AdoptRef{}, $3}); }
 	|	type
 			{
-			$$ = new zeek::TypeList({NewRef{}, $1});
-			$$->Append({AdoptRef{}, $1});
+			$$ = new zeek::TypeList({zeek::NewRef{}, $1});
+			$$->Append({zeek::AdoptRef{}, $1});
 			}
 	;
 
@@ -1034,8 +1034,8 @@ type_decl:
 		TOK_ID ':' type opt_attr ';'
 			{
 			set_location(@1, @4);
-			auto attrs = make_attributes($4, {NewRef{}, $3}, in_record > 0, false);
-			$$ = new zeek::TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
+			auto attrs = make_attributes($4, {zeek::NewRef{}, $3}, in_record > 0, false);
+			$$ = new zeek::TypeDecl($1, {zeek::AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
 				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
@@ -1064,8 +1064,8 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			auto attrs = make_attributes($4, {NewRef{}, $3}, true, false);
-			$$ = new zeek::TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
+			auto attrs = make_attributes($4, {zeek::NewRef{}, $3}, true, false);
+			$$ = new zeek::TypeDecl($1, {zeek::AdoptRef{}, $3}, std::move(attrs));
 			}
 	;
 
@@ -1081,37 +1081,37 @@ decl:
 
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6},
+			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
+			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
+			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
 			           VAR_REGULAR);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6},
+			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
+			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
+			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
 			           VAR_OPTION);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6},
+			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
+			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
+			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
 			           VAR_CONST);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			IntrusivePtr<zeek::detail::Expr> init{AdoptRef{}, $5};
-			add_global(id, {AdoptRef{}, $3}, $4, init,
-			           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6},
+			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
+			zeek::IntrusivePtr<zeek::detail::Expr> init{zeek::AdoptRef{}, $5};
+			add_global(id, {zeek::AdoptRef{}, $3}, $4, init,
+			           std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
 			           VAR_REDEF);
 			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
@@ -1137,17 +1137,17 @@ decl:
 				$3->Error("unknown identifier");
 			else
 				extend_record($3, std::unique_ptr<zeek::type_decl_list>($8),
-				              std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>($11));
+				              std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>($11));
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({NewRef{}, $2});  }
+			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({zeek::NewRef{}, $2});  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_type(id.get(), {AdoptRef{}, $5},
-			         std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6});
+			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
+			add_type(id.get(), {zeek::AdoptRef{}, $5},
+			         std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6});
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
@@ -1178,10 +1178,10 @@ conditional:
 func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
+			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			begin_func(id, current_module.c_str(),
-				zeek::FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3},
-				std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$4});
+				zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
+				std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$4});
 			$$ = $3;
 			zeekygen_mgr->Identifier(std::move(id));
 			}
@@ -1194,25 +1194,25 @@ func_hdr:
 				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
-			begin_func({NewRef{}, $2}, current_module.c_str(),
-				   zeek::FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3},
-				   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$4});
+			begin_func({zeek::NewRef{}, $2}, current_module.c_str(),
+				   zeek::FUNC_FLAVOR_EVENT, 0, {zeek::NewRef{}, $3},
+				   std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
 			{
 			$3->ClearYieldType(zeek::FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(zeek::base_type(zeek::TYPE_BOOL));
-			begin_func({NewRef{}, $2}, current_module.c_str(),
-				   zeek::FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3},
-				   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$4});
+			begin_func({zeek::NewRef{}, $2}, current_module.c_str(),
+				   zeek::FUNC_FLAVOR_HOOK, 0, {zeek::NewRef{}, $3},
+				   std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
-			begin_func({NewRef{}, $3}, current_module.c_str(),
-				   zeek::FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4},
-				   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$5});
+			begin_func({zeek::NewRef{}, $3}, current_module.c_str(),
+				   zeek::FUNC_FLAVOR_EVENT, 1, {zeek::NewRef{}, $4},
+				   std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$5});
 			$$ = $4;
 			}
 	;
@@ -1233,7 +1233,7 @@ func_body:
 		'}'
 			{
 			set_location(func_hdr_location, @5);
-			end_func({AdoptRef{}, $3});
+			end_func({zeek::AdoptRef{}, $3});
 			}
 	;
 
@@ -1259,7 +1259,7 @@ lambda_body:
 			// a lambda expression.
 
 			// Gather the ingredients for a BroFunc from the current scope
-			auto ingredients = std::make_unique<function_ingredients>(IntrusivePtr{NewRef{}, current_scope()}, IntrusivePtr{AdoptRef{}, $3});
+			auto ingredients = std::make_unique<function_ingredients>(zeek::IntrusivePtr{zeek::NewRef{}, current_scope()}, zeek::IntrusivePtr{zeek::AdoptRef{}, $3});
 			id_list outer_ids = gather_outer_ids(pop_scope().get(), ingredients->body.get());
 
 			$$ = new zeek::detail::LambdaExpr(std::move(ingredients), std::move(outer_ids));
@@ -1275,16 +1275,16 @@ begin_func:
 		func_params
 			{
 			auto id = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func(id, current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
+			begin_func(id, current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::AdoptRef{}, $1});
 			$$ = id.release();
 			}
 	;
 
 func_params:
 		'(' formal_args ')' ':' type
-			{ $$ = new zeek::FuncType({AdoptRef{}, $2}, {AdoptRef{}, $5}, zeek::FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new zeek::FuncType({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $5}, zeek::FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new zeek::FuncType({AdoptRef{}, $2}, zeek::base_type(zeek::TYPE_VOID), zeek::FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new zeek::FuncType({zeek::AdoptRef{}, $2}, zeek::base_type(zeek::TYPE_VOID), zeek::FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:
@@ -1321,19 +1321,19 @@ index_slice:
 			{
 			set_location(@1, @6);
 
-			auto low = $3 ? IntrusivePtr<zeek::detail::Expr>{AdoptRef{}, $3} :
-			                make_intrusive<zeek::detail::ConstExpr>(val_mgr->Count(0));
+			auto low = $3 ? zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $3} :
+			                zeek::make_intrusive<zeek::detail::ConstExpr>(val_mgr->Count(0));
 
-			auto high = $5 ? IntrusivePtr<zeek::detail::Expr>{AdoptRef{}, $5} :
-			                 make_intrusive<zeek::detail::SizeExpr>(
-			                     IntrusivePtr<zeek::detail::Expr>{NewRef{}, $1});
+			auto high = $5 ? zeek::IntrusivePtr<zeek::detail::Expr>{zeek::AdoptRef{}, $5} :
+			                 zeek::make_intrusive<zeek::detail::SizeExpr>(
+			                     zeek::IntrusivePtr<zeek::detail::Expr>{zeek::NewRef{}, $1});
 
 			if ( ! zeek::IsIntegral(low->GetType()->Tag()) || ! zeek::IsIntegral(high->GetType()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");
 
-			auto le = make_intrusive<zeek::detail::ListExpr>(std::move(low));
+			auto le = zeek::make_intrusive<zeek::detail::ListExpr>(std::move(low));
 			le->Append(std::move(high));
-			$$ = new zeek::detail::IndexExpr({AdoptRef{}, $1}, std::move(le), true);
+			$$ = new zeek::detail::IndexExpr({zeek::AdoptRef{}, $1}, std::move(le), true);
 			}
 
 opt_attr:
@@ -1344,41 +1344,41 @@ opt_attr:
 
 attr_list:
 		attr_list attr
-			{ $1->emplace_back(AdoptRef{}, $2); }
+			{ $1->emplace_back(zeek::AdoptRef{}, $2); }
 	|	attr
 			{
-			$$ = new std::vector<IntrusivePtr<zeek::detail::Attr>>;
-			$$->emplace_back(AdoptRef{}, $1);
+			$$ = new std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>;
+			$$->emplace_back(zeek::AdoptRef{}, $1);
 			}
 	;
 
 attr:
 		TOK_ATTR_DEFAULT '=' expr
-		        { $$ = new zeek::detail::Attr(zeek::detail::ATTR_DEFAULT, {AdoptRef{}, $3}); }
+		        { $$ = new zeek::detail::Attr(zeek::detail::ATTR_DEFAULT, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_REDEF); }
 	|	TOK_ATTR_ADD_FUNC '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ADD_FUNC, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ADD_FUNC, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_DEL_FUNC '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_DEL_FUNC, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_DEL_FUNC, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_ON_CHANGE '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ON_CHANGE, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_FUNC '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_FUNC, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_FUNC, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_CREATE '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_CREATE, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_CREATE, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_READ '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_READ, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_READ, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_WRITE '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_WRITE, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_WRITE, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_RAW_OUTPUT
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_PRIORITY '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_PRIORITY, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_PRIORITY, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_TYPE_COLUMN '=' expr
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_TYPE_COLUMN, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_TYPE_COLUMN, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_LOG
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_LOG); }
 	|	TOK_ATTR_ERROR_HANDLER
@@ -1390,7 +1390,7 @@ attr:
 			if ( zeek::IsString($3->GetType()->Tag()) )
 				$$ = new zeek::detail::Attr(
 					zeek::detail::ATTR_DEPRECATED,
-					make_intrusive<zeek::detail::ConstExpr>(IntrusivePtr{AdoptRef{}, $3}));
+					zeek::make_intrusive<zeek::detail::ConstExpr>(zeek::IntrusivePtr{zeek::AdoptRef{}, $3}));
 			else
 				{
 				ODesc d;
@@ -1415,7 +1415,7 @@ stmt:
 	|	TOK_PRINT expr_list ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::PrintStmt(IntrusivePtr{AdoptRef{}, $2});
+			$$ = new zeek::detail::PrintStmt(zeek::IntrusivePtr{zeek::AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1423,7 +1423,7 @@ stmt:
 	|	TOK_EVENT event ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::EventStmt({AdoptRef{}, $2});
+			$$ = new zeek::detail::EventStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1431,29 +1431,29 @@ stmt:
 	|	TOK_IF '(' expr ')' stmt
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<zeek::detail::NullStmt>());
+			$$ = new zeek::detail::IfStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5}, zeek::make_intrusive<zeek::detail::NullStmt>());
 			}
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
+			$$ = new zeek::detail::IfStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5}, {zeek::AdoptRef{}, $7});
 			}
 
 	|	TOK_SWITCH expr '{' case_list '}'
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::SwitchStmt({AdoptRef{}, $2}, $4);
+			$$ = new zeek::detail::SwitchStmt({zeek::AdoptRef{}, $2}, $4);
 			}
 
 	|	for_head stmt
 			{
-			$1->AsForStmt()->AddBody({AdoptRef{}, $2});
+			$1->AsForStmt()->AddBody({zeek::AdoptRef{}, $2});
 			}
 
 	|	TOK_WHILE '(' expr ')' stmt
 			{
-			$$ = new zeek::detail::WhileStmt({AdoptRef{}, $3}, {AdoptRef{}, $5});
+			$$ = new zeek::detail::WhileStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5});
 			}
 
 	|	TOK_NEXT ';' opt_no_test
@@ -1491,7 +1491,7 @@ stmt:
 	|	TOK_RETURN expr ';' opt_no_test
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::ReturnStmt({AdoptRef{}, $2});
+			$$ = new zeek::detail::ReturnStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1499,7 +1499,7 @@ stmt:
 	|	TOK_ADD expr ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::AddStmt({AdoptRef{}, $2});
+			$$ = new zeek::detail::AddStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1507,7 +1507,7 @@ stmt:
 	|	TOK_DELETE expr ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new zeek::detail::DelStmt({AdoptRef{}, $2});
+			$$ = new zeek::detail::DelStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1515,9 +1515,9 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
-			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
-			               {AdoptRef{}, $5},
-			               std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6},
+			$$ = add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
+			               {zeek::AdoptRef{}, $5},
+			               std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
 			               VAR_REGULAR).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
@@ -1526,9 +1526,9 @@ stmt:
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @6);
-			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
-			               {AdoptRef{}, $5},
-			               std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$6},
+			$$ = add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
+			               {zeek::AdoptRef{}, $5},
+			               std::unique_ptr<std::vector<zeek::IntrusivePtr<zeek::detail::Attr>>>{$6},
 			               VAR_CONST).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
@@ -1537,15 +1537,15 @@ stmt:
 	|	TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@3, @5);
-			$$ = new zeek::detail::WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
+			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5},
 			                                  nullptr, nullptr, false);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			set_location(@3, @9);
-			$$ = new zeek::detail::WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  {AdoptRef{}, $10}, {AdoptRef{}, $7}, false);
+			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5},
+			                                  {zeek::AdoptRef{}, $10}, {zeek::AdoptRef{}, $7}, false);
 			if ( $9 )
 			    brofiler.DecIgnoreDepth();
 			}
@@ -1554,15 +1554,15 @@ stmt:
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@4, @6);
-			$$ = new zeek::detail::WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, nullptr,
+			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $4}, {zeek::AdoptRef{}, $6}, nullptr,
 			                  nullptr, true);
 			}
 
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			set_location(@4, @10);
-			$$ = new zeek::detail::WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6},
-			                                  {AdoptRef{}, $11}, {AdoptRef{}, $8}, true);
+			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $4}, {zeek::AdoptRef{}, $6},
+			                                  {zeek::AdoptRef{}, $11}, {zeek::AdoptRef{}, $8}, true);
 			if ( $10 )
 			    brofiler.DecIgnoreDepth();
 			}
@@ -1570,8 +1570,8 @@ stmt:
 	|	index_slice '=' expr ';' opt_no_test
 			{
 			set_location(@1, @4);
-			$$ = new zeek::detail::ExprStmt(zeek::detail::get_assign_expr({AdoptRef{}, $1},
-			                                  {AdoptRef{}, $3}, in_init));
+			$$ = new zeek::detail::ExprStmt(zeek::detail::get_assign_expr({zeek::AdoptRef{}, $1},
+			                                  {zeek::AdoptRef{}, $3}, in_init));
 
 			if ( ! $5 )
 				brofiler.AddStmt($$);
@@ -1580,7 +1580,7 @@ stmt:
 	|	expr ';' opt_no_test
 			{
 			set_location(@1, @2);
-			$$ = new zeek::detail::ExprStmt({AdoptRef{}, $1});
+			$$ = new zeek::detail::ExprStmt({zeek::AdoptRef{}, $1});
 			if ( ! $3 )
 			    brofiler.AddStmt($$);
 			}
@@ -1624,7 +1624,7 @@ event:
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 				}
 
-			$$ = new zeek::detail::EventExpr($1, {AdoptRef{}, $3});
+			$$ = new zeek::detail::EventExpr($1, {zeek::AdoptRef{}, $3});
 			}
 	;
 
@@ -1637,13 +1637,13 @@ case_list:
 
 case:
 		TOK_CASE expr_list ':' stmt_list
-			{ $$ = new zeek::detail::Case({AdoptRef{}, $2}, 0, {AdoptRef{}, $4}); }
+			{ $$ = new zeek::detail::Case({zeek::AdoptRef{}, $2}, 0, {zeek::AdoptRef{}, $4}); }
 	|
 		TOK_CASE case_type_list ':' stmt_list
-			{ $$ = new zeek::detail::Case(nullptr, $2, {AdoptRef{}, $4}); }
+			{ $$ = new zeek::detail::Case(nullptr, $2, {zeek::AdoptRef{}, $4}); }
 	|
 		TOK_DEFAULT ':' stmt_list
-			{ $$ = new zeek::detail::Case(nullptr, 0, {AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Case(nullptr, 0, {zeek::AdoptRef{}, $3}); }
 	;
 
 case_type_list:
@@ -1661,13 +1661,13 @@ case_type:
 		TOK_TYPE type
 			{
 			$$ = new zeek::detail::ID(0, zeek::detail::SCOPE_FUNCTION, 0);
-			$$->SetType({AdoptRef{}, $2});
+			$$->SetType({zeek::AdoptRef{}, $2});
 			}
 
 	|	TOK_TYPE type TOK_AS TOK_ID
 			{
 			const char* name = $4;
-			IntrusivePtr<zeek::Type> type{AdoptRef{}, $2};
+			zeek::IntrusivePtr<zeek::Type> type{zeek::AdoptRef{}, $2};
 			auto case_var = lookup_ID(name, current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )
@@ -1706,12 +1706,12 @@ for_head:
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(loop_var.release());
 
-			$$ = new zeek::detail::ForStmt(loop_vars, {AdoptRef{}, $5});
+			$$ = new zeek::detail::ForStmt(loop_vars, {zeek::AdoptRef{}, $5});
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' TOK_IN expr ')'
 			{
-			$$ = new zeek::detail::ForStmt($4, {AdoptRef{}, $7});
+			$$ = new zeek::detail::ForStmt($4, {zeek::AdoptRef{}, $7});
 			}
 	|
 		TOK_FOR '(' TOK_ID ',' TOK_ID TOK_IN expr ')'
@@ -1744,7 +1744,7 @@ for_head:
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(key_var.release());
 
-			$$ = new zeek::detail::ForStmt(loop_vars, {AdoptRef{}, $7}, std::move(val_var));
+			$$ = new zeek::detail::ForStmt(loop_vars, {zeek::AdoptRef{}, $7}, std::move(val_var));
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
@@ -1763,7 +1763,7 @@ for_head:
 			else
 				val_var = install_ID($7, module, false, false);
 
-			$$ = new zeek::detail::ForStmt($4, {AdoptRef{}, $9}, std::move(val_var));
+			$$ = new zeek::detail::ForStmt($4, {zeek::AdoptRef{}, $9}, std::move(val_var));
 			}
 	;
 
@@ -1880,19 +1880,19 @@ opt_no_test_block:
 
 opt_deprecated:
 		TOK_ATTR_DEPRECATED
-			{ $$ = new zeek::detail::ConstExpr(make_intrusive<StringVal>("")); }
+			{ $$ = new zeek::detail::ConstExpr(zeek::make_intrusive<StringVal>("")); }
 	|
 		TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
 			if ( zeek::IsString($3->GetType()->Tag()) )
-				$$ = new zeek::detail::ConstExpr({AdoptRef{}, $3});
+				$$ = new zeek::detail::ConstExpr({zeek::AdoptRef{}, $3});
 			else
 				{
 				ODesc d;
 				$3->Describe(&d);
 				reporter->Error("'&deprecated=%s' must use a string literal",
 				                d.Description());
-				$$ = new zeek::detail::ConstExpr(make_intrusive<StringVal>(""));
+				$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<StringVal>(""));
 				}
 			}
 	|

@@ -703,7 +703,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
-	IntrusivePtr<Val> pkt_hdr_val;
+	zeek::IntrusivePtr<Val> pkt_hdr_val;
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{

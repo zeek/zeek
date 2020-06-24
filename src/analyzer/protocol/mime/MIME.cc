@@ -117,17 +117,17 @@ StringVal* new_string_val(const char* data, const char* end_of_data)
 StringVal* new_string_val(const data_chunk_t buf)
 	{ return to_string_val(buf).release(); }
 
-IntrusivePtr<StringVal> to_string_val(int length, const char* data)
+zeek::IntrusivePtr<StringVal> to_string_val(int length, const char* data)
 	{
-	return make_intrusive<StringVal>(length, data);
+	return zeek::make_intrusive<StringVal>(length, data);
 	}
 
-IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data)
+zeek::IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data)
 	{
-	return make_intrusive<StringVal>(end_of_data - data, data);
+	return zeek::make_intrusive<StringVal>(end_of_data - data, data);
 	}
 
-IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf)
+zeek::IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf)
 	{
 	return to_string_val(buf.length, buf.data);
 	}
@@ -560,8 +560,8 @@ void MIME_Entity::init()
 
 	need_to_parse_parameters = 0;
 
-	content_type_str = make_intrusive<StringVal>("TEXT");
-	content_subtype_str = make_intrusive<StringVal>("PLAIN");
+	content_type_str = zeek::make_intrusive<StringVal>("TEXT");
+	content_subtype_str = zeek::make_intrusive<StringVal>("PLAIN");
 
 	content_encoding_str = nullptr;
 	multipart_boundary = nullptr;
@@ -811,9 +811,9 @@ bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	data += offset;
 	len -= offset;
 
-	content_type_str = make_intrusive<StringVal>(ty.length, ty.data);
+	content_type_str = zeek::make_intrusive<StringVal>(ty.length, ty.data);
 	content_type_str->ToUpper();
-	content_subtype_str = make_intrusive<StringVal>(subty.length, subty.data);
+	content_subtype_str = zeek::make_intrusive<StringVal>(subty.length, subty.data);
 	content_subtype_str->ToUpper();
 
 	ParseContentType(ty, subty);
@@ -1301,10 +1301,10 @@ void MIME_Entity::DebugPrintHeaders()
 RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 	{ return ToHeaderVal(h).release(); }
 
-IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
+zeek::IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
 	static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
-	auto header_record = make_intrusive<RecordVal>(mime_header_rec);
+	auto header_record = zeek::make_intrusive<RecordVal>(mime_header_rec);
 	header_record->Assign(0, to_string_val(h->get_name()));
 	auto upper_hn = to_string_val(h->get_name());
 	upper_hn->ToUpper();
@@ -1316,10 +1316,10 @@ IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	{ return ToHeaderTable(hlist).release(); }
 
-IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
+zeek::IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
 	static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
-	auto t = make_intrusive<TableVal>(mime_header_list);
+	auto t = zeek::make_intrusive<TableVal>(mime_header_list);
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
@@ -1383,7 +1383,7 @@ void MIME_Mail::Done()
 		analyzer->EnqueueConnEvent(mime_content_hash,
 			analyzer->ConnVal(),
 			val_mgr->Count(content_hash_length),
-			make_intrusive<StringVal>(new BroString(true, digest, 16))
+			zeek::make_intrusive<StringVal>(new BroString(true, digest, 16))
 		);
 		}
 
@@ -1423,7 +1423,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		analyzer->EnqueueConnEvent(mime_entity_data,
 			analyzer->ConnVal(),
 			val_mgr->Count(s->Len()),
-			make_intrusive<StringVal>(s)
+			zeek::make_intrusive<StringVal>(s)
 		);
 
 		if ( ! mime_all_data )
@@ -1490,7 +1490,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		analyzer->EnqueueConnEvent(mime_segment_data,
 			analyzer->ConnVal(),
 			val_mgr->Count(data_len),
-			make_intrusive<StringVal>(data_len, data)
+			zeek::make_intrusive<StringVal>(data_len, data)
 		);
 		}
 
@@ -1537,7 +1537,7 @@ void MIME_Mail::SubmitAllData()
 		analyzer->EnqueueConnEvent(mime_all_data,
 			analyzer->ConnVal(),
 			val_mgr->Count(s->Len()),
-			make_intrusive<StringVal>(s)
+			zeek::make_intrusive<StringVal>(s)
 		);
 		}
 	}
@@ -1564,7 +1564,7 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 	if ( mime_event )
 		analyzer->EnqueueConnEvent(mime_event,
 			analyzer->ConnVal(),
-			make_intrusive<StringVal>(category),
-			make_intrusive<StringVal>(detail)
+			zeek::make_intrusive<StringVal>(category),
+			zeek::make_intrusive<StringVal>(detail)
 		);
 	}

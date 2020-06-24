@@ -63,7 +63,7 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	static auto sw_align_vec_type = zeek::id::find_type<zeek::VectorType>("sw_align_vec");
 	static auto sw_substring_vec_type = zeek::id::find_type<zeek::VectorType>("sw_substring_vec");
 
-	auto result = make_intrusive<VectorVal>(sw_substring_vec_type);
+	auto result = zeek::make_intrusive<VectorVal>(sw_substring_vec_type);
 
 	if ( vec )
 		{
@@ -71,17 +71,17 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 			{
 			BroSubstring* bst = (*vec)[i];
 
-			auto st_val = make_intrusive<RecordVal>(sw_substring_type);
-			st_val->Assign(0, make_intrusive<StringVal>(new BroString(*bst)));
+			auto st_val = zeek::make_intrusive<RecordVal>(sw_substring_type);
+			st_val->Assign(0, zeek::make_intrusive<StringVal>(new BroString(*bst)));
 
-			auto aligns = make_intrusive<VectorVal>(sw_align_vec_type);
+			auto aligns = zeek::make_intrusive<VectorVal>(sw_align_vec_type);
 
 			for ( unsigned int j = 0; j < bst->GetNumAlignments(); ++j )
 				{
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
-				auto align_val = make_intrusive<RecordVal>(sw_align_type);
-				align_val->Assign(0, make_intrusive<StringVal>(new BroString(*align.string)));
+				auto align_val = zeek::make_intrusive<RecordVal>(sw_align_type);
+				align_val->Assign(0, zeek::make_intrusive<StringVal>(new BroString(*align.string)));
 				align_val->Assign(1, val_mgr->Count(align.index));
 
 				aligns->Assign(j + 1, std::move(align_val));

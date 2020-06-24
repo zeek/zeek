@@ -463,7 +463,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
 				{
 				static auto stp_skip_src = zeek::id::find_val<TableVal>("stp_skip_src");
-				auto src = make_intrusive<AddrVal>(conn->OrigAddr());
+				auto src = zeek::make_intrusive<AddrVal>(conn->OrigAddr());
 
 				if ( ! stp_skip_src->FindOrDefault(src) )
 					tcp->AddChildAnalyzer(new stepping_stone::SteppingStone_Analyzer(conn), false);
@@ -576,7 +576,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
 			       Val* analyzer, double timeout)
 	{
-	IntrusivePtr<EnumVal> ev{NewRef{}, analyzer->AsEnumVal()};
+	zeek::IntrusivePtr<EnumVal> ev{zeek::NewRef{}, analyzer->AsEnumVal()};
 	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(),
 	                        Tag(std::move(ev)), timeout);
 	}

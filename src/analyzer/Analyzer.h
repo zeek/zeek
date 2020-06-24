@@ -556,7 +556,7 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::ConnVal().
 	 */
-	const IntrusivePtr<RecordVal>& ConnVal();
+	const zeek::IntrusivePtr<RecordVal>& ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -604,7 +604,7 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	    std::tuple_element_t<0, std::tuple<Args...>>, zeek::IntrusivePtr<Val>>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
 		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -911,7 +911,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f);
+	virtual void SetContentsFile(unsigned int direction, zeek::IntrusivePtr<BroFile> f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -921,7 +921,7 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const;
+	virtual zeek::IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the

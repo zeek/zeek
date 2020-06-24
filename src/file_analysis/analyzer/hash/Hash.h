@@ -56,7 +56,7 @@ protected:
 	 * @param hv specific hash calculator object.
 	 * @param kind human readable name of the hash algorithm to use.
 	 */
-	Hash(IntrusivePtr<RecordVal> args, File* file, HashVal* hv, const char* kind);
+	Hash(zeek::IntrusivePtr<RecordVal> args, File* file, HashVal* hv, const char* kind);
 
 	/**
 	 * If some file contents have been seen, finalizes the hash of them and
@@ -83,7 +83,7 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
 	                                            File* file)
 		{ return file_hash ? new MD5(std::move(args), file) : nullptr; }
 
@@ -94,7 +94,7 @@ protected:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
-	MD5(IntrusivePtr<RecordVal> args, File* file)
+	MD5(zeek::IntrusivePtr<RecordVal> args, File* file)
 		: Hash(std::move(args), file, new MD5Val(), "md5")
 		{}
 };
@@ -112,7 +112,7 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
 	                                            File* file)
 		{ return file_hash ? new SHA1(std::move(args), file) : nullptr; }
 
@@ -123,7 +123,7 @@ protected:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
-	SHA1(IntrusivePtr<RecordVal> args, File* file)
+	SHA1(zeek::IntrusivePtr<RecordVal> args, File* file)
 		: Hash(std::move(args), file, new SHA1Val(), "sha1")
 		{}
 };
@@ -141,7 +141,7 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
 	                                            File* file)
 		{ return file_hash ? new SHA256(std::move(args), file) : nullptr; }
 
@@ -152,7 +152,7 @@ protected:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
-	SHA256(IntrusivePtr<RecordVal> args, File* file)
+	SHA256(zeek::IntrusivePtr<RecordVal> args, File* file)
 		: Hash(std::move(args), file, new SHA256Val(), "sha256")
 		{}
 };

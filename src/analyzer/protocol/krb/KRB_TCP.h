@@ -21,9 +21,9 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	IntrusivePtr<StringVal> GetAuthenticationInfo(const BroString* principal,
-	                                              const BroString* ciphertext,
-	                                              const bro_uint_t enctype)
+	zeek::IntrusivePtr<StringVal> GetAuthenticationInfo(const BroString* principal,
+	                                                    const BroString* ciphertext,
+	                                                    const bro_uint_t enctype)
 		{ return val_mgr->EmptyString(); }
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

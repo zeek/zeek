@@ -40,9 +40,9 @@ enum AttrTag {
 
 class Attr final : public BroObj {
 public:
-	static inline const IntrusivePtr<zeek::detail::Attr> nil;
+	static inline const zeek::IntrusivePtr<zeek::detail::Attr> nil;
 
-	Attr(AttrTag t, IntrusivePtr<zeek::detail::Expr> e);
+	Attr(AttrTag t, zeek::IntrusivePtr<zeek::detail::Expr> e);
 	explicit Attr(AttrTag t);
 
 	~Attr() override = default;
@@ -52,10 +52,10 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetExpr().")]]
 	zeek::detail::Expr* AttrExpr() const	{ return expr.get(); }
 
-	const IntrusivePtr<zeek::detail::Expr>& GetExpr() const
+	const zeek::IntrusivePtr<zeek::detail::Expr>& GetExpr() const
 		{ return expr; }
 
-	void SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e);
+	void SetAttrExpr(zeek::IntrusivePtr<zeek::detail::Expr> e);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
@@ -78,24 +78,24 @@ protected:
 	void AddTag(ODesc* d) const;
 
 	AttrTag tag;
-	IntrusivePtr<Expr> expr;
+	zeek::IntrusivePtr<Expr> expr;
 };
 
 // Manages a collection of attributes.
 class Attributes final : public BroObj {
 public:
 	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
-	Attributes(attr_list* a, IntrusivePtr<Type> t, bool in_record, bool is_global);
+	Attributes(attr_list* a, zeek::IntrusivePtr<Type> t, bool in_record, bool is_global);
 
-	Attributes(std::vector<IntrusivePtr<Attr>> a, IntrusivePtr<Type> t,
+	Attributes(std::vector<zeek::IntrusivePtr<Attr>> a, zeek::IntrusivePtr<Type> t,
 	           bool in_record, bool is_global);
-	Attributes(IntrusivePtr<Type> t, bool in_record, bool is_global);
+	Attributes(zeek::IntrusivePtr<Type> t, bool in_record, bool is_global);
 
 	~Attributes() override = default;
 
-	void AddAttr(IntrusivePtr<Attr> a);
+	void AddAttr(zeek::IntrusivePtr<Attr> a);
 
-	void AddAttrs(const IntrusivePtr<Attributes>& a);
+	void AddAttrs(const zeek::IntrusivePtr<Attributes>& a);
 
 	[[deprecated("Remove in v4.1. Pass IntrusivePtr instead.")]]
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done
@@ -103,7 +103,7 @@ public:
 	[[deprecated("Remove in v4.1. Use Find().")]]
 	Attr* FindAttr(AttrTag t) const;
 
-	const IntrusivePtr<Attr>& Find(AttrTag t) const;
+	const zeek::IntrusivePtr<Attr>& Find(AttrTag t) const;
 
 	void RemoveAttr(AttrTag t);
 
@@ -114,7 +114,7 @@ public:
 	const attr_list* Attrs() const
 		{ return &attrs_list; }
 
-	const std::vector<IntrusivePtr<Attr>>& GetAttrs() const
+	const std::vector<zeek::IntrusivePtr<Attr>>& GetAttrs() const
 		{ return attrs; }
 
 	bool operator==(const Attributes& other) const;
@@ -122,8 +122,8 @@ public:
 protected:
 	void CheckAttr(Attr* attr);
 
-	IntrusivePtr<Type> type;
-	std::vector<IntrusivePtr<Attr>> attrs;
+	zeek::IntrusivePtr<Type> type;
+	std::vector<zeek::IntrusivePtr<Attr>> attrs;
 
 	// Remove in v4.1. This is used by Attrs(), which is deprecated.
 	attr_list attrs_list;

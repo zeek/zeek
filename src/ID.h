@@ -34,7 +34,7 @@ enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 class ID final : public BroObj, public notifier::Modifiable {
 public:
-	static inline const IntrusivePtr<ID> nil;
+	static inline const zeek::IntrusivePtr<ID> nil;
 
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
 
@@ -50,19 +50,19 @@ public:
 
 	std::string ModuleName() const;
 
-	void SetType(IntrusivePtr<Type> t);
+	void SetType(zeek::IntrusivePtr<Type> t);
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* Type()			{ return type.get(); }
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	const zeek::Type* Type() const	{ return type.get(); }
 
-	const IntrusivePtr<zeek::Type>& GetType() const
+	const zeek::IntrusivePtr<zeek::Type>& GetType() const
 		{ return type; }
 
 	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	zeek::IntrusivePtr<T> GetType() const
+		{ return zeek::cast_intrusive<T>(type); }
 
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
 	zeek::Type* AsType()		{ return is_type ? GetType().get() : nullptr; }
@@ -74,10 +74,10 @@ public:
 
 	void MakeType()			{ is_type = true; }
 
-	void SetVal(IntrusivePtr<Val> v);
+	void SetVal(zeek::IntrusivePtr<Val> v);
 
-	void SetVal(IntrusivePtr<Val> v, InitClass c);
-	void SetVal(IntrusivePtr<Expr> ev, InitClass c);
+	void SetVal(zeek::IntrusivePtr<Val> v, InitClass c);
+	void SetVal(zeek::IntrusivePtr<Expr> ev, InitClass c);
 
 	bool HasVal() const		{ return val != nullptr; }
 
@@ -86,7 +86,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetVal().")]]
 	const Val* ID_Val() const	{ return val.get(); }
 
-	const IntrusivePtr<Val>& GetVal() const
+	const zeek::IntrusivePtr<Val>& GetVal() const
 		{ return val; }
 
 	void ClearVal();
@@ -105,22 +105,22 @@ public:
 
 	bool IsRedefinable() const;
 
-	void SetAttrs(IntrusivePtr<Attributes> attr);
-	void AddAttrs(IntrusivePtr<Attributes> attr);
+	void SetAttrs(zeek::IntrusivePtr<Attributes> attr);
+	void AddAttrs(zeek::IntrusivePtr<Attributes> attr);
 	void RemoveAttr(zeek::detail::AttrTag a);
 	void UpdateValAttrs();
 
-	const IntrusivePtr<Attributes>& GetAttrs() const
+	const zeek::IntrusivePtr<Attributes>& GetAttrs() const
 		{ return attrs; }
 
 	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() const	{ return attrs.get(); }
 
-	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::AttrTag t) const;
+	const zeek::IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::AttrTag t) const;
 
 	bool IsDeprecated() const;
 
-	void MakeDeprecated(IntrusivePtr<Expr> deprecation);
+	void MakeDeprecated(zeek::IntrusivePtr<Expr> deprecation);
 
 	std::string GetDeprecationWarning() const;
 
@@ -143,11 +143,11 @@ public:
 	bool HasOptionHandlers() const
 		{ return !option_handlers.empty(); }
 
-	void AddOptionHandler(IntrusivePtr<Func> callback, int priority);
+	void AddOptionHandler(zeek::IntrusivePtr<Func> callback, int priority);
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
-	void EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev);
+	void EvalFunc(zeek::IntrusivePtr<Expr> ef, zeek::IntrusivePtr<Expr> ev);
 
 #ifdef DEBUG
 	void UpdateValID();
@@ -157,13 +157,13 @@ protected:
 	IDScope scope;
 	bool is_export;
 	bool infer_return_type;
-	IntrusivePtr<zeek::Type> type;
+	zeek::IntrusivePtr<zeek::Type> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
-	IntrusivePtr<Val> val;
-	IntrusivePtr<Attributes> attrs;
+	zeek::IntrusivePtr<Val> val;
+	zeek::IntrusivePtr<Attributes> attrs;
 	// contains list of functions that are called when an option changes
-	std::multimap<int, IntrusivePtr<Func>> option_handlers;
+	std::multimap<int, zeek::IntrusivePtr<Func>> option_handlers;
 
 };
 
@@ -179,7 +179,7 @@ namespace zeek::id {
  * @return  The identifier, which may reference a nil object if no such
  * name exists.
  */
-const IntrusivePtr<zeek::detail::ID>& find(std::string_view name);
+const zeek::IntrusivePtr<zeek::detail::ID>& find(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type.  A fatal occurs if the ID
@@ -187,7 +187,7 @@ const IntrusivePtr<zeek::detail::ID>& find(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The type of the identifier.
  */
-const IntrusivePtr<zeek::Type>& find_type(std::string_view name);
+const zeek::IntrusivePtr<zeek::Type>& find_type(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type (as cast to @c T).
@@ -196,8 +196,8 @@ const IntrusivePtr<zeek::Type>& find_type(std::string_view name);
  * @return  The type of the identifier.
  */
 template<class T>
-IntrusivePtr<T> find_type(std::string_view name)
-	{ return cast_intrusive<T>(find_type(name)); }
+zeek::IntrusivePtr<T> find_type(std::string_view name)
+	{ return zeek::cast_intrusive<T>(find_type(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -205,7 +205,7 @@ IntrusivePtr<T> find_type(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier
  */
-const IntrusivePtr<Val>& find_val(std::string_view name);
+const zeek::IntrusivePtr<Val>& find_val(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its value (as cast to @c T).
@@ -214,8 +214,8 @@ const IntrusivePtr<Val>& find_val(std::string_view name);
  * @return  The current value of the identifier.
  */
 template<class T>
-IntrusivePtr<T> find_val(std::string_view name)
-	{ return cast_intrusive<T>(find_val(name)); }
+zeek::IntrusivePtr<T> find_val(std::string_view name)
+	{ return zeek::cast_intrusive<T>(find_val(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -223,7 +223,7 @@ IntrusivePtr<T> find_val(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier
  */
-const IntrusivePtr<Val>& find_const(std::string_view name);
+const zeek::IntrusivePtr<Val>& find_const(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its value (as cast to @c T).
@@ -232,8 +232,8 @@ const IntrusivePtr<Val>& find_const(std::string_view name);
  * @return  The current value of the identifier.
  */
 template<class T>
-IntrusivePtr<T> find_const(std::string_view name)
-	{ return cast_intrusive<T>(find_const(name)); }
+zeek::IntrusivePtr<T> find_const(std::string_view name)
+	{ return zeek::cast_intrusive<T>(find_const(name)); }
 
 /**
  * Lookup an ID by its name and return the function it references.
@@ -241,19 +241,19 @@ IntrusivePtr<T> find_const(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current function value the identifier references.
  */
-IntrusivePtr<Func> find_func(std::string_view name);
+zeek::IntrusivePtr<Func> find_func(std::string_view name);
 
-extern IntrusivePtr<zeek::RecordType> conn_id;
-extern IntrusivePtr<zeek::RecordType> endpoint;
-extern IntrusivePtr<zeek::RecordType> connection;
-extern IntrusivePtr<zeek::RecordType> fa_file;
-extern IntrusivePtr<zeek::RecordType> fa_metadata;
-extern IntrusivePtr<zeek::EnumType> transport_proto;
-extern IntrusivePtr<zeek::TableType> string_set;
-extern IntrusivePtr<zeek::TableType> string_array;
-extern IntrusivePtr<zeek::TableType> count_set;
-extern IntrusivePtr<zeek::VectorType> string_vec;
-extern IntrusivePtr<zeek::VectorType> index_vec;
+extern zeek::IntrusivePtr<zeek::RecordType> conn_id;
+extern zeek::IntrusivePtr<zeek::RecordType> endpoint;
+extern zeek::IntrusivePtr<zeek::RecordType> connection;
+extern zeek::IntrusivePtr<zeek::RecordType> fa_file;
+extern zeek::IntrusivePtr<zeek::RecordType> fa_metadata;
+extern zeek::IntrusivePtr<zeek::EnumType> transport_proto;
+extern zeek::IntrusivePtr<zeek::TableType> string_set;
+extern zeek::IntrusivePtr<zeek::TableType> string_array;
+extern zeek::IntrusivePtr<zeek::TableType> count_set;
+extern zeek::IntrusivePtr<zeek::VectorType> string_vec;
+extern zeek::IntrusivePtr<zeek::VectorType> index_vec;
 
 namespace detail {
 

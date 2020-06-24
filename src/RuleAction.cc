@@ -22,9 +22,9 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 	{
 	if ( signature_match )
 		mgr.Enqueue(signature_match,
-			IntrusivePtr{AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
-			make_intrusive<StringVal>(msg),
-			data ? make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString()
+		            zeek::IntrusivePtr{zeek::AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
+		            zeek::make_intrusive<StringVal>(msg),
+		            data ? zeek::make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString()
 		);
 	}
 

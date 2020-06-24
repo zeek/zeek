@@ -94,7 +94,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
 					ConnVal(),
-					make_intrusive<IntervalVal>(duration_thresh),
+					zeek::make_intrusive<IntervalVal>(duration_thresh),
 					val_mgr->Bool(is_orig)
 			);
 			duration_thresh = 0;

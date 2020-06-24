@@ -83,14 +83,14 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_bind_ack )
 			{
-			IntrusivePtr<StringVal> sec_addr;
+			zeek::IntrusivePtr<StringVal> sec_addr;
 
 			// Remove the null from the end of the string if it's there.
 			if ( ${bind.sec_addr}.length() > 0 &&
 			     *(${bind.sec_addr}.begin() + ${bind.sec_addr}.length()) == 0 )
-				sec_addr = make_intrusive<StringVal>(${bind.sec_addr}.length()-1, (const char*) ${bind.sec_addr}.begin());
+				sec_addr = zeek::make_intrusive<StringVal>(${bind.sec_addr}.length()-1, (const char*) ${bind.sec_addr}.begin());
 			else
-				sec_addr = make_intrusive<StringVal>(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
+				sec_addr = zeek::make_intrusive<StringVal>(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
 
 			zeek::BifEvent::enqueue_dce_rpc_bind_ack(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
@@ -175,4 +175,3 @@ refine typeattr DCE_RPC_Request += &let {
 refine typeattr DCE_RPC_Response += &let {
 	proc = $context.connection.process_dce_rpc_response(this);
 };
-

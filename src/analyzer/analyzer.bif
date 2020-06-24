@@ -41,8 +41,8 @@ function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 
 function __name%(atype: Analyzer::Tag%) : string
 	%{
-	const auto& n = analyzer_mgr->GetComponentName(IntrusivePtr{NewRef{}, atype->AsEnumVal()});
-	return make_intrusive<StringVal>(n);
+	const auto& n = analyzer_mgr->GetComponentName(zeek::IntrusivePtr{zeek::NewRef{}, atype->AsEnumVal()});
+	return zeek::make_intrusive<StringVal>(n);
 	%}
 
 function __tag%(name: string%) : Analyzer::Tag

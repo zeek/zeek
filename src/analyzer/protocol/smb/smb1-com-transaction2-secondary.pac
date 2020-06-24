@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 	if ( ! smb1_transaction2_secondary_request )
 		return false;
 
-	auto args = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Trans2_Sec_Args);
+	auto args = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Trans2_Sec_Args);
 	args->Assign(0, val_mgr->Count(${val.total_param_count}));
 	args->Assign(1, val_mgr->Count(${val.total_data_count}));
 	args->Assign(2, val_mgr->Count(${val.param_count}));
@@ -16,8 +16,8 @@ refine connection SMB_Conn += {
 	args->Assign(7, val_mgr->Count(${val.data_displacement}));
 	args->Assign(8, val_mgr->Count(${val.FID}));
 
-	auto parameters = make_intrusive<StringVal>(${val.parameters}.length(), (const char*)${val.parameters}.data());
-	auto payload = make_intrusive<StringVal>(${val.data}.length(), (const char*)${val.data}.data());
+	auto parameters = zeek::make_intrusive<StringVal>(${val.parameters}.length(), (const char*)${val.parameters}.data());
+	auto payload = zeek::make_intrusive<StringVal>(${val.data}.length(), (const char*)${val.data}.data());
 
 	zeek::BifEvent::enqueue_smb1_transaction2_secondary_request(bro_analyzer(),
 	                                                      bro_analyzer()->Conn(),

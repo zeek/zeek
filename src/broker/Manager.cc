@@ -152,13 +152,13 @@ void Manager::InitPostScript()
 	log_id_type = zeek::id::find_type("Log::ID")->AsEnumType();
 	writer_id_type = zeek::id::find_type("Log::Writer")->AsEnumType();
 
-	opaque_of_data_type = make_intrusive<zeek::OpaqueType>("Broker::Data");
-	opaque_of_set_iterator = make_intrusive<zeek::OpaqueType>("Broker::SetIterator");
-	opaque_of_table_iterator = make_intrusive<zeek::OpaqueType>("Broker::TableIterator");
-	opaque_of_vector_iterator = make_intrusive<zeek::OpaqueType>("Broker::VectorIterator");
-	opaque_of_record_iterator = make_intrusive<zeek::OpaqueType>("Broker::RecordIterator");
-	opaque_of_store_handle = make_intrusive<zeek::OpaqueType>("Broker::Store");
-	vector_of_data_type = make_intrusive<zeek::VectorType>(zeek::id::find_type("Broker::Data"));
+	opaque_of_data_type = zeek::make_intrusive<zeek::OpaqueType>("Broker::Data");
+	opaque_of_set_iterator = zeek::make_intrusive<zeek::OpaqueType>("Broker::SetIterator");
+	opaque_of_table_iterator = zeek::make_intrusive<zeek::OpaqueType>("Broker::TableIterator");
+	opaque_of_vector_iterator = zeek::make_intrusive<zeek::OpaqueType>("Broker::VectorIterator");
+	opaque_of_record_iterator = zeek::make_intrusive<zeek::OpaqueType>("Broker::RecordIterator");
+	opaque_of_store_handle = zeek::make_intrusive<zeek::OpaqueType>("Broker::Store");
+	vector_of_data_type = zeek::make_intrusive<zeek::VectorType>(zeek::id::find_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
@@ -553,8 +553,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	auto v = log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream},
-	                                make_intrusive<StringVal>(path));
+	auto v = log_topic_func->Invoke(zeek::IntrusivePtr{zeek::NewRef{}, stream},
+	                                zeek::make_intrusive<StringVal>(path));
 
 	if ( ! v )
 		{
@@ -701,7 +701,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 	{
 	auto rval = new RecordVal(zeek::BifType::Record::Broker::Event);
-	auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
+	auto arg_vec = zeek::make_intrusive<VectorVal>(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = nullptr;
 	scoped_reporter_location srl{frame};
@@ -737,7 +737,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 				return rval;
 				}
 
-			rval->Assign(0, make_intrusive<StringVal>(func->Name()));
+			rval->Assign(0, zeek::make_intrusive<StringVal>(func->Name()));
 			continue;
 			}
 
@@ -753,10 +753,10 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			return rval;
 			}
 
-		IntrusivePtr<RecordVal> data_val;
+		zeek::IntrusivePtr<RecordVal> data_val;
 
 		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
-			data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
+			data_val = {zeek::NewRef{}, (*args)[i]->AsRecordVal()};
 		else
 			data_val = make_data_val((*args)[i]);
 
@@ -1247,24 +1247,24 @@ void Manager::ProcessStatus(broker::status stat)
 		return;
 
 	static auto ei = zeek::id::find_type<zeek::RecordType>("Broker::EndpointInfo");
-	auto endpoint_info = make_intrusive<RecordVal>(ei);
+	auto endpoint_info = zeek::make_intrusive<RecordVal>(ei);
 
 	if ( ctx )
 		{
-		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
+		endpoint_info->Assign(0, zeek::make_intrusive<StringVal>(to_string(ctx->node)));
 		static auto ni = zeek::id::find_type<zeek::RecordType>("Broker::NetworkInfo");
-		auto network_info = make_intrusive<RecordVal>(ni);
+		auto network_info = zeek::make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )
 			{
-			network_info->Assign(0, make_intrusive<StringVal>(ctx->network->address.data()));
+			network_info->Assign(0, zeek::make_intrusive<StringVal>(ctx->network->address.data()));
 			network_info->Assign(1, val_mgr->Port(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
-			network_info->Assign(0, make_intrusive<StringVal>("<unknown>"));
+			network_info->Assign(0, zeek::make_intrusive<StringVal>("<unknown>"));
 			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
@@ -1272,7 +1272,7 @@ void Manager::ProcessStatus(broker::status stat)
 		}
 
 	auto str = stat.message();
-	auto msg = make_intrusive<StringVal>(str ? *str : "");
+	auto msg = zeek::make_intrusive<StringVal>(str ? *str : "");
 
 	mgr.Enqueue(event, std::move(endpoint_info), std::move(msg));
 	}
@@ -1353,7 +1353,7 @@ void Manager::ProcessError(broker::error err)
 
 	mgr.Enqueue(Broker::error,
 		zeek::BifType::Enum::Broker::ErrorCode->GetVal(ec),
-		make_intrusive<StringVal>(msg)
+		zeek::make_intrusive<StringVal>(msg)
 	);
 	}
 

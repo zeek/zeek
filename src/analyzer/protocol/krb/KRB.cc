@@ -87,9 +87,9 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* principal,
-                                                            const BroString* ciphertext,
-                                                            const bro_uint_t enctype)
+zeek::IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* principal,
+                                                                  const BroString* ciphertext,
+                                                                  const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( !krb_available )
@@ -147,7 +147,7 @@ IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* pri
 		return nullptr;
 		}
 
-	auto ret = make_intrusive<StringVal>(cp);
+	auto ret = zeek::make_intrusive<StringVal>(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
 	krb5_free_ticket(krb_context, tkt);

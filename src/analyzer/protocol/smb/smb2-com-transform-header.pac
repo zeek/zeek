@@ -4,7 +4,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_transform_header )
 			{
-			auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Transform_header);
+			auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Transform_header);
 			r->Assign(0, to_stringval(${hdr.signature}));
 			r->Assign(1, to_stringval(${hdr.nonce}));
 			r->Assign(2, val_mgr->Count(${hdr.orig_msg_size}));

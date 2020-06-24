@@ -1,21 +1,21 @@
 %header{
-IntrusivePtr<Val> filetime2brotime(uint64_t ts);
-IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
+zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts);
+zeek::IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
 
-IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
-                                          uint64_t create, uint64_t change);
+zeek::IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
+                                                uint64_t create, uint64_t change);
 %}
 
 %code{
-IntrusivePtr<Val> filetime2brotime(uint64_t ts)
+zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts)
 	{
 	// Bro can't support times back to the 1600's
 	// so we subtract a lot of seconds.
 	double secs = (ts / 10000000.0L) - 11644473600.0L;
-	return make_intrusive<TimeVal>(secs);
+	return zeek::make_intrusive<TimeVal>(secs);
 	}
 
-IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
+zeek::IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	{
 	tm lTime;
 	lTime.tm_sec = ${t.two_seconds} * 2;
@@ -26,13 +26,13 @@ IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	lTime.tm_year = 1980 + ${d.year};
 	lTime.tm_isdst = -1;
 	double lResult = mktime(&lTime);
-	return make_intrusive<TimeVal>(lResult + tz);
+	return zeek::make_intrusive<TimeVal>(lResult + tz);
 	}
 
-IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
-                                          uint64_t create, uint64_t change)
+zeek::IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
+                                                uint64_t create, uint64_t change)
 	{
-	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB::MACTimes);
+	auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB::MACTimes);
 	r->Assign(0, filetime2brotime(modify));
 	r->Assign(1, filetime2brotime(access));
 	r->Assign(2, filetime2brotime(create));

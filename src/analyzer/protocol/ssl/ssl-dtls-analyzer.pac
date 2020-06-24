@@ -76,7 +76,7 @@ refine connection SSL_Conn += {
 		if ( ssl_heartbeat )
 			zeek::BifEvent::enqueue_ssl_heartbeat(bro_analyzer(),
 				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
-				make_intrusive<StringVal>(data.length(), (const char*) data.data()));
+				zeek::make_intrusive<StringVal>(data.length(), (const char*) data.data()));
 		return true;
 		%}
 

@@ -38,7 +38,7 @@ using caf::expected;
 
 class Func : public BroObj {
 public:
-	static inline const IntrusivePtr<Func> nil;
+	static inline const zeek::IntrusivePtr<Func> nil;
 
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
@@ -50,7 +50,7 @@ public:
 	zeek::FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
-		IntrusivePtr<zeek::detail::Stmt> stmts;
+		zeek::IntrusivePtr<zeek::detail::Stmt> stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
@@ -68,8 +68,8 @@ public:
 	 * @param parent  the frame from which the function is being called.
 	 * @return  the return value of the function call.
 	 */
-	virtual IntrusivePtr<Val> Invoke(zeek::Args* args,
-	                                   Frame* parent = nullptr) const = 0;
+	virtual zeek::IntrusivePtr<Val> Invoke(
+		zeek::Args* args, Frame* parent = nullptr) const = 0;
 
 	/**
 	 * A version of Invoke() taking a variable number of individual arguments.
@@ -77,8 +77,8 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 	  std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>,
-	                        IntrusivePtr<Val>>,
-	  IntrusivePtr<Val>>
+	                        zeek::IntrusivePtr<Val>>,
+		zeek::IntrusivePtr<Val>>
 	Invoke(Args&&... args) const
 		{
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
@@ -86,17 +86,17 @@ public:
 		}
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
-	                     const std::vector<IntrusivePtr<zeek::detail::ID>>& new_inits,
+	virtual void AddBody(zeek::IntrusivePtr<zeek::detail::Stmt> new_body,
+	                     const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
-	virtual void SetScope(IntrusivePtr<Scope> newscope);
+	virtual void SetScope(zeek::IntrusivePtr<Scope> newscope);
 	virtual Scope* GetScope() const		{ return scope.get(); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	virtual zeek::FuncType* FType() const { return type.get(); }
 
-	const IntrusivePtr<zeek::FuncType>& GetType() const
+	const zeek::IntrusivePtr<zeek::FuncType>& GetType() const
 		{ return type; }
 
 	Kind GetKind() const	{ return kind; }
@@ -107,12 +107,12 @@ public:
 	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const zeek::Args* args) const;
 
-	virtual IntrusivePtr<Func> DoClone();
+	virtual zeek::IntrusivePtr<Func> DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
-	static const IntrusivePtr<Func>& GetFuncPtrByID(uint32_t id)
+	static const zeek::IntrusivePtr<Func>& GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? Func::nil : unique_ids[id]; }
 
 protected:
@@ -122,29 +122,29 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for checking result of plugin hook.
-	void CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
+	void CheckPluginResult(bool handled, const zeek::IntrusivePtr<Val>& hook_result,
 	                       zeek::FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
-	IntrusivePtr<Scope> scope;
+	zeek::IntrusivePtr<Scope> scope;
 	Kind kind;
 	uint32_t unique_id;
-	IntrusivePtr<zeek::FuncType> type;
+	zeek::IntrusivePtr<zeek::FuncType> type;
 	std::string name;
-	static inline std::vector<IntrusivePtr<Func>> unique_ids;
+	static inline std::vector<zeek::IntrusivePtr<Func>> unique_ids;
 };
 
 
 class BroFunc final : public Func {
 public:
-	BroFunc(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::detail::Stmt> body,
-	        const std::vector<IntrusivePtr<zeek::detail::ID>>& inits,
+	BroFunc(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::IntrusivePtr<zeek::detail::Stmt> body,
+	        const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& inits,
 	        size_t frame_size, int priority);
 
 	~BroFunc() override;
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
+	zeek::IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -175,8 +175,8 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
-	             const std::vector<IntrusivePtr<zeek::detail::ID>>& new_inits,
+	void AddBody(zeek::IntrusivePtr<zeek::detail::Stmt> new_body,
+	             const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
@@ -187,14 +187,14 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	IntrusivePtr<zeek::detail::Stmt> AddInits(
-		IntrusivePtr<zeek::detail::Stmt> body,
-		const std::vector<IntrusivePtr<zeek::detail::ID>>& inits);
+	zeek::IntrusivePtr<zeek::detail::Stmt> AddInits(
+		zeek::IntrusivePtr<zeek::detail::Stmt> body,
+		const std::vector<zeek::IntrusivePtr<zeek::detail::ID>>& inits);
 
 	/**
 	 * Clones this function along with its closures.
 	 */
-	IntrusivePtr<Func> DoClone() override;
+	zeek::IntrusivePtr<Func> DoClone() override;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -222,7 +222,7 @@ public:
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
+	zeek::IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -236,7 +236,7 @@ protected:
 
 
 extern void builtin_error(const char* msg);
-extern void builtin_error(const char* msg, IntrusivePtr<Val>);
+extern void builtin_error(const char* msg, zeek::IntrusivePtr<Val>);
 extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
@@ -255,14 +255,14 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<zeek::detail::Stmt> body);
+	function_ingredients(zeek::IntrusivePtr<Scope> scope, zeek::IntrusivePtr<zeek::detail::Stmt> body);
 
-	IntrusivePtr<zeek::detail::ID> id;
-	IntrusivePtr<zeek::detail::Stmt> body;
-	std::vector<IntrusivePtr<zeek::detail::ID>> inits;
+	zeek::IntrusivePtr<zeek::detail::ID> id;
+	zeek::IntrusivePtr<zeek::detail::Stmt> body;
+	std::vector<zeek::IntrusivePtr<zeek::detail::ID>> inits;
 	int frame_size;
 	int priority;
-	IntrusivePtr<Scope> scope;
+	zeek::IntrusivePtr<Scope> scope;
 };
 
 extern std::vector<CallInfo> call_stack;

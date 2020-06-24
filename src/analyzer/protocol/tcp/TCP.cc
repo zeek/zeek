@@ -789,13 +789,13 @@ void TCP_Analyzer::GeneratePacketEvent(
 	EnqueueConnEvent(tcp_packet,
 		ConnVal(),
 		val_mgr->Bool(is_orig),
-		make_intrusive<StringVal>(flags.AsString()),
+		zeek::make_intrusive<StringVal>(flags.AsString()),
 		val_mgr->Count(rel_seq),
 		val_mgr->Count(flags.ACK() ? rel_ack : 0),
 		val_mgr->Count(len),
 		// We need the min() here because Ethernet padding can lead to
 		// caplen > len.
-		make_intrusive<StringVal>(std::min(caplen, len), (const char*) data)
+		zeek::make_intrusive<StringVal>(std::min(caplen, len), (const char*) data)
 	);
 	}
 
@@ -1104,7 +1104,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		if ( connection_SYN_packet )
 			EnqueueConnEvent(connection_SYN_packet,
 				ConnVal(),
-				IntrusivePtr{NewRef{}, SYN_vals}
+				zeek::IntrusivePtr{zeek::NewRef{}, SYN_vals}
 			);
 
 		Unref(SYN_vals);
@@ -1356,23 +1356,23 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 	if ( tcp_options )
 		{
-		auto option_list = make_intrusive<VectorVal>(zeek::BifType::Vector::TCP::OptionList);
+		auto option_list = zeek::make_intrusive<VectorVal>(zeek::BifType::Vector::TCP::OptionList);
 
-		auto add_option_data = [](const IntrusivePtr<RecordVal>& rv, const u_char* odata, int olen)
+		auto add_option_data = [](const zeek::IntrusivePtr<RecordVal>& rv, const u_char* odata, int olen)
 			{
 			if ( olen <= 2 )
 				return;
 
 			auto data_len = olen - 2;
 			auto data = reinterpret_cast<const char*>(odata + 2);
-			rv->Assign(2, make_intrusive<StringVal>(data_len, data));
+			rv->Assign(2, zeek::make_intrusive<StringVal>(data_len, data));
 			};
 
 		for ( const auto& o : opts )
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			auto option_record = make_intrusive<RecordVal>(zeek::BifType::Record::TCP::Option);
+			auto option_record = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
 			option_record->Assign(0, val_mgr->Count(kind));
 			option_record->Assign(1, val_mgr->Count(length));
@@ -1423,7 +1423,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					auto p = reinterpret_cast<const uint32_t*>(o + 2);
 					auto num_pointers = (length - 2) / 4;
 					auto vt = zeek::id::index_vec;
-					auto sack = make_intrusive<VectorVal>(std::move(vt));
+					auto sack = zeek::make_intrusive<VectorVal>(std::move(vt));
 
 					for ( auto i = 0; i < num_pointers; ++i )
 						sack->Assign(sack->Size(), val_mgr->Count(ntohl(p[i])));
@@ -1584,7 +1584,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::IntrusivePtr<BroFile> f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1601,7 +1601,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, IntrusivePtr<BroFile>
 		}
 	}
 
-IntrusivePtr<BroFile> TCP_Analyzer::GetContentsFile(unsigned int direction) const
+zeek::IntrusivePtr<BroFile> TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:
@@ -2119,8 +2119,8 @@ void TCPStats_Analyzer::Done()
 	if ( conn_stats )
 		EnqueueConnEvent(conn_stats,
 			ConnVal(),
-			IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
-			IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()}
+			zeek::IntrusivePtr{zeek::AdoptRef{}, orig_stats->BuildStats()},
+			zeek::IntrusivePtr{zeek::AdoptRef{}, resp_stats->BuildStats()}
 		);
 	}
 

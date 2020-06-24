@@ -86,9 +86,9 @@ public:
 	 * @param Returns the new record value and passes ownership to
 	 * caller.
 	 */
-	static IntrusivePtr<RecordVal> ParseCertificate(X509Val* cert_val, File* file = nullptr);
+	static zeek::IntrusivePtr<RecordVal> ParseCertificate(X509Val* cert_val, File* file = nullptr);
 
-	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
 	                                            File* file)
 		{ return new X509(std::move(args), file); }
 
@@ -117,17 +117,17 @@ public:
 	/**
 	 * Sets the table[string] that used as the certificate cache inside of Zeek.
 	 */
-	static void SetCertificateCache(IntrusivePtr<TableVal> cache)
+	static void SetCertificateCache(zeek::IntrusivePtr<TableVal> cache)
 		{ certificate_cache = std::move(cache); }
 
 	/**
 	 * Sets the callback when a certificate cache hit is encountered
 	 */
-	static void SetCertificateCacheHitCallback(IntrusivePtr<Func> func)
+	static void SetCertificateCacheHitCallback(zeek::IntrusivePtr<Func> func)
 		{ cache_hit_callback = std::move(func); }
 
 protected:
-	X509(IntrusivePtr<RecordVal> args, File* file);
+	X509(zeek::IntrusivePtr<RecordVal> args, File* file);
 
 private:
 	void ParseBasicConstraints(X509_EXTENSION* ex);
@@ -137,12 +137,12 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static IntrusivePtr<StringVal> KeyCurve(EVP_PKEY* key);
+	static zeek::IntrusivePtr<StringVal> KeyCurve(EVP_PKEY* key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 	/** X509 stores associated with global script-layer values */
 	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
-	inline static IntrusivePtr<TableVal> certificate_cache = nullptr;
-	inline static IntrusivePtr<Func> cache_hit_callback = nullptr;
+	inline static zeek::IntrusivePtr<TableVal> certificate_cache = nullptr;
+	inline static zeek::IntrusivePtr<Func> cache_hit_callback = nullptr;
 };
 
 /**
@@ -170,7 +170,7 @@ public:
 	 *
 	 * @return A cloned X509Val.
 	 */
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	/**
 	 * Destructor.

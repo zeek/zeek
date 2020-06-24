@@ -255,7 +255,7 @@ public:
 	 * it may be any Val and must be ignored). If no plugin handled the call,
 	 * the method returns null.
 	 */
-	std::pair<bool, IntrusivePtr<Val>>
+	std::pair<bool, zeek::IntrusivePtr<Val>>
 	HookCallFunction(const Func* func, Frame* parent, zeek::Args* args) const;
 
 	/**

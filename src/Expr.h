@@ -78,12 +78,12 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* Type() const		{ return type.get(); }
 
-	const IntrusivePtr<zeek::Type>& GetType() const
+	const zeek::IntrusivePtr<zeek::Type>& GetType() const
 		{ return type; }
 
 	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	zeek::IntrusivePtr<T> GetType() const
+		{ return zeek::cast_intrusive<T>(type); }
 
 	BroExprTag Tag() const	{ return tag; }
 
@@ -91,7 +91,7 @@ public:
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
-	virtual IntrusivePtr<Val> Eval(Frame* f) const = 0;
+	virtual zeek::IntrusivePtr<Val> Eval(Frame* f) const = 0;
 
 	// Same, but the context is that we are adding an element
 	// into the given aggregate of the given type.  Note that
@@ -101,11 +101,11 @@ public:
 			const;
 
 	// Assign to the given value, if appropriate.
-	virtual void Assign(Frame* f, IntrusivePtr<Val> v);
+	virtual void Assign(Frame* f, zeek::IntrusivePtr<Val> v);
 
 	// Returns the type corresponding to this expression interpreted
 	// as an initialization.  Returns nil if the initialization is illegal.
-	virtual IntrusivePtr<zeek::Type> InitType() const;
+	virtual zeek::IntrusivePtr<zeek::Type> InitType() const;
 
 	// Returns true if this expression, interpreted as an initialization,
 	// constitutes a record element, false otherwise.  If the TypeDecl*
@@ -118,7 +118,7 @@ public:
 	// with the given type.  If "aggr" is non-nil, then this expression
 	// is an element of the given aggregate, and it is added to it
 	// accordingly.
-	virtual IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const;
+	virtual zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
 	virtual bool IsPure() const;
@@ -154,7 +154,7 @@ public:
 	// Return the expression converted to L-value form.  If expr
 	// cannot be used as an L-value, reports an error and returns
 	// the current value of expr (this is the default method).
-	virtual IntrusivePtr<Expr> MakeLvalue();
+	virtual zeek::IntrusivePtr<Expr> MakeLvalue();
 
 	// Marks the expression as one requiring (or at least appearing
 	// with) parentheses.  Used for pretty-printing.
@@ -223,7 +223,7 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
-	void SetType(IntrusivePtr<zeek::Type> t);
+	void SetType(zeek::IntrusivePtr<zeek::Type> t);
 
 	// Reports the given error and sets the expression's type to
 	// TYPE_ERROR.
@@ -235,19 +235,19 @@ protected:
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	IntrusivePtr<zeek::Type> type;
+	zeek::IntrusivePtr<zeek::Type> type;
 	bool paren;
 };
 
 class NameExpr final : public Expr {
 public:
-	explicit NameExpr(IntrusivePtr<ID> id, bool const_init = false);
+	explicit NameExpr(zeek::IntrusivePtr<ID> id, bool const_init = false);
 
 	ID* Id() const		{ return id.get(); }
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
-	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	IntrusivePtr<Expr> MakeLvalue() override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
+	void Assign(Frame* f, zeek::IntrusivePtr<Val> v) override;
+	zeek::IntrusivePtr<Expr> MakeLvalue() override;
 	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -255,23 +255,23 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<ID> id;
+	zeek::IntrusivePtr<ID> id;
 	bool in_const_init;
 };
 
 class ConstExpr final : public Expr {
 public:
-	explicit ConstExpr(IntrusivePtr<Val> val);
+	explicit ConstExpr(zeek::IntrusivePtr<Val> val);
 
 	Val* Value() const	{ return val.get(); }
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> val;
+	zeek::IntrusivePtr<Val> val;
 };
 
 class UnaryExpr : public Expr {
@@ -281,21 +281,21 @@ public:
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	UnaryExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op);
+	UnaryExpr(BroExprTag arg_tag, zeek::IntrusivePtr<Expr> arg_op);
 
 	void ExprDescribe(ODesc* d) const override;
 
 	// Returns the expression folded using the given constant.
-	virtual IntrusivePtr<Val> Fold(Val* v) const;
+	virtual zeek::IntrusivePtr<Val> Fold(Val* v) const;
 
-	IntrusivePtr<Expr> op;
+	zeek::IntrusivePtr<Expr> op;
 };
 
 class BinaryExpr : public Expr {
@@ -308,13 +308,13 @@ public:
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	BinaryExpr(BroExprTag arg_tag,
-	           IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
+	           zeek::IntrusivePtr<Expr> arg_op1, zeek::IntrusivePtr<Expr> arg_op2)
 		: Expr(arg_tag), op1(std::move(arg_op1)), op2(std::move(arg_op2))
 		{
 		if ( ! (op1 && op2) )
@@ -324,20 +324,20 @@ protected:
 		}
 
 	// Returns the expression folded using the given constants.
-	virtual IntrusivePtr<Val> Fold(Val* v1, Val* v2) const;
+	virtual zeek::IntrusivePtr<Val> Fold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are strings.
-	virtual IntrusivePtr<Val> StringFold(Val* v1, Val* v2) const;
+	virtual zeek::IntrusivePtr<Val> StringFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are patterns.
-	virtual IntrusivePtr<Val> PatternFold(Val* v1, Val* v2) const;
+	virtual zeek::IntrusivePtr<Val> PatternFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are sets.
-	virtual IntrusivePtr<Val> SetFold(Val* v1, Val* v2) const;
+	virtual zeek::IntrusivePtr<Val> SetFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are addresses or subnets.
-	virtual IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const;
-	virtual IntrusivePtr<Val> SubNetFold(Val* v1, Val* v2) const;
+	virtual zeek::IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const;
+	virtual zeek::IntrusivePtr<Val> SubNetFold(Val* v1, Val* v2) const;
 
 	bool BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
 
@@ -353,148 +353,148 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Expr> op1;
-	IntrusivePtr<Expr> op2;
+	zeek::IntrusivePtr<Expr> op1;
+	zeek::IntrusivePtr<Expr> op2;
 };
 
 class CloneExpr final : public UnaryExpr {
 public:
-	explicit CloneExpr(IntrusivePtr<Expr> op);
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	explicit CloneExpr(zeek::IntrusivePtr<Expr> op);
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class IncrExpr final : public UnaryExpr {
 public:
-	IncrExpr(BroExprTag tag, IntrusivePtr<Expr> op);
+	IncrExpr(BroExprTag tag, zeek::IntrusivePtr<Expr> op);
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
-	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
 	bool IsPure() const override;
 };
 
 class ComplementExpr final : public UnaryExpr {
 public:
-	explicit ComplementExpr(IntrusivePtr<Expr> op);
+	explicit ComplementExpr(zeek::IntrusivePtr<Expr> op);
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class NotExpr final : public UnaryExpr {
 public:
-	explicit NotExpr(IntrusivePtr<Expr> op);
+	explicit NotExpr(zeek::IntrusivePtr<Expr> op);
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class PosExpr final : public UnaryExpr {
 public:
-	explicit PosExpr(IntrusivePtr<Expr> op);
+	explicit PosExpr(zeek::IntrusivePtr<Expr> op);
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class NegExpr final : public UnaryExpr {
 public:
-	explicit NegExpr(IntrusivePtr<Expr> op);
+	explicit NegExpr(zeek::IntrusivePtr<Expr> op);
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class SizeExpr final : public UnaryExpr {
 public:
-	explicit SizeExpr(IntrusivePtr<Expr> op);
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	explicit SizeExpr(zeek::IntrusivePtr<Expr> op);
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class AddExpr final : public BinaryExpr {
 public:
-	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	AddExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
 class AddToExpr final : public BinaryExpr {
 public:
-	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	AddToExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class RemoveFromExpr final : public BinaryExpr {
 public:
-	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	RemoveFromExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class SubExpr final : public BinaryExpr {
 public:
-	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	SubExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 };
 
 class TimesExpr final : public BinaryExpr {
 public:
-	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	TimesExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
 class DivideExpr final : public BinaryExpr {
 public:
-	DivideExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	DivideExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 
 protected:
-	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
+	zeek::IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
 };
 
 class ModExpr final : public BinaryExpr {
 public:
-	ModExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	ModExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 };
 
 class BoolExpr final : public BinaryExpr {
 public:
-	BoolExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	BoolExpr(BroExprTag tag, zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
-	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> DoSingleEval(Frame* f, zeek::IntrusivePtr<Val> v1, Expr* op2) const;
 };
 
 class BitExpr final : public BinaryExpr {
 public:
-	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	BitExpr(BroExprTag tag, zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 };
 
 class EqExpr final : public BinaryExpr {
 public:
-	EqExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	EqExpr(BroExprTag tag, zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 };
 
 class RelExpr final : public BinaryExpr {
 public:
-	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	RelExpr(BroExprTag tag, zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
 class CondExpr final : public Expr {
 public:
-	CondExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, IntrusivePtr<Expr> op3);
+	CondExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2, zeek::IntrusivePtr<Expr> op3);
 
 	const Expr* Op1() const	{ return op1.get(); }
 	const Expr* Op2() const	{ return op2.get(); }
 	const Expr* Op3() const	{ return op3.get(); }
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -502,53 +502,53 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Expr> op1;
-	IntrusivePtr<Expr> op2;
-	IntrusivePtr<Expr> op3;
+	zeek::IntrusivePtr<Expr> op1;
+	zeek::IntrusivePtr<Expr> op2;
+	zeek::IntrusivePtr<Expr> op3;
 };
 
 class RefExpr final : public UnaryExpr {
 public:
-	explicit RefExpr(IntrusivePtr<Expr> op);
+	explicit RefExpr(zeek::IntrusivePtr<Expr> op);
 
-	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	IntrusivePtr<Expr> MakeLvalue() override;
+	void Assign(Frame* f, zeek::IntrusivePtr<Val> v) override;
+	zeek::IntrusivePtr<Expr> MakeLvalue() override;
 };
 
 class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, bool is_init,
-	           IntrusivePtr<Val> val = nullptr,
-	           const IntrusivePtr<Attributes>& attrs = nullptr);
+	AssignExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2, bool is_init,
+	           zeek::IntrusivePtr<Val> val = nullptr,
+	           const zeek::IntrusivePtr<Attributes>& attrs = nullptr);
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
-	IntrusivePtr<zeek::Type> InitType() const override;
+	zeek::IntrusivePtr<zeek::Type> InitType() const override;
 	bool IsRecordElement(TypeDecl* td) const override;
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
 	bool IsPure() const override;
 
 protected:
-	bool TypeCheck(const IntrusivePtr<Attributes>& attrs = nullptr);
+	bool TypeCheck(const zeek::IntrusivePtr<Attributes>& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	bool is_init;
-	IntrusivePtr<Val> val;	// optional
+	zeek::IntrusivePtr<Val> val;	// optional
 };
 
 class IndexSliceAssignExpr final : public AssignExpr {
 public:
-	IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
-	                     IntrusivePtr<Expr> op2, bool is_init);
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	IndexSliceAssignExpr(zeek::IntrusivePtr<Expr> op1,
+	                     zeek::IntrusivePtr<Expr> op2, bool is_init);
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class IndexExpr final : public BinaryExpr {
 public:
-	IndexExpr(IntrusivePtr<Expr> op1,
-	          IntrusivePtr<ListExpr> op2, bool is_slice = false);
+	IndexExpr(zeek::IntrusivePtr<Expr> op1,
+	          zeek::IntrusivePtr<ListExpr> op2, bool is_slice = false);
 
 	bool CanAdd() const override;
 	bool CanDel() const override;
@@ -556,19 +556,19 @@ public:
 	void Add(Frame* f) override;
 	void Delete(Frame* f) override;
 
-	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	IntrusivePtr<Expr> MakeLvalue() override;
+	void Assign(Frame* f, zeek::IntrusivePtr<Val> v) override;
+	zeek::IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
 	// not necessarily return a vector.
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	bool IsSlice() const { return is_slice; }
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -577,7 +577,7 @@ protected:
 
 class FieldExpr final : public UnaryExpr {
 public:
-	FieldExpr(IntrusivePtr<Expr> op, const char* field_name);
+	FieldExpr(zeek::IntrusivePtr<Expr> op, const char* field_name);
 	~FieldExpr() override;
 
 	int Field() const	{ return field; }
@@ -585,13 +585,13 @@ public:
 
 	bool CanDel() const override;
 
-	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	void Assign(Frame* f, zeek::IntrusivePtr<Val> v) override;
 	void Delete(Frame* f) override;
 
-	IntrusivePtr<Expr> MakeLvalue() override;
+	zeek::IntrusivePtr<Expr> MakeLvalue() override;
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -604,13 +604,13 @@ protected:
 // "rec?$$attrname" is true if the attribute attrname is not nil.
 class HasFieldExpr final : public UnaryExpr {
 public:
-	HasFieldExpr(IntrusivePtr<Expr> op, const char* field_name);
+	HasFieldExpr(zeek::IntrusivePtr<Expr> op, const char* field_name);
 	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -620,76 +620,76 @@ protected:
 
 class RecordConstructorExpr final : public UnaryExpr {
 public:
-	explicit RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_list);
+	explicit RecordConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list);
 	~RecordConstructorExpr() override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 };
 
 class TableConstructorExpr final : public UnaryExpr {
 public:
-	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-	                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
-	                     IntrusivePtr<zeek::Type> arg_type = nullptr);
+	TableConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list,
+	                     std::unique_ptr<std::vector<zeek::IntrusivePtr<Attr>>> attrs,
+	                     zeek::IntrusivePtr<zeek::Type> arg_type = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
 
-	const IntrusivePtr<Attributes>& GetAttrs() const
+	const zeek::IntrusivePtr<Attributes>& GetAttrs() const
 		{ return attrs; }
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Attributes> attrs;
+	zeek::IntrusivePtr<Attributes> attrs;
 };
 
 class SetConstructorExpr final : public UnaryExpr {
 public:
-	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-	                   std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
-	                   IntrusivePtr<zeek::Type> arg_type = nullptr);
+	SetConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list,
+	                   std::unique_ptr<std::vector<zeek::IntrusivePtr<Attr>>> attrs,
+	                   zeek::IntrusivePtr<zeek::Type> arg_type = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
 
-	const IntrusivePtr<Attributes>& GetAttrs() const
+	const zeek::IntrusivePtr<Attributes>& GetAttrs() const
 		{ return attrs; }
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Attributes> attrs;
+	zeek::IntrusivePtr<Attributes> attrs;
 };
 
 class VectorConstructorExpr final : public UnaryExpr {
 public:
-	explicit VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-	                               IntrusivePtr<zeek::Type> arg_type = nullptr);
+	explicit VectorConstructorExpr(zeek::IntrusivePtr<ListExpr> constructor_list,
+	                               zeek::IntrusivePtr<zeek::Type> arg_type = nullptr);
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 };
 
 class FieldAssignExpr final : public UnaryExpr {
 public:
-	FieldAssignExpr(const char* field_name, IntrusivePtr<Expr> value);
+	FieldAssignExpr(const char* field_name, zeek::IntrusivePtr<Expr> value);
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
@@ -704,21 +704,21 @@ protected:
 
 class ArithCoerceExpr final : public UnaryExpr {
 public:
-	ArithCoerceExpr(IntrusivePtr<Expr> op, zeek::TypeTag t);
+	ArithCoerceExpr(zeek::IntrusivePtr<Expr> op, zeek::TypeTag t);
 
 protected:
-	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class RecordCoerceExpr final : public UnaryExpr {
 public:
-	RecordCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<RecordType> r);
+	RecordCoerceExpr(zeek::IntrusivePtr<Expr> op, zeek::IntrusivePtr<RecordType> r);
 	~RecordCoerceExpr() override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
@@ -728,20 +728,20 @@ protected:
 
 class TableCoerceExpr final : public UnaryExpr {
 public:
-	TableCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<TableType> r);
+	TableCoerceExpr(zeek::IntrusivePtr<Expr> op, zeek::IntrusivePtr<TableType> r);
 	~TableCoerceExpr() override;
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class VectorCoerceExpr final : public UnaryExpr {
 public:
-	VectorCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<VectorType> v);
+	VectorCoerceExpr(zeek::IntrusivePtr<Expr> op, zeek::IntrusivePtr<VectorType> v);
 	~VectorCoerceExpr() override;
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class ScheduleTimer final : public Timer {
@@ -758,11 +758,11 @@ protected:
 
 class ScheduleExpr final : public Expr {
 public:
-	ScheduleExpr(IntrusivePtr<Expr> when, IntrusivePtr<EventExpr> event);
+	ScheduleExpr(zeek::IntrusivePtr<Expr> when, zeek::IntrusivePtr<EventExpr> event);
 
 	bool IsPure() const override;
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	Expr* When() const	{ return when.get(); }
 	EventExpr* Event() const	{ return event.get(); }
@@ -772,22 +772,22 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Expr> when;
-	IntrusivePtr<EventExpr> event;
+	zeek::IntrusivePtr<Expr> when;
+	zeek::IntrusivePtr<EventExpr> event;
 };
 
 class InExpr final : public BinaryExpr {
 public:
-	InExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	InExpr(zeek::IntrusivePtr<Expr> op1, zeek::IntrusivePtr<Expr> op2);
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
 };
 
 class CallExpr final : public Expr {
 public:
-	CallExpr(IntrusivePtr<Expr> func, IntrusivePtr<ListExpr> args,
+	CallExpr(zeek::IntrusivePtr<Expr> func, zeek::IntrusivePtr<ListExpr> args,
 	         bool in_hook = false);
 
 	Expr* Func() const	{ return func.get(); }
@@ -795,15 +795,15 @@ public:
 
 	bool IsPure() const override;
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Expr> func;
-	IntrusivePtr<ListExpr> args;
+	zeek::IntrusivePtr<Expr> func;
+	zeek::IntrusivePtr<ListExpr> args;
 };
 
 
@@ -817,7 +817,7 @@ public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 		   id_list outer_ids);
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	Scope* GetScope() const;
@@ -834,13 +834,13 @@ private:
 
 class EventExpr final : public Expr {
 public:
-	EventExpr(const char* name, IntrusivePtr<ListExpr> args);
+	EventExpr(const char* name, zeek::IntrusivePtr<ListExpr> args);
 
 	const char* Name() const	{ return name.c_str(); }
 	ListExpr* Args() const		{ return args.get(); }
 	EventHandlerPtr Handler()  const	{ return handler; }
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -849,16 +849,16 @@ protected:
 
 	std::string name;
 	EventHandlerPtr handler;
-	IntrusivePtr<ListExpr> args;
+	zeek::IntrusivePtr<ListExpr> args;
 };
 
 class ListExpr : public Expr {
 public:
 	ListExpr();
-	explicit ListExpr(IntrusivePtr<Expr> e);
+	explicit ListExpr(zeek::IntrusivePtr<Expr> e);
 	~ListExpr() override;
 
-	void Append(IntrusivePtr<Expr> e);
+	void Append(zeek::IntrusivePtr<Expr> e);
 
 	const expr_list& Exprs() const	{ return exprs; }
 	expr_list& Exprs()		{ return exprs; }
@@ -866,17 +866,17 @@ public:
 	// True if the entire list represents pure values.
 	bool IsPure() const override;
 
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	IntrusivePtr<zeek::Type> InitType() const override;
-	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
-	IntrusivePtr<Expr> MakeLvalue() override;
-	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	zeek::IntrusivePtr<zeek::Type> InitType() const override;
+	zeek::IntrusivePtr<Val> InitVal(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const override;
+	zeek::IntrusivePtr<Expr> MakeLvalue() override;
+	void Assign(Frame* f, zeek::IntrusivePtr<Val> v) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Val> AddSetInit(const zeek::Type* t, IntrusivePtr<Val> aggr) const;
+	zeek::IntrusivePtr<Val> AddSetInit(const zeek::Type* t, zeek::IntrusivePtr<Val> aggr) const;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -886,28 +886,28 @@ protected:
 
 class RecordAssignExpr final : public ListExpr {
 public:
-	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, bool is_init);
+	RecordAssignExpr(const zeek::IntrusivePtr<Expr>& record, const zeek::IntrusivePtr<Expr>& init_list, bool is_init);
 };
 
 class CastExpr final : public UnaryExpr {
 public:
-	CastExpr(IntrusivePtr<Expr> op, IntrusivePtr<zeek::Type> t);
+	CastExpr(zeek::IntrusivePtr<Expr> op, zeek::IntrusivePtr<zeek::Type> t);
 
 protected:
-	IntrusivePtr<Val> Eval(Frame* f) const override;
+	zeek::IntrusivePtr<Val> Eval(Frame* f) const override;
 	void ExprDescribe(ODesc* d) const override;
 };
 
 class IsExpr final : public UnaryExpr {
 public:
-	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<zeek::Type> t);
+	IsExpr(zeek::IntrusivePtr<Expr> op, zeek::IntrusivePtr<zeek::Type> t);
 
 protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
+	zeek::IntrusivePtr<Val> Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	IntrusivePtr<zeek::Type> t;
+	zeek::IntrusivePtr<zeek::Type> t;
 };
 
 inline Val* Expr::ExprVal() const
@@ -918,8 +918,9 @@ inline Val* Expr::ExprVal() const
 	}
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
-IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
-                                   IntrusivePtr<Expr> op2, bool is_init);
+zeek::IntrusivePtr<Expr> get_assign_expr(
+	zeek::IntrusivePtr<Expr> op1,
+	zeek::IntrusivePtr<Expr> op2, bool is_init);
 
 // Type-check the given expression(s) against the given type(s).  Complain
 // if the expression cannot match the given type, returning 0.  If it can
@@ -936,7 +937,7 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
  * Returns nullptr if the expression cannot match or a promoted
  * expression.
  */
-extern IntrusivePtr<Expr> check_and_promote_expr(Expr* e, Type* t);
+extern zeek::IntrusivePtr<Expr> check_and_promote_expr(Expr* e, Type* t);
 
 extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
 extern bool check_and_promote_args(ListExpr* args, RecordType* types);
@@ -944,7 +945,7 @@ extern bool check_and_promote_exprs_to_type(ListExpr* elements, Type* type);
 
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.
-std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l);
+std::optional<std::vector<zeek::IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l);
 
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into
@@ -953,7 +954,7 @@ extern bool expr_greater(const Expr* e1, const Expr* e2);
 
 // True if the given Expr* has a vector type
 inline bool is_vector(Expr* e)	{ return e->GetType()->Tag() == TYPE_VECTOR; }
-inline bool is_vector(const IntrusivePtr<Expr>& e)	{ return is_vector(e.get()); }
+inline bool is_vector(const zeek::IntrusivePtr<Expr>& e)	{ return is_vector(e.get()); }
 
 }
 

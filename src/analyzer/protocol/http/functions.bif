@@ -52,5 +52,5 @@ function unescape_URI%(URI: string%): string
 	const u_char* line = URI->Bytes();
 	const u_char* const line_end = line + URI->Len();
 
-	return make_intrusive<StringVal>(analyzer::http::unescape_URI(line, line_end, 0));
+	return zeek::make_intrusive<StringVal>(analyzer::http::unescape_URI(line, line_end, 0));
 	%}

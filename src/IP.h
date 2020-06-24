@@ -136,8 +136,8 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	IntrusivePtr<RecordVal> ToVal(IntrusivePtr<VectorVal> chain) const;
-	IntrusivePtr<RecordVal> ToVal() const;
+	zeek::IntrusivePtr<RecordVal> ToVal(zeek::IntrusivePtr<VectorVal> chain) const;
+	zeek::IntrusivePtr<RecordVal> ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
@@ -229,7 +229,7 @@ public:
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
-	IntrusivePtr<VectorVal> ToVal() const;
+	zeek::IntrusivePtr<VectorVal> ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	VectorVal* BuildVal() const;
@@ -526,7 +526,7 @@ public:
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
 	 */
-	IntrusivePtr<RecordVal> ToIPHdrVal() const;
+	zeek::IntrusivePtr<RecordVal> ToIPHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToIPHdrVal() instead.")]]
 	RecordVal* BuildIPHdrVal() const;
@@ -535,7 +535,7 @@ public:
 	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
-	IntrusivePtr<RecordVal> ToPktHdrVal() const;
+	zeek::IntrusivePtr<RecordVal> ToPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
@@ -544,7 +544,7 @@ public:
 	 * Same as above, but simply add our values into the record at the
 	 * specified starting index.
 	 */
-	IntrusivePtr<RecordVal> ToPktHdrVal(IntrusivePtr<RecordVal> pkt_hdr, int sindex) const;
+	zeek::IntrusivePtr<RecordVal> ToPktHdrVal(zeek::IntrusivePtr<RecordVal> pkt_hdr, int sindex) const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;

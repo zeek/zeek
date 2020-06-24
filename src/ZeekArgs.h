@@ -2,16 +2,15 @@
 
 #pragma once
 
+#include <vector>
 #include "BroList.h"
 
-#include <vector>
-
 class Val;
-template <class T> class IntrusivePtr;
 
 namespace zeek {
 
-using Args = std::vector<IntrusivePtr<Val>>;
+template <class T> class IntrusivePtr;
+using Args = std::vector<zeek::IntrusivePtr<Val>>;
 
 /**
  * Converts a legacy-style argument list for use in modern Zeek function

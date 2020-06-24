@@ -358,9 +358,9 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 	return nullptr;
 	}
 
-static IntrusivePtr<TableVal> anon_preserve_orig_addr;
-static IntrusivePtr<TableVal> anon_preserve_resp_addr;
-static IntrusivePtr<TableVal> anon_preserve_other_addr;
+static zeek::IntrusivePtr<TableVal> anon_preserve_orig_addr;
+static zeek::IntrusivePtr<TableVal> anon_preserve_resp_addr;
+static zeek::IntrusivePtr<TableVal> anon_preserve_other_addr;
 
 void zeek::detail::init_ip_addr_anonymizers()
 	{
@@ -373,23 +373,23 @@ void zeek::detail::init_ip_addr_anonymizers()
 	auto id = global_scope()->Find("preserve_orig_addr");
 
 	if ( id )
-		anon_preserve_orig_addr = cast_intrusive<TableVal>(id->GetVal());
+		anon_preserve_orig_addr = zeek::cast_intrusive<TableVal>(id->GetVal());
 
 	id = global_scope()->Find("preserve_resp_addr");
 
 	if ( id )
-		anon_preserve_resp_addr = cast_intrusive<TableVal>(id->GetVal());
+		anon_preserve_resp_addr = zeek::cast_intrusive<TableVal>(id->GetVal());
 
 	id = global_scope()->Find("preserve_other_addr");
 
 	if ( id )
-		anon_preserve_other_addr = cast_intrusive<TableVal>(id->GetVal());
+		anon_preserve_other_addr = zeek::cast_intrusive<TableVal>(id->GetVal());
 	}
 
 ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 	{
 	TableVal* preserve_addr = nullptr;
-	auto addr = make_intrusive<AddrVal>(ip);
+	auto addr = zeek::make_intrusive<AddrVal>(ip);
 
 	int method = -1;
 
@@ -445,8 +445,8 @@ void zeek::detail::log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output
 	{
 	if ( anonymization_mapping )
 		mgr.Enqueue(anonymization_mapping,
-			make_intrusive<AddrVal>(input),
-			make_intrusive<AddrVal>(output)
+			zeek::make_intrusive<AddrVal>(input),
+			zeek::make_intrusive<AddrVal>(output)
 		);
 	}
 

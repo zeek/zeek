@@ -133,7 +133,7 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
+ExprListStmt::ExprListStmt(BroStmtTag t, zeek::IntrusivePtr<ListExpr> arg_l)
 	: Stmt(t), l(std::move(arg_l))
 	{
 	const expr_list& e = l->Exprs();
@@ -149,7 +149,7 @@ ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
 
 ExprListStmt::~ExprListStmt() = default;
 
-IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	last_access = network_time;
 	flow = FLOW_NEXT;
@@ -187,7 +187,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 
 static BroFile* print_stdout = nullptr;
 
-static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
+static zeek::IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
 	{
 	const auto& id = lookup_ID(name, module_name);
 	assert(id);
@@ -201,26 +201,26 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 	return et->GetVal(index);
 	}
 
-static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
+static void print_log(const std::vector<zeek::IntrusivePtr<Val>>& vals)
 	{
 	static auto plval = lookup_enum_val("Log", "PRINTLOG");
 	static auto lpli = zeek::id::find_type<RecordType>("Log::PrintLogInfo");
-	auto record = make_intrusive<RecordVal>(lpli);
-	auto vec = make_intrusive<VectorVal>(zeek::id::string_vec);
+	auto record = zeek::make_intrusive<RecordVal>(lpli);
+	auto vec = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	for ( const auto& val : vals )
 		{
 		ODesc d(DESC_READABLE);
 		val->Describe(&d);
-		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
+		vec->Assign(vec->Size(), zeek::make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, make_intrusive<TimeVal>(network_time));
+	record->Assign(0, zeek::make_intrusive<TimeVal>(network_time));
 	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}
 
-IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
+zeek::IntrusivePtr<Val> PrintStmt::DoExec(std::vector<zeek::IntrusivePtr<Val>> vals,
                                     stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
@@ -290,7 +290,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	return nullptr;
 	}
 
-ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
+ExprStmt::ExprStmt(zeek::IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	{
 	if ( e && e->IsPure() )
 		Warn("expression value ignored");
@@ -298,7 +298,7 @@ ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_
 	SetLocationInfo(e->GetLocationInfo());
 	}
 
-ExprStmt::ExprStmt(BroStmtTag t, IntrusivePtr<Expr> arg_e) : Stmt(t), e(std::move(arg_e))
+ExprStmt::ExprStmt(BroStmtTag t, zeek::IntrusivePtr<Expr> arg_e) : Stmt(t), e(std::move(arg_e))
 	{
 	if ( e )
 		SetLocationInfo(e->GetLocationInfo());
@@ -306,7 +306,7 @@ ExprStmt::ExprStmt(BroStmtTag t, IntrusivePtr<Expr> arg_e) : Stmt(t), e(std::mov
 
 ExprStmt::~ExprStmt() = default;
 
-IntrusivePtr<Val> ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -319,7 +319,7 @@ IntrusivePtr<Val> ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		return nullptr;
 	}
 
-IntrusivePtr<Val> ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
+zeek::IntrusivePtr<Val> ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
 	{
 	return nullptr;
 	}
@@ -365,8 +365,9 @@ TraversalCode ExprStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IfStmt::IfStmt(IntrusivePtr<Expr> test,
-               IntrusivePtr<Stmt> arg_s1, IntrusivePtr<Stmt> arg_s2)
+IfStmt::IfStmt(zeek::IntrusivePtr<Expr> test,
+               zeek::IntrusivePtr<Stmt> arg_s1,
+               zeek::IntrusivePtr<Stmt> arg_s2)
 	: ExprStmt(STMT_IF, std::move(test)),
 	  s1(std::move(arg_s1)), s2(std::move(arg_s2))
 	{
@@ -380,7 +381,7 @@ IfStmt::IfStmt(IntrusivePtr<Expr> test,
 
 IfStmt::~IfStmt() = default;
 
-IntrusivePtr<Val> IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
 	// Treat 0 as false, but don't require 1 for true.
 	Stmt* do_stmt = v->IsZero() ? s2.get() : s1.get();
@@ -465,8 +466,8 @@ static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-Case::Case(IntrusivePtr<ListExpr> arg_expr_cases, id_list* arg_type_cases,
-           IntrusivePtr<Stmt> arg_s)
+Case::Case(zeek::IntrusivePtr<ListExpr> arg_expr_cases, id_list* arg_type_cases,
+           zeek::IntrusivePtr<Stmt> arg_s)
 	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases),
 	  s(std::move(arg_s))
 	{
@@ -583,14 +584,14 @@ static void int_del_func(void* v)
 
 void SwitchStmt::Init()
 	{
-	auto t = make_intrusive<TypeList>();
+	auto t = zeek::make_intrusive<TypeList>();
 	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
 	}
 
-SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
+SwitchStmt::SwitchStmt(zeek::IntrusivePtr<Expr> index, case_list* arg_cases)
 	: ExprStmt(STMT_SWITCH, std::move(index)),
 	  cases(arg_cases), default_case_idx(-1)
 	{
@@ -796,9 +797,9 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 		return std::make_pair(label_idx, label_id);
 	}
 
-IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
-	IntrusivePtr<Val> rval;
+	zeek::IntrusivePtr<Val> rval;
 
 	auto m = FindCaseLabelMatch(v);
 	int matching_label_idx = m.first;
@@ -881,7 +882,7 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-AddStmt::AddStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_ADD, std::move(arg_e))
+AddStmt::AddStmt(zeek::IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_ADD, std::move(arg_e))
 	{
 	if ( ! e->CanAdd() )
 		Error("illegal add statement");
@@ -892,7 +893,7 @@ bool AddStmt::IsPure() const
 	return false;
 	}
 
-IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -914,7 +915,7 @@ TraversalCode AddStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
+DelStmt::DelStmt(zeek::IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
 	{
 	if ( e->IsError() )
 		return;
@@ -928,7 +929,7 @@ bool DelStmt::IsPure() const
 	return false;
 	}
 
-IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -949,12 +950,12 @@ TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-EventStmt::EventStmt(IntrusivePtr<EventExpr> arg_e)
+EventStmt::EventStmt(zeek::IntrusivePtr<EventExpr> arg_e)
 	: ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e))
 	{
 	}
 
-IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	auto args = eval_list(f, event_expr->Args());
@@ -980,8 +981,8 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
-                     IntrusivePtr<Stmt> arg_body)
+WhileStmt::WhileStmt(zeek::IntrusivePtr<Expr> arg_loop_condition,
+                     zeek::IntrusivePtr<Stmt> arg_body)
 	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
@@ -1030,11 +1031,11 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
-	IntrusivePtr<Val> rval;
+	zeek::IntrusivePtr<Val> rval;
 
 	for ( ; ; )
 		{
@@ -1059,7 +1060,7 @@ IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return rval;
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
+ForStmt::ForStmt(id_list* arg_loop_vars, zeek::IntrusivePtr<Expr> loop_expr)
 	: ExprStmt(STMT_FOR, std::move(loop_expr))
 	{
 	loop_vars = arg_loop_vars;
@@ -1089,7 +1090,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 
 			else
 				{
-				add_local({NewRef{}, lv}, ind_type, INIT_NONE,
+				add_local({zeek::NewRef{}, lv}, ind_type, INIT_NONE,
 				          nullptr, nullptr, VAR_REGULAR);
 				}
 			}
@@ -1106,7 +1107,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
+			add_local({zeek::NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
 						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1127,7 +1128,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]},
+			add_local({zeek::NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
 					INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
@@ -1142,7 +1143,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 	}
 
 ForStmt::ForStmt(id_list* arg_loop_vars,
-                 IntrusivePtr<Expr> loop_expr, IntrusivePtr<ID> val_var)
+                 zeek::IntrusivePtr<Expr> loop_expr, zeek::IntrusivePtr<ID> val_var)
 	: ForStmt(arg_loop_vars, std::move(loop_expr))
 	{
 	value_var = std::move(val_var);
@@ -1173,9 +1174,9 @@ ForStmt::~ForStmt()
 	delete loop_vars;
 	}
 
-IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
-	IntrusivePtr<Val> ret;
+	zeek::IntrusivePtr<Val> ret;
 
 	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
@@ -1247,7 +1248,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			auto sv = make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
+			auto sv = zeek::make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
 			f->SetElement((*loop_vars)[0], std::move(sv));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1331,7 +1332,7 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_LOOP;
@@ -1358,7 +1359,7 @@ TraversalCode NextStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_BREAK;
@@ -1385,7 +1386,7 @@ TraversalCode BreakStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_FALLTHROUGH;
@@ -1412,7 +1413,7 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
+ReturnStmt::ReturnStmt(zeek::IntrusivePtr<Expr> arg_e)
 	: ExprStmt(STMT_RETURN, std::move(arg_e))
 	{
 	Scope* s = current_scope();
@@ -1456,7 +1457,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		}
 	}
 
-IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_RETURN;
@@ -1495,7 +1496,7 @@ StmtList::~StmtList()
 		Unref(stmt);
 	}
 
-IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1574,7 +1575,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1632,7 +1633,7 @@ void EventBodyList::Describe(ODesc* d) const
 		StmtList::Describe(d);
 	}
 
-InitStmt::InitStmt(std::vector<IntrusivePtr<ID>> arg_inits) : Stmt(STMT_INIT)
+InitStmt::InitStmt(std::vector<zeek::IntrusivePtr<ID>> arg_inits) : Stmt(STMT_INIT)
 	{
 	inits = std::move(arg_inits);
 
@@ -1640,7 +1641,7 @@ InitStmt::InitStmt(std::vector<IntrusivePtr<ID>> arg_inits) : Stmt(STMT_INIT)
 		SetLocationInfo(inits[0]->GetLocationInfo());
 	}
 
-IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1649,18 +1650,18 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		{
 		const auto& t = aggr->GetType();
 
-		IntrusivePtr<Val> v;
+		zeek::IntrusivePtr<Val> v;
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:
-			v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
+			v = zeek::make_intrusive<RecordVal>(zeek::cast_intrusive<RecordType>(t));
 			break;
 		case TYPE_VECTOR:
-			v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+			v = zeek::make_intrusive<VectorVal>(zeek::cast_intrusive<VectorType>(t));
 			break;
 		case TYPE_TABLE:
-			v = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
-			                             aggr->GetAttrs());
+			v = zeek::make_intrusive<TableVal>(zeek::cast_intrusive<TableType>(t),
+			                                   aggr->GetAttrs());
 			break;
 		default:
 			break;
@@ -1705,7 +1706,7 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IntrusivePtr<Val> NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1734,9 +1735,9 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
-                   IntrusivePtr<Stmt> arg_s1, IntrusivePtr<Stmt> arg_s2,
-                   IntrusivePtr<Expr> arg_timeout, bool arg_is_return)
+WhenStmt::WhenStmt(zeek::IntrusivePtr<Expr> arg_cond,
+                   zeek::IntrusivePtr<Stmt> arg_s1, zeek::IntrusivePtr<Stmt> arg_s2,
+                   zeek::IntrusivePtr<Expr> arg_timeout, bool arg_is_return)
 	: Stmt(STMT_WHEN),
 	  cond(std::move(arg_cond)), s1(std::move(arg_s1)), s2(std::move(arg_s2)),
 	  timeout(std::move(arg_timeout)), is_return(arg_is_return)
@@ -1760,7 +1761,7 @@ WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
 
 WhenStmt::~WhenStmt() = default;
 
-IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
+zeek::IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;

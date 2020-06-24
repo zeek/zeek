@@ -749,7 +749,7 @@ void do_atif(zeek::detail::Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	IntrusivePtr<Val> val;
+	zeek::IntrusivePtr<Val> val;
 
 	if ( cb.local_names.empty() )
 		val = expr->Eval(nullptr);

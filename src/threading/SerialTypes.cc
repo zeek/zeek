@@ -524,10 +524,10 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 		case zeek::TYPE_TABLE:
 			{
-			IntrusivePtr<zeek::TypeList> set_index;
+			zeek::IntrusivePtr<zeek::TypeList> set_index;
 			if ( val->val.set_val.size == 0 && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
-				set_index = make_intrusive<zeek::TypeList>();
+				set_index = zeek::make_intrusive<zeek::TypeList>();
 			else
 				{
 				// all entries have to have the same type...
@@ -535,7 +535,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				if ( stag == zeek::TYPE_VOID )
 					stag = val->val.set_val.vals[0]->type;
 
-				IntrusivePtr<zeek::Type> index_type;
+				zeek::IntrusivePtr<zeek::Type> index_type;
 
 				if ( stag == zeek::TYPE_ENUM )
 					{
@@ -558,16 +558,16 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				else
 					index_type = zeek::base_type(stag);
 
-				set_index = make_intrusive<zeek::TypeList>(index_type);
+				set_index = zeek::make_intrusive<zeek::TypeList>(index_type);
 				set_index->Append(std::move(index_type));
 				}
 
-			auto s = make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
+			auto s = zeek::make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
 			TableVal* t = new TableVal(std::move(s));
 			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
 				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
-				t->Assign({AdoptRef{}, assignval}, nullptr);
+				t->Assign({zeek::AdoptRef{}, assignval}, nullptr);
 				}
 
 			return t;
@@ -575,7 +575,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 		case zeek::TYPE_VECTOR:
 			{
-			IntrusivePtr<zeek::Type> type;
+			zeek::IntrusivePtr<zeek::Type> type;
 
 			if ( val->val.vector_val.size == 0  && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
@@ -589,13 +589,13 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					type = zeek::base_type(val->subtype);
 				}
 
-			auto vt = make_intrusive<zeek::VectorType>(std::move(type));
-			auto v = make_intrusive<VectorVal>(std::move(vt));
+			auto vt = zeek::make_intrusive<zeek::VectorType>(std::move(type));
+			auto v = zeek::make_intrusive<VectorVal>(std::move(vt));
 
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
 				{
 				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
-				v->Assign(j, {AdoptRef{}, el});
+				v->Assign(j, {zeek::AdoptRef{}, el});
 				}
 
 			return v.release();

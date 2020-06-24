@@ -15,11 +15,11 @@
 
 using namespace analyzer::bittorrent;
 
-static IntrusivePtr<zeek::TableType> bt_tracker_headers;
-static IntrusivePtr<zeek::RecordType> bittorrent_peer;
-static IntrusivePtr<zeek::TableType> bittorrent_peer_set;
-static IntrusivePtr<zeek::RecordType> bittorrent_benc_value;
-static IntrusivePtr<zeek::TableType> bittorrent_benc_dir;
+static zeek::IntrusivePtr<zeek::TableType> bt_tracker_headers;
+static zeek::IntrusivePtr<zeek::RecordType> bittorrent_peer;
+static zeek::IntrusivePtr<zeek::TableType> bittorrent_peer_set;
+static zeek::IntrusivePtr<zeek::RecordType> bittorrent_benc_value;
+static zeek::IntrusivePtr<zeek::TableType> bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 : tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
@@ -248,7 +248,7 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 		EnqueueConnEvent(bt_tracker_weird,
 			ConnVal(),
 			val_mgr->Bool(orig),
-			make_intrusive<StringVal>(msg)
+			zeek::make_intrusive<StringVal>(msg)
 		);
 	}
 
@@ -347,9 +347,9 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 
 	if ( bt_tracker_request )
 		EnqueueConnEvent(bt_tracker_request,
-			ConnVal(),
-			IntrusivePtr{AdoptRef{}, req_val_uri},
-			IntrusivePtr{AdoptRef{}, req_val_headers}
+		                 ConnVal(),
+		                 zeek::IntrusivePtr{zeek::AdoptRef{}, req_val_uri},
+		                 zeek::IntrusivePtr{zeek::AdoptRef{}, req_val_headers}
 		);
 
 	req_val_uri = nullptr;
@@ -400,10 +400,11 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 			if ( res_status != 200 )
 				{
 				if ( bt_tracker_response_not_ok )
-					EnqueueConnEvent(bt_tracker_response_not_ok,
+					EnqueueConnEvent(
+						bt_tracker_response_not_ok,
 						ConnVal(),
 						val_mgr->Count(res_status),
-						IntrusivePtr{AdoptRef{}, res_val_headers}
+						zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_headers}
 					);
 				res_val_headers = nullptr;
 				res_buf_pos = res_buf + res_buf_len;
@@ -477,17 +478,17 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 			uint32_t ad = extract_uint32((u_char*) value);
 			uint16_t pt = ntohs((value[4] << 8) | value[5]);
 
-			auto peer = make_intrusive<RecordVal>(bittorrent_peer);
-			peer->Assign(0, make_intrusive<AddrVal>(ad));
+			auto peer = zeek::make_intrusive<RecordVal>(bittorrent_peer);
+			peer->Assign(0, zeek::make_intrusive<AddrVal>(ad));
 			peer->Assign(1, val_mgr->Port(pt, TRANSPORT_TCP));
 			res_val_peers->Assign(std::move(peer), nullptr);
 			}
 		}
 	else
 		{
-		auto name_ = make_intrusive<StringVal>(name_len, name);
-		auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
-		benc_value->Assign(type, make_intrusive<StringVal>(value_len, value));
+		auto name_ = zeek::make_intrusive<StringVal>(name_len, name);
+		auto benc_value = zeek::make_intrusive<RecordVal>(bittorrent_benc_value);
+		benc_value->Assign(type, zeek::make_intrusive<StringVal>(value_len, value));
 		res_val_benc->Assign(std::move(name_), std::move(benc_value));
 		}
 	}
@@ -495,8 +496,8 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 				enum btt_benc_types type, bro_int_t value)
 	{
-	auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
-	auto name_ = make_intrusive<StringVal>(name_len, name);
+	auto benc_value = zeek::make_intrusive<RecordVal>(bittorrent_benc_value);
+	auto name_ = zeek::make_intrusive<StringVal>(name_len, name);
 
 	benc_value->Assign(type, val_mgr->Int(value));
 	res_val_benc->Assign(std::move(name_), std::move(benc_value));
@@ -782,11 +783,11 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 
 	if ( bt_tracker_response )
 		EnqueueConnEvent(bt_tracker_response,
-			ConnVal(),
-			val_mgr->Count(res_status),
-			IntrusivePtr{AdoptRef{}, res_val_headers},
-			IntrusivePtr{AdoptRef{}, res_val_peers},
-			IntrusivePtr{AdoptRef{}, res_val_benc}
+		                 ConnVal(),
+		                 val_mgr->Count(res_status),
+		                 zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_headers},
+		                 zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_peers},
+		                 zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_benc}
 		);
 
 	res_val_headers = nullptr;

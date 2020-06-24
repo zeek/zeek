@@ -1,3 +1,4 @@
+
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
@@ -91,40 +92,40 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 
 	i2a_ASN1_OBJECT(bio, hash_alg);
 	int len = BIO_read(bio, buf, sizeof(buf));
-	vl->emplace_back(make_intrusive<StringVal>(len, buf));
+	vl->emplace_back(zeek::make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_STRING(bio, issuer_name_hash, V_ASN1_OCTET_STRING);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->emplace_back(make_intrusive<StringVal>(len, buf));
+	vl->emplace_back(zeek::make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_STRING(bio, issuer_key_hash, V_ASN1_OCTET_STRING);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->emplace_back(make_intrusive<StringVal>(len, buf));
+	vl->emplace_back(zeek::make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_INTEGER(bio, serial_number);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->emplace_back(make_intrusive<StringVal>(len, buf));
+	vl->emplace_back(zeek::make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	return true;
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateRequest(IntrusivePtr<RecordVal> args,
+file_analysis::Analyzer* OCSP::InstantiateRequest(zeek::IntrusivePtr<RecordVal> args,
                                                   File* file)
 	{
 	return new OCSP(std::move(args), file, true);
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateReply(IntrusivePtr<RecordVal> args,
+file_analysis::Analyzer* OCSP::InstantiateReply(zeek::IntrusivePtr<RecordVal> args,
                                                 File* file)
 	{
 	return new OCSP(std::move(args), file, false);
 	}
 
-file_analysis::OCSP::OCSP(IntrusivePtr<RecordVal> args, file_analysis::File* file,
+file_analysis::OCSP::OCSP(zeek::IntrusivePtr<RecordVal> args, file_analysis::File* file,
                           bool arg_request)
 	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"),
 	                                        std::move(args), file),
@@ -210,9 +211,9 @@ typedef struct ocsp_basic_response_st {
     STACK_OF(X509) *certs;
 } OCSP_BASICRESP;
 */
-static IntrusivePtr<StringVal> parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
-                                                        BIO* bio, char* buf,
-                                                        size_t buf_len)
+static zeek::IntrusivePtr<StringVal> parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
+                                                              BIO* bio, char* buf,
+                                                              size_t buf_len)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;
@@ -277,14 +278,14 @@ static IntrusivePtr<StringVal> parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_re
 	auto alg_obj = alg_obj_type->value.object;
 	i2a_ASN1_OBJECT(bio, alg_obj);
 	auto alg_len = BIO_read(bio, buf, buf_len);
-	auto rval = make_intrusive<StringVal>(alg_len, buf);
+	auto rval = zeek::make_intrusive<StringVal>(alg_len, buf);
 	BIO_reset(bio);
 
 	OPENSSL_free(der_basic_resp_dat);
 	return rval;
 	}
 
-static IntrusivePtr<Val> parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
+static zeek::IntrusivePtr<Val> parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;
@@ -459,7 +460,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	memset(buf, 0, sizeof(buf));
 
 	const char *status_str = OCSP_response_status_str(OCSP_response_status(resp));
-	auto status_val = make_intrusive<StringVal>(strlen(status_str), status_str);
+	auto status_val = zeek::make_intrusive<StringVal>(strlen(status_str), status_str);
 
 	if ( ocsp_response_status )
 		mgr.Enqueue(ocsp_response_status, GetFile()->ToVal(), status_val);
@@ -502,7 +503,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	if ( OCSP_RESPID_bio(basic_resp, bio) )
 		{
 		len = BIO_read(bio, buf, sizeof(buf));
-		vl.emplace_back(make_intrusive<StringVal>(len, buf));
+		vl.emplace_back(zeek::make_intrusive<StringVal>(len, buf));
 		BIO_reset(bio);
 		}
 	else
@@ -518,7 +519,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
 #endif
 
-	vl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(produced_at, GetFile(), reporter)));
+	vl.emplace_back(zeek::make_intrusive<TimeVal>(GetTimeFromAsn1(produced_at, GetFile(), reporter)));
 
 	// responses
 
@@ -561,36 +562,36 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			reporter->Weird("OpenSSL failed to find status of OCSP response");
 
 		const char* cert_status_str = OCSP_cert_status_str(status);
-		rvl.emplace_back(make_intrusive<StringVal>(strlen(cert_status_str), cert_status_str));
+		rvl.emplace_back(zeek::make_intrusive<StringVal>(strlen(cert_status_str), cert_status_str));
 
 		// revocation time and reason if revoked
 		if ( status == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			rvl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(revoke_time, GetFile(), reporter)));
+			rvl.emplace_back(zeek::make_intrusive<TimeVal>(GetTimeFromAsn1(revoke_time, GetFile(), reporter)));
 
 			if ( reason != OCSP_REVOKED_STATUS_NOSTATUS )
 				{
 				const char* revoke_reason = OCSP_crl_reason_str(reason);
-				rvl.emplace_back(make_intrusive<StringVal>(strlen(revoke_reason), revoke_reason));
+				rvl.emplace_back(zeek::make_intrusive<StringVal>(strlen(revoke_reason), revoke_reason));
 				}
 			else
-				rvl.emplace_back(make_intrusive<StringVal>(0, ""));
+				rvl.emplace_back(zeek::make_intrusive<StringVal>(0, ""));
 			}
 		else
 			{
-			rvl.emplace_back(make_intrusive<TimeVal>(0.0));
-			rvl.emplace_back(make_intrusive<StringVal>(0, ""));
+			rvl.emplace_back(zeek::make_intrusive<TimeVal>(0.0));
+			rvl.emplace_back(zeek::make_intrusive<StringVal>(0, ""));
 			}
 
 		if ( this_update )
-			rvl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(this_update, GetFile(), reporter)));
+			rvl.emplace_back(zeek::make_intrusive<TimeVal>(GetTimeFromAsn1(this_update, GetFile(), reporter)));
 		else
-			rvl.emplace_back(make_intrusive<TimeVal>(0.0));
+			rvl.emplace_back(zeek::make_intrusive<TimeVal>(0.0));
 
 		if ( next_update )
-			rvl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(next_update, GetFile(), reporter)));
+			rvl.emplace_back(zeek::make_intrusive<TimeVal>(GetTimeFromAsn1(next_update, GetFile(), reporter)));
 		else
-			rvl.emplace_back(make_intrusive<TimeVal>(0.0));
+			rvl.emplace_back(zeek::make_intrusive<TimeVal>(0.0));
 
 		if ( ocsp_response_certificate )
 			mgr.Enqueue(ocsp_response_certificate, std::move(rvl));
@@ -609,7 +610,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl.emplace_back(make_intrusive<StringVal>(len, buf));
+	vl.emplace_back(zeek::make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 #else
 	vl.emplace_back(parse_basic_resp_sig_alg(basic_resp, bio, buf, sizeof(buf)));
@@ -617,11 +618,11 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 
 	//i2a_ASN1_OBJECT(bio, basic_resp->signature);
 	//len = BIO_read(bio, buf, sizeof(buf));
-	//ocsp_resp_record->Assign(7, make_intrusive<StringVal>(len, buf));
+	//ocsp_resp_record->Assign(7, zeek::make_intrusive<StringVal>(len, buf));
 	//BIO_reset(bio);
 
 	certs_vector = new VectorVal(zeek::id::find_type<zeek::VectorType>("x509_opaque_vector"));
-	vl.emplace_back(AdoptRef{}, certs_vector);
+	vl.emplace_back(zeek::AdoptRef{}, certs_vector);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	certs = basic_resp->certs;
@@ -637,7 +638,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			::X509 *this_cert = X509_dup(helper_sk_X509_value(certs, i));
 			//::X509 *this_cert = X509_dup(sk_X509_value(certs, i));
 			if (this_cert)
-				certs_vector->Assign(i, make_intrusive<file_analysis::X509Val>(this_cert));
+				certs_vector->Assign(i, zeek::make_intrusive<file_analysis::X509Val>(this_cert));
 			else
 				reporter->Weird("OpenSSL returned null certificate");
 			}

@@ -26,7 +26,7 @@ class Component : public zeek::plugin::Component,
                   public plugin::TaggedComponent<file_analysis::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);
-	using factory_function = Analyzer* (*)(IntrusivePtr<RecordVal> args, File* file);
+	using factory_function = Analyzer* (*)(zeek::IntrusivePtr<RecordVal> args, File* file);
 
 	/**
 	 * Constructor.

@@ -3,13 +3,13 @@
 %}
 
 %header{
-	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr);
+	zeek::IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr);
 %}
 
 %code{
-	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr)
+	zeek::IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr)
 		{
-		auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Header);
+		auto r = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Header);
 
 		//unsigned int status = 0;
 		//

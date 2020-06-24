@@ -476,7 +476,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 		// If include fields are specified, only include if explicitly listed.
 		if ( include )
 			{
-			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
+			auto new_path_val = zeek::make_intrusive<StringVal>(new_path.c_str());
 			bool result = (bool)include->FindOrDefault(new_path_val);
 
 			if ( ! result )
@@ -486,7 +486,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 		// If exclude fields are specified, do not only include if listed.
 		if ( exclude )
 			{
-			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
+			auto new_path_val = zeek::make_intrusive<StringVal>(new_path.c_str());
 			bool result = (bool)exclude->FindOrDefault(new_path_val);
 
 			if ( result )
@@ -695,7 +695,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	if ( ! stream->enabled )
 		return true;
 
-	auto columns = columns_arg->CoerceTo({NewRef{}, stream->columns});
+	auto columns = columns_arg->CoerceTo({zeek::NewRef{}, stream->columns});
 
 	if ( ! columns )
 		{
@@ -730,23 +730,23 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 		if ( filter->path_func )
 			{
-			IntrusivePtr<Val> path_arg;
+			zeek::IntrusivePtr<Val> path_arg;
 
 			if ( filter->path_val )
-				path_arg = {NewRef{}, filter->path_val};
+				path_arg = {zeek::NewRef{}, filter->path_val};
 			else
 				path_arg = val_mgr->EmptyString();
 
-			IntrusivePtr<Val> rec_arg;
+			zeek::IntrusivePtr<Val> rec_arg;
 			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
 
 			if ( rt->Tag() == zeek::TYPE_RECORD )
-				rec_arg = columns->CoerceTo(cast_intrusive<zeek::RecordType>(rt), true);
+				rec_arg = columns->CoerceTo(zeek::cast_intrusive<zeek::RecordType>(rt), true);
 			else
 				// Can be TYPE_ANY here.
 				rec_arg = columns;
 
-			auto v = filter->path_func->Invoke(IntrusivePtr{NewRef{}, id},
+			auto v = filter->path_func->Invoke(zeek::IntrusivePtr{zeek::NewRef{}, id},
 			                                   std::move(path_arg),
 			                                   std::move(rec_arg));
 
@@ -842,7 +842,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				if ( filter->field_name_map )
 					{
 					const char* name = filter->fields[j]->name;
-					auto fn = make_intrusive<StringVal>(name);
+					auto fn = zeek::make_intrusive<StringVal>(name);
 
 					if ( const auto& val = filter->field_name_map->Find(fn) )
 						{
@@ -1010,7 +1010,7 @@ threading::Value* Manager::ValToLogVal(Val* val, zeek::Type* ty)
 		if ( ! set )
 			// ToPureListVal has reported an internal warning
 			// already. Just keep going by making something up.
-			set = make_intrusive<ListVal>(zeek::TYPE_INT);
+			set = zeek::make_intrusive<ListVal>(zeek::TYPE_INT);
 
 		lval->val.set_val.size = set->Length();
 		lval->val.set_val.vals = new threading::Value* [lval->val.set_val.size];
@@ -1048,14 +1048,14 @@ threading::Value* Manager::ValToLogVal(Val* val, zeek::Type* ty)
 threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
                                                RecordVal* columns)
 	{
-	IntrusivePtr<RecordVal> ext_rec;
+	zeek::IntrusivePtr<RecordVal> ext_rec;
 
 	if ( filter->num_ext_fields > 0 )
 		{
-		auto res = filter->ext_func->Invoke(IntrusivePtr{NewRef{}, filter->path_val});
+		auto res = filter->ext_func->Invoke(zeek::IntrusivePtr{zeek::NewRef{}, filter->path_val});
 
 		if ( res )
-			ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
+			ext_rec = {zeek::AdoptRef{}, res.release()->AsRecordVal()};
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
@@ -1508,12 +1508,12 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		return true;
 
 	// Create the RotationInfo record.
-	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::Log::RotationInfo);
-	info->Assign(0, {NewRef{}, winfo->type});
-	info->Assign(1, make_intrusive<StringVal>(new_name));
-	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
-	info->Assign(3, make_intrusive<TimeVal>(open));
-	info->Assign(4, make_intrusive<TimeVal>(close));
+	auto info = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Log::RotationInfo);
+	info->Assign(0, {zeek::NewRef{}, winfo->type});
+	info->Assign(1, zeek::make_intrusive<StringVal>(new_name));
+	info->Assign(2, zeek::make_intrusive<StringVal>(winfo->writer->Info().path));
+	info->Assign(3, zeek::make_intrusive<TimeVal>(open));
+	info->Assign(4, zeek::make_intrusive<TimeVal>(close));
 	info->Assign(5, val_mgr->Bool(terminating));
 
 	Func* func = winfo->postprocessor;

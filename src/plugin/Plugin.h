@@ -20,7 +20,10 @@ class ODesc;
 class Frame;
 class Func;
 class Event;
+
+namespace zeek {
 template <class T> class IntrusivePtr;
+}
 
 namespace threading {
 struct Field;
@@ -668,7 +671,7 @@ protected:
 	 * interpreter. If the plugin did not handle the call, it must return a
 	 * pair with the first member set to 'false' and null result value.
 	 */
-	virtual std::pair<bool, IntrusivePtr<Val>>
+	virtual std::pair<bool, zeek::IntrusivePtr<Val>>
 	HookFunctionCall(const Func* func, Frame* parent, zeek::Args* args);
 
 	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]

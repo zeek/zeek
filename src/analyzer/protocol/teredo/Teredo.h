@@ -74,7 +74,7 @@ public:
 	const u_char* Authentication() const
 		{ return auth; }
 
-	IntrusivePtr<RecordVal> BuildVal(const IP_Hdr* inner) const;
+	zeek::IntrusivePtr<RecordVal> BuildVal(const IP_Hdr* inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);

@@ -45,13 +45,13 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
-		IntrusivePtr<ListVal> skip_authentication = zeek::id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> direct_login_prompts = zeek::id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_prompts = zeek::id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_non_failure_msgs = zeek::id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_failure_msgs = zeek::id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_success_msgs = zeek::id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_timeouts = zeek::id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> skip_authentication = zeek::id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> direct_login_prompts = zeek::id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> login_prompts = zeek::id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> login_non_failure_msgs = zeek::id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> login_failure_msgs = zeek::id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> login_success_msgs = zeek::id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
+		zeek::IntrusivePtr<ListVal> login_timeouts = zeek::id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
 
 #ifdef USE_PERFTOOLS_DEBUG
 		HeapLeakChecker::Disabler disabler;
@@ -342,19 +342,19 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 		else if ( login_terminal && streq(name, "TERM") )
 			EnqueueConnEvent(login_terminal,
 				ConnVal(),
-				make_intrusive<StringVal>(val)
+				zeek::make_intrusive<StringVal>(val)
 			);
 
 		else if ( login_display && streq(name, "DISPLAY") )
 			EnqueueConnEvent(login_display,
 				ConnVal(),
-				make_intrusive<StringVal>(val)
+				zeek::make_intrusive<StringVal>(val)
 			);
 
 		else if ( login_prompt && streq(name, "TTYPROMPT") )
 			EnqueueConnEvent(login_prompt,
 				ConnVal(),
-				make_intrusive<StringVal>(val)
+				zeek::make_intrusive<StringVal>(val)
 			);
 		}
 
@@ -430,11 +430,11 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		IntrusivePtr{NewRef{}, username},
-		client_name ? IntrusivePtr{NewRef{}, client_name}
+		zeek::IntrusivePtr{zeek::NewRef{}, username},
+		client_name ? zeek::IntrusivePtr{zeek::NewRef{}, client_name}
 		            : val_mgr->EmptyString(),
-		IntrusivePtr{AdoptRef{}, password},
-		make_intrusive<StringVal>(line)
+		zeek::IntrusivePtr{zeek::AdoptRef{}, password},
+		zeek::make_intrusive<StringVal>(line)
 	);
 	}
 
@@ -453,7 +453,7 @@ void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		make_intrusive<StringVal>(line)
+		zeek::make_intrusive<StringVal>(line)
 	);
 	}
 
@@ -465,8 +465,8 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 	if ( login_confused )
 		EnqueueConnEvent(login_confused,
 			ConnVal(),
-			make_intrusive<StringVal>(msg),
-			make_intrusive<StringVal>(line)
+			zeek::make_intrusive<StringVal>(msg),
+			zeek::make_intrusive<StringVal>(line)
 		);
 
 	if ( login_confused_text )
@@ -489,7 +489,7 @@ void Login_Analyzer::ConfusionText(const char* line)
 	if ( login_confused_text )
 		EnqueueConnEvent(login_confused_text,
 			ConnVal(),
-			make_intrusive<StringVal>(line)
+			zeek::make_intrusive<StringVal>(line)
 		);
 	}
 

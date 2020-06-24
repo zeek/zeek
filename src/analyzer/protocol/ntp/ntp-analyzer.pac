@@ -8,37 +8,37 @@
 %}
 
 %header{
-	IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t);
-	IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t);
-	IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm);
-	IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm);
-	IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7);
+	zeek::IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t);
+	zeek::IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t);
+	zeek::IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm);
+	zeek::IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm);
+	zeek::IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7);
 %}
 
 
 %code{
-	IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t)
+	zeek::IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0 )
-			return make_intrusive<IntervalVal>(0.0);
-		return make_intrusive<IntervalVal>(t->seconds() + t->fractions()*FRAC_16);
+			return zeek::make_intrusive<IntervalVal>(0.0);
+		return zeek::make_intrusive<IntervalVal>(t->seconds() + t->fractions()*FRAC_16);
 		}
 
-	IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t)
+	zeek::IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0)
-			return make_intrusive<TimeVal>(0.0);
-		return make_intrusive<TimeVal>(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32);
+			return zeek::make_intrusive<TimeVal>(0.0);
+		return zeek::make_intrusive<TimeVal>(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32);
 		}
 
 	// This builds the standard msg record
-	IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm)
+	zeek::IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm)
 		{
-		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::StandardMessage);
+		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::StandardMessage);
 
 		rv->Assign(0, val_mgr->Count(${nsm.stratum}));
-		rv->Assign(1, make_intrusive<IntervalVal>(pow(2, ${nsm.poll})));
-		rv->Assign(2, make_intrusive<IntervalVal>(pow(2, ${nsm.precision})));
+		rv->Assign(1, zeek::make_intrusive<IntervalVal>(pow(2, ${nsm.poll})));
+		rv->Assign(2, zeek::make_intrusive<IntervalVal>(pow(2, ${nsm.precision})));
 		rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
 		rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
 
@@ -54,7 +54,7 @@
 		default:
 			{
 			const uint8* d = ${nsm.reference_id}.data();
-			rv->Assign(7, make_intrusive<AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
+			rv->Assign(7, zeek::make_intrusive<AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
 			}
 			break;
 		}
@@ -85,9 +85,9 @@
 		}
 
 	// This builds the control msg record
-	IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm)
+	zeek::IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm)
 		{
-		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::ControlMessage);
+		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::ControlMessage);
 
 		rv->Assign(0, val_mgr->Count(${ncm.OpCode}));
 		rv->Assign(1, val_mgr->Bool(${ncm.R}));
@@ -110,9 +110,9 @@
 		}
 
 	// This builds the mode7 msg record
-	IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7)
+	zeek::IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7)
 		{
-		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Mode7Message);
+		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Mode7Message);
 
 		rv->Assign(0, val_mgr->Count(${m7.request_code}));
 		rv->Assign(1, val_mgr->Bool(${m7.auth_bit}));
@@ -138,7 +138,7 @@ refine flow NTP_Flow += {
 		if ( ! ntp_message )
 			return false;
 
-		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Message);
+		auto rv = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Message);
 		rv->Assign(0, val_mgr->Count(${msg.version}));
 		rv->Assign(1, val_mgr->Count(${msg.mode}));
 

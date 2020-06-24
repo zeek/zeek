@@ -11,7 +11,7 @@
 
 using namespace file_analysis;
 
-DataEvent::DataEvent(IntrusivePtr<RecordVal> args, File* file,
+DataEvent::DataEvent(zeek::IntrusivePtr<RecordVal> args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
 	                          std::move(args), file),
@@ -19,7 +19,7 @@ DataEvent::DataEvent(IntrusivePtr<RecordVal> args, File* file,
 	{
 	}
 
-file_analysis::Analyzer* DataEvent::Instantiate(IntrusivePtr<RecordVal> args,
+file_analysis::Analyzer* DataEvent::Instantiate(zeek::IntrusivePtr<RecordVal> args,
                                                 File* file)
 	{
 	const auto& chunk_val = args->GetField("chunk_event");
@@ -45,7 +45,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 
 	mgr.Enqueue(chunk_event,
 		GetFile()->ToVal(),
-		make_intrusive<StringVal>(new BroString(data, len, false)),
+		zeek::make_intrusive<StringVal>(new BroString(data, len, false)),
 		val_mgr->Count(offset)
 	);
 
@@ -58,7 +58,7 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 
 	mgr.Enqueue(stream_event,
 		GetFile()->ToVal(),
-		make_intrusive<StringVal>(new BroString(data, len, false))
+		zeek::make_intrusive<StringVal>(new BroString(data, len, false))
 	);
 
 	return true;

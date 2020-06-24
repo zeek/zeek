@@ -24,7 +24,7 @@ function Supervisor::__status%(node: string%): Supervisor::Status
 	if ( ! zeek::supervisor_mgr )
 		{
 		builtin_error("supervisor mode not enabled");
-		return make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
+		return zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
 		}
 
 	return zeek::supervisor_mgr->Status(node->CheckString());
@@ -35,11 +35,11 @@ function Supervisor::__create%(node: Supervisor::NodeConfig%): string
 	if ( ! zeek::supervisor_mgr )
 		{
 		builtin_error("supervisor mode not enabled");
-		return make_intrusive<StringVal>("supervisor mode not enabled");
+		return zeek::make_intrusive<StringVal>("supervisor mode not enabled");
 		}
 
 	auto rval = zeek::supervisor_mgr->Create(node->AsRecordVal());
-	return make_intrusive<StringVal>(rval);
+	return zeek::make_intrusive<StringVal>(rval);
 	%}
 
 function Supervisor::__destroy%(node: string%): bool
@@ -85,7 +85,7 @@ function Supervisor::__node%(%): Supervisor::NodeConfig
 		{
 		builtin_error("not a supervised process");
 		const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
-		auto rval = make_intrusive<RecordVal>(rt);
+		auto rval = zeek::make_intrusive<RecordVal>(rt);
 		rval->Assign<StringVal>(rt->FieldOffset("name"), "<invalid>");
 		return rval;
 		}

@@ -81,7 +81,7 @@ public:
 	/**
 	 * Returns record value of type "EncapsulatingConn" representing the tunnel.
 	 */
-	IntrusivePtr<RecordVal> ToVal() const;
+	zeek::IntrusivePtr<RecordVal> ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	RecordVal* GetRecordVal() const
@@ -196,9 +196,9 @@ public:
 	 * Get the value of type "EncapsulatingConnVector" represented by the
 	 * entire encapsulation chain.
 	 */
-	IntrusivePtr<VectorVal> ToVal() const
+	zeek::IntrusivePtr<VectorVal> ToVal() const
 		{
-		auto vv = make_intrusive<VectorVal>(
+		auto vv = zeek::make_intrusive<VectorVal>(
 		    zeek::id::find_type<zeek::VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )

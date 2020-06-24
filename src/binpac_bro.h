@@ -35,12 +35,12 @@ inline StringVal* bytestring_to_val(const_bytestring const &str)
 	return new StringVal(str.length(), (const char*) str.begin());
 	}
 
-inline IntrusivePtr<StringVal> to_stringval(const_bytestring const& str)
+inline zeek::IntrusivePtr<StringVal> to_stringval(const_bytestring const& str)
     {
-	return make_intrusive<StringVal>(str.length(), (const char*) str.begin());
+	return zeek::make_intrusive<StringVal>(str.length(), (const char*) str.begin());
     }
 
-IntrusivePtr<StringVal> utf16_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::IntrusivePtr<StringVal> utf16_to_utf8_val(Connection* conn, const bytestring& utf16);
 
 [[deprecated("Remove in v4.1.  Use utf16_to_utf8_val() instead.")]]
 StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16);

@@ -60,8 +60,8 @@ public:
 	// the test is whether it has any outstanding, un-acked data.
 	bool DataPending(TCP_Endpoint* closing_endp);
 
-	void SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f) override;
-	IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const override;
+	void SetContentsFile(unsigned int direction, zeek::IntrusivePtr<BroFile> f) override;
+	zeek::IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const override;
 
 	// From Analyzer.h
 	void UpdateConnVal(RecordVal *conn_val) override;

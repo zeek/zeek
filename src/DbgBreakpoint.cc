@@ -13,7 +13,6 @@
 #include "Scope.h"
 #include "Frame.h"
 #include "Func.h"
-#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Stmt.h"
 #include "Timer.h"

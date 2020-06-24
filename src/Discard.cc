@@ -93,7 +93,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			zeek::Args args{
 				ip->ToPktHdrVal(),
-				{AdoptRef{}, BuildData(data, th_len, len, caplen)},
+				{zeek::AdoptRef{}, BuildData(data, th_len, len, caplen)},
 			};
 
 			try
@@ -117,7 +117,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			zeek::Args args{
 				ip->ToPktHdrVal(),
-				{AdoptRef{}, BuildData(data, uh_len, len, caplen)},
+				{zeek::AdoptRef{}, BuildData(data, uh_len, len, caplen)},
 			};
 
 			try

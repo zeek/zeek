@@ -165,7 +165,7 @@ struct NSEC3_DATA {
 	BroString* nsec_salt;
 	unsigned short nsec_hlen;
 	BroString* nsec_hash;
-	IntrusivePtr<VectorVal> bitmaps;
+	zeek::IntrusivePtr<VectorVal> bitmaps;
 };
 
 struct DS_DATA {
@@ -179,14 +179,14 @@ class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
 
-	IntrusivePtr<RecordVal> BuildHdrVal();
-	IntrusivePtr<RecordVal> BuildAnswerVal();
-	IntrusivePtr<RecordVal> BuildEDNS_Val();
-	IntrusivePtr<RecordVal> BuildTSIG_Val(struct TSIG_DATA*);
-	IntrusivePtr<RecordVal> BuildRRSIG_Val(struct RRSIG_DATA*);
-	IntrusivePtr<RecordVal> BuildDNSKEY_Val(struct DNSKEY_DATA*);
-	IntrusivePtr<RecordVal> BuildNSEC3_Val(struct NSEC3_DATA*);
-	IntrusivePtr<RecordVal> BuildDS_Val(struct DS_DATA*);
+	zeek::IntrusivePtr<RecordVal> BuildHdrVal();
+	zeek::IntrusivePtr<RecordVal> BuildAnswerVal();
+	zeek::IntrusivePtr<RecordVal> BuildEDNS_Val();
+	zeek::IntrusivePtr<RecordVal> BuildTSIG_Val(struct TSIG_DATA*);
+	zeek::IntrusivePtr<RecordVal> BuildRRSIG_Val(struct RRSIG_DATA*);
+	zeek::IntrusivePtr<RecordVal> BuildDNSKEY_Val(struct DNSKEY_DATA*);
+	zeek::IntrusivePtr<RecordVal> BuildNSEC3_Val(struct NSEC3_DATA*);
+	zeek::IntrusivePtr<RecordVal> BuildDS_Val(struct DS_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -203,7 +203,7 @@ public:
 	int arcount;	///< number of additional RRs
 	int is_query;	///< whether it came from the session initiator
 
-	IntrusivePtr<StringVal> query_name;
+	zeek::IntrusivePtr<StringVal> query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
 	uint32_t ttl;

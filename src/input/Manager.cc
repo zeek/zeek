@@ -472,7 +472,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	auto idx_val = fval->GetFieldOrDefault("idx");
 	zeek::RecordType* idx = idx_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
-	IntrusivePtr<zeek::RecordType> val;
+	zeek::IntrusivePtr<zeek::RecordType> val;
 	auto val_val = fval->GetFieldOrDefault("val");
 
 	if ( val_val )
@@ -929,7 +929,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const zeek::RecordType *r
 			{
 			string name = nameprepend + rec->FieldName(i);
 			const char* secondary = nullptr;
-			IntrusivePtr<Val> c;
+			zeek::IntrusivePtr<Val> c;
 			zeek::TypeTag ty = rec->GetFieldType(i)->Tag();
 			zeek::TypeTag st = zeek::TYPE_VOID;
 			bool optional = false;
@@ -991,7 +991,7 @@ bool Manager::ForceUpdate(const string &name)
 
 Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	{
-	IntrusivePtr<Val> idxval;
+	zeek::IntrusivePtr<Val> idxval;
 
 	zeek::RecordType *type = r->GetType()->AsRecordType();
 
@@ -1002,7 +1002,7 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 
 	else
 		{
-		auto l = make_intrusive<ListVal>(zeek::TYPE_ANY);
+		auto l = zeek::make_intrusive<ListVal>(zeek::TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ )
 			l->Append(r->GetFieldOrDefault(j));
 
@@ -1031,11 +1031,11 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const zeek::Recor
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
 			if ( type->GetFieldType(j)->Tag() == zeek::TYPE_RECORD )
-				l->Append({AdoptRef{}, ValueToRecordVal(i, vals,
+				l->Append({zeek::AdoptRef{}, ValueToRecordVal(i, vals,
 				          type->GetFieldType(j)->AsRecordType(), &position, have_error)});
 			else
 				{
-				l->Append({AdoptRef{}, ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error)});
+				l->Append({zeek::AdoptRef{}, ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error)});
 				position++;
 				}
 			}
@@ -1159,7 +1159,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	// call stream first to determine if we really add / change the entry
 	if ( stream->pred && ! convert_error )
 		{
-		IntrusivePtr<EnumVal> ev;
+		zeek::IntrusivePtr<EnumVal> ev;
 		int startpos = 0;
 		bool pred_convert_error = false;
 		predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
@@ -1230,12 +1230,12 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 
 	assert(idxval);
 
-	IntrusivePtr<Val> oldval;
+	zeek::IntrusivePtr<Val> oldval;
 	if ( updated == true )
 		{
 		assert(stream->num_val_fields > 0);
 		// in that case, we need the old value to send the event (if we send an event).
-		oldval = stream->tab->Find({NewRef{}, idxval});
+		oldval = stream->tab->Find({zeek::NewRef{}, idxval});
 		}
 
 	auto k = stream->tab->MakeHashKey(*idxval);
@@ -1247,7 +1247,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
-	stream->tab->Assign({AdoptRef{}, idxval}, std::move(k), {AdoptRef{}, valval});
+	stream->tab->Assign({zeek::AdoptRef{}, idxval}, std::move(k), {zeek::AdoptRef{}, valval});
 
 	if ( predidx != nullptr )
 		Unref(predidx);
@@ -1326,9 +1326,9 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	while ( ( ih = stream->lastDict->NextEntry(lastDictIdxKey, c) ) )
 		{
-		IntrusivePtr<Val> val;
-		IntrusivePtr<Val> predidx;
-		IntrusivePtr<EnumVal> ev;
+		zeek::IntrusivePtr<Val> val;
+		zeek::IntrusivePtr<Val> predidx;
+		zeek::IntrusivePtr<EnumVal> ev;
 		int startpos = 0;
 
 		if ( stream->pred || stream->event )
@@ -1337,7 +1337,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			assert(idx != nullptr);
 			val = stream->tab->FindOrDefault(idx);
 			assert(val != nullptr);
-			predidx = {AdoptRef{}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
+			predidx = {zeek::AdoptRef{}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
 			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 			}
 
@@ -1541,12 +1541,12 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 	if ( stream->pred || stream->event )
 		{
 		bool updated = false;
-		IntrusivePtr<Val> oldval;
+		zeek::IntrusivePtr<Val> oldval;
 
 		if ( stream->num_val_fields > 0 )
 			{
 			// in that case, we need the old value to send the event (if we send an event).
-			oldval = stream->tab->Find({NewRef{}, idxval});
+			oldval = stream->tab->Find({zeek::NewRef{}, idxval});
 			}
 
 		if ( oldval != nullptr )
@@ -1559,7 +1559,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		// predicate if we want the update or not
 		if ( stream->pred )
 			{
-			IntrusivePtr<EnumVal> ev;
+			zeek::IntrusivePtr<EnumVal> ev;
 			int startpos = 0;
 			bool pred_convert_error = false;
 			Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
@@ -1593,7 +1593,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 
 			}
 
-		stream->tab->Assign({NewRef{}, idxval}, {AdoptRef{}, valval});
+		stream->tab->Assign({zeek::NewRef{}, idxval}, {zeek::AdoptRef{}, valval});
 
 		if ( stream->event )
 			{
@@ -1631,7 +1631,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		}
 
 	else // no predicates or other stuff
-		stream->tab->Assign({NewRef{}, idxval}, {AdoptRef{}, valval});
+		stream->tab->Assign({zeek::NewRef{}, idxval}, {zeek::AdoptRef{}, valval});
 
 	Unref(idxval); // not consumed by assign
 
@@ -1690,7 +1690,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 		if ( stream->pred || stream->event )
 			{
-			auto val = stream->tab->FindOrDefault({NewRef{}, idxval});
+			auto val = stream->tab->FindOrDefault({zeek::NewRef{}, idxval});
 
 			if ( stream->pred )
 				{
@@ -1703,7 +1703,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 					{
 					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 
-					streamresult = CallPred(stream->pred, 3, ev.release(), predidx, IntrusivePtr{val}.release());
+					streamresult = CallPred(stream->pred, 3, ev.release(), predidx, zeek::IntrusivePtr{val}.release());
 
 					if ( streamresult == false )
 						{
@@ -1721,7 +1721,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				Ref(idxval);
 				assert(val != nullptr);
 				auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
-				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval, IntrusivePtr{val}.release());
+				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval, zeek::IntrusivePtr{val}.release());
 				}
 			}
 
@@ -1765,7 +1765,7 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
+		vl.emplace_back(zeek::AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
@@ -1790,7 +1790,7 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
+		vl.emplace_back(zeek::AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
@@ -1809,7 +1809,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 #endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-		vl.emplace_back(AdoptRef{}, *i);
+		vl.emplace_back(zeek::AdoptRef{}, *i);
 
 	if ( ev )
 		mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
@@ -1821,7 +1821,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, zeek::RecordType *request_
 	{
 	assert(position != nullptr); // we need the pointer to point to data;
 
-	RecordVal* rec = new RecordVal({NewRef{}, request_type});
+	RecordVal* rec = new RecordVal({zeek::NewRef{}, request_type});
 
 	assert(list != nullptr);
 	int maxpos = list->Length();
@@ -1839,7 +1839,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, zeek::RecordType *request_
 			(*position)++;
 			}
 
-		rec->Assign(i, {NewRef{}, fieldVal});
+		rec->Assign(i, {zeek::NewRef{}, fieldVal});
 		}
 
 	return rec;
@@ -1851,7 +1851,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 	{
 	assert(position != nullptr); // we need the pointer to point to data.
 
-	RecordVal* rec = new RecordVal({NewRef{}, request_type});
+	RecordVal* rec = new RecordVal({zeek::NewRef{}, request_type});
 	for ( int i = 0; i < request_type->NumFields(); i++ )
 		{
 		Val* fieldVal = nullptr;
@@ -1876,7 +1876,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			}
 
 		if ( fieldVal )
-			rec->Assign(i, {AdoptRef{}, fieldVal});
+			rec->Assign(i, {zeek::AdoptRef{}, fieldVal});
 		}
 
 	return rec;
@@ -2255,15 +2255,15 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* request_
 		{
 		// all entries have to have the same type...
 		const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
-		auto set_index = make_intrusive<zeek::TypeList>(type);
+		auto set_index = zeek::make_intrusive<zeek::TypeList>(type);
 		set_index->Append(type);
-		auto s = make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
+		auto s = zeek::make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
 		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
 
-			t->Assign({AdoptRef{}, assignval}, nullptr);
+			t->Assign({zeek::AdoptRef{}, assignval}, nullptr);
 			}
 
 		return t;
@@ -2273,13 +2273,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* request_
 		{
 		// all entries have to have the same type...
 		const auto& type = request_type->AsVectorType()->Yield();
-		auto vt = make_intrusive<zeek::VectorType>(type);
-		auto v = make_intrusive<VectorVal>(std::move(vt));
+		auto vt = zeek::make_intrusive<zeek::VectorType>(type);
+		auto v = zeek::make_intrusive<VectorVal>(std::move(vt));
 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
-			v->Assign(j, {AdoptRef{}, el});
+			v->Assign(j, {zeek::AdoptRef{}, el});
 			}
 
 		return v.release();
@@ -2435,7 +2435,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 	// send our script level error event
 	if ( i->error_event )
 		{
-		IntrusivePtr<EnumVal> ev;
+		zeek::IntrusivePtr<EnumVal> ev;
 		switch (et)
 			{
 			case ErrorType::INFO:

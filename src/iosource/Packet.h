@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <string>
@@ -16,7 +17,10 @@ class Val;
 class ODesc;
 class IP_Hdr;
 class RecordVal;
+
+namespace zeek {
 template <class T> class IntrusivePtr;
+}
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -128,7 +132,7 @@ public:
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
 	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
-	IntrusivePtr<RecordVal> ToRawPktHdrVal() const;
+	zeek::IntrusivePtr<RecordVal> ToRawPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
@@ -225,7 +229,7 @@ private:
 	void Weird(const char* name);
 
 	// Renders an MAC address into its ASCII representation.
-	IntrusivePtr<Val> FmtEUI48(const u_char* mac) const;
+	zeek::IntrusivePtr<Val> FmtEUI48(const u_char* mac) const;
 
 	// True if we need to delete associated packet memory upon
 	// destruction.

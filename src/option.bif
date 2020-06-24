@@ -7,8 +7,8 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, const IntrusivePtr<zeek::detail::ID>& i,
-                                               IntrusivePtr<Val> val,
+static bool call_option_handlers_and_set_value(StringVal* name, const zeek::IntrusivePtr<zeek::detail::ID>& i,
+                                               zeek::IntrusivePtr<Val> val,
                                                StringVal* location)
 	{
 	if ( i->HasOptionHandlers() )
@@ -18,11 +18,11 @@ static bool call_option_handlers_and_set_value(StringVal* name, const IntrusiveP
 			bool add_loc = handler_function->GetType()->ParamList()->GetTypes().size() == 3;
 			zeek::Args vl;
 			vl.reserve(2 + add_loc);
-			vl.emplace_back(NewRef{}, name);
+			vl.emplace_back(zeek::NewRef{}, name);
 			vl.emplace_back(val);
 
 			if ( add_loc )
-				vl.emplace_back(NewRef{}, location);
+				vl.emplace_back(zeek::NewRef{}, location);
 
 			val = handler_function->Invoke(&vl); // consumed by next call.
 
@@ -102,8 +102,8 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		     val->GetType()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
-			auto tv = make_intrusive<TableVal>(
-			        cast_intrusive<TableType>(i->GetType()),
+			auto tv = zeek::make_intrusive<TableVal>(
+			        zeek::cast_intrusive<TableType>(i->GetType()),
 			        i->GetVal()->AsTableVal()->GetAttrs());
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
 			return val_mgr->Bool(rval);
@@ -114,7 +114,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->False();
 		}
 
-	auto rval = call_option_handlers_and_set_value(ID, i, {NewRef{}, val}, location);
+	auto rval = call_option_handlers_and_set_value(ID, i, {zeek::NewRef{}, val}, location);
 	return val_mgr->Bool(rval);
 	%}
 

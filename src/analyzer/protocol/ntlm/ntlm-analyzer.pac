@@ -1,25 +1,25 @@
 %header{
-	IntrusivePtr<Val> filetime2brotime(uint64_t ts);
-	IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val);
-	IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
+	zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts);
+	zeek::IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val);
+	zeek::IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
 %}
 
 %code{
 	// This is replicated from the SMB analyzer. :(
-	IntrusivePtr<Val> filetime2brotime(uint64_t ts)
+	zeek::IntrusivePtr<Val> filetime2brotime(uint64_t ts)
 		{
 		double secs = (ts / 10000000.0);
 
 		// Bro can't support times back to the 1600's
 		// so we subtract a lot of seconds.
-		auto bro_ts = make_intrusive<TimeVal>(secs - 11644473600.0);
+		auto bro_ts = zeek::make_intrusive<TimeVal>(secs - 11644473600.0);
 
 		return bro_ts;
 		}
 
-	IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val)
+	zeek::IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val)
 		{
-		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Version);
+		auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Version);
 		result->Assign(0, val_mgr->Count(${val.major_version}));
 		result->Assign(1, val_mgr->Count(${val.minor_version}));
 		result->Assign(2, val_mgr->Count(${val.build_number}));
@@ -28,9 +28,9 @@
 		return result;
 		}
 
-	IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
+	zeek::IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
 		{
-		auto flags = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
+		auto flags = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
 		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
 		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
 		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
@@ -117,7 +117,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_negotiate )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Negotiate);
+		auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
@@ -141,7 +141,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_challenge )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Challenge);
+		auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
@@ -151,7 +151,7 @@ refine connection NTLM_Conn += {
 			result->Assign(2, build_version_record(${val.version}));
 
 		if ( ${val}->has_target_info() )
-			result->Assign(3, {AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
+			result->Assign(3, {zeek::AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
 
 		zeek::BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
@@ -165,7 +165,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_authenticate )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Authenticate);
+		auto result = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )

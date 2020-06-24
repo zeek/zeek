@@ -26,7 +26,7 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-const IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
+const zeek::IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
 	{
 	if ( type )
 		return type;
@@ -44,11 +44,11 @@ const IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
 	return type;
 	}
 
-void EventHandler::SetFunc(IntrusivePtr<Func> f)
+void EventHandler::SetFunc(zeek::IntrusivePtr<Func> f)
 	{ local = std::move(f); }
 
 void EventHandler::SetLocalHandler(Func* f)
-	{ SetFunc({NewRef{}, f}); }
+	{ SetFunc({zeek::NewRef{}, f}); }
 
 void EventHandler::Call(zeek::Args* vl, bool no_remote)
 	{
@@ -118,7 +118,7 @@ void EventHandler::NewEvent(zeek::Args* vl)
 
 	const auto& args = GetType()->Params();
 	static auto call_argument_vector = zeek::id::find_type<zeek::VectorType>("call_argument_vector");
-	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
+	auto vargs = zeek::make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{
@@ -127,13 +127,13 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		auto fdefault = args->FieldDefault(i);
 
 		static auto call_argument = zeek::id::find_type<zeek::RecordType>("call_argument");
-		auto rec = make_intrusive<RecordVal>(call_argument);
-		rec->Assign(0, make_intrusive<StringVal>(fname));
+		auto rec = zeek::make_intrusive<RecordVal>(call_argument);
+		rec->Assign(0, zeek::make_intrusive<StringVal>(fname));
 
 		ODesc d;
 		d.SetShort();
 		ftype->Describe(&d);
-		rec->Assign(1, make_intrusive<StringVal>(d.Description()));
+		rec->Assign(1, zeek::make_intrusive<StringVal>(d.Description()));
 
 		if ( fdefault )
 			rec->Assign(2, std::move(fdefault));
@@ -145,7 +145,7 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		}
 
 	Event* ev = new Event(new_event, {
-		make_intrusive<StringVal>(name),
+		zeek::make_intrusive<StringVal>(name),
 		std::move(vargs),
 	});
 	mgr.Dispatch(ev);

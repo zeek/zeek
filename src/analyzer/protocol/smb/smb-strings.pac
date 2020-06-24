@@ -3,7 +3,7 @@
 %}
 
 %code{
-IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_t>* data)
+zeek::IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_t>* data)
 	{
 	int length = data->size();
 	auto buf = std::make_unique<uint8[]>(length);
@@ -15,7 +15,7 @@ IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<u
 	return utf16_to_utf8_val(bro_analyzer()->Conn(), bs);
 	}
 
-IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
+zeek::IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
 	{
 	if ( s->unicode() == false )
 		{
@@ -31,18 +31,18 @@ IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
 		if ( length > 0 && buf[length-1] == 0x00 )
 			length--;
 
-		return make_intrusive<StringVal>(length, buf.get());
+		return zeek::make_intrusive<StringVal>(length, buf.get());
 		}
 	else
 		return uint8s_to_stringval(s->u()->s());
 	}
 
-IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb_string2stringval(SMB_string* s)
+zeek::IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb_string2stringval(SMB_string* s)
 	{
 	return extract_string(s);
 	}
 
-IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string* s)
+zeek::IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string* s)
 	{
 	return uint8s_to_stringval(s->s());
 	}
@@ -50,10 +50,10 @@ IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string
 
 refine connection SMB_Conn += {
 	%member{
-		IntrusivePtr<StringVal> uint8s_to_stringval(std::vector<uint8_t>* data);
-		IntrusivePtr<StringVal> extract_string(SMB_string* s);
-		IntrusivePtr<StringVal> smb_string2stringval(SMB_string* s);
-		IntrusivePtr<StringVal> smb2_string2stringval(SMB2_string* s);
+		zeek::IntrusivePtr<StringVal> uint8s_to_stringval(std::vector<uint8_t>* data);
+		zeek::IntrusivePtr<StringVal> extract_string(SMB_string* s);
+		zeek::IntrusivePtr<StringVal> smb_string2stringval(SMB_string* s);
+		zeek::IntrusivePtr<StringVal> smb2_string2stringval(SMB2_string* s);
 
 		SMB_unicode_string* me;
 	%}

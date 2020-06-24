@@ -79,10 +79,11 @@ void File_Analyzer::Identify()
 	                               : *(matches.begin()->second.begin());
 
 	if ( file_transferred )
-		EnqueueConnEvent(file_transferred,
+		EnqueueConnEvent(
+			file_transferred,
 			ConnVal(),
-			make_intrusive<StringVal>(buffer_len, buffer),
-			make_intrusive<StringVal>("<unknown>"),
-			make_intrusive<StringVal>(match)
+			zeek::make_intrusive<StringVal>(buffer_len, buffer),
+			zeek::make_intrusive<StringVal>("<unknown>"),
+			zeek::make_intrusive<StringVal>(match)
 		);
 	}

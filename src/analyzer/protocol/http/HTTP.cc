@@ -613,14 +613,14 @@ HTTP_Message::~HTTP_Message()
 	delete [] entity_data_buffer;
 	}
 
-IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
+zeek::IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	{
 	static auto http_message_stat = zeek::id::find_type<zeek::RecordType>("http_message_stat");
-	auto stat = make_intrusive<RecordVal>(http_message_stat);
+	auto stat = zeek::make_intrusive<RecordVal>(http_message_stat);
 	int field = 0;
-	stat->Assign(field++, make_intrusive<TimeVal>(start_time));
+	stat->Assign(field++, zeek::make_intrusive<TimeVal>(start_time));
 	stat->Assign(field++, val_mgr->Bool(interrupted));
-	stat->Assign(field++, make_intrusive<StringVal>(msg));
+	stat->Assign(field++, zeek::make_intrusive<StringVal>(msg));
 	stat->Assign(field++, val_mgr->Count(body_length));
 	stat->Assign(field++, val_mgr->Count(content_gap_length));
 	stat->Assign(field++, val_mgr->Count(header_length));
@@ -1153,11 +1153,11 @@ void HTTP_Analyzer::GenStats()
 	if ( http_stats )
 		{
 		static auto http_stats_rec = zeek::id::find_type<zeek::RecordType>("http_stats_rec");
-		auto r = make_intrusive<RecordVal>(http_stats_rec);
+		auto r = zeek::make_intrusive<RecordVal>(http_stats_rec);
 		r->Assign(0, val_mgr->Count(num_requests));
 		r->Assign(1, val_mgr->Count(num_replies));
-		r->Assign(2, make_intrusive<DoubleVal>(request_version.ToDouble()));
-		r->Assign(3, make_intrusive<DoubleVal>(reply_version.ToDouble()));
+		r->Assign(2, zeek::make_intrusive<DoubleVal>(request_version.ToDouble()));
+		r->Assign(3, zeek::make_intrusive<DoubleVal>(reply_version.ToDouble()));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
 		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));
@@ -1242,7 +1242,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		return -1;
 		}
 
-	request_method = make_intrusive<StringVal>(end_of_method - line, line);
+	request_method = zeek::make_intrusive<StringVal>(end_of_method - line, line);
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
@@ -1312,8 +1312,8 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 
 	// NormalizeURI(line, end_of_uri);
 
-	request_URI = make_intrusive<StringVal>(end_of_uri - line, line);
-	unescaped_URI = make_intrusive<StringVal>(
+	request_URI = zeek::make_intrusive<StringVal>(end_of_uri - line, line);
+	unescaped_URI = zeek::make_intrusive<StringVal>(
 	    unescape_URI((const u_char*) line, (const u_char*) end_of_uri, this));
 
 	return true;
@@ -1352,21 +1352,21 @@ void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber n
 
 void HTTP_Analyzer::HTTP_Event(const char* category, const char* detail)
 	{
-	HTTP_Event(category, make_intrusive<StringVal>(detail));
+	HTTP_Event(category, zeek::make_intrusive<StringVal>(detail));
 	}
 
-void HTTP_Analyzer::HTTP_Event(const char* category, IntrusivePtr<StringVal> detail)
+void HTTP_Analyzer::HTTP_Event(const char* category, zeek::IntrusivePtr<StringVal> detail)
 	{
 	if ( http_event )
 		// DEBUG_MSG("%.6f http_event\n", network_time);
 		EnqueueConnEvent(http_event,
 			ConnVal(),
-			make_intrusive<StringVal>(category),
+			zeek::make_intrusive<StringVal>(category),
 			std::move(detail));
 	}
 
-IntrusivePtr<StringVal>
-HTTP_Analyzer::TruncateURI(const IntrusivePtr<StringVal>& uri)
+zeek::IntrusivePtr<StringVal>
+HTTP_Analyzer::TruncateURI(const zeek::IntrusivePtr<StringVal>& uri)
 	{
 	const BroString* str = uri->AsString();
 
@@ -1375,7 +1375,7 @@ HTTP_Analyzer::TruncateURI(const IntrusivePtr<StringVal>& uri)
 		u_char* s = new u_char[truncate_http_URI + 4];
 		memcpy(s, str->Bytes(), truncate_http_URI);
 		memcpy(s + truncate_http_URI, "...", 4);
-		return make_intrusive<StringVal>(new BroString(true, s, truncate_http_URI+3));
+		return zeek::make_intrusive<StringVal>(new BroString(true, s, truncate_http_URI+3));
 		}
 	else
 		return uri;
@@ -1398,7 +1398,7 @@ void HTTP_Analyzer::HTTP_Request()
 			request_method,
 			TruncateURI(request_URI),
 			TruncateURI(unescaped_URI),
-			make_intrusive<StringVal>(fmt("%.1f", request_version.ToDouble()))
+			zeek::make_intrusive<StringVal>(fmt("%.1f", request_version.ToDouble()))
 		);
 	}
 
@@ -1407,11 +1407,11 @@ void HTTP_Analyzer::HTTP_Reply()
 	if ( http_reply )
 		EnqueueConnEvent(http_reply,
 			ConnVal(),
-			make_intrusive<StringVal>(fmt("%.1f", reply_version.ToDouble())),
+			zeek::make_intrusive<StringVal>(fmt("%.1f", reply_version.ToDouble())),
 			val_mgr->Count(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase :
-				make_intrusive<StringVal>("<empty>")
+				zeek::make_intrusive<StringVal>("<empty>")
 		);
 	else
 		reply_reason_phrase = nullptr;
@@ -1473,7 +1473,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 		if ( http_connection_upgrade )
 			EnqueueConnEvent(http_connection_upgrade,
 				ConnVal(),
-				make_intrusive<StringVal>(upgrade_protocol)
+				zeek::make_intrusive<StringVal>(upgrade_protocol)
 			);
 		}
 
@@ -1551,7 +1551,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 
 	rest = skip_whitespace(rest, end_of_line);
 	reply_reason_phrase =
-	    make_intrusive<StringVal>(end_of_line - rest, (const char *) rest);
+	    zeek::make_intrusive<StringVal>(end_of_line - rest, (const char *) rest);
 
 	return 1;
 	}
@@ -1655,7 +1655,7 @@ void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
 			ConnVal(),
 			val_mgr->Bool(is_orig),
 			val_mgr->Count(entity_data->Len()),
-			make_intrusive<StringVal>(entity_data)
+			zeek::make_intrusive<StringVal>(entity_data)
 		);
 	else
 		delete entity_data;

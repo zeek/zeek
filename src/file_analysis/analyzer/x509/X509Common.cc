@@ -17,7 +17,7 @@
 using namespace file_analysis;
 
 X509Common::X509Common(const file_analysis::Tag& arg_tag,
-                       IntrusivePtr<RecordVal> arg_args, File* arg_file)
+                       zeek::IntrusivePtr<RecordVal> arg_args, File* arg_file)
 	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{
 	}
@@ -268,15 +268,15 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 		}
 
 	if ( ! ext_val )
-		ext_val = make_intrusive<StringVal>(0, "");
+		ext_val = zeek::make_intrusive<StringVal>(0, "");
 
-	auto pX509Ext = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
+	auto pX509Ext = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::X509::Extension);
+	pX509Ext->Assign(0, zeek::make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
+		pX509Ext->Assign(1, zeek::make_intrusive<StringVal>(short_name));
 
-	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
+	pX509Ext->Assign(2, zeek::make_intrusive<StringVal>(oid));
 	pX509Ext->Assign(3, val_mgr->Bool(critical));
 	pX509Ext->Assign(4, ext_val);
 
@@ -298,7 +298,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
+zeek::IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -331,7 +331,7 @@ IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio,
 		}
 
 	BIO_read(bio, (void*) buffer, length);
-	auto ext_val = make_intrusive<StringVal>(length, buffer);
+	auto ext_val = zeek::make_intrusive<StringVal>(length, buffer);
 
 	free(buffer);
 	BIO_free_all(bio);

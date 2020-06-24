@@ -11,7 +11,10 @@
 #include <map>
 #include <string>
 
+namespace zeek {
 template <class T> class IntrusivePtr;
+}
+
 class Val;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
@@ -162,7 +165,7 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-IntrusivePtr<Val> dbg_eval_expr(const char* expr);
+zeek::IntrusivePtr<Val> dbg_eval_expr(const char* expr);
 
 // Extra debugging facilities.
 // TODO: current connections, memory allocated, other internal data structures.

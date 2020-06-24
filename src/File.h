@@ -45,7 +45,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* FType() const	{ return t.get(); }
 
-	const IntrusivePtr<zeek::Type>& GetType() const
+	const zeek::IntrusivePtr<zeek::Type>& GetType() const
 		{ return t; }
 
 	// Whether the file is open in a general sense; it might
@@ -72,7 +72,7 @@ public:
 	static void CloseOpenFiles();
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
-	static IntrusivePtr<BroFile> Get(const char* name);
+	static zeek::IntrusivePtr<BroFile> Get(const char* name);
 	[[deprecated("Remove in v4.1.  Use BroFile::Get().")]]
 	static BroFile* GetFile(const char* name)
 		{ return Get(name).release(); }
@@ -106,7 +106,7 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	IntrusivePtr<zeek::Type> t;
+	zeek::IntrusivePtr<zeek::Type> t;
 	char* name;
 	char* access;
 	zeek::detail::Attributes* attrs;

@@ -923,9 +923,9 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	vl.emplace_back(val_mgr->Bool(is_orig));
 
 	if ( arg1 )
-		vl.emplace_back(make_intrusive<StringVal>(arg1));
+		vl.emplace_back(zeek::make_intrusive<StringVal>(arg1));
 	if ( arg2 )
-		vl.emplace_back(make_intrusive<StringVal>(arg2));
+		vl.emplace_back(zeek::make_intrusive<StringVal>(arg2));
 
 	EnqueueConnEvent(event, std::move(vl));
 	}

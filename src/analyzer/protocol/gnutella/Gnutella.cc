@@ -73,7 +73,7 @@ void Gnutella_Analyzer::Done()
 			if ( ! p->msg_sent && p->msg_pos )
 				EnqueueConnEvent(gnutella_partial_binary_msg,
 					ConnVal(),
-					make_intrusive<StringVal>(p->msg),
+					zeek::make_intrusive<StringVal>(p->msg),
 					val_mgr->Bool((i == 0)),
 					val_mgr->Count(p->msg_pos)
 				);
@@ -179,7 +179,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 				EnqueueConnEvent(gnutella_text_msg,
 					ConnVal(),
 					val_mgr->Bool(orig),
-					make_intrusive<StringVal>(ms->headers.data())
+					zeek::make_intrusive<StringVal>(ms->headers.data())
 				);
 
 			ms->headers = "";
@@ -221,7 +221,7 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 			val_mgr->Count(p->msg_ttl),
 			val_mgr->Count(p->msg_hops),
 			val_mgr->Count(p->msg_len),
-			make_intrusive<StringVal>(p->payload),
+			zeek::make_intrusive<StringVal>(p->payload),
 			val_mgr->Count(p->payload_len),
 			val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
 			val_mgr->Bool((p->payload_left == 0))

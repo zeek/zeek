@@ -35,13 +35,13 @@ public:
 	 *
 	 * @return The X509 extension value.
 	 */
-	static IntrusivePtr<StringVal> GetExtensionFromBIO(BIO* bio, File* f = nullptr);
+	static zeek::IntrusivePtr<StringVal> GetExtensionFromBIO(BIO* bio, File* f = nullptr);
 
 	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
 
 protected:
 	X509Common(const file_analysis::Tag& arg_tag,
-	           IntrusivePtr<RecordVal> arg_args, File* arg_file);
+	           zeek::IntrusivePtr<RecordVal> arg_args, File* arg_file);
 
 	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);

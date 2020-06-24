@@ -70,8 +70,8 @@ function Files::__stop%(file_id: string%): bool
 ## :zeek:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	const auto& n = file_mgr->GetComponentName(IntrusivePtr{NewRef{}, tag->AsEnumVal()});
-	return make_intrusive<StringVal>(n);
+	const auto& n = file_mgr->GetComponentName(zeek::IntrusivePtr{zeek::NewRef{}, tag->AsEnumVal()});
+	return zeek::make_intrusive<StringVal>(n);
 	%}
 
 ## :zeek:see:`Files::file_exists`.

@@ -397,7 +397,7 @@ private:
 
 	size_t log_batch_size;
 	Func* log_topic_func;
-	IntrusivePtr<zeek::VectorType> vector_of_data_type;
+	zeek::IntrusivePtr<zeek::VectorType> vector_of_data_type;
 	zeek::EnumType* log_id_type;
 	zeek::EnumType* writer_id_type;
 

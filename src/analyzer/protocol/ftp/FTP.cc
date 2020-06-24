@@ -98,8 +98,8 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		vl = {
 			ConnVal(),
-			IntrusivePtr{AdoptRef{}, cmd_str},
-			make_intrusive<StringVal>(end_of_line - line, line),
+			zeek::IntrusivePtr{zeek::AdoptRef{}, cmd_str},
+			zeek::make_intrusive<StringVal>(end_of_line - line, line),
 		};
 
 		f = ftp_request;
@@ -178,7 +178,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		vl = {
 			ConnVal(),
 			val_mgr->Count(reply_code),
-			make_intrusive<StringVal>(end_of_line - line, line),
+			zeek::make_intrusive<StringVal>(end_of_line - line, line),
 			val_mgr->Bool(cont_resp)
 		};
 

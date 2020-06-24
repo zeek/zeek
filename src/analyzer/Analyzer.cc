@@ -710,18 +710,18 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	if ( ! protocol_violation )
 		return;
 
-	IntrusivePtr<StringVal> r;
+	zeek::IntrusivePtr<StringVal> r;
 
 	if ( data && len )
 		{
 		const char *tmp = copy_string(reason);
-		r = make_intrusive<StringVal>(fmt("%s [%s%s]", tmp,
-					fmt_bytes(data, min(40, len)),
-					len > 40 ? "..." : ""));
+		r = zeek::make_intrusive<StringVal>(fmt("%s [%s%s]", tmp,
+		                                        fmt_bytes(data, min(40, len)),
+		                                        len > 40 ? "..." : ""));
 		delete [] tmp;
 		}
 	else
-		r = make_intrusive<StringVal>(reason);
+		r = zeek::make_intrusive<StringVal>(reason);
 
 	const auto& tval = tag.AsVal();
 	mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
@@ -794,7 +794,7 @@ RecordVal* Analyzer::BuildConnVal()
 	return conn->ConnVal()->Ref()->AsRecordVal();
 	}
 
-const IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+const zeek::IntrusivePtr<RecordVal>& Analyzer::ConnVal()
 	{
 	return conn->ConnVal();
 	}
@@ -806,8 +806,8 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 
 void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	{
-	IntrusivePtr val1{AdoptRef{}, v1};
-	IntrusivePtr val2{AdoptRef{}, v2};
+	zeek::IntrusivePtr val1{zeek::AdoptRef{}, v1};
+	zeek::IntrusivePtr val2{zeek::AdoptRef{}, v2};
 
 	if ( f )
 		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
@@ -926,12 +926,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-						IntrusivePtr<BroFile> /* f */)
+                                             zeek::IntrusivePtr<BroFile> /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-IntrusivePtr<BroFile> TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+zeek::IntrusivePtr<BroFile> TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;
@@ -942,7 +942,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	if ( packet_contents && len > 0 )
 		{
 		BroString* cbs = new BroString(data, len, true);
-		auto contents = make_intrusive<StringVal>(cbs);
+		auto contents = zeek::make_intrusive<StringVal>(cbs);
 		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}
 	}

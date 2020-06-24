@@ -169,7 +169,7 @@ public:
 	/**
 	 * Returns the associated "connection" record.
 	 */
-	const IntrusivePtr<RecordVal>& ConnVal();
+	const zeek::IntrusivePtr<RecordVal>& ConnVal();
 
 	void AppendAddl(const char* str);
 
@@ -235,7 +235,7 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	    std::tuple_element_t<0, std::tuple<Args...>>, zeek::IntrusivePtr<Val>>>
 	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
 		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -355,7 +355,7 @@ protected:
 	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
-	IntrusivePtr<RecordVal> conn_val;
+	zeek::IntrusivePtr<RecordVal> conn_val;
 	LoginConn* login_conn;	// either nil, or this
 	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.

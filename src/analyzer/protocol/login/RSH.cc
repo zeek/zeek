@@ -175,16 +175,16 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	vl.emplace_back(ConnVal());
 
 	if ( client_name )
-		vl.emplace_back(NewRef{}, client_name);
+		vl.emplace_back(zeek::NewRef{}, client_name);
 	else
-		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+		vl.emplace_back(zeek::make_intrusive<StringVal>("<none>"));
 
 	if ( username )
-		vl.emplace_back(NewRef{}, username);
+		vl.emplace_back(zeek::NewRef{}, username);
 	else
-		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+		vl.emplace_back(zeek::make_intrusive<StringVal>("<none>"));
 
-	vl.emplace_back(make_intrusive<StringVal>(line));
+	vl.emplace_back(zeek::make_intrusive<StringVal>(line));
 
 	if ( orig )
 		{

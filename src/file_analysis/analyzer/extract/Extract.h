@@ -47,7 +47,7 @@ public:
 	 * @return the new Extract analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(zeek::IntrusivePtr<RecordVal> args,
 	                                            File* file);
 
 	/**
@@ -67,7 +67,7 @@ protected:
 	 *        to which the contents of the file will be extracted/written.
 	 * @param arg_limit the maximum allowed file size.
 	 */
-	Extract(IntrusivePtr<RecordVal> args, File* file,
+	Extract(zeek::IntrusivePtr<RecordVal> args, File* file,
 	        const std::string& arg_filename, uint64_t arg_limit);
 
 private:

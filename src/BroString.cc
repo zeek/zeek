@@ -340,13 +340,13 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 
 VectorVal* BroString:: VecToPolicy(Vec* vec)
 	{
-	auto result = make_intrusive<VectorVal>(zeek::id::string_vec);
+	auto result = zeek::make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
 		BroString* string = (*vec)[i];
-		auto val = make_intrusive<StringVal>(string->Len(),
-		                                     (const char*) string->Bytes());
+		auto val = zeek::make_intrusive<StringVal>(string->Len(),
+		                                           (const char*) string->Bytes());
 		result->Assign(i+1, std::move(val));
 		}
 

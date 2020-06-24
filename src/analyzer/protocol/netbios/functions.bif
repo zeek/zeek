@@ -34,7 +34,7 @@ function decode_netbios_name%(name: string%): string
 			break;
 		}
 
-	return make_intrusive<StringVal>(i, result);
+	return zeek::make_intrusive<StringVal>(i, result);
 	%}
 
 ## Converts a NetBIOS name type to its corresponding numeric value.

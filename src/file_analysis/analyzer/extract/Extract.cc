@@ -10,7 +10,7 @@
 
 using namespace file_analysis;
 
-Extract::Extract(IntrusivePtr<RecordVal> args, File* file,
+Extract::Extract(zeek::IntrusivePtr<RecordVal> args, File* file,
                  const std::string& arg_filename, uint64_t arg_limit)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
                               std::move(args), file),
@@ -33,8 +33,8 @@ Extract::~Extract()
 		safe_close(fd);
 	}
 
-static const IntrusivePtr<Val>& get_extract_field_val(const IntrusivePtr<RecordVal>& args,
-                                                      const char* name)
+static const zeek::IntrusivePtr<Val>& get_extract_field_val(const zeek::IntrusivePtr<RecordVal>& args,
+                                                            const char* name)
 	{
 	const auto& rval = args->GetField(name);
 
@@ -44,7 +44,7 @@ static const IntrusivePtr<Val>& get_extract_field_val(const IntrusivePtr<RecordV
 	return rval;
 	}
 
-file_analysis::Analyzer* Extract::Instantiate(IntrusivePtr<RecordVal> args, File* file)
+file_analysis::Analyzer* Extract::Instantiate(zeek::IntrusivePtr<RecordVal> args, File* file)
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");

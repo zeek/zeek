@@ -51,8 +51,8 @@ protected:
 	[[deprecated("Remove in v4.1.  Use ToEthAddrStr().")]]
 	StringVal* EthAddrToStr(const u_char* addr);
 
-	IntrusivePtr<AddrVal> ToAddrVal(const void* addr);
-	IntrusivePtr<StringVal> ToEthAddrStr(const u_char* addr);
+	zeek::IntrusivePtr<AddrVal> ToAddrVal(const void* addr);
+	zeek::IntrusivePtr<StringVal> ToEthAddrStr(const u_char* addr);
 	void BadARP(const struct arp_pkthdr* hdr, const char* string);
 	void Corrupted(const char* string);
 };

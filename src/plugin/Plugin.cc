@@ -375,7 +375,7 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
-std::pair<bool, IntrusivePtr<Val>>
+std::pair<bool, zeek::IntrusivePtr<Val>>
 Plugin::HookFunctionCall(const Func* func, Frame* parent,
                          zeek::Args* args)
 	{
@@ -390,9 +390,9 @@ Plugin::HookFunctionCall(const Func* func, Frame* parent,
 #pragma GCC diagnostic pop
 
 	for ( auto i = 0u; i < args->size(); ++i )
-		(*args)[i] = {AdoptRef{}, vlargs[i]};
+		(*args)[i] = {zeek::AdoptRef{}, vlargs[i]};
 
-	return {handled, {AdoptRef{}, result}};
+	return {handled, {zeek::AdoptRef{}, result}};
 	}
 
 std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)

@@ -24,7 +24,9 @@ class EventHandlerPtr;
 class RecordVal;
 class StringVal;
 
+namespace zeek {
 template <class T> class IntrusivePtr;
+}
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -97,7 +99,7 @@ public:
 	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> uid,
+	void Weird(zeek::IntrusivePtr<RecordVal> conn_id, zeek::IntrusivePtr<StringVal> uid,
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 

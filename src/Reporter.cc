@@ -417,7 +417,7 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	            "%s", name);
 	}
 
-void Reporter::Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> uid,
+void Reporter::Weird(zeek::IntrusivePtr<RecordVal> conn_id, zeek::IntrusivePtr<StringVal> uid,
                      const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
@@ -558,19 +558,19 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(make_intrusive<TimeVal>(network_time ? network_time : current_time()));
+			vl.emplace_back(zeek::make_intrusive<TimeVal>(network_time ? network_time : current_time()));
 
-		vl.emplace_back(make_intrusive<StringVal>(buffer));
+		vl.emplace_back(zeek::make_intrusive<StringVal>(buffer));
 
 		if ( location )
-			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
+			vl.emplace_back(zeek::make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
 			vl.emplace_back(conn->ConnVal());
 
 		if ( addl )
 			for ( auto v : *addl )
-				vl.emplace_back(AdoptRef{}, v);
+				vl.emplace_back(zeek::AdoptRef{}, v);
 
 		if ( conn )
 			conn->EnqueueEvent(event, nullptr, std::move(vl));

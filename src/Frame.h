@@ -43,7 +43,7 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
-	const IntrusivePtr<Val>& GetElement(int n) const
+	const zeek::IntrusivePtr<Val>& GetElement(int n) const
 		{ return frame[n].val; }
 
 	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
@@ -54,7 +54,7 @@ public:
 	 * @param n the index to set
 	 * @param v the value to set it to
 	 */
-	void SetElement(int n, IntrusivePtr<Val> v);
+	void SetElement(int n, zeek::IntrusivePtr<Val> v);
 
 	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]]
 	void SetElement(int n, Val* v);
@@ -66,8 +66,8 @@ public:
 	 * @param id the ID to associate
 	 * @param v the value to associate it with
 	 */
-	void SetElement(const zeek::detail::ID* id, IntrusivePtr<Val> v);
-	void SetElement(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<Val> v)
+	void SetElement(const zeek::detail::ID* id, zeek::IntrusivePtr<Val> v);
+	void SetElement(const zeek::IntrusivePtr<zeek::detail::ID>& id, zeek::IntrusivePtr<Val> v)
 		{ SetElement(id.get(), std::move(v)); }
 
 	/**
@@ -77,7 +77,7 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<zeek::detail::ID>& id) const
+	const zeek::IntrusivePtr<Val>& GetElementByID(const zeek::IntrusivePtr<zeek::detail::ID>& id) const
 		{ return GetElementByID(id.get()); }
 
 	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
@@ -195,7 +195,7 @@ public:
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
 	 */
-	static std::pair<bool, IntrusivePtr<Frame>> Unserialize(const broker::vector& data);
+	static std::pair<bool, zeek::IntrusivePtr<Frame>> Unserialize(const broker::vector& data);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will
@@ -216,7 +216,7 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger);
+	void SetTrigger(zeek::IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger);
 	void ClearTrigger();
 	zeek::detail::trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
@@ -241,13 +241,13 @@ private:
 	using OffsetMap = std::unordered_map<std::string, int>;
 
 	struct Element {
-		IntrusivePtr<Val> val;
+		zeek::IntrusivePtr<Val> val;
 		// Weak reference is used to prevent circular reference memory leaks
 		// in lambdas/closures.
 		bool weak_ref;
 	};
 
-	const IntrusivePtr<Val>& GetElementByID(const zeek::detail::ID* id) const;
+	const zeek::IntrusivePtr<Val>& GetElementByID(const zeek::detail::ID* id) const;
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*, but does
@@ -322,7 +322,7 @@ private:
 	/** The next statement to be evaluted in the context of this frame. */
 	zeek::detail::Stmt* next_stmt;
 
-	IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
+	zeek::IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
 	const zeek::detail::CallExpr* call;
 
 	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;

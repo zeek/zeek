@@ -41,9 +41,8 @@ static void describe_hook_args(const plugin::HookArgumentList& args, ODesc* d)
 		}
 	}
 
-std::pair<bool, IntrusivePtr<Val>> Plugin::HookFunctionCall(const Func* func,
-                                                            Frame* frame,
-                                                            zeek::Args* args)
+std::pair<bool, zeek::IntrusivePtr<Val>> Plugin::HookFunctionCall(
+	const Func* func, Frame* frame, zeek::Args* args)
 	{
 	ODesc d;
 	d.SetShort();

@@ -22,10 +22,10 @@ public:
 protected:
 	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
 
-	IntrusivePtr<Func> check_ip;
-	IntrusivePtr<Func> check_tcp;
-	IntrusivePtr<Func> check_udp;
-	IntrusivePtr<Func> check_icmp;
+	zeek::IntrusivePtr<Func> check_ip;
+	zeek::IntrusivePtr<Func> check_tcp;
+	zeek::IntrusivePtr<Func> check_udp;
+	zeek::IntrusivePtr<Func> check_icmp;
 
 	// Maximum amount of application data passed to filtering functions.
 	int discarder_maxlen;

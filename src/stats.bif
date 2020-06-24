@@ -4,19 +4,19 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 
-IntrusivePtr<zeek::RecordType> ProcStats;
-IntrusivePtr<zeek::RecordType> NetStats;
-IntrusivePtr<zeek::RecordType> MatcherStats;
-IntrusivePtr<zeek::RecordType> ReassemblerStats;
-IntrusivePtr<zeek::RecordType> DNSStats;
-IntrusivePtr<zeek::RecordType> ConnStats;
-IntrusivePtr<zeek::RecordType> GapStats;
-IntrusivePtr<zeek::RecordType> EventStats;
-IntrusivePtr<zeek::RecordType> ThreadStats;
-IntrusivePtr<zeek::RecordType> TimerStats;
-IntrusivePtr<zeek::RecordType> FileAnalysisStats;
-IntrusivePtr<zeek::RecordType> BrokerStats;
-IntrusivePtr<zeek::RecordType> ReporterStats;
+zeek::IntrusivePtr<zeek::RecordType> ProcStats;
+zeek::IntrusivePtr<zeek::RecordType> NetStats;
+zeek::IntrusivePtr<zeek::RecordType> MatcherStats;
+zeek::IntrusivePtr<zeek::RecordType> ReassemblerStats;
+zeek::IntrusivePtr<zeek::RecordType> DNSStats;
+zeek::IntrusivePtr<zeek::RecordType> ConnStats;
+zeek::IntrusivePtr<zeek::RecordType> GapStats;
+zeek::IntrusivePtr<zeek::RecordType> EventStats;
+zeek::IntrusivePtr<zeek::RecordType> ThreadStats;
+zeek::IntrusivePtr<zeek::RecordType> TimerStats;
+zeek::IntrusivePtr<zeek::RecordType> FileAnalysisStats;
+zeek::IntrusivePtr<zeek::RecordType> BrokerStats;
+zeek::IntrusivePtr<zeek::RecordType> ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
@@ -54,7 +54,7 @@ function get_net_stats%(%): NetStats
 		bytes_recv += stat.bytes_received;
 		}
 
-	auto r = make_intrusive<RecordVal>(NetStats);
+	auto r = zeek::make_intrusive<RecordVal>(NetStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(recv));
@@ -83,7 +83,7 @@ function get_net_stats%(%): NetStats
 ##              get_reporter_stats
 function get_conn_stats%(%): ConnStats
 	%{
-	auto r = make_intrusive<RecordVal>(ConnStats);
+	auto r = zeek::make_intrusive<RecordVal>(ConnStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(Connection::TotalConnections()));
@@ -137,7 +137,7 @@ function get_proc_stats%(%): ProcStats
 	if ( getrusage(RUSAGE_SELF, &ru) < 0 )
 		reporter->InternalError("getrusage() failed in get_proc_stats()");
 
-	auto r = make_intrusive<RecordVal>(ProcStats);
+	auto r = zeek::make_intrusive<RecordVal>(ProcStats);
 	int n = 0;
 
 	double elapsed_time = current_time() - bro_start_time;
@@ -152,11 +152,11 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, val_mgr->Count(0));
 #endif
 
-	r->Assign(n++, make_intrusive<TimeVal>(bro_start_time));
+	r->Assign(n++, zeek::make_intrusive<TimeVal>(bro_start_time));
 
-	r->Assign(n++, make_intrusive<IntervalVal>(elapsed_time, Seconds));
-	r->Assign(n++, make_intrusive<IntervalVal>(user_time, Seconds));
-	r->Assign(n++, make_intrusive<IntervalVal>(system_time, Seconds));
+	r->Assign(n++, zeek::make_intrusive<IntervalVal>(elapsed_time, Seconds));
+	r->Assign(n++, zeek::make_intrusive<IntervalVal>(user_time, Seconds));
+	r->Assign(n++, zeek::make_intrusive<IntervalVal>(system_time, Seconds));
 
 	uint64_t total_mem;
 	get_memory_usage(&total_mem, NULL);
@@ -190,7 +190,7 @@ function get_proc_stats%(%): ProcStats
 ##              get_reporter_stats
 function get_event_stats%(%): EventStats
 	%{
-	auto r = make_intrusive<RecordVal>(EventStats);
+	auto r = zeek::make_intrusive<RecordVal>(EventStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(num_events_queued));
@@ -217,7 +217,7 @@ function get_event_stats%(%): EventStats
 ##              get_reporter_stats
 function get_reassembler_stats%(%): ReassemblerStats
 	%{
-	auto r = make_intrusive<RecordVal>(ReassemblerStats);
+	auto r = zeek::make_intrusive<RecordVal>(ReassemblerStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FILE)));
@@ -246,7 +246,7 @@ function get_reassembler_stats%(%): ReassemblerStats
 ##              get_reporter_stats
 function get_dns_stats%(%): DNSStats
 	%{
-	auto r = make_intrusive<RecordVal>(DNSStats);
+	auto r = zeek::make_intrusive<RecordVal>(DNSStats);
 	int n = 0;
 
 	DNS_Mgr::Stats dstats;
@@ -280,7 +280,7 @@ function get_dns_stats%(%): DNSStats
 ##              get_reporter_stats
 function get_timer_stats%(%): TimerStats
 	%{
-	auto r = make_intrusive<RecordVal>(TimerStats);
+	auto r = zeek::make_intrusive<RecordVal>(TimerStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(unsigned(timer_mgr->Size())));
@@ -308,7 +308,7 @@ function get_timer_stats%(%): TimerStats
 ##              get_reporter_stats
 function get_file_analysis_stats%(%): FileAnalysisStats
 	%{
-	auto r = make_intrusive<RecordVal>(FileAnalysisStats);
+	auto r = zeek::make_intrusive<RecordVal>(FileAnalysisStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(file_mgr->CurrentFiles()));
@@ -336,7 +336,7 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 ##              get_reporter_stats
 function get_thread_stats%(%): ThreadStats
 	%{
-	auto r = make_intrusive<RecordVal>(ThreadStats);
+	auto r = zeek::make_intrusive<RecordVal>(ThreadStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(thread_mgr->NumThreads()));
@@ -362,7 +362,7 @@ function get_thread_stats%(%): ThreadStats
 ##              get_reporter_stats
 function get_gap_stats%(%): GapStats
 	%{
-	auto r = make_intrusive<RecordVal>(GapStats);
+	auto r = zeek::make_intrusive<RecordVal>(GapStats);
 	int n = 0;
 
 	r->Assign(n++, val_mgr->Count(tot_ack_events));
@@ -394,7 +394,7 @@ function get_gap_stats%(%): GapStats
 ##              get_reporter_stats
 function get_matcher_stats%(%): MatcherStats
 	%{
-	auto r = make_intrusive<RecordVal>(MatcherStats);
+	auto r = zeek::make_intrusive<RecordVal>(MatcherStats);
 	int n = 0;
 
 	RuleMatcher::Stats s;
@@ -432,7 +432,7 @@ function get_matcher_stats%(%): MatcherStats
 ##              get_reporter_stats
 function get_broker_stats%(%): BrokerStats
 	%{
-	auto r = make_intrusive<RecordVal>(BrokerStats);
+	auto r = zeek::make_intrusive<RecordVal>(BrokerStats);
 	int n = 0;
 
 	auto cs = broker_mgr->GetStatistics();
@@ -467,14 +467,14 @@ function get_broker_stats%(%): BrokerStats
 ##              get_broker_stats
 function get_reporter_stats%(%): ReporterStats
 	%{
-	auto r = make_intrusive<RecordVal>(ReporterStats);
+	auto r = zeek::make_intrusive<RecordVal>(ReporterStats);
 	int n = 0;
 
-	auto weirds_by_type = make_intrusive<TableVal>(zeek::id::find_type<TableType>("table_string_of_count"));
+	auto weirds_by_type = zeek::make_intrusive<TableVal>(zeek::id::find_type<TableType>("table_string_of_count"));
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{
-		auto weird = make_intrusive<StringVal>(kv.first);
+		auto weird = zeek::make_intrusive<StringVal>(kv.first);
 		weirds_by_type->Assign(std::move(weird), val_mgr->Count(kv.second));
 		}
 

@@ -12,7 +12,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_request )
 			{
-			auto request = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXRequest);
+			auto request = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXRequest);
 
 			request->Assign(0, val_mgr->Count(${val.word_count}));
 			switch ( ${val.word_count} ) {
@@ -31,7 +31,7 @@ refine connection SMB_Conn += {
 					break;
 				case 12:	// NT LM 0.12 with extended security
 					{
-					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
+					auto capabilities = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
 				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_extended_security.capabilities.unicode}));
 				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_extended_security.capabilities.large_files}));
 				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_smbs}));
@@ -53,7 +53,7 @@ refine connection SMB_Conn += {
 
 				case 13: // NT LM 0.12 without extended security
 					{
-					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
+					auto capabilities = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
 				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.unicode}));
 				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.large_files}));
 				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_smbs}));
@@ -90,7 +90,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_response )
 			{
-			auto response = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXResponse);
+			auto response = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXResponse);
 			response->Assign(0, val_mgr->Count(${val.word_count}));
 
 			switch ( ${val.word_count} )

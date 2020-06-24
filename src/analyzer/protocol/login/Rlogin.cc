@@ -132,7 +132,7 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 					}
 				}
 			else
-				{ 
+				{
 				// Unknown control, or we're confused.
 				// Put back what we've consumed.
 				unsigned char buf[64];
@@ -246,6 +246,6 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
 			ConnVal(),
-			make_intrusive<StringVal>(s)
+			zeek::make_intrusive<StringVal>(s)
 		);
 	}

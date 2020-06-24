@@ -170,10 +170,10 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	// Call function with a signature_state value as argument.
 	zeek::Args args;
 	args.reserve(2);
-	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
+	args.emplace_back(zeek::AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
+		args.emplace_back(zeek::make_intrusive<StringVal>(len, (const char*) data));
 	else
 		args.emplace_back(val_mgr->EmptyString());
 

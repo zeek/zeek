@@ -51,13 +51,13 @@ protected:
 
 	void Describe(ODesc* d) const;
 
-	IntrusivePtr<RecordVal> BuildICMPVal(const struct icmp* icmpp, int len,
+	zeek::IntrusivePtr<RecordVal> BuildICMPVal(const struct icmp* icmpp, int len,
 	                                     int icmpv6, const IP_Hdr* ip_hdr);
 
 	void NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr );
 
-	IntrusivePtr<RecordVal> ExtractICMP4Context(int len, const u_char*& data);
+	zeek::IntrusivePtr<RecordVal> ExtractICMP4Context(int len, const u_char*& data);
 
 	void Context4(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr);
@@ -68,15 +68,15 @@ protected:
 	void NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr );
 
-	IntrusivePtr<RecordVal> ExtractICMP6Context(int len, const u_char*& data);
+	zeek::IntrusivePtr<RecordVal> ExtractICMP6Context(int len, const u_char*& data);
 
 	void Context6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr);
 
 	// RFC 4861 Neighbor Discover message options
-	IntrusivePtr<VectorVal> BuildNDOptionsVal(int caplen, const u_char* data);
+	zeek::IntrusivePtr<VectorVal> BuildNDOptionsVal(int caplen, const u_char* data);
 
-	IntrusivePtr<RecordVal> icmp_conn_val;
+	zeek::IntrusivePtr<RecordVal> icmp_conn_val;
 	int type;
 	int code;
 	int request_len, reply_len;
@@ -84,7 +84,7 @@ protected:
 	RuleMatcherState matcher_state;
 
 private:
-	void UpdateEndpointVal(const IntrusivePtr<Val>& endp, bool is_orig);
+	void UpdateEndpointVal(const zeek::IntrusivePtr<Val>& endp, bool is_orig);
 };
 
 // Returns the counterpart type to the given type (e.g., the counterpart

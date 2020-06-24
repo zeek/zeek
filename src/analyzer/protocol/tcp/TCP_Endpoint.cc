@@ -240,7 +240,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 					Conn()->ConnVal(),
 					val_mgr->Bool(IsOrig()),
-					make_intrusive<StringVal>(buf)
+					zeek::make_intrusive<StringVal>(buf)
 				);
 			}
 		}
@@ -254,7 +254,7 @@ void TCP_Endpoint::AckReceived(uint64_t seq)
 		contents_processor->AckReceived(seq);
 	}
 
-void TCP_Endpoint::SetContentsFile(IntrusivePtr<BroFile> f)
+void TCP_Endpoint::SetContentsFile(zeek::IntrusivePtr<BroFile> f)
 	{
 	contents_file = std::move(f);
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);

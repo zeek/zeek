@@ -1,5 +1,4 @@
 #include "ZeekArgs.h"
-#include "IntrusivePtr.h"
 #include "Val.h"
 
 zeek::Args zeek::val_list_to_args(const val_list& vl)
@@ -8,8 +7,7 @@ zeek::Args zeek::val_list_to_args(const val_list& vl)
 	rval.reserve(vl.length());
 
 	for ( auto& v : vl )
-		rval.emplace_back(AdoptRef{}, v);
+		rval.emplace_back(zeek::AdoptRef{}, v);
 
 	return rval;
 	}
-

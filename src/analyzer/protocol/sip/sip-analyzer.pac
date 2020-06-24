@@ -3,7 +3,7 @@ refine flow SIP_Flow += {
 	%member{
 		int content_length;
 		bool build_headers;
-		std::vector<IntrusivePtr<Val>> headers;
+		std::vector<zeek::IntrusivePtr<Val>> headers;
 	%}
 
 	%init{
@@ -59,7 +59,7 @@ refine flow SIP_Flow += {
 
 		if ( build_headers )
 			{
-			headers.push_back({AdoptRef{}, build_sip_header_val(name, value)});
+			headers.push_back({zeek::AdoptRef{}, build_sip_header_val(name, value)});
 			}
 
 		return true;
@@ -84,7 +84,7 @@ refine flow SIP_Flow += {
 		if ( sip_all_headers )
 			{
 			zeek::BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							   is_orig(), {AdoptRef{}, build_sip_headers_val()});
+							   is_orig(), {zeek::AdoptRef{}, build_sip_headers_val()});
 			}
 
 		headers.clear();
@@ -104,12 +104,12 @@ refine flow SIP_Flow += {
 		%{
 		static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
 		RecordVal* header_record = new RecordVal(mime_header_rec);
-		IntrusivePtr<StringVal> name_val;
+		zeek::IntrusivePtr<StringVal> name_val;
 
 		if ( name.length() > 0 )
 			{
 			// Make it all uppercase.
-			name_val = make_intrusive<StringVal>(name.length(), (const char*) name.begin());
+			name_val = zeek::make_intrusive<StringVal>(name.length(), (const char*) name.begin());
 			name_val->ToUpper();
 			}
 		else

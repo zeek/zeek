@@ -42,13 +42,13 @@ function Broker::__create_master%(id: string, b: BackendType,
 	auto rval = broker_mgr->LookupStore(name);
 
 	if ( rval )
-		return IntrusivePtr<Val>{NewRef{}, rval};
+		return zeek::IntrusivePtr<Val>{zeek::NewRef{}, rval};
 
 	auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
 	auto type = bro_broker::to_backend_type(e);
 	auto opts = bro_broker::to_backend_options(type, options->AsRecordVal());
 
-	IntrusivePtr<Val> store{AdoptRef{}, broker_mgr->MakeMaster(name, type, std::move(opts))};
+	zeek::IntrusivePtr<Val> store{zeek::AdoptRef{}, broker_mgr->MakeMaster(name, type, std::move(opts))};
 
 	if ( ! store )
 		{
@@ -68,12 +68,12 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 	auto rval = broker_mgr->LookupStore(name);
 
 	if ( rval )
-		return IntrusivePtr<Val>{NewRef{}, rval};
+		return zeek::IntrusivePtr<Val>{zeek::NewRef{}, rval};
 
-	IntrusivePtr<Val> store {AdoptRef{},
-	                         broker_mgr->MakeClone(name, resync_interval,
-	                                               stale_interval,
-	                                               mutation_buffer_interval)};
+	zeek::IntrusivePtr<Val> store {zeek::AdoptRef{},
+	                               broker_mgr->MakeClone(name, resync_interval,
+	                                                     stale_interval,
+	                                                     mutation_buffer_interval)};
 
 	if ( ! store )
 		{
@@ -121,7 +121,7 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return make_intrusive<StringVal>(handle->store.name());
+	return zeek::make_intrusive<StringVal>(handle->store.name());
 	%}
 
 function Broker::__exists%(h: opaque of Broker::Store,
@@ -293,7 +293,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 		builtin_error("invalid Broker data conversion for index argument");
 		return bro_broker::query_result();
 		}
-	
+
 	auto trigger = frame->GetTrigger();
 
 	if ( ! trigger )

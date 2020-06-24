@@ -89,7 +89,7 @@ function Broker::make_event%(...%): Broker::Event
 	for ( auto i = 0u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
 
-	return IntrusivePtr<RecordVal>{AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
+	return zeek::IntrusivePtr<RecordVal>{zeek::AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
 	%}
 
 ## Publishes an event at a given topic.
@@ -187,7 +187,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
 
-	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
@@ -224,7 +224,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
 
-	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )

@@ -17,11 +17,11 @@ struct Field;
 
 namespace bro_broker {
 
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_data_type;
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_set_iterator;
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_table_iterator;
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_vector_iterator;
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_record_iterator;
+extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_data_type;
+extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_set_iterator;
+extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_table_iterator;
+extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_vector_iterator;
+extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_record_iterator;
 
 /**
  * Convert a broker port protocol to a bro port protocol.
@@ -34,14 +34,14 @@ TransportProto to_bro_port_proto(broker::port::protocol tp);
  * @return a Broker::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
-IntrusivePtr<RecordVal> make_data_val(Val* v);
+zeek::IntrusivePtr<RecordVal> make_data_val(Val* v);
 
 /**
  * Create a Broker::Data value from a Broker data value.
  * @param d the Broker value to wrap in an opaque type.
  * @return a Broker::Data value that wraps the Broker value.
  */
-IntrusivePtr<RecordVal> make_data_val(broker::data d);
+zeek::IntrusivePtr<RecordVal> make_data_val(broker::data d);
 
 /**
  * Get the type of Broker data that Broker::Data wraps.
@@ -49,7 +49,7 @@ IntrusivePtr<RecordVal> make_data_val(broker::data d);
  * @param frame used to get location info upon error.
  * @return a Broker::DataType value.
  */
-IntrusivePtr<EnumVal> get_data_type(RecordVal* v, Frame* frame);
+zeek::IntrusivePtr<EnumVal> get_data_type(RecordVal* v, Frame* frame);
 
 /**
  * Convert a Bro value to a Broker data value.
@@ -65,7 +65,7 @@ broker::expected<broker::data> val_to_data(const Val* v);
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-IntrusivePtr<Val> data_to_val(broker::data d, zeek::Type* type);
+zeek::IntrusivePtr<Val> data_to_val(broker::data d, zeek::Type* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.
@@ -109,13 +109,13 @@ public:
 
 	void ValDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Val> castTo(zeek::Type* t);
+	zeek::IntrusivePtr<Val> castTo(zeek::Type* t);
 	bool canCastTo(zeek::Type* t) const;
 
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static const IntrusivePtr<zeek::Type>& ScriptDataType();
+	static const zeek::IntrusivePtr<zeek::Type>& ScriptDataType();
 
 	broker::data data;
 

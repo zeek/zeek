@@ -11,24 +11,24 @@
 
 namespace bro_broker {
 
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
+extern zeek::IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-IntrusivePtr<EnumVal> query_status(bool success);
+zeek::IntrusivePtr<EnumVal> query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a failure.
  */
-inline IntrusivePtr<RecordVal> query_result()
+inline zeek::IntrusivePtr<RecordVal> query_result()
 	{
-	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
+	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data));
+	rval->Assign(1, zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data));
 	return rval;
 	}
 
@@ -37,9 +37,9 @@ inline IntrusivePtr<RecordVal> query_result()
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a success.
  */
-inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
+inline zeek::IntrusivePtr<RecordVal> query_result(zeek::IntrusivePtr<RecordVal> data)
 	{
-	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
+	auto rval = zeek::make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(true));
 	rval->Assign(1, std::move(data));
 	return rval;
@@ -62,7 +62,7 @@ public:
 		Unref(trigger);
 		}
 
-	void Result(const IntrusivePtr<RecordVal>& result)
+	void Result(const zeek::IntrusivePtr<RecordVal>& result)
 		{
 		trigger->Cache(call, result.get());
 		trigger->Release();
@@ -104,8 +104,8 @@ public:
 
 protected:
 
-	IntrusivePtr<Val> DoClone(CloneState* state) override
-		{ return {NewRef{}, this}; }
+	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override
+		{ return { zeek::NewRef{}, this }; }
 
 	StoreHandleVal()
 		: OpaqueVal(bro_broker::opaque_of_store_handle)

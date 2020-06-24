@@ -69,8 +69,6 @@ protected:
 	bool IsAggrTag(TypeTag tag) const;
 	bool IsAggr(const Expr* e) const;
 
-	bool ControlCouldReachEnd(const Stmt* s, bool ignore_break) const;
-
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);
 
 	void CreateInitPostDef(const ID* id, DefinitionPoint dp,
@@ -263,10 +261,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		mgr.SetPreFromPost(i->FalseBranch(), cond);
 		i->FalseBranch()->Traverse(this);
 
-		auto true_reached =
-			ControlCouldReachEnd(i->TrueBranch(), false);
-		auto false_reached =
-			ControlCouldReachEnd(i->FalseBranch(), false);
+		auto true_reached = ! i->TrueBranch()->NoFlowAfter(false);
+		auto false_reached = ! i->FalseBranch()->NoFlowAfter(false);
 
 		if ( true_reached && false_reached )
 			DoIfStmtConfluence(i);
@@ -462,7 +458,7 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 		if ( bd->pre_RDs.size() > 0 )
 			reporter->InternalError("mispropagation of switch body defs");
 
-		if ( ! ControlCouldReachEnd(body, true) )
+		if ( body->NoFlowAfter(true) )
 			// Post RDs for this block are irrelevant.
 			continue;
 
@@ -577,7 +573,9 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 	auto s_min_pre = mgr.GetPreMinRDs(s);
 	auto s_max_pre = mgr.GetPreMaxRDs(s);
 
-	if ( ControlCouldReachEnd(body, false) )
+	if ( body->NoFlowAfter(false) )
+		mgr.CreatePostRDs(s, s_min_pre, s_max_pre);
+	else
 		{
 		auto body_min_post = mgr.GetPostMinRDs(body);
 		auto body_max_post = mgr.GetPostMaxRDs(body);
@@ -590,9 +588,6 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		min_post_rds.release();
 		max_post_rds.release();
 		}
-
-	else
-		mgr.CreatePostRDs(s, s_min_pre, s_max_pre);
 
 	delete bd;
 	}
@@ -636,11 +631,10 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// No RDs make it past a return.  It's tempting to alter
 		// this for inlined "caught" returns, since changes to
 		// globals *do* make it past them.  However, doing so
-		// is inconsistent with ControlCouldReachEnd() treating
-		// such returns as not having control flow go beyond them;
-		// and changing ControlCouldReachEnd() would be incorrect
-		// since it's about *immediate* control flow, not broader
-		// control flow.
+		// is inconsistent with NoFlowAfter() treating such returns
+		// as not having control flow go beyond them; and changing
+		// NoFlowAfter() would be incorrect since it's about
+		// *immediate* control flow, not broader control flow.
 		CreateEmptyPostRDs(s);
 		break;
 
@@ -846,84 +840,6 @@ bool RD_Decorate::IsAggr(const Expr* e) const
 	auto tag = id->Type()->Tag();
 
 	return IsAggrTag(tag);
-	}
-
-bool RD_Decorate::ControlCouldReachEnd(const Stmt* s, bool ignore_break) const
-	{
-	switch ( s->Tag() ) {
-	case STMT_RETURN:
-	case STMT_NEXT:
-		return false;
-
-	case STMT_BREAK:
-		return ignore_break;
-
-	case STMT_FOR:
-	case STMT_WHILE:
-		// The loop body might not execute at all.
-		return true;
-
-	case STMT_IF:
-		{
-		auto i = s->AsIfStmt();
-
-		if ( ControlCouldReachEnd(i->TrueBranch(), ignore_break) )
-			return true;
-
-		return ControlCouldReachEnd(i->FalseBranch(), ignore_break);
-		}
-
-	case STMT_SWITCH:
-		{
-		auto sw = s->AsSwitchStmt();
-		auto cases = sw->Cases();
-
-		bool control_reaches_end = false;
-		bool default_seen = false;
-		for ( const auto& c : *cases )
-			{
-			bool body_def = ControlCouldReachEnd(c->Body(), true);
-
-			if ( body_def )
-				control_reaches_end = true;
-
-			if ( (! c->ExprCases() ||
-			      c->ExprCases()->Exprs().length() == 0) &&
-			     (! c->TypeCases() ||
-			      c->TypeCases()->length() == 0) )
-				default_seen = true;
-			}
-
-		if ( ! default_seen )
-			return true;
-
-		return control_reaches_end;
-		}
-
-	case STMT_LIST:
-		{
-		auto l = s->AsStmtList();
-
-		bool reaches_so_far = true;
-
-		for ( const auto& stmt : l->Stmts() )
-			{
-			if ( ! reaches_so_far )
-				{
-				// printf("dead code: %s\n", obj_desc(stmt));
-				return false;
-				}
-
-			if ( ! ControlCouldReachEnd(stmt, ignore_break) )
-				reaches_so_far = false;
-			}
-
-		return reaches_so_far;
-		}
-
-	default:
-		return true;
-	}
 	}
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)

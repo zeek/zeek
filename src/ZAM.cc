@@ -670,6 +670,7 @@ bool ZAM::CollapseGoTos()
 				--t->num_labels;
 				t = t->target;
 				i0->target = t;
+				++t->num_labels;
 				}
 			while ( t->IsUnconditionalBranch() );
 			}

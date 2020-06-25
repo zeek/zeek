@@ -2658,49 +2658,8 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	if ( is_parsing )
 		parse_time_records[t].emplace_back(NewRef{}, this);
 
-	if ( ! init_fields )
-		return;
-
-	// Initialize to default values from RecordType (which are nil
-	// by default).
-	for ( int i = 0; i < n; ++i )
-		{
-		Attributes* a = t->FieldDecl(i)->attrs.get();
-		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
-		auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
-		BroType* type = t->FieldDecl(i)->type.get();
-
-		if ( def && type->Tag() == TYPE_RECORD &&
-		     def->Type()->Tag() == TYPE_RECORD &&
-		     ! same_type(def->Type(), type) )
-			{
-			auto tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
-
-			if ( tmp )
-				def = std::move(tmp);
-			}
-
-		if ( ! def && ! (a && a->FindAttr(ATTR_OPTIONAL)) )
-			{
-			TypeTag tag = type->Tag();
-
-			if ( tag == TYPE_RECORD )
-				def = make_intrusive<RecordVal>(type->AsRecordType());
-
-			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
-				                               IntrusivePtr{NewRef{}, a});
-
-			else if ( tag == TYPE_VECTOR )
-				def = make_intrusive<VectorVal>(type->AsVectorType());
-			}
-
-		if ( def )
-			{
-			auto zvu = ZAMValUnion(def, type);
-			val.record_val->Assign(i, zvu);
-			}
-		}
+	if ( init_fields )
+		t->Create(val.record_val);
 	}
 
 RecordVal::~RecordVal()

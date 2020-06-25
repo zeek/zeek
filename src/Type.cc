@@ -624,12 +624,11 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 
 	managed_fields = 0;
 
-	if ( types )
-		{
-		loop_over_list(*types, i)
-			if ( IsManagedType((*types)[i]->type) )
-				managed_fields |= (1UL << i);
-		}
+	if ( ! types )
+		return;
+
+	loop_over_list(*types, i)
+		AddField(i, (*types)[i]);
 	}
 
 // in this case the clone is actually not so shallow, since
@@ -651,6 +650,69 @@ RecordType::~RecordType()
 
 		delete types;
 		}
+
+	for ( auto i : field_inits )
+		delete i.direct_init;
+	}
+
+void RecordType::AddField(int field, const TypeDecl* td)
+	{
+	ASSERT(field == field_inits.size());
+
+	if ( IsManagedType(td->type) )
+		managed_fields |= (1UL << field);
+
+	FieldInit init;
+	init.init_type = FieldInit::R_INIT_NONE;
+
+	init.attrs = td->attrs;
+	auto a = init.attrs;
+
+	Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
+	auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
+	BroType* type = td->type.get();
+
+	if ( def && type->Tag() == TYPE_RECORD &&
+	     def->Type()->Tag() == TYPE_RECORD &&
+	     ! same_type(def->Type(), type) )
+		{
+		auto tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
+
+		if ( tmp )
+			def = std::move(tmp);
+		}
+
+	if ( ! def && ! (a && a->FindAttr(ATTR_OPTIONAL)) )
+		{
+		TypeTag tag = type->Tag();
+
+		if ( tag == TYPE_RECORD )
+			{
+			init.init_type = FieldInit::R_INIT_RECORD;
+			init.r_type = type->AsRecordType();
+			}
+
+		else if ( tag == TYPE_TABLE )
+			{
+			init.init_type = FieldInit::R_INIT_TABLE;
+			init.t_type = {NewRef{}, type->AsTableType()};
+			}
+
+		else if ( tag == TYPE_VECTOR )
+			{
+			init.init_type = FieldInit::R_INIT_VECTOR;
+			init.v_type = type->AsVectorType();
+			}
+		}
+
+	if ( def )
+		{
+		init.init_type = FieldInit::R_INIT_DIRECT;
+		init.direct_init = new ZAMValUnion(def, type);
+		init.direct_is_managed = IsManagedType(type);
+		}
+
+	field_inits.push_back(init);
 	}
 
 bool RecordType::HasField(const char* field) const
@@ -850,7 +912,9 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( IsManagedType(td->type) )
 			managed_fields |= (1UL << types->size());
 
+		int field = types->size();
 		types->push_back(td);
+		AddField(field, td);
 		}
 
 	delete others;
@@ -859,6 +923,40 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 	RecordVal::ResizeParseTimeRecords(this);
 	TableVal::RebuildParseTimeTables();
 	return nullptr;
+	}
+
+void RecordType::Create(ZAM_record* r) const
+	{
+	int n = r->Size();
+
+	for ( int i = 0; i < n; ++i )
+		{
+		auto& init = field_inits[i];
+
+		switch ( init.init_type ) {
+		case FieldInit::R_INIT_NONE:
+			break;
+
+		case FieldInit::R_INIT_DIRECT:
+			r->SetField(i) = *init.direct_init;
+			if ( init.direct_is_managed )
+				r->RefField(i);
+			break;
+
+		case FieldInit::R_INIT_RECORD:
+			r->SetField(i).record_val = new RecordVal(init.r_type);
+			break;
+
+		case FieldInit::R_INIT_TABLE:
+			r->SetField(i).table_val =
+				new TableVal(init.t_type, init.attrs);
+			break;
+
+		case FieldInit::R_INIT_VECTOR:
+			r->SetField(i).vector_val = new VectorVal(init.v_type);
+			break;
+		}
+		}
 	}
 
 void RecordType::DescribeFields(ODesc* d) const

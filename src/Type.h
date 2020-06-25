@@ -133,6 +133,8 @@ class TypeType;
 class OpaqueType;
 class EnumVal;
 class TableVal;
+class TypeDecl;
+class ZAM_record;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -548,6 +550,9 @@ public:
 	// Takes ownership of list.
 	const char* AddFields(type_decl_list* types, attr_list* attr);
 
+	// Returns a new, fully initialized instance of the record.
+	void Create(ZAM_record* r) const;
+
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
@@ -570,9 +575,40 @@ public:
 protected:
 	RecordType() { types = 0; }
 
+	void AddField(int field, const TypeDecl* td);
+
 	int num_fields;
 	type_decl_list* types;
 	ZRM_flags managed_fields;
+
+	// The following tracks how to initialize any given field,
+	// for fast execution of Create().
+	class FieldInit {
+	public:
+		enum {
+			R_INIT_NONE,	// skip this entry
+
+			R_INIT_DIRECT,	// look in direct_init[] for raw value
+
+			R_INIT_RECORD,	// field requires a new record
+			R_INIT_TABLE,	// field requires a new table/set
+			R_INIT_VECTOR,	// field requires a new vector
+		} init_type;
+
+		// We use a pointer here rather than a direct ZAMValUnion as
+		// (1) it's cleaner for fields that don't have a direct raw
+		// value, and (2) we don't need to include ZVal.h in Type.h.
+		union ZAMValUnion* direct_init = nullptr;
+		bool direct_is_managed;
+
+		RecordType* r_type;	// for R_INIT_RECORD
+
+		IntrusivePtr<TableType> t_type;	// for R_INIT_TABLE
+		IntrusivePtr<Attributes> attrs;
+
+		VectorType* v_type;	// for R_INIT_VECTOR
+	};
+	std::vector<FieldInit> field_inits;
 };
 
 class SubNetType : public BroType {

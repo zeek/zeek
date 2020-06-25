@@ -272,6 +272,10 @@ public:
 	void ClearField(unsigned int field)
 		{ is_in_record &= ~(1UL << field); }
 
+	// Used for a slight speed gain in RecordType::Create().
+	void RefField(unsigned int field)
+		{ ::Ref(zvec[field].managed_val); }
+
 	ZAMValUnion& Lookup(unsigned int field, bool& error)
 		{
 		error = false;

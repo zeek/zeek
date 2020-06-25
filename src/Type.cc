@@ -707,9 +707,12 @@ void RecordType::AddField(int field, const TypeDecl* td)
 
 	if ( def )
 		{
-		init.init_type = FieldInit::R_INIT_DIRECT;
+		if ( IsManagedType(type) )
+			init.init_type = FieldInit::R_INIT_DIRECT_MANAGED;
+		else
+			init.init_type = FieldInit::R_INIT_DIRECT;
+
 		init.direct_init = new ZAMValUnion(def, type);
-		init.direct_is_managed = IsManagedType(type);
 		}
 
 	field_inits.push_back(init);
@@ -939,8 +942,11 @@ void RecordType::Create(ZAM_record* r) const
 
 		case FieldInit::R_INIT_DIRECT:
 			r->SetField(i) = *init.direct_init;
-			if ( init.direct_is_managed )
-				r->RefField(i);
+			break;
+
+		case FieldInit::R_INIT_DIRECT_MANAGED:
+			r->SetField(i) = *init.direct_init;
+			r->RefField(i);
 			break;
 
 		case FieldInit::R_INIT_RECORD:

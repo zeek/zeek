@@ -589,6 +589,7 @@ protected:
 			R_INIT_NONE,	// skip this entry
 
 			R_INIT_DIRECT,	// look in direct_init[] for raw value
+			R_INIT_DIRECT_MANAGED,	// same, but managed type
 
 			R_INIT_RECORD,	// field requires a new record
 			R_INIT_TABLE,	// field requires a new table/set

@@ -236,8 +236,11 @@ protected:
 
 
 extern void builtin_error(const char* msg);
-extern void builtin_error(const char* msg, IntrusivePtr<Val>);
+extern void builtin_error(const char* msg, const IntrusivePtr<Val>& arg);
 extern void builtin_error(const char* msg, BroObj* arg);
+extern void builtin_exception(const char* msg);
+extern void builtin_exception(const char* msg, const IntrusivePtr<Val>& arg);
+extern void builtin_exception(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
 

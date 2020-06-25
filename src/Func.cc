@@ -663,29 +663,50 @@ void BuiltinFunc::Describe(ODesc* d) const
 	d->AddCount(is_pure);
 	}
 
-void builtin_error(const char* msg)
-	{
-	builtin_error(msg, IntrusivePtr<Val>{});
-	}
-
-void builtin_error(const char* msg, IntrusivePtr<Val> arg)
-	{
-	builtin_error(msg, arg.get());
-	}
-
-void builtin_error(const char* msg, BroObj* arg)
+static void builtin_error_common(const char* msg, BroObj* arg, bool unwind)
 	{
 	auto emit = [=](const zeek::detail::CallExpr* ce)
 		{
 		if ( ce )
-			ce->Error(msg, arg);
+			{
+			if ( unwind )
+				{
+				if ( arg )
+					{
+					ODesc d;
+					arg->Describe(&d);
+					reporter->ExprRuntimeError(ce, "%s (%s), during call:", msg,
+					                           d.Description());
+					}
+				else
+					reporter->ExprRuntimeError(ce, "%s", msg);
+				}
+			else
+				ce->Error(msg, arg);
+			}
 		else
-			reporter->Error(msg, arg);
+			{
+			if ( arg )
+				{
+				if ( unwind )
+					reporter->RuntimeError(arg->GetLocationInfo(), "%s", msg);
+				else
+					arg->Error(msg);
+				}
+			else
+				{
+				if ( unwind )
+					reporter->RuntimeError(nullptr, "%s", msg);
+				else
+					reporter->Error("%s", msg);
+				}
+			}
 		};
-
 
 	if ( call_stack.empty() )
 		{
+		// Shouldn't happen unless someone (mistakenly) calls builtin_error()
+		// from somewhere that's not even evaluating script-code.
 		emit(nullptr);
 		return;
 		}
@@ -738,6 +759,24 @@ void builtin_error(const char* msg, BroObj* arg)
 	else
 		emit(last_call.call);
 	}
+
+void builtin_error(const char* msg)
+	{ builtin_error_common(msg, nullptr, false); }
+
+void builtin_error(const char* msg, const IntrusivePtr<Val>& arg)
+	{ builtin_error_common(msg, arg.get(), false); }
+
+void builtin_error(const char* msg, BroObj* arg)
+	{ builtin_error_common(msg, arg, false); }
+
+void builtin_exception(const char* msg)
+	{ builtin_error_common(msg, nullptr, true); }
+
+void builtin_exception(const char* msg, const IntrusivePtr<Val>& arg)
+	{ builtin_error_common(msg, arg.get(), true); }
+
+void builtin_exception(const char* msg, BroObj* arg)
+	{ builtin_error_common(msg, arg, true); }
 
 #include "zeek.bif.func_h"
 #include "stats.bif.func_h"

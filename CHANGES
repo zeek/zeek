@@ -1,4 +1,11 @@
 
+3.1.5-dev.3 | 2020-07-23 16:12:25 -0700
+
+  * GH-1025: allow copying/cloning of `opaque of Broker::Store` (Jon Siwek, Corelight)
+
+    Implemented simply as a reference count increment of the
+    data store handle.
+
 3.1.5-dev.2 | 2020-07-23 16:02:48 -0700
 
   * GH-999: Stop formatting DHCP Client ID Hardware Type 0 as MAC (Jon Siwek, Corelight)

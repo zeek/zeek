@@ -94,6 +94,7 @@ protected:
 				bool is_pre, bool is_future, bool is_case);
 
 	const ProfileFunc* pf;
+	function_flavor func_flavor;
 	DefSetsMgr mgr;
 	vector<BlockDefs*> block_defs;
 };
@@ -107,6 +108,8 @@ RD_Decorate::RD_Decorate(const ProfileFunc* _pf) : pf(_pf)
 void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 					IntrusivePtr<Stmt> body)
 	{
+	func_flavor = f->Flavor();
+
 	auto args = scope->OrderedVars();
         auto nparam = f->FType()->Args()->NumFields();
 
@@ -646,9 +649,11 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	case STMT_BREAK:
 		if ( block_defs.size() == 0 )
 			{
-			// This is presumably a break inside a hook.
-			// Treat as a return.
-			CreateEmptyPostRDs(s);
+			if ( func_flavor == FUNC_FLAVOR_HOOK )
+				// Treat as a return.
+				CreateEmptyPostRDs(s);
+			else
+				s->Error("\"break\" in a non-break context");
 			break;
 			}
 
@@ -1452,6 +1457,12 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 		auto cb = new RD_Decorate(&pf_red);
 		cb->TraverseFunction(f, scope, new_body_ptr);
+
+		if ( reporter->Errors() > 0 )
+			{
+			pop_scope();
+			return;
+			}
 
 		rc->SetDefSetsMgr(cb->GetDefSetsMgr());
 

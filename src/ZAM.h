@@ -257,6 +257,7 @@ protected:
 	bool BuiltIn_get_port_etc(const NameExpr* n, const expr_list& args);
 	bool BuiltIn_reading_live_traffic(const NameExpr* n, const expr_list& args);
 	bool BuiltIn_reading_traces(const NameExpr* n, const expr_list& args);
+	bool BuiltIn_strstr(const NameExpr* n, const expr_list& args);
 
 	// A bit weird, but handy for switch statements: returns a
 	// bit mask of which of the arguments in the given list correspond

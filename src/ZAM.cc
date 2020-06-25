@@ -1772,6 +1772,9 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	else if ( streq(func->Name(), "reading_traces") )
 		return BuiltIn_reading_traces(n, args);
 
+	else if ( streq(func->Name(), "strstr") )
+		return BuiltIn_strstr(n, args);
+
 	return false;
 	}
 
@@ -1989,6 +1992,39 @@ bool ZAM::BuiltIn_reading_traces(const NameExpr* n, const expr_list& args)
 	int nslot = Frame1Slot(n, OP1_WRITE);
 
 	AddInst(ZInst(OP_READING_TRACES_V, nslot));
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_strstr(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	auto big = args[0];
+	auto little = args[1];
+
+	auto big_n = big->Tag() == EXPR_NAME ? big->AsNameExpr() : nullptr;
+	auto little_n =
+		little->Tag() == EXPR_NAME ? little->AsNameExpr() : nullptr;
+
+	ZInst z;
+
+	if ( big_n && little_n )
+		z = GenInst(this, OP_STRSTR_VVV, n, big_n, little_n);
+	else if ( big_n )
+		z = GenInst(this, OP_STRSTR_VVC, n, big_n, little->AsConstExpr());
+	else if ( little_n )
+		z = GenInst(this, OP_STRSTR_VCV, n, little_n, big->AsConstExpr());
+	else
+		return false;
+
+	AddInst(z);
 
 	return true;
 	}

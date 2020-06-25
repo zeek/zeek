@@ -122,6 +122,10 @@ public:
 	broker::store::proxy proxy;
 
 protected:
+
+	Val* DoClone(CloneState* state) override
+		{ return Ref(); }
+
 	StoreHandleVal()
 		: OpaqueVal(bro_broker::opaque_of_store_handle)
 		{}

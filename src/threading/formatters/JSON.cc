@@ -132,7 +132,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			if ( timestamps == TS_ISO8601 )
 				{
 				char buffer[40];
-				char buffer2[40];
+				char buffer2[48];
 				time_t the_time = time_t(floor(val->val.double_val));
 				struct tm t;
 

@@ -60,6 +60,7 @@ int ZInst::NumFrameSlots() const
 	case OP_VE:	return 1;
 
 	case OP_V_I1:	return 0;
+	case OP_VC_I1:	return 0;
 	case OP_VV_I1_I2:	return 0;
 	case OP_VV_FRAME:	return 1;
 	case OP_VVc:	return 2;
@@ -116,6 +117,7 @@ bool ZInst::AssignsToSlot1() const
 	case OP_C:
 	case OP_E:
 	case OP_V_I1:
+	case OP_VC_I1:
 	case OP_VV_I1_I2:
 	case OP_VVVC_I1_I2_I3:
 		return false;
@@ -160,6 +162,7 @@ bool ZInst::UsesSlot(int slot) const
 	case OP_C:
 	case OP_E:
 	case OP_V_I1:
+	case OP_VC_I1:
 	case OP_VV_I1_I2:
 	case OP_VVVC_I1_I2_I3:
 		return false;
@@ -207,6 +210,7 @@ bool ZInst::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 	case OP_C:
 	case OP_E:
 	case OP_V_I1:
+	case OP_VC_I1:
 	case OP_VV_I1_I2:
 	case OP_VVVC_I1_I2_I3:
 		return false;
@@ -271,6 +275,7 @@ void ZInst::UpdateSlots(std::vector<int>& slot_mapping)
 	case OP_C:
 	case OP_E:
 	case OP_V_I1:
+	case OP_VC_I1:
 	case OP_VV_I1_I2:
 	case OP_VVVC_I1_I2_I3:
 		return;	// so we don't do any v1 remapping.
@@ -430,6 +435,10 @@ void ZInst::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 
 	case OP_V_I1:
 		printf("%d", v1);
+		break;
+
+	case OP_VC_I1:
+		printf("%d %s", v1, ConstDump());
 		break;
 
 	case OP_VV_FRAME:

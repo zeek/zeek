@@ -861,6 +861,26 @@ eval auto timer = new ScheduleTimer(z.event_handler, std::move(*args), dt)
 eval delete frame[z.v1].vvec
 eval timer_mgr->Add(timer)
 
+internal-op Schedule0
+type ViH
+op1-read
+eval double dt = frame[z.v1].double_val
+eval if ( z.v2 ) dt += network_time
+eval auto handler = EventHandlerPtr(z.event_handler)
+eval val_vec args
+eval auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt)
+eval timer_mgr->Add(timer)
+
+internal-op Schedule0
+type CiH
+op1-read
+eval double dt = z.c.double_val
+eval if ( z.v1 ) dt += network_time
+eval auto hp = EventHandlerPtr(z.event_handler)
+eval val_vec args
+eval auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt)
+eval timer_mgr->Add(timer)
+
 
 op Event
 type HL

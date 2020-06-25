@@ -3850,20 +3850,31 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 					const ListExpr* l)
 	{
 	int len = l->Exprs().length();
-	auto build_indices = InternalBuildVals(l);
-
 	ZInst z;
 
-	if ( n )
+	if ( len == 0 )
 		{
-		z = ZInst(OP_SCHEDULE_ViHL, build_indices, FrameSlot(n),
-					is_interval);
-		z.op_type = OP_VVV_I3;
+		z = n ? ZInst(OP_SCHEDULE0_ViH, FrameSlot(n), is_interval) :
+			ZInst(OP_SCHEDULE0_CiH, is_interval, c);
+		z.op_type = n ? OP_VV_I2 : OP_VC_I1;
 		}
+
 	else
 		{
-		z = ZInst(OP_SCHEDULE_CiHL, build_indices, is_interval, c);
-		z.op_type = OP_VVC_I2;
+		auto build_indices = InternalBuildVals(l);
+
+		if ( n )
+			{
+			z = ZInst(OP_SCHEDULE_ViHL, build_indices, FrameSlot(n),
+						is_interval);
+			z.op_type = OP_VVV_I3;
+			}
+		else
+			{
+			z = ZInst(OP_SCHEDULE_CiHL, build_indices,
+					is_interval, c);
+			z.op_type = OP_VVC_I2;
+			}
 		}
 
 	z.event_handler = h;

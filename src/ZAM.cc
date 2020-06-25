@@ -3752,20 +3752,21 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		auto ind = l->Exprs()[0];
 		auto var_ind = ind->Tag() == EXPR_NAME;
 		auto n3 = var_ind ? ind->AsNameExpr() : nullptr;
+		auto c3 = var_ind ? nullptr : ind->AsConstExpr();
 		bro_uint_t c = 0;
+
+		int n2_slot = FrameSlot(n2);
 
 		if ( ! var_ind )
 			{
 			if ( ind->Type()->Tag() == TYPE_COUNT )
-				c = ind->AsConstExpr()->Value()->AsCount();
+				c = c3->Value()->AsCount();
 			else if ( ind->Type()->Tag() == TYPE_INT )
-				c = ind->AsConstExpr()->Value()->AsInt();
+				c = c3->Value()->AsInt();
 			}
 
 		if ( n2tag == TYPE_STRING )
 			{
-			int n2_slot = FrameSlot(n2);
-
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
@@ -3785,8 +3786,6 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 
 		if ( n2tag == TYPE_VECTOR )
 			{
-			int n2_slot = FrameSlot(n2);
-
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
@@ -3803,6 +3802,29 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 
 			z.SetType(n1->Type());
 			z.e = n2;
+			return AddInst(z);
+			}
+
+		if ( n2tag == TYPE_TABLE )
+			{
+			if ( n3 )
+				{
+				int n3_slot = FrameSlot(n3);
+				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVV,
+							n1->Type()->Tag());
+				z = ZInst(zop, Frame1Slot(n1, zop), n2_slot,
+						n3_slot);
+				z.SetType(n3->Type());
+				}
+
+			else
+				{
+				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVC,
+							n1->Type()->Tag());
+				z = ZInst(zop, Frame1Slot(n1, zop),
+							n2_slot, c3);
+				}
+
 			return AddInst(z);
 			}
 		}

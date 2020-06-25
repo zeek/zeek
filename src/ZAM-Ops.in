@@ -615,6 +615,22 @@ eval Unref(v2)
 eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(BuildVal(v, z.t))
 
+internal-assignment-op Table-Index1
+type VVV
+eval auto v2 = frame[z.v3].ToVal(z.t)
+eval auto v_ptr = frame[z.v2].table_val->Lookup(v2.get())
+eval auto v = v_ptr.get()
+eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
+eval @v
+
+internal-assignment-op Table-Index1
+type VVC
+eval auto v2 = z.c.ToVal(z.t)
+eval auto v_ptr = frame[z.v2].table_val->Lookup(v2.get())
+eval auto v = v_ptr.get()
+eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
+eval @v
+
 # This version is for a variable v3.
 internal-op Index-String
 type VVV

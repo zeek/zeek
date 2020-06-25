@@ -270,6 +270,53 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* c,
 	}
 
 
+ZOp AssignmentFlavor(ZOp orig, TypeTag tag)
+	{
+	static bool did_init = false;
+
+	// Maps first operands and then type tags to operands.
+	static std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>>
+		assignment_flavor;
+
+	if ( ! did_init )
+		{
+		std::unordered_map<TypeTag, ZOp> empty_map;
+
+#include "ZAM-AssignFlavorsDefs.h"
+
+		did_init = true;
+		}
+
+	// Map type tag to equivalent, as needed.
+	switch ( tag ) {
+	case TYPE_BOOL:
+	case TYPE_ENUM:
+		tag = TYPE_INT;
+		break;
+
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		tag = TYPE_COUNT;
+		break;
+
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		tag = TYPE_DOUBLE;
+		break;
+
+	default:
+		break;
+	}
+
+	ASSERT(assignment_flavor.count(orig) > 0);
+
+	auto orig_map = assignment_flavor[orig];
+	ASSERT(orig_map.count(tag) > 0);
+
+	return orig_map[tag];
+	}
+
+
 ZAM::ZAM(BroFunc* f, Scope* _scope, Stmt* _body,
 		UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
 	{
@@ -3345,10 +3392,16 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 
 	ZOp op;
 
-	if ( is_any )
-		op = is_load ? OP_LOAD_ANY_VAL_VV : OP_STORE_ANY_VAL_VV;
+	if ( is_any && ! is_load )
+		op = OP_STORE_ANY_VAL_VV;
 	else
-		op = is_load ? OP_LOAD_VAL_VV : OP_STORE_VAL_VV;
+		{
+		if ( is_load )
+			op = AssignmentFlavor(OP_LOAD_VAL_VV,
+						id->Type()->Tag());
+		else
+			op = OP_STORE_VAL_VV;
+		}
 
 	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
 

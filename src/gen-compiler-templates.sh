@@ -17,6 +17,7 @@ BEGIN	{
 	ops_f = add_file("ZAM-OpsDefs.h")
 	ops_names_f = add_file("ZAM-OpsNamesDefs.h")
 	op1_flavors_f = add_file("ZAM-Op1FlavorsDefs.h")
+	assign_flavors_f = add_file("ZAM-AssignFlavorsDefs.h")
 	side_effects_f = add_file("ZAM-OpSideEffects.h")
 	ops_direct_f = add_file("CompilerOpsDirectDefs.h")
 	ops_eval_f = add_file("ZAM-OpsEvalDefs.h")
@@ -132,6 +133,43 @@ BEGIN	{
 	accessors["t"] = ".type_val"
 	accessors["V"] = ".vector_val"
 	accessors["X"] = "###"
+
+	# Compute a representative from "accessors" for each possible
+	# assignment type.
+	for ( a in accessors )
+		if ( a != "X" && ++accessor_seen[accessors[a]] == 1 )
+			accessor_rep[a] = 1
+
+	accessor_tags["?"] = "TYPE_ANY"
+	accessor_tags["A"] = "TYPE_ADDR"
+	accessor_tags["D"] = "TYPE_DOUBLE"
+	accessor_tags["F"] = "TYPE_FUNC"
+	accessor_tags["f"] = "TYPE_FILE"
+	accessor_tags["i"] = accessor_tags["I"] = "TYPE_INT"
+	accessor_tags["L"] = "TYPE_LIST"
+	accessor_tags["N"] = "TYPE_SUBNET"
+	accessor_tags["O"] = "TYPE_OPAQUE"
+	accessor_tags["P"] = "TYPE_PATTERN"
+	accessor_tags["R"] = "TYPE_RECORD"
+	accessor_tags["S"] = "TYPE_STRING"
+	accessor_tags["T"] = "TYPE_TABLE"
+	accessor_tags["t"] = "TYPE_TYPE"
+	accessor_tags["u"] = accessor_tags["U"] = "TYPE_COUNT"
+	accessor_tags["V"] = "TYPE_VECTOR"
+
+	val_accessors["?"] = ""
+	val_accessors["A"] = "->AsAddrVal()"
+	val_accessors["F"] = "->val.func_val"
+	val_accessors["f"] = "->val.file_val"
+	val_accessors["L"] = "->AsListVal()"
+	val_accessors["N"] = "->AsSubNetVal()"
+	val_accessors["O"] = "->AsOpaqueVal()"
+	val_accessors["P"] = "->AsPatternVal()"
+	val_accessors["R"] = "->AsRecordVal()"
+	val_accessors["S"] = "->AsStringVal()"
+	val_accessors["T"] = "->AsTableVal()"
+	val_accessors["t"] = "->Type()"
+	val_accessors["V"] = "->AsVectorVal()"
 
 	# 1 = managed via new/delete, 2 = managed via Ref/Unref.
 	# Currently we only use type 2, but keep support for type 1
@@ -266,9 +304,6 @@ BEGIN	{
 	method_map["T"] = "tag == TYPE_TABLE"
 	method_map["f"] = "tag == TYPE_FILE"
 	method_map["t"] = "tag == TYPE_TYPE"
-
-	# We need to explicitly check for any/not-any because we go through
-	# the op-types via dictionary traversal (i.e., unpredcitable order).
 	method_map["V"] = "tag == TYPE_VECTOR"
 
 	# Maps original op-types (for example, for unary or binary
@@ -281,7 +316,7 @@ BEGIN	{
 	field_type["VVC"] = "VVCi"
 
 	# Where in an instruction the constant associated with the field
-	# offset resides.  This is always the last 'v' slot.
+	# offset resides.  This is always the last "v" slot.
 	field_offset["Rii"] = 3
 	field_offset["VCi"] = 2
 	field_offset["VVi"] = 3
@@ -326,6 +361,9 @@ $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 $1 == "internal-binary-op" {
 	dump_op(); op = $2; binary_op = internal_op = 1; next
 	}
+$1 == "internal-assignment-op" {
+	dump_op(); op = $2; int_assign_op = internal_op = 1; next
+	}
 
 $1 == "op1-read"	{ op1_flavor = "OP1_READ"; next }
 $1 == "op1-write"	{ op1_flavor = "OP1_WRITE"; next }
@@ -350,7 +388,9 @@ $1 == "set-type"	{ set_type = $2; next }
 $1 == "set-expr"	{ set_expr = $2; next }
 
 $1 ~ /^eval((_([iudANPRSTV]))?)$/	{
-		if ( $1 != "eval" )
+		if ( $1 == "eval" )
+			eval_sub = ""
+		else
 			{
 			# Extract subtype specifier.
 			eval_sub = $1
@@ -360,18 +400,19 @@ $1 ~ /^eval((_([iudANPRSTV]))?)$/	{
 			     eval_selector[eval_sub] == "" )
 				gripe("bad eval subtype specifier")
 			}
-		else
-			eval_sub = ""
 
 		new_eval = all_but_first()
-		if ( (! operand_type || eval_sub || binary_op) && ! cond_op )
+
+		extra_eval_ok = \
+			eval_sub || binary_op || int_assign_op || ! operand_type
+
+		if ( extra_eval_ok && ! cond_op )
 			# Add semicolons for potentially multi-line evals.
 			new_eval = new_eval ";"
 
 		if ( eval[eval_sub] )
 			{
-			if ( operand_type && ! eval_sub && ! binary_op &&
-			     op_type_rep != "X" )
+			if ( ! extra_eval_ok && op_type_rep != "X" )
 				gripe("cannot intermingle op-type and multi-line evals")
 
 			eval[eval_sub] = eval[eval_sub] "\n\t\t" new_eval
@@ -473,6 +514,13 @@ function dump_op()
 	if ( binary_op )
 		{
 		build_internal_binary_op()
+		clear_vars()
+		return
+		}
+
+	if ( int_assign_op )
+		{
+		build_internal_assignment_op()
 		clear_vars()
 		return
 		}
@@ -614,6 +662,59 @@ function build_internal_binary_op()
 			build_op(op, "V" op1 op2, "", "",
 					eval_copy, eval_copy, j, k)
 			}
+		}
+	}
+
+function build_internal_assignment_op()
+	{
+	# Internal assignment op.  Do not generate method stuff for it,
+	# but do generate each flavor of assignment, and mappings from
+	# the base op to the flavors.
+	ev = eval[""]
+
+	if ( index(ev, "@") == 0 )
+		gripe("no @ specifier in assignment op")
+
+	assign_val = ev
+	sub(/.*@/, "", assign_val)
+	sub(/[ \t;].*/, "", assign_val)
+
+	# Remove the @ designator from the evaluation.
+	sub(/\n*[^\n]*@.*/, "", ev)
+
+	indent = "\n\t\t"
+
+	upper_op = toupper(op)
+	gsub(/-/, "_", upper_op)
+	full_assign_op = "OP_" upper_op "_VV"
+
+	ev_copy = ev
+	build_op(op, type, "", "", ev_copy, ev_copy, 0, 0)
+
+	print ("\tassignment_flavor[" full_assign_op "] = empty_map;") >assign_flavors_f
+
+	for ( a in accessor_rep )
+		{
+		ev_copy = ev
+		acc = accessors[a]
+		managed = a in is_managed || a == "?"
+
+		if ( managed )
+			{
+			ev_copy = ev_copy indent "auto& v1 = frame[z.v1]" acc ";"
+			ev_copy = ev_copy indent "Unref(v1);"
+			ev_copy = ev_copy indent "v1 = v" val_accessors[a] ";"
+			ev_copy = ev_copy indent "::Ref(v1);"
+			}
+		else
+			ev_copy = ev_copy "\n\t\tframe[z.v1]" acc " = " \
+					assign_val "->val" acc ";"
+
+		suffix = a == "?" ? "_any" : a;
+
+		print ("\tassignment_flavor[" full_assign_op "][" accessor_tags[a] "] = " full_assign_op suffix ";") >assign_flavors_f
+
+		build_op(op, (type suffix), "", "", ev_copy, ev_copy, 0, 0)
 		}
 	}
 
@@ -1545,7 +1646,7 @@ function clear_vars()
 	no_const = op_type_rep = custom_method = method_pre = eval_pre = ""
 	field_eval = no_eval = mix_eval = multi_eval = eval_blank = ""
 	field_op = cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
-	vector = binary_op = internal_op = ""
+	vector = int_assign_op = binary_op = internal_op = ""
 	side_effects = op1_flavor = direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""

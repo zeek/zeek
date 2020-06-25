@@ -211,6 +211,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsC1.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsC2.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsV.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-AssignFlavorsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Conds.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h

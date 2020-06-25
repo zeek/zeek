@@ -13,7 +13,20 @@ function print_keys(a: any)
 		}
 	}
 
+function checkit(a: any)
+	{
+	if ( Broker::is_closed(a) )
+		print "this shouldn't get printed";
+	else
+		print "this shouldn't get printed either";
+	}
+
 global a: int = 0;
+
+event zeek_init() &priority=10
+	{
+	checkit(a);
+	}
 
 event zeek_init()
 	{

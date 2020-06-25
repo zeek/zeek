@@ -217,18 +217,22 @@ public:
 	// Updates used (not assigned) slots per the given mapping.
 	void UpdateSlots(std::vector<int>& slot_mapping);
 
-	bool IsFrameLoad() const
-		{ return op == OP_LOAD_VAL_VV || op == OP_LOAD_ANY_VAL_VV; }
+	bool IsGlobalLoad() const
+		{
+		// This is a bit dicey - we rely on knowing that the
+		// op_type for any form of global load is unique.
+		return op_type == OP_ViC_ID;
+		}
+
 	bool IsFrameStore() const
 		{ return op == OP_STORE_VAL_VV || op == OP_STORE_ANY_VAL_VV; }
 
-	bool IsFrameSync() const
-		{ return IsFrameLoad() || IsFrameStore(); }
-
 	bool IsLoad() const
 		{
-		return IsFrameLoad() || op == OP_LOAD_GLOBAL_VVC ||
-			op == OP_LOAD_ANY_GLOBAL_VVC;
+		if ( op_type == OP_VV_FRAME )
+			return ! IsFrameStore();
+		else
+			return IsGlobalLoad();
 		}
 
 	const char* VName(int max_n, int n, const FrameMap* frame_ids,

@@ -1065,21 +1065,6 @@ void ZAM::ReMapFrame()
 			}
 			break;
 
-		case OP_LOAD_GLOBAL_VVC:
-		case OP_LOAD_ANY_GLOBAL_VVC:
-			{
-			// Slot v2 of these is the index into globals[]
-			// rather than a frame.
-			int g = inst->v2;
-			ASSERT(remapped_globals[g] >= 0);
-			inst->v2 = remapped_globals[g];
-
-			// We *don't* want to UpdateSlots below as
-			// that's based on interpreting v2 as slots
-			// rather than an index into globals
-			continue;
-			}
-
 		case OP_DIRTY_GLOBAL_V:
 			{
 			// Slot v1 of this is an index into globals[]
@@ -1097,6 +1082,20 @@ void ZAM::ReMapFrame()
 		default:
 			break;
 		}
+
+		if ( inst->IsGlobalLoad() )
+			{
+			// Slot v2 of these is the index into globals[]
+			// rather than a frame.
+			int g = inst->v2;
+			ASSERT(remapped_globals[g] >= 0);
+			inst->v2 = remapped_globals[g];
+
+			// We *don't* want to UpdateSlots below as
+			// that's based on interpreting v2 as slots
+			// rather than an index into globals
+			continue;
+			}
 
 		inst->UpdateSlots(frame1_to_frame2);
 
@@ -1467,8 +1466,14 @@ bool ZAM::VarIsAssigned(int slot, const ZInst* i) const
 		// *does* also assign to slot 1.
 		}
 
-	return i->AssignsToSlot1() && i->v1 == slot &&
-		! i->IsFrameSync();
+	if ( i->op_type == OP_VV_FRAME )
+		// We don't want to consider these as assigning to the
+		// variable, since the point of this method is to figure
+		// out which variables don't need storing to the frame
+		// because their internal value is never modified.
+		return false;
+
+	return i->AssignsToSlot1() && i->v1 == slot;
 	}
 
 bool ZAM::VarIsUsed(int slot) const
@@ -3392,16 +3397,10 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 
 	ZOp op;
 
-	if ( is_any && ! is_load )
-		op = OP_STORE_ANY_VAL_VV;
+	if ( is_load )
+		op = AssignmentFlavor(OP_LOAD_VAL_VV, id->Type()->Tag());
 	else
-		{
-		if ( is_load )
-			op = AssignmentFlavor(OP_LOAD_VAL_VV,
-						id->Type()->Tag());
-		else
-			op = OP_STORE_VAL_VV;
-		}
+		op = is_any ? OP_STORE_ANY_VAL_VV : OP_STORE_VAL_VV;
 
 	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
 
@@ -3419,10 +3418,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 		// storing or loading them.
 		return EmptyStmt();
 
-	bool is_any = IsAny(id->Type());
-	ZOp op;
-
-	op = is_any ? OP_LOAD_ANY_GLOBAL_VVC : OP_LOAD_GLOBAL_VVC;
+	ZOp op = AssignmentFlavor(OP_LOAD_GLOBAL_VVC, id->Type()->Tag());
 
 	auto slot = RawSlot(id);
 

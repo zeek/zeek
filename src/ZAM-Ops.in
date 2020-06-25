@@ -1220,26 +1220,12 @@ type VV
 eval auto v = f->NthElement(z.v2)
 eval @v
 
-internal-op Load-Any-Val
-type VV
-eval IntrusivePtr<Val> v = {NewRef{}, f->NthElement(z.v2)}
-eval frame[z.v1].any_val = v.release()
-
-internal-op Load-Global
+internal-assignment-op Load-Global
 type VVC
-eval if ( global_state[z.v2] == GS_UNLOADED ) {
-eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	AssignV1(BuildVal(v, z.t))
-eval	global_state[z.v2] = GS_CLEAN
-eval }
-
-internal-op Load-Any-Global
-type VVC
-eval if ( global_state[z.v2] == GS_UNLOADED ) {
-eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	frame[z.v1].any_val = v.release()
-eval	global_state[z.v2] = GS_CLEAN
-eval }
+eval if ( global_state[z.v2] != GS_UNLOADED ) break
+eval global_state[z.v2] = GS_CLEAN
+eval auto v = z.c.id_val->ID_Val()
+eval @v
 
 internal-op Store-Val
 op1-read

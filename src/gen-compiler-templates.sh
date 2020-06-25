@@ -686,7 +686,7 @@ function build_internal_assignment_op()
 
 	upper_op = toupper(op)
 	gsub(/-/, "_", upper_op)
-	full_assign_op = "OP_" upper_op "_VV"
+	full_assign_op = "OP_" upper_op "_" type
 
 	ev_copy = ev
 	build_op(op, type, "", "", ev_copy, ev_copy, 0, 0)

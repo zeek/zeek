@@ -20,6 +20,9 @@ static broker::optional<broker::timespan> prepare_expiry(double e)
 
 	return ts;
 	}
+
+static bro_broker::StoreHandleVal* to_store_handle(Val* h)
+	{ return dynamic_cast<bro_broker::StoreHandleVal*>(h); }
 %%}
 
 module Broker;
@@ -87,53 +90,55 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto handle = to_store_handle(h);
 
-	if ( ! h )
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	return val_mgr->Bool(broker_mgr->LookupStore(handle->store.name()));
 	%}
 
 function Broker::__close%(h: opaque of Broker::Store%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto handle = to_store_handle(h);
 
-	if ( ! h )
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	return val_mgr->Bool(broker_mgr->CloseStore(handle->store.name()));
 	%}
 
 function Broker::__store_name%(h: opaque of Broker::Store%): string
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->EmptyString();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	return make_intrusive<StringVal>(handle->store.name());
 	%}
 
 function Broker::__exists%(h: opaque of Broker::Store,
                            k: any%): Broker::QueryResult
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 
 	if ( ! key )
@@ -172,13 +177,14 @@ function Broker::__exists%(h: opaque of Broker::Store,
 function Broker::__get%(h: opaque of Broker::Store,
                         k: any%): Broker::QueryResult
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 
 	if ( ! key )
@@ -217,13 +223,14 @@ function Broker::__get%(h: opaque of Broker::Store,
 function Broker::__put_unique%(h: opaque of Broker::Store,
                                k: any, v: any, e: interval%): Broker::QueryResult
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto val = bro_broker::val_to_data(v);
 
@@ -271,13 +278,14 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 function Broker::__get_index_from_value%(h: opaque of Broker::Store,
                                          k: any, i: any%): Broker::QueryResult
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 
 	if ( ! key )
@@ -324,13 +332,13 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 
 function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
-
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
 	auto trigger = frame->GetTrigger();
 
@@ -362,13 +370,14 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 function Broker::__put%(h: opaque of Broker::Store,
                         k: any, v: any, e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto val = bro_broker::val_to_data(v);
 
@@ -390,13 +399,14 @@ function Broker::__put%(h: opaque of Broker::Store,
 
 function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 
 	if ( ! key )
@@ -412,13 +422,14 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
                               e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto amount = bro_broker::val_to_data(a);
 
@@ -442,13 +453,14 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
                               e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto amount = bro_broker::val_to_data(a);
 
@@ -471,13 +483,14 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
                            e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto str = bro_broker::val_to_data(s);
 
@@ -500,13 +513,14 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
                                     e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto idx = bro_broker::val_to_data(i);
 
@@ -530,13 +544,14 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
                                       i: any, v: any, e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto idx = bro_broker::val_to_data(i);
 	auto val = bro_broker::val_to_data(v);
@@ -567,13 +582,14 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
                                 e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto idx = bro_broker::val_to_data(i);
 
@@ -597,13 +613,14 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
                          e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 	auto val = bro_broker::val_to_data(v);
 
@@ -625,13 +642,14 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 
 function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	auto key = bro_broker::val_to_data(k);
 
 	if ( ! key )
@@ -646,13 +664,14 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 
 function Broker::__clear%(h: opaque of Broker::Store%): bool
 	%{
-	if ( ! h )
+	auto handle = to_store_handle(h);
+
+	if ( ! handle )
 		{
 		builtin_error("invalid Broker store handle");
 		return val_mgr->False();
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
 	handle->store.clear();
 	return val_mgr->True();

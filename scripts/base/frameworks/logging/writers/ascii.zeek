@@ -103,7 +103,7 @@ function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	local dst = fmt("%s.%s.%s%s", info$path,
 			strftime(Log::default_rotation_date_format, info$open), bls, gz);
 
-	system(fmt("/bin/mv %s %s", info$fname, dst));
+	rename(info$fname, dst);
 
 	# Run default postprocessor.
 	return Log::run_rotation_postprocessor_cmd(info, dst);

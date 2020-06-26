@@ -1,0 +1,2 @@
+error: must assign non-empty value to 'mynum' in command-line options
+error: must assign non-empty value to 'mytable' in command-line options

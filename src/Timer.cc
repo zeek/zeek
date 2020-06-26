@@ -19,6 +19,7 @@ const char* TimerNames[] = {
 	"ConnectionExpireTimer",
 	"ConnectionInactivityTimer",
 	"ConnectionStatusUpdateTimer",
+	"ConnTupleWeirdTimer",
 	"DNSExpireTimer",
 	"FileAnalysisInactivityTimer",
 	"FlowWeirdTimer",

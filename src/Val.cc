@@ -1309,7 +1309,6 @@ unsigned int ListVal::MemoryAllocation() const
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
 	{
 	auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
-	rval->last_access_time = last_access_time;
 	rval->expire_access_time = expire_access_time;
 	return rval;
 	}

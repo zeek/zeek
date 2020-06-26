@@ -1,4 +1,72 @@
 
+3.2.0-dev.813 | 2020-06-26 16:25:34 +0000
+
+  * Fix several issues with command-line option redefs
+
+    * Variables of `string` type can now be set to an empty string
+
+    * Trying to set a variable with non-`string` type to an empty value
+      now emits an error instead of silently doing nothing
+
+    * Providing an invalid identifier now emits an "unknown identifier"
+      error instead of silently doing nothing (Jon Siwek, Corelight)
+
+  * Fix "possibly-truncated" compiler warning in BuildJSON snprintf() (Jon Siwek, Corelight)
+
+  * GH-1025: allow copying/cloning of `opaque of Broker::Store`
+
+    Implemented simply as a reference count increment of the
+    data store handle. (Jon Siwek, Corelight)
+
+  * Fix shadowed variable that breaks lookup_hostname(). (Jon Siwek, Corelight)
+
+3.2.0-dev.804 | 2020-06-25 23:58:59 -0700
+
+  * Extend dns_request, dns_reject, and dns_query_reply events with original_query param (Ryan Victory)
+
+    Where the "query" parameter is downcased, the "original_query" is
+    passed unmodified to these events.
+
+    Added a policy/protocols/dns/log-original-query-case.zeek script that adds
+    the original_query to the dns.log file as well.
+
+  * Convert to using permissions to check for access to cirrus variables in benchmark script (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.798 | 2020-06-19 13:25:02 -0700
+
+  * Remove last_access_time from TableEntryVal. (Johanna Amann, Corelight)
+
+    Turns out - this was no longer used. And it takes up at least 8 bytes
+    of space for every single table/set entry.
+
+3.2.0-dev.796 | 2020-06-18 20:40:59 +0000
+
+  * cmake: Make musl support more distro agnostic (Andrew Benson)
+
+3.2.0-dev.794 | 2020-06-18 20:04:06 +0000
+
+  * Minimize data published for expected FTP data channel analysis
+
+    Previously, more data than could effectively be utilized by any remote
+    Zeek was published (e.g. full list of pending commands or other
+    transient state that may add up to non-trivial amount of bytes). (Jon Siwek, Corelight)
+
+  * GH-998: Fix Reporter::conn_weird() to handle expired connections
+
+    This introduces a new sampling state-map for expired connections to fix
+    segfaults that previously occured when passing in a `connection` record
+    to `Reporter::conn_weird()` for which the internal `Connection` object
+    had already been expired and deleted.  This also introduces a new event
+    called `expired_conn_weird`, which is similar to `conn_weird`, except
+    the full `connection` record is no longer available, just the `conn_id`
+    and UID string. (Jon Siwek, Corelight)
+
+  * Place build file in explicit location for benchmarking to work correctly (Tim Wojtulewicz, Corelight)
+
+  * Update highwayhash submodule to upstream.
+    This includes a patch by us, which fixes the compile on AARCH64.
+    Fixes GH-1006. (Johanna Amann, Corelight)
+
 3.2.0-dev.788 | 2020-06-15 11:04:20 -0700
 
   * Fix location where CI places build.tgz (Jon Siwek, Corelight)

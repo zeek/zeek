@@ -34,11 +34,13 @@ event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 ##
 ## msg: The parsed DNS message header.
 ##
-## query: The queried name.
+## query: The queried name (normalized to all lowercase).
 ##
 ## qtype: The queried resource record type.
 ##
 ## qclass: The queried resource record class.
+##
+## original_query: The queried name, with the original case kept intact
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
@@ -47,6 +49,7 @@ event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count, original_query: string%);
 event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
 ## Generated for DNS replies that reject a query. This event is raised if a DNS
@@ -63,11 +66,13 @@ event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 ##
 ## msg: The parsed DNS message header.
 ##
-## query: The queried name.
+## query: The queried name (normalized to all lowercase).
 ##
 ## qtype: The queried resource record type.
 ##
 ## qclass: The queried resource record class.
+##
+## original_query: The queried name, with the original case kept intact
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
@@ -76,6 +81,7 @@ event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count, original_query: string%);
 event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
 ## Generated for each entry in the Question section of a DNS reply.
@@ -95,6 +101,8 @@ event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qc
 ##
 ## qclass: The queried resource record class.
 ##
+## original_query: The queried name, with the original case kept intact
+##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
@@ -102,6 +110,8 @@ event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qc
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_rejected
 ##    dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_query_reply%(c: connection, msg: dns_msg, query: string,
+			qtype: count, qclass: count, original_query: string%);
 event dns_query_reply%(c: connection, msg: dns_msg, query: string,
 			qtype: count, qclass: count%);
 

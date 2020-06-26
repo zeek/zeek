@@ -126,6 +126,10 @@ public:
 	IntrusivePtr<TableVal> forward_to;
 
 protected:
+
+	IntrusivePtr<Val> DoClone(CloneState* state) override
+		{ return {NewRef{}, this}; }
+
 	StoreHandleVal()
 		: OpaqueVal(bro_broker::opaque_of_store_handle)
 		{}

@@ -283,7 +283,7 @@ IntrusivePtr<ListVal> DNS_Mapping::Addrs()
 
 	if ( ! addrs_val )
 		{
-		auto addrs_val = make_intrusive<ListVal>(zeek::TYPE_ADDR);
+		addrs_val = make_intrusive<ListVal>(zeek::TYPE_ADDR);
 
 		for ( int i = 0; i < num_addrs; ++i )
 			addrs_val->Append(make_intrusive<AddrVal>(addrs[i]));

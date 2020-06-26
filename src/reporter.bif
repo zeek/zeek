@@ -123,7 +123,17 @@ function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
 ## Returns: Always true.
 function Reporter::conn_weird%(name: string, c: connection, addl: string &default=""%): bool
 	%{
-	reporter->Weird(c, name->CheckString(), addl->CheckString());
+	if ( c )
+		reporter->Weird(c, name->CheckString(), addl->CheckString());
+	else
+		{
+		auto connection_record = @ARG@[1]->AsRecordVal();
+		auto conn_id_val = connection_record->GetField<RecordVal>("id");
+		auto uid_val = connection_record->GetField<StringVal>("uid");
+		reporter->Weird(conn_id_val, uid_val,
+		                name->CheckString(), addl->CheckString());
+		}
+
 	return val_mgr->True();
 	%}
 

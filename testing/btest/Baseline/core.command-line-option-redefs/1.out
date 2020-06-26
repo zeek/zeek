@@ -1,0 +1,4 @@
+mystr, 
+mynum, 0
+mytable, {"one":"1"}
+MyMod::str, Good

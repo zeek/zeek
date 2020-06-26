@@ -29,22 +29,22 @@ type testrec: record {
 	c: set[string];
 };
 
-function expire_t(tbl: any, idx: string): interval
+function change_t(tbl: any, tpe: TableChange, idx: string, idxb: count)
 	{
-	print fmt("Expiring t: %s", idx);
-	return 0sec;
+	if ( tpe == TABLE_ELEMENT_EXPIRED )
+		print fmt("Expiring t: %s", idx);
 	}
 
-function expire_s(tbl: any, idx: string): interval
+function change_s(tbl: any, tpe: TableChange, idx: string, idbx: count)
 	{
-	print fmt("Expiring s: %s", idx);
-	return 0sec;
+	if ( tpe == TABLE_ELEMENT_EXPIRED )
+		print fmt("Expiring s: %s", idx);
 	}
 
-function expire_r(tbl: any, idx: string): interval
+function change_r(tbl: any, tpe: TableChange, idx: string, idxb: testrec)
 	{
-	print fmt("Expiring r: %s", idx);
-	return 0sec;
+		if ( tpe == TABLE_ELEMENT_EXPIRED )
+			print fmt("Expiring r: %s", idx);
 	}
 
 function print_keys()
@@ -60,9 +60,9 @@ function print_keys()
 		}
 	}
 
-global t: table[string] of count &broker_store="table" &create_expire=4sec &expire_func=expire_t;
-global s: table[string] of count &broker_store="set" &write_expire=3sec &expire_func=expire_s;
-global r: table[string] of testrec &broker_store="rec" &read_expire=5sec &expire_func=expire_r;
+global t: table[string] of count &broker_store="table" &create_expire=4sec &on_change=change_t;
+global s: table[string] of count &broker_store="set" &write_expire=3sec &on_change=change_s;
+global r: table[string] of testrec &broker_store="rec" &write_expire=5sec &on_change=change_r;
 
 event zeek_init()
 	{
@@ -134,27 +134,27 @@ type testrec: record {
 	c: set[string];
 };
 
-function expire_t(tbl: any, idx: string): interval
+function change_t(tbl: any, tpe: TableChange, idx: string, idxb: count)
 	{
-	print fmt("Expiring t: %s", idx);
-	return 0sec;
+	if ( tpe == TABLE_ELEMENT_EXPIRED )
+		print fmt("Expiring t: %s", idx);
 	}
 
-function expire_s(tbl: any, idx: string): interval
+function change_s(tbl: any, tpe: TableChange, idx: string, idbx: count)
 	{
-	print fmt("Expiring s: %s", idx);
-	return 0sec;
+	if ( tpe == TABLE_ELEMENT_EXPIRED )
+		print fmt("Expiring s: %s", idx);
 	}
 
-function expire_r(tbl: any, idx: string): interval
+function change_r(tbl: any, tpe: TableChange, idx: string, idxb: testrec)
 	{
-	print fmt("Expiring r: %s", idx);
-	return 0sec;
+		if ( tpe == TABLE_ELEMENT_EXPIRED )
+			print fmt("Expiring r: %s", idx);
 	}
 
-global t: table[string] of count &broker_store="table" &create_expire=4sec &expire_func=expire_t;
-global s: table[string] of count &broker_store="set" &write_expire=3sec &expire_func=expire_s;
-global r: table[string] of testrec &broker_store="rec" &read_expire=5sec &expire_func=expire_r;
+global t: table[string] of count &broker_store="table" &create_expire=4sec &on_change=change_t;
+global s: table[string] of count &broker_store="set" &write_expire=3sec &on_change=change_s;
+global r: table[string] of testrec &broker_store="rec" &write_expire=5sec &on_change=change_r;
 
 event zeek_init()
 	{

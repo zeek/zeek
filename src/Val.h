@@ -1070,8 +1070,8 @@ protected:
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
-	// Calls &change_func. Does not take ownership of values. (Refs if needed).
-	void CallChangeFunc(const Val* index, const IntrusivePtr<Val>& old_value,
+	// Calls &change_func.
+	void CallChangeFunc(const IntrusivePtr<Val>& index, const IntrusivePtr<Val>& old_value,
 	                    OnChangeType tpe);
 
 	// Sends data on to backing Broker Store

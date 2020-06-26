@@ -1577,12 +1577,12 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 		auto change_index = index ? std::move(index)
 		                          : RecreateIndex(k_copy);
 
-		if ( ! broker_store.empty() )
+		if ( broker_forward && ! broker_store.empty() )
 			SendToStore(change_index.get(), new_entry_val, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		if ( change_func )
 			{
 			const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
-			CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 			}
 		}
 
@@ -2049,7 +2049,7 @@ IntrusivePtr<ListVal> TableVal::RecreateIndex(const HashKey& k) const
 	return table_hash->RecoverVals(k);
 	}
 
-void TableVal::CallChangeFunc(const Val* index,
+void TableVal::CallChangeFunc(const IntrusivePtr<Val>& index,
                               const IntrusivePtr<Val>& old_value,
                               OnChangeType tpe)
 	{
@@ -2073,10 +2073,14 @@ void TableVal::CallChangeFunc(const Val* index,
 			}
 
 		const Func* f = thefunc->AsFunc();
-		auto lv = index->AsListVal();
-
 		zeek::Args vl;
-		vl.reserve(2 + lv->Length() + table_type->IsTable());
+
+		// we either get passed the raw index_val - or a ListVal with exactly one element.
+		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+			vl.reserve(2 + index->AsListVal()->Length() + table_type->IsTable());
+		else
+			vl.reserve(3 + table_type->IsTable());
+
 		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
@@ -2094,8 +2098,14 @@ void TableVal::CallChangeFunc(const Val* index,
 				vl.emplace_back(zeek::BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
 
-		for ( const auto& v : lv->Vals() )
-			vl.emplace_back(v);
+
+		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+			{
+			for ( const auto& v : index->AsListVal()->Vals() )
+				vl.emplace_back(v);
+			}
+		else
+			vl.emplace_back(index);
 
 		if ( table_type->IsTable() )
 			vl.emplace_back(old_value);
@@ -2122,7 +2132,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		if ( ! handle )
 			return;
 
-		// we wither get passed the raw index_val - or a ListVal with exactly one element.
+		// we either get passed the raw index_val - or a ListVal with exactly one element.
 		// Since broker does not support ListVals, we have to unoll this in the second case.
 		const Val* index_val;
 		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
@@ -2214,6 +2224,10 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 IntrusivePtr<Val> TableVal::Remove(const Val& index, bool broker_forward)
 	{
 	auto k = MakeHashKey(index);
+	// this is totally cheating around the fact that we need a Intrusive pointer.
+	IntrusivePtr<Val> changefunc_val;
+	if ( change_func )
+		changefunc_val = RecreateIndex(*(k.get()));
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
 	IntrusivePtr<Val> va;
 
@@ -2230,7 +2244,7 @@ IntrusivePtr<Val> TableVal::Remove(const Val& index, bool broker_forward)
 	if ( broker_forward && ! broker_store.empty() )
 		SendToStore(&index, nullptr, ELEMENT_REMOVED);
 	if ( change_func )
-		CallChangeFunc(&index, va, ELEMENT_REMOVED);
+		CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
 
 	return va;
 	}
@@ -2255,13 +2269,13 @@ IntrusivePtr<Val> TableVal::Remove(const HashKey& k)
 
 	Modified();
 
-	if ( ( change_func && va ) || ( ! broker_store.empty() ) )
+	if ( va && ( change_func || ! broker_store.empty() ) )
 		{
 		auto index = table_hash->RecoverVals(k);
 		if ( ! broker_store.empty() )
 			SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 		if ( change_func && va )
-			CallChangeFunc(index.get(), va, ELEMENT_REMOVED);
+			CallChangeFunc(index, va, ELEMENT_REMOVED);
 		}
 
 	return va;
@@ -2565,7 +2579,7 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecreateIndex(*k);
-				CallChangeFunc(idx.get(), v->GetVal(), ELEMENT_EXPIRED);
+				CallChangeFunc(idx, v->GetVal(), ELEMENT_EXPIRED);
 				}
 
 			delete v;

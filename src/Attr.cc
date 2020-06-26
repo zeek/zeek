@@ -458,6 +458,13 @@ void Attributes::CheckAttr(Attr* a)
 		break;
 
 	case ATTR_EXPIRE_READ:
+		{
+		if ( Find(ATTR_BROKER_STORE) )
+			{
+			Error("&broker_store and &read_expire cannot be used simultaneously");
+			}
+		}
+		// fallthrough
 	case ATTR_EXPIRE_WRITE:
 	case ATTR_EXPIRE_CREATE:
 		{
@@ -536,6 +543,11 @@ void Attributes::CheckAttr(Attr* a)
 
 		if ( ! e_ft->CheckArgs(&expected_args) )
 			Error("&expire_func argument type clash");
+
+		if ( Find(ATTR_BROKER_STORE ) )
+			{
+			Error("&broker_store and &expire_func cannot be used simultaneously");
+			}
 		}
 		break;
 
@@ -623,9 +635,16 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			Error("&broker_store only supports one-element set/table indexes");
 			}
-
+		if ( Find(ATTR_EXPIRE_FUNC ) )
+			{
+			Error("&broker_store and &expire_func cannot be used simultaneously");
+			}
+		if ( Find(ATTR_EXPIRE_READ) )
+			{
+			Error("&broker_store and &read_expire cannot be used simultaneously");
+			}
+		break;
 		}
-
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;

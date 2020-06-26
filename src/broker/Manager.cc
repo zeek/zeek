@@ -1608,13 +1608,64 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
 	CheckForwarding(name);
 
-	if ( bstate->endpoint.use_real_time() )
-		return handle;
+	if ( ! bstate->endpoint.use_real_time() )
+		// Wait for master to become available/responsive.
+		// Possibly avoids timeouts in scripts during unit tests.
+		handle->store.exists("");
 
-	// Wait for master to become available/responsive.
-	// Possibly avoids timeouts in scripts during unit tests.
-	handle->store.exists("");
+	BrokerStoreToZeekTable(name, handle);
+
 	return handle;
+	}
+
+void Manager::BrokerStoreToZeekTable(const std::string& name, const StoreHandleVal* handle)
+	{
+	// consider if it might be wise to disable &on_change while filling the table
+	if ( ! handle->forward_to )
+		return;
+
+	auto keys = handle->store.keys();
+	if ( ! keys )
+		return;
+
+	auto set = caf::get_if<broker::set>(&(keys->get_data()));
+	auto table = handle->forward_to;
+	const auto& its = table->GetType()->AsTableType()->IndexTypes();
+	bool is_set = table->GetType()->IsSet();
+	assert( its.size() == 1 );
+	for ( const auto key : *set )
+		{
+		auto zeek_key = data_to_val(key, its[0].get());
+		if ( ! zeek_key )
+			{
+			reporter->Error("Failed to convert key %s while importing broker store to table for store %s. Aborting import.", to_string(key).c_str(), name.c_str());
+			// just abort - this probably means the types are incompatible
+			return;
+			}
+
+		if ( is_set )
+			{
+			table->Assign(zeek_key, nullptr, false);
+			continue;
+			}
+
+		auto value = handle->store.get(key);
+		if ( ! value )
+			{
+			reporter->Error("Failed to load value for key %s while importing broker store %s to table", to_string(key).c_str(), name.c_str());
+			continue;
+			}
+
+		auto zeek_value = data_to_val(*value, table->GetType()->Yield().get());
+		if ( ! zeek_value )
+			{
+			reporter->Error("Could not convert %s to table value while trying to import broker store %s. Aborting import.", to_string(value).c_str(), name.c_str());
+			return;
+			}
+
+		table->Assign(zeek_key, zeek_value, false);
+		}
+	return;
 	}
 
 StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,

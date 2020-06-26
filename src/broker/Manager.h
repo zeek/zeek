@@ -355,7 +355,11 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
+	// Check if a broker store is associated to a table on the Zeek side.
 	void CheckForwarding(const std::string& name);
+	// Send the content of a broker store to the backing table. This is typically used
+	// when a master/clone is created.
+	void BrokerStoreToZeekTable(const std::string& name, const StoreHandleVal* handle);
 
 	void Error(const char* format, ...)
 		__attribute__((format (printf, 2, 3)));

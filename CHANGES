@@ -1,4 +1,25 @@
 
+3.2.0-dev.813 | 2020-06-26 16:25:34 +0000
+
+  * Fix several issues with command-line option redefs
+
+    * Variables of `string` type can now be set to an empty string
+
+    * Trying to set a variable with non-`string` type to an empty value
+      now emits an error instead of silently doing nothing
+
+    * Providing an invalid identifier now emits an "unknown identifier"
+      error instead of silently doing nothing (Jon Siwek, Corelight)
+
+  * Fix "possibly-truncated" compiler warning in BuildJSON snprintf() (Jon Siwek, Corelight)
+
+  * GH-1025: allow copying/cloning of `opaque of Broker::Store`
+
+    Implemented simply as a reference count increment of the
+    data store handle. (Jon Siwek, Corelight)
+
+  * Fix shadowed variable that breaks lookup_hostname(). (Jon Siwek, Corelight)
+
 3.2.0-dev.804 | 2020-06-25 23:58:59 -0700
 
   * Extend dns_request, dns_reject, and dns_query_reply events with original_query param (Ryan Victory)

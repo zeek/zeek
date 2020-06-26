@@ -909,6 +909,30 @@ eval auto v_ptr = z.func->Call(args, f)
 eval auto v = v_ptr.get()
 eval @v
 
+# Calls with 2 arguments and no return value.
+internal-op Call2
+op1-read
+type c
+side-effects
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval (void) z.func->Call(args, f)
+
+# Same with a return value.
+internal-assignment-op Call2
+type Vc
+side-effects OP_CALL2_c
+side-effects-op-type OP_c
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
 ########## Statements ##########
 
 op Schedule

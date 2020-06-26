@@ -24,7 +24,7 @@ typedef enum {
 // Used for low-level optimization (so important that they're correct),
 // and for dumping statements.
 typedef enum {
-	OP_X, OP_E, OP_C, OP_V, OP_V_I1, OP_VC_I1,
+	OP_X, OP_E, OP_C, OP_c, OP_V, OP_V_I1, OP_VC_I1,
 
 	OP_VE,
 	OP_VC,
@@ -88,6 +88,8 @@ public:
 };
 
 typedef std::vector<FrameSharingInfo> FrameReMap;
+
+class ZInstAux;
 
 // A ZAM instruction.
 class ZInst {
@@ -276,9 +278,13 @@ public:
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
 
-	// Looks like we could remove this by changing Record-Coerce to be
-	// (a new) VVVV_I4.
+	// Only used by Record-Coerce.
 	int* int_ptr = nullptr;
+
+	// Auxiliary information.  We could in principle use this to
+	// consolidate a bunch of the above, though at the cost of
+	// slightly slower access.
+	ZInstAux* aux = nullptr;
 
 	// Used for reporting errors during execution.
 	const Stmt* stmt = curr_stmt;
@@ -339,6 +345,61 @@ public:
 protected:
 	// Initialize 'c' from the given ConstExpr.
 	void InitConst(const ConstExpr* ce);
+};
+
+// Auxiliary information, used when the fixed ZInst layout lacks
+// sufficient expressiveness to represent all of the elements that
+// an instruction needs.
+class ZInstAux {
+public:
+	ZInstAux(int _n)
+		{
+		n = _n;
+		if ( n > 0 )
+			{
+			slots = new int[n];
+			constants = new IntrusivePtr<Val>[n];
+			types = new IntrusivePtr<BroType>[n];
+			}
+		}
+
+	~ZInstAux()
+		{
+		delete [] slots;
+		delete [] constants;
+		delete [] types;
+		}
+
+	IntrusivePtr<Val> ToVal(const ZAMValUnion* frame, int i)
+		{
+		if ( constants[i] )
+			return constants[i];
+		else
+			return frame[slots[i]].ToVal(types[i].get());
+		}
+
+	void Add(int i, int slot, IntrusivePtr<BroType> t)
+		{
+		slots[i] = slot;
+		constants[i] = nullptr;
+		types[i] = t;
+		}
+
+	void Add(int i, IntrusivePtr<Val> c)
+		{
+		slots[i] = -1;
+		constants[i] = c;
+		types[i] = nullptr;
+		}
+
+	// These are parallel arrays, used to build up lists of values.
+	// Each element is either a frame slot or a constant.  We track
+	// its type, too, enabling us use ZAMValUnion::ToVal to convert
+	// to a Val*.
+	int n;	// size of arrays
+	int* slots = nullptr;
+	IntrusivePtr<Val>* constants = nullptr;
+	IntrusivePtr<BroType>* types = nullptr;
 };
 
 extern const char* ZOP_name(ZOp op);

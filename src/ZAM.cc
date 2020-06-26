@@ -968,6 +968,19 @@ void ZAM::ComputeFrameLifetimes()
 			}
 
 		default:
+			// Look for slots in auxiliary information.
+			if ( ! inst->aux )
+				break;
+
+			auto aux = inst->aux;
+			for ( auto j = 0; j < aux->n; ++j )
+				{
+				if ( aux->slots[j] < 0 )
+					continue;
+
+				ExtendLifetime(aux->slots[j],
+						EndOfLoop(inst, 1));
+				}
 			break;
 		}
 
@@ -1099,6 +1112,20 @@ void ZAM::ReMapFrame()
 			}
 
 		default:
+			// Update slots in auxiliary information.
+			if ( ! inst->aux )
+				break;
+
+			auto aux = inst->aux;
+			for ( auto j = 0; j < aux->n; ++j )
+				{
+				auto& slot = aux->slots[j];
+
+				if ( slot < 0 )
+					continue;
+
+				slot = frame1_to_frame2[slot];
+				}
 			break;
 		}
 
@@ -1112,7 +1139,7 @@ void ZAM::ReMapFrame()
 
 			// We *don't* want to UpdateSlots below as
 			// that's based on interpreting v2 as slots
-			// rather than an index into globals
+			// rather than an index into globals.
 			continue;
 			}
 
@@ -1502,6 +1529,14 @@ bool ZAM::VarIsUsed(int slot) const
 		auto& inst = insts1[i];
 		if ( inst->live && inst->UsesSlot(slot) )
 			return true;
+
+		if ( inst->aux )
+			{
+			auto aux = inst->aux;
+			for ( int j = 0; j < aux->n; ++j )
+				if ( aux->slots[j] == slot )
+					return true;
+			}
 		}
 
 	return false;
@@ -2154,6 +2189,42 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 			}
 
 		z.func = func_id->ID_Val()->AsFunc();
+
+		return AddInst(z);
+		}
+
+	if ( func_id->IsGlobal() && args.length() == 2 )
+		{
+		auto aux = new ZInstAux(args.length());
+
+		for ( int i = 0; i < args.length(); ++i )
+			{
+			auto ai = args[i];
+			auto ai_t = ai->Type();
+			if ( ai->Tag() == EXPR_NAME )
+				aux->Add(i, FrameSlot(ai->AsNameExpr()), ai_t);
+			else
+				aux->Add(i, ai->AsConstExpr()->ValuePtr());
+			}
+
+		ZInst z;
+
+		if ( n )
+			{
+			auto nt = n->Type()->Tag();
+			auto n_slot = Frame1Slot(n, OP1_WRITE);
+
+			z = ZInst(AssignmentFlavor(OP_CALL2_Vc, nt), n_slot);
+			z.op_type = OP_Vc;
+			}
+		else
+			{
+			z = ZInst(OP_CALL2_c);
+			z.op_type = OP_c;
+			}
+
+		z.func = func_id->ID_Val()->AsFunc();
+		z.aux = aux;
 
 		return AddInst(z);
 		}

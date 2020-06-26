@@ -53,6 +53,7 @@ int ZInst::NumFrameSlots() const
 	case OP_VVVV:	return 4;
 	case OP_VVVC:	return 3;
 	case OP_C:	return 0;
+	case OP_c:	return 0;
 	case OP_VC:	return 1;
 	case OP_Vc:	return 1;
 	case OP_VVC:	return 2;
@@ -115,6 +116,7 @@ bool ZInst::AssignsToSlot1() const
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
+	case OP_c:
 	case OP_E:
 	case OP_V_I1:
 	case OP_VC_I1:
@@ -160,6 +162,7 @@ bool ZInst::UsesSlot(int slot) const
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
+	case OP_c:
 	case OP_E:
 	case OP_V_I1:
 	case OP_VC_I1:
@@ -208,6 +211,7 @@ bool ZInst::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
+	case OP_c:
 	case OP_E:
 	case OP_V_I1:
 	case OP_VC_I1:
@@ -273,6 +277,7 @@ void ZInst::UpdateSlots(std::vector<int>& slot_mapping)
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
+	case OP_c:
 	case OP_E:
 	case OP_V_I1:
 	case OP_VC_I1:
@@ -406,6 +411,10 @@ void ZInst::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 
 	case OP_C:
 		printf("%s", ConstDump());
+		break;
+
+	case OP_c:
+		printf("<special-constant>");
 		break;
 
 	case OP_VC:

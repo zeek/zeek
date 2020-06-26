@@ -1,4 +1,16 @@
 
+3.2.0-dev.804 | 2020-06-25 23:58:59 -0700
+
+  * Extend dns_request, dns_reject, and dns_query_reply events with original_query param (Ryan Victory)
+
+    Where the "query" parameter is downcased, the "original_query" is
+    passed unmodified to these events.
+
+    Added a policy/protocols/dns/log-original-query-case.zeek script that adds
+    the original_query to the dns.log file as well.
+
+  * Convert to using permissions to check for access to cirrus variables in benchmark script (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.798 | 2020-06-19 13:25:02 -0700
 
   * Remove last_access_time from TableEntryVal. (Johanna Amann, Corelight)

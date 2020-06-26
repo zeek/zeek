@@ -2143,61 +2143,64 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	auto func_id = func->Id();
 	auto& args = c->Args()->Exprs();
 
-	if ( func_id->IsGlobal() && args.length() <= 1 )
+	int nargs = args.length();
+	int call_case = nargs;
+
+	bool indirect = ! func_id->IsGlobal();
+
+	if ( indirect )
+		call_case = -1;	// force default of CallN
+
+	bool aux_call = true;	// whether instruction uses .aux field
+
+	auto nt = n ? n->Type()->Tag() : TYPE_VOID;
+	auto n_slot = n ? Frame1Slot(n, OP1_WRITE) : -1;
+
+	ZInst z;
+
+	if ( call_case == 0 )
 		{
-		ZInst z;
+		aux_call = false;
+		if ( n )
+			z = ZInst(AssignmentFlavor(OP_CALL0_V, nt), n_slot);
+		else
+			z = ZInst(OP_CALL0_X);
+		}
+
+	else if ( call_case == 1 )
+		{
+		aux_call = false;
+		auto arg0 = args[0];
+		auto n0 = arg0->Tag() == EXPR_NAME ?
+						arg0->AsNameExpr() : nullptr;
+		auto c0 = arg0->Tag() == EXPR_CONST ?
+						arg0->AsConstExpr() : nullptr;
 
 		if ( n )
 			{
-			auto nt = n->Type()->Tag();
-			auto n_slot = Frame1Slot(n, OP1_WRITE);
-
-			if ( args.length() == 0 )
-				z = ZInst(AssignmentFlavor(OP_CALL0_V, nt),
-						n_slot);
+			if ( n0 )
+				z = ZInst(AssignmentFlavor(OP_CALL1_VV, nt),
+						n_slot, FrameSlot(n0));
 			else
-				{
-				auto arg0 = args[0];
-				if ( arg0->Tag() == EXPR_NAME )
-					z = ZInst(AssignmentFlavor(OP_CALL1_VV,
-							nt), n_slot,
-						FrameSlot(arg0->AsNameExpr()));
-				else
-					z = ZInst(AssignmentFlavor(OP_CALL1_VC,
-							nt), n_slot,
-							arg0->AsConstExpr());
-
-				z.t = arg0->Type().get();
-				}
+				z = ZInst(AssignmentFlavor(OP_CALL1_VC, nt),
+						n_slot, c0);
 			}
 		else
 			{
-			if ( args.length() == 0 )
-				z = ZInst(OP_CALL0_X);
+			if ( n0 )
+				z = ZInst(OP_CALL1_V, FrameSlot(n0));
 			else
-				{
-				auto arg0 = args[0];
-				if ( arg0->Tag() == EXPR_NAME )
-					z = ZInst(OP_CALL1_V,
-						FrameSlot(arg0->AsNameExpr()));
-				else
-					z = ZInst(OP_CALL1_C,
-							arg0->AsConstExpr());
-
-				z.t = arg0->Type().get();
-				}
+				z = ZInst(OP_CALL1_C, c0);
 			}
 
-		z.func = func_id->ID_Val()->AsFunc();
-
-		return AddInst(z);
+		z.t = arg0->Type().get();
 		}
 
-	if ( func_id->IsGlobal() )
+	else
 		{
-		auto aux = new ZInstAux(args.length());
+		auto aux = new ZInstAux(nargs);
 
-		for ( int i = 0; i < args.length(); ++i )
+		for ( int i = 0; i < nargs; ++i )
 			{
 			auto ai = args[i];
 			auto ai_t = ai->Type();
@@ -2209,76 +2212,69 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 
 		ZOp op;
 
-		switch ( args.length() ) {
+		switch ( call_case ) {
 		case 2: op = n ? OP_CALL2_Vc : OP_CALL2_c; break;
 		case 3: op = n ? OP_CALL3_Vc : OP_CALL3_c; break;
 		case 4: op = n ? OP_CALL4_Vc : OP_CALL4_c; break;
 		case 5: op = n ? OP_CALL5_Vc : OP_CALL5_c; break;
 
-		default: op = n ? OP_CALLN_Vc : OP_CALLN_c; break;
+		default:
+			if ( indirect )
+				op = n ? OP_INDCALLN_VVc : OP_INDCALLN_Vc;
+			else
+				op = n ? OP_CALLN_Vc : OP_CALLN_c;
+			break;
 		}
 
 		if ( n )
-			op = AssignmentFlavor(op, n->Type()->Tag());
-
-		ZInst z;
-
-		if ( n )
 			{
+			op = AssignmentFlavor(op, nt);
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
-			z = ZInst(op, n_slot);
-			z.op_type = OP_Vc;
+
+			if ( indirect)
+				{
+				z = ZInst(op, n_slot, FrameSlot(func));
+				z.op_type = OP_VVc;
+				}
+
+			else
+				{
+				z = ZInst(op, n_slot);
+				z.op_type = OP_Vc;
+				}
 			}
 		else
 			{
-			z = ZInst(op);
-			z.op_type = OP_c;
+			if ( indirect )
+				{
+				z = ZInst(op, FrameSlot(func));
+				z.op_type = OP_Vc;
+				}
+			else
+				{
+				z = ZInst(op);
+				z.op_type = OP_c;
+				}
 			}
 
-		z.func = func_id->ID_Val()->AsFunc();
 		z.aux = aux;
-
-		return AddInst(z);
 		}
 
-	// In principle, we could split these up into calls to other script
-	// functions vs. BiF's.  However, before biting that off we need to
-	// rework the Trigger framework so that it doesn't require CallExpr's
-	// to associate delayed values with.  This can be done by introducing
-	// an abstract TriggerCaller class that manages both CallExpr's and
-	// internal statements (e.g., associated with the PC value at the call
-	// site).  But for now, we just punt the whole problem to the
-	// interpreter.
-
-	// Look for any locals that are used in the argument list.
-	// We do this separately from FlushVars() because we have to
-	// consider sync *all* the globals, whereas it only sync's those
-	// explicitly present in the expression.
-	ProfileFunc call_pf;
-	c->Traverse(&call_pf);
-
-	for ( auto l : call_pf.locals )
-		StoreLocal(l);
-
-	// Don't invoke GenInst for the first case since if n is a global
-	// we don't want to dirty it prior to assignment
-	auto a_s = n ? ZInst(OP_INTERPRET_EXPR_V, RawSlot(n), c) :
-			ZInst(OP_INTERPRET_EXPR_X, c);
+	if ( ! indirect )
+		z.func = func_id->ID_Val()->AsFunc();
 
 	if ( n )
 		{
-		a_s.SetType(n->Type());
-
 		auto id = n->Id();
 		if ( id->IsGlobal() )
 			{
-			AddInst(a_s);
-			a_s = ZInst(OP_DIRTY_GLOBAL_V, global_id_to_info[id]);
-			a_s.op_type = OP_V_I1;
+			AddInst(z);
+			z = ZInst(OP_DIRTY_GLOBAL_V, global_id_to_info[id]);
+			z.op_type = OP_V_I1;
 			}
 		}
 
-	return AddInst(a_s);
+	return AddInst(z);
 	}
 
 void ZAM::FlushVars(const Expr* e)

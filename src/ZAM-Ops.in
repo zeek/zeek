@@ -1039,6 +1039,32 @@ eval auto v_ptr = z.func->Call(args, f)
 eval auto v = v_ptr.get()
 eval @v
 
+# Same, but for indirect calls via a local variable.
+internal-op IndCallN
+op1-read
+type Vc
+side-effects
+eval auto func = frame[z.v1].func_val
+eval auto aux = z.aux
+eval auto n = aux->n
+eval std::vector<IntrusivePtr<Val>> args;
+eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval (void) func->Call(args, f)
+
+# Same with a return value.
+internal-assignment-op IndCallN
+type VVc
+side-effects OP_INDCALLN_Vc
+side-effects-op-type OP_Vc
+eval auto func = frame[z.v2].func_val
+eval auto aux = z.aux
+eval auto n = aux->n
+eval std::vector<IntrusivePtr<Val>> args;
+eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval auto v_ptr = func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
 ########## Statements ##########
 
 op Schedule

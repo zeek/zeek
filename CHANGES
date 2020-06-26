@@ -1,4 +1,11 @@
 
+3.1.5-dev.4 | 2020-07-23 16:20:45 -0700
+
+  * reduce memory usage of ConnPolling (Justin Azoff, Corelight)
+
+    Instead of scheduling the event with the full 'connection' record,
+    schedule it with the smaller 'conn_id' record.
+
 3.1.5-dev.3 | 2020-07-23 16:12:25 -0700
 
   * GH-1025: allow copying/cloning of `opaque of Broker::Store` (Jon Siwek, Corelight)

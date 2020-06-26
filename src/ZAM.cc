@@ -790,64 +790,68 @@ bool ZAM::PruneUnused()
 			KillInst(inst);
 			}
 
+		if ( ! inst->AssignsToSlot1() )
+			continue;
+
 		int slot = inst->v1;
-		if ( inst->AssignsToSlot1() &&
-		     denizen_ending.count(slot) == 0 &&
-		     ! frame_denizens[slot]->IsGlobal() )
+		if ( denizen_ending.count(slot) > 0 ||
+		     frame_denizens[slot]->IsGlobal() )
+			continue;
+
+		// Assignment to a local that isn't otherwise used.
+		if ( ! inst->HasSideEffects() )
 			{
-			// Assignment to a local that isn't otherwise used.
-			if ( inst->HasSideEffects() )
-				{
-				// Transform the instruction into its
-				// flavor that doesn't make an assignment.
-				switch ( inst->op ) {
-				case OP_INTERPRET_EXPR_V:
-				case OP_INTERPRET_EXPR_ANY_V:
-					inst->op = OP_INTERPRET_EXPR_X;
-					inst->op_type = OP_E;
-					break;
-
-				case OP_LOG_WRITE_VVV:
-					inst->op = OP_LOG_WRITE_VV;
-					inst->op_type = OP_VV;
-					inst->v1 = inst->v2;
-					inst->v2 = inst->v3;
-					break;
-
-				case OP_LOG_WRITE_VVC:
-					inst->op = OP_LOG_WRITE_VC;
-					inst->op_type = OP_Vc;
-					inst->v1 = inst->v2;
-					break;
-
-				case OP_BROKER_FLUSH_LOGS_V:
-					inst->op = OP_BROKER_FLUSH_LOGS_X;
-					inst->op_type = OP_X;
-					break;
-
-				default:
-					if ( assignmentless_op.count(inst->op) > 0 )
-						{
-						inst->op_type = assignmentless_op_type[inst->op];
-						inst->op = assignmentless_op[inst->op];
-						}
-					else
-						reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
-				}
-
-				// While we didn't prune the instruction,
-				// we did prune the assignment, so we'll
-				// want to reassess variable lifetimes.
-				did_prune = true;
-				}
-
-			else
-				{
-				did_prune = true;
-				// We don't use this assignment.
-				KillInst(inst);
-				}
+			did_prune = true;
+			// We don't use this assignment.
+			KillInst(inst);
+			continue;
 			}
+
+		// Transform the instruction into its flavor that doesn't
+		// make an assignment.
+		switch ( inst->op ) {
+		case OP_INTERPRET_EXPR_V:
+		case OP_INTERPRET_EXPR_ANY_V:
+			inst->op = OP_INTERPRET_EXPR_X;
+			inst->op_type = OP_E;
+			break;
+
+		case OP_LOG_WRITE_VVV:
+			inst->op = OP_LOG_WRITE_VV;
+			inst->op_type = OP_VV;
+			inst->v1 = inst->v2;
+			inst->v2 = inst->v3;
+			break;
+
+		case OP_LOG_WRITE_VVC:
+			inst->op = OP_LOG_WRITE_VC;
+			inst->op_type = OP_Vc;
+			inst->v1 = inst->v2;
+			break;
+
+		case OP_BROKER_FLUSH_LOGS_V:
+			inst->op = OP_BROKER_FLUSH_LOGS_X;
+			inst->op_type = OP_X;
+			break;
+
+		default:
+			if ( assignmentless_op.count(inst->op) > 0 )
+				{
+				inst->op_type = assignmentless_op_type[inst->op];
+				inst->op = assignmentless_op[inst->op];
+
+				inst->v1 = inst->v2;
+				inst->v2 = inst->v3;
+				inst->v3 = inst->v4;
+				}
+			else
+				reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
+		}
+
+		// While we didn't prune the instruction,
+		// we did prune the assignment, so we'll
+		// want to reassess variable lifetimes.
+		did_prune = true;
 		}
 
 	return did_prune;

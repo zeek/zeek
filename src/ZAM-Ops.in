@@ -909,7 +909,7 @@ eval auto v_ptr = z.func->Call(args, f)
 eval auto v = v_ptr.get()
 eval @v
 
-# Calls with 2 arguments and no return value.
+# Calls with 2-5 arguments and no return value.
 internal-op Call2
 op1-read
 type c
@@ -929,6 +929,112 @@ eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args;
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
+internal-op Call3
+op1-read
+type c
+side-effects
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval args.push_back(aux->ToVal(frame, 2))
+eval (void) z.func->Call(args, f)
+
+# Same with a return value.
+internal-assignment-op Call3
+type Vc
+side-effects OP_CALL3_c
+side-effects-op-type OP_c
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval args.push_back(aux->ToVal(frame, 2))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
+internal-op Call4
+op1-read
+type c
+side-effects
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval args.push_back(aux->ToVal(frame, 2))
+eval args.push_back(aux->ToVal(frame, 3))
+eval (void) z.func->Call(args, f)
+
+# Same with a return value.
+internal-assignment-op Call4
+type Vc
+side-effects OP_CALL4_c
+side-effects-op-type OP_c
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval args.push_back(aux->ToVal(frame, 2))
+eval args.push_back(aux->ToVal(frame, 3))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
+internal-op Call5
+op1-read
+type c
+side-effects
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval args.push_back(aux->ToVal(frame, 2))
+eval args.push_back(aux->ToVal(frame, 3))
+eval args.push_back(aux->ToVal(frame, 4))
+eval (void) z.func->Call(args, f)
+
+# Same with a return value.
+internal-assignment-op Call5
+type Vc
+side-effects OP_CALL5_c
+side-effects-op-type OP_c
+eval auto aux = z.aux
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(aux->ToVal(frame, 0))
+eval args.push_back(aux->ToVal(frame, 1))
+eval args.push_back(aux->ToVal(frame, 2))
+eval args.push_back(aux->ToVal(frame, 3))
+eval args.push_back(aux->ToVal(frame, 4))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
+# ... and with an arbitrary number of arguments.
+
+internal-op CallN
+op1-read
+type c
+side-effects
+eval auto aux = z.aux
+eval auto n = aux->n
+eval std::vector<IntrusivePtr<Val>> args;
+eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval (void) z.func->Call(args, f)
+
+# Same with a return value.
+internal-assignment-op CallN
+type Vc
+side-effects OP_CALLN_c
+side-effects-op-type OP_c
+eval auto aux = z.aux
+eval auto n = aux->n
+eval std::vector<IntrusivePtr<Val>> args;
+eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval auto v_ptr = z.func->Call(args, f)
 eval auto v = v_ptr.get()
 eval @v

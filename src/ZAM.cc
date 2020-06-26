@@ -2193,7 +2193,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 		return AddInst(z);
 		}
 
-	if ( func_id->IsGlobal() && args.length() == 2 )
+	if ( func_id->IsGlobal() )
 		{
 		auto aux = new ZInstAux(args.length());
 
@@ -2207,19 +2207,31 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 				aux->Add(i, ai->AsConstExpr()->ValuePtr());
 			}
 
+		ZOp op;
+
+		switch ( args.length() ) {
+		case 2: op = n ? OP_CALL2_Vc : OP_CALL2_c; break;
+		case 3: op = n ? OP_CALL3_Vc : OP_CALL3_c; break;
+		case 4: op = n ? OP_CALL4_Vc : OP_CALL4_c; break;
+		case 5: op = n ? OP_CALL5_Vc : OP_CALL5_c; break;
+
+		default: op = n ? OP_CALLN_Vc : OP_CALLN_c; break;
+		}
+
+		if ( n )
+			op = AssignmentFlavor(op, n->Type()->Tag());
+
 		ZInst z;
 
 		if ( n )
 			{
-			auto nt = n->Type()->Tag();
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
-
-			z = ZInst(AssignmentFlavor(OP_CALL2_Vc, nt), n_slot);
+			z = ZInst(op, n_slot);
 			z.op_type = OP_Vc;
 			}
 		else
 			{
-			z = ZInst(OP_CALL2_c);
+			z = ZInst(op);
 			z.op_type = OP_c;
 			}
 

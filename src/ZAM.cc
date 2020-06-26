@@ -3143,12 +3143,22 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		AddInst(z);
 		}
 
-	auto indexes = index_assign->GetOp2()->AsListExpr()->Exprs();
+	auto indexes_expr = index_assign->GetOp2()->AsListExpr();
+	auto indexes = indexes_expr->Exprs();
 
 	if ( indexes.length() > 1 )
-		{
-		// Vector slice assignment.  For now, punt to the interpreter.
-		return InterpretExpr(e);
+		{ // Vector slice assignment.  For now, punt to the interpreter.
+		ASSERT(op1->Tag() == EXPR_NAME);
+		ASSERT(op3->Tag() == EXPR_NAME);
+		ASSERT(op1->Type()->Tag() == TYPE_VECTOR);
+		ASSERT(op3->Type()->Tag() == TYPE_VECTOR);
+
+		auto z = GenInst(this, OP_VECTOR_SLICE_ASSIGN_VV,
+					op1->AsNameExpr(), op3->AsNameExpr());
+
+		z.aux = InternalBuildVals(indexes_expr);
+
+		return AddInst(z);
 		}
 
 	auto op2 = indexes[0];

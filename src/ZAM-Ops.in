@@ -836,6 +836,15 @@ eval auto any_v = frame[z.v2].any_val
 eval auto any_z = ZAMValUnion({NewRef{}, any_v}, any_v->Type())
 eval vv->SetElement(z.v3, any_z)
 
+internal-op Vector-Slice-Assign
+op1-read
+type VV
+eval IntrusivePtr<Val> vec = {NewRef{}, frame[z.v1].vector_val}
+eval auto slice = z.aux->ToListVal(frame)
+eval IntrusivePtr<Val> vals = {NewRef{}, frame[z.v2].vector_val}
+eval auto error = assign_to_index(vec, slice, vals)
+eval if ( error ) ZAM_run_time_error(z.stmt, error)
+
 
 assign-op Field-LHS-Assign
 op1-read

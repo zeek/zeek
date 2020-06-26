@@ -374,7 +374,8 @@ $1 == "op-accessor"	{ op1_accessor = op2_accessor = $2; next }
 $1 == "op1-accessor"	{ op1_accessor = $2; next }
 $1 == "op2-accessor"	{ op2_accessor = $2; next }
 
-$1 == "side-effects"	{ side_effects = 1; next; }
+$1 == "side-effects"	{ side_effects = $2 ? $2 : 1; next; }
+$1 == "side-effects-op-type"	{ side_effects_op_type = $2; next; }
 
 $1 == "field-op"	{ field_op = 1; next }
 $1 == "no-const"	{ no_const = 1; next }
@@ -713,6 +714,15 @@ function build_internal_assignment_op()
 		suffix = a == "?" ? "_any" : a;
 
 		print ("\tassignment_flavor[" full_assign_op "][" accessor_tags[a] "] = " full_assign_op suffix ";") >assign_flavors_f
+
+		if ( side_effects && side_effects != 1 )
+			{
+			if ( ! side_effects_op_type )
+				gripe("must specify side-effects-op-type")
+
+			print ("\tassignmentless_op[" full_assign_op suffix "] = " side_effects ";") >assign_flavors_f
+			print ("\tassignmentless_op_type[" full_assign_op suffix "] = " side_effects_op_type ";") >assign_flavors_f
+			}
 
 		build_op(op, (type suffix), "", "", ev_copy, ev_copy, 0, 0)
 		}
@@ -1647,7 +1657,8 @@ function clear_vars()
 	field_eval = no_eval = mix_eval = multi_eval = eval_blank = ""
 	field_op = cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
 	vector = int_assign_op = binary_op = internal_op = ""
-	side_effects = op1_flavor = direct_method = direct_op = ""
+	op1_flavor = direct_method = direct_op = ""
+	side_effects_op_type = side_effects = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""
 	ev_mix1 = ev_mix2 = ""

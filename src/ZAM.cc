@@ -270,13 +270,22 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* c,
 	}
 
 
+// Maps first operands and then type tags to operands.
+static std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>>
+	assignment_flavor;
+
+// Maps flavorful assignments to their non-assignment counterpart.
+// Used for optimization when we determine that the assigned-to
+// value is superfluous.
+static std::unordered_map<ZOp, ZOp> assignmentless_op;
+
+// Maps flavorful assignments to what op-type their non-assignment
+// counterpart uses.
+static std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
+
 ZOp AssignmentFlavor(ZOp orig, TypeTag tag)
 	{
 	static bool did_init = false;
-
-	// Maps first operands and then type tags to operands.
-	static std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>>
-		assignment_flavor;
 
 	if ( ! did_init )
 		{
@@ -817,7 +826,13 @@ bool ZAM::PruneUnused()
 					break;
 
 				default:
-					reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
+					if ( assignmentless_op.count(inst->op) > 0 )
+						{
+						inst->op_type = assignmentless_op_type[inst->op];
+						inst->op = assignmentless_op[inst->op];
+						}
+					else
+						reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
 				}
 
 				// While we didn't prune the instruction,
@@ -2089,10 +2104,21 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	auto func_id = func->Id();
 	auto& args = c->Args()->Exprs();
 
-	if ( ! n && func_id->IsGlobal() && args.length() == 0 )
+	if ( func_id->IsGlobal() && args.length() == 0 )
 		{
-		ZInst z(OP_CALL0_X);
+		ZInst z;
+
+		if ( n )
+			{
+			auto nt = n->Type()->Tag();
+			auto n_slot = Frame1Slot(n, OP1_WRITE);
+			z = ZInst(AssignmentFlavor(OP_CALL0_V, nt), n_slot);
+			}
+		else
+			z = ZInst(OP_CALL0_X);
+
 		z.func = func_id->ID_Val()->AsFunc();
+
 		return AddInst(z);
 		}
 

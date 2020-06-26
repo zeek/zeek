@@ -857,8 +857,19 @@ eval frame[z.v1].record_val->RawFields()->Assign($3, v)
 internal-op Call0
 op1-read
 type X
+side-effects
 eval std::vector<IntrusivePtr<Val>> args;	// empty
-eval (void) z.func->Call(args, f);
+eval (void) z.func->Call(args, f)
+
+# A call with no arguments and a return value.
+internal-assignment-op Call0
+type V
+side-effects OP_CALL0_X
+side-effects-op-type OP_X
+eval std::vector<IntrusivePtr<Val>> args;	// empty
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
 
 ########## Statements ##########
 

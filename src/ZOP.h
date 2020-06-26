@@ -271,6 +271,8 @@ public:
 	const Expr* e = nullptr;
 	Expr* non_const_e = nullptr;
 
+	Func* func = nullptr;	// used for calls
+
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
 

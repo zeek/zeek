@@ -851,7 +851,16 @@ type F
 eval @$2
 eval frame[z.v1].record_val->RawFields()->Assign($3, v)
 
-##########  Statements ##########
+########## Function Calls ##########
+
+# A call with no arguments and no return value.
+internal-op Call0
+op1-read
+type X
+eval std::vector<IntrusivePtr<Val>> args;	// empty
+eval (void) z.func->Call(args, f);
+
+########## Statements ##########
 
 op Schedule
 type ViHL

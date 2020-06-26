@@ -267,7 +267,7 @@ protected:
 	// be present.
 	bro_uint_t ConstArgsMask(const expr_list& args, int nargs) const;
 
-	const CompiledStmt DoCall(const CallExpr* c, const NameExpr* n, UDs uds);
+	const CompiledStmt DoCall(const CallExpr* c, const NameExpr* n);
 
 	const CompiledStmt CompileSchedule(const NameExpr* n,
 					const ConstExpr* c, int is_interval,

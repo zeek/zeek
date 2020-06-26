@@ -2081,9 +2081,20 @@ bool ZAM::BuiltIn_strstr(const NameExpr* n, const expr_list& args)
 	return true;
 	}
 
-const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
+const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	{
 	SyncGlobals(c);
+
+	auto func = c->Func()->AsNameExpr();
+	auto func_id = func->Id();
+	auto& args = c->Args()->Exprs();
+
+	if ( ! n && func_id->IsGlobal() && args.length() == 0 )
+		{
+		ZInst z(OP_CALL0_X);
+		z.func = func_id->ID_Val()->AsFunc();
+		return AddInst(z);
+		}
 
 	// In principle, we could split these up into calls to other script
 	// functions vs. BiF's.  However, before biting that off we need to
@@ -2946,9 +2957,8 @@ const CompiledStmt ZAM::Call(const ExprStmt* e)
 	if ( IsZAM_BuiltIn(e->StmtExpr()) )
 		return LastInst();
 
-	auto uds = ud->GetUsageAfter(e);
 	auto call = e->StmtExpr()->AsCallExpr();
-	return DoCall(call, nullptr, uds);
+	return DoCall(call, nullptr);
 	}
 
 const CompiledStmt ZAM::AssignToCall(const ExprStmt* e)
@@ -2956,22 +2966,11 @@ const CompiledStmt ZAM::AssignToCall(const ExprStmt* e)
 	if ( IsZAM_BuiltIn(e->StmtExpr()) )
 		return LastInst();
 
-	// This is a bit subtle.  Normally, we'd get the UDs *after* the
-	// statement, since UDs reflect use-defs prior to statement execution.
-	// However, this could be an assignment of the form "global = func()",
-	// in which case whether there are UDs for "global" *after* the 
-	// assignment aren't what's relevant - we still need to load
-	// the global in order to do the assignment.  OTOH, the UDs *before*
-	// this assignment statement will correctly capture the UDs after
-	// it with the sole exception of what's being assigned.  Given
-	// if what's being assigned is a global, it doesn't need to be loaded,
-	// we therefore use the UDs before this statement.
-	auto uds = ud->GetUsage(e);
 	auto assign = e->StmtExpr()->AsAssignExpr();
 	auto n = assign->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
 	auto call = assign->GetOp2()->AsCallExpr();
 
-	return DoCall(call, n, uds);
+	return DoCall(call, n);
 	}
 
 const CompiledStmt ZAM::AssignVecElems(const Expr* e)

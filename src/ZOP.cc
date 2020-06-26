@@ -498,6 +498,9 @@ void ZInst::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 		break;
 	}
 
+	if ( func )
+		printf(" (func %s)", func->Name());
+
 	printf("\n");
 
 	delete id1;

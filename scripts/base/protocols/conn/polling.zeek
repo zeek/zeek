@@ -26,14 +26,14 @@ export {
 			       cnt: count, i: interval);
 }
 
-event ConnPolling::check(c: connection,
+event ConnPolling::check(id: conn_id,
 			 callback: function(c: connection, cnt: count): interval,
 			 cnt: count)
 	{
-	if ( ! connection_exists(c$id) )
+	if ( ! connection_exists(id) )
 		return;
 
-	lookup_connection(c$id); # updates the conn val
+	local c = lookup_connection(id); # updates the conn val
 
 	local next_interval = callback(c, cnt);
 	if ( next_interval < 0secs )
@@ -46,5 +46,6 @@ function watch(c: connection,
 	       callback: function(c: connection, cnt: count): interval,
 	       cnt: count, i: interval)
 	{
-	schedule i { ConnPolling::check(c, callback, cnt) };
+	local id = c$id;
+	schedule i { ConnPolling::check(id, callback, cnt) };
 	}

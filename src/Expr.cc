@@ -4409,11 +4409,13 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 
 const CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
 	{
-	if ( op1->Type()->Tag() == TYPE_VECTOR )
+	auto t = op1->Type()->Tag();
+
+	if ( t == TYPE_VECTOR )
 		return c->AssignVecElems(this);
 
-	else
-		return c->InterpretExpr(this);
+	ASSERT(t == TYPE_TABLE);
+	return c->AssignTableElem(this);
 	}
 
 IntrusivePtr<Expr> IndexAssignExpr::Duplicate()
@@ -6851,9 +6853,8 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 
 const CompiledStmt CallExpr::Compile(Compiler* c) const
 	{
-	// ### need to kill CSE across calls to non-stateless (vs pure) functions
-	// ### need to kill CSE for temps whose parent aggregate is reassigned
-	return c->InterpretExpr(this);
+	reporter->InternalError("CallExpr::Compile called");
+	return c->EmptyStmt();
 	}
 
 IntrusivePtr<Expr> CallExpr::Duplicate()

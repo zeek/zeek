@@ -65,6 +65,7 @@ public:
 	const CompiledStmt AssignToCall(const ExprStmt* e) override;
 
 	const CompiledStmt AssignVecElems(const Expr* e) override;
+	const CompiledStmt AssignTableElem(const Expr* e) override;
 
 	const CompiledStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverVector(const ForStmt* f, const NameExpr* val);

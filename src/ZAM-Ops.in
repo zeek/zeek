@@ -846,6 +846,21 @@ eval auto error = assign_to_index(vec, slice, vals)
 eval if ( error ) ZAM_run_time_error(z.stmt, error)
 
 
+internal-op Table-Elem-Assign
+op1-read
+type VV
+eval auto indices = z.aux->ToListVal(frame)
+eval auto val = frame[z.v2].ToVal(z.t)
+eval frame[z.v1].table_val->Assign(indices.get(), val)
+
+internal-op Table-Elem-Assign
+op1-read
+type VC
+eval auto indices = z.aux->ToListVal(frame)
+eval auto val = z.c.ToVal(z.t)
+eval frame[z.v1].table_val->Assign(indices.get(), val)
+
+
 assign-op Field-LHS-Assign
 op1-read
 type F

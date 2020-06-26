@@ -3214,6 +3214,29 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		}
 	}
 
+const CompiledStmt ZAM::AssignTableElem(const Expr* e)
+	{
+	auto index_assign = e->AsIndexAssignExpr();
+
+	auto op1 = index_assign->GetOp1()->AsNameExpr();
+	auto op2 = index_assign->GetOp2()->AsListExpr();
+	auto op3 = index_assign->GetOp3();
+
+	ZInst z;
+
+	if ( op3->Tag() == EXPR_NAME )
+		z = GenInst(this, OP_TABLE_ELEM_ASSIGN_VV,
+				op1, op3->AsNameExpr());
+	else
+		z = GenInst(this, OP_TABLE_ELEM_ASSIGN_VC,
+				op1, op3->AsConstExpr());
+
+	z.aux = InternalBuildVals(op2);
+	z.t = op3->Type().get();
+
+	return AddInst(z);
+	}
+
 const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();

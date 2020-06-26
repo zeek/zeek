@@ -79,6 +79,7 @@ public:
 	virtual const CompiledStmt AssignToCall(const ExprStmt* e) = 0;
 
 	virtual const CompiledStmt AssignVecElems(const Expr* e) = 0;
+	virtual const CompiledStmt AssignTableElem(const Expr* e) = 0;
 
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;

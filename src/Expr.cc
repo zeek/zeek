@@ -118,8 +118,17 @@ void Expr::Assign(Frame* /* f */, IntrusivePtr<Val> /* v */)
 void Expr::AssignToIndex(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
 				IntrusivePtr<Val> v3) const
 	{
+	auto error_msg = assign_to_index(v1, v2, v3);
+
+	if ( error_msg )
+		RuntimeErrorWithCallStack(error_msg);
+	}
+
+const char* assign_to_index(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
+				IntrusivePtr<Val> v3)
+	{
 	if ( ! v1 || ! v2 || ! v3 )
-		return;
+		return nullptr;
 
 	// Hold an extra reference to 'arg_v' in case the ownership transfer
 	// to the table/vector goes wrong and we still want to obtain
@@ -166,11 +175,11 @@ void Expr::AssignToIndex(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
 				auto vtt = vt->Tag();
 				std::string tn = vtt == TYPE_RECORD ?
 					vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(fmt("vector index assignment failed for invalid type '%s', value: %s",
-					tn.data(), d.Description()));
+				return fmt("vector index assignment failed for invalid type '%s', value: %s",
+					tn.data(), d.Description());
 				}
 			else
-				RuntimeErrorWithCallStack("assignment failed with null value");
+				return "assignment failed with null value";
 			}
 		break;
 		}
@@ -188,22 +197,24 @@ void Expr::AssignToIndex(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
 				auto vtt = vt->Tag();
 				std::string tn = vtt == TYPE_RECORD ?
 					vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(fmt("table index assignment failed for invalid type '%s', value: %s",
-					tn.data(), d.Description()));
+				return fmt("table index assignment failed for invalid type '%s', value: %s",
+					tn.data(), d.Description());
 				}
 			else
-				RuntimeErrorWithCallStack("assignment failed with null value");
+				return "assignment failed with null value";
 			}
 		break;
 
 	case TYPE_STRING:
-		RuntimeErrorWithCallStack("assignment via string index accessor not allowed");
+		return "assignment via string index accessor not allowed";
 		break;
 
 	default:
-		RuntimeErrorWithCallStack("bad index expression type in assignment");
+		return "bad index expression type in assignment";
 		break;
 	}
+
+	return nullptr;
 	}
 
 IntrusivePtr<BroType> Expr::InitType() const

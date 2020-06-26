@@ -419,6 +419,9 @@ protected:
 	bool paren;
 };
 
+extern const char* assign_to_index(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
+					IntrusivePtr<Val> v3);
+
 class NameExpr : public Expr {
 public:
 	explicit NameExpr(IntrusivePtr<ID> id, bool const_init = false);

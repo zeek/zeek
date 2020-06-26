@@ -370,12 +370,34 @@ public:
 		delete [] types;
 		}
 
-	IntrusivePtr<Val> ToVal(const ZAMValUnion* frame, int i)
+	IntrusivePtr<Val> ToVal(const ZAMValUnion* frame, int i) const
 		{
 		if ( constants[i] )
 			return constants[i];
 		else
 			return frame[slots[i]].ToVal(types[i].get());
+		}
+
+	IntrusivePtr<ListVal> ToListVal(const ZAMValUnion* frame) const
+		{
+		auto lv = make_intrusive<ListVal>(TYPE_ANY);
+		for ( auto i = 0; i < n; ++i )
+			lv->Append(ToVal(frame, i).release());
+
+		return lv;
+		}
+
+	const val_vec& ToValVec(const ZAMValUnion* frame)
+		{
+		vv.clear();
+		FillValVec(vv, frame);
+		return vv;
+		}
+
+	void FillValVec(val_vec& vec, const ZAMValUnion* frame) const
+		{
+		for ( auto i = 0; i < n; ++i )
+			vec.push_back(ToVal(frame, i));
 		}
 
 	void Add(int i, int slot, IntrusivePtr<BroType> t)
@@ -400,6 +422,10 @@ public:
 	int* slots = nullptr;
 	IntrusivePtr<Val>* constants = nullptr;
 	IntrusivePtr<BroType>* types = nullptr;
+
+	// If we cared about memory penny-pinching, we could make
+	// this a pointer and only instantiate as needed.
+	val_vec vv;
 };
 
 extern const char* ZOP_name(ZOp op);

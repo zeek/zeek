@@ -490,30 +490,26 @@ eval auto op1 = z.c.ToVal(z.t)
 eval if ( frame[z.v1].table_val->Lookup(op1.get()) ) { pc = z.v2; continue; }
 
 internal-op List-Is-In-Table
-type VVV
-eval auto op1 = frame[z.v3].list_val
-eval frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1) != nullptr
-eval Unref(op1)
+type VV
+eval auto op1 = z.aux->ToListVal(frame)
+eval frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1.get()) != nullptr
 
 internal-op List-Is-In-Table
-type VVC
-eval auto op1 = frame[z.v2].list_val
-eval frame[z.v1].int_val = z.c.table_val->Lookup(op1) != nullptr
-eval Unref(op1)
+type VC
+eval auto op1 = z.aux->ToListVal(frame)
+eval frame[z.v1].int_val = z.c.table_val->Lookup(op1.get()) != nullptr
 
 internal-op Index-Is-In-Vector
-type VVV
-eval auto op1 = frame[z.v3].list_val
+type VV
+eval auto op1 = z.aux->ToListVal(frame)
 eval auto op2 = frame[z.v2].vector_val
-eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
-eval Unref(op1)
+eval frame[z.v1].int_val = op2->Lookup(op1.get()) != nullptr
 
 internal-op Index-Is-In-Vector
-type VVC
-eval auto op1 = frame[z.v2].list_val
+type VC
+eval auto op1 = z.aux->ToListVal(frame)
 eval auto op2 = z.c.vector_val
-eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
-eval Unref(op1)
+eval frame[z.v1].int_val = op2->Lookup(op1.get()) != nullptr
 
 expr-op Cond
 type VVVV
@@ -589,29 +585,26 @@ eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Vec
-type VVL
+type VV
 eval auto yt = z.t->AsVectorType()->YieldType()
 eval auto vec = frame[z.v2].vector_val
-eval auto lv = frame[z.v3].list_val
-eval auto v = vec->Lookup(lv)
-eval Unref(lv)
+eval auto lv = z.aux->ToListVal(frame)
+eval auto v = vec->Lookup(lv.get())
 eval AssignV1T(BuildVal(v, yt), yt)
 
 internal-op Index-Vec-Slice
-type VVL
+type VV
 eval auto vt = z.t->AsVectorType()
 eval auto vec = frame[z.v2].vector_val
-eval auto lv = frame[z.v3].list_val
-eval auto v = vector_index(vt, vec, lv)
-eval Unref(lv)
+eval auto lv = z.aux->ToListVal(frame)
+eval auto v = vector_index(vt, vec, lv.get())
 eval Unref(frame[z.v1].vector_val)
 eval frame[z.v1].vector_val = v.release()
 
 internal-op Table-Index
-type VVV
-eval auto v2 = frame[z.v3].list_val
-eval auto v = frame[z.v2].table_val->Lookup(v2)
-eval Unref(v2)
+type VV
+eval auto v2 = z.aux->ToListVal(frame)
+eval auto v = frame[z.v2].table_val->Lookup(v2.get())
 eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(BuildVal(v, z.t))
 
@@ -654,11 +647,10 @@ eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = new StringVal(v ? v : new BroString(""))
 
 internal-op Index-String-Slice
-type VVL
+type VV
 eval auto str = frame[z.v2].string_val->AsString()
-eval auto lv = frame[z.v3].list_val
-eval auto slice = index_string_slice(str, lv)
-eval Unref(lv)
+eval auto lv = z.aux->ToListVal(frame)
+eval auto slice = index_string_slice(str, lv.get())
 eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = new StringVal(slice)
 
@@ -1071,12 +1063,12 @@ op Schedule
 type ViHL
 op1-read
 custom-method return CompileSchedule(n, nullptr, i, h, l);
-eval double dt = frame[z.v2].double_val
-eval if ( z.v3 ) dt += network_time
+eval double dt = frame[z.v1].double_val
+eval if ( z.v2 ) dt += network_time
 eval auto handler = EventHandlerPtr(z.event_handler)
-eval auto args = frame[z.v1].vvec
-eval auto timer = new ScheduleTimer(z.event_handler, std::move(*args), dt)
-eval delete frame[z.v1].vvec
+eval val_vec args
+eval z.aux->FillValVec(args, frame)
+eval auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt)
 eval timer_mgr->Add(timer)
 
 op Schedule
@@ -1084,11 +1076,11 @@ type CiHL
 op1-read
 custom-method return CompileSchedule(nullptr, c, i, h, l);
 eval double dt = z.c.double_val
-eval if ( z.v2 ) dt += network_time
+eval if ( z.v1 ) dt += network_time
 eval auto hp = EventHandlerPtr(z.event_handler)
-eval auto args = frame[z.v1].vvec
-eval auto timer = new ScheduleTimer(z.event_handler, std::move(*args), dt)
-eval delete frame[z.v1].vvec
+eval val_vec args
+eval z.aux->FillValVec(args, frame)
+eval auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt)
 eval timer_mgr->Add(timer)
 
 internal-op Schedule0
@@ -1116,8 +1108,9 @@ op Event
 type HL
 op1-read
 custom-method return CompileEvent(h, l);
-eval mgr.Enqueue(z.event_handler, std::move(*frame[z.v1].vvec))
-eval delete frame[z.v1].vvec
+eval val_vec args
+eval z.aux->FillValVec(args, frame)
+eval mgr.Enqueue(z.event_handler, std::move(args))
 
 
 op Return
@@ -1333,14 +1326,9 @@ eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(z.stmt, "mismatch in 
 eval Unref(v)
 
 op Print
-# You might think that versions of Print should have the "side-effects"
-# attribute, but it's not needed due to the "op1-read" attribute.
-op1-read
 type O
-eval auto vvec = frame[z.v1].vvec
-eval do_print(*vvec)
-eval delete vvec
-method-pre int reg = v->n; delete v
+eval do_print(z.aux->ToValVec(frame))
+method-post z.aux = v->aux
 
 op Print1
 op1-read
@@ -1378,21 +1366,17 @@ eval if ( frame[z.v1].int_val ) { pc = z.v2; continue; }
 op AddStmt
 op1-read
 type VO
-eval auto vvec = frame[z.v2].vvec
-eval auto lval = ValVecToListVal(vvec, vvec->size())
-eval frame[z.v1].table_val->Assign(lval, nullptr)
-eval delete lval
-method-pre int reg = v->n; delete v
+eval auto index = z.aux->ToListVal(frame)
+eval frame[z.v1].table_val->Assign(index.get(), nullptr)
+method-post z.aux = v->aux
 
 
 op DelTable
 op1-read
 type VO
-eval auto vvec = frame[z.v2].vvec
-eval auto lval = ValVecToListVal(vvec, vvec->size())
-eval frame[z.v1].table_val->Delete(lval)
-eval delete lval
-method-pre int reg = v->n; delete v
+eval auto index = z.aux->ToListVal(frame)
+eval frame[z.v1].table_val->Delete(index.get())
+method-post z.aux = v->aux
 
 op DelField
 op1-read
@@ -1494,37 +1478,6 @@ internal-op Copy-To
 type VC
 set-type $2
 eval AssignV1(CopyVal(z.c))
-
-# Initializes a new value vector.  We now do this dynamically, but at same
-# point we could switch it to a static vector since we'll only have one of
-# these at at time.
-# 
-# v1 is where to store the vector, v2 is its size (which we don't presently
-# use).
-
-internal-op Create-Val-Vec
-type V
-eval frame[z.v1].vvec = new val_vec
-
-# Appends v2 to the vector pointed to by v1.
-internal-op Set-Val-Vec
-op1-read
-type VV
-eval auto v = frame[z.v2].ToVal(z.t)
-eval frame[z.v1].vvec->push_back(v)
-
-# Appends c to the vector pointed to by v1.
-internal-op Set-Val-Vec
-op1-read
-type VC
-eval auto c = z.c.ToVal(z.t)
-eval frame[z.v1].vvec->push_back(c)
-
-# Turns the vector at v2 (with v3 items) into a list_val at v1.  Deletes
-# the original.
-internal-op Transform-Val-Vec-To-List-Val
-type VVV
-eval frame[z.v1].list_val = ValVecToListVal(frame[z.v2].vvec, z.v3)
 
 
 # Interprets the statement's expression as a stand-alone statement.

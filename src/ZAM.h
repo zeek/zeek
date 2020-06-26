@@ -208,7 +208,7 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
 					stmt_flow_type& flow) const;
 
-	int InternalBuildVals(const ListExpr*);
+	ZInstAux* InternalBuildVals(const ListExpr*);
 
 
 	const CompiledStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
@@ -279,8 +279,6 @@ protected:
 					const ConstExpr* c);
 	const CompiledStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 					const ConstExpr* c);
-
-	ListVal* ValVecToListVal(val_vec* v, int n) const;
 
 	void PushNexts()		{ PushGoTos(nexts); }
 	void PushBreaks()		{ PushGoTos(breaks); }

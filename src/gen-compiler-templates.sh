@@ -68,14 +68,14 @@ BEGIN	{
 	args["CiHL"] = "(const ConstExpr* c, int i, EventHandler* h, const ListExpr* l)"
 
 	args2["X"] = ""
-	args2["O"] = "reg"
+	args2["O"] = "aux"
 	args2["Ri"] = "n1, n2, field"
 	args2["Rii"] = "n1, n2, field1, field2"
 	args2["V"] = "n"
 	args2["Vi"] = "n, i"
 	args2["CVi"] = "c, n, i"
 	args2["VV"] = "n1, n2"
-	args2["VO"] = "n, reg"
+	args2["VO"] = "n, aux"
 	args2["VVV"] = "n1, n2, n3"
 	args2["VLV"] = "n1, l, n2"
 	args2["VLC"] = "n, l, c"
@@ -446,6 +446,7 @@ $1 == "no-eval"	{ no_eval = 1; next }
 
 $1 == "custom-method"	{ custom_method = all_but_first(); next }
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
+$1 == "method-post"	{ method_post = all_but_first(); next }
 $1 == "eval-pre"	{ eval_pre = all_but_first() ";"; next }
 
 /^#/		{ next }
@@ -1246,19 +1247,19 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	if ( ! internal_op && is_rep )
 		{
 		gen_method(full_op_no_sub, full_op, type, sub_type1,
-				0, 0, 0, method_pre)
+				0, 0, 0, method_pre, method_post)
 
 		if ( field_op )
 			gen_method(full_op_no_sub, full_op, type, sub_type1,
-					1, 0, 0, method_pre)
+					1, 0, 0, method_pre, method_post)
 
 		if ( do_vec )
 			gen_method(full_op_no_sub, full_op, type, sub_type1,
-					0, 1, 0, method_pre)
+					0, 1, 0, method_pre, method_post)
 
 		if ( cond_op )
 			gen_method(full_op_no_sub, full_op, type, sub_type1,
-					0, 0, 1, method_pre)
+					0, 0, 1, method_pre, method_post)
 		}
 
 	if ( assign_op && type in assign_types )
@@ -1395,7 +1396,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		}
 	}
 
-function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, is_cond, method_pre)
+function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, is_cond, method_pre, method_post)
 	{
 	mt = type
 
@@ -1428,23 +1429,23 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		return
 		}
 
+	print ("\tZInst z;") >methods_f
+
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
 
 	if ( mt == "O" || mt == "VO" )
 		{
 		pre_arg = mt == "O" ? "" : ", Frame1Slot(n, " full_op ")"
-		print ("\treturn AddInst(ZInst(" \
-			full_op pre_arg ", reg));") >methods_f
+		print ("\tz = ZInst(" full_op pre_arg ");") >methods_f
 		}
 
 	else if ( mt == "R" )
 		{
-		print ("\tauto z = GenInst(this, " full_op ", " \
+		print ("\tz = GenInst(this, " full_op ", " \
 			args2[mt] ");") >methods_f
 		print ("\tz.e = n1;") >methods_f
 		print ("\tz.SetType(n1->Type());") >methods_f
-		print ("\treturn AddInst(z);") >methods_f
 		}
 
 	else if ( args2[mt] != "" )
@@ -1455,10 +1456,10 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 			indent = "\t"
 
 		# This is the only scenario where sub_type should occur.
-		part1 = indent "auto z = GenInst(this, "
+		part1 = indent "z = GenInst(this, "
 
 		part2a = ", " args2[mt] ");\n"
-		part2c = indent "return AddInst(z);"
+		part2c = ""
 
 		if ( is_vec && ary_op == 2 )
 			part2c = indent "z.SetType(myt);\n" part2c
@@ -1632,9 +1633,12 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 			print (part1 full_op suffix part2) >methods_f
 		}
 	else
-		print ("\treturn AddInst(GenInst(this, " \
-			full_op "));") >methods_f
+		print ("\tz = GenInst(this, " full_op ");") >methods_f
 
+	if ( method_post )
+		print ("\t" method_post ";") >methods_f
+
+	print ("\treturn AddInst(z);") >methods_f
 	print ("\t}\n") >methods_f
 	}
 
@@ -1653,7 +1657,8 @@ function build_method_conditional(o, n)
 function clear_vars()
 	{
 	opaque = set_expr = set_type = type = type_selector = operand_type = ""
-	no_const = op_type_rep = custom_method = method_pre = eval_pre = ""
+	custom_method = method_pre = method_post = eval_pre = ""
+	no_const = op_type_rep = ""
 	field_eval = no_eval = mix_eval = multi_eval = eval_blank = ""
 	field_op = cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
 	vector = int_assign_op = binary_op = internal_op = ""

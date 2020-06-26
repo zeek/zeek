@@ -103,9 +103,9 @@ void ZAM_run_time_error(const char* msg, const BroObj* o)
 
 class OpaqueVals {
 public:
-	OpaqueVals(int _n)	{ n = _n; }
+	OpaqueVals(ZInstAux* _aux)	{ aux = _aux; }
 
-	int n;
+	ZInstAux* aux;
 };
 
 
@@ -3449,38 +3449,24 @@ OpaqueVals* ZAM::BuildVals(const IntrusivePtr<ListExpr>& l)
 	return new OpaqueVals(InternalBuildVals(l.get()));
 	}
 
-int ZAM::InternalBuildVals(const ListExpr* l)
+ZInstAux* ZAM::InternalBuildVals(const ListExpr* l)
 	{
 	auto exprs = l->Exprs();
 	int n = exprs.length();
-	auto tmp = NewSlot(false);	// val_vec's aren't managed
 
-	auto z = ZInst(OP_CREATE_VAL_VEC_V, tmp, n);
-	z.op_type = OP_VV_I2;
-	(void) AddInst(z);
+	auto aux = new ZInstAux(n);
 
 	for ( int i = 0; i < n; ++i )
 		{
 		const auto& e = exprs[i];
 
-		ZInst as;
-
 		if ( e->Tag() == EXPR_NAME )
-			{
-			int v = FrameSlot(e->AsNameExpr());
-			as = ZInst(OP_SET_VAL_VEC_VV, tmp, v);
-			}
+			aux->Add(i, FrameSlot(e->AsNameExpr()), e->Type());
 		else
-			{
-			auto c = e->AsConstExpr();
-			as = ZInst(OP_SET_VAL_VEC_VC, tmp, c);
-			}
-
-		as.SetType(e->Type());
-		(void) AddInst(as);
+			aux->Add(i, e->AsConstExpr()->ValuePtr());
 		}
 
-	return tmp;
+	return aux;
 	}
 
 const CompiledStmt ZAM::AddInst(const ZInst& inst)
@@ -3850,30 +3836,23 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 		return AddInst(z);
 		}
 
-	auto build_indices = InternalBuildVals(l);
-
-	auto z = ZInst(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
-				build_indices, build_indices, n);
-	z.op_type = OP_VVV_I3;
-	AddInst(z);
+	auto aggr = n2 ? (Expr*) n2 : (Expr*) c;
 
 	ZOp op;
 
-	auto aggr = n2 ? (Expr*) n2 : (Expr*) c;
-
 	if ( aggr->Type()->Tag() == TYPE_VECTOR )
-		op = n2 ? OP_INDEX_IS_IN_VECTOR_VVV : OP_INDEX_IS_IN_VECTOR_VVC;
+		op = n2 ? OP_INDEX_IS_IN_VECTOR_VV : OP_INDEX_IS_IN_VECTOR_VC;
 	else
-		op = n2 ? OP_LIST_IS_IN_TABLE_VVV : OP_LIST_IS_IN_TABLE_VVC;
+		op = n2 ? OP_LIST_IS_IN_TABLE_VV : OP_LIST_IS_IN_TABLE_VC;
+
+	ZInst z;
 
 	if ( n2 )
-		{
-		int n2_slot = FrameSlot(n2);
-		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
-		z.SetType(n2->Type());
-		}
+		z = ZInst(op, Frame1Slot(n1, op), FrameSlot(n2));
 	else
-		z = ZInst(op, Frame1Slot(n1, op), build_indices, c);
+		z = ZInst(op, Frame1Slot(n1, op), c);
+
+	z.aux = InternalBuildVals(l);
 
 	return AddInst(z);
 	}
@@ -3969,12 +3948,6 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 			}
 		}
 
-	auto build_indices = InternalBuildVals(l);
-	z = ZInst(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
-				build_indices, build_indices, n);
-	z.op_type = OP_VVV_I3;
-	AddInst(z);
-
 	auto indexes = l->Exprs();
 	int n2_slot = FrameSlot(n2);
 
@@ -3982,20 +3955,20 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 
 	switch ( n2tag ) {
 	case TYPE_VECTOR:
-		op = n == 1 ? OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
-		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
+		op = n == 1 ? OP_INDEX_VEC_VV : OP_INDEX_VEC_SLICE_VV;
+		z = ZInst(op, Frame1Slot(n1, op), n2_slot);
 		z.SetType(n2->Type());
 		break;
 
 	case TYPE_TABLE:
-		op = OP_TABLE_INDEX_VVV;
-		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
+		op = OP_TABLE_INDEX_VV;
+		z = ZInst(op, Frame1Slot(n1, op), n2_slot);
 		z.SetType(n1->Type());
 		break;
 
 	case TYPE_STRING:
-		op = OP_INDEX_STRING_SLICE_VVL;
-		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
+		op = OP_INDEX_STRING_SLICE_VV;
+		z = ZInst(op, Frame1Slot(n1, op), n2_slot);
 		z.SetType(n1->Type());
 		break;
 
@@ -4003,7 +3976,9 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		reporter->InternalError("bad aggregate type when compiling index");
 	}
 
+	z.aux = InternalBuildVals(l);
 	z.CheckIfManaged(n1);
+
 	return AddInst(z);
 	}
 
@@ -4023,20 +3998,18 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 
 	else
 		{
-		auto build_indices = InternalBuildVals(l);
-
 		if ( n )
 			{
-			z = ZInst(OP_SCHEDULE_ViHL, build_indices, FrameSlot(n),
-						is_interval);
-			z.op_type = OP_VVV_I3;
+			z = ZInst(OP_SCHEDULE_ViHL, FrameSlot(n), is_interval);
+			z.op_type = OP_VV_I2;
 			}
 		else
 			{
-			z = ZInst(OP_SCHEDULE_CiHL, build_indices,
-					is_interval, c);
-			z.op_type = OP_VVC_I2;
+			z = ZInst(OP_SCHEDULE_CiHL, is_interval, c);
+			z.op_type = OP_VC_I1;
 			}
+
+		z.aux = InternalBuildVals(l);
 		}
 
 	z.event_handler = h;
@@ -4046,10 +4019,8 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 
 const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 	{
-	int len = l->Exprs().length();
-	auto build_indices = InternalBuildVals(l);
-
-	ZInst z(OP_EVENT_HL, build_indices);
+	ZInst z(OP_EVENT_HL);
+	z.aux = InternalBuildVals(l);
 	z.event_handler = h;
 
 	return AddInst(z);
@@ -4219,18 +4190,6 @@ void ZAM::SetV4(CompiledStmt s, const InstLabel l)
 		inst->op_type = OP_VVVV_I4;
 	}
 
-
-ListVal* ZAM::ValVecToListVal(val_vec* v, int n) const
-	{
-	auto res = new ListVal(TYPE_ANY);
-
-	for ( int i = 0; i < n; ++i )
-		res->Append((*v)[i].release());
-
-	delete v;
-
-	return res;
-	}
 
 int ZAM::FrameSlot(const ID* id)
 	{

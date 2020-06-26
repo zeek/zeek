@@ -2104,7 +2104,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	auto func_id = func->Id();
 	auto& args = c->Args()->Exprs();
 
-	if ( func_id->IsGlobal() && args.length() == 0 )
+	if ( func_id->IsGlobal() && args.length() <= 1 )
 		{
 		ZInst z;
 
@@ -2112,10 +2112,42 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 			{
 			auto nt = n->Type()->Tag();
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
-			z = ZInst(AssignmentFlavor(OP_CALL0_V, nt), n_slot);
+
+			if ( args.length() == 0 )
+				z = ZInst(AssignmentFlavor(OP_CALL0_V, nt),
+						n_slot);
+			else
+				{
+				auto arg0 = args[0];
+				if ( arg0->Tag() == EXPR_NAME )
+					z = ZInst(AssignmentFlavor(OP_CALL1_VV,
+							nt), n_slot,
+						FrameSlot(arg0->AsNameExpr()));
+				else
+					z = ZInst(AssignmentFlavor(OP_CALL1_VC,
+							nt), n_slot,
+							arg0->AsConstExpr());
+
+				z.t = arg0->Type().get();
+				}
 			}
 		else
-			z = ZInst(OP_CALL0_X);
+			{
+			if ( args.length() == 0 )
+				z = ZInst(OP_CALL0_X);
+			else
+				{
+				auto arg0 = args[0];
+				if ( arg0->Tag() == EXPR_NAME )
+					z = ZInst(OP_CALL1_V,
+						FrameSlot(arg0->AsNameExpr()));
+				else
+					z = ZInst(OP_CALL1_C,
+							arg0->AsConstExpr());
+
+				z.t = arg0->Type().get();
+				}
+			}
 
 		z.func = func_id->ID_Val()->AsFunc();
 

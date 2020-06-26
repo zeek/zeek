@@ -871,6 +871,44 @@ eval auto v_ptr = z.func->Call(args, f)
 eval auto v = v_ptr.get()
 eval @v
 
+# Calls with 1 argument and no return value.
+internal-op Call1
+op1-read
+type V
+side-effects
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(frame[z.v1].ToVal(z.t))
+eval (void) z.func->Call(args, f)
+
+internal-op Call1
+op1-read
+type C
+side-effects
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(z.c.ToVal(z.t))
+eval (void) z.func->Call(args, f)
+
+# Same but with a return value.
+internal-assignment-op Call1
+type VV
+side-effects OP_CALL1_V
+side-effects-op-type OP_V
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(frame[z.v2].ToVal(z.t))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
+internal-assignment-op Call1
+type VC
+side-effects OP_CALL1_C
+side-effects-op-type OP_C
+eval std::vector<IntrusivePtr<Val>> args;
+eval args.push_back(z.c.ToVal(z.t))
+eval auto v_ptr = z.func->Call(args, f)
+eval auto v = v_ptr.get()
+eval @v
+
 ########## Statements ##########
 
 op Schedule

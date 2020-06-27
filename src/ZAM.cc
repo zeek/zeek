@@ -3195,7 +3195,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto indexes = indexes_expr->Exprs();
 
 	if ( indexes.length() > 1 )
-		{ // Vector slice assignment.  For now, punt to the interpreter.
+		{ // Vector slice assignment.
 		ASSERT(op1->Tag() == EXPR_NAME);
 		ASSERT(op3->Tag() == EXPR_NAME);
 		ASSERT(op1->Type()->Tag() == TYPE_VECTOR);

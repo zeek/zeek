@@ -3031,9 +3031,11 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 		return false;
 		}
 
-        ZAMValUnion elem({NewRef{}, element}, vector_type);
+	auto& vv = val.vector_val;
 
-	val.vector_val->Insert(index, elem);
+        ZAMValUnion elem({NewRef{}, element}, vv->YieldType());
+
+	vv->Insert(index, elem);
 
 	Modified();
 	return true;

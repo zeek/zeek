@@ -12,7 +12,7 @@ static bool is_string_set(const zeek::Type* type)
 	if ( ! type->IsSet() )
 		return false;
 
-	const auto& index_types = type->AsSetType()->IndexTypes();
+	const auto& index_types = type->AsSetType()->GetIndexTypes();
 
 	if ( index_types.size() != 1 )
 		return false;

@@ -1067,7 +1067,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 
 	if ( e->GetType()->Tag() == TYPE_TABLE )
 		{
-		const auto& indices = e->GetType()->AsTableType()->IndexTypes();
+		const auto& indices = e->GetType()->AsTableType()->GetIndexTypes();
 
 		if ( static_cast<int>(indices.size()) != loop_vars->length() )
 			{

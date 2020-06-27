@@ -394,7 +394,7 @@ void Attributes::CheckAttr(Attr* a)
 				if ( atype->Tag() == TYPE_FUNC )
 					{
 					FuncType* f = atype->AsFuncType();
-					if ( ! f->CheckArgs(tt->IndexTypes()) ||
+					if ( ! f->CheckArgs(tt->GetIndexTypes()) ||
 					     ! same_type(f->Yield(), ytype) )
 						Error("&default function type clash");
 
@@ -517,7 +517,7 @@ void Attributes::CheckAttr(Attr* a)
 		if (the_table->IsUnspecifiedTable())
 			break;
 
-		const auto& func_index_types = e_ft->ParamList()->Types();
+		const auto& func_index_types = e_ft->ParamList()->GetTypes();
 		// Keep backwards compatibility with idx: any idiom.
 		if ( func_index_types.size() == 2 )
 			{
@@ -525,7 +525,7 @@ void Attributes::CheckAttr(Attr* a)
 				break;
 			}
 
-		const auto& table_index_types = the_table->IndexTypes();
+		const auto& table_index_types = the_table->GetIndexTypes();
 
 		type_list expected_args(1 + static_cast<int>(table_index_types.size()));
 		expected_args.push_back(type->AsTableType());
@@ -564,8 +564,8 @@ void Attributes::CheckAttr(Attr* a)
 		if ( the_table->IsUnspecifiedTable() )
 			break;
 
-		const auto& args = c_ft->ParamList()->Types();
-		const auto& t_indexes = the_table->IndexTypes();
+		const auto& args = c_ft->ParamList()->GetTypes();
+		const auto& t_indexes = the_table->GetIndexTypes();
 		if ( args.size() != ( type->IsSet() ? 2 : 3 ) + t_indexes.size() )
 			{
 			Error("&on_change function has incorrect number of arguments");

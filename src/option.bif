@@ -15,7 +15,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, const IntrusiveP
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
-			bool add_loc = handler_function->GetType()->ParamList()->Types().size() == 3;
+			bool add_loc = handler_function->GetType()->ParamList()->GetTypes().size() == 3;
 			zeek::Args vl;
 			vl.reserve(2 + add_loc);
 			vl.emplace_back(NewRef{}, name);
@@ -170,7 +170,7 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	const auto& args = on_change->GetType()->AsFuncType()->ParamList()->Types();
+	const auto& args = on_change->GetType()->AsFuncType()->ParamList()->GetTypes();
 	if ( args.size() < 2 || args.size() > 3 )
 		{
 		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %zu",

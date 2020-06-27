@@ -4483,7 +4483,7 @@ IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
 
 const CompiledStmt IndexSliceAssignExpr::Compile(Compiler* c) const
 	{
-	return c->InterpretExpr(this);
+	Internal("IndexSliceAssignExpr was not transformed away");
 	}
 
 IntrusivePtr<Expr> IndexSliceAssignExpr::Duplicate()

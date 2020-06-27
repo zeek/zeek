@@ -49,6 +49,15 @@ public:
 	virtual const CompiledStmt InterpretExpr(const NameExpr* n,
 							const Expr* e) = 0;
 
+	virtual const CompiledStmt ConstructTable(const NameExpr* n,
+							const Expr* e) = 0;
+	virtual const CompiledStmt ConstructSet(const NameExpr* n,
+							const Expr* e) = 0;
+	virtual const CompiledStmt ConstructRecord(const NameExpr* n,
+							const Expr* e) = 0;
+	virtual const CompiledStmt ConstructVector(const NameExpr* n,
+							const Expr* e) = 0;
+
 	virtual const CompiledStmt ArithCoerce(const NameExpr* n,
 							const Expr* e) = 0;
 	virtual const CompiledStmt RecordCoerce(const NameExpr* n,

@@ -672,11 +672,44 @@ eval } else ZAM_error = true
 # back to the interpreter.
 direct-unary-op Table-Constructor InterpretExpr
 
-# In for a penny, in for a pound.  For now we just do all of them that
-# way, even though with some elbow grease we could do the others directly.
-direct-unary-op Set-Constructor InterpretExpr
-direct-unary-op Record-Constructor InterpretExpr
-direct-unary-op Vector-Constructor InterpretExpr
+direct-unary-op Set-Constructor ConstructSet
+
+internal-op Construct-Set
+type V
+eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
+eval IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs};
+eval auto new_s = new TableVal(tt, attrs)
+eval auto aux = z.aux
+eval auto n = aux->n
+eval for ( auto i = 0; i < n; ++i ) new_s->Assign(aux->ToVal(frame, i).get(), nullptr)
+eval auto& s = frame[z.v1].table_val
+eval Unref(s)
+eval s = new_s
+
+direct-unary-op Record-Constructor ConstructRecord
+
+internal-op Construct-Record
+type V
+eval auto rt = z.t->AsRecordType()
+eval auto new_r = new RecordVal(rt)
+eval auto aux = z.aux
+eval auto n = aux->n
+eval for ( auto i = 0; i < n; ++i ) new_r->Assign(i, aux->ToVal(frame, i).get())
+eval auto& r = frame[z.v1].record_val
+eval Unref(r)
+eval r = new_r
+
+direct-unary-op Vector-Constructor ConstructVector
+
+internal-op Construct-Vector
+type V
+eval auto new_vv = new VectorVal(z.t->AsVectorType())
+eval auto aux = z.aux
+eval auto n = aux->n
+eval for ( auto i = 0; i < n; ++i ) new_vv->Assign(i, aux->ToVal(frame, i))
+eval auto& vv = frame[z.v1].vector_val
+eval Unref(vv)
+eval vv = new_vv
 
 ########## Coercions ##########
 

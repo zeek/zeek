@@ -92,6 +92,8 @@ class NegExpr;
 class ConstExpr;
 class CondExpr;
 class RecordCoerceExpr;
+class TableConstructorExpr;
+class SetConstructorExpr;
 
 struct function_ingredients;
 
@@ -335,6 +337,8 @@ public:
 	ACCESSORS(EXPR_REF, RefExpr, AsRefExpr);
 	ACCESSORS(EXPR_EVENT, EventExpr, AsEventExpr);
 	ACCESSORS(EXPR_RECORD_COERCE, RecordCoerceExpr, AsRecordCoerceExpr);
+	ACCESSORS(EXPR_TABLE_CONSTRUCTOR, TableConstructorExpr, AsTableConstructorExpr);
+	ACCESSORS(EXPR_SET_CONSTRUCTOR, SetConstructorExpr, AsSetConstructorExpr);
 
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
@@ -1126,7 +1130,7 @@ public:
 	                   IntrusivePtr<BroType> arg_type = nullptr);
 	~SetConstructorExpr() override { Unref(attrs); }
 
-	Attributes* Attrs() { return attrs; }
+	Attributes* Attrs() const { return attrs; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 

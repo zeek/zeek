@@ -2288,6 +2288,44 @@ void ZAM::FlushVars(const Expr* e)
 		StoreLocal(l);
 	}
 
+const CompiledStmt ZAM::ConstructTable(const NameExpr* n, const Expr* e)
+	{
+	}
+
+const CompiledStmt ZAM::ConstructSet(const NameExpr* n, const Expr* e)
+	{
+	auto con = e->GetOp1()->AsListExpr();
+
+	auto z = GenInst(this, OP_CONSTRUCT_SET_V, n);
+	z.aux = InternalBuildVals(con);
+	z.t = e->Type().get();
+	z.attrs = e->AsSetConstructorExpr()->Attrs();
+
+	return AddInst(z);
+	}
+
+const CompiledStmt ZAM::ConstructRecord(const NameExpr* n, const Expr* e)
+	{
+	auto con = e->GetOp1()->AsListExpr();
+
+	auto z = GenInst(this, OP_CONSTRUCT_RECORD_V, n);
+	z.aux = InternalBuildVals(con);
+	z.t = e->Type().get();
+
+	return AddInst(z);
+	}
+
+const CompiledStmt ZAM::ConstructVector(const NameExpr* n, const Expr* e)
+	{
+	auto con = e->GetOp1()->AsListExpr();
+
+	auto z = GenInst(this, OP_CONSTRUCT_VECTOR_V, n);
+	z.aux = InternalBuildVals(con);
+	z.t = e->Type().get();
+
+	return AddInst(z);
+	}
+
 const CompiledStmt ZAM::ArithCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto nt = n->Type();
@@ -3491,10 +3529,28 @@ ZInstAux* ZAM::InternalBuildVals(const ListExpr* l)
 
 	for ( int i = 0; i < n; ++i )
 		{
-		const auto& e = exprs[i];
+		auto& e = exprs[i];
+
+		if ( e->Tag() == EXPR_FIELD_ASSIGN )
+			{
+			// These can appear when we're processing the
+			// expression list for a record constructor.
+			auto fa = e->AsFieldAssignExpr();
+			e = fa->GetOp1().get();
+
+			if ( e->Type()->Tag() == TYPE_TYPE )
+				{
+				// Ugh - we actually need a "type" constant.
+				auto v = e->Eval(nullptr);
+				ASSERT(v);
+				aux->Add(i, v);
+				continue;
+				}
+			}
 
 		if ( e->Tag() == EXPR_NAME )
 			aux->Add(i, FrameSlot(e->AsNameExpr()), e->Type());
+
 		else
 			aux->Add(i, e->AsConstExpr()->ValuePtr());
 		}

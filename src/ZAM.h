@@ -35,6 +35,15 @@ public:
 	const CompiledStmt InterpretExpr(const NameExpr* n,
 						const Expr* e) override;
 
+	const CompiledStmt ConstructTable(const NameExpr* n,
+						const Expr* e) override;
+	const CompiledStmt ConstructSet(const NameExpr* n,
+						const Expr* e) override;
+	const CompiledStmt ConstructRecord(const NameExpr* n,
+						const Expr* e) override;
+	const CompiledStmt ConstructVector(const NameExpr* n,
+						const Expr* e) override;
+
 	const CompiledStmt ArithCoerce(const NameExpr* n,
 					const Expr* e) override;
 	const CompiledStmt RecordCoerce(const NameExpr* n,

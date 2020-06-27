@@ -2290,6 +2290,16 @@ void ZAM::FlushVars(const Expr* e)
 
 const CompiledStmt ZAM::ConstructTable(const NameExpr* n, const Expr* e)
 	{
+	auto con = e->GetOp1()->AsListExpr();
+	auto tt = n->Type()->AsTableType();
+	auto width = tt->Indices()->Types()->length();
+
+	auto z = GenInst(this, OP_CONSTRUCT_TABLE_VV, n, width);
+	z.aux = InternalBuildVals(con, width + 1);
+	z.t = tt;
+	z.attrs = e->AsTableConstructorExpr()->Attrs();
+
+	return AddInst(z);
 	}
 
 const CompiledStmt ZAM::ConstructSet(const NameExpr* n, const Expr* e)
@@ -3520,42 +3530,67 @@ OpaqueVals* ZAM::BuildVals(const IntrusivePtr<ListExpr>& l)
 	return new OpaqueVals(InternalBuildVals(l.get()));
 	}
 
-ZInstAux* ZAM::InternalBuildVals(const ListExpr* l)
+ZInstAux* ZAM::InternalBuildVals(const ListExpr* l, int stride)
 	{
 	auto exprs = l->Exprs();
 	int n = exprs.length();
 
-	auto aux = new ZInstAux(n);
+	auto aux = new ZInstAux(n * stride);
 
+	int offset = 0;	// offset into aux info
 	for ( int i = 0; i < n; ++i )
 		{
 		auto& e = exprs[i];
-
-		if ( e->Tag() == EXPR_FIELD_ASSIGN )
-			{
-			// These can appear when we're processing the
-			// expression list for a record constructor.
-			auto fa = e->AsFieldAssignExpr();
-			e = fa->GetOp1().get();
-
-			if ( e->Type()->Tag() == TYPE_TYPE )
-				{
-				// Ugh - we actually need a "type" constant.
-				auto v = e->Eval(nullptr);
-				ASSERT(v);
-				aux->Add(i, v);
-				continue;
-				}
-			}
-
-		if ( e->Tag() == EXPR_NAME )
-			aux->Add(i, FrameSlot(e->AsNameExpr()), e->Type());
-
-		else
-			aux->Add(i, e->AsConstExpr()->ValuePtr());
+		int num_vals = InternalAddVal(aux, offset, e);
+		ASSERT(num_vals == stride);
+		offset += num_vals;
 		}
 
 	return aux;
+	}
+
+int ZAM::InternalAddVal(ZInstAux* zi, int i, Expr* e)
+	{
+	if ( e->Tag() == EXPR_ASSIGN )
+		{ // We're building up a table constructor
+		auto& indices = e->GetOp1()->AsListExpr()->Exprs();
+		auto val = e->GetOp2();
+		int width = indices.length();
+
+		for ( int j = 0; j < width; ++j )
+			ASSERT(InternalAddVal(zi, i + j, indices[j]) == 1);
+
+		ASSERT(InternalAddVal(zi, i + width, val.get()) == 1);
+
+		return width + 1;
+		}
+
+	if ( e->Tag() == EXPR_FIELD_ASSIGN )
+		{
+		// These can appear when we're processing the
+		// expression list for a record constructor.
+		auto fa = e->AsFieldAssignExpr();
+		e = fa->GetOp1().get();
+
+		if ( e->Type()->Tag() == TYPE_TYPE )
+			{
+			// Ugh - we actually need a "type" constant.
+			auto v = e->Eval(nullptr);
+			ASSERT(v);
+			zi->Add(i, v);
+			return 1;
+			}
+
+		// Now that we've adjusted, fall through.
+		}
+
+	if ( e->Tag() == EXPR_NAME )
+		zi->Add(i, FrameSlot(e->AsNameExpr()), e->Type());
+
+	else
+		zi->Add(i, e->AsConstExpr()->ValuePtr());
+
+	return 1;
 	}
 
 const CompiledStmt ZAM::AddInst(const ZInst& inst)

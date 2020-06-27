@@ -218,7 +218,11 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
 					stmt_flow_type& flow) const;
 
-	ZInstAux* InternalBuildVals(const ListExpr*);
+	// "stride" is how many slots each element of l will consume.
+	ZInstAux* InternalBuildVals(const ListExpr* l, int stride = 1);
+
+	// Returns how many values were added.
+	int InternalAddVal(ZInstAux* zi, int i, Expr* e);
 
 
 	const CompiledStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,

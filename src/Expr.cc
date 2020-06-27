@@ -3844,7 +3844,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	if ( IsError() )
 		return;
 
-	TypeDecl td(0, 0);
+	TypeDecl td(nullptr, nullptr);
 
 	if ( IsRecordElement(&td) )
 		{
@@ -3899,7 +3899,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 	if ( IsError() )
 		return nullptr;
 
-	TypeDecl td(0, 0);
+	TypeDecl td(nullptr, nullptr);
 
 	if ( IsRecordElement(&td) )
 		{

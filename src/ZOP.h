@@ -387,6 +387,16 @@ public:
 		return lv;
 		}
 
+	IntrusivePtr<ListVal> ToIndices(const ZAMValUnion* frame,
+					int offset, int width) const
+		{
+		auto lv = make_intrusive<ListVal>(TYPE_ANY);
+		for ( auto i = 0; i < 0 + width; ++i )
+			lv->Append(ToVal(frame, offset + i).release());
+
+		return lv;
+		}
+
 	const val_vec& ToValVec(const ZAMValUnion* frame)
 		{
 		vv.clear();

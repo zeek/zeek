@@ -1106,7 +1106,7 @@ public:
 	                     IntrusivePtr<BroType> arg_type = nullptr);
 	~TableConstructorExpr() override { Unref(attrs); }
 
-	Attributes* Attrs() { return attrs; }
+	Attributes* Attrs() const	{ return attrs; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 

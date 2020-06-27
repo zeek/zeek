@@ -670,7 +670,25 @@ eval } else ZAM_error = true
 # Table construction requires atypical evaluation of list elements
 # using information from their expression specifics.  We punt those
 # back to the interpreter.
-direct-unary-op Table-Constructor InterpretExpr
+direct-unary-op Table-Constructor ConstructTable
+
+internal-op Construct-Table
+type VV
+eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
+eval IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs};
+eval auto new_t = new TableVal(tt, attrs)
+eval auto aux = z.aux
+eval auto n = aux->n
+eval auto ind_width = z.v2
+eval for ( auto i = 0; i < n; ++i ) {
+eval	auto indices = aux->ToIndices(frame, i, ind_width)
+eval	auto v = aux->ToVal(frame, i + ind_width)
+eval	new_t->Assign(indices.get(), v)
+eval	i += ind_width
+eval }
+eval auto& t = frame[z.v1].table_val
+eval Unref(t)
+eval t = new_t
 
 direct-unary-op Set-Constructor ConstructSet
 

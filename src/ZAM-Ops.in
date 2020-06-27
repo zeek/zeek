@@ -1554,28 +1554,6 @@ type VC
 set-type $2
 eval AssignV1(CopyVal(z.c))
 
-
-# Interprets the statement's expression as a stand-alone statement.
-internal-op Interpret-Expr
-side-effects
-type X
-eval (void) z.e->Eval(f) /* this could invoke us recursively */
-
-# Interprets the statement's expression and assigns the result to v1.
-internal-op Interpret-Expr
-side-effects
-type V
-eval auto v = z.e->Eval(f) /* this could invoke us recursively */
-eval AssignV1(BuildVal(v, z.t))
-
-# Interprets the statement's expression and assigns the result to v1,
-# where v1 is an "any" type.
-internal-op Interpret-Expr-Any
-side-effects
-type V
-eval frame[z.v1].any_val = z.e->Eval(f).release()
-
-
 internal-op GoTo
 type V
 eval pc = z.v1

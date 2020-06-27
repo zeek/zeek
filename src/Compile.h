@@ -45,10 +45,6 @@ public:
 
 #include "CompilerBaseDefs.h"
 
-	virtual const CompiledStmt InterpretExpr(const Expr* e) = 0;
-	virtual const CompiledStmt InterpretExpr(const NameExpr* n,
-							const Expr* e) = 0;
-
 	virtual const CompiledStmt ConstructTable(const NameExpr* n,
 							const Expr* e) = 0;
 	virtual const CompiledStmt ConstructSet(const NameExpr* n,

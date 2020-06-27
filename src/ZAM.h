@@ -31,10 +31,6 @@ public:
 
 #include "ZAM-SubDefs.h"
 
-	const CompiledStmt InterpretExpr(const Expr* e) override;
-	const CompiledStmt InterpretExpr(const NameExpr* n,
-						const Expr* e) override;
-
 	const CompiledStmt ConstructTable(const NameExpr* n,
 						const Expr* e) override;
 	const CompiledStmt ConstructSet(const NameExpr* n,

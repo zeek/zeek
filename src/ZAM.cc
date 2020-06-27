@@ -810,12 +810,6 @@ bool ZAM::PruneUnused()
 		// Transform the instruction into its flavor that doesn't
 		// make an assignment.
 		switch ( inst->op ) {
-		case OP_INTERPRET_EXPR_V:
-		case OP_INTERPRET_EXPR_ANY_V:
-			inst->op = OP_INTERPRET_EXPR_X;
-			inst->op_type = OP_E;
-			break;
-
 		case OP_LOG_WRITE_VVV:
 			inst->op = OP_LOG_WRITE_VV;
 			inst->op_type = OP_VV;
@@ -877,29 +871,6 @@ void ZAM::ComputeFrameLifetimes()
 
 		// Some special-casing.
 		switch ( inst->op ) {
-		case OP_INTERPRET_EXPR_X:
-		case OP_INTERPRET_EXPR_V:
-		case OP_INTERPRET_EXPR_ANY_V:
-			{
-			// Usually if these refer to locals, those will have
-			// STORE's just before the instruction, which will
-			// have extended their lifetime anyway.  However,
-			// the STORE can get elided because the local hasn't
-			// had its value set; in that case, though, it's
-			// still incorrect to double it up with another
-			// local that might *also* appear in the expression.
-			// We could try to control for that possibility,
-			// but it's a lot safer to just treat locals as
-			// having lifetimes that extend through their
-			// appearance in expressions.
-			ProfileFunc expr_pf;
-			inst->e->Traverse(&expr_pf);
-
-			for ( auto l : expr_pf.locals )
-				ExtendLifetime(RawSlot(l), EndOfLoop(inst, 1));
-			}
-			break;
-
 		case OP_NEXT_TABLE_ITER_VV:
 		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
 			{
@@ -1743,18 +1714,11 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 		auto& z = *insts2[pc];
 		int profile_pc;
 		double profile_CPU;
-		const Expr* profile_expr;
 
 		if ( do_profile )
 			{
 			++ZOP_count[z.op];
 			++(*inst_count)[pc];
-
-			if ( z.op == OP_INTERPRET_EXPR_X ||
-			     z.op == OP_INTERPRET_EXPR_V )
-				profile_expr = z.e;
-			else
-				profile_expr = nullptr;
 
 			profile_pc = pc;
 			profile_CPU = curr_CPU_time();
@@ -1772,15 +1736,6 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			double dt = curr_CPU_time() - profile_CPU;
 			(*inst_CPU)[profile_pc] += dt;
 			ZOP_CPU[z.op] += dt;
-
-			if ( profile_expr )
-				{
-				auto ec = expr_CPU.find(profile_expr);
-				if ( ec == expr_CPU.end() )
-					expr_CPU[profile_expr] = dt;
-				else
-					ec->second += dt;
-				}
 			}
 
 		++pc;
@@ -1810,20 +1765,6 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	}
 
 #include "ZAM-OpsMethodsDefs.h"
-
-const CompiledStmt ZAM::InterpretExpr(const Expr* e)
-	{
-	FlushVars(e);
-	return AddInst(ZInst(OP_INTERPRET_EXPR_X, e));
-	}
-
-const CompiledStmt ZAM::InterpretExpr(const NameExpr* n, const Expr* e)
-	{
-	FlushVars(e);
-	bool is_any = IsAny(n->Type());
-	return AddInst(GenInst(this, is_any ? OP_INTERPRET_EXPR_ANY_V :
-						OP_INTERPRET_EXPR_V, n, e));
-	}
 
 bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	{
@@ -3701,18 +3642,7 @@ void ZAM::ProfileExecution() const
 		return;
 		}
 
-	// Determine the portion of CPU time spent interpreting expressions.
-	double interp_CPU = 0.0;
-	for ( int i = 0; i < inst_count->size(); ++i )
-		{
-		auto op = insts2[i]->op;
-		if ( op == OP_INTERPRET_EXPR_X || op == OP_INTERPRET_EXPR_V ||
-		     op == OP_INTERPRET_EXPR_ANY_V )
-			interp_CPU += (*inst_CPU)[i];
-		}
-
-	printf("%s CPU time: %.06f %.06f\n", func->Name(), *CPU_time,
-		*CPU_time - interp_CPU);
+	printf("%s CPU time: %.06f\n", func->Name(), *CPU_time);
 
 	for ( int i = 0; i < inst_count->size(); ++i )
 		{

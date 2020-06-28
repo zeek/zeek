@@ -63,7 +63,9 @@ enum BroExprTag : int {
 #define NUM_EXPRS (int(EXPR_NOP) + 1)
 };
 
-extern const char* expr_name(BroExprTag t);
+// Second argument specifies whether we want the name for a human-readable
+// "describe".  This suppresses rendering for some internal operations.
+extern const char* expr_name(BroExprTag t, bool is_describe = false);
 
 template <class T> class IntrusivePtr;
 class Stmt;

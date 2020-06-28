@@ -35,7 +35,7 @@ static int get_slice_index(int idx, int len)
 	return idx;
 	}
 
-const char* expr_name(BroExprTag t)
+const char* expr_name(BroExprTag t, bool is_describe)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
@@ -65,6 +65,16 @@ const char* expr_name(BroExprTag t)
 		snprintf(errbuf, sizeof(errbuf),
 				"%d: not an expression tag", int(t));
 		return errbuf;
+		}
+
+	if ( is_describe )
+		switch ( t ) {
+		case EXPR_TO_ANY_COERCE:
+		case EXPR_FROM_ANY_COERCE:
+			return "";
+
+		default:
+			break;
 		}
 
 	return expr_names[int(t)];
@@ -980,7 +990,7 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 					}
 				}
 			else
-				d->Add(expr_name(Tag()));
+				d->Add(expr_name(Tag(), true));
 			}
 		}
 

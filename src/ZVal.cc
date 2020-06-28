@@ -83,7 +83,12 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 
 ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 	{
-	ASSERT(v);
+	if ( ! v )
+		{
+		ASSERT(IsManagedType(t));
+		managed_val = nullptr;
+		return;
+		}
 
 	auto vu = v->val;
 	auto vt = v->Type();

@@ -328,22 +328,7 @@ bool ZAM_record::SetToDefault(unsigned int field)
 	auto t = td->type;
 
 	if ( ! v )
-		{
-		// If it's an aggregate, initialize it to an empty value.
-		if ( t->Tag() == TYPE_TABLE )
-			{
-			IntrusivePtr<TableType> tt =
-				{NewRef{}, t->AsTableType()};
-			v = make_intrusive<TableVal>(tt, td->attrs);
-			}
-		else if ( t->Tag() == TYPE_VECTOR )
-			v = make_intrusive<VectorVal>(t->AsVectorType());
-		else if ( t->Tag() == TYPE_RECORD )
-			v = make_intrusive<RecordVal>(t->AsRecordType(),
-							false);
-		else
-			return false;
-		}
+		return false;
 
 	ZAMValUnion zvu(v, t.get());
 	Assign(field, zvu);

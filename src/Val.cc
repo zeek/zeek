@@ -3083,6 +3083,10 @@ IntrusivePtr<Val> VectorVal::Lookup(unsigned int index) const
 
 	auto raw_v = val.vector_val->Lookup(index);
 
+	if ( ! raw_v.managed_val && val.vector_val->IsManagedYieldType() )
+		// The vector is has a hole that we know how to report.
+		return nullptr;
+
 	return raw_v.ToVal(vector_type->YieldType());
 	}
 

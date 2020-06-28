@@ -145,6 +145,8 @@ public:
 			}
 		}
 
+	bool IsManagedYieldType() const	{ return managed_yt != nullptr; }
+
 	int Size() const		{ return zvec.size(); }
 
 	const ZVU_vec& ConstVec() const	{ return zvec; }

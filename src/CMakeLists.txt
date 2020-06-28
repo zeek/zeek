@@ -275,6 +275,7 @@ set(MAIN_SRCS
     Frag.cc
     Frame.cc
     Func.cc
+    GenRDs.cc
     Hash.cc
     ID.cc
     Inline.cc

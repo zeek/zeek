@@ -643,6 +643,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(1);
 
 	iosource_mgr->InitPostScript();
+	log_mgr->InitPostScript();
 	plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();

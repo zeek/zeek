@@ -89,20 +89,6 @@ struct LeftoverLog {
 		{ return filename.substr(0, filename.size() - extension.size()); }
 
 	/**
-	 * The path to which the log file should be rotated (before
-	 * calling any postprocessing function).
-	 */
-	std::string RotationPath() const
-		{ return log_mgr->FormatRotationPath(Name(), open_time) + extension; }
-
-	/**
-	 * Performs the rename() call to rotate the file and returns whether
-	 * it succeeded.
-	 */
-	bool Rename() const
-		{ return rename(filename.data(), RotationPath().data()) == 0; }
-
-	/**
 	 * Deletes the shadow file and returns whether it succeeded.
 	 */
 	bool DeleteShadow() const
@@ -753,50 +739,61 @@ void Ascii::RotateLeftoverLogs()
 
 	for ( const auto& ll : leftover_logs )
 		{
-		if ( ! ll.Rename() )
+		static auto rot_info_type = zeek::id::find_type<zeek::RecordType>("Log::RotationInfo");
+		static auto writer_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
+		static auto writer_idx = writer_type->Lookup("Log", "WRITER_ASCII");
+		static auto writer_val = writer_type->GetVal(writer_idx);
+		static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
+		assert(default_ppf);
+
+		auto ppf = default_ppf;
+
+		if ( ! ll.post_proc_func.empty() )
+			{
+			auto func = zeek::id::find_func(ll.post_proc_func.data());
+
+			if ( func )
+				ppf = std::move(func);
+			else
+				reporter->Warning("Could no postprocess log '%s' with intended "
+								  "postprocessor function '%s', proceeding "
+								  " with the default function",
+								  ll.filename.data(), ll.post_proc_func.data());
+			}
+
+		auto rotation_path = log_mgr->FormatRotationPath(
+		        writer_val, ll.Name(), ll.open_time, ll.close_time, false, ppf);
+
+		rotation_path += ll.extension;
+
+		auto rot_info = zeek::make_intrusive<zeek::RecordVal>(rot_info_type);
+		rot_info->Assign(0, writer_val);
+		rot_info->Assign<zeek::StringVal>(1, rotation_path);
+		rot_info->Assign<zeek::StringVal>(2, ll.Name());
+		rot_info->Assign<zeek::TimeVal>(3, ll.open_time);
+		rot_info->Assign<zeek::TimeVal>(4, ll.close_time);
+		rot_info->Assign(5, zeek::val_mgr->False());
+
+		if ( rename(ll.filename.data(), rotation_path.data()) != 0 )
 			reporter->FatalError("Found leftover/unprocessed log '%s', but "
 								 "failed to rotate it: %s",
 								 ll.filename.data(), strerror(errno));
 
 		if ( ! ll.DeleteShadow() )
 			// Unusual failure to report, but not strictly fatal.
-			reporter->Error("Failed to unlink %s: %s",
-			                ll.shadow_filename.data(), strerror(errno));
-
-		static auto rt = zeek::id::find_type<zeek::RecordType>("Log::RotationInfo");
-		static auto writer_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
-		static auto writer_idx = writer_type->Lookup("Log", "WRITER_ASCII");
-		static auto writer_val = writer_type->GetVal(writer_idx);
-
-		auto info = make_intrusive<RecordVal>(rt);
-		info->Assign(0, writer_val);
-		info->Assign(1, make_intrusive<StringVal>(ll.RotationPath()));
-		info->Assign(2, make_intrusive<StringVal>(ll.Name()));
-		info->Assign(3, make_intrusive<TimeVal>(ll.open_time));
-		info->Assign(4, make_intrusive<TimeVal>(ll.close_time));
-		info->Assign(5, val_mgr->False());
-
-		auto ppf = ll.post_proc_func.empty() ? "Log::__default_rotation_postprocessor"
-		                                     : ll.post_proc_func.data();
-
-		auto func = zeek::id::find_func(ppf);
-
-		if ( ! func )
-			reporter->Error("Postprocessing log '%s' failed: "
-							"no such function: '%s'",
-							ll.filename.data(), ppf);
-
+			reporter->Warning("Failed to unlink %s: %s",
+			                  ll.shadow_filename.data(), strerror(errno));
 
 		try
 			{
-			func->Invoke(std::move(info));
-			reporter->Info("Rotated/postprocessed leftover log '%s'",
-			               ll.filename.data());
+			ppf->Invoke(std::move(rot_info));
+			reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ",
+			               ll.filename.data(), rotation_path.data());
 			}
 		catch ( InterpreterException& e )
 			{
-			reporter->Info("Postprocess function '%s' failed for leftover log '%s'",
-			               ppf, ll.filename.data());
+			reporter->Warning("Postprocess function '%s' failed for leftover log '%s'",
+			                  ppf->Name(), ll.filename.data());
 			}
 		}
 	}

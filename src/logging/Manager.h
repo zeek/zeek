@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <ctime>
 #include <string_view>
 
 #include "../Val.h"
@@ -31,18 +30,6 @@ class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 
 	/**
-	 * Returns a formatted string representing the given time.  This
-	 * string is used in the log file rotation process.
-	 */
-	static std::string FormatRotationTime(time_t t);
-
-	/**
-	 * Returns a formatted string representing the file rotation path.  This
-	 * string is used in the log file rotation process.
-	 */
-	static std::string FormatRotationPath(std::string_view path, time_t t);
-
-	/**
 	 * Constructor.
 	 */
 	Manager();
@@ -51,6 +38,24 @@ public:
 	 * Destructor.
 	 */
 	~Manager();
+
+	/**
+	 * Called after scripts are parsed; obtains values of customizable options.
+	 */
+	void InitPostScript();
+
+	/**
+	 * Calls the Log::rotation_format_func script function, tries to create
+	 * any directories (failure to falls back to using working dir for
+	 * rotation) and returns the formatted rotation path string that
+	 * will be sent along to writer threads to perform the actual rotation.
+	 * @param rotation_info  The fields of a Log::RotationFmtInfo record
+	 *                       to create and pass to Log::rotation_format_func.
+	 */
+	std::string FormatRotationPath(zeek::EnumValPtr writer,
+	                               std::string_view path, double open,
+	                               double close, bool terminating,
+	                               zeek::FuncPtr postprocesor);
 
 	/**
 	 * Creates a new log stream.
@@ -290,6 +295,7 @@ private:
 
 	std::vector<Stream *> streams;	// Indexed by stream enum.
 	int rotations_pending;	// Number of rotations not yet finished.
+	zeek::FuncPtr rotation_format_func;
 };
 
 }

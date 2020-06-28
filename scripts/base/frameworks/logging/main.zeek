@@ -119,12 +119,61 @@ export {
 		terminating: bool;	##< True if rotation occured due to Zeek shutting down.
 	};
 
+	## The function type for log rotation post processors.
+	type RotationPostProcessorFunc: function(info: Log::RotationInfo): bool;
+
+	## Information passed into rotation format callback function given by
+	## :zeek:see:`Log::rotation_format_func`.
+	type RotationFmtInfo: record {
+		writer: Writer;    ##< The log writer being used.
+		path: string;      ##< Original path value.
+		open: time;        ##< Time when opened.
+		close: time;       ##< Time when closed.
+		terminating: bool; ##< True if rotation occurred due to Zeek shutting down.
+		## The postprocessor function that will be called after rotation.
+		postprocessor: RotationPostProcessorFunc &optional;
+	};
+
 	## Default rotation interval to use for filters that do not specify
 	## an interval. Zero disables rotation.
 	##
 	## Note that this is overridden by the ZeekControl LogRotationInterval
 	## option.
 	const default_rotation_interval = 0secs &redef;
+
+	## Default rotation directory to use for the *dir* field of
+	## :zeek:see:`Log::RotationPath` during calls to
+	## :zeek:see:`Log::rotation_format_func`.  An empty string implies
+	## using the current working directory;
+	option default_rotation_dir = "";
+
+	## A log file rotation path specification that's returned by the
+	## user-customizable :zeek:see:`Log::rotation_format_func`.
+	type RotationPath: record {
+		## A directory to rotate the log to.  This directory is created
+		## just-in-time, as the log rotation is about to happen.  If it
+		## cannot be created, an error is emitted and the rotation process
+		## tries to proceed with rotation inside the working directory.  When
+		## setting this field, beware that renaming files across systems will
+		## generally fail.
+		dir: string &default = default_rotation_dir;
+
+		## A prefix to use for the the rotated log.  Log writers may later
+		## append a file extension of their choosing to this user-chosen
+		## prefix (e.g. if using the default ASCII writer and you want
+		## rotated files of the format "foo-<date>.log", then this prefix
+		## can be set to "foo-<date>" and the ".log" is added later (there's
+		## also generally means of customizing the file extension, too,
+		## like the ``ZEEK_LOG_SUFFIX`` environment variable or
+		## writer-dependent configuration options.
+		file_prefix: string;
+	};
+
+	## A function that one may use to customize log file rotation paths.
+	## Note that the "fname" field of the *ri* argument is always an
+	## empty string for the purpose of this function call (i.e. the full
+	## file name is not determined yet).
+	const rotation_format_func: function(ri: RotationFmtInfo): RotationPath &redef;
 
 	## Default naming format for timestamps embedded into filenames.
 	## Uses a ``strftime()`` style.
@@ -554,6 +603,45 @@ function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : boo
                info$terminating, writer));
 
 	return T;
+	}
+
+# Default function to postprocess a rotated ASCII log file. It simply
+# runs the writer's default postprocessor command on it.
+function default_ascii_rotation_postprocessor_func(info: Log::RotationInfo): bool
+	{
+	# Run default postprocessor.
+	return Log::run_rotation_postprocessor_cmd(info, info$fname);
+	}
+
+redef Log::default_rotation_postprocessors += {
+	[Log::WRITER_ASCII] = default_ascii_rotation_postprocessor_func
+};
+
+function Log::rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
+	{
+	local rval: Log::RotationPath;
+	local open_str: string;
+
+	# The reason for branching here is historical:
+	# the default format path before the intro of Log::rotation_format_func
+	# always separated the path from open-time using a '-', but ASCII's
+	# default postprocessor chose to rename using a '.' separaor.  It also
+	# chose a different date format.
+	if ( ri$postprocessor == __default_rotation_postprocessor &&
+	    ri$writer == WRITER_ASCII &&
+	    ri$writer in default_rotation_postprocessors &&
+	    default_rotation_postprocessors[WRITER_ASCII] == default_ascii_rotation_postprocessor_func)
+		{
+		open_str = strftime(Log::default_rotation_date_format, ri$open);
+		rval = RotationPath($file_prefix=fmt("%s.%s", ri$path, open_str));
+		}
+	else
+		{
+		open_str = strftime("%y-%m-%d_%H.%M.%S", ri$open);
+		rval = RotationPath($file_prefix=fmt("%s-%s", ri$path, open_str));
+		}
+
+	return rval;
 	}
 
 function create_stream(id: ID, stream: Stream) : bool

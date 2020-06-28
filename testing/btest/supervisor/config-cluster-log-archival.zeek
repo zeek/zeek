@@ -1,24 +1,37 @@
+
 # @TEST-PORT: SUPERVISOR_PORT
 # @TEST-PORT: LOGGER_PORT
 
-# Test default leftover log rotation/archival behavior
+# Test default log rotation/archival behavior (rotate into log-queue dir)
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: cp zeek/logger-1/log-queue/test*.log test.default.log
 # @TEST-EXEC: btest-diff test.default.log
 # @TEST-EXEC: rm -rf ./zeek
 
-# Test leftover log rotation/archival behavior with custom postprocessor func
-# @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT use_custom_postproc=T
+# Test rotation/archival behavior with in-flight compression
+# @TEST-EXEC: btest-bg-run zeek zeek -j -b LogAscii::gzip_level=1 %INPUT
 # @TEST-EXEC: btest-bg-wait 45
-# @TEST-EXEC: cp zeek/logger-1/log-queue/test*.log test.postproc.log
-# @TEST-EXEC: btest-diff test.postproc.log
-# @TEST-EXEC: btest-diff zeek/logger-1/postproc.out
+# @TEST-EXEC: gunzip -c zeek/logger-1/log-queue/test*.log.gz > test.zip-in-flight.log
+# @TEST-EXEC: btest-diff test.zip-in-flight.log
+# @TEST-EXEC: rm -rf ./zeek
+
+# Test rotation/archival behavior with in-flight compression + custom file extension
+# @TEST-EXEC: btest-bg-run zeek zeek -j -b LogAscii::gzip_level=1 LogAscii::gzip_file_extension="mygz" %INPUT
+# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: cp zeek/logger-1/log-queue/test*.log.mygz test.log.gz
+# @TEST-EXEC: gunzip -c test.log.gz > test.zip-in-flight-custom-ext.log
+# @TEST-EXEC: btest-diff test.zip-in-flight-custom-ext.log
+# @TEST-EXEC: rm -rf ./zeek
+
+# Test rotation/archival behavior with a custom rotation dir
+# @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT Log::default_rotation_dir=my-logs
+# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: cp zeek/logger-1/my-logs/test*.log test.custom-dir.log
+# @TEST-EXEC: btest-diff test.custom-dir.log
 # @TEST-EXEC: rm -rf ./zeek
 
 @load base/frameworks/cluster
-
-option use_custom_postproc = F;
 
 # JSON for log file brevity.
 redef LogAscii::use_json=T;
@@ -35,24 +48,20 @@ export {
 }
 module GLOBAL;
 
-function my_rotation_postprocessor(info: Log::RotationInfo) : bool
+event pong()
 	{
-	local f = open("postproc.out");
-	print f, "running my rotation postprocessor";
-	close(f);
-	return T;
+	terminate();
+	}
+
+event ping()
+	{
+	Log::write(Test::LOG, [$s="test"]);
+	Broker::publish(topic, pong);
 	}
 
 event zeek_init()
 	{
 	Log::create_stream(Test::LOG, [$columns=Test::Log]);
-
-	if ( use_custom_postproc )
-		{
-		local df = Log::get_filter(Test::LOG, "default");
-		df$postprocessor = my_rotation_postprocessor;
-		Log::add_filter(Test::LOG, df);
-		}
 
 	if ( Supervisor::is_supervisor() )
 		{
@@ -69,23 +78,6 @@ event zeek_init()
 			local sn = Supervisor::NodeConfig($name = n);
 			sn$cluster = cluster;
 			sn$directory = n;
-
-			# Hard to test the full process of a kill/crash leaving these
-			# leftover files, so just fake them.
-			mkdir(sn$directory);
-			local f = open(fmt("%s/test.log", sn$directory));
-			print f, "{\"s\":\"leftover test\"}";
-			close(f);
-			local sf = open(fmt("%s/.shadow.test.log", sn$directory));
-			print sf, ".log";
-
-			if ( use_custom_postproc )
-				print sf, "my_rotation_postprocessor";
-			else
-				print sf, "";
-
-			close(sf);
-
 			local res = Supervisor::create(sn);
 
 			if ( res != "" )
@@ -102,5 +94,9 @@ event zeek_init()
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	if ( Supervisor::is_supervisor() )
-		terminate();
+		Broker::publish(topic, ping);
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
 	}

@@ -9,6 +9,7 @@ module Log;
 type Filter: record;
 type Stream: record;
 type RotationInfo: record;
+type RotationFmtInfo: record;
 
 enum PrintLogType %{
 	REDIRECT_NONE,

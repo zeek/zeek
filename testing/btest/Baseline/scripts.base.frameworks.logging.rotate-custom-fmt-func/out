@@ -1,0 +1,90 @@
+1st test__2011-03-07-03-00-05__2011-03-07-03-00-05__.log test 11-03-07_03.00.05 11-03-07_04.00.05 0 ascii
+1st test__2011-03-07-04-00-05__2011-03-07-04-00-05__.log test 11-03-07_04.00.05 11-03-07_05.00.05 0 ascii
+1st test__2011-03-07-05-00-05__2011-03-07-05-00-05__.log test 11-03-07_05.00.05 11-03-07_06.00.05 0 ascii
+1st test__2011-03-07-06-00-05__2011-03-07-06-00-05__.log test 11-03-07_06.00.05 11-03-07_07.00.05 0 ascii
+1st test__2011-03-07-07-00-05__2011-03-07-07-00-05__.log test 11-03-07_07.00.05 11-03-07_08.00.05 0 ascii
+1st test__2011-03-07-08-00-05__2011-03-07-08-00-05__.log test 11-03-07_08.00.05 11-03-07_09.00.05 0 ascii
+1st test__2011-03-07-09-00-05__2011-03-07-09-00-05__.log test 11-03-07_09.00.05 11-03-07_10.00.05 0 ascii
+1st test__2011-03-07-10-00-05__2011-03-07-10-00-05__.log test 11-03-07_10.00.05 11-03-07_11.00.05 0 ascii
+1st test__2011-03-07-11-00-05__2011-03-07-11-00-05__.log test 11-03-07_11.00.05 11-03-07_12.00.05 0 ascii
+1st test__2011-03-07-12-00-05__2011-03-07-12-00-05__.log test 11-03-07_12.00.05 11-03-07_12.59.55 1 ascii
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-03-00-05__2011-03-07-03-00-05__.log, path=test2, open=1299466805.0, close=1299470395.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-03-59-55__2011-03-07-03-59-55__.log, path=test2, open=1299470395.0, close=1299470405.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-04-00-05__2011-03-07-04-00-05__.log, path=test2, open=1299470405.0, close=1299473995.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-04-59-55__2011-03-07-04-59-55__.log, path=test2, open=1299473995.0, close=1299474005.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-05-00-05__2011-03-07-05-00-05__.log, path=test2, open=1299474005.0, close=1299477595.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-05-59-55__2011-03-07-05-59-55__.log, path=test2, open=1299477595.0, close=1299477605.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-06-00-05__2011-03-07-06-00-05__.log, path=test2, open=1299477605.0, close=1299481195.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-06-59-55__2011-03-07-06-59-55__.log, path=test2, open=1299481195.0, close=1299481205.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-07-00-05__2011-03-07-07-00-05__.log, path=test2, open=1299481205.0, close=1299484795.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-07-59-55__2011-03-07-07-59-55__.log, path=test2, open=1299484795.0, close=1299484805.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-08-00-05__2011-03-07-08-00-05__.log, path=test2, open=1299484805.0, close=1299488395.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-08-59-55__2011-03-07-08-59-55__.log, path=test2, open=1299488395.0, close=1299488405.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-09-00-05__2011-03-07-09-00-05__.log, path=test2, open=1299488405.0, close=1299491995.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-09-59-55__2011-03-07-09-59-55__.log, path=test2, open=1299491995.0, close=1299492005.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-10-00-05__2011-03-07-10-00-05__.log, path=test2, open=1299492005.0, close=1299495595.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-10-59-55__2011-03-07-10-59-55__.log, path=test2, open=1299495595.0, close=1299495605.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-11-00-05__2011-03-07-11-00-05__.log, path=test2, open=1299495605.0, close=1299499195.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-11-59-55__2011-03-07-11-59-55__.log, path=test2, open=1299499195.0, close=1299499205.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-12-00-05__2011-03-07-12-00-05__.log, path=test2, open=1299499205.0, close=1299502795.0, terminating=F]
+custom rotate, [writer=Log::WRITER_ASCII, fname=test2__2011-03-07-12-59-55__2011-03-07-12-59-55__.log, path=test2, open=1299502795.0, close=1299502795.0, terminating=T]
+#close XXXX-XX-XX-XX-XX-XX
+#empty_field	(empty)
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
+#open XXXX-XX-XX-XX-XX-XX
+#path	test
+#path	test2
+#separator \x09
+#set_separator	,
+#types	time	addr	port	addr	port
+#unset_field	-
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1024
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	0
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1025
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	1
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1026
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	2
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1027
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	3
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1028
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	4
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1029
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	5
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1030
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	6
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1031
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	7
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1032
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	8
+XXXXXXXXXX.XXXXXX	10.0.0.1	20	10.0.0.2	1033
+XXXXXXXXXX.XXXXXX	10.0.0.2	20	10.0.0.3	9
+> test2__2011-03-07-03-00-05__2011-03-07-03-00-05__.log
+> test2__2011-03-07-03-59-55__2011-03-07-03-59-55__.log
+> test2__2011-03-07-04-00-05__2011-03-07-04-00-05__.log
+> test2__2011-03-07-04-59-55__2011-03-07-04-59-55__.log
+> test2__2011-03-07-05-00-05__2011-03-07-05-00-05__.log
+> test2__2011-03-07-05-59-55__2011-03-07-05-59-55__.log
+> test2__2011-03-07-06-00-05__2011-03-07-06-00-05__.log
+> test2__2011-03-07-06-59-55__2011-03-07-06-59-55__.log
+> test2__2011-03-07-07-00-05__2011-03-07-07-00-05__.log
+> test2__2011-03-07-07-59-55__2011-03-07-07-59-55__.log
+> test2__2011-03-07-08-00-05__2011-03-07-08-00-05__.log
+> test2__2011-03-07-08-59-55__2011-03-07-08-59-55__.log
+> test2__2011-03-07-09-00-05__2011-03-07-09-00-05__.log
+> test2__2011-03-07-09-59-55__2011-03-07-09-59-55__.log
+> test2__2011-03-07-10-00-05__2011-03-07-10-00-05__.log
+> test2__2011-03-07-10-59-55__2011-03-07-10-59-55__.log
+> test2__2011-03-07-11-00-05__2011-03-07-11-00-05__.log
+> test2__2011-03-07-11-59-55__2011-03-07-11-59-55__.log
+> test2__2011-03-07-12-00-05__2011-03-07-12-00-05__.log
+> test2__2011-03-07-12-59-55__2011-03-07-12-59-55__.log
+> test__2011-03-07-03-00-05__2011-03-07-03-00-05__.log
+> test__2011-03-07-04-00-05__2011-03-07-04-00-05__.log
+> test__2011-03-07-05-00-05__2011-03-07-05-00-05__.log
+> test__2011-03-07-06-00-05__2011-03-07-06-00-05__.log
+> test__2011-03-07-07-00-05__2011-03-07-07-00-05__.log
+> test__2011-03-07-08-00-05__2011-03-07-08-00-05__.log
+> test__2011-03-07-09-00-05__2011-03-07-09-00-05__.log
+> test__2011-03-07-10-00-05__2011-03-07-10-00-05__.log
+> test__2011-03-07-11-00-05__2011-03-07-11-00-05__.log
+> test__2011-03-07-12-00-05__2011-03-07-12-00-05__.log

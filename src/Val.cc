@@ -3139,15 +3139,15 @@ void VectorVal::ValDescribe(ODesc* d) const
 	auto yt = vector_type->YieldType();
 
 	if ( n > 0 )
-		for ( unsigned int i = 0; i < (n - 1); ++i )
+		for ( unsigned int i = 0; i < n; ++i )
 			{
-			// if ( (*val.vector_val)[i] )
-			vv[i].ToVal(yt)->Describe(d);
-			d->Add(", ");
-			}
+			auto v = Lookup(i);
+			if ( v )
+				v->Describe(d);
 
-	if ( n /* && (*val.vector_val)[n - 1] */ )
-		vv[n - 1].ToVal(yt)->Describe(d);
+			if ( i < n - 1 )
+				d->Add(", ");
+			}
 
 	d->Add("]");
 	}

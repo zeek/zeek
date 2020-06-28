@@ -1390,11 +1390,21 @@ bool indirect_unsigned_sort_function(size_t a, size_t b)
 // Yuck, we need a variable to hold the type.  Luckily, this won't be
 // invoked concurrently for two different types.
 BroType* zsort_type;
+bool zsort_type_is_managed = false;
 
 bool zsort_function(ZAMValUnion& a, ZAMValUnion& b)
 	{
-	// ### Unable to do this:
-	// Sort missing values as "high".
+	// Unable to fully do this:
+	//	Sort missing values as "high".
+	// But we can for managed types.
+
+	if ( zsort_type_is_managed )
+		{
+		if ( ! a.managed_val )
+			return 0;
+		if ( ! b.managed_val )
+			return 1;
+		}
 
 	auto a_v = a.ToVal(zsort_type);
 	auto b_v = b.ToVal(zsort_type);
@@ -1458,11 +1468,15 @@ function sort%(v: any, ...%) : any
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+		{
 		builtin_error("comparison function required for sort() with non-integral types");
+		return v;
+		}
 
 	auto& vv = v->AsVectorVal()->RawVector()->ModVec();
 
 	zsort_type = elt_type;
+	zsort_type_is_managed = IsManagedType(zsort_type);
 
 	if ( comp )
 		{

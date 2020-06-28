@@ -876,7 +876,11 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	if ( is_vector(v.get()) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
+	if ( is_vector(v.get()) && Tag() != EXPR_IS && Tag() != EXPR_CAST &&
+	     // The following allows passing vectors-by-reference to
+	     // functions that use vector-of-any for generic vector
+	     // manipulation.
+	     Tag() != EXPR_TO_ANY_COERCE )
 		{
 		VectorVal* v_op = v->AsVectorVal();
 		VectorType* out_t;

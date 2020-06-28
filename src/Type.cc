@@ -652,7 +652,10 @@ RecordType::~RecordType()
 		}
 
 	for ( auto i : field_inits )
+		{
+		Unref(i.def_expr);
 		delete i.direct_init;
+		}
 	}
 
 void RecordType::AddField(int field, const TypeDecl* td)
@@ -668,21 +671,44 @@ void RecordType::AddField(int field, const TypeDecl* td)
 	init.attrs = td->attrs;
 	auto a = init.attrs;
 
-	Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
-	auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
 	BroType* type = td->type.get();
 
-	if ( def && type->Tag() == TYPE_RECORD &&
-	     def->Type()->Tag() == TYPE_RECORD &&
-	     ! same_type(def->Type(), type) )
-		{
-		auto tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
+	Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
+	auto def_expr = def_attr ? def_attr->AttrExpr() : nullptr;
 
-		if ( tmp )
-			def = std::move(tmp);
+	if ( def_expr )
+		{
+		if ( type->Tag() == TYPE_RECORD &&
+		     def_expr->Type()->Tag() == TYPE_RECORD &&
+		     ! same_type(def_expr->Type().get(), type) )
+			init.def_coerce = true;
+
+		if ( def_expr->Tag() == EXPR_CONST )
+			{
+			auto v = def_expr->Eval(nullptr);
+
+			if ( IsManagedType(type) )
+				init.init_type =
+					FieldInit::R_INIT_DIRECT_MANAGED;
+			else
+				init.init_type = FieldInit::R_INIT_DIRECT;
+
+			init.direct_init = new ZAMValUnion(v, type);
+			}
+
+		else
+			{
+			if ( IsManagedType(type) )
+				init.init_type = FieldInit::R_INIT_DEF_MANAGED;
+			else
+				init.init_type = FieldInit::R_INIT_DEF;
+
+			init.def_expr = def_expr->Ref();
+			init.def_type = def_expr->Type().get();
+			}
 		}
 
-	if ( ! def && ! (a && a->FindAttr(ATTR_OPTIONAL)) )
+	else if ( ! (a && a->FindAttr(ATTR_OPTIONAL)) )
 		{
 		TypeTag tag = type->Tag();
 
@@ -703,16 +729,6 @@ void RecordType::AddField(int field, const TypeDecl* td)
 			init.init_type = FieldInit::R_INIT_VECTOR;
 			init.v_type = type->AsVectorType();
 			}
-		}
-
-	if ( def )
-		{
-		if ( IsManagedType(type) )
-			init.init_type = FieldInit::R_INIT_DIRECT_MANAGED;
-		else
-			init.init_type = FieldInit::R_INIT_DIRECT;
-
-		init.direct_init = new ZAMValUnion(def, type);
 		}
 
 	field_inits.push_back(init);
@@ -947,6 +963,35 @@ void RecordType::Create(ZAM_record* r) const
 		case FieldInit::R_INIT_DIRECT_MANAGED:
 			r->SetField(i) = *init.direct_init;
 			r->RefField(i);
+			break;
+
+		case FieldInit::R_INIT_DEF:
+			{
+			auto v = init.def_expr->Eval(nullptr);
+			if ( v )
+				{
+				if ( init.def_coerce )
+					v = v->AsRecordVal()->CoerceTo(init.def_type->AsRecordType());
+				r->SetField(i) = ZAMValUnion(v, init.def_type);
+				}
+			else
+				reporter->Error("failed &default in record creation");
+			}
+			break;
+
+		case FieldInit::R_INIT_DEF_MANAGED:
+			{
+			auto v = init.def_expr->Eval(nullptr);
+			if ( v )
+				{
+				if ( init.def_coerce )
+					v = v->AsRecordVal()->CoerceTo(init.def_type->AsRecordType());
+				r->SetField(i) = ZAMValUnion(v, init.def_type);
+				r->RefField(i);
+				}
+			else
+				reporter->Error("failed &default in record creation");
+			}
 			break;
 
 		case FieldInit::R_INIT_RECORD:

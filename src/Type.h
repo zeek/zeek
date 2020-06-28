@@ -591,6 +591,9 @@ protected:
 			R_INIT_DIRECT,	// look in direct_init[] for raw value
 			R_INIT_DIRECT_MANAGED,	// same, but managed type
 
+			R_INIT_DEF,	// look in def_expr[] for expression
+			R_INIT_DEF_MANAGED,	// same, but managed type
+
 			R_INIT_RECORD,	// field requires a new record
 			R_INIT_TABLE,	// field requires a new table/set
 			R_INIT_VECTOR,	// field requires a new vector
@@ -600,7 +603,12 @@ protected:
 		// (1) it's cleaner for fields that don't have a direct raw
 		// value, and (2) we don't need to include ZVal.h in Type.h.
 		union ZAMValUnion* direct_init = nullptr;
-		bool direct_is_managed;
+
+		// The following is not an IntrusivePtr just so we don't
+		// get circular dependencies between with Expr.h.
+		Expr* def_expr = nullptr;
+		BroType* def_type;
+		bool def_coerce = false;
 
 		RecordType* r_type;	// for R_INIT_RECORD
 

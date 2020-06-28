@@ -4220,7 +4220,7 @@ export {
 		keyboard_function_key:  count;
 		ime_file_name:          string;
 		post_beta2_color_depth: count  &optional;
-		client_product_id:      string &optional;
+		client_product_id:      count &optional;
 		serial_number:          count  &optional;
 		high_color_depth:       count  &optional;
 		supported_color_depths: count  &optional;

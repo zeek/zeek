@@ -4771,7 +4771,7 @@ function compress_path%(dir: string%): string
 	auto dn = dir->Len();
 	int di = 0;	// pointer into original; never goes backwards
 
-	auto r = new char[dn];	// size is guaranteed <= original
+	auto r = new char[dn + 1];	// size is guaranteed <= original
 	int ri = 0;	// pointer into copy; can go backwards to elide
 
 	// Our strategy is to copy d to r as we go, and then back up
@@ -4868,7 +4868,13 @@ function compress_path%(dir: string%): string
 
 	bool final_NUL = ri > 0 && r[ri-1] == '\0';
 
-	auto res_string = new BroString(final_NUL, byte_vec(r), ri);
+	// Annoyingly, some of the uses of the names we compress
+	// insist that they be NUL-terminated.  IMHO it's time to
+	// get rid of this pickiness, but Oh Well.
+	if ( ! final_NUL )
+		r[ri] = '\0';
+
+	auto res_string = new BroString(true, byte_vec(r), ri);
         return new StringVal(res_string);
 	%}
 

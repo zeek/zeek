@@ -3269,7 +3269,7 @@ export {
 		## The security mode field specifies whether SMB signing is enabled, required at the server, or both.
 		security_mode     : count;
 		## A globally unique identifier that is generate by the server to uniquely identify the server.
-		server_guid       : string;
+		server_guid       : SMB2::GUID;
 		## The system time of the SMB2 server when the SMB2 NEGOTIATE Request was processed.
 		system_time       : time;
 		## The SMB2 server start time.

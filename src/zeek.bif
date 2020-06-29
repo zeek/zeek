@@ -4866,13 +4866,24 @@ function compress_path%(dir: string%): string
 			}
 		}
 
-	bool final_NUL = ri > 0 && r[ri-1] == '\0';
+	if ( ri > 0 && r[ri-1] == '/' )
+		// Suppress trailing '/'.
+		--ri;
 
-	// Annoyingly, some of the uses of the names we compress
-	// insist that they be NUL-terminated.  IMHO it's time to
-	// get rid of this pickiness, but Oh Well.
-	if ( ! final_NUL )
+	if ( ri == 0 || r[ri-1] != '\0' )
+		// Annoyingly, some of the uses of the names we compress
+		// insist that they be NUL-terminated.  IMHO it's time to
+		// get rid of this pickiness, but Oh Well.
 		r[ri] = '\0';
+	else
+		{
+		// We maybe have '/' followed by '\0', sigh.
+		if ( ri > 1 && r[ri-2] == '/' )
+			{
+			r[ri-2] = '\0';
+			--ri;
+			}
+		}
 
 	auto res_string = new BroString(true, byte_vec(r), ri);
         return new StringVal(res_string);

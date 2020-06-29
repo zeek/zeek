@@ -1,4 +1,11 @@
 
+3.2.0-dev.815 | 2020-06-29 10:25:05 -0700
+
+  * reduce memory usage of ConnPolling (Justin Azoff)
+
+    Instead of scheduling the event with the full 'connection' record,
+    schedule it with the smaller 'conn_id' record.
+
 3.2.0-dev.813 | 2020-06-26 16:25:34 +0000
 
   * Fix several issues with command-line option redefs

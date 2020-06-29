@@ -1,4 +1,8 @@
 
+3.2.0-dev.817 | 2020-06-29 19:23:21 +0000
+
+  * GH-1036: change print.log to log network time instead of current (Jon Siwek, Corelight)
+
 3.2.0-dev.815 | 2020-06-29 10:25:05 -0700
 
   * reduce memory usage of ConnPolling (Justin Azoff)

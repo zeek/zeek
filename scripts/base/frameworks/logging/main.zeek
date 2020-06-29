@@ -80,7 +80,7 @@ export {
 	## If :zeek:see:`Log::print_to_log` is set to redirect, ``print`` statements will
 	## automatically populate log entries with the fields contained in this record.
 	type PrintLogInfo: record {
-		## Current timestamp.
+		## The network time at which the print statement was executed.
 		ts:                  time              &log;
 		## Set of strings passed to the print statement.
 		vals:                string_vec        &log;

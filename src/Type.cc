@@ -71,6 +71,131 @@ Type::Type(zeek::TypeTag t, bool arg_base_type)
 	{
 	}
 
+#define CHECK_TYPE_TAG(tag_type, func_name) \
+	CHECK_TAG(tag, tag_type, func_name, type_name)
+
+const TypeList* Type::AsTypeList() const
+	{
+	CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
+	return (const TypeList*) this;
+	}
+
+TypeList* Type::AsTypeList()
+	{
+	CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
+	return (TypeList*) this;
+	}
+
+const TableType* Type::AsTableType() const
+	{
+	CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
+	return (const TableType*) this;
+	}
+
+TableType* Type::AsTableType()
+	{
+	CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
+	return (TableType*) this;
+	}
+
+const SetType* Type::AsSetType() const
+	{
+	if ( ! IsSet() )
+		BadTag("Type::AsSetType", type_name(tag));
+	return (const SetType*) this;
+	}
+
+SetType* Type::AsSetType()
+	{
+	if ( ! IsSet() )
+		BadTag("Type::AsSetType", type_name(tag));
+	return (SetType*) this;
+	}
+
+const RecordType* Type::AsRecordType() const
+	{
+	CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
+	return (const RecordType*) this;
+	}
+
+RecordType* Type::AsRecordType()
+	{
+	CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
+	return (RecordType*) this;
+	}
+
+const SubNetType* Type::AsSubNetType() const
+	{
+	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
+	return (const SubNetType*) this;
+	}
+
+SubNetType* Type::AsSubNetType()
+	{
+	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
+	return (SubNetType*) this;
+	}
+
+const FuncType* Type::AsFuncType() const
+	{
+	CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
+	return (const FuncType*) this;
+	}
+
+FuncType* Type::AsFuncType()
+	{
+	CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
+	return (FuncType*) this;
+	}
+
+const EnumType* Type::AsEnumType() const
+	{
+	CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
+	return (const EnumType*) this;
+	}
+
+EnumType* Type::AsEnumType()
+	{
+	CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
+	return (EnumType*) this;
+	}
+
+const VectorType* Type::AsVectorType() const
+	{
+	CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
+	return (const VectorType*) this;
+	}
+
+VectorType* Type::AsVectorType()
+	{
+	CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
+	return (VectorType*) this;
+	}
+
+const OpaqueType* Type::AsOpaqueType() const
+	{
+	CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
+	return (const OpaqueType*) this;
+	}
+
+OpaqueType* Type::AsOpaqueType()
+	{
+	CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
+	return (OpaqueType*) this;
+	}
+
+const TypeType* Type::AsTypeType() const
+	{
+	CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
+	return (const TypeType*) this;
+	}
+
+TypeType* Type::AsTypeType()
+	{
+	CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
+	return (TypeType*) this;
+	}
+
 IntrusivePtr<Type> Type::ShallowClone()
 	{
 	switch ( tag ) {

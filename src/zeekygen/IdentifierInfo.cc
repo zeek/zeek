@@ -31,7 +31,7 @@ IdentifierInfo::~IdentifierInfo()
 		delete it->second;
 	}
 
-void IdentifierInfo::AddRedef(const string& script, zeek::detail::init_class ic,
+void IdentifierInfo::AddRedef(const string& script, zeek::detail::InitClass ic,
                               IntrusivePtr<zeek::detail::Expr> init_expr, const vector<string>& comments)
 	{
 	Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), comments);
@@ -39,8 +39,8 @@ void IdentifierInfo::AddRedef(const string& script, zeek::detail::init_class ic,
 	}
 
 void IdentifierInfo::AddRecordField(const zeek::TypeDecl* field,
-				    const string& script,
-				    vector<string>& comments)
+                                    const string& script,
+                                    vector<string>& comments)
 	{
 	RecordField* rf = new RecordField();
 	rf->field = new zeek::TypeDecl(*field);
@@ -140,14 +140,14 @@ time_t IdentifierInfo::DoGetModificationTime() const
 	}
 
 IdentifierInfo::Redefinition::Redefinition(
-                       std::string arg_script,
-                       zeek::detail::init_class arg_ic,
-                       IntrusivePtr<zeek::detail::Expr> arg_expr,
-                       std::vector<std::string> arg_comments)
-			: from_script(std::move(arg_script)),
-			  ic(arg_ic),
-			  init_expr(std::move(arg_expr)),
-			  comments(std::move(arg_comments))
+	std::string arg_script,
+	zeek::detail::InitClass arg_ic,
+	IntrusivePtr<zeek::detail::Expr> arg_expr,
+	std::vector<std::string> arg_comments)
+	: from_script(std::move(arg_script)),
+	  ic(arg_ic),
+	  init_expr(std::move(arg_expr)),
+	  comments(std::move(arg_comments))
 	{
 	}
 

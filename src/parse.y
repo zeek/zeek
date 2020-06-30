@@ -234,7 +234,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	char* str;
 	zeek::detail::ID* id;
 	id_list* id_l;
-	zeek::detail::init_class ic;
+	zeek::detail::InitClass ic;
 	Val* val;
 	RE_Matcher* re;
 	zeek::detail::Expr* expr;

@@ -24,15 +24,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TableType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
-enum [[deprecated("Remove in v4.1. Use zeek::detail::init_class instead.")]] init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
-enum [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
-
 namespace zeek::detail {
 
 class Attributes;
 class Expr;
 
-enum init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
+enum InitClass { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
 enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 class ID final : public BroObj, public notifier::Modifiable {
@@ -40,12 +37,6 @@ public:
 	static inline const IntrusivePtr<ID> nil;
 
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::IDScope")]]
-	ID(const char* name, ::IDScope arg_scope, bool arg_is_export);
-#pragma GCC diagnostic pop
 
 	~ID() override;
 
@@ -85,16 +76,8 @@ public:
 
 	void SetVal(IntrusivePtr<Val> v);
 
-	void SetVal(IntrusivePtr<Val> v, init_class c);
-	void SetVal(IntrusivePtr<Expr> ev, init_class c);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::init_class")]]
-	void SetVal(IntrusivePtr<Val> v, ::init_class c);
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::init_class")]]
-	void SetVal(IntrusivePtr<Expr> ev, ::init_class c);
-#pragma GCC diagnostic pop
+	void SetVal(IntrusivePtr<Val> v, InitClass c);
+	void SetVal(IntrusivePtr<Expr> ev, InitClass c);
 
 	bool HasVal() const		{ return val != nullptr; }
 
@@ -279,3 +262,21 @@ void init();
 } // namespace zeek::id::detail
 
 } // namespace zeek::id
+
+using init_class [[deprecated("Remove in v4.1. Use zeek::detail::InitClass instead.")]] = zeek::detail::InitClass;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_NONE instead.")]]
+constexpr auto INIT_NONE = zeek::detail::INIT_NONE;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_FULL instead.")]]
+constexpr auto INIT_FULL = zeek::detail::INIT_FULL;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_EXTRA instead.")]]
+constexpr auto INIT_EXTRA = zeek::detail::INIT_EXTRA;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_REMOVE instead.")]]
+constexpr auto INIT_REMOVE = zeek::detail::INIT_REMOVE;
+
+using IDScope [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] = zeek::detail::IDScope;
+[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_FUNCTION instead.")]]
+constexpr auto SCOPE_FUNCTION = zeek::detail::SCOPE_FUNCTION;
+[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_MODULE instead.")]]
+constexpr auto SCOPE_MODULE = zeek::detail::SCOPE_MODULE;
+[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_GLOBAL instead.")]]
+constexpr auto SCOPE_GLOBAL = zeek::detail::SCOPE_GLOBAL;

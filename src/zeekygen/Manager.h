@@ -140,9 +140,9 @@ public:
 	 * @param init_expr The intiialization expression that was used.
 	 */
 	void Redef(const zeek::detail::ID* id, const std::string& path,
-		zeek::detail::init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr);
+	           zeek::detail::InitClass ic, IntrusivePtr<zeek::detail::Expr> init_expr);
 	void Redef(const zeek::detail::ID* id, const std::string& path,
-		zeek::detail::init_class ic = zeek::detail::INIT_NONE);
+	           zeek::detail::InitClass ic = zeek::detail::INIT_NONE);
 
 	/**
 	 * Register Zeekygen script summary content.

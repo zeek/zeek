@@ -21,49 +21,6 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
-enum [[deprecated("Remove in v4.1. Use zeek::TypeTag instead.")]] TypeTag {
-	TYPE_VOID,      // 0
-	TYPE_BOOL,      // 1
-	TYPE_INT,       // 2
-	TYPE_COUNT,     // 3
-	TYPE_COUNTER,   // 4
-	TYPE_DOUBLE,    // 5
-	TYPE_TIME,      // 6
-	TYPE_INTERVAL,  // 7
-	TYPE_STRING,    // 8
-	TYPE_PATTERN,   // 9
-	TYPE_ENUM,      // 10
-	TYPE_TIMER,     // 11
-	TYPE_PORT,      // 12
-	TYPE_ADDR,      // 13
-	TYPE_SUBNET,    // 14
-	TYPE_ANY,       // 15
-	TYPE_TABLE,     // 16
-	TYPE_UNION,     // 17
-	TYPE_RECORD,    // 18
-	TYPE_LIST,      // 19
-	TYPE_FUNC,      // 20
-	TYPE_FILE,      // 21
-	TYPE_VECTOR,    // 22
-	TYPE_OPAQUE,    // 23
-	TYPE_TYPE,      // 24
-	TYPE_ERROR      // 25
-#define NUM_TYPES (int(TYPE_ERROR) + 1)
-};
-
-enum [[deprecated("Remove in v4.1. Use zeek::FunctionFlavor instead.")]] function_flavor {
-	FUNC_FLAVOR_FUNCTION,
-	FUNC_FLAVOR_EVENT,
-	FUNC_FLAVOR_HOOK
-};
-
-enum [[deprecated("Remove in v4.1. Use zeek::InternalTypeTag instead.")]] InternalTypeTag : uint16_t {
-	TYPE_INTERNAL_VOID,
-	TYPE_INTERNAL_INT, TYPE_INTERNAL_UNSIGNED, TYPE_INTERNAL_DOUBLE,
-	TYPE_INTERNAL_STRING, TYPE_INTERNAL_ADDR, TYPE_INTERNAL_SUBNET,
-	TYPE_INTERNAL_OTHER, TYPE_INTERNAL_ERROR
-};
-
 namespace zeek {
 
 // BRO types.
@@ -190,14 +147,6 @@ public:
 	static inline const IntrusivePtr<Type> nil;
 
 	explicit Type(zeek::TypeTag tag, bool base_type = false);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
-	explicit Type(::TypeTag tag, bool base_type = false)
-		: Type(static_cast<zeek::TypeTag>(tag), base_type)
-		{}
-#pragma GCC diagnostic pop
 
 	// Performs a shallow clone operation of the Bro type.
 	// This especially means that especially for tables the types
@@ -546,14 +495,6 @@ public:
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<Type> yield,
 	         FunctionFlavor f);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::FunctionFlavor instead.")]]
-	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<Type> yield, ::function_flavor f)
-		: FuncType(args, yield, static_cast<FunctionFlavor>(f))
-		{}
-#pragma GCC diagnostic pop
-
 	IntrusivePtr<Type> ShallowClone() override;
 
 	~FuncType() override;
@@ -574,13 +515,6 @@ public:
 	// Used to convert a function type to an event or hook type.
 	void ClearYieldType(FunctionFlavor arg_flav)
 		{ yield = nullptr; flavor = arg_flav; }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::FunctionFlavor instead.")]]
-	void ClearYieldType(::function_flavor arg_flav)
-		{ yield = nullptr; flavor = static_cast<FunctionFlavor>(arg_flav); }
-#pragma GCC diagnostic pop
 
 	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 	bool CheckArgs(const type_list* args, bool is_init = false) const;
@@ -652,14 +586,7 @@ public:
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
-	const zeek::detail::Attr* FindAttr(::attr_tag a) const
-		{ return attrs ? attrs->Find(static_cast<zeek::detail::attr_tag>(a)).get() : nullptr; }
-#pragma GCC diagnostic pop
-
-	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag a) const
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::AttrTag a) const
 		{ return attrs ? attrs->Find(a) : zeek::detail::Attr::nil; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
@@ -760,20 +687,11 @@ public:
 		return decl && decl->GetAttr(zeek::detail::ATTR_DEPRECATED) != nullptr;
 		}
 
-	bool FieldHasAttr(int field, zeek::detail::attr_tag at) const
+	bool FieldHasAttr(int field, zeek::detail::AttrTag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
 		return decl && decl->GetAttr(at) != nullptr;
 		}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
-	bool FieldHasAttr(int field, ::attr_tag at) const
-		{
-		return FieldHasAttr(field, static_cast<zeek::detail::attr_tag>(at));
-		}
-#pragma GCC diagnostic pop
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
@@ -1014,12 +932,9 @@ inline const IntrusivePtr<zeek::Type>& error_type()       { return base_type(TYP
 
 // Returns the basic (non-parameterized) type with the given type.
 // The reference count of the type is not increased.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 [[deprecated("Remove in v4.1.  Use zeek::base_type() instead")]]
-inline zeek::Type* base_type_no_ref(::TypeTag tag)
-	{ return zeek::base_type(static_cast<zeek::TypeTag>(tag)).get(); }
-#pragma GCC diagnostic pop
+inline zeek::Type* base_type_no_ref(zeek::TypeTag tag)
+	{ return zeek::base_type(tag).get(); }
 
 extern IntrusivePtr<zeek::OpaqueType> md5_type;
 extern IntrusivePtr<zeek::OpaqueType> sha1_type;
@@ -1068,3 +983,88 @@ constexpr auto base_type [[deprecated("Remove in v4.1. Use zeek::base_type inste
 constexpr auto error_type [[deprecated("Remove in v4.1. Use zeek::error_type instead.")]] = zeek::error_type;
 constexpr auto type_name [[deprecated("Remove in v4.1. Use zeek::type_name instead.")]] = zeek::type_name;
 constexpr auto is_network_order [[deprecated("Remove in v4.1. Use zeek::is_network_order instead.")]] = zeek::is_network_order;
+
+using TypeTag [[deprecated("Remove in v4.1. Use zeek::TypeTag instead.")]] = zeek::TypeTag;
+
+[[deprecated("Remove in v4.1. Use zeek::TYPE_VOID instead.")]]
+constexpr auto TYPE_VOID = zeek::TYPE_VOID;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_BOOL instead.")]]
+constexpr auto TYPE_BOOL = zeek::TYPE_BOOL;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INT instead.")]]
+constexpr auto TYPE_INT = zeek::TYPE_INT;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_COUNT instead.")]]
+constexpr auto TYPE_COUNT = zeek::TYPE_COUNT;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_COUNTER instead.")]]
+constexpr auto TYPE_COUNTER = zeek::TYPE_COUNTER;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_DOUBLE instead.")]]
+constexpr auto TYPE_DOUBLE = zeek::TYPE_DOUBLE;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_TIME instead.")]]
+constexpr auto TYPE_TIME = zeek::TYPE_TIME;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERVAL instead.")]]
+constexpr auto TYPE_INTERVAL = zeek::TYPE_INTERVAL;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_STRING instead.")]]
+constexpr auto TYPE_STRING = zeek::TYPE_STRING;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_PATTERN instead.")]]
+constexpr auto TYPE_PATTERN = zeek::TYPE_PATTERN;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_ENUM instead.")]]
+constexpr auto TYPE_ENUM = zeek::TYPE_ENUM;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_TIMER instead.")]]
+constexpr auto TYPE_TIMER = zeek::TYPE_TIMER;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_PORT instead.")]]
+constexpr auto TYPE_PORT = zeek::TYPE_PORT;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_ADDR instead.")]]
+constexpr auto TYPE_ADDR = zeek::TYPE_ADDR;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_SUBNET instead.")]]
+constexpr auto TYPE_SUBNET = zeek::TYPE_SUBNET;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_ANY instead.")]]
+constexpr auto TYPE_ANY = zeek::TYPE_ANY;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_TABLE instead.")]]
+constexpr auto TYPE_TABLE = zeek::TYPE_TABLE;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_UNION instead.")]]
+constexpr auto TYPE_UNION = zeek::TYPE_UNION;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_RECORD instead.")]]
+constexpr auto TYPE_RECORD = zeek::TYPE_RECORD;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_LIST instead.")]]
+constexpr auto TYPE_LIST = zeek::TYPE_LIST;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_FUNC instead.")]]
+constexpr auto TYPE_FUNC = zeek::TYPE_FUNC;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_FILE instead.")]]
+constexpr auto TYPE_FILE = zeek::TYPE_FILE;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_VECTOR instead.")]]
+constexpr auto TYPE_VECTOR = zeek::TYPE_VECTOR;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_OPAQUE instead.")]]
+constexpr auto TYPE_OPAQUE = zeek::TYPE_OPAQUE;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_TYPE instead.")]]
+constexpr auto TYPE_TYPE = zeek::TYPE_TYPE;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_TYPE instead.")]]
+constexpr auto TYPE_ERROR = zeek::TYPE_ERROR;
+
+using function_flavor [[deprecated("Remove in v4.1. Use zeek::FunctionFlavor instead.")]] = zeek::FunctionFlavor;
+
+[[deprecated("Remove in v4.1. Use zeek::FUNC_FLAVOR_FUNCTION instead.")]]
+constexpr auto FUNC_FLAVOR_FUNCTION = zeek::FUNC_FLAVOR_FUNCTION;
+[[deprecated("Remove in v4.1. Use zeek::FUNC_FLAVOR_EVENT instead.")]]
+constexpr auto FUNC_FLAVOR_EVENT = zeek::FUNC_FLAVOR_EVENT;
+[[deprecated("Remove in v4.1. Use zeek::FUNC_FLAVOR_HOOK instead.")]]
+constexpr auto FUNC_FLAVOR_HOOK = zeek::FUNC_FLAVOR_HOOK;
+
+using InternalTypeTag [[deprecated("Remove in v4.1. Use zeek::InteralTypeTag instead.")]] = zeek::InternalTypeTag;
+
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_VOID instead.")]]
+constexpr auto TYPE_INTERNAL_VOID = zeek::TYPE_INTERNAL_VOID;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_INT instead.")]]
+constexpr auto TYPE_INTERNAL_INT = zeek::TYPE_INTERNAL_INT;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_UNSIGNED instead.")]]
+constexpr auto TYPE_INTERNAL_UNSIGNED = zeek::TYPE_INTERNAL_UNSIGNED;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_DOUBLE instead.")]]
+constexpr auto TYPE_INTERNAL_DOUBLE = zeek::TYPE_INTERNAL_DOUBLE;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_STRING instead.")]]
+constexpr auto TYPE_INTERNAL_STRING = zeek::TYPE_INTERNAL_STRING;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_ADDR instead.")]]
+constexpr auto TYPE_INTERNAL_ADDR = zeek::TYPE_INTERNAL_ADDR;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_SUBNET instead.")]]
+constexpr auto TYPE_INTERNAL_SUBNET = zeek::TYPE_INTERNAL_SUBNET;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_OTHER instead.")]]
+constexpr auto TYPE_INTERNAL_OTHER = zeek::TYPE_INTERNAL_OTHER;
+[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_ERROR instead.")]]
+constexpr auto TYPE_INTERNAL_ERROR = zeek::TYPE_INTERNAL_ERROR;

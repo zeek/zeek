@@ -338,7 +338,7 @@ void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
 	}
 
 void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* field,
-			  const string& path)
+                          const string& path)
 	{
 	if ( disabled )
 		return;
@@ -361,7 +361,7 @@ void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* fiel
 	}
 
 void Manager::Redef(const zeek::detail::ID* id, const string& path,
-	zeek::detail::init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr)
+                    zeek::detail::InitClass ic, IntrusivePtr<zeek::detail::Expr> init_expr)
 	{
 	if ( disabled )
 		return;
@@ -398,7 +398,7 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path,
 	}
 
 void Manager::Redef(const zeek::detail::ID* id, const std::string& path,
-	zeek::detail::init_class ic)
+                    zeek::detail::InitClass ic)
 	{
 	Redef(id, path, ic, nullptr);
 	}

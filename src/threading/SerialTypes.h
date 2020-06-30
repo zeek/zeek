@@ -33,14 +33,6 @@ struct Field {
 		  secondary_name(secondary_name ? copy_string(secondary_name) : nullptr),
 		  type(type), subtype(subtype), optional(optional)	{ }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead")]]
-	Field(const char* name, const char* secondary_name, ::TypeTag type, ::TypeTag subtype, bool optional) :
-		Field(name, secondary_name, static_cast<zeek::TypeTag>(type), static_cast<zeek::TypeTag>(subtype), optional)
-		{}
-#pragma GCC diagnostic pop
-
 	/**
 	 * Copy constructor.
 	 */
@@ -153,14 +145,6 @@ struct Value {
 		: type(arg_type), subtype(zeek::TYPE_VOID), present(arg_present)
 		{}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag.")]]
-	Value(::TypeTag arg_type, bool arg_present = true)
-		: Value(static_cast<zeek::TypeTag>(arg_type), arg_present)
-		{}
-#pragma GCC diagnostic pop
-
 	/**
 	* Constructor.
 	*
@@ -174,14 +158,6 @@ struct Value {
 	Value(zeek::TypeTag arg_type, zeek::TypeTag arg_subtype, bool arg_present = true)
 		: type(arg_type), subtype(arg_subtype), present(arg_present)
 		{}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag.")]]
-	Value(::TypeTag arg_type, ::TypeTag arg_subtype, bool arg_present = true)
-		: Value(static_cast<zeek::TypeTag>(arg_type), static_cast<zeek::TypeTag>(arg_subtype), arg_present)
-		{}
-#pragma GCC diagnostic pop
 
 	/**
 	 * Destructor.

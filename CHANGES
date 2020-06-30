@@ -1,4 +1,16 @@
 
+3.2.0-dev.827 | 2020-06-30 16:54:22 -0700
+
+  * Deprecate plugin::HookType and plugin::component::Type in a different way (Tim Wojtulewicz, Corelight)
+
+  * Deprecate init_class and IDScope in another way. (Tim Wojtulewicz, Corelight)
+
+    This also renamed init_class to InitClass for consistency.
+
+  * Deprecate TypeTag and friends in a different way (Tim Wojtulewicz, Corelight)
+
+  * Deprecate attr_tag in a different way, rename to AttrTag (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.822 | 2020-06-30 15:54:38 -0700
 
   * Revert Attributes::Attrs back to return an attr_list and mark it deprecated (Tim Wojtulewicz, Corelight)

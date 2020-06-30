@@ -20,14 +20,14 @@ typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
 extern void add_global(const IntrusivePtr<zeek::detail::ID>& id,
                        IntrusivePtr<zeek::Type> t,
-                       zeek::detail::init_class c,
+                       zeek::detail::InitClass c,
                        IntrusivePtr<zeek::detail::Expr> init,
                        std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                        decl_type dt);
 
 extern IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id,
                                                   IntrusivePtr<zeek::Type> t,
-                                                  zeek::detail::init_class c,
+                                                  zeek::detail::InitClass c,
                                                   IntrusivePtr<zeek::detail::Expr> init,
                                                   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                                                   decl_type dt);

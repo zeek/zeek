@@ -1481,7 +1481,7 @@ void TableVal::SetAttrs(IntrusivePtr<zeek::detail::Attributes> a)
 		change_func = cf->GetExpr();
 	}
 
-void TableVal::CheckExpireAttr(zeek::detail::attr_tag at)
+void TableVal::CheckExpireAttr(zeek::detail::AttrTag at)
 	{
 	const auto& a = attrs->Find(at);
 
@@ -2194,7 +2194,7 @@ ListVal* TableVal::ConvertToPureList() const
 	return ToPureListVal().release();
 	}
 
-const IntrusivePtr<zeek::detail::Attr>& TableVal::GetAttr(zeek::detail::attr_tag t) const
+const IntrusivePtr<zeek::detail::Attr>& TableVal::GetAttr(zeek::detail::AttrTag t) const
 	{
 	return attrs ? attrs->Find(t) : zeek::detail::Attr::nil;
 	}

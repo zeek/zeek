@@ -111,7 +111,7 @@ static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, zeek::Type* 
 	}
 
 static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::Type> t,
-                     zeek::detail::init_class c,
+                     zeek::detail::InitClass c,
                      IntrusivePtr<zeek::detail::Expr> init,
                      std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                      decl_type dt,
@@ -311,7 +311,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek
 	}
 
 void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::Type> t,
-                zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
+                zeek::detail::InitClass c, IntrusivePtr<zeek::detail::Expr> init,
                 std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                 decl_type dt)
 	{
@@ -319,9 +319,9 @@ void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::Typ
 	}
 
 IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id, IntrusivePtr<zeek::Type> t,
-                             zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
-                             std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
-                             decl_type dt)
+                                           zeek::detail::InitClass c, IntrusivePtr<zeek::detail::Expr> init,
+                                           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
+                                           decl_type dt)
 	{
 	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
 
@@ -415,7 +415,7 @@ static void transfer_arg_defaults(zeek::RecordType* args, zeek::RecordType* recv
 	}
 
 static zeek::detail::Attr* find_attr(const std::vector<IntrusivePtr<zeek::detail::Attr>>* al,
-                                     zeek::detail::attr_tag tag)
+                                     zeek::detail::AttrTag tag)
 	{
 	if ( ! al )
 		return nullptr;

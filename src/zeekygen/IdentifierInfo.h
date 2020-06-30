@@ -70,7 +70,7 @@ public:
 	 * @param init_expr The initialization expression used.
 	 * @param comments Comments associated with the redef statement.
 	 */
-	void AddRedef(const std::string& from_script, zeek::detail::init_class ic,
+	void AddRedef(const std::string& from_script, zeek::detail::InitClass ic,
 	              IntrusivePtr<zeek::detail::Expr> init_expr,
 	              const std::vector<std::string>& comments);
 
@@ -127,11 +127,11 @@ public:
 	 */
 	struct Redefinition {
 		std::string from_script; /**< Name of script doing the redef. */
-		zeek::detail::init_class ic;
+		zeek::detail::InitClass ic;
 		IntrusivePtr<zeek::detail::Expr> init_expr;
 		std::vector<std::string> comments; /**< Zeekygen comments on redef. */
 
-		Redefinition(std::string arg_script, zeek::detail::init_class arg_ic,
+		Redefinition(std::string arg_script, zeek::detail::InitClass arg_ic,
 		             IntrusivePtr<zeek::detail::Expr> arg_expr,
 		             std::vector<std::string> arg_comments);
 

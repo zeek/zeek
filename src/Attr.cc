@@ -11,7 +11,7 @@
 
 namespace zeek::detail {
 
-const char* attr_name(attr_tag t)
+const char* attr_name(AttrTag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {
 		"&optional", "&default", "&redef",
@@ -25,28 +25,17 @@ const char* attr_name(attr_tag t)
 	return attr_names[int(t)];
 	}
 
-Attr::Attr(attr_tag t, IntrusivePtr<Expr> e)
+Attr::Attr(AttrTag t, IntrusivePtr<Expr> e)
 	: expr(std::move(e))
 	{
 	tag = t;
 	SetLocationInfo(&start_location, &end_location);
 	}
 
-Attr::Attr(attr_tag t)
+Attr::Attr(AttrTag t)
 	: Attr(t, nullptr)
 	{
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Attr::Attr(::attr_tag t, IntrusivePtr<Expr> e) : Attr(static_cast<attr_tag>(t), e)
-	{
-	}
-
-Attr::Attr(::attr_tag t) : Attr(static_cast<attr_tag>(t))
-	{
-	}
-#pragma GCC diagnostic pop
 
 void Attr::SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e)
 	{ expr = std::move(e); }
@@ -237,7 +226,7 @@ void Attributes::AddAttrs(Attributes* a)
 	Unref(a);
 	}
 
-Attr* Attributes::FindAttr(attr_tag t) const
+Attr* Attributes::FindAttr(AttrTag t) const
 	{
 	for ( const auto& a : attrs )
 		if ( a->Tag() == t )
@@ -246,7 +235,7 @@ Attr* Attributes::FindAttr(attr_tag t) const
 	return nullptr;
 	}
 
-const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
+const IntrusivePtr<Attr>& Attributes::Find(AttrTag t) const
 	{
 	for ( const auto& a : attrs )
 		if ( a->Tag() == t )
@@ -255,7 +244,7 @@ const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
 	return Attr::nil;
 	}
 
-void Attributes::RemoveAttr(attr_tag t)
+void Attributes::RemoveAttr(AttrTag t)
 	{
 	for ( int i = 0; i < attrs_list.length(); i++ )
 		if ( attrs_list[i]->Tag() == t )
@@ -269,19 +258,6 @@ void Attributes::RemoveAttr(attr_tag t)
 			++it;
 		}
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Attr* Attributes::FindAttr(::attr_tag t) const
-	{
-	return FindAttr(static_cast<attr_tag>(t));
-	}
-
-void Attributes::RemoveAttr(::attr_tag t)
-	{
-	RemoveAttr(static_cast<attr_tag>(t));
-	}
-#pragma GCC diagnostic pop
 
 void Attributes::Describe(ODesc* d) const
 	{

@@ -120,12 +120,6 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	SetLocationInfo(&start_location, &end_location);
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-ID::ID(const char* arg_name, ::IDScope arg_scope, bool arg_is_export) :
-	ID(arg_name, static_cast<IDScope>(arg_scope), arg_is_export) {}
-#pragma GCC diagnostic pop
-
 ID::~ID()
 	{
 	delete [] name;
@@ -175,7 +169,7 @@ void ID::SetVal(IntrusivePtr<Val> v)
 		}
 	}
 
-void ID::SetVal(IntrusivePtr<Val> v, init_class c)
+void ID::SetVal(IntrusivePtr<Val> v, InitClass c)
 	{
 	if ( c == INIT_NONE || c == INIT_FULL )
 		{
@@ -213,7 +207,7 @@ void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 		}
 	}
 
-void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
+void ID::SetVal(IntrusivePtr<Expr> ev, InitClass c)
 	{
 	const auto& a = attrs->Find(c == INIT_EXTRA ? ATTR_ADD_FUNC : ATTR_DEL_FUNC);
 
@@ -222,19 +216,6 @@ void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 
 	EvalFunc(a->GetExpr(), std::move(ev));
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void ID::SetVal(IntrusivePtr<Val> v, ::init_class c)
-	{
-	SetVal(v, static_cast<init_class>(c));
-	}
-
-void ID::SetVal(IntrusivePtr<Expr> ev, ::init_class c)
-	{
-	SetVal(ev, static_cast<init_class>(c));
-	}
-#pragma GCC diagnostic pop
 
 bool ID::IsRedefinable() const
 	{
@@ -287,7 +268,7 @@ void ID::UpdateValAttrs()
 		}
 	}
 
-const IntrusivePtr<Attr>& ID::GetAttr(attr_tag t) const
+const IntrusivePtr<Attr>& ID::GetAttr(AttrTag t) const
 	{
 	return attrs ? attrs->Find(t) : Attr::nil;
 	}
@@ -337,19 +318,11 @@ void ID::AddAttrs(IntrusivePtr<Attributes> a)
 	UpdateValAttrs();
 	}
 
-void ID::RemoveAttr(attr_tag a)
+void ID::RemoveAttr(AttrTag a)
 	{
 	if ( attrs )
 		attrs->RemoveAttr(a);
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void ID::RemoveAttr(::attr_tag a)
-	{
-	RemoveAttr(static_cast<attr_tag>(a));
-	}
-#pragma GCC diagnostic pop
 
 void ID::SetOption()
 	{

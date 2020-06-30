@@ -42,14 +42,6 @@ static constexpr const char* hook_names[int(zeek::plugin::NUM_HOOKS) + 1] = {
 	return hook_names[int(h)];
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-const char* plugin::hook_name(::plugin::HookType h)
-	{
-	return hook_name(static_cast<zeek::plugin::HookType>(h));
-	}
-#pragma GCC diagnostic pop
-
 BifItem::BifItem(const std::string& arg_id, Type arg_type)
 	{
 	id = arg_id;
@@ -358,19 +350,6 @@ Plugin::hook_list Plugin::EnabledHooks() const
 	return plugin_mgr->HooksEnabledForPlugin(this);
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void Plugin::EnableHook(::plugin::HookType hook, int priority)
-	{
-	plugin_mgr->EnableHook(static_cast<zeek::plugin::HookType>(hook), this, priority);
-	}
-
-void Plugin::DisableHook(::plugin::HookType hook)
-	{
-	plugin_mgr->DisableHook(static_cast<zeek::plugin::HookType>(hook), this);
-	}
-#pragma GCC diagnostic pop
-
 void Plugin::EnableHook(zeek::plugin::HookType hook, int priority)
 	{
 	plugin_mgr->EnableHook(hook, this, priority);
@@ -460,38 +439,19 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 	}
 
 bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-			  const Connection* conn, const val_list* addl, bool location,
-			  const Location* location1, const Location* location2,
-			  bool time, const std::string& message)
+                          const Connection* conn, const val_list* addl, bool location,
+                          const Location* location1, const Location* location2,
+                          bool time, const std::string& message)
 	{
 	return true;
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void Plugin::MetaHookPre(::plugin::HookType hook, const HookArgumentList& args)
-	{
-	}
-
-void Plugin::MetaHookPost(::plugin::HookType hook, const HookArgumentList& args, HookArgument result)
-	{
-	}
-#pragma GCC diagnostic pop
-
 void Plugin::MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args)
 	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	MetaHookPre(static_cast<::plugin::HookType>(hook), args);
-#pragma GCC diagnostic pop
 	}
 
 void Plugin::MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result)
 	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	MetaHookPost(static_cast<::plugin::HookType>(hook), args, result);
-#pragma GCC diagnostic pop
 	}
 
 void Plugin::InitializeComponents()

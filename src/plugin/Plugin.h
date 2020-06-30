@@ -26,44 +26,6 @@ namespace threading {
 struct Field;
 }
 
-namespace plugin {
-
-/**
- * Hook types that a plugin may define. Each label maps to the corresponding
- * virtual method in \a Plugin.
- */
-enum [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] HookType {
-	// Note: when changing this table, update hook_name() in Plugin.cc.
-	HOOK_LOAD_FILE,			//< Activates Plugin::HookLoadFile().
-	HOOK_CALL_FUNCTION,		//< Activates Plugin::HookCallFunction().
-	HOOK_QUEUE_EVENT,		//< Activates Plugin::HookQueueEvent().
-	HOOK_DRAIN_EVENTS,		//< Activates Plugin::HookDrainEvents()
-	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
-	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
-	HOOK_SETUP_ANALYZER_TREE,	//< Activates Plugin::HookAddToAnalyzerTree
-	HOOK_LOG_INIT,			//< Activates Plugin::HookLogInit
-	HOOK_LOG_WRITE,			//< Activates Plugin::HookLogWrite
-	HOOK_REPORTER,			//< Activates Plugin::HookReporter
-
-	// Meta hooks.
-	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
-	META_HOOK_POST,			//< Activates Plugin::MetaHookPost().
-
-	// End marker.
-	NUM_HOOKS,
-};
-
-/**
- * Converts a hook type into a readable hook name.
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
-extern const char* hook_name(::plugin::HookType h);
-#pragma GCC diagnostic pop
-
-}
-
 namespace zeek::plugin  {
 
 class Manager;
@@ -628,15 +590,6 @@ protected:
 	 */
 	void DisableHook(zeek::plugin::HookType hook);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
-	void EnableHook(::plugin::HookType hook, int priority = 0);
-
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
-	void DisableHook(::plugin::HookType hook);
-#pragma GCC diagnostic pop
-
 	/**
 	 * Returns a list of hooks that are currently enabled for the plugin,
 	 * along with their priorities.
@@ -875,46 +828,7 @@ protected:
 	                          bool time, const std::string& message);
 
 	// Meta hooks.
-
-	/**
-	 * A meta hook called just before another hook gets to execute. This
-	 * will be called independent of whether there's an implementation
-	 * for the hook.
-	 *
-	 * hook: The name of the hook about the execute. This will be the
-	 * same as the corresponding method name (e.g., \c HookQueueEvent).
-	 *
-	 * hook: The type of the hook about to execute.
-	 *
-	 * args: A list of the hooks arguments.
-	 */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
-	virtual void MetaHookPre(::plugin::HookType hook, const HookArgumentList& args);
-#pragma GCC diagnostic pop
-
 	virtual void MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args);
-
-	/**
-	 * A meta hook called just after another hook got to execute. This
-	 * will be called independent of whether there's an implementation
-	 * for the hook.
-	 *
-	 * hook: The type of the hook that finished executing.
-	 *
-	 * args: A list of the hooks arguments.
-	 *
-	 * result: The result that executing the hook returned. If there's no
-	 * implementation for the hook, this will be the default result. If
-	 * the hook doesn't yield a result, this will be of type VOID.
-	 */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
-	virtual void MetaHookPost(::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
-#pragma GCC diagnostic pop
-
 	virtual void MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
 
 private:
@@ -969,13 +883,42 @@ private:
 	bif_item_list bif_items;	// BiF items the plugin provides.
 };
 
-}
+} // namespace zeek::plugin
 
 namespace plugin {
-	using VersionNumber [[deprecated("Remove in v4.1. Use zeek::plugin::VersionNumber instead")]] = zeek::plugin::VersionNumber;
-	using Configuration [[deprecated("Remove in v4.1. Use zeek::plugin::Configuration instead")]] = zeek::plugin::Configuration;
-	using BifItem [[deprecated("Remove in v4.1. Use zeek::plugin::BifItem instead")]] = zeek::plugin::BifItem;
-	using HookArgument [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgument instead")]] = zeek::plugin::HookArgument;
-	using HookArgumentList [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgumentList instead")]] = zeek::plugin::HookArgumentList;
-	using Plugin [[deprecated("Remove in v4.1. Use zeek::plugin::Plugin instead")]] = zeek::plugin::Plugin;
-}
+
+using VersionNumber [[deprecated("Remove in v4.1. Use zeek::plugin::VersionNumber instead")]] = zeek::plugin::VersionNumber;
+using Configuration [[deprecated("Remove in v4.1. Use zeek::plugin::Configuration instead")]] = zeek::plugin::Configuration;
+using BifItem [[deprecated("Remove in v4.1. Use zeek::plugin::BifItem instead")]] = zeek::plugin::BifItem;
+using HookArgument [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgument instead")]] = zeek::plugin::HookArgument;
+using HookArgumentList [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgumentList instead")]] = zeek::plugin::HookArgumentList;
+using Plugin [[deprecated("Remove in v4.1. Use zeek::plugin::Plugin instead")]] = zeek::plugin::Plugin;
+
+using HookType [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] = zeek::plugin::HookType;
+
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOAD_FILE instead.")]]
+constexpr auto HOOK_LOAD_FILE = zeek::plugin::HOOK_LOAD_FILE;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_CALL_FUNCTION instead.")]]
+constexpr auto HOOK_CALL_FUNCTION = zeek::plugin::HOOK_CALL_FUNCTION;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_QUEUE_EVENT instead.")]]
+constexpr auto HOOK_QUEUE_EVENT = zeek::plugin::HOOK_QUEUE_EVENT;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_DRAIN_EVENTS instead.")]]
+constexpr auto HOOK_DRAIN_EVENTS = zeek::plugin::HOOK_DRAIN_EVENTS;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_UPDATE_NETWORK_TIME instead.")]]
+constexpr auto HOOK_UPDATE_NETWORK_TIME = zeek::plugin::HOOK_UPDATE_NETWORK_TIME;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_BRO_OBJ_DTOR instead.")]]
+constexpr auto HOOK_BRO_OBJ_DTOR = zeek::plugin::HOOK_BRO_OBJ_DTOR;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_SETUP_ANALYZER_TREE instead.")]]
+constexpr auto HOOK_SETUP_ANALYZER_TREE = zeek::plugin::HOOK_SETUP_ANALYZER_TREE;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOG_INIT instead.")]]
+constexpr auto HOOK_LOG_INIT = zeek::plugin::HOOK_LOG_INIT;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOG_WRITE instead.")]]
+constexpr auto HOOK_LOG_WRITE = zeek::plugin::HOOK_LOG_WRITE;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_REPORTER instead.")]]
+constexpr auto HOOK_REPORTER = zeek::plugin::HOOK_REPORTER;
+[[deprecated("Remove in v4.1. Use zeek::plugin::META_HOOK_PRE instead.")]]
+constexpr auto META_HOOK_PRE = zeek::plugin::META_HOOK_PRE;
+[[deprecated("Remove in v4.1. Use zeek::plugin::META_HOOK_POST instead.")]]
+constexpr auto META_HOOK_POST = zeek::plugin::META_HOOK_POST;
+
+} // namespace plugin

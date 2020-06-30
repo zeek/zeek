@@ -14,16 +14,6 @@ Component::Component(component::Type arg_type, const std::string& arg_name)
 	canon_name = canonify_name(name);
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Component::Component(::plugin::component::Type arg_type, const std::string& arg_name)
-	{
-	type = static_cast<component::Type>(arg_type);
-	name = arg_name;
-	canon_name = canonify_name(name);
-	}
-#pragma GCC diagnostic pop
-
 Component::~Component()
 	{
 	}

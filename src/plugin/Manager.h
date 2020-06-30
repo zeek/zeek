@@ -171,16 +171,6 @@ public:
 		return hooks[hook] != nullptr;
 		}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
-	bool HavePluginForHook(::plugin::HookType hook) const
-		{
-		// Inline to avoid the function call.
-		return HavePluginForHook(static_cast<zeek::plugin::HookType>(hook));
-		}
-#pragma GCC diagnostic pop
-
 	/**
 	 * Returns all the hooks, with their priorities, that are currently
 	 * enabled for a given plugin.
@@ -208,15 +198,6 @@ public:
 	 * plugin: The plugin that used to define the hook.
 	 */
 	void DisableHook(zeek::plugin::HookType hook, Plugin* plugin);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
-	void EnableHook(::plugin::HookType hook, Plugin* plugin, int prio);
-
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
-	void DisableHook(::plugin::HookType hook, Plugin* plugin);
-#pragma GCC diagnostic pop
 
 	/**
 	 * Registers interest in an event by a plugin, even if there's no handler

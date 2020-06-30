@@ -571,19 +571,6 @@ void Manager::DisableHook(zeek::plugin::HookType hook, Plugin* plugin)
 		}
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void Manager::EnableHook(::plugin::HookType hook, Plugin* plugin, int prio)
-	{
-	EnableHook(static_cast<zeek::plugin::HookType>(hook), plugin, prio);
-	}
-
-void Manager::DisableHook(::plugin::HookType hook, Plugin* plugin)
-	{
-	DisableHook(static_cast<zeek::plugin::HookType>(hook), plugin);
-	}
-#pragma GCC diagnostic pop
-
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
 	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",

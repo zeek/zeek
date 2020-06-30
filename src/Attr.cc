@@ -19,7 +19,7 @@ const char* attr_name(attr_tag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)", "&on_change", "&broker_store",
+	    "(&tracked)", "&on_change", "&broker_store", "&backend",
 		"&deprecated",
 	};
 
@@ -616,6 +616,43 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
+	case ATTR_BACKEND:
+		{
+		if ( ! global_var || type->Tag() != TYPE_TABLE )
+			{
+			Error("&broker_store only applicable to global sets/tables");
+			break;
+			}
+
+		// cannot do better equality check - the broker types are not actually existing yet when we
+		// are here. We will do that later - before actually attaching to a broker store
+		if ( a->GetExpr()->GetType()->Tag() != TYPE_ENUM )
+			{
+			Error("&broker_store must take an enum argument");
+			break;
+			}
+
+		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
+		if ( type->AsTableType()->IndexTypes().size() != 1 )
+			{
+			Error("&backend only supports one-element set/table indexes");
+			}
+
+		if ( Find(ATTR_EXPIRE_FUNC ) )
+			{
+			Error("&backend and &expire_func cannot be used simultaneously");
+			}
+		if ( Find(ATTR_EXPIRE_READ) )
+			{
+			Error("&backend and &read_expire cannot be used simultaneously");
+			}
+		if ( Find(ATTR_BROKER_STORE) )
+			{
+			Error("&backend and &broker_store cannot be used simultaneously");
+			}
+
+		break;
+		}
 	case ATTR_BROKER_STORE:
 		{
 		if ( type->Tag() != TYPE_TABLE )
@@ -635,6 +672,7 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			Error("&broker_store only supports one-element set/table indexes");
 			}
+
 		if ( Find(ATTR_EXPIRE_FUNC ) )
 			{
 			Error("&broker_store and &expire_func cannot be used simultaneously");

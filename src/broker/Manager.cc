@@ -151,6 +151,8 @@ void Manager::InitPostScript()
 	log_topic_func = get_option("Broker::log_topic")->AsFunc();
 	log_id_type = zeek::id::find_type("Log::ID")->AsEnumType();
 	writer_id_type = zeek::id::find_type("Log::Writer")->AsEnumType();
+	zeek_table_manager = get_option("Broker::auto_store_master")->AsBool();
+	zeek_table_db_directory = get_option("Broker::auto_store_db_directory")->AsString()->CheckString();
 
 	opaque_of_data_type = make_intrusive<zeek::OpaqueType>("Broker::Data");
 	opaque_of_set_iterator = make_intrusive<zeek::OpaqueType>("Broker::SetIterator");
@@ -214,6 +216,35 @@ void Manager::InitPostScript()
 		reporter->FatalError("Failed to register broker status subscriber with iosource_mgr");
 
 	bstate->subscriber.add_topic(broker::topics::store_events, true);
+
+	InitializeBrokerStoreForwarding();
+	}
+
+void Manager::InitializeBrokerStoreForwarding()
+	{
+	const auto& globals = global_scope()->Vars();
+
+	for ( const auto& global : globals )
+		{
+		auto& id = global.second;
+		if ( id->HasVal() && id->GetAttr(zeek::detail::ATTR_BACKEND) )
+			{
+			const auto& attr = id->GetAttr(zeek::detail::ATTR_BACKEND);
+			auto e = static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
+			auto storename = std::string("___sync_store_") + global.first;
+			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
+			AddForwardedStore(storename, {NewRef{}, id->GetVal()->AsTableVal()});
+
+			auto backend = bro_broker::to_backend_type(e);
+
+			if ( zeek_table_manager )
+				MakeMaster(storename, backend, broker::backend_options{});
+			else
+				{
+				MakeClone(storename);
+				}
+			}
+		}
 	}
 
 void Manager::Terminate()

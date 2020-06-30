@@ -25,6 +25,10 @@ export {
 	## A negative/zero value indicates to never buffer commands.
 	const default_clone_mutation_buffer_interval = 2min &redef;
 
+	const auto_store_master = T &redef;
+
+	const auto_store_db_directory = "." &redef;
+
 	## Whether a data store query could be completed or not.
 	type QueryStatus: enum {
 		SUCCESS,

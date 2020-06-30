@@ -1030,6 +1030,8 @@ public:
 	// on zeek::RecordTypes.
 	static void DoneParsing();
 
+	void SetBrokerStore(const std::string& store) { broker_store = store; }
+
 protected:
 	void Init(IntrusivePtr<zeek::TableType> t);
 

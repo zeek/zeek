@@ -355,6 +355,7 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
+	void InitializeBrokerStoreForwarding();
 	// Check if a broker store is associated to a table on the Zeek side.
 	void CheckForwarding(const std::string& name);
 	// Send the content of a broker store to the backing table. This is typically used
@@ -411,6 +412,8 @@ private:
 	IntrusivePtr<zeek::VectorType> vector_of_data_type;
 	zeek::EnumType* log_id_type;
 	zeek::EnumType* writer_id_type;
+	bool zeek_table_manager = false;
+	std::string zeek_table_db_directory;
 
 	static int script_scope;
 };

@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 117
+%expect 123
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -24,7 +24,7 @@
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
 %token TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
-%token TOK_ATTR_RAW_OUTPUT TOK_ATTR_ON_CHANGE TOK_ATTR_BROKER_STORE
+%token TOK_ATTR_RAW_OUTPUT TOK_ATTR_ON_CHANGE TOK_ATTR_BROKER_STORE TOK_ATTR_BACKEND
 %token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_DEPRECATED
 
@@ -1367,6 +1367,8 @@ attr:
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_BROKER_STORE '=' expr
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_BROKER_STORE, {AdoptRef{}, $3}); }
+	|	TOK_ATTR_BACKEND '=' expr
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_BACKEND, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_FUNC '=' expr
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_EXPIRE_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_CREATE '=' expr

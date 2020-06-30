@@ -272,9 +272,11 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		VectorType* enum_vector = new VectorType(base_type(TYPE_ENUM));
+		IntrusivePtr<BroType> auth_t_ptr =
+			{NewRef{}, BifType::Enum::MOUNT3::auth_flavor_t};
+		VectorType* enum_vector = new VectorType(auth_t_ptr);
 		VectorVal* auth_flavors = new VectorVal(enum_vector);
-		Unref(enum_vector);
+		Unref(enum_vector);	// VectorVal() ref'd it
 
 		for ( auto i = 0u; i < auth_flavors_count; ++i )
 			auth_flavors->Assign(auth_flavors->Size(),

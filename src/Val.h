@@ -125,13 +125,6 @@ public:
 		: val(d), type(zeek::base_type(t))
 		{}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
-	Val(double d, ::TypeTag t) : Val(d, static_cast<zeek::TypeTag>(t))
-		{}
-#pragma GCC diagnostic pop
-
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(Func* f);
 	explicit Val(IntrusivePtr<Func> f);
@@ -655,12 +648,6 @@ protected:
 class ListVal final : public Val {
 public:
 	explicit ListVal(zeek::TypeTag t);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag")]]
-	explicit ListVal(::TypeTag t) : ListVal(static_cast<zeek::TypeTag>(t)) {}
-#pragma GCC diagnostic pop
 
 	~ListVal() override;
 

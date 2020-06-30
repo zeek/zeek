@@ -25,19 +25,6 @@ struct FieldMapping {
 	FieldMapping(const std::string& arg_name, const zeek::TypeTag& arg_type, int arg_position);
 	FieldMapping(const std::string& arg_name, const zeek::TypeTag& arg_type, const zeek::TypeTag& arg_subtype, int arg_position);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek:TypeTag.")]]
-	FieldMapping(const std::string& arg_name, const ::TypeTag& arg_type, int arg_position)
-		: FieldMapping(arg_name, static_cast<zeek::TypeTag>(arg_type), arg_position)
-		{}
-
-	[[deprecated("Remove in v4.1. Use the version that takes zeek:TypeTag.")]]
-	FieldMapping(const std::string& arg_name, const ::TypeTag& arg_type, const ::TypeTag& arg_subtype, int arg_position)
-		: FieldMapping(arg_name, static_cast<zeek::TypeTag>(arg_type), static_cast<zeek::TypeTag>(arg_subtype), arg_position)
-		{}
-#pragma GCC diagnostic pop
-
 	FieldMapping(const FieldMapping& arg);
 	FieldMapping() { position = -1; secondary_position = -1; }
 

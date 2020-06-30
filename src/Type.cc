@@ -168,6 +168,7 @@ void TypeList::Append(IntrusivePtr<Type> t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
 
+	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
 	}
 
@@ -176,6 +177,7 @@ void TypeList::AppendEvenIfNotPure(IntrusivePtr<Type> t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		pure_type = nullptr;
 
+	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
 	}
 
@@ -220,12 +222,10 @@ unsigned int TypeList::MemoryAllocation() const
 		+ size;
 	}
 
-IndexType::~IndexType() = default;
-
 int IndexType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
-	const auto& types = indices->Types();
+	const auto& types = indices->GetTypes();
 	const expr_list& exprs = index->Exprs();
 
 	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET &&
@@ -242,7 +242,7 @@ void IndexType::Describe(ODesc* d) const
 	if ( ! d->IsBinary() )
 		d->Add("[");
 
-	const auto& its = IndexTypes();
+	const auto& its = GetIndexTypes();
 
 	for ( auto i = 0u; i < its.size(); ++i )
 		{
@@ -273,7 +273,7 @@ void IndexType::DescribeReST(ODesc* d, bool roles_only) const
 	d->Add("` ");
 	d->Add("[");
 
-	const auto& its = IndexTypes();
+	const auto& its = GetIndexTypes();
 
 	for ( auto i = 0u; i < its.size(); ++i )
 		{
@@ -311,7 +311,7 @@ void IndexType::DescribeReST(ODesc* d, bool roles_only) const
 
 bool IndexType::IsSubNetIndex() const
 	{
-	const auto& types = indices->Types();
+	const auto& types = indices->GetTypes();
 	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET )
 		return true;
 	return false;
@@ -323,7 +323,7 @@ TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<Type> yield)
 	if ( ! indices )
 		return;
 
-	const auto& tl = indices->Types();
+	const auto& tl = indices->GetTypes();
 
 	for ( const auto& tli : tl )
 		{
@@ -352,7 +352,7 @@ IntrusivePtr<Type> TableType::ShallowClone()
 bool TableType::IsUnspecifiedTable() const
 	{
 	// Unspecified types have an empty list of indices.
-	return indices->Types().empty();
+	return indices->GetTypes().empty();
 	}
 
 SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr> arg_elements)
@@ -368,7 +368,7 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr
 		else
 			{
 			TypeList* tl_type = elements->GetType()->AsTypeList();
-			const auto& tl = tl_type->Types();
+			const auto& tl = tl_type->GetTypes();
 
 			if ( tl.size() < 1 )
 				{
@@ -493,7 +493,7 @@ bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 bool FuncType::CheckArgs(const std::vector<IntrusivePtr<Type>>& args,
                          bool is_init) const
 	{
-	const auto& my_args = arg_types->Types();
+	const auto& my_args = arg_types->GetTypes();
 
 	if ( my_args.size() != args.size() )
 		{
@@ -774,7 +774,7 @@ static string container_type_name(const Type* ft)
 		else
 			s = "table[";
 
-		const auto& tl = ((const IndexType*) ft)->IndexTypes();
+		const auto& tl = ((const IndexType*) ft)->GetIndexTypes();
 
 		for ( auto i = 0u; i < tl.size(); ++i )
 			{
@@ -1481,7 +1481,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 				return false;
 			}
 
-		return ft1->CheckArgs(ft2->ParamList()->Types(), is_init);
+		return ft1->CheckArgs(ft2->ParamList()->GetTypes(), is_init);
 		}
 
 	case TYPE_RECORD:
@@ -1507,8 +1507,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 
 	case TYPE_LIST:
 		{
-		const auto& tl1 = t1->AsTypeList()->Types();
-		const auto& tl2 = t2->AsTypeList()->Types();
+		const auto& tl1 = t1->AsTypeList()->GetTypes();
+		const auto& tl2 = t2->AsTypeList()->GetTypes();
 
 		if ( tl1.size() != tl2.size() )
 			return false;
@@ -1597,7 +1597,7 @@ const Type* flatten_type(const Type* t)
 	if ( tl->IsPure() )
 		return tl->GetPureType().get();
 
-	const auto& types = tl->Types();
+	const auto& types = tl->GetTypes();
 
 	if ( types.size() == 0 )
 		reporter->InternalError("empty type list in flatten_type");
@@ -1756,8 +1756,8 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 		const IndexType* it1 = (const IndexType*) t1;
 		const IndexType* it2 = (const IndexType*) t2;
 
-		const auto& tl1 = it1->IndexTypes();
-		const auto& tl2 = it2->IndexTypes();
+		const auto& tl1 = it1->GetIndexTypes();
+		const auto& tl2 = it2->GetIndexTypes();
 		IntrusivePtr<TypeList> tl3;
 
 		if ( tl1.size() != tl2.size() )
@@ -1859,8 +1859,8 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			return nullptr;
 			}
 
-		const auto& l1 = tl1->Types();
-		const auto& l2 = tl2->Types();
+		const auto& l1 = tl1->GetTypes();
+		const auto& l2 = tl2->GetTypes();
 
 		if ( l1.size() == 0 || l2.size() == 0 )
 			{
@@ -1927,7 +1927,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 IntrusivePtr<Type> merge_type_list(zeek::detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();
-	const auto& tl = tl_type->Types();
+	const auto& tl = tl_type->GetTypes();
 
 	if ( tl.size() < 1 )
 		{
@@ -1959,8 +1959,8 @@ static Type* reduce_type(Type* t)
 		{
 		const auto& tl = t->AsTableType()->GetIndices();
 
-		if ( tl->Types().size() == 1 )
-			return tl->Types()[0].get();
+		if ( tl->GetTypes().size() == 1 )
+			return tl->GetTypes()[0].get();
 		else
 			return tl.get();
 		}
@@ -1979,7 +1979,7 @@ IntrusivePtr<Type> init_type(zeek::detail::Expr* init)
 			return nullptr;
 
 		if ( t->Tag() == TYPE_LIST &&
-		     t->AsTypeList()->Types().size() != 1 )
+		     t->AsTypeList()->GetTypes().size() != 1 )
 			{
 			init->Error("list used in scalar initialization");
 			return nullptr;

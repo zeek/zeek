@@ -1,4 +1,10 @@
 
+3.2.0-dev.822 | 2020-06-30 15:54:38 -0700
+
+  * Revert Attributes::Attrs back to return an attr_list and mark it deprecated (Tim Wojtulewicz, Corelight)
+
+  * GH-1034: Revert TypeList::Types() back to return a type_list* and mark it deprecated (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.817 | 2020-06-29 19:23:21 +0000
 
   * GH-1036: change print.log to log network time instead of current (Jon Siwek, Corelight)

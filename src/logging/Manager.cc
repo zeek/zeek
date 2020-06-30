@@ -277,7 +277,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 			return false;
 			}
 
-		const auto& args = etype->ParamList()->Types();
+		const auto& args = etype->ParamList()->GetTypes();
 
 		if ( args.size() != 1 )
 			{

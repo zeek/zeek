@@ -208,7 +208,7 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
-			const auto& expected_index_types = tt->GetIndices()->Types();
+			const auto& expected_index_types = tt->GetIndices()->GetTypes();
 			broker::vector composite_key;
 			auto indices = caf::get_if<broker::vector>(&item);
 
@@ -267,7 +267,7 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
-			const auto& expected_index_types = tt->GetIndices()->Types();
+			const auto& expected_index_types = tt->GetIndices()->GetTypes();
 			broker::vector composite_key;
 			auto indices = caf::get_if<broker::vector>(&item.first);
 
@@ -555,7 +555,7 @@ struct type_checker {
 
 		for ( const auto& item : a )
 			{
-			const auto& expected_index_types = tt->GetIndices()->Types();
+			const auto& expected_index_types = tt->GetIndices()->GetTypes();
 			auto indices = caf::get_if<broker::vector>(&item);
 			vector<const broker::data*> indices_to_check;
 
@@ -614,7 +614,7 @@ struct type_checker {
 
 		for ( auto& item : a )
 			{
-			const auto& expected_index_types = tt->GetIndices()->Types();
+			const auto& expected_index_types = tt->GetIndices()->GetTypes();
 			auto indices = caf::get_if<broker::vector>(&item.first);
 			vector<const broker::data*> indices_to_check;
 

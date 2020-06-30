@@ -275,7 +275,7 @@ IntrusivePtr<Val> Val::SizeVal() const
 
 	case zeek::TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == zeek::TYPE_FUNC )
-			return val_mgr->Count(val.func_val->GetType()->ParamList()->Types().size());
+			return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
 
 		if ( type->Tag() == zeek::TYPE_FILE )
 			return make_intrusive<DoubleVal>(val.file_val->Size());
@@ -1357,7 +1357,7 @@ static void find_nested_record_types(const IntrusivePtr<zeek::Type>& t, std::set
 		return;
 	case zeek::TYPE_LIST:
 		{
-		for ( const auto& type : t->AsTypeList()->Types() )
+		for ( const auto& type : t->AsTypeList()->GetTypes() )
 			find_nested_record_types(type, found);
 		}
 		return;
@@ -1384,7 +1384,7 @@ TableVal::TableVal(IntrusivePtr<zeek::TableType> t, IntrusivePtr<zeek::detail::A
 	if ( ! is_parsing )
 		return;
 
-	for ( const auto& t : table_type->IndexTypes() )
+	for ( const auto& t : table_type->GetIndexTypes() )
 		{
 		std::set<zeek::RecordType*> found;
 		// TODO: this likely doesn't have to be repeated for each new TableVal,
@@ -1770,7 +1770,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	ListVal* iv = index->AsListVal();
 	if ( iv->BaseTag() != zeek::TYPE_ANY )
 		{
-		if ( table_type->GetIndices()->Types().size() != 1 )
+		if ( table_type->GetIndices()->GetTypes().size() != 1 )
 			reporter->InternalError("bad singleton list index");
 
 		for ( int i = 0; i < iv->Length(); ++i )
@@ -2179,7 +2179,7 @@ ListVal* TableVal::ConvertToList(zeek::TypeTag t) const
 
 IntrusivePtr<ListVal> TableVal::ToPureListVal() const
 	{
-	const auto& tl = table_type->GetIndices()->Types();
+	const auto& tl = table_type->GetIndices()->GetTypes();
 	if ( tl.size() != 1 )
 		{
 		InternalWarning("bad index type in TableVal::ToPureListVal");
@@ -2515,7 +2515,7 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 		const Func* f = vf->AsFunc();
 		zeek::Args vl;
 
-		const auto& func_args = f->GetType()->ParamList()->Types();
+		const auto& func_args = f->GetType()->ParamList()->GetTypes();
 		// backwards compatibility with idx: any idiom
 		bool any_idiom = func_args.size() == 2 && func_args.back()->Tag() == zeek::TYPE_ANY;
 

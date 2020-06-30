@@ -149,7 +149,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 		tl.Append(signature_state);
 		tl.Append(zeek::base_type(zeek::TYPE_STRING));
 
-		if ( ! f->CheckArgs(tl.Types()) )
+		if ( ! f->CheckArgs(tl.GetTypes()) )
 			rules_error("eval function parameters must be a 'signature_state' "
 			            "and a 'string' type", func);
 		}

@@ -416,7 +416,13 @@ public:
 		{
 		}
 
-	const std::vector<IntrusivePtr<Type>>& Types() const
+	~TypeList() override = default;
+
+	[[deprecated("Remove in v4.1. Use GetTypes() instead.")]]
+	const type_list* Types() const
+		{ return &types_list; }
+
+	const std::vector<IntrusivePtr<Type>>& GetTypes() const
 		{ return types; }
 
 	bool IsPure() const		{ return pure_type != nullptr; }
@@ -448,20 +454,28 @@ public:
 protected:
 	IntrusivePtr<Type> pure_type;
 	std::vector<IntrusivePtr<Type>> types;
+
+	// Remove in v4.1. This is used by Types(), which is deprecated.
+	type_list types_list;
 };
 
 class IndexType : public Type {
 public:
+
 	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 
 	const IntrusivePtr<TypeList>& GetIndices() const
 		{ return indices; }
 
-	[[deprecated("Remove in v4.1.  Use GetIndices().")]]
+	[[deprecated("Remove in v4.1. Use GetIndices().")]]
 	TypeList* Indices() const		{ return indices.get(); }
 
-	const std::vector<IntrusivePtr<Type>>& IndexTypes() const
+	[[deprecated("Remove in v4.1. Use GetIndexTypes().")]]
+	const type_list* IndexTypes() const
 		{ return indices->Types(); }
+
+	const std::vector<IntrusivePtr<Type>>& GetIndexTypes() const
+		{ return indices->GetTypes(); }
 
 	const IntrusivePtr<Type>& Yield() const override
 		{ return yield_type; }
@@ -480,7 +494,7 @@ protected:
 		{
 		}
 
-	~IndexType() override;
+	~IndexType() override = default;
 
 	IntrusivePtr<TypeList> indices;
 	IntrusivePtr<Type> yield_type;

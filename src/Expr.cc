@@ -2076,7 +2076,7 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 		std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr_copy;
 
 		if ( attrs )
-			attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(attrs->Attrs());
+			attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(attrs->GetAttrs());
 
 		bool empty_list_assignment = (op2->AsListExpr()->Exprs().empty());
 
@@ -2172,7 +2172,7 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 
 				if ( sce->GetAttrs() )
 					{
-					const auto& a = sce->GetAttrs()->Attrs();
+					const auto& a = sce->GetAttrs()->GetAttrs();
 					attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(a);
 					}
 
@@ -3086,7 +3086,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 	if ( arg_attrs )
 		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
 
-	const auto& indices = type->AsTableType()->GetIndices()->Types();
+	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	const expr_list& cle = op->AsListExpr()->Exprs();
 
 	// check and promote all index expressions in ctor list
@@ -3204,7 +3204,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	if ( arg_attrs )
 		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
 
-	const auto& indices = type->AsTableType()->GetIndices()->Types();
+	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	expr_list& cle = op->AsListExpr()->Exprs();
 
 	if ( indices.size() == 1 )
@@ -4471,7 +4471,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr)
 	if ( ! aggr && type->AsTypeList()->AllMatch(t, true) )
 		{
 		auto v = make_intrusive<ListVal>(zeek::TYPE_ANY);
-		const auto& tl = type->AsTypeList()->Types();
+		const auto& tl = type->AsTypeList()->GetTypes();
 
 		if ( exprs.length() != static_cast<int>(tl.size()) )
 			{
@@ -4499,7 +4499,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr)
 			return nullptr;
 			}
 
-		const auto& tl = t->AsTypeList()->Types();
+		const auto& tl = t->AsTypeList()->GetTypes();
 
 		if ( exprs.length() != static_cast<int>(tl.size()) )
 			{
@@ -4620,7 +4620,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const zeek::Type* t, IntrusivePtr<Val> ag
 		else if ( expr->GetType()->Tag() == zeek::TYPE_LIST )
 			element = expr->InitVal(it, nullptr);
 		else
-			element = expr->InitVal(it->Types()[0].get(), nullptr);
+			element = expr->InitVal(it->GetTypes()[0].get(), nullptr);
 
 		if ( ! element )
 			return nullptr;
@@ -4642,7 +4642,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const zeek::Type* t, IntrusivePtr<Val> ag
 		if ( expr->GetType()->Tag() == zeek::TYPE_LIST )
 			element = check_and_promote(std::move(element), it, true);
 		else
-			element = check_and_promote(std::move(element), it->Types()[0].get(), true);
+			element = check_and_promote(std::move(element), it->GetTypes()[0].get(), true);
 
 		if ( ! element )
 			return nullptr;
@@ -4930,7 +4930,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, zeek::Type* t)
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	{
 	expr_list& el = elements->Exprs();
-	const auto& tl = types->Types();
+	const auto& tl = types->GetTypes();
 
 	if ( tl.size() == 1 && tl[0]->Tag() == zeek::TYPE_ANY )
 		return true;

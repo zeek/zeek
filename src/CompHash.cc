@@ -23,9 +23,9 @@ CompositeHash::CompositeHash(IntrusivePtr<zeek::TypeList> composite_type)
 	// If the only element is a record, don't treat it as a
 	// singleton, since it needs to be evaluated specially.
 
-	if ( type->Types().size() == 1 )
+	if ( type->GetTypes().size() == 1 )
 		{
-		if ( type->Types()[0]->Tag() == zeek::TYPE_RECORD )
+		if ( type->GetTypes()[0]->Tag() == zeek::TYPE_RECORD )
 			{
 			is_complex_type = true;
 			is_singleton = false;
@@ -47,7 +47,7 @@ CompositeHash::CompositeHash(IntrusivePtr<zeek::TypeList> composite_type)
 		{
 		// Don't do any further key computations - we'll do them
 		// via the singleton later.
-		singleton_tag = type->Types()[0]->InternalType();
+		singleton_tag = type->GetTypes()[0]->InternalType();
 		size = 0;
 		key = nullptr;
 		}
@@ -367,7 +367,7 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_c
 		type_check = false;	// no need to type-check again.
 		}
 
-	const auto& tl = type->Types();
+	const auto& tl = type->GetTypes();
 
 	if ( type_check && v->GetType()->Tag() != zeek::TYPE_LIST )
 		return nullptr;
@@ -625,7 +625,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 
 int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
 	{
-	const auto& tl = type->Types();
+	const auto& tl = type->GetTypes();
 
 	if ( v )
 		{
@@ -712,7 +712,7 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey& k) const
 	{
 	auto l = make_intrusive<ListVal>(zeek::TYPE_ANY);
-	const auto& tl = type->Types();
+	const auto& tl = type->GetTypes();
 	const char* kp = (const char*) k.Key();
 	const char* const k_end = kp + k.Size();
 
@@ -1011,7 +1011,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
 			for ( int i = 0; i < n; ++i )
 				{
 				IntrusivePtr<Val> v;
-				zeek::Type* it = tl->Types()[i].get();
+				zeek::Type* it = tl->GetTypes()[i].get();
 				kp1 = RecoverOneVal(k, kp1, k_end, it, &v, false);
 				lv->Append(std::move(v));
 				}

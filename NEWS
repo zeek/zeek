@@ -100,16 +100,10 @@ Changed Functionality
 - The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
   corrected from "NetrLogonSameLogonWithFlags".
 
-- ``TypeList::Types()`` and ``IndexType::IndexTypes()`` now return an
-  ``std::vector`` instead of ``type_list*``
-
 - ``AsRecord()`` and ``AsNonConstRecord()`` have changed to return
   ``std::vector<IntrusivePtr<Val>>*``.
 
 - ``AsVector()`` has changed to return ``std::vector<IntrusivePtr<Val>>*``.
-
-- ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
-  instead of ``attr_list*``
 
 - Moved a large number of classes from the global namespace into either the
   ``zeek`` or ``zeek::detail`` namespace. See https://github.com/zeek/zeek/issues/266

@@ -332,7 +332,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	const auto& args = etype->ParamList()->Types();
+	const auto& args = etype->ParamList()->GetTypes();
 
 	if ( args.size() < 2 )
 		{
@@ -482,7 +482,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	// check if index fields match table description
 	size_t num = idx->NumFields();
-	const auto& tl = dst->GetType()->AsTableType()->IndexTypes();
+	const auto& tl = dst->GetType()->AsTableType()->GetIndexTypes();
 	size_t j;
 
 	for ( j = 0; j < tl.size(); ++j )
@@ -557,7 +557,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		const auto& args = etype->ParamList()->Types();
+		const auto& args = etype->ParamList()->GetTypes();
 
 		if ( args.size() != 4 )
 			{
@@ -704,7 +704,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	const auto& args = etype->ParamList()->Types();
+	const auto& args = etype->ParamList()->GetTypes();
 
 	if ( args.size() != 3 )
 		{

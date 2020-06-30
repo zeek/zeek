@@ -48,8 +48,6 @@ Attr::Attr(::attr_tag t) : Attr(static_cast<attr_tag>(t))
 	}
 #pragma GCC diagnostic pop
 
-Attr::~Attr() = default;
-
 void Attr::SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e)
 	{ expr = std::move(e); }
 
@@ -192,10 +190,17 @@ Attributes::Attributes(std::vector<IntrusivePtr<Attr>> a,
 		AddAttr(std::move(attr));
 	}
 
+Attributes::~Attributes()
+	{
+	attrs_list.clear();
+	attrs.clear();
+	}
+
 void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	{
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
+	attrs_list.push_back(attr.get());
 	attrs.emplace_back(attr);
 
 	// We only check the attribute after we've added it, to facilitate
@@ -206,23 +211,31 @@ void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	// those attributes only have meaning for a redefinable value.
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
 	     ! Find(ATTR_REDEF) )
-		attrs.emplace_back(make_intrusive<Attr>(ATTR_REDEF));
+		{
+		auto a = make_intrusive<Attr>(ATTR_REDEF);
+		attrs_list.push_back(a.get());
+		attrs.emplace_back(a);
+		}
 
 	// For DEFAULT, add an implicit OPTIONAL if it's not a global.
 	if ( ! global_var && attr->Tag() == ATTR_DEFAULT &&
 	     ! Find(ATTR_OPTIONAL) )
-		attrs.emplace_back(make_intrusive<Attr>(ATTR_OPTIONAL));
+		{
+		auto a = make_intrusive<Attr>(ATTR_OPTIONAL);
+		attrs_list.push_back(a.get());
+		attrs.emplace_back(a);
+		}
 	}
 
 void Attributes::AddAttrs(const IntrusivePtr<Attributes>& a)
 	{
-	for ( const auto& attr : a->Attrs() )
+	for ( const auto& attr : a->GetAttrs() )
 		AddAttr(attr);
 	}
 
 void Attributes::AddAttrs(Attributes* a)
 	{
-	for ( const auto& attr : a->Attrs() )
+	for ( const auto& attr : a->GetAttrs() )
 		AddAttr(attr);
 
 	Unref(a);
@@ -248,6 +261,10 @@ const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
 
 void Attributes::RemoveAttr(attr_tag t)
 	{
+	for ( int i = 0; i < attrs_list.length(); i++ )
+		if ( attrs_list[i]->Tag() == t )
+			attrs_list.remove_nth(i--);
+
 	for ( auto it = attrs.begin(); it != attrs.end(); )
 		{
 		if ( (*it)->Tag() == t )

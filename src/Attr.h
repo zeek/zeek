@@ -76,7 +76,7 @@ public:
 	explicit Attr(::attr_tag t);
 #pragma GCC diagnostic pop
 
-	~Attr() override;
+	~Attr() override = default;
 
 	attr_tag Tag() const	{ return tag; }
 
@@ -122,6 +122,8 @@ public:
 	           bool in_record, bool is_global);
 	Attributes(IntrusivePtr<Type> t, bool in_record, bool is_global);
 
+	~Attributes() override;
+
 	void AddAttr(IntrusivePtr<Attr> a);
 
 	void AddAttrs(const IntrusivePtr<Attributes>& a);
@@ -147,7 +149,11 @@ public:
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
 
-	const std::vector<IntrusivePtr<Attr>>& Attrs() const
+	[[deprecated("Remove in v4.1. Use GetAttrs().")]]
+		const attr_list* Attrs() const
+		{ return &attrs_list; }
+
+	const std::vector<IntrusivePtr<Attr>>& GetAttrs() const
 		{ return attrs; }
 
 	bool operator==(const Attributes& other) const;
@@ -157,6 +163,9 @@ protected:
 
 	IntrusivePtr<Type> type;
 	std::vector<IntrusivePtr<Attr>> attrs;
+
+	// Remove in v4.1. This is used by Attrs(), which is deprecated.
+	attr_list attrs_list;
 	bool in_record;
 	bool global_var;
 };

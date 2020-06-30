@@ -2076,7 +2076,7 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 		std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr_copy;
 
 		if ( attrs )
-			attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(attrs->Attrs());
+			attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(attrs->GetAttrs());
 
 		bool empty_list_assignment = (op2->AsListExpr()->Exprs().empty());
 
@@ -2172,7 +2172,7 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 
 				if ( sce->GetAttrs() )
 					{
-					const auto& a = sce->GetAttrs()->Attrs();
+					const auto& a = sce->GetAttrs()->GetAttrs();
 					attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(a);
 					}
 

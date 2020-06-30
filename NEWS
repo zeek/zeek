@@ -105,9 +105,6 @@ Changed Functionality
 
 - ``AsVector()`` has changed to return ``std::vector<IntrusivePtr<Val>>*``.
 
-- ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
-  instead of ``attr_list*``
-
 - Moved a large number of classes from the global namespace into either the
   ``zeek`` or ``zeek::detail`` namespace. See https://github.com/zeek/zeek/issues/266
   for the rationale behind these changes. Most types that were moved and functions

@@ -251,7 +251,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::case_list* case_l;
 	zeek::detail::Attr* attr;
 	std::vector<IntrusivePtr<zeek::detail::Attr>>* attr_l;
-	zeek::detail::attr_tag attrtag;
+	zeek::detail::AttrTag attrtag;
 }
 
 %%

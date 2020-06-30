@@ -415,7 +415,7 @@ static void transfer_arg_defaults(zeek::RecordType* args, zeek::RecordType* recv
 	}
 
 static zeek::detail::Attr* find_attr(const std::vector<IntrusivePtr<zeek::detail::Attr>>* al,
-                                     zeek::detail::attr_tag tag)
+                                     zeek::detail::AttrTag tag)
 	{
 	if ( ! al )
 		return nullptr;

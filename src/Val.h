@@ -957,14 +957,7 @@ public:
 
 	void SetAttrs(IntrusivePtr<zeek::detail::Attributes> attrs);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
-	Attr* FindAttr(::attr_tag t) const
-		{ return GetAttr(static_cast<zeek::detail::attr_tag>(t)).get(); }
-#pragma GCC diagnostic pop
-
-	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag t) const;
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::AttrTag t) const;
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	zeek::detail::Attributes* Attrs()	{ return attrs.get(); }
@@ -1035,12 +1028,7 @@ protected:
 	ParseTimeTableState DumpTableState();
 	void RebuildTable(ParseTimeTableState ptts);
 
-	void CheckExpireAttr(zeek::detail::attr_tag at);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
-	void CheckExpireAttr(::attr_tag at);
-#pragma GCC diagnostic pop
+	void CheckExpireAttr(zeek::detail::AttrTag at);
 	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
 	bool CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 

@@ -638,14 +638,7 @@ public:
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
-	const zeek::detail::Attr* FindAttr(::attr_tag a) const
-		{ return attrs ? attrs->Find(static_cast<zeek::detail::attr_tag>(a)).get() : nullptr; }
-#pragma GCC diagnostic pop
-
-	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag a) const
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::AttrTag a) const
 		{ return attrs ? attrs->Find(a) : zeek::detail::Attr::nil; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
@@ -746,20 +739,11 @@ public:
 		return decl && decl->GetAttr(zeek::detail::ATTR_DEPRECATED) != nullptr;
 		}
 
-	bool FieldHasAttr(int field, zeek::detail::attr_tag at) const
+	bool FieldHasAttr(int field, zeek::detail::AttrTag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
 		return decl && decl->GetAttr(at) != nullptr;
 		}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
-	bool FieldHasAttr(int field, ::attr_tag at) const
-		{
-		return FieldHasAttr(field, static_cast<zeek::detail::attr_tag>(at));
-		}
-#pragma GCC diagnostic pop
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 

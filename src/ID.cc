@@ -287,7 +287,7 @@ void ID::UpdateValAttrs()
 		}
 	}
 
-const IntrusivePtr<Attr>& ID::GetAttr(attr_tag t) const
+const IntrusivePtr<Attr>& ID::GetAttr(AttrTag t) const
 	{
 	return attrs ? attrs->Find(t) : Attr::nil;
 	}
@@ -337,19 +337,11 @@ void ID::AddAttrs(IntrusivePtr<Attributes> a)
 	UpdateValAttrs();
 	}
 
-void ID::RemoveAttr(attr_tag a)
+void ID::RemoveAttr(AttrTag a)
 	{
 	if ( attrs )
 		attrs->RemoveAttr(a);
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void ID::RemoveAttr(::attr_tag a)
-	{
-	RemoveAttr(static_cast<attr_tag>(a));
-	}
-#pragma GCC diagnostic pop
 
 void ID::SetOption()
 	{

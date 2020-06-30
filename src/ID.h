@@ -124,12 +124,7 @@ public:
 
 	void SetAttrs(IntrusivePtr<Attributes> attr);
 	void AddAttrs(IntrusivePtr<Attributes> attr);
-	void RemoveAttr(attr_tag a);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag")]]
-	void RemoveAttr(::attr_tag a);
-#pragma GCC diagnostic pop
+	void RemoveAttr(zeek::detail::AttrTag a);
 	void UpdateValAttrs();
 
 	const IntrusivePtr<Attributes>& GetAttrs() const
@@ -138,14 +133,7 @@ public:
 	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() const	{ return attrs.get(); }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in 4.1.  Use GetAttr().")]]
-	Attr* FindAttr(::attr_tag t) const
-		{ return GetAttr(static_cast<zeek::detail::attr_tag>(t)).get(); }
-#pragma GCC diagnostic pop
-
-	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag t) const;
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::AttrTag t) const;
 
 	bool IsDeprecated() const;
 

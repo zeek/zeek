@@ -1415,6 +1415,11 @@ bool zsort_function(ZAMValUnion& a, ZAMValUnion& b)
 	return int_result < 0;
 	}
 
+bool double_zsort_function (ZAMValUnion& a, ZAMValUnion& b)
+	{
+	return a.double_val < b.double_val;
+	}
+
 bool signed_zsort_function (ZAMValUnion& a, ZAMValUnion& b)
 	{
 	return a.int_val < b.int_val;
@@ -1467,7 +1472,11 @@ function sort%(v: any, ...%) : any
 		comp = comp_val->AsFunc();
 		}
 
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+	auto eit = elt_type->InternalType();
+
+	if ( ! comp &&
+	     (eit != TYPE_INTERNAL_INT && eit != TYPE_INTERNAL_UNSIGNED &&
+	      eit != TYPE_INTERNAL_DOUBLE) )
 		{
 		builtin_error("comparison function required for sort() with non-integral types");
 		return v;
@@ -1494,10 +1503,15 @@ function sort%(v: any, ...%) : any
 		}
 	else
 		{
-		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		if ( eit == TYPE_INTERNAL_UNSIGNED )
 			sort(vv.begin(), vv.end(), unsigned_zsort_function);
-		else
+		else if ( eit == TYPE_INTERNAL_INT )
 			sort(vv.begin(), vv.end(), signed_zsort_function);
+		else
+			{
+			ASSERT(eit == TYPE_INTERNAL_DOUBLE);
+			sort(vv.begin(), vv.end(), double_zsort_function);
+			}
 		}
 
 	return v;

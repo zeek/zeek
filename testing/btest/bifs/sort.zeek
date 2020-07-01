@@ -44,7 +44,6 @@ event zeek_init()
 	print a4;
 	print b4;
 
-	# this one is expected to fail (i.e., "sort" doesn't sort the vector)
 	local a5: vector of double = vector( 3.03, 3.01, 3.02, 3.015  );
 	local b5 = sort(a5);
 	print a5;

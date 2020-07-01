@@ -3,6 +3,8 @@
 #include "Tag.h"
 #include "Val.h"
 
+namespace zeek {
+
 Tag::Tag(const zeek::EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
 	{
 	assert(arg_type > 0);
@@ -92,3 +94,5 @@ std::string Tag::AsString() const
 	{
 	return fmt("%" PRIu32 "/%" PRIu32, type, subtype);
 	}
+
+} // namespace zeek

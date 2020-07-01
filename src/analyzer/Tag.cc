@@ -6,19 +6,19 @@
 const analyzer::Tag analyzer::Tag::Error;
 
 analyzer::Tag::Tag(type_t type, subtype_t subtype)
-	: ::Tag(analyzer_mgr->GetTagType(), type, subtype)
+	: zeek::Tag(analyzer_mgr->GetTagType(), type, subtype)
 	{
 	}
 
 analyzer::Tag& analyzer::Tag::operator=(const analyzer::Tag& other)
 	{
-	::Tag::operator=(other);
+	zeek::Tag::operator=(other);
 	return *this;
 	}
 
 const zeek::EnumValPtr& analyzer::Tag::AsVal() const
 	{
-	return ::Tag::AsVal(analyzer_mgr->GetTagType());
+	return zeek::Tag::AsVal(analyzer_mgr->GetTagType());
 	}
 
 zeek::EnumVal* analyzer::Tag::AsEnumVal() const
@@ -27,9 +27,9 @@ zeek::EnumVal* analyzer::Tag::AsEnumVal() const
 	}
 
 analyzer::Tag::Tag(zeek::EnumValPtr val)
-	: ::Tag(std::move(val))
+	: zeek::Tag(std::move(val))
 	{ }
 
 analyzer::Tag::Tag(zeek::EnumVal* val)
-	: ::Tag({zeek::NewRef{}, val})
+	: zeek::Tag({zeek::NewRef{}, val})
 	{ }

@@ -6,25 +6,25 @@
 const logging::Tag logging::Tag::Error;
 
 logging::Tag::Tag(type_t type, subtype_t subtype)
-	: ::Tag(log_mgr->GetTagType(), type, subtype)
+	: zeek::Tag(log_mgr->GetTagType(), type, subtype)
 	{
 	}
 
 logging::Tag& logging::Tag::operator=(const logging::Tag& other)
 	{
-	::Tag::operator=(other);
+	zeek::Tag::operator=(other);
 	return *this;
 	}
 
 logging::Tag& logging::Tag::operator=(const logging::Tag&& other) noexcept
 	{
-	::Tag::operator=(other);
+	zeek::Tag::operator=(other);
 	return *this;
 	}
 
 const zeek::EnumValPtr& logging::Tag::AsVal() const
 	{
-	return ::Tag::AsVal(log_mgr->GetTagType());
+	return zeek::Tag::AsVal(log_mgr->GetTagType());
 	}
 
 zeek::EnumVal* logging::Tag::AsEnumVal() const
@@ -33,9 +33,9 @@ zeek::EnumVal* logging::Tag::AsEnumVal() const
 	}
 
 logging::Tag::Tag(zeek::EnumValPtr val)
-	: ::Tag(std::move(val))
+	: zeek::Tag(std::move(val))
 	{ }
 
 logging::Tag::Tag(zeek::EnumVal* val)
-	: ::Tag({zeek::NewRef{}, val})
+	: zeek::Tag({zeek::NewRef{}, val})
 	{ }

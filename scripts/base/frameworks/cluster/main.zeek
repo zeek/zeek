@@ -249,10 +249,6 @@ export {
 	global nodeid_topic: function(id: string): string;
 }
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER ) )
-redef Broker::store_master = T;
-@endif
-
 global active_worker_ids: set[string] = set();
 
 type NamedNode: record {

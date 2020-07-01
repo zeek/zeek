@@ -1955,9 +1955,10 @@ function global_ids%(%): id_table
 		rec->Assign(3, val_mgr->Bool(id->IsEnumConst()));
 		rec->Assign(4, val_mgr->Bool(id->IsOption()));
 		rec->Assign(5, val_mgr->Bool(id->IsRedefinable()));
+		rec->Assign(6, val_mgr->Bool(id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil));
 
 		if ( id->HasVal() )
-			rec->Assign(6, id->GetVal());
+			rec->Assign(7, id->GetVal());
 
 		auto id_name = make_intrusive<StringVal>(id->Name());
 		ids->Assign(std::move(id_name), std::move(rec));

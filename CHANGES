@@ -1,4 +1,8 @@
 
+3.2.0-dev.828 | 2020-07-01 09:57:23 -0700
+
+  * Fix a deprecation warning compiling with GCC (Jon Siwek, Corelight)
+
 3.2.0-dev.827 | 2020-06-30 16:54:22 -0700
 
   * Deprecate plugin::HookType and plugin::component::Type in a different way (Tim Wojtulewicz, Corelight)

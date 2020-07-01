@@ -421,7 +421,12 @@ public:
 
 	[[deprecated("Remove in v4.1. Use GetIndexTypes().")]]
 	const type_list* IndexTypes() const
-		{ return indices->Types(); }
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		return indices->Types();
+#pragma GCC diagnostic pop
+		}
 
 	const std::vector<IntrusivePtr<Type>>& GetIndexTypes() const
 		{ return indices->GetTypes(); }

@@ -4796,6 +4796,10 @@ function compress_path%(dir: string%): string
 
 	while ( di < dn )
 		{
+		// Skip leading './'.
+		while ( di < dn - 1 && d[di] == '.' && d[di+1] == '/' )
+			di += 2;
+
 		// Copy till the next '/'.
 		while ( di < dn && d[di] != '/' )
 			r[ri++] = d[di++];

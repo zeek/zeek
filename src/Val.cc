@@ -82,6 +82,36 @@ Val::~Val()
 #endif
 	}
 
+#define CONVERTER(tag, ctype, name) \
+	ctype name() \
+		{ \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
+		return (ctype)(this); \
+		}
+
+#define CONST_CONVERTER(tag, ctype, name) \
+	const ctype name() const \
+		{ \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
+		return (const ctype)(this); \
+		}
+
+#define CONVERTERS(tag, ctype, name) \
+	CONVERTER(tag, ctype, name) \
+	CONST_CONVERTER(tag, ctype, name)
+
+CONVERTERS(zeek::TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
+CONVERTERS(zeek::TYPE_PORT, PortVal*, Val::AsPortVal)
+CONVERTERS(zeek::TYPE_SUBNET, SubNetVal*, Val::AsSubNetVal)
+CONVERTERS(zeek::TYPE_ADDR, AddrVal*, Val::AsAddrVal)
+CONVERTERS(zeek::TYPE_TABLE, TableVal*, Val::AsTableVal)
+CONVERTERS(zeek::TYPE_RECORD, RecordVal*, Val::AsRecordVal)
+CONVERTERS(zeek::TYPE_LIST, ListVal*, Val::AsListVal)
+CONVERTERS(zeek::TYPE_STRING, StringVal*, Val::AsStringVal)
+CONVERTERS(zeek::TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
+CONVERTERS(zeek::TYPE_ENUM, EnumVal*, Val::AsEnumVal)
+CONVERTERS(zeek::TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
+
 IntrusivePtr<Val> Val::CloneState::NewClone(Val* src, IntrusivePtr<Val> dst)
 	{
 	clones.insert(std::make_pair(src, dst.get()));

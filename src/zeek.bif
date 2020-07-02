@@ -1230,7 +1230,8 @@ function check_subnet%(search: subnet, t: any%): bool
 
 ## Checks whether two objects reference the same internal object. This function
 ## uses equality comparison of C++ raw pointer values to determine if the two
-## objects are the same.
+## objects are the same, but also knows about shared structures such as
+## ZAM_vector and ZAM_record.
 ##
 ## o1: The first object.
 ##
@@ -1239,7 +1240,27 @@ function check_subnet%(search: subnet, t: any%): bool
 ## Returns: True if *o1* and *o2* are equal.
 function same_object%(o1: any, o2: any%): bool
 	%{
-	return val_mgr->GetBool(o1 == o2);
+	bool res = false;
+
+	if ( o1 == o2 )
+		res = true;
+	else
+		{
+		auto ot1 = o1->Type()->Tag();
+		auto ot2 = o2->Type()->Tag();
+
+		if ( ot1 == ot2 )
+			{
+			if ( ot1 == TYPE_RECORD )
+				res = o1->AsRecordVal()->RawFields() ==
+					o2->AsRecordVal()->RawFields();
+			else if ( ot2 == TYPE_VECTOR )
+				res = o1->AsVectorVal()->RawVector() ==
+					o2->AsVectorVal()->RawVector();
+			}
+		}
+
+	return val_mgr->GetBool(res);
 	%}
 
 ## Returns the number of bytes that a value occupies in memory.

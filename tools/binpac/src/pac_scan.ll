@@ -217,12 +217,7 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 				return TOK_NUMBER;
 				}
 
-<INITIAL,PP>{ID}		{
-				yylval.id = new ID(yytext);
-				return TOK_ID;
-				}
-
-<INITIAL,PP>{ID}::{ID}		{
+<INITIAL,PP>{ID}(::{ID})*	{
 				yylval.id = new ID(yytext);
 				return TOK_ID;
 				}

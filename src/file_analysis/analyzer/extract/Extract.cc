@@ -96,8 +96,8 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		f->FileEvent(file_extraction_limit, {
 			f->ToVal(),
 			GetArgs(),
-			val_mgr->Count(limit),
-			val_mgr->Count(len)
+			zeek::val_mgr->Count(limit),
+			zeek::val_mgr->Count(len)
 		});
 
 		// Limit may have been modified by a BIF, re-check it.

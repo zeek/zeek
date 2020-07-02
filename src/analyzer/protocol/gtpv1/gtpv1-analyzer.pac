@@ -8,21 +8,21 @@ zeek::RecordValPtr BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtpv1_hdr);
 
-	rv->Assign(0, val_mgr->Count(pdu->version()));
-	rv->Assign(1, val_mgr->Bool(pdu->pt_flag()));
-	rv->Assign(2, val_mgr->Bool(pdu->rsv()));
-	rv->Assign(3, val_mgr->Bool(pdu->e_flag()));
-	rv->Assign(4, val_mgr->Bool(pdu->s_flag()));
-	rv->Assign(5, val_mgr->Bool(pdu->pn_flag()));
-	rv->Assign(6, val_mgr->Count(pdu->msg_type()));
-	rv->Assign(7, val_mgr->Count(pdu->length()));
-	rv->Assign(8, val_mgr->Count(pdu->teid()));
+	rv->Assign(0, zeek::val_mgr->Count(pdu->version()));
+	rv->Assign(1, zeek::val_mgr->Bool(pdu->pt_flag()));
+	rv->Assign(2, zeek::val_mgr->Bool(pdu->rsv()));
+	rv->Assign(3, zeek::val_mgr->Bool(pdu->e_flag()));
+	rv->Assign(4, zeek::val_mgr->Bool(pdu->s_flag()));
+	rv->Assign(5, zeek::val_mgr->Bool(pdu->pn_flag()));
+	rv->Assign(6, zeek::val_mgr->Count(pdu->msg_type()));
+	rv->Assign(7, zeek::val_mgr->Count(pdu->length()));
+	rv->Assign(8, zeek::val_mgr->Count(pdu->teid()));
 
 	if ( pdu->has_opt() )
 		{
-		rv->Assign(9, val_mgr->Count(pdu->opt_hdr()->seq()));
-		rv->Assign(10, val_mgr->Count(pdu->opt_hdr()->n_pdu()));
-		rv->Assign(11, val_mgr->Count(pdu->opt_hdr()->next_type()));
+		rv->Assign(9, zeek::val_mgr->Count(pdu->opt_hdr()->seq()));
+		rv->Assign(10, zeek::val_mgr->Count(pdu->opt_hdr()->n_pdu()));
+		rv->Assign(11, zeek::val_mgr->Count(pdu->opt_hdr()->next_type()));
 		}
 
 	return rv;
@@ -30,64 +30,64 @@ zeek::RecordValPtr BuildGTPv1Hdr(const GTPv1_Header* pdu)
 
 static zeek::ValPtr BuildIMSI(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->imsi()->value());
+	return zeek::val_mgr->Count(ie->imsi()->value());
 	}
 
 static zeek::ValPtr BuildRAI(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_rai);
-	ev->Assign(0, val_mgr->Count(ie->rai()->mcc()));
-	ev->Assign(1, val_mgr->Count(ie->rai()->mnc()));
-	ev->Assign(2, val_mgr->Count(ie->rai()->lac()));
-	ev->Assign(3, val_mgr->Count(ie->rai()->rac()));
+	ev->Assign(0, zeek::val_mgr->Count(ie->rai()->mcc()));
+	ev->Assign(1, zeek::val_mgr->Count(ie->rai()->mnc()));
+	ev->Assign(2, zeek::val_mgr->Count(ie->rai()->lac()));
+	ev->Assign(3, zeek::val_mgr->Count(ie->rai()->rac()));
 	return ev;
 	}
 
 static zeek::ValPtr BuildRecovery(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->recovery()->restart_counter());
+	return zeek::val_mgr->Count(ie->recovery()->restart_counter());
 	}
 
 static zeek::ValPtr BuildSelectionMode(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->selection_mode()->mode());
+	return zeek::val_mgr->Count(ie->selection_mode()->mode());
 	}
 
 static zeek::ValPtr BuildTEID1(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->teid1()->value());
+	return zeek::val_mgr->Count(ie->teid1()->value());
 	}
 
 static zeek::ValPtr BuildTEID_ControlPlane(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->teidcp()->value());
+	return zeek::val_mgr->Count(ie->teidcp()->value());
 	}
 
 static zeek::ValPtr BuildNSAPI(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->nsapi()->nsapi());
+	return zeek::val_mgr->Count(ie->nsapi()->nsapi());
 	}
 
 static zeek::ValPtr BuildChargingCharacteristics(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->charging_characteristics()->value());
+	return zeek::val_mgr->Count(ie->charging_characteristics()->value());
 	}
 
 static zeek::ValPtr BuildTraceReference(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->trace_reference()->value());
+	return zeek::val_mgr->Count(ie->trace_reference()->value());
 	}
 
 static zeek::ValPtr BuildTraceType(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->trace_type()->value());
+	return zeek::val_mgr->Count(ie->trace_type()->value());
 	}
 
 zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_end_user_addr);
-	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
-	ev->Assign(1, val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
+	ev->Assign(0, zeek::val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
+	ev->Assign(1, zeek::val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
 
 	int len = ie->end_user_addr()->pdp_addr().length();
 
@@ -161,7 +161,7 @@ zeek::ValPtr BuildQoS_Profile(const InformationElement* ie)
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
 
-	ev->Assign(0, val_mgr->Count(ie->qos_profile()->alloc_retention_priority()));
+	ev->Assign(0, zeek::val_mgr->Count(ie->qos_profile()->alloc_retention_priority()));
 	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(d, len, false)));
 
 	return ev;
@@ -195,7 +195,7 @@ zeek::ValPtr BuildPrivateExt(const InformationElement* ie)
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
 
-	ev->Assign(0, val_mgr->Count(ie->private_ext()->id()));
+	ev->Assign(0, zeek::val_mgr->Count(ie->private_ext()->id()));
 	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const u_char*) d, len, false)));
 
 	return ev;
@@ -203,17 +203,17 @@ zeek::ValPtr BuildPrivateExt(const InformationElement* ie)
 
 static zeek::ValPtr BuildCause(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->cause()->value());
+	return zeek::val_mgr->Count(ie->cause()->value());
 	}
 
 static zeek::ValPtr BuildReorderReq(const InformationElement* ie)
 	{
-	return val_mgr->Bool(ie->reorder_req()->req());
+	return zeek::val_mgr->Bool(ie->reorder_req()->req());
 	}
 
 static zeek::ValPtr BuildChargingID(const InformationElement* ie)
 	{
-	return val_mgr->Count(ie->charging_id()->value());;
+	return zeek::val_mgr->Count(ie->charging_id()->value());;
 	}
 
 zeek::ValPtr BuildChargingGatewayAddr(const InformationElement* ie)
@@ -230,7 +230,7 @@ zeek::ValPtr BuildChargingGatewayAddr(const InformationElement* ie)
 
 static zeek::ValPtr BuildTeardownInd(const InformationElement* ie)
 	{
-	return val_mgr->Bool(ie->teardown_ind()->ind());
+	return zeek::val_mgr->Bool(ie->teardown_ind()->ind());
 	}
 
 void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)

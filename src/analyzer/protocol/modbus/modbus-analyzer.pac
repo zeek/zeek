@@ -21,7 +21,7 @@
 		for ( uint i = 0; i < quantity; i++ )
 			{
 			char currentCoil = (coils[i/8] >> (i % 8)) % 2;
-			modbus_coils->Assign(i, val_mgr->Bool(currentCoil));
+			modbus_coils->Assign(i, zeek::val_mgr->Bool(currentCoil));
 			}
 
 		return modbus_coils;
@@ -30,10 +30,10 @@
 	zeek::RecordValPtr HeaderToVal(ModbusTCP_TransportHeader* header)
 		{
 		auto modbus_header = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusHeaders);
-		modbus_header->Assign(0, val_mgr->Count(header->tid()));
-		modbus_header->Assign(1, val_mgr->Count(header->pid()));
-		modbus_header->Assign(2, val_mgr->Count(header->uid()));
-		modbus_header->Assign(3, val_mgr->Count(header->fc()));
+		modbus_header->Assign(0, zeek::val_mgr->Count(header->tid()));
+		modbus_header->Assign(1, zeek::val_mgr->Count(header->pid()));
+		modbus_header->Assign(2, zeek::val_mgr->Count(header->uid()));
+		modbus_header->Assign(3, zeek::val_mgr->Count(header->fc()));
 		return modbus_header;
 		}
 
@@ -213,7 +213,7 @@ refine flow ModbusTCP_Flow += {
 
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
-				auto r = val_mgr->Count(${message.registers[i]});
+				auto r = zeek::val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -257,7 +257,7 @@ refine flow ModbusTCP_Flow += {
 
 			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
 				{
-				auto r = val_mgr->Count(${message.registers[i]});
+				auto r = zeek::val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -401,7 +401,7 @@ refine flow ModbusTCP_Flow += {
 
 			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
 				{
-				auto r = val_mgr->Count(${message.registers[i]});
+				auto r = zeek::val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -437,13 +437,13 @@ refine flow ModbusTCP_Flow += {
 			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
-			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
+			//	auto r = zeek::val_mgr->Count((${message.references[i].ref_type}));
 			//	t->Assign(i, r);
 			//
-			//	auto k = val_mgr->Count((${message.references[i].file_num}));
+			//	auto k = zeek::val_mgr->Count((${message.references[i].file_num}));
 			//	t->Assign(i, k);
 			//
-			//	auto l = val_mgr->Count((${message.references[i].record_num}));
+			//	auto l = zeek::val_mgr->Count((${message.references[i].record_num}));
 			//	t->Assign(i, l);
 			//	}
 
@@ -464,7 +464,7 @@ refine flow ModbusTCP_Flow += {
 			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
 			//	{
 			//	//TODO: work the reference type in here somewhere
-			//	auto r = val_mgr->Count(${message.references[i].record_data}));
+			//	auto r = zeek::val_mgr->Count(${message.references[i].record_data}));
 			//	t->Assign(i, r);
 			//	}
 
@@ -484,18 +484,18 @@ refine flow ModbusTCP_Flow += {
 			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
-			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
+			//	auto r = zeek::val_mgr->Count((${message.references[i].ref_type}));
 			//	t->Assign(i, r);
 			//
-			//	auto k = val_mgr->Count((${message.references[i].file_num}));
+			//	auto k = zeek::val_mgr->Count((${message.references[i].file_num}));
 			//	t->Assign(i, k);
 			//
-			//	auto n = val_mgr->Count((${message.references[i].record_num}));
+			//	auto n = zeek::val_mgr->Count((${message.references[i].record_num}));
 			//	t->Assign(i, n);
 			//
 			//	for ( unsigned int j = 0; j < (${message.references[i].register_value}->size()); ++j )
 			//		{
-			//		k = val_mgr->Count((${message.references[i].register_value[j]}));
+			//		k = zeek::val_mgr->Count((${message.references[i].register_value[j]}));
 			//		t->Assign(i, k);
 			//		}
 			//	}
@@ -517,18 +517,18 @@ refine flow ModbusTCP_Flow += {
 			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
 			//	{
-			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
+			//	auto r = zeek::val_mgr->Count((${message.references[i].ref_type}));
 			//	t->Assign(i, r);
 			//
-			//	auto f = val_mgr->Count((${message.references[i].file_num}));
+			//	auto f = zeek::val_mgr->Count((${message.references[i].file_num}));
 			//	t->Assign(i, f);
 			//
-			//	auto rn = val_mgr->Count((${message.references[i].record_num}));
+			//	auto rn = zeek::val_mgr->Count((${message.references[i].record_num}));
 			//	t->Assign(i, rn);
 			//
 			//	for ( unsigned int j = 0; j<(${message.references[i].register_value}->size()); ++j )
 			//		{
-			//		auto k = val_mgr->Count((${message.references[i].register_value[j]}));
+			//		auto k = zeek::val_mgr->Count((${message.references[i].register_value[j]}));
 			//		t->Assign(i, k);
 			//		}
 
@@ -586,7 +586,7 @@ refine flow ModbusTCP_Flow += {
 
 			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
 				{
-				auto r = val_mgr->Count(${message.write_register_values[i]});
+				auto r = zeek::val_mgr->Count(${message.write_register_values[i]});
 				t->Assign(i, r);
 				}
 
@@ -618,7 +618,7 @@ refine flow ModbusTCP_Flow += {
 
 			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
 				{
-				auto r = val_mgr->Count(${message.registers[i]});
+				auto r = zeek::val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -662,7 +662,7 @@ refine flow ModbusTCP_Flow += {
 
 			for ( unsigned int i = 0; i < (${message.register_data})->size(); ++i )
 				{
-				auto r = val_mgr->Count(${message.register_data[i]});
+				auto r = zeek::val_mgr->Count(${message.register_data[i]});
 				t->Assign(i, r);
 				}
 

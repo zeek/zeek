@@ -175,7 +175,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	if ( data )
 		args.emplace_back(zeek::make_intrusive<zeek::StringVal>(len, (const char*) data));
 	else
-		args.emplace_back(val_mgr->EmptyString());
+		args.emplace_back(zeek::val_mgr->EmptyString());
 
 	bool result = false;
 

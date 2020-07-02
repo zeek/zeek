@@ -14,13 +14,13 @@ refine connection SMB_Conn += {
 			{
 			auto request = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXRequest);
 
-			request->Assign(0, val_mgr->Count(${val.word_count}));
+			request->Assign(0, zeek::val_mgr->Count(${val.word_count}));
 			switch ( ${val.word_count} ) {
 				case 10:	// pre NT LM 0.12
-					request->Assign(1, val_mgr->Count(${val.lanman.max_buffer_size}));
-					request->Assign(2, val_mgr->Count(${val.lanman.max_mpx_count}));
-					request->Assign(3, val_mgr->Count(${val.lanman.vc_number}));
-					request->Assign(4, val_mgr->Count(${val.lanman.session_key}));
+					request->Assign(1, zeek::val_mgr->Count(${val.lanman.max_buffer_size}));
+					request->Assign(2, zeek::val_mgr->Count(${val.lanman.max_mpx_count}));
+					request->Assign(3, zeek::val_mgr->Count(${val.lanman.vc_number}));
+					request->Assign(4, zeek::val_mgr->Count(${val.lanman.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.lanman.native_os}));
 					request->Assign(6, smb_string2stringval(${val.lanman.native_lanman}));
@@ -32,17 +32,17 @@ refine connection SMB_Conn += {
 				case 12:	// NT LM 0.12 with extended security
 					{
 					auto capabilities = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
-				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_extended_security.capabilities.unicode}));
-				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_extended_security.capabilities.large_files}));
-				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_smbs}));
-				 	capabilities->Assign(3, val_mgr->Bool(${val.ntlm_extended_security.capabilities.status32}));
-				 	capabilities->Assign(4, val_mgr->Bool(${val.ntlm_extended_security.capabilities.level_2_oplocks}));
-				 	capabilities->Assign(5, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_find}));
+				 	capabilities->Assign(0, zeek::val_mgr->Bool(${val.ntlm_extended_security.capabilities.unicode}));
+				 	capabilities->Assign(1, zeek::val_mgr->Bool(${val.ntlm_extended_security.capabilities.large_files}));
+				 	capabilities->Assign(2, zeek::val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_smbs}));
+				 	capabilities->Assign(3, zeek::val_mgr->Bool(${val.ntlm_extended_security.capabilities.status32}));
+				 	capabilities->Assign(4, zeek::val_mgr->Bool(${val.ntlm_extended_security.capabilities.level_2_oplocks}));
+				 	capabilities->Assign(5, zeek::val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_find}));
 
-					request->Assign(1, val_mgr->Count(${val.ntlm_extended_security.max_buffer_size}));
-					request->Assign(2, val_mgr->Count(${val.ntlm_extended_security.max_mpx_count}));
-					request->Assign(3, val_mgr->Count(${val.ntlm_extended_security.vc_number}));
-					request->Assign(4, val_mgr->Count(${val.ntlm_extended_security.session_key}));
+					request->Assign(1, zeek::val_mgr->Count(${val.ntlm_extended_security.max_buffer_size}));
+					request->Assign(2, zeek::val_mgr->Count(${val.ntlm_extended_security.max_mpx_count}));
+					request->Assign(3, zeek::val_mgr->Count(${val.ntlm_extended_security.vc_number}));
+					request->Assign(4, zeek::val_mgr->Count(${val.ntlm_extended_security.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.ntlm_extended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_extended_security.native_lanman}));
@@ -54,17 +54,17 @@ refine connection SMB_Conn += {
 				case 13: // NT LM 0.12 without extended security
 					{
 					auto capabilities = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
-				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.unicode}));
-				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.large_files}));
-				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_smbs}));
-				 	capabilities->Assign(3, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.status32}));
-				 	capabilities->Assign(4, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.level_2_oplocks}));
-				 	capabilities->Assign(5, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_find}));
+				 	capabilities->Assign(0, zeek::val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.unicode}));
+				 	capabilities->Assign(1, zeek::val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.large_files}));
+				 	capabilities->Assign(2, zeek::val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_smbs}));
+				 	capabilities->Assign(3, zeek::val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.status32}));
+				 	capabilities->Assign(4, zeek::val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.level_2_oplocks}));
+				 	capabilities->Assign(5, zeek::val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_find}));
 
-					request->Assign(1, val_mgr->Count(${val.ntlm_nonextended_security.max_buffer_size}));
-					request->Assign(2, val_mgr->Count(${val.ntlm_nonextended_security.max_mpx_count}));
-					request->Assign(3, val_mgr->Count(${val.ntlm_nonextended_security.vc_number}));
-					request->Assign(4, val_mgr->Count(${val.ntlm_nonextended_security.session_key}));
+					request->Assign(1, zeek::val_mgr->Count(${val.ntlm_nonextended_security.max_buffer_size}));
+					request->Assign(2, zeek::val_mgr->Count(${val.ntlm_nonextended_security.max_mpx_count}));
+					request->Assign(3, zeek::val_mgr->Count(${val.ntlm_nonextended_security.vc_number}));
+					request->Assign(4, zeek::val_mgr->Count(${val.ntlm_nonextended_security.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.ntlm_nonextended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_nonextended_security.native_lanman}));
@@ -91,18 +91,18 @@ refine connection SMB_Conn += {
 		if ( smb1_session_setup_andx_response )
 			{
 			auto response = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXResponse);
-			response->Assign(0, val_mgr->Count(${val.word_count}));
+			response->Assign(0, zeek::val_mgr->Count(${val.word_count}));
 
 			switch ( ${val.word_count} )
 				{
 				case 3: // pre NT LM 0.12
-					response->Assign(1, val_mgr->Bool(${val.lanman.is_guest}));
-					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_os[0]}));
-					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_lanman[0]}));
-					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.primary_domain[0]}));
+					response->Assign(1, zeek::val_mgr->Bool(${val.lanman.is_guest}));
+					response->Assign(2, ${val.lanman.byte_count} == 0 ? zeek::val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_os[0]}));
+					response->Assign(3, ${val.lanman.byte_count} == 0 ? zeek::val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_lanman[0]}));
+					response->Assign(4, ${val.lanman.byte_count} == 0 ? zeek::val_mgr->EmptyString() : smb_string2stringval(${val.lanman.primary_domain[0]}));
 					break;
 				case 4: // NT LM 0.12
-					response->Assign(1, val_mgr->Bool(${val.ntlm.is_guest}));
+					response->Assign(1, zeek::val_mgr->Bool(${val.ntlm.is_guest}));
 					response->Assign(2, smb_string2stringval(${val.ntlm.native_os}));
 					response->Assign(3, smb_string2stringval(${val.ntlm.native_lanman}));
 					//response->Assign(4, smb_string2stringval(${val.ntlm.primary_domain}));

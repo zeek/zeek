@@ -43,7 +43,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 		{
 		static auto tcp_content_delivery_ports_orig = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_orig");
 		static auto tcp_content_delivery_ports_resp = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_resp");
-		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
+		const auto& dst_port_val = zeek::val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
 		                                         TRANSPORT_TCP);
 		const auto& ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
@@ -148,9 +148,9 @@ void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 	if ( report_gap(endp, endp->peer) )
 		dst_analyzer->EnqueueConnEvent(content_gap,
 			dst_analyzer->ConnVal(),
-			val_mgr->Bool(IsOrig()),
-			val_mgr->Count(seq),
-			val_mgr->Count(len)
+			zeek::val_mgr->Bool(IsOrig()),
+			zeek::val_mgr->Count(seq),
+			zeek::val_mgr->Count(len)
 		);
 
 	if ( type == Direct )
@@ -358,7 +358,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const BroFilePtr& f)
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 			Endpoint()->Conn()->ConnVal(),
-			val_mgr->Bool(IsOrig()),
+			zeek::val_mgr->Bool(IsOrig()),
 			zeek::make_intrusive<zeek::StringVal>("TCP reassembler content write failure")
 		);
 	}
@@ -373,7 +373,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const Br
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 			Endpoint()->Conn()->ConnVal(),
-			val_mgr->Bool(IsOrig()),
+			zeek::val_mgr->Bool(IsOrig()),
 			zeek::make_intrusive<zeek::StringVal>("TCP reassembler gap write failure")
 		);
 	}
@@ -609,8 +609,8 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 	if ( deliver_tcp_contents )
 		tcp_analyzer->EnqueueConnEvent(tcp_contents,
 			tcp_analyzer->ConnVal(),
-			val_mgr->Bool(IsOrig()),
-			val_mgr->Count(seq),
+			zeek::val_mgr->Bool(IsOrig()),
+			zeek::val_mgr->Count(seq),
 			zeek::make_intrusive<zeek::StringVal>(len, (const char*) data)
 		);
 

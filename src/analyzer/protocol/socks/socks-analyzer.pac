@@ -36,7 +36,7 @@ refine connection SOCKS_Conn += {
 			                                4,
 			                                ${request.command},
 			                                std::move(sa),
-			                                val_mgr->Port(${request.port}, TRANSPORT_TCP),
+			                                zeek::val_mgr->Port(${request.port}, TRANSPORT_TCP),
 			                                array_to_string(${request.user}));
 			}
 
@@ -58,7 +58,7 @@ refine connection SOCKS_Conn += {
 			                              4,
 			                              ${reply.status},
 			                              std::move(sa),
-			                              val_mgr->Port(${reply.port}, TRANSPORT_TCP));
+			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 			}
 
 		bro_analyzer()->ProtocolConfirmation();
@@ -112,8 +112,8 @@ refine connection SOCKS_Conn += {
 			                                5,
 			                                ${request.command},
 			                                std::move(sa),
-			                                val_mgr->Port(${request.port}, TRANSPORT_TCP),
-			                                val_mgr->EmptyString());
+			                                zeek::val_mgr->Port(${request.port}, TRANSPORT_TCP),
+			                                zeek::val_mgr->EmptyString());
 
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
 
@@ -152,7 +152,7 @@ refine connection SOCKS_Conn += {
 			                              5,
 			                              ${reply.reply},
 			                              std::move(sa),
-			                              val_mgr->Port(${reply.port}, TRANSPORT_TCP));
+			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 
 		bro_analyzer()->ProtocolConfirmation();
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);

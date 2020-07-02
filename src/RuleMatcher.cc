@@ -85,8 +85,8 @@ zeek::Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 	auto* val = new zeek::RecordVal(signature_state);
 	val->Assign(0, zeek::make_intrusive<zeek::StringVal>(rule->ID()));
 	val->Assign(1, state->GetAnalyzer()->ConnVal());
-	val->Assign(2, val_mgr->Bool(state->is_orig));
-	val->Assign(3, val_mgr->Count(state->payload_size));
+	val->Assign(2, zeek::val_mgr->Bool(state->is_orig));
+	val->Assign(3, zeek::val_mgr->Count(state->payload_size));
 	return val;
 	}
 

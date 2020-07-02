@@ -86,8 +86,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		EnqueueConnEvent(ident_request,
 			ConnVal(),
-			val_mgr->Port(local_port, TRANSPORT_TCP),
-			val_mgr->Port(remote_port, TRANSPORT_TCP)
+			zeek::val_mgr->Port(local_port, TRANSPORT_TCP),
+			zeek::val_mgr->Port(remote_port, TRANSPORT_TCP)
 		);
 
 		did_deliver = true;
@@ -147,8 +147,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			if ( ident_error )
 				EnqueueConnEvent(ident_error,
 					ConnVal(),
-					val_mgr->Port(local_port, TRANSPORT_TCP),
-					val_mgr->Port(remote_port, TRANSPORT_TCP),
+					zeek::val_mgr->Port(local_port, TRANSPORT_TCP),
+					zeek::val_mgr->Port(remote_port, TRANSPORT_TCP),
 					zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line)
 				);
 			}
@@ -180,8 +180,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			EnqueueConnEvent(ident_reply,
 				ConnVal(),
-				val_mgr->Port(local_port, TRANSPORT_TCP),
-				val_mgr->Port(remote_port, TRANSPORT_TCP),
+				zeek::val_mgr->Port(local_port, TRANSPORT_TCP),
+				zeek::val_mgr->Port(remote_port, TRANSPORT_TCP),
 				zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
 				zeek::make_intrusive<zeek::StringVal>(sys_type_s)
 			);

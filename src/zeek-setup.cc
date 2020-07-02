@@ -308,7 +308,7 @@ void terminate_bro()
 	delete log_mgr;
 	delete reporter;
 	delete plugin_mgr;
-	delete val_mgr;
+	delete zeek::val_mgr;
 
 	// free the global scope
 	zeek::detail::pop_scope();
@@ -465,7 +465,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	bro_start_time = current_time(true);
 
-	val_mgr = new ValManager();
+	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
 	plugin_mgr = new zeek::plugin::Manager();
@@ -845,7 +845,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 			mgr.Enqueue(zeek_script_loaded,
 			            zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
-			            val_mgr->Count(i->include_level));
+			            zeek::val_mgr->Count(i->include_level));
 			}
 		}
 

@@ -17,7 +17,7 @@ enum Trans_subcommands {
 		}
 
 		assert(false);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 %}
 
@@ -60,7 +60,7 @@ refine connection SMB_Conn += {
 		if ( ${val.data_count} > 0 )
 			payload_str = transaction_data_to_val(${val.data});
 		else
-			payload_str = val_mgr->EmptyString();
+			payload_str = zeek::val_mgr->EmptyString();
 
 		zeek::BifEvent::enqueue_smb1_transaction_request(bro_analyzer(),
 		                                           bro_analyzer()->Conn(),
@@ -85,7 +85,7 @@ refine connection SMB_Conn += {
 		if ( ${val.data_count} > 0 )
 			payload_str = transaction_data_to_val(${val.data[0]});
 		else
-			payload_str = val_mgr->EmptyString();
+			payload_str = zeek::val_mgr->EmptyString();
 
 		zeek::BifEvent::enqueue_smb1_transaction_response(bro_analyzer(),
 		                                            bro_analyzer()->Conn(),

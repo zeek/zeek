@@ -47,14 +47,14 @@ refine flow MQTT_Flow += {
 			auto m = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MQTT::ConnectMsg);
 			m->Assign(0, zeek::make_intrusive<zeek::StringVal>(${msg.protocol_name.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.protocol_name.str}.begin())));
-			m->Assign(1, val_mgr->Count(${msg.protocol_version}));
+			m->Assign(1, zeek::val_mgr->Count(${msg.protocol_version}));
 			m->Assign(2, zeek::make_intrusive<zeek::StringVal>(${msg.client_id.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.client_id.str}.begin())));
 			m->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(double(${msg.keep_alive}), Seconds));
 
-			m->Assign(4, val_mgr->Bool(${msg.clean_session}));
-			m->Assign(5, val_mgr->Bool(${msg.will_retain}));
-			m->Assign(6, val_mgr->Count(${msg.will_qos}));
+			m->Assign(4, zeek::val_mgr->Bool(${msg.clean_session}));
+			m->Assign(5, zeek::val_mgr->Bool(${msg.will_retain}));
+			m->Assign(6, zeek::val_mgr->Count(${msg.will_qos}));
 
 			if ( ${msg.will_flag} )
 				{

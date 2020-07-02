@@ -1121,7 +1121,7 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 		rval->Assign(rt->FieldOffset("stderr_file"), zeek::make_intrusive<zeek::StringVal>(*stderr_file));
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
+		rval->Assign(rt->FieldOffset("cpu_affinity"), zeek::val_mgr->Int(*cpu_affinity));
 
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = zeek::make_intrusive<zeek::VectorVal>(std::move(st));
@@ -1145,7 +1145,7 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 
 		val->Assign(ept->FieldOffset("role"), zeek::BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
 		val->Assign(ept->FieldOffset("host"), zeek::make_intrusive<zeek::AddrVal>(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
+		val->Assign(ept->FieldOffset("p"), zeek::val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(ept->FieldOffset("interface"), zeek::make_intrusive<zeek::StringVal>(*ep.interface));
@@ -1164,7 +1164,7 @@ RecordValPtr Supervisor::Node::ToRecord() const
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->Int(pid));
+		rval->Assign(rt->FieldOffset("pid"), zeek::val_mgr->Int(pid));
 
 	return rval;
 	}
@@ -1218,7 +1218,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
 		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
 		val->Assign(cluster_node_type->FieldOffset("ip"), zeek::make_intrusive<zeek::AddrVal>(ep.host));
-		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
+		val->Assign(cluster_node_type->FieldOffset("p"), zeek::val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(cluster_node_type->FieldOffset("interface"),
@@ -1231,7 +1231,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		cluster_nodes->Assign(std::move(key), std::move(val));
 		}
 
-	cluster_manager_is_logger_id->SetVal(val_mgr->Bool(! has_logger));
+	cluster_manager_is_logger_id->SetVal(zeek::val_mgr->Bool(! has_logger));
 	return true;
 	}
 

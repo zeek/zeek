@@ -631,12 +631,12 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
 		if ( vlan )
-			l2_hdr->Assign(5, val_mgr->Count(vlan));
+			l2_hdr->Assign(5, zeek::val_mgr->Count(vlan));
 
 		if ( inner_vlan )
-			l2_hdr->Assign(6, val_mgr->Count(inner_vlan));
+			l2_hdr->Assign(6, zeek::val_mgr->Count(inner_vlan));
 
-		l2_hdr->Assign(7, val_mgr->Count(eth_type));
+		l2_hdr->Assign(7, zeek::val_mgr->Count(eth_type));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
@@ -645,8 +645,8 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 	else
 		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
-	l2_hdr->Assign(1, val_mgr->Count(len));
-	l2_hdr->Assign(2, val_mgr->Count(cap_len));
+	l2_hdr->Assign(1, zeek::val_mgr->Count(len));
+	l2_hdr->Assign(2, zeek::val_mgr->Count(cap_len));
 
 	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetVal(l3));
 

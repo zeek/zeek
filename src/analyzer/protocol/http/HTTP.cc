@@ -619,11 +619,11 @@ zeek::RecordValPtr HTTP_Message::BuildMessageStat(bool interrupted, const char* 
 	auto stat = zeek::make_intrusive<zeek::RecordVal>(http_message_stat);
 	int field = 0;
 	stat->Assign(field++, zeek::make_intrusive<zeek::TimeVal>(start_time));
-	stat->Assign(field++, val_mgr->Bool(interrupted));
+	stat->Assign(field++, zeek::val_mgr->Bool(interrupted));
 	stat->Assign(field++, zeek::make_intrusive<zeek::StringVal>(msg));
-	stat->Assign(field++, val_mgr->Count(body_length));
-	stat->Assign(field++, val_mgr->Count(content_gap_length));
-	stat->Assign(field++, val_mgr->Count(header_length));
+	stat->Assign(field++, zeek::val_mgr->Count(body_length));
+	stat->Assign(field++, zeek::val_mgr->Count(content_gap_length));
+	stat->Assign(field++, zeek::val_mgr->Count(header_length));
 	return stat;
 	}
 
@@ -652,7 +652,7 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 	if ( http_message_done )
 		GetAnalyzer()->EnqueueConnEvent(http_message_done,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			BuildMessageStat(interrupted, detail)
 		);
 
@@ -683,7 +683,7 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 	if ( http_begin_entity )
 		analyzer->EnqueueConnEvent(http_begin_entity,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig)
+			zeek::val_mgr->Bool(is_orig)
 		);
 	}
 
@@ -698,7 +698,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	if ( http_end_entity )
 		analyzer->EnqueueConnEvent(http_end_entity,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig)
+			zeek::val_mgr->Bool(is_orig)
 		);
 
 	current_entity = (HTTP_Entity*) entity->Parent();
@@ -737,14 +737,14 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	if ( http_all_headers )
 		analyzer->EnqueueConnEvent(http_all_headers,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			ToHeaderTable(hlist)
 		);
 
 	if ( http_content_type )
 		analyzer->EnqueueConnEvent(http_content_type,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			current_entity->GetContentType(),
 			current_entity->GetContentSubType()
 		);
@@ -1154,8 +1154,8 @@ void HTTP_Analyzer::GenStats()
 		{
 		static auto http_stats_rec = zeek::id::find_type<zeek::RecordType>("http_stats_rec");
 		auto r = zeek::make_intrusive<zeek::RecordVal>(http_stats_rec);
-		r->Assign(0, val_mgr->Count(num_requests));
-		r->Assign(1, val_mgr->Count(num_replies));
+		r->Assign(0, zeek::val_mgr->Count(num_requests));
+		r->Assign(1, zeek::val_mgr->Count(num_replies));
 		r->Assign(2, zeek::make_intrusive<zeek::DoubleVal>(request_version.ToDouble()));
 		r->Assign(3, zeek::make_intrusive<zeek::DoubleVal>(reply_version.ToDouble()));
 
@@ -1408,7 +1408,7 @@ void HTTP_Analyzer::HTTP_Reply()
 		EnqueueConnEvent(http_reply,
 			ConnVal(),
 			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", reply_version.ToDouble())),
-			val_mgr->Count(reply_code),
+			zeek::val_mgr->Count(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase :
 				zeek::make_intrusive<zeek::StringVal>("<empty>")
@@ -1640,7 +1640,7 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 
 		EnqueueConnEvent(http_header,
 			ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			mime::to_string_val(h->get_name()),
 			std::move(upper_hn),
 			mime::to_string_val(h->get_value())
@@ -1653,8 +1653,8 @@ void HTTP_Analyzer::HTTP_EntityData(bool is_orig, zeek::BroString* entity_data)
 	if ( http_entity_data )
 		EnqueueConnEvent(http_entity_data,
 			ConnVal(),
-			val_mgr->Bool(is_orig),
-			val_mgr->Count(entity_data->Len()),
+			zeek::val_mgr->Bool(is_orig),
+			zeek::val_mgr->Count(entity_data->Len()),
 			zeek::make_intrusive<zeek::StringVal>(entity_data)
 		);
 	else

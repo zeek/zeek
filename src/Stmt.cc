@@ -1234,7 +1234,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
+			f->SetElement((*loop_vars)[0], zeek::val_mgr->Count(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 

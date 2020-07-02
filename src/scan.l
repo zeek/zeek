@@ -468,8 +468,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(val_mgr->True()->Ref())
-F	RET_CONST(val_mgr->False()->Ref())
+T	RET_CONST(zeek::val_mgr->True()->Ref())
+F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -478,7 +478,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 	}
 
 {D}		{
-		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
+		RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
 {FLOAT}		RET_CONST(new zeek::DoubleVal(atof(yytext)))
 
@@ -489,7 +489,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_TCP)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_TCP)->Ref())
 		}
 {D}"/udp"	{
 		uint32_t p = atoi(yytext);
@@ -498,7 +498,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_UDP)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UDP)->Ref())
 		}
 {D}"/icmp"	{
 		uint32_t p = atoi(yytext);
@@ -507,7 +507,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
 		}
 {D}"/unknown"	{
 		uint32_t p = atoi(yytext);
@@ -516,7 +516,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Days))
@@ -526,7 +526,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 {FLOAT}{OWS}msec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
+"0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
 {H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 

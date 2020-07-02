@@ -14,7 +14,7 @@ function FileExtract::__set_limit%(file_id: string, args: any, n: count%): bool
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->SetExtractionLimit(file_id->CheckString(),
 	                                           std::move(rv), n);
-	return val_mgr->Bool(result);
+	return zeek::val_mgr->Bool(result);
 	%}
 
 module GLOBAL;

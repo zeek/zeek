@@ -27,7 +27,7 @@
 
 			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
 				{
-				auto ciph = val_mgr->Count(cipher_suites[i]);
+				auto ciph = zeek::val_mgr->Count(cipher_suites[i]);
 				cipher_vec->Assign(i, ciph);
 				}
 
@@ -37,7 +37,7 @@
 				{
 				for ( unsigned int i = 0; i < compression_methods->size(); ++i )
 					{
-					auto comp = val_mgr->Count((*compression_methods)[i]);
+					auto comp = zeek::val_mgr->Count((*compression_methods)[i]);
 					comp_vec->Assign(i, comp);
 					}
 				}

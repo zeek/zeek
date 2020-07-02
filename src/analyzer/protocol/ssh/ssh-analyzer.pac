@@ -101,7 +101,7 @@ refine flow SSH_Flow += {
 			}
 
 
-		result->Assign(6, val_mgr->Bool(!${msg.is_orig}));
+		result->Assign(6, zeek::val_mgr->Bool(!${msg.is_orig}));
 
 		zeek::BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
 			connection()->bro_analyzer()->Conn(), to_stringval(${msg.cookie}),

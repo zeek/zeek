@@ -314,7 +314,7 @@ void ProfileLogger::Log()
 		{
 		mgr.Dispatch(new Event(profiling_update, {
 					zeek::make_intrusive<zeek::Val>(zeek::IntrusivePtr{zeek::NewRef{}, file}),
-					val_mgr->Bool(expensive),
+					zeek::val_mgr->Bool(expensive),
 					}));
 		}
 	}
@@ -372,7 +372,7 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 		mgr.Enqueue(load_sample,
 		            zeek::IntrusivePtr{zeek::NewRef{}, load_samples},
 		            zeek::make_intrusive<zeek::IntervalVal>(dtime, Seconds),
-		            val_mgr->Int(dmem)
+		            zeek::val_mgr->Int(dmem)
 		);
 	}
 

@@ -61,9 +61,9 @@ void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 	if ( netbios_session_message )
 		analyzer->EnqueueConnEvent(netbios_session_message,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_query),
-			val_mgr->Count(type),
-			val_mgr->Count(len)
+			zeek::val_mgr->Bool(is_query),
+			zeek::val_mgr->Count(type),
+			zeek::val_mgr->Count(len)
 		);
 
 	switch ( type ) {
@@ -323,7 +323,7 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 	if ( is_orig >= 0 )
 		analyzer->EnqueueConnEvent(event,
 		                           analyzer->ConnVal(),
-		                           val_mgr->Bool(is_orig),
+		                           zeek::val_mgr->Bool(is_orig),
 		                           zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data, len, false)));
 	else
 		analyzer->EnqueueConnEvent(event,

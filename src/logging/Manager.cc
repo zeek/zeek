@@ -736,7 +736,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			if ( filter->path_val )
 				path_arg = {zeek::NewRef{}, filter->path_val};
 			else
-				path_arg = val_mgr->EmptyString();
+				path_arg = zeek::val_mgr->EmptyString();
 
 			zeek::ValPtr rec_arg;
 			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
@@ -1515,7 +1515,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	info->Assign(2, zeek::make_intrusive<zeek::StringVal>(winfo->writer->Info().path));
 	info->Assign(3, zeek::make_intrusive<zeek::TimeVal>(open));
 	info->Assign(4, zeek::make_intrusive<zeek::TimeVal>(close));
-	info->Assign(5, val_mgr->Bool(terminating));
+	info->Assign(5, zeek::val_mgr->Bool(terminating));
 
 	zeek::detail::Func* func = winfo->postprocessor;
 	if ( ! func )

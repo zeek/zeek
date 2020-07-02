@@ -138,8 +138,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		static auto udp_content_delivery_ports_orig = zeek::id::find_val<zeek::TableVal>("udp_content_delivery_ports_orig");
 		static auto udp_content_delivery_ports_resp = zeek::id::find_val<zeek::TableVal>("udp_content_delivery_ports_resp");
 		bool do_udp_contents = false;
-		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
-		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
+		const auto& sport_val = zeek::val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
+		const auto& dport_val = zeek::val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
 
 		if ( udp_content_ports->FindOrDefault(dport_val) ||
 		     udp_content_ports->FindOrDefault(sport_val) )
@@ -148,7 +148,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			{
 			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
 			                                                 : up->uh_dport;
-			const auto& port_val = val_mgr->Port(ntohs(p), TRANSPORT_UDP);
+			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
 				{
@@ -169,7 +169,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		if ( do_udp_contents )
 			EnqueueConnEvent(udp_contents,
 			                 ConnVal(),
-			                 val_mgr->Bool(is_orig),
+			                 zeek::val_mgr->Bool(is_orig),
 			                 zeek::make_intrusive<zeek::StringVal>(len, (const char*) data));
 		}
 
@@ -230,14 +230,14 @@ void UDP_Analyzer::UpdateEndpointVal(zeek::RecordVal* endp, bool is_orig)
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, val_mgr->Count(int(UDP_INACTIVE)));
+		endp->Assign(0, zeek::val_mgr->Count(0));
+		endp->Assign(1, zeek::val_mgr->Count(int(UDP_INACTIVE)));
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->Count(size));
-		endp->Assign(1, val_mgr->Count(int(UDP_ACTIVE)));
+		endp->Assign(0, zeek::val_mgr->Count(size));
+		endp->Assign(1, zeek::val_mgr->Count(int(UDP_ACTIVE)));
 		}
 	}
 

@@ -113,15 +113,15 @@ zeek::ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t)
 
 	switch ( t ) {
 	case zeek::TYPE_BOOL:
-		return val_mgr->Bool(v);
+		return zeek::val_mgr->Bool(v);
 	case zeek::TYPE_INT:
-		return val_mgr->Int(v);
+		return zeek::val_mgr->Int(v);
 	case zeek::TYPE_COUNT:
 	case zeek::TYPE_COUNTER:
-		return val_mgr->Count(v);
+		return zeek::val_mgr->Count(v);
 	default:
 		reporter->Error("bad asn1_integer_to_val tag: %s", zeek::type_name(t));
-		return val_mgr->Count(v);
+		return zeek::val_mgr->Count(v);
 	}
 	}
 
@@ -152,7 +152,7 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 
 	if ( ! subidentifier.empty() || subidentifiers.size() < 1 )
 		// Underflow.
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 
 	for ( size_t i = 0; i < subidentifiers.size(); ++i )
 		{

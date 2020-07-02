@@ -2175,14 +2175,14 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 
 	switch ( val->type ) {
 	case zeek::TYPE_BOOL:
-		return val_mgr->Bool(val->val.int_val)->Ref();
+		return zeek::val_mgr->Bool(val->val.int_val)->Ref();
 
 	case zeek::TYPE_INT:
-		return val_mgr->Int(val->val.int_val).release();
+		return zeek::val_mgr->Int(val->val.int_val).release();
 
 	case zeek::TYPE_COUNT:
 	case zeek::TYPE_COUNTER:
-		return val_mgr->Count(val->val.int_val).release();
+		return zeek::val_mgr->Count(val->val.int_val).release();
 
 	case zeek::TYPE_DOUBLE:
 		return new zeek::DoubleVal(val->val.double_val);
@@ -2200,7 +2200,7 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 		}
 
 	case zeek::TYPE_PORT:
-		return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
+		return zeek::val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
 	case zeek::TYPE_ADDR:
 		{

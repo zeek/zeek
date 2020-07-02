@@ -74,7 +74,7 @@ function topk_count%(handle: opaque of topk, value: any%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->Count(h->GetCount(value));
+	return zeek::val_mgr->Count(h->GetCount(value));
 	%}
 
 ## Get the maximal overestimation for count.
@@ -94,7 +94,7 @@ function topk_epsilon%(handle: opaque of topk, value: any%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->Count(h->GetEpsilon(value));
+	return zeek::val_mgr->Count(h->GetEpsilon(value));
 	%}
 
 ## Get the number of elements this data structure is supposed to track (given
@@ -113,7 +113,7 @@ function topk_size%(handle: opaque of topk%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->Count(h->GetSize());
+	return zeek::val_mgr->Count(h->GetSize());
 	%}
 
 ## Get the sum of all counts of all elements in the data structure.
@@ -133,7 +133,7 @@ function topk_sum%(handle: opaque of topk%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->Count(h->GetSum());
+	return zeek::val_mgr->Count(h->GetSum());
 	%}
 
 ## Merge the second top-k data structure into the first.

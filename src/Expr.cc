@@ -683,11 +683,11 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	else if ( ret_type->Tag() == zeek::TYPE_DOUBLE )
 		return zeek::make_intrusive<zeek::DoubleVal>(d3);
 	else if ( ret_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-		return val_mgr->Count(u3);
+		return zeek::val_mgr->Count(u3);
 	else if ( ret_type->Tag() == zeek::TYPE_BOOL )
-		return val_mgr->Bool(i3);
+		return zeek::val_mgr->Bool(i3);
 	else
-		return val_mgr->Int(i3);
+		return zeek::val_mgr->Int(i3);
 	}
 
 ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const
@@ -721,7 +721,7 @@ ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::StringFold", expr_name(tag));
 	}
 
-	return val_mgr->Bool(result);
+	return zeek::val_mgr->Bool(result);
 	}
 
 
@@ -797,7 +797,7 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 		return nullptr;
 	}
 
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	}
 
 ValPtr BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -831,7 +831,7 @@ ValPtr BinaryExpr::AddrFold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::AddrFold", expr_name(tag));
 	}
 
-	return val_mgr->Bool(result);
+	return zeek::val_mgr->Bool(result);
 	}
 
 ValPtr BinaryExpr::SubNetFold(Val* v1, Val* v2) const
@@ -844,7 +844,7 @@ ValPtr BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	if ( tag == EXPR_NE )
 		result = ! result;
 
-	return val_mgr->Bool(result);
+	return zeek::val_mgr->Bool(result);
 	}
 
 void BinaryExpr::SwapOps()
@@ -956,9 +956,9 @@ ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	const auto& ret_type = IsVector(GetType()->Tag()) ? GetType()->Yield() : GetType();
 
 	if ( ret_type->Tag() == zeek::TYPE_INT )
-		return val_mgr->Int(k);
+		return zeek::val_mgr->Int(k);
 	else
-		return val_mgr->Count(k);
+		return zeek::val_mgr->Count(k);
 	}
 
 
@@ -1016,7 +1016,7 @@ ComplementExpr::ComplementExpr(ExprPtr arg_op)
 
 ValPtr ComplementExpr::Fold(Val* v) const
 	{
-	return val_mgr->Count(~ v->InternalUnsigned());
+	return zeek::val_mgr->Count(~ v->InternalUnsigned());
 	}
 
 NotExpr::NotExpr(ExprPtr arg_op)
@@ -1035,7 +1035,7 @@ NotExpr::NotExpr(ExprPtr arg_op)
 
 ValPtr NotExpr::Fold(Val* v) const
 	{
-	return val_mgr->Bool(! v->InternalInt());
+	return zeek::val_mgr->Bool(! v->InternalInt());
 	}
 
 PosExpr::PosExpr(ExprPtr arg_op)
@@ -1070,7 +1070,7 @@ ValPtr PosExpr::Fold(Val* v) const
 	if ( t == zeek::TYPE_DOUBLE || t == zeek::TYPE_INTERVAL || t == zeek::TYPE_INT )
 		return {zeek::NewRef{}, v};
 	else
-		return val_mgr->Int(v->CoerceToInt());
+		return zeek::val_mgr->Int(v->CoerceToInt());
 	}
 
 NegExpr::NegExpr(ExprPtr arg_op)
@@ -1105,7 +1105,7 @@ ValPtr NegExpr::Fold(Val* v) const
 	else if ( v->GetType()->Tag() == zeek::TYPE_INTERVAL )
 		return zeek::make_intrusive<zeek::IntervalVal>(- v->InternalDouble());
 	else
-		return val_mgr->Int(- v->CoerceToInt());
+		return zeek::val_mgr->Int(- v->CoerceToInt());
 	}
 
 SizeExpr::SizeExpr(ExprPtr arg_op)
@@ -1609,7 +1609,7 @@ ValPtr BoolExpr::Eval(Frame* f) const
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 
-			result->Assign(i, val_mgr->Bool(local_result));
+			result->Assign(i, zeek::val_mgr->Bool(local_result));
 			}
 		else
 			result->Assign(i, nullptr);
@@ -1762,9 +1762,9 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
 		if ( tag == EXPR_EQ )
-			return val_mgr->Bool(re->MatchExactly(s));
+			return zeek::val_mgr->Bool(re->MatchExactly(s));
 		else
-			return val_mgr->Bool(! re->MatchExactly(s));
+			return zeek::val_mgr->Bool(! re->MatchExactly(s));
 		}
 
 	else
@@ -2944,7 +2944,7 @@ HasFieldExpr::~HasFieldExpr()
 ValPtr HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
-	return val_mgr->Bool(rv->GetField(field) != nullptr);
+	return zeek::val_mgr->Bool(rv->GetField(field) != nullptr);
 	}
 
 void HasFieldExpr::ExprDescribe(ODesc* d) const
@@ -3459,10 +3459,10 @@ ValPtr ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 		return zeek::make_intrusive<zeek::DoubleVal>(v->CoerceToDouble());
 
 	case zeek::TYPE_INTERNAL_INT:
-		return val_mgr->Int(v->CoerceToInt());
+		return zeek::val_mgr->Int(v->CoerceToInt());
 
 	case zeek::TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(v->CoerceToUnsigned());
+		return zeek::val_mgr->Count(v->CoerceToUnsigned());
 
 	default:
 		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
@@ -3949,7 +3949,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 		{
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
-		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
+		return zeek::val_mgr->Bool(re->MatchAnywhere(s) != 0);
 		}
 
 	if ( v2->GetType()->Tag() == zeek::TYPE_STRING )
@@ -3960,12 +3960,12 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
 		auto s = reinterpret_cast<const unsigned char*>(s1->CheckString());
 		auto res = strstr_n(s2->Len(), s2->Bytes(), s1->Len(), s) != -1;
-		return val_mgr->Bool(res);
+		return zeek::val_mgr->Bool(res);
 		}
 
 	if ( v1->GetType()->Tag() == zeek::TYPE_ADDR &&
 	     v2->GetType()->Tag() == zeek::TYPE_SUBNET )
-		return val_mgr->Bool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
+		return zeek::val_mgr->Bool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
 
 	bool res;
 
@@ -3974,7 +3974,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	else
 		res = (bool)v2->AsTableVal()->Find({zeek::NewRef{}, v1});
 
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	}
 
 CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
@@ -4809,7 +4809,7 @@ ValPtr IsExpr::Fold(Val* v) const
 	if ( IsError() )
 		return nullptr;
 
-	return val_mgr->Bool(can_cast_value_to_type(v, t.get()));
+	return zeek::val_mgr->Bool(can_cast_value_to_type(v, t.get()));
 	}
 
 void IsExpr::ExprDescribe(ODesc* d) const

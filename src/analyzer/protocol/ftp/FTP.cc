@@ -177,9 +177,9 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		vl = {
 			ConnVal(),
-			val_mgr->Count(reply_code),
+			zeek::val_mgr->Count(reply_code),
 			zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
-			val_mgr->Bool(cont_resp)
+			zeek::val_mgr->Bool(cont_resp)
 		};
 
 		f = ftp_reply;

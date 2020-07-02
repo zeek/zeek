@@ -34,9 +34,9 @@ static zeek::RecordValPtr get_conn_id_val(const Connection* conn)
 	{
 	auto v = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
 	v->Assign(0, zeek::make_intrusive<zeek::AddrVal>(conn->OrigAddr()));
-	v->Assign(1, val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
+	v->Assign(1, zeek::val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
 	v->Assign(2, zeek::make_intrusive<zeek::AddrVal>(conn->RespAddr()));
-	v->Assign(3, val_mgr->Port(ntohs(conn->RespPort()), conn->ConnTransport()));
+	v->Assign(3, zeek::val_mgr->Port(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
 
@@ -97,7 +97,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	if ( conn )
 		{
-		val->Assign(is_orig_idx, val_mgr->Bool(is_orig));
+		val->Assign(is_orig_idx, zeek::val_mgr->Bool(is_orig));
 		UpdateConnectionFields(conn, is_orig);
 		}
 
@@ -153,7 +153,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		FileEvent(file_over_new_connection, {
 			val,
 			conn->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 		});
 		}
 	}
@@ -226,13 +226,13 @@ bool File::SetExtractionLimit(zeek::RecordValPtr args, uint64_t bytes)
 void File::IncrementByteCount(uint64_t size, int field_idx)
 	{
 	uint64_t old = LookupFieldDefaultCount(field_idx);
-	val->Assign(field_idx, val_mgr->Count(old + size));
+	val->Assign(field_idx, zeek::val_mgr->Count(old + size));
 	}
 
 void File::SetTotalBytes(uint64_t size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
-	val->Assign(total_bytes_idx, val_mgr->Count(size));
+	val->Assign(total_bytes_idx, zeek::val_mgr->Count(size));
 	}
 
 bool File::IsComplete() const
@@ -308,7 +308,7 @@ bool File::SetMime(const std::string& mime_type)
 
 	auto meta = zeek::make_intrusive<zeek::RecordVal>(zeek::id::fa_metadata);
 	meta->Assign(meta_mime_type_idx, zeek::make_intrusive<zeek::StringVal>(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->False());
+	meta->Assign(meta_inferred_idx, zeek::val_mgr->False());
 
 	FileEvent(file_sniff, {val, std::move(meta)});
 	return true;
@@ -462,8 +462,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 				{
 				FileEvent(file_reassembly_overflow, {
 					val,
-					val_mgr->Count(current_offset),
-					val_mgr->Count(gap_bytes)
+					zeek::val_mgr->Count(current_offset),
+					zeek::val_mgr->Count(gap_bytes)
 				});
 				}
 			}
@@ -604,7 +604,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		}
 
 	if ( FileEventAvailable(file_gap) )
-		FileEvent(file_gap, {val, val_mgr->Count(offset), val_mgr->Count(len)});
+		FileEvent(file_gap, {val, zeek::val_mgr->Count(offset), zeek::val_mgr->Count(len)});
 
 	analyzers.DrainModifications();
 

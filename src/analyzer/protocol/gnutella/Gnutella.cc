@@ -74,8 +74,8 @@ void Gnutella_Analyzer::Done()
 				EnqueueConnEvent(gnutella_partial_binary_msg,
 				                 ConnVal(),
 				                 zeek::make_intrusive<zeek::StringVal>(p->msg),
-				                 val_mgr->Bool((i == 0)),
-				                 val_mgr->Count(p->msg_pos));
+				                 zeek::val_mgr->Bool((i == 0)),
+				                 zeek::val_mgr->Count(p->msg_pos));
 
 			else if ( ! p->msg_sent && p->payload_left )
 				SendEvents(p, (i == 0));
@@ -177,7 +177,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 			if ( gnutella_text_msg )
 				EnqueueConnEvent(gnutella_text_msg,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig),
+				                 zeek::val_mgr->Bool(orig),
 				                 zeek::make_intrusive<zeek::StringVal>(ms->headers.data()));
 
 			ms->headers = "";
@@ -214,15 +214,15 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 	if ( gnutella_binary_msg )
 		EnqueueConnEvent(gnutella_binary_msg,
 		                 ConnVal(),
-		                 val_mgr->Bool(is_orig),
-		                 val_mgr->Count(p->msg_type),
-		                 val_mgr->Count(p->msg_ttl),
-		                 val_mgr->Count(p->msg_hops),
-		                 val_mgr->Count(p->msg_len),
+		                 zeek::val_mgr->Bool(is_orig),
+		                 zeek::val_mgr->Count(p->msg_type),
+		                 zeek::val_mgr->Count(p->msg_ttl),
+		                 zeek::val_mgr->Count(p->msg_hops),
+		                 zeek::val_mgr->Count(p->msg_len),
 		                 zeek::make_intrusive<zeek::StringVal>(p->payload),
-		                 val_mgr->Count(p->payload_len),
-		                 val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
-		                 val_mgr->Bool((p->payload_left == 0)));
+		                 zeek::val_mgr->Count(p->payload_len),
+		                 zeek::val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
+		                 zeek::val_mgr->Bool((p->payload_left == 0)));
 	}
 
 

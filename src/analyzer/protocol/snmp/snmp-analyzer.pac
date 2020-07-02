@@ -47,7 +47,7 @@ zeek::ValPtr asn1_obj_to_val(const ASN1Encoding* obj)
 	zeek::RecordValPtr rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::ObjectValue);
 	uint8 tag = obj->meta()->tag();
 
-	rval->Assign(0, val_mgr->Count(tag));
+	rval->Assign(0, zeek::val_mgr->Count(tag));
 
 	switch ( tag ) {
 	case VARBIND_UNSPECIFIED_TAG:
@@ -93,7 +93,7 @@ zeek::ValPtr time_ticks_to_val(const TimeTicks* tt)
 zeek::RecordValPtr build_hdr(const Header* header)
 	{
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::Header);
-	rv->Assign(0, val_mgr->Count(header->version()));
+	rv->Assign(0, zeek::val_mgr->Count(header->version()));
 
 	switch ( header->version() ) {
 	case SNMPV1_TAG:
@@ -132,10 +132,10 @@ zeek::RecordValPtr build_hdrV3(const Header* header)
 
 	v3->Assign(0, asn1_integer_to_val(global_data->id(), zeek::TYPE_COUNT));
 	v3->Assign(1, asn1_integer_to_val(global_data->max_size(), zeek::TYPE_COUNT));
-	v3->Assign(2, val_mgr->Count(flags_byte));
-	v3->Assign(3, val_mgr->Bool(flags_byte & 0x01));
-	v3->Assign(4, val_mgr->Bool(flags_byte & 0x02));
-	v3->Assign(5, val_mgr->Bool(flags_byte & 0x04));
+	v3->Assign(2, zeek::val_mgr->Count(flags_byte));
+	v3->Assign(3, zeek::val_mgr->Bool(flags_byte & 0x01));
+	v3->Assign(4, zeek::val_mgr->Bool(flags_byte & 0x02));
+	v3->Assign(5, zeek::val_mgr->Bool(flags_byte & 0x04));
 	v3->Assign(6, asn1_integer_to_val(global_data->security_model(), zeek::TYPE_COUNT));
 	v3->Assign(7, asn1_octet_string_to_val(v3hdr->security_parameters()));
 

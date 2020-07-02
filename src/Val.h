@@ -426,28 +426,28 @@ public:
 
 	ValManager();
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->True() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->True() instead.")]]
 	inline Val* GetTrue() const
 		{ return b_true->Ref(); }
 
 	inline const ValPtr& True() const
 		{ return b_true; }
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->False() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->False() instead.")]]
 	inline Val* GetFalse() const
 		{ return b_false->Ref(); }
 
 	inline const ValPtr& False() const
 		{ return b_false; }
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->Bool() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Bool() instead.")]]
 	inline Val* GetBool(bool b) const
 		{ return b ? b_true->Ref() : b_false->Ref(); }
 
 	inline const ValPtr& Bool(bool b) const
 		{ return b ? b_true : b_false; }
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->Int() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Int() instead.")]]
 	inline Val* GetInt(int64_t i) const
 		{
 		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
@@ -460,7 +460,7 @@ public:
 		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST];
 		}
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->Count() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Count() instead.")]]
 	inline Val* GetCount(uint64_t i) const
 		{
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i).release() : counts[i]->Ref();
@@ -471,21 +471,21 @@ public:
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i];
 		}
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->EmptyString() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->EmptyString() instead.")]]
 	StringVal* GetEmptyString() const;
 
 	inline const StringValPtr& EmptyString() const
 		{ return empty_string; }
 
 	// Port number given in host order.
-	[[deprecated("Remove in v4.1.  Use val_mgr->Port() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Port() instead.")]]
 	PortVal* GetPort(uint32_t port_num, TransportProto port_type) const;
 
 	// Port number given in host order.
 	const PortValPtr& Port(uint32_t port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	[[deprecated("Remove in v4.1.  Use val_mgr->Port() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Port() instead.")]]
 	PortVal* GetPort(uint32_t port_num) const;
 
 	// Host-order port number already masked with port space protocol mask.
@@ -1428,4 +1428,4 @@ using IntervalVal [[deprecated("Remove in v4.1. Use zeek::IntervalVal instead.")
 using ValManager [[deprecated("Remove in v4.1. Use zeek::ValManager instead.")]] = zeek::ValManager;
 
 // Alias for zeek::val_mgr.
-extern zeek::ValManager*& val_mgr;
+extern zeek::ValManager*& val_mgr [[deprecated("Remove in v4.1. Use zeek::val_mgr instead.")]];

@@ -721,7 +721,7 @@ zeek::ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	r->Assign(0, zeek::make_intrusive<zeek::TimeVal>(dm->CreationTime()));
 	r->Assign(1, zeek::make_intrusive<zeek::StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
 	r->Assign(2, zeek::make_intrusive<zeek::AddrVal>(dm->ReqAddr()));
-	r->Assign(3, val_mgr->Bool(dm->Valid()));
+	r->Assign(3, zeek::val_mgr->Bool(dm->Valid()));
 
 	auto h = dm->Host();
 	r->Assign(4, h ? std::move(h) : zeek::make_intrusive<zeek::StringVal>("<none>"));

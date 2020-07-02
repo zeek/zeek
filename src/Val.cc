@@ -265,19 +265,19 @@ ValPtr Val::SizeVal() const
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( val.int_val < 0 )
-			return val_mgr->Count(-val.int_val);
+			return zeek::val_mgr->Count(-val.int_val);
 		else
-			return val_mgr->Count(val.int_val);
+			return zeek::val_mgr->Count(val.int_val);
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(val.uint_val);
+		return zeek::val_mgr->Count(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<zeek::DoubleVal>(fabs(val.double_val));
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
+			return zeek::val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
 
 		if ( type->Tag() == TYPE_FILE )
 			return make_intrusive<zeek::DoubleVal>(val.file_val->Size());
@@ -287,7 +287,7 @@ ValPtr Val::SizeVal() const
 		break;
 	}
 
-	return val_mgr->Count(0);
+	return zeek::val_mgr->Count(0);
 	}
 
 unsigned int Val::MemoryAllocation() const
@@ -743,7 +743,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 
 ValPtr PortVal::SizeVal() const
 	{
-	return val_mgr->Int(val.uint_val);
+	return zeek::val_mgr->Int(val.uint_val);
 	}
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
@@ -862,9 +862,9 @@ unsigned int AddrVal::MemoryAllocation() const
 ValPtr AddrVal::SizeVal() const
 	{
 	if ( val.addr_val->GetFamily() == IPv4 )
-		return val_mgr->Count(32);
+		return zeek::val_mgr->Count(32);
 	else
-		return val_mgr->Count(128);
+		return zeek::val_mgr->Count(128);
 	}
 
 ValPtr AddrVal::DoClone(CloneState* state)
@@ -990,7 +990,7 @@ StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 
 ValPtr StringVal::SizeVal() const
 	{
-	return val_mgr->Count(val.string_val->Len());
+	return zeek::val_mgr->Count(val.string_val->Len());
 	}
 
 int StringVal::Len()
@@ -1201,7 +1201,7 @@ ListVal::~ListVal()
 
 ValPtr ListVal::SizeVal() const
 	{
-	return val_mgr->Count(vals.size());
+	return zeek::val_mgr->Count(vals.size());
 	}
 
 RE_Matcher* ListVal::BuildRE() const
@@ -1580,7 +1580,7 @@ bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 
 ValPtr TableVal::SizeVal() const
 	{
-	return val_mgr->Count(Size());
+	return zeek::val_mgr->Count(Size());
 	}
 
 bool TableVal::AddTo(Val* val, bool is_first_init) const
@@ -1904,7 +1904,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 			if ( v->GetVal() )
 				return v->GetVal();
 
-			return val_mgr->True();
+			return zeek::val_mgr->True();
 			}
 
 		return Val::nil;
@@ -1928,7 +1928,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 				if ( v->GetVal() )
 					return v->GetVal();
 
-				return val_mgr->True();
+				return zeek::val_mgr->True();
 				}
 			}
 		}
@@ -2752,7 +2752,7 @@ RecordVal::~RecordVal()
 
 ValPtr RecordVal::SizeVal() const
 	{
-	return val_mgr->Count(GetType()->AsRecordType()->NumFields());
+	return zeek::val_mgr->Count(GetType()->AsRecordType()->NumFields());
 	}
 
 void RecordVal::Assign(int field, ValPtr new_val)
@@ -3008,7 +3008,7 @@ unsigned int RecordVal::MemoryAllocation() const
 
 ValPtr EnumVal::SizeVal() const
 	{
-	return val_mgr->Int(val.int_val);
+	return zeek::val_mgr->Int(val.int_val);
 	}
 
 void EnumVal::ValDescribe(ODesc* d) const
@@ -3042,7 +3042,7 @@ VectorVal::~VectorVal()
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return val_mgr->Count(uint32_t(val.vector_val->size()));
+	return zeek::val_mgr->Count(uint32_t(val.vector_val->size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
@@ -3258,7 +3258,7 @@ ValPtr check_and_promote(ValPtr v,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
-			promoted_v = val_mgr->Int(v->CoerceToInt());
+			promoted_v = zeek::val_mgr->Int(v->CoerceToInt());
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
@@ -3274,7 +3274,7 @@ ValPtr check_and_promote(ValPtr v,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
-			promoted_v = val_mgr->Count(v->CoerceToUnsigned());
+			promoted_v = zeek::val_mgr->Count(v->CoerceToUnsigned());
 		else // port
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");

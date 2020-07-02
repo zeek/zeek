@@ -1323,7 +1323,7 @@ zeek::TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
-		auto index = val_mgr->Count(i + 1);	// index starting from 1
+		auto index = zeek::val_mgr->Count(i + 1);	// index starting from 1
 		MIME_Header* h = hlist[i];
 		t->Assign(std::move(index), ToHeaderVal(h));
 		}
@@ -1382,7 +1382,7 @@ void MIME_Mail::Done()
 
 		analyzer->EnqueueConnEvent(mime_content_hash,
 			analyzer->ConnVal(),
-			val_mgr->Count(content_hash_length),
+			zeek::val_mgr->Count(content_hash_length),
 			zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(true, digest, 16))
 		);
 		}
@@ -1422,7 +1422,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 
 		analyzer->EnqueueConnEvent(mime_entity_data,
 			analyzer->ConnVal(),
-			val_mgr->Count(s->Len()),
+			zeek::val_mgr->Count(s->Len()),
 			zeek::make_intrusive<zeek::StringVal>(s)
 		);
 
@@ -1489,7 +1489,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 		analyzer->EnqueueConnEvent(mime_segment_data,
 			analyzer->ConnVal(),
-			val_mgr->Count(data_len),
+			zeek::val_mgr->Count(data_len),
 			zeek::make_intrusive<zeek::StringVal>(data_len, data)
 		);
 		}
@@ -1536,7 +1536,7 @@ void MIME_Mail::SubmitAllData()
 
 		analyzer->EnqueueConnEvent(mime_all_data,
 			analyzer->ConnVal(),
-			val_mgr->Count(s->Len()),
+			zeek::val_mgr->Count(s->Len()),
 			zeek::make_intrusive<zeek::StringVal>(s)
 		);
 		}

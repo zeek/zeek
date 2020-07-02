@@ -221,7 +221,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				{
 				EnqueueConnEvent(smtp_data,
 					ConnVal(),
-					val_mgr->Bool(orig),
+					zeek::val_mgr->Bool(orig),
 					zeek::make_intrusive<zeek::StringVal>(data_len, line)
 				);
 				}
@@ -351,11 +351,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 				EnqueueConnEvent(smtp_reply,
 					ConnVal(),
-					val_mgr->Bool(orig),
-					val_mgr->Count(reply_code),
+					zeek::val_mgr->Bool(orig),
+					zeek::val_mgr->Count(reply_code),
 					zeek::make_intrusive<zeek::StringVal>(cmd),
 					zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
-					val_mgr->Bool((pending_reply > 0))
+					zeek::val_mgr->Bool((pending_reply > 0))
 				);
 				}
 			}
@@ -860,7 +860,7 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 
 		EnqueueConnEvent(smtp_request,
 			ConnVal(),
-			val_mgr->Bool(orig_is_sender),
+			zeek::val_mgr->Bool(orig_is_sender),
 			std::move(cmd_arg),
 			zeek::make_intrusive<zeek::StringVal>(arg_len, arg)
 		);
@@ -881,7 +881,7 @@ void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg,
 
 		EnqueueConnEvent(smtp_unexpected,
 			ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			zeek::make_intrusive<zeek::StringVal>(msg),
 			zeek::make_intrusive<zeek::StringVal>(detail_len, detail)
 		);

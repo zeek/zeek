@@ -85,23 +85,23 @@ struct val_converter {
 	result_type operator()(bool a)
 		{
 		if ( type->Tag() == zeek::TYPE_BOOL )
-			return val_mgr->Bool(a);
+			return zeek::val_mgr->Bool(a);
 		return nullptr;
 		}
 
 	result_type operator()(uint64_t a)
 		{
 		if ( type->Tag() == zeek::TYPE_COUNT )
-			return val_mgr->Count(a);
+			return zeek::val_mgr->Count(a);
 		if ( type->Tag() == zeek::TYPE_COUNTER )
-			return val_mgr->Count(a);
+			return zeek::val_mgr->Count(a);
 		return nullptr;
 		}
 
 	result_type operator()(int64_t a)
 		{
 		if ( type->Tag() == zeek::TYPE_INT )
-			return val_mgr->Int(a);
+			return zeek::val_mgr->Int(a);
 		return nullptr;
 		}
 
@@ -156,7 +156,7 @@ struct val_converter {
 	result_type operator()(broker::port& a)
 		{
 		if ( type->Tag() == zeek::TYPE_PORT )
-			return val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()));
+			return zeek::val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()));
 
 		return nullptr;
 		}

@@ -238,10 +238,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_network_info,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
-			                 val_mgr->Int(users),
-			                 val_mgr->Int(services),
-			                 val_mgr->Int(servers));
+			                 zeek::val_mgr->Bool(orig),
+			                 zeek::val_mgr->Int(users),
+			                 zeek::val_mgr->Int(services),
+			                 zeek::val_mgr->Int(servers));
 			}
 			break;
 
@@ -284,7 +284,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_names_info,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(type.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(channel.c_str()),
 			                 std::move(set));
@@ -317,10 +317,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_server_info,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
-			                 val_mgr->Int(users),
-			                 val_mgr->Int(services),
-			                 val_mgr->Int(servers));
+			                 zeek::val_mgr->Bool(orig),
+			                 zeek::val_mgr->Int(users),
+			                 zeek::val_mgr->Int(services),
+			                 zeek::val_mgr->Int(servers));
 			}
 			break;
 
@@ -338,8 +338,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_channel_info,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
-			                 val_mgr->Int(channels));
+			                 zeek::val_mgr->Bool(orig),
+			                 zeek::val_mgr->Int(channels));
 			}
 			break;
 
@@ -369,7 +369,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_global_users,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(eop - prefix, prefix),
 			                 zeek::make_intrusive<zeek::StringVal>(++msg));
 			break;
@@ -394,7 +394,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			zeek::Args vl;
 			vl.reserve(6);
 			vl.emplace_back(ConnVal());
-			vl.emplace_back(val_mgr->Bool(orig));
+			vl.emplace_back(zeek::val_mgr->Bool(orig));
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()));
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[1].c_str()));
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[2].c_str()));
@@ -433,7 +433,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_whois_operator_line,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()));
 			}
 			break;
@@ -470,7 +470,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_whois_channel_line,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(nick.c_str()),
 			                 std::move(set));
 			}
@@ -500,7 +500,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 				EnqueueConnEvent(irc_channel_topic,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig),
+				                 zeek::val_mgr->Bool(orig),
 				                 zeek::make_intrusive<zeek::StringVal>(parts[1].c_str()),
 				                 zeek::make_intrusive<zeek::StringVal>(t));
 				}
@@ -533,7 +533,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_who_line,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[1].c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[2].c_str()),
@@ -541,7 +541,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			                 zeek::make_intrusive<zeek::StringVal>(parts[4].c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[5].c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[6].c_str()),
-			                 val_mgr->Int(atoi(parts[7].c_str())),
+			                 zeek::val_mgr->Int(atoi(parts[7].c_str())),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[8].c_str()));
 			}
 			break;
@@ -554,7 +554,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( irc_invalid_nick )
 				EnqueueConnEvent(irc_invalid_nick,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig));
+				                 zeek::val_mgr->Bool(orig));
 			break;
 
 		// Operator responses.
@@ -563,8 +563,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( irc_oper_response )
 				EnqueueConnEvent(irc_oper_response,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig),
-				                 val_mgr->Bool(code == 381));
+				                 zeek::val_mgr->Bool(orig),
+				                 zeek::val_mgr->Bool(code == 381));
 			break;
 
 		case 670:
@@ -577,9 +577,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( irc_reply )
 				EnqueueConnEvent(irc_reply,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig),
+				                 zeek::val_mgr->Bool(orig),
 				                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
-				                 val_mgr->Count(code),
+				                 zeek::val_mgr->Count(code),
 				                 zeek::make_intrusive<zeek::StringVal>(params.c_str()));
 			break;
 		}
@@ -647,14 +647,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( irc_dcc_message )
 				EnqueueConnEvent(irc_dcc_message,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig),
+				                 zeek::val_mgr->Bool(orig),
 				                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 				                 zeek::make_intrusive<zeek::StringVal>(target.c_str()),
 				                 zeek::make_intrusive<zeek::StringVal>(parts[1].c_str()),
 				                 zeek::make_intrusive<zeek::StringVal>(parts[2].c_str()),
 				                 zeek::make_intrusive<zeek::AddrVal>(htonl(raw_ip)),
-				                 val_mgr->Count(atoi(parts[4].c_str())),
-				                 parts.size() >= 6 ? val_mgr->Count(atoi(parts[5].c_str())) : val_mgr->Count(0)
+				                 zeek::val_mgr->Count(atoi(parts[4].c_str())),
+				                 parts.size() >= 6 ? zeek::val_mgr->Count(atoi(parts[5].c_str())) : zeek::val_mgr->Count(0)
 					);
 			}
 
@@ -663,7 +663,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( irc_privmsg_message )
 				EnqueueConnEvent(irc_privmsg_message,
 				                 ConnVal(),
-				                 val_mgr->Bool(orig),
+				                 zeek::val_mgr->Bool(orig),
 				                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 				                 zeek::make_intrusive<zeek::StringVal>(target.c_str()),
 				                 zeek::make_intrusive<zeek::StringVal>(message.c_str())
@@ -688,7 +688,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_notice_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(target.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(message.c_str())
@@ -712,7 +712,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_squery_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(target.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(message.c_str())
@@ -726,19 +726,19 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		zeek::Args vl;
 		vl.reserve(6);
 		vl.emplace_back(ConnVal());
-		vl.emplace_back(val_mgr->Bool(orig));
+		vl.emplace_back(zeek::val_mgr->Bool(orig));
 
 		if ( parts.size() > 0 )
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()));
-		else vl.emplace_back(val_mgr->EmptyString());
+		else vl.emplace_back(zeek::val_mgr->EmptyString());
 
 		if ( parts.size() > 1 )
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[1].c_str()));
-		else vl.emplace_back(val_mgr->EmptyString());
+		else vl.emplace_back(zeek::val_mgr->EmptyString());
 
 		if ( parts.size() > 2 )
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[2].c_str()));
-		else vl.emplace_back(val_mgr->EmptyString());
+		else vl.emplace_back(zeek::val_mgr->EmptyString());
 
 		string realname;
 		for ( unsigned int i = 3; i < parts.size(); i++ )
@@ -761,7 +761,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( parts.size() == 2 )
 			EnqueueConnEvent(irc_oper_message,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[1].c_str())
 			);
@@ -783,7 +783,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		zeek::Args vl;
 		vl.reserve(6);
 		vl.emplace_back(ConnVal());
-		vl.emplace_back(val_mgr->Bool(orig));
+		vl.emplace_back(zeek::val_mgr->Bool(orig));
 		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(prefix.c_str()));
 		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()));
 		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(parts[1].c_str()));
@@ -800,7 +800,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(comment.c_str()));
 			}
 		else
-			vl.emplace_back(val_mgr->EmptyString());
+			vl.emplace_back(zeek::val_mgr->EmptyString());
 
 		EnqueueConnEvent(irc_kick_message, std::move(vl));
 		}
@@ -851,7 +851,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_join_message,
 			ConnVal(),
-			val_mgr->Bool(orig),
+			zeek::val_mgr->Bool(orig),
 			std::move(list)
 		);
 		}
@@ -911,7 +911,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_join_message,
 			ConnVal(),
-			val_mgr->Bool(orig),
+			zeek::val_mgr->Bool(orig),
 			std::move(list)
 		);
 		}
@@ -950,7 +950,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_part_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(nick.c_str()),
 		                 std::move(set),
 		                 zeek::make_intrusive<zeek::StringVal>(message.c_str())
@@ -973,7 +973,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_quit_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(nickname.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(message.c_str())
 		);
@@ -987,7 +987,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_nick_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(nick.c_str())
 		);
@@ -1012,11 +1012,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_who_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 parts.size() > 0 ?
 		                 zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()) :
-		                 val_mgr->EmptyString(),
-		                 val_mgr->Bool(oper)
+		                 zeek::val_mgr->EmptyString(),
+		                 zeek::val_mgr->Bool(oper)
 		);
 		}
 
@@ -1042,7 +1042,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_whois_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(server.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(users.c_str())
 		);
@@ -1055,7 +1055,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_error_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(params.c_str())
 		);
@@ -1071,7 +1071,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			EnqueueConnEvent(irc_invite_message,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[0].c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(parts[1].c_str())
@@ -1086,7 +1086,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( params.size() > 0 )
 			EnqueueConnEvent(irc_mode_message,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(params.c_str())
 			);
@@ -1099,7 +1099,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		EnqueueConnEvent(irc_password_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(params.c_str())
 		);
 		}
@@ -1121,7 +1121,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		EnqueueConnEvent(irc_squit_message,
 		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(server.c_str()),
 		                 zeek::make_intrusive<zeek::StringVal>(message.c_str())
@@ -1135,7 +1135,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			EnqueueConnEvent(irc_request,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(command.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(params.c_str())
@@ -1149,7 +1149,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			EnqueueConnEvent(irc_message,
 			                 ConnVal(),
-			                 val_mgr->Bool(orig),
+			                 zeek::val_mgr->Bool(orig),
 			                 zeek::make_intrusive<zeek::StringVal>(prefix.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(command.c_str()),
 			                 zeek::make_intrusive<zeek::StringVal>(params.c_str())

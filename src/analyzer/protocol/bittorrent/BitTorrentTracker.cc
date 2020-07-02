@@ -247,7 +247,7 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	if ( bt_tracker_weird )
 		EnqueueConnEvent(bt_tracker_weird,
 			ConnVal(),
-			val_mgr->Bool(orig),
+			zeek::val_mgr->Bool(orig),
 			zeek::make_intrusive<zeek::StringVal>(msg)
 		);
 	}
@@ -403,7 +403,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 					EnqueueConnEvent(
 						bt_tracker_response_not_ok,
 						ConnVal(),
-						val_mgr->Count(res_status),
+						zeek::val_mgr->Count(res_status),
 						zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_headers}
 					);
 				res_val_headers = nullptr;
@@ -480,7 +480,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 
 			auto peer = zeek::make_intrusive<zeek::RecordVal>(bittorrent_peer);
 			peer->Assign(0, zeek::make_intrusive<zeek::AddrVal>(ad));
-			peer->Assign(1, val_mgr->Port(pt, TRANSPORT_TCP));
+			peer->Assign(1, zeek::val_mgr->Port(pt, TRANSPORT_TCP));
 			res_val_peers->Assign(std::move(peer), nullptr);
 			}
 		}
@@ -499,7 +499,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	auto benc_value = zeek::make_intrusive<zeek::RecordVal>(bittorrent_benc_value);
 	auto name_ = zeek::make_intrusive<zeek::StringVal>(name_len, name);
 
-	benc_value->Assign(type, val_mgr->Int(value));
+	benc_value->Assign(type, zeek::val_mgr->Int(value));
 	res_val_benc->Assign(std::move(name_), std::move(benc_value));
 	}
 
@@ -784,7 +784,7 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 	if ( bt_tracker_response )
 		EnqueueConnEvent(bt_tracker_response,
 		                 ConnVal(),
-		                 val_mgr->Count(res_status),
+		                 zeek::val_mgr->Count(res_status),
 		                 zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_headers},
 		                 zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_peers},
 		                 zeek::IntrusivePtr{zeek::AdoptRef{}, res_val_benc}

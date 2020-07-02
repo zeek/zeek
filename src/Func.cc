@@ -345,7 +345,7 @@ zeek::ValPtr BroFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) cons
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == zeek::FUNC_FLAVOR_EVENT || Flavor() == zeek::FUNC_FLAVOR_HOOK);
-		return Flavor() == zeek::FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
+		return Flavor() == zeek::FUNC_FLAVOR_HOOK ? zeek::val_mgr->True() : nullptr;
 		}
 
 	auto f = zeek::make_intrusive<zeek::detail::Frame>(frame_size, this, args);
@@ -431,7 +431,7 @@ zeek::ValPtr BroFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) cons
 			if ( flow == FLOW_BREAK )
 				{
 				// Short-circuit execution of remaining hook handler bodies.
-				result = val_mgr->False();
+				result = zeek::val_mgr->False();
 				break;
 				}
 			}
@@ -442,7 +442,7 @@ zeek::ValPtr BroFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) cons
 	if ( Flavor() == zeek::FUNC_FLAVOR_HOOK )
 		{
 		if ( ! result )
-			result = val_mgr->True();
+			result = zeek::val_mgr->True();
 		}
 
 	// Warn if the function returns something, but we returned from

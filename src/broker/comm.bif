@@ -56,11 +56,11 @@ function Broker::__listen%(a: string, p: port%): port
 	if ( ! p->IsTCP() )
 		{
 		zeek::emit_builtin_error("listen port must use tcp");
-		return val_mgr->Port(0, TRANSPORT_UNKNOWN);
+		return zeek::val_mgr->Port(0, TRANSPORT_UNKNOWN);
 		}
 
 	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port());
-	return val_mgr->Port(rval, TRANSPORT_TCP);
+	return zeek::val_mgr->Port(rval, TRANSPORT_TCP);
 	%}
 
 function Broker::__peer%(a: string, p: port, retry: interval%): bool
@@ -70,11 +70,11 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	if ( ! p->IsTCP() )
 		{
 		zeek::emit_builtin_error("remote connection port must use tcp");
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 		}
 
 	broker_mgr->Peer(a->CheckString(), p->Port(), retry);
-	return val_mgr->True();
+	return zeek::val_mgr->True();
 	%}
 
 function Broker::__unpeer%(a: string, p: port%): bool
@@ -84,11 +84,11 @@ function Broker::__unpeer%(a: string, p: port%): bool
 	if ( ! p->IsTCP() )
 		{
 		zeek::emit_builtin_error("remote connection port must use tcp");
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 		}
 
 	broker_mgr->Unpeer(a->CheckString(), p->Port());
-	return val_mgr->True();
+	return zeek::val_mgr->True();
 	%}
 
 function Broker::__peers%(%): PeerInfos
@@ -110,12 +110,12 @@ function Broker::__peers%(%): PeerInfos
 		if ( n )
 			{
 			network_info->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(n->address)));
-			network_info->Assign(1, val_mgr->Port(n->port, TRANSPORT_TCP));
+			network_info->Assign(1, zeek::val_mgr->Port(n->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			network_info->Assign(0, zeek::make_intrusive<zeek::AddrVal>("0.0.0.0"));
-			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
+			network_info->Assign(1, zeek::val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
 		endpoint_info->Assign(0, zeek::make_intrusive<zeek::StringVal>(to_string(p.peer.node)));

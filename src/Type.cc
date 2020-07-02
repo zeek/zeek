@@ -814,7 +814,7 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		string s = container_type_name(ft.get());
 		nr->Assign(0, zeek::make_intrusive<zeek::StringVal>(s));
-		nr->Assign(1, val_mgr->Bool(logged));
+		nr->Assign(1, zeek::val_mgr->Bool(logged));
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
 		auto field_name = zeek::make_intrusive<zeek::StringVal>(FieldName(i));

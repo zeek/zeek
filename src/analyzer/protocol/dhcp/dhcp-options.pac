@@ -34,7 +34,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_time_offset_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(25, val_mgr->Int(${v.time_offset}));
+		${context.flow}->options->Assign(25, zeek::val_mgr->Int(${v.time_offset}));
 		return true;
 		%}
 };
@@ -250,7 +250,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_forwarding_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(6, val_mgr->Bool(${v.forwarding} == 0 ? false : true));
+		${context.flow}->options->Assign(6, zeek::val_mgr->Bool(${v.forwarding} == 0 ? false : true));
 
 		return true;
 		%}
@@ -469,7 +469,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_parms; ++i )
 			{
 			uint8 param = (*plist)[i];
-			params->Assign(i, val_mgr->Count(param));
+			params->Assign(i, zeek::val_mgr->Count(param));
 			}
 
 		${context.flow}->options->Assign(13, std::move(params));
@@ -521,7 +521,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_max_message_size_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(15, val_mgr->Count(${v.max_msg_size}));
+		${context.flow}->options->Assign(15, zeek::val_mgr->Count(${v.max_msg_size}));
 
 		return true;
 		%}
@@ -626,7 +626,7 @@ refine flow DHCP_Flow += {
 	function process_client_id_option(v: OptionValue): bool
 		%{
 		auto client_id = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::ClientID);
-		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
+		client_id->Assign(0, zeek::val_mgr->Count(${v.client_id.hwtype}));
 		zeek::StringValPtr sv;
 
 		if ( ${v.client_id.hwtype} == 0 )
@@ -695,9 +695,9 @@ refine flow DHCP_Flow += {
 	function process_client_fqdn_option(v: OptionValue): bool
 		%{
 		auto client_fqdn = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::ClientFQDN);
-		client_fqdn->Assign(0, val_mgr->Count(${v.client_fqdn.flags}));
-		client_fqdn->Assign(1, val_mgr->Count(${v.client_fqdn.rcode1}));
-		client_fqdn->Assign(2, val_mgr->Count(${v.client_fqdn.rcode2}));
+		client_fqdn->Assign(0, zeek::val_mgr->Count(${v.client_fqdn.flags}));
+		client_fqdn->Assign(1, zeek::val_mgr->Count(${v.client_fqdn.rcode1}));
+		client_fqdn->Assign(2, zeek::val_mgr->Count(${v.client_fqdn.rcode2}));
 		const char* domain_name = reinterpret_cast<const char*>(${v.client_fqdn.domain_name}.begin());
 		client_fqdn->Assign(3, zeek::make_intrusive<zeek::StringVal>(${v.client_fqdn.domain_name}.length(), domain_name));
 
@@ -760,7 +760,7 @@ refine flow DHCP_Flow += {
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
 			auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::SubOpt);
-			r->Assign(0, val_mgr->Count((*ptrsubopt)->code()));
+			r->Assign(0, zeek::val_mgr->Count((*ptrsubopt)->code()));
 			r->Assign(1, to_stringval((*ptrsubopt)->value()));
 
 			relay_agent_sub_opt->Assign(i, std::move(r));
@@ -790,7 +790,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_auto_config_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(23, val_mgr->Bool(${v.auto_config} == 0 ? false : true));
+		${context.flow}->options->Assign(23, zeek::val_mgr->Bool(${v.auto_config} == 0 ? false : true));
 
 		return true;
 		%}

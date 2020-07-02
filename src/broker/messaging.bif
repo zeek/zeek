@@ -110,13 +110,13 @@ function Broker::publish%(topic: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
 	%{
 	auto rval = broker_mgr->FlushLogBuffers();
-	return val_mgr->Count(static_cast<uint64_t>(rval));
+	return zeek::val_mgr->Count(static_cast<uint64_t>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
@@ -124,42 +124,42 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 module Cluster;
@@ -191,7 +191,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -200,7 +200,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 
@@ -228,7 +228,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -237,5 +237,5 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}

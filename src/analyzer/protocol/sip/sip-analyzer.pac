@@ -72,7 +72,7 @@ refine flow SIP_Flow += {
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
-			auto index = val_mgr->Count(i + 1);
+			auto index = zeek::val_mgr->Count(i + 1);
 			t->Assign(std::move(index), std::move(headers[i]));
 			}
 
@@ -114,7 +114,7 @@ refine flow SIP_Flow += {
 			}
 		else
 			{
-			name_val = val_mgr->EmptyString();
+			name_val = zeek::val_mgr->EmptyString();
 			}
 
 		header_record->Assign(0, name_val);

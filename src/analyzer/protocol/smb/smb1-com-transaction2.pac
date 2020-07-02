@@ -25,18 +25,18 @@ refine connection SMB_Conn += {
 		if ( smb1_transaction2_request )
 			{
 			auto args = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::Trans2_Args);
-			args->Assign(0, val_mgr->Count(${val.total_param_count}));
-			args->Assign(1, val_mgr->Count(${val.total_data_count}));
-			args->Assign(2, val_mgr->Count(${val.max_param_count}));
-			args->Assign(3, val_mgr->Count(${val.max_data_count}));
-			args->Assign(4, val_mgr->Count(${val.max_setup_count}));
-			args->Assign(5, val_mgr->Count(${val.flags}));
-			args->Assign(6, val_mgr->Count(${val.timeout}));
-			args->Assign(7, val_mgr->Count(${val.param_count}));
-			args->Assign(8, val_mgr->Count(${val.param_offset}));
-			args->Assign(9, val_mgr->Count(${val.data_count}));
-			args->Assign(10, val_mgr->Count(${val.data_offset}));
-			args->Assign(11, val_mgr->Count(${val.setup_count}));
+			args->Assign(0, zeek::val_mgr->Count(${val.total_param_count}));
+			args->Assign(1, zeek::val_mgr->Count(${val.total_data_count}));
+			args->Assign(2, zeek::val_mgr->Count(${val.max_param_count}));
+			args->Assign(3, zeek::val_mgr->Count(${val.max_data_count}));
+			args->Assign(4, zeek::val_mgr->Count(${val.max_setup_count}));
+			args->Assign(5, zeek::val_mgr->Count(${val.flags}));
+			args->Assign(6, zeek::val_mgr->Count(${val.timeout}));
+			args->Assign(7, zeek::val_mgr->Count(${val.param_count}));
+			args->Assign(8, zeek::val_mgr->Count(${val.param_offset}));
+			args->Assign(9, zeek::val_mgr->Count(${val.data_count}));
+			args->Assign(10, zeek::val_mgr->Count(${val.data_offset}));
+			args->Assign(11, zeek::val_mgr->Count(${val.setup_count}));
 
 			zeek::BifEvent::enqueue_smb1_transaction2_request(bro_analyzer(),
 			                                            bro_analyzer()->Conn(),
@@ -132,11 +132,11 @@ refine connection SMB_Conn += {
 		if ( smb1_trans2_find_first2_request )
 			{
 			auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::Find_First2_Request_Args);
-			result->Assign(0, val_mgr->Count(${val.search_attrs}));
-			result->Assign(1, val_mgr->Count(${val.search_count}));
-			result->Assign(2, val_mgr->Count(${val.flags}));
-			result->Assign(3, val_mgr->Count(${val.info_level}));
-			result->Assign(4, val_mgr->Count(${val.search_storage_type}));
+			result->Assign(0, zeek::val_mgr->Count(${val.search_attrs}));
+			result->Assign(1, zeek::val_mgr->Count(${val.search_count}));
+			result->Assign(2, zeek::val_mgr->Count(${val.flags}));
+			result->Assign(3, zeek::val_mgr->Count(${val.info_level}));
+			result->Assign(4, zeek::val_mgr->Count(${val.search_storage_type}));
 			result->Assign(5, smb_string2stringval(${val.file_name}));
 			zeek::BifEvent::enqueue_smb1_trans2_find_first2_request(bro_analyzer(),
 			                                                        bro_analyzer()->Conn(),

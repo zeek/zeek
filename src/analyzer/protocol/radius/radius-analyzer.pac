@@ -8,8 +8,8 @@ refine flow RADIUS_Flow += {
 			return false;
 
 		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RADIUS::Message);
-		result->Assign(0, val_mgr->Count(${msg.code}));
-		result->Assign(1, val_mgr->Count(${msg.trans_id}));
+		result->Assign(0, zeek::val_mgr->Count(${msg.code}));
+		result->Assign(1, zeek::val_mgr->Count(${msg.trans_id}));
 		result->Assign(2, to_stringval(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
@@ -18,7 +18,7 @@ refine flow RADIUS_Flow += {
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
 				{
-				auto index = val_mgr->Count(${msg.attributes[i].code});
+				auto index = zeek::val_mgr->Count(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
 				auto current = attributes->FindOrDefault(index);

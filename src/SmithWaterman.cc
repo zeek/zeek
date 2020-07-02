@@ -82,13 +82,13 @@ zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 
 				auto align_val = zeek::make_intrusive<zeek::RecordVal>(sw_align_type);
 				align_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(*align.string)));
-				align_val->Assign(1, val_mgr->Count(align.index));
+				align_val->Assign(1, zeek::val_mgr->Count(align.index));
 
 				aligns->Assign(j + 1, std::move(align_val));
 				}
 
 			st_val->Assign(1, std::move(aligns));
-			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
+			st_val->Assign(2, zeek::val_mgr->Bool(bst->IsNewAlignment()));
 			result->Assign(i + 1, std::move(st_val));
 			}
 		}

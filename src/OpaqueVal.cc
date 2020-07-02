@@ -174,7 +174,7 @@ bool HashVal::Init()
 StringValPtr HashVal::Get()
 	{
 	if ( ! valid )
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 
 	auto result = DoGet();
 	valid = false;
@@ -205,7 +205,7 @@ bool HashVal::DoFeed(const void*, size_t)
 StringValPtr HashVal::DoGet()
 	{
 	assert(! "missing implementation of DoGet()");
-	return val_mgr->EmptyString();
+	return zeek::val_mgr->EmptyString();
 	}
 
 HashVal::HashVal(zeek::OpaqueTypePtr t) : OpaqueVal(std::move(t))
@@ -280,7 +280,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 StringValPtr MD5Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
 	hash_final(ctx, digest);
@@ -400,7 +400,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 StringValPtr SHA1Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
 	hash_final(ctx, digest);
@@ -523,7 +523,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 StringValPtr SHA256Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
 	hash_final(ctx, digest);

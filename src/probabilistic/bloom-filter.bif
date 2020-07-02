@@ -174,15 +174,15 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() )
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 
 	else if ( ! same_type(bfv->Type(), x->GetType()) )
 		reporter->Error("incompatible Bloom filter types");
 
 	else
-		return val_mgr->Count(static_cast<uint64_t>(bfv->Count(x)));
+		return zeek::val_mgr->Count(static_cast<uint64_t>(bfv->Count(x)));
 
-	return val_mgr->Count(0);
+	return zeek::val_mgr->Count(0);
 	%}
 
 ## Removes all elements from a Bloom filter. This function resets all bits in

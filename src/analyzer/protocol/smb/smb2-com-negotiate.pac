@@ -25,7 +25,7 @@ refine connection SMB_Conn += {
 			auto dialects = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
-				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));
+				dialects->Assign(i, zeek::val_mgr->Count((*${val.dialects})[i]));
 
 			zeek::BifEvent::enqueue_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
 			                                         BuildSMB2HeaderVal(h),
@@ -41,12 +41,12 @@ refine connection SMB_Conn += {
 			{
 			auto nr = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::NegotiateResponse);
 
-			nr->Assign(0, val_mgr->Count(${val.dialect_revision}));
-			nr->Assign(1, val_mgr->Count(${val.security_mode}));
+			nr->Assign(0, zeek::val_mgr->Count(${val.dialect_revision}));
+			nr->Assign(1, zeek::val_mgr->Count(${val.security_mode}));
 			nr->Assign(2, BuildSMB2GUID(${val.server_guid}));
 			nr->Assign(3, filetime2brotime(${val.system_time}));
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));
-			nr->Assign(5, val_mgr->Count(${val.negotiate_context_count}));
+			nr->Assign(5, zeek::val_mgr->Count(${val.negotiate_context_count}));
 
 			auto cv = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::SMB2::NegotiateContextValues);
 

@@ -435,7 +435,7 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 
 	const auto& tagval = tag.AsVal();
 
-	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), val_mgr->Bool(is_orig));
+	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), zeek::val_mgr->Bool(is_orig));
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
 	}
@@ -445,7 +445,7 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	if ( ! disabled )
 		disabled = zeek::id::find_const("Files::disable")->AsTableVal();
 
-	auto index = val_mgr->Count(bool(tag));
+	auto index = zeek::val_mgr->Count(bool(tag));
 	auto yield = disabled->FindOrDefault(index);
 
 	if ( ! yield )
@@ -531,7 +531,7 @@ zeek::VectorValPtr file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matc
 		for ( set<string>::const_iterator it2 = it->second.begin();
 		      it2 != it->second.end(); ++it2 )
 			{
-			element->Assign(0, val_mgr->Int(it->first));
+			element->Assign(0, zeek::val_mgr->Int(it->first));
 			element->Assign(1, zeek::make_intrusive<zeek::StringVal>(*it2));
 			}
 

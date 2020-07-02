@@ -1259,14 +1259,14 @@ void Manager::ProcessStatus(broker::status stat)
 		if ( ctx->network )
 			{
 			network_info->Assign(0, zeek::make_intrusive<zeek::StringVal>(ctx->network->address.data()));
-			network_info->Assign(1, val_mgr->Port(ctx->network->port, TRANSPORT_TCP));
+			network_info->Assign(1, zeek::val_mgr->Port(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
 			network_info->Assign(0, zeek::make_intrusive<zeek::StringVal>("<unknown>"));
-			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
+			network_info->Assign(1, zeek::val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
 		endpoint_info->Assign(1, std::move(network_info));

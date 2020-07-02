@@ -46,7 +46,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	mgr.Enqueue(chunk_event,
 	            GetFile()->ToVal(),
 	            zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data, len, false)),
-	            val_mgr->Count(offset)
+	            zeek::val_mgr->Count(offset)
 	);
 
 	return true;

@@ -24,7 +24,7 @@ public:
 	zeek::StringValPtr GetAuthenticationInfo(const zeek::BroString* principal,
 	                                         const zeek::BroString* ciphertext,
 	                                         const bro_uint_t enctype)
-		{ return val_mgr->EmptyString(); }
+		{ return zeek::val_mgr->EmptyString(); }
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }

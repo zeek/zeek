@@ -26,7 +26,7 @@ refine flow MQTT_Flow += {
 				{
 				auto subscribe_topic = zeek::make_intrusive<zeek::StringVal>(${topic.name.str}.length(),
 				                                     reinterpret_cast<const char*>(${topic.name.str}.begin()));
-				auto qos = val_mgr->Count(${topic.requested_QoS});
+				auto qos = zeek::val_mgr->Count(${topic.requested_QoS});
 				topics->Assign(topics->Size(), std::move(subscribe_topic));
 				qos_levels->Assign(qos_levels->Size(), std::move(qos));
 				}

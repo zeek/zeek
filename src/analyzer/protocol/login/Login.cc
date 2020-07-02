@@ -432,7 +432,7 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 		ConnVal(),
 		zeek::IntrusivePtr{zeek::NewRef{}, username},
 		client_name ? zeek::IntrusivePtr{zeek::NewRef{}, client_name}
-		            : val_mgr->EmptyString(),
+		            : zeek::val_mgr->EmptyString(),
 		zeek::IntrusivePtr{zeek::AdoptRef{}, password},
 		zeek::make_intrusive<zeek::StringVal>(line)
 	);
@@ -602,7 +602,7 @@ zeek::Val* Login_Analyzer::PopUserTextVal()
 	if ( s )
 		return new zeek::StringVal(new zeek::BroString(true, zeek::byte_vec(s), strlen(s)));
 	else
-		return val_mgr->EmptyString()->Ref();
+		return zeek::val_mgr->EmptyString()->Ref();
 	}
 
 bool Login_Analyzer::MatchesTypeahead(const char* line) const

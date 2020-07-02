@@ -440,7 +440,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			{
 			static auto tcp_content_delivery_ports_orig = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_orig");
 			static auto tcp_content_delivery_ports_resp = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_resp");
-			const auto& dport = val_mgr->Port(ntohs(conn->RespPort()), TRANSPORT_TCP);
+			const auto& dport = zeek::val_mgr->Port(ntohs(conn->RespPort()), TRANSPORT_TCP);
 
 			if ( ! reass )
 				reass = (bool)tcp_content_delivery_ports_orig->FindOrDefault(dport);

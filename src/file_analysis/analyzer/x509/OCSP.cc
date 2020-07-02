@@ -80,10 +80,10 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 	if ( ! res )
 		{
 		reporter->Weird("OpenSSL failed to get OCSP_CERTID info");
-		vl->emplace_back(val_mgr->EmptyString());
-		vl->emplace_back(val_mgr->EmptyString());
-		vl->emplace_back(val_mgr->EmptyString());
-		vl->emplace_back(val_mgr->EmptyString());
+		vl->emplace_back(zeek::val_mgr->EmptyString());
+		vl->emplace_back(zeek::val_mgr->EmptyString());
+		vl->emplace_back(zeek::val_mgr->EmptyString());
+		vl->emplace_back(zeek::val_mgr->EmptyString());
 		return false;
 		}
 
@@ -219,7 +219,7 @@ static zeek::StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
@@ -228,13 +228,13 @@ static zeek::StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	auto constexpr sig_alg_idx = 1u;
@@ -243,7 +243,7 @@ static zeek::StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	if ( ASN1_TYPE_get(aseq_type) != V_ASN1_SEQUENCE )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	auto aseq_str = aseq_type->value.asn1_string;
@@ -255,13 +255,13 @@ static zeek::StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	if ( ! aseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(aseq) < 1 )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	auto constexpr alg_obj_idx = 0u;
@@ -270,7 +270,7 @@ static zeek::StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	if ( ASN1_TYPE_get(alg_obj_type) != V_ASN1_OBJECT )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	auto alg_obj = alg_obj_type->value.object;
@@ -291,7 +291,7 @@ static zeek::ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return val_mgr->Count(-1);
+		return zeek::val_mgr->Count(-1);
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
@@ -300,13 +300,13 @@ static zeek::ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->Count(-1);
+		return zeek::val_mgr->Count(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->Count(-1);
+		return zeek::val_mgr->Count(-1);
 		}
 
 	auto constexpr resp_data_idx = 0u;
@@ -315,7 +315,7 @@ static zeek::ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ASN1_TYPE_get(dseq_type) != V_ASN1_SEQUENCE )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->Count(-1);
+		return zeek::val_mgr->Count(-1);
 		}
 
 	auto dseq_str = dseq_type->value.asn1_string;
@@ -327,13 +327,13 @@ static zeek::ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ! dseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->Count(-1);
+		return zeek::val_mgr->Count(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(dseq) < 1 )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->Count(-1);
+		return zeek::val_mgr->Count(-1);
 		}
 
 /*-  ResponseData ::= SEQUENCE {
@@ -351,12 +351,12 @@ static zeek::ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 		{
 		OPENSSL_free(der_basic_resp_dat);
 		// Not present, use default value.
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
 	OPENSSL_free(der_basic_resp_dat);
-	return val_mgr->Count(asn1_int);
+	return zeek::val_mgr->Count(asn1_int);
 	}
 
 static uint64_t parse_request_version(OCSP_REQUEST* req)
@@ -417,7 +417,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	if ( ocsp_request )
 		mgr.Enqueue(ocsp_request,
 			GetFile()->ToVal(),
-			val_mgr->Count(version)
+			zeek::val_mgr->Count(version)
 		);
 
 	BIO *bio = BIO_new(BIO_s_mem());
@@ -492,7 +492,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	vl.emplace_back(std::move(status_val));
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-	vl.emplace_back(val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
+	vl.emplace_back(zeek::val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
 #else
 	vl.emplace_back(parse_basic_resp_data_version(basic_resp));
 #endif
@@ -507,7 +507,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	else
 		{
 		reporter->Weird("OpenSSL failed to get OCSP responder id");
-		vl.emplace_back(val_mgr->EmptyString());
+		vl.emplace_back(zeek::val_mgr->EmptyString());
 		}
 
 	// producedAt

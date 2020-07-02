@@ -20,10 +20,10 @@
 	zeek::RecordValPtr build_version_record(NTLM_Version* val)
 		{
 		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTLM::Version);
-		result->Assign(0, val_mgr->Count(${val.major_version}));
-		result->Assign(1, val_mgr->Count(${val.minor_version}));
-		result->Assign(2, val_mgr->Count(${val.build_number}));
-		result->Assign(3, val_mgr->Count(${val.ntlm_revision}));
+		result->Assign(0, zeek::val_mgr->Count(${val.major_version}));
+		result->Assign(1, zeek::val_mgr->Count(${val.minor_version}));
+		result->Assign(2, zeek::val_mgr->Count(${val.build_number}));
+		result->Assign(3, zeek::val_mgr->Count(${val.ntlm_revision}));
 
 		return result;
 		}
@@ -31,28 +31,28 @@
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
 		{
 		auto flags = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
-		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
-		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
-		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
-		flags->Assign(3, val_mgr->Bool(${val.negotiate_version}));
-		flags->Assign(4, val_mgr->Bool(${val.negotiate_target_info}));
-		flags->Assign(5, val_mgr->Bool(${val.request_non_nt_session_key}));
-		flags->Assign(6, val_mgr->Bool(${val.negotiate_identify}));
-		flags->Assign(7, val_mgr->Bool(${val.negotiate_extended_sessionsecurity}));
-		flags->Assign(8, val_mgr->Bool(${val.target_type_server}));
-		flags->Assign(9, val_mgr->Bool(${val.target_type_domain}));
-		flags->Assign(10, val_mgr->Bool(${val.negotiate_always_sign}));
-		flags->Assign(11, val_mgr->Bool(${val.negotiate_oem_workstation_supplied}));
-		flags->Assign(12, val_mgr->Bool(${val.negotiate_oem_domain_supplied}));
-		flags->Assign(13, val_mgr->Bool(${val.negotiate_anonymous_connection}));
-		flags->Assign(14, val_mgr->Bool(${val.negotiate_ntlm}));
-		flags->Assign(15, val_mgr->Bool(${val.negotiate_lm_key}));
-		flags->Assign(16, val_mgr->Bool(${val.negotiate_datagram}));
-		flags->Assign(17, val_mgr->Bool(${val.negotiate_seal}));
-		flags->Assign(18, val_mgr->Bool(${val.negotiate_sign}));
-		flags->Assign(19, val_mgr->Bool(${val.request_target}));
-		flags->Assign(20, val_mgr->Bool(${val.negotiate_oem}));
-		flags->Assign(21, val_mgr->Bool(${val.negotiate_unicode}));
+		flags->Assign(0, zeek::val_mgr->Bool(${val.negotiate_56}));
+		flags->Assign(1, zeek::val_mgr->Bool(${val.negotiate_key_exch}));
+		flags->Assign(2, zeek::val_mgr->Bool(${val.negotiate_128}));
+		flags->Assign(3, zeek::val_mgr->Bool(${val.negotiate_version}));
+		flags->Assign(4, zeek::val_mgr->Bool(${val.negotiate_target_info}));
+		flags->Assign(5, zeek::val_mgr->Bool(${val.request_non_nt_session_key}));
+		flags->Assign(6, zeek::val_mgr->Bool(${val.negotiate_identify}));
+		flags->Assign(7, zeek::val_mgr->Bool(${val.negotiate_extended_sessionsecurity}));
+		flags->Assign(8, zeek::val_mgr->Bool(${val.target_type_server}));
+		flags->Assign(9, zeek::val_mgr->Bool(${val.target_type_domain}));
+		flags->Assign(10, zeek::val_mgr->Bool(${val.negotiate_always_sign}));
+		flags->Assign(11, zeek::val_mgr->Bool(${val.negotiate_oem_workstation_supplied}));
+		flags->Assign(12, zeek::val_mgr->Bool(${val.negotiate_oem_domain_supplied}));
+		flags->Assign(13, zeek::val_mgr->Bool(${val.negotiate_anonymous_connection}));
+		flags->Assign(14, zeek::val_mgr->Bool(${val.negotiate_ntlm}));
+		flags->Assign(15, zeek::val_mgr->Bool(${val.negotiate_lm_key}));
+		flags->Assign(16, zeek::val_mgr->Bool(${val.negotiate_datagram}));
+		flags->Assign(17, zeek::val_mgr->Bool(${val.negotiate_seal}));
+		flags->Assign(18, zeek::val_mgr->Bool(${val.negotiate_sign}));
+		flags->Assign(19, zeek::val_mgr->Bool(${val.request_target}));
+		flags->Assign(20, zeek::val_mgr->Bool(${val.negotiate_oem}));
+		flags->Assign(21, zeek::val_mgr->Bool(${val.negotiate_unicode}));
 
 		return flags;
 		}
@@ -96,13 +96,13 @@ refine connection NTLM_Conn += {
 					result->Assign(4, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
-					result->Assign(5, val_mgr->Bool(${val.pairs[i].constrained_auth}));
+					result->Assign(5, zeek::val_mgr->Bool(${val.pairs[i].constrained_auth}));
 					break;
 				case 7:
 					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
 					break;
 				case 8:
-					result->Assign(7, val_mgr->Count(${val.pairs[i].single_host.machine_id}));
+					result->Assign(7, zeek::val_mgr->Count(${val.pairs[i].single_host.machine_id}));
 					break;
 				case 9:
 					result->Assign(8, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));

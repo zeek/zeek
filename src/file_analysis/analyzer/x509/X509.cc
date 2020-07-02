@@ -123,7 +123,7 @@ zeek::RecordValPtr file_analysis::X509::ParseCertificate(X509Val* cert_val, File
 	auto pX509Cert = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, zeek::val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, zeek::make_intrusive<zeek::StringVal>(len, buf));
@@ -231,7 +231,7 @@ zeek::RecordValPtr file_analysis::X509::ParseCertificate(X509Val* cert_val, File
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(10, val_mgr->Count(length));
+			pX509Cert->Assign(10, zeek::val_mgr->Count(length));
 
 		EVP_PKEY_free(pkey);
 		}
@@ -291,10 +291,10 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		if ( x509_ext_basic_constraints )
 			{
 			auto pBasicConstraint = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::BasicConstraints);
-			pBasicConstraint->Assign(0, val_mgr->Bool(constr->ca));
+			pBasicConstraint->Assign(0, zeek::val_mgr->Bool(constr->ca));
 
 			if ( constr->pathlen )
-				pBasicConstraint->Assign(1, val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+				pBasicConstraint->Assign(1, zeek::val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
 			mgr.Enqueue(x509_ext_basic_constraints,
 				GetFile()->ToVal(),
@@ -435,7 +435,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		if ( ips != nullptr )
 			sanExt->Assign(3, ips);
 
-		sanExt->Assign(4, val_mgr->Bool(otherfields));
+		sanExt->Assign(4, zeek::val_mgr->Bool(otherfields));
 
 		mgr.Enqueue(x509_ext_subject_alternative_name,
 		            GetFile()->ToVal(),

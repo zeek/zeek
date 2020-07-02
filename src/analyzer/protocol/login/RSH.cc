@@ -190,9 +190,9 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl.emplace_back(val_mgr->True());
+			vl.emplace_back(zeek::val_mgr->True());
 		else
-			vl.emplace_back(val_mgr->False());
+			vl.emplace_back(zeek::val_mgr->False());
 
 		EnqueueConnEvent(rsh_request, std::move(vl));
 		}

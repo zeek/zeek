@@ -277,7 +277,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 		pX509Ext->Assign(1, zeek::make_intrusive<zeek::StringVal>(short_name));
 
 	pX509Ext->Assign(2, zeek::make_intrusive<zeek::StringVal>(oid));
-	pX509Ext->Assign(3, val_mgr->Bool(critical));
+	pX509Ext->Assign(3, zeek::val_mgr->Bool(critical));
 	pX509Ext->Assign(4, ext_val);
 
 	// send off generic extension event
@@ -290,7 +290,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	if ( h == ocsp_extension )
 		mgr.Enqueue(h, GetFile()->ToVal(),
 					std::move(pX509Ext),
-					val_mgr->Bool(global));
+					zeek::val_mgr->Bool(global));
 	else
 		mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
 
@@ -316,7 +316,7 @@ zeek::StringValPtr file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return val_mgr->EmptyString();
+		return zeek::val_mgr->EmptyString();
 		}
 
 	char* buffer = (char*) malloc(length);

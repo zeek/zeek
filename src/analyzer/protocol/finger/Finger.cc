@@ -69,7 +69,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( finger_request )
 			EnqueueConnEvent(finger_request,
 				ConnVal(),
-				val_mgr->Bool(long_cnt),
+				zeek::val_mgr->Bool(long_cnt),
 				zeek::make_intrusive<zeek::StringVal>(at - line, line),
 				zeek::make_intrusive<zeek::StringVal>(end_of_line - host, host)
 			);

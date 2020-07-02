@@ -229,11 +229,11 @@ zeek::RecordValPtr ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len
 
 		icmp_conn_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(Conn()->OrigAddr()));
 		icmp_conn_val->Assign(1, zeek::make_intrusive<zeek::AddrVal>(Conn()->RespAddr()));
-		icmp_conn_val->Assign(2, val_mgr->Count(icmpp->icmp_type));
-		icmp_conn_val->Assign(3, val_mgr->Count(icmpp->icmp_code));
-		icmp_conn_val->Assign(4, val_mgr->Count(len));
-		icmp_conn_val->Assign(5, val_mgr->Count(ip_hdr->TTL()));
-		icmp_conn_val->Assign(6, val_mgr->Bool(icmpv6));
+		icmp_conn_val->Assign(2, zeek::val_mgr->Count(icmpp->icmp_type));
+		icmp_conn_val->Assign(3, zeek::val_mgr->Count(icmpp->icmp_code));
+		icmp_conn_val->Assign(4, zeek::val_mgr->Count(len));
+		icmp_conn_val->Assign(5, zeek::val_mgr->Count(ip_hdr->TTL()));
+		icmp_conn_val->Assign(6, zeek::val_mgr->Bool(icmpv6));
 		}
 
 	return icmp_conn_val;
@@ -355,18 +355,18 @@ zeek::RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& da
 	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
 
 	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(src_addr));
-	id_val->Assign(1, val_mgr->Port(src_port, proto));
+	id_val->Assign(1, zeek::val_mgr->Port(src_port, proto));
 	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>(dst_addr));
-	id_val->Assign(3, val_mgr->Port(dst_port, proto));
+	id_val->Assign(3, zeek::val_mgr->Port(dst_port, proto));
 
 	iprec->Assign(0, std::move(id_val));
-	iprec->Assign(1, val_mgr->Count(ip_len));
-	iprec->Assign(2, val_mgr->Count(proto));
-	iprec->Assign(3, val_mgr->Count(frag_offset));
-	iprec->Assign(4, val_mgr->Bool(bad_hdr_len));
-	iprec->Assign(5, val_mgr->Bool(bad_checksum));
-	iprec->Assign(6, val_mgr->Bool(MF));
-	iprec->Assign(7, val_mgr->Bool(DF));
+	iprec->Assign(1, zeek::val_mgr->Count(ip_len));
+	iprec->Assign(2, zeek::val_mgr->Count(proto));
+	iprec->Assign(3, zeek::val_mgr->Count(frag_offset));
+	iprec->Assign(4, zeek::val_mgr->Bool(bad_hdr_len));
+	iprec->Assign(5, zeek::val_mgr->Bool(bad_checksum));
+	iprec->Assign(6, zeek::val_mgr->Bool(MF));
+	iprec->Assign(7, zeek::val_mgr->Bool(DF));
 
 	return iprec;
 	}
@@ -415,19 +415,19 @@ zeek::RecordValPtr ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& da
 	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
 
 	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(src_addr));
-	id_val->Assign(1, val_mgr->Port(src_port, proto));
+	id_val->Assign(1, zeek::val_mgr->Port(src_port, proto));
 	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>(dst_addr));
-	id_val->Assign(3, val_mgr->Port(dst_port, proto));
+	id_val->Assign(3, zeek::val_mgr->Port(dst_port, proto));
 
 	iprec->Assign(0, std::move(id_val));
-	iprec->Assign(1, val_mgr->Count(ip_len));
-	iprec->Assign(2, val_mgr->Count(proto));
-	iprec->Assign(3, val_mgr->Count(frag_offset));
-	iprec->Assign(4, val_mgr->Bool(bad_hdr_len));
+	iprec->Assign(1, zeek::val_mgr->Count(ip_len));
+	iprec->Assign(2, zeek::val_mgr->Count(proto));
+	iprec->Assign(3, zeek::val_mgr->Count(frag_offset));
+	iprec->Assign(4, zeek::val_mgr->Bool(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
-	iprec->Assign(5, val_mgr->False());
-	iprec->Assign(6, val_mgr->Bool(MF));
-	iprec->Assign(7, val_mgr->Bool(DF));
+	iprec->Assign(5, zeek::val_mgr->False());
+	iprec->Assign(6, zeek::val_mgr->Bool(MF));
+	iprec->Assign(7, zeek::val_mgr->Bool(DF));
 
 	return iprec;
 	}
@@ -477,14 +477,14 @@ void ICMP_Analyzer::UpdateEndpointVal(const zeek::ValPtr& endp_arg, bool is_orig
 
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, val_mgr->Count(int(ICMP_INACTIVE)));
+		endp->Assign(0, zeek::val_mgr->Count(0));
+		endp->Assign(1, zeek::val_mgr->Count(int(ICMP_INACTIVE)));
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->Count(size));
-		endp->Assign(1, val_mgr->Count(int(ICMP_ACTIVE)));
+		endp->Assign(0, zeek::val_mgr->Count(size));
+		endp->Assign(1, zeek::val_mgr->Count(int(ICMP_ACTIVE)));
 		}
 	}
 
@@ -520,8 +520,8 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
-		val_mgr->Count(iid),
-		val_mgr->Count(iseq),
+		zeek::val_mgr->Count(iid),
+		zeek::val_mgr->Count(iseq),
 		zeek::make_intrusive<zeek::StringVal>(payload)
 	);
 	}
@@ -548,13 +548,13 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
-		val_mgr->Count(icmpp->icmp_num_addrs), // Cur Hop Limit
-		val_mgr->Bool(icmpp->icmp_wpa & 0x80), // Managed
-		val_mgr->Bool(icmpp->icmp_wpa & 0x40), // Other
-		val_mgr->Bool(icmpp->icmp_wpa & 0x20), // Home Agent
-		val_mgr->Count((icmpp->icmp_wpa & 0x18)>>3), // Pref
-		val_mgr->Bool(icmpp->icmp_wpa & 0x04), // Proxy
-		val_mgr->Count(icmpp->icmp_wpa & 0x02), // Reserved
+		zeek::val_mgr->Count(icmpp->icmp_num_addrs), // Cur Hop Limit
+		zeek::val_mgr->Bool(icmpp->icmp_wpa & 0x80), // Managed
+		zeek::val_mgr->Bool(icmpp->icmp_wpa & 0x40), // Other
+		zeek::val_mgr->Bool(icmpp->icmp_wpa & 0x20), // Home Agent
+		zeek::val_mgr->Count((icmpp->icmp_wpa & 0x18)>>3), // Pref
+		zeek::val_mgr->Bool(icmpp->icmp_wpa & 0x04), // Proxy
+		zeek::val_mgr->Count(icmpp->icmp_wpa & 0x02), // Reserved
 		zeek::make_intrusive<zeek::IntervalVal>((double)ntohs(icmpp->icmp_lifetime), Seconds),
 		zeek::make_intrusive<zeek::IntervalVal>((double)ntohl(reachable), Milliseconds),
 		zeek::make_intrusive<zeek::IntervalVal>((double)ntohl(retrans), Milliseconds),
@@ -581,9 +581,9 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
-		val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
-		val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
-		val_mgr->Bool(icmpp->icmp_num_addrs & 0x20), // Override
+		zeek::val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
+		zeek::val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
+		zeek::val_mgr->Bool(icmpp->icmp_num_addrs & 0x20), // Override
 		zeek::make_intrusive<zeek::AddrVal>(tgtaddr),
 		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset)
 	);
@@ -678,7 +678,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		EnqueueConnEvent(f,
 			ConnVal(),
 			BuildICMPVal(icmpp, len, 0, ip_hdr),
-			val_mgr->Count(icmpp->icmp_code),
+			zeek::val_mgr->Count(icmpp->icmp_code),
 			ExtractICMP4Context(caplen, data)
 		);
 	}
@@ -716,7 +716,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		EnqueueConnEvent(f,
 			ConnVal(),
 			BuildICMPVal(icmpp, len, 1, ip_hdr),
-			val_mgr->Count(icmpp->icmp_code),
+			zeek::val_mgr->Count(icmpp->icmp_code),
 			ExtractICMP6Context(caplen, data)
 		);
 	}
@@ -748,8 +748,8 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 			}
 
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(icmp6_nd_option_type);
-		rv->Assign(0, val_mgr->Count(type));
-		rv->Assign(1, val_mgr->Count(length));
+		rv->Assign(0, zeek::val_mgr->Count(type));
+		rv->Assign(1, zeek::val_mgr->Count(length));
 
 		// Adjust length to be in units of bytes, exclude type/length fields.
 		length = length * 8 - 2;
@@ -788,9 +788,9 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 				uint32_t valid_life = *((const uint32_t*)(data + 2));
 				uint32_t prefer_life = *((const uint32_t*)(data + 6));
 				in6_addr prefix = *((const in6_addr*)(data + 14));
-				info->Assign(0, val_mgr->Count(prefix_len));
-				info->Assign(1, val_mgr->Bool(L_flag));
-				info->Assign(2, val_mgr->Bool(A_flag));
+				info->Assign(0, zeek::val_mgr->Count(prefix_len));
+				info->Assign(1, zeek::val_mgr->Bool(L_flag));
+				info->Assign(2, zeek::val_mgr->Bool(A_flag));
 				info->Assign(3, zeek::make_intrusive<zeek::IntervalVal>((double)ntohl(valid_life), Seconds));
 				info->Assign(4, zeek::make_intrusive<zeek::IntervalVal>((double)ntohl(prefer_life), Seconds));
 				info->Assign(5, zeek::make_intrusive<zeek::AddrVal>(IPAddr(prefix)));
@@ -821,7 +821,7 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 			// MTU option
 			{
 			if ( caplen >= 6 )
-				rv->Assign(5, val_mgr->Count(ntohl(*((const uint32_t*)(data + 2)))));
+				rv->Assign(5, zeek::val_mgr->Count(ntohl(*((const uint32_t*)(data + 2)))));
 			else
 				set_payload_field = true;
 

@@ -6,14 +6,14 @@ refine connection SMB_Conn += {
 		return false;
 
 	auto args = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB1::Trans_Sec_Args);
-	args->Assign(0, val_mgr->Count(${val.total_param_count}));
-	args->Assign(1, val_mgr->Count(${val.total_data_count}));
-	args->Assign(2, val_mgr->Count(${val.param_count}));
-	args->Assign(3, val_mgr->Count(${val.param_offset}));
-	args->Assign(4, val_mgr->Count(${val.param_displacement}));
-	args->Assign(5, val_mgr->Count(${val.data_count}));
-	args->Assign(6, val_mgr->Count(${val.data_offset}));
-	args->Assign(7, val_mgr->Count(${val.data_displacement}));
+	args->Assign(0, zeek::val_mgr->Count(${val.total_param_count}));
+	args->Assign(1, zeek::val_mgr->Count(${val.total_data_count}));
+	args->Assign(2, zeek::val_mgr->Count(${val.param_count}));
+	args->Assign(3, zeek::val_mgr->Count(${val.param_offset}));
+	args->Assign(4, zeek::val_mgr->Count(${val.param_displacement}));
+	args->Assign(5, zeek::val_mgr->Count(${val.data_count}));
+	args->Assign(6, zeek::val_mgr->Count(${val.data_offset}));
+	args->Assign(7, zeek::val_mgr->Count(${val.data_displacement}));
 
 	auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(),
 	                                            (const char*)${val.parameters}.data());
@@ -42,7 +42,7 @@ refine connection SMB_Conn += {
 
 	if ( ! payload_str )
 		{
-		payload_str = val_mgr->EmptyString();
+		payload_str = zeek::val_mgr->EmptyString();
 		}
 
 	zeek::BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),

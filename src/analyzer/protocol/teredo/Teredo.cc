@@ -115,8 +115,8 @@ zeek::RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		    new zeek::BroString(auth + 4, id_len, true)));
 		teredo_auth->Assign(1, zeek::make_intrusive<zeek::StringVal>(
 		    new zeek::BroString(auth + 4 + id_len, au_len, true)));
-		teredo_auth->Assign(2, val_mgr->Count(nonce));
-		teredo_auth->Assign(3, val_mgr->Count(conf));
+		teredo_auth->Assign(2, zeek::val_mgr->Count(nonce));
+		teredo_auth->Assign(3, zeek::val_mgr->Count(conf));
 		teredo_hdr->Assign(0, std::move(teredo_auth));
 		}
 
@@ -125,7 +125,7 @@ zeek::RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		auto teredo_origin = zeek::make_intrusive<zeek::RecordVal>(teredo_origin_type);
 		uint16_t port = ntohs(*((uint16_t*)(origin_indication + 2))) ^ 0xFFFF;
 		uint32_t addr = ntohl(*((uint32_t*)(origin_indication + 4))) ^ 0xFFFFFFFF;
-		teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
+		teredo_origin->Assign(0, zeek::val_mgr->Port(port, TRANSPORT_UDP));
 		teredo_origin->Assign(1, zeek::make_intrusive<zeek::AddrVal>(htonl(addr)));
 		teredo_hdr->Assign(1, std::move(teredo_origin));
 		}

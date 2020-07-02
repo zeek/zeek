@@ -50,9 +50,9 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	if ( dns_message )
 		analyzer->EnqueueConnEvent(dns_message,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_query),
+			zeek::val_mgr->Bool(is_query),
 			msg.BuildHdrVal(),
-			val_mgr->Count(len)
+			zeek::val_mgr->Count(len)
 		);
 
 	// There is a great deal of non-DNS traffic that runs on port 53.
@@ -606,7 +606,7 @@ bool DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 		auto r = zeek::make_intrusive<zeek::RecordVal>(dns_soa);
 		r->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(mname, mname_end - mname, true)));
 		r->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(rname, rname_end - rname, true)));
-		r->Assign(2, val_mgr->Count(serial));
+		r->Assign(2, zeek::val_mgr->Count(serial));
 		r->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(double(refresh), Seconds));
 		r->Assign(4, zeek::make_intrusive<zeek::IntervalVal>(double(retry), Seconds));
 		r->Assign(5, zeek::make_intrusive<zeek::IntervalVal>(double(expire), Seconds));
@@ -647,7 +647,7 @@ bool DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(name, name_end - name, true)),
-			val_mgr->Count(preference)
+			zeek::val_mgr->Count(preference)
 		);
 
 	return true;
@@ -688,9 +688,9 @@ bool DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(name, name_end - name, true)),
-			val_mgr->Count(priority),
-			val_mgr->Count(weight),
-			val_mgr->Count(port)
+			zeek::val_mgr->Count(priority),
+			zeek::val_mgr->Count(weight),
+			zeek::val_mgr->Count(port)
 		);
 
 	return true;
@@ -1379,7 +1379,7 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 			analyzer->ConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
-			val_mgr->Count(flags),
+			zeek::val_mgr->Count(flags),
 			zeek::make_intrusive<zeek::StringVal>(tag),
 			zeek::make_intrusive<zeek::StringVal>(value)
 		);
@@ -1408,8 +1408,8 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 		analyzer->ConnVal(),
 		msg->BuildHdrVal(),
 		zeek::make_intrusive<zeek::StringVal>(question_name),
-		val_mgr->Count(qtype),
-		val_mgr->Count(qclass),
+		zeek::val_mgr->Count(qtype),
+		zeek::val_mgr->Count(qclass),
 		zeek::make_intrusive<zeek::StringVal>(original_name)
 	);
 	}
@@ -1451,19 +1451,19 @@ zeek::RecordValPtr DNS_MsgInfo::BuildHdrVal()
 	static auto dns_msg = zeek::id::find_type<zeek::RecordType>("dns_msg");
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_msg);
 
-	r->Assign(0, val_mgr->Count(id));
-	r->Assign(1, val_mgr->Count(opcode));
-	r->Assign(2, val_mgr->Count(rcode));
-	r->Assign(3, val_mgr->Bool(QR));
-	r->Assign(4, val_mgr->Bool(AA));
-	r->Assign(5, val_mgr->Bool(TC));
-	r->Assign(6, val_mgr->Bool(RD));
-	r->Assign(7, val_mgr->Bool(RA));
-	r->Assign(8, val_mgr->Count(Z));
-	r->Assign(9, val_mgr->Count(qdcount));
-	r->Assign(10, val_mgr->Count(ancount));
-	r->Assign(11, val_mgr->Count(nscount));
-	r->Assign(12, val_mgr->Count(arcount));
+	r->Assign(0, zeek::val_mgr->Count(id));
+	r->Assign(1, zeek::val_mgr->Count(opcode));
+	r->Assign(2, zeek::val_mgr->Count(rcode));
+	r->Assign(3, zeek::val_mgr->Bool(QR));
+	r->Assign(4, zeek::val_mgr->Bool(AA));
+	r->Assign(5, zeek::val_mgr->Bool(TC));
+	r->Assign(6, zeek::val_mgr->Bool(RD));
+	r->Assign(7, zeek::val_mgr->Bool(RA));
+	r->Assign(8, zeek::val_mgr->Count(Z));
+	r->Assign(9, zeek::val_mgr->Count(qdcount));
+	r->Assign(10, zeek::val_mgr->Count(ancount));
+	r->Assign(11, zeek::val_mgr->Count(nscount));
+	r->Assign(12, zeek::val_mgr->Count(arcount));
 
 	return r;
 	}
@@ -1473,10 +1473,10 @@ zeek::RecordValPtr DNS_MsgInfo::BuildAnswerVal()
 	static auto dns_answer = zeek::id::find_type<zeek::RecordType>("dns_answer");
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_answer);
 
-	r->Assign(0, val_mgr->Count(int(answer_type)));
+	r->Assign(0, zeek::val_mgr->Count(int(answer_type)));
 	r->Assign(1, query_name);
-	r->Assign(2, val_mgr->Count(atype));
-	r->Assign(3, val_mgr->Count(aclass));
+	r->Assign(2, zeek::val_mgr->Count(atype));
+	r->Assign(3, zeek::val_mgr->Count(aclass));
 	r->Assign(4, zeek::make_intrusive<zeek::IntervalVal>(double(ttl), Seconds));
 
 	return r;
@@ -1489,14 +1489,14 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 	static auto dns_edns_additional = zeek::id::find_type<zeek::RecordType>("dns_edns_additional");
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_edns_additional);
 
-	r->Assign(0, val_mgr->Count(int(answer_type)));
+	r->Assign(0, zeek::val_mgr->Count(int(answer_type)));
 	r->Assign(1, query_name);
 
 	// type = 0x29 or 41 = EDNS
-	r->Assign(2, val_mgr->Count(atype));
+	r->Assign(2, zeek::val_mgr->Count(atype));
 
 	// sender's UDP payload size, per RFC 2671 4.3
-	r->Assign(3, val_mgr->Count(aclass));
+	r->Assign(3, zeek::val_mgr->Count(aclass));
 
 	// Need to break the TTL field into three components:
 	// initial: [------------- ttl (32) ---------------------]
@@ -1509,11 +1509,11 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 
 	unsigned int return_error = (ercode << 8) | rcode;
 
-	r->Assign(4, val_mgr->Count(return_error));
-	r->Assign(5, val_mgr->Count(version));
-	r->Assign(6, val_mgr->Count(z));
+	r->Assign(4, zeek::val_mgr->Count(return_error));
+	r->Assign(5, zeek::val_mgr->Count(version));
+	r->Assign(6, zeek::val_mgr->Count(z));
 	r->Assign(7, zeek::make_intrusive<zeek::IntervalVal>(double(ttl), Seconds));
-	r->Assign(8, val_mgr->Count(is_query));
+	r->Assign(8, zeek::val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1524,16 +1524,16 @@ zeek::RecordValPtr DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_tsig_additional);
 	double rtime = tsig->time_s + tsig->time_ms / 1000.0;
 
-	// r->Assign(0, val_mgr->Count(int(answer_type)));
+	// r->Assign(0, zeek::val_mgr->Count(int(answer_type)));
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(1, zeek::val_mgr->Count(int(answer_type)));
 	r->Assign(2, zeek::make_intrusive<zeek::StringVal>(tsig->alg_name));
 	r->Assign(3, zeek::make_intrusive<zeek::StringVal>(tsig->sig));
 	r->Assign(4, zeek::make_intrusive<zeek::TimeVal>(rtime));
 	r->Assign(5, zeek::make_intrusive<zeek::TimeVal>(double(tsig->fudge)));
-	r->Assign(6, val_mgr->Count(tsig->orig_id));
-	r->Assign(7, val_mgr->Count(tsig->rr_error));
-	r->Assign(8, val_mgr->Count(is_query));
+	r->Assign(6, zeek::val_mgr->Count(tsig->orig_id));
+	r->Assign(7, zeek::val_mgr->Count(tsig->rr_error));
+	r->Assign(8, zeek::val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1544,17 +1544,17 @@ zeek::RecordValPtr DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_rrsig_rr);
 
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->Count(int(answer_type)));
-	r->Assign(2, val_mgr->Count(rrsig->type_covered));
-	r->Assign(3, val_mgr->Count(rrsig->algorithm));
-	r->Assign(4, val_mgr->Count(rrsig->labels));
+	r->Assign(1, zeek::val_mgr->Count(int(answer_type)));
+	r->Assign(2, zeek::val_mgr->Count(rrsig->type_covered));
+	r->Assign(3, zeek::val_mgr->Count(rrsig->algorithm));
+	r->Assign(4, zeek::val_mgr->Count(rrsig->labels));
 	r->Assign(5, zeek::make_intrusive<zeek::IntervalVal>(double(rrsig->orig_ttl), Seconds));
 	r->Assign(6, zeek::make_intrusive<zeek::TimeVal>(double(rrsig->sig_exp)));
 	r->Assign(7, zeek::make_intrusive<zeek::TimeVal>(double(rrsig->sig_incep)));
-	r->Assign(8, val_mgr->Count(rrsig->key_tag));
+	r->Assign(8, zeek::val_mgr->Count(rrsig->key_tag));
 	r->Assign(9, zeek::make_intrusive<zeek::StringVal>(rrsig->signer_name));
 	r->Assign(10, zeek::make_intrusive<zeek::StringVal>(rrsig->signature));
-	r->Assign(11, val_mgr->Count(is_query));
+	r->Assign(11, zeek::val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1565,12 +1565,12 @@ zeek::RecordValPtr DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_dnskey_rr);
 
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->Count(int(answer_type)));
-	r->Assign(2, val_mgr->Count(dnskey->dflags));
-	r->Assign(3, val_mgr->Count(dnskey->dprotocol));
-	r->Assign(4, val_mgr->Count(dnskey->dalgorithm));
+	r->Assign(1, zeek::val_mgr->Count(int(answer_type)));
+	r->Assign(2, zeek::val_mgr->Count(dnskey->dflags));
+	r->Assign(3, zeek::val_mgr->Count(dnskey->dprotocol));
+	r->Assign(4, zeek::val_mgr->Count(dnskey->dalgorithm));
 	r->Assign(5, zeek::make_intrusive<zeek::StringVal>(dnskey->public_key));
-	r->Assign(6, val_mgr->Count(is_query));
+	r->Assign(6, zeek::val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1581,16 +1581,16 @@ zeek::RecordValPtr DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_nsec3_rr);
 
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->Count(int(answer_type)));
-	r->Assign(2, val_mgr->Count(nsec3->nsec_flags));
-	r->Assign(3, val_mgr->Count(nsec3->nsec_hash_algo));
-	r->Assign(4, val_mgr->Count(nsec3->nsec_iter));
-	r->Assign(5, val_mgr->Count(nsec3->nsec_salt_len));
+	r->Assign(1, zeek::val_mgr->Count(int(answer_type)));
+	r->Assign(2, zeek::val_mgr->Count(nsec3->nsec_flags));
+	r->Assign(3, zeek::val_mgr->Count(nsec3->nsec_hash_algo));
+	r->Assign(4, zeek::val_mgr->Count(nsec3->nsec_iter));
+	r->Assign(5, zeek::val_mgr->Count(nsec3->nsec_salt_len));
 	r->Assign(6, zeek::make_intrusive<zeek::StringVal>(nsec3->nsec_salt));
-	r->Assign(7, val_mgr->Count(nsec3->nsec_hlen));
+	r->Assign(7, zeek::val_mgr->Count(nsec3->nsec_hlen));
 	r->Assign(8, zeek::make_intrusive<zeek::StringVal>(nsec3->nsec_hash));
 	r->Assign(9, std::move(nsec3->bitmaps));
-	r->Assign(10, val_mgr->Count(is_query));
+	r->Assign(10, zeek::val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1601,12 +1601,12 @@ zeek::RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_ds_rr);
 
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->Count(int(answer_type)));
-	r->Assign(2, val_mgr->Count(ds->key_tag));
-	r->Assign(3, val_mgr->Count(ds->algorithm));
-	r->Assign(4, val_mgr->Count(ds->digest_type));
+	r->Assign(1, zeek::val_mgr->Count(int(answer_type)));
+	r->Assign(2, zeek::val_mgr->Count(ds->key_tag));
+	r->Assign(3, zeek::val_mgr->Count(ds->algorithm));
+	r->Assign(4, zeek::val_mgr->Count(ds->digest_type));
 	r->Assign(5, zeek::make_intrusive<zeek::StringVal>(ds->digest_val));
-	r->Assign(6, val_mgr->Count(is_query));
+	r->Assign(6, zeek::val_mgr->Count(is_query));
 
 	return r;
 	}

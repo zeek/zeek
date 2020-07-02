@@ -37,7 +37,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 			case PA_PW_SALT:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, val_mgr->Count(element->data_type()));
+				type_val->Assign(0, zeek::val_mgr->Count(element->data_type()));
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pa_pw_salt()->encoding()->content()));
 				vv->Assign(vv->Size(), std::move(type_val));
 				break;
@@ -45,7 +45,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 			case PA_ENCTYPE_INFO:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, val_mgr->Count(element->data_type()));
+				type_val->Assign(0, zeek::val_mgr->Count(element->data_type()));
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info()->salt()));
 				vv->Assign(vv->Size(), std::move(type_val));
 				break;
@@ -53,7 +53,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 			case PA_ENCTYPE_INFO2:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, val_mgr->Count(element->data_type()));
+				type_val->Assign(0, zeek::val_mgr->Count(element->data_type()));
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info2()->salt()));
 				vv->Assign(vv->Size(), std::move(type_val));
 				break;
@@ -111,7 +111,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				if ( ! is_error && element->pa_data_element()->unknown()->meta()->length() > 0 )
 					{
 					auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-					type_val->Assign(0, val_mgr->Count(element->data_type()));
+					type_val->Assign(0, zeek::val_mgr->Count(element->data_type()));
 					type_val->Assign(1, to_stringval(element->pa_data_element()->unknown()->content()));
 					vv->Assign(vv->Size(), std::move(type_val));
 					}

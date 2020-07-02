@@ -764,9 +764,9 @@ const char* CompositeHash::RecoverOneVal(
 		if ( tag == zeek::TYPE_ENUM )
 			*pval = t->AsEnumType()->GetVal(*kp);
 		else if ( tag == zeek::TYPE_BOOL )
-			*pval = val_mgr->Bool(*kp);
+			*pval = zeek::val_mgr->Bool(*kp);
 		else if ( tag == zeek::TYPE_INT )
-			*pval = val_mgr->Int(*kp);
+			*pval = zeek::val_mgr->Int(*kp);
 		else
 			{
 			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
@@ -783,11 +783,11 @@ const char* CompositeHash::RecoverOneVal(
 		switch ( tag ) {
 		case zeek::TYPE_COUNT:
 		case zeek::TYPE_COUNTER:
-			*pval = val_mgr->Count(*kp);
+			*pval = zeek::val_mgr->Count(*kp);
 			break;
 
 		case zeek::TYPE_PORT:
-			*pval = val_mgr->Port(*kp);
+			*pval = zeek::val_mgr->Port(*kp);
 			break;
 
 		default:

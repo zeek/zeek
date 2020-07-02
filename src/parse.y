@@ -468,7 +468,7 @@ expr:
 			{
 			set_location(@2, @4);
 			$$ = add_and_assign_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $4},
-			                          val_mgr->True()).release();
+			                          zeek::val_mgr->True()).release();
 			}
 
 	|	expr '[' expr_list ']'
@@ -1323,7 +1323,7 @@ index_slice:
 			set_location(@1, @6);
 
 			auto low = $3 ? zeek::detail::ExprPtr{zeek::AdoptRef{}, $3} :
-			                zeek::make_intrusive<zeek::detail::ConstExpr>(val_mgr->Count(0));
+			                zeek::make_intrusive<zeek::detail::ConstExpr>(zeek::val_mgr->Count(0));
 
 			auto high = $5 ? zeek::detail::ExprPtr{zeek::AdoptRef{}, $5} :
 			                 zeek::make_intrusive<zeek::detail::SizeExpr>(

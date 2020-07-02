@@ -32,7 +32,7 @@ refine flow DHCP_Flow += {
 		init_options();
 
 		if ( code != 255 )
-			all_options->Assign(all_options->Size(), val_mgr->Count(code));
+			all_options->Assign(all_options->Size(), zeek::val_mgr->Count(code));
 
 		return true;
 		%}
@@ -54,11 +54,11 @@ refine flow DHCP_Flow += {
 			double secs = static_cast<double>(${msg.secs});
 
 			auto dhcp_msg_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::Msg);
-			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
-			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
-			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));
+			dhcp_msg_val->Assign(0, zeek::val_mgr->Count(${msg.op}));
+			dhcp_msg_val->Assign(1, zeek::val_mgr->Count(${msg.type}));
+			dhcp_msg_val->Assign(2, zeek::val_mgr->Count(${msg.xid}));
 			dhcp_msg_val->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(secs));
-			dhcp_msg_val->Assign(4, val_mgr->Count(${msg.flags}));
+			dhcp_msg_val->Assign(4, zeek::val_mgr->Count(${msg.flags}));
 			dhcp_msg_val->Assign(5, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.ciaddr})));
 			dhcp_msg_val->Assign(6, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.yiaddr})));
 			dhcp_msg_val->Assign(7, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.siaddr})));

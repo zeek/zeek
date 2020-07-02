@@ -19,34 +19,33 @@ type AnalysisDescription: record;
 function Input::__create_table_stream%(description: Input::TableDescription%) : bool
 	%{
 	bool res = input_mgr->CreateTableStream(description->AsRecordVal());
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	%}
 
 function Input::__create_event_stream%(description: Input::EventDescription%) : bool
 	%{
 	bool res = input_mgr->CreateEventStream(description->AsRecordVal());
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	%}
 
 function Input::__create_analysis_stream%(description: Input::AnalysisDescription%) : bool
 	%{
 	bool res = input_mgr->CreateAnalysisStream(description->AsRecordVal());
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	%}
 
 function Input::__remove_stream%(id: string%) : bool
 	%{
 	bool res = input_mgr->RemoveStream(id->AsString()->CheckString());
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	%}
 
 function Input::__force_update%(id: string%) : bool
 	%{
 	bool res = input_mgr->ForceUpdate(id->AsString()->CheckString());
-	return val_mgr->Bool(res);
+	return zeek::val_mgr->Bool(res);
 	%}
 
 # Options for the input framework
 
 const accept_unsupported_types: bool;
-

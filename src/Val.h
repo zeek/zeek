@@ -277,42 +277,38 @@ public:
 	bro_int_t ForceAsInt() const		{ return val.int_val; }
 	bro_uint_t ForceAsUInt() const		{ return val.uint_val; }
 
-#define CONVERTER(tag, ctype, name) \
-	ctype name() \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
-		return (ctype)(this); \
-		}
+	PatternVal* AsPatternVal();
+	const PatternVal* AsPatternVal() const;
 
-	CONVERTER(zeek::TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONVERTER(zeek::TYPE_PORT, PortVal*, AsPortVal)
-	CONVERTER(zeek::TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONVERTER(zeek::TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONVERTER(zeek::TYPE_TABLE, TableVal*, AsTableVal)
-	CONVERTER(zeek::TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONVERTER(zeek::TYPE_LIST, ListVal*, AsListVal)
-	CONVERTER(zeek::TYPE_STRING, StringVal*, AsStringVal)
-	CONVERTER(zeek::TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONVERTER(zeek::TYPE_ENUM, EnumVal*, AsEnumVal)
-	CONVERTER(zeek::TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+	PortVal* AsPortVal();
+	const PortVal* AsPortVal() const;
 
-#define CONST_CONVERTER(tag, ctype, name) \
-	const ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
-		return (const ctype)(this); \
-		}
+	SubNetVal* AsSubNetVal();
+	const SubNetVal* AsSubNetVal() const;
 
-	CONST_CONVERTER(zeek::TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONST_CONVERTER(zeek::TYPE_PORT, PortVal*, AsPortVal)
-	CONST_CONVERTER(zeek::TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONST_CONVERTER(zeek::TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONST_CONVERTER(zeek::TYPE_TABLE, TableVal*, AsTableVal)
-	CONST_CONVERTER(zeek::TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONST_CONVERTER(zeek::TYPE_LIST, ListVal*, AsListVal)
-	CONST_CONVERTER(zeek::TYPE_STRING, StringVal*, AsStringVal)
-	CONST_CONVERTER(zeek::TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONST_CONVERTER(zeek::TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+	AddrVal* AsAddrVal();
+	const AddrVal* AsAddrVal() const;
+
+	TableVal* AsTableVal();
+	const TableVal* AsTableVal() const;
+
+	RecordVal* AsRecordVal();
+	const RecordVal* AsRecordVal() const;
+
+	ListVal* AsListVal();
+	const ListVal* AsListVal() const;
+
+	StringVal* AsStringVal();
+	const StringVal* AsStringVal() const;
+
+	VectorVal* AsVectorVal();
+	const VectorVal* AsVectorVal() const;
+
+	EnumVal* AsEnumVal();
+	const EnumVal* AsEnumVal() const;
+
+	OpaqueVal* AsOpaqueVal();
+	const OpaqueVal* AsOpaqueVal() const;
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;

@@ -51,6 +51,24 @@ Stmt::~Stmt()
 	{
 	}
 
+StmtList* Stmt::AsStmtList()
+	{
+	CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
+	return (StmtList*) this;
+	}
+
+const StmtList* Stmt::AsStmtList() const
+	{
+	CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
+	return (const StmtList*) this;
+	}
+
+ForStmt* Stmt::AsForStmt()
+	{
+	CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
+	return (ForStmt*) this;
+	}
+
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
 	if ( ! BroObj::SetLocationInfo(start, end) )

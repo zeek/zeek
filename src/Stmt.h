@@ -40,23 +40,10 @@ public:
 	// True if the statement has no side effects, false otherwise.
 	virtual bool IsPure() const;
 
-	StmtList* AsStmtList()
-		{
-		CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-		return (StmtList*) this;
-		}
+	StmtList* AsStmtList();
+	const StmtList* AsStmtList() const;
 
-	const StmtList* AsStmtList() const
-		{
-		CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-		return (const StmtList*) this;
-		}
-
-	ForStmt* AsForStmt()
-		{
-		CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
-		return (ForStmt*) this;
-		}
+	ForStmt* AsForStmt();
 
 	void RegisterAccess() const	{ last_access = network_time; access_count++; }
 	void AccessStats(ODesc* d) const;

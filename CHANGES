@@ -1,4 +1,12 @@
 
+3.2.0-dev.834 | 2020-07-02 15:57:09 -0700
+
+  * GH-786: fix Val::As methods casting incomplete types (Jon Siwek, Corelight)
+
+  * GH-786: fix Stmt::As methods casting incomplete types (Jon Siwek, Corelight)
+
+  * GH-786: fix Expr::As methods casting incomplete types (Jon Siwek, Corelight)
+
 3.2.0-dev.830 | 2020-07-02 11:36:28 -0700
 
   * GH-786: Move Type::As methods to cc file so they have type info for casting safely (Tim Wojtulewicz, Corelight)

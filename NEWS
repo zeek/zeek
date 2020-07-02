@@ -113,6 +113,10 @@ Changed Functionality
   but the Deprecated Functionality section below will mention those
   ones specifically).
 
+  This includes a number of renames to classes, removing 'Bro' from their
+  names. Deprecation warnings should notify plugin developers of these
+  name changes.
+
 Removed Functionality
 ---------------------
 

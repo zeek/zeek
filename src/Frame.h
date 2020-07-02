@@ -16,9 +16,11 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(BroFunc, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
+
+namespace zeek::detail { class ScriptFunc; }
+using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
 namespace zeek {
 using ValPtr = zeek::IntrusivePtr<Val>;
@@ -43,7 +45,7 @@ public:
 	 * @param func the function that is creating this frame
 	 * @param fn_args the arguments being passed to that function.
 	 */
-	Frame(int size, const BroFunc* func, const zeek::Args* fn_args);
+	Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
 
 	/**
 	 * Deletes the frame. Unrefs its trigger, the values that it
@@ -111,7 +113,7 @@ public:
 	/**
 	 * @return the function that the frame is associated with.
 	 */
-	const BroFunc* GetFunction() const	{ return function; }
+	const ScriptFunc* GetFunction() const	{ return function; }
 
 	/**
 	 * @return the arguments passed to the function that this frame
@@ -124,7 +126,7 @@ public:
 	 *
 	 * @param func the function for the frame to be associated with.
 	 */
-	void SetFunction(BroFunc* func)	{ function = func; }
+	void SetFunction(ScriptFunc* func)	{ function = func; }
 
 	/**
 	 * Sets the next statement to be executed in the context of the frame.
@@ -173,7 +175,7 @@ public:
 	 * *selection* have been cloned. All other values are made to be
 	 * null.
 	 */
-	Frame* SelectiveClone(const id_list& selection, BroFunc* func) const;
+	Frame* SelectiveClone(const id_list& selection, ScriptFunc* func) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.
@@ -246,7 +248,7 @@ public:
 	 * weak references prevents unbreakable circular references that
 	 * otherwise cause memory leaks.
 	 */
-	void AddFunctionWithClosureRef(BroFunc* func);
+	void AddFunctionWithClosureRef(ScriptFunc* func);
 
 private:
 
@@ -276,7 +278,7 @@ private:
 	 * function (in that case just assigna weak reference).  Used to break
 	 * circular references between lambda functions and closure frames.
 	 */
-	void CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const;
+	void CloneNonFuncElement(int offset, ScriptFunc* func, Frame* other) const;
 
 	/**
 	 * Resets the value at offset 'n' frame (by decrementing reference
@@ -327,7 +329,7 @@ private:
 	std::unique_ptr<OffsetMap> offset_map;
 
 	/** The function this frame is associated with. */
-	const BroFunc* function;
+	const ScriptFunc* function;
 	/** The arguments to the function that this Frame is associated with. */
 	const zeek::Args* func_args;
 
@@ -337,7 +339,7 @@ private:
 	zeek::detail::trigger::TriggerPtr trigger;
 	const zeek::detail::CallExpr* call;
 
-	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
+	std::unique_ptr<std::vector<ScriptFunc*>> functions_with_closure_frame_reference;
 };
 
 } // namespace detail

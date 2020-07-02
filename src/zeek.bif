@@ -1327,7 +1327,7 @@ function all_set%(v: any%) : bool
 	%}
 
 %%{
-static zeek::detail::Func* sort_function_comp = nullptr;
+static zeek::Func* sort_function_comp = nullptr;
 static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
 
 bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
@@ -1410,7 +1410,7 @@ function sort%(v: any, ...%) : any
 		}
 
 	const auto& elt_type = v->GetType()->Yield();
-	zeek::detail::Func* comp = nullptr;
+	zeek::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
 		zeek::emit_builtin_error("sort() called with extraneous argument");
@@ -1480,7 +1480,7 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	const auto& elt_type = v->GetType()->Yield();
-	zeek::detail::Func* comp = nullptr;
+	zeek::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
 		zeek::emit_builtin_error("order() called with extraneous argument");

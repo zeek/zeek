@@ -44,10 +44,10 @@ const zeek::FuncTypePtr& EventHandler::GetType(bool check_export)
 	return type;
 	}
 
-void EventHandler::SetFunc(zeek::detail::FuncPtr f)
+void EventHandler::SetFunc(zeek::FuncPtr f)
 	{ local = std::move(f); }
 
-void EventHandler::SetLocalHandler(zeek::detail::Func* f)
+void EventHandler::SetLocalHandler(zeek::Func* f)
 	{ SetFunc({zeek::NewRef{}, f}); }
 
 void EventHandler::Call(zeek::Args* vl, bool no_remote)

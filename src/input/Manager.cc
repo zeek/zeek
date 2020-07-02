@@ -102,7 +102,7 @@ public:
 	zeek::PDict<InputHash>* currDict;
 	zeek::PDict<InputHash>* lastDict;
 
-	zeek::detail::Func* pred;
+	zeek::Func* pred;
 
 	EventHandlerPtr event;
 
@@ -320,7 +320,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 	auto want_record = fval->GetFieldOrDefault("want_record");
 
 	auto ev_val = fval->GetFieldOrDefault("ev");
-	zeek::detail::Func* event = ev_val->AsFunc();
+	zeek::Func* event = ev_val->AsFunc();
 
 	const auto& etype = event->GetType();
 
@@ -409,7 +409,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 		assert(false);
 
 	auto error_event_val = fval->GetFieldOrDefault("error_ev");
-	zeek::detail::Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
+	zeek::Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
 
 	if ( ! CheckErrorEventTypes(stream_name, error_event, false) )
 		return false;
@@ -545,7 +545,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 		}
 
 	auto event_val = fval->GetFieldOrDefault("ev");
-	zeek::detail::Func* event = event_val ? event_val->AsFunc() : nullptr;
+	zeek::Func* event = event_val ? event_val->AsFunc() : nullptr;
 
 	if ( event )
 		{
@@ -618,7 +618,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 		}
 
 	auto error_event_val = fval->GetFieldOrDefault("error_ev");
-	zeek::detail::Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
+	zeek::Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
 
 	if ( ! CheckErrorEventTypes(stream_name, error_event, true) )
 		return false;
@@ -691,7 +691,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 	return true;
 	}
 
-bool Manager::CheckErrorEventTypes(const std::string& stream_name, const zeek::detail::Func* ev, bool table) const
+bool Manager::CheckErrorEventTypes(const std::string& stream_name, const zeek::Func* ev, bool table) const
 	{
 	if ( ev == nullptr )
 		return true;
@@ -1756,7 +1756,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 	return success;
 	}
 
-bool Manager::CallPred(zeek::detail::Func* pred_func, const int numvals, ...) const
+bool Manager::CallPred(zeek::Func* pred_func, const int numvals, ...) const
 	{
 	bool result = false;
 	zeek::Args vl;

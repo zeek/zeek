@@ -13,7 +13,7 @@
 #include <string_view>
 #include <vector>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableType, zeek);
@@ -28,6 +28,7 @@ using TableTypePtr = zeek::IntrusivePtr<zeek::TableType>;
 using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
 using EnumTypePtr = zeek::IntrusivePtr<zeek::EnumType>;
 using ValPtr = zeek::IntrusivePtr<zeek::Val>;
+using FuncPtr = zeek::IntrusivePtr<zeek::Func>;
 }
 
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
@@ -37,7 +38,6 @@ namespace zeek::detail {
 class Attributes;
 class Expr;
 using ExprPtr = zeek::IntrusivePtr<Expr>;
-using FuncPtr = zeek::IntrusivePtr<zeek::detail::Func>;
 
 enum InitClass { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
 enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
@@ -156,7 +156,7 @@ public:
 	bool HasOptionHandlers() const
 		{ return !option_handlers.empty(); }
 
-	void AddOptionHandler(zeek::detail::FuncPtr callback, int priority);
+	void AddOptionHandler(zeek::FuncPtr callback, int priority);
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
@@ -176,7 +176,7 @@ protected:
 	ValPtr val;
 	AttributesPtr attrs;
 	// contains list of functions that are called when an option changes
-	std::multimap<int, zeek::detail::FuncPtr> option_handlers;
+	std::multimap<int, zeek::FuncPtr> option_handlers;
 
 };
 
@@ -254,7 +254,7 @@ zeek::IntrusivePtr<T> find_const(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current function value the identifier references.
  */
-zeek::detail::FuncPtr find_func(std::string_view name);
+zeek::FuncPtr find_func(std::string_view name);
 
 extern RecordTypePtr conn_id;
 extern RecordTypePtr endpoint;

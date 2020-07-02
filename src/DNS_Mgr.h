@@ -16,7 +16,6 @@
 class EventHandler;
 class DNS_Mgr_Request;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);

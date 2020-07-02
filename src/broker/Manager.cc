@@ -704,7 +704,7 @@ zeek::RecordVal* Manager::MakeEvent(val_list* args, zeek::detail::Frame* frame)
 	auto rval = new zeek::RecordVal(zeek::BifType::Record::Broker::Event);
 	auto arg_vec = zeek::make_intrusive<zeek::VectorVal>(vector_of_data_type);
 	rval->Assign(1, arg_vec);
-	zeek::detail::Func* func = nullptr;
+	zeek::Func* func = nullptr;
 	scoped_reporter_location srl{frame};
 
 	for ( auto i = 0; i < args->length(); ++i )

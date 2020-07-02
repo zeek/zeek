@@ -15,7 +15,7 @@ std::vector<zeek::detail::Frame*> g_frame_stack;
 
 namespace zeek::detail {
 
-Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
+Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 	{
 	size = arg_size;
 	frame = std::make_unique<Element[]>(size);
@@ -53,12 +53,12 @@ Frame::~Frame()
 		ClearElement(i);
 	}
 
-void Frame::AddFunctionWithClosureRef(BroFunc* func)
+void Frame::AddFunctionWithClosureRef(ScriptFunc* func)
 	{
 	zeek::Ref(func);
 
 	if ( ! functions_with_closure_frame_reference )
-		functions_with_closure_frame_reference = std::make_unique<std::vector<BroFunc*>>();
+		functions_with_closure_frame_reference = std::make_unique<std::vector<ScriptFunc*>>();
 
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
@@ -174,7 +174,7 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-static bool val_is_func(const zeek::ValPtr& v, BroFunc* func)
+static bool val_is_func(const zeek::ValPtr& v, ScriptFunc* func)
 	{
 	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
 		return false;
@@ -182,7 +182,7 @@ static bool val_is_func(const zeek::ValPtr& v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-void Frame::CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const
+void Frame::CloneNonFuncElement(int offset, ScriptFunc* func, Frame* other) const
 	{
 	const auto& v = frame[offset].val;
 
@@ -199,7 +199,7 @@ void Frame::CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const
 	other->SetElement(offset, std::move(rval));
 	}
 
-Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
+Frame* Frame::SelectiveClone(const id_list& selection, ScriptFunc* func) const
 	{
 	if ( selection.length() == 0 )
 		return nullptr;

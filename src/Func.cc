@@ -71,23 +71,23 @@
 
 extern	RETSIGTYPE sig_handler(int signo);
 
-namespace zeek {
-namespace detail {
-
+namespace zeek::detail {
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
-
 static const std::pair<bool, zeek::ValPtr> empty_hook_result(false, nullptr);
+} // namespace zeek::detail
+
+namespace zeek {
 
 std::string render_call_stack()
 	{
 	std::string rval;
 	int lvl = 0;
 
-	if ( ! call_stack.empty() )
+	if ( ! detail::call_stack.empty() )
 		rval += "| ";
 
-	for ( auto it = call_stack.rbegin(); it != call_stack.rend(); ++it )
+	for ( auto it = detail::call_stack.rbegin(); it != detail::call_stack.rend(); ++it )
 		{
 		if ( lvl > 0 )
 			rval += " | ";
@@ -119,7 +119,7 @@ std::string render_call_stack()
 		++lvl;
 		}
 
-	if ( ! call_stack.empty() )
+	if ( ! detail::call_stack.empty() )
 		rval += " |";
 
 	return rval;
@@ -151,7 +151,7 @@ void Func::SetScope(zeek::detail::ScopePtr newscope)
 	scope = std::move(newscope);
 	}
 
-zeek::detail::FuncPtr Func::DoClone()
+zeek::FuncPtr Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
 	// that is different across instances.
@@ -203,7 +203,7 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_PRE(tc);
 
 	// FIXME: Traverse arguments to builtin functions, too.
-	if ( kind == BRO_FUNC && scope )
+	if ( kind == SCRIPT_FUNC && scope )
 		{
 		tc = scope->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -236,7 +236,7 @@ void Func::CopyStateInto(Func* other) const
 void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
                              zeek::FunctionFlavor flavor) const
 	{
-	// Helper function factoring out this code from BroFunc:Call() for
+	// Helper function factoring out this code from ScriptFunc:Call() for
 	// better readability.
 
 	if ( ! handled )
@@ -286,10 +286,18 @@ void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 	}
 	}
 
-BroFunc::BroFunc(const zeek::detail::IDPtr& arg_id, zeek::detail::StmtPtr arg_body,
-                 const std::vector<zeek::detail::IDPtr>& aggr_inits,
-                 size_t arg_frame_size, int priority)
-	: Func(BRO_FUNC)
+zeek::Val* Func::Call(val_list* args, zeek::detail::Frame* parent) const
+	{
+	auto zargs = zeek::val_list_to_args(*args);
+	return Invoke(&zargs, parent).release();
+	};
+
+namespace detail {
+
+ScriptFunc::ScriptFunc(const zeek::detail::IDPtr& arg_id, zeek::detail::StmtPtr arg_body,
+                       const std::vector<zeek::detail::IDPtr>& aggr_inits,
+                       size_t arg_frame_size, int priority)
+	: Func(SCRIPT_FUNC)
 	{
 	name = arg_id->Name();
 	type = arg_id->GetType<zeek::FuncType>();
@@ -304,25 +312,19 @@ BroFunc::BroFunc(const zeek::detail::IDPtr& arg_id, zeek::detail::StmtPtr arg_bo
 		}
 	}
 
-BroFunc::~BroFunc()
+ScriptFunc::~ScriptFunc()
 	{
 	if ( ! weak_closure_ref )
 		Unref(closure);
 	}
 
-bool BroFunc::IsPure() const
+bool ScriptFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
 		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
-zeek::Val* Func::Call(val_list* args, zeek::detail::Frame* parent) const
-	{
-	auto zargs = zeek::val_list_to_args(*args);
-	return Invoke(&zargs, parent).release();
-	};
-
-zeek::ValPtr BroFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) const
+zeek::ValPtr ScriptFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -467,9 +469,9 @@ zeek::ValPtr BroFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) cons
 	return result;
 	}
 
-void BroFunc::AddBody(zeek::detail::StmtPtr new_body,
-                      const std::vector<zeek::detail::IDPtr>& new_inits,
-                      size_t new_frame_size, int priority)
+void ScriptFunc::AddBody(zeek::detail::StmtPtr new_body,
+                         const std::vector<zeek::detail::IDPtr>& new_inits,
+                         size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
@@ -496,7 +498,7 @@ void BroFunc::AddBody(zeek::detail::StmtPtr new_body,
 	sort(bodies.begin(), bodies.end());
 	}
 
-void BroFunc::AddClosure(id_list ids, zeek::detail::Frame* f)
+void ScriptFunc::AddClosure(id_list ids, zeek::detail::Frame* f)
 	{
 	if ( ! f )
 		return;
@@ -505,7 +507,7 @@ void BroFunc::AddClosure(id_list ids, zeek::detail::Frame* f)
 	SetClosureFrame(f);
 	}
 
-bool BroFunc::StrengthenClosureReference(zeek::detail::Frame* f)
+bool ScriptFunc::StrengthenClosureReference(zeek::detail::Frame* f)
 	{
 	if ( closure != f )
 		return false;
@@ -518,10 +520,10 @@ bool BroFunc::StrengthenClosureReference(zeek::detail::Frame* f)
 	return true;
 	}
 
-void BroFunc::SetClosureFrame(zeek::detail::Frame* f)
+void ScriptFunc::SetClosureFrame(zeek::detail::Frame* f)
 	{
 	if ( closure )
-		reporter->InternalError("Tried to override closure for BroFunc %s.",
+		reporter->InternalError("Tried to override closure for ScriptFunc %s.",
 					Name());
 
 	// Have to use weak references initially because otherwise Ref'ing the
@@ -536,7 +538,7 @@ void BroFunc::SetClosureFrame(zeek::detail::Frame* f)
 	f->AddFunctionWithClosureRef(this);
 	}
 
-bool BroFunc::UpdateClosure(const broker::vector& data)
+bool ScriptFunc::UpdateClosure(const broker::vector& data)
 	{
 	auto result = zeek::detail::Frame::Unserialize(data);
 
@@ -558,11 +560,11 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 	}
 
 
-zeek::detail::FuncPtr BroFunc::DoClone()
+zeek::FuncPtr ScriptFunc::DoClone()
 	{
-	// BroFunc could hold a closure. In this case a clone of it must
+	// ScriptFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	auto other = zeek::IntrusivePtr{zeek::AdoptRef{}, new BroFunc()};
+	auto other = zeek::IntrusivePtr{zeek::AdoptRef{}, new ScriptFunc()};
 
 	CopyStateInto(other.get());
 
@@ -574,12 +576,12 @@ zeek::detail::FuncPtr BroFunc::DoClone()
 	return other;
 	}
 
-broker::expected<broker::data> BroFunc::SerializeClosure() const
+broker::expected<broker::data> ScriptFunc::SerializeClosure() const
 	{
 	return zeek::detail::Frame::Serialize(closure, outer_ids);
 	}
 
-void BroFunc::Describe(ODesc* d) const
+void ScriptFunc::Describe(ODesc* d) const
 	{
 	d->Add(Name());
 
@@ -592,7 +594,7 @@ void BroFunc::Describe(ODesc* d) const
 		}
 	}
 
-zeek::detail::StmtPtr BroFunc::AddInits(
+zeek::detail::StmtPtr ScriptFunc::AddInits(
 	zeek::detail::StmtPtr body,
 	const std::vector<zeek::detail::IDPtr>& inits)
 	{

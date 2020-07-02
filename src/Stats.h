@@ -11,7 +11,7 @@
 
 class BroFile;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
 
@@ -94,7 +94,7 @@ public:
 
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
-	void FunctionSeen(const zeek::detail::Func* func);
+	void FunctionSeen(const zeek::Func* func);
 	void LocationSeen(const zeek::detail::Location* loc);
 
 protected:

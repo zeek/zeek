@@ -185,7 +185,7 @@ private:
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
 	// type.
-	bool CheckErrorEventTypes(const std::string& stream_name, const zeek::detail::Func* error_event, bool table) const;
+	bool CheckErrorEventTypes(const std::string& stream_name, const zeek::Func* error_event, bool table) const;
 
 	// SendEntry implementation for Table stream.
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);
@@ -209,7 +209,7 @@ private:
 	void SendEndOfData(const Stream *i);
 
 	// Call predicate function and return result.
-	bool CallPred(zeek::detail::Func* pred_func, const int numvals, ...) const;
+	bool CallPred(zeek::Func* pred_func, const int numvals, ...) const;
 
 	// Get a hashkey for a set of threading::Values.
 	HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;

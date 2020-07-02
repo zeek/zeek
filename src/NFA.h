@@ -9,7 +9,7 @@ class CCL;
 class NFA_State;
 class EquivClass;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 
 using NFA_state_list = zeek::PList<NFA_State>;
 

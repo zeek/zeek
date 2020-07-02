@@ -370,7 +370,7 @@ struct val_converter {
 				if ( ! frame )
 					return nullptr;
 
-				auto* b = dynamic_cast<zeek::detail::BroFunc*>(rval->AsFunc());
+				auto* b = dynamic_cast<zeek::detail::ScriptFunc*>(rval->AsFunc());
 				if ( ! b )
 					return nullptr;
 
@@ -852,7 +852,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		return {string(v->AsFile()->Name())};
 	case zeek::TYPE_FUNC:
 		{
-		const zeek::detail::Func* f = v->AsFunc();
+		const zeek::Func* f = v->AsFunc();
 		std::string name(f->Name());
 
 		broker::vector rval;
@@ -860,8 +860,8 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 
 		if ( name.find("lambda_<") == 0 )
 			{
-			// Only BroFuncs have closures.
-			if ( auto b = dynamic_cast<const zeek::detail::BroFunc*>(f) )
+			// Only ScriptFuncs have closures.
+			if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) )
 				{
 				auto bc = b->SerializeClosure();
 				if ( ! bc )
@@ -871,7 +871,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 				}
 			else
 				{
-				reporter->InternalWarning("Closure with non-BroFunc");
+				reporter->InternalWarning("Closure with non-ScriptFunc");
 				return broker::ec::invalid_data;
 				}
 			}

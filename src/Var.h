@@ -86,7 +86,7 @@ extern zeek::ListVal* internal_list_val(const char* name);
 extern zeek::Type* internal_type(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_func().")]]
-extern zeek::detail::Func* internal_func(const char* name);
+extern zeek::Func* internal_func(const char* name);
 
 [[deprecated("Remove in v4.1.  Use event_registry->Register().")]]
 extern EventHandlerPtr internal_handler(const char* name);

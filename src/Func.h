@@ -25,6 +25,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
+namespace zeek::detail {
+using ScopePtr = zeek::IntrusivePtr<detail::Scope>;
+using IDPtr = zeek::IntrusivePtr<ID>;
+using StmtPtr = zeek::IntrusivePtr<Stmt>;
+}
+
 namespace caf {
 template <class> class expected;
 }
@@ -37,19 +43,16 @@ using caf::expected;
 
 namespace zeek {
 
-namespace detail {
-using ScopePtr = zeek::IntrusivePtr<zeek::detail::Scope>;
-using IDPtr = zeek::IntrusivePtr<ID>;
-using StmtPtr = zeek::IntrusivePtr<Stmt>;
-
 class Func;
 using FuncPtr = zeek::IntrusivePtr<Func>;
 
 class Func : public BroObj {
 public:
+
 	static inline const FuncPtr nil;
 
-	enum Kind { BRO_FUNC, BUILTIN_FUNC };
+	enum Kind { SCRIPT_FUNC, BUILTIN_FUNC };
+	static constexpr auto BRO_FUNC [[deprecated("Remove in v4.1. Use Func::SCRIPT_FUNC instead.")]] = SCRIPT_FUNC;
 
 	explicit Func(Kind arg_kind);
 
@@ -142,21 +145,22 @@ protected:
 	static inline std::vector<FuncPtr> unique_ids;
 };
 
+namespace detail {
 
-class BroFunc final : public Func {
+class ScriptFunc final : public zeek::Func {
 public:
-	BroFunc(const zeek::detail::IDPtr& id, zeek::detail::StmtPtr body,
+	ScriptFunc(const zeek::detail::IDPtr& id, zeek::detail::StmtPtr body,
 	        const std::vector<zeek::detail::IDPtr>& inits,
 	        size_t frame_size, int priority);
 
-	~BroFunc() override;
+	~ScriptFunc() override;
 
 	bool IsPure() const override;
 	zeek::ValPtr Invoke(zeek::Args* args, zeek::detail::Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
-	 * future calls to BroFunc methods will not modify *f*.
+	 * future calls to ScriptFunc methods will not modify *f*.
 	 *
 	 * @param ids IDs that are captured by the closure.
 	 * @param f the closure to be captured.
@@ -194,7 +198,7 @@ public:
 	void Describe(ODesc* d) const override;
 
 protected:
-	BroFunc() : Func(BRO_FUNC)	{}
+	ScriptFunc() : zeek::Func(SCRIPT_FUNC)	{}
 	zeek::detail::StmtPtr AddInits(
 		zeek::detail::StmtPtr body,
 		const std::vector<zeek::detail::IDPtr>& inits);
@@ -202,7 +206,7 @@ protected:
 	/**
 	 * Clones this function along with its closures.
 	 */
-	FuncPtr DoClone() override;
+	zeek::FuncPtr DoClone() override;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -217,14 +221,14 @@ private:
 
 	// List of the outer IDs used in the function.
 	id_list outer_ids;
-	// The frame the BroFunc was initialized in.
+	// The frame the ScriptFunc was initialized in.
 	zeek::detail::Frame* closure = nullptr;
 	bool weak_closure_ref = false;
 };
 
 using built_in_func = BifReturnVal (*)(zeek::detail::Frame* frame, const zeek::Args* args);
 
-class BuiltinFunc final : public Func {
+class BuiltinFunc final : public zeek::Func {
 public:
 	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
 	~BuiltinFunc() override;
@@ -250,7 +254,7 @@ struct CallInfo {
 	const zeek::Args& args;
 };
 
-// Struct that collects all the specifics defining a Func. Used for BroFuncs
+// Struct that collects all the specifics defining a Func. Used for ScriptFuncs
 // with closures.
 struct function_ingredients {
 
@@ -268,12 +272,12 @@ struct function_ingredients {
 
 extern std::vector<CallInfo> call_stack;
 
-extern std::string render_call_stack();
-
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
 
 } // namespace detail
+
+extern std::string render_call_stack();
 
 // These methods are used by BIFs, so they're in the public namespace.
 extern void emit_builtin_error(const char* msg);
@@ -282,14 +286,14 @@ extern void emit_builtin_error(const char* msg, BroObj* arg);
 
 } // namespace zeek
 
-using Func [[deprecated("Remove in v4.1. Use zeek::detail::Func.")]] = zeek::detail::Func;
-using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::BroFunc.")]] = zeek::detail::BroFunc;
-using BuiltinFunc [[deprecated("Remove in v4.1. Use zeek::detail::BroFunc.")]] = zeek::detail::BuiltinFunc;
+using Func [[deprecated("Remove in v4.1. Use zeek::Func.")]] = zeek::Func;
+using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc.")]] = zeek::detail::ScriptFunc;
+using BuiltinFunc [[deprecated("Remove in v4.1. Use zeek::detail::BuiltinFunc.")]] = zeek::detail::BuiltinFunc;
 using CallInfo [[deprecated("Remove in v4.1. Use zeek::detail::CallInfo.")]] = zeek::detail::CallInfo;
 using function_ingredients [[deprecated("Remove in v4.1. Use zeek::detail::function_ingredients.")]] = zeek::detail::function_ingredients;
 
 constexpr auto check_built_in_call [[deprecated("Remove in v4.1. Use zeek::detail::check_built_in_call.")]] = zeek::detail::check_built_in_call;
-constexpr auto render_call_stack [[deprecated("Remove in v4.1. Use zeek::detail::render_call_stack.")]] = zeek::detail::render_call_stack;
+constexpr auto render_call_stack [[deprecated("Remove in v4.1. Use zeek::render_call_stack.")]] = zeek::render_call_stack;
 
 // TODO: these are still here because of how all of the bif code gets included in Func.c. There could be a
 // renamed version inside the namespace, but the way that the code gets included complicates the matter. It

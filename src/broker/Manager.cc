@@ -235,16 +235,29 @@ void Manager::InitializeBrokerStoreForwarding()
 			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
 			AddForwardedStore(storename, {NewRef{}, id->GetVal()->AsTableVal()});
 
-
 			// we only create masters here. For clones, we do all the work of setting up
 			// the forwarding - but we do not try to initialize the clone. We can only initialize
 			// the clone, once a node has a connection to a master. This is currently done in scriptland
 			// - check FIXME.
-			if ( zeek_table_manager )
-				{
-				auto backend = bro_broker::to_backend_type(e);
-				MakeMaster(storename, backend, broker::backend_options{});
-				}
+			if ( ! zeek_table_manager )
+				continue;
+
+			auto backend = bro_broker::to_backend_type(e);
+			auto suffix = ".store";
+
+			switch ( backend ) {
+			case broker::backend::sqlite:
+				suffix = ".sqlite";
+				break;
+			case broker::backend::rocksdb:
+				suffix = ".rocksdb";
+				break;
+			default:
+				break;
+			}
+			auto path = zeek_table_db_directory + "/" + storename + suffix;
+
+			MakeMaster(storename, backend, broker::backend_options{{"path", path}});
 			}
 		}
 	}

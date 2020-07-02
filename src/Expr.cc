@@ -62,6 +62,54 @@ Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), type(nullptr), paren(false)
 	SetLocationInfo(&start_location, &end_location);
 	}
 
+const ListExpr* Expr::AsListExpr() const
+	{
+	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
+	return (const ListExpr*) this;
+	}
+
+ListExpr* Expr::AsListExpr()
+	{
+	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
+	return (ListExpr*) this;
+	}
+
+const NameExpr* Expr::AsNameExpr() const
+	{
+	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+	return (const NameExpr*) this;
+	}
+
+NameExpr* Expr::AsNameExpr()
+	{
+	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+	return (NameExpr*) this;
+	}
+
+const AssignExpr* Expr::AsAssignExpr() const
+	{
+	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+	return (const AssignExpr*) this;
+	}
+
+AssignExpr* Expr::AsAssignExpr()
+	{
+	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+	return (AssignExpr*) this;
+	}
+
+const IndexExpr* Expr::AsIndexExpr() const
+	{
+	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+	return (const IndexExpr*) this;
+	}
+
+IndexExpr* Expr::AsIndexExpr()
+	{
+	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+	return (IndexExpr*) this;
+	}
+
 bool Expr::CanAdd() const
 	{
 	return false;

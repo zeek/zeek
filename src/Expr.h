@@ -161,53 +161,17 @@ public:
 	void MarkParen()		{ paren = true; }
 	bool IsParen() const		{ return paren; }
 
-	const ListExpr* AsListExpr() const
-		{
-		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-		return (const ListExpr*) this;
-		}
+	const ListExpr* AsListExpr() const;
+	ListExpr* AsListExpr();
 
-	ListExpr* AsListExpr()
-		{
-		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-		return (ListExpr*) this;
-		}
+	const NameExpr* AsNameExpr() const;
+	NameExpr* AsNameExpr();
 
-	const NameExpr* AsNameExpr() const
-		{
-		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-		return (const NameExpr*) this;
-		}
+	const AssignExpr* AsAssignExpr() const;
+	AssignExpr* AsAssignExpr();
 
-	NameExpr* AsNameExpr()
-		{
-		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-		return (NameExpr*) this;
-		}
-
-	const AssignExpr* AsAssignExpr() const
-		{
-		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
-		return (const AssignExpr*) this;
-		}
-
-	AssignExpr* AsAssignExpr()
-		{
-		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
-		return (AssignExpr*) this;
-		}
-
-	const IndexExpr* AsIndexExpr() const
-		{
-		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
-		return (const IndexExpr*) this;
-		}
-
-	IndexExpr* AsIndexExpr()
-		{
-		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
-		return (IndexExpr*) this;
-		}
+	const IndexExpr* AsIndexExpr() const;
+	IndexExpr* AsIndexExpr();
 
 	void Describe(ODesc* d) const override final;
 

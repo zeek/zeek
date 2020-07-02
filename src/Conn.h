@@ -31,7 +31,6 @@ class RuleEndpointState;
 class EncapsulationStack;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecorVal, zeek);
 
 namespace zeek {
 using ValPtr = zeek::IntrusivePtr<Val>;

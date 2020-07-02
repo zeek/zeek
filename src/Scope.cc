@@ -223,11 +223,11 @@ Scope* global_scope()
 
 }
 
-const zeek::detail::IDPtr lookup_ID(
+const zeek::detail::ID* lookup_ID(
 	const char* name, const char* module,
 	bool no_global,
 	bool same_module_only,
 	bool check_export)
-{
-	return zeek::detail::lookup_ID(name, module, no_global, same_module_only, check_export);
-}
+	{
+	return zeek::detail::lookup_ID(name, module, no_global, same_module_only, check_export).get();
+	}

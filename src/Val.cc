@@ -393,7 +393,7 @@ void Val::SetID(detail::ID* id)
 	}
 #endif
 
-bool Val::WouldOverflow(const ::zeek::Type* from_type, const ::zeek::Type* to_type, const Val* val)
+bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
 	{
 	if ( !to_type || !from_type )
 		return true;

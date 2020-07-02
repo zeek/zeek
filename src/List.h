@@ -26,8 +26,6 @@
 #include <cassert>
 #include "util.h"
 
-//enum class [[deprecated("Remove in v4.1. Use zeek::ListOrder instead.")]] ListOrder : int { ORDERED, UNORDERED };
-
 namespace zeek {
 
 enum class ListOrder : int { ORDERED, UNORDERED };

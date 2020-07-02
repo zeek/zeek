@@ -276,6 +276,8 @@ void init();
 
 } // namespace zeek::id
 
+using ID [[deprecated("Remove in v4.1 Use zeek::detail::ID instead.")]] = zeek::detail::ID;
+
 using init_class [[deprecated("Remove in v4.1. Use zeek::detail::InitClass instead.")]] = zeek::detail::InitClass;
 [[deprecated("Remove in v4.1. Use zeek::detail::INIT_NONE instead.")]]
 constexpr auto INIT_NONE = zeek::detail::INIT_NONE;

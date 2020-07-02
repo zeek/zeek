@@ -19,10 +19,10 @@ const bool DEBUG_tcp_contents = false;
 const bool DEBUG_tcp_connection_close = false;
 const bool DEBUG_tcp_match_undelivered = false;
 
-TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
-				TCP_Analyzer* arg_tcp_analyzer,
-				TCP_Reassembler::Type arg_type,
-				TCP_Endpoint* arg_endp)
+TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
+                                 TCP_Analyzer* arg_tcp_analyzer,
+                                 TCP_Reassembler::Type arg_type,
+                                 TCP_Endpoint* arg_endp)
 	: Reassembler(1, REASSEM_TCP)
 	{
 	dst_analyzer = arg_dst_analyzer;

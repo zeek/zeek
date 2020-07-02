@@ -15,12 +15,12 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	analyzer::ID id = mgr.CurrentAnalyzer();
 	if ( id )
 		{
-		analyzer::Analyzer* ha = c->FindAnalyzer(id);
+		zeek::analyzer::Analyzer* ha = c->FindAnalyzer(id);
 
 		if ( ha )
 			{
 			if ( ha->IsAnalyzer("HTTP") )
-				static_cast<analyzer::http::HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
+				static_cast<::analyzer::http::HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
 			else
 				reporter->Error("non-HTTP analyzer associated with connection record");
 			}
@@ -52,5 +52,5 @@ function unescape_URI%(URI: string%): string
 	const u_char* line = URI->Bytes();
 	const u_char* const line_end = line + URI->Len();
 
-	return zeek::make_intrusive<zeek::StringVal>(analyzer::http::unescape_URI(line, line_end, 0));
+	return zeek::make_intrusive<zeek::StringVal>(::analyzer::http::unescape_URI(line, line_end, 0));
 	%}

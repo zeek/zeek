@@ -70,7 +70,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	     len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
 	     (data[0] & 0x08) == 0x08 )
 		{
-		auto& vxlan_ports = analyzer_mgr->GetVxlanPorts();
+		auto& vxlan_ports = zeek::analyzer_mgr->GetVxlanPorts();
 
 		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(),
 		               ntohs(up->uh_dport)) != vxlan_ports.end() )

@@ -69,7 +69,7 @@ public:
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new POP3_Analyzer(conn);
 		}

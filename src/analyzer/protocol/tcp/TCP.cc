@@ -179,16 +179,16 @@ void TCP_Analyzer::Done()
 	finished = 1;
 	}
 
-analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
+zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::ID arg_id)
 	{
-	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+	zeek::analyzer::Analyzer* child = zeek::analyzer::TransportLayerAnalyzer::FindChild(arg_id);
 
 	if ( child )
 		return child;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		{
-		analyzer::Analyzer* child = (*i)->FindChild(arg_id);
+		zeek::analyzer::Analyzer* child = (*i)->FindChild(arg_id);
 		if ( child )
 			return child;
 		}
@@ -196,16 +196,16 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
 	return nullptr;
 	}
 
-analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
+zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::Tag arg_tag)
 	{
-	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+	zeek::analyzer::Analyzer* child = zeek::analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
 
 	if ( child )
 		return child;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		{
-		analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
+		zeek::analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
 		if ( child )
 			return child;
 		}
@@ -213,9 +213,9 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
 	return nullptr;
 	}
 
-bool TCP_Analyzer::RemoveChildAnalyzer(ID id)
+bool TCP_Analyzer::RemoveChildAnalyzer(zeek::analyzer::ID id)
 	{
-	auto rval = analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
+	auto rval = zeek::analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
 
 	if ( rval )
 		return rval;
@@ -232,7 +232,7 @@ void TCP_Analyzer::EnableReassembly()
 	}
 
 void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
-					TCP_Reassembler* rresp)
+                                  TCP_Reassembler* rresp)
 	{
 	orig->AddReassembler(rorig);
 	rorig->SetDstAnalyzer(this);
@@ -1761,7 +1761,7 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 	return endp && endp->HadGap();
 	}
 
-void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
+void TCP_Analyzer::AddChildPacketAnalyzer(zeek::analyzer::Analyzer* a)
 	{
 	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
 			this->GetAnalyzerName(), a->GetAnalyzerName());
@@ -1918,7 +1918,7 @@ void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
 
 void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 	{
-	analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
+	zeek::analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
 	for ( ; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->EndpointEOF(is_orig);
 	}
@@ -1926,7 +1926,7 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, bool gen_event)
 	{
-	analyzer::SupportAnalyzer* sa =
+	zeek::analyzer::SupportAnalyzer* sa =
 		endpoint->IsOrig() ? orig_supporters : resp_supporters;
 
 	for ( ; sa; sa = sa->Sibling() )
@@ -1936,30 +1936,30 @@ void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 
 void TCP_ApplicationAnalyzer::ConnectionFinished(bool half_finished)
 	{
-	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 
-	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionReset()
 	{
-	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 
-	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 	}
 
 void TCP_ApplicationAnalyzer::PacketWithRST()
 	{
-	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 
-	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 	}
 

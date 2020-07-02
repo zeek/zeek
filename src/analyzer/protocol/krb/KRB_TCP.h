@@ -26,7 +26,7 @@ public:
 	                                         const bro_uint_t enctype)
 		{ return zeek::val_mgr->EmptyString(); }
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
 protected:

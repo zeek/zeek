@@ -254,7 +254,7 @@ protected:
 	 *        direction.
 	 */
 	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
-	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
+	     zeek::analyzer::Tag tag = zeek::analyzer::Tag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the

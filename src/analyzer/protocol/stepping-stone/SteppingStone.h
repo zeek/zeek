@@ -48,7 +48,7 @@ public:
 	void Init() override;
 	void Done() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SteppingStone_Analyzer(conn); }
 
 protected:

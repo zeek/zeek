@@ -28,9 +28,11 @@ using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 }
 
 namespace analyzer {
-
 namespace tcp { class TCP_ApplicationAnalyzer; }
 namespace pia { class PIA; }
+}
+
+namespace zeek::analyzer {
 
 class Analyzer;
 class AnalyzerTimer;
@@ -629,7 +631,7 @@ protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
 	friend class ::Connection;
-	friend class tcp::TCP_ApplicationAnalyzer;
+	friend class ::analyzer::tcp::TCP_ApplicationAnalyzer;
 
 	/**
 	 * Return a string represantation of an analyzer, containing its name
@@ -755,13 +757,13 @@ private:
  * Convenience macro to add a new timer.
  */
 #define ADD_ANALYZER_TIMER(timer, t, do_expire, type) \
-	   AddTimer(analyzer::analyzer_timer_func(timer), (t), (do_expire), (type))
+	AddTimer(zeek::analyzer::analyzer_timer_func(timer), (t), (do_expire), (type))
 
 /**
  * Internal convenience macro to iterate over the list of child analyzers.
  */
 #define LOOP_OVER_CHILDREN(var) \
-	for ( analyzer::analyzer_list::iterator var = children.begin(); \
+	for ( zeek::analyzer::analyzer_list::iterator var = children.begin(); \
 	      var != children.end(); var++ )
 
 /**
@@ -769,14 +771,14 @@ private:
  * analyzers.
  */
 #define LOOP_OVER_CONST_CHILDREN(var) \
-	for ( analyzer::analyzer_list::const_iterator var = children.begin(); \
+	for ( zeek::analyzer::analyzer_list::const_iterator var = children.begin(); \
 	      var != children.end(); var++ )
 
 /**
  * Convenience macro to iterate over a given list of child analyzers.
  */
 #define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) \
-	for ( analyzer::analyzer_list::iterator var = the_kids.begin(); \
+	for ( zeek::analyzer::analyzer_list::iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 /**
@@ -784,7 +786,7 @@ private:
  * analyzers.
  */
 #define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
-	for ( analyzer::analyzer_list::const_iterator var = the_kids.begin(); \
+	for ( zeek::analyzer::analyzer_list::const_iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 /**
@@ -934,13 +936,13 @@ public:
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(pia::PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	pia::PIA* GetPIA() const		{ return pia; }
+	::analyzer::pia::PIA* GetPIA() const		{ return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -952,7 +954,18 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 private:
-	pia::PIA* pia;
+	::analyzer::pia::PIA* pia;
 };
 
+} // namespace zeek::analyzer
+
+namespace analyzer {
+	using Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::Analyzer instead.")]] = zeek::analyzer::Analyzer;
+	using AnalyzerTimer [[deprecated("Remove in v4.1. Use zeek::analyzer::AnalyzerTimer instead.")]] = zeek::analyzer::AnalyzerTimer;
+	using SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::SupportAnalyzer instead.")]] = zeek::analyzer::SupportAnalyzer;
+	using OutputHandler [[deprecated("Remove in v4.1. Use zeek::analyzer::OutputHandler instead.")]] = zeek::analyzer::OutputHandler;
+	using TransportLayerAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::TransportLayerAnalyzer instead.")]] = zeek::analyzer::TransportLayerAnalyzer;
+
+	using analyzer_list [[deprecated("Remove in v4.1. Use zeek::analyzer::analyzer_list instead.")]] = zeek::analyzer::analyzer_list;
+	using ID [[deprecated("Remove in v4.1. Use zeek::analyzer::ID instead.")]] = zeek::analyzer::ID;
 }

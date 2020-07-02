@@ -8,7 +8,7 @@ namespace analyzer { namespace rpc {
 
 class MOUNT_Interp : public RPC_Interpreter {
 public:
-	explicit MOUNT_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	explicit MOUNT_Interp(zeek::analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
@@ -42,7 +42,7 @@ public:
 	explicit MOUNT_Analyzer(Connection* conn);
 	void Init() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new MOUNT_Analyzer(conn); }
 };
 

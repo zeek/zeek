@@ -10,7 +10,7 @@
 #include "../ZeekString.h"
 #include "../Event.h"
 
-namespace analyzer {
+namespace zeek::analyzer {
 
 class AnalyzerTimer final : public Timer {
 public:
@@ -31,9 +31,9 @@ protected:
 	int do_expire;
 };
 
-}
+} // namespace zeek::analyzer
 
-using namespace analyzer;
+using namespace zeek::analyzer;
 
 AnalyzerTimer::AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 			     double arg_t, int arg_do_expire, TimerType arg_type)
@@ -72,7 +72,7 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 	Ref(analyzer->Conn());
 	}
 
-analyzer::ID Analyzer::id_counter = 0;
+zeek::analyzer::ID Analyzer::id_counter = 0;
 
 const char* Analyzer::GetAnalyzerName() const
 	{

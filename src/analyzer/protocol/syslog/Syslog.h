@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace syslog {
 
-class Syslog_Analyzer : public analyzer::Analyzer {
+class Syslog_Analyzer : public zeek::analyzer::Analyzer {
 public:
 	explicit Syslog_Analyzer(Connection* conn);
 	~Syslog_Analyzer() override;
@@ -17,7 +17,7 @@ public:
 	void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Syslog_Analyzer(conn); }
 
 protected:
@@ -38,11 +38,11 @@ protected:
 //	virtual void Undelivered(uint64_t seq, int len, bool orig);
 //	virtual void EndpointEOF(tcp::TCP_Reassembler* endp);
 //
-//	static analyzer::Analyzer* Instantiate(Connection* conn)
+//	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new Syslog_tcp::TCP_Analyzer(conn); }
 //
 //protected:
 //	binpac::Syslog_on_TCP::Syslog_TCP_Conn* interp;
 //};
 //
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

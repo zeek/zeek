@@ -108,7 +108,7 @@ bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
 	}
 
 
-RPC_Interpreter::RPC_Interpreter(analyzer::Analyzer* arg_analyzer)
+RPC_Interpreter::RPC_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	}

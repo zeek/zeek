@@ -100,7 +100,7 @@ protected:
 
 class RPC_Interpreter {
 public:
-	explicit RPC_Interpreter(analyzer::Analyzer* analyzer);
+	explicit RPC_Interpreter(zeek::analyzer::Analyzer* analyzer);
 	virtual ~RPC_Interpreter();
 
 	// Delivers the given RPC.  Returns true if "len" bytes were
@@ -123,7 +123,7 @@ protected:
 	void Weird(const char* name, const char* addl = "");
 
 	std::map<uint32_t, RPC_CallInfo*> calls;
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 };
 
 

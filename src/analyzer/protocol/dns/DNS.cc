@@ -19,7 +19,7 @@
 
 using namespace analyzer::dns;
 
-DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer)
+DNS_Interpreter::DNS_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	first_message = true;
@@ -1334,7 +1334,7 @@ bool DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	}
 
 static zeek::StringValPtr
-extract_char_string(analyzer::Analyzer* analyzer,
+extract_char_string(zeek::analyzer::Analyzer* analyzer,
                     const u_char*& data, int& len, int& rdlen)
 	{
 	if ( rdlen <= 0 )

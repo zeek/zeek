@@ -4,7 +4,7 @@
 
 namespace analyzer { namespace gtpv1 {
 
-class GTPv1_Analyzer final : public analyzer::Analyzer {
+class GTPv1_Analyzer final : public zeek::analyzer::Analyzer {
 public:
 	explicit GTPv1_Analyzer(Connection* conn);
 	virtual ~GTPv1_Analyzer();
@@ -13,7 +13,7 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new GTPv1_Analyzer(conn); }
 
 protected:

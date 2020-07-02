@@ -1,8 +1,8 @@
 
 refine connection GSSAPI_Conn += {
 	%member{
-		analyzer::Analyzer *ntlm;
-		analyzer::Analyzer *krb5;
+		zeek::analyzer::Analyzer *ntlm;
+		zeek::analyzer::Analyzer *krb5;
 	%}
 
 	%init{
@@ -34,7 +34,7 @@ refine connection GSSAPI_Conn += {
 			{
 			// ntlmssp
 			if ( ! ntlm )
-				ntlm = analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
+				ntlm = zeek::analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
 
 			if ( ntlm )
 				ntlm->DeliverStream(${val.ntlm}.length(),
@@ -44,7 +44,7 @@ refine connection GSSAPI_Conn += {
 		else if ( ${val.has_krb} )
 			{
 			if ( ! krb5 )
-				krb5 = analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
+				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
 
 			if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
 				{
@@ -77,4 +77,3 @@ refine typeattr GSSAPI_NEG_TOKEN_MECH_TOKEN += &let {
 refine typeattr GSSAPI_NEG_TOKEN_RESP_Arg += &let {
 	proc: bool = $context.connection.proc_gssapi_neg_result(this) &if(seq_meta.index==0);
 };
-

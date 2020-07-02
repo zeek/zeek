@@ -173,7 +173,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		DeliverBody(len, data, trailing_CRLF);
 	}
 
-class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler {
+class HTTP_Entity::UncompressedOutput : public zeek::analyzer::OutputHandler {
 public:
 	UncompressedOutput(HTTP_Entity* e)	{ entity = e; }
 	void DeliverStream(int len, const u_char* data, bool orig) override
@@ -1712,7 +1712,7 @@ void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
 	}
 
 zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
-                                              analyzer::Analyzer* analyzer)
+                                           zeek::analyzer::Analyzer* analyzer)
 	{
 	zeek::byte_vec decoded_URI = new u_char[line_end - line + 1];
 	zeek::byte_vec URI_p = decoded_URI;

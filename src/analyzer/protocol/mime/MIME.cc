@@ -1154,7 +1154,7 @@ void MIME_Entity::StartDecodeBase64()
 		delete base64_decoder;
 		}
 
-	analyzer::Analyzer* analyzer = message->GetAnalyzer();
+	zeek::analyzer::Analyzer* analyzer = message->GetAnalyzer();
 
 	if ( ! analyzer )
 		{
@@ -1329,7 +1329,7 @@ zeek::TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	return t;
 	}
 
-MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
+MIME_Mail::MIME_Mail(zeek::analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 : MIME_Message(mail_analyzer), md5_hash()
 	{
 	analyzer = mail_analyzer;

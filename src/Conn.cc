@@ -411,17 +411,17 @@ const zeek::RecordValPtr& Connection::ConnVal()
 	return conn_val;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
+zeek::analyzer::Analyzer* Connection::FindAnalyzer(zeek::analyzer::ID id)
 	{
 	return root_analyzer ? root_analyzer->FindChild(id) : nullptr;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
+zeek::analyzer::Analyzer* Connection::FindAnalyzer(const zeek::analyzer::Tag& tag)
 	{
 	return root_analyzer ? root_analyzer->FindChild(tag) : nullptr;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
+zeek::analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 	{
 	return root_analyzer->FindChild(name);
 	}
@@ -464,7 +464,7 @@ void Connection::RemovalEvent()
 		EnqueueEvent(successful_connection_remove, nullptr, ConnVal());
 	}
 
-void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
+void Connection::Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name)
 	{
 	if ( ! f )
 		return;
@@ -475,7 +475,7 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		EnqueueEvent(f, analyzer, ConnVal());
 	}
 
-void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2)
+void Connection::Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2)
 	{
 	if ( ! f )
 		{
@@ -495,7 +495,7 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, zeek::Va
 		             zeek::IntrusivePtr{zeek::AdoptRef{}, v1});
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -508,14 +508,14 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_l
 	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
+void Connection::ConnectionEventFast(EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
 	{
 	// "this" is passed as a cookie for the event
 	mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
 	            a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list* vl)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
@@ -524,7 +524,7 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_l
 		EnqueueEvent(f, a, std::move(args));
 	}
 
-void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
+void Connection::EnqueueEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a,
                               zeek::Args args)
 	{
 	// "this" is passed as a cookie for the event
@@ -604,7 +604,7 @@ void Connection::FlipRoles()
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
 
-	analyzer_mgr->ApplyScheduledAnalyzers(this);
+	zeek::analyzer_mgr->ApplyScheduledAnalyzers(this);
 
 	AddHistory('^');
 	}
@@ -683,7 +683,7 @@ void Connection::IDString(ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
+void Connection::SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;

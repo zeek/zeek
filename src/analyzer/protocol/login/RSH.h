@@ -48,7 +48,7 @@ public:
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Rsh_Analyzer(conn); }
 
 	Contents_Rsh_Analyzer* contents_orig;

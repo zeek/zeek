@@ -34,6 +34,7 @@
 
 #include "analyzer/analyzer.bif.h"
 
+namespace zeek {
 namespace analyzer {
 
 /**
@@ -46,7 +47,7 @@ namespace analyzer {
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public zeek::plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -399,9 +400,17 @@ private:
 	std::vector<uint16_t> vxlan_ports;
 };
 
-}
+} // namespace analyzer
 
 extern analyzer::Manager* analyzer_mgr;
+
+} // namespace zeek
+
+namespace analyzer {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::analyzer::Manager instead.")]] = zeek::analyzer::Manager;
+} // namespace analyzer
+
+extern zeek::analyzer::Manager*& analyzer_mgr [[deprecated("Remove in v4.1. Use zeek::analyzer_mgr instead.")]];
 
 // Macros for anayzer debug logging which include the connection id into the
 // message.

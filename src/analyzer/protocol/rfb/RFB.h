@@ -24,8 +24,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static zeek::analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new RFB_Analyzer(conn); }
 
 protected:

@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace conn_size {
 
-class ConnSize_Analyzer : public analyzer::Analyzer {
+class ConnSize_Analyzer : public zeek::analyzer::Analyzer {
 public:
 	explicit ConnSize_Analyzer(Connection* c);
 	~ConnSize_Analyzer() override;
@@ -26,7 +26,7 @@ public:
 	void SetDurationThreshold(double duration);
 	double GetDurationThreshold() { return duration_thresh; };
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
 
 protected:

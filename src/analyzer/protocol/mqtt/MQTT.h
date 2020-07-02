@@ -20,7 +20,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static zeek::analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new MQTT_Analyzer(conn); }
 
 protected:

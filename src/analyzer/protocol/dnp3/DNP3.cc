@@ -113,7 +113,7 @@ bool DNP3_Base::crc_table_initialized = false;
 unsigned int DNP3_Base::crc_table[256];
 
 
-DNP3_Base::DNP3_Base(analyzer::Analyzer* arg_analyzer)
+DNP3_Base::DNP3_Base(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	interp = new binpac::DNP3::DNP3_Conn(analyzer);

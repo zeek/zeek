@@ -17,14 +17,14 @@ class EventMgr;
 class Event final : public zeek::Obj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
-	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	      SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	      zeek::Obj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
 
 	SourceID Source() const		{ return src; }
-	analyzer::ID Analyzer() const	{ return aid; }
+	zeek::analyzer::ID Analyzer() const	{ return aid; }
 	EventHandlerPtr Handler() const	{ return handler; }
 	const zeek::Args& Args() const	{ return args; }
 
@@ -40,7 +40,7 @@ protected:
 	EventHandlerPtr handler;
 	zeek::Args args;
 	SourceID src;
-	analyzer::ID aid;
+	zeek::analyzer::ID aid;
 	zeek::Obj* obj;
 	Event* next_event;
 };
@@ -63,7 +63,7 @@ public:
 	// arguments when there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
-			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+			SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
@@ -74,7 +74,7 @@ public:
 	// existence check.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
-			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+			SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Same as QueueEvent, except taking the event's argument list via a
@@ -83,7 +83,7 @@ public:
 	// each of its elements.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
-			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+			SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	/**
@@ -99,7 +99,7 @@ public:
 	 * reference to until dispatching the event.
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-	             SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	             SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	             zeek::Obj* obj = nullptr);
 
 	/**
@@ -124,7 +124,7 @@ public:
 
 	// Returns the ID of the analyzer which raised the last event, or 0 if
 	// non-analyzer event.
-	analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
+	zeek::analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
 
 	int Size() const
 		{ return num_events_queued - num_events_dispatched; }
@@ -142,7 +142,7 @@ protected:
 	Event* head;
 	Event* tail;
 	SourceID current_src;
-	analyzer::ID current_aid;
+	zeek::analyzer::ID current_aid;
 	zeek::RecordVal* src_val;
 	bool draining;
 	zeek::detail::Flare queue_flare;

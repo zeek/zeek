@@ -49,7 +49,7 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	string str(arg_analyzer);
 	string::size_type pos = str.find(':');
 	string arg = str.substr(0, pos);
-	analyzer = analyzer_mgr->GetComponentTag(arg.c_str());
+	analyzer = zeek::analyzer_mgr->GetComponentTag(arg.c_str());
 
 	if ( ! analyzer )
 		reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
@@ -57,23 +57,23 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	if ( pos != string::npos )
 		{
 		arg = str.substr(pos + 1);
-		child_analyzer = analyzer_mgr->GetComponentTag(arg.c_str());
+		child_analyzer = zeek::analyzer_mgr->GetComponentTag(arg.c_str());
 
 		if ( ! child_analyzer )
 			reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
 		}
 	else
-		child_analyzer = analyzer::Tag();
+		child_analyzer = zeek::analyzer::Tag();
 	}
 
 void RuleActionAnalyzer::PrintDebug()
 	{
 	if ( ! child_analyzer )
-		fprintf(stderr, "|%s|\n", analyzer_mgr->GetComponentName(analyzer).c_str());
+		fprintf(stderr, "|%s|\n", zeek::analyzer_mgr->GetComponentName(analyzer).c_str());
 	else
 		fprintf(stderr, "|%s:%s|\n",
-			analyzer_mgr->GetComponentName(analyzer).c_str(),
-			analyzer_mgr->GetComponentName(child_analyzer).c_str());
+		        zeek::analyzer_mgr->GetComponentName(analyzer).c_str(),
+		        zeek::analyzer_mgr->GetComponentName(child_analyzer).c_str());
 	}
 
 
@@ -82,7 +82,7 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 	{
 	if ( ! ChildAnalyzer() )
 		{
-		if ( ! analyzer_mgr->IsEnabled(Analyzer()) )
+		if ( ! zeek::analyzer_mgr->IsEnabled(Analyzer()) )
 			return;
 
 		if ( state->PIA() )
@@ -90,7 +90,7 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 		}
 	else
 		{
-		if ( ! analyzer_mgr->IsEnabled(ChildAnalyzer()) )
+		if ( ! zeek::analyzer_mgr->IsEnabled(ChildAnalyzer()) )
 			return;
 
 		// This is ugly and works only if there exists only one

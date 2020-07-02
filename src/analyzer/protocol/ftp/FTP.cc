@@ -166,7 +166,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			// Server wants to proceed with an ADAT exchange and we
 			// know how to analyze the GSI mechanism, so attach analyzer
 			// to look for that.
-			Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+			Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 			if ( ssl )
 				{
 				ssl->AddSupportAnalyzer(new FTP_ADAT_Analyzer(Conn(), true));

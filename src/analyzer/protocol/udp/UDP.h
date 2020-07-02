@@ -12,7 +12,7 @@ typedef enum {
 	UDP_ACTIVE,	// packets seen
 } UDP_EndpointState;
 
-class UDP_Analyzer final : public analyzer::TransportLayerAnalyzer {
+		class UDP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
 	explicit UDP_Analyzer(Connection* conn);
 	~UDP_Analyzer() override;
@@ -20,7 +20,7 @@ public:
 	void Init() override;
 	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
 
 protected:

@@ -20,13 +20,13 @@ typedef enum {
 
 // We do not have an PIA for ICMP (yet) and therefore derive from
 // RuleMatcherState to perform our own matching.
-class ICMP_Analyzer final : public analyzer::TransportLayerAnalyzer {
+class ICMP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
 	explicit ICMP_Analyzer(Connection* conn);
 
 	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ICMP_Analyzer(conn); }
 
 protected:

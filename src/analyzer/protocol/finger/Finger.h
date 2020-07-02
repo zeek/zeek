@@ -16,7 +16,7 @@ public:
 	// Line-based input.
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Finger_Analyzer(conn); }
 
 protected:
@@ -25,4 +25,4 @@ protected:
 	int did_deliver;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

@@ -11,7 +11,7 @@
 using namespace analyzer::dtls;
 
 DTLS_Analyzer::DTLS_Analyzer(Connection* c)
-: analyzer::Analyzer("DTLS", c)
+: zeek::analyzer::Analyzer("DTLS", c)
 	{
 	interp = new binpac::DTLS::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);

@@ -1,21 +1,17 @@
 #pragma once
 
-class Connection;
-
-namespace analyzer { class Analyzer; }
-
 #include "util.h"
 #include "Val.h"
 #include "IntrusivePtr.h"
-#include "event.bif.func_h"
 #include "analyzer/Analyzer.h"
 #include "file_analysis/Analyzer.h"
+#include "event.bif.func_h"
 
 #include "binpac.h"
 
 namespace binpac {
 
-using BroAnalyzer = analyzer::Analyzer*;
+using BroAnalyzer = zeek::analyzer::Analyzer*;
 using BroFileAnalyzer = file_analysis::Analyzer;
 using BroVal = zeek::Val*;
 using BroPortVal = zeek::PortVal*;

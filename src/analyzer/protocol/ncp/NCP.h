@@ -30,7 +30,7 @@ namespace analyzer { namespace ncp {
 
 class NCP_Session {
 public:
-	explicit NCP_Session(analyzer::Analyzer* analyzer);
+	explicit NCP_Session(zeek::analyzer::Analyzer* analyzer);
 
 	void Deliver(bool is_orig, int len, const u_char* data);
 
@@ -42,7 +42,7 @@ public:
 protected:
 	void DeliverFrame(const binpac::NCP::ncp_frame* frame);
 
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	int req_frame_type;
 	int req_func;
 };
@@ -104,7 +104,7 @@ public:
 	explicit NCP_Analyzer(Connection* conn);
 	~NCP_Analyzer() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NCP_Analyzer(conn); }
 
 protected:

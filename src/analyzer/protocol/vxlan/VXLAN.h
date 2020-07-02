@@ -6,7 +6,7 @@
 
 namespace analyzer { namespace vxlan {
 
-class VXLAN_Analyzer final : public analyzer::Analyzer {
+class VXLAN_Analyzer final : public zeek::analyzer::Analyzer {
 public:
 	explicit VXLAN_Analyzer(Connection* conn)
 	    : Analyzer("VXLAN", conn)
@@ -17,7 +17,7 @@ public:
 	void DeliverPacket(int len, const u_char* data, bool orig,
 	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new VXLAN_Analyzer(conn); }
 };
 

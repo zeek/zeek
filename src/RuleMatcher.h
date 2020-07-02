@@ -37,10 +37,10 @@ class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
 namespace analyzer {
 	namespace pia { class PIA; }
-	class Analyzer;
 }
 
 // RuleHdrTest and associated things:
@@ -139,7 +139,7 @@ class RuleEndpointState {
 public:
 	~RuleEndpointState();
 
-	analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
+	zeek::analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
 	bool IsOrig()		{ return is_orig; }
 
 	// For flipping roles.
@@ -158,7 +158,7 @@ private:
 
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
-	RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
+	RuleEndpointState(zeek::analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
 			  RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher {
@@ -168,7 +168,7 @@ private:
 
 	using matcher_list = zeek::PList<Matcher>;
 
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
 	analyzer::pia::PIA* pia;
 
@@ -263,7 +263,7 @@ public:
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
-	RuleEndpointState* InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
+	RuleEndpointState* InitEndpoint(zeek::analyzer::Analyzer* analyzer, const IP_Hdr* ip,
 					int caplen, RuleEndpointState* opposite, bool is_orig, analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
@@ -372,7 +372,7 @@ public:
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
-	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
+	void InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const IP_Hdr* ip,
 				 int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're

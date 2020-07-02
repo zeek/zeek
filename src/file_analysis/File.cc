@@ -81,7 +81,7 @@ void File::StaticInit()
 	}
 
 File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
-           analyzer::Tag tag, bool is_orig)
+           zeek::analyzer::Tag tag, bool is_orig)
 	: id(file_id), val(nullptr), file_reassembler(nullptr), stream_offset(0),
 	  reassembly_max_buffer(0), did_metadata_inference(false),
 	  reassembly_enabled(false), postpone_timeout(false), done(false),

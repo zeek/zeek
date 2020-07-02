@@ -15,7 +15,7 @@
 #include "BroList.h"
 #include "net_util.h"
 
-namespace analyzer { class Analyzer; }
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 namespace file_analysis { class File; }
 class Connection;
 class Reporter;
@@ -120,7 +120,7 @@ public:
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.
-	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
+	void AnalyzerError(zeek::analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always

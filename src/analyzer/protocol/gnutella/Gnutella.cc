@@ -119,14 +119,14 @@ bool Gnutella_Analyzer::IsHTTP(std::string header)
 	if ( gnutella_http_notify )
 		EnqueueConnEvent(gnutella_http_notify, ConnVal());
 
-	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
+	zeek::analyzer::Analyzer* a = zeek::analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
 
 	if ( a && Parent()->AddChildAnalyzer(a) )
 		{
 		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			pia::PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
+			pia::PIA* pia = static_cast<zeek::analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
 			if ( pia )
 				static_cast<pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}

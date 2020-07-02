@@ -1206,7 +1206,7 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 	if ( flip )
 		conn->FlipRoles();
 
-	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
+	if ( ! zeek::analyzer_mgr->BuildInitialAnalyzerTree(conn) )
 		{
 		conn->Done();
 		Unref(conn);

@@ -79,7 +79,7 @@ void IMAP_Analyzer::StartTLS()
 	// TLS datastream.
 	tls_active = true;
 
-	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 	}

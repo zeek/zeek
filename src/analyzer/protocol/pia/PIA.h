@@ -19,25 +19,25 @@ namespace analyzer { namespace pia {
 // PIAs and then each needs its own matching-state.
 class PIA : public RuleMatcherState {
 public:
-	explicit PIA(analyzer::Analyzer* as_analyzer);
+	explicit PIA(zeek::analyzer::Analyzer* as_analyzer);
 	virtual ~PIA();
 
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
 	// signature that triggered the activitation, if any.
-	virtual void ActivateAnalyzer(analyzer::Tag tag,
+	virtual void ActivateAnalyzer(zeek::analyzer::Tag tag,
 					const Rule* rule = nullptr) = 0;
 
 	// Called when PIA wants to remove an Analyzer.
-	virtual void DeactivateAnalyzer(analyzer::Tag tag) = 0;
+	virtual void DeactivateAnalyzer(zeek::analyzer::Tag tag) = 0;
 
 	void Match(Rule::PatternType type, const u_char* data, int len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
 
-	void ReplayPacketBuffer(analyzer::Analyzer* analyzer);
+	void ReplayPacketBuffer(zeek::analyzer::Analyzer* analyzer);
 
 	// Children are also derived from Analyzer. Return this object
 	// as pointer to an Analyzer.
-	analyzer::Analyzer* AsAnalyzer()	{ return as_analyzer; }
+	zeek::analyzer::Analyzer* AsAnalyzer()	{ return as_analyzer; }
 
 protected:
 	void PIA_Done();
@@ -82,20 +82,20 @@ protected:
 	Buffer pkt_buffer;
 
 private:
-	analyzer::Analyzer* as_analyzer;
+	zeek::analyzer::Analyzer* as_analyzer;
 	Connection* conn;
 	DataBlock current_packet;
 };
 
 // PIA for UDP.
-class PIA_UDP : public PIA, public analyzer::Analyzer {
+class PIA_UDP : public PIA, public zeek::analyzer::Analyzer {
 public:
 	explicit PIA_UDP(Connection* conn)
 	: PIA(this), Analyzer("PIA_UDP", conn)
 		{ SetConn(conn); }
 	~PIA_UDP() override { }
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new PIA_UDP(conn); }
 
 protected:
@@ -112,8 +112,8 @@ protected:
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, true);
 		}
 
-	void ActivateAnalyzer(analyzer::Tag tag, const Rule* rule) override;
-	void DeactivateAnalyzer(analyzer::Tag tag) override;
+	void ActivateAnalyzer(zeek::analyzer::Tag tag, const Rule* rule) override;
+	void DeactivateAnalyzer(zeek::analyzer::Tag tag) override;
 };
 
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
@@ -138,9 +138,9 @@ public:
 	// to be unnecessary overhead.)
 	void FirstPacket(bool is_orig, const IP_Hdr* ip);
 
-	void ReplayStreamBuffer(analyzer::Analyzer* analyzer);
+	void ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new PIA_TCP(conn); }
 
 protected:
@@ -160,9 +160,9 @@ protected:
 	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 	void Undelivered(uint64_t seq, int len, bool is_orig) override;
 
-	void ActivateAnalyzer(analyzer::Tag tag,
+	void ActivateAnalyzer(zeek::analyzer::Tag tag,
 					const Rule* rule = nullptr) override;
-	void DeactivateAnalyzer(analyzer::Tag tag) override;
+	void DeactivateAnalyzer(zeek::analyzer::Tag tag) override;
 
 private:
 	// FIXME: Not sure yet whether we need both pkt_buffer and stream_buffer.
@@ -172,4 +172,4 @@ private:
 	bool stream_mode;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

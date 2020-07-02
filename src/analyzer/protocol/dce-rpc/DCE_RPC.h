@@ -24,7 +24,7 @@ public:
 	bool SetFileID(uint64_t fid_in)
 		{ interp->set_file_id(fid_in); return true; }
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
 protected:

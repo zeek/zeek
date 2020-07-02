@@ -85,15 +85,18 @@ int perftools_leaks = 0;
 int perftools_profile = 0;
 #endif
 
-DNS_Mgr* dns_mgr;
-TimerMgr* timer_mgr;
 zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::ValManager*& val_mgr = zeek::val_mgr;
+zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
+zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
+
+DNS_Mgr* dns_mgr;
+TimerMgr* timer_mgr;
+
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
 zeek::plugin::Manager* plugin_mgr = nullptr;
-analyzer::Manager* analyzer_mgr = nullptr;
 file_analysis::Manager* file_mgr = nullptr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
 iosource::Manager* iosource_mgr = nullptr;
@@ -230,7 +233,7 @@ void done_with_network()
 
 	terminating = true;
 
-	analyzer_mgr->Done();
+	zeek::analyzer_mgr->Done();
 	timer_mgr->Expire();
 	dns_mgr->Flush();
 	mgr.Drain();
@@ -300,7 +303,7 @@ void terminate_bro()
 	plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
-	delete analyzer_mgr;
+	delete zeek::analyzer_mgr;
 	delete file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
@@ -564,7 +567,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
-	analyzer_mgr = new analyzer::Manager();
+	zeek::analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
@@ -573,7 +576,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	trigger_mgr = new zeek::detail::trigger::Manager();
 
 	plugin_mgr->InitPreScript();
-	analyzer_mgr->InitPreScript();
+	zeek::analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
 
@@ -659,7 +662,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(success ? 0 : 1);
 		}
 
-	analyzer_mgr->InitPostScript();
+	zeek::analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
 	dns_mgr->InitPostScript();
 
@@ -859,7 +862,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	broker_mgr->ZeekInitDone();
 	reporter->ZeekInitDone();
-	analyzer_mgr->DumpDebug();
+	zeek::analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

@@ -11,8 +11,8 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("FTP_Data", ::analyzer::file::FTP_Data::Instantiate));
-		AddComponent(new ::analyzer::Component("IRC_Data", ::analyzer::file::IRC_Data::Instantiate));
+		AddComponent(new zeek::analyzer::Component("FTP_Data", ::analyzer::file::FTP_Data::Instantiate));
+		AddComponent(new zeek::analyzer::Component("IRC_Data", ::analyzer::file::IRC_Data::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::File";

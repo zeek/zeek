@@ -23,7 +23,7 @@ using namespace analyzer::ncp;
 	 uint16(xbyte(bytes, 0)) | ((uint16(xbyte(bytes, 1))) << 8) : \
 	 uint16(xbyte(bytes, 1)) | ((uint16(xbyte(bytes, 0))) << 8))
 
-NCP_Session::NCP_Session(analyzer::Analyzer* a)
+NCP_Session::NCP_Session(zeek::analyzer::Analyzer* a)
 : analyzer(a)
 	{
 	req_frame_type = 0;

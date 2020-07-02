@@ -196,8 +196,7 @@ void Reporter::InternalError(const char* fmt, ...)
 	abort();
 	}
 
-void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt,
-                                     ...)
+void Reporter::AnalyzerError(zeek::analyzer::Analyzer* a, const char* fmt, ...)
 	{
 	if ( a )
 		a->SetSkip(true);

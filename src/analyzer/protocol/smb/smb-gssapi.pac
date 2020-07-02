@@ -1,8 +1,8 @@
 
 refine connection SMB_Conn += {
 	%member{
-		analyzer::Analyzer *gssapi;
-		analyzer::Analyzer *ntlm;
+		zeek::analyzer::Analyzer *gssapi;
+		zeek::analyzer::Analyzer *ntlm;
 	%}
 
 	%init{
@@ -27,10 +27,10 @@ refine connection SMB_Conn += {
 	function forward_gssapi(data: bytestring, is_orig: bool): bool
 		%{
 		if ( ! gssapi )
-			gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer()->Conn());
+			gssapi = zeek::analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer()->Conn());
 
 		if ( ! ntlm )
-			ntlm = analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
+			ntlm = zeek::analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
 
 		// SMB allows raw NTLM instead of GSSAPI in certain messages.
 		// We check if this is the case and run the NTLM analyzer directly.

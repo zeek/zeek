@@ -33,9 +33,9 @@ static void write_plugin_section_heading(FILE* f, const zeek::plugin::Plugin* p)
 	fprintf(f, "%s\n\n", p->Description().c_str());
 	}
 
-static void write_analyzer_component(FILE* f, const analyzer::Component* c)
+static void write_analyzer_component(FILE* f, const zeek::analyzer::Component* c)
 	{
-	const auto& atag = analyzer_mgr->GetTagType();
+	const auto& atag = zeek::analyzer_mgr->GetTagType();
 	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
@@ -67,8 +67,8 @@ static void write_plugin_components(FILE* f, const zeek::plugin::Plugin* p)
 		switch ( component->Type() ) {
 		case zeek::plugin::component::ANALYZER:
 			{
-			const analyzer::Component* c =
-			        dynamic_cast<const analyzer::Component*>(component);
+			const zeek::analyzer::Component* c =
+				dynamic_cast<const zeek::analyzer::Component*>(component);
 
 			if ( c )
 				write_analyzer_component(f, c);

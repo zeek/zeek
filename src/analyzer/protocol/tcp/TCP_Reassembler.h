@@ -7,11 +7,9 @@
 
 class Connection;
 
-namespace analyzer {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
-class Analyzer;
-
-namespace tcp {
+namespace analyzer::tcp {
 
 class TCP_Analyzer;
 
@@ -22,12 +20,13 @@ public:
 		Forward,	// forward to destination analyzer's children
 	};
 
-	TCP_Reassembler(Analyzer* arg_dst_analyzer, TCP_Analyzer* arg_tcp_analyzer,
+	TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
+	                TCP_Analyzer* arg_tcp_analyzer,
 	                Type arg_type, TCP_Endpoint* arg_endp);
 
 	void Done();
 
-	void SetDstAnalyzer(Analyzer* analyzer)	{ dst_analyzer = analyzer; }
+	void SetDstAnalyzer(zeek::analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
 	void SetType(Type arg_type)	{ type = arg_type; }
 
 	TCP_Analyzer* GetTCPAnalyzer()	{ return tcp_analyzer; }
@@ -110,10 +109,10 @@ private:
 
 	BroFilePtr record_contents_file;	// file on which to reassemble contents
 
-	Analyzer* dst_analyzer;
+	zeek::analyzer::Analyzer* dst_analyzer;
 	TCP_Analyzer* tcp_analyzer;
 
 	Type type;
 };
 
-} } // namespace analyzer::*
+} // namespace analyzer::tcp

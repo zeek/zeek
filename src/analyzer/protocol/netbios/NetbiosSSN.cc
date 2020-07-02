@@ -49,14 +49,14 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
 	}
 
 
-NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(Analyzer* arg_analyzer)
+NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	//smb_session = arg_smb_session;
 	}
 
 void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
-				const u_char* data, int len, bool is_query)
+                                          const u_char* data, int len, bool is_query)
 	{
 	if ( netbios_session_message )
 		analyzer->EnqueueConnEvent(netbios_session_message,

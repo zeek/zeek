@@ -11,8 +11,8 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("PIA_TCP", ::analyzer::pia::PIA_TCP::Instantiate));
-		AddComponent(new ::analyzer::Component("PIA_UDP", ::analyzer::pia::PIA_UDP::Instantiate));
+		AddComponent(new zeek::analyzer::Component("PIA_TCP", ::analyzer::pia::PIA_TCP::Instantiate));
+		AddComponent(new zeek::analyzer::Component("PIA_UDP", ::analyzer::pia::PIA_UDP::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::PIA";

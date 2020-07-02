@@ -11,8 +11,8 @@ public:
 	explicit Telnet_Analyzer(Connection* conn);
 	~Telnet_Analyzer() override {}
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Telnet_Analyzer(conn); }
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

@@ -10,7 +10,7 @@ namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace dtls {
 
-class DTLS_Analyzer final : public analyzer::Analyzer {
+class DTLS_Analyzer final : public zeek::analyzer::Analyzer {
 public:
 	explicit DTLS_Analyzer(Connection* conn);
 	~DTLS_Analyzer() override;
@@ -24,7 +24,7 @@ public:
 	void SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, uint32_t length, const u_char* begin, const u_char* end, bool orig);
 
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DTLS_Analyzer(conn); }
 
 protected:

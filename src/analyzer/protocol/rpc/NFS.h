@@ -9,7 +9,7 @@ namespace analyzer { namespace rpc {
 
 class NFS_Interp : public RPC_Interpreter {
 public:
-	explicit NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	explicit NFS_Interp(zeek::analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
@@ -84,7 +84,7 @@ public:
 	explicit NFS_Analyzer(Connection* conn);
 	void Init() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NFS_Analyzer(conn); }
 };
 

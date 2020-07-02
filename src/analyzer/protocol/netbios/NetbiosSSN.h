@@ -63,7 +63,7 @@ struct NetbiosDGM_RawMsgHdr {
 
 class NetbiosSSN_Interpreter {
 public:
-	explicit NetbiosSSN_Interpreter(Analyzer* analyzer);
+	explicit NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* analyzer);
 
 	void ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, bool is_query);
@@ -98,7 +98,7 @@ protected:
 			u_char*& xname, int& xlen);
 
 protected:
-	Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	//SMB_Session* smb_session;
 };
 
@@ -148,7 +148,7 @@ public:
 	void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
 
 protected:

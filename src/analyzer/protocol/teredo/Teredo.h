@@ -6,7 +6,7 @@
 
 namespace analyzer { namespace teredo {
 
-class Teredo_Analyzer final : public analyzer::Analyzer {
+class Teredo_Analyzer final : public zeek::analyzer::Analyzer {
 public:
 	explicit Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
 	                                    valid_orig(false), valid_resp(false)
@@ -20,7 +20,7 @@ public:
 	void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
 
 	/**

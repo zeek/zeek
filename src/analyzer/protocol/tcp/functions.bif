@@ -25,9 +25,9 @@ function get_orig_seq%(cid: conn_id%): count
 	if ( c->ConnTransport() != TRANSPORT_TCP )
 		return zeek::val_mgr->Count(0);
 
-	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
+	zeek::analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return zeek::val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
+		return zeek::val_mgr->Count(static_cast<::analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
@@ -54,9 +54,9 @@ function get_resp_seq%(cid: conn_id%): count
 	if ( c->ConnTransport() != TRANSPORT_TCP )
 		return zeek::val_mgr->Count(0);
 
-	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
+	zeek::analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return zeek::val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
+		return zeek::val_mgr->Count(static_cast<::analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");

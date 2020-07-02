@@ -8,7 +8,7 @@ namespace analyzer { namespace rpc {
 
 class PortmapperInterp : public RPC_Interpreter {
 public:
-	explicit PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	explicit PortmapperInterp(zeek::analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
@@ -30,7 +30,7 @@ public:
 	~Portmapper_Analyzer() override;
 	void Init() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 };
 

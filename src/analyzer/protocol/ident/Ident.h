@@ -14,7 +14,7 @@ public:
 
 	void DeliverStream(int length, const u_char* data, bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Ident_Analyzer(conn); }
 
 protected:

@@ -19,7 +19,7 @@ uint64_t num_events_queued = 0;
 uint64_t num_events_dispatched = 0;
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
+             SourceID arg_src, zeek::analyzer::ID arg_aid, Obj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
@@ -122,7 +122,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       SourceID src, analyzer::ID aid, Obj* obj)
+                       SourceID src, zeek::analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}

@@ -10,7 +10,7 @@ namespace analyzer { namespace dnp3 {
 
 class DNP3_Base {
 public:
-	explicit DNP3_Base(analyzer::Analyzer* analyzer);
+	explicit DNP3_Base(zeek::analyzer::Analyzer* analyzer);
 	virtual ~DNP3_Base();
 
 	binpac::DNP3::DNP3_Conn* Interpreter()	{ return interp; }
@@ -54,7 +54,7 @@ protected:
 	static bool crc_table_initialized;
 	static unsigned int crc_table[256];
 
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	binpac::DNP3::DNP3_Conn* interp;
 
 	Endpoint orig_state;
@@ -75,7 +75,7 @@ public:
 		{ return new DNP3_TCP_Analyzer(conn); }
 };
 
-class DNP3_UDP_Analyzer : public DNP3_Base, public analyzer::Analyzer {
+class DNP3_UDP_Analyzer : public DNP3_Base, public zeek::analyzer::Analyzer {
 public:
 	explicit DNP3_UDP_Analyzer(Connection* conn);
 	~DNP3_UDP_Analyzer() override;
@@ -83,7 +83,7 @@ public:
 	void DeliverPacket(int len, const u_char* data, bool orig,
                     uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNP3_UDP_Analyzer(conn); }
 };
 

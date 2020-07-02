@@ -10,7 +10,7 @@
 
 using namespace analyzer::pia;
 
-PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
+PIA::PIA(zeek::analyzer::Analyzer* arg_as_analyzer)
 	: state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
 	{
 	}
@@ -71,7 +71,7 @@ void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,
 	AddToBuffer(buffer, -1, len, data, is_orig, ip);
 	}
 
-void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
+void PIA::ReplayPacketBuffer(zeek::analyzer::Analyzer* analyzer)
 	{
 	DBG_LOG(DBG_ANALYZER, "PIA replaying %d total packet bytes", pkt_buffer.size);
 
@@ -145,7 +145,7 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 				bol, eol, clear_state);
 	}
 
-void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
+void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const Rule* rule)
 	{
 	if ( pkt_buffer.state == MATCHING_ONLY )
 		{
@@ -170,7 +170,7 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	if ( Parent()->HasChildAnalyzer(tag) )
 		return;
 
-	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
+	zeek::analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
 
 	if ( ! a )
 		return;
@@ -179,7 +179,7 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	ReplayPacketBuffer(a);
 	}
 
-void PIA_UDP::DeactivateAnalyzer(analyzer::Tag tag)
+void PIA_UDP::DeactivateAnalyzer(zeek::analyzer::Tag tag)
 	{
 	reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
@@ -292,7 +292,7 @@ void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	// No check for buffer overrun here. I think that's ok.
 	}
 
-void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
+void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const Rule* rule)
 	{
 	if ( stream_buffer.state == MATCHING_ONLY )
 		{
@@ -314,7 +314,7 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		return;
 		}
 
-	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
+	zeek::analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
 
 	if ( ! a )
 		return;
@@ -418,12 +418,12 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	tcp->SetReassembler(reass_orig, reass_resp);
 	}
 
-void PIA_TCP::DeactivateAnalyzer(analyzer::Tag tag)
+void PIA_TCP::DeactivateAnalyzer(zeek::analyzer::Tag tag)
 	{
 	reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}
 
-void PIA_TCP::ReplayStreamBuffer(analyzer::Analyzer* analyzer)
+void PIA_TCP::ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer)
 	{
 	DBG_LOG(DBG_ANALYZER, "PIA_TCP replaying %d total stream bytes", stream_buffer.size);
 

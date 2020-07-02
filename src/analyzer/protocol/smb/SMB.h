@@ -18,7 +18,7 @@ public:
 	bool HasSMBHeader(int len, const u_char* data);
 	void NeedResync();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SMB_Analyzer(conn); }
 
 protected:

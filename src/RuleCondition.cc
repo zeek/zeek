@@ -23,7 +23,7 @@ static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	zeek::analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
 
 	if ( ! root || ! root->IsAnalyzer("TCP") )
 		return false;

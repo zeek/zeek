@@ -61,7 +61,7 @@ public:
 	void ServerUserName(const char* s);
 	void TerminalType(const char* s);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Rlogin_Analyzer(conn); }
 };
 

@@ -9,7 +9,7 @@
 using namespace analyzer::RADIUS;
 
 RADIUS_Analyzer::RADIUS_Analyzer(Connection* c)
-	: analyzer::Analyzer("RADIUS", c)
+	: zeek::analyzer::Analyzer("RADIUS", c)
 	{
 	interp = new binpac::RADIUS::RADIUS_Conn(this);
 	}

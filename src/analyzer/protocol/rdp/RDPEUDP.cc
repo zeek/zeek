@@ -6,7 +6,7 @@
 using namespace analyzer::rdpeudp;
 
 RDP_Analyzer::RDP_Analyzer(Connection* c)
-	: analyzer::Analyzer("RDPEUDP", c)
+	: zeek::analyzer::Analyzer("RDPEUDP", c)
 	{
 	interp = new binpac::RDPEUDP::RDPEUDP_Conn(this);
 	}

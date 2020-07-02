@@ -31,13 +31,14 @@ class RuleEndpointState;
 class EncapsulationStack;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TransportLayerAnalyzer, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
 namespace zeek {
 using ValPtr = zeek::IntrusivePtr<Val>;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 }
-
-namespace analyzer { class TransportLayerAnalyzer; }
 
 typedef enum {
 	NUL_IN_LINE,
@@ -61,8 +62,6 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 	{
 	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
-
-namespace analyzer { class Analyzer; }
 
 class Connection final : public zeek::Obj {
 public:
@@ -119,9 +118,9 @@ public:
 
 	void FlipRoles();
 
-	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
-	analyzer::Analyzer* FindAnalyzer(const analyzer::Tag& tag);	// find first in tree.
-	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
+	zeek::analyzer::Analyzer* FindAnalyzer(zeek::analyzer::ID id);
+	zeek::analyzer::Analyzer* FindAnalyzer(const zeek::analyzer::Tag& tag);	// find first in tree.
+	zeek::analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }
 
@@ -192,20 +191,20 @@ public:
 	// given that event's first argument will be it, and it's second will be
 	// the connection value.  If 'name' is null, then the event's first
 	// argument is the connection value.
-	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = nullptr);
+	void Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// 'v1' and 'v2' reference counts get decremented.  The event's first
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead (note it doesn't automatically add the connection argument).")]]
-	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2 = nullptr);
+	void Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
 	// arguments used for the event are whatevever is provided in 'vl'.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	void ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 				val_list vl);
 
 	// Same as ConnectionEvent, except taking the event's argument list via a
@@ -213,7 +212,7 @@ public:
 	// memory pointed to by 'vl' and also for decrementing the reference count
 	// of each of its elements.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	void ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 				val_list* vl);
 
 	// Queues an event without first checking if there's any available event
@@ -225,13 +224,13 @@ public:
 	// it would be a waste of effort to construct all the event arguments when
 	// there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	void ConnectionEventFast(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 				val_list vl);
 
 	/**
 	 * Enqueues an event associated with this connection and given analyzer.
 	 */
-	void EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	void EnqueueEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 	                  zeek::Args args);
 
 	/**
@@ -241,7 +240,7 @@ public:
 	std::enable_if_t<
 		std::is_convertible_v<
 			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
-	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
+	EnqueueEvent(EventHandlerPtr h, zeek::analyzer::Analyzer* analyzer, Args&&... args)
 		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Weird(const char* name, const char* addl = "");
@@ -305,8 +304,8 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
-	analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
+	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
+	zeek::analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
 	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
@@ -383,7 +382,7 @@ protected:
 	std::string history;
 	uint32_t hist_seen;
 
-	analyzer::TransportLayerAnalyzer* root_analyzer;
+	zeek::analyzer::TransportLayerAnalyzer* root_analyzer;
 	analyzer::pia::PIA* primary_PIA;
 
 	Bro::UID uid;	// Globally unique connection ID.

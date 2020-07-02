@@ -32,11 +32,11 @@ static Connection* add_connection()
 	return conn;
 	}
 
-static analyzer::Analyzer* add_analyzer(Connection* conn)
+static zeek::analyzer::Analyzer* add_analyzer(Connection* conn)
 	{
 	analyzer::tcp::TCP_Analyzer* tcp = new analyzer::tcp::TCP_Analyzer(conn);
 	analyzer::pia::PIA* pia = new analyzer::pia::PIA_TCP(conn);
-	auto a = analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
+	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
 	conn->SetRootAnalyzer(tcp, pia);

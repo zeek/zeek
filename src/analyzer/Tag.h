@@ -21,10 +21,10 @@ namespace plugin {
 		zeek::plugin::ComponentManager<T, C>;
 }
 
-namespace analyzer {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, analyzer);
 
-class Manager;
-class Component;
+namespace zeek::analyzer {
 
 /**
  * Class to identify a protocol analyzer type.
@@ -125,4 +125,8 @@ protected:
 	explicit Tag(zeek::EnumVal* val);
 };
 
-}
+} // namespace zeek::analyzer
+
+namespace analyzer {
+	using Tag [[deprecated("Remove in v4.1. Use zeek::analyzer::Tag")]] = zeek::analyzer::Tag;
+} // namespace analyzer

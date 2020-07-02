@@ -2920,7 +2920,11 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	int n = r->Size();
 
 	for ( int i = 0; i < n; ++i )
-		rv->Assign(i, r->NthField(i));
+		{
+		auto v = r->NthField(i);
+		if ( v )
+			rv->Assign(i, v->Clone(state));
+		}
 
 	return rv;
 	}

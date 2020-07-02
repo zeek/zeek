@@ -771,7 +771,7 @@ type record_field_table: table[string] of record_field;
 
 ## Meta-information about a parameter to a function/event.
 ##
-## .. zeek:see:: call_argument_vector new_event
+## .. zeek:see:: call_argument_vector new_event backtrace print_backtrace
 type call_argument: record {
 	name: string;	##< The name of the parameter.
 	type_name: string;	##< The name of the parameters's type.
@@ -785,8 +785,27 @@ type call_argument: record {
 
 ## Vector type used to capture parameters of a function/event call.
 ##
-## .. zeek:see:: call_argument new_event
+## .. zeek:see:: call_argument new_event backtrace print_backtrace
 type call_argument_vector: vector of call_argument;
+
+## A representation of an element in a Zeek script's call stack.
+##
+## .. zeek:see:: backtrace print_backtrace
+type BacktraceElement: record {
+	## The name of the function being called at this point in the call stack.
+	function_name: string;
+	## The arguments passed to the function being called.
+	function_args: call_argument_vector;
+	## The file in which the function call is being made.
+	file_location: string &optional;
+	## The line number at which the function call is being made.
+	line_location: count &optional;
+};
+
+## A representation of a Zeek script's call stack.
+##
+## .. zeek:see:: backtrace print_backtrace
+type Backtrace: vector of BacktraceElement;
 
 # todo:: Do we still need these here? Can they move into the packet filter
 # framework?

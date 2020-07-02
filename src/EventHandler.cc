@@ -116,33 +116,7 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		// new_event() is the one event we don't want to report.
 		return;
 
-	const auto& args = GetType()->Params();
-	static auto call_argument_vector = zeek::id::find_type<zeek::VectorType>("call_argument_vector");
-	auto vargs = zeek::make_intrusive<zeek::VectorVal>(call_argument_vector);
-
-	for ( int i = 0; i < args->NumFields(); i++ )
-		{
-		const char* fname = args->FieldName(i);
-		const auto& ftype = args->GetFieldType(i);
-		auto fdefault = args->FieldDefault(i);
-
-		static auto call_argument = zeek::id::find_type<zeek::RecordType>("call_argument");
-		auto rec = zeek::make_intrusive<zeek::RecordVal>(call_argument);
-		rec->Assign(0, zeek::make_intrusive<zeek::StringVal>(fname));
-
-		ODesc d;
-		d.SetShort();
-		ftype->Describe(&d);
-		rec->Assign(1, zeek::make_intrusive<zeek::StringVal>(d.Description()));
-
-		if ( fdefault )
-			rec->Assign(2, std::move(fdefault));
-
-		if ( i < static_cast<int>(vl->size()) && (*vl)[i] )
-			rec->Assign(3, (*vl)[i]);
-
-		vargs->Assign(i, std::move(rec));
-		}
+	auto vargs = zeek::MakeCallArgumentVector(*vl, GetType()->Params());
 
 	Event* ev = new Event(new_event, {
 			zeek::make_intrusive<zeek::StringVal>(name),

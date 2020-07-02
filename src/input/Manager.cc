@@ -239,7 +239,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 
 	// get the source ...
 	auto source_val = description->GetFieldOrDefault("source");
-	const zeek::BroString* bsource = source_val->AsString();
+	const zeek::String* bsource = source_val->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
 
 	ReaderBackend::ReaderInfo rinfo;
@@ -2195,7 +2195,7 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 
 	case zeek::TYPE_STRING:
 		{
-		zeek::BroString *s = new zeek::BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+		zeek::String *s = new zeek::String((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
 		return new zeek::StringVal(s);
 		}
 

@@ -19,13 +19,13 @@ namespace zeek {
 
 typedef u_char* byte_vec;
 
-class BroString {
+class String {
 public:
-	typedef std::vector<BroString*> Vec;
+	typedef std::vector<String*> Vec;
 	typedef Vec::iterator VecIt;
 	typedef Vec::const_iterator VecCIt;
 
-	typedef std::vector<const BroString*> CVec;
+	typedef std::vector<const String*> CVec;
 	typedef Vec::iterator CVecIt;
 	typedef Vec::const_iterator CVecCIt;
 
@@ -35,20 +35,20 @@ public:
 	typedef IdxVec::const_iterator IdxVecCIt;
 
 	// Constructors creating internal copies of the data passed in.
-	BroString(const u_char* str, int arg_n, bool add_NUL);
-	explicit BroString(const char* str);
-	explicit BroString(const std::string& str);
-	BroString(const BroString& bs);
+	String(const u_char* str, int arg_n, bool add_NUL);
+	explicit String(const char* str);
+	explicit String(const std::string& str);
+	String(const String& bs);
 
 	// Constructor that takes owernship of the vector passed in.
-	BroString(bool arg_final_NUL, byte_vec str, int arg_n);
+	String(bool arg_final_NUL, byte_vec str, int arg_n);
 
-	BroString();
-	~BroString()	{ Reset(); }
+	String();
+	~String()	{ Reset(); }
 
-	const BroString& operator=(const BroString& bs);
-	bool operator==(const BroString& bs) const;
-	bool operator<(const BroString& bs) const;
+	const String& operator=(const String& bs);
+	bool operator==(const String& bs) const;
+	bool operator<(const String& bs) const;
 
 	byte_vec Bytes() const	{ return b; }
 	int Len() const	{ return n; }
@@ -66,7 +66,7 @@ public:
 	void Set(const u_char* str, int len, bool add_NUL=true);
 	void Set(const char* str);
 	void Set(const std::string& str);
-	void Set(const BroString &str);
+	void Set(const String &str);
 
 	void SetUseFreeToDelete(int use_it)
 		{ use_free_to_delete = use_it; }
@@ -113,7 +113,7 @@ public:
 	std::istream& Read(std::istream& is, int format = ESC_SER);
 
 	// XXX Fix redundancy: strings.bif implements both to_lower
-	// XXX and to_upper; the latter doesn't use BroString::ToUpper().
+	// XXX and to_upper; the latter doesn't use String::ToUpper().
 	void ToUpper();
 
 	unsigned int MemoryAllocation() const;
@@ -123,12 +123,12 @@ public:
 	// A negative @length means "until end of string".  Other invalid
 	// values result in a return value of 0.
 	//
-	BroString* GetSubstring(int start, int length) const;
+	String* GetSubstring(int start, int length) const;
 
 	// Returns the start index of s in this string, counting from 0.
 	// If s is not found, -1 is returned.
 	//
-	int FindSubstring(const BroString* s) const;
+	int FindSubstring(const String* s) const;
 
 	// Splits the string into substrings, taking all the indices in
 	// the given vector as cutting points.  The vector does not need
@@ -151,28 +151,28 @@ protected:
 	bool use_free_to_delete;	// free() vs. operator delete
 };
 
-// A comparison class that sorts pointers to BroString's according to
+// A comparison class that sorts pointers to String's according to
 // the length of the pointed-to strings. Sort order can be specified
 // through the constructor.
 //
-class BroStringLenCmp {
+class StringLenCmp {
 public:
-	explicit BroStringLenCmp(bool increasing = true) { _increasing = increasing; }
-	bool operator()(BroString*const& bst1, BroString*const& bst2);
+	explicit StringLenCmp(bool increasing = true) { _increasing = increasing; }
+	bool operator()(String*const& bst1, String*const& bst2);
 
  private:
 	unsigned int _increasing;
 };
 
 // Default output stream operator, using rendering mode EXPANDED_STRING.
-std::ostream& operator<<(std::ostream& os, const BroString& bs);
+std::ostream& operator<<(std::ostream& os, const String& bs);
 
-extern int Bstr_eq(const BroString* s1, const BroString* s2);
-extern int Bstr_cmp(const BroString* s1, const BroString* s2);
+extern int Bstr_eq(const String* s1, const String* s2);
+extern int Bstr_cmp(const String* s1, const String* s2);
 
 // A data_chunk_t specifies a length-delimited constant string. It is
-// often used for substrings of other BroString's to avoid memory copy,
-// which would be necessary if BroString were used. Unlike BroString,
+// often used for substrings of other String's to avoid memory copy,
+// which would be necessary if String were used. Unlike String,
 // the string should not be deallocated on destruction.
 //
 // "BroConstString" might be a better name here.
@@ -182,14 +182,14 @@ struct data_chunk_t {
 	const char* data;
 };
 
-extern BroString* concatenate(std::vector<data_chunk_t>& v);
-extern BroString* concatenate(BroString::Vec& v);
-extern BroString* concatenate(BroString::CVec& v);
-extern void delete_strings(std::vector<const BroString*>& v);
+extern String* concatenate(std::vector<data_chunk_t>& v);
+extern String* concatenate(String::Vec& v);
+extern String* concatenate(String::CVec& v);
+extern void delete_strings(std::vector<const String*>& v);
 
 } // namespace zeek
 
-using BroString [[deprecated("Remove in v4.1. Use zeek::BroString instead.")]] = zeek::BroString;
-using BroStringLenCmp [[deprecated("Remove in v4.1. Use zeek::BroStringLenCmp instead.")]] = zeek::BroStringLenCmp;
+using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
+using BroStringLenCmp [[deprecated("Remove in v4.1. Use zeek::StringLenCmp instead.")]] = zeek::StringLenCmp;
 using byte_vec [[deprecated("Remove in v4.1. Use zeek::byte_vec instead.")]] = zeek::byte_vec;
 using data_chunk_t [[deprecated("Remove in v4.1. Use zeek::data_chunk_t instead.")]] = zeek::data_chunk_t;

@@ -145,7 +145,7 @@ HashKey::HashKey(const char* s)
 	hash = HashBytes(key, size);
 	}
 
-HashKey::HashKey(const zeek::BroString* s)
+HashKey::HashKey(const zeek::String* s)
 	{
 	size = s->Len();
 	key = (void*) s->Bytes();

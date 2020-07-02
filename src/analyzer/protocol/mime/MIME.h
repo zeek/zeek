@@ -63,11 +63,11 @@ public:
 	~MIME_Multiline();
 
 	void append(int len, const char* data);
-	zeek::BroString* get_concatenated_line();
+	zeek::String* get_concatenated_line();
 
 protected:
-	std::vector<const zeek::BroString*> buffer;
-	zeek::BroString* line;
+	std::vector<const zeek::String*> buffer;
+	zeek::String* line;
 };
 
 class MIME_Header {
@@ -166,8 +166,8 @@ protected:
 
 	zeek::StringValPtr content_type_str;
 	zeek::StringValPtr content_subtype_str;
-	zeek::BroString* content_encoding_str;
-	zeek::BroString* multipart_boundary;
+	zeek::String* content_encoding_str;
+	zeek::String* multipart_boundary;
 
 	int content_type, content_subtype, content_encoding;
 
@@ -269,10 +269,10 @@ protected:
 	int compute_content_hash;
 	int content_hash_length;
 	EVP_MD_CTX* md5_hash;
-	std::vector<const zeek::BroString*> entity_content;
-	std::vector<const zeek::BroString*> all_content;
+	std::vector<const zeek::String*> entity_content;
+	std::vector<const zeek::String*> all_content;
 
-	zeek::BroString* data_buffer;
+	zeek::String* data_buffer;
 
 	uint64_t cur_entity_len;
 	std::string cur_entity_id;
@@ -299,9 +299,9 @@ extern int MIME_skip_lws_comments(int len, const char* data);
 extern int MIME_get_token(int len, const char* data, zeek::data_chunk_t* token,
                           bool is_boundary = false);
 extern int MIME_get_slash_token_pair(int len, const char* data, zeek::data_chunk_t* first, zeek::data_chunk_t* second);
-extern int MIME_get_value(int len, const char* data, zeek::BroString*& buf,
+extern int MIME_get_value(int len, const char* data, zeek::String*& buf,
                           bool is_boundary = false);
 extern int MIME_get_field_name(int len, const char* data, zeek::data_chunk_t* name);
-extern zeek::BroString* MIME_decode_quoted_pairs(zeek::data_chunk_t buf);
+extern zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf);
 
 } } // namespace analyzer::*

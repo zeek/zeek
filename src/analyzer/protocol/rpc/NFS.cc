@@ -297,7 +297,7 @@ zeek::StringValPtr NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64
 	data_n = std::min(data_n, int(zeek::BifConst::NFS3::return_data_max));
 
 	if ( data && data_n > 0 )
-		return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(data, data_n, false));
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, data_n, false));
 
 	return nullptr;
 	}
@@ -344,7 +344,7 @@ zeek::StringValPtr NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 	if ( ! fh )
 		return nullptr;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(fh, fh_n, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(fh, fh_n, false));
 	}
 
 
@@ -452,7 +452,7 @@ zeek::StringValPtr NFS_Interp::nfs3_filename(const u_char*& buf, int& n)
 	if ( ! name )
 		return nullptr;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(name, name_len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(name, name_len, false));
 	}
 
 zeek::RecordValPtr NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)

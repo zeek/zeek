@@ -815,7 +815,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		const BroString* s = vv->At(i)->AsString();
+		const String* s = vv->At(i)->AsString();
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1567,7 +1567,7 @@ function cat%(...%): string
 	for ( const auto& a : @ARG@ )
 		a->Describe(&d);
 
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	String* s = new String(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1609,7 +1609,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 		v->Describe(&d);
 		}
 
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	String* s = new String(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1684,7 +1684,7 @@ function fmt%(...%): string
 		return zeek::val_mgr->EmptyString();
 		}
 
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	String* s = new String(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1843,7 +1843,7 @@ function type_name%(t: any%): string
 	ODesc d;
 	t->GetType()->Describe(&d);
 
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	String* s = new String(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -2895,7 +2895,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 ## .. zeek:see:: decode_base64
 function encode_base64%(s: string, a: string &default=""%): string
 	%{
-	BroString* t = encode_base64(s->AsString(), a->AsString());
+	String* t = encode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
@@ -2917,7 +2917,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 ## .. zeek:see:: decode_base64_conn encode_base64
 function decode_base64%(s: string, a: string &default=""%): string
 	%{
-	BroString* t = decode_base64(s->AsString(), a->AsString());
+	String* t = decode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
@@ -2950,7 +2950,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 		return zeek::val_mgr->EmptyString();
 		}
 
-	BroString* t = decode_base64(s->AsString(), a->AsString(), conn);
+	String* t = decode_base64(s->AsString(), a->AsString(), conn);
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else

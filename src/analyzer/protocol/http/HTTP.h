@@ -153,7 +153,7 @@ public:
 	HTTP_Analyzer(Connection* conn);
 
 	void HTTP_Header(bool is_orig, mime::MIME_Header* h);
-	void HTTP_EntityData(bool is_orig, zeek::BroString* entity_data);
+	void HTTP_EntityData(bool is_orig, zeek::String* entity_data);
 	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
 	void HTTP_Event(const char* category, zeek::StringValPtr detail);
@@ -232,7 +232,7 @@ protected:
 	void ReplyMade(bool interrupted, const char* msg);
 	void RequestClash(zeek::Val* clash_val);
 
-	const zeek::BroString* UnansweredRequestMethod();
+	const zeek::String* UnansweredRequestMethod();
 
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
@@ -281,7 +281,7 @@ protected:
 extern bool is_reserved_URI_char(unsigned char ch);
 extern bool is_unreserved_URI_char(unsigned char ch);
 extern void escape_URI_char(unsigned char ch, unsigned char*& p);
-extern zeek::BroString* unescape_URI(const u_char* line, const u_char* line_end,
+extern zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
                                      analyzer::Analyzer* analyzer);
 
 } } // namespace analyzer::*

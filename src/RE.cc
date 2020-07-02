@@ -209,7 +209,7 @@ bool Specific_RE_Matcher::MatchAll(const char* s)
 	return MatchAll((const u_char*)(s), strlen(s));
 	}
 
-bool Specific_RE_Matcher::MatchAll(const zeek::BroString* s)
+bool Specific_RE_Matcher::MatchAll(const zeek::String* s)
 	{
 	// s->Len() does not include '\0'.
 	return MatchAll(s->Bytes(), s->Len());
@@ -220,7 +220,7 @@ int Specific_RE_Matcher::Match(const char* s)
 	return Match((const u_char*)(s), strlen(s));
 	}
 
-int Specific_RE_Matcher::Match(const zeek::BroString* s)
+int Specific_RE_Matcher::Match(const zeek::String* s)
 	{
 	return Match(s->Bytes(), s->Len());
 	}
@@ -230,7 +230,7 @@ int Specific_RE_Matcher::LongestMatch(const char* s)
 	return LongestMatch((const u_char*)(s), strlen(s));
 	}
 
-int Specific_RE_Matcher::LongestMatch(const zeek::BroString* s)
+int Specific_RE_Matcher::LongestMatch(const zeek::String* s)
 	{
 	return LongestMatch(s->Bytes(), s->Len());
 	}

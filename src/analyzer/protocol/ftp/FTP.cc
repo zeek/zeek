@@ -204,7 +204,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	const char* line = (const char*) data;
 	const char* end_of_line = line + len;
 
-	zeek::BroString* decoded_adat = nullptr;
+	zeek::String* decoded_adat = nullptr;
 
 	if ( orig )
 		{

@@ -78,7 +78,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( (TCP() && TCP()->IsPartial()) )
 		return;
 
-	zeek::BroString terminated_string(data, len, true);
+	zeek::String terminated_string(data, len, true);
 
 	if ( orig )
 		ProcessRequest(len, (char*) terminated_string.Bytes());
@@ -135,8 +135,8 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		{
 		++authLines;
 
-		zeek::BroString encoded(line);
-		zeek::BroString* decoded = decode_base64(&encoded, nullptr, Conn());
+		zeek::String encoded(line);
+		zeek::String* decoded = decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{

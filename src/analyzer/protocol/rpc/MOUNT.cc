@@ -218,7 +218,7 @@ zeek::StringValPtr MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	if ( ! fh )
 		return nullptr;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(fh, fh_n, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(fh, fh_n, false));
 	}
 
 zeek::StringValPtr MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
@@ -229,7 +229,7 @@ zeek::StringValPtr MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	if ( ! name )
 		return nullptr;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(name, name_len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(name, name_len, false));
 	}
 
 zeek::RecordValPtr MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)

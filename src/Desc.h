@@ -93,7 +93,7 @@ public:
 	// Add s as a counted string.
 	void AddCS(const char* s);
 
-	void AddBytes(const zeek::BroString* s);
+	void AddBytes(const zeek::String* s);
 
 	void Add(const char* s1, const char* s2)
 		{ Add(s1); Add(s2); }

@@ -692,8 +692,8 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 
 ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const
 	{
-	const BroString* s1 = v1->AsString();
-	const BroString* s2 = v2->AsString();
+	const String* s1 = v1->AsString();
+	const String* s2 = v2->AsString();
 	int result = 0;
 
 	switch ( tag ) {
@@ -710,7 +710,7 @@ ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const
 	case EXPR_ADD:
 	case EXPR_ADD_TO:
 		{
-		std::vector<const BroString*> strings;
+		std::vector<const String*> strings;
 		strings.push_back(s1);
 		strings.push_back(s2);
 
@@ -1760,7 +1760,7 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 	if ( op1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
 		RE_Matcher* re = v1->AsPattern();
-		const BroString* s = v2->AsString();
+		const String* s = v2->AsString();
 		if ( tag == EXPR_EQ )
 			return zeek::val_mgr->Bool(re->MatchExactly(s));
 		else
@@ -2661,9 +2661,9 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 	case zeek::TYPE_STRING:
 		{
 		const ListVal* lv = v2->AsListVal();
-		const BroString* s = v1->AsString();
+		const String* s = v1->AsString();
 		int len = s->Len();
-		BroString* substring = nullptr;
+		String* substring = nullptr;
 
 		if ( lv->Length() == 1 )
 			{
@@ -2687,7 +2687,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 				substring = s->GetSubstring(first, substring_len);
 			}
 
-		return zeek::make_intrusive<zeek::StringVal>(substring ? substring : new BroString(""));
+		return zeek::make_intrusive<zeek::StringVal>(substring ? substring : new String(""));
 		}
 
 	default:
@@ -3948,14 +3948,14 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	if ( v1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
 		RE_Matcher* re = v1->AsPattern();
-		const BroString* s = v2->AsString();
+		const String* s = v2->AsString();
 		return zeek::val_mgr->Bool(re->MatchAnywhere(s) != 0);
 		}
 
 	if ( v2->GetType()->Tag() == zeek::TYPE_STRING )
 		{
-		const BroString* s1 = v1->AsString();
-		const BroString* s2 = v2->AsString();
+		const String* s1 = v1->AsString();
+		const String* s2 = v2->AsString();
 
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
 		auto s = reinterpret_cast<const unsigned char*>(s1->CheckString());

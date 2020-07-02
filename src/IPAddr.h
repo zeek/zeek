@@ -10,7 +10,8 @@
 
 #include "threading/SerialTypes.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(BroString, zeek);
+namespace zeek { class String; }
+using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 struct ConnID;
 class HashKey;
@@ -111,7 +112,7 @@ public:
 	 * @param s String containing an IP address as either a dotted IPv4
 	 * address or a hex IPv6 address.
 	 */
-	explicit IPAddr(const zeek::BroString& s);
+	explicit IPAddr(const zeek::String& s);
 
 	/**
 	 * Constructs an address instance from a raw byte representation.

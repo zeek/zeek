@@ -59,7 +59,7 @@ struct MaskedValue {
 
 using maskedvalue_list = zeek::PList<MaskedValue>;
 using string_list = zeek::PList<char>;
-using bstr_list = zeek::PList<zeek::BroString>;
+using bstr_list = zeek::PList<zeek::String>;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
@@ -338,7 +338,7 @@ private:
 	// Eval a rule under the assumption that all its patterns
 	// have already matched.  s holds the text the rule matched,
 	// or nil if N/A.
-	bool ExecRulePurely(Rule* r, zeek::BroString* s,
+	bool ExecRulePurely(Rule* r, zeek::String* s,
 		RuleEndpointState* state, bool eos);
 
 	// Execute the actions associated with a rule.

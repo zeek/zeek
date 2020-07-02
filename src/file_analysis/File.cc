@@ -325,7 +325,7 @@ void File::InferMetadata()
 		if ( bof_buffer.size == 0 )
 			return;
 
-		zeek::BroString* bs = concatenate(bof_buffer.chunks);
+		zeek::String* bs = concatenate(bof_buffer.chunks);
 		val->Assign<zeek::StringVal>(bof_buffer_idx, bs);
 		bof_buffer_val = val->GetField(bof_buffer_idx).get();
 		}
@@ -359,7 +359,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 
 	uint64_t desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
-	bof_buffer.chunks.push_back(new zeek::BroString(data, len, false));
+	bof_buffer.chunks.push_back(new zeek::String(data, len, false));
 	bof_buffer.size += len;
 
 	if ( bof_buffer.size < desired_size )
@@ -369,7 +369,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 
 	if ( bof_buffer.size > 0 )
 		{
-		zeek::BroString* bs = concatenate(bof_buffer.chunks);
+		zeek::String* bs = concatenate(bof_buffer.chunks);
 		val->Assign(bof_buffer_idx, zeek::make_intrusive<zeek::StringVal>(bs));
 		}
 

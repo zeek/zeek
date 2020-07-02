@@ -12,7 +12,7 @@
 #include "Val.h"
 
 BroSubstring::BroSubstring(const BroSubstring& bst)
-: zeek::BroString((const zeek::BroString&) bst), _num(), _new(bst._new)
+: zeek::String((const zeek::String&) bst), _num(), _new(bst._new)
 	{
 	for ( BSSAlignVecCIt it = bst._aligns.begin(); it != bst._aligns.end(); ++it )
 		_aligns.push_back(*it);
@@ -20,7 +20,7 @@ BroSubstring::BroSubstring(const BroSubstring& bst)
 
 const BroSubstring& BroSubstring::operator=(const BroSubstring& bst)
 	{
-	zeek::BroString::operator=(bst);
+	zeek::String::operator=(bst);
 
 	_aligns.clear();
 
@@ -32,7 +32,7 @@ const BroSubstring& BroSubstring::operator=(const BroSubstring& bst)
 	return *this;
 	}
 
-void BroSubstring::AddAlignment(const zeek::BroString* str, int index)
+void BroSubstring::AddAlignment(const zeek::String* str, int index)
 	{
 	_aligns.push_back(BSSAlign(str, index));
 	}
@@ -72,7 +72,7 @@ zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 			BroSubstring* bst = (*vec)[i];
 
 			auto st_val = zeek::make_intrusive<zeek::RecordVal>(sw_substring_type);
-			st_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(*bst)));
+			st_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::String(*bst)));
 
 			auto aligns = zeek::make_intrusive<zeek::VectorVal>(sw_align_vec_type);
 
@@ -81,7 +81,7 @@ zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
 				auto align_val = zeek::make_intrusive<zeek::RecordVal>(sw_align_type);
-				align_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(*align.string)));
+				align_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::String(*align.string)));
 				align_val->Assign(1, zeek::val_mgr->Count(align.index));
 
 				aligns->Assign(j + 1, std::move(align_val));
@@ -107,14 +107,14 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(zeek::VectorVal* vec)
 		if ( ! v )
 			continue;
 
-		const zeek::BroString* str = v->AsRecordVal()->GetField(0)->AsString();
+		const zeek::String* str = v->AsRecordVal()->GetField(0)->AsString();
 		BroSubstring* substr = new BroSubstring(*str);
 
 		const zeek::VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
 			const zeek::RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
-			const zeek::BroString* str = align->GetField(0)->AsString();
+			const zeek::String* str = align->GetField(0)->AsString();
 			int index = align->GetField(1)->AsCount();
 			substr->AddAlignment(str, index);
 			}
@@ -142,9 +142,9 @@ char* BroSubstring::VecToString(Vec* vec)
 	return strdup(result.c_str());
 	}
 
-zeek::BroString::IdxVec* BroSubstring::GetOffsetsVec(const Vec* vec, unsigned int index)
+zeek::String::IdxVec* BroSubstring::GetOffsetsVec(const Vec* vec, unsigned int index)
 	{
-	zeek::BroString::IdxVec* result = new zeek::BroString::IdxVec();
+	zeek::String::IdxVec* result = new zeek::String::IdxVec();
 
 	for ( VecCIt it = vec->begin(); it != vec->end(); ++it )
 		{
@@ -209,7 +209,7 @@ struct SWNode {
 //
 class SWNodeMatrix {
 public:
-	SWNodeMatrix(const zeek::BroString* s1, const zeek::BroString* s2)
+	SWNodeMatrix(const zeek::String* s1, const zeek::String* s2)
 	: _s1(s1), _s2(s2), _rows(s1->Len() + 1), _cols(s2->Len() + 1)
 		{
 		_nodes = new SWNode[_cols * _rows];
@@ -229,8 +229,8 @@ public:
 		return &(_nodes[row * _cols + col]);
 		}
 
-	const zeek::BroString* GetRowsString() const	{ return _s1; }
-	const zeek::BroString* GetColsString() const	{ return _s2; }
+	const zeek::String* GetRowsString() const	{ return _s1; }
+	const zeek::String* GetColsString() const	{ return _s2; }
 
 	int GetHeight() const	{ return _rows; }
 	int GetWidth() const	{ return _cols; }
@@ -247,8 +247,8 @@ public:
 		}
 
 private:
-	const zeek::BroString* _s1;
-	const zeek::BroString* _s2;
+	const zeek::String* _s1;
+	const zeek::String* _s2;
 
 	int _rows, _cols;
 	SWNode* _nodes;
@@ -398,7 +398,7 @@ end_loop:
 
 // The main Smith-Waterman algorithm.
 //
-BroSubstring::Vec* smith_waterman(const zeek::BroString* s1, const zeek::BroString* s2,
+BroSubstring::Vec* smith_waterman(const zeek::String* s1, const zeek::String* s2,
 					SWParams& params)
 	{
 	BroSubstring::Vec* result = new BroSubstring::Vec();

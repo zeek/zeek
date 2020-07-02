@@ -112,9 +112,9 @@ zeek::RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		uint64_t nonce = ntohll(*((uint64_t*)(auth + 4 + id_len + au_len)));
 		uint8_t conf = *((uint8_t*)(auth + 4 + id_len + au_len + 8));
 		teredo_auth->Assign(0, zeek::make_intrusive<zeek::StringVal>(
-		    new zeek::BroString(auth + 4, id_len, true)));
+		    new zeek::String(auth + 4, id_len, true)));
 		teredo_auth->Assign(1, zeek::make_intrusive<zeek::StringVal>(
-		    new zeek::BroString(auth + 4 + id_len, au_len, true)));
+		    new zeek::String(auth + 4 + id_len, au_len, true)));
 		teredo_auth->Assign(2, zeek::val_mgr->Count(nonce));
 		teredo_auth->Assign(3, zeek::val_mgr->Count(conf));
 		teredo_hdr->Assign(0, std::move(teredo_auth));

@@ -230,7 +230,7 @@ void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	{
 	if ( v->GetType()->Tag() == zeek::TYPE_STRING )
 		{
-		const BroString* str = v->AsString();
+		const String* str = v->AsString();
 		hash_update(h, str->Bytes(), str->Len());
 		}
 	else

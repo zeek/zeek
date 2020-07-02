@@ -132,7 +132,7 @@ zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf)
 	return to_string_val(buf.length, buf.data);
 	}
 
-static zeek::data_chunk_t get_data_chunk(zeek::BroString* s)
+static zeek::data_chunk_t get_data_chunk(zeek::String* s)
 	{
 	zeek::data_chunk_t b;
 	b.length = s->Len();
@@ -380,7 +380,7 @@ int MIME_get_quoted_string(int len, const char* data, zeek::data_chunk_t* str)
 	return -1;
 	}
 
-int MIME_get_value(int len, const char* data, zeek::BroString*& buf, bool is_boundary)
+int MIME_get_value(int len, const char* data, zeek::String*& buf, bool is_boundary)
 	{
 	int offset = 0;
 
@@ -408,7 +408,7 @@ int MIME_get_value(int len, const char* data, zeek::BroString*& buf, bool is_bou
 		if ( end < 0 )
 			return -1;
 
-		buf = new zeek::BroString((const u_char*)str.data, str.length, true);
+		buf = new zeek::String((const u_char*)str.data, str.length, true);
 		return offset + end;
 		}
 	}
@@ -416,7 +416,7 @@ int MIME_get_value(int len, const char* data, zeek::BroString*& buf, bool is_bou
 // Decode each quoted-pair: a '\' followed by a character by the
 // quoted character. The decoded string is returned.
 
-zeek::BroString* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
+zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
 	{
 	const char* data = buf.data;
 	char* dest = new char[buf.length+1];
@@ -436,7 +436,7 @@ zeek::BroString* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
 			dest[j++] = data[i];
 	dest[j] = 0;
 
-	return new zeek::BroString(true, (zeek::byte_vec) dest, j);
+	return new zeek::String(true, (zeek::byte_vec) dest, j);
 	}
 
 
@@ -457,10 +457,10 @@ MIME_Multiline::~MIME_Multiline()
 
 void MIME_Multiline::append(int len, const char* data)
 	{
-	buffer.push_back(new zeek::BroString((const u_char*) data, len, true));
+	buffer.push_back(new zeek::String((const u_char*) data, len, true));
 	}
 
-zeek::BroString* MIME_Multiline::get_concatenated_line()
+zeek::String* MIME_Multiline::get_concatenated_line()
 	{
 	if ( buffer.empty() )
 		return nullptr;
@@ -477,7 +477,7 @@ MIME_Header::MIME_Header(MIME_Multiline* hl)
 	lines = hl;
 	name = value = value_token = rest_value = null_data_chunk;
 
-	zeek::BroString* s = hl->get_concatenated_line();
+	zeek::String* s = hl->get_concatenated_line();
 	int len = s->Len();
 	const char* data = (const char*) s->Bytes();
 
@@ -844,7 +844,7 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 		}
 
 	delete content_encoding_str;
-	content_encoding_str = new zeek::BroString((const u_char*)enc.data, enc.length, true);
+	content_encoding_str = new zeek::String((const u_char*)enc.data, enc.length, true);
 	ParseContentEncoding(enc);
 
 	if ( need_to_parse_parameters )
@@ -892,7 +892,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 		data += offset;
 		len -= offset;
 
-		zeek::BroString* val = nullptr;
+		zeek::String* val = nullptr;
 
 		if ( current_field_type == MIME_CONTENT_TYPE &&
 		     content_type == CONTENT_TYPE_MULTIPART &&
@@ -910,7 +910,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 
 			zeek::data_chunk_t vd = get_data_chunk(val);
 			delete multipart_boundary;
-			multipart_boundary = new zeek::BroString((const u_char*)vd.data,
+			multipart_boundary = new zeek::String((const u_char*)vd.data,
 			                                   vd.length, true);
 			}
 		else
@@ -1352,7 +1352,7 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 		length = max_chunk_length;
 
 	buffer_start = data_start = 0;
-	data_buffer = new zeek::BroString(true, new u_char[length+1], length);
+	data_buffer = new zeek::String(true, new u_char[length+1], length);
 
 	if ( mime_content_hash )
 		{
@@ -1383,7 +1383,7 @@ void MIME_Mail::Done()
 		analyzer->EnqueueConnEvent(mime_content_hash,
 			analyzer->ConnVal(),
 			zeek::val_mgr->Count(content_hash_length),
-			zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(true, digest, 16))
+			zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, digest, 16))
 		);
 		}
 
@@ -1418,7 +1418,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 	{
 	if ( mime_entity_data )
 		{
-		zeek::BroString* s = concatenate(entity_content);
+		zeek::String* s = concatenate(entity_content);
 
 		analyzer->EnqueueConnEvent(mime_entity_data,
 			analyzer->ConnVal(),
@@ -1474,7 +1474,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 	if ( mime_entity_data || mime_all_data )
 		{
-		zeek::BroString* s = new zeek::BroString((const u_char*) buf, len, false);
+		zeek::String* s = new zeek::String((const u_char*) buf, len, false);
 
 		if ( mime_entity_data )
 			entity_content.push_back(s);
@@ -1531,7 +1531,7 @@ void MIME_Mail::SubmitAllData()
 	{
 	if ( mime_all_data )
 		{
-		zeek::BroString* s = concatenate(all_content);
+		zeek::String* s = concatenate(all_content);
 		delete_strings(all_content);
 
 		analyzer->EnqueueConnEvent(mime_all_data,

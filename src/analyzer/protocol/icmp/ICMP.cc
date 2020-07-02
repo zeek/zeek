@@ -209,7 +209,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 
 	if ( icmp_sent_payload )
 		{
-		zeek::BroString* payload = new zeek::BroString(data, std::min(len, caplen), false);
+		zeek::String* payload = new zeek::String(data, std::min(len, caplen), false);
 
 		EnqueueConnEvent(icmp_sent_payload,
 			ConnVal(),
@@ -515,7 +515,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	int iid = ntohs(icmpp->icmp_hun.ih_idseq.icd_id);
 	int iseq = ntohs(icmpp->icmp_hun.ih_idseq.icd_seq);
 
-	zeek::BroString* payload = new zeek::BroString(data, caplen, false);
+	zeek::String* payload = new zeek::String(data, caplen, false);
 
 	EnqueueConnEvent(f,
 		ConnVal(),
@@ -767,7 +767,7 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 			{
 			if ( caplen >= length )
 				{
-				zeek::BroString* link_addr = new zeek::BroString(data, length, false);
+				zeek::String* link_addr = new zeek::String(data, length, false);
 				rv->Assign(2, zeek::make_intrusive<zeek::StringVal>(link_addr));
 				}
 			else
@@ -837,7 +837,7 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 
 		if ( set_payload_field )
 			{
-			zeek::BroString* payload = new zeek::BroString(data, std::min((int)length, caplen), false);
+			zeek::String* payload = new zeek::String(data, std::min((int)length, caplen), false);
 			rv->Assign(6, zeek::make_intrusive<zeek::StringVal>(payload));
 			}
 

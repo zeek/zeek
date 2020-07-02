@@ -327,7 +327,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 			{
 			if ( username )
 				{
-				const zeek::BroString* u = username->AsString();
+				const zeek::String* u = username->AsString();
 				const zeek::byte_vec ub = u->Bytes();
 				const char* us = (const char*) ub;
 				if ( ! streq(val, us) )
@@ -600,7 +600,7 @@ zeek::Val* Login_Analyzer::PopUserTextVal()
 	char* s = PopUserText();
 
 	if ( s )
-		return new zeek::StringVal(new zeek::BroString(true, zeek::byte_vec(s), strlen(s)));
+		return new zeek::StringVal(new zeek::String(true, zeek::byte_vec(s), strlen(s)));
 	else
 		return zeek::val_mgr->EmptyString()->Ref();
 	}

@@ -560,7 +560,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 	s[i-1] = '\0';
 
-	RET_CONST(new zeek::StringVal(new zeek::BroString(1, (zeek::byte_vec) s, i-1)))
+	RET_CONST(new zeek::StringVal(new zeek::String(1, (zeek::byte_vec) s, i-1)))
 	}
 
 <RE>([^/\\\n]|{ESCSEQ})+	{

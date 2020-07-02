@@ -228,7 +228,7 @@ void Base64Converter::IllegalEncoding(const char* msg)
 			reporter->Error("%s", msg);
 		}
 
-zeek::BroString* decode_base64(const zeek::BroString* s, const zeek::BroString* a, Connection* conn)
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
@@ -255,14 +255,14 @@ zeek::BroString* decode_base64(const zeek::BroString* s, const zeek::BroString* 
 	rlen += rlen2;
 
 	rbuf[rlen] = '\0';
-	return new zeek::BroString(true, (u_char*) rbuf, rlen);
+	return new zeek::String(true, (u_char*) rbuf, rlen);
 
 err:
 	delete [] rbuf;
 	return nullptr;
 	}
 
-zeek::BroString* encode_base64(const zeek::BroString* s, const zeek::BroString* a, Connection* conn)
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
@@ -276,5 +276,5 @@ zeek::BroString* encode_base64(const zeek::BroString* s, const zeek::BroString* 
 	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
-	return new zeek::BroString(true, (u_char*)outbuf, outlen);
+	return new zeek::String(true, (u_char*)outbuf, outlen);
 	}

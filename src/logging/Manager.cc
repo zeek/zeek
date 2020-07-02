@@ -976,7 +976,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 
 	case zeek::TYPE_STRING:
 		{
-		const zeek::BroString* s = val->AsString();
+		const zeek::String* s = val->AsString();
 		char* buf = new char[s->Len()];
 		memcpy(buf, s->Bytes(), s->Len());
 

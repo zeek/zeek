@@ -65,11 +65,11 @@ function string_cat%(...%): string
 		n += a->AsString()->Len();
 
 	u_char* b = new u_char[n+1];
-	zeek::BroString* s = new zeek::BroString(1, b, n);
+	zeek::String* s = new zeek::String(1, b, n);
 
 	for ( const auto& a : @ARG@ )
 		{
-		const zeek::BroString* s = a->AsString();
+		const zeek::String* s = a->AsString();
 		memcpy(b, s->Bytes(), s->Len());
 		b += s->Len();
 		}
@@ -111,7 +111,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 		e->Describe(&d);
 		}
 
-	zeek::BroString* s = new zeek::BroString(1, d.TakeBytes(), d.Len());
+	zeek::String* s = new zeek::String(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -162,7 +162,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 
 	new_s[ind] = '\0';
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, byte_vec(new_s), ind));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, byte_vec(new_s), ind));
 	%}
 
 ## Get a substring from a string, given a starting position and length.
@@ -180,10 +180,10 @@ function sub_bytes%(s: string, start: count, n: int%): string
 	if ( start > 0 )
 		--start;	// make it 0-based
 
-	zeek::BroString* ss = s->AsString()->GetSubstring(start, n);
+	zeek::String* ss = s->AsString()->GetSubstring(start, n);
 
 	if ( ! ss )
-		ss = new zeek::BroString("");
+		ss = new zeek::String("");
 
 	return zeek::make_intrusive<zeek::StringVal>(ss);
 	%}
@@ -541,7 +541,7 @@ function to_lower%(str: string%): string
 
     *ls++ = '\0';
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, lower_s, n));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, lower_s, n));
 	%}
 
 ## Replaces all lowercase letters in a string with their uppercase counterpart.
@@ -570,7 +570,7 @@ function to_upper%(str: string%): string
 
     *us++ = '\0';
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, upper_s, n));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, upper_s, n));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -590,7 +590,7 @@ function to_upper%(str: string%): string
 function clean%(str: string%): string
 	%{
 	char* s = str->AsString()->Render();
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, byte_vec(s), strlen(s)));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, byte_vec(s), strlen(s)));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -607,8 +607,8 @@ function clean%(str: string%): string
 ## .. zeek:see:: clean escape_string
 function to_string_literal%(str: string%): string
 	%{
-	char* s = str->AsString()->Render(zeek::BroString::BRO_STRING_LITERAL);
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, byte_vec(s), strlen(s)));
+	char* s = str->AsString()->Render(zeek::String::BRO_STRING_LITERAL);
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, byte_vec(s), strlen(s)));
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
@@ -646,7 +646,7 @@ function is_ascii%(str: string%): bool
 ## .. zeek:see:: clean to_string_literal
 function escape_string%(s: string%): string
 	%{
-	char* escstr = s->AsString()->Render(zeek::BroString::ESC_HEX | zeek::BroString::ESC_ESC);
+	char* escstr = s->AsString()->Render(zeek::String::ESC_HEX | zeek::String::ESC_ESC);
 	auto val = zeek::make_intrusive<zeek::StringVal>(escstr);
 	delete [] escstr;
 	return val;
@@ -666,7 +666,7 @@ function string_to_ascii_hex%(s: string%): string
 	for ( int i = 0; i < s->Len(); ++i )
 		sprintf(x + i * 2, "%02x", sp[i]);
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, (u_char*) x, s->Len() * 2));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, (u_char*) x, s->Len() * 2));
 	%}
 
 ## Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
@@ -706,20 +706,20 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 function str_split%(s: string, idx: index_vec%): string_vec
 	%{
 	auto idx_v = idx->AsVector();
-	zeek::BroString::IdxVec indices(idx_v->size());
+	zeek::String::IdxVec indices(idx_v->size());
 	unsigned int i;
 
 	for ( i = 0; i < idx_v->size(); i++ )
 		indices[i] = (*idx_v)[i]->AsCount();
 
-	zeek::BroString::Vec* result = s->AsString()->Split(indices);
+	zeek::String::Vec* result = s->AsString()->Split(indices);
 	auto result_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	if ( result )
 		{
 		i = 1;
 
-		for ( zeek::BroString::VecIt it = result->begin();
+		for ( zeek::String::VecIt it = result->begin();
 		      it != result->end(); ++it, ++i )
 			result_v->Assign(i, zeek::make_intrusive<zeek::StringVal>(*it));
 			// StringVal now possesses string.
@@ -744,7 +744,7 @@ function strip%(str: string%): string
 
 	if ( n == 0 )
 		// Empty string.
-		return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(s, n, 1));
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(s, n, 1));
 
 	const u_char* sp = s;
 
@@ -757,11 +757,11 @@ function strip%(str: string%): string
 	while ( isspace(*sp) && sp <= e )
 		++sp;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(sp, (e - sp + 1), 1));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(sp, (e - sp + 1), 1));
 	%}
 
 %%{
-static bool should_strip(u_char c, const zeek::BroString* strip_chars)
+static bool should_strip(u_char c, const zeek::String* strip_chars)
 	{
 	auto strip_bytes = strip_chars->Bytes();
 
@@ -792,7 +792,7 @@ function lstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 
 	// empty input string
 	if ( n == 0 )
-		return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(s, n, 1));
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(s, n, 1));
 
 	int i;
 	auto bs_chars = chars->AsString();
@@ -801,7 +801,7 @@ function lstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 		if ( ! should_strip(s[i], bs_chars) )
 			break;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(s + i, n - i, 1));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(s + i, n - i, 1));
 	%}
 
 ## Removes all combinations of characters in the *chars* argument
@@ -823,7 +823,7 @@ function rstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 
 	// empty input string
 	if ( n == 0 )
-		return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(s, n, 1));
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(s, n, 1));
 
 	int n_to_remove;
 	auto bs_chars = chars->AsString();
@@ -832,7 +832,7 @@ function rstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 		if ( ! should_strip(s[n - n_to_remove - 1], bs_chars) )
 			break;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(s, n - n_to_remove, 1));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(s, n - n_to_remove, 1));
 	%}
 
 ## Generates a string of a given size and fills it with repetitions of a source
@@ -854,7 +854,7 @@ function string_fill%(len: int, source: string%): string
 
 	dst[len - 1] = 0;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, byte_vec(dst), len));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, byte_vec(dst), len));
 	%}
 
 ## Takes a string and escapes characters that would allow execution of
@@ -894,7 +894,7 @@ function safe_shell_quote%(source: string%): string
 
 	dst[j++] = '"';
 	dst[j] = '\0';
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::BroString(1, dst, j));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, dst, j));
 	%}
 
 ## Finds all occurrences of a pattern in a string.

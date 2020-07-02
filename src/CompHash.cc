@@ -317,7 +317,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		{
 		// Align to int for the length field.
 		int* kp = AlignAndPadType<int>(kp0);
-		const zeek::BroString* sval = v->AsString();
+		const zeek::String* sval = v->AsString();
 
 		*kp = sval->Len();	// so we can recover the value
 
@@ -1047,7 +1047,7 @@ const char* CompositeHash::RecoverOneVal(
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			}
 
-		*pval = zeek::make_intrusive<zeek::StringVal>(new zeek::BroString((const zeek::byte_vec) kp1, n, true));
+		*pval = zeek::make_intrusive<zeek::StringVal>(new zeek::String((const zeek::byte_vec) kp1, n, true));
 		kp1 += n;
 		}
 		break;

@@ -47,7 +47,7 @@ ConnIDKey BuildConnIDKey(const ConnID& id)
 	return key;
 	}
 
-IPAddr::IPAddr(const zeek::BroString& s)
+IPAddr::IPAddr(const zeek::String& s)
 	{
 	Init(s.CheckString());
 	}

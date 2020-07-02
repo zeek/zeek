@@ -163,5 +163,5 @@ zeek::Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int cap
 
 	len = std::max(std::min(std::min(len, caplen), discarder_maxlen), 0);
 
-	return new zeek::StringVal(new zeek::BroString(data, len, true));
+	return new zeek::StringVal(new zeek::String(data, len, true));
 	}

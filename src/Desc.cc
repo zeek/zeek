@@ -197,7 +197,7 @@ void ODesc::AddCS(const char* s)
 	Add(s);
 	}
 
-void ODesc::AddBytes(const zeek::BroString* s)
+void ODesc::AddBytes(const zeek::String* s)
 	{
 	if ( IsReadable() )
 		{
@@ -205,7 +205,7 @@ void ODesc::AddBytes(const zeek::BroString* s)
 			AddBytes(reinterpret_cast<const char*>(s->Bytes()), s->Len());
 		else
 			{
-			const char* str = s->Render(zeek::BroString::EXPANDED_STRING);
+			const char* str = s->Render(zeek::String::EXPANDED_STRING);
 			Add(str);
 			delete [] str;
 			}

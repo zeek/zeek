@@ -27,11 +27,12 @@
 
 namespace zeek {
 template<typename T> class PDict;
+class String;
 };
 template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
+using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(BroString, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 
@@ -96,7 +97,7 @@ union BroValUnion {
 	// Used for double, time, interval.
 	double double_val;
 
-	BroString* string_val;
+	String* string_val;
 	zeek::Func* func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
@@ -121,7 +122,7 @@ union BroValUnion {
 	constexpr BroValUnion(double value) noexcept
 		: double_val(value) {}
 
-	constexpr BroValUnion(BroString* value) noexcept
+	constexpr BroValUnion(String* value) noexcept
 		: string_val(value) {}
 
 	constexpr BroValUnion(zeek::Func* value) noexcept
@@ -236,7 +237,7 @@ public:
 	CONST_ACCESSOR2(zeek::TYPE_TIME, double, double_val, AsTime)
 	CONST_ACCESSOR2(zeek::TYPE_INTERVAL, double, double_val, AsInterval)
 	CONST_ACCESSOR2(zeek::TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
+	CONST_ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
 	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
 	CONST_ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
@@ -272,7 +273,7 @@ public:
 
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
-	// ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
+	// ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
 	ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
 	ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
@@ -615,7 +616,7 @@ protected:
 
 class StringVal final : public Val {
 public:
-	explicit StringVal(BroString* s);
+	explicit StringVal(String* s);
 	explicit StringVal(const char* s);
 	explicit StringVal(const std::string& s);
 	StringVal(int length, const char* s);
@@ -628,7 +629,7 @@ public:
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.
-	// char* ExpandedString(int format = BroString::EXPANDED_STRING)
+	// char* ExpandedString(int format = String::EXPANDED_STRING)
 	// 	{ return AsString()->ExpandedString(format); }
 
 	std::string ToStdString() const;
@@ -636,7 +637,7 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	StringValPtr Replace(RE_Matcher* re, const BroString& repl,
+	StringValPtr Replace(RE_Matcher* re, const String& repl,
 	                                      bool do_all);
 
 	[[deprecated("Remove in v4.1.  Use Replace().")]]

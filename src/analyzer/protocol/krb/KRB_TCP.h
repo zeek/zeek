@@ -21,8 +21,8 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	zeek::StringValPtr GetAuthenticationInfo(const zeek::BroString* principal,
-	                                         const zeek::BroString* ciphertext,
+	zeek::StringValPtr GetAuthenticationInfo(const zeek::String* principal,
+	                                         const zeek::String* ciphertext,
 	                                         const bro_uint_t enctype)
 		{ return zeek::val_mgr->EmptyString(); }
 

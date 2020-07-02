@@ -466,7 +466,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 		case zeek::TYPE_STRING:
 			{
-			auto* s = new zeek::BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+			auto* s = new zeek::String((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
 			return new zeek::StringVal(s);
 			}
 

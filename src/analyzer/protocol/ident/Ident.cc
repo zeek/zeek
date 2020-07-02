@@ -80,7 +80,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		if ( line != end_of_line )
 			{
-			zeek::BroString s((const u_char*)orig_line, length, true);
+			zeek::String s((const u_char*)orig_line, length, true);
 			Weird("ident_request_addendum", s.CheckString());
 			}
 
@@ -172,8 +172,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			while ( --sys_end > sys_type && isspace(*sys_end) )
 				;
 
-			zeek::BroString* sys_type_s =
-				new zeek::BroString((const u_char*) sys_type,
+			zeek::String* sys_type_s =
+				new zeek::String((const u_char*) sys_type,
 				                    sys_end - sys_type + 1, true);
 
 			line = skip_whitespace(colon + 1, end_of_line);
@@ -242,7 +242,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 
 void Ident_Analyzer::BadRequest(int length, const char* line)
 	{
-	zeek::BroString s((const u_char*)line, length, true);
+	zeek::String s((const u_char*)line, length, true);
 	Weird("bad_ident_request", s.CheckString());
 	}
 
@@ -250,7 +250,7 @@ void Ident_Analyzer::BadReply(int length, const char* line)
 	{
 	if ( ! did_bad_reply )
 		{
-		zeek::BroString s((const u_char*)line, length, true);
+		zeek::String s((const u_char*)line, length, true);
 		Weird("bad_ident_reply", s.CheckString());
 		did_bad_reply = true;
 		}

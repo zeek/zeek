@@ -970,17 +970,17 @@ ValPtr SubNetVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-StringVal::StringVal(BroString* s) : Val(s, TYPE_STRING)
+StringVal::StringVal(String* s) : Val(s, TYPE_STRING)
 	{
 	}
 
 // The following adds a NUL at the end.
 StringVal::StringVal(int length, const char* s)
-	: StringVal(new BroString(reinterpret_cast<const u_char*>(s), length, true))
+	: StringVal(new String(reinterpret_cast<const u_char*>(s), length, true))
 	{
 	}
 
-StringVal::StringVal(const char* s) : StringVal(new BroString(s))
+StringVal::StringVal(const char* s) : StringVal(new String(s))
 	{
 	}
 
@@ -1036,7 +1036,7 @@ unsigned int StringVal::MemoryAllocation() const
 	}
 
 StringValPtr StringVal::Replace(
-	RE_Matcher* re, const BroString& repl, bool do_all)
+	RE_Matcher* re, const String& repl, bool do_all)
 	{
 	const u_char* s = Bytes();
 	int offset = 0;
@@ -1117,7 +1117,7 @@ StringValPtr StringVal::Replace(
 	// the NUL.
 	r[0] = '\0';
 
-	return make_intrusive<zeek::StringVal>(new BroString(true, result, r - result));
+	return make_intrusive<zeek::StringVal>(new String(true, result, r - result));
 	}
 
 ValPtr StringVal::DoClone(CloneState* state)
@@ -1126,8 +1126,8 @@ ValPtr StringVal::DoClone(CloneState* state)
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
 	return state->NewClone(this, make_intrusive<zeek::StringVal>(
-	        new BroString((u_char*) val.string_val->Bytes(),
-	                      val.string_val->Len(), true)));
+	        new String((u_char*) val.string_val->Bytes(),
+	                   val.string_val->Len(), true)));
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)

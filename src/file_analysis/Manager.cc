@@ -80,7 +80,7 @@ void Manager::SetHandle(const string& handle)
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
 		{
-		zeek::BroString tmp{handle};
+		zeek::String tmp{handle};
 		auto rendered = tmp.Render();
 		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
 		delete [] rendered;

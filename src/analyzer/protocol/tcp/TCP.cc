@@ -1557,7 +1557,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 		}
 
 	// Connection still active, so reschedule timer.
-	// ### if PQ_Element's were BroObj's, could just Ref the timer
+	// ### if PQ_Element's were Obj's, could just Ref the timer
 	// and adjust its value here, instead of creating a new timer.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + tcp_session_timer,
 			false, TIMER_TCP_EXPIRE);

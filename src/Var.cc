@@ -122,7 +122,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 		{
 		if ( id->IsRedefinable() || (! init && attr && ! zeek::IsFunc(id->GetType()->Tag())) )
 			{
-			zeek::BroObj* redef_obj = init ? (zeek::BroObj*) init.get() : (zeek::BroObj*) t.get();
+			zeek::Obj* redef_obj = init ? (zeek::Obj*) init.get() : (zeek::Obj*) t.get();
 			if ( dt != VAR_REDEF )
 				id->Warn("redefinition requires \"redef\"", redef_obj, true);
 			}

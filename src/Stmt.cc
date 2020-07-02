@@ -53,7 +53,7 @@ Stmt::~Stmt()
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
-	if ( ! BroObj::SetLocationInfo(start, end) )
+	if ( ! Obj::SetLocationInfo(start, end) )
 		return false;
 
 	// Update the Filemap of line number -> statement mapping for

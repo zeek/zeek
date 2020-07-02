@@ -25,7 +25,10 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 namespace zeek {
 template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<Val>;
+class Obj;
 }
+
+using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
 
 namespace threading {
 struct Field;
@@ -613,7 +616,7 @@ protected:
 	void RequestEvent(EventHandlerPtr handler);
 
 	/**
-	 * Registers interest in the destruction of a BroObj instance. When
+	 * Registers interest in the destruction of a Obj instance. When
 	 * Bro's reference counting triggers the objects destructor to run,
 	 * \a HookBroObjDtor will be called.
 	 *
@@ -621,7 +624,7 @@ protected:
 	 *
 	 * @param handler The object being interested in.
 	 */
-	void RequestBroObjDtor(zeek::BroObj* obj);
+	void RequestBroObjDtor(zeek::Obj* obj);
 
 	// Hook functions.
 

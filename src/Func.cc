@@ -800,7 +800,7 @@ void emit_builtin_error(const char* msg, zeek::ValPtr arg)
 	emit_builtin_error(msg, arg.get());
 	}
 
-void emit_builtin_error(const char* msg, BroObj* arg)
+void emit_builtin_error(const char* msg, Obj* arg)
 	{
 	auto emit = [=](const zeek::detail::CallExpr* ce)
 		{
@@ -878,7 +878,7 @@ void builtin_error(const char* msg, zeek::ValPtr arg)
 	zeek::emit_builtin_error(msg, arg);
 	}
 
-void builtin_error(const char* msg, zeek::BroObj* arg)
+void builtin_error(const char* msg, zeek::Obj* arg)
 	{
 	zeek::emit_builtin_error(msg, arg);
 	}

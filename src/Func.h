@@ -46,7 +46,7 @@ namespace zeek {
 class Func;
 using FuncPtr = zeek::IntrusivePtr<Func>;
 
-class Func : public BroObj {
+class Func : public Obj {
 public:
 
 	static inline const FuncPtr nil;
@@ -282,7 +282,7 @@ extern std::string render_call_stack();
 // These methods are used by BIFs, so they're in the public namespace.
 extern void emit_builtin_error(const char* msg);
 extern void emit_builtin_error(const char* msg, zeek::ValPtr);
-extern void emit_builtin_error(const char* msg, BroObj* arg);
+extern void emit_builtin_error(const char* msg, Obj* arg);
 
 } // namespace zeek
 
@@ -309,4 +309,4 @@ extern void builtin_error(const char* msg);
 [[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
 extern void builtin_error(const char* msg, zeek::ValPtr);
 [[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
-extern void builtin_error(const char* msg, zeek::BroObj* arg);
+extern void builtin_error(const char* msg, zeek::Obj* arg);

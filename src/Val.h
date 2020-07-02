@@ -138,7 +138,7 @@ union BroValUnion {
 		: table_val(value) {}
 };
 
-class Val : public BroObj {
+class Val : public Obj {
 public:
 	static inline const ValPtr nil;
 
@@ -1204,10 +1204,10 @@ public:
 	 */
 	TableValPtr GetRecordFieldsVal() const;
 
-	// This is an experiment to associate a BroObj within the
+	// This is an experiment to associate a Obj within the
 	// event engine to a record value in bro script.
-	void SetOrigin(BroObj* o)	{ origin = o; }
-	BroObj* GetOrigin() const	{ return origin; }
+	void SetOrigin(Obj* o)	{ origin = o; }
+	Obj* GetOrigin() const	{ return origin; }
 
 	// Returns a new value representing the value coerced to the given
 	// type. If coercion is not possible, returns 0. The non-const
@@ -1241,7 +1241,7 @@ public:
 protected:
 	ValPtr DoClone(CloneState* state) override;
 
-	BroObj* origin;
+	Obj* origin;
 
 	using RecordTypeValMap = std::unordered_map<zeek::RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;

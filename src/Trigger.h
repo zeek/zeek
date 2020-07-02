@@ -27,7 +27,7 @@ namespace zeek::detail::trigger {
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger final : public BroObj, public notifier::Receiver {
+class Trigger final : public Obj, public notifier::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
@@ -110,7 +110,7 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	std::vector<std::pair<BroObj *, notifier::Modifiable*>> objs;
+	std::vector<std::pair<Obj *, notifier::Modifiable*>> objs;
 
 	using ValCache = std::map<const zeek::detail::CallExpr*, Val*>;
 	ValCache cache;

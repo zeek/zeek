@@ -8,8 +8,6 @@
 #include "iosource/IOSource.h"
 #include "Flare.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(BroObj, zeek);
-
 namespace threading {
 
 class BasicInputMessage;

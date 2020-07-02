@@ -35,7 +35,7 @@ using TriggerPtr = zeek::IntrusivePtr<Trigger>;
 class Frame;
 using FramePtr = zeek::IntrusivePtr<Frame>;
 
-class Frame :  public BroObj {
+class Frame :  public Obj {
 public:
 	/**
 	 * Constructs a new frame belonging to *func* with *fn_args*

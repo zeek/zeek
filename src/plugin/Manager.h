@@ -214,7 +214,7 @@ public:
 	void RequestEvent(EventHandlerPtr handler, Plugin* plugin);
 
 	/**
-	 * Register interest in the destruction of a BroObj instance. When Bro's
+	 * Register interest in the destruction of a Obj instance. When Bro's
 	 * reference counting triggers the objects destructor to run, the \a
 	 * HookBroObjDtor will be called.
 	 *
@@ -222,7 +222,7 @@ public:
 	 *
 	 * @param plugin The plugin expressing interest.
 	 */
-	void RequestBroObjDtor(BroObj* obj, Plugin* plugin);
+	void RequestBroObjDtor(Obj* obj, Plugin* plugin);
 
 	// Hook entry functions.
 

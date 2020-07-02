@@ -578,7 +578,7 @@ void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	handler->SetGenerateAlways();
 	}
 
-void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
+void Manager::RequestBroObjDtor(Obj* obj, Plugin* plugin)
 	{
 	obj->NotifyPluginsOnDtor();
 	}

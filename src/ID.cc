@@ -385,9 +385,9 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-void ID::Error(const char* msg, const BroObj* o2)
+void ID::Error(const char* msg, const Obj* o2)
 	{
-	BroObj::Error(msg, o2, true);
+	Obj::Error(msg, o2, true);
 	SetType(error_type());
 	}
 

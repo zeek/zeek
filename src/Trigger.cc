@@ -59,7 +59,7 @@ TraversalCode zeek::detail::trigger::TriggerTraversalCallback::PreExpr(const zee
 	case EXPR_INDEX:
 		{
 		const auto* e = static_cast<const zeek::detail::IndexExpr*>(expr);
-		BroObj::SuppressErrors no_errors;
+		Obj::SuppressErrors no_errors;
 
 		try
 			{

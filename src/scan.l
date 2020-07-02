@@ -710,7 +710,7 @@ static int load_files(const char* orig_file)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Don't delete the old filename - it's pointed to by
-	// every BroObj created when parsing it.
+	// every Obj created when parsing it.
 	yylloc.filename = filename = copy_string(file_path.c_str());
 
 	return 1;
@@ -923,7 +923,7 @@ int yywrap()
 		if ( load_files(files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
-			// every BroObj created when parsing it.
+			// every Obj created when parsing it.
 			(void) files.remove_nth(0);
 			return 0;
 			}

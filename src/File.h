@@ -29,7 +29,7 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 class BroFile;
 using BroFilePtr = zeek::IntrusivePtr<BroFile>;
 
-class BroFile final : public zeek::BroObj {
+class BroFile final : public zeek::Obj {
 public:
 	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);

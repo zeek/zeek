@@ -365,7 +365,7 @@ void Plugin::RequestEvent(EventHandlerPtr handler)
 	plugin_mgr->RequestEvent(handler, this);
 	}
 
-void Plugin::RequestBroObjDtor(BroObj* obj)
+void Plugin::RequestBroObjDtor(Obj* obj)
 	{
 	plugin_mgr->RequestBroObjDtor(obj, this);
 	}

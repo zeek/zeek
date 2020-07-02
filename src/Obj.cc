@@ -53,9 +53,9 @@ bool Location::operator==(const Location& l) const
 
 } // namespace detail
 
-int BroObj::suppress_errors = 0;
+int Obj::suppress_errors = 0;
 
-BroObj::~BroObj()
+Obj::~Obj()
 	{
 	if ( notify_plugins )
 		PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
@@ -63,7 +63,7 @@ BroObj::~BroObj()
 	delete location;
 	}
 
-void BroObj::Warn(const char* msg, const BroObj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
+void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
@@ -71,7 +71,7 @@ void BroObj::Warn(const char* msg, const BroObj* obj2, bool pinpoint_only, const
 	reporter->PopLocation();
 	}
 
-void BroObj::Error(const char* msg, const BroObj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
+void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	if ( suppress_errors )
 		return;
@@ -82,7 +82,7 @@ void BroObj::Error(const char* msg, const BroObj* obj2, bool pinpoint_only, cons
 	reporter->PopLocation();
 	}
 
-void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
+void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
 	{
 	char out[512];
 
@@ -99,7 +99,7 @@ void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
 	reporter->PopLocation();
 	}
 
-void BroObj::Internal(const char* msg) const
+void Obj::Internal(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
@@ -113,7 +113,7 @@ void BroObj::Internal(const char* msg) const
 	reporter->PopLocation();
 	}
 
-void BroObj::InternalWarning(const char* msg) const
+void Obj::InternalWarning(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
@@ -121,7 +121,7 @@ void BroObj::InternalWarning(const char* msg) const
 	reporter->PopLocation();
 	}
 
-void BroObj::AddLocation(ODesc* d) const
+void Obj::AddLocation(ODesc* d) const
 	{
 	if ( ! location )
 		{
@@ -132,7 +132,7 @@ void BroObj::AddLocation(ODesc* d) const
 	location->Describe(d);
 	}
 
-bool BroObj::SetLocationInfo(const detail::Location* start, const detail::Location* end)
+bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location* end)
 	{
 	if ( ! start || ! end )
 		return false;
@@ -153,7 +153,7 @@ bool BroObj::SetLocationInfo(const detail::Location* start, const detail::Locati
 	return true;
 	}
 
-void BroObj::UpdateLocationEndInfo(const detail::Location& end)
+void Obj::UpdateLocationEndInfo(const detail::Location& end)
 	{
 	if ( ! location )
 		SetLocationInfo(&end, &end);
@@ -162,7 +162,7 @@ void BroObj::UpdateLocationEndInfo(const detail::Location& end)
 	location->last_column = end.last_column;
 	}
 
-void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
+void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2,
                    bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	d->SetShort();
@@ -180,7 +180,7 @@ void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
 	reporter->PushLocation(GetLocationInfo(), loc2);
 	}
 
-void BroObj::PinPoint(ODesc* d, const BroObj* obj2, bool pinpoint_only) const
+void Obj::PinPoint(ODesc* d, const Obj* obj2, bool pinpoint_only) const
 	{
 	d->Add(" (");
 	Describe(d);
@@ -193,7 +193,7 @@ void BroObj::PinPoint(ODesc* d, const BroObj* obj2, bool pinpoint_only) const
 	d->Add(")");
 	}
 
-void BroObj::Print() const
+void Obj::Print() const
 	{
 	static BroFile fstderr(stderr);
 	ODesc d(DESC_READABLE, &fstderr);
@@ -207,14 +207,14 @@ void bad_ref(int type)
 	abort();
 	}
 
-void bro_obj_delete_func(void* v)
+void obj_delete_func(void* v)
 	{
-	Unref((BroObj*) v);
+	Unref((Obj*) v);
 	}
 
 } // namespace zeek
 
-void print(const zeek::BroObj* obj)
+void print(const zeek::Obj* obj)
 	{
 	obj->Print();
 	}

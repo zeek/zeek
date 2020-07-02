@@ -84,7 +84,7 @@ using ExprPtr = zeek::IntrusivePtr<Expr>;
 using EventExprPtr = zeek::IntrusivePtr<EventExpr>;
 using ListExprPtr = zeek::IntrusivePtr<ListExpr>;
 
-class Expr : public BroObj {
+class Expr : public Obj {
 public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* Type() const		{ return type.get(); }

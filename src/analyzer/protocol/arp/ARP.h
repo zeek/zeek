@@ -32,7 +32,7 @@ extern "C" {
 
 namespace analyzer::arp {
 
-class ARP_Analyzer : public zeek::BroObj {
+class ARP_Analyzer : public zeek::Obj {
 public:
 	ARP_Analyzer();
 	~ARP_Analyzer() override;

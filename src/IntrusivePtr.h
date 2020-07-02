@@ -33,7 +33,7 @@ struct NewRef {};
  * for destroying the shared object.
  *
  * The @c IntrusivePtr works with any type that offers the two free functions,
- * but most notably is designed to work with @c BroObj and its subtypes.
+ * but most notably is designed to work with @c Obj and its subtypes.
  *
  * The same object may get managed via @c IntrusivePtr in one part of the
  * code base while another part of the program manages it manually by passing

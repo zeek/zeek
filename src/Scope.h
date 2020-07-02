@@ -31,7 +31,7 @@ using IDPtr = zeek::IntrusivePtr<ID>;
 class Scope;
 using ScopePtr = zeek::IntrusivePtr<Scope>;
 
-class Scope : public BroObj {
+class Scope : public Obj {
 public:
 	explicit Scope(zeek::detail::IDPtr id,
 	               std::unique_ptr<std::vector<zeek::detail::AttrPtr>> al);

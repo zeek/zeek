@@ -167,7 +167,7 @@ constexpr int DOES_NOT_MATCH_INDEX = 0;
 constexpr int MATCHES_INDEX_SCALAR = 1;
 constexpr int MATCHES_INDEX_VECTOR = 2;
 
-class Type : public BroObj {
+class Type : public Obj {
 public:
 	static inline const TypePtr nil;
 

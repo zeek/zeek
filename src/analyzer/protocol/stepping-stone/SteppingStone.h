@@ -12,7 +12,7 @@ namespace analyzer::stepping_stone {
 class SteppingStoneEndpoint;
 class SteppingStoneManager;
 
-class SteppingStoneEndpoint : public zeek::BroObj {
+class SteppingStoneEndpoint : public zeek::Obj {
 public:
 	SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m);
 	~SteppingStoneEndpoint() override;

@@ -30,7 +30,7 @@ using ListExprPtr = zeek::IntrusivePtr<ListExpr>;
 class Stmt;
 using StmtPtr = zeek::IntrusivePtr<Stmt>;
 
-class Stmt : public BroObj {
+class Stmt : public Obj {
 public:
 	BroStmtTag Tag() const	{ return tag; }
 
@@ -166,7 +166,7 @@ protected:
 	StmtPtr s2;
 };
 
-class Case final : public BroObj {
+class Case final : public Obj {
 public:
 	Case(ListExprPtr c, id_list* types, StmtPtr arg_s);
 	~Case() override;

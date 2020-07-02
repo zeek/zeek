@@ -45,7 +45,7 @@ enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 class ID;
 using IDPtr = zeek::IntrusivePtr<ID>;
 
-class ID final : public BroObj, public notifier::Modifiable {
+class ID final : public Obj, public notifier::Modifiable {
 public:
 	static inline const IDPtr nil;
 
@@ -137,7 +137,7 @@ public:
 
 	std::string GetDeprecationWarning() const;
 
-	void Error(const char* msg, const BroObj* o2 = nullptr);
+	void Error(const char* msg, const Obj* o2 = nullptr);
 
 	void Describe(ODesc* d) const override;
 	// Adds type and value to description.

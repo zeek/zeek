@@ -51,7 +51,7 @@ using AttrPtr = zeek::IntrusivePtr<Attr>;
 class Attributes;
 using AttributesPtr = zeek::IntrusivePtr<Attributes>;
 
-class Attr final : public BroObj {
+class Attr final : public Obj {
 public:
 	static inline const AttrPtr nil;
 
@@ -95,7 +95,7 @@ protected:
 };
 
 // Manages a collection of attributes.
-class Attributes final : public BroObj {
+class Attributes final : public Obj {
 public:
 	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
 	Attributes(attr_list* a, zeek::TypePtr t, bool in_record, bool is_global);

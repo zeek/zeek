@@ -25,7 +25,7 @@ using NFA_state_list = zeek::PList<NFA_State>;
 #define SYM_CCL 260
 
 
-class NFA_State : public zeek::BroObj  {
+class NFA_State : public zeek::Obj  {
 public:
 	NFA_State(int sym, EquivClass* ec);
 	explicit NFA_State(CCL* ccl);
@@ -82,7 +82,7 @@ public:
 	EpsilonState()	: NFA_State(SYM_EPSILON, nullptr)	{ }
 };
 
-class NFA_Machine : public zeek::BroObj {
+class NFA_Machine : public zeek::Obj {
 public:
 	explicit NFA_Machine(NFA_State* first, NFA_State* final = nullptr);
 	~NFA_Machine() override;

@@ -1,4 +1,8 @@
 
+3.2.0-dev.830 | 2020-07-02 11:36:28 -0700
+
+  * GH-786: Move Type::As methods to cc file so they have type info for casting safely (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.828 | 2020-07-01 09:57:23 -0700
 
   * Fix a deprecation warning compiling with GCC (Jon Siwek, Corelight)

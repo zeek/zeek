@@ -194,126 +194,35 @@ public:
 	[[deprecated("Remove in v4.1.  Use RecordType::GetFieldType() directly.")]]
 	virtual Type* FieldType(const char* field) const;
 
-#define CHECK_TYPE_TAG(tag_type, func_name) \
-	CHECK_TAG(tag, tag_type, func_name, type_name)
+	const TypeList* AsTypeList() const;
+	TypeList* AsTypeList();
 
-	const TypeList* AsTypeList() const
-		{
-		CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
-		return (const TypeList*) this;
-		}
-	TypeList* AsTypeList()
-		{
-		CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
-		return (TypeList*) this;
-		}
+	const TableType* AsTableType() const;
+	TableType* AsTableType();
 
-	const TableType* AsTableType() const
-		{
-		CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
-		return (const TableType*) this;
-		}
-	TableType* AsTableType()
-		{
-		CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
-		return (TableType*) this;
-		}
+	const SetType* AsSetType() const;
+	SetType* AsSetType();
 
-	SetType* AsSetType()
-		{
-		if ( ! IsSet() )
-			BadTag("Type::AsSetType", type_name(tag));
-		return (SetType*) this;
-		}
-	const SetType* AsSetType() const
-		{
-		if ( ! IsSet() )
-			BadTag("Type::AsSetType", type_name(tag));
-		return (const SetType*) this;
-		}
+	const RecordType* AsRecordType() const;
+	RecordType* AsRecordType();
 
-	const RecordType* AsRecordType() const
-		{
-		CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
-		return (const RecordType*) this;
-		}
-	RecordType* AsRecordType()
-		{
-		CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
-		return (RecordType*) this;
-		}
+	const SubNetType* AsSubNetType() const;
+	SubNetType* AsSubNetType();
 
-	const SubNetType* AsSubNetType() const
-		{
-		CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-		return (const SubNetType*) this;
-		}
+	const FuncType* AsFuncType() const;
+	FuncType* AsFuncType();
 
-	SubNetType* AsSubNetType()
-		{
-		CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-		return (SubNetType*) this;
-		}
+	const EnumType* AsEnumType() const;
+	EnumType* AsEnumType();
 
-	const FuncType* AsFuncType() const
-		{
-		CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
-		return (const FuncType*) this;
-		}
+	const VectorType* AsVectorType() const;
+	VectorType* AsVectorType();
 
-	FuncType* AsFuncType()
-		{
-		CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
-		return (FuncType*) this;
-		}
+	const OpaqueType* AsOpaqueType() const;
+	OpaqueType* AsOpaqueType();
 
-	const EnumType* AsEnumType() const
-		{
-		CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
-		return (EnumType*) this;
-		}
-
-	EnumType* AsEnumType()
-		{
-		CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
-		return (EnumType*) this;
-		}
-
-	const VectorType* AsVectorType() const
-		{
-		CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
-		return (VectorType*) this;
-		}
-
-	OpaqueType* AsOpaqueType()
-		{
-		CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
-		return (OpaqueType*) this;
-		}
-
-	const OpaqueType* AsOpaqueType() const
-		{
-		CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
-		return (OpaqueType*) this;
-		}
-
-	VectorType* AsVectorType()
-		{
-		CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
-		return (VectorType*) this;
-		}
-
-	const TypeType* AsTypeType() const
-		{
-		CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
-		return (TypeType*) this;
-		}
-
-	TypeType* AsTypeType()
-		{
-		CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
-		return (TypeType*) this;
-		}
+	const TypeType* AsTypeType() const;
+	TypeType* AsTypeType();
 
 	bool IsSet() const
 		{

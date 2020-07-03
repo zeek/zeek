@@ -1,3 +1,13 @@
+TEST SUITE
+	language/delete-field-set.zeek
+		what does it mean to delete a field with a &default ?
+
+	broker.opaque
+	plugins.hooks
+	scripts.policy.frameworks.netcontrol.catch-and-release
+	scripts.policy.frameworks.netcontrol.catch-and-release-forgotten
+		need help understanding these
+
 Test suite should split into error tests vs. functionality tests
 
 the original problem is actually problematic in practice to solve

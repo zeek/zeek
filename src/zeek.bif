@@ -4795,134 +4795,105 @@ function file_size%(f: string%) : double
 ## references and also removing dual '/'s and extraneous '/./'s.  This
 ## used to be done at the scripting layer but it turns out to be a hot-spot
 ## for some forms of analysis so might as well do it directly.  This
-## version is ~15x faster in testing.
+## version is much faster in testing.
 ##
 ## dir: a path string, either relative or absolute.
 ##
 ## Returns: a compressed version of the input path.
 function compress_path%(dir: string%): string
 	%{
+	// We use this class to track "tokens", i.e., path elements
+	// delimited by /'s.
+	class PathToken {
+	public:
+		PathToken(int s, int e, bool _is_dot_dot = false)
+			{
+			start = s;
+			end = e;
+			is_dot_dot = _is_dot_dot;
+			}
+
+		// Indexes into original string.
+		int start;
+		int end;
+
+		bool is_dot_dot;	// this is a leading .. token
+	};
+
 	auto d = (const char*) (dir->Bytes());
 	auto dn = dir->Len();
-	int di = 0;	// pointer into original; never goes backwards
+	int di = 0;	// pointer into d
 
-	auto r = new char[dn + 1];	// size is guaranteed <= original
-	int ri = 0;	// pointer into copy; can go backwards to elide
+	std::vector<PathToken> tokens;
 
-	// Our strategy is to copy d to r as we go, and then back up
-	// and remove elements as needed.
+	bool is_absolute;
 
-	// See where this is set below for an explanation of why we need it.
-	bool skip_next_slash = false;
+	if ( di < dn && d[di] == '/' )
+		{
+		is_absolute = true;
+		++di;
+		}
+	else
+		is_absolute = false;
 
 	while ( di < dn )
 		{
-		// Skip leading './'.
-		while ( di < dn - 1 && d[di] == '.' && d[di+1] == '/' )
-			di += 2;
-
-		// Copy till the next '/'.
-		while ( di < dn && d[di] != '/' )
-			r[ri++] = d[di++];
-
-		if ( di == dn )
-			break;	// No more work to do.
-
-		// We're looking at a slash.  Copy it over.
-		if ( skip_next_slash )
-			skip_next_slash = false;
-		else
-			r[ri++] = d[di++];
-
-		// Skip over any extra /'s, not copying them.
+		// We're now at the start of a new token.  Ignore any
+		// '/'s at its start, since they're irrelevant to the
+		// beginning of the token.
 		while ( di < dn && d[di] == '/' )
 			++di;
 
-		if ( di == dn )
-			break;	// No more work to do.
-
-		if ( d[di] != '.' )
-			// Not an interesting slash.  Iterate.
-			continue;
-
-		if ( di == dn - 1 )
-			{
-			// A dot at the very end.  Treat as an extraneous
-			// "/.", remove it, and we're done.
-			--ri;	// back up to '/' so we terminate there.
+		if ( di >= dn )
 			break;
-			}
 
-		// It's now safe to look two ahead.
-		if ( d[di+1] == '/' )
-			{ // This a /./ sequence.  Advance past it and iterate.
-			di += 2;
-			continue;
-			}
+		// Find next delimiter.
+		int start = di;
 
-		if ( d[di+1] != '.' )
-			// Not a /.. sequence.
+		while ( di < dn && d[di] != '/' )
+			++di;
+
+		if ( di == start + 1 && d[start] == '.' )
+			// Skip over lone '.' token.
 			continue;
 
-		if ( di < dn - 2 && d[di+2] != '/' )
-			// Not a /.. at the end and not a /../.
-			continue;
-
-		// This is a /.. at the very end, or as part of
-		// a /../ construct.  Elide the element we copied.
-
-		if ( ri > 1 )
+		if ( di != start + 2 || d[start] != '.' || d[start+1] != '.' )
 			{
-			// The /.. does not come at the very
-			// beginning.  Back up one non-slash token
-			// in what we've copied.
-			ri -= 2;	// back up before the '/'
-			while ( ri >= 0 && r[ri] != '/' )
-				--ri;
-
-			// Advance so that we're pointing just beyond
-			// what we want to keep.
-			++ri;
-
-			// Skip past the /.. in the input.
-			di += 2;
-
-			// r is now slightly out of sync with d: di points
-			// to whatever followed the /.. and ri points to
-			// just beyond a slash.  If di happens to be pointing
-			// at a slash, then we *don't* want to copy it
-			// in the future because we want to compress slashes.
-			if ( di < dn && d[di] == '/' )
-				skip_next_slash = true;
+			// This is a regular token.
+			tokens.push_back(PathToken(start, di - 1));
+			continue;
 			}
+
+		// We're at a .. token.  If we have a predecessor non-dot-dot
+		// token, delete it.  Otherwise, treat this as a token to
+		// keep, since it comes at the beginning.
+		if ( tokens.size() > 0 && ! tokens.back().is_dot_dot )
+			tokens.pop_back();
 		else
-			{
-			// The /.. comes at the very beginning.  We've
-			// already copied the '/'.  Leave ri pointing
-			// just beyond that copy, and di pointing at the
-			// '.', so the regular copy-until-a-slash will
-			// pick up where it needs to.
-			}
+			tokens.push_back(PathToken(start, di - 1, true));
 		}
 
-	if ( ri > 0 && r[ri-1] == '/' )
-		// Suppress trailing '/'.
-		--ri;
+	// Now have a full set of tokens.  Spin through them to construct
+	// the final result.
 
-	if ( ri == 0 || r[ri-1] != '\0' )
-		// Annoyingly, some of the uses of the names we compress
-		// insist that they be NUL-terminated.  IMHO it's time to
-		// get rid of this pickiness, but Oh Well.
-		r[ri] = '\0';
-	else
+	auto r = new char[dn + 1];	// size is guaranteed <= original
+	int ri = 0;	// pointer into copy
+
+	if ( is_absolute )
+		r[ri++] = '/';
+
+	for ( auto i = 0; i < tokens.size(); ++i )
 		{
-		// We maybe have '/' followed by '\0', sigh.
-		if ( ri > 1 && r[ri-2] == '/' )
-			{
-			r[ri-2] = '\0';
-			--ri;
-			}
+		if ( i > 0 )
+			// Add delimiter between tokens.
+			r[ri++] = '/';
+
+		auto& t = tokens[i];
+		for ( int j = t.start; j <= t.end; ++j )
+			r[ri++] = d[j];
 		}
+
+	r[ri] = '\0';
 
 	auto res_string = new BroString(true, byte_vec(r), ri);
         return new StringVal(res_string);

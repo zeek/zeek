@@ -1290,61 +1290,17 @@ void Manager::ProcessError(broker::error err)
 
 	if ( err.category() == caf::atom("broker") )
 		{
-		msg = caf::to_string(err.context());
+		static auto enum_type = zeek::id::find_type<zeek::EnumType>("Broker::ErrorCode");
 
-		switch ( static_cast<broker::ec>(err.code()) ) {
-		case broker::ec::peer_incompatible:
-			ec = BifEnum::Broker::ErrorCode::PEER_INCOMPATIBLE;
-			break;
-
-		case broker::ec::peer_invalid:
-			ec = BifEnum::Broker::ErrorCode::PEER_INVALID;
-			break;
-
-		case broker::ec::peer_unavailable:
-			ec = BifEnum::Broker::ErrorCode::PEER_UNAVAILABLE;
-			break;
-
-		case broker::ec::peer_timeout:
-			ec = BifEnum::Broker::ErrorCode::PEER_TIMEOUT;
-			break;
-
-		case broker::ec::master_exists:
-			ec = BifEnum::Broker::ErrorCode::MASTER_EXISTS;
-			break;
-
-		case broker::ec::no_such_master:
-			ec = BifEnum::Broker::ErrorCode::NO_SUCH_MASTER;
-			break;
-
-		case broker::ec::no_such_key:
-			ec = BifEnum::Broker::ErrorCode::NO_SUCH_KEY;
-			break;
-
-		case broker::ec::request_timeout:
-			ec = BifEnum::Broker::ErrorCode::REQUEST_TIMEOUT;
-			break;
-
-		case broker::ec::type_clash:
-			ec = BifEnum::Broker::ErrorCode::TYPE_CLASH;
-			break;
-
-		case broker::ec::invalid_data:
-			ec = BifEnum::Broker::ErrorCode::INVALID_DATA;
-			break;
-
-		case broker::ec::backend_failure:
-			ec = BifEnum::Broker::ErrorCode::BACKEND_FAILURE;
-			break;
-
-		case broker::ec::stale_data:
-			ec = BifEnum::Broker::ErrorCode::STALE_DATA;
-			break;
-
-		case broker::ec::unspecified: // fall-through
-		default:
+		if ( enum_type->Lookup(err.code()) )
+			ec = static_cast<BifEnum::Broker::ErrorCode>(err.code());
+		else
+			{
+			reporter->Warning("Unknown Broker error code %u: mapped to unspecificed enum value ", err.code());
 			ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
-		}
+			}
+
+		msg = caf::to_string(err.context());
 		}
 	else
 		{

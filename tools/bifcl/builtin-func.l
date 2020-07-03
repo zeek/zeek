@@ -246,7 +246,7 @@ void init_alternative_mode()
 	fprintf(fp_func_def, "\n");
 
 	static char name[1024];
-	strncpy(name, input_filename, sizeof(name));
+	strncpy(name, input_filename, sizeof(name) - 1);
 	char* dot = strchr(name, '.');
 	if ( dot )
 		*dot = '\0';
@@ -254,7 +254,7 @@ void init_alternative_mode()
 	if ( plugin )
 		{
 		static char plugin_canon[1024];
-		strncpy(plugin_canon, plugin, sizeof(plugin_canon));
+		strncpy(plugin_canon, plugin, sizeof(plugin_canon) - 1);
 		char* colon = strstr(plugin_canon, "::");
 
 		if ( colon ) {

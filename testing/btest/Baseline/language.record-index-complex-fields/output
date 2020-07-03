@@ -10,7 +10,7 @@ a
 }
 }
 {
-[a=13, tags_v=[, , 2, 3], tags_t={
+[a=13, tags_v=[0, 0, 2, 3], tags_t={
 [five] = 5,
 [four] = 4
 }, tags_s={

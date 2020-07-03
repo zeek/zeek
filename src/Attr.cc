@@ -17,7 +17,7 @@ const char* attr_name(attr_tag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)", "&on_change", "&deprecated",
+		"(&tracked)", "&on_change", "&is_used", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -249,6 +249,7 @@ void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
 	case ATTR_DEPRECATED:
+	case ATTR_IS_USED:
 	case ATTR_REDEF:
 		break;
 

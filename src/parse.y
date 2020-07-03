@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 111
+%expect 117
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -26,7 +26,7 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_RAW_OUTPUT TOK_ATTR_ON_CHANGE
 %token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
-%token TOK_ATTR_TYPE_COLUMN TOK_ATTR_DEPRECATED
+%token TOK_ATTR_TYPE_COLUMN TOK_ATTR_IS_USED TOK_ATTR_DEPRECATED
 
 %token TOK_DEBUG
 
@@ -1355,6 +1355,8 @@ attr:
 		        { $$ = new Attr(ATTR_DEFAULT, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new Attr(ATTR_OPTIONAL); }
+	|	TOK_ATTR_IS_USED
+			{ $$ = new Attr(ATTR_IS_USED); }
 	|	TOK_ATTR_REDEF
 			{ $$ = new Attr(ATTR_REDEF); }
 	|	TOK_ATTR_ADD_FUNC '=' expr

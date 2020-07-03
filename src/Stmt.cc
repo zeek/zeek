@@ -1645,7 +1645,14 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 		if ( IsReduced(c) )
 			{
 			if ( ! c->IsPruning() )
+				{
+				// See comment below for the particulars
+				// of this constructor.
+				stmt_loop_condition =
+					make_intrusive<ExprStmt>(STMT_EXPR,
+								loop_condition);
 				return this->Ref();
+				}
 			}
 		else
 			{

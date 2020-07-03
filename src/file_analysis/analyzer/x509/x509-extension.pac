@@ -40,12 +40,12 @@ refine connection MockConnection += {
 
 		mgr.Enqueue(x509_ocsp_ext_signed_certificate_timestamp,
 			bro_analyzer()->GetFile()->ToVal(),
-			val_mgr->Count(version),
-			make_intrusive<StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),
-			val_mgr->Count(timestamp),
-			val_mgr->Count(digitally_signed_algorithms->HashAlgorithm()),
-			val_mgr->Count(digitally_signed_algorithms->SignatureAlgorithm()),
-			make_intrusive<StringVal>(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
+			zeek::val_mgr->Count(version),
+			zeek::make_intrusive<zeek::StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),
+			zeek::val_mgr->Count(timestamp),
+			zeek::val_mgr->Count(digitally_signed_algorithms->HashAlgorithm()),
+			zeek::val_mgr->Count(digitally_signed_algorithms->SignatureAlgorithm()),
+			zeek::make_intrusive<zeek::StringVal>(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
 			);
 
 		return true;

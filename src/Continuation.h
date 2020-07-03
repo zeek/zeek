@@ -49,7 +49,6 @@ private:
 	int current_level;
 	int suspend_level;
 
-	typedef PList<void> voidp_list;
-
+	using voidp_list = zeek::PList<void>;
 	voidp_list states;
 };

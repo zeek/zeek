@@ -10,9 +10,8 @@ class Plugin : public zeek::plugin::Plugin
 {
 protected:
 
-	std::pair<bool, IntrusivePtr<Val>> HookFunctionCall(const Func* func,
-	                                                    Frame* frame,
-	                                                    zeek::Args* args) override;
+	std::pair<bool, zeek::IntrusivePtr<Val>> HookFunctionCall(
+		const Func* func, Frame* frame, zeek::Args* args) override;
 
 	void MetaHookPre(zeek::plugin::HookType hook,
 	                 const zeek::plugin::HookArgumentList& args) override;

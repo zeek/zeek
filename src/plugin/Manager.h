@@ -214,7 +214,7 @@ public:
 	void RequestEvent(EventHandlerPtr handler, Plugin* plugin);
 
 	/**
-	 * Register interest in the destruction of a BroObj instance. When Bro's
+	 * Register interest in the destruction of a Obj instance. When Bro's
 	 * reference counting triggers the objects destructor to run, the \a
 	 * HookBroObjDtor will be called.
 	 *
@@ -222,7 +222,7 @@ public:
 	 *
 	 * @param plugin The plugin expressing interest.
 	 */
-	void RequestBroObjDtor(BroObj* obj, Plugin* plugin);
+	void RequestBroObjDtor(Obj* obj, Plugin* plugin);
 
 	// Hook entry functions.
 
@@ -255,8 +255,8 @@ public:
 	 * it may be any Val and must be ignored). If no plugin handled the call,
 	 * the method returns null.
 	 */
-	std::pair<bool, IntrusivePtr<Val>>
-	HookCallFunction(const Func* func, Frame* parent, zeek::Args* args) const;
+	std::pair<bool, ValPtr>
+	HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent, zeek::Args* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.
@@ -389,7 +389,7 @@ public:
 	 */
 	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
 	                  const Connection* conn, const val_list* addl, bool location,
-	                  const Location* location1, const Location* location2,
+	                  const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                  bool time, const std::string& message);
 
 	/**

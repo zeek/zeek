@@ -17,7 +17,7 @@ public:
 	void Done() override;
 
 	// from Analyzer.h
-	void UpdateConnVal(RecordVal *conn_val) override;
+	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 	void FlipRoles() override;
 
 	void SetByteAndPacketThreshold(uint64_t threshold, bool bytes, bool orig);
@@ -50,4 +50,4 @@ protected:
 	double duration_thresh;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

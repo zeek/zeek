@@ -15,7 +15,6 @@
 #include "Desc.h"
 #include "DbgBreakpoint.h"
 #include "ID.h"
-#include "IntrusivePtr.h"
 #include "Frame.h"
 #include "Func.h"
 #include "Stmt.h"
@@ -58,7 +57,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::d
 		return;
 		}
 
-	Scope* global = global_scope();
+	zeek::detail::Scope* global = zeek::detail::global_scope();
 	const auto& syms = global->Vars();
 
 	zeek::detail::ID* nextid;
@@ -124,7 +123,7 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 // DebugCmdInfo implementation
 //
 
-PQueue<DebugCmdInfo> g_DebugCmdInfos;
+zeek::PQueue<DebugCmdInfo> g_DebugCmdInfos;
 
 DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
 : cmd(info.cmd), helpstring(nullptr)
@@ -215,7 +214,7 @@ static int dbg_backtrace_internal(int start, int end)
 
 	for ( int i = start; i >= end; --i )
 		{
-		const Frame* f = g_frame_stack[i];
+		const zeek::detail::Frame* f = g_frame_stack[i];
 		const zeek::detail::Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
 		string context = get_context_description(stmt, f);
@@ -337,7 +336,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	if ( ! stmt )
 		reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
-	const Location loc = *stmt->GetLocationInfo();
+	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 	g_debugger_state.last_loc = loc;
 	g_debugger_state.already_did_list = false;
 

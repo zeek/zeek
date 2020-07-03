@@ -20,7 +20,7 @@ static bool is_string_set(const zeek::Type* type)
 	return index_types[0]->Tag() == zeek::TYPE_STRING;
 	}
 
-std::set<std::string> val_to_topic_set(Val* val)
+std::set<std::string> val_to_topic_set(zeek::Val* val)
 	{
 	std::set<std::string> rval;
 
@@ -28,12 +28,12 @@ std::set<std::string> val_to_topic_set(Val* val)
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
-		const PDict<TableEntryVal>* tbl = val->AsTable();
+		const zeek::PDict<zeek::TableEntryVal>* tbl = val->AsTable();
 
 		if ( tbl->Length() == 0 )
 			return rval;
 
-		IterCookie* c = tbl->InitForIteration();
+		zeek::IterCookie* c = tbl->InitForIteration();
 		HashKey* k;
 
 		while ( tbl->NextEntry(k, c) )
@@ -47,8 +47,8 @@ std::set<std::string> val_to_topic_set(Val* val)
 	return rval;
 	}
 
-static bool publish_event_args(val_list& args, const BroString* topic,
-                               Frame* frame)
+static bool publish_event_args(val_list& args, const zeek::String* topic,
+                               zeek::detail::Frame* frame)
 	{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
@@ -89,7 +89,7 @@ function Broker::make_event%(...%): Broker::Event
 	for ( auto i = 0u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
 
-	return IntrusivePtr<RecordVal>{AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
+	return RecordValPtr{zeek::AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
 	%}
 
 ## Publishes an event at a given topic.
@@ -110,13 +110,13 @@ function Broker::publish%(topic: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
 	%{
 	auto rval = broker_mgr->FlushLogBuffers();
-	return val_mgr->Count(static_cast<uint64_t>(rval));
+	return zeek::val_mgr->Count(static_cast<uint64_t>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
@@ -124,42 +124,42 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 module Cluster;
@@ -182,16 +182,16 @@ type Cluster::Pool: record;
 ## Returns: true if the message is sent.
 function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	%{
-	static Func* topic_func = 0;
+	static zeek::Func* topic_func = nullptr;
 
 	if ( ! topic_func )
-		topic_func = global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
+		topic_func = zeek::detail::global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
 
-	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -200,7 +200,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}
 
 
@@ -219,16 +219,16 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 ## Returns: true if the message is sent.
 function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	%{
-	static Func* topic_func = 0;
+	static zeek::Func* topic_func = nullptr;
 
 	if ( ! topic_func )
-		topic_func = global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
+		topic_func = zeek::detail::global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
 
-	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -237,5 +237,5 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(rval);
 	%}

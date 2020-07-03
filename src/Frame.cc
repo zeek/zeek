@@ -7,14 +7,15 @@
 
 #include "Func.h"
 #include "Desc.h"
-#include "IntrusivePtr.h"
 #include "Trigger.h"
 #include "Val.h"
 #include "ID.h"
 
-std::vector<Frame*> g_frame_stack;
+std::vector<zeek::detail::Frame*> g_frame_stack;
 
-Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
+namespace zeek::detail {
+
+Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 	{
 	size = arg_size;
 	frame = std::make_unique<Element[]>(size);
@@ -52,32 +53,32 @@ Frame::~Frame()
 		ClearElement(i);
 	}
 
-void Frame::AddFunctionWithClosureRef(BroFunc* func)
+void Frame::AddFunctionWithClosureRef(ScriptFunc* func)
 	{
-	::Ref(func);
+	zeek::Ref(func);
 
 	if ( ! functions_with_closure_frame_reference )
-		functions_with_closure_frame_reference = std::make_unique<std::vector<BroFunc*>>();
+		functions_with_closure_frame_reference = std::make_unique<std::vector<ScriptFunc*>>();
 
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
-void Frame::SetElement(int n, Val* v)
-	{ SetElement(n, {AdoptRef{}, v}); }
+void Frame::SetElement(int n, zeek::Val* v)
+	{ SetElement(n, {zeek::AdoptRef{}, v}); }
 
-void Frame::SetElement(int n, IntrusivePtr<Val> v)
+void Frame::SetElement(int n, zeek::ValPtr v)
 	{
 	ClearElement(n);
 	frame[n] = {std::move(v), false};
 	}
 
-void Frame::SetElementWeak(int n, Val* v)
+void Frame::SetElementWeak(int n, zeek::Val* v)
 	{
 	ClearElement(n);
-	frame[n] = {{AdoptRef{}, v}, true};
+	frame[n] = {{zeek::AdoptRef{}, v}, true};
 	}
 
-void Frame::SetElement(const zeek::detail::ID* id, IntrusivePtr<Val> v)
+void Frame::SetElement(const zeek::detail::ID* id, zeek::ValPtr v)
 	{
 	if ( closure )
 		{
@@ -106,7 +107,7 @@ void Frame::SetElement(const zeek::detail::ID* id, IntrusivePtr<Val> v)
 	SetElement(id->Offset(), std::move(v));
 	}
 
-const IntrusivePtr<Val>& Frame::GetElementByID(const zeek::detail::ID* id) const
+const zeek::ValPtr& Frame::GetElementByID(const zeek::detail::ID* id) const
 	{
 	if ( closure )
 		{
@@ -173,7 +174,7 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-static bool val_is_func(const IntrusivePtr<Val>& v, BroFunc* func)
+static bool val_is_func(const zeek::ValPtr& v, ScriptFunc* func)
 	{
 	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
 		return false;
@@ -181,7 +182,7 @@ static bool val_is_func(const IntrusivePtr<Val>& v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-void Frame::CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const
+void Frame::CloneNonFuncElement(int offset, ScriptFunc* func, Frame* other) const
 	{
 	const auto& v = frame[offset].val;
 
@@ -198,7 +199,7 @@ void Frame::CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const
 	other->SetElement(offset, std::move(rval));
 	}
 
-Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
+Frame* Frame::SelectiveClone(const id_list& selection, ScriptFunc* func) const
 	{
 	if ( selection.length() == 0 )
 		return nullptr;
@@ -348,14 +349,14 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 	return {std::move(rval)};
 	}
 
-std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& data)
+std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
 
 	id_list outer_ids;
 	OffsetMap offset_map;
-	IntrusivePtr<Frame> closure;
+	FramePtr closure;
 
 	auto where = data.begin();
 
@@ -437,7 +438,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 	int frame_size = body.size();
 
 	// We'll associate this frame with a function later.
-	auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
+	auto rf = zeek::make_intrusive<Frame>(frame_size, nullptr, nullptr);
 	rf->offset_map = std::make_unique<OffsetMap>(std::move(offset_map));
 
 	// Frame takes ownership of unref'ing elements in outer_ids
@@ -492,7 +493,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	outer_ids = std::move(arg_outer_ids);
 
 	for ( auto& i : outer_ids )
-		::Ref(i);
+		zeek::Ref(i);
 
 	closure = c;
 	if ( closure )
@@ -505,7 +506,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger)
+void Frame::SetTrigger(zeek::detail::trigger::TriggerPtr arg_trigger)
 	{
 	trigger = std::move(arg_trigger);
 	}
@@ -617,3 +618,5 @@ Frame::UnserializeOffsetMap(const broker::vector& data)
 
 	return std::make_pair(true, std::move(rval));
 	}
+
+}

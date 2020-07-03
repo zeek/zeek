@@ -2,7 +2,6 @@
 #include "Sessions.h"
 #include "Desc.h"
 #include "IP.h"
-#include "IntrusivePtr.h"
 #include "iosource/Manager.h"
 #include "Var.h"
 
@@ -592,12 +591,12 @@ void Packet::ProcessLayer2()
 	hdr_size = (pdata - data);
 }
 
-IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
+zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 	{
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
 	static auto l2_hdr_type = zeek::id::find_type<zeek::RecordType>("l2_hdr");
-	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
-	auto l2_hdr = make_intrusive<RecordVal>(l2_hdr_type);
+	auto pkt_hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
+	auto l2_hdr = zeek::make_intrusive<zeek::RecordVal>(l2_hdr_type);
 
 	bool is_ethernet = link_type == DLT_EN10MB;
 
@@ -632,12 +631,12 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
 		if ( vlan )
-			l2_hdr->Assign(5, val_mgr->Count(vlan));
+			l2_hdr->Assign(5, zeek::val_mgr->Count(vlan));
 
 		if ( inner_vlan )
-			l2_hdr->Assign(6, val_mgr->Count(inner_vlan));
+			l2_hdr->Assign(6, zeek::val_mgr->Count(inner_vlan));
 
-		l2_hdr->Assign(7, val_mgr->Count(eth_type));
+		l2_hdr->Assign(7, zeek::val_mgr->Count(eth_type));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
@@ -646,8 +645,8 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	else
 		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
-	l2_hdr->Assign(1, val_mgr->Count(len));
-	l2_hdr->Assign(2, val_mgr->Count(cap_len));
+	l2_hdr->Assign(1, zeek::val_mgr->Count(len));
+	l2_hdr->Assign(2, zeek::val_mgr->Count(cap_len));
 
 	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetVal(l3));
 
@@ -669,17 +668,17 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 		return pkt_hdr;
 	}
 
-RecordVal* Packet::BuildPktHdrVal() const
+zeek::RecordVal* Packet::BuildPktHdrVal() const
 	{
 	return ToRawPktHdrVal().release();
 	}
 
-IntrusivePtr<Val> Packet::FmtEUI48(const u_char* mac) const
+zeek::ValPtr Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
 		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	return make_intrusive<StringVal>(buf);
+	return zeek::make_intrusive<zeek::StringVal>(buf);
 	}
 
 void Packet::Describe(ODesc* d) const

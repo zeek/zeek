@@ -23,15 +23,17 @@
 
 #include <stdlib.h>
 
-class BroString;
-
 // to allow bro_md5_hmac access to the hmac seed
 #include "ZeekArgs.h"
-class Val;
-class Frame;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+
+namespace zeek { class String; }
+using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
+
 class BifReturnVal;
 namespace zeek::BifFunc {
-	extern BifReturnVal md5_hmac_bif(Frame* frame, const zeek::Args*);
+	extern BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
 }
 
 typedef uint64_t hash_t;
@@ -196,7 +198,7 @@ private:
 	inline static bool seeds_initialized = false;
 
 	friend void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
-	friend BifReturnVal zeek::BifFunc::md5_hmac_bif(Frame* frame, const zeek::Args*);
+	friend BifReturnVal zeek::BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
 };
 
 typedef enum {
@@ -215,7 +217,7 @@ public:
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
 	explicit HashKey(const char* s);
-	explicit HashKey(const BroString* s);
+	explicit HashKey(const zeek::String* s);
 	~HashKey()
 		{
 		if ( is_our_dynamic )

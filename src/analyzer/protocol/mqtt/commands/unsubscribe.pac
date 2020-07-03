@@ -14,11 +14,11 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_unsubscribe )
 			{
-			auto topics = make_intrusive<VectorVal>(zeek::id::string_vec);
+			auto topics = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 			for ( auto topic: *${msg.topics} )
 				{
-				auto unsubscribe_topic = make_intrusive<StringVal>(${topic.str}.length(),
+				auto unsubscribe_topic = zeek::make_intrusive<zeek::StringVal>(${topic.str}.length(),
 				                                  reinterpret_cast<const char*>(${topic.str}.begin()));
 				topics->Assign(topics->Size(), std::move(unsubscribe_topic));
 				}

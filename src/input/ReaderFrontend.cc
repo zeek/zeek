@@ -34,7 +34,7 @@ public:
 	bool Process() override { return Object()->Update(); }
 };
 
-ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVal* type)
+ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, zeek::EnumVal* type)
 	{
 	disabled = initialized = false;
 	info = new ReaderBackend::ReaderInfo(arg_info);

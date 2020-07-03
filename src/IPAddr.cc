@@ -5,7 +5,7 @@
 #include <vector>
 #include "IPAddr.h"
 #include "Reporter.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Conn.h"
 #include "Hash.h"
 #include "bro_inet_ntop.h"
@@ -47,7 +47,7 @@ ConnIDKey BuildConnIDKey(const ConnID& id)
 	return key;
 	}
 
-IPAddr::IPAddr(const BroString& s)
+IPAddr::IPAddr(const zeek::String& s)
 	{
 	Init(s.CheckString());
 	}

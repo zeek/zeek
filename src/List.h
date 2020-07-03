@@ -26,8 +26,7 @@
 #include <cassert>
 #include "util.h"
 
-// TODO: this can be removed in v3.1 when List::sort() is removed
-typedef int (*list_cmp_func)(const void* v1, const void* v2);
+namespace zeek {
 
 enum class ListOrder : int { ORDERED, UNORDERED };
 
@@ -334,7 +333,11 @@ template<typename T, ListOrder Order = ListOrder::ORDERED>
 using PList = List<T*, Order>;
 
 // Popular type of list: list of strings.
-typedef PList<char> name_list;
+using name_list = PList<char>;
+
+} // namespace zeek
+
+using ListOrder [[deprecated("Remove in v4.1. Use zeek::ListOrder instead.")]] = zeek::ListOrder;
 
 // Macro to visit each list element in turn.
 #define loop_over_list(list, iterator)  \

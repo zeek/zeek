@@ -6,8 +6,12 @@
 
 class ODesc;
 
+namespace zeek {
+namespace detail {
+
 class Location final {
 public:
+
 	constexpr Location(const char* fname, int line_f, int line_l,
 			   int col_f, int col_l) noexcept
 		:filename(fname), first_line(line_f), last_line(line_l),
@@ -26,7 +30,7 @@ public:
 	int first_column = 0, last_column = 0;
 };
 
-#define YYLTYPE yyltype
+#define YYLTYPE zeek::detail::yyltype
 typedef Location yyltype;
 YYLTYPE GetCurrentLocation();
 
@@ -49,9 +53,11 @@ inline void set_location(const Location start, const Location end)
 	end_location = end;
 	}
 
-class BroObj {
+} // namespace detail
+
+class Obj {
 public:
-	BroObj()
+	Obj()
 		{
 		// A bit of a hack.  We'd like to associate location
 		// information with every object created when parsing,
@@ -67,23 +73,23 @@ public:
 		// of 0, which should only happen if it's been assigned
 		// to no_location (or hasn't been initialized at all).
 		location = nullptr;
-		if ( start_location.first_line != 0 )
-			SetLocationInfo(&start_location, &end_location);
+		if ( detail::start_location.first_line != 0 )
+			SetLocationInfo(&detail::start_location, &detail::end_location);
 		}
 
-	virtual ~BroObj();
+	virtual ~Obj();
 
 	/* disallow copying */
-	BroObj(const BroObj &) = delete;
-	BroObj &operator=(const BroObj &) = delete;
+	Obj(const Obj &) = delete;
+	Obj &operator=(const Obj &) = delete;
 
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,
 	// then obj2 is only used to pinpoint the location.
-	void Warn(const char* msg, const BroObj* obj2 = nullptr,
-			bool pinpoint_only = false, const Location* expr_location = nullptr) const;
-	void Error(const char* msg, const BroObj* obj2 = nullptr,
-			bool pinpoint_only = false, const Location* expr_location = nullptr) const;
+	void Warn(const char* msg, const Obj* obj2 = nullptr,
+			bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
+	void Error(const char* msg, const Obj* obj2 = nullptr,
+			bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
 
 	// Report internal errors.
 	void BadTag(const char* msg, const char* t1 = nullptr,
@@ -102,18 +108,18 @@ public:
 	void AddLocation(ODesc* d) const;
 
 	// Get location info for debugging.
-	const Location* GetLocationInfo() const
-		{ return location ? location : &no_location; }
+	const detail::Location* GetLocationInfo() const
+		{ return location ? location : &detail::no_location; }
 
-	virtual bool SetLocationInfo(const Location* loc)
+	virtual bool SetLocationInfo(const detail::Location* loc)
 		{ return SetLocationInfo(loc, loc); }
 
 	// Location = range from start to end.
-	virtual bool SetLocationInfo(const Location* start, const Location* end);
+	virtual bool SetLocationInfo(const detail::Location* start, const detail::Location* end);
 
 	// Set new end-of-location information.  This is used to
 	// extend compound objects such as statement lists.
-	virtual void UpdateLocationEndInfo(const Location& end);
+	virtual void UpdateLocationEndInfo(const detail::Location& end);
 
 	// Enable notification of plugins when this objects gets destroyed.
 	void NotifyPluginsOnDtor()	{ notify_plugins = true; }
@@ -124,23 +130,25 @@ public:
 	// as long as there exist any instances.
 	class SuppressErrors {
 	public:
-		SuppressErrors()	{ ++BroObj::suppress_errors; }
-		~SuppressErrors()	{ --BroObj::suppress_errors; }
+		SuppressErrors()	{ ++Obj::suppress_errors; }
+		~SuppressErrors()	{ --Obj::suppress_errors; }
 	};
 
+	void Print() const;
+
 protected:
-	Location* location;	// all that matters in real estate
+	detail::Location* location;	// all that matters in real estate
 
 private:
 	friend class SuppressErrors;
 
-	void DoMsg(ODesc* d, const char s1[], const BroObj* obj2 = nullptr,
-			bool pinpoint_only = false, const Location* expr_location = nullptr) const;
-	void PinPoint(ODesc* d, const BroObj* obj2 = nullptr,
+	void DoMsg(ODesc* d, const char s1[], const Obj* obj2 = nullptr,
+			bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
+	void PinPoint(ODesc* d, const Obj* obj2 = nullptr,
 			bool pinpoint_only = false) const;
 
-	friend inline void Ref(BroObj* o);
-	friend inline void Unref(BroObj* o);
+	friend inline void Ref(Obj* o);
+	friend inline void Unref(Obj* o);
 
 	bool notify_plugins = false;
 	int ref_cnt = 1;
@@ -150,19 +158,16 @@ private:
 	static int suppress_errors;
 };
 
-// Prints obj to stderr, primarily for debugging.
-extern void print(const BroObj* obj);
-
-[[noreturn]] extern void bad_ref(int type);
-
-// Sometimes useful when dealing with BroObj subclasses that have their
+// Sometimes useful when dealing with Obj subclasses that have their
 // own (protected) versions of Error.
-inline void Error(const BroObj* o, const char* msg)
+inline void Error(const Obj* o, const char* msg)
 	{
 	o->Error(msg);
 	}
 
-inline void Ref(BroObj* o)
+[[noreturn]] extern void bad_ref(int type);
+
+inline void Ref(Obj* o)
 	{
 	if ( ++(o->ref_cnt) <= 1 )
 		bad_ref(0);
@@ -170,7 +175,7 @@ inline void Ref(BroObj* o)
 		bad_ref(1);
 	}
 
-inline void Unref(BroObj* o)
+inline void Unref(Obj* o)
 	{
 	if ( o && --o->ref_cnt <= 0 )
 		{
@@ -179,9 +184,18 @@ inline void Unref(BroObj* o)
 		delete o;
 
 		// We could do the following if o were passed by reference.
-		// o = (BroObj*) 0xcd;
+		// o = (Obj*) 0xcd;
 		}
 	}
 
 // A dict_delete_func that knows to Unref() dictionary entries.
-extern void bro_obj_delete_func(void* v);
+extern void obj_delete_func(void* v);
+
+} // namespace zeek
+
+using Location [[deprecated("Remove in v4.1. Use zeek::detail::Location instead.")]] = zeek::detail::Location;
+using yyltype [[deprecated("Remove in v4.1. Use zeek::detail::yyltype instead.")]] = zeek::detail::yyltype;
+using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
+
+[[deprecated("Remove in v4.1. Use zeek::Obj::Print instead.")]]
+extern void print(const zeek::Obj* obj);

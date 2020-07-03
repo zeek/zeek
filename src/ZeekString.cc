@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "BroString.h"
+#include "ZeekString.h"
 
 #include <algorithm>
 #include <iostream>
@@ -18,15 +18,17 @@
 #define DEBUG_STR(msg)
 #endif
 
-const int BroString::EXPANDED_STRING;
-const int BroString::BRO_STRING_LITERAL;
+namespace zeek {
+
+constexpr int String::EXPANDED_STRING;
+constexpr int String::BRO_STRING_LITERAL;
 
 // This constructor forces the user to specify arg_final_NUL.  When str
 // is a *normal* NUL-terminated string, make arg_n == strlen(str) and
 // arg_final_NUL == 1; when str is a sequence of n bytes, make
 // arg_final_NUL == 0.
 
-BroString::BroString(bool arg_final_NUL, byte_vec str, int arg_n)
+String::String(bool arg_final_NUL, byte_vec str, int arg_n)
 	{
 	b = str;
 	n = arg_n;
@@ -34,27 +36,27 @@ BroString::BroString(bool arg_final_NUL, byte_vec str, int arg_n)
 	use_free_to_delete = false;
 	}
 
-BroString::BroString(const u_char* str, int arg_n, bool add_NUL) : BroString()
+String::String(const u_char* str, int arg_n, bool add_NUL) : String()
 	{
 	Set(str, arg_n, add_NUL);
 	}
 
-BroString::BroString(const char* str) : BroString()
+String::String(const char* str) : String()
 	{
 	Set(str);
 	}
 
-BroString::BroString(const std::string &str) : BroString()
+String::String(const std::string &str) : String()
 	{
 	Set(str);
 	}
 
-BroString::BroString(const BroString& bs) : BroString()
+String::String(const String& bs) : String()
 	{
 	*this = bs;
 	}
 
-BroString::BroString()
+String::String()
 	{
 	b = nullptr;
 	n = 0;
@@ -62,7 +64,7 @@ BroString::BroString()
 	use_free_to_delete = false;
 	}
 
-void BroString::Reset()
+void String::Reset()
 	{
 	if ( use_free_to_delete )
 		free(b);
@@ -75,7 +77,7 @@ void BroString::Reset()
 	use_free_to_delete = false;
 	}
 
-const BroString& BroString::operator=(const BroString &bs)
+const String& String::operator=(const String &bs)
 	{
 	Reset();
 	n = bs.n;
@@ -89,17 +91,17 @@ const BroString& BroString::operator=(const BroString &bs)
 	return *this;
 	}
 
-bool BroString::operator==(const BroString &bs) const
+bool String::operator==(const String &bs) const
 	{
 	return Bstr_eq(this, &bs);
 	}
 
-bool BroString::operator<(const BroString &bs) const
+bool String::operator<(const String &bs) const
 	{
 	return Bstr_cmp(this, &bs) < 0;
 	}
 
-void BroString::Adopt(byte_vec bytes, int len)
+void String::Adopt(byte_vec bytes, int len)
 	{
 	Reset();
 
@@ -111,7 +113,7 @@ void BroString::Adopt(byte_vec bytes, int len)
 	n = len - final_NUL;
 	}
 
-void BroString::Set(const u_char* str, int len, bool add_NUL)
+void String::Set(const u_char* str, int len, bool add_NUL)
 	{
 	Reset();
 
@@ -126,7 +128,7 @@ void BroString::Set(const u_char* str, int len, bool add_NUL)
 	use_free_to_delete = false;
 	}
 
-void BroString::Set(const char* str)
+void String::Set(const char* str)
 	{
 	Reset();
 
@@ -137,7 +139,7 @@ void BroString::Set(const char* str)
 	use_free_to_delete = false;
 	}
 
-void BroString::Set(const std::string& str)
+void String::Set(const std::string& str)
 	{
 	Reset();
 
@@ -148,12 +150,12 @@ void BroString::Set(const std::string& str)
 	use_free_to_delete = false;
 	}
 
-void BroString::Set(const BroString& str)
+void String::Set(const String& str)
 	{
 	*this = str;
 	}
 
-const char* BroString::CheckString() const
+const char* String::CheckString() const
 	{
 	void *nulTerm;
 	if ( n == 0 )
@@ -176,7 +178,7 @@ const char* BroString::CheckString() const
 	return (const char*) b;
 	}
 
-char* BroString::Render(int format, int* len) const
+char* String::Render(int format, int* len) const
 	{
 	// Maxmimum character expansion is as \xHH, so a factor of 4.
 	char* s = new char[n*4 + 1];	// +1 is for final '\0'
@@ -234,7 +236,7 @@ char* BroString::Render(int format, int* len) const
 	return s;
 	}
 
-std::ostream& BroString::Render(std::ostream &os, int format) const
+std::ostream& String::Render(std::ostream &os, int format) const
 	{
 	char* tmp = Render(format);
 	os << tmp;
@@ -242,9 +244,9 @@ std::ostream& BroString::Render(std::ostream &os, int format) const
 	return os;
 	}
 
-std::istream& BroString::Read(std::istream &is, int format)
+std::istream& String::Read(std::istream &is, int format)
 	{
-	if ( (format & BroString::ESC_SER) )
+	if ( (format & String::ESC_SER) )
 		{
 		int len;
 		is >> len;	// Get the length of the string
@@ -268,19 +270,19 @@ std::istream& BroString::Read(std::istream &is, int format)
 	return is;
 	}
 
-void BroString::ToUpper()
+void String::ToUpper()
 	{
 	for ( int i = 0; i < n; ++i )
 		if ( islower(b[i]) )
 			b[i] = toupper(b[i]);
 	}
 
-unsigned int BroString::MemoryAllocation() const
+unsigned int String::MemoryAllocation() const
 	{
 	return padded_sizeof(*this) + pad_size(n + final_NUL);
 	}
 
-BroString* BroString::GetSubstring(int start, int len) const
+String* String::GetSubstring(int start, int len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )
@@ -289,15 +291,15 @@ BroString* BroString::GetSubstring(int start, int len) const
 	if ( len < 0 || len > n - start )
 		len = n - start;
 
-	return new BroString(&b[start], len, true);
+	return new String(&b[start], len, true);
 	}
 
-int BroString::FindSubstring(const BroString* s) const
+int String::FindSubstring(const String* s) const
 	{
 	return strstr_n(n, b, s->Len(), s->Bytes());
 	}
 
-BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
+String::Vec* String::Split(const String::IdxVec& indices) const
 	{
 	unsigned int i;
 
@@ -338,22 +340,22 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 	return result;
 	}
 
-VectorVal* BroString:: VecToPolicy(Vec* vec)
+zeek::VectorVal* String:: VecToPolicy(Vec* vec)
 	{
-	auto result = make_intrusive<VectorVal>(zeek::id::string_vec);
+	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
-		BroString* string = (*vec)[i];
-		auto val = make_intrusive<StringVal>(string->Len(),
-		                                     (const char*) string->Bytes());
+		String* string = (*vec)[i];
+		auto val = zeek::make_intrusive<zeek::StringVal>(string->Len(),
+		                                           (const char*) string->Bytes());
 		result->Assign(i+1, std::move(val));
 		}
 
 	return result.release();
 	}
 
-BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
+String::Vec* String::VecFromPolicy(zeek::VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
@@ -364,18 +366,18 @@ BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
 		if ( ! v )
 			continue;
 
-		BroString* string = new BroString(*(v->AsString()));
+		String* string = new String(*(v->AsString()));
 		result->push_back(string);
 		}
 
 	return result;
 	}
 
-char* BroString::VecToString(const Vec* vec)
+char* String::VecToString(const Vec* vec)
 	{
 	std::string result("[");
 
-	for ( BroString::VecCIt it = vec->begin(); it != vec->end(); ++it )
+	for ( String::VecCIt it = vec->begin(); it != vec->end(); ++it )
 		{
 		result += (*it)->CheckString();
 		result += ",";
@@ -386,22 +388,22 @@ char* BroString::VecToString(const Vec* vec)
 	return strdup(result.c_str());
 	}
 
-bool BroStringLenCmp::operator()(BroString * const& bst1,
-				 BroString * const& bst2)
+bool StringLenCmp::operator()(String * const& bst1,
+				 String * const& bst2)
 	{
 	return _increasing ? (bst1->Len() < bst2->Len()) :
 				(bst1->Len() > bst2->Len());
 	}
 
-std::ostream& operator<<(std::ostream& os, const BroString& bs)
+std::ostream& operator<<(std::ostream& os, const String& bs)
 	{
-	char* tmp = bs.Render(BroString::EXPANDED_STRING);
+	char* tmp = bs.Render(String::EXPANDED_STRING);
 	os << tmp;
 	delete [] tmp;
 	return os;
 	}
 
-int Bstr_eq(const BroString* s1, const BroString* s2)
+int Bstr_eq(const String* s1, const String* s2)
 	{
 	if ( s1->Len() != s2->Len() )
 		return 0;
@@ -409,7 +411,7 @@ int Bstr_eq(const BroString* s1, const BroString* s2)
 	return memcmp(s1->Bytes(), s2->Bytes(), s1->Len()) == 0;
 	}
 
-int Bstr_cmp(const BroString* s1, const BroString* s2)
+int Bstr_cmp(const String* s1, const String* s2)
 	{
 	int n = std::min(s1->Len(), s2->Len());
 	int cmp = memcmp(s1->Bytes(), s2->Bytes(), n);
@@ -425,7 +427,7 @@ int Bstr_cmp(const BroString* s1, const BroString* s2)
 		return 1;
 	}
 
-BroString* concatenate(std::vector<data_chunk_t>& v)
+String* concatenate(std::vector<data_chunk_t>& v)
 	{
 	int n = v.size();
 	int len = 0;
@@ -444,10 +446,10 @@ BroString* concatenate(std::vector<data_chunk_t>& v)
 
 	*b = '\0';
 
-	return new BroString(true, (byte_vec) data, len);
+	return new String(true, (byte_vec) data, len);
 	}
 
-BroString* concatenate(BroString::CVec& v)
+String* concatenate(String::CVec& v)
 	{
 	int n = v.size();
 	int len = 0;
@@ -465,22 +467,24 @@ BroString* concatenate(BroString::CVec& v)
 		}
 	*b = '\0';
 
-	return new BroString(true, (byte_vec) data, len);
+	return new String(true, (byte_vec) data, len);
 	}
 
-BroString* concatenate(BroString::Vec& v)
+String* concatenate(String::Vec& v)
 	{
-	BroString::CVec cv;
+	String::CVec cv;
 
-	for ( BroString::VecIt it = v.begin(); it != v.end(); ++it )
+	for ( String::VecIt it = v.begin(); it != v.end(); ++it )
 		cv.push_back(*it);
 
 	return concatenate(cv);
 	}
 
-void delete_strings(std::vector<const BroString*>& v)
+void delete_strings(std::vector<const String*>& v)
 	{
 	for ( unsigned int i = 0; i < v.size(); ++i )
 		delete v[i];
 	v.clear();
 	}
+
+} // namespace zeek

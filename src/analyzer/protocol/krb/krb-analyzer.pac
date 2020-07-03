@@ -1,35 +1,35 @@
 %header{
-IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts);
-IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
+zeek::RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts);
+zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
 
-bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
+bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
 %}
 
 %code{
-IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts)
+zeek::RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
-	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
 
-	rv->Assign(0, val_mgr->Bool(opts->forwardable()));
-	rv->Assign(1, val_mgr->Bool(opts->forwarded()));
-	rv->Assign(2, val_mgr->Bool(opts->proxiable()));
-	rv->Assign(3, val_mgr->Bool(opts->proxy()));
-	rv->Assign(4, val_mgr->Bool(opts->allow_postdate()));
-	rv->Assign(5, val_mgr->Bool(opts->postdated()));
-	rv->Assign(6, val_mgr->Bool(opts->renewable()));
-	rv->Assign(7, val_mgr->Bool(opts->opt_hardware_auth()));
-	rv->Assign(8, val_mgr->Bool(opts->disable_transited_check()));
-	rv->Assign(9, val_mgr->Bool(opts->renewable_ok()));
-	rv->Assign(10, val_mgr->Bool(opts->enc_tkt_in_skey()));
-	rv->Assign(11, val_mgr->Bool(opts->renew()));
-	rv->Assign(12, val_mgr->Bool(opts->validate()));
+	rv->Assign(0, zeek::val_mgr->Bool(opts->forwardable()));
+	rv->Assign(1, zeek::val_mgr->Bool(opts->forwarded()));
+	rv->Assign(2, zeek::val_mgr->Bool(opts->proxiable()));
+	rv->Assign(3, zeek::val_mgr->Bool(opts->proxy()));
+	rv->Assign(4, zeek::val_mgr->Bool(opts->allow_postdate()));
+	rv->Assign(5, zeek::val_mgr->Bool(opts->postdated()));
+	rv->Assign(6, zeek::val_mgr->Bool(opts->renewable()));
+	rv->Assign(7, zeek::val_mgr->Bool(opts->opt_hardware_auth()));
+	rv->Assign(8, zeek::val_mgr->Bool(opts->disable_transited_check()));
+	rv->Assign(9, zeek::val_mgr->Bool(opts->renewable_ok()));
+	rv->Assign(10, zeek::val_mgr->Bool(opts->enc_tkt_in_skey()));
+	rv->Assign(11, zeek::val_mgr->Bool(opts->renew()));
+	rv->Assign(12, zeek::val_mgr->Bool(opts->validate()));
 
 	return rv;
 }
 
-IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
+zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
-	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
+	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
 
 	rv->Assign(0, asn1_integer_to_val(msg->pvno()->data(), zeek::TYPE_COUNT));
 	rv->Assign(1, asn1_integer_to_val(msg->msg_type()->data(), zeek::TYPE_COUNT));
@@ -93,7 +93,7 @@ IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAn
 }
 
 
-bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
+bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
 {
 	uint ctime_i = 0, stime_i = 0;
 	int64 ctime_usecs = 0, stime_usecs = 0;
@@ -201,9 +201,9 @@ refine connection KRB_Conn += {
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
-		auto make_arg = [this, msg]() -> IntrusivePtr<RecordVal>
+		auto make_arg = [this, msg]() -> zeek::RecordValPtr
 			{
-			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, zeek::TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, zeek::TYPE_COUNT));
@@ -244,7 +244,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
 			{
-			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
 			proc_error_arguments(rv.get(), ${msg.args1}, 0);
 			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, zeek::TYPE_COUNT));
 			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
@@ -258,9 +258,9 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_request )
 			{
-			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::AP_Options);
-			rv->Assign(0, val_mgr->Bool(${msg.ap_options.use_session_key}));
-			rv->Assign(1, val_mgr->Bool(${msg.ap_options.mutual_required}));
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::AP_Options);
+			rv->Assign(0, zeek::val_mgr->Bool(${msg.ap_options.use_session_key}));
+			rv->Assign(1, zeek::val_mgr->Bool(${msg.ap_options.mutual_required}));
 
 			auto rvticket = proc_ticket(${msg.ticket});
 			auto authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->GetField(2)->AsString(), rvticket->GetField(4)->AsString(), rvticket->GetField(3)->AsCount());
@@ -289,7 +289,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_safe )
 			{
-			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
+			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, zeek::TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, zeek::TYPE_COUNT));

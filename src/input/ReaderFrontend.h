@@ -5,7 +5,7 @@
 #include "ReaderBackend.h"
 #include "threading/SerialTypes.h"
 
-class EnumVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 
 namespace input {
 
@@ -33,7 +33,7 @@ public:
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	ReaderFrontend(const ReaderBackend::ReaderInfo& info, EnumVal* type);
+	ReaderFrontend(const ReaderBackend::ReaderInfo& info, zeek::EnumVal* type);
 
 	/**
 	 * Destructor.

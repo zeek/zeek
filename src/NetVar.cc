@@ -66,17 +66,17 @@ double icmp_inactivity_timeout;
 int tcp_storm_thresh;
 double tcp_storm_interarrival_thresh;
 
-TableVal* tcp_reassembler_ports_orig;
-TableVal* tcp_reassembler_ports_resp;
+zeek::TableVal* tcp_reassembler_ports_orig;
+zeek::TableVal* tcp_reassembler_ports_resp;
 
-TableVal* tcp_content_delivery_ports_orig;
-TableVal* tcp_content_delivery_ports_resp;
+zeek::TableVal* tcp_content_delivery_ports_orig;
+zeek::TableVal* tcp_content_delivery_ports_resp;
 bool tcp_content_deliver_all_orig;
 bool tcp_content_deliver_all_resp;
 
-TableVal* udp_content_delivery_ports_orig;
-TableVal* udp_content_delivery_ports_resp;
-TableVal* udp_content_ports;
+zeek::TableVal* udp_content_delivery_ports_orig;
+zeek::TableVal* udp_content_delivery_ports_resp;
+zeek::TableVal* udp_content_ports;
 bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
 bool udp_content_delivery_ports_use_resp;
@@ -112,15 +112,15 @@ zeek::RecordType* dns_rrsig_rr;
 zeek::RecordType* dns_dnskey_rr;
 zeek::RecordType* dns_nsec3_rr;
 zeek::RecordType* dns_ds_rr;
-TableVal* dns_skip_auth;
-TableVal* dns_skip_addl;
+zeek::TableVal* dns_skip_auth;
+zeek::TableVal* dns_skip_addl;
 int dns_skip_all_auth;
 int dns_skip_all_addl;
 int dns_max_queries;
 
 double stp_delta;
 double stp_idle_min;
-TableVal* stp_skip_src;
+zeek::TableVal* stp_skip_src;
 
 double table_expire_interval;
 double table_expire_delay;
@@ -130,22 +130,22 @@ double connection_status_update_interval;
 
 int orig_addr_anonymization, resp_addr_anonymization;
 int other_addr_anonymization;
-TableVal* preserve_orig_addr;
-TableVal* preserve_resp_addr;
-TableVal* preserve_other_addr;
+zeek::TableVal* preserve_orig_addr;
+zeek::TableVal* preserve_resp_addr;
+zeek::TableVal* preserve_other_addr;
 
 zeek::RecordType* rotate_info;
-StringVal* log_rotate_base_time;
+zeek::StringVal* log_rotate_base_time;
 
-StringVal* peer_description;
+zeek::StringVal* peer_description;
 
-Val* profiling_file;
+zeek::Val* profiling_file;
 double profiling_interval;
 int expensive_profiling_multiple;
 int segment_profiling;
 int pkt_profile_mode;
 double pkt_profile_freq;
-Val* pkt_profile_file;
+zeek::Val* pkt_profile_file;
 
 int load_sample_freq;
 
@@ -162,13 +162,13 @@ int dpd_match_only_beginning;
 int dpd_late_match_stop;
 int dpd_ignore_ports;
 
-TableVal* likely_server_ports;
+zeek::TableVal* likely_server_ports;
 
 int check_for_unused_event_handlers;
 
 double timer_mgr_inactivity_timeout;
 
-StringVal* trace_output_file;
+zeek::StringVal* trace_output_file;
 
 int record_all_packets;
 
@@ -179,9 +179,9 @@ zeek::TableType* record_field_table;
 zeek::RecordType* call_argument;
 zeek::VectorType* call_argument_vector;
 
-StringVal* cmd_line_bpf_filter;
+zeek::StringVal* cmd_line_bpf_filter;
 
-StringVal* global_hash_seed;
+zeek::StringVal* global_hash_seed;
 
 bro_uint_t bits_per_uid;
 

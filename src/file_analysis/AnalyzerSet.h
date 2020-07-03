@@ -9,7 +9,11 @@
 #include "Tag.h"
 
 class CompositeHash;
-class RecordVal;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+namespace zeek {
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+}
 
 namespace file_analysis {
 
@@ -43,7 +47,7 @@ public:
 	 * @param args an \c AnalyzerArgs record.
 	 * @return pointer to an analyzer instance, or a null pointer if not found.
 	 */
-	Analyzer* Find(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
+	Analyzer* Find(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Attach an analyzer to #file immediately.
@@ -51,7 +55,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was instantiated/attached, else false.
 	 */
-	bool Add(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
+	bool Add(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Queue the attachment of an analyzer to #file.
@@ -61,7 +65,7 @@ public:
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
 	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag,
-	                                  IntrusivePtr<RecordVal> args);
+	                                  zeek::RecordValPtr args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -69,7 +73,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return false if analyzer didn't exist and so wasn't removed, else true.
 	 */
-	bool Remove(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
+	bool Remove(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Queue the removal of an analyzer from #file.
@@ -77,7 +81,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer exists at time of call, else false;
 	 */
-	bool QueueRemove(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
+	bool QueueRemove(const file_analysis::Tag& tag, zeek::RecordValPtr args);
 
 	/**
 	 * Perform all queued modifications to the current analyzer set.
@@ -89,7 +93,7 @@ public:
 	 * @see Dictionary#InitForIteration
 	 * @return an iterator that may be used to loop over analyzers in the set.
 	 */
-	IterCookie* InitForIteration() const
+	zeek::IterCookie* InitForIteration() const
 		{ return analyzer_map.InitForIteration(); }
 
 	/**
@@ -99,7 +103,7 @@ public:
 	 * @return the next analyzer in the set or a null pointer if there is no
 	 *         more left (in that case the cookie is also deleted).
 	 */
-	file_analysis::Analyzer* NextEntry(IterCookie* c)
+	file_analysis::Analyzer* NextEntry(zeek::IterCookie* c)
 		{ return analyzer_map.NextEntry(c); }
 
 protected:
@@ -111,7 +115,7 @@ protected:
 	 * @return the hash key calculated from \a args
 	 */
 	std::unique_ptr<HashKey> GetKey(const file_analysis::Tag& tag,
-	                                IntrusivePtr<RecordVal> args) const;
+	                                zeek::RecordValPtr args) const;
 
 	/**
 	 * Create an instance of a file analyzer.
@@ -120,7 +124,7 @@ protected:
 	 * @return a new file analyzer instance.
 	 */
 	file_analysis::Analyzer* InstantiateAnalyzer(const file_analysis::Tag& tag,
-	                                             IntrusivePtr<RecordVal> args) const;
+	                                             zeek::RecordValPtr args) const;
 
 	/**
 	 * Insert an analyzer instance in to the set.
@@ -141,7 +145,7 @@ private:
 
 	File* file;                                  /**< File which owns the set */
 	CompositeHash* analyzer_hash;                /**< AnalyzerArgs hashes. */
-	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
+	zeek::PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**
 	 * Abstract base class for analyzer set modifications.

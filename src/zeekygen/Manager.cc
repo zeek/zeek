@@ -216,7 +216,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<zeek::detail::ID> id, ScriptInfo* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script)
 	{
 	const auto& id_name = id->Name();
 	auto prev = identifiers.GetInfo(id_name);
@@ -247,12 +247,12 @@ IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<zeek::detail::ID> id,
 	return rval;
 	}
 
-void Manager::StartType(IntrusivePtr<zeek::detail::ID> id)
+void Manager::StartType(zeek::detail::IDPtr id)
 	{
 	if ( disabled )
 		return;
 
-	if ( id->GetLocationInfo() == &no_location )
+	if ( id->GetLocationInfo() == &zeek::detail::no_location )
 		{
 		DbgAndWarn(fmt("Can't generate zeekygen doumentation for %s, "
 		               "no location available", id->Name()));
@@ -278,7 +278,7 @@ static bool IsEnumType(zeek::detail::ID* id)
 	return id->IsType() ? id->GetType()->Tag() == zeek::TYPE_ENUM : false;
 	}
 
-void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
+void Manager::Identifier(zeek::detail::IDPtr id)
 	{
 	if ( disabled )
 		return;
@@ -313,7 +313,7 @@ void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
 		return;
 		}
 
-	if ( id->GetLocationInfo() == &no_location )
+	if ( id->GetLocationInfo() == &zeek::detail::no_location )
 		{
 		// Internally-created identifier (e.g. file/proto analyzer enum tags).
 		// Handled specially since they don't have a script location.
@@ -361,7 +361,8 @@ void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* fiel
 	}
 
 void Manager::Redef(const zeek::detail::ID* id, const string& path,
-                    zeek::detail::InitClass ic, IntrusivePtr<zeek::detail::Expr> init_expr)
+                    zeek::detail::InitClass ic,
+                    zeek::detail::ExprPtr init_expr)
 	{
 	if ( disabled )
 		return;

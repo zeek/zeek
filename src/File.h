@@ -16,15 +16,20 @@
 #include "IntrusivePtr.h"
 #include "util.h"
 
-class RecordVal;
-
-namespace zeek { class Type; }
+namespace zeek {
+	class Type;
+	using TypePtr = zeek::IntrusivePtr<zeek::Type>;
+}
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
-class BroFile final : public BroObj {
+class BroFile;
+using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+
+class BroFile final : public zeek::Obj {
 public:
 	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);
@@ -45,7 +50,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* FType() const	{ return t.get(); }
 
-	const IntrusivePtr<zeek::Type>& GetType() const
+	const zeek::TypePtr& GetType() const
 		{ return t; }
 
 	// Whether the file is open in a general sense; it might
@@ -60,7 +65,7 @@ public:
 	void Describe(ODesc* d) const override;
 
 	// Rotates the logfile. Returns rotate_info.
-	RecordVal* Rotate();
+	zeek::RecordVal* Rotate();
 
 	// Set &raw_output attribute.
 	void SetAttrs(zeek::detail::Attributes* attrs);
@@ -72,7 +77,7 @@ public:
 	static void CloseOpenFiles();
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
-	static IntrusivePtr<BroFile> Get(const char* name);
+	static BroFilePtr Get(const char* name);
 	[[deprecated("Remove in v4.1.  Use BroFile::Get().")]]
 	static BroFile* GetFile(const char* name)
 		{ return Get(name).release(); }
@@ -106,7 +111,7 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	IntrusivePtr<zeek::Type> t;
+	zeek::TypePtr t;
 	char* name;
 	char* access;
 	zeek::detail::Attributes* attrs;

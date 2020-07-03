@@ -73,8 +73,8 @@ void Reporter::InitOptions()
 	auto wl_table = wl_val->AsTable();
 
 	HashKey* k;
-	IterCookie* c = wl_table->InitForIteration();
-	TableEntryVal* v;
+	zeek::IterCookie* c = wl_table->InitForIteration();
+	zeek::TableEntryVal* v;
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
@@ -165,7 +165,7 @@ void Reporter::ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt,
 	throw InterpreterException();
 	}
 
-void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
+void Reporter::RuntimeError(const zeek::detail::Location* location, const char* fmt, ...)
 	{
 	++errors;
 	PushLocation(location);
@@ -345,7 +345,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return false;
 	}
 
-bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
+bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id)
 	{
 	auto conn_tuple = std::make_tuple(conn_id.GetField("orig_h")->AsAddr(),
 	                                  conn_id.GetField("resp_h")->AsAddr(),
@@ -384,7 +384,7 @@ void Reporter::Weird(const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
+	WeirdHelper(net_weird, {new zeek::StringVal(addl)}, "%s", name);
 	}
 
 void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
@@ -398,7 +398,7 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -413,11 +413,11 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> uid,
+void Reporter::Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
                      const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
@@ -429,7 +429,7 @@ void Reporter::Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> ui
 		}
 
 	WeirdHelper(expired_conn_weird,
-	            {conn_id.release(), uid.release(), new StringVal(addl)},
+	            {conn_id.release(), uid.release(), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -444,7 +444,7 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, c
 		}
 
 	WeirdHelper(flow_weird,
-	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
+	            {new zeek::AddrVal(orig), new zeek::AddrVal(resp), new zeek::StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -469,11 +469,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			{
 			ODesc d;
 
-			std::pair<const Location*, const Location*> locs = locations.back();
+			std::pair<const zeek::detail::Location*, const zeek::detail::Location*> locs = locations.back();
 
 			if ( locs.first )
 				{
-				if ( locs.first != &no_location )
+				if ( locs.first != &zeek::detail::no_location )
 					locs.first->Describe(&d);
 
 				else
@@ -483,7 +483,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 					{
 					d.Add(" and ");
 
-					if ( locs.second != &no_location )
+					if ( locs.second != &zeek::detail::no_location )
 						locs.second->Describe(&d);
 
 					else
@@ -558,19 +558,19 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(make_intrusive<TimeVal>(network_time ? network_time : current_time()));
+			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(network_time ? network_time : current_time()));
 
-		vl.emplace_back(make_intrusive<StringVal>(buffer));
+		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(buffer));
 
 		if ( location )
-			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
+			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(loc_str.c_str()));
 
 		if ( conn )
 			vl.emplace_back(conn->ConnVal());
 
 		if ( addl )
 			for ( auto v : *addl )
-				vl.emplace_back(AdoptRef{}, v);
+				vl.emplace_back(zeek::AdoptRef{}, v);
 
 		if ( conn )
 			conn->EnqueueEvent(event, nullptr, std::move(vl));

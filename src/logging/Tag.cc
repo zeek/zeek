@@ -22,20 +22,20 @@ logging::Tag& logging::Tag::operator=(const logging::Tag&& other) noexcept
 	return *this;
 	}
 
-const IntrusivePtr<EnumVal>& logging::Tag::AsVal() const
+const zeek::EnumValPtr& logging::Tag::AsVal() const
 	{
 	return ::Tag::AsVal(log_mgr->GetTagType());
 	}
 
-EnumVal* logging::Tag::AsEnumVal() const
+zeek::EnumVal* logging::Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-logging::Tag::Tag(IntrusivePtr<EnumVal> val)
+logging::Tag::Tag(zeek::EnumValPtr val)
 	: ::Tag(std::move(val))
 	{ }
 
-logging::Tag::Tag(EnumVal* val)
-	: ::Tag({NewRef{}, val})
+logging::Tag::Tag(zeek::EnumVal* val)
+	: ::Tag({zeek::NewRef{}, val})
 	{ }

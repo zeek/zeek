@@ -11,10 +11,14 @@
 #include <map>
 #include <string>
 
-template <class T> class IntrusivePtr;
-class Val;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+
+namespace zeek {
+template <class T> class IntrusivePtr;
+using ValPtr = zeek::IntrusivePtr<Val>;
+}
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
@@ -26,9 +30,8 @@ struct ParseLocationRec {
 };
 
 class StmtLocMapping;
-typedef PQueue<StmtLocMapping> Filemap; // mapping for a single file
+typedef zeek::PQueue<StmtLocMapping> Filemap; // mapping for a single file
 
-class Frame;
 class DbgBreakpoint;
 class DbgWatch;
 class DbgDisplay;
@@ -37,7 +40,9 @@ class StmtHashFn;
 typedef std::map<int, DbgBreakpoint*> BPIDMapType;
 typedef std::multimap<const zeek::detail::Stmt*, DbgBreakpoint*> BPMapType;
 
+namespace zeek {
 extern std::string current_module;
+}
 
 class TraceState {
 public:
@@ -84,7 +89,7 @@ public:
 
 	bool already_did_list;	// did we already do a 'list' command?
 
-	Location last_loc;	// used by 'list'; the last location listed
+	zeek::detail::Location last_loc;	// used by 'list'; the last location listed
 
 	BPIDMapType breakpoints;	// BPID -> Breakpoint
 	std::vector<DbgWatch*> watches;
@@ -98,7 +103,7 @@ protected:
 	int next_bp_id, next_watch_id, next_display_id;
 
 private:
-	Frame* dbg_locals; // unused
+	zeek::detail::Frame* dbg_locals; // unused
 };
 
 // Source line -> statement mapping.
@@ -106,14 +111,14 @@ private:
 class StmtLocMapping {
 public:
 	StmtLocMapping()	{ }
-	StmtLocMapping(const Location* l, zeek::detail::Stmt* s)	{ loc = *l; stmt = s; }
+	StmtLocMapping(const zeek::detail::Location* l, zeek::detail::Stmt* s)	{ loc = *l; stmt = s; }
 
 	bool StartsAfter(const StmtLocMapping* m2);
-	const Location& Loc() const	{ return loc; }
+	const zeek::detail::Location& Loc() const	{ return loc; }
 	zeek::detail::Stmt* Statement() const		{ return stmt; }
 
 protected:
-	Location loc;
+	zeek::detail::Location loc;
 	zeek::detail::Stmt* stmt;
 };
 
@@ -145,8 +150,8 @@ std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 // Debugging hooks.
 
 // Return true to continue execution, false to abort.
-bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f);
-bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
+bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f);
+bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, stmt_flow_type* flow);
 
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
@@ -162,7 +167,7 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-IntrusivePtr<Val> dbg_eval_expr(const char* expr);
+zeek::ValPtr dbg_eval_expr(const char* expr);
 
 // Extra debugging facilities.
 // TODO: current connections, memory allocated, other internal data structures.
@@ -170,9 +175,9 @@ IntrusivePtr<Val> dbg_eval_expr(const char* expr);
 int dbg_read_internal_state();
 
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
-std::string get_context_description(const zeek::detail::Stmt* stmt, const Frame* frame);
+std::string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detail::Frame* frame);
 
-extern Frame* g_dbg_locals;	// variables created within debugger context
+extern zeek::detail::Frame* g_dbg_locals;	// variables created within debugger context
 
 extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 

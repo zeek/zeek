@@ -5,14 +5,14 @@
 %}
 
 %header{
-IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl);
+zeek::VectorValPtr name_list_to_vector(const bytestring& nl);
 %}
 
 %code{
 // Copied from IRC_Analyzer::SplitWords
-IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl)
+zeek::VectorValPtr name_list_to_vector(const bytestring& nl)
 	{
-	auto vv = make_intrusive<VectorVal>(zeek::id::string_vec);
+	auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	string name_list = std_str(nl);
 	if ( name_list.size() < 1 )
@@ -32,7 +32,7 @@ IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl)
 		{
 		word = name_list.substr(start, split_pos - start);
 		if ( word.size() > 0 && word[0] != ',' )
-			vv->Assign(vv->Size(), make_intrusive<StringVal>(word));
+			vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(word));
 
 		start = split_pos + 1;
 		}
@@ -41,7 +41,7 @@ IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl)
 	if ( start < name_list.size() )
 		{
 		word = name_list.substr(start, name_list.size() - start);
-		vv->Assign(vv->Size(), make_intrusive<StringVal>(word));
+		vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(word));
 		}
 	return vv;
 	}
@@ -70,28 +70,28 @@ refine flow SSH_Flow += {
 		if ( ! ssh_capabilities )
 			return false;
 
-		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Capabilities);
+		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Capabilities);
 		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
 		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
 
-		auto encryption_algs = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
+		auto encryption_algs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		encryption_algs->Assign(0, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
 		encryption_algs->Assign(1, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
 		result->Assign(2, std::move(encryption_algs));
 
-		auto mac_algs = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
+		auto mac_algs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		mac_algs->Assign(0, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
 		mac_algs->Assign(1, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
 		result->Assign(3, std::move(mac_algs));
 
-		auto compression_algs = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
+		auto compression_algs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		compression_algs->Assign(0, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
 		compression_algs->Assign(1, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
 		result->Assign(4, std::move(compression_algs));
 
 		if ( ${msg.languages_client_to_server.len} || ${msg.languages_server_to_client.len} )
 			{
-			auto languages = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
+			auto languages = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 			if ( ${msg.languages_client_to_server.len} )
 				languages->Assign(0, name_list_to_vector(${msg.languages_client_to_server.val}));
 			if ( ${msg.languages_server_to_client.len} )
@@ -101,7 +101,7 @@ refine flow SSH_Flow += {
 			}
 
 
-		result->Assign(6, val_mgr->Bool(!${msg.is_orig}));
+		result->Assign(6, zeek::val_mgr->Bool(!${msg.is_orig}));
 
 		zeek::BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
 			connection()->bro_analyzer()->Conn(), to_stringval(${msg.cookie}),

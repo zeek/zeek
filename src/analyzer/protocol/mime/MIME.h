@@ -6,13 +6,18 @@
 #include <vector>
 #include <queue>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Reporter.h"
 #include "analyzer/Analyzer.h"
 
-class TableVal;
-class StringVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 class Base64Converter;
+
+namespace zeek {
+using TableValPtr = zeek::IntrusivePtr<TableVal>;
+using StringValPtr = zeek::IntrusivePtr<StringVal>;
+}
 
 namespace analyzer { namespace mime {
 
@@ -58,11 +63,11 @@ public:
 	~MIME_Multiline();
 
 	void append(int len, const char* data);
-	BroString* get_concatenated_line();
+	zeek::String* get_concatenated_line();
 
 protected:
-	std::vector<const BroString*> buffer;
-	BroString* line;
+	std::vector<const zeek::String*> buffer;
+	zeek::String* line;
 };
 
 class MIME_Header {
@@ -70,19 +75,19 @@ public:
 	explicit MIME_Header(MIME_Multiline* hl);
 	~MIME_Header();
 
-	data_chunk_t get_name() const	{ return name; }
-	data_chunk_t get_value() const	{ return value; }
+	zeek::data_chunk_t get_name() const	{ return name; }
+	zeek::data_chunk_t get_value() const	{ return value; }
 
-	data_chunk_t get_value_token();
-	data_chunk_t get_value_after_token();
+	zeek::data_chunk_t get_value_token();
+	zeek::data_chunk_t get_value_after_token();
 
 protected:
 	int get_first_token();
 
 	MIME_Multiline* lines;
-	data_chunk_t name;
-	data_chunk_t value;
-	data_chunk_t value_token, rest_value;
+	zeek::data_chunk_t name;
+	zeek::data_chunk_t value;
+	zeek::data_chunk_t value_token, rest_value;
 };
 
 
@@ -99,11 +104,11 @@ public:
 	MIME_Entity* Parent() const { return parent; }
 	int MIMEContentType() const { return content_type; }
 	[[deprecated("Remove in v4.1.  Use GetContentType().")]]
-	StringVal* ContentType() const { return content_type_str.get(); }
+	zeek::StringVal* ContentType() const { return content_type_str.get(); }
 	[[deprecated("Remove in v4.1.  Use GetContentSubType().")]]
-	StringVal* ContentSubType() const { return content_subtype_str.get(); }
-	const IntrusivePtr<StringVal>& GetContentType() const { return content_type_str; }
-	const IntrusivePtr<StringVal>& GetContentSubType() const { return content_subtype_str; }
+	zeek::StringVal* ContentSubType() const { return content_subtype_str.get(); }
+	const zeek::StringValPtr& GetContentType() const { return content_type_str; }
+	const zeek::StringValPtr& GetContentSubType() const { return content_subtype_str; }
 	int ContentTransferEncoding() const { return content_encoding; }
 
 protected:
@@ -115,13 +120,13 @@ protected:
 	void FinishHeader();
 
 	void ParseMIMEHeader(MIME_Header* h);
-	int LookupMIMEHeaderName(data_chunk_t name);
+	int LookupMIMEHeaderName(zeek::data_chunk_t name);
 	bool ParseContentTypeField(MIME_Header* h);
 	bool ParseContentEncodingField(MIME_Header* h);
 	bool ParseFieldParameters(int len, const char* data);
 
-	void ParseContentType(data_chunk_t type, data_chunk_t sub_type);
-	void ParseContentEncoding(data_chunk_t encoding_mechanism);
+	void ParseContentType(zeek::data_chunk_t type, zeek::data_chunk_t sub_type);
+	void ParseContentEncoding(zeek::data_chunk_t encoding_mechanism);
 
 	void BeginBody();
 	void NewDataLine(int len, const char* data, bool trailing_CRLF);
@@ -159,10 +164,10 @@ protected:
 	int current_field_type;
 	int need_to_parse_parameters;
 
-	IntrusivePtr<StringVal> content_type_str;
-	IntrusivePtr<StringVal> content_subtype_str;
-	BroString* content_encoding_str;
-	BroString* multipart_boundary;
+	zeek::StringValPtr content_type_str;
+	zeek::StringValPtr content_subtype_str;
+	zeek::String* content_encoding_str;
+	zeek::String* multipart_boundary;
 
 	int content_type, content_subtype, content_encoding;
 
@@ -231,12 +236,12 @@ protected:
 	bool finished;
 
 	[[deprecated("Remove in v4.1.  Use ToHeaderVal().")]]
-	RecordVal* BuildHeaderVal(MIME_Header* h);
+	zeek::RecordVal* BuildHeaderVal(MIME_Header* h);
 	[[deprecated("Remove in v4.1.  Use ToHeaderTable().")]]
-	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
+	zeek::TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
 
-	IntrusivePtr<RecordVal> ToHeaderVal(MIME_Header* h);
-	IntrusivePtr<TableVal> ToHeaderTable(MIME_HeaderList& hlist);
+	zeek::RecordValPtr ToHeaderVal(MIME_Header* h);
+	zeek::TableValPtr ToHeaderTable(MIME_HeaderList& hlist);
 };
 
 class MIME_Mail final : public MIME_Message {
@@ -264,40 +269,39 @@ protected:
 	int compute_content_hash;
 	int content_hash_length;
 	EVP_MD_CTX* md5_hash;
-	std::vector<const BroString*> entity_content;
-	std::vector<const BroString*> all_content;
+	std::vector<const zeek::String*> entity_content;
+	std::vector<const zeek::String*> all_content;
 
-	BroString* data_buffer;
+	zeek::String* data_buffer;
 
 	uint64_t cur_entity_len;
 	std::string cur_entity_id;
 };
 
-
-extern bool is_null_data_chunk(data_chunk_t b);
+extern bool is_null_data_chunk(zeek::data_chunk_t b);
 [[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(int length, const char* data);
+extern zeek::StringVal* new_string_val(int length, const char* data);
 [[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(const char* data, const char* end_of_data);
+extern zeek::StringVal* new_string_val(const char* data, const char* end_of_data);
 [[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(const data_chunk_t buf);
-extern IntrusivePtr<StringVal> to_string_val(int length, const char* data);
-extern IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data);
-extern IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf);
-extern int fputs(data_chunk_t b, FILE* fp);
-extern bool istrequal(data_chunk_t s, const char* t);
+extern zeek::StringVal* new_string_val(const zeek::data_chunk_t buf);
+extern zeek::StringValPtr to_string_val(int length, const char* data);
+extern zeek::StringValPtr to_string_val(const char* data, const char* end_of_data);
+extern zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf);
+extern int fputs(zeek::data_chunk_t b, FILE* fp);
+extern bool istrequal(zeek::data_chunk_t s, const char* t);
 extern bool is_lws(char ch);
 extern bool MIME_is_field_name_char(char ch);
 extern int MIME_count_leading_lws(int len, const char* data);
 extern int MIME_count_trailing_lws(int len, const char* data);
 extern int MIME_skip_comments(int len, const char* data);
 extern int MIME_skip_lws_comments(int len, const char* data);
-extern int MIME_get_token(int len, const char* data, data_chunk_t* token,
+extern int MIME_get_token(int len, const char* data, zeek::data_chunk_t* token,
                           bool is_boundary = false);
-extern int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second);
-extern int MIME_get_value(int len, const char* data, BroString*& buf,
+extern int MIME_get_slash_token_pair(int len, const char* data, zeek::data_chunk_t* first, zeek::data_chunk_t* second);
+extern int MIME_get_value(int len, const char* data, zeek::String*& buf,
                           bool is_boundary = false);
-extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
-extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
+extern int MIME_get_field_name(int len, const char* data, zeek::data_chunk_t* name);
+extern zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf);
 
 } } // namespace analyzer::*

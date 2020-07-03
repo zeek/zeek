@@ -361,7 +361,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	{
 	if ( mime::istrequal(h->get_name(), "content-length") )
 		{
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		if ( ! mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
@@ -388,7 +388,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	else if ( mime::istrequal(h->get_name(), "content-range") &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		string byte_unit(vt.data, vt.length);
 		vt = h->get_value_after_token();
 		string byte_range(vt.data, vt.length);
@@ -479,7 +479,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		else // reply_ongoing
 			http_version = http_message->analyzer->GetReplyVersionNumber();
 
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		if ( mime::istrequal(vt, "chunked") &&
 		     http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
 			chunked_transfer_state = BEFORE_CHUNK;
@@ -487,7 +487,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 	else if ( mime::istrequal(h->get_name(), "content-encoding") )
 		{
-		data_chunk_t vt = h->get_value_token();
+		zeek::data_chunk_t vt = h->get_value_token();
 		if ( mime::istrequal(vt, "gzip") || mime::istrequal(vt, "x-gzip") )
 			encoding = GZIP;
 		if ( mime::istrequal(vt, "deflate") )
@@ -613,17 +613,17 @@ HTTP_Message::~HTTP_Message()
 	delete [] entity_data_buffer;
 	}
 
-IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
+zeek::RecordValPtr HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	{
 	static auto http_message_stat = zeek::id::find_type<zeek::RecordType>("http_message_stat");
-	auto stat = make_intrusive<RecordVal>(http_message_stat);
+	auto stat = zeek::make_intrusive<zeek::RecordVal>(http_message_stat);
 	int field = 0;
-	stat->Assign(field++, make_intrusive<TimeVal>(start_time));
-	stat->Assign(field++, val_mgr->Bool(interrupted));
-	stat->Assign(field++, make_intrusive<StringVal>(msg));
-	stat->Assign(field++, val_mgr->Count(body_length));
-	stat->Assign(field++, val_mgr->Count(content_gap_length));
-	stat->Assign(field++, val_mgr->Count(header_length));
+	stat->Assign(field++, zeek::make_intrusive<zeek::TimeVal>(start_time));
+	stat->Assign(field++, zeek::val_mgr->Bool(interrupted));
+	stat->Assign(field++, zeek::make_intrusive<zeek::StringVal>(msg));
+	stat->Assign(field++, zeek::val_mgr->Count(body_length));
+	stat->Assign(field++, zeek::val_mgr->Count(content_gap_length));
+	stat->Assign(field++, zeek::val_mgr->Count(header_length));
 	return stat;
 	}
 
@@ -652,7 +652,7 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 	if ( http_message_done )
 		GetAnalyzer()->EnqueueConnEvent(http_message_done,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			BuildMessageStat(interrupted, detail)
 		);
 
@@ -683,7 +683,7 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 	if ( http_begin_entity )
 		analyzer->EnqueueConnEvent(http_begin_entity,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig)
+			zeek::val_mgr->Bool(is_orig)
 		);
 	}
 
@@ -698,7 +698,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	if ( http_end_entity )
 		analyzer->EnqueueConnEvent(http_end_entity,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig)
+			zeek::val_mgr->Bool(is_orig)
 		);
 
 	current_entity = (HTTP_Entity*) entity->Parent();
@@ -737,14 +737,14 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	if ( http_all_headers )
 		analyzer->EnqueueConnEvent(http_all_headers,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			ToHeaderTable(hlist)
 		);
 
 	if ( http_content_type )
 		analyzer->EnqueueConnEvent(http_content_type,
 			analyzer->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			current_entity->GetContentType(),
 			current_entity->GetContentSubType()
 		);
@@ -762,7 +762,7 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( http_entity_data )
 		MyHTTP_Analyzer()->HTTP_EntityData(is_orig,
-		        new BroString(reinterpret_cast<const u_char*>(buf), len, false));
+		        new zeek::String(reinterpret_cast<const u_char*>(buf), len, false));
 	}
 
 bool HTTP_Message::RequestBuffer(int* plen, char** pbuf)
@@ -1153,11 +1153,11 @@ void HTTP_Analyzer::GenStats()
 	if ( http_stats )
 		{
 		static auto http_stats_rec = zeek::id::find_type<zeek::RecordType>("http_stats_rec");
-		auto r = make_intrusive<RecordVal>(http_stats_rec);
-		r->Assign(0, val_mgr->Count(num_requests));
-		r->Assign(1, val_mgr->Count(num_replies));
-		r->Assign(2, make_intrusive<DoubleVal>(request_version.ToDouble()));
-		r->Assign(3, make_intrusive<DoubleVal>(reply_version.ToDouble()));
+		auto r = zeek::make_intrusive<zeek::RecordVal>(http_stats_rec);
+		r->Assign(0, zeek::val_mgr->Count(num_requests));
+		r->Assign(1, zeek::val_mgr->Count(num_replies));
+		r->Assign(2, zeek::make_intrusive<zeek::DoubleVal>(request_version.ToDouble()));
+		r->Assign(3, zeek::make_intrusive<zeek::DoubleVal>(reply_version.ToDouble()));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
 		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));
@@ -1242,7 +1242,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		return -1;
 		}
 
-	request_method = make_intrusive<StringVal>(end_of_method - line, line);
+	request_method = zeek::make_intrusive<zeek::StringVal>(end_of_method - line, line);
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
@@ -1312,8 +1312,8 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 
 	// NormalizeURI(line, end_of_uri);
 
-	request_URI = make_intrusive<StringVal>(end_of_uri - line, line);
-	unescaped_URI = make_intrusive<StringVal>(
+	request_URI = zeek::make_intrusive<zeek::StringVal>(end_of_uri - line, line);
+	unescaped_URI = zeek::make_intrusive<zeek::StringVal>(
 	    unescape_URI((const u_char*) line, (const u_char*) end_of_uri, this));
 
 	return true;
@@ -1352,30 +1352,30 @@ void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber n
 
 void HTTP_Analyzer::HTTP_Event(const char* category, const char* detail)
 	{
-	HTTP_Event(category, make_intrusive<StringVal>(detail));
+	HTTP_Event(category, zeek::make_intrusive<zeek::StringVal>(detail));
 	}
 
-void HTTP_Analyzer::HTTP_Event(const char* category, IntrusivePtr<StringVal> detail)
+void HTTP_Analyzer::HTTP_Event(const char* category, zeek::StringValPtr detail)
 	{
 	if ( http_event )
 		// DEBUG_MSG("%.6f http_event\n", network_time);
 		EnqueueConnEvent(http_event,
 			ConnVal(),
-			make_intrusive<StringVal>(category),
+			zeek::make_intrusive<zeek::StringVal>(category),
 			std::move(detail));
 	}
 
-IntrusivePtr<StringVal>
-HTTP_Analyzer::TruncateURI(const IntrusivePtr<StringVal>& uri)
+zeek::StringValPtr
+HTTP_Analyzer::TruncateURI(const zeek::StringValPtr& uri)
 	{
-	const BroString* str = uri->AsString();
+	const zeek::String* str = uri->AsString();
 
 	if ( truncate_http_URI >= 0 && str->Len() > truncate_http_URI )
 		{
 		u_char* s = new u_char[truncate_http_URI + 4];
 		memcpy(s, str->Bytes(), truncate_http_URI);
 		memcpy(s + truncate_http_URI, "...", 4);
-		return make_intrusive<StringVal>(new BroString(true, s, truncate_http_URI+3));
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, s, truncate_http_URI+3));
 		}
 	else
 		return uri;
@@ -1398,7 +1398,7 @@ void HTTP_Analyzer::HTTP_Request()
 			request_method,
 			TruncateURI(request_URI),
 			TruncateURI(unescaped_URI),
-			make_intrusive<StringVal>(fmt("%.1f", request_version.ToDouble()))
+			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", request_version.ToDouble()))
 		);
 	}
 
@@ -1407,11 +1407,11 @@ void HTTP_Analyzer::HTTP_Reply()
 	if ( http_reply )
 		EnqueueConnEvent(http_reply,
 			ConnVal(),
-			make_intrusive<StringVal>(fmt("%.1f", reply_version.ToDouble())),
-			val_mgr->Count(reply_code),
+			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", reply_version.ToDouble())),
+			zeek::val_mgr->Count(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase :
-				make_intrusive<StringVal>("<empty>")
+				zeek::make_intrusive<zeek::StringVal>("<empty>")
 		);
 	else
 		reply_reason_phrase = nullptr;
@@ -1473,7 +1473,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 		if ( http_connection_upgrade )
 			EnqueueConnEvent(http_connection_upgrade,
 				ConnVal(),
-				make_intrusive<StringVal>(upgrade_protocol)
+				zeek::make_intrusive<zeek::StringVal>(upgrade_protocol)
 			);
 		}
 
@@ -1487,7 +1487,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 		reply_state = EXPECT_REPLY_LINE;
 	}
 
-void HTTP_Analyzer::RequestClash(Val* /* clash_val */)
+void HTTP_Analyzer::RequestClash(zeek::Val* /* clash_val */)
 	{
 	Weird("multiple_HTTP_request_elements");
 
@@ -1495,7 +1495,7 @@ void HTTP_Analyzer::RequestClash(Val* /* clash_val */)
 	RequestMade(true, "request clash");
 	}
 
-const BroString* HTTP_Analyzer::UnansweredRequestMethod()
+const zeek::String* HTTP_Analyzer::UnansweredRequestMethod()
 	{
 	return unanswered_requests.empty() ? nullptr : unanswered_requests.front()->AsString();
 	}
@@ -1551,7 +1551,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 
 	rest = skip_whitespace(rest, end_of_line);
 	reply_reason_phrase =
-	    make_intrusive<StringVal>(end_of_line - rest, (const char *) rest);
+	    zeek::make_intrusive<zeek::StringVal>(end_of_line - rest, (const char *) rest);
 
 	return 1;
 	}
@@ -1579,7 +1579,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 	//     MUST NOT include a message-body. All other responses do include a
 	//     message-body, although it MAY be of zero length.
 
-	const BroString* method = UnansweredRequestMethod();
+	const zeek::String* method = UnansweredRequestMethod();
 
 	if ( method && strncasecmp((const char*) (method->Bytes()), "HEAD", method->Len()) == 0 )
 		return HTTP_BODY_NOT_EXPECTED;
@@ -1622,8 +1622,8 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 			is_orig ?  Rule::HTTP_REQUEST_HEADER :
 					Rule::HTTP_REPLY_HEADER;
 
-		data_chunk_t hd_name = h->get_name();
-		data_chunk_t hd_value = h->get_value();
+		zeek::data_chunk_t hd_name = h->get_name();
+		zeek::data_chunk_t hd_value = h->get_value();
 
 		Conn()->Match(rule, (const u_char*) hd_name.data, hd_name.length,
 				is_orig, true, false, true);
@@ -1640,7 +1640,7 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 
 		EnqueueConnEvent(http_header,
 			ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 			mime::to_string_val(h->get_name()),
 			std::move(upper_hn),
 			mime::to_string_val(h->get_value())
@@ -1648,14 +1648,14 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 		}
 	}
 
-void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
+void HTTP_Analyzer::HTTP_EntityData(bool is_orig, zeek::String* entity_data)
 	{
 	if ( http_entity_data )
 		EnqueueConnEvent(http_entity_data,
 			ConnVal(),
-			val_mgr->Bool(is_orig),
-			val_mgr->Count(entity_data->Len()),
-			make_intrusive<StringVal>(entity_data)
+			zeek::val_mgr->Bool(is_orig),
+			zeek::val_mgr->Count(entity_data->Len()),
+			zeek::make_intrusive<zeek::StringVal>(entity_data)
 		);
 	else
 		delete entity_data;
@@ -1711,11 +1711,11 @@ void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
 	*p++ = encode_hex(ch & 0xf);
 	}
 
-BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
-			analyzer::Analyzer* analyzer)
+zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
+                                              analyzer::Analyzer* analyzer)
 	{
-	byte_vec decoded_URI = new u_char[line_end - line + 1];
-	byte_vec URI_p = decoded_URI;
+	zeek::byte_vec decoded_URI = new u_char[line_end - line + 1];
+	zeek::byte_vec URI_p = decoded_URI;
 
 	while ( line < line_end )
 		{
@@ -1807,5 +1807,5 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 
 	URI_p[0] = 0;
 
-	return new BroString(true, decoded_URI, URI_p - decoded_URI);
+	return new zeek::String(true, decoded_URI, URI_p - decoded_URI);
 	}

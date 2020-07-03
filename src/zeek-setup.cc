@@ -87,7 +87,8 @@ int perftools_profile = 0;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-ValManager* val_mgr = nullptr;
+zeek::ValManager* zeek::val_mgr = nullptr;
+zeek::ValManager*& val_mgr = zeek::val_mgr;
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
@@ -114,16 +115,16 @@ vector<string> params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
-IntrusivePtr<zeek::OpaqueType> md5_type;
-IntrusivePtr<zeek::OpaqueType> sha1_type;
-IntrusivePtr<zeek::OpaqueType> sha256_type;
-IntrusivePtr<zeek::OpaqueType> entropy_type;
-IntrusivePtr<zeek::OpaqueType> cardinality_type;
-IntrusivePtr<zeek::OpaqueType> topk_type;
-IntrusivePtr<zeek::OpaqueType> bloomfilter_type;
-IntrusivePtr<zeek::OpaqueType> x509_opaque_type;
-IntrusivePtr<zeek::OpaqueType> ocsp_resp_opaque_type;
-IntrusivePtr<zeek::OpaqueType> paraglob_type;
+zeek::OpaqueTypePtr md5_type;
+zeek::OpaqueTypePtr sha1_type;
+zeek::OpaqueTypePtr sha256_type;
+zeek::OpaqueTypePtr entropy_type;
+zeek::OpaqueTypePtr cardinality_type;
+zeek::OpaqueTypePtr topk_type;
+zeek::OpaqueTypePtr bloomfilter_type;
+zeek::OpaqueTypePtr x509_opaque_type;
+zeek::OpaqueTypePtr ocsp_resp_opaque_type;
+zeek::OpaqueTypePtr paraglob_type;
 
 // Keep copy of command line
 int bro_argc;
@@ -220,7 +221,7 @@ void done_with_network()
 		mgr.Drain();
 		// Don't propagate this event to remote clients.
 		mgr.Dispatch(new Event(net_done,
-		                       {make_intrusive<TimeVal>(timer_mgr->Time())}),
+		                       {zeek::make_intrusive<zeek::TimeVal>(timer_mgr->Time())}),
 		             true);
 		}
 
@@ -307,10 +308,10 @@ void terminate_bro()
 	delete log_mgr;
 	delete reporter;
 	delete plugin_mgr;
-	delete val_mgr;
+	delete zeek::val_mgr;
 
 	// free the global scope
-	pop_scope();
+	zeek::detail::pop_scope();
 
 	reporter = nullptr;
 	}
@@ -464,7 +465,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	bro_start_time = current_time(true);
 
-	val_mgr = new ValManager();
+	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
 	plugin_mgr = new zeek::plugin::Manager();
@@ -593,16 +594,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	init_event_handlers();
 
-	md5_type = make_intrusive<zeek::OpaqueType>("md5");
-	sha1_type = make_intrusive<zeek::OpaqueType>("sha1");
-	sha256_type = make_intrusive<zeek::OpaqueType>("sha256");
-	entropy_type = make_intrusive<zeek::OpaqueType>("entropy");
-	cardinality_type = make_intrusive<zeek::OpaqueType>("cardinality");
-	topk_type = make_intrusive<zeek::OpaqueType>("topk");
-	bloomfilter_type = make_intrusive<zeek::OpaqueType>("bloomfilter");
-	x509_opaque_type = make_intrusive<zeek::OpaqueType>("x509");
-	ocsp_resp_opaque_type = make_intrusive<zeek::OpaqueType>("ocsp_resp");
-	paraglob_type = make_intrusive<zeek::OpaqueType>("paraglob");
+	md5_type = zeek::make_intrusive<zeek::OpaqueType>("md5");
+	sha1_type = zeek::make_intrusive<zeek::OpaqueType>("sha1");
+	sha256_type = zeek::make_intrusive<zeek::OpaqueType>("sha256");
+	entropy_type = zeek::make_intrusive<zeek::OpaqueType>("entropy");
+	cardinality_type = zeek::make_intrusive<zeek::OpaqueType>("cardinality");
+	topk_type = zeek::make_intrusive<zeek::OpaqueType>("topk");
+	bloomfilter_type = zeek::make_intrusive<zeek::OpaqueType>("bloomfilter");
+	x509_opaque_type = zeek::make_intrusive<zeek::OpaqueType>("x509");
+	ocsp_resp_opaque_type = zeek::make_intrusive<zeek::OpaqueType>("ocsp_resp");
+	paraglob_type = zeek::make_intrusive<zeek::OpaqueType>("paraglob");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -689,7 +690,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-		id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
+		id->SetVal(zeek::make_intrusive<zeek::StringVal>(*options.pcap_filter));
 		}
 
 	auto all_signature_files = options.signature_files;
@@ -843,9 +844,8 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 				continue;
 
 			mgr.Enqueue(zeek_script_loaded,
-				make_intrusive<StringVal>(i->name.c_str()),
-				val_mgr->Count(i->include_level)
-			);
+			            zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
+			            zeek::val_mgr->Count(i->include_level));
 			}
 		}
 

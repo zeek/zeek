@@ -164,8 +164,8 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 
 	for ( int j = 0; j < num_vals; j++)
 		{
-		Val* v = Value::ValueToVal(std::string("thread ") + thread->Name(), vals[j], convert_error);
-		vl.emplace_back(AdoptRef{}, v);
+		zeek::Val* v = Value::ValueToVal(std::string("thread ") + thread->Name(), vals[j], convert_error);
+		vl.emplace_back(zeek::AdoptRef{}, v);
 
 		if ( v && ! convert_error && ! same_type(type->GetFieldType(j), v->GetType()) )
 			{

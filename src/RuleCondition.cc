@@ -129,7 +129,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 
 RuleConditionEval::RuleConditionEval(const char* func)
 	{
-	id = global_scope()->Find(func).get();
+	id = zeek::detail::global_scope()->Find(func).get();
 	if ( ! id )
 		{
 		rules_error("unknown identifier", func);
@@ -170,12 +170,12 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	// Call function with a signature_state value as argument.
 	zeek::Args args;
 	args.reserve(2);
-	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
+	args.emplace_back(zeek::AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
+		args.emplace_back(zeek::make_intrusive<zeek::StringVal>(len, (const char*) data));
 	else
-		args.emplace_back(val_mgr->EmptyString());
+		args.emplace_back(zeek::val_mgr->EmptyString());
 
 	bool result = false;
 

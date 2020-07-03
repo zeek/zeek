@@ -21,10 +21,13 @@
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
 
-class Frame;
-class Func;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
+
+namespace zeek {
+using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
+}
 
 namespace bro_broker {
 
@@ -165,7 +168,7 @@ public:
 	 * a Broker::Event record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishEvent(std::string topic, RecordVal* ev);
+	bool PublishEvent(std::string topic, zeek::RecordVal* ev);
 
 	/**
 	 * Send a message to create a log stream to any interested peers.
@@ -180,7 +183,7 @@ public:
 	 * @param peer If given, send the message only to this peer.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishLogCreate(EnumVal* stream, EnumVal* writer,
+	bool PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
 	                      const logging::WriterBackend::WriterInfo& info,
 	                      int num_fields,
 	                      const threading::Field* const * fields,
@@ -197,8 +200,9 @@ public:
 	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, std::string path, int num_vals,
-			     const threading::Value* const * vals);
+	bool PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer,
+	                     std::string path, int num_vals,
+	                     const threading::Value* const * vals);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is
@@ -209,7 +213,7 @@ public:
 	 * @param event a Bro event value.
 	 * @return true if automatic event sending is now enabled.
 	 */
-	bool AutoPublishEvent(std::string topic, Val* event);
+	bool AutoPublishEvent(std::string topic, zeek::Val* event);
 
 	/**
 	 * Stop automatically sending an event to peers upon local dispatch.
@@ -217,7 +221,7 @@ public:
 	 * @param event an event originally given to bro_broker::Manager::AutoPublish().
 	 * @return true if automatic events will no occur for the topic/event pair.
 	 */
-	bool AutoUnpublishEvent(const std::string& topic, Val* event);
+	bool AutoUnpublishEvent(const std::string& topic, zeek::Val* event);
 
 	/**
 	 * Create an `Event` record value from an event and its arguments.
@@ -227,7 +231,7 @@ public:
 	 * @return an `Event` record value.  If an invalid event or arguments
 	 * were supplied the optional "name" field will not be set.
 	 */
-	RecordVal* MakeEvent(val_list* args, Frame* frame);
+	zeek::RecordVal* MakeEvent(val_list* args, zeek::detail::Frame* frame);
 
 	/**
 	 * Register interest in peer event messages that use a certain topic prefix.
@@ -396,8 +400,8 @@ private:
 	int peer_count;
 
 	size_t log_batch_size;
-	Func* log_topic_func;
-	IntrusivePtr<zeek::VectorType> vector_of_data_type;
+	zeek::Func* log_topic_func;
+	zeek::VectorTypePtr vector_of_data_type;
 	zeek::EnumType* log_id_type;
 	zeek::EnumType* writer_id_type;
 

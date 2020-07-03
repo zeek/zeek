@@ -20,7 +20,7 @@ static void analyzer_del_func(void* v)
 
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
-	auto t = make_intrusive<zeek::TypeList>();
+	auto t = zeek::make_intrusive<zeek::TypeList>();
 	t->Append(file_mgr->GetTagType());
 	t->Append(zeek::BifType::Record::Files::AnalyzerArgs);
 	analyzer_hash = new CompositeHash(std::move(t));
@@ -41,14 +41,14 @@ AnalyzerSet::~AnalyzerSet()
 	}
 
 Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag,
-                            IntrusivePtr<RecordVal> args)
+                            zeek::RecordValPtr args)
 	{
 	auto key = GetKey(tag, std::move(args));
 	Analyzer* rval = analyzer_map.Lookup(key.get());
 	return rval;
 	}
 
-bool AnalyzerSet::Add(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args)
+bool AnalyzerSet::Add(const file_analysis::Tag& tag, zeek::RecordValPtr args)
 	{
 	auto key = GetKey(tag, args);
 
@@ -72,7 +72,7 @@ bool AnalyzerSet::Add(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> arg
 	}
 
 Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag,
-                                IntrusivePtr<RecordVal> args)
+                                zeek::RecordValPtr args)
 	{
 	auto key = GetKey(tag, args);
 	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
@@ -108,7 +108,7 @@ void AnalyzerSet::AddMod::Abort()
 	}
 
 bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
-                         IntrusivePtr<RecordVal> args)
+                         zeek::RecordValPtr args)
 	{
 	return Remove(tag, GetKey(tag, std::move(args)));
 	}
@@ -140,7 +140,7 @@ bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
 	}
 
 bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag,
-                              IntrusivePtr<RecordVal> args)
+                              zeek::RecordValPtr args)
 	{
 	auto key = GetKey(tag, std::move(args));
 	auto rval = analyzer_map.Lookup(key.get());
@@ -154,9 +154,9 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 	}
 
 std::unique_ptr<HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
-                                             IntrusivePtr<RecordVal> args) const
+                                             zeek::RecordValPtr args) const
 	{
-	auto lv = make_intrusive<ListVal>(zeek::TYPE_ANY);
+	auto lv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 	lv->Append(t.AsVal());
 	lv->Append(std::move(args));
 	auto key = analyzer_hash->MakeHashKey(*lv, true);
@@ -168,7 +168,7 @@ std::unique_ptr<HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
 	}
 
 file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
-                                                          IntrusivePtr<RecordVal> args) const
+                                                          zeek::RecordValPtr args) const
 	{
 	auto  a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
 

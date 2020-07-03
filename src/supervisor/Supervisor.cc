@@ -13,7 +13,7 @@
 #include <sstream>
 
 #include "iosource/Manager.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Dict.h"
 #include "RE.h"
 #include "Reporter.h"
@@ -1102,53 +1102,53 @@ std::string Supervisor::NodeConfig::ToJSON() const
 	return ToRecord()->ToJSON(false, re.get())->ToStdString();
 	}
 
-IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
+RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	{
 	const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
-	auto rval = make_intrusive<RecordVal>(rt);
-	rval->Assign(rt->FieldOffset("name"), make_intrusive<StringVal>(name));
+	auto rval = zeek::make_intrusive<zeek::RecordVal>(rt);
+	rval->Assign(rt->FieldOffset("name"), zeek::make_intrusive<zeek::StringVal>(name));
 
 	if ( interface )
-		rval->Assign(rt->FieldOffset("interface"), make_intrusive<StringVal>(*interface));
+		rval->Assign(rt->FieldOffset("interface"), zeek::make_intrusive<zeek::StringVal>(*interface));
 
 	if ( directory )
-		rval->Assign(rt->FieldOffset("directory"), make_intrusive<StringVal>(*directory));
+		rval->Assign(rt->FieldOffset("directory"), zeek::make_intrusive<zeek::StringVal>(*directory));
 
 	if ( stdout_file )
-		rval->Assign(rt->FieldOffset("stdout_file"), make_intrusive<StringVal>(*stdout_file));
+		rval->Assign(rt->FieldOffset("stdout_file"), zeek::make_intrusive<zeek::StringVal>(*stdout_file));
 
 	if ( stderr_file )
-		rval->Assign(rt->FieldOffset("stderr_file"), make_intrusive<StringVal>(*stderr_file));
+		rval->Assign(rt->FieldOffset("stderr_file"), zeek::make_intrusive<zeek::StringVal>(*stderr_file));
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
+		rval->Assign(rt->FieldOffset("cpu_affinity"), zeek::val_mgr->Int(*cpu_affinity));
 
 	auto st = rt->GetFieldType<VectorType>("scripts");
-	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
+	auto scripts_val = zeek::make_intrusive<zeek::VectorVal>(std::move(st));
 
 	for ( const auto& s : scripts )
-		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
+		scripts_val->Assign(scripts_val->Size(), zeek::make_intrusive<zeek::StringVal>(s));
 
 	rval->Assign(rt->FieldOffset("scripts"), std::move(scripts_val));
 
 	auto tt = rt->GetFieldType<TableType>("cluster");
-	auto cluster_val = make_intrusive<TableVal>(std::move(tt));
+	auto cluster_val = zeek::make_intrusive<zeek::TableVal>(std::move(tt));
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
 	for ( const auto& e : cluster )
 		{
 		auto& name = e.first;
 		auto& ep = e.second;
-		auto key = make_intrusive<StringVal>(name);
+		auto key = zeek::make_intrusive<zeek::StringVal>(name);
 		const auto& ept = zeek::BifType::Record::Supervisor::ClusterEndpoint;
-		auto val = make_intrusive<RecordVal>(ept);
+		auto val = zeek::make_intrusive<zeek::RecordVal>(ept);
 
 		val->Assign(ept->FieldOffset("role"), zeek::BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
-		val->Assign(ept->FieldOffset("host"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
+		val->Assign(ept->FieldOffset("host"), zeek::make_intrusive<zeek::AddrVal>(ep.host));
+		val->Assign(ept->FieldOffset("p"), zeek::val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
-			val->Assign(ept->FieldOffset("interface"), make_intrusive<StringVal>(*ep.interface));
+			val->Assign(ept->FieldOffset("interface"), zeek::make_intrusive<zeek::StringVal>(*ep.interface));
 
 		cluster_val->Assign(std::move(key), std::move(val));
 		}
@@ -1156,21 +1156,21 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	return rval;
 	}
 
-IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
+RecordValPtr Supervisor::Node::ToRecord() const
 	{
 	const auto& rt = zeek::BifType::Record::Supervisor::NodeStatus;
-	auto rval = make_intrusive<RecordVal>(rt);
+	auto rval = zeek::make_intrusive<zeek::RecordVal>(rt);
 
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->Int(pid));
+		rval->Assign(rt->FieldOffset("pid"), zeek::val_mgr->Int(pid));
 
 	return rval;
 	}
 
 
-static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
+static ValPtr supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
 	static auto node_type = zeek::id::find_type<zeek::EnumType>("Cluster::NodeType");
 
@@ -1212,26 +1212,26 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		{
 		const auto& node_name = e.first;
 		const auto& ep = e.second;
-		auto key = make_intrusive<StringVal>(node_name);
-		auto val = make_intrusive<RecordVal>(cluster_node_type);
+		auto key = zeek::make_intrusive<zeek::StringVal>(node_name);
+		auto val = zeek::make_intrusive<zeek::RecordVal>(cluster_node_type);
 
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
 		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
-		val->Assign(cluster_node_type->FieldOffset("ip"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
+		val->Assign(cluster_node_type->FieldOffset("ip"), zeek::make_intrusive<zeek::AddrVal>(ep.host));
+		val->Assign(cluster_node_type->FieldOffset("p"), zeek::val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(cluster_node_type->FieldOffset("interface"),
-			            make_intrusive<StringVal>(*ep.interface));
+			            zeek::make_intrusive<zeek::StringVal>(*ep.interface));
 
 		if ( manager_name && ep.role != BifEnum::Supervisor::MANAGER )
 			val->Assign(cluster_node_type->FieldOffset("manager"),
-			            make_intrusive<StringVal>(*manager_name));
+			            zeek::make_intrusive<zeek::StringVal>(*manager_name));
 
 		cluster_nodes->Assign(std::move(key), std::move(val));
 		}
 
-	cluster_manager_is_logger_id->SetVal(val_mgr->Bool(! has_logger));
+	cluster_manager_is_logger_id->SetVal(zeek::val_mgr->Bool(! has_logger));
 	return true;
 	}
 
@@ -1312,11 +1312,11 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 		options->scripts_to_load.emplace_back(s);
 	}
 
-IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
+RecordValPtr Supervisor::Status(std::string_view node_name)
 	{
-	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
+	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Supervisor::Status);
 	const auto& tt = zeek::BifType::Record::Supervisor::Status->GetFieldType("nodes");
-	auto node_table_val = make_intrusive<TableVal>(cast_intrusive<TableType>(tt));
+	auto node_table_val = zeek::make_intrusive<zeek::TableVal>(zeek::cast_intrusive<TableType>(tt));
 	rval->Assign(0, node_table_val);
 
 	if ( node_name.empty() )
@@ -1325,7 +1325,7 @@ IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 			{
 			const auto& name = n.first;
 			const auto& node = n.second;
-			auto key = make_intrusive<StringVal>(name);
+			auto key = zeek::make_intrusive<zeek::StringVal>(name);
 			auto val = node.ToRecord();
 			node_table_val->Assign(std::move(key), std::move(val));
 			}
@@ -1339,7 +1339,7 @@ IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 
 		const auto& name = it->first;
 		const auto& node = it->second;
-		auto key = make_intrusive<StringVal>(name);
+		auto key = zeek::make_intrusive<zeek::StringVal>(name);
 		auto val = node.ToRecord();
 		node_table_val->Assign(std::move(key), std::move(val));
 		}

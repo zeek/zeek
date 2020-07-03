@@ -129,10 +129,10 @@ struct EDNS_ADDITIONAL {		// size
 };
 
 struct TSIG_DATA {
-	BroString* alg_name;
+	zeek::String* alg_name;
 	unsigned long time_s;
 	unsigned short time_ms;
-	BroString* sig;
+	zeek::String* sig;
 	unsigned short fudge;
 	unsigned short orig_id;
 	unsigned short rr_error;
@@ -146,15 +146,15 @@ struct RRSIG_DATA {
 	unsigned long sig_exp;			// 32
 	unsigned long sig_incep;		// 32
 	unsigned short key_tag;			//16
-	BroString* signer_name;
-	BroString* signature;
+	zeek::String* signer_name;
+	zeek::String* signature;
 };
 
 struct DNSKEY_DATA {
 	unsigned short dflags;			// 16 : ExtractShort(data, len)
 	unsigned short dalgorithm;		// 8
 	unsigned short dprotocol;		// 8
-	BroString* public_key;			// Variable lenght Public Key
+	zeek::String* public_key;			// Variable lenght Public Key
 };
 
 struct NSEC3_DATA {
@@ -162,31 +162,31 @@ struct NSEC3_DATA {
 	unsigned short nsec_hash_algo;
 	unsigned short nsec_iter;
 	unsigned short nsec_salt_len;
-	BroString* nsec_salt;
+	zeek::String* nsec_salt;
 	unsigned short nsec_hlen;
-	BroString* nsec_hash;
-	IntrusivePtr<VectorVal> bitmaps;
+	zeek::String* nsec_hash;
+	zeek::VectorValPtr bitmaps;
 };
 
 struct DS_DATA {
 	unsigned short key_tag;			// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short digest_type;		// 8
-	BroString* digest_val;			// Variable lenght Digest of DNSKEY RR
+	zeek::String* digest_val;			// Variable lenght Digest of DNSKEY RR
 };
 
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
 
-	IntrusivePtr<RecordVal> BuildHdrVal();
-	IntrusivePtr<RecordVal> BuildAnswerVal();
-	IntrusivePtr<RecordVal> BuildEDNS_Val();
-	IntrusivePtr<RecordVal> BuildTSIG_Val(struct TSIG_DATA*);
-	IntrusivePtr<RecordVal> BuildRRSIG_Val(struct RRSIG_DATA*);
-	IntrusivePtr<RecordVal> BuildDNSKEY_Val(struct DNSKEY_DATA*);
-	IntrusivePtr<RecordVal> BuildNSEC3_Val(struct NSEC3_DATA*);
-	IntrusivePtr<RecordVal> BuildDS_Val(struct DS_DATA*);
+	zeek::RecordValPtr BuildHdrVal();
+	zeek::RecordValPtr BuildAnswerVal();
+	zeek::RecordValPtr BuildEDNS_Val();
+	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
+	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
+	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
+	zeek::RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
+	zeek::RecordValPtr BuildDS_Val(struct DS_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -203,7 +203,7 @@ public:
 	int arcount;	///< number of additional RRs
 	int is_query;	///< whether it came from the session initiator
 
-	IntrusivePtr<StringVal> query_name;
+	zeek::StringValPtr query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
 	uint32_t ttl;
@@ -249,9 +249,9 @@ protected:
 
 	uint16_t ExtractShort(const u_char*& data, int& len);
 	uint32_t ExtractLong(const u_char*& data, int& len);
-	void ExtractOctets(const u_char*& data, int& len, BroString** p);
+	void ExtractOctets(const u_char*& data, int& len, zeek::String** p);
 
-	BroString* ExtractStream(const u_char*& data, int& len, int sig_len);
+	zeek::String* ExtractStream(const u_char*& data, int& len, int sig_len);
 
 	bool ParseRR_Name(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
@@ -308,7 +308,8 @@ protected:
 				const u_char* msg_start);
 	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
 					const u_char*& data, int& len,
-					BroString* question_name, BroString* original_name);
+					zeek::String* question_name,
+					zeek::String* original_name);
 
 	analyzer::Analyzer* analyzer;
 	bool first_message;

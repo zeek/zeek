@@ -29,12 +29,12 @@ protected:
 	// to 0. However, the methods might still return an allocated Val * !
 	// So, you might want to Unref() the Val if buf is 0. Method names
 	// are based on the type names of RFC 1813.
-	IntrusivePtr<EnumVal>   mount3_auth_flavor(const u_char*& buf, int& n);
-	IntrusivePtr<StringVal> mount3_fh(const u_char*& buf, int& n);
-	IntrusivePtr<RecordVal> mount3_dirmntargs(const u_char*&buf, int &n);
-	IntrusivePtr<StringVal> mount3_filename(const u_char*& buf, int& n);
+	zeek::EnumValPtr   mount3_auth_flavor(const u_char*& buf, int& n);
+	zeek::StringValPtr mount3_fh(const u_char*& buf, int& n);
+	zeek::RecordValPtr mount3_dirmntargs(const u_char*&buf, int &n);
+	zeek::StringValPtr mount3_filename(const u_char*& buf, int& n);
 
-	IntrusivePtr<RecordVal> mount3_mnt_reply(const u_char*& buf, int& n, BifEnum::MOUNT3::status_t status);
+	zeek::RecordValPtr mount3_mnt_reply(const u_char*& buf, int& n, BifEnum::MOUNT3::status_t status);
 };
 
 class MOUNT_Analyzer : public RPC_Analyzer {

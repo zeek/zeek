@@ -23,7 +23,7 @@ module GLOBAL;
 function hll_cardinality_init%(err: double, confidence: double%): opaque of cardinality
 	%{
 	CardinalityCounter* c = new CardinalityCounter(err, confidence);
-	auto cv = make_intrusive<CardinalityVal>(c);
+	auto cv = zeek::make_intrusive<zeek::CardinalityVal>(c);
 
 	return cv;
 	%}
@@ -45,17 +45,17 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	if ( ! cv->Type() && ! cv->Typify(elem->GetType()) )
 		{
 		reporter->Error("failed to set HLL type");
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 		}
 
 	else if ( ! same_type(cv->Type(), elem->GetType()) )
 		{
 		reporter->Error("incompatible HLL data type");
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 		}
 
 	cv->Add(elem);
-	return val_mgr->True();
+	return zeek::val_mgr->True();
 	%}
 
 ## Merges a HLL cardinality counter into another.
@@ -82,7 +82,7 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	     ! same_type(v1->Type(), v2->Type()) )
 		{
 		reporter->Error("incompatible HLL types");
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 		}
 
 	CardinalityCounter* h1 = v1->Get();
@@ -92,10 +92,10 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	if ( ! res )
 		{
 		reporter->Error("Cardinality counters with different parameters cannot be merged");
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 		}
 
-	return val_mgr->True();
+	return zeek::val_mgr->True();
 	%}
 
 ## Estimate the current cardinality of an HLL cardinality counter.
@@ -113,7 +113,7 @@ function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 
 	double estimate = h->Size();
 
-	return make_intrusive<DoubleVal>(estimate);
+	return zeek::make_intrusive<zeek::DoubleVal>(estimate);
 	%}
 
 ## Copy a HLL cardinality counter.
@@ -129,7 +129,7 @@ function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardin
 	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
 	CardinalityCounter* h = cv->Get();
 	CardinalityCounter* h2 = new CardinalityCounter(*h);
-	auto out = make_intrusive<CardinalityVal>(h2);
+	auto out = zeek::make_intrusive<zeek::CardinalityVal>(h2);
 
 	return out;
 	%}

@@ -86,9 +86,9 @@ public:
 	 * @param Returns the new record value and passes ownership to
 	 * caller.
 	 */
-	static IntrusivePtr<RecordVal> ParseCertificate(X509Val* cert_val, File* file = nullptr);
+	static zeek::RecordValPtr ParseCertificate(X509Val* cert_val, File* file = nullptr);
 
-	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
 	                                            File* file)
 		{ return new X509(std::move(args), file); }
 
@@ -102,7 +102,7 @@ public:
 	 *
 	 * @return OpenSSL's X509 store associated with the table value.
 	 */
-	static X509_STORE* GetRootStore(TableVal* root_certs);
+	static X509_STORE* GetRootStore(zeek::TableVal* root_certs);
 
 	/**
 	 * Frees memory obtained from OpenSSL that is associated with the global
@@ -117,17 +117,17 @@ public:
 	/**
 	 * Sets the table[string] that used as the certificate cache inside of Zeek.
 	 */
-	static void SetCertificateCache(IntrusivePtr<TableVal> cache)
+	static void SetCertificateCache(zeek::TableValPtr cache)
 		{ certificate_cache = std::move(cache); }
 
 	/**
 	 * Sets the callback when a certificate cache hit is encountered
 	 */
-	static void SetCertificateCacheHitCallback(IntrusivePtr<Func> func)
+	static void SetCertificateCacheHitCallback(zeek::FuncPtr func)
 		{ cache_hit_callback = std::move(func); }
 
 protected:
-	X509(IntrusivePtr<RecordVal> args, File* file);
+	X509(zeek::RecordValPtr args, File* file);
 
 private:
 	void ParseBasicConstraints(X509_EXTENSION* ex);
@@ -137,12 +137,12 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static IntrusivePtr<StringVal> KeyCurve(EVP_PKEY* key);
+	static zeek::StringValPtr KeyCurve(EVP_PKEY* key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 	/** X509 stores associated with global script-layer values */
-	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
-	inline static IntrusivePtr<TableVal> certificate_cache = nullptr;
-	inline static IntrusivePtr<Func> cache_hit_callback = nullptr;
+	inline static std::map<zeek::Val*, X509_STORE*> x509_stores = std::map<zeek::Val*, X509_STORE*>();
+	inline static zeek::TableValPtr certificate_cache = nullptr;
+	inline static zeek::FuncPtr cache_hit_callback = nullptr;
 };
 
 /**
@@ -152,7 +152,7 @@ private:
  * script-land. Otherwise, we cannot verify certificates from Bro
  * scriptland
  */
-class X509Val : public OpaqueVal {
+class X509Val : public zeek::OpaqueVal {
 public:
 	/**
 	 * Construct an X509Val.
@@ -170,7 +170,7 @@ public:
 	 *
 	 * @return A cloned X509Val.
 	 */
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	zeek::ValPtr DoClone(CloneState* state) override;
 
 	/**
 	 * Destructor.

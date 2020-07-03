@@ -207,7 +207,7 @@ struct Value {
 	 *                   immediately aborts.
 	 * @return Val representation of the threading::Value. nullptr on error.
 	 */
-	static Val* ValueToVal(const std::string& source, const threading::Value* val, bool& have_error);
+	static zeek::Val* ValueToVal(const std::string& source, const threading::Value* val, bool& have_error);
 
 private:
 	friend class ::IPAddr;

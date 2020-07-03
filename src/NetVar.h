@@ -87,23 +87,23 @@ extern int tcp_storm_thresh;
 extern double tcp_storm_interarrival_thresh;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* tcp_reassembler_ports_orig;
+extern zeek::TableVal* tcp_reassembler_ports_orig;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* tcp_reassembler_ports_resp;
+extern zeek::TableVal* tcp_reassembler_ports_resp;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* tcp_content_delivery_ports_orig;
+extern zeek::TableVal* tcp_content_delivery_ports_orig;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* tcp_content_delivery_ports_resp;
+extern zeek::TableVal* tcp_content_delivery_ports_resp;
 extern bool tcp_content_deliver_all_orig;
 extern bool tcp_content_deliver_all_resp;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* udp_content_delivery_ports_orig;
+extern zeek::TableVal* udp_content_delivery_ports_orig;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* udp_content_delivery_ports_resp;
+extern zeek::TableVal* udp_content_delivery_ports_resp;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* udp_content_ports;
+extern zeek::TableVal* udp_content_ports;
 extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
 extern bool udp_content_delivery_ports_use_resp;
@@ -159,9 +159,9 @@ extern zeek::RecordType* dns_nsec3_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* dns_ds_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* dns_skip_auth;
+extern zeek::TableVal* dns_skip_auth;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* dns_skip_addl;
+extern zeek::TableVal* dns_skip_addl;
 extern int dns_skip_all_auth;
 extern int dns_skip_all_addl;
 extern int dns_max_queries;
@@ -169,7 +169,7 @@ extern int dns_max_queries;
 extern double stp_delta;
 extern double stp_idle_min;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* stp_skip_src;
+extern zeek::TableVal* stp_skip_src;
 
 extern double table_expire_interval;
 extern double table_expire_delay;
@@ -178,24 +178,24 @@ extern int table_incremental_step;
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* preserve_orig_addr;
+extern zeek::TableVal* preserve_orig_addr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* preserve_resp_addr;
+extern zeek::TableVal* preserve_resp_addr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* preserve_other_addr;
+extern zeek::TableVal* preserve_other_addr;
 
 extern double connection_status_update_interval;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* rotate_info;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern StringVal* log_rotate_base_time;
+extern zeek::StringVal* log_rotate_base_time;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern StringVal* peer_description;
+extern zeek::StringVal* peer_description;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern Val* profiling_file;
+extern zeek::Val* profiling_file;
 extern double profiling_interval;
 extern int expensive_profiling_multiple;
 
@@ -203,7 +203,7 @@ extern int segment_profiling;
 extern int pkt_profile_mode;
 extern double pkt_profile_freq;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern Val* pkt_profile_file;
+extern zeek::Val* pkt_profile_file;
 
 extern int load_sample_freq;
 
@@ -223,14 +223,14 @@ extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableVal* likely_server_ports;
+extern zeek::TableVal* likely_server_ports;
 
 extern int check_for_unused_event_handlers;
 
 extern double timer_mgr_inactivity_timeout;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern StringVal* trace_output_file;
+extern zeek::StringVal* trace_output_file;
 
 extern int record_all_packets;
 
@@ -248,10 +248,10 @@ extern zeek::RecordType* call_argument;
 extern zeek::VectorType* call_argument_vector;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern StringVal* cmd_line_bpf_filter;
+extern zeek::StringVal* cmd_line_bpf_filter;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern StringVal* global_hash_seed;
+extern zeek::StringVal* global_hash_seed;
 
 extern bro_uint_t bits_per_uid;
 

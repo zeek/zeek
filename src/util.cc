@@ -1813,7 +1813,7 @@ string find_script_file(const string& filename, const string& path_set)
 	return string();
 	}
 
-FILE* rotate_file(const char* name, RecordVal* rotate_info)
+FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	{
 	// Build file names.
 	const int buflen = strlen(name) + 128;
@@ -1859,10 +1859,10 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Init rotate_info.
 	if ( rotate_info )
 		{
-		rotate_info->Assign<StringVal>(0, name);
-		rotate_info->Assign<StringVal>(1, newname);
-		rotate_info->Assign<TimeVal>(2, network_time);
-		rotate_info->Assign<TimeVal>(3, network_time);
+		rotate_info->Assign<zeek::StringVal>(0, name);
+		rotate_info->Assign<zeek::StringVal>(1, newname);
+		rotate_info->Assign<zeek::TimeVal>(2, network_time);
+		rotate_info->Assign<zeek::TimeVal>(3, network_time);
 		}
 
 	return newf;

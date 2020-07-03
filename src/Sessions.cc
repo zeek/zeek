@@ -703,7 +703,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
-	IntrusivePtr<Val> pkt_hdr_val;
+	zeek::ValPtr pkt_hdr_val;
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
@@ -920,7 +920,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	return f;
 	}
 
-Connection* NetSessions::FindConnection(Val* v)
+Connection* NetSessions::FindConnection(zeek::Val* v)
 	{
 	const auto& vt = v->GetType();
 	if ( ! zeek::IsRecord(vt->Tag()) )
@@ -958,8 +958,8 @@ Connection* NetSessions::FindConnection(Val* v)
 	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
 	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
 
-	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
-	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
+	zeek::PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
+	zeek::PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
 
 	ConnID id;
 
@@ -1236,7 +1236,7 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 
 	if ( ! have_cache )
 		{
-		auto likely_server_ports = zeek::id::find_val<TableVal>("likely_server_ports");
+		auto likely_server_ports = zeek::id::find_val<zeek::TableVal>("likely_server_ports");
 		auto lv = likely_server_ports->ToPureListVal();
 		for ( int i = 0; i < lv->Length(); i++ )
 			port_cache.insert(lv->Idx(i)->InternalUnsigned());

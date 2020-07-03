@@ -2,78 +2,78 @@
 #     http://msdn.microsoft.com/en-us/library/cc246497(v=PROT.13).aspx
 
 %header{
-IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr);
-IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id);
-IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val);
-IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv);
+zeek::RecordValPtr BuildSMB2HeaderVal(SMB2_Header* hdr);
+zeek::RecordValPtr BuildSMB2GUID(SMB2_guid* file_id);
+zeek::RecordValPtr smb2_file_attrs_to_bro(SMB2_file_attributes* val);
+zeek::RecordValPtr BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv);
 %}
 
 %code{
-IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr)
+zeek::RecordValPtr BuildSMB2HeaderVal(SMB2_Header* hdr)
 	{
-	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Header);
-	r->Assign(0, val_mgr->Count(${hdr.credit_charge}));
-	r->Assign(1, val_mgr->Count(${hdr.status}));
-	r->Assign(2, val_mgr->Count(${hdr.command}));
-	r->Assign(3, val_mgr->Count(${hdr.credits}));
-	r->Assign(4, val_mgr->Count(${hdr.flags}));
-	r->Assign(5, val_mgr->Count(${hdr.message_id}));
-	r->Assign(6, val_mgr->Count(${hdr.process_id}));
-	r->Assign(7, val_mgr->Count(${hdr.tree_id}));
-	r->Assign(8, val_mgr->Count(${hdr.session_id}));
+	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::Header);
+	r->Assign(0, zeek::val_mgr->Count(${hdr.credit_charge}));
+	r->Assign(1, zeek::val_mgr->Count(${hdr.status}));
+	r->Assign(2, zeek::val_mgr->Count(${hdr.command}));
+	r->Assign(3, zeek::val_mgr->Count(${hdr.credits}));
+	r->Assign(4, zeek::val_mgr->Count(${hdr.flags}));
+	r->Assign(5, zeek::val_mgr->Count(${hdr.message_id}));
+	r->Assign(6, zeek::val_mgr->Count(${hdr.process_id}));
+	r->Assign(7, zeek::val_mgr->Count(${hdr.tree_id}));
+	r->Assign(8, zeek::val_mgr->Count(${hdr.session_id}));
 	r->Assign(9, to_stringval(${hdr.signature}));
 	return r;
 	}
 
-IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id)
+zeek::RecordValPtr BuildSMB2GUID(SMB2_guid* file_id)
 	{
-	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::GUID);
-	r->Assign(0, val_mgr->Count(${file_id.persistent}));
-	r->Assign(1, val_mgr->Count(${file_id._volatile}));
+	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::GUID);
+	r->Assign(0, zeek::val_mgr->Count(${file_id.persistent}));
+	r->Assign(1, zeek::val_mgr->Count(${file_id._volatile}));
 	return r;
 	}
 
-IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val)
+zeek::RecordValPtr smb2_file_attrs_to_bro(SMB2_file_attributes* val)
 	{
-	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::FileAttrs);
-	r->Assign(0, val_mgr->Bool(${val.read_only}));
-	r->Assign(1, val_mgr->Bool(${val.hidden}));
-	r->Assign(2, val_mgr->Bool(${val.system}));
-	r->Assign(3, val_mgr->Bool(${val.directory}));
-	r->Assign(4, val_mgr->Bool(${val.archive}));
-	r->Assign(5, val_mgr->Bool(${val.normal}));
-	r->Assign(6, val_mgr->Bool(${val.temporary}));
-	r->Assign(7, val_mgr->Bool(${val.sparse_file}));
-	r->Assign(8, val_mgr->Bool(${val.reparse_point}));
-	r->Assign(9, val_mgr->Bool(${val.compressed}));
-	r->Assign(10, val_mgr->Bool(${val.offline}));
-	r->Assign(11, val_mgr->Bool(${val.not_content_indexed}));
-	r->Assign(12, val_mgr->Bool(${val.encrypted}));
-	r->Assign(13, val_mgr->Bool(${val.integrity_stream}));
-	r->Assign(14, val_mgr->Bool(${val.no_scrub_data}));
+	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::FileAttrs);
+	r->Assign(0, zeek::val_mgr->Bool(${val.read_only}));
+	r->Assign(1, zeek::val_mgr->Bool(${val.hidden}));
+	r->Assign(2, zeek::val_mgr->Bool(${val.system}));
+	r->Assign(3, zeek::val_mgr->Bool(${val.directory}));
+	r->Assign(4, zeek::val_mgr->Bool(${val.archive}));
+	r->Assign(5, zeek::val_mgr->Bool(${val.normal}));
+	r->Assign(6, zeek::val_mgr->Bool(${val.temporary}));
+	r->Assign(7, zeek::val_mgr->Bool(${val.sparse_file}));
+	r->Assign(8, zeek::val_mgr->Bool(${val.reparse_point}));
+	r->Assign(9, zeek::val_mgr->Bool(${val.compressed}));
+	r->Assign(10, zeek::val_mgr->Bool(${val.offline}));
+	r->Assign(11, zeek::val_mgr->Bool(${val.not_content_indexed}));
+	r->Assign(12, zeek::val_mgr->Bool(${val.encrypted}));
+	r->Assign(13, zeek::val_mgr->Bool(${val.integrity_stream}));
+	r->Assign(14, zeek::val_mgr->Bool(${val.no_scrub_data}));
 	return r;
 	}
 
-IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
+zeek::RecordValPtr BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 	{
-	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::NegotiateContextValue);
+	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::NegotiateContextValue);
 
-	r->Assign(0, val_mgr->Count(${ncv.context_type}));
-	r->Assign(1, val_mgr->Count(${ncv.data_length}));
+	r->Assign(0, zeek::val_mgr->Count(${ncv.context_type}));
+	r->Assign(1, zeek::val_mgr->Count(${ncv.data_length}));
 
 	switch ( ${ncv.context_type} ) {
 	case SMB2_PREAUTH_INTEGRITY_CAPABILITIES:
 		{
-		auto rpreauth = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::PreAuthIntegrityCapabilities);
-		rpreauth->Assign(0, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg_count}));
-		rpreauth->Assign(1, val_mgr->Count(${ncv.preauth_integrity_capabilities.salt_length}));
+		auto rpreauth = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::PreAuthIntegrityCapabilities);
+		rpreauth->Assign(0, zeek::val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg_count}));
+		rpreauth->Assign(1, zeek::val_mgr->Count(${ncv.preauth_integrity_capabilities.salt_length}));
 
-		auto ha = make_intrusive<VectorVal>(zeek::id::index_vec);
+		auto ha = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 		for ( int i = 0; i < ${ncv.preauth_integrity_capabilities.hash_alg_count}; ++i )
 			{
 			const auto& vec = *${ncv.preauth_integrity_capabilities.hash_alg};
-			ha->Assign(i, val_mgr->Count(vec[i]));
+			ha->Assign(i, zeek::val_mgr->Count(vec[i]));
 			}
 
 		rpreauth->Assign(2, std::move(ha));
@@ -84,15 +84,15 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 
 	case SMB2_ENCRYPTION_CAPABILITIES:
 		{
-		auto rencr = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::EncryptionCapabilities);
-		rencr->Assign(0, val_mgr->Count(${ncv.encryption_capabilities.cipher_count}));
+		auto rencr = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::EncryptionCapabilities);
+		rencr->Assign(0, zeek::val_mgr->Count(${ncv.encryption_capabilities.cipher_count}));
 
-		auto c = make_intrusive<VectorVal>(zeek::id::index_vec);
+		auto c = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 		for ( int i = 0; i < ${ncv.encryption_capabilities.cipher_count}; ++i )
 			{
 			const auto& vec = *${ncv.encryption_capabilities.ciphers};
-			c->Assign(i, val_mgr->Count(vec[i]));
+			c->Assign(i, zeek::val_mgr->Count(vec[i]));
 			}
 
 		rencr->Assign(1, std::move(c));
@@ -102,15 +102,15 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 
 	case SMB2_COMPRESSION_CAPABILITIES:
 		{
-		auto rcomp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CompressionCapabilities);
-		rcomp->Assign(0, val_mgr->Count(${ncv.compression_capabilities.alg_count}));
+		auto rcomp = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::CompressionCapabilities);
+		rcomp->Assign(0, zeek::val_mgr->Count(${ncv.compression_capabilities.alg_count}));
 
-		auto c = make_intrusive<VectorVal>(zeek::id::index_vec);
+		auto c = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 		for ( int i = 0; i < ${ncv.compression_capabilities.alg_count}; ++i )
 			{
 			const auto& vec = *${ncv.compression_capabilities.algs};
-			c->Assign(i, val_mgr->Count(vec[i]));
+			c->Assign(i, zeek::val_mgr->Count(vec[i]));
 			}
 
 		rcomp->Assign(1, std::move(c));

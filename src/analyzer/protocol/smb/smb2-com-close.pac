@@ -20,10 +20,10 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_close_response )
 			{
-			auto resp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CloseResponse);
+			auto resp = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::CloseResponse);
 
-			resp->Assign(0, val_mgr->Count(${val.alloc_size}));
-			resp->Assign(1, val_mgr->Count(${val.eof}));
+			resp->Assign(0, zeek::val_mgr->Count(${val.alloc_size}));
+			resp->Assign(1, zeek::val_mgr->Count(${val.eof}));
 			resp->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
 			                                  ${val.last_access_time},
 			                                  ${val.creation_time},

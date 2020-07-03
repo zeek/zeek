@@ -145,7 +145,7 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	IntrusivePtr<RecordVal> BuildMessageStat(bool interrupted, const char* msg);
+	zeek::RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
 };
 
 class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
@@ -153,10 +153,10 @@ public:
 	HTTP_Analyzer(Connection* conn);
 
 	void HTTP_Header(bool is_orig, mime::MIME_Header* h);
-	void HTTP_EntityData(bool is_orig, BroString* entity_data);
+	void HTTP_EntityData(bool is_orig, zeek::String* entity_data);
 	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
-	void HTTP_Event(const char* category, IntrusivePtr<StringVal> detail);
+	void HTTP_Event(const char* category, zeek::StringValPtr detail);
 
 	void SkipEntityData(bool is_orig);
 
@@ -230,14 +230,14 @@ protected:
 
 	void RequestMade(bool interrupted, const char* msg);
 	void ReplyMade(bool interrupted, const char* msg);
-	void RequestClash(Val* clash_val);
+	void RequestClash(zeek::Val* clash_val);
 
-	const BroString* UnansweredRequestMethod();
+	const zeek::String* UnansweredRequestMethod();
 
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 
-	IntrusivePtr<StringVal> TruncateURI(const IntrusivePtr<StringVal>& uri);
+	zeek::StringValPtr TruncateURI(const zeek::StringValPtr& uri);
 
 	int request_state, reply_state;
 	int num_requests, num_replies;
@@ -257,19 +257,19 @@ protected:
 	// in a reply.
 	std::string upgrade_protocol;
 
-	IntrusivePtr<StringVal> request_method;
+	zeek::StringValPtr request_method;
 
 	// request_URI is in the original form (may contain '%<hex><hex>'
 	// sequences).
-	IntrusivePtr<StringVal> request_URI;
+	zeek::StringValPtr request_URI;
 
 	// unescaped_URI does not contain escaped sequences.
-	IntrusivePtr<StringVal> unescaped_URI;
+	zeek::StringValPtr unescaped_URI;
 
-	std::queue<IntrusivePtr<StringVal>> unanswered_requests;
+	std::queue<zeek::StringValPtr> unanswered_requests;
 
 	int reply_code;
-	IntrusivePtr<StringVal> reply_reason_phrase;
+	zeek::StringValPtr reply_reason_phrase;
 
 	tcp::ContentLine_Analyzer* content_line_orig;
 	tcp::ContentLine_Analyzer* content_line_resp;
@@ -281,7 +281,7 @@ protected:
 extern bool is_reserved_URI_char(unsigned char ch);
 extern bool is_unreserved_URI_char(unsigned char ch);
 extern void escape_URI_char(unsigned char ch, unsigned char*& p);
-extern BroString* unescape_URI(const u_char* line, const u_char* line_end,
-				analyzer::Analyzer* analyzer);
+extern zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
+                                     analyzer::Analyzer* analyzer);
 
 } } // namespace analyzer::*

@@ -26,7 +26,7 @@ refine connection SMB_Conn += {
 			                                                  std::move(service_string),
 			                                                  ${val.byte_count} > ${val.service.a}->size() ?
 			                                                     smb_string2stringval(${val.native_file_system[0]}) :
-			                                                     val_mgr->EmptyString());
+			                                                     zeek::val_mgr->EmptyString());
 
 		return true;
 		%}

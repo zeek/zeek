@@ -1,3 +1,4 @@
+
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
@@ -19,26 +20,26 @@
 #include "zeekygen/ScriptInfo.h"
 #include "module_util.h"
 
-IntrusivePtr<zeek::RecordType> zeek::id::conn_id;
-IntrusivePtr<zeek::RecordType> zeek::id::endpoint;
-IntrusivePtr<zeek::RecordType> zeek::id::connection;
-IntrusivePtr<zeek::RecordType> zeek::id::fa_file;
-IntrusivePtr<zeek::RecordType> zeek::id::fa_metadata;
-IntrusivePtr<zeek::EnumType> zeek::id::transport_proto;
-IntrusivePtr<zeek::TableType> zeek::id::string_set;
-IntrusivePtr<zeek::TableType> zeek::id::string_array;
-IntrusivePtr<zeek::TableType> zeek::id::count_set;
-IntrusivePtr<zeek::VectorType> zeek::id::string_vec;
-IntrusivePtr<zeek::VectorType> zeek::id::index_vec;
+zeek::RecordTypePtr zeek::id::conn_id;
+zeek::RecordTypePtr zeek::id::endpoint;
+zeek::RecordTypePtr zeek::id::connection;
+zeek::RecordTypePtr zeek::id::fa_file;
+zeek::RecordTypePtr zeek::id::fa_metadata;
+zeek::EnumTypePtr zeek::id::transport_proto;
+zeek::TableTypePtr zeek::id::string_set;
+zeek::TableTypePtr zeek::id::string_array;
+zeek::TableTypePtr zeek::id::count_set;
+zeek::VectorTypePtr zeek::id::string_vec;
+zeek::VectorTypePtr zeek::id::index_vec;
 
-const IntrusivePtr<zeek::detail::ID>& zeek::id::find(std::string_view name)
+const zeek::detail::IDPtr& zeek::id::find(std::string_view name)
 	{
-	return global_scope()->Find(name);
+	return zeek::detail::global_scope()->Find(name);
 	}
 
-const IntrusivePtr<zeek::Type>& zeek::id::find_type(std::string_view name)
+const zeek::TypePtr& zeek::id::find_type(std::string_view name)
 	{
-	auto id = global_scope()->Find(name);
+	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find type named: %s",
@@ -47,9 +48,9 @@ const IntrusivePtr<zeek::Type>& zeek::id::find_type(std::string_view name)
 	return id->GetType();
 	}
 
-const IntrusivePtr<Val>& zeek::id::find_val(std::string_view name)
+const zeek::ValPtr& zeek::id::find_val(std::string_view name)
 	{
-	auto id = global_scope()->Find(name);
+	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find variable named: %s",
@@ -58,9 +59,9 @@ const IntrusivePtr<Val>& zeek::id::find_val(std::string_view name)
 	return id->GetVal();
 	}
 
-const IntrusivePtr<Val>& zeek::id::find_const(std::string_view name)
+const zeek::ValPtr& zeek::id::find_const(std::string_view name)
 	{
-	auto id = global_scope()->Find(name);
+	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find variable named: %s",
@@ -73,7 +74,7 @@ const IntrusivePtr<Val>& zeek::id::find_const(std::string_view name)
 	return id->GetVal();
 	}
 
-IntrusivePtr<Func> zeek::id::find_func(std::string_view name)
+zeek::FuncPtr zeek::id::find_func(std::string_view name)
 	{
 	const auto& v = zeek::id::find_val(name);
 
@@ -130,7 +131,7 @@ std::string ID::ModuleName() const
 	return extract_module_name(name);
 	}
 
-void ID::SetType(IntrusivePtr<zeek::Type> t)
+void ID::SetType(zeek::TypePtr t)
 	{
 	type = std::move(t);
 	}
@@ -140,7 +141,7 @@ void ID::ClearVal()
 	val = nullptr;
 	}
 
-void ID::SetVal(IntrusivePtr<Val> v)
+void ID::SetVal(zeek::ValPtr v)
 	{
 	val = std::move(v);
 	Modified();
@@ -169,7 +170,7 @@ void ID::SetVal(IntrusivePtr<Val> v)
 		}
 	}
 
-void ID::SetVal(IntrusivePtr<Val> v, InitClass c)
+void ID::SetVal(zeek::ValPtr v, InitClass c)
 	{
 	if ( c == INIT_NONE || c == INIT_FULL )
 		{
@@ -207,7 +208,7 @@ void ID::SetVal(IntrusivePtr<Val> v, InitClass c)
 		}
 	}
 
-void ID::SetVal(IntrusivePtr<Expr> ev, InitClass c)
+void ID::SetVal(ExprPtr ev, InitClass c)
 	{
 	const auto& a = attrs->Find(c == INIT_EXTRA ? ATTR_ADD_FUNC : ATTR_DEL_FUNC);
 
@@ -222,7 +223,7 @@ bool ID::IsRedefinable() const
 	return GetAttr(ATTR_REDEF) != nullptr;
 	}
 
-void ID::SetAttrs(IntrusivePtr<Attributes> a)
+void ID::SetAttrs(AttributesPtr a)
 	{
 	attrs = nullptr;
 	AddAttrs(std::move(a));
@@ -260,15 +261,15 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = make_intrusive<Attributes>(rt->GetFieldType(i), true, IsGlobal());
+					fd->attrs = zeek::make_intrusive<Attributes>(rt->GetFieldType(i), true, IsGlobal());
 
-				fd->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
+				fd->attrs->AddAttr(zeek::make_intrusive<Attr>(ATTR_LOG));
 				}
 			}
 		}
 	}
 
-const IntrusivePtr<Attr>& ID::GetAttr(AttrTag t) const
+const AttrPtr& ID::GetAttr(AttrTag t) const
 	{
 	return attrs ? attrs->Find(t) : Attr::nil;
 	}
@@ -278,13 +279,13 @@ bool ID::IsDeprecated() const
 	return GetAttr(ATTR_DEPRECATED) != nullptr;
 	}
 
-void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
+void ID::MakeDeprecated(ExprPtr deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
 
-	std::vector<IntrusivePtr<Attr>> attrv{make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
-	AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
+	std::vector<AttrPtr> attrv{zeek::make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
+	AddAttrs(zeek::make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 	}
 
 std::string ID::GetDeprecationWarning() const
@@ -308,7 +309,7 @@ std::string ID::GetDeprecationWarning() const
 		return fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
-void ID::AddAttrs(IntrusivePtr<Attributes> a)
+void ID::AddAttrs(AttributesPtr a)
 	{
 	if ( attrs )
 		attrs->AddAttrs(a);
@@ -334,18 +335,18 @@ void ID::SetOption()
 	// option implied redefinable
 	if ( ! IsRedefinable() )
 		{
-		std::vector<IntrusivePtr<Attr>> attrv{make_intrusive<Attr>(ATTR_REDEF)};
-		AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
+		std::vector<AttrPtr> attrv{zeek::make_intrusive<Attr>(ATTR_REDEF)};
+		AddAttrs(zeek::make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 		}
 	}
 
-void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
+void ID::EvalFunc(ExprPtr ef, ExprPtr ev)
 	{
-	auto arg1 = make_intrusive<zeek::detail::ConstExpr>(val);
-	auto args = make_intrusive<zeek::detail::ListExpr>();
+	auto arg1 = zeek::make_intrusive<zeek::detail::ConstExpr>(val);
+	auto args = zeek::make_intrusive<zeek::detail::ListExpr>();
 	args->Append(std::move(arg1));
 	args->Append(std::move(ev));
-	auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
+	auto ce = zeek::make_intrusive<CallExpr>(std::move(ef), std::move(args));
 	SetVal(ce->Eval(nullptr));
 	}
 
@@ -365,7 +366,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 
 	// FIXME: Perhaps we should be checking at other than global scope.
 	else if ( val && IsFunc(val->GetType()->Tag()) &&
-		  cb->current_scope == global_scope() )
+		  cb->current_scope == zeek::detail::global_scope() )
 		{
 		tc = val->AsFunc()->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -384,9 +385,9 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-void ID::Error(const char* msg, const BroObj* o2)
+void ID::Error(const char* msg, const Obj* o2)
 	{
-	BroObj::Error(msg, o2, true);
+	Obj::Error(msg, o2, true);
 	SetType(error_type());
 	}
 
@@ -642,7 +643,7 @@ void ID::UpdateValID()
 	}
 #endif
 
-void ID::AddOptionHandler(IntrusivePtr<Func> callback, int priority)
+void ID::AddOptionHandler(zeek::FuncPtr callback, int priority)
 	{
 	option_handlers.emplace(priority, std::move(callback));
 	}

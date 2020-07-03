@@ -15,7 +15,6 @@
 #include "ID.h"
 #include "util.h"
 
-template <class T> class IntrusivePtr;
 ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
 
 namespace zeekygen {
@@ -111,14 +110,14 @@ public:
 	 * Signal that a record or enum type is now being parsed.
 	 * @param id The record or enum type identifier.
 	 */
-	void StartType(IntrusivePtr<zeek::detail::ID> id);
+	void StartType(zeek::detail::IDPtr id);
 
 	/**
 	 * Register a script-level identifier for which information/documentation
 	 * will be gathered.
 	 * @param id The script-level identifier.
 	 */
-	void Identifier(IntrusivePtr<zeek::detail::ID> id);
+	void Identifier(zeek::detail::IDPtr id);
 
 	/**
 	 * Register a record-field for which information/documentation will be
@@ -140,7 +139,7 @@ public:
 	 * @param init_expr The intiialization expression that was used.
 	 */
 	void Redef(const zeek::detail::ID* id, const std::string& path,
-	           zeek::detail::InitClass ic, IntrusivePtr<zeek::detail::Expr> init_expr);
+	           zeek::detail::InitClass ic, zeek::detail::ExprPtr init_expr);
 	void Redef(const zeek::detail::ID* id, const std::string& path,
 	           zeek::detail::InitClass ic = zeek::detail::INIT_NONE);
 
@@ -218,7 +217,7 @@ private:
 	typedef std::vector<std::string> comment_buffer_t;
 	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
 
-	IdentifierInfo* CreateIdentifierInfo(IntrusivePtr<zeek::detail::ID> id, ScriptInfo* script);
+	IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script);
 
 	bool disabled;
 	comment_buffer_t comment_buffer; // For whatever next identifier comes in.

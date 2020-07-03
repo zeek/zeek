@@ -7,7 +7,7 @@
 %}
 
 %code{
-IntrusivePtr<StringVal> utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
+zeek::StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
 	{
 	std::string resultstring;
 
@@ -52,10 +52,10 @@ IntrusivePtr<StringVal> utf16_to_utf8_val(Connection* conn, const bytestring& ut
 
 	// We're relying on no nulls being in the string.
 	//return new StringVal(resultstring.length(), (const char *) resultstring.data());
-	return make_intrusive<StringVal>(resultstring.c_str());
+	return zeek::make_intrusive<zeek::StringVal>(resultstring.c_str());
 	}
 
-StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16)
+zeek::StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16)
 	{
 	return utf16_to_utf8_val(conn, utf16).release();
 	}

@@ -48,7 +48,7 @@ string orig_label(bool is_orig)
 
 extern type to_int;
 
-function to_string_val(data : uint8[]) : StringVal
+function to_string_val(data : uint8[]) : zeek::StringVal
 	%{
 	char tmp[32];
 	memset(tmp, 0, sizeof(tmp));
@@ -60,7 +60,7 @@ function to_string_val(data : uint8[]) : StringVal
 			tmp[i-1] = (*data)[i-1];
 		}
 
-	return new StringVal(32, tmp);
+	return new zeek::StringVal(32, tmp);
 	%}
 
 function version_ok(vers : uint16) : bool

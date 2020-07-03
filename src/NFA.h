@@ -6,11 +6,12 @@
 #include "List.h"
 
 class CCL;
-class Func;
 class NFA_State;
 class EquivClass;
 
-typedef PList<NFA_State> NFA_state_list;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+
+using NFA_state_list = zeek::PList<NFA_State>;
 
 #define NO_ACCEPT 0
 
@@ -21,10 +22,10 @@ typedef PList<NFA_State> NFA_state_list;
 #define NUM_SYM 258
 
 #define SYM_EPSILON 259
-#define SYM_CCL 260    
+#define SYM_CCL 260
 
 
-class NFA_State : public BroObj  {
+class NFA_State : public zeek::Obj  {
 public:
 	NFA_State(int sym, EquivClass* ec);
 	explicit NFA_State(CCL* ccl);
@@ -81,7 +82,7 @@ public:
 	EpsilonState()	: NFA_State(SYM_EPSILON, nullptr)	{ }
 };
 
-class NFA_Machine : public BroObj {
+class NFA_Machine : public zeek::Obj {
 public:
 	explicit NFA_Machine(NFA_State* first, NFA_State* final = nullptr);
 	~NFA_Machine() override;

@@ -18,13 +18,18 @@
 namespace analyzer { class Analyzer; }
 namespace file_analysis { class File; }
 class Connection;
-class Location;
 class Reporter;
 class EventHandlerPtr;
-class RecordVal;
-class StringVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 
+namespace zeek {
 template <class T> class IntrusivePtr;
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+using StringValPtr = zeek::IntrusivePtr<StringVal>;
+}
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -90,14 +95,14 @@ public:
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void RuntimeError(const Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void RuntimeError(const zeek::detail::Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
 	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> uid,
+	void Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
@@ -126,11 +131,11 @@ public:
 	// stack of location so that the most recent is always the one that
 	// will be assumed to be the current one. The pointer must remain
 	// valid until the location is popped.
-	void PushLocation(const Location* location)
-		{ locations.push_back(std::pair<const Location*, const Location*>(location, 0)); }
+	void PushLocation(const zeek::detail::Location* location)
+		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(location, 0)); }
 
-	void PushLocation(const Location* loc1, const Location* loc2)
-		{ locations.push_back(std::pair<const Location*, const Location*>(loc1, loc2)); }
+	void PushLocation(const zeek::detail::Location* loc1, const zeek::detail::Location* loc2)
+		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(loc1, loc2)); }
 
 	// Removes the top-most location information from stack.
 	void PopLocation()
@@ -270,7 +275,7 @@ private:
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
-	bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
+	bool PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id);
 
 	bool EmitToStderr(bool flag)
 		{ return flag || ! after_zeek_init; }
@@ -284,7 +289,7 @@ private:
 	bool after_zeek_init;
 	bool abort_on_scripting_errors = false;
 
-	std::list<std::pair<const Location*, const Location*> > locations;
+	std::list<std::pair<const zeek::detail::Location*, const zeek::detail::Location*> > locations;
 
 	uint64_t weird_count;
 	WeirdCountMap weird_count_by_type;

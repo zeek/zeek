@@ -1,4 +1,38 @@
 
+3.2.0-dev.853 | 2020-07-02 19:24:09 -0700
+
+  * Rename BroString files to ZeekString (Tim Wojtulewicz, Corelight)
+
+  * Rename BroObj to Obj (Tim Wojtulewicz, Corelight)
+
+  * Rename BroString to zeek::String (Tim Wojtulewicz, Corelight)
+
+  * Move Func up to zeek namespace, rename BroFunc to ScriptFunc (Tim Wojtulewicz, Corelight)
+
+  * Mark global val_mgr as deprecated and fix uses of it to use namespaced version (Tim Wojtulewicz, Corelight)
+
+  * Update binpac and bifcl submodules with review changes (Tim Wojtulewicz, Corelight)
+
+  * Move Location to zeek::detail and BroObj to zeek (Tim Wojtulewicz, Corelight)
+
+  * Move BroString to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Dictionary/PDict, List/PList, and Queue/PQueue to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Remove typedef that should have been removed in 3.1 (Tim Wojtulewicz, Corelight)
+
+  * Move Func and associated classes into zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Frame and Scope to zeek::detail namespace (Tim Wojtulewicz)
+
+  * Move all Val classes to the zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Use type aliases for IntrusivePtr definitions (Tim Wojtulewicz, Corelight)
+
+  * Move deprecation macro to zeek-config.h.in to avoid having to over-include util.h (Tim Wojtulewicz, Corelight)
+
+  * Move IntrusivePtr and utility methods to the zeek namespace (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.834 | 2020-07-02 15:57:09 -0700
 
   * GH-786: fix Val::As methods casting incomplete types (Jon Siwek, Corelight)

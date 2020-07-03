@@ -59,7 +59,7 @@ TraversalCode zeek::detail::trigger::TriggerTraversalCallback::PreExpr(const zee
 	case EXPR_INDEX:
 		{
 		const auto* e = static_cast<const zeek::detail::IndexExpr*>(expr);
-		BroObj::SuppressErrors no_errors;
+		Obj::SuppressErrors no_errors;
 
 		try
 			{
@@ -151,7 +151,7 @@ Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
 		arg_frame->SetDelayed();
 		}
 
-	IntrusivePtr<Val> timeout_val;
+	ValPtr timeout_val;
 
 	if ( arg_timeout )
 		{
@@ -262,9 +262,9 @@ bool Trigger::Eval()
 		return false;
 		}
 
-	f->SetTrigger({NewRef{}, this});
+	f->SetTrigger({zeek::NewRef{}, this});
 
-	IntrusivePtr<Val> v;
+	ValPtr v;
 
 	try
 		{
@@ -348,8 +348,8 @@ void Trigger::Timeout()
 	if ( timeout_stmts )
 		{
 		stmt_flow_type flow;
-		IntrusivePtr<Frame> f{AdoptRef{}, frame->Clone()};
-		IntrusivePtr<Val> v;
+		FramePtr f{zeek::AdoptRef{}, frame->Clone()};
+		ValPtr v;
 
 		try
 			{

@@ -56,7 +56,7 @@ protected:
 	void AddUserText(const char* line);	// complains on overflow
 	char* PeekUserText();	// internal warning on underflow
 	char* PopUserText();		// internal warning on underflow
-	Val* PopUserTextVal();
+	zeek::Val* PopUserTextVal();
 
 	bool MatchesTypeahead(const char* line) const;
 	bool HaveTypeahead() const	{ return num_user_text > 0; }
@@ -69,8 +69,8 @@ protected:
 	int user_text_first, user_text_last;	// indices into user_text
 	int num_user_text;	// number of entries in user_text
 
-	Val* username;	// last username reported
-	Val* client_name;	// rlogin client name (or nil if none)
+	zeek::Val* username;	// last username reported
+	zeek::Val* client_name;	// rlogin client name (or nil if none)
 
 	login_state state;
 	int lines_scanned;

@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "Reporter.h"
@@ -461,7 +461,7 @@ void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
 			ConnVal(),
-			make_intrusive<StringVal>(new BroString(terminal, len, false))
+			zeek::make_intrusive<zeek::StringVal>(new zeek::String(terminal, len, false))
 		);
 	}
 

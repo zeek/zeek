@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <string.h>
 #include <iterator>
 
 // Queue.h --
@@ -22,6 +23,7 @@
 //	Entries must be either a pointer to the data or nonzero data with
 //	sizeof(data) <= sizeof(void*).
 
+namespace zeek {
 
 template<typename T>
 class Queue {
@@ -196,3 +198,8 @@ protected:
 
 template<typename T>
 using PQueue = Queue<T*>;
+
+} // namespace zeek
+
+template<typename T> using Queue [[deprecated("Remove in v4.1. Use zeek::Queue instead.")]] = zeek::Queue<T>;
+template<typename T> using PQueue [[deprecated("Remove in v4.1. Use zeek::Queue instead.")]] = zeek::PQueue<T>;

@@ -6,57 +6,63 @@
 #include "ID.h"
 #include "Type.h"
 
-class Scope;
 class EventHandlerPtr;
-class StringVal;
-class TableVal;
-class ListVal;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
+
+namespace zeek::detail {
+using StmtPtr = zeek::IntrusivePtr<zeek::detail::Stmt>;
+}
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
-extern void add_global(const IntrusivePtr<zeek::detail::ID>& id,
-                       IntrusivePtr<zeek::Type> t,
+extern void add_global(const zeek::detail::IDPtr& id,
+                       zeek::TypePtr t,
                        zeek::detail::InitClass c,
-                       IntrusivePtr<zeek::detail::Expr> init,
-                       std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
+                       zeek::detail::ExprPtr init,
+                       std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr,
                        decl_type dt);
 
-extern IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id,
-                                                  IntrusivePtr<zeek::Type> t,
-                                                  zeek::detail::InitClass c,
-                                                  IntrusivePtr<zeek::detail::Expr> init,
-                                                  std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
-                                                  decl_type dt);
+extern zeek::detail::StmtPtr add_local(
+	zeek::detail::IDPtr id,
+	zeek::TypePtr t,
+	zeek::detail::InitClass c,
+	zeek::detail::ExprPtr init,
+	std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr,
+	decl_type dt);
 
-extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<zeek::detail::ID> id,
-                                               IntrusivePtr<zeek::detail::Expr> init,
-                                               IntrusivePtr<Val> val = nullptr);
+extern zeek::detail::ExprPtr add_and_assign_local(
+	zeek::detail::IDPtr id,
+	zeek::detail::ExprPtr init,
+	zeek::ValPtr val = nullptr);
 
-extern void add_type(zeek::detail::ID* id, IntrusivePtr<zeek::Type> t,
-                     std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr);
+extern void add_type(zeek::detail::ID* id, zeek::TypePtr t,
+                     std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr);
 
-extern void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
+extern void begin_func(zeek::detail::IDPtr id, const char* module_name,
                        zeek::FunctionFlavor flavor, bool is_redef,
-                       IntrusivePtr<zeek::FuncType> t,
-                       std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs = nullptr);
+                       zeek::FuncTypePtr t,
+                       std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs = nullptr);
 
-extern void end_func(IntrusivePtr<zeek::detail::Stmt> body);
+extern void end_func(zeek::detail::StmtPtr body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
-extern id_list gather_outer_ids(Scope* scope, zeek::detail::Stmt* body);
+extern id_list gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_val().")]]
-extern Val* internal_val(const char* name);
+extern zeek::Val* internal_val(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_const().")]]
-extern Val* internal_const_val(const char* name); // internal error if not const
+extern zeek::Val* internal_const_val(const char* name); // internal error if not const
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
-extern Val* opt_internal_val(const char* name);	// returns nil if not defined
+extern zeek::Val* opt_internal_val(const char* name);	// returns nil if not defined
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern double opt_internal_double(const char* name);
@@ -68,19 +74,19 @@ extern bro_int_t opt_internal_int(const char* name);
 extern bro_uint_t opt_internal_unsigned(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
-extern StringVal* opt_internal_string(const char* name);
+extern zeek::StringVal* opt_internal_string(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
-extern TableVal* opt_internal_table(const char* name);	// nil if not defined
+extern zeek::TableVal* opt_internal_table(const char* name);	// nil if not defined
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find(), zeek::id::find_val(), and/or TableVal::ToPureListVal().")]]
-extern ListVal* internal_list_val(const char* name);
+extern zeek::ListVal* internal_list_val(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_type().")]]
 extern zeek::Type* internal_type(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_func().")]]
-extern Func* internal_func(const char* name);
+extern zeek::Func* internal_func(const char* name);
 
 [[deprecated("Remove in v4.1.  Use event_registry->Register().")]]
 extern EventHandlerPtr internal_handler(const char* name);

@@ -8,7 +8,10 @@
 
 #include "../zeek-config.h"
 
-class RecordVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+namespace zeek {
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+}
 
 namespace file_analysis {
 
@@ -25,8 +28,8 @@ class Manager;
 class Component : public zeek::plugin::Component,
                   public plugin::TaggedComponent<file_analysis::Tag> {
 public:
-	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);
-	using factory_function = Analyzer* (*)(IntrusivePtr<RecordVal> args, File* file);
+	typedef Analyzer* (*factory_callback)(zeek::RecordVal* args, File* file);
+	using factory_function = Analyzer* (*)(zeek::RecordValPtr args, File* file);
 
 	/**
 	 * Constructor.

@@ -20,18 +20,18 @@ function get_orig_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
+		return zeek::val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 		}
 	%}
 
@@ -49,18 +49,18 @@ function get_resp_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
+		return zeek::val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 		}
 	%}
 
@@ -99,10 +99,10 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->False();
+		return zeek::val_mgr->False();
 
-	c->GetRootAnalyzer()->SetContentsFile(direction, {NewRef{}, f});
-	return val_mgr->True();
+	c->GetRootAnalyzer()->SetContentsFile(direction, {zeek::NewRef{}, f});
+	return zeek::val_mgr->True();
 	%}
 
 ## Returns the file handle of the contents file of a connection.
@@ -127,14 +127,14 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
 
 		if ( cf )
-			return make_intrusive<Val>(std::move(cf));
+			return zeek::make_intrusive<zeek::Val>(std::move(cf));
 		}
 
 	// Return some sort of error value.
 	if ( ! c )
-		builtin_error("unknown connection id in get_contents_file()", cid);
+		zeek::emit_builtin_error("unknown connection id in get_contents_file()", cid);
 	else
-		builtin_error("no contents file for given direction");
+		zeek::emit_builtin_error("no contents file for given direction");
 
-	return make_intrusive<Val>(make_intrusive<BroFile>(stderr, "-", "w"));
+	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(stderr, "-", "w"));
 	%}

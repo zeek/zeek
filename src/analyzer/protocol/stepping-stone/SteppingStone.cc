@@ -135,9 +135,9 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 		return;
 
 	if ( id2 >= 0 )
-		endp->TCP()->EnqueueConnEvent(f, val_mgr->Int(id1), val_mgr->Int(id2));
+		endp->TCP()->EnqueueConnEvent(f, zeek::val_mgr->Int(id1), zeek::val_mgr->Int(id2));
 	else
-		endp->TCP()->EnqueueConnEvent(f, val_mgr->Int(id1));
+		endp->TCP()->EnqueueConnEvent(f, zeek::val_mgr->Int(id1));
 	}
 
 void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
@@ -147,8 +147,8 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 
 	endp->TCP()->EnqueueConnEvent(stp_create_endp,
 		endp->TCP()->ConnVal(),
-		val_mgr->Int(stp_id),
-		val_mgr->Bool(is_orig)
+		zeek::val_mgr->Int(stp_id),
+		zeek::val_mgr->Bool(is_orig)
 	);
 	}
 

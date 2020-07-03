@@ -17,10 +17,18 @@
 #define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
 class ODesc;
-class Frame;
-class Func;
 class Event;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+
+namespace zeek {
 template <class T> class IntrusivePtr;
+using ValPtr = zeek::IntrusivePtr<Val>;
+class Obj;
+}
+
+using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
 
 namespace threading {
 struct Field;
@@ -196,7 +204,7 @@ public:
 	/**
 	 * Constructor with a function argument.
 	 */
-	explicit HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
+	explicit HookArgument(const zeek::Func* a)	{ type = FUNC; arg.func = a; }
 
 	/**
 	 * Constructor with an integer  argument.
@@ -231,7 +239,7 @@ public:
 	/**
 	 * Constructor with a Frame argument.
 	 */
-	explicit HookArgument(Frame* f)	{ type = FRAME; arg.frame = f; }
+	explicit HookArgument(zeek::detail::Frame* f)	{ type = FRAME; arg.frame = f; }
 
 	/**
 	 * Constructor with a WriterInfo argument.
@@ -246,7 +254,7 @@ public:
 	/**
 	 * Constructor with a location argument.
 	 */
-	explicit HookArgument(const Location* location)	{ type = LOCATION; arg.loc = location; }
+	explicit HookArgument(const zeek::detail::Location* location)	{ type = LOCATION; arg.loc = location; }
 
 	/**
 	 * Constructor with a zeek::Args argument.
@@ -281,7 +289,7 @@ public:
 	 * Returns the value for a function argument. The argument's type must
 	 * match accordingly.
 	 */
-	const Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
+	const zeek::Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
 
 	/**
 	 * Returns the value for an integer argument. The argument's type must
@@ -311,7 +319,7 @@ public:
 	 * Returns the value for a Bro frame argument.  The argument's type must
 	 * match accordingly.
 	 */
-	const Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
+	const zeek::detail::Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
 
 	/**
 	 * Returns the value for a logging WriterInfo argument.  The argument's type must
@@ -361,15 +369,15 @@ private:
 		double double_;
 		const Event* event;
 		const Connection* conn;
-		const Func* func;
-		const Frame* frame;
+		const zeek::Func* func;
+		const zeek::detail::Frame* frame;
 		int int_;
 		const Val* val;
 		const val_list* vals;
 		const zeek::Args* args;
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
-		const Location* loc;
+		const zeek::detail::Location* loc;
 	} arg;
 
 	// Outside union because these have dtors.
@@ -608,7 +616,7 @@ protected:
 	void RequestEvent(EventHandlerPtr handler);
 
 	/**
-	 * Registers interest in the destruction of a BroObj instance. When
+	 * Registers interest in the destruction of a Obj instance. When
 	 * Bro's reference counting triggers the objects destructor to run,
 	 * \a HookBroObjDtor will be called.
 	 *
@@ -616,7 +624,7 @@ protected:
 	 *
 	 * @param handler The object being interested in.
 	 */
-	void RequestBroObjDtor(BroObj* obj);
+	void RequestBroObjDtor(zeek::Obj* obj);
 
 	// Hook functions.
 
@@ -668,11 +676,11 @@ protected:
 	 * interpreter. If the plugin did not handle the call, it must return a
 	 * pair with the first member set to 'false' and null result value.
 	 */
-	virtual std::pair<bool, IntrusivePtr<Val>>
-	HookFunctionCall(const Func* func, Frame* parent, zeek::Args* args);
+	virtual std::pair<bool, ValPtr>
+	HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent, zeek::Args* args);
 
 	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]
-	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args);
+	virtual std::pair<bool, Val*> HookCallFunction(const zeek::Func* func, zeek::detail::Frame *parent, val_list* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
@@ -824,7 +832,7 @@ protected:
 	 */
 	virtual bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
 	                          const Connection* conn, const val_list* addl, bool location,
-	                          const Location* location1, const Location* location2,
+	                          const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                          bool time, const std::string& message);
 
 	// Meta hooks.

@@ -6,7 +6,6 @@
 
 #include <vector>
 
-#include "IntrusivePtr.h"
 #include "NetVar.h"
 #include "IPAddr.h"
 #include "ID.h"
@@ -81,10 +80,10 @@ public:
 	/**
 	 * Returns record value of type "EncapsulatingConn" representing the tunnel.
 	 */
-	IntrusivePtr<RecordVal> ToVal() const;
+	zeek::RecordValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	RecordVal* GetRecordVal() const
+	zeek::RecordVal* GetRecordVal() const
 		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulatingConn& ec1,
@@ -196,9 +195,9 @@ public:
 	 * Get the value of type "EncapsulatingConnVector" represented by the
 	 * entire encapsulation chain.
 	 */
-	IntrusivePtr<VectorVal> ToVal() const
+	zeek::VectorValPtr ToVal() const
 		{
-		auto vv = make_intrusive<VectorVal>(
+		auto vv = zeek::make_intrusive<zeek::VectorVal>(
 		    zeek::id::find_type<zeek::VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
@@ -211,7 +210,7 @@ public:
 		}
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	VectorVal* GetVectorVal() const
+	zeek::VectorVal* GetVectorVal() const
 		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulationStack& e1,

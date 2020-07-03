@@ -78,7 +78,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( (TCP() && TCP()->IsPartial()) )
 		return;
 
-	BroString terminated_string(data, len, true);
+	zeek::String terminated_string(data, len, true);
 
 	if ( orig )
 		ProcessRequest(len, (char*) terminated_string.Bytes());
@@ -135,8 +135,8 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		{
 		++authLines;
 
-		BroString encoded(line);
-		BroString* decoded = decode_base64(&encoded, nullptr, Conn());
+		zeek::String encoded(line);
+		zeek::String* decoded = decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{
@@ -920,12 +920,12 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	vl.reserve(2 + (bool)arg1 + (bool)arg2);
 
 	vl.emplace_back(ConnVal());
-	vl.emplace_back(val_mgr->Bool(is_orig));
+	vl.emplace_back(zeek::val_mgr->Bool(is_orig));
 
 	if ( arg1 )
-		vl.emplace_back(make_intrusive<StringVal>(arg1));
+		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(arg1));
 	if ( arg2 )
-		vl.emplace_back(make_intrusive<StringVal>(arg2));
+		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(arg2));
 
 	EnqueueConnEvent(event, std::move(vl));
 	}

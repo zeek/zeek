@@ -196,7 +196,7 @@ TypeType* Type::AsTypeType()
 	return (TypeType*) this;
 	}
 
-IntrusivePtr<Type> Type::ShallowClone()
+TypePtr Type::ShallowClone()
 	{
 	switch ( tag ) {
 		case TYPE_VOID:
@@ -214,7 +214,7 @@ IntrusivePtr<Type> Type::ShallowClone()
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
 		case TYPE_ANY:
-			return make_intrusive<Type>(tag, base_type);
+			return zeek::make_intrusive<Type>(tag, base_type);
 
 		default:
 			reporter->InternalError("cloning illegal base Type");
@@ -236,7 +236,7 @@ int Type::MatchesIndex(zeek::detail::ListExpr* const index) const
 	return DOES_NOT_MATCH_INDEX;
 	}
 
-const IntrusivePtr<Type>& Type::Yield() const
+const TypePtr& Type::Yield() const
 	{
 	return Type::nil;
 	}
@@ -288,7 +288,7 @@ bool TypeList::AllMatch(const Type* t, bool is_init) const
 	return true;
 	}
 
-void TypeList::Append(IntrusivePtr<Type> t)
+void TypeList::Append(TypePtr t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
@@ -297,7 +297,7 @@ void TypeList::Append(IntrusivePtr<Type> t)
 	types.emplace_back(std::move(t));
 	}
 
-void TypeList::AppendEvenIfNotPure(IntrusivePtr<Type> t)
+void TypeList::AppendEvenIfNotPure(TypePtr t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
 		pure_type = nullptr;
@@ -442,7 +442,7 @@ bool IndexType::IsSubNetIndex() const
 	return false;
 	}
 
-TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<Type> yield)
+TableType::TableType(TypeListPtr ind, TypePtr yield)
 	: IndexType(TYPE_TABLE, std::move(ind), std::move(yield))
 	{
 	if ( ! indices )
@@ -469,9 +469,9 @@ TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<Type> yield)
 		}
 	}
 
-IntrusivePtr<Type> TableType::ShallowClone()
+TypePtr TableType::ShallowClone()
 	{
-	return make_intrusive<TableType>(indices, yield_type);
+	return zeek::make_intrusive<TableType>(indices, yield_type);
 	}
 
 bool TableType::IsUnspecifiedTable() const
@@ -480,7 +480,7 @@ bool TableType::IsUnspecifiedTable() const
 	return indices->GetTypes().empty();
 	}
 
-SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr> arg_elements)
+SetType::SetType(TypeListPtr ind, zeek::detail::ListExprPtr arg_elements)
 	: TableType(std::move(ind), nullptr), elements(std::move(arg_elements))
 	{
 	if ( elements )
@@ -503,8 +503,8 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr
 
 			else if ( tl.size() == 1 )
 				{
-				IntrusivePtr<Type> ft{NewRef{}, flatten_type(tl[0].get())};
-				indices = make_intrusive<TypeList>(ft);
+				TypePtr ft{zeek::NewRef{}, flatten_type(tl[0].get())};
+				indices = zeek::make_intrusive<TypeList>(ft);
 				indices->Append(std::move(ft));
 				}
 
@@ -521,24 +521,24 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr
 					return;
 					}
 
-				indices = make_intrusive<TypeList>(t);
+				indices = zeek::make_intrusive<TypeList>(t);
 				indices->Append(std::move(t));
 				}
 			}
 		}
 	}
 
-IntrusivePtr<Type> SetType::ShallowClone()
+TypePtr SetType::ShallowClone()
 	{
-	return make_intrusive<SetType>(indices, elements);
+	return zeek::make_intrusive<SetType>(indices, elements);
 	}
 
 SetType::~SetType() = default;
 
-FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
-                   IntrusivePtr<Type> arg_yield, FunctionFlavor arg_flavor)
+FuncType::FuncType(RecordTypePtr arg_args,
+                   TypePtr arg_yield, FunctionFlavor arg_flavor)
 	: Type(TYPE_FUNC), args(std::move(arg_args)),
-	  arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
+	  arg_types(zeek::make_intrusive<TypeList>()), yield(std::move(arg_yield))
 	{
 	flavor = arg_flavor;
 
@@ -566,9 +566,9 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 	prototypes.emplace_back(Prototype{false, args, std::move(offsets)});
 	}
 
-IntrusivePtr<Type> FuncType::ShallowClone()
+TypePtr FuncType::ShallowClone()
 	{
-	auto f = make_intrusive<FuncType>();
+	auto f = zeek::make_intrusive<FuncType>();
 	f->args = args;
 	f->arg_types = arg_types;
 	f->yield = yield;
@@ -606,16 +606,16 @@ int FuncType::MatchesIndex(zeek::detail::ListExpr* const index) const
 
 bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
-	std::vector<IntrusivePtr<Type>> as;
+	std::vector<TypePtr> as;
 	as.reserve(args->length());
 
 	for ( auto a : *args )
-		as.emplace_back(NewRef{}, a);
+		as.emplace_back(zeek::NewRef{}, a);
 
 	return CheckArgs(as, is_init);
 	}
 
-bool FuncType::CheckArgs(const std::vector<IntrusivePtr<Type>>& args,
+bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
                          bool is_init) const
 	{
 	const auto& my_args = arg_types->GetTypes();
@@ -734,8 +734,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 	return {};
 	}
 
-TypeDecl::TypeDecl(const char* i, IntrusivePtr<Type> t,
-                   IntrusivePtr<zeek::detail::Attributes> arg_attrs)
+TypeDecl::TypeDecl(const char* i, TypePtr t, zeek::detail::AttributesPtr arg_attrs)
 	: type(std::move(t)),
 	  attrs(std::move(arg_attrs)),
 	  id(i)
@@ -783,12 +782,12 @@ RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 
 // in this case the clone is actually not so shallow, since
 // it gets modified by everyone.
-IntrusivePtr<Type> RecordType::ShallowClone()
+TypePtr RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
 	for ( const auto& type : *types )
 		pass->push_back(new TypeDecl(*type));
-	return make_intrusive<RecordType>(pass);
+	return zeek::make_intrusive<RecordType>(pass);
 	}
 
 RecordType::~RecordType()
@@ -807,7 +806,7 @@ bool RecordType::HasField(const char* field) const
 	return FieldOffset(field) >= 0;
 	}
 
-IntrusivePtr<Val> RecordType::FieldDefault(int field) const
+ValPtr RecordType::FieldDefault(int field) const
 	{
 	const TypeDecl* td = FieldDecl(field);
 
@@ -919,31 +918,31 @@ static string container_type_name(const Type* ft)
 	return s;
 	}
 
-IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
+TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
 	static auto record_field = zeek::id::find_type<RecordType>("record_field");
 	static auto record_field_table = zeek::id::find_type<TableType>("record_field_table");
-	auto rval = make_intrusive<TableVal>(record_field_table);
+	auto rval = zeek::make_intrusive<zeek::TableVal>(record_field_table);
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
 		const auto& ft = GetFieldType(i);
 		const TypeDecl* fd = FieldDecl(i);
-		IntrusivePtr<Val> fv;
+		ValPtr fv;
 
 		if ( rv )
 			fv = rv->GetField(i);
 
 		bool logged = (fd->attrs && fd->GetAttr(zeek::detail::ATTR_LOG) != nullptr);
 
-		auto nr = make_intrusive<RecordVal>(record_field);
+		auto nr = zeek::make_intrusive<zeek::RecordVal>(record_field);
 
 		string s = container_type_name(ft.get());
-		nr->Assign(0, make_intrusive<StringVal>(s));
-		nr->Assign(1, val_mgr->Bool(logged));
+		nr->Assign(0, zeek::make_intrusive<zeek::StringVal>(s));
+		nr->Assign(1, zeek::val_mgr->Bool(logged));
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
-		auto field_name = make_intrusive<StringVal>(FieldName(i));
+		auto field_name = zeek::make_intrusive<zeek::StringVal>(FieldName(i));
 		rval->Assign(std::move(field_name), std::move(nr));
 		}
 
@@ -970,9 +969,9 @@ const char* RecordType::AddFields(const type_decl_list& others,
 		if ( add_log_attr )
 			{
 			if ( ! td->attrs )
-				td->attrs = make_intrusive<zeek::detail::Attributes>(td->type, true, false);
+				td->attrs = zeek::make_intrusive<zeek::detail::Attributes>(td->type, true, false);
 
-			td->attrs->AddAttr(make_intrusive<zeek::detail::Attr>(zeek::detail::ATTR_LOG));
+			td->attrs->AddAttr(zeek::make_intrusive<zeek::detail::Attr>(zeek::detail::ATTR_LOG));
 			}
 
 		types->push_back(td);
@@ -1153,7 +1152,7 @@ void SubNetType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 	}
 
-FileType::FileType(IntrusivePtr<Type> yield_type)
+FileType::FileType(TypePtr yield_type)
 	: Type(TYPE_FILE), yield(std::move(yield_type))
 	{
 	}
@@ -1208,12 +1207,12 @@ EnumType::EnumType(const EnumType* e)
 	SetName(e->GetName());
 	}
 
-IntrusivePtr<Type> EnumType::ShallowClone()
+TypePtr EnumType::ShallowClone()
 	{
 	if ( counter == 0 )
-		return make_intrusive<EnumType>(GetName());
+		return zeek::make_intrusive<EnumType>(GetName());
 
-	return make_intrusive<EnumType>(this);
+	return zeek::make_intrusive<EnumType>(this);
 	}
 
 EnumType::~EnumType() = default;
@@ -1257,16 +1256,16 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		return;
 		}
 
-	auto id = lookup_ID(name, module_name.c_str());
+	auto id = zeek::detail::lookup_ID(name, module_name.c_str());
 
 	if ( ! id )
 		{
-		id = install_ID(name, module_name.c_str(), true, is_export);
-		id->SetType({NewRef{}, this});
+		id = zeek::detail::install_ID(name, module_name.c_str(), true, is_export);
+		id->SetType({zeek::NewRef{}, this});
 		id->SetEnumConst();
 
 		if ( deprecation )
-			id->MakeDeprecated({NewRef{}, deprecation});
+			id->MakeDeprecated({zeek::NewRef{}, deprecation});
 
 		zeekygen_mgr->Identifier(std::move(id));
 		}
@@ -1289,7 +1288,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
+		vals[val] = zeek::make_intrusive<zeek::EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, val);
 
 	set<Type*> types = Type::GetAliases(GetName());
 	set<Type*>::const_iterator it;
@@ -1338,13 +1337,13 @@ EnumType::enum_name_list EnumType::Names() const
 	return n;
 	}
 
-const IntrusivePtr<EnumVal>& EnumType::GetVal(bro_int_t i)
+const EnumValPtr& EnumType::GetVal(bro_int_t i)
 	{
 	auto it = vals.find(i);
 
 	if ( it == vals.end() )
 		{
-		auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
+		auto ev = zeek::make_intrusive<zeek::EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, i);
 		return vals.emplace(i, std::move(ev)).first->second;
 		}
 
@@ -1428,19 +1427,19 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-VectorType::VectorType(IntrusivePtr<Type> element_type)
+VectorType::VectorType(TypePtr element_type)
 	: Type(TYPE_VECTOR), yield_type(std::move(element_type))
 	{
 	}
 
-IntrusivePtr<Type> VectorType::ShallowClone()
+TypePtr VectorType::ShallowClone()
 	{
-	return make_intrusive<VectorType>(yield_type);
+	return zeek::make_intrusive<VectorType>(yield_type);
 	}
 
 VectorType::~VectorType() = default;
 
-const IntrusivePtr<Type>& VectorType::Yield() const
+const TypePtr& VectorType::Yield() const
 	{
 	// Work around the fact that we use void internally to mark a vector
 	// as being unspecified. When looking at its yield type, we need to
@@ -1809,8 +1808,8 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	}
 
-IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
-                                  const IntrusivePtr<Type>& arg_t2)
+TypePtr merge_types(const TypePtr& arg_t1,
+                    const TypePtr& arg_t2)
 	{
 	auto t1 = arg_t1.get();
 	auto t2 = arg_t2.get();
@@ -1859,7 +1858,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 		// Doing a lookup here as a roundabout way of ref-ing t1, without
 		// changing the function params which has t1 as const and also
 		// (potentially) avoiding a pitfall mentioned earlier about clones.
-		const auto& id = global_scope()->Find(t1->GetName());
+		const auto& id = zeek::detail::global_scope()->Find(t1->GetName());
 
 		if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
 			// It should make most sense to return the real type here rather
@@ -1883,7 +1882,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 
 		const auto& tl1 = it1->GetIndexTypes();
 		const auto& tl2 = it2->GetIndexTypes();
-		IntrusivePtr<TypeList> tl3;
+		TypeListPtr tl3;
 
 		if ( tl1.size() != tl2.size() )
 			{
@@ -1891,7 +1890,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			return nullptr;
 			}
 
-		tl3 = make_intrusive<TypeList>();
+		tl3 = zeek::make_intrusive<TypeList>();
 
 		for ( auto i = 0u; i < tl1.size(); ++i )
 			{
@@ -1904,7 +1903,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 
 		const auto& y1 = t1->Yield();
 		const auto& y2 = t2->Yield();
-		IntrusivePtr<Type> y3;
+		TypePtr y3;
 
 		if ( y1 || y2 )
 			{
@@ -1920,9 +1919,9 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			}
 
 		if ( t1->IsSet() )
-			return make_intrusive<SetType>(std::move(tl3), nullptr);
+			return zeek::make_intrusive<SetType>(std::move(tl3), nullptr);
 		else
-			return make_intrusive<TableType>(std::move(tl3), std::move(y3));
+			return zeek::make_intrusive<TableType>(std::move(tl3), std::move(y3));
 		}
 
 	case TYPE_FUNC:
@@ -1935,12 +1934,12 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
-		auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(),
+		auto args = zeek::cast_intrusive<RecordType>(merge_types(ft1->Params(),
 		                                                   ft2->Params()));
 		auto yield = t1->Yield() ?
 			merge_types(t1->Yield(), t2->Yield()) : nullptr;
 
-		return make_intrusive<FuncType>(std::move(args), std::move(yield),
+		return zeek::make_intrusive<FuncType>(std::move(args), std::move(yield),
 		                                ft1->Flavor());
 		}
 
@@ -1970,7 +1969,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			tdl3->push_back(new TypeDecl(copy_string(td1->id), std::move(tdl3_i)));
 			}
 
-		return make_intrusive<RecordType>(tdl3);
+		return zeek::make_intrusive<RecordType>(tdl3);
 		}
 
 	case TYPE_LIST:
@@ -2013,7 +2012,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			return nullptr;
 			}
 
-		auto tl3 = make_intrusive<TypeList>();
+		auto tl3 = zeek::make_intrusive<TypeList>();
 
 		for ( auto i = 0u; i < l1.size(); ++i )
 			tl3->Append(merge_types(l1[i], l2[i]));
@@ -2028,7 +2027,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			return nullptr;
 			}
 
-		return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
+		return zeek::make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
 
 	case TYPE_FILE:
 		if ( ! same_type(t1->Yield(), t2->Yield()) )
@@ -2037,7 +2036,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 			return nullptr;
 			}
 
-		return make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
+		return zeek::make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
 
 	case TYPE_UNION:
 		reporter->InternalError("union type in merge_types()");
@@ -2049,7 +2048,7 @@ IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
 	}
 	}
 
-IntrusivePtr<Type> merge_type_list(zeek::detail::ListExpr* elements)
+TypePtr merge_type_list(zeek::detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();
 	const auto& tl = tl_type->GetTypes();
@@ -2094,7 +2093,7 @@ static Type* reduce_type(Type* t)
 		return t;
 	}
 
-IntrusivePtr<Type> init_type(zeek::detail::Expr* init)
+TypePtr init_type(zeek::detail::Expr* init)
 	{
 	if ( init->Tag() != zeek::detail::EXPR_LIST )
 		{
@@ -2133,7 +2132,7 @@ IntrusivePtr<Type> init_type(zeek::detail::Expr* init)
 	auto t = e0->InitType();
 
 	if ( t )
-		t = {NewRef{}, reduce_type(t.get())};
+		t = {zeek::NewRef{}, reduce_type(t.get())};
 
 	if ( ! t )
 		return nullptr;
@@ -2141,10 +2140,10 @@ IntrusivePtr<Type> init_type(zeek::detail::Expr* init)
 	for ( int i = 1; t && i < el.length(); ++i )
 		{
 		auto el_t = el[i]->InitType();
-		IntrusivePtr<Type> ti;
+		TypePtr ti;
 
 		if ( el_t )
-			ti = {NewRef{}, reduce_type(el_t.get())};
+			ti = {zeek::NewRef{}, reduce_type(el_t.get())};
 
 		if ( ! ti )
 			return nullptr;
@@ -2169,12 +2168,12 @@ IntrusivePtr<Type> init_type(zeek::detail::Expr* init)
 	// it one, as that's what's required for creating a set type.
 	if ( t->Tag() != TYPE_LIST )
 		{
-		auto tl = make_intrusive<TypeList>(t);
+		auto tl = zeek::make_intrusive<TypeList>(t);
 		tl->Append(std::move(t));
 		t = std::move(tl);
 		}
 
-	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)),
+	return zeek::make_intrusive<SetType>(zeek::cast_intrusive<TypeList>(std::move(t)),
 	                               nullptr);
 	}
 
@@ -2193,16 +2192,16 @@ bool is_atomic_type(const Type& t)
 	}
 	}
 
-const IntrusivePtr<Type>& base_type(zeek::TypeTag tag)
+const TypePtr& base_type(zeek::TypeTag tag)
 	{
-	static IntrusivePtr<Type> base_types[NUM_TYPES];
+	static TypePtr base_types[NUM_TYPES];
 
 	// We could check here that "tag" actually corresponds to a basic type.
 	if ( ! base_types[tag] )
 		{
-		base_types[tag] = make_intrusive<Type>(tag, true);
+		base_types[tag] = zeek::make_intrusive<Type>(tag, true);
 		// Give the base types a pseudo-location for easier identification.
-		Location l(type_name(tag), 0, 0, 0, 0);
+		zeek::detail::Location l(type_name(tag), 0, 0, 0, 0);
 		base_types[tag]->SetLocationInfo(&l);
 		}
 

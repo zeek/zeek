@@ -80,7 +80,7 @@ void Manager::SetHandle(const string& handle)
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
 		{
-		BroString tmp{handle};
+		zeek::String tmp{handle};
 		auto rendered = tmp.Render();
 		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
 		delete [] rendered;
@@ -258,12 +258,12 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 	return true;
 	}
 
-bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
+bool Manager::SetExtractionLimit(const string& file_id, zeek::RecordVal* args,
                                  uint64_t n) const
-	{ return SetExtractionLimit(file_id, {NewRef{}, args}, n); }
+	{ return SetExtractionLimit(file_id, {zeek::NewRef{}, args}, n); }
 
 bool Manager::SetExtractionLimit(const string& file_id,
-                                 IntrusivePtr<RecordVal> args, uint64_t n) const
+                                 zeek::RecordValPtr args, uint64_t n) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -274,11 +274,11 @@ bool Manager::SetExtractionLimit(const string& file_id,
 	}
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                          RecordVal* args) const
-	{ return AddAnalyzer(file_id, tag, {NewRef{}, args}); }
+                          zeek::RecordVal* args) const
+	{ return AddAnalyzer(file_id, tag, {zeek::NewRef{}, args}); }
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                          IntrusivePtr<RecordVal> args) const
+                          zeek::RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -289,11 +289,11 @@ bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	}
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                             RecordVal* args) const
-	{ return RemoveAnalyzer(file_id, tag, {NewRef{}, args}); }
+                             zeek::RecordVal* args) const
+	{ return RemoveAnalyzer(file_id, tag, {zeek::NewRef{}, args}); }
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                             IntrusivePtr<RecordVal> args) const
+                             zeek::RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -435,7 +435,7 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 
 	const auto& tagval = tag.AsVal();
 
-	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), val_mgr->Bool(is_orig));
+	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), zeek::val_mgr->Bool(is_orig));
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
 	}
@@ -445,7 +445,7 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	if ( ! disabled )
 		disabled = zeek::id::find_const("Files::disable")->AsTableVal();
 
-	auto index = val_mgr->Count(bool(tag));
+	auto index = zeek::val_mgr->Count(bool(tag));
 	auto yield = disabled->FindOrDefault(index);
 
 	if ( ! yield )
@@ -454,11 +454,11 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	return yield->AsBool();
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const
-	{ return InstantiateAnalyzer(tag, {NewRef{}, args}, f); }
+Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, zeek::RecordVal* args, File* f) const
+	{ return InstantiateAnalyzer(tag, {zeek::NewRef{}, args}, f); }
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
-                                       IntrusivePtr<RecordVal> args,
+                                       zeek::RecordValPtr args,
                                        File* f) const
 	{
 	Component* c = Lookup(tag);
@@ -517,22 +517,22 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	return *(matches.begin()->second.begin());
 	}
 
-IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+zeek::VectorValPtr file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
 	static auto mime_matches = zeek::id::find_type<zeek::VectorType>("mime_matches");
 	static auto mime_match = zeek::id::find_type<zeek::RecordType>("mime_match");
-	auto rval = make_intrusive<VectorVal>(mime_matches);
+	auto rval = zeek::make_intrusive<zeek::VectorVal>(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
 	      it != m.end(); ++it )
 		{
-		auto element = make_intrusive<RecordVal>(mime_match);
+		auto element = zeek::make_intrusive<zeek::RecordVal>(mime_match);
 
 		for ( set<string>::const_iterator it2 = it->second.begin();
 		      it2 != it->second.end(); ++it2 )
 			{
-			element->Assign(0, val_mgr->Int(it->first));
-			element->Assign(1, make_intrusive<StringVal>(*it2));
+			element->Assign(0, zeek::val_mgr->Int(it->first));
+			element->Assign(1, zeek::make_intrusive<zeek::StringVal>(*it2));
 			}
 
 		rval->Assign(rval->Size(), std::move(element));

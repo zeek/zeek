@@ -4,7 +4,7 @@
 
 #include <ctype.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "Ident.h"
 #include "Event.h"
@@ -80,14 +80,14 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		if ( line != end_of_line )
 			{
-			BroString s((const u_char*)orig_line, length, true);
+			zeek::String s((const u_char*)orig_line, length, true);
 			Weird("ident_request_addendum", s.CheckString());
 			}
 
 		EnqueueConnEvent(ident_request,
 			ConnVal(),
-			val_mgr->Port(local_port, TRANSPORT_TCP),
-			val_mgr->Port(remote_port, TRANSPORT_TCP)
+			zeek::val_mgr->Port(local_port, TRANSPORT_TCP),
+			zeek::val_mgr->Port(remote_port, TRANSPORT_TCP)
 		);
 
 		did_deliver = true;
@@ -147,9 +147,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			if ( ident_error )
 				EnqueueConnEvent(ident_error,
 					ConnVal(),
-					val_mgr->Port(local_port, TRANSPORT_TCP),
-					val_mgr->Port(remote_port, TRANSPORT_TCP),
-					make_intrusive<StringVal>(end_of_line - line, line)
+					zeek::val_mgr->Port(local_port, TRANSPORT_TCP),
+					zeek::val_mgr->Port(remote_port, TRANSPORT_TCP),
+					zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line)
 				);
 			}
 
@@ -172,18 +172,18 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			while ( --sys_end > sys_type && isspace(*sys_end) )
 				;
 
-			BroString* sys_type_s =
-				new BroString((const u_char*) sys_type,
-						sys_end - sys_type + 1, true);
+			zeek::String* sys_type_s =
+				new zeek::String((const u_char*) sys_type,
+				                    sys_end - sys_type + 1, true);
 
 			line = skip_whitespace(colon + 1, end_of_line);
 
 			EnqueueConnEvent(ident_reply,
 				ConnVal(),
-				val_mgr->Port(local_port, TRANSPORT_TCP),
-				val_mgr->Port(remote_port, TRANSPORT_TCP),
-				make_intrusive<StringVal>(end_of_line - line, line),
-				make_intrusive<StringVal>(sys_type_s)
+				zeek::val_mgr->Port(local_port, TRANSPORT_TCP),
+				zeek::val_mgr->Port(remote_port, TRANSPORT_TCP),
+				zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
+				zeek::make_intrusive<zeek::StringVal>(sys_type_s)
 			);
 			}
 		}
@@ -242,7 +242,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 
 void Ident_Analyzer::BadRequest(int length, const char* line)
 	{
-	BroString s((const u_char*)line, length, true);
+	zeek::String s((const u_char*)line, length, true);
 	Weird("bad_ident_request", s.CheckString());
 	}
 
@@ -250,7 +250,7 @@ void Ident_Analyzer::BadReply(int length, const char* line)
 	{
 	if ( ! did_bad_reply )
 		{
-		BroString s((const u_char*)line, length, true);
+		zeek::String s((const u_char*)line, length, true);
 		Weird("bad_ident_reply", s.CheckString());
 		did_bad_reply = true;
 		}

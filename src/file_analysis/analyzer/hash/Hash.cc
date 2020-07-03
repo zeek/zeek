@@ -9,7 +9,7 @@
 
 using namespace file_analysis;
 
-Hash::Hash(IntrusivePtr<RecordVal> args, File* file, HashVal* hv, const char* arg_kind)
+Hash::Hash(zeek::RecordValPtr args, File* file, zeek::HashVal* hv, const char* arg_kind)
 	: file_analysis::Analyzer(file_mgr->GetComponentTag(to_upper(arg_kind).c_str()),
 	                          std::move(args), file),
 	  hash(hv), fed(false), kind(arg_kind)
@@ -54,8 +54,8 @@ void Hash::Finalize()
 		return;
 
 	mgr.Enqueue(file_hash,
-		GetFile()->ToVal(),
-		make_intrusive<StringVal>(kind),
-		hash->Get()
+	            GetFile()->ToVal(),
+	            zeek::make_intrusive<zeek::StringVal>(kind),
+	            hash->Get()
 	);
 	}

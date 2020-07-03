@@ -1,6 +1,6 @@
 #include "zeek-config.h"
 #include "Base64.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Reporter.h"
 #include "Conn.h"
 
@@ -35,7 +35,7 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 	for ( int i = 0, j = 0; (i < len) && ( j < blen ); )
 		{
 			uint32_t bit32 = data[i++]  << 16;
-			bit32 += (i++ < len ? data[i-1] : 0) << 8; 
+			bit32 += (i++ < len ? data[i-1] : 0) << 8;
 			bit32 += i++ < len ? data[i-1] : 0;
 
 			buf[j++] = alphabet[(bit32 >> 18) & 0x3f];
@@ -228,7 +228,7 @@ void Base64Converter::IllegalEncoding(const char* msg)
 			reporter->Error("%s", msg);
 		}
 
-BroString* decode_base64(const BroString* s, const BroString* a, Connection* conn)
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
@@ -255,14 +255,14 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 	rlen += rlen2;
 
 	rbuf[rlen] = '\0';
-	return new BroString(true, (u_char*) rbuf, rlen);
+	return new zeek::String(true, (u_char*) rbuf, rlen);
 
 err:
 	delete [] rbuf;
 	return nullptr;
 	}
 
-BroString* encode_base64(const BroString* s, const BroString* a, Connection* conn)
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
@@ -276,5 +276,5 @@ BroString* encode_base64(const BroString* s, const BroString* a, Connection* con
 	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
-	return new BroString(true, (u_char*)outbuf, outlen);
+	return new zeek::String(true, (u_char*)outbuf, outlen);
 	}

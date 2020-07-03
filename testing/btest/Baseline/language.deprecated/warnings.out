@@ -17,6 +17,8 @@ warning in ./warnings.zeek, line 57: deprecated (my_hook): hook warning
 warning in ./warnings.zeek, line 62: deprecated (blah): type warning
 warning in ./warnings.zeek, line 71: deprecated (dont_use_me): global function warning
 warning in ./warnings.zeek, line 76: deprecated (dont_use_me_either): function warning
+warning: mr assignment unused: mr = (coerce #1 to record { a:count; b:string; }); ./warnings.zeek, line 42
+warning: mr assignment unused: mr = (coerce #0 to record { a:count; b:string; }); ./warnings.zeek, line 41
 ZERO
 ONE
 TWO

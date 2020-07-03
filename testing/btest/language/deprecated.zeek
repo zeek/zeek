@@ -28,6 +28,11 @@ type my_other_enum: enum {
 	TWO = 2 &deprecated,
 };
 
+# A stub to suppress not-used messages.
+function use_me(dummy: my_record)
+	{
+	}
+
 event zeek_init()
 	{
 	print ZERO;
@@ -37,16 +42,18 @@ event zeek_init()
 	print GREEN;
 	print BLUE;
 
-	local l: blah = "testing";
+	local l: blah = "testing" &is_used;
 
-	local ls: string = " test";
+	local ls: string = " test" &is_used;
 
 	event my_event("generate my_event please");
 	schedule 1sec { my_event("schedule my_event please") };
 	hook my_hook("generate my_hook please");
 
 	local mr = my_record($a = 3, $b = "yeah");
+	use_me(mr);
 	mr = [$a = 4, $b = "ye"];
+	use_me(mr);
 	mr = record($a = 5, $b = "y");
 
 	if ( ! mr?$b )
@@ -117,9 +124,9 @@ event zeek_init()
 	print GREEN;
 	print BLUE;
 
-	local l: blah = "testing";
+	local l: blah = "testing" &is_used;
 
-	local ls: string = " test";
+	local ls: string = " test" &is_used;
 
 	event my_event("generate my_event please");
 	schedule 1sec { my_event("schedule my_event please") };

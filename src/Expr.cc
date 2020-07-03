@@ -8100,7 +8100,16 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 				return false;
 				}
 
-			def_elements.push_front(def_attr->AttrExpr());
+			// Don't use the default expression directly, as
+			// doing so will wind up sharing its code across
+			// different invocations that use the default
+			// argument.  That works okay for the interpreter,
+			// but if we transform the code we want that done
+			// separately for each instance, rather than
+			// one instance inheriting the transformed version
+			// from another.
+			auto e = def_attr->AttrExpr();
+			def_elements.push_front(e->Duplicate().release());
 			}
 
 		for ( const auto& elem : def_elements )

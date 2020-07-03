@@ -5893,12 +5893,6 @@ ArithCoerceExpr::ArithCoerceExpr(IntrusivePtr<Expr> arg_op, TypeTag t)
 
 IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 	{
-	if ( Val::WouldOverflow(v->Type()->InternalType(), t, v) )
-		{
-		RuntimeError("under/overflow in type conversion");
-		return nullptr;
-		}
-
 	switch ( t ) {
 	case TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<Val>(v->CoerceToDouble(), TYPE_DOUBLE);

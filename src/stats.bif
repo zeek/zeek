@@ -147,9 +147,9 @@ function get_proc_stats%(%): ProcStats
 		double(ru.ru_stime.tv_sec) + double(ru.ru_stime.tv_usec) / 1e6;
 
 #ifdef DEBUG
-	r->Assign(n++, val_mgr->GetCount(1));
+	r->Assign(n++, val_mgr->GetBool(true));
 #else
-	r->Assign(n++, val_mgr->GetCount(0));
+	r->Assign(n++, val_mgr->GetBool(false));
 #endif
 
 	r->Assign(n++, make_intrusive<Val>(bro_start_time, TYPE_TIME));

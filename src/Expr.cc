@@ -4022,7 +4022,8 @@ bool AssignExpr::IsReduced(Reducer* c) const
 
 	auto t1 = op1->Tag();
 
-	if ( t1 == EXPR_REF && op2->HasConstantOps() )
+	if ( t1 == EXPR_REF &&
+	     op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		// We are not reduced because we should instead
 		// be folded.
 		return NonReduced(this);
@@ -4164,7 +4165,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = op2->ReduceToSingletons(c);
 
-	if ( op2->HasConstantOps() )
+	if ( op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
 
 	// Check once again for transformation, this time made possible

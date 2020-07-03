@@ -1,5 +1,4 @@
-error in int and ./first_set.zeek, line 46: overflow promoting from unsigned/double to signed arithmetic value (int and 9223372036854775808)
-expression error in ./first_set.zeek, line 46: Failed type conversion ((coerce [$ii=9223372036854775808] to record { ii:int; cc:count; dd:double; }))
+error in int: overflow promoting from unsigned/double to signed arithmetic value (int and 9223372036854775808)
 3
 int
 4

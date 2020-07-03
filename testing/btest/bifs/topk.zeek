@@ -148,10 +148,10 @@ event zeek_init()
 	print topk_count(k3, "d");
 	print topk_epsilon(k3, "d");
 
-	local styped: vector of count;
+	local styped: vector of string;
 	styped = topk_get_top(k3, 3);
 	for ( i in styped )
-	print i, styped[i];
+		print i, styped[i];
 
 	local anytyped: vector of any;
 	anytyped = topk_get_top(k3, 3);

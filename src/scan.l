@@ -588,7 +588,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 %%
 
-YYLTYPE GetCurrentLocation()
+YYLTYPE zeek::detail::GetCurrentLocation()
 	{
 	static YYLTYPE currloc;
 

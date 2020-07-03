@@ -290,8 +290,8 @@ void analyze_scripts()
 
 void profile_script_execution()
 	{
-	printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
-	printf("%d string vals created, %d destructed\n", num_StringVals, num_del_StringVals);
+	// printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
+	// printf("%d string vals created, %d destructed\n", num_StringVals, num_del_StringVals);
 
 	if ( analysis_options.report_profile )
 		{

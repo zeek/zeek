@@ -13,7 +13,7 @@
 #include <sstream>
 
 #include "iosource/Manager.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Dict.h"
 #include "RE.h"
 #include "Reporter.h"

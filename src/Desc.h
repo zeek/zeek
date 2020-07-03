@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroString.h" // for byte_vec
+#include "ZeekString.h" // for byte_vec
 #include "util.h" // for bro_int_t
 
 #include <set>

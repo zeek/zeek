@@ -15,7 +15,7 @@
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "DNS_Mgr.h"
 #include "Expr.h"
 #include "Func.h"

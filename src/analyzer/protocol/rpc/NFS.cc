@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "XDR.h"
 #include "Event.h"

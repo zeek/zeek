@@ -3,7 +3,7 @@
 #include "File.h"
 #include "analyzer/Analyzer.h"
 #include "analyzer/protocol/tcp/TCP.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Reporter.h"
 #include "RuleMatcher.h"
 

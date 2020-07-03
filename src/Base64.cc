@@ -1,6 +1,6 @@
 #include "zeek-config.h"
 #include "Base64.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Reporter.h"
 #include "Conn.h"
 

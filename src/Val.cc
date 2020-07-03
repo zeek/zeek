@@ -17,7 +17,7 @@
 #include <set>
 
 #include "Attr.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "CompHash.h"
 #include "Dict.h"
 #include "Net.h"

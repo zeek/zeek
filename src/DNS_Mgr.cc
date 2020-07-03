@@ -31,7 +31,7 @@
 
 #include <algorithm>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Expr.h"
 #include "Event.h"
 #include "Net.h"

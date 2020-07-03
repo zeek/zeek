@@ -4,7 +4,7 @@
 
 #include <ctype.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "Ident.h"
 #include "Event.h"

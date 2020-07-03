@@ -6,7 +6,7 @@
 #include "Reporter.h"
 // The following are required for ValueToVal.
 #include "Val.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "RE.h"
 #include "module_util.h"
 #include "ID.h"

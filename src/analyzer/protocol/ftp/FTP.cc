@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "Base64.h"

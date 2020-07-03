@@ -10,7 +10,7 @@
 #include "CCL.h"
 #include "EquivClass.h"
 #include "Reporter.h"
-#include "BroString.h"
+#include "ZeekString.h"
 
 CCL* curr_ccl = nullptr;
 

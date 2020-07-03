@@ -1,6 +1,6 @@
 %extern{
 #include "Sessions.h"
-#include "BroString.h"
+#include "ZeekString.h"
 %}
 
 %code{

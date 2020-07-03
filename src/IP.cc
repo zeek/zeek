@@ -10,7 +10,7 @@
 #include "Type.h"
 #include "Val.h"
 #include "Var.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Reporter.h"
 
 static zeek::VectorValPtr BuildOptionsVal(const u_char* data, int len)

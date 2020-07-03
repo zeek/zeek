@@ -5,7 +5,7 @@
 #include "IP.h"
 #include "Reporter.h"
 #include "Sessions.h"
-#include "BroString.h"
+#include "ZeekString.h"
 
 #include "events.bif.h"
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include <map>
 
 // BroSubstrings are essentially BroStrings, augmented with indexing

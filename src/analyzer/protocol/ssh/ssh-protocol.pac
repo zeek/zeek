@@ -1,7 +1,7 @@
 %include consts.pac
 
 %extern{
-#include "BroString.h"
+#include "ZeekString.h"
 %}
 
 # Common constructs across SSH1 and SSH2

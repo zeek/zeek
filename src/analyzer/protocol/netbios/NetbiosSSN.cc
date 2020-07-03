@@ -5,7 +5,7 @@
 
 #include <ctype.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"

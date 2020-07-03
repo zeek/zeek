@@ -7,7 +7,7 @@
 #include <map>
 
 #include "CompHash.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Dict.h"
 #include "Val.h"
 #include "RE.h"

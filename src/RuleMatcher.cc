@@ -7,7 +7,7 @@
 
 #include "RuleAction.h"
 #include "RuleCondition.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "ID.h"
 #include "IntrusivePtr.h"
 #include "IntSet.h"

@@ -8,7 +8,7 @@
 
 #include "analyzer/Tag.h"
 #include "AnalyzerSet.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "BroList.h" // for val_list
 #include "ZeekArgs.h"
 #include "WeirdState.h"

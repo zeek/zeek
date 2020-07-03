@@ -6,7 +6,7 @@
 #include <vector>
 #include <queue>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Reporter.h"
 #include "analyzer/Analyzer.h"
 

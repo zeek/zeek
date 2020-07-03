@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "RE.h"
 #include "Reporter.h"

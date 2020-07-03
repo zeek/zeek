@@ -5,7 +5,7 @@
 #include "Hash.h"
 #include "digest.h"
 #include "Reporter.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Val.h" // needed for const.bif
 #include "const.bif.netvar_h"
 

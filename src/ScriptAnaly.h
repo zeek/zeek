@@ -17,7 +17,8 @@ extern struct AnalyOpt {
 	const char* only_func = nullptr;
 
 	// If true, then generate a detailed dynamic execution profile
-	// for generate code.
+	// for generate code.  A huge volume of output and slows down
+	// executation roughly 2x.
 	bool report_profile = false;
 
 	// If true, reports on uses of uninitialized record fields and

@@ -30,6 +30,7 @@ typedef enum {
 	ATTR_TYPE_COLUMN,	// for input framework
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 	ATTR_ON_CHANGE, // for table change tracking
+	ATTR_IS_SET,	// to suppress warnings
 	ATTR_IS_USED,	// to suppress warnings
 	ATTR_DEPRECATED,
 #define NUM_ATTRS (int(ATTR_DEPRECATED) + 1)

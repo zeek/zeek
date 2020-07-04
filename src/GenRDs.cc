@@ -814,7 +814,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		if ( id->IsGlobal() )
 			break;
 
-		if ( ! mgr.HasPreMinRD(e, id) )
+		if ( ! mgr.HasPreMinRD(e, id) && ! id->FindAttr(ATTR_IS_SET) )
 			e->Error("used without definition");
 
 		if ( id->Type()->Tag() == TYPE_RECORD )

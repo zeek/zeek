@@ -247,6 +247,7 @@ void init_alternative_mode()
 
 	static char name[1024];
 	strncpy(name, input_filename, sizeof(name) - 1);
+	name[sizeof(name) - 1] = 0;
 	char* dot = strchr(name, '.');
 	if ( dot )
 		*dot = '\0';
@@ -255,6 +256,7 @@ void init_alternative_mode()
 		{
 		static char plugin_canon[1024];
 		strncpy(plugin_canon, plugin, sizeof(plugin_canon) - 1);
+		plugin_canon[sizeof(plugin_canon) - 1] = 0;
 		char* colon = strstr(plugin_canon, "::");
 
 		if ( colon ) {

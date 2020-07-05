@@ -33,7 +33,7 @@ export {
 		se: set[string];
 		vc: vector of count;
 		ve: vector of string;
-		f: function(i: count) : string;
+		f: string;
 	} &log;
 }
 
@@ -73,7 +73,7 @@ event zeek_init()
 		$se=empty_set,
 		$vc=vector(10, 20, 30),
 		$ve=empty_vector,
-		$f=foo
+		$f=type_name(foo)
 		]);
 }
 

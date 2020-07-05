@@ -123,7 +123,7 @@ function format_value(value: any) : string
 	local part: string_vec = vector();
 	if ( /^set/ in tn )
 		{
-		local it: set[bool] = value;
+		local it: set[string] = value;
 		for ( sv in it )
 			part += cat(sv);
 		return join_string_vec(part, ",");

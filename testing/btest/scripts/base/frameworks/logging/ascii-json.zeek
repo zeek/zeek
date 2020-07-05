@@ -29,7 +29,7 @@ export {
 		vc: vector of count;
 		ve: vector of string;
 		vn: vector of count;
-		f: function(i: count) : string;
+		f: string;
 	} &log;
 }
 
@@ -70,7 +70,7 @@ event zeek_init()
 		$vc=vector(10, 20, 30),
 		$ve=empty_vector,
 		$vn=vector_with_null,
-		$f=foo
+		$f=type_name(foo)
 		]);
 }
 

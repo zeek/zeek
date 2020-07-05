@@ -518,14 +518,23 @@ IntrusivePtr<Expr> Expr::CopyName(const IntrusivePtr<Expr>& e) const
 
 void Expr::SeatBelts(const BroType* t1, const BroType* t2) const
 	{
-	if ( ! same_type(t1, t2) &&
-	     t1->Tag() != TYPE_ERROR && t2->Tag() != TYPE_ERROR )
-		{
-		printf("type mismatch for %s\n", obj_desc(this));
-		printf(" ... %s vs. %s\n",
-			type_name(t1->Tag()), type_name(t2->Tag()));
-		reporter->InternalError("SeatBelts");
-		}
+	if ( same_type(t1, t2) )
+		return;
+
+	auto tt1 = t1->Tag();
+	auto tt2 = t2->Tag();
+
+	if ( t1->Tag() == TYPE_ERROR || t2->Tag() == TYPE_ERROR )
+		return;
+
+	if ( t1->Tag() == TYPE_LIST || t2->Tag() == TYPE_LIST )
+		// These arise from indexing "any" types.
+		return;
+
+	printf("type mismatch for %s\n", obj_desc(this));
+	printf(" ... %s vs. ", obj_desc(t1));
+	printf("%s\n", obj_desc(t2));
+	reporter->InternalError("SeatBelts");
 	}
 
 Val* Expr::MakeZero(TypeTag t) const

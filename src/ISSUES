@@ -1,9 +1,45 @@
 TEST SUITE
+	broker.remote_id
+		failing due to lack of Modified() calls?
+
 	language/delete-field-set.zeek
 		what does it mean to delete a field with a &default ?
 
-	broker.opaque
+	language.index-assignment-invalid
+		error message has temp variable in it rather than original (ETV)
+
+	language.subnet-errors
+		ETV
+
+	language.type-coerce-numerics
+		### coercion warning/error
+
+	language.uninitialized-local
+	language.uninitialized-local2
+		static analysis correctly finds issues prevously missed
+
 	plugins.hooks
+		messy - prints lots of embedded function bodies
+
+	scripts.base.frameworks.config.container-options
+		fails due to polymorphic any -> set[T] in Config::format_value
+
+	scripts.base.frameworks.control.configuration_update
+		failing due to lack of Modified() calls?
+
+	scripts.base.frameworks.file-analysis.bifs.file_exists_lookup_file
+		-warning: non-void function returning without a value: Files::lookup_file
+		+expression error in <no location>: value used but not set (#0)
+
+	scripts.base.frameworks.input.config.enum-set
+		same issue as scripts.base.frameworks.config.container-options
+
+	scripts.base.frameworks.config.read_config_cluster
+		failing due to lack of Modified() calls?
+
+	scripts.base.frameworks.sumstats.basic
+		failing due to lack of Modified() calls?
+
 	scripts.policy.frameworks.netcontrol.catch-and-release
 	scripts.policy.frameworks.netcontrol.catch-and-release-forgotten
 		need help understanding these

@@ -676,11 +676,6 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitBifs();
 
-	analyze_scripts();
-
-	if ( reporter->Errors() > 0 )
-		exit(1);
-
 	iosource_mgr->InitPostScript();
 	plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
@@ -825,6 +820,8 @@ int main(int argc, char** argv)
 		if ( segment_profiling )
 			segment_logger = profiling_logger;
 		}
+
+	analyze_scripts();
 
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since

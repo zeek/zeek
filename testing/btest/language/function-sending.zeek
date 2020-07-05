@@ -40,7 +40,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
     }
 event pong(msg: string, f: myfunctype)
     {
-    print fmt("sender got pong: %s, %s", msg, f);
+    print fmt("sender got pong: %s, %s", msg, type_name(f));
     f(event_count);
     send_event();
     }
@@ -73,7 +73,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 global n = 0;
 event ping(msg: string, f: myfunctype)
     {
-    print fmt("receiver got ping: %s, %s", msg, f);
+    print fmt("receiver got ping: %s, %s", msg, type_name(f));
     ++n;
     f(n);
     if ( n == events_to_recv )

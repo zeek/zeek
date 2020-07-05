@@ -1,11 +1,11 @@
 peer added
-receiver got ping: my-message, myfunc\x0a{ \x0aprint fmt(myfunc(%s), c);\x0a}
+receiver got ping: my-message, function(c:count;) : void
 myfunc(1)
-receiver got ping: my-message, myfunc\x0a{ \x0aprint fmt(myfunc(%s), c);\x0a}
+receiver got ping: my-message, function(c:count;) : void
 myfunc(2)
-receiver got ping: my-message, myfunc\x0a{ \x0aprint fmt(myfunc(%s), c);\x0a}
+receiver got ping: my-message, function(c:count;) : void
 myfunc(3)
-receiver got ping: my-message, myfunc\x0a{ \x0aprint fmt(myfunc(%s), c);\x0a}
+receiver got ping: my-message, function(c:count;) : void
 myfunc(4)
-receiver got ping: my-message, myfunc\x0a{ \x0aprint fmt(myfunc(%s), c);\x0a}
+receiver got ping: my-message, function(c:count;) : void
 myfunc(5)

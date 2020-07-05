@@ -518,7 +518,8 @@ IntrusivePtr<Expr> Expr::CopyName(const IntrusivePtr<Expr>& e) const
 
 void Expr::SeatBelts(const BroType* t1, const BroType* t2) const
 	{
-	if ( ! same_type(t1, t2) )
+	if ( ! same_type(t1, t2) &&
+	     t1->Tag() != TYPE_ERROR && t2->Tag() != TYPE_ERROR )
 		{
 		printf("type mismatch for %s\n", obj_desc(this));
 		printf(" ... %s vs. %s\n",
@@ -6316,7 +6317,10 @@ CoerceFromAnyExpr::CoerceFromAnyExpr(IntrusivePtr<Expr> arg_op,
 
 IntrusivePtr<Val> CoerceFromAnyExpr::Fold(Val* v) const
 	{
-	if ( v->Type()->Tag() != Type()->Tag() )
+	auto t = Type()->Tag();
+	auto vt = v->Type()->Tag();
+
+	if ( vt != t && vt != TYPE_ERROR )
 		RuntimeError("incompatible \"any\" type");
 
 	return {NewRef{}, v};

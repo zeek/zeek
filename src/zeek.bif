@@ -4826,16 +4826,6 @@ function compress_path%(dir: string%): string
 
 	std::vector<PathToken> tokens;
 
-	bool is_absolute;
-
-	if ( di < dn && d[di] == '/' )
-		{
-		is_absolute = true;
-		++di;
-		}
-	else
-		is_absolute = false;
-
 	while ( di < dn )
 		{
 		// We're now at the start of a new token.  Ignore any
@@ -4879,7 +4869,8 @@ function compress_path%(dir: string%): string
 	auto r = new char[dn + 1];	// size is guaranteed <= original
 	int ri = 0;	// pointer into copy
 
-	if ( is_absolute )
+	if ( dn > 0 && d[0] == '/' )
+		// Path is absolute.
 		r[ri++] = '/';
 
 	for ( auto i = 0; i < tokens.size(); ++i )

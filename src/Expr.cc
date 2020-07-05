@@ -876,11 +876,17 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	if ( is_vector(v.get()) && Tag() != EXPR_IS && Tag() != EXPR_CAST &&
+	auto t = Tag();
+
+	// Check for operations that should be vectorized.
+	if ( is_vector(v.get()) && t != EXPR_IS && t != EXPR_CAST &&
 	     // The following allows passing vectors-by-reference to
 	     // functions that use vector-of-any for generic vector
-	     // manipulation.
-	     Tag() != EXPR_TO_ANY_COERCE )
+	     // manipulation ...
+	     t != EXPR_TO_ANY_COERCE &&
+	     // ... and the following to avoid vectorizing operations
+	     // on vector-of-any's
+	     t != EXPR_FROM_ANY_COERCE )
 		{
 		VectorVal* v_op = v->AsVectorVal();
 		VectorType* out_t;

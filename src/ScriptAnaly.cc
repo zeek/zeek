@@ -92,6 +92,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 			}
 
 		rc->SetDefSetsMgr(cb->GetDefSetsMgr());
+		rc->SetProfile(&pf_red);
 
 		new_body = new_body->Reduce(rc);
 		new_body_ptr = {AdoptRef{}, new_body};

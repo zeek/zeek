@@ -25,7 +25,7 @@ public:
 	// unused aggregates.
 	std::unordered_set<ID*> inits;
 
-	// Script funcs this script calls.
+	// Script functionss this script calls.
 	std::unordered_set<Func*> script_calls;
 
 	// Same for BiF's.
@@ -33,6 +33,13 @@ public:
 
 	// Names of generated events.
 	std::unordered_set<const char*> events;
+
+	// Maps expressions to their "call level", i.e., how many function
+	// calls have occurred at that point.
+	std::unordered_map<const Expr*, int> call_level;
+
+	// Current call level.
+	int curr_call_level = 0;
 
 	// True if makes a call through an expression.
 	bool does_indirect_calls;

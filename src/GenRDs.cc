@@ -65,9 +65,10 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 
 	if ( analysis_options.rd_trace )
 		{
-		printf("traversing function %s, post min RDs:\n", f->Name());
-		mgr.GetPostMinRDs(f)->Dump();
-		// mgr.GetPostMaxRDs(f)->Dump();
+		// printf("traversing function %s, post min RDs:\n", f->Name());
+		// mgr.GetPostMinRDs(f)->Dump();
+		printf("traversing function %s, post max RDs:\n", f->Name());
+		mgr.GetPostMaxRDs(f)->Dump();
 		}
 
 	mgr.SetPreFromPost(body.get(), f);
@@ -81,9 +82,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 	if ( analysis_options.rd_trace )
 		{
-		printf("pre min RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPreMinRDs(s)->Dump();
-		// mgr.GetPreMaxRDs(s)->Dump();
+		// printf("pre min RDs for stmt %s:\n", obj_desc(s));
+		// mgr.GetPreMinRDs(s)->Dump();
+		printf("pre max RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPreMaxRDs(s)->Dump();
 		printf("\n");
 		}
 
@@ -160,9 +162,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 			if ( analysis_options.rd_trace )
 				{
-				printf("post min RDs for stmt %s:\n", obj_desc(stmt));
-				mgr.GetPostMinRDs(stmt)->Dump();
-				// mgr.GetPostMaxRDs(stmt)->Dump();
+				// printf("post min RDs for stmt %s:\n", obj_desc(stmt));
+				// mgr.GetPostMinRDs(stmt)->Dump();
+				printf("post max RDs for stmt %s:\n", obj_desc(stmt));
+				mgr.GetPostMaxRDs(stmt)->Dump();
 				printf("\n");
 				}
 
@@ -612,9 +615,10 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 	if ( analysis_options.rd_trace )
 		{
-		printf("post min RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPostMinRDs(s)->Dump();
-		// mgr.GetPostMaxRDs(s)->Dump();
+		// printf("post min RDs for stmt %s:\n", obj_desc(s));
+		// mgr.GetPostMinRDs(s)->Dump();
+		printf("post max RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPostMaxRDs(s)->Dump();
 		printf("\n");
 		}
 
@@ -1055,9 +1059,16 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		// If one of the arguments is an aggregate, then
 		// it's actually passed by reference, and we shouldn't
-		// ding it for not being initialized.
+		// ding it for not being initialized.  In addition,
+		// we should treat this as a definition of the
+		// aggregate, because while it can't be actually
+		// reassigned, all of its dynamic properties can change
+		// due to the call.  (In the future, we could consider
+		// analyzing the call to see whether this is in fact
+		// the case.
 		//
-		// We handle this by just doing the traversal ourselves.
+		// We handle all of this by just doing the traversal
+		// ourselves.
 		mgr.SetPreFromPre(f, e);
 		f->Traverse(this);
 

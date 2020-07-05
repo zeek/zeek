@@ -44,6 +44,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	{
 	++num_exprs;
 
+	call_level[e] = curr_call_level;
+
 	switch ( e->Tag() ) {
 	case EXPR_NAME:
 		{
@@ -58,6 +60,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 
 	case EXPR_CALL:
 		{
+		++curr_call_level;
+
 		auto c = e->AsCallExpr();
 		auto f = c->Func();
 

@@ -8,6 +8,7 @@
 class ID;
 class Expr;
 class TempVar;
+class ProfileFunc;
 
 class Reducer {
 public:
@@ -16,6 +17,8 @@ public:
 
 	const DefSetsMgr* GetDefSetsMgr() const	{ return mgr; }
 	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
+
+	void SetProfile(const ProfileFunc* _pf)	{ pf = _pf; }
 
 	IntrusivePtr<Expr> GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 						IntrusivePtr<Expr> rhs);
@@ -191,7 +194,8 @@ protected:
 	std::unordered_set<const Stmt*> omitted_stmts;
 	std::unordered_map<const Stmt*, Stmt*> replaced_stmts;
 
-	const DefSetsMgr* mgr;
+	const DefSetsMgr* mgr = nullptr;
+	const ProfileFunc* pf = nullptr;
 };
 
 extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);

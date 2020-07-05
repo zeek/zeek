@@ -6,6 +6,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Desc.h"
+#include "ProfileFunc.h"
 #include "Reporter.h"
 #include "Reduce.h"
 #include "TempVar.h"
@@ -14,7 +15,6 @@
 Reducer::Reducer(Scope* s)
 	{
 	scope = s;
-	mgr = nullptr;
 	}
 
 Reducer::~Reducer()
@@ -365,6 +365,9 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 						const Expr* lhs,
 						const TempVar* lhs_tmp)
 	{
+	ASSERT(pf->call_level.count(rhs) > 0);
+	int rhs_call_level = pf->call_level.find(rhs)->second;
+
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
 		auto et_i = expr_temps[i];
@@ -373,7 +376,15 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 			// optimizing.
 			continue;
 
-		if ( SameExpr(rhs, et_i->RHS()) )
+		auto et_i_expr = et_i->RHS();
+		ASSERT(pf->call_level.count(et_i_expr) > 0);
+
+		if ( pf->call_level.find(et_i_expr)->second != rhs_call_level )
+			// Don't propagate expressions across calls, there
+			// are too many ways that they could be out of date.
+			continue;
+
+		if ( SameExpr(rhs, et_i_expr) )
 			{
 			// Make sure its value always makes it here.
 			auto id = et_i->Id();

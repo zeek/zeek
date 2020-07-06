@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2019-10-15-01-48-24
+#open	2020-07-03-21-08-52
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -189,6 +189,7 @@ scripts/base/init-default.zeek
   scripts/base/utils/active-http.zeek
     scripts/base/utils/exec.zeek
   scripts/base/utils/addrs.zeek
+  scripts/base/utils/backtrace.zeek
   scripts/base/utils/conn-ids.zeek
   scripts/base/utils/dir.zeek
     scripts/base/frameworks/reporter/__load__.zeek
@@ -381,4 +382,4 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2019-10-15-01-48-25
+#close	2020-07-03-21-08-52

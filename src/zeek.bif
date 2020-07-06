@@ -2172,6 +2172,46 @@ function is_v6_subnet%(s: subnet%): bool
 		return zeek::val_mgr->False();
 	%}
 
+## Returns a representation of the call stack as a vector of call stack
+## elements, each containing call location information.
+##
+## Returns: the call stack information, including function, file, and line
+##          location information.
+function backtrace%(%): Backtrace
+	%{
+	using zeek::detail::call_stack;
+	static auto backtrace_type = id::find_type<VectorType>("Backtrace");
+	static auto elem_type = id::find_type<RecordType>("BacktraceElement");
+	static auto function_name_idx = elem_type->FieldOffset("function_name");
+	static auto function_args_idx = elem_type->FieldOffset("function_args");
+	static auto file_location_idx = elem_type->FieldOffset("file_location");
+	static auto line_location_idx = elem_type->FieldOffset("line_location");
+
+	auto rval = make_intrusive<VectorVal>(backtrace_type);
+
+	for ( auto it = call_stack.rbegin(); it != call_stack.rend(); ++it )
+		{
+		auto elem = make_intrusive<RecordVal>(elem_type);
+		const auto& ci = *it;
+
+		const auto& params = ci.func->GetType()->Params();
+		auto args = MakeCallArgumentVector(ci.args, params);
+
+		elem->Assign<StringVal>(function_name_idx, ci.func->Name());
+		elem->Assign(function_args_idx, std::move(args));
+
+		if ( ci.call )
+			{
+			auto loc = ci.call->GetLocationInfo();
+			elem->Assign<StringVal>(file_location_idx, loc->filename);
+			elem->Assign(line_location_idx, val_mgr->Count(loc->first_line));
+			}
+
+		rval->Assign(rval->Size(), std::move(elem));
+		}
+
+	return rval;
+	%}
 
 # ===========================================================================
 #

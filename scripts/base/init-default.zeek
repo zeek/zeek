@@ -7,6 +7,7 @@
 @load base/utils/site
 @load base/utils/active-http
 @load base/utils/addrs
+@load base/utils/backtrace
 @load base/utils/conn-ids
 @load base/utils/dir
 @load base/utils/directions-and-hosts

@@ -1,4 +1,9 @@
 
+3.2.0-dev.859 | 2020-07-06 14:55:00 +0000
+
+  * Add backtrace() and print_backtrace() BIF functions. (Jon Siwek,
+    Corelight)
+
 3.2.0-dev.855 | 2020-07-03 14:29:55 -0700
 
   * Fix --enable-mobile-ipv6 build (Jon Siwek, Corelight)

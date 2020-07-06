@@ -5129,3 +5129,14 @@ function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern
 	%{
 	return val->ToJSON(only_loggable, field_escape_pattern);
 	%}
+
+## Compresses a given path by removing '..'s and the parent directory it
+## references and also removing dual '/'s and extraneous '/./'s.
+##
+## dir: a path string, either relative or absolute.
+##
+## Returns: a compressed version of the input path.
+function compress_path%(dir: string%): string
+	%{
+	return new StringVal(normalize_path(dir->ToStdString()));
+	%}

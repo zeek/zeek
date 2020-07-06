@@ -645,7 +645,12 @@ Expr* Expr::AssignToTemporary(Expr* e, Reducer* c,
 	IntrusivePtr<Stmt> a_e_s = {AdoptRef{}, new ExprStmt(a_e)};
 	red_stmt = MergeStmts(red_stmt, a_e_s);
 
-	return result_tmp.release();
+	// Important: our result is not result_tmp, but a duplicate of it.
+	// This is important because subsequent passes that associate
+	// information with Expr's need to not mis-associate that
+	// information with both the assignment creating the temporary,
+	// and the subsequent use of the temporary.
+	return result_tmp->Duplicate().release();
 	}
 
 Expr* Expr::TransformMe(Expr* new_me, Reducer* c,

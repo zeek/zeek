@@ -113,6 +113,13 @@ public:
 	bool HasPreMinRD(const BroObj* o, const ID* id) const
 		{ return pre_min_defs && pre_min_defs->HasRD(o, id); }
 
+	// True if at the given object, there's a single unambiguous
+	// pre RD for the given identifier.
+	bool HasSinglePreMinRD(const BroObj* o, const ID* id) const
+		{
+		return pre_min_defs && pre_min_defs->HasSingleRD(o, id);
+		}
+
 	bool HasPostMinRDs(const BroObj* o) const
 		{ return post_min_defs && post_min_defs->HasRDs(o); }
 	bool HasPostMaxRDs(const BroObj* o) const

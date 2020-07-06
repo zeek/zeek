@@ -62,7 +62,9 @@ public:
 	// True if there's definitely no control flow past the statement.
 	// The argument governs whether to ignore "break" statements, given
 	// they mean two different things depending on whether they're in
-	// a loop or a switch (sigh).
+	// a loop or a switch.  Also, if we want to know whether flow reaches
+	// the *end* of a loop, then we also want to ignore break's, as
+	// in that case, they do lead to flow reaching the end.
 	virtual bool NoFlowAfter(bool ignore_break) const
 		{ return false; }
 

@@ -63,10 +63,14 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 		// empty ones we set up.
 		mgr.SetPostFromPre(f);
 
-	if ( analysis_options.rd_trace )
+	if ( analysis_options.min_rd_trace )
 		{
-		// printf("traversing function %s, post min RDs:\n", f->Name());
-		// mgr.GetPostMinRDs(f)->Dump();
+		printf("traversing function %s, post min RDs:\n", f->Name());
+		mgr.GetPostMinRDs(f)->Dump();
+		}
+
+	if ( analysis_options.max_rd_trace )
+		{
 		printf("traversing function %s, post max RDs:\n", f->Name());
 		mgr.GetPostMaxRDs(f)->Dump();
 		}
@@ -80,10 +84,15 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	ASSERT(mgr.HasPreMinRDs(s));
 	ASSERT(mgr.HasPreMaxRDs(s));
 
-	if ( analysis_options.rd_trace )
+	if ( analysis_options.min_rd_trace )
 		{
-		// printf("pre min RDs for stmt %s:\n", obj_desc(s));
-		// mgr.GetPreMinRDs(s)->Dump();
+		printf("pre min RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPreMinRDs(s)->Dump();
+		printf("\n");
+		}
+
+	if ( analysis_options.max_rd_trace )
+		{
 		printf("pre max RDs for stmt %s:\n", obj_desc(s));
 		mgr.GetPreMaxRDs(s)->Dump();
 		printf("\n");
@@ -160,10 +169,15 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 			stmt->Traverse(this);
 
-			if ( analysis_options.rd_trace )
+			if ( analysis_options.min_rd_trace )
 				{
-				// printf("post min RDs for stmt %s:\n", obj_desc(stmt));
-				// mgr.GetPostMinRDs(stmt)->Dump();
+				printf("post min RDs for stmt %s:\n", obj_desc(stmt));
+				mgr.GetPostMinRDs(stmt)->Dump();
+				printf("\n");
+				}
+
+			if ( analysis_options.max_rd_trace )
+				{
 				printf("post max RDs for stmt %s:\n", obj_desc(stmt));
 				mgr.GetPostMaxRDs(stmt)->Dump();
 				printf("\n");
@@ -471,21 +485,32 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 
 	for ( const auto& pre : bd->pre_RDs )
 		if ( pre != loop_pre )
+			{
 			mgr.MergeIntoPre(top, pre);
+
+			// Factor in that these definitions also
+			// essentially make it to the beginning of
+			// the entire loop.
+			mgr.MergeIntoPre(s, pre);
+			}
 
 	for ( const auto& post : bd->post_RDs )
 		if ( post != loop_post )
+			{
 			mgr.MergeIntoPost(body, post);
+			mgr.MergeIntoPre(s, post);
+			}
 
 	// Freshen due to mergers.
 	loop_pre = mgr.GetPreMaxRDs(top);
-	loop_post = mgr.GetPostMaxRDs(body);
+	auto loop_min_post = mgr.GetPostMinRDs(body);
+	auto loop_max_post = mgr.GetPostMaxRDs(body);
 
-	if ( loop_pre != loop_post )
+	if ( loop_pre != loop_max_post )
 		{
 		// Some body assignments reached the end.  Propagate them
 		// around the loop.
-		mgr.MergeIntoPre(top, loop_post);
+		mgr.MergeIntoPre(top, loop_max_post);
 
 		if ( top != body )
 			{
@@ -501,7 +526,9 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		block_defs.pop_back();
 
 		// Ideally we'd check for consistency with the previous
-		// definitions in bd.
+		// definitions in bd.  This is tricky because the body
+		// itself might not have RDs if it ends in a "break" or
+		// such.
 		delete bd2;
 		}
 
@@ -511,19 +538,25 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 	auto s_min_pre = mgr.GetPreMinRDs(s);
 	auto s_max_pre = mgr.GetPreMaxRDs(s);
 
-	if ( body->NoFlowAfter(false) )
-		mgr.CreatePostRDs(s, s_min_pre, s_max_pre);
+	// For min RDs, we want to compute them directly regardless
+	// of whether the loop body has flow reach the end of it,
+	// since an internal "next" can still cause definitions to
+	// propagate to the beginning.
+	auto min_post_rds = s_min_pre->IntersectWithConsolidation(loop_min_post,
+									ds);
+	mgr.SetPostMinRDs(s, min_post_rds);
+	min_post_rds.release();
+
+	// Note, we use ignore_break=true because what we care about is not
+	// whether flow goes just beyond the last statement of the body,
+	// but rather whether flow can start at the next statement *after*
+	// the body, and a "break" will do that.
+	if ( body->NoFlowAfter(true) )
+		mgr.SetPostMaxRDs(s, s_max_pre);
 	else
 		{
-		auto body_min_post = mgr.GetPostMinRDs(body);
-		auto body_max_post = mgr.GetPostMaxRDs(body);
-
-		auto min_post_rds =
-			s_min_pre->IntersectWithConsolidation(body_min_post, ds);
-		auto max_post_rds = s_max_pre->Union(body_max_post);
-
-		mgr.CreatePostRDs(s, min_post_rds, max_post_rds);
-		min_post_rds.release();
+		auto max_post_rds = s_max_pre->Union(loop_max_post);
+		mgr.SetPostMaxRDs(s, max_post_rds);
 		max_post_rds.release();
 		}
 
@@ -613,10 +646,15 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 	}
 
-	if ( analysis_options.rd_trace )
+	if ( analysis_options.min_rd_trace )
 		{
-		// printf("post min RDs for stmt %s:\n", obj_desc(s));
-		// mgr.GetPostMinRDs(s)->Dump();
+		printf("post min RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPostMinRDs(s)->Dump();
+		printf("\n");
+		}
+
+	if ( analysis_options.max_rd_trace )
+		{
 		printf("post max RDs for stmt %s:\n", obj_desc(s));
 		mgr.GetPostMaxRDs(s)->Dump();
 		printf("\n");
@@ -788,26 +826,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	ASSERT(mgr.HasPreMinRDs(e));
 	ASSERT(mgr.HasPreMaxRDs(e));
 
-	if ( analysis_options.rd_trace && 0 )
-		{
-		printf("---\npre RDs for expr %s:\n", obj_desc(e));
-		mgr.GetPreMinRDs(e)->Dump();
-		// mgr.GetPreMaxRDs(e)->Dump();
-		}
-
 	// Since there are no control flow or confluence issues (the latter
 	// holds when working on reduced expressions; perverse assignments
 	// inside &&/|| introduce confluence issues, but that won't lead
 	// to optimization issues, just imprecision in tracking uninitialized
 	// values).
 	mgr.SetPostFromPre(e);
-
-	if ( analysis_options.rd_trace && 0 )
-		{
-		printf("---\nnominal post RDs for expr %s:\n", obj_desc(e));
-		mgr.GetPostMaxRDs(e)->Dump();
-		printf("---\n\n");
-		}
 
 	switch ( e->Tag() ) {
         case EXPR_NAME:

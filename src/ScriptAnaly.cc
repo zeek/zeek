@@ -240,7 +240,8 @@ void analyze_scripts()
 		analysis_options.only_func = getenv("ZEEK_ONLY");
 		analysis_options.report_profile = getenv("ZEEK_ZAM_PROFILE");
 		analysis_options.find_deep_uninits = getenv("ZEEK_FIND_DEEP_UNINITS");
-		analysis_options.rd_trace = getenv("ZEEK_OPT_TRACE");
+		analysis_options.min_rd_trace = getenv("ZEEK_MIN_RD_TRACE");
+		analysis_options.max_rd_trace = getenv("ZEEK_MAX_RD_TRACE");
 		analysis_options.ud_dump = getenv("ZEEK_UD_DUMP");
 		analysis_options.inliner = getenv("ZEEK_INLINE");
 		analysis_options.optimize = getenv("ZEEK_OPTIMIZE");

@@ -26,8 +26,10 @@ extern struct AnalyOpt {
 	// data structures this greatly increases analysis time.
 	bool find_deep_uninits = false;
 
-	// If true, activates tracing for the generation of reaching-defs.
-	bool rd_trace = false;
+	// If true, activates tracing for the generation of minimum/maximum
+	// reaching-defs.
+	bool min_rd_trace = false;
+	bool max_rd_trace = false;
 
 	// If true, dump out the use-defs for each analyzed function.
 	bool ud_dump = false;

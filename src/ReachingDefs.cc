@@ -93,17 +93,22 @@ RD_ptr ReachingDefs::Union(const RD_ptr& r) const
 RD_ptr ReachingDefs::IntersectWithConsolidation(const RD_ptr& r,
 						const DefinitionPoint& di) const
 	{
+	static DefinitionPoint multi_dps;
+
 	auto res = make_new_RD_ptr();
 
 	for ( const auto& i : *RDMap() )
 		for ( const auto& dp : *i.second )
 			{
 			if ( r->HasPair(i.first, dp) )
+				// Item and definition point are shared,
+				// include in result.
 				res->AddRD(i.first, dp);
-
-			else if ( r->HasDI(i.first) &&
-				  ! res->HasPair(i.first, di) )
-				res->AddRD(i.first, di);
+			else
+				// Regardless of whether r has the item,
+				// treat it as such and capture this as
+				// a multi-dp definition.
+				res->AddRD(i.first, multi_dps);
 			}
 
 	return res;

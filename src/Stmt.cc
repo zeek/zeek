@@ -2526,8 +2526,19 @@ bool StmtList::IsReduced(Reducer* c) const
 bool StmtList::NoFlowAfter(bool ignore_break) const
 	{
 	for ( auto& s : Stmts() )
+		{
+		// For "break" statements, if ignore_break is set then
+		// by construction flow *does* go to after this statement
+		// list.  If we just used the second test below, then
+		// while the "break" would indicate there's flow after it,
+		// if there's dead code following that includes a "return",
+		// this would in fact be incorrect.
+		if ( ignore_break && s->Tag() == STMT_BREAK )
+			return false;
+
 		if ( s->NoFlowAfter(ignore_break) )
 			return true;
+		}
 
 	return false;
 	}

@@ -83,9 +83,23 @@ public:
 	RD_ptr Union(const RD_ptr& r) const;
 
 	// The following intersects this RD with another, but for
-	// DefinitionItem's that have different DefPoints, rather
-	// than just fully omitting them, creates a new entry
-	// using the supplied DefinitionPoint.
+	// DefinitionItem's that have different DefPoints, rather than
+	// just fully omitting them (which is what Intersect() will do),
+	// creates a joint entry with a special DefinitionPoint
+	// corresponding to "multiple definitions".  This allows
+	// min RDs to capture the notions (1) "yes, that value will
+	// be defined at this point", but also (2) "however, we can't
+	// rely on which definition reaches".
+	//
+	// We also do this for items *not* present in r.  The reason is
+	// that this method is only called (1) when we know that the items
+	// in r have control flow to di, and (2) for "this" being min RDs
+	// that were present going into the block that resulted in r.
+	// Thus, those minimal values will always be present at di; they
+	// might not be in r due to the way that r is computed.  (For
+	// example, computing them correctly for "for" loop bodies is
+	// messy, and irrevant in terms of actually having the correct
+	// values for them.)
 	RD_ptr IntersectWithConsolidation(const RD_ptr& r,
 					const DefinitionPoint& di) const;
 
@@ -140,6 +154,21 @@ public:
 	bool HasRD(const BroObj* o, const ID* id) const
 		{
 		return HasRD(o, item_map.GetConstID_DI(id));
+		}
+
+	bool HasSingleRD(const BroObj* o, const ID* id) const
+		{
+		auto RDs = a_i->find(o);
+		if ( RDs == a_i->end() )
+			return false;
+
+		auto di = item_map.GetConstID_DI(id);
+		auto dps = RDs->second->GetDefPoints(di);
+
+		if ( ! dps || dps->length() != 1 )
+			return false;
+
+		return (*dps)[0].Tag() != NO_DEF;
 		}
 
 	bool HasRD(const BroObj* o, const DefinitionItem* di) const

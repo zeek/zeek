@@ -365,8 +365,14 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 						const Expr* lhs,
 						const TempVar* lhs_tmp)
 	{
-	ASSERT(pf->call_level.count(rhs) > 0);
-	int rhs_call_level = pf->call_level.find(rhs)->second;
+	if ( pf->call_level.count(lhs) == 0 )
+		// We haven't tracked the LHS.  Rather than trying to
+		// regularize this (figure out how to propagate its
+		// call level), we just don't bother trying to find
+		// an equivalent temporary.
+		return nullptr;
+
+	int rhs_call_level = pf->call_level.find(lhs)->second;
 
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
@@ -377,7 +383,15 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 			continue;
 
 		auto et_i_expr = et_i->RHS();
-		ASSERT(pf->call_level.count(et_i_expr) > 0);
+
+		if ( pf->call_level.count(et_i_expr) == 0 )
+			// Likewise, we ought to figure out why this
+			// is happening (i.e., fail with ASSERT), but
+			// it's easiest to just forego the opportunity
+			// to use the temporary.  Also, in running on
+			// the test suite, this never was the case, nor
+			// was the test above for lhs.
+			continue;
 
 		if ( pf->call_level.find(et_i_expr)->second != rhs_call_level )
 			// Don't propagate expressions across calls, there
@@ -393,7 +407,7 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 			// because the RHS can get rewritten (for example,
 			// due to folding) after we generate RDs, and
 			// thus might not have any.
-			if ( ! mgr->HasPreMinRD(lhs, id.get()) )
+			if ( ! mgr->HasSinglePreMinRD(lhs, id.get()) )
 				// Value isn't guaranteed to make it here.
 				continue;
 

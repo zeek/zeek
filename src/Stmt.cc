@@ -1001,7 +1001,8 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 
 WhileStmt::WhileStmt(ExprPtr arg_loop_condition,
                      StmtPtr arg_body)
-	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
+	: Stmt(STMT_WHILE),
+	  loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->GetType()->Tag()) )

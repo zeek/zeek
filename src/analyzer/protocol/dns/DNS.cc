@@ -720,7 +720,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 			{
 			case TYPE_ECS:
 				{
-				struct EDNS_ECS opt;
+				EDNS_ECS opt{};
 				uint16_t ecs_family = ExtractShort(data, option_len);
 				uint16_t source_scope = ExtractShort(data, option_len);
 				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
@@ -730,9 +730,9 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				// IPv6 address, depending on FAMILY, which MUST be truncated to the
 				// number of bits indicated by the SOURCE PREFIX-LENGTH field,
 				// padding with 0 bits to pad to the end of the last octet needed.
-				if ( ecs_family == L3_IPV4)
+				if ( ecs_family == L3_IPV4 )
 					{
-					opt.ecs_family = make_intrusive<StringVal>("v4");
+					opt.ecs_family = zeek::make_intrusive<zeek::StringVal>("v4");
 					uint32_t addr = 0;
 					for (uint16_t shift_factor = 3; option_len > 0; option_len--)
 						{
@@ -741,11 +741,11 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 						shift_factor--;
 						}
 					addr = htonl(addr);
-					opt.ecs_addr = make_intrusive<AddrVal>(addr);
+					opt.ecs_addr = zeek::make_intrusive<zeek::AddrVal>(addr);
 					}
 				else if ( ecs_family == L3_IPV6 )
 					{
-					opt.ecs_family = make_intrusive<StringVal>("v6");
+					opt.ecs_family = zeek::make_intrusive<zeek::StringVal>("v6");
 					uint32_t addr[4] = { 0 };
 					for (uint16_t i = 0, shift_factor = 15; option_len > 0; option_len--)
 						{
@@ -759,7 +759,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 						{
 						addr[i] = htonl(addr[i]);
 						}
-					opt.ecs_addr = make_intrusive<AddrVal>(addr);
+					opt.ecs_addr = zeek::make_intrusive<zeek::AddrVal>(addr);
 					}
 				else
 					{
@@ -1585,11 +1585,11 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_ECS_Val(struct EDNS_ECS* opt)
 	{
 	static auto dns_edns_ecs = zeek::id::find_type<zeek::RecordType>("dns_edns_ecs");
-	auto r = make_intrusive<RecordVal>(dns_edns_ecs);
+	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_edns_ecs);
 
 	r->Assign(0, opt->ecs_family);
-	r->Assign(1, val_mgr->Count(opt->ecs_src_pfx_len));
-	r->Assign(2, val_mgr->Count(opt->ecs_scp_pfx_len));
+	r->Assign(1, zeek::val_mgr->Count(opt->ecs_src_pfx_len));
+	r->Assign(2, zeek::val_mgr->Count(opt->ecs_scp_pfx_len));
 	r->Assign(3, opt->ecs_addr);
 
 	return r;

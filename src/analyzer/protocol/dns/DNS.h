@@ -150,10 +150,10 @@ struct EDNS_ADDITIONAL {		// size
 };
 
 struct EDNS_ECS {
-	IntrusivePtr<StringVal> ecs_family;	///< EDNS client subnet address family
+	zeek::StringValPtr ecs_family;	///< EDNS client subnet address family
 	uint16_t ecs_src_pfx_len;	///< EDNS client subnet source prefix length
 	uint16_t ecs_scp_pfx_len;	///< EDNS client subnet scope prefix length
-	IntrusivePtr<AddrVal> ecs_addr;	///< EDNS client subnet address
+	zeek::IntrusivePtr<zeek::AddrVal> ecs_addr;	///< EDNS client subnet address
 };
 
 struct TSIG_DATA {

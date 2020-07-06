@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function print_string_vector(v: string_vec)
@@ -25,6 +25,8 @@ event zeek_init()
 	print_string_vector(split_string_n(a, pat, T, 1));
 	print "---------------------";
 	print str_split(a, idx);
+	print "---------------------";
+	print str_split_indices(a, idx);
 	print "---------------------";
 	a = "X-Mailer: Testing Test (http://www.example.com)";
 	pat = /:[[:blank:]]*/;

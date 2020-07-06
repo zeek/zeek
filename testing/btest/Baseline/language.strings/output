@@ -1,8 +1,16 @@
+warning in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.strings/strings.zeek, line 26: deprecated (str_split): Remove in v4.1. Use str_split_indices.
 Input string: broisaveryneatids
 
 String splitting
 ----------------
 Splitting 'broisaveryneatids' at 6 points...
+bro
+is
+a
+very
+neat
+ids
+Splitting 'broisaveryneatids' at 6 points in zero-indexed mode...
 bro
 is
 a

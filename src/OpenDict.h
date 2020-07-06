@@ -7,8 +7,13 @@
 
 #include "Hash.h"
 
-class Dictionary;
-class IterCookie;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(DictEntry, zeek::detail);
+
+// Type for function to be called when deleting elements.
+typedef void (*dict_delete_func)(void*);
+
+namespace zeek {
 
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.
@@ -44,13 +49,12 @@ constexpr uint8_t DICT_THRESHOLD_BITS = 3;
 // bucket at which to start looking for the next value to return.
 constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
 
-enum dict_order { ORDERED, UNORDERED };
-
-// Type for function to be called when deleting elements.
-typedef void (*dict_delete_func)(void*);
+enum DictOrder { ORDERED, UNORDERED };
 
 // A dict_delete_func that just calls delete.
 extern void generic_delete_func(void*);
+
+namespace detail {
 
 /**
  * An entry stored in the dictionary.
@@ -140,6 +144,8 @@ public:
 		}
 };
 
+} // namespace detail
+
 /**
  * A dictionary type that uses clustered hashing, a variation of Robinhood/Open Addressing
  * hashing. The following posts help to understand the implementation:
@@ -154,7 +160,7 @@ public:
  */
 class Dictionary{
 public:
-	explicit Dictionary(dict_order ordering = UNORDERED, int initial_size = DEFAULT_DICT_SIZE);
+	explicit Dictionary(DictOrder ordering = UNORDERED, int initial_size = DEFAULT_DICT_SIZE);
 	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
@@ -254,7 +260,7 @@ public:
 	void DumpKeys() const;
 
 private:
-	friend IterCookie;
+	friend zeek::IterCookie;
 
 	/// Buckets of the table, not including overflow size.
 	int Buckets(bool expected=false) const;
@@ -310,22 +316,22 @@ private:
 		int* insert_position = nullptr, int* insert_distance  = nullptr);
 
 	/// Insert entry, Adjust cookies when necessary.
-	void InsertRelocateAndAdjust(DictEntry& entry, int insert_position);
+	void InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position);
 
 	/// insert entry into position, relocate other entries when necessary.
-	void InsertAndRelocate(DictEntry& entry, int insert_position, int* last_affected_position = nullptr);
+	void InsertAndRelocate(detail::DictEntry& entry, int insert_position, int* last_affected_position = nullptr);
 
 	/// Adjust Cookies on Insert.
-	void AdjustOnInsert(IterCookie* c, const DictEntry& entry, int insert_position, int last_affected_position);
+	void AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position, int last_affected_position);
 
 	///Remove, Relocate & Adjust cookies.
-	DictEntry RemoveRelocateAndAdjust(int position);
+	detail::DictEntry RemoveRelocateAndAdjust(int position);
 
 	///Remove & Relocate
-	DictEntry RemoveAndRelocate(int position, int* last_affected_position = nullptr);
+	detail::DictEntry RemoveAndRelocate(int position, int* last_affected_position = nullptr);
 
 	///Adjust safe cookies after Removal of entry at position.
-	void AdjustOnRemove(IterCookie* c, const DictEntry& entry, int position, int last_affected_position);
+	void AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position, int last_affected_position);
 
 	bool Remapping() const { return remap_end >= 0;} //remap in reverse order.
 
@@ -360,11 +366,11 @@ private:
 
 	uint64_t cum_entries = 0;
 	dict_delete_func delete_func = nullptr;
-	DictEntry* table = nullptr;
+	detail::DictEntry* table = nullptr;
 	std::vector<IterCookie*>* cookies = nullptr;
 
 	// Order means the order of insertion. means no deletion until exit. will be inefficient.
-	std::vector<DictEntry>* order = nullptr;
+	std::vector<detail::DictEntry>* order = nullptr;
 };
 
 /*
@@ -373,7 +379,7 @@ private:
 template<typename T>
 class PDict : public Dictionary {
 public:
-	explicit PDict(dict_order ordering = UNORDERED, int initial_size = 0) :
+	explicit PDict(DictOrder ordering = UNORDERED, int initial_size = 0) :
 		Dictionary(ordering, initial_size) {}
 	T* Lookup(const char* key) const
 		{
@@ -405,4 +411,11 @@ public:
 		{ return (T*) Dictionary::NextEntry(h, cookie, true); }
 	T* RemoveEntry(const HashKey* key)
 		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
+	T* RemoveEntry(const HashKey& key)
+		{ return (T*) Remove(key.Key(), key.Size(), key.Hash()); }
 };
+
+} // namespace zeek
+
+using Dictionary [[deprecated("Remove in v4.1. Use zeek::Dictionary instead.")]] = zeek::Dictionary;
+template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;

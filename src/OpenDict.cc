@@ -23,6 +23,8 @@
 #define ASSERT_VALID(o)
 #endif//DEBUG
 
+namespace zeek {
+
 class IterCookie {
 public:
 	IterCookie(Dictionary* d) : d(d) {}
@@ -35,11 +37,11 @@ public:
 	int next = -1; //index for next valid entry. -1 is default not started yet.
 
 	// Tracks the new entries inserted while iterating. Only used for robust cookies.
-	std::vector<DictEntry>* inserted = nullptr;
+	std::vector<detail::DictEntry>* inserted = nullptr;
 
 	// Tracks the entries already visited but were moved across the next iteration
 	// point due to an insertion. Only used for robust cookies.
-	std::vector<DictEntry>* visited = nullptr;
+	std::vector<detail::DictEntry>* visited = nullptr;
 
 	void MakeRobust()
 		{
@@ -48,8 +50,8 @@ public:
 		ASSERT(d && d->cookies);
 
 		robust = true;
-		inserted = new std::vector<DictEntry>();
-		visited = new std::vector<DictEntry>();
+		inserted = new std::vector<detail::DictEntry>();
+		visited = new std::vector<detail::DictEntry>();
 		d->cookies->push_back(this);
 		}
 
@@ -70,6 +72,8 @@ public:
 			}
 		}
 	};
+
+// namespace detail
 
 TEST_SUITE_BEGIN("Dict");
 
@@ -402,14 +406,14 @@ size_t Dictionary::MemoryAllocation() const
 	size_t size = padded_sizeof(*this);
 	if ( table )
 		{
-		size += pad_size(Capacity() * sizeof(DictEntry));
+		size += pad_size(Capacity() * sizeof(detail::DictEntry));
 		for ( int i = Capacity()-1; i>=0; i-- )
 			if ( ! table[i].Empty() && table[i].key_size > 8 )
 				size += pad_size(table[i].key_size);
 		}
 
 	if ( order )
-		size += padded_sizeof(std::vector<DictEntry>) + pad_size(sizeof(DictEntry) * order->capacity());
+		size += padded_sizeof(std::vector<detail::DictEntry>) + pad_size(sizeof(detail::DictEntry) * order->capacity());
 
 	return size;
 	}
@@ -528,7 +532,7 @@ void Dictionary::Dump(int level) const
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //Initialization.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-Dictionary::Dictionary(dict_order ordering, int initial_size)
+Dictionary::Dictionary(DictOrder ordering, int initial_size)
 	{
 	if ( initial_size > 0 )
 		{
@@ -539,7 +543,7 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 		}
 
 	if ( ordering == ORDERED )
-		order = new std::vector<DictEntry>;
+		order = new std::vector<detail::DictEntry>;
 	}
 
 Dictionary::~Dictionary()
@@ -584,7 +588,7 @@ void Dictionary::Clear()
 void Dictionary::Init()
 	{
 	ASSERT(! table);
-	table = (DictEntry*)malloc(sizeof(DictEntry)*Capacity(true));
+	table = (detail::DictEntry*)malloc(sizeof(detail::DictEntry)*Capacity(true));
 	for (int i = Capacity()-1; i >= 0; i--)
 		table[i].SetEmpty();
 	}
@@ -746,7 +750,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, bool c
 	else
 		{
 		// Allocate memory for key if necesary. Key is updated to reflect internal key if necessary.
-		DictEntry entry(key, key_size, hash, val, insert_distance, copy_key);
+		detail::DictEntry entry(key, key_size, hash, val, insert_distance, copy_key);
 		InsertRelocateAndAdjust(entry, insert_position);
 		if ( order )
 			order->push_back(entry);
@@ -769,7 +773,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, bool c
 	}
 
 ///e.distance is adjusted to be the one at insert_position.
-void Dictionary::InsertRelocateAndAdjust(DictEntry& entry, int insert_position)
+void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position)
 	{
 #ifdef DEBUG
 	entry.bucket = BucketByHash(entry.hash,log2_buckets);
@@ -790,7 +794,7 @@ void Dictionary::InsertRelocateAndAdjust(DictEntry& entry, int insert_position)
 	}
 
 /// insert entry into position, relocate other entries when necessary.
-void Dictionary::InsertAndRelocate(DictEntry& entry, int insert_position, int* last_affected_position)
+void Dictionary::InsertAndRelocate(detail::DictEntry& entry, int insert_position, int* last_affected_position)
 	{///take out the head of cluster and append to the end of the cluster.
 	while ( true )
 		{
@@ -824,7 +828,7 @@ void Dictionary::InsertAndRelocate(DictEntry& entry, int insert_position, int* l
 	}
 
 /// Adjust Cookies on Insert.
-void Dictionary::AdjustOnInsert(IterCookie* c, const DictEntry& entry, int insert_position, int last_affected_position)
+void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position, int last_affected_position)
 	{
 	ASSERT(c);
 	ASSERT_VALID(c);
@@ -843,7 +847,7 @@ void Dictionary::SizeUp()
 	int prev_capacity = Capacity();
 	log2_buckets++;
 	int capacity = Capacity();
-	table = (DictEntry*)realloc(table, capacity*sizeof(DictEntry));
+	table = (detail::DictEntry*)realloc(table, capacity*sizeof(detail::DictEntry));
 	for ( int i = prev_capacity; i < capacity; i++ )
 		table[i].SetEmpty();
 
@@ -872,7 +876,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash, bool dont_d
 	if ( position < 0 )
 		return nullptr;
 
-	DictEntry entry = RemoveRelocateAndAdjust(position);
+	detail::DictEntry entry = RemoveRelocateAndAdjust(position);
 	num_entries--;
 	ASSERT(num_entries >= 0);
 	//e is about to be invalid. remove it from all references.
@@ -885,10 +889,10 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash, bool dont_d
 	return v;
 	}
 
-DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
+detail::DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
 	{
 	int last_affected_position = position;
-	DictEntry entry = RemoveAndRelocate(position, &last_affected_position);
+	detail::DictEntry entry = RemoveAndRelocate(position, &last_affected_position);
 
 #ifdef DEBUG
 	//validation: index to i-1 should be continuous without empty spaces.
@@ -903,12 +907,12 @@ DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
 	return entry;
 	}
 
-DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected_position)
+detail::DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected_position)
 	{
 	//fill the empty position with the tail of the cluster of position+1.
 	ASSERT(position >= 0 && position < Capacity() && ! table[position].Empty());
 
-	DictEntry entry = table[position];
+	detail::DictEntry entry = table[position];
 	while ( true )
 		{
 		if ( position == Capacity() - 1 || table[position+1].Empty() || table[position+1].distance == 0 )
@@ -928,7 +932,7 @@ DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected_positio
 	return entry;
 	}
 
-void Dictionary::AdjustOnRemove(IterCookie* c, const DictEntry& entry, int position, int last_affected_position)
+void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position, int last_affected_position)
 	{
 	ASSERT_VALID(c);
 	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry), c->inserted->end());
@@ -981,7 +985,7 @@ bool Dictionary::Remap(int position, int* new_position)
 	//equal because 1: it's a new item, 2: it's an old item, but new bucket is the same as old. 50% of old items act this way due to fibhash.
 	if ( current == expected )
 		return false;
-	DictEntry entry = RemoveAndRelocate(position); // no iteration cookies to adjust, no need for last_affected_position.
+	detail::DictEntry entry = RemoveAndRelocate(position); // no iteration cookies to adjust, no need for last_affected_position.
 #ifdef DEBUG
 	entry.bucket = expected;
 #endif//DEBUG
@@ -1004,7 +1008,7 @@ void* Dictionary::NthEntry(int n, const void*& key, int& key_size) const
 	{
 	if ( ! order || n < 0 || n >= Length() )
 		return nullptr;
-	DictEntry entry = (*order)[n];
+	detail::DictEntry entry = (*order)[n];
 	key = entry.GetKey();
 	key_size = entry.key_size;
 	return entry.value;
@@ -1052,7 +1056,7 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, bool return_has
 		{
 		// Return the last one. Order doesn't matter,
 		// and removing from the tail is cheaper.
-		DictEntry e = c->inserted->back();
+		detail::DictEntry e = c->inserted->back();
 		if ( return_hash )
 			h = new HashKey(e.GetKey(), e.key_size, e.hash);
 		void* v = e.value;
@@ -1126,3 +1130,5 @@ void Dictionary::StopIteration(IterCookie* cookie) const
 	Dictionary* dp = const_cast<Dictionary*>(this);
 	dp->StopIterationNonConst(cookie);
 	}
+
+} // namespace zeek

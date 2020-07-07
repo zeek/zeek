@@ -9,6 +9,7 @@
 class ProfileFunc : public TraversalCallback {
 public:
 	TraversalCode PreStmt(const Stmt*) override;
+	TraversalCode PostStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 
 	// Globals seen in the function.  Non-const solely to support
@@ -38,6 +39,12 @@ public:
 	// through each expression from point 1 to point 2.
 	std::unordered_map<const Expr*, int> expr_order;
 	std::vector<const Expr*> ordered_exprs;	// inverse of expr_order
+
+	// Whether a given expression occurred in the context of
+	// a statement that modifies an aggregate ("add" or "delete");
+	std::vector<bool> in_aggr_mod_stmt;
+
+	bool curr_in_aggr_mod_stmt = false;
 
 	// True if makes a call through an expression.
 	bool does_indirect_calls;

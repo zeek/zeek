@@ -436,6 +436,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	//   must not be any assignments to aggregates of the same
 	//   type(s).  This is to deal with possible aliases.
 	//
+	// * Same goes to modifications of aggregates via "add" or "delete".
+	//
 	// * No propagation of expressions based on aggregates across
 	//   function calls.
 	//
@@ -473,8 +475,9 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	for ( int i = start + 1; i < end; ++i )
 		{
 		auto e_i = pf->ordered_exprs[i];
+		auto t = e_i->Tag();
 
-		switch ( e_i->Tag() ) {
+		switch ( t ) {
 		case EXPR_ASSIGN:
 			{
 			auto lhs_ref = e_i->GetOp1()->AsRefExpr();
@@ -498,6 +501,7 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 		case EXPR_FIELD_LHS_ASSIGN:
 			{
 			auto lhs = e_i->GetOp1();
+			auto lhs_aggr_id = lhs->AsNameExpr()->Id();
 			auto lhs_field = e_i->AsFieldLHSAssignExpr()->Field();
 
 			if ( lhs_field == field )
@@ -505,7 +509,15 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 				// Potential assignment to the same field
 				// as for our expression of interest.  Check
 				// for any identifier match.
-				auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+				if ( CheckID(ids, lhs_aggr_id) )
+					return false;
+				}
+
+			else if ( field < 0 )
+				{
+				// Our original expression doesn't relate
+				// to this field, so analyze the aggregate
+				// like we usually would.
 				if ( CheckID(ids, lhs_aggr_id) )
 					return false;
 				}
@@ -531,6 +543,16 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 			break;
 
 		default:
+			if ( pf->in_aggr_mod_stmt[i] &&
+			     (t == EXPR_INDEX || t == EXPR_FIELD) )
+				{
+				auto aggr = e_i->GetOp1();
+				auto aggr_id = aggr->AsNameExpr()->Id();
+
+				if ( CheckID(ids, aggr_id) )
+					return false;
+				}
+
 			break;
 		}
 		}

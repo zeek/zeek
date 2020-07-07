@@ -21,10 +21,12 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		return TC_ABORTSTMT;
 		}
 
-	if ( s->Tag() == STMT_WHEN )
+	switch ( s->Tag() ) {
+	case STMT_WHEN:
 		++num_when_stmts;
+		break;
 
-	else if ( s->Tag() == STMT_FOR )
+	case STMT_FOR:
 		{
 		auto sf = s->AsForStmt();
 		auto loop_vars = sf->LoopVars();
@@ -36,6 +38,23 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		if ( value_var )
 			locals.insert(value_var);
 		}
+		break;
+
+	case STMT_ADD:
+	case STMT_DELETE:
+		curr_in_aggr_mod_stmt = true;
+		break;
+
+	default: break;
+	}
+
+	return TC_CONTINUE;
+	}
+
+TraversalCode ProfileFunc::PostStmt(const Stmt* s)
+	{
+	if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
+		curr_in_aggr_mod_stmt = false;
 
 	return TC_CONTINUE;
 	}
@@ -52,6 +71,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 
 	expr_order[e] = num_exprs;
 	ordered_exprs.push_back(e);
+	in_aggr_mod_stmt.push_back(curr_in_aggr_mod_stmt);
 
 	++num_exprs;
 

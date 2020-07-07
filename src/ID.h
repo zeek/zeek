@@ -46,6 +46,7 @@ public:
 	void SetType(IntrusivePtr<BroType> t);
 	BroType* Type()			{ return type.get(); }
 	const BroType* Type() const	{ return type.get(); }
+	const IntrusivePtr<BroType>& TypePtr() const	{ return type; }
 
 	void MakeType()			{ is_type = true; }
 	BroType* AsType()		{ return is_type ? Type() : 0; }

@@ -758,6 +758,11 @@ inline IntrusivePtr<BroType> error_type()	{ return base_type(TYPE_ERROR); }
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
 extern bool same_type(const BroType* t1, const BroType* t2, bool is_init=false, bool match_record_field_names=true);
+inline bool same_type(const IntrusivePtr<BroType>& t1,
+			const IntrusivePtr<BroType>& t2)
+	{
+	return same_type(t1.get(), t2.get());
+	}
 
 // True if the two attribute lists are equivalent.
 extern bool same_attrs(const Attributes* a1, const Attributes* a2);
@@ -817,6 +822,20 @@ inline bool IsVector(TypeTag t)	{ return (t == TYPE_VECTOR); }
 
 // True if the given type type is a string.
 inline bool IsString(TypeTag t)	{ return (t == TYPE_STRING); }
+
+// True if the given type is a container aggregate.
+inline bool IsAggr(TypeTag tag)
+	{
+	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
+	}
+inline bool IsAggr(const BroType* t)
+	{
+	return IsAggr(t->Tag());
+	}
+inline bool IsAggr(const IntrusivePtr<BroType>& t)
+	{
+	return IsAggr(t->Tag());
+	}
 
 // True if the given type tag corresponds to the error type.
 inline bool IsErrorType(TypeTag t)	{ return (t == TYPE_ERROR); }

@@ -589,7 +589,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 			// Only aggregates get initialized.
 			auto tag = id_t->Tag();
-			if ( ! IsAggrTag(tag) )
+			if ( ! ::IsAggr(tag) )
 				continue;
 
 			CreateInitPostDef(id, DefinitionPoint(s), false, 0);
@@ -804,11 +804,6 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 	}
 	}
 
-bool RD_Decorate::IsAggrTag(TypeTag tag) const
-	{
-	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
-	}
-
 bool RD_Decorate::IsAggr(const Expr* e) const
 	{
 	if ( e->Tag() != EXPR_NAME )
@@ -818,7 +813,7 @@ bool RD_Decorate::IsAggr(const Expr* e) const
 	auto id = n->Id();
 	auto tag = id->Type()->Tag();
 
-	return IsAggrTag(tag);
+	return ::IsAggr(tag);
 	}
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
@@ -1196,7 +1191,7 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 
 		// Only aggregates get initialized.
 		auto tag = id_t->Tag();
-		if ( IsAggrTag(tag) )
+		if ( ::IsAggr(tag) )
 			CreateInitPostDef(id, DefinitionPoint(f), false, 0);
 		}
 	}

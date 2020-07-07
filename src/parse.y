@@ -1324,8 +1324,7 @@ index_slice:
 			                    IntrusivePtr<Val>{AdoptRef{}, val_mgr->GetCount(0)});
 
 			auto high = $5 ? IntrusivePtr<Expr>{AdoptRef{}, $5} :
-			                 make_intrusive<SizeExpr>(
-			                     IntrusivePtr<Expr>{NewRef{}, $1});
+			                 make_intrusive<SizeExpr>($1->Duplicate());
 
 			if ( ! IsIntegral(low->Type()->Tag()) || ! IsIntegral(high->Type()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");

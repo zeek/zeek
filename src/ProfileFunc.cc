@@ -21,6 +21,9 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		return TC_ABORTSTMT;
 		}
 
+	if ( IncreasesBlockLevel(s) )
+		++curr_block_level;
+
 	if ( s->Tag() == STMT_WHEN )
 		++num_when_stmts;
 
@@ -40,11 +43,29 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 	return TC_CONTINUE;
 	}
 
+TraversalCode ProfileFunc::PostStmt(const Stmt* s)
+	{
+	if ( IncreasesBlockLevel(s) )
+		--curr_block_level;
+
+	return TC_CONTINUE;
+	}
+
 TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	{
-	++num_exprs;
+	if ( e->Tag() == EXPR_CONST )
+		// These are the only expressions that we allow to be reused,
+		// since we never need information about them to be distinct
+		// to their position in the program.
+		;
+	else
+		ASSERT(expr_order.count(e) == 0);
 
-	call_level[e] = curr_call_level;
+	expr_order[e] = num_exprs;
+	expr_block_level[e] = curr_block_level;
+	ordered_exprs.push_back(e);
+
+	++num_exprs;
 
 	switch ( e->Tag() ) {
 	case EXPR_NAME:
@@ -60,8 +81,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 
 	case EXPR_CALL:
 		{
-		++curr_call_level;
-
 		auto c = e->AsCallExpr();
 		auto f = c->Func();
 
@@ -117,4 +136,20 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	}
 
 	return TC_CONTINUE;
+	}
+
+bool ProfileFunc::IncreasesBlockLevel(const Stmt* s) const
+	{
+	switch ( s->Tag() ) {
+	case STMT_IF:
+	case STMT_WHEN:
+	case STMT_SWITCH:
+	case STMT_FOR:
+	case STMT_CATCH_RETURN:
+	case STMT_WHILE:
+		return true;
+
+	default:
+		return false;
+	}
 	}

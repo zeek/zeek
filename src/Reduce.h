@@ -90,6 +90,14 @@ public:
 		replaced_stmts.clear();
 		}
 
+	// Tests whether an expression computed at point "start" remains
+	// valid for substitution at point "end".
+	bool ExprValid(const ID* id, const Expr* e, int start, int end) const;
+
+	// Returns true if an assigment involving the given identifier on
+	// the LHS is in conflict with the given list of identifiers.
+	bool CheckID(std::vector<const ID*>& ids, const ID* id) const;
+
 	// Given the LHS and RHS of an assignment, returns true
 	// if the RHS is a common subexpression (meaning that the
 	// current assignment statement should be deleted).  In

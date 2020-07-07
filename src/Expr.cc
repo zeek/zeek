@@ -2358,7 +2358,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( same_type(t1.get(), t2.get()) )
+		if ( same_type(t1, t2) )
 			SetType(op1->Type());
 		else
 			ExprError("incompatible \"set\" operands");
@@ -2947,7 +2947,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( same_type(t1.get(), t2.get()) )
+		if ( same_type(t1, t2) )
 			SetType(op1->Type());
 		else
 			ExprError("incompatible \"set\" operands");
@@ -3062,14 +3062,14 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 			break;
 
 		case TYPE_ENUM:
-			if ( ! same_type(t1.get(), t2.get()) )
+			if ( ! same_type(t1, t2) )
 				ExprError("illegal enum comparison");
 			break;
 
 		case TYPE_TABLE:
 			if ( t1->IsSet() && t2->IsSet() )
 				{
-				if ( ! same_type(t1.get(), t2.get()) )
+				if ( ! same_type(t1, t2) )
 					ExprError("incompatible sets in comparison");
 				break;
 				}
@@ -3171,7 +3171,7 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( ! same_type(t1.get(), t2.get()) )
+		if ( ! same_type(t1, t2) )
 			ExprError("incompatible sets in comparison");
 		}
 
@@ -3290,7 +3290,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 		else
 			{
 			if ( IsRecord(bt2) && IsRecord(bt3) &&
-			     ! same_type(op2->Type().get(), op3->Type().get()) )
+			     ! same_type(op2->Type(), op3->Type()) )
 				ExprError("operands must be of the same type");
 			else
 				SetType(op2->Type());
@@ -3680,7 +3680,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 			        IntrusivePtr{NewRef{}, op2->AsListExpr()}, attr_copy);
 
 		if ( ! empty_list_assignment &&
-		     ! same_type(op1->Type().get(), op2->Type().get()) )
+		     ! same_type(op1->Type(), op2->Type()) )
 			{
 			if ( op1->Type()->IsSet() )
 				ExprError("set type mismatch in assignment");
@@ -3714,7 +3714,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
 	     op2->Type()->Tag() == TYPE_RECORD )
 		{
-		if ( same_type(op1->Type().get(), op2->Type().get()) )
+		if ( same_type(op1->Type(), op2->Type()) )
 			{
 			RecordType* rt1 = op1->Type()->AsRecordType();
 			RecordType* rt2 = op2->Type()->AsRecordType();
@@ -3737,7 +3737,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		return true;
 		}
 
-	if ( ! same_type(op1->Type().get(), op2->Type().get()) )
+	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
 		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
 			{

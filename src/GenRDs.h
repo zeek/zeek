@@ -35,7 +35,6 @@ protected:
 	void DoLoopConfluence(const Stmt* s, const Stmt* top, const Stmt* body);
 	bool CheckLHS(const Expr* lhs, const Expr* a);
 
-	bool IsAggrTag(TypeTag tag) const;
 	bool IsAggr(const Expr* e) const;
 
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);

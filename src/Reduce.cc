@@ -236,7 +236,7 @@ bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 	if ( e1->Tag() != e2->Tag() )
 		return false;
 
-	if ( ! same_type(e1->Type().get(), e2->Type().get()) )
+	if ( ! same_type(e1->Type(), e2->Type()) )
 		return false;
 
 	switch ( e1->Tag() ) {
@@ -339,7 +339,7 @@ bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 		auto i1 = e1->AsIsExpr();
 		auto i2 = e2->AsIsExpr();
 
-		return same_type(i1->TestType().get(), i2->TestType().get());
+		return same_type(i1->TestType(), i2->TestType());
 		}
 
 	default:
@@ -365,14 +365,13 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 						const Expr* lhs,
 						const TempVar* lhs_tmp)
 	{
-	if ( pf->call_level.count(lhs) == 0 )
-		// We haven't tracked the LHS.  Rather than trying to
-		// regularize this (figure out how to propagate its
-		// call level), we just don't bother trying to find
-		// an equivalent temporary.
+	if ( pf->expr_order.count(lhs) == 0 )
+		// We haven't tracked the LHS, presumably because it
+		// was created during optimization.  Don't bother trying
+		// to find an equivalent temporary.
 		return nullptr;
 
-	int rhs_call_level = pf->call_level.find(lhs)->second;
+	int lhs_order = pf->expr_order.find(lhs)->second;
 
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
@@ -384,7 +383,7 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 
 		auto et_i_expr = et_i->RHS();
 
-		if ( pf->call_level.count(et_i_expr) == 0 )
+		if ( pf->expr_order.count(et_i_expr) == 0 )
 			// Likewise, we ought to figure out why this
 			// is happening (i.e., fail with ASSERT), but
 			// it's easiest to just forego the opportunity
@@ -393,22 +392,29 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 			// was the test above for lhs.
 			continue;
 
-		if ( pf->call_level.find(et_i_expr)->second != rhs_call_level )
-			// Don't propagate expressions across calls, there
-			// are too many ways that they could be out of date.
+		int et_i_order = pf->expr_order.find(et_i_expr)->second;
+
+		if ( et_i_order >= lhs_order )
+			// We can wind up looking at future expressions
+			// because of doing multiple reduction passes.
 			continue;
 
 		if ( SameExpr(rhs, et_i_expr) )
 			{
 			// Make sure its value always makes it here.
-			auto id = et_i->Id();
+			auto id = et_i->Id().get();
 
 			// We use lhs in the following rather than rhs
 			// because the RHS can get rewritten (for example,
 			// due to folding) after we generate RDs, and
 			// thus might not have any.
-			if ( ! mgr->HasSinglePreMinRD(lhs, id.get()) )
+			if ( ! mgr->HasSinglePreMinRD(lhs, id) )
 				// Value isn't guaranteed to make it here.
+				continue;
+
+			// Make sure there aren't ambiguities due to
+			// possible modifications to aggregates.
+			if ( ! ExprValid(id, et_i_expr, et_i_order, lhs_order) )
 				continue;
 
 			return et_i->Id();
@@ -416,6 +422,146 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 		}
 
 	return nullptr;
+	}
+
+bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
+	{
+	// Here are the considerations for expression validity.
+	//
+	// * None of the operands used in the given expression can
+	//   have been assigned.
+	//
+	// * If the expression yields an aggregate, or one of the
+	//   operands in the expression is an aggregate, then there
+	//   must not be any assignments to aggregates of the same
+	//   type(s).  This is to deal with possible aliases.
+	//
+	// * No propagation of expressions based on aggregates across
+	//   function calls.
+	//
+	// * No propgation of expressions baed on globals across calls.
+
+	// Tracks which ID's are germane for our analysis.
+	std::vector<const ID*> ids;
+
+	ids.push_back(id);
+
+	// Compute variables involved in the expression.
+	auto op1 = e->GetOp1();
+	auto op2 = e->GetOp2();
+	auto op3 = e->GetOp3();
+
+	if ( op1 && op1->Tag() == EXPR_NAME )
+		ids.push_back(op1->AsNameExpr()->Id());
+	if ( op2 && op2->Tag() == EXPR_NAME )
+		ids.push_back(op2->AsNameExpr()->Id());
+	if ( op3 && op3->Tag() == EXPR_NAME )
+		ids.push_back(op3->AsNameExpr()->Id());
+
+	if ( e->Tag() == EXPR_NAME )
+		ids.push_back(e->AsNameExpr()->Id());
+
+	// Track whether this is a record assignment, in which case
+	// we're attuned to assignments to the same field for the
+	// same type of record.
+	auto field = e->Tag() == EXPR_FIELD ? e->AsFieldExpr()->Field() : -1;
+
+	ASSERT(pf->expr_block_level.count(e) == 1);
+	int block_level = pf->expr_block_level.find(e)->second;
+
+	ASSERT(pf->ordered_exprs.size() >= end);
+
+	// We check each expression inside the range (non-inclusive)
+	// looking for potential issues.
+	for ( int i = start + 1; i < end; ++i )
+		{
+		auto e_i = pf->ordered_exprs[i];
+
+		ASSERT(pf->expr_block_level.count(e_i) == 1);
+		int bl = pf->expr_block_level.find(e_i)->second;
+
+		ASSERT(bl >= block_level);
+
+		switch ( e_i->Tag() ) {
+		case EXPR_ASSIGN:
+			{
+			auto lhs_ref = e_i->GetOp1()->AsRefExpr();
+			auto lhs = lhs_ref->GetOp1()->AsNameExpr();
+
+			if ( CheckID(ids, lhs->Id()) )
+				return false;
+			}
+			break;
+
+		case EXPR_INDEX_ASSIGN:
+			{
+			auto lhs_aggr = e_i->GetOp1();
+			auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
+
+			if ( CheckID(ids, lhs_aggr_id) )
+				return false;
+			}
+			break;
+
+		case EXPR_FIELD_LHS_ASSIGN:
+			{
+			auto lhs = e_i->GetOp1();
+			auto lhs_field = e_i->AsFieldLHSAssignExpr()->Field();
+
+			if ( lhs_field == field )
+				{
+				// Potential assignment to the same field
+				// as for our expression of interest.  Check
+				// for any identifier match.
+				auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+				if ( CheckID(ids, lhs_aggr_id) )
+					return false;
+				}
+
+			auto e_i_t = e_i->Type();
+			if ( IsAggr(e_i_t) )
+				{
+				// This assignment sets an aggregate value.
+				// Look for type matches.
+				for ( auto i : ids )
+					if ( same_type(e_i_t, i->TypePtr()) )
+						return false;
+				}
+			}
+			break;
+
+		case EXPR_CALL:
+			{
+			for ( auto i : ids )
+				if ( i->IsGlobal() || IsAggr(i->Type()) )
+					return false;
+			}
+			break;
+
+		default:
+			break;
+		}
+		}
+
+	return true;
+	}
+
+bool Reducer::CheckID(std::vector<const ID*>& ids, const ID* id) const
+	{
+	// Only check type info for aggregates.
+	auto id_t = IsAggr(id->Type()) ? id->Type() : nullptr;
+
+	for ( auto i : ids )
+		{
+		if ( id == i )
+			return true;	// reassignment
+
+		if ( id_t && same_type(id_t, i->Type()) )
+			// Same-type aggregate.
+			return true;
+		}
+
+	return false;
 	}
 
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)

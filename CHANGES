@@ -1,4 +1,8 @@
 
+3.2.0-dev.864 | 2020-07-06 21:06:41 -0700
+
+  * GH-1040: Add zero-indexed version of str_split (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.862 | 2020-07-06 20:40:44 -0700
 
   * GH-1041: Move compress_path to a bif that uses normalize_path (Tim Wojtulewicz, Corelight)

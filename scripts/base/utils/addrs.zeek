@@ -126,14 +126,14 @@ function normalize_mac(a: string): string
 
 	if ( |result| == 12 )
 		{
-		octets = str_split(result, vector(2, 4, 6, 8, 10));
-		return fmt("%s:%s:%s:%s:%s:%s", octets[1], octets[2], octets[3], octets[4], octets[5], octets[6]);
+		octets = str_split_indices(result, vector(2, 4, 6, 8, 10));
+		return fmt("%s:%s:%s:%s:%s:%s", octets[0], octets[1], octets[2], octets[3], octets[4], octets[5]);
 		}
 
 	if ( |result| == 16 )
 		{
-		octets = str_split(result, vector(2, 4, 6, 8, 10, 12, 14));
-		return fmt("%s:%s:%s:%s:%s:%s:%s:%s", octets[1], octets[2], octets[3], octets[4], octets[5], octets[6], octets[7], octets[8]);
+		octets = str_split_indices(result, vector(2, 4, 6, 8, 10, 12, 14));
+		return fmt("%s:%s:%s:%s:%s:%s:%s:%s", octets[0], octets[1], octets[2], octets[3], octets[4], octets[5], octets[6], octets[7]);
 		}
 
 	return "";

@@ -26,6 +26,8 @@ event zeek_init()
 	print "---------------------";
 	print str_split(a, idx);
 	print "---------------------";
+	print str_split_indices(a, idx);
+	print "---------------------";
 	a = "X-Mailer: Testing Test (http://www.example.com)";
 	pat = /:[[:blank:]]*/;
 	print_string_vector(split_string1(a, pat));

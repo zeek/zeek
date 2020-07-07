@@ -255,6 +255,10 @@ Deprecated Functionality
 
 - The "BroString.h" file is deprecated, use "ZeekString.h"
 
+- The str_split() BIF is deprecated, use str_split_indices().  Note
+  that the former returns a vector with indices starting at 1 while the
+  later returns a vector with indices starting at 0.
+
 Zeek 3.1.0
 ==========
 

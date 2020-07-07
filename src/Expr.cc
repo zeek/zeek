@@ -2222,7 +2222,7 @@ Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt1)};
 		op2 = {AdoptRef{}, op2->Reduce(c, red_stmt2)};
 
-		auto append = new AppendToExpr(op1, op2);
+		auto append = new AppendToExpr(op1->Duplicate(), op2);
 		append->SetOriginal(this);
 
 		IntrusivePtr<Expr> append_ptr = {AdoptRef{}, append};
@@ -2238,9 +2238,8 @@ Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		// We could do an ASSERT that op1 is an EXPR_REF, but
 		// the following is basically equivalent.
 		auto rhs = op1->AsRefExpr()->GetOp1();
-		auto do_incr = new AddExpr(rhs->Duplicate(), op2);
-		IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
-		auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
+		auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
+		auto assign = new AssignExpr(op1, do_incr, false, nullptr,
 						nullptr, false);
 
 		return assign->ReduceToSingleton(c, red_stmt);
@@ -2454,10 +2453,10 @@ IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
 
 Expr* RemoveFromExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	auto do_decr = new SubExpr(op1->AsRefExpr()->GetOp1(), op2);
-	IntrusivePtr<Expr> do_decr_ptr = {AdoptRef{}, do_decr};
-	auto assign = new AssignExpr(op1, do_decr_ptr, false, nullptr,
-					nullptr, false);
+	auto rhs = op1->AsRefExpr()->GetOp1();
+	auto do_decr = make_intrusive<SubExpr>(rhs->Duplicate(), op2);
+	auto assign = new AssignExpr(op1, do_decr, false, nullptr, nullptr,
+					false);
 
 	return assign->Reduce(c, red_stmt);
 	}

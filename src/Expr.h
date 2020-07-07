@@ -380,10 +380,6 @@ protected:
 			return this;
 		}
 
-	// For a given expression, confirms that it's a NameExpr and
-	// returns a new NameExpr for the same identifier.
-	IntrusivePtr<Expr> CopyName(const IntrusivePtr<Expr>& e) const;
-
 	void SeatBelts(const BroType* t1, const BroType* t2) const;
 	void SeatBelts(const BroType* t1, IntrusivePtr<BroType> t2) const
 		{ SeatBelts(t1, t2.get()); }

@@ -466,9 +466,6 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	// same type of record.
 	auto field = e->Tag() == EXPR_FIELD ? e->AsFieldExpr()->Field() : -1;
 
-	ASSERT(pf->expr_block_level.count(e) == 1);
-	int block_level = pf->expr_block_level.find(e)->second;
-
 	ASSERT(pf->ordered_exprs.size() >= end);
 
 	// We check each expression inside the range (non-inclusive)
@@ -476,11 +473,6 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	for ( int i = start + 1; i < end; ++i )
 		{
 		auto e_i = pf->ordered_exprs[i];
-
-		ASSERT(pf->expr_block_level.count(e_i) == 1);
-		int bl = pf->expr_block_level.find(e_i)->second;
-
-		ASSERT(bl >= block_level);
 
 		switch ( e_i->Tag() ) {
 		case EXPR_ASSIGN:

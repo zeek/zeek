@@ -507,15 +507,6 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	return check_and_promote(Eval(nullptr), t, true);
 	}
 
-IntrusivePtr<Expr> Expr::CopyName(const IntrusivePtr<Expr>& e) const
-	{
-	if ( e->Tag() != EXPR_NAME )
-		reporter->InternalError("confused in Expr::CopyName");
-
-	auto n = e->AsNameExpr();
-	return make_intrusive<NameExpr>(n->IdPtr());
-	}
-
 void Expr::SeatBelts(const BroType* t1, const BroType* t2) const
 	{
 	if ( same_type(t1, t2) )
@@ -1726,31 +1717,24 @@ Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	auto rhs = incr_expr->AssignToTemporary(c, assign_stmt);
 	IntrusivePtr<Expr> rhs_ptr = {AdoptRef{}, rhs};
 
-	// This is subtle.  We need to update the NameExpr in the
-	// original target with a new instance of the expression, rather
-	// than reusing the old one.  This is because we track reaching
-	// defs on the assumption that each appearance of a name corresponds
-	// to a distinct expression, and the original target already
-	// appears in the RHS of the assignment we're going to make.
-	// We don't update it in place since that can propagate back to
-	// the RHS via its construction above.
-
+	// Build a duplicate version of the original to use as the result.
 	if ( orig_target->Tag() == EXPR_NAME )
-		orig_target = CopyName(orig_target);
+		orig_target = orig_target->Duplicate();
 
 	else if ( orig_target->Tag() == EXPR_INDEX )
 		{
-		auto new_aggr = CopyName(orig_target->GetOp1());
-		auto index = orig_target->AsIndexExpr()->GetOp2()->AsListExpr();
+		auto dup1 = orig_target->GetOp1()->Duplicate();
+		auto dup2 = orig_target->GetOp2()->Duplicate();
+		auto index = dup2->AsListExpr();
 		IntrusivePtr<ListExpr> index_ptr = {NewRef{}, index};
-		orig_target = make_intrusive<IndexExpr>(new_aggr, index_ptr);
+		orig_target = make_intrusive<IndexExpr>(dup1, index_ptr);
 		}
 
 	else if ( orig_target->Tag() == EXPR_FIELD )
 		{
-		auto new_aggr = CopyName(orig_target->GetOp1());
+		auto dup1 = orig_target->GetOp1()->Duplicate();
 		auto field_name = orig_target->AsFieldExpr()->FieldName();
-		orig_target = make_intrusive<FieldExpr>(new_aggr, field_name);
+		orig_target = make_intrusive<FieldExpr>(dup1, field_name);
 		}
 
 	else
@@ -1781,7 +1765,7 @@ Expr* IncrExpr::ReduceToSingleton(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( target->Tag() == EXPR_NAME && IsIntegral(target->Type()->Tag()) )
 		{
-		IntrusivePtr<Expr> incr_expr{NewRef{}, this};
+		IntrusivePtr<Expr> incr_expr = Duplicate();
 		red_stmt = make_intrusive<ExprStmt>(incr_expr);
 		red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
 
@@ -2253,7 +2237,8 @@ Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		{
 		// We could do an ASSERT that op1 is an EXPR_REF, but
 		// the following is basically equivalent.
-		auto do_incr = new AddExpr(op1->AsRefExpr()->GetOp1(), op2);
+		auto rhs = op1->AsRefExpr()->GetOp1();
+		auto do_incr = new AddExpr(rhs->Duplicate(), op2);
 		IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
 		auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
 						nullptr, false);
@@ -3460,7 +3445,8 @@ IntrusivePtr<Stmt> CondExpr::ReduceToSingletons(Reducer* c)
 		if ( ! red3_stmt )
 			red3_stmt = make_intrusive<NullStmt>();
 
-		if_else = {AdoptRef{}, new IfStmt(op1, red2_stmt, red3_stmt)};
+		if_else = {AdoptRef{}, new IfStmt(op1->Duplicate(),
+							red2_stmt, red3_stmt)};
 		}
 
 	return MergeStmts(red1_stmt, if_else);
@@ -4164,7 +4150,8 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 		loop_over_list(lhs_list, i)
 			{
-			auto rhs = make_intrusive<AnyIndexExpr>(rhs_e, i);
+			auto rhs_dup = rhs_e->Duplicate();
+			auto rhs = make_intrusive<AnyIndexExpr>(rhs_dup, i);
 			IntrusivePtr<Expr> lhs = {NewRef{}, lhs_list[i]};
 			auto assign = make_intrusive<AssignExpr>(lhs, rhs,
 						false, nullptr, nullptr, false);
@@ -4219,7 +4206,7 @@ Expr* AssignExpr::ReduceToSingleton(Reducer* c,
 	if ( op1->Tag() != EXPR_REF )
 		Internal("Confusion in AssignExpr::ReduceToSingleton");
 
-	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
+	IntrusivePtr<Expr> assign_expr = Duplicate();
 	red_stmt = make_intrusive<ExprStmt>(assign_expr);
 	red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
 
@@ -4431,7 +4418,7 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 	IntrusivePtr<Stmt> op1_red_stmt;
 	op1 = {AdoptRef{}, op1->Reduce(c, op1_red_stmt)};
 
-	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
+	IntrusivePtr<Expr> assign_expr = Duplicate();
 	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
 
 	IntrusivePtr<ListExpr> index = {NewRef{}, op2->AsListExpr()};
@@ -4984,7 +4971,7 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 	IntrusivePtr<Stmt> op1_red_stmt;
 	op1 = {AdoptRef{}, op1->Reduce(c, op1_red_stmt)};
 
-	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
+	IntrusivePtr<Expr> assign_expr = Duplicate();
 	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
 
 	auto field_res = new FieldExpr(op1, field_name);

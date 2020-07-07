@@ -9,7 +9,6 @@
 class ProfileFunc : public TraversalCallback {
 public:
 	TraversalCode PreStmt(const Stmt*) override;
-	TraversalCode PostStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 
 	// Globals seen in the function.  Non-const solely to support
@@ -40,18 +39,6 @@ public:
 	std::unordered_map<const Expr*, int> expr_order;
 	std::vector<const Expr*> ordered_exprs;	// inverse of expr_order
 
-	// Maps expressions to their "block level", i.e., their degree
-	// of being sub-statements.  We do this just as a form of seatbelts -
-	// an expression being reused for CSE should never have a change
-	// of block level to something *below* its own level between it
-	// and the CSE target site.  However, we should already discard
-	// these due to not having appropriate minimal RDs at the site,
-	// so finding a block-level violation indicates a flaw in RD
-	// propagation.
-	std::unordered_map<const Expr*, int> expr_block_level;
-
-	int curr_block_level = 0;
-
 	// True if makes a call through an expression.
 	bool does_indirect_calls;
 
@@ -59,7 +46,4 @@ public:
 	int num_when_stmts = 0;
 	int num_lambdas = 0;
 	int num_exprs = 0;
-
-protected:
-	bool IncreasesBlockLevel(const Stmt* s) const;
 };

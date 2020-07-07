@@ -2519,7 +2519,9 @@ Expr* TimesExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( op2->IsOne() )
 		return op1.get()->ReduceToSingleton(c, red_stmt);
 
-	if ( op1->IsZero() || op2->IsZero() )
+	// Optimize integral multiplication by zero ... but not
+	// double, due to cases like Inf*0 or NaN*0.
+	if ( (op1->IsZero() || op2->IsZero()) && Type()->Tag() != TYPE_DOUBLE )
 		{
 		auto zero_val = op1->IsZero() ?
 				op1->Eval(nullptr) : op2->Eval(nullptr);

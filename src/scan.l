@@ -3,6 +3,9 @@
 
 #include <errno.h>
 
+#include <climits>
+#include <cstdlib>
+
 #include <stack>
 #include <list>
 #include <string>
@@ -38,13 +41,6 @@
 #include "plugin/Manager.h"
 
 using namespace zeek::detail;
-
-namespace {
-struct ZeekINode {
-	dev_t dev;
-	ino_t ino;
-};
-}
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern zeek::EnumType* cur_enum_type;
@@ -99,30 +95,6 @@ static std::string find_relative_script_file(const std::string& filename)
 		return find_script_file(filename, SafeDirname(::filename).result);
 	else
 		return find_script_file(filename, bro_path());
-	}
-
-static ZeekINode get_inode(FILE* f, const std::string& path)
-	{
-	struct stat b;
-
-	if ( fstat(fileno(f), &b) )
-		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
-		                     strerror(errno));
-
-	return {b.st_dev, b.st_ino};
-	}
-
-static ZeekINode get_inode(const std::string& path)
-	{
-	FILE* f = open_file(path);
-
-	if ( ! f )
-		reporter->FatalError("failed to open %s\n", path.c_str());
-
-	auto inode = get_inode(f, path);
-	fclose(f);
-
-	return inode;
 	}
 
 class FileInfo {
@@ -430,9 +402,8 @@ when	return TOK_WHEN;
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		auto i = get_inode(path);
-		ScannedFile sf(i.dev, i.ino, file_stack.length(), path, true);
-		files_scanned.push_back(sf);
+		ScannedFile sf(file_stack.length(), std::move(path), true);
+		files_scanned.push_back(std::move(sf));
 		}
 	}
 
@@ -598,19 +569,7 @@ YYLTYPE zeek::detail::GetCurrentLocation()
 	return currloc;
 	}
 
-static bool already_scanned(ZeekINode in)
-	{
-	for ( const auto& it : files_scanned )
-		if ( it.dev == in.dev && it.inode == in.ino )
-			return true;
-
-	return false;
-	}
-
-static bool already_scanned(const std::string& path)
-	{
-	return already_scanned(get_inode(path));
-	}
+static auto constexpr canonical_stdin_path = "<stdin>";
 
 static int load_files(const char* orig_file)
 	{
@@ -641,7 +600,7 @@ static int load_files(const char* orig_file)
 	if ( streq(orig_file, "-") )
 		{
 		f = stdin;
-		file_path = "<stdin>";
+		file_path = canonical_stdin_path;
 
 		if ( g_policy_debug )
 			{
@@ -664,9 +623,9 @@ static int load_files(const char* orig_file)
 			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	auto i = get_inode(f, file_path);
+	ScannedFile sf(file_stack.length(), file_path);
 
-	if ( already_scanned(i) )
+	if ( sf.AlreadyScanned() )
 		{
 		if ( f != stdin )
 			fclose(f);
@@ -674,8 +633,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	ScannedFile sf(i.dev, i.ino, file_stack.length(), file_path);
-	files_scanned.push_back(sf);
+	files_scanned.push_back(std::move(sf));
 
 	if ( g_policy_debug && ! file_path.empty() )
 		{
@@ -1078,4 +1036,43 @@ FileInfo::~FileInfo()
 
 	if ( restore_module != "" )
 		zeek::detail::current_module = restore_module;
+	}
+
+ScannedFile::ScannedFile(int arg_include_level,
+                         std::string arg_name,
+                         bool arg_skipped,
+                         bool arg_prefixes_checked)
+	: include_level(arg_include_level),
+	  skipped(arg_skipped),
+	  prefixes_checked(arg_prefixes_checked),
+	  name(std::move(arg_name))
+	{
+	if ( name == canonical_stdin_path )
+		canonical_path = canonical_stdin_path;
+	else
+		{
+		char buf[PATH_MAX];
+		auto res = realpath(name.data(), buf);
+
+		if ( ! res )
+			reporter->FatalError("failed to get realpath() of %s: %s",
+			                     name.data(), strerror(errno));
+
+		canonical_path = res;
+		}
+	}
+
+bool ScannedFile::AlreadyScanned() const
+	{
+	auto rval = false;
+
+	for ( const auto& it : files_scanned )
+		if ( it.canonical_path == canonical_path )
+			{
+			rval = true;
+			break;
+			}
+
+	DBG_LOG(DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
+	return rval;
 	}

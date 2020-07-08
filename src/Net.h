@@ -86,24 +86,23 @@ extern iosource::IOSource* current_iosrc;
 extern iosource::PktDumper* pkt_dumper;	// where to save packets
 
 // Script file we have already scanned (or are in the process of scanning).
-// They are identified by device and inode number.
+// They are identified by normalized realpath.
 struct ScannedFile {
-	dev_t dev;
-	ino_t inode;
 	int include_level;
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
 	std::string name;
+	std::string canonical_path; // normalized, absolute path via realpath()
 
-	ScannedFile(dev_t arg_dev, ino_t arg_inode, int arg_include_level,
-	            const std::string& arg_name, bool arg_skipped = false,
-	            bool arg_prefixes_checked = false)
-		: dev(arg_dev), inode(arg_inode),
-		  include_level(arg_include_level),
-		  skipped(arg_skipped),
-		  prefixes_checked(arg_prefixes_checked),
-		  name(arg_name)
-		{ }
+	ScannedFile(int arg_include_level,
+	            std::string arg_name, bool arg_skipped = false,
+	            bool arg_prefixes_checked = false);
+
+	/**
+	 * Compares the canonical path of this file against every canonical path
+	 * in files_scanned and returns whether there's any match.
+	 */
+	bool AlreadyScanned() const;
 };
 
 extern std::list<ScannedFile> files_scanned;

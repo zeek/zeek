@@ -1,4 +1,9 @@
 
+3.2.0-dev.868 | 2020-07-08 15:39:46 +0000
+
+  * GH-928: use realpath() instead of inode to de-duplicate scripts.
+    (Jon Siwek, Corelight)
+
 3.2.0-dev.864 | 2020-07-06 21:06:41 -0700
 
   * GH-1040: Add zero-indexed version of str_split (Tim Wojtulewicz, Corelight)

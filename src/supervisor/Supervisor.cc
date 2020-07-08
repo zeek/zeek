@@ -468,6 +468,9 @@ void Supervisor::HandleChildSignal()
 
 void Supervisor::InitPostScript()
 	{
+	stem_stdout.hook = id::find_func("Supervisor::stdout_hook");
+	stem_stderr.hook = id::find_func("Supervisor::stderr_hook");
+
 	iosource_mgr->Register(this);
 
 	if ( ! iosource_mgr->RegisterFd(signal_flare.FD(), this) )
@@ -498,16 +501,47 @@ void Supervisor::Process()
 
 void zeek::detail::LineBufferedPipe::Emit(const char* msg) const
 	{
-	fprintf(stream, "%s%s\n", prefix.data(), msg);
+	if ( ! msg[0] )
+		// Skip empty lines.
+		return;
+
+	auto msg_start = msg;
+	auto do_print = true;
+
+	if ( hook )
+		{
+		auto node = "";
+		auto node_len = 0;
+
+		if ( msg[0] == '[' )
+			{
+			auto end = strchr(msg, ']');
+
+			if ( end )
+				{
+				node = msg + 1;
+				node_len = end - node;
+				msg = end + 1;
+
+				if ( msg[0] == ' ' )
+					++msg;
+				}
+			}
+
+		auto res = hook->Invoke(make_intrusive<StringVal>(node_len, node),
+		                        make_intrusive<StringVal>(msg));
+		do_print = res->AsBool();
+		}
+
+	if ( do_print )
+		fprintf(stream, "%s%s\n", prefix.data(), msg_start);
 	}
 
 void zeek::detail::LineBufferedPipe::Drain()
 	{
 	while ( Process() != 0 );
 
-	if ( ! buffer.empty() )
-		Emit(buffer.data());
-
+	Emit(buffer.data());
 	buffer.clear();
 	pipe = nullptr;
 	}
@@ -529,8 +563,7 @@ size_t zeek::detail::LineBufferedPipe::Process()
 	auto msgs = extract_msgs(&buffer, '\n');
 
 	for ( const auto& msg : msgs )
-		if ( ! msg.empty() )
-			Emit(msg.data());
+		Emit(msg.data());
 
 	return bytes_read;
 	}

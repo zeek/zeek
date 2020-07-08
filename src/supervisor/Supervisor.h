@@ -17,6 +17,7 @@
 #include "Timer.h"
 #include "Pipe.h"
 #include "Flare.h"
+#include "Func.h"
 #include "NetVar.h"
 #include "IntrusivePtr.h"
 #include "Options.h"
@@ -60,14 +61,21 @@ struct LineBufferedPipe {
 	void Drain();
 
 	/**
-	 * Read lines from the pipe and emit them to associate stream.
+	 * Read lines from the pipe and emit them.
 	 */
 	size_t Process();
 
 	/**
-	 * Adds a prefix to given data and emits to associate stream.
+	 * Emits a message: either by calling a hook, or if there is no hook
+	 * or the hook returns true (no early "break"), printing it to the
+	 * associated stream.
 	 */
 	void Emit(const char* msg) const;
+
+	/**
+	 * A hook to call when emitting messages read from the pipe.
+	 */
+	FuncPtr hook;
 };
 } // namespace zeek::detail
 

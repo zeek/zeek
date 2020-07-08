@@ -1,0 +1,5 @@
+hooked stdout of (grault): (stdout) supervised node zeek_init()
+hooked stderr of (grault): (stderr) supervised node zeek_init()
+hooked stdout of (grault): (stdout) supervised node zeek_done()
+hooked stderr of (grault): received termination signal
+hooked stderr of (grault): (stderr) supervised node zeek_done()

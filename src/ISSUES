@@ -24,6 +24,9 @@ TEST SUITE
 	scripts.base.frameworks.config.container-options
 		fails due to polymorphic any -> set[T] in Config::format_value
 
+scripts.base.frameworks.cluster.custom_pool_exclusivity
+	### only fails when optimized, hard to follow
+
 	scripts.base.frameworks.control.configuration_update
 		failing due to lack of Modified() calls?
 
@@ -35,9 +38,6 @@ TEST SUITE
 		same issue as scripts.base.frameworks.config.container-options
 
 	scripts.base.frameworks.config.read_config_cluster
-		failing due to lack of Modified() calls?
-
-	scripts.base.frameworks.sumstats.basic
 		failing due to lack of Modified() calls?
 
 	scripts.policy.frameworks.netcontrol.catch-and-release

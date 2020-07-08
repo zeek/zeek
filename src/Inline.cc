@@ -103,9 +103,12 @@ void Inliner::Analyze()
 	std::unordered_set<FuncInfo*> candidates;
 
 	for ( auto& f : funcs )
-		// Candidates are non-event, non-hook, non-recursive functions.
+		// Candidates are non-event, non-hook, non-recursive
+		// functions ... that don't use lambdas, since we don't
+		// currently compute the closures for them correctly.
 		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     non_recursive_funcs.count(f->func) > 0 )
+		     non_recursive_funcs.count(f->func) > 0 &&
+		     f->pf->num_lambdas == 0 )
 			inline_ables.insert(f->func);
 
 	for ( auto& f : funcs )

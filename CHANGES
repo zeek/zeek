@@ -1,4 +1,9 @@
 
+3.2.0-dev.870 | 2020-07-08 15:41:15 +0000
+
+  * Fix WhileStmt to call Stmt(Tag) constructor. (Jon Siwek,
+    Corelight)
+
 3.2.0-dev.868 | 2020-07-08 15:39:46 +0000
 
   * GH-928: use realpath() instead of inode to de-duplicate scripts.

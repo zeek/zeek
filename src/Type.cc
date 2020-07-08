@@ -499,7 +499,7 @@ int FuncType::MatchesIndex(ListExpr* const index) const
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
-bool FuncType::CheckArgs(const type_list* args, bool is_init) const
+bool FuncType::CheckArgs(const type_list* args, bool is_init, bool do_warn) const
 	{
 	const type_list* my_args = arg_types->Types();
 
@@ -515,8 +515,9 @@ bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 	for ( int i = 0; i < my_args->length(); ++i )
 		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
 			{
-			Warn(fmt("Type mismatch in function argument #%d. Expected %s, got %s.",
-				i, type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
+			if ( do_warn )
+				Warn(fmt("Type mismatch in function argument #%d. Expected %s, got %s.",
+					i, type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
 			success = false;
 			}
 
@@ -1679,7 +1680,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 		     ft2->ArgTypes()->Types()->length() )
 			return false;
 
-		return ft1->CheckArgs(ft2->ArgTypes()->Types(), is_init);
+		return ft1->CheckArgs(ft2->ArgTypes()->Types(), is_init, false);
 		}
 
 	case TYPE_RECORD:

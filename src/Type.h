@@ -463,7 +463,8 @@ public:
 		{ yield = nullptr; flavor = arg_flav; }
 
 	int MatchesIndex(ListExpr* index) const override;
-	bool CheckArgs(const type_list* args, bool is_init = false) const;
+	bool CheckArgs(const type_list* args, bool is_init = false,
+			bool do_warn = true) const;
 
 	TypeList* ArgTypes() const	{ return arg_types.get(); }
 

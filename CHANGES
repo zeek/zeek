@@ -1,4 +1,8 @@
 
+3.0.8-dev.1 | 2020-07-08 12:26:43 -0700
+
+  * Fix FreeBSD CI script to install right SWIG package (Jon Siwek, Corelight)
+
 3.0.7 | 2020-06-09 09:43:32 -0700
 
   * Release 3.0.7

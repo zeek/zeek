@@ -7148,7 +7148,7 @@ Expr* LambdaExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 Expr* LambdaExpr::Inline(Inliner* inl)
 	{
-	ingredients->body->Inline(inl);
+	// Don't inline these, we currently don't get the closure right.
 	return this->Ref();
 	}
 

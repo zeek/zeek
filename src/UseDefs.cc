@@ -44,6 +44,9 @@ void UseDefs::RemoveUnused()
 		{
 		body = body->Reduce(rc);
 		Analyze();
+
+		if ( reporter->Errors() > 0 )
+			break;
 		}
 	}
 

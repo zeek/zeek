@@ -22,7 +22,7 @@ using namespace analyzer::icmp;
 
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
 	: TransportLayerAnalyzer("ICMP", c),
-	icmp_conn_val(), type(), code(), request_len(-1), reply_len(-1)
+	  type(), code(), request_len(-1), reply_len(-1)
 	{
 	c->SetInactivityTimeout(icmp_inactivity_timeout);
 	}
@@ -30,7 +30,6 @@ ICMP_Analyzer::ICMP_Analyzer(Connection* c)
 void ICMP_Analyzer::Done()
 	{
 	TransportLayerAnalyzer::Done();
-	icmp_conn_val = nullptr;
 	matcher_state.FinishEndpointMatcher();
 	}
 
@@ -222,19 +221,16 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 zeek::RecordValPtr ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
                                                int icmpv6, const IP_Hdr* ip_hdr)
 	{
-	if ( ! icmp_conn_val )
-		{
-		static auto icmp_conn = zeek::id::find_type<zeek::RecordType>("icmp_conn");
-		icmp_conn_val = zeek::make_intrusive<zeek::RecordVal>(icmp_conn);
+	static auto icmp_conn = zeek::id::find_type<zeek::RecordType>("icmp_conn");
 
-		icmp_conn_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(Conn()->OrigAddr()));
-		icmp_conn_val->Assign(1, zeek::make_intrusive<zeek::AddrVal>(Conn()->RespAddr()));
-		icmp_conn_val->Assign(2, zeek::val_mgr->Count(icmpp->icmp_type));
-		icmp_conn_val->Assign(3, zeek::val_mgr->Count(icmpp->icmp_code));
-		icmp_conn_val->Assign(4, zeek::val_mgr->Count(len));
-		icmp_conn_val->Assign(5, zeek::val_mgr->Count(ip_hdr->TTL()));
-		icmp_conn_val->Assign(6, zeek::val_mgr->Bool(icmpv6));
-		}
+	auto icmp_conn_val = zeek::make_intrusive<zeek::RecordVal>(icmp_conn);
+	icmp_conn_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(Conn()->OrigAddr()));
+	icmp_conn_val->Assign(1, zeek::make_intrusive<zeek::AddrVal>(Conn()->RespAddr()));
+	icmp_conn_val->Assign(2, zeek::val_mgr->Count(icmpp->icmp_type));
+	icmp_conn_val->Assign(3, zeek::val_mgr->Count(icmpp->icmp_code));
+	icmp_conn_val->Assign(4, zeek::val_mgr->Count(len));
+	icmp_conn_val->Assign(5, zeek::val_mgr->Count(ip_hdr->TTL()));
+	icmp_conn_val->Assign(6, zeek::val_mgr->Bool(icmpv6));
 
 	return icmp_conn_val;
 	}
@@ -491,8 +487,7 @@ void ICMP_Analyzer::UpdateEndpointVal(const zeek::ValPtr& endp_arg, bool is_orig
 unsigned int ICMP_Analyzer::MemoryAllocation() const
 	{
 	return Analyzer::MemoryAllocation()
-		+ padded_sizeof(*this) - padded_sizeof(Connection)
-		+ (icmp_conn_val ? icmp_conn_val->MemoryAllocation() : 0);
+		+ padded_sizeof(*this) - padded_sizeof(Connection);
 	}
 
 

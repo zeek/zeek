@@ -19,25 +19,25 @@ icmp_echo_request (id=1, seq=3, payload=abcdefghijklmnopqrstuvwabcdefghi)
   icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
 icmp_echo_reply (id=1, seq=3, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
-  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=129, icode=0, len=32, hlim=47, v6=T]
 icmp_echo_request (id=1, seq=4, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
   icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
 icmp_echo_reply (id=1, seq=4, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
-  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=129, icode=0, len=32, hlim=47, v6=T]
 icmp_echo_request (id=1, seq=5, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
   icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
 icmp_echo_reply (id=1, seq=5, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
-  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=129, icode=0, len=32, hlim=47, v6=T]
 icmp_echo_request (id=1, seq=6, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
   icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
 icmp_echo_reply (id=1, seq=6, payload=abcdefghijklmnopqrstuvwabcdefghi)
   conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
-  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=129, icode=0, len=32, hlim=47, v6=T]
 icmp_redirect (tgt=fe80::cafe, dest=fe80::babe)
   conn_id: [orig_h=fe80::dead, orig_p=137/icmp, resp_h=fe80::beef, resp_p=0/icmp]
   icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=137, icode=0, len=32, hlim=255, v6=T]

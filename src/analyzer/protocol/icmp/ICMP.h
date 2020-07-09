@@ -79,7 +79,6 @@ protected:
 	// RFC 4861 Neighbor Discover message options
 	zeek::VectorValPtr BuildNDOptionsVal(int caplen, const u_char* data);
 
-	zeek::RecordValPtr icmp_conn_val;
 	int type;
 	int code;
 	int request_len, reply_len;

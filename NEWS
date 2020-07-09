@@ -117,6 +117,12 @@ Changed Functionality
   names. Deprecation warnings should notify plugin developers of these
   name changes.
 
+- The ``icmp_conn`` record passed to ICMP events is no longer re-used
+  amongst all events within an ICMP "connection", so the ``itype``, ``icode``,
+  ``len``, and ``hlim`` fields all now reflect the values associated with
+  the current ICMP packet instead of the the value associated with
+  whatever original packet happened to instantiate the ICMP analyzer.
+
 Removed Functionality
 ---------------------
 

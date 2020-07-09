@@ -18,6 +18,9 @@ TEST SUITE
 	language.uninitialized-local2
 		static analysis correctly finds issues prevously missed
 
+	language.vector
+		need to support "v1 && v2" etc.
+
 	plugins.hooks
 		messy - prints lots of embedded function bodies
 

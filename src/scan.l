@@ -592,9 +592,6 @@ static int load_files(const char* orig_file)
 
 	assert(rc == -1); // No plugin in charge of this file.
 
-	// Whether we pushed on a FileInfo that will restore the
-	// current module after the final file has been scanned.
-	bool did_module_restore = false;
 	FILE* f = 0;
 
 	if ( streq(orig_file, "-") )
@@ -644,18 +641,9 @@ static int load_files(const char* orig_file)
 		LoadPolicyFileText(file_path.c_str());
 		}
 
-	// Remember where we were.  If this is the first
-	// file being pushed on the stack, i.e., the *last*
-	// one that will be processed, then we want to
-	// restore the module scope in which this @load
-	// was done when we're finished processing it.
-	if ( ! did_module_restore )
-		{
-		file_stack.push_back(new FileInfo(zeek::detail::current_module));
-		did_module_restore = true;
-		}
-	else
-		file_stack.push_back(new FileInfo);
+	// Remember where we were to restore the module scope in which
+	// this @load was done when we're finished processing it.
+	file_stack.push_back(new FileInfo(zeek::detail::current_module));
 
 	zeekygen_mgr->Script(file_path);
 

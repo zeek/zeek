@@ -1,4 +1,8 @@
 
+3.2.0-dev.874 | 2020-07-08 17:46:20 -0700
+
+  * scan.l: Remove "constant" did_module_restore logic / dead code (Arne Welzel)
+
 3.2.0-dev.872 | 2020-07-08 12:25:11 -0700
 
   * Fix FreeBSD CI script to install right SWIG package (Jon Siwek, Corelight)

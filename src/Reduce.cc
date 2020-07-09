@@ -769,7 +769,7 @@ IntrusivePtr<Expr> Reducer::UpdateExpr(IntrusivePtr<Expr> e)
 		if ( is_const )
 			{
 			// Remember this variable as one whose value
-			// we used for constrant propagation.  That
+			// we used for constant propagation.  That
 			// ensures we can subsequently not complain
 			// about it being assigned but not used (though
 			// we can still omit the assignment).

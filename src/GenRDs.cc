@@ -313,9 +313,14 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// Make sure the conditional gets its RDs updated.
 
 		if ( cond_stmt )
+			{
+			cond_stmt->Traverse(this);
 			mgr.SetPreFromPost(cond, cond_stmt);
+			}
 		else
 			mgr.SetPreFromPost(cond, cond_s);
+
+		cond->Traverse(this);
 
 		return TC_ABORTSTMT;
 		}
@@ -484,22 +489,20 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 	auto loop_post = mgr.GetPostMaxRDs(body);
 
 	for ( const auto& pre : bd->pre_RDs )
-		if ( pre != loop_pre )
-			{
-			mgr.MergeIntoPre(top, pre);
+		{
+		mgr.MergeIntoPre(top, pre);
 
-			// Factor in that these definitions also
-			// essentially make it to the beginning of
-			// the entire loop.
-			mgr.MergeIntoPre(s, pre);
-			}
+		// Factor in that these definitions also
+		// essentially make it to the beginning of
+		// the entire loop.
+		mgr.MergeIntoPre(s, pre);
+		}
 
 	for ( const auto& post : bd->post_RDs )
-		if ( post != loop_post )
-			{
-			mgr.MergeIntoPost(body, post);
-			mgr.MergeIntoPre(s, post);
-			}
+		{
+		mgr.MergeIntoPost(body, post);
+		mgr.MergeIntoPre(s, post);
+		}
 
 	// Freshen due to mergers.
 	loop_pre = mgr.GetPreMaxRDs(top);

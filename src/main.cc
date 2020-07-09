@@ -887,7 +887,8 @@ int main(int argc, char** argv)
 	reporter->ReportViaEvents(true);
 
 	// Drain the event queue here to support the protocols framework configuring DPM
-	mgr.Drain();
+	if ( reporter->Errors() == 0 || zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
+		mgr.Drain();
 
 	if ( reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
 		reporter->FatalError("errors occurred while initializing");

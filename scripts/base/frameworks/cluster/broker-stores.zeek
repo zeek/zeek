@@ -1,3 +1,4 @@
+@load ./main
 
 module Broker;
 

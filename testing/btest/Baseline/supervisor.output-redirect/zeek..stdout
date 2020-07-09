@@ -1,0 +1,2 @@
+[supervisor:STDOUT] [grault] (stdout) supervised node zeek_init()
+[supervisor:STDOUT] [grault] (stdout) supervised node zeek_done()

@@ -17,11 +17,67 @@
 #include "Timer.h"
 #include "Pipe.h"
 #include "Flare.h"
+#include "Func.h"
 #include "NetVar.h"
 #include "IntrusivePtr.h"
 #include "Options.h"
 
 namespace zeek {
+
+namespace detail {
+
+struct SupervisorStemHandle;
+struct SupervisedNode;
+struct SupervisorNode;
+
+/**
+ * A simple wrapper around a pipe to help do line-buffered output
+ * of a Supervisor/Stem child process' redirected stdout/stderr.
+ */
+struct LineBufferedPipe {
+	/**
+	 * A pipe that a parent process can read from to obtain output
+	 * written by a child process.
+	 */
+	std::unique_ptr<zeek::detail::Pipe> pipe;
+	/**
+	 * A prefix to emit before data read from the pipe.
+	 */
+	std::string prefix;
+	/**
+	 * The stream to which data from the pipe will be output.
+	 */
+	FILE* stream = nullptr;
+	/**
+	 * Leftover data read from the pipe without yet seeing a newline.
+	 * Data is read and output in line-buffered fashion.
+	 */
+	std::string buffer;
+
+	/**
+	 * Completely drain the pipe and close it.  Nothing can be
+	 * processed from the pipe anymore unless a new one is assigned.
+	 */
+	void Drain();
+
+	/**
+	 * Read lines from the pipe and emit them.
+	 */
+	size_t Process();
+
+	/**
+	 * Emits a message: either by calling a hook, or if there is no hook
+	 * or the hook returns true (no early "break"), printing it to the
+	 * associated stream.
+	 */
+	void Emit(const char* msg) const;
+
+	/**
+	 * A hook to call when emitting messages read from the pipe.
+	 */
+	FuncPtr hook;
+};
+} // namespace zeek::detail
 
 /**
  * A Supervisor object manages a tree of persistent Zeek processes.  If any
@@ -143,116 +199,6 @@ public:
 	};
 
 	/**
-	 * State which defines a Supervised node's understanding of itself.
-	 */
-	struct SupervisedNode {
-		/**
-		 * Initialize the Supervised node within the Zeek Cluster Framework.
-		 * This function populates the "Cluster::nodes" script-layer variable
-		 * that otherwise is expected to be populated by a
-		 * "cluster-layout.zeek" script in other context (e.g. ZeekCtl
-		 * generates that cluster layout).
-		 * @return  true if the supervised node is using the Cluster Framework
-		 * else false.
-		 */
-		bool InitCluster() const;
-
-		/**
-		 * Initialize the Supervised node.
-		 * @param options  the Zeek options to extend/modify as appropriate
-		 * for the node's configuration.
-		 */
-		void Init(zeek::Options* options) const;
-
-		/**
-		 * The node's configuration options.
-		 */
-		NodeConfig config;
-		/**
-		 * The process ID of the supervised node's parent process (i.e. the PID
-		 * of the Stem process).
-		 */
-		pid_t parent_pid;
-	};
-
-	/**
-	 * The state of a supervised node from the Supervisor's perspective.
-	 */
-	struct Node {
-		/**
-		 * Convert the node into script-layer Supervisor::NodeStatus record
-		 * representation.
-		 */
-		RecordValPtr ToRecord() const;
-
-		/**
-		 * @return the name of the node.
-		 */
-		const std::string& Name() const
-			{ return config.name; }
-
-		/**
-		 * Create a new node state from a given configuration.
-		 * @param arg_config  the configuration to use for the node.
-		 */
-		Node(NodeConfig arg_config) : config(std::move(arg_config))
-			{ }
-
-		/**
-		 * The desired configuration for the node.
-		 */
-		NodeConfig config;
-		/**
-		 * Process ID of the node (positive/non-zero are valid/live PIDs).
-		 */
-		pid_t pid = 0;
-		/**
-		 * Whether the node is voluntarily marked for termination by the
-		 * Supervisor.
-		 */
-		bool killed = false;
-		/**
-		 * The last exit status of the node.
-		 */
-		int exit_status = 0;
-		/**
-		 * The last signal which terminated the node.
-		 */
-		int signal_number = 0;
-		/**
-		 * Number of process revival attempts made after the node first died
-		 * prematurely.
-		 */
-		int revival_attempts = 0;
-		/**
-		 * How many seconds to wait until the next revival attempt for the node.
-		 */
-		int revival_delay = 1;
-		/**
-		 * The time at which the node's process was last spawned.
-		 */
-		std::chrono::time_point<std::chrono::steady_clock> spawn_time;
-	};
-
-	/**
-	 * State used to initalialize the Stem process.
-	 */
-	struct StemState {
-		/**
-		 * Bidirectional pipes that allow the Supervisor and Stem to talk.
-		 */
-		std::unique_ptr<zeek::detail::PipePair> pipe;
-		/**
-		 * The Stem's parent process ID (i.e. PID of the Supervisor).
-		 */
-		pid_t parent_pid = 0;
-		/**
-		 * The Stem's process ID.
-		 */
-		pid_t pid = 0;
-	};
-
-	/**
 	 * Create and run the Stem process if necessary.
 	 * @param supervisor_mode  whether Zeek was invoked with the supervisor
 	 * mode specified as command-line argument/option.
@@ -261,24 +207,24 @@ public:
 	 * function but a node it spawns via fork() will return from it and
 	 * information about it is available in ThisNode().
 	 */
-	static std::optional<StemState> CreateStem(bool supervisor_mode);
+	static std::optional<detail::SupervisorStemHandle> CreateStem(bool supervisor_mode);
 
 	/**
 	 * @return  the state which describes what a supervised node should know
 	 * about itself if this is a supervised process.  If called from a process
 	 * that is not supervised, this returns an "empty" object.
 	 */
-	static const std::optional<SupervisedNode>& ThisNode()
+	static const std::optional<detail::SupervisedNode>& ThisNode()
 		{ return supervised_node; }
 
-	using NodeMap = std::map<std::string, Node, std::less<>>;
+	using NodeMap = std::map<std::string, detail::SupervisorNode, std::less<>>;
 
 	/**
 	 * Create a new Supervisor object.
-	 * @param stem_state  information about the Stem process that was already
+	 * @param stem_handle information about the Stem process that was already
 	 * created via CreateStem()
 	 */
-	Supervisor(Config cfg, StemState stem_state);
+	Supervisor(Config cfg, detail::SupervisorStemHandle stem_handle);
 
 	/**
 	 * Destruction also cleanly shuts down the entire supervised process tree.
@@ -365,28 +311,144 @@ private:
 	const char* Tag() override
 		{ return "zeek::Supervisor"; }
 
-	/**
-	 * Run the Stem process.  The Stem process will receive instructions from
-	 * the Supervisor to manipulate the process hierarchy and it's in charge
-	 * of directly monitoring for whether any nodes die premature and need
-	 * to be revived.
-	 * @param pipe  bidirectional pipes that allow the Supervisor and Stem
-	 * process to communicate.
-	 * @param pid  the Stem's parent process ID (i.e. the PID of the Supervisor)
-	 * @return  state which describes what a supervised node should know about
-	 * itself.  I.e. this function only returns from a fork()'d child process.
-	 */
-	static SupervisedNode RunStem(StemState stem_state);
-
-	static std::optional<SupervisedNode> supervised_node;
+	static std::optional<detail::SupervisedNode> supervised_node;
 
 	Config config;
 	pid_t stem_pid;
 	std::unique_ptr<zeek::detail::PipePair> stem_pipe;
+	zeek::detail::LineBufferedPipe stem_stdout;
+	zeek::detail::LineBufferedPipe stem_stderr;
 	int last_signal = -1;
 	zeek::detail::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;
+};
+
+namespace detail {
+/**
+ * State used to initalialize and talk to the Supervisor Stem process.
+ */
+struct SupervisorStemHandle {
+	/**
+	 * Bidirectional pipes that allow the Supervisor and Stem to talk.
+	 */
+	std::unique_ptr<zeek::detail::PipePair> pipe;
+	/**
+	 * A pipe that the Supervisor can read from to obtain
+	 * any output written to the Stem's stdout.
+	 */
+	std::unique_ptr<zeek::detail::Pipe> stdout_pipe;
+	/**
+	 * A pipe that the Supervisor can read from to obtain
+	 * any output written to the Stem's stdout.
+	 */
+	std::unique_ptr<zeek::detail::Pipe> stderr_pipe;
+	/**
+	 * The Stem's process ID.
+	 */
+	pid_t pid = 0;
+};
+
+/**
+ * State which defines a Supervised Zeek node's understanding of itself.
+ */
+struct SupervisedNode {
+	/**
+	 * Initialize the Supervised node within the Zeek Cluster Framework.
+	 * This function populates the "Cluster::nodes" script-layer variable
+	 * that otherwise is expected to be populated by a
+	 * "cluster-layout.zeek" script in other context (e.g. ZeekCtl
+	 * generates that cluster layout).
+	 * @return  true if the supervised node is using the Cluster Framework
+	 * else false.
+	 */
+	bool InitCluster() const;
+
+	/**
+	 * Initialize the Supervised node.
+	 * @param options  the Zeek options to extend/modify as appropriate
+	 * for the node's configuration.
+	 */
+	void Init(zeek::Options* options) const;
+
+	/**
+	 * The node's configuration options.
+	 */
+	Supervisor::NodeConfig config;
+	/**
+	 * The process ID of the supervised node's parent process (i.e. the PID
+	 * of the Stem process).
+	 */
+	pid_t parent_pid;
+};
+
+/**
+ * The state of a supervised node from the Supervisor's perspective.
+ */
+struct SupervisorNode {
+	/**
+	 * Convert the node into script-layer Supervisor::NodeStatus record
+	 * representation.
+	 */
+	RecordValPtr ToRecord() const;
+
+	/**
+	 * @return the name of the node.
+	 */
+	const std::string& Name() const
+		{ return config.name; }
+
+	/**
+	 * Create a new node state from a given configuration.
+	 * @param arg_config  the configuration to use for the node.
+	 */
+	SupervisorNode(Supervisor::NodeConfig arg_config) : config(std::move(arg_config))
+		{ }
+
+	/**
+	 * The desired configuration for the node.
+	 */
+	Supervisor::NodeConfig config;
+	/**
+	 * Process ID of the node (positive/non-zero are valid/live PIDs).
+	 */
+	pid_t pid = 0;
+	/**
+	 * Whether the node is voluntarily marked for termination by the
+	 * Supervisor.
+	 */
+	bool killed = false;
+	/**
+	 * The last exit status of the node.
+	 */
+	int exit_status = 0;
+	/**
+	 * The last signal which terminated the node.
+	 */
+	int signal_number = 0;
+	/**
+	 * Number of process revival attempts made after the node first died
+	 * prematurely.
+	 */
+	int revival_attempts = 0;
+	/**
+	 * How many seconds to wait until the next revival attempt for the node.
+	 */
+	int revival_delay = 1;
+	/**
+	 * The time at which the node's process was last spawned.
+	 */
+	std::chrono::time_point<std::chrono::steady_clock> spawn_time;
+	/**
+	 * A pipe that the Supervisor Stem can read from to obtain
+	 * any output written to the Nodes's stdout.
+	 */
+	zeek::detail::LineBufferedPipe stdout_pipe;
+	/**
+	 * A pipe that the Supervisor Stem can read from to obtain
+	 * any output written to the Node's stdout.
+	 */
+	zeek::detail::LineBufferedPipe stderr_pipe;
 };
 
 /**
@@ -410,6 +472,7 @@ protected:
 
 	double interval;
 };
+}
 
 extern Supervisor* supervisor_mgr;
 

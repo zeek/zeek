@@ -142,6 +142,11 @@ Manager::~Manager()
 		delete *s;
 	}
 
+void Manager::InitPostScript()
+	{
+	rotation_format_func = zeek::id::find_func("Log::rotation_format_func");
+	}
+
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, zeek::EnumVal* tag)
 	{
 	Component* c = Lookup(tag);
@@ -1170,6 +1175,11 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 			winfo->interval = f->interval;
 			winfo->postprocessor = f->postprocessor;
 
+			if ( f->postprocessor )
+				{
+				delete [] winfo->info->post_proc_func;
+				winfo->info->post_proc_func = copy_string(f->postprocessor->Name());
+				}
 
 			break;
 			}
@@ -1180,6 +1190,18 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 		const auto& id = zeek::detail::global_scope()->Find("Log::default_rotation_interval");
 		assert(id);
 		winfo->interval = id->GetVal()->AsInterval();
+
+		if ( winfo->info->post_proc_func &&
+		     strlen(winfo->info->post_proc_func) )
+			{
+			auto func = zeek::id::find_func(winfo->info->post_proc_func);
+
+			if ( func )
+				winfo->postprocessor = func.get();
+			else
+				reporter->Warning("failed log postprocessor function lookup: %s\n",
+				                  winfo->info->post_proc_func);
+			}
 		}
 
 	stream->writers.insert(
@@ -1466,23 +1488,88 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 		}
 	}
 
+static std::string format_rotation_time_fallback(time_t t)
+	{
+	struct tm tm;
+	char buf[128];
+	const char* const date_fmt = "%y-%m-%d_%H.%M.%S";
+	localtime_r(&t, &tm);
+	strftime(buf, sizeof(buf), date_fmt, &tm);
+	return buf;
+	}
+
+std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
+                                        std::string_view path, double open,
+                                        double close, bool terminating,
+                                        zeek::FuncPtr postprocessor)
+	{
+	auto ri = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Log::RotationFmtInfo);
+	ri->Assign(0, std::move(writer));
+	ri->Assign<zeek::StringVal>(1, path.size(), path.data());
+	ri->Assign<zeek::TimeVal>(2, open);
+	ri->Assign<zeek::TimeVal>(3, close);
+	ri->Assign(4, zeek::val_mgr->Bool(terminating));
+	ri->Assign<zeek::Val>(5, std::move(postprocessor));
+
+	std::string rval;
+
+	try
+		{
+		auto res = rotation_format_func->Invoke(ri);
+		auto rp_val = res->AsRecordVal();
+		auto dir_val = rp_val->GetFieldOrDefault(0);
+		auto prefix = rp_val->GetField(1)->AsString()->CheckString();
+		auto dir = dir_val->AsString()->CheckString();
+
+		if ( ! streq(dir, "") && ! ensure_intermediate_dirs(dir) )
+			{
+			reporter->Error("Failed to create dir '%s' returned by "
+			                "Log::rotation_format_func for path %.*s: %s",
+			                dir, static_cast<int>(path.size()), path.data(),
+			                strerror(errno));
+			dir = "";
+			}
+
+		if ( streq(dir, "") )
+			rval = prefix;
+		else
+			rval = fmt("%s/%s", dir, prefix);
+
+		}
+	catch ( InterpreterException& e )
+		{
+		auto rot_str = format_rotation_time_fallback((time_t)open);
+		rval = fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
+		           rot_str.data());
+		reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
+		                "continuing with rotation to: ./%s",
+		                static_cast<int>(path.size()), path.data(), rval.data());
+		}
+
+	return rval;
+	}
+
 void Manager::Rotate(WriterInfo* winfo)
 	{
 	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
 		winfo->writer->Name(), network_time);
 
-	// Build a temporary path for the writer to move the file to.
-	struct tm tm;
-	char buf[128];
-	const char* const date_fmt = "%y-%m-%d_%H.%M.%S";
-	time_t teatime = (time_t)winfo->open_time;
+	static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
 
-	localtime_r(&teatime, &tm);
-	strftime(buf, sizeof(buf), date_fmt, &tm);
+	zeek::FuncPtr ppf;
 
-	// Trigger the rotation.
-	const char* tmp = fmt("%s-%s", winfo->writer->Info().path, buf);
-	winfo->writer->Rotate(tmp, winfo->open_time, network_time, terminating);
+	if ( winfo->postprocessor )
+		ppf = {zeek::NewRef{}, winfo->postprocessor};
+	else
+		ppf = default_ppf;
+
+	auto rotation_path = FormatRotationPath({zeek::NewRef{}, winfo->type},
+	                                        winfo->writer->Info().path,
+	                                        winfo->open_time, network_time,
+	                                        terminating,
+	                                        std::move(ppf));
+
+	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, network_time, terminating);
 
 	++rotations_pending;
 	}
@@ -1508,7 +1595,6 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	if ( ! winfo )
 		return true;
 
-	// Create the RotationInfo record.
 	auto info = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Log::RotationInfo);
 	info->Assign(0, {zeek::NewRef{}, winfo->type});
 	info->Assign(1, zeek::make_intrusive<zeek::StringVal>(new_name));
@@ -1517,13 +1603,12 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	info->Assign(4, zeek::make_intrusive<zeek::TimeVal>(close));
 	info->Assign(5, zeek::val_mgr->Bool(terminating));
 
+	static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
+
 	zeek::Func* func = winfo->postprocessor;
+
 	if ( ! func )
-		{
-		const auto& id = zeek::detail::global_scope()->Find("Log::__default_rotation_postprocessor");
-		assert(id);
-		func = id->GetVal()->AsFunc();
-		}
+		func = default_ppf.get();
 
 	assert(func);
 

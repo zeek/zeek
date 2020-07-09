@@ -19,5 +19,7 @@ redef Log::enable_remote_logging = T;
 ## Log rotation interval.
 redef Log::default_rotation_interval = 24 hrs;
 
+@if ( ! Supervisor::is_supervised() )
 ## Use the cluster's delete-log script.
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
+@endif

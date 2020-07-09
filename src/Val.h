@@ -1058,7 +1058,7 @@ protected:
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
 	// Calls &change_func.
-	void CallChangeFunc(const Val* index, const ValPtr& old_value,
+	void CallChangeFunc(const ValPtr& index, const ValPtr& old_value,
 	                    OnChangeType tpe);
 
 	// Sends data on to backing Broker Store

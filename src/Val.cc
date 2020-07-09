@@ -2151,7 +2151,6 @@ void TableVal::CallChangeFunc(const ValPtr& index,
 	in_change_func = false;
 	}
 
-<<<<<<< HEAD
 void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe)
 	{
 	if ( broker_store.empty() || ! index )
@@ -2171,7 +2170,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			{
 			if ( index->AsListVal()->Length() != 1 )
 				{
-				builtin_error("table with complex index not supported for &broker_store");
+				zeek::emit_builtin_error("table with complex index not supported for &broker_store");
 				return;
 				}
 
@@ -2188,7 +2187,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 
 		if ( ! broker_index )
 			{
-			builtin_error("invalid Broker data conversation for table index");
+			zeek::emit_builtin_error("invalid Broker data conversation for table index");
 			return;
 			}
 
@@ -2224,14 +2223,14 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( ! new_entry_val )
 						{
-						builtin_error("did not receive new value for broker-store send operation");
+						zeek::emit_builtin_error("did not receive new value for broker-store send operation");
 						return;
 						}
 					auto new_value = new_entry_val->GetVal().get();
 					auto broker_val = bro_broker::val_to_data(new_value);
 					if ( ! broker_val )
 						{
-						builtin_error("invalid Broker data conversation for table value");
+						zeek::emit_builtin_error("invalid Broker data conversation for table value");
 						return;
 						}
 					handle->store.put(std::move(*broker_index), std::move(*broker_val), expiry);
@@ -2249,11 +2248,11 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		}
 	catch ( InterpreterException& e )
 		{
-		builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
+		zeek::emit_builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
 		}
 	}
 
-ValPtr TableVal::Remove(const Val& index, bool broker_forward))
+ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	{
 	auto k = MakeHashKey(index);
 	// this is totally cheating around the fact that we need a Intrusive pointer.

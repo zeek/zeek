@@ -303,7 +303,7 @@ public:
 	 */
 	StoreHandleVal* LookupStore(const std::string& name);
 
-	bool AddForwardedStore(const std::string& name, IntrusivePtr<TableVal> table);
+	bool AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek::TableVal> table);
 
 	/**
 	 * Close and unregister a data store.  Any existing references to the
@@ -399,7 +399,7 @@ private:
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
-	std::unordered_map<std::string, IntrusivePtr<TableVal>> forwarded_stores;
+	std::unordered_map<std::string, zeek::IntrusivePtr<zeek::TableVal>> forwarded_stores;
 	std::unordered_map<query_id, StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;

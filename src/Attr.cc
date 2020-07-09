@@ -620,7 +620,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
-		if ( type->AsTableType()->IndexTypes().size() != 1 )
+		if ( type->AsTableType()->GetIndexTypes().size() != 1 )
 			{
 			Error("&backend only supports one-element set/table indexes");
 			}
@@ -655,7 +655,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
-		if ( type->AsTableType()->IndexTypes().size() != 1 )
+		if ( type->AsTableType()->GetIndexTypes().size() != 1 )
 			{
 			Error("&broker_store only supports one-element set/table indexes");
 			}

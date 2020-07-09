@@ -222,7 +222,7 @@ void Manager::InitPostScript()
 
 void Manager::InitializeBrokerStoreForwarding()
 	{
-	const auto& globals = global_scope()->Vars();
+	const auto& globals = zeek::detail::global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
@@ -233,7 +233,7 @@ void Manager::InitializeBrokerStoreForwarding()
 			auto e = static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
 			auto storename = std::string("___sync_store_") + global.first;
 			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
-			AddForwardedStore(storename, {NewRef{}, id->GetVal()->AsTableVal()});
+			AddForwardedStore(storename, {zeek::NewRef{}, id->GetVal()->AsTableVal()});
 
 			// we only create masters here. For clones, we do all the work of setting up
 			// the forwarding - but we do not try to initialize the clone. We can only initialize
@@ -1024,7 +1024,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			}
 
 		// FIXME: expiry!
-		const auto& its = table->GetType()->AsTableType()->IndexTypes();
+		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 		assert( its.size() == 1 );
 		auto zeek_key = data_to_val(std::move(key), its[0].get());
 		if ( ! zeek_key )
@@ -1073,7 +1073,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			return;
 			}
 
-		const auto& its = table->GetType()->AsTableType()->IndexTypes();
+		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 		assert( its.size() == 1 );
 		auto zeek_key = data_to_val(std::move(key), its[0].get());
 		if ( ! zeek_key )
@@ -1113,7 +1113,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 
 		auto key = erase.key();
 		DBG_LOG(DBG_BROKER, "Store %s: Erase key %s", erase.store_id().c_str(), to_string(key).c_str());
-		const auto& its = table->GetType()->AsTableType()->IndexTypes();
+		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 		assert( its.size() == 1 );
 		auto zeek_key = data_to_val(std::move(key), its[0].get());
 		if ( ! zeek_key )
@@ -1677,7 +1677,7 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const StoreHandleV
 
 	auto set = caf::get_if<broker::set>(&(keys->get_data()));
 	auto table = handle->forward_to;
-	const auto& its = table->GetType()->AsTableType()->IndexTypes();
+	const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 	bool is_set = table->GetType()->IsSet();
 	assert( its.size() == 1 );
 	for ( const auto key : *set )
@@ -1804,7 +1804,7 @@ const Stats& Manager::GetStatistics()
 	return statistics;
 	}
 
-bool Manager::AddForwardedStore(const std::string& name, IntrusivePtr<TableVal> table)
+bool Manager::AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek::TableVal> table)
 	{
 	if ( forwarded_stores.find(name) != forwarded_stores.end() )
 		{
@@ -1812,7 +1812,7 @@ bool Manager::AddForwardedStore(const std::string& name, IntrusivePtr<TableVal> 
 		return false;
 		}
 
-	DBG_LOG(DBG_BROKER, "Adding table forward for data store %s", name.c_str());	
+	DBG_LOG(DBG_BROKER, "Adding table forward for data store %s", name.c_str());
 	forwarded_stores.emplace(name, table);
 
 	CheckForwarding(name);

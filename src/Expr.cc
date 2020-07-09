@@ -6969,7 +6969,7 @@ Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = MergeStmts(red_stmt, catch_ret);
 
-	return ret_val ? ret_val.release() : nullptr;
+	return ret_val ? ret_val->Duplicate().release() : nullptr;
 	}
 
 IntrusivePtr<Val> InlineExpr::Eval(Frame* f) const

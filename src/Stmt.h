@@ -465,6 +465,8 @@ public:
 	// has "NoFlowAfter" inside the body still gets caught and we
 	// continue afterwards.
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;

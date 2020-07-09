@@ -2393,7 +2393,9 @@ Stmt* CatchReturnStmt::DoReduce(Reducer* c)
 			return new NullStmt;
 			}
 
-		auto assign = make_intrusive<AssignExpr>(ret_var, ret_e, false);
+		auto assign = make_intrusive<AssignExpr>(ret_var->Duplicate(),
+							ret_e->Duplicate(),
+							false);
 		assign_stmt = make_intrusive<ExprStmt>(assign);
 		return assign_stmt.get();
 		}
@@ -2405,6 +2407,13 @@ const CompiledStmt CatchReturnStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
 	return c->CatchReturn(this);
+	}
+
+IntrusivePtr<Stmt> CatchReturnStmt::Duplicate()
+	{
+	auto rv_dup = ret_var->Duplicate();
+	IntrusivePtr<NameExpr> rv_dup_ptr = {AdoptRef{}, rv_dup->AsNameExpr()};
+	return make_intrusive<CatchReturnStmt>(block->Duplicate(), rv_dup_ptr);
 	}
 
 void CatchReturnStmt::StmtDescribe(ODesc* d) const
@@ -2419,10 +2428,10 @@ TraversalCode CatchReturnStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
+	block->Traverse(cb);
+
 	if ( ret_var )
 		ret_var->Traverse(cb);
-
-	block->Traverse(cb);
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);

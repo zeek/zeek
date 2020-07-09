@@ -2958,10 +2958,8 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 void WhenStmt::Inline(Inliner* inl)
 	{
-	// Don't inline the condition or timeout, just the bodies.
-	s1->Inline(inl);
-	if ( s2 )
-		s2->Inline(inl);
+	// Don't inline, since we currently don't correctly capture
+	// the frames of closures.
 	}
 
 const CompiledStmt WhenStmt::Compile(Compiler* c) const

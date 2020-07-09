@@ -104,11 +104,12 @@ void Inliner::Analyze()
 
 	for ( auto& f : funcs )
 		// Candidates are non-event, non-hook, non-recursive
-		// functions ... that don't use lambdas, since we don't
-		// currently compute the closures for them correctly.
+		// functions ... that don't use lambdas or when's,
+		// since we don't currently compute the closures/frame
+		// sizes for them correctly.
 		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION &&
 		     non_recursive_funcs.count(f->func) > 0 &&
-		     f->pf->num_lambdas == 0 )
+		     f->pf->num_lambdas == 0 && f->pf->num_when_stmts == 0 )
 			inline_ables.insert(f->func);
 
 	for ( auto& f : funcs )

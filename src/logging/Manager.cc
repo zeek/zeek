@@ -1505,8 +1505,8 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 	{
 	auto ri = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Log::RotationFmtInfo);
 	ri->Assign(0, std::move(writer));
-	ri->Assign<zeek::TimeVal>(2, open);
 	ri->Assign<zeek::StringVal>(1, path.size(), path.data());
+	ri->Assign<zeek::TimeVal>(2, open);
 	ri->Assign<zeek::TimeVal>(3, close);
 	ri->Assign(4, zeek::val_mgr->Bool(terminating));
 	ri->Assign<zeek::Val>(5, std::move(postprocessor));

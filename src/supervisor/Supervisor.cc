@@ -13,6 +13,7 @@
 #include <cstdarg>
 #include <sstream>
 #include <variant>
+#include <utility>
 
 #include "iosource/Manager.h"
 #include "ZeekString.h"
@@ -79,6 +80,13 @@ struct Stem {
 
 	void Reap();
 
+	/**
+	 * This performs fork() to initialize the supervised-node structure.
+	 * There's three possible outcomes:
+	 *   - return value is SupervisedNode: we are the child process
+	 *   - return value is True: we are the parent and fork() succeeded
+	 *   - return value is False: we are the parent and fork() failed
+	 */
 	std::variant<bool, SupervisedNode> Spawn(SupervisorNode* node);
 
 	int AliveNodeCount() const;
@@ -152,6 +160,21 @@ static std::vector<std::string> extract_msgs(std::string* buffer, char delim)
 		}
 
 	return rval;
+	}
+
+static std::pair<int, std::vector<std::string>>
+read_msgs(int fd, std::string* buffer, char delim)
+	{
+	constexpr auto buf_size = 256;
+	char buf[buf_size];
+
+	int bytes_read = read(fd, buf, buf_size);
+
+	if ( bytes_read <= 0 )
+		return {bytes_read, {}};
+
+	buffer->append(buf, bytes_read);
+	return {bytes_read, extract_msgs(buffer, delim)};
 	}
 
 static std::string make_create_message(const Supervisor::NodeConfig& node)
@@ -551,16 +574,10 @@ size_t zeek::detail::LineBufferedPipe::Process()
 	if ( ! pipe )
 		return 0;
 
-	char buf[256];
-
-	int bytes_read = read(pipe->ReadFD(), buf, 256);
+	auto [bytes_read, msgs] = read_msgs(pipe->ReadFD(), &buffer, '\n');
 
 	if ( bytes_read <= 0 )
 		return 0;
-
-	buffer.append(buf, bytes_read);
-
-	auto msgs = extract_msgs(&buffer, '\n');
 
 	for ( const auto& msg : msgs )
 		Emit(msg.data());
@@ -570,13 +587,7 @@ size_t zeek::detail::LineBufferedPipe::Process()
 
 size_t Supervisor::ProcessMessages()
 	{
-	char buf[256];
-	int bytes_read = read(stem_pipe->InFD(), buf, 256);
-
-	if ( bytes_read > 0 )
-		msg_buffer.append(buf, bytes_read);
-
-	auto msgs = extract_msgs(&msg_buffer, '\0');
+	auto [bytes_read, msgs] = read_msgs(stem_pipe->InFD(), &msg_buffer, '\0');
 
 	for ( auto& msg : msgs )
 		{
@@ -1061,8 +1072,7 @@ std::optional<SupervisedNode> Stem::Poll()
 		// No messages from supervisor to process, so return early.
 		return {};
 
-	char buf[256];
-	int bytes_read = read(pipe->InFD(), buf, 256);
+	auto [bytes_read, msgs] = read_msgs(pipe->InFD(), &msg_buffer, '\0');
 
 	if ( bytes_read == 0 )
 		{
@@ -1076,9 +1086,6 @@ std::optional<SupervisedNode> Stem::Poll()
 		LogError("Stem read() failed: %s", strerror(errno));
 		return {};
 		}
-
-	msg_buffer.append(buf, bytes_read);
-	auto msgs = extract_msgs(&msg_buffer, '\0');
 
 	for ( auto& msg : msgs )
 		{

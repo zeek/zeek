@@ -154,19 +154,19 @@ export {
 		## just-in-time, as the log rotation is about to happen.  If it
 		## cannot be created, an error is emitted and the rotation process
 		## tries to proceed with rotation inside the working directory.  When
-		## setting this field, beware that renaming files across systems will
-		## generally fail.
+		## setting this field, beware that renaming files across file systems
+		## will generally fail.
 		dir: string &default = default_rotation_dir;
 
-		## A prefix to use for the the rotated log.  Log writers may later
+		## A base name to use for the the rotated log.  Log writers may later
 		## append a file extension of their choosing to this user-chosen
-		## prefix (e.g. if using the default ASCII writer and you want
-		## rotated files of the format "foo-<date>.log", then this prefix
+		## base (e.g. if using the default ASCII writer and you want
+		## rotated files of the format "foo-<date>.log", then this basename
 		## can be set to "foo-<date>" and the ".log" is added later (there's
 		## also generally means of customizing the file extension, too,
 		## like the ``ZEEK_LOG_SUFFIX`` environment variable or
 		## writer-dependent configuration options.
-		file_prefix: string;
+		file_basename: string;
 	};
 
 	## A function that one may use to customize log file rotation paths.
@@ -633,12 +633,12 @@ function Log::rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
 	    default_rotation_postprocessors[WRITER_ASCII] == default_ascii_rotation_postprocessor_func)
 		{
 		open_str = strftime(Log::default_rotation_date_format, ri$open);
-		rval = RotationPath($file_prefix=fmt("%s.%s", ri$path, open_str));
+		rval = RotationPath($file_basename=fmt("%s.%s", ri$path, open_str));
 		}
 	else
 		{
 		open_str = strftime("%y-%m-%d_%H.%M.%S", ri$open);
-		rval = RotationPath($file_prefix=fmt("%s-%s", ri$path, open_str));
+		rval = RotationPath($file_basename=fmt("%s-%s", ri$path, open_str));
 		}
 
 	return rval;

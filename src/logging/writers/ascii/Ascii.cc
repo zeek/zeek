@@ -81,11 +81,10 @@ struct LeftoverLog {
 	std::string error;
 
 	/**
-	 * Return the name of the log without file extension (this is
-	 * what's called "path" in other logging framework parlance).
-	 * E.g. the name of "conn.log" is just "conn".
+	 * Return the "path" (logging framework parlance) of the log without the
+	 * file extension. E.g. the "path" of "conn.log" is just "conn".
 	 */
-	std::string Name() const
+	std::string Path() const
 		{ return filename.substr(0, filename.size() - extension.size()); }
 
 	/**
@@ -97,7 +96,6 @@ struct LeftoverLog {
 
 static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	{
-	char errbuf[512];
 	auto sfname = shadow_file_prefix + fname;
 
 	LeftoverLog rval;
@@ -108,8 +106,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( ! sf_stream )
 		{
-		bro_strerror_r(errno, errbuf, sizeof(errbuf));
-		rval.error = "Failed to open " + rval.shadow_filename + ": " + errbuf;
+		rval.error = fmt("Failed to open %s: %s",
+		                 rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
 
@@ -119,6 +117,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	auto sf_content = std::make_unique<char[]>(sf_len);
 	auto bytes_read = fread(sf_content.get(), 1, sf_len, sf_stream);
+	fclose(sf_stream);
 
 	if ( bytes_read != static_cast<size_t>(sf_len) )
 		{
@@ -126,17 +125,14 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 		return rval;
 		}
 
-	fclose(sf_stream);
 	std::string_view sf_view(sf_content.get(), sf_len);
 	auto sf_lines = tokenize_string(sf_view, '\n');
 
 	if ( sf_lines.size() < 2 )
 		{
-		snprintf(errbuf, sizeof(errbuf),
-		         "Found leftover log, '%s', but the associated shadow file, "
-		         "'%s', required to process it is invalid",
-		         rval.filename.data(), rval.shadow_filename.data());
-		rval.error = errbuf;
+		rval.error = fmt("Found leftover log, '%s', but the associated shadow "
+		                 " file, '%s', required to process it is invalid",
+		                 rval.filename.data(), rval.shadow_filename.data());
 		return rval;
 		}
 
@@ -148,8 +144,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use shadow file's modification time as creation time.
 	if ( stat(rval.shadow_filename.data(), &st) != 0 )
 		{
-		bro_strerror_r(errno, errbuf, sizeof(errbuf));
-		rval.error = "Failed to stat " + rval.shadow_filename + ": " + errbuf;
+		rval.error = fmt("Failed to stat %s: %s",
+		                 rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
 
@@ -158,8 +154,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use log file's modification time for closing time.
 	if ( stat(rval.filename.data(), &st) != 0 )
 		{
-		bro_strerror_r(errno, errbuf, sizeof(errbuf));
-		rval.error = "Failed to stat " + rval.filename + ": " + errbuf;
+		rval.error = fmt("Failed to stat %s: %s",
+		                 rval.filename.data(), strerror(errno));
 		return rval;
 		}
 
@@ -755,21 +751,21 @@ void Ascii::RotateLeftoverLogs()
 			if ( func )
 				ppf = std::move(func);
 			else
-				reporter->Warning("Could no postprocess log '%s' with intended "
+				reporter->Warning("Could not postprocess log '%s' with intended "
 								  "postprocessor function '%s', proceeding "
 								  " with the default function",
 								  ll.filename.data(), ll.post_proc_func.data());
 			}
 
 		auto rotation_path = log_mgr->FormatRotationPath(
-		        writer_val, ll.Name(), ll.open_time, ll.close_time, false, ppf);
+		        writer_val, ll.Path(), ll.open_time, ll.close_time, false, ppf);
 
 		rotation_path += ll.extension;
 
 		auto rot_info = zeek::make_intrusive<zeek::RecordVal>(rot_info_type);
 		rot_info->Assign(0, writer_val);
 		rot_info->Assign<zeek::StringVal>(1, rotation_path);
-		rot_info->Assign<zeek::StringVal>(2, ll.Name());
+		rot_info->Assign<zeek::StringVal>(2, ll.Path());
 		rot_info->Assign<zeek::TimeVal>(3, ll.open_time);
 		rot_info->Assign<zeek::TimeVal>(4, ll.close_time);
 		rot_info->Assign(5, zeek::val_mgr->False());

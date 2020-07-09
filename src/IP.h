@@ -17,8 +17,14 @@
 #include "IntrusivePtr.h"
 
 class IPAddr;
-class RecordVal;
-class VectorVal;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
+
+namespace zeek {
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
+}
 
 #ifdef ENABLE_MOBILE_IPV6
 
@@ -136,11 +142,11 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	IntrusivePtr<RecordVal> ToVal(IntrusivePtr<VectorVal> chain) const;
-	IntrusivePtr<RecordVal> ToVal() const;
+	zeek::RecordValPtr ToVal(zeek::VectorValPtr chain) const;
+	zeek::RecordValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
+	zeek::RecordVal* BuildRecordVal(zeek::VectorVal* chain = nullptr) const;
 
 protected:
 	uint8_t type;
@@ -229,10 +235,10 @@ public:
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
-	IntrusivePtr<VectorVal> ToVal() const;
+	zeek::VectorValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	VectorVal* BuildVal() const;
+	zeek::VectorVal* BuildVal() const;
 
 protected:
 	// for access to protected ctor that changes next header values that
@@ -526,28 +532,28 @@ public:
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
 	 */
-	IntrusivePtr<RecordVal> ToIPHdrVal() const;
+	zeek::RecordValPtr ToIPHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToIPHdrVal() instead.")]]
-	RecordVal* BuildIPHdrVal() const;
+	zeek::RecordVal* BuildIPHdrVal() const;
 
 	/**
 	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
-	IntrusivePtr<RecordVal> ToPktHdrVal() const;
+	zeek::RecordValPtr ToPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
-	RecordVal* BuildPktHdrVal() const;
+	zeek::RecordVal* BuildPktHdrVal() const;
 
 	/**
 	 * Same as above, but simply add our values into the record at the
 	 * specified starting index.
 	 */
-	IntrusivePtr<RecordVal> ToPktHdrVal(IntrusivePtr<RecordVal> pkt_hdr, int sindex) const;
+	zeek::RecordValPtr ToPktHdrVal(zeek::RecordValPtr pkt_hdr, int sindex) const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
-	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
+	zeek::RecordVal* BuildPktHdrVal(zeek::RecordVal* pkt_hdr, int sindex) const;
 
 private:
 	const struct ip* ip4 = nullptr;

@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "Base64.h"
@@ -82,7 +82,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		{
 		int cmd_len;
 		const char* cmd;
-		StringVal* cmd_str;
+		zeek::StringVal* cmd_str;
 
 		line = skip_whitespace(line, end_of_line);
 		get_word(end_of_line - line, line, cmd_len, cmd);
@@ -91,15 +91,15 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		if ( cmd_len == 0 )
 			{
 			// Weird("FTP command missing", end_of_line - orig_line, orig_line);
-			cmd_str = new StringVal("<missing>");
+			cmd_str = new zeek::StringVal("<missing>");
 			}
 		else
-			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();
+			cmd_str = (new zeek::StringVal(cmd_len, cmd))->ToUpper();
 
 		vl = {
 			ConnVal(),
-			IntrusivePtr{AdoptRef{}, cmd_str},
-			make_intrusive<StringVal>(end_of_line - line, line),
+			zeek::IntrusivePtr{zeek::AdoptRef{}, cmd_str},
+			zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
 		};
 
 		f = ftp_request;
@@ -177,9 +177,9 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		vl = {
 			ConnVal(),
-			val_mgr->Count(reply_code),
-			make_intrusive<StringVal>(end_of_line - line, line),
-			val_mgr->Bool(cont_resp)
+			zeek::val_mgr->Count(reply_code),
+			zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
+			zeek::val_mgr->Bool(cont_resp)
 		};
 
 		f = ftp_reply;
@@ -204,7 +204,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	const char* line = (const char*) data;
 	const char* end_of_line = line + len;
 
-	BroString* decoded_adat = nullptr;
+	zeek::String* decoded_adat = nullptr;
 
 	if ( orig )
 		{
@@ -216,7 +216,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		if ( strncmp(cmd, "ADAT", cmd_len) == 0 )
 			{
 			line = skip_whitespace(line + cmd_len, end_of_line);
-			StringVal encoded(end_of_line - line, line);
+			zeek::StringVal encoded(end_of_line - line, line);
 			decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
 
 			if ( first_token )
@@ -291,7 +291,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			if ( end_of_line - line >= 5 && strncmp(line, "ADAT=", 5) == 0 )
 				{
 				line += 5;
-				StringVal encoded(end_of_line - line, line);
+				zeek::StringVal encoded(end_of_line - line, line);
 				decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
 				}
 

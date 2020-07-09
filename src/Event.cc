@@ -19,7 +19,7 @@ uint64_t num_events_queued = 0;
 uint64_t num_events_dispatched = 0;
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             SourceID arg_src, analyzer::ID arg_aid, BroObj* arg_obj)
+             SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
@@ -95,14 +95,14 @@ EventMgr::~EventMgr()
 
 void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
                               SourceID src, analyzer::ID aid, TimerMgr* mgr,
-                              BroObj* obj)
+                              Obj* obj)
 	{
 	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
                           SourceID src, analyzer::ID aid,
-                          TimerMgr* mgr, BroObj* obj)
+                          TimerMgr* mgr, Obj* obj)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -112,7 +112,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
                           SourceID src, analyzer::ID aid,
-                          TimerMgr* mgr, BroObj* obj)
+                          TimerMgr* mgr, Obj* obj)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
@@ -122,7 +122,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       SourceID src, analyzer::ID aid, BroObj* obj)
+                       SourceID src, analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}

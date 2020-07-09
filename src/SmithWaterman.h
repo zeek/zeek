@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include <map>
 
 // BroSubstrings are essentially BroStrings, augmented with indexing
@@ -11,7 +11,7 @@
 // for each of which we store where the substring starts.
 //
 //
-class BroSubstring : public BroString {
+class BroSubstring : public zeek::String {
 
 public:
 	typedef std::vector<BroSubstring*> Vec;
@@ -22,12 +22,12 @@ public:
 	//
 	struct BSSAlign {
 
-		BSSAlign(const BroString* string, int index)
+		BSSAlign(const zeek::String* string, int index)
 			{ this->string = string; this->index = index; }
 
 		// The other string
 		//
-		const BroString* string;
+		const zeek::String* string;
 
 		// Offset in the string that substring
 		// starts at, counting from 0.
@@ -40,10 +40,10 @@ public:
 	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
 
 	explicit BroSubstring(const std::string& string)
-		: BroString(string), _num(), _new(false) { }
+		: zeek::String(string), _num(), _new(false) { }
 
-	explicit BroSubstring(const BroString& string)
-		: BroString(string), _num(), _new(false) { }
+	explicit BroSubstring(const zeek::String& string)
+		: zeek::String(string), _num(), _new(false) { }
 
 	BroSubstring(const BroSubstring& bst);
 
@@ -56,7 +56,7 @@ public:
 	//
 	bool DoesCover(const BroSubstring* bst) const;
 
-	void AddAlignment(const BroString* string, int index);
+	void AddAlignment(const zeek::String* string, int index);
 	const BSSAlignVec& GetAlignments() const	{ return _aligns; }
 	unsigned int GetNumAlignments() const	{ return _aligns.size(); }
 
@@ -68,11 +68,11 @@ public:
 
 	// Helper methods for vectors:
 	//
-	static VectorVal* VecToPolicy(Vec* vec);
-	static Vec* VecFromPolicy(VectorVal* vec);
+	static zeek::VectorVal* VecToPolicy(Vec* vec);
+	static Vec* VecFromPolicy(zeek::VectorVal* vec);
 	static char* VecToString(Vec* vec);
-	static BroString::IdxVec* GetOffsetsVec(const Vec* vec,
-						unsigned int index);
+	static zeek::String::IdxVec* GetOffsetsVec(const Vec* vec,
+	                                              unsigned int index);
 
 private:
 	typedef std::map<std::string, void*> DataMap;
@@ -148,6 +148,6 @@ struct SWParams {
 // input strings where the string occurs.  On error, or if no common
 // subsequence exists, an empty vector is returned.
 //
-extern BroSubstring::Vec* smith_waterman(const BroString* s1,
-					 const BroString* s2,
-					 SWParams& params);
+extern BroSubstring::Vec* smith_waterman(const zeek::String* s1,
+                                         const zeek::String* s2,
+                                         SWParams& params);

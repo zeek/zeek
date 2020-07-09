@@ -18,7 +18,7 @@ extern void add_input_file_at_front(const char* file);
 
 // Adds the substrings (using the given delimiter) in a string to the
 // given namelist.
-extern void add_to_name_list(char* s, char delim, name_list& nl);
+extern void add_to_name_list(char* s, char delim, zeek::name_list& nl);
 
 extern void begin_RE();
 

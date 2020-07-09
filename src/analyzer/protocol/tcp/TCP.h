@@ -60,11 +60,11 @@ public:
 	// the test is whether it has any outstanding, un-acked data.
 	bool DataPending(TCP_Endpoint* closing_endp);
 
-	void SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f) override;
-	IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const override;
+	void SetContentsFile(unsigned int direction, BroFilePtr f) override;
+	BroFilePtr GetContentsFile(unsigned int direction) const override;
 
 	// From Analyzer.h
-	void UpdateConnVal(RecordVal *conn_val) override;
+	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
 	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
@@ -267,7 +267,7 @@ public:
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
 			const IP_Hdr* ip, const struct tcphdr* tp);
 
-	RecordVal* BuildStats();
+	zeek::RecordVal* BuildStats();
 
 protected:
 	TCP_Endpoint* endp;

@@ -3,7 +3,7 @@ refine flow SIP_Flow += {
 	%member{
 		int content_length;
 		bool build_headers;
-		std::vector<IntrusivePtr<Val>> headers;
+		std::vector<zeek::ValPtr> headers;
 	%}
 
 	%init{
@@ -59,7 +59,7 @@ refine flow SIP_Flow += {
 
 		if ( build_headers )
 			{
-			headers.push_back({AdoptRef{}, build_sip_header_val(name, value)});
+			headers.push_back({zeek::AdoptRef{}, build_sip_header_val(name, value)});
 			}
 
 		return true;
@@ -68,11 +68,11 @@ refine flow SIP_Flow += {
 	function build_sip_headers_val(): BroVal
 		%{
 		static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
-		TableVal* t = new TableVal(mime_header_list);
+		auto* t = new zeek::TableVal(mime_header_list);
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
-			auto index = val_mgr->Count(i + 1);
+			auto index = zeek::val_mgr->Count(i + 1);
 			t->Assign(std::move(index), std::move(headers[i]));
 			}
 
@@ -84,7 +84,7 @@ refine flow SIP_Flow += {
 		if ( sip_all_headers )
 			{
 			zeek::BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							   is_orig(), {AdoptRef{}, build_sip_headers_val()});
+							   is_orig(), {zeek::AdoptRef{}, build_sip_headers_val()});
 			}
 
 		headers.clear();
@@ -103,18 +103,18 @@ refine flow SIP_Flow += {
 	function build_sip_header_val(name: const_bytestring, value: const_bytestring): BroVal
 		%{
 		static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
-		RecordVal* header_record = new RecordVal(mime_header_rec);
-		IntrusivePtr<StringVal> name_val;
+		auto* header_record = new zeek::RecordVal(mime_header_rec);
+		zeek::StringValPtr name_val;
 
 		if ( name.length() > 0 )
 			{
 			// Make it all uppercase.
-			name_val = make_intrusive<StringVal>(name.length(), (const char*) name.begin());
+			name_val = zeek::make_intrusive<zeek::StringVal>(name.length(), (const char*) name.begin());
 			name_val->ToUpper();
 			}
 		else
 			{
-			name_val = val_mgr->EmptyString();
+			name_val = zeek::val_mgr->EmptyString();
 			}
 
 		header_record->Assign(0, name_val);

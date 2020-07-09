@@ -27,7 +27,6 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
-class Val;
 class BroFile;
 class IntSet;
 class IP_Hdr;
@@ -36,6 +35,8 @@ class RE_Match_State;
 class Specific_RE_Matcher;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 namespace analyzer {
 	namespace pia { class PIA; }
@@ -56,9 +57,9 @@ struct MaskedValue {
 	uint32_t mask;
 };
 
-typedef PList<MaskedValue> maskedvalue_list;
-typedef PList<char> string_list;
-typedef PList<BroString> bstr_list;
+using maskedvalue_list = zeek::PList<MaskedValue>;
+using string_list = zeek::PList<char>;
+using bstr_list = zeek::PList<zeek::String>;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
@@ -116,7 +117,7 @@ private:
 		int_list ids;	// (only needed for debugging)
 	};
 
-	typedef PList<PatternSet> pattern_set_list;
+	using pattern_set_list = zeek::PList<PatternSet>;
 	pattern_set_list psets[Rule::TYPES];
 
 	// List of rules belonging to this node.
@@ -130,7 +131,7 @@ private:
 	RuleHdrTest* child;
 };
 
-typedef PList<RuleHdrTest> rule_hdr_test_list;
+using rule_hdr_test_list = zeek::PList<RuleHdrTest>;
 
 // RuleEndpointState keeps the per-stream matching state of one
 // connection endpoint.
@@ -165,7 +166,7 @@ private:
 		Rule::PatternType type;
 	};
 
-	typedef PList<Matcher> matcher_list;
+	using matcher_list = zeek::PList<Matcher>;
 
 	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
@@ -204,8 +205,7 @@ private:
 		RE_Match_State* state;
 	};
 
-	typedef PList<Matcher> matcher_list;
-
+	using matcher_list = zeek::PList<Matcher>;
 	matcher_list matchers;
 };
 
@@ -304,8 +304,8 @@ public:
 		unsigned int misses;	// # cache misses
 	};
 
-	Val* BuildRuleStateValue(const Rule* rule,
-					const RuleEndpointState* state) const;
+	zeek::Val* BuildRuleStateValue(const Rule* rule,
+	                               const RuleEndpointState* state) const;
 
 	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
 	void DumpStats(BroFile* f);
@@ -338,7 +338,7 @@ private:
 	// Eval a rule under the assumption that all its patterns
 	// have already matched.  s holds the text the rule matched,
 	// or nil if N/A.
-	bool ExecRulePurely(Rule* r, BroString* s,
+	bool ExecRulePurely(Rule* r, zeek::String* s,
 		RuleEndpointState* state, bool eos);
 
 	// Execute the actions associated with a rule.

@@ -171,16 +171,6 @@ public:
 		return hooks[hook] != nullptr;
 		}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
-	bool HavePluginForHook(::plugin::HookType hook) const
-		{
-		// Inline to avoid the function call.
-		return HavePluginForHook(static_cast<zeek::plugin::HookType>(hook));
-		}
-#pragma GCC diagnostic pop
-
 	/**
 	 * Returns all the hooks, with their priorities, that are currently
 	 * enabled for a given plugin.
@@ -209,15 +199,6 @@ public:
 	 */
 	void DisableHook(zeek::plugin::HookType hook, Plugin* plugin);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
-	void EnableHook(::plugin::HookType hook, Plugin* plugin, int prio);
-
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
-	void DisableHook(::plugin::HookType hook, Plugin* plugin);
-#pragma GCC diagnostic pop
-
 	/**
 	 * Registers interest in an event by a plugin, even if there's no handler
 	 * for it. Normally a plugin receives events through HookQueueEvent()
@@ -233,7 +214,7 @@ public:
 	void RequestEvent(EventHandlerPtr handler, Plugin* plugin);
 
 	/**
-	 * Register interest in the destruction of a BroObj instance. When Bro's
+	 * Register interest in the destruction of a Obj instance. When Bro's
 	 * reference counting triggers the objects destructor to run, the \a
 	 * HookBroObjDtor will be called.
 	 *
@@ -241,7 +222,7 @@ public:
 	 *
 	 * @param plugin The plugin expressing interest.
 	 */
-	void RequestBroObjDtor(BroObj* obj, Plugin* plugin);
+	void RequestBroObjDtor(Obj* obj, Plugin* plugin);
 
 	// Hook entry functions.
 
@@ -274,8 +255,8 @@ public:
 	 * it may be any Val and must be ignored). If no plugin handled the call,
 	 * the method returns null.
 	 */
-	std::pair<bool, IntrusivePtr<Val>>
-	HookCallFunction(const Func* func, Frame* parent, zeek::Args* args) const;
+	std::pair<bool, ValPtr>
+	HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent, zeek::Args* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.
@@ -408,7 +389,7 @@ public:
 	 */
 	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
 	                  const Connection* conn, const val_list* addl, bool location,
-	                  const Location* location1, const Location* location2,
+	                  const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                  bool time, const std::string& message);
 
 	/**

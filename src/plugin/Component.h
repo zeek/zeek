@@ -6,20 +6,6 @@
 
 class ODesc;
 
-namespace plugin::component {
-
-enum [[deprecated("Remove in v4.1. Use zeek::plugin::component::Type instead.")]] Type {
-	READER,	/// An input reader (not currently used).
-	WRITER,	/// A logging writer (not currenly used).
-	ANALYZER,	/// A protocol analyzer.
-	FILE_ANALYZER,	/// A file analyzer.
-	IOSOURCE,	/// An I/O source, excluding packet sources.
-	PKTSRC,	/// A packet source.
-	PKTDUMPER	/// A packet dumper.
-	};
-
-}
-
 namespace zeek::plugin {
 
 namespace component {
@@ -37,7 +23,7 @@ enum Type {
 	PKTDUMPER	/// A packet dumper.
 	};
 
-}
+} // namespace component
 
 /**
  * Base class for plugin components. A component is a specific piece of
@@ -56,20 +42,6 @@ public:
 	 * be unique across all components of the same type.
 	 */
 	Component(component::Type type, const std::string& name);
-
-	/**
-	 * Constructor.
-	 *
-	 * @param type The type of the compoment.
-	 *
-	 * @param name A descriptive name for the component.  This name must
-	 * be unique across all components of the same type.
-	 */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::component::Type instead")]]
-	Component(::plugin::component::Type type, const std::string& name);
-#pragma GCC diagnostic pop
 
 	/**
 	 * Destructor.
@@ -135,6 +107,27 @@ private:
 }
 
 namespace plugin
-	{
-	using Component [[deprecated("Remove in v4.1. Use zeek::plugin::Component instead.")]] = zeek::plugin::Component;
-	}
+{
+using Component [[deprecated("Remove in v4.1. Use zeek::plugin::Component instead.")]] = zeek::plugin::Component;
+
+namespace component
+{
+
+using Type [[deprecated("Remove in v4.1. Use zeek::plugin::component::Type instead.")]] = zeek::plugin::component::Type;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::READER instead.")]]
+constexpr auto READER = zeek::plugin::component::READER;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::WRITER instead.")]]
+constexpr auto WRITER = zeek::plugin::component::WRITER;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::ANALYZER instead.")]]
+constexpr auto ANALYZER = zeek::plugin::component::ANALYZER;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::FILE_ANALYZER instead.")]]
+constexpr auto FILE_ANALYZER = zeek::plugin::component::FILE_ANALYZER;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::IOSOURCE instead.")]]
+constexpr auto IOSOURCE = zeek::plugin::component::IOSOURCE;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::PKTSRC instead.")]]
+constexpr auto PKTSRC = zeek::plugin::component::PKTSRC;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::PKTDUMPER instead.")]]
+constexpr auto PKTDUMPER = zeek::plugin::component::PKTDUMPER;
+
+} // namespace component
+} // namespace plugin

@@ -11,7 +11,7 @@
 
 namespace zeek::detail {
 
-const char* attr_name(attr_tag t)
+const char* attr_name(AttrTag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {
 		"&optional", "&default", "&redef",
@@ -26,32 +26,19 @@ const char* attr_name(attr_tag t)
 	return attr_names[int(t)];
 	}
 
-Attr::Attr(attr_tag t, IntrusivePtr<Expr> e)
+Attr::Attr(AttrTag t, ExprPtr e)
 	: expr(std::move(e))
 	{
 	tag = t;
 	SetLocationInfo(&start_location, &end_location);
 	}
 
-Attr::Attr(attr_tag t)
+Attr::Attr(AttrTag t)
 	: Attr(t, nullptr)
 	{
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Attr::Attr(::attr_tag t, IntrusivePtr<Expr> e) : Attr(static_cast<attr_tag>(t), e)
-	{
-	}
-
-Attr::Attr(::attr_tag t) : Attr(static_cast<attr_tag>(t))
-	{
-	}
-#pragma GCC diagnostic pop
-
-Attr::~Attr() = default;
-
-void Attr::SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e)
+void Attr::SetAttrExpr(ExprPtr e)
 	{ expr = std::move(e); }
 
 void Attr::Describe(ODesc* d) const
@@ -150,8 +137,9 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, IntrusivePtr<Type> t, bool arg_in_record, bool is_global)
+Attributes::Attributes(attr_list* a, TypePtr t, bool arg_in_record, bool is_global)
 	{
+	attrs_list.resize(a->length());
 	attrs.reserve(a->length());
 	in_record = arg_in_record;
 	global_var = is_global;
@@ -163,22 +151,21 @@ Attributes::Attributes(attr_list* a, IntrusivePtr<Type> t, bool arg_in_record, b
 	// the necessary checking gets done.
 
 	for ( const auto& attr : *a )
-		AddAttr({NewRef{}, attr});
+		AddAttr({zeek::NewRef{}, attr});
 
 	delete a;
 	}
 
-Attributes::Attributes(IntrusivePtr<Type> t,
-                       bool arg_in_record, bool is_global)
-    : Attributes(std::vector<IntrusivePtr<Attr>>{}, std::move(t),
+Attributes::Attributes(TypePtr t, bool arg_in_record, bool is_global)
+    : Attributes(std::vector<AttrPtr>{}, std::move(t),
                  arg_in_record, is_global)
     {}
 
-Attributes::Attributes(std::vector<IntrusivePtr<Attr>> a,
-                       IntrusivePtr<Type> t,
-                       bool arg_in_record, bool is_global)
+Attributes::Attributes(std::vector<AttrPtr> a,
+                       TypePtr t, bool arg_in_record, bool is_global)
 	: type(std::move(t))
 	{
+	attrs_list.resize(a.size());
 	attrs.reserve(a.size());
 	in_record = arg_in_record;
 	global_var = is_global;
@@ -193,10 +180,11 @@ Attributes::Attributes(std::vector<IntrusivePtr<Attr>> a,
 		AddAttr(std::move(attr));
 	}
 
-void Attributes::AddAttr(IntrusivePtr<Attr> attr)
+void Attributes::AddAttr(AttrPtr attr)
 	{
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
+	attrs_list.push_back(attr.get());
 	attrs.emplace_back(attr);
 
 	// We only check the attribute after we've added it, to facilitate
@@ -207,29 +195,37 @@ void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	// those attributes only have meaning for a redefinable value.
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
 	     ! Find(ATTR_REDEF) )
-		attrs.emplace_back(make_intrusive<Attr>(ATTR_REDEF));
+		{
+		auto a = zeek::make_intrusive<Attr>(ATTR_REDEF);
+		attrs_list.push_back(a.get());
+		attrs.emplace_back(std::move(a));
+		}
 
 	// For DEFAULT, add an implicit OPTIONAL if it's not a global.
 	if ( ! global_var && attr->Tag() == ATTR_DEFAULT &&
 	     ! Find(ATTR_OPTIONAL) )
-		attrs.emplace_back(make_intrusive<Attr>(ATTR_OPTIONAL));
+		{
+		auto a = zeek::make_intrusive<Attr>(ATTR_OPTIONAL);
+		attrs_list.push_back(a.get());
+		attrs.emplace_back(std::move(a));
+		}
 	}
 
-void Attributes::AddAttrs(const IntrusivePtr<Attributes>& a)
+void Attributes::AddAttrs(const AttributesPtr& a)
 	{
-	for ( const auto& attr : a->Attrs() )
+	for ( const auto& attr : a->GetAttrs() )
 		AddAttr(attr);
 	}
 
 void Attributes::AddAttrs(Attributes* a)
 	{
-	for ( const auto& attr : a->Attrs() )
+	for ( const auto& attr : a->GetAttrs() )
 		AddAttr(attr);
 
 	Unref(a);
 	}
 
-Attr* Attributes::FindAttr(attr_tag t) const
+Attr* Attributes::FindAttr(AttrTag t) const
 	{
 	for ( const auto& a : attrs )
 		if ( a->Tag() == t )
@@ -238,7 +234,7 @@ Attr* Attributes::FindAttr(attr_tag t) const
 	return nullptr;
 	}
 
-const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
+const AttrPtr& Attributes::Find(AttrTag t) const
 	{
 	for ( const auto& a : attrs )
 		if ( a->Tag() == t )
@@ -247,8 +243,12 @@ const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
 	return Attr::nil;
 	}
 
-void Attributes::RemoveAttr(attr_tag t)
+void Attributes::RemoveAttr(AttrTag t)
 	{
+	for ( int i = 0; i < attrs_list.length(); i++ )
+		if ( attrs_list[i]->Tag() == t )
+			attrs_list.remove_nth(i--);
+
 	for ( auto it = attrs.begin(); it != attrs.end(); )
 		{
 		if ( (*it)->Tag() == t )
@@ -257,19 +257,6 @@ void Attributes::RemoveAttr(attr_tag t)
 			++it;
 		}
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Attr* Attributes::FindAttr(::attr_tag t) const
-	{
-	return FindAttr(static_cast<attr_tag>(t));
-	}
-
-void Attributes::RemoveAttr(::attr_tag t)
-	{
-	RemoveAttr(static_cast<attr_tag>(t));
-	}
-#pragma GCC diagnostic pop
 
 void Attributes::Describe(ODesc* d) const
 	{
@@ -395,7 +382,7 @@ void Attributes::CheckAttr(Attr* a)
 				if ( atype->Tag() == TYPE_FUNC )
 					{
 					FuncType* f = atype->AsFuncType();
-					if ( ! f->CheckArgs(tt->IndexTypes()) ||
+					if ( ! f->CheckArgs(tt->GetIndexTypes()) ||
 					     ! same_type(f->Yield(), ytype) )
 						Error("&default function type clash");
 
@@ -525,7 +512,7 @@ void Attributes::CheckAttr(Attr* a)
 		if (the_table->IsUnspecifiedTable())
 			break;
 
-		const auto& func_index_types = e_ft->ParamList()->Types();
+		const auto& func_index_types = e_ft->ParamList()->GetTypes();
 		// Keep backwards compatibility with idx: any idiom.
 		if ( func_index_types.size() == 2 )
 			{
@@ -533,7 +520,7 @@ void Attributes::CheckAttr(Attr* a)
 				break;
 			}
 
-		const auto& table_index_types = the_table->IndexTypes();
+		const auto& table_index_types = the_table->GetIndexTypes();
 
 		type_list expected_args(1 + static_cast<int>(table_index_types.size()));
 		expected_args.push_back(type->AsTableType());
@@ -577,8 +564,8 @@ void Attributes::CheckAttr(Attr* a)
 		if ( the_table->IsUnspecifiedTable() )
 			break;
 
-		const auto& args = c_ft->ParamList()->Types();
-		const auto& t_indexes = the_table->IndexTypes();
+		const auto& args = c_ft->ParamList()->GetTypes();
+		const auto& t_indexes = the_table->GetIndexTypes();
 		if ( args.size() != ( type->IsSet() ? 2 : 3 ) + t_indexes.size() )
 			{
 			Error("&on_change function has incorrect number of arguments");

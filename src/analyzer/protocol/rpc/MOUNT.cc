@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "NetVar.h"
 #include "XDR.h"
 #include "Event.h"
@@ -22,7 +22,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	IntrusivePtr<RecordVal> callarg;
+	zeek::RecordValPtr callarg;
 
 	switch ( proc ) {
 		case BifEnum::MOUNT3::PROC_NULL:
@@ -69,7 +69,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			       double last_time, int reply_len)
 	{
 	EventHandlerPtr event = nullptr;
-	IntrusivePtr<Val> reply;
+	zeek::ValPtr reply;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -177,40 +177,40 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
 	vl.emplace_back(analyzer->ConnVal());
-	auto auxgids = make_intrusive<VectorVal>(zeek::id::index_vec);
+	auto auxgids = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
-		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
+		auxgids->Assign(i, zeek::val_mgr->Count(c->AuxGIDs()[i]));
 		}
 
-	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::info_t);
+	auto info = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MOUNT3::info_t);
 	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, zeek::BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
-	info->Assign(2, make_intrusive<TimeVal>(c->StartTime()));
-	info->Assign(3, make_intrusive<IntervalVal>(c->LastTime() - c->StartTime()));
-	info->Assign(4, val_mgr->Count(c->RPCLen()));
-	info->Assign(5, make_intrusive<TimeVal>(rep_start_time));
-	info->Assign(6, make_intrusive<IntervalVal>(rep_last_time - rep_start_time));
-	info->Assign(7, val_mgr->Count(reply_len));
-	info->Assign(8, val_mgr->Count(c->Uid()));
-	info->Assign(9, val_mgr->Count(c->Gid()));
-	info->Assign(10, val_mgr->Count(c->Stamp()));
-	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
+	info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(c->StartTime()));
+	info->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(c->LastTime() - c->StartTime()));
+	info->Assign(4, zeek::val_mgr->Count(c->RPCLen()));
+	info->Assign(5, zeek::make_intrusive<zeek::TimeVal>(rep_start_time));
+	info->Assign(6, zeek::make_intrusive<zeek::IntervalVal>(rep_last_time - rep_start_time));
+	info->Assign(7, zeek::val_mgr->Count(reply_len));
+	info->Assign(8, zeek::val_mgr->Count(c->Uid()));
+	info->Assign(9, zeek::val_mgr->Count(c->Gid()));
+	info->Assign(10, zeek::val_mgr->Count(c->Stamp()));
+	info->Assign(11, zeek::make_intrusive<zeek::StringVal>(c->MachineName()));
 	info->Assign(12, std::move(auxgids));
 
 	vl.emplace_back(std::move(info));
 	return vl;
 	}
 
-IntrusivePtr<EnumVal> MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
+zeek::EnumValPtr MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
 	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
 	return rval;
     }
 
-IntrusivePtr<StringVal> MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
+zeek::StringValPtr MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	{
 	int fh_n;
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
@@ -218,10 +218,10 @@ IntrusivePtr<StringVal> MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	if ( ! fh )
 		return nullptr;
 
-	return make_intrusive<StringVal>(new BroString(fh, fh_n, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(fh, fh_n, false));
 	}
 
-IntrusivePtr<StringVal> MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
+zeek::StringValPtr MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	{
 	int name_len;
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
@@ -229,20 +229,20 @@ IntrusivePtr<StringVal> MOUNT_Interp::mount3_filename(const u_char*& buf, int& n
 	if ( ! name )
 		return nullptr;
 
-	return make_intrusive<StringVal>(new BroString(name, name_len, false));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(name, name_len, false));
 	}
 
-IntrusivePtr<RecordVal> MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
+zeek::RecordValPtr MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
 	{
-	auto dirmntargs = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::dirmntargs_t);
+	auto dirmntargs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MOUNT3::dirmntargs_t);
 	dirmntargs->Assign(0, mount3_filename(buf, n));
 	return dirmntargs;
 	}
 
-IntrusivePtr<RecordVal> MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
-		     BifEnum::MOUNT3::status_t status)
+zeek::RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
+                                                  BifEnum::MOUNT3::status_t status)
 	{
-	auto rep = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::mnt_reply_t);
+	auto rep = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MOUNT3::mnt_reply_t);
 
 	if ( status == BifEnum::MOUNT3::MNT3_OK )
 		{
@@ -258,8 +258,8 @@ IntrusivePtr<RecordVal> MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& 
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		auto enum_vector = make_intrusive<zeek::VectorType>(zeek::base_type(zeek::TYPE_ENUM));
-		auto auth_flavors = make_intrusive<VectorVal>(std::move(enum_vector));
+		auto enum_vector = zeek::make_intrusive<zeek::VectorType>(zeek::base_type(zeek::TYPE_ENUM));
+		auto auth_flavors = zeek::make_intrusive<zeek::VectorVal>(std::move(enum_vector));
 
 		for ( auto i = 0u; i < auth_flavors_count; ++i )
 			auth_flavors->Assign(auth_flavors->Size(),

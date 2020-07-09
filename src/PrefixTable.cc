@@ -40,7 +40,7 @@ void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	return old;
 	}
 
-void* PrefixTable::Insert(const Val* value, void* data)
+void* PrefixTable::Insert(const zeek::Val* value, void* data)
 	{
 	// [elem] -> elem
 	if ( value->GetType()->Tag() == zeek::TYPE_LIST &&
@@ -81,7 +81,7 @@ std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const IPAddr& addr, i
 	return out;
 	}
 
-std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const SubNetVal* value) const
+std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const zeek::SubNetVal* value) const
 	{
 	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
 	}
@@ -100,7 +100,7 @@ void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	return node ? node->data : nullptr;
 	}
 
-void* PrefixTable::Lookup(const Val* value, bool exact) const
+void* PrefixTable::Lookup(const zeek::Val* value, bool exact) const
 	{
 	// [elem] -> elem
 	if ( value->GetType()->Tag() == zeek::TYPE_LIST &&
@@ -139,7 +139,7 @@ void* PrefixTable::Remove(const IPAddr& addr, int width)
 	return old;
 	}
 
-void* PrefixTable::Remove(const Val* value)
+void* PrefixTable::Remove(const zeek::Val* value)
 	{
 	// [elem] -> elem
 	if ( value->GetType()->Tag() == zeek::TYPE_LIST &&

@@ -183,7 +183,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			delete line_after_gap;
 
 			line_after_gap =
-				new BroString((const u_char *) line, length, true);
+				new zeek::String((const u_char *) line, length, true);
 			}
 
 		else if ( state == SMTP_IN_DATA && line[0] == '.' && length == 1 )
@@ -221,8 +221,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				{
 				EnqueueConnEvent(smtp_data,
 					ConnVal(),
-					val_mgr->Bool(orig),
-					make_intrusive<StringVal>(data_len, line)
+					zeek::val_mgr->Bool(orig),
+					zeek::make_intrusive<zeek::StringVal>(data_len, line)
 				);
 				}
 			}
@@ -351,11 +351,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 				EnqueueConnEvent(smtp_reply,
 					ConnVal(),
-					val_mgr->Bool(orig),
-					val_mgr->Count(reply_code),
-					make_intrusive<StringVal>(cmd),
-					make_intrusive<StringVal>(end_of_line - line, line),
-					val_mgr->Bool((pending_reply > 0))
+					zeek::val_mgr->Bool(orig),
+					zeek::val_mgr->Count(reply_code),
+					zeek::make_intrusive<zeek::StringVal>(cmd),
+					zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
+					zeek::val_mgr->Bool((pending_reply > 0))
 				);
 				}
 			}
@@ -855,14 +855,14 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 
 	if ( smtp_request )
 		{
-		auto cmd_arg = make_intrusive<StringVal>(cmd_len, cmd);
+		auto cmd_arg = zeek::make_intrusive<zeek::StringVal>(cmd_len, cmd);
 		cmd_arg->ToUpper();
 
 		EnqueueConnEvent(smtp_request,
 			ConnVal(),
-			val_mgr->Bool(orig_is_sender),
+			zeek::val_mgr->Bool(orig_is_sender),
 			std::move(cmd_arg),
-			make_intrusive<StringVal>(arg_len, arg)
+			zeek::make_intrusive<zeek::StringVal>(arg_len, arg)
 		);
 		}
 	}
@@ -881,9 +881,9 @@ void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg,
 
 		EnqueueConnEvent(smtp_unexpected,
 			ConnVal(),
-			val_mgr->Bool(is_orig),
-			make_intrusive<StringVal>(msg),
-			make_intrusive<StringVal>(detail_len, detail)
+			zeek::val_mgr->Bool(is_orig),
+			zeek::make_intrusive<zeek::StringVal>(msg),
+			zeek::make_intrusive<zeek::StringVal>(detail_len, detail)
 		);
 		}
 	}

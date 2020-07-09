@@ -7,12 +7,12 @@
 
 class NetSessions;
 
-namespace analyzer { namespace stepping_stone {
+namespace analyzer::stepping_stone {
 
 class SteppingStoneEndpoint;
 class SteppingStoneManager;
 
-class SteppingStoneEndpoint : public BroObj {
+class SteppingStoneEndpoint : public zeek::Obj {
 public:
 	SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m);
 	~SteppingStoneEndpoint() override;
@@ -70,15 +70,15 @@ protected:
 class SteppingStoneManager {
 public:
 
-	PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
+	zeek::PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
 		{ return ordered_endps; }
 
 	// Use postfix ++, since the first ID needs to be even.
 	int NextID()			{ return endp_cnt++; }
 
 protected:
-	PQueue<SteppingStoneEndpoint> ordered_endps;
+	zeek::PQueue<SteppingStoneEndpoint> ordered_endps;
 	int endp_cnt = 0;
 };
 
-} } // namespace analyzer::*
+} // namespace analyzer::stepping_stone

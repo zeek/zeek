@@ -5,7 +5,7 @@
 #include "Hash.h"
 #include "digest.h"
 #include "Reporter.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Val.h" // needed for const.bif
 #include "const.bif.netvar_h"
 
@@ -145,7 +145,7 @@ HashKey::HashKey(const char* s)
 	hash = HashBytes(key, size);
 	}
 
-HashKey::HashKey(const BroString* s)
+HashKey::HashKey(const zeek::String* s)
 	{
 	size = s->Len();
 	key = (void*) s->Bytes();

@@ -6,7 +6,7 @@
 #include "PrefixTable.h"
 
 class IP_Hdr;
-class Val;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 class PacketFilter {
 public:
@@ -17,16 +17,16 @@ public:
 	// as an AddrVal or a SubnetVal) which hasn't any of TCP flags set
 	// (TH_*) with the given probability (from 0..MAX_PROB).
 	void AddSrc(const IPAddr& src, uint32_t tcp_flags, double probability);
-	void AddSrc(Val* src, uint32_t tcp_flags, double probability);
+	void AddSrc(zeek::Val* src, uint32_t tcp_flags, double probability);
 	void AddDst(const IPAddr& src, uint32_t tcp_flags, double probability);
-	void AddDst(Val* src, uint32_t tcp_flags, double probability);
+	void AddDst(zeek::Val* src, uint32_t tcp_flags, double probability);
 
 	// Removes the filter entry for the given src/dst
 	// Returns false if filter doesn not exist.
 	bool RemoveSrc(const IPAddr& src);
-	bool RemoveSrc(Val* dst);
+	bool RemoveSrc(zeek::Val* dst);
 	bool RemoveDst(const IPAddr& dst);
-	bool RemoveDst(Val* dst);
+	bool RemoveDst(zeek::Val* dst);
 
 	// Returns true if packet matches a drop filter
 	bool Match(const IP_Hdr* ip, int len, int caplen);

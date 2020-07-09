@@ -14,12 +14,12 @@ class RuleAction;
 class RuleHdrTest;
 class Rule;
 
-typedef PList<Rule> rule_list;
-typedef std::map<std::string, Rule*> rule_dict;
+using rule_list = zeek::PList<Rule>;
+using rule_dict = std::map<std::string, Rule*>;
 
 class Rule {
 public:
-	Rule(const char* arg_id, const Location& arg_location)
+	Rule(const char* arg_id, const zeek::detail::Location& arg_location)
 		{
 		id = copy_string(arg_id);
 		idx = rule_counter++;
@@ -47,7 +47,7 @@ public:
 			uint32_t offset = 0, uint32_t depth = INT_MAX);
 	void AddRequires(const char* id, bool opposite_direction, bool negate);
 
-	const Location& GetLocation() const	{ return location; }
+	const zeek::detail::Location& GetLocation() const	{ return location; }
 
 	void PrintDebug();
 
@@ -58,9 +58,9 @@ private:
 
 	void SortHdrTests();
 
-	typedef PList<RuleAction> rule_action_list;
-	typedef PList<RuleCondition> rule_condition_list;
-	typedef PList<RuleHdrTest> rule_hdr_test_list;
+	using rule_action_list = zeek::PList<RuleAction>;
+	using rule_condition_list = zeek::PList<RuleCondition>;
+	using rule_hdr_test_list = zeek::PList<RuleHdrTest>;
 
 	rule_hdr_test_list hdr_tests;
 	rule_condition_list conditions;
@@ -74,7 +74,7 @@ private:
 		bool negate;	// negate test
 	};
 
-	typedef PList<Precond> precond_list;
+	using precond_list = zeek::PList<Precond>;
 
 	precond_list preconds;
 	rule_list dependents;	// rules w/ us as a precondition
@@ -92,13 +92,13 @@ private:
 		uint32_t depth;
 	};
 
-	typedef PList<Pattern> pattern_list;
+	using pattern_list = zeek::PList<Pattern>;
 	pattern_list patterns;
 
 	Rule* next;	// Linkage within RuleHdrTest tree:
 			// Ptr to next rule using the same RuleHdrTests
 
-	Location location;
+	zeek::detail::Location location;
 
 	// Rules and payloads are numbered individually.
 	static unsigned int rule_counter;

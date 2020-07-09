@@ -1,4 +1,122 @@
 
+3.2.0-dev.874 | 2020-07-08 17:46:20 -0700
+
+  * scan.l: Remove "constant" did_module_restore logic / dead code (Arne Welzel)
+
+3.2.0-dev.872 | 2020-07-08 12:25:11 -0700
+
+  * Fix FreeBSD CI script to install right SWIG package (Jon Siwek, Corelight)
+
+3.2.0-dev.870 | 2020-07-08 15:41:15 +0000
+
+  * Fix WhileStmt to call Stmt(Tag) constructor. (Jon Siwek,
+    Corelight)
+
+3.2.0-dev.868 | 2020-07-08 15:39:46 +0000
+
+  * GH-928: use realpath() instead of inode to de-duplicate scripts.
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.864 | 2020-07-06 21:06:41 -0700
+
+  * GH-1040: Add zero-indexed version of str_split (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.862 | 2020-07-06 20:40:44 -0700
+
+  * GH-1041: Move compress_path to a bif that uses normalize_path (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.859 | 2020-07-06 14:55:00 +0000
+
+  * Add backtrace() and print_backtrace() BIF functions. (Jon Siwek,
+    Corelight)
+
+3.2.0-dev.855 | 2020-07-03 14:29:55 -0700
+
+  * Fix --enable-mobile-ipv6 build (Jon Siwek, Corelight)
+
+3.2.0-dev.854 | 2020-07-03 14:17:42 -0700
+
+  * Fix namespace of GetCurrentLocation() to zeek::detail (Jon Siwek, Corelight)
+
+3.2.0-dev.853 | 2020-07-02 19:24:09 -0700
+
+  * Rename BroString files to ZeekString (Tim Wojtulewicz, Corelight)
+
+  * Rename BroObj to Obj (Tim Wojtulewicz, Corelight)
+
+  * Rename BroString to zeek::String (Tim Wojtulewicz, Corelight)
+
+  * Move Func up to zeek namespace, rename BroFunc to ScriptFunc (Tim Wojtulewicz, Corelight)
+
+  * Mark global val_mgr as deprecated and fix uses of it to use namespaced version (Tim Wojtulewicz, Corelight)
+
+  * Update binpac and bifcl submodules with review changes (Tim Wojtulewicz, Corelight)
+
+  * Move Location to zeek::detail and BroObj to zeek (Tim Wojtulewicz, Corelight)
+
+  * Move BroString to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Dictionary/PDict, List/PList, and Queue/PQueue to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Remove typedef that should have been removed in 3.1 (Tim Wojtulewicz, Corelight)
+
+  * Move Func and associated classes into zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Frame and Scope to zeek::detail namespace (Tim Wojtulewicz)
+
+  * Move all Val classes to the zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Use type aliases for IntrusivePtr definitions (Tim Wojtulewicz, Corelight)
+
+  * Move deprecation macro to zeek-config.h.in to avoid having to over-include util.h (Tim Wojtulewicz, Corelight)
+
+  * Move IntrusivePtr and utility methods to the zeek namespace (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.834 | 2020-07-02 15:57:09 -0700
+
+  * GH-786: fix Val::As methods casting incomplete types (Jon Siwek, Corelight)
+
+  * GH-786: fix Stmt::As methods casting incomplete types (Jon Siwek, Corelight)
+
+  * GH-786: fix Expr::As methods casting incomplete types (Jon Siwek, Corelight)
+
+3.2.0-dev.830 | 2020-07-02 11:36:28 -0700
+
+  * GH-786: Move Type::As methods to cc file so they have type info for casting safely (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.828 | 2020-07-01 09:57:23 -0700
+
+  * Fix a deprecation warning compiling with GCC (Jon Siwek, Corelight)
+
+3.2.0-dev.827 | 2020-06-30 16:54:22 -0700
+
+  * Deprecate plugin::HookType and plugin::component::Type in a different way (Tim Wojtulewicz, Corelight)
+
+  * Deprecate init_class and IDScope in another way. (Tim Wojtulewicz, Corelight)
+
+    This also renamed init_class to InitClass for consistency.
+
+  * Deprecate TypeTag and friends in a different way (Tim Wojtulewicz, Corelight)
+
+  * Deprecate attr_tag in a different way, rename to AttrTag (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.822 | 2020-06-30 15:54:38 -0700
+
+  * Revert Attributes::Attrs back to return an attr_list and mark it deprecated (Tim Wojtulewicz, Corelight)
+
+  * GH-1034: Revert TypeList::Types() back to return a type_list* and mark it deprecated (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.817 | 2020-06-29 19:23:21 +0000
+
+  * GH-1036: change print.log to log network time instead of current (Jon Siwek, Corelight)
+
+3.2.0-dev.815 | 2020-06-29 10:25:05 -0700
+
+  * reduce memory usage of ConnPolling (Justin Azoff)
+
+    Instead of scheduling the event with the full 'connection' record,
+    schedule it with the smaller 'conn_id' record.
+
 3.2.0-dev.813 | 2020-06-26 16:25:34 +0000
 
   * Fix several issues with command-line option redefs

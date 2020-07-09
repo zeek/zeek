@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "BroString.h"
+#include "ZeekString.h"
 #include "Net.h"
 #include "Func.h"
 #include "Var.h"
@@ -93,7 +93,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			zeek::Args args{
 				ip->ToPktHdrVal(),
-				{AdoptRef{}, BuildData(data, th_len, len, caplen)},
+				{zeek::AdoptRef{}, BuildData(data, th_len, len, caplen)},
 			};
 
 			try
@@ -117,7 +117,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			zeek::Args args{
 				ip->ToPktHdrVal(),
-				{AdoptRef{}, BuildData(data, uh_len, len, caplen)},
+				{zeek::AdoptRef{}, BuildData(data, uh_len, len, caplen)},
 			};
 
 			try
@@ -155,7 +155,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	return discard_packet;
 	}
 
-Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
+zeek::Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
 	{
 	len -= hdrlen;
 	caplen -= hdrlen;
@@ -163,5 +163,5 @@ Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
 
 	len = std::max(std::min(std::min(len, caplen), discarder_maxlen), 0);
 
-	return new StringVal(new BroString(data, len, true));
+	return new zeek::StringVal(new zeek::String(data, len, true));
 	}

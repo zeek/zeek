@@ -47,7 +47,7 @@ void PcapSource::Close()
 	Closed();
 
 	if ( Pcap::file_done )
-		mgr.Enqueue(Pcap::file_done, make_intrusive<StringVal>(props.path));
+		mgr.Enqueue(Pcap::file_done, zeek::make_intrusive<zeek::StringVal>(props.path));
 	}
 
 void PcapSource::OpenLive()

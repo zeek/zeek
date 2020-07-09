@@ -13,7 +13,6 @@
 #include "Scope.h"
 #include "Frame.h"
 #include "Func.h"
-#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Stmt.h"
 #include "Timer.h"
@@ -142,7 +141,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 
 		at_stmt = plr.stmt;
 		snprintf(description, sizeof(description), "%s:%d",
-			      source_filename, source_line);
+		         source_filename, source_line);
 
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 		}
@@ -151,12 +150,12 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 		{
 		std::string loc_s(loc_str);
 		kind = BP_FUNC;
-		function_name = make_full_var_name(current_module.c_str(),
-							loc_s.c_str());
+		function_name = make_full_var_name(zeek::detail::current_module.c_str(),
+		                                   loc_s.c_str());
 		at_stmt = plr.stmt;
-		const Location* loc = at_stmt->GetLocationInfo();
+		const zeek::detail::Location* loc = at_stmt->GetLocationInfo();
 		snprintf(description, sizeof(description), "%s at %s:%d",
-			      function_name.c_str(), loc->filename, loc->last_line);
+		         function_name.c_str(), loc->filename, loc->last_line);
 
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 		}
@@ -177,7 +176,7 @@ bool DbgBreakpoint::SetLocation(zeek::detail::Stmt* stmt)
 	SetEnable(true);
 	AddToGlobalMap();
 
-	const Location* loc = stmt->GetLocationInfo();
+	const zeek::detail::Location* loc = stmt->GetLocationInfo();
 	snprintf(description, sizeof(description), "%s:%d",
 		      loc->filename, loc->last_line);
 
@@ -351,13 +350,13 @@ void DbgBreakpoint::PrintHitMsg()
 	case BP_LINE:
 		{
 		ODesc d;
-		Frame* f = g_frame_stack.back();
-		const BroFunc* func = f->GetFunction();
+		zeek::detail::Frame* f = g_frame_stack.back();
+		const zeek::detail::ScriptFunc* func = f->GetFunction();
 
 		if ( func )
 			func->DescribeDebug (&d, f->GetFuncArgs());
 
-		const Location* loc = at_stmt->GetLocationInfo();
+		const zeek::detail::Location* loc = at_stmt->GetLocationInfo();
 
 		debug_msg("Breakpoint %d, %s at %s:%d\n",
 			 GetID(), d.Description(),

@@ -16,10 +16,10 @@ refine connection SMB_Conn += {
 
 		if ( smb2_create_request )
 			{
-			auto requestinfo = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CreateRequest);
+			auto requestinfo = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::CreateRequest);
 			requestinfo->Assign(0, std::move(filename));
-			requestinfo->Assign(1, val_mgr->Count(${val.disposition}));
-			requestinfo->Assign(2, val_mgr->Count(${val.create_options}));
+			requestinfo->Assign(1, zeek::val_mgr->Count(${val.disposition}));
+			requestinfo->Assign(2, zeek::val_mgr->Count(${val.create_options}));
 			zeek::BifEvent::enqueue_smb2_create_request(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
@@ -33,19 +33,19 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_create_response )
 			{
-			auto responseinfo = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CreateResponse);
+			auto responseinfo = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::CreateResponse);
 			responseinfo->Assign(0, BuildSMB2GUID(${val.file_id}));
-			responseinfo->Assign(1, val_mgr->Count(${val.eof}));
+			responseinfo->Assign(1, zeek::val_mgr->Count(${val.eof}));
 			responseinfo->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
 			                                          ${val.last_access_time},
 			                                          ${val.creation_time},
 			                                          ${val.change_time}));
 			responseinfo->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
-			responseinfo->Assign(4, val_mgr->Count(${val.create_action}));
+			responseinfo->Assign(4, zeek::val_mgr->Count(${val.create_action}));
 			zeek::BifEvent::enqueue_smb2_create_response(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
-												   std::move(responseinfo));
+			                                       std::move(responseinfo));
 			}
 
 		return true;

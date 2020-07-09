@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroString.h"
+#include "ZeekString.h"
 
 #include "threading/SerialTypes.h"
 #include "threading/MsgThread.h"

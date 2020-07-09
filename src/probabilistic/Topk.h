@@ -27,11 +27,11 @@ struct Bucket {
 
 struct Element {
 	uint64_t epsilon;
-	IntrusivePtr<Val> value;
+	zeek::ValPtr value;
 	Bucket* parent;
 };
 
-class TopkVal : public OpaqueVal {
+class TopkVal : public zeek::OpaqueVal {
 
 public:
 	/**
@@ -55,7 +55,7 @@ public:
 	 *
 	 * @param value The encountered element
 	 */
-	void Encountered(IntrusivePtr<Val> value);
+	void Encountered(zeek::ValPtr value);
 
 	/**
 	 * Get the first *k* elements of the result vector. At the moment,
@@ -66,7 +66,7 @@ public:
 	 *
 	 * @returns The top-k encountered elements
 	 */
-	IntrusivePtr<VectorVal> GetTopK(int k) const;
+	zeek::VectorValPtr GetTopK(int k) const;
 
 	/**
 	 * Get the current count tracked in the top-k data structure for a
@@ -125,7 +125,7 @@ public:
 	 *
 	 * @returns cloned TopkVal
 	 */
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	zeek::ValPtr DoClone(CloneState* state) override;
 
 	DECLARE_OPAQUE_VALUE(TopkVal)
 
@@ -153,7 +153,7 @@ private:
 	 * @returns HashKey for value
 	 */
 	HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
-	HashKey* GetHash(const IntrusivePtr<Val>& v) const
+	HashKey* GetHash(const zeek::ValPtr& v) const
 		{ return GetHash(v.get()); }
 
 	/**
@@ -161,12 +161,12 @@ private:
 	 *
 	 * @param t type that is tracked
 	 */
-	void Typify(IntrusivePtr<zeek::Type> t);
+	void Typify(zeek::TypePtr t);
 
-	IntrusivePtr<zeek::Type> type;
+	zeek::TypePtr type;
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
-	PDict<Element>* elementDict;
+	zeek::PDict<Element>* elementDict;
 	uint64_t size; // how many elements are we tracking?
 	uint64_t numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?

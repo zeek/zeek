@@ -3,6 +3,9 @@
 
 #include <errno.h>
 
+#include <climits>
+#include <cstdlib>
+
 #include <stack>
 #include <list>
 #include <string>
@@ -15,7 +18,7 @@
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "DNS_Mgr.h"
 #include "Expr.h"
 #include "Func.h"
@@ -38,13 +41,6 @@
 #include "plugin/Manager.h"
 
 using namespace zeek::detail;
-
-namespace {
-struct ZeekINode {
-	dev_t dev;
-	ino_t ino;
-};
-}
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern zeek::EnumType* cur_enum_type;
@@ -101,30 +97,6 @@ static std::string find_relative_script_file(const std::string& filename)
 		return find_script_file(filename, bro_path());
 	}
 
-static ZeekINode get_inode(FILE* f, const std::string& path)
-	{
-	struct stat b;
-
-	if ( fstat(fileno(f), &b) )
-		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
-		                     strerror(errno));
-
-	return {b.st_dev, b.st_ino};
-	}
-
-static ZeekINode get_inode(const std::string& path)
-	{
-	FILE* f = open_file(path);
-
-	if ( ! f )
-		reporter->FatalError("failed to open %s\n", path.c_str());
-
-	auto inode = get_inode(f, path);
-	fclose(f);
-
-	return inode;
-	}
-
 class FileInfo {
 public:
 	FileInfo(std::string restore_module = "");
@@ -139,7 +111,7 @@ public:
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
 // top of the stack.
-static PList<FileInfo> file_stack;
+static zeek::PList<FileInfo> file_stack;
 
 #define RET_CONST(v) \
 	{ \
@@ -179,7 +151,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ##<.* {
 	std::string hint(cur_enum_type && last_id_tok ?
-	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
+	            make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
 
 	zeekygen_mgr->PostComment(yytext + 3, hint);
 }
@@ -203,22 +175,22 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 	/* IPv6 literal constant patterns */
 {IP6}	{
-	RET_CONST(new AddrVal(extract_ip(yytext)))
+	RET_CONST(new zeek::AddrVal(extract_ip(yytext)))
 }
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len, true)))
+	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len, true)))
 }
 
 	/* IPv4 literal constant patterns */
-({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
+({D}"."){3}{D}		RET_CONST(new zeek::AddrVal(yytext))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
+	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
 [!%*/+\-,:;<=>?()\[\]{}~$|&^]	return yytext[0];
@@ -348,11 +320,11 @@ when	return TOK_WHEN;
 			rval = std::string(path) + "/" + rval;
 		}
 
-	RET_CONST(new StringVal(rval.c_str()));
+	RET_CONST(new zeek::StringVal(rval.c_str()));
 	}
 
 @FILENAME	{
-	RET_CONST(new StringVal(SafeBasename(::filename).result));
+	RET_CONST(new zeek::StringVal(SafeBasename(::filename).result));
 	}
 
 @load{WS}{FILE}	{
@@ -432,9 +404,8 @@ when	return TOK_WHEN;
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		auto i = get_inode(path);
-		ScannedFile sf(i.dev, i.ino, file_stack.length(), path, true);
-		files_scanned.push_back(sf);
+		ScannedFile sf(file_stack.length(), std::move(path), true);
+		files_scanned.push_back(std::move(sf));
 		}
 	}
 
@@ -470,8 +441,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(val_mgr->True()->Ref())
-F	RET_CONST(val_mgr->False()->Ref())
+T	RET_CONST(zeek::val_mgr->True()->Ref())
+F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -480,9 +451,9 @@ F	RET_CONST(val_mgr->False()->Ref())
 	}
 
 {D}		{
-		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
+		RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
-{FLOAT}		RET_CONST(new DoubleVal(atof(yytext)))
+{FLOAT}		RET_CONST(new zeek::DoubleVal(atof(yytext)))
 
 {D}"/tcp"	{
 		uint32_t p = atoi(yytext);
@@ -491,7 +462,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_TCP)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_TCP)->Ref())
 		}
 {D}"/udp"	{
 		uint32_t p = atoi(yytext);
@@ -500,7 +471,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_UDP)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UDP)->Ref())
 		}
 {D}"/icmp"	{
 		uint32_t p = atoi(yytext);
@@ -509,7 +480,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
 		}
 {D}"/unknown"	{
 		uint32_t p = atoi(yytext);
@@ -518,17 +489,17 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
+		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
-{FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
-{FLOAT}{OWS}hr(s?)	RET_CONST(new IntervalVal(atof(yytext),Hours))
-{FLOAT}{OWS}min(s?)	RET_CONST(new IntervalVal(atof(yytext),Minutes))
-{FLOAT}{OWS}sec(s?)	RET_CONST(new IntervalVal(atof(yytext),Seconds))
-{FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
-{FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
+{FLOAT}{OWS}day(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Days))
+{FLOAT}{OWS}hr(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Hours))
+{FLOAT}{OWS}min(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Minutes))
+{FLOAT}{OWS}sec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Seconds))
+{FLOAT}{OWS}msec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Milliseconds))
+{FLOAT}{OWS}usec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
+"0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
 {H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 
@@ -562,7 +533,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 
 	s[i-1] = '\0';
 
-	RET_CONST(new StringVal(new BroString(1, (byte_vec) s, i-1)))
+	RET_CONST(new zeek::StringVal(new zeek::String(1, (zeek::byte_vec) s, i-1)))
 	}
 
 <RE>([^/\\\n]|{ESCSEQ})+	{
@@ -590,7 +561,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 
 %%
 
-YYLTYPE GetCurrentLocation()
+YYLTYPE zeek::detail::GetCurrentLocation()
 	{
 	static YYLTYPE currloc;
 
@@ -600,19 +571,7 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-static bool already_scanned(ZeekINode in)
-	{
-	for ( const auto& it : files_scanned )
-		if ( it.dev == in.dev && it.inode == in.ino )
-			return true;
-
-	return false;
-	}
-
-static bool already_scanned(const std::string& path)
-	{
-	return already_scanned(get_inode(path));
-	}
+static auto constexpr canonical_stdin_path = "<stdin>";
 
 static int load_files(const char* orig_file)
 	{
@@ -635,15 +594,12 @@ static int load_files(const char* orig_file)
 
 	assert(rc == -1); // No plugin in charge of this file.
 
-	// Whether we pushed on a FileInfo that will restore the
-	// current module after the final file has been scanned.
-	bool did_module_restore = false;
 	FILE* f = 0;
 
 	if ( streq(orig_file, "-") )
 		{
 		f = stdin;
-		file_path = "<stdin>";
+		file_path = canonical_stdin_path;
 
 		if ( g_policy_debug )
 			{
@@ -666,9 +622,9 @@ static int load_files(const char* orig_file)
 			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	auto i = get_inode(f, file_path);
+	ScannedFile sf(file_stack.length(), file_path);
 
-	if ( already_scanned(i) )
+	if ( sf.AlreadyScanned() )
 		{
 		if ( f != stdin )
 			fclose(f);
@@ -676,8 +632,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	ScannedFile sf(i.dev, i.ino, file_stack.length(), file_path);
-	files_scanned.push_back(sf);
+	files_scanned.push_back(std::move(sf));
 
 	if ( g_policy_debug && ! file_path.empty() )
 		{
@@ -688,18 +643,9 @@ static int load_files(const char* orig_file)
 		LoadPolicyFileText(file_path.c_str());
 		}
 
-	// Remember where we were.  If this is the first
-	// file being pushed on the stack, i.e., the *last*
-	// one that will be processed, then we want to
-	// restore the module scope in which this @load
-	// was done when we're finished processing it.
-	if ( ! did_module_restore )
-		{
-		file_stack.push_back(new FileInfo(current_module));
-		did_module_restore = true;
-		}
-	else
-		file_stack.push_back(new FileInfo);
+	// Remember where we were to restore the module scope in which
+	// this @load was done when we're finished processing it.
+	file_stack.push_back(new FileInfo(zeek::detail::current_module));
 
 	zeekygen_mgr->Script(file_path);
 
@@ -712,7 +658,7 @@ static int load_files(const char* orig_file)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Don't delete the old filename - it's pointed to by
-	// every BroObj created when parsing it.
+	// every Obj created when parsing it.
 	yylloc.filename = filename = copy_string(file_path.c_str());
 
 	return 1;
@@ -751,7 +697,7 @@ void do_atif(zeek::detail::Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	IntrusivePtr<Val> val;
+	zeek::ValPtr val;
 
 	if ( cb.local_names.empty() )
 		val = expr->Eval(nullptr);
@@ -778,7 +724,7 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	const auto& i = lookup_ID(id, current_module.c_str());
+	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( ! i )
 		{
@@ -791,7 +737,7 @@ void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	const auto& i = lookup_ID(id, current_module.c_str());
+	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( i )
 		{
@@ -837,8 +783,8 @@ void do_atendif()
 // Be careful to never delete things from this list, as the strings
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
-static name_list input_files;
-static name_list essential_input_files;
+static zeek::name_list input_files;
+static zeek::name_list essential_input_files;
 
 void add_essential_input_file(const char* file)
 	{
@@ -873,7 +819,7 @@ void add_input_file_at_front(const char* file)
 		input_files.push_front(copy_string(file));
 	}
 
-void add_to_name_list(char* s, char delim, name_list& nl)
+void add_to_name_list(char* s, char delim, zeek::name_list& nl)
 	{
 	while ( s )
 		{
@@ -919,13 +865,13 @@ int yywrap()
 	// Stack is now empty.
 	while ( essential_input_files.length() > 0 || input_files.length() > 0 )
 		{
-		name_list& files = essential_input_files.length() > 0 ?
+		zeek::name_list& files = essential_input_files.length() > 0 ?
 		             essential_input_files : input_files;
 
 		if ( load_files(files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
-			// every BroObj created when parsing it.
+			// every Obj created when parsing it.
 			(void) files.remove_nth(0);
 			return 0;
 			}
@@ -1079,5 +1025,44 @@ FileInfo::~FileInfo()
 	yylloc.first_line = yylloc.last_line = line_number = line;
 
 	if ( restore_module != "" )
-		current_module = restore_module;
+		zeek::detail::current_module = restore_module;
+	}
+
+ScannedFile::ScannedFile(int arg_include_level,
+                         std::string arg_name,
+                         bool arg_skipped,
+                         bool arg_prefixes_checked)
+	: include_level(arg_include_level),
+	  skipped(arg_skipped),
+	  prefixes_checked(arg_prefixes_checked),
+	  name(std::move(arg_name))
+	{
+	if ( name == canonical_stdin_path )
+		canonical_path = canonical_stdin_path;
+	else
+		{
+		char buf[PATH_MAX];
+		auto res = realpath(name.data(), buf);
+
+		if ( ! res )
+			reporter->FatalError("failed to get realpath() of %s: %s",
+			                     name.data(), strerror(errno));
+
+		canonical_path = res;
+		}
+	}
+
+bool ScannedFile::AlreadyScanned() const
+	{
+	auto rval = false;
+
+	for ( const auto& it : files_scanned )
+		if ( it.canonical_path == canonical_path )
+			{
+			rval = true;
+			break;
+			}
+
+	DBG_LOG(DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
+	return rval;
 	}

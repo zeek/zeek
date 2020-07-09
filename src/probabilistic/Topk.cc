@@ -6,7 +6,6 @@
 
 #include "broker/Data.h"
 #include "CompHash.h"
-#include "IntrusivePtr.h"
 #include "Reporter.h"
 #include "Dict.h"
 
@@ -18,11 +17,11 @@ static void topk_element_hash_delete_func(void* val)
 	delete e;
 	}
 
-void TopkVal::Typify(IntrusivePtr<zeek::Type> t)
+void TopkVal::Typify(zeek::TypePtr t)
 	{
 	assert(!hash && !type);
 	type = std::move(t);
-	auto tl = make_intrusive<zeek::TypeList>(type);
+	auto tl = zeek::make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 	}
@@ -36,7 +35,7 @@ HashKey* TopkVal::GetHash(Val* v) const
 
 TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	{
-	elementDict = new PDict<Element>;
+	elementDict = new zeek::PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
 	numElements = 0;
@@ -46,7 +45,7 @@ TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 
 TopkVal::TopkVal() : OpaqueVal(topk_type)
 	{
-	elementDict = new PDict<Element>;
+	elementDict = new zeek::PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = 0;
 	numElements = 0;
@@ -176,14 +175,14 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-IntrusivePtr<Val> TopkVal::DoClone(CloneState* state)
+zeek::ValPtr TopkVal::DoClone(CloneState* state)
 	{
-	auto clone = make_intrusive<TopkVal>(size);
+	auto clone = zeek::make_intrusive<TopkVal>(size);
 	clone->Merge(this);
 	return state->NewClone(this, std::move(clone));
 	}
 
-IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
+zeek::VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -191,8 +190,8 @@ IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
 		return nullptr;
 		}
 
-	auto v = make_intrusive<zeek::VectorType>(type);
-	auto t = make_intrusive<VectorVal>(std::move(v));
+	auto v = zeek::make_intrusive<zeek::VectorType>(type);
+	auto t = zeek::make_intrusive<zeek::VectorVal>(std::move(v));
 
 	// this does no estimation if the results is correct!
 	// in any case - just to make this future-proof (and I am lazy) - this can return more than k.
@@ -269,7 +268,7 @@ uint64_t TopkVal::GetSum() const
 	return sum;
 	}
 
-void TopkVal::Encountered(IntrusivePtr<Val> encountered)
+void TopkVal::Encountered(zeek::ValPtr encountered)
 	{
 	// ok, let's see if we already know this one.
 

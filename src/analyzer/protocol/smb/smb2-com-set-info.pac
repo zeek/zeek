@@ -93,11 +93,11 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fullea )
 			{
-			auto eas = make_intrusive<VectorVal>(zeek::BifType::Vector::SMB2::FileEAs);
+			auto eas = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::SMB2::FileEAs);
 
 			for ( auto i = 0u; i < ${val.ea_vector}->size(); ++i )
 				{
-				auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::FileEA);
+				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::FileEA);
 				r->Assign(0, smb2_string2stringval(${val.ea_vector[i].ea_name}));
 				r->Assign(1, smb2_string2stringval(${val.ea_vector[i].ea_value}));
 
@@ -192,13 +192,13 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fscontrol )
 			{
-			auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Fscontrol);
-			r->Assign(0, val_mgr->Int(${val.free_space_start_filtering}));
-			r->Assign(1, val_mgr->Int(${val.free_space_start_threshold}));
-			r->Assign(2, val_mgr->Int(${val.free_space_stop_filtering}));
-			r->Assign(3, val_mgr->Count(${val.default_quota_threshold}));
-			r->Assign(4, val_mgr->Count(${val.default_quota_limit}));
-			r->Assign(5, val_mgr->Count(${val.file_system_control_flags}));
+			auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::Fscontrol);
+			r->Assign(0, zeek::val_mgr->Int(${val.free_space_start_filtering}));
+			r->Assign(1, zeek::val_mgr->Int(${val.free_space_start_threshold}));
+			r->Assign(2, zeek::val_mgr->Int(${val.free_space_stop_filtering}));
+			r->Assign(3, zeek::val_mgr->Count(${val.default_quota_threshold}));
+			r->Assign(4, zeek::val_mgr->Count(${val.default_quota_limit}));
+			r->Assign(5, zeek::val_mgr->Count(${val.file_system_control_flags}));
 
 			zeek::BifEvent::enqueue_smb2_file_fscontrol(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
@@ -268,7 +268,7 @@ type SMB2_file_fullea_info_element = record {
 	flags             : uint8;
 	ea_name_length    : uint8;
 	ea_value_length   : uint16;
-	ea_name           : SMB2_string(ea_name_length); 
+	ea_name           : SMB2_string(ea_name_length);
 	ea_value          : SMB2_string(ea_value_length);
 	pad_to_next       : padding to next_entry_offset;
 } &let {
@@ -276,7 +276,7 @@ type SMB2_file_fullea_info_element = record {
 };
 
 type SMB2_file_fullea_info(sir: SMB2_set_info_request) = record {
-	ea_vector : SMB2_file_fullea_info_element[] &until($element.next_offset == 0);  
+	ea_vector : SMB2_file_fullea_info_element[] &until($element.next_offset == 0);
 } &let {
 	proc: bool = $context.connection.proc_smb2_set_info_request_file_fullea(this);
 };

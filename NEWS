@@ -100,16 +100,10 @@ Changed Functionality
 - The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
   corrected from "NetrLogonSameLogonWithFlags".
 
-- ``TypeList::Types()`` and ``IndexType::IndexTypes()`` now return an
-  ``std::vector`` instead of ``type_list*``
-
 - ``AsRecord()`` and ``AsNonConstRecord()`` have changed to return
   ``std::vector<IntrusivePtr<Val>>*``.
 
 - ``AsVector()`` has changed to return ``std::vector<IntrusivePtr<Val>>*``.
-
-- ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
-  instead of ``attr_list*``
 
 - Moved a large number of classes from the global namespace into either the
   ``zeek`` or ``zeek::detail`` namespace. See https://github.com/zeek/zeek/issues/266
@@ -118,6 +112,10 @@ Changed Functionality
   warnings if used (a few exceptions will not generate compiler warnings,
   but the Deprecated Functionality section below will mention those
   ones specifically).
+
+  This includes a number of renames to classes, removing 'Bro' from their
+  names. Deprecation warnings should notify plugin developers of these
+  name changes.
 
 Removed Functionality
 ---------------------
@@ -135,12 +133,6 @@ Deprecated Functionality
   that compilers will not emit a deprecation warning, but the replacement
   method to now use is called ``HookFunctionCall`` and uses ``IntrusivePtr``
   arguments and return value.
-
-- The ``plugin::Plugin::MetaHookPre()`` and ``MetaHookPost()`` methods are
-  deprecated.  Note that compilers will not emit a deprecation warning, but
-  the replacement methods are named the same except use
-  ``zeek::plugin::HookType`` arguments (the type is now from the "zeek"
-  namespace).
 
 - The ``Func::Call(val_list*, ...)`` method is now deprecated.  Use ``Invoke()``
   instead which takes a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``).
@@ -260,6 +252,12 @@ Deprecated Functionality
 
 - The ``Val(double, TypeTag)`` constructor is deprecated, use either
   ``IntervalVal()``, ``TimeVal()`` or ``DoubleVal()`` constructors.
+
+- The "BroString.h" file is deprecated, use "ZeekString.h"
+
+- The str_split() BIF is deprecated, use str_split_indices().  Note
+  that the former returns a vector with indices starting at 1 while the
+  later returns a vector with indices starting at 0.
 
 Zeek 3.1.0
 ==========

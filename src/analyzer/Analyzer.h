@@ -17,9 +17,15 @@
 #include "../IntrusivePtr.h"
 
 class BroFile;
+using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+
 class Rule;
 class Connection;
 class IP_Hdr;
+
+namespace zeek {
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+}
 
 namespace analyzer {
 
@@ -543,20 +549,20 @@ public:
 	 *
 	 * @param conn_val The connenction value being updated.
 	 */
-	virtual void UpdateConnVal(RecordVal *conn_val);
+	virtual void UpdateConnVal(zeek::RecordVal *conn_val);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::BuildConnVal().
 	 */
 	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
-	RecordVal* BuildConnVal();
+	zeek::RecordVal* BuildConnVal();
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnVal().
 	 */
-	const IntrusivePtr<RecordVal>& ConnVal();
+	const zeek::RecordValPtr& ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -569,7 +575,7 @@ public:
 	 * Connection::Event().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead (note it doesn't automatically ad the connection argument).")]]
-	void Event(EventHandlerPtr f, Val* v1, Val* v2 = nullptr);
+	void Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2 = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -603,8 +609,8 @@ public:
 	 */
 	template <class... Args>
 	std::enable_if_t<
-	  std::is_convertible_v<
-	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+		std::is_convertible_v<
+			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
 		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -911,7 +917,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f);
+	virtual void SetContentsFile(unsigned int direction, BroFilePtr f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -921,7 +927,7 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const;
+	virtual BroFilePtr GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the

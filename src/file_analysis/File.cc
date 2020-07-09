@@ -21,22 +21,22 @@
 
 using namespace file_analysis;
 
-static IntrusivePtr<TableVal> empty_connection_table()
+static zeek::TableValPtr empty_connection_table()
 	{
-	auto tbl_index = make_intrusive<zeek::TypeList>(zeek::id::conn_id);
+	auto tbl_index = zeek::make_intrusive<zeek::TypeList>(zeek::id::conn_id);
 	tbl_index->Append(zeek::id::conn_id);
-	auto tbl_type = make_intrusive<zeek::TableType>(std::move(tbl_index),
+	auto tbl_type = zeek::make_intrusive<zeek::TableType>(std::move(tbl_index),
 	                                                        zeek::id::connection);
-	return make_intrusive<TableVal>(std::move(tbl_type));
+	return zeek::make_intrusive<zeek::TableVal>(std::move(tbl_type));
 	}
 
-static IntrusivePtr<RecordVal> get_conn_id_val(const Connection* conn)
+static zeek::RecordValPtr get_conn_id_val(const Connection* conn)
 	{
-	auto v = make_intrusive<RecordVal>(zeek::id::conn_id);
-	v->Assign(0, make_intrusive<AddrVal>(conn->OrigAddr()));
-	v->Assign(1, val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
-	v->Assign(2, make_intrusive<AddrVal>(conn->RespAddr()));
-	v->Assign(3, val_mgr->Port(ntohs(conn->RespPort()), conn->ConnTransport()));
+	auto v = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+	v->Assign(0, zeek::make_intrusive<zeek::AddrVal>(conn->OrigAddr()));
+	v->Assign(1, zeek::val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
+	v->Assign(2, zeek::make_intrusive<zeek::AddrVal>(conn->RespAddr()));
+	v->Assign(3, zeek::val_mgr->Port(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
 
@@ -91,13 +91,13 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
-	val = make_intrusive<RecordVal>(zeek::id::fa_file);
-	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
+	val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::fa_file);
+	val->Assign(id_idx, zeek::make_intrusive<zeek::StringVal>(file_id.c_str()));
 	SetSource(source_name);
 
 	if ( conn )
 		{
-		val->Assign(is_orig_idx, val_mgr->Bool(is_orig));
+		val->Assign(is_orig_idx, zeek::val_mgr->Bool(is_orig));
 		UpdateConnectionFields(conn, is_orig);
 		}
 
@@ -115,7 +115,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, make_intrusive<TimeVal>(network_time));
+	val->Assign(last_active_idx, zeek::make_intrusive<zeek::TimeVal>(network_time));
 	}
 
 double File::GetLastActivityTime() const
@@ -128,7 +128,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	if ( ! conn )
 		return false;
 
-	Val* conns = val->GetField(conns_idx).get();
+	zeek::Val* conns = val->GetField(conns_idx).get();
 
 	if ( ! conns )
 		{
@@ -153,7 +153,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		FileEvent(file_over_new_connection, {
 			val,
 			conn->ConnVal(),
-			val_mgr->Bool(is_orig),
+			zeek::val_mgr->Bool(is_orig),
 		});
 		}
 	}
@@ -190,7 +190,7 @@ std::string File::GetSource() const
 
 void File::SetSource(const std::string& source)
 	{
-	val->Assign(source_idx, make_intrusive<StringVal>(source.c_str()));
+	val->Assign(source_idx, zeek::make_intrusive<zeek::StringVal>(source.c_str()));
 	}
 
 double File::GetTimeoutInterval() const
@@ -200,13 +200,13 @@ double File::GetTimeoutInterval() const
 
 void File::SetTimeoutInterval(double interval)
 	{
-	val->Assign(timeout_interval_idx, make_intrusive<IntervalVal>(interval));
+	val->Assign(timeout_interval_idx, zeek::make_intrusive<zeek::IntervalVal>(interval));
 	}
 
-bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
-	{ return SetExtractionLimit({NewRef{}, args}, bytes); }
+bool File::SetExtractionLimit(zeek::RecordVal* args, uint64_t bytes)
+	{ return SetExtractionLimit({zeek::NewRef{}, args}, bytes); }
 
-bool File::SetExtractionLimit(IntrusivePtr<RecordVal> args, uint64_t bytes)
+bool File::SetExtractionLimit(zeek::RecordValPtr args, uint64_t bytes)
 	{
 	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"),
 	                             std::move(args));
@@ -226,13 +226,13 @@ bool File::SetExtractionLimit(IntrusivePtr<RecordVal> args, uint64_t bytes)
 void File::IncrementByteCount(uint64_t size, int field_idx)
 	{
 	uint64_t old = LookupFieldDefaultCount(field_idx);
-	val->Assign(field_idx, val_mgr->Count(old + size));
+	val->Assign(field_idx, zeek::val_mgr->Count(old + size));
 	}
 
 void File::SetTotalBytes(uint64_t size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
-	val->Assign(total_bytes_idx, val_mgr->Count(size));
+	val->Assign(total_bytes_idx, zeek::val_mgr->Count(size));
 	}
 
 bool File::IsComplete() const
@@ -253,10 +253,10 @@ void File::ScheduleInactivityTimer() const
 	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
-	{ return AddAnalyzer(tag, {NewRef{}, args}); }
+bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
+	{ return AddAnalyzer(tag, {zeek::NewRef{}, args}); }
 
-bool File::AddAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args)
+bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
@@ -267,10 +267,10 @@ bool File::AddAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args)
 	return analyzers.QueueAdd(tag, std::move(args)) != nullptr;
 	}
 
-bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
-	{ return RemoveAnalyzer(tag, {NewRef{}, args}); }
+bool File::RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
+	{ return RemoveAnalyzer(tag, {zeek::NewRef{}, args}); }
 
-bool File::RemoveAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args)
+bool File::RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
@@ -306,9 +306,9 @@ bool File::SetMime(const std::string& mime_type)
 	if ( ! FileEventAvailable(file_sniff) )
 		return false;
 
-	auto meta = make_intrusive<RecordVal>(zeek::id::fa_metadata);
-	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->False());
+	auto meta = zeek::make_intrusive<zeek::RecordVal>(zeek::id::fa_metadata);
+	meta->Assign(meta_mime_type_idx, zeek::make_intrusive<zeek::StringVal>(mime_type));
+	meta->Assign(meta_inferred_idx, zeek::val_mgr->False());
 
 	FileEvent(file_sniff, {val, std::move(meta)});
 	return true;
@@ -318,15 +318,15 @@ void File::InferMetadata()
 	{
 	did_metadata_inference = true;
 
-	Val* bof_buffer_val = val->GetField(bof_buffer_idx).get();
+	zeek::Val* bof_buffer_val = val->GetField(bof_buffer_idx).get();
 
 	if ( ! bof_buffer_val )
 		{
 		if ( bof_buffer.size == 0 )
 			return;
 
-		BroString* bs = concatenate(bof_buffer.chunks);
-		val->Assign<StringVal>(bof_buffer_idx, bs);
+		zeek::String* bs = concatenate(bof_buffer.chunks);
+		val->Assign<zeek::StringVal>(bof_buffer_idx, bs);
 		bof_buffer_val = val->GetField(bof_buffer_idx).get();
 		}
 
@@ -339,11 +339,11 @@ void File::InferMetadata()
 	len = std::min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
-	auto meta = make_intrusive<RecordVal>(zeek::id::fa_metadata);
+	auto meta = zeek::make_intrusive<zeek::RecordVal>(zeek::id::fa_metadata);
 
 	if ( ! matches.empty() )
 		{
-		meta->Assign<StringVal>(meta_mime_type_idx,
+		meta->Assign<zeek::StringVal>(meta_mime_type_idx,
 		                        *(matches.begin()->second.begin()));
 		meta->Assign(meta_mime_types_idx,
 		             file_analysis::GenMIMEMatchesVal(matches));
@@ -359,7 +359,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 
 	uint64_t desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
-	bof_buffer.chunks.push_back(new BroString(data, len, false));
+	bof_buffer.chunks.push_back(new zeek::String(data, len, false));
 	bof_buffer.size += len;
 
 	if ( bof_buffer.size < desired_size )
@@ -369,8 +369,8 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 
 	if ( bof_buffer.size > 0 )
 		{
-		BroString* bs = concatenate(bof_buffer.chunks);
-		val->Assign(bof_buffer_idx, make_intrusive<StringVal>(bs));
+		zeek::String* bs = concatenate(bof_buffer.chunks);
+		val->Assign(bof_buffer_idx, zeek::make_intrusive<zeek::StringVal>(bs));
 		}
 
 	return false;
@@ -394,7 +394,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -462,8 +462,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 				{
 				FileEvent(file_reassembly_overflow, {
 					val,
-					val_mgr->Count(current_offset),
-					val_mgr->Count(gap_bytes)
+					zeek::val_mgr->Count(current_offset),
+					zeek::val_mgr->Count(gap_bytes)
 				});
 				}
 			}
@@ -498,7 +498,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -562,7 +562,7 @@ void File::EndOfFile()
 	done = true;
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -595,7 +595,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		}
 
 	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
+	zeek::IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
@@ -604,7 +604,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		}
 
 	if ( FileEventAvailable(file_gap) )
-		FileEvent(file_gap, {val, val_mgr->Count(offset), val_mgr->Count(len)});
+		FileEvent(file_gap, {val, zeek::val_mgr->Count(offset), zeek::val_mgr->Count(len)});
 
 	analyzers.DrainModifications();
 

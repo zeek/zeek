@@ -87,23 +87,23 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* principal,
-                                                            const BroString* ciphertext,
-                                                            const bro_uint_t enctype)
+zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* principal,
+                                                       const zeek::String* ciphertext,
+                                                       const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( !krb_available )
 		return nullptr;
 
-	BroString delim("/");
+	zeek::String delim("/");
 	int pos = principal->FindSubstring(&delim);
 	if ( pos == -1 )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
-	std::unique_ptr<BroString> service = unique_ptr<BroString>(principal->GetSubstring(0, pos));
-	std::unique_ptr<BroString> hostname = unique_ptr<BroString>(principal->GetSubstring(pos + 1, -1));
+	std::unique_ptr<zeek::String> service = unique_ptr<zeek::String>(principal->GetSubstring(0, pos));
+	std::unique_ptr<zeek::String> hostname = unique_ptr<zeek::String>(principal->GetSubstring(pos + 1, -1));
 	if ( !service || !hostname )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
@@ -147,7 +147,7 @@ IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* pri
 		return nullptr;
 		}
 
-	auto ret = make_intrusive<StringVal>(cp);
+	auto ret = zeek::make_intrusive<zeek::StringVal>(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
 	krb5_free_ticket(krb_context, tkt);

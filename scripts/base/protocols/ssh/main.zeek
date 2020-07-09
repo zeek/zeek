@@ -242,7 +242,7 @@ event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities
 	                                               server_caps$mac_algorithms);
 	c$ssh$compression_alg = find_bidirectional_alg(client_caps$compression_algorithms,
 	                                               server_caps$compression_algorithms);
-	c$ssh$kex_alg         = find_alg(client_caps$kex_algorithms, server_caps$kex_algorithms);	
+	c$ssh$kex_alg         = find_alg(client_caps$kex_algorithms, server_caps$kex_algorithms);
 	c$ssh$host_key_alg    = find_alg(client_caps$server_host_key_algorithms,
 	                                 server_caps$server_host_key_algorithms);
 	}
@@ -288,9 +288,8 @@ function generate_fingerprint(c: connection, key: string)
 	if ( !c?$ssh )
 		return;
 
-	local lx = str_split(md5_hash(key), vector(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30));
-	lx[0] = "";
-	c$ssh$host_key = sub(join_string_vec(lx, ":"), /:/, "");
+	local lx = str_split_indices(md5_hash(key), vector(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30));
+	c$ssh$host_key = join_string_vec(lx, ":");
 	}
 
 event ssh1_server_host_key(c: connection, p: string, e: string) &priority=5

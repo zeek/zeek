@@ -98,7 +98,8 @@ private:
 
 using namespace logging;
 
-WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer, bool arg_local, bool arg_remote)
+WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::EnumVal* arg_stream,
+                               zeek::EnumVal* arg_writer, bool arg_local, bool arg_remote)
 	{
 	stream = arg_stream;
 	writer = arg_writer;

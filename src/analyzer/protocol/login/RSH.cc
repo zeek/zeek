@@ -175,24 +175,24 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	vl.emplace_back(ConnVal());
 
 	if ( client_name )
-		vl.emplace_back(NewRef{}, client_name);
+		vl.emplace_back(zeek::NewRef{}, client_name);
 	else
-		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>("<none>"));
 
 	if ( username )
-		vl.emplace_back(NewRef{}, username);
+		vl.emplace_back(zeek::NewRef{}, username);
 	else
-		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>("<none>"));
 
-	vl.emplace_back(make_intrusive<StringVal>(line));
+	vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(line));
 
 	if ( orig )
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl.emplace_back(val_mgr->True());
+			vl.emplace_back(zeek::val_mgr->True());
 		else
-			vl.emplace_back(val_mgr->False());
+			vl.emplace_back(zeek::val_mgr->False());
 
 		EnqueueConnEvent(rsh_request, std::move(vl));
 		}
@@ -209,7 +209,7 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 		return;
 		}
 
-	client_name = new StringVal(s);
+	client_name = new zeek::StringVal(s);
 	}
 
 void Rsh_Analyzer::ServerUserName(const char* s)
@@ -221,5 +221,5 @@ void Rsh_Analyzer::ServerUserName(const char* s)
 		return;
 		}
 
-	username = new StringVal(s);
+	username = new zeek::StringVal(s);
 	}

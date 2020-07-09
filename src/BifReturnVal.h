@@ -2,9 +2,13 @@
 
 #pragma once
 
+#include "zeek-config.h"
 #include "IntrusivePtr.h"
 
-class Val;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+namespace zeek {
+using ValPtr = zeek::IntrusivePtr<zeek::Val>;
+}
 
 /**
  * A simple wrapper class to use for the return value of BIFs so that
@@ -15,14 +19,14 @@ class BifReturnVal {
 public:
 
 	template <typename T>
-	BifReturnVal(IntrusivePtr<T> v) noexcept
-		: rval(AdoptRef{}, v.release())
+	BifReturnVal(zeek::IntrusivePtr<T> v) noexcept
+		: rval(zeek::AdoptRef{}, v.release())
 		{ }
 
 	BifReturnVal(std::nullptr_t) noexcept;
 
 	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
-	BifReturnVal(Val* v) noexcept;
+	BifReturnVal(zeek::Val* v) noexcept;
 
-	IntrusivePtr<Val> rval;
+	zeek::ValPtr rval;
 };

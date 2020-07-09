@@ -8,8 +8,6 @@
 #include "iosource/IOSource.h"
 #include "Flare.h"
 
-class BroObj;
-
 namespace threading {
 
 class BasicInputMessage;

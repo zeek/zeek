@@ -6,7 +6,7 @@
 
 #define BTTRACKER_BUF 2048
 
-class StringVal;
+ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 
 namespace analyzer { namespace bittorrent {
 
@@ -92,8 +92,8 @@ protected:
 	char req_buf[BTTRACKER_BUF];
 	char* req_buf_pos;
 	unsigned int req_buf_len;
-	StringVal* req_val_uri;
-	TableVal* req_val_headers;
+	zeek::StringVal* req_val_uri;
+	zeek::TableVal* req_val_headers;
 
 	// Response.
 	enum btt_states res_state;
@@ -102,9 +102,9 @@ protected:
 	char* res_buf_pos;
 	unsigned int res_buf_len;
 	bro_uint_t res_status;
-	TableVal* res_val_headers;
-	TableVal* res_val_peers;
-	TableVal* res_val_benc;
+	zeek::TableVal* res_val_headers;
+	zeek::TableVal* res_val_peers;
+	zeek::TableVal* res_val_benc;
 
 	std::vector<char> benc_stack;
 	std::vector<unsigned int> benc_count;

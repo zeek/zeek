@@ -1,8 +1,11 @@
 #pragma once
 
+#include "zeek-config.h"
 #include <string>
 
-class BroString;
+namespace zeek { class String; }
+using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
+
 class Connection;
 
 // Maybe we should have a base class for generic decoders?
@@ -57,5 +60,5 @@ protected:
 
 };
 
-BroString* decode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);
-BroString* encode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a = nullptr, Connection* conn = nullptr);
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a = nullptr, Connection* conn = nullptr);

@@ -571,19 +571,6 @@ void Manager::DisableHook(zeek::plugin::HookType hook, Plugin* plugin)
 		}
 	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-void Manager::EnableHook(::plugin::HookType hook, Plugin* plugin, int prio)
-	{
-	EnableHook(static_cast<zeek::plugin::HookType>(hook), plugin, prio);
-	}
-
-void Manager::DisableHook(::plugin::HookType hook, Plugin* plugin)
-	{
-	DisableHook(static_cast<zeek::plugin::HookType>(hook), plugin);
-	}
-#pragma GCC diagnostic pop
-
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
 	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",
@@ -591,7 +578,7 @@ void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	handler->SetGenerateAlways();
 	}
 
-void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
+void Manager::RequestBroObjDtor(Obj* obj, Plugin* plugin)
 	{
 	obj->NotifyPluginsOnDtor();
 	}
@@ -629,8 +616,8 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
-std::pair<bool, IntrusivePtr<Val>>
-Manager::HookCallFunction(const Func* func, Frame* parent,
+std::pair<bool, zeek::ValPtr>
+Manager::HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent,
                           zeek::Args* vecargs) const
 	{
 	HookArgumentList args;
@@ -651,7 +638,7 @@ Manager::HookCallFunction(const Func* func, Frame* parent,
 
 	hook_list* l = hooks[zeek::plugin::HOOK_CALL_FUNCTION];
 
-	std::pair<bool, IntrusivePtr<Val>> rval{false, nullptr};
+	std::pair<bool, zeek::ValPtr> rval{false, nullptr};
 
 	if ( l )
 		{
@@ -878,9 +865,10 @@ bool Manager::HookLogWrite(const std::string& writer,
 	}
 
 bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-			   const Connection* conn, const val_list* addl, bool location,
-			   const Location* location1, const Location* location2,
-			   bool time, const std::string& message)
+                           const Connection* conn, const val_list* addl, bool location,
+                           const zeek::detail::Location* location1,
+                           const zeek::detail::Location* location2,
+                           bool time, const std::string& message)
 
 	{
 	HookArgumentList args;

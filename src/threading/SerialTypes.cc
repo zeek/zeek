@@ -6,7 +6,7 @@
 #include "Reporter.h"
 // The following are required for ValueToVal.
 #include "Val.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "RE.h"
 #include "module_util.h"
 #include "ID.h"
@@ -436,7 +436,7 @@ void Value::delete_value_ptr_array(Value** vals, int num_fields)
 	delete [] vals;
 	}
 
-Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_error)
+zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_error)
 	{
 	if ( have_error )
 		return nullptr;
@@ -446,32 +446,32 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 	switch ( val->type ) {
 		case zeek::TYPE_BOOL:
-			return val_mgr->Bool(val->val.int_val)->Ref();
+			return zeek::val_mgr->Bool(val->val.int_val)->Ref();
 
 		case zeek::TYPE_INT:
-			return val_mgr->Int(val->val.int_val).release();
+			return zeek::val_mgr->Int(val->val.int_val).release();
 
 		case zeek::TYPE_COUNT:
 		case zeek::TYPE_COUNTER:
-			return val_mgr->Count(val->val.int_val).release();
+			return zeek::val_mgr->Count(val->val.int_val).release();
 
 		case zeek::TYPE_DOUBLE:
-			return new DoubleVal(val->val.double_val);
+			return new zeek::DoubleVal(val->val.double_val);
 
 		case zeek::TYPE_TIME:
-			return new TimeVal(val->val.double_val);
+			return new zeek::TimeVal(val->val.double_val);
 
 		case zeek::TYPE_INTERVAL:
-			return new IntervalVal(val->val.double_val);
+			return new zeek::IntervalVal(val->val.double_val);
 
 		case zeek::TYPE_STRING:
 			{
-			BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
-			return new StringVal(s);
+			auto* s = new zeek::String((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+			return new zeek::StringVal(s);
 			}
 
 		case zeek::TYPE_PORT:
-			return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
+			return zeek::val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
 		case zeek::TYPE_ADDR:
 			{
@@ -489,7 +489,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					assert(false);
 				}
 
-			AddrVal* addrval = new AddrVal(*addr);
+			auto* addrval = new zeek::AddrVal(*addr);
 			delete addr;
 			return addrval;
 			}
@@ -510,7 +510,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					assert(false);
 				}
 
-			SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+			auto* subnetval = new zeek::SubNetVal(*addr, val->val.subnet_val.length);
 			delete addr;
 			return subnetval;
 			}
@@ -519,15 +519,15 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			{
 			RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
 			re->Compile();
-			return new PatternVal(re);
+			return new zeek::PatternVal(re);
 			}
 
 		case zeek::TYPE_TABLE:
 			{
-			IntrusivePtr<zeek::TypeList> set_index;
+			zeek::TypeListPtr set_index;
 			if ( val->val.set_val.size == 0 && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
-				set_index = make_intrusive<zeek::TypeList>();
+				set_index = zeek::make_intrusive<zeek::TypeList>();
 			else
 				{
 				// all entries have to have the same type...
@@ -535,14 +535,14 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				if ( stag == zeek::TYPE_VOID )
 					stag = val->val.set_val.vals[0]->type;
 
-				IntrusivePtr<zeek::Type> index_type;
+				zeek::TypePtr index_type;
 
 				if ( stag == zeek::TYPE_ENUM )
 					{
 					// Enums are not a base-type, so need to look it up.
 					const auto& sv = val->val.set_val.vals[0]->val.string_val;
 					std::string enum_name(sv.data, sv.length);
-					const auto& enum_id = global_scope()->Find(enum_name);
+					const auto& enum_id = zeek::detail::global_scope()->Find(enum_name);
 
 					if ( ! enum_id )
 						{
@@ -558,16 +558,16 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				else
 					index_type = zeek::base_type(stag);
 
-				set_index = make_intrusive<zeek::TypeList>(index_type);
+				set_index = zeek::make_intrusive<zeek::TypeList>(index_type);
 				set_index->Append(std::move(index_type));
 				}
 
-			auto s = make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
-			TableVal* t = new TableVal(std::move(s));
+			auto s = zeek::make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
+			auto* t = new zeek::TableVal(std::move(s));
 			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
-				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
-				t->Assign({AdoptRef{}, assignval}, nullptr);
+				zeek::Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
+				t->Assign({zeek::AdoptRef{}, assignval}, nullptr);
 				}
 
 			return t;
@@ -575,7 +575,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 		case zeek::TYPE_VECTOR:
 			{
-			IntrusivePtr<zeek::Type> type;
+			zeek::TypePtr type;
 
 			if ( val->val.vector_val.size == 0  && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
@@ -589,13 +589,13 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					type = zeek::base_type(val->subtype);
 				}
 
-			auto vt = make_intrusive<zeek::VectorType>(std::move(type));
-			auto v = make_intrusive<VectorVal>(std::move(vt));
+			auto vt = zeek::make_intrusive<zeek::VectorType>(std::move(type));
+			auto v = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
 
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
 				{
 				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
-				v->Assign(j, {AdoptRef{}, el});
+				v->Assign(j, {zeek::AdoptRef{}, el});
 				}
 
 			return v.release();
@@ -607,7 +607,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 			// let's try looking it up by global ID.
-			const auto& id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+			const auto& id = zeek::detail::lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
 
 			if ( ! id || ! id->IsEnumConst() )
 				{

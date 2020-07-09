@@ -23,7 +23,7 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 
 	assert(sizeof(tmpseed) == 16);
 
-	static auto global_hash_seed = zeek::id::find_val<StringVal>("global_hash_seed");
+	static auto global_hash_seed = zeek::id::find_val<zeek::StringVal>("global_hash_seed");
 
 	if ( data )
 		hash_update(ctx, data, size);
@@ -178,4 +178,3 @@ bool DoubleHasher::Equals(const Hasher* other) const
 	const DoubleHasher* o = static_cast<const DoubleHasher*>(other);
 	return h1 == o->h1 && h2 == o->h2;
 	}
-

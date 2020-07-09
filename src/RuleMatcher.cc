@@ -7,7 +7,7 @@
 
 #include "RuleAction.h"
 #include "RuleCondition.h"
-#include "BroString.h"
+#include "ZeekString.h"
 #include "ID.h"
 #include "IntrusivePtr.h"
 #include "IntSet.h"
@@ -78,15 +78,15 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	level = 0;
 	}
 
-Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
-					const RuleEndpointState* state) const
+zeek::Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
+                                            const RuleEndpointState* state) const
 	{
 	static auto signature_state = zeek::id::find_type<zeek::RecordType>("signature_state");
-	RecordVal* val = new RecordVal(signature_state);
-	val->Assign(0, make_intrusive<StringVal>(rule->ID()));
+	auto* val = new zeek::RecordVal(signature_state);
+	val->Assign(0, zeek::make_intrusive<zeek::StringVal>(rule->ID()));
 	val->Assign(1, state->GetAnalyzer()->ConnVal());
-	val->Assign(2, val_mgr->Bool(state->is_orig));
-	val->Assign(3, val_mgr->Count(state->payload_size));
+	val->Assign(2, zeek::val_mgr->Bool(state->is_orig));
+	val->Assign(3, zeek::val_mgr->Count(state->payload_size));
 	return val;
 	}
 
@@ -958,7 +958,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			if ( ! state->matched_by_patterns.is_member(r) )
 				{
 				state->matched_by_patterns.push_back(r);
-				BroString* s = new BroString(data, data_len, false);
+				zeek::String* s = new zeek::String(data, data_len, false);
 				state->matched_text.push_back(s);
 				}
 
@@ -998,7 +998,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 		}
 	}
 
-bool RuleMatcher::ExecRulePurely(Rule* r, BroString* s,
+bool RuleMatcher::ExecRulePurely(Rule* r, zeek::String* s,
 				 RuleEndpointState* state, bool eos)
 	{
 	if ( is_member_of(state->matched_rules, r->Index()) )
@@ -1272,9 +1272,9 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 		DumpStateStats(f, h);
 	}
 
-static Val* get_bro_val(const char* label)
+static zeek::Val* get_bro_val(const char* label)
 	{
-	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
+	auto id = zeek::detail::lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		{
 		rules_error("unknown script-level identifier", label);
@@ -1288,7 +1288,7 @@ static Val* get_bro_val(const char* label)
 // Converts an atomic Val and appends it to the list.  For subnet types,
 // if the prefix_vector param isn't null, appending to that is preferred
 // over appending to the masked val list.
-static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
+static bool val_to_maskedval(zeek::Val* v, maskedvalue_list* append_to,
                              vector<IPPrefix>* prefix_vector)
 	{
 	MaskedValue* mval = new MaskedValue;
@@ -1358,7 +1358,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
                          vector<IPPrefix>* prefix_vector)
 	{
-	Val* v = get_bro_val(id);
+	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
 		return;
 
@@ -1377,10 +1377,10 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
 
 char* id_to_str(const char* id)
 	{
-	const BroString* src;
+	const zeek::String* src;
 	char* dst;
 
-	Val* v = get_bro_val(id);
+	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
 		goto error;
 
@@ -1403,7 +1403,7 @@ error:
 
 uint32_t id_to_uint(const char* id)
 	{
-	Val* v = get_bro_val(id);
+	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
 		return 0;
 

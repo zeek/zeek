@@ -3,7 +3,7 @@
 
 using namespace file_analysis;
 
-PE::PE(IntrusivePtr<RecordVal> args, File* file)
+PE::PE(zeek::RecordValPtr args, File* file)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("PE"), std::move(args),
                               file)
 	{

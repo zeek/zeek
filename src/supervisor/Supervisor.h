@@ -103,7 +103,7 @@ public:
 		 * Convert his object into script-layer record value.
 		 * @return  the script-layer record value representing the node config.
 		 */
-		IntrusivePtr<RecordVal> ToRecord() const;
+		RecordValPtr ToRecord() const;
 
 		/**
 		 * The name of the supervised Zeek node.  These are unique within
@@ -183,7 +183,7 @@ public:
 		 * Convert the node into script-layer Supervisor::NodeStatus record
 		 * representation.
 		 */
-		IntrusivePtr<RecordVal> ToRecord() const;
+		RecordValPtr ToRecord() const;
 
 		/**
 		 * @return the name of the node.
@@ -311,7 +311,7 @@ public:
 	 * @return  script-layer Supervisor::Status record value describing the
 	 * status of a node or set of nodes.
 	 */
-	IntrusivePtr<RecordVal> Status(std::string_view node_name);
+	RecordValPtr Status(std::string_view node_name);
 
 	/**
 	 * Create a new supervised node.

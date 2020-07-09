@@ -46,7 +46,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
                                  name->Len());
 	const Hasher* h = new DoubleHasher(optimal_k, seed);
 
-	return make_intrusive<BloomFilterVal>(new BasicBloomFilter(h, cells));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a basic Bloom filter. This function serves as a low-level
@@ -86,7 +86,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 				       name->Len());
 	const Hasher* h = new DoubleHasher(k, seed);
 
-	return make_intrusive<BloomFilterVal>(new BasicBloomFilter(h, cells));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a counting Bloom filter.
@@ -130,7 +130,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 	while ( max >>= 1 )
 		++width;
 
-	return make_intrusive<BloomFilterVal>(new CountingBloomFilter(h, cells, width));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new CountingBloomFilter(h, cells, width));
 	%}
 
 ## Adds an element to a Bloom filter.
@@ -139,8 +139,8 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 ##
 ## x: The element to add.
 ##
-## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2 
-##    bloomfilter_counting_init bloomfilter_lookup bloomfilter_clear 
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2
+##    bloomfilter_counting_init bloomfilter_lookup bloomfilter_clear
 ##    bloomfilter_merge
 function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 	%{
@@ -174,15 +174,15 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() )
-		return val_mgr->Count(0);
+		return zeek::val_mgr->Count(0);
 
 	else if ( ! same_type(bfv->Type(), x->GetType()) )
 		reporter->Error("incompatible Bloom filter types");
 
 	else
-		return val_mgr->Count(static_cast<uint64_t>(bfv->Count(x)));
+		return zeek::val_mgr->Count(static_cast<uint64_t>(bfv->Count(x)));
 
-	return val_mgr->Count(0);
+	return zeek::val_mgr->Count(0);
 	%}
 
 ## Removes all elements from a Bloom filter. This function resets all bits in
@@ -238,12 +238,12 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 
 ## Returns a string with a representation of a Bloom filter's internal
 ## state. This is for debugging/testing purposes only.
-## 
+##
 ## bf: The Bloom filter handle.
 ##
 ## Returns: a string with a representation of a Bloom filter's internal state.
 function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
-	return make_intrusive<StringVal>(bfv->InternalState());
+	return zeek::make_intrusive<zeek::StringVal>(bfv->InternalState());
 	%}

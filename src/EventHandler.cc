@@ -26,13 +26,13 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-const IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
+const zeek::FuncTypePtr& EventHandler::GetType(bool check_export)
 	{
 	if ( type )
 		return type;
 
-	const auto& id = lookup_ID(name.data(), current_module.c_str(), false, false,
-	                           check_export);
+	const auto& id = zeek::detail::lookup_ID(name.data(), zeek::detail::current_module.c_str(),
+	                                         false, false, check_export);
 
 	if ( ! id )
 		return zeek::FuncType::nil;
@@ -44,11 +44,11 @@ const IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
 	return type;
 	}
 
-void EventHandler::SetFunc(IntrusivePtr<Func> f)
+void EventHandler::SetFunc(zeek::FuncPtr f)
 	{ local = std::move(f); }
 
-void EventHandler::SetLocalHandler(Func* f)
-	{ SetFunc({NewRef{}, f}); }
+void EventHandler::SetLocalHandler(zeek::Func* f)
+	{ SetFunc({zeek::NewRef{}, f}); }
 
 void EventHandler::Call(zeek::Args* vl, bool no_remote)
 	{
@@ -116,37 +116,11 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		// new_event() is the one event we don't want to report.
 		return;
 
-	const auto& args = GetType()->Params();
-	static auto call_argument_vector = zeek::id::find_type<zeek::VectorType>("call_argument_vector");
-	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
-
-	for ( int i = 0; i < args->NumFields(); i++ )
-		{
-		const char* fname = args->FieldName(i);
-		const auto& ftype = args->GetFieldType(i);
-		auto fdefault = args->FieldDefault(i);
-
-		static auto call_argument = zeek::id::find_type<zeek::RecordType>("call_argument");
-		auto rec = make_intrusive<RecordVal>(call_argument);
-		rec->Assign(0, make_intrusive<StringVal>(fname));
-
-		ODesc d;
-		d.SetShort();
-		ftype->Describe(&d);
-		rec->Assign(1, make_intrusive<StringVal>(d.Description()));
-
-		if ( fdefault )
-			rec->Assign(2, std::move(fdefault));
-
-		if ( i < static_cast<int>(vl->size()) && (*vl)[i] )
-			rec->Assign(3, (*vl)[i]);
-
-		vargs->Assign(i, std::move(rec));
-		}
+	auto vargs = zeek::MakeCallArgumentVector(*vl, GetType()->Params());
 
 	Event* ev = new Event(new_event, {
-		make_intrusive<StringVal>(name),
-		std::move(vargs),
-	});
+			zeek::make_intrusive<zeek::StringVal>(name),
+			std::move(vargs),
+			});
 	mgr.Dispatch(ev);
 	}

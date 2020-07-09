@@ -25,20 +25,41 @@
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
+namespace zeek {
 template<typename T> class PDict;
-class IterCookie;
+class String;
+};
+template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
+using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
-class Val;
-class BroString;
-class BroFunc;
-class Func;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+
+namespace zeek::detail { class ScriptFunc; }
+using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
+
 class BroFile;
 class PrefixTable;
+class IPAddr;
+class IPPrefix;
+class StateAccess;
+class RE_Matcher;
 
+class CompositeHash;
+class HashKey;
+
+extern double bro_start_network_time;
+
+namespace zeek {
+
+using FuncPtr = zeek::IntrusivePtr<Func>;
+using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+
+class Val;
 class PortVal;
 class AddrVal;
 class SubNetVal;
-
 class IntervalVal;
 class PatternVal;
 class TableVal;
@@ -47,17 +68,18 @@ class ListVal;
 class StringVal;
 class EnumVal;
 class OpaqueVal;
-
-class IPAddr;
-class IPPrefix;
-
-class StateAccess;
-
 class VectorVal;
-
 class TableEntryVal;
 
-class RE_Matcher;
+using AddrValPtr = zeek::IntrusivePtr<AddrVal>;
+using EnumValPtr = zeek::IntrusivePtr<EnumVal>;
+using ListValPtr = zeek::IntrusivePtr<ListVal>;
+using PortValPtr = zeek::IntrusivePtr<PortVal>;
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+using StringValPtr = zeek::IntrusivePtr<StringVal>;
+using TableValPtr = zeek::IntrusivePtr<TableVal>;
+using ValPtr = zeek::IntrusivePtr<Val>;
+using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
 
 union BroValUnion {
 	// Used for bool, int, enum.
@@ -75,13 +97,13 @@ union BroValUnion {
 	// Used for double, time, interval.
 	double double_val;
 
-	BroString* string_val;
-	Func* func_val;
+	String* string_val;
+	zeek::Func* func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
-	PDict<TableEntryVal>* table_val;
-	std::vector<IntrusivePtr<Val>>* record_val;
-	std::vector<IntrusivePtr<Val>>* vector_val;
+	zeek::PDict<TableEntryVal>* table_val;
+	std::vector<ValPtr>* record_val;
+	std::vector<ValPtr>* vector_val;
 
 	BroValUnion() = default;
 
@@ -100,10 +122,10 @@ union BroValUnion {
 	constexpr BroValUnion(double value) noexcept
 		: double_val(value) {}
 
-	constexpr BroValUnion(BroString* value) noexcept
+	constexpr BroValUnion(String* value) noexcept
 		: string_val(value) {}
 
-	constexpr BroValUnion(Func* value) noexcept
+	constexpr BroValUnion(zeek::Func* value) noexcept
 		: func_val(value) {}
 
 	constexpr BroValUnion(BroFile* value) noexcept
@@ -112,43 +134,36 @@ union BroValUnion {
 	constexpr BroValUnion(RE_Matcher* value) noexcept
 		: re_val(value) {}
 
-	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
+	constexpr BroValUnion(zeek::PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
 };
 
-class Val : public BroObj {
+class Val : public Obj {
 public:
-	static inline const IntrusivePtr<Val> nil;
+	static inline const ValPtr nil;
 
 	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
 	Val(double d, zeek::TypeTag t)
 		: val(d), type(zeek::base_type(t))
 		{}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
-	Val(double d, ::TypeTag t) : Val(d, static_cast<zeek::TypeTag>(t))
-		{}
-#pragma GCC diagnostic pop
-
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Val(Func* f);
-	explicit Val(IntrusivePtr<Func> f);
+	explicit Val(zeek::Func* f);
+	explicit Val(zeek::FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(BroFile* f);
 	// Note, the file will be closed after this Val is destructed if there's
 	// no other remaining references.
-	explicit Val(IntrusivePtr<BroFile> f);
+	explicit Val(BroFilePtr f);
 
 	// Extra arg to differentiate from protected version.
-	Val(IntrusivePtr<zeek::Type> t, bool type_type)
-		: type(make_intrusive<zeek::TypeType>(std::move(t)))
+	Val(zeek::TypePtr t, bool type_type)
+		: type(zeek::make_intrusive<zeek::TypeType>(std::move(t)))
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	Val(zeek::Type* t, bool type_type) : Val({NewRef{}, t}, type_type)
+	Val(zeek::Type* t, bool type_type) : Val({zeek::NewRef{}, t}, type_type)
 		{}
 
 	Val()
@@ -157,8 +172,8 @@ public:
 
 	~Val() override;
 
-	Val* Ref()			{ ::Ref(this); return this; }
-	IntrusivePtr<Val> Clone();
+	Val* Ref()			{ zeek::Ref(this); return this; }
+	ValPtr Clone();
 
 	bool IsZero() const;
 	bool IsOne() const;
@@ -173,7 +188,7 @@ public:
 
 	// Returns a new Val with the "size" of this Val.  What constitutes
 	// size depends on the Val's type.
-	virtual IntrusivePtr<Val> SizeVal() const;
+	virtual ValPtr SizeVal() const;
 
 	// Bytes in total value object.
 	virtual unsigned int MemoryAllocation() const;
@@ -192,12 +207,12 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	const zeek::Type* Type() const	{ return type.get(); }
 
-	const IntrusivePtr<zeek::Type>& GetType() const
+	const zeek::TypePtr& GetType() const
 		{ return type; }
 
 	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	zeek::IntrusivePtr<T> GetType() const
+		{ return zeek::cast_intrusive<T>(type); }
 
 #define CONST_ACCESSOR(tag, ctype, accessor, name) \
 	const ctype name() const \
@@ -222,13 +237,13 @@ public:
 	CONST_ACCESSOR2(zeek::TYPE_TIME, double, double_val, AsTime)
 	CONST_ACCESSOR2(zeek::TYPE_INTERVAL, double, double_val, AsInterval)
 	CONST_ACCESSOR2(zeek::TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
-	CONST_ACCESSOR(zeek::TYPE_FUNC, Func*, func_val, AsFunc)
-	CONST_ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsRecord)
+	CONST_ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
+	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
+	CONST_ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsTable)
+	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
 	CONST_ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(zeek::TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
+	CONST_ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -258,13 +273,13 @@ public:
 
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
-	// ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
-	ACCESSOR(zeek::TYPE_FUNC, Func*, func_val, AsFunc)
+	// ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
+	ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
 	ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(zeek::TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
+	ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
-	IntrusivePtr<Func> AsFuncPtr() const;
+	zeek::FuncPtr AsFuncPtr() const;
 
 	const IPPrefix& AsSubNet()
 		{
@@ -284,42 +299,38 @@ public:
 	bro_int_t ForceAsInt() const		{ return val.int_val; }
 	bro_uint_t ForceAsUInt() const		{ return val.uint_val; }
 
-#define CONVERTER(tag, ctype, name) \
-	ctype name() \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
-		return (ctype)(this); \
-		}
+	PatternVal* AsPatternVal();
+	const PatternVal* AsPatternVal() const;
 
-	CONVERTER(zeek::TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONVERTER(zeek::TYPE_PORT, PortVal*, AsPortVal)
-	CONVERTER(zeek::TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONVERTER(zeek::TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONVERTER(zeek::TYPE_TABLE, TableVal*, AsTableVal)
-	CONVERTER(zeek::TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONVERTER(zeek::TYPE_LIST, ListVal*, AsListVal)
-	CONVERTER(zeek::TYPE_STRING, StringVal*, AsStringVal)
-	CONVERTER(zeek::TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONVERTER(zeek::TYPE_ENUM, EnumVal*, AsEnumVal)
-	CONVERTER(zeek::TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+	PortVal* AsPortVal();
+	const PortVal* AsPortVal() const;
 
-#define CONST_CONVERTER(tag, ctype, name) \
-	const ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
-		return (const ctype)(this); \
-		}
+	SubNetVal* AsSubNetVal();
+	const SubNetVal* AsSubNetVal() const;
 
-	CONST_CONVERTER(zeek::TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONST_CONVERTER(zeek::TYPE_PORT, PortVal*, AsPortVal)
-	CONST_CONVERTER(zeek::TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONST_CONVERTER(zeek::TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONST_CONVERTER(zeek::TYPE_TABLE, TableVal*, AsTableVal)
-	CONST_CONVERTER(zeek::TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONST_CONVERTER(zeek::TYPE_LIST, ListVal*, AsListVal)
-	CONST_CONVERTER(zeek::TYPE_STRING, StringVal*, AsStringVal)
-	CONST_CONVERTER(zeek::TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONST_CONVERTER(zeek::TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+	AddrVal* AsAddrVal();
+	const AddrVal* AsAddrVal() const;
+
+	TableVal* AsTableVal();
+	const TableVal* AsTableVal() const;
+
+	RecordVal* AsRecordVal();
+	const RecordVal* AsRecordVal() const;
+
+	ListVal* AsListVal();
+	const ListVal* AsListVal() const;
+
+	StringVal* AsStringVal();
+	const StringVal* AsStringVal() const;
+
+	VectorVal* AsVectorVal();
+	const VectorVal* AsVectorVal() const;
+
+	EnumVal* AsEnumVal();
+	const EnumVal* AsEnumVal() const;
+
+	OpaqueVal* AsOpaqueVal();
+	const OpaqueVal* AsOpaqueVal() const;
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
@@ -338,9 +349,9 @@ public:
 
 	static bool WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val);
 
-	IntrusivePtr<TableVal> GetRecordFields();
+	TableValPtr GetRecordFields();
 
-	IntrusivePtr<StringVal> ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
+	StringValPtr ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
 
 protected:
 
@@ -354,9 +365,9 @@ protected:
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
 
-	static IntrusivePtr<Val> MakeBool(bool b);
-	static IntrusivePtr<Val> MakeInt(bro_int_t i);
-	static IntrusivePtr<Val> MakeCount(bro_uint_t u);
+	static ValPtr MakeBool(bool b);
+	static ValPtr MakeInt(bro_int_t i);
+	static ValPtr MakeCount(bro_uint_t u);
 
 	template<typename V>
 	Val(V&& v, zeek::TypeTag t) noexcept
@@ -364,32 +375,32 @@ protected:
 		{}
 
 	template<typename V>
-	Val(V&& v, IntrusivePtr<zeek::Type> t) noexcept
+	Val(V&& v, zeek::TypePtr t) noexcept
 		: val(std::forward<V>(v)), type(std::move(t))
 		{}
 
-	explicit Val(IntrusivePtr<zeek::Type> t) noexcept
+	explicit Val(zeek::TypePtr t) noexcept
 		: type(std::move(t))
 		{}
 
-	ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(zeek::TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsNonConstRecord)
+	ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsNonConstTable)
+	ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
 		// Caches a cloned value for later reuse during the same
 		// cloning operation. For recursive types, call this *before*
 		// descending down.
-		IntrusivePtr<Val> NewClone(Val* src, IntrusivePtr<Val> dst);
+		ValPtr NewClone(Val* src, ValPtr dst);
 
 		std::unordered_map<Val*, Val*> clones;
 	};
 
-	IntrusivePtr<Val> Clone(CloneState* state);
-	virtual IntrusivePtr<Val> DoClone(CloneState* state);
+	ValPtr Clone(CloneState* state);
+	virtual ValPtr DoClone(CloneState* state);
 
 	BroValUnion val;
-	IntrusivePtr<zeek::Type> type;
+	zeek::TypePtr type;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -411,79 +422,79 @@ public:
 
 	ValManager();
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->True() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->True() instead.")]]
 	inline Val* GetTrue() const
 		{ return b_true->Ref(); }
 
-	inline const IntrusivePtr<Val>& True() const
+	inline const ValPtr& True() const
 		{ return b_true; }
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->False() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->False() instead.")]]
 	inline Val* GetFalse() const
 		{ return b_false->Ref(); }
 
-	inline const IntrusivePtr<Val>& False() const
+	inline const ValPtr& False() const
 		{ return b_false; }
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->Bool() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Bool() instead.")]]
 	inline Val* GetBool(bool b) const
 		{ return b ? b_true->Ref() : b_false->Ref(); }
 
-	inline const IntrusivePtr<Val>& Bool(bool b) const
+	inline const ValPtr& Bool(bool b) const
 		{ return b ? b_true : b_false; }
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->Int() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Int() instead.")]]
 	inline Val* GetInt(int64_t i) const
 		{
 		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
 		    Val::MakeInt(i).release() : ints[i - PREALLOCATED_INT_LOWEST]->Ref();
 		}
 
-	inline IntrusivePtr<Val> Int(int64_t i) const
+	inline ValPtr Int(int64_t i) const
 		{
 		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
 		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST];
 		}
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->Count() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Count() instead.")]]
 	inline Val* GetCount(uint64_t i) const
 		{
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i).release() : counts[i]->Ref();
 		}
 
-	inline IntrusivePtr<Val> Count(uint64_t i) const
+	inline ValPtr Count(uint64_t i) const
 		{
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i];
 		}
 
-	[[deprecated("Remove in v4.1.  Use val_mgr->EmptyString() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->EmptyString() instead.")]]
 	StringVal* GetEmptyString() const;
 
-	inline const IntrusivePtr<StringVal>& EmptyString() const
+	inline const StringValPtr& EmptyString() const
 		{ return empty_string; }
 
 	// Port number given in host order.
-	[[deprecated("Remove in v4.1.  Use val_mgr->Port() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Port() instead.")]]
 	PortVal* GetPort(uint32_t port_num, TransportProto port_type) const;
 
 	// Port number given in host order.
-	const IntrusivePtr<PortVal>& Port(uint32_t port_num, TransportProto port_type) const;
+	const PortValPtr& Port(uint32_t port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	[[deprecated("Remove in v4.1.  Use val_mgr->Port() instead.")]]
+	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Port() instead.")]]
 	PortVal* GetPort(uint32_t port_num) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	const IntrusivePtr<PortVal>& Port(uint32_t port_num) const;
+	const PortValPtr& Port(uint32_t port_num) const;
 
 private:
 
-	std::array<std::array<IntrusivePtr<PortVal>, 65536>, NUM_PORT_SPACES> ports;
-	std::array<IntrusivePtr<Val>, PREALLOCATED_COUNTS> counts;
-	std::array<IntrusivePtr<Val>, PREALLOCATED_INTS> ints;
-	IntrusivePtr<StringVal> empty_string;
-	IntrusivePtr<Val> b_true;
-	IntrusivePtr<Val> b_false;
+	std::array<std::array<PortValPtr, 65536>, NUM_PORT_SPACES> ports;
+	std::array<ValPtr, PREALLOCATED_COUNTS> counts;
+	std::array<ValPtr, PREALLOCATED_INTS> ints;
+	StringValPtr empty_string;
+	ValPtr b_true;
+	ValPtr b_false;
 };
 
 extern ValManager* val_mgr;
@@ -521,7 +532,7 @@ public:
 
 class PortVal final : public Val {
 public:
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	// Returns the port number in host order (not including the mask).
 	uint32_t Port() const;
@@ -552,7 +563,7 @@ protected:
 	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 class AddrVal final : public Val {
@@ -561,7 +572,7 @@ public:
 	explicit AddrVal(const std::string& text);
 	~AddrVal() override;
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	// Constructor for address already in network order.
 	explicit AddrVal(uint32_t addr);          // IPv4.
@@ -571,7 +582,7 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 class SubNetVal final : public Val {
@@ -584,7 +595,7 @@ public:
 	explicit SubNetVal(const IPPrefix& prefix);
 	~SubNetVal() override;
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	const IPAddr& Prefix() const;
 	int Width() const;
@@ -596,17 +607,17 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 class StringVal final : public Val {
 public:
-	explicit StringVal(BroString* s);
+	explicit StringVal(String* s);
 	explicit StringVal(const char* s);
 	explicit StringVal(const std::string& s);
 	StringVal(int length, const char* s);
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	int Len();
 	const u_char* Bytes();
@@ -614,7 +625,7 @@ public:
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.
-	// char* ExpandedString(int format = BroString::EXPANDED_STRING)
+	// char* ExpandedString(int format = String::EXPANDED_STRING)
 	// 	{ return AsString()->ExpandedString(format); }
 
 	std::string ToStdString() const;
@@ -622,8 +633,8 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	IntrusivePtr<StringVal> Replace(RE_Matcher* re, const BroString& repl,
-	                                bool do_all);
+	StringValPtr Replace(RE_Matcher* re, const String& repl,
+	                                      bool do_all);
 
 	[[deprecated("Remove in v4.1.  Use Replace().")]]
 	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
@@ -631,7 +642,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 class PatternVal final : public Val {
@@ -647,7 +658,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -656,21 +667,15 @@ class ListVal final : public Val {
 public:
 	explicit ListVal(zeek::TypeTag t);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag")]]
-	explicit ListVal(::TypeTag t) : ListVal(static_cast<zeek::TypeTag>(t)) {}
-#pragma GCC diagnostic pop
-
 	~ListVal() override;
 
 	zeek::TypeTag BaseTag() const		{ return tag; }
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	int Length() const		{ return vals.size(); }
 
-	const IntrusivePtr<Val>& Idx(size_t i) const	{ return vals[i]; }
+	const ValPtr& Idx(size_t i) const	{ return vals[i]; }
 
 	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
 	Val* Index(const int n)		{ return vals[n].get(); }
@@ -691,35 +696,33 @@ public:
 	 * Appends a value to the list.
 	 * @param v  the value to append.
 	 */
-	void Append(IntrusivePtr<Val> v);
+	void Append(ValPtr v);
 
 	[[deprecated("Remove in v4.1.  Use Append(IntrusivePtr) instead.")]]
 	void Append(Val* v);
 
 	// Returns a Set representation of the list (which must be homogeneous).
-	IntrusivePtr<TableVal> ToSetVal() const;
+	TableValPtr ToSetVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToSetVal() instead.")]]
 	TableVal* ConvertToSet() const;
 
-	const std::vector<IntrusivePtr<Val>>& Vals() const	{ return vals; }
+	const std::vector<ValPtr>& Vals() const	{ return vals; }
 
 	void Describe(ODesc* d) const override;
 
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
-	std::vector<IntrusivePtr<Val>> vals;
+	std::vector<ValPtr> vals;
 	zeek::TypeTag tag;
 };
 
-extern double bro_start_network_time;
-
 class TableEntryVal {
 public:
-	explicit TableEntryVal(IntrusivePtr<Val> v)
+	explicit TableEntryVal(ValPtr v)
 		: val(std::move(v))
 		{
 		expire_access_time =
@@ -731,7 +734,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetVal().")]]
 	Val* Value()	{ return val.get(); }
 
-	const IntrusivePtr<Val>& GetVal() const
+	const ValPtr& GetVal() const
 		{ return val; }
 
 	// Returns/sets time of last expiration relevant access to this value.
@@ -743,7 +746,8 @@ public:
 protected:
 	friend class TableVal;
 
-	IntrusivePtr<Val> val;
+	ValPtr val;
+
 	// The next entry stores seconds since Bro's start.  We use ints here
 	// to save a few bytes, as we do not need a high resolution for these
 	// anyway.
@@ -763,17 +767,13 @@ protected:
 	TableVal* table;
 };
 
-class CompositeHash;
-class HashKey;
-class Frame;
-
 class TableVal final : public Val, public notifier::Modifiable {
 public:
-	explicit TableVal(IntrusivePtr<zeek::TableType> t, IntrusivePtr<zeek::detail::Attributes> attrs = nullptr);
+	explicit TableVal(zeek::TableTypePtr t, zeek::detail::AttributesPtr attrs = nullptr);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
 	explicit TableVal(zeek::TableType* t, zeek::detail::Attributes* attrs = nullptr)
-		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
+		: TableVal({zeek::NewRef{}, t}, {zeek::NewRef{}, attrs})
 		{}
 
 	~TableVal() override;
@@ -788,7 +788,7 @@ public:
 	 *                       broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val, bool broker_forward = true);
+	bool Assign(ValPtr index, ValPtr new_val, bool broker_forward = true);
 
 	/**
 	 * Assigns a value at an associated index in the table (or in the
@@ -802,8 +802,8 @@ public:
 	 *                       broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
-	            IntrusivePtr<Val> new_val, bool broker_forward = true);
+	bool Assign(ValPtr index, std::unique_ptr<HashKey> k,
+	            ValPtr new_val, bool broker_forward = true);
 
 	// Returns true if the assignment typechecked, false if not. The
 	// methods take ownership of new_val, but not of the index.  If we're
@@ -816,7 +816,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, HashKey* k, Val* new_val);
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	// Add the entire contents of the table to the given value,
 	// which must also be a TableVal.
@@ -844,7 +844,7 @@ public:
 	 * @param v  The intersecting table.
 	 * @return  The intersection of this table and the given one.
 	 */
-	IntrusivePtr<TableVal> Intersection(const TableVal& v) const;
+	TableValPtr Intersection(const TableVal& v) const;
 
 	[[deprecated("Remove in v4.1.  Use Intersection() instead.")]]
 	TableVal* Intersect(const TableVal* v) const
@@ -870,7 +870,7 @@ public:
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
-	bool ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
+	bool ExpandAndInit(ValPtr index, ValPtr new_val);
 
 	/**
 	 * Finds an index in the table and returns its associated value.
@@ -881,7 +881,7 @@ public:
 	 * non-existent index (nullptr), but otherwise has no meaning in relation
 	 * to the set's contents.
 	 */
-	const IntrusivePtr<Val>& Find(const IntrusivePtr<Val>& index);
+	const ValPtr& Find(const ValPtr& index);
 
 	/**
 	 * Finds an index in the table and returns its associated value or else
@@ -891,7 +891,7 @@ public:
 	 * exist, instead returns the &default value.  If there's no &default
 	 * attribute, then nullptr is still returned for non-existent index.
 	 */
-	IntrusivePtr<Val> FindOrDefault(const IntrusivePtr<Val>& index);
+	ValPtr FindOrDefault(const ValPtr& index);
 
 	// Returns the element's value if it exists in the table,
 	// nil otherwise.  Note, "index" is not const because we
@@ -902,12 +902,12 @@ public:
 	// For a table[subnet]/set[subnet], return all subnets that cover
 	// the given subnet.
 	// Causes an internal error if called for any other kind of table.
-	IntrusivePtr<VectorVal> LookupSubnets(const SubNetVal* s);
+	VectorValPtr LookupSubnets(const SubNetVal* s);
 
 	// For a set[subnet]/table[subnet], return a new table that only contains
 	// entries that cover the given subnet.
 	// Causes an internal error if called for any other kind of table.
-	IntrusivePtr<TableVal> LookupSubnetValues(const SubNetVal* s);
+	TableValPtr LookupSubnetValues(const SubNetVal* s);
 
 	// Sets the timestamp for the given index to network time.
 	// Returns false if index does not exist.
@@ -916,7 +916,7 @@ public:
 	/**
 	 * @return  The index corresponding to the given HashKey.
 	 */
-	IntrusivePtr<ListVal> RecreateIndex(const HashKey& k) const;
+	ListValPtr RecreateIndex(const HashKey& k) const;
 
 	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
 	ListVal* RecoverIndex(const HashKey* k) const
@@ -932,14 +932,14 @@ public:
 	 * value is returned to differentiate it from non-existent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
-	IntrusivePtr<Val> Remove(const Val& index, bool broker_forward = true);
+	ValPtr Remove(const Val& index, bool broker_forward = true);
 
 	/**
 	 * Same as Remove(const Val&), but uses a precomputed hash key.
 	 * @param k  The hash key to lookup.
 	 * @return  Same as Remove(const Val&).
 	 */
-	IntrusivePtr<Val> Remove(const HashKey& k);
+	ValPtr Remove(const HashKey& k);
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const Val* index)
@@ -950,32 +950,25 @@ public:
 		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
-	IntrusivePtr<ListVal> ToListVal(zeek::TypeTag t = zeek::TYPE_ANY) const;
+	ListValPtr ToListVal(zeek::TypeTag t = zeek::TYPE_ANY) const;
 
 	// Returns a ListVal representation of the table (which must be a set
 	// with non-composite index type).
-	IntrusivePtr<ListVal> ToPureListVal() const;
+	ListValPtr ToPureListVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToListVal() instead.")]]
 	ListVal* ConvertToList(zeek::TypeTag t=zeek::TYPE_ANY) const;
 	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
 	ListVal* ConvertToPureList() const;	// must be single index type
 
-	void SetAttrs(IntrusivePtr<zeek::detail::Attributes> attrs);
+	void SetAttrs(zeek::detail::AttributesPtr attrs);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
-	Attr* FindAttr(::attr_tag t) const
-		{ return GetAttr(static_cast<zeek::detail::attr_tag>(t)).get(); }
-#pragma GCC diagnostic pop
-
-	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag t) const;
+	const zeek::detail::AttrPtr& GetAttr(zeek::detail::AttrTag t) const;
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	zeek::detail::Attributes* Attrs()	{ return attrs.get(); }
 
-	const IntrusivePtr<zeek::detail::Attributes>& GetAttrs() const
+	const zeek::detail::AttributesPtr& GetAttrs() const
 		{ return attrs; }
 
 	// Returns the size of the table.
@@ -995,7 +988,7 @@ public:
 	// If the &default attribute is not a function, or the functon has
 	// already been initialized, this does nothing. Otherwise, evaluates
 	// the function in the frame allowing it to capture its closure.
-	void InitDefaultFunc(Frame* f);
+	void InitDefaultFunc(zeek::detail::Frame* f);
 
 	unsigned int MemoryAllocation() const override;
 
@@ -1033,27 +1026,22 @@ public:
 	void SetBrokerStore(const std::string& store) { broker_store = store; }
 
 protected:
-	void Init(IntrusivePtr<zeek::TableType> t);
+	void Init(zeek::TableTypePtr t);
 
-	using TableRecordDependencies = std::unordered_map<zeek::RecordType*, std::vector<IntrusivePtr<TableVal>>>;
+	using TableRecordDependencies = std::unordered_map<zeek::RecordType*, std::vector<TableValPtr>>;
 
-	using ParseTimeTableState = std::vector<std::pair<IntrusivePtr<Val>, IntrusivePtr<Val>>>;
+	using ParseTimeTableState = std::vector<std::pair<ValPtr, ValPtr>>;
 	using ParseTimeTableStates = std::unordered_map<TableVal*, ParseTimeTableState>;
 
 	ParseTimeTableState DumpTableState();
 	void RebuildTable(ParseTimeTableState ptts);
 
-	void CheckExpireAttr(zeek::detail::attr_tag at);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
-	void CheckExpireAttr(::attr_tag at);
-#pragma GCC diagnostic pop
-	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
-	bool CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
+	void CheckExpireAttr(zeek::detail::AttrTag at);
+	bool ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val);
+	bool CheckAndAssign(ValPtr index, ValPtr new_val);
 
 	// Calculates default value for index.  Returns nullptr if none.
-	IntrusivePtr<Val> Default(const IntrusivePtr<Val>& index);
+	ValPtr Default(const ValPtr& index);
 
 	// Returns true if item expiration is enabled.
 	bool ExpirationEnabled()	{ return expire_time != nullptr; }
@@ -1064,30 +1052,30 @@ protected:
 	double GetExpireTime();
 
 	// Calls &expire_func and returns its return interval;
-	double CallExpireFunc(IntrusivePtr<ListVal> idx);
+	double CallExpireFunc(ListValPtr idx);
 
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
 	// Calls &change_func.
-	void CallChangeFunc(const IntrusivePtr<Val>& index, const IntrusivePtr<Val>& old_value,
+	void CallChangeFunc(const Val* index, const ValPtr& old_value,
 	                    OnChangeType tpe);
 
 	// Sends data on to backing Broker Store
 	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
 
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
-	IntrusivePtr<zeek::TableType> table_type;
+	zeek::TableTypePtr table_type;
 	CompositeHash* table_hash;
-	IntrusivePtr<zeek::detail::Attributes> attrs;
-	IntrusivePtr<zeek::detail::Expr> expire_time;
-	IntrusivePtr<zeek::detail::Expr> expire_func;
+	zeek::detail::AttributesPtr attrs;
+	zeek::detail::ExprPtr expire_time;
+	zeek::detail::ExprPtr expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
-	IntrusivePtr<Val> def_val;
-	IntrusivePtr<zeek::detail::Expr> change_func;
+	ValPtr def_val;
+	zeek::detail::ExprPtr change_func;
 	std::string broker_store;
 	// prevent recursion of change functions
 	bool in_change_func = false;
@@ -1100,18 +1088,18 @@ class RecordVal final : public Val, public notifier::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit RecordVal(zeek::RecordType* t, bool init_fields = true);
-	explicit RecordVal(IntrusivePtr<zeek::RecordType> t, bool init_fields = true);
+	explicit RecordVal(zeek::RecordTypePtr t, bool init_fields = true);
 
 	~RecordVal() override;
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	/**
 	 * Assign a value to a record field.
 	 * @param field  The field index to assign.
 	 * @param new_val  The value to assign.
 	 */
-	void Assign(int field, IntrusivePtr<Val> new_val);
+	void Assign(int field, ValPtr new_val);
 
 	/**
 	 * Assign a value of type @c T to a record field, as constructed from
@@ -1122,13 +1110,13 @@ public:
 	 */
 	template <class T, class... Ts>
 	void Assign(int field, Ts&&... args)
-		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
+		{ Assign(field, zeek::make_intrusive<T>(std::forward<Ts>(args)...)); }
 
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	void Assign(int field, Val* new_val);
 	// Note: the following nullptr method can also go upon removing the above.
 	void Assign(int field, std::nullptr_t)
-		{ Assign(field, IntrusivePtr<Val>{}); }
+		{ Assign(field, ValPtr{}); }
 
 	[[deprecated("Remove in v4.1.  Use GetField().")]]
 	Val* Lookup(int field) const	// Does not Ref() value.
@@ -1139,7 +1127,7 @@ public:
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index.
 	 */
-	const IntrusivePtr<Val>& GetField(int field) const
+	const ValPtr& GetField(int field) const
 		{ return (*AsRecord())[field]; }
 
 	/**
@@ -1148,8 +1136,8 @@ public:
 	 * @return  The value at the given field index cast to type @c T.
 	 */
 	template <class T>
-	IntrusivePtr<T> GetField(int field) const
-		{ return cast_intrusive<T>(GetField(field)); }
+	zeek::IntrusivePtr<T> GetField(int field) const
+		{ return zeek::cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Returns the value of a given field index if it's previously been
@@ -1159,7 +1147,7 @@ public:
 	 * @return  The value at the given field index or the default value if
 	 * the field hasn't been assigned yet.
 	 */
-	IntrusivePtr<Val> GetFieldOrDefault(int field) const;
+	ValPtr GetFieldOrDefault(int field) const;
 
 	[[deprecated("Remove in v4.1.  Use GetFieldOrDefault().")]]
 	Val* LookupWithDefault(int field) const
@@ -1171,7 +1159,7 @@ public:
 	 * @return  The value of the given field.  If no such field name exists,
 	 * a fatal error occurs.
 	 */
-	const IntrusivePtr<Val>& GetField(const char* field) const;
+	const ValPtr& GetField(const char* field) const;
 
 	/**
 	 * Returns the value of a given field name as cast to type @c T.
@@ -1180,8 +1168,8 @@ public:
 	 * field name exists, a fatal error occurs.
 	 */
 	template <class T>
-	IntrusivePtr<T> GetField(const char* field) const
-		{ return cast_intrusive<T>(GetField(field)); }
+	zeek::IntrusivePtr<T> GetField(const char* field) const
+		{ return zeek::cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Returns the value of a given field name if it's previously been
@@ -1192,7 +1180,7 @@ public:
 	 * if the field hasn't been assigned yet.  If no such field name exists,
 	 * a fatal error occurs.
 	 */
-	IntrusivePtr<Val> GetFieldOrDefault(const char* field) const;
+	ValPtr GetFieldOrDefault(const char* field) const;
 
 	/**
 	 * Returns the value of a given field name or its default value
@@ -1202,8 +1190,8 @@ public:
 	 * type @c T.  If no such field name exists, a fatal error occurs.
 	 */
 	template <class T>
-	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
-		{ return cast_intrusive<T>(GetField(field)); }
+	zeek::IntrusivePtr<T> GetFieldOrDefault(const char* field) const
+		{ return zeek::cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
@@ -1222,12 +1210,12 @@ public:
 	/**
 	 * Returns a "record_field_table" value for introspection purposes.
 	 */
-	IntrusivePtr<TableVal> GetRecordFieldsVal() const;
+	TableValPtr GetRecordFieldsVal() const;
 
-	// This is an experiment to associate a BroObj within the
+	// This is an experiment to associate a Obj within the
 	// event engine to a record value in bro script.
-	void SetOrigin(BroObj* o)	{ origin = o; }
-	BroObj* GetOrigin() const	{ return origin; }
+	void SetOrigin(Obj* o)	{ origin = o; }
+	Obj* GetOrigin() const	{ return origin; }
 
 	// Returns a new value representing the value coerced to the given
 	// type. If coercion is not possible, returns 0. The non-const
@@ -1240,11 +1228,11 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<zeek::RecordType> other,
-	                                 IntrusivePtr<RecordVal> aggr,
-	                                 bool allow_orphaning = false) const;
-	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<zeek::RecordType> other,
-	                                 bool allow_orphaning = false);
+	RecordValPtr CoerceTo(zeek::RecordTypePtr other,
+	                      RecordValPtr aggr,
+	                      bool allow_orphaning = false) const;
+	RecordValPtr CoerceTo(zeek::RecordTypePtr other,
+	                      bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
@@ -1259,30 +1247,30 @@ public:
 	static void DoneParsing();
 
 protected:
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
-	BroObj* origin;
+	Obj* origin;
 
-	using RecordTypeValMap = std::unordered_map<zeek::RecordType*, std::vector<IntrusivePtr<RecordVal>>>;
+	using RecordTypeValMap = std::unordered_map<zeek::RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;
 };
 
 class EnumVal final : public Val {
 public:
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 protected:
 	friend class Val;
 	friend class zeek::EnumType;
 
 	template<class T, class... Ts>
-	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
+	friend zeek::IntrusivePtr<T> zeek::make_intrusive(Ts&&... args);
 
-	EnumVal(IntrusivePtr<zeek::EnumType> t, int i) : Val(bro_int_t(i), std::move(t))
+	EnumVal(zeek::EnumTypePtr t, int i) : Val(bro_int_t(i), std::move(t))
 		{}
 
 	void ValDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 
@@ -1290,10 +1278,10 @@ class VectorVal final : public Val, public notifier::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit VectorVal(zeek::VectorType* t);
-	explicit VectorVal(IntrusivePtr<zeek::VectorType> t);
+	explicit VectorVal(zeek::VectorTypePtr t);
 	~VectorVal() override;
 
-	IntrusivePtr<Val> SizeVal() const override;
+	ValPtr SizeVal() const override;
 
 	/**
 	 * Assigns an element to a given vector index.
@@ -1302,22 +1290,22 @@ public:
 	 * @return  True if the element was successfully assigned, or false if
 	 * the element was the wrong type.
 	 */
-	bool Assign(unsigned int index, IntrusivePtr<Val> element);
+	bool Assign(unsigned int index, ValPtr element);
 
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	bool Assign(unsigned int index, Val* element)
-		{ return Assign(index, {AdoptRef{}, element}); }
+		{ return Assign(index, {zeek::AdoptRef{}, element}); }
 	// Note: the following nullptr method can also go upon removing the above.
 	void Assign(unsigned int index, std::nullptr_t)
-		{ Assign(index, IntrusivePtr<Val>{}); }
+		{ Assign(index, ValPtr{}); }
 
 	[[deprecated("Remove in v4.1.  Assign using integer index and IntrusivePtr element.")]]
 	bool Assign(Val* index, Val* element)
 		{
 		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(),
-		              {AdoptRef{}, element});
+		              {zeek::AdoptRef{}, element});
 		}
 
 	/**
@@ -1328,11 +1316,11 @@ public:
 	 * the element was the wrong type.
 	 */
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
-	                  IntrusivePtr<Val> element);
+	                  ValPtr element);
 
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	bool AssignRepeat(unsigned int index, unsigned int how_many, Val* element)
-		{ return AssignRepeat(index, how_many, {NewRef{}, element}); }
+		{ return AssignRepeat(index, how_many, {zeek::NewRef{}, element}); }
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.
@@ -1344,7 +1332,7 @@ public:
 	 * @return  The element at the given index or nullptr if the index
 	 * does not exist (it's greater than or equal to vector's current size).
 	 */
-	const IntrusivePtr<Val>& At(unsigned int index) const;
+	const ValPtr& At(unsigned int index) const;
 
 	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(unsigned int index) const
@@ -1376,44 +1364,44 @@ public:
 	 * @return  True if the element was inserted or false if the element was
 	 * the wrong type.
 	 */
-	bool Insert(unsigned int index, IntrusivePtr<Val> element);
+	bool Insert(unsigned int index, ValPtr element);
 
 	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]]
 	bool Insert(unsigned int index, Val* element)
-		{ return Insert(index, {AdoptRef{}, element}); }
+		{ return Insert(index, {zeek::AdoptRef{}, element}); }
 
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	IntrusivePtr<Val> DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 };
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version.
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
-extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
-                                           const zeek::Type* t, bool is_init,
-                                           const Location* expr_location = nullptr);
+extern ValPtr check_and_promote(
+	ValPtr v, const zeek::Type* t, bool is_init,
+	const zeek::detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
 extern void describe_vals(const val_list* vals, ODesc* d, int offset=0);
-extern void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
+extern void describe_vals(const std::vector<ValPtr>& vals,
                           ODesc* d, size_t offset = 0);
 extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.
 inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == zeek::TYPE_VECTOR; }
-inline bool is_vector(const IntrusivePtr<Val>& v)	{ return is_vector(v.get()); }
+inline bool is_vector(const ValPtr& v)	{ return is_vector(v.get()); }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //
 // Note: This implements the script-level cast operator.
-extern IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::Type* t);
+extern ValPtr cast_value_to_type(Val* v, zeek::Type* t);
 
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.
@@ -1426,3 +1414,26 @@ extern bool can_cast_value_to_type(const Val* v, zeek::Type* t);
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
 extern bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t);
+
+}
+
+using Val [[deprecated("Remove in v4.1. Use zeek::Val instead.")]] = zeek::Val;
+using PortVal [[deprecated("Remove in v4.1. Use zeek::PortVal instead.")]] = zeek::PortVal;
+using AddrVal [[deprecated("Remove in v4.1. Use zeek::AddrVal instead.")]] = zeek::AddrVal;
+using SubNetVal [[deprecated("Remove in v4.1. Use zeek::SubNetVal instead.")]] = zeek::SubNetVal;
+using PatternVal [[deprecated("Remove in v4.1. Use zeek::PatternVal instead.")]] = zeek::PatternVal;
+using TableVal [[deprecated("Remove in v4.1. Use zeek::TableVal instead.")]] = zeek::TableVal;
+using TableValTimer [[deprecated("Remove in v4.1. Use zeek::TableVal instead.")]] = zeek::TableValTimer;
+using RecordVal [[deprecated("Remove in v4.1. Use zeek::RecordVal instead.")]] = zeek::RecordVal;
+using ListVal [[deprecated("Remove in v4.1. Use zeek::ListVal instead.")]] = zeek::ListVal;
+using StringVal [[deprecated("Remove in v4.1. Use zeek::StringVal instead.")]] = zeek::StringVal;
+using EnumVal [[deprecated("Remove in v4.1. Use zeek::EnumVal instead.")]] = zeek::EnumVal;
+using VectorVal [[deprecated("Remove in v4.1. Use zeek::VectorVal instead.")]] = zeek::VectorVal;
+using TableEntryVal [[deprecated("Remove in v4.1. Use zeek::TableEntryVal instead.")]] = zeek::TableEntryVal;
+using TimeVal [[deprecated("Remove in v4.1. Use zeek::TimeVal instead.")]] = zeek::TimeVal;
+using DoubleVal [[deprecated("Remove in v4.1. Use zeek::DoubleVal instead.")]] = zeek::DoubleVal;
+using IntervalVal [[deprecated("Remove in v4.1. Use zeek::IntervalVal instead.")]] = zeek::IntervalVal;
+using ValManager [[deprecated("Remove in v4.1. Use zeek::ValManager instead.")]] = zeek::ValManager;
+
+// Alias for zeek::val_mgr.
+extern zeek::ValManager*& val_mgr [[deprecated("Remove in v4.1. Use zeek::val_mgr instead.")]];

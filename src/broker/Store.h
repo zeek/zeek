@@ -12,24 +12,24 @@
 
 namespace bro_broker {
 
-extern IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
+extern zeek::OpaqueTypePtr opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-IntrusivePtr<EnumVal> query_status(bool success);
+zeek::EnumValPtr query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a failure.
  */
-inline IntrusivePtr<RecordVal> query_result()
+inline zeek::RecordValPtr query_result()
 	{
-	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
+	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data));
+	rval->Assign(1, zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data));
 	return rval;
 	}
 
@@ -38,9 +38,9 @@ inline IntrusivePtr<RecordVal> query_result()
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a success.
  */
-inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
+inline zeek::RecordValPtr query_result(zeek::RecordValPtr data)
 	{
-	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
+	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(true));
 	rval->Assign(1, std::move(data));
 	return rval;
@@ -82,7 +82,7 @@ public:
 		Unref(trigger);
 		}
 
-	void Result(const IntrusivePtr<RecordVal>& result)
+	void Result(const zeek::RecordValPtr& result)
 		{
 		trigger->Cache(call, result.get());
 		trigger->Release();
@@ -111,10 +111,10 @@ private:
 /**
  * An opaque handle which wraps a Broker data store.
  */
-class StoreHandleVal : public OpaqueVal {
+class StoreHandleVal : public zeek::OpaqueVal {
 public:
 	StoreHandleVal(broker::store s)
-		: OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}, store_pid{store.frontend_id()}
+		: zeek::OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}, store_pid{store.frontend_id()}
 		{ }
 
 	void ValDescribe(ODesc* d) const override;
@@ -127,11 +127,11 @@ public:
 
 protected:
 
-	IntrusivePtr<Val> DoClone(CloneState* state) override
-		{ return {NewRef{}, this}; }
+	zeek::IntrusivePtr<Val> DoClone(CloneState* state) override
+		{ return { zeek::NewRef{}, this }; }
 
 	StoreHandleVal()
-		: OpaqueVal(bro_broker::opaque_of_store_handle)
+		: zeek::OpaqueVal(bro_broker::opaque_of_store_handle)
 		{}
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
@@ -142,6 +142,6 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type);
 
 // Helper function to construct broker backend options from script land.
 broker::backend_options to_backend_options(broker::backend backend,
-                                           RecordVal* options);
+                                           zeek::RecordVal* options);
 
 } // namespace bro_broker

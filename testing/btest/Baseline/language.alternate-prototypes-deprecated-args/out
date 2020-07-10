@@ -1,5 +1,5 @@
 warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-prototypes-deprecated-args/alternate-prototypes-deprecated-args.zeek, line 9 and /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-prototypes-deprecated-args/alternate-prototypes-deprecated-args.zeek, line 5: use of deprecated parameter 'b' (event(a:string; b:string; c:string;))
-warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-prototypes-deprecated-args/alternate-prototypes-deprecated-args.zeek, line 19 and /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-prototypes-deprecated-args/alternate-prototypes-deprecated-args.zeek, line 5: use of deprecated prototype (event(a:string; b:string;) and myev)
+warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-prototypes-deprecated-args/alternate-prototypes-deprecated-args.zeek, line 19 and /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-prototypes-deprecated-args/alternate-prototypes-deprecated-args.zeek, line 7: use of deprecated 'myev' prototype (event(a:string; b:string;))
 myev (canon), one, two, three
 myev (new), one, three
 myev (old), one, two

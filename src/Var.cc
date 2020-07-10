@@ -531,7 +531,8 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 				}
 
 			if ( prototype->deprecated )
-				t->Warn("use of deprecated prototype", id.get());
+				t->Warn(fmt("use of deprecated '%s' prototype", id->Name()),
+				        prototype->args.get(), true);
 			}
 		else
 			{

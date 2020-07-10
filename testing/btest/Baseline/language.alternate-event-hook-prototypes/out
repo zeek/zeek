@@ -1,4 +1,4 @@
-warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-event-hook-prototypes/alternate-event-hook-prototypes.zeek, line 68 and /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-event-hook-prototypes/alternate-event-hook-prototypes.zeek, line 10: use of deprecated prototype (hook(c:count;) : bool and my_hook)
+warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-event-hook-prototypes/alternate-event-hook-prototypes.zeek, line 68 and /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.alternate-event-hook-prototypes/alternate-event-hook-prototypes.zeek, line 13: use of deprecated 'my_hook' prototype (hook(c:count;) : bool)
 my_hook, infinite, 13
 my_hook, 13, infinite
 my_hook, infinite

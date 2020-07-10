@@ -16,6 +16,41 @@ const char* ZOP_name(ZOp op)
 	}
 	}
 
+static const char* op_type_name(ZAMOpType ot)
+	{
+	switch ( ot ) {
+		case OP_X:		return "OP_X";
+		case OP_E:		return "OP_E";
+		case OP_C:		return "OP_C";
+		case OP_c:		return "OP_c";
+		case OP_V:		return "OP_V";
+		case OP_V_I1:		return "OP_V_I1";
+		case OP_VC_I1:		return "OP_VC_I1";
+		case OP_VE:		return "OP_VE";
+		case OP_VC:		return "OP_VC";
+		case OP_Vc:		return "OP_Vc";
+		case OP_VV:		return "OP_VV";
+		case OP_VV_I2:		return "OP_VV_I2";
+		case OP_VV_I1_I2:	return "OP_VV_I1_I2";
+		case OP_VV_FRAME:	return "OP_VV_FRAME";
+		case OP_VVC:		return "OP_VVC";
+		case OP_VVC_I2:		return "OP_VVC_I2";
+		case OP_ViC_ID:		return "OP_ViC_ID";
+		case OP_VVc:		return "OP_VVc";
+		case OP_VVV:		return "OP_VVV";
+		case OP_VVV_I3:		return "OP_VVV_I3";
+		case OP_VVV_I2_I3:	return "OP_VVV_I2_I3";
+		case OP_VVVC:		return "OP_VVVC";
+		case OP_VVVC_I3:	return "OP_VVVC_I3";
+		case OP_VVVC_I2_I3:	return "OP_VVVC_I2_I3";
+		case OP_VVVC_I1_I2_I3:	return "OP_VVVC_I1_I2_I3";
+		case OP_VVVV:		return "OP_VVVV";
+		case OP_VVVV_I4:	return "OP_VVVV_I4";
+		case OP_VVVV_I3_I4:	return "OP_VVVV_I3_I4";
+		case OP_VVVV_I2_I3_I4:	return "OP_VVVV_I2_I3_I4";
+	}
+	}
+
 
 ZAMOp1Flavor op1_flavor[] = {
 #include "ZAM-Op1FlavorsDefs.h"
@@ -375,10 +410,12 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 void ZInst::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 	{
 	printf("%s ", ZOP_name(op));
+	printf("(%s) ", op_type_name(op_type));
 	if ( t && 0 )
 		printf("(%s) ", type_name(t->Tag()));
 
 	int n = NumFrameSlots();
+	printf("v%d ", n);
 
 	auto id1 = VName(n, 1, frame_ids, remappings);
 	auto id2 = VName(n, 2, frame_ids, remappings);

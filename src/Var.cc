@@ -450,7 +450,15 @@ static std::optional<zeek::FuncType::Prototype> func_type_check(const zeek::Func
 		return {};
 		}
 
-	return decl->FindPrototype(*impl->Params());
+	auto rval = decl->FindPrototype(*impl->Params());
+
+	if ( rval )
+		for ( auto i = 0; i < rval->args->NumFields(); ++i )
+			if ( rval->args->FieldDecl(i)->GetAttr(zeek::detail::ATTR_DEPRECATED) )
+				impl->Warn(fmt("use of deprecated parameter '%s'",
+				               rval->args->FieldName(i)), decl, true);
+
+	return rval;
 	}
 
 static bool canonical_arg_types_match(const zeek::FuncType* decl, const zeek::FuncType* impl)

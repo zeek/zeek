@@ -42,7 +42,7 @@ void UseDefs::RemoveUnused()
 	int iter = 0;
 	while ( RemoveUnused(++iter) )
 		{
-		body = body->Reduce(rc);
+		body = rc->Reduce(body);
 		Analyze();
 
 		if ( reporter->Errors() > 0 )

@@ -15,10 +15,14 @@ public:
 	Reducer(Scope* s);
 	~Reducer();
 
+	Stmt* Reduce(Stmt* s)
+		{
+		reduction_root = s;
+		return s->Reduce(this);
+		}
+
 	const DefSetsMgr* GetDefSetsMgr() const	{ return mgr; }
 	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
-
-	void SetProfile(const ProfileFunc* _pf)	{ pf = _pf; }
 
 	IntrusivePtr<Expr> GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 						IntrusivePtr<Expr> rhs);
@@ -90,13 +94,9 @@ public:
 		replaced_stmts.clear();
 		}
 
-	// Tests whether an expression computed at point "start" remains
-	// valid for substitution at point "end".
-	bool ExprValid(const ID* id, const Expr* e, int start, int end) const;
-
-	// Returns true if an assigment involving the given identifier on
-	// the LHS is in conflict with the given list of identifiers.
-	bool CheckID(std::vector<const ID*>& ids, const ID* id) const;
+	// Tests whether an expression computed at e1 remains valid for
+	// substitution at e2.
+	bool ExprValid(const ID* id, const Expr* e1, const Expr* e2) const;
 
 	// Given the LHS and RHS of an assignment, returns true
 	// if the RHS is a common subexpression (meaning that the
@@ -140,7 +140,7 @@ protected:
 
 	bool SameExpr(const Expr* e1, const Expr* e2);
 
-	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs,
+	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* a,
 					const TempVar* lhs_tmp);
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t,
 					IntrusivePtr<Expr> rhs);
@@ -202,8 +202,10 @@ protected:
 	std::unordered_set<const Stmt*> omitted_stmts;
 	std::unordered_map<const Stmt*, Stmt*> replaced_stmts;
 
+	// Statement at which the current reduction started.
+	const Stmt* reduction_root = nullptr;
+
 	const DefSetsMgr* mgr = nullptr;
-	const ProfileFunc* pf = nullptr;
 };
 
 extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);

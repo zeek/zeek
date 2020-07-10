@@ -40,39 +40,14 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		}
 		break;
 
-	case STMT_ADD:
-	case STMT_DELETE:
-		curr_in_aggr_mod_stmt = true;
-		break;
-
 	default: break;
 	}
 
 	return TC_CONTINUE;
 	}
 
-TraversalCode ProfileFunc::PostStmt(const Stmt* s)
-	{
-	if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
-		curr_in_aggr_mod_stmt = false;
-
-	return TC_CONTINUE;
-	}
-
 TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	{
-	if ( e->Tag() == EXPR_CONST )
-		// These are the only expressions that we allow to be reused,
-		// since we never need information about them to be distinct
-		// to their position in the program.
-		;
-	else
-		ASSERT(expr_order.count(e) == 0);
-
-	expr_order[e] = num_exprs;
-	ordered_exprs.push_back(e);
-	in_aggr_mod_stmt.push_back(curr_in_aggr_mod_stmt);
-
 	++num_exprs;
 
 	switch ( e->Tag() ) {

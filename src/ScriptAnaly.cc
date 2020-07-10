@@ -46,8 +46,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	push_existing_scope(scope);
 
 	auto rc = new Reducer(scope);
-
-	auto new_body = body->Reduce(rc);
+	auto new_body = rc->Reduce(body.get());
 
 	if ( reporter->Errors() > 0 )
 		{
@@ -92,9 +91,8 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 			}
 
 		rc->SetDefSetsMgr(cb->GetDefSetsMgr());
-		rc->SetProfile(&pf_red);
 
-		new_body = new_body->Reduce(rc);
+		new_body = rc->Reduce(new_body);
 		new_body_ptr = {AdoptRef{}, new_body};
 
 		if ( analysis_options.only_func || analysis_options.dump_xform )

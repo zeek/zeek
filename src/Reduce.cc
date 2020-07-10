@@ -12,6 +12,247 @@
 #include "TempVar.h"
 
 
+class CSE_ValidityChecker : public TraversalCallback {
+public:
+	CSE_ValidityChecker(const std::vector<const ID*>& ids,
+			const Expr* start_e, const Expr* end_e);
+
+	TraversalCode PreStmt(const Stmt*) override;
+	TraversalCode PostStmt(const Stmt*) override;
+	TraversalCode PreExpr(const Expr*) override;
+
+	bool IsValid() const
+		{
+		if ( ! is_valid )
+			return false;
+
+		if ( ! have_end_e )
+			reporter->InternalError("CSE_ValidityChecker: saw start but not end");
+		return true;
+		}
+
+protected:
+	// Returns true if an assigment involving the given identifier on
+	// the LHS is in conflict with the given list of identifiers.
+	bool CheckID(const std::vector<const ID*>& ids, const ID* id) const;
+
+	// Returns true if the assignment given by 'e' modifies an aggregate
+	// with the same type as that of one of the identifiers.
+	bool CheckAggrMod(const std::vector<const ID*>& ids,
+				const Expr* e) const;
+
+	const std::vector<const ID*>& ids;
+	const Expr* start_e;
+	const Expr* end_e;
+
+	int field;
+	IntrusivePtr<BroType> field_type;
+
+	bool is_valid = true;
+	bool have_start_e = false;
+	bool have_end_e = false;
+
+	// Whether analyzed expressions occur in the context of
+	// a statement that modifies an aggregate ("add" or "delete").
+	bool in_aggr_mod_stmt = false;
+};
+
+CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids,
+				const Expr* _start_e, const Expr* _end_e)
+: ids(_ids)
+	{
+	start_e = _start_e;
+	end_e = _end_e;
+
+	// Track whether this is a record assignment, in which case
+	// we're attuned to assignments to the same field for the
+	// same type of record.
+	if ( start_e->Tag() == EXPR_FIELD )
+		{
+		field = start_e->AsFieldExpr()->Field();
+
+		// Track the type of the record, too, so we don't confuse
+		// field references to different records that happen to
+		// have the same offset as potential aliases.
+		field_type = start_e->GetOp1()->Type();
+		}
+
+	else
+		field = -1;	// flags that there's no relevant field
+	}
+
+TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s)
+	{
+	if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
+		in_aggr_mod_stmt = true;
+
+	return TC_CONTINUE;
+	}
+
+TraversalCode CSE_ValidityChecker::PostStmt(const Stmt* s)
+	{
+	if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
+		in_aggr_mod_stmt = false;
+
+	return TC_CONTINUE;
+	}
+
+TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
+	{
+	if ( e == start_e )
+		{
+		ASSERT(! have_start_e);
+		have_start_e = true;
+
+		// Don't analyze the expression, as it's our starting
+		// point and we don't want to conflate its properties
+		// with those of any intervening expression.
+		return TC_CONTINUE;
+		}
+
+	if ( e == end_e )
+		{
+		if ( ! have_start_e )
+			reporter->InternalError("CSE_ValidityChecker: saw end but not start");
+
+		ASSERT(! have_end_e);
+		have_end_e = true;
+
+		// ... and we're now done.
+		return TC_ABORTALL;
+		}
+
+	if ( ! have_start_e )
+		// We don't yet have a starting point.
+		return TC_CONTINUE;
+
+	// We have a starting point, and not yet an ending point.
+	auto t = e->Tag();
+
+	switch ( t ) {
+	case EXPR_ASSIGN:
+		{
+		auto lhs_ref = e->GetOp1()->AsRefExpr();
+		auto lhs = lhs_ref->GetOp1()->AsNameExpr();
+
+		if ( CheckID(ids, lhs->Id()) )
+			{
+			is_valid = false;
+			return TC_ABORTALL;
+			}
+
+		// Note, we don't use CheckAggrMod() because this
+		// is a plain assignment.  It might be changing a variable's
+		// binding to an aggregate, but it's not changing the
+		// aggregate itself.
+		}
+		break;
+
+	case EXPR_INDEX_ASSIGN:
+		{
+		auto lhs_aggr = e->GetOp1();
+		auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
+
+		if ( CheckID(ids, lhs_aggr_id) || CheckAggrMod(ids, e) )
+			{
+			is_valid = false;
+			return TC_ABORTALL;
+			}
+		}
+		break;
+
+	case EXPR_FIELD_LHS_ASSIGN:
+		{
+		auto lhs = e->GetOp1();
+		auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+		auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
+
+		if ( lhs_field == field &&
+		     same_type(lhs_aggr_id->TypePtr(), field_type) )
+			{
+			// Potential assignment to the same field as for
+			// our expression of interest.  Even if the
+			// identifier involved is not one we have our eye
+			// on, due to aggregate aliasing this could be
+			// altering the value of our expression, so bail.
+			is_valid = false;
+			return TC_ABORTALL;
+			}
+
+		if ( CheckAggrMod(ids, e) )
+			{
+			is_valid = false;
+			return TC_ABORTALL;
+			}
+		}
+		break;
+
+	case EXPR_CALL:
+		{
+		for ( auto i : ids )
+			if ( i->IsGlobal() || IsAggr(i->Type()) )
+				{
+				is_valid = false;
+				return TC_ABORTALL;
+				}
+		}
+		break;
+
+	default:
+		if ( in_aggr_mod_stmt && (t == EXPR_INDEX || t == EXPR_FIELD) )
+			{
+			auto aggr = e->GetOp1();
+			auto aggr_id = aggr->AsNameExpr()->Id();
+
+			if ( CheckID(ids, aggr_id) )
+				{
+				is_valid = false;
+				return TC_ABORTALL;
+				}
+			}
+
+		break;
+	}
+
+	return TC_CONTINUE;
+	}
+
+bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
+					const ID* id) const
+	{
+	// Only check type info for aggregates.
+	auto id_t = IsAggr(id->Type()) ? id->Type() : nullptr;
+
+	for ( auto i : ids )
+		{
+		if ( id == i )
+			return true;	// reassignment
+
+		if ( id_t && same_type(id_t, i->Type()) )
+			// Same-type aggregate.
+			return true;
+		}
+
+	return false;
+	}
+
+bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
+					const Expr* e) const
+	{
+	auto e_i_t = e->Type();
+	if ( IsAggr(e_i_t) )
+		{
+		// This assignment sets an aggregate value.
+		// Look for type matches.
+		for ( auto i : ids )
+			if ( same_type(e_i_t, i->TypePtr()) )
+				return true;
+		}
+
+	return false;
+	}
+
+
 Reducer::Reducer(Scope* s)
 	{
 	scope = s;
@@ -360,19 +601,10 @@ bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 	}
 
 // Find a temporary, if any, whose RHS matches the given "rhs", using
-// the reaching defs associated with "lhs".
-IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
-						const Expr* lhs,
-						const TempVar* lhs_tmp)
+// the reaching defs associated with the assignment "a".
+IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs, const Expr* a,
+					const TempVar* lhs_tmp)
 	{
-	if ( pf->expr_order.count(lhs) == 0 )
-		// We haven't tracked the LHS, presumably because it
-		// was created during optimization.  Don't bother trying
-		// to find an equivalent temporary.
-		return nullptr;
-
-	int lhs_order = pf->expr_order.find(lhs)->second;
-
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
 		auto et_i = expr_temps[i];
@@ -383,38 +615,22 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 
 		auto et_i_expr = et_i->RHS();
 
-		if ( pf->expr_order.count(et_i_expr) == 0 )
-			// Likewise, we ought to figure out why this
-			// is happening (i.e., fail with ASSERT), but
-			// it's easiest to just forego the opportunity
-			// to use the temporary.  Also, in running on
-			// the test suite, this never was the case, nor
-			// was the test above for lhs.
-			continue;
-
-		int et_i_order = pf->expr_order.find(et_i_expr)->second;
-
-		if ( et_i_order >= lhs_order )
-			// We can wind up looking at future expressions
-			// because of doing multiple reduction passes.
-			continue;
-
 		if ( SameExpr(rhs, et_i_expr) )
 			{
 			// Make sure its value always makes it here.
 			auto id = et_i->Id().get();
 
-			// We use lhs in the following rather than rhs
+			// We use 'a' in the following rather than rhs
 			// because the RHS can get rewritten (for example,
 			// due to folding) after we generate RDs, and
 			// thus might not have any.
-			if ( ! mgr->HasSinglePreMinRD(lhs, id) )
+			if ( ! mgr->HasSinglePreMinRD(a, id) )
 				// Value isn't guaranteed to make it here.
 				continue;
 
 			// Make sure there aren't ambiguities due to
 			// possible modifications to aggregates.
-			if ( ! ExprValid(id, et_i_expr, et_i_order, lhs_order) )
+			if ( ! ExprValid(id, et_i_expr, a) )
 				continue;
 
 			return et_i->Id();
@@ -424,7 +640,7 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 	return nullptr;
 	}
 
-bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
+bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const
 	{
 	// Here are the considerations for expression validity.
 	//
@@ -441,7 +657,7 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	// * No propagation of expressions based on aggregates across
 	//   function calls.
 	//
-	// * No propgation of expressions baed on globals across calls.
+	// * No propagation of expressions based on globals across calls.
 
 	// Tracks which ID's are germane for our analysis.
 	std::vector<const ID*> ids;
@@ -449,9 +665,9 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	ids.push_back(id);
 
 	// Compute variables involved in the expression.
-	auto op1 = e->GetOp1();
-	auto op2 = e->GetOp2();
-	auto op3 = e->GetOp3();
+	auto op1 = e1->GetOp1();
+	auto op2 = e1->GetOp2();
+	auto op3 = e1->GetOp3();
 
 	if ( op1 && op1->Tag() == EXPR_NAME )
 		ids.push_back(op1->AsNameExpr()->Id());
@@ -460,122 +676,13 @@ bool Reducer::ExprValid(const ID* id, const Expr* e, int start, int end) const
 	if ( op3 && op3->Tag() == EXPR_NAME )
 		ids.push_back(op3->AsNameExpr()->Id());
 
-	if ( e->Tag() == EXPR_NAME )
-		ids.push_back(e->AsNameExpr()->Id());
+	if ( e1->Tag() == EXPR_NAME )
+		ids.push_back(e1->AsNameExpr()->Id());
 
-	// Track whether this is a record assignment, in which case
-	// we're attuned to assignments to the same field for the
-	// same type of record.
-	auto field = e->Tag() == EXPR_FIELD ? e->AsFieldExpr()->Field() : -1;
+	CSE_ValidityChecker vc(ids, e1, e2);
+	reduction_root->Traverse(&vc);
 
-	ASSERT(pf->ordered_exprs.size() >= end);
-
-	// We check each expression inside the range (non-inclusive)
-	// looking for potential issues.
-	for ( int i = start + 1; i < end; ++i )
-		{
-		auto e_i = pf->ordered_exprs[i];
-		auto t = e_i->Tag();
-
-		switch ( t ) {
-		case EXPR_ASSIGN:
-			{
-			auto lhs_ref = e_i->GetOp1()->AsRefExpr();
-			auto lhs = lhs_ref->GetOp1()->AsNameExpr();
-
-			if ( CheckID(ids, lhs->Id()) )
-				return false;
-			}
-			break;
-
-		case EXPR_INDEX_ASSIGN:
-			{
-			auto lhs_aggr = e_i->GetOp1();
-			auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
-
-			if ( CheckID(ids, lhs_aggr_id) )
-				return false;
-			}
-			break;
-
-		case EXPR_FIELD_LHS_ASSIGN:
-			{
-			auto lhs = e_i->GetOp1();
-			auto lhs_aggr_id = lhs->AsNameExpr()->Id();
-			auto lhs_field = e_i->AsFieldLHSAssignExpr()->Field();
-
-			if ( lhs_field == field )
-				{
-				// Potential assignment to the same field
-				// as for our expression of interest.  Check
-				// for any identifier match.
-				if ( CheckID(ids, lhs_aggr_id) )
-					return false;
-				}
-
-			else if ( field < 0 )
-				{
-				// Our original expression doesn't relate
-				// to this field, so analyze the aggregate
-				// like we usually would.
-				if ( CheckID(ids, lhs_aggr_id) )
-					return false;
-				}
-
-			auto e_i_t = e_i->Type();
-			if ( IsAggr(e_i_t) )
-				{
-				// This assignment sets an aggregate value.
-				// Look for type matches.
-				for ( auto i : ids )
-					if ( same_type(e_i_t, i->TypePtr()) )
-						return false;
-				}
-			}
-			break;
-
-		case EXPR_CALL:
-			{
-			for ( auto i : ids )
-				if ( i->IsGlobal() || IsAggr(i->Type()) )
-					return false;
-			}
-			break;
-
-		default:
-			if ( pf->in_aggr_mod_stmt[i] &&
-			     (t == EXPR_INDEX || t == EXPR_FIELD) )
-				{
-				auto aggr = e_i->GetOp1();
-				auto aggr_id = aggr->AsNameExpr()->Id();
-
-				if ( CheckID(ids, aggr_id) )
-					return false;
-				}
-
-			break;
-		}
-		}
-
-	return true;
-	}
-
-bool Reducer::CheckID(std::vector<const ID*>& ids, const ID* id) const
-	{
-	// Only check type info for aggregates.
-	auto id_t = IsAggr(id->Type()) ? id->Type() : nullptr;
-
-	for ( auto i : ids )
-		{
-		if ( id == i )
-			return true;	// reassignment
-
-		if ( id_t && same_type(id_t, i->Type()) )
-			// Same-type aggregate.
-			return true;
-		}
-
-	return false;
+	return vc.IsValid();
 	}
 
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
@@ -584,7 +691,7 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);
-	auto rhs_tmp = FindExprTmp(rhs, lhs, lhs_tmp);
+	auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
 
 	IntrusivePtr<Expr> new_rhs;
 	if ( rhs_tmp )

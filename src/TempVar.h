@@ -26,8 +26,8 @@ public:
 	bool IsActive() const	{ return active; }
 
 	const ConstExpr* Const() const	{ return const_expr; }
-	// Surely the most use of "const" in any single line in
-	// the Zeek codebase :-P.
+	// The most use of "const" in any single line in the Zeek
+	// codebase :-P ... though only by one!
 	void SetConst(const ConstExpr* _const) { const_expr = _const; }
 
 	IntrusivePtr<ID> Alias() const		{ return alias; }

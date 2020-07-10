@@ -96,7 +96,7 @@ static bool add_prototype(const zeek::detail::IDPtr& id, zeek::Type* t,
 			return false;
 			}
 
-		offsets[i] = o;
+		offsets[o] = i;
 		}
 
 	auto deprecated = false;
@@ -604,24 +604,54 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 	else
 		id->SetType(t);
 
+	const auto& args = t->Params();
+	const auto& canon_args = id->GetType()->AsFuncType()->Params();
+
 	zeek::detail::push_scope(std::move(id), std::move(attrs));
 
-	const auto& args = t->Params();
-	int num_args = args->NumFields();
-
-	for ( int i = 0; i < num_args; ++i )
+	for ( int i = 0; i < canon_args->NumFields(); ++i )
 		{
-		zeek::TypeDecl* arg_i = args->FieldDecl(i);
+		zeek::TypeDecl* arg_i;
+		bool hide = false;
+
+		if ( prototype )
+			{
+			auto it = prototype->offsets.find(i);
+
+			if ( it == prototype->offsets.end() )
+				{
+				// Alternate prototype hides this param
+				hide = true;
+				arg_i = canon_args->FieldDecl(i);
+				}
+			else
+				{
+				// Alternate prototype maps this param to another index
+				arg_i = args->FieldDecl(it->second);
+				}
+			}
+		else
+			{
+			if ( i < args->NumFields() )
+				arg_i = args->FieldDecl(i);
+			else
+				break;
+			}
+
 		auto arg_id = zeek::detail::lookup_ID(arg_i->id, module_name);
 
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
-		arg_id = zeek::detail::install_ID(arg_i->id, module_name, false, false);
-		arg_id->SetType(arg_i->type);
+		const char* local_name = arg_i->id;
 
-		if ( prototype )
-			arg_id->SetOffset(prototype->offsets[i]);
+		if ( hide )
+			// Note the illegal '-' in hidden name implies we haven't
+			// clobbered any local variable names.
+			local_name = fmt("%s-hidden", local_name);
+
+		arg_id = zeek::detail::install_ID(local_name, module_name, false, false);
+		arg_id->SetType(arg_i->type);
 		}
 
 	if ( zeek::detail::Attr* depr_attr = find_attr(zeek::detail::current_scope()->Attrs().get(),

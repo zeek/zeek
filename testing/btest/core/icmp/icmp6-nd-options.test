@@ -5,7 +5,7 @@
 
 # @TEST-EXEC: btest-diff output
 
-event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options)
+event icmp_router_advertisement(c: connection, info: icmp_info, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options)
     {
     print "icmp_router_advertisement options";
     for ( o in options )
@@ -17,7 +17,7 @@ event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: c
         }
     }
 
-event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options)
+event icmp_neighbor_advertisement(c: connection, info: icmp_info, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options)
     {
     print "icmp_neighbor_advertisement options";
     for ( o in options )
@@ -27,7 +27,7 @@ event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, router: bool, 
         }
     }
 
-event icmp_redirect(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options)
+event icmp_redirect(c: connection, info: icmp_info, tgt: addr, dest: addr, options: icmp6_nd_options)
     {
     print "icmp_redirect options";
     for ( o in options )

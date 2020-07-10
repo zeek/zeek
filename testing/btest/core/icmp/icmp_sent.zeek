@@ -1,12 +1,12 @@
 # @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp_sent.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event icmp_sent(c: connection, icmp: icmp_conn)
+event icmp_sent(c: connection, info: icmp_info)
 	{
-	print "icmp_sent", c$id, icmp;
+	print "icmp_sent", c$id, info;
 	}
 
-event icmp_sent_payload(c: connection, icmp: icmp_conn, payload: string)
+event icmp_sent_payload(c: connection, info: icmp_info, payload: string)
 	{
-	print "icmp_sent_payload", c$id, icmp, |payload|;
+	print "icmp_sent_payload", c$id, info, |payload|;
 	}

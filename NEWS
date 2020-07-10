@@ -259,6 +259,19 @@ Deprecated Functionality
   that the former returns a vector with indices starting at 1 while the
   later returns a vector with indices starting at 0.
 
+- The ``icmp_conn`` parameter of ICMP events is deprecated, there's an
+  alternate version with an ``icmp_info`` parameter to use instead.
+  The ``icmp_conn`` record passed to ICMP events has always been re-used
+  amongst all events within an ICMP "connection", so the
+  ``itype``, ``icode``, ``len``, and ``hlim`` fields as inspected in
+  handlers never appears to change even if the underlying packet data
+  has different values for those fields.  However, it's not known if
+  anyone relied on that behavior, so the new ``icmp_info`` record is
+  introduced with the more-expected behavior of being created and
+  populated for each new event.  It also removes the orig_h/resp_h
+  fields since those are redundant with what's already available in
+  the connection parameter.
+
 Zeek 3.1.0
 ==========
 

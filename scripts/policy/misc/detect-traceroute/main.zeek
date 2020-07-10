@@ -95,7 +95,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 		}
 	}
 
-event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+event icmp_time_exceeded(c: connection, info: icmp_info, code: count, context: icmp_context)
 	{
 	SumStats::observe("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h,"-",get_port_transport_proto(context$id$resp_p))], [$str=cat(c$id$orig_h)]);
 	}

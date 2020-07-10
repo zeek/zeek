@@ -319,7 +319,7 @@ IntrusivePtr<ID> Reducer::UpdateID(IntrusivePtr<ID> id)
 	if ( ID_IsReduced(id) )
 		return id;
 
-	return GenLocal(id.get());
+	return FindNewLocal(id.get());
 	}
 
 bool Reducer::ID_IsReduced(const ID* id) const
@@ -1024,9 +1024,8 @@ IntrusivePtr<ID> Reducer::GenTemporary(const IntrusivePtr<BroType>& t,
 	return temp_id;
 	}
 
-IntrusivePtr<ID> Reducer::FindNewLocal(const NameExpr* n)
+IntrusivePtr<ID> Reducer::FindNewLocal(ID* id)
 	{
-	auto id = n->Id();
 	auto mapping = orig_to_new_locals.find(id);
 
 	if ( mapping != orig_to_new_locals.end() )

@@ -1272,6 +1272,9 @@ bool SwitchStmt::IsReduced(Reducer* r) const
 		if ( c->ExprCases() && ! c->ExprCases()->IsReduced(r) )
 			return false;
 
+		if ( c->TypeCases() && ! r->IDsAreReduced(c->TypeCases()) )
+			return false;
+
 		if ( ! c->Body()->IsReduced(r) )
 			return false;
 		}
@@ -1306,7 +1309,18 @@ Stmt* SwitchStmt::DoReduce(Reducer* rc)
 				s->Stmts().push_back(c_e_stmt.release());
 			}
 
+		auto c_t = c->TypeCases();
+		if ( c_t )
+			rc->UpdateIDs(c_t);
+
 		c->UpdateBody(c->Body()->Reduce(rc));
+		}
+
+	// Upate type cases.
+	for ( auto& i : case_label_type_list )
+		{
+		IntrusivePtr<ID> idp = {NewRef{}, i.first};
+		i.first = rc->UpdateID(idp).release();
 		}
 
 	if ( s->Stmts().length() > 0 )

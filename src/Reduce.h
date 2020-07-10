@@ -148,7 +148,9 @@ protected:
 
 	// Retrieve the identifier corresponding to the new local for
 	// the given expression.  Creates the local if necessary.
-	IntrusivePtr<ID> FindNewLocal(const NameExpr* n);
+	IntrusivePtr<ID> FindNewLocal(ID* id);
+	IntrusivePtr<ID> FindNewLocal(const NameExpr* n)
+		{ return FindNewLocal(n->Id()); }
 
 	// Generate a new local to use in lieu of the original (seen
 	// in an inlined block).  The difference is that the new

@@ -1762,6 +1762,7 @@ EqExpr::EqExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		case zeek::TYPE_ADDR:
 		case zeek::TYPE_SUBNET:
 		case zeek::TYPE_ERROR:
+		case zeek::TYPE_FUNC:
 			break;
 
 		case zeek::TYPE_ENUM:
@@ -1813,6 +1814,11 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 			return zeek::val_mgr->Bool(re->MatchExactly(s));
 		else
 			return zeek::val_mgr->Bool(! re->MatchExactly(s));
+		}
+	else if ( op1->GetType()->Tag() == zeek::TYPE_FUNC )
+		{
+		auto res = v1->AsFunc() == v2->AsFunc();
+		return val_mgr->Bool(tag == EXPR_EQ ? res : ! res);
 		}
 
 	else

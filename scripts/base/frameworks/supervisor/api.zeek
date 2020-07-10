@@ -117,4 +117,32 @@ export {
 	##          It's an error to call this function from a process other than
 	##          a supervised one.
 	global node: function(): NodeConfig;
+
+	## Hooks into the stdout stream for all supervisor's child processes.
+	## If a hook terminates with `break`, that will suppress output to the
+	## associated stream.
+	##
+	## node: the name of a previously created node via
+	##       :zeek:see:`Supervisor::create` indicating to which
+	##       child process the stdout line is associated.
+	##       An empty value is used to indicate the message
+	##       came from the internal supervisor stem process
+	##       (this should typically never happen).
+	##
+	## msg: line-buffered contents from the stdout of a child process.
+	global stdout_hook: hook(node: string, msg: string);
+
+	## Hooks into the stderr stream for all supervisor's child processes.
+	## If a hook terminates with `break`, that will suppress output to the
+	## associated stream.
+	##
+	## node: the name of a previously created node via
+	##       :zeek:see:`Supervisor::create` indicating to which
+	##       child process the stdout line is associated.
+	##       A empty value is used to indicate the message
+	##       came from the internal supervisor stem process.
+	##       (this should typically never happen).
+	##
+	## msg: line-buffered contents from the stderr of a child process.
+	global stderr_hook: hook(node: string, msg: string);
 }

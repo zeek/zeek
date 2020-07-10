@@ -1,4 +1,58 @@
 
+3.2.0-dev.884 | 2020-07-09 14:09:58 -0700
+
+  * Add Supervisor::{stdout,stderr}_hook (Jon Siwek, Corelight)
+
+    These allow capturing/handling the stdout/stderr of child processes
+    via Zeek scripts.
+
+  * Add Log::rotation_format_func and Log::default_rotation_dir options (Jon Siwek, Corelight)
+
+    These may be redefined to customize log rotation path prefixes,
+    including use of a directory.  File extensions are still up to
+    individual log writers to add themselves during the actual rotation.
+
+    These new also allow for some simplication to the default
+    ASCII postprocessor function: it eliminates the need for it doing an
+    extra/awkward rename() operation that only changes the timestamp format.
+
+    This also teaches the supervisor framework to use these new options
+    to rotate ascii logs into a log-queue/ directory with a specific
+    file name format (intended for an external archiver process to
+    monitor separately).
+
+  * Allow Zeek function equality comparisons (Jon Siwek, Corelight)
+
+    Equality between two functions acts like a pointer comparison.
+
+  * Implement leftover log rotation/archival for supervised nodes (Jon Siwek, Corelight)
+
+    This helps prevent a node from being killed/crashing in the middle
+    of writing a log, restarting, and eventually clobbering that log
+    file that never underwent the rotation/archival process.
+
+    The old `archive-log` and `post-terminate` scripts as used by
+    ZeekControl previously implemented this behavior, but the new logic is
+    entirely in the ASCII writer.  It uses ".shadow" log files stored
+    alongside the real log to help detect such scenarios and rotate them
+    correctly upon the next startup of the Zeek process.
+
+  * Move some supervisor structures to detail namespace (Jon Siwek, Corelight)
+
+    * StemHandle -> detail::SupervisorStemHandle
+    * SupervisedNode -> detail::SupervisedNode
+    * Supervisor::Node -> detail::SupervisorNode
+
+  * Improve default supervisor stdout/stderr handling (Jon Siwek, Corelight)
+
+    The stdout/stderr of child processes is now redirected over a pipe back
+    to the supervisor process so that it can prefix the output with
+    the name of the emitting node.
+
+  * Factor Supervisor initialization data to separate struct from Stem (Jon Siwek, Corelight)
+
+  * Move ParentProcessCheckTimer to detail namespace (Jon Siwek, Corelight)
+
 3.2.0-dev.874 | 2020-07-08 17:46:20 -0700
 
   * scan.l: Remove "constant" did_module_restore logic / dead code (Arne Welzel)

@@ -19,7 +19,14 @@ public:
 		config.description = "ASCII log writer";
 		return config;
 		}
+protected:
+	void InitPostScript() override;
+
 } plugin;
 
+void Plugin::InitPostScript()
+	{
+	::logging::writer::Ascii::RotateLeftoverLogs();
+	}
 }
 }

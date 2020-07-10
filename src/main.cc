@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 #endif
 
 		if ( zeek::Supervisor::ThisNode() )
-			timer_mgr->Add(new zeek::ParentProcessCheckTimer(1, 1));
+			timer_mgr->Add(new zeek::detail::ParentProcessCheckTimer(1, 1));
 
 		double time_net_start = current_time(true);;
 

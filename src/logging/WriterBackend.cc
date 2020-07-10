@@ -80,7 +80,9 @@ broker::data WriterBackend::WriterInfo::ToBroker() const
 		t.insert(std::make_pair(key, value));
 		}
 
-	return broker::vector({path, rotation_base, rotation_interval, network_time, std::move(t)});
+	auto bppf = post_proc_func ? post_proc_func : "";
+
+	return broker::vector({path, rotation_base, rotation_interval, network_time, std::move(t), bppf});
 	}
 
 bool WriterBackend::WriterInfo::FromBroker(broker::data d)
@@ -94,11 +96,13 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 	auto brotation_interval = caf::get_if<double>(&v[2]);
 	auto bnetwork_time = caf::get_if<double>(&v[3]);
 	auto bconfig = caf::get_if<broker::table>(&v[4]);
+	auto bppf = caf::get_if<std::string>(&v[5]);
 
-	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig) )
+	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig && bppf) )
 		return false;
 
 	path = copy_string(bpath->c_str());
+	post_proc_func = copy_string(bppf->c_str());
 	rotation_base = *brotation_base;
 	rotation_interval = *brotation_interval;
 	network_time = *bnetwork_time;

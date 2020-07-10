@@ -62,7 +62,7 @@ function print_keys()
 
 global t: table[string] of count &broker_store="table" &create_expire=4sec &on_change=change_t;
 global s: table[string] of count &broker_store="set" &write_expire=3sec &on_change=change_s;
-global r: table[string] of testrec &broker_store="rec" &write_expire=5sec &on_change=change_r;
+global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec" &write_expire=5sec &on_change=change_r;
 
 event zeek_init()
 	{
@@ -154,7 +154,7 @@ function change_r(tbl: any, tpe: TableChange, idx: string, idxb: testrec)
 
 global t: table[string] of count &broker_store="table" &create_expire=4sec &on_change=change_t;
 global s: table[string] of count &broker_store="set" &write_expire=3sec &on_change=change_s;
-global r: table[string] of testrec &broker_store="rec" &write_expire=5sec &on_change=change_r;
+global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec" &write_expire=5sec &on_change=change_r;
 
 event zeek_init()
 	{

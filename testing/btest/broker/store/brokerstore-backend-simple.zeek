@@ -36,7 +36,7 @@ type testrec: record {
 
 global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
-global r: table[string] of testrec &backend=Broker::MEMORY;
+global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
 
 event zeek_init()
 	{
@@ -79,7 +79,7 @@ type testrec: record {
 
 global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
-global r: table[string] of testrec &backend=Broker::MEMORY;
+global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
 
 
 event dump_tables()

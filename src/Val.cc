@@ -1515,7 +1515,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 		change_func = cf->GetExpr();
 
 	auto bs = attrs->Find(zeek::detail::ATTR_BROKER_STORE);
-	if ( bs && broker_store.empty() ) // this does not mesh well with being updated several times
+	if ( bs && broker_store.empty() )
 		{
 		IntrusivePtr<Val> c = bs->GetExpr()->Eval(nullptr);
 		assert(c);
@@ -2181,8 +2181,6 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			index_val = index;
 			}
 
-		// FIXME: switch back to just storing tables directly in the broker store?
-		// me which store a change came from - and this still seems to be missing from the store_events. (Or I am blind).
 		auto broker_index = bro_broker::val_to_data(index_val);
 
 		if ( ! broker_index )

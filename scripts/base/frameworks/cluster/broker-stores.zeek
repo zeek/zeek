@@ -1,11 +1,23 @@
+##! This script deals with the cluster parts of broker backed zeek tables.
+##! It makes sure that the master store is set correctly and that clones
+##! are automatically created on the non-manager nodes.
+
+# Note - this script should become unnecessary in the future, when we just can
+# speculatively attach clones. This should be possible once the new ALM broker
+# transport becomes available.
+
 @load ./main
 
 module Broker;
 
 export {
+	## Event that is used by the manager to announce the master stores for zeek backed
+	## tables that is uses.
 	global announce_masters: event(masters: set[string]);
 }
 
+# If we are not the manager - disable automatically generating masters. We will attach
+# clones instead.
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 redef Broker::auto_store_master = F;
 @endif
@@ -24,6 +36,7 @@ event zeek_init()
 		}
 	}
 
+# Send the auto masters we created to the newly connected node
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 	{
 	if ( ! Cluster::is_enabled() )
@@ -39,6 +52,7 @@ event Broker::announce_masters(masters: set[string])
 	{
 	for ( i in masters )
 		{
+		# this magic name for the store is created in broker/Manager.cc for the manager.
 		local name = "___sync_store_" + i;
 		Broker::create_clone(name);
 		}

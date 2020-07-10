@@ -25,8 +25,14 @@ export {
 	## A negative/zero value indicates to never buffer commands.
 	const default_clone_mutation_buffer_interval = 2min &redef;
 
+	## If set to true, the current node is the master node for broker stores
+	## backing zeek tables. By default this value will be automatically set to
+	## true in standalone mode, or on the manager node of a cluster. This value
+	## should not typically be changed manually.
 	const auto_store_master = T &redef;
 
+	## The directory used for storing persistent database files when using brokerstore
+	## backed zeek tables.
 	const auto_store_db_directory = "." &redef;
 
 	## Whether a data store query could be completed or not.

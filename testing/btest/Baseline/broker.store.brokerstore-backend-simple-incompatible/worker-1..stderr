@@ -1,0 +1,3 @@
+error: ProcessStoreEvent: could not convert value "b" for key "a" in store "___sync_store_TestModule::s" while receiving remote insert. This probably means the tables have different types on different nodes.
+error: ProcessStoreEvent: could not convert key "a" for store "___sync_store_TestModule::t" while receiving remote insert. This probably means the tables have different types on different nodes.
+received termination signal

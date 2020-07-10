@@ -29,7 +29,7 @@ type testrec: record {
 
 global t: table[string] of count &broker_store="table";
 global s: set[string] &broker_store="set";
-global r: table[string] of testrec &broker_store="rec";
+global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
 
 event zeek_init()
 	{
@@ -73,7 +73,7 @@ type testrec: record {
 
 global t: table[string] of count &broker_store="table";
 global s: set[string] &broker_store="set";
-global r: table[string] of testrec &broker_store="rec";
+global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
 
 event zeek_init()
 	{
@@ -114,7 +114,7 @@ type testrec: record {
 
 global t: table[string] of count &broker_store="table";
 global s: set[string] &broker_store="set";
-global r: table[string] of testrec &broker_store="rec";
+global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
 
 event zeek_init()
 	{

@@ -8,6 +8,7 @@
 #include "Val.h"
 #include "IntrusivePtr.h"
 #include "threading/SerialTypes.h"
+#include "input/Manager.h"
 
 namespace zeek::detail {
 
@@ -19,8 +20,8 @@ const char* attr_name(AttrTag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-	    "(&tracked)", "&on_change", "&broker_store", "&backend",
-		"&deprecated",
+	    "(&tracked)", "&on_change", "&broker_store",
+	    "&broker_allow_complex_type", "&backend", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -450,6 +451,10 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			Error("&broker_store and &read_expire cannot be used simultaneously");
 			}
+		if ( Find(ATTR_BACKEND) )
+			{
+			Error("&broker_store and &backend cannot be used simultaneously");
+			}
 		}
 		// fallthrough
 	case ATTR_EXPIRE_WRITE:
@@ -535,6 +540,10 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			Error("&broker_store and &expire_func cannot be used simultaneously");
 			}
+		if ( Find(ATTR_BACKEND ) )
+			{
+			Error("&backend and &expire_func cannot be used simultaneously");
+			}
 		}
 		break;
 
@@ -607,7 +616,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		if ( ! global_var || type->Tag() != TYPE_TABLE )
 			{
-			Error("&broker_store only applicable to global sets/tables");
+			Error("&backend only applicable to global sets/tables");
 			break;
 			}
 
@@ -615,7 +624,7 @@ void Attributes::CheckAttr(Attr* a)
 		// are here. We will do that later - before actually attaching to a broker store
 		if ( a->GetExpr()->GetType()->Tag() != TYPE_ENUM )
 			{
-			Error("&broker_store must take an enum argument");
+			Error("&backend must take an enum argument");
 			break;
 			}
 
@@ -623,6 +632,14 @@ void Attributes::CheckAttr(Attr* a)
 		if ( type->AsTableType()->GetIndexTypes().size() != 1 )
 			{
 			Error("&backend only supports one-element set/table indexes");
+			}
+
+		// Only support atomic types for the moment.
+		if ( ! type->AsTableType()->IsSet() &&
+		     ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
+		     ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
+			{
+			Error("&backend only supports atomic types as table value");
 			}
 
 		if ( Find(ATTR_EXPIRE_FUNC ) )
@@ -655,9 +672,16 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
-		if ( type->AsTableType()->GetIndexTypes().size() != 1 )
+		if ( type->AsTableType()->GetIndexTypes().size() != 1 && ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
 			{
 			Error("&broker_store only supports one-element set/table indexes");
+			}
+
+		if ( ! type->AsTableType()->IsSet() &&
+		     ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
+		     ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
+			{
+			Error("&broker_store only supports atomic types as table value");
 			}
 
 		if ( Find(ATTR_EXPIRE_FUNC ) )
@@ -668,7 +692,20 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			Error("&broker_store and &read_expire cannot be used simultaneously");
 			}
+		if ( Find(ATTR_BACKEND) )
+			{
+			Error("&backend and &broker_store cannot be used simultaneously");
+			}
 		break;
+		}
+
+	case ATTR_BROKER_STORE_ALLOW_COMPLEX:
+		{
+		if ( type->Tag() != TYPE_TABLE )
+			{
+			Error("&broker_allow_complex_type only applicable to sets/tables");
+			break;
+			}
 		}
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?

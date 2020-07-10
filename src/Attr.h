@@ -42,6 +42,7 @@ enum AttrTag {
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 	ATTR_ON_CHANGE, // for table change tracking
 	ATTR_BROKER_STORE, // for broker-store backed tables
+	ATTR_BROKER_STORE_ALLOW_COMPLEX, // for broker-store backed tables
 	ATTR_BACKEND, // for broker-store backed tabled
 	ATTR_DEPRECATED,
 	NUM_ATTRS // this item should always be last

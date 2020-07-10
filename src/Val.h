@@ -785,7 +785,7 @@ public:
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
 	 * @param broker_forward Controls if the value will be forwarded to attached
-	 *                       broker stores.
+	 *        broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
 	bool Assign(ValPtr index, ValPtr new_val, bool broker_forward = true);
@@ -799,7 +799,7 @@ public:
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
 	 * @param broker_forward Controls if the value will be forwarded to attached
-	 *                       broker stores.
+	 *        broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
 	bool Assign(ValPtr index, std::unique_ptr<HashKey> k,
@@ -926,7 +926,7 @@ public:
 	 * Remove an element from the table and return it.
 	 * @param index  The index to remove.
 	 * @param broker_forward Controls if the remove operation will be forwarded to attached
-	 *                       broker stores.
+	 *        broker stores.
 	 * @return  The value associated with the index if it exists, else nullptr.
 	 * For a sets that don't really contain associated values, a placeholder
 	 * value is returned to differentiate it from non-existent index (nullptr),
@@ -1023,6 +1023,10 @@ public:
 	// on zeek::RecordTypes.
 	static void DoneParsing();
 
+	/**
+	 * Sets the name of the broker store that is backing this table.
+	 * @param store store that is backing this table.
+	 */
 	void SetBrokerStore(const std::string& store) { broker_store = store; }
 
 protected:

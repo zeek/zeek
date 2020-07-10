@@ -2,16 +2,12 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 
-# @TEST-EXEC: zeek preseed-sqlite.zeek;
 # @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker ../master.zeek >../master.out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker ../clone.zeek >../clone.out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker ../clone.zeek >../clone2.out"
 # @TEST-EXEC: btest-bg-wait 15
 #
-# @TEST-EXEC: btest-diff master.out
-# @TEST-EXEC: btest-diff clone.out
-# @TEST-EXEC: diff master.out clone.out
-# @TEST-EXEC: diff master.out clone2.out
+# @TEST-EXEC: btest-diff worker-1/.stderr
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -21,40 +17,6 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-@TEST-START-FILE preseed-sqlite.zeek
-
-module TestModule;
-
-type testrec: record {
-	a: count;
-	b: string;
-	c: set[string];
-};
-
-global t: table[string] of count &backend=Broker::SQLITE;
-global s: set[string] &backend=Broker::SQLITE;
-global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
-
-event zeek_init()
-	{
-	t["a"] = 5;
-	delete t["a"];
-	add s["hi"];
-	t["a"] = 2;
-	t["a"] = 3;
-	t["b"] = 3;
-	t["c"] = 4;
-	t["whatever"] = 5;
-	delete t["c"];
-	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
-	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
-	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
-	}
-
-@TEST-END-FILE
 
 @TEST-START-FILE master.zeek
 redef exit_only_after_terminate = T;
@@ -63,23 +25,14 @@ redef Log::default_rotation_interval = 0secs;
 
 module TestModule;
 
-type testrec: record {
-	a: count;
-	b: string;
-	c: set[string];
-};
-
-global t: table[string] of count &backend=Broker::SQLITE;
-global s: set[string] &backend=Broker::SQLITE;
-global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
-
-redef Broker::auto_store_db_directory = "..";
+global t: table[string] of count &backend=Broker::MEMORY;
+global s: table[string] of string &backend=Broker::MEMORY;
 
 event zeek_init()
 	{
+	t["a"] = 5;
+	s["a"] = "b";
 	print t;
-	print s;
-	print r;
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -96,22 +49,13 @@ redef Log::default_rotation_interval = 0secs;
 
 module TestModule;
 
-type testrec: record {
-	a: count;
-	b: string;
-	c: set[string];
-};
-
-global t: table[string] of count &backend=Broker::MEMORY;
-global s: set[string] &backend=Broker::MEMORY;
-global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
-
+global t: table[count] of count &backend=Broker::MEMORY;
+global s: table[string] of count &backend=Broker::MEMORY;
 
 event dump_tables()
 	{
 	print t;
 	print s;
-	print r;
 	terminate();
 	}
 

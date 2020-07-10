@@ -55,6 +55,20 @@ New Functionality
   for which no connection state information is available in the core anymore. These
   cases will raise the new ``expired_conn_weird`` event.
 
+- Broker Store table synchronization (Experimental).
+
+  Zeek now supports synchronizing tables/sets across clusters using a backing broker
+  store. The same feature also allows persistent storage of data in tables/sets
+  over Zeek restarts. This feature is implemented using the new ```&backend``` attribute.
+
+  To synchronize a table over a cluster, you can e.g. use:
+
+  ```global t: table[string] of count &backend=Broker::MEMORY;```
+
+  This feature is documented in detail here: FIXME.
+
+	Note: this feature is experimental and the syntax/featureset can change in the future.
+
 Changed Functionality
 ---------------------
 

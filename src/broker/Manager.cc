@@ -238,7 +238,8 @@ void Manager::InitializeBrokerStoreForwarding()
 			// we only create masters here. For clones, we do all the work of setting up
 			// the forwarding - but we do not try to initialize the clone. We can only initialize
 			// the clone, once a node has a connection to a master. This is currently done in scriptland
-			// - check FIXME.
+			// in scripts/base/frameworks/cluster/broker-stores.zeek. Once the ALM transport is ready
+			// we can change over to doing this here.
 			if ( ! zeek_table_manager )
 				continue;
 
@@ -956,7 +957,7 @@ void Manager::Process()
 
 		if ( broker::topics::store_events.prefix_of(topic) )
 			{
-			ProcessStoreEvent(topic, std::move(msg));
+			ProcessStoreEvent(std::move(msg));
 			continue;
 			}
 
@@ -995,7 +996,7 @@ void Manager::Process()
 		}
 	}
 
-void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
+void Manager::ProcessStoreEvent(broker::data msg)
 	{
 	if ( auto insert = broker::store_event::insert::make(msg) )
 		{
@@ -1016,20 +1017,18 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 
 		DBG_LOG(DBG_BROKER, "Store %s: Insert: %s:%s (%s:%s)", insert.store_id().c_str(), to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), insert.key().get_type_name(), insert.value().get_type_name());
 
-
 		if ( table->GetType()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Insert got %s when expecting set", data.get_type_name());
 			return;
 			}
 
-		// FIXME: expiry!
 		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 		assert( its.size() == 1 );
-		auto zeek_key = data_to_val(std::move(key), its[0].get());
+		auto zeek_key = data_to_val(key, its[0].get());
 		if ( ! zeek_key )
 			{
-			reporter->Error("ProcessStoreEvent: failed to convert key");
+			reporter->Error("ProcessStoreEvent: could not convert key \"%s\" for store \"%s\" while receiving remote insert. This probably means the tables have different types on different nodes.", to_string(key).c_str(), insert.store_id().c_str());
 			return;
 			}
 
@@ -1040,10 +1039,10 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			}
 
 		// it is a table
-		auto zeek_value = data_to_val(std::move(data), table->GetType()->Yield().get());
+		auto zeek_value = data_to_val(data, table->GetType()->Yield().get());
 		if ( ! zeek_value )
 			{
-			reporter->Error("ProcessStoreEvent: failed to convert value");
+			reporter->Error("ProcessStoreEvent: could not convert value \"%s\" for key \"%s\" in store \"%s\" while receiving remote insert. This probably means the tables have different types on different nodes.", to_string(data).c_str(), to_string(key).c_str(), insert.store_id().c_str());
 			return;
 			}
 			table->Assign(zeek_key, zeek_value, false);
@@ -1075,10 +1074,10 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 
 		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 		assert( its.size() == 1 );
-		auto zeek_key = data_to_val(std::move(key), its[0].get());
+		auto zeek_key = data_to_val(key, its[0].get());
 		if ( ! zeek_key )
 			{
-			reporter->Error("ProcessStoreEvent: failed to convert key");
+			reporter->Error("ProcessStoreEvent: could not convert key \"%s\" for store \"%s\" while receiving remote update. This probably means the tables have different types on different nodes.", to_string(key).c_str(), insert.store_id().c_str());
 			return;
 			}
 
@@ -1089,10 +1088,10 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			}
 
 		// it is a table
-		auto zeek_value = data_to_val(std::move(data), table->GetType()->Yield().get());
+		auto zeek_value = data_to_val(data, table->GetType()->Yield().get());
 		if ( ! zeek_value )
 			{
-			reporter->Error("ProcessStoreEvent: failed to convert value");
+			reporter->Error("ProcessStoreEvent: could not convert value \"%s\" for key \"%s\" in store \"%s\" while receiving remote update. This probably means the tables have different types on different nodes.", to_string(data).c_str(), to_string(key).c_str(), insert.store_id().c_str());
 			return;
 			}
 			table->Assign(zeek_key, zeek_value, false);
@@ -1115,17 +1114,17 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		DBG_LOG(DBG_BROKER, "Store %s: Erase key %s", erase.store_id().c_str(), to_string(key).c_str());
 		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 		assert( its.size() == 1 );
-		auto zeek_key = data_to_val(std::move(key), its[0].get());
+		auto zeek_key = data_to_val(key, its[0].get());
 		if ( ! zeek_key )
 			{
-			reporter->Error("ProcessStoreEvent: failed to convert key");
+			reporter->Error("ProcessStoreEvent: could not convert key \"%s\" for store \"%s\" while receiving remote erase. This probably means the tables have different types on different nodes.", to_string(key).c_str(), insert.store_id().c_str());
 			return;
 			}
 		table->Remove(*zeek_key, false);
 		}
 	else if ( auto expire = broker::store_event::expire::make(msg) )
 		{
-		// We just ignore expirys - expiring information on the Zeek side is handled by Zeek itself.
+		// We just ignore expiries - expiring information on the Zeek side is handled by Zeek itself.
 #ifdef DEBUG
 		// let's only debug log for stores that we know.
 		auto storehandle = broker_mgr->LookupStore(expire.store_id());
@@ -1685,7 +1684,7 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const StoreHandleV
 		auto zeek_key = data_to_val(key, its[0].get());
 		if ( ! zeek_key )
 			{
-			reporter->Error("Failed to convert key %s while importing broker store to table for store %s. Aborting import.", to_string(key).c_str(), name.c_str());
+			reporter->Error("Failed to convert key \"%s\" while importing broker store to table for store \"%s\". Aborting import.", to_string(key).c_str(), name.c_str());
 			// just abort - this probably means the types are incompatible
 			return;
 			}

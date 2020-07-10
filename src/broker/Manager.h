@@ -303,6 +303,15 @@ public:
 	 */
 	StoreHandleVal* LookupStore(const std::string& name);
 
+	/**
+	 * Register a zeek table that is associated with a broker store that is backing it. This
+	 * causes all changes that happen to the brokerstore in the future to be applied to the zeek
+	 * table.
+	 * A single broker store can only be forwarded to a single table.
+	 * @param name name of the broker store
+	 * @param table pointer to the table/set that is being backed
+	 * @return true on success, false if the named store is already being forwarded.
+	 */
 	bool AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek::TableVal> table);
 
 	/**
@@ -350,7 +359,8 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
-	void ProcessStoreEvent(const broker::topic& topic, broker::data msg);
+	// Process events used for broker store backed zeek tables
+	void ProcessStoreEvent(broker::data msg);
 	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
 	bool ProcessLogCreate(broker::zeek::LogCreate lc);
 	bool ProcessLogWrite(broker::zeek::LogWrite lw);
@@ -359,6 +369,7 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
+	// Initializes the masters for broker backed zeek tables when using the &backend attribute
 	void InitializeBrokerStoreForwarding();
 	// Check if a broker store is associated to a table on the Zeek side.
 	void CheckForwarding(const std::string& name);

@@ -1,4 +1,10 @@
 
+3.2.0-dev.885 | 2020-07-10 11:20:41 -0700
+
+  * Add more error checks to shadow log parsing (Jon Siwek, Corelight)
+
+    i.e. Coverity warns about possible use of ftell() negative return value
+
 3.2.0-dev.884 | 2020-07-09 14:09:58 -0700
 
   * Add Supervisor::{stdout,stderr}_hook (Jon Siwek, Corelight)

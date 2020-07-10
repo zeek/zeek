@@ -427,6 +427,7 @@ public:
 	 */
 	struct Prototype {
 		bool deprecated;
+		std::string deprecation_msg;
 		RecordTypePtr args;
 		std::map<int, int> offsets;
 	};

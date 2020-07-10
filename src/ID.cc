@@ -294,14 +294,7 @@ std::string ID::GetDeprecationWarning() const
 	const auto& depr_attr = GetAttr(ATTR_DEPRECATED);
 
 	if ( depr_attr )
-		{
-		auto expr = static_cast<zeek::detail::ConstExpr*>(depr_attr->GetExpr().get());
-		if ( expr )
-			{
-			StringVal* text = expr->Value()->AsStringVal();
-			result = text->CheckString();
-			}
-		}
+		result = depr_attr->DeprecationMessage();
 
 	if ( result.empty() )
 		return fmt("deprecated (%s)", Name());

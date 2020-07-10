@@ -40,6 +40,18 @@ Attr::Attr(AttrTag t)
 void Attr::SetAttrExpr(ExprPtr e)
 	{ expr = std::move(e); }
 
+std::string Attr::DeprecationMessage() const
+	{
+	if ( tag != ATTR_DEPRECATED )
+		return "";
+
+	if ( ! expr )
+		return "";
+
+	auto ce = static_cast<zeek::detail::ConstExpr*>(expr.get());
+	return ce->Value()->AsStringVal()->CheckString();
+	}
+
 void Attr::Describe(ODesc* d) const
 	{
 	AddTag(d);

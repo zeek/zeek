@@ -100,13 +100,23 @@ static bool add_prototype(const zeek::detail::IDPtr& id, zeek::Type* t,
 		}
 
 	auto deprecated = false;
+	std::string depr_msg;
 
 	if ( attrs )
 		for ( const auto& a : *attrs )
 			if ( a->Tag() == zeek::detail::ATTR_DEPRECATED )
+				{
 				deprecated = true;
+				depr_msg = a->DeprecationMessage();
+				break;
+				}
 
-	zeek::FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
+	zeek::FuncType::Prototype p;
+	p.deprecated = deprecated;
+	p.deprecation_msg = std::move(depr_msg);
+	p.args = alt_args;
+	p.offsets = std::move(offsets);
+
 	canon_ft->AddPrototype(std::move(p));
 	return true;
 	}
@@ -454,9 +464,19 @@ static std::optional<zeek::FuncType::Prototype> func_type_check(const zeek::Func
 
 	if ( rval )
 		for ( auto i = 0; i < rval->args->NumFields(); ++i )
-			if ( rval->args->FieldDecl(i)->GetAttr(zeek::detail::ATTR_DEPRECATED) )
-				impl->Warn(fmt("use of deprecated parameter '%s'",
-				               rval->args->FieldName(i)), decl, true);
+			if ( auto ad = rval->args->FieldDecl(i)->GetAttr(zeek::detail::ATTR_DEPRECATED) )
+				{
+				auto msg = ad->DeprecationMessage();
+
+				if ( msg.empty() )
+					impl->Warn(fmt("use of deprecated parameter '%s'",
+				                   rval->args->FieldName(i)),
+				               decl, true);
+				else
+					impl->Warn(fmt("use of deprecated parameter '%s': %s",
+				                   rval->args->FieldName(i), msg.data()),
+				               decl, true);
+				}
 
 	return rval;
 	}
@@ -531,8 +551,15 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 				}
 
 			if ( prototype->deprecated )
-				t->Warn(fmt("use of deprecated '%s' prototype", id->Name()),
-				        prototype->args.get(), true);
+				{
+				if ( prototype->deprecation_msg.empty() )
+					t->Warn(fmt("use of deprecated '%s' prototype", id->Name()),
+					        prototype->args.get(), true);
+				else
+					t->Warn(fmt("use of deprecated '%s' prototype: %s",
+					            id->Name(), prototype->deprecation_msg.data()),
+					        prototype->args.get(), true);
+				}
 			}
 		else
 			{

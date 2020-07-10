@@ -556,7 +556,9 @@ void ExprStmt::StmtDescribe(ODesc* d) const
 
 	if ( d->IsReadable() && Tag() == STMT_IF )
 		d->Add("(");
-	e->Describe(d);
+
+	if ( e ) 
+		e->Describe(d);
 
 	if ( Tag() == STMT_IF || Tag() == STMT_SWITCH )
 		{

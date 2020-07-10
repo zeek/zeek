@@ -34,7 +34,8 @@ public:
 protected:
 	// Returns true if an assigment involving the given identifier on
 	// the LHS is in conflict with the given list of identifiers.
-	bool CheckID(const std::vector<const ID*>& ids, const ID* id) const;
+	bool CheckID(const std::vector<const ID*>& ids, const ID* id,
+			bool ignore_orig) const;
 
 	// Returns true if the assignment given by 'e' modifies an aggregate
 	// with the same type as that of one of the identifiers.
@@ -135,7 +136,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 		auto lhs_ref = e->GetOp1()->AsRefExpr();
 		auto lhs = lhs_ref->GetOp1()->AsNameExpr();
 
-		if ( CheckID(ids, lhs->Id()) )
+		if ( CheckID(ids, lhs->Id(), false) )
 			{
 			is_valid = false;
 			return TC_ABORTALL;
@@ -153,7 +154,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 		auto lhs_aggr = e->GetOp1();
 		auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-		if ( CheckID(ids, lhs_aggr_id) || CheckAggrMod(ids, e) )
+		if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
 			{
 			is_valid = false;
 			return TC_ABORTALL;
@@ -179,7 +180,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 			return TC_ABORTALL;
 			}
 
-		if ( CheckAggrMod(ids, e) )
+		if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
 			{
 			is_valid = false;
 			return TC_ABORTALL;
@@ -204,7 +205,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 			auto aggr = e->GetOp1();
 			auto aggr_id = aggr->AsNameExpr()->Id();
 
-			if ( CheckID(ids, aggr_id) )
+			if ( CheckID(ids, aggr_id, true) )
 				{
 				is_valid = false;
 				return TC_ABORTALL;
@@ -218,13 +219,16 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 	}
 
 bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
-					const ID* id) const
+					const ID* id, bool ignore_orig) const
 	{
 	// Only check type info for aggregates.
 	auto id_t = IsAggr(id->Type()) ? id->Type() : nullptr;
 
 	for ( auto i : ids )
 		{
+		if ( ignore_orig && i == ids.front() )
+			continue;
+
 		if ( id == i )
 			return true;	// reassignment
 

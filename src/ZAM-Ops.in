@@ -935,6 +935,7 @@ side-effects OP_CALL0_X
 side-effects-op-type OP_X
 eval std::vector<IntrusivePtr<Val>> args;	// empty
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -963,6 +964,7 @@ side-effects-op-type OP_V
 eval std::vector<IntrusivePtr<Val>> args;
 eval args.push_back(frame[z.v2].ToVal(z.t))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -973,6 +975,7 @@ side-effects-op-type OP_C
 eval std::vector<IntrusivePtr<Val>> args;
 eval args.push_back(z.c.ToVal(z.t))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -997,6 +1000,7 @@ eval std::vector<IntrusivePtr<Val>> args;
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1022,6 +1026,7 @@ eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1049,6 +1054,7 @@ eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1078,6 +1084,7 @@ eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval args.push_back(aux->ToVal(frame, 4))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1103,6 +1110,7 @@ eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args;
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval auto v_ptr = z.func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1129,6 +1137,7 @@ eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args;
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval auto v_ptr = func->Call(args, f)
+eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
 eval @v
 

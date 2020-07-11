@@ -3,7 +3,7 @@
 #
 # @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 25
+# @TEST-EXEC: btest-bg-wait 60
 
 # @TEST-EXEC: btest-diff manager-1/.stdout
 #

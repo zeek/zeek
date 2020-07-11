@@ -1,6 +1,6 @@
 
 # @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff zeekproc/intel.log
 
 @TEST-START-FILE intel.dat

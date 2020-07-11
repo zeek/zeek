@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-bg-run proxy-1   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff manager-1/notice.log
 
 @TEST-START-FILE cluster-layout.zeek

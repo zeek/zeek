@@ -3,7 +3,7 @@
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek --pseudo-realtime -C -r $TRACES/smtp.trace %INPUT"
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff manager-1/openflow.log
 
 @TEST-START-FILE cluster-layout.zeek

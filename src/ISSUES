@@ -44,6 +44,14 @@ TEST SUITE
 	scripts.policy.frameworks.netcontrol.catch-and-release-forgotten
 		need help understanding these
 
+	scripts.base.frameworks.input.raw.basic
+	scripts.base.frameworks.input.raw.execute
+	scripts.base.frameworks.input.raw.rereadraw
+		fails with inlining since prints function body
+
+	scripts.base.frameworks.intel.remove-non-existing
+		error formatting
+
 Test suite should split into error tests vs. functionality tests
 
 the original problem is actually problematic in practice to solve

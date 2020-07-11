@@ -1622,6 +1622,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 					print ("\t" else_text "if ( " op2_tag " == TYPE_ADDR && " op3_tag " == TYPE_INT )") >methods_f
 
 				mix_suffix = "_" ev_mix1 ev_mix2
+				if ( is_cond )
+					mix_suffix = mix_suffix cond
 				print ("\t" part1 (full_op_no_sub mix_suffix) \
 					part2) >methods_f
 				}

@@ -1,3 +1,30 @@
+3.2.0-dev.894 | 2020-07-13 12:12:17 -0700
+
+  * GH-1019: deprecate icmp_conn params for ICMP events
+
+    Previously, a single `icmp_conn` record was built per ICMP "connection"
+    and re-used for all events generated from it.  This may have been a
+    historical attempt at performance optimization, but:
+
+      * By default, Zeek does not load any scripts that handle ICMP events.
+
+      * The one script Zeek ships with that does handle ICMP events,
+        "detect-traceroute", is already noted as being disabled due to
+        potential performance problems of doing that kind of analysis.
+
+      * Re-use of the original `icmp_conn` record tends to misreport
+        TTL and length values since they come from original packet instead
+        of the current one.
+
+      * Even if we chose to still re-use `icmp_conn` records and just fill
+        in a new TTL and length value each packet, a user script could have
+        stored a reference to the record and not be expecting those values
+        to be changed out from underneath them.
+
+    Now, a new `icmp_info` record is created/populated in all ICMP events
+    and should be used instead of `icmp_conn`.  It also removes the
+    orig_h/resp_h fields as those are redundant with what's already
+    available in the connection record. (Jon Siwek, Corelight)
 
 3.2.0-dev.892 | 2020-07-13 12:10:22 -0700
 

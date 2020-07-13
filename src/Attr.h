@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "Obj.h"
 #include "BroList.h"
@@ -72,6 +73,12 @@ public:
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
+
+	/**
+	 * Returns the deprecation string associated with a &deprecated attribute
+	 * or an empty string if this is not such an attribute.
+	 */
+	std::string DeprecationMessage() const;
 
 	bool operator==(const Attr& other) const
 		{

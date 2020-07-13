@@ -96,17 +96,27 @@ static bool add_prototype(const zeek::detail::IDPtr& id, zeek::Type* t,
 			return false;
 			}
 
-		offsets[i] = o;
+		offsets[o] = i;
 		}
 
 	auto deprecated = false;
+	std::string depr_msg;
 
 	if ( attrs )
 		for ( const auto& a : *attrs )
 			if ( a->Tag() == zeek::detail::ATTR_DEPRECATED )
+				{
 				deprecated = true;
+				depr_msg = a->DeprecationMessage();
+				break;
+				}
 
-	zeek::FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
+	zeek::FuncType::Prototype p;
+	p.deprecated = deprecated;
+	p.deprecation_msg = std::move(depr_msg);
+	p.args = alt_args;
+	p.offsets = std::move(offsets);
+
 	canon_ft->AddPrototype(std::move(p));
 	return true;
 	}
@@ -450,7 +460,25 @@ static std::optional<zeek::FuncType::Prototype> func_type_check(const zeek::Func
 		return {};
 		}
 
-	return decl->FindPrototype(*impl->Params());
+	auto rval = decl->FindPrototype(*impl->Params());
+
+	if ( rval )
+		for ( auto i = 0; i < rval->args->NumFields(); ++i )
+			if ( auto ad = rval->args->FieldDecl(i)->GetAttr(zeek::detail::ATTR_DEPRECATED) )
+				{
+				auto msg = ad->DeprecationMessage();
+
+				if ( msg.empty() )
+					impl->Warn(fmt("use of deprecated parameter '%s'",
+				                   rval->args->FieldName(i)),
+				               decl, true);
+				else
+					impl->Warn(fmt("use of deprecated parameter '%s': %s",
+				                   rval->args->FieldName(i), msg.data()),
+				               decl, true);
+				}
+
+	return rval;
 	}
 
 static bool canonical_arg_types_match(const zeek::FuncType* decl, const zeek::FuncType* impl)
@@ -523,7 +551,15 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 				}
 
 			if ( prototype->deprecated )
-				t->Warn("use of deprecated prototype", id.get());
+				{
+				if ( prototype->deprecation_msg.empty() )
+					t->Warn(fmt("use of deprecated '%s' prototype", id->Name()),
+					        prototype->args.get(), true);
+				else
+					t->Warn(fmt("use of deprecated '%s' prototype: %s",
+					            id->Name(), prototype->deprecation_msg.data()),
+					        prototype->args.get(), true);
+				}
 			}
 		else
 			{
@@ -568,24 +604,54 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 	else
 		id->SetType(t);
 
+	const auto& args = t->Params();
+	const auto& canon_args = id->GetType()->AsFuncType()->Params();
+
 	zeek::detail::push_scope(std::move(id), std::move(attrs));
 
-	const auto& args = t->Params();
-	int num_args = args->NumFields();
-
-	for ( int i = 0; i < num_args; ++i )
+	for ( int i = 0; i < canon_args->NumFields(); ++i )
 		{
-		zeek::TypeDecl* arg_i = args->FieldDecl(i);
+		zeek::TypeDecl* arg_i;
+		bool hide = false;
+
+		if ( prototype )
+			{
+			auto it = prototype->offsets.find(i);
+
+			if ( it == prototype->offsets.end() )
+				{
+				// Alternate prototype hides this param
+				hide = true;
+				arg_i = canon_args->FieldDecl(i);
+				}
+			else
+				{
+				// Alternate prototype maps this param to another index
+				arg_i = args->FieldDecl(it->second);
+				}
+			}
+		else
+			{
+			if ( i < args->NumFields() )
+				arg_i = args->FieldDecl(i);
+			else
+				break;
+			}
+
 		auto arg_id = zeek::detail::lookup_ID(arg_i->id, module_name);
 
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
-		arg_id = zeek::detail::install_ID(arg_i->id, module_name, false, false);
-		arg_id->SetType(arg_i->type);
+		const char* local_name = arg_i->id;
 
-		if ( prototype )
-			arg_id->SetOffset(prototype->offsets[i]);
+		if ( hide )
+			// Note the illegal '-' in hidden name implies we haven't
+			// clobbered any local variable names.
+			local_name = fmt("%s-hidden", local_name);
+
+		arg_id = zeek::detail::install_ID(local_name, module_name, false, false);
+		arg_id->SetType(arg_i->type);
 		}
 
 	if ( zeek::detail::Attr* depr_attr = find_attr(zeek::detail::current_scope()->Attrs().get(),

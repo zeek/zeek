@@ -563,7 +563,7 @@ FuncType::FuncType(RecordTypePtr arg_args,
 		offsets[i] = i;
 		}
 
-	prototypes.emplace_back(Prototype{false, args, std::move(offsets)});
+	prototypes.emplace_back(Prototype{false, "", args, std::move(offsets)});
 	}
 
 TypePtr FuncType::ShallowClone()
@@ -1120,14 +1120,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 		{
 		string result;
 		if ( const auto& deprecation = decl->GetAttr(zeek::detail::ATTR_DEPRECATED) )
-			{
-			auto expr = static_cast<zeek::detail::ConstExpr*>(deprecation->GetExpr().get());
-			if ( expr )
-				{
-				StringVal* text = expr->Value()->AsStringVal();
-				result = text->CheckString();
-				}
-			}
+			result = deprecation->DeprecationMessage();
 
 		if ( result.empty() )
 			return fmt("deprecated (%s%s$%s)", GetName().c_str(), has_check ? "?" : "",

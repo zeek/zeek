@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2020-09-11-03-21-10
+#open	2020-09-22-16-54-06
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -19,29 +19,29 @@ scripts/base/init-bare.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
   build/scripts/base/bif/event.bif.zeek
-  scripts/base/llprotocols/__load__.zeek
-    scripts/base/llprotocols/default/__load__.zeek
-      scripts/base/llprotocols/default/main.zeek
-    scripts/base/llprotocols/ethernet/__load__.zeek
-      scripts/base/llprotocols/ethernet/main.zeek
-    scripts/base/llprotocols/fddi/__load__.zeek
-      scripts/base/llprotocols/fddi/main.zeek
-    scripts/base/llprotocols/ieee802_11/__load__.zeek
-      scripts/base/llprotocols/ieee802_11/main.zeek
-    scripts/base/llprotocols/ieee802_11_radio/__load__.zeek
-      scripts/base/llprotocols/ieee802_11_radio/main.zeek
-    scripts/base/llprotocols/linux_sll/__load__.zeek
-      scripts/base/llprotocols/linux_sll/main.zeek
-    scripts/base/llprotocols/nflog/__load__.zeek
-      scripts/base/llprotocols/nflog/main.zeek
-    scripts/base/llprotocols/null/__load__.zeek
-      scripts/base/llprotocols/null/main.zeek
-    scripts/base/llprotocols/ppp_serial/__load__.zeek
-      scripts/base/llprotocols/ppp_serial/main.zeek
-    scripts/base/llprotocols/pppoe/__load__.zeek
-      scripts/base/llprotocols/pppoe/main.zeek
-    scripts/base/llprotocols/vlan/__load__.zeek
-      scripts/base/llprotocols/vlan/main.zeek
+  scripts/base/packet-protocols/__load__.zeek
+    scripts/base/packet-protocols/default/__load__.zeek
+      scripts/base/packet-protocols/default/main.zeek
+    scripts/base/packet-protocols/ethernet/__load__.zeek
+      scripts/base/packet-protocols/ethernet/main.zeek
+    scripts/base/packet-protocols/fddi/__load__.zeek
+      scripts/base/packet-protocols/fddi/main.zeek
+    scripts/base/packet-protocols/ieee802_11/__load__.zeek
+      scripts/base/packet-protocols/ieee802_11/main.zeek
+    scripts/base/packet-protocols/ieee802_11_radio/__load__.zeek
+      scripts/base/packet-protocols/ieee802_11_radio/main.zeek
+    scripts/base/packet-protocols/linux_sll/__load__.zeek
+      scripts/base/packet-protocols/linux_sll/main.zeek
+    scripts/base/packet-protocols/nflog/__load__.zeek
+      scripts/base/packet-protocols/nflog/main.zeek
+    scripts/base/packet-protocols/null/__load__.zeek
+      scripts/base/packet-protocols/null/main.zeek
+    scripts/base/packet-protocols/ppp_serial/__load__.zeek
+      scripts/base/packet-protocols/ppp_serial/main.zeek
+    scripts/base/packet-protocols/pppoe/__load__.zeek
+      scripts/base/packet-protocols/pppoe/main.zeek
+    scripts/base/packet-protocols/vlan/__load__.zeek
+      scripts/base/packet-protocols/vlan/main.zeek
 scripts/base/init-frameworks-and-bifs.zeek
   scripts/base/frameworks/logging/__load__.zeek
     scripts/base/frameworks/logging/main.zeek
@@ -406,4 +406,4 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2020-09-11-03-21-10
+#close	2020-09-22-16-54-06

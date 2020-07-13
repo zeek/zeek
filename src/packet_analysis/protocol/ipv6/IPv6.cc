@@ -13,6 +13,6 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 	{
 	packet->l3_proto = L3_IPV6;
 
-	// Leave LL analyzer land
+	// Leave packet analyzer land
 	return { AnalyzerResult::Terminate, 0 };
 	}

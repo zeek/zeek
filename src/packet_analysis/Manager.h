@@ -142,7 +142,7 @@ public:
 	Analyzer* InstantiateAnalyzer(const std::string& name);
 
 	/**
-	 * Processes a packet by applying the configured low layer analyzers.
+	 * Processes a packet by applying the configured packet analyzers.
 	 *
 	 * @param packet The packet to process.
 	 */

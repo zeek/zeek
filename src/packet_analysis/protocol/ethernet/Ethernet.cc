@@ -15,6 +15,14 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
 
+	// Make sure that we actually got an entire ethernet header before trying
+	// to pull bytes out of it.
+	if ( pdata + 16 >= end_of_data )
+		{
+		packet->Weird("truncated_ethernet_frame");
+		return { AnalyzerResult::Failed, 0 };
+		}
+
 	// Skip past Cisco FabricPath to encapsulated ethernet frame.
 	if ( pdata[12] == 0x89 && pdata[13] == 0x03 )
 		{

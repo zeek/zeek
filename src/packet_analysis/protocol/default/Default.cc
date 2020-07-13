@@ -17,7 +17,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 	// Assume we're pointing at IP. Just figure out which version.
 	if ( pdata + sizeof(struct ip) >= packet->GetEndOfData() )
 		{
-		packet->Weird("default_ll_analyser_failed");
+		packet->Weird("packet_analyzer_truncated_header");
 		return { AnalyzerResult::Failed, 0 };
 		}
 

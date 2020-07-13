@@ -212,6 +212,8 @@ void Manager::InitPostScript()
 		reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
 	if ( ! iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this) )
 		reporter->FatalError("Failed to register broker status subscriber with iosource_mgr");
+
+	bstate->subscriber.add_topic(broker::topics::store_events, true);
 	}
 
 void Manager::Terminate()
@@ -905,6 +907,11 @@ void Manager::Process()
 
 		auto& topic = broker::get_topic(message);
 		auto& msg = broker::get_data(message);
+
+		if ( broker::topics::store_events.prefix_of(topic) )
+			{
+			continue;
+			}
 
 		try
 			{

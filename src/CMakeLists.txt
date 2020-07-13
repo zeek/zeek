@@ -146,7 +146,7 @@ set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 set(bro_PLUGIN_DEPS CACHE INTERNAL "plugin dependencies" FORCE)
 
 add_subdirectory(analyzer)
-add_subdirectory(llanalyzer)
+add_subdirectory(packet_analysis)
 add_subdirectory(broker)
 add_subdirectory(zeekygen)
 add_subdirectory(file_analysis)

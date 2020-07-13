@@ -1,9 +1,0 @@
-LLDemo::Bar - A Bar LL-test-analyzer. (dynamic, version 1.0.0)
-    [Low-Layer Analyzer] Bar (LLANALYZER_BAR, enabled)
-    [Event] bar_message
-
-===
-bar_message (DSAP = 42, SSAP = 42, Control = 3)
-bar_message (DSAP = 42, SSAP = 42, Control = 3)
-bar_message (DSAP = 42, SSAP = 42, Control = 3)
-bar_message (DSAP = 42, SSAP = 42, Control = 3)

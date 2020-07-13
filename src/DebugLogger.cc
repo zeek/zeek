@@ -19,7 +19,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "string", 0, false },
 	{ "notifiers", 0, false },
 	{ "main-loop", 0, false },
-	{ "llanalyzer", 0, false },
+	{ "packet_analysis", 0, false },
 	{ "dpd", 0, false },
 	{ "tm", 0, false },
 	{ "logging", 0, false },

@@ -5342,29 +5342,29 @@ event net_done(t: time)
 @if ( __init_primary_bifs() )
 @endif
 
-module LLAnalyzer;
+module PacketAnalyzer;
 
-# Defines a mapping for the LLAnalyzer's configuration tree. This
+# Defines a mapping for the PacketAnalyzer's configuration tree. This
 # maps from a parent analyzer to a child analyzer through a numeric
 # identifier.
 export {
     type ConfigEntry : record {
         # The parent analyzer. This analyzer will check for the *identifier* in the
         # packet data to know whether to call the next analyzer. This field is optional.
-        # If it is not included, the identifier will attach to the "root" analyzer. This
-        # means that the identifier will be searched for the initial packet header instead
-        # of later headers.
-        parent : LLAnalyzer::Tag &optional;
+        # If it is not included, the identifier will attach to the "root" analyzer. The
+        # root analyzer uses the link layer identifier provided by the packet source to
+        # determine the protocol for the initial packet header.
+        parent : PacketAnalyzer::Tag &optional;
 
-        # A numeric identifier that can be found in the packet data that denotes an
-        # analyzer should be called.
+        # A numeric identifier, which can be found in the packet data, that denotes the
+        # encapsulated protocol.
         identifier : count;
 
         # The analyzer that corresponds to the above identifier.
-        analyzer : LLAnalyzer::Tag;
+        analyzer : PacketAnalyzer::Tag;
     };
 
-    const config_map : vector of LLAnalyzer::ConfigEntry &redef;
+    const config_map : vector of PacketAnalyzer::ConfigEntry &redef;
 }
 
-@load base/llprotocols
+@load base/packet-protocols

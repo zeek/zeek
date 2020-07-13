@@ -55,7 +55,7 @@ extern "C" {
 #include "input/readers/raw/Raw.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
-#include "llanalyzer/Manager.h"
+#include "packet_analysis/Manager.h"
 #include "plugin/Manager.h"
 #include "file_analysis/Manager.h"
 #include "zeekygen/Manager.h"
@@ -93,7 +93,7 @@ zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::ValManager*& val_mgr = zeek::val_mgr;
 zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
 zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
-zeek::llanalyzer::Manager* llanalyzer_mgr = nullptr;
+zeek::packet_analysis::Manager* packet_mgr = nullptr;
 zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
 
@@ -267,7 +267,7 @@ static void done_with_network()
 	run_state::terminating = true;
 
 	analyzer_mgr->Done();
-	llanalyzer_mgr->Done();
+	packet_mgr->Done();
 	timer_mgr->Expire();
 	dns_mgr->Flush();
 	event_mgr.Drain();
@@ -338,7 +338,7 @@ static void terminate_bro()
 
 	delete zeekygen_mgr;
 	delete analyzer_mgr;
-	delete llanalyzer_mgr;
+	delete packet_mgr;
 	delete file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
@@ -585,7 +585,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
 	analyzer_mgr = new analyzer::Manager();
-	llanalyzer_mgr = new llanalyzer::Manager();
+	packet_mgr = new packet_analysis::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
@@ -694,7 +694,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		}
 
 	analyzer_mgr->InitPostScript();
-	llanalyzer_mgr->InitPostScript();
+	packet_mgr->InitPostScript();
 	file_mgr->InitPostScript();
 	dns_mgr->InitPostScript();
 
@@ -895,7 +895,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	broker_mgr->ZeekInitDone();
 	reporter->ZeekInitDone();
 	analyzer_mgr->DumpDebug();
-	llanalyzer_mgr->DumpDebug();
+	packet_mgr->DumpDebug();
 
 	run_state::detail::have_pending_timers = ! run_state::reading_traces && timer_mgr->Size() > 0;
 

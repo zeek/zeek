@@ -30,24 +30,24 @@ namespace zeek {
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
 enum DebugStream {
-	DBG_SERIAL, 	// Serialization
-	DBG_RULES,		// Signature matching
-	DBG_STRING,		// String code
-	DBG_NOTIFIERS,	// Notifiers
-	DBG_MAINLOOP,	// Main IOSource loop
-	DBG_LLANALYZER, // Low-Layer Analyzer Proof of Concept
-	DBG_ANALYZER,	// Analyzer framework
-	DBG_TM,			// Time-machine packet input via Brocolli
-	DBG_LOGGING,	// Logging streams
-	DBG_INPUT,		// Input streams
-	DBG_THREADING,	// Threading system
-	DBG_FILE_ANALYSIS,	// File analysis
-	DBG_PLUGINS,	// Plugin system
-	DBG_ZEEKYGEN,	// Zeekygen
-	DBG_PKTIO,		// Packet sources and dumpers.
-	DBG_BROKER,		// Broker communication
-	DBG_SCRIPTS,	// Script initialization
-	DBG_SUPERVISOR,	// Process supervisor
+	DBG_SERIAL,     // Serialization
+	DBG_RULES,      // Signature matching
+	DBG_STRING,     // String code
+	DBG_NOTIFIERS,  // Notifiers
+	DBG_MAINLOOP,   // Main IOSource loop
+	DBG_ANALYZER,   // Analyzer framework
+	DBG_PACKET_ANALYSIS,  // Packet analysis
+	DBG_FILE_ANALYSIS,    // File analysis
+	DBG_TM,         // Time-machine packet input via Brocolli
+	DBG_LOGGING,    // Logging streams
+	DBG_INPUT,      // Input streams
+	DBG_THREADING,  // Threading system
+	DBG_PLUGINS,    // Plugin system
+	DBG_ZEEKYGEN,   // Zeekygen
+	DBG_PKTIO,      // Packet sources and dumpers.
+	DBG_BROKER,     // Broker communication
+	DBG_SCRIPTS,    // Script initialization
+	DBG_SUPERVISOR, // Process supervisor
 
 	NUM_DBGS // Has to be last
 };

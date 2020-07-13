@@ -5,19 +5,18 @@
 #include <queue>
 #include <vector>
 
+#include "Config.h"
 #include "Tag.h"
-#include "Analyzer.h"
 #include "Component.h"
-#include "AnalyzerSet.h"
 #include "plugin/ComponentManager.h"
 #include "iosource/Packet.h"
-
-#include "../Dict.h"
-#include "../net_util.h"
+#include "Dict.h"
+#include "net_util.h"
 
 namespace zeek::packet_analysis {
 
-class AnalyzerSet;
+class Analyzer;
+class Dispatcher;
 
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
@@ -148,7 +147,8 @@ public:
 	 */
 	void ProcessPacket(Packet* packet);
 
-protected:
+private:
+
 	/**
 	 * Skips a fixed amount of packet data that is defined by encap_hdr_size.
 	 * It is assumed that an IP header follows.
@@ -157,9 +157,18 @@ protected:
 	 */
 	void CustomEncapsulationSkip(Packet* packet);
 
-private:
-	AnalyzerSet* analyzer_set = nullptr;
+	Analyzer* Dispatch(identifier_t identifier);
 
+	void Reset();
+
+	Dispatcher* GetDispatcher(Config& configuration, const std::string& dispatcher_name);
+
+	std::map<std::string, Analyzer*> analyzers;
+	std::map<std::string, Dispatcher*> dispatchers;
+	Dispatcher* root_dispatcher = nullptr;
+	Dispatcher* default_dispatcher = nullptr;
+	Dispatcher* current_state = nullptr;
+	Analyzer* default_analyzer = nullptr;
 };
 
 }

@@ -10,7 +10,6 @@ add_subdirectory(dispatchers)
 
 set(llanalyzer_SRCS
     Analyzer.cc
-    ProtocolAnalyzerSet.cc
     Manager.cc
     Component.cc
     Tag.cc

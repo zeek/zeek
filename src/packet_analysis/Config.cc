@@ -20,7 +20,7 @@ const std::map<identifier_t, std::string>& DispatcherConfig::GetMappings() const
 	}
 
 void DispatcherConfig::AddMapping(identifier_t identifier,
-								  const std::string& analyzer_name)
+                                  const std::string& analyzer_name)
 	{
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Adding configuration mapping: %s -> %#x -> %s",
 	        name.c_str(), identifier, analyzer_name.c_str());
@@ -72,7 +72,7 @@ DispatcherConfig& Config::AddDispatcherConfig(const std::string& name)
 	}
 
 void Config::AddMapping(const std::string& name, identifier_t identifier,
-						const std::string& analyzer_name)
+                        const std::string& analyzer_name)
 	{
 	// Create dispatcher config if it does not exist yet
 	std::optional<std::reference_wrapper<DispatcherConfig>> dispatch_config =

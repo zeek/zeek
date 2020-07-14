@@ -113,54 +113,50 @@ void Manager::DumpDebug()
 
 bool Manager::EnableAnalyzer(const Tag& tag)
 	{
-	Component* p = Lookup(tag);
+	if ( Component* p = Lookup(tag) )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Enabling analyzer %s", p->Name().c_str());
+		p->SetEnabled(true);
+		return true;
+		}
 
-	if ( ! p )
-		return false;
-
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Enabling analyzer %s", p->Name().c_str());
-	p->SetEnabled(true);
-
-	return true;
+	return false;
 	}
 
 bool Manager::EnableAnalyzer(EnumVal* val)
 	{
-	Component* p = Lookup(val);
+	if ( Component* p = Lookup(val) )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Enabling analyzer %s", p->Name().c_str());
+		p->SetEnabled(true);
+		return true;
+		}
 
-	if ( ! p )
-		return false;
-
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Enabling analyzer %s", p->Name().c_str());
-	p->SetEnabled(true);
-
-	return true;
+	return false;
 	}
 
 bool Manager::DisableAnalyzer(const Tag& tag)
 	{
-	Component* p = Lookup(tag);
+	if ( Component* p = Lookup(tag) )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling analyzer %s", p->Name().c_str());
+		p->SetEnabled(false);
+		return true;
+		}
 
-	if ( ! p )
-		return false;
-
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling analyzer %s", p->Name().c_str());
-	p->SetEnabled(false);
-
-	return true;
+	return false;
 	}
 
 bool Manager::DisableAnalyzer(EnumVal* val)
 	{
-	Component* p = Lookup(val);
+	if ( Component* p = Lookup(val) )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling analyzer %s", p->Name().c_str());
+		p->SetEnabled(false);
+		return true;
+		}
 
-	if ( ! p )
-		return false;
-
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling analyzer %s", p->Name().c_str());
-	p->SetEnabled(false);
-
-	return true;
+	return false;
 	}
 
 void Manager::DisableAllAnalyzers()
@@ -182,22 +178,18 @@ bool Manager::IsEnabled(Tag tag)
 	if ( ! tag )
 		return false;
 
-	Component* p = Lookup(tag);
+	if ( Component* p = Lookup(tag) )
+		return p->Enabled();
 
-	if ( ! p )
-		return false;
-
-	return p->Enabled();
+	return false;
 	}
 
 bool Manager::IsEnabled(EnumVal* val)
 	{
-	Component* p = Lookup(val);
+	if ( Component* p = Lookup(val) )
+		return p->Enabled();
 
-	if ( ! p )
-		return false;
-
-	return p->Enabled();
+	return false;
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag)

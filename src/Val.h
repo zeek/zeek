@@ -1254,7 +1254,7 @@ protected:
 	template<class T, class... Ts>
 	friend zeek::IntrusivePtr<T> zeek::make_intrusive(Ts&&... args);
 
-	EnumVal(zeek::EnumTypePtr t, int i) : Val(bro_int_t(i), std::move(t))
+	EnumVal(zeek::EnumTypePtr t, bro_int_t i) : Val(i, std::move(t))
 		{}
 
 	void ValDescribe(ODesc* d) const override;

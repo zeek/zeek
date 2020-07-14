@@ -1,4 +1,8 @@
 
+3.1.5-dev.6 | 2020-07-23 17:12:16 -0700
+
+  * GH-1062: fix integer conversion errors related to Tag subtypes (Jon Siwek, Corelight)
+
 3.1.5-dev.5 | 2020-07-23 16:33:45 -0700
 
   * GH-1041: Move compress_path to a bif that uses normalize_path (Tim Wojtulewicz, Corelight)

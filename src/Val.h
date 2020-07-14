@@ -974,7 +974,7 @@ protected:
 	friend class Val;
 	friend class EnumType;
 
-	EnumVal(EnumType* t, int i) : Val(t)
+	EnumVal(EnumType* t, bro_int_t i) : Val(t)
 		{
 		val.int_val = i;
 		}

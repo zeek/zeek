@@ -687,8 +687,7 @@ expr:
 				else if ( id->IsEnumConst() )
 					{
 					EnumType* t = id->Type()->AsEnumType();
-					int intval = t->Lookup(id->ModuleName(),
-							       id->Name());
+					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )
 						reporter->InternalError("enum value not found for %s", id->Name());
 					$$ = new ConstExpr(t->GetVal(intval));

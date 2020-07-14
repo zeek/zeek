@@ -275,13 +275,17 @@ extern std::vector<CallInfo> call_stack;
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
 
+extern void emit_builtin_exception(const char* msg);
+extern void emit_builtin_exception(const char* msg, const zeek::ValPtr& arg);
+extern void emit_builtin_exception(const char* msg, Obj* arg);
+
 } // namespace detail
 
 extern std::string render_call_stack();
 
 // These methods are used by BIFs, so they're in the public namespace.
 extern void emit_builtin_error(const char* msg);
-extern void emit_builtin_error(const char* msg, zeek::ValPtr);
+extern void emit_builtin_error(const char* msg, const zeek::ValPtr&);
 extern void emit_builtin_error(const char* msg, Obj* arg);
 
 } // namespace zeek

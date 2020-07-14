@@ -1,3 +1,24 @@
+
+3.2.0-dev.899 | 2020-07-14 00:02:05 +0000
+
+  * Improve Broker store API's handling of invalid arguments
+
+    * Some methods mistakenly returned a bool instead of QueryResult
+      when passed an invalid `opaque of Broker::Store` handle.
+
+    * Now generates a runtime exception for store_name() and is_closed()
+      calls that pass an invalid `opaque of Broker::Store` handle as any
+      returned value can't be reasonably used in any subsequent logic.
+
+    * Descriptions of any invalid arguments are now given in the error
+      message. (Jon Siwek, Corelight)
+
+  * Add zeek::detail::emit_builtin_exception() functions
+
+    These work like zeek::emit_builtin_error(), but also throw an InterpreterException (Jon Siwek, Corelight)
+
+  * GH-1024: fix crash on passing wrong types to Broker store API (Jon Siwek, Corelight)
+
 3.2.0-dev.894 | 2020-07-13 12:12:17 -0700
 
   * GH-1019: deprecate icmp_conn params for ICMP events

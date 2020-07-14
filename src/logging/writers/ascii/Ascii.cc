@@ -111,9 +111,35 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 		return rval;
 		}
 
-	fseek(sf_stream, 0, SEEK_END);
+	int res = fseek(sf_stream, 0, SEEK_END);
+
+	if ( res == -1 )
+		{
+		rval.error = fmt("Failed to fseek(SEEK_END) on %s: %s",
+		                 rval.shadow_filename.data(), strerror(errno));
+		fclose(sf_stream);
+		return rval;
+		}
+
 	auto sf_len = ftell(sf_stream);
-	fseek(sf_stream, 0, SEEK_SET);
+
+	if ( sf_len == -1 )
+		{
+		rval.error = fmt("Failed to ftell() on %s: %s",
+		                 rval.shadow_filename.data(), strerror(errno));
+		fclose(sf_stream);
+		return rval;
+		}
+
+	res = fseek(sf_stream, 0, SEEK_SET);
+
+	if ( res == -1 )
+		{
+		rval.error = fmt("Failed to fseek(SEEK_SET) on %s: %s",
+		                 rval.shadow_filename.data(), strerror(errno));
+		fclose(sf_stream);
+		return rval;
+		}
 
 	auto sf_content = std::make_unique<char[]>(sf_len);
 	auto bytes_read = fread(sf_content.get(), 1, sf_len, sf_stream);

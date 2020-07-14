@@ -427,7 +427,10 @@ public:
 	 */
 	struct Prototype {
 		bool deprecated;
+		std::string deprecation_msg;
 		RecordTypePtr args;
+		// Maps from parameter index in canonical prototype to
+		// parameter index in this alternate prorotype.
 		std::map<int, int> offsets;
 	};
 

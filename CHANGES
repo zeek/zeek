@@ -1,4 +1,83 @@
 
+3.2.0-dev.899 | 2020-07-14 00:02:05 +0000
+
+  * Improve Broker store API's handling of invalid arguments
+
+    * Some methods mistakenly returned a bool instead of QueryResult
+      when passed an invalid `opaque of Broker::Store` handle.
+
+    * Now generates a runtime exception for store_name() and is_closed()
+      calls that pass an invalid `opaque of Broker::Store` handle as any
+      returned value can't be reasonably used in any subsequent logic.
+
+    * Descriptions of any invalid arguments are now given in the error
+      message. (Jon Siwek, Corelight)
+
+  * Add zeek::detail::emit_builtin_exception() functions
+
+    These work like zeek::emit_builtin_error(), but also throw an InterpreterException (Jon Siwek, Corelight)
+
+  * GH-1024: fix crash on passing wrong types to Broker store API (Jon Siwek, Corelight)
+
+3.2.0-dev.894 | 2020-07-13 12:12:17 -0700
+
+  * GH-1019: deprecate icmp_conn params for ICMP events
+
+    Previously, a single `icmp_conn` record was built per ICMP "connection"
+    and re-used for all events generated from it.  This may have been a
+    historical attempt at performance optimization, but:
+
+      * By default, Zeek does not load any scripts that handle ICMP events.
+
+      * The one script Zeek ships with that does handle ICMP events,
+        "detect-traceroute", is already noted as being disabled due to
+        potential performance problems of doing that kind of analysis.
+
+      * Re-use of the original `icmp_conn` record tends to misreport
+        TTL and length values since they come from original packet instead
+        of the current one.
+
+      * Even if we chose to still re-use `icmp_conn` records and just fill
+        in a new TTL and length value each packet, a user script could have
+        stored a reference to the record and not be expecting those values
+        to be changed out from underneath them.
+
+    Now, a new `icmp_info` record is created/populated in all ICMP events
+    and should be used instead of `icmp_conn`.  It also removes the
+    orig_h/resp_h fields as those are redundant with what's already
+    available in the connection record. (Jon Siwek, Corelight)
+
+3.2.0-dev.892 | 2020-07-13 12:10:22 -0700
+
+  * Fix wrong frame offsets for locals of alternate event/hook prototypes
+
+    Local frame offsets were being assigned based on number of the alternate
+    prototype's parameters, which may end up having less total parameters
+    than the canonical prototype, causing the local value to incorrectly
+    overwrite an event/hook argument value. (Jon Siwek, Corelight)
+
+  * Add deprecation expression to deprecated prototype/parameter messages (Jon Siwek, Corelight)
+
+  * Improve "use of deprecated prototype" warning message
+
+    The location information now points out the place of the deprecated
+    prototype instead of the location where the ID was initially declared
+    (which may not itself be a deprecated prototype). (Jon Siwek, Corelight)
+
+  * Emit deprecation warning for use of &deprecated function parameters
+
+    Particularly, this is meant for using &deprecated on canonical
+    event/hook prototype parameters to encourage users to create handlers
+    to another, non-deprecated prototype.  i.e. for canonical prototypes,
+    we may not always want to put &deprecated directly on the prototype
+    itself since that signals deprecation of the ID entirely. (Jon Siwek, Corelight)
+
+3.2.0-dev.885 | 2020-07-10 11:20:41 -0700
+
+  * Add more error checks to shadow log parsing (Jon Siwek, Corelight)
+
+    i.e. Coverity warns about possible use of ftell() negative return value
+
 3.2.0-dev.884 | 2020-07-09 14:09:58 -0700
 
   * Add Supervisor::{stdout,stderr}_hook (Jon Siwek, Corelight)

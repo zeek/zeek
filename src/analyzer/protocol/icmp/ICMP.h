@@ -57,6 +57,9 @@ protected:
 	zeek::RecordValPtr BuildICMPVal(const struct icmp* icmpp, int len,
 	                                int icmpv6, const IP_Hdr* ip_hdr);
 
+	zeek::RecordValPtr BuildInfo(const struct icmp* icmpp, int len,
+	                             bool icmpv6, const IP_Hdr* ip_hdr);
+
 	void NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
 	               const u_char*& data, const IP_Hdr* ip_hdr );
 

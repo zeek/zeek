@@ -23,7 +23,7 @@ UniversalDispatcher::~UniversalDispatcher()
 	FreeValues();
 	}
 
-bool UniversalDispatcher::Register(identifier_t identifier, Analyzer* analyzer, Dispatcher* dispatcher)
+bool UniversalDispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
 	{
 #if DEBUG > 1
 	std::shared_ptr<void> deferred(nullptr, [=](...) {
@@ -35,7 +35,7 @@ bool UniversalDispatcher::Register(identifier_t identifier, Analyzer* analyzer, 
 	if ( table[hashed_id].second == nullptr )
 		{
 		// Free bin, insert the value
-		table[hashed_id] = std::make_pair(identifier, new Value(analyzer, dispatcher));
+		table[hashed_id] = std::make_pair(identifier, std::make_shared<Value>(analyzer, dispatcher));
 		return true;
 		}
 	else if ( table[hashed_id].first != identifier )
@@ -44,7 +44,7 @@ bool UniversalDispatcher::Register(identifier_t identifier, Analyzer* analyzer, 
 
 		// Create intermediate representation with the new element in it, then rehash with that data
 		std::vector<pair_t> intermediate = CreateIntermediate();
-		intermediate.emplace_back(identifier, new Value(analyzer, dispatcher));
+		intermediate.emplace_back(identifier, std::make_shared<Value>(analyzer, dispatcher));
 
 		// Try increasing the #bins until it works or it can't get any larger.
 		Rehash(intermediate);
@@ -67,12 +67,12 @@ void UniversalDispatcher::Register(const register_map& data)
 	// Create intermediate representation of current analyzer set, then add all new ones
 	std::vector<pair_t> intermediate = CreateIntermediate();
 	for ( const auto& current : data )
-		intermediate.emplace_back(current.first, new Value(current.second.first, current.second.second));
+		intermediate.emplace_back(current.first, std::make_shared<Value>(current.second.first, current.second.second));
 
 	Rehash(intermediate);
 	}
 
-Value* UniversalDispatcher::Lookup(identifier_t identifier) const
+ValuePtr UniversalDispatcher::Lookup(identifier_t identifier) const
 	{
 	uint64_t hashed_id = Hash(identifier);
 
@@ -125,7 +125,7 @@ void UniversalDispatcher::DumpDebug() const
 	for ( size_t i = 0; i < table.size(); i++ )
 		{
 		if ( table[i].second != nullptr )
-			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8x => %s, %p", table[i].first, table[i].second->analyzer->GetAnalyzerName(), table[i].second->dispatcher);
+			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8x => %s, %p", table[i].first, table[i].second->analyzer->GetAnalyzerName(), table[i].second->dispatcher.get());
 		}
 #endif
 	}
@@ -137,10 +137,7 @@ void UniversalDispatcher::DumpDebug() const
 void UniversalDispatcher::FreeValues()
 	{
 	for ( auto& current : table )
-		{
-		delete current.second;
 		current.second = nullptr;
-		}
 	}
 
 void UniversalDispatcher::Rehash(const std::vector<pair_t>& intermediate)

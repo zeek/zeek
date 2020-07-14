@@ -10,15 +10,15 @@ namespace zeek::packet_analysis {
 class VectorDispatcher : public Dispatcher {
 public:
 	VectorDispatcher()
-		: table(std::vector<Value*>(1, nullptr))
+		: table(std::vector<ValuePtr>(1, nullptr))
 		{ }
 
 	~VectorDispatcher() override;
 
-	bool Register(identifier_t identifier, Analyzer* analyzer, Dispatcher* dispatcher) override;
+	bool Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher) override;
 	void Register(const register_map& data) override;
 
-	const Value* Lookup(identifier_t identifier) const override;
+	ValuePtr Lookup(identifier_t identifier) const override;
 
 	size_t Size() const override;
 	void Clear() override;
@@ -28,7 +28,7 @@ protected:
 
 private:
 	identifier_t lowest_identifier = 0;
-	std::vector<Value*> table;
+	std::vector<ValuePtr> table;
 
 	void FreeValues();
 

@@ -17,6 +17,8 @@ namespace zeek::packet_analysis {
 
 class Analyzer;
 class Dispatcher;
+using AnalyzerPtr = std::shared_ptr<Analyzer>;
+using DispatcherPtr = std::shared_ptr<Dispatcher>;
 
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
@@ -127,7 +129,7 @@ public:
 	 * null if tag is invalid, the requested analyzer is disabled, or the
 	 * analyzer can't be instantiated.
 	 */
-	Analyzer* InstantiateAnalyzer(const Tag& tag);
+	AnalyzerPtr InstantiateAnalyzer(const Tag& tag);
 
 	/**
 	 * Instantiates a new analyzer.
@@ -138,7 +140,7 @@ public:
 	 * null if the name is not known or if the requested analyzer that is
 	 * disabled.
 	 */
-	Analyzer* InstantiateAnalyzer(const std::string& name);
+	AnalyzerPtr InstantiateAnalyzer(const std::string& name);
 
 	/**
 	 * Processes a packet by applying the configured packet analyzers.
@@ -157,18 +159,18 @@ private:
 	 */
 	void CustomEncapsulationSkip(Packet* packet);
 
-	Analyzer* Dispatch(identifier_t identifier);
+	AnalyzerPtr Dispatch(identifier_t identifier);
 
 	void Reset();
 
-	Dispatcher* GetDispatcher(Config& configuration, const std::string& dispatcher_name);
+	DispatcherPtr GetDispatcher(Config& configuration, const std::string& dispatcher_name);
 
-	std::map<std::string, Analyzer*> analyzers;
-	std::map<std::string, Dispatcher*> dispatchers;
-	Dispatcher* root_dispatcher = nullptr;
-	Dispatcher* default_dispatcher = nullptr;
-	Dispatcher* current_state = nullptr;
-	Analyzer* default_analyzer = nullptr;
+	std::map<std::string, AnalyzerPtr> analyzers;
+	std::map<std::string, DispatcherPtr> dispatchers;
+	DispatcherPtr root_dispatcher = nullptr;
+	DispatcherPtr default_dispatcher = nullptr;
+	DispatcherPtr current_state = nullptr;
+	AnalyzerPtr default_analyzer = nullptr;
 };
 
 }

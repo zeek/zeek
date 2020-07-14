@@ -12,11 +12,12 @@
 namespace zeek::packet_analysis {
 
 class Analyzer;
+using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
 class Component : public plugin::Component,
                   public plugin::TaggedComponent<packet_analysis::Tag> {
 public:
-	typedef Analyzer* (*factory_callback)();
+	typedef AnalyzerPtr (*factory_callback)();
 
 	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0, bool enabled = true);
 	~Component() override = default;

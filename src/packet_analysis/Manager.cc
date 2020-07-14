@@ -20,17 +20,6 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	bool delete_default = default_analyzer != nullptr;
-	for ( const auto& current : analyzers )
-		{
-		if ( current.second == default_analyzer )
-			delete_default = false;
-
-		delete current.second;
-		}
-
-	if ( delete_default )
-		delete default_analyzer;
 	}
 
 void Manager::InitPostScript()
@@ -65,7 +54,7 @@ void Manager::InitPostScript()
 				continue;
 
 			// Check if analyzer exists
-			if ( Analyzer* newAnalyzer = InstantiateAnalyzer(current_mapping.second) )
+			if ( AnalyzerPtr newAnalyzer = InstantiateAnalyzer(current_mapping.second) )
 				analyzers.emplace(current_mapping.second, newAnalyzer);
 			}
 		}
@@ -105,7 +94,7 @@ void Manager::DumpDebug()
 	DBG_LOG(DBG_PACKET_ANALYSIS, "ProtocolAnalyzerSet FSM:");
 	for ( const auto& current : dispatchers )
 		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "  Dispatcher (%p): %s", current.second, current.first.c_str());
+		DBG_LOG(DBG_PACKET_ANALYSIS, "  Dispatcher (%p): %s", current.second.get(), current.first.c_str());
 		current.second->DumpDebug();
 		}
 #endif
@@ -192,7 +181,7 @@ bool Manager::IsEnabled(EnumVal* val)
 	return false;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(const Tag& tag)
+AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 	{
 	Component* c = Lookup(tag);
 
@@ -211,7 +200,7 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag)
 		return nullptr;
 		}
 
-	Analyzer* a = c->Factory()();
+	AnalyzerPtr a = c->Factory()();
 
 	if ( ! a )
 		{
@@ -229,7 +218,7 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag)
 	return a;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(const std::string& name)
+AnalyzerPtr Manager::InstantiateAnalyzer(const std::string& name)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag) : nullptr;
@@ -319,12 +308,12 @@ void Manager::CustomEncapsulationSkip(Packet* packet)
 		}
 	}
 
-Analyzer* Manager::Dispatch(identifier_t identifier)
+AnalyzerPtr Manager::Dispatch(identifier_t identifier)
 	{
 	// Because leaf nodes (aka no more dispatching) can still have an existing analyzer that returns more identifiers,
 	// current_state needs to be checked to be not null. In this case there would have been an analyzer dispatched
 	// in the last layer, but no dispatcher for it (end of FSM)
-	const Value* result = nullptr;
+	ValuePtr result = nullptr;
 	if ( current_state )
 		result = current_state->Lookup(identifier);
 
@@ -350,7 +339,7 @@ void Manager::Reset()
 	current_state = root_dispatcher;
 	}
 
-Dispatcher* Manager::GetDispatcher(Config& configuration, const std::string& dispatcher_name)
+DispatcherPtr Manager::GetDispatcher(Config& configuration, const std::string& dispatcher_name)
 	{
 	// Is it already created?
 	if ( dispatchers.count(dispatcher_name) != 0 )
@@ -366,7 +355,7 @@ Dispatcher* Manager::GetDispatcher(Config& configuration, const std::string& dis
 
 	const auto& mappings = dispatcher_config->get().GetMappings();
 
-	Dispatcher* dispatcher = new VectorDispatcher();
+	DispatcherPtr dispatcher = std::make_shared<VectorDispatcher>();
 	dispatchers.emplace(dispatcher_name, dispatcher);
 
 	for ( const auto& current_mapping : mappings )

@@ -12,9 +12,9 @@ public:
 	UniversalDispatcher();
 	~UniversalDispatcher() override;
 
-	bool Register(identifier_t identifier, Analyzer* analyzer, Dispatcher* dispatcher) override;
+	bool Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher) override;
 	void Register(const register_map& data) override;
-	Value* Lookup(identifier_t identifier) const override;
+	ValuePtr Lookup(identifier_t identifier) const override;
 	size_t Size() const override;
 	void Clear() override;
 
@@ -25,7 +25,7 @@ public:
 	void Rehash();
 
 private:
-	using pair_t = std::pair<identifier_t, Value*>;
+	using pair_t = std::pair<identifier_t, ValuePtr>;
 	static const uint64_t ONE = 1u;
 
 	// Chosen random constants for the currently selected collision free random hash function

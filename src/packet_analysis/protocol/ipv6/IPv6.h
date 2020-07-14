@@ -14,9 +14,9 @@ public:
 
 	std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) override;
 
-	static Analyzer* Instantiate()
+	static AnalyzerPtr Instantiate()
 		{
-		return new IPv6Analyzer();
+		return std::make_shared<IPv6Analyzer>();
 		}
 };
 

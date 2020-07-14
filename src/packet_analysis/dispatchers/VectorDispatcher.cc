@@ -11,12 +11,12 @@ VectorDispatcher::~VectorDispatcher()
 	FreeValues();
 	}
 
-bool VectorDispatcher::Register(identifier_t identifier, Analyzer* analyzer, Dispatcher* dispatcher)
+bool VectorDispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
 	{
 	// If the table has size 1 and the entry is nullptr, there was nothing added yet. Just add it.
 	if ( table.size() == 1 && table[0] == nullptr )
 		{
-		table[0] = new Value(analyzer, dispatcher);
+		table[0] = std::make_shared<Value>(analyzer, dispatcher);
 		lowest_identifier = identifier;
 		return true;
 		}
@@ -48,7 +48,7 @@ bool VectorDispatcher::Register(identifier_t identifier, Analyzer* analyzer, Dis
 	int64_t index = identifier - lowest_identifier;
 	if ( table[index] == nullptr )
 		{
-		table[index] = new Value(analyzer, dispatcher);
+		table[index] = std::make_shared<Value>(analyzer, dispatcher);
 		return true;
 		}
 
@@ -77,7 +77,7 @@ void VectorDispatcher::Register(const register_map& data)
 		}
 	}
 
-const Value* VectorDispatcher::Lookup(identifier_t identifier) const
+ValuePtr VectorDispatcher::Lookup(identifier_t identifier) const
 	{
 	int64_t index = identifier - lowest_identifier;
 	if ( index >= 0 && index < static_cast<int64_t>(table.size()) && table[index] != nullptr )
@@ -88,7 +88,7 @@ const Value* VectorDispatcher::Lookup(identifier_t identifier) const
 
 size_t VectorDispatcher::Size() const
 	{
-	return std::count_if(table.begin(), table.end(), [](const auto* v) { return v != nullptr; });
+	return std::count_if(table.begin(), table.end(), [](ValuePtr v) { return v != nullptr; });
 	}
 
 void VectorDispatcher::Clear()
@@ -100,10 +100,7 @@ void VectorDispatcher::Clear()
 void VectorDispatcher::FreeValues()
 	{
 	for ( auto& current : table )
-		{
-		delete current;
 		current = nullptr;
-		}
 	}
 
 void VectorDispatcher::DumpDebug() const
@@ -114,7 +111,7 @@ void VectorDispatcher::DumpDebug() const
 	for ( size_t i = 0; i < table.size(); i++ )
 		{
 		if ( table[i] != nullptr )
-			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8lx => %s, %p", i+lowest_identifier, table[i]->analyzer->GetAnalyzerName(), table[i]->dispatcher);
+			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8lx => %s, %p", i+lowest_identifier, table[i]->analyzer->GetAnalyzerName(), table[i]->dispatcher.get());
 		}
 #endif
 	}

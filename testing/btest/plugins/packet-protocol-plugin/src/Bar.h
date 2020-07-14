@@ -12,11 +12,10 @@ public:
 
 	std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) override;
 
-	static Analyzer* Instantiate()
+	static AnalyzerPtr Instantiate()
 		{
-		return new Bar();
+		return std::make_shared<Bar>();
 		}
 };
 
 }
-

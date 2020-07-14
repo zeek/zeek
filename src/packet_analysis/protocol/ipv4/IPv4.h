@@ -14,9 +14,9 @@ public:
 
 	std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) override;
 
-	static Analyzer* Instantiate()
+	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{
-		return new IPv4Analyzer();
+		return std::make_shared<IPv4Analyzer>();
 		}
 };
 

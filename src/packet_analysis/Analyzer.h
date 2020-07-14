@@ -86,4 +86,6 @@ private:
 	void Init(const Tag& tag);
 };
 
+using AnalyzerPtr = std::shared_ptr<Analyzer>;
+
 }

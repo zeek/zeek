@@ -921,7 +921,9 @@ void Manager::Process()
 	{
 	// Ensure that time gets update before processing broker messages, or events
 	// based on them might get scheduled wrong.
-	net_update_time(current_time());
+	// Fixme: unclear if final solution - see https://github.com/zeek/broker/issues/135
+	if ( use_real_time )
+		net_update_time(current_time());
 
 	bool had_input = false;
 

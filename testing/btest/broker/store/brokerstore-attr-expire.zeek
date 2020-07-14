@@ -1,10 +1,18 @@
+# So - this test currently is not really that great. The goal was to test expiration after
+# syncing values with broker. However, it turns out that the delays introduced by broker seem
+# a bit random - and too high to really test this without the test taking forever.
+#
+# so - instead we just check that expiries do indeed happen - however the ordering is not as
+# guaranteed as I would have liked to have it.
+
+
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: btest-bg-run master "zeek -B broker -b ../master.zeek >../master.out"
 # @TEST-EXEC: btest-bg-run clone "zeek -B broker -b ../clone.zeek >../clone.out"
 # @TEST-EXEC: btest-bg-wait 20
 #
-# @TEST-EXEC: btest-diff clone.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone.out
 
 @TEST-START-FILE master.zeek
 redef exit_only_after_terminate = T;

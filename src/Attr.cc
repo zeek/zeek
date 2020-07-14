@@ -20,8 +20,8 @@ const char* attr_name(AttrTag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-	    "(&tracked)", "&on_change", "&broker_store",
-	    "&broker_allow_complex_type", "&backend", "&deprecated",
+		"(&tracked)", "&on_change", "&broker_store",
+		"&broker_allow_complex_type", "&backend", "&deprecated",
 	};
 
 	return attr_names[int(t)];

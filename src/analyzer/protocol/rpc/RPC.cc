@@ -341,7 +341,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 			zeek::val_mgr->Count(c->Program()),
 			zeek::val_mgr->Count(c->Version()),
 			zeek::val_mgr->Count(c->Proc()),
-			zeek::BifType::Enum::rpc_status->GetVal(status),
+			zeek::BifType::Enum::rpc_status->GetEnumVal(status),
 			zeek::make_intrusive<zeek::TimeVal>(c->StartTime()),
 			zeek::val_mgr->Count(c->CallLen()),
 			zeek::val_mgr->Count(reply_len)
@@ -367,7 +367,7 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 		analyzer->EnqueueConnEvent(rpc_reply,
 			analyzer->ConnVal(),
 			zeek::val_mgr->Count(xid),
-			zeek::BifType::Enum::rpc_status->GetVal(status),
+			zeek::BifType::Enum::rpc_status->GetEnumVal(status),
 			zeek::val_mgr->Count(reply_len)
 		);
 	}

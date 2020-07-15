@@ -1309,7 +1309,7 @@ void Manager::ProcessError(broker::error err)
 		}
 
 	mgr.Enqueue(Broker::error,
-		zeek::BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		zeek::BifType::Enum::Broker::ErrorCode->GetEnumVal(ec),
 	            zeek::make_intrusive<zeek::StringVal>(msg)
 	);
 	}

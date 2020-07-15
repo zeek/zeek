@@ -629,7 +629,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 				return nullptr;
 				}
 
-			auto rval = t->GetVal(intval);
+			auto rval = t->GetEnumVal(intval);
 			return rval.release();
 			}
 

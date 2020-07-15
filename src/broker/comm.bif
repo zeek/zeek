@@ -131,7 +131,7 @@ function Broker::__peers%(%): PeerInfos
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;
 		peer_info->Assign(0, std::move(endpoint_info));
-		peer_info->Assign(1, zeek::BifType::Enum::Broker::PeerStatus->GetVal(ps));
+		peer_info->Assign(1, zeek::BifType::Enum::Broker::PeerStatus->GetEnumVal(ps));
 
 		rval->Assign(i, std::move(peer_info));
 		++i;

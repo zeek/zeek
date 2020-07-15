@@ -709,7 +709,13 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	const zeek::EnumValPtr& GetVal(bro_int_t i);
+	const zeek::EnumValPtr& GetEnumVal(bro_int_t i);
+
+	[[deprecated("Remove in v4.1. Use GetEnumVal() instead.")]]
+	zeek::EnumVal* GetVal(bro_int_t i)
+		{
+		return GetEnumVal(i).get();
+		}
 
 protected:
 	void AddNameInternal(const std::string& module_name,

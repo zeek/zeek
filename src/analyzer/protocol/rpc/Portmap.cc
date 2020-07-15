@@ -280,7 +280,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, zeek::ValPtr request, BifEnum::r
 		}
 	else
 		{
-		vl.emplace_back(zeek::BifType::Enum::rpc_status->GetVal(status));
+		vl.emplace_back(zeek::BifType::Enum::rpc_status->GetEnumVal(status));
 
 		if ( request )
 			vl.emplace_back(std::move(request));

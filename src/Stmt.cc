@@ -216,7 +216,7 @@ static EnumValPtr lookup_enum_val(const char* module_name, const char* name)
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
 
-	return et->GetVal(index);
+	return et->GetEnumVal(index);
 	}
 
 static void print_log(const std::vector<ValPtr>& vals)

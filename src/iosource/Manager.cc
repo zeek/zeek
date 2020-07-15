@@ -350,7 +350,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 
 	PktSrcComponent* component = nullptr;
 
-	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
+	std::list<PktSrcComponent*> all_components = zeek::plugin_mgr->Components<PktSrcComponent>();
 	for ( const auto& c : all_components )
 		{
 		if ( c->HandlesPrefix(prefix) &&
@@ -388,7 +388,7 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 
 	PktDumperComponent* component = nullptr;
 
-	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
+	std::list<PktDumperComponent*> all_components = zeek::plugin_mgr->Components<PktDumperComponent>();
 	for ( const auto& c : all_components )
 		{
 		if ( c->HandlesPrefix(prefix) )

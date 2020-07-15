@@ -89,6 +89,8 @@ zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::ValManager*& val_mgr = zeek::val_mgr;
 zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
 zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
+zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
+zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
@@ -96,7 +98,6 @@ TimerMgr* timer_mgr;
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
-zeek::plugin::Manager* plugin_mgr = nullptr;
 file_analysis::Manager* file_mgr = nullptr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
 iosource::Manager* iosource_mgr = nullptr;
@@ -164,7 +165,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 
 bool show_plugins(int level)
 	{
-	zeek::plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	zeek::plugin::Manager::plugin_list plugins = zeek::plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{
@@ -195,7 +196,7 @@ bool show_plugins(int level)
 
 	printf("%s", d.Description());
 
-	zeek::plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+	zeek::plugin::Manager::inactive_plugin_list inactives = zeek::plugin_mgr->InactivePlugins();
 
 	if ( inactives.size() && ! requested_plugins.size() )
 		{
@@ -300,7 +301,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
-	plugin_mgr->FinishPlugins();
+	zeek::plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
 	delete zeek::analyzer_mgr;
@@ -310,7 +311,7 @@ void terminate_bro()
 	delete event_registry;
 	delete log_mgr;
 	delete reporter;
-	delete plugin_mgr;
+	delete zeek::plugin_mgr;
 	delete zeek::val_mgr;
 
 	// free the global scope
@@ -471,7 +472,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
-	plugin_mgr = new zeek::plugin::Manager();
+	zeek::plugin_mgr = new zeek::plugin::Manager();
 
 #ifdef DEBUG
 	if ( options.debug_log_streams )
@@ -537,7 +538,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( ! options.bare_mode )
 		add_input_file("base/init-default.zeek");
 
-	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
+	zeek::plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
 	     options.script_options_to_set.empty() &&
@@ -575,7 +576,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	broker_mgr = new bro_broker::Manager(broker_real_time);
 	trigger_mgr = new zeek::detail::trigger::Manager();
 
-	plugin_mgr->InitPreScript();
+	zeek::plugin_mgr->InitPreScript();
 	zeek::analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
@@ -585,14 +586,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	for ( set<string>::const_iterator i = requested_plugins.begin();
 	      i != requested_plugins.end(); i++ )
 		{
-		if ( ! plugin_mgr->ActivateDynamicPlugin(*i) )
+		if ( ! zeek::plugin_mgr->ActivateDynamicPlugin(*i) )
 			missing_plugin = true;
 		}
 
 	if ( missing_plugin )
 		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
-	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
+	zeek::plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
 	init_event_handlers();
 
@@ -640,14 +641,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		"BinPAC::flowbuffer_contract_threshold")->GetVal()->AsCount();
 	binpac::init(&flowbuffer_policy);
 
-	plugin_mgr->InitBifs();
+	zeek::plugin_mgr->InitBifs();
 
 	if ( reporter->Errors() > 0 )
 		exit(1);
 
 	iosource_mgr->InitPostScript();
 	log_mgr->InitPostScript();
-	plugin_mgr->InitPostScript();
+	zeek::plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
 	timer_mgr->InitPostScript();

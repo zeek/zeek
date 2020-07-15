@@ -54,7 +54,7 @@ static string RemoveLeadingSpace(const string& s)
 // use for indexing.
 static string NormalizeScriptPath(const string& path)
 	{
-	if ( auto p = plugin_mgr->LookupPluginByPath(path) )
+	if ( auto p = zeek::plugin_mgr->LookupPluginByPath(path) )
 		{
 		auto rval = normalize_path(path);
 		auto prefix = SafeBasename(p->PluginDirectory()).result;

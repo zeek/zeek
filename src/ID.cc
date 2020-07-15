@@ -136,6 +136,11 @@ void ID::SetType(zeek::TypePtr t)
 	type = std::move(t);
 	}
 
+void ID::SetType(zeek::Type* t)
+	{
+	SetType({AdoptRef(), t});
+	}
+
 void ID::ClearVal()
 	{
 	val = nullptr;

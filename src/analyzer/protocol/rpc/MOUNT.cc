@@ -127,7 +127,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = zeek::BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
+			reply = zeek::BifType::Enum::MOUNT3::proc_t->GetEnumVal(c->Proc());
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -185,8 +185,8 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 		}
 
 	auto info = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MOUNT3::info_t);
-	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
-	info->Assign(1, zeek::BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
+	info->Assign(0, zeek::BifType::Enum::rpc_status->GetEnumVal(rpc_status));
+	info->Assign(1, zeek::BifType::Enum::MOUNT3::status_t->GetEnumVal(mount_status));
 	info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(c->StartTime()));
 	info->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(c->LastTime() - c->StartTime()));
 	info->Assign(4, zeek::val_mgr->Count(c->RPCLen()));
@@ -206,7 +206,7 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 zeek::EnumValPtr MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
+	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetEnumVal(t);
 	return rval;
     }
 

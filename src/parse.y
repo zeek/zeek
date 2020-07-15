@@ -695,7 +695,7 @@ expr:
 					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )
 						reporter->InternalError("enum value not found for %s", id->Name());
-					$$ = new zeek::detail::ConstExpr(t->GetVal(intval));
+					$$ = new zeek::detail::ConstExpr(t->GetEnumVal(intval));
 					}
 				else
 					{

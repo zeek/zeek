@@ -1,4 +1,8 @@
 
+3.2.0-dev.902 | 2020-07-14 19:10:36 -0700
+
+  * GH-1062: fix integer conversion errors related to Tag subtypes (Jon Siwek, Corelight)
+
 3.2.0-dev.899 | 2020-07-14 00:02:05 +0000
 
   * Improve Broker store API's handling of invalid arguments

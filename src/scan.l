@@ -602,10 +602,10 @@ static int load_files(const char* orig_file)
 		f = stdin;
 		file_path = canonical_stdin_path;
 
-		if ( g_policy_debug )
+		if ( zeek::detail::g_policy_debug )
 			{
-			debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
-			g_policy_debug = false;
+			zeek::detail::debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
+			zeek::detail::g_policy_debug = false;
 			}
 		}
 
@@ -635,12 +635,12 @@ static int load_files(const char* orig_file)
 
 	files_scanned.push_back(std::move(sf));
 
-	if ( g_policy_debug && ! file_path.empty() )
+	if ( zeek::detail::g_policy_debug && ! file_path.empty() )
 		{
 		// Add the filename to the file mapping table (Debug.h).
-		Filemap* map = new Filemap;
+		zeek::detail::Filemap* map = new zeek::detail::Filemap;
 		HashKey* key = new HashKey(file_path.c_str());
-		g_dbgfilemaps.emplace(file_path, map);
+		zeek::detail::g_dbgfilemaps.emplace(file_path, map);
 		LoadPolicyFileText(file_path.c_str());
 		}
 

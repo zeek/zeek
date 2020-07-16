@@ -8,6 +8,8 @@
 #include "util.h"
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
+namespace zeek::detail {
+
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
  */
@@ -83,3 +85,8 @@ private:
 };
 
 extern Brofiler brofiler;
+
+} // namespace zeek::detail
+
+using Brofiler [[deprecated("Remove in v4.1. Use zeek::detail::Brofiler.")]] = zeek::detail::Brofiler;
+extern zeek::detail::Brofiler& brofiler [[deprecated("Remove in v4.1. Use zeek::detail::brofiler.")]];

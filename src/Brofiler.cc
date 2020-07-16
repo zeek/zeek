@@ -15,6 +15,8 @@
 
 using namespace std;
 
+namespace zeek::detail {
+
 Brofiler::Brofiler()
 	: ignoring(0), delim('\t')
 	{
@@ -154,3 +156,5 @@ bool Brofiler::WriteStats()
 	fclose(f);
 	return true;
 	}
+
+} // namespace zeek::detail

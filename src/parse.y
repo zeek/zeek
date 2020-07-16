@@ -1416,7 +1416,7 @@ stmt:
 			zeek::detail::set_location(@1, @4);
 			$$ = $3;
 			if ( $2 )
-			    brofiler.DecIgnoreDepth();
+			    zeek::detail::brofiler.DecIgnoreDepth();
 			}
 
 	|	TOK_PRINT expr_list ';' opt_no_test
@@ -1424,7 +1424,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::PrintStmt(zeek::IntrusivePtr{zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_EVENT event ';' opt_no_test
@@ -1432,7 +1432,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::EventStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt
@@ -1468,7 +1468,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::NextStmt;
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_BREAK ';' opt_no_test
@@ -1476,7 +1476,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::BreakStmt;
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_FALLTHROUGH ';' opt_no_test
@@ -1484,7 +1484,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::FallthroughStmt;
 			if ( ! $3 )
-				brofiler.AddStmt($$);
+				zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_RETURN ';' opt_no_test
@@ -1492,7 +1492,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::ReturnStmt(0);
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_RETURN expr ';' opt_no_test
@@ -1500,7 +1500,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::ReturnStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_ADD expr ';' opt_no_test
@@ -1508,7 +1508,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::AddStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_DELETE expr ';' opt_no_test
@@ -1516,7 +1516,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::DelStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
@@ -1527,7 +1527,7 @@ stmt:
 			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			               VAR_REGULAR).release();
 			if ( ! $8 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
@@ -1538,7 +1538,7 @@ stmt:
 			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			               VAR_CONST).release();
 			if ( ! $8 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt
@@ -1554,7 +1554,7 @@ stmt:
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5},
 			                                  {zeek::AdoptRef{}, $10}, {zeek::AdoptRef{}, $7}, false);
 			if ( $9 )
-			    brofiler.DecIgnoreDepth();
+			    zeek::detail::brofiler.DecIgnoreDepth();
 			}
 
 
@@ -1571,7 +1571,7 @@ stmt:
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $4}, {zeek::AdoptRef{}, $6},
 			                                  {zeek::AdoptRef{}, $11}, {zeek::AdoptRef{}, $8}, true);
 			if ( $10 )
-			    brofiler.DecIgnoreDepth();
+			    zeek::detail::brofiler.DecIgnoreDepth();
 			}
 
 	|	index_slice '=' expr ';' opt_no_test
@@ -1581,7 +1581,7 @@ stmt:
 			                                  {zeek::AdoptRef{}, $3}, in_init));
 
 			if ( ! $5 )
-				brofiler.AddStmt($$);
+				zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	expr ';' opt_no_test
@@ -1589,7 +1589,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::ExprStmt({zeek::AdoptRef{}, $1});
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::brofiler.AddStmt($$);
 			}
 
 	|	';'
@@ -1881,7 +1881,7 @@ opt_no_test:
 
 opt_no_test_block:
 		TOK_NO_TEST
-			{ $$ = true; brofiler.IncIgnoreDepth(); }
+			{ $$ = true; zeek::detail::brofiler.IncIgnoreDepth(); }
 	|
 			{ $$ = false; }
 

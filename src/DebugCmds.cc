@@ -53,7 +53,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::d
 	regex_t re;
 	if ( regcomp(&re, regex.c_str(), REG_EXTENDED|REG_NOSUB) )
 		{
-		debug_msg("Invalid regular expression: %s\n", regex.c_str());
+		zeek::detail::debug_msg("Invalid regular expression: %s\n", regex.c_str());
 		return;
 		}
 
@@ -80,14 +80,14 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 
 	while ( true )
 		{
-		debug_msg("There were multiple matches, please choose:\n");
+		zeek::detail::debug_msg("There were multiple matches, please choose:\n");
 
 		for ( size_t i = 0; i < choices.size(); i++ )
-			debug_msg("[%lu] %s\n", i+1, choices[i]->Name());
+			zeek::detail::debug_msg("[%lu] %s\n", i+1, choices[i]->Name());
 
-		debug_msg("[a] All of the above\n");
-		debug_msg("[n] None of the above\n");
-		debug_msg("Enter your choice: ");
+		zeek::detail::debug_msg("[a] All of the above\n");
+		zeek::detail::debug_msg("[n] None of the above\n");
+		zeek::detail::debug_msg("Enter your choice: ");
 
 		char charinput[256];
 		if ( ! fgets(charinput, sizeof(charinput) - 1, stdin) )
@@ -123,7 +123,10 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 // DebugCmdInfo implementation
 //
 
-zeek::PQueue<DebugCmdInfo> g_DebugCmdInfos;
+zeek::PQueue<zeek::detail::DebugCmdInfo> zeek::detail::g_DebugCmdInfos;
+zeek::PQueue<zeek::detail::DebugCmdInfo>& g_DebugCmdInfos = zeek::detail::g_DebugCmdInfos;
+
+namespace zeek::detail {
 
 DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
 : cmd(info.cmd), helpstring(nullptr)
@@ -663,7 +666,7 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		{
 		vector<ParseLocationRec> plrs = parse_location_string(args[0]);
 		ParseLocationRec plr = plrs[0];
-		if ( plr.type == plrUnknown )
+		if ( plr.type == PLR_UNKNOWN )
 			{
 			debug_msg("Invalid location specifier\n");
 			return false;
@@ -722,3 +725,5 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 	debug_msg("Invalid argument");
 	return 0;
 	}
+
+} // namespace zeek::detail

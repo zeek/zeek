@@ -67,7 +67,8 @@ extern "C" {
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "3rdparty/doctest.h"
 
-Brofiler brofiler;
+zeek::detail::Brofiler zeek::detail::brofiler;
+zeek::detail::Brofiler& brofiler = zeek::detail::brofiler;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -272,7 +273,7 @@ void terminate_bro()
 	// the termination process.
 	file_mgr->Terminate();
 
-	brofiler.WriteStats();
+        zeek::detail::brofiler.WriteStats();
 
 	if ( zeek_done )
 		mgr.Enqueue(zeek_done, zeek::Args{});
@@ -424,7 +425,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( zeek::Supervisor::ThisNode() )
 		zeek::Supervisor::ThisNode()->Init(&options);
 
-	brofiler.ReadStats();
+        zeek::detail::brofiler.ReadStats();
 
 	auto dns_type = options.dns_mode;
 

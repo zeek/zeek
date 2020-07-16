@@ -19,7 +19,7 @@ class Component : public plugin::Component,
 public:
 	typedef AnalyzerPtr (*factory_callback)();
 
-	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0, bool enabled = true);
+	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0);
 	~Component() override = default;
 
 	/**
@@ -34,20 +34,6 @@ public:
 	 */
 	factory_callback Factory() const { return factory; }
 
-	/**
-	 * Returns true if the analyzer is currently enabled and hence
-	 * available for use.
-	 */
-	bool Enabled() const { return enabled; }
-
-	/**
-	 * Enables or disables this analyzer.
-	 *
-	 * @param arg_enabled True to enabled, false to disable.
-	 *
-	 */
-	void SetEnabled(bool arg_enabled) { enabled = arg_enabled; }
-
 protected:
 	/**
 	 * Overriden from plugin::Component.
@@ -56,7 +42,6 @@ protected:
 
 private:
 	factory_callback factory; // The analyzer's factory callback.
-	bool enabled;			  // True if the analyzer is enabled.
 };
 
 }

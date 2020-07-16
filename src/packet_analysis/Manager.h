@@ -51,74 +51,12 @@ public:
 	void DumpDebug(); // Called after zeek_init() events.
 
 	/**
-	 * Enables an analyzer type. Only enabled analyzers will be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool EnableAnalyzer(const Tag& tag);
-
-	/**
-	 * Enables an analyzer type. Only enabled analyzers will be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool EnableAnalyzer(EnumVal* tag);
-
-	/**
-	 * Enables an analyzer type. Disabled analyzers will not be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool DisableAnalyzer(const Tag& tag);
-
-	/**
-	 * Disables an analyzer type. Disabled analyzers will not be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool DisableAnalyzer(EnumVal* tag);
-
-	/**
-	 * Disables all currently registered analyzers.
-	 */
-	void DisableAllAnalyzers();
-
-	/**
 	 * Returns the tag associated with an analyer name, or the tag
 	 * associated with an error if no such analyzer exists.
 	 *
 	 * @param name The canonical analyzer name to check.
 	 */
 	Tag GetAnalyzerTag(const char* name);
-
-	/**
-	 * Returns true if an analyzer is enabled.
-	 *
-	 * @param tag The analyzer's tag.
-	 */
-	bool IsEnabled(Tag tag);
-
-	/**
-	 * Returns true if an analyzer is enabled.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
-	 */
-	bool IsEnabled(EnumVal* tag);
 
 	/**
 	 * Instantiates a new analyzer instance.

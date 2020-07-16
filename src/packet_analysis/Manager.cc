@@ -88,7 +88,7 @@ void Manager::DumpDebug()
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Available packet analyzers after zeek_init():");
 	for ( auto& current : GetComponents() )
 		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "    %s (%s)", current->Name().c_str(), IsEnabled(current->Tag()) ? "enabled" : "disabled");
+		DBG_LOG(DBG_PACKET_ANALYSIS, "    %s", current->Name().c_str());
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "ProtocolAnalyzerSet FSM:");
@@ -100,87 +100,6 @@ void Manager::DumpDebug()
 #endif
 	}
 
-bool Manager::EnableAnalyzer(const Tag& tag)
-	{
-	if ( Component* p = Lookup(tag) )
-		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Enabling analyzer %s", p->Name().c_str());
-		p->SetEnabled(true);
-		return true;
-		}
-
-	return false;
-	}
-
-bool Manager::EnableAnalyzer(EnumVal* val)
-	{
-	if ( Component* p = Lookup(val) )
-		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Enabling analyzer %s", p->Name().c_str());
-		p->SetEnabled(true);
-		return true;
-		}
-
-	return false;
-	}
-
-bool Manager::DisableAnalyzer(const Tag& tag)
-	{
-	if ( Component* p = Lookup(tag) )
-		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling analyzer %s", p->Name().c_str());
-		p->SetEnabled(false);
-		return true;
-		}
-
-	return false;
-	}
-
-bool Manager::DisableAnalyzer(EnumVal* val)
-	{
-	if ( Component* p = Lookup(val) )
-		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling analyzer %s", p->Name().c_str());
-		p->SetEnabled(false);
-		return true;
-		}
-
-	return false;
-	}
-
-void Manager::DisableAllAnalyzers()
-	{
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Disabling all analyzers");
-
-	std::list<Component*> all_analyzers = GetComponents();
-	for ( const auto& analyzer : all_analyzers )
-		analyzer->SetEnabled(false);
-	}
-
-zeek::packet_analysis::Tag Manager::GetAnalyzerTag(const char* name)
-	{
-	return GetComponentTag(name);
-	}
-
-bool Manager::IsEnabled(Tag tag)
-	{
-	if ( ! tag )
-		return false;
-
-	if ( Component* p = Lookup(tag) )
-		return p->Enabled();
-
-	return false;
-	}
-
-bool Manager::IsEnabled(EnumVal* val)
-	{
-	if ( Component* p = Lookup(val) )
-		return p->Enabled();
-
-	return false;
-	}
-
 AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 	{
 	Component* c = Lookup(tag);
@@ -190,9 +109,6 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 		reporter->InternalWarning("request to instantiate unknown packet_analysis");
 		return nullptr;
 		}
-
-	if ( ! c->Enabled() )
-		return nullptr;
 
 	if ( ! c->Factory() )
 		{

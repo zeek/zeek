@@ -1,4 +1,3 @@
-
 #include "Plugin.h"
 #include "packet_analysis/Component.h"
 

@@ -901,31 +901,26 @@ bool ensure_intermediate_dirs(const char* dirname)
 
 bool ensure_dir(const char *dirname)
 	{
+	if ( mkdir(dirname, 0700) == 0 )
+		return true;
+
+	auto mkdir_errno = errno;
 	struct stat st;
-	if ( stat(dirname, &st) < 0 )
-		{
-		if ( errno != ENOENT )
-			{
-			reporter->Warning("can't stat directory %s: %s",
-				dirname, strerror(errno));
-			return false;
-			}
 
-		if ( mkdir(dirname, 0700) < 0 )
-			{
-			reporter->Warning("can't create directory %s: %s",
-				dirname, strerror(errno));
-			return false;
-			}
-		}
-
-	else if ( ! S_ISDIR(st.st_mode) )
+	if ( stat(dirname, &st) == -1 )
 		{
-		reporter->Warning("%s exists but is not a directory", dirname);
+		// Show the original failure reason for mkdir() since nothing's there
+		// or we can't even tell what is now.
+		reporter->Warning("can't create directory %s: %s",
+		                  dirname, strerror(mkdir_errno));
 		return false;
 		}
 
-	return true;
+	if ( S_ISDIR(st.st_mode) )
+		return true;
+
+	reporter->Warning("%s exists but is not a directory", dirname);
+	return false;
 	}
 
 bool is_dir(const std::string& path)

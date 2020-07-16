@@ -60,7 +60,7 @@ public:
 	      request_pending()
 		{ }
 
-	DNS_Mgr_Request(const IPAddr& a)
+	DNS_Mgr_Request(const zeek::IPAddr& a)
 	    : host(), fam(), qtype(), addr(a), request_pending()
 		{ }
 
@@ -68,7 +68,7 @@ public:
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return host; }
-	const IPAddr& ReqAddr() const		{ return addr; }
+	const zeek::IPAddr& ReqAddr() const		{ return addr; }
 	bool ReqIsTxt() const	{ return qtype == 16; }
 
 	int MakeRequest(nb_dns_info* nb_dns);
@@ -80,7 +80,7 @@ protected:
 	char* host;	// if non-nil, this is a host request
 	int fam;	// address family query type for host requests
 	int qtype;	// Query type
-	IPAddr addr;
+	zeek::IPAddr addr;
 	int request_pending;
 };
 
@@ -106,7 +106,7 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 class DNS_Mapping {
 public:
 	DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl);
-	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl);
+	DNS_Mapping(const zeek::IPAddr& addr, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(FILE* f);
 
 	bool NoMapping() const		{ return no_mapping; }
@@ -116,7 +116,7 @@ public:
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return req_host; }
-	IPAddr ReqAddr() const		{ return req_addr; }
+	zeek::IPAddr ReqAddr() const		{ return req_addr; }
 	string ReqStr() const
 		{
 		return req_host ? req_host : req_addr.AsString();
@@ -150,7 +150,7 @@ protected:
 	void Clear();
 
 	char* req_host;
-	IPAddr req_addr;
+	zeek::IPAddr req_addr;
 	uint32_t req_ttl;
 
 	int num_names;
@@ -158,7 +158,7 @@ protected:
 	zeek::StringValPtr host_val;
 
 	int num_addrs;
-	IPAddr* addrs;
+	zeek::IPAddr* addrs;
 	zeek::ListValPtr addrs_val;
 
 	double creation_time;
@@ -192,7 +192,7 @@ DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)
 		names[0] = copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
+DNS_Mapping::DNS_Mapping(const zeek::IPAddr& addr, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
 	req_addr = addr;
@@ -231,7 +231,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	if ( is_req_host )
 		req_host = copy_string(req_buf);
 	else
-		req_addr = IPAddr(req_buf);
+		req_addr = zeek::IPAddr(req_buf);
 
 	num_names = 1;
 	names = new char*[num_names];
@@ -239,7 +239,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new IPAddr[num_addrs];
+		addrs = new zeek::IPAddr[num_addrs];
 
 		for ( int i = 0; i < num_addrs; ++i )
 			{
@@ -253,7 +253,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			if ( newline )
 				*newline = '\0';
 
-			addrs[i] = IPAddr(buf);
+			addrs[i] = zeek::IPAddr(buf);
 			}
 		}
 	else
@@ -336,14 +336,14 @@ void DNS_Mapping::Init(struct hostent* h)
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new IPAddr[num_addrs];
+		addrs = new zeek::IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
 			if ( h->h_addrtype == AF_INET )
-				addrs[i] = IPAddr(IPv4, (uint32_t*)h->h_addr_list[i],
-				                  IPAddr::Network);
+				addrs[i] = zeek::IPAddr(IPv4, (uint32_t*)h->h_addr_list[i],
+				                  zeek::IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
-				addrs[i] = IPAddr(IPv6, (uint32_t*)h->h_addr_list[i],
-				                  IPAddr::Network);
+				addrs[i] = zeek::IPAddr(IPv6, (uint32_t*)h->h_addr_list[i],
+				                  zeek::IPAddr::Network);
 		}
 	else
 		addrs = nullptr;
@@ -410,10 +410,10 @@ void DNS_Mgr::InitSource()
 	// configured to the user's desired address at the time when we need to to
 	// the lookup.
 	auto dns_resolver = zeekenv("ZEEK_DNS_RESOLVER");
-	auto dns_resolver_addr = dns_resolver ? IPAddr(dns_resolver) : IPAddr();
+	auto dns_resolver_addr = dns_resolver ? zeek::IPAddr(dns_resolver) : zeek::IPAddr();
 	char err[NB_DNS_ERRSIZE];
 
-	if ( dns_resolver_addr == IPAddr() )
+	if ( dns_resolver_addr == zeek::IPAddr() )
 		nb_dns = nb_dns_init(err);
 	else
 		{
@@ -477,7 +477,7 @@ static const char* fake_text_lookup_result(const char* name)
 	return tmp;
 	}
 
-static const char* fake_addr_lookup_result(const IPAddr& addr)
+static const char* fake_addr_lookup_result(const zeek::IPAddr& addr)
 	{
 	static char tmp[128];
 	snprintf(tmp, sizeof(tmp), "fake_addr_lookup_result_%s",
@@ -542,7 +542,7 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 	}
 	}
 
-zeek::ValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
+zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 	{
 	InitSource();
 
@@ -876,12 +876,12 @@ zeek::ListValPtr DNS_Mgr::AddrListDelta(zeek::ListVal* al1, zeek::ListVal* al2)
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		const IPAddr& al1_i = al1->Idx(i)->AsAddr();
+		const zeek::IPAddr& al1_i = al1->Idx(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			const IPAddr& al2_j = al2->Idx(j)->AsAddr();
+			const zeek::IPAddr& al2_j = al2->Idx(j)->AsAddr();
 			if ( al1_i == al2_j )
 				break;
 			}
@@ -898,7 +898,7 @@ void DNS_Mgr::DumpAddrList(FILE* f, zeek::ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		const IPAddr& al_i = al->Idx(i)->AsAddr();
+		const zeek::IPAddr& al_i = al->Idx(i)->AsAddr();
 		fprintf(f, "%s%s", i > 0 ? "," : "", al_i.AsString().c_str());
 		}
 	}
@@ -959,7 +959,7 @@ void DNS_Mgr::Save(FILE* f, const HostMap& m)
 		}
 	}
 
-const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
+const char* DNS_Mgr::LookupAddrInCache(const zeek::IPAddr& addr)
 	{
 	AddrMap::iterator it = addr_mappings.find(addr);
 
@@ -1043,7 +1043,7 @@ static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
 	delete callback;
 	}
 
-void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupAddr(const zeek::IPAddr& host, LookupCallback* callback)
 	{
 	InitSource();
 
@@ -1209,7 +1209,7 @@ void DNS_Mgr::IssueAsyncRequests()
 		}
 	}
 
-void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
+void DNS_Mgr::CheckAsyncAddrRequest(const zeek::IPAddr& addr, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncHostRequest.
 

@@ -16,15 +16,15 @@
 
 #include "IntrusivePtr.h"
 
-class IPAddr;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
+
+class FragReassembler;
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
-}
 
 #ifdef ENABLE_MOBILE_IPV6
 
@@ -222,14 +222,14 @@ public:
 	 * option as defined by Mobile IPv6 (RFC 6275), then return it, else
 	 * return the source address in the main IPv6 header.
 	 */
-	IPAddr SrcAddr() const;
+	zeek::IPAddr SrcAddr() const;
 
 	/**
 	 * If the chain contains a Routing header with non-zero segments left,
 	 * then return the last address of the first such header, else return
 	 * the destination address of the main IPv6 header.
 	 */
-	IPAddr DstAddr() const;
+	zeek::IPAddr DstAddr() const;
 
 	/**
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
@@ -243,7 +243,7 @@ public:
 protected:
 	// for access to protected ctor that changes next header values that
 	// point to a fragment
-	friend class FragReassembler;
+	friend class ::FragReassembler;
 
 	IPv6_Hdr_Chain() = default;
 
@@ -287,14 +287,14 @@ protected:
 	/**
 	 * Home Address of the packet's source as defined by Mobile IPv6 (RFC 6275).
 	 */
-	IPAddr* homeAddr = nullptr;
+	zeek::IPAddr* homeAddr = nullptr;
 #endif
 
 	/**
 	 * The final destination address in chain's first Routing header that has
 	 * non-zero segments left.
 	 */
-	IPAddr* finalDst = nullptr;
+	zeek::IPAddr* finalDst = nullptr;
 };
 
 /**
@@ -366,19 +366,19 @@ public:
 	/**
 	 * Returns the source address held in the IP header.
 	 */
-	IPAddr IPHeaderSrcAddr() const;
+	zeek::IPAddr IPHeaderSrcAddr() const;
 
 	/**
 	 * Returns the destination address held in the IP header.
 	 */
-	IPAddr IPHeaderDstAddr() const;
+	zeek::IPAddr IPHeaderDstAddr() const;
 
 	/**
 	 * For IPv4 or IPv6 headers that don't contain a Home Address option
 	 * (Mobile IPv6, RFC 6275), return source address held in the IP header.
 	 * For IPv6 headers that contain a Home Address option, return that address.
 	 */
-	IPAddr SrcAddr() const;
+	zeek::IPAddr SrcAddr() const;
 
 	/**
 	 * For IPv4 or IPv6 headers that don't contain a Routing header with
@@ -386,7 +386,7 @@ public:
 	 * For IPv6 headers with a Routing header that has non-zero segments left,
 	 * return the last address in the first such Routing header.
 	 */
-	IPAddr DstAddr() const;
+	zeek::IPAddr DstAddr() const;
 
 	/**
 	 * Returns a pointer to the payload of the IP packet, usually an
@@ -561,3 +561,13 @@ private:
 	const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
 	bool del;
 };
+
+} // namespace zeek
+
+#ifdef ENABLE_MOBILE_IPV6
+using ip6_mobility [[deprecated("Remove in v4.1. Use zeek::ip6_mobility.")]] = zeek::ip6_mobility;
+#endif
+
+using IPv6_Hdr [[deprecated("Remove in v4.1. Use zeek::IPv6_Hdr.")]] = zeek::IPv6_Hdr;
+using IPv6_Hdr_Chain [[deprecated("Remove in v4.1. Use zeek::IPv6_Hdr_Chain.")]] = zeek::IPv6_Hdr_Chain;
+using IP_Hdr [[deprecated("Remove in v4.1. Use zeek::IP_Hdr.")]] = zeek::IP_Hdr;

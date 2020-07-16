@@ -40,7 +40,7 @@ public:
 	 * @param d The tunnel destination address, likely taken from an IP header.
 	 * @param t The type of IP tunnel.
 	 */
-	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
+	EncapsulatingConn(const zeek::IPAddr& s, const zeek::IPAddr& d,
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
 		  proto(TRANSPORT_UNKNOWN), type(t),
@@ -119,8 +119,8 @@ public:
 		}
 
 protected:
-	IPAddr src_addr;
-	IPAddr dst_addr;
+	zeek::IPAddr src_addr;
+	zeek::IPAddr dst_addr;
 	uint16_t src_port;
 	uint16_t dst_port;
 	TransportProto proto;

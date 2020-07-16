@@ -817,7 +817,7 @@ const char* CompositeHash::RecoverOneVal(
 		const uint32_t* const kp = AlignType<uint32_t>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+4);
 
-		IPAddr addr(IPv6, kp, IPAddr::Network);
+		zeek::IPAddr addr(IPv6, kp, zeek::IPAddr::Network);
 
 		switch ( tag ) {
 		case zeek::TYPE_ADDR:

@@ -260,7 +260,7 @@ public:
 
 class FlowWeirdTimer final : public Timer {
 public:
-	using IPPair = std::pair<IPAddr, IPAddr>;
+	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
 		: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
@@ -292,7 +292,7 @@ void Reporter::ResetNetWeird(const std::string& name)
 	net_weird_state.erase(name);
 	}
 
-void Reporter::ResetFlowWeird(const IPAddr& orig, const IPAddr& resp)
+void Reporter::ResetFlowWeird(const zeek::IPAddr& orig, const zeek::IPAddr& resp)
 	{
 	flow_weird_state.erase(std::make_pair(orig, resp));
 	}
@@ -322,7 +322,7 @@ bool Reporter::PermitNetWeird(const char* name)
 	}
 
 bool Reporter::PermitFlowWeird(const char* name,
-                               const IPAddr& orig, const IPAddr& resp)
+                               const zeek::IPAddr& orig, const zeek::IPAddr& resp)
 	{
 	auto endpoints = std::make_pair(orig, resp);
 	auto& map = flow_weird_state[endpoints];
@@ -432,7 +432,7 @@ void Reporter::Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
 	            "%s", name);
 	}
 
-void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl)
+void Reporter::Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 

@@ -2046,7 +2046,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ip->AsAddr().IsLoopback() )
 		return zeek::val_mgr->True();
 
-	list<IPAddr> addrs;
+	list<zeek::IPAddr> addrs;
 
 	char host[MAXHOSTNAMELEN];
 
@@ -2059,8 +2059,8 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPv4, (uint32_t*)ent->h_addr_list[len],
-			                       IPAddr::Network));
+			addrs.push_back(zeek::IPAddr(IPv4, (uint32_t*)ent->h_addr_list[len],
+			                       zeek::IPAddr::Network));
 		}
 
 	ent = gethostbyname2(host, AF_INET6);
@@ -2068,11 +2068,11 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPv6, (uint32_t*)ent->h_addr_list[len],
-			                       IPAddr::Network));
+			addrs.push_back(zeek::IPAddr(IPv6, (uint32_t*)ent->h_addr_list[len],
+			                       zeek::IPAddr::Network));
 		}
 
-	list<IPAddr>::const_iterator it;
+	list<zeek::IPAddr>::const_iterator it;
 	for ( it = addrs.begin(); it != addrs.end(); ++it )
 		{
 		if ( *it == ip->AsAddr() )
@@ -2241,7 +2241,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 
 	while ( len > 0 )
 		{
-		IPAddr a(IPv6, (const uint32_t*) bytes, IPAddr::Network);
+		zeek::IPAddr a(IPv6, (const uint32_t*) bytes, zeek::IPAddr::Network);
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::AddrVal>(a));
 		bytes += 16;
 		len -= 16;
@@ -2484,11 +2484,11 @@ function to_addr%(ip: string%): addr
 	zeek::ValPtr ret;
 	in6_addr tmp;
 
-	if ( IPAddr::ConvertString(s, &tmp) )
-		ret = zeek::make_intrusive<zeek::AddrVal>(IPAddr(tmp));
+	if ( zeek::IPAddr::ConvertString(s, &tmp) )
+		ret = zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(tmp));
 	else
 		{
-		ret = zeek::make_intrusive<zeek::AddrVal>(IPAddr());
+		ret = zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr());
 		zeek::emit_builtin_error("failed converting string to IP address", ip);
 		}
 
@@ -2504,7 +2504,7 @@ function to_addr%(ip: string%): addr
 function is_valid_ip%(ip: string%): bool
 	%{
 	char* s = ip->AsString()->Render();
-	auto rval = IPAddr::IsValid(s);
+	auto rval = zeek::IPAddr::IsValid(s);
 	delete [] s;
 	return zeek::val_mgr->Bool(rval);
 	%}
@@ -3206,9 +3206,9 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 ## .. zeek:see:: mask_addr
 function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	%{
-	IPAddr addr1(a1->AsAddr());
+	zeek::IPAddr addr1(a1->AsAddr());
 	addr1.Mask(top_bits_from_a1);
-	IPAddr addr2(a2->AsAddr());
+	zeek::IPAddr addr2(a2->AsAddr());
 	addr2.ReverseMask(top_bits_from_a1);
 	return zeek::make_intrusive<zeek::AddrVal>(addr1|addr2);
 	%}
@@ -3375,9 +3375,9 @@ const char* conn_id_string(zeek::Val* c)
 	const auto& id = (*(c->AsRecord()))[0];
 	auto vl = id->AsRecord();
 
-	const IPAddr& orig_h = (*vl)[0]->AsAddr();
+	const zeek::IPAddr& orig_h = (*vl)[0]->AsAddr();
 	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
-	const IPAddr& resp_h = (*vl)[2]->AsAddr();
+	const zeek::IPAddr& resp_h = (*vl)[2]->AsAddr();
 	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
 
 	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
@@ -3859,7 +3859,7 @@ static void mmdb_check_asn()
 		}
 	}
 
-static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
+static bool mmdb_lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result,
                         bool asn)
 	{
 	struct sockaddr_storage ss = {0};
@@ -3893,12 +3893,12 @@ static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
 	return result.found_entry;
 	}
 
-static bool mmdb_lookup_loc(const IPAddr& addr, MMDB_lookup_result_s& result)
+static bool mmdb_lookup_loc(const zeek::IPAddr& addr, MMDB_lookup_result_s& result)
 	{
 	return mmdb_lookup(addr, result, false);
 	}
 
-static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
+static bool mmdb_lookup_asn(const zeek::IPAddr& addr, MMDB_lookup_result_s& result)
 	{
 	return mmdb_lookup(addr, result, true);
 	}

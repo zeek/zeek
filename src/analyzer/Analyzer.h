@@ -21,7 +21,7 @@ using BroFilePtr = zeek::IntrusivePtr<BroFile>;
 
 class Rule;
 class Connection;
-class IP_Hdr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
@@ -59,7 +59,7 @@ public:
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
 				   bool orig, uint64_t seq,
-				   const IP_Hdr* ip, int caplen)
+				   const zeek::IP_Hdr* ip, int caplen)
 		{ }
 
 	/**
@@ -157,7 +157,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const IP_Hdr* ip = nullptr, int caplen = 0);
+			uint64_t seq = -1, const zeek::IP_Hdr* ip = nullptr, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -210,7 +210,7 @@ public:
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
 					bool orig, uint64_t seq,
-					const IP_Hdr* ip, int caplen);
+					const zeek::IP_Hdr* ip, int caplen);
 
 	/**
 	 * Forwards stream input on to all child analyzers. If the analyzer
@@ -241,7 +241,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen);
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -839,7 +839,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or

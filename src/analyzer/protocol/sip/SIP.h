@@ -16,7 +16,7 @@ public:
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-				   	   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+				   	   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 	{ return new SIP_Analyzer(conn); }

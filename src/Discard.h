@@ -6,8 +6,7 @@
 
 #include "IntrusivePtr.h"
 
-class IP_Hdr;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
@@ -22,7 +21,7 @@ public:
 
 	bool IsActive();
 
-	bool NextPacket(const IP_Hdr* ip, int len, int caplen);
+	bool NextPacket(const zeek::IP_Hdr* ip, int len, int caplen);
 
 protected:
 	zeek::Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);

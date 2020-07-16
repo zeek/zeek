@@ -234,7 +234,7 @@ bool BinarySerializationFormat::Read(std::string* v, const char* tag)
 	return true;
 	}
 
-bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
+bool BinarySerializationFormat::Read(zeek::IPAddr* addr, const char* tag)
 	{
 	int n = 0;
 	if ( ! Read(&n, "addr-len") )
@@ -254,22 +254,22 @@ bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
 		}
 
 	if ( n == 1 )
-		*addr = IPAddr(IPv4, raw, IPAddr::Network);
+		*addr = zeek::IPAddr(IPv4, raw, zeek::IPAddr::Network);
 	else
-		*addr = IPAddr(IPv6, raw, IPAddr::Network);
+		*addr = zeek::IPAddr(IPv6, raw, zeek::IPAddr::Network);
 
 	return true;
 	}
 
-bool BinarySerializationFormat::Read(IPPrefix* prefix, const char* tag)
+bool BinarySerializationFormat::Read(zeek::IPPrefix* prefix, const char* tag)
 	{
-	IPAddr addr;
+	zeek::IPAddr addr;
 	int len;
 
 	if ( ! (Read(&addr, "prefix") && Read(&len, "width")) )
 		return false;
 
-	*prefix = IPPrefix(addr, len);
+	*prefix = zeek::IPPrefix(addr, len);
 	return true;
 	}
 
@@ -368,7 +368,7 @@ bool BinarySerializationFormat::Write(const std::string& s, const char* tag)
 	return Write(s.data(), s.size(), tag);
 	}
 
-bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
+bool BinarySerializationFormat::Write(const zeek::IPAddr& addr, const char* tag)
 	{
 	const uint32_t* raw;
 	int n = addr.GetBytes(&raw);
@@ -387,7 +387,7 @@ bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
 	return true;
 	}
 
-bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag)
+bool BinarySerializationFormat::Write(const zeek::IPPrefix& prefix, const char* tag)
 	{
 	return Write(prefix.Prefix(), "prefix") && Write(prefix.Length(), "width");
 	}

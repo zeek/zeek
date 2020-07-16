@@ -61,7 +61,7 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 	level = 0;
 	}
 
-RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
+RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<zeek::IPPrefix> arg_v)
 	{
 	prot = arg_prot;
 	offset = 0;
@@ -503,12 +503,12 @@ static inline bool match_or(const maskedvalue_list& mvals, uint32_t v, FuncT com
 
 // Evaluate a prefix list (matches if at least one value matches).
 template <typename FuncT>
-static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
+static inline bool match_or(const vector<zeek::IPPrefix>& prefixes, const zeek::IPAddr& a,
                             FuncT comp)
 	{
 	for ( size_t i = 0; i < prefixes.size(); ++i )
 		{
-		IPAddr masked(a);
+		zeek::IPAddr masked(a);
 		masked.Mask(prefixes[i].LengthIPv6());
 		if ( comp(masked, prefixes[i].Prefix()) )
 			return true;
@@ -532,12 +532,12 @@ static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v,
 
 // Evaluate a prefix list (doesn't match if any value matches).
 template <typename FuncT>
-static inline bool match_not_and(const vector<IPPrefix>& prefixes,
-                                 const IPAddr& a, FuncT comp)
+static inline bool match_not_and(const vector<zeek::IPPrefix>& prefixes,
+                                 const zeek::IPAddr& a, FuncT comp)
 	{
 	for ( size_t i = 0; i < prefixes.size(); ++i )
 		{
-		IPAddr masked(a);
+		zeek::IPAddr masked(a);
 		masked.Mask(prefixes[i].LengthIPv6());
 		if ( comp(masked, prefixes[i].Prefix()) )
 			return false;
@@ -580,32 +580,32 @@ static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
 	return false;
 	}
 
-static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
+static inline bool compare(const vector<zeek::IPPrefix>& prefixes, const zeek::IPAddr& a,
                            RuleHdrTest::Comp comp)
 	{
 	switch ( comp ) {
 		case RuleHdrTest::EQ:
-			return match_or(prefixes, a, std::equal_to<IPAddr>());
+			return match_or(prefixes, a, std::equal_to<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::NE:
-			return match_not_and(prefixes, a, std::equal_to<IPAddr>());
+			return match_not_and(prefixes, a, std::equal_to<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::LT:
-			return match_or(prefixes, a, std::less<IPAddr>());
+			return match_or(prefixes, a, std::less<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::GT:
-			return match_or(prefixes, a, std::greater<IPAddr>());
+			return match_or(prefixes, a, std::greater<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::LE:
-			return match_or(prefixes, a, std::less_equal<IPAddr>());
+			return match_or(prefixes, a, std::less_equal<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::GE:
-			return match_or(prefixes, a, std::greater_equal<IPAddr>());
+			return match_or(prefixes, a, std::greater_equal<zeek::IPAddr>());
 			break;
 
 		default:
@@ -737,9 +737,9 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 	}
 
 RuleEndpointState* RuleMatcher::InitEndpoint(zeek::analyzer::Analyzer* analyzer,
-						const IP_Hdr* ip, int caplen,
-						RuleEndpointState* opposite,
-						bool from_orig, analyzer::pia::PIA* pia)
+                                             const zeek::IP_Hdr* ip, int caplen,
+                                             RuleEndpointState* opposite,
+                                             bool from_orig, analyzer::pia::PIA* pia)
 	{
 	RuleEndpointState* state =
 		new RuleEndpointState(analyzer, from_orig, opposite, pia);
@@ -1289,7 +1289,7 @@ static zeek::Val* get_bro_val(const char* label)
 // if the prefix_vector param isn't null, appending to that is preferred
 // over appending to the masked val list.
 static bool val_to_maskedval(zeek::Val* v, maskedvalue_list* append_to,
-                             vector<IPPrefix>* prefix_vector)
+                             vector<zeek::IPPrefix>* prefix_vector)
 	{
 	MaskedValue* mval = new MaskedValue;
 
@@ -1356,7 +1356,7 @@ static bool val_to_maskedval(zeek::Val* v, maskedvalue_list* append_to,
 	}
 
 void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                         vector<IPPrefix>* prefix_vector)
+                         vector<zeek::IPPrefix>* prefix_vector)
 	{
 	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
@@ -1417,8 +1417,8 @@ uint32_t id_to_uint(const char* id)
 	return 0;
 	}
 
-void RuleMatcherState::InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-					   int caplen, bool from_orig, analyzer::pia::PIA* pia)
+void RuleMatcherState::InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+                                           int caplen, bool from_orig, analyzer::pia::PIA* pia)
 	{
 	if ( ! rule_matcher )
 		return;

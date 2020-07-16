@@ -29,13 +29,13 @@ extern const char* current_rule_file;
 
 class BroFile;
 class IntSet;
-class IP_Hdr;
-class IPPrefix;
 class RE_Match_State;
 class Specific_RE_Matcher;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
@@ -63,7 +63,7 @@ using bstr_list = zeek::PList<zeek::String>;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                                std::vector<IPPrefix>* prefix_vector = nullptr);
+                                std::vector<zeek::IPPrefix>* prefix_vector = nullptr);
 extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
@@ -75,7 +75,7 @@ public:
 
 	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
-	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<zeek::IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -92,7 +92,7 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
-	std::vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
+	std::vector<zeek::IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32_t offset;
 	uint32_t size;
 
@@ -263,8 +263,9 @@ public:
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
-	RuleEndpointState* InitEndpoint(zeek::analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-					int caplen, RuleEndpointState* opposite, bool is_orig, analyzer::pia::PIA* pia);
+	RuleEndpointState* InitEndpoint(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+	                                int caplen, RuleEndpointState* opposite, bool is_orig,
+	                                analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
 	void FinishEndpoint(RuleEndpointState* state);
@@ -372,8 +373,8 @@ public:
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
-	void InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-				 int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
+	void InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+	                         int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

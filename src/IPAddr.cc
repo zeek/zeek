@@ -12,15 +12,15 @@
 
 #include "analyzer/Manager.h"
 
-const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
-                                               0, 0, 0, 0,
-                                               0, 0, 0xff, 0xff };
+constexpr uint8_t zeek::IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
+                                                         0, 0, 0, 0,
+                                                         0, 0, 0xff, 0xff };
 
-const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
+const zeek::IPAddr zeek::IPAddr::v4_unspecified = zeek::IPAddr(in4_addr{});
 
-const IPAddr IPAddr::v6_unspecified = IPAddr();
+const zeek::IPAddr zeek::IPAddr::v6_unspecified = zeek::IPAddr();
 
-ConnIDKey BuildConnIDKey(const ConnID& id)
+zeek::detail::ConnIDKey zeek::detail::BuildConnIDKey(const ConnID& id)
 	{
 	ConnIDKey key;
 
@@ -46,6 +46,8 @@ ConnIDKey BuildConnIDKey(const ConnID& id)
 
 	return key;
 	}
+
+namespace zeek {
 
 IPAddr::IPAddr(const zeek::String& s)
 	{
@@ -345,3 +347,5 @@ bool IPPrefix::ConvertString(const char* text, IPPrefix* result)
 	*result = IPPrefix(ip, len);
 	return true;
 	}
+
+} // namespace zeek

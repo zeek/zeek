@@ -35,7 +35,7 @@ zeek::AddrValPtr network_address_to_val(const ASN1Encoding* na)
 	// but standards don't seem to currently make any provisions for IPv6,
 	// so ignore anything that can't be IPv4.
 	if ( bs.length() != 4 )
-		return zeek::make_intrusive<zeek::AddrVal>(IPAddr());
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr());
 
 	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
 	uint32 network_order = extract_uint32(data);

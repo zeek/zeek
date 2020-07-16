@@ -42,7 +42,7 @@ namespace { // local namespace
 static const int ORIG = 1;
 static const int RESP = 2;
 
-static zeek::RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
+static zeek::RecordVal* build_syn_packet_val(bool is_orig, const zeek::IP_Hdr* ip,
                                              const struct tcphdr* tcp)
 	{
 	int winscale = -1;
@@ -800,7 +800,7 @@ void TCP_Analyzer::GeneratePacketEvent(
 	}
 
 bool TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
-				const IP_Hdr* ip, const struct tcphdr* tp,
+				const zeek::IP_Hdr* ip, const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, uint64_t rel_data_seq,
 				bool is_orig, TCP_Flags flags)
 	{
@@ -818,7 +818,7 @@ void TCP_Analyzer::CheckRecording(bool need_contents, TCP_Flags flags)
 	Conn()->SetRecordCurrentPacket(record_current_packet);
 	}
 
-void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip)
+void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
@@ -1045,7 +1045,7 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	}
 
 void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -1902,7 +1902,7 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 
 void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+						const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
@@ -1984,7 +1984,7 @@ int endian_flip(int n)
 
 bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen,
 			const u_char* /* data */,
-			const IP_Hdr* ip, const struct tcphdr* /* tp */)
+			const zeek::IP_Hdr* ip, const struct tcphdr* /* tp */)
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
@@ -2124,7 +2124,7 @@ void TCPStats_Analyzer::Done()
 		);
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

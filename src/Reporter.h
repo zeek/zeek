@@ -30,6 +30,7 @@ using StringValPtr = zeek::IntrusivePtr<StringVal>;
 }
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -46,16 +47,14 @@ protected:
 	InterpreterException()	{}
 };
 
-class IPAddr;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
 class Reporter {
 public:
-	using IPPair = std::pair<IPAddr, IPAddr>;
-	using ConnTuple = std::tuple<IPAddr, IPAddr, uint32_t, uint32_t, TransportProto>;
+	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
+	using ConnTuple = std::tuple<zeek::IPAddr, zeek::IPAddr, uint32_t, uint32_t, TransportProto>;
 	using WeirdCountMap = std::unordered_map<std::string, uint64_t>;
 	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
 	using WeirdConnTupleMap = std::map<ConnTuple, WeirdCountMap>;
@@ -104,7 +103,7 @@ public:
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
-	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
+	void Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -155,7 +154,7 @@ public:
 	/**
 	 * Reset/cleanup state tracking for a "flow" weird.
 	 */
-	void ResetFlowWeird(const IPAddr& orig, const IPAddr& resp);
+	void ResetFlowWeird(const zeek::IPAddr& orig, const zeek::IPAddr& resp);
 
 	/**
 	 * Reset/cleanup state tracking for a "expired conn" weird.
@@ -274,7 +273,7 @@ private:
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
-	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
+	bool PermitFlowWeird(const char* name, const zeek::IPAddr& o, const zeek::IPAddr& r);
 	bool PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id);
 
 	bool EmitToStderr(bool flag)

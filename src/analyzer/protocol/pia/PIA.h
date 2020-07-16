@@ -42,14 +42,14 @@ public:
 protected:
 	void PIA_Done();
 	void PIA_DeliverPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen, bool clear_state);
+				uint64_t seq, const zeek::IP_Hdr* ip, int caplen, bool clear_state);
 
 	enum State { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
 
 	// Buffers one chunk of data.  Used both for packet payload (incl.
 	// sequence numbers for TCP) and chunks of a reassembled stream.
 	struct DataBlock {
-		IP_Hdr* ip;
+		zeek::IP_Hdr* ip;
 		const u_char* data;
 		bool is_orig;
 		int len;
@@ -67,15 +67,15 @@ protected:
 	};
 
 	void AddToBuffer(Buffer* buffer, uint64_t seq, int len,
-				const u_char* data, bool is_orig, const IP_Hdr* ip = nullptr);
+	                 const u_char* data, bool is_orig, const zeek::IP_Hdr* ip = nullptr);
 	void AddToBuffer(Buffer* buffer, int len,
-				const u_char* data, bool is_orig, const IP_Hdr* ip = nullptr);
+	                 const u_char* data, bool is_orig, const zeek::IP_Hdr* ip = nullptr);
 	void ClearBuffer(Buffer* buffer);
 
 	DataBlock* CurrentPacket()	{ return &current_packet; }
 
 	void DoMatch(const u_char* data, int len, bool is_orig, bool bol,
-			bool eol, bool clear_state, const IP_Hdr* ip = nullptr);
+	             bool eol, bool clear_state, const zeek::IP_Hdr* ip = nullptr);
 
 	void SetConn(Connection* c)	{ conn = c; }
 
@@ -106,7 +106,7 @@ protected:
 		}
 
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, true);
@@ -136,7 +136,7 @@ public:
 	// matcher in the case that we already get reassembled input,
 	// and making it part of the general analyzer interface seems
 	// to be unnecessary overhead.)
-	void FirstPacket(bool is_orig, const IP_Hdr* ip);
+	void FirstPacket(bool is_orig, const zeek::IP_Hdr* ip);
 
 	void ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer);
 
@@ -151,7 +151,7 @@ protected:
 		}
 
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, false);

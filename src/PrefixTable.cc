@@ -2,7 +2,7 @@
 #include "Reporter.h"
 #include "Val.h"
 
-prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
+prefix_t* PrefixTable::MakePrefix(const zeek::IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
 
@@ -14,12 +14,12 @@ prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
 	return prefix;
 	}
 
-IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
+zeek::IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
 	{
-	return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network), prefix->bitlen, true);
+	return zeek::IPPrefix(zeek::IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), zeek::IPAddr::Network), prefix->bitlen, true);
 	}
 
-void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
+void* PrefixTable::Insert(const zeek::IPAddr& addr, int width, void* data)
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_lookup(tree, prefix);
@@ -63,9 +63,9 @@ void* PrefixTable::Insert(const zeek::Val* value, void* data)
 	}
 	}
 
-std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const IPAddr& addr, int width) const
+std::list<std::tuple<zeek::IPPrefix,void*>> PrefixTable::FindAll(const zeek::IPAddr& addr, int width) const
 	{
-	std::list<std::tuple<IPPrefix,void*>> out;
+	std::list<std::tuple<zeek::IPPrefix,void*>> out;
 	prefix_t* prefix = MakePrefix(addr, width);
 
 	int elems = 0;
@@ -81,12 +81,12 @@ std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const IPAddr& addr, i
 	return out;
 	}
 
-std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const zeek::SubNetVal* value) const
+std::list<std::tuple<zeek::IPPrefix,void*>> PrefixTable::FindAll(const zeek::SubNetVal* value) const
 	{
 	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
 	}
 
-void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
+void* PrefixTable::Lookup(const zeek::IPAddr& addr, int width, bool exact) const
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node =
@@ -124,7 +124,7 @@ void* PrefixTable::Lookup(const zeek::Val* value, bool exact) const
 	}
 	}
 
-void* PrefixTable::Remove(const IPAddr& addr, int width)
+void* PrefixTable::Remove(const zeek::IPAddr& addr, int width)
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_search_exact(tree, prefix);

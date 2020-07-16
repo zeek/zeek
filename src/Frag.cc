@@ -27,7 +27,7 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 	}
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
-			const IP_Hdr* ip, const u_char* pkt,
+			const zeek::IP_Hdr* ip, const u_char* pkt,
 			const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
@@ -71,7 +71,7 @@ FragReassembler::~FragReassembler()
 	delete reassembled_pkt;
 	}
 
-void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
+void FragReassembler::AddFragment(double t, const zeek::IP_Hdr* ip, const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
@@ -161,13 +161,13 @@ void FragReassembler::Weird(const char* name) const
 
 	if ( version == 4 )
 		{
-		IP_Hdr hdr((const ip*)proto_hdr, false);
+		zeek::IP_Hdr hdr((const ip*)proto_hdr, false);
 		s->Weird(name, &hdr);
 		}
 
 	else if ( version == 6 )
 		{
-		IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
+		zeek::IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
 		s->Weird(name, &hdr);
 		}
 
@@ -293,7 +293,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		{
 		struct ip* reassem4 = (struct ip*) pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
-		reassembled_pkt = new IP_Hdr(reassem4, true);
+		reassembled_pkt = new zeek::IP_Hdr(reassem4, true);
 		DeleteTimer();
 		}
 
@@ -301,8 +301,8 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		{
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
-		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
-		reassembled_pkt = new IP_Hdr(reassem6, true, n, chain);
+		const zeek::IPv6_Hdr_Chain* chain = new zeek::IPv6_Hdr_Chain(reassem6, next_proto, n);
+		reassembled_pkt = new zeek::IP_Hdr(reassem6, true, n, chain);
 		DeleteTimer();
 		}
 

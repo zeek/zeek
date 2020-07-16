@@ -18,7 +18,7 @@ public:
 	// Overriden from Analyzer.
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 	void EndOfData(bool is_orig) override;
 
 	void SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, uint32_t length, const u_char* begin, const u_char* end, bool orig);

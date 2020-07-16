@@ -19,7 +19,7 @@ public:
 	void Done();
 
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-		     const IP_Hdr* ip, const struct tcphdr* tp);
+		     const zeek::IP_Hdr* ip, const struct tcphdr* tp);
 
 protected:
 	void Event(EventHandlerPtr f, int id1, int id2 = -1);
@@ -55,7 +55,7 @@ protected:
 	// We support both packet and stream input and can be put in place even
 	// if the TCP analyzer is not yet reassebmling.
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 
 	int orig_stream_pos;

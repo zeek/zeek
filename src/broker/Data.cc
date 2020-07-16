@@ -136,7 +136,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_ADDR )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
-			return zeek::make_intrusive<zeek::AddrVal>(IPAddr(*bits));
+			return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(*bits));
 			}
 
 		return nullptr;
@@ -147,7 +147,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_SUBNET )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
-			return zeek::make_intrusive<zeek::SubNetVal>(IPPrefix(IPAddr(*bits), a.length()));
+			return zeek::make_intrusive<zeek::SubNetVal>(zeek::IPPrefix(zeek::IPAddr(*bits), a.length()));
 			}
 
 		return nullptr;

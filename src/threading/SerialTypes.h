@@ -210,7 +210,7 @@ struct Value {
 	static zeek::Val* ValueToVal(const std::string& source, const threading::Value* val, bool& have_error);
 
 private:
-	friend class ::IPAddr;
+	friend class IPAddr;
 	Value(const Value& other) = delete;
 };
 

@@ -14,6 +14,7 @@ class EventHandlerPtr;
 class Reporter;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
+
 namespace zeek {
 template <class T> class IntrusivePtr;
 using StringValPtr = zeek::IntrusivePtr<StringVal>;

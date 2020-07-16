@@ -61,7 +61,7 @@ void SteppingStoneEndpoint::Done()
 	}
 
 bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
-		const u_char* data, const IP_Hdr* /* ip */,
+		const u_char* data, const zeek::IP_Hdr* /* ip */,
 		const struct tcphdr* tp)
 	{
 	if ( caplen < len )
@@ -172,7 +172,7 @@ void SteppingStone_Analyzer::Init()
 
 void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+						const zeek::IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
 						ip, caplen);

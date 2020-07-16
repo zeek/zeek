@@ -98,7 +98,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, zeek::IPAddr::Network)));
 				break;
 
 			default:
@@ -138,7 +138,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, zeek::IPAddr::Network)));
 				break;
 
 			default:

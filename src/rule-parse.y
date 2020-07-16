@@ -81,8 +81,8 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 	Rule* rule;
 	RuleHdrTest* hdr_test;
 	maskedvalue_list* vallist;
-	std::vector<IPPrefix>* prefix_val_list;
-	IPPrefix* prefixval;
+	std::vector<zeek::IPPrefix>* prefix_val_list;
+	zeek::IPPrefix* prefixval;
 
 	bool bl;
 	int val;
@@ -318,12 +318,12 @@ prefix_value_list:
 			}
 	|	prefix_value
 			{
-			$$ = new std::vector<IPPrefix>();
+			$$ = new std::vector<zeek::IPPrefix>();
 			$$->push_back(*($1));
 			}
 	|	TOK_IDENT
 			{
-			$$ = new std::vector<IPPrefix>();
+			$$ = new std::vector<zeek::IPPrefix>();
 			id_to_maskedvallist($1, 0, $$);
 			}
 	;
@@ -331,8 +331,8 @@ prefix_value_list:
 prefix_value:
 		TOK_IP
 			{
-			$$ = new IPPrefix(IPAddr(IPv4, &($1.val), IPAddr::Host),
-			                  ip4_mask_to_len($1.mask));
+			$$ = new zeek::IPPrefix(zeek::IPAddr(IPv4, &($1.val), zeek::IPAddr::Host),
+			                        ip4_mask_to_len($1.mask));
 			}
 	|	TOK_IP6
 	;

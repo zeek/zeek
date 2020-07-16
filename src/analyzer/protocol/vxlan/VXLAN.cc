@@ -25,7 +25,7 @@ void VXLAN_Analyzer::Done()
 	}
 
 void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                   uint64_t seq, const IP_Hdr* ip, int caplen)
+                                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -76,7 +76,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	len -= pkt.hdr_size;
 	caplen -= pkt.hdr_size;
 
-	IP_Hdr* inner = nullptr;
+	zeek::IP_Hdr* inner = nullptr;
 	int res = 0;
 
 	switch ( pkt.l3_proto ) {

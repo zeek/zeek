@@ -98,11 +98,11 @@ zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
 		switch ( ie->end_user_addr()->pdp_type_num() ) {
 		case 0x21:
 			ev->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
-			  IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
+			  zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network)));
 			break;
 		case 0x57:
 			ev->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
-			  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
+			  zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network)));
 			break;
 		default:
 			ev->Assign(3, zeek::make_intrusive<zeek::StringVal>(
@@ -137,10 +137,10 @@ zeek::ValPtr BuildGSN_Addr(const InformationElement* ie)
 
 	if ( len == 4 )
 		ev->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
-		  IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
+		  zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network)));
 	else if ( len == 16 )
 		ev->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
-		  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
+		  zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network)));
 	else
 		ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::String((const u_char*) d, len, false)));
 
@@ -221,9 +221,9 @@ zeek::ValPtr BuildChargingGatewayAddr(const InformationElement* ie)
 	const uint8* d = ie->charging_gateway_addr()->value().data();
 	int len = ie->charging_gateway_addr()->value().length();
 	if ( len == 4 )
-		return zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network));
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network));
 	else if ( len == 16 )
-		return zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32*) d, IPAddr::Network));
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network));
 	else
 		return nullptr;
 	}
@@ -729,7 +729,7 @@ flow GTPv1_Flow(is_orig: bool)
 			return false;
 			}
 
-		IP_Hdr* inner = 0;
+		zeek::IP_Hdr* inner = nullptr;
 		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
 		     ${pdu.packet}.data(), ip->ip_v == 6 ? IPPROTO_IPV6 : IPPROTO_IPV4,
 		     inner);

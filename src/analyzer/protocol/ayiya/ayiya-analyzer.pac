@@ -56,7 +56,7 @@ flow AYIYA_Flow
 			return false;
 			}
 
-		IP_Hdr* inner = 0;
+		zeek::IP_Hdr* inner = 0;
 		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
 		     ${pdu.packet}.data(), ${pdu.next_header}, inner);
 

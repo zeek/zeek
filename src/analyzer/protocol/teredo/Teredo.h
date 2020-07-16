@@ -18,7 +18,7 @@ public:
 	void Done() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
@@ -74,7 +74,7 @@ public:
 	const u_char* Authentication() const
 		{ return auth; }
 
-	zeek::RecordValPtr BuildVal(const IP_Hdr* inner) const;
+	zeek::RecordValPtr BuildVal(const zeek::IP_Hdr* inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);

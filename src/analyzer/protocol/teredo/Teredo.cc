@@ -96,7 +96,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 	return false;
 	}
 
-zeek::RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
+zeek::RecordValPtr TeredoEncapsulation::BuildVal(const zeek::IP_Hdr* inner) const
 	{
 	static auto teredo_hdr_type = zeek::id::find_type<zeek::RecordType>("teredo_hdr");
 	static auto teredo_auth_type = zeek::id::find_type<zeek::RecordType>("teredo_auth");
@@ -135,7 +135,7 @@ zeek::RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	}
 
 void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                    uint64_t seq, const IP_Hdr* ip, int caplen)
+                                    uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -160,7 +160,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	IP_Hdr* inner = nullptr;
+	zeek::IP_Hdr* inner = nullptr;
 	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )

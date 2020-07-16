@@ -36,7 +36,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 	}
 
 void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
-			bool is_orig, const IP_Hdr* ip)
+                      bool is_orig, const zeek::IP_Hdr* ip)
 	{
 	u_char* tmp = nullptr;
 
@@ -66,7 +66,7 @@ void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 	}
 
 void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,
-                      const IP_Hdr* ip)
+                      const zeek::IP_Hdr* ip)
 	{
 	AddToBuffer(buffer, -1, len, data, is_orig, ip);
 	}
@@ -85,7 +85,7 @@ void PIA::PIA_Done()
 	}
 
 void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
-				const IP_Hdr* ip, int caplen, bool clear_state)
+                            const zeek::IP_Hdr* ip, int caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
 		return;
@@ -130,7 +130,7 @@ void PIA::Match(Rule::PatternType type, const u_char* data, int len,
 	}
 
 void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
-			bool clear_state, const IP_Hdr* ip)
+                  bool clear_state, const zeek::IP_Hdr* ip)
 	{
 	if ( ! rule_matcher )
 		return;
@@ -203,12 +203,12 @@ void PIA_TCP::Init()
 		}
 	}
 
-void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
+void PIA_TCP::FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	{
 	static char dummy_packet[sizeof(struct ip) + sizeof(struct tcphdr)];
 	static struct ip* ip4 = nullptr;
 	static struct tcphdr* tcp4 = nullptr;
-	static IP_Hdr* ip4_hdr = nullptr;
+	static zeek::IP_Hdr* ip4_hdr = nullptr;
 
 	DBG_LOG(DBG_ANALYZER, "PIA_TCP[%d] FirstPacket(%s)", GetID(), (is_orig ? "T" : "F"));
 
@@ -226,7 +226,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 			ip4->ip_p = IPPROTO_TCP;
 
 			// Cast to const so that it doesn't delete it.
-			ip4_hdr = new IP_Hdr(ip4, false);
+			ip4_hdr = new zeek::IP_Hdr(ip4, false);
 			}
 
 		if ( is_orig )

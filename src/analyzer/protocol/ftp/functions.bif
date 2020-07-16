@@ -52,7 +52,7 @@ static zeek::ValPtr parse_eftp(const char* line)
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ftp_port);
 
 	int net_proto = 0;	// currently not used
-	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
+	zeek::IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
 	int port = 0;
 	int good = 0;
 
@@ -87,7 +87,7 @@ static zeek::ValPtr parse_eftp(const char* line)
 					}
 
 				std::string s(line, nptr-line); // extract IP address
-				IPAddr tmp(s);
+				zeek::IPAddr tmp(s);
 				// on error, "tmp" will have all 128 bits zero
 				if ( tmp == addr )
 					good = 0;

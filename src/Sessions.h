@@ -55,8 +55,8 @@ public:
 
 	// Returns a reassembled packet, or nil if there are still
 	// some missing fragments.
-	FragReassembler* NextFragment(double t, const IP_Hdr* ip,
-				const u_char* pkt);
+	FragReassembler* NextFragment(double t, const zeek::IP_Hdr* ip,
+	                              const u_char* pkt);
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
@@ -78,9 +78,9 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	    const EncapsulationStack* encap = nullptr, const char* addl = "");
-	void Weird(const char* name, const IP_Hdr* ip,
-	    const EncapsulationStack* encap = nullptr, const char* addl = "");
+	           const EncapsulationStack* encap = nullptr, const char* addl = "");
+	void Weird(const char* name, const zeek::IP_Hdr* ip,
+	           const EncapsulationStack* encap = nullptr, const char* addl = "");
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -96,8 +96,8 @@ public:
 		return tcp_conns.size() + udp_conns.size() + icmp_conns.size();
 		}
 
-	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr,
-			const EncapsulationStack* encapsulation);
+	void DoNextPacket(double t, const Packet *pkt, const zeek::IP_Hdr* ip_hdr,
+	                  const EncapsulationStack* encapsulation);
 
 	/**
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
@@ -114,8 +114,8 @@ public:
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
 	void DoNextInnerPacket(double t, const Packet *pkt,
-	                      const IP_Hdr* inner, const EncapsulationStack* prev,
-	                      const EncapsulatingConn& ec);
+	                       const zeek::IP_Hdr* inner, const EncapsulationStack* prev,
+	                       const EncapsulatingConn& ec);
 
 	/**
 	 * Recurses on DoNextPacket for encapsulated Ethernet/IP packets.
@@ -161,7 +161,7 @@ public:
 	 *         for other return values.
 	 */
 	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-	                  IP_Hdr*& inner);
+	                  zeek::IP_Hdr*& inner);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
@@ -172,14 +172,14 @@ protected:
 	friend class ConnCompressor;
 	friend class IPTunnelTimer;
 
-	using ConnectionMap = std::map<ConnIDKey, Connection*>;
+	using ConnectionMap = std::map<zeek::detail::ConnIDKey, Connection*>;
 	using FragmentMap = std::map<FragReassemblerKey, FragReassembler*>;
 
-	Connection* NewConn(const ConnIDKey& k, double t, const ConnID* id,
+	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32_t flow_label,
 			const Packet* pkt, const EncapsulationStack* encapsulation);
 
-	Connection* LookupConn(const ConnectionMap& conns, const ConnIDKey& key);
+	Connection* LookupConn(const ConnectionMap& conns, const zeek::detail::ConnIDKey& key);
 
 	// Returns true if the port corresonds to an application
 	// for which there's a Bro analyzer (even if it might not
@@ -215,7 +215,7 @@ protected:
 	// the new one.  Connection count stats get updated either way (so most
 	// cases should likely check that the key is not already in the map to
 	// avoid unnecessary incrementing of connecting counts).
-	void InsertConnection(ConnectionMap* m, const ConnIDKey& key, Connection* conn);
+	void InsertConnection(ConnectionMap* m, const zeek::detail::ConnIDKey& key, Connection* conn);
 
 	ConnectionMap tcp_conns;
 	ConnectionMap udp_conns;
@@ -224,7 +224,7 @@ protected:
 
 	SessionStats stats;
 
-	using IPPair = std::pair<IPAddr, IPAddr>;
+	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
 	using TunnelActivity = std::pair<EncapsulatingConn, double>;
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;

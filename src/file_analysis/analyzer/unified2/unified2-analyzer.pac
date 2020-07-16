@@ -12,12 +12,12 @@ zeek::AddrValPtr binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<u
 	{
 	if ( a->size() == 1 )
 		{
-		return zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv4, &(a->at(0)), zeek::IPAddr::Host));
 		}
 	else if ( a->size() == 4 )
 		{
 		uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
-		return zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, tmp, IPAddr::Host));
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, tmp, zeek::IPAddr::Host));
 		}
 	else
 		{

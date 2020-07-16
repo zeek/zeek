@@ -57,7 +57,7 @@ public:
 	// a set of addr.
 	zeek::TableValPtr LookupHost(const char* host);
 
-	zeek::ValPtr LookupAddr(const IPAddr& addr);
+	zeek::ValPtr LookupAddr(const zeek::IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
@@ -66,7 +66,7 @@ public:
 	void Resolve();
 	bool Save();
 
-	const char* LookupAddrInCache(const IPAddr& addr);
+	const char* LookupAddrInCache(const zeek::IPAddr& addr);
 	zeek::TableValPtr LookupNameInCache(const std::string& name);
 	const char* LookupTextInCache(const std::string& name);
 
@@ -81,7 +81,7 @@ public:
 		virtual void Timeout() = 0;
 	};
 
-	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
+	void AsyncLookupAddr(const zeek::IPAddr& host, LookupCallback* callback);
 	void AsyncLookupName(const std::string& name, LookupCallback* callback);
 	void AsyncLookupNameText(const std::string& name, LookupCallback* callback);
 
@@ -116,7 +116,7 @@ protected:
 	void DumpAddrList(FILE* f, zeek::ListVal* al);
 
 	typedef std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
-	typedef std::map<IPAddr, DNS_Mapping*> AddrMap;
+	typedef std::map<zeek::IPAddr, DNS_Mapping*> AddrMap;
 	typedef std::map<std::string, DNS_Mapping*> TextMap;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, const AddrMap& m);
@@ -132,7 +132,7 @@ protected:
 
 	// Finish the request if we have a result.  If not, time it out if
 	// requested.
-	void CheckAsyncAddrRequest(const IPAddr& addr, bool timeout);
+	void CheckAsyncAddrRequest(const zeek::IPAddr& addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
@@ -162,7 +162,7 @@ protected:
 
 	struct AsyncRequest {
 		double time;
-		IPAddr host;
+		zeek::IPAddr host;
 		std::string name;
 		CallbackList callbacks;
 		bool is_txt;
@@ -210,7 +210,7 @@ protected:
 
 	};
 
-	typedef std::map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
+	typedef std::map<zeek::IPAddr, AsyncRequest*> AsyncRequestAddrMap;
 	AsyncRequestAddrMap asyncs_addrs;
 
 	typedef std::map<std::string, AsyncRequest*> AsyncRequestNameMap;

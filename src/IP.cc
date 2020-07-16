@@ -49,6 +49,8 @@ static zeek::VectorValPtr BuildOptionsVal(const u_char* data, int len)
 	return vv;
 	}
 
+namespace zeek {
+
 zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 	{
 	zeek::RecordValPtr rv;
@@ -782,3 +784,5 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 
 	return rval;
 	}
+
+} // namespace zeek

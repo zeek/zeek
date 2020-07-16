@@ -181,7 +181,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len, true)))
+	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len, true)))
 }
 
 	/* IPv4 literal constant patterns */
@@ -190,7 +190,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len)))
+	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len)))
 }
 
 [!%*/+\-,:;<=>?()\[\]{}~$|&^]	return yytext[0];

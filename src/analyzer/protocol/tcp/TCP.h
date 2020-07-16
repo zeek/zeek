@@ -79,7 +79,8 @@ protected:
 	// Analyzer interface.
 	void Init() override;
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+	                   const zeek::IP_Hdr* ip, int caplen) override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void FlipRoles() override;
@@ -134,12 +135,12 @@ protected:
 				 bool is_orig, TCP_Flags flags);
 
 	bool DeliverData(double t, const u_char* data, int len, int caplen,
-			const IP_Hdr* ip, const struct tcphdr* tp,
-			TCP_Endpoint* endpoint, uint64_t rel_data_seq,
-			bool is_orig, TCP_Flags flags);
+	                 const zeek::IP_Hdr* ip, const struct tcphdr* tp,
+	                 TCP_Endpoint* endpoint, uint64_t rel_data_seq,
+	                 bool is_orig, TCP_Flags flags);
 
 	void CheckRecording(bool need_contents, TCP_Flags flags);
-	void CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip);
+	void CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip);
 
 	friend class ConnectionTimer;
 	void AttemptTimer(double t);
@@ -227,7 +228,7 @@ public:
 	virtual void PacketWithRST();
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 	void Init() override;
 
 	// This suppresses violations if the TCP connection wasn't
@@ -265,7 +266,7 @@ public:
 	explicit TCPStats_Endpoint(TCP_Endpoint* endp);
 
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-			const IP_Hdr* ip, const struct tcphdr* tp);
+	              const zeek::IP_Hdr* ip, const struct tcphdr* tp);
 
 	zeek::RecordVal* BuildStats();
 
@@ -295,7 +296,7 @@ public:
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;

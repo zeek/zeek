@@ -214,7 +214,7 @@ void Analyzer::Done()
 	}
 
 void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
-				const IP_Hdr* ip, int caplen)
+                          const zeek::IP_Hdr* ip, int caplen)
 	{
 	if ( skip )
 		return;
@@ -297,7 +297,7 @@ void Analyzer::NextEndOfData(bool is_orig)
 	}
 
 void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+				uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	if ( output_handler )
 		output_handler->DeliverPacket(len, data, is_orig, seq,
@@ -644,7 +644,7 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 	}
 
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+				uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
@@ -858,7 +858,7 @@ SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const
 	}
 
 void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
 

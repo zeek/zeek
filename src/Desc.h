@@ -23,8 +23,9 @@ typedef enum {
 } desc_style;
 
 class BroFile;
-class IPAddr;
-class IPPrefix;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 
 namespace zeek { class Type; }
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
@@ -87,8 +88,8 @@ public:
 	void Add(int64_t i);
 	void Add(uint64_t u);
 	void Add(double d, bool no_exp=false);
-	void Add(const IPAddr& addr);
-	void Add(const IPPrefix& prefix);
+	void Add(const zeek::IPAddr& addr);
+	void Add(const zeek::IPPrefix& prefix);
 
 	// Add s as a counted string.
 	void AddCS(const char* s);

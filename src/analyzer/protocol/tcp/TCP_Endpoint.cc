@@ -200,8 +200,8 @@ uint64_t TCP_Endpoint::Size() const
 	}
 
 bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
-				const u_char* data,
-				const IP_Hdr* ip, const struct tcphdr* tp)
+                            const u_char* data,
+                            const zeek::IP_Hdr* ip, const struct tcphdr* tp)
 	{
 	bool status = false;
 

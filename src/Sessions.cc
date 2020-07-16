@@ -153,7 +153,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 			}
 
 		const struct ip* ip = (const struct ip*) (pkt->data + pkt->hdr_size);
-		IP_Hdr ip_hdr(ip, false);
+		zeek::IP_Hdr ip_hdr(ip, false);
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
@@ -165,7 +165,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 			return;
 			}
 
-		IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt->data + pkt->hdr_size), false, caplen);
+		zeek::IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt->data + pkt->hdr_size), false, caplen);
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
@@ -211,8 +211,8 @@ static unsigned int gre_header_len(uint16_t flags)
 	return len;
 	}
 
-void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr,
-			       const EncapsulationStack* encapsulation)
+void NetSessions::DoNextPacket(double t, const Packet* pkt, const zeek::IP_Hdr* ip_hdr,
+                               const EncapsulationStack* encapsulation)
 	{
 	uint32_t caplen = pkt->cap_len - pkt->hdr_size;
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
@@ -298,7 +298,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		else
 			{
 			f = NextFragment(t, ip_hdr, pkt->data + pkt->hdr_size);
-			const IP_Hdr* ih = f->ReassembledPkt();
+			const zeek::IP_Hdr* ih = f->ReassembledPkt();
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
 				return;
@@ -591,7 +591,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			return;
 			}
 
-		IP_Hdr* inner = nullptr;
+		zeek::IP_Hdr* inner = nullptr;
 
 		if ( gre_version != 0 )
 			{
@@ -659,7 +659,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 	}
 
-	ConnIDKey key = BuildConnIDKey(id);
+	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(id);
 	Connection* conn = nullptr;
 
 	// FIXME: The following is getting pretty complex. Need to split up
@@ -739,8 +739,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	}
 
 void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
-		const IP_Hdr* inner, const EncapsulationStack* prev,
-		const EncapsulatingConn& ec)
+                                    const zeek::IP_Hdr* inner, const EncapsulationStack* prev,
+                                    const EncapsulatingConn& ec)
 	{
 	uint32_t caplen, len;
 	caplen = len = inner->TotalLen();
@@ -813,7 +813,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	}
 
 int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-		IP_Hdr*& inner)
+                               zeek::IP_Hdr*& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )
 		{
@@ -821,7 +821,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 			return -1;
 
 		const struct ip6_hdr* ip6 = (const struct ip6_hdr*) pkt;
-		inner = new IP_Hdr(ip6, false, caplen);
+		inner = new zeek::IP_Hdr(ip6, false, caplen);
 		if ( ( ip6->ip6_ctlun.ip6_un2_vfc & 0xF0 ) != 0x60 )
 			return -2;
 		}
@@ -832,7 +832,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 			return -1;
 
 		const struct ip* ip4 = (const struct ip*) pkt;
-		inner = new IP_Hdr(ip4, false);
+		inner = new zeek::IP_Hdr(ip4, false);
 		if ( ip4->ip_v != 4 )
 			return -2;
 		}
@@ -895,8 +895,8 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
 	return false;
 	}
 
-FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
-					const u_char* pkt)
+FragReassembler* NetSessions::NextFragment(double t, const zeek::IP_Hdr* ip,
+                                           const u_char* pkt)
 	{
 	uint32_t frag_id = ip->ID();
 
@@ -955,8 +955,8 @@ Connection* NetSessions::FindConnection(zeek::Val* v)
 		// types, too.
 		}
 
-	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
-	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
+	const zeek::IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
+	const zeek::IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
 
 	zeek::PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
 	zeek::PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
@@ -971,7 +971,7 @@ Connection* NetSessions::FindConnection(zeek::Val* v)
 
 	id.is_one_way = false;	// ### incorrect for ICMP connections
 
-	ConnIDKey key = BuildConnIDKey(id);
+	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(id);
 	ConnectionMap* d;
 
 	if ( orig_portv->IsTCP() )
@@ -1000,7 +1000,7 @@ void NetSessions::Remove(Connection* c)
 	{
 	if ( c->IsKeyValid() )
 		{
-		const ConnIDKey& key = c->Key();
+		const zeek::detail::ConnIDKey& key = c->Key();
 		c->CancelTimers();
 
 		if ( c->ConnTransport() == TRANSPORT_TCP )
@@ -1159,7 +1159,7 @@ void NetSessions::GetStats(SessionStats& s) const
 	s.max_fragments = stats.max_fragments;
 	}
 
-Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
+Connection* NetSessions::NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32_t flow_label,
 					const Packet* pkt, const EncapsulationStack* encapsulation)
 	{
@@ -1219,7 +1219,7 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 	return conn;
 	}
 
-Connection* NetSessions::LookupConn(const ConnectionMap& conns, const ConnIDKey& key)
+Connection* NetSessions::LookupConn(const ConnectionMap& conns, const zeek::detail::ConnIDKey& key)
 	{
 	auto it = conns.find(key);
 	if ( it != conns.end() )
@@ -1330,7 +1330,7 @@ void NetSessions::Weird(const char* name, const Packet* pkt,
 		reporter->Weird(name, addl);
 	}
 
-void NetSessions::Weird(const char* name, const IP_Hdr* ip,
+void NetSessions::Weird(const char* name, const zeek::IP_Hdr* ip,
                         const EncapsulationStack* encap, const char* addl)
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
@@ -1396,7 +1396,7 @@ unsigned int NetSessions::MemoryAllocation()
 		;
 	}
 
-void NetSessions::InsertConnection(ConnectionMap* m, const ConnIDKey& key, Connection* conn)
+void NetSessions::InsertConnection(ConnectionMap* m, const zeek::detail::ConnIDKey& key, Connection* conn)
 	{
 	(*m)[key] = conn;
 

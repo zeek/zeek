@@ -178,12 +178,12 @@ void ODesc::Add(double d, bool no_exp)
 		}
 	}
 
-void ODesc::Add(const IPAddr& addr)
+void ODesc::Add(const zeek::IPAddr& addr)
 	{
 	Add(addr.AsString());
 	}
 
-void ODesc::Add(const IPPrefix& prefix)
+void ODesc::Add(const zeek::IPPrefix& prefix)
 	{
 	Add(prefix.AsString());
 	}

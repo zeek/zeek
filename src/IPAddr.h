@@ -19,6 +19,9 @@ namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
 
+namespace zeek {
+namespace detail {
+
 struct ConnIDKey {
 	in6_addr ip1;
 	in6_addr ip2;
@@ -42,6 +45,13 @@ struct ConnIDKey {
 		return *this;
 		}
 };
+
+/**
+ * Returns a map key for a given ConnID.
+ */
+ConnIDKey BuildConnIDKey(const ConnID& id);
+
+} // namespace detail
 
 /**
  * Class storing both IPv4 and IPv6 addresses.
@@ -382,7 +392,7 @@ public:
 	  */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
-	friend ConnIDKey BuildConnIDKey(const ConnID& id);
+	friend detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id);
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -513,11 +523,6 @@ inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
 	abort();
 	}
 	}
-
-/**
-  * Returns a map key for a given ConnID.
-  */
-ConnIDKey BuildConnIDKey(const ConnID& id);
 
 /**
  * Class storing both IPv4 and IPv6 prefixes
@@ -721,3 +726,11 @@ private:
 	IPAddr prefix;	// We store it as an address with the non-prefix bits masked out via Mask().
 	uint8_t length = 0;	// The bit length of the prefix relative to full IPv6 addr.
 };
+
+} // namespace zeek
+
+using ConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::ConnIDKey.")]] = zeek::detail::ConnIDKey;
+using IPAddr [[deprecated("Remove in v4.1. Use zeek::IPAddr.")]] = zeek::IPAddr;
+using IPPrefix [[deprecated("Remove in v4.1. Use zeek::IPPrefix.")]] = zeek::IPPrefix;
+
+constexpr auto BuildConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::BuildConnIDKey.")]] = zeek::detail::BuildConnIDKey;

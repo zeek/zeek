@@ -6,7 +6,8 @@
 #include "File.h"
 
 class Connection;
-class IP_Hdr;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace analyzer { namespace tcp {
 
@@ -183,7 +184,7 @@ public:
 	// Returns true if the data was used (and hence should be recorded
 	// in the save file), false otherwise.
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-			const IP_Hdr* ip, const struct tcphdr* tp);
+	              const zeek::IP_Hdr* ip, const struct tcphdr* tp);
 
 	void AckReceived(uint64_t seq);
 
@@ -215,8 +216,8 @@ public:
 	uint32_t checksum_base;
 
 	double start_time, last_time;
-	IPAddr src_addr; // the other endpoint
-	IPAddr dst_addr; // this endpoint
+	zeek::IPAddr src_addr; // the other endpoint
+	zeek::IPAddr dst_addr; // this endpoint
 	uint32_t window; // current advertised window (*scaled*, not pre-scaling)
 	int window_scale;  // from the TCP option
 	uint32_t window_ack_seq; // at which ack_seq number did we record 'window'

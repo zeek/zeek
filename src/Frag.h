@@ -13,28 +13,28 @@
 
 class HashKey;
 class NetSessions;
-class IP_Hdr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 class FragReassembler;
 class FragTimer;
 
 typedef void (FragReassembler::*frag_timer_func)(double t);
 
-using FragReassemblerKey = std::tuple<IPAddr, IPAddr, bro_uint_t>;
+using FragReassemblerKey = std::tuple<zeek::IPAddr, zeek::IPAddr, bro_uint_t>;
 
 class FragReassembler : public Reassembler {
 public:
-	FragReassembler(NetSessions* s, const IP_Hdr* ip, const u_char* pkt,
-			const FragReassemblerKey& k, double t);
+	FragReassembler(NetSessions* s, const zeek::IP_Hdr* ip, const u_char* pkt,
+	                const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
-	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt);
+	void AddFragment(double t, const zeek::IP_Hdr* ip, const u_char* pkt);
 
 	void Expire(double t);
 	void DeleteTimer();
 	void ClearTimer()	{ expire_timer = nullptr; }
 
-	const IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
+	const zeek::IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
 	const FragReassemblerKey& Key() const	{ return key; }
 
 protected:
@@ -43,7 +43,7 @@ protected:
 	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
-	IP_Hdr* reassembled_pkt;
+	zeek::IP_Hdr* reassembled_pkt;
 	NetSessions* s;
 	uint64_t frag_size;	// size of fully reassembled fragment
 	FragReassemblerKey key;

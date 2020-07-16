@@ -5,7 +5,7 @@
 #include "IPAddr.h"
 #include "PrefixTable.h"
 
-class IP_Hdr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 class PacketFilter {
@@ -16,20 +16,20 @@ public:
 	// Drops all packets from a particular source (which may be given
 	// as an AddrVal or a SubnetVal) which hasn't any of TCP flags set
 	// (TH_*) with the given probability (from 0..MAX_PROB).
-	void AddSrc(const IPAddr& src, uint32_t tcp_flags, double probability);
+	void AddSrc(const zeek::IPAddr& src, uint32_t tcp_flags, double probability);
 	void AddSrc(zeek::Val* src, uint32_t tcp_flags, double probability);
-	void AddDst(const IPAddr& src, uint32_t tcp_flags, double probability);
+	void AddDst(const zeek::IPAddr& src, uint32_t tcp_flags, double probability);
 	void AddDst(zeek::Val* src, uint32_t tcp_flags, double probability);
 
 	// Removes the filter entry for the given src/dst
 	// Returns false if filter doesn not exist.
-	bool RemoveSrc(const IPAddr& src);
+	bool RemoveSrc(const zeek::IPAddr& src);
 	bool RemoveSrc(zeek::Val* dst);
-	bool RemoveDst(const IPAddr& dst);
+	bool RemoveDst(const zeek::IPAddr& dst);
 	bool RemoveDst(zeek::Val* dst);
 
 	// Returns true if packet matches a drop filter
-	bool Match(const IP_Hdr* ip, int len, int caplen);
+	bool Match(const zeek::IP_Hdr* ip, int len, int caplen);
 
 private:
 	struct Filter {
@@ -39,7 +39,7 @@ private:
 
 	static void DeleteFilter(void* data);
 
-	bool MatchFilter(const Filter& f, const IP_Hdr& ip, int len, int caplen);
+	bool MatchFilter(const Filter& f, const zeek::IP_Hdr& ip, int len, int caplen);
 
 	bool default_match;
 	PrefixTable src_filter;

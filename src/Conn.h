@@ -50,22 +50,22 @@ typedef enum {
 typedef void (Connection::*timer_func)(double t);
 
 struct ConnID {
-	IPAddr src_addr;
-	IPAddr dst_addr;
+	zeek::IPAddr src_addr;
+	zeek::IPAddr dst_addr;
 	uint32_t src_port;
 	uint32_t dst_port;
 	bool is_one_way;	// if true, don't canonicalize order
 };
 
-static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
-					const IPAddr& addr2, uint32_t p2)
+static inline int addr_port_canon_lt(const zeek::IPAddr& addr1, uint32_t p1,
+                                     const zeek::IPAddr& addr2, uint32_t p2)
 	{
 	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
 
 class Connection final : public zeek::Obj {
 public:
-	Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
+	Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);
 	~Connection() override;
 
@@ -92,16 +92,16 @@ public:
 	// be recorded, otherwise just up through the transport header.
 	// Both are assumed set to true when called.
 	void NextPacket(double t, bool is_orig,
-			const IP_Hdr* ip, int len, int caplen,
-			const u_char*& data,
-			int& record_packet, int& record_content,
-			// arguments for reproducing packets
-			const Packet *pkt);
+	                const zeek::IP_Hdr* ip, int len, int caplen,
+	                const u_char*& data,
+	                int& record_packet, int& record_content,
+	                // arguments for reproducing packets
+	                const Packet *pkt);
 
 	// Keys are only considered valid for a connection when a
 	// connection is in the session map. If it is removed, the key
 	// should be marked invalid.
-	const ConnIDKey& Key() const	{ return key; }
+	const zeek::detail::ConnIDKey& Key() const	{ return key; }
 	void ClearKey()					{ key_valid = false; }
 	bool IsKeyValid() const			{ return key_valid; }
 
@@ -110,8 +110,8 @@ public:
 	double LastTime() const			{ return last_time; }
 	void SetLastTime(double t) 		{ last_time = t; }
 
-	const IPAddr& OrigAddr() const		{ return orig_addr; }
-	const IPAddr& RespAddr() const		{ return resp_addr; }
+	const zeek::IPAddr& OrigAddr() const		{ return orig_addr; }
+	const zeek::IPAddr& RespAddr() const		{ return resp_addr; }
 
 	uint32_t OrigPort() const			{ return orig_port; }
 	uint32_t RespPort() const			{ return resp_port; }
@@ -344,13 +344,13 @@ protected:
 	void RemoveConnectionTimer(double t);
 
 	NetSessions* sessions;
-	ConnIDKey key;
+	zeek::detail::ConnIDKey key;
 	bool key_valid;
 
 	timer_list timers;
 
-	IPAddr orig_addr;
-	IPAddr resp_addr;
+	zeek::IPAddr orig_addr;
+	zeek::IPAddr resp_addr;
 	uint32_t orig_port, resp_port;	// in network order
 	TransportProto proto;
 	uint32_t orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels

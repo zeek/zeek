@@ -42,7 +42,7 @@ void UDP_Analyzer::Done()
 	}
 
 void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-                                 uint64_t seq, const IP_Hdr* ip, int caplen)
+                                 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -258,7 +258,7 @@ void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
 	                              is_orig, threshold);
 	}
 
-bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
+bool UDP_Analyzer::ValidateChecksum(const zeek::IP_Hdr* ip, const udphdr* up, int len)
 	{
 	uint32_t sum;
 

@@ -35,14 +35,14 @@ using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = ze
 ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 
 namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
 class BroFile;
 class PrefixTable;
-class IPAddr;
-class IPPrefix;
 class StateAccess;
 class RE_Matcher;
 

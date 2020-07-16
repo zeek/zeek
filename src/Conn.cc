@@ -57,7 +57,7 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
+Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
                        uint32_t flow, const Packet* pkt,
                        const EncapsulationStack* arg_encap)
 	{
@@ -183,11 +183,11 @@ void Connection::Done()
 	}
 
 void Connection::NextPacket(double t, bool is_orig,
-			const IP_Hdr* ip, int len, int caplen,
-			const u_char*& data,
-			int& record_packet, int& record_content,
-			// arguments for reproducing packets
-			const Packet *pkt)
+                            const zeek::IP_Hdr* ip, int len, int caplen,
+                            const u_char*& data,
+                            int& record_packet, int& record_content,
+                            // arguments for reproducing packets
+                            const Packet *pkt)
 	{
 	current_timestamp = t;
 	current_pkt = pkt;
@@ -577,7 +577,7 @@ void Connection::CancelTimers()
 
 void Connection::FlipRoles()
 	{
-	IPAddr tmp_addr = resp_addr;
+	zeek::IPAddr tmp_addr = resp_addr;
 	resp_addr = orig_addr;
 	orig_addr = tmp_addr;
 

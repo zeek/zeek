@@ -24,7 +24,7 @@ using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
 }
 
 class ODesc;
-class IP_Hdr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -130,11 +130,11 @@ public:
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * correspondign object.
 	 */
-	const IP_Hdr IP() const;
+	const zeek::IP_Hdr IP() const;
 
 	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
-	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
+	 * also everything in zeek::IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
 	zeek::RecordValPtr ToRawPktHdrVal() const;
 

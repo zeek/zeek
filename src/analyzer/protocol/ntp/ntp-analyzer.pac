@@ -54,7 +54,7 @@
 		default:
 			{
 			const uint8* d = ${nsm.reference_id}.data();
-			rv->Assign(7, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
+			rv->Assign(7, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network)));
 			}
 			break;
 		}

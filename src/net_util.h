@@ -132,28 +132,28 @@ inline int32_t seq_delta(uint32_t a, uint32_t b)
 	return a - b;
 	}
 
-class IPAddr;
-class IP_Hdr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32_t sum);
 
-extern int ones_complement_checksum(const IPAddr& a, uint32_t sum);
+extern int ones_complement_checksum(const zeek::IPAddr& a, uint32_t sum);
 
-extern int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len);
+extern int icmp6_checksum(const struct icmp* icmpp, const zeek::IP_Hdr* ip, int len);
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 
 #ifdef ENABLE_MOBILE_IPV6
-extern int mobility_header_checksum(const IP_Hdr* ip);
+extern int mobility_header_checksum(const zeek::IP_Hdr* ip);
 #endif
 
 // Returns 'A', 'B', 'C' or 'D'
 extern char addr_to_class(uint32_t addr);
 
-extern const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
-				const IPAddr& dst_addr, uint32_t dst_port);
+extern const char* fmt_conn_id(const zeek::IPAddr& src_addr, uint32_t src_port,
+                               const zeek::IPAddr& dst_addr, uint32_t dst_port);
 extern const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port,
-				const uint32_t* dst_addr, uint32_t dst_port);
+                               const uint32_t* dst_addr, uint32_t dst_port);
 
 /**
 * Given a MAC address, formats it in hex as 00:de:ad:be:ef.

@@ -9,7 +9,7 @@
 #include "NetVar.h"
 #include "plugin/Manager.h"
 #include "Analyzer.h"
-#include "dispatchers/VectorDispatcher.h"
+#include "Dispatcher.h"
 
 using namespace zeek::packet_analysis;
 
@@ -266,7 +266,7 @@ DispatcherPtr Manager::GetDispatcher(Config& configuration, const std::string& d
 
 	const auto& mappings = dispatcher_config->get().GetMappings();
 
-	DispatcherPtr dispatcher = std::make_shared<VectorDispatcher>();
+	DispatcherPtr dispatcher = std::make_shared<Dispatcher>();
 	dispatchers.emplace(dispatcher_name, dispatcher);
 
 	for ( const auto& current_mapping : mappings )

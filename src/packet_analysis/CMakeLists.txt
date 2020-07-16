@@ -6,10 +6,10 @@ include_directories(BEFORE
 )
 
 add_subdirectory(protocol)
-add_subdirectory(dispatchers)
 
 set(llanalyzer_SRCS
     Analyzer.cc
+    Dispatcher.cc
     Manager.cc
     Component.cc
     Tag.cc

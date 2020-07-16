@@ -2,11 +2,9 @@
 
 #pragma once
 
-#include <map>
 #include <utility>
-
+#include <vector>
 #include "Analyzer.h"
-#include "Defines.h"
 
 namespace zeek::packet_analysis {
 
@@ -31,21 +29,31 @@ using ValuePtr = std::shared_ptr<Value>;
 
 class Dispatcher {
 public:
-	virtual ~Dispatcher() = default;
+	Dispatcher()
+		: table(std::vector<ValuePtr>(1, nullptr))
+		{ }
 
-	virtual bool Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher) = 0;
-	virtual void Register(const register_map& data)
+	~Dispatcher();
+
+	bool Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher);
+	void Register(const register_map& data);
+
+	ValuePtr Lookup(identifier_t identifier) const;
+
+	size_t Size() const;
+	void Clear();
+	void DumpDebug() const;
+
+private:
+	identifier_t lowest_identifier = 0;
+	std::vector<ValuePtr> table;
+
+	void FreeValues();
+
+	inline identifier_t GetHighestIdentifier() const
 		{
-		for ( auto& current : data )
-			Register(current.first, current.second.first, current.second.second);
+		return lowest_identifier + table.size() - 1;
 		}
-
-	virtual ValuePtr Lookup(identifier_t identifier) const = 0;
-
-	virtual size_t Size() const = 0;
-	virtual void Clear() = 0;
-
-	virtual void DumpDebug() const = 0;
-	};
+};
 
 }

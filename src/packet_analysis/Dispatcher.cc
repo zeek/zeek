@@ -2,16 +2,16 @@
 
 #include <algorithm>
 
-#include "VectorDispatcher.h"
+#include "Dispatcher.h"
 
 namespace zeek::packet_analysis {
 
-VectorDispatcher::~VectorDispatcher()
+Dispatcher::~Dispatcher()
 	{
 	FreeValues();
 	}
 
-bool VectorDispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
+bool Dispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
 	{
 	// If the table has size 1 and the entry is nullptr, there was nothing added yet. Just add it.
 	if ( table.size() == 1 && table[0] == nullptr )
@@ -55,7 +55,7 @@ bool VectorDispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, D
 	return false;
 	}
 
-void VectorDispatcher::Register(const register_map& data)
+void Dispatcher::Register(const register_map& data)
 	{
 	// Search smallest and largest identifier and resize vector
 	const auto& lowest_new =
@@ -77,7 +77,7 @@ void VectorDispatcher::Register(const register_map& data)
 		}
 	}
 
-ValuePtr VectorDispatcher::Lookup(identifier_t identifier) const
+ValuePtr Dispatcher::Lookup(identifier_t identifier) const
 	{
 	int64_t index = identifier - lowest_identifier;
 	if ( index >= 0 && index < static_cast<int64_t>(table.size()) && table[index] != nullptr )
@@ -86,24 +86,24 @@ ValuePtr VectorDispatcher::Lookup(identifier_t identifier) const
 	return nullptr;
 	}
 
-size_t VectorDispatcher::Size() const
+size_t Dispatcher::Size() const
 	{
 	return std::count_if(table.begin(), table.end(), [](ValuePtr v) { return v != nullptr; });
 	}
 
-void VectorDispatcher::Clear()
+void Dispatcher::Clear()
 	{
 	FreeValues();
 	table.clear();
 	}
 
-void VectorDispatcher::FreeValues()
+void Dispatcher::FreeValues()
 	{
 	for ( auto& current : table )
 		current = nullptr;
 	}
 
-void VectorDispatcher::DumpDebug() const
+void Dispatcher::DumpDebug() const
 	{
 #ifdef DEBUG
 	DBG_LOG(DBG_PACKET_ANALYSIS, "  Dispatcher elements (used/total): %lu/%lu", Size(), table.size());

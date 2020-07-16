@@ -944,7 +944,7 @@ internal-op Call1
 op1-read
 type V
 side-effects
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v1].ToVal(z.t))
 eval (void) z.func->Call(args, f)
 
@@ -952,7 +952,7 @@ internal-op Call1
 op1-read
 type C
 side-effects
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
 eval (void) z.func->Call(args, f)
 
@@ -961,7 +961,7 @@ internal-assignment-op Call1
 type VV
 side-effects OP_CALL1_V
 side-effects-op-type OP_V
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v2].ToVal(z.t))
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
@@ -972,7 +972,7 @@ internal-assignment-op Call1
 type VC
 side-effects OP_CALL1_C
 side-effects-op-type OP_C
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
@@ -985,7 +985,7 @@ op1-read
 type c
 side-effects
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval (void) z.func->Call(args, f)
@@ -996,7 +996,7 @@ type Vc
 side-effects OP_CALL2_c
 side-effects-op-type OP_c
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval auto v_ptr = z.func->Call(args, f)
@@ -1009,7 +1009,7 @@ op1-read
 type c
 side-effects
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
@@ -1021,7 +1021,7 @@ type Vc
 side-effects OP_CALL3_c
 side-effects-op-type OP_c
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
@@ -1035,7 +1035,7 @@ op1-read
 type c
 side-effects
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
@@ -1048,7 +1048,7 @@ type Vc
 side-effects OP_CALL4_c
 side-effects-op-type OP_c
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
@@ -1063,7 +1063,7 @@ op1-read
 type c
 side-effects
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
@@ -1077,7 +1077,7 @@ type Vc
 side-effects OP_CALL5_c
 side-effects-op-type OP_c
 eval auto aux = z.aux
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
@@ -1096,7 +1096,7 @@ type c
 side-effects
 eval auto aux = z.aux
 eval auto n = aux->n
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval (void) z.func->Call(args, f)
 
@@ -1107,7 +1107,7 @@ side-effects OP_CALLN_c
 side-effects-op-type OP_c
 eval auto aux = z.aux
 eval auto n = aux->n
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
@@ -1122,7 +1122,7 @@ side-effects
 eval auto func = frame[z.v1].func_val
 eval auto aux = z.aux
 eval auto n = aux->n
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval (void) func->Call(args, f)
 
@@ -1134,7 +1134,7 @@ side-effects-op-type OP_Vc
 eval auto func = frame[z.v2].func_val
 eval auto aux = z.aux
 eval auto n = aux->n
-eval std::vector<IntrusivePtr<Val>> args;
+eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval auto v_ptr = func->Call(args, f)
 eval if ( ! v_ptr ) break
@@ -1544,6 +1544,17 @@ eval if ( global_state[z.v2] != GS_UNLOADED ) break
 eval global_state[z.v2] = GS_CLEAN
 eval auto v = z.c.id_val->ID_Val()
 eval @v
+
+# We need a special form here for loading global types, as they don't
+# fit the usual template.
+internal-op Load-Global-Type
+type VVC
+eval if ( global_state[z.v2] != GS_UNLOADED ) break
+eval global_state[z.v2] = GS_CLEAN
+eval auto& v = frame[z.v1].type_val
+eval Unref(v)
+eval IntrusivePtr<BroType> t = {NewRef{}, z.c.id_val->AsType()};
+eval v = new TypeType(t)
 
 internal-op Store-Val
 op1-read

@@ -3604,12 +3604,14 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 
 const CompiledStmt ZAM::LoadGlobal(ID* id)
 	{
-	if ( id->AsType() )
-		// We never operate on these directly, so don't bother
-		// storing or loading them.
-		return EmptyStmt();
+	ZOp op;
 
-	ZOp op = AssignmentFlavor(OP_LOAD_GLOBAL_VVC, id->Type()->Tag());
+	if ( id->AsType() )
+		// Need a special load for these, as they don't fit
+		// with the usual template.
+		op = OP_LOAD_GLOBAL_TYPE_VVC;
+	else
+		op = AssignmentFlavor(OP_LOAD_GLOBAL_VVC, id->Type()->Tag());
 
 	auto slot = RawSlot(id);
 

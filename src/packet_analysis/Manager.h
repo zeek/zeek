@@ -99,8 +99,6 @@ private:
 
 	AnalyzerPtr Dispatch(identifier_t identifier);
 
-	void Reset();
-
 	DispatcherPtr GetDispatcher(Config& configuration, const std::string& dispatcher_name);
 
 	std::map<std::string, AnalyzerPtr> analyzers;

@@ -186,7 +186,7 @@ void Manager::ProcessPacket(Packet* packet)
 		CustomEncapsulationSkip(packet);
 
 	// Processing finished, reset analyzer set state for next packet
-	Reset();
+	current_state = root_dispatcher;
 	}
 
 void Manager::CustomEncapsulationSkip(Packet* packet)
@@ -248,11 +248,6 @@ AnalyzerPtr Manager::Dispatch(identifier_t identifier)
 		current_state = result->dispatcher;
 		return result->analyzer;
 		}
-	}
-
-void Manager::Reset()
-	{
-	current_state = root_dispatcher;
 	}
 
 DispatcherPtr Manager::GetDispatcher(Config& configuration, const std::string& dispatcher_name)

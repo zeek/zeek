@@ -9,7 +9,7 @@ MPLSAnalyzer::MPLSAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> MPLSAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();

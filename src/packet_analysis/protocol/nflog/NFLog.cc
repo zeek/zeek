@@ -10,12 +10,12 @@ NFLogAnalyzer::NFLogAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> NFLogAnalyzer::Analyze(Packet* packet) {
+zeek::packet_analysis::AnalysisResultTuple NFLogAnalyzer::Analyze(Packet* packet) {
 	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
 
 	// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
-	identifier_t protocol = pdata[0];
+	uint32_t protocol = pdata[0];
 	uint8_t version = pdata[1];
 
 	if ( version != 0 )

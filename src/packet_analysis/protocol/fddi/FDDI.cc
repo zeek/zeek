@@ -10,7 +10,7 @@ FDDIAnalyzer::FDDIAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> FDDIAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple FDDIAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 	auto hdr_size = 13 + 8; // FDDI header + LLC

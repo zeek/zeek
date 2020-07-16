@@ -12,7 +12,7 @@ public:
 	IEEE802_11Analyzer();
 	~IEEE802_11Analyzer() override = default;
 
-	std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) override;
+	AnalysisResultTuple Analyze(Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{

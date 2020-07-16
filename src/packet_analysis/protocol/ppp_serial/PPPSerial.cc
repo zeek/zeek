@@ -10,12 +10,12 @@ PPPSerialAnalyzer::PPPSerialAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> PPPSerialAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple PPPSerialAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 
 	// Extract protocol identifier
-	identifier_t protocol = (pdata[2] << 8) + pdata[3];
+	uint32_t protocol = (pdata[2] << 8) + pdata[3];
 	pdata += 4; // skip link header
 
 	return { AnalyzerResult::Continue, protocol };

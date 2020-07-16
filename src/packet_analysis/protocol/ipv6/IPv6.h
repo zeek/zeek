@@ -12,7 +12,7 @@ public:
 	IPv6Analyzer();
 	~IPv6Analyzer() override = default;
 
-	std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) override;
+	AnalysisResultTuple Analyze(Packet* packet) override;
 
 	static AnalyzerPtr Instantiate()
 		{

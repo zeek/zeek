@@ -10,7 +10,7 @@ NullAnalyzer::NullAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> NullAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple NullAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 
@@ -20,7 +20,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	identifier_t protocol = (pdata[3] << 24) + (pdata[2] << 16) + (pdata[1] << 8) + pdata[0];
+	uint32_t protocol = (pdata[3] << 24) + (pdata[2] << 16) + (pdata[1] << 8) + pdata[0];
 	pdata += 4; // skip link header
 
 	return { AnalyzerResult::Continue, protocol };

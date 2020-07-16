@@ -9,7 +9,7 @@ ARPAnalyzer::ARPAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> ARPAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple ARPAnalyzer::Analyze(Packet* packet)
 	{
 	// TODO: Make ARP analyzer a native packet analyzer
 	packet->l3_proto = L3_ARP;

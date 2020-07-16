@@ -10,7 +10,7 @@ WrapperAnalyzer::WrapperAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> WrapperAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* packet)
 	{
 	// Unfortunately some packets on the link might have MPLS labels
 	// while others don't. That means we need to ask the link-layer if
@@ -35,7 +35,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		}
 
 	// Extract protocol identifier
-	identifier_t protocol = (pdata[12] << 8u) + pdata[13];
+	uint32_t protocol = (pdata[12] << 8u) + pdata[13];
 
 	packet->eth_type = protocol;
 	packet->l2_dst = pdata;

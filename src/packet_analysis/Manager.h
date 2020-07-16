@@ -97,7 +97,7 @@ private:
 	 */
 	void CustomEncapsulationSkip(Packet* packet);
 
-	AnalyzerPtr Dispatch(identifier_t identifier);
+	AnalyzerPtr Dispatch(uint32_t identifier);
 
 	DispatcherPtr GetDispatcher(Config& configuration, const std::string& dispatcher_name);
 

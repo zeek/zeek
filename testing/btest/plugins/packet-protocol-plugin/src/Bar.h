@@ -10,7 +10,7 @@ public:
 	Bar();
 	~Bar() override = default;
 
-	std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) override;
+	AnalysisResultTuple Analyze(Packet* packet) override;
 
 	static AnalyzerPtr Instantiate()
 		{

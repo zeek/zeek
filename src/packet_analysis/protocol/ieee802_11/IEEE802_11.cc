@@ -10,7 +10,7 @@ IEEE802_11Analyzer::IEEE802_11Analyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> IEEE802_11Analyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
@@ -106,7 +106,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	identifier_t protocol = (pdata[0] << 8) + pdata[1];
+	uint32_t protocol = (pdata[0] << 8) + pdata[1];
 	pdata += 2;
 
 	return { AnalyzerResult::Continue, protocol };

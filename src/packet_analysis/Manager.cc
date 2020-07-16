@@ -149,7 +149,7 @@ void Manager::ProcessPacket(Packet* packet)
 
 	// Dispatch and analyze layers
 	AnalyzerResult result = AnalyzerResult::Continue;
-	identifier_t next_layer_id = packet->link_type;
+	uint32_t next_layer_id = packet->link_type;
 	do
 		{
 		auto current_analyzer = Dispatch(next_layer_id);
@@ -224,7 +224,7 @@ void Manager::CustomEncapsulationSkip(Packet* packet)
 		}
 	}
 
-AnalyzerPtr Manager::Dispatch(identifier_t identifier)
+AnalyzerPtr Manager::Dispatch(uint32_t identifier)
 	{
 	// Because leaf nodes (aka no more dispatching) can still have an existing analyzer that returns more identifiers,
 	// current_state needs to be checked to be not null. In this case there would have been an analyzer dispatched

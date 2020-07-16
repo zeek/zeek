@@ -10,7 +10,7 @@ VLANAnalyzer::VLANAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> VLANAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple VLANAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 
@@ -23,7 +23,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 	auto& vlan_ref = packet->vlan != 0 ? packet->inner_vlan : packet->vlan;
 	vlan_ref = ((pdata[0] << 8u) + pdata[1]) & 0xfff;
 
-	identifier_t protocol = ((pdata[2] << 8u) + pdata[3]);
+	uint32_t protocol = ((pdata[2] << 8u) + pdata[3]);
 	packet->eth_type = protocol;
 	pdata += 4; // Skip the VLAN header
 

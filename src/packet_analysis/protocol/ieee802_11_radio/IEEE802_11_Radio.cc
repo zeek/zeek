@@ -12,7 +12,7 @@ IEEE802_11_RadioAnalyzer::IEEE802_11_RadioAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> IEEE802_11_RadioAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple IEEE802_11_RadioAnalyzer::Analyze(Packet* packet)
 	{
 	auto pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();

@@ -9,7 +9,7 @@ LinuxSLLAnalyzer::LinuxSLLAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> LinuxSLLAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple LinuxSLLAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 
@@ -22,7 +22,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 	//TODO: Handle different ARPHRD_types
 	auto hdr = (const SLLHeader*)pdata;
 
-	identifier_t protocol = ntohs(hdr->protocol_type);
+	uint32_t protocol = ntohs(hdr->protocol_type);
 	packet->l2_src = (u_char*) &(hdr->addr);
 
 	// SLL doesn't include a destination address in the header, but not setting l2_dst to something

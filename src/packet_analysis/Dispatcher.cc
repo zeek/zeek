@@ -11,7 +11,7 @@ Dispatcher::~Dispatcher()
 	FreeValues();
 	}
 
-bool Dispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
+bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
 	{
 	// If the table has size 1 and the entry is nullptr, there was nothing added yet. Just add it.
 	if ( table.size() == 1 && table[0] == nullptr )
@@ -29,7 +29,7 @@ bool Dispatcher::Register(identifier_t identifier, AnalyzerPtr analyzer, Dispatc
 	else if ( identifier < lowest_identifier )
 		{
 		// Lower than the lowest registered identifier. Shift up by lowerBound - identifier
-		identifier_t distance = lowest_identifier - identifier;
+		uint32_t distance = lowest_identifier - identifier;
 		table.resize(table.size() + distance, nullptr);
 
 		// Shift values
@@ -77,7 +77,7 @@ void Dispatcher::Register(const register_map& data)
 		}
 	}
 
-ValuePtr Dispatcher::Lookup(identifier_t identifier) const
+ValuePtr Dispatcher::Lookup(uint32_t identifier) const
 	{
 	int64_t index = identifier - lowest_identifier;
 	if ( index >= 0 && index < static_cast<int64_t>(table.size()) && table[index] != nullptr )

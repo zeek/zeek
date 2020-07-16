@@ -10,7 +10,7 @@ PPPoEAnalyzer::PPPoEAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> PPPoEAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple PPPoEAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 
@@ -21,7 +21,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		}
 
 	// Extract protocol identifier
-	identifier_t protocol = (pdata[6] << 8u) + pdata[7];
+	uint32_t protocol = (pdata[6] << 8u) + pdata[7];
 	pdata += 8; // Skip the PPPoE session and PPP header
 
 	return { AnalyzerResult::Continue, protocol };

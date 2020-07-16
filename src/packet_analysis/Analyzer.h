@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
-#include "Defines.h"
 #include "Manager.h"
 #include "Tag.h"
 #include <iosource/Packet.h>
@@ -17,7 +16,7 @@ enum class AnalyzerResult {
 	Terminate // Analysis succeeded and there is no further analysis to do
 };
 
-using AnalysisResultTuple = std::tuple<AnalyzerResult, identifier_t>;
+using AnalysisResultTuple = std::tuple<AnalyzerResult, uint32_t>;
 
 class Analyzer {
 public:
@@ -75,7 +74,7 @@ public:
 	 * how to proceed. If analysis can continue, the identifier determines the
 	 * encapsulated protocol.
 	 */
-	virtual std::tuple<AnalyzerResult, identifier_t> Analyze(Packet* packet) = 0;
+	virtual AnalysisResultTuple Analyze(Packet* packet) = 0;
 
 protected:
 	friend class Manager;

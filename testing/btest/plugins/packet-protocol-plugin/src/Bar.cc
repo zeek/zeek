@@ -10,7 +10,7 @@ Bar::Bar()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> Bar::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple Bar::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
@@ -31,5 +31,5 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		val_mgr->Count(ssap),
 		val_mgr->Count(control));
 
-	return std::make_tuple(AnalyzerResult::Terminate, 0);
+	return { AnalyzerResult::Terminate, 0 };
 	}

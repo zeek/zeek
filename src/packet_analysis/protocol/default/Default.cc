@@ -10,7 +10,7 @@ DefaultAnalyzer::DefaultAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> DefaultAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple DefaultAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 
@@ -22,7 +22,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		}
 
 	auto ip = (const struct ip *)pdata;
-	identifier_t protocol = ip->ip_v;
+	uint32_t protocol = ip->ip_v;
 
 	return { AnalyzerResult::Continue, protocol };
 	}

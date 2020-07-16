@@ -10,7 +10,7 @@ EthernetAnalyzer::EthernetAnalyzer()
 	{
 	}
 
-std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identifier_t> EthernetAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple EthernetAnalyzer::Analyze(Packet* packet)
 	{
 	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
@@ -38,7 +38,7 @@ std::tuple<zeek::packet_analysis::AnalyzerResult, zeek::packet_analysis::identif
 		}
 
 	// Get protocol being carried from the ethernet frame.
-	identifier_t protocol = (pdata[12] << 8) + pdata[13];
+	uint32_t protocol = (pdata[12] << 8) + pdata[13];
 
 	packet->eth_type = protocol;
 	packet->l2_dst = pdata;

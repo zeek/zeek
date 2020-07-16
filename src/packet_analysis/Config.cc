@@ -14,12 +14,12 @@ const std::string& DispatcherConfig::GetName() const
 	return name;
 	}
 
-const std::map<identifier_t, std::string>& DispatcherConfig::GetMappings() const
+const std::map<uint32_t, std::string>& DispatcherConfig::GetMappings() const
 	{
 	return mappings;
 	}
 
-void DispatcherConfig::AddMapping(identifier_t identifier,
+void DispatcherConfig::AddMapping(uint32_t identifier,
                                   const std::string& analyzer_name)
 	{
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Adding configuration mapping: %s -> %#x -> %s",
@@ -71,7 +71,7 @@ DispatcherConfig& Config::AddDispatcherConfig(const std::string& name)
 	return dispatchers.emplace_back(name);
 	}
 
-void Config::AddMapping(const std::string& name, identifier_t identifier,
+void Config::AddMapping(const std::string& name, uint32_t identifier,
                         const std::string& analyzer_name)
 	{
 	// Create dispatcher config if it does not exist yet

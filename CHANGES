@@ -1,4 +1,16 @@
 
+3.2.0-dev.915 | 2020-07-17 16:10:46 -0700
+
+  * Various deprecation fixes, reported by failed Spicy builds (Tim Wojtulewicz, Corelight)
+
+    - Add deprecated version of ID::SetType() that takes Type*
+    - Add deprecated versions of zeek::set_location in the global namespace
+    - Fix global namespace version of lookup_ID to return ID*
+
+  * Add deprecated version of EnumType::GetVal() to return EnumVal* (Tim Wojtulewicz, Corelight)
+
+    Rename IntrusivePtr version to GetEnumVal
+
 3.2.0-dev.911 | 2020-07-17 22:32:42 +0000
 
   * Fix race condition in ensure_dir()

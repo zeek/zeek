@@ -128,7 +128,7 @@ constexpr auto global_scope [[deprecated("Remove in v4.1 Use zeek::detail::globa
 
 // Because of the use of default arguments, this function can't be aliased like the rest.
 [[deprecated("Remove in v4.1 Use zeek::detail::lookup_ID instead.")]]
-extern const zeek::detail::ID* lookup_ID(
+extern zeek::detail::ID* lookup_ID(
 	const char* name, const char* module,
 	bool no_global = false,
 	bool same_module_only = false,

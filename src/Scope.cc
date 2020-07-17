@@ -223,7 +223,7 @@ Scope* global_scope()
 
 }
 
-const zeek::detail::ID* lookup_ID(
+zeek::detail::ID* lookup_ID(
 	const char* name, const char* module,
 	bool no_global,
 	bool same_module_only,

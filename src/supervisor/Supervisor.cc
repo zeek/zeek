@@ -1386,7 +1386,7 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 		const auto& ept = zeek::BifType::Record::Supervisor::ClusterEndpoint;
 		auto val = zeek::make_intrusive<zeek::RecordVal>(ept);
 
-		val->Assign(ept->FieldOffset("role"), zeek::BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
+		val->Assign(ept->FieldOffset("role"), zeek::BifType::Enum::Supervisor::ClusterRole->GetEnumVal(ep.role));
 		val->Assign(ept->FieldOffset("host"), zeek::make_intrusive<zeek::AddrVal>(ep.host));
 		val->Assign(ept->FieldOffset("p"), zeek::val_mgr->Port(ep.port, TRANSPORT_TCP));
 
@@ -1419,15 +1419,15 @@ static ValPtr supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterR
 
 	switch ( role ) {
 	case BifEnum::Supervisor::LOGGER:
-		return node_type->GetVal(node_type->Lookup("Cluster", "LOGGER"));
+		return node_type->GetEnumVal(node_type->Lookup("Cluster", "LOGGER"));
 	case BifEnum::Supervisor::MANAGER:
-		return node_type->GetVal(node_type->Lookup("Cluster", "MANAGER"));
+		return node_type->GetEnumVal(node_type->Lookup("Cluster", "MANAGER"));
 	case BifEnum::Supervisor::PROXY:
-		return node_type->GetVal(node_type->Lookup("Cluster", "PROXY"));
+		return node_type->GetEnumVal(node_type->Lookup("Cluster", "PROXY"));
 	case BifEnum::Supervisor::WORKER:
-		return node_type->GetVal(node_type->Lookup("Cluster", "WORKER"));
+		return node_type->GetEnumVal(node_type->Lookup("Cluster", "WORKER"));
 	default:
-		return node_type->GetVal(node_type->Lookup("Cluster", "NONE"));
+		return node_type->GetEnumVal(node_type->Lookup("Cluster", "NONE"));
 	}
 	}
 

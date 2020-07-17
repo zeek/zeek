@@ -3253,16 +3253,16 @@ static zeek::EnumValPtr map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
-		return zeek::id::transport_proto->GetVal(0);
+		return zeek::id::transport_proto->GetEnumVal(0);
 
 	case TRANSPORT_TCP:
-		return zeek::id::transport_proto->GetVal(1);
+		return zeek::id::transport_proto->GetEnumVal(1);
 
 	case TRANSPORT_UDP:
-		return zeek::id::transport_proto->GetVal(2);
+		return zeek::id::transport_proto->GetEnumVal(2);
 
 	case TRANSPORT_ICMP:
-		return zeek::id::transport_proto->GetVal(3);
+		return zeek::id::transport_proto->GetEnumVal(3);
 
 	default:
 		reporter->InternalError("bad connection type in map_conn_type()");
@@ -3288,7 +3288,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	if ( ! c )
 		{
 		zeek::emit_builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return zeek::id::transport_proto->GetVal(0);
+		return zeek::id::transport_proto->GetEnumVal(0);
 		}
 
 	return map_conn_type(c->ConnTransport());
@@ -3436,7 +3436,7 @@ function get_current_packet%(%) : pcap_packet
 		pkt->Assign(2, zeek::val_mgr->Count(0));
 		pkt->Assign(3, zeek::val_mgr->Count(0));
 		pkt->Assign(4, zeek::val_mgr->EmptyString());
-		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
@@ -3445,7 +3445,7 @@ function get_current_packet%(%) : pcap_packet
 	pkt->Assign(2, zeek::val_mgr->Count(p->cap_len));
 	pkt->Assign(3, zeek::val_mgr->Count(p->len));
 	pkt->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
-	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(p->link_type));
+	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
 
 	return pkt;
 	%}

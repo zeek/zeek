@@ -1330,7 +1330,7 @@ EnumType::enum_name_list EnumType::Names() const
 	return n;
 	}
 
-const EnumValPtr& EnumType::GetVal(bro_int_t i)
+const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 	{
 	auto it = vals.find(i);
 
@@ -1341,6 +1341,13 @@ const EnumValPtr& EnumType::GetVal(bro_int_t i)
 		}
 
 	return it->second;
+	}
+
+zeek::EnumVal* EnumType::GetVal(bro_int_t i)
+	{
+	auto rval = GetEnumVal(i).get();
+	zeek::Ref(rval);
+	return rval;
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const

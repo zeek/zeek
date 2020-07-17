@@ -762,7 +762,7 @@ const char* CompositeHash::RecoverOneVal(
 		kp1 = reinterpret_cast<const char*>(kp+1);
 
 		if ( tag == zeek::TYPE_ENUM )
-			*pval = t->AsEnumType()->GetVal(*kp);
+			*pval = t->AsEnumType()->GetEnumVal(*kp);
 		else if ( tag == zeek::TYPE_BOOL )
 			*pval = zeek::val_mgr->Bool(*kp);
 		else if ( tag == zeek::TYPE_INT )

@@ -764,7 +764,7 @@ void Ascii::RotateLeftoverLogs()
 		static auto rot_info_type = zeek::id::find_type<zeek::RecordType>("Log::RotationInfo");
 		static auto writer_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
 		static auto writer_idx = writer_type->Lookup("Log", "WRITER_ASCII");
-		static auto writer_val = writer_type->GetVal(writer_idx);
+		static auto writer_val = writer_type->GetEnumVal(writer_idx);
 		static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
 		assert(default_ppf);
 
@@ -908,4 +908,3 @@ bool Ascii::InternalClose(int fd)
 
 	return false;
 	}
-

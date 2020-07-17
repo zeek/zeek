@@ -78,7 +78,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	Conn()->SetLastTime(current_timestamp);
 
-	if ( rule_matcher )
+	if ( zeek::detail::rule_matcher )
 		{
 		if ( ! matcher_state.MatcherInitialized(is_orig) )
 			matcher_state.InitEndpointMatcher(this, ip, len, is_orig, nullptr);
@@ -113,9 +113,9 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	if ( caplen >= len )
 		ForwardPacket(len, data, is_orig, seq, ip, caplen);
 
-	if ( rule_matcher )
-		matcher_state.Match(Rule::PAYLOAD, data, len, is_orig,
-					false, false, true);
+	if ( zeek::detail::rule_matcher )
+		matcher_state.Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig,
+		                    false, false, true);
 	}
 
 void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,

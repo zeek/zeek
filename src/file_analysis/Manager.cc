@@ -47,7 +47,7 @@ void Manager::InitPostScript()
 void Manager::InitMagic()
 	{
 	delete magic_state;
-	magic_state = rule_matcher->InitFileMagic();
+	magic_state = zeek::detail::rule_matcher->InitFileMagic();
 	}
 
 void Manager::Terminate()
@@ -495,20 +495,21 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
 	return a;
 	}
 
-RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64_t len,
-        RuleMatcher::MIME_Matches* rval) const
+zeek::detail::RuleMatcher::MIME_Matches* Manager::DetectMIME(
+	const u_char* data, uint64_t len,
+	zeek::detail::RuleMatcher::MIME_Matches* rval) const
 	{
 	if ( ! magic_state )
 		reporter->InternalError("file magic signature state not initialized");
 
-	rval = rule_matcher->Match(magic_state, data, len, rval);
-	rule_matcher->ClearFileMagicState(magic_state);
+	rval = zeek::detail::rule_matcher->Match(magic_state, data, len, rval);
+	zeek::detail::rule_matcher->ClearFileMagicState(magic_state);
 	return rval;
 	}
 
 string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	{
-	RuleMatcher::MIME_Matches matches;
+	zeek::detail::RuleMatcher::MIME_Matches matches;
 	DetectMIME(data, len, &matches);
 
 	if ( matches.empty() )
@@ -517,13 +518,13 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	return *(matches.begin()->second.begin());
 	}
 
-zeek::VectorValPtr file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+zeek::VectorValPtr file_analysis::GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
 	{
 	static auto mime_matches = zeek::id::find_type<zeek::VectorType>("mime_matches");
 	static auto mime_match = zeek::id::find_type<zeek::RecordType>("mime_match");
 	auto rval = zeek::make_intrusive<zeek::VectorVal>(mime_matches);
 
-	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
+	for ( zeek::detail::RuleMatcher::MIME_Matches::const_iterator it = m.begin();
 	      it != m.end(); ++it )
 		{
 		auto element = zeek::make_intrusive<zeek::RecordVal>(mime_match);

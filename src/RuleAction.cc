@@ -12,13 +12,15 @@ using std::string;
 
 #include "analyzer/Manager.h"
 
+namespace zeek::detail {
+
 RuleActionEvent::RuleActionEvent(const char* arg_msg)
 	{
 	msg = copy_string(arg_msg);
 	}
 
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len)
+                               const u_char* data, int len)
 	{
 	if ( signature_match )
 		mgr.Enqueue(signature_match,
@@ -78,7 +80,7 @@ void RuleActionAnalyzer::PrintDebug()
 
 
 void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len)
+                                const u_char* data, int len)
 	{
 	if ( ! ChildAnalyzer() )
 		{
@@ -107,7 +109,7 @@ void RuleActionEnable::PrintDebug()
 	}
 
 void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
-					const u_char* data, int len)
+                                 const u_char* data, int len)
 	{
 	if ( ! ChildAnalyzer() )
 		{
@@ -124,3 +126,5 @@ void RuleActionDisable::PrintDebug()
 	fprintf(stderr, "  RuleActionDisable: ");
 	RuleActionAnalyzer::PrintDebug();
 	}
+
+} // namespace zeek::detail

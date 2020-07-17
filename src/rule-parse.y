@@ -10,11 +10,13 @@
 #include "IPAddr.h"
 #include "net_util.h"
 
+using namespace zeek::detail;
+
 extern void begin_PS();
 extern void end_PS();
 
-Rule* current_rule = 0;
-const char* current_rule_file = 0;
+zeek::detail::Rule* current_rule = nullptr;
+const char* current_rule_file = nullptr;
 
 static uint8_t ip4_mask_to_len(uint32_t mask)
 	{
@@ -78,26 +80,26 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 %type <ptype> TOK_PATTERN_TYPE
 
 %union {
-	Rule* rule;
-	RuleHdrTest* hdr_test;
-	maskedvalue_list* vallist;
+	zeek::detail::Rule* rule;
+	zeek::detail::RuleHdrTest* hdr_test;
+	zeek::detail::maskedvalue_list* vallist;
 	std::vector<zeek::IPPrefix>* prefix_val_list;
 	zeek::IPPrefix* prefixval;
 
 	bool bl;
 	int val;
 	char* str;
-	MaskedValue mval;
-	RuleHdrTest::Prot prot;
-	Range range;
-	Rule::PatternType ptype;
+	zeek::detail::MaskedValue mval;
+	zeek::detail::RuleHdrTest::Prot prot;
+	zeek::detail::Range range;
+	zeek::detail::Rule::PatternType ptype;
 }
 
 %%
 
 rule_list:
 		rule_list rule
-			{ rule_matcher->AddRule($2); }
+			{ zeek::detail::rule_matcher->AddRule($2); }
 	|
 	;
 
@@ -105,7 +107,7 @@ rule:
 		TOK_SIGNATURE TOK_IDENT
 			{
 			zeek::detail::Location l(current_rule_file, rules_line_number+1, 0, 0, 0);
-			current_rule = new Rule(yylval.str, l);
+			current_rule = new zeek::detail::Rule(yylval.str, l);
 			}
 		'{' rule_attr_list '}'
 			{ $$ = current_rule; }
@@ -119,21 +121,21 @@ rule_attr_list:
 rule_attr:
 		TOK_DST_IP TOK_COMP prefix_value_list
 			{
-			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::IPDst,
-				(RuleHdrTest::Comp) $2, *($3)));
+			current_rule->AddHdrTest(new zeek::detail::RuleHdrTest(
+				zeek::detail::RuleHdrTest::IPDst,
+				(zeek::detail::RuleHdrTest::Comp) $2, *($3)));
 			}
 
 	|	TOK_DST_PORT TOK_COMP value_list
 			{ // Works for both TCP and UDP
-			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::TCP, 2, 2,
-				(RuleHdrTest::Comp) $2, $3));
+			current_rule->AddHdrTest(new zeek::detail::RuleHdrTest(
+				zeek::detail::RuleHdrTest::TCP, 2, 2,
+				(zeek::detail::RuleHdrTest::Comp) $2, $3));
 			}
 
 	|	TOK_EVAL { begin_PS(); } TOK_POLICY_SYMBOL { end_PS(); }
 			{
-			current_rule->AddCondition(new RuleConditionEval($3));
+			current_rule->AddCondition(new zeek::detail::RuleConditionEval($3));
 			}
 
 	|	TOK_HEADER hdr_expr
@@ -142,29 +144,29 @@ rule_attr:
 	|	TOK_IP_OPTIONS ipoption_list
 			{
 			current_rule->AddCondition(
-				new RuleConditionIPOptions($2));
+				new zeek::detail::RuleConditionIPOptions($2));
 			}
 
 	|	TOK_IP_PROTO TOK_COMP TOK_PROT
 			{
 			int proto = 0;
 			switch ( $3 ) {
-			case RuleHdrTest::ICMP: proto = IPPROTO_ICMP; break;
-			case RuleHdrTest::ICMPv6: proto = IPPROTO_ICMPV6; break;
+			case zeek::detail::RuleHdrTest::ICMP: proto = IPPROTO_ICMP; break;
+			case zeek::detail::RuleHdrTest::ICMPv6: proto = IPPROTO_ICMPV6; break;
 			// signature matching against outer packet headers of IP-in-IP
 			// tunneling not supported, so do a no-op there
-			case RuleHdrTest::IP: proto = 0; break;
-			case RuleHdrTest::IPv6: proto = 0; break;
-			case RuleHdrTest::TCP: proto = IPPROTO_TCP; break;
-			case RuleHdrTest::UDP: proto = IPPROTO_UDP; break;
+			case zeek::detail::RuleHdrTest::IP: proto = 0; break;
+			case zeek::detail::RuleHdrTest::IPv6: proto = 0; break;
+			case zeek::detail::RuleHdrTest::TCP: proto = IPPROTO_TCP; break;
+			case zeek::detail::RuleHdrTest::UDP: proto = IPPROTO_UDP; break;
 			default:
 				rules_error("internal_error: unknown protocol");
 			}
 
 			if ( proto )
 				{
-				maskedvalue_list* vallist = new maskedvalue_list;
-				MaskedValue* val = new MaskedValue();
+				auto* vallist = new zeek::detail::maskedvalue_list;
+				auto* val = new zeek::detail::MaskedValue();
 
 				val->val = proto;
 				val->mask = 0xffffffff;
@@ -172,9 +174,9 @@ rule_attr:
 
 				// offset & size params are dummies, actual next proto value in
 				// header is retrieved dynamically via IP_Hdr::NextProto()
-				current_rule->AddHdrTest(new RuleHdrTest(
-					RuleHdrTest::NEXT, 0, 0,
-					(RuleHdrTest::Comp) $2, vallist));
+				current_rule->AddHdrTest(new zeek::detail::RuleHdrTest(
+					zeek::detail::RuleHdrTest::NEXT, 0, 0,
+					(zeek::detail::RuleHdrTest::Comp) $2, vallist));
 				}
 			}
 
@@ -182,22 +184,22 @@ rule_attr:
 			{
 			// offset & size params are dummies, actual next proto value in
 			// header is retrieved dynamically via IP_Hdr::NextProto()
-			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::NEXT, 0, 0,
-				(RuleHdrTest::Comp) $2, $3));
+			current_rule->AddHdrTest(new zeek::detail::RuleHdrTest(
+				zeek::detail::RuleHdrTest::NEXT, 0, 0,
+				(zeek::detail::RuleHdrTest::Comp) $2, $3));
 			}
 
 	|	TOK_EVENT string
-			{ current_rule->AddAction(new RuleActionEvent($2)); }
+			{ current_rule->AddAction(new zeek::detail::RuleActionEvent($2)); }
 
 	|	TOK_MIME string opt_strength
-			{ current_rule->AddAction(new RuleActionMIME($2, $3)); }
+			{ current_rule->AddAction(new zeek::detail::RuleActionMIME($2, $3)); }
 
 	|	TOK_ENABLE TOK_STRING
-			{ current_rule->AddAction(new RuleActionEnable($2)); }
+			{ current_rule->AddAction(new zeek::detail::RuleActionEnable($2)); }
 
 	|	TOK_DISABLE TOK_STRING
-			{ current_rule->AddAction(new RuleActionDisable($2)); }
+			{ current_rule->AddAction(new zeek::detail::RuleActionDisable($2)); }
 
 	|	TOK_PATTERN_TYPE pattern
 			{ current_rule->AddPattern($2, $1); }
@@ -212,7 +214,7 @@ rule_attr:
 	|	TOK_PAYLOAD_SIZE TOK_COMP integer
 			{
 			current_rule->AddCondition(
-				new RuleConditionPayloadSize($3, (RuleConditionPayloadSize::Comp) ($2)));
+				new zeek::detail::RuleConditionPayloadSize($3, (zeek::detail::RuleConditionPayloadSize::Comp) ($2)));
 			}
 
 	|	TOK_REQUIRES_SIGNATURE TOK_IDENT
@@ -228,25 +230,25 @@ rule_attr:
 			{ current_rule->AddRequires($3, 1, 1); }
 
 	|	TOK_SAME_IP
-			{ current_rule->AddCondition(new RuleConditionSameIP()); }
+			{ current_rule->AddCondition(new zeek::detail::RuleConditionSameIP()); }
 
 	|	TOK_SRC_IP TOK_COMP prefix_value_list
 			{
-			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::IPSrc,
-				(RuleHdrTest::Comp) $2, *($3)));
+			current_rule->AddHdrTest(new zeek::detail::RuleHdrTest(
+				zeek::detail::RuleHdrTest::IPSrc,
+				(zeek::detail::RuleHdrTest::Comp) $2, *($3)));
 			}
 
 	|	TOK_SRC_PORT TOK_COMP value_list
 			{ // Works for both TCP and UDP
-			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::TCP, 0, 2,
-				(RuleHdrTest::Comp) $2, $3));
+			current_rule->AddHdrTest(new zeek::detail::RuleHdrTest(
+				zeek::detail::RuleHdrTest::TCP, 0, 2,
+				(zeek::detail::RuleHdrTest::Comp) $2, $3));
 			}
 
 	|	TOK_TCP_STATE tcpstate_list
 			{
-			current_rule->AddCondition(new RuleConditionTCPState($2));
+			current_rule->AddCondition(new zeek::detail::RuleConditionTCPState($2));
 			}
 
 	|	TOK_ACTIVE TOK_BOOL
@@ -256,33 +258,33 @@ rule_attr:
 hdr_expr:
 		TOK_PROT '[' range ']' '&' integer TOK_COMP value
 			{
-			maskedvalue_list* vallist = new maskedvalue_list;
-			MaskedValue* val = new MaskedValue();
+			auto* vallist = new zeek::detail::maskedvalue_list;
+			auto* val = new zeek::detail::MaskedValue();
 
 			val->val = $8.val;
 			val->mask = $6;
 			vallist->push_back(val);
 
-			$$ = new RuleHdrTest($1, $3.offset, $3.len,
-					(RuleHdrTest::Comp) $7, vallist);
+			$$ = new zeek::detail::RuleHdrTest($1, $3.offset, $3.len,
+					(zeek::detail::RuleHdrTest::Comp) $7, vallist);
 			}
 
 	|	TOK_PROT '[' range ']' TOK_COMP value_list
 			{
-			$$ = new RuleHdrTest($1, $3.offset, $3.len,
-						(RuleHdrTest::Comp) $5, $6);
+			$$ = new zeek::detail::RuleHdrTest($1, $3.offset, $3.len,
+						(zeek::detail::RuleHdrTest::Comp) $5, $6);
 			}
 	;
 
 value_list:
 		value_list ',' value
-			{ $1->push_back(new MaskedValue($3)); $$ = $1; }
+			{ $1->push_back(new zeek::detail::MaskedValue($3)); $$ = $1; }
 	|	value_list ',' ranged_value
 			{
 			int numVals = $3->length();
 			for ( int idx = 0; idx < numVals; idx++ )
 				{
-				MaskedValue* val = (*$3)[idx];
+				zeek::detail::MaskedValue* val = (*$3)[idx];
 				$1->push_back(val);
 				}
 			$$ = $1;
@@ -291,8 +293,8 @@ value_list:
 			{ id_to_maskedvallist($3, $1); $$ = $1; }
 	|	value
 			{
-			$$ = new maskedvalue_list();
-			$$->push_back(new MaskedValue($1));
+			$$ = new zeek::detail::maskedvalue_list();
+			$$->push_back(new zeek::detail::MaskedValue($1));
 			}
 	|	ranged_value
 			{
@@ -300,7 +302,7 @@ value_list:
 			}
 	|	TOK_IDENT
 			{
-			$$ = new maskedvalue_list();
+			$$ = new zeek::detail::maskedvalue_list();
 			id_to_maskedvallist($1, $$);
 			}
 	;
@@ -340,10 +342,10 @@ prefix_value:
 ranged_value:
 		TOK_INT '-' TOK_INT
 			{
-			$$ = new maskedvalue_list();
+			$$ = new zeek::detail::maskedvalue_list();
 			for ( int val = $1; val <= $3; val++ )
 				{
-				MaskedValue* masked = new MaskedValue();
+				auto* masked = new zeek::detail::MaskedValue();
 				masked->val = val;
 				masked->mask = 0xffffffff;
 				$$->push_back(masked);
@@ -427,23 +429,23 @@ pattern:
 void rules_error(const char* msg)
 	{
 	reporter->Error("Error in signature (%s:%d): %s\n",
-			current_rule_file, rules_line_number+1, msg);
-	rule_matcher->SetParseError();
+	                current_rule_file, rules_line_number+1, msg);
+	zeek::detail::rule_matcher->SetParseError();
 	}
 
 void rules_error(const char* msg, const char* addl)
 	{
 	reporter->Error("Error in signature (%s:%d): %s (%s)\n",
-			current_rule_file, rules_line_number+1, msg, addl);
-	rule_matcher->SetParseError();
+	                current_rule_file, rules_line_number+1, msg, addl);
+	zeek::detail::rule_matcher->SetParseError();
 	}
 
-void rules_error(Rule* r, const char* msg)
+void rules_error(zeek::detail::Rule* r, const char* msg)
 	{
 	const zeek::detail::Location& l = r->GetLocation();
 	reporter->Error("Error in signature %s (%s:%d): %s\n",
-			r->ID(), l.filename, l.first_line, msg);
-	rule_matcher->SetParseError();
+	                r->ID(), l.filename, l.first_line, msg);
+	zeek::detail::rule_matcher->SetParseError();
 	}
 
 int rules_wrap(void)

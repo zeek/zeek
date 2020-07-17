@@ -20,6 +20,8 @@ static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	       e->state != analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
 	}
 
+namespace zeek::detail {
+
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
@@ -28,7 +30,7 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 	if ( ! root || ! root->IsAnalyzer("TCP") )
 		return false;
 
-	analyzer::tcp::TCP_Analyzer* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(root);
+	::analyzer::tcp::TCP_Analyzer* ta = static_cast<::analyzer::tcp::TCP_Analyzer*>(root);
 
 	if ( tcpstates & STATE_STATELESS )
 		return true;
@@ -196,3 +198,5 @@ void RuleConditionEval::PrintDebug()
 	{
 	fprintf(stderr, "	RuleConditionEval: %s\n", id->Name());
 	}
+
+} // namespace zeek::detail

@@ -449,7 +449,8 @@ static inline bool is_version_sep(const char* s, const char* end)
 			isspace(s[0]);
 	}
 
-void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol, bool clear_state)
+void Connection::Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
+                       bool is_orig, bool bol, bool eol, bool clear_state)
 	{
 	if ( primary_PIA )
 		primary_PIA->Match(type, data, len, is_orig, bol, eol, clear_state);

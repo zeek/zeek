@@ -93,6 +93,9 @@ zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
 zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
 
+zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
+zeek::detail::RuleMatcher*& rule_matcher = zeek::detail::rule_matcher;
+
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 
@@ -108,7 +111,6 @@ zeek::detail::trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
 zeek::detail::Stmt* stmts;
-RuleMatcher* rule_matcher = nullptr;
 EventRegistry* event_registry = nullptr;
 ProfileLogger* profiling_logger = nullptr;
 ProfileLogger* segment_logger = nullptr;
@@ -336,7 +338,7 @@ void zeek_terminate_loop(const char* reason)
 	// might write to connection content files.
 	BroFile::CloseOpenFiles();
 
-	delete rule_matcher;
+	delete zeek::detail::rule_matcher;
 
 	exit(0);
 	}

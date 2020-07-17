@@ -333,7 +333,7 @@ void File::InferMetadata()
 	if ( ! FileEventAvailable(file_sniff) )
 		return;
 
-	RuleMatcher::MIME_Matches matches;
+	zeek::detail::RuleMatcher::MIME_Matches matches;
 	const u_char* data = bof_buffer_val->AsString()->Bytes();
 	uint64_t len = bof_buffer_val->AsString()->Len();
 	len = std::min(len, LookupFieldDefaultCount(bof_buffer_size_idx));

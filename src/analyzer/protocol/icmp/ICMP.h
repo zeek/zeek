@@ -87,7 +87,7 @@ protected:
 	int code;
 	int request_len, reply_len;
 
-	RuleMatcherState matcher_state;
+	zeek::detail::RuleMatcherState matcher_state;
 
 private:
 	void UpdateEndpointVal(const zeek::ValPtr& endp, bool is_orig);

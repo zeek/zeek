@@ -109,9 +109,9 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			     "AUTH", cmd_len) == 0 )
 			auth_requested = std::string(line, end_of_line - line);
 
-		if ( rule_matcher )
-			Conn()->Match(Rule::FTP, (const u_char *) cmd,
-				end_of_line - cmd, true, true, true, true);
+		if ( zeek::detail::rule_matcher )
+			Conn()->Match(zeek::detail::Rule::FTP, (const u_char *) cmd,
+			              end_of_line - cmd, true, true, true, true);
 		}
 	else
 		{

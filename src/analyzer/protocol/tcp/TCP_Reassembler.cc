@@ -282,7 +282,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 
 void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	{
-	if ( block_list.Empty() || ! rule_matcher )
+	if ( block_list.Empty() || ! zeek::detail::rule_matcher )
 		return;
 
 	const auto& last_block = block_list.LastBlock();
@@ -312,7 +312,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 		if ( b.upper > last_reassem_seq )
 			break;
 
-		tcp_analyzer->Conn()->Match(Rule::PAYLOAD, b.block, b.Size(),
+		tcp_analyzer->Conn()->Match(zeek::detail::Rule::PAYLOAD, b.block, b.Size(),
 		                            false, false, IsOrig(), false);
 		}
 	}

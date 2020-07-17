@@ -168,10 +168,10 @@ void ProfileLogger::Log()
 		Reassembler::TotalMemoryAllocation() / 1024));
 
 	// Signature engine.
-	if ( expensive && rule_matcher )
+	if ( expensive && zeek::detail::rule_matcher )
 		{
-		RuleMatcher::Stats stats;
-		rule_matcher->GetStats(&stats);
+		zeek::detail::RuleMatcher::Stats stats;
+		zeek::detail::rule_matcher->GetStats(&stats);
 
 		file->Write(fmt("%06f RuleMatcher: matchers=%d nfa_states=%d dfa_states=%d "
 			"ncomputed=%d mem=%dK\n", network_time, stats.matchers,

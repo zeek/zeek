@@ -998,7 +998,7 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 ## .. zeek:see:: identify_data
 function file_magic%(data: string%): mime_matches
 	%{
-	RuleMatcher::MIME_Matches matches;
+	zeek::detail::RuleMatcher::MIME_Matches matches;
 	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
 	return file_analysis::GenMIMEMatchesVal(matches);
 	%}
@@ -2092,8 +2092,8 @@ function is_local_interface%(ip: addr%) : bool
 ## .. zeek:see:: get_matcher_stats
 function dump_rule_stats%(f: file%): bool
 	%{
-	if ( rule_matcher )
-		rule_matcher->DumpStats(f);
+	if ( zeek::detail::rule_matcher )
+		zeek::detail::rule_matcher->DumpStats(f);
 
 	return zeek::val_mgr->True();
 	%}
@@ -5032,11 +5032,11 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 				bol: bool, eol: bool,
 				from_orig: bool, clear: bool%) : bool
 	%{
-	if ( ! rule_matcher )
+	if ( ! zeek::detail::rule_matcher )
 		return zeek::val_mgr->False();
 
-	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
-			from_orig, bol, eol, clear);
+	c->Match((zeek::detail::Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
+	         from_orig, bol, eol, clear);
 
 	return zeek::val_mgr->True();
 	%}

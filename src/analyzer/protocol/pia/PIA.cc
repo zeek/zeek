@@ -113,39 +113,39 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	DoMatch(data, len, is_orig, true, false, false, ip);
 
 	if ( clear_state )
-		RuleMatcherState::ClearMatchState(is_orig);
+		zeek::detail::RuleMatcherState::ClearMatchState(is_orig);
 
 	pkt_buffer.state = new_state;
 
 	current_packet.data = nullptr;
 	}
 
-void PIA::Match(Rule::PatternType type, const u_char* data, int len,
-		bool is_orig, bool bol, bool eol, bool clear_state)
+void PIA::Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
+                bool is_orig, bool bol, bool eol, bool clear_state)
 	{
 	if ( ! MatcherInitialized(is_orig) )
 		InitEndpointMatcher(AsAnalyzer(), nullptr, 0, is_orig, this);
 
-	RuleMatcherState::Match(type, data, len, is_orig, bol, eol, clear_state);
+	zeek::detail::RuleMatcherState::Match(type, data, len, is_orig, bol, eol, clear_state);
 	}
 
 void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
                   bool clear_state, const zeek::IP_Hdr* ip)
 	{
-	if ( ! rule_matcher )
+	if ( ! zeek::detail::rule_matcher )
 		return;
 
-	if ( ! rule_matcher->HasNonFileMagicRule() )
+	if ( ! zeek::detail::rule_matcher->HasNonFileMagicRule() )
 		return;
 
 	if ( ! MatcherInitialized(is_orig) )
 		InitEndpointMatcher(AsAnalyzer(), ip, len, is_orig, this);
 
-	RuleMatcherState::Match(Rule::PAYLOAD, data, len, is_orig,
-				bol, eol, clear_state);
+	zeek::detail::RuleMatcherState::Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig,
+	                                      bol, eol, clear_state);
 	}
 
-void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const Rule* rule)
+void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule* rule)
 	{
 	if ( pkt_buffer.state == MATCHING_ONLY )
 		{
@@ -292,7 +292,7 @@ void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	// No check for buffer overrun here. I think that's ok.
 	}
 
-void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const Rule* rule)
+void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule* rule)
 	{
 	if ( stream_buffer.state == MATCHING_ONLY )
 		{

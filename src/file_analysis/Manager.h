@@ -326,8 +326,9 @@ public:
 	 * @return Set of all matching file magic signatures, which may be
 	 *         an object allocated by the method if \a rval is a null pointer.
 	 */
-	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64_t len,
-					      RuleMatcher::MIME_Matches* rval) const;
+	zeek::detail::RuleMatcher::MIME_Matches* DetectMIME(
+		const u_char* data, uint64_t len,
+		zeek::detail::RuleMatcher::MIME_Matches* rval) const;
 
 	/**
 	 * Returns the strongest MIME magic signature match for a given data chunk.
@@ -421,7 +422,7 @@ private:
 	std::map<std::string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
 	std::set<std::string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	std::string current_file_id;	/**< Hash of what get_file_handle event sets. */
-	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
+	zeek::detail::RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
 	inline static zeek::TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
@@ -435,7 +436,7 @@ private:
  * Returns a script-layer value corresponding to the \c mime_matches type.
  * @param m The MIME match information with which to populate the value.
  */
-zeek::VectorValPtr GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
+zeek::VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m);
 
 } // namespace file_analysis
 

@@ -72,7 +72,7 @@ void File_Analyzer::Done()
 
 void File_Analyzer::Identify()
 	{
-	RuleMatcher::MIME_Matches matches;
+	zeek::detail::RuleMatcher::MIME_Matches matches;
 	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
 	                     &matches);
 	std::string match = matches.empty() ? "<unknown>"

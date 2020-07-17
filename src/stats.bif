@@ -397,10 +397,10 @@ function get_matcher_stats%(%): MatcherStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(MatcherStats);
 	int n = 0;
 
-	RuleMatcher::Stats s;
+	zeek::detail::RuleMatcher::Stats s;
 	memset(&s, 0, sizeof(s));
-	if ( rule_matcher )
-		rule_matcher->GetStats(&s);
+	if ( zeek::detail::rule_matcher )
+		zeek::detail::rule_matcher->GetStats(&s);
 
 	r->Assign(n++, zeek::val_mgr->Count(s.matchers));
 	r->Assign(n++, zeek::val_mgr->Count(s.nfa_states));

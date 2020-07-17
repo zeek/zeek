@@ -218,9 +218,9 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
 	if ( deliver_body )
 		MIME_Entity::Deliver(len, data, trailing_CRLF);
 
-	Rule::PatternType rule =
+	zeek::detail::Rule::PatternType rule =
 		http_message->IsOrig() ?
-			Rule::HTTP_REQUEST_BODY : Rule::HTTP_REPLY_BODY;
+			zeek::detail::Rule::HTTP_REQUEST_BODY : zeek::detail::Rule::HTTP_REPLY_BODY;
 
 	http_message->MyHTTP_Analyzer()->Conn()->
 		Match(rule, (const u_char*) data, len,
@@ -1244,7 +1244,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	request_method = zeek::make_intrusive<zeek::StringVal>(end_of_method - line, line);
 
-	Conn()->Match(Rule::HTTP_REQUEST,
+	Conn()->Match(zeek::detail::Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
 			unescaped_URI->AsString()->Len(), true, true, true, true);
 
@@ -1618,9 +1618,9 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 
 	if ( http_header )
 		{
-		Rule::PatternType rule =
-			is_orig ?  Rule::HTTP_REQUEST_HEADER :
-					Rule::HTTP_REPLY_HEADER;
+		zeek::detail::Rule::PatternType rule =
+			is_orig ?  zeek::detail::Rule::HTTP_REQUEST_HEADER :
+					zeek::detail::Rule::HTTP_REPLY_HEADER;
 
 		zeek::data_chunk_t hd_name = h->get_name();
 		zeek::data_chunk_t hd_value = h->get_value();

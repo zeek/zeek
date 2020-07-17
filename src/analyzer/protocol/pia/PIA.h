@@ -6,7 +6,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "RuleMatcher.h"
 
-class RuleEndpointState;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
 
 namespace analyzer { namespace pia {
 
@@ -17,7 +17,7 @@ namespace analyzer { namespace pia {
 // also keeps the matching state.  This is because (i) it needs to match
 // itself, and (ii) in case of tunnel-decapsulation we may have multiple
 // PIAs and then each needs its own matching-state.
-class PIA : public RuleMatcherState {
+class PIA : public zeek::detail::RuleMatcherState {
 public:
 	explicit PIA(zeek::analyzer::Analyzer* as_analyzer);
 	virtual ~PIA();
@@ -25,13 +25,13 @@ public:
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
 	// signature that triggered the activitation, if any.
 	virtual void ActivateAnalyzer(zeek::analyzer::Tag tag,
-					const Rule* rule = nullptr) = 0;
+	                              const zeek::detail::Rule* rule = nullptr) = 0;
 
 	// Called when PIA wants to remove an Analyzer.
 	virtual void DeactivateAnalyzer(zeek::analyzer::Tag tag) = 0;
 
-	void Match(Rule::PatternType type, const u_char* data, int len,
-			bool is_orig, bool bol, bool eol, bool clear_state);
+	void Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
+	           bool is_orig, bool bol, bool eol, bool clear_state);
 
 	void ReplayPacketBuffer(zeek::analyzer::Analyzer* analyzer);
 
@@ -112,7 +112,7 @@ protected:
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, true);
 		}
 
-	void ActivateAnalyzer(zeek::analyzer::Tag tag, const Rule* rule) override;
+	void ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule* rule) override;
 	void DeactivateAnalyzer(zeek::analyzer::Tag tag) override;
 };
 
@@ -161,7 +161,7 @@ protected:
 	void Undelivered(uint64_t seq, int len, bool is_orig) override;
 
 	void ActivateAnalyzer(zeek::analyzer::Tag tag,
-					const Rule* rule = nullptr) override;
+	                      const zeek::detail::Rule* rule = nullptr) override;
 	void DeactivateAnalyzer(zeek::analyzer::Tag tag) override;
 
 private:

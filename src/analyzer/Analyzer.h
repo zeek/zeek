@@ -19,8 +19,8 @@
 class BroFile;
 using BroFilePtr = zeek::IntrusivePtr<BroFile>;
 
-class Rule;
 class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
@@ -304,14 +304,14 @@ public:
 	 * If this analyzer was activated by a signature match, this returns
 	 * the signature that did so. Returns null otherwise.
 	 */
-	const Rule* Signature() const		{ return signature; }
+	const zeek::detail::Rule* Signature() const		{ return signature; }
 
 	/**
 	 * Sets the signature that activated this analyzer, if any.
 	 *
 	 * @param sig The signature.
 	 */
-	void SetSignature(const Rule* sig)	{ signature = sig; }
+	void SetSignature(const zeek::detail::Rule* sig)	{ signature = sig; }
 
 	/**
 	 * Signals the analyzer to skip all further input processsing. The \a
@@ -732,7 +732,7 @@ private:
 
 	Connection* conn;
 	Analyzer* parent;
-	const Rule* signature;
+	const zeek::detail::Rule* signature;
 	OutputHandler* output_handler;
 
 	analyzer_list children;

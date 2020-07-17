@@ -25,11 +25,11 @@ class Connection;
 class ConnectionTimer;
 class NetSessions;
 class LoginConn;
-class RuleHdrTest;
 class Specific_RE_Matcher;
-class RuleEndpointState;
 class EncapsulationStack;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleHdrTest, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TransportLayerAnalyzer, zeek, analyzer);
@@ -179,8 +179,8 @@ public:
 
 	LoginConn* AsLoginConn()		{ return login_conn; }
 
-	void Match(Rule::PatternType type, const u_char* data, int len,
-			bool is_orig, bool bol, bool eol, bool clear_state);
+	void Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
+	           bool is_orig, bool bol, bool eol, bool clear_state);
 
 	/**
 	 * Generates connection removal event(s).

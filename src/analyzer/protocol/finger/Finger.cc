@@ -74,8 +74,8 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 				zeek::make_intrusive<zeek::StringVal>(end_of_line - host, host)
 			);
 
-		Conn()->Match(Rule::FINGER, (const u_char *) line,
-			  end_of_line - line, true, true, true, true);
+		Conn()->Match(zeek::detail::Rule::FINGER, (const u_char *) line,
+		              end_of_line - line, true, true, true, true);
 
 		did_deliver = 1;
 		}

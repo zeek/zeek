@@ -1,4 +1,8 @@
 
+3.2.0-dev.919 | 2020-07-17 16:37:11 -0700
+
+  * Use namespaced version of Location to silence warnings (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.915 | 2020-07-17 16:10:46 -0700
 
   * Various deprecation fixes, reported by failed Spicy builds (Tim Wojtulewicz, Corelight)

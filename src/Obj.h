@@ -201,13 +201,13 @@ using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Ob
 extern void print(const zeek::Obj* obj);
 
 [[deprecated("Remove in v4.1. Use zeek::detail::set_location instead.")]]
-inline void set_location(const Location loc)
+inline void set_location(const zeek::detail::Location loc)
 	{
 	zeek::detail::set_location(loc);
 	}
 
 [[deprecated("Remove in v4.1. Use zeek::detail::set_location instead.")]]
-inline void set_location(const Location start, const Location end)
+inline void set_location(const zeek::detail::Location start, const zeek::detail::Location end)
 	{
 	zeek::detail::set_location(start, end);
 	}

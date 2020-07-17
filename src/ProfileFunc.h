@@ -25,14 +25,17 @@ public:
 	// unused aggregates.
 	std::unordered_set<ID*> inits;
 
-	// Script functionss this script calls.
-	std::unordered_set<Func*> script_calls;
+	// Script functions this script calls.
+	std::unordered_set<BroFunc*> script_calls;
 
 	// Same for BiF's.
 	std::unordered_set<Func*> BiF_calls;
 
 	// Names of generated events.
 	std::unordered_set<const char*> events;
+
+	// Script functions appearing in "when" clauses.
+	std::unordered_set<BroFunc*> when_calls;
 
 	// True if makes a call through an expression.
 	bool does_indirect_calls;
@@ -41,4 +44,9 @@ public:
 	int num_when_stmts = 0;
 	int num_lambdas = 0;
 	int num_exprs = 0;
+
+protected:
+	// Whether we're separately processing a "when" condition to
+	// mine out its script calls.
+	bool in_when = false;
 };

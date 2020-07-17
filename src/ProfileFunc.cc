@@ -24,6 +24,15 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 	switch ( s->Tag() ) {
 	case STMT_WHEN:
 		++num_when_stmts;
+
+		in_when = true;
+		s->AsWhenStmt()->Cond()->Traverse(this);
+		in_when = false;
+
+		// It doesn't do any harm for us to re-traverse the
+		// conditional in our normal operating mode, so we don't
+		// bother hand-traversing the rest of the when but just
+		// let the usual processing do it.
 		break;
 
 	case STMT_FOR:
@@ -86,9 +95,15 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		if ( func_v )
 			{
 			auto func_vf = func_v->AsFunc();
+			auto bf = func_vf->AsBroFunc();
 
-			if ( func_vf->AsBroFunc() )
-				script_calls.insert(func_vf);
+			if ( bf )
+				{
+				script_calls.insert(bf);
+
+				if ( in_when )
+					when_calls.insert(bf);
+				}
 			else
 				BiF_calls.insert(func_vf);
 			}

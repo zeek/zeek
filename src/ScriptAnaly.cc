@@ -256,10 +256,59 @@ void analyze_scripts()
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile functions.
+	std::unordered_map<const BroFunc*, const ProfileFunc*> func_profs;
+
 	for ( auto& f : funcs )
 		{
 		f->pf = new ProfileFunc();
 		f->body->Traverse(f->pf);
+		func_profs[f->func] = f->pf;
+		}
+
+	// Figure out which functions either directly or indirectly
+	// appear in "when" clauses.
+
+	// Final set of functions involved in "when" clauses.
+	std::unordered_set<const BroFunc*> when_funcs;
+
+	// Which functions we need to analyze.
+	std::unordered_set<const BroFunc*> when_funcs_to_do;
+
+	for ( auto f : funcs )
+		{
+		if ( f->pf->when_calls.size() > 0 )
+			{
+			when_funcs.insert(f->func);
+
+			for ( auto bf : f->pf->when_calls )
+				when_funcs_to_do.insert(bf);
+			}
+		}
+
+	// Set of new functions to put on to-do list.  Separate from
+	// the to-do list itself so we don't modify it while iterating
+	// over it.
+	std::unordered_set<const BroFunc*> new_to_do;
+
+	while ( when_funcs_to_do.size() > 0 )
+		{
+		for ( auto wf : when_funcs_to_do )
+			{
+			when_funcs.insert(wf);
+
+			for ( auto wff : func_profs[wf]->script_calls )
+				{
+				if ( when_funcs.count(wff) > 0 )
+					// We've already processed this
+					// function.
+					continue;
+
+				new_to_do.insert(wff);
+				}
+			}
+
+		when_funcs_to_do = new_to_do;
+		new_to_do.clear();
 		}
 
 	// analyze_orphan_events();
@@ -269,6 +318,9 @@ void analyze_scripts()
 	for ( auto& f : funcs )
 		{
 		if ( inl && inl->WasInlined(f->func) )
+			; // printf("skipping optimizing %s\n", f->func->Name());
+		else if ( when_funcs.count(f->func) > 0 )
+
 			; // printf("skipping optimizing %s\n", f->func->Name());
 		else
 			{

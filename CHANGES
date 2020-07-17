@@ -1,4 +1,13 @@
 
+3.2.0-dev.911 | 2020-07-17 22:32:42 +0000
+
+  * Fix race condition in ensure_dir()
+
+    If something else created the dir between the stat() and mkdir(),
+    it previously reported that as a failure. (Jon Siwek, Corelight)
+
+  * Fix tokenize_string() to work with delimiters of length > 1. (Jon Siwek, Corelight)
+
 3.2.0-dev.908 | 2020-07-17 10:19:07 +0000
 
   * GH-734: Improve handling of lambdas that escape enclosing frame.

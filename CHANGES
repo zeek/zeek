@@ -1,4 +1,13 @@
 
+3.2.0-dev.906 | 2020-07-17 10:08:31 +0000
+
+  * GH-837: Add test cases for mismatched Broker SSL configs. (Jon Siwek, Corelight)
+
+  * GH-837: Emit reporter errors for Broker errors. (Jon Siwek,
+    Corelight)
+
+  * Fix incorrect/missing Broker error status code numbers. (Jon Siwek, Corelight)
+
 3.2.0-dev.902 | 2020-07-14 19:10:36 -0700
 
   * GH-1062: fix integer conversion errors related to Tag subtypes (Jon Siwek, Corelight)

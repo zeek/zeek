@@ -69,7 +69,13 @@ type testrec: record {
 	c: set[string];
 };
 
-global t: table[string] of count &backend=Broker::SQLITE;
+function change_function(t: table[string] of count, tpe: TableChange, idxa: string, val: count)
+	{
+	print "This should not print";
+	print "change_function", idxa, val, tpe;
+	}
+
+global t: table[string] of count &backend=Broker::SQLITE &on_change=change_function;
 global s: set[string] &backend=Broker::SQLITE;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
 

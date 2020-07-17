@@ -65,7 +65,8 @@ New Functionality
 
   ```global t: table[string] of count &backend=Broker::MEMORY;```
 
-  This feature is documented in detail here: FIXME.
+  This feature is documented in detail here:
+  https://docs.zeek.org/en/current/frameworks/broker.html#broker-store-backed-zeek-tables-for-data-synchronization-and-persistence
 
 	Note: this feature is experimental and the syntax/featureset can change in the future.
 

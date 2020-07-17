@@ -372,7 +372,7 @@ private:
 	// Initializes the masters for Broker backed Zeek tables when using the &backend attribute
 	void InitializeBrokerStoreForwarding();
 	// Check if a Broker store is associated to a table on the Zeek side.
-	void CheckForwarding(const std::string& name);
+	void PrepareForwarding(const std::string& name);
 	// Send the content of a Broker store to the backing table. This is typically used
 	// when a master/clone is created.
 	void BrokerStoreToZeekTable(const std::string& name, const StoreHandleVal* handle);

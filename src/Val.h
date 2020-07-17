@@ -1029,6 +1029,16 @@ public:
 	 */
 	void SetBrokerStore(const std::string& store) { broker_store = store; }
 
+	/**
+	 * Disable change notification processing of &on_change until re-enabled.
+	 */
+	void DisableChangeNotifications() { in_change_func = true; }
+
+	/**
+	 * Re-enables change notifcations after being disabled by DisableChangeNotifications.
+	 */
+	void EnableChangeNotifications() { in_change_func = false; }
+
 protected:
 	void Init(zeek::TableTypePtr t);
 

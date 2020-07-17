@@ -44,7 +44,7 @@ enum AttrTag {
 	ATTR_ON_CHANGE, // for table change tracking
 	ATTR_BROKER_STORE, // for Broker store backed tables
 	ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
-	ATTR_BACKEND, // for Broker store backed tabled
+	ATTR_BACKEND, // for Broker store backed tables
 	ATTR_DEPRECATED,
 	NUM_ATTRS // this item should always be last
 };

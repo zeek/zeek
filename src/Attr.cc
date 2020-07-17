@@ -465,7 +465,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 		if ( Find(ATTR_BACKEND) )
 			{
-			Error("&broker_store and &backend cannot be used simultaneously");
+			Error("&backend and &broker_store cannot be used simultaneously");
 			}
 		}
 		// fallthrough
@@ -646,7 +646,7 @@ void Attributes::CheckAttr(Attr* a)
 			Error("&backend only supports one-element set/table indexes");
 			}
 
-		// Only support atomic types for the moment.
+		// Only support atomic types for the moment, unless explicitly overriden
 		if ( ! type->AsTableType()->IsSet() &&
 		     ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
 		     ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
@@ -689,6 +689,7 @@ void Attributes::CheckAttr(Attr* a)
 			Error("&broker_store only supports one-element set/table indexes");
 			}
 
+		// Only support atomic types for the moment, unless explicitly overriden
 		if ( ! type->AsTableType()->IsSet() &&
 		     ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
 		     ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )

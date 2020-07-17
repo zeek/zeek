@@ -233,6 +233,9 @@ public:
 	void ClearCall()			{ call = 0; }
 	const CallExpr* GetCall() const		{ return call; }
 
+	void SetCallLoc(const Location* loc)	{ call_loc = loc; }
+	const Location* CallLoc() const;
+
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
 
@@ -312,6 +315,7 @@ private:
 
 	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
+	const Location* call_loc = nullptr;	// only needed if call is nil
 	bool delayed;
 
 	std::vector<BroFunc*> functions_with_closure_frame_reference;

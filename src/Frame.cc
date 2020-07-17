@@ -55,6 +55,11 @@ Frame::~Frame()
 	delete [] weak_refs;
 	}
 
+const Location* Frame::CallLoc() const
+	{
+	return call ? call->GetLocationInfo() : call_loc;
+	}
+
 void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	{
 	::Ref(func);

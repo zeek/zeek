@@ -926,6 +926,7 @@ op1-read
 type X
 side-effects
 eval std::vector<IntrusivePtr<Val>> args;	// empty
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # A call with no arguments and a return value.
@@ -934,6 +935,7 @@ type V
 side-effects OP_CALL0_X
 side-effects-op-type OP_X
 eval std::vector<IntrusivePtr<Val>> args;	// empty
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -946,6 +948,7 @@ type V
 side-effects
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v1].ToVal(z.t))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 internal-op Call1
@@ -954,6 +957,7 @@ type C
 side-effects
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # Same but with a return value.
@@ -963,6 +967,7 @@ side-effects OP_CALL1_V
 side-effects-op-type OP_V
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v2].ToVal(z.t))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -974,6 +979,7 @@ side-effects OP_CALL1_C
 side-effects-op-type OP_C
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -988,6 +994,7 @@ eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -999,6 +1006,7 @@ eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -1013,6 +1021,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1025,6 +1034,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -1040,6 +1050,7 @@ eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1053,6 +1064,7 @@ eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -1069,6 +1081,7 @@ eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval args.push_back(aux->ToVal(frame, 4))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1083,6 +1096,7 @@ eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval args.push_back(aux->ToVal(frame, 4))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -1098,6 +1112,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1109,6 +1124,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()
@@ -1124,6 +1140,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval (void) func->Call(args, f)
 
 # Same with a return value.
@@ -1136,6 +1153,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
+eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = func->Call(args, f)
 eval if ( ! v_ptr ) break
 eval auto v = v_ptr.get()

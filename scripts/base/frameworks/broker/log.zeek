@@ -71,10 +71,12 @@ event Broker::error(code: ErrorCode, msg: string)
 	ev = subst_string(ev, "Broker::", "");
 	ev = subst_string(ev, "_", "-");
 	ev = to_lower(ev);
-	
+
 	Log::write(Broker::LOG, [$ts = network_time(),
 	           $ev = ev,
 	           $ty = ERROR,
 	           $message = msg]);
+
+	Reporter::error(fmt("Broker error (%s): %s", code, msg));
 	}
 

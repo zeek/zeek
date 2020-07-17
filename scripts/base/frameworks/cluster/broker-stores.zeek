@@ -1,9 +1,9 @@
-##! This script deals with the cluster parts of broker backed zeek tables.
+##! This script deals with the cluster parts of Broker backed Zeek tables.
 ##! It makes sure that the master store is set correctly and that clones
 ##! are automatically created on the non-manager nodes.
 
 # Note - this script should become unnecessary in the future, when we just can
-# speculatively attach clones. This should be possible once the new ALM broker
+# speculatively attach clones. This should be possible once the new ALM Broker
 # transport becomes available.
 
 @load ./main
@@ -11,8 +11,8 @@
 module Broker;
 
 export {
-	## Event that is used by the manager to announce the master stores for zeek backed
-	## tables that is uses.
+	## Event that is used by the manager to announce the master stores for Broker backed
+	## tables.
 	global announce_masters: event(masters: set[string]);
 }
 

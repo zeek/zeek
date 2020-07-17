@@ -49,7 +49,7 @@ inline zeek::RecordValPtr query_result(zeek::RecordValPtr data)
 /**
  * Convert an expiry from a double (used to Zeek) to the format required by Broker
  * @param e: expire interval as double; 0 if no expiry
- * @return expire interval in broker format
+ * @return expire interval in Broker format
  */
 static broker::optional<broker::timespan> convert_expiry(double e)
 	{

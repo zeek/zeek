@@ -1,5 +1,5 @@
 # So - this test currently is not really that great. The goal was to test expiration after
-# syncing values with broker. However, it turns out that the delays introduced by broker seem
+# syncing values with Broker. However, it turns out that the delays introduced by Broker seem
 # a bit random - and too high to really test this without the test taking forever.
 #
 # so - instead we just check that expiries do indeed happen - however the ordering is not as

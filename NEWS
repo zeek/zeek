@@ -57,7 +57,7 @@ New Functionality
 
 - Broker Store table synchronization (Experimental).
 
-  Zeek now supports synchronizing tables/sets across clusters using a backing broker
+  Zeek now supports synchronizing tables/sets across clusters using a backing Broker
   store. The same feature also allows persistent storage of data in tables/sets
   over Zeek restarts. This feature is implemented using the new ```&backend``` attribute.
 

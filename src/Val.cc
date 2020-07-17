@@ -2164,7 +2164,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			return;
 
 		// we either get passed the raw index_val - or a ListVal with exactly one element.
-		// Since broker does not support ListVals, we have to unoll this in the second case.
+		// Since Broker does not support ListVals, we have to unoll this in the second case.
 		const Val* index_val;
 		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
 			{
@@ -2221,7 +2221,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( ! new_entry_val )
 						{
-						zeek::emit_builtin_error("did not receive new value for broker-store send operation");
+						zeek::emit_builtin_error("did not receive new value for Broker datastore send operation");
 						return;
 						}
 					auto new_value = new_entry_val->GetVal().get();
@@ -2239,7 +2239,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 				handle->store.erase(std::move(*broker_index));
 				break;
 			case ELEMENT_EXPIRED:
-				// we do nothing here. The broker store does its own expiration - so the element
+				// we do nothing here. The Broker store does its own expiration - so the element
 				// should expire at about the same time.
 				break;
 			}

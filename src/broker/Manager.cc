@@ -235,7 +235,7 @@ void Manager::InitializeBrokerStoreForwarding()
 			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
 			AddForwardedStore(storename, {zeek::NewRef{}, id->GetVal()->AsTableVal()});
 
-			// we only create masters here. For clones, we do all the work of setting up
+			// We only create masters here. For clones, we do all the work of setting up
 			// the forwarding - but we do not try to initialize the clone. We can only initialize
 			// the clone, once a node has a connection to a master. This is currently done in scriptland
 			// in scripts/base/frameworks/cluster/broker-stores.zeek. Once the ALM transport is ready
@@ -921,7 +921,6 @@ void Manager::Process()
 	{
 	// Ensure that time gets update before processing broker messages, or events
 	// based on them might get scheduled wrong.
-	// Fixme: unclear if final solution - see https://github.com/zeek/broker/issues/135
 	if ( use_real_time )
 		net_update_time(current_time());
 
@@ -1700,14 +1699,14 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const StoreHandleV
 		auto value = handle->store.get(key);
 		if ( ! value )
 			{
-			reporter->Error("Failed to load value for key %s while importing broker store %s to table", to_string(key).c_str(), name.c_str());
+			reporter->Error("Failed to load value for key %s while importing Broker store %s to table", to_string(key).c_str(), name.c_str());
 			continue;
 			}
 
 		auto zeek_value = data_to_val(*value, table->GetType()->Yield().get());
 		if ( ! zeek_value )
 			{
-			reporter->Error("Could not convert %s to table value while trying to import broker store %s. Aborting import.", to_string(value).c_str(), name.c_str());
+			reporter->Error("Could not convert %s to table value while trying to import Broker store %s. Aborting import.", to_string(value).c_str(), name.c_str());
 			return;
 			}
 

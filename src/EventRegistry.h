@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -10,7 +12,7 @@
 
 class EventHandler;
 class EventHandlerPtr;
-class RE_Matcher;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry {
@@ -34,7 +36,7 @@ public:
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
 	using string_list = std::vector<std::string>;
-	string_list Match(RE_Matcher* pattern);
+	string_list Match(zeek::RE_Matcher* pattern);
 
 	// Marks a handler as handling errors. Error handler will not be called
 	// recursively to avoid infinite loops in case they trigger an error

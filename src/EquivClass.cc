@@ -5,6 +5,8 @@
 #include "EquivClass.h"
 #include "CCL.h"
 
+namespace zeek::detail {
+
 EquivClass::EquivClass(int arg_size)
 	{
 	size = arg_size;
@@ -188,3 +190,5 @@ int EquivClass::Size() const
 	{
 	return padded_sizeof(*this) + pad_size(sizeof(int) * size * (ccl_flags ? 5 : 4));
 	}
+
+} // namespace zeek::detail

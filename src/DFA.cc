@@ -7,6 +7,8 @@
 #include "Desc.h"
 #include "Hash.h"
 
+namespace zeek::detail {
+
 unsigned int DFA_State::transition_counter = 0;
 
 DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
@@ -469,3 +471,5 @@ int DFA_Machine::Rep(int sym)
 
 	return -1;
 	}
+
+} // namespace zeek::detail

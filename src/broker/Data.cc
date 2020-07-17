@@ -421,7 +421,7 @@ struct val_converter {
 			if ( ! exact_text || ! anywhere_text )
 				return nullptr;
 
-			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			auto* re = new zeek::RE_Matcher(exact_text->c_str(),
 			                                anywhere_text->c_str());
 
 			if ( ! re->Compile() )
@@ -745,7 +745,7 @@ struct type_checker {
 			if ( ! exact_text || ! anywhere_text )
 				return false;
 
-			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			auto* re = new zeek::RE_Matcher(exact_text->c_str(),
 			                                anywhere_text->c_str());
 			auto compiled = re->Compile();
 			delete re;
@@ -986,7 +986,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		}
 	case zeek::TYPE_PATTERN:
 		{
-		const RE_Matcher* p = v->AsPattern();
+		const zeek::RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}

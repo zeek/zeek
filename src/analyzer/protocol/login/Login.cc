@@ -17,15 +17,15 @@
 
 using namespace analyzer::login;
 
-static RE_Matcher* re_skip_authentication = nullptr;
-static RE_Matcher* re_direct_login_prompts;
-static RE_Matcher* re_login_prompts;
-static RE_Matcher* re_login_non_failure_msgs;
-static RE_Matcher* re_login_failure_msgs;
-static RE_Matcher* re_login_success_msgs;
-static RE_Matcher* re_login_timeouts;
+static zeek::RE_Matcher* re_skip_authentication = nullptr;
+static zeek::RE_Matcher* re_direct_login_prompts;
+static zeek::RE_Matcher* re_login_prompts;
+static zeek::RE_Matcher* re_login_non_failure_msgs;
+static zeek::RE_Matcher* re_login_failure_msgs;
+static zeek::RE_Matcher* re_login_success_msgs;
+static zeek::RE_Matcher* re_login_timeouts;
 
-static RE_Matcher* init_RE(zeek::ListVal* l);
+static zeek::RE_Matcher* init_RE(zeek::ListVal* l);
 
 Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
     : tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
@@ -625,9 +625,9 @@ void Login_Analyzer::FlushEmptyTypeahead()
 		delete [] PopUserText();
 	}
 
-RE_Matcher* init_RE(zeek::ListVal* l)
+zeek::RE_Matcher* init_RE(zeek::ListVal* l)
 	{
-	RE_Matcher* re = l->BuildRE();
+	zeek::RE_Matcher* re = l->BuildRE();
 	if ( re )
 		re->Compile();
 

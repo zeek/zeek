@@ -236,7 +236,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	id_list* id_l;
 	zeek::detail::InitClass ic;
 	zeek::Val* val;
-	RE_Matcher* re;
+	zeek::RE_Matcher* re;
 	zeek::detail::Expr* expr;
 	zeek::detail::EventExpr* event_expr;
 	zeek::detail::Stmt* stmt;
@@ -715,7 +715,7 @@ expr:
 			{
 			zeek::detail::set_location(@3);
 
-			RE_Matcher* re = new RE_Matcher($3);
+			auto* re = new zeek::RE_Matcher($3);
 			delete [] $3;
 
 			if ( $4 )

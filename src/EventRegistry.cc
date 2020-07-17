@@ -41,7 +41,7 @@ EventHandler* EventRegistry::Lookup(std::string_view name)
 	return nullptr;
 	}
 
-EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern)
+EventRegistry::string_list EventRegistry::Match(zeek::RE_Matcher* pattern)
 	{
 	string_list names;
 
@@ -120,4 +120,3 @@ void EventRegistry::SetErrorHandler(std::string_view name)
 	reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
 	                          std::string(name).c_str());
 	}
-

@@ -29,9 +29,9 @@ extern const char* current_rule_file;
 
 class BroFile;
 class IntSet;
-class RE_Match_State;
-class Specific_RE_Matcher;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Match_State, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);

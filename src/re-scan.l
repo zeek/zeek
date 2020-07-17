@@ -14,7 +14,8 @@
 
 #include "re-parse.h"
 
-const char* RE_parse_input = 0;
+const char* zeek::detail::RE_parse_input = nullptr;
+const char*& RE_parse_input = zeek::detail::RE_parse_input;
 
 #define RET_CCE(func) \
 	BEGIN(SC_CCL); \
@@ -60,18 +61,18 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	"$"		return '$';
 
 	"["({FIRST_CCL_CHAR}|{CCL_EXPR})({CCL_CHAR}|{CCL_EXPR})*	{
-			curr_ccl = rem->LookupCCL(yytext);
-			if ( curr_ccl )
+			zeek::detail::curr_ccl = zeek::detail::rem->LookupCCL(yytext);
+			if ( zeek::detail::curr_ccl )
 				{
 				if ( yyinput() != ']' )
-					synerr("bad character class");
-				yylval.ccl_val = curr_ccl;
+					zeek::detail::synerr("bad character class");
+				yylval.ccl_val = zeek::detail::curr_ccl;
 				return TOK_CCL;
 				}
 			else
 				{
-				curr_ccl = new CCL();
-				rem->InsertCCL(yytext, curr_ccl);
+				zeek::detail::curr_ccl = new zeek::detail::CCL();
+				zeek::detail::rem->InsertCCL(yytext, zeek::detail::curr_ccl);
 
 				// Push back everything but the leading bracket
 				// so the ccl can be rescanned.
@@ -86,11 +87,11 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 			char* nmstr = copy_string(yytext+1);
 			nmstr[yyleng - 2] = '\0';  // chop trailing brace
 
-			std::string namedef = rem->LookupDef(nmstr);
+			std::string namedef = zeek::detail::rem->LookupDef(nmstr);
 			delete nmstr;
 
 			if ( namedef.empty() )
-				synerr("undefined definition");
+				zeek::detail::synerr("undefined definition");
 			else
 				{ // push back name surrounded by ()'s
 				int len = namedef.size();
@@ -115,10 +116,10 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 				}
 			}
 
-	"(?i:"		case_insensitive = 1; return TOK_CASE_INSENSITIVE;
+	"(?i:"		zeek::detail::case_insensitive = 1; return TOK_CASE_INSENSITIVE;
 
 	[a-zA-Z]	{
-			if ( case_insensitive )
+			if ( zeek::detail::case_insensitive )
 				{
 				char c = yytext[0];	// unput trashes yytext!
 				// Push back the character inside a CCL,
@@ -140,7 +141,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 }
 
 <SC_QUOTE>{
-	[^"\n]$		synerr("missing quote"); return '"';
+	[^"\n]$		zeek::detail::synerr("missing quote"); return '"';
 	[^"\n]		yylval.int_val = yytext[0]; return TOK_CHAR;
 	\"		BEGIN(INITIAL); return '"';
 }
@@ -156,7 +157,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	[^\]\n]		yylval.int_val = yytext[0]; return TOK_CHAR;
 	"]"		BEGIN(INITIAL); return ']';
 	[^\]]$		{
-			synerr("bad character class");
+			zeek::detail::synerr("bad character class");
 			BEGIN(INITIAL);
 			return ']';
 			}
@@ -177,19 +178,19 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	"[:lower:]"	{
 			BEGIN(SC_CCL);
 			yylval.cce_val =
-				case_insensitive ? my_isalpha : my_islower;
+				zeek::detail::case_insensitive ? my_isalpha : my_islower;
 			return TOK_CCE;
 			}
 
 	"[:upper:]"	{
 			BEGIN(SC_CCL);
 			yylval.cce_val =
-				case_insensitive ? my_isalpha : my_isupper;
+				zeek::detail::case_insensitive ? my_isalpha : my_isupper;
 			return TOK_CCE;
 			}
 
 	{CCL_EXPR}	{
-			synerr("bad character class expression");
+			zeek::detail::synerr("bad character class expression");
 			BEGIN(SC_CCL);
 			yylval.cce_val = my_isalnum;
 			return TOK_CCE;
@@ -203,7 +204,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	"}"		BEGIN(INITIAL); return '}';
 
 	.		{
-			synerr("bad character inside {}'s");
+			zeek::detail::synerr("bad character inside {}'s");
 			BEGIN(INITIAL);
 			return '}';
 			}
@@ -219,7 +220,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 			return TOK_CHAR;
 			}
 
-<*>.|\n			synerr("bad character");
+<*>.|\n			zeek::detail::synerr("bad character");
 
 %%
 
@@ -227,7 +228,7 @@ YY_BUFFER_STATE RE_buf;
 
 void RE_set_input(const char* str)
 	{
-	RE_parse_input = str;
+	zeek::detail::RE_parse_input = str;
 	RE_buf = yy_scan_string(str);
 	}
 

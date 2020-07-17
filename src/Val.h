@@ -44,7 +44,7 @@ using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead
 class BroFile;
 class PrefixTable;
 class StateAccess;
-class RE_Matcher;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
 class CompositeHash;
 class HashKey;

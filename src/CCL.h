@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include <vector>
 #include "util.h" // for ptr_compat_int
 
-#include <vector>
+namespace zeek::detail {
 
-typedef std::vector<ptr_compat_int> int_list;
+using int_list = std::vector<ptr_compat_int>;
 
 class CCL {
 public:
@@ -32,3 +33,8 @@ protected:
 	int negated;
 	int index;
 };
+
+} // namespace zeek::detail
+
+using int_list [[deprecated("Remove in v4.1. Use zeek::detail::int_list.")]] = zeek::detail::int_list;
+using CCL [[deprecated("Remove in v4.1. Use zeek::detail::CCL.")]] = zeek::detail::CCL;

@@ -873,12 +873,12 @@ const char* CompositeHash::RecoverOneVal(
 
 		case zeek::TYPE_PATTERN:
 			{
-			RE_Matcher* re = nullptr;
+			zeek::RE_Matcher* re = nullptr;
 			if ( is_singleton )
 				{
 				kp1 = kp0;
 				int divider = strlen(kp0) + 1;
-				re = new RE_Matcher(kp1, kp1 + divider);
+				re = new zeek::RE_Matcher(kp1, kp1 + divider);
 				kp1 += k.Size();
 				}
 			else
@@ -886,7 +886,7 @@ const char* CompositeHash::RecoverOneVal(
 				const uint64_t* const len = AlignType<uint64_t>(kp0);
 
 				kp1 = reinterpret_cast<const char*>(len+2);
-				re = new RE_Matcher(kp1, kp1 + len[0]);
+				re = new zeek::RE_Matcher(kp1, kp1 + len[0]);
 				kp1 += len[0] + len[1];
 				}
 

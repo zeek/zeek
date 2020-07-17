@@ -200,7 +200,7 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 	}
 
 static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
-                                          RE_Matcher* re, int incl_sep,
+                                          zeek::RE_Matcher* re, int incl_sep,
                                           int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
@@ -257,7 +257,7 @@ static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
 	return rval;
 	}
 
-zeek::Val* do_split(zeek::StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
+zeek::Val* do_split(zeek::StringVal* str_val, zeek::RE_Matcher* re, int incl_sep, int max_num_sep)
 	{
 	auto* a = new zeek::TableVal(zeek::id::string_array);
 	const u_char* s = str_val->Bytes();

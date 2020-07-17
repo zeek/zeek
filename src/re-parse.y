@@ -12,8 +12,11 @@
 int csize = 256;
 int syntax_error = 0;
 
-int cupper(int sym);
-int clower(int sym);
+namespace zeek::detail {
+	int cupper(int sym);
+	int clower(int sym);
+}
+
 void yyerror(const char msg[]);
 %}
 
@@ -22,8 +25,8 @@ void yyerror(const char msg[]);
 %union {
 	int int_val;
 	cce_func cce_val;
-	CCL* ccl_val;
-	NFA_Machine* mach_val;
+	zeek::detail::CCL* ccl_val;
+	zeek::detail::NFA_Machine* mach_val;
 }
 
 %type <int_val> TOK_CHAR TOK_NUMBER
@@ -33,17 +36,17 @@ void yyerror(const char msg[]);
 
 %%
 flexrule	:	re
-			{ $1->AddAccept(1); nfa = $1; }
+			{ $1->AddAccept(1); zeek::detail::nfa = $1; }
 
 		|  error
 			{ return 1; }
 		;
 
 re		:  re '|' series
-			{ $$ = make_alternate($1, $3); }
+			{ $$ = zeek::detail::make_alternate($1, $3); }
 		|  series
-		| 
-			{ $$ = new NFA_Machine(new EpsilonState()); }
+		|
+			{ $$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState()); }
 		;
 
 series		:  series singleton
@@ -63,14 +66,14 @@ singleton	:  singleton '*'
 		|  singleton '{' TOK_NUMBER ',' TOK_NUMBER '}'
 			{
 			if ( $3 > $5 || $3 < 0 )
-				synerr("bad iteration values");
+				zeek::detail::synerr("bad iteration values");
 			else
 				{
 				if ( $3 == 0 )
 					{
 					if ( $5 == 0 )
 						{
-						$$ = new NFA_Machine(new EpsilonState());
+						$$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState());
 						Unref($1);
 						}
 					else
@@ -87,7 +90,7 @@ singleton	:  singleton '*'
 		|  singleton '{' TOK_NUMBER ',' '}'
 			{
 			if ( $3 < 0 )
-				synerr("iteration value must be positive");
+				zeek::detail::synerr("iteration value must be positive");
 			else if ( $3 == 0 )
 				$1->MakeClosure();
 			else
@@ -97,11 +100,11 @@ singleton	:  singleton '*'
 		|  singleton '{' TOK_NUMBER '}'
 			{
 			if ( $3 < 0 )
-				synerr("iteration value must be positive");
+				zeek::detail::synerr("iteration value must be positive");
 			else if ( $3 == 0 )
 				{
 				Unref($1);
-				$$ = new NFA_Machine(new EpsilonState());
+				$$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState());
 				}
 			else
 				$1->LinkCopies($3-1);
@@ -109,18 +112,18 @@ singleton	:  singleton '*'
 
 		|  '.'
 			{
-			$$ = new NFA_Machine(new NFA_State(rem->AnyCCL()));
+			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(zeek::detail::rem->AnyCCL()));
 			}
 
 		|  full_ccl
 			{
 			$1->Sort();
-			rem->EC()->CCL_Use($1);
-			$$ = new NFA_Machine(new NFA_State($1));
+			zeek::detail::rem->EC()->CCL_Use($1);
+			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State($1));
 			}
 
 		|  TOK_CCL
-			{ $$ = new NFA_Machine(new NFA_State($1)); }
+			{ $$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State($1)); }
 
 		|  '"' string '"'
 			{ $$ = $2; }
@@ -129,7 +132,7 @@ singleton	:  singleton '*'
 			{ $$ = $2; }
 
 		|  TOK_CASE_INSENSITIVE re ')'
-			{ $$ = $2; case_insensitive = 0; }
+			{ $$ = $2; zeek::detail::case_insensitive = 0; }
 
 		|  TOK_CHAR
 			{
@@ -138,22 +141,22 @@ singleton	:  singleton '*'
 			if ( sym < 0 || ( sym >= NUM_SYM && sym != SYM_EPSILON ) )
 				{
 				reporter->Error("bad symbol %d (compiling pattern /%s/)", sym,
-				                RE_parse_input);
+				                zeek::detail::RE_parse_input);
 				return 1;
 				}
 
-			$$ = new NFA_Machine(new NFA_State(sym, rem->EC()));
+			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(sym, zeek::detail::rem->EC()));
 			}
 
 		|  '^'
 			{
-			$$ = new NFA_Machine(new NFA_State(SYM_BOL, rem->EC()));
+			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(SYM_BOL, zeek::detail::rem->EC()));
 			$$->MarkBOL();
 			}
 
 		|  '$'
 			{
-			$$ = new NFA_Machine(new NFA_State(SYM_EOL, rem->EC()));
+			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(SYM_EOL, zeek::detail::rem->EC()));
 			$$->MarkEOL();
 			}
 		;
@@ -171,9 +174,9 @@ full_ccl	:  '[' ccl ']'
 ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 			{
 			if ( $2 > $4 )
-				synerr("negative range in character class");
+				zeek::detail::synerr("negative range in character class");
 
-			else if ( case_insensitive &&
+			else if ( zeek::detail::case_insensitive &&
 				  (isalpha($2) || isalpha($4)) )
 				{
 				if ( isalpha($2) && isalpha($4) &&
@@ -190,7 +193,7 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 					}
 
 				else
-					synerr("ambiguous case-insensitive character class");
+					zeek::detail::synerr("ambiguous case-insensitive character class");
 				}
 
 			else
@@ -202,10 +205,10 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 
 		|  ccl TOK_CHAR
 			{
-			if ( case_insensitive && isalpha($2) )
+			if ( zeek::detail::case_insensitive && isalpha($2) )
 				{
-				$1->Add(clower($2));
-				$1->Add(cupper($2));
+				$1->Add(zeek::detail::clower($2));
+				$1->Add(zeek::detail::cupper($2));
 				}
 			else
 				$1->Add($2);
@@ -214,14 +217,14 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 		|  ccl ccl_expr
 
 		|
-			{ $$ = curr_ccl; }
+			{ $$ = zeek::detail::curr_ccl; }
 		;
 
 ccl_expr:	   TOK_CCE
 			{
 			for ( int c = 0; c < csize; ++c )
 				if ( isascii(c) && $1(c) )
-					curr_ccl->Add(c);
+					zeek::detail::curr_ccl->Add(c);
 			}
 		;
 
@@ -231,13 +234,15 @@ string		:  string TOK_CHAR
 			// leave this alone; that provides a way
 			// of "escaping" out of insensitivity
 			// if needed.
-			$1->AppendState(new NFA_State($2, rem->EC()));
+			$1->AppendState(new zeek::detail::NFA_State($2, zeek::detail::rem->EC()));
 			}
 
 		|
-			{ $$ = new NFA_Machine(new EpsilonState()); }
+			{ $$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState()); }
 		;
 %%
+
+namespace zeek::detail {
 
 int cupper(int sym)
 	{
@@ -254,6 +259,8 @@ void synerr(const char str[])
 	syntax_error = true;
 	reporter->Error("%s (compiling pattern /%s/)", str, RE_parse_input);
 	}
+
+} // namespace zeek::detail
 
 void yyerror(const char msg[])
 	{

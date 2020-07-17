@@ -48,7 +48,7 @@ extern zeek::EnumType* cur_enum_type;
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
 
-int_list if_stack;
+zeek::detail::int_list if_stack;
 
 int line_number = 1;
 const char* filename = 0; // Absolute path of file currently being parsed.

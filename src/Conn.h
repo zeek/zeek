@@ -25,9 +25,9 @@ class Connection;
 class ConnectionTimer;
 class NetSessions;
 class LoginConn;
-class Specific_RE_Matcher;
 class EncapsulationStack;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleHdrTest, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);

@@ -1,4 +1,9 @@
 
+3.2.0-dev.908 | 2020-07-17 10:19:07 +0000
+
+  * GH-734: Improve handling of lambdas that escape enclosing frame.
+    (Jon Siwek, Corelight)
+
 3.2.0-dev.906 | 2020-07-17 10:08:31 +0000
 
   * GH-837: Add test cases for mismatched Broker SSL configs. (Jon Siwek, Corelight)

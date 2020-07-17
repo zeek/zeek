@@ -128,6 +128,20 @@ const zeek::ValPtr& Frame::GetElementByID(const zeek::detail::ID* id) const
 
 void Frame::Reset(int startIdx)
 	{
+	if ( functions_with_closure_frame_reference )
+		{
+		for ( auto& func : *functions_with_closure_frame_reference )
+			{
+			// A lambda could be escaping its enclosing Frame at this point so
+			// it needs to claim some ownership (or copy) of the Frame in
+			// order to be of any further use.
+			func->StrengthenClosureReference(this);
+			Unref(func);
+			}
+
+		functions_with_closure_frame_reference.reset();
+		}
+
 	for ( int i = startIdx; i < size; ++i )
 		ClearElement(i);
 	}

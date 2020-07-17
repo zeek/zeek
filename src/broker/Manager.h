@@ -361,6 +361,8 @@ private:
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
 	// Process events used for Broker store backed zeek tables
 	void ProcessStoreEvent(broker::data msg);
+	// Common functionality for processing insert and update events.
+	void ProcessStoreEventInsertUpdate(zeek::IntrusivePtr<zeek::TableVal> table, const std::string& store_id, const broker::data& key, const broker::data& data, const broker::data& old_value, bool insert);
 	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
 	bool ProcessLogCreate(broker::zeek::LogCreate lc);
 	bool ProcessLogWrite(broker::zeek::LogWrite lw);

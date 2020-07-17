@@ -4,7 +4,7 @@
 #include "binpac.h"
 #include "RE.h"
 
-class RE_Matcher;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
 namespace binpac
 {
@@ -17,7 +17,7 @@ namespace binpac
 inline void init(FlowBuffer::Policy* fbp = 0);
 
 // Internal vector recording not yet compiled matchers.
-extern std::vector<RE_Matcher*>* uncompiled_re_matchers;
+extern std::vector<zeek::RE_Matcher*>* uncompiled_re_matchers;
 
 class RegExMatcher {
 public:
@@ -25,9 +25,9 @@ public:
 		: pattern_(pattern)
 		{
 		if ( ! uncompiled_re_matchers )
-			uncompiled_re_matchers = new std::vector<RE_Matcher*>;
+			uncompiled_re_matchers = new std::vector<zeek::RE_Matcher*>;
 
-		re_matcher_ = new RE_Matcher(pattern_.c_str());
+		re_matcher_ = new zeek::RE_Matcher(pattern_.c_str());
 		uncompiled_re_matchers->push_back(re_matcher_);
 		}
 
@@ -49,7 +49,7 @@ private:
 	static void init();
 
 	string pattern_;
-	RE_Matcher *re_matcher_;
+	zeek::RE_Matcher *re_matcher_;
 };
 
 inline void RegExMatcher::init()

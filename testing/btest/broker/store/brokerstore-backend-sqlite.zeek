@@ -73,7 +73,7 @@ global t: table[string] of count &backend=Broker::SQLITE;
 global s: set[string] &backend=Broker::SQLITE;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
 
-redef Broker::auto_store_db_directory = "..";
+redef Broker::table_store_db_directory = "..";
 
 event zeek_init()
 	{

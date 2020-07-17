@@ -151,8 +151,8 @@ void Manager::InitPostScript()
 	log_topic_func = get_option("Broker::log_topic")->AsFunc();
 	log_id_type = zeek::id::find_type("Log::ID")->AsEnumType();
 	writer_id_type = zeek::id::find_type("Log::Writer")->AsEnumType();
-	zeek_table_manager = get_option("Broker::auto_store_master")->AsBool();
-	zeek_table_db_directory = get_option("Broker::auto_store_db_directory")->AsString()->CheckString();
+	zeek_table_manager = get_option("Broker::table_store_master")->AsBool();
+	zeek_table_db_directory = get_option("Broker::table_store_db_directory")->AsString()->CheckString();
 
 	opaque_of_data_type = zeek::make_intrusive<zeek::OpaqueType>("Broker::Data");
 	opaque_of_set_iterator = zeek::make_intrusive<zeek::OpaqueType>("Broker::SetIterator");

@@ -71,7 +71,7 @@ int Manager::script_scope = 0;
 struct scoped_reporter_location {
 	scoped_reporter_location(Frame* frame)
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->PushLocation(frame->CallLoc());
 		}
 
 	~scoped_reporter_location()

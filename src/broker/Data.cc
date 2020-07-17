@@ -1130,7 +1130,7 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 	auto d = v->Lookup(0);
 
 	if ( ! d )
-		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		reporter->RuntimeError(f->CallLoc(),
 		                       "Broker::Data's opaque field is not set");
 
 	// RuntimeError throws an exception which causes this line to never exceute.

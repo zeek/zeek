@@ -205,7 +205,7 @@ T& require_data_type(broker::data& d, TypeTag tag, Frame* f)
 	{
 	auto ptr = caf::get_if<T>(&d);
 	if ( ! ptr )
-		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		reporter->RuntimeError(f->CallLoc(),
 		                       "data is of type '%s' not of type '%s'",
 		                       caf::visit(type_name_getter{tag}, d),
 		                       type_name(tag));

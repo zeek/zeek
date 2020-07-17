@@ -10,38 +10,37 @@ WrapperAnalyzer::WrapperAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	// Unfortunately some packets on the link might have MPLS labels
 	// while others don't. That means we need to ask the link-layer if
 	// labels are in place.
 	bool have_mpls = false;
 
-	auto pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
 
 	// Skip past Cisco FabricPath to encapsulated ethernet frame.
-	if ( pdata[12] == 0x89 && pdata[13] == 0x03 )
+	if ( data[12] == 0x89 && data[13] == 0x03 )
 		{
 		auto constexpr cfplen = 16;
 
-		if ( pdata + cfplen + 14 >= end_of_data )
+		if ( data + cfplen + 14 >= end_of_data )
 			{
 			packet->Weird("truncated_link_header_cfp");
 			return { AnalyzerResult::Failed, 0 };
 			}
 
-		pdata += cfplen;
+		data += cfplen;
 		}
 
 	// Extract protocol identifier
-	uint32_t protocol = (pdata[12] << 8u) + pdata[13];
+	uint32_t protocol = (data[12] << 8u) + data[13];
 
 	packet->eth_type = protocol;
-	packet->l2_dst = pdata;
-	packet->l2_src = pdata + 6;
+	packet->l2_dst = data;
+	packet->l2_src = data + 6;
 
-	pdata += 14;
+	data += 14;
 
 	bool saw_vlan = false;
 
@@ -55,16 +54,16 @@ zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* pack
 			case 0x8100:
 			case 0x9100:
 				{
-				if ( pdata + 4 >= end_of_data )
+				if ( data + 4 >= end_of_data )
 					{
 					packet->Weird("truncated_link_header");
 					return { AnalyzerResult::Failed, 0 };
 					}
 
 				auto& vlan_ref = saw_vlan ? packet->inner_vlan : packet->vlan;
-				vlan_ref = ((pdata[0] << 8u) + pdata[1]) & 0xfff;
-				protocol = ((pdata[2] << 8u) + pdata[3]);
-				pdata += 4; // Skip the vlan header
+				vlan_ref = ((data[0] << 8u) + data[1]) & 0xfff;
+				protocol = ((data[2] << 8u) + data[3]);
+				data += 4; // Skip the vlan header
 				saw_vlan = true;
 				packet->eth_type = protocol;
 				}
@@ -73,14 +72,14 @@ zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* pack
 			// PPPoE carried over the ethernet frame.
 			case 0x8864:
 				{
-				if ( pdata + 8 >= end_of_data )
+				if ( data + 8 >= end_of_data )
 					{
 					packet->Weird("truncated_link_header");
 					return { AnalyzerResult::Failed, 0 };
 					}
 
-				protocol = (pdata[6] << 8u) + pdata[7];
-				pdata += 8; // Skip the PPPoE session and PPP header
+				protocol = (data[6] << 8u) + data[7];
+				data += 8; // Skip the PPPoE session and PPP header
 
 				if ( protocol == 0x0021 )
 					packet->l3_proto = L3_IPV4;
@@ -125,24 +124,24 @@ zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* pack
 
 		while ( ! end_of_stack )
 			{
-			if ( pdata + 4 >= end_of_data )
+			if ( data + 4 >= end_of_data )
 				{
 				packet->Weird("truncated_link_header");
 				return { AnalyzerResult::Failed, 0 };
 				}
 
-			end_of_stack = *(pdata + 2u) & 0x01;
-			pdata += 4;
+			end_of_stack = *(data + 2u) & 0x01;
+			data += 4;
 			}
 
 		// We assume that what remains is IP
-		if ( pdata + sizeof(struct ip) >= end_of_data )
+		if ( data + sizeof(struct ip) >= end_of_data )
 			{
 			packet->Weird("no_ip_in_mpls_payload");
 			return { AnalyzerResult::Failed, 0 };
 			}
 
-		const struct ip* ip = (const struct ip*)pdata;
+		const struct ip* ip = (const struct ip*)data;
 
 		if ( ip->ip_v == 4 )
 			packet->l3_proto = L3_IPV4;
@@ -157,7 +156,7 @@ zeek::packet_analysis::AnalysisResultTuple WrapperAnalyzer::Analyze(Packet* pack
 		}
 
 	// Calculate how much header we've used up.
-	packet->hdr_size = (pdata - packet->data);
+	packet->hdr_size = (data - packet->data);
 
 	return { AnalyzerResult::Continue, protocol };
 	}

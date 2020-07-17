@@ -63,18 +63,19 @@ public:
 	bool IsAnalyzer(const char* name);
 
 	/**
-	 * Analyzes the given packet. The analysis is supposed to start at cur_pos
-	 * of the packet, which points to the so far unanalyzed part of the packet.
-	 * If the analyzed protocol encapsulates another protocol, the packet's
-	 * cur_pos should be updated to point to that payload.
+	 * Analyzes the given packet. The data reference points to the part of the
+	 * raw packet to be analyzed. If the analyzed protocol encapsulates another
+	 * protocol, the data reference should be updated to point to that payload.
 	 *
 	 * @param packet The packet to analyze.
+	 *
+	 * @param data Reference to the payload pointer into the raw packet.
 	 *
 	 * @return A tuple of analysis result and identifier. The result indicates
 	 * how to proceed. If analysis can continue, the identifier determines the
 	 * encapsulated protocol.
 	 */
-	virtual AnalysisResultTuple Analyze(Packet* packet) = 0;
+	virtual AnalysisResultTuple Analyze(Packet* packet, const uint8_t*& data) = 0;
 
 protected:
 	friend class Manager;

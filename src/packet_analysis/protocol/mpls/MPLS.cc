@@ -9,9 +9,8 @@ MPLSAnalyzer::MPLSAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
-	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
 
 	// Skip the MPLS label stack.
@@ -19,25 +18,25 @@ zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet)
 
 	while ( ! end_of_stack )
 		{
-		if ( pdata + 4 >= end_of_data )
+		if ( data + 4 >= end_of_data )
 			{
 			packet->Weird("truncated_link_header");
 			return { AnalyzerResult::Failed, 0 };
 			}
 
-		end_of_stack = *(pdata + 2u) & 0x01;
-		pdata += 4;
+		end_of_stack = *(data + 2u) & 0x01;
+		data += 4;
 		}
 
 	// According to RFC3032 the encapsulated protocol is not encoded.
 	// We assume that what remains is IP.
-	if ( pdata + sizeof(struct ip) >= end_of_data )
+	if ( data + sizeof(struct ip) >= end_of_data )
 		{
 		packet->Weird("no_ip_in_mpls_payload");
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	auto ip = (const struct ip*)pdata;
+	auto ip = (const struct ip*)data;
 
 	if ( ip->ip_v == 4 )
 		packet->l3_proto = L3_IPV4;
@@ -50,6 +49,6 @@ zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet)
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	packet->hdr_size = (pdata - packet->data);
+	packet->hdr_size = (data - packet->data);
 	return { AnalyzerResult::Terminate, 0 };
 	}

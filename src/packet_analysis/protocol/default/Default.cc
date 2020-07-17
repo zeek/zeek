@@ -10,18 +10,16 @@ DefaultAnalyzer::DefaultAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple DefaultAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple DefaultAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
-	auto& pdata = packet->cur_pos;
-
 	// Assume we're pointing at IP. Just figure out which version.
-	if ( pdata + sizeof(struct ip) >= packet->GetEndOfData() )
+	if ( data + sizeof(struct ip) >= packet->GetEndOfData() )
 		{
 		packet->Weird("packet_analyzer_truncated_header");
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	auto ip = (const struct ip *)pdata;
+	auto ip = (const struct ip *)data;
 	uint32_t protocol = ip->ip_v;
 
 	return { AnalyzerResult::Continue, protocol };

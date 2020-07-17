@@ -150,6 +150,7 @@ void Manager::ProcessPacket(Packet* packet)
 	// Dispatch and analyze layers
 	AnalyzerResult result = AnalyzerResult::Continue;
 	uint32_t next_layer_id = packet->link_type;
+	const uint8_t* data = packet->data;
 	do
 		{
 		auto current_analyzer = Dispatch(next_layer_id);
@@ -163,7 +164,7 @@ void Manager::ProcessPacket(Packet* packet)
 			}
 
 		// Analyze this layer and get identifier of next layer protocol
-		std::tie(result, next_layer_id) = current_analyzer->Analyze(packet);
+		std::tie(result, next_layer_id) = current_analyzer->Analyze(packet, data);
 
 #ifdef DEBUG
 		switch ( result )
@@ -183,28 +184,29 @@ void Manager::ProcessPacket(Packet* packet)
 		} while ( result == AnalyzerResult::Continue );
 
 	if ( result == AnalyzerResult::Terminate )
-		CustomEncapsulationSkip(packet);
+		CustomEncapsulationSkip(packet, data);
 
 	// Processing finished, reset analyzer set state for next packet
 	current_state = root_dispatcher;
+
+	// Calculate header size after processing packet layers.
+	packet->hdr_size = data - packet->data;
 	}
 
-void Manager::CustomEncapsulationSkip(Packet* packet)
+void Manager::CustomEncapsulationSkip(Packet* packet, const uint8_t* data)
 	{
 	if ( zeek::detail::encap_hdr_size > 0 )
 		{
-		auto pdata = packet->cur_pos;
-
 		// Blanket encapsulation. We assume that what remains is IP.
-		if ( pdata + zeek::detail::encap_hdr_size + sizeof(struct ip) >= packet->GetEndOfData() )
+		if ( data + zeek::detail::encap_hdr_size + sizeof(struct ip) >= packet->GetEndOfData() )
 			{
 			packet->Weird("no_ip_left_after_encap");
 			return;
 			}
 
-		pdata += zeek::detail::encap_hdr_size;
+		data += zeek::detail::encap_hdr_size;
 
-		auto ip = (const struct ip*)pdata;
+		auto ip = (const struct ip*)data;
 
 		switch ( ip->ip_v )
 			{

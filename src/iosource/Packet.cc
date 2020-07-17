@@ -59,17 +59,12 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	l3_proto = L3_UNKNOWN;
 	l3_checksummed = false;
 
-	// For packet analyzer: cur_pos points to the next payload.
-	cur_pos = data;
-
 	if ( data )
 		{
 		// From here we assume that layer 2 is valid. If a packet analyzer encounters
 		// an issue, it will call Packet::Weird(), which sets l2_valid to false.
 		l2_valid = true;
 		packet_mgr->ProcessPacket(this);
-		// Calculate header size after processing lower layers.
-		hdr_size = cur_pos - data;
 		}
 	}
 

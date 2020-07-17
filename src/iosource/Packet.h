@@ -159,8 +159,8 @@ public:
 
 	/**
 	 * Empty layer 2 address to be used as default value. For example, the
-	 * LinuxSLL llanalyzer doesn't have a destination address in the header
-	 * and thus sets it to this default address.
+	 * LinuxSLL packet analyzer doesn't have a destination address in the
+	 * header and thus sets it to this default address.
 	 */
 	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = { 0 };
 
@@ -172,7 +172,6 @@ public:
 	uint32_t len;			/// Actual length on wire
 	uint32_t cap_len;		/// Captured packet length
 	uint32_t link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
-	const uint8_t* cur_pos;	/// Pointer to the current start of unanalyzed payload data in the raw packet, used by llanalyzers
 
 	// These are computed from Layer 2 data. These fields are only valid if
 	// Layer2Valid() returns true.

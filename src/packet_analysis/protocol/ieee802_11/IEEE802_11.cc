@@ -10,20 +10,19 @@ IEEE802_11Analyzer::IEEE802_11Analyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
-	auto& pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
 
 	u_char len_80211 = 24; // minimal length of data frames
 
-	if ( pdata + len_80211 >= end_of_data )
+	if ( data + len_80211 >= end_of_data )
 		{
 		packet->Weird("truncated_802_11_header");
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	u_char fc_80211 = pdata[0]; // Frame Control field
+	u_char fc_80211 = data[0]; // Frame Control field
 
 	// Skip non-data frame types (management & control).
 	if ( ! ((fc_80211 >> 2) & 0x02) )
@@ -35,7 +34,7 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 
 	// 'To DS' and 'From DS' flags set indicate use of the 4th
 	// address field.
-	if ( (pdata[1] & 0x03) == 0x03 )
+	if ( (data[1] & 0x03) == 0x03 )
 		len_80211 += packet->L2_ADDR_LEN;
 
 	// Look for the QoS indicator bit.
@@ -43,13 +42,13 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 		{
 		// Skip in case of A-MSDU subframes indicated by QoS
 		// control field.
-		if ( pdata[len_80211] & 0x80 )
+		if ( data[len_80211] & 0x80 )
 			return { AnalyzerResult::Failed, 0 };
 
 		len_80211 += 2;
 		}
 
-	if ( pdata + len_80211 >= end_of_data )
+	if ( data + len_80211 >= end_of_data )
 		{
 		packet->Weird("truncated_802_11_header");
 		return { AnalyzerResult::Failed, 0 };
@@ -57,33 +56,33 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 
 	// Determine link-layer addresses based
 	// on 'To DS' and 'From DS' flags
-	switch ( pdata[1] & 0x03 )
+	switch ( data[1] & 0x03 )
 		{
 		case 0x00:
-			packet->l2_src = pdata + 10;
-			packet->l2_dst = pdata + 4;
+			packet->l2_src = data + 10;
+			packet->l2_dst = data + 4;
 			break;
 
 		case 0x01:
-			packet->l2_src = pdata + 10;
-			packet->l2_dst = pdata + 16;
+			packet->l2_src = data + 10;
+			packet->l2_dst = data + 16;
 			break;
 
 		case 0x02:
-			packet->l2_src = pdata + 16;
-			packet->l2_dst = pdata + 4;
+			packet->l2_src = data + 16;
+			packet->l2_dst = data + 4;
 			break;
 
 		case 0x03:
-			packet->l2_src = pdata + 24;
-			packet->l2_dst = pdata + 16;
+			packet->l2_src = data + 24;
+			packet->l2_dst = data + 16;
 			break;
 		}
 
 	// skip 802.11 data header
-	pdata += len_80211;
+	data += len_80211;
 
-	if ( pdata + 8 >= end_of_data )
+	if ( data + 8 >= end_of_data )
 		{
 		packet->Weird("truncated_802_11_header");
 		return { AnalyzerResult::Failed, 0 };
@@ -93,10 +92,10 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 	// field indicates that this is an unnumbered frame.
 	// The organization code (24bits) needs to also be zero to
 	// indicate that this is encapsulated ethernet.
-	if ( pdata[0] == 0xAA && pdata[1] == 0xAA && pdata[2] == 0x03 &&
-	     pdata[3] == 0 && pdata[4] == 0 && pdata[5] == 0 )
+	if ( data[0] == 0xAA && data[1] == 0xAA && data[2] == 0x03 &&
+	     data[3] == 0 && data[4] == 0 && data[5] == 0 )
 		{
-		pdata += 6;
+		data += 6;
 		}
 	else
 		{
@@ -106,8 +105,8 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	uint32_t protocol = (pdata[0] << 8) + pdata[1];
-	pdata += 2;
+	uint32_t protocol = (data[0] << 8) + data[1];
+	data += 2;
 
 	return { AnalyzerResult::Continue, protocol };
 	}

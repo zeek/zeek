@@ -9,7 +9,7 @@ IPv6Analyzer::IPv6Analyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple IPv6Analyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple IPv6Analyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	packet->l3_proto = L3_IPV6;
 

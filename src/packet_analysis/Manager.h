@@ -94,8 +94,10 @@ private:
 	 * It is assumed that an IP header follows.
 	 *
 	 * @param packet The packet to adapt.
+	 *
+	 * @param data Pointer to remaining payload.
 	 */
-	void CustomEncapsulationSkip(Packet* packet);
+	void CustomEncapsulationSkip(Packet* packet, const uint8_t* data);
 
 	AnalyzerPtr Dispatch(uint32_t identifier);
 

@@ -9,18 +9,16 @@ LinuxSLLAnalyzer::LinuxSLLAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple LinuxSLLAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple LinuxSLLAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
-	auto& pdata = packet->cur_pos;
-
-	if ( pdata + sizeof(SLLHeader) >= packet->GetEndOfData() )
+	if ( data + sizeof(SLLHeader) >= packet->GetEndOfData() )
 		{
 		packet->Weird("truncated_Linux_SLL_header");
 		return { AnalyzerResult::Failed, 0 };
 		}
 
 	//TODO: Handle different ARPHRD_types
-	auto hdr = (const SLLHeader*)pdata;
+	auto hdr = (const SLLHeader*)data;
 
 	uint32_t protocol = ntohs(hdr->protocol_type);
 	packet->l2_src = (u_char*) &(hdr->addr);
@@ -29,6 +27,6 @@ zeek::packet_analysis::AnalysisResultTuple LinuxSLLAnalyzer::Analyze(Packet* pac
 	// here will cause crashes elsewhere.
 	packet->l2_dst = Packet::L2_EMPTY_ADDR;
 
-	pdata += sizeof(SLLHeader);
+	data += sizeof(SLLHeader);
 	return { AnalyzerResult::Continue, protocol };
 	}

@@ -10,13 +10,12 @@ NFLogAnalyzer::NFLogAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple NFLogAnalyzer::Analyze(Packet* packet) {
-	auto& pdata = packet->cur_pos;
+zeek::packet_analysis::AnalysisResultTuple NFLogAnalyzer::Analyze(Packet* packet, const uint8_t*& data) {
 	auto end_of_data = packet->GetEndOfData();
 
 	// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
-	uint32_t protocol = pdata[0];
-	uint8_t version = pdata[1];
+	uint32_t protocol = data[0];
+	uint8_t version = data[1];
 
 	if ( version != 0 )
 		{
@@ -25,14 +24,14 @@ zeek::packet_analysis::AnalysisResultTuple NFLogAnalyzer::Analyze(Packet* packet
 		}
 
 	// Skip to TLVs.
-	pdata += 4;
+	data += 4;
 
 	uint16_t tlv_len;
 	uint16_t tlv_type;
 
 	while ( true )
 		{
-		if ( pdata + 4 >= end_of_data )
+		if ( data + 4 >= end_of_data )
 			{
 			packet->Weird("nflog_no_pcap_payload");
 			return { AnalyzerResult::Failed, 0 };
@@ -41,15 +40,15 @@ zeek::packet_analysis::AnalysisResultTuple NFLogAnalyzer::Analyze(Packet* packet
 		// TLV Type and Length values are specified in host byte order
 		// (libpcap should have done any needed byteswapping already).
 
-		tlv_len = *(reinterpret_cast<const uint16_t*>(pdata));
-		tlv_type = *(reinterpret_cast<const uint16_t*>(pdata + 2));
+		tlv_len = *(reinterpret_cast<const uint16_t*>(data));
+		tlv_type = *(reinterpret_cast<const uint16_t*>(data + 2));
 
 		auto constexpr nflog_type_payload = 9;
 
 		if ( tlv_type == nflog_type_payload )
 			{
 			// The raw packet payload follows this TLV.
-			pdata += 4;
+			data += 4;
 			break;
 			}
 		else
@@ -72,7 +71,7 @@ zeek::packet_analysis::AnalysisResultTuple NFLogAnalyzer::Analyze(Packet* packet
 					tlv_len += 4 - rem;
 				}
 
-			pdata += tlv_len;
+			data += tlv_len;
 			}
 		}
 

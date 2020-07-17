@@ -12,27 +12,26 @@ IEEE802_11_RadioAnalyzer::IEEE802_11_RadioAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple IEEE802_11_RadioAnalyzer::Analyze(Packet* packet)
+zeek::packet_analysis::AnalysisResultTuple IEEE802_11_RadioAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
-	auto pdata = packet->cur_pos;
 	auto end_of_data = packet->GetEndOfData();
 
-	if ( pdata + 3 >= end_of_data )
+	if ( data + 3 >= end_of_data )
 		{
 		packet->Weird("truncated_radiotap_header");
 		return { AnalyzerResult::Failed, 0 };
 		}
 
 	// Skip over the RadioTap header
-	int rtheader_len = (pdata[3] << 8) + pdata[2];
+	int rtheader_len = (data[3] << 8) + data[2];
 
-	if ( pdata + rtheader_len >= end_of_data )
+	if ( data + rtheader_len >= end_of_data )
 		{
 		packet->Weird("truncated_radiotap_header");
 		return { AnalyzerResult::Failed, 0 };
 		}
 
-	packet->cur_pos += rtheader_len;
+	data += rtheader_len;
 
 	return { AnalyzerResult::Continue, DLT_IEEE802_11 };
 	}

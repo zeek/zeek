@@ -3812,24 +3812,26 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 	int n = l_e.length();
 
 	// Look for a very common special case: l is a single-element list,
-	// and n2 is present rather than c.  For these, we can save a lot
-	// of cycles by not building out a val-vec and then transforming it
-	// into a list-val.
+	// and n2 is present rather than c.
 	if ( n == 1 && n2 )
 		{
 		ZInst z;
+		bool is_vec = n2->Type()->Tag() == TYPE_VECTOR;
 
 		if ( l_e[0]->Tag() == EXPR_NAME )
 			{
 			auto l_e0_n = l_e[0]->AsNameExpr();
-			z = GenInst(this, OP_VAL_IS_IN_TABLE_VVV, n1,
-						l_e0_n, n2);
+			ZOp op = is_vec ? OP_VAL_IS_IN_VECTOR_VVV :
+						OP_VAL_IS_IN_TABLE_VVV;
+			z = GenInst(this, op, n1, l_e0_n, n2);
 			}
 
 		else
 			{
 			auto l_e0_c = l_e[0]->AsConstExpr();
-			z = GenInst(this, OP_CONST_IS_IN_TABLE_VCV, n1, l_e0_c, n2);
+			ZOp op = is_vec ? OP_CONST_IS_IN_VECTOR_VCV :
+						OP_CONST_IS_IN_TABLE_VCV;
+			z = GenInst(this, op, n1, l_e0_c, n2);
 			}
 
 		z.t = l_e[0]->Type().release();

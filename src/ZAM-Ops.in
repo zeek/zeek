@@ -499,6 +499,18 @@ type VC
 eval auto op1 = z.aux->ToListVal(frame)
 eval frame[z.v1].int_val = z.c.table_val->Lookup(op1.get()) != nullptr
 
+internal-op Val-Is-In-Vector
+type VVV
+eval auto& vec = frame[z.v3].vector_val
+eval auto ind = frame[z.v2].int_val
+eval frame[z.v1].int_val = ind >= 0 && ind < vec->Size()
+
+internal-op Const-Is-In-Vector
+type VCV
+eval auto& vec = frame[z.v2].vector_val
+eval auto ind = z.c.int_val
+eval frame[z.v1].int_val = ind >= 0 && ind < vec->Size()
+
 internal-op Index-Is-In-Vector
 type VV
 eval auto op1 = z.aux->ToListVal(frame)

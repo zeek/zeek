@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker ../master.zeek >../master.out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker ../clone.zeek >../clone.out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker ../clone2.zeek >../clone2.out"
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 40
 #
 # @TEST-EXEC: btest-diff master.out
 # @TEST-EXEC: btest-diff clone.out
@@ -91,13 +91,13 @@ event dump_tables()
 	print t;
 	print s;
 	print r;
-	schedule 2sec { terminate_me() };
+	schedule 10sec { terminate_me() };
 	}
 
 event Cluster::node_up(name: string, id: string)
 	{
 	#print "node up", name;
-	schedule 1secs { dump_tables() };
+	schedule 5secs { dump_tables() };
 	}
 @TEST-END-FILE
 
@@ -129,7 +129,7 @@ event dump_tables()
 event Cluster::node_up(name: string, id: string)
 	{
 	#print "node up", name;
-	schedule 4secs { dump_tables() };
+	schedule 20secs { dump_tables() };
 	}
 @TEST-END-FILE
 

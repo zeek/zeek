@@ -4025,7 +4025,7 @@ bool AssignExpr::IsReduced(Reducer* c) const
 	auto lhs_is_any = op1->Type()->Tag() == TYPE_ANY;
 	auto rhs_is_any = op2->Type()->Tag() == TYPE_ANY;
 
-	if ( lhs_is_any != rhs_is_any )
+	if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
 		return NonReduced(this);
 
 	auto t1 = op1->Tag();

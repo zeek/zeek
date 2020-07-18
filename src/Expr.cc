@@ -4083,7 +4083,12 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 			{AdoptRef{}, op2->ReduceToSingleton(c, rhs_reduce)};
 
 		if ( lhs_is_any )
-			op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
+			{
+			if ( red_rhs->Tag() == EXPR_CONST )
+				op2 = red_rhs;
+			else
+				op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
+			}
 		else
 			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs,
 								op1->Type());

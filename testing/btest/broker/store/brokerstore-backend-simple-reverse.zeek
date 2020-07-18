@@ -38,16 +38,28 @@ global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
 
+global terminate_count = 0;
+
 event zeek_init()
 	{
 	}
 
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=1
+	{
+	Reporter::info(fmt("Peer added: %s", cat(endpoint)));
+	}
+
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print t;
-	print s;
-	print r;
-	terminate();
+	Reporter::info(fmt("Peer lost: %s", cat(endpoint)));
+	terminate_count += 1;
+	if ( terminate_count == 2)
+		{
+		terminate();
+		print t;
+		print s;
+		print r;
+		}
 	}
 
 @TEST-END-FILE
@@ -96,9 +108,15 @@ event dump_tables()
 
 event Cluster::node_up(name: string, id: string)
 	{
-	#print "node up", name;
+	Reporter::info(fmt("Node Up: %s", name));
 	schedule 5secs { dump_tables() };
 	}
+
+event Broker::announce_masters(masters: set[string])
+	{
+	Reporter::info(fmt("Received announce_masters: %s", cat(masters)));
+	}
+
 @TEST-END-FILE
 
 @TEST-START-FILE clone2.zeek
@@ -126,9 +144,14 @@ event dump_tables()
 	terminate();
 	}
 
+event Broker::announce_masters(masters: set[string])
+	{
+	Reporter::info(fmt("Received announce_masters: %s", cat(masters)));
+	}
+
 event Cluster::node_up(name: string, id: string)
 	{
-	#print "node up", name;
+	Reporter::info(fmt("Node Up: %s", name));
 	schedule 20secs { dump_tables() };
 	}
 @TEST-END-FILE

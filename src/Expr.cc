@@ -317,7 +317,6 @@ bool Expr::IsFieldAssignable(const Expr* e) const
 	switch ( e->Tag() ) {
 	case EXPR_NAME:
 	case EXPR_CONST:
-	case EXPR_CLONE:
 	case EXPR_NOT:
 	case EXPR_COMPLEMENT:
 	case EXPR_POSITIVE:

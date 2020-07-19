@@ -177,9 +177,25 @@ public:
 
 		if ( managed_yt )
 			DeleteManagedType(zvec[n], managed_yt);
-			// SetManagedElement(n, v);
 
 		zvec[n] = v;
+		}
+
+	// Sets the given element to a copy of the given ZAMValUnion.
+	// The difference between this and SetElement() is that here
+	// we do Ref()'ing of the underlying value if it's a managed
+	// type.  This isn't necessary for the case where 'v' has been
+	// newly constructed, but is necessary if we're copying an
+	// existing 'v'.
+	void CopyElement(int n, ZAMValUnion& v)
+		{
+		if ( zvec.size() <= n )
+			GrowVector(n + 1);
+
+		if ( managed_yt )
+			SetManagedElement(n, v);
+		else
+			zvec[n] = v;
 		}
 
 	void Insert(unsigned int index, ZAMValUnion& element)

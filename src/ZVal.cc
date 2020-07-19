@@ -270,8 +270,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
-	// ### Shouldn't be called.
-	ASSERT(0);
 	auto& zn = zvec[n];
 
 	switch ( managed_yt->Tag() ) {

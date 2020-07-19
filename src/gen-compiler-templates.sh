@@ -1462,7 +1462,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		part2c = ""
 
 		if ( is_vec && ary_op == 2 )
-			part2c = indent "z.SetType(myt);\n" part2c
+			part2c = indent "z.SetType(yt1);\n" part2c
 
 		# Provide access to the individual variables.
 		split(args2[mt], vars, /, /)
@@ -1527,10 +1527,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 				{
 				print ("\tt = t->AsVectorType()->YieldType();") >methods_f
 				if ( ary_op == 2 )
-					{
 					print ("\tauto yt1 = n1->Type()->AsVectorType()->YieldType();") >methods_f
-					print ("\tauto myt = IsManagedType(yt1) ? yt1 : nullptr;") >methods_f
-					}
 				}
 
 			print ("\tauto tag = t->Tag();") >methods_f

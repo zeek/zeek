@@ -4380,7 +4380,6 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	// code bloat for only a very modest gain.
 
 	auto& vec2 = v2->RawVector()->ConstVec();
-	bool needs_management;
 
 	if ( ! v1 )
 		{
@@ -4412,12 +4411,12 @@ static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
 	auto& vec2 = v2->RawVector()->ConstVec();
 	auto& vec3 = v3->RawVector()->ConstVec();
 
-	BroType* needs_management = v1 ? yt : nullptr;
+	bool needs_management = v1 && IsManagedType(yt);
 
 	if ( ! v1 )
 		{
-		auto vt = v2->Type()->AsVectorType();
-		::Ref(vt);
+		IntrusivePtr<BroType> yt_ptr = {NewRef{}, yt};
+		auto vt = new VectorType(yt_ptr);
 		v1 = new VectorVal(vt);
 		}
 

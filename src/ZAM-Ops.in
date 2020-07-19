@@ -1649,6 +1649,9 @@ eval auto at = any_vec->YieldType()
 eval if ( ! at || at->Tag() == TYPE_ANY ) {
 eval	if ( at && any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
 eval	any_vec->SetYieldType(vt)
+eval } else if ( ! same_type(at, vt) ) {
+eval	reporter->Error("inconsistent types for vector-of-any: %s vs. %s", type_name(at->Tag()), type_name(vt->Tag()))
+eval	ZAM_error = true
 eval }
 
 

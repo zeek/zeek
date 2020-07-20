@@ -1533,43 +1533,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f
 
-			n = 0
-			default_seen = 0
-			for ( o in op_types )
-				{
-				# First do types other than default.
-				if ( o == "*" )
-					{
-					default_seen = 1
-					continue
-					}
-
-				if ( is_vec && no_vec[o] )
-					continue
-
-				invoke1 = (part1 full_op_no_sub "_")
-
-				if ( is_field )
-					invoke2 = field
-				else if ( is_vec )
-					invoke2 = vec
-				else if ( is_cond )
-					invoke2 = cond
-				else
-					invoke2 = ""
-
-				invoke2 = invoke2 part2
-
-				build_method_conditional(o, ++n)
-				print (invoke1 o invoke2) >methods_f
-				}
-
-			# Now do the default.
-			if ( default_seen )
-				{
-				build_method_conditional("*", ++n)
-				print (part1 full_op_no_sub part2) >methods_f
-				}
+			n = 0	# how many conditionals we have generated
 
 			if ( mix_eval )
 				{
@@ -1614,15 +1578,54 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 					gripe("unsupported eval-mixed")
 
 				if ( ev_mix1 == "P" )
-					print ("\t" else_text "if ( " op2_tag " == TYPE_PATTERN && " op3_tag " == TYPE_STRING )") >methods_f
+					print ("\t" "if ( " op2_tag " == TYPE_PATTERN && " op3_tag " == TYPE_STRING )") >methods_f
 				else
-					print ("\t" else_text "if ( " op2_tag " == TYPE_ADDR && " op3_tag " == TYPE_INT )") >methods_f
+					print ("\t" "if ( " op2_tag " == TYPE_ADDR && " op3_tag " == TYPE_INT )") >methods_f
 
 				mix_suffix = "_" ev_mix1 ev_mix2
 				if ( is_cond )
 					mix_suffix = mix_suffix cond
 				print ("\t" part1 (full_op_no_sub mix_suffix) \
 					part2) >methods_f
+
+				++n
+				}
+
+			default_seen = 0
+			for ( o in op_types )
+				{
+				# First do types other than default.
+				if ( o == "*" )
+					{
+					default_seen = 1
+					continue
+					}
+
+				if ( is_vec && no_vec[o] )
+					continue
+
+				invoke1 = (part1 full_op_no_sub "_")
+
+				if ( is_field )
+					invoke2 = field
+				else if ( is_vec )
+					invoke2 = vec
+				else if ( is_cond )
+					invoke2 = cond
+				else
+					invoke2 = ""
+
+				invoke2 = invoke2 part2
+
+				build_method_conditional(o, ++n)
+				print (invoke1 o invoke2) >methods_f
+				}
+
+			# Now do the default.
+			if ( default_seen )
+				{
+				build_method_conditional("*", ++n)
+				print (part1 full_op_no_sub part2) >methods_f
 				}
 
 			if ( ! default_seen )

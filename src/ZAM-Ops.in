@@ -134,7 +134,7 @@ eval $1 - $2
 #
 eval_T auto v = $1->Clone()
 eval_T Unref($$)
-eval_T $$ = v->AsTableVal()
+eval_T $$ = v.release()->AsTableVal()
 eval_T $2->RemoveFrom($$)
 
 binary-expr-op Times
@@ -197,7 +197,7 @@ eval_P $$ = p
 #
 eval_T auto v = $1->Clone()
 eval_T Unref($$)
-eval_T $$ = v->AsTableVal()
+eval_T $$ = v.release()->AsTableVal()
 eval_T (void) $2->AddTo($$, false, false)
 
 binary-expr-op Xor

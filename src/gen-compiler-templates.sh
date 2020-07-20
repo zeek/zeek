@@ -262,8 +262,8 @@ BEGIN	{
 	# to specific transformations/memory management, depending on the type
 	# of the assignment.  Indexed by both the type and 0/1 for short/long.
 
-	assign_tmpl["ANY", SHORT] = "ZAMValUnion $$ = $1;"
-	assign_tmpl["", SHORT] = "ZAMValUnion $$ = $1;"
+	assign_tmpl["ANY", SHORT] = "ZAMValUnion $$ = $1;\n\t\t::Ref($$.any_val)"
+	assign_tmpl["", SHORT] = "ZAMValUnion $$ = $1"
 
 	assign_tmpl["ANY", LONG] = "$$.any_val = $1.ToVal(z.t).release();"
 	assign_tmpl["", LONG] = "$$ = $1;"

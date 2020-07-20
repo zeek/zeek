@@ -136,5 +136,5 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	else
 		zeek::emit_builtin_error("no contents file for given direction");
 
-	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(stderr, "-", "w"));
+	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(stderr, "-", "w"));
 	%}

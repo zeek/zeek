@@ -203,7 +203,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-static BroFile* print_stdout = nullptr;
+static zeek::File* print_stdout = nullptr;
 
 static EnumValPtr lookup_enum_val(const char* module_name, const char* name)
 	{
@@ -244,9 +244,9 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 	RegisterAccess();
 
 	if ( ! print_stdout )
-		print_stdout = new BroFile(stdout);
+		print_stdout = new zeek::File(stdout);
 
-	BroFile* f = print_stdout;
+	zeek::File* f = print_stdout;
 	int offset = 0;
 
 	if ( vals.size() > 0 && (vals)[0]->GetType()->Tag() == TYPE_FILE )
@@ -270,7 +270,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 		return nullptr;
 		}
 	case BifEnum::Log::REDIRECT_STDOUT:
-		if ( f->File() == stdout )
+		if ( f->FileHandle() == stdout )
 			{
 			// Should catch even printing to a "manually opened" stdout file,
 			// like "/dev/stdout" or "-".

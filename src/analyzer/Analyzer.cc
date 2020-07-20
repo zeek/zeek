@@ -926,12 +926,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-                                             BroFilePtr /* f */)
+                                             zeek::FilePtr /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-BroFilePtr TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+zeek::FilePtr TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;

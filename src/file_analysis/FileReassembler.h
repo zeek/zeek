@@ -2,7 +2,9 @@
 
 #include "Reassem.h"
 
-class BroFile;
+namespace zeek { class File; }
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+
 class Connection;
 
 namespace file_analysis {

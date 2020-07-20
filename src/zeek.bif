@@ -4438,9 +4438,9 @@ function open%(f: string%): file
 	const char* file = f->CheckString();
 
 	if ( streq(file, "-") )
-		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(stdout, "-", "w"));
+		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
 	else
-		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(file, "w"));
+		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(file, "w"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4455,7 +4455,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(f->CheckString(), "a"));
+	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(f->CheckString(), "a"));
 	%}
 
 ## Closes an open file and flushes any buffered content.

@@ -1584,7 +1584,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFilePtr f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::FilePtr f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1601,7 +1601,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFilePtr f)
 		}
 	}
 
-BroFilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
+zeek::FilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:

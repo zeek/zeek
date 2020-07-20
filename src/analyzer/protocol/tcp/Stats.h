@@ -6,7 +6,7 @@
 namespace analyzer { namespace tcp {
 
 // A TCPStateStats object tracks the distribution of TCP states for
-// the currently active connections.  
+// the currently active connections.
 class TCPStateStats {
 public:
 	TCPStateStats();
@@ -59,10 +59,10 @@ public:
 		{ return Cnt(TCP_ENDPOINT_INACTIVE); }
 	unsigned int NumStatePartial() const;
 
-	void PrintStats(BroFile* file, const char* prefix);
+	void PrintStats(zeek::File* file, const char* prefix);
 
 private:
 	unsigned int state_cnt[TCP_ENDPOINT_RESET+1][TCP_ENDPOINT_RESET+1];
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

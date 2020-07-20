@@ -188,8 +188,8 @@ public:
 
 	void AckReceived(uint64_t seq);
 
-	void SetContentsFile(BroFilePtr f);
-	const BroFilePtr& GetContentsFile() const	{ return contents_file; }
+	void SetContentsFile(zeek::FilePtr f);
+	const zeek::FilePtr& GetContentsFile() const	{ return contents_file; }
 
 	// Codes used for tracking history.  For responders, we shift these
 	// over by 16 bits in order to fit both originator and responder
@@ -212,7 +212,7 @@ public:
 	TCP_Endpoint* peer;
 	TCP_Reassembler* contents_processor;
 	TCP_Analyzer* tcp_analyzer;
-	BroFilePtr contents_file;
+	zeek::FilePtr contents_file;
 	uint32_t checksum_base;
 
 	double start_time, last_time;

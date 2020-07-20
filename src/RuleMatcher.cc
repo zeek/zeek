@@ -1229,7 +1229,7 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 		GetStats(stats, h);
 	}
 
-void RuleMatcher::DumpStats(BroFile* f)
+void RuleMatcher::DumpStats(zeek::File* f)
 	{
 	Stats stats;
 	GetStats(&stats);
@@ -1244,7 +1244,7 @@ void RuleMatcher::DumpStats(BroFile* f)
 	DumpStateStats(f, root);
 	}
 
-void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
+void RuleMatcher::DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test)
 	{
 	if ( ! hdr_test )
 		return;

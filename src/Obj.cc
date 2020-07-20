@@ -195,7 +195,7 @@ void Obj::PinPoint(ODesc* d, const Obj* obj2, bool pinpoint_only) const
 
 void Obj::Print() const
 	{
-	static BroFile fstderr(stderr);
+	static zeek::File fstderr(stderr);
 	ODesc d(DESC_READABLE, &fstderr);
 	Describe(&d);
 	d.Add("\n");

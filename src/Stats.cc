@@ -50,7 +50,7 @@ void ProfileTimer::Dispatch(double t, bool is_expire)
 	}
 
 
-ProfileLogger::ProfileLogger(BroFile* arg_file, double interval)
+ProfileLogger::ProfileLogger(zeek::File* arg_file, double interval)
 : SegmentStatsReporter()
 	{
 	file = arg_file;
@@ -408,7 +408,7 @@ void SegmentProfiler::Report()
 	}
 
 PacketProfiler::PacketProfiler(unsigned int mode, double freq,
-				BroFile* arg_file)
+                               zeek::File* arg_file)
 	{
 	update_mode = mode;
 	update_freq = freq;

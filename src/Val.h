@@ -28,7 +28,7 @@
 namespace zeek {
 template<typename T> class PDict;
 class String;
-};
+}
 template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
@@ -37,11 +37,16 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
+namespace zeek {
+class File;
+using FilePtr = zeek::IntrusivePtr<File>;
+}
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
 
 namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
-class BroFile;
 class PrefixTable;
 class StateAccess;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
@@ -54,7 +59,7 @@ extern double bro_start_network_time;
 namespace zeek {
 
 using FuncPtr = zeek::IntrusivePtr<Func>;
-using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+using FilePtr = zeek::IntrusivePtr<File>;
 
 class Val;
 class PortVal;
@@ -99,7 +104,7 @@ union BroValUnion {
 
 	String* string_val;
 	zeek::Func* func_val;
-	BroFile* file_val;
+	File* file_val;
 	RE_Matcher* re_val;
 	zeek::PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
@@ -128,7 +133,7 @@ union BroValUnion {
 	constexpr BroValUnion(zeek::Func* value) noexcept
 		: func_val(value) {}
 
-	constexpr BroValUnion(BroFile* value) noexcept
+	constexpr BroValUnion(File* value) noexcept
 		: file_val(value) {}
 
 	constexpr BroValUnion(RE_Matcher* value) noexcept
@@ -152,10 +157,10 @@ public:
 	explicit Val(zeek::FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Val(BroFile* f);
+	explicit Val(File* f);
 	// Note, the file will be closed after this Val is destructed if there's
 	// no other remaining references.
-	explicit Val(BroFilePtr f);
+	explicit Val(FilePtr f);
 
 	// Extra arg to differentiate from protected version.
 	Val(zeek::TypePtr t, bool type_type)
@@ -241,7 +246,7 @@ public:
 	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
 	CONST_ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
-	CONST_ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
+	CONST_ACCESSOR(zeek::TYPE_FILE, File*, file_val, AsFile)
 	CONST_ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
@@ -275,7 +280,7 @@ public:
 	// are protected to avoid external state changes.
 	// ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
 	ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
-	ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
+	ACCESSOR(zeek::TYPE_FILE, File*, file_val, AsFile)
 	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 

@@ -9,7 +9,8 @@
 #include <sys/resource.h>
 #include <stdint.h>
 
-class BroFile;
+namespace zeek { class File; }
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
@@ -70,18 +71,18 @@ protected:
 
 class ProfileLogger final : public SegmentStatsReporter {
 public:
-	ProfileLogger(BroFile* file, double interval);
+	ProfileLogger(zeek::File* file, double interval);
 	~ProfileLogger() override;
 
 	void Log();
-	BroFile* File()	{ return file; }
+	zeek::File* File()	{ return file; }
 
 protected:
 	void SegmentProfile(const char* name, const zeek::detail::Location* loc,
 	                    double dtime, int dmem) override;
 
 private:
-	BroFile* file;
+	zeek::File* file;
 	unsigned int log_count;
 };
 
@@ -120,7 +121,7 @@ extern uint64_t tot_gap_bytes;
 
 class PacketProfiler {
 public:
-	PacketProfiler(unsigned int mode, double freq, BroFile* arg_file);
+	PacketProfiler(unsigned int mode, double freq, zeek::File* arg_file);
 	~PacketProfiler();
 
 	static const unsigned int MODE_TIME = 1;
@@ -130,7 +131,7 @@ public:
 	void ProfilePkt(double t, unsigned int bytes);
 
 protected:
-	BroFile* file;
+	zeek::File* file;
 	unsigned int update_mode;
 	double update_freq;
 	double last_Utime, last_Stime, last_Rtime;

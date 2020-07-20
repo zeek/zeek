@@ -61,10 +61,10 @@ static const FileTypePtr& GetStringFileType() noexcept
 	return string_file_type;
 	}
 
-Val::Val(BroFile* f) : Val({AdoptRef{}, f})
+Val::Val(zeek::File* f) : Val({AdoptRef{}, f})
 	{}
 
-Val::Val(BroFilePtr f)
+Val::Val(zeek::FilePtr f)
 	: val(f.release()), type(GetStringFileType())
 	{
 	assert(val.file_val->GetType()->Tag() == TYPE_STRING);

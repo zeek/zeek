@@ -31,7 +31,9 @@
 #include "Desc.h"
 #include "Var.h"
 
-std::list<std::pair<std::string, BroFile*>> BroFile::open_files;
+namespace zeek {
+
+std::list<std::pair<std::string, File*>> File::open_files;
 
 // Maximizes the number of open file descriptors.
 static void maximize_num_fds()
@@ -53,7 +55,7 @@ static void maximize_num_fds()
 		zeek::reporter->FatalError("maximize_num_fds(): setrlimit failed");
 	}
 
-BroFile::BroFile(FILE* arg_f)
+File::File(FILE* arg_f)
 	{
 	Init();
 	f = arg_f;
@@ -62,7 +64,7 @@ BroFile::BroFile(FILE* arg_f)
 	is_open = (f != nullptr);
 	}
 
-BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
+File::File(FILE* arg_f, const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = arg_f;
@@ -72,7 +74,7 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 	is_open = (f != nullptr);
 	}
 
-BroFile::BroFile(const char* arg_name, const char* arg_access)
+File::File(const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = nullptr;
@@ -97,7 +99,7 @@ BroFile::BroFile(const char* arg_name, const char* arg_access)
 		}
 	}
 
-const char* BroFile::Name() const
+const char* File::Name() const
 	{
 	if ( name )
 		return name;
@@ -114,7 +116,7 @@ const char* BroFile::Name() const
 	return nullptr;
 	}
 
-bool BroFile::Open(FILE* file, const char* mode)
+bool File::Open(FILE* file, const char* mode)
 	{
 	static bool fds_maximized = false;
 	open_time = network_time ? network_time : current_time();
@@ -152,7 +154,7 @@ bool BroFile::Open(FILE* file, const char* mode)
 	return true;
 	}
 
-BroFile::~BroFile()
+File::~File()
 	{
 	Close();
 	Unref(attrs);
@@ -165,7 +167,7 @@ BroFile::~BroFile()
 #endif
 	}
 
-void BroFile::Init()
+void File::Init()
 	{
 	open_time = 0;
 	is_open = false;
@@ -178,14 +180,14 @@ void BroFile::Init()
 #endif
 	}
 
-FILE* BroFile::File()
+FILE* File::FileHandle()
 	{
 	return f;
 	}
 
-FILE* BroFile::Seek(long new_position)
+FILE* File::Seek(long new_position)
 	{
-	if ( ! File() )
+	if ( ! FileHandle() )
 		return nullptr;
 
 	if ( fseek(f, new_position, SEEK_SET) < 0 )
@@ -194,7 +196,7 @@ FILE* BroFile::Seek(long new_position)
 	return f;
 	}
 
-void BroFile::SetBuf(bool arg_buffered)
+void File::SetBuf(bool arg_buffered)
 	{
 	if ( ! f )
 		return;
@@ -205,7 +207,7 @@ void BroFile::SetBuf(bool arg_buffered)
 	buffered = arg_buffered;
 	}
 
-bool BroFile::Close()
+bool File::Close()
 	{
 	if ( ! is_open )
 		return true;
@@ -227,7 +229,7 @@ bool BroFile::Close()
 	return true;
 	}
 
-void BroFile::Unlink()
+void File::Unlink()
 	{
 	for ( auto it = open_files.begin(); it != open_files.end(); ++it)
 		{
@@ -239,7 +241,7 @@ void BroFile::Unlink()
 		}
 	}
 
-void BroFile::Describe(ODesc* d) const
+void File::Describe(ODesc* d) const
 	{
 	d->AddSP("file");
 
@@ -257,7 +259,7 @@ void BroFile::Describe(ODesc* d) const
 		d->Add("(no type)");
 	}
 
-void BroFile::SetAttrs(zeek::detail::Attributes* arg_attrs)
+void File::SetAttrs(zeek::detail::Attributes* arg_attrs)
 	{
 	if ( ! arg_attrs )
 		return;
@@ -269,7 +271,7 @@ void BroFile::SetAttrs(zeek::detail::Attributes* arg_attrs)
 		EnableRawOutput();
 	}
 
-zeek::RecordVal* BroFile::Rotate()
+zeek::RecordVal* File::Rotate()
 	{
 	if ( ! is_open )
 		return nullptr;
@@ -299,7 +301,7 @@ zeek::RecordVal* BroFile::Rotate()
 	return info;
 	}
 
-void BroFile::CloseOpenFiles()
+void File::CloseOpenFiles()
 	{
 	auto it = open_files.begin();
 	while ( it != open_files.end() )
@@ -309,7 +311,7 @@ void BroFile::CloseOpenFiles()
 		}
 	}
 
-bool BroFile::Write(const char* data, int len)
+bool File::Write(const char* data, int len)
 	{
 	if ( ! is_open )
 		return false;
@@ -323,17 +325,17 @@ bool BroFile::Write(const char* data, int len)
 	return true;
 	}
 
-void BroFile::RaiseOpenEvent()
+void File::RaiseOpenEvent()
 	{
 	if ( ! ::file_opened )
 		return;
 
-	BroFilePtr bf{zeek::NewRef{}, this};
+	FilePtr bf{zeek::NewRef{}, this};
 	Event* event = new ::Event(::file_opened, {zeek::make_intrusive<zeek::Val>(std::move(bf))});
 	mgr.Dispatch(event, true);
 	}
 
-double BroFile::Size()
+double File::Size()
 	{
 	fflush(f);
 	struct stat s;
@@ -346,11 +348,13 @@ double BroFile::Size()
 	return s.st_size;
 	}
 
-BroFilePtr BroFile::Get(const char* name)
+FilePtr File::Get(const char* name)
 	{
 	for ( const auto &el : open_files )
 		if ( el.first == name )
 			return {zeek::NewRef{}, el.second};
 
-	return zeek::make_intrusive<BroFile>(name, "w");
+	return zeek::make_intrusive<File>(name, "w");
 	}
+
+} // namespace zeek

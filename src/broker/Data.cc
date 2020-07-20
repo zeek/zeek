@@ -119,7 +119,7 @@ struct val_converter {
 			return zeek::make_intrusive<zeek::StringVal>(a.size(), a.data());
 		case zeek::TYPE_FILE:
 			{
-			auto file = BroFile::Get(a.data());
+			auto file = zeek::File::Get(a.data());
 
 			if ( file )
 				return zeek::make_intrusive<zeek::Val>(std::move(file));

@@ -22,7 +22,8 @@ typedef enum {
 	RAW_STYLE,
 } desc_style;
 
-class BroFile;
+namespace zeek { class File; }
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
@@ -32,7 +33,7 @@ using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::
 
 class ODesc {
 public:
-	explicit ODesc(desc_type t=DESC_READABLE, BroFile* f=nullptr);
+	explicit ODesc(desc_type t=DESC_READABLE, zeek::File* f=nullptr);
 
 	~ODesc();
 
@@ -201,7 +202,7 @@ protected:
 	using escape_set = std::set<std::string>;
 	escape_set escape_sequences; // additional sequences of chars to escape
 
-	BroFile* f;	// or the file we're using.
+	zeek::File* f;	// or the file we're using.
 
 	int indent_level;
 	bool do_flush;

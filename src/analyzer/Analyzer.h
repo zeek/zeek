@@ -16,16 +16,18 @@
 #include "../Timer.h"
 #include "../IntrusivePtr.h"
 
-class BroFile;
-using BroFilePtr = zeek::IntrusivePtr<BroFile>;
-
 class Connection;
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+class File;
+using FilePtr = zeek::IntrusivePtr<File>;
 }
+
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
 
 namespace analyzer {
 namespace tcp { class TCP_ApplicationAnalyzer; }
@@ -919,7 +921,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, BroFilePtr f);
+	virtual void SetContentsFile(unsigned int direction, zeek::FilePtr f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -929,7 +931,7 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual BroFilePtr GetContentsFile(unsigned int direction) const;
+	virtual zeek::FilePtr GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the

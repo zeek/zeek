@@ -993,7 +993,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 
 	case zeek::TYPE_FILE:
 		{
-		const BroFile* f = val->AsFile();
+		const zeek::File* f = val->AsFile();
 		string s = f->Name();
 		lval->val.string_val.data = copy_string(s.c_str());
 		lval->val.string_val.length = s.size();

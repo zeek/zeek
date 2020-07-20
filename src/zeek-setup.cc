@@ -338,7 +338,7 @@ void zeek_terminate_loop(const char* reason)
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.
-	BroFile::CloseOpenFiles();
+	zeek::File::CloseOpenFiles();
 
 	delete zeek::detail::rule_matcher;
 
@@ -891,7 +891,7 @@ int zeek::detail::cleanup(bool did_net_run)
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.
-	BroFile::CloseOpenFiles();
+	zeek::File::CloseOpenFiles();
 
 	delete rule_matcher;
 

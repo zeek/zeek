@@ -27,9 +27,10 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
-class BroFile;
 class IntSet;
 
+namespace zeek { class File; }
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Match_State, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
@@ -311,7 +312,7 @@ public:
 	                               const RuleEndpointState* state) const;
 
 	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
-	void DumpStats(BroFile* f);
+	void DumpStats(zeek::File* f);
 
 private:
 	// Delete node and all children.
@@ -354,7 +355,7 @@ private:
 
 	void PrintTreeDebug(RuleHdrTest* node);
 
-	void DumpStateStats(BroFile* f, RuleHdrTest* hdr_test);
+	void DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test);
 
 	static bool AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	                                   const AcceptingMatchSet& ams);

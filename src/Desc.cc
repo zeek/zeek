@@ -16,7 +16,7 @@
 #define DEFAULT_SIZE 128
 #define SLOP 10
 
-ODesc::ODesc(desc_type t, BroFile* arg_f)
+ODesc::ODesc(desc_type t, zeek::File* arg_f)
 	{
 	type = t;
 	style = STANDARD_STYLE;

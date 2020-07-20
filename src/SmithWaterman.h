@@ -5,16 +5,18 @@
 #include "ZeekString.h"
 #include <map>
 
-// BroSubstrings are essentially BroStrings, augmented with indexing
-// information required for the Smith-Waterman algorithm.  Each substring
-// can be marked as being a common substring of arbitrarily many strings,
-// for each of which we store where the substring starts.
-//
-//
-class BroSubstring : public zeek::String {
+namespace zeek::detail {
+
+/**
+ * Substrings are essentially Strings, augmented with indexing information
+ * required for the Smith-Waterman algorithm. Each substring can be
+ * marked as being a common substring of arbitrarily many strings, for each
+ * of which we store where the substring starts.
+ */
+class Substring : public zeek::String {
 
 public:
-	typedef std::vector<BroSubstring*> Vec;
+	typedef std::vector<Substring*> Vec;
 	typedef Vec::iterator VecIt;
 	typedef Vec::const_iterator VecCIt;
 
@@ -39,22 +41,22 @@ public:
 	typedef BSSAlignVec::iterator BSSAlignVecIt;
 	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
 
-	explicit BroSubstring(const std::string& string)
+	explicit Substring(const std::string& string)
 		: zeek::String(string), _num(), _new(false) { }
 
-	explicit BroSubstring(const zeek::String& string)
+	explicit Substring(const zeek::String& string)
 		: zeek::String(string), _num(), _new(false) { }
 
-	BroSubstring(const BroSubstring& bst);
+	Substring(const Substring& bst);
 
-	const BroSubstring& operator=(const BroSubstring& bst);
+	const Substring& operator=(const Substring& bst);
 
 	// Returns true if this string completely covers the given one.
 	// "Covering" means that the substring must be at least as long
 	// as the one compared to, and completely covers the range occupied
 	// by the given one.
 	//
-	bool DoesCover(const BroSubstring* bst) const;
+	bool DoesCover(const Substring* bst) const;
 
 	void AddAlignment(const zeek::String* string, int index);
 	const BSSAlignVec& GetAlignments() const	{ return _aligns; }
@@ -78,7 +80,7 @@ private:
 	typedef std::map<std::string, void*> DataMap;
 	typedef DataMap::iterator DataMapIt;
 
-	BroSubstring();
+	Substring();
 
 	// The alignments registered for this substring.
 	BSSAlignVec _aligns;
@@ -90,13 +92,13 @@ private:
 	bool _new;
 };
 
-// A comparison class that sorts BroSubstrings according to the string
+// A comparison class that sorts Substrings according to the string
 // offset value of the nth input string, where "nth" starts from 0.
 //
-class BroSubstringCmp {
+class SubstringCmp {
 public:
-	explicit BroSubstringCmp(unsigned int index)	{ _index = index; }
-	bool operator()(const BroSubstring* bst1, const BroSubstring* bst2) const;
+	explicit SubstringCmp(unsigned int index)	{ _index = index; }
+	bool operator()(const Substring* bst1, const Substring* bst2) const;
 
  private:
 	unsigned int _index;
@@ -148,6 +150,16 @@ struct SWParams {
 // input strings where the string occurs.  On error, or if no common
 // subsequence exists, an empty vector is returned.
 //
-extern BroSubstring::Vec* smith_waterman(const zeek::String* s1,
-                                         const zeek::String* s2,
-                                         SWParams& params);
+extern Substring::Vec* smith_waterman(const zeek::String* s1,
+                                      const zeek::String* s2,
+                                      SWParams& params);
+
+} // namespace zeek::detail
+
+using BroSubstring [[deprecated("Remove in v4.1. Use zeek::detail::Substring.")]] = zeek::detail::Substring;
+using BroSubstringCmp [[deprecated("Remove in v4.1 Use zeel::detail::SubstringCmp.")]] = zeek::detail::SubstringCmp;
+using SWParams [[deprecated("Remove in v4.1. Use zeek::detail::SWParams.")]] = zeek::detail::SWParams;
+
+constexpr auto SW_SINGLE [[deprecated("Remove in v4.1. Use zeek::detai::SW_SINGLE.")]] = zeek::detail::SW_SINGLE;
+constexpr auto SW_MULTIPLE [[deprecated("Remove in v4.1. Use zeek::detai::SW_MULTIPLE.")]] = zeek::detail::SW_MULTIPLE;
+constexpr auto smith_waterman [[deprecated("Remove in v4.1. Use zeek::detail::smith_waterman.")]] = zeek::detail::smith_waterman;

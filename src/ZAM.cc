@@ -4097,6 +4097,12 @@ void ZAM::SyncGlobals(std::unordered_set<ID*>& globals, const BroObj* o)
 	auto curr_rds = o ?
 		mgr->GetPreMaxRDs(o) : mgr->GetPostMaxRDs(LastStmt());
 
+	if ( ! curr_rds )
+		// This can happen for functions that only access (but
+		// don't modify) globals, with no modified locals, at
+		// the point of interest.
+		return;
+
 	bool could_be_dirty = false;
 
 	for ( auto g : globals )

@@ -266,7 +266,7 @@ static void print_event_c_body(FILE* fp, bool smart)
 
 	BuiltinFuncArg* connection_arg = 0;
 
-	fprintf(fp, "\tmgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
+	fprintf(fp, "\tzeek::event_mgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
 
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{
@@ -655,12 +655,12 @@ head_1:		TOK_ID opt_ws arg_begin
 					{
 					// TODO: add namespace for events here
 					fprintf(fp_netvar_h,
-						"%sextern EventHandlerPtr %s; %s\n",
+						"%sextern zeek::EventHandlerPtr %s; %s\n",
 						decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 					fprintf(fp_netvar_def,
-						"%sEventHandlerPtr %s; %s\n",
-						decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+					        "%szeek::EventHandlerPtr %s; %s\n",
+					        decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 					fprintf(fp_netvar_init,
 						"\t%s = event_registry->Register(\"%s\");\n",

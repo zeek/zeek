@@ -2246,9 +2246,11 @@ const CompiledStmt ZAM::ConstructTable(const NameExpr* n, const Expr* e)
 const CompiledStmt ZAM::ConstructSet(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
+	auto tt = n->Type()->AsTableType();
+	auto width = tt->Indices()->Types()->length();
 
-	auto z = GenInst(this, OP_CONSTRUCT_SET_V, n);
-	z.aux = InternalBuildVals(con);
+	auto z = GenInst(this, OP_CONSTRUCT_SET_VV, n, width);
+	z.aux = InternalBuildVals(con, width);
 	z.t = e->Type().get();
 	z.attrs = e->AsSetConstructorExpr()->Attrs();
 
@@ -3504,6 +3506,17 @@ int ZAM::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 		ASSERT(InternalAddVal(zi, i + width, val.get()) == 1);
 
 		return width + 1;
+		}
+
+	if ( e->Tag() == EXPR_LIST )
+		{ // We're building up a set constructor
+		auto& indices = e->AsListExpr()->Exprs();
+		int width = indices.length();
+
+		for ( int j = 0; j < width; ++j )
+			ASSERT(InternalAddVal(zi, i + j, indices[j]) == 1);
+
+		return width;
 		}
 
 	if ( e->Tag() == EXPR_FIELD_ASSIGN )

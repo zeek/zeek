@@ -705,13 +705,17 @@ eval t = new_t
 direct-unary-op Set-Constructor ConstructSet
 
 internal-op Construct-Set
-type V
+type VV
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs};
 eval auto new_s = new TableVal(tt, attrs)
 eval auto aux = z.aux
 eval auto n = aux->n
-eval for ( auto i = 0; i < n; ++i ) new_s->Assign(aux->ToVal(frame, i).get(), nullptr)
+eval auto ind_width = z.v2
+eval for ( auto i = 0; i < n; i += ind_width ) {
+eval	auto indices = aux->ToIndices(frame, i, ind_width)
+eval	new_s->Assign(indices.get(), nullptr)
+eval }
 eval auto& s = frame[z.v1].table_val
 eval Unref(s)
 eval s = new_s

@@ -266,7 +266,7 @@ type R
 field-op
 eval auto rv = $2.record_val->RawFields()
 eval auto v = rv->Lookup(z.v3, ZAM_error)
-eval if ( ZAM_error ) z.e->RuntimeError("field value missing")
+eval if ( ZAM_error ) reporter->ExprRuntimeError(z.e, "field value missing: $%s", $2.record_val->Type()->AsRecordType()->FieldName(z.v3))
 eval else @v
 
 expr-op Has-Field

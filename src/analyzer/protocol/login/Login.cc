@@ -373,7 +373,7 @@ void Login_Analyzer::EndpointEOF(bool orig)
 		}
 	}
 
-void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
+void Login_Analyzer::LoginEvent(zeek::EventHandlerPtr f, const char* line,
 	bool no_user_okay)
 	{
 	if ( ! f )
@@ -446,7 +446,7 @@ const char* Login_Analyzer::GetUsername(const char* line) const
 	return line;
 	}
 
-void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
+void Login_Analyzer::LineEvent(zeek::EventHandlerPtr f, const char* line)
 	{
 	if ( ! f )
 		return;

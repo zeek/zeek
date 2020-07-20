@@ -38,9 +38,9 @@ protected:
 	void NewLine(bool orig, char* line);
 	void AuthenticationDialog(bool orig, char* line);
 
-	void LoginEvent(EventHandlerPtr f, const char* line, bool no_user_okay=false);
+	void LoginEvent(zeek::EventHandlerPtr f, const char* line, bool no_user_okay=false);
 	const char* GetUsername(const char* line) const;
-	void LineEvent(EventHandlerPtr f, const char* line);
+	void LineEvent(zeek::EventHandlerPtr f, const char* line);
 	void Confused(const char* msg, const char* addl);
 	void ConfusionText(const char* line);
 

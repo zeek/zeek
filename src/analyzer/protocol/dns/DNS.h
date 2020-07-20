@@ -338,10 +338,10 @@ protected:
 	bool ParseRR_DS(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
-	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
-					const u_char*& data, int& len,
-					zeek::String* question_name,
-					zeek::String* original_name);
+	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, zeek::EventHandlerPtr event,
+	                            const u_char*& data, int& len,
+	                            zeek::String* question_name,
+	                            zeek::String* original_name);
 
 	zeek::analyzer::Analyzer* analyzer;
 	bool first_message;

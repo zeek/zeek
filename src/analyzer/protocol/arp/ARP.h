@@ -40,9 +40,9 @@ public:
 	void NextPacket(double t, const Packet* pkt);
 
 	void Describe(ODesc* d) const override;
-	void RREvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
-			const char* spa, const char* sha,
-			const char* tpa, const char* tha);
+	void RREvent(zeek::EventHandlerPtr e, const u_char* src, const u_char* dst,
+	             const char* spa, const char* sha,
+	             const char* tpa, const char* tha);
 
 protected:
 

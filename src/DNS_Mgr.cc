@@ -696,7 +696,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
 	if ( ! e )
 		return;
 
-	mgr.Enqueue(e, BuildMappingVal(dm));
+	zeek::event_mgr.Enqueue(e, BuildMappingVal(dm));
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
@@ -705,7 +705,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
 	if ( ! e )
 		return;
 
-	mgr.Enqueue(e, BuildMappingVal(dm), l1->ToSetVal(), l2->ToSetVal());
+	zeek::event_mgr.Enqueue(e, BuildMappingVal(dm), l1->ToSetVal(), l2->ToSetVal());
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
@@ -713,7 +713,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 	if ( ! e )
 		return;
 
-	mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
+	zeek::event_mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
 	}
 
 zeek::ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)

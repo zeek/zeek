@@ -88,8 +88,8 @@ protected:
 
 	void ParseSambaMsg(const u_char* data, int len, bool is_query);
 
-	void Event(EventHandlerPtr event, const u_char* data, int len,
-			int is_orig = -1);
+	void Event(zeek::EventHandlerPtr event, const u_char* data, int len,
+	           int is_orig = -1);
 
 	// Pass in name/length, returns in xname/xlen the converted
 	// name/length.  Returns 0 on failure; xname may still be

@@ -910,8 +910,8 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
 	return tokens;
 	}
 
-void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
-				const char* arg1, const char* arg2)
+void POP3_Analyzer::POP3Event(zeek::EventHandlerPtr event, bool is_orig,
+                              const char* arg1, const char* arg2)
 	{
 	if ( ! event )
 		return;

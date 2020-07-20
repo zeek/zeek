@@ -12,7 +12,7 @@
 ## .. zeek:see:: skip_smtp_data
 function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	%{
-	analyzer::ID id = mgr.CurrentAnalyzer();
+	analyzer::ID id = zeek::event_mgr.CurrentAnalyzer();
 	if ( id )
 		{
 		zeek::analyzer::Analyzer* ha = c->FindAnalyzer(id);

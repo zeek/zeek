@@ -17,7 +17,7 @@ protected:
 			   double last_time, int reply_len) override;
 	uint32_t CheckPort(uint32_t port);
 
-	void Event(EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply);
+	void Event(zeek::EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply);
 
 	zeek::ValPtr ExtractMapping(const u_char*& buf, int& len);
 	zeek::ValPtr ExtractPortRequest(const u_char*& buf, int& len);

@@ -703,7 +703,7 @@ bool Manager::AutoPublishEvent(string topic, zeek::Val* event)
 		return false;
 		}
 
-	auto handler = event_registry->Lookup(event_val->Name());
+	auto handler = zeek::event_registry->Lookup(event_val->Name());
 	if ( ! handler )
 		{
 		Error("Broker::auto_publish failed to lookup event '%s'",
@@ -733,7 +733,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, zeek::Val* event)
 		return false;
 		}
 
-	auto handler = event_registry->Lookup(event_val->Name());
+	auto handler = zeek::event_registry->Lookup(event_val->Name());
 
 	if ( ! handler )
 		{
@@ -1153,7 +1153,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	DBG_LOG(DBG_BROKER, "Process event: %s %s",
 			name.data(), RenderMessage(args).data());
 	++statistics.num_events_incoming;
-	auto handler = event_registry->Lookup(name);
+	auto handler = zeek::event_registry->Lookup(name);
 
 	if ( ! handler )
 		return;
@@ -1216,7 +1216,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		}
 
 	if ( vl.size() == args.size() )
-		mgr.Enqueue(handler, std::move(vl), SOURCE_BROKER);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), SOURCE_BROKER);
 	}
 
 bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
@@ -1410,7 +1410,7 @@ void Manager::ProcessStatus(broker::status stat)
 
 	auto ctx = stat.context<broker::endpoint_info>();
 
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 	switch (stat.code()) {
 	case broker::sc::unspecified:
 		event = Broker::status;
@@ -1469,7 +1469,7 @@ void Manager::ProcessStatus(broker::status stat)
 	auto str = stat.message();
 	auto msg = zeek::make_intrusive<zeek::StringVal>(str ? *str : "");
 
-	mgr.Enqueue(event, std::move(endpoint_info), std::move(msg));
+	zeek::event_mgr.Enqueue(event, std::move(endpoint_info), std::move(msg));
 	}
 
 void Manager::ProcessError(broker::error err)
@@ -1502,10 +1502,9 @@ void Manager::ProcessError(broker::error err)
 		msg = fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
 		}
 
-	mgr.Enqueue(Broker::error,
-		zeek::BifType::Enum::Broker::ErrorCode->GetEnumVal(ec),
-	            zeek::make_intrusive<zeek::StringVal>(msg)
-	);
+	zeek::event_mgr.Enqueue(Broker::error,
+	                        zeek::BifType::Enum::Broker::ErrorCode->GetEnumVal(ec),
+	                        zeek::make_intrusive<zeek::StringVal>(msg));
 	}
 
 void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response response)

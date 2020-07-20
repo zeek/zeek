@@ -77,7 +77,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 	zeek::Args vl;
 
-	EventHandlerPtr f;
+	zeek::EventHandlerPtr f;
 	if ( orig )
 		{
 		int cmd_len;

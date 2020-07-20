@@ -129,7 +129,7 @@ bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen
 	return true;
 	}
 
-void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
+void SteppingStoneEndpoint::Event(zeek::EventHandlerPtr f, int id1, int id2)
 	{
 	if ( ! f )
 		return;

@@ -69,7 +69,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 			}
 
 		chunk = {};
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		}
 
 	zeek::detail::fuzzer_cleanup_one_input();

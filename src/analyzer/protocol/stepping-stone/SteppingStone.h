@@ -22,7 +22,7 @@ public:
 		     const zeek::IP_Hdr* ip, const struct tcphdr* tp);
 
 protected:
-	void Event(EventHandlerPtr f, int id1, int id2 = -1);
+	void Event(zeek::EventHandlerPtr f, int id1, int id2 = -1);
 	void CreateEndpEvent(bool is_orig);
 
 	tcp::TCP_Endpoint* endp;

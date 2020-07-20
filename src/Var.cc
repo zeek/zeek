@@ -857,7 +857,7 @@ zeek::Func* internal_func(const char* name)
 		return nullptr;
 	}
 
-EventHandlerPtr internal_handler(const char* name)
+zeek::EventHandlerPtr internal_handler(const char* name)
 	{
-	return event_registry->Register(name);
+	return zeek::event_registry->Register(name);
 	}

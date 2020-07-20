@@ -124,7 +124,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		mgr.Enqueue(raw_packet, pkt->ToRawPktHdrVal());
+		zeek::event_mgr.Enqueue(raw_packet, pkt->ToRawPktHdrVal());
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -328,7 +328,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const zeek::IP_Hdr* 
 		{
 		dump_this_packet = true;
 		if ( esp_packet )
-			mgr.Enqueue(esp_packet, ip_hdr->ToPktHdrVal());
+			zeek::event_mgr.Enqueue(esp_packet, ip_hdr->ToPktHdrVal());
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -348,7 +348,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const zeek::IP_Hdr* 
 			}
 
 		if ( mobile_ipv6_message )
-			mgr.Enqueue(mobile_ipv6_message, ip_hdr->ToPktHdrVal());
+			zeek::event_mgr.Enqueue(mobile_ipv6_message, ip_hdr->ToPktHdrVal());
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);

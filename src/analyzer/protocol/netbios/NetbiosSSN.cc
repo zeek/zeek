@@ -314,8 +314,8 @@ void NetbiosSSN_Interpreter::ParseKeepAlive(const u_char* data, int len,
 	Event(netbios_session_keepalive, data, len);
 	}
 
-void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
-					int len, int is_orig)
+void NetbiosSSN_Interpreter::Event(zeek::EventHandlerPtr event, const u_char* data,
+                                   int len, int is_orig)
 	{
 	if ( ! event )
 		return;

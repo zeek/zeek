@@ -64,7 +64,7 @@ public:
 	zeek::EnumVal* type;
 	ReaderFrontend* reader;
 	zeek::TableVal* config;
-	EventHandlerPtr error_event;
+	zeek::EventHandlerPtr error_event;
 
 	zeek::RecordVal* description;
 
@@ -104,7 +104,7 @@ public:
 
 	zeek::Func* pred;
 
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 
 	TableStream();
 	~TableStream() override;
@@ -112,7 +112,7 @@ public:
 
 class Manager::EventStream final : public Manager::Stream {
 public:
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 
 	zeek::RecordType* fields;
 	unsigned int num_fields;
@@ -185,7 +185,7 @@ Manager::AnalysisStream::~AnalysisStream()
 Manager::Manager()
 	: plugin::ComponentManager<input::Tag, input::Component>("Input", "Reader")
 	{
-	end_of_data = event_registry->Register("Input::end_of_data");
+	end_of_data = zeek::event_registry->Register("Input::end_of_data");
 	}
 
 Manager::~Manager()
@@ -441,8 +441,8 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
-	stream->event = event_registry->Lookup(event->Name());
-	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
+	stream->event = zeek::event_registry->Lookup(event->Name());
+	stream->error_event = error_event ? zeek::event_registry->Lookup(error_event->Name()) : nullptr;
 	stream->want_record = ( want_record->InternalInt() == 1 );
 
 	assert(stream->reader);
@@ -694,8 +694,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 	stream->tab = dst.release()->AsTableVal();
 	stream->rtype = val.release();
 	stream->itype = idx->Ref()->AsRecordType();
-	stream->event = event ? event_registry->Lookup(event->Name()) : nullptr;
-	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
+	stream->event = event ? zeek::event_registry->Lookup(event->Name()) : nullptr;
+	stream->error_event = error_event ? zeek::event_registry->Lookup(error_event->Name()) : nullptr;
 	stream->currDict = new zeek::PDict<InputHash>;
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new zeek::PDict<InputHash>;
@@ -1810,7 +1810,7 @@ bool Manager::CallPred(zeek::Func* pred_func, const int numvals, ...) const
 	return result;
 	}
 
-void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
+void Manager::SendEvent(zeek::EventHandlerPtr ev, const int numvals, ...) const
 	{
 	zeek::Args vl;
 	vl.reserve(numvals);
@@ -1828,10 +1828,10 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_end(lP);
 
 	if ( ev )
-		mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
-void Manager::SendEvent(EventHandlerPtr ev, list<zeek::Val*> events) const
+void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
 	{
 	zeek::Args vl;
 	vl.reserve(events.size());
@@ -1845,7 +1845,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<zeek::Val*> events) const
 		vl.emplace_back(zeek::AdoptRef{}, *i);
 
 	if ( ev )
-		mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.

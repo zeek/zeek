@@ -253,7 +253,7 @@ bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
 	return false;
 	}
 
-void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
+void Connection::HistoryThresholdEvent(zeek::EventHandlerPtr e, bool is_orig,
                                        uint32_t threshold)
 	{
 	if ( ! e )
@@ -466,7 +466,7 @@ void Connection::RemovalEvent()
 		EnqueueEvent(successful_connection_remove, nullptr, ConnVal());
 	}
 
-void Connection::Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name)
+void Connection::Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name)
 	{
 	if ( ! f )
 		return;
@@ -477,7 +477,7 @@ void Connection::Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, co
 		EnqueueEvent(f, analyzer, ConnVal());
 	}
 
-void Connection::Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2)
+void Connection::Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2)
 	{
 	if ( ! f )
 		{
@@ -497,7 +497,7 @@ void Connection::Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, ze
 		             zeek::IntrusivePtr{zeek::AdoptRef{}, v1});
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
+void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -507,17 +507,17 @@ void Connection::ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a,
 		return;
 
 	// "this" is passed as a cookie for the event
-	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	zeek::event_mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEventFast(EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
+void Connection::ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
 	{
 	// "this" is passed as a cookie for the event
-	mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
-	            a ? a->GetID() : 0, this);
+	zeek::event_mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
+	                        a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list* vl)
+void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list* vl)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
@@ -526,11 +526,11 @@ void Connection::ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a,
 		EnqueueEvent(f, a, std::move(args));
 	}
 
-void Connection::EnqueueEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a,
+void Connection::EnqueueEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a,
                               zeek::Args args)
 	{
 	// "this" is passed as a cookie for the event
-	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	zeek::event_mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)

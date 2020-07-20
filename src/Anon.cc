@@ -444,9 +444,9 @@ ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_
 void zeek::detail::log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
-		mgr.Enqueue(anonymization_mapping,
-		            zeek::make_intrusive<zeek::AddrVal>(input),
-			zeek::make_intrusive<AddrVal>(output)
+		zeek::event_mgr.Enqueue(anonymization_mapping,
+		                        zeek::make_intrusive<zeek::AddrVal>(input),
+		                        zeek::make_intrusive<AddrVal>(output)
 		);
 	}
 

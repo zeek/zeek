@@ -70,8 +70,8 @@ void Entropy::Finalize()
 	ent_result->Assign<zeek::DoubleVal>(3, montepi);
 	ent_result->Assign<zeek::DoubleVal>(4, scc);
 
-	mgr.Enqueue(file_entropy,
-		GetFile()->ToVal(),
-		std::move(ent_result)
+	zeek::event_mgr.Enqueue(file_entropy,
+	                        GetFile()->ToVal(),
+	                        std::move(ent_result)
 	);
 	}

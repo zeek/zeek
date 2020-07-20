@@ -231,7 +231,7 @@ void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION*
 	delete conn;
 	}
 
-void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global)
+void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr& h, bool global)
 	{
 	char name[256];
 	char oid[256];
@@ -288,11 +288,11 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	// but I am not sure if there is a better way to do it...
 
 	if ( h == ocsp_extension )
-		mgr.Enqueue(h, GetFile()->ToVal(),
-					std::move(pX509Ext),
-					zeek::val_mgr->Bool(global));
+		zeek::event_mgr.Enqueue(h, GetFile()->ToVal(),
+		                        std::move(pX509Ext),
+		                        zeek::val_mgr->Bool(global));
 	else
-		mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
+		zeek::event_mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);

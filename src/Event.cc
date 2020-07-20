@@ -13,10 +13,10 @@
 #include "iosource/PktSrc.h"
 #include "Net.h"
 
-EventMgr mgr;
+zeek::EventMgr zeek::event_mgr;
+zeek::EventMgr& mgr = zeek::event_mgr;
 
-uint64_t num_events_queued = 0;
-uint64_t num_events_dispatched = 0;
+namespace zeek {
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
              SourceID arg_src, zeek::analyzer::ID arg_aid, Obj* arg_obj)
@@ -145,7 +145,7 @@ void EventMgr::QueueEvent(Event* event)
 		tail = event;
 		}
 
-	++num_events_queued;
+	++event_mgr.num_events_queued;
 	}
 
 void EventMgr::Dispatch(Event* event, bool no_remote)
@@ -188,7 +188,7 @@ void EventMgr::Drain()
 			current->Dispatch();
 			Unref(current);
 
-			++num_events_dispatched;
+			++event_mgr.num_events_dispatched;
 			current = next;
 			}
 		}
@@ -244,3 +244,5 @@ void EventMgr::InitPostScript()
 	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
 		zeek::reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}
+
+} // namespace zeek

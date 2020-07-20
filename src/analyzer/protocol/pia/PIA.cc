@@ -160,7 +160,7 @@ void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 				tag = GetAnalyzerTag();
 
 			const auto& tval = tag.AsVal();
-			mgr.Enqueue(protocol_late_match, ConnVal(), tval);
+			zeek::event_mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
 		pkt_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
@@ -307,7 +307,7 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 				tag = GetAnalyzerTag();
 
 			const auto& tval = tag.AsVal();
-			mgr.Enqueue(protocol_late_match, ConnVal(), tval);
+			zeek::event_mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
 		stream_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;

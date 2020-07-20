@@ -13,8 +13,7 @@
 #include "IPAddr.h"
 #include "util.h"
 
-class EventHandler;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(DNS_Mgr_Request, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
@@ -106,10 +105,10 @@ protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
-	void Event(EventHandlerPtr e, DNS_Mapping* dm);
-	void Event(EventHandlerPtr e, DNS_Mapping* dm,
+	void Event(zeek::EventHandlerPtr e, DNS_Mapping* dm);
+	void Event(zeek::EventHandlerPtr e, DNS_Mapping* dm,
 	           zeek::ListValPtr l1, zeek::ListValPtr l2);
-	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
+	void Event(zeek::EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
 	zeek::ValPtr BuildMappingVal(DNS_Mapping* dm);
 

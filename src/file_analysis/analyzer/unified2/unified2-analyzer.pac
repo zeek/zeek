@@ -86,7 +86,7 @@ refine flow Flow += {
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
 			ids_event->Assign(17, zeek::val_mgr->Count(${ev.packet_action}));
 
-			mgr.Enqueue(::unified2_event,
+			zeek::event_mgr.Enqueue(::unified2_event,
 					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
@@ -116,7 +116,7 @@ refine flow Flow += {
 			ids_event->Assign(15, zeek::val_mgr->Count(${ev.mpls_label}));
 			ids_event->Assign(16, zeek::val_mgr->Count(${ev.vlan_id}));
 
-			mgr.Enqueue(::unified2_event,
+			zeek::event_mgr.Enqueue(::unified2_event,
 					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
@@ -136,7 +136,7 @@ refine flow Flow += {
 			packet->Assign(4, zeek::val_mgr->Count(${pkt.link_type}));
 			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
-			mgr.Enqueue(::unified2_packet,
+			zeek::event_mgr.Enqueue(::unified2_packet,
 					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(packet));
 			}

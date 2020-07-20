@@ -34,7 +34,7 @@ protected:
 					   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 	void CheckThresholds(bool is_orig);
 
-	void ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig);
+	void ThresholdEvent(zeek::EventHandlerPtr f, uint64_t threshold, bool is_orig);
 
 	uint64_t orig_bytes;
 	uint64_t resp_bytes;

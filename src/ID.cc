@@ -159,12 +159,12 @@ void ID::SetVal(zeek::ValPtr v)
 	     type->Tag() == TYPE_FUNC &&
 	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 		{
-		EventHandler* handler = event_registry->Lookup(name);
+		EventHandler* handler = zeek::event_registry->Lookup(name);
 		if ( ! handler )
 			{
 			handler = new EventHandler(name);
 			handler->SetFunc(val->AsFuncPtr());
-			event_registry->Register(handler);
+			zeek::event_registry->Register(handler);
 			}
 		else
 			{
@@ -250,7 +250,7 @@ void ID::UpdateValAttrs()
 		const auto& attr = attrs->Find(ATTR_ERROR_HANDLER);
 
 		if ( attr )
-			event_registry->SetErrorHandler(Name());
+			zeek::event_registry->SetErrorHandler(Name());
 		}
 
 	if ( GetType()->Tag() == TYPE_RECORD )

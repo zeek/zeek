@@ -86,10 +86,10 @@ bool file_analysis::X509::EndOfFile()
 
 	// and send the record on to scriptland
 	if ( x509_certificate )
-		mgr.Enqueue(x509_certificate,
-		            GetFile()->ToVal(),
-		            zeek::IntrusivePtr{zeek::NewRef{}, cert_val},
-		            cert_record);
+		zeek::event_mgr.Enqueue(x509_certificate,
+		                        GetFile()->ToVal(),
+		                        zeek::IntrusivePtr{zeek::NewRef{}, cert_val},
+		                        cert_record);
 
 	// after parsing the certificate - parse the extensions...
 
@@ -296,9 +296,9 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 			if ( constr->pathlen )
 				pBasicConstraint->Assign(1, zeek::val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
-			mgr.Enqueue(x509_ext_basic_constraints,
-				GetFile()->ToVal(),
-				std::move(pBasicConstraint)
+			zeek::event_mgr.Enqueue(x509_ext_basic_constraints,
+			                        GetFile()->ToVal(),
+			                        std::move(pBasicConstraint)
 			);
 			}
 
@@ -437,9 +437,9 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 		sanExt->Assign(4, zeek::val_mgr->Bool(otherfields));
 
-		mgr.Enqueue(x509_ext_subject_alternative_name,
-		            GetFile()->ToVal(),
-		            std::move(sanExt));
+		zeek::event_mgr.Enqueue(x509_ext_subject_alternative_name,
+		                        GetFile()->ToVal(),
+		                        std::move(sanExt));
 	GENERAL_NAMES_free(altname);
 	}
 

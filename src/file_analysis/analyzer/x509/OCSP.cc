@@ -415,9 +415,9 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 #endif
 
 	if ( ocsp_request )
-		mgr.Enqueue(ocsp_request,
-			GetFile()->ToVal(),
-			zeek::val_mgr->Count(version)
+		zeek::event_mgr.Enqueue(ocsp_request,
+		                        GetFile()->ToVal(),
+		                        zeek::val_mgr->Count(version)
 		);
 
 	BIO *bio = BIO_new(BIO_s_mem());
@@ -435,7 +435,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 		ocsp_add_cert_id(cert_id, &rvl, bio);
 
 		if ( ocsp_request_certificate )
-			mgr.Enqueue(ocsp_request_certificate, std::move(rvl));
+			zeek::event_mgr.Enqueue(ocsp_request_certificate, std::move(rvl));
 		}
 
 	BIO_free(bio);
@@ -461,7 +461,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	auto status_val = zeek::make_intrusive<zeek::StringVal>(strlen(status_str), status_str);
 
 	if ( ocsp_response_status )
-		mgr.Enqueue(ocsp_response_status, GetFile()->ToVal(), status_val);
+		zeek::event_mgr.Enqueue(ocsp_response_status, GetFile()->ToVal(), status_val);
 
 	//if (!resp_bytes)
 	//	{
@@ -592,7 +592,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(0.0));
 
 		if ( ocsp_response_certificate )
-			mgr.Enqueue(ocsp_response_certificate, std::move(rvl));
+			zeek::event_mgr.Enqueue(ocsp_response_certificate, std::move(rvl));
 
 		num_ext = OCSP_SINGLERESP_get_ext_count(single_resp);
 		for ( int k = 0; k < num_ext; ++k )
@@ -643,7 +643,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	  }
 
 	if ( ocsp_response_bytes )
-		mgr.Enqueue(ocsp_response_bytes, std::move(vl));
+		zeek::event_mgr.Enqueue(ocsp_response_bytes, std::move(vl));
 
 	// ok, now that we are done with the actual certificate - let's parse extensions :)
 	num_ext = OCSP_BASICRESP_get_ext_count(basic_resp);

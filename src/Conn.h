@@ -191,20 +191,20 @@ public:
 	// given that event's first argument will be it, and it's second will be
 	// the connection value.  If 'name' is null, then the event's first
 	// argument is the connection value.
-	void Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name = nullptr);
+	void Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// 'v1' and 'v2' reference counts get decremented.  The event's first
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead (note it doesn't automatically add the connection argument).")]]
-	void Event(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2 = nullptr);
+	void Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
 	// arguments used for the event are whatevever is provided in 'vl'.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
+	void ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 				val_list vl);
 
 	// Same as ConnectionEvent, except taking the event's argument list via a
@@ -212,7 +212,7 @@ public:
 	// memory pointed to by 'vl' and also for decrementing the reference count
 	// of each of its elements.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
+	void ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 				val_list* vl);
 
 	// Queues an event without first checking if there's any available event
@@ -224,13 +224,13 @@ public:
 	// it would be a waste of effort to construct all the event arguments when
 	// there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEventFast(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
+	void ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 				val_list vl);
 
 	/**
 	 * Enqueues an event associated with this connection and given analyzer.
 	 */
-	void EnqueueEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
+	void EnqueueEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
 	                  zeek::Args args);
 
 	/**
@@ -240,7 +240,7 @@ public:
 	std::enable_if_t<
 		std::is_convertible_v<
 			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
-	EnqueueEvent(EventHandlerPtr h, zeek::analyzer::Analyzer* analyzer, Args&&... args)
+	EnqueueEvent(zeek::EventHandlerPtr h, zeek::analyzer::Analyzer* analyzer, Args&&... args)
 		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Weird(const char* name, const char* addl = "");
@@ -296,7 +296,7 @@ public:
 	                        uint32_t& scaling_threshold,
 	                        uint32_t scaling_base = 10);
 
-	void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
+	void HistoryThresholdEvent(zeek::EventHandlerPtr e, bool is_orig,
 	                           uint32_t threshold);
 
 	void AddHistory(char code)	{ history += code; }

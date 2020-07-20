@@ -6,8 +6,7 @@
 #include "ID.h"
 #include "Type.h"
 
-class EventHandlerPtr;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
@@ -88,5 +87,5 @@ extern zeek::Type* internal_type(const char* name);
 [[deprecated("Remove in v4.1.  Use zeek::id::find_func().")]]
 extern zeek::Func* internal_func(const char* name);
 
-[[deprecated("Remove in v4.1.  Use event_registry->Register().")]]
-extern EventHandlerPtr internal_handler(const char* name);
+[[deprecated("Remove in v4.1.  Use zeek::event_registry->Register().")]]
+extern zeek::EventHandlerPtr internal_handler(const char* name);

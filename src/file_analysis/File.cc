@@ -612,12 +612,12 @@ void File::Gap(uint64_t offset, uint64_t len)
 	IncrementByteCount(len, missing_bytes_idx);
 	}
 
-bool File::FileEventAvailable(EventHandlerPtr h)
+bool File::FileEventAvailable(zeek::EventHandlerPtr h)
 	{
 	return h && ! file_mgr->IsIgnored(id);
 	}
 
-void File::FileEvent(EventHandlerPtr h)
+void File::FileEvent(zeek::EventHandlerPtr h)
 	{
 	if ( ! FileEventAvailable(h) )
 		return;
@@ -625,27 +625,27 @@ void File::FileEvent(EventHandlerPtr h)
 	FileEvent(h, zeek::Args{val});
 	}
 
-void File::FileEvent(EventHandlerPtr h, val_list* vl)
+void File::FileEvent(zeek::EventHandlerPtr h, val_list* vl)
 	{
 	FileEvent(h, zeek::val_list_to_args(*vl));
 	delete vl;
 	}
 
-void File::FileEvent(EventHandlerPtr h, val_list vl)
+void File::FileEvent(zeek::EventHandlerPtr h, val_list vl)
 	{
 	FileEvent(h, zeek::val_list_to_args(vl));
 	}
 
-void File::FileEvent(EventHandlerPtr h, zeek::Args args)
+void File::FileEvent(zeek::EventHandlerPtr h, zeek::Args args)
 	{
-	mgr.Enqueue(h, std::move(args));
+	zeek::event_mgr.Enqueue(h, std::move(args));
 
 	if ( h == file_new || h == file_over_new_connection ||
 	     h == file_sniff ||
 	     h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		analyzers.DrainModifications();
 		}
 	}

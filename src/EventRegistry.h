@@ -10,9 +10,11 @@
 #include <string_view>
 #include <vector>
 
-class EventHandler;
-class EventHandlerPtr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
+
+namespace zeek {
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry {
@@ -26,12 +28,12 @@ public:
 	 * @param name  The name of the event handler to lookup/register.
 	 * @return  The event handler.
 	 */
-	EventHandlerPtr Register(std::string_view name);
+	zeek::EventHandlerPtr Register(std::string_view name);
 
-	void Register(EventHandlerPtr handler);
+	void Register(zeek::EventHandlerPtr handler);
 
 	// Return nil if unknown.
-	EventHandler* Lookup(std::string_view name);
+	zeek::EventHandler* Lookup(std::string_view name);
 
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
@@ -50,7 +52,12 @@ public:
 	void PrintDebug();
 
 private:
-	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
+	std::map<std::string, std::unique_ptr<zeek::EventHandler>, std::less<>> handlers;
 };
 
 extern EventRegistry* event_registry;
+
+} // namespace zeek
+
+using EventRegistry [[deprecated("Remove in v4.1. Use zeek::EventRegistry.")]] = zeek::EventRegistry;
+extern zeek::EventRegistry*& event_registry;

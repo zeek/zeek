@@ -10,8 +10,7 @@
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
 
-class EventHandlerPtr;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 
@@ -48,7 +47,7 @@ protected:
 	X509Common(const file_analysis::Tag& arg_tag,
 	           zeek::RecordValPtr arg_args, File* arg_file);
 
-	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
+	void ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
 };

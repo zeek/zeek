@@ -14,8 +14,8 @@
 #include "WeirdState.h"
 
 class Connection;
-class EventHandlerPtr;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 namespace zeek {
@@ -179,14 +179,14 @@ public:
 	 * @param h pointer to an event handler.
 	 * @return true if event has a handler and the file isn't ignored.
 	 */
-	bool FileEventAvailable(EventHandlerPtr h);
+	bool FileEventAvailable(zeek::EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle, the only parameter
 	 * to that event is the \c fa_file record..
 	 * @param h pointer to an event handler.
 	 */
-	void FileEvent(EventHandlerPtr h);
+	void FileEvent(zeek::EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -194,7 +194,7 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, val_list* vl);
+	void FileEvent(zeek::EventHandlerPtr h, val_list* vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -202,14 +202,14 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, val_list vl);
+	void FileEvent(zeek::EventHandlerPtr h, val_list vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
 	 * @param h pointer to an event handler.
 	 * @param args list of argument values to pass to event call.
 	 */
-	void FileEvent(EventHandlerPtr h, zeek::Args args);
+	void FileEvent(zeek::EventHandlerPtr h, zeek::Args args);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.

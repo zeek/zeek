@@ -10,9 +10,9 @@
 #include <string>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+
 namespace zeek {
 using FuncPtr = zeek::IntrusivePtr<zeek::Func>;
-}
 
 class EventHandler {
 public:
@@ -104,3 +104,8 @@ public:
 private:
 	EventHandler* handler;
 };
+
+} // namespace zeek
+
+using EventHandler [[deprecated("Remove in v4.1. Use zeek::EventHandler.")]] = zeek::EventHandler;
+using EventHandlerPtr [[deprecated("Remove in v4.1. Use zeek::EventHandlerPtr.")]] = zeek::EventHandlerPtr;

@@ -79,7 +79,7 @@ struct Manager::Stream {
 	bool enabled;
 	string name;
 	zeek::RecordType* columns;
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 	list<Filter*> filters;
 
 	typedef pair<int, string> WriterPathPair;
@@ -314,7 +314,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 	streams[idx]->id = id->Ref()->AsEnumVal();
 	streams[idx]->enabled = true;
 	streams[idx]->name = id->GetType()->AsEnumType()->Lookup(idx);
-	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
+	streams[idx]->event = event ? zeek::event_registry->Lookup(event->Name()) : nullptr;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
 	streams[idx]->enable_remote = zeek::id::find_val("Log::enable_remote_logging")->AsBool();
@@ -711,7 +711,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 
 	// Raise the log event.
 	if ( stream->event )
-		mgr.Enqueue(stream->event, columns);
+		zeek::event_mgr.Enqueue(stream->event, columns);
 
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin();

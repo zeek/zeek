@@ -45,7 +45,7 @@ void ConnSize_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig)
+void ConnSize_Analyzer::ThresholdEvent(zeek::EventHandlerPtr f, uint64_t threshold, bool is_orig)
 	{
 	if ( ! f )
 		return;

@@ -12,7 +12,9 @@
 #include <tuple>
 #include <type_traits>
 
-class EventMgr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventMgr, zeek);
+
+namespace zeek {
 
 class Event final : public zeek::Obj {
 public:
@@ -44,9 +46,6 @@ protected:
 	zeek::Obj* obj;
 	Event* next_event;
 };
-
-extern uint64_t num_events_queued;
-extern uint64_t num_events_dispatched;
 
 class EventMgr final : public zeek::Obj, public iosource::IOSource {
 public:
@@ -136,6 +135,9 @@ public:
 	const char* Tag() override { return "EventManager"; }
 	void InitPostScript();
 
+	uint64_t num_events_queued = 0;
+	uint64_t num_events_dispatched = 0;
+
 protected:
 	void QueueEvent(Event* event);
 
@@ -148,4 +150,13 @@ protected:
 	zeek::detail::Flare queue_flare;
 };
 
-extern EventMgr mgr;
+extern EventMgr event_mgr;
+
+} // namespace zeek
+
+using Event [[deprecated("Remove in v4.1. Use zeek::Event.")]] = zeek::Event;
+using EventMgr [[deprecated("Remove in v4.1. Use zeek::EventMgr.")]] = zeek::EventMgr;
+extern zeek::EventMgr& mgr [[deprecated("Remove in v4.1. Use zeek::event_mgr")]];
+
+extern uint64_t& num_events_queued [[deprecated("Remove in v4.1. Use zeek::event_mgr.num_events_queued")]];
+extern uint64_t& num_events_dispatched [[deprecated("Remove in v4.1. Use zeek::event_mgr.num_events_dispatched")]];

@@ -123,7 +123,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
-	EventHandlerPtr event = nullptr;
+	zeek::EventHandlerPtr event = nullptr;
 	zeek::ValPtr reply;
 	BifEnum::NFS3::status_t nfs_status = BifEnum::NFS3::NFS3ERR_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );

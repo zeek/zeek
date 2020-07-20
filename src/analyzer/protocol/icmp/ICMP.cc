@@ -515,7 +515,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 					 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
 	// For handling all Echo related ICMP messages
-	EventHandlerPtr f = nullptr;
+	zeek::EventHandlerPtr f = nullptr;
 
 	if ( ip_hdr->NextProto() == IPPROTO_ICMPV6 )
 		f = (icmpp->icmp_type == ICMP6_ECHO_REQUEST)
@@ -546,7 +546,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_router_advertisement;
+	zeek::EventHandlerPtr f = icmp_router_advertisement;
 
 	if ( ! f )
 		return;
@@ -583,7 +583,7 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_neighbor_advertisement;
+	zeek::EventHandlerPtr f = icmp_neighbor_advertisement;
 
 	if ( ! f )
 		return;
@@ -611,7 +611,7 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_neighbor_solicitation;
+	zeek::EventHandlerPtr f = icmp_neighbor_solicitation;
 
 	if ( ! f )
 		return;
@@ -636,7 +636,7 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_redirect;
+	zeek::EventHandlerPtr f = icmp_redirect;
 
 	if ( ! f )
 		return;
@@ -665,7 +665,7 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_router_solicitation;
+	zeek::EventHandlerPtr f = icmp_router_solicitation;
 
 	if ( ! f )
 		return;
@@ -682,7 +682,7 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		int len, int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = nullptr;
+	zeek::EventHandlerPtr f = nullptr;
 
 	switch ( icmpp->icmp_type )
 		{
@@ -709,7 +709,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		int len, int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = nullptr;
+	zeek::EventHandlerPtr f = nullptr;
 
 	switch ( icmpp->icmp_type )
 		{

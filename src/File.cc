@@ -331,8 +331,8 @@ void File::RaiseOpenEvent()
 		return;
 
 	FilePtr bf{zeek::NewRef{}, this};
-	Event* event = new ::Event(::file_opened, {zeek::make_intrusive<zeek::Val>(std::move(bf))});
-	mgr.Dispatch(event, true);
+	auto* event = new zeek::Event(::file_opened, {zeek::make_intrusive<zeek::Val>(std::move(bf))});
+	zeek::event_mgr.Dispatch(event, true);
 	}
 
 double File::Size()

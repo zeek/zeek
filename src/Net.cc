@@ -227,7 +227,7 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 		bro_start_network_time = t;
 
 		if ( network_time_init )
-			mgr.Enqueue(network_time_init, zeek::Args{});
+			zeek::event_mgr.Enqueue(network_time_init, zeek::Args{});
 		}
 
 	// network_time never goes back.
@@ -252,7 +252,7 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
-			mgr.Drain();
+			zeek::event_mgr.Drain();
 
 			sample_logger = new SampleLogger();
 			sp = new SegmentProfiler(sample_logger, "load-samp");
@@ -260,7 +260,7 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 		}
 
 	sessions->NextPacket(t, pkt);
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	if ( sp )
 		{
@@ -325,7 +325,7 @@ void net_run()
 			expire_timers();
 			}
 
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 
 		processing_start_time = 0.0;	// = "we're not processing now"
 		current_dispatched = 0;
@@ -387,7 +387,7 @@ void net_finish(int drain_events)
 		if ( sessions )
 			sessions->Drain();
 
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 
 		if ( sessions )
 			sessions->Done();

@@ -702,7 +702,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 		return;
 
 	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	mgr.Enqueue(protocol_confirmation, ConnVal(), tval, zeek::val_mgr->Count(id));
+	zeek::event_mgr.Enqueue(protocol_confirmation, ConnVal(), tval, zeek::val_mgr->Count(id));
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -724,7 +724,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		r = zeek::make_intrusive<zeek::StringVal>(reason);
 
 	const auto& tval = tag.AsVal();
-	mgr.Enqueue(protocol_violation, ConnVal(), tval, zeek::val_mgr->Count(id), std::move(r));
+	zeek::event_mgr.Enqueue(protocol_violation, ConnVal(), tval, zeek::val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,

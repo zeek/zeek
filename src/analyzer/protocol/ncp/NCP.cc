@@ -58,7 +58,7 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 			}
 		}
 
-	EventHandlerPtr f = frame->is_orig() ? ncp_request : ncp_reply;
+	zeek::EventHandlerPtr f = frame->is_orig() ? ncp_request : ncp_reply;
 	if ( f )
 		{
 		if ( frame->is_orig() )

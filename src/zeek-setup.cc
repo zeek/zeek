@@ -114,7 +114,8 @@ zeek::detail::trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
 zeek::detail::Stmt* stmts;
-EventRegistry* event_registry = nullptr;
+zeek::EventRegistry* zeek::event_registry = nullptr;
+zeek::EventRegistry*& event_registry = zeek::event_registry;
 ProfileLogger* profiling_logger = nullptr;
 ProfileLogger* segment_logger = nullptr;
 SampleLogger* sample_logger = nullptr;
@@ -228,11 +229,11 @@ void done_with_network()
 
 	if ( net_done )
 		{
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		// Don't propagate this event to remote clients.
-		mgr.Dispatch(new Event(net_done,
-		                       {zeek::make_intrusive<zeek::TimeVal>(zeek::detail::timer_mgr->Time())}),
-		             true);
+		zeek::event_mgr.Dispatch(
+			new zeek::Event(net_done, {zeek::make_intrusive<zeek::TimeVal>(zeek::detail::timer_mgr->Time())}),
+			true);
 		}
 
 	if ( profiling_logger )
@@ -243,8 +244,8 @@ void done_with_network()
 	zeek::analyzer_mgr->Done();
 	zeek::detail::timer_mgr->Expire();
 	zeek::detail::dns_mgr->Flush();
-	mgr.Drain();
-	mgr.Drain();
+	zeek::event_mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	net_finish(1);
 
@@ -281,10 +282,10 @@ void terminate_bro()
         zeek::detail::brofiler.WriteStats();
 
 	if ( zeek_done )
-		mgr.Enqueue(zeek_done, zeek::Args{});
+		zeek::event_mgr.Enqueue(zeek_done, zeek::Args{});
 
 	zeek::detail::timer_mgr->Expire();
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	if ( profiling_logger )
 		{
@@ -296,7 +297,7 @@ void terminate_bro()
 		delete profiling_logger;
 		}
 
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	notifier::registry.Terminate();
 	log_mgr->Terminate();
@@ -305,7 +306,7 @@ void terminate_bro()
 	broker_mgr->Terminate();
 	zeek::detail::dns_mgr->Terminate();
 
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	zeek::plugin_mgr->FinishPlugins();
 
@@ -314,7 +315,7 @@ void terminate_bro()
 	delete file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
-	delete event_registry;
+	delete zeek::event_registry;
 	delete log_mgr;
 	delete zeek::reporter;
 	delete zeek::plugin_mgr;
@@ -658,7 +659,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
 	zeek::detail::timer_mgr->InitPostScript();
-	mgr.InitPostScript();
+	zeek::event_mgr.InitPostScript();
 
 	if ( zeek::supervisor_mgr )
 		zeek::supervisor_mgr->InitPostScript();
@@ -769,7 +770,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		if ( ! zeek::detail::dns_mgr->Save() )
 			zeek::reporter->FatalError("can't update DNS cache");
 
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		delete zeek::detail::dns_mgr;
 		exit(0);
 		}
@@ -806,7 +807,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		net_update_time(current_time());
 
 	if ( zeek_init )
-		mgr.Enqueue(zeek_init, zeek::Args{});
+		zeek::event_mgr.Enqueue(zeek_init, zeek::Args{});
 
 	EventRegistry::string_list dead_handlers =
 		event_registry->UnusedHandlers();
@@ -853,16 +854,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 			if ( i->skipped )
 				continue;
 
-			mgr.Enqueue(zeek_script_loaded,
-			            zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
-			            zeek::val_mgr->Count(i->include_level));
+			zeek::event_mgr.Enqueue(zeek_script_loaded,
+			                        zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
+			                        zeek::val_mgr->Count(i->include_level));
 			}
 		}
 
 	zeek::reporter->ReportViaEvents(true);
 
 	// Drain the event queue here to support the protocols framework configuring DPM
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	if ( zeek::reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
 		zeek::reporter->FatalError("errors occurred while initializing");

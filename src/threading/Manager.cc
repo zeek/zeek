@@ -135,7 +135,7 @@ void Manager::StartHeartbeatTimer()
 // one reporter message.
 bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int num_vals, Value* *vals) const
 	{
-	EventHandler* handler = event_registry->Lookup(name);
+	zeek::EventHandler* handler = zeek::event_registry->Lookup(name);
 	if ( handler == nullptr )
 		{
 		zeek::reporter->Warning("Thread %s: Event %s not found", thread->Name(), name.c_str());
@@ -179,7 +179,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	if ( convert_error )
 		return false;
 	else if ( handler )
-		mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
 
 	return true;
 	}

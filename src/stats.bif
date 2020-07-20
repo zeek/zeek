@@ -193,8 +193,8 @@ function get_event_stats%(%): EventStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(EventStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(num_events_queued));
-	r->Assign(n++, zeek::val_mgr->Count(num_events_dispatched));
+	r->Assign(n++, zeek::val_mgr->Count(event_mgr.num_events_queued));
+	r->Assign(n++, zeek::val_mgr->Count(event_mgr.num_events_dispatched));
 
 	return r;
 	%}

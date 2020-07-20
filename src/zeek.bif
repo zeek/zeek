@@ -1792,7 +1792,7 @@ function log10%(d: double%): double
 ##          none.
 function current_analyzer%(%) : count
 	%{
-	return zeek::val_mgr->Count(mgr.CurrentAnalyzer());
+	return zeek::val_mgr->Count(zeek::event_mgr.CurrentAnalyzer());
 	%}
 
 ## Returns Zeek's process ID.
@@ -4997,7 +4997,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Returns: True if the last raised event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
-	return zeek::val_mgr->Bool(mgr.CurrentSource() != SOURCE_LOCAL);
+	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != SOURCE_LOCAL);
 	%}
 
 ## Stops Zeek's packet processing. This function is used to synchronize

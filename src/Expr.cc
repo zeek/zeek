@@ -273,7 +273,7 @@ NameExpr::NameExpr(zeek::detail::IDPtr arg_id, bool const_init)
 	else
 		SetType(id->GetType());
 
-	EventHandler* h = event_registry->Lookup(id->Name());
+	EventHandler* h = zeek::event_registry->Lookup(id->Name());
 	if ( h )
 		h->SetUsed();
 	}
@@ -3839,7 +3839,7 @@ ScheduleTimer::~ScheduleTimer()
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
 	if ( event )
-		mgr.Enqueue(event, std::move(args));
+		zeek::event_mgr.Enqueue(event, std::move(args));
 	}
 
 ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)
@@ -4310,12 +4310,12 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
 	: Expr(EXPR_EVENT), name(arg_name), args(std::move(arg_args))
 	{
-	EventHandler* h = event_registry->Lookup(name);
+	EventHandler* h = zeek::event_registry->Lookup(name);
 
 	if ( ! h )
 		{
 		h = new EventHandler(name.c_str());
-		event_registry->Register(h);
+		zeek::event_registry->Register(h);
 		}
 
 	h->SetUsed();
@@ -4357,7 +4357,7 @@ ValPtr EventExpr::Eval(Frame* f) const
 	auto v = eval_list(f, args.get());
 
 	if ( handler )
-		mgr.Enqueue(handler, std::move(*v));
+		zeek::event_mgr.Enqueue(handler, std::move(*v));
 
 	return nullptr;
 	}

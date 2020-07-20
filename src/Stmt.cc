@@ -982,7 +982,7 @@ ValPtr EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	auto h = event_expr->Handler();
 
 	if ( args && h )
-		mgr.Enqueue(h, std::move(*args));
+		zeek::event_mgr.Enqueue(h, std::move(*args));
 
 	flow = FLOW_NEXT;
 	return nullptr;

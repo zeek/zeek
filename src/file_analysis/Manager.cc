@@ -61,7 +61,7 @@ void Manager::Terminate()
 	for ( const string& key : keys )
 		Timeout(key, true);
 
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 	}
 
 string Manager::HashHandle(const string& handle) const
@@ -435,8 +435,8 @@ string Manager::GetFileID(const zeek::analyzer::Tag& tag, Connection* c, bool is
 
 	const auto& tagval = tag.AsVal();
 
-	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), zeek::val_mgr->Bool(is_orig));
-	mgr.Drain(); // need file handle immediately so we don't have to buffer data
+	zeek::event_mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), zeek::val_mgr->Bool(is_orig));
+	zeek::event_mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
 	}
 

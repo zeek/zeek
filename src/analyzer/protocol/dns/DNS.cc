@@ -181,7 +181,7 @@ bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 		return false;
 		}
 
-	EventHandlerPtr dns_event = nullptr;
+	zeek::EventHandlerPtr dns_event = nullptr;
 
 	if ( msg->QR == 0 )
 		dns_event = dns_request;
@@ -536,7 +536,7 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 		analyzer->Weird("DNS_RR_length_mismatch");
 		}
 
-	EventHandlerPtr reply_event;
+	zeek::EventHandlerPtr reply_event;
 	switch ( msg->atype ) {
 		case TYPE_NS:
 			reply_event = dns_NS_reply;
@@ -1298,7 +1298,7 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 			}
 		}
 
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 	if ( msg->atype == TYPE_AAAA )
 		event = dns_AAAA_reply;
 	else
@@ -1467,10 +1467,10 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 
 
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
-						EventHandlerPtr event,
-						const u_char*& data, int& len,
-						zeek::String* question_name,
-						zeek::String* original_name)
+                                             zeek::EventHandlerPtr event,
+                                             const u_char*& data, int& len,
+                                             zeek::String* question_name,
+                                             zeek::String* original_name)
 	{
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);

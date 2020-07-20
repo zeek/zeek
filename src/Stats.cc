@@ -23,10 +23,10 @@ uint64_t tot_gap_events = 0;
 uint64_t tot_gap_bytes = 0;
 
 
-class ProfileTimer final : public Timer {
+class ProfileTimer final : public zeek::detail::Timer {
 public:
 	ProfileTimer(double t, ProfileLogger* l, double i)
-	: Timer(t, TIMER_PROFILE)
+		: zeek::detail::Timer(t, zeek::detail::TIMER_PROFILE)
 		{
 		logger = l;
 		interval = i;
@@ -45,8 +45,8 @@ void ProfileTimer::Dispatch(double t, bool is_expire)
 
 	// Reinstall timer.
 	if ( ! is_expire )
-		timer_mgr->Add(new ProfileTimer(network_time + interval,
-						logger, interval));
+		zeek::detail::timer_mgr->Add(new ProfileTimer(network_time + interval,
+		                                              logger, interval));
 	}
 
 
@@ -55,7 +55,7 @@ ProfileLogger::ProfileLogger(zeek::File* arg_file, double interval)
 	{
 	file = arg_file;
 	log_count = 0;
-	timer_mgr->Add(new ProfileTimer(1, this, interval));
+	zeek::detail::timer_mgr->Add(new ProfileTimer(1, this, interval));
 	}
 
 ProfileLogger::~ProfileLogger()
@@ -179,9 +179,9 @@ void ProfileLogger::Log()
 		}
 
 	file->Write(fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
-		network_time,
-		timer_mgr->Size(), timer_mgr->PeakSize(),
-		network_time - timer_mgr->LastTimestamp()));
+	                network_time,
+	                zeek::detail::timer_mgr->Size(), zeek::detail::timer_mgr->PeakSize(),
+	                network_time - zeek::detail::timer_mgr->LastTimestamp()));
 
 	zeek::detail::DNS_Mgr::Stats dstats;
 	zeek::detail::dns_mgr->GetStats(&dstats);
@@ -196,13 +196,13 @@ void ProfileLogger::Log()
 
 	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 
-	unsigned int* current_timers = TimerMgr::CurrentTimers();
-	for ( int i = 0; i < NUM_TIMER_TYPES; ++i )
+	unsigned int* current_timers = zeek::detail::TimerMgr::CurrentTimers();
+	for ( int i = 0; i < zeek::detail::NUM_TIMER_TYPES; ++i )
 		{
 		if ( current_timers[i] )
 			file->Write(fmt("%.06f         %s = %d\n", network_time,
-					timer_type_to_string((TimerType) i),
-					current_timers[i]));
+			                zeek::detail::timer_type_to_string(static_cast<zeek::detail::TimerType>(i)),
+			                current_timers[i]));
 		}
 
 	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));

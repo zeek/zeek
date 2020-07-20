@@ -9,6 +9,8 @@
 #include "Reporter.h"
 #include "util.h"
 
+namespace zeek::detail {
+
 PriorityQueue::PriorityQueue(int initial_size) : max_heap_size(initial_size)
 	{
 	heap = new PQ_Element*[max_heap_size];
@@ -135,3 +137,5 @@ void PriorityQueue::BubbleDown(int bin)
 			}
 		}
 	}
+
+} // namespace zeek::detail

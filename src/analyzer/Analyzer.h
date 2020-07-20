@@ -664,7 +664,7 @@ protected:
 	 * @param type The timer's type.
 	 */
 	void AddTimer(analyzer_timer_func timer, double t, bool do_expire,
-			TimerType type);
+	              detail::TimerType type);
 
 	/**
 	 * Cancels all timers added previously via AddTimer().
@@ -675,7 +675,7 @@ protected:
 	 * Removes a given timer. This is an internal method and shouldn't be
 	 * used by derived class. It does not cancel the timer.
 	 */
-	void RemoveTimer(Timer* t);
+	void RemoveTimer(detail::Timer* t);
 
 	/**
 	 * Returns true if the analyzer has associated an SupportAnalyzer of a given type.

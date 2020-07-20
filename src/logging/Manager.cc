@@ -64,7 +64,7 @@ struct Manager::Filter {
 struct Manager::WriterInfo {
 	zeek::EnumVal* type;
 	double open_time;
-	Timer* rotation_timer;
+	zeek::detail::Timer* rotation_timer;
 	double interval;
 	zeek::Func* postprocessor;
 	WriterFrontend* writer;
@@ -118,7 +118,7 @@ Manager::Stream::~Stream()
 		WriterInfo* winfo = i->second;
 
 		if ( winfo->rotation_timer )
-			timer_mgr->Cancel(winfo->rotation_timer);
+			zeek::detail::timer_mgr->Cancel(winfo->rotation_timer);
 
 		Unref(winfo->type);
 		delete winfo->writer;
@@ -1408,10 +1408,10 @@ zeek::RecordType* Manager::StreamColumns(zeek::EnumVal* stream_id)
 	}
 
 // Timer which on dispatching rotates the filter.
-class RotationTimer final : public Timer {
+class RotationTimer final : public zeek::detail::Timer {
 public:
 	RotationTimer(double t, Manager::WriterInfo* arg_winfo, bool arg_rotate)
-		: Timer(t, TIMER_ROTATE)
+		: zeek::detail::Timer(t, zeek::detail::TIMER_ROTATE)
 			{
 			winfo = arg_winfo;
 			rotate = arg_rotate;
@@ -1453,7 +1453,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 
 	if ( winfo->rotation_timer )
 		{
-		timer_mgr->Cancel(winfo->rotation_timer);
+		zeek::detail::timer_mgr->Cancel(winfo->rotation_timer);
 		winfo->rotation_timer = nullptr;
 		}
 
@@ -1482,7 +1482,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 				new RotationTimer(network_time + delta_t, winfo, true);
 			}
 
-		timer_mgr->Add(winfo->rotation_timer);
+		zeek::detail::timer_mgr->Add(winfo->rotation_timer);
 
 		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
 		        winfo->writer->Name(), winfo->rotation_timer->Time());

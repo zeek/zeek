@@ -250,7 +250,7 @@ bool File::IsComplete() const
 
 void File::ScheduleInactivityTimer() const
 	{
-	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
+	zeek::detail::timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)

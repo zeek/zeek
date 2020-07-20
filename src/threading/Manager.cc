@@ -127,7 +127,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
+	zeek::detail::timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
@@ -250,7 +250,7 @@ void Manager::Flush()
 		delete t;
 		}
 
-//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);
+//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, zeek::detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
 const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()

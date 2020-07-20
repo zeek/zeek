@@ -283,9 +283,9 @@ function get_timer_stats%(%): TimerStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(TimerStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(unsigned(timer_mgr->Size())));
-	r->Assign(n++, zeek::val_mgr->Count(unsigned(timer_mgr->PeakSize())));
-	r->Assign(n++, zeek::val_mgr->Count(timer_mgr->CumulativeNum()));
+	r->Assign(n++, zeek::val_mgr->Count(unsigned(zeek::detail::timer_mgr->Size())));
+	r->Assign(n++, zeek::val_mgr->Count(unsigned(zeek::detail::timer_mgr->PeakSize())));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::timer_mgr->CumulativeNum()));
 
 	return r;
 	%}

@@ -216,7 +216,7 @@ void expire_timers(iosource::PktSrc* src_ps)
 	SegmentProfiler prof(segment_logger, "expiring-timers");
 
 	current_dispatched +=
-		timer_mgr->Advance(network_time,
+		zeek::detail::timer_mgr->Advance(network_time,
 			max_timer_expires - current_dispatched);
 	}
 
@@ -231,7 +231,7 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 		}
 
 	// network_time never goes back.
-	net_update_time(timer_mgr->Time() < t ? t : timer_mgr->Time());
+	net_update_time(zeek::detail::timer_mgr->Time() < t ? t : zeek::detail::timer_mgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;
@@ -342,7 +342,7 @@ void net_run()
 		if ( ! reading_traces )
 			// Check whether we have timers scheduled for
 			// the future on which we need to wait.
-			have_pending_timers = timer_mgr->Size() > 0;
+			have_pending_timers = zeek::detail::timer_mgr->Size() > 0;
 
 		if ( pseudo_realtime && communication_enabled )
 			{

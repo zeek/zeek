@@ -332,9 +332,9 @@ protected:
 	// is true, then the timer is also evaluated when Bro terminates,
 	// otherwise not.
 	void AddTimer(timer_func timer, double t, bool do_expire,
-			TimerType type);
+	              zeek::detail::TimerType type);
 
-	void RemoveTimer(Timer* t);
+	void RemoveTimer(zeek::detail::Timer* t);
 
 	// Allow other classes to access pointers to these:
 	friend class ConnectionTimer;
@@ -389,11 +389,11 @@ protected:
 	WeirdStateMap weird_state;
 };
 
-class ConnectionTimer final : public Timer {
+class ConnectionTimer final : public zeek::detail::Timer {
 public:
 	ConnectionTimer(Connection* arg_conn, timer_func arg_timer,
-			double arg_t, bool arg_do_expire, TimerType arg_type)
-		: Timer(arg_t, arg_type)
+	                double arg_t, bool arg_do_expire, zeek::detail::TimerType arg_type)
+		: zeek::detail::Timer(arg_t, arg_type)
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
 	~ConnectionTimer() override;
 

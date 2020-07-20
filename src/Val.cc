@@ -1345,7 +1345,7 @@ TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
 	return rval;
 	}
 
-TableValTimer::TableValTimer(TableVal* val, double t) : Timer(t, TIMER_TABLE_VAL)
+TableValTimer::TableValTimer(TableVal* val, double t) : zeek::detail::Timer(t, zeek::detail::TIMER_TABLE_VAL)
 	{
 	table = val;
 	}
@@ -1452,7 +1452,7 @@ void TableVal::Init(TableTypePtr t)
 TableVal::~TableVal()
 	{
 	if ( timer )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	delete table_hash;
 	delete AsTable();
@@ -1542,12 +1542,12 @@ void TableVal::CheckExpireAttr(detail::AttrTag at)
 			}
 
 		if ( timer )
-			timer_mgr->Cancel(timer);
+			zeek::detail::timer_mgr->Cancel(timer);
 
 		// As network_time is not necessarily initialized yet,
 		// we set a timer which fires immediately.
 		timer = new TableValTimer(this, 1);
-		timer_mgr->Add(timer);
+		zeek::detail::timer_mgr->Add(timer);
 		}
 	}
 
@@ -2532,7 +2532,7 @@ void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
 void TableVal::InitTimer(double delay)
 	{
 	timer = new TableValTimer(this, network_time + delay);
-	timer_mgr->Add(timer);
+	zeek::detail::timer_mgr->Add(timer);
 	}
 
 void TableVal::DoExpire(double t)
@@ -2664,7 +2664,7 @@ double TableVal::GetExpireTime()
 	expire_time = nullptr;
 
 	if ( timer )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	return -1;
 	}
@@ -2765,7 +2765,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 		// As network_time is not necessarily initialized yet, we set
 		// a timer which fires immediately.
 		timer = new TableValTimer(this, 1);
-		timer_mgr->Add(timer);
+		zeek::detail::timer_mgr->Add(timer);
 		}
 
 	if ( expire_func )

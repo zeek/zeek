@@ -249,10 +249,11 @@ void Reporter::UpdateWeirdStats(const char* name)
 	++weird_count_by_type[name];
 	}
 
-class NetWeirdTimer final : public Timer {
+class NetWeirdTimer final : public zeek::detail::Timer {
 public:
 	NetWeirdTimer(double t, const char* name, double timeout)
-	: Timer(t + timeout, TIMER_NET_WEIRD_EXPIRE), weird_name(name)
+		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_NET_WEIRD_EXPIRE),
+		  weird_name(name)
 		{}
 
 	void Dispatch(double t, bool is_expire) override
@@ -261,12 +262,13 @@ public:
 	std::string weird_name;
 };
 
-class FlowWeirdTimer final : public Timer {
+class FlowWeirdTimer final : public zeek::detail::Timer {
 public:
 	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
-		: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
+		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_FLOW_WEIRD_EXPIRE),
+		  endpoints(std::move(p))
 		{}
 
 	void Dispatch(double t, bool is_expire) override
@@ -275,12 +277,12 @@ public:
 	IPPair endpoints;
 };
 
-class ConnTupleWeirdTimer final : public Timer {
+class ConnTupleWeirdTimer final : public zeek::detail::Timer {
 public:
 	using ConnTuple = Reporter::ConnTuple;
 
 	ConnTupleWeirdTimer(double t, ConnTuple id, double timeout)
-		: Timer(t + timeout, TIMER_CONN_TUPLE_WEIRD_EXPIRE),
+		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_CONN_TUPLE_WEIRD_EXPIRE),
 		  conn_id(std::move(id))
 		{}
 
@@ -311,8 +313,8 @@ bool Reporter::PermitNetWeird(const char* name)
 	++count;
 
 	if ( count == 1 )
-		timer_mgr->Add(new NetWeirdTimer(network_time, name,
-		                                 weird_sampling_duration));
+		zeek::detail::timer_mgr->Add(new NetWeirdTimer(network_time, name,
+		                                               weird_sampling_duration));
 
 	if ( count <= weird_sampling_threshold )
 		return true;
@@ -331,8 +333,8 @@ bool Reporter::PermitFlowWeird(const char* name,
 	auto& map = flow_weird_state[endpoints];
 
 	if ( map.empty() )
-		timer_mgr->Add(new FlowWeirdTimer(network_time, endpoints,
-		                                  weird_sampling_duration));
+		zeek::detail::timer_mgr->Add(new FlowWeirdTimer(network_time, endpoints,
+		                                                weird_sampling_duration));
 
 	auto& count = map[name];
 	++count;
@@ -358,9 +360,9 @@ bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& c
 	auto& map = expired_conn_weird_state[conn_tuple];
 
 	if ( map.empty() )
-		timer_mgr->Add(new ConnTupleWeirdTimer(network_time,
-		                                       std::move(conn_tuple),
-		                                       weird_sampling_duration));
+		zeek::detail::timer_mgr->Add(new ConnTupleWeirdTimer(network_time,
+		                                                     std::move(conn_tuple),
+		                                                     weird_sampling_duration));
 
 	auto& count = map[name];
 	++count;

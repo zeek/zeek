@@ -220,7 +220,7 @@ void Connection::NextPacket(double t, bool is_orig,
 void Connection::SetLifetime(double lifetime)
 	{
 	ADD_TIMER(&Connection::DeleteTimer, network_time + lifetime, 0,
-			TIMER_CONN_DELETE);
+	          zeek::detail::TIMER_CONN_DELETE);
 	}
 
 bool Connection::IsReuse(double t, const u_char* pkt)
@@ -289,7 +289,8 @@ void Connection::InactivityTimer(double t)
 		}
 	else
 		ADD_TIMER(&Connection::InactivityTimer,
-		          last_time + inactivity_timeout, 0, TIMER_CONN_INACTIVITY);
+		          last_time + inactivity_timeout, 0,
+		          zeek::detail::TIMER_CONN_INACTIVITY);
 	}
 
 void Connection::RemoveConnectionTimer(double t)
@@ -305,15 +306,15 @@ void Connection::SetInactivityTimeout(double timeout)
 
 	// First cancel and remove any existing inactivity timer.
 	for ( const auto& timer : timers )
-		if ( timer->Type() == TIMER_CONN_INACTIVITY )
+		if ( timer->Type() == zeek::detail::TIMER_CONN_INACTIVITY )
 			{
-			timer_mgr->Cancel(timer);
+			zeek::detail::timer_mgr->Cancel(timer);
 			break;
 			}
 
 	if ( timeout )
 		ADD_TIMER(&Connection::InactivityTimer,
-				last_time + timeout, 0, TIMER_CONN_INACTIVITY);
+		          last_time + timeout, 0, zeek::detail::TIMER_CONN_INACTIVITY);
 
 	inactivity_timeout = timeout;
 	}
@@ -323,8 +324,8 @@ void Connection::EnableStatusUpdateTimer()
 	if ( connection_status_update && connection_status_update_interval )
 		{
 		ADD_TIMER(&Connection::StatusUpdateTimer,
-			network_time + connection_status_update_interval, 0,
-			TIMER_CONN_STATUS_UPDATE);
+		          network_time + connection_status_update_interval, 0,
+		          zeek::detail::TIMER_CONN_STATUS_UPDATE);
 		installed_status_timer = 1;
 		}
 	}
@@ -333,8 +334,8 @@ void Connection::StatusUpdateTimer(double t)
 	{
 	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
-			network_time + connection_status_update_interval, 0,
-			TIMER_CONN_STATUS_UPDATE);
+	          network_time + connection_status_update_interval, 0,
+	          zeek::detail::TIMER_CONN_STATUS_UPDATE);
 	}
 
 zeek::RecordVal* Connection::BuildConnVal()
@@ -539,7 +540,7 @@ void Connection::Weird(const char* name, const char* addl)
 	}
 
 void Connection::AddTimer(timer_func timer, double t, bool do_expire,
-		TimerType type)
+                          zeek::detail::TimerType type)
 	{
 	if ( timers_canceled )
 		return;
@@ -550,12 +551,12 @@ void Connection::AddTimer(timer_func timer, double t, bool do_expire,
 	if ( ! key_valid )
 		return;
 
-	Timer* conn_timer = new ConnectionTimer(this, timer, t, do_expire, type);
-	timer_mgr->Add(conn_timer);
+	zeek::detail::Timer* conn_timer = new ConnectionTimer(this, timer, t, do_expire, type);
+	zeek::detail::timer_mgr->Add(conn_timer);
 	timers.push_back(conn_timer);
 	}
 
-void Connection::RemoveTimer(Timer* t)
+void Connection::RemoveTimer(zeek::detail::Timer* t)
 	{
 	timers.remove(t);
 	}
@@ -570,7 +571,7 @@ void Connection::CancelTimers()
 	std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
 
 	for ( const auto& timer : tmp )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	timers_canceled = 1;
 	timers.clear();

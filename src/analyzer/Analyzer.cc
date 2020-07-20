@@ -12,10 +12,10 @@
 
 namespace zeek::analyzer {
 
-class AnalyzerTimer final : public Timer {
+class AnalyzerTimer final : public zeek::detail::Timer {
 public:
 	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-			double arg_t, int arg_do_expire, TimerType arg_type);
+	              double arg_t, int arg_do_expire, zeek::detail::TimerType arg_type);
 
 	virtual ~AnalyzerTimer();
 
@@ -36,7 +36,7 @@ protected:
 using namespace zeek::analyzer;
 
 AnalyzerTimer::AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-			     double arg_t, int arg_do_expire, TimerType arg_type)
+			     double arg_t, int arg_do_expire, zeek::detail::TimerType arg_type)
 	: Timer(arg_t, arg_type)
 	{
 	Init(arg_analyzer, arg_timer, arg_do_expire);
@@ -728,16 +728,16 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
-			bool do_expire, TimerType type)
+                        bool do_expire, zeek::detail::TimerType type)
 	{
-	Timer* analyzer_timer = new
+	zeek::detail::Timer* analyzer_timer = new
 		AnalyzerTimer(this, timer, t, do_expire, type);
 
-	timer_mgr->Add(analyzer_timer);
+	zeek::detail::timer_mgr->Add(analyzer_timer);
 	timers.push_back(analyzer_timer);
 	}
 
-void Analyzer::RemoveTimer(Timer* t)
+void Analyzer::RemoveTimer(zeek::detail::Timer* t)
 	{
 	timers.remove(t);
 	}
@@ -753,7 +753,7 @@ void Analyzer::CancelTimers()
 
 	// TODO: could be a for_each
 	for ( auto timer : tmp )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	timers_canceled = true;
 	timers.clear();

@@ -60,7 +60,7 @@ void IPTunnelTimer::Dispatch(double t, bool is_expire)
 
 	else if ( ! is_expire )
 		// tunnel activity didn't timeout, schedule another timer
-		timer_mgr->Add(new IPTunnelTimer(t, tunnel_idx));
+		zeek::detail::timer_mgr->Add(new IPTunnelTimer(t, tunnel_idx));
 	}
 
 NetSessions::NetSessions()
@@ -627,7 +627,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const zeek::IP_Hdr* 
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
 			                     tunnel_type);
 			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
-			timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
+			zeek::detail::timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
 			}
 		else
 			it->second.second = network_time;

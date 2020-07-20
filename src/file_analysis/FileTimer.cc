@@ -7,7 +7,7 @@
 using namespace file_analysis;
 
 FileTimer::FileTimer(double t, const std::string& id, double interval)
-    : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
+	: zeek::detail::Timer(t + interval, zeek::detail::TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s",
 	        interval, file_id.c_str());

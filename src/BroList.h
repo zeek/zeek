@@ -23,5 +23,5 @@ using type_list = zeek::PList<zeek::Type>;
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
 using attr_list = zeek::PList<zeek::detail::Attr>;
 
-class Timer;
-using timer_list = zeek::PList<Timer, zeek::ListOrder::UNORDERED>;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Timer, zeek::detail);
+using timer_list = zeek::PList<zeek::detail::Timer, zeek::ListOrder::UNORDERED>;

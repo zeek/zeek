@@ -240,11 +240,11 @@ protected:
 };
 
 
-class IPTunnelTimer final : public Timer {
+class IPTunnelTimer final : public zeek::detail::Timer {
 public:
 	IPTunnelTimer(double t, NetSessions::IPPair p)
-	: Timer(t + zeek::BifConst::Tunnel::ip_tunnel_timeout,
-			TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
+	: zeek::detail::Timer(t + zeek::BifConst::Tunnel::ip_tunnel_timeout,
+	                      zeek::detail::TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
 
 	~IPTunnelTimer() override {}
 

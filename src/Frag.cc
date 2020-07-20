@@ -56,7 +56,7 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	if ( frag_timeout != 0.0 )
 		{
 		expire_timer = new FragTimer(this, t + frag_timeout);
-		timer_mgr->Add(expire_timer);
+		zeek::detail::timer_mgr->Add(expire_timer);
 		}
 	else
 		expire_timer = nullptr;
@@ -328,7 +328,7 @@ void FragReassembler::DeleteTimer()
 	if ( expire_timer )
 		{
 		expire_timer->ClearReassembler();
-		timer_mgr->Cancel(expire_timer);
+		zeek::detail::timer_mgr->Cancel(expire_timer);
 		expire_timer = nullptr;	// timer manager will delete it
 		}
 	}

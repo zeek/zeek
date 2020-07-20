@@ -11,6 +11,8 @@
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
 
+namespace zeek::detail {
+
 // Names of timers in same order than in TimerType.
 const char* TimerNames[] = {
 	"BackdoorTimer",
@@ -108,7 +110,6 @@ void TimerMgr::InitPostScript()
 		iosource_mgr->Register(this, true);
 	}
 
-
 PQ_TimerMgr::PQ_TimerMgr() : TimerMgr()
 	{
 	q = new PriorityQueue;
@@ -188,3 +189,5 @@ double PQ_TimerMgr::GetNextTimeout()
 
 	return -1;
 	}
+
+} // namespace zeek::detail

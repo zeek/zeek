@@ -63,8 +63,8 @@ public:
 	// arguments when there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
-			SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
+	                    SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                    zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
 	// function always takes ownership of decrementing the reference count of
@@ -74,8 +74,8 @@ public:
 	// existence check.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
-			SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
+	                SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Same as QueueEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
@@ -83,8 +83,8 @@ public:
 	// each of its elements.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
-			SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
+	                SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	/**
 	 * Adds an event to the queue.  If no handler is found for the event

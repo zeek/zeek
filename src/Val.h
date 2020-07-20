@@ -759,7 +759,7 @@ protected:
 	int expire_access_time;
 };
 
-class TableValTimer final : public Timer {
+class TableValTimer final : public zeek::detail::Timer {
 public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;
@@ -997,7 +997,7 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	void ClearTimer(Timer* t)
+	void ClearTimer(zeek::detail::Timer* t)
 		{
 		if ( timer == t )
 			timer = nullptr;

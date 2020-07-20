@@ -249,8 +249,8 @@ function get_dns_stats%(%): DNSStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(DNSStats);
 	int n = 0;
 
-	DNS_Mgr::Stats dstats;
-	dns_mgr->GetStats(&dstats);
+	zeek::detail::DNS_Mgr::Stats dstats;
+	zeek::detail::dns_mgr->GetStats(&dstats);
 
 	r->Assign(n++, zeek::val_mgr->Count(unsigned(dstats.requests)));
 	r->Assign(n++, zeek::val_mgr->Count(unsigned(dstats.successful)));

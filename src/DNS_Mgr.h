@@ -14,8 +14,8 @@
 #include "util.h"
 
 class EventHandler;
-class DNS_Mgr_Request;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(DNS_Mgr_Request, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
@@ -28,10 +28,13 @@ using ListValPtr = zeek::IntrusivePtr<ListVal>;
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
 }
 
-using DNS_mgr_request_list = zeek::PList<DNS_Mgr_Request>;
-
+// Defined in nb_dns.h
 struct nb_dns_info;
 struct nb_dns_result;
+
+namespace zeek::detail {
+
+using DNS_mgr_request_list = zeek::PList<DNS_Mgr_Request>;
 
 class DNS_Mapping;
 
@@ -240,3 +243,14 @@ protected:
 };
 
 extern DNS_Mgr* dns_mgr;
+
+} // namespace zeek::detail
+
+using DNS_Mgr [[deprecated("Remove in v4.1. Use zeek::detail::DNS_Mgr.")]] = zeek::detail::DNS_Mgr;
+extern zeek::detail::DNS_Mgr*& dns_mgr [[deprecated("Remove in v4.1. Use zeek::detail::dns_mgr.")]];
+
+using DNS_MgrMode [[deprecated("Remove in v4.1. Use zeek::detail::DNS_MgrMode.")]] = zeek::detail::DNS_MgrMode;
+constexpr auto DNS_PRIME [[deprecated("Remove in v4.1. Use zeek::detail::DNS_PRIME.")]] = zeek::detail::DNS_PRIME;
+constexpr auto DNS_FORCE [[deprecated("Remove in v4.1. Use zeek::detail::DNS_FORCE.")]] = zeek::detail::DNS_FORCE;
+constexpr auto DNS_DEFAULT [[deprecated("Remove in v4.1. Use zeek::detail::DNS_DEFAULT.")]] = zeek::detail::DNS_DEFAULT;
+constexpr auto DNS_FAKE [[deprecated("Remove in v4.1. Use zeek::detail::DNS_FAKE.")]] = zeek::detail::DNS_FAKE;

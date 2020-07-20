@@ -342,9 +342,9 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 				rval.pseudo_realtime = atof(optarg);
 			break;
 		case 'F':
-			if ( rval.dns_mode != DNS_DEFAULT )
+			if ( rval.dns_mode != zeek::detail::DNS_DEFAULT )
 				usage(zargs[0], 1);
-			rval.dns_mode = DNS_FORCE;
+			rval.dns_mode = zeek::detail::DNS_FORCE;
 			break;
 		case 'G':
 			rval.random_seed_input_file = optarg;
@@ -359,9 +359,9 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			++rval.print_plugins;
 			break;
 		case 'P':
-			if ( rval.dns_mode != DNS_DEFAULT )
+			if ( rval.dns_mode != zeek::detail::DNS_DEFAULT )
 				usage(zargs[0], 1);
-			rval.dns_mode = DNS_PRIME;
+			rval.dns_mode = zeek::detail::DNS_PRIME;
 			break;
 		case 'Q':
 			rval.print_execution_time = true;

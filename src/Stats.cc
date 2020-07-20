@@ -183,8 +183,8 @@ void ProfileLogger::Log()
 		timer_mgr->Size(), timer_mgr->PeakSize(),
 		network_time - timer_mgr->LastTimestamp()));
 
-	DNS_Mgr::Stats dstats;
-	dns_mgr->GetStats(&dstats);
+	zeek::detail::DNS_Mgr::Stats dstats;
+	zeek::detail::dns_mgr->GetStats(&dstats);
 
 	file->Write(fmt("%.06f DNS_Mgr: requests=%lu succesful=%lu failed=%lu pending=%lu cached_hosts=%lu cached_addrs=%lu\n",
 					network_time,

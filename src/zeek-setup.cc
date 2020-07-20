@@ -96,7 +96,9 @@ zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
 zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
 zeek::detail::RuleMatcher*& rule_matcher = zeek::detail::rule_matcher;
 
-DNS_Mgr* dns_mgr;
+zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
+zeek::detail::DNS_Mgr*& dns_mgr = zeek::detail::dns_mgr;
+
 TimerMgr* timer_mgr;
 
 logging::Manager* log_mgr = nullptr;
@@ -239,7 +241,7 @@ void done_with_network()
 
 	zeek::analyzer_mgr->Done();
 	timer_mgr->Expire();
-	dns_mgr->Flush();
+	zeek::detail::dns_mgr->Flush();
 	mgr.Drain();
 	mgr.Drain();
 
@@ -300,7 +302,7 @@ void terminate_bro()
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
-	dns_mgr->Terminate();
+	zeek::detail::dns_mgr->Terminate();
 
 	mgr.Drain();
 
@@ -562,12 +564,12 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	push_scope(nullptr, nullptr);
 
-	dns_mgr = new DNS_Mgr(dns_type);
+	zeek::detail::dns_mgr = new zeek::detail::DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
 	// chicken and the egg problem.  It would be configurable by parsing
 	// policy, but we can't parse policy without DNS resolution.
-	dns_mgr->SetDir(".state");
+	zeek::detail::dns_mgr->SetDir(".state");
 
 	iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
@@ -668,7 +670,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	zeek::analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
-	dns_mgr->InitPostScript();
+	zeek::detail::dns_mgr->InitPostScript();
 
 	if ( options.parse_only )
 		{
@@ -682,7 +684,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( reporter->Errors() > 0 )
 		{
-		delete dns_mgr;
+		delete zeek::detail::dns_mgr;
 		exit(1);
 		}
 
@@ -715,7 +717,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		rule_matcher = new RuleMatcher(options.signature_re_level);
 		if ( ! rule_matcher->ReadFiles(all_signature_files) )
 			{
-			delete dns_mgr;
+			delete zeek::detail::dns_mgr;
 			exit(1);
 			}
 
@@ -760,14 +762,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( dns_type == DNS_PRIME )
 		{
-		dns_mgr->Verify();
-		dns_mgr->Resolve();
+		zeek::detail::dns_mgr->Verify();
+		zeek::detail::dns_mgr->Resolve();
 
-		if ( ! dns_mgr->Save() )
+		if ( ! zeek::detail::dns_mgr->Save() )
 			reporter->FatalError("can't update DNS cache");
 
 		mgr.Drain();
-		delete dns_mgr;
+		delete zeek::detail::dns_mgr;
 		exit(0);
 		}
 

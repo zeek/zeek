@@ -53,6 +53,8 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
 using namespace std;
 
+namespace zeek::detail {
+
 class DNS_Mgr_Request {
 public:
 	DNS_Mgr_Request(const char* h, int af, bool is_txt)
@@ -1462,3 +1464,5 @@ void DNS_Mgr::Terminate()
 	if ( nb_dns )
 		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
 	}
+
+} // namespace zeek::detail

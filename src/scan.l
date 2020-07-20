@@ -502,7 +502,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 "0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
+{H}("."{H})+		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;

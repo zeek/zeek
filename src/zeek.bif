@@ -3518,7 +3518,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 
-class LookupHostCallback : public DNS_Mgr::LookupCallback {
+class LookupHostCallback : public zeek::detail::DNS_Mgr::LookupCallback {
 public:
 	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
 				bool arg_lookup_name)
@@ -3534,7 +3534,7 @@ public:
 		Unref(trigger);
 		}
 
-	// Overridden from DNS_Mgr:Lookup:Callback.
+	// Overridden from zeek::detail::DNS_Mgr:Lookup:Callback.
 	virtual void Resolved(const char* name)
 		{
 		zeek::Val* result = new zeek::StringVal(name);
@@ -3602,7 +3602,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupAddr(host->AsAddr(),
+	zeek::detail::dns_mgr->AsyncLookupAddr(host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3631,7 +3631,7 @@ function lookup_hostname_txt%(host: string%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupNameText(host->CheckString(),
+	zeek::detail::dns_mgr->AsyncLookupNameText(host->CheckString(),
 				 new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3660,7 +3660,7 @@ function lookup_hostname%(host: string%) : addr_set
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupName(host->CheckString(),
+	zeek::detail::dns_mgr->AsyncLookupName(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetCall(), false));
 	return nullptr;
 	%}

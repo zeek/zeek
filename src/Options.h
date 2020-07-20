@@ -45,7 +45,7 @@ struct Options {
 	bool ignore_checksums = false;
 	bool use_watchdog = false;
 	double pseudo_realtime = 0;
-	DNS_MgrMode dns_mode = DNS_DEFAULT;
+	zeek::detail::DNS_MgrMode dns_mode = zeek::detail::DNS_DEFAULT;
 
 	bool supervisor_mode = false;
 	bool parse_only = false;

@@ -23,7 +23,7 @@ Extract::Extract(zeek::RecordValPtr args, File* file,
 		fd = 0;
 		char buf[128];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("cannot open %s: %s", filename.c_str(), buf);
+		zeek::reporter->Error("cannot open %s: %s", filename.c_str(), buf);
 		}
 	}
 
@@ -39,7 +39,7 @@ static const zeek::ValPtr& get_extract_field_val(const zeek::RecordValPtr& args,
 	const auto& rval = args->GetField(name);
 
 	if ( ! rval )
-		reporter->Error("File extraction analyzer missing arg field: %s", name);
+		zeek::reporter->Error("File extraction analyzer missing arg field: %s", name);
 
 	return rval;
 	}

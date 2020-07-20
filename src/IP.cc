@@ -284,7 +284,7 @@ zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 			}
 
 		default:
-			reporter->Weird("unknown_mobility_type", fmt("%d", mob->ip6mob_type));
+			zeek::reporter->Weird("unknown_mobility_type", fmt("%d", mob->ip6mob_type));
 			break;
 		}
 
@@ -494,7 +494,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 
 	if ( total_len < (int)sizeof(struct ip6_hdr) )
 		{
-		reporter->InternalWarning("truncated IP header in IPv6_HdrChain::Init");
+		zeek::reporter->InternalWarning("truncated IP header in IPv6_HdrChain::Init");
 		return;
 		}
 
@@ -552,7 +552,7 @@ bool IPv6_Hdr_Chain::IsFragment() const
 	{
 	if ( chain.empty() )
 		{
-		reporter->InternalWarning("empty IPv6 header chain");
+		zeek::reporter->InternalWarning("empty IPv6 header chain");
 		return false;
 		}
 
@@ -567,7 +567,7 @@ IPAddr IPv6_Hdr_Chain::SrcAddr() const
 #endif
 	if ( chain.empty() )
 		{
-		reporter->InternalWarning("empty IPv6 header chain");
+		zeek::reporter->InternalWarning("empty IPv6 header chain");
 		return IPAddr();
 		}
 
@@ -581,7 +581,7 @@ IPAddr IPv6_Hdr_Chain::DstAddr() const
 
 	if ( chain.empty() )
 		{
-		reporter->InternalWarning("empty IPv6 header chain");
+		zeek::reporter->InternalWarning("empty IPv6 header chain");
 		return IPAddr();
 		}
 
@@ -593,7 +593,7 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 	if ( finalDst )
 		{
 		// RFC 2460 section 4.1 says Routing should occur at most once.
-		reporter->Weird(SrcAddr(), DstAddr(), "multiple_routing_headers");
+		zeek::reporter->Weird(SrcAddr(), DstAddr(), "multiple_routing_headers");
 		return;
 		}
 
@@ -608,11 +608,11 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 			if ( r->ip6r_len % 2 == 0 )
 				finalDst = new IPAddr(*addr);
 			else
-				reporter->Weird(SrcAddr(), DstAddr(), "odd_routing0_len");
+				zeek::reporter->Weird(SrcAddr(), DstAddr(), "odd_routing0_len");
 			}
 
 		// Always raise a weird since this type is deprecated.
-		reporter->Weird(SrcAddr(), DstAddr(), "routing0_hdr");
+		zeek::reporter->Weird(SrcAddr(), DstAddr(), "routing0_hdr");
 		}
 		break;
 
@@ -624,15 +624,15 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 			if ( r->ip6r_len == 2 )
 				finalDst = new IPAddr(*addr);
 			else
-				reporter->Weird(SrcAddr(), DstAddr(), "bad_routing2_len");
+				zeek::reporter->Weird(SrcAddr(), DstAddr(), "bad_routing2_len");
 			}
 		}
 		break;
 #endif
 
 	default:
-		reporter->Weird(SrcAddr(), DstAddr(), "unknown_routing_type",
-		                fmt("%d", r->ip6r_type));
+		zeek::reporter->Weird(SrcAddr(), DstAddr(), "unknown_routing_type",
+		                      fmt("%d", r->ip6r_type));
 		break;
 	}
 	}
@@ -652,11 +652,11 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 			{
 			if ( opt->ip6o_len == 16 )
 				if ( homeAddr )
-					reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
+					zeek::reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
 				else
 					homeAddr = new IPAddr(*((const in6_addr*)(data + 2)));
 			else
-				reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
+				zeek::reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
 			}
 			break;
 
@@ -722,7 +722,7 @@ zeek::VectorValPtr IPv6_Hdr_Chain::ToVal() const
 			break;
 #endif
 		default:
-			reporter->InternalWarning("IPv6_Hdr_Chain bad header %d", type);
+			zeek::reporter->InternalWarning("IPv6_Hdr_Chain bad header %d", type);
 			continue;
 		}
 
@@ -768,7 +768,7 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 
 	if ( chain.empty() )
 		{
-		reporter->InternalWarning("empty IPv6 header chain");
+		zeek::reporter->InternalWarning("empty IPv6 header chain");
 		delete rval;
 		return nullptr;
 		}

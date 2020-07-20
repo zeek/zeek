@@ -83,7 +83,7 @@ void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
 	if ( ! KeyedHash::IsInitialized() )
-		reporter->InternalError("Zeek's hash functions aren't fully initialized");
+		zeek::reporter->InternalError("Zeek's hash functions aren't fully initialized");
 	}
 
 HashKey::HashKey(bro_int_t i)

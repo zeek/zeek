@@ -38,11 +38,11 @@ EVP_MD_CTX* hash_init(HashAlgorithm alg)
 			md = EVP_sha512();
 			break;
 		default:
-			reporter->InternalError("Unknown hash algorithm passed to hash_init");
+			zeek::reporter->InternalError("Unknown hash algorithm passed to hash_init");
 		}
 
 	if ( ! EVP_DigestInit_ex(c, md, NULL) )
-		reporter->InternalError("EVP_DigestInit failed");
+		zeek::reporter->InternalError("EVP_DigestInit failed");
 
 	return c;
 	}
@@ -50,13 +50,13 @@ EVP_MD_CTX* hash_init(HashAlgorithm alg)
 void hash_update(EVP_MD_CTX* c, const void* data, unsigned long len)
 	{
 	if ( ! EVP_DigestUpdate(c, data, len) )
-		reporter->InternalError("EVP_DigestUpdate failed");
+		zeek::reporter->InternalError("EVP_DigestUpdate failed");
 	}
 
 void hash_final(EVP_MD_CTX* c, u_char* md)
 	{
 	if ( ! EVP_DigestFinal(c, md, NULL) )
-		reporter->InternalError("EVP_DigestFinal failed");
+		zeek::reporter->InternalError("EVP_DigestFinal failed");
 
 	EVP_MD_CTX_free(c);
 	}

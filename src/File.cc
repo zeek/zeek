@@ -38,7 +38,7 @@ static void maximize_num_fds()
 	{
 	struct rlimit rl;
 	if ( getrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		reporter->FatalError("maximize_num_fds(): getrlimit failed");
+		zeek::reporter->FatalError("maximize_num_fds(): getrlimit failed");
 
 	if ( rl.rlim_max == RLIM_INFINITY )
 		{
@@ -50,7 +50,7 @@ static void maximize_num_fds()
 	rl.rlim_cur = rl.rlim_max;
 
 	if ( setrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		reporter->FatalError("maximize_num_fds(): setrlimit failed");
+		zeek::reporter->FatalError("maximize_num_fds(): setrlimit failed");
 	}
 
 BroFile::BroFile(FILE* arg_f)
@@ -92,7 +92,7 @@ BroFile::BroFile(const char* arg_name, const char* arg_access)
 
 	else if ( ! Open() )
 		{
-		reporter->Error("cannot open %s: %s", name, strerror(errno));
+		zeek::reporter->Error("cannot open %s: %s", name, strerror(errno));
 		is_open = false;
 		}
 	}
@@ -189,7 +189,7 @@ FILE* BroFile::Seek(long new_position)
 		return nullptr;
 
 	if ( fseek(f, new_position, SEEK_SET) < 0 )
-		reporter->Error("seek failed");
+		zeek::reporter->Error("seek failed");
 
 	return f;
 	}
@@ -200,7 +200,7 @@ void BroFile::SetBuf(bool arg_buffered)
 		return;
 
 	if ( setvbuf(f, NULL, arg_buffered ? _IOFBF : _IOLBF, 0) != 0 )
-		reporter->Error("setvbuf failed");
+		zeek::reporter->Error("setvbuf failed");
 
 	buffered = arg_buffered;
 	}
@@ -339,7 +339,7 @@ double BroFile::Size()
 	struct stat s;
 	if ( fstat(fileno(f), &s) < 0 )
 		{
-		reporter->Error("can't stat fd for %s: %s", name, strerror(errno));
+		zeek::reporter->Error("can't stat fd for %s: %s", name, strerror(errno));
 		return 0;
 		}
 

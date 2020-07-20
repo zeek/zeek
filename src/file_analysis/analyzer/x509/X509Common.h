@@ -11,8 +11,8 @@
 #include <openssl/asn1.h>
 
 class EventHandlerPtr;
-class Reporter;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 
 namespace zeek {
@@ -42,7 +42,7 @@ public:
 	 */
 	static zeek::StringValPtr GetExtensionFromBIO(BIO* bio, File* f = nullptr);
 
-	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
+	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, zeek::Reporter* reporter);
 
 protected:
 	X509Common(const file_analysis::Tag& arg_tag,

@@ -138,7 +138,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	EventHandler* handler = event_registry->Lookup(name);
 	if ( handler == nullptr )
 		{
-		reporter->Warning("Thread %s: Event %s not found", thread->Name(), name.c_str());
+		zeek::reporter->Warning("Thread %s: Event %s not found", thread->Name(), name.c_str());
 		Value::delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
@@ -152,7 +152,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
 		{
-		reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(), name.c_str());
+		zeek::reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(), name.c_str());
 		Value::delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
@@ -216,7 +216,7 @@ void Manager::Flush()
 
 			else
 				{
-				reporter->Error("%s failed, terminating thread", msg->Name());
+				zeek::reporter->Error("%s failed, terminating thread", msg->Name());
 				t->SignalStop();
 				}
 

@@ -15,10 +15,10 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 	char *buf;
 
 	if ( ! pbuf )
-		reporter->InternalError("nil pointer to encoding result buffer");
+		zeek::reporter->InternalError("nil pointer to encoding result buffer");
 
 	if ( *pbuf && (*pblen % 4 != 0) )
-		reporter->InternalError("Base64 encode buffer not a multiple of 4");
+		zeek::reporter->InternalError("Base64 encode buffer not a multiple of 4");
 
 	if ( *pbuf )
 		{
@@ -121,7 +121,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 		base64_table = InitBase64Table(alphabet);
 
 	if ( ! pbuf )
-		reporter->InternalError("nil pointer to decoding result buffer");
+		zeek::reporter->InternalError("nil pointer to decoding result buffer");
 
 	if ( *pbuf )
 		{
@@ -225,15 +225,15 @@ void Base64Converter::IllegalEncoding(const char* msg)
 		if ( conn )
 			conn->Weird("base64_illegal_encoding", msg);
 		else
-			reporter->Error("%s", msg);
+			zeek::reporter->Error("%s", msg);
 		}
 
 zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
-		reporter->Error("base64 decoding alphabet is not 64 characters: %s",
-		                a->CheckString());
+		zeek::reporter->Error("base64 decoding alphabet is not 64 characters: %s",
+		                      a->CheckString());
 		return nullptr;
 		}
 
@@ -266,8 +266,8 @@ zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connec
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
-		reporter->Error("base64 alphabet is not 64 characters: %s",
-		                a->CheckString());
+		zeek::reporter->Error("base64 alphabet is not 64 characters: %s",
+		                      a->CheckString());
 		return nullptr;
 		}
 

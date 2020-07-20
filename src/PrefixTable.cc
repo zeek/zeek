@@ -27,7 +27,7 @@ void* PrefixTable::Insert(const zeek::IPAddr& addr, int width, void* data)
 
 	if ( ! node )
 		{
-		reporter->InternalWarning("Cannot create node in patricia tree");
+		zeek::reporter->InternalWarning("Cannot create node in patricia tree");
 		return nullptr;
 		}
 
@@ -58,7 +58,7 @@ void* PrefixTable::Insert(const zeek::Val* value, void* data)
 		break;
 
 	default:
-		reporter->InternalWarning("Wrong index type for PrefixTable");
+		zeek::reporter->InternalWarning("Wrong index type for PrefixTable");
 		return nullptr;
 	}
 	}
@@ -118,8 +118,8 @@ void* PrefixTable::Lookup(const zeek::Val* value, bool exact) const
 		break;
 
 	default:
-		reporter->InternalWarning("Wrong index type %d for PrefixTable",
-		                          value->GetType()->Tag());
+		zeek::reporter->InternalWarning("Wrong index type %d for PrefixTable",
+		                                value->GetType()->Tag());
 		return nullptr;
 	}
 	}
@@ -157,7 +157,7 @@ void* PrefixTable::Remove(const zeek::Val* value)
 		break;
 
 	default:
-		reporter->InternalWarning("Wrong index type for PrefixTable");
+		zeek::reporter->InternalWarning("Wrong index type for PrefixTable");
 		return nullptr;
 	}
 	}

@@ -91,7 +91,7 @@ DebuggerState::~DebuggerState()
 bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2)
 	{
 	if ( ! m2  )
-		reporter->InternalError("Assertion failed: m2 != 0");
+		zeek::reporter->InternalError("Assertion failed: m2 != 0");
 
 	return loc.first_line > m2->loc.first_line ||
 		(loc.first_line == m2->loc.first_line &&
@@ -395,8 +395,8 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		{
 		auto iter = g_dbgfilemaps.find(loc_filename);
 		if ( iter == g_dbgfilemaps.end() )
-			reporter->InternalError("Policy file %s should have been loaded\n",
-					loc_filename.data());
+			zeek::reporter->InternalError("Policy file %s should have been loaded\n",
+			                              loc_filename.data());
 
 		if ( plr.line > how_many_lines_in(loc_filename.data()) )
 			{
@@ -637,7 +637,7 @@ int dbg_execute_command(const char* cmd)
 #endif
 
 	if ( int(cmd_code) >= num_debug_cmds() )
-		reporter->InternalError("Assertion failed: int(cmd_code) < num_debug_cmds()");
+		zeek::reporter->InternalError("Assertion failed: int(cmd_code) < num_debug_cmds()");
 
 	// Dispatch to the op-specific handler (with args).
 	int retcode = dbg_dispatch_cmd(cmd_code, arguments);
@@ -646,7 +646,7 @@ int dbg_execute_command(const char* cmd)
 
 	const DebugCmdInfo* info = get_debug_cmd_info(cmd_code);
 	if ( ! info  )
-		reporter->InternalError("Assertion failed: info");
+		zeek::reporter->InternalError("Assertion failed: info");
 
 	if ( ! info )
 		return -2;	// ### yuck, why -2?
@@ -803,7 +803,7 @@ int dbg_handle_debug_input()
 
 	const zeek::detail::Stmt* stmt = curr_frame->GetNextStmt();
 	if ( ! stmt )
-		reporter->InternalError("Assertion failed: stmt != 0");
+		zeek::reporter->InternalError("Assertion failed: stmt != 0");
 
 	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 
@@ -909,7 +909,7 @@ bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f)
 		p = g_debugger_state.breakpoint_map.equal_range(stmt);
 
 		if ( p.first == p.second )
-			reporter->InternalError("Breakpoint count nonzero, but no matching breakpoints");
+			zeek::reporter->InternalError("Breakpoint count nonzero, but no matching breakpoints");
 
 		for ( BPMapType::iterator i = p.first; i != p.second; ++i )
 			{
@@ -966,11 +966,11 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 		(g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
 
 	if ( ! (frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size())  )
-		reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
+		zeek::reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
 
 	zeek::detail::Frame* frame = g_frame_stack[frame_idx];
 	if ( ! (frame)  )
-		reporter->InternalError("Assertion failed: frame");
+		zeek::reporter->InternalError("Assertion failed: frame");
 
 	const zeek::detail::ScriptFunc* func = frame->GetFunction();
 	if ( func )

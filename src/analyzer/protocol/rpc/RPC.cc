@@ -308,7 +308,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 	else if ( n < 0 )
 		{
-		reporter->AnalyzerError(analyzer, "RPC underflow");
+		zeek::reporter->AnalyzerError(analyzer, "RPC underflow");
 		return 0;
 		}
 
@@ -513,8 +513,8 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		if ( resync_toskip != 0 )
 			{
 			// Should never happen.
-			reporter->AnalyzerError(this,
-			  "RPC resync: skipping over data failed");
+			zeek::reporter->AnalyzerError(
+				this, "RPC resync: skipping over data failed");
 			return false;
 			}
 
@@ -665,8 +665,8 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! dummy_p )
 					{
-					reporter->AnalyzerError(this,
-					  "inconsistent RPC record marker extraction");
+					zeek::reporter->AnalyzerError(
+						this, "inconsistent RPC record marker extraction");
 					return;
 					}
 

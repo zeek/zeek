@@ -122,7 +122,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		return payload_size >= val;
 
 	default:
-		reporter->InternalError("unknown comparison type");
+		zeek::reporter->InternalError("unknown comparison type");
 	}
 
 	// Should not be reached
@@ -162,7 +162,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	{
 	if ( ! id->HasVal() )
 		{
-		reporter->Error("undefined value");
+		zeek::reporter->Error("undefined value");
 		return false;
 		}
 

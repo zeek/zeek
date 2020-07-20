@@ -251,7 +251,7 @@ static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
 		s += offset + end_of_match;;
 
 		if ( s > end_of_s )
-			reporter->InternalError("RegMatch in split goes beyond the string");
+			zeek::reporter->InternalError("RegMatch in split goes beyond the string");
 		}
 
 	return rval;
@@ -308,7 +308,7 @@ zeek::Val* do_split(zeek::StringVal* str_val, zeek::RE_Matcher* re, int incl_sep
 		s += offset + end_of_match;;
 
 		if ( s > end_of_s )
-			reporter->InternalError("RegMatch in split goes beyond the string");
+			zeek::reporter->InternalError("RegMatch in split goes beyond the string");
 		}
 
 	return a;

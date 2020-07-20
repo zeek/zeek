@@ -75,7 +75,7 @@ void ODesc::PushIndent()
 void ODesc::PopIndent()
 	{
 	if ( --indent_level < 0 )
-		reporter->InternalError("ODesc::PopIndent underflow");
+		zeek::reporter->InternalError("ODesc::PopIndent underflow");
 
 	NL();
 	}
@@ -83,7 +83,7 @@ void ODesc::PopIndent()
 void ODesc::PopIndentNoNL()
 	{
 	if ( --indent_level < 0 )
-		reporter->InternalError("ODesc::PopIndent underflow");
+		zeek::reporter->InternalError("ODesc::PopIndent underflow");
 	}
 
 void ODesc::Add(const char* s, int do_indent)
@@ -358,7 +358,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 			if ( ! write_failed )
 				// Most likely it's a "disk full" so report
 				// subsequent failures only once.
-				reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
+				zeek::reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
 
 			write_failed = true;
 			return;

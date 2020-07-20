@@ -18,7 +18,7 @@
 
 			if ( cert.length() <= 0 )
 				{
-				reporter->Weird(bro_analyzer()->Conn(), "zero_length_certificate");
+				zeek::reporter->Weird(bro_analyzer()->Conn(), "zero_length_certificate");
 				continue;
 				}
 
@@ -35,5 +35,3 @@
 			}
 		return true;
 		%}
-
-

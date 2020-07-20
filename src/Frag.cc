@@ -23,7 +23,7 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 	if ( f )
 		f->Expire(t);
 	else
-		reporter->InternalWarning("fragment timer dispatched w/o reassembler");
+		zeek::reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
@@ -173,8 +173,8 @@ void FragReassembler::Weird(const char* name) const
 
 	else
 		{
-		reporter->InternalWarning("Unexpected IP version in FragReassembler");
-		reporter->Weird(name);
+		zeek::reporter->InternalWarning("Unexpected IP version in FragReassembler");
+		zeek::reporter->Weird(name);
 		}
 	}
 
@@ -274,7 +274,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 
 		if ( b.upper > n )
 			{
-			reporter->InternalWarning("bad fragment reassembly");
+			zeek::reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
 			Expire(network_time);
 			delete [] pkt_start;
@@ -308,8 +308,8 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 
 	else
 		{
-		reporter->InternalWarning("bad IP version in fragment reassembly: %d",
-		                          version);
+		zeek::reporter->InternalWarning("bad IP version in fragment reassembly: %d",
+		                                version);
 		delete [] pkt_start;
 		}
 	}

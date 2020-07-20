@@ -32,7 +32,7 @@ void UID::Set(bro_uint_t bits, const uint64_t* v, size_t n)
 std::string UID::Base62(std::string prefix) const
 	{
 	if ( ! initialized )
-		reporter->InternalError("use of uninitialized UID");
+		zeek::reporter->InternalError("use of uninitialized UID");
 
 	char tmp[sizeof(uid) * 8 + 1];  // enough for even binary representation
 	for ( size_t i = 0; i < BRO_UID_LEN; ++i )

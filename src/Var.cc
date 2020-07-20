@@ -27,7 +27,7 @@ static zeek::ValPtr init_val(zeek::detail::Expr* init,
 		{
 		return init->InitVal(t, std::move(aggr));
 		}
-	catch ( InterpreterException& e )
+	catch ( zeek::InterpreterException& e )
 		{
 		return nullptr;
 		}
@@ -541,11 +541,11 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 
 					if ( f->attrs && f->attrs->Find(zeek::detail::ATTR_DEFAULT) )
 						{
-						reporter->PushLocation(args->GetLocationInfo());
-						reporter->Warning(
+						zeek::reporter->PushLocation(args->GetLocationInfo());
+						zeek::reporter->Warning(
 						    "&default on parameter '%s' has no effect (not a %s declaration)",
 						    args->FieldName(i), t->FlavorString().data());
-						reporter->PopLocation();
+						zeek::reporter->PopLocation();
 						}
 					}
 				}
@@ -597,7 +597,7 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 			break;
 
 		default:
-			reporter->InternalError("invalid function flavor");
+			zeek::reporter->InternalError("invalid function flavor");
 			break;
 		}
 		}
@@ -836,7 +836,7 @@ zeek::ListVal* internal_list_val(const char* name)
 			}
 
 		else
-			reporter->InternalError("internal variable %s is not a list", name);
+			zeek::reporter->InternalError("internal variable %s is not a list", name);
 		}
 
 	return nullptr;

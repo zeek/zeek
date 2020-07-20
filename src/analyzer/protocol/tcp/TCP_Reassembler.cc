@@ -96,7 +96,7 @@ void TCP_Reassembler::SetContentsFile(BroFilePtr f)
 	{
 	if ( ! f->IsOpen() )
 		{
-		reporter->Error("no such file \"%s\"", f->Name());
+		zeek::reporter->Error("no such file \"%s\"", f->Name());
 		return;
 		}
 
@@ -203,7 +203,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 	if ( up_to_seq <= last_reassem_seq )
 		// This should never happen. (Reassembler::TrimToSeq has the only call
 		// to this method and only if this condition is not true).
-		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
+		zeek::reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
 	if ( zeek::BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
@@ -353,7 +353,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const BroFilePtr& f)
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
 
-	reporter->Error("TCP_Reassembler contents write failed");
+	zeek::reporter->Error("TCP_Reassembler contents write failed");
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
@@ -368,7 +368,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const Br
 	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
-	reporter->Error("TCP_Reassembler contents gap write failed");
+	zeek::reporter->Error("TCP_Reassembler contents gap write failed");
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,

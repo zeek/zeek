@@ -175,8 +175,8 @@ int File::Idx(const std::string& field, const zeek::RecordType* type)
 	int rval = type->FieldOffset(field.c_str());
 
 	if ( rval < 0 )
-		reporter->InternalError("Unknown %s field: %s", type->GetName().c_str(),
-		                        field.c_str());
+		zeek::reporter->InternalError("Unknown %s field: %s", type->GetName().c_str(),
+		                              field.c_str());
 
 	return rval;
 	}

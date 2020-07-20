@@ -211,7 +211,7 @@ void ScriptInfo::DoInitPostScript()
 				functions.push_back(info);
 				break;
 			default:
-				reporter->InternalError("Invalid function flavor");
+				zeek::reporter->InternalError("Invalid function flavor");
 				break;
 			}
 
@@ -377,8 +377,8 @@ time_t ScriptInfo::DoGetModificationTime() const
 				}
 
 			if ( ! info )
-				reporter->InternalWarning("Zeekygen failed to get mtime of %s",
-				                          it->c_str());
+				zeek::reporter->InternalWarning("Zeekygen failed to get mtime of %s",
+				                                it->c_str());
 			continue;
 			}
 

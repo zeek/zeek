@@ -465,9 +465,9 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
 
 	if ( ! c )
 		{
-		reporter->InternalWarning(
-		            "unknown file analyzer instantiation request: %s",
-		            tag.AsString().c_str());
+		zeek::reporter->InternalWarning(
+			"unknown file analyzer instantiation request: %s",
+			tag.AsString().c_str());
 		return nullptr;
 		}
 
@@ -482,13 +482,13 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
 		a = c->factory(args.get(), f);
 	else
 		{
-		reporter->InternalWarning("file analyzer %s cannot be instantiated "
-		                          "dynamically", c->CanonicalName().c_str());
+		zeek::reporter->InternalWarning("file analyzer %s cannot be instantiated "
+		                                "dynamically", c->CanonicalName().c_str());
 		return nullptr;
 		}
 
 	if ( ! a )
-		reporter->InternalError("file analyzer instantiation failed");
+		zeek::reporter->InternalError("file analyzer instantiation failed");
 
 	a->SetAnalyzerTag(tag);
 
@@ -500,7 +500,7 @@ zeek::detail::RuleMatcher::MIME_Matches* Manager::DetectMIME(
 	zeek::detail::RuleMatcher::MIME_Matches* rval) const
 	{
 	if ( ! magic_state )
-		reporter->InternalError("file magic signature state not initialized");
+		zeek::reporter->InternalError("file magic signature state not initialized");
 
 	rval = zeek::detail::rule_matcher->Match(magic_state, data, len, rval);
 	zeek::detail::rule_matcher->ClearFileMagicState(magic_state);

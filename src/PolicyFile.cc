@@ -32,7 +32,7 @@ static PolicyFileMap policy_files;
 int how_many_lines_in(const char* policy_filename)
 	{
 	if ( ! policy_filename )
-		reporter->InternalError("NULL value passed to how_many_lines_in\n");
+		zeek::reporter->InternalError("NULL value passed to how_many_lines_in\n");
 
 	FILE* throwaway = fopen(policy_filename, "r");
 	if ( ! throwaway )
@@ -85,7 +85,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 		{
 		char buf[256];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("fstat failed on %s: %s", policy_filename, buf);
+		zeek::reporter->Error("fstat failed on %s: %s", policy_filename, buf);
 		fclose(f);
 		return false;
 		}
@@ -97,7 +97,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 	// (probably fine with UTF-8)
 	pf->filedata = new char[size+1];
 	if ( fread(pf->filedata, size, 1, f) != 1 )
-        reporter->InternalError("Failed to fread() file data");
+        zeek::reporter->InternalError("Failed to fread() file data");
 	pf->filedata[size] = 0;
 	fclose(f);
 

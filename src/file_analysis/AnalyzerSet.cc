@@ -162,7 +162,7 @@ std::unique_ptr<HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
 	auto key = analyzer_hash->MakeHashKey(*lv, true);
 
 	if ( ! key )
-		reporter->InternalError("AnalyzerArgs type mismatch");
+		zeek::reporter->InternalError("AnalyzerArgs type mismatch");
 
 	return key;
 	}
@@ -174,9 +174,9 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
 
 	if ( ! a )
 		{
-		reporter->Error("[%s] Failed file analyzer %s instantiation",
-		                file->GetID().c_str(),
-		                file_mgr->GetComponentName(tag).c_str());
+		zeek::reporter->Error("[%s] Failed file analyzer %s instantiation",
+		                      file->GetID().c_str(),
+		                      file_mgr->GetComponentName(tag).c_str());
 		return nullptr;
 		}
 

@@ -178,10 +178,10 @@ void ConnSize_Analyzer::UpdateConnVal(zeek::RecordVal *conn_val)
 	int bytesidx = zeek::id::endpoint->FieldOffset("num_bytes_ip");
 
 	if ( pktidx < 0 )
-		reporter->InternalError("'endpoint' record missing 'num_pkts' field");
+		zeek::reporter->InternalError("'endpoint' record missing 'num_pkts' field");
 
 	if ( bytesidx < 0 )
-		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
+		zeek::reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
 	orig_endp->Assign(pktidx, zeek::val_mgr->Count(orig_pkts));
 	orig_endp->Assign(bytesidx, zeek::val_mgr->Count(orig_bytes));

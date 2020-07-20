@@ -54,8 +54,8 @@ const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
 	auto x = _types.find(v->OpaqueName());
 
 	if ( x == _types.end() )
-		reporter->InternalError("OpaqueMgr::TypeID: opaque type %s not registered",
-					v->OpaqueName());
+		zeek::reporter->InternalError("OpaqueMgr::TypeID: opaque type %s not registered",
+		                              v->OpaqueName());
 
 	return x->first;
 	}
@@ -774,13 +774,13 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x,
 	     y->Type() &&
 	     ! same_type(x->Type(), y->Type()) )
 		{
-		reporter->Error("cannot merge Bloom filters with different types");
+		zeek::reporter->Error("cannot merge Bloom filters with different types");
 		return nullptr;
 		}
 
 	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
 		{
-		reporter->Error("cannot merge different Bloom filter types");
+		zeek::reporter->Error("cannot merge different Bloom filter types");
 		return nullptr;
 		}
 
@@ -789,7 +789,7 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x,
 	if ( ! copy->Merge(y->bloom_filter) )
 		{
 		delete copy;
-		reporter->Error("failed to merge Bloom filter");
+		zeek::reporter->Error("failed to merge Bloom filter");
 		return nullptr;
 		}
 
@@ -797,7 +797,7 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x,
 
 	if ( x->Type() && ! merged->Typify(x->Type()) )
 		{
-		reporter->Error("failed to set type on merged Bloom filter");
+		zeek::reporter->Error("failed to set type on merged Bloom filter");
 		return nullptr;
 		}
 
@@ -1008,12 +1008,12 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 		}
 	catch (const paraglob::underflow_error& e)
 		{
-		reporter->Error("Paraglob underflow error -> %s", e.what());
+		zeek::reporter->Error("Paraglob underflow error -> %s", e.what());
 		return false;
 		}
 	catch (const paraglob::overflow_error& e)
 		{
-		reporter->Error("Paraglob overflow error -> %s", e.what());
+		zeek::reporter->Error("Paraglob overflow error -> %s", e.what());
 		return false;
 		}
 
@@ -1028,12 +1028,12 @@ ValPtr ParaglobVal::DoClone(CloneState* state)
 		}
 	catch (const paraglob::underflow_error& e)
 		{
-		reporter->Error("Paraglob underflow error while cloning -> %s", e.what());
+		zeek::reporter->Error("Paraglob underflow error while cloning -> %s", e.what());
 		return nullptr;
 		}
 	catch (const paraglob::overflow_error& e)
 		{
-		reporter->Error("Paraglob overflow error while cloning -> %s", e.what());
+		zeek::reporter->Error("Paraglob overflow error while cloning -> %s", e.what());
 		return nullptr;
 		}
 	}

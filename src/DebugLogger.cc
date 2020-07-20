@@ -45,8 +45,8 @@ void DebugLogger::OpenDebugLog(const char* filename)
 		if ( ! file )
 			{
 			// The reporter may not be initialized here yet.
-			if ( reporter )
-				reporter->FatalError("can't open '%s' for debugging output", filename);
+			if ( zeek::reporter )
+				zeek::reporter->FatalError("can't open '%s' for debugging output", filename);
 			else
 				{
 				fprintf(stderr, "can't open '%s' for debugging output\n", filename);
@@ -132,7 +132,7 @@ void DebugLogger::EnableStreams(const char* s)
 				}
 			}
 
-		reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
+		zeek::reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
 
 next:
 		tok = strtok(0, ",");

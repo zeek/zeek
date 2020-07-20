@@ -11,7 +11,7 @@ static zeek::analyzer::Analyzer* GetConnsizeAnalyzer(zeek::Val* cid)
 
 	zeek::analyzer::Analyzer* a = c->FindAnalyzer("CONNSIZE");
 	if ( ! a )
-		reporter->Error("connection does not have ConnSize analyzer");
+		zeek::reporter->Error("connection does not have ConnSize analyzer");
 
 	return a;
 	}

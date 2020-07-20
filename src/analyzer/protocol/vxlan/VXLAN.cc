@@ -50,7 +50,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( estack && estack->Depth() >= zeek::BifConst::Tunnel::max_depth )
 		{
-		reporter->Weird(Conn(), "tunnel_depth");
+		zeek::reporter->Weird(Conn(), "tunnel_depth");
 		return;
 		}
 

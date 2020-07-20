@@ -65,7 +65,7 @@ bool SerializationFormat::ReadData(void* b, size_t count)
 	{
 	if ( input_pos + count > input_len )
 		{
-		reporter->Error("data underflow during read in binary format");
+		zeek::reporter->Error("data underflow during read in binary format");
 		abort();
 		return false;
 		}
@@ -207,7 +207,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 		for ( int i = 0; i < l; i++ )
 			if ( ! s[i] )
 				{
-				reporter->Error("binary Format: string contains null; replaced by '_'");
+				zeek::reporter->Error("binary Format: string contains null; replaced by '_'");
 				s[i] = '_';
 				}
 		}

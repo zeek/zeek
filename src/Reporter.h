@@ -18,19 +18,18 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 namespace file_analysis { class File; }
 class Connection;
-class Reporter;
 class EventHandlerPtr;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 using StringValPtr = zeek::IntrusivePtr<StringVal>;
-}
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -46,8 +45,6 @@ protected:
 	friend class Reporter;
 	InterpreterException()	{}
 };
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
@@ -304,3 +301,11 @@ private:
 };
 
 extern Reporter* reporter;
+
+} // namespace zeek
+
+using Reporter [[deprecated("Remove in v4.1. Use zeek::Reporter.")]] = zeek::Reporter;
+using ReporterException [[deprecated("Remove in v4.1. Use zeek::ReporterException.")]] = zeek::ReporterException;
+using InterpreterException [[deprecated("Remove in v4.1. Use zeek::InterpreterException.")]] = zeek::InterpreterException;
+
+extern zeek::Reporter*& reporter [[deprecated("Remove v4.1. Use zeek::reporter.")]];

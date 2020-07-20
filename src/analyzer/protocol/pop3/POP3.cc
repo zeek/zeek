@@ -213,8 +213,8 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "unexpected POP3 authorization state");
+			zeek::reporter->AnalyzerError(
+				this, "unexpected POP3 authorization state");
 			delete decoded;
 			return;
 		}
@@ -572,7 +572,7 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default:
-		reporter->AnalyzerError(this, "unknown POP3 command");
+		zeek::reporter->AnalyzerError(this, "unknown POP3 command");
 		return;
 	}
 	}
@@ -845,7 +845,7 @@ void POP3_Analyzer::BeginData(bool orig)
 void POP3_Analyzer::EndData()
 	{
 	if ( ! mail )
-		reporter->Warning("unmatched end of data");
+		zeek::reporter->Warning("unmatched end of data");
 	else
 		{
 		mail->Done();

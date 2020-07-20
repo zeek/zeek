@@ -114,7 +114,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					pkt_dumper = iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
 					if ( ! pkt_dumper || pkt_dumper->IsError() )
 						{
-						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
+						zeek::reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
 						pkt_dumper = nullptr;
 						}
 					}
@@ -127,10 +127,10 @@ RETSIGTYPE watchdog(int /* signo */)
 			net_get_final_stats();
 			net_finish(0);
 
-			reporter->FatalErrorWithCore(
-			          "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
-				      int_ct, frac_ct, int_pst, frac_pst,
-					  current_dispatched);
+			zeek::reporter->FatalErrorWithCore(
+				"**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
+				int_ct, frac_ct, int_pst, frac_pst,
+				current_dispatched);
 			}
 		}
 
@@ -160,8 +160,8 @@ void net_init(const std::optional<std::string>& interface,
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			reporter->FatalError("problem with trace file %s (%s)",
-				pcap_input_file->c_str(), ps->ErrorMsg());
+			zeek::reporter->FatalError("problem with trace file %s (%s)",
+			                           pcap_input_file->c_str(), ps->ErrorMsg());
 		}
 	else if ( interface )
 		{
@@ -172,8 +172,8 @@ void net_init(const std::optional<std::string>& interface,
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			reporter->FatalError("problem with interface %s (%s)",
-				interface->c_str(), ps->ErrorMsg());
+			zeek::reporter->FatalError("problem with interface %s (%s)",
+			                           interface->c_str(), ps->ErrorMsg());
 		}
 
 	else
@@ -190,13 +190,13 @@ void net_init(const std::optional<std::string>& interface,
 		assert(pkt_dumper);
 
 		if ( ! pkt_dumper->IsOpen() )
-			reporter->FatalError("problem opening dump file %s (%s)",
-					     writefile, pkt_dumper->ErrorMsg());
+			zeek::reporter->FatalError("problem opening dump file %s (%s)",
+			                           writefile, pkt_dumper->ErrorMsg());
 
 		if ( const auto& id = zeek::detail::global_scope()->Find("trace_output_file") )
 			id->SetVal(zeek::make_intrusive<zeek::StringVal>(writefile));
 		else
-			reporter->Error("trace_output_file not defined in bro.init");
+			zeek::reporter->Error("trace_output_file not defined in bro.init");
 		}
 
 	zeek::detail::init_ip_addr_anonymizers();
@@ -373,8 +373,8 @@ void net_get_final_stats()
 		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
 		double dropped_pct = s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0 : 0.0;
-		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
-			s.received, ps->Path().c_str(), s.dropped, dropped_pct);
+		zeek::reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
+		                     s.received, ps->Path().c_str(), s.dropped, dropped_pct);
 		}
 	}
 
@@ -418,7 +418,7 @@ int _processing_suspended = 0;
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
-		reporter->Info("processing suspended");
+		zeek::reporter->Info("processing suspended");
 
 	++_processing_suspended;
 	}
@@ -427,7 +427,7 @@ void net_continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
-		reporter->Info("processing continued");
+		zeek::reporter->Info("processing continued");
 		if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
 			ps->ContinueAfterSuspend();
 		}

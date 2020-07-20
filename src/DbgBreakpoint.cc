@@ -219,7 +219,7 @@ bool DbgBreakpoint::Reset()
 		break;
 	}
 
-	reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
+	zeek::reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
 
 	// Cannot be reached.
 	return false;
@@ -312,7 +312,7 @@ BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 		assert(false);
 
 	default:
-		reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
+		zeek::reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
 	}
 
 	// If we got here, that means that the breakpoint could hit,
@@ -329,7 +329,7 @@ BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 BreakCode DbgBreakpoint::ShouldBreak(double t)
 	{
 	if ( kind != BP_TIME )
-		reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
+		zeek::reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
 
 	if ( t < at_time )
 		return BC_NO_HIT;
@@ -370,7 +370,7 @@ void DbgBreakpoint::PrintHitMsg()
 		assert(false);
 
 	default:
-		reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
+		zeek::reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
 	}
 	}
 

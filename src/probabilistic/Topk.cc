@@ -87,7 +87,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		{
 		if ( ! same_type(type, value->type) )
 			{
-			reporter->Error("Cannot merge top-k elements of differing types.");
+			zeek::reporter->Error("Cannot merge top-k elements of differing types.");
 			return;
 			}
 		}
@@ -186,7 +186,7 @@ zeek::VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
-		reporter->Error("Cannot return topk of empty");
+		zeek::reporter->Error("Cannot return topk of empty");
 		return nullptr;
 		}
 
@@ -228,7 +228,7 @@ uint64_t TopkVal::GetCount(Val* value) const
 
 	if ( e == nullptr )
 		{
-		reporter->Error("GetCount for element that is not in top-k");
+		zeek::reporter->Error("GetCount for element that is not in top-k");
 		return 0;
 		}
 
@@ -243,7 +243,7 @@ uint64_t TopkVal::GetEpsilon(Val* value) const
 
 	if ( e == nullptr )
 		{
-		reporter->Error("GetEpsilon for element that is not in top-k");
+		zeek::reporter->Error("GetEpsilon for element that is not in top-k");
 		return 0;
 		}
 
@@ -263,7 +263,7 @@ uint64_t TopkVal::GetSum() const
 		}
 
 	if ( pruned )
-		reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
+		zeek::reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
 
 	return sum;
 	}
@@ -277,7 +277,7 @@ void TopkVal::Encountered(zeek::ValPtr encountered)
 	else
 		if ( ! same_type(type, encountered->GetType()) )
 			{
-			reporter->Error("Trying to add element to topk with differing type from other elements");
+			zeek::reporter->Error("Trying to add element to topk with differing type from other elements");
 			return;
 			}
 

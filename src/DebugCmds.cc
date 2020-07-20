@@ -206,7 +206,7 @@ static int dbg_backtrace_internal(int start, int end)
 	if ( start < 0 || end < 0 ||
 	     (unsigned) start >= g_frame_stack.size() ||
 	     (unsigned) end >= g_frame_stack.size() )
-		reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
+		zeek::reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
 	if ( start < end )
 		{
@@ -337,7 +337,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	// for 'list', 'break', etc.
 	const zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 	if ( ! stmt )
-		reporter->InternalError("Assertion failed: %s", "stmt != 0");
+		zeek::reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
 	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 	g_debugger_state.last_loc = loc;
@@ -377,7 +377,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 		zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
-			reporter->InternalError("Assertion failed: %s", "stmt != 0");
+			zeek::reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
 		DbgBreakpoint* bp = new DbgBreakpoint();
 		bp->SetID(g_debugger_state.NextBPID());
@@ -540,7 +540,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 				break;
 
 			default:
-				reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
+				zeek::reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
 			}
 			}
 

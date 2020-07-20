@@ -102,7 +102,7 @@ void PktSrcComponent::DoDescribe(ODesc* d) const
 		break;
 
 	default:
-		reporter->InternalError("unknown PkrSrc type");
+		zeek::reporter->InternalError("unknown PkrSrc type");
 	}
 
 	}

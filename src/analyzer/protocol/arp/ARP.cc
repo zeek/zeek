@@ -202,7 +202,7 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 
 void ARP_Analyzer::Corrupted(const char* msg)
 	{
-	reporter->Weird(msg);
+	zeek::reporter->Weird(msg);
 	}
 
 void ARP_Analyzer::RREvent(EventHandlerPtr e,

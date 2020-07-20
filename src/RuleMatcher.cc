@@ -265,7 +265,7 @@ bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file %s", f.data());
+			zeek::reporter->Error("Can't open signature file %s", f.data());
 			return false;
 			}
 
@@ -482,7 +482,7 @@ static inline uint32_t getval(const u_char* data, int size)
 		return ntohl(*(uint32_t*) data);
 
 	default:
-		reporter->InternalError("illegal HdrTest size");
+		zeek::reporter->InternalError("illegal HdrTest size");
 	}
 
 	// Should not be reached.
@@ -576,7 +576,7 @@ static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
 			break;
 
 		default:
-			reporter->InternalError("unknown RuleHdrTest comparison type");
+			zeek::reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
 	}
 	return false;
@@ -611,7 +611,7 @@ static inline bool compare(const vector<zeek::IPPrefix>& prefixes, const zeek::I
 			break;
 
 		default:
-			reporter->InternalError("unknown RuleHdrTest comparison type");
+			zeek::reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
 	}
 	return false;
@@ -666,7 +666,7 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 
 	if ( ! state )
 		{
-		reporter->Warning("RuleFileMagicState not initialized yet.");
+		zeek::reporter->Warning("RuleFileMagicState not initialized yet.");
 		return rval;
 		}
 
@@ -831,7 +831,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(zeek::analyzer::Analyzer* analyzer,
 					break;
 
 				default:
-					reporter->InternalError("unknown RuleHdrTest protocol type");
+					zeek::reporter->InternalError("unknown RuleHdrTest protocol type");
 					break;
 				}
 
@@ -856,7 +856,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	{
 	if ( ! state )
 		{
-		reporter->Warning("RuleEndpointState not initialized yet.");
+		zeek::reporter->Warning("RuleEndpointState not initialized yet.");
 		return;
 		}
 

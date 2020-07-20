@@ -839,7 +839,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 
 	else
 		{
-		reporter->InternalWarning("Bad IP protocol version in ParseIPPacket");
+		zeek::reporter->InternalWarning("Bad IP protocol version in ParseIPPacket");
 		return -1;
 		}
 
@@ -1024,21 +1024,21 @@ void NetSessions::Remove(Connection* c)
 		switch ( c->ConnTransport() ) {
 		case TRANSPORT_TCP:
 			if ( tcp_conns.erase(key) == 0 )
-				reporter->InternalWarning("connection missing");
+				zeek::reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_UDP:
 			if ( udp_conns.erase(key) == 0 )
-				reporter->InternalWarning("connection missing");
+				zeek::reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_ICMP:
 			if ( icmp_conns.erase(key) == 0 )
-				reporter->InternalWarning("connection missing");
+				zeek::reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			reporter->InternalWarning("unknown transport when removing connection");
+			zeek::reporter->InternalWarning("unknown transport when removing connection");
 			break;
 		}
 
@@ -1052,7 +1052,7 @@ void NetSessions::Remove(FragReassembler* f)
 		return;
 
 	if ( fragments.erase(f->Key()) == 0 )
-		reporter->InternalWarning("fragment reassembler not in dict");
+		zeek::reporter->InternalWarning("fragment reassembler not in dict");
 
 	Unref(f);
 	}
@@ -1086,7 +1086,7 @@ void NetSessions::Insert(Connection* c)
 		break;
 
 	default:
-		reporter->InternalWarning("unknown connection type");
+		zeek::reporter->InternalWarning("unknown connection type");
 		Unref(c);
 		return;
 	}
@@ -1185,7 +1185,7 @@ Connection* NetSessions::NewConn(const zeek::detail::ConnIDKey& k, double t, con
 			tproto = TRANSPORT_ICMP;
 			break;
 		default:
-			reporter->InternalWarning("unknown transport protocol");
+			zeek::reporter->InternalWarning("unknown transport protocol");
 			return nullptr;
 	};
 
@@ -1310,7 +1310,7 @@ void NetSessions::DumpPacket(const Packet *pkt, int len)
 	if ( len != 0 )
 		{
 		if ( (uint32_t)len > pkt->cap_len )
-			reporter->Warning("bad modified caplen");
+			zeek::reporter->Warning("bad modified caplen");
 		else
 			const_cast<Packet *>(pkt)->cap_len = len;
 		}
@@ -1325,19 +1325,19 @@ void NetSessions::Weird(const char* name, const Packet* pkt,
 		dump_this_packet = true;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		reporter->Weird(fmt("%s_in_tunnel", name), addl);
+		zeek::reporter->Weird(fmt("%s_in_tunnel", name), addl);
 	else
-		reporter->Weird(name, addl);
+		zeek::reporter->Weird(name, addl);
 	}
 
 void NetSessions::Weird(const char* name, const zeek::IP_Hdr* ip,
                         const EncapsulationStack* encap, const char* addl)
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
-		                fmt("%s_in_tunnel", name), addl);
+		zeek::reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
+		                      fmt("%s_in_tunnel", name), addl);
 	else
-		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
+		zeek::reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

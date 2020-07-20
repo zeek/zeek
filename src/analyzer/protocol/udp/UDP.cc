@@ -184,7 +184,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			request_len += ulen;
 #ifdef DEBUG
 			if ( request_len < 0 )
-				reporter->Warning("wrapping around for UDP request length");
+				zeek::reporter->Warning("wrapping around for UDP request length");
 #endif
 			}
 
@@ -202,7 +202,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			reply_len += ulen;
 #ifdef DEBUG
 			if ( reply_len < 0 )
-				reporter->Warning("wrapping around for UDP reply length");
+				zeek::reporter->Warning("wrapping around for UDP reply length");
 #endif
 			}
 

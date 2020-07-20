@@ -142,7 +142,7 @@ Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )
 			{
-			reporter->Error("return trigger in context which does not allow delaying result");
+			zeek::reporter->Error("return trigger in context which does not allow delaying result");
 			Unref(this);
 			return;
 			}

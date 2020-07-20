@@ -30,7 +30,10 @@ int closelog();
 }
 #endif
 
-Reporter* reporter = nullptr;
+zeek::Reporter* zeek::reporter = nullptr;
+zeek::Reporter*& reporter = zeek::reporter;
+
+namespace zeek {
 
 Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	{
@@ -253,7 +256,7 @@ public:
 		{}
 
 	void Dispatch(double t, bool is_expire) override
-		{ reporter->ResetNetWeird(weird_name); }
+		{ zeek::reporter->ResetNetWeird(weird_name); }
 
 	std::string weird_name;
 };
@@ -267,7 +270,7 @@ public:
 		{}
 
 	void Dispatch(double t, bool is_expire) override
-		{ reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
+		{ zeek::reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
 
 	IPPair endpoints;
 };
@@ -282,7 +285,7 @@ public:
 		{}
 
 	void Dispatch(double t, bool is_expire) override
-		{ reporter->ResetExpiredConnWeird(conn_id); }
+		{ zeek::reporter->ResetExpiredConnWeird(conn_id); }
 
 	ConnTuple conn_id;
 };
@@ -620,3 +623,5 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( alloced )
 		free(alloced);
 	}
+
+} // namespace zeek

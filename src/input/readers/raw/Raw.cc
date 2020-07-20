@@ -108,7 +108,7 @@ std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 
 	catch ( const std::system_error& e )
 		{
-		reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
+		zeek::reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
 		}
 
 	return lock;

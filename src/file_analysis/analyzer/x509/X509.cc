@@ -75,7 +75,7 @@ bool file_analysis::X509::EndOfFile()
 	::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
 	if ( ! ssl_cert )
 		{
-		reporter->Weird(GetFile(), "x509_cert_parse_error");
+		zeek::reporter->Weird(GetFile(), "x509_cert_parse_error");
 		return false;
 		}
 
@@ -160,8 +160,8 @@ zeek::RecordValPtr file_analysis::X509::ParseCertificate(X509Val* cert_val, File
 	pX509Cert->Assign(3, zeek::make_intrusive<zeek::StringVal>(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter)));
-	pX509Cert->Assign(6, zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter)));
+	pX509Cert->Assign(5, zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, zeek::reporter)));
+	pX509Cert->Assign(6, zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, zeek::reporter)));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -306,7 +306,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		}
 
 	else
-		reporter->Weird(GetFile(), "x509_invalid_basic_constraint");
+		zeek::reporter->Weird(GetFile(), "x509_invalid_basic_constraint");
 	}
 
 void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
@@ -336,7 +336,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES *altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
 	if ( ! altname )
 		{
-		reporter->Weird(GetFile(), "x509_san_parse_error");
+		zeek::reporter->Weird(GetFile(), "x509_san_parse_error");
 		return;
 		}
 
@@ -356,7 +356,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			{
 			if ( ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING )
 				{
-				reporter->Weird(GetFile(), "x509_san_non_string");
+				zeek::reporter->Weird(GetFile(), "x509_san_non_string");
 				continue;
 				}
 
@@ -407,14 +407,14 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 				else
 					{
-					reporter->Weird(GetFile(), "x509_san_ip_length", fmt("%d", gen->d.ip->length));
+					zeek::reporter->Weird(GetFile(), "x509_san_ip_length", fmt("%d", gen->d.ip->length));
 					continue;
 					}
 			}
 
 		else
 			{
-			// reporter->Error("Subject alternative name contained unsupported fields. fuid %s", GetFile()->GetID().c_str());
+			// zeek::reporter->Error("Subject alternative name contained unsupported fields. fuid %s", GetFile()->GetID().c_str());
 			// This happens quite often - just mark it
 			otherfields = true;
 			continue;
@@ -524,7 +524,7 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 		return 0; // unknown public key type
 	}
 
-	reporter->InternalError("cannot be reached");
+	zeek::reporter->InternalError("cannot be reached");
 	}
 
 X509Val::X509Val(::X509* arg_certificate) : OpaqueVal(x509_opaque_type)

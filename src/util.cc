@@ -343,7 +343,7 @@ int expand_escape(const char*& s)
 
 		if ( result < 0 )
 			{
-			reporter->Error("bad octal escape: %s", start);
+			zeek::reporter->Error("bad octal escape: %s", start);
 			return 0;
 			}
 
@@ -378,7 +378,7 @@ int expand_escape(const char*& s)
 
 		if ( result < 0 )
 			{
-			reporter->Error("bad hexadecimal escape: %s", start);
+			zeek::reporter->Error("bad hexadecimal escape: %s", start);
 			return 0;
 			}
 
@@ -538,7 +538,7 @@ unsigned char encode_hex(int h)
 
 	if  ( h < 0 || h > 15 )
 		{
-		reporter->InternalWarning("illegal value for encode_hex: %d", h);
+		zeek::reporter->InternalWarning("illegal value for encode_hex: %d", h);
 		return 'X';
 		}
 
@@ -842,7 +842,7 @@ const char* vfmt(const char* format, va_list al)
 		n = vsnprintf(buf, buf_len, format, alc);
 
 		if ( (unsigned int) n >= buf_len )
-			reporter->InternalError("confusion reformatting in fmt()");
+			zeek::reporter->InternalError("confusion reformatting in fmt()");
 		}
 
 	va_end(alc);
@@ -866,7 +866,7 @@ const char* fmt_access_time(double t)
 
 	if ( ! localtime_r(&time, &ts) )
 		{
-		reporter->InternalError("unable to get time");
+		zeek::reporter->InternalError("unable to get time");
 		}
 
 	strftime(buf, sizeof(buf), "%d/%m-%H:%M", &ts);
@@ -911,15 +911,15 @@ bool ensure_dir(const char *dirname)
 		{
 		// Show the original failure reason for mkdir() since nothing's there
 		// or we can't even tell what is now.
-		reporter->Warning("can't create directory %s: %s",
-		                  dirname, strerror(mkdir_errno));
+		zeek::reporter->Warning("can't create directory %s: %s",
+		                        dirname, strerror(mkdir_errno));
 		return false;
 		}
 
 	if ( S_ISDIR(st.st_mode) )
 		return true;
 
-	reporter->Warning("%s exists but is not a directory", dirname);
+	zeek::reporter->Warning("%s exists but is not a directory", dirname);
 	return false;
 	}
 
@@ -929,7 +929,7 @@ bool is_dir(const std::string& path)
 	if ( stat(path.c_str(), &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
+			zeek::reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
 
 		return false;
 		}
@@ -943,7 +943,7 @@ bool is_file(const std::string& path)
 	if ( stat(path.c_str(), &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
+			zeek::reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
 
 		return false;
 		}
@@ -998,7 +998,7 @@ std::string strstrip(std::string s)
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
 	if ( ! KeyedHash::seeds_initialized )
-		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
+		zeek::reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
 	internal_md5(bytes, size, digest);
 
@@ -1015,8 +1015,8 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
-		reporter->Warning("Could not open seed file '%s': %s",
-				read_file, strerror(errno));
+		zeek::reporter->Warning("Could not open seed file '%s': %s",
+		                        read_file, strerror(errno));
 		return false;
 		}
 
@@ -1051,8 +1051,8 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
-		reporter->Warning("Could not create seed file '%s': %s",
-				write_file, strerror(errno));
+		zeek::reporter->Warning("Could not create seed file '%s': %s",
+		                        write_file, strerror(errno));
 		return false;
 		}
 
@@ -1102,8 +1102,8 @@ void init_random_seed(const char* read_file, const char* write_file,
 	if ( read_file )
 		{
 		if ( ! read_random_seeds(read_file, &seed, buf) )
-			reporter->FatalError("Could not load seeds from file '%s'.\n",
-					     read_file);
+			zeek::reporter->FatalError("Could not load seeds from file '%s'.\n",
+			                           read_file);
 		else
 			seeds_done = true;
 		}
@@ -1148,7 +1148,7 @@ void init_random_seed(const char* read_file, const char* write_file,
 #endif
 
 		if ( pos < KeyedHash::SEED_INIT_SIZE )
-			reporter->FatalError("Could not read enough random data. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
+			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
 
 		if ( ! seed )
 			{
@@ -1174,8 +1174,8 @@ void init_random_seed(const char* read_file, const char* write_file,
 		KeyedHash::InitializeSeeds(buf);
 
 	if ( write_file && ! write_random_seeds(write_file, seed, buf) )
-		reporter->Error("Could not write seeds to file '%s'.\n",
-				write_file);
+		zeek::reporter->Error("Could not write seeds to file '%s'.\n",
+		                      write_file);
 	}
 
 unsigned int initial_seed()
@@ -1335,7 +1335,7 @@ void warn_if_legacy_script(std::string_view filename)
 	if ( ends_with(filename, ".bro") )
 		{
 		std::string x(filename);
-		reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
+		zeek::reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
 		}
 	}
 
@@ -1366,7 +1366,7 @@ FILE* open_file(const string& path, const string& mode)
 		{
 		char buf[256];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("Failed to open file %s: %s", filename, buf);
+		zeek::reporter->Error("Failed to open file %s: %s", filename, buf);
 		}
 
 	return rval;
@@ -1395,8 +1395,8 @@ FILE* open_package(string& path, const string& mode)
 
 	path.append(script_extensions[0]);
 	string package_loader = "__load__" + script_extensions[0];
-	reporter->Error("Failed to open package '%s': missing '%s' file",
-	                arg_path.c_str(), package_loader.c_str());
+	zeek::reporter->Error("Failed to open package '%s': missing '%s' file",
+	                      arg_path.c_str(), package_loader.c_str());
 	return nullptr;
 	}
 
@@ -1437,8 +1437,8 @@ void SafePathOp::CheckValid(const char* op_result, const char* path,
 	else
 		{
 		if ( error_aborts )
-			reporter->InternalError("Path operation failed on %s: %s",
-			                        path ? path : "<null>", strerror(errno));
+			zeek::reporter->InternalError("Path operation failed on %s: %s",
+			                              path ? path : "<null>", strerror(errno));
 		else
 			error = true;
 		}
@@ -1861,7 +1861,7 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	FILE* newf = fopen(tmpname, "w");
 	if ( ! newf )
 		{
-		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
+		zeek::reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
 		return nullptr;
 		}
 
@@ -1870,7 +1870,7 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	struct stat dummy;
 	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
 		{
-		reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
+		zeek::reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
@@ -1880,7 +1880,7 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	// Close current file, and move the tmp to its place.
 	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
 		{
-		reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
+		zeek::reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
 		exit(1);	// hard to fix, but shouldn't happen anyway...
 		}
 
@@ -1910,7 +1910,7 @@ double parse_rotate_base_time(const char* rotate_base_time)
 		{
 		struct tm t;
 		if ( ! strptime(rotate_base_time, "%H:%M", &t) )
-			reporter->Error("calc_next_rotate(): can't parse rotation base time");
+			zeek::reporter->Error("calc_next_rotate(): can't parse rotation base time");
 		else
 			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
 		}
@@ -1922,7 +1922,7 @@ double calc_next_rotate(double current, double interval, double base)
 	{
 	if ( ! interval )
 		{
-		reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
+		zeek::reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
 		interval = 86400;
 		}
 
@@ -1932,7 +1932,7 @@ double calc_next_rotate(double current, double interval, double base)
 	struct tm t;
 	if ( ! localtime_r(&teatime, &t) )
 		{
-		reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
+		zeek::reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
 
 		// fall back to the method used if no base time is given
 		base = -1;
@@ -1980,12 +1980,12 @@ void set_processing_status(const char* status, const char* reason)
 		{
 		char buf[256];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		if ( reporter )
-			reporter->Error("Failed to open process status file '%s': %s",
-			                proc_status_file, buf);
+		if ( zeek::reporter )
+			zeek::reporter->Error("Failed to open process status file '%s': %s",
+			                      proc_status_file, buf);
 		else
 			fprintf(stderr, "Failed to open process status file '%s': %s\n",
-			                proc_status_file, buf);
+			        proc_status_file, buf);
 		errno = old_errno;
 		return;
 		}
@@ -2020,7 +2020,7 @@ double current_time(bool real)
 	{
 	struct timeval tv;
 	if ( gettimeofday(&tv, 0) < 0 )
-		reporter->InternalError("gettimeofday failed in current_time()");
+		zeek::reporter->InternalError("gettimeofday failed in current_time()");
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
@@ -2088,7 +2088,7 @@ uint64_t calculate_unique_id(size_t pool)
 			uid_pool.resize(pool + 1);
 		else
 			{
-			reporter->Warning("pool passed to calculate_unique_id() too large, using default");
+			zeek::reporter->Warning("pool passed to calculate_unique_id() too large, using default");
 			pool = UID_POOL_DEFAULT_INTERNAL;
 			}
 		}
@@ -2214,9 +2214,9 @@ extern "C" void out_of_memory(const char* where)
 	{
 	fprintf(stderr, "out of memory in %s.\n", where);
 
-	if ( reporter )
+	if ( zeek::reporter )
 		// Guess that might fail here if memory is really tight ...
-		reporter->FatalError("out of memory in %s.\n", where);
+		zeek::reporter->FatalError("out of memory in %s.\n", where);
 
 	abort();
 	}
@@ -2396,8 +2396,8 @@ char* zeekenv(const char* name)
 
 	if ( val && starts_with(it->second, "BRO_") )
 		{
-		if ( reporter )
-			reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+		if ( zeek::reporter )
+			zeek::reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
 		else
 			fprintf(stderr, "Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead\n", it->second, name);
 		}

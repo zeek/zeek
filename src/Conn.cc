@@ -33,7 +33,7 @@ void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 ConnectionTimer::~ConnectionTimer()
 	{
 	if ( conn->RefCnt() < 1 )
-		reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
+		zeek::reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
 
 	conn->RemoveTimer(this);
 	Unref(conn);
@@ -51,7 +51,7 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 	(conn->*timer)(t);
 
 	if ( conn->RefCnt() < 1 )
-		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
+		zeek::reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
 uint64_t Connection::total_connections = 0;
@@ -125,7 +125,7 @@ Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double 
 Connection::~Connection()
 	{
 	if ( ! finished )
-		reporter->InternalError("Done() not called before destruction of Connection");
+		zeek::reporter->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
 
@@ -535,7 +535,7 @@ void Connection::EnqueueEvent(EventHandlerPtr f, zeek::analyzer::Analyzer* a,
 void Connection::Weird(const char* name, const char* addl)
 	{
 	weird = 1;
-	reporter->Weird(this, name, addl ? addl : "");
+	zeek::reporter->Weird(this, name, addl ? addl : "");
 	}
 
 void Connection::AddTimer(timer_func timer, double t, bool do_expire,
@@ -648,14 +648,14 @@ void Connection::Describe(ODesc* d) const
 
 		case TRANSPORT_UNKNOWN:
 			d->Add("unknown");
-			reporter->InternalWarning(
-			            "unknown transport in Connction::Describe()");
+			zeek::reporter->InternalWarning(
+				"unknown transport in Connction::Describe()");
 
 			break;
 
 		default:
-			reporter->InternalError(
-			            "unhandled transport type in Connection::Describe");
+			zeek::reporter->InternalError(
+				"unhandled transport type in Connection::Describe");
 		}
 
 	d->SP();

@@ -520,7 +520,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	FILE* f = popen(prog, "w");
 	if ( ! f )
 		{
-		reporter->Error("Failed to popen %s", prog);
+		zeek::reporter->Error("Failed to popen %s", prog);
 		return zeek::val_mgr->False();
 		}
 
@@ -533,7 +533,7 @@ function piped_exec%(program: string, to_write: string%): bool
 
 	if ( bytes_written != input_data_len )
 		{
-		reporter->Error("Failed to write all given data to %s", prog);
+		zeek::reporter->Error("Failed to write all given data to %s", prog);
 		return zeek::val_mgr->False();
 		}
 
@@ -807,7 +807,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	     v->GetType()->Yield()->Tag() != zeek::TYPE_STRING )
 		{
 		// reporter->Error will throw an exception.
-		reporter->Error("paraglob requires a vector of strings for initialization.");
+		zeek::reporter->Error("paraglob requires a vector of strings for initialization.");
 		return nullptr;
 		}
 
@@ -827,7 +827,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	// Thrown if paraglob fails to add a pattern.
 	catch (const paraglob::add_error& e)
 		{
-		reporter->Error("Paraglob failed to add pattern: %s", e.what());
+		zeek::reporter->Error("Paraglob failed to add pattern: %s", e.what());
 		return nullptr;
 		}
 	%}
@@ -959,7 +959,7 @@ function srand%(seed: count%): any
 ## s: The string to log via syslog
 function syslog%(s: string%): any
 	%{
-	reporter->Syslog("%s", s->CheckString());
+	zeek::reporter->Syslog("%s", s->CheckString());
 	return nullptr;
 	%}
 
@@ -978,7 +978,7 @@ function syslog%(s: string%): any
 function identify_data%(data: string, return_mime: bool &default=T%): string
 	%{
 	if ( ! return_mime )
-		reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
+		zeek::reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
 	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
 
@@ -1175,7 +1175,7 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 	%{
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
+		zeek::reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
@@ -1194,7 +1194,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 	%{
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
+		zeek::reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
@@ -1214,14 +1214,14 @@ function check_subnet%(search: subnet, t: any%): bool
 	%{
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
+		zeek::reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
 	const PrefixTable* pt = t->AsTableVal()->Subnets();
 	if ( ! pt )
 		{
-		reporter->Error("check_subnet encountered nonexisting prefix table.");
+		zeek::reporter->Error("check_subnet encountered nonexisting prefix table.");
 		return nullptr;
 		}
 
@@ -1737,7 +1737,7 @@ function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
 		{
-		reporter->Error("negative sqrt argument");
+		zeek::reporter->Error("negative sqrt argument");
 		return zeek::make_intrusive<zeek::DoubleVal>(-1.0);
 		}
 
@@ -2002,7 +2002,7 @@ function record_fields%(rec: any%): record_field_table
 
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
-			reporter->Error("record_fields string argument does not name a record type");
+			zeek::reporter->Error("record_fields string argument does not name a record type");
 			return zeek::make_intrusive<zeek::TableVal>(record_field_table);
 			}
 
@@ -2237,7 +2237,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	len -= 4;
 
 	if ( ( len % 16 ) != 0 )
-		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
+		zeek::reporter->Warning("Bad ip6_routing data length: %d", s->Len());
 
 	while ( len > 0 )
 		{
@@ -2893,7 +2893,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 	bro_uint_t len = hexstr->AsString()->Len();
 	if ( len % 2 != 0 )
 		{
-		reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
+		zeek::reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 
@@ -2909,13 +2909,13 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 		if ( res == EOF )
 			{
-			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
+			zeek::reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
 			return zeek::val_mgr->EmptyString();
 			}
 
 		else if ( res != 1 )
 			{
-			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
+			zeek::reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
 			return zeek::val_mgr->EmptyString();
 			}
 
@@ -2941,7 +2941,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("Broker query has an invalid data store");
+		zeek::reporter->Error("Broker query has an invalid data store");
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -2963,7 +2963,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", s->CheckString());
+		zeek::reporter->Error("error in decoding string %s", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -2996,7 +2996,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", s->CheckString());
+		zeek::reporter->Error("error in decoding string %s", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -3156,7 +3156,7 @@ function strptime%(fmt: string, d: string%) : time
 	if ( ! localtime_r(&timeval, &t) ||
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
-		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		zeek::reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
 		return zeek::make_intrusive<zeek::TimeVal>(0.0);
 		}
 
@@ -3266,7 +3266,7 @@ static zeek::EnumValPtr map_conn_type(TransportProto tp)
 		return zeek::id::transport_proto->GetEnumVal(3);
 
 	default:
-		reporter->InternalError("bad connection type in map_conn_type()");
+		zeek::reporter->InternalError("bad connection type in map_conn_type()");
 	}
 
 	// Cannot be reached;
@@ -3700,7 +3700,7 @@ static void report_mmdb_msg(const char* format, ...)
 	std::string msg = fmt(format, al);
 	va_end(al);
 
-	reporter->Info("%s", msg.data());
+	zeek::reporter->Info("%s", msg.data());
 	}
 
 class MMDB {
@@ -4324,7 +4324,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		{
-		reporter->Error("cannot find connection");
+		zeek::reporter->Error("cannot find connection");
 		return zeek::val_mgr->False();
 		}
 
@@ -4332,7 +4332,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! a )
 		{
 		if ( err_if_no_conn )
-			reporter->Error("connection does not have analyzer specified to disable");
+			zeek::reporter->Error("connection does not have analyzer specified to disable");
 		return zeek::val_mgr->False();
 		}
 

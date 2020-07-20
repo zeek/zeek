@@ -153,7 +153,7 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, zeek::EnumVal* t
 
 	if ( ! c )
 		{
-		reporter->Error("unknown writer type requested");
+		zeek::reporter->Error("unknown writer type requested");
 		return nullptr;
 		}
 
@@ -237,7 +237,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 	{
 	if ( ! same_type(sval->GetType(), zeek::BifType::Record::Log::Stream, false) )
 		{
-		reporter->Error("sval argument not of right type");
+		zeek::reporter->Error("sval argument not of right type");
 		return false;
 		}
 
@@ -253,8 +253,8 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 		if ( ! threading::Value::IsCompatibleType(columns->GetFieldType(i).get()) )
 			{
-			reporter->Error("type of field '%s' is not support for logging output",
-				 columns->FieldName(i));
+			zeek::reporter->Error("type of field '%s' is not support for logging output",
+			                      columns->FieldName(i));
 
 			return false;
 			}
@@ -264,7 +264,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 	if ( ! log_attr_present )
 		{
-		reporter->Error("logged record type does not have any &log attributes");
+		zeek::reporter->Error("logged record type does not have any &log attributes");
 		return false;
 		}
 
@@ -278,7 +278,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 		if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 			{
-			reporter->Error("stream event is a function, not an event");
+			zeek::reporter->Error("stream event is a function, not an event");
 			return false;
 			}
 
@@ -286,13 +286,13 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 		if ( args.size() != 1 )
 			{
-			reporter->Error("stream event must take a single argument");
+			zeek::reporter->Error("stream event must take a single argument");
 			return false;
 			}
 
 		if ( ! same_type(args[0], columns) )
 			{
-			reporter->Error("stream event's argument type does not match column record type");
+			zeek::reporter->Error("stream event's argument type does not match column record type");
 			return false;
 			}
 		}
@@ -474,7 +474,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 
 			else
 				{
-				reporter->Error("unsupported field type for log column");
+				zeek::reporter->Error("unsupported field type for log column");
 				return false;
 				}
 			}
@@ -508,7 +508,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 
 		if ( ! tmp )
 			{
-			reporter->Error("out of memory in add_filter");
+			zeek::reporter->Error("out of memory in add_filter");
 			return false;
 			}
 
@@ -535,7 +535,7 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 	{
 	if ( ! same_type(fval->GetType(), zeek::BifType::Record::Log::Filter, false) )
 		{
-		reporter->Error("filter argument not of right type");
+		zeek::reporter->Error("filter argument not of right type");
 		return false;
 		}
 
@@ -597,8 +597,8 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 			}
 		else
 			{
-			reporter->Error("Return value of log_ext is not a record (got %s)",
-			                zeek::type_name(filter->ext_func->GetType()->Yield()->Tag()));
+			zeek::reporter->Error("Return value of log_ext is not a record (got %s)",
+			                      zeek::type_name(filter->ext_func->GetType()->Yield()->Tag()));
 			delete filter;
 			return false;
 			}
@@ -705,7 +705,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 
 	if ( ! columns )
 		{
-		reporter->Error("incompatible log record type");
+		zeek::reporter->Error("incompatible log record type");
 		return false;
 		}
 
@@ -761,7 +761,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 
 			if ( v->GetType()->Tag() != zeek::TYPE_STRING )
 				{
-				reporter->Error("path_func did not return string");
+				zeek::reporter->Error("path_func did not return string");
 				return false;
 				}
 
@@ -804,10 +804,11 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			Unref(filter->path_val);
 			filter->path_val = new zeek::StringVal(new_path.c_str());
 
-			reporter->Warning("Write using filter '%s' on path '%s' changed to"
-			  " use new path '%s' to avoid conflict with filter '%s'",
-			  filter->name.c_str(), path.c_str(), new_path.c_str(),
-			  instantiator.c_str());
+			zeek::reporter->Warning(
+				"Write using filter '%s' on path '%s' changed to"
+				" use new path '%s' to avoid conflict with filter '%s'",
+				filter->name.c_str(), path.c_str(), new_path.c_str(),
+				instantiator.c_str());
 
 			path = filter->path = filter->path_val->AsString()->CheckString();
 			}
@@ -1045,7 +1046,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s for log_write", zeek::type_name(lval->type));
+		zeek::reporter->InternalError("unsupported type %s for log_write", zeek::type_name(lval->type));
 	}
 
 	return lval;
@@ -1199,8 +1200,8 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 			if ( func )
 				winfo->postprocessor = func.get();
 			else
-				reporter->Warning("failed log postprocessor function lookup: %s\n",
-				                  winfo->info->post_proc_func);
+				zeek::reporter->Warning("failed log postprocessor function lookup: %s\n",
+				                        winfo->info->post_proc_func);
 			}
 		}
 
@@ -1484,7 +1485,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 		timer_mgr->Add(winfo->rotation_timer);
 
 		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
-			winfo->writer->Name(), winfo->rotation_timer->Time());
+		        winfo->writer->Name(), winfo->rotation_timer->Time());
 		}
 	}
 
@@ -1523,10 +1524,10 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 
 		if ( ! streq(dir, "") && ! ensure_intermediate_dirs(dir) )
 			{
-			reporter->Error("Failed to create dir '%s' returned by "
-			                "Log::rotation_format_func for path %.*s: %s",
-			                dir, static_cast<int>(path.size()), path.data(),
-			                strerror(errno));
+			zeek::reporter->Error("Failed to create dir '%s' returned by "
+			                      "Log::rotation_format_func for path %.*s: %s",
+			                      dir, static_cast<int>(path.size()), path.data(),
+			                      strerror(errno));
 			dir = "";
 			}
 
@@ -1536,14 +1537,14 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 			rval = fmt("%s/%s", dir, prefix);
 
 		}
-	catch ( InterpreterException& e )
+	catch ( zeek::InterpreterException& e )
 		{
 		auto rot_str = format_rotation_time_fallback((time_t)open);
 		rval = fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
 		           rot_str.data());
-		reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
-		                "continuing with rotation to: ./%s",
-		                static_cast<int>(path.size()), path.data(), rval.data());
+		zeek::reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
+		                      "continuing with rotation to: ./%s",
+		                      static_cast<int>(path.size()), path.data(), rval.data());
 		}
 
 	return rval;

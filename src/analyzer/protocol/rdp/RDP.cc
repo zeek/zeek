@@ -60,9 +60,9 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! AddChildAnalyzer(pia) )
 					{
-					reporter->AnalyzerError(this,
-					                        "failed to add TCP child analyzer "
-					                        "to RDP analyzer: already exists");
+					zeek::reporter->AnalyzerError(this,
+					                              "failed to add TCP child analyzer "
+					                              "to RDP analyzer: already exists");
 					return;
 					}
 

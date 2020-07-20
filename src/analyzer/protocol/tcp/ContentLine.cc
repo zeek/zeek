@@ -111,8 +111,8 @@ void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	{
 	if ( length < 0 )
 		{
-		reporter->AnalyzerError(this,
-		                                "negative length for plain delivery");
+		zeek::reporter->AnalyzerError(
+			this, "negative length for plain delivery");
 		return;
 		}
 

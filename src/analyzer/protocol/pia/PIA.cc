@@ -181,7 +181,7 @@ void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 
 void PIA_UDP::DeactivateAnalyzer(zeek::analyzer::Tag tag)
 	{
-	reporter->InternalError("PIA_UDP::Deact not implemented yet");
+	zeek::reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
 
 //// TCP PIA
@@ -420,7 +420,7 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 
 void PIA_TCP::DeactivateAnalyzer(zeek::analyzer::Tag tag)
 	{
-	reporter->InternalError("PIA_TCP::Deact not implemented yet");
+	zeek::reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}
 
 void PIA_TCP::ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer)

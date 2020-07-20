@@ -650,7 +650,7 @@ void Dictionary::StartChangeSize(int new_size)
 		return;
 
 	if ( tbl2 )
-		reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
+		zeek::reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
 
 	Init2(new_size);
 
@@ -697,7 +697,7 @@ void Dictionary::FinishChangeSize()
 	{
 	// Cheap safety check.
 	if ( num_entries != 0 )
-		reporter->InternalError(
+		zeek::reporter->InternalError(
 		    "Dictionary::FinishChangeSize: num_entries is %d\n",
 		    num_entries);
 

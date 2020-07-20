@@ -175,13 +175,13 @@ refine connection SOCKS_Conn += {
 
 	function socks5_unsupported_authentication_method(auth_method: uint8): bool
 		%{
-		reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", fmt("%d", auth_method));
+		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", fmt("%d", auth_method));
 		return true;
 		%}
 
 	function socks5_unsupported_authentication_version(auth_method: uint8, version: uint8): bool
 		%{
-		reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", fmt("method %d, version %d", auth_method, version));
+		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", fmt("method %d, version %d", auth_method, version));
 		return true;
 		%}
 

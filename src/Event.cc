@@ -52,14 +52,14 @@ void Event::Dispatch(bool no_remote)
 		no_remote = true;
 
 	if ( handler->ErrorHandler() )
-		reporter->BeginErrorHandler();
+		zeek::reporter->BeginErrorHandler();
 
 	try
 		{
 		handler->Call(&args, no_remote);
 		}
 
-	catch ( InterpreterException& e )
+	catch ( zeek::InterpreterException& e )
 		{
 		// Already reported.
 		}
@@ -69,7 +69,7 @@ void Event::Dispatch(bool no_remote)
 		Unref(obj);
 
 	if ( handler->ErrorHandler() )
-		reporter->EndErrorHandler();
+		zeek::reporter->EndErrorHandler();
 	}
 
 EventMgr::EventMgr()
@@ -242,5 +242,5 @@ void EventMgr::InitPostScript()
 	{
 	iosource_mgr->Register(this, true, false);
 	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
-		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
+		zeek::reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}

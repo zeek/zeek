@@ -205,8 +205,8 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			reporter->AnalyzerError(analyzer,
-			  "missing MIME_Message::Done() call");
+			zeek::reporter->AnalyzerError(analyzer,
+			                              "missing MIME_Message::Done() call");
 		}
 
 	virtual void Done()	{ finished = true; }

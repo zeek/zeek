@@ -174,7 +174,7 @@ bool SubstringCmp::operator()(const Substring* bst1,
 	if ( _index >= bst1->GetNumAlignments() ||
 	     _index >= bst2->GetNumAlignments() )
 		{
-		reporter->Warning("SubstringCmp::operator(): invalid index for input strings.\n");
+		zeek::reporter->Warning("SubstringCmp::operator(): invalid index for input strings.\n");
 		return false;
 		}
 

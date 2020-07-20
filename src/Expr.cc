@@ -244,7 +244,7 @@ void Expr::ExprError(const char msg[])
 
 void Expr::RuntimeError(const std::string& msg) const
 	{
-	reporter->ExprRuntimeError(this, "%s", msg.data());
+	zeek::reporter->ExprRuntimeError(this, "%s", msg.data());
 	}
 
 void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
@@ -252,14 +252,14 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 	auto rcs = render_call_stack();
 
 	if ( rcs.empty() )
-		reporter->ExprRuntimeError(this, "%s", msg.data());
+		zeek::reporter->ExprRuntimeError(this, "%s", msg.data());
 	else
 		{
 		ODesc d;
 		d.SetShort();
 		Describe(&d);
-		reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s",
-		                       msg.data(), d.Description(), rcs.data());
+		zeek::reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s",
+		                             msg.data(), d.Description(), rcs.data());
 		}
 	}
 
@@ -803,7 +803,7 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 		auto rval = v1->Clone();
 
 		if ( ! tv2->AddTo(rval.get(), false, false) )
-			reporter->InternalError("set union failed to type check");
+			zeek::reporter->InternalError("set union failed to type check");
 
 		return rval;
 		}
@@ -813,7 +813,7 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 		auto rval = v1->Clone();
 
 		if ( ! tv2->RemoveFrom(rval.get()) )
-			reporter->InternalError("set difference failed to type check");
+			zeek::reporter->InternalError("set difference failed to type check");
 
 		return rval;
 		}
@@ -837,7 +837,7 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 	case EXPR_GE:
 	case EXPR_GT:
 		// These should't happen due to canonicalization.
-		reporter->InternalError("confusion over canonicalization in set comparison");
+		zeek::reporter->InternalError("confusion over canonicalization in set comparison");
 		break;
 
 	default:
@@ -916,7 +916,7 @@ void BinaryExpr::PromoteOps(TypeTag t)
 		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
 	if ( (is_vec1 || is_vec2) && ! (is_vec1 && is_vec2) )
-		reporter->Warning("mixing vector and scalar operands is deprecated");
+		zeek::reporter->Warning("mixing vector and scalar operands is deprecated");
 
 	if ( bt1 != t )
 		op1 = zeek::make_intrusive<ArithCoerceExpr>(op1, t);
@@ -973,7 +973,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, ExprPtr arg_op)
 			ExprError("vector elements must be integral for increment operator");
 		else
 			{
-			reporter->Warning("increment/decrement operations for vectors deprecated");
+			zeek::reporter->Warning("increment/decrement operations for vectors deprecated");
 			SetType(t);
 			}
 		}
@@ -1541,7 +1541,7 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		if ( is_vector(op1) || is_vector(op2) )
 			{
 			if ( ! (is_vector(op1) && is_vector(op2)) )
-				reporter->Warning("mixing vector and scalar operands is deprecated");
+				zeek::reporter->Warning("mixing vector and scalar operands is deprecated");
 			SetType(zeek::make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_BOOL)));
 			}
 		else
@@ -2224,12 +2224,12 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 					attr_copy = std::make_unique<std::vector<AttrPtr>>(a);
 					}
 
-				int errors_before = reporter->Errors();
+				int errors_before = zeek::reporter->Errors();
 				op2 = zeek::make_intrusive<SetConstructorExpr>(
 					IntrusivePtr{zeek::NewRef{}, ctor_list},
 					std::move(attr_copy),
 					op1->GetType());
-				int errors_after = reporter->Errors();
+				int errors_after = zeek::reporter->Errors();
 
 				if ( errors_after > errors_before )
 					{
@@ -2898,7 +2898,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 			td = rt->FieldDecl(field);
 
 			if ( rt->IsFieldDeprecated(field) )
-				reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, false).c_str());
+				zeek::reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, false).c_str());
 			}
 		}
 	}
@@ -2984,7 +2984,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else if ( rt->IsFieldDeprecated(field) )
-			reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
+			zeek::reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
 
 		SetType(base_type(zeek::TYPE_BOOL));
 		}
@@ -3451,8 +3451,8 @@ void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f
 		int idx = rt->FieldOffset(field_name.c_str());
 
 		if ( idx < 0 )
-			reporter->InternalError("Missing record field: %s",
-			                        field_name.c_str());
+			zeek::reporter->InternalError("Missing record field: %s",
+			                              field_name.c_str());
 
 		rec->Assign(idx, std::move(v));
 		}
@@ -3657,7 +3657,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, zeek::RecordTypePtr r)
 					}
 				}
 			else if ( t_r->IsFieldDeprecated(i) )
-				reporter->Warning("%s", t_r->GetFieldDeprecationWarning(i, false).c_str());
+				zeek::reporter->Warning("%s", t_r->GetFieldDeprecationWarning(i, false).c_str());
 			}
 		}
 	}

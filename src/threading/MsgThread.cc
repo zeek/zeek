@@ -140,7 +140,7 @@ public:
 		bool success = thread_mgr->SendEvent(Object(), name, num_vals, val);
 
 		if ( ! success )
-			reporter->Error("SendEvent for event %s failed", name);
+			zeek::reporter->Error("SendEvent for event %s failed", name);
 
 		return true; // We do not want to die if sendEvent fails because the event did not return.
 		}
@@ -163,35 +163,35 @@ bool ReporterMessage::Process()
 	switch ( type ) {
 
 	case INFO:
-		reporter->Info("%s: %s", Object()->Name(), msg);
+		zeek::reporter->Info("%s: %s", Object()->Name(), msg);
 		break;
 
 	case WARNING:
-		reporter->Warning("%s: %s", Object()->Name(), msg);
+		zeek::reporter->Warning("%s: %s", Object()->Name(), msg);
 		break;
 
 	case ERROR:
-		reporter->Error("%s: %s", Object()->Name(), msg);
+		zeek::reporter->Error("%s: %s", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR:
-		reporter->FatalError("%s: %s", Object()->Name(), msg);
+		zeek::reporter->FatalError("%s: %s", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR_WITH_CORE:
-		reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
+		zeek::reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_WARNING:
-		reporter->InternalWarning("%s: %s", Object()->Name(), msg);
+		zeek::reporter->InternalWarning("%s: %s", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_ERROR :
-		reporter->InternalError("%s: %s", Object()->Name(), msg);
+		zeek::reporter->InternalError("%s: %s", Object()->Name(), msg);
 		break;
 
 	default:
-		reporter->InternalError("unknown ReporterMessage type %d", type);
+		zeek::reporter->InternalError("unknown ReporterMessage type %d", type);
 	}
 
 	return true;
@@ -207,7 +207,7 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullp
 	thread_mgr->AddMsgThread(this);
 
 	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
-		reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
+		zeek::reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
 
 	SetClosed(false);
 	}
@@ -276,7 +276,7 @@ void MsgThread::OnWaitForStop()
 			assert ( msg );
 
 			if ( ! msg->Process() )
-				reporter->Error("%s failed during thread termination", msg->Name());
+				zeek::reporter->Error("%s failed during thread termination", msg->Name());
 
 			delete msg;
 			}
@@ -476,7 +476,7 @@ void MsgThread::Process()
 
 		if ( ! msg->Process() )
 			{
-			reporter->Error("%s failed, terminating thread", msg->Name());
+			zeek::reporter->Error("%s failed, terminating thread", msg->Name());
 			SignalStop();
 			}
 

@@ -129,8 +129,8 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state != LOGIN_STATE_CONFUSED )
 		{
-		reporter->AnalyzerError(this,
-		                                "bad state in Login_Analyzer::NewLine");
+		zeek::reporter->AnalyzerError(
+			this, "bad state in Login_Analyzer::NewLine");
 		return;
 		}
 
@@ -572,8 +572,8 @@ char* Login_Analyzer::PeekUserText()
 	{
 	if ( num_user_text <= 0 )
 		{
-		reporter->AnalyzerError(this,
-		  "underflow in Login_Analyzer::PeekUserText()");
+		zeek::reporter->AnalyzerError(
+			this, "underflow in Login_Analyzer::PeekUserText()");
 		return nullptr;
 		}
 

@@ -135,7 +135,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 
 	if ( parse_status )
 		{
-		reporter->Error("error compiling pattern /%s/", pattern_text);
+		zeek::reporter->Error("error compiling pattern /%s/", pattern_text);
 		Unref(nfa);
 		nfa = nullptr;
 		return false;
@@ -157,7 +157,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
 	if ( (size_t)set.length() != idx.size() )
-		reporter->InternalError("compileset: lengths of sets differ");
+		zeek::reporter->InternalError("compileset: lengths of sets differ");
 
 	rem = this;
 
@@ -171,7 +171,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 
 		if ( parse_status )
 			{
-			reporter->Error("error compiling pattern /%s/", set[i]);
+			zeek::reporter->Error("error compiling pattern /%s/", set[i]);
 
 			if ( set_nfa && set_nfa != nfa )
 				Unref(set_nfa);

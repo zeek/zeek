@@ -315,20 +315,20 @@ void terminate_bro()
 	delete iosource_mgr;
 	delete event_registry;
 	delete log_mgr;
-	delete reporter;
+	delete zeek::reporter;
 	delete zeek::plugin_mgr;
 	delete zeek::val_mgr;
 
 	// free the global scope
 	zeek::detail::pop_scope();
 
-	reporter = nullptr;
+	zeek::reporter = nullptr;
 	}
 
 void zeek_terminate_loop(const char* reason)
 	{
 	set_processing_status("TERMINATING", reason);
-	reporter->Info("%s", reason);
+	zeek::reporter->Info("%s", reason);
 
 	net_get_final_stats();
 	done_with_network();
@@ -522,7 +522,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
-		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
+		zeek::reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
 #ifdef USE_IDMEF
 	char* libidmef_dtd_path_cstr = new char[options.libidmef_dtd_file.size() + 1];
@@ -596,7 +596,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		}
 
 	if ( missing_plugin )
-		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
+		zeek::reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
 	zeek::plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
@@ -648,7 +648,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	zeek::plugin_mgr->InitBifs();
 
-	if ( reporter->Errors() > 0 )
+	if ( zeek::reporter->Errors() > 0 )
 		exit(1);
 
 	iosource_mgr->InitPostScript();
@@ -674,7 +674,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( options.parse_only )
 		{
-		int rc = (reporter->Errors() > 0 ? 1 : 0);
+		int rc = (zeek::reporter->Errors() > 0 ? 1 : 0);
 		exit(rc);
 		}
 
@@ -682,13 +682,13 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	}
 #endif
 
-	if ( reporter->Errors() > 0 )
+	if ( zeek::reporter->Errors() > 0 )
 		{
 		delete zeek::detail::dns_mgr;
 		exit(1);
 		}
 
-	reporter->InitOptions();
+	zeek::reporter->InitOptions();
 	KeyedHash::InitOptions();
 	zeekygen_mgr->GenerateDocs();
 
@@ -697,7 +697,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		const auto& id = global_scope()->Find("cmd_line_bpf_filter");
 
 		if ( ! id )
-			reporter->InternalError("global cmd_line_bpf_filter not defined");
+			zeek::reporter->InternalError("global cmd_line_bpf_filter not defined");
 
 		id->SetVal(zeek::make_intrusive<zeek::StringVal>(*options.pcap_filter));
 		}
@@ -766,7 +766,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		zeek::detail::dns_mgr->Resolve();
 
 		if ( ! zeek::detail::dns_mgr->Save() )
-			reporter->FatalError("can't update DNS cache");
+			zeek::reporter->FatalError("can't update DNS cache");
 
 		mgr.Drain();
 		delete zeek::detail::dns_mgr;
@@ -778,7 +778,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		{
 		const auto& id = global_scope()->Find(*options.identifier_to_print);
 		if ( ! id )
-			reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
+			zeek::reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
 
 		ODesc desc;
 		desc.SetQuotes(true);
@@ -813,7 +813,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
 		{
 		for ( const string& handler : dead_handlers )
-			reporter->Warning("event handler never invoked: %s", handler.c_str());
+			zeek::reporter->Warning("event handler never invoked: %s", handler.c_str());
 		}
 
 	// Enable LeakSanitizer before zeek_init() and even before executing
@@ -835,7 +835,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 			}
 		catch ( InterpreterException& )
 			{
-			reporter->FatalError("failed to execute script statements at top-level scope");
+			zeek::reporter->FatalError("failed to execute script statements at top-level scope");
 			}
 
 		g_frame_stack.pop_back();
@@ -858,16 +858,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 			}
 		}
 
-	reporter->ReportViaEvents(true);
+	zeek::reporter->ReportViaEvents(true);
 
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
 
-	if ( reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
-		reporter->FatalError("errors occurred while initializing");
+	if ( zeek::reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
+		zeek::reporter->FatalError("errors occurred while initializing");
 
 	broker_mgr->ZeekInitDone();
-	reporter->ZeekInitDone();
+	zeek::reporter->ZeekInitDone();
 	zeek::analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;

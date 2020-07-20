@@ -440,11 +440,11 @@ void DNS_Mgr::InitSource()
 	if ( nb_dns )
 		{
 		if ( ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
-			reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
+			zeek::reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
 		}
 	else
 		{
-		reporter->Warning("problem initializing NB-DNS: %s", err);
+		zeek::reporter->Warning("problem initializing NB-DNS: %s", err);
 		}
 
 	did_init = true;
@@ -508,7 +508,7 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 
 			if ( (d4 && d4->Failed()) || (d6 && d6->Failed()) )
 				{
-				reporter->Warning("no such host: %s", name);
+				zeek::reporter->Warning("no such host: %s", name);
 				return empty_addr_set();
 				}
 			else if ( d4 && d6 )
@@ -529,7 +529,7 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 		return empty_addr_set();
 
 	case DNS_FORCE:
-		reporter->FatalError("can't find DNS entry for %s in cache", name);
+		zeek::reporter->FatalError("can't find DNS entry for %s in cache", name);
 		return nullptr;
 
 	case DNS_DEFAULT:
@@ -539,7 +539,7 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 		return LookupHost(name);
 
 	default:
-		reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
+		zeek::reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
 		return nullptr;
 	}
 	}
@@ -560,7 +560,7 @@ zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 			else
 				{
 				string s(addr);
-				reporter->Warning("can't resolve IP address: %s", s.c_str());
+				zeek::reporter->Warning("can't resolve IP address: %s", s.c_str());
 				return zeek::make_intrusive<zeek::StringVal>(s.c_str());
 				}
 			}
@@ -573,7 +573,7 @@ zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 		return zeek::make_intrusive<zeek::StringVal>("<none>");
 
 	case DNS_FORCE:
-		reporter->FatalError("can't find DNS entry for %s in cache",
+		zeek::reporter->FatalError("can't find DNS entry for %s in cache",
 		    addr.AsString().c_str());
 		return nullptr;
 
@@ -583,7 +583,7 @@ zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 		return LookupAddr(addr);
 
 	default:
-		reporter->InternalError("bad mode in DNS_Mgr::LookupAddr");
+		zeek::reporter->InternalError("bad mode in DNS_Mgr::LookupAddr");
 		return nullptr;
 	}
 	}
@@ -644,7 +644,7 @@ void DNS_Mgr::Resolve()
 		struct nb_dns_result r;
 		status = nb_dns_activity(nb_dns, &r, err);
 		if ( status < 0 )
-			reporter->Warning(
+			zeek::reporter->Warning(
 			    "NB-DNS error in DNS_Mgr::WaitForReplies (%s)",
 			    err);
 		else if ( status > 0 )
@@ -861,7 +861,7 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 
 	if ( ! prev_a || ! new_a )
 		{
-		reporter->InternalWarning("confused in DNS_Mgr::CompareMappings");
+		zeek::reporter->InternalWarning("confused in DNS_Mgr::CompareMappings");
 		return;
 		}
 
@@ -932,7 +932,7 @@ void DNS_Mgr::LoadCache(FILE* f)
 		}
 
 	if ( ! m->NoMapping() )
-		reporter->FatalError("DNS cache corrupted");
+		zeek::reporter->FatalError("DNS cache corrupted");
 
 	delete m;
 	fclose(f);
@@ -1167,7 +1167,7 @@ static bool DoRequest(nb_dns_info* nb_dns, DNS_Mgr_Request* dr)
 		// dr stored in nb_dns cookie and deleted later when results available.
 		return true;
 
-	reporter->Warning("can't issue DNS request");
+	zeek::reporter->Warning("can't issue DNS request");
 	delete dr;
 	return false;
 	}
@@ -1376,7 +1376,7 @@ void DNS_Mgr::Process()
 	int status = nb_dns_activity(nb_dns, &r, err);
 
 	if ( status < 0 )
-		reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
+		zeek::reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
 
 	else if ( status > 0 )
 		{
@@ -1416,7 +1416,7 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	int fd = nb_dns_fd(nb_dns);
 	if ( fd < 0 )
 		{
-		reporter->Warning("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		zeek::reporter->Warning("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
 		return -1;
 		}
 
@@ -1434,14 +1434,14 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	if ( status < 0 )
 		{
 		if ( errno != EINTR )
-			reporter->Warning("problem with DNS select");
+			zeek::reporter->Warning("problem with DNS select");
 
 		return -1;
 		}
 
 	if ( status > 1 )
 		{
-		reporter->Warning("strange return from DNS select");
+		zeek::reporter->Warning("strange return from DNS select");
 		return -1;
 		}
 

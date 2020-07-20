@@ -798,8 +798,8 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		reporter->AnalyzerError(MyHTTP_Analyzer(),
-		                                "unrecognized HTTP message event");
+		zeek::reporter->AnalyzerError(MyHTTP_Analyzer(),
+		                              "unrecognized HTTP message event");
 		return;
 	}
 
@@ -1238,7 +1238,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		{
-		reporter->AnalyzerError(this, "HTTP ParseRequest failed");
+		zeek::reporter->AnalyzerError(this, "HTTP ParseRequest failed");
 		return -1;
 		}
 
@@ -1251,11 +1251,11 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	return 1;
 
 bad_http_request_with_version:
-	reporter->Weird(Conn(), "bad_HTTP_request_with_version");
+	zeek::reporter->Weird(Conn(), "bad_HTTP_request_with_version");
 	return 0;
 
 error:
-	reporter->Weird(Conn(), "bad_HTTP_request");
+	zeek::reporter->Weird(Conn(), "bad_HTTP_request");
 	return 0;
 	}
 

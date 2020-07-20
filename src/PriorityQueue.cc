@@ -49,7 +49,7 @@ PQ_Element* PriorityQueue::Remove(PQ_Element* e)
 	PQ_Element* e2 = Remove();
 
 	if ( e != e2 )
-		reporter->InternalError("inconsistency in PriorityQueue::Remove");
+		zeek::reporter->InternalError("inconsistency in PriorityQueue::Remove");
 
 	return e2;
 	}

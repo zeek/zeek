@@ -235,14 +235,14 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, 
 
 	if ( *len < 0 )
 		{
-		reporter->AnalyzerError(analyzer, "dnp3 negative input length: %d", *len);
+		zeek::reporter->AnalyzerError(analyzer, "dnp3 negative input length: %d", *len);
 		return -1;
 		}
 
 	if ( target_len < endp->buffer_len )
 		{
-		reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d",
-		                        target_len, endp->buffer_len);
+		zeek::reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d",
+		                              target_len, endp->buffer_len);
 		return -1;
 		}
 
@@ -250,8 +250,8 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, 
 
 	if ( endp->buffer_len + to_copy > MAX_BUFFER_SIZE )
 		{
-		reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d",
-		                        endp->buffer_len, to_copy);
+		zeek::reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d",
+		                              endp->buffer_len, to_copy);
 		return -1;
 		}
 
@@ -296,9 +296,9 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 
 		if ( data + n >= endp->buffer + endp->buffer_len )
 			{
-			reporter->AnalyzerError(analyzer,
-			                        "dnp3 app layer parsing overflow %d - %d",
-			                        endp->buffer_len, n);
+			zeek::reporter->AnalyzerError(analyzer,
+			                              "dnp3 app layer parsing overflow %d - %d",
+			                              endp->buffer_len, n);
 			return false;
 			}
 

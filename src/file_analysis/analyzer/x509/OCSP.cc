@@ -79,7 +79,7 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 
 	if ( ! res )
 		{
-		reporter->Weird("OpenSSL failed to get OCSP_CERTID info");
+		zeek::reporter->Weird("OpenSSL failed to get OCSP_CERTID info");
 		vl->emplace_back(zeek::val_mgr->EmptyString());
 		vl->emplace_back(zeek::val_mgr->EmptyString());
 		vl->emplace_back(zeek::val_mgr->EmptyString());
@@ -154,7 +154,7 @@ bool file_analysis::OCSP::EndOfFile()
 
 		if (!req)
 			{
-			reporter->Weird(GetFile(), "openssl_ocsp_request_parse_error");
+			zeek::reporter->Weird(GetFile(), "openssl_ocsp_request_parse_error");
 			return false;
 			}
 
@@ -167,7 +167,7 @@ bool file_analysis::OCSP::EndOfFile()
 
 		if (!resp)
 			{
-			reporter->Weird(GetFile(), "openssl_ocsp_response_parse_error");
+			zeek::reporter->Weird(GetFile(), "openssl_ocsp_response_parse_error");
 			return false;
 			}
 
@@ -506,7 +506,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 		}
 	else
 		{
-		reporter->Weird("OpenSSL failed to get OCSP responder id");
+		zeek::reporter->Weird("OpenSSL failed to get OCSP responder id");
 		vl.emplace_back(zeek::val_mgr->EmptyString());
 		}
 
@@ -517,7 +517,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
 #endif
 
-	vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(produced_at, GetFile(), reporter)));
+	vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(produced_at, GetFile(), zeek::reporter)));
 
 	// responses
 
@@ -557,7 +557,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 		                             const_cast<OCSP_CERTID*>(cert_id),
 		                             &status, &reason, &revoke_time,
 		                             &this_update, &next_update) )
-			reporter->Weird("OpenSSL failed to find status of OCSP response");
+			zeek::reporter->Weird("OpenSSL failed to find status of OCSP response");
 
 		const char* cert_status_str = OCSP_cert_status_str(status);
 		rvl.emplace_back(zeek::make_intrusive<zeek::StringVal>(strlen(cert_status_str), cert_status_str));
@@ -565,7 +565,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 		// revocation time and reason if revoked
 		if ( status == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(revoke_time, GetFile(), reporter)));
+			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(revoke_time, GetFile(), zeek::reporter)));
 
 			if ( reason != OCSP_REVOKED_STATUS_NOSTATUS )
 				{
@@ -582,12 +582,12 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			}
 
 		if ( this_update )
-			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(this_update, GetFile(), reporter)));
+			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(this_update, GetFile(), zeek::reporter)));
 		else
 			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(0.0));
 
 		if ( next_update )
-			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(next_update, GetFile(), reporter)));
+			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(next_update, GetFile(), zeek::reporter)));
 		else
 			rvl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(0.0));
 
@@ -638,7 +638,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			if (this_cert)
 				certs_vector->Assign(i, zeek::make_intrusive<file_analysis::X509Val>(this_cert));
 			else
-				reporter->Weird("OpenSSL returned null certificate");
+				zeek::reporter->Weird("OpenSSL returned null certificate");
 			}
 	  }
 

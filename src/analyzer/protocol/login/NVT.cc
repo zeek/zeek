@@ -44,8 +44,8 @@ void TelnetOption::RecvOption(unsigned int type)
 
 	if ( ! peer )
 		{
-		reporter->AnalyzerError(endp,
-		  "option peer missing in TelnetOption::RecvOption");
+		zeek::reporter->AnalyzerError(
+			endp, "option peer missing in TelnetOption::RecvOption");
 		return;
 		}
 
@@ -92,8 +92,8 @@ void TelnetOption::RecvOption(unsigned int type)
 		break;
 
 	default:
-		reporter->AnalyzerError(endp,
-		  "bad option type in TelnetOption::RecvOption");
+		zeek::reporter->AnalyzerError(
+			endp, "bad option type in TelnetOption::RecvOption");
 		return;
 	}
 	}
@@ -175,8 +175,8 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 
 		if ( ! peer )
 			{
-			reporter->AnalyzerError(endp,
-			  "option peer missing in TelnetEncryptOption::RecvSubOption");
+			zeek::reporter->AnalyzerError(
+				endp, "option peer missing in TelnetEncryptOption::RecvSubOption");
 			return;
 			}
 
@@ -215,8 +215,8 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 
 		if ( ! peer )
 			{
-			reporter->AnalyzerError(endp,
-			  "option peer missing in TelnetAuthenticateOption::RecvSubOption");
+			zeek::reporter->AnalyzerError(
+				endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
 			return;
 			}
 

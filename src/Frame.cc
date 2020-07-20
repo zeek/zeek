@@ -245,7 +245,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, ScriptFunc* func) const
 			}
 
 		if ( ! frame[id->Offset()].val )
-			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
+			zeek::reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
 		CloneNonFuncElement(id->Offset(), func, other);
 		}
@@ -308,7 +308,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 	if ( them.length() )
 		{
 		if ( ! target->closure )
-			reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
+			zeek::reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
 
 		rval.emplace_back(std::string("ClosureFrame"));
 
@@ -502,7 +502,7 @@ void Frame::AddKnownOffsets(const id_list& ids)
 void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	{
 	if ( closure || outer_ids.length() )
-		reporter->InternalError("Attempted to override a closure.");
+		zeek::reporter->InternalError("Attempted to override a closure.");
 
 	outer_ids = std::move(arg_outer_ids);
 

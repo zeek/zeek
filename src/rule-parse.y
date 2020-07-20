@@ -207,7 +207,7 @@ rule_attr:
 	|	TOK_PATTERN_TYPE '[' rangeopt ']' pattern
 			{
 			if ( $3.offset > 0 )
-				reporter->Warning("Offsets are currently ignored for patterns");
+				zeek::reporter->Warning("Offsets are currently ignored for patterns");
 			current_rule->AddPattern($5, $1, 0, $3.len);
 			}
 
@@ -428,23 +428,23 @@ pattern:
 
 void rules_error(const char* msg)
 	{
-	reporter->Error("Error in signature (%s:%d): %s\n",
-	                current_rule_file, rules_line_number+1, msg);
+	zeek::reporter->Error("Error in signature (%s:%d): %s\n",
+	                      current_rule_file, rules_line_number+1, msg);
 	zeek::detail::rule_matcher->SetParseError();
 	}
 
 void rules_error(const char* msg, const char* addl)
 	{
-	reporter->Error("Error in signature (%s:%d): %s (%s)\n",
-	                current_rule_file, rules_line_number+1, msg, addl);
+	zeek::reporter->Error("Error in signature (%s:%d): %s (%s)\n",
+	                      current_rule_file, rules_line_number+1, msg, addl);
 	zeek::detail::rule_matcher->SetParseError();
 	}
 
 void rules_error(zeek::detail::Rule* r, const char* msg)
 	{
 	const zeek::detail::Location& l = r->GetLocation();
-	reporter->Error("Error in signature %s (%s:%d): %s\n",
-	                r->ID(), l.filename, l.first_line, msg);
+	zeek::reporter->Error("Error in signature %s (%s:%d): %s\n",
+	                      r->ID(), l.filename, l.first_line, msg);
 	zeek::detail::rule_matcher->SetParseError();
 	}
 

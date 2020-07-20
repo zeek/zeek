@@ -33,7 +33,7 @@ public:
 	void Weird(const char* name, bool force = false) const
 		{
 		if ( ProtocolConfirmed() || force )
-			reporter->Weird(Conn(), name);
+			zeek::reporter->Weird(Conn(), name);
 		}
 
 	/**

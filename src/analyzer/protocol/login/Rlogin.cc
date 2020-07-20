@@ -194,8 +194,8 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "bad state in Contents_Rlogin_Analyzer::DoDeliver");
+			zeek::reporter->AnalyzerError(
+				this, "bad state in Contents_Rlogin_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -227,7 +227,7 @@ void Rlogin_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
 		{
-		reporter->AnalyzerError(this, "multiple rlogin client names");
+		zeek::reporter->AnalyzerError(this, "multiple rlogin client names");
 		return;
 		}
 

@@ -128,7 +128,7 @@ void PQ_TimerMgr::Add(Timer* timer)
 	// multiple already-added timers are added, they'll still
 	// execute in sorted order.
 	if ( ! q->Add(timer) )
-		reporter->InternalError("out of memory");
+		zeek::reporter->InternalError("out of memory");
 
 	++current_timers[timer->Type()];
 	}
@@ -174,7 +174,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 void PQ_TimerMgr::Remove(Timer* timer)
 	{
 	if ( ! q->Remove(timer) )
-		reporter->InternalError("asked to remove a missing timer");
+		zeek::reporter->InternalError("asked to remove a missing timer");
 
 	--current_timers[timer->Type()];
 	delete timer;

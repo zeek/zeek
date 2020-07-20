@@ -201,7 +201,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			}
 
 		default:
-			reporter->Warning("Unhandled type in JSON::BuildJSON");
+			zeek::reporter->Warning("Unhandled type in JSON::BuildJSON");
 			break;
 		}
 	}

@@ -67,8 +67,8 @@ void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only, const detai
 	{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
-	reporter->Warning("%s", d.Description());
-	reporter->PopLocation();
+	zeek::reporter->Warning("%s", d.Description());
+	zeek::reporter->PopLocation();
 	}
 
 void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
@@ -78,8 +78,8 @@ void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only, const deta
 
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
-	reporter->Error("%s", d.Description());
-	reporter->PopLocation();
+	zeek::reporter->Error("%s", d.Description());
+	zeek::reporter->PopLocation();
 	}
 
 void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
@@ -95,8 +95,8 @@ void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
 
 	ODesc d;
 	DoMsg(&d, out);
-	reporter->FatalErrorWithCore("%s", d.Description());
-	reporter->PopLocation();
+	zeek::reporter->FatalErrorWithCore("%s", d.Description());
+	zeek::reporter->PopLocation();
 	}
 
 void Obj::Internal(const char* msg) const
@@ -106,19 +106,19 @@ void Obj::Internal(const char* msg) const
 	auto rcs = zeek::render_call_stack();
 
 	if ( rcs.empty() )
-		reporter->InternalError("%s", d.Description());
+		zeek::reporter->InternalError("%s", d.Description());
 	else
-		reporter->InternalError("%s, call stack: %s", d.Description(), rcs.data());
+		zeek::reporter->InternalError("%s, call stack: %s", d.Description(), rcs.data());
 
-	reporter->PopLocation();
+	zeek::reporter->PopLocation();
 	}
 
 void Obj::InternalWarning(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
-	reporter->InternalWarning("%s", d.Description());
-	reporter->PopLocation();
+	zeek::reporter->InternalWarning("%s", d.Description());
+	zeek::reporter->PopLocation();
 	}
 
 void Obj::AddLocation(ODesc* d) const
@@ -177,7 +177,7 @@ void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2,
 	else if ( expr_location )
 		loc2 = expr_location;
 
-	reporter->PushLocation(GetLocationInfo(), loc2);
+	zeek::reporter->PushLocation(GetLocationInfo(), loc2);
 	}
 
 void Obj::PinPoint(ODesc* d, const Obj* obj2, bool pinpoint_only) const
@@ -203,7 +203,7 @@ void Obj::Print() const
 
 void bad_ref(int type)
 	{
-	reporter->InternalError("bad reference count [%d]", type);
+	zeek::reporter->InternalError("bad reference count [%d]", type);
 	abort();
 	}
 

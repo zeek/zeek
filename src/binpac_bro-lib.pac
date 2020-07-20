@@ -15,7 +15,7 @@ zeek::StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
 
 	if ( utf8size > resultstring.max_size() )
 		{
-		reporter->Weird(conn, "utf16_conversion_failed", "utf16 too long in utf16_to_utf8_val");
+		zeek::reporter->Weird(conn, "utf16_conversion_failed", "utf16 too long in utf16_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
 		return to_stringval(utf16);
 		}
@@ -43,7 +43,7 @@ zeek::StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
 	                                          lenientConversion);
 	if ( res != conversionOK )
 		{
-		reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_to_utf8_val");
+		zeek::reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
 		return to_stringval(utf16);
 		}

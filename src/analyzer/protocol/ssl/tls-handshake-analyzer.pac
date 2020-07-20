@@ -323,7 +323,7 @@ refine connection Handshake_Conn += {
 			}
 		else if ( response.length() == 0 )
 			{
-			reporter->Weird(bro_analyzer()->Conn(), "SSL_zero_length_stapled_OCSP_message");
+			zeek::reporter->Weird(bro_analyzer()->Conn(), "SSL_zero_length_stapled_OCSP_message");
 			}
 
 		return true;

@@ -131,8 +131,8 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "bad state in Contents_Rsh_Analyzer::DoDeliver");
+			zeek::reporter->AnalyzerError(
+				this, "bad state in Contents_Rsh_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -205,7 +205,7 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
 		{
-		reporter->AnalyzerError(this, "multiple rsh client names");
+		zeek::reporter->AnalyzerError(this, "multiple rsh client names");
 		return;
 		}
 
@@ -216,8 +216,8 @@ void Rsh_Analyzer::ServerUserName(const char* s)
 	{
 	if ( username )
 		{
-		reporter->AnalyzerError(this,
-		                                "multiple rsh initial client names");
+		zeek::reporter->AnalyzerError(this,
+		                              "multiple rsh initial client names");
 		return;
 		}
 

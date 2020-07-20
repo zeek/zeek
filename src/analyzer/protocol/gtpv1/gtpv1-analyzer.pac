@@ -654,7 +654,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
-			reporter->Weird(c, "tunnel_depth");
+			zeek::reporter->Weird(c, "tunnel_depth");
 			return false;
 			}
 

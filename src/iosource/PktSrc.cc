@@ -120,7 +120,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		// data to read.
 		if ( props.selectable_fd != -1 )
 			if ( ! iosource_mgr->RegisterFd(props.selectable_fd, this) )
-				reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
+				zeek::reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
 		}
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
@@ -148,7 +148,7 @@ void PktSrc::Error(const std::string& msg)
 
 void PktSrc::Info(const std::string& msg)
 	{
-	reporter->Info("%s", msg.c_str());
+	zeek::reporter->Info("%s", msg.c_str());
 	}
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
@@ -158,7 +158,7 @@ void PktSrc::Weird(const std::string& msg, const Packet* p)
 
 void PktSrc::InternalError(const std::string& msg)
 	{
-	reporter->InternalError("%s", msg.c_str());
+	zeek::reporter->InternalError("%s", msg.c_str());
 	}
 
 void PktSrc::ContinueAfterSuspend()

@@ -125,6 +125,7 @@ public:
 
 protected:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void ProcessChunk(int& len, const u_char*& data, bool orig);
 
 	NetbiosSSN_Interpreter* interp;
 

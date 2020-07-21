@@ -35,8 +35,8 @@ using threading::Field;
  * the hash_t value and compare it directly with "=="
  */
 struct InputHash {
-	hash_t valhash;
-	HashKey* idxkey;
+	zeek::detail::hash_t valhash;
+	zeek::detail::HashKey* idxkey;
 	~InputHash();
 };
 
@@ -272,7 +272,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 
 		{
 		// create config mapping in ReaderInfo. Has to be done before the construction of reader_obj.
-		HashKey* k;
+		zeek::detail::HashKey* k;
 		zeek::IterCookie* c = info->config->AsTable()->InitForIteration();
 
 		zeek::TableEntryVal* v;
@@ -1120,7 +1120,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	assert(i->stream_type == TABLE_STREAM);
 	TableStream* stream = (TableStream*) i;
 
-	HashKey* idxhash = HashValues(stream->num_idx_fields, vals);
+	zeek::detail::HashKey* idxhash = HashValues(stream->num_idx_fields, vals);
 
 	if ( idxhash == nullptr )
 		{
@@ -1128,10 +1128,10 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		return stream->num_val_fields + stream->num_idx_fields;
 		}
 
-	hash_t valhash = 0;
+	zeek::detail::hash_t valhash = 0;
 	if ( stream->num_val_fields > 0 )
 		{
-		if ( HashKey* valhashkey = HashValues(stream->num_val_fields, vals+stream->num_idx_fields) )
+		if ( zeek::detail::HashKey* valhashkey = HashValues(stream->num_val_fields, vals+stream->num_idx_fields) )
 			{
 			valhash = valhashkey->Hash();
 			delete(valhashkey);
@@ -1271,7 +1271,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		zeek::reporter->InternalError("could not hash");
 
 	InputHash* ih = new InputHash();
-	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
+	ih->idxkey = new zeek::detail::HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
 	stream->tab->Assign({zeek::AdoptRef{}, idxval}, std::move(k), {zeek::AdoptRef{}, valval});
@@ -1346,7 +1346,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	zeek::IterCookie *c = stream->lastDict->InitForIteration();
 	stream->lastDict->MakeRobustCookie(c);
 	InputHash* ih;
-	HashKey *lastDictIdxKey;
+	zeek::detail::HashKey *lastDictIdxKey;
 
 	while ( ( ih = stream->lastDict->NextEntry(lastDictIdxKey, c) ) )
 		{
@@ -2146,7 +2146,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 	}
 
 // Hash num_elements threading values and return the HashKey for them. At least one of the vals has to be ->present.
-HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) const
+zeek::detail::HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) const
 	{
 	int length = 0;
 
@@ -2181,7 +2181,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) c
 
 		}
 
-	HashKey *key = new HashKey(data, length);
+	auto key = new zeek::detail::HashKey(data, length);
 	delete [] data;
 
 	assert(position == length);

@@ -172,14 +172,14 @@ protected:
 class HashVal : public OpaqueVal {
 public:
 	template <class T>
-	static void digest_all(HashAlgorithm alg, const T& vlist, u_char* result)
+	static void digest_all(zeek::detail::HashAlgorithm alg, const T& vlist, u_char* result)
 		{
-		auto h = hash_init(alg);
+		auto h = zeek::detail::hash_init(alg);
 
 		for ( const auto& v : vlist )
 			digest_one(h, v);
 
-		hash_final(h, result);
+		zeek::detail::hash_final(h, result);
 		}
 
 	bool IsValid() const;
@@ -210,7 +210,7 @@ class MD5Val : public HashVal {
 public:
 	template <class T>
 	static void digest(const T& vlist, u_char result[MD5_DIGEST_LENGTH])
-		{ digest_all(Hash_MD5, vlist, result); }
+		{ digest_all(zeek::detail::Hash_MD5, vlist, result); }
 
 	template <class T>
 	static void hmac(const T& vlist,
@@ -222,7 +222,7 @@ public:
 		for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
 			result[i] ^= key[i];
 
-		internal_md5(result, MD5_DIGEST_LENGTH, result);
+		zeek::detail::internal_md5(result, MD5_DIGEST_LENGTH, result);
 		}
 
 	MD5Val();
@@ -246,7 +246,7 @@ class SHA1Val : public HashVal {
 public:
 	template <class T>
 	static void digest(const T& vlist, u_char result[SHA_DIGEST_LENGTH])
-		{ digest_all(Hash_SHA1, vlist, result); }
+		{ digest_all(zeek::detail::Hash_SHA1, vlist, result); }
 
 	SHA1Val();
 	~SHA1Val();
@@ -269,7 +269,7 @@ class SHA256Val : public HashVal {
 public:
 	template <class T>
 	static void digest(const T& vlist, u_char result[SHA256_DIGEST_LENGTH])
-		{ digest_all(Hash_SHA256, vlist, result); }
+		{ digest_all(zeek::detail::Hash_SHA256, vlist, result); }
 
 	SHA256Val();
 	~SHA256Val();
@@ -336,7 +336,7 @@ private:
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
 	zeek::TypePtr type;
-	CompositeHash* hash;
+	zeek::detail::CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 };
 
@@ -363,7 +363,7 @@ protected:
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
 	zeek::TypePtr type;
-	CompositeHash* hash;
+	zeek::detail::CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
 };
 

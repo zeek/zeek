@@ -75,7 +75,7 @@ void Reporter::InitOptions()
 	auto wl_val = zeek::id::find_val("Weird::sampling_whitelist")->AsTableVal();
 	auto wl_table = wl_val->AsTable();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	zeek::IterCookie* c = wl_table->InitForIteration();
 	zeek::TableEntryVal* v;
 

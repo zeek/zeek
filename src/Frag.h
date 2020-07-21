@@ -11,7 +11,6 @@
 
 #include <sys/types.h> // for u_char
 
-class HashKey;
 class NetSessions;
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 

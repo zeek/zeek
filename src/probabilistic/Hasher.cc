@@ -19,30 +19,30 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	seed_t tmpseed;
-	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
+	EVP_MD_CTX* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 
 	assert(sizeof(tmpseed) == 16);
 
 	static auto global_hash_seed = zeek::id::find_val<zeek::StringVal>("global_hash_seed");
 
 	if ( data )
-		hash_update(ctx, data, size);
+		zeek::detail::hash_update(ctx, data, size);
 
 	else if ( global_hash_seed->Len() > 0 )
-		hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
+		zeek::detail::hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
 
 	else
 		{
 		unsigned int first_seed = initial_seed();
-		hash_update(ctx, &first_seed, sizeof(first_seed));
+		zeek::detail::hash_update(ctx, &first_seed, sizeof(first_seed));
 		}
 
-	hash_final(ctx, buf);
+	zeek::detail::hash_final(ctx, buf);
 	memcpy(&tmpseed, buf, sizeof(tmpseed)); // Use the first bytes as seed.
 	return tmpseed;
 	}
 
-Hasher::digest_vector Hasher::Hash(const HashKey* key) const
+Hasher::digest_vector Hasher::Hash(const zeek::detail::HashKey* key) const
 	{
 	return Hash(key->Key(), key->Size());
 	}

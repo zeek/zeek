@@ -1262,7 +1262,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	auto cluster_table_val = node->GetField("cluster")->AsTableVal();
 	auto cluster_table = cluster_table_val->AsTable();
 	auto c = cluster_table->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	TableEntryVal* v;
 
 	while ( (v = cluster_table->NextEntry(k, c)) )

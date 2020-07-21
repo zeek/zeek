@@ -15,6 +15,8 @@
 #include "Func.h"
 #include "IPAddr.h"
 
+namespace zeek::detail {
+
 CompositeHash::CompositeHash(zeek::TypeListPtr composite_type)
 	: type(std::move(composite_type))
 	{
@@ -212,7 +214,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			auto lv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
 			struct HashKeyComparer {
-				bool operator()(const HashKey* a, const HashKey* b) const
+				bool operator()(const zeek::detail::HashKey* a, const zeek::detail::HashKey* b) const
 					{
 					if ( a->Hash() != b->Hash() )
 						return a->Hash() < b->Hash();
@@ -224,8 +226,8 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					}
 			};
 
-			std::map<HashKey*, int, HashKeyComparer> hashkeys;
-			HashKey* k;
+			std::map<zeek::detail::HashKey*, int, HashKeyComparer> hashkeys;
+			zeek::detail::HashKey* k;
 			auto idx = 0;
 
 			while ( tbl->NextEntry(k, it) )
@@ -336,7 +338,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	}
 
 
-std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool type_check) const
+std::unique_ptr<zeek::detail::HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool type_check) const
 	{
 	auto v = &argv;
 
@@ -385,10 +387,10 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool 
 			return nullptr;
 		}
 
-	return std::make_unique<HashKey>((k == key), (void*) k, kp - k);
+	return std::make_unique<zeek::detail::HashKey>((k == key), (void*) k, kp - k);
 	}
 
-std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v, bool type_check) const
+std::unique_ptr<zeek::detail::HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v, bool type_check) const
 	{
 	if ( v->GetType()->Tag() == zeek::TYPE_LIST )
 		{
@@ -406,7 +408,7 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v,
 	switch ( singleton_tag ) {
 	case zeek::TYPE_INTERNAL_INT:
 	case zeek::TYPE_INTERNAL_UNSIGNED:
-		return std::make_unique<HashKey>(v->ForceAsInt());
+		return std::make_unique<zeek::detail::HashKey>(v->ForceAsInt());
 
 	case zeek::TYPE_INTERNAL_ADDR:
 		return v->AsAddr().MakeHashKey();
@@ -415,12 +417,12 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v,
 		return v->AsSubNet().MakeHashKey();
 
 	case zeek::TYPE_INTERNAL_DOUBLE:
-		return std::make_unique<HashKey>(v->InternalDouble());
+		return std::make_unique<zeek::detail::HashKey>(v->InternalDouble());
 
 	case zeek::TYPE_INTERNAL_VOID:
 	case zeek::TYPE_INTERNAL_OTHER:
 		if ( v->GetType()->Tag() == zeek::TYPE_FUNC )
-			return std::make_unique<HashKey>(v->AsFunc()->GetUniqueFuncID());
+			return std::make_unique<zeek::detail::HashKey>(v->AsFunc()->GetUniqueFuncID());
 
 		if ( v->GetType()->Tag() == zeek::TYPE_PATTERN )
 			{
@@ -432,14 +434,14 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v,
 			char* key = new char[n];
 			std::memcpy(key, texts[0], strlen(texts[0]) + 1);
 			std::memcpy(key + strlen(texts[0]) + 1, texts[1], strlen(texts[1]) + 1);
-			return std::make_unique<HashKey>(false, key, n);
+			return std::make_unique<zeek::detail::HashKey>(false, key, n);
 			}
 
 		zeek::reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return nullptr;
 
 	case zeek::TYPE_INTERNAL_STRING:
-		return std::make_unique<HashKey>(v->AsString());
+		return std::make_unique<zeek::detail::HashKey>(v->AsString());
 
 	case zeek::TYPE_INTERNAL_ERROR:
 		return nullptr;
@@ -709,7 +711,7 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 	return offset;
 	}
 
-zeek::ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
+zeek::ListValPtr CompositeHash::RecoverVals(const zeek::detail::HashKey& k) const
 	{
 	auto l = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 	const auto& tl = type->GetTypes();
@@ -731,7 +733,7 @@ zeek::ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
 	}
 
 const char* CompositeHash::RecoverOneVal(
-	const HashKey& k, const char* kp0,
+	const zeek::detail::HashKey& k, const char* kp0,
 	const char* const k_end, zeek::Type* t,
 	zeek::ValPtr* pval, bool optional) const
 	{
@@ -1058,3 +1060,5 @@ const char* CompositeHash::RecoverOneVal(
 
 	return kp1;
 	}
+
+} // namespace zeek::detail

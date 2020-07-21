@@ -54,12 +54,12 @@ IPAddr::IPAddr(const zeek::String& s)
 	Init(s.CheckString());
 	}
 
-HashKey* IPAddr::GetHashKey() const
+zeek::detail::HashKey* IPAddr::GetHashKey() const
 	{ return MakeHashKey().release(); }
 
-std::unique_ptr<HashKey> IPAddr::MakeHashKey() const
+std::unique_ptr<zeek::detail::HashKey> IPAddr::MakeHashKey() const
 	{
-	return std::make_unique<HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
+	return std::make_unique<zeek::detail::HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
 	}
 
 static inline uint32_t bit_mask32(int bottom_bits)
@@ -307,10 +307,10 @@ std::string IPPrefix::AsString() const
 	return prefix.AsString() +"/" + l;
 	}
 
-HashKey* IPPrefix::GetHashKey() const
+zeek::detail::HashKey* IPPrefix::GetHashKey() const
 	{ return MakeHashKey().release(); }
 
-std::unique_ptr<HashKey> IPPrefix::MakeHashKey() const
+std::unique_ptr<zeek::detail::HashKey> IPPrefix::MakeHashKey() const
 	{
 	struct {
 		in6_addr ip;
@@ -320,7 +320,7 @@ std::unique_ptr<HashKey> IPPrefix::MakeHashKey() const
 	key.ip = prefix.in6;
 	key.len = Length();
 
-	return std::make_unique<HashKey>(&key, sizeof(key));
+	return std::make_unique<zeek::detail::HashKey>(&key, sizeof(key));
 	}
 
 bool IPPrefix::ConvertString(const char* text, IPPrefix* result)

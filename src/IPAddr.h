@@ -14,7 +14,7 @@ namespace zeek { class String; }
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 struct ConnID;
-class HashKey;
+ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
@@ -260,10 +260,10 @@ public:
 	/**
 	 * Returns a key that can be used to lookup the IP Address in a hash table.
 	 */
-	std::unique_ptr<HashKey> MakeHashKey() const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey() const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* GetHashKey() const;
+	zeek::detail::HashKey* GetHashKey() const;
 
 	/**
 	 * Masks out lower bits of the address.
@@ -639,10 +639,10 @@ public:
 	/**
 	 * Returns a key that can be used to lookup the IP Prefix in a hash table.
 	 */
-	std::unique_ptr<HashKey> MakeHashKey() const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey() const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* GetHashKey() const;
+	zeek::detail::HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the
 	  * inter-thread communication.

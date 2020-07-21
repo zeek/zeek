@@ -200,7 +200,7 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 extern std::string strstrip(std::string s);
 
 extern void hmac_md5(size_t size, const unsigned char* bytes,
-			unsigned char digest[16]);
+                     unsigned char digest[16]);
 
 // Initializes RNGs for zeek::random_number() and MD5 usage.  If load_file is given,
 // the seeds (both random & MD5) are loaded from that file.  This takes

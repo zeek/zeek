@@ -23,7 +23,7 @@ AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	auto t = zeek::make_intrusive<zeek::TypeList>();
 	t->Append(file_mgr->GetTagType());
 	t->Append(zeek::BifType::Record::Files::AnalyzerArgs);
-	analyzer_hash = new CompositeHash(std::move(t));
+	analyzer_hash = new zeek::detail::CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}
 
@@ -114,7 +114,7 @@ bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
 	}
 
 bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
-                         std::unique_ptr<HashKey> key)
+                         std::unique_ptr<zeek::detail::HashKey> key)
 	{
 	auto a = (file_analysis::Analyzer*) analyzer_map.Remove(key.get());
 
@@ -153,8 +153,8 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 	return set->Remove(tag, std::move(key));
 	}
 
-std::unique_ptr<HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
-                                             zeek::RecordValPtr args) const
+std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
+                                                           zeek::RecordValPtr args) const
 	{
 	auto lv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 	lv->Append(t.AsVal());
@@ -184,7 +184,7 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
 	}
 
 void AnalyzerSet::Insert(file_analysis::Analyzer* a,
-                         std::unique_ptr<HashKey> key)
+                         std::unique_ptr<zeek::detail::HashKey> key)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s",
 	        file->GetID().c_str(), file_mgr->GetComponentName(a->Tag()).c_str());

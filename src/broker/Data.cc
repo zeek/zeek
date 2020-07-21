@@ -890,7 +890,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		else
 			rval = broker::table();
 
-		HashKey* hk;
+		zeek::detail::HashKey* hk;
 		zeek::TableEntryVal* entry;
 		auto c = table->InitForIteration();
 

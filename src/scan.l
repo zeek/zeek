@@ -639,7 +639,7 @@ static int load_files(const char* orig_file)
 		{
 		// Add the filename to the file mapping table (Debug.h).
 		zeek::detail::Filemap* map = new zeek::detail::Filemap;
-		HashKey* key = new HashKey(file_path.c_str());
+		zeek::detail::HashKey* key = new zeek::detail::HashKey(file_path.c_str());
 		zeek::detail::g_dbgfilemaps.emplace(file_path, map);
 		LoadPolicyFileText(file_path.c_str());
 		}

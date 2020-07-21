@@ -34,7 +34,7 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 			return rval;
 
 		zeek::IterCookie* c = tbl->InitForIteration();
-		HashKey* k;
+		zeek::detail::HashKey* k;
 
 		while ( tbl->NextEntry(k, c) )
 			{

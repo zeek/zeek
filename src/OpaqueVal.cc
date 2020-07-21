@@ -231,13 +231,13 @@ void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	if ( v->GetType()->Tag() == zeek::TYPE_STRING )
 		{
 		const String* str = v->AsString();
-		hash_update(h, str->Bytes(), str->Len());
+		zeek::detail::hash_update(h, str->Bytes(), str->Len());
 		}
 	else
 		{
 		ODesc d(DESC_BINARY);
 		v->Describe(&d);
-		hash_update(h, (const u_char *) d.Bytes(), d.Len());
+		zeek::detail::hash_update(h, (const u_char *) d.Bytes(), d.Len());
 		}
 	}
 
@@ -264,7 +264,7 @@ ValPtr MD5Val::DoClone(CloneState* state)
 bool MD5Val::DoInit()
 	{
 	assert(! IsValid());
-	ctx = hash_init(Hash_MD5);
+	ctx = zeek::detail::hash_init(zeek::detail::Hash_MD5);
 	return true;
 	}
 
@@ -273,7 +273,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	hash_update(ctx, data, size);
+	zeek::detail::hash_update(ctx, data, size);
 	return true;
 	}
 
@@ -283,8 +283,8 @@ StringValPtr MD5Val::DoGet()
 		return zeek::val_mgr->EmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
-	hash_final(ctx, digest);
-	return zeek::make_intrusive<StringVal>(md5_digest_print(digest));
+	zeek::detail::hash_final(ctx, digest);
+	return zeek::make_intrusive<StringVal>(zeek::detail::md5_digest_print(digest));
 	}
 
 IMPLEMENT_OPAQUE_VALUE(MD5Val)
@@ -384,7 +384,7 @@ ValPtr SHA1Val::DoClone(CloneState* state)
 bool SHA1Val::DoInit()
 	{
 	assert(! IsValid());
-	ctx = hash_init(Hash_SHA1);
+	ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA1);
 	return true;
 	}
 
@@ -393,7 +393,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	hash_update(ctx, data, size);
+	zeek::detail::hash_update(ctx, data, size);
 	return true;
 	}
 
@@ -403,8 +403,8 @@ StringValPtr SHA1Val::DoGet()
 		return zeek::val_mgr->EmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
-	hash_final(ctx, digest);
-	return zeek::make_intrusive<StringVal>(sha1_digest_print(digest));
+	zeek::detail::hash_final(ctx, digest);
+	return zeek::make_intrusive<StringVal>(zeek::detail::sha1_digest_print(digest));
 	}
 
 IMPLEMENT_OPAQUE_VALUE(SHA1Val)
@@ -507,7 +507,7 @@ ValPtr SHA256Val::DoClone(CloneState* state)
 bool SHA256Val::DoInit()
 	{
 	assert( ! IsValid() );
-	ctx = hash_init(Hash_SHA256);
+	ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 	return true;
 	}
 
@@ -516,7 +516,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	hash_update(ctx, data, size);
+	zeek::detail::hash_update(ctx, data, size);
 	return true;
 	}
 
@@ -526,8 +526,8 @@ StringValPtr SHA256Val::DoGet()
 		return zeek::val_mgr->EmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
-	hash_final(ctx, digest);
-	return zeek::make_intrusive<StringVal>(sha256_digest_print(digest));
+	zeek::detail::hash_final(ctx, digest);
+	return zeek::make_intrusive<StringVal>(zeek::detail::sha256_digest_print(digest));
 	}
 
 IMPLEMENT_OPAQUE_VALUE(SHA256Val)
@@ -734,7 +734,7 @@ bool BloomFilterVal::Typify(zeek::TypePtr arg_type)
 
 	auto tl = zeek::make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
-	hash = new CompositeHash(std::move(tl));
+	hash = new zeek::detail::CompositeHash(std::move(tl));
 
 	return true;
 	}
@@ -893,7 +893,7 @@ bool CardinalityVal::Typify(zeek::TypePtr arg_type)
 
 	auto tl = zeek::make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
-	hash = new CompositeHash(std::move(tl));
+	hash = new zeek::detail::CompositeHash(std::move(tl));
 
 	return true;
 	}

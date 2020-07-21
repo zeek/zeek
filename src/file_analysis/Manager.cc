@@ -66,8 +66,8 @@ void Manager::Terminate()
 
 string Manager::HashHandle(const string& handle) const
 	{
-	hash128_t hash;
-	KeyedHash::StaticHash128(handle.data(), handle.size(), &hash);
+	zeek::detail::hash128_t hash;
+	zeek::detail::KeyedHash::StaticHash128(handle.data(), handle.size(), &hash);
 
 	return Bro::UID(bits_per_uid, hash, 2).Base62("F");
 	}

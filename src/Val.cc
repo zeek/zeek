@@ -575,7 +575,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			else
 				writer.StartObject();
 
-			HashKey* k;
+			zeek::detail::HashKey* k;
 			TableEntryVal* entry;
 			auto c = table->InitForIteration();
 			while ( (entry = table->NextEntry(k, c)) )
@@ -1444,7 +1444,7 @@ void TableVal::Init(TableTypePtr t)
 	else
 		subnets = nullptr;
 
-	table_hash = new CompositeHash(table_type->GetIndices());
+	table_hash = new zeek::detail::CompositeHash(table_type->GetIndices());
 	val.table_val = new PDict<zeek::TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
@@ -1569,7 +1569,7 @@ bool TableVal::Assign(Val* index, Val* new_val)
 	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
 	}
 
-bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
+bool TableVal::Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
                       ValPtr new_val, bool broker_forward)
 	{
 	bool is_set = table_type->IsSet();
@@ -1578,7 +1578,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
 		InternalWarning("bad set/table in TableVal::Assign");
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
-	HashKey k_copy(k->Key(), k->Size(), k->Hash());
+	zeek::detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
 
 	// If the dictionary index already existed, the insert may free up the
@@ -1623,9 +1623,9 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
 	return true;
 	}
 
-bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
+bool TableVal::Assign(Val* index, zeek::detail::HashKey* k, Val* new_val)
 	{
-	return Assign({NewRef{}, index}, std::unique_ptr<HashKey>{k}, {AdoptRef{}, new_val});
+	return Assign({NewRef{}, index}, std::unique_ptr<zeek::detail::HashKey>{k}, {AdoptRef{}, new_val});
 	}
 
 ValPtr TableVal::SizeVal() const
@@ -1657,11 +1657,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	TableEntryVal* v;
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
-		std::unique_ptr<HashKey> hk{k};
+		std::unique_ptr<zeek::detail::HashKey> hk{k};
 
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
@@ -1705,7 +1705,7 @@ bool TableVal::RemoveFrom(Val* val) const
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
 		// Not sure that this is 100% sound, since the HashKey
@@ -1737,7 +1737,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		}
 
 	IterCookie* c = t1->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( t1->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1760,7 +1760,7 @@ bool TableVal::EqualTo(const TableVal& tv) const
 		return false;
 
 	IterCookie* c = t0->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( t0->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1787,7 +1787,7 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 		return false;
 
 	IterCookie* c = t0->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( t0->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -2076,7 +2076,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 	return true;
 	}
 
-ListValPtr TableVal::RecreateIndex(const HashKey& k) const
+ListValPtr TableVal::RecreateIndex(const zeek::detail::HashKey& k) const
 	{
 	return table_hash->RecoverVals(k);
 	}
@@ -2287,7 +2287,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	return va;
 	}
 
-ValPtr TableVal::Remove(const HashKey& k)
+ValPtr TableVal::Remove(const zeek::detail::HashKey& k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
 	ValPtr va;
@@ -2327,7 +2327,7 @@ ListValPtr TableVal::ToListVal(TypeTag t) const
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
 		auto index = table_hash->RecoverVals(*k);
@@ -2399,7 +2399,7 @@ void TableVal::Describe(ODesc* d) const
 
 	for ( int i = 0; i < n; ++i )
 		{
-		HashKey* k;
+		zeek::detail::HashKey* k;
 		TableEntryVal* v = tbl->NextEntry(k, c);
 
 		if ( ! v )
@@ -2555,7 +2555,7 @@ void TableVal::DoExpire(double t)
 		tbl->MakeRobustCookie(expire_cookie);
 		}
 
-	HashKey* k = nullptr;
+	zeek::detail::HashKey* k = nullptr;
 	TableEntryVal* v = nullptr;
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
@@ -2740,7 +2740,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
-	HashKey* key;
+	zeek::detail::HashKey* key;
 	TableEntryVal* val;
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
@@ -2796,10 +2796,10 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
-HashKey* TableVal::ComputeHash(const Val* index) const
+zeek::detail::HashKey* TableVal::ComputeHash(const Val* index) const
 	{ return MakeHashKey(*index).release(); }
 
-std::unique_ptr<HashKey> TableVal::MakeHashKey(const Val& index) const
+std::unique_ptr<zeek::detail::HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
 	return table_hash->MakeHashKey(index, true);
 	}
@@ -2835,7 +2835,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
-	HashKey* key;
+	zeek::detail::HashKey* key;
 	TableEntryVal* val;
 
 	ParseTimeTableState rval;
@@ -2853,7 +2853,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 void TableVal::RebuildTable(ParseTimeTableState ptts)
 	{
 	delete table_hash;
-	table_hash = new CompositeHash(table_type->GetIndices());
+	table_hash = new zeek::detail::CompositeHash(table_type->GetIndices());
 
 	for ( auto& [key, val] : ptts )
 		Assign(std::move(key), std::move(val));

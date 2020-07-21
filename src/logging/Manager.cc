@@ -864,7 +864,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			info->path = copy_string(path.c_str());
 			info->network_time = network_time;
 
-			HashKey* k;
+			zeek::detail::HashKey* k;
 			zeek::IterCookie* c = filter->config->AsTable()->InitForIteration();
 
 			zeek::TableEntryVal* v;

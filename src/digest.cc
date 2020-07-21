@@ -8,6 +8,8 @@
 
 #include "Reporter.h"
 
+namespace zeek::detail {
+
 EVP_MD_CTX* hash_init(HashAlgorithm alg)
 	{
 	EVP_MD_CTX* c = EVP_MD_CTX_new();
@@ -79,3 +81,5 @@ unsigned char* calculate_digest(HashAlgorithm alg, const unsigned char* data, ui
 	hash_final(c, out);
 	return out;
 	}
+
+} // namespace zeek::detail

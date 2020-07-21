@@ -51,8 +51,8 @@ class PrefixTable;
 class StateAccess;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
-class CompositeHash;
-class HashKey;
+ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 
 extern double bro_start_network_time;
 
@@ -807,7 +807,7 @@ public:
 	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(ValPtr index, std::unique_ptr<HashKey> k,
+	bool Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
 	            ValPtr new_val, bool broker_forward = true);
 
 	// Returns true if the assignment typechecked, false if not. The
@@ -816,10 +816,10 @@ public:
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, Val* new_val);
 
-	// Same as other Assign() method, but takes a precomuted HashKey and
+	// Same as other Assign() method, but takes a precomuted zeek::detail::HashKey and
 	// deletes it when done.
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
-	bool Assign(Val* index, HashKey* k, Val* new_val);
+	bool Assign(Val* index, zeek::detail::HashKey* k, Val* new_val);
 
 	ValPtr SizeVal() const override;
 
@@ -921,10 +921,10 @@ public:
 	/**
 	 * @return  The index corresponding to the given HashKey.
 	 */
-	ListValPtr RecreateIndex(const HashKey& k) const;
+	ListValPtr RecreateIndex(const zeek::detail::HashKey& k) const;
 
 	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
-	ListVal* RecoverIndex(const HashKey* k) const
+	ListVal* RecoverIndex(const zeek::detail::HashKey* k) const
 		{ return RecreateIndex(*k).release(); }
 
 	/**
@@ -944,14 +944,14 @@ public:
 	 * @param k  The hash key to lookup.
 	 * @return  Same as Remove(const Val&).
 	 */
-	ValPtr Remove(const HashKey& k);
+	ValPtr Remove(const zeek::detail::HashKey& k);
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const Val* index)
 		{ return Remove(*index).release(); }
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
-	Val* Delete(const HashKey* k)
+	Val* Delete(const zeek::detail::HashKey* k)
 		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
@@ -1008,10 +1008,10 @@ public:
 	 * @return  The hash of the index value or nullptr if
 	 * type-checking failed.
 	 */
-	std::unique_ptr<HashKey> MakeHashKey(const Val& index) const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey(const Val& index) const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* ComputeHash(const Val* index) const;
+	zeek::detail::HashKey* ComputeHash(const Val* index) const;
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
@@ -1086,7 +1086,7 @@ protected:
 	ValPtr DoClone(CloneState* state) override;
 
 	zeek::TableTypePtr table_type;
-	CompositeHash* table_hash;
+	zeek::detail::CompositeHash* table_hash;
 	zeek::detail::AttributesPtr attrs;
 	zeek::detail::ExprPtr expire_time;
 	zeek::detail::ExprPtr expire_func;

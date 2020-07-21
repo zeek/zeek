@@ -8,11 +8,13 @@
 #include "IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
-class HashKey;
+ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 
 namespace zeek {
 using ListValPtr = zeek::IntrusivePtr<ListVal>;
 }
+
+namespace zeek::detail {
 
 class CompositeHash {
 public:
@@ -21,23 +23,23 @@ public:
 
 	// Compute the hash corresponding to the given index val,
 	// or nullptr if it fails to typecheck.
-	std::unique_ptr<HashKey> MakeHashKey(const zeek::Val& v, bool type_check) const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey(const zeek::Val& v, bool type_check) const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* ComputeHash(const zeek::Val* v, bool type_check) const
+	zeek::detail::HashKey* ComputeHash(const zeek::Val* v, bool type_check) const
 		{ return MakeHashKey(*v, type_check).release(); }
 
 	// Given a hash key, recover the values used to create it.
-	zeek::ListValPtr RecoverVals(const HashKey& k) const;
+	zeek::ListValPtr RecoverVals(const zeek::detail::HashKey& k) const;
 
-	[[deprecated("Remove in v4.1.  Pass in HashKey& instead.")]]
-	zeek::ListValPtr RecoverVals(const HashKey* k) const
+	[[deprecated("Remove in v4.1.  Pass in zeek::detail::HashKey& instead.")]]
+	zeek::ListValPtr RecoverVals(const zeek::detail::HashKey* k) const
 		{ return RecoverVals(*k); }
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + pad_size(size); }
 
 protected:
-	std::unique_ptr<HashKey> ComputeSingletonHash(const zeek::Val* v, bool type_check) const;
+	std::unique_ptr<zeek::detail::HashKey> ComputeSingletonHash(const zeek::Val* v, bool type_check) const;
 
 	// Computes the piece of the hash for Val*, returning the new kp.
 	// Used as a helper for ComputeHash in the non-singleton case.
@@ -49,7 +51,7 @@ protected:
 	// Returns and updated kp for the next Val.  Calls reporter->InternalError()
 	// upon errors, so there is no return value for invalid input.
 	const char* RecoverOneVal(
-		const HashKey& k, const char* kp, const char* const k_end,
+		const zeek::detail::HashKey& k, const char* kp, const char* const k_end,
 		zeek::Type* t, zeek::ValPtr* pval, bool optional) const;
 
 	// Rounds the given pointer up to the nearest multiple of the
@@ -103,3 +105,7 @@ protected:
 
 	zeek::InternalTypeTag singleton_tag;
 };
+
+} // namespace zeek::detail
+
+using CompositeHash [[deprecated("Remove in v4.1. Use zeek::detail::CompositeHash.")]] = zeek::detail::CompositeHash;

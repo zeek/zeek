@@ -561,7 +561,7 @@ function md5_hash%(...%): string
 	%{
 	unsigned char digest[MD5_DIGEST_LENGTH];
 	MD5Val::digest(@ARG@, digest);
-	return zeek::make_intrusive<zeek::StringVal>(md5_digest_print(digest));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(digest));
 	%}
 
 ## Computes the SHA1 hash value of the provided list of arguments.
@@ -581,7 +581,7 @@ function sha1_hash%(...%): string
 	%{
 	unsigned char digest[SHA_DIGEST_LENGTH];
 	SHA1Val::digest(@ARG@, digest);
-	return zeek::make_intrusive<zeek::StringVal>(sha1_digest_print(digest));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha1_digest_print(digest));
 	%}
 
 ## Computes the SHA256 hash value of the provided list of arguments.
@@ -601,7 +601,7 @@ function sha256_hash%(...%): string
 	%{
 	unsigned char digest[SHA256_DIGEST_LENGTH];
 	SHA256Val::digest(@ARG@, digest);
-	return zeek::make_intrusive<zeek::StringVal>(sha256_digest_print(digest));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(digest));
 	%}
 
 ## Computes an HMAC-MD5 hash value of the provided list of arguments. The HMAC
@@ -616,8 +616,8 @@ function sha256_hash%(...%): string
 function md5_hmac%(...%): string
 	%{
 	unsigned char hmac[MD5_DIGEST_LENGTH];
-	MD5Val::hmac(@ARG@, KeyedHash::shared_hmac_md5_key, hmac);
-	return zeek::make_intrusive<zeek::StringVal>(md5_digest_print(hmac));
+	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can

@@ -49,10 +49,10 @@ bool file_analysis::X509::EndOfFile()
 		{
 		// first step - let's see if the certificate has been cached.
 		unsigned char buf[SHA256_DIGEST_LENGTH];
-		auto ctx = hash_init(Hash_SHA256);
-		hash_update(ctx, cert_char, cert_data.size());
-		hash_final(ctx, buf);
-		std::string cert_sha256 = sha256_digest_print(buf);
+		auto ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
+		zeek::detail::hash_update(ctx, cert_char, cert_data.size());
+		zeek::detail::hash_final(ctx, buf);
+		std::string cert_sha256 = zeek::detail::sha256_digest_print(buf);
 		auto index = zeek::make_intrusive<zeek::StringVal>(cert_sha256);
 		const auto& entry = certificate_cache->Find(index);
 

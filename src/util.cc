@@ -997,19 +997,19 @@ std::string strstrip(std::string s)
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
-	if ( ! KeyedHash::seeds_initialized )
+	if ( ! zeek::detail::KeyedHash::seeds_initialized )
 		zeek::reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
-	internal_md5(bytes, size, digest);
+	zeek::detail::internal_md5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
-		digest[i] ^= KeyedHash::shared_hmac_md5_key[i];
+		digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
 
-	internal_md5(digest, 16, digest);
+	zeek::detail::internal_md5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
-				std::array<uint32_t, KeyedHash::SEED_INIT_SIZE>& buf)
+				std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
 	{
 	FILE* f = nullptr;
 
@@ -1045,7 +1045,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 	}
 
 static bool write_random_seeds(const char* write_file, uint32_t seed,
-				std::array<uint32_t, KeyedHash::SEED_INIT_SIZE>& buf)
+				std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
 	{
 	FILE* f = nullptr;
 
@@ -1094,7 +1094,7 @@ void bro_srandom(unsigned int seed)
 void init_random_seed(const char* read_file, const char* write_file,
                       bool use_empty_seeds)
 	{
-	std::array<uint32_t, KeyedHash::SEED_INIT_SIZE> buf = {};
+	std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
 	size_t pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 	uint32_t seed = 0;
@@ -1135,7 +1135,7 @@ void init_random_seed(const char* read_file, const char* write_file,
 		if ( fd >= 0 )
 			{
 			int amt = read(fd, buf.data() + pos,
-					sizeof(uint32_t) * (KeyedHash::SEED_INIT_SIZE - pos));
+					sizeof(uint32_t) * (zeek::detail::KeyedHash::SEED_INIT_SIZE - pos));
 			safe_close(fd);
 
 			if ( amt > 0 )
@@ -1147,8 +1147,8 @@ void init_random_seed(const char* read_file, const char* write_file,
 			}
 #endif
 
-		if ( pos < KeyedHash::SEED_INIT_SIZE )
-			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
+		if ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE )
+			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %lu", zeek::detail::KeyedHash::SEED_INIT_SIZE, pos);
 
 		if ( ! seed )
 			{
@@ -1170,8 +1170,8 @@ void init_random_seed(const char* read_file, const char* write_file,
 		first_seed_saved = true;
 		}
 
-	if ( ! KeyedHash::IsInitialized() )
-		KeyedHash::InitializeSeeds(buf);
+	if ( ! zeek::detail::KeyedHash::IsInitialized() )
+		zeek::detail::KeyedHash::InitializeSeeds(buf);
 
 	if ( write_file && ! write_random_seeds(write_file, seed, buf) )
 		zeek::reporter->Error("Could not write seeds to file '%s'.\n",
@@ -2118,7 +2118,7 @@ uint64_t calculate_unique_id(size_t pool)
 			unique.pid = getpid();
 			unique.rnd = static_cast<int>(zeek::random_number());
 
-			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
+			uid_instance = zeek::detail::HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.
 			}
 		else
@@ -2133,7 +2133,7 @@ uint64_t calculate_unique_id(size_t pool)
 	assert(uid_pool[pool].key.instance != 0);
 
 	++uid_pool[pool].key.counter;
-	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
+	return zeek::detail::HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
 bool safe_write(int fd, const char* data, int len)

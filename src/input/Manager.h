@@ -212,7 +212,7 @@ private:
 	bool CallPred(zeek::Func* pred_func, const int numvals, ...) const;
 
 	// Get a hashkey for a set of threading::Values.
-	HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
+	zeek::detail::HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
 
 	// Get the memory used by a specific value.
 	int GetValueLength(const threading::Value* val) const;

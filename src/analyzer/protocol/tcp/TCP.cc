@@ -1247,7 +1247,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			if ( child->Removing() )
 				child->Done();
 
-			DBG_LOG(DBG_ANALYZER, "%s deleted child %s",
+			DBG_LOG(zeek::DBG_ANALYZER, "%s deleted child %s",
 			        fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 			i = packet_children.erase(i);
 			delete child;
@@ -1763,7 +1763,7 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 
 void TCP_Analyzer::AddChildPacketAnalyzer(zeek::analyzer::Analyzer* a)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s added packet child %s",
 			this->GetAnalyzerName(), a->GetAnalyzerName());
 
 	packet_children.push_back(a);
@@ -1905,7 +1905,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(zeek::DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}

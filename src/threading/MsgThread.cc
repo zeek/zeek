@@ -107,7 +107,7 @@ public:
 class DebugMessage final : public OutputMessage<MsgThread>
 {
 public:
-	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
+	DebugMessage(zeek::DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
 		{ stream = arg_stream; msg = copy_string(arg_msg); }
 
@@ -120,7 +120,7 @@ public:
 		}
 private:
 	const char* msg;
-	DebugStream stream;
+	zeek::DebugStream stream;
 };
 #endif
 
@@ -351,7 +351,7 @@ void MsgThread::InternalError(const char* msg)
 
 #ifdef DEBUG
 
-void MsgThread::Debug(DebugStream stream, const char* msg)
+void MsgThread::Debug(zeek::DebugStream stream, const char* msg)
 	{
 	SendOut(new DebugMessage(stream, this, msg));
 	}
@@ -366,7 +366,7 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 		return;
 		}
 
-	DBG_LOG(DBG_THREADING, "Sending '%s' to %s ...", msg->Name(), Name());
+	DBG_LOG(zeek::DBG_THREADING, "Sending '%s' to %s ...", msg->Name(), Name());
 
 	queue_in.Put(msg);
 	++cnt_sent_in;
@@ -399,7 +399,7 @@ BasicOutputMessage* MsgThread::RetrieveOut()
 	if ( ! msg )
 		return nullptr;
 
-	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
+	DBG_LOG(zeek::DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
 
 	return msg;
 	}
@@ -413,7 +413,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 
 #ifdef DEBUG
 	std::string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
-	Debug(DBG_THREADING, s.c_str());
+	Debug(zeek::DBG_THREADING, s.c_str());
 #endif
 
 	return msg;

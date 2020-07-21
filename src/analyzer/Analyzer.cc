@@ -413,7 +413,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	if ( init )
 		analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added child %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s added child %s",
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
 	return true;
 	}
@@ -446,7 +446,7 @@ bool Analyzer::RemoveChild(const analyzer_list& children, ID id)
 		if ( i->finished || i->removing )
 			return false;
 
-		DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
+		DBG_LOG(zeek::DBG_ANALYZER, "%s disabling child %s",
 		        fmt_analyzer(this).c_str(), fmt_analyzer(i).c_str());
 		// We just flag it as being removed here but postpone
 		// actually doing that to later. Otherwise, we'd need
@@ -559,7 +559,7 @@ void Analyzer::DeleteChild(analyzer_list::iterator i)
 		child->removing = false;
 		}
 
-	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s deleted child %s 3",
 		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 
 	children.erase(i);
@@ -570,7 +570,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
 	if ( HasSupportAnalyzer(analyzer->GetAnalyzerTag(), analyzer->IsOrig()) )
 		{
-		DBG_LOG(DBG_ANALYZER, "%s already has %s %s",
+		DBG_LOG(zeek::DBG_ANALYZER, "%s already has %s %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -598,7 +598,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 	analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added %s support %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s added %s support %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -606,7 +606,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s disabled %s support analyzer %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s disabled %s support analyzer %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -646,33 +646,33 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
 			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
 	}
 
 void Analyzer::EndOfData(bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s EndOfData(%s)",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s EndOfData(%s)",
 			fmt_analyzer(this).c_str(), is_orig ? "T" : "F");
 	}
 
 void Analyzer::FlipRoles()
 	{
-	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
 
 	LOOP_OVER_CHILDREN(i)
 		(*i)->FlipRoles();

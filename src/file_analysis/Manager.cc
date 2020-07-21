@@ -78,11 +78,11 @@ void Manager::SetHandle(const string& handle)
 		return;
 
 #ifdef DEBUG
-	if ( debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
+	if ( debug_logger.IsEnabled(zeek::DBG_FILE_ANALYSIS) )
 		{
 		zeek::String tmp{handle};
 		auto rendered = tmp.Render();
-		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
+		DBG_LOG(zeek::DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
 		delete [] rendered;
 		}
 #endif
@@ -371,14 +371,14 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 
 	if ( file->postpone_timeout && ! is_terminating )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Postpone file analysis timeout for %s",
+		DBG_LOG(zeek::DBG_FILE_ANALYSIS, "Postpone file analysis timeout for %s",
 		        file->GetID().c_str());
 		file->UpdateLastActivityTime();
 		file->ScheduleInactivityTimer();
 		return;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "File analysis timeout for %s",
 	        file->GetID().c_str());
 
 	RemoveFile(file->GetID());
@@ -389,7 +389,7 @@ bool Manager::IgnoreFile(const string& file_id)
 	if ( ! LookupFile(file_id) )
 		return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
 
 	ignored.insert(file_id);
 	return true;
@@ -405,7 +405,7 @@ bool Manager::RemoveFile(const string& file_id)
 	if ( ! f )
 		return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove file", file_id.c_str());
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Remove file", file_id.c_str());
 
 	f->EndOfFile();
 
@@ -430,7 +430,7 @@ string Manager::GetFileID(const zeek::analyzer::Tag& tag, Connection* c, bool is
 	if ( ! get_file_handle )
 		return "";
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
 	        zeek::analyzer_mgr->GetComponentName(tag).c_str());
 
 	const auto& tagval = tag.AsVal();
@@ -471,7 +471,7 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
 		return nullptr;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
 	        f->id.c_str(), GetComponentName(tag).c_str());
 
 	Analyzer* a;

@@ -650,7 +650,7 @@ static int load_files(const char* orig_file)
 
 	zeekygen_mgr->Script(file_path);
 
-	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
+	DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s", file_path.c_str());
 
 	// "orig_file", could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.
@@ -1064,6 +1064,6 @@ bool ScannedFile::AlreadyScanned() const
 			break;
 			}
 
-	DBG_LOG(DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
+	DBG_LOG(zeek::DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
 	return rval;
 	}

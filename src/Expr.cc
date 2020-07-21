@@ -4154,7 +4154,7 @@ ValPtr CallExpr::Eval(Frame* f) const
 			{
 			if ( Val* v = trigger->Lookup(this) )
 				{
-				DBG_LOG(DBG_NOTIFIERS,
+				DBG_LOG(zeek::DBG_NOTIFIERS,
 					"%s: provides cached function result",
 					trigger->Name());
 				return {zeek::NewRef{}, v};

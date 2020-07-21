@@ -297,7 +297,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 	info->description = description;
 
 
-	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());
 
 	return true;
@@ -451,7 +451,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 
 	readers[stream->reader] = stream;
 
-	DBG_LOG(DBG_INPUT, "Successfully created event stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "Successfully created event stream %s",
 		stream->name.c_str());
 
 	return true;
@@ -707,7 +707,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 	readers[stream->reader] = stream;
 
-	DBG_LOG(DBG_INPUT, "Successfully created table stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "Successfully created table stream %s",
 		stream->name.c_str());
 
 	return true;
@@ -794,7 +794,7 @@ bool Manager::CreateAnalysisStream(zeek::RecordVal* fval)
 
 	readers[stream->reader] = stream;
 
-	DBG_LOG(DBG_INPUT, "Successfully created analysis stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "Successfully created analysis stream %s",
 		stream->name.c_str());
 
 	return true;
@@ -864,7 +864,7 @@ bool Manager::RemoveStream(Stream *i)
 
 	i->removed = true;
 
-	DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "Successfully queued removal of stream %s",
 		i->name.c_str());
 
 	i->reader->Stop();
@@ -895,7 +895,7 @@ bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 		}
 
 #ifdef DEBUG
-		DBG_LOG(DBG_INPUT, "Successfully executed removal of stream %s",
+		DBG_LOG(zeek::DBG_INPUT, "Successfully executed removal of stream %s",
 		i->name.c_str());
 #endif
 
@@ -1009,7 +1009,7 @@ bool Manager::ForceUpdate(const string &name)
 	i->reader->Update();
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "Forcing update of stream %s", name.c_str());
+	DBG_LOG(zeek::DBG_INPUT, "Forcing update of stream %s", name.c_str());
 #endif
 
 	return true; // update is async :(
@@ -1326,13 +1326,13 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 		}
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "Got EndCurrentSend stream %s", i->name.c_str());
+	DBG_LOG(zeek::DBG_INPUT, "Got EndCurrentSend stream %s", i->name.c_str());
 #endif
 
 	if ( i->stream_type != TABLE_STREAM )
 		{
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "%s is event, sending end of data", i->name.c_str());
+	DBG_LOG(zeek::DBG_INPUT, "%s is event, sending end of data", i->name.c_str());
 #endif
 		// just signal the end of the data source
 		SendEndOfData(i);
@@ -1406,7 +1406,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "EndCurrentSend complete for stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "EndCurrentSend complete for stream %s",
 		i->name.c_str());
 #endif
 
@@ -1431,7 +1431,7 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 void Manager::SendEndOfData(const Stream *i)
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "SendEndOfData for stream %s",
 		i->name.c_str());
 #endif
 	SendEvent(end_of_data, 2, new zeek::StringVal(i->name.c_str()),
@@ -1451,7 +1451,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		}
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "Put for stream %s",
+	DBG_LOG(zeek::DBG_INPUT, "Put for stream %s",
 		i->name.c_str());
 #endif
 
@@ -1680,7 +1680,7 @@ void Manager::Clear(ReaderFrontend* reader)
 		}
 
 #ifdef DEBUG
-		DBG_LOG(DBG_INPUT, "Got Clear for stream %s",
+		DBG_LOG(zeek::DBG_INPUT, "Got Clear for stream %s",
 			i->name.c_str());
 #endif
 
@@ -1816,7 +1816,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, const int numvals, ...) const
 	vl.reserve(numvals);
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
+	DBG_LOG(zeek::DBG_INPUT, "SendEvent with %d vals",
 		numvals);
 #endif
 
@@ -1837,7 +1837,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
 	vl.reserve(events.size());
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)",
+	DBG_LOG(zeek::DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)",
 		events.size());
 #endif
 

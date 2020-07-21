@@ -293,7 +293,7 @@ void net_run()
 		// starting with the first.
 		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
-			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
+			DBG_LOG(zeek::DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
 				current_time(), ready.size());
 
 			if ( ! ready.empty() )
@@ -307,7 +307,7 @@ void net_run()
 			{
 			for ( auto src : ready )
 				{
-				DBG_LOG(DBG_MAINLOOP, "processing source %s", src->Tag());
+				DBG_LOG(zeek::DBG_MAINLOOP, "processing source %s", src->Tag());
 				current_iosrc = src;
 				src->Process();
 				}

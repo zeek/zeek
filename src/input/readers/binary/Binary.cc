@@ -60,7 +60,7 @@ bool Binary::CloseInput()
 		}
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Binary reader starting close");
+	Debug(zeek::DBG_INPUT, "Binary reader starting close");
 #endif
 
 	in->close();
@@ -68,7 +68,7 @@ bool Binary::CloseInput()
 	in = nullptr;
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Binary reader finished close");
+	Debug(zeek::DBG_INPUT, "Binary reader finished close");
 #endif
 
 	return true;
@@ -129,14 +129,14 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 		return false;
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Binary reader created, will perform first update");
+	Debug(zeek::DBG_INPUT, "Binary reader created, will perform first update");
 #endif
 
 	// after initialization - do update
 	DoUpdate();
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Binary reader did first update");
+	Debug(zeek::DBG_INPUT, "Binary reader did first update");
 #endif
 
 	return true;
@@ -256,7 +256,7 @@ bool Binary::DoUpdate()
 		EndCurrentSend();
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "DoUpdate finished successfully");
+	Debug(zeek::DBG_INPUT, "DoUpdate finished successfully");
 #endif
 
 	return true;
@@ -272,12 +272,12 @@ bool Binary::DoHeartbeat(double network_time, double current_time)
 		case MODE_REREAD:
 		case MODE_STREAM:
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Starting Heartbeat update");
+	Debug(zeek::DBG_INPUT, "Starting Heartbeat update");
 #endif
 			Update();	// call update and not DoUpdate, because update
 					// checks disabled.
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Finished with heartbeat update");
+	Debug(zeek::DBG_INPUT, "Finished with heartbeat update");
 #endif
 			break;
 		default:

@@ -123,7 +123,7 @@ void PktSrc::Opened(const Properties& arg_props)
 				zeek::reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
 		}
 
-	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
+	DBG_LOG(zeek::DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
 
 void PktSrc::Closed()
@@ -133,7 +133,7 @@ void PktSrc::Closed()
 	if ( props.is_live && props.selectable_fd != -1 )
 		iosource_mgr->UnregisterFd(props.selectable_fd, this);
 
-	DBG_LOG(DBG_PKTIO, "Closed source %s", props.path.c_str());
+	DBG_LOG(zeek::DBG_PKTIO, "Closed source %s", props.path.c_str());
 	}
 
 void PktSrc::Error(const std::string& msg)
@@ -141,7 +141,7 @@ void PktSrc::Error(const std::string& msg)
 	// We don't report this immediately, Bro will ask us for the error
 	// once it notices we aren't open.
 	errbuf = msg;
-	DBG_LOG(DBG_PKTIO, "Error with source %s: %s",
+	DBG_LOG(zeek::DBG_PKTIO, "Error with source %s: %s",
 		IsOpen() ? props.path.c_str() : "<not open>",
 		msg.c_str());
 	}

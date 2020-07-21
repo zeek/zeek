@@ -96,7 +96,7 @@ void BasicThread::Start()
 
 	thread = std::thread(&BasicThread::launcher, this);
 
-	DBG_LOG(DBG_THREADING, "Started thread %s", name);
+	DBG_LOG(zeek::DBG_THREADING, "Started thread %s", name);
 
 	OnStart();
 	}
@@ -109,7 +109,7 @@ void BasicThread::SignalStop()
 	if ( terminating )
 		return;
 
-	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
+	DBG_LOG(zeek::DBG_THREADING, "Signaling thread %s to terminate ...", name);
 
 	OnSignalStop();
 	}
@@ -119,7 +119,7 @@ void BasicThread::WaitForStop()
 	if ( ! started )
 		return;
 
-	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
+	DBG_LOG(zeek::DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
 
 	OnWaitForStop();
 
@@ -145,7 +145,7 @@ void BasicThread::Join()
 		zeek::reporter->FatalError("Failure joining thread %s with error %s", name, e.what());
 		}
 
-	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);
+	DBG_LOG(zeek::DBG_THREADING, "Joined with thread %s", name);
 	}
 
 void BasicThread::Kill()
@@ -160,7 +160,7 @@ void BasicThread::Kill()
 
 void BasicThread::Done()
 	{
-	DBG_LOG(DBG_THREADING, "Thread %s has finished", name);
+	DBG_LOG(zeek::DBG_THREADING, "Thread %s has finished", name);
 
 	terminating = true;
 	killed = true;

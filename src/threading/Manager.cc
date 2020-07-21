@@ -21,7 +21,7 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire)
 
 Manager::Manager()
 	{
-	DBG_LOG(DBG_THREADING, "Creating thread manager ...");
+	DBG_LOG(zeek::DBG_THREADING, "Creating thread manager ...");
 
 	did_process = true;
 	next_beat = 0;
@@ -36,7 +36,7 @@ Manager::~Manager()
 
 void Manager::Terminate()
 	{
-	DBG_LOG(DBG_THREADING, "Terminating thread manager ...");
+	DBG_LOG(zeek::DBG_THREADING, "Terminating thread manager ...");
 	terminating = true;
 
 	// First process remaining thread output for the message threads.
@@ -64,7 +64,7 @@ void Manager::Terminate()
 
 void Manager::AddThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
+	DBG_LOG(zeek::DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
 
 	if ( ! heartbeat_timer_running )
@@ -73,13 +73,13 @@ void Manager::AddThread(BasicThread* thread)
 
 void Manager::AddMsgThread(MsgThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "%s is a MsgThread ...", thread->Name());
+	DBG_LOG(zeek::DBG_THREADING, "%s is a MsgThread ...", thread->Name());
 	msg_threads.push_back(thread);
 	}
 
 void Manager::KillThreads()
 	{
-	DBG_LOG(DBG_THREADING, "Killing threads ...");
+	DBG_LOG(zeek::DBG_THREADING, "Killing threads ...");
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
 		(*i)->Kill();
@@ -87,7 +87,7 @@ void Manager::KillThreads()
 
 void Manager::KillThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Killing thread %s ...", thread->Name());
+	DBG_LOG(zeek::DBG_THREADING, "Killing thread %s ...", thread->Name());
 	thread->Kill();
 	}
 
@@ -144,7 +144,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 		}
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals",
+	DBG_LOG(zeek::DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals",
 	        thread->Name(), name.c_str(), num_vals);
 #endif
 

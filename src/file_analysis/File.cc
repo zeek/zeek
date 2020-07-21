@@ -89,7 +89,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 	{
 	StaticInit();
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::fa_file);
 	val->Assign(id_idx, zeek::make_intrusive<zeek::StringVal>(file_id.c_str()));
@@ -106,7 +106,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 File::~File()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
 	delete file_reassembler;
 
 	for ( auto a : done_analyzers )
@@ -231,7 +231,7 @@ void File::IncrementByteCount(uint64_t size, int field_idx)
 
 void File::SetTotalBytes(uint64_t size)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
 	val->Assign(total_bytes_idx, zeek::val_mgr->Count(size));
 	}
 
@@ -258,7 +258,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
 
 bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
 
 	if ( done )
@@ -272,7 +272,7 @@ bool File::RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
 
 	return done ? false : analyzers.QueueRemove(tag, std::move(args));
@@ -386,7 +386,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	     LookupFieldDefaultCount(missing_bytes_idx) == 0 )
 		InferMetadata();
 
-	DBG_LOG(DBG_FILE_ANALYSIS,
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS,
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, stream_offset,
 	        IsComplete() ? "complete" : "incomplete",
@@ -398,10 +398,10 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
+		DBG_LOG(zeek::DBG_FILE_ANALYSIS, "stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->GotStreamDelivery() )
 			{
-			DBG_LOG(DBG_FILE_ANALYSIS, "skipping stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
+			DBG_LOG(zeek::DBG_FILE_ANALYSIS, "skipping stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 			int num_bof_chunks_behind = bof_buffer.chunks.size();
 
 			if ( ! bof_was_full )
@@ -490,7 +490,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 		IncrementByteCount(len, overflow_bytes_idx);
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS,
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS,
 	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, offset,
 	        IsComplete() ? "complete" : "incomplete",
@@ -502,7 +502,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
+		DBG_LOG(zeek::DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->Skipping() )
 			{
 			if ( ! a->DeliverChunk(data, len, offset) )
@@ -538,7 +538,7 @@ void File::DataIn(const u_char* data, uint64_t len)
 
 void File::EndOfFile()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End of file", id.c_str());
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] End of file", id.c_str());
 
 	if ( done )
 		return;
@@ -553,7 +553,7 @@ void File::EndOfFile()
 	// any stream analyzers.
 	if ( ! bof_buffer.full )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File over but bof_buffer not full.", id.c_str());
+		DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] File over but bof_buffer not full.", id.c_str());
 		bof_buffer.full = true;
 		DeliverStream((const u_char*) "", 0);
 		}
@@ -577,7 +577,7 @@ void File::EndOfFile()
 
 void File::Gap(uint64_t offset, uint64_t len)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64,
+	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64,
 		id.c_str(), len, offset);
 
 	if ( file_reassembler && ! file_reassembler->IsCurrentlyFlushing() )
@@ -589,7 +589,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 
 	if ( ! bof_buffer.full )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File gap before bof_buffer filled, continued without attempting to fill bof_buffer.", id.c_str());
+		DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] File gap before bof_buffer filled, continued without attempting to fill bof_buffer.", id.c_str());
 		bof_buffer.full = true;
 		DeliverStream((const u_char*) "", 0);
 		}

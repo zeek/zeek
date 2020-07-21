@@ -105,14 +105,14 @@ void Manager::InitPostScript()
 void Manager::DumpDebug()
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_ANALYZER, "Available analyzers after zeek_init():");
+	DBG_LOG(zeek::DBG_ANALYZER, "Available analyzers after zeek_init():");
 	std::list<Component*> all_analyzers = GetComponents();
 	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
-		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
+		DBG_LOG(zeek::DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
 		        IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
 
-	DBG_LOG(DBG_ANALYZER, " ");
-	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
+	DBG_LOG(zeek::DBG_ANALYZER, " ");
+	DBG_LOG(zeek::DBG_ANALYZER, "Analyzers by port:");
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
 		{
@@ -121,7 +121,7 @@ void Manager::DumpDebug()
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
 			s += std::string(GetComponentName(*j)) + " ";
 
-		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
+		DBG_LOG(zeek::DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
 		}
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
@@ -131,7 +131,7 @@ void Manager::DumpDebug()
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
 			s += std::string(GetComponentName(*j)) + " ";
 
-		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
+		DBG_LOG(zeek::DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
 
 #endif
@@ -148,7 +148,7 @@ bool Manager::EnableAnalyzer(const Tag& tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -161,7 +161,7 @@ bool Manager::EnableAnalyzer(zeek::EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -174,7 +174,7 @@ bool Manager::DisableAnalyzer(const Tag& tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -187,7 +187,7 @@ bool Manager::DisableAnalyzer(zeek::EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -195,7 +195,7 @@ bool Manager::DisableAnalyzer(zeek::EnumVal* val)
 
 void Manager::DisableAllAnalyzers()
 	{
-	DBG_LOG(DBG_ANALYZER, "Disabling all analyzers");
+	DBG_LOG(zeek::DBG_ANALYZER, "Disabling all analyzers");
 
 	std::list<Component*> all_analyzers = GetComponents();
 	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
@@ -260,7 +260,7 @@ bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint
 
 #ifdef DEBUG
 	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
+	DBG_LOG(zeek::DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
 	l->insert(tag);
@@ -276,7 +276,7 @@ bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, ui
 
 #ifdef DEBUG
 	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
+	DBG_LOG(zeek::DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
 	l->erase(tag);
@@ -524,7 +524,7 @@ void Manager::ExpireScheduledAnalyzers()
 
 			conns.erase(i);
 
-			DBG_LOG(DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
+			DBG_LOG(zeek::DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
 			        zeek::analyzer_mgr->GetComponentName(a->analyzer).c_str(),
 			        fmt_conn_id(a->conn.orig, 0, a->conn.resp, a->conn.resp_p));
 

@@ -179,7 +179,7 @@ static vector<T*> filter_matches(const vector<Info*>& from, Target* t)
 
 		if ( t->MatchesPattern(d) )
 			{
-			DBG_LOG(DBG_ZEEKYGEN, "'%s' matched pattern for target '%s'",
+			DBG_LOG(zeek::DBG_ZEEKYGEN, "'%s' matched pattern for target '%s'",
 			        d->Name().c_str(), t->Name().c_str());
 			rval.push_back(d);
 			}
@@ -212,7 +212,7 @@ TargetFile::~TargetFile()
 	if ( f )
 		fclose(f);
 
-	DBG_LOG(DBG_ZEEKYGEN, "Wrote out-of-date target '%s'", name.c_str());
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Wrote out-of-date target '%s'", name.c_str());
 	}
 
 
@@ -331,7 +331,7 @@ void PackageTarget::DoFindDependencies(const vector<Info*>& infos)
 			             pkg_deps[j]->Name().size()))
 				continue;
 
-			DBG_LOG(DBG_ZEEKYGEN, "Script %s associated with package %s",
+			DBG_LOG(zeek::DBG_ZEEKYGEN, "Script %s associated with package %s",
 			        script->Name().c_str(), pkg_deps[j]->Name().c_str());
 			pkg_manifest[pkg_deps[j]].push_back(script);
 			script_deps.push_back(script);
@@ -510,7 +510,7 @@ void ScriptTarget::DoGenerate() const
 				zeek::reporter->Warning("Failed to unlink %s: %s", f.c_str(),
 				                        strerror(errno));
 
-			DBG_LOG(DBG_ZEEKYGEN, "Delete stale script file %s", f.c_str());
+			DBG_LOG(zeek::DBG_ZEEKYGEN, "Delete stale script file %s", f.c_str());
 			}
 
 		return;

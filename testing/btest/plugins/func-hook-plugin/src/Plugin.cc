@@ -1,12 +1,12 @@
 
 #include "Plugin.h"
 
-#include <Val.h>
-#include <Func.h>
-#include <Event.h>
-#include <Conn.h>
-#include <Desc.h>
-#include <threading/Formatter.h>
+#include <zeek/Val.h>
+#include <zeek/Func.h>
+#include <zeek/Event.h>
+#include <zeek/Conn.h>
+#include <zeek/Desc.h>
+#include <zeek/threading/Formatter.h>
 
 namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
 

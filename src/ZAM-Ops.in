@@ -1201,6 +1201,7 @@ op Schedule
 type ViHL
 op1-read
 custom-method return CompileSchedule(n, nullptr, i, h, l);
+eval if ( terminating ) break
 eval double dt = frame[z.v1].double_val
 eval if ( z.v2 ) dt += network_time
 eval auto handler = EventHandlerPtr(z.event_handler)
@@ -1213,6 +1214,7 @@ op Schedule
 type CiHL
 op1-read
 custom-method return CompileSchedule(nullptr, c, i, h, l);
+eval if ( terminating ) break
 eval double dt = z.c.double_val
 eval if ( z.v1 ) dt += network_time
 eval auto hp = EventHandlerPtr(z.event_handler)
@@ -1224,6 +1226,7 @@ eval timer_mgr->Add(timer)
 internal-op Schedule0
 type ViH
 op1-read
+eval if ( terminating ) break
 eval double dt = frame[z.v1].double_val
 eval if ( z.v2 ) dt += network_time
 eval auto handler = EventHandlerPtr(z.event_handler)
@@ -1234,6 +1237,7 @@ eval timer_mgr->Add(timer)
 internal-op Schedule0
 type CiH
 op1-read
+eval if ( terminating ) break
 eval double dt = z.c.double_val
 eval if ( z.v1 ) dt += network_time
 eval auto hp = EventHandlerPtr(z.event_handler)

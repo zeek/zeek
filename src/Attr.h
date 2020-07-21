@@ -15,7 +15,6 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 // modify expressions or supply metadata on types, and the kind that
 // are extra metadata on every variable instance.
 
-
 namespace zeek {
 
 class Type;
@@ -43,6 +42,9 @@ enum AttrTag {
 	ATTR_TYPE_COLUMN,	// for input framework
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 	ATTR_ON_CHANGE, // for table change tracking
+	ATTR_BROKER_STORE, // for Broker store backed tables
+	ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
+	ATTR_BACKEND, // for Broker store backed tables
 	ATTR_DEPRECATED,
 	NUM_ATTRS // this item should always be last
 };

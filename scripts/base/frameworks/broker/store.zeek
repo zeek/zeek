@@ -25,6 +25,16 @@ export {
 	## A negative/zero value indicates to never buffer commands.
 	const default_clone_mutation_buffer_interval = 2min &redef;
 
+	## If set to true, the current node is the master node for Broker stores
+	## backing Zeek tables. By default this value will be automatically set to
+	## true in standalone mode, and on the manager node of a cluster. This value
+	## should not typically be changed manually.
+	const table_store_master = T &redef;
+
+	## The directory used for storing persistent database files when using Broker
+        ## store backed Zeek tables.
+	const table_store_db_directory = "." &redef;
+
 	## Whether a data store query could be completed or not.
 	type QueryStatus: enum {
 		SUCCESS,
@@ -136,7 +146,7 @@ export {
 	global store_name: function(h: opaque of Broker::Store): string;
 
 	## Check if a key exists in a data store.
-	## 
+	##
 	## h: the handle of the store to query.
 	##
 	## k: the key to lookup.
@@ -178,7 +188,7 @@ export {
 	## k: the key of the container value to lookup.
 	##
 	## i: the index to retrieve from the container value.
-	## 
+	##
 	## Returns: For tables and vectors, the value at the given index, or
 	##          failure if the index doesn't exist. For sets, a boolean
 	##          indicating whether the index exists. Returns failure if the key
@@ -217,7 +227,7 @@ export {
 	## k: the key whose associated value is to be modified. The key must
 	##    already exist.
 	##
-	## a: the amount to increment the value by. 
+	## a: the amount to increment the value by.
 	##
 	## e: the new expiration interval of the modified key. If null, the
 	##    current expiration time isn't changed.
@@ -235,7 +245,7 @@ export {
 	## k: the key whose associated value is to be modified. The key must
 	##    already exist.
 	##
-	## amount: the amount to decrement the value by. 
+	## amount: the amount to decrement the value by.
 	##
 	## e: the new expiration interval of the modified key. If null, the current
 	##    expiration time isn't changed.
@@ -258,7 +268,7 @@ export {
 	##    current expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global append: function(h: opaque of Broker::Store, k: any, s: string, 
+	global append: function(h: opaque of Broker::Store, k: any, s: string,
 	                        e: interval &default=0sec) : bool;
 
 	## Inserts an element into an existing set.
@@ -275,7 +285,7 @@ export {
 	##
 	## Returns: false if the store handle was not valid.
 	global insert_into_set: function(h: opaque of Broker::Store,
-	                                 k: any, i: any, 
+	                                 k: any, i: any,
 	                                 e: interval &default=0sec) : bool;
 
 	## Inserts an element into an existing table.
@@ -286,7 +296,7 @@ export {
 	##    already exist.
 	##
 	## i: the index to insert into the table
-	## 
+	##
 	## v: the value to associate with the index.
 	##
 	## e: the new expiration interval of the modified key. If null, the
@@ -311,7 +321,7 @@ export {
 	##
 	## Returns: false if the store handle was not valid.
 	global remove_from: function(h: opaque of Broker::Store,
-	                             k: any, i: any, 
+	                             k: any, i: any,
 	                             e: interval &default=0sec) : bool;
 
 	## Appends an element to an existing vector.
@@ -328,7 +338,7 @@ export {
 	##
 	## Returns: false if the store handle was not valid.
 	global push: function(h: opaque of Broker::Store,
-	                      k: any, v: any, 
+	                      k: any, v: any,
 	                      e: interval &default=0sec) : bool;
 
 	## Removes the last element of an existing vector.
@@ -383,7 +393,7 @@ export {
 	## d: the communication data.
 	##
 	## Returns: The data type associated with the communication data.
-	##          Note that broker represents records in the same way as
+	##          Note that Broker represents records in the same way as
 	##          vectors, so there is no "record" type.
 	global data_type: function(d: Broker::Data): Broker::DataType;
 

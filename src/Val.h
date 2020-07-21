@@ -784,9 +784,11 @@ public:
 	 * @param index  The key to assign.
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
+	 * @param broker_forward Controls if the value will be forwarded to attached
+	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(ValPtr index, ValPtr new_val);
+	bool Assign(ValPtr index, ValPtr new_val, bool broker_forward = true);
 
 	/**
 	 * Assigns a value at an associated index in the table (or in the
@@ -796,10 +798,12 @@ public:
 	 * @param k  A precomputed hash key to use.
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
+	 * @param broker_forward Controls if the value will be forwarded to attached
+	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
 	bool Assign(ValPtr index, std::unique_ptr<HashKey> k,
-	            ValPtr new_val);
+	            ValPtr new_val, bool broker_forward = true);
 
 	// Returns true if the assignment typechecked, false if not. The
 	// methods take ownership of new_val, but not of the index.  If we're
@@ -921,12 +925,14 @@ public:
 	/**
 	 * Remove an element from the table and return it.
 	 * @param index  The index to remove.
+	 * @param broker_forward Controls if the remove operation will be forwarded to attached
+	 *        Broker stores.
 	 * @return  The value associated with the index if it exists, else nullptr.
 	 * For a sets that don't really contain associated values, a placeholder
 	 * value is returned to differentiate it from non-existent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
-	ValPtr Remove(const Val& index);
+	ValPtr Remove(const Val& index, bool broker_forward = true);
 
 	/**
 	 * Same as Remove(const Val&), but uses a precomputed hash key.
@@ -1017,6 +1023,22 @@ public:
 	// on zeek::RecordTypes.
 	static void DoneParsing();
 
+	/**
+	 * Sets the name of the Broker store that is backing this table.
+	 * @param store store that is backing this table.
+	 */
+	void SetBrokerStore(const std::string& store) { broker_store = store; }
+
+	/**
+	 * Disable change notification processing of &on_change until re-enabled.
+	 */
+	void DisableChangeNotifications() { in_change_func = true; }
+
+	/**
+	 * Re-enables change notifcations after being disabled by DisableChangeNotifications.
+	 */
+	void EnableChangeNotifications() { in_change_func = false; }
+
 protected:
 	void Init(zeek::TableTypePtr t);
 
@@ -1049,9 +1071,12 @@ protected:
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
-	// Calls &change_func. Does not take ownership of values. (Refs if needed).
-	void CallChangeFunc(const Val* index, const ValPtr& old_value,
+	// Calls &change_func.
+	void CallChangeFunc(const ValPtr& index, const ValPtr& old_value,
 	                    OnChangeType tpe);
+
+	// Sends data on to backing Broker Store
+	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
 
 	ValPtr DoClone(CloneState* state) override;
 
@@ -1065,6 +1090,7 @@ protected:
 	PrefixTable* subnets;
 	ValPtr def_val;
 	zeek::detail::ExprPtr change_func;
+	std::string broker_store;
 	// prevent recursion of change functions
 	bool in_change_func = false;
 

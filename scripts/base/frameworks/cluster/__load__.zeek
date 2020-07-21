@@ -49,5 +49,7 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 @load ./nodes/worker
 @endif
 
+@load ./broker-stores.zeek
+
 @endif
 @endif

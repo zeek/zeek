@@ -7,20 +7,6 @@
 #include "broker/Data.h"
 #include "Trigger.h"
 
-static broker::optional<broker::timespan> prepare_expiry(double e)
-	{
-	broker::optional<broker::timespan> ts;
-
-	if ( e )
-		{
-		broker::timespan x;
-		broker::convert(e, x);
-		ts = x;
-		}
-
-	return ts;
-	}
-
 static bro_broker::StoreHandleVal* to_store_handle(zeek::Val* h)
 	{ return dynamic_cast<bro_broker::StoreHandleVal*>(h); }
 %%}
@@ -263,7 +249,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	                                             handle->store);
 
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
-	                                       prepare_expiry(e));
+	                                       bro_broker::convert_expiry(e));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return nullptr;
@@ -387,7 +373,7 @@ function Broker::__put%(h: opaque of Broker::Store,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.put(std::move(*key), std::move(*val), prepare_expiry(e));
+	handle->store.put(std::move(*key), std::move(*val), bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -440,7 +426,7 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 		}
 
 	handle->store.increment(std::move(*key), std::move(*amount),
-	                        prepare_expiry(e));
+	                        bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -470,7 +456,7 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.decrement(std::move(*key), std::move(*amount), prepare_expiry(e));
+	handle->store.decrement(std::move(*key), std::move(*amount), bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -500,7 +486,7 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.append(std::move(*key), std::move(*str), prepare_expiry(e));
+	handle->store.append(std::move(*key), std::move(*str), bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -531,7 +517,7 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
-	                          prepare_expiry(e));
+	                          bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -569,7 +555,7 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
-	                          std::move(*val), prepare_expiry(e));
+	                          std::move(*val), bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -600,7 +586,7 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 		}
 
 	handle->store.remove_from(std::move(*key), std::move(*idx),
-	                          prepare_expiry(e));
+	                          bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -630,7 +616,7 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.push(std::move(*key), std::move(*val), prepare_expiry(e));
+	handle->store.push(std::move(*key), std::move(*val), bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -652,7 +638,7 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.pop(std::move(*key), prepare_expiry(e));
+	handle->store.pop(std::move(*key), bro_broker::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 

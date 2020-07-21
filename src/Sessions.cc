@@ -119,7 +119,7 @@ void NetSessions::Done()
 	{
 	}
 
-void NetSessions::NextPacket(double t, const Packet* pkt)
+void NetSessions::NextPacket(double t, const zeek::Packet* pkt)
 	{
 	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
@@ -144,7 +144,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 	uint32_t caplen = pkt->cap_len - pkt->hdr_size;
 
-	if ( pkt->l3_proto == L3_IPV4 )
+	if ( pkt->l3_proto == zeek::L3_IPV4 )
 		{
 		if ( caplen < sizeof(struct ip) )
 			{
@@ -157,7 +157,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
-	else if ( pkt->l3_proto == L3_IPV6 )
+	else if ( pkt->l3_proto == zeek::L3_IPV6 )
 		{
 		if ( caplen < sizeof(struct ip6_hdr) )
 			{
@@ -169,7 +169,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
-	else if ( pkt->l3_proto == L3_ARP )
+	else if ( pkt->l3_proto == zeek::L3_ARP )
 		{
 		if ( arp_analyzer )
 			arp_analyzer->NextPacket(t, pkt);
@@ -211,7 +211,7 @@ static unsigned int gre_header_len(uint16_t flags)
 	return len;
 	}
 
-void NetSessions::DoNextPacket(double t, const Packet* pkt, const zeek::IP_Hdr* ip_hdr,
+void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP_Hdr* ip_hdr,
                                const EncapsulationStack* encapsulation)
 	{
 	uint32_t caplen = pkt->cap_len - pkt->hdr_size;
@@ -738,7 +738,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const zeek::IP_Hdr* 
 		}
 	}
 
-void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
+void NetSessions::DoNextInnerPacket(double t, const zeek::Packet* pkt,
                                     const zeek::IP_Hdr* inner, const EncapsulationStack* prev,
                                     const EncapsulatingConn& ec)
 	{
@@ -769,7 +769,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	outer->Add(ec);
 
 	// Construct fake packet for DoNextPacket
-	Packet p;
+	zeek::Packet p;
 	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
 
 	DoNextPacket(t, &p, inner, outer);
@@ -778,7 +778,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	delete outer;
 	}
 
-void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
+void NetSessions::DoNextInnerPacket(double t, const zeek::Packet* pkt,
                                     uint32_t caplen, uint32_t len,
                                     const u_char* data, int link_type,
                                     const EncapsulationStack* prev,
@@ -800,10 +800,10 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	outer->Add(ec);
 
 	// Construct fake packet for DoNextPacket
-	Packet p;
+	zeek::Packet p;
 	p.Init(link_type, &ts, caplen, len, data, false, "");
 
-	if ( p.Layer2Valid() && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
+	if ( p.Layer2Valid() && (p.l3_proto == zeek::L3_IPV4 || p.l3_proto == zeek::L3_IPV6) )
 		{
 		auto inner = p.IP();
 		DoNextPacket(t, &p, &inner, outer);
@@ -850,7 +850,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	}
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-                                   const Packet* p, const EncapsulationStack* encap)
+                                   const zeek::Packet* p, const EncapsulationStack* encap)
 	{
 	uint32_t min_hdr_len = 0;
 	switch ( proto ) {
@@ -1160,8 +1160,8 @@ void NetSessions::GetStats(SessionStats& s) const
 	}
 
 Connection* NetSessions::NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-					const u_char* data, int proto, uint32_t flow_label,
-					const Packet* pkt, const EncapsulationStack* encapsulation)
+                                 const u_char* data, int proto, uint32_t flow_label,
+                                 const zeek::Packet* pkt, const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -1302,7 +1302,7 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-void NetSessions::DumpPacket(const Packet *pkt, int len)
+void NetSessions::DumpPacket(const zeek::Packet *pkt, int len)
 	{
 	if ( ! pkt_dumper )
 		return;
@@ -1312,13 +1312,13 @@ void NetSessions::DumpPacket(const Packet *pkt, int len)
 		if ( (uint32_t)len > pkt->cap_len )
 			zeek::reporter->Warning("bad modified caplen");
 		else
-			const_cast<Packet *>(pkt)->cap_len = len;
+			const_cast<zeek::Packet *>(pkt)->cap_len = len;
 		}
 
 	pkt_dumper->Dump(pkt);
 	}
 
-void NetSessions::Weird(const char* name, const Packet* pkt,
+void NetSessions::Weird(const char* name, const zeek::Packet* pkt,
                         const EncapsulationStack* encap, const char* addl)
 	{
 	if ( pkt )

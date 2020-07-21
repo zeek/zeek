@@ -58,7 +58,7 @@ uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
 Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-                       uint32_t flow, const Packet* pkt,
+                       uint32_t flow, const zeek::Packet* pkt,
                        const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
@@ -187,7 +187,7 @@ void Connection::NextPacket(double t, bool is_orig,
                             const u_char*& data,
                             int& record_packet, int& record_content,
                             // arguments for reproducing packets
-                            const Packet *pkt)
+                            const zeek::Packet *pkt)
 	{
 	current_timestamp = t;
 	current_pkt = pkt;

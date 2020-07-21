@@ -82,7 +82,7 @@ void PcapDumper::Open()
 		}
 
 	props.open_time = network_time;
-	props.hdr_size = Packet::GetLinkHeaderSize(pcap_datalink(pd));
+	props.hdr_size = zeek::Packet::GetLinkHeaderSize(pcap_datalink(pd));
 	Opened(props);
 	}
 
@@ -99,7 +99,7 @@ void PcapDumper::Close()
 	Closed();
 	}
 
-bool PcapDumper::Dump(const Packet* pkt)
+bool PcapDumper::Dump(const zeek::Packet* pkt)
 	{
 	if ( ! dumper )
 		return false;

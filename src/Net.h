@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <sys/stat.h> // for ino_t
 
 #include <list>
@@ -15,7 +17,7 @@ namespace iosource {
 	class PktDumper;
 	}
 
-class Packet;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
 extern void net_init(const std::optional<std::string>& interfaces,
                      const std::optional<std::string>& pcap_input_file,
@@ -26,7 +28,7 @@ extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
-extern void net_packet_dispatch(double t, const Packet* pkt,
+extern void net_packet_dispatch(double t, const zeek::Packet* pkt,
 			iosource::PktSrc* src_ps);
 extern void expire_timers(iosource::PktSrc* src_ps = nullptr);
 extern void zeek_terminate_loop(const char* reason);
@@ -77,7 +79,7 @@ extern bool terminating;
 // True if Bro is currently parsing scripts.
 extern bool is_parsing;
 
-extern const Packet* current_pkt;
+extern const zeek::Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
 extern iosource::PktSrc* current_pktsrc;

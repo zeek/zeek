@@ -32,7 +32,6 @@ extern "C" {
 #include "Reporter.h"
 #include "Scope.h"
 #include "Anon.h"
-#include "PacketDumper.h"
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
@@ -58,7 +57,7 @@ double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
 bool is_parsing = false;
 
-const Packet *current_pkt = nullptr;
+const zeek::Packet *current_pkt = nullptr;
 int current_dispatched = 0;
 double current_timestamp = 0.0;
 iosource::PktSrc* current_pktsrc = nullptr;
@@ -220,7 +219,7 @@ void expire_timers(iosource::PktSrc* src_ps)
 			max_timer_expires - current_dispatched);
 	}
 
-void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
+void net_packet_dispatch(double t, const zeek::Packet* pkt, iosource::PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
 		{

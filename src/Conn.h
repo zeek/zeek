@@ -66,7 +66,7 @@ static inline int addr_port_canon_lt(const zeek::IPAddr& addr1, uint32_t p1,
 class Connection final : public zeek::Obj {
 public:
 	Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);
+	           uint32_t flow, const zeek::Packet* pkt, const EncapsulationStack* arg_encap);
 	~Connection() override;
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -96,7 +96,7 @@ public:
 	                const u_char*& data,
 	                int& record_packet, int& record_content,
 	                // arguments for reproducing packets
-	                const Packet *pkt);
+	                const zeek::Packet *pkt);
 
 	// Keys are only considered valid for a connection when a
 	// connection is in the session map. If it is removed, the key
@@ -355,8 +355,8 @@ protected:
 	TransportProto proto;
 	uint32_t orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32_t vlan, inner_vlan;	// VLAN this connection traverses, if available
-	u_char orig_l2_addr[Packet::l2_addr_len];	// Link-layer originator address, if available
-	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
+	u_char orig_l2_addr[zeek::Packet::l2_addr_len];	// Link-layer originator address, if available
+	u_char resp_l2_addr[zeek::Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
 	zeek::RecordValPtr conn_val;

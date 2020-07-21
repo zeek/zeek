@@ -6,6 +6,8 @@
 #include "util.h"
 #include "iosource/PktDumper.h"
 
+namespace zeek::detail {
+
 PacketDumper::PacketDumper(pcap_dumper_t* arg_pkt_dump)
 	{
 	last_timestamp.tv_sec = last_timestamp.tv_usec = 0;
@@ -36,3 +38,5 @@ void PacketDumper::SortTimeStamp(struct timeval* timestamp)
 	else
 		last_timestamp = *timestamp;
 	}
+
+} // namespace zeek::detail

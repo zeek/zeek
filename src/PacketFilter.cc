@@ -1,6 +1,8 @@
 #include "PacketFilter.h"
 #include "IP.h"
 
+namespace zeek::detail {
+
 void PacketFilter::DeleteFilter(void* data)
 	{
 	auto f = static_cast<Filter*>(data);
@@ -115,3 +117,5 @@ bool PacketFilter::MatchFilter(const Filter& f, const zeek::IP_Hdr& ip,
 
 	return zeek::random_number() < f.probability;
 	}
+
+} // namespace zeek::detail

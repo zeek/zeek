@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include "zeek-config.h"
 #include <string>
 
-class Packet;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
 namespace iosource {
 
@@ -84,7 +85,7 @@ public:
 	 * @return True if succesful, false otherwise (in which case \a
 	 * Error() must have been called.)
 	 */
-	virtual bool Dump(const Packet* pkt) = 0;
+	virtual bool Dump(const zeek::Packet* pkt) = 0;
 
 protected:
 	friend class Manager;

@@ -24,7 +24,7 @@
 
 #include "NetVar.h"
 
-class Packet;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
 extern "C" {
 #include <pcap.h>
@@ -37,7 +37,7 @@ public:
 	ARP_Analyzer();
 	~ARP_Analyzer() override;
 
-	void NextPacket(double t, const Packet* pkt);
+	void NextPacket(double t, const zeek::Packet* pkt);
 
 	void Describe(ODesc* d) const override;
 	void RREvent(zeek::EventHandlerPtr e, const u_char* src, const u_char* dst,

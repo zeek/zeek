@@ -191,7 +191,7 @@ void PcapSource::OpenOffline()
 	Opened(props);
 	}
 
-bool PcapSource::ExtractNextPacket(Packet* pkt)
+bool PcapSource::ExtractNextPacket(zeek::Packet* pkt)
 	{
 	if ( ! pd )
 		return false;
@@ -258,7 +258,7 @@ bool PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	BPF_Program* code = GetBPFFilter(index);
+	zeek::detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{

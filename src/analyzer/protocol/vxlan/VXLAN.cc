@@ -63,7 +63,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	pkt_timeval ts;
 	ts.tv_sec = (time_t) current_timestamp;
 	ts.tv_usec = (suseconds_t) ((current_timestamp - (double)ts.tv_sec) * 1000000);
-	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
+	zeek::Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
 
 	if ( ! pkt.Layer2Valid() )
 		{
@@ -80,10 +80,10 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	int res = 0;
 
 	switch ( pkt.l3_proto ) {
-		case L3_IPV4:
+		case zeek::L3_IPV4:
 			res = sessions->ParseIPPacket(len, data, IPPROTO_IPV4, inner);
 			break;
-		case L3_IPV6:
+		case zeek::L3_IPV6:
 			res = sessions->ParseIPPacket(len, data, IPPROTO_IPV6, inner);
 			break;
 		default:

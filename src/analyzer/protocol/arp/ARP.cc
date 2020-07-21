@@ -76,7 +76,7 @@ ARP_Analyzer::~ARP_Analyzer()
 #endif
 
 
-void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
+void ARP_Analyzer::NextPacket(double t, const zeek::Packet* pkt)
 	{
 	const u_char *data = pkt->data;
 	// Check whether the packet is OK ("inspired" in tcpdump's print-arp.c).

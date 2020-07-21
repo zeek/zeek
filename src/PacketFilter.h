@@ -8,6 +8,8 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
+namespace zeek::detail {
+
 class PacketFilter {
 public:
 	explicit PacketFilter(bool arg_default);
@@ -45,3 +47,7 @@ private:
 	PrefixTable src_filter;
 	PrefixTable dst_filter;
 };
+
+} // namespace zeek::detail
+
+using PacketFilter [[deprecated("Remove in v4.1. Use zeek::detail::PacketFilter.")]] = zeek::detail::PacketFilter;

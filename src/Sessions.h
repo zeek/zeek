@@ -14,7 +14,7 @@
 
 class EncapsulationStack;
 class EncapsulatingConn;
-class Packet;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 class PacketProfiler;
 class Connection;
 class ConnCompressor;
@@ -49,7 +49,7 @@ public:
 	~NetSessions();
 
 	// Main entry point for packet processing.
-	void NextPacket(double t, const Packet* pkt);
+	void NextPacket(double t, const zeek::Packet* pkt);
 
 	void Done();	// call to drain events before destructing
 
@@ -77,15 +77,15 @@ public:
 
 	void GetStats(SessionStats& s) const;
 
-	void Weird(const char* name, const Packet* pkt,
+	void Weird(const char* name, const zeek::Packet* pkt,
 	           const EncapsulationStack* encap = nullptr, const char* addl = "");
 	void Weird(const char* name, const zeek::IP_Hdr* ip,
 	           const EncapsulationStack* encap = nullptr, const char* addl = "");
 
-	PacketFilter* GetPacketFilter()
+	zeek::detail::PacketFilter* GetPacketFilter()
 		{
 		if ( ! packet_filter )
-			packet_filter = new PacketFilter(packet_filter_default);
+			packet_filter = new zeek::detail::PacketFilter(packet_filter_default);
 		return packet_filter;
 		}
 
@@ -96,7 +96,7 @@ public:
 		return tcp_conns.size() + udp_conns.size() + icmp_conns.size();
 		}
 
-	void DoNextPacket(double t, const Packet *pkt, const zeek::IP_Hdr* ip_hdr,
+	void DoNextPacket(double t, const zeek::Packet *pkt, const zeek::IP_Hdr* ip_hdr,
 	                  const EncapsulationStack* encapsulation);
 
 	/**
@@ -113,7 +113,7 @@ public:
 	 *        the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	void DoNextInnerPacket(double t, const Packet *pkt,
+	void DoNextInnerPacket(double t, const zeek::Packet *pkt,
 	                       const zeek::IP_Hdr* inner, const EncapsulationStack* prev,
 	                       const EncapsulatingConn& ec);
 
@@ -132,7 +132,7 @@ public:
 	 *        including the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	void DoNextInnerPacket(double t, const Packet* pkt,
+	void DoNextInnerPacket(double t, const zeek::Packet* pkt,
                            uint32_t caplen, uint32_t len,
                            const u_char* data, int link_type,
                            const EncapsulationStack* prev,
@@ -177,7 +177,7 @@ protected:
 
 	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32_t flow_label,
-			const Packet* pkt, const EncapsulationStack* encapsulation);
+			const zeek::Packet* pkt, const EncapsulationStack* encapsulation);
 
 	Connection* LookupConn(const ConnectionMap& conns, const zeek::detail::ConnIDKey& key);
 
@@ -202,13 +202,13 @@ protected:
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.
-	void DumpPacket(const Packet *pkt, int len=0);
+	void DumpPacket(const zeek::Packet *pkt, int len=0);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-			      const Packet *pkt, const EncapsulationStack* encap);
+	                      const zeek::Packet *pkt, const EncapsulationStack* encap);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by
@@ -233,7 +233,7 @@ protected:
 
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	Discarder* discarder;
-	PacketFilter* packet_filter;
+	zeek::detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
 	PacketProfiler* pkt_profiler;
 	bool dump_this_packet;	// if true, current packet should be recorded

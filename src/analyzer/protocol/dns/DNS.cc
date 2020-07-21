@@ -739,7 +739,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				// IPv6 address, depending on FAMILY, which MUST be truncated to the
 				// number of bits indicated by the SOURCE PREFIX-LENGTH field,
 				// padding with 0 bits to pad to the end of the last octet needed.
-				if ( ecs_family == L3_IPV4 )
+				if ( ecs_family == zeek::L3_IPV4 )
 					{
 					opt.ecs_family = zeek::make_intrusive<zeek::StringVal>("v4");
 					uint32_t addr = 0;
@@ -752,7 +752,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 					addr = htonl(addr);
 					opt.ecs_addr = zeek::make_intrusive<zeek::AddrVal>(addr);
 					}
-				else if ( ecs_family == L3_IPV6 )
+				else if ( ecs_family == zeek::L3_IPV6 )
 					{
 					opt.ecs_family = zeek::make_intrusive<zeek::StringVal>("v6");
 					uint32_t addr[4] = { 0 };

@@ -588,6 +588,16 @@ eval auto ind = frame[z.v3].uint_val
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
+internal-op Index-Any-Vec
+type VVV
+eval auto vv = frame[z.v2].vector_val->RawVector()
+eval auto& vec = vv->ConstVec()
+eval auto ind = frame[z.v3].uint_val
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
+eval auto v = vec[ind].ToVal(vv->YieldType())
+eval Unref(frame[z.v1].any_val)
+eval frame[z.v1].any_val = v.release()
+
 internal-op Index-VecC
 type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
@@ -596,13 +606,15 @@ eval auto ind = z.v3
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
-internal-op Index-Vec
-type VV
-eval auto yt = z.t->AsVectorType()->YieldType()
-eval auto vec = frame[z.v2].vector_val
-eval auto lv = z.aux->ToListVal(frame)
-eval auto v = vec->Lookup(lv.get())
-eval AssignV1T(BuildVal(v, yt), yt)
+internal-op Index-Any-VecC
+type VVV
+eval auto vv = frame[z.v2].vector_val->RawVector()
+eval auto& vec = vv->ConstVec()
+eval auto ind = z.v3
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
+eval auto v = vec[ind].ToVal(vv->YieldType())
+eval Unref(frame[z.v1].any_val)
+eval frame[z.v1].any_val = v.release()
 
 internal-op Index-Vec-Slice
 type VV
@@ -855,7 +867,15 @@ eval AssignV1(ZAMValUnion(frame[z.v2].ToVal(z.t), base_type_no_ref(TYPE_ANY)))
 unary-expr-op From-Any-Coerce
 op-type X
 set-type $1
-eval AssignV1(ZAMValUnion({NewRef{}, frame[z.v2].any_val}, z.t))
+eval auto v = frame[z.v2].any_val;
+eval if ( z.t->Tag() == TYPE_VECTOR ) {
+eval	auto t = v->Type();
+eval	if ( t->Tag() != TYPE_VECTOR ) { ZAM_run_time_error(z.stmt, "RHS is not a vector"); break; }
+eval	if ( ! same_type(z.t, t) ) { ZAM_run_time_error(z.stmt, "incompatible vectors"); break; }
+eval	::Ref(v);
+eval	Unref(frame[z.v1].vector_val);
+eval	frame[z.v1].vector_val = v->AsVectorVal();
+eval } else AssignV1(ZAMValUnion({NewRef{}, v}, z.t))
 
 
 ########## Aggregate Assignments ##########

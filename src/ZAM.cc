@@ -3976,16 +3976,21 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 
 		if ( n2tag == TYPE_VECTOR )
 			{
+			auto n2_yt = n2t->AsVectorType()->YieldType();
+			bool is_any = n2_yt->Tag() == TYPE_ANY;
+
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = OP_INDEX_VEC_VVV;
+				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV :
+							OP_INDEX_VEC_VVV;
 				z = ZInst(zop, Frame1Slot(n1, zop),
 						n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = OP_INDEX_VECC_VVV;
+				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV :
+							OP_INDEX_VECC_VVV;
 				z = ZInst(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}
@@ -4026,7 +4031,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 
 	switch ( n2tag ) {
 	case TYPE_VECTOR:
-		op = n == 1 ? OP_INDEX_VEC_VV : OP_INDEX_VEC_SLICE_VV;
+		op = OP_INDEX_VEC_SLICE_VV;
 		z = ZInst(op, Frame1Slot(n1, op), n2_slot);
 		z.SetType(n2->Type());
 		break;

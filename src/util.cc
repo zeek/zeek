@@ -1109,16 +1109,15 @@ void init_random_seed(const char* read_file, const char* write_file)
 			seeds_done = true;
 		}
 
+	if ( ! seeds_done )
+		{
 #ifdef HAVE_GETRANDOM
-	if ( ! seeds_done )
-		{
-		ssize_t nbytes = getrandom(buf, sizeof(buf), 0);
-		seeds_done = nbytes == ssize_t(sizeof(buf));
-		}
-#endif
-
-	if ( ! seeds_done )
-		{
+		// getrandom() guarantees reads up to 256 bytes are always successful,
+		assert(sizeof(buf) < 256);
+		auto nbytes = getrandom(buf, sizeof(buf), 0);
+		assert(nbytes == sizeof(buf));
+		pos += nbytes / sizeof(uint32_t);
+#else
 		// Gather up some entropy.
 		gettimeofday((struct timeval *)(buf + pos), 0);
 		pos += sizeof(struct timeval) / sizeof(uint32_t);
@@ -1145,9 +1144,10 @@ void init_random_seed(const char* read_file, const char* write_file)
 				// systems due to a lack of entropy.
 				errno = 0;
 			}
+#endif
 
 		if ( pos < bufsiz )
-			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %d", bufsiz, pos);
+			reporter->FatalError("Could not read enough random data. Wanted %d, got %d", bufsiz, pos);
 
 		if ( ! seed )
 			{

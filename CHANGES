@@ -1,4 +1,11 @@
 
+3.1.5-dev.9 | 2020-07-23 17:47:40 -0700
+
+  * GH-1076: Fix use of getrandom() (Jon Siwek, Corelight)
+
+    The availability and use of getrandom() actually caused unrandom and
+    deterministic results in terms of Zeek's random number generation.
+
 3.1.5-dev.8 | 2020-07-23 17:33:22 -0700
 
   * GH-1076: Fix bro_srandom() to replace 0 seeds with 1 (Jon Siwek, Corelight)

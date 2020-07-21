@@ -973,7 +973,7 @@ side-effects-op-type OP_X
 eval std::vector<IntrusivePtr<Val>> args;	// empty
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1005,7 +1005,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v2].ToVal(z.t))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1017,7 +1017,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1044,7 +1044,7 @@ eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1072,7 +1072,7 @@ eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1102,7 +1102,7 @@ eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1134,7 +1134,7 @@ eval args.push_back(aux->ToVal(frame, 3))
 eval args.push_back(aux->ToVal(frame, 4))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1162,7 +1162,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = z.func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 
@@ -1191,7 +1191,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
 eval f->SetCallLoc(z.stmt->GetLocationInfo())
 eval auto v_ptr = func->Call(args, f)
-eval if ( ! v_ptr ) break
+eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
 eval @v
 

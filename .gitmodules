@@ -40,3 +40,6 @@
 [submodule "auxil/highwayhash"]
 	path = auxil/highwayhash
 	url = https://github.com/zeek/highwayhash
+[submodule "auxil/zeek-archiver"]
+	path = auxil/zeek-archiver
+	url = https://github.com/zeek/zeek-archiver

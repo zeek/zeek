@@ -1,4 +1,12 @@
 
+3.2.0-dev.962 | 2020-07-21 12:39:34 -0700
+
+  * Add zeek-archiver tool as submodule
+
+    This is added to the default Zeek build as a convenience since it's the
+    new suggested method for archiving the logs produced by a Supervised
+    Zeek Cluster. (Jon Siwek, Corelight)
+
 3.2.0-dev.959 | 2020-07-21 15:34:59 +0000
 
   * Broker Store table synchronizatio, (Johanna Amann, Corelight)

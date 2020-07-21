@@ -123,6 +123,11 @@ function format_value(value: any) : string
 	local part: string_vec = vector();
 	if ( /^set/ in tn )
 		{
+		### The following is ill-defined.  It happens to work
+		### for the interpreter, but not for compiling.  The
+		### issue is that value may be set[something] for
+		### something != string.  May require adding an
+		### associated BiF to fix. -VP
 		local it: set[string] = value;
 		for ( sv in it )
 			part += cat(sv);

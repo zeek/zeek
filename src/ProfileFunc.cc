@@ -49,6 +49,29 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		}
 		break;
 
+	case STMT_SWITCH:
+		{
+		// If this is a type-case switch statement, then
+		// find the identifiers created so we can add them
+		// to our list of locals.  Ideally this wouldn't be
+		// necessary since *surely* if one bothers to define
+		// such an identifier then it'll be subsequently used,
+		// and we'll pick up the local that way ... but if
+		// for some reason it's not, then we'll have an incomplete
+		// list of locals that need to be tracked.
+		auto sw = s->AsSwitchStmt();
+		for ( auto& c : *sw->Cases() )
+			{
+			auto idl = c->TypeCases();
+			if ( idl ) 
+				{
+				for ( auto id : *idl )
+					locals.insert(id);
+				}
+			}
+		}
+		break;
+
 	default: break;
 	}
 

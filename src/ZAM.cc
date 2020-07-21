@@ -3465,7 +3465,11 @@ bool ZAM::IsUnused(const ID* id, const Stmt* where) const
 	if ( ! ud->HasUsage(where) )
 		return true;
 
-	return ! ud->GetUsage(where)->HasID(id);
+	auto usage = ud->GetUsage(where);
+	// usage can be nil if due to constant propagation we've prune
+	// all of the uses of the given identifier.
+
+	return ! usage || ! usage->HasID(id);
 	}
 
 OpaqueVals* ZAM::BuildVals(const IntrusivePtr<ListExpr>& l)
@@ -3486,6 +3490,8 @@ ZInstAux* ZAM::InternalBuildVals(const ListExpr* l, int stride)
 		auto& e = exprs[i];
 		int num_vals = InternalAddVal(aux, offset, e);
 		ASSERT(num_vals == stride);
+		// usage can be nil if due to constant propagation we've prune
+		// all of the uses of the given identifier.
 		offset += num_vals;
 		}
 

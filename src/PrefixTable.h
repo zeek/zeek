@@ -11,6 +11,8 @@ extern "C" {
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(SubNetVal, zeek);
 
+namespace zeek::detail {
+
 class PrefixTable {
 private:
 	struct iterator {
@@ -61,3 +63,7 @@ private:
 	patricia_tree_t* tree;
 	data_fn_t delete_function;
 };
+
+} // namespace zeek::detail
+
+using PrefixTable [[deprecated("Remove in v4.1. Use zeek::detail::PrefixTable.")]] = zeek::detail::PrefixTable;

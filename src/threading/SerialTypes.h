@@ -9,7 +9,7 @@
 #include "Type.h"
 #include "net_util.h"
 
-class SerializationFormat;
+ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
 
 namespace threading {
 
@@ -55,7 +55,7 @@ struct Field {
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Read(SerializationFormat* fmt);
+	bool Read(zeek::detail::SerializationFormat* fmt);
 
 	/**
 	 * Serializes a field.
@@ -65,7 +65,7 @@ struct Field {
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Write(SerializationFormat* fmt) const;
+	bool Write(zeek::detail::SerializationFormat* fmt) const;
 
 	/**
 	 * Returns a textual description of the field's type. This method is
@@ -171,7 +171,7 @@ struct Value {
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Read(SerializationFormat* fmt);
+	bool Read(zeek::detail::SerializationFormat* fmt);
 
 	/**
 	 * Serializes a value.
@@ -181,7 +181,7 @@ struct Value {
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Write(SerializationFormat* fmt) const;
+	bool Write(zeek::detail::SerializationFormat* fmt) const;
 
 	/**
 	 * Returns true if the type can be represented by a Value. If

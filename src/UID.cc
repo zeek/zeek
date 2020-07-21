@@ -6,8 +6,9 @@
 
 #include <cstdlib>
 
-using namespace Bro;
 using namespace std;
+
+namespace zeek {
 
 void UID::Set(bro_uint_t bits, const uint64_t* v, size_t n)
 	{
@@ -40,3 +41,5 @@ std::string UID::Base62(std::string prefix) const
 
 	return prefix;
 	}
+
+} // namespace zeek

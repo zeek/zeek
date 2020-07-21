@@ -13,6 +13,8 @@
 
 class Connection;
 
+namespace zeek {
+
 /**
  * Represents various types of tunnel "connections", that is, a pair of
  * endpoints whose communication encapsulates inner IP packets.  This could
@@ -44,7 +46,7 @@ public:
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
 		  proto(TRANSPORT_UNKNOWN), type(t),
-		  uid(Bro::UID(bits_per_uid))
+		  uid(zeek::UID(bits_per_uid))
 		{
 		}
 
@@ -125,7 +127,7 @@ protected:
 	uint16_t dst_port;
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
-	Bro::UID uid;
+	zeek::UID uid;
 };
 
 /**
@@ -225,3 +227,5 @@ public:
 protected:
 	std::vector<EncapsulatingConn>* conns;
 };
+
+} // namespace zeek

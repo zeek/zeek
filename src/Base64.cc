@@ -6,6 +6,8 @@
 
 #include <math.h>
 
+namespace zeek::detail {
+
 int Base64Converter::default_base64_table[256];
 const std::string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -277,4 +279,16 @@ zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connec
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
 	return new zeek::String(true, (u_char*)outbuf, outlen);
+	}
+
+} // namespace zeek::detail
+
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
+	{
+	return zeek::detail::decode_base64(s, a, conn);
+	}
+
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
+	{
+	return zeek::detail::encode_base64(s ,a ,conn);
 	}

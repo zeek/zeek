@@ -16,7 +16,7 @@
 
 using namespace threading;
 
-bool Field::Read(SerializationFormat* fmt)
+bool Field::Read(zeek::detail::SerializationFormat* fmt)
 	{
 	int t;
 	int st;
@@ -53,7 +53,7 @@ bool Field::Read(SerializationFormat* fmt)
 	return true;
 	}
 
-bool Field::Write(SerializationFormat* fmt) const
+bool Field::Write(zeek::detail::SerializationFormat* fmt) const
 	{
 	assert(name);
 
@@ -173,7 +173,7 @@ bool Value::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	return false;
 	}
 
-bool Value::Read(SerializationFormat* fmt)
+bool Value::Read(zeek::detail::SerializationFormat* fmt)
 	{
 	int ty, sty;
 
@@ -323,7 +323,7 @@ bool Value::Read(SerializationFormat* fmt)
 	return false;
 	}
 
-bool Value::Write(SerializationFormat* fmt) const
+bool Value::Write(zeek::detail::SerializationFormat* fmt) const
 	{
 	if ( ! (fmt->Write((int)type, "type") &&
 		fmt->Write((int)subtype, "subtype") &&

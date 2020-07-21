@@ -193,13 +193,13 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 		}
 	}
 
-TraversalCode Func::Traverse(TraversalCallback* cb) const
+detail::TraversalCode Func::Traverse(detail::TraversalCallback* cb) const
 	{
 	// FIXME: Make a fake scope for builtins?
 	zeek::detail::Scope* old_scope = cb->current_scope;
 	cb->current_scope = scope.get();
 
-	TraversalCode tc = cb->PreFunction(this);
+	detail::TraversalCode tc = cb->PreFunction(this);
 	HANDLE_TC_STMT_PRE(tc);
 
 	// FIXME: Traverse arguments to builtin functions, too.

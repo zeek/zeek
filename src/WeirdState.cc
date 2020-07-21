@@ -2,6 +2,8 @@
 #include "Net.h"
 #include "util.h"
 
+namespace zeek::detail {
+
 bool PermitWeird(WeirdStateMap& wsm, const char* name, uint64_t threshold,
                  uint64_t rate, double duration)
     {
@@ -29,3 +31,5 @@ bool PermitWeird(WeirdStateMap& wsm, const char* name, uint64_t threshold,
 	else
 		return false;
     }
+
+} // namespace zeek::detail

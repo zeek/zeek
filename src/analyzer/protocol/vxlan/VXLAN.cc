@@ -46,7 +46,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	const EncapsulationStack* estack = Conn()->GetEncapsulation();
+	const zeek::EncapsulationStack* estack = Conn()->GetEncapsulation();
 
 	if ( estack && estack->Depth() >= zeek::BifConst::Tunnel::max_depth )
 		{
@@ -104,6 +104,6 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		Conn()->EnqueueEvent(vxlan_packet, nullptr, ConnVal(),
 		                     inner->ToPktHdrVal(), zeek::val_mgr->Count(vni));
 
-	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
+	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
 	sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);
 	}

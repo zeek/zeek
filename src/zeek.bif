@@ -1218,7 +1218,7 @@ function check_subnet%(search: subnet, t: any%): bool
 		return nullptr;
 		}
 
-	const PrefixTable* pt = t->AsTableVal()->Subnets();
+	const zeek::detail::PrefixTable* pt = t->AsTableVal()->Subnets();
 	if ( ! pt )
 		{
 		zeek::reporter->Error("check_subnet encountered nonexisting prefix table.");
@@ -2936,7 +2936,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 ## .. zeek:see:: decode_base64
 function encode_base64%(s: string, a: string &default=""%): string
 	%{
-	String* t = encode_base64(s->AsString(), a->AsString());
+	String* t = zeek::detail::encode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
@@ -2958,7 +2958,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 ## .. zeek:see:: decode_base64_conn encode_base64
 function decode_base64%(s: string, a: string &default=""%): string
 	%{
-	String* t = decode_base64(s->AsString(), a->AsString());
+	String* t = zeek::detail::decode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
@@ -2991,7 +2991,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 		return zeek::val_mgr->EmptyString();
 		}
 
-	String* t = decode_base64(s->AsString(), a->AsString(), conn);
+	String* t = zeek::detail::decode_base64(s->AsString(), a->AsString(), conn);
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else

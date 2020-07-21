@@ -16,7 +16,7 @@ flow AYIYA_Flow
 	function process_ayiya(pdu: PDU): bool
 		%{
 		Connection *c = connection()->bro_analyzer()->Conn();
-		const EncapsulationStack* e = c->GetEncapsulation();
+		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
@@ -84,7 +84,7 @@ flow AYIYA_Flow
 			return false;
 			}
 
-		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
+		zeek::EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 
 		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 

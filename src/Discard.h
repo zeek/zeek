@@ -12,7 +12,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 namespace zeek {
 using FuncPtr = zeek::IntrusivePtr<Func>;
-}
+
+namespace detail {
 
 class Discarder {
 public:
@@ -34,3 +35,6 @@ protected:
 	// Maximum amount of application data passed to filtering functions.
 	int discarder_maxlen;
 };
+
+} // namespace detail
+} // namespace zeek

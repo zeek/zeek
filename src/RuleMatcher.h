@@ -27,8 +27,6 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
-class IntSet;
-
 namespace zeek { class File; }
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Match_State, zeek::detail);
@@ -38,6 +36,7 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IntSet, zeek::detail);
 
 namespace analyzer {
 	namespace pia { class PIA; }

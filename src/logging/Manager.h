@@ -15,7 +15,7 @@
 #include "WriterBackend.h"
 
 namespace broker { struct endpoint_info; }
-class SerializationFormat;
+ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
 class RotationTimer;
 
 namespace logging {

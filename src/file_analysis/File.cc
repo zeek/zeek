@@ -653,5 +653,5 @@ void File::FileEvent(zeek::EventHandlerPtr h, zeek::Args args)
 bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
                        double duration)
 	{
-	return ::PermitWeird(weird_state, name, threshold, rate, duration);
+	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}

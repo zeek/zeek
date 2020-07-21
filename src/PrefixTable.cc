@@ -2,6 +2,8 @@
 #include "Reporter.h"
 #include "Val.h"
 
+namespace zeek::detail {
+
 prefix_t* PrefixTable::MakePrefix(const zeek::IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
@@ -202,3 +204,5 @@ void* PrefixTable::GetNext(iterator* i)
 
 	// Not reached.
 	}
+
+} // namespace zeek::detail

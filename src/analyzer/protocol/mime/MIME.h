@@ -12,7 +12,7 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
-class Base64Converter;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Base64Converter, zeek::detail);
 
 namespace zeek {
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
@@ -175,7 +175,7 @@ protected:
 	MIME_Entity* parent;
 	MIME_Entity* current_child_entity;
 
-	Base64Converter* base64_decoder;
+	zeek::detail::Base64Converter* base64_decoder;
 
 	int data_buf_length;
 	char* data_buf_data;

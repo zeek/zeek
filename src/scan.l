@@ -670,23 +670,23 @@ void begin_RE()
 	BEGIN(RE);
 	}
 
-class LocalNameFinder : public TraversalCallback {
+class LocalNameFinder : public zeek::detail::TraversalCallback {
 public:
 	LocalNameFinder()
 		{}
 
-	virtual TraversalCode PreExpr(const zeek::detail::Expr* expr)
+	virtual zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr)
 		{
 		if ( expr->Tag() != EXPR_NAME )
-			return TC_CONTINUE;
+			return zeek::detail::TC_CONTINUE;
 
 		const zeek::detail::NameExpr* name_expr = static_cast<const zeek::detail::NameExpr*>(expr);
 
 		if ( name_expr->Id()->IsGlobal() )
-			return TC_CONTINUE;
+			return zeek::detail::TC_CONTINUE;
 
 		local_names.push_back(name_expr);
-		return TC_CONTINUE;
+		return zeek::detail::TC_CONTINUE;
 		}
 
 	std::vector<const zeek::detail::NameExpr*> local_names;

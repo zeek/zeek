@@ -577,7 +577,7 @@ bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, stri
 		return false;
 		}
 
-	BinarySerializationFormat fmt;
+	zeek::detail::BinarySerializationFormat fmt;
 	char* data;
 	int len;
 
@@ -1332,7 +1332,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	BinarySerializationFormat fmt;
+	zeek::detail::BinarySerializationFormat fmt;
 	fmt.StartRead(serial_data->data(), serial_data->size());
 
 	int num_fields;

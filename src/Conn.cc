@@ -57,9 +57,9 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-                       uint32_t flow, const zeek::Packet* pkt,
-                       const EncapsulationStack* arg_encap)
+Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t,
+                       const ConnID* id, uint32_t flow, const zeek::Packet* pkt,
+                       const zeek::EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -117,7 +117,7 @@ Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double 
 	++total_connections;
 
 	if ( arg_encap )
-		encapsulation = new EncapsulationStack(*arg_encap);
+		encapsulation = new zeek::EncapsulationStack(*arg_encap);
 	else
 		encapsulation = nullptr;
 	}
@@ -138,7 +138,7 @@ Connection::~Connection()
 	--current_connections;
 	}
 
-void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
+void Connection::CheckEncapsulation(const zeek::EncapsulationStack* arg_encap)
 	{
 	if ( encapsulation && arg_encap )
 		{
@@ -149,7 +149,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 				             arg_encap->ToVal());
 
 			delete encapsulation;
-			encapsulation = new EncapsulationStack(*arg_encap);
+			encapsulation = new zeek::EncapsulationStack(*arg_encap);
 			}
 		}
 
@@ -157,7 +157,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		{
 		if ( tunnel_changed )
 			{
-			EncapsulationStack empty;
+			zeek::EncapsulationStack empty;
 			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
 			}
 
@@ -170,7 +170,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		if ( tunnel_changed )
 			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
 
-		encapsulation = new EncapsulationStack(*arg_encap);
+		encapsulation = new zeek::EncapsulationStack(*arg_encap);
 		}
 	}
 
@@ -726,5 +726,5 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
                              double duration)
 	{
-	return ::PermitWeird(weird_state, name, threshold, rate, duration);
+	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}

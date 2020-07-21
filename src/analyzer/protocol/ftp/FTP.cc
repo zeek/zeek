@@ -217,7 +217,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			line = skip_whitespace(line + cmd_len, end_of_line);
 			zeek::StringVal encoded(end_of_line - line, line);
-			decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
+			decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
 
 			if ( first_token )
 				{
@@ -292,7 +292,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				line += 5;
 				zeek::StringVal encoded(end_of_line - line, line);
-				decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
+				decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
 				}
 
 			break;

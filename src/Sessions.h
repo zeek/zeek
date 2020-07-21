@@ -12,15 +12,15 @@
 
 #include <sys/types.h> // for u_char
 
-class EncapsulationStack;
-class EncapsulatingConn;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulatingConn, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 class PacketProfiler;
 class Connection;
 class ConnCompressor;
 struct ConnID;
 
-class Discarder;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
@@ -78,9 +78,9 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const zeek::Packet* pkt,
-	           const EncapsulationStack* encap = nullptr, const char* addl = "");
+	           const zeek::EncapsulationStack* encap = nullptr, const char* addl = "");
 	void Weird(const char* name, const zeek::IP_Hdr* ip,
-	           const EncapsulationStack* encap = nullptr, const char* addl = "");
+	           const zeek::EncapsulationStack* encap = nullptr, const char* addl = "");
 
 	zeek::detail::PacketFilter* GetPacketFilter()
 		{
@@ -97,7 +97,7 @@ public:
 		}
 
 	void DoNextPacket(double t, const zeek::Packet *pkt, const zeek::IP_Hdr* ip_hdr,
-	                  const EncapsulationStack* encapsulation);
+	                  const zeek::EncapsulationStack* encapsulation);
 
 	/**
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
@@ -114,8 +114,8 @@ public:
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
 	void DoNextInnerPacket(double t, const zeek::Packet *pkt,
-	                       const zeek::IP_Hdr* inner, const EncapsulationStack* prev,
-	                       const EncapsulatingConn& ec);
+	                       const zeek::IP_Hdr* inner, const zeek::EncapsulationStack* prev,
+	                       const zeek::EncapsulatingConn& ec);
 
 	/**
 	 * Recurses on DoNextPacket for encapsulated Ethernet/IP packets.
@@ -135,8 +135,8 @@ public:
 	void DoNextInnerPacket(double t, const zeek::Packet* pkt,
                            uint32_t caplen, uint32_t len,
                            const u_char* data, int link_type,
-                           const EncapsulationStack* prev,
-                           const EncapsulatingConn& ec);
+                           const zeek::EncapsulationStack* prev,
+                           const zeek::EncapsulatingConn& ec);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -170,14 +170,14 @@ public:
 
 protected:
 	friend class ConnCompressor;
-	friend class IPTunnelTimer;
+	friend class detail::IPTunnelTimer;
 
 	using ConnectionMap = std::map<zeek::detail::ConnIDKey, Connection*>;
 	using FragmentMap = std::map<FragReassemblerKey, FragReassembler*>;
 
 	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32_t flow_label,
-			const zeek::Packet* pkt, const EncapsulationStack* encapsulation);
+			const zeek::Packet* pkt, const zeek::EncapsulationStack* encapsulation);
 
 	Connection* LookupConn(const ConnectionMap& conns, const zeek::detail::ConnIDKey& key);
 
@@ -208,7 +208,7 @@ protected:
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-	                      const zeek::Packet *pkt, const EncapsulationStack* encap);
+	                      const zeek::Packet *pkt, const zeek::EncapsulationStack* encap);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by
@@ -225,14 +225,14 @@ protected:
 	SessionStats stats;
 
 	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
-	using TunnelActivity = std::pair<EncapsulatingConn, double>;
+	using TunnelActivity = std::pair<zeek::EncapsulatingConn, double>;
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
 	analyzer::arp::ARP_Analyzer* arp_analyzer;
 
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
-	Discarder* discarder;
+	zeek::detail::Discarder* discarder;
 	zeek::detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
 	PacketProfiler* pkt_profiler;

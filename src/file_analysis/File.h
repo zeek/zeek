@@ -373,7 +373,7 @@ protected:
 		zeek::String::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
 
-	WeirdStateMap weird_state;
+	zeek::detail::WeirdStateMap weird_state;
 
 	static int id_idx;
 	static int parent_id_idx;

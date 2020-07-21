@@ -27,13 +27,13 @@
 #include "ZeekArgs.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BifReturnVal, zeek::detail);
 
 namespace zeek { class String; }
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
-class BifReturnVal;
 namespace zeek::BifFunc {
-	extern BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+	extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
 }
 
 namespace zeek::detail {

@@ -136,7 +136,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		++authLines;
 
 		zeek::String encoded(line);
-		zeek::String* decoded = decode_base64(&encoded, nullptr, Conn());
+		zeek::String* decoded = zeek::detail::decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{

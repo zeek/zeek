@@ -1440,7 +1440,7 @@ void TableVal::Init(TableTypePtr t)
 	def_val = nullptr;
 
 	if ( table_type->IsSubNetIndex() )
-		subnets = new PrefixTable;
+		subnets = new zeek::detail::PrefixTable;
 	else
 		subnets = nullptr;
 

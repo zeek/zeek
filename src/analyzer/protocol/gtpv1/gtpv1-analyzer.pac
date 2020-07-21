@@ -648,7 +648,7 @@ flow GTPv1_Flow(is_orig: bool)
 		%{
 		BroAnalyzer a = connection()->bro_analyzer();
 		Connection *c = a->Conn();
-		const EncapsulationStack* e = c->GetEncapsulation();
+		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		connection()->set_valid(is_orig(), false);
 
@@ -713,7 +713,7 @@ flow GTPv1_Flow(is_orig: bool)
 		%{
 		BroAnalyzer a = connection()->bro_analyzer();
 		Connection *c = a->Conn();
-		const EncapsulationStack* e = c->GetEncapsulation();
+		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		if ( ${pdu.packet}.length() < (int)sizeof(struct ip) )
 			{
@@ -762,7 +762,7 @@ flow GTPv1_Flow(is_orig: bool)
 			zeek::BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
 			                                           inner->ToPktHdrVal());
 
-		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
+		zeek::EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
 
 		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 

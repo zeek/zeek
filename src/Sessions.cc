@@ -70,7 +70,7 @@ NetSessions::NetSessions()
 	else
 		stp_manager = nullptr;
 
-	discarder = new Discarder();
+	discarder = new zeek::detail::Discarder();
 	if ( ! discarder->IsActive() )
 		{
 		delete discarder;

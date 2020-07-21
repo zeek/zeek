@@ -301,7 +301,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(EntropyVal)
 private:
-	RandTest state;
+	zeek::detail::RandTest state;
 };
 
 class BloomFilterVal : public OpaqueVal {

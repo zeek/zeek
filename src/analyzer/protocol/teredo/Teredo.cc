@@ -152,7 +152,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	const EncapsulationStack* e = Conn()->GetEncapsulation();
+	const zeek::EncapsulationStack* e = Conn()->GetEncapsulation();
 
 	if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 		{
@@ -226,7 +226,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		Conn()->EnqueueEvent(teredo_bubble, nullptr, ConnVal(), teredo_hdr);
 		}
 
-	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
+	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
 	sessions->DoNextInnerPacket(network_time, nullptr, inner, e, ec);
 	}

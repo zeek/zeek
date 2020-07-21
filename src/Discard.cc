@@ -14,6 +14,8 @@
 #include "IP.h"
 #include "Reporter.h" // for InterpreterException
 
+namespace zeek::detail {
+
 Discarder::Discarder()
 	{
 	check_ip = zeek::id::find_func("discarder_check_ip");
@@ -165,3 +167,5 @@ zeek::Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int cap
 
 	return new zeek::StringVal(new zeek::String(data, len, true));
 	}
+
+} // namespace zeek::detail

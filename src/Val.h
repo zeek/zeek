@@ -47,7 +47,7 @@ using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::Fi
 namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
-class PrefixTable;
+ZEEK_FORWARD_DECLARE_NAMESPACED(PrefixTable, zeek::detail);
 class StateAccess;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
@@ -983,7 +983,7 @@ public:
 	// Returns the Prefix table used inside the table (if present).
 	// This allows us to do more direct queries to this specialized
 	// type that the general Table API does not allow.
-	const PrefixTable* Subnets() const { return subnets; }
+	const zeek::detail::PrefixTable* Subnets() const { return subnets; }
 
 	void Describe(ODesc* d) const override;
 
@@ -1092,7 +1092,7 @@ protected:
 	zeek::detail::ExprPtr expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
-	PrefixTable* subnets;
+	zeek::detail::PrefixTable* subnets;
 	ValPtr def_val;
 	zeek::detail::ExprPtr change_func;
 	std::string broker_store;

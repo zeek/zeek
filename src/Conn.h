@@ -25,7 +25,7 @@ class Connection;
 class ConnectionTimer;
 class NetSessions;
 class LoginConn;
-class EncapsulationStack;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
@@ -66,7 +66,7 @@ static inline int addr_port_canon_lt(const zeek::IPAddr& addr1, uint32_t p1,
 class Connection final : public zeek::Obj {
 public:
 	Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-	           uint32_t flow, const zeek::Packet* pkt, const EncapsulationStack* arg_encap);
+	           uint32_t flow, const zeek::Packet* pkt, const zeek::EncapsulationStack* arg_encap);
 	~Connection() override;
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -74,7 +74,7 @@ public:
 	// event if it's different from the previous encapsulation (or the
 	// first encountered). encap can be null to indicate no
 	// encapsulation.
-	void CheckEncapsulation(const EncapsulationStack* encap);
+	void CheckEncapsulation(const zeek::EncapsulationStack* encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -311,11 +311,11 @@ public:
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	void SetUID(const Bro::UID &arg_uid)	 { uid = arg_uid; }
+	void SetUID(const zeek::UID &arg_uid)	 { uid = arg_uid; }
 
-	Bro::UID GetUID() const { return uid; }
+	zeek::UID GetUID() const { return uid; }
 
-	const EncapsulationStack* GetEncapsulation() const
+	const zeek::EncapsulationStack* GetEncapsulation() const
 		{ return encapsulation; }
 
 	void CheckFlowLabel(bool is_orig, uint32_t flow_label);
@@ -361,7 +361,7 @@ protected:
 	double inactivity_timeout;
 	zeek::RecordValPtr conn_val;
 	LoginConn* login_conn;	// either nil, or this
-	const EncapsulationStack* encapsulation; // tunnels
+	const zeek::EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;
@@ -385,8 +385,8 @@ protected:
 	zeek::analyzer::TransportLayerAnalyzer* root_analyzer;
 	analyzer::pia::PIA* primary_PIA;
 
-	Bro::UID uid;	// Globally unique connection ID.
-	WeirdStateMap weird_state;
+	zeek::UID uid;	// Globally unique connection ID.
+	zeek::detail::WeirdStateMap weird_state;
 };
 
 class ConnectionTimer final : public zeek::detail::Timer {

@@ -7,6 +7,8 @@
 #include "net_util.h"
 #include "IPAddr.h"
 
+namespace zeek::detail {
+
 const float SerializationFormat::GROWTH_FACTOR = 2.5;
 
 SerializationFormat::SerializationFormat()
@@ -436,3 +438,5 @@ bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 	uint32_t l = htonl(len);
 	return WriteData(&l, sizeof(l)) && WriteData(buf, len);
 	}
+
+} // namespace zeek::detail

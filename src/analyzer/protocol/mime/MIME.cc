@@ -1162,7 +1162,7 @@ void MIME_Entity::StartDecodeBase64()
 		return;
 		}
 
-	base64_decoder = new Base64Converter(analyzer->Conn());
+	base64_decoder = new zeek::detail::Base64Converter(analyzer->Conn());
 	}
 
 void MIME_Entity::FinishDecodeBase64()

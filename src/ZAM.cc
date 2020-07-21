@@ -4256,10 +4256,13 @@ void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 3);
 
-	ASSERT(inst->op_type == OP_VVV || inst->op_type == OP_VVV_I3 ||
-		inst->op_type == OP_VVV_I2_I3);
-	if ( inst->op_type != OP_VVV_I2_I3 )
-		inst->op_type = OP_VVV_I3;
+	auto ot = inst->op_type;
+
+	if ( ot == OP_VVV_I2_I3 || ot == OP_VVVC_I3 )
+		return;
+
+	ASSERT(ot == OP_VVV || ot == OP_VVV_I3);
+	inst->op_type = OP_VVV_I3;
 	}
 
 void ZAM::SetV4(CompiledStmt s, const InstLabel l)
@@ -4267,8 +4270,10 @@ void ZAM::SetV4(CompiledStmt s, const InstLabel l)
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 4);
 
-	ASSERT(inst->op_type == OP_VVVV || inst->op_type == OP_VVVV_I4);
-	if ( inst->op_type != OP_VVVV_I4 )
+	auto ot = inst->op_type;
+
+	ASSERT(ot == OP_VVVV || ot == OP_VVVV_I4);
+	if ( ot != OP_VVVV_I4 )
 		inst->op_type = OP_VVVV_I4;
 	}
 

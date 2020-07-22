@@ -1,4 +1,19 @@
 
+3.0.8-dev.7 | 2020-07-23 17:20:38 -0700
+
+  * GH-1076: Fix bro_prng() implementation (Jon Siwek, Corelight)
+
+    The intermediate result of the PRNG used unsigned storage, preventing
+    the ( result < 0 ) branch from ever being evaluated.  This could cause
+    return values to exceed the modulus as well as RAND_MAX.
+
+    One interesting effect of this is potential for the rand() BIF to
+    return values outside the requested maximum limit.
+
+    Another interesting effect of this is that a PacketFilter may start
+    randomly dropping packets even if it was not configured for
+    random-packet-drops.
+
 3.0.8-dev.6 | 2020-07-23 17:13:34 -0700
 
   * GH-1062: fix integer conversion errors related to Tag subtypes (Jon Siwek, Corelight)

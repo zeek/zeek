@@ -16,7 +16,7 @@ krb5_keytab KRB_Analyzer::krb_keytab = nullptr;
 std::once_flag KRB_Analyzer::krb_initialized;
 #endif
 
-KRB_Analyzer::KRB_Analyzer(Connection* conn)
+KRB_Analyzer::KRB_Analyzer(zeek::Connection* conn)
 	: Analyzer("KRB", conn)
 	{
 	interp = new binpac::KRB::KRB_Conn(this);

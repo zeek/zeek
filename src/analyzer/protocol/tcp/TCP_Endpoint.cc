@@ -56,7 +56,7 @@ TCP_Endpoint::~TCP_Endpoint()
 	delete contents_processor;
 	}
 
-Connection* TCP_Endpoint::Conn() const
+zeek::Connection* TCP_Endpoint::Conn() const
 	{
 	return tcp_analyzer->Conn();
 	}

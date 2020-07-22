@@ -6,7 +6,7 @@
 
 using namespace analyzer::modbus;
 
-ModbusTCP_Analyzer::ModbusTCP_Analyzer(Connection* c)
+ModbusTCP_Analyzer::ModbusTCP_Analyzer(zeek::Connection* c)
 	: TCP_ApplicationAnalyzer("MODBUS", c)
 	{
 	interp = new binpac::ModbusTCP::ModbusTCP_Conn(this);
@@ -42,4 +42,3 @@ void ModbusTCP_Analyzer::EndpointEOF(bool is_orig)
 	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
-

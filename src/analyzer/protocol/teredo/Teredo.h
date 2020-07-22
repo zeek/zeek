@@ -8,19 +8,17 @@ namespace analyzer { namespace teredo {
 
 class Teredo_Analyzer final : public zeek::analyzer::Analyzer {
 public:
-	explicit Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
-	                                    valid_orig(false), valid_resp(false)
-		{}
+	explicit Teredo_Analyzer(zeek::Connection* conn)
+		: Analyzer("TEREDO", conn), valid_orig(false), valid_resp(false) {}
 
-	~Teredo_Analyzer() override
-		{}
+	~Teredo_Analyzer() override = default;
 
 	void Done() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
 
 	/**

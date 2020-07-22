@@ -26,7 +26,7 @@ static const char* pop3_cmd_word[] = {
 #define POP3_CMD_WORD(code) ((code >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
 
 
-POP3_Analyzer::POP3_Analyzer(Connection* conn)
+POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("POP3", conn)
 	{
 	masterState = POP3_START;

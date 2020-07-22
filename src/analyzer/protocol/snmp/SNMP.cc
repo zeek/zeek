@@ -8,7 +8,7 @@
 
 using namespace analyzer::snmp;
 
-SNMP_Analyzer::SNMP_Analyzer(Connection* conn)
+SNMP_Analyzer::SNMP_Analyzer(zeek::Connection* conn)
 	: Analyzer("SNMP", conn)
 	{
 	interp = new binpac::SNMP::SNMP_Conn(this);

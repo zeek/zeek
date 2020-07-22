@@ -11,7 +11,7 @@
 
 using namespace analyzer::file;
 
-File_Analyzer::File_Analyzer(const char* name, Connection* conn)
+File_Analyzer::File_Analyzer(const char* name, zeek::Connection* conn)
 	: TCP_ApplicationAnalyzer(name, conn)
 	{
 	buffer_len = 0;

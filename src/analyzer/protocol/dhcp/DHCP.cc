@@ -5,7 +5,7 @@
 
 using namespace analyzer::dhcp;
 
-DHCP_Analyzer::DHCP_Analyzer(Connection* conn)
+DHCP_Analyzer::DHCP_Analyzer(zeek::Connection* conn)
 : Analyzer("DHCP", conn)
 	{
 	interp = new binpac::DHCP::DHCP_Conn(this);

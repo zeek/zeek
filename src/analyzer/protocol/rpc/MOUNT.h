@@ -39,10 +39,10 @@ protected:
 
 class MOUNT_Analyzer : public RPC_Analyzer {
 public:
-	explicit MOUNT_Analyzer(Connection* conn);
+	explicit MOUNT_Analyzer(zeek::Connection* conn);
 	void Init() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new MOUNT_Analyzer(conn); }
 };
 

@@ -11,7 +11,7 @@
 #include "ID.h"
 #include "UID.h"
 
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 
 namespace zeek {
 

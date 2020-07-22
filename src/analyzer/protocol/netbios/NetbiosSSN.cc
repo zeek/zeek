@@ -332,8 +332,8 @@ void NetbiosSSN_Interpreter::Event(zeek::EventHandlerPtr event, const u_char* da
 	}
 
 
-Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
-					NetbiosSSN_Interpreter* arg_interp)
+Contents_NetbiosSSN::Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
+                                         NetbiosSSN_Interpreter* arg_interp)
 : tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
@@ -453,7 +453,7 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	state = NETBIOS_SSN_TYPE;
 	}
 
-NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
+NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
 	{
 	//smb_session = new SMB_Session(this);

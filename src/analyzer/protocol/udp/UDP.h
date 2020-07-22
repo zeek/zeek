@@ -14,13 +14,13 @@ typedef enum {
 
 		class UDP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
-	explicit UDP_Analyzer(Connection* conn);
+	explicit UDP_Analyzer(zeek::Connection* conn);
 	~UDP_Analyzer() override;
 
 	void Init() override;
 	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new UDP_Analyzer(conn); }
 
 protected:

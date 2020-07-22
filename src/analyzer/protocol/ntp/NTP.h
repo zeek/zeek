@@ -11,7 +11,7 @@ namespace analyzer { namespace NTP {
 
 class NTP_Analyzer final : public zeek::analyzer::Analyzer {
 public:
-	explicit NTP_Analyzer(Connection* conn);
+	explicit NTP_Analyzer(zeek::Connection* conn);
 	~NTP_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -19,7 +19,7 @@ public:
 	void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new NTP_Analyzer(conn); }
 
 protected:

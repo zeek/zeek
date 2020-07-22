@@ -13,7 +13,7 @@
 
 using namespace analyzer::ident;
 
-Ident_Analyzer::Ident_Analyzer(Connection* conn)
+Ident_Analyzer::Ident_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("IDENT", conn)
 	{
 	did_bad_reply = did_deliver = false;

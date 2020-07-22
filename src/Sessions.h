@@ -16,9 +16,11 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulatingConn, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PacketProfiler, zeek::detail);
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 class ConnCompressor;
-struct ConnID;
+
+namespace zeek { struct ConnID; }
+using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
 

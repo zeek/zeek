@@ -123,7 +123,7 @@ static zeek::RecordVal* build_syn_packet_val(bool is_orig, const zeek::IP_Hdr* i
 	}
 
 
-TCP_Analyzer::TCP_Analyzer(Connection* conn)
+TCP_Analyzer::TCP_Analyzer(zeek::Connection* conn)
 : TransportLayerAnalyzer("TCP", conn)
 	{
 	// Set a timer to eventually time out this connection.
@@ -2092,7 +2092,7 @@ zeek::RecordVal* TCPStats_Endpoint::BuildStats()
 	return stats;
 	}
 
-TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
+TCPStats_Analyzer::TCPStats_Analyzer(zeek::Connection* c)
 	: TCP_ApplicationAnalyzer("TCPSTATS", c),
 	  orig_stats(), resp_stats()
 	{

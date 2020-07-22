@@ -81,10 +81,10 @@ protected:
 
 class NFS_Analyzer : public RPC_Analyzer {
 public:
-	explicit NFS_Analyzer(Connection* conn);
+	explicit NFS_Analyzer(zeek::Connection* conn);
 	void Init() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new NFS_Analyzer(conn); }
 };
 

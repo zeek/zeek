@@ -35,13 +35,13 @@ public:
 
 class Gnutella_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit Gnutella_Analyzer(Connection* conn);
+	explicit Gnutella_Analyzer(zeek::Connection* conn);
 	~Gnutella_Analyzer() override;
 
 	void Done () override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Gnutella_Analyzer(conn); }
 
 private:

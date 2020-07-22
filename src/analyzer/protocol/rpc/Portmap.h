@@ -26,11 +26,11 @@ protected:
 
 class Portmapper_Analyzer : public RPC_Analyzer {
 public:
-	explicit Portmapper_Analyzer(Connection* conn);
+	explicit Portmapper_Analyzer(zeek::Connection* conn);
 	~Portmapper_Analyzer() override;
 	void Init() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 };
 

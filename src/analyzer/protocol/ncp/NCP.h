@@ -84,7 +84,7 @@ protected:
 
 class Contents_NCP_Analyzer : public tcp::TCP_SupportAnalyzer {
 public:
-	Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* session);
+	Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, NCP_Session* session);
 	~Contents_NCP_Analyzer() override;
 
 protected:
@@ -101,10 +101,10 @@ protected:
 
 class NCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit NCP_Analyzer(Connection* conn);
+	explicit NCP_Analyzer(zeek::Connection* conn);
 	~NCP_Analyzer() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new NCP_Analyzer(conn); }
 
 protected:

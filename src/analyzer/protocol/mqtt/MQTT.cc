@@ -9,7 +9,7 @@
 
 using namespace analyzer::MQTT;
 
-MQTT_Analyzer::MQTT_Analyzer(Connection* c)
+MQTT_Analyzer::MQTT_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("MQTT", c)
 	{
 	interp = new binpac::MQTT::MQTT_Conn(this);

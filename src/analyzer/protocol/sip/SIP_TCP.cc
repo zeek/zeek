@@ -9,7 +9,7 @@
 
 using namespace analyzer::sip_tcp;
 
-SIP_Analyzer::SIP_Analyzer(Connection* conn)
+SIP_Analyzer::SIP_Analyzer(zeek::Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("SIP_TCP", conn)
 	{
 	interp = new binpac::SIP_TCP::SIP_Conn(this);

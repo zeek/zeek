@@ -26,7 +26,7 @@
 ## .. zeek:see:: set_login_state
 function get_login_state%(cid: conn_id%): count
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	zeek::Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -50,7 +50,7 @@ function get_login_state%(cid: conn_id%): count
 ## .. zeek:see:: get_login_state
 function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	zeek::Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 

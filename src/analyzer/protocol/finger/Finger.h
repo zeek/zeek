@@ -9,14 +9,14 @@ namespace analyzer { namespace finger {
 
 class Finger_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit Finger_Analyzer(Connection* conn);
+	explicit Finger_Analyzer(zeek::Connection* conn);
 	~Finger_Analyzer() override {}
 
 	void Done() override;
 	// Line-based input.
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Finger_Analyzer(conn); }
 
 protected:

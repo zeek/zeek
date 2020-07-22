@@ -280,7 +280,7 @@ zeek::RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 	return rep;
 	}
 
-MOUNT_Analyzer::MOUNT_Analyzer(Connection* conn)
+MOUNT_Analyzer::MOUNT_Analyzer(zeek::Connection* conn)
 	: RPC_Analyzer("MOUNT", conn, new MOUNT_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;

@@ -825,7 +825,7 @@ void HTTP_Message::Weird(const char* msg)
 	analyzer->Weird(msg);
 	}
 
-HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
+HTTP_Analyzer::HTTP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("HTTP", conn)
 	{
 	num_requests = num_replies = 0;

@@ -5,8 +5,7 @@
 #include "TCP_Flags.h"
 #include "File.h"
 
-class Connection;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
 namespace analyzer::tcp {

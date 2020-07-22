@@ -163,7 +163,7 @@ void NCP_FrameBuffer::compute_msg_length()
 		msg_len = (msg_len << 8) | data[4+i];
 	}
 
-Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* arg_session)
+Contents_NCP_Analyzer::Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, NCP_Session* arg_session)
 : tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
@@ -244,7 +244,7 @@ void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	resync = true;
 	}
 
-NCP_Analyzer::NCP_Analyzer(Connection* conn)
+NCP_Analyzer::NCP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("NCP", conn)
 	{
 	session = new NCP_Session(this);

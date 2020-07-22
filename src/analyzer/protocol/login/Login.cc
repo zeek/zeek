@@ -27,7 +27,7 @@ static zeek::RE_Matcher* re_login_timeouts;
 
 static zeek::RE_Matcher* init_RE(zeek::ListVal* l);
 
-Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
+Login_Analyzer::Login_Analyzer(const char* name, zeek::Connection* conn)
     : tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
@@ -91,7 +91,7 @@ void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			str[j++] = line[i];
 		else
 			{
-			if ( Conn()->FlagEvent(NUL_IN_LINE) )
+			if ( Conn()->FlagEvent(zeek::NUL_IN_LINE) )
 				Weird("NUL_in_line");
 			}
 

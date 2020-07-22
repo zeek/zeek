@@ -12,7 +12,7 @@
 using namespace analyzer::irc;
 using namespace std;
 
-IRC_Analyzer::IRC_Analyzer(Connection* conn)
+IRC_Analyzer::IRC_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("IRC", conn)
 	{
 	invalid_msg_count = 0;

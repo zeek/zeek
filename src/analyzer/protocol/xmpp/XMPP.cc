@@ -6,7 +6,7 @@
 
 using namespace analyzer::xmpp;
 
-XMPP_Analyzer::XMPP_Analyzer(Connection* conn)
+XMPP_Analyzer::XMPP_Analyzer(zeek::Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("XMPP", conn)
 	{
 	interp = unique_ptr<binpac::XMPP::XMPP_Conn>(new binpac::XMPP::XMPP_Conn(this));

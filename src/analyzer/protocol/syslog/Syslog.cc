@@ -6,7 +6,7 @@
 
 using namespace analyzer::syslog;
 
-Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
+Syslog_Analyzer::Syslog_Analyzer(zeek::Connection* conn)
 : Analyzer("SYSLOG", conn)
 	{
 	interp = new binpac::Syslog::Syslog_Conn(this);
@@ -49,7 +49,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //				t + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 //	}
 
-//Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)
+//Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(zeek::Connection* conn)
 //: tcp::TCP_ApplicationAnalyzer(conn)
 //	{
 //	interp = new binpac::Syslog_on_TCP::Syslog_TCP_Conn(this);

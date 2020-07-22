@@ -16,7 +16,7 @@
 #include "../Timer.h"
 #include "../IntrusivePtr.h"
 
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
@@ -632,7 +632,7 @@ public:
 protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
-	friend class ::Connection;
+	friend class zeek::Connection;
 	friend class ::analyzer::tcp::TCP_ApplicationAnalyzer;
 
 	/**

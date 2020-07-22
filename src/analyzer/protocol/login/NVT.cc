@@ -380,7 +380,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 	}
 
 
-NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
+NVT_Analyzer::NVT_Analyzer(zeek::Connection* conn, bool orig)
 	: tcp::ContentLine_Analyzer("NVT", conn, orig), options()
 	{
 	}
@@ -536,7 +536,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 
 			else
 				{
-				if ( Conn()->FlagEvent(SINGULAR_LF) )
+				if ( Conn()->FlagEvent(zeek::SINGULAR_LF) )
 					Conn()->Weird("line_terminated_with_single_LF");
 				buf[offset++] = c;
 				}
@@ -574,7 +574,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 		if ( ! (CRLFAsEOL() & CR_as_EOL) &&
 		     last_char == '\r' && c != '\n' && c != '\0' )
 			{
-			if ( Conn()->FlagEvent(SINGULAR_CR) )
+			if ( Conn()->FlagEvent(zeek::SINGULAR_CR) )
 				Weird("line_terminated_with_single_CR");
 			}
 

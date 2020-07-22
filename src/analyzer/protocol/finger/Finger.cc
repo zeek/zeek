@@ -13,7 +13,7 @@
 
 using namespace analyzer::finger;
 
-Finger_Analyzer::Finger_Analyzer(Connection* conn)
+Finger_Analyzer::Finger_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("FINGER", conn)
 	{
 	did_deliver = 0;

@@ -7,7 +7,7 @@ namespace analyzer { namespace modbus {
 
 class ModbusTCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit ModbusTCP_Analyzer(Connection* conn);
+	explicit ModbusTCP_Analyzer(zeek::Connection* conn);
 	~ModbusTCP_Analyzer() override;
 
 	void Done() override;
@@ -16,7 +16,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new ModbusTCP_Analyzer(conn); }
 
 protected:

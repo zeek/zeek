@@ -37,7 +37,7 @@ typedef enum {
 
 class SMTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SMTP_Analyzer(Connection* conn);
+	explicit SMTP_Analyzer(zeek::Connection* conn);
 	~SMTP_Analyzer() override;
 
 	void Done() override;
@@ -47,7 +47,7 @@ public:
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{
 		return new SMTP_Analyzer(conn);
 		}

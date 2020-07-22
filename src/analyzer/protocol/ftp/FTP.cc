@@ -17,7 +17,7 @@
 
 using namespace analyzer::ftp;
 
-FTP_Analyzer::FTP_Analyzer(Connection* conn)
+FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;

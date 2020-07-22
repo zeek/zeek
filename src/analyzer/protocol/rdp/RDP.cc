@@ -6,7 +6,7 @@
 
 using namespace analyzer::rdp;
 
-RDP_Analyzer::RDP_Analyzer(Connection* c)
+RDP_Analyzer::RDP_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);

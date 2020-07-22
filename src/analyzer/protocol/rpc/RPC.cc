@@ -412,8 +412,8 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 	return (expected == processed);
 	}
 
-Contents_RPC::Contents_RPC(Connection* conn, bool orig,
-				RPC_Interpreter* arg_interp)
+Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
+                           RPC_Interpreter* arg_interp)
 	: tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
@@ -720,8 +720,8 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		} // end while
 	}
 
-RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
-				RPC_Interpreter* arg_interp)
+RPC_Analyzer::RPC_Analyzer(const char* name, zeek::Connection* conn,
+                           RPC_Interpreter* arg_interp)
 	: tcp::TCP_ApplicationAnalyzer(name, conn),
 	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{

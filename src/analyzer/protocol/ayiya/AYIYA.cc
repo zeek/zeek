@@ -4,7 +4,7 @@
 
 using namespace analyzer::ayiya;
 
-AYIYA_Analyzer::AYIYA_Analyzer(Connection* conn)
+AYIYA_Analyzer::AYIYA_Analyzer(zeek::Connection* conn)
 : Analyzer("AYIYA", conn)
 	{
 	interp = new binpac::AYIYA::AYIYA_Conn(this);

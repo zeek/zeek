@@ -6,7 +6,7 @@
 
 using namespace analyzer::NTP;
 
-NTP_Analyzer::NTP_Analyzer(Connection* c)
+NTP_Analyzer::NTP_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::Analyzer("NTP", c)
 	{
 	interp = new binpac::NTP::NTP_Conn(this);

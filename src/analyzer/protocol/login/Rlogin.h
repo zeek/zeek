@@ -32,8 +32,8 @@ class Rlogin_Analyzer;
 
 class Contents_Rlogin_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
-	Contents_Rlogin_Analyzer(Connection* conn, bool orig,
-					Rlogin_Analyzer* analyzer);
+	Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig,
+	                         Rlogin_Analyzer* analyzer);
 	~Contents_Rlogin_Analyzer() override;
 
 	void SetPeer(Contents_Rlogin_Analyzer* arg_peer)
@@ -55,13 +55,13 @@ protected:
 
 class Rlogin_Analyzer final : public Login_Analyzer {
 public:
-	explicit Rlogin_Analyzer(Connection* conn);
+	explicit Rlogin_Analyzer(zeek::Connection* conn);
 
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 	void TerminalType(const char* s);
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Rlogin_Analyzer(conn); }
 };
 

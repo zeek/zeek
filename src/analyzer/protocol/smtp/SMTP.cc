@@ -26,7 +26,7 @@ static const char* unknown_cmd = "(UNKNOWN)";
 #define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 
-SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
+SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = false;

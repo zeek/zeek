@@ -23,7 +23,7 @@ class TCP_Reassembler;
 
 class TCP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
-	explicit TCP_Analyzer(Connection* conn);
+	explicit TCP_Analyzer(zeek::Connection* conn);
 	~TCP_Analyzer() override;
 
 	void EnableReassembly();
@@ -68,7 +68,7 @@ public:
 
 	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new TCP_Analyzer(conn); }
 
 protected:
@@ -142,7 +142,7 @@ protected:
 	void CheckRecording(bool need_contents, TCP_Flags flags);
 	void CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip);
 
-	friend class ConnectionTimer;
+	friend class zeek::detail::ConnectionTimer;
 	void AttemptTimer(double t);
 	void PartialCloseTimer(double t);
 	void ExpireTimer(double t);
@@ -192,10 +192,10 @@ private:
 
 class TCP_ApplicationAnalyzer : public zeek::analyzer::Analyzer {
 public:
-	TCP_ApplicationAnalyzer(const char* name, Connection* conn)
+	TCP_ApplicationAnalyzer(const char* name, zeek::Connection* conn)
 		: Analyzer(name, conn), tcp(nullptr) { }
 
-	explicit TCP_ApplicationAnalyzer(Connection* conn)
+	explicit TCP_ApplicationAnalyzer(zeek::Connection* conn)
 		: Analyzer(conn), tcp(nullptr) { }
 
 	~TCP_ApplicationAnalyzer() override { }
@@ -246,7 +246,7 @@ private:
 
 class TCP_SupportAnalyzer : public zeek::analyzer::SupportAnalyzer {
 public:
-	TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
+	TCP_SupportAnalyzer(const char* name, zeek::Connection* conn, bool arg_orig)
 		: zeek::analyzer::SupportAnalyzer(name, conn, arg_orig)	{ }
 
 	~TCP_SupportAnalyzer() override {}
@@ -285,13 +285,13 @@ protected:
 
 class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit TCPStats_Analyzer(Connection* c);
+	explicit TCPStats_Analyzer(zeek::Connection* c);
 	~TCPStats_Analyzer() override;
 
 	void Init() override;
 	void Done() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new TCPStats_Analyzer(conn); }
 
 protected:

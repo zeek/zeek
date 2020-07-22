@@ -20,7 +20,7 @@
 
 using namespace analyzer::icmp;
 
-ICMP_Analyzer::ICMP_Analyzer(Connection* c)
+ICMP_Analyzer::ICMP_Analyzer(zeek::Connection* c)
 	: TransportLayerAnalyzer("ICMP", c),
 	icmp_conn_val(), type(), code(), request_len(-1), reply_len(-1)
 	{
@@ -506,7 +506,7 @@ void ICMP_Analyzer::UpdateEndpointVal(const zeek::ValPtr& endp_arg, bool is_orig
 unsigned int ICMP_Analyzer::MemoryAllocation() const
 	{
 	return Analyzer::MemoryAllocation()
-		+ padded_sizeof(*this) - padded_sizeof(Connection)
+		+ padded_sizeof(*this) - padded_sizeof(zeek::Connection)
 		+ (icmp_conn_val ? icmp_conn_val->MemoryAllocation() : 0);
 	}
 

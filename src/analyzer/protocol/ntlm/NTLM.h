@@ -12,7 +12,7 @@ namespace analyzer { namespace ntlm {
 class NTLM_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit NTLM_Analyzer(Connection* conn);
+	explicit NTLM_Analyzer(zeek::Connection* conn);
 	~NTLM_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -24,7 +24,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new NTLM_Analyzer(conn); }
 
 protected:

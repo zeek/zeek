@@ -5,8 +5,7 @@
 #include "IPAddr.h"
 #include "File.h"
 
-class Connection;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace analyzer { namespace tcp {
@@ -140,7 +139,7 @@ public:
 		return ack == start || ack == start + 1;
 		}
 
-	Connection* Conn() const;
+	zeek::Connection* Conn() const;
 
 	bool HasContents() const		{ return contents_processor != nullptr; }
 	bool HadGap() const;

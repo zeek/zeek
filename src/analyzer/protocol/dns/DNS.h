@@ -358,7 +358,7 @@ typedef enum {
 // ### This should be merged with TCP_Contents_RPC.
 class Contents_DNS final : public tcp::TCP_SupportAnalyzer {
 public:
-	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
+	Contents_DNS(zeek::Connection* c, bool orig, DNS_Interpreter* interp);
 	~Contents_DNS() override;
 
 	void Flush();		///< process any partially-received data
@@ -381,7 +381,7 @@ protected:
 // Works for both TCP and UDP.
 class DNS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DNS_Analyzer(Connection* conn);
+	explicit DNS_Analyzer(zeek::Connection* conn);
 	~DNS_Analyzer() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
@@ -393,7 +393,7 @@ public:
 					tcp::TCP_Endpoint* peer, bool gen_event) override;
 	void ExpireTimer(double t);
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 protected:

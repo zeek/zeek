@@ -152,7 +152,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 	);
 	}
 
-SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
+SteppingStone_Analyzer::SteppingStone_Analyzer(zeek::Connection* c)
 : tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
 	stp_manager = zeek::sessions->GetSTPManager();

@@ -6,7 +6,7 @@
 
 using namespace analyzer::socks;
 
-SOCKS_Analyzer::SOCKS_Analyzer(Connection* conn)
+SOCKS_Analyzer::SOCKS_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("SOCKS", conn)
 	{
 	interp = new binpac::SOCKS::SOCKS_Conn(this);
@@ -90,4 +90,3 @@ void SOCKS_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
-

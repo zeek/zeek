@@ -13,8 +13,7 @@
 #include "ZeekArgs.h"
 #include "WeirdState.h"
 
-class Connection;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
@@ -253,7 +252,7 @@ protected:
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
+	File(const std::string& file_id, const std::string& source_name, zeek::Connection* conn = nullptr,
 	     zeek::analyzer::Tag tag = zeek::analyzer::Tag::Error, bool is_orig = false);
 
 	/**
@@ -263,12 +262,12 @@ protected:
 	 * @param is_orig true if the connection originator is sending the file.
 	 * @return true if the connection was previously unknown.
 	 */
-	bool UpdateConnectionFields(Connection* conn, bool is_orig);
+	bool UpdateConnectionFields(zeek::Connection* conn, bool is_orig);
 
 	/**
 	 * Raise the file_over_new_connection event with given arguments.
 	 */
-	void RaiseFileOverNewConnection(Connection* conn, bool is_orig);
+	void RaiseFileOverNewConnection(zeek::Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.

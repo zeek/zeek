@@ -647,7 +647,7 @@ flow GTPv1_Flow(is_orig: bool)
 	function process_gtpv1(pdu: GTPv1_Header): bool
 		%{
 		BroAnalyzer a = connection()->bro_analyzer();
-		Connection *c = a->Conn();
+		zeek::Connection* c = a->Conn();
 		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		connection()->set_valid(is_orig(), false);
@@ -712,7 +712,7 @@ flow GTPv1_Flow(is_orig: bool)
 	function process_g_pdu(pdu: GTPv1_Header): bool
 		%{
 		BroAnalyzer a = connection()->bro_analyzer();
-		Connection *c = a->Conn();
+		zeek::Connection* c = a->Conn();
 		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		if ( ${pdu.packet}.length() < (int)sizeof(struct ip) )

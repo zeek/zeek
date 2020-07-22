@@ -21,8 +21,8 @@
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
 
-class Connection;
-class ConnectionTimer;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ConnectionTimer, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
 class LoginConn;
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
@@ -38,14 +38,13 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 namespace zeek {
 using ValPtr = zeek::IntrusivePtr<Val>;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
-}
 
-typedef enum {
+enum ConnEventToFlag {
 	NUL_IN_LINE,
 	SINGULAR_CR,
 	SINGULAR_LF,
 	NUM_EVENTS_TO_FLAG,
-} ConnEventToFlag;
+};
 
 typedef void (Connection::*timer_func)(double t);
 
@@ -304,9 +303,9 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
+	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, ::analyzer::pia::PIA* pia);
 	zeek::analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
-	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
+	::analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
@@ -337,7 +336,7 @@ protected:
 	void RemoveTimer(zeek::detail::Timer* t);
 
 	// Allow other classes to access pointers to these:
-	friend class ConnectionTimer;
+	friend class detail::ConnectionTimer;
 
 	void InactivityTimer(double t);
 	void StatusUpdateTimer(double t);
@@ -383,11 +382,13 @@ protected:
 	uint32_t hist_seen;
 
 	zeek::analyzer::TransportLayerAnalyzer* root_analyzer;
-	analyzer::pia::PIA* primary_PIA;
+	::analyzer::pia::PIA* primary_PIA;
 
 	zeek::UID uid;	// Globally unique connection ID.
 	zeek::detail::WeirdStateMap weird_state;
 };
+
+namespace detail {
 
 class ConnectionTimer final : public zeek::detail::Timer {
 public:
@@ -408,6 +409,19 @@ protected:
 	timer_func timer;
 	bool do_expire;
 };
+
+} // namespace detail
+} // namespace zeek
+
+using ConnEventToFlag [[deprecated("Remove in v4.1. Use zeek::ConnEventToFlag.")]] = zeek::ConnEventToFlag;
+constexpr auto NUL_IN_LINE [[deprecated("Remove in v4.1. Use zeek::NUL_IN_LINE.")]] = zeek::NUL_IN_LINE;
+constexpr auto SINGULAR_CR [[deprecated("Remove in v4.1. Use zeek::SINGULAR_CR.")]] = zeek::SINGULAR_CR;
+constexpr auto SINGULAR_LF [[deprecated("Remove in v4.1. Use zeek::SINGULAR_LF.")]] = zeek::SINGULAR_LF;
+constexpr auto NUM_EVENTS_TO_FLAG [[deprecated("Remove in v4.1. Use zeek::NUM_EVENTS_TO_FLAG.")]] = zeek::NUM_EVENTS_TO_FLAG;
+
+using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
+using Connection [[deprecated("Remove in v4.1. Use zeek::Connection.")]] = zeek::Connection;
+using ConnectionTimer [[deprecated("Remove in v4.1. Use zeek::detail::ConnectionTimer.")]] = zeek::detail::ConnectionTimer;
 
 #define ADD_TIMER(timer, t, do_expire, type) \
 	AddTimer(timer_func(timer), (t), (do_expire), (type))

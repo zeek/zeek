@@ -34,9 +34,9 @@ inline zeek::StringValPtr to_stringval(const_bytestring const& str)
 	return zeek::make_intrusive<zeek::StringVal>(str.length(), (const char*) str.begin());
     }
 
-zeek::StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::StringValPtr utf16_to_utf8_val(zeek::Connection* conn, const bytestring& utf16);
 
 [[deprecated("Remove in v4.1.  Use utf16_to_utf8_val() instead.")]]
-zeek::StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::StringVal* utf16_bytestring_to_utf8_val(zeek::Connection* conn, const bytestring& utf16);
 
 } // namespace binpac

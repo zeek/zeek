@@ -4,7 +4,7 @@
 
 using namespace analyzer::SIP;
 
-SIP_Analyzer::SIP_Analyzer(Connection* c)
+SIP_Analyzer::SIP_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::Analyzer("SIP", c)
 	{
 	interp = new binpac::SIP::SIP_Conn(this);

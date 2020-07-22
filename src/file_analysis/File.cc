@@ -30,7 +30,7 @@ static zeek::TableValPtr empty_connection_table()
 	return zeek::make_intrusive<zeek::TableVal>(std::move(tbl_type));
 	}
 
-static zeek::RecordValPtr get_conn_id_val(const Connection* conn)
+static zeek::RecordValPtr get_conn_id_val(const zeek::Connection* conn)
 	{
 	auto v = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
 	v->Assign(0, zeek::make_intrusive<zeek::AddrVal>(conn->OrigAddr()));
@@ -80,7 +80,7 @@ void File::StaticInit()
 	meta_inferred_idx = Idx("inferred", zeek::id::fa_metadata);
 	}
 
-File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
+File::File(const std::string& file_id, const std::string& source_name, zeek::Connection* conn,
            zeek::analyzer::Tag tag, bool is_orig)
 	: id(file_id), val(nullptr), file_reassembler(nullptr), stream_offset(0),
 	  reassembly_max_buffer(0), did_metadata_inference(false),
@@ -123,7 +123,7 @@ double File::GetLastActivityTime() const
 	return val->GetField(last_active_idx)->AsTime();
 	}
 
-bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
+bool File::UpdateConnectionFields(zeek::Connection* conn, bool is_orig)
 	{
 	if ( ! conn )
 		return false;
@@ -146,7 +146,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	return true;
 	}
 
-void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
+void File::RaiseFileOverNewConnection(zeek::Connection* conn, bool is_orig)
 	{
 	if ( conn && FileEventAvailable(file_over_new_connection) )
 		{

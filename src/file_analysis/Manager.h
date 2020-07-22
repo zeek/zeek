@@ -104,7 +104,7 @@ public:
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
 	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
-	                   const zeek::analyzer::Tag& tag, Connection* conn, bool is_orig,
+	                   const zeek::analyzer::Tag& tag, zeek::Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -131,7 +131,7 @@ public:
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
 	std::string DataIn(const u_char* data, uint64_t len, const zeek::analyzer::Tag& tag,
-	                   Connection* conn, bool is_orig,
+	                   zeek::Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -153,7 +153,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(const zeek::analyzer::Tag& tag, Connection* conn);
+	void EndOfFile(const zeek::analyzer::Tag& tag, zeek::Connection* conn);
 
 	/**
 	 * Signal the end of file data being transferred over a connection in
@@ -161,7 +161,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(const zeek::analyzer::Tag& tag, Connection* conn, bool is_orig);
+	void EndOfFile(const zeek::analyzer::Tag& tag, zeek::Connection* conn, bool is_orig);
 
 	/**
 	 * Signal the end of file data being transferred using the file identifier.
@@ -186,7 +186,7 @@ public:
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
 	std::string Gap(uint64_t offset, uint64_t len, const zeek::analyzer::Tag& tag,
-	                Connection* conn, bool is_orig,
+	                zeek::Connection* conn, bool is_orig,
 	                const std::string& precomputed_file_id = "");
 
 	/**
@@ -204,7 +204,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64_t size, const zeek::analyzer::Tag& tag, Connection* conn,
+	std::string SetSize(uint64_t size, const zeek::analyzer::Tag& tag, zeek::Connection* conn,
 	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
@@ -369,7 +369,7 @@ protected:
 	 *         exist, the activity time is refreshed along with any
 	 *         connection-related fields.
 	 */
-	File* GetFile(const std::string& file_id, Connection* conn = nullptr,
+	File* GetFile(const std::string& file_id, zeek::Connection* conn = nullptr,
 	              const zeek::analyzer::Tag& tag = zeek::analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
 	              const char* source_name = nullptr);
@@ -401,7 +401,7 @@ protected:
 	 * @return #current_file_id, which is a hash of a unique file handle string
 	 *         set by a \c get_file_handle event handler.
 	 */
-	std::string GetFileID(const zeek::analyzer::Tag& tag, Connection* c, bool is_orig);
+	std::string GetFileID(const zeek::analyzer::Tag& tag, zeek::Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given

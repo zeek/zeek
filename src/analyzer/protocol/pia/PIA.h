@@ -77,25 +77,25 @@ protected:
 	void DoMatch(const u_char* data, int len, bool is_orig, bool bol,
 	             bool eol, bool clear_state, const zeek::IP_Hdr* ip = nullptr);
 
-	void SetConn(Connection* c)	{ conn = c; }
+	void SetConn(zeek::Connection* c)	{ conn = c; }
 
 	Buffer pkt_buffer;
 
 private:
 	zeek::analyzer::Analyzer* as_analyzer;
-	Connection* conn;
+	zeek::Connection* conn;
 	DataBlock current_packet;
 };
 
 // PIA for UDP.
 class PIA_UDP : public PIA, public zeek::analyzer::Analyzer {
 public:
-	explicit PIA_UDP(Connection* conn)
+	explicit PIA_UDP(zeek::Connection* conn)
 	: PIA(this), Analyzer("PIA_UDP", conn)
 		{ SetConn(conn); }
 	~PIA_UDP() override { }
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new PIA_UDP(conn); }
 
 protected:
@@ -120,7 +120,7 @@ protected:
 // packets before passing payload on to children).
 class PIA_TCP : public PIA, public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit PIA_TCP(Connection* conn)
+	explicit PIA_TCP(zeek::Connection* conn)
 		: PIA(this), tcp::TCP_ApplicationAnalyzer("PIA_TCP", conn)
 		{ stream_mode = false; SetConn(conn); }
 
@@ -140,7 +140,7 @@ public:
 
 	void ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer);
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new PIA_TCP(conn); }
 
 protected:

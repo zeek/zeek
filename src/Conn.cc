@@ -21,6 +21,9 @@
 #include "analyzer/Manager.h"
 #include "iosource/IOSource.h"
 
+namespace zeek {
+namespace detail {
+
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				bool arg_do_expire)
 	{
@@ -53,6 +56,8 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 	if ( conn->RefCnt() < 1 )
 		zeek::reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
+
+} // namespace detail
 
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
@@ -551,7 +556,7 @@ void Connection::AddTimer(timer_func timer, double t, bool do_expire,
 	if ( ! key_valid )
 		return;
 
-	zeek::detail::Timer* conn_timer = new ConnectionTimer(this, timer, t, do_expire, type);
+	zeek::detail::Timer* conn_timer = new detail::ConnectionTimer(this, timer, t, do_expire, type);
 	zeek::detail::timer_mgr->Add(conn_timer);
 	timers.push_back(conn_timer);
 	}
@@ -685,7 +690,7 @@ void Connection::IDString(zeek::ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-void Connection::SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
+void Connection::SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, ::analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;
@@ -728,3 +733,5 @@ bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate
 	{
 	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}
+
+} // namespace zeek

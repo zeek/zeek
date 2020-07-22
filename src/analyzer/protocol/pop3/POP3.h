@@ -63,13 +63,13 @@ typedef enum {
 
 class POP3_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit POP3_Analyzer(Connection* conn);
+	explicit POP3_Analyzer(zeek::Connection* conn);
 	~POP3_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{
 		return new POP3_Analyzer(conn);
 		}

@@ -10,7 +10,7 @@ namespace analyzer { namespace rdp {
 class RDP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit RDP_Analyzer(Connection* conn);
+	explicit RDP_Analyzer(zeek::Connection* conn);
 	~RDP_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -19,7 +19,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
 		{ return new RDP_Analyzer(conn); }
 
 protected:

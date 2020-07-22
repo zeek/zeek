@@ -385,7 +385,7 @@ unsigned int DNP3_Base::CalcCRC(int len, const u_char* data)
 	return ~crc & 0xFFFF;
 	}
 
-DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(Connection* c)
+DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(zeek::Connection* c)
 	: DNP3_Base(this), TCP_ApplicationAnalyzer("DNP3_TCP", c)
 	{
 	}
@@ -431,7 +431,7 @@ void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig)
 	Interpreter()->FlowEOF(is_orig);
 	}
 
-DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c)
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(zeek::Connection* c)
 	: DNP3_Base(this), Analyzer("DNP3_UDP", c)
 	{
 	}

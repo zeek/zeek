@@ -33,7 +33,7 @@ GnutellaMsgState::GnutellaMsgState()
 	}
 
 
-Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
+Gnutella_Analyzer::Gnutella_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
 	{
 	state = 0;

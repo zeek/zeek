@@ -13,8 +13,8 @@ using namespace analyzer::login;
 
 // FIXME: this code should probably be merged with Rlogin.cc.
 
-Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
-						Rsh_Analyzer* arg_analyzer)
+Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig,
+                                             Rsh_Analyzer* arg_analyzer)
 : tcp::ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
 	{
 	num_bytes_to_scan = 0;
@@ -144,7 +144,7 @@ void Contents_Rsh_Analyzer::BadProlog()
 	state = RSH_UNKNOWN;
 	}
 
-Rsh_Analyzer::Rsh_Analyzer(Connection* conn)
+Rsh_Analyzer::Rsh_Analyzer(zeek::Connection* conn)
 : Login_Analyzer("RSH", conn)
 	{
 	contents_orig = new Contents_Rsh_Analyzer(conn, true, this);

@@ -88,7 +88,7 @@ int* Base64Converter::InitBase64Table(const std::string& alphabet)
 	return base64_table;
 	}
 
-Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet)
+Base64Converter::Base64Converter(zeek::Connection* arg_conn, const std::string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{
@@ -230,7 +230,7 @@ void Base64Converter::IllegalEncoding(const char* msg)
 			zeek::reporter->Error("%s", msg);
 		}
 
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
@@ -264,7 +264,7 @@ err:
 	return nullptr;
 	}
 
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
@@ -283,12 +283,12 @@ zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connec
 
 } // namespace zeek::detail
 
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
 	{
 	return zeek::detail::decode_base64(s, a, conn);
 	}
 
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
 	{
 	return zeek::detail::encode_base64(s ,a ,conn);
 	}

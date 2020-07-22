@@ -22,7 +22,7 @@ typedef enum {
 
 class Login_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	Login_Analyzer(const char* name, Connection* conn);
+	Login_Analyzer(const char* name, zeek::Connection* conn);
 	~Login_Analyzer() override;
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;

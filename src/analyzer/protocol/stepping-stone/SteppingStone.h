@@ -42,13 +42,13 @@ protected:
 
 class SteppingStone_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SteppingStone_Analyzer(Connection* c);
+	explicit SteppingStone_Analyzer(zeek::Connection* c);
 	~SteppingStone_Analyzer() override {};
 
 	void Init() override;
 	void Done() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new SteppingStone_Analyzer(conn); }
 
 protected:

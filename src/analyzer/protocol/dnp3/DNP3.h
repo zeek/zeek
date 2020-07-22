@@ -63,7 +63,7 @@ protected:
 
 class DNP3_TCP_Analyzer : public DNP3_Base, public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DNP3_TCP_Analyzer(Connection* conn);
+	explicit DNP3_TCP_Analyzer(zeek::Connection* conn);
 	~DNP3_TCP_Analyzer() override;
 
 	void Done() override;
@@ -71,19 +71,19 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static Analyzer* Instantiate(Connection* conn)
+	static Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new DNP3_TCP_Analyzer(conn); }
 };
 
 class DNP3_UDP_Analyzer : public DNP3_Base, public zeek::analyzer::Analyzer {
 public:
-	explicit DNP3_UDP_Analyzer(Connection* conn);
+	explicit DNP3_UDP_Analyzer(zeek::Connection* conn);
 	~DNP3_UDP_Analyzer() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
                     uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new DNP3_UDP_Analyzer(conn); }
 };
 

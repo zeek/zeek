@@ -817,7 +817,7 @@ zeek::ValPtr NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	}
 
 
-NFS_Analyzer::NFS_Analyzer(Connection* conn)
+NFS_Analyzer::NFS_Analyzer(zeek::Connection* conn)
 	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;

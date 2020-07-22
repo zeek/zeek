@@ -18,7 +18,7 @@
 ## .. zeek:see:: get_resp_seq
 function get_orig_seq%(cid: conn_id%): count
 	%{
-	Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->Count(0);
 
@@ -47,7 +47,7 @@ function get_orig_seq%(cid: conn_id%): count
 ## .. zeek:see:: get_orig_seq
 function get_resp_seq%(cid: conn_id%): count
 	%{
-	Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->Count(0);
 
@@ -97,7 +97,7 @@ function get_resp_seq%(cid: conn_id%): count
 ## .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
-	Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -120,7 +120,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 ## .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
-	Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::sessions->FindConnection(cid);
 
 	if ( c )
 		{

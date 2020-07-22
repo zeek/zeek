@@ -10,7 +10,7 @@
 
 using namespace analyzer::dtls;
 
-DTLS_Analyzer::DTLS_Analyzer(Connection* c)
+DTLS_Analyzer::DTLS_Analyzer(zeek::Connection* c)
 : zeek::analyzer::Analyzer("DTLS", c)
 	{
 	interp = new binpac::DTLS::SSL_Conn(this);

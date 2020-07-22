@@ -6,7 +6,7 @@
 
 using namespace analyzer::imap;
 
-IMAP_Analyzer::IMAP_Analyzer(Connection* conn)
+IMAP_Analyzer::IMAP_Analyzer(zeek::Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("IMAP", conn)
 	{
 	interp = new binpac::IMAP::IMAP_Conn(this);

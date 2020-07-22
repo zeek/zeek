@@ -10,7 +10,7 @@ namespace analyzer { namespace bittorrent {
 
 class BitTorrent_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit BitTorrent_Analyzer(Connection* conn);
+	explicit BitTorrent_Analyzer(zeek::Connection* conn);
 	~BitTorrent_Analyzer() override;
 
 	void Done() override;
@@ -18,7 +18,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new BitTorrent_Analyzer(conn); }
 
 protected:

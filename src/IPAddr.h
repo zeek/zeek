@@ -13,7 +13,9 @@
 namespace zeek { class String; }
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
-struct ConnID;
+namespace zeek { struct ConnID; }
+using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
+
 ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 namespace analyzer { class ExpectedConn; }
 

@@ -7,7 +7,7 @@
 
 using namespace analyzer::krb_tcp;
 
-KRB_Analyzer::KRB_Analyzer(Connection* conn)
+KRB_Analyzer::KRB_Analyzer(zeek::Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("KRB_TCP", conn)
 	{
 	interp = new binpac::KRB_TCP::KRB_Conn(this);

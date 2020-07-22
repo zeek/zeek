@@ -289,7 +289,7 @@ void PortmapperInterp::Event(zeek::EventHandlerPtr f, zeek::ValPtr request, BifE
 	analyzer->EnqueueConnEvent(f, std::move(vl));
 	}
 
-Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)
+Portmapper_Analyzer::Portmapper_Analyzer(zeek::Connection* conn)
 : RPC_Analyzer("PORTMAPPER", conn, new PortmapperInterp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;

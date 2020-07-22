@@ -13,7 +13,7 @@
 
 static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 
-static Connection* add_connection()
+static zeek::Connection* add_connection()
 	{
 	static constexpr double network_time_start = 1439471031;
 	net_update_time(network_time_start);
@@ -25,14 +25,14 @@ static Connection* add_connection()
 	conn_id.src_port = htons(23132);
 	conn_id.dst_port = htons(80);
 	ConnIDKey key = BuildConnIDKey(conn_id);
-	Connection* conn = new Connection(sessions, key, network_time_start,
+	zeek::Connection* conn = new Connection(sessions, key, network_time_start,
 	                                  &conn_id, 1, &p, nullptr);
 	conn->SetTransport(TRANSPORT_TCP);
 	sessions->Insert(conn);
 	return conn;
 	}
 
-static zeek::analyzer::Analyzer* add_analyzer(Connection* conn)
+static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	{
 	analyzer::tcp::TCP_Analyzer* tcp = new analyzer::tcp::TCP_Analyzer(conn);
 	analyzer::pia::PIA* pia = new analyzer::pia::PIA_TCP(conn);

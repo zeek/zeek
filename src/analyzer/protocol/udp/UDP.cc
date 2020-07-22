@@ -15,7 +15,7 @@
 
 using namespace analyzer::udp;
 
-UDP_Analyzer::UDP_Analyzer(Connection* conn)
+UDP_Analyzer::UDP_Analyzer(zeek::Connection* conn)
 : TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();

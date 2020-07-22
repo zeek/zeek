@@ -6,7 +6,7 @@
 
 using namespace analyzer::gtpv1;
 
-GTPv1_Analyzer::GTPv1_Analyzer(Connection* conn)
+GTPv1_Analyzer::GTPv1_Analyzer(zeek::Connection* conn)
 : Analyzer("GTPV1", conn)
 	{
 	interp = new binpac::GTPv1::GTPv1_Conn(this);

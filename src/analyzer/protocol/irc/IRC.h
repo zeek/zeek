@@ -16,7 +16,7 @@ public:
 	/**
 	* \brief Constructor, builds a new analyzer object.
 	*/
-	explicit IRC_Analyzer(Connection* conn);
+	explicit IRC_Analyzer(zeek::Connection* conn);
 
 	/**
 	* \brief Called when connection is closed.
@@ -32,7 +32,7 @@ public:
 	*/
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{
 		return new IRC_Analyzer(conn);
 		}

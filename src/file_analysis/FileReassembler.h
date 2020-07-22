@@ -5,7 +5,7 @@
 namespace zeek { class File; }
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 
 namespace file_analysis {
 

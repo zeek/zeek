@@ -10,7 +10,7 @@
 
 using namespace analyzer::ssl;
 
-SSL_Analyzer::SSL_Analyzer(Connection* c)
+SSL_Analyzer::SSL_Analyzer(zeek::Connection* c)
 : tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);

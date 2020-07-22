@@ -6,7 +6,7 @@ using namespace analyzer::smb;
 // being seen.
 #define SMB_MAX_LEN (1<<18)
 
-SMB_Analyzer::SMB_Analyzer(Connection *conn)
+SMB_Analyzer::SMB_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("SMB", conn)
 	{
 	chunks=0;

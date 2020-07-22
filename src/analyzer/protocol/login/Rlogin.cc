@@ -11,7 +11,7 @@
 
 using namespace analyzer::login;
 
-Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
+Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
 : tcp::ContentLine_Analyzer("CONTENTLINE", conn, orig)
 	{
 	num_bytes_to_scan = 0;
@@ -208,7 +208,7 @@ void Contents_Rlogin_Analyzer::BadProlog()
 	}
 
 
-Rlogin_Analyzer::Rlogin_Analyzer(Connection* conn)
+Rlogin_Analyzer::Rlogin_Analyzer(zeek::Connection* conn)
 : Login_Analyzer("RLOGIN", conn)
 	{
 	Contents_Rlogin_Analyzer* orig =

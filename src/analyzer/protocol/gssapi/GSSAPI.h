@@ -12,7 +12,7 @@ namespace analyzer { namespace gssapi {
 class GSSAPI_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit GSSAPI_Analyzer(Connection* conn);
+	explicit GSSAPI_Analyzer(zeek::Connection* conn);
 	~GSSAPI_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -24,7 +24,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new GSSAPI_Analyzer(conn); }
 
 protected:

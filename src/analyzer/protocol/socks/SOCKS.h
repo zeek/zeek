@@ -15,7 +15,7 @@ namespace analyzer { namespace socks {
 
 class SOCKS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SOCKS_Analyzer(Connection* conn);
+	explicit SOCKS_Analyzer(zeek::Connection* conn);
 	~SOCKS_Analyzer() override;
 
 	void EndpointDone(bool orig);
@@ -25,7 +25,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new SOCKS_Analyzer(conn); }
 
 protected:

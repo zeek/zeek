@@ -1072,7 +1072,7 @@ static unsigned int first_seed = 0;
 
 static void bro_srandom(unsigned int seed, bool deterministic)
 	{
-	bro_rand_state = seed;
+	bro_rand_state = seed == 0 ? 1 : seed;
 	bro_rand_determistic = deterministic;
 
 	srandom(seed);
@@ -1081,7 +1081,7 @@ static void bro_srandom(unsigned int seed, bool deterministic)
 void bro_srandom(unsigned int seed)
 	{
 	if ( bro_rand_determistic )
-		bro_rand_state = seed;
+		bro_rand_state = seed == 0 ? 1 : seed;
 	else
 		srandom(seed);
 	}

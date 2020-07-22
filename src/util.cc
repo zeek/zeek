@@ -1211,7 +1211,7 @@ unsigned int bro_prng(unsigned int  state)
 	return zeek::prng(state);
 	}
 
-long int bro_random()
+long int zeek::random_number()
 	{
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
@@ -1221,6 +1221,11 @@ long int bro_random()
 	return bro_rand_state;
 	}
 
+long int bro_random()
+	{
+	return zeek::random_number();
+	}
+
 // Returns a 64-bit random string.
 uint64_t rand64bit()
 	{
@@ -1228,7 +1233,7 @@ uint64_t rand64bit()
 	int i;
 
 	for ( i = 1; i <= 4; ++i )
-		base = (base<<16) | bro_random();
+		base = (base<<16) | zeek::random_number();
 	return base;
 	}
 
@@ -2098,7 +2103,7 @@ uint64_t calculate_unique_id(size_t pool)
 			gettimeofday(&unique.time, 0);
 			unique.pool = (uint64_t) pool;
 			unique.pid = getpid();
-			unique.rnd = bro_random();
+			unique.rnd = static_cast<int>(zeek::random_number());
 
 			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.

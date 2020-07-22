@@ -930,7 +930,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
+	auto result = bro_uint_t(double(max) * double(zeek::random_number()) / (RAND_MAX + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 

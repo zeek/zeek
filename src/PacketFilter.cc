@@ -113,5 +113,5 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 			return false;
 		}
 
-	return uint32_t(bro_random()) < f.probability;
+	return uint32_t(zeek::random_number()) < f.probability;
 	}

@@ -20,7 +20,7 @@ AnonymizeIPAddr* zeek::detail::ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {
 
 static uint32_t rand32()
 	{
-	return ((bro_random() & 0xffff) << 16) | (bro_random() & 0xffff);
+	return ((zeek::random_number() & 0xffff) << 16) | (zeek::random_number() & 0xffff);
 	}
 
 // From tcpdpriv.

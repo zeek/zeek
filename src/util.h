@@ -202,7 +202,7 @@ extern std::string strstrip(std::string s);
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 
-// Initializes RNGs for bro_random() and MD5 usage.  If load_file is given,
+// Initializes RNGs for zeek::random_number() and MD5 usage.  If load_file is given,
 // the seeds (both random & MD5) are loaded from that file.  This takes
 // precedence over the "use_empty_seeds" argument, which just
 // zero-initializes all seed values.  If write_file is given, the seeds are
@@ -225,6 +225,7 @@ unsigned int bro_prng(unsigned int state);
 
 // Replacement for the system random(), to which is normally falls back
 // except when a seed has been given. In that case, the function bro_prng.
+[[deprecated("Remove in v4.1.  Use zeek::random_number()")]]
 long int bro_random();
 
 // Calls the system srandom() function with the given seed if not running
@@ -598,5 +599,12 @@ void set_thread_name(const char* name, pthread_t tid = pthread_self());
  * back into subsequent calls to generate further random numbers.
  */
 long int prng(long int state);
+
+/**
+ * Wrapper for system random() in the default case, but when running in
+ * deterministic mode, uses the platform-independent zeek::prng()
+ * to obtain consistent results since implementations of rand() may vary.
+ */
+long int random_number();
 
 } // namespace zeek

@@ -248,7 +248,7 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 		if ( load_freq == 0 )
 			load_freq = uint32_t(0xffffffff) / uint32_t(load_sample_freq);
 
-		if ( uint32_t(bro_random() & 0xffffffff) < load_freq )
+		if ( uint32_t(zeek::random_number() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.

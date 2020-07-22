@@ -69,7 +69,7 @@ BifItem::~BifItem()
 	{
 	}
 
-void HookArgument::Describe(ODesc* d) const
+void HookArgument::Describe(zeek::ODesc* d) const
 	{
 	switch ( type ) {
 	case BOOL:
@@ -462,7 +462,7 @@ void Plugin::InitializeComponents()
 		(*i)->Initialize();
 	}
 
-void Plugin::Describe(ODesc* d) const
+void Plugin::Describe(zeek::ODesc* d) const
 	{
 	d->Add(config.name);
 

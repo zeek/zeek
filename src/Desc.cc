@@ -16,6 +16,8 @@
 #define DEFAULT_SIZE 128
 #define SLOP 10
 
+namespace zeek {
+
 ODesc::ODesc(desc_type t, zeek::File* arg_f)
 	{
 	type = t;
@@ -424,3 +426,5 @@ bool ODesc::FindType(const zeek::Type* type)
 
 	return false;
 	}
+
+} // namespace zeek

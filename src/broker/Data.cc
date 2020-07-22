@@ -1130,7 +1130,7 @@ broker::data& bro_broker::opaque_field_to_data(zeek::RecordVal* v, zeek::detail:
 	return static_cast<DataVal*>(d.get())->data;
 	}
 
-void bro_broker::DataVal::ValDescribe(ODesc* d) const
+void bro_broker::DataVal::ValDescribe(zeek::ODesc* d) const
 	{
 	d->Add("broker::data{");
 	d->Add(broker::to_string(data));

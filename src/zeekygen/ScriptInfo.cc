@@ -46,7 +46,7 @@ static vector<string> summary_comment(const vector<string>& cmnts)
 	return rval;
 	}
 
-static void add_summary_rows(const ODesc& id_desc, const vector<string>& cmnts,
+static void add_summary_rows(const zeek::ODesc& id_desc, const vector<string>& cmnts,
                              ReStructuredTextTable* table)
 	{
 	vector<string> row;
@@ -83,7 +83,7 @@ static string make_summary(const string& heading, char underline, char border,
 	      it != id_list.end(); ++it )
 		{
 		auto* id = (*it)->GetID();
-		ODesc d;
+		zeek::ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 		add_summary_rows(d, summary_comment((*it)->GetComments()), &table);
@@ -106,7 +106,7 @@ static string make_redef_summary(const string& heading, char underline,
 	      ++it )
 		{
 		auto* id = (*it)->GetID();
-		ODesc d;
+		zeek::ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 

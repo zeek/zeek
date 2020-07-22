@@ -364,8 +364,8 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 			{
 			if ( ! same_type(args[i + 2], fields->GetFieldType(i) ) )
 				{
-				ODesc desc1;
-				ODesc desc2;
+				zeek::ODesc desc1;
+				zeek::ODesc desc2;
 				args[i + 2]->Describe(&desc1);
 				fields->GetFieldType(i)->Describe(&desc2);
 
@@ -390,8 +390,8 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 
 		if ( ! same_type(args[2], fields ) )
 			{
-			ODesc desc1;
-			ODesc desc2;
+			zeek::ODesc desc1;
+			zeek::ODesc desc2;
 			args[2]->Describe(&desc1);
 			fields->Describe(&desc2);
 			zeek::reporter->Error("Input stream %s: Incompatible type '%s':%s for event, which needs type '%s':%s\n",
@@ -495,8 +495,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 		if ( ! same_type(idx->GetFieldType(j), tl[j]) )
 			{
-			ODesc desc1;
-			ODesc desc2;
+			zeek::ODesc desc1;
+			zeek::ODesc desc2;
 			idx->GetFieldType(j)->Describe(&desc1);
 			tl[j]->Describe(&desc2);
 
@@ -535,8 +535,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 			if ( ! same_type(table_yield, compare_type) )
 				{
-				ODesc desc1;
-				ODesc desc2;
+				zeek::ODesc desc1;
+				zeek::ODesc desc2;
 				compare_type->Describe(&desc1);
 				table_yield->Describe(&desc2);
 				zeek::reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'",
@@ -596,8 +596,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 		if ( ! same_type(args[2], idx) )
 			{
-			ODesc desc1;
-			ODesc desc2;
+			zeek::ODesc desc1;
+			zeek::ODesc desc2;
 			idx->Describe(&desc1);
 			args[2]->Describe(&desc2);
 			zeek::reporter->Error("Input stream %s: Table event's index attributes do not match. Need '%s', got '%s'",
@@ -610,8 +610,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			{
 			if ( want_record->InternalInt() == 1 && val && ! same_type(args[3], val) )
 				{
-				ODesc desc1;
-				ODesc desc2;
+				zeek::ODesc desc1;
+				zeek::ODesc desc2;
 				val->Describe(&desc1);
 				args[3]->Describe(&desc2);
 				zeek::reporter->Error("Input stream %s: Table event's value attributes do not match. Need '%s', got '%s'",
@@ -621,8 +621,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			else if ( want_record->InternalInt() == 0 &&
 			          val && !same_type(args[3], val->GetFieldType(0) ) )
 				{
-				ODesc desc1;
-				ODesc desc2;
+				zeek::ODesc desc1;
+				zeek::ODesc desc2;
 				val->GetFieldType(0)->Describe(&desc1);
 				args[3]->Describe(&desc2);
 				zeek::reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'",

@@ -1276,7 +1276,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 
 	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.release(), num_fields, fields) )
 		{
-		ODesc d;
+		zeek::ODesc d;
 		stream_id->Describe(&d);
 		zeek::reporter->Warning("failed to create remote log stream for %s locally", d.Description());
 		}

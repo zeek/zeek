@@ -3,7 +3,7 @@
 		if ( certificates->size() == 0 )
 			return true;
 
-		ODesc common;
+		zeek::ODesc common;
 		common.AddRaw("Analyzer::ANALYZER_SSL");
 		common.Add(bro_analyzer()->Conn()->StartTime());
 		common.AddRaw(is_orig ? "T" : "F", 1);
@@ -22,7 +22,7 @@
 				continue;
 				}
 
-			ODesc file_handle;
+			zeek::ODesc file_handle;
 			file_handle.Add(common.Description());
 			file_handle.Add(i);
 

@@ -125,10 +125,10 @@ inline void bytetohex(unsigned char byte, char* hex_out)
 
 std::string get_unescaped_string(const std::string& str);
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
-ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
-                          bool escape_all);
+zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len,
+                                bool escape_all);
 std::string get_escaped_string(const char* str, size_t len, bool escape_all);
 
 inline std::string get_escaped_string(const std::string& str, bool escape_all)

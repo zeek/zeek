@@ -16,7 +16,7 @@ namespace detail {
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 
-void Location::Describe(ODesc* d) const
+void Location::Describe(zeek::ODesc* d) const
 	{
 	if ( filename )
 		{
@@ -65,7 +65,7 @@ Obj::~Obj()
 
 void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
 	{
-	ODesc d;
+	zeek::ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
 	zeek::reporter->Warning("%s", d.Description());
 	zeek::reporter->PopLocation();
@@ -76,7 +76,7 @@ void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only, const deta
 	if ( suppress_errors )
 		return;
 
-	ODesc d;
+	zeek::ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
 	zeek::reporter->Error("%s", d.Description());
 	zeek::reporter->PopLocation();
@@ -93,7 +93,7 @@ void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
 	else
 		snprintf(out, sizeof(out), "%s", msg);
 
-	ODesc d;
+	zeek::ODesc d;
 	DoMsg(&d, out);
 	zeek::reporter->FatalErrorWithCore("%s", d.Description());
 	zeek::reporter->PopLocation();
@@ -101,7 +101,7 @@ void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
 
 void Obj::Internal(const char* msg) const
 	{
-	ODesc d;
+	zeek::ODesc d;
 	DoMsg(&d, msg);
 	auto rcs = zeek::render_call_stack();
 
@@ -115,13 +115,13 @@ void Obj::Internal(const char* msg) const
 
 void Obj::InternalWarning(const char* msg) const
 	{
-	ODesc d;
+	zeek::ODesc d;
 	DoMsg(&d, msg);
 	zeek::reporter->InternalWarning("%s", d.Description());
 	zeek::reporter->PopLocation();
 	}
 
-void Obj::AddLocation(ODesc* d) const
+void Obj::AddLocation(zeek::ODesc* d) const
 	{
 	if ( ! location )
 		{
@@ -162,8 +162,8 @@ void Obj::UpdateLocationEndInfo(const detail::Location& end)
 	location->last_column = end.last_column;
 	}
 
-void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2,
-                   bool pinpoint_only, const detail::Location* expr_location) const
+void Obj::DoMsg(zeek::ODesc* d, const char s1[], const Obj* obj2,
+                bool pinpoint_only, const detail::Location* expr_location) const
 	{
 	d->SetShort();
 
@@ -180,7 +180,7 @@ void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2,
 	zeek::reporter->PushLocation(GetLocationInfo(), loc2);
 	}
 
-void Obj::PinPoint(ODesc* d, const Obj* obj2, bool pinpoint_only) const
+void Obj::PinPoint(zeek::ODesc* d, const Obj* obj2, bool pinpoint_only) const
 	{
 	d->Add(" (");
 	Describe(d);
@@ -196,7 +196,7 @@ void Obj::PinPoint(ODesc* d, const Obj* obj2, bool pinpoint_only) const
 void Obj::Print() const
 	{
 	static zeek::File fstderr(stderr);
-	ODesc d(DESC_READABLE, &fstderr);
+	zeek::ODesc d(DESC_READABLE, &fstderr);
 	Describe(&d);
 	d.Add("\n");
 	}

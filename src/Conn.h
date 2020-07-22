@@ -261,8 +261,8 @@ public:
 		return true;
 		}
 
-	void Describe(ODesc* d) const override;
-	void IDString(ODesc* d) const;
+	void Describe(zeek::ODesc* d) const override;
+	void IDString(zeek::ODesc* d) const;
 
 	// Statistics.
 

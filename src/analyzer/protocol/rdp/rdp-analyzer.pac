@@ -208,7 +208,7 @@ refine flow RDP_Flow += {
 		%{
 		const bytestring& cert = ${x509.cert};
 
-		ODesc file_handle;
+		zeek::ODesc file_handle;
 		file_handle.AddRaw("Analyzer::ANALYZER_RDP");
 		file_handle.Add(connection()->bro_analyzer()->Conn()->StartTime());
 		connection()->bro_analyzer()->Conn()->IDString(&file_handle);

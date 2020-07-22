@@ -28,7 +28,7 @@ component::Type Component::Type() const
 	return type;
 	}
 
-void Component::Describe(ODesc* d) const
+void Component::Describe(zeek::ODesc* d) const
 	{
 	d->Add("    ");
 	d->Add("[");

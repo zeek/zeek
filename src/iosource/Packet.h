@@ -14,7 +14,7 @@ typedef struct bpf_timeval pkt_timeval;
 typedef struct timeval pkt_timeval;
 #endif
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);

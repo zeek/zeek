@@ -80,7 +80,7 @@ protected:
 	/**
 	  * Overriden from plugin::Component.
 	  */
-	void DoDescribe(ODesc* d) const override;
+	void DoDescribe(zeek::ODesc* d) const override;
 
 private:
 	friend class file_analysis::Manager;

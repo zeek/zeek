@@ -65,7 +65,7 @@ PktSrcComponent::factory_callback PktSrcComponent::Factory() const
 	return factory;
 	}
 
-void PktSrcComponent::DoDescribe(ODesc* d) const
+void PktSrcComponent::DoDescribe(zeek::ODesc* d) const
 	{
 	iosource::Component::DoDescribe(d);
 
@@ -140,7 +140,7 @@ bool PktDumperComponent::HandlesPrefix(const std::string& prefix) const
 	return false;
 	}
 
-void PktDumperComponent::DoDescribe(ODesc* d) const
+void PktDumperComponent::DoDescribe(zeek::ODesc* d) const
 	{
 	zeek::plugin::Component::DoDescribe(d);
 

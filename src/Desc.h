@@ -11,17 +11,6 @@
 
 #include <sys/types.h> // for u_char
 
-typedef enum {
-	DESC_READABLE,
-	DESC_PORTABLE,
-	DESC_BINARY,
-} desc_type;
-
-typedef enum {
-	STANDARD_STYLE,
-	RAW_STYLE,
-} desc_style;
-
 namespace zeek { class File; }
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
@@ -30,6 +19,19 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 
 namespace zeek { class Type; }
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+
+namespace zeek {
+
+enum desc_type {
+	DESC_READABLE,
+	DESC_PORTABLE,
+	DESC_BINARY,
+};
+
+enum desc_style {
+	STANDARD_STYLE,
+	RAW_STYLE,
+};
 
 class ODesc {
 public:
@@ -210,3 +212,15 @@ protected:
 
 	std::set<const zeek::Type*> encountered_types;
 };
+
+} // namespace zeek
+
+using ODesc [[deprecated("Remove in v4.1. Use zeek::ODesc.")]] = zeek::ODesc;
+using desc_type [[deprecated("Remove in v4.1. Use zeek::desc_type.")]] = zeek::desc_type;
+constexpr auto DESC_READABLE [[deprecated("Remove in v4.1. Use zeek::DESC_READABLE.")]] = zeek::DESC_READABLE;
+constexpr auto DESC_PORTABLE [[deprecated("Remove in v4.1. Use zeek::DESC_PORTABLE.")]] = zeek::DESC_PORTABLE;
+constexpr auto DESC_BINARY [[deprecated("Remove in v4.1. Use zeek::DESC_BINARY.")]] = zeek::DESC_BINARY;
+
+using desc_style [[deprecated("Remove in v4.1. Use zeek::desc_style.")]] = zeek::desc_style;
+constexpr auto STANDARD_STYLE [[deprecated("Remove in v4.1. Use zeek::STANDARD_STYLE.")]] = zeek::STANDARD_STYLE;
+constexpr auto RAW_STYLE [[deprecated("Remove in v4.1. Use zeek::RAW_STYLE.")]] = zeek::RAW_STYLE;

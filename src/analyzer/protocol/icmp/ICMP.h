@@ -52,7 +52,7 @@ protected:
 	void RouterSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr);
 
-	void Describe(ODesc* d) const;
+	void Describe(zeek::ODesc* d) const;
 
 	zeek::RecordValPtr BuildICMPVal(const struct icmp* icmpp, int len,
 	                                int icmpv6, const zeek::IP_Hdr* ip_hdr);

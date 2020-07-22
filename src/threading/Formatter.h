@@ -51,8 +51,8 @@ public:
 	 * @return Returns true on success, false on error. Errors must also
 	 * be flagged via the thread.
 	 */
-	virtual bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
-			      threading::Value** vals) const = 0;
+	virtual bool Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
+	                      threading::Value** vals) const = 0;
 
 	/**
 	 * Convert a single threading value into an implementation-specific
@@ -67,7 +67,7 @@ public:
 	 * @return Returns true on success, false on error. Errors are also
 	 * flagged via the thread.
 	 */
-	virtual bool Describe(ODesc* desc, threading::Value* val, const std::string& name = "") const = 0;
+	virtual bool Describe(zeek::ODesc* desc, threading::Value* val, const std::string& name = "") const = 0;
 
 	/**
 	 * Convert an implementation-specific textual representation of a

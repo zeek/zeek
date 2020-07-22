@@ -66,7 +66,7 @@ static int check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
 	return 0;
 	}
 
-static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
+static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 	{
 	zeek::TypeTag t = v->GetType()->Tag();
 	zeek::InternalTypeTag it = v->GetType()->InternalType();
@@ -126,8 +126,8 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 	char fmt_buf[512];
 	char out_buf[512];
 
-	ODesc s;
-	s.SetStyle(RAW_STYLE);
+	zeek::ODesc s;
+	s.SetStyle(zeek::RAW_STYLE);
 
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
 		zeek::emit_builtin_error("precision specified for non-floating point");
@@ -268,7 +268,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 	++fmt;
 	}
 
-static int next_fmt(const char*& fmt, const zeek::Args* args, ODesc* d, int& n)
+static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, int& n)
 	{
 	const char* fp = fmt;
 
@@ -872,7 +872,7 @@ function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 ## .. zeek:see:: hrw_weight
 function fnv1a32%(input: any%): count
 	%{
-	ODesc desc(DESC_BINARY);
+	zeek::ODesc desc(DESC_BINARY);
 	input->Describe(&desc);
 	auto bytes = desc.Bytes();
 
@@ -1561,7 +1561,7 @@ function order%(v: any, ...%) : index_vec
 ## Returns: A string concatentation of all arguments.
 function cat%(...%): string
 	%{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
 
 	for ( const auto& a : @ARG@ )
@@ -1588,7 +1588,7 @@ function cat%(...%): string
 ## .. zeek:see:: cat string_cat
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
 
 	int pre_size = 0;
@@ -1664,7 +1664,7 @@ function fmt%(...%): string
 	// checks that.
 
 	const char* fmt = fmt_v->AsString()->CheckString();
-	ODesc d;
+	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
 
 	int n = 0;
@@ -1699,7 +1699,7 @@ function fmt%(...%): string
 ## .. zeek:see:: fmt cat cat_sep string_cat to_json
 function print_raw%(...%): bool
 	%{
-	ODesc d(DESC_READABLE);
+	zeek::ODesc d(DESC_READABLE);
 	d.SetStyle(RAW_STYLE);
 	describe_vals(@ARG@, &d, 0);
 	printf("%.*s", d.Len(), d.Description());
@@ -1840,7 +1840,7 @@ function record_type_to_vector%(rt: string%): string_vec
 ## Returns: The type name of *t*.
 function type_name%(t: any%): string
 	%{
-	ODesc d;
+	zeek::ODesc d;
 	t->GetType()->Describe(&d);
 
 	String* s = new String(1, d.TakeBytes(), d.Len());

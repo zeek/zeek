@@ -180,7 +180,7 @@ void ARP_Analyzer::NextPacket(double t, const zeek::Packet* pkt)
 	}
 	}
 
-void ARP_Analyzer::Describe(ODesc* d) const
+void ARP_Analyzer::Describe(zeek::ODesc* d) const
 	{
 	d->Add("<ARP analyzer>");
 	d->NL();

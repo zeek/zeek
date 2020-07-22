@@ -1400,7 +1400,7 @@ attr:
 					zeek::make_intrusive<zeek::detail::ConstExpr>(zeek::IntrusivePtr{zeek::AdoptRef{}, $3}));
 			else
 				{
-				ODesc d;
+				zeek::ODesc d;
 				$3->Describe(&d);
 				Unref($3);
 				zeek::reporter->Error("'&deprecated=%s' must use a string literal",
@@ -1895,7 +1895,7 @@ opt_deprecated:
 				$$ = new zeek::detail::ConstExpr({zeek::AdoptRef{}, $3});
 			else
 				{
-				ODesc d;
+				zeek::ODesc d;
 				$3->Describe(&d);
 				zeek::reporter->Error("'&deprecated=%s' must use a string literal",
 				                      d.Description());

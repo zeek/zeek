@@ -279,7 +279,7 @@ public:
 
 	uint64_t TotalSize() const;	// number of bytes buffered up
 
-	void Describe(ODesc* d) const override;
+	void Describe(zeek::ODesc* d) const override;
 
 	// Sum over all data buffered in some reassembler.
 	static uint64_t TotalMemoryAllocation()	{ return total_size; }

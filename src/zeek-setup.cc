@@ -183,7 +183,7 @@ bool show_plugins(int level)
 		return false;
 		}
 
-	ODesc d;
+	zeek::ODesc d;
 
 	if ( level == 1 )
 		d.SetShort();
@@ -785,7 +785,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		if ( ! id )
 			zeek::reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
 
-		ODesc desc;
+		zeek::ODesc desc;
 		desc.SetQuotes(true);
 		desc.SetIncludeStats(true);
 		id->DescribeExtended(&desc);

@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
 namespace zeek::detail {
 

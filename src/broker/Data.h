@@ -5,7 +5,7 @@
 #include "Frame.h"
 #include "Expr.h"
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
 namespace threading {
 struct Value;
@@ -104,7 +104,7 @@ public:
 		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
-	void ValDescribe(ODesc* d) const override;
+	void ValDescribe(zeek::ODesc* d) const override;
 
 	zeek::ValPtr castTo(zeek::Type* t);
 	bool canCastTo(zeek::Type* t) const;

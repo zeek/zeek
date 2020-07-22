@@ -240,7 +240,7 @@ void Ascii::InitConfigOptions()
 			zeek::BifConst::LogAscii::meta_prefix->Len()
 			);
 
-	ODesc tsfmt;
+	zeek::ODesc tsfmt;
 	zeek::BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
 	json_timestamps.assign(
 			(const char*) tsfmt.Bytes(),

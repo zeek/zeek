@@ -452,7 +452,7 @@ bool ICMP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
 	return false;
 	}
 
-void ICMP_Analyzer::Describe(ODesc* d) const
+void ICMP_Analyzer::Describe(zeek::ODesc* d) const
 	{
 	d->Add(Conn()->StartTime());
 	d->Add("(");

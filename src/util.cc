@@ -210,14 +210,14 @@ TEST_CASE("util get_escaped_string")
 	{
 	SUBCASE("returned ODesc")
 		{
-		ODesc* d = get_escaped_string(nullptr, "a bcd\n", 6, false);
+		zeek::ODesc* d = get_escaped_string(nullptr, "a bcd\n", 6, false);
 		CHECK(strcmp(d->Description(), "a\\x20bcd\\x0a") == 0);
 		delete d;
 		}
 
 	SUBCASE("provided ODesc")
 		{
-		ODesc d2;
+		zeek::ODesc d2;
 		get_escaped_string(&d2, "ab\\e", 4, true);
 		CHECK(strcmp(d2.Description(), "\\x61\\x62\\\\\\x65") == 0);
 		}
@@ -244,11 +244,11 @@ TEST_CASE("util get_escaped_string")
  * ASCII.
  * @return A ODesc object containing a list of escaped hex values of the form
  *         \x##, which may be newly allocated if \a d was a null pointer. */
-ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
-                          bool escape_all)
+zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len,
+                                bool escape_all)
 	{
 	if ( ! d )
-		d = new ODesc();
+		d = new zeek::ODesc();
 
 	for ( size_t i = 0; i < len; ++i )
 		{
@@ -275,7 +275,7 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
 
 std::string get_escaped_string(const char* str, size_t len, bool escape_all)
 	{
-	ODesc d;
+	zeek::ODesc d;
 	return get_escaped_string(&d, str, len, escape_all)->Description();
 	}
 

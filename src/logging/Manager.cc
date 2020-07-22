@@ -638,7 +638,7 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 	stream->filters.push_back(filter);
 
 #ifdef DEBUG
-	ODesc desc;
+	zeek::ODesc desc;
 	writer->Describe(&desc);
 
 	DBG_LOG(zeek::DBG_LOGGING, "Created new filter '%s' for stream '%s'",
@@ -1002,7 +1002,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 
 	case zeek::TYPE_FUNC:
 		{
-		ODesc d;
+		zeek::ODesc d;
 		const zeek::Func* f = val->AsFunc();
 		f->Describe(&d);
 		const char* s = d.Description();
@@ -1252,7 +1252,7 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 		{
 		// Don't know this stream.
 #ifdef DEBUG
-		ODesc desc;
+		zeek::ODesc desc;
 		id->Describe(&desc);
 		DBG_LOG(zeek::DBG_LOGGING, "unknown stream %s in Manager::Write()",
 			desc.Description());
@@ -1274,7 +1274,7 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 		{
 		// Don't know this writer.
 #ifdef DEBUG
-		ODesc desc;
+		zeek::ODesc desc;
 		id->Describe(&desc);
 		DBG_LOG(zeek::DBG_LOGGING, "unknown writer %s in Manager::Write()",
 			desc.Description());

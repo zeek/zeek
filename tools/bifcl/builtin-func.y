@@ -220,12 +220,12 @@ static void print_event_c_prototype_args(FILE* fp, bool smart)
 static void print_event_c_prototype_header(FILE* fp, bool smart)
 	{
 	if ( smart )
-		fprintf(fp, "namespace zeek { %s void %s(analyzer::Analyzer* analyzer%s",
+		fprintf(fp, "namespace zeek { %s void %s(zeek::analyzer::Analyzer* analyzer%s",
 		        decl.generate_c_namespace_start.c_str(),
 		        decl.enqueue_c_barename.c_str(),
 		        args.size() ? ", " : "" );
 	else
-		fprintf(fp, "%s [[deprecated(\"Remove in 4.1. Use %s.\")]] void %s(analyzer::Analyzer* analyzer%s",
+		fprintf(fp, "%s [[deprecated(\"Remove in 4.1. Use %s.\")]] void %s(zeek::analyzer::Analyzer* analyzer%s",
 		        decl.generate_c_namespace_start.c_str(),
 		        decl.enqueue_c_fullname.c_str(),
 		        decl.generate_bare_name.c_str(),
@@ -240,11 +240,11 @@ static void print_event_c_prototype_header(FILE* fp, bool smart)
 static void print_event_c_prototype_impl(FILE* fp, bool smart)
 	{
 	if ( smart )
-		fprintf(fp, "void %s(analyzer::Analyzer* analyzer%s",
+		fprintf(fp, "void %s(zeek::analyzer::Analyzer* analyzer%s",
 			decl.enqueue_c_fullname.c_str(),
 			args.size() ? ", " : "" );
 	else
-		fprintf(fp, "void %s(analyzer::Analyzer* analyzer%s",
+		fprintf(fp, "void %s(zeek::analyzer::Analyzer* analyzer%s",
 			decl.generate_c_fullname.c_str(),
 			args.size() ? ", " : "" );
 

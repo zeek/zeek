@@ -4433,14 +4433,12 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
+	auto old_v1 = v1;
 	auto& vec2 = v2->RawVector()->ConstVec();
+	auto vt = v2->Type()->AsVectorType();
 
-	if ( ! v1 )
-		{
-		auto vt = v2->Type()->AsVectorType();
-		::Ref(vt);
-		v1 = new VectorVal(vt);
-		}
+	::Ref(vt);
+	v1 = new VectorVal(vt);
 
 	v1->RawVector()->Resize(vec2.size());
 
@@ -4454,6 +4452,8 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 		default:
 			reporter->InternalError("bad invocation of VecExec");
 		}
+
+	Unref(old_v1);
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
@@ -4462,19 +4462,14 @@ static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
 	{
 	// See comment above re further speed-up.
 
+	auto old_v1 = v1;
 	auto& vec2 = v2->RawVector()->ConstVec();
 	auto& vec3 = v3->RawVector()->ConstVec();
 
-	bool needs_management = v1 && IsManagedType(yt);
+	IntrusivePtr<BroType> yt_ptr = {NewRef{}, yt};
+	auto vt = new VectorType(yt_ptr);
+	v1 = new VectorVal(vt);
 
-	if ( ! v1 )
-		{
-		IntrusivePtr<BroType> yt_ptr = {NewRef{}, yt};
-		auto vt = new VectorType(yt_ptr);
-		v1 = new VectorVal(vt);
-		}
-
-	// ### This leaks if it's a vector-of-string becoming smaller.
 	v1->RawVector()->Resize(vec2.size());
 
 	auto& vec1 = v1->RawVector()->ModVec();
@@ -4487,4 +4482,6 @@ static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
 		default:
 			reporter->InternalError("bad invocation of VecExec");
 		}
+
+	Unref(old_v1);
 	}

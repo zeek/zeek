@@ -1232,8 +1232,6 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 				{
 				gsub(/\$\$/, "vec1[i]" laccessor, oe_copy)
 				print ("\tcase " full_op vec ":\n\t\t{\n") >vec2_eval_f
-				if ( sub_type1 in is_managed )
-					print ("\t\tif ( needs_management ) Unref( vec1[i]" laccessor ");\n\t\t") >vec2_eval_f
 				print (oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
 				}
 

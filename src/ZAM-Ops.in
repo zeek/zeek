@@ -133,9 +133,10 @@ vector
 eval $1 - $2
 #
 eval_T auto v = $1->Clone()
+eval_T auto s = v.release()->AsTableVal()
+eval_T $2->RemoveFrom(s)
 eval_T Unref($$)
-eval_T $$ = v.release()->AsTableVal()
-eval_T $2->RemoveFrom($$)
+eval_T $$ = s
 
 binary-expr-op Times
 op-type I U D
@@ -184,7 +185,9 @@ eval_P auto p = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPat
 eval_P Unref($$)
 eval_P $$ = p
 #
-eval_T $$ = $1->Intersect($2)
+eval_T auto res = $1->Intersect($2)
+eval_T Unref($$)
+eval_T $$ = res
 
 binary-expr-op Or
 op-type U P T
@@ -196,9 +199,10 @@ eval_P Unref($$)
 eval_P $$ = p
 #
 eval_T auto v = $1->Clone()
+eval_T auto s = v.release()->AsTableVal()
+eval_T (void) $2->AddTo(s, false, false)
 eval_T Unref($$)
-eval_T $$ = v.release()->AsTableVal()
-eval_T (void) $2->AddTo($$, false, false)
+eval_T $$ = s
 
 binary-expr-op Xor
 op-type U

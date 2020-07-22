@@ -51,6 +51,17 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 		// We didn't do remapping.
 		return;
 
+	// Find any functions with bodies that weren't compiled and
+	// make sure we don't reduce their frame size.
+	for ( auto& f : funcs )
+		{
+		auto func = f->func;
+		if ( f->body->Tag() != STMT_COMPILED &&
+		     remapped_intrp_frame_sizes.count(func) > 0 &&
+		     func->FrameSize() > remapped_intrp_frame_sizes[func] )
+			remapped_intrp_frame_sizes[func] = func->FrameSize();
+		}
+
 	for ( auto& f : funcs )
 		{
 		auto func = f->func;

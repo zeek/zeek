@@ -794,9 +794,19 @@ bool ZAM::PruneUnused()
 			continue;
 
 		int slot = inst->v1;
-		if ( denizen_ending.count(slot) > 0 ||
-		     frame_denizens[slot]->IsGlobal() )
+		if ( denizen_ending.count(slot) > 0 )
 			continue;
+
+		if ( frame_denizens[slot]->IsGlobal() )
+			{
+			// Extend the global's range to the end of the
+			// function.  Strictly speaking, we could extend
+			// it only to a SYNC_GLOBALS that it's guaranteed
+			// to reach, but that's tricky to confidently compute
+			// and will only rarely provide much benefit.
+			denizen_ending[slot] = insts1.back();
+			continue;
+			}
 
 		// Assignment to a local that isn't otherwise used.
 		if ( ! inst->HasSideEffects() )

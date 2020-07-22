@@ -32,6 +32,20 @@ event zeek_init()
 	print d;
 	print e;
 	print f;
+
+	local i = 0;
+	local max = 3;
+
+	while ( i < 100 )
+		{
+		local rn = rand(max);
+
+		if ( rn >= max )
+			print fmt("ERROR: rand returned value greater than %s: %s",
+			          max, rn);
+
+		i += 1;
+		}
 	}
 
 event zeek_init() &priority=-10

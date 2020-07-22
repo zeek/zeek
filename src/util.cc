@@ -1186,18 +1186,22 @@ bool have_random_seed()
 unsigned int bro_prng(unsigned int  state)
 	{
 	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.
-	static const long int m = 2147483647;
-	static const long int a = 16807;
-	const long int q = m / a;
-	const long int r = m % a;
+	// predictable across platforms.  (Lehmer RNG, Schrage's method)
+	constexpr uint32_t m = 2147483647;
+	constexpr uint32_t a = 16807;
+	constexpr uint32_t q = m / a;
+	constexpr uint32_t r = m % a;
 
-	state = a * ( state % q ) - r * ( state / q );
+	uint32_t rem = state % q;
+	uint32_t div = state / q;
+	int32_t s = a * rem;
+	int32_t t = r * div;
+	int32_t res = s - t;
 
-	if ( state <= 0 )
-		state += m;
+	if ( res < 0 )
+		res += m;
 
-	return state;
+	return res;
 	}
 
 long int bro_random()

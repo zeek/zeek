@@ -13,11 +13,10 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(FragReassembler, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(FragTimer, zeek::detail);
 
-class FragReassembler;
-class FragTimer;
-
-typedef void (FragReassembler::*frag_timer_func)(double t);
+namespace zeek::detail {
 
 using FragReassemblerKey = std::tuple<zeek::IPAddr, zeek::IPAddr, bro_uint_t>;
 
@@ -67,3 +66,5 @@ public:
 protected:
 	FragReassembler* f;
 };
+
+} // namespace zeek::detail

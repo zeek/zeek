@@ -13,7 +13,7 @@ namespace analyzer::tcp {
 
 class TCP_Analyzer;
 
-class TCP_Reassembler final : public Reassembler {
+class TCP_Reassembler final : public zeek::Reassembler {
 public:
 	enum Type {
 		Direct,		// deliver to destination analyzer itself
@@ -89,10 +89,10 @@ private:
 	void Gap(uint64_t seq, uint64_t len);
 
 	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const zeek::FilePtr& f);
-	void RecordBlock(const DataBlock& b, const zeek::FilePtr& f);
+	void RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr& f);
 	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::FilePtr& f);
 
-	void BlockInserted(DataBlockMap::const_iterator it) override;
+	void BlockInserted(zeek::DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	TCP_Endpoint* endp;

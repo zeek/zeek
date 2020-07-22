@@ -9,6 +9,8 @@
 
 using std::min;
 
+namespace zeek {
+
 uint64_t Reassembler::total_size = 0;
 uint64_t Reassembler::sizes[REASSEM_NUM];
 
@@ -384,3 +386,5 @@ uint64_t Reassembler::MemoryAllocation(ReassemblerType rtype)
 	{
 	return Reassembler::sizes[rtype];
 	}
+
+} // namespace zeek

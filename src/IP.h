@@ -19,8 +19,7 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
-
-class FragReassembler;
+ZEEK_FORWARD_DECLARE_NAMESPACED(FragReassembler, zeek::detail);
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
@@ -243,7 +242,7 @@ public:
 protected:
 	// for access to protected ctor that changes next header values that
 	// point to a fragment
-	friend class ::FragReassembler;
+	friend class detail::FragReassembler;
 
 	IPv6_Hdr_Chain() = default;
 

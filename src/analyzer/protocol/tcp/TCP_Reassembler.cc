@@ -23,7 +23,7 @@ TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
                                  TCP_Analyzer* arg_tcp_analyzer,
                                  TCP_Reassembler::Type arg_type,
                                  TCP_Endpoint* arg_endp)
-	: Reassembler(1, REASSEM_TCP)
+	: zeek::Reassembler(1, zeek::REASSEM_TCP)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
@@ -348,7 +348,7 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const z
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(const DataBlock& b, const zeek::FilePtr& f)
+void TCP_Reassembler::RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr& f)
 	{
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
@@ -378,7 +378,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const ze
 		);
 	}
 
-void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it)
+void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
 

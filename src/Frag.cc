@@ -9,8 +9,10 @@
 #include "Sessions.h"
 #include "Reporter.h"
 
-#define MIN_ACCEPTABLE_FRAG_SIZE 64
-#define MAX_ACCEPTABLE_FRAG_SIZE 64000
+constexpr uint32_t MIN_ACCEPTABLE_FRAG_SIZE = 64;
+constexpr uint32_t MAX_ACCEPTABLE_FRAG_SIZE = 64000;
+
+namespace zeek::detail {
 
 FragTimer::~FragTimer()
 	{
@@ -332,3 +334,5 @@ void FragReassembler::DeleteTimer()
 		expire_timer = nullptr;	// timer manager will delete it
 		}
 	}
+
+} // namespace zeek::detail

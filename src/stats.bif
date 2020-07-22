@@ -220,10 +220,10 @@ function get_reassembler_stats%(%): ReassemblerStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ReassemblerStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FILE)));
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FRAG)));
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_TCP)));
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_UNKNOWN)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_FILE)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_FRAG)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_TCP)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_UNKNOWN)));
 
 	return r;
 	%}

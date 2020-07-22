@@ -59,8 +59,8 @@ public:
 
 	// Returns a reassembled packet, or nil if there are still
 	// some missing fragments.
-	FragReassembler* NextFragment(double t, const zeek::IP_Hdr* ip,
-	                              const u_char* pkt);
+	detail::FragReassembler* NextFragment(double t, const zeek::IP_Hdr* ip,
+	                                      const u_char* pkt);
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
@@ -68,7 +68,7 @@ public:
 	Connection* FindConnection(zeek::Val* v);
 
 	void Remove(Connection* c);
-	void Remove(FragReassembler* f);
+	void Remove(detail::FragReassembler* f);
 
 	void Insert(Connection* c);
 
@@ -177,7 +177,7 @@ protected:
 	friend class detail::IPTunnelTimer;
 
 	using ConnectionMap = std::map<zeek::detail::ConnIDKey, Connection*>;
-	using FragmentMap = std::map<FragReassemblerKey, FragReassembler*>;
+	using FragmentMap = std::map<detail::FragReassemblerKey, detail::FragReassembler*>;
 
 	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32_t flow_label,

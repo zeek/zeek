@@ -285,7 +285,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
-	FragReassembler* f = nullptr;
+	detail::FragReassembler* f = nullptr;
 
 	if ( ip_hdr->IsFragment() )
 		{
@@ -901,21 +901,21 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
 	return false;
 	}
 
-FragReassembler* NetSessions::NextFragment(double t, const zeek::IP_Hdr* ip,
-                                           const u_char* pkt)
+detail::FragReassembler* NetSessions::NextFragment(double t, const zeek::IP_Hdr* ip,
+                                                   const u_char* pkt)
 	{
 	uint32_t frag_id = ip->ID();
 
-	FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);
+	detail::FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);
 
-	FragReassembler* f = nullptr;
+	detail::FragReassembler* f = nullptr;
 	auto it = fragments.find(key);
 	if ( it != fragments.end() )
 		f = it->second;
 
 	if ( ! f )
 		{
-		f = new FragReassembler(this, ip, pkt, key, t);
+		f = new detail::FragReassembler(this, ip, pkt, key, t);
 		fragments[key] = f;
 		if ( fragments.size() > stats.max_fragments )
 			stats.max_fragments = fragments.size();
@@ -1052,7 +1052,7 @@ void NetSessions::Remove(Connection* c)
 		}
 	}
 
-void NetSessions::Remove(FragReassembler* f)
+void NetSessions::Remove(detail::FragReassembler* f)
 	{
 	if ( ! f )
 		return;

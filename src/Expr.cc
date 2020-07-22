@@ -5963,10 +5963,7 @@ bool ArithCoerceExpr::WillTransform(Reducer* c) const
 Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
-		{
 		op = c->UpdateExpr(op);
-		return this->Ref();
-		}
 
 	red_stmt = nullptr;
 
@@ -5982,6 +5979,9 @@ Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		if ( IsArithmetic(c->Type()->Tag()) )
 			return new ConstExpr(FoldSingleVal(c, t));
 		}
+
+	if ( c->Optimizing() )
+		return this->Ref();
 
 	auto bt = op->Type()->InternalType();
 

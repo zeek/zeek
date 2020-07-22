@@ -1,8 +1,11 @@
 #
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: zeek -b %INPUT do_seed=F >out.2
+# @TEST-EXEC: for i in $(seq 21); do echo 0 >>random-zero.seed; done
+# @TEST-EXEC: ZEEK_SEED_FILE=random-zero.seed zeek -b %INPUT >out.4
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff out.2
+# @TEST-EXEC: btest-diff out.4
 
 const do_seed = T &redef;
 

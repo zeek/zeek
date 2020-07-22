@@ -230,6 +230,7 @@ long int bro_random();
 
 // Calls the system srandom() function with the given seed if not running
 // in deterministic mode, else it updates the state of the deterministic PRNG.
+[[deprecated("Remove in v4.1.  Use zeek::seed_random()")]]
 void bro_srandom(unsigned int seed);
 
 extern uint64_t rand64bit();
@@ -613,5 +614,13 @@ long int random_number();
  * When not using deterministic-mode, this is always equivalent to RAND_MAX.
  */
 long int max_random();
+
+/**
+ * Wrapper for system srandom() in the default case, but when running in
+ * deterministic mode, updates the state used for calling zeek::prng()
+ * inside of zeek::random_number().
+ * @param seed  Value to use for initializing the PRNG.
+ */
+void seed_random(unsigned int seed);
 
 } // namespace zeek

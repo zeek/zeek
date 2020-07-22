@@ -1078,12 +1078,17 @@ static void bro_srandom(unsigned int seed, bool deterministic)
 	srandom(seed);
 	}
 
-void bro_srandom(unsigned int seed)
+void zeek::seed_random(unsigned int seed)
 	{
 	if ( bro_rand_determistic )
 		bro_rand_state = seed == 0 ? 1 : seed;
 	else
 		srandom(seed);
+	}
+
+void bro_srandom(unsigned int seed)
+	{
+	zeek::seed_random(seed);
 	}
 
 void init_random_seed(const char* read_file, const char* write_file,

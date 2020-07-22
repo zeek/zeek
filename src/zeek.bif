@@ -946,7 +946,7 @@ function rand%(max: count%): count
 ##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	bro_srandom(seed);
+	zeek::seed_random(seed);
 	return nullptr;
 	%}
 

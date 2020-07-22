@@ -72,7 +72,7 @@ void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
 	peer = p;
 	if ( IsOrig() )
 		// Only one Endpoint adds the initial state to the counter.
-		sessions->tcp_stats.StateEntered(state, peer->state);
+		zeek::sessions->tcp_stats.StateEntered(state, peer->state);
 	}
 
 bool TCP_Endpoint::HadGap() const
@@ -156,11 +156,11 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		prev_state = state;
 		state = new_state;
 		if ( IsOrig() )
-			sessions->tcp_stats.ChangeState(prev_state, state,
-						peer->state, peer->state);
+			zeek::sessions->tcp_stats.ChangeState(prev_state, state,
+			                                      peer->state, peer->state);
 		else
-			sessions->tcp_stats.ChangeState(peer->state, peer->state,
-						prev_state, state);
+			zeek::sessions->tcp_stats.ChangeState(peer->state, peer->state,
+			                                      prev_state, state);
 		}
 	}
 

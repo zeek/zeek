@@ -57,7 +57,7 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t,
+Connection::Connection(zeek::NetSessions* s, const zeek::detail::ConnIDKey& k, double t,
                        const ConnID* id, uint32_t flow, const zeek::Packet* pkt,
                        const zeek::EncapsulationStack* arg_encap)
 	{

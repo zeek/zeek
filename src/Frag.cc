@@ -26,9 +26,9 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 		zeek::reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
-FragReassembler::FragReassembler(NetSessions* arg_s,
-			const zeek::IP_Hdr* ip, const u_char* pkt,
-			const FragReassemblerKey& k, double t)
+FragReassembler::FragReassembler(zeek::NetSessions* arg_s,
+                                 const zeek::IP_Hdr* ip, const u_char* pkt,
+                                 const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
 	s = arg_s;
@@ -320,7 +320,7 @@ void FragReassembler::Expire(double t)
 	expire_timer->ClearReassembler();
 	expire_timer = nullptr;	// timer manager will delete it
 
-	sessions->Remove(this);
+	zeek::sessions->Remove(this);
 	}
 
 void FragReassembler::DeleteTimer()

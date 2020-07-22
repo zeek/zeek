@@ -155,7 +155,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
 : tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
-	stp_manager = sessions->GetSTPManager();
+	stp_manager = zeek::sessions->GetSTPManager();
 
 	orig_endp = resp_endp = nullptr;
 	orig_stream_pos = resp_stream_pos = 1;

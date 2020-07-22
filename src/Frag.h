@@ -11,7 +11,7 @@
 
 #include <sys/types.h> // for u_char
 
-class NetSessions;
+ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 class FragReassembler;
@@ -23,7 +23,7 @@ using FragReassemblerKey = std::tuple<zeek::IPAddr, zeek::IPAddr, bro_uint_t>;
 
 class FragReassembler : public Reassembler {
 public:
-	FragReassembler(NetSessions* s, const zeek::IP_Hdr* ip, const u_char* pkt,
+	FragReassembler(zeek::NetSessions* s, const zeek::IP_Hdr* ip, const u_char* pkt,
 	                const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
@@ -43,7 +43,7 @@ protected:
 
 	u_char* proto_hdr;
 	zeek::IP_Hdr* reassembled_pkt;
-	NetSessions* s;
+	zeek::NetSessions* s;
 	uint64_t frag_size;	// size of fully reassembled fragment
 	FragReassemblerKey key;
 	uint16_t next_proto; // first IPv6 fragment header's next proto field

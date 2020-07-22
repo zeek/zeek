@@ -730,7 +730,7 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		zeek::IP_Hdr* inner = nullptr;
-		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
+		int result = zeek::sessions->ParseIPPacket(${pdu.packet}.length(),
 		     ${pdu.packet}.data(), ip->ip_v == 6 ? IPPROTO_IPV6 : IPPROTO_IPV4,
 		     inner);
 
@@ -764,7 +764,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 		zeek::EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
 
-		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		zeek::sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 
 		return true;
 		%}

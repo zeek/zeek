@@ -200,7 +200,7 @@ void net_init(const std::optional<std::string>& interface,
 
 	zeek::detail::init_ip_addr_anonymizers();
 
-	sessions = new NetSessions();
+	zeek::sessions = new zeek::NetSessions();
 
 	if ( do_watchdog )
 		{
@@ -258,7 +258,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, iosource::PktSrc* sr
 			}
 		}
 
-	sessions->NextPacket(t, pkt);
+	zeek::sessions->NextPacket(t, pkt);
 	zeek::event_mgr.Drain();
 
 	if ( sp )
@@ -383,13 +383,13 @@ void net_finish(int drain_events)
 
 	if ( drain_events )
 		{
-		if ( sessions )
-			sessions->Drain();
+		if ( zeek::sessions )
+			zeek::sessions->Drain();
 
 		zeek::event_mgr.Drain();
 
-		if ( sessions )
-			sessions->Done();
+		if ( zeek::sessions )
+			zeek::sessions->Done();
 		}
 
 #ifdef DEBUG
@@ -406,7 +406,7 @@ void net_delete()
 	{
 	set_processing_status("TERMINATING", "net_delete");
 
-	delete sessions;
+	delete zeek::sessions;
 
 	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete zeek::detail::ip_anonymizer[i];

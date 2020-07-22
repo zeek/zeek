@@ -161,7 +161,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 
 	zeek::IP_Hdr* inner = nullptr;
-	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
+	int rslt = zeek::sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )
 		{
@@ -228,5 +228,5 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
-	sessions->DoNextInnerPacket(network_time, nullptr, inner, e, ec);
+	zeek::sessions->DoNextInnerPacket(network_time, nullptr, inner, e, ec);
 	}

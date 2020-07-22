@@ -5,7 +5,7 @@
 
 static zeek::analyzer::Analyzer* GetConnsizeAnalyzer(zeek::Val* cid)
 	{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = zeek::sessions->FindConnection(cid);
 	if ( ! c )
 		return nullptr;
 

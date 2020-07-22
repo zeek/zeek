@@ -41,7 +41,11 @@ enum NetBIOS_Service {
 	NETBIOS_SERVICE_DCE_RPC,
 };
 
-NetSessions* sessions;
+zeek::NetSessions* zeek::sessions;
+zeek::NetSessions*& sessions = zeek::sessions;
+
+namespace zeek {
+namespace detail {
 
 void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	{
@@ -63,10 +67,12 @@ void IPTunnelTimer::Dispatch(double t, bool is_expire)
 		zeek::detail::timer_mgr->Add(new IPTunnelTimer(t, tunnel_idx));
 	}
 
+} // namespace detail
+
 NetSessions::NetSessions()
 	{
 	if ( stp_correlate_pair )
-		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
+		stp_manager = new ::analyzer::stepping_stone::SteppingStoneManager();
 	else
 		stp_manager = nullptr;
 
@@ -90,7 +96,7 @@ NetSessions::NetSessions()
 		pkt_profiler = nullptr;
 
 	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new analyzer::arp::ARP_Analyzer();
+		arp_analyzer = new ::analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = nullptr;
 
@@ -317,7 +323,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 			}
 		}
 
-	FragReassemblerTracker frt(this, f);
+	detail::FragReassemblerTracker frt(this, f);
 
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
@@ -397,7 +403,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
+		id.dst_port = ::analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
 								icmpp->icmp_code,
 								id.is_one_way);
 
@@ -413,7 +419,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
+		id.dst_port = ::analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
 								icmpp->icmp_code,
 								id.is_one_way);
 
@@ -627,7 +633,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
 			                     tunnel_type);
 			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
-			zeek::detail::timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
+	        zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(network_time, tunnel_idx));
 			}
 		else
 			it->second.second = network_time;
@@ -1005,10 +1011,10 @@ void NetSessions::Remove(Connection* c)
 
 		if ( c->ConnTransport() == TRANSPORT_TCP )
 			{
-			auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
+			auto ta = static_cast<::analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
 			assert(ta->IsAnalyzer("TCP"));
-			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
-			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
+			::analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			::analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			tcp_stats.StateLeft(to->state, tr->state);
 			}
@@ -1420,3 +1426,5 @@ void NetSessions::InsertConnection(ConnectionMap* m, const zeek::detail::ConnIDK
 		default: break;
 		}
 	}
+
+} // namespace zeek

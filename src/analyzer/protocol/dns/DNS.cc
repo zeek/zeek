@@ -1857,7 +1857,7 @@ void DNS_Analyzer::ExpireTimer(double t)
 	if ( t - Conn()->LastTime() >= dns_session_timeout - 1.0 || terminating )
 		{
 		Event(connection_timeout);
-		sessions->Remove(Conn());
+		zeek::sessions->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,

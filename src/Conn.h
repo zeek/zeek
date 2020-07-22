@@ -23,7 +23,7 @@
 
 class Connection;
 class ConnectionTimer;
-class NetSessions;
+ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
 class LoginConn;
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 
@@ -65,7 +65,7 @@ static inline int addr_port_canon_lt(const zeek::IPAddr& addr1, uint32_t p1,
 
 class Connection final : public zeek::Obj {
 public:
-	Connection(NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
+	Connection(zeek::NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const zeek::Packet* pkt, const zeek::EncapsulationStack* arg_encap);
 	~Connection() override;
 
@@ -343,7 +343,7 @@ protected:
 	void StatusUpdateTimer(double t);
 	void RemoveConnectionTimer(double t);
 
-	NetSessions* sessions;
+	zeek::NetSessions* sessions;
 	zeek::detail::ConnIDKey key;
 	bool key_valid;
 

@@ -153,7 +153,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const zeek::Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p, nullptr);
+	zeek::sessions->Weird(msg.c_str(), p, nullptr);
 	}
 
 void PktSrc::InternalError(const std::string& msg)

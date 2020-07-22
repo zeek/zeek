@@ -25,6 +25,10 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
 
+namespace zeek {
+
+namespace detail { class IPTunnelTimer; }
+
 struct SessionStats {
 	size_t num_TCP_conns;
 	size_t max_TCP_conns;
@@ -89,7 +93,7 @@ public:
 		return packet_filter;
 		}
 
-	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
+	::analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
 
 	unsigned int CurrentConnections()
 		{
@@ -166,7 +170,7 @@ public:
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
 	unsigned int MemoryAllocation();
-	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
+	::analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 protected:
 	friend class ConnCompressor;
@@ -229,9 +233,9 @@ protected:
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
-	analyzer::arp::ARP_Analyzer* arp_analyzer;
+	::analyzer::arp::ARP_Analyzer* arp_analyzer;
 
-	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
+	::analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	zeek::detail::Discarder* discarder;
 	zeek::detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
@@ -239,6 +243,7 @@ protected:
 	bool dump_this_packet;	// if true, current packet should be recorded
 };
 
+namespace detail {
 
 class IPTunnelTimer final : public zeek::detail::Timer {
 public:
@@ -269,5 +274,16 @@ private:
 	FragReassembler* frag_reassembler;
 };
 
+} // namespace detail
+
 // Manager for the currently active sessions.
 extern NetSessions* sessions;
+
+} // namespace zeek
+
+using SessionStats [[deprecated("Remove in v4.1. Use zeek::SessionStats.")]] = zeek::SessionStats;
+using NetSessions [[deprecated("Remove in v4.1. Use zeek::NetSessions.")]] = zeek::NetSessions;
+using IPTunnelTimer [[deprecated("Remove in v4.1. Use zeek::detail::IPTunnelTimer.")]] = zeek::detail::IPTunnelTimer;
+using FragReassemblerTracker [[deprecated("Remove in v4.1. Use zeek::detail::FragReassemblerTracker.")]] = zeek::detail::FragReassemblerTracker;
+
+extern zeek::NetSessions*& sessions [[deprecated("Remove in v4.1. Use zeek:sessions.")]];

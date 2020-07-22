@@ -764,5 +764,5 @@ void RPC_Analyzer::Done()
 void RPC_Analyzer::ExpireTimer(double /* t */)
 	{
 	Event(connection_timeout);
-	sessions->Remove(Conn());
+	zeek::sessions->Remove(Conn());
 	}

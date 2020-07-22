@@ -81,10 +81,10 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	switch ( pkt.l3_proto ) {
 		case zeek::L3_IPV4:
-			res = sessions->ParseIPPacket(len, data, IPPROTO_IPV4, inner);
+			res = zeek::sessions->ParseIPPacket(len, data, IPPROTO_IPV4, inner);
 			break;
 		case zeek::L3_IPV6:
-			res = sessions->ParseIPPacket(len, data, IPPROTO_IPV6, inner);
+			res = zeek::sessions->ParseIPPacket(len, data, IPPROTO_IPV6, inner);
 			break;
 		default:
 			return;
@@ -105,5 +105,5 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		                     inner->ToPktHdrVal(), zeek::val_mgr->Count(vni));
 
 	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
-	sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);
+	zeek::sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);
 	}

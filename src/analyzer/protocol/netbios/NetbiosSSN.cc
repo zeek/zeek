@@ -531,7 +531,7 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 		     netbios_ssn_session_timeout - 1.0 )
 		{
 		Event(connection_timeout);
-		sessions->Remove(Conn());
+		zeek::sessions->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,

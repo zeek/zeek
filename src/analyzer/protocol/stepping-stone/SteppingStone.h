@@ -5,7 +5,7 @@
 #include "Queue.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
-class NetSessions;
+ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
 
 namespace analyzer::stepping_stone {
 

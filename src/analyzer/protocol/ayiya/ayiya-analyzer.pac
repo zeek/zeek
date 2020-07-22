@@ -57,7 +57,7 @@ flow AYIYA_Flow
 			}
 
 		zeek::IP_Hdr* inner = 0;
-		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
+		int result = zeek::sessions->ParseIPPacket(${pdu.packet}.length(),
 		     ${pdu.packet}.data(), ${pdu.next_header}, inner);
 
 		if ( result == 0 )
@@ -86,7 +86,7 @@ flow AYIYA_Flow
 
 		zeek::EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 
-		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		zeek::sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 
 		return true;
 		%}

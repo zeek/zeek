@@ -1,4 +1,12 @@
 
+3.0.8-dev.8 | 2020-07-23 17:27:27 -0700
+
+  * GH-1076: Fix bro_srandom() to replace 0 seeds with 1 (Jon Siwek, Corelight)
+
+    The bro_prng() implementation cannot generate 0 as a result since it
+    causes every subsequent number from the PRNG to also be 0, so use the
+    number 1 instead of 0.
+
 3.0.8-dev.7 | 2020-07-23 17:20:38 -0700
 
   * GH-1076: Fix bro_prng() implementation (Jon Siwek, Corelight)

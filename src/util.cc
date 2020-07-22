@@ -1066,7 +1066,7 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 	}
 
 static bool bro_rand_determistic = false;
-static unsigned int bro_rand_state = 0;
+static long int bro_rand_state = 0;
 static bool first_seed_saved = false;
 static unsigned int first_seed = 0;
 
@@ -1183,10 +1183,12 @@ bool have_random_seed()
 	return bro_rand_determistic;
 	}
 
-unsigned int bro_prng(unsigned int  state)
+long int zeek::prng(long int state)
 	{
 	// Use our own simple linear congruence PRNG to make sure we are
 	// predictable across platforms.  (Lehmer RNG, Schrage's method)
+	// Note: the choice of "long int" storage type for the state is mostly
+	// for parity with the possible return values of random().
 	constexpr uint32_t m = 2147483647;
 	constexpr uint32_t a = 16807;
 	constexpr uint32_t q = m / a;
@@ -1204,12 +1206,17 @@ unsigned int bro_prng(unsigned int  state)
 	return res;
 	}
 
+unsigned int bro_prng(unsigned int  state)
+	{
+	return zeek::prng(state);
+	}
+
 long int bro_random()
 	{
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-	bro_rand_state = bro_prng(bro_rand_state);
+	bro_rand_state = zeek::prng(bro_rand_state);
 
 	return bro_rand_state;
 	}

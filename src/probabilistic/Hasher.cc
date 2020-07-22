@@ -119,7 +119,7 @@ DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
 	for ( size_t i = 1; i <= k; ++i )
 		{
 		seed_t s = Seed();
-		s.h[0] += bro_prng(i);
+		s.h[0] += zeek::prng(i);
 		hash_functions.push_back(UHF(s));
 		}
 	}
@@ -149,7 +149,7 @@ bool DefaultHasher::Equals(const Hasher* other) const
 	}
 
 DoubleHasher::DoubleHasher(size_t k, seed_t seed)
-	: Hasher(k, seed), h1(seed + bro_prng(1)), h2(seed + bro_prng(2))
+	: Hasher(k, seed), h1(seed + zeek::prng(1)), h2(seed + zeek::prng(2))
 	{
 	}
 

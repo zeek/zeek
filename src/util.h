@@ -220,6 +220,7 @@ extern bool have_random_seed();
 
 // A simple linear congruence PRNG. It takes its state as argument and
 // returns a new random value, which can serve as state for subsequent calls.
+[[deprecated("Remove in v4.1.  Use zeek::prng()")]]
 unsigned int bro_prng(unsigned int state);
 
 // Replacement for the system random(), to which is normally falls back
@@ -587,5 +588,15 @@ namespace zeek {
  * @param tid  handle of thread whose name shall change
  */
 void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+/**
+ * A platform-independent PRNG implementation.  Note that this is not
+ * necessarily a "statistically sound" implementation as the main purpose is
+ * not for production use, but rather for regression testing.
+ * @param state  The value used to generate the next random number.
+ * @return  A new random value generated from *state* and that can passed
+ * back into subsequent calls to generate further random numbers.
+ */
+long int prng(long int state);
 
 } // namespace zeek

@@ -1884,10 +1884,24 @@ bool ZAM::BuiltIn_to_lower(const NameExpr* n, const expr_list& args)
 		return true;
 		}
 
-	auto arg_s = args[0]->AsNameExpr();
 	int nslot = Frame1Slot(n, OP1_WRITE);
 
-	AddInst(ZInst(OP_TO_LOWER_VV, nslot, FrameSlot(arg_s)));
+	if ( args[0]->Tag() == EXPR_CONST )
+		{
+		auto arg_c = args[0]->AsConstExpr()->Value()->AsStringVal();
+		IntrusivePtr<Val> arg_lc = {AdoptRef{}, ZAM_to_lower(arg_c)};
+		auto arg_lce = make_intrusive<ConstExpr>(arg_lc);
+		auto z = ZInst(OP_ASSIGN_CONST_VC, nslot, arg_lce.get());
+		z.is_managed = true;
+		AddInst(z);
+		}
+
+	else
+		{
+		auto arg_s = args[0]->AsNameExpr();
+
+		AddInst(ZInst(OP_TO_LOWER_VV, nslot, FrameSlot(arg_s)));
+		}
 
 	return true;
 	}

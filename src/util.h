@@ -604,7 +604,14 @@ long int prng(long int state);
  * Wrapper for system random() in the default case, but when running in
  * deterministic mode, uses the platform-independent zeek::prng()
  * to obtain consistent results since implementations of rand() may vary.
+ * @return  A value in the range [0, zeek::max_random()].
  */
 long int random_number();
+
+/**
+ * @return The maximum value that can be returned from zeek::random_number().
+ * When not using deterministic-mode, this is always equivalent to RAND_MAX.
+ */
+long int max_random();
 
 } // namespace zeek

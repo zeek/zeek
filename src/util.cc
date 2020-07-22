@@ -1183,13 +1183,21 @@ bool have_random_seed()
 	return bro_rand_determistic;
 	}
 
+constexpr uint32_t zeek_prng_mod = 2147483647;
+constexpr uint32_t zeek_prng_max = zeek_prng_mod - 1;
+
+long int zeek::max_random()
+	{
+	return bro_rand_determistic ? zeek_prng_max : RAND_MAX;
+	}
+
 long int zeek::prng(long int state)
 	{
 	// Use our own simple linear congruence PRNG to make sure we are
 	// predictable across platforms.  (Lehmer RNG, Schrage's method)
 	// Note: the choice of "long int" storage type for the state is mostly
 	// for parity with the possible return values of random().
-	constexpr uint32_t m = 2147483647;
+	constexpr uint32_t m = zeek_prng_mod;
 	constexpr uint32_t a = 16807;
 	constexpr uint32_t q = m / a;
 	constexpr uint32_t r = m % a;

@@ -34,7 +34,7 @@ public:
 private:
 	struct Filter {
 		uint32_t tcp_flags;
-		uint32_t probability;
+		double probability;
 	};
 
 	static void DeleteFilter(void* data);

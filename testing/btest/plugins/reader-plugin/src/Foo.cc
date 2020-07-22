@@ -48,7 +48,7 @@ std::string Foo::RandomString(const int len)
 		// zeek::random_number() is not thread-safe; as we are only using one simultaneous thread
 		// here, this should not matter in this case. If this test ever starts showing
 		// random errors, this might be the culprit.
-		s[i] = values[zeek::random_number() / (RAND_MAX / sizeof(values))];
+		s[i] = values[zeek::random_number() / (zeek::max_random() / sizeof(values))];
 
 	return s;
 	}

@@ -160,7 +160,7 @@ void EventMgr::Drain()
 	if ( event_queue_flush_point )
 		Enqueue(event_queue_flush_point, zeek::Args{});
 
-	SegmentProfiler prof(segment_logger, "draining-events");
+	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "draining-events");
 
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 

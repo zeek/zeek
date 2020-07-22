@@ -212,7 +212,7 @@ void net_init(const std::optional<std::string>& interface,
 
 void expire_timers(iosource::PktSrc* src_ps)
 	{
-	SegmentProfiler prof(segment_logger, "expiring-timers");
+	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "expiring-timers");
 
 	current_dispatched +=
 		zeek::detail::timer_mgr->Advance(network_time,
@@ -238,7 +238,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, iosource::PktSrc* sr
 
 	expire_timers(src_ps);
 
-	SegmentProfiler* sp = nullptr;
+	zeek::detail::SegmentProfiler* sp = nullptr;
 
 	if ( load_sample )
 		{
@@ -253,8 +253,8 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, iosource::PktSrc* sr
 			// charged against this sample.
 			zeek::event_mgr.Drain();
 
-			sample_logger = new SampleLogger();
-			sp = new SegmentProfiler(sample_logger, "load-samp");
+			zeek::detail::sample_logger = new zeek::detail::SampleLogger();
+			sp = new zeek::detail::SegmentProfiler(zeek::detail::sample_logger, "load-samp");
 			}
 		}
 
@@ -264,8 +264,8 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, iosource::PktSrc* sr
 	if ( sp )
 		{
 		delete sp;
-		delete sample_logger;
-		sample_logger = nullptr;
+		delete zeek::detail::sample_logger;
+		zeek::detail::sample_logger = nullptr;
 		}
 
 	processing_start_time = 0.0;	// = "we're not processing now"

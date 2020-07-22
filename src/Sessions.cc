@@ -84,7 +84,7 @@ NetSessions::NetSessions()
 	static auto pkt_profile_file = zeek::id::find_val("pkt_profile_file");
 
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
-		pkt_profiler = new PacketProfiler(pkt_profile_mode,
+		pkt_profiler = new zeek::detail::PacketProfiler(pkt_profile_mode,
 				pkt_profile_freq, pkt_profile_file->AsFile());
 	else
 		pkt_profiler = nullptr;
@@ -121,7 +121,7 @@ void NetSessions::Done()
 
 void NetSessions::NextPacket(double t, const zeek::Packet* pkt)
 	{
-	SegmentProfiler prof(segment_logger, "dispatching-packet");
+	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
 		zeek::event_mgr.Enqueue(raw_packet, pkt->ToRawPktHdrVal());

@@ -22,8 +22,8 @@ int main(int argc, char** argv)
 
 	if ( do_net_run )
 		{
-		if ( profiling_logger )
-			profiling_logger->Log();
+		if ( zeek::detail::profiling_logger )
+			zeek::detail::profiling_logger->Log();
 
 #ifdef USE_PERFTOOLS_DEBUG
 		if ( perftools_leaks )

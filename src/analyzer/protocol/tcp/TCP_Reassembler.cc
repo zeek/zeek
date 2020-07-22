@@ -542,13 +542,13 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 
 	if ( test_active )
 		{
-		++tot_ack_events;
-		tot_ack_bytes += seq - trim_seq;
+		++zeek::detail::tot_ack_events;
+		zeek::detail::tot_ack_bytes += seq - trim_seq;
 
 		if ( num_missing > 0 )
 			{
-			++tot_gap_events;
-			tot_gap_bytes += num_missing;
+			++zeek::detail::tot_gap_events;
+			zeek::detail::tot_gap_bytes += num_missing;
 			}
 		}
 

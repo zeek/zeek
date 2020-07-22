@@ -15,13 +15,19 @@
 #include "input.h"
 #include "Func.h"
 
-uint64_t killed_by_inactivity = 0;
+uint64_t zeek::detail::killed_by_inactivity = 0;
+uint64_t& killed_by_inactivity = zeek::detail::killed_by_inactivity;
 
-uint64_t tot_ack_events = 0;
-uint64_t tot_ack_bytes = 0;
-uint64_t tot_gap_events = 0;
-uint64_t tot_gap_bytes = 0;
+uint64_t zeek::detail::tot_ack_events = 0;
+uint64_t& tot_ack_events = zeek::detail::tot_ack_events;
+uint64_t zeek::detail::tot_ack_bytes = 0;
+uint64_t& tot_ack_bytes = zeek::detail::tot_ack_bytes;
+uint64_t zeek::detail::tot_gap_events = 0;
+uint64_t& tot_gap_events = zeek::detail::tot_gap_events;
+uint64_t zeek::detail::tot_gap_bytes = 0;
+uint64_t& tot_gap_bytes = zeek::detail::tot_gap_bytes;
 
+namespace zeek::detail {
 
 class ProfileTimer final : public zeek::detail::Timer {
 public:
@@ -482,3 +488,5 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 	byte_cnt += bytes;
 	time = t;
 	}
+
+} // namespace zeek::detail

@@ -15,7 +15,7 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulatingConn, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
-class PacketProfiler;
+ZEEK_FORWARD_DECLARE_NAMESPACED(PacketProfiler, zeek::detail);
 class Connection;
 class ConnCompressor;
 struct ConnID;
@@ -235,7 +235,7 @@ protected:
 	zeek::detail::Discarder* discarder;
 	zeek::detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
-	PacketProfiler* pkt_profiler;
+	zeek::detail::PacketProfiler* pkt_profiler;
 	bool dump_this_packet;	// if true, current packet should be recorded
 };
 

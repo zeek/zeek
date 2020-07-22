@@ -116,9 +116,12 @@ std::vector<std::string> zeek_script_prefixes;
 zeek::detail::Stmt* stmts;
 zeek::EventRegistry* zeek::event_registry = nullptr;
 zeek::EventRegistry*& event_registry = zeek::event_registry;
-ProfileLogger* profiling_logger = nullptr;
-ProfileLogger* segment_logger = nullptr;
-SampleLogger* sample_logger = nullptr;
+zeek::detail::ProfileLogger* zeek::detail::profiling_logger = nullptr;
+zeek::detail::ProfileLogger*& profiling_logger = zeek::detail::profiling_logger;
+zeek::detail::ProfileLogger* zeek::detail::segment_logger = nullptr;
+zeek::detail::ProfileLogger*& segment_logger = zeek::detail::segment_logger;
+zeek::detail::SampleLogger* zeek::detail::sample_logger = nullptr;
+zeek::detail::SampleLogger*& sample_logger = zeek::detail::sample_logger;
 int signal_val = 0;
 extern char version[];
 const char* command_line_policy = nullptr;
@@ -236,8 +239,8 @@ void done_with_network()
 			true);
 		}
 
-	if ( profiling_logger )
-		profiling_logger->Log();
+	if ( zeek::detail::profiling_logger )
+		zeek::detail::profiling_logger->Log();
 
 	terminating = true;
 
@@ -287,14 +290,14 @@ void terminate_bro()
 	zeek::detail::timer_mgr->Expire();
 	zeek::event_mgr.Drain();
 
-	if ( profiling_logger )
+	if ( zeek::detail::profiling_logger )
 		{
 		// FIXME: There are some occasional crashes in the memory
 		// allocation code when killing Bro.  Disabling this for now.
 		if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
-			profiling_logger->Log();
+			zeek::detail::profiling_logger->Log();
 
-		delete profiling_logger;
+		delete zeek::detail::profiling_logger;
 		}
 
 	zeek::event_mgr.Drain();
@@ -794,11 +797,11 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( profiling_interval > 0 )
 		{
 		const auto& profiling_file = zeek::id::find_val("profiling_file");
-		profiling_logger = new ProfileLogger(profiling_file->AsFile(),
-			profiling_interval);
+		zeek::detail::profiling_logger = new ProfileLogger(profiling_file->AsFile(),
+		                                                   profiling_interval);
 
 		if ( segment_profiling )
-			segment_logger = profiling_logger;
+			zeek::detail::segment_logger = zeek::detail::profiling_logger;
 		}
 
 	if ( ! reading_live && ! reading_traces )

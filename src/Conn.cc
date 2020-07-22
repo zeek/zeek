@@ -285,7 +285,7 @@ void Connection::InactivityTimer(double t)
 		{
 		Event(connection_timeout, nullptr);
 		sessions->Remove(this);
-		++killed_by_inactivity;
+		++zeek::detail::killed_by_inactivity;
 		}
 	else
 		ADD_TIMER(&Connection::InactivityTimer,

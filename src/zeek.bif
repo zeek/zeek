@@ -2030,8 +2030,8 @@ function record_fields%(rec: any%): record_field_table
 ##              get_timer_stats
 function do_profiling%(%) : any
 	%{
-	if ( profiling_logger )
-		profiling_logger->Log();
+	if ( zeek::detail::profiling_logger )
+		zeek::detail::profiling_logger->Log();
 
 	return nullptr;
 	%}

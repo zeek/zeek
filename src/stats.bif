@@ -110,7 +110,7 @@ function get_conn_stats%(%): ConnStats
 	ADD_STAT(s.max_ICMP_conns);
 	ADD_STAT(s.cumulative_ICMP_conns);
 
-	r->Assign(n++, zeek::val_mgr->Count(killed_by_inactivity));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::killed_by_inactivity));
 
 	return r;
 	%}
@@ -365,10 +365,10 @@ function get_gap_stats%(%): GapStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(GapStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(tot_ack_events));
-	r->Assign(n++, zeek::val_mgr->Count(tot_ack_bytes));
-	r->Assign(n++, zeek::val_mgr->Count(tot_gap_events));
-	r->Assign(n++, zeek::val_mgr->Count(tot_gap_bytes));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_ack_events));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_ack_bytes));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_gap_events));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_gap_bytes));
 
 	return r;
 	%}

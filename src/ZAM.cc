@@ -3490,8 +3490,6 @@ ZInstAux* ZAM::InternalBuildVals(const ListExpr* l, int stride)
 		auto& e = exprs[i];
 		int num_vals = InternalAddVal(aux, offset, e);
 		ASSERT(num_vals == stride);
-		// usage can be nil if due to constant propagation we've prune
-		// all of the uses of the given identifier.
 		offset += num_vals;
 		}
 

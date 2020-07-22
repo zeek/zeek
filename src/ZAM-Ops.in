@@ -681,9 +681,9 @@ eval frame[z.v1].string_val = new StringVal(slice)
 op AnyIndex
 type VVi
 set-type $1
-eval auto lv = frame[z.v2].any_val->AsRecordVal()->RawFields()
-eval auto elem = lv->NthField(z.v3)
-eval if ( ! elem ) reporter->InternalError("failure to load \"any\" element");
+eval auto lv = frame[z.v2].any_val->AsListVal()
+eval if ( z.v3 < 0 || z.v3 >= lv->Length() ) reporter->InternalError("bad \"any\" element index");
+eval IntrusivePtr<Val> elem = {NewRef{}, lv->Index(z.v3)}
 eval if ( CheckAnyType(elem->Type(), z.t, z.stmt) ) {
 eval	AssignV1(BuildVal(elem, z.t))
 eval } else ZAM_error = true
@@ -1465,7 +1465,6 @@ op1-read
 type Vi
 eval auto v = frame[z.v1].list_val
 eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(z.stmt, "mismatch in list lengths")
-eval Unref(v)
 
 op Print
 type O

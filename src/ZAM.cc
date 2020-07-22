@@ -917,10 +917,24 @@ void ZAM::ComputeFrameLifetimes()
 			// No need to check the additional "var" associated
 			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
 			// a slot-1 assignment.  However, similar to other
-			// loop variables, mark this as a usasge.
+			// loop variables, mark this as a usage.
 			if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
 				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
 			}
+			break;
+
+		case OP_NEXT_VECTOR_ITER_VVV:
+		case OP_NEXT_STRING_ITER_VVV:
+			// Sometimes loops are written that don't actually
+			// use the iteration variable.  However, we still
+			// need to mark the variable as having usage
+			// throughout the loop, lest we elide the iteration
+			// instruction.  An alternative would be to transform
+			// such iterators into variable-less versions.  That
+			// optimization hardly seems worth the trouble, though,
+			// given the presumed rarity of such loops.
+			ExtendLifetime(inst->v1,
+					EndOfLoop(inst, inst->loop_depth));
 			break;
 
 		case OP_SYNC_GLOBALS_X:

@@ -1403,10 +1403,10 @@ eval ii->n = ii->vv->Size()
 eval ii->iter = 0
 eval frame[z.v1].iter_info = ii
 
+internal-op Next-Vector-Iter
 # v1 = iteration variable
 # v2 = iteration info
 # v3 = branch target if loop done
-internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
 eval if ( ii->iter >= ii->n ) { pc = z.v3; continue; }
@@ -1423,10 +1423,10 @@ eval ii->iter = 0
 eval ii->n = ii->s->Len()
 eval frame[z.v1].iter_info = ii
 
+internal-op Next-String-Iter
 # v1 = iteration variable
 # v2 = iteration info
 # v3 = branch target if loop done
-internal-op Next-String-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
 eval auto sval = ii->s

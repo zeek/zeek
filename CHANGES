@@ -1,4 +1,65 @@
 
+3.2.0-dev.974 | 2020-07-23 13:02:13 -0700
+
+    * origin/topic/jsiwek/gh-1076-fix-random:
+      Deprecate bro_srandom(), replace with zeek::seed_random().
+      Add zeek::max_random() & fix misuse of RAND_MAX w/ zeek::random_number()
+      Deprecate bro_random(), replace with zeek::random_number()
+      Deprecate bro_prng(), replace with zeek::prng()
+      GH-1076: Fix bro_srandom() to replace 0 seeds with 1
+      GH-1076: Fix bro_prng() implementation
+      GH-1076: Fix use of getrandom() (Tim Wojtulewicz, Corelight)
+
+  * Deprecate bro_srandom(), replace with zeek::seed_random().
+
+    Avoiding zeek::srandom() to avoid potential for confusion with srandom() (Jon Siwek, Corelight)
+
+  * Add zeek::max_random() & fix misuse of RAND_MAX w/ zeek::random_number()
+
+    In deterministic mode, RAND_MAX is not related to the result of
+    zeek::random_number() (formerly bro_random()), but some logic was
+    using RAND_MAX as indication of the possible range of values.  The
+    new zeek::max_random() will give the correct upper-bound regardless
+    of whether deterministic-mode is used. (Jon Siwek, Corelight)
+
+  * Deprecate bro_random(), replace with zeek::random_number()
+
+    Avoiding the use of zeek::random() due to potential for confusion
+    with random(). (Jon Siwek, Corelight)
+
+  * Deprecate bro_prng(), replace with zeek::prng()
+
+    The type used for storing the state of the RNG is changed from
+    `unsigned int` to `long int` since the former has a minimal range
+    of [0, 65,535] while the RNG function itself has a range of
+    [1, 2147483646].  A `long int` must be capable of
+    [−2147483647, +2147483647] and is also the return type of `random()`,
+    which is what zeek::prng() aims to roughly parity. (Jon Siwek, Corelight)
+
+  * GH-1076: Fix bro_srandom() to replace 0 seeds with 1
+
+    The bro_prng() implementation cannot generate 0 as a result since it
+    causes every subsequent number from the PRNG to also be 0, so use the
+    number 1 instead of 0. (Jon Siwek, Corelight)
+
+  * GH-1076: Fix bro_prng() implementation
+
+    The intermediate result of the PRNG used unsigned storage, preventing
+    the ( result < 0 ) branch from ever being evaluated.  This could cause
+    return values to exceed the modulus as well as RAND_MAX.
+
+    One interesting effect of this is potential for the rand() BIF to
+    return values outside the requested maximum limit.
+
+    Another interesting effect of this is that a PacketFilter may start
+    randomly dropping packets even if it was not configured for
+    random-packet-drops. (Jon Siwek, Corelight)
+
+  * GH-1076: Fix use of getrandom()
+
+    The availability and use of getrandom() actually caused unrandom and
+    deterministic results in terms of Zeek's random number generation. (Jon Siwek, Corelight)
+
 3.2.0-dev.965 | 2020-07-23 08:31:41 -0700
 
   * GH-1068: Add zeek symlink to allow "zeek/Foo.h" include style

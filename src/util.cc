@@ -1066,24 +1066,29 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 	}
 
 static bool bro_rand_determistic = false;
-static unsigned int bro_rand_state = 0;
+static long int bro_rand_state = 0;
 static bool first_seed_saved = false;
 static unsigned int first_seed = 0;
 
 static void bro_srandom(unsigned int seed, bool deterministic)
 	{
-	bro_rand_state = seed;
+	bro_rand_state = seed == 0 ? 1 : seed;
 	bro_rand_determistic = deterministic;
 
 	srandom(seed);
 	}
 
-void bro_srandom(unsigned int seed)
+void zeek::seed_random(unsigned int seed)
 	{
 	if ( bro_rand_determistic )
-		bro_rand_state = seed;
+		bro_rand_state = seed == 0 ? 1 : seed;
 	else
 		srandom(seed);
+	}
+
+void bro_srandom(unsigned int seed)
+	{
+	zeek::seed_random(seed);
 	}
 
 void init_random_seed(const char* read_file, const char* write_file,
@@ -1105,16 +1110,15 @@ void init_random_seed(const char* read_file, const char* write_file,
 	else if ( use_empty_seeds )
 		seeds_done = true;
 
+	if ( ! seeds_done )
+		{
 #ifdef HAVE_GETRANDOM
-	if ( ! seeds_done )
-		{
-		ssize_t nbytes = getrandom(buf.data(), sizeof(buf), 0);
-		seeds_done = nbytes == ssize_t(sizeof(buf));
-		}
-#endif
-
-	if ( ! seeds_done )
-		{
+		// getrandom() guarantees reads up to 256 bytes are always successful,
+		assert(sizeof(buf) < 256);
+		auto nbytes = getrandom(buf.data(), sizeof(buf), 0);
+		assert(nbytes == sizeof(buf));
+		pos += nbytes / sizeof(uint32_t);
+#else
 		// Gather up some entropy.
 		gettimeofday((struct timeval *)(buf.data() + pos), 0);
 		pos += sizeof(struct timeval) / sizeof(uint32_t);
@@ -1141,9 +1145,10 @@ void init_random_seed(const char* read_file, const char* write_file,
 				// systems due to a lack of entropy.
 				errno = 0;
 			}
+#endif
 
 		if ( pos < KeyedHash::SEED_INIT_SIZE )
-			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
+			reporter->FatalError("Could not read enough random data. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
 
 		if ( ! seed )
 			{
@@ -1183,31 +1188,55 @@ bool have_random_seed()
 	return bro_rand_determistic;
 	}
 
-unsigned int bro_prng(unsigned int  state)
+constexpr uint32_t zeek_prng_mod = 2147483647;
+constexpr uint32_t zeek_prng_max = zeek_prng_mod - 1;
+
+long int zeek::max_random()
 	{
-	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.
-	static const long int m = 2147483647;
-	static const long int a = 16807;
-	const long int q = m / a;
-	const long int r = m % a;
-
-	state = a * ( state % q ) - r * ( state / q );
-
-	if ( state <= 0 )
-		state += m;
-
-	return state;
+	return bro_rand_determistic ? zeek_prng_max : RAND_MAX;
 	}
 
-long int bro_random()
+long int zeek::prng(long int state)
+	{
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.  (Lehmer RNG, Schrage's method)
+	// Note: the choice of "long int" storage type for the state is mostly
+	// for parity with the possible return values of random().
+	constexpr uint32_t m = zeek_prng_mod;
+	constexpr uint32_t a = 16807;
+	constexpr uint32_t q = m / a;
+	constexpr uint32_t r = m % a;
+
+	uint32_t rem = state % q;
+	uint32_t div = state / q;
+	int32_t s = a * rem;
+	int32_t t = r * div;
+	int32_t res = s - t;
+
+	if ( res < 0 )
+		res += m;
+
+	return res;
+	}
+
+unsigned int bro_prng(unsigned int  state)
+	{
+	return zeek::prng(state);
+	}
+
+long int zeek::random_number()
 	{
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-	bro_rand_state = bro_prng(bro_rand_state);
+	bro_rand_state = zeek::prng(bro_rand_state);
 
 	return bro_rand_state;
+	}
+
+long int bro_random()
+	{
+	return zeek::random_number();
 	}
 
 // Returns a 64-bit random string.
@@ -1217,7 +1246,7 @@ uint64_t rand64bit()
 	int i;
 
 	for ( i = 1; i <= 4; ++i )
-		base = (base<<16) | bro_random();
+		base = (base<<16) | zeek::random_number();
 	return base;
 	}
 
@@ -2087,7 +2116,7 @@ uint64_t calculate_unique_id(size_t pool)
 			gettimeofday(&unique.time, 0);
 			unique.pool = (uint64_t) pool;
 			unique.pid = getpid();
-			unique.rnd = bro_random();
+			unique.rnd = static_cast<int>(zeek::random_number());
 
 			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.

@@ -202,7 +202,7 @@ extern std::string strstrip(std::string s);
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 
-// Initializes RNGs for bro_random() and MD5 usage.  If load_file is given,
+// Initializes RNGs for zeek::random_number() and MD5 usage.  If load_file is given,
 // the seeds (both random & MD5) are loaded from that file.  This takes
 // precedence over the "use_empty_seeds" argument, which just
 // zero-initializes all seed values.  If write_file is given, the seeds are
@@ -220,14 +220,17 @@ extern bool have_random_seed();
 
 // A simple linear congruence PRNG. It takes its state as argument and
 // returns a new random value, which can serve as state for subsequent calls.
+[[deprecated("Remove in v4.1.  Use zeek::prng()")]]
 unsigned int bro_prng(unsigned int state);
 
 // Replacement for the system random(), to which is normally falls back
 // except when a seed has been given. In that case, the function bro_prng.
+[[deprecated("Remove in v4.1.  Use zeek::random_number()")]]
 long int bro_random();
 
 // Calls the system srandom() function with the given seed if not running
 // in deterministic mode, else it updates the state of the deterministic PRNG.
+[[deprecated("Remove in v4.1.  Use zeek::seed_random()")]]
 void bro_srandom(unsigned int seed);
 
 extern uint64_t rand64bit();
@@ -587,5 +590,37 @@ namespace zeek {
  * @param tid  handle of thread whose name shall change
  */
 void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+/**
+ * A platform-independent PRNG implementation.  Note that this is not
+ * necessarily a "statistically sound" implementation as the main purpose is
+ * not for production use, but rather for regression testing.
+ * @param state  The value used to generate the next random number.
+ * @return  A new random value generated from *state* and that can passed
+ * back into subsequent calls to generate further random numbers.
+ */
+long int prng(long int state);
+
+/**
+ * Wrapper for system random() in the default case, but when running in
+ * deterministic mode, uses the platform-independent zeek::prng()
+ * to obtain consistent results since implementations of rand() may vary.
+ * @return  A value in the range [0, zeek::max_random()].
+ */
+long int random_number();
+
+/**
+ * @return The maximum value that can be returned from zeek::random_number().
+ * When not using deterministic-mode, this is always equivalent to RAND_MAX.
+ */
+long int max_random();
+
+/**
+ * Wrapper for system srandom() in the default case, but when running in
+ * deterministic mode, updates the state used for calling zeek::prng()
+ * inside of zeek::random_number().
+ * @param seed  Value to use for initializing the PRNG.
+ */
+void seed_random(unsigned int seed);
 
 } // namespace zeek

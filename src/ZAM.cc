@@ -2652,13 +2652,14 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 		else
 			{ // Both are constants, assign first to temporary.
 			auto slot = NewSlot(c0->Type());
-			auto z = ZInst(OP_ASSIGN_CONST_VC, slot, c0);
+			z = ZInst(OP_ASSIGN_CONST_VC, slot, c0);
 			z.CheckIfManaged(c0);
 			(void) AddInst(z);
 
 			z = ZInst(OP_VAL2_IS_IN_TABLE_COND_VVVC,
 					slot, FrameSlot(op2), 0, c1);
 			z.op_type = OP_VVVC_I3;
+			branch_v = 3;
 			z.t = c0->Type().release();
 			}
 

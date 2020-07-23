@@ -788,31 +788,51 @@ function_ingredients::function_ingredients(zeek::detail::ScopePtr scope, zeek::d
 	this->body = std::move(body);
 	}
 
-} // namespace detail
-
-void emit_builtin_error(const char* msg)
-	{
-	emit_builtin_error(msg, zeek::ValPtr{});
-	}
-
-void emit_builtin_error(const char* msg, zeek::ValPtr arg)
-	{
-	emit_builtin_error(msg, arg.get());
-	}
-
-void emit_builtin_error(const char* msg, Obj* arg)
+static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)
 	{
 	auto emit = [=](const zeek::detail::CallExpr* ce)
 		{
 		if ( ce )
-			ce->Error(msg, arg);
+			{
+			if ( unwind )
+				{
+				if ( arg )
+					{
+					ODesc d;
+					arg->Describe(&d);
+					reporter->ExprRuntimeError(ce, "%s (%s), during call:", msg,
+					                           d.Description());
+					}
+				else
+					reporter->ExprRuntimeError(ce, "%s", msg);
+				}
+			else
+				ce->Error(msg, arg);
+			}
 		else
-			reporter->Error(msg, arg);
+			{
+			if ( arg )
+				{
+				if ( unwind )
+					reporter->RuntimeError(arg->GetLocationInfo(), "%s", msg);
+				else
+					arg->Error(msg);
+				}
+			else
+				{
+				if ( unwind )
+					reporter->RuntimeError(nullptr, "%s", msg);
+				else
+					reporter->Error("%s", msg);
+				}
+			}
 		};
 
 
 	if ( zeek::detail::call_stack.empty() )
 		{
+		// Shouldn't happen unless someone (mistakenly) calls builtin_error()
+		// from somewhere that's not even evaluating script-code.
 		emit(nullptr);
 		return;
 		}
@@ -866,6 +886,39 @@ void emit_builtin_error(const char* msg, Obj* arg)
 		emit(last_call.call);
 	}
 
+void emit_builtin_exception(const char* msg)
+	{
+	emit_builtin_error_common(msg, nullptr, true);
+	}
+
+void emit_builtin_exception(const char* msg, const zeek::ValPtr& arg)
+	{
+	emit_builtin_error_common(msg, arg.get(), true);
+	}
+
+void emit_builtin_exception(const char* msg, Obj* arg)
+	{
+	emit_builtin_error_common(msg, arg, true);
+	}
+
+} // namespace detail
+
+
+void emit_builtin_error(const char* msg)
+	{
+	zeek::detail::emit_builtin_error_common(msg, nullptr, false);
+	}
+
+void emit_builtin_error(const char* msg, const zeek::ValPtr& arg)
+	{
+	zeek::detail::emit_builtin_error_common(msg, arg.get(), false);
+	}
+
+void emit_builtin_error(const char* msg, Obj* arg)
+	{
+	zeek::detail::emit_builtin_error_common(msg, arg, false);
+	}
+
 } // namespace zeek
 
 void builtin_error(const char* msg)
@@ -873,7 +926,7 @@ void builtin_error(const char* msg)
 	zeek::emit_builtin_error(msg);
 	}
 
-void builtin_error(const char* msg, zeek::ValPtr arg)
+void builtin_error(const char* msg, const zeek::ValPtr& arg)
 	{
 	zeek::emit_builtin_error(msg, arg);
 	}

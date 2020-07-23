@@ -63,7 +63,9 @@ public:
 
 	std::string ModuleName() const;
 
-	void SetType(TypePtr t);
+	void SetType(zeek::TypePtr t);
+	[[deprecated("Remove in v4.1.  Use version that takes IntrusivePtr.")]]
+	void SetType(zeek::Type* t);
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* Type()			{ return type.get(); }

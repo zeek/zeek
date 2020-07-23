@@ -1,4 +1,161 @@
 
+3.2.0-dev.965 | 2020-07-23 08:31:41 -0700
+
+  * GH-1068: Add zeek symlink to allow "zeek/Foo.h" include style
+
+    Also changes `zeek-config --include_dir` to now output
+    `$prefix/include:$prefix/include/zeek` instead of only
+    `$prefix/include/zeek` (Jon Siwek, Corelight)
+
+3.2.0-dev.962 | 2020-07-21 12:39:34 -0700
+
+  * Add zeek-archiver tool as submodule
+
+    This is added to the default Zeek build as a convenience since it's the
+    new suggested method for archiving the logs produced by a Supervised
+    Zeek Cluster. (Jon Siwek, Corelight)
+
+3.2.0-dev.959 | 2020-07-21 15:34:59 +0000
+
+  * Broker Store table synchronizatio, (Johanna Amann, Corelight)
+
+    Zeek now supports synchronizing tables/sets across clusters using
+    a backing Broker store. The same feature also allows persistent
+    storage of data in tables/sets over Zeek restarts. This feature is
+    implemented using the new ``&backend`` attribute.
+
+    To synchronize a table over a cluster, you can, e.g., use:
+
+        global t: table[string] of count &backend=Broker::MEMORY;
+
+    This feature is documented in detail here:
+
+        https://docs.zeek.org/en/current/frameworks/broker.html#broker-store-backed-zeek-tables-for-data-synchronization-and-persistence
+
+    This feature is experimental and the syntax/specifics can change in the future.
+
+3.2.0-dev.919 | 2020-07-17 16:37:11 -0700
+
+  * Use namespaced version of Location to silence warnings (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.915 | 2020-07-17 16:10:46 -0700
+
+  * Various deprecation fixes, reported by failed Spicy builds (Tim Wojtulewicz, Corelight)
+
+    - Add deprecated version of ID::SetType() that takes Type*
+    - Add deprecated versions of zeek::set_location in the global namespace
+    - Fix global namespace version of lookup_ID to return ID*
+
+  * Add deprecated version of EnumType::GetVal() to return EnumVal* (Tim Wojtulewicz, Corelight)
+
+    Rename IntrusivePtr version to GetEnumVal
+
+3.2.0-dev.911 | 2020-07-17 22:32:42 +0000
+
+  * Fix race condition in ensure_dir()
+
+    If something else created the dir between the stat() and mkdir(),
+    it previously reported that as a failure. (Jon Siwek, Corelight)
+
+  * Fix tokenize_string() to work with delimiters of length > 1. (Jon Siwek, Corelight)
+
+3.2.0-dev.908 | 2020-07-17 10:19:07 +0000
+
+  * GH-734: Improve handling of lambdas that escape enclosing frame.
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.906 | 2020-07-17 10:08:31 +0000
+
+  * GH-837: Add test cases for mismatched Broker SSL configs. (Jon Siwek, Corelight)
+
+  * GH-837: Emit reporter errors for Broker errors. (Jon Siwek,
+    Corelight)
+
+  * Fix incorrect/missing Broker error status code numbers. (Jon Siwek, Corelight)
+
+3.2.0-dev.902 | 2020-07-14 19:10:36 -0700
+
+  * GH-1062: fix integer conversion errors related to Tag subtypes (Jon Siwek, Corelight)
+
+3.2.0-dev.899 | 2020-07-14 00:02:05 +0000
+
+  * Improve Broker store API's handling of invalid arguments
+
+    * Some methods mistakenly returned a bool instead of QueryResult
+      when passed an invalid `opaque of Broker::Store` handle.
+
+    * Now generates a runtime exception for store_name() and is_closed()
+      calls that pass an invalid `opaque of Broker::Store` handle as any
+      returned value can't be reasonably used in any subsequent logic.
+
+    * Descriptions of any invalid arguments are now given in the error
+      message. (Jon Siwek, Corelight)
+
+  * Add zeek::detail::emit_builtin_exception() functions
+
+    These work like zeek::emit_builtin_error(), but also throw an InterpreterException (Jon Siwek, Corelight)
+
+  * GH-1024: fix crash on passing wrong types to Broker store API (Jon Siwek, Corelight)
+
+3.2.0-dev.894 | 2020-07-13 12:12:17 -0700
+
+  * GH-1019: deprecate icmp_conn params for ICMP events
+
+    Previously, a single `icmp_conn` record was built per ICMP "connection"
+    and re-used for all events generated from it.  This may have been a
+    historical attempt at performance optimization, but:
+
+      * By default, Zeek does not load any scripts that handle ICMP events.
+
+      * The one script Zeek ships with that does handle ICMP events,
+        "detect-traceroute", is already noted as being disabled due to
+        potential performance problems of doing that kind of analysis.
+
+      * Re-use of the original `icmp_conn` record tends to misreport
+        TTL and length values since they come from original packet instead
+        of the current one.
+
+      * Even if we chose to still re-use `icmp_conn` records and just fill
+        in a new TTL and length value each packet, a user script could have
+        stored a reference to the record and not be expecting those values
+        to be changed out from underneath them.
+
+    Now, a new `icmp_info` record is created/populated in all ICMP events
+    and should be used instead of `icmp_conn`.  It also removes the
+    orig_h/resp_h fields as those are redundant with what's already
+    available in the connection record. (Jon Siwek, Corelight)
+
+3.2.0-dev.892 | 2020-07-13 12:10:22 -0700
+
+  * Fix wrong frame offsets for locals of alternate event/hook prototypes
+
+    Local frame offsets were being assigned based on number of the alternate
+    prototype's parameters, which may end up having less total parameters
+    than the canonical prototype, causing the local value to incorrectly
+    overwrite an event/hook argument value. (Jon Siwek, Corelight)
+
+  * Add deprecation expression to deprecated prototype/parameter messages (Jon Siwek, Corelight)
+
+  * Improve "use of deprecated prototype" warning message
+
+    The location information now points out the place of the deprecated
+    prototype instead of the location where the ID was initially declared
+    (which may not itself be a deprecated prototype). (Jon Siwek, Corelight)
+
+  * Emit deprecation warning for use of &deprecated function parameters
+
+    Particularly, this is meant for using &deprecated on canonical
+    event/hook prototype parameters to encourage users to create handlers
+    to another, non-deprecated prototype.  i.e. for canonical prototypes,
+    we may not always want to put &deprecated directly on the prototype
+    itself since that signals deprecation of the ID entirely. (Jon Siwek, Corelight)
+
+3.2.0-dev.885 | 2020-07-10 11:20:41 -0700
+
+  * Add more error checks to shadow log parsing (Jon Siwek, Corelight)
+
+    i.e. Coverity warns about possible use of ftell() negative return value
+
 3.2.0-dev.884 | 2020-07-09 14:09:58 -0700
 
   * Add Supervisor::{stdout,stderr}_hook (Jon Siwek, Corelight)

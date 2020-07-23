@@ -1,3 +1,4 @@
+-./frameworks/cluster/broker-stores.zeek
 -./frameworks/cluster/nodes/logger.zeek
 -./frameworks/cluster/nodes/manager.zeek
 -./frameworks/cluster/nodes/proxy.zeek

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "Obj.h"
 #include "BroList.h"
@@ -13,7 +14,6 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 // Note that there are two kinds of attributes: the kind (here) which
 // modify expressions or supply metadata on types, and the kind that
 // are extra metadata on every variable instance.
-
 
 namespace zeek {
 
@@ -42,6 +42,9 @@ enum AttrTag {
 	ATTR_TYPE_COLUMN,	// for input framework
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 	ATTR_ON_CHANGE, // for table change tracking
+	ATTR_BROKER_STORE, // for Broker store backed tables
+	ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
+	ATTR_BACKEND, // for Broker store backed tables
 	ATTR_DEPRECATED,
 	NUM_ATTRS // this item should always be last
 };
@@ -72,6 +75,12 @@ public:
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
+
+	/**
+	 * Returns the deprecation string associated with a &deprecated attribute
+	 * or an empty string if this is not such an attribute.
+	 */
+	std::string DeprecationMessage() const;
 
 	bool operator==(const Attr& other) const
 		{

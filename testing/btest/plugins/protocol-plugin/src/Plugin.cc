@@ -10,7 +10,7 @@ using namespace plugin::Demo_Foo;
 
 plugin::Configuration Plugin::Configure()
 	{
-	AddComponent(new ::analyzer::Component("Foo", plugin::Demo_Foo::Foo::Instantiate));
+	AddComponent(new ::analyzer::Component("Foo", plugin::Demo_Foo::Foo::Instantiate, 1));
 
 	plugin::Configuration config;
 	config.name = "Demo::Foo";

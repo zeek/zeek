@@ -1065,7 +1065,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		auto type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+		auto type = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 		readFields = SendEventStreamEvent(i, type.release(), vals);
 		}
 
@@ -1170,9 +1170,9 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		if ( ! pred_convert_error )
 			{
 			if ( updated )
-				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
+				ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_CHANGED);
 			else
-				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+				ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 
 			bool result;
 			if ( stream->num_val_fields > 0 ) // we have values
@@ -1270,13 +1270,13 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		else if ( updated )
 			{ // in case of update send back the old value.
 			assert ( stream->num_val_fields > 0 );
-			auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
+			auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_CHANGED);
 			assert ( oldval != nullptr );
 			SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), predidx, oldval.release());
 			}
 		else
 			{
-			auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+			auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 			if ( stream->num_val_fields == 0 )
 				{
 				Ref(stream->description);
@@ -1338,7 +1338,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			val = stream->tab->FindOrDefault(idx);
 			assert(val != nullptr);
 			predidx = {zeek::AdoptRef{}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
-			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
+			ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
 			}
 
 		if ( stream->pred )
@@ -1432,7 +1432,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		auto type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+		auto type = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 		readFields = SendEventStreamEvent(i, type.release(), vals);
 		}
 
@@ -1569,9 +1569,9 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			else
 				{
 				if ( updated )
-					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
+					ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_CHANGED);
 				else
-					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+					ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 
 				bool result;
 				if ( stream->num_val_fields > 0 ) // we have values
@@ -1609,14 +1609,14 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 					{
 					// in case of update send back the old value.
 					assert ( stream->num_val_fields > 0 );
-					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
+					auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_CHANGED);
 					assert ( oldval != nullptr );
 					SendEvent(stream->event, 4, stream->description->Ref(),
 					          ev.release(), predidx, oldval.release());
 					}
 				else
 					{
-					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+					auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 					if ( stream->num_val_fields == 0 )
 						SendEvent(stream->event, 4, stream->description->Ref(),
 								ev.release(), predidx);
@@ -1701,7 +1701,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 					Unref(predidx);
 				else
 					{
-					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
+					auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
 
 					streamresult = CallPred(stream->pred, 3, ev.release(), predidx, zeek::IntrusivePtr{val}.release());
 
@@ -1720,7 +1720,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				{
 				Ref(idxval);
 				assert(val != nullptr);
-				auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
+				auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
 				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval, zeek::IntrusivePtr{val}.release());
 				}
 			}
@@ -1735,7 +1735,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM  )
 		{
-		auto type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
+		auto type = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
 		readVals = SendEventStreamEvent(i, type.release(), vals);
 		success = true;
 		}
@@ -2306,7 +2306,7 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 			return nullptr;
 			}
 
-		auto rval = request_type->AsEnumType()->GetVal(index);
+		auto rval = request_type->AsEnumType()->GetEnumVal(index);
 		return rval.release();
 		}
 
@@ -2439,15 +2439,15 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 		switch (et)
 			{
 			case ErrorType::INFO:
-				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::INFO);
+				ev = zeek::BifType::Enum::Reporter::Level->GetEnumVal(BifEnum::Reporter::INFO);
 				break;
 
 			case ErrorType::WARNING:
-				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::WARNING);
+				ev = zeek::BifType::Enum::Reporter::Level->GetEnumVal(BifEnum::Reporter::WARNING);
 				break;
 
 			case ErrorType::ERROR:
-				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::ERROR);
+				ev = zeek::BifType::Enum::Reporter::Level->GetEnumVal(BifEnum::Reporter::ERROR);
 				break;
 
 			default:

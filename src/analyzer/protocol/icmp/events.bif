@@ -12,8 +12,13 @@
 ## icmp: Additional ICMP-specific information augmenting the standard
 ##       connection record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard
+##       connection record *c*.
+##
 ## .. zeek:see:: icmp_error_message icmp_sent_payload
-event icmp_sent%(c: connection, icmp: icmp_conn%);
+event icmp_sent%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info%);
+event icmp_sent%(c: connection, info: icmp_info%);
+event icmp_sent%(c: connection, icmp: icmp_conn%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## The same as :zeek:see:`icmp_sent` except containing the ICMP payload.
 ##
@@ -22,10 +27,15 @@ event icmp_sent%(c: connection, icmp: icmp_conn%);
 ## icmp: Additional ICMP-specific information augmenting the standard
 ##       connection record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard
+##       connection record *c*.
+##
 ## payload: The payload of the ICMP message.
 ##
 ## .. zeek:see:: icmp_error_message icmp_sent_payload
-event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%);
+event icmp_sent_payload%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, payload: string%);
+event icmp_sent_payload%(c: connection, info: icmp_info, payload: string%);
+event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *echo request* messages.
 ##
@@ -38,6 +48,9 @@ event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%);
 ## icmp: Additional ICMP-specific information augmenting the standard
 ##       connection record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard
+##       connection record *c*.
+##
 ## id: The *echo request* identifier.
 ##
 ## seq: The *echo request* sequence number.
@@ -46,7 +59,9 @@ event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%);
 ##          after the first 8 bytes of the ICMP header.
 ##
 ## .. zeek:see:: icmp_echo_reply
-event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
+event icmp_echo_request%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, id: count, seq: count, payload: string%);
+event icmp_echo_request%(c: connection, info: icmp_info, id: count, seq: count, payload: string%);
+event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn.";
 
 ## Generated for ICMP *echo reply* messages.
 ##
@@ -59,6 +74,9 @@ event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, 
 ## icmp: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard
+##       connection record *c*.
+##
 ## id: The *echo reply* identifier.
 ##
 ## seq: The *echo reply* sequence number.
@@ -67,7 +85,9 @@ event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, 
 ##          after the first 8 bytes of the ICMP header.
 ##
 ## .. zeek:see:: icmp_echo_request
-event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
+event icmp_echo_reply%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, id: count, seq: count, payload: string%);
+event icmp_echo_reply%(c: connection, info: icmp_info, id: count, seq: count, payload: string%);
+event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn.";
 
 ## Generated for all ICMPv6 error messages that are not handled
 ## separately with dedicated events. Zeek's ICMP analyzer handles a number
@@ -83,6 +103,9 @@ event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, pa
 ## icmp: Additional ICMP-specific information augmenting the standard
 ##       connection record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard
+##       connection record *c*.
+##
 ## code: The ICMP code of the error message.
 ##
 ## context: A record with specifics of the original packet that the message
@@ -90,7 +113,9 @@ event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, pa
 ##
 ## .. zeek:see:: icmp_unreachable icmp_packet_too_big
 ##    icmp_time_exceeded icmp_parameter_problem
-event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_error_message%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, code: count, context: icmp_context%);
+event icmp_error_message%(c: connection, info: icmp_info, code: count, context: icmp_context%);
+event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *destination unreachable* messages.
 ##
@@ -101,6 +126,9 @@ event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: 
 ## c: The connection record for the corresponding ICMP flow.
 ##
 ## icmp: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
+## info: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
 ## code: The ICMP code of the *unreachable* message.
@@ -114,7 +142,9 @@ event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: 
 ##
 ## .. zeek:see:: icmp_error_message icmp_packet_too_big
 ##    icmp_time_exceeded icmp_parameter_problem
-event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_unreachable%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, code: count, context: icmp_context%);
+event icmp_unreachable%(c: connection, info: icmp_info, code: count, context: icmp_context%);
+event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMPv6 *packet too big* messages.
 ##
@@ -125,6 +155,9 @@ event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: ic
 ## c: The connection record for the corresponding ICMP flow.
 ##
 ## icmp: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
+## info: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
 ## code: The ICMP code of the *too big* message.
@@ -138,7 +171,9 @@ event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: ic
 ##
 ## .. zeek:see:: icmp_error_message icmp_unreachable
 ##    icmp_time_exceeded icmp_parameter_problem
-event icmp_packet_too_big%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_packet_too_big%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, code: count, context: icmp_context%);
+event icmp_packet_too_big%(c: connection, info: icmp_info, code: count, context: icmp_context%);
+event icmp_packet_too_big%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *time exceeded* messages.
 ##
@@ -149,6 +184,9 @@ event icmp_packet_too_big%(c: connection, icmp: icmp_conn, code: count, context:
 ## c: The connection record for the corresponding ICMP flow.
 ##
 ## icmp: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
+## info: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
 ## code: The ICMP code of the *exceeded* message.
@@ -162,7 +200,9 @@ event icmp_packet_too_big%(c: connection, icmp: icmp_conn, code: count, context:
 ##
 ## .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
 ##    icmp_parameter_problem
-event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_time_exceeded%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, code: count, context: icmp_context%);
+event icmp_time_exceeded%(c: connection, info: icmp_info, code: count, context: icmp_context%);
+event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMPv6 *parameter problem* messages.
 ##
@@ -173,6 +213,9 @@ event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: 
 ## c: The connection record for the corresponding ICMP flow.
 ##
 ## icmp: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
+## info: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
 ## code: The ICMP code of the *parameter problem* message.
@@ -186,7 +229,9 @@ event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: 
 ##
 ## .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
 ##    icmp_time_exceeded
-event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_parameter_problem%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, code: count, context: icmp_context%);
+event icmp_parameter_problem%(c: connection, info: icmp_info, code: count, context: icmp_context%);
+event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *router solicitation* messages.
 ##
@@ -199,11 +244,16 @@ event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, conte
 ## icmp: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
 ## .. zeek:see:: icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
-event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_nd_options%);
+event icmp_router_solicitation%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, options: icmp6_nd_options%);
+event icmp_router_solicitation%(c: connection, info: icmp_info, options: icmp6_nd_options%);
+event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_nd_options%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *router advertisement* messages.
 ##
@@ -214,6 +264,9 @@ event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_n
 ## c: The connection record for the corresponding ICMP flow.
 ##
 ## icmp: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
+## info: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
 ## cur_hop_limit: The default value that should be placed in Hop Count field
@@ -241,7 +294,9 @@ event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_n
 ##
 ## .. zeek:see:: icmp_router_solicitation
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
-event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%);
+event icmp_router_advertisement%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%);
+event icmp_router_advertisement%(c: connection, info: icmp_info, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%);
+event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *neighbor solicitation* messages.
 ##
@@ -254,13 +309,18 @@ event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: 
 ## icmp: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
 ## tgt: The IP address of the target of the solicitation.
 ##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
 ## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_advertisement icmp_redirect
-event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options%);
+event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, tgt: addr, options: icmp6_nd_options%);
+event icmp_neighbor_solicitation%(c: connection, info: icmp_info, tgt: addr, options: icmp6_nd_options%);
+event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *neighbor advertisement* messages.
 ##
@@ -271,6 +331,9 @@ event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, opt
 ## c: The connection record for the corresponding ICMP flow.
 ##
 ## icmp: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
+## info: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
 ## router: Flag indicating the sender is a router.
@@ -286,7 +349,9 @@ event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, opt
 ##
 ## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_redirect
-event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%);
+event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%);
+event icmp_neighbor_advertisement%(c: connection, info: icmp_info, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%);
+event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";
 
 ## Generated for ICMP *redirect* messages.
 ##
@@ -299,6 +364,9 @@ event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool,
 ## icmp: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
+## info: Additional ICMP-specific information augmenting the standard connection
+##       record *c*.
+##
 ## tgt: The address that is supposed to be a better first hop to use for
 ##      ICMP Destination Address.
 ##
@@ -308,5 +376,6 @@ event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool,
 ##
 ## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement
-event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options%);
-
+event icmp_redirect%(c: connection, icmp: icmp_conn &deprecated="Remove in v4.1", info: icmp_info, tgt: addr, dest: addr, options: icmp6_nd_options%);
+event icmp_redirect%(c: connection, info: icmp_info, tgt: addr, dest: addr, options: icmp6_nd_options%);
+event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options%) &deprecated="Remove in v4.1.  The icmp_info record is replacing icmp_conn";

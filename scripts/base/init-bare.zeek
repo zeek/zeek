@@ -188,6 +188,19 @@ type icmp_conn: record {
 	v6: bool;	##< True if it's an ICMPv6 packet.
 };
 
+## Specifics about an ICMP conversation/packet.
+## ICMP events typically pass this in addition to :zeek:type:`conn_id`.
+##
+## .. zeek:see:: icmp_echo_reply icmp_echo_request icmp_redirect icmp_sent
+##    icmp_time_exceeded icmp_unreachable
+type icmp_info: record {
+	v6: bool;      ##< True if it's an ICMPv6 packet.
+	itype: count;  ##< The ICMP type of the current packet.
+	icode: count;  ##< The ICMP code of the current packet.
+	len: count;    ##< The length of the ICMP payload.
+	ttl: count;    ##< The encapsulating IP header's TTL (IPv4) or Hop Limit (IPv6).
+};
+
 ## Packet context part of an ICMP message. The fields of this record reflect the
 ## packet that is described by the context.
 ##
@@ -734,6 +747,7 @@ type script_id: record {
 	enum_constant: bool;	##< True if the identifier is an enum value.
 	option_value: bool;	##< True if the identifier is an option.
 	redefinable: bool;	##< True if the identifier is declared with the :zeek:attr:`&redef` attribute.
+	broker_backend: bool;	##< True if the identifier has a Broker backend defined using the :zeek:attr:`&backend` attribute.
 	value: any &optional;	##< The current value of the identifier.
 };
 

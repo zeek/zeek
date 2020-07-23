@@ -42,7 +42,7 @@ refine connection DCE_RPC_Conn += {
 			                                  ${header.is_orig},
 			                                  fid,
 			                                  ${header.PTYPE},
-			                                  zeek::BifType::Enum::DCE_RPC::PType->GetVal(${header.PTYPE}));
+			                                  zeek::BifType::Enum::DCE_RPC::PType->GetEnumVal(${header.PTYPE}));
 			}
 		return true;
 		%}

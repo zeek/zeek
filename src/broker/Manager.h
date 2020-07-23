@@ -8,6 +8,7 @@
 #include <broker/endpoint.hh>
 #include <broker/endpoint_info.hh>
 #include <broker/peer_info.hh>
+#include <broker/publisher_id.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
@@ -24,6 +25,7 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 
 namespace zeek {
 using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
@@ -302,6 +304,17 @@ public:
 	StoreHandleVal* LookupStore(const std::string& name);
 
 	/**
+	 * Register a Zeek table that is associated with a Broker store that is backing it. This
+	 * causes all changes that happen to the Broker store in the future to be applied to theZzeek
+	 * table.
+	 * A single Broker store can only be forwarded to a single table.
+	 * @param name name of the Broker store.
+	 * @param table pointer to the table/set that is being backed.
+	 * @return true on success, false if the named store is already being forwarded.
+	 */
+	bool AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek::TableVal> table);
+
+	/**
 	 * Close and unregister a data store.  Any existing references to the
 	 * store handle will not be able to be used for any data store operations.
 	 * @param name the stores' name.
@@ -346,6 +359,10 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
+	// Process events used for Broker store backed zeek tables
+	void ProcessStoreEvent(broker::data msg);
+	// Common functionality for processing insert and update events.
+	void ProcessStoreEventInsertUpdate(zeek::IntrusivePtr<zeek::TableVal> table, const std::string& store_id, const broker::data& key, const broker::data& data, const broker::data& old_value, bool insert);
 	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
 	bool ProcessLogCreate(broker::zeek::LogCreate lc);
 	bool ProcessLogWrite(broker::zeek::LogWrite lw);
@@ -354,6 +371,13 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
+	// Initializes the masters for Broker backed Zeek tables when using the &backend attribute
+	void InitializeBrokerStoreForwarding();
+	// Check if a Broker store is associated to a table on the Zeek side.
+	void PrepareForwarding(const std::string& name);
+	// Send the content of a Broker store to the backing table. This is typically used
+	// when a master/clone is created.
+	void BrokerStoreToZeekTable(const std::string& name, const StoreHandleVal* handle);
 
 	void Error(const char* format, ...)
 		__attribute__((format (printf, 2, 3)));
@@ -388,6 +412,7 @@ private:
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
+	std::unordered_map<std::string, zeek::IntrusivePtr<zeek::TableVal>> forwarded_stores;
 	std::unordered_map<query_id, StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;
@@ -404,6 +429,8 @@ private:
 	zeek::VectorTypePtr vector_of_data_type;
 	zeek::EnumType* log_id_type;
 	zeek::EnumType* writer_id_type;
+	bool zeek_table_manager = false;
+	std::string zeek_table_db_directory;
 
 	static int script_scope;
 };

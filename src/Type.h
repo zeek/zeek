@@ -427,7 +427,10 @@ public:
 	 */
 	struct Prototype {
 		bool deprecated;
+		std::string deprecation_msg;
 		RecordTypePtr args;
+		// Maps from parameter index in canonical prototype to
+		// parameter index in this alternate prorotype.
 		std::map<int, int> offsets;
 	};
 
@@ -706,7 +709,10 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	const zeek::EnumValPtr& GetVal(bro_int_t i);
+	const zeek::EnumValPtr& GetEnumVal(bro_int_t i);
+
+	[[deprecated("Remove in v4.1. Use GetEnumVal() instead.")]]
+	zeek::EnumVal* GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,

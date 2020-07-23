@@ -2831,10 +2831,10 @@ const CompiledStmt ZAM::Switch(const SwitchStmt* sw)
 
 	PushBreaks();
 
-	if ( t != TYPE_ANY && t != TYPE_TYPE )
-		return ValueSwitch(sw, n, c);
-	else
+	if ( (*sw->Cases())[0]->TypeCases() )
 		return TypeSwitch(sw, n, c);
+	else
+		return ValueSwitch(sw, n, c);
 	}
 
 const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,

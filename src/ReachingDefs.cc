@@ -67,12 +67,21 @@ void ReachingDefs::AddOrFullyReplace(const DefinitionItem* di,
 
 RD_ptr ReachingDefs::Intersect(const RD_ptr& r) const
 	{
+	static DefinitionPoint multi_dps;
+
 	auto res = make_new_RD_ptr();
 
 	for ( const auto& i : *RDMap() )
 		for ( const auto& dp : *i.second )
+			{
 			if ( r->HasPair(i.first, dp) )
 				res->AddRD(i.first, dp);
+
+			else if ( r->HasDI(i.first) )
+				// There's a definition in r, just not the same
+				// one.  Mark as present-but-not-specific.
+				res->AddRD(i.first, multi_dps);
+			}
 
 	return res;
 	}

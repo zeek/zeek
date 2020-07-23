@@ -127,6 +127,8 @@ public:
 
 	void Dump();
 
+	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
+
 protected:
 	void Init();
 
@@ -552,6 +554,8 @@ public:
 		}
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
 
 	void StmtDescribe(ODesc* d) const override;
 

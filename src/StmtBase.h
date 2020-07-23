@@ -72,10 +72,12 @@ public:
 	// can be made to statements from inlining function bodies - or
 	// to the originals - without affecting other instances.
 	//
-	// Statements that are safe to share across multiple functions
-	// can just return references to themselves, as is done in the
-	// default here.
-	virtual IntrusivePtr<Stmt> Duplicate() { return {NewRef{}, this}; }
+	// It's tempting to think that there are some statements that
+	// are safe to share across multiple functions and could just
+	// return references to themselves - but since we associate
+	// information such as reaching-defs with statements, even these
+	// need to be duplicated.
+	virtual IntrusivePtr<Stmt> Duplicate() = 0;
 
 	virtual void Inline(Inliner* inl)	{ }
 

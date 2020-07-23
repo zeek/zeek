@@ -363,6 +363,9 @@ public:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return make_intrusive<NextStmt>(); }
+
 	bool IsPure() const override;
 
 	bool NoFlowAfter(bool ignore_break) const override
@@ -383,6 +386,9 @@ public:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return make_intrusive<BreakStmt>(); }
+
 	bool IsPure() const override;
 
 	bool NoFlowAfter(bool ignore_break) const override
@@ -402,6 +408,9 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return make_intrusive<FallthroughStmt>(); }
 
 	bool IsPure() const override;
 
@@ -559,6 +568,9 @@ public:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return make_intrusive<NullStmt>(); }
+
 	bool IsPure() const override;
 
 	void StmtDescribe(ODesc* d) const override;
@@ -609,6 +621,8 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 
 	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;

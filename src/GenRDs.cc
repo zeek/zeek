@@ -464,12 +464,10 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 
 void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 	{
-	DefinitionPoint di(i);
 	auto min_if_branch_rd = mgr.GetPostMinRDs(i->TrueBranch());
 	auto min_else_branch_rd = mgr.GetPostMinRDs(i->FalseBranch());
-	auto min_post_rds =
-		min_if_branch_rd->IntersectWithConsolidation(min_else_branch_rd,
-								di);
+	auto min_post_rds = min_if_branch_rd->Intersect(min_else_branch_rd);
+
 	auto max_if_branch_rd = mgr.GetPostMaxRDs(i->TrueBranch());
 	auto max_else_branch_rd = mgr.GetPostMaxRDs(i->FalseBranch());
 	auto max_post_rds = max_if_branch_rd->Union(max_else_branch_rd);

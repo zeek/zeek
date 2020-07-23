@@ -3102,6 +3102,11 @@ const CompiledStmt CheckAnyLenStmt::Compile(Compiler* c) const
 	return c->CheckAnyLenVi(e->AsNameExpr(), expected_len);
 	}
 
+IntrusivePtr<Stmt> CheckAnyLenStmt::Duplicate()
+	{
+	return make_intrusive<CheckAnyLenStmt>(e->Duplicate(), expected_len);
+	}
+
 bool CheckAnyLenStmt::IsReduced(Reducer* c) const
 	{
 	return true;

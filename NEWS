@@ -288,6 +288,13 @@ Deprecated Functionality
   fields since those are redundant with what's already available in
   the connection parameter.
 
+- External plugins should include Zeek header files like
+  ``#include <zeek/Foo.h>`` instead of ``#include <Foo.h>``.  The later
+  style is considered deprecated.  Reliance on ``zeek-config --include_dir``
+  to contain ``$prefix/include/zeek`` is also deprecated: its replacement
+  output is expected to be just ``$prefix/include``, with it currently
+  outputting both paths, delimited by a colon, during the deprecation period.
+
 Zeek 3.1.0
 ==========
 

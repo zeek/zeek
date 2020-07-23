@@ -1,4 +1,12 @@
 
+3.2.0-dev.965 | 2020-07-23 08:31:41 -0700
+
+  * GH-1068: Add zeek symlink to allow "zeek/Foo.h" include style
+
+    Also changes `zeek-config --include_dir` to now output
+    `$prefix/include:$prefix/include/zeek` instead of only
+    `$prefix/include/zeek` (Jon Siwek, Corelight)
+
 3.2.0-dev.962 | 2020-07-21 12:39:34 -0700
 
   * Add zeek-archiver tool as submodule

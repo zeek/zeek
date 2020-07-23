@@ -1,4 +1,11 @@
 
+3.0.8-dev.5 | 2020-07-23 16:49:26 -0700
+
+  * GH-1042: Move compress_path to a bif that uses normalize_path (Tim Wojtulewicz and Jon Siwek, Corelight)
+
+    Also improve normalize_path() util function: it didn't always properly
+    handle ".." when the preceding path component was also the first component.
+
 3.0.8-dev.4 | 2020-07-23 16:17:48 -0700
 
   * reduce memory usage of ConnPolling (Justin Azoff, Corelight)

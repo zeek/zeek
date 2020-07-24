@@ -233,7 +233,7 @@ void Manager::InitializeBrokerStoreForwarding()
 			auto e = static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
 			auto storename = std::string("___sync_store_") + global.first;
 			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
-			AddForwardedStore(storename, {zeek::NewRef{}, id->GetVal()->AsTableVal()});
+			AddForwardedStore(storename, zeek::cast_intrusive<zeek::TableVal>(id->GetVal()));
 
 			// We only create masters here. For clones, we do all the work of setting up
 			// the forwarding - but we do not try to initialize the clone. We can only initialize
@@ -955,17 +955,16 @@ void Manager::Process()
 		had_input = true;
 
 		auto& topic = broker::get_topic(message);
-		auto& msg = broker::get_data(message);
 
 		if ( broker::topics::store_events.prefix_of(topic) )
 			{
-			ProcessStoreEvent(std::move(msg));
+			ProcessStoreEvent(broker::move_data(message));
 			continue;
 			}
 
 		try
 			{
-			DispatchMessage(topic, std::move(msg));
+			DispatchMessage(topic, broker::move_data(message));
 			}
 		catch ( std::runtime_error& e )
 			{
@@ -998,7 +997,12 @@ void Manager::Process()
 		}
 	}
 
-void Manager::ProcessStoreEventInsertUpdate(zeek::IntrusivePtr<zeek::TableVal> table, const std::string& store_id, const broker::data& key, const broker::data& data, const broker::data& old_value, bool insert)
+void Manager::ProcessStoreEventInsertUpdate(const zeek::TableValPtr& table,
+                                            const std::string& store_id,
+                                            const broker::data& key,
+                                            const broker::data& data,
+                                            const broker::data& old_value,
+                                            bool insert)
 		{
 		auto type = "Insert";
 		if ( ! insert )
@@ -1053,7 +1057,7 @@ void Manager::ProcessStoreEvent(broker::data msg)
 		if ( ! storehandle )
 			return;
 
-		auto table = storehandle->forward_to;
+		const auto& table = storehandle->forward_to;
 		if ( ! table )
 			return;
 
@@ -1069,7 +1073,7 @@ void Manager::ProcessStoreEvent(broker::data msg)
 		if ( ! storehandle )
 			return;
 
-		auto table = storehandle->forward_to;
+		const auto& table = storehandle->forward_to;
 		if ( ! table )
 			return;
 
@@ -1265,14 +1269,13 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 			}
 		}
 
-	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.get(), num_fields, fields) )
+	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.release(), num_fields, fields) )
 		{
 		ODesc d;
 		stream_id->Describe(&d);
 		reporter->Warning("failed to create remote log stream for %s locally", d.Description());
 		}
 
-	writer_info.release(); // log_mgr took ownership.
 	return true;
 	}
 
@@ -1622,7 +1625,7 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const StoreHandleV
 	// disable &on_change notifications while filling the table.
 	table->DisableChangeNotifications();
 
-	for ( const auto key : *set )
+	for ( const auto& key : *set )
 		{
 		auto zeek_key = data_to_val(key, its[0].get());
 		if ( ! zeek_key )
@@ -1749,7 +1752,7 @@ const Stats& Manager::GetStatistics()
 	return statistics;
 	}
 
-bool Manager::AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek::TableVal> table)
+bool Manager::AddForwardedStore(const std::string& name, zeek::TableValPtr table)
 	{
 	if ( forwarded_stores.find(name) != forwarded_stores.end() )
 		{
@@ -1758,7 +1761,7 @@ bool Manager::AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek
 		}
 
 	DBG_LOG(DBG_BROKER, "Adding table forward for data store %s", name.c_str());
-	forwarded_stores.emplace(name, table);
+	forwarded_stores.emplace(name, std::move(table));
 
 	PrepareForwarding(name);
 	return true;

@@ -1,4 +1,11 @@
 
+3.2.0-dev.986 | 2020-07-24 13:57:19 -0700
+
+  * Misc/minor cleanup after reviewing new Broker table store code (Jon Siwek, Corelight)
+
+    Just some naming/style + minor memory management tweaks (avoid
+    some copies; use move semantics).
+
 3.2.0-dev.985 | 2020-07-24 11:40:22 -0700
 
   * MySQL: Fix EOF parsing logic bug. (Vlad Grigorescu)

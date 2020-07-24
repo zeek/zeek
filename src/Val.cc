@@ -1517,7 +1517,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 	auto bs = attrs->Find(zeek::detail::ATTR_BROKER_STORE);
 	if ( bs && broker_store.empty() )
 		{
-		IntrusivePtr<Val> c = bs->GetExpr()->Eval(nullptr);
+		auto c = bs->GetExpr()->Eval(nullptr);
 		assert(c);
 		assert(c->GetType()->Tag() == zeek::TYPE_STRING);
 		broker_store = c->AsStringVal()->AsString()->CheckString();
@@ -2280,7 +2280,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	if ( change_func )
 		{
 		// this is totally cheating around the fact that we need a Intrusive pointer.
-		IntrusivePtr<Val> changefunc_val = RecreateIndex(*(k.get()));
+		ValPtr changefunc_val = RecreateIndex(*(k.get()));
 		CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
 		}
 

@@ -123,7 +123,7 @@ public:
 	broker::store::proxy proxy;
 	broker::publisher_id store_pid;
 	// Zeek table that events are forwarded to.
-	zeek::IntrusivePtr<zeek::TableVal> forward_to;
+	zeek::TableValPtr forward_to;
 
 protected:
 

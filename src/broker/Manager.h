@@ -29,6 +29,7 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 
 namespace zeek {
 using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
+using TableValPtr = zeek::IntrusivePtr<zeek::TableVal>;
 }
 
 namespace bro_broker {
@@ -312,7 +313,7 @@ public:
 	 * @param table pointer to the table/set that is being backed.
 	 * @return true on success, false if the named store is already being forwarded.
 	 */
-	bool AddForwardedStore(const std::string& name, zeek::IntrusivePtr<zeek::TableVal> table);
+	bool AddForwardedStore(const std::string& name, zeek::TableValPtr table);
 
 	/**
 	 * Close and unregister a data store.  Any existing references to the
@@ -362,7 +363,7 @@ private:
 	// Process events used for Broker store backed zeek tables
 	void ProcessStoreEvent(broker::data msg);
 	// Common functionality for processing insert and update events.
-	void ProcessStoreEventInsertUpdate(zeek::IntrusivePtr<zeek::TableVal> table, const std::string& store_id, const broker::data& key, const broker::data& data, const broker::data& old_value, bool insert);
+	void ProcessStoreEventInsertUpdate(const zeek::TableValPtr& table, const std::string& store_id, const broker::data& key, const broker::data& data, const broker::data& old_value, bool insert);
 	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
 	bool ProcessLogCreate(broker::zeek::LogCreate lc);
 	bool ProcessLogWrite(broker::zeek::LogWrite lw);
@@ -412,7 +413,7 @@ private:
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
-	std::unordered_map<std::string, zeek::IntrusivePtr<zeek::TableVal>> forwarded_stores;
+	std::unordered_map<std::string, zeek::TableValPtr> forwarded_stores;
 	std::unordered_map<query_id, StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;

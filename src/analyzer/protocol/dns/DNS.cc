@@ -712,7 +712,11 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 	while ( len > 0 )
 		{
 		uint16_t option_code = ExtractShort(data, len);
-		int option_len = ExtractShort(data, len);
+		uint16_t option_len = ExtractShort(data, len);
+		// check for invalid option length
+		if ( (option_len > len) || (0 == option_len) ) {
+			break;
+		}
 		len -= option_len;
 
 		// TODO: Implement additional option codes
@@ -720,9 +724,14 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 			{
 			case TYPE_ECS:
 				{
+				// must be 4 bytes + variable number of octets for address
+				if ( option_len <= 4 ) {
+					break;
+				}
+
 				EDNS_ECS opt{};
-				uint16_t ecs_family = ExtractShort(data, option_len);
-				uint16_t source_scope = ExtractShort(data, option_len);
+				uint16_t ecs_family = ExtractShort(data, (int&)option_len);
+				uint16_t source_scope = ExtractShort(data, (int&)option_len);
 				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
 				opt.ecs_scp_pfx_len = source_scope & 0xff;
 

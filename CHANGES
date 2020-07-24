@@ -1,4 +1,8 @@
 
+3.0.8-dev.9 | 2020-07-23 17:46:32 -0700
+
+  * Update NEWS (Jon Siwek, Corelight)
+
 3.0.8-dev.8 | 2020-07-23 17:27:27 -0700
 
   * GH-1076: Fix bro_srandom() to replace 0 seeds with 1 (Jon Siwek, Corelight)

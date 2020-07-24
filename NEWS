@@ -52,7 +52,8 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
-TODO: nothing notable yet
+- Marked the Continuation.h and PacketDumper.h files as deprecated. The code
+  contained within them is unused by Zeek.
 
 Zeek 3.2.0
 ==========

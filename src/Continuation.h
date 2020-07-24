@@ -1,3 +1,5 @@
+#warning "This file will be removed in v4.1. The code here is unused by Zeek. Notify a Zeek team member if your plugins are using this code."
+
 // Helper class to implement continuation-like mechanisms for
 // suspending/resuming tasks for incremental operation.
 //

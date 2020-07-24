@@ -1,3 +1,5 @@
+#warning "This file will be removed in v4.1. The code here is unused by Zeek. Notify a Zeek team member if your plugins are using this code."
+
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #pragma once

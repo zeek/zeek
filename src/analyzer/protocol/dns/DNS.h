@@ -81,6 +81,27 @@ typedef enum {
 	DNS_ADDITIONAL,
 } DNS_AnswerType;
 
+// https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+// DNS EDNS0 Option Codes (OPT)
+typedef enum {
+	TYPE_LLQ = 1,			///< https://www.iana.org/go/draft-sekar-dns-llq-06
+	TYPE_UL = 2,			///< http://files.dns-sd.org/draft-sekar-dns-ul.txt
+	TYPE_NSID = 3,			///< RFC5001
+	TYPE_DAU = 5,			///< RFC6975
+	TYPE_DHU = 6,			///< RFC6975
+	TYPE_N3U = 7,			///< RFC6975
+	TYPE_ECS = 8,			///< RFC7871
+	TYPE_EXPIRE = 9,		///< RFC7314
+	TYPE_TCP_KA = 11,		///< RFC7828
+	TYPE_PAD = 12,			///< RFC7830
+	TYPE_CHAIN = 13,		///< RFC7901
+	TYPE_KEY_TAG = 14,		///< RFC8145
+	TYPE_ERROR = 15,		///< https://www.iana.org/go/draft-ietf-dnsop-extended-error-16
+	TYPE_CLIENT_TAG = 16,	///< https://www.iana.org/go/draft-bellis-dnsop-edns-tags
+	TYPE_SERVER_TAG = 17,	///< https://www.iana.org/go/draft-bellis-dnsop-edns-tags
+	TYPE_DEVICE_ID = 26946	///< https://docs.umbrella.com/developer/networkdevices-api/identifying-dns-traffic2
+} EDNS_OPT_Type;
+
 typedef enum {
 	reserved0 = 0,
 	RSA_MD5 = 1,          ///<	[RFC2537]  NOT RECOMMENDED
@@ -126,6 +147,13 @@ struct EDNS_ADDITIONAL {		// size
 	unsigned short version;		// 8
 	unsigned short z;		// 16
 	unsigned short rdata_len;	// 16
+};
+
+struct EDNS_ECS {
+	zeek::StringValPtr ecs_family;	///< EDNS client subnet address family
+	uint16_t ecs_src_pfx_len;	///< EDNS client subnet source prefix length
+	uint16_t ecs_scp_pfx_len;	///< EDNS client subnet scope prefix length
+	zeek::IntrusivePtr<zeek::AddrVal> ecs_addr;	///< EDNS client subnet address
 };
 
 struct TSIG_DATA {
@@ -182,6 +210,7 @@ public:
 	zeek::RecordValPtr BuildHdrVal();
 	zeek::RecordValPtr BuildAnswerVal();
 	zeek::RecordValPtr BuildEDNS_Val();
+	zeek::RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
 	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
 	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
 	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
@@ -269,6 +298,9 @@ protected:
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
 	bool ParseRR_EDNS(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
+	bool ParseRR_EDNS_ECS(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
 	bool ParseRR_A(DNS_MsgInfo* msg,

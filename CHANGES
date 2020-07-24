@@ -1,4 +1,8 @@
 
+3.2.0-dev.979 | 2020-07-24 09:03:06 -0700
+
+  * Implement EDNS Client Subnet Option (Ron Wellman)
+
 3.2.0-dev.974 | 2020-07-23 13:02:13 -0700
 
     * origin/topic/jsiwek/gh-1076-fix-random:

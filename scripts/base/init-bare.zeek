@@ -3690,6 +3690,16 @@ type dns_edns_additional: record {
 	is_query: count;	##< TODO.
 };
 
+## An DNS EDNS Client Subnet (ECS) record.
+##
+## .. zeek:see:: dns_EDNS_ecs
+type dns_edns_ecs: record {
+	family: string;	##< IP Family
+	source_prefix_len: count;	##< Source Prefix Length.
+	scope_prefix_len: count;	##< Scope Prefix Length.
+	address: string;	##< Client Subnet Address.
+};
+
 ## An additional DNS TSIG record.
 ##
 ## .. zeek:see:: dns_TSIG_addl

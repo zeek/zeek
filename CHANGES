@@ -1,4 +1,11 @@
 
+3.2.0-dev.985 | 2020-07-24 11:40:22 -0700
+
+  * MySQL: Fix EOF parsing logic bug. (Vlad Grigorescu)
+
+    We were correctly NOT expecting an EOF, but because we were parsing the
+    header and then not parsing the rest, we would get out of sync
+
 3.2.0-dev.979 | 2020-07-24 09:03:06 -0700
 
   * Implement EDNS Client Subnet Option (Ron Wellman)

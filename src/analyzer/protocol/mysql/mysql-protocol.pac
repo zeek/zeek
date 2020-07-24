@@ -273,7 +273,7 @@ type Command_Response(pkt_len: uint32) = case $context.connection.get_expectatio
 	EXPECT_REST_OF_PACKET           -> rest          : bytestring &restofdata;
 	EXPECT_STATUS                   -> status        : Command_Response_Status;
 	EXPECT_AUTH_SWITCH              -> auth_switch   : AuthSwitchRequest;
-	EXPECT_EOF                      -> eof           : EOFIfLegacy;
+	EXPECT_EOF                      -> eof           : EOFIfLegacy(pkt_len);
 	default                         -> unknown       : empty;
 };
 
@@ -333,9 +333,9 @@ type ColumnDefinitionOrEOF(pkt_len: uint32) = record {
 };
 
 
-type EOFIfLegacy = case $context.connection.get_deprecate_eof() of {
+type EOFIfLegacy(pkt_len: uint32) = case $context.connection.get_deprecate_eof() of {
 	false -> eof: EOF_Packet;
-	true  -> none: empty;
+	true  -> resultset: Resultset(pkt_len);
 } &let {
 	update_result_seen: bool = $context.connection.set_results_seen(0);
 	update_expectation: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);

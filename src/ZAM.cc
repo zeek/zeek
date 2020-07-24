@@ -384,7 +384,7 @@ Stmt* ZAM::CompileBody()
 
 	(void) body->Compile(this);
 
-	if ( LastStmt()->Tag() != STMT_RETURN )
+	if ( LastStmt(body)->Tag() != STMT_RETURN )
 		SyncGlobals(nullptr);
 
 	if ( breaks.size() > 0 )
@@ -3470,12 +3470,21 @@ const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
 
 	PushCatchReturns();
 
-	auto block_end = cr->Block()->Compile(this);
+	auto block = cr->Block();
+	auto block_end = block->Compile(this);
 	retvars.pop_back();
 
 	ResolveCatchReturns(GoToTargetBeyond(block_end));
 
-	return block_end;
+	// If control flow runs off the end of the block, then we need
+	// to consider sync'ing globals at that point.
+	auto block_last = LastStmt(block.get());
+
+	if ( block_last->Tag() == STMT_RETURN )
+		return block_end;
+
+	SyncGlobals(block_last);
+	return top_main_inst;
 	}
 
 const CompiledStmt ZAM::StartingBlock()
@@ -3631,16 +3640,16 @@ const CompiledStmt ZAM::AddInst(const ZInst& inst)
 	return AddInst(dirty_inst);
 	}
 
-const Stmt* ZAM::LastStmt() const
+const Stmt* ZAM::LastStmt(const Stmt* s) const
 	{
-	if ( body->Tag() == STMT_LIST )
+	if ( s->Tag() == STMT_LIST )
 		{
-		auto sl = body->AsStmtList()->Stmts();
+		auto sl = s->AsStmtList()->Stmts();
 		return sl[sl.length() - 1];
 		}
 
 	else
-		return body;
+		return s;
 	}
 
 const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
@@ -4167,7 +4176,7 @@ void ZAM::SyncGlobals(std::unordered_set<ID*>& globals, const BroObj* o)
 	auto entry_rds = mgr->GetPreMaxRDs(body);
 
 	auto curr_rds = o ?
-		mgr->GetPreMaxRDs(o) : mgr->GetPostMaxRDs(LastStmt());
+		mgr->GetPreMaxRDs(o) : mgr->GetPostMaxRDs(LastStmt(body));
 
 	if ( ! curr_rds )
 		// This can happen for functions that only access (but

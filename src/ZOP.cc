@@ -410,12 +410,12 @@ const char* ZInst::VName(int max_n, int n, const FrameMap* frame_ids,
 void ZInst::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 	{
 	printf("%s ", ZOP_name(op));
-	printf("(%s) ", op_type_name(op_type));
+	// printf("(%s) ", op_type_name(op_type));
 	if ( t && 0 )
 		printf("(%s) ", type_name(t->Tag()));
 
 	int n = NumFrameSlots();
-	printf("v%d ", n);
+	// printf("v%d ", n);
 
 	auto id1 = VName(n, 1, frame_ids, remappings);
 	auto id2 = VName(n, 2, frame_ids, remappings);

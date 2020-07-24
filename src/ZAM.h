@@ -345,7 +345,7 @@ protected:
 	ZInst* TopMainInst()	{ return insts1[top_main_inst]; }
 
 	// Returns the last (interpreter) statement in the body.
-	const Stmt* LastStmt() const;
+	const Stmt* LastStmt(const Stmt* s) const;
 
 	void FlushVars(const Expr* e);
 

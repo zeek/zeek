@@ -1,4 +1,8 @@
 
+3.2.0-rc1.2 | 2020-07-29 11:39:11 -0700
+
+  * GH-1083: Fix Input Framework 'change' events for 'set' destinations (Jon Siwek, Corelight)
+
 3.2.0-rc1 | 2020-07-27 11:40:40 -0700
 
   * Release 3.2.0-rc1.

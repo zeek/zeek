@@ -515,26 +515,38 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 		}
 
 	auto want_record = fval->GetFieldOrDefault("want_record");
+	auto destination_is_set = dst->GetType()->IsSet();
 
 	if ( val )
 		{
-		const auto& table_yield = dst->GetType()->AsTableType()->Yield();
-		const auto& compare_type = want_record->InternalInt() == 0 ? val->GetFieldType(0) : val;
-
-		if ( ! same_type(table_yield, compare_type) )
+		if ( destination_is_set )
 			{
-			ODesc desc1;
-			ODesc desc2;
-			compare_type->Describe(&desc1);
-			table_yield->Describe(&desc2);
-			reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'", stream_name.c_str(),
-					desc1.Description(), desc2.Description());
+			reporter->Error("Input stream %s: 'destination' field is a set, "
+			                "but the 'val' field was also specified "
+			                "(did you mean to use a table instead of a set?)",
+			                stream_name.data());
 			return false;
+			}
+		else
+			{
+			const auto& table_yield = dst->GetType()->AsTableType()->Yield();
+			const auto& compare_type = want_record->InternalInt() == 0 ? val->GetFieldType(0) : val;
+
+			if ( ! same_type(table_yield, compare_type) )
+				{
+				ODesc desc1;
+				ODesc desc2;
+				compare_type->Describe(&desc1);
+				table_yield->Describe(&desc2);
+				reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'",
+				                stream_name.c_str(), desc1.Description(), desc2.Description());
+				return false;
+				}
 			}
 		}
 	else
 		{
-		if ( ! dst->GetType()->IsSet() )
+		if ( ! destination_is_set )
 			{
 			reporter->Error("Input stream %s: 'destination' field is a table,"
 			                " but 'val' field is not provided"
@@ -558,10 +570,12 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			}
 
 		const auto& args = etype->ParamList()->GetTypes();
+		size_t required_arg_count = destination_is_set ? 3 : 4;
 
-		if ( args.size() != 4 )
+		if ( args.size() != required_arg_count )
 			{
-			reporter->Error("Input stream %s: Table event must take 4 arguments", stream_name.c_str());
+			reporter->Error("Input stream %s: Table event must take %zu arguments",
+			                stream_name.c_str(), required_arg_count);
 			return false;
 			}
 
@@ -588,30 +602,33 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			return false;
 			}
 
-		if ( want_record->InternalInt() == 1 && val && ! same_type(args[3], val) )
+		if ( ! destination_is_set )
 			{
-			ODesc desc1;
-			ODesc desc2;
-			val->Describe(&desc1);
-			args[3]->Describe(&desc2);
-			reporter->Error("Input stream %s: Table event's value attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
-					desc1.Description(), desc2.Description());
-			return false;
-			}
-		else if (  want_record->InternalInt() == 0
-		           && val && !same_type(args[3], val->GetFieldType(0) ) )
-			{
-			ODesc desc1;
-			ODesc desc2;
-			val->GetFieldType(0)->Describe(&desc1);
-			args[3]->Describe(&desc2);
-			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
-					desc1.Description(), desc2.Description());
-			return false;
-			}
-		else if ( ! val )
-			{
-			reporter->Error("Encountered a null value when creating a table stream");
+			if ( want_record->InternalInt() == 1 && val && ! same_type(args[3], val) )
+				{
+				ODesc desc1;
+				ODesc desc2;
+				val->Describe(&desc1);
+				args[3]->Describe(&desc2);
+				reporter->Error("Input stream %s: Table event's value attributes do not match. Need '%s', got '%s'",
+				                stream_name.c_str(), desc1.Description(), desc2.Description());
+				return false;
+				}
+			else if ( want_record->InternalInt() == 0 &&
+			          val && !same_type(args[3], val->GetFieldType(0) ) )
+				{
+				ODesc desc1;
+				ODesc desc2;
+				val->GetFieldType(0)->Describe(&desc1);
+				args[3]->Describe(&desc2);
+				reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'",
+				                stream_name.c_str(), desc1.Description(), desc2.Description());
+				return false;
+				}
+			else if ( ! val )
+				{
+				reporter->Error("Encountered a null value when creating a table stream");
+				}
 			}
 
 		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);
@@ -1278,10 +1295,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 			{
 			auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 			if ( stream->num_val_fields == 0 )
-				{
-				Ref(stream->description);
 				SendEvent(stream->event, 3, stream->description->Ref(), ev.release(), predidx);
-				}
 			else
 				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), predidx, valval->Ref());
 			}
@@ -1359,8 +1373,14 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			}
 
 		if ( stream->event )
-			SendEvent(stream->event, 4, stream->description->Ref(), ev->Ref(),
-			          predidx->Ref(), val->Ref());
+			{
+			if ( stream->num_val_fields == 0 )
+				SendEvent(stream->event, 3, stream->description->Ref(), ev->Ref(),
+				          predidx->Ref());
+			else
+				SendEvent(stream->event, 4, stream->description->Ref(), ev->Ref(),
+				          predidx->Ref(), val->Ref());
+			}
 
 		stream->tab->Remove(*ih->idxkey);
 		stream->lastDict->Remove(lastDictIdxKey); // delete in next line
@@ -1618,7 +1638,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 					{
 					auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_NEW);
 					if ( stream->num_val_fields == 0 )
-						SendEvent(stream->event, 4, stream->description->Ref(),
+						SendEvent(stream->event, 3, stream->description->Ref(),
 								ev.release(), predidx);
 					else
 						SendEvent(stream->event, 4, stream->description->Ref(),
@@ -1721,7 +1741,10 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				Ref(idxval);
 				assert(val != nullptr);
 				auto ev = zeek::BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
-				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval, zeek::IntrusivePtr{val}.release());
+				if ( stream->num_val_fields == 0 )
+					SendEvent(stream->event, 3, stream->description->Ref(), ev.release(), idxval);
+				else
+					SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval, zeek::IntrusivePtr{val}.release());
 				}
 			}
 

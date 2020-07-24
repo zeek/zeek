@@ -41,7 +41,7 @@ extern "C" {
 #include "Anon.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "Brofiler.h"
+#include "ScriptCoverageManager.h"
 #include "Traverse.h"
 #include "Trigger.h"
 #include "Hash.h"
@@ -67,8 +67,8 @@ extern "C" {
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "3rdparty/doctest.h"
 
-zeek::detail::Brofiler zeek::detail::brofiler;
-zeek::detail::Brofiler& brofiler = zeek::detail::brofiler;
+zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
+zeek::detail::ScriptCoverageManager& brofiler = zeek::detail::script_coverage_mgr;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -282,7 +282,7 @@ void terminate_bro()
 	// the termination process.
 	file_mgr->Terminate();
 
-        zeek::detail::brofiler.WriteStats();
+	zeek::detail::script_coverage_mgr.WriteStats();
 
 	if ( zeek_done )
 		zeek::event_mgr.Enqueue(zeek_done, zeek::Args{});
@@ -434,7 +434,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( zeek::Supervisor::ThisNode() )
 		zeek::Supervisor::ThisNode()->Init(&options);
 
-        zeek::detail::brofiler.ReadStats();
+	zeek::detail::script_coverage_mgr.ReadStats();
 
 	auto dns_type = options.dns_mode;
 

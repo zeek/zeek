@@ -1,4 +1,4 @@
-#include "Brofiler.h"
+#include "ScriptCoverageManager.h"
 
 #include <cstdio>
 #include <cstring>
@@ -17,18 +17,18 @@ using namespace std;
 
 namespace zeek::detail {
 
-Brofiler::Brofiler()
+ScriptCoverageManager::ScriptCoverageManager()
 	: ignoring(0), delim('\t')
 	{
 	}
 
-Brofiler::~Brofiler()
+ScriptCoverageManager::~ScriptCoverageManager()
 	{
 	for ( auto& s : stmts )
 		Unref(s);
 	}
 
-void Brofiler::AddStmt(zeek::detail::Stmt* s)
+void ScriptCoverageManager::AddStmt(zeek::detail::Stmt* s)
 	{
 	if ( ignoring != 0 )
 		return;
@@ -37,7 +37,7 @@ void Brofiler::AddStmt(zeek::detail::Stmt* s)
 	stmts.push_back(s);
 	}
 
-bool Brofiler::ReadStats()
+bool ScriptCoverageManager::ReadStats()
 	{
 	char* bf = zeekenv("ZEEK_PROFILER_FILE");
 
@@ -87,7 +87,7 @@ bool Brofiler::ReadStats()
 	return true;
 	}
 
-bool Brofiler::WriteStats()
+bool ScriptCoverageManager::WriteStats()
 	{
 	char* bf = zeekenv("ZEEK_PROFILER_FILE");
 

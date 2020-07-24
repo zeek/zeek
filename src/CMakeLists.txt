@@ -219,7 +219,6 @@ set(MAIN_SRCS
     Attr.cc
     Base64.cc
     BifReturnVal.cc
-    Brofiler.cc
     CCL.cc
     CompHash.cc
     Conn.cc
@@ -273,6 +272,7 @@ set(MAIN_SRCS
     RuleMatcher.cc
     SmithWaterman.cc
     Scope.cc
+    ScriptCoverageManager.cc
     SerializationFormat.cc
     Sessions.cc
     Notifier.cc

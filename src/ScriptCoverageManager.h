@@ -13,10 +13,10 @@ namespace zeek::detail {
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
  */
-class Brofiler {
+class ScriptCoverageManager {
 public:
-	Brofiler();
-	virtual ~Brofiler();
+	ScriptCoverageManager();
+	virtual ~ScriptCoverageManager();
 
 	/**
 	 * Imports Bro script Stmt usage information from file pointed to by
@@ -46,7 +46,7 @@ public:
 
 private:
 	/**
-	 * The current, global Brofiler instance creates this list at parse-time.
+	 * The current, global ScriptCoverageManager instance creates this list at parse-time.
 	 */
 	std::list<zeek::detail::Stmt*> stmts;
 
@@ -57,7 +57,7 @@ private:
 	uint32_t ignoring;
 
 	/**
-	 * The character to use to delimit Brofiler output files.  Default is '\t'.
+	 * The character to use to delimit ScriptCoverageManager output files.  Default is '\t'.
 	 */
 	char delim;
 
@@ -71,7 +71,7 @@ private:
 
 	/**
 	 * A canonicalization routine for Stmt descriptions containing characters
-	 * that don't agree with the output format of Brofiler.
+	 * that don't agree with the output format of ScriptCoverageManager.
 	 */
 	struct canonicalize_desc {
 		char delim;
@@ -84,9 +84,9 @@ private:
 	};
 };
 
-extern Brofiler brofiler;
+extern ScriptCoverageManager script_coverage_mgr;
 
 } // namespace zeek::detail
 
-using Brofiler [[deprecated("Remove in v4.1. Use zeek::detail::Brofiler.")]] = zeek::detail::Brofiler;
-extern zeek::detail::Brofiler& brofiler [[deprecated("Remove in v4.1. Use zeek::detail::brofiler.")]];
+using Brofiler [[deprecated("Remove in v4.1. Use zeek::detail::ScriptCoverageManager.")]] = zeek::detail::ScriptCoverageManager;
+extern zeek::detail::ScriptCoverageManager& brofiler [[deprecated("Remove in v4.1. Use zeek::detail::brofiler.")]];

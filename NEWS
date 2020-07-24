@@ -6,7 +6,36 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.1.5
 ==========
 
-TODO: no changes yet
+This release fixes the following bugs:
+
+* Fix DHCP Client ID Option misformat for Hardware Type 0
+  https://github.com/zeek/zeek/pull/1003
+
+* Fix/allow copying/cloning of `opaque of Broker::Store`
+  https://github.com/zeek/zeek/pull/1028
+
+* Fix ConnPolling memory over-use
+  https://github.com/zeek/zeek/pull/1035
+
+* Fix compress_path not normalizing some paths correctly
+  https://github.com/zeek/zeek/issues/1041
+  https://github.com/zeek/zeek/pull/1050
+
+* Fix integer conversion error for Tag subtypes/enums
+  https://github.com/zeek/zeek/issues/1062
+  https://github.com/zeek/zeek/pull/1064
+
+* Fix `bro_prng()` results not staying within modulus
+  https://github.com/zeek/zeek/issues/1076
+  https://github.com/zeek/zeek/commit/0f4eb9af0265a256a567ba4203950269b4b52d28
+
+* Prevent providing a `0` seed to `bro_prng()` since the LCG parameters don't allow that
+  https://github.com/zeek/zeek/issues/1076
+  https://github.com/zeek/zeek/commit/887b53b7f330ad93b090d6be0c4733690a58ff89
+
+* Fix mishandling of `getrandom()` to seed RNG (caused unrandom/deterministic RNG -- opposite of what's desired/intended)
+  https://github.com/zeek/zeek/issues/1076
+  https://github.com/zeek/zeek/commit/dba764386b38a5b4ac974eb74f142c6ae107acb0
 
 Zeek 3.1.4
 ==========

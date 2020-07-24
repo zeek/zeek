@@ -1,4 +1,8 @@
 
+3.1.5-dev.10 | 2020-07-23 17:48:58 -0700
+
+  * Update NEWS (Jon Siwek, Corelight)
+
 3.1.5-dev.9 | 2020-07-23 17:47:40 -0700
 
   * GH-1076: Fix use of getrandom() (Jon Siwek, Corelight)

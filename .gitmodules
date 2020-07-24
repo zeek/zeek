@@ -45,4 +45,4 @@
 	url = https://github.com/zeek/zeek-archiver
 [submodule "auxil/fmt"]
 	path = auxil/fmt
-	url = https://github.com/zeek/fmt.git
+	url = https://github.com/fmtlib/fmt.git

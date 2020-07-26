@@ -93,6 +93,14 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 		rc->SetDefSetsMgr(cb->GetDefSetsMgr());
 
 		new_body = rc->Reduce(new_body);
+
+		if ( reporter->Errors() > 0 )
+			{
+			pop_scope();
+			delete rc;
+			return;
+			}
+
 		new_body_ptr = {AdoptRef{}, new_body};
 
 		if ( analysis_options.only_func || analysis_options.dump_xform )

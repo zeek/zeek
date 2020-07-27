@@ -1,4 +1,8 @@
 
+3.2.0-dev.988 | 2020-07-27 11:19:20 -0700
+
+  * Update submodules to release versions in prep for release/3.2 branch (Jon Siwek, Corelight)
+
 3.2.0-dev.986 | 2020-07-24 13:57:19 -0700
 
   * Misc/minor cleanup after reviewing new Broker table store code (Jon Siwek, Corelight)

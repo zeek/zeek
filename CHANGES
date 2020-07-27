@@ -1,4 +1,8 @@
 
+3.3.0-dev.1 | 2020-07-27 12:04:48 -0700
+
+  * Update site/local.zeek compatibility test (Jon Siwek, Corelight)
+
 3.3.0-dev | 2020-07-27 11:49:28 -0700
 
   * Reserve spot in NEWS for 4.0.0 (Jon Siwek, Corelight)

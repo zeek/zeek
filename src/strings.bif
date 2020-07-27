@@ -5,6 +5,7 @@
 %%{ // C segment
 #include <vector>
 #include <algorithm>
+#include <cctype>
 using namespace std;
 
 #include "SmithWaterman.h"
@@ -1118,7 +1119,321 @@ function hexdump%(data_str: string%) : string
 ##
 function reverse%(str: string%) : string
 	%{
-	string s = string((const char*)str->Bytes(), str->Len());
+	string s = str->ToStdString();
 	reverse(s.begin(), s.end());
 	return zeek::make_intrusive<zeek::StringVal>(s.length(), (const char*)s.c_str());
+	%}
+
+## Returns the number of times a substring occurs within a string
+##
+## str: The string to search in.
+## substr: The string to search for.
+##
+## Returns: The number of times the substring occurred.
+##
+function count_substr%(str: string, sub: string%) : count
+	%{
+	string s = str->ToStdString();
+	string sub_s = sub->ToStdString();
+
+	size_t count = 0;
+	size_t pos = s.find(sub_s);
+	while ( pos != string::npos )
+		{
+		++count;
+		pos = s.find(sub_s, pos + sub_s.size());
+		}
+
+	return zeek::val_mgr->Count(count);
+	%}
+
+%%{
+
+int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, uint64_t start, int64_t end, bool rfind)
+	{
+	// Don't bother if the start is after the end of the string.
+	if ( start > str->Len() )
+		return -1;
+
+	// Also don't bother (and return an error) if the end is before the start.
+	if ( (end != -1 ) && end < start )
+		{
+		reporter->Error("find_str: end position must be greater than start position");
+		return -1;
+		}
+
+	size_t end_pos = str->Len();
+	if ( end >= 0 && end < str->Len() )
+		end_pos = end;
+
+	// One last sanity check, don't bother doing string operations at all if the range is shorter than
+	// the length of the search string.
+	if ( (end_pos - start + 1) < sub->Len() )
+		return -1;
+
+	string s = str->ToStdString().substr(start, end_pos);
+	size_t pos = string::npos;
+	if ( rfind )
+		pos = s.rfind(sub->ToStdString());
+	else
+		pos = s.find(sub->ToStdString());
+
+	if ( pos == string::npos )
+		return -1;
+
+	return pos + start;
+	}
+
+%%}
+
+## Finds a string within another string, starting from the beginning. This works by taking a substring within
+## the provided indexes and searching for the sub argument. This means that ranges shorter than the string in
+## the sub argument will always return a failure.
+##
+## str: The string to search in.
+## substr: The string to search for.
+## start: An optional position for the start of the substring.
+## end: An optional position for the end of the substring. A value less than zero (such as the default -1)
+##      means a search until the end of the string.
+##
+## Returns: The position of the substring. Returns -1 if the string wasn't found. Prints an error if the
+## starting position is after the ending position.
+##
+function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
+	%{
+	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false));
+	%}
+
+## The same as find(), but returns the highest index matching the substring instead of the smallest.
+##
+## str: The string to search in.
+## substr: The string to search for.
+## start: An optional position for the start of the substring.
+## end: An optional position for the end of the substring. A value less than zero (such as the default -1)
+##      means a search from the end of the string.
+##
+## Returns: The position of the substring. Returns -1 if the string wasn't found. Prints an error if the
+## starting position is after the ending position.
+##
+function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : count
+	%{
+	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true));
+	%}
+
+## Returns whether a string starts with a substring.
+##
+function starts_with%(str: string, sub: string%) : bool
+	%{
+	string s = str->ToStdString();
+	return zeek::val_mgr->Bool(s.find(sub->ToStdString()) == 0);
+	%}
+
+## Returns whether a string ends with a substring.
+##
+function ends_with%(str: string, sub: string%) : bool
+	%{
+	if ( sub->Len() > str->Len() )
+		return zeek::val_mgr->Bool(false);
+
+	string s = str->ToStdString();
+	string sub_s = sub->ToStdString();
+	return zeek::val_mgr->Bool(s.rfind(sub_s) == (s.size() - sub_s.size()));
+	%}
+
+## Returns whether an entire string consists only of digits.
+##
+function is_num%(str: string%) : bool
+	%{
+	// Python's version of this method (which this is based on) just checks to see if every
+	// character in the string is a numeric value. If something more than this is desired, we
+	// could use something like std::from_chars or std::strto{ul,f} to check it.
+	const char* s = str->CheckString();
+	for ( int i = 0; i < str->Len(); i++ )
+		if ( ! std::isdigit(s[i]) )
+			return zeek::val_mgr->False();
+
+	return zeek::val_mgr->True();
+	%}
+
+## Returns whether an entire string is alphabetic characters.
+##
+function is_alpha%(str: string%) : bool
+	%{
+	const char* s = str->CheckString();
+	for ( int i = 0; i < str->Len(); i++ )
+		if ( ! std::isalpha(s[i]) )
+			return zeek::val_mgr->False();
+
+	return zeek::val_mgr->True();
+	%}
+
+## Returns whether an entire string is alphanumeric characters
+##
+function is_alnum%(str: string%) : bool
+	%{
+	const char* s = str->CheckString();
+	for ( int i = 0; i < str->Len(); i++ )
+		if ( ! std::isalnum(s[i]) )
+			return zeek::val_mgr->False();
+
+	return zeek::val_mgr->True();
+	%}
+
+## Returns a left-justified version of the string, padded to a specific length with a specified character.
+##
+## str: The string to left-justify.
+## count: The length of the returned string. If this value is less than or equal to the length of str, a
+## copy of str is returned.
+## fill: The character used to fill in any extra characters in the resulting string. If a string longer than
+## one character is passed, an error is reported. This defaults to the space character.
+##
+## Returns: A left-justified version of a string, padded with characters to a specific length.
+##
+function ljust%(str: string, width: count, fill: string &default=" "%) : string
+	%{
+	if ( fill->Len() != 1 )
+		{
+		reporter->Error("Fill string passed to ljust() must be a single character");
+		return nullptr;
+		}
+
+	string new_s = str->ToStdString();
+
+	if ( width <= new_s.size() )
+		return zeek::StringValPtr(zeek::NewRef{}, str);
+
+	new_s.insert(new_s.size(), width - new_s.size(), fill->CheckString()[0]);
+	return zeek::make_intrusive<zeek::StringVal>(new_s);
+	%}
+
+%%{
+
+static zeek::StringValPtr do_rjust(zeek::StringVal* str, int width, char fill)
+	{
+	string new_s = str->ToStdString();
+
+	if ( width <= new_s.size() )
+		return { zeek::NewRef{}, str };
+
+	new_s.insert(0, width - new_s.size(), fill);
+	return zeek::make_intrusive<zeek::StringVal>(new_s);
+	}
+
+%%}
+
+## Returns a right-justified version of the string, padded to a specific length with a specified character.
+##
+## str: The string to right-justify.
+## count: The length of the returned string. If this value is less than or equal to the length of str, a
+## copy of str is returned.
+## fill: The character used to fill in any extra characters in the resulting string. If a string longer than
+## one character is passed, an error is reported. This defaults to the space character.
+##
+## Returns: A right-justified version of a string, padded with characters to a specific length.
+##
+function rjust%(str: string, width: count, fill: string &default=" "%) : string
+	%{
+	if ( fill->Len() != 1 )
+		{
+		reporter->Error("Fill string passed to rjust() must be a single character");
+		return nullptr;
+		}
+
+	return do_rjust(str, width, fill->CheckString()[0]);
+	%}
+
+## Swaps the case of every alphabetic character in a string. For example, the string "aBc" be returned as "AbC".
+##
+## str: The string to swap cases in.
+##
+## Returns: A copy of the str with the case of each character swapped.
+##
+function swap_case%(str: string%) : string
+	%{
+	string s = str->ToStdString();
+	for ( size_t i = 0; i < s.size(); i++ )
+		{
+		if ( std::islower(s[i]) )
+			s[i] = toupper(s[i]);
+		else if ( std::isupper(s[i]) )
+			s[i] = tolower(s[i]);
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(s);
+	%}
+
+## Converts a string to Title Case. This changes the first character of each sequence of non-space characters
+## in the string to be capitalized. See https://docs.python.org/2/library/stdtypes.html#str.title for more info.
+##
+## str: The string to convert.
+##
+## Returns: A title-cased version of the string.
+##
+function to_title%(str: string%) : string
+	%{
+	string s = str->ToStdString();
+	size_t pos = s.find_first_not_of(' ');
+	if ( pos == string::npos )
+		return zeek::IntrusivePtr<zeek::StringVal>(NewRef{}, str);
+
+	while ( pos != string::npos )
+		{
+		s[pos] = std::toupper(s[pos]);
+		pos = s.find(' ', pos+1);
+		if ( pos == string::npos )
+			break;
+
+		pos = s.find_first_not_of(' ', pos+1);
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(s);
+	%}
+
+## Returns a copy of a string filled on the left side with zeroes. This is effectively rjust(str, width, "0").
+function zfill%(str: string, width: count%) : string
+	%{
+	return do_rjust(str, width, '0');
+	%}
+
+## Similar to lstrip(), except does the removal repeatedly if the pattern repeats at the start of the string.
+function remove_prefix%(str: string, sub: string%) : string
+	%{
+	// This could just use repeated calls to lstrip(), except for a couple of reasons:
+	// 1) lstrip() creates a StringVal at the end, and that would mean repeated recreation of objects
+	// 2) lstrip() searches for any character in the string, not the string as a whole.
+	string s = str->ToStdString();
+	string sub_s = sub->ToStdString();
+
+	size_t pos = s.find(sub_s);
+	if ( pos != 0 )
+		return zeek::IntrusivePtr<zeek::StringVal>(NewRef{}, str);
+
+	pos = s.find(sub_s, pos+1);
+	size_t next_pos = sub_s.size();
+	while ( pos == next_pos && next_pos < s.size() )
+		{
+		next_pos += sub_s.size();
+		pos = s.find(sub_s, pos+1);
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(s.substr(next_pos));
+	%}
+
+## Similar to rstrip(), except does the removal repeatedly if the pattern repeats at the end of the string.
+function remove_suffix%(str: string, sub: string%) : string
+	%{
+	// See the note in removeprefix for why this doesn't just call rstrip.
+	string s = str->ToStdString();
+	string sub_s = sub->ToStdString();
+
+	size_t pos = s.rfind(sub_s);
+	size_t next_pos = s.size() - sub_s.size();
+
+	while ( pos == next_pos )
+		{
+		next_pos -= sub_s.size();
+		pos = s.rfind(sub_s, pos-1);
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(s.substr(0, next_pos + sub_s.size()));
 	%}

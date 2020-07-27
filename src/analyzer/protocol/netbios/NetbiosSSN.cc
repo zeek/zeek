@@ -359,6 +359,12 @@ void Contents_NetbiosSSN::Flush()
 
 void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	{
+	while ( len > 0 )
+		ProcessChunk(len, data, orig);
+	}
+
+void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
+	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	if ( state == NETBIOS_SSN_TYPE )
@@ -434,6 +440,9 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	for ( n = 0; buf_n < msg_size && n < len; ++n )
 		msg_buf[buf_n++] = data[n];
 
+	data += n;
+	len -= n;
+
 	if ( buf_n < msg_size )
 		// Haven't filled up the message buffer yet, no more to do.
 		return;
@@ -442,10 +451,6 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	buf_n = 0;
 
 	state = NETBIOS_SSN_TYPE;
-
-	if ( n < len )
-		// More data to munch on.
-		DeliverStream(len - n, data + n, orig);
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)

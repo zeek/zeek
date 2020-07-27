@@ -6,6 +6,33 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.0.8
 ==========
 
+This release fixes the following security issues:
+
+* Fix potential DNS analyzer stack overflow
+
+  The Contents_DNS analyzer used a recursive message parsing function that
+  determined the size of the next message from the input packet-data
+  itself.  A packet containing a sequence of many small messages could
+  cause a stack overflow since a recursion happened after processing
+  each message.
+
+  This issue is remotely exploitable with Denial of Service potential due
+  to crashing the Zeek process.
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=24272
+
+* Fix potential NetbiosSSN analyzer stack overflow
+
+  The Contents_NetbiosSSN analyzer used a recursive message parsing
+  function that determined the size of the next message from the input
+  packet-data itself.  A packet containing a sequence of many small
+  messages could cause a stack overflow since a recursion happened after
+  processing each message.
+
+  This issue is remotely exploitable with Denial of Service potential due
+  to crashing the Zeek process.
+
 This release fixes the following bugs:
 
 * Fix DHCP Client ID Option misformat for Hardware Type 0

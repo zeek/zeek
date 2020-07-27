@@ -1,4 +1,29 @@
 
+3.0.8 | 2020-07-27 12:20:15 -0700
+
+  * Release 3.0.8.
+
+3.0.8-dev.12 | 2020-07-27 12:19:40 -0700
+
+  * Fix potential NetbiosSSN analyzer stack overflow (Jon Siwek, Corelight)
+
+    The Contents_NetbiosSSN analyzer used a recursive message parsing
+    function that determined the size of the next message from the input
+    packet-data itself.  A packet containing a sequence of many small
+    messages could cause a stack overflow since a recursion happened after
+    processing each message.
+
+  * Fix potential DNS analyzer stack overflow (Jon Siwek, Corelight)
+
+    The Contents_DNS analyzer used a recursive message parsing function that
+    determined the size of the next message from the input packet-data
+    itself.  A packet containing a sequence of many small messages could
+    cause a stack overflow since a recursion happened after processing
+    each message.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=24272
+
 3.0.8-dev.9 | 2020-07-23 17:46:32 -0700
 
   * Update NEWS (Jon Siwek, Corelight)

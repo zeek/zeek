@@ -1725,6 +1725,12 @@ void Contents_DNS::Flush()
 
 void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 	{
+	while ( len > 0 )
+		ProcessChunk(len, data, orig);
+	}
+
+void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
+	{
 	if ( state == DNS_LEN_HI )
 		{
 		msg_size = (*data) << 8;
@@ -1772,6 +1778,9 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 	for ( n = 0; buf_n < msg_size && n < len; ++n )
 		msg_buf[buf_n++] = data[n];
 
+	data += n;
+	len -= n;
+
 	if ( buf_n < msg_size )
 		// Haven't filled up the message buffer yet, no more to do.
 		return;
@@ -1780,10 +1789,6 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 
 	buf_n = 0;
 	state = DNS_LEN_HI;
-
-	if ( n < len )
-		// More data to munch on.
-		DeliverStream(len - n, data + n, orig);
 	}
 
 DNS_Analyzer::DNS_Analyzer(Connection* conn)

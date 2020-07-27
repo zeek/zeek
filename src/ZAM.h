@@ -408,6 +408,7 @@ protected:
 	// separate to make it easy to remove dead code.
 	vector<ZInstI*> insts1;
 	vector<ZInstI*> insts2;
+	vector<ZInst*> insts3;
 
 	// Used as a placeholder when we have to generate a GoTo target
 	// beyond the end of what we've compiled so far.

@@ -545,11 +545,14 @@ Stmt* ZAM::CompileBody()
 	// Could erase insts1 here to recover memory, but it's handy
 	// for debugging.
 
+	for ( auto i : insts2 )
+		insts3.push_back(i);
+
 	if ( analysis_options.report_profile )
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
-		for ( auto i : insts2 )
+		for ( auto i : insts3 )
 			{
 			inst_count->push_back(0);
 			inst_CPU->push_back(0.0);
@@ -1698,7 +1701,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
 						nullptr;
 	int pc = start_pc;
-	int end_pc = insts2.size();
+	int end_pc = insts3.size();
 
 #define BuildVal(v, t) ZAMValUnion(v, t)
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
@@ -1746,7 +1749,9 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
 	while ( pc < end_pc && ! ZAM_error ) {
-		auto& z = *insts2[pc];
+		auto& z = *insts3[pc];
+
+#ifdef DEBUG
 		int profile_pc;
 		double profile_CPU;
 
@@ -1758,6 +1763,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			profile_pc = pc;
 			profile_CPU = curr_CPU_time();
 			}
+#endif
 
 		switch ( z.op ) {
 		case OP_NOP:
@@ -1766,12 +1772,14 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 #include "ZAM-OpsEvalDefs.h"
 		}
 
+#ifdef DEBUG
 		if ( do_profile )
 			{
 			double dt = curr_CPU_time() - profile_CPU;
 			(*inst_CPU)[profile_pc] += dt;
 			ZOP_CPU[z.op] += dt;
 			}
+#endif
 
 		++pc;
 		}
@@ -3726,7 +3734,7 @@ void ZAM::ProfileExecution() const
 		{
 		printf("%s %d %d %.06f ", func->Name(), i,
 			(*inst_count)[i], (*inst_CPU)[i]);
-		insts2[i]->Dump(&frame_denizens, &shared_frame_denizens_final);
+		insts3[i]->Dump(i, &shared_frame_denizens_final);
 		}
 	}
 
@@ -3753,7 +3761,7 @@ void ZAM::Dump()
 			}
 		}
 
-	if ( insts2.size() > 0 )
+	if ( insts3.size() > 0 )
 		printf("Pre-removal of dead code:\n");
 
 	auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
@@ -3768,7 +3776,7 @@ void ZAM::Dump()
 		}
 
 	if ( insts2.size() > 0 )
-		printf("Final code:\n");
+		printf("Final intermediary code:\n");
 
 	remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
 
@@ -3779,6 +3787,16 @@ void ZAM::Dump()
 		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
 			depth ? fmt(" (loop %d)", depth) : "");
 		inst->Dump(&frame_denizens, remappings);
+		}
+
+	if ( insts3.size() > 0 )
+		printf("Final code:\n");
+
+	for ( int i = 0; i < insts3.size(); ++i )
+		{
+		auto& inst = insts3[i];
+		printf("%d: ", i);
+		inst->Dump(i, remappings);
 		}
 
 	for ( int i = 0; i < int_cases.size(); ++i )

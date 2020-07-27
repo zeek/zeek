@@ -1,4 +1,8 @@
 
+3.3.0-dev | 2020-07-27 11:49:28 -0700
+
+  * Reserve spot in NEWS for 4.0.0 (Jon Siwek, Corelight)
+
 3.2.0-dev.992 | 2020-07-27 11:36:53 -0700
 
   * Fix potential NetbiosSSN analyzer stack overflow (Jon Siwek, Corelight)

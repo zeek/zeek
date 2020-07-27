@@ -91,102 +91,158 @@ typedef std::vector<FrameSharingInfo> FrameReMap;
 
 class ZInstAux;
 
-// A ZAM instruction.
+// A ZAM instruction.  This base class has all the information for
+// execution, but omits information and methods only necessary for
+// compiling.
 class ZInst {
 public:
-	ZInst(ZOp _op)
+	ZInst(ZOp _op, ZAMOpType _op_type)
+		{
+		op = _op;
+		op_type = _op_type;
+		}
+
+	// Stub for now.
+	ZInst()	{ }
+
+	virtual ~ZInst()	{ }
+
+	void Dump(int inst_num, const FrameReMap* mappings) const;
+	void Dump(const char* id1, const char* id2, const char* id3,
+			const char* id4) const;
+
+	const char* VName(int max_n, int n, int inst_num,
+				const FrameReMap* mappings) const;
+	int NumFrameSlots() const;
+
+	const char* ConstDump() const;
+
+	ZOp op;
+	ZAMOpType op_type;
+
+	// Indices into frame.
+	int v1, v2, v3, v4;
+
+	ZAMValUnion c;	// constant associated with instruction, if any
+
+	// Meta-data associated with the execution.
+
+	// Type, usually for interpreting the constant.
+	BroType* t = nullptr;
+
+	// These two could be doubled up into a union, or just grit
+	// our teeth and use coercion to construct only the latter.
+	const Expr* e = nullptr;
+	Expr* non_const_e = nullptr;
+
+	Func* func = nullptr;	// used for calls
+
+	EventHandler* event_handler = nullptr;
+	Attributes* attrs = nullptr;
+
+	// Only used by Record-Coerce.
+	int* int_ptr = nullptr;
+
+	// Auxiliary information.  We could in principle use this to
+	// consolidate a bunch of the above, though at the cost of
+	// slightly slower access.
+	ZInstAux* aux = nullptr;
+
+	// Used for reporting errors during execution.
+	const Stmt* stmt = curr_stmt;
+
+	// Whether v1 represents a frame slot type for which we
+	// explicitly manage the memory.
+	bool is_managed = false;
+};
+
+// A intermediary ZAM instruction, one that includes information/methods
+// needed for compiling.
+class ZInstI : public ZInst {
+public:
+	ZInstI(ZOp _op) : ZInst(_op, OP_X)
 		{
 		op = _op;
 		op_type = OP_X;
 		}
 
-	ZInst(ZOp _op, int _v1)
+	ZInstI(ZOp _op, int _v1) : ZInst(_op, OP_V)
 		{
-		op = _op;
 		v1 = _v1;
-		op_type = OP_V;
 		}
 
-	ZInst(ZOp _op, int _v1, int _v2)
+	ZInstI(ZOp _op, int _v1, int _v2) : ZInst(_op, OP_VV)
 		{
-		op = _op;
 		v1 = _v1;
 		v2 = _v2;
-		op_type = OP_VV;
 		}
 
-	ZInst(ZOp _op, int _v1, int _v2, int _v3)
+	ZInstI(ZOp _op, int _v1, int _v2, int _v3) : ZInst(_op, OP_VVV)
 		{
-		op = _op;
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
-		op_type = OP_VVV;
 		}
 
-	ZInst(ZOp _op, int _v1, int _v2, int _v3, int _v4)
+	ZInstI(ZOp _op, int _v1, int _v2, int _v3, int _v4)
+	: ZInst(_op, OP_VVVV)
 		{
-		op = _op;
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
 		v4 = _v4;
-		op_type = OP_VVVV;
 		}
 
-	ZInst(ZOp _op, const ConstExpr* ce)
+	ZInstI(ZOp _op, const ConstExpr* ce) : ZInst(_op, OP_C)
 		{
-		op = _op;
-		op_type = OP_C;
 		InitConst(ce);
 		}
 
-	ZInst(ZOp _op, int _v1, const ConstExpr* ce)
+	ZInstI(ZOp _op, int _v1, const ConstExpr* ce) : ZInst(_op, OP_VC)
 		{
-		op = _op;
 		v1 = _v1;
-		op_type = OP_VC;
 		InitConst(ce);
 		}
 
-	ZInst(ZOp _op, int _v1, int _v2, const ConstExpr* ce)
+	ZInstI(ZOp _op, int _v1, int _v2, const ConstExpr* ce)
+	: ZInst(_op, OP_VVC)
 		{
-		op = _op;
 		v1 = _v1;
 		v2 = _v2;
-		op_type = OP_VVC;
 		InitConst(ce);
 		}
 
-	ZInst(ZOp _op, int _v1, int _v2, int _v3, const ConstExpr* ce)
+	ZInstI(ZOp _op, int _v1, int _v2, int _v3, const ConstExpr* ce)
+	: ZInst(_op, OP_VVVC)
 		{
-		op = _op;
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
-		op_type = OP_VVVC;
 		InitConst(ce);
 		}
 
-	ZInst(ZOp _op, const Expr* _e)
+	ZInstI(ZOp _op, const Expr* _e) : ZInst(_op, OP_E)
 		{
-		op = _op;
 		e = _e;
 		t = e->Type().get();
-		op_type = OP_E;
 		}
 
-	ZInst(ZOp _op, int _v1, const Expr* _e)
+	ZInstI(ZOp _op, int _v1, const Expr* _e) : ZInst(_op, OP_VE)
 		{
-		op = _op;
 		v1 = _v1;
 		e = _e;
 		t = e->Type().get();
-		op_type = OP_VE;
 		}
 
-	// Constructor used when we're going to just copy in another ZInst.
-	ZInst() { }
+	// Constructor used when we're going to just copy in another ZInstI.
+	ZInstI() { }
+
+	// If "remappings" is non-nil, then it is used instead of frame_ids.
+	void Dump(const FrameMap* frame_ids, const FrameReMap* remappings)
+			const;
+
+	const char* VName(int max_n, int n, const FrameMap* frame_ids,
+				const FrameReMap* remappings) const;
 
 	// True if this instruction definitely won't proceed to the one
 	// after it.
@@ -237,63 +293,6 @@ public:
 			return IsGlobalLoad();
 		}
 
-	const char* VName(int max_n, int n, const FrameMap* frame_ids,
-				const FrameReMap* remappings) const;
-	int NumFrameSlots() const;
-
-	// If "remappings" is non-nil, then it is used instead of frame_ids.
-	void Dump(const FrameMap* frame_ids, const FrameReMap* remappings)
-		const;
-
-	const char* ConstDump() const;
-
-
-	// These first values are needed at run-time.  We could separate
-	// them from the later values only needed at compile time to
-	// shrink the size of frames.  This won't matter much in terms
-	// of memory usage, as Zeek call stacks don't appear to ever
-	// get that deep.  OTOH, it might be beneficial for creating
-	// closures (how common is that?).  OTOOH, keeping them together
-	// for now can help with certain types of compiler debugging.
-	ZOp op;
-	ZAMOpType op_type;
-
-	// Indices into frame.
-	int v1, v2, v3, v4;
-
-	ZAMValUnion c;	// constant associated with instruction, if any
-
-	// Meta-data associated with the execution.
-
-	// Type, usually for interpreting the constant.
-	BroType* t = nullptr;
-
-	// These two could be doubled up into a union, or just grit
-	// our teeth and use coercion to construct only the latter.
-	const Expr* e = nullptr;
-	Expr* non_const_e = nullptr;
-
-	Func* func = nullptr;	// used for calls
-
-	EventHandler* event_handler = nullptr;
-	Attributes* attrs = nullptr;
-
-	// Only used by Record-Coerce.
-	int* int_ptr = nullptr;
-
-	// Auxiliary information.  We could in principle use this to
-	// consolidate a bunch of the above, though at the cost of
-	// slightly slower access.
-	ZInstAux* aux = nullptr;
-
-	// Used for reporting errors during execution.
-	const Stmt* stmt = curr_stmt;
-
-	// Whether v1 represents a frame slot type for which we
-	// explicitly manage the memory.
-	bool is_managed = false;
-
-	// These are only needed during compilation.
 	void CheckIfManaged(const Expr* e)
 		{ if ( IsManagedType(e) ) is_managed = true; }
 
@@ -310,8 +309,6 @@ public:
 	void SetType(const IntrusivePtr<BroType>& _t)
 		{ SetType(_t.get()); }
 
-	// The following are only needed during compilation.
-
 	// Whether the instruction should be included in final code
 	// generation.
 	bool live = true;
@@ -327,11 +324,11 @@ public:
 	int loop_depth = 0;
 
 	// Branch target, prior to concretizing into PC target.
-	ZInst* target = nullptr;
+	ZInstI* target = nullptr;
 	int target_slot = 0;	// which of v1/v2/v3 should hold the target
 
 	// "when" statements, alas, need two goto targets ...
-	ZInst* target2 = nullptr;
+	ZInstI* target2 = nullptr;
 	int target2_slot = 0;	// which of v1/v2/v3 should hold the target
 
 	// The final PC location of the statement.  -1 indicates not

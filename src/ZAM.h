@@ -17,9 +17,9 @@ class Func;
 class Body;
 class UseDefs;
 class ProfileFunc;
-class ZInst;
+class ZInstI;
 
-typedef ZInst* InstLabel;
+typedef ZInstI* InstLabel;
 
 class ZAM : public Compiler {
 public:
@@ -77,7 +77,7 @@ public:
 	const CompiledStmt LoopOverString(const ForStmt* f, const NameExpr* val);
 
 	const CompiledStmt FinishLoop(const CompiledStmt iter_head,
-					ZInst iter_stmt, const Stmt* body,
+					ZInstI iter_stmt, const Stmt* body,
 					int info_slot);
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
@@ -167,25 +167,25 @@ protected:
 
 	// Look to initialize the beginning of local lifetime based on slot
 	// assignment at instruction inst.
-	void CheckSlotAssignment(int slot, const ZInst* inst);
+	void CheckSlotAssignment(int slot, const ZInstI* inst);
 
 	// Track that a local's lifetime begins at the given statement.
-	void SetLifetimeStart(int slot, const ZInst* inst);
+	void SetLifetimeStart(int slot, const ZInstI* inst);
 
 	// Look for extension of local lifetime based on slot usage
 	// at instruction inst.
-	void CheckSlotUse(int slot, const ZInst* inst);
+	void CheckSlotUse(int slot, const ZInstI* inst);
 
 	// Extend (or create) the end of a local's lifetime.
-	void ExtendLifetime(int slot, const ZInst* inst);
+	void ExtendLifetime(int slot, const ZInstI* inst);
 
 	// Returns the (live) instruction at the beginning/end of the loop(s)
 	// within which the given instruction lies; or that instruction
 	// itself if it's not inside a loop.  The second argument specifies
 	// the loop depth.  For example, a value of '2' means "extend to
 	// the beginning/end of any loop(s) of depth >= 2".
-	const ZInst* BeginningOfLoop(const ZInst* inst, int depth) const;
-	const ZInst* EndOfLoop(const ZInst* inst, int depth) const;
+	const ZInstI* BeginningOfLoop(const ZInstI* inst, int depth) const;
+	const ZInstI* EndOfLoop(const ZInstI* inst, int depth) const;
 
 	// True if any statement other than a frame sync assigns to the
 	// given slot.
@@ -193,23 +193,23 @@ protected:
 
 	// True if the given statement assigns to the given slot, and
 	// it's not a frame sync.
-	bool VarIsAssigned(int slot, const ZInst* i) const;
+	bool VarIsAssigned(int slot, const ZInstI* i) const;
 
 	// True if any statement other than a frame sync uses the given slot.
 	bool VarIsUsed(int slot) const;
 
 	// Mark a statement as unnecessary and remove its influence on
 	// other statements.
-	void KillInst(ZInst* i);
+	void KillInst(ZInstI* i);
 
 	// Given a GoTo target, find its live equivalent (first instruction
 	// at that location or beyond that's live).
-	ZInst* FindLiveTarget(ZInst* goto_target);
+	ZInstI* FindLiveTarget(ZInstI* goto_target);
 
 	// Given an instruction that has a slot associated with the
 	// given target, updates the slot to correspond with the current
 	// (final) location of the target.
-	void RetargetBranch(ZInst* inst, ZInst* target, int target_slot);
+	void RetargetBranch(ZInstI* inst, ZInstI* target, int target_slot);
 
 	friend class ResumptionAM;
 
@@ -330,7 +330,7 @@ protected:
 			SetV4(s, l);
 		}
 
-	void SetTarget(ZInst* inst, const InstLabel l, int slot);
+	void SetTarget(ZInstI* inst, const InstLabel l, int slot);
 	void SetV1(CompiledStmt s, const InstLabel l);
 	void SetV2(CompiledStmt s, const InstLabel l);
 	void SetV3(CompiledStmt s, const InstLabel l);
@@ -338,11 +338,11 @@ protected:
 	void SetGoTo(CompiledStmt s, const InstLabel targ)
 		{ SetV1(s, targ); }
 
-	const CompiledStmt AddInst(const ZInst& inst);
+	const CompiledStmt AddInst(const ZInstI& inst);
 
 	// Returns the most recent added instruction *other* than those
 	// added for bookkeeping (like dirtying globals);
-	ZInst* TopMainInst()	{ return insts1[top_main_inst]; }
+	ZInstI* TopMainInst()	{ return insts1[top_main_inst]; }
 
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt(const Stmt* s) const;
@@ -403,15 +403,15 @@ protected:
 	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,
 				const Stmt* associated_stmt) const;
 
-	// The first of these is used as we compile down to ZInst's.
+	// The first of these is used as we compile down to ZInstI's.
 	// The second is the final code used during execution.  They're
 	// separate to make it easy to remove dead code.
-	vector<ZInst*> insts1;
-	vector<ZInst*> insts2;
+	vector<ZInstI*> insts1;
+	vector<ZInstI*> insts2;
 
 	// Used as a placeholder when we have to generate a GoTo target
 	// beyond the end of what we've compiled so far.
-	ZInst* pending_inst = nullptr;
+	ZInstI* pending_inst = nullptr;
 
 	// These need to be pointers so we can manipulate them in a
 	// const method.
@@ -460,7 +460,7 @@ protected:
 
 	// A type for mapping an instruction to a set of locals associated
 	// with it.
-	typedef std::unordered_map<const ZInst*, std::unordered_set<ID*>>
+	typedef std::unordered_map<const ZInstI*, std::unordered_set<ID*>>
 		AssociatedLocals;
 
 	// Maps (live) instructions to which frame denizens begin their
@@ -475,7 +475,7 @@ protected:
 	AssociatedLocals inst_endings;
 
 	// A type for inverse mappings.
-	typedef std::unordered_map<int, const ZInst*> AssociatedInsts;
+	typedef std::unordered_map<int, const ZInstI*> AssociatedInsts;
 
 	// Inverse mappings: for a given frame denizen's slot, where its
 	// lifetime begins and ends.

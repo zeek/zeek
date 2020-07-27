@@ -794,7 +794,7 @@ function build_assignment_dispatch3(op, type, is_var, is_field)
 	custom_method = custom_method \
 		"auto tag = t->Tag();\n" \
 		"\tauto i_t = t->InternalType();\n" \
-		"\tZInst z;"
+		"\tZInstI z;"
 
 	if ( type in method_extra_prefix )
 		custom_method = custom_method "\n\t" method_extra_prefix[type]
@@ -1427,7 +1427,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		return
 		}
 
-	print ("\tZInst z;") >methods_f
+	print ("\tZInstI z;") >methods_f
 
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
@@ -1435,7 +1435,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 	if ( mt == "O" || mt == "VO" )
 		{
 		pre_arg = mt == "O" ? "" : ", Frame1Slot(n, " full_op ")"
-		print ("\tz = ZInst(" full_op pre_arg ");") >methods_f
+		print ("\tz = ZInstI(" full_op pre_arg ");") >methods_f
 		}
 
 	else if ( mt == "R" )

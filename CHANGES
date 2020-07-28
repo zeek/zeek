@@ -1,4 +1,8 @@
 
+3.3.0-dev.4 | 2020-07-28 19:56:35 +0000
+
+  * GH-1083: Fix Input Framework 'change' events for 'set' destinations (Jon Siwek, Corelight)
+
 3.3.0-dev.1 | 2020-07-27 12:04:48 -0700
 
   * Update site/local.zeek compatibility test (Jon Siwek, Corelight)

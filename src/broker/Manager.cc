@@ -855,7 +855,7 @@ bool Manager::Forward(string topic_prefix)
 
 bool Manager::Unsubscribe(const string& topic_prefix)
 	{
-	for ( size_t i = 0u; i < forwarded_prefixes.size(); ++i )
+	for ( size_t i = 0; i < forwarded_prefixes.size(); ++i )
 		if ( forwarded_prefixes[i] == topic_prefix )
 			{
 			DBG_LOG(DBG_BROKER, "Unforwading topic prefix %s", topic_prefix.c_str());
@@ -1180,7 +1180,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	zeek::Args vl;
 	vl.reserve(args.size());
 
-	for ( size_t i = 0u; i < args.size(); ++i )
+	for ( size_t i = 0; i < args.size(); ++i )
 		{
 		auto got_type = args[i].get_type_name();
 		const auto& expected_type = arg_types[i];
@@ -1255,7 +1255,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	auto num_fields = fields_data->size();
 	auto fields = new threading::Field* [num_fields];
 
-	for ( size_t i = 0u; i < num_fields; ++i )
+	for ( size_t i = 0; i < num_fields; ++i )
 		{
 		if ( auto field = data_to_threading_field(std::move((*fields_data)[i])) )
 			fields[i] = field;

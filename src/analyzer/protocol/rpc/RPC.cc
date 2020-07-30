@@ -85,7 +85,7 @@ RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double 
 			return;
 			}
 
-		for ( size_t i = 0u; i < number_of_gids; ++i )
+		for ( size_t i = 0; i < number_of_gids; ++i )
 			auxgids.push_back(extract_XDR_uint32(cred_opaque, cred_opaque_n));
 		}
 

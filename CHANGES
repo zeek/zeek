@@ -1,4 +1,12 @@
 
+3.3.0-dev.11 | 2020-07-30 17:47:44 +0000
+
+  * Use .empty() instead of checking size against zero (Tim Wojtulewicz, Corelight)
+
+  * Use properly-sized loop variables or convert to ranged-for (bugprone-too-small-loop-variable) (Tim Wojtulewicz, Corelight)
+
+  * Fix potential heap-use-after-free access (Dominik Charousset, Corelight)
+
 3.3.0-dev.4 | 2020-07-28 19:56:35 +0000
 
   * GH-1083: Fix Input Framework 'change' events for 'set' destinations (Jon Siwek, Corelight)

@@ -67,7 +67,7 @@ zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 
 	if ( vec )
 		{
-		for ( unsigned int i = 0; i < vec->size(); ++i )
+		for ( size_t i = 0; i < vec->size(); ++i )
 			{
 			BroSubstring* bst = (*vec)[i];
 

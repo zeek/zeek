@@ -146,8 +146,8 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 
 AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 	{
-	for ( unsigned int i = 0; i < blocks.size(); ++i )
-		delete [] blocks[i];
+	for ( auto& b : blocks )
+		delete [] b;
 	}
 
 void AnonymizeIPAddr_A50::init()

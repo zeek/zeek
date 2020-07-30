@@ -177,7 +177,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 
 	V = 0;
 
-	for ( unsigned int i = 0; i < m; i++ )
+	for ( size_t i = 0; i < m; i++ )
 		{
 		if ( temp[i] > buckets[i] )
 			buckets[i] = temp[i];

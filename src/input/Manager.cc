@@ -436,7 +436,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 		}
 
 	Field** logf = new Field*[fieldsV.size()];
-	for ( unsigned int i = 0; i < fieldsV.size(); i++ )
+	for ( size_t i = 0; i < fieldsV.size(); i++ )
 		logf[i] = fieldsV[i];
 
 	stream->num_fields = fieldsV.size();
@@ -680,7 +680,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 		}
 
 	Field** fields = new Field*[fieldsV.size()];
-	for ( unsigned int i = 0; i < fieldsV.size(); i++ )
+	for ( size_t i = 0; i < fieldsV.size(); i++ )
 		fields[i] = fieldsV[i];
 
 	stream->pred = pred ? pred->AsFunc() : nullptr;

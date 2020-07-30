@@ -107,7 +107,7 @@ Value::~Value()
 
 	else if ( type == zeek::TYPE_TABLE )
 		{
-		for ( int i = 0; i < val.set_val.size; i++ )
+		for ( bro_int_t i = 0; i < val.set_val.size; i++ )
 			delete val.set_val.vals[i];
 
 		delete [] val.set_val.vals;
@@ -115,7 +115,7 @@ Value::~Value()
 
 	else if ( type == zeek::TYPE_VECTOR )
 		{
-		for ( int i = 0; i < val.vector_val.size; i++ )
+		for ( bro_int_t i = 0; i < val.vector_val.size; i++ )
 			delete val.vector_val.vals[i];
 
 		delete [] val.vector_val.vals;
@@ -286,7 +286,7 @@ bool Value::Read(SerializationFormat* fmt)
 
 		val.set_val.vals = new Value* [val.set_val.size];
 
-		for ( int i = 0; i < val.set_val.size; ++i )
+		for ( bro_int_t i = 0; i < val.set_val.size; ++i )
 			{
 			val.set_val.vals[i] = new Value;
 
@@ -304,7 +304,7 @@ bool Value::Read(SerializationFormat* fmt)
 
 		val.vector_val.vals = new Value* [val.vector_val.size];
 
-		for ( int i = 0; i < val.vector_val.size; ++i )
+		for ( bro_int_t i = 0; i < val.vector_val.size; ++i )
 			{
 			val.vector_val.vals[i] = new Value;
 

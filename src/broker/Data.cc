@@ -239,7 +239,7 @@ struct val_converter {
 
 			auto list_val = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
-			for ( auto i = 0u; i < indices->size(); ++i )
+			for ( size_t i = 0; i < indices->size(); ++i )
 				{
 				auto index_val = bro_broker::data_to_val(move((*indices)[i]),
 				                                         expected_index_types[i].get());
@@ -298,7 +298,7 @@ struct val_converter {
 
 			auto list_val = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
-			for ( auto i = 0u; i < indices->size(); ++i )
+			for ( size_t i = 0; i < indices->size(); ++i )
 				{
 				auto index_val = bro_broker::data_to_val(move((*indices)[i]),
 				                                         expected_index_types[i].get());
@@ -386,7 +386,7 @@ struct val_converter {
 			auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::IntrusivePtr{zeek::NewRef{}, rt});
 			auto idx = 0u;
 
-			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
+			for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
 					return nullptr;
@@ -574,7 +574,7 @@ struct type_checker {
 						{
 						indices_to_check.reserve(indices->size());
 
-						for ( auto i = 0u; i < indices->size(); ++i )
+						for ( size_t i = 0; i < indices->size(); ++i )
 							indices_to_check.emplace_back(&(*indices)[i]);
 						}
 					}
@@ -582,7 +582,7 @@ struct type_checker {
 					{
 					indices_to_check.reserve(indices->size());
 
-					for ( auto i = 0u; i < indices->size(); ++i )
+					for ( size_t i = 0; i < indices->size(); ++i )
 						indices_to_check.emplace_back(&(*indices)[i]);
 					}
 				}
@@ -592,7 +592,7 @@ struct type_checker {
 			if ( expected_index_types.size() != indices_to_check.size() )
 				return false;
 
-			for ( auto i = 0u; i < indices_to_check.size(); ++i )
+			for ( size_t i = 0; i < indices_to_check.size(); ++i )
 				{
 				auto expect = expected_index_types[i].get();
 				auto& index_to_check = *(indices_to_check)[i];
@@ -633,7 +633,7 @@ struct type_checker {
 						{
 						indices_to_check.reserve(indices->size());
 
-						for ( auto i = 0u; i < indices->size(); ++i )
+						for ( size_t i = 0; i < indices->size(); ++i )
 							indices_to_check.emplace_back(&(*indices)[i]);
 						}
 					}
@@ -641,7 +641,7 @@ struct type_checker {
 					{
 					indices_to_check.reserve(indices->size());
 
-					for ( auto i = 0u; i < indices->size(); ++i )
+					for ( size_t i = 0; i < indices->size(); ++i )
 						indices_to_check.emplace_back(&(*indices)[i]);
 					}
 				}
@@ -654,7 +654,7 @@ struct type_checker {
 				return false;
 				}
 
-			for ( auto i = 0u; i < indices_to_check.size(); ++i )
+			for ( size_t i = 0; i < indices_to_check.size(); ++i )
 				{
 				auto expect = expected_index_types[i].get();
 				auto& index_to_check = *(indices_to_check)[i];
@@ -715,7 +715,7 @@ struct type_checker {
 			auto rt = type->AsRecordType();
 			auto idx = 0u;
 
-			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
+			for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
 					return false;
@@ -964,7 +964,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		size_t num_fields = v->GetType()->AsRecordType()->NumFields();
 		rval.reserve(num_fields);
 
-		for ( auto i = 0u; i < num_fields; ++i )
+		for ( size_t i = 0; i < num_fields; ++i )
 			{
 			auto item_val = rec->GetFieldOrDefault(i);
 

@@ -964,7 +964,13 @@ void Manager::Process()
 
 		try
 			{
-			DispatchMessage(topic, broker::move_data(message));
+			// Once we call a broker::move_* function, we force Broker to
+			// unshare the content of the message, i.e., copy the content to a
+			// different memory region if other threads keep references to the
+			// message. Since `topic` still points into the original memory
+			// region, we may no longer access it after this point.
+			auto unshared_topic = broker::move_topic(message);
+			DispatchMessage(unshared_topic, broker::move_data(message));
 			}
 		catch ( std::runtime_error& e )
 			{

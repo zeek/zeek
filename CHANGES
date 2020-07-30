@@ -1,4 +1,8 @@
 
+3.2.0-rc1.3 | 2020-07-30 13:25:32 -0700
+
+  * Fix potential heap-use-after-free access (Dominik Charousset, Corelight)
+
 3.2.0-rc1.2 | 2020-07-29 11:39:11 -0700
 
   * GH-1083: Fix Input Framework 'change' events for 'set' destinations (Jon Siwek, Corelight)

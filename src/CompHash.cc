@@ -782,7 +782,6 @@ const char* CompositeHash::RecoverOneVal(
 
 		switch ( tag ) {
 		case zeek::TYPE_COUNT:
-		case zeek::TYPE_COUNTER:
 			*pval = zeek::val_mgr->Count(*kp);
 			break;
 

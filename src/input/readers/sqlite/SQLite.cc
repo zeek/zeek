@@ -183,7 +183,6 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		val->val.uint_val = sqlite3_column_int64(st, pos);
 		break;
 

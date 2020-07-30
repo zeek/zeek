@@ -39,28 +39,27 @@ enum TypeTag {
 	TYPE_BOOL,      // 1
 	TYPE_INT,       // 2
 	TYPE_COUNT,     // 3
-	TYPE_COUNTER,   // 4
-	TYPE_DOUBLE,    // 5
-	TYPE_TIME,      // 6
-	TYPE_INTERVAL,  // 7
-	TYPE_STRING,    // 8
-	TYPE_PATTERN,   // 9
-	TYPE_ENUM,      // 10
-	TYPE_TIMER,     // 11
-	TYPE_PORT,      // 12
-	TYPE_ADDR,      // 13
-	TYPE_SUBNET,    // 14
-	TYPE_ANY,       // 15
-	TYPE_TABLE,     // 16
-	TYPE_UNION,     // 17
-	TYPE_RECORD,    // 18
-	TYPE_LIST,      // 19
-	TYPE_FUNC,      // 20
-	TYPE_FILE,      // 21
-	TYPE_VECTOR,    // 22
-	TYPE_OPAQUE,    // 23
-	TYPE_TYPE,      // 24
-	TYPE_ERROR      // 25
+	TYPE_DOUBLE,    // 4
+	TYPE_TIME,      // 5
+	TYPE_INTERVAL,  // 6
+	TYPE_STRING,    // 7
+	TYPE_PATTERN,   // 8
+	TYPE_ENUM,      // 9
+	TYPE_TIMER,     // 10
+	TYPE_PORT,      // 11
+	TYPE_ADDR,      // 12
+	TYPE_SUBNET,    // 13
+	TYPE_ANY,       // 14
+	TYPE_TABLE,     // 15
+	TYPE_UNION,     // 16
+	TYPE_RECORD,    // 17
+	TYPE_LIST,      // 18
+	TYPE_FUNC,      // 19
+	TYPE_FILE,      // 20
+	TYPE_VECTOR,    // 21
+	TYPE_OPAQUE,    // 22
+	TYPE_TYPE,      // 23
+	TYPE_ERROR      // 24
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 };
 
@@ -97,7 +96,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 		return TYPE_INTERNAL_INT;
 
 	case TYPE_COUNT:
-	case TYPE_COUNTER:
 	case TYPE_PORT:
 		return TYPE_INTERNAL_UNSIGNED;
 
@@ -818,7 +816,7 @@ inline bool is_assignable(Type* t)
 	{ return zeek::is_assignable(t->Tag()); }
 
 // True if the given type tag corresponds to an integral type.
-inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }
+inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT ); }
 
 // True if the given type tag corresponds to an arithmetic type.
 inline bool IsArithmetic(TypeTag t)	{ return (IsIntegral(t) || t == TYPE_DOUBLE); }
@@ -937,8 +935,6 @@ constexpr auto TYPE_BOOL = zeek::TYPE_BOOL;
 constexpr auto TYPE_INT = zeek::TYPE_INT;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_COUNT instead.")]]
 constexpr auto TYPE_COUNT = zeek::TYPE_COUNT;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_COUNTER instead.")]]
-constexpr auto TYPE_COUNTER = zeek::TYPE_COUNTER;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_DOUBLE instead.")]]
 constexpr auto TYPE_DOUBLE = zeek::TYPE_DOUBLE;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_TIME instead.")]]

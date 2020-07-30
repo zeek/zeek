@@ -34,28 +34,27 @@ const char* type_name(zeek::TypeTag t)
 		"bool",      // 1
 		"int",       // 2
 		"count",     // 3
-		"counter",   // 4
-		"double",    // 5
-		"time",      // 6
-		"interval",  // 7
-		"string",    // 8
-		"pattern",   // 9
-		"enum",      // 10
-		"timer",     // 11
-		"port",      // 12
-		"addr",      // 13
-		"subnet",    // 14
-		"any",       // 15
-		"table",     // 16
-		"union",     // 17
-		"record",    // 18
-		"types",     // 19
-		"func",      // 20
-		"file",      // 21
-		"vector",    // 22
-		"opaque",    // 23
-		"type",      // 24
-		"error",     // 25
+		"double",    // 4
+		"time",      // 5
+		"interval",  // 6
+		"string",    // 7
+		"pattern",   // 8
+		"enum",      // 9
+		"timer",     // 10
+		"port",      // 11
+		"addr",      // 12
+		"subnet",    // 13
+		"any",       // 14
+		"table",     // 15
+		"union",     // 16
+		"record",    // 17
+		"types",     // 18
+		"func",      // 19
+		"file",      // 20
+		"vector",    // 21
+		"opaque",    // 22
+		"type",      // 23
+		"error",     // 24
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -203,7 +202,6 @@ TypePtr Type::ShallowClone()
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_COUNT:
-		case TYPE_COUNTER:
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
@@ -1543,7 +1541,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-	case TYPE_COUNTER:
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1745,7 +1742,6 @@ bool is_assignable(TypeTag t)
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-	case TYPE_COUNTER:
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1797,8 +1793,6 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		CHECK_TYPE(TYPE_INT);
 		CHECK_TYPE(TYPE_COUNT);
 
-		// Note - mixing two TYPE_COUNTER's still promotes to
-		// a TYPE_COUNT.
 		return TYPE_COUNT;
 		}
 	else

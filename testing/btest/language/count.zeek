@@ -15,16 +15,12 @@ event zeek_init()
 	local c4: count = 255;
 	local c5: count = 18446744073709551615;  # maximum allowed value
 	local c6: count = 0xffffffffffffffff;    # maximum allowed value
-	local c7: counter = 5;
-	local c8 = 1;
+	local c7 = 1;
 
 	# Type inference test
 
-	test_case( "type inference", type_name(c8) == "count" );
+	test_case( "type inference", type_name(c7) == "count" );
 
-	# Counter alias test
-
-	test_case( "counter alias", c2 == c7 );
 
 	# Test various constant representations
 
@@ -49,13 +45,10 @@ event zeek_init()
 	test_case( "assignment operator", c2 == 6 );
 	test_case( "bitwise and", c2 & 0x4 == 0x4 );
 	test_case( "bitwise and", c4 & 0x4 == 0x4 );
-	test_case( "bitwise and", c8 & 0x4 == 0x0 );
+	test_case( "bitwise and", c7 & 0x4 == 0x0 );
 	test_case( "bitwise or", c2 | 0x4 == c2 );
 	test_case( "bitwise or", c4 | 0x4 == c4 );
-	test_case( "bitwise or", c8 | 0x4 == c7 );
-	test_case( "bitwise xor", c7 ^ 0x4 == c8 );
 	test_case( "bitwise xor", c4 ^ 0x4 == 251 );
-	test_case( "bitwise xor", c8 ^ 0x4 == c7 );
 	test_case( "bitwise complement", ~c6 == 0 );
 	test_case( "bitwise complement", ~~c4 == c4 );
 

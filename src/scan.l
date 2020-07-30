@@ -220,7 +220,6 @@ option	return TOK_OPTION;
 const	return TOK_CONST;
 copy	return TOK_COPY;
 count	return TOK_COUNT;
-counter	return TOK_COUNTER;
 default	return TOK_DEFAULT;
 delete	return TOK_DELETE;
 double	return TOK_DOUBLE;

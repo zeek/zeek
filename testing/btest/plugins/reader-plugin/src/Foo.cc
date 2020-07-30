@@ -107,7 +107,6 @@ threading::Value* Foo::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtype)
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		val->val.uint_val = random();
 		break;
 

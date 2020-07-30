@@ -106,7 +106,6 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			break;
 
 		case zeek::TYPE_COUNT:
-		case zeek::TYPE_COUNTER:
 			writer.Uint64(val->val.uint_val);
 			break;
 

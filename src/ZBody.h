@@ -36,6 +36,8 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
+	void SaveTo(FILE* f) const;
+
 	void ProfileExecution() const;
 
 protected:
@@ -49,7 +51,9 @@ protected:
 	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,
 				const Location* loc) const;
 
-	void SaveTo(FILE* f) const;
+	// Describes the given type in a form that is parse-able (which
+	// is more detailed than what we get just using BroType::Describe()).
+	void DescribeType(const BroType* t, ODesc* d) const;
 
 	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
 

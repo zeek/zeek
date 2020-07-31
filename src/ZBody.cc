@@ -146,6 +146,7 @@ ZBody::ZBody(const char* _func_name, vector<ZInstI*>& instsI,
 		CaseMaps<bro_uint_t>& _uint_cases,
 		CaseMaps<double>& _double_cases, 
 		CaseMaps<std::string>& _str_cases)
+: Stmt(STMT_COMPILED)
 	{
 	func_name = _func_name;
 
@@ -343,6 +344,36 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	return result;
 	}
 
+void ZBody::SaveTo(FILE* f) const
+	{
+	// Collect all of the types that will be required.
+
+	std::vector<const BroType*> types;
+	std::unordered_map<const BroType*, int> type_map;	// inverse
+
+	for ( auto i : insts )
+		{
+		if ( i->t && type_map.count(i->t) == 0 )
+			{
+			types.push_back(i->t);
+			type_map[i->t] = types.size();
+			}
+
+		if ( i->t2 && type_map.count(i->t2) == 0 )
+			{
+			types.push_back(i->t2);
+			type_map[i->t2] = types.size();
+			}
+		}
+
+	for ( auto t : types )
+		{
+		ODesc d;
+		DescribeType(t, &d);
+		fprintf(f, "type (%lx): %s\n", t, d.Description());
+		}
+	}
+
 void ZBody::ProfileExecution() const
 	{
 	if ( inst_count->size() == 0 )
@@ -365,6 +396,157 @@ void ZBody::ProfileExecution() const
 			(*inst_count)[i], (*inst_CPU)[i]);
 		insts[i]->Dump(i, &frame_denizens);
 		}
+	}
+
+void ZBody::DescribeType(const BroType* t, ODesc* d) const
+	{
+	auto t_name = t->GetName();
+
+	if ( t_name.length() > 0 )
+		{
+		// Always prefer to use a type name.
+		d->Add(t_name.c_str());
+		return;
+		}
+
+	switch ( t->Tag() ) {
+	case TYPE_VOID:
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+	case TYPE_STRING:
+	case TYPE_PATTERN:
+	case TYPE_TIMER:
+	case TYPE_PORT:
+	case TYPE_ADDR:
+	case TYPE_SUBNET:
+	case TYPE_ANY:
+	case TYPE_ERROR:
+		t->Describe(d);
+		break;
+
+	case TYPE_ENUM:
+		reporter->InternalError("enum type without a name");
+		break;
+
+	case TYPE_TYPE:
+		d->AddSP("type");
+		DescribeType(t->AsTypeType()->Type(), d);
+		break;
+
+	case TYPE_TABLE:
+		{
+		auto tbl = t->AsTableType();
+		auto yt = tbl->YieldType();
+
+		if ( yt )
+			d->Add("table[");
+		else
+			d->Add("set[");
+
+		DescribeType(tbl->Indices(), d);
+
+		d->Add("]");
+
+		if ( yt )
+			{
+			d->Add(" of ");
+			DescribeType(yt, d);
+			}
+		break;
+		}
+
+	case TYPE_FUNC:
+		{
+		auto f = t->AsFuncType();
+
+		d->Add(f->FlavorString());
+		d->Add("(");
+
+		auto args = f->Args();
+		int n = args->NumFields();
+
+		for ( auto i = 0; i < n; ++i )
+			{
+			d->Add(args->FieldName(i));
+			d->AddSP(":");
+
+			DescribeType(args->FieldType(i), d);
+
+			if ( i < n - 1 )
+				d->AddSP(",");
+			}
+
+		d->Add(")");
+
+		auto yt = f->YieldType();
+
+		if ( yt )
+			{
+			d->AddSP(":");
+			DescribeType(yt, d);
+			}
+
+		break;
+		}
+
+	case TYPE_RECORD:
+		{
+		auto rt = t->AsRecordType();
+		int n = rt->NumFields();
+
+		d->Add("record { ");
+
+		for ( auto i = 0; i < n; ++i )
+			{
+			d->Add(rt->FieldName(i));
+			d->AddSP(":");
+
+			DescribeType(rt->FieldType(i), d);
+			d->AddSP(";");
+
+			if ( i < n - 1 )
+				d->SP();
+			}
+
+		d->Add("}");
+		break;
+		}
+
+	case TYPE_LIST:
+		{
+		auto l = t->AsTypeList()->Types();
+		int n = l->length();
+
+		for ( auto i = 0; i < n; ++i )
+			{
+			DescribeType((*l)[i], d);
+			if ( i < n - 1 )
+				d->AddSP(",");
+			}
+
+		break;
+		}
+
+	case TYPE_VECTOR:
+	case TYPE_FILE:
+		d->Add(type_name(t->Tag()));
+		d->Add(" of ");
+		DescribeType(t->YieldType(), d);
+		break;
+
+	case TYPE_OPAQUE:
+		d->Add("opaque of ");
+		d->Add(t->AsOpaqueType()->Name());
+		break;
+
+	case TYPE_UNION:
+		reporter->InternalError("union type in ZBody::DescribeType()");
+	}
 	}
 
 bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
@@ -396,10 +578,6 @@ bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
 		}
 
 	return true;
-	}
-
-void ZBody::SaveTo(FILE* f) const
-	{
 	}
 
 void ZBody::Dump()

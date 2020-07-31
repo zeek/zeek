@@ -22,6 +22,13 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 	// to be the maximum needed to accommodate all of its
 	// remapped bodies.
 
+	for ( auto& f : funcs )
+		{
+		auto func = f->func;
+		if ( f->body->Tag() == STMT_COMPILED )
+			f->body->AsZBody()->SaveTo(stdout);
+		}
+
 	if ( remapped_intrp_frame_sizes.size() == 0 )
 		// We didn't do remapping.
 		return;

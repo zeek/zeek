@@ -119,7 +119,7 @@ public:
 	ZOp op;
 	ZAMOpType op_type;
 
-	// Indices into frame.
+	// Usually indices into frame, though sometimes hold integer constants.
 	int v1, v2, v3, v4;
 
 	ZAMValUnion c;	// constant associated with instruction, if any

@@ -32,3 +32,11 @@ export {
 		ONE,
 	};
 }
+
+module GLOBAL;
+
+global NOPE = 37;
+
+redef enum a += {
+	NOPE,
+};

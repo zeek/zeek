@@ -1269,6 +1269,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		// cyclic dependencies.
 		string fullname = make_full_var_name(module_name.c_str(), name);
 		if ( id->Name() != fullname
+		     || ! id->IsEnumConst()
 		     || (id->HasVal() && val != id->GetVal()->AsEnum())
 		     || GetName() != id->GetType()->GetName()
 		     || (names.find(fullname) != names.end() && names[fullname] != val) )

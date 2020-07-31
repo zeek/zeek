@@ -426,7 +426,7 @@ public:
 
 	// These are parallel arrays, used to build up lists of values.
 	// Each element is either a frame slot or a constant.  We track
-	// its type, too, enabling us use ZAMValUnion::ToVal to convert
+	// its type, too, enabling us to use ZAMValUnion::ToVal to convert
 	// to a Val*.
 	int n;	// size of arrays
 	int* slots = nullptr;

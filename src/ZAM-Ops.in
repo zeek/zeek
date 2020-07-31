@@ -153,8 +153,8 @@ eval $1 / $2
 #
 eval-mixed A I auto mask = static_cast<uint32_t>($2)
 eval-mixed A I auto a = $1->AsAddr()
-eval-mixed A I if ( a.GetFamily() == IPv4 && mask > 32 ) z.e->RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask))
-eval-mixed A I if ( a.GetFamily() == IPv6 && mask > 128 ) z.e->RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask))
+eval-mixed A I if ( a.GetFamily() == IPv4 && mask > 32 ) ZAM_run_time_error(z.loc, fmt("bad IPv4 subnet prefix length: %" PRIu32, mask))
+eval-mixed A I if ( a.GetFamily() == IPv6 && mask > 128 ) ZAM_run_time_error(z.loc, fmt("bad IPv6 subnet prefix length: %" PRIu32, mask))
 eval-mixed A I auto v = make_intrusive<SubNetVal>(a, mask)
 eval-mixed A I Unref(frame[z.v1].subnet_val)
 eval-mixed A I frame[z.v1].subnet_val = v.release()
@@ -270,7 +270,7 @@ type R
 field-op
 eval auto rv = $2.record_val->RawFields()
 eval auto v = rv->Lookup(z.v3, ZAM_error)
-eval if ( ZAM_error ) reporter->ExprRuntimeError(z.e, "field value missing: $%s", $2.record_val->Type()->AsRecordType()->FieldName(z.v3))
+eval if ( ZAM_error ) ZAM_run_time_error(z.loc, fmt("field value missing: $%s", $2.record_val->Type()->AsRecordType()->FieldName(z.v3)))
 eval else @v
 
 expr-op Has-Field

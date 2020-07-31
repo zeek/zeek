@@ -5,7 +5,7 @@
 module NetControl;
 
 export {
-	redef enum Log::ID += { DROP };
+	redef enum Log::ID += { DROP_LOG };
 
 	## Stops all packets involving an IP address from being forwarded.
 	##
@@ -57,7 +57,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::DROP, [$columns=DropInfo, $ev=log_netcontrol_drop, $path="netcontrol_drop"]);
+	Log::create_stream(NetControl::DROP_LOG, [$columns=DropInfo, $ev=log_netcontrol_drop, $path="netcontrol_drop"]);
 	}
 
 function drop_connection(c: conn_id, t: interval, location: string &default="") : string
@@ -79,7 +79,7 @@ function drop_connection(c: conn_id, t: interval, location: string &default="") 
 	if ( location != "" )
 		log$location=location;
 
-	Log::write(DROP, log);
+	Log::write(DROP_LOG, log);
 
 	return id;
 	}
@@ -103,7 +103,7 @@ function drop_address(a: addr, t: interval, location: string &default="") : stri
 	if ( location != "" )
 		log$location=location;
 
-	Log::write(DROP, log);
+	Log::write(DROP_LOG, log);
 
 	return id;
 	}

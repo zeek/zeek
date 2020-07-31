@@ -10,8 +10,8 @@ eval @$2
 unary-expr-op Clone
 op-type X
 set-type $1
-set-expr $2
-eval auto v = frame[z.v2].ToVal(z.e->Type().get())->Clone();
+set-type2 $2
+eval auto v = frame[z.v2].ToVal(z.t2)->Clone();
 eval AssignV1(BuildVal(v, z.t));
 
 unary-expr-op Size
@@ -19,7 +19,7 @@ no-const
 op-type i u d A N S T V *
 type-selector 2
 set-type $1
-set-expr $2
+set-type2 $2
 #
 eval_i $$.uint_val = $1 < 0 ? -$1 : $1
 #
@@ -37,7 +37,7 @@ eval_T $$.uint_val = $1->Size()
 #
 eval_V $$.uint_val = $1->Size()
 #
-eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); $$ = BuildVal(v, z.t);
+eval auto v = frame[z.v2].ToVal(z.t2)->SizeVal(); $$ = BuildVal(v, z.t);
 
 unary-expr-op Not
 op-type I
@@ -91,9 +91,9 @@ eval vv.push_back(copy)
 unary-expr-op Cast
 op-type X
 set-type $1
-set-expr $2
+set-type2 $2
 eval const char* error;
-eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get();
+eval auto rhs = frame[z.v2].ToVal(z.t2).get();
 eval auto res = cast_value(rhs, z.t, error);
 eval if ( error ) ZAM_run_time_error(z.loc, error);
 eval else AssignV1(BuildVal(res, z.t));
@@ -111,7 +111,7 @@ direct-unary-op Is Is
 
 internal-op Is
 type VV
-eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get()
+eval auto rhs = frame[z.v2].ToVal(z.t2).get()
 eval frame[z.v1].int_val = can_cast_value_to_type(rhs, z.t)
 
 ########## Binary Ops ##########
@@ -145,7 +145,6 @@ eval $1 * $2
 
 binary-expr-op Divide
 op-type I U D
-set-expr $1
 vector
 #
 eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.loc, "division by zero"); break; }

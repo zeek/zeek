@@ -51,11 +51,6 @@ ZInstI GenInst(ZAM* m, ZOp op, const ConstExpr* c, const NameExpr* v1, int i)
 	return z;
 	}
 
-ZInstI GenInst(ZAM* m, ZOp op, const NameExpr* v1, const Expr* e)
-	{
-	return ZInstI(op, m->Frame1Slot(v1, op), e);
-	}
-
 ZInstI GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2)
 	{
 	int nv2 = m->FrameSlot(v2);
@@ -1127,7 +1122,7 @@ const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
 	int op_slot = FrameSlot(op);
 
 	ZInstI z(OP_IS_VV, Frame1Slot(n, OP_IS_VV), op_slot);
-	z.e = op;
+	z.t2 = op->Type().get();
 	z.SetType(is->TestType());
 
 	return AddInst(z);
@@ -2732,7 +2727,6 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 				}
 
 			z.SetType(n1->Type());
-			z.e = n2;
 			return AddInst(z);
 			}
 

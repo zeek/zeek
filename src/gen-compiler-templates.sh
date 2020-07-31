@@ -386,7 +386,7 @@ $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
 
 $1 == "set-type"	{ set_type = $2; next }
-$1 == "set-expr"	{ set_expr = $2; next }
+$1 == "set-type2"	{ set_type2 = $2; next }
 
 $1 ~ /^eval((_([iudANPRSTV]))?)$/	{
 		if ( $1 == "eval" )
@@ -818,9 +818,7 @@ function build_assignment_dispatch3(op, type, is_var, is_field)
 		custom_method = custom_method "\n\t" xtra
 		}
 
-	custom_method = custom_method "\n" \
-		"\tz.e = " rhs_op ";\n" \
-		"\treturn AddInst(z);"
+	custom_method = custom_method "\n\treturn AddInst(z);"
 
 	build_op(op, atype, "", "", "", "", is_var, "")
 
@@ -860,7 +858,7 @@ function build_assignment3(op, type, flavor, is_var, is_field, ev)
 			tmpl = tmpl "::Ref(v" accessors[flavor] ");\n\t\t"
 
 		tmpl = tmpl \
-			"if ( ZAM_error ) z.e->RuntimeError(\"field value missing\");\n\t\t" \
+			"if ( ZAM_error ) ZAM_run_time_error(z.loc, \"field value missing\");\n\t\t" \
 			"else // kill auto-semicolon"
 		}
 
@@ -1442,7 +1440,6 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		{
 		print ("\tz = GenInst(this, " full_op ", " \
 			args2[mt] ");") >methods_f
-		print ("\tz.e = n1;") >methods_f
 		print ("\tz.SetType(n1->Type());") >methods_f
 		}
 
@@ -1475,12 +1472,13 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		else
 			part2b = ""
 
-		if ( set_expr )
+		if ( set_type2 )
 			{
 			# Remove extraneous $, if present.
-			sub(/\$/, "", set_expr)
+			sub(/\$/, "", set_type2)
 
-			part2b = part2b indent "z.e = " vars[set_expr] ";\n"
+			part2b = part2b indent "z.t2 = " vars[set_type2] \
+				"->Type().get();\n"
 			}
 
 		part2 = part2a part2b part2c
@@ -1656,7 +1654,7 @@ function build_method_conditional(o, n)
 
 function clear_vars()
 	{
-	opaque = set_expr = set_type = type = type_selector = operand_type = ""
+	opaque = set_type2 = set_type = type = type_selector = operand_type = ""
 	custom_method = method_pre = method_post = eval_pre = ""
 	no_const = op_type_rep = ""
 	field_eval = no_eval = mix_eval = multi_eval = eval_blank = ""

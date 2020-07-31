@@ -24,9 +24,8 @@ typedef enum {
 // Used for low-level optimization (so important that they're correct),
 // and for dumping statements.
 typedef enum {
-	OP_X, OP_E, OP_C, OP_c, OP_V, OP_V_I1, OP_VC_I1,
+	OP_X, OP_C, OP_c, OP_V, OP_V_I1, OP_VC_I1,
 
-	OP_VE,
 	OP_VC,
 	OP_Vc,
 	OP_VV,
@@ -129,10 +128,8 @@ public:
 
 	// Type, usually for interpreting the constant.
 	BroType* t = nullptr;
+	BroType* t2 = nullptr;	// just a few operations need two types
 
-	// These two could be doubled up into a union, or just grit
-	// our teeth and use coercion to construct only the latter.
-	const Expr* e = nullptr;
 	Expr* non_const_e = nullptr;
 
 	Func* func = nullptr;	// used for calls
@@ -219,19 +216,6 @@ public:
 		v2 = _v2;
 		v3 = _v3;
 		InitConst(ce);
-		}
-
-	ZInstI(ZOp _op, const Expr* _e) : ZInst(_op, OP_E)
-		{
-		e = _e;
-		t = e->Type().get();
-		}
-
-	ZInstI(ZOp _op, int _v1, const Expr* _e) : ZInst(_op, OP_VE)
-		{
-		v1 = _v1;
-		e = _e;
-		t = e->Type().get();
 		}
 
 	// Constructor used when we're going to just copy in another ZInstI.

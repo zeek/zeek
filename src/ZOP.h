@@ -148,8 +148,8 @@ public:
 	// slightly slower access.
 	ZInstAux* aux = nullptr;
 
-	// Used for reporting errors during execution.
-	const Stmt* stmt = curr_stmt;
+	// Location associated with this instruction, for error reporting.
+	const Location* loc = nullptr;
 
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
@@ -338,6 +338,9 @@ public:
 	// Number of associated label(s) (indicating the statement is
 	// a branch target).
 	int num_labels = 0;
+
+	// Used for debugging.  Transformed into the ZInst "loc" field.
+	const Stmt* stmt = curr_stmt;
 
 protected:
 	// Initialize 'c' from the given ConstExpr.

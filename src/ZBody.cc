@@ -54,16 +54,9 @@ void report_ZOP_profile()
 	}
 
 
-void ZAM_run_time_error(const Stmt* stmt, const char* msg)
+void ZAM_run_time_error(const Location* loc, const char* msg)
 	{
-	if ( stmt->Tag() == STMT_EXPR )
-		{
-		auto e = stmt->AsExprStmt()->StmtExpr();
-		reporter->ExprRuntimeError(e, "%s", msg);
-		}
-	else
-		fprintf(stderr, "%s: %s\n", msg, obj_desc(stmt));
-
+	reporter->RuntimeError(loc, "%s", msg);
 	ZAM_error = true;
 	}
 
@@ -72,7 +65,6 @@ void ZAM_run_time_error(const char* msg, const BroObj* o)
 	fprintf(stderr, "%s: %s\n", msg, obj_desc(o));
 	ZAM_error = true;
 	}
-
 
 
 // Unary vector operations never work on managed types, so no need
@@ -158,7 +150,12 @@ ZBody::ZBody(const char* _func_name, vector<ZInstI*>& instsI,
 	func_name = _func_name;
 
 	for ( auto i : instsI )
+		{
 		insts.push_back(i);
+		if ( i->stmt )
+			insts.back()->loc =
+				i->stmt->Original()->GetLocationInfo();
+		}
 
 	frame_denizens = _frame_denizens;
 	frame_size = frame_denizens.size();
@@ -370,6 +367,41 @@ void ZBody::ProfileExecution() const
 		}
 	}
 
+bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
+			const Location* loc) const
+	{
+	if ( IsAny(expected_type) )
+		return true;
+
+	if ( ! same_type(any_type, expected_type, false, false) )
+		{
+		auto at = any_type->Tag();
+		auto et = expected_type->Tag();
+
+		if ( at == TYPE_RECORD && et == TYPE_RECORD )
+			{
+			auto at_r = any_type->AsRecordType();
+			auto et_r = expected_type->AsRecordType();
+
+			if ( record_promotion_compatible(et_r, at_r) )
+				return true;
+			}
+
+		char buf[8192];
+		snprintf(buf, sizeof buf, "run-time type clash (%s/%s)",
+			type_name(at), type_name(et));
+
+		reporter->RuntimeError(loc, "%s", buf);
+		return false;
+		}
+
+	return true;
+	}
+
+void ZBody::SaveTo(FILE* f) const
+	{
+	}
+
 void ZBody::Dump()
 	{
 	printf("Frame:\n");
@@ -407,37 +439,6 @@ void ZBody::StmtDescribe(ODesc* d) const
 	{
 	d->AddSP("compiled");
 	d->AddSP(func_name);
-	}
-
-bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
-			const Stmt* associated_stmt) const
-	{
-	if ( IsAny(expected_type) )
-		return true;
-
-	if ( ! same_type(any_type, expected_type, false, false) )
-		{
-		auto at = any_type->Tag();
-		auto et = expected_type->Tag();
-
-		if ( at == TYPE_RECORD && et == TYPE_RECORD )
-			{
-			auto at_r = any_type->AsRecordType();
-			auto et_r = expected_type->AsRecordType();
-
-			if ( record_promotion_compatible(et_r, at_r) )
-				return true;
-			}
-
-		char buf[8192];
-		snprintf(buf, sizeof buf, "run-time type clash (%s/%s)",
-			type_name(at), type_name(et));
-
-		reporter->Error(buf, associated_stmt);
-		return false;
-		}
-
-	return true;
 	}
 
 TraversalCode ZBody::Traverse(TraversalCallback* cb) const

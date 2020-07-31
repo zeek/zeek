@@ -140,10 +140,6 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
-protected:
-	Stmt()	{ original = nullptr; }
-	explicit Stmt(BroStmtTag arg_tag);
-
 	const Stmt* Original() const
 		{
 		if ( original )
@@ -151,6 +147,10 @@ protected:
 		else
 			return this;
 		}
+
+protected:
+	Stmt()	{ original = nullptr; }
+	explicit Stmt(BroStmtTag arg_tag);
 
 	void SetOriginal(Stmt* _orig)
 		{

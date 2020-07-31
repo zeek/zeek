@@ -362,6 +362,14 @@ public:
 			original = _orig->Ref();
 		}
 
+	const Expr* Original() const
+		{
+		if ( original )
+			return original->Original();
+		else
+			return this;
+		}
+
 	void Describe(ODesc* d) const override;
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
@@ -373,14 +381,6 @@ protected:
 	// The following doesn't appear to be used.
 	// Expr() = default;
 	explicit Expr(BroExprTag arg_tag);
-
-	const Expr* Original() const
-		{
-		if ( original )
-			return original->Original();
-		else
-			return this;
-		}
 
 	void SeatBelts(const BroType* t1, const BroType* t2) const;
 	void SeatBelts(const BroType* t1, IntrusivePtr<BroType> t2) const

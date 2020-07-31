@@ -38,14 +38,6 @@ public:
 
 	void ProfileExecution() const;
 
-	void Dump();
-
-	void StmtDescribe(ODesc* d) const override;
-
-	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
-
-	TraversalCode Traverse(TraversalCallback* cb) const override;
-
 protected:
 	friend class ResumptionAM;
 
@@ -55,7 +47,15 @@ protected:
 	// Run-time checking for "any" type being consistent with
 	// expected typed.  Returns true if the type match is okay.
 	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,
-				const Stmt* associated_stmt) const;
+				const Location* loc) const;
+
+	void SaveTo(FILE* f) const;
+
+	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
+
+	void Dump();
+	void StmtDescribe(ODesc* d) const override;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	const char* func_name;
 

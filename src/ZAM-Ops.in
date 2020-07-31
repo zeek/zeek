@@ -95,7 +95,7 @@ set-expr $2
 eval const char* error;
 eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get();
 eval auto res = cast_value(rhs, z.t, error);
-eval if ( error ) ZAM_run_time_error(z.stmt, error);
+eval if ( error ) ZAM_run_time_error(z.loc, error);
 eval else AssignV1(BuildVal(res, z.t));
 
 # Cast an "any" type to the given type.  Only needed for type-based swith
@@ -104,7 +104,7 @@ internal-op Cast-Any
 type VV
 eval const char* error
 eval auto res = cast_value(frame[z.v2].any_val, z.t, error)
-eval if ( error ) ZAM_run_time_error(z.stmt, error)
+eval if ( error ) ZAM_run_time_error(z.loc, error)
 eval else AssignV1(BuildVal(res, z.t));
 
 direct-unary-op Is Is
@@ -148,7 +148,7 @@ op-type I U D
 set-expr $1
 vector
 #
-eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.stmt, "division by zero"); break; }
+eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.loc, "division by zero"); break; }
 eval $1 / $2
 #
 eval-mixed A I auto mask = static_cast<uint32_t>($2)
@@ -163,7 +163,7 @@ eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off 
 binary-expr-op Mod
 op-type I U
 vector
-eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.stmt, "modulo by zero"); break; }
+eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.loc, "modulo by zero"); break; }
 eval $1 % $2
 
 binary-expr-op And-And
@@ -561,7 +561,7 @@ op IndexVecBoolSelect
 type VVV
 set-type $1
 eval if ( frame[z.v2].vector_val->Size() != frame[z.v3].vector_val->Size() ) {
-eval	ZAM_run_time_error(z.stmt, "size mismatch, boolean index and vector")
+eval	ZAM_run_time_error(z.loc, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = z.t->AsVectorType()
 eval auto v2 = frame[z.v2].vector_val
@@ -589,7 +589,7 @@ type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
-eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Any-Vec
@@ -597,7 +597,7 @@ type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
-eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
 eval auto v = vec[ind].ToVal(vv->YieldType())
 eval Unref(frame[z.v1].any_val)
 eval frame[z.v1].any_val = v.release()
@@ -607,7 +607,7 @@ type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = z.v3
-eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Any-VecC
@@ -615,7 +615,7 @@ type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = z.v3
-eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
 eval auto v = vec[ind].ToVal(vv->YieldType())
 eval Unref(frame[z.v1].any_val)
 eval frame[z.v1].any_val = v.release()
@@ -633,7 +633,7 @@ internal-op Table-Index
 type VV
 eval auto v2 = z.aux->ToListVal(frame)
 eval auto v = frame[z.v2].table_val->Lookup(v2.get())
-eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ! v ) ZAM_run_time_error(z.loc, "no such index")
 eval AssignV1(BuildVal(v, z.t))
 
 internal-assignment-op Table-Index1
@@ -641,7 +641,7 @@ type VVV
 eval auto v2 = frame[z.v3].ToVal(z.t)
 eval auto v_ptr = frame[z.v2].table_val->Lookup(v2.get())
 eval auto v = v_ptr.get()
-eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ! v ) ZAM_run_time_error(z.loc, "no such index")
 eval @v
 
 internal-assignment-op Table-Index1
@@ -649,7 +649,7 @@ type VVC
 eval auto v2 = z.c.ToVal(z.t)
 eval auto v_ptr = frame[z.v2].table_val->Lookup(v2.get())
 eval auto v = v_ptr.get()
-eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
+eval if ( ! v ) ZAM_run_time_error(z.loc, "no such index")
 eval @v
 
 # This version is for a variable v3.
@@ -688,7 +688,7 @@ set-type $1
 eval auto lv = frame[z.v2].any_val->AsListVal()
 eval if ( z.v3 < 0 || z.v3 >= lv->Length() ) reporter->InternalError("bad \"any\" element index");
 eval IntrusivePtr<Val> elem = {NewRef{}, lv->Index(z.v3)}
-eval if ( CheckAnyType(elem->Type(), z.t, z.stmt) ) {
+eval if ( CheckAnyType(elem->Type(), z.t, z.loc) ) {
 eval	AssignV1(BuildVal(elem, z.t))
 eval } else ZAM_error = true
 
@@ -768,7 +768,7 @@ direct-unary-op Arith-Coerce ArithCoerce
 internal-op Coerce-UI
 type VV
 eval auto v = frame[z.v2].int_val
-eval if ( v < 0 ) { ZAM_run_time_error(z.stmt, "underflow converting int to count"); break; }
+eval if ( v < 0 ) { ZAM_run_time_error(z.loc, "underflow converting int to count"); break; }
 eval frame[z.v1].uint_val = bro_uint_t(v)
 
 internal-op Coerce-UI-Vec
@@ -779,8 +779,8 @@ eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val)
 internal-op Coerce-UD
 type VV
 eval auto v = frame[z.v2].double_val
-eval if ( v < 0.0 ) { ZAM_run_time_error(z.stmt, "underflow converting double to count"); break; }
-eval if ( v > UINT64_MAX ) { ZAM_run_time_error(z.stmt, "overflow converting double to count"); break; }
+eval if ( v < 0.0 ) { ZAM_run_time_error(z.loc, "underflow converting double to count"); break; }
+eval if ( v > UINT64_MAX ) { ZAM_run_time_error(z.loc, "overflow converting double to count"); break; }
 eval frame[z.v1].uint_val = bro_uint_t(v)
 
 internal-op Coerce-UD-Vec
@@ -791,7 +791,7 @@ eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val)
 internal-op Coerce-IU
 type VV
 eval auto v = frame[z.v2].uint_val
-eval if ( v > INT64_MAX ) { ZAM_run_time_error(z.stmt, "overflow converting count to int"); break; }
+eval if ( v > INT64_MAX ) { ZAM_run_time_error(z.loc, "overflow converting count to int"); break; }
 eval frame[z.v1].int_val = bro_int_t(v)
 
 internal-op Coerce-IU-Vec
@@ -802,8 +802,8 @@ eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val)
 internal-op Coerce-ID
 type VV
 eval auto v = frame[z.v2].double_val
-eval if ( v < static_cast<double>(INT64_MIN) ) { ZAM_run_time_error(z.stmt, "underflow converting double to int"); break; }
-eval if ( v > static_cast<double>(INT64_MAX) ) { ZAM_run_time_error(z.stmt, "overflow converting double to int"); break; }
+eval if ( v < static_cast<double>(INT64_MIN) ) { ZAM_run_time_error(z.loc, "underflow converting double to int"); break; }
+eval if ( v > static_cast<double>(INT64_MAX) ) { ZAM_run_time_error(z.loc, "overflow converting double to int"); break; }
 eval frame[z.v1].int_val = bro_int_t(v)
 
 internal-op Coerce-ID-Vec
@@ -846,7 +846,7 @@ direct-unary-op Table-Coerce TableCoerce
 internal-op Table-Coerce
 type VV
 eval auto tv = frame[z.v2].table_val
-eval if ( tv->Size() > 0 ) { ZAM_run_time_error(z.stmt, "coercion of non-empty table/set"); break; }
+eval if ( tv->Size() > 0 ) { ZAM_run_time_error(z.loc, "coercion of non-empty table/set"); break; }
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval auto t = make_intrusive<TableVal>(tt, attrs)
@@ -857,7 +857,7 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(z.stmt, "coercion of non-empty vector"); break; }
+eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(z.loc, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv = new VectorVal(t)
 eval Unref(frame[z.v1].vector_val)
@@ -874,8 +874,8 @@ set-type $1
 eval auto v = frame[z.v2].any_val;
 eval if ( z.t->Tag() == TYPE_VECTOR ) {
 eval	auto t = v->Type();
-eval	if ( t->Tag() != TYPE_VECTOR ) { ZAM_run_time_error(z.stmt, "RHS is not a vector"); break; }
-eval	if ( ! same_type(z.t, t) ) { ZAM_run_time_error(z.stmt, "incompatible vectors"); break; }
+eval	if ( t->Tag() != TYPE_VECTOR ) { ZAM_run_time_error(z.loc, "RHS is not a vector"); break; }
+eval	if ( ! same_type(z.t, t) ) { ZAM_run_time_error(z.loc, "incompatible vectors"); break; }
 eval	::Ref(v);
 eval	Unref(frame[z.v1].vector_val);
 eval	frame[z.v1].vector_val = v->AsVectorVal();
@@ -934,7 +934,7 @@ eval IntrusivePtr<Val> vec = {NewRef{}, frame[z.v1].vector_val}
 eval auto slice = z.aux->ToListVal(frame)
 eval IntrusivePtr<Val> vals = {NewRef{}, frame[z.v2].vector_val}
 eval auto error = assign_to_index(vec, slice, vals)
-eval if ( error ) ZAM_run_time_error(z.stmt, error)
+eval if ( error ) ZAM_run_time_error(z.loc, error)
 
 
 internal-op Table-Elem-Assign
@@ -966,7 +966,7 @@ op1-read
 type X
 side-effects
 eval std::vector<IntrusivePtr<Val>> args;	// empty
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # A call with no arguments and a return value.
@@ -975,7 +975,7 @@ type V
 side-effects OP_CALL0_X
 side-effects-op-type OP_X
 eval std::vector<IntrusivePtr<Val>> args;	// empty
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -988,7 +988,7 @@ type V
 side-effects
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v1].ToVal(z.t))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 internal-op Call1
@@ -997,7 +997,7 @@ type C
 side-effects
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # Same but with a return value.
@@ -1007,7 +1007,7 @@ side-effects OP_CALL1_V
 side-effects-op-type OP_V
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(frame[z.v2].ToVal(z.t))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1019,7 +1019,7 @@ side-effects OP_CALL1_C
 side-effects-op-type OP_C
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(z.c.ToVal(z.t))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1034,7 +1034,7 @@ eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1046,7 +1046,7 @@ eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1061,7 +1061,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1074,7 +1074,7 @@ eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1090,7 +1090,7 @@ eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1104,7 +1104,7 @@ eval args.push_back(aux->ToVal(frame, 0))
 eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1121,7 +1121,7 @@ eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval args.push_back(aux->ToVal(frame, 4))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1136,7 +1136,7 @@ eval args.push_back(aux->ToVal(frame, 1))
 eval args.push_back(aux->ToVal(frame, 2))
 eval args.push_back(aux->ToVal(frame, 3))
 eval args.push_back(aux->ToVal(frame, 4))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1152,7 +1152,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) z.func->Call(args, f)
 
 # Same with a return value.
@@ -1164,7 +1164,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = z.func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1180,7 +1180,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval (void) func->Call(args, f)
 
 # Same with a return value.
@@ -1193,7 +1193,7 @@ eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
 eval for ( auto i = 0; i < n; ++i ) args.push_back(aux->ToVal(frame, i))
-eval f->SetCallLoc(z.stmt->GetLocationInfo())
+eval f->SetCallLoc(z.loc)
 eval auto v_ptr = func->Call(args, f)
 eval if ( ! v_ptr ) { ZAM_error = true; break; }
 eval auto v = v_ptr.get()
@@ -1451,24 +1451,24 @@ op1-read
 type VVVV
 eval auto when_body = new ResumptionAM(this, z.v2)
 eval auto timeout_body = new ResumptionAM(this, z.v3)
-eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.stmt->GetLocationInfo())
+eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc)
 
 op When
 type VVVC
 eval auto when_body = new ResumptionAM(this, z.v1)
 eval auto timeout_body = new ResumptionAM(this, z.v2)
-eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, z.c.double_val, f, z.v3, z.stmt->GetLocationInfo())
+eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc)
 
 op When
 type VV
 eval auto when_body = new ResumptionAM(this, z.v2)
-eval new trigger::Trigger(z.non_const_e, when_body, nullptr, -1.0, f, z.v1, z.stmt->GetLocationInfo())
+eval new trigger::Trigger(z.non_const_e, when_body, nullptr, -1.0, f, z.v1, z.loc)
 
 op CheckAnyLen
 op1-read
 type Vi
 eval auto v = frame[z.v1].list_val
-eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(z.stmt, "mismatch in list lengths")
+eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(z.loc, "mismatch in list lengths")
 
 op Print
 type O
@@ -1656,7 +1656,7 @@ eval auto any_vec = frame[z.v1].vector_val->RawVector()
 eval auto at = any_vec->YieldType()
 eval if ( ! at ) break
 eval if ( at->Tag() == TYPE_ANY && any_vec->ConstVec().size() > 0 ) reporter->InternalError("non-concrete vector-of-any")
-eval if ( ! CheckAnyType(at, z.t, z.stmt) ) ZAM_error = true
+eval if ( ! CheckAnyType(at, z.t, z.loc) ) ZAM_error = true
 
 # Transform the given vector-of-any to a concrete internal type.
 internal-op Transform-Any-Vec

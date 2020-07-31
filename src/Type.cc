@@ -1270,9 +1270,14 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		string fullname = make_full_var_name(module_name.c_str(), name);
 		if ( id->Name() != fullname
 		     || (id->HasVal() && val != id->GetVal()->AsEnum())
+		     || GetName() != id->GetType()->GetName()
 		     || (names.find(fullname) != names.end() && names[fullname] != val) )
 			{
-			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
+			auto cl = detail::GetCurrentLocation();
+			reporter->PushLocation(&cl, id->GetLocationInfo());
+			reporter->Error("conflicting definition of enum value '%s' in type '%s'",
+			                fullname.data(), GetName().data());
+			reporter->PopLocation();
 			SetError();
 			return;
 			}

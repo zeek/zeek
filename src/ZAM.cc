@@ -1517,7 +1517,9 @@ const CompiledStmt ZAM::Switch(const SwitchStmt* sw)
 
 	PushBreaks();
 
-	if ( (*sw->Cases())[0]->TypeCases() )
+	auto& cases = *sw->Cases();
+
+	if ( cases.length() > 0 && cases[0]->TypeCases() )
 		return TypeSwitch(sw, n, c);
 	else
 		return ValueSwitch(sw, n, c);

@@ -105,6 +105,7 @@ class IfStmt;
 class CompiledStmt;
 class Compiler;
 class ZAM;
+class ZBody;
 
 
 class Expr : public BroObj {
@@ -367,6 +368,7 @@ public:
 
 protected:
 	friend ZAM;
+	friend ZBody;
 
 	// The following doesn't appear to be used.
 	// Expr() = default;

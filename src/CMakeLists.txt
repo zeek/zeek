@@ -325,6 +325,7 @@ set(MAIN_SRCS
     Var.cc
     WeirdState.cc
     ZAM.cc
+    ZBody.cc
     ZOP.cc
     ZVal.cc
     ZeekArgs.cc

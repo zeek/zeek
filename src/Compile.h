@@ -39,7 +39,7 @@ class OpaqueVals;
 // tracking "use" and "reaching" definitions, and for error messages.
 extern const Stmt* curr_stmt;
 
-class Compiler : public Stmt {
+class Compiler {
 public:
 	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
 
@@ -123,9 +123,4 @@ public:
 	// Returns a handle to state associated with building
 	// up a list of values.
 	virtual OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) = 0;
-
-	virtual void ProfileExecution() const = 0;
-
-protected:
-	TraversalCode Traverse(TraversalCallback* cb) const override;
 };

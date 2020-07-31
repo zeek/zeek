@@ -342,6 +342,7 @@ protected:
 	friend class TableEntryVal;
 
 	friend class ZAM;
+	friend class ZBody;
 	friend union ZAMValUnion;
 
 	virtual void ValDescribe(ODesc* d) const;

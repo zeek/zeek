@@ -35,6 +35,7 @@ class Reducer;
 class Inliner;
 class Compiler;
 class CompiledStmt;
+class ZBody;
 
 class Stmt : public BroObj {
 public:
@@ -120,7 +121,7 @@ public:
 	CONST_ACCESSOR(STMT_WHEN, WhenStmt, AsWhenStmt)
 	CONST_ACCESSOR(STMT_PRINT, PrintStmt, AsPrintStmt)
 	CONST_ACCESSOR(STMT_INIT, InitStmt, AsInitStmt)
-	CONST_ACCESSOR(STMT_COMPILED, Compiler, AsCompiler)
+	CONST_ACCESSOR(STMT_COMPILED, ZBody, AsZBody)
 
 #undef ACCESSORS
 #undef ACCESSOR

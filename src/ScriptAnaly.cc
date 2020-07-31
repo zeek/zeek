@@ -360,7 +360,7 @@ void profile_script_execution()
 		for ( auto& f : funcs )
 			{
 			if ( f->body->Tag() == STMT_COMPILED )
-				f->body->AsCompiler()->ProfileExecution();
+				f->body->AsZBody()->ProfileExecution();
 			}
 		}
 	}

@@ -18,22 +18,6 @@
 #include "Func.h"
 #include "OpaqueVal.h"
 
-// Just needed for BiFs.
-#include "Net.h"
-#include "logging/Manager.h"
-#include "broker/Manager.h"
-
-static BroType* log_ID_enum_type;
-
-
-// Count of how often each top of ZOP executed, and how much CPU it
-// cumulatively took.
-int ZOP_count[OP_NOP+1];
-double ZOP_CPU[OP_NOP+1];
-
-// Per-interpreted-expression.
-std::unordered_map<const Expr*, double> expr_CPU;
-
 
 // Tracks per function its maximum remapped interpreter frame size.  We
 // can't do this when compiling individual functions since for event handlers
@@ -77,38 +61,6 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 		// hurt to do more than once.
 		func->SetFrameSize(remapped_intrp_frame_sizes[func]);
 		}
-	}
-
-
-void report_ZOP_profile()
-	{
-	for ( int i = 1; i <= OP_NOP; ++i )
-		if ( ZOP_count[i] > 0 )
-			printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)),
-				ZOP_count[i], ZOP_CPU[i]);
-
-	for ( auto& e : expr_CPU )
-		printf("expr CPU %.06f %s\n", e.second, obj_desc(e.first));
-	}
-
-
-void ZAM_run_time_error(const Stmt* stmt, const char* msg)
-	{
-	if ( stmt->Tag() == STMT_EXPR )
-		{
-		auto e = stmt->AsExprStmt()->StmtExpr();
-		reporter->ExprRuntimeError(e, "%s", msg);
-		}
-	else
-		fprintf(stderr, "%s: %s\n", msg, obj_desc(stmt));
-
-	ZAM_error = true;
-	}
-
-void ZAM_run_time_error(const char* msg, const BroObj* o)
-	{
-	fprintf(stderr, "%s: %s\n", msg, obj_desc(o));
-	ZAM_error = true;
 	}
 
 
@@ -340,7 +292,6 @@ ZOp AssignmentFlavor(ZOp orig, TypeTag tag)
 ZAM::ZAM(BroFunc* f, Scope* _scope, Stmt* _body,
 		UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
 	{
-	tag = STMT_COMPILED;
 	func = f;
 	scope = _scope;
 	body = _body;
@@ -348,28 +299,14 @@ ZAM::ZAM(BroFunc* f, Scope* _scope, Stmt* _body,
 	ud = _ud;
 	reducer = _rd;
 	pf = _pf;
-	frame_size = 0;
+	frame_sizeI = 0;
 
 	Init();
 	}
 
 ZAM::~ZAM()
 	{
-	if ( fixed_frame )
-		{
-		// Free slots with explicit memory management.
-		for ( auto i = 0; i < managed_slots.size(); ++i )
-			{
-			auto& v = fixed_frame[managed_slots[i]];
-			DeleteManagedType(v, nullptr);
-			}
-
-		delete[] fixed_frame;
-		}
-
 	Unref(body);
-	delete inst_count;
-	delete CPU_time;
 	delete ud;
 	delete reducer;
 	delete pf;
@@ -529,52 +466,70 @@ Stmt* ZAM::CompileBody()
 			}
 		}
 
-	// Update remapped frame denizens, if any.
-	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
-		{
-		auto& info = shared_frame_denizens[i];
+	// If we have remapped frame denizens, update them.  If not,
+	// create them.
+	if ( shared_frame_denizens.size() > 0 )
+		{ // update
+		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+			{
+			auto& info = shared_frame_denizens[i];
 
-		for ( auto& start : info.id_start )
-			start = inst1_to_inst2[start];
+			for ( auto& start : info.id_start )
+				start = inst1_to_inst2[start];
 
-		shared_frame_denizens_final.push_back(info);
+			shared_frame_denizens_final.push_back(info);
+			}
+		}
+
+	else
+		{ // create
+		for ( auto i = 0; i < frame_denizens.size(); ++i )
+			{
+			FrameSharingInfo info;
+			info.ids.push_back(frame_denizens[i]);
+			info.id_start.push_back(0);
+			info.scope_end = insts2.size();
+
+			// The following doesn't matter since the value
+			// is only used during compiling, not during
+			// execution.
+			info.is_managed = false;
+
+			shared_frame_denizens_final.push_back(info);
+			}
 		}
 
 	delete pending_inst;
 
+	// Create concretized versions of any case tables.
+	ZBody::CaseMaps<bro_int_t> int_cases;
+	ZBody::CaseMaps<bro_uint_t> uint_cases;
+	ZBody::CaseMaps<double> double_cases;
+	ZBody::CaseMaps<std::string> str_cases;
+
+#define CONCRETIZE_SWITCH_TABLES(T, switchesI, switches) \
+	for ( auto& targs : switchesI ) \
+		{ \
+		ZBody::CaseMap<T> cm; \
+		for ( auto& targ : targs ) \
+			cm[targ.first] = targ.second->inst_num; \
+		switches.push_back(cm); \
+		}
+
+	CONCRETIZE_SWITCH_TABLES(bro_int_t, int_casesI, int_cases);
+	CONCRETIZE_SWITCH_TABLES(bro_uint_t, uint_casesI, uint_cases);
+	CONCRETIZE_SWITCH_TABLES(double, double_casesI, double_cases);
+	CONCRETIZE_SWITCH_TABLES(std::string, str_casesI, str_cases);
+
 	// Could erase insts1 here to recover memory, but it's handy
 	// for debugging.
 
-	for ( auto i : insts2 )
-		insts3.push_back(i);
-
-	if ( analysis_options.report_profile )
-		{
-		inst_count = new vector<int>;
-		inst_CPU = new vector<double>;
-		for ( auto i : insts3 )
-			{
-			inst_count->push_back(0);
-			inst_CPU->push_back(0.0);
-			}
-
-		CPU_time = new double;
-		*CPU_time = 0.0;
-		}
-	else
-		inst_count = nullptr;
-
 	if ( non_recursive )
-		{
-		fixed_frame = new ZAMValUnion[frame_size];
-
-		for ( auto i = 0; i < managed_slots.size(); ++i )
-			fixed_frame[managed_slots[i]].managed_val = nullptr;
-
 		func->UseStaticFrame();
-		}
 
-	return this;
+	return new ZBody(func->Name(), insts2, shared_frame_denizens_final,
+				managed_slotsI, globalsI, non_recursive,
+				int_cases, uint_cases, double_cases, str_cases);
 	}
 
 void ZAM::Init()
@@ -583,15 +538,13 @@ void ZAM::Init()
 	auto args = scope->OrderedVars();
 	auto nparam = func->FType()->Args()->NumFields();
 
-	num_globals = pf->globals.size();
-
 	for ( auto g : pf->globals )
 		{
 		GlobalInfo info;
 		info.id = g;
 		info.slot = AddToFrame(g);
-		global_id_to_info[g] = globals.size();
-		globals.push_back(info);
+		global_id_to_info[g] = globalsI.size();
+		globalsI.push_back(info);
 		}
 
 	::Ref(scope);
@@ -639,10 +592,7 @@ void ZAM::Init()
 		// we do explicit memory management on (re)assignment.
 		auto t = slot.first->Type();
 		if ( IsManagedType(t) )
-			{
-			managed_slots.push_back(slot.second);
-			managed_slot_types.push_back(t);
-			}
+			managed_slotsI.push_back(slot.second);
 		}
 
 	non_recursive = non_recursive_funcs.count(func) > 0;
@@ -664,10 +614,10 @@ void ZAM::OptimizeInsts()
 		for ( auto& targ : targs ) \
 			++(targ.second->num_labels);
 
-	TALLY_SWITCH_TARGETS(int_cases);
-	TALLY_SWITCH_TARGETS(uint_cases);
-	TALLY_SWITCH_TARGETS(double_cases);
-	TALLY_SWITCH_TARGETS(str_cases);
+	TALLY_SWITCH_TARGETS(int_casesI);
+	TALLY_SWITCH_TARGETS(uint_casesI);
+	TALLY_SWITCH_TARGETS(double_casesI);
+	TALLY_SWITCH_TARGETS(str_casesI);
 
 	bool something_changed;
 
@@ -1012,7 +962,7 @@ void ZAM::ReMapFrame()
 	// that point remap the variables to a suitable frame slot.
 
 	frame1_to_frame2.resize(frame_layout1.size(), -1);
-	managed_slots.clear();
+	managed_slotsI.clear();
 
 	for ( auto i = 0; i < insts1.size(); ++i )
 		{
@@ -1055,9 +1005,9 @@ void ZAM::ReMapFrame()
 	std::vector<GlobalInfo> used_globals;
 	std::vector<int> remapped_globals;
 
-	for ( auto i = 0; i < globals.size(); ++i )
+	for ( auto i = 0; i < globalsI.size(); ++i )
 		{
-		auto& g = globals[i];
+		auto& g = globalsI[i];
 		g.slot = frame1_to_frame2[g.slot];
 		if ( g.slot >= 0 )
 			{
@@ -1068,8 +1018,7 @@ void ZAM::ReMapFrame()
 			remapped_globals.push_back(-1);
 		}
 
-	globals = used_globals;
-	num_globals = globals.size();
+	globalsI = used_globals;
 
 	// Gulp - now rewrite every instruction to update its slot usage.
 	// In the process, if an instruction becomes a direct assignment
@@ -1158,7 +1107,7 @@ void ZAM::ReMapFrame()
 			KillInst(inst);
 		}
 
-	frame_size = shared_frame_denizens.size();
+	frame_sizeI = shared_frame_denizens.size();
 	}
 
 void ZAM::ReMapInterpreterFrame()
@@ -1318,7 +1267,7 @@ void ZAM::ReMapVar(ID* id, int slot, int inst)
 		shared_frame_denizens.push_back(info);
 
 		if ( is_managed )
-			managed_slots.push_back(apt_slot);
+			managed_slotsI.push_back(apt_slot);
 		}
 
 	auto& s = shared_frame_denizens[apt_slot];
@@ -1595,216 +1544,6 @@ void ZAM::RetargetBranch(ZInstI* inst, ZInstI* target, int target_slot)
 	default:
 		reporter->InternalError("bad GoTo target");
 	}
-	}
-
-void ZAM::StmtDescribe(ODesc* d) const
-	{
-	d->AddSP("compiled");
-	d->AddSP(func->Name());
-	}
-
-// Unary vector operations never work on managed types, so no need
-// to pass in the type ...  However, the RHS, which normally would
-// be const, needs to be non-const so we can use its Type() method
-// to get at a shareable VectorType.
-static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
-
-// Binary ones *can* have managed types (strings).
-static void vec_exec(ZOp op, BroType* t, VectorVal*& v1, VectorVal* v2,
-			const VectorVal* v3);
-
-// Vector coercion.
-//
-// ### Should check for underflow/overflow.
-#define VEC_COERCE(tag, lhs_type, lhs_accessor, cast, rhs_accessor) \
-	static VectorVal* vec_coerce_##tag(VectorVal* vec) \
-		{ \
-		auto& v = vec->RawVector()->ConstVec(); \
-		auto yt = new VectorType(base_type(lhs_type)); \
-		auto res_zv = new VectorVal(yt); \
-		auto n = v.size(); \
-		auto& res = res_zv->RawVector()->InitVec(n); \
-		for ( unsigned int i = 0; i < n; ++i ) \
-			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
-		return res_zv; \
-		}
-
-VEC_COERCE(IU, TYPE_INT, int_val, bro_int_t, uint_val)
-VEC_COERCE(ID, TYPE_INT, int_val, bro_int_t, double_val)
-VEC_COERCE(UI, TYPE_COUNT, uint_val, bro_int_t, int_val)
-VEC_COERCE(UD, TYPE_COUNT, uint_val, bro_uint_t, double_val)
-VEC_COERCE(DI, TYPE_DOUBLE, double_val, double, int_val)
-VEC_COERCE(DU, TYPE_DOUBLE, double_val, double, uint_val)
-
-StringVal* ZAM_to_lower(const StringVal* sv)
-	{
-	auto bs = sv->AsString();
-	const u_char* s = bs->Bytes();
-	int n = bs->Len();
-	u_char* lower_s = new u_char[n + 1];
-	u_char* ls = lower_s;
-
-	for ( int i = 0; i < n; ++i )
-		{
-		if ( isascii(s[i]) && isupper(s[i]) )
-			*ls++ = tolower(s[i]);
-		else
-			*ls++ = s[i];
-		}
-
-	*ls++ = '\0';
-		
-	return new StringVal(new BroString(1, lower_s, n));
-	}
-
-StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
-	{
-        if ( start > 0 )
-                --start;        // make it 0-based
-
-        BroString* ss = s->AsString()->GetSubstring(start, n);
-
-	return new StringVal(ss ? ss : new BroString(""));
-	}
-
-double curr_CPU_time()
-	{
-	struct timespec ts;
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
-	}
-
-IntrusivePtr<Val> ZAM::Exec(Frame* f, stmt_flow_type& flow) const
-	{
-	auto nv = num_Vals;
-	auto ndv = num_del_Vals;
-
-	double t = analysis_options.report_profile ? curr_CPU_time() : 0.0;
-
-	auto val = DoExec(f, 0, flow);
-
-	if ( analysis_options.report_profile )
-		*CPU_time += curr_CPU_time() - t;
-
-	auto dnv = num_Vals - nv;
-	auto dndv = num_del_Vals - ndv;
-
-	if ( /* dnv || dndv */ 0 )
-		printf("%s vals: +%d -%d\n", func->Name(), dnv, dndv);
-
-	return val;
-	}
-
-IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
-						stmt_flow_type& flow) const
-	{
-	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
-						nullptr;
-	int pc = start_pc;
-	int end_pc = insts3.size();
-
-#define BuildVal(v, t) ZAMValUnion(v, t)
-#define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
-
-// Managed assignments to frame[s.v1].
-#define AssignV1T(v, t) { \
-	if ( z.is_managed ) \
-		{ \
-		/* It's important to hold a reference to v here prior \
-		   to the deletion in case frame[z.v1] points to v. */ \
-		auto v2 = v; \
-		DeleteManagedType(frame[z.v1], t); \
-		frame[z.v1] = v2; \
-		} \
-	else \
-		frame[z.v1] = v; \
-	}
-
-#define AssignV1(v) AssignV1T(v, z.t)
-
-	// Return value, or nil if none.
-	const ZAMValUnion* ret_u;
-
-	// Type of the return value.  If nil, then we don't have a value.
-	BroType* ret_type = nullptr;
-
-	bool do_profile = analysis_options.report_profile;
-
-	// All globals start out unloaded.
-	for ( auto i = 0; i < num_globals; ++i )
-		global_state[i] = GS_UNLOADED;
-
-	ZAMValUnion* frame;
-
-	if ( fixed_frame )
-		frame = fixed_frame;
-	else
-		{
-		frame = new ZAMValUnion[frame_size];
-		// Clear slots for which we do explicit memory management.
-		for ( auto s : managed_slots )
-			frame[s].managed_val = nullptr;
-		}
-
-	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
-
-	while ( pc < end_pc && ! ZAM_error ) {
-		auto& z = *insts3[pc];
-
-#ifdef DEBUG
-		int profile_pc;
-		double profile_CPU;
-
-		if ( do_profile )
-			{
-			++ZOP_count[z.op];
-			++(*inst_count)[pc];
-
-			profile_pc = pc;
-			profile_CPU = curr_CPU_time();
-			}
-#endif
-
-		switch ( z.op ) {
-		case OP_NOP:
-			break;
-
-#include "ZAM-OpsEvalDefs.h"
-		}
-
-#ifdef DEBUG
-		if ( do_profile )
-			{
-			double dt = curr_CPU_time() - profile_CPU;
-			(*inst_CPU)[profile_pc] += dt;
-			ZOP_CPU[z.op] += dt;
-			}
-#endif
-
-		++pc;
-		}
-
-	auto result = ret_type ? ret_u->ToVal(ret_type) : nullptr;
-
-	if ( ! fixed_frame )
-		{
-		// Free those slots for which we do explicit memory management.
-		for ( auto i = 0; i < managed_slots.size(); ++i )
-			{
-			auto& v = frame[managed_slots[i]];
-			DeleteManagedType(v, nullptr);
-			// DeleteManagedType(v, managed_slot_types[i]);
-			}
-
-		delete [] frame;
-		}
-
-	delete [] global_state;
-
-	// Clear any error state.
-	ZAM_error = false;
-
-	return result;
 	}
 
 #include "ZAM-OpsMethodsDefs.h"
@@ -2868,32 +2607,32 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	switch ( t->InternalType() ) {
 	case TYPE_INTERNAL_INT:
 		op = OP_SWITCHI_VVV;
-		tbl = int_cases.size();
+		tbl = int_casesI.size();
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
 		op = OP_SWITCHU_VVV;
-		tbl = uint_cases.size();
+		tbl = uint_casesI.size();
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
 		op = OP_SWITCHD_VVV;
-		tbl = double_cases.size();
+		tbl = double_casesI.size();
 		break;
 
 	case TYPE_INTERNAL_STRING:
 		op = OP_SWITCHS_VVV;
-		tbl = str_cases.size();
+		tbl = str_casesI.size();
 		break;
 
 	case TYPE_INTERNAL_ADDR:
 		op = OP_SWITCHA_VVV;
-		tbl = str_cases.size();
+		tbl = str_casesI.size();
 		break;
 
 	case TYPE_INTERNAL_SUBNET:
 		op = OP_SWITCHN_VVV;
-		tbl = str_cases.size();
+		tbl = str_casesI.size();
 		break;
 
 	default:
@@ -2934,10 +2673,10 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	// Now fill out the corresponding jump table.
 	//
 	// We will only use one of these.
-	CaseMap<bro_int_t> new_int_cases;
-	CaseMap<bro_uint_t> new_uint_cases;
-	CaseMap<double> new_double_cases;
-	CaseMap<std::string> new_str_cases;
+	CaseMapI<bro_int_t> new_int_cases;
+	CaseMapI<bro_uint_t> new_uint_cases;
+	CaseMapI<double> new_double_cases;
+	CaseMapI<std::string> new_str_cases;
 
 	auto val_map = sw->ValueMap();
 
@@ -3009,21 +2748,21 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 
 	switch ( t->InternalType() ) {
 	case TYPE_INTERNAL_INT:
-		int_cases.push_back(new_int_cases);
+		int_casesI.push_back(new_int_cases);
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		uint_cases.push_back(new_uint_cases);
+		uint_casesI.push_back(new_uint_cases);
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
-		double_cases.push_back(new_double_cases);
+		double_casesI.push_back(new_double_cases);
 		break;
 
 	case TYPE_INTERNAL_STRING:
 	case TYPE_INTERNAL_ADDR:
 	case TYPE_INTERNAL_SUBNET:
-		str_cases.push_back(new_str_cases);
+		str_casesI.push_back(new_str_cases);
 		break;
 
 	default:
@@ -3523,7 +3262,6 @@ const CompiledStmt ZAM::LastInst()
 
 const CompiledStmt ZAM::ErrorStmt()
 	{
-	error_seen = true;
 	return CompiledStmt(0);
 	}
 
@@ -3709,33 +3447,9 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 
 int ZAM::AddToFrame(ID* id)
 	{
-	frame_layout1[id] = frame_size;
+	frame_layout1[id] = frame_sizeI;
 	frame_denizens.push_back(id);
-	return frame_size++;
-	}
-
-void ZAM::ProfileExecution() const
-	{
-	if ( inst_count->size() == 0 )
-		{
-		printf("%s has an empty body\n", func->Name());
-		return;
-		}
-
-	if ( (*inst_count)[0] == 0 )
-		{
-		printf("%s did not execute\n", func->Name());
-		return;
-		}
-
-	printf("%s CPU time: %.06f\n", func->Name(), *CPU_time);
-
-	for ( int i = 0; i < inst_count->size(); ++i )
-		{
-		printf("%s %d %d %.06f ", func->Name(), i,
-			(*inst_count)[i], (*inst_CPU)[i]);
-		insts3[i]->Dump(i, &shared_frame_denizens_final);
-		}
+	return frame_sizeI++;
 	}
 
 void ZAM::Dump()
@@ -3761,7 +3475,7 @@ void ZAM::Dump()
 			}
 		}
 
-	if ( insts3.size() > 0 )
+	if ( insts2.size() > 0 )
 		printf("Pre-removal of dead code:\n");
 
 	auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
@@ -3789,30 +3503,30 @@ void ZAM::Dump()
 		inst->Dump(&frame_denizens, remappings);
 		}
 
-	if ( insts3.size() > 0 )
+	if ( insts2.size() > 0 )
 		printf("Final code:\n");
 
-	for ( int i = 0; i < insts3.size(); ++i )
+	for ( int i = 0; i < insts2.size(); ++i )
 		{
-		auto& inst = insts3[i];
+		auto& inst = insts2[i];
 		printf("%d: ", i);
-		inst->Dump(i, remappings);
+		inst->Dump(&frame_denizens, remappings);
 		}
 
-	for ( int i = 0; i < int_cases.size(); ++i )
+	for ( int i = 0; i < int_casesI.size(); ++i )
 		DumpIntCases(i);
-	for ( int i = 0; i < uint_cases.size(); ++i )
+	for ( int i = 0; i < uint_casesI.size(); ++i )
 		DumpUIntCases(i);
-	for ( int i = 0; i < double_cases.size(); ++i )
+	for ( int i = 0; i < double_casesI.size(); ++i )
 		DumpDoubleCases(i);
-	for ( int i = 0; i < str_cases.size(); ++i )
+	for ( int i = 0; i < str_casesI.size(); ++i )
 		DumpStrCases(i);
 	}
 
 void ZAM::DumpIntCases(int i) const
 	{
 	printf("int switch table #%d:", i);
-	for ( auto& m : int_cases[i] )
+	for ( auto& m : int_casesI[i] )
 		printf(" %lld->%d", m.first, m.second->inst_num);
 	printf("\n");
 	}
@@ -3820,7 +3534,7 @@ void ZAM::DumpIntCases(int i) const
 void ZAM::DumpUIntCases(int i) const
 	{
 	printf("uint switch table #%d:", i);
-	for ( auto& m : uint_cases[i] )
+	for ( auto& m : uint_casesI[i] )
 		printf(" %llu->%d", m.first, m.second->inst_num);
 	printf("\n");
 	}
@@ -3828,7 +3542,7 @@ void ZAM::DumpUIntCases(int i) const
 void ZAM::DumpDoubleCases(int i) const
 	{
 	printf("double switch table #%d:", i);
-	for ( auto& m : double_cases[i] )
+	for ( auto& m : double_casesI[i] )
 		printf(" %lf->%d", m.first, m.second->inst_num);
 	printf("\n");
 	}
@@ -3836,7 +3550,7 @@ void ZAM::DumpDoubleCases(int i) const
 void ZAM::DumpStrCases(int i) const
 	{
 	printf("str switch table #%d:", i);
-	for ( auto& m : str_cases[i] )
+	for ( auto& m : str_casesI[i] )
 		printf(" %s->%d", m.first.c_str(), m.second->inst_num);
 	printf("\n");
 	}
@@ -4417,7 +4131,7 @@ bool ZAM::HasFrameSlot(const ID* id) const
 int ZAM::NewSlot(bool is_managed)
 	{
 	char buf[8192];
-	snprintf(buf, sizeof buf, "#internal-%d#", frame_size);
+	snprintf(buf, sizeof buf, "#internal-%d#", frame_sizeI);
 
 	// In the following, all that matters is that for managed
 	// types we pick a tag that will be viewed as managed, and
@@ -4428,116 +4142,4 @@ int ZAM::NewSlot(bool is_managed)
 	internal_reg->SetType(base_type(tag));
 
 	return AddToFrame(internal_reg);
-	}
-
-bool ZAM::CheckAnyType(const BroType* any_type, const BroType* expected_type,
-			const Stmt* associated_stmt) const
-	{
-	if ( IsAny(expected_type) )
-		return true;
-
-	if ( ! same_type(any_type, expected_type, false, false) )
-		{
-		auto at = any_type->Tag();
-		auto et = expected_type->Tag();
-
-		if ( at == TYPE_RECORD && et == TYPE_RECORD )
-			{
-			auto at_r = any_type->AsRecordType();
-			auto et_r = expected_type->AsRecordType();
-
-			if ( record_promotion_compatible(et_r, at_r) )
-				return true;
-			}
-
-		char buf[8192];
-		snprintf(buf, sizeof buf, "run-time type clash (%s/%s)",
-			type_name(at), type_name(et));
-
-		reporter->Error(buf, associated_stmt);
-		return false;
-		}
-
-	return true;
-	}
-
-IntrusivePtr<Val> ResumptionAM::Exec(Frame* f, stmt_flow_type& flow) const
-	{
-	return am->DoExec(f, xfer_pc, flow);
-	}
-
-void ResumptionAM::StmtDescribe(ODesc* d) const
-	{
-	d->Add("resumption of compiled code");
-	}
-
-TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-// Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
-	{
-	// We could speed this up further still by gen'ing up an
-	// instance of the loop inside each switch case (in which
-	// case we might as well move the whole kit-and-caboodle
-	// into the Exec method).  But that seems like a lot of
-	// code bloat for only a very modest gain.
-
-	auto old_v1 = v1;
-	auto& vec2 = v2->RawVector()->ConstVec();
-	auto vt = v2->Type()->AsVectorType();
-
-	::Ref(vt);
-	v1 = new VectorVal(vt);
-
-	v1->RawVector()->Resize(vec2.size());
-
-	auto& vec1 = v1->RawVector()->ModVec();
-
-	for ( unsigned int i = 0; i < vec2.size(); ++i )
-		switch ( op ) {
-
-#include "ZAM-Vec1EvalDefs.h"
-
-		default:
-			reporter->InternalError("bad invocation of VecExec");
-		}
-
-	Unref(old_v1);
-	}
-
-// Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
-			VectorVal* v2, const VectorVal* v3)
-	{
-	// See comment above re further speed-up.
-
-	auto old_v1 = v1;
-	auto& vec2 = v2->RawVector()->ConstVec();
-	auto& vec3 = v3->RawVector()->ConstVec();
-
-	IntrusivePtr<BroType> yt_ptr = {NewRef{}, yt};
-	auto vt = new VectorType(yt_ptr);
-	v1 = new VectorVal(vt);
-
-	v1->RawVector()->Resize(vec2.size());
-
-	auto& vec1 = v1->RawVector()->ModVec();
-
-	for ( unsigned int i = 0; i < vec2.size(); ++i )
-		switch ( op ) {
-
-#include "ZAM-Vec2EvalDefs.h"
-
-		default:
-			reporter->InternalError("bad invocation of VecExec");
-		}
-
-	Unref(old_v1);
 	}

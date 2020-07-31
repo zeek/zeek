@@ -8,7 +8,7 @@
 #include "Event.h"
 #include "ReachingDefs.h"
 #include "UseDefs.h"
-#include "ZOP.h"
+#include "ZBody.h"
 
 
 struct function_ingredients;
@@ -25,7 +25,7 @@ class ZAM : public Compiler {
 public:
 	ZAM(BroFunc* f, Scope* scope, Stmt* body,
 		UseDefs* ud, Reducer* rd, ProfileFunc* pf);
-	~ZAM() override;
+	~ZAM();
 
 	Stmt* CompileBody();
 
@@ -113,21 +113,13 @@ public:
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-
-	void StmtDescribe(ODesc* d) const override;
-
 	// Public so that GenInst flavors can get to it.
 	int FrameSlot(const NameExpr* id)
 		{ return FrameSlot(id->AsNameExpr()->Id()); }
 	int Frame1Slot(const NameExpr* id, ZOp op)
 		{ return Frame1Slot(id->AsNameExpr()->Id(), op); }
 
-	void ProfileExecution() const override;
-
 	void Dump();
-
-	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
 
 protected:
 	void Init();
@@ -210,11 +202,6 @@ protected:
 	// given target, updates the slot to correspond with the current
 	// (final) location of the target.
 	void RetargetBranch(ZInstI* inst, ZInstI* target, int target_slot);
-
-	friend class ResumptionAM;
-
-	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
-					stmt_flow_type& flow) const;
 
 	// "stride" is how many slots each element of l will consume.
 	ZInstAux* InternalBuildVals(const ListExpr* l, int stride = 1);
@@ -398,27 +385,15 @@ protected:
 
 	void SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o);
 
-	// Run-time checking for "any" type being consistent with
-	// expected typed.  Returns true if the type match is okay.
-	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,
-				const Stmt* associated_stmt) const;
-
 	// The first of these is used as we compile down to ZInstI's.
 	// The second is the final code used during execution.  They're
 	// separate to make it easy to remove dead code.
 	vector<ZInstI*> insts1;
 	vector<ZInstI*> insts2;
-	vector<ZInst*> insts3;
 
 	// Used as a placeholder when we have to generate a GoTo target
 	// beyond the end of what we've compiled so far.
 	ZInstI* pending_inst = nullptr;
-
-	// These need to be pointers so we can manipulate them in a
-	// const method.
-	vector<int>* inst_count;	// for profiling
-	double* CPU_time = nullptr;	// cumulative CPU time for the program
-	vector<double>* inst_CPU;	// per-instruction CPU time.
 
 	// Indices of break/next/fallthrough/catch-return goto's, so they
 	// can be patched up post-facto.  These are vectors-of-vectors
@@ -483,24 +458,13 @@ protected:
 	AssociatedInsts denizen_beginning;
 	AssociatedInsts denizen_ending;
 
-	// Which frame slots need clearing/deleting on entry/exit,
-	// and their corresponding type tags.
-	std::vector<int> managed_slots;
-	std::vector<const BroType*> managed_slot_types;
-
 	// Which locals appear in interpreted expressions.
 	std::unordered_set<const ID*> interpreter_locals;
 
-	// Static information about globals used in the function.  There's
-	// a parallel array "global_state" that's constructed
-	// per-function-invocation that dynamically tracks whether a
-	// global is loaded, clean, or dirty.
-	class GlobalInfo {
-	public:
-		ID* id;
-		int slot;
-	};
-	std::vector<GlobalInfo> globals;
+	// In the following, member variables ending in 'I' are intermediary
+	// values that get finalized when constructing the corresponding
+	// ZBody.
+	std::vector<GlobalInfo> globalsI;
 	std::unordered_map<const ID*, int> global_id_to_info;	// inverse
 
 	// Which globals are potentially ever modified.
@@ -510,30 +474,27 @@ protected:
 	// switch value (which can be any atomic type) to a branch target.
 	// We have vectors of them because functions can contain multiple
 	// switches.
-	template<class T> using CaseMap = std::map<T, InstLabel>;
-	template<class T> using CaseMaps = std::vector<CaseMap<T>>;
+	template<class T> using CaseMapI = std::map<T, InstLabel>;
+	template<class T> using CaseMapsI = std::vector<CaseMapI<T>>;
 
-	CaseMaps<bro_int_t> int_cases;
-	CaseMaps<bro_uint_t> uint_cases;
-	CaseMaps<double> double_cases;
+	CaseMapsI<bro_int_t> int_casesI;
+	CaseMapsI<bro_uint_t> uint_casesI;
+	CaseMapsI<double> double_casesI;
 
 	// Note, we use this not only for strings but for addresses
 	// and prefixes.
-	CaseMaps<std::string> str_cases;
+	CaseMapsI<std::string> str_casesI;
 
 	void DumpIntCases(int i) const;
 	void DumpUIntCases(int i) const;
 	void DumpDoubleCases(int i) const;
 	void DumpStrCases(int i) const;
 
-	int frame_size;
-	int num_globals;
-	bool error_seen = false;
-	bool non_recursive = false;
+	std::vector<int> managed_slotsI;
 
-	// This is non-nil if the function is (asserted to be) non-recursive,
-	// in which case we pre-allocate this.
-	ZAMValUnion* fixed_frame = nullptr;
+	int frame_sizeI;
+
+	bool non_recursive = false;
 
 	// Most recent instruction, other than for housekeeping.
 	int top_main_inst;
@@ -544,34 +505,6 @@ protected:
 	int mark_dirty = -1;
 };
 
-// This is a statement that resumes execution into a code block in an
-// ZAM.  Used for deferred execution for "when" statements.
-class ResumptionAM : public Stmt {
-public:
-	ResumptionAM(const ZAM* _am, int _xfer_pc)
-		{
-		am = _am;
-		xfer_pc = _xfer_pc;
-		}
-
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-
-	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
-
-	void StmtDescribe(ODesc* d) const override;
-
-protected:
-	TraversalCode Traverse(TraversalCallback* cb) const override;
-
-	const ZAM* am;
-	int xfer_pc = 0;
-};
-
 // Invokes after compiling all of the function bodies.
 class FuncInfo;
 extern void finalize_functions(const std::vector<FuncInfo*>& funcs);
-
-extern void report_ZOP_profile();
-
-extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);
-extern void ZAM_run_time_error(const char* msg, const BroObj* o);

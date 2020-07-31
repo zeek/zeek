@@ -1462,7 +1462,7 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 		z.v1 = is_return;
 		}
 
-	z.non_const_e = cond;
+	z.e = cond;
 
 	auto when_eval = AddInst(z);
 

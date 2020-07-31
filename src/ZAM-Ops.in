@@ -1450,18 +1450,18 @@ op1-read
 type VVVV
 eval auto when_body = new ResumptionAM(this, z.v2)
 eval auto timeout_body = new ResumptionAM(this, z.v3)
-eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc)
+eval new trigger::Trigger(z.e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc)
 
 op When
 type VVVC
 eval auto when_body = new ResumptionAM(this, z.v1)
 eval auto timeout_body = new ResumptionAM(this, z.v2)
-eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc)
+eval new trigger::Trigger(z.e, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc)
 
 op When
 type VV
 eval auto when_body = new ResumptionAM(this, z.v2)
-eval new trigger::Trigger(z.non_const_e, when_body, nullptr, -1.0, f, z.v1, z.loc)
+eval new trigger::Trigger(z.e, when_body, nullptr, -1.0, f, z.v1, z.loc)
 
 op CheckAnyLen
 op1-read

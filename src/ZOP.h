@@ -130,7 +130,7 @@ public:
 	BroType* t = nullptr;
 	BroType* t2 = nullptr;	// just a few operations need two types
 
-	Expr* non_const_e = nullptr;
+	Expr* e = nullptr;	// only needed for "when" expressions
 
 	Func* func = nullptr;	// used for calls
 

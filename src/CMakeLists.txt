@@ -327,6 +327,7 @@ set(MAIN_SRCS
     ZAM.cc
     ZBody.cc
     ZOP.cc
+    ZOpt.cc
     ZVal.cc
     ZeekArgs.cc
     bsd-getopt-long.c

@@ -1,11 +1,11 @@
 1st stuff
-hrw, 0, zeek/cluster/node/proxy-2/
-hrw, 1, zeek/cluster/node/proxy-2/
+hrw, 0, zeek/cluster/node/proxy-1/
+hrw, 1, zeek/cluster/node/proxy-1/
 hrw, 2, zeek/cluster/node/proxy-1/
-hrw, 3, zeek/cluster/node/proxy-2/
+hrw, 3, zeek/cluster/node/proxy-1/
 hrw, 13, zeek/cluster/node/proxy-2/
 hrw, 37, zeek/cluster/node/proxy-2/
-hrw, 42, zeek/cluster/node/proxy-1/
+hrw, 42, zeek/cluster/node/proxy-2/
 hrw, 101, zeek/cluster/node/proxy-2/
 rr, zeek/cluster/node/proxy-1/
 rr, zeek/cluster/node/proxy-2/
@@ -15,13 +15,13 @@ rr, zeek/cluster/node/proxy-1/
 rr, zeek/cluster/node/proxy-2/
 rr, zeek/cluster/node/proxy-1/
 rr, zeek/cluster/node/proxy-2/
-hrw, 0, zeek/cluster/node/proxy-2/
-hrw, 1, zeek/cluster/node/proxy-2/
+hrw, 0, zeek/cluster/node/proxy-1/
+hrw, 1, zeek/cluster/node/proxy-1/
 hrw, 2, zeek/cluster/node/proxy-1/
-hrw, 3, zeek/cluster/node/proxy-2/
+hrw, 3, zeek/cluster/node/proxy-1/
 hrw, 13, zeek/cluster/node/proxy-2/
 hrw, 37, zeek/cluster/node/proxy-2/
-hrw, 42, zeek/cluster/node/proxy-1/
+hrw, 42, zeek/cluster/node/proxy-2/
 hrw, 101, zeek/cluster/node/proxy-2/
 2nd stuff
 hrw, 0, zeek/cluster/node/proxy-2/

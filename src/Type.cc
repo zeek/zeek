@@ -1249,7 +1249,8 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		return;
 		}
 
-	auto id = zeek::detail::lookup_ID(name, module_name.c_str());
+	auto fullname = make_full_var_name(module_name.c_str(), name);
+	auto id = zeek::id::find(fullname);
 
 	if ( ! id )
 		{
@@ -1267,9 +1268,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		// We allow double-definitions if matching exactly. This is so that
 		// we can define an enum both in a *.bif and *.zeek for avoiding
 		// cyclic dependencies.
-		string fullname = make_full_var_name(module_name.c_str(), name);
-		if ( id->Name() != fullname
-		     || ! id->IsEnumConst()
+		if ( ! id->IsEnumConst()
 		     || (id->HasVal() && val != id->GetVal()->AsEnum())
 		     || GetName() != id->GetType()->GetName()
 		     || (names.find(fullname) != names.end() && names[fullname] != val) )

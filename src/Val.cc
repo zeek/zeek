@@ -2179,7 +2179,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			index_val = index;
 			}
 
-		auto broker_index = bro_broker::val_to_data(index_val);
+		auto broker_index = zeek::Broker::detail::val_to_data(index_val);
 
 		if ( ! broker_index )
 			{
@@ -2209,10 +2209,10 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 							// element already expired? Let's not insert it.
 							break;
 
-						expiry = bro_broker::convert_expiry(e);
+						expiry = zeek::Broker::detail::convert_expiry(e);
 						}
 					else
-						expiry = bro_broker::convert_expiry(expire_time);
+						expiry = zeek::Broker::detail::convert_expiry(expire_time);
 					}
 
 				if ( table_type->IsSet() )
@@ -2226,7 +2226,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 						}
 
 					auto new_value = new_entry_val->GetVal().get();
-					auto broker_val = bro_broker::val_to_data(new_value);
+					auto broker_val = zeek::Broker::detail::val_to_data(new_value);
 					if ( ! broker_val )
 						{
 						zeek::emit_builtin_error("invalid Broker data conversation for table value");
@@ -3579,14 +3579,14 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 	if ( same_type(v->GetType(), t) )
 		return {NewRef{}, v};
 
-	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return nullptr;
 
-		return static_cast<bro_broker::DataVal*>(dv.get())->castTo(t);
+		return static_cast<zeek::Broker::detail::DataVal*>(dv.get())->castTo(t);
 		}
 
 	return nullptr;
@@ -3605,14 +3605,14 @@ bool can_cast_value_to_type(const Val* v, Type* t)
 	if ( same_type(v->GetType(), t) )
 		return true;
 
-	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return false;
 
-		return static_cast<const bro_broker::DataVal *>(dv.get())->canCastTo(t);
+		return static_cast<const zeek::Broker::detail::DataVal *>(dv.get())->canCastTo(t);
 		}
 
 	return false;
@@ -3628,7 +3628,7 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 	if ( same_type(s, t) )
 		return true;
 
-	if ( same_type(s, bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(s, zeek::Broker::detail::DataVal::ScriptDataType()) )
 		// As Broker is dynamically typed, we don't know if we will be able
 		// to convert the type as intended. We optimistically assume that we
 		// will.

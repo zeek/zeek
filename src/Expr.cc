@@ -4834,7 +4834,7 @@ ValPtr CastExpr::Eval(Frame* f) const
 	GetType()->Describe(&d);
 	d.Add("'");
 
-	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) &&
+	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) &&
 		 ! v->AsRecordVal()->GetField(0) )
 		d.Add(" (nil $data field)");
 

@@ -301,7 +301,7 @@ void net_run()
 			}
 #endif
 		current_iosrc = nullptr;
-		auto communication_enabled = broker_mgr->Active();
+		auto communication_enabled = zeek::broker_mgr->Active();
 
 		if ( ! ready.empty() )
 			{

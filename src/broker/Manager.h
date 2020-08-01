@@ -30,12 +30,14 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 namespace zeek {
 using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
 using TableValPtr = zeek::IntrusivePtr<zeek::TableVal>;
-}
 
-namespace bro_broker {
+namespace Broker {
 
+namespace detail {
 class StoreHandleVal;
 class StoreQueryCallback;
+};
+
 class BrokerState;
 
 /**
@@ -271,8 +273,8 @@ public:
 	 * @param opts The backend options.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-	StoreHandleVal* MakeMaster(const std::string& name, broker::backend type,
-	                           broker::backend_options opts);
+	detail::StoreHandleVal* MakeMaster(const std::string& name, broker::backend type,
+	                                   broker::backend_options opts);
 
 	/**
 	 * Create a new *clone* data store.
@@ -292,17 +294,17 @@ public:
 	 * the master.  A negative/zero value indicates to never buffer commands.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-	StoreHandleVal* MakeClone(const std::string& name,
-	                          double resync_interval = 10.0,
-	                          double stale_interval = 300.0,
-	                          double mutation_buffer_interval = 120.0);
+	detail::StoreHandleVal* MakeClone(const std::string& name,
+	                                  double resync_interval = 10.0,
+	                                  double stale_interval = 300.0,
+	                                  double mutation_buffer_interval = 120.0);
 
 	/**
 	 * Lookup a data store by it's identifier name and type.
 	 * @param name the store's name.
 	 * @return a pointer to the store handle if it exists else nullptr.
 	 */
-	StoreHandleVal* LookupStore(const std::string& name);
+	detail::StoreHandleVal* LookupStore(const std::string& name);
 
 	/**
 	 * Register a Zeek table that is associated with a Broker store that is backing it. This
@@ -328,8 +330,8 @@ public:
 	 * @param cb the callback info to use when the query completes or times out.
 	 * @return true if now tracking a data store query.
 	 */
-	bool TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
-	                     StoreQueryCallback* cb);
+	bool TrackStoreQuery(detail::StoreHandleVal* handle, broker::request_id id,
+	                     detail::StoreQueryCallback* cb);
 
 	/**
 	 * Send all pending log write messages.
@@ -370,7 +372,7 @@ private:
 	bool ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu);
 	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
-	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
+	void ProcessStoreResponse(detail::StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
 	// Initializes the masters for Broker backed Zeek tables when using the &backend attribute
 	void InitializeBrokerStoreForwarding();
@@ -378,7 +380,7 @@ private:
 	void PrepareForwarding(const std::string& name);
 	// Send the content of a Broker store to the backing table. This is typically used
 	// when a master/clone is created.
-	void BrokerStoreToZeekTable(const std::string& name, const StoreHandleVal* handle);
+	void BrokerStoreToZeekTable(const std::string& name, const detail::StoreHandleVal* handle);
 
 	void Error(const char* format, ...)
 		__attribute__((format (printf, 2, 3)));
@@ -397,7 +399,7 @@ private:
 	};
 
 	// Data stores
-	using query_id = std::pair<broker::request_id, StoreHandleVal*>;
+	using query_id = std::pair<broker::request_id, detail::StoreHandleVal*>;
 
 	struct query_id_hasher {
 		size_t operator()(const query_id& qid) const
@@ -412,9 +414,9 @@ private:
 	std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
-	std::unordered_map<std::string, StoreHandleVal*> data_stores;
+	std::unordered_map<std::string, detail::StoreHandleVal*> data_stores;
 	std::unordered_map<std::string, zeek::TableValPtr> forwarded_stores;
-	std::unordered_map<query_id, StoreQueryCallback*,
+	std::unordered_map<query_id, detail::StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;
 
@@ -436,6 +438,15 @@ private:
 	static int script_scope;
 };
 
-} // namespace bro_broker
+} // namespace Broker
 
-extern bro_broker::Manager* broker_mgr;
+extern Broker::Manager* broker_mgr;
+
+} // namespace zeek
+
+extern zeek::Broker::Manager*& broker_mgr [[deprecated("Remove in v4.1. Use zeek::broker_mgr.")]];
+
+namespace bro_broker {
+	using Stats [[deprecated("Remove in v4.1. Use zeek::Broker::Stats.")]] = zeek::Broker::Stats;
+	using Manager [[deprecated("Remove in v4.1. Use zeek::Broker::Manager.")]] = zeek::Broker::Manager;
+} // namespace bro_broker

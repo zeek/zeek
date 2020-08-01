@@ -78,9 +78,9 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return zeek::val_mgr->False();
 		}
 
-	if ( same_type(val->GetType(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(val->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
 		{
-		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->GetField(0).get());
+		auto dv = static_cast<zeek::Broker::detail::DataVal*>(val->AsRecordVal()->GetField(0).get());
 		auto val_from_data = dv->castTo(i->GetType().get());
 
 		if ( ! val_from_data )

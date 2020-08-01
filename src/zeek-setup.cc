@@ -113,7 +113,8 @@ zeek::file_analysis::Manager*& file_mgr = zeek::file_mgr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
 zeek::iosource::Manager*& iosource_mgr = zeek::iosource_mgr;
-bro_broker::Manager* broker_mgr = nullptr;
+zeek::Broker::Manager* zeek::broker_mgr = nullptr;
+zeek::Broker::Manager*& broker_mgr = zeek::broker_mgr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* trigger_mgr = nullptr;
 
@@ -311,7 +312,7 @@ void terminate_bro()
 	zeek::log_mgr->Terminate();
 	zeek::input_mgr->Terminate();
 	zeek::thread_mgr->Terminate();
-	broker_mgr->Terminate();
+	zeek::broker_mgr->Terminate();
 	zeek::detail::dns_mgr->Terminate();
 
 	zeek::event_mgr.Drain();
@@ -588,7 +589,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::input_mgr = new input::Manager();
 	zeek::file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
-	broker_mgr = new bro_broker::Manager(broker_real_time);
+	broker_mgr = new zeek::Broker::Manager(broker_real_time);
 	trigger_mgr = new zeek::detail::trigger::Manager();
 
 	zeek::plugin_mgr->InitPreScript();
@@ -665,7 +666,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::log_mgr->InitPostScript();
 	zeek::plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
-	broker_mgr->InitPostScript();
+	zeek::broker_mgr->InitPostScript();
 	zeek::detail::timer_mgr->InitPostScript();
 	zeek::event_mgr.InitPostScript();
 
@@ -876,7 +877,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( zeek::reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
 		zeek::reporter->FatalError("errors occurred while initializing");
 
-	broker_mgr->ZeekInitDone();
+	zeek::broker_mgr->ZeekInitDone();
 	zeek::reporter->ZeekInitDone();
 	zeek::analyzer_mgr->DumpDebug();
 

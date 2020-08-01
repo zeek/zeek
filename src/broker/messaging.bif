@@ -50,16 +50,16 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 static bool publish_event_args(val_list& args, const zeek::String* topic,
                                zeek::detail::Frame* frame)
 	{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
 
 	if ( args[0]->GetType()->Tag() == zeek::TYPE_RECORD )
-		rval = broker_mgr->PublishEvent(topic->CheckString(),
-		                                args[0]->AsRecordVal());
+		rval = zeek::broker_mgr->PublishEvent(topic->CheckString(),
+		                                      args[0]->AsRecordVal());
 	else
 		{
-		auto ev = broker_mgr->MakeEvent(&args, frame);
-		rval = broker_mgr->PublishEvent(topic->CheckString(), ev);
+		auto ev = zeek::broker_mgr->MakeEvent(&args, frame);
+		rval = zeek::broker_mgr->PublishEvent(topic->CheckString(), ev);
 		Unref(ev);
 		}
 
@@ -82,14 +82,14 @@ type Broker::Event: record;
 ##          event.
 function Broker::make_event%(...%): Broker::Event
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size());
 
 	for ( auto i = 0u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
 
-	return RecordValPtr{zeek::AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
+	return RecordValPtr{zeek::AdoptRef{}, zeek::broker_mgr->MakeEvent(&args, frame)};
 	%}
 
 ## Publishes an event at a given topic.
@@ -115,50 +115,50 @@ function Broker::publish%(topic: string, ...%): bool
 
 function Broker::__flush_logs%(%): count
 	%{
-	auto rval = broker_mgr->FlushLogBuffers();
+	auto rval = zeek::broker_mgr->FlushLogBuffers();
 	return zeek::val_mgr->Count(static_cast<uint64_t>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
-	                                          id->CheckString());
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	auto rval = zeek::broker_mgr->PublishIdentifier(topic->CheckString(),
+	                                                id->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	auto rval = zeek::broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
 	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	auto rval = zeek::broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
 	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	auto rval = zeek::broker_mgr->Subscribe(topic_prefix->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	auto rval = zeek::broker_mgr->Forward(topic_prefix->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	auto rval = zeek::broker_mgr->Unsubscribe(topic_prefix->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}
 

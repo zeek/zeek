@@ -1,11 +1,12 @@
-#include "Store.h"
+#include "broker/Store.h"
 #include "Desc.h"
 #include "ID.h"
 #include "broker/Manager.h"
 
-namespace bro_broker {
+zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_store_handle;
+zeek::OpaqueTypePtr& bro_broker::opaque_of_store_handle = zeek::Broker::detail::opaque_of_store_handle;
 
-zeek::OpaqueTypePtr opaque_of_store_handle;
+namespace zeek::Broker::detail {
 
 zeek::EnumValPtr query_status(bool success)
 	{
@@ -123,4 +124,4 @@ broker::backend_options to_backend_options(broker::backend backend,
 	return broker::backend_options{};
 	}
 
-} // namespace bro_broker
+} // namespace zeek::Broker

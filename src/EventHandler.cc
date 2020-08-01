@@ -72,7 +72,7 @@ void EventHandler::Call(zeek::Args* vl, bool no_remote)
 
 			for ( auto i = 0u; i < vl->size(); ++i )
 				{
-				auto opt_data = bro_broker::val_to_data((*vl)[i].get());
+				auto opt_data = zeek::Broker::detail::val_to_data((*vl)[i].get());
 
 				if ( opt_data )
 					xs.emplace_back(std::move(*opt_data));

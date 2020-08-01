@@ -350,7 +350,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 		zeek::TypeTag tag = val->GetType()->Tag();
 
-		auto expected = bro_broker::val_to_data(val.get());
+		auto expected = zeek::Broker::detail::val_to_data(val.get());
 		if ( ! expected )
 			return broker::ec::invalid_data;
 
@@ -477,7 +477,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 		broker::integer g = *has_type;
 		zeek::Type t( static_cast<zeek::TypeTag>(g) );
 
-		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
+		auto val = zeek::Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
 			return std::make_pair(false, nullptr);
 

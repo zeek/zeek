@@ -7,8 +7,8 @@
 #include "broker/Data.h"
 #include "Trigger.h"
 
-static bro_broker::StoreHandleVal* to_store_handle(zeek::Val* h)
-	{ return dynamic_cast<bro_broker::StoreHandleVal*>(h); }
+static zeek::Broker::detail::StoreHandleVal* to_store_handle(zeek::Val* h)
+	{ return dynamic_cast<zeek::Broker::detail::StoreHandleVal*>(h); }
 %%}
 
 module Broker;
@@ -26,7 +26,7 @@ enum BackendType %{
 function Broker::__create_master%(id: string, b: BackendType,
                                   options: BackendOptions &default = BackendOptions()%): opaque of Broker::Store
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
 
@@ -34,8 +34,8 @@ function Broker::__create_master%(id: string, b: BackendType,
 		return ValPtr{zeek::NewRef{}, rval};
 
 	auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
-	auto type = bro_broker::to_backend_type(e);
-	auto opts = bro_broker::to_backend_options(type, options->AsRecordVal());
+	auto type = zeek::Broker::detail::to_backend_type(e);
+	auto opts = zeek::Broker::detail::to_backend_options(type, options->AsRecordVal());
 
 	ValPtr store{zeek::AdoptRef{}, broker_mgr->MakeMaster(name, type, std::move(opts))};
 
@@ -52,7 +52,7 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
                                  stale_interval: interval,
                                  mutation_buffer_interval: interval%): opaque of Broker::Store
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
 
@@ -75,7 +75,7 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 
 function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto handle = to_store_handle(h);
 
 	if ( ! handle )
@@ -86,7 +86,7 @@ function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 
 function Broker::__close%(h: opaque of Broker::Store%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto handle = to_store_handle(h);
 
 	if ( ! handle )
@@ -116,15 +116,15 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
-	auto key = bro_broker::val_to_data(k);
+	auto key = zeek::Broker::detail::val_to_data(k);
 
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto trigger = frame->GetTrigger();
@@ -132,7 +132,7 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	if ( ! trigger )
 		{
 		zeek::emit_builtin_error("Broker queries can only be called inside when-condition");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
@@ -140,14 +140,14 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	if ( timeout < 0 )
 		{
 		zeek::emit_builtin_error("Broker queries must specify a timeout block");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-	                                             handle->store);
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	                                               handle->store);
 	auto req_id = handle->proxy.exists(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
@@ -162,15 +162,15 @@ function Broker::__get%(h: opaque of Broker::Store,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
-	auto key = bro_broker::val_to_data(k);
+	auto key = zeek::Broker::detail::val_to_data(k);
 
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto trigger = frame->GetTrigger();
@@ -178,7 +178,7 @@ function Broker::__get%(h: opaque of Broker::Store,
 	if ( ! trigger )
 		{
 		zeek::emit_builtin_error("Broker queries can only be called inside when-condition");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
@@ -186,14 +186,14 @@ function Broker::__get%(h: opaque of Broker::Store,
 	if ( timeout < 0 )
 		{
 		zeek::emit_builtin_error("Broker queries must specify a timeout block");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-	                                             handle->store);
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	                                               handle->store);
 	auto req_id = handle->proxy.get(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
@@ -208,22 +208,22 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto val = bro_broker::val_to_data(v);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto val = zeek::Broker::detail::val_to_data(v);
 
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	if ( ! val )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for value argument", v);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto trigger = frame->GetTrigger();
@@ -231,7 +231,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	if ( ! trigger )
 		{
 		zeek::emit_builtin_error("Broker queries can only be called inside when-condition");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
@@ -239,17 +239,17 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	if ( timeout < 0 )
 		{
 		zeek::emit_builtin_error("Broker queries must specify a timeout block");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-	                                             handle->store);
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	                                               handle->store);
 
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
-	                                       bro_broker::convert_expiry(e));
+	                                       zeek::Broker::detail::convert_expiry(e));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return nullptr;
@@ -263,23 +263,23 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
-	auto key = bro_broker::val_to_data(k);
+	auto key = zeek::Broker::detail::val_to_data(k);
 
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
-	auto index = bro_broker::val_to_data(i);
+	auto index = zeek::Broker::detail::val_to_data(i);
 
 	if ( ! index )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for index argument", i);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto trigger = frame->GetTrigger();
@@ -287,7 +287,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 	if ( ! trigger )
 		{
 		zeek::emit_builtin_error("Broker queries can only be called inside when-condition");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
@@ -295,14 +295,14 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 	if ( timeout < 0 )
 		{
 		zeek::emit_builtin_error("Broker queries must specify a timeout block");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-						     handle->store);
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+						       handle->store);
 	auto req_id = handle->proxy.get_index_from_value(std::move(*key),
 	                                                 std::move(*index));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -317,7 +317,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto trigger = frame->GetTrigger();
@@ -325,7 +325,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	if ( ! trigger )
 		{
 		zeek::emit_builtin_error("Broker queries can only be called inside when-condition");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
@@ -333,13 +333,13 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	if ( timeout < 0 )
 		{
 		zeek::emit_builtin_error("Broker queries must specify a timeout block");
-		return bro_broker::query_result();
+		return zeek::Broker::detail::query_result();
 		}
 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
 	                                             handle->store);
 	auto req_id = handle->proxy.keys();
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -358,8 +358,8 @@ function Broker::__put%(h: opaque of Broker::Store,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto val = bro_broker::val_to_data(v);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto val = zeek::Broker::detail::val_to_data(v);
 
 	if ( ! key )
 		{
@@ -373,7 +373,7 @@ function Broker::__put%(h: opaque of Broker::Store,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.put(std::move(*key), std::move(*val), bro_broker::convert_expiry(e));
+	handle->store.put(std::move(*key), std::move(*val), zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -387,7 +387,7 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
+	auto key = zeek::Broker::detail::val_to_data(k);
 
 	if ( ! key )
 		{
@@ -410,8 +410,8 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto amount = bro_broker::val_to_data(a);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto amount = zeek::Broker::detail::val_to_data(a);
 
 	if ( ! key )
 		{
@@ -426,7 +426,7 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 		}
 
 	handle->store.increment(std::move(*key), std::move(*amount),
-	                        bro_broker::convert_expiry(e));
+	                        zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -441,8 +441,8 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto amount = bro_broker::val_to_data(a);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto amount = zeek::Broker::detail::val_to_data(a);
 
 	if ( ! key )
 		{
@@ -456,7 +456,7 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.decrement(std::move(*key), std::move(*amount), bro_broker::convert_expiry(e));
+	handle->store.decrement(std::move(*key), std::move(*amount), zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -471,8 +471,8 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto str = bro_broker::val_to_data(s);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto str = zeek::Broker::detail::val_to_data(s);
 
 	if ( ! key )
 		{
@@ -486,7 +486,7 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.append(std::move(*key), std::move(*str), bro_broker::convert_expiry(e));
+	handle->store.append(std::move(*key), std::move(*str), zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -501,8 +501,8 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto idx = bro_broker::val_to_data(i);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto idx = zeek::Broker::detail::val_to_data(i);
 
 	if ( ! key )
 		{
@@ -517,7 +517,7 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
-	                          bro_broker::convert_expiry(e));
+	                          zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -532,9 +532,9 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto idx = bro_broker::val_to_data(i);
-	auto val = bro_broker::val_to_data(v);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto idx = zeek::Broker::detail::val_to_data(i);
+	auto val = zeek::Broker::detail::val_to_data(v);
 
 	if ( ! key )
 		{
@@ -555,7 +555,7 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
-	                          std::move(*val), bro_broker::convert_expiry(e));
+	                          std::move(*val), zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -570,8 +570,8 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto idx = bro_broker::val_to_data(i);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto idx = zeek::Broker::detail::val_to_data(i);
 
 	if ( ! key )
 		{
@@ -586,7 +586,7 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 		}
 
 	handle->store.remove_from(std::move(*key), std::move(*idx),
-	                          bro_broker::convert_expiry(e));
+	                          zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -601,8 +601,8 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
-	auto val = bro_broker::val_to_data(v);
+	auto key = zeek::Broker::detail::val_to_data(k);
+	auto val = zeek::Broker::detail::val_to_data(v);
 
 	if ( ! key )
 		{
@@ -616,7 +616,7 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.push(std::move(*key), std::move(*val), bro_broker::convert_expiry(e));
+	handle->store.push(std::move(*key), std::move(*val), zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 
@@ -630,7 +630,7 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 		return zeek::val_mgr->False();
 		}
 
-	auto key = bro_broker::val_to_data(k);
+	auto key = zeek::Broker::detail::val_to_data(k);
 
 	if ( ! key )
 		{
@@ -638,7 +638,7 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.pop(std::move(*key), bro_broker::convert_expiry(e));
+	handle->store.pop(std::move(*key), zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 

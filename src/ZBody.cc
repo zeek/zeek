@@ -508,9 +508,6 @@ void ZBody::DescribeType(const BroType* t, ODesc* d) const
 
 			DescribeType(rt->FieldType(i), d);
 			d->AddSP(";");
-
-			if ( i < n - 1 )
-				d->SP();
 			}
 
 		d->Add("}");

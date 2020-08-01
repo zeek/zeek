@@ -223,7 +223,7 @@ void EventMgr::Process()
 	// If we don't have a source, or the source is closed, or we're
 	// reading live (which includes pseudo-realtime), advance the time
 	// here to the current time since otherwise it won't move forward.
-	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	zeek::iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
 	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live )
 		net_update_time(current_time());
 
@@ -233,16 +233,16 @@ void EventMgr::Process()
 	// to call Drain() as part of this method. It will get called at
 	// the end of net_run after all of the sources have been processed
 	// and had the opportunity to spawn new events. We could use
-	// iosource_mgr->Wakeup() instead of making EventMgr an IOSource,
+	// zeek::iosource_mgr->Wakeup() instead of making EventMgr an IOSource,
 	// but then we couldn't update the time above and nothing would
 	// drive it forward.
 	}
 
 void EventMgr::InitPostScript()
 	{
-	iosource_mgr->Register(this, true, false);
-	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
-		zeek::reporter->FatalError("Failed to register event manager FD with iosource_mgr");
+	zeek::iosource_mgr->Register(this, true, false);
+	if ( ! zeek::iosource_mgr->RegisterFd(queue_flare.FD(), this) )
+		zeek::reporter->FatalError("Failed to register event manager FD with zeek::iosource_mgr");
 	}
 
 } // namespace zeek

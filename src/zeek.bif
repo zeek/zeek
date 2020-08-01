@@ -33,7 +33,7 @@ using namespace std;
 
 zeek::TableType* var_sizes;
 
-static iosource::PktDumper* addl_pkt_dumper = 0;
+static zeek::iosource::PktDumper* addl_pkt_dumper = nullptr;
 
 bro_int_t parse_int(const char*& fmt)
 	{
@@ -1891,7 +1891,7 @@ function reading_traces%(%): bool
 function packet_source%(%): PacketSource
 	%{
 	static auto ps_type = zeek::id::find_type<zeek::RecordType>("PacketSource");
-	auto ps = iosource_mgr->GetPktSrc();
+	auto ps = zeek::iosource_mgr->GetPktSrc();
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ps_type);
 
 	if ( ps )
@@ -3407,7 +3407,7 @@ function dump_current_packet%(file_name: string%) : bool
 		}
 
 	if ( ! addl_pkt_dumper )
-		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
+		addl_pkt_dumper = zeek::iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
 	if ( addl_pkt_dumper )
 		{
@@ -3490,7 +3490,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		}
 
 	if ( ! addl_pkt_dumper )
-		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
+		addl_pkt_dumper = zeek::iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
 	if ( ! addl_pkt_dumper->IsError() )
 		{

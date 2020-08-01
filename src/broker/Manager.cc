@@ -163,7 +163,7 @@ void Manager::InitPostScript()
 	vector_of_data_type = zeek::make_intrusive<zeek::VectorType>(zeek::id::find_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.
-	iosource_mgr->Register(this, true);
+	zeek::iosource_mgr->Register(this, true);
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
@@ -210,9 +210,9 @@ void Manager::InitPostScript()
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
 	bstate = std::make_shared<BrokerState>(std::move(config), cqs);
 
-	if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
 		zeek::reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
-	if ( ! iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this) )
 		zeek::reporter->FatalError("Failed to register broker status subscriber with iosource_mgr");
 
 	bstate->subscriber.add_topic(broker::topics::store_events, true);
@@ -268,8 +268,8 @@ void Manager::Terminate()
 	{
 	FlushLogBuffers();
 
-	iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
-	iosource_mgr->UnregisterFd(bstate->status_subscriber.fd(), this);
+	zeek::iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
+	zeek::iosource_mgr->UnregisterFd(bstate->status_subscriber.fd(), this);
 
 	vector<string> stores_to_close;
 
@@ -353,7 +353,7 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 		      addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
 	// Register as a "does-count" source now.
-	iosource_mgr->Register(this, false);
+	zeek::iosource_mgr->Register(this, false);
 
 	DBG_LOG(zeek::DBG_BROKER, "Listening on %s:%" PRIu16,
 		addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
@@ -385,7 +385,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 
 	if ( counts_as_iosource )
 		// Register as a "does-count" source now.
-		iosource_mgr->Register(this, false);
+		zeek::iosource_mgr->Register(this, false);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)
@@ -1598,7 +1598,7 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
-	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	zeek::iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
 	PrepareForwarding(name);
 
 	if ( ! bstate->endpoint.use_real_time() )
@@ -1695,7 +1695,7 @@ StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
-	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	zeek::iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
 	PrepareForwarding(name);
 	return handle;
 	}
@@ -1714,7 +1714,7 @@ bool Manager::CloseStore(const string& name)
 	if ( s == data_stores.end() )
 		return false;
 
-	iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor(), this);
+	zeek::iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor(), this);
 
 	for ( auto i = pending_queries.begin(); i != pending_queries.end(); )
 		if ( i->second->Store().name() == name )

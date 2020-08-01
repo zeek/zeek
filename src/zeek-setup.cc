@@ -110,7 +110,8 @@ zeek::input::Manager*& input_mgr = zeek::input_mgr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::file_analysis::Manager*& file_mgr = zeek::file_mgr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
-iosource::Manager* iosource_mgr = nullptr;
+zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
+zeek::iosource::Manager*& iosource_mgr = zeek::iosource_mgr;
 bro_broker::Manager* broker_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* trigger_mgr = nullptr;
@@ -279,7 +280,7 @@ void terminate_bro()
 
 	terminating = true;
 
-	iosource_mgr->Wakeup("terminate_bro");
+	zeek::iosource_mgr->Wakeup("terminate_bro");
 
 	// File analysis termination may produce events, so do it early on in
 	// the termination process.
@@ -320,7 +321,7 @@ void terminate_bro()
 	delete zeek::analyzer_mgr;
 	delete zeek::file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
-	delete iosource_mgr;
+	delete zeek::iosource_mgr;
 	delete zeek::event_registry;
 	delete zeek::log_mgr;
 	delete zeek::reporter;
@@ -359,7 +360,7 @@ RETSIGTYPE sig_handler(int signo)
 	signal_val = signo;
 
 	if ( ! terminating )
-		iosource_mgr->Wakeup("sig_handler");
+		zeek::iosource_mgr->Wakeup("sig_handler");
 
 	return RETSIGVAL;
 	}
@@ -579,7 +580,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	// policy, but we can't parse policy without DNS resolution.
 	zeek::detail::dns_mgr->SetDir(".state");
 
-	iosource_mgr = new iosource::Manager();
+	zeek::iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
 	zeek::analyzer_mgr = new analyzer::Manager();
 	zeek::log_mgr = new logging::Manager();
@@ -659,7 +660,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( zeek::reporter->Errors() > 0 )
 		exit(1);
 
-	iosource_mgr->InitPostScript();
+	zeek::iosource_mgr->InitPostScript();
 	zeek::log_mgr->InitPostScript();
 	zeek::plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();

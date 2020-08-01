@@ -9,7 +9,7 @@
 
 #include "pcap.bif.h"
 
-using namespace iosource::pcap;
+namespace zeek::iosource::pcap {
 
 PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	{
@@ -117,3 +117,5 @@ iosource::PktDumper* PcapDumper::Instantiate(const std::string& path, bool appen
 	{
 	return new PcapDumper(path, append);
 	}
+
+} // namespace zeek::iosource::pcap

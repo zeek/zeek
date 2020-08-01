@@ -117,7 +117,7 @@ private:
 
 using TriggerPtr = zeek::IntrusivePtr<Trigger>;
 
-class Manager final : public iosource::IOSource {
+class Manager final : public zeek::iosource::IOSource {
 public:
 
 	Manager();
@@ -143,7 +143,7 @@ private:
 	unsigned long total_triggers = 0;
 	};
 
-}
+} // namespace zeek::detail::trigger
 
 namespace trigger {
 	using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger instead")]] = zeek::detail::trigger::Trigger;

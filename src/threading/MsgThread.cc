@@ -206,7 +206,7 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullp
 	failed = false;
 	thread_mgr->AddMsgThread(this);
 
-	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(flare.FD(), this) )
 		zeek::reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
 
 	SetClosed(false);
@@ -216,7 +216,7 @@ MsgThread::~MsgThread()
 	{
 	// Unregister this thread from the iosource manager so it doesn't wake
 	// up the main poll anymore.
-	iosource_mgr->UnregisterFd(flare.FD(), this);
+	zeek::iosource_mgr->UnregisterFd(flare.FD(), this);
 	}
 
 // Set by Bro's main signal handler.

@@ -27,7 +27,7 @@ struct Field;
  * that happens, the thread stops accepting any new messages, finishes
  * processes all remaining ones still in the queue, and then exits.
  */
-class MsgThread : public BasicThread, public iosource::IOSource
+class MsgThread : public BasicThread, public zeek::iosource::IOSource
 {
 public:
 	/**

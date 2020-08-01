@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 		return setup_result.code;
 
 	auto& options = setup_result.options;
-	auto do_net_run = iosource_mgr->Size() > 0 ||
+	auto do_net_run = zeek::iosource_mgr->Size() > 0 ||
 	                  have_pending_timers ||
 	                  zeek::BifConst::exit_only_after_terminate;
 

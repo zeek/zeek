@@ -255,8 +255,8 @@ Supervisor::~Supervisor()
 		return;
 		}
 
-	iosource_mgr->UnregisterFd(signal_flare.FD(), this);
-	iosource_mgr->UnregisterFd(stem_pipe->InFD(), this);
+	zeek::iosource_mgr->UnregisterFd(signal_flare.FD(), this);
+	zeek::iosource_mgr->UnregisterFd(stem_pipe->InFD(), this);
 
 	DBG_LOG(zeek::DBG_SUPERVISOR, "shutdown, killing stem process %d", stem_pid);
 
@@ -449,11 +449,11 @@ void Supervisor::HandleChildSignal()
 		}
 	else
 		{
-		if ( ! iosource_mgr->UnregisterFd(stem_stdout.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->UnregisterFd(stem_stdout.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to unregister "
 								 "redirected stdout pipe");
 
-		if ( ! iosource_mgr->UnregisterFd(stem_stderr.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->UnregisterFd(stem_stderr.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to unregister "
 								 "redirected stderr pipe");
 
@@ -462,11 +462,11 @@ void Supervisor::HandleChildSignal()
 		stem_stdout.pipe = std::move(fork_res.stdout_pipe);
 		stem_stderr.pipe = std::move(fork_res.stderr_pipe);
 
-		if ( ! iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to register "
 								 "redirected stdout pipe");
 
-		if ( ! iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to register "
 								 "redirected stderr pipe");
 		}
@@ -494,18 +494,18 @@ void Supervisor::InitPostScript()
 	stem_stdout.hook = id::find_func("Supervisor::stdout_hook");
 	stem_stderr.hook = id::find_func("Supervisor::stderr_hook");
 
-	iosource_mgr->Register(this);
+	zeek::iosource_mgr->Register(this);
 
-	if ( ! iosource_mgr->RegisterFd(signal_flare.FD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(signal_flare.FD(), this) )
 		reporter->FatalError("Supervisor stem failed to register signal_flare");
 
-	if ( ! iosource_mgr->RegisterFd(stem_pipe->InFD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(stem_pipe->InFD(), this) )
 		reporter->FatalError("Supervisor stem failed to register stem_pipe");
 
-	if ( ! iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
 		reporter->FatalError("Supervisor stem failed to register stdout pipe");
 
-	if ( ! iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
 		reporter->FatalError("Supervisor stem failed to register stderr pipe");
 	}
 

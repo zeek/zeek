@@ -14,10 +14,11 @@
 struct timespec;
 struct kevent;
 
-namespace iosource {
+ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
 
-class PktSrc;
-class PktDumper;
+namespace zeek {
+namespace iosource {
 
 /**
  * Manager class for IO sources. This handles all of the polling of sources
@@ -209,6 +210,14 @@ private:
 	std::vector<struct kevent> events;
 };
 
-}
+} // namespace iosource
 
 extern iosource::Manager* iosource_mgr;
+
+} // namespace zeek
+
+extern zeek::iosource::Manager*& iosource_mgr [[deprecated("Remove in v4.1. Use zeek::iosource_mgr.")]];
+
+namespace iosource {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::iosource::Manager.")]] = zeek::iosource::Manager;
+}

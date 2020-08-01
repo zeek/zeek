@@ -6,7 +6,7 @@
 #include "PktDumper.h"
 #include "DebugLogger.h"
 
-using namespace iosource;
+namespace zeek::iosource {
 
 PktDumper::PktDumper()
 	{
@@ -80,3 +80,5 @@ void PktDumper::Error(const std::string& msg)
 		IsOpen() ? props.path.c_str() : "<not open>",
 		msg.c_str());
 	}
+
+} // namespace zeek::iosource

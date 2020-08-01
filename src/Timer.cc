@@ -69,8 +69,8 @@ TimerMgr::TimerMgr()
 	num_expired = 0;
 	last_advance = last_timestamp = 0;
 
-	if ( iosource_mgr )
-		iosource_mgr->Register(this, true);
+	if ( zeek::iosource_mgr )
+		zeek::iosource_mgr->Register(this, true);
 	}
 
 TimerMgr::~TimerMgr()
@@ -95,7 +95,7 @@ void TimerMgr::Process()
 	// If we don't have a source, or the source is closed, or we're reading live (which includes
 	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
 	// move forward and the timers won't fire correctly.
-	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
 	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live || net_is_processing_suspended() )
 		net_update_time(current_time());
 
@@ -106,8 +106,8 @@ void TimerMgr::Process()
 
 void TimerMgr::InitPostScript()
 	{
-	if ( iosource_mgr )
-		iosource_mgr->Register(this, true);
+	if ( zeek::iosource_mgr )
+		zeek::iosource_mgr->Register(this, true);
 	}
 
 PQ_TimerMgr::PQ_TimerMgr() : TimerMgr()

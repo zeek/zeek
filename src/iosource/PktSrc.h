@@ -10,9 +10,9 @@
 #include <sys/types.h> // for u_char
 
 struct pcap_pkthdr;
-ZEEK_FORWARD_DECLARE_NAMESPACED(BPF_Program, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(BPF_Program, zeek::iosource::detail);
 
-namespace iosource {
+namespace zeek::iosource {
 
 /**
  * Base class for packet sources.
@@ -136,7 +136,7 @@ public:
 	 * @return The BPF filter associated, or null if none has been
 	 * (successfully) compiled.
 	 */
-	zeek::detail::BPF_Program* GetBPFFilter(int index);
+	zeek::iosource::detail::BPF_Program* GetBPFFilter(int index);
 
 	/**
 	 * Applies a precompiled BPF filter to a packet. This will close the
@@ -368,7 +368,7 @@ private:
 	zeek::Packet current_packet;
 
 	// For BPF filtering support.
-	std::vector<zeek::detail::BPF_Program *> filters;
+	std::vector<zeek::iosource::detail::BPF_Program *> filters;
 
 	// Only set in pseudo-realtime mode.
 	double first_timestamp;
@@ -380,4 +380,8 @@ private:
 	std::string errbuf;
 };
 
+} // namespace zeek::iosource
+
+namespace iosource {
+	using PktSrc [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrc.")]] = zeek::iosource::PktSrc;
 }

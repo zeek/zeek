@@ -15,7 +15,7 @@
 
 #include "pcap/pcap.bif.h"
 
-using namespace iosource;
+namespace zeek::iosource {
 
 PktSrc::Properties::Properties()
 	{
@@ -269,7 +269,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	// Compile filter.
-	auto* code = new zeek::detail::BPF_Program();
+	auto* code = new zeek::iosource::detail::BPF_Program();
 
 	if ( ! code->Compile(zeek::BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
@@ -296,7 +296,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	return true;
 	}
 
-zeek::detail::BPF_Program* PktSrc::GetBPFFilter(int index)
+zeek::iosource::detail::BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
 	if ( index < 0 )
 		return nullptr;
@@ -306,7 +306,7 @@ zeek::detail::BPF_Program* PktSrc::GetBPFFilter(int index)
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
 	{
-	zeek::detail::BPF_Program* code = GetBPFFilter(index);
+	zeek::iosource::detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{
@@ -356,3 +356,5 @@ double PktSrc::GetNextTimeout()
 	double ct = (current_time(true) - first_wallclock) * pseudo_realtime;
 	return std::max(0.0, pseudo_time - ct);
 	}
+
+} // namespace zeek::iosource

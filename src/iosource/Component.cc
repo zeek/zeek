@@ -5,7 +5,7 @@
 #include "Desc.h"
 #include "Reporter.h"
 
-using namespace iosource;
+namespace zeek::iosource {
 
 Component::Component(const std::string& name)
 	: zeek::plugin::Component(zeek::plugin::component::IOSOURCE, name)
@@ -163,3 +163,5 @@ void PktDumperComponent::DoDescribe(zeek::ODesc* d) const
 	d->Add(": ");
 	d->Add(prefs);
 	}
+
+} // namespace zeek::iosource

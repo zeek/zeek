@@ -39,7 +39,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 
 	bool success = true;
 
-	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
 	if ( ps && ! ps->PrecompileFilter(id->ForceAsInt(), s->CheckString()) )
 		success = false;
 
@@ -68,7 +68,7 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 	%{
 	bool success = true;
 
-	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
 	if ( ps && ! ps->SetFilter(id->ForceAsInt()) )
 		success = false;
 
@@ -91,7 +91,7 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 ##              uninstall_dst_net_filter
 function error%(%): string
 	%{
-	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
 	if ( ps )
 		{
 		const char* err = ps->ErrorMsg();

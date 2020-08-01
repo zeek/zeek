@@ -11,12 +11,9 @@
 #include <string>
 #include <optional>
 
-namespace iosource {
-	class IOSource;
-	class PktSrc;
-	class PktDumper;
-	}
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
 extern void net_init(const std::optional<std::string>& interfaces,
@@ -29,8 +26,8 @@ extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
 extern void net_packet_dispatch(double t, const zeek::Packet* pkt,
-			iosource::PktSrc* src_ps);
-extern void expire_timers(iosource::PktSrc* src_ps = nullptr);
+                                zeek::iosource::PktSrc* src_ps);
+extern void expire_timers(zeek::iosource::PktSrc* src_ps = nullptr);
 extern void zeek_terminate_loop(const char* reason);
 
 // Functions to temporarily suspend processing of live input (network packets
@@ -82,10 +79,10 @@ extern bool is_parsing;
 extern const zeek::Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
-extern iosource::PktSrc* current_pktsrc;
-extern iosource::IOSource* current_iosrc;
+extern zeek::iosource::PktSrc* current_pktsrc;
+extern zeek::iosource::IOSource* current_iosrc;
 
-extern iosource::PktDumper* pkt_dumper;	// where to save packets
+extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
 
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by normalized realpath.

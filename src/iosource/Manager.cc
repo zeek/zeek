@@ -20,7 +20,7 @@
 
 #define DEFAULT_PREFIX "pcap"
 
-using namespace iosource;
+namespace zeek::iosource {
 
 Manager::WakeupHandler::WakeupHandler()
 	{
@@ -417,3 +417,5 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 
 	return pd;
 	}
+
+} // namespace zeek::iosource

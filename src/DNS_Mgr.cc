@@ -439,7 +439,7 @@ void DNS_Mgr::InitSource()
 
 	if ( nb_dns )
 		{
-		if ( ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
+		if ( ! zeek::iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
 			zeek::reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
 		}
 	else
@@ -455,7 +455,7 @@ void DNS_Mgr::InitPostScript()
 	dm_rec = zeek::id::find_type<zeek::RecordType>("dns_mapping");
 
 	// Registering will call Init()
-	iosource_mgr->Register(this, true);
+	zeek::iosource_mgr->Register(this, true);
 
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];
@@ -1462,7 +1462,7 @@ void DNS_Mgr::GetStats(Stats* stats)
 void DNS_Mgr::Terminate()
 	{
 	if ( nb_dns )
-		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
+		zeek::iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
 	}
 
 } // namespace zeek::detail

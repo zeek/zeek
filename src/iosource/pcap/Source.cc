@@ -14,7 +14,7 @@
 #include <pcap-int.h>
 #endif
 
-using namespace iosource::pcap;
+namespace zeek::iosource::pcap {
 
 PcapSource::~PcapSource()
 	{
@@ -258,7 +258,7 @@ bool PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	zeek::detail::BPF_Program* code = GetBPFFilter(index);
+	zeek::iosource::detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{
@@ -342,3 +342,5 @@ iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)
 	{
 	return new PcapSource(path, is_live);
 	}
+
+} // namespace zeek::iosource::pcap

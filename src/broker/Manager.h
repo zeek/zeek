@@ -66,7 +66,7 @@ struct Stats {
  * Manages various forms of communication between peer Bro processes
  * or other external applications via use of the Broker messaging library.
  */
-class Manager : public iosource::IOSource {
+class Manager : public zeek::iosource::IOSource {
 public:
     static const broker::endpoint_info NoPeer;
 

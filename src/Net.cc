@@ -42,7 +42,7 @@ extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 }
 
-iosource::PktDumper* pkt_dumper = nullptr;
+zeek::iosource::PktDumper* pkt_dumper = nullptr;
 
 bool reading_live = false;
 bool reading_traces = false;
@@ -60,8 +60,8 @@ bool is_parsing = false;
 const zeek::Packet *current_pkt = nullptr;
 int current_dispatched = 0;
 double current_timestamp = 0.0;
-iosource::PktSrc* current_pktsrc = nullptr;
-iosource::IOSource* current_iosrc = nullptr;
+zeek::iosource::PktSrc* current_pktsrc = nullptr;
+zeek::iosource::IOSource* current_iosrc = nullptr;
 
 std::list<ScannedFile> files_scanned;
 std::vector<std::string> sig_files;
@@ -110,7 +110,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					// saving the packet which caused the
 					// watchdog to trigger may be helpful,
 					// so we'll save that one nevertheless.
-					pkt_dumper = iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
+					pkt_dumper = zeek::iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
 					if ( ! pkt_dumper || pkt_dumper->IsError() )
 						{
 						zeek::reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
@@ -155,7 +155,7 @@ void net_init(const std::optional<std::string>& interface,
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = true;
 
-		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*pcap_input_file, false);
+		zeek::iosource::PktSrc* ps = zeek::iosource_mgr->OpenPktSrc(*pcap_input_file, false);
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
@@ -167,7 +167,7 @@ void net_init(const std::optional<std::string>& interface,
 		reading_live = true;
 		reading_traces = false;
 
-		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*interface, true);
+		zeek::iosource::PktSrc* ps = zeek::iosource_mgr->OpenPktSrc(*interface, true);
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
@@ -185,7 +185,7 @@ void net_init(const std::optional<std::string>& interface,
 	if ( pcap_output_file )
 		{
 		const char* writefile = pcap_output_file->data();
-		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
+		pkt_dumper = zeek::iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
 
 		if ( ! pkt_dumper->IsOpen() )
@@ -210,7 +210,7 @@ void net_init(const std::optional<std::string>& interface,
 		}
 	}
 
-void expire_timers(iosource::PktSrc* src_ps)
+void expire_timers(zeek::iosource::PktSrc* src_ps)
 	{
 	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "expiring-timers");
 
@@ -219,7 +219,7 @@ void expire_timers(iosource::PktSrc* src_ps)
 			max_timer_expires - current_dispatched);
 	}
 
-void net_packet_dispatch(double t, const zeek::Packet* pkt, iosource::PktSrc* src_ps)
+void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
 		{
@@ -278,13 +278,13 @@ void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
 
-	std::vector<iosource::IOSource*> ready;
-	ready.reserve(iosource_mgr->TotalSize());
+	std::vector<zeek::iosource::IOSource*> ready;
+	ready.reserve(zeek::iosource_mgr->TotalSize());
 
-	while ( iosource_mgr->Size() ||
+	while ( zeek::iosource_mgr->Size() ||
 		(zeek::BifConst::exit_only_after_terminate && ! terminating) )
 		{
-		iosource_mgr->FindReadySources(&ready);
+		zeek::iosource_mgr->FindReadySources(&ready);
 
 #ifdef DEBUG
 		static int loop_counter = 0;
@@ -347,7 +347,7 @@ void net_run()
 			{
 			auto have_active_packet_source = false;
 
-			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+			zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
 			if ( ps && ps->IsOpen() )
 				have_active_packet_source = true;
 
@@ -366,10 +366,10 @@ void net_run()
 
 void net_get_final_stats()
 	{
-	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
 	if ( ps && ps->IsLive() )
 		{
-		iosource::PktSrc::Stats s;
+		zeek::iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
 		double dropped_pct = s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0 : 0.0;
 		zeek::reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
@@ -427,7 +427,7 @@ void net_continue_processing()
 	if ( _processing_suspended == 1 )
 		{
 		zeek::reporter->Info("processing continued");
-		if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
+		if ( zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc() )
 			ps->ContinueAfterSuspend();
 		}
 

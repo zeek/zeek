@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include "plugin/Component.h"
-
 #include <string>
 #include <vector>
 
-namespace iosource {
+#include "plugin/Component.h"
 
-class IOSource;
-class PktSrc;
-class PktDumper;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
+
+namespace zeek::iosource {
 
 /**
  * Component description for plugins providing IOSources.
@@ -49,7 +49,7 @@ protected:
 /**
  * Component description for plugins providing a PktSrc for packet input.
  */
-class PktSrcComponent : public iosource::Component {
+class PktSrcComponent : public zeek::iosource::Component {
 public:
 	/**
 	 * Type of input a packet source supports.
@@ -167,4 +167,12 @@ private:
 	factory_callback factory;
 };
 
-}
+} // namespace zeek::iosource
+
+namespace iosource {
+
+	using Component [[deprecated("Remove in v4.1. Use zeek::iosource::Component.")]] = zeek::iosource::Component;
+	using PktSrcComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrcComponent.")]] = zeek::iosource::PktSrcComponent;
+	using PktDumperComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumperComponent.")]] = zeek::iosource::PktDumperComponent;
+
+} // namespace iosource

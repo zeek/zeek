@@ -10,10 +10,9 @@ extern "C" {
 
 #include <sys/types.h> // for u_char
 
-namespace iosource {
-namespace pcap {
+namespace zeek::iosource::pcap {
 
-class PcapSource : public iosource::PktSrc {
+class PcapSource : public zeek::iosource::PktSrc {
 public:
 	PcapSource(const std::string& path, bool is_live);
 	~PcapSource() override;
@@ -41,5 +40,8 @@ private:
 	pcap_t *pd;
 };
 
-}
+} // namespace zeek::iosource::pcap
+
+namespace iosource::pcap {
+	using PcapSource [[deprecated("Remove in v4.1. Use zeek::iosource::pcap::PcapSource.")]] = zeek::iosource::pcap::PcapSource;
 }

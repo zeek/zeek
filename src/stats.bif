@@ -44,9 +44,9 @@ function get_net_stats%(%): NetStats
 	uint64_t link = 0;
 	uint64_t bytes_recv = 0;
 
-	if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
+	if ( zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc() )
 		{
-		struct iosource::PktSrc::Stats stat;
+		struct zeek::iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
 		recv += stat.received;
 		drop += stat.dropped;

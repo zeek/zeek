@@ -7,7 +7,7 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
-namespace iosource {
+namespace zeek::iosource {
 
 /**
  * Base class for packet dumpers.
@@ -139,4 +139,8 @@ private:
 	std::string errmsg;
 };
 
+} // namespace zeek::iosource
+
+namespace iosource {
+	using PktDumper [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumper.")]] = zeek::iosource::PktDumper;
 }

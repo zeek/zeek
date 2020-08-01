@@ -492,10 +492,10 @@ const char* Trigger::Name() const
 
 
 
-Manager::Manager() : IOSource()
+Manager::Manager() : zeek::iosource::IOSource()
 	{
 	pending = new TriggerList();
-	iosource_mgr->Register(this, true);
+	zeek::iosource_mgr->Register(this, true);
 	}
 
 Manager::~Manager()
@@ -540,7 +540,7 @@ void Manager::Queue(Trigger* trigger)
 		Ref(trigger);
 		pending->push_back(trigger);
 		total_triggers++;
-		iosource_mgr->Wakeup(Tag());
+		zeek::iosource_mgr->Wakeup(Tag());
 		}
 	}
 

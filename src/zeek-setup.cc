@@ -307,7 +307,7 @@ void terminate_bro()
 
 	zeek::event_mgr.Drain();
 
-	notifier::registry.Terminate();
+	zeek::notifier::detail::registry.Terminate();
 	zeek::log_mgr->Terminate();
 	zeek::input_mgr->Terminate();
 	zeek::thread_mgr->Terminate();

@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <cstdint>
 
-namespace notifier  {
+namespace zeek::notifier::detail  {
 
 class Modifiable;
 
@@ -118,4 +118,14 @@ protected:
 	uint64_t num_receivers = 0;
 };
 
-}
+} // namespace zeek::notifier::detail
+
+namespace notifier {
+
+	using Receiver [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Receiver.")]] = zeek::notifier::detail::Receiver;
+	using Registry [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Registry.")]] = zeek::notifier::detail::Registry;
+	using Modifiable [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Modifiable.")]] = zeek::notifier::detail::Modifiable;
+
+	extern zeek::notifier::detail::Registry& registry [[deprecated("Remove from v4.1. Use zeek::notifier::detail::registry.")]];
+
+} // namespace notifier

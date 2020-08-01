@@ -5,25 +5,28 @@
 
 #include <set>
 
-notifier::Registry notifier::registry;
+zeek::notifier::detail::Registry zeek::notifier::detail::registry;
+zeek::notifier::detail::Registry& notifier::registry = zeek::notifier::detail::registry;
 
-notifier::Receiver::Receiver()
+namespace zeek::notifier::detail {
+
+Receiver::Receiver()
 	{
 	DBG_LOG(zeek::DBG_NOTIFIERS, "creating receiver %p", this);
 	}
 
-notifier::Receiver::~Receiver()
+Receiver::~Receiver()
 	{
 	DBG_LOG(zeek::DBG_NOTIFIERS, "deleting receiver %p", this);
 	}
 
-notifier::Registry::~Registry()
+Registry::~Registry()
 	{
 	while ( registrations.begin() != registrations.end() )
 		Unregister(registrations.begin()->first);
 	}
 
-void notifier::Registry::Register(Modifiable* m, notifier::Receiver* r)
+void Registry::Register(Modifiable* m, Receiver* r)
 	{
 	DBG_LOG(zeek::DBG_NOTIFIERS, "registering object %p for receiver %p", m, r);
 
@@ -31,7 +34,7 @@ void notifier::Registry::Register(Modifiable* m, notifier::Receiver* r)
 	++m->num_receivers;
 	}
 
-void notifier::Registry::Unregister(Modifiable* m, notifier::Receiver* r)
+void Registry::Unregister(Modifiable* m, Receiver* r)
 	{
 	DBG_LOG(zeek::DBG_NOTIFIERS, "unregistering object %p from receiver %p", m, r);
 
@@ -47,7 +50,7 @@ void notifier::Registry::Unregister(Modifiable* m, notifier::Receiver* r)
 		}
 	}
 
-void notifier::Registry::Unregister(Modifiable* m)
+void Registry::Unregister(Modifiable* m)
 	{
 	DBG_LOG(zeek::DBG_NOTIFIERS, "unregistering object %p from all notifiers", m);
 
@@ -58,7 +61,7 @@ void notifier::Registry::Unregister(Modifiable* m)
 	registrations.erase(x.first, x.second);
 	}
 
-void notifier::Registry::Modified(Modifiable* m)
+void Registry::Modified(Modifiable* m)
 	{
 	DBG_LOG(zeek::DBG_NOTIFIERS, "object %p has been modified", m);
 
@@ -67,7 +70,7 @@ void notifier::Registry::Modified(Modifiable* m)
 		i->second->Modified(m);
 	}
 
-void notifier::Registry::Terminate()
+void Registry::Terminate()
 	{
 	std::set<Receiver*> receivers;
 
@@ -78,8 +81,10 @@ void notifier::Registry::Terminate()
 		r->Terminate();
 	}
 
-notifier::Modifiable::~Modifiable()
+Modifiable::~Modifiable()
 	{
 	if ( num_receivers )
 		registry.Unregister(this);
 	}
+
+} // namespace zeek::notifier::detail

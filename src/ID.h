@@ -45,7 +45,7 @@ enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 class ID;
 using IDPtr = zeek::IntrusivePtr<ID>;
 
-class ID final : public Obj, public notifier::Modifiable {
+class ID final : public Obj, public zeek::notifier::detail::Modifiable {
 public:
 	static inline const IDPtr nil;
 

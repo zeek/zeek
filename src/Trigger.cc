@@ -388,7 +388,7 @@ void Trigger::Timeout()
 void Trigger::Register(zeek::detail::ID* id)
 	{
 	assert(! disabled);
-	notifier::registry.Register(id, this);
+	zeek::notifier::detail::registry.Register(id, this);
 
 	Ref(id);
 	objs.push_back({id, id});
@@ -400,7 +400,7 @@ void Trigger::Register(Val* val)
 		return;
 
 	assert(! disabled);
-	notifier::registry.Register(val->Modifiable(), this);
+	zeek::notifier::detail::registry.Register(val->Modifiable(), this);
 
 	Ref(val);
 	objs.emplace_back(val, val->Modifiable());
@@ -412,7 +412,7 @@ void Trigger::UnregisterAll()
 
 	for ( const auto& o : objs )
 		{
-		notifier::registry.Unregister(o.second, this);
+		zeek::notifier::detail::registry.Unregister(o.second, this);
 		Unref(o.first);
 		}
 
@@ -478,7 +478,7 @@ void Trigger::Describe(ODesc* d) const
 	d->Add("<trigger>");
 	}
 
-void Trigger::Modified(notifier::Modifiable* m)
+void Trigger::Modified(zeek::notifier::detail::Modifiable* m)
 	{
 	trigger_mgr->Queue(this);
 	}

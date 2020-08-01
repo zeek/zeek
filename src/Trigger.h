@@ -26,7 +26,7 @@ namespace zeek::detail::trigger {
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger final : public Obj, public notifier::Receiver {
+class Trigger final : public Obj, public zeek::notifier::detail::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
@@ -76,7 +76,7 @@ public:
 
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	void Modified(notifier::Modifiable* m) override;
+	void Modified(zeek::notifier::detail::Modifiable* m) override;
 
 	// Overridden from notifer::Receiver.  If we're still waiting
 	// on an ID/Val to be modified at termination time, we can't hope
@@ -109,7 +109,7 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	std::vector<std::pair<Obj *, notifier::Modifiable*>> objs;
+	std::vector<std::pair<Obj *, zeek::notifier::detail::Modifiable*>> objs;
 
 	using ValCache = std::map<const zeek::detail::CallExpr*, Val*>;
 	ValCache cache;

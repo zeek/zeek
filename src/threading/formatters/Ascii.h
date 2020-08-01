@@ -4,9 +4,9 @@
 
 #include "../Formatter.h"
 
-namespace threading { namespace formatter {
+namespace zeek::threading::formatter {
 
-class Ascii final : public Formatter {
+class Ascii final : public zeek::threading::Formatter {
 public:
 	/**
 	 * A struct to pass the necessary configuration values to the
@@ -44,14 +44,14 @@ public:
 	 * @param info SeparatorInfo structure defining the necessary
 	 * separators.
 	 */
-	Ascii(threading::MsgThread* t, const SeparatorInfo& info);
+	Ascii(zeek::threading::MsgThread* t, const SeparatorInfo& info);
 	virtual ~Ascii();
 
-	virtual bool Describe(zeek::ODesc* desc, threading::Value* val, const std::string& name = "") const;
-	virtual bool Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
-	                      threading::Value** vals) const;
-	virtual threading::Value* ParseValue(const std::string& s, const std::string& name,
-		                                 zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const;
+	virtual bool Describe(zeek::ODesc* desc, zeek::threading::Value* val, const std::string& name = "") const;
+	virtual bool Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
+	                      zeek::threading::Value** vals) const;
+	virtual zeek::threading::Value* ParseValue(const std::string& s, const std::string& name,
+	                                           zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const;
 
 private:
 	bool CheckNumberError(const char* start, const char* end) const;
@@ -59,4 +59,8 @@ private:
 	SeparatorInfo separators;
 };
 
-}}
+} // namespace zeek::threading::formatter
+
+namespace threading::formatter {
+	using Ascii [[deprecated("Remove in v4.1. Use zeek::threading::formatter::Ascii.")]] = zeek::threading::formatter::Ascii;
+}

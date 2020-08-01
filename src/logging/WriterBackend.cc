@@ -11,8 +11,8 @@
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::logging {
 

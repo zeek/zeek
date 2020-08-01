@@ -21,6 +21,13 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Event, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
+namespace zeek::threading {
+	struct Field;
+}
+namespace threading {
+	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
+}
+
 namespace zeek {
 template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<Val>;
@@ -28,10 +35,6 @@ class Obj;
 }
 
 using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
-
-namespace threading {
-struct Field;
-}
 
 namespace zeek::plugin  {
 

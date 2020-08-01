@@ -8,13 +8,13 @@
 
 #include "../Formatter.h"
 
-namespace threading { namespace formatter {
+namespace zeek::threading::formatter {
 
 /**
   * A thread-safe class for converting values into a JSON representation
   * and vice versa.
   */
-class JSON : public Formatter {
+class JSON : public zeek::threading::Formatter {
 public:
 	enum TimeFormat {
 		TS_EPOCH,	// Doubles that represents seconds from the UNIX epoch.
@@ -22,14 +22,14 @@ public:
 		TS_MILLIS	// Milliseconds from the UNIX epoch.  Some consumers need this (e.g., elasticsearch).
 		};
 
-	JSON(threading::MsgThread* t, TimeFormat tf);
+	JSON(zeek::threading::MsgThread* t, TimeFormat tf);
 	~JSON() override;
 
-	bool Describe(zeek::ODesc* desc, threading::Value* val, const std::string& name = "") const override;
-	bool Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
-	              threading::Value** vals) const override;
-	threading::Value* ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type,
-	                             zeek::TypeTag subtype = zeek::TYPE_ERROR) const override;
+	bool Describe(zeek::ODesc* desc, zeek::threading::Value* val, const std::string& name = "") const override;
+	bool Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
+	              zeek::threading::Value** vals) const override;
+	zeek::threading::Value* ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type,
+	                                   zeek::TypeTag subtype = zeek::TYPE_ERROR) const override;
 
 	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
 	public:
@@ -38,10 +38,14 @@ public:
 	};
 
 private:
-	void BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name = "") const;
+	void BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, const std::string& name = "") const;
 
 	TimeFormat timestamps;
 	bool surrounding_braces;
 };
 
-}}
+} // namespace zeek::threading::formatter
+
+namespace threading::formatter {
+	using JSON [[deprecated("Remove in v4.1. Use zeek::threading::formatter::JSON.")]] = zeek::threading::formatter::JSON;
+}

@@ -8,7 +8,8 @@
 #include "Event.h"
 #include "IPAddr.h"
 
-using namespace threading;
+namespace zeek::threading {
+namespace detail {
 
 void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	{
@@ -18,6 +19,8 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	thread_mgr->SendHeartbeats();
 	thread_mgr->StartHeartbeatTimer();
 	}
+
+} // namespace detail
 
 Manager::Manager()
 	{
@@ -127,7 +130,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	zeek::detail::timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
+	zeek::detail::timer_mgr->Add(new detail::HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
@@ -269,3 +272,5 @@ const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats(
 
 	return stats;
 	}
+
+} // namespace zeek::threading

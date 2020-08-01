@@ -15,8 +15,8 @@
 
 #include "threading/SerialTypes.h"
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::input::reader::detail {
 
@@ -39,8 +39,8 @@ SQLite::SQLite(zeek::input::ReaderFrontend *frontend)
 			zeek::BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(),
-		      set_separator, unset_field, empty_field));
+	io = new zeek::threading::formatter::Ascii(this, zeek::threading::formatter::Ascii::SeparatorInfo(
+		                                           std::string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()

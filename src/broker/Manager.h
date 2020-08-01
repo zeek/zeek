@@ -189,7 +189,7 @@ public:
 	bool PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
 	                      const zeek::logging::WriterBackend::WriterInfo& info,
 	                      int num_fields,
-	                      const threading::Field* const * fields,
+	                      const zeek::threading::Field* const * fields,
 	                      const broker::endpoint_info& peer = NoPeer);
 
 	/**
@@ -205,7 +205,7 @@ public:
 	 */
 	bool PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer,
 	                     std::string path, int num_vals,
-	                     const threading::Value* const * vals);
+	                     const zeek::threading::Value* const * vals);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is

@@ -21,7 +21,7 @@ public:
 	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new SQLite(frontend); }
 
 protected:
-	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* arg_fields) override;
+	bool DoInit(const ReaderInfo& info, int arg_num_fields, const zeek::threading::Field* const* arg_fields) override;
 	void DoClose() override;
 	bool DoUpdate() override;
 	bool DoHeartbeat(double network_time, double current_time) override { return true; }
@@ -29,7 +29,7 @@ protected:
 private:
 	bool checkError(int code);
 
-	threading::Value* EntryToVal(sqlite3_stmt *st, const threading::Field *field, int pos, int subpos);
+	zeek::threading::Value* EntryToVal(sqlite3_stmt *st, const zeek::threading::Field *field, int pos, int subpos);
 
 	const threading::Field* const * fields; // raw mapping
 	unsigned int num_fields;
@@ -38,7 +38,7 @@ private:
 	std::string query;
 	sqlite3 *db;
 	sqlite3_stmt *st;
-	threading::formatter::Ascii* io;
+	zeek::threading::formatter::Ascii* io;
 
 	std::string set_separator;
 	std::string unset_field;

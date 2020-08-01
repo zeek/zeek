@@ -49,7 +49,7 @@ private:
 	std::string set_separator;
 	std::string empty_field;
 
-	std::unique_ptr<threading::formatter::Formatter> formatter;
+	std::unique_ptr<zeek::threading::Formatter> formatter;
 	std::unordered_map<std::string, std::tuple<zeek::TypeTag, zeek::TypeTag>> option_types;
 	std::unordered_map<std::string, std::string> option_values;
 };

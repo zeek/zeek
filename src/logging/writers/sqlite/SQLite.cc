@@ -12,8 +12,8 @@
 #include "sqlite.bif.h"
 
 using namespace std;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::logging::writer::detail {
 
@@ -36,8 +36,8 @@ SQLite::SQLite(zeek::logging::WriterFrontend* frontend)
 			zeek::BifConst::LogSQLite::empty_field->Len()
 			);
 
-	threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);
-	io = new threading::formatter::Ascii(this, sep_info);
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);
+	io = new zeek::threading::formatter::Ascii(this, sep_info);
 	}
 
 SQLite::~SQLite()

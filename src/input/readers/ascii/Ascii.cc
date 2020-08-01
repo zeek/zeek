@@ -12,10 +12,9 @@
 
 #include "threading/SerialTypes.h"
 
-using namespace threading;
 using namespace std;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::input::reader::detail {
 
@@ -114,8 +113,8 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	if ( set_separator.size() != 1 )
 		Error("set_separator length has to be 1. Separator will be truncated.");
 
-	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+	formatter = unique_ptr<zeek::threading::Formatter>(new zeek::threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -368,7 +367,7 @@ bool Ascii::DoUpdate()
 			if ( ! fit->present )
 				{
 				// add non-present field
-				fields[fpos] =  new Value((*fit).type, false);
+				fields[fpos] = new Value((*fit).type, false);
 				fpos++;
 				continue;
 				}

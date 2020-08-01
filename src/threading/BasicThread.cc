@@ -7,7 +7,7 @@
 #include "Manager.h"
 #include "util.h"
 
-using namespace threading;
+namespace zeek::threading {
 
 static const int STD_FMT_BUF_LEN = 2048;
 
@@ -193,3 +193,5 @@ void* BasicThread::launcher(void *arg)
 
 	return nullptr;
 	}
+
+} // namespace zeek::threading

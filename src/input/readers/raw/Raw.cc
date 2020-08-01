@@ -20,8 +20,8 @@ extern "C" {
 #include "setsignal.h"
 }
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::input::reader::detail {
 

@@ -10,7 +10,8 @@
 #include <errno.h>
 
 using namespace std;
-using namespace threading::formatter;
+
+namespace zeek::threading::formatter {
 
 // If the value we'd write out would match exactly the a reserved string, we
 // escape the first character so that the output won't be ambigious. If this
@@ -47,7 +48,7 @@ Ascii::SeparatorInfo::SeparatorInfo(const string& arg_separator,
 	empty_field = arg_empty_field;
 	}
 
-Ascii::Ascii(threading::MsgThread* t, const SeparatorInfo& info) : Formatter(t)
+Ascii::Ascii(zeek::threading::MsgThread* t, const SeparatorInfo& info) : zeek::threading::Formatter(t)
 	{
 	separators = info;
 	}
@@ -56,8 +57,8 @@ Ascii::~Ascii()
 	{
 	}
 
-bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
-                     threading::Value** vals) const
+bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
+                     zeek::threading::Value** vals) const
 	{
 	for ( int i = 0; i < num_fields; i++ )
 		{
@@ -71,7 +72,7 @@ bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const threading::Field* 
 	return true;
 	}
 
-bool Ascii::Describe(zeek::ODesc* desc, threading::Value* val, const string& name) const
+bool Ascii::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -207,12 +208,12 @@ bool Ascii::Describe(zeek::ODesc* desc, threading::Value* val, const string& nam
 	}
 
 
-threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::TypeTag type, zeek::TypeTag subtype) const
+zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::TypeTag type, zeek::TypeTag subtype) const
 	{
 	if ( ! separators.unset_field.empty() && s.compare(separators.unset_field) == 0 )  // field is not set...
-		return new threading::Value(type, false);
+		return new zeek::threading::Value(type, false);
 
-	threading::Value* val = new threading::Value(type, subtype, true);
+	zeek::threading::Value* val = new zeek::threading::Value(type, subtype, true);
 	const char* start = s.c_str();
 	char* end = nullptr;
 	errno = 0;
@@ -373,7 +374,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		if ( separators.empty_field.empty() && s.empty() )
 			length = 0;
 
-		threading::Value** lvals = new threading::Value* [length];
+		zeek::threading::Value** lvals = new zeek::threading::Value* [length];
 
 		if ( type == zeek::TYPE_TABLE )
 			{
@@ -409,7 +410,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 				break;
 				}
 
-			threading::Value* newval = ParseValue(element, name, subtype);
+			zeek::threading::Value* newval = ParseValue(element, name, subtype);
 			if ( newval == nullptr )
 				{
 				GetThread()->Warning("Error while reading set or vector");
@@ -474,7 +475,7 @@ parse_error:
 
 bool Ascii::CheckNumberError(const char* start, const char* end) const
 	{
-	threading::MsgThread* thread = GetThread();
+	zeek::threading::MsgThread* thread = GetThread();
 
 	if ( end == start && *end != '\0'  ) {
 		thread->Warning(thread->Fmt("String '%s' contained no parseable number", start));
@@ -504,3 +505,5 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 
 	return false;
 	}
+
+} // namespace zeek::threading::formatter

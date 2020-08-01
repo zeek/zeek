@@ -1,14 +1,16 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <stdint.h>
 
 #include <iosfwd>
 #include <thread>
 
-namespace threading {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, threading);
 
-class Manager;
+namespace zeek::threading {
 
 /**
  * Base class for all threads.
@@ -211,4 +213,8 @@ private:
 	static uint64_t thread_counter;
 };
 
+} // namespace zeek::threading
+
+namespace threading {
+	using BasicThread [[deprecated("Remove in v4.1. Use zeek::threading::BasicThread.")]] = zeek::threading::BasicThread;
 }

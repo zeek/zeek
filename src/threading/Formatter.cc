@@ -8,10 +8,10 @@
 #include "MsgThread.h"
 #include "bro_inet_ntop.h"
 
-using namespace threading;
-using namespace formatter;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
+
+namespace zeek::threading {
 
 Formatter::Formatter(threading::MsgThread* t)
 	{
@@ -125,3 +125,5 @@ std::string Formatter::Render(TransportProto proto)
 	else
 		return "unknown";
 	}
+
+} // namespace zeek::threading::formatter

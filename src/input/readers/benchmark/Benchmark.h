@@ -39,7 +39,7 @@ private:
 	double timedspread;
 	double heartbeat_interval;
 
-	threading::formatter::Ascii* ascii;
+	zeek::threading::formatter::Ascii* ascii;
 };
 
 } // namespace zeek::input::reader

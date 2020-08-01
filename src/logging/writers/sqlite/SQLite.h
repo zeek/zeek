@@ -49,7 +49,7 @@ private:
 	std::string unset_field;
 	std::string empty_field;
 
-	threading::formatter::Ascii* io;
+	zeek::threading::formatter::Ascii* io;
 };
 
 } // namespace zeek::logging::writer::detail

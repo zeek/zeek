@@ -82,7 +82,7 @@ private:
 	bool fail_on_file_problem;
 	std::string path_prefix;
 
-	std::unique_ptr<threading::formatter::Formatter> formatter;
+	std::unique_ptr<zeek::threading::Formatter> formatter;
 };
 
 } // namespace zeek::input::reader::detail

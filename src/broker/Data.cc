@@ -1264,7 +1264,7 @@ bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-broker::data bro_broker::threading_field_to_data(const threading::Field* f)
+broker::data bro_broker::threading_field_to_data(const zeek::threading::Field* f)
 	{
 	auto name = f->name;
 	auto type = static_cast<uint64_t>(f->type);
@@ -1279,7 +1279,7 @@ broker::data bro_broker::threading_field_to_data(const threading::Field* f)
 	return broker::vector({name, secondary, type, subtype, optional});
 	}
 
-threading::Field* bro_broker::data_to_threading_field(broker::data d)
+zeek::threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	{
 	if ( ! caf::holds_alternative<broker::vector>(d) )
 		return nullptr;
@@ -1297,9 +1297,9 @@ threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	if ( secondary != broker::nil && ! caf::holds_alternative<std::string>(secondary) )
 		return nullptr;
 
-	return new threading::Field(name->c_str(),
-				    secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
-				    static_cast<zeek::TypeTag>(*type),
-				    static_cast<zeek::TypeTag>(*subtype),
-				    *optional);
+	return new zeek::threading::Field(name->c_str(),
+	                                  secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
+	                                  static_cast<zeek::TypeTag>(*type),
+	                                  static_cast<zeek::TypeTag>(*subtype),
+	                                  *optional);
 	}

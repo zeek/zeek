@@ -104,7 +104,8 @@ zeek::detail::TimerMgr*& timer_mgr = zeek::detail::timer_mgr;
 
 zeek::logging::Manager* zeek::log_mgr = nullptr;
 zeek::logging::Manager*& log_mgr = zeek::log_mgr;
-threading::Manager* thread_mgr = nullptr;
+zeek::threading::Manager* zeek::thread_mgr = nullptr;
+zeek::threading::Manager*& thread_mgr = zeek::thread_mgr;
 zeek::input::Manager* zeek::input_mgr = nullptr;
 zeek::input::Manager*& input_mgr = zeek::input_mgr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
@@ -309,7 +310,7 @@ void terminate_bro()
 	notifier::registry.Terminate();
 	zeek::log_mgr->Terminate();
 	zeek::input_mgr->Terminate();
-	thread_mgr->Terminate();
+	zeek::thread_mgr->Terminate();
 	broker_mgr->Terminate();
 	zeek::detail::dns_mgr->Terminate();
 
@@ -485,7 +486,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
-	thread_mgr = new threading::Manager();
+	zeek::thread_mgr = new threading::Manager();
 	zeek::plugin_mgr = new zeek::plugin::Manager();
 
 #ifdef DEBUG

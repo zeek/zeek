@@ -8,13 +8,29 @@
 #include "iosource/IOSource.h"
 #include "Flare.h"
 
+namespace zeek::threading {
+	struct Value;
+	struct Field;
+}
 namespace threading {
+	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
+	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
+}
+
+namespace zeek::threading {
 
 class BasicInputMessage;
 class BasicOutputMessage;
+
+namespace detail {
+
+// These classes are marked as friends later so they need to be forward declared.
 class HeartbeatMessage;
-struct Value;
-struct Field;
+class FinishMessage;
+class FinishedMessage;
+class KillMeMessage;
+
+}
 
 /**
  * A specialized thread that provides bi-directional message passing between
@@ -205,10 +221,10 @@ public:
 
 protected:
 	friend class Manager;
-	friend class HeartbeatMessage;
-	friend class FinishMessage;
-	friend class FinishedMessage;
-	friend class KillMeMessage;
+	friend class detail::HeartbeatMessage;
+	friend class detail::FinishMessage;
+	friend class detail::FinishedMessage;
+	friend class detail::KillMeMessage;
 
 	/**
 	 * Pops a message sent by the child from the child-to-main queue.
@@ -464,4 +480,13 @@ private:
 	O* object;
 };
 
-}
+} // namespace zeek::threading
+
+namespace threading {
+	using MsgThread [[deprecated("Remove in v4.1. Use zeek::threading::MsgThread.")]] = zeek::threading::MsgThread;
+	using Message [[deprecated("Remove in v4.1. Use zeek::threading::Message.")]] = zeek::threading::Message;
+	using BasicInputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicInputMessage.")]] = zeek::threading::BasicInputMessage;
+	using BasicOutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicOutputMessage.")]] = zeek::threading::BasicOutputMessage;
+	template<typename O> using InputMessage [[deprecated("Remove in v4.1. Use zeek::threading::InputMessage.")]] = zeek::threading::InputMessage<O>;
+	template<typename O> using OutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::OutputMessage.")]] = zeek::threading::OutputMessage<O>;
+} // namespace threading

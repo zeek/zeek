@@ -6,10 +6,13 @@
 #include "Expr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-
+namespace zeek::threading {
+	struct Value;
+	struct Field;
+}
 namespace threading {
-struct Value;
-struct Field;
+	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
+	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
 }
 
 namespace bro_broker {
@@ -65,34 +68,34 @@ broker::expected<broker::data> val_to_data(const zeek::Val* v);
 zeek::ValPtr data_to_val(broker::data d, zeek::Type* type);
 
 /**
- * Convert a Bro threading::Value to a Broker data value.
- * @param v a Bro threading::Value.
- * @return a Broker data value if the Bro threading::Value could be converted to one.
+ * Convert a zeek::threading::Value to a Broker data value.
+ * @param v a zeek::threading::Value.
+ * @return a Broker data value if the zeek::threading::Value could be converted to one.
  */
-broker::expected<broker::data> threading_val_to_data(const threading::Value* v);
+broker::expected<broker::data> threading_val_to_data(const zeek::threading::Value* v);
 
 /**
- * Convert a Bro threading::Field to a Broker data value.
- * @param f a Bro threading::Field.
- * @return a Broker data value if the Bro threading::Field could be converted to one.
+ * Convert a zeek::threading::Field to a Broker data value.
+ * @param f a zeek::threading::Field.
+ * @return a Broker data value if the zeek::threading::Field could be converted to one.
  */
-broker::data threading_field_to_data(const threading::Field* f);
+broker::data threading_field_to_data(const zeek::threading::Field* f);
 
 /**
- * Convert a Broker data value to a Bro threading::Value.
+ * Convert a Broker data value to a zeek::threading::Value.
  * @param d a Broker data value.
- * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
+ * @return a pointer to a new zeek::threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Value* data_to_threading_val(broker::data d);
+zeek::threading::Value* data_to_threading_val(broker::data d);
 
 /**
- * Convert a Broker data value to a Bro threading::Value.
+ * Convert a Broker data value to a zeek::threading::Value.
  * @param d a Broker data value.
- * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
+ * @return a pointer to a new zeek::threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Field* data_to_threading_field(broker::data d);
+zeek::threading::Field* data_to_threading_field(broker::data d);
 
 /**
  * A Bro value which wraps a Broker data value.

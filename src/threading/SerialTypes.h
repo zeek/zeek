@@ -11,7 +11,7 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
 
-namespace threading {
+namespace zeek::threading {
 
 /**
  * Definition of a log file, i.e., one column of a log stream.
@@ -214,4 +214,9 @@ private:
 	Value(const Value& other) = delete;
 };
 
+} // namespace zeek::threading
+
+namespace threading {
+	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
+	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
 }

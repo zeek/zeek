@@ -7,18 +7,18 @@
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
-class InitMessage final : public threading::InputMessage<WriterBackend>
+class InitMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
-		: threading::InputMessage<WriterBackend>("Init", backend),
+		: zeek::threading::InputMessage<WriterBackend>("Init", backend),
 		num_fields(num_fields), fields(fields)
 			{}
 
@@ -29,12 +29,12 @@ private:
 	const Field * const* fields;
 };
 
-class RotateMessage final : public threading::InputMessage<WriterBackend>
+class RotateMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
-		      const double close, const bool terminating)
-		: threading::InputMessage<WriterBackend>("Rotate", backend),
+	              const double close, const bool terminating)
+		: zeek::threading::InputMessage<WriterBackend>("Rotate", backend),
 		frontend(frontend),
 		rotated_path(copy_string(rotated_path)), open(open),
 		close(close), terminating(terminating) { }
@@ -51,11 +51,11 @@ private:
 	const bool terminating;
 };
 
-class WriteMessage final : public threading::InputMessage<WriterBackend>
+class WriteMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
-		: threading::InputMessage<WriterBackend>("Write", backend),
+		: zeek::threading::InputMessage<WriterBackend>("Write", backend),
 		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
 	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
@@ -66,11 +66,11 @@ private:
 	Value ***vals;
 };
 
-class SetBufMessage final : public threading::InputMessage<WriterBackend>
+class SetBufMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
-		: threading::InputMessage<WriterBackend>("SetBuf", backend),
+		: zeek::threading::InputMessage<WriterBackend>("SetBuf", backend),
 		enabled(enabled) { }
 
 	bool Process() override { return Object()->SetBuf(enabled); }
@@ -79,11 +79,11 @@ private:
 	const bool enabled;
 };
 
-class FlushMessage final : public threading::InputMessage<WriterBackend>
+class FlushMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	FlushMessage(WriterBackend* backend, double network_time)
-		: threading::InputMessage<WriterBackend>("Flush", backend),
+		: zeek::threading::InputMessage<WriterBackend>("Flush", backend),
 		network_time(network_time) {}
 
 	bool Process() override { return Object()->Flush(network_time); }

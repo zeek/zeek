@@ -26,9 +26,9 @@ public:
 
 protected:
 	bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const* fields) override;
-	bool DoWrite(int num_fields, const threading::Field* const* fields,
-			     threading::Value** vals) override;
+	            const zeek::threading::Field* const* fields) override;
+	bool DoWrite(int num_fields, const zeek::threading::Field* const* fields,
+			     zeek::threading::Value** vals) override;
 	bool DoSetBuf(bool enabled) override;
 	bool DoRotate(const char* rotated_path, double open,
 			      double close, bool terminating) override;
@@ -75,7 +75,7 @@ private:
 	bool enable_utf_8;
 	std::string json_timestamps;
 
-	threading::formatter::Formatter* formatter;
+	zeek::threading::Formatter* formatter;
 	bool init_options;
 };
 

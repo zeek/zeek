@@ -15,9 +15,8 @@
 #include "input/Manager.h"
 #include "threading/SerialTypes.h"
 
-using namespace threading;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 namespace zeek::input::reader::detail {
 
@@ -72,8 +71,9 @@ bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
 	empty_field.assign( (const char*) zeek::BifConst::InputConfig::empty_field->Bytes(),
 	                   zeek::BifConst::InputConfig::empty_field->Len());
 
-	formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
-	formatter = std::unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
+	formatter = std::unique_ptr<zeek::threading::Formatter>(
+		new zeek::threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}

@@ -16,7 +16,7 @@
 #include <math.h>
 #include <stdint.h>
 
-using namespace threading::formatter;
+namespace zeek::threading::formatter {
 
 bool JSON::NullDoubleWriter::Double(double d)
 	{
@@ -26,7 +26,7 @@ bool JSON::NullDoubleWriter::Double(double d)
 	return rapidjson::Writer<rapidjson::StringBuffer>::Double(d);
 	}
 
-JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
+JSON::JSON(zeek::threading::MsgThread* t, TimeFormat tf) : zeek::threading::Formatter(t), surrounding_braces(true)
 	{
 	timestamps = tf;
 	}
@@ -35,8 +35,8 @@ JSON::~JSON()
 	{
 	}
 
-bool JSON::Describe(zeek::ODesc* desc, int num_fields, const Field* const * fields,
-                    Value** vals) const
+bool JSON::Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
+                    zeek::threading::Value** vals) const
 	{
 	rapidjson::StringBuffer buffer;
 	NullDoubleWriter writer(buffer);
@@ -55,7 +55,7 @@ bool JSON::Describe(zeek::ODesc* desc, int num_fields, const Field* const * fiel
 	return true;
 	}
 
-bool JSON::Describe(zeek::ODesc* desc, Value* val, const std::string& name) const
+bool JSON::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const std::string& name) const
 	{
 	if ( desc->IsBinary() )
 		{
@@ -78,13 +78,14 @@ bool JSON::Describe(zeek::ODesc* desc, Value* val, const std::string& name) cons
 	return true;
 	}
 
-threading::Value* JSON::ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type, zeek::TypeTag subtype) const
+zeek::threading::Value* JSON::ParseValue(const std::string& s, const std::string& name,
+                                         zeek::TypeTag type, zeek::TypeTag subtype) const
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return nullptr;
 	}
 
-void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name) const
+void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, const std::string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -204,3 +205,5 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			break;
 		}
 	}
+
+} // namespace zeek::threading::formatter

@@ -494,7 +494,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 
 bool Manager::PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
                                const zeek::logging::WriterBackend::WriterInfo& info,
-                               int num_fields, const threading::Field* const * fields,
+                               int num_fields, const zeek::threading::Field* const * fields,
                                const broker::endpoint_info& peer)
 	{
 	if ( bstate->endpoint.is_shutdown() )
@@ -550,7 +550,7 @@ bool Manager::PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
 	}
 
 bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, string path,
-                              int num_fields, const threading::Value* const * vals)
+                              int num_fields, const zeek::threading::Value* const * vals)
 	{
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
@@ -1260,7 +1260,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 		}
 
 	auto num_fields = fields_data->size();
-	auto fields = new threading::Field* [num_fields];
+	auto fields = new zeek::threading::Field* [num_fields];
 
 	for ( size_t i = 0; i < num_fields; ++i )
 		{
@@ -1344,11 +1344,11 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto vals = new threading::Value* [num_fields];
+	auto vals = new zeek::threading::Value* [num_fields];
 
 	for ( int i = 0; i < num_fields; ++i )
 		{
-		vals[i] = new threading::Value;
+		vals[i] = new zeek::threading::Value;
 
 		if ( ! vals[i]->Read(&fmt) )
 			{

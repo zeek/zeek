@@ -7,7 +7,9 @@
 #include <list>
 #include <utility>
 
+namespace zeek {
 namespace threading {
+namespace detail {
 
 class HeartbeatTimer final : public zeek::detail::Timer {
 public:
@@ -20,6 +22,8 @@ protected:
 
 	void Init();
 };
+
+} // namespace detail
 
 /**
  * The thread manager coordinates all child threads. Once a BasicThread is
@@ -103,7 +107,7 @@ public:
 protected:
 	friend class BasicThread;
 	friend class MsgThread;
-	friend class HeartbeatTimer;
+	friend class detail::HeartbeatTimer;
 
 	/**
 	 * Registers a new basic thread with the manager. This is
@@ -151,10 +155,21 @@ private:
 	bool heartbeat_timer_running = false;
 };
 
-}
+} // namespace threading
 
 /**
  * A singleton instance of the thread manager. All methods must only be
- * called from Bro's main thread.
+ * called from Zeek's main thread.
  */
 extern threading::Manager* thread_mgr;
+
+} // namespace zeek
+
+extern zeek::threading::Manager*& thread_mgr [[deprecated("Remove in v4.1. Use zeek::thread_mgr.")]];
+
+namespace threading::detail {
+	using HeartbeatTimer [[deprecated("Remove in v4.1. Use zeek::threading::detail::HeartbeatTimer.")]] = zeek::threading::detail::HeartbeatTimer;
+}
+namespace threading {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::threading::Manager.")]] = zeek::threading::Manager;
+}

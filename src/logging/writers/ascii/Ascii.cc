@@ -23,9 +23,8 @@
 #include "ascii.bif.h"
 
 using namespace std;
-using namespace threading;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
 static constexpr auto shadow_file_prefix = ".shadow.";
 
@@ -359,22 +358,22 @@ bool Ascii::InitFormatter()
 
 	if ( use_json )
 		{
-		formatter::JSON::TimeFormat tf = formatter::JSON::TS_EPOCH;
+		zeek::threading::formatter::JSON::TimeFormat tf = zeek::threading::formatter::JSON::TS_EPOCH;
 
 		// Write out JSON formatted logs.
 		if ( strcmp(json_timestamps.c_str(), "JSON::TS_EPOCH") == 0 )
-			tf = formatter::JSON::TS_EPOCH;
+			tf = zeek::threading::formatter::JSON::TS_EPOCH;
 		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_MILLIS") == 0 )
-			tf = formatter::JSON::TS_MILLIS;
+			tf = zeek::threading::formatter::JSON::TS_MILLIS;
 		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_ISO8601") == 0 )
-			tf = formatter::JSON::TS_ISO8601;
+			tf = zeek::threading::formatter::JSON::TS_ISO8601;
 		else
 			{
 			Error(Fmt("Invalid JSON timestamp format: %s", json_timestamps.c_str()));
 			return false;
 			}
 
-		formatter = new formatter::JSON(this, tf);
+		formatter = new zeek::threading::formatter::JSON(this, tf);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}
@@ -387,8 +386,8 @@ bool Ascii::InitFormatter()
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
-		formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-		formatter = new formatter::Ascii(this, sep_info);
+		zeek::threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+		formatter = new zeek::threading::formatter::Ascii(this, sep_info);
 		}
 
 	return true;
@@ -424,7 +423,7 @@ void Ascii::CloseFile(double t)
 	gzfile = nullptr;
 	}
 
-bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const zeek::threading::Field* const * fields)
 	{
 	assert(! fd);
 
@@ -596,8 +595,8 @@ bool Ascii::DoFinish(double network_time)
 	return true;
 	}
 
-bool Ascii::DoWrite(int num_fields, const Field* const * fields,
-			     Value** vals)
+bool Ascii::DoWrite(int num_fields, const zeek::threading::Field* const * fields,
+                    zeek::threading::Value** vals)
 	{
 	if ( ! fd )
 		DoInit(Info(), NumFields(), Fields());

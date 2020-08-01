@@ -12,7 +12,7 @@
 
 #undef Queue // Defined elsewhere unfortunately.
 
-namespace threading {
+namespace zeek::threading {
 
 /**
  * A thread-safe single-reader single-writer queue.
@@ -261,4 +261,8 @@ inline void Queue<T>::WakeUp()
 		}
 	}
 
+} // namespace zeek::threading
+
+namespace threading {
+	template<typename T> using Queue [[deprecated("Remove in v4.1. Use zeek::threading::Queue.")]] = zeek::threading::Queue<T>;
 }

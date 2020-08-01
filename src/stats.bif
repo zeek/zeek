@@ -339,7 +339,7 @@ function get_thread_stats%(%): ThreadStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ThreadStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(thread_mgr->NumThreads()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::thread_mgr->NumThreads()));
 
 	return r;
 	%}

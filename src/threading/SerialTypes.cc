@@ -14,7 +14,7 @@
 #include "Scope.h"
 #include "IPAddr.h"
 
-using namespace threading;
+namespace zeek::threading {
 
 bool Field::Read(zeek::detail::SerializationFormat* fmt)
 	{
@@ -636,3 +636,5 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 	assert(false);
 	return nullptr;
 	}
+
+} // namespace zeek::threading

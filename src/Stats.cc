@@ -211,9 +211,9 @@ void ProfileLogger::Log()
 			                current_timers[i]));
 		}
 
-	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));
+	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, zeek::thread_mgr->NumThreads()));
 
-	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
+	const threading::Manager::msg_stats_list& thread_stats = zeek::thread_mgr->GetMsgThreadStats();
 	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
 	      i != thread_stats.end(); ++i )
 		{

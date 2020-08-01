@@ -7,11 +7,9 @@
 #include "Type.h"
 #include "SerialTypes.h"
 
-namespace threading {
+ZEEK_FORWARD_DECLARE_NAMESPACED(MsgThread, zeek, threading);
 
-class MsgThread;
-
-namespace formatter {
+namespace zeek::threading {
 
 /**
   * A thread-safe class for converting values into some textual format. This
@@ -164,4 +162,8 @@ private:
 	threading::MsgThread* thread;
 };
 
-}}
+} // zeek::threading
+
+namespace threading::formatter {
+	using Formatter [[deprecated("Remove in v4.1. Use zeek::threading::Formatter.")]] = zeek::threading::Formatter;
+}

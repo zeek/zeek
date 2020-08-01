@@ -4,14 +4,13 @@
 
 #include "Config.h"
 
-namespace plugin {
-namespace Zeek_ConfigReader {
+namespace zeek::plugin::Zeek_ConfigReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::input::Component("Config", ::input::reader::Config::Instantiate));
+		AddComponent(new zeek::input::Component("Config", zeek::input::reader::detail::Config::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::ConfigReader";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
 }

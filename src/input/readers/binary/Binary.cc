@@ -7,15 +7,16 @@
 
 #include "threading/SerialTypes.h"
 
-using namespace input::reader;
 using namespace std;
 using threading::Value;
 using threading::Field;
 
+namespace zeek::input::reader::detail {
+
 streamsize Binary::chunk_size = 0;
 
-Binary::Binary(ReaderFrontend *frontend)
-	: ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true)
+Binary::Binary(zeek::input::ReaderFrontend *frontend)
+	: zeek::input::ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true)
 	{
 	if ( ! chunk_size )
 		{
@@ -197,7 +198,7 @@ bool Binary::DoUpdate()
 	else
 		{
 		switch ( Info().mode  ) {
-		case MODE_REREAD:
+		case zeek::input::MODE_REREAD:
 			{
 			switch ( UpdateModificationTime() ) {
 			case -1:
@@ -212,9 +213,9 @@ bool Binary::DoUpdate()
 			// fallthrough
 			}
 
-		case MODE_MANUAL:
-		case MODE_STREAM:
-			if ( Info().mode == MODE_STREAM && in )
+		case zeek::input::MODE_MANUAL:
+		case zeek::input::MODE_STREAM:
+			if ( Info().mode == zeek::input::MODE_STREAM && in )
 				{
 				in->clear(); // remove end of file evil bits
 				break;
@@ -246,13 +247,13 @@ bool Binary::DoUpdate()
 		val->val.string_val.length = size;
 		fields[0] = val;
 
-		if ( Info().mode == MODE_STREAM )
+		if ( Info().mode == zeek::input::MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( Info().mode != MODE_STREAM )
+	if ( Info().mode != zeek::input::MODE_STREAM )
 		EndCurrentSend();
 
 #ifdef DEBUG
@@ -265,12 +266,12 @@ bool Binary::DoUpdate()
 bool Binary::DoHeartbeat(double network_time, double current_time)
 	{
 	switch ( Info().mode ) {
-		case MODE_MANUAL:
+		case zeek::input::MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case MODE_REREAD:
-		case MODE_STREAM:
+		case zeek::input::MODE_REREAD:
+		case zeek::input::MODE_STREAM:
 #ifdef DEBUG
 	Debug(zeek::DBG_INPUT, "Starting Heartbeat update");
 #endif
@@ -286,3 +287,5 @@ bool Binary::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
+
+} // namespace zeek::input::reader::detail

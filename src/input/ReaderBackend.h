@@ -9,7 +9,9 @@
 
 #include "Component.h"
 
-namespace input {
+ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek::input);
+
+namespace zeek::input {
 
 /**
  * The modes a reader can be in.
@@ -40,8 +42,6 @@ enum ReaderMode {
 	/** Internal dummy mode for initialization. */
 	MODE_NONE
 };
-
-class ReaderFrontend;
 
 /**
  * Base class for reader implementation. When the input:Manager creates a new
@@ -364,4 +364,16 @@ private:
 	bool suppress_warnings = false;
 };
 
-}
+} // namespace zeek::input
+
+namespace input {
+
+	using ReaderMode [[deprecated("Remove in v4.1. Use zeek::input::ReaderMode.")]] = zeek::input::ReaderMode;
+	constexpr auto MODE_MANUAL [[deprecated("Remove in v4.1. Use zeek::input::MODE_MANUAL.")]] = zeek::input::MODE_MANUAL;
+	constexpr auto MODE_REREAD [[deprecated("Remove in v4.1. Use zeek::input::MODE_REREAD.")]] = zeek::input::MODE_REREAD;
+	constexpr auto MODE_STREAM [[deprecated("Remove in v4.1. Use zeek::input::MODE_STREAM.")]] = zeek::input::MODE_STREAM;
+	constexpr auto MODE_NONE [[deprecated("Remove in v4.1. Use zeek::input::MODE_NONE.")]] = zeek::input::MODE_NONE;
+
+	using ReaderBackend [[deprecated("Remove in v4.1. Use zeek::input::ReaderBackend.")]] = zeek::input::ReaderBackend;
+
+} // namespace input

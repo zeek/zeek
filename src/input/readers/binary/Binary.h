@@ -7,17 +7,17 @@
 
 #include "input/ReaderBackend.h"
 
-namespace input { namespace reader {
+namespace zeek::input::reader::detail {
 
 /**
  * Binary mode file reader.
  */
-class Binary : public ReaderBackend {
+class Binary : public zeek::input::ReaderBackend {
 public:
-	explicit Binary(ReaderFrontend* frontend);
+	explicit Binary(zeek::input::ReaderFrontend* frontend);
 	~Binary() override;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend)
+	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend)
 		{ return new Binary(frontend); }
 
 protected:
@@ -44,5 +44,8 @@ private:
 	std::string path_prefix;
 };
 
-}
+} // namespace zeek::input::reader::detail
+
+namespace input::reader {
+	using Binary [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Binary.")]] = zeek::input::reader::detail::Binary;
 }

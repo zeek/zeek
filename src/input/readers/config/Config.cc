@@ -15,12 +15,13 @@
 #include "input/Manager.h"
 #include "threading/SerialTypes.h"
 
-using namespace input::reader;
 using namespace threading;
 using threading::Value;
 using threading::Field;
 
-Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
+namespace zeek::input::reader::detail {
+
+Config::Config(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
@@ -36,7 +37,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 			continue;
 
 		if ( id->GetType()->Tag() == zeek::TYPE_RECORD ||
-			 ! input::Manager::IsCompatibleType(id->GetType().get()) )
+		     ! zeek::input::Manager::IsCompatibleType(id->GetType().get()) )
 			{
 			option_types[id->Name()] = std::make_tuple(zeek::TYPE_ERROR, id->GetType()->Tag());
 			continue;
@@ -118,7 +119,7 @@ bool Config::DoUpdate()
 		return ! fail_on_file_problem;
 
 	switch ( Info().mode ) {
-		case MODE_REREAD:
+		case zeek::input::MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
@@ -145,14 +146,14 @@ bool Config::DoUpdate()
 			// File changed. Fall through to re-read.
 			}
 
-		case MODE_MANUAL:
-		case MODE_STREAM:
+		case zeek::input::MODE_MANUAL:
+		case zeek::input::MODE_STREAM:
 			{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
 			if ( file.is_open() )
 				{
-				if ( Info().mode == MODE_STREAM )
+				if ( Info().mode == zeek::input::MODE_STREAM )
 					{
 					file.clear(); // remove end of file evil bits
 					break;
@@ -254,7 +255,7 @@ bool Config::DoUpdate()
 			val->val.string_val.data = copy_string(value.c_str());
 			fields[1] = val;
 
-			if ( Info().mode  == MODE_STREAM )
+			if ( Info().mode  == zeek::input::MODE_STREAM )
 				Put(fields);
 			else
 				SendEntry(fields);
@@ -279,7 +280,7 @@ bool Config::DoUpdate()
 
 	regfree(&re);
 
-	if ( Info().mode != MODE_STREAM )
+	if ( Info().mode != zeek::input::MODE_STREAM )
 		EndCurrentSend();
 
 	// clean up all options we did not see
@@ -293,12 +294,12 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 	{
 	switch ( Info().mode )
 		{
-		case MODE_MANUAL:
+		case zeek::input::MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case MODE_REREAD:
-		case MODE_STREAM:
+		case zeek::input::MODE_REREAD:
+		case zeek::input::MODE_STREAM:
 			Update(); // Call Update, not DoUpdate, because Update
 				  // checks the "disabled" flag.
 			break;
@@ -309,3 +310,5 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
+
+} // namespace zeek::input::reader::detail

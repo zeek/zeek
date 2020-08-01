@@ -4,14 +4,13 @@
 
 #include "Binary.h"
 
-namespace plugin {
-namespace Zeek_BinaryReader {
+namespace zeek::plugin::Zeek_BinaryReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::input::Component("Binary", ::input::reader::Binary::Instantiate));
+		AddComponent(new zeek::input::Component("Binary", zeek::input::reader::detail::Binary::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::BinaryReader";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
 }

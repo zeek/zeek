@@ -7,7 +7,7 @@
 using threading::Value;
 using threading::Field;
 
-namespace input {
+namespace zeek::input {
 
 class PutMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
@@ -340,4 +340,4 @@ void ReaderBackend::Error(const char* msg)
 	DisableFrontend();
 	}
 
-}
+} // namespace zeek::input

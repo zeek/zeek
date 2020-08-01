@@ -4,14 +4,13 @@
 
 #include "Benchmark.h"
 
-namespace plugin {
-namespace Zeek_BenchmarkReader {
+namespace zeek::plugin::Zeek_BenchmarkReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::input::Component("Benchmark", ::input::reader::Benchmark::Instantiate));
+		AddComponent(new zeek::input::Component("Benchmark", zeek::input::reader::detail::Benchmark::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::BenchmarkReader";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
 }

@@ -22,10 +22,11 @@
 #include "../file_analysis/Manager.h"
 #include "../threading/SerialTypes.h"
 
-using namespace input;
 using namespace std;
 using threading::Value;
 using threading::Field;
+
+namespace zeek::input {
 
 /**
  * InputHashes are used as Dictionaries to store the value and index hashes
@@ -2511,3 +2512,5 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 
 	free(buf);
 	}
+
+} // namespace zeek::input

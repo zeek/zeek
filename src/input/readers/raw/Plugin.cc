@@ -2,9 +2,9 @@
 
 #include "Plugin.h"
 
-namespace plugin { namespace Zeek_RawReader { Plugin plugin; } }
+namespace zeek::plugin::Zeek_RawReader {
 
-using namespace plugin::Zeek_RawReader;
+Plugin plugin;
 
 Plugin::Plugin()
 	{
@@ -12,7 +12,7 @@ Plugin::Plugin()
 
 zeek::plugin::Configuration Plugin::Configure()
 	{
-	AddComponent(new ::input::Component("Raw", ::input::reader::Raw::Instantiate));
+	AddComponent(new zeek::input::Component("Raw", zeek::input::reader::detail::Raw::Instantiate));
 
 	zeek::plugin::Configuration config;
 	config.name = "Zeek::RawReader";
@@ -32,3 +32,5 @@ std::unique_lock<std::mutex> Plugin::ForkMutex()
 	{
 	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
 	}
+
+} // namespace zeek::plugin::Zeek_RawReader

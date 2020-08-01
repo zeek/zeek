@@ -6,10 +6,9 @@
 #include "threading/SerialTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, input);
 
-namespace input {
-
-class Manager;
+namespace zeek::input {
 
 /**
  * Bridge class between the input::Manager and backend input threads. The
@@ -119,7 +118,7 @@ public:
 	const threading::Field* const * Fields() const	{ return fields; }
 
 protected:
-	friend class Manager;
+	friend class zeek::input::Manager;
 
 private:
 	ReaderBackend* backend;	// The backend we have instanatiated.
@@ -131,4 +130,8 @@ private:
 	const char* name;	// Descriptive name.
 };
 
+} // namespace zeek::input
+
+namespace input {
+	using ReaderFrontend [[deprecated("Remove in v4.1. Use zeek::input::ReaderFrontend.")]] = zeek::input::ReaderFrontend;
 }

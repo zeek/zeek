@@ -13,11 +13,11 @@
 #include "Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek, input);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderBackend, zeek, input);
 
+namespace zeek {
 namespace input {
-
-class ReaderFrontend;
-class ReaderBackend;
 
 /**
  * Singleton class for managing input streams.
@@ -256,7 +256,14 @@ private:
 	zeek::EventHandlerPtr end_of_data;
 };
 
-
-}
+} // namespace input
 
 extern input::Manager* input_mgr;
+
+} // namespace zeek
+
+extern zeek::input::Manager*& input_mgr [[deprecated("Remove in v4.1. Use zeek::input_mgr.")]];
+
+namespace input {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::input::Manager.")]] = zeek::input::Manager;
+}

@@ -15,12 +15,13 @@
 
 #include "threading/SerialTypes.h"
 
-using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
-SQLite::SQLite(ReaderFrontend *frontend)
-	: ReaderBackend(frontend),
+namespace zeek::input::reader::detail {
+
+SQLite::SQLite(zeek::input::ReaderFrontend *frontend)
+	: zeek::input::ReaderBackend(frontend),
 	  fields(), num_fields(), mode(), started(), query(), db(), st()
 	{
 	set_separator.assign(
@@ -38,7 +39,8 @@ SQLite::SQLite(ReaderFrontend *frontend)
 			zeek::BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(), set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(),
+		      set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -82,7 +84,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	// allows simultaneous writes to one file.
 	sqlite3_enable_shared_cache(1);
 
-	if ( Info().mode != MODE_MANUAL )
+	if ( Info().mode != zeek::input::MODE_MANUAL )
 		{
 		Error("SQLite only supports manual reading mode.");
 		return false;
@@ -341,3 +343,5 @@ bool SQLite::DoUpdate()
 
 	return true;
 	}
+
+} // namespace zeek::input::reader::detail

@@ -11,11 +11,12 @@
 #include "threading/SerialTypes.h"
 #include "threading/Manager.h"
 
-using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
-Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
+namespace zeek::input::reader::detail {
+
+Benchmark::Benchmark(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
 	{
 	num_lines = 0;
 	multiplication_factor = double(zeek::BifConst::InputBenchmark::factor);
@@ -91,7 +92,7 @@ bool Benchmark::DoUpdate()
 		for  (int j = 0; j < NumFields(); j++ )
 			field[j] = EntryToVal(Fields()[j]->type, Fields()[j]->subtype);
 
-		if ( Info().mode  == MODE_STREAM )
+		if ( Info().mode  == zeek::input::MODE_STREAM )
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
 		else
@@ -117,7 +118,7 @@ bool Benchmark::DoUpdate()
 
 	}
 
-	if ( Info().mode != MODE_STREAM )
+	if ( Info().mode != zeek::input::MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -240,12 +241,12 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 	heartbeatstarttime = CurrTime();
 
 	switch ( Info().mode ) {
-		case MODE_MANUAL:
+		case zeek::input::MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case MODE_REREAD:
-		case MODE_STREAM:
+		case zeek::input::MODE_REREAD:
+		case zeek::input::MODE_STREAM:
 			if ( multiplication_factor != 1 || add != 0 )
 				{
 				// we have to document at what time we changed the factor to what value.
@@ -273,3 +274,5 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 }
+
+} // namespace zeek::input::reader::detail

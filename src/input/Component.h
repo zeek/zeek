@@ -6,16 +6,16 @@
 #include "plugin/Component.h"
 #include "plugin/TaggedComponent.h"
 
-namespace input {
+ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek, input);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderBackend, zeek, input);
 
-class ReaderFrontend;
-class ReaderBackend;
+namespace zeek::input {
 
 /**
  * Component description for plugins providing log readers.
  */
 class Component : public zeek::plugin::Component,
-		  public plugin::TaggedComponent<input::Tag> {
+                  public plugin::TaggedComponent<zeek::input::Tag> {
 public:
 	typedef ReaderBackend* (*factory_callback)(ReaderFrontend* frontend);
 
@@ -60,4 +60,8 @@ private:
 	factory_callback factory;
 };
 
+} // namespace zeek::input
+
+namespace input {
+	using Component [[deprecated("Remove in v4.1. Use zeek::input::Component.")]] = zeek::input::Component;
 }

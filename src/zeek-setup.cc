@@ -104,7 +104,8 @@ zeek::detail::TimerMgr*& timer_mgr = zeek::detail::timer_mgr;
 
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
-input::Manager* input_mgr = nullptr;
+zeek::input::Manager* zeek::input_mgr = nullptr;
+zeek::input::Manager*& input_mgr = zeek::input_mgr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::file_analysis::Manager*& file_mgr = zeek::file_mgr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
@@ -305,7 +306,7 @@ void terminate_bro()
 
 	notifier::registry.Terminate();
 	log_mgr->Terminate();
-	input_mgr->Terminate();
+	zeek::input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
 	zeek::detail::dns_mgr->Terminate();
@@ -581,7 +582,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	event_registry = new EventRegistry();
 	zeek::analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
-	input_mgr = new input::Manager();
+	zeek::input_mgr = new input::Manager();
 	zeek::file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new bro_broker::Manager(broker_real_time);

@@ -20,10 +20,10 @@ namespace plugin {
 		zeek::plugin::ComponentManager<T, C>;
 }
 
-namespace input {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, input);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, input);
 
-class Manager;
-class Component;
+namespace zeek::input {
 
 /**
  * Class to identify a reader type.
@@ -123,4 +123,8 @@ protected:
 	explicit Tag(zeek::EnumVal* val);
 };
 
+} // namespace zeek::input
+
+namespace input {
+	using Tag [[deprecated("Remove in v4.1. Use zeek::input::Tag.")]] = zeek::input::Tag;
 }

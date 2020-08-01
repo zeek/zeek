@@ -11,7 +11,7 @@
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
 
-namespace input { namespace reader {
+namespace zeek::input::reader::detail {
 
 // Description for input field mapping.
 struct FieldMapping {
@@ -34,9 +34,9 @@ struct FieldMapping {
 /**
  * Reader for structured ASCII files.
  */
-class Ascii : public ReaderBackend {
+class Ascii : public zeek::input::ReaderBackend {
 public:
-	explicit Ascii(ReaderFrontend* frontend);
+	explicit Ascii(zeek::input::ReaderFrontend* frontend);
 	~Ascii() override;
 
 	// prohibit copying and moving
@@ -45,7 +45,7 @@ public:
 	Ascii& operator=(const Ascii&) = delete;
 	Ascii& operator=(Ascii&&) = delete;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Ascii(frontend); }
+	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new Ascii(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
@@ -85,6 +85,9 @@ private:
 	std::unique_ptr<threading::formatter::Formatter> formatter;
 };
 
+} // namespace zeek::input::reader::detail
 
-}
-}
+namespace input::reader {
+	using FieldMapping [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::FieldMapping.")]] = zeek::input::reader::detail::FieldMapping;
+	using Ascii [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Ascii.")]] = zeek::input::reader::detail::Ascii;
+} // namespace input::reader

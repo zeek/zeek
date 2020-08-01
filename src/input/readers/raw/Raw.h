@@ -9,15 +9,15 @@
 
 #include "input/ReaderBackend.h"
 
-namespace input { namespace reader {
+namespace zeek::input::reader::detail {
 
 /**
  * A reader that returns a file (or the output of a command) as a single
  * blob.
  */
-class Raw : public ReaderBackend {
+class Raw : public zeek::input::ReaderBackend {
 public:
-	explicit Raw(ReaderFrontend* frontend);
+	explicit Raw(zeek::input::ReaderFrontend* frontend);
 	~Raw() override;
 
 	// prohibit copying and moving
@@ -26,7 +26,7 @@ public:
 	Raw& operator=(const Raw&) = delete;
 	Raw& operator=(Raw&&) = delete;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Raw(frontend); }
+	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new Raw(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
@@ -89,5 +89,8 @@ private:
 	static const int block_size;
 };
 
-}
+} // namespace zeek::input::reader::detail
+
+namespace input::reader {
+	using Raw [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Raw.")]] = zeek::input::reader::detail::Raw;
 }

@@ -11,14 +11,14 @@
 #include "threading/formatters/Ascii.h"
 #include "3rdparty/sqlite3.h"
 
-namespace input { namespace reader {
+namespace zeek::input::reader::detail {
 
-class SQLite : public ReaderBackend {
+class SQLite : public zeek::input::ReaderBackend {
 public:
-	explicit SQLite(ReaderFrontend* frontend);
+	explicit SQLite(zeek::input::ReaderFrontend* frontend);
 	~SQLite() override;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new SQLite(frontend); }
+	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new SQLite(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* arg_fields) override;
@@ -45,6 +45,8 @@ private:
 	std::string empty_field;
 };
 
+} // namespace zeek::input::reader
 
-}
+namespace input::reader {
+	using SQLite [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::SQLite.")]] = zeek::input::reader::detail::SQLite;
 }

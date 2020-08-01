@@ -5,17 +5,17 @@
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
 
-namespace input { namespace reader {
+namespace zeek::input::reader::detail {
 
 /**
  * A benchmark reader to measure performance of the input framework.
  */
-class Benchmark : public ReaderBackend {
+class Benchmark : public zeek::input::ReaderBackend {
 public:
-	explicit Benchmark(ReaderFrontend* frontend);
+	explicit Benchmark(zeek::input::ReaderFrontend* frontend);
 	~Benchmark() override;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Benchmark(frontend); }
+	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new Benchmark(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
@@ -42,6 +42,8 @@ private:
 	threading::formatter::Ascii* ascii;
 };
 
+} // namespace zeek::input::reader
 
-}
+namespace input::reader {
+	using Benchmark [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Benchmark.")]] = zeek::input::reader::detail::Benchmark;
 }

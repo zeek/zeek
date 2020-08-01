@@ -150,9 +150,9 @@ int fputs(zeek::data_chunk_t b, FILE* fp)
 
 void MIME_Mail::Undelivered(int len)
 	{
-	cur_entity_id = file_mgr->Gap(cur_entity_len, len,
-	                              analyzer->GetAnalyzerTag(), analyzer->Conn(),
-	                              is_orig, cur_entity_id);
+	cur_entity_id = zeek::file_mgr->Gap(cur_entity_len, len,
+	                                    analyzer->GetAnalyzerTag(), analyzer->Conn(),
+	                                    is_orig, cur_entity_id);
 	}
 
 bool istrequal(zeek::data_chunk_t s, const char* t)
@@ -1387,7 +1387,7 @@ void MIME_Mail::Done()
 
 	MIME_Message::Done();
 
-	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	zeek::file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1433,7 +1433,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 	if ( mime_end_entity )
 		analyzer->EnqueueConnEvent(mime_end_entity, analyzer->ConnVal());
 
-	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	zeek::file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
 	}
 
@@ -1492,9 +1492,10 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		);
 		}
 
-	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
-	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
-	                 cur_entity_id);
+	cur_entity_id = zeek::file_mgr->DataIn(
+		reinterpret_cast<const u_char*>(buf), len,
+		analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
+		cur_entity_id);
 
 	cur_entity_len += len;
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();

@@ -212,15 +212,15 @@ refine flow RDP_Flow += {
 		file_handle.AddRaw("Analyzer::ANALYZER_RDP");
 		file_handle.Add(connection()->bro_analyzer()->Conn()->StartTime());
 		connection()->bro_analyzer()->Conn()->IDString(&file_handle);
-		string file_id = file_mgr->HashHandle(file_handle.Description());
+		string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
-		file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-		                 cert.length(),
-		                 connection()->bro_analyzer()->GetAnalyzerTag(),
-		                 connection()->bro_analyzer()->Conn(),
-		                 false, // It seems there are only server certs?
-		                 file_id, "application/x-x509-user-cert");
-		file_mgr->EndOfFile(file_id);
+		zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+		                       cert.length(),
+		                       connection()->bro_analyzer()->GetAnalyzerTag(),
+		                       connection()->bro_analyzer()->Conn(),
+		                       false, // It seems there are only server certs?
+		                       file_id, "application/x-x509-user-cert");
+		zeek::file_mgr->EndOfFile(file_id);
 
 		return true;
 		%}

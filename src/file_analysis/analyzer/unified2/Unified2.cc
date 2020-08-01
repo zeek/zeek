@@ -3,10 +3,11 @@
 #include "Unified2.h"
 #include "file_analysis/Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-Unified2::Unified2(zeek::RecordValPtr args, File* file)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("UNIFIED2"), std::move(args), file)
+Unified2::Unified2(zeek::RecordValPtr args, zeek::file_analysis::File* file)
+    : file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("UNIFIED2"),
+                              std::move(args), file)
 	{
 	interp = new binpac::Unified2::Unified2_Analyzer(this);
 	}
@@ -16,7 +17,8 @@ Unified2::~Unified2()
 	delete interp;
 	}
 
-file_analysis::Analyzer* Unified2::Instantiate(zeek::RecordValPtr args, File* file)
+zeek::file_analysis::Analyzer* Unified2::Instantiate(zeek::RecordValPtr args,
+                                                     zeek::file_analysis::File* file)
 	{
 	return new Unified2(std::move(args), file);
 	}
@@ -35,3 +37,5 @@ bool Unified2::DeliverStream(const u_char* data, uint64_t len)
 
 	return true;
 	}
+
+} // namespace zeek::file_analysis::detail

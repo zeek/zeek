@@ -63,11 +63,11 @@ static void RSA_get0_key(const RSA *r,
 
 #endif
 
-namespace file_analysis {
+namespace zeek::file_analysis::detail {
 
 class X509Val;
 
-class X509 : public file_analysis::X509Common {
+class X509 : public zeek::file_analysis::detail::X509Common {
 public:
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 	bool Undelivered(uint64_t offset, uint64_t len) override;
@@ -86,10 +86,10 @@ public:
 	 * @param Returns the new record value and passes ownership to
 	 * caller.
 	 */
-	static zeek::RecordValPtr ParseCertificate(X509Val* cert_val, File* file = nullptr);
+	static zeek::RecordValPtr ParseCertificate(X509Val* cert_val, zeek::file_analysis::File* file = nullptr);
 
-	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                            File* file)
+	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
+	                                                  zeek::file_analysis::File* file)
 		{ return new X509(std::move(args), file); }
 
 	/**
@@ -127,7 +127,7 @@ public:
 		{ cache_hit_callback = std::move(func); }
 
 protected:
-	X509(zeek::RecordValPtr args, File* file);
+	X509(zeek::RecordValPtr args, zeek::file_analysis::File* file);
 
 private:
 	void ParseBasicConstraints(X509_EXTENSION* ex);
@@ -196,4 +196,11 @@ private:
 	::X509* certificate; // the wrapped certificate
 };
 
-}
+} // namespace zeek::file_analysis::detail
+
+namespace file_analysis {
+
+	using X509 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509.")]] = zeek::file_analysis::detail::X509;
+	using X509Val [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509Val.")]] = zeek::file_analysis::detail::X509Val;
+
+} // namespace file_analysis

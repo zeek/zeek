@@ -6,14 +6,13 @@
 #include "plugin/Plugin.h"
 #include "file_analysis/Component.h"
 
-namespace plugin {
-namespace Zeek_Unified2 {
+namespace zeek::plugin::detail::Zeek_Unified2 {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::file_analysis::Component("UNIFIED2", ::file_analysis::Unified2::Instantiate));
+		AddComponent(new zeek::file_analysis::Component("UNIFIED2", zeek::file_analysis::detail::Unified2::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::Unified2";
@@ -22,5 +21,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_Unified2

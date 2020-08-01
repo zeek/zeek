@@ -149,7 +149,7 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 function Reporter::file_weird%(name: string, f: fa_file, addl: string &default=""%): bool
 	%{
 	auto fuid = f->AsRecordVal()->GetField(0)->AsStringVal();
-	auto file = file_mgr->LookupFile(fuid->CheckString());
+	auto file = zeek::file_mgr->LookupFile(fuid->CheckString());
 
 	if ( ! file )
 		return zeek::val_mgr->False();

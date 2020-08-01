@@ -307,11 +307,11 @@ refine connection Handshake_Conn += {
 			file_handle.Add(common.Description());
 			file_handle.Add("ocsp");
 
-			string file_id = file_mgr->HashHandle(file_handle.Description());
+			string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
-			file_mgr->DataIn(reinterpret_cast<const u_char*>(response.data()),
-			                 response.length(), bro_analyzer()->GetAnalyzerTag(),
-			                 bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
+			zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(response.data()),
+			                       response.length(), bro_analyzer()->GetAnalyzerTag(),
+			                       bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
 
 			if ( ssl_stapled_ocsp )
 				zeek::BifEvent::enqueue_ssl_stapled_ocsp(bro_analyzer(),
@@ -319,7 +319,7 @@ refine connection Handshake_Conn += {
 				        ${rec.is_orig},
 				        zeek::make_intrusive<zeek::StringVal>(response.length(), (const char*) response.data()));
 
-			file_mgr->EndOfFile(file_id);
+			zeek::file_mgr->EndOfFile(file_id);
 			}
 		else if ( response.length() == 0 )
 			{

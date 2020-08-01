@@ -3,35 +3,37 @@
 #include "Tag.h"
 #include "Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis {
 
-const file_analysis::Tag file_analysis::Tag::Error;
+const Tag Tag::Error;
 
-file_analysis::Tag::Tag(type_t type, subtype_t subtype)
+Tag::Tag(type_t type, subtype_t subtype)
 	: ::Tag(file_mgr->GetTagType(), type, subtype)
 	{
 	}
 
-file_analysis::Tag& file_analysis::Tag::operator=(const file_analysis::Tag& other)
+Tag& Tag::operator=(const Tag& other)
 	{
 	zeek::Tag::operator=(other);
 	return *this;
 	}
 
-const zeek::EnumValPtr& file_analysis::Tag::AsVal() const
+const zeek::EnumValPtr& Tag::AsVal() const
 	{
 	return zeek::Tag::AsVal(file_mgr->GetTagType());
 	}
 
-zeek::EnumVal* file_analysis::Tag::AsEnumVal() const
+zeek::EnumVal* Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-file_analysis::Tag::Tag(zeek::EnumValPtr val)
+Tag::Tag(zeek::EnumValPtr val)
 	: zeek::Tag(std::move(val))
 	{ }
 
-file_analysis::Tag::Tag(zeek::EnumVal* val)
+Tag::Tag(zeek::EnumVal* val)
 	: zeek::Tag({zeek::NewRef{}, val})
 	{ }
+
+} // namespace zeek::file_analysis

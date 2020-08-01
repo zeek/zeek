@@ -783,7 +783,7 @@ bool Manager::CreateAnalysisStream(zeek::RecordVal* fval)
 		return false;
 		}
 
-	stream->file_id = file_mgr->HashHandle(stream->name);
+	stream->file_id = zeek::file_mgr->HashHandle(stream->name);
 
 	assert(stream->reader);
 
@@ -1099,9 +1099,9 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 		{
 		readFields = 1;
 		assert(vals[0]->type == zeek::TYPE_STRING);
-		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
-		                 vals[0]->val.string_val.length,
-		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
+		zeek::file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                                      vals[0]->val.string_val.length,
+		                                      static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else
@@ -1437,7 +1437,7 @@ void Manager::SendEndOfData(const Stream *i)
 	          new zeek::StringVal(i->reader->Info().source));
 
 	if ( i->stream_type == ANALYSIS_STREAM )
-		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
+		zeek::file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
@@ -1469,9 +1469,9 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		{
 		readFields = 1;
 		assert(vals[0]->type == zeek::TYPE_STRING);
-		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
-		                 vals[0]->val.string_val.length,
-		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
+		zeek::file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                       vals[0]->val.string_val.length,
+		                       static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else

@@ -8,11 +8,11 @@
 #include "Event.h"
 #include "file_analysis/Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-Extract::Extract(zeek::RecordValPtr args, File* file,
+Extract::Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
                  const std::string& arg_filename, uint64_t arg_limit)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
+    : file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("EXTRACT"),
                               std::move(args), file),
       filename(arg_filename), limit(arg_limit), depth(0)
 	{
@@ -44,7 +44,8 @@ static const zeek::ValPtr& get_extract_field_val(const zeek::RecordValPtr& args,
 	return rval;
 	}
 
-file_analysis::Analyzer* Extract::Instantiate(zeek::RecordValPtr args, File* file)
+zeek::file_analysis::Analyzer* Extract::Instantiate(zeek::RecordValPtr args,
+                                                    zeek::file_analysis::File* file)
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
@@ -92,7 +93,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 	if ( limit_exceeded && file_extraction_limit )
 		{
-		File* f = GetFile();
+		zeek::file_analysis::File* f = GetFile();
 		f->FileEvent(file_extraction_limit, {
 			f->ToVal(),
 			GetArgs(),
@@ -125,3 +126,5 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 
 	return true;
 	}
+
+} // namespace zeek::file_analysis::detail

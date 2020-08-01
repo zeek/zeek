@@ -42,7 +42,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 			continue;
 
 		// Fixme: check type
-		X509* x = ((file_analysis::X509Val*) sv.get())->GetCertificate();
+		X509* x = ((zeek::file_analysis::detail::X509Val*) sv.get())->GetCertificate();
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);
@@ -147,9 +147,9 @@ const EVP_MD* hash_to_evp(int hash)
 function x509_parse%(cert: opaque of x509%): X509::Certificate
 	%{
 	assert(cert);
-	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+	auto* h = (zeek::file_analysis::detail::X509Val*) cert;
 
-	return file_analysis::X509::ParseCertificate(h);
+	return zeek::file_analysis::detail::X509::ParseCertificate(h);
 	%}
 
 ## Constructs an opaque of X509 from a der-formatted string.
@@ -162,7 +162,7 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 function x509_from_der%(der: string%): opaque of x509
     %{
     const u_char* data = der->Bytes();
-    return zeek::make_intrusive<file_analysis::X509Val>(d2i_X509(nullptr, &data, der->Len()));
+    return zeek::make_intrusive<zeek::file_analysis::detail::X509Val>(d2i_X509(nullptr, &data, der->Len()));
     %}
 
 ## Returns the string form of a certificate.
@@ -180,7 +180,7 @@ function x509_from_der%(der: string%): opaque of x509
 function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F%): string
 	%{
 	assert(cert);
-	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+	auto* h = (zeek::file_analysis::detail::X509Val*) cert;
 
 	BIO *bio = BIO_new(BIO_s_mem());
 
@@ -190,7 +190,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	else
 		i2d_X509_bio(bio, h->GetCertificate());
 
-	auto ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
+	auto ext_val = zeek::file_analysis::detail::X509::GetExtensionFromBIO(bio);
 
 	if ( ! ext_val )
 		ext_val = zeek::val_mgr->EmptyString();
@@ -217,7 +217,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
 	zeek::RecordValPtr rval;
-	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
+	X509_STORE* ctx = zeek::file_analysis::detail::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 
@@ -238,7 +238,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
 
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
+	auto* cert_handle = (zeek::file_analysis::detail::X509Val*) sv.get();
 
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
@@ -503,7 +503,7 @@ x509_ocsp_cleanup:
 ##              x509_get_certificate_string x509_ocsp_verify sct_verify
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
-	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
+	X509_STORE* ctx = zeek::file_analysis::detail::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 
@@ -523,7 +523,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 		zeek::emit_builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
+	auto* cert_handle = (zeek::file_analysis::detail::X509Val*) sv.get();
 
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
@@ -565,7 +565,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 			if ( currcert )
 				// X509Val takes ownership of currcert.
-				chainVector->Assign(i, zeek::make_intrusive<file_analysis::X509Val>(currcert));
+				chainVector->Assign(i, zeek::make_intrusive<zeek::file_analysis::detail::X509Val>(currcert));
 			else
 				{
 				zeek::reporter->InternalWarning("OpenSSL returned null certificate");
@@ -614,8 +614,8 @@ x509_verify_chainerror:
 function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""%): bool
 	%{
 	assert(cert);
-	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
-	X509* x = ((file_analysis::X509Val*) h)->GetCertificate();
+	auto* h = (zeek::file_analysis::detail::X509Val*) cert;
+	X509* x = ((zeek::file_analysis::detail::X509Val*) h)->GetCertificate();
 
 	assert(sizeof(timestamp) >= 8);
 	uint64_t timestamp_network = htonll(timestamp);
@@ -762,7 +762,7 @@ sct_verify_err:
  * 1 -> issuer name
  * 2 -> pubkey
  */
-zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
+zeek::StringValPtr x509_entity_hash(zeek::file_analysis::detail::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
 	{
 	assert(cert_handle);
 
@@ -842,7 +842,7 @@ zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigne
 ##              x509_verify sct_verify
 function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
-	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+	auto* cert_handle = (zeek::file_analysis::detail::X509Val *) cert;
 
 	return x509_entity_hash(cert_handle, hash_alg, 0);
 	%}
@@ -860,7 +860,7 @@ function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
 ##              x509_verify sct_verify
 function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
-	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+	auto* cert_handle = (zeek::file_analysis::detail::X509Val *) cert;
 
 	return x509_entity_hash(cert_handle, hash_alg, 1);
 	%}
@@ -878,7 +878,7 @@ function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 ##              x509_verify sct_verify
 function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
-	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+	auto* cert_handle = (zeek::file_analysis::detail::X509Val *) cert;
 
 	return x509_entity_hash(cert_handle, hash_alg, 2);
 	%}
@@ -901,7 +901,7 @@ function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
 ## .. zeek:see:: x509_set_certificate_cache_hit_callback
 function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 	%{
-	file_analysis::X509::SetCertificateCache({zeek::NewRef{}, tbl->AsTableVal()});
+	zeek::file_analysis::detail::X509::SetCertificateCache({zeek::NewRef{}, tbl->AsTableVal()});
 
 	return zeek::val_mgr->True();
 	%}
@@ -919,7 +919,7 @@ function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 ## .. zeek:see:: x509_set_certificate_cache
 function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bool
 	%{
-	file_analysis::X509::SetCertificateCacheHitCallback({zeek::NewRef{}, f->AsFunc()});
+	zeek::file_analysis::detail::X509::SetCertificateCacheHitCallback({zeek::NewRef{}, f->AsFunc()});
 
 	return zeek::val_mgr->True();
 	%}

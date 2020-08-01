@@ -20,9 +20,9 @@ namespace plugin {
 		zeek::plugin::ComponentManager<T, C>;
 }
 
-namespace file_analysis {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, file_analysis);
 
-class Component;
+namespace zeek::file_analysis {
 
 /**
  * Class to identify a file analyzer type.
@@ -122,4 +122,8 @@ protected:
 	explicit Tag(zeek::EnumVal* val);
 };
 
-}
+} // namespace zeek::file_analysis
+
+namespace file_analysis {
+	using Tag [[deprecated("Remove in v4.1. Use zeek::file_analysis::Tag.")]] = zeek::file_analysis::Tag;
+} // namespace file_analysis

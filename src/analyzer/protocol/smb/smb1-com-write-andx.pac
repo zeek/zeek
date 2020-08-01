@@ -12,10 +12,10 @@ refine connection SMB_Conn += {
 
 		if ( ! ${h.is_pipe} && ${val.data}.length() > 0 )
 			{
-			file_mgr->DataIn(${val.data}.begin(), ${val.data}.length(),
-			                 ${val.write_offset},
-			                 bro_analyzer()->GetAnalyzerTag(),
-			                 bro_analyzer()->Conn(), h->is_orig());
+			zeek::file_mgr->DataIn(${val.data}.begin(), ${val.data}.length(),
+			                       ${val.write_offset},
+			                       bro_analyzer()->GetAnalyzerTag(),
+			                       bro_analyzer()->Conn(), h->is_orig());
 			}
 
 		return true;

@@ -44,9 +44,9 @@ static void write_analyzer_component(FILE* f, const zeek::analyzer::Component* c
 	fprintf(f, ":zeek:enum:`Analyzer::%s`\n\n", tag.c_str());
 	}
 
-static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
+static void write_analyzer_component(FILE* f, const zeek::file_analysis::Component* c)
 	{
-	const auto& atag = file_mgr->GetTagType();
+	const auto& atag = zeek::file_mgr->GetTagType();
 	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Files", tag.c_str()) < 0 )
@@ -79,8 +79,8 @@ static void write_plugin_components(FILE* f, const zeek::plugin::Plugin* p)
 
 		case zeek::plugin::component::FILE_ANALYZER:
 			{
-			const file_analysis::Component* c =
-			        dynamic_cast<const file_analysis::Component*>(component);
+			const auto* c =
+				dynamic_cast<const zeek::file_analysis::Component*>(component);
 
 			if ( c )
 				write_analyzer_component(f, c);

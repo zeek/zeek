@@ -105,7 +105,8 @@ zeek::detail::TimerMgr*& timer_mgr = zeek::detail::timer_mgr;
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
-file_analysis::Manager* file_mgr = nullptr;
+zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
+zeek::file_analysis::Manager*& file_mgr = zeek::file_mgr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
 iosource::Manager* iosource_mgr = nullptr;
 bro_broker::Manager* broker_mgr = nullptr;
@@ -280,7 +281,7 @@ void terminate_bro()
 
 	// File analysis termination may produce events, so do it early on in
 	// the termination process.
-	file_mgr->Terminate();
+	zeek::file_mgr->Terminate();
 
 	zeek::detail::script_coverage_mgr.WriteStats();
 
@@ -315,7 +316,7 @@ void terminate_bro()
 
 	delete zeekygen_mgr;
 	delete zeek::analyzer_mgr;
-	delete file_mgr;
+	delete zeek::file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete zeek::event_registry;
@@ -581,14 +582,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
-	file_mgr = new file_analysis::Manager();
+	zeek::file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new bro_broker::Manager(broker_real_time);
 	trigger_mgr = new zeek::detail::trigger::Manager();
 
 	zeek::plugin_mgr->InitPreScript();
 	zeek::analyzer_mgr->InitPreScript();
-	file_mgr->InitPreScript();
+	zeek::file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
 
 	bool missing_plugin = false;
@@ -674,7 +675,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		}
 
 	zeek::analyzer_mgr->InitPostScript();
-	file_mgr->InitPostScript();
+	zeek::file_mgr->InitPostScript();
 	zeek::detail::dns_mgr->InitPostScript();
 
 	if ( options.parse_only )
@@ -729,7 +730,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		if ( options.print_signature_debug_info )
 			rule_matcher->PrintDebug();
 
-		file_mgr->InitMagic();
+		zeek::file_mgr->InitMagic();
 		}
 
 	if ( g_policy_debug )

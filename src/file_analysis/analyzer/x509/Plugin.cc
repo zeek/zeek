@@ -5,16 +5,15 @@
 #include "plugin/Plugin.h"
 #include "file_analysis/Component.h"
 
-namespace plugin {
-namespace Zeek_X509 {
+namespace zeek::plugin::detail::Zeek_X509 {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::file_analysis::Component("X509", ::file_analysis::X509::Instantiate));
-		AddComponent(new ::file_analysis::Component("OCSP_REQUEST", ::file_analysis::OCSP::InstantiateRequest));
-		AddComponent(new ::file_analysis::Component("OCSP_REPLY", ::file_analysis::OCSP::InstantiateReply));
+		AddComponent(new zeek::file_analysis::Component("X509", zeek::file_analysis::detail::X509::Instantiate));
+		AddComponent(new zeek::file_analysis::Component("OCSP_REQUEST", zeek::file_analysis::detail::OCSP::InstantiateRequest));
+		AddComponent(new zeek::file_analysis::Component("OCSP_REPLY", zeek::file_analysis::detail::OCSP::InstantiateReply));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::X509";
@@ -25,9 +24,8 @@ public:
 	void Done() override
 		{
 		zeek::plugin::Plugin::Done();
-		::file_analysis::X509::FreeRootStore();
+		zeek::file_analysis::detail::X509::FreeRootStore();
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_X509

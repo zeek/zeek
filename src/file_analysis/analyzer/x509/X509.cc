@@ -21,28 +21,28 @@
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-file_analysis::X509::X509(zeek::RecordValPtr args, file_analysis::File* file)
-	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"),
-	                                        std::move(args), file)
+X509::X509(zeek::RecordValPtr args, zeek::file_analysis::File* file)
+	: X509Common::X509Common(zeek::file_mgr->GetComponentTag("X509"),
+	                         std::move(args), file)
 	{
 	cert_data.clear();
 	}
 
-bool file_analysis::X509::DeliverStream(const u_char* data, uint64_t len)
+bool X509::DeliverStream(const u_char* data, uint64_t len)
 	{
 	// just add it to the data we have so far, since we cannot do anything else anyways...
 	cert_data.append(reinterpret_cast<const char*>(data), len);
 	return true;
 	}
 
-bool file_analysis::X509::Undelivered(uint64_t offset, uint64_t len)
+bool X509::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}
 
-bool file_analysis::X509::EndOfFile()
+bool X509::EndOfFile()
 	{
 	const unsigned char* cert_char = reinterpret_cast<const unsigned char*>(cert_data.data());
 	if ( certificate_cache )
@@ -113,7 +113,8 @@ bool file_analysis::X509::EndOfFile()
 	return false;
 	}
 
-zeek::RecordValPtr file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
+zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
+                                          zeek::file_analysis::File* f)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
@@ -240,7 +241,7 @@ zeek::RecordValPtr file_analysis::X509::ParseCertificate(X509Val* cert_val, File
 	return pX509Cert;
 	}
 
-X509_STORE* file_analysis::X509::GetRootStore(zeek::TableVal* root_certs)
+X509_STORE* X509::GetRootStore(zeek::TableVal* root_certs)
 	{
 	// If this certificate store was built previously, just reuse the old one.
 	if ( x509_stores.count(root_certs) > 0 )
@@ -274,13 +275,13 @@ X509_STORE* file_analysis::X509::GetRootStore(zeek::TableVal* root_certs)
 	return ctx;
 	}
 
-void file_analysis::X509::FreeRootStore()
+void X509::FreeRootStore()
 	{
 	for ( const auto& e : x509_stores )
 		X509_STORE_free(e.second);
 	}
 
-void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
+void X509::ParseBasicConstraints(X509_EXTENSION* ex)
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
 
@@ -309,7 +310,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		zeek::reporter->Weird(GetFile(), "x509_invalid_basic_constraint");
 	}
 
-void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
+void X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
 	{
 	// look if we have a specialized handler for this event...
 	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints )
@@ -329,7 +330,7 @@ void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 		ParseSignedCertificateTimestamps(ex);
 	}
 
-void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
+void X509::ParseSAN(X509_EXTENSION* ext)
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ext)) == NID_subject_alt_name);
 
@@ -443,7 +444,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES_free(altname);
 	}
 
-zeek::StringValPtr file_analysis::X509::KeyCurve(EVP_PKEY* key)
+zeek::StringValPtr X509::KeyCurve(EVP_PKEY* key)
 	{
 	assert(key != nullptr);
 
@@ -476,7 +477,7 @@ zeek::StringValPtr file_analysis::X509::KeyCurve(EVP_PKEY* key)
 #endif
 	}
 
-unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
+unsigned int X509::KeyLength(EVP_PKEY *key)
 	{
 	assert(key != NULL);
 
@@ -583,3 +584,5 @@ bool X509Val::DoUnserialize(const broker::data& data)
 	certificate = d2i_X509(NULL, &opensslbuf, s->size());
 	return (certificate != nullptr);
 	}
+
+} // namespace zeek::file_analysis::detail

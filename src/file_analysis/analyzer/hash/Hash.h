@@ -11,12 +11,12 @@
 
 #include "events.bif.h"
 
-namespace file_analysis {
+namespace zeek::file_analysis::detail {
 
 /**
  * An analyzer to produce a hash of file contents.
  */
-class Hash : public file_analysis::Analyzer {
+class Hash : public zeek::file_analysis::Analyzer {
 public:
 
 	/**
@@ -56,7 +56,7 @@ protected:
 	 * @param hv specific hash calculator object.
 	 * @param kind human readable name of the hash algorithm to use.
 	 */
-	Hash(zeek::RecordValPtr args, File* file, zeek::HashVal* hv, const char* kind);
+	Hash(zeek::RecordValPtr args, zeek::file_analysis::File* file, zeek::HashVal* hv, const char* kind);
 
 	/**
 	 * If some file contents have been seen, finalizes the hash of them and
@@ -83,8 +83,8 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                            File* file)
+	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
+	                                                  zeek::file_analysis::File* file)
 		{ return file_hash ? new MD5(std::move(args), file) : nullptr; }
 
 protected:
@@ -94,7 +94,7 @@ protected:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
-	MD5(zeek::RecordValPtr args, File* file)
+	MD5(zeek::RecordValPtr args, zeek::file_analysis::File* file)
 		: Hash(std::move(args), file, new zeek::MD5Val(), "md5")
 		{}
 };
@@ -112,8 +112,8 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                            File* file)
+	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
+	                                                  zeek::file_analysis::File* file)
 		{ return file_hash ? new SHA1(std::move(args), file) : nullptr; }
 
 protected:
@@ -123,7 +123,7 @@ protected:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
-	SHA1(zeek::RecordValPtr args, File* file)
+	SHA1(zeek::RecordValPtr args, zeek::file_analysis::File* file)
 		: Hash(std::move(args), file, new zeek::SHA1Val(), "sha1")
 		{}
 };
@@ -141,8 +141,8 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                            File* file)
+	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
+	                                                  zeek::file_analysis::File* file)
 		{ return file_hash ? new SHA256(std::move(args), file) : nullptr; }
 
 protected:
@@ -152,9 +152,18 @@ protected:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
-	SHA256(zeek::RecordValPtr args, File* file)
+	SHA256(zeek::RecordValPtr args, zeek::file_analysis::File* file)
 		: Hash(std::move(args), file, new zeek::SHA256Val(), "sha256")
 		{}
 };
+
+} // namespace zeek::file_analysis
+
+namespace file_analysis {
+
+	using Hash [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Hash.")]] = zeek::file_analysis::detail::Hash;
+	using MD5 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::MD5.")]] = zeek::file_analysis::detail::MD5;
+	using SHA1 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA1.")]] = zeek::file_analysis::detail::SHA1;
+	using SHA256 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA256.")]] = zeek::file_analysis::detail::SHA256;
 
 } // namespace file_analysis

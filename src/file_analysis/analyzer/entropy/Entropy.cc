@@ -7,13 +7,12 @@
 #include "Event.h"
 #include "file_analysis/Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-Entropy::Entropy(zeek::RecordValPtr args, File* file)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("ENTROPY"),
-                              std::move(args), file)
+Entropy::Entropy(zeek::RecordValPtr args, zeek::file_analysis::File* file)
+	: zeek::file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("ENTROPY"),
+	                                std::move(args), file)
 	{
-	//entropy->Init();
 	entropy = new zeek::EntropyVal;
 	fed = false;
 	}
@@ -23,8 +22,8 @@ Entropy::~Entropy()
 	Unref(entropy);
 	}
 
-file_analysis::Analyzer* Entropy::Instantiate(zeek::RecordValPtr args,
-                                              File* file)
+zeek::file_analysis::Analyzer* Entropy::Instantiate(zeek::RecordValPtr args,
+                                                    zeek::file_analysis::File* file)
 	{
 	return new Entropy(std::move(args), file);
 	}
@@ -51,7 +50,6 @@ bool Entropy::Undelivered(uint64_t offset, uint64_t len)
 
 void Entropy::Finalize()
 	{
-	//if ( ! entropy->IsValid() || ! fed )
 	if ( ! fed )
 		return;
 
@@ -75,3 +73,5 @@ void Entropy::Finalize()
 	                        std::move(ent_result)
 	);
 	}
+
+} // namespace zeek::file_analysis::detail

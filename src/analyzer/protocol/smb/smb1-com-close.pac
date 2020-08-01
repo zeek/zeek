@@ -8,8 +8,8 @@ refine connection SMB_Conn += {
 			                                     SMBHeaderVal(h),
 			                                     ${val.file_id});
 
-		file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
-		                    bro_analyzer()->Conn(), h->is_orig());
+		zeek::file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
+		                          bro_analyzer()->Conn(), h->is_orig());
 
 		return true;
 		%}

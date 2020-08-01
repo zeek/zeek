@@ -19,7 +19,7 @@
 
 #include "analyzer/extract/Extract.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis {
 
 static zeek::TableValPtr empty_connection_table()
 	{
@@ -214,7 +214,7 @@ bool File::SetExtractionLimit(zeek::RecordValPtr args, uint64_t bytes)
 	if ( ! a )
 		return false;
 
-	Extract* e = dynamic_cast<Extract*>(a);
+	auto* e = dynamic_cast<zeek::file_analysis::detail::Extract*>(a);
 
 	if ( ! e )
 		return false;
@@ -250,7 +250,7 @@ bool File::IsComplete() const
 
 void File::ScheduleInactivityTimer() const
 	{
-	zeek::detail::timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
+	zeek::detail::timer_mgr->Add(new detail::FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
@@ -655,3 +655,5 @@ bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
 	{
 	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}
+
+} // namespace zeek::file_analysis

@@ -7,11 +7,12 @@
 #include "Event.h"
 #include "file_analysis/Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-Hash::Hash(zeek::RecordValPtr args, File* file, zeek::HashVal* hv, const char* arg_kind)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag(to_upper(arg_kind).c_str()),
-	                          std::move(args), file),
+Hash::Hash(zeek::RecordValPtr args, zeek::file_analysis::File* file,
+           zeek::HashVal* hv, const char* arg_kind)
+	: zeek::file_analysis::Analyzer(zeek::file_mgr->GetComponentTag(to_upper(arg_kind).c_str()),
+	                                std::move(args), file),
 	  hash(hv), fed(false), kind(arg_kind)
 	{
 	hash->Init();
@@ -59,3 +60,5 @@ void Hash::Finalize()
 	                        hash->Get()
 	);
 	}
+
+} // namespace zeek::file_analysis::detail

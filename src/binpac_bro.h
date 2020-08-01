@@ -12,7 +12,7 @@
 namespace binpac {
 
 using BroAnalyzer = zeek::analyzer::Analyzer*;
-using BroFileAnalyzer = file_analysis::Analyzer;
+	using BroFileAnalyzer = zeek::file_analysis::Analyzer;
 using BroVal = zeek::Val*;
 using BroPortVal = zeek::PortVal*;
 using BroStringVal = zeek::StringVal*;

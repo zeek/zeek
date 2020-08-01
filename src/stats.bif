@@ -311,9 +311,9 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(FileAnalysisStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(file_mgr->CurrentFiles()));
-	r->Assign(n++, zeek::val_mgr->Count(file_mgr->MaxFiles()));
-	r->Assign(n++, zeek::val_mgr->Count(file_mgr->CumulativeFiles()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::file_mgr->CurrentFiles()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::file_mgr->MaxFiles()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::file_mgr->CumulativeFiles()));
 
 	return r;
 	%}

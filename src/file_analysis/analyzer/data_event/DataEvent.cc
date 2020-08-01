@@ -9,18 +9,18 @@
 #include "util.h"
 #include "file_analysis/Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-DataEvent::DataEvent(zeek::RecordValPtr args, File* file,
+DataEvent::DataEvent(zeek::RecordValPtr args, zeek::file_analysis::File* file,
                      zeek::EventHandlerPtr ce, zeek::EventHandlerPtr se)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
+    : file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("DATA_EVENT"),
 	                          std::move(args), file),
 	chunk_event(ce), stream_event(se)
 	{
 	}
 
-file_analysis::Analyzer* DataEvent::Instantiate(zeek::RecordValPtr args,
-                                                File* file)
+zeek::file_analysis::Analyzer* DataEvent::Instantiate(zeek::RecordValPtr args,
+                                                      zeek::file_analysis::File* file)
 	{
 	const auto& chunk_val = args->GetField("chunk_event");
 	const auto& stream_val = args->GetField("stream_event");
@@ -63,3 +63,5 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 
 	return true;
 	}
+
+} // namespace zeek::file_analysis::detail

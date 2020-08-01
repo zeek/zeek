@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "file_analysis/Component.h"
 
-namespace plugin {
-namespace Zeek_FileExtract {
+namespace zeek::plugin::detail::Zeek_FileExtract {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::file_analysis::Component("EXTRACT", ::file_analysis::Extract::Instantiate));
+		AddComponent(new zeek::file_analysis::Component("EXTRACT", zeek::file_analysis::detail::Extract::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::FileExtract";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_FileExtract

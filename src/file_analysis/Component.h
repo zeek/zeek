@@ -13,11 +13,11 @@ namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 }
 
-namespace file_analysis {
+ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, file_analysis);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, file_analysis);
 
-class File;
-class Analyzer;
-class Manager;
+namespace zeek::file_analysis {
 
 /**
  * Component description for plugins providing file analyzers.
@@ -26,7 +26,7 @@ class Manager;
  * analyzer component, describing the analyzer.
  */
 class Component : public zeek::plugin::Component,
-                  public plugin::TaggedComponent<file_analysis::Tag> {
+                  public zeek::plugin::TaggedComponent<file_analysis::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(zeek::RecordVal* args, File* file);
 	using factory_function = Analyzer* (*)(zeek::RecordValPtr args, File* file);
@@ -83,10 +83,14 @@ protected:
 	void DoDescribe(zeek::ODesc* d) const override;
 
 private:
-	friend class file_analysis::Manager;
+	friend class zeek::file_analysis::Manager;
 
 	factory_callback factory;	// The analyzer's factory callback (deprecated).
 	factory_function factory_func;	// The analyzer's factory callback.
 };
 
-}
+} // namespace zeek::file_analysis
+
+namespace file_analysis {
+	using Component [[deprecated("Remove in v4.1. Use zeek::file_analysis::Component.")]] = zeek::file_analysis::Component;
+} // namespace file_analysis

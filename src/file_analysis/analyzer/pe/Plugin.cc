@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "file_analysis/Component.h"
 
-namespace plugin {
-namespace Zeek_PE {
+namespace zeek::plugin::detail::Zeek_PE {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::file_analysis::Component("PE", ::file_analysis::PE::Instantiate));
+		AddComponent(new zeek::file_analysis::Component("PE", zeek::file_analysis::detail::PE::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::PE";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_PE

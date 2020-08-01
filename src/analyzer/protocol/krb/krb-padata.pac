@@ -73,12 +73,13 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				file_handle.Add(common.Description());
 				file_handle.Add(0);
 
-				string file_id = file_mgr->HashHandle(file_handle.Description());
+				string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
-				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-				                 cert.length(), bro_analyzer->GetAnalyzerTag(),
-				                 bro_analyzer->Conn(), true, file_id, "application/x-x509-user-cert");
-				file_mgr->EndOfFile(file_id);
+				zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+				                       cert.length(), bro_analyzer->GetAnalyzerTag(),
+				                       bro_analyzer->Conn(), true, file_id,
+				                       "application/x-x509-user-cert");
+				zeek::file_mgr->EndOfFile(file_id);
 
 				break;
 				}
@@ -97,12 +98,13 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				file_handle.Add(common.Description());
 				file_handle.Add(1);
 
-				string file_id = file_mgr->HashHandle(file_handle.Description());
+				string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
-				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-				                 cert.length(), bro_analyzer->GetAnalyzerTag(),
-				                 bro_analyzer->Conn(), false, file_id, "application/x-x509-user-cert");
-				file_mgr->EndOfFile(file_id);
+				zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+				                       cert.length(), bro_analyzer->GetAnalyzerTag(),
+				                       bro_analyzer->Conn(), false, file_id,
+				                       "application/x-x509-user-cert");
+				zeek::file_mgr->EndOfFile(file_id);
 
 				break;
 				}

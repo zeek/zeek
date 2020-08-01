@@ -13,28 +13,28 @@ type AnalyzerArgs: record;
 ## :zeek:see:`Files::set_timeout_interval`.
 function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{
-	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
+	bool result = zeek::file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
 	return zeek::val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::enable_reassembly`.
 function Files::__enable_reassembly%(file_id: string%): bool
 	%{
-	bool result = file_mgr->EnableReassembly(file_id->CheckString());
+	bool result = zeek::file_mgr->EnableReassembly(file_id->CheckString());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::disable_reassembly`.
 function Files::__disable_reassembly%(file_id: string%): bool
 	%{
-	bool result = file_mgr->DisableReassembly(file_id->CheckString());
+	bool result = zeek::file_mgr->DisableReassembly(file_id->CheckString());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::set_reassembly_buffer_size`.
 function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 	%{
-	bool result = file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);
+	bool result = zeek::file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);
 	return zeek::val_mgr->Bool(result);
 	%}
 
@@ -43,9 +43,10 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	%{
 	using zeek::BifType::Record::Files::AnalyzerArgs;
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
-	                                    file_mgr->GetComponentTag(tag),
-	                                    std::move(rv));
+	bool result = zeek::file_mgr->AddAnalyzer(
+	     file_id->CheckString(),
+	     zeek::file_mgr->GetComponentTag(tag),
+	     std::move(rv));
 	return zeek::val_mgr->Bool(result);
 	%}
 
@@ -54,30 +55,31 @@ function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%)
 	%{
 	using zeek::BifType::Record::Files::AnalyzerArgs;
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
-	                                       file_mgr->GetComponentTag(tag),
-	                                       std::move(rv));
+	bool result = zeek::file_mgr->RemoveAnalyzer(
+		file_id->CheckString(),
+		zeek::file_mgr->GetComponentTag(tag),
+		std::move(rv));
 	return zeek::val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::stop`.
 function Files::__stop%(file_id: string%): bool
 	%{
-	bool result = file_mgr->IgnoreFile(file_id->CheckString());
+	bool result = zeek::file_mgr->IgnoreFile(file_id->CheckString());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	const auto& n = file_mgr->GetComponentName(zeek::IntrusivePtr{zeek::NewRef{}, tag->AsEnumVal()});
+	const auto& n = zeek::file_mgr->GetComponentName(zeek::IntrusivePtr{zeek::NewRef{}, tag->AsEnumVal()});
 	return zeek::make_intrusive<zeek::StringVal>(n);
 	%}
 
 ## :zeek:see:`Files::file_exists`.
 function Files::__file_exists%(fuid: string%): bool
 	%{
-	if ( file_mgr->LookupFile(fuid->CheckString()) != nullptr )
+	if ( zeek::file_mgr->LookupFile(fuid->CheckString()) != nullptr )
 		return zeek::val_mgr->True();
 	else
 		return zeek::val_mgr->False();
@@ -86,7 +88,7 @@ function Files::__file_exists%(fuid: string%): bool
 ## :zeek:see:`Files::lookup_file`.
 function Files::__lookup_file%(fuid: string%): fa_file
 	%{
-	auto f = file_mgr->LookupFile(fuid->CheckString());
+	auto f = zeek::file_mgr->LookupFile(fuid->CheckString());
 	if ( f != nullptr )
 		return f->ToVal();
 
@@ -108,6 +110,6 @@ function set_file_handle%(handle: string%): any
 	%{
 	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
 	auto h = std::string(bytes, handle->Len());
-	file_mgr->SetHandle(h);
+	zeek::file_mgr->SetHandle(h);
 	return nullptr;
 	%}

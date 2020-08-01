@@ -10,12 +10,12 @@
 
 #include "analyzer/extract/events.bif.h"
 
-namespace file_analysis {
+namespace zeek::file_analysis::detail {
 
 /**
  * An analyzer to extract content of files to local disk.
  */
-class Extract : public file_analysis::Analyzer {
+class Extract : public zeek::file_analysis::Analyzer {
 public:
 
 	/**
@@ -47,8 +47,8 @@ public:
 	 * @return the new Extract analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                            File* file);
+	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
+	                                                  zeek::file_analysis::File* file);
 
 	/**
 	 * Sets the maximum allowed extracted file size.  A value of zero means
@@ -67,7 +67,7 @@ protected:
 	 *        to which the contents of the file will be extracted/written.
 	 * @param arg_limit the maximum allowed file size.
 	 */
-	Extract(zeek::RecordValPtr args, File* file,
+	Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
 	        const std::string& arg_filename, uint64_t arg_limit);
 
 private:
@@ -76,5 +76,11 @@ private:
 	uint64_t limit;
 	uint64_t depth;
 };
+
+} // namespace zeek::file_analysis::detail
+
+namespace file_analysis {
+
+	using Extract [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Extract.")]] = zeek::file_analysis::detail::Extract;
 
 } // namespace file_analysis

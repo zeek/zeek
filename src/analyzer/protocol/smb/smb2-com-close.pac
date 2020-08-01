@@ -10,8 +10,8 @@ refine connection SMB_Conn += {
 			                                     BuildSMB2GUID(${val.file_id}));
 			}
 
-		file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
-		                    bro_analyzer()->Conn(), h->is_orig());
+		zeek::file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
+		                          bro_analyzer()->Conn(), h->is_orig());
 
 		return true;
 		%}

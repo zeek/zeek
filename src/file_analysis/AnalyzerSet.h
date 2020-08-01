@@ -14,10 +14,10 @@ namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 }
 
-namespace file_analysis {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, file_analysis);
+ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
-class Analyzer;
-class File;
+namespace zeek::file_analysis::detail {
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -212,4 +212,8 @@ private:
 	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
 };
 
-} // namespace file_analysiss
+} // namespace zeek::file_analysis::detail
+
+namespace file_analysis {
+	using AnalyzerSet [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::AnalyzerSet.")]] = zeek::file_analysis::detail::AnalyzerSet;
+} // namespace file_analysis

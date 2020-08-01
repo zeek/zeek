@@ -980,7 +980,7 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 	if ( ! return_mime )
 		zeek::reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
-	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
+	string strongest_match = zeek::file_mgr->DetectMIME(data->Bytes(), data->Len());
 
 	if ( strongest_match.empty() )
 		return zeek::make_intrusive<zeek::StringVal>("<unknown>");
@@ -999,7 +999,7 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 function file_magic%(data: string%): mime_matches
 	%{
 	zeek::detail::RuleMatcher::MIME_Matches matches;
-	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
+	zeek::file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
 	return file_analysis::GenMIMEMatchesVal(matches);
 	%}
 

@@ -33,11 +33,11 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 
 	if ( orig )
-		file_id_orig = file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(),
-		                                orig, file_id_orig);
+		file_id_orig = zeek::file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(),
+		                                      orig, file_id_orig);
 	else
-		file_id_resp = file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(),
-		                                orig, file_id_resp);
+		file_id_resp = zeek::file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(),
+		                                      orig, file_id_resp);
 	}
 
 void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
@@ -45,11 +45,11 @@ void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	if ( orig )
-		file_id_orig = file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig,
-		                             file_id_orig);
+		file_id_orig = zeek::file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig,
+		                                   file_id_orig);
 	else
-		file_id_resp = file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig,
-		                             file_id_resp);
+		file_id_resp = zeek::file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig,
+		                                   file_id_resp);
 	}
 
 void File_Analyzer::Done()
@@ -60,23 +60,23 @@ void File_Analyzer::Done()
 		Identify();
 
 	if ( ! file_id_orig.empty() )
-		file_mgr->EndOfFile(file_id_orig);
+		zeek::file_mgr->EndOfFile(file_id_orig);
 	else
-		file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
+		zeek::file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
 
 	if ( ! file_id_resp.empty() )
-		file_mgr->EndOfFile(file_id_resp);
+		zeek::file_mgr->EndOfFile(file_id_resp);
 	else
-		file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
+		zeek::file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
 	}
 
 void File_Analyzer::Identify()
 	{
 	zeek::detail::RuleMatcher::MIME_Matches matches;
-	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
-	                     &matches);
+	zeek::file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
+	                           &matches);
 	std::string match = matches.empty() ? "<unknown>"
-	                               : *(matches.begin()->second.begin());
+		: *(matches.begin()->second.begin());
 
 	if ( file_transferred )
 		EnqueueConnEvent(

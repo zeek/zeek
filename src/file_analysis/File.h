@@ -22,10 +22,10 @@ using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
 using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
 }
 
-namespace file_analysis {
+ZEEK_FORWARD_DECLARE_NAMESPACED(FileReassembler, zeek, file_analysis);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
 
-class FileReassembler;
-class Tag;
+namespace zeek::file_analysis {
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -359,7 +359,7 @@ protected:
 	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
-	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
+	detail::AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
 	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they can be safely deleted. */
 
 	struct BOF_Buffer {
@@ -396,3 +396,7 @@ protected:
 };
 
 } // namespace file_analysis
+
+namespace file_analysis {
+	using File [[deprecated("Remove in v4.1. Use zeek::file_analysis::File.")]] = zeek::file_analysis::File;
+} // namespace zeek::file_analysis

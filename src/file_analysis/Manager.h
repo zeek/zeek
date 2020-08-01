@@ -11,23 +11,23 @@
 #include "RuleMatcher.h"
 
 #include "plugin/ComponentManager.h"
-
 #include "analyzer/Tag.h"
+#include "FileTimer.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
 
+namespace zeek {
 namespace file_analysis {
-
-class File;
-class Tag;
 
 /**
  * Main entry point for interacting with file analysis.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public zeek::plugin::ComponentManager<Tag, Component> {
 public:
 
 	/**
@@ -349,7 +349,7 @@ public:
 		{ return cumulative_files; }
 
 protected:
-	friend class FileTimer;
+	friend class zeek::file_analysis::detail::FileTimer;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -441,3 +441,11 @@ zeek::VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Match
 } // namespace file_analysis
 
 extern file_analysis::Manager* file_mgr;
+
+} // namespace zeek
+
+namespace file_analysis {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::file_analysis::Manager.")]] = zeek::file_analysis::Manager;
+}
+
+extern zeek::file_analysis::Manager*& file_mgr [[deprecated("Remove in v4.1. Use zeek::file_mgr.")]];

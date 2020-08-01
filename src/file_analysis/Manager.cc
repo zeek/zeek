@@ -13,12 +13,13 @@
 
 #include <openssl/md5.h>
 
-using namespace file_analysis;
 using namespace std;
 
+namespace zeek::file_analysis {
+
 Manager::Manager()
-	: plugin::ComponentManager<file_analysis::Tag,
-	                           file_analysis::Component>("Files", "Tag"),
+	: plugin::ComponentManager<zeek::file_analysis::Tag,
+	                           zeek::file_analysis::Component>("Files", "Tag"),
 	  current_file_id(), magic_state(), cumulative_files(0), max_files(0)
 	{
 	}
@@ -273,11 +274,11 @@ bool Manager::SetExtractionLimit(const string& file_id,
 	return file->SetExtractionLimit(std::move(args), n);
 	}
 
-bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+bool Manager::AddAnalyzer(const string& file_id, const zeek::file_analysis::Tag& tag,
                           zeek::RecordVal* args) const
 	{ return AddAnalyzer(file_id, tag, {zeek::NewRef{}, args}); }
 
-bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+bool Manager::AddAnalyzer(const string& file_id, const zeek::file_analysis::Tag& tag,
                           zeek::RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
@@ -288,11 +289,11 @@ bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	return file->AddAnalyzer(tag, std::move(args));
 	}
 
-bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+bool Manager::RemoveAnalyzer(const string& file_id, const zeek::file_analysis::Tag& tag,
                              zeek::RecordVal* args) const
 	{ return RemoveAnalyzer(file_id, tag, {zeek::NewRef{}, args}); }
 
-bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+bool Manager::RemoveAnalyzer(const string& file_id, const zeek::file_analysis::Tag& tag,
                              zeek::RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
@@ -518,7 +519,7 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	return *(matches.begin()->second.begin());
 	}
 
-zeek::VectorValPtr file_analysis::GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
+zeek::VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
 	{
 	static auto mime_matches = zeek::id::find_type<zeek::VectorType>("mime_matches");
 	static auto mime_match = zeek::id::find_type<zeek::RecordType>("mime_match");
@@ -541,3 +542,5 @@ zeek::VectorValPtr file_analysis::GenMIMEMatchesVal(const zeek::detail::RuleMatc
 
 	return rval;
 	}
+
+} // namespace zeek::file_analysis

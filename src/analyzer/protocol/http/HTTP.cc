@@ -248,18 +248,21 @@ bool HTTP_Entity::Undelivered(int64_t len)
 
 	if ( is_partial_content )
 		{
-		precomputed_file_id = file_mgr->Gap(body_length, len,
-		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		              http_message->MyHTTP_Analyzer()->Conn(),
-		              http_message->IsOrig(), precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->Gap(
+			body_length, len,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(), precomputed_file_id);
+
 		offset += len;
 		}
 	else
-		precomputed_file_id = file_mgr->Gap(body_length, len,
-		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                  http_message->MyHTTP_Analyzer()->Conn(),
-		                  http_message->IsOrig(),
-		                  precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->Gap(
+			body_length, len,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(),
+			precomputed_file_id);
 
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{
@@ -313,33 +316,37 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	if ( is_partial_content )
 		{
 		if ( send_size && instance_length > 0 )
-			precomputed_file_id = file_mgr->SetSize(instance_length,
-			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig(), precomputed_file_id);
+			precomputed_file_id = zeek::file_mgr->SetSize(
+				instance_length,
+				http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+				http_message->MyHTTP_Analyzer()->Conn(),
+				http_message->IsOrig(), precomputed_file_id);
 
-		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
-		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig(), precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->DataIn(
+			reinterpret_cast<const u_char*>(buf), len, offset,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(), precomputed_file_id);
 
 		offset += len;
 		}
 	else
 		{
 		if ( send_size && content_length > 0 )
-			precomputed_file_id = file_mgr->SetSize(content_length,
-			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig(),
-			                  precomputed_file_id);
+			precomputed_file_id = zeek::file_mgr->SetSize(
+				content_length,
+				http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+				http_message->MyHTTP_Analyzer()->Conn(),
+				http_message->IsOrig(),
+				precomputed_file_id);
 
-		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf),
-		                 len,
-		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig(),
-		                 precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->DataIn(
+			reinterpret_cast<const u_char*>(buf),
+			len,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(),
+			precomputed_file_id);
 		}
 
 	send_size = false;
@@ -643,10 +650,10 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(top_level);
 
 		if ( he && ! he->FileID().empty() )
-			file_mgr->EndOfFile(he->FileID());
+			zeek::file_mgr->EndOfFile(he->FileID());
 		else
-			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                    MyHTTP_Analyzer()->Conn(), is_orig);
+			zeek::file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                          MyHTTP_Analyzer()->Conn(), is_orig);
 		}
 
 	if ( http_message_done )
@@ -723,10 +730,10 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(entity);
 
 		if ( he && ! he->FileID().empty() )
-			file_mgr->EndOfFile(he->FileID());
+			zeek::file_mgr->EndOfFile(he->FileID());
 		else
-			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                    MyHTTP_Analyzer()->Conn(), is_orig);
+			zeek::file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                          MyHTTP_Analyzer()->Conn(), is_orig);
 		}
 	}
 
@@ -879,12 +886,12 @@ void HTTP_Analyzer::Done()
 
 	unanswered_requests = {};
 
-	file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
+	zeek::file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
 
 	/* TODO: this might be nice to have, but reply code is cleared by now.
 	if ( HTTP_ReplyCode() != 206 )
 		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
+		zeek::file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
 	*/
 	}
 

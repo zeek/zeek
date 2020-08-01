@@ -11,11 +11,11 @@ namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 }
 
-namespace file_analysis {
+ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
-class File;
+namespace zeek::file_analysis {
 
-typedef uint32_t ID;
+using ID = uint32_t;
 
 /**
  * Base class for analyzers that can be attached to file_analysis::File objects.
@@ -184,5 +184,12 @@ private:
 
 	static ID id_counter;
 };
+
+} // namespace zeek::file_analysis
+
+namespace file_analysis {
+
+	using ID [[deprecated("Remove in v4.1. Use zeek::file_analysis::ID.")]] = zeek::file_analysis::ID;
+	using Analyzer [[deprecated("Remove in v4.1. Use zeek::file_analysis::Analyzer.")]] = zeek::file_analysis::Analyzer;
 
 } // namespace file_analysis

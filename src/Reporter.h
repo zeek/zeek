@@ -16,7 +16,7 @@
 #include "net_util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
-namespace file_analysis { class File; }
+ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);

@@ -158,6 +158,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 FuncInfo::~FuncInfo()
 	{
 	delete pf;
+	delete save_file;
 	}
 
 std::vector<FuncInfo*> funcs;
@@ -326,21 +327,38 @@ void analyze_scripts()
 	for ( auto& f : funcs )
 		{
 		if ( inl && inl->WasInlined(f->func) )
-			; // printf("skipping optimizing %s\n", f->func->Name());
-		else if ( when_funcs.count(f->func) > 0 )
+			// No need to compile as it won't be called directly.
+			continue;
 
-			; // printf("skipping optimizing %s\n", f->func->Name());
-		else
+		if ( when_funcs.count(f->func) > 0 )
+			// We don't try to compile these.
+			continue;
+
+		// Construct the associated compiled-ZAM filename.
+		auto l = f->body->GetLocationInfo();
+
+		if ( ! l->filename || streq(l->filename, "<stdin>") )
 			{
-#if 0
-			auto loc = f->body->GetLocationInfo();
-			printf("optimizing %s (%s line %d)\n", f->func->Name(),
-				loc->filename ? loc->filename : "<none>",
-				loc->first_line);
-			// printf("body: %s\n", obj_desc(f->body));
-#endif
+			// Don't bother looking for prior compilation,
+			// or creating such.
 			optimize_func(f->func, f->scope, f->body);
+			continue;
 			}
+
+		char fn[8192];
+		snprintf(fn, sizeof fn, "%s-%s:%d.ZAM", l->filename,
+				f->func->Name(), l->first_line);
+
+		auto save_file = fopen(fn, "r");
+		if ( save_file )
+			{
+			printf("have file for %s\n", fn);
+			fclose(save_file);
+			}
+
+		f->save_file = copy_string(fn);
+
+		optimize_func(f->func, f->scope, f->body);
 		}
 
 	finalize_functions(funcs);

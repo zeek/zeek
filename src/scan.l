@@ -900,7 +900,7 @@ int yywrap()
 		// ### This is a gross hack - we know that the first file
 		// we parse is init-bare.zeek, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
-		// built-in's *right* after parsing bro.init, so that other
+		// built-in's *right* after parsing it, so that other
 		// source files can use built-in's when initializing globals.
 		init_builtin_funcs();
 		}

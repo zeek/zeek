@@ -82,6 +82,10 @@ public:
 	IntrusivePtr<Scope> scope;
 	IntrusivePtr<Stmt> body;
 	ProfileFunc* pf;
+
+	// If we're saving this function in a file, this is the name
+	// of the file to use.
+	char* save_file = nullptr;
 };
 
 

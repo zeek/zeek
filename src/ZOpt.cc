@@ -25,8 +25,18 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 	for ( auto& f : funcs )
 		{
 		auto func = f->func;
-		if ( f->body->Tag() == STMT_COMPILED )
-			f->body->AsZBody()->SaveTo(stdout);
+		if ( f->body->Tag() == STMT_COMPILED && f->save_file )
+			{
+			auto sf = fopen(f->save_file, "w");
+			if ( ! sf )
+				reporter->Error("cannot save to file:",
+						f->save_file);
+			else
+				{
+				f->body->AsZBody()->SaveTo(sf);
+				fclose(sf);
+				}
+			}
 		}
 
 	if ( remapped_intrp_frame_sizes.size() == 0 )

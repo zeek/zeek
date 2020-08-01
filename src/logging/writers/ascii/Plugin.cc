@@ -5,14 +5,13 @@
 
 #include "Ascii.h"
 
-namespace plugin {
-namespace Zeek_AsciiWriter {
+namespace zeek::plugin::Zeek_AsciiWriter {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::logging::Component("Ascii", ::logging::writer::Ascii::Instantiate));
+		AddComponent(new zeek::logging::Component("Ascii", zeek::logging::writer::detail::Ascii::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::AsciiWriter";
@@ -20,13 +19,11 @@ public:
 		return config;
 		}
 protected:
-	void InitPostScript() override;
+	void InitPostScript() override
+		{
+		zeek::logging::writer::detail::Ascii::RotateLeftoverLogs();
+		}
 
 } plugin;
 
-void Plugin::InitPostScript()
-	{
-	::logging::writer::Ascii::RotateLeftoverLogs();
-	}
-}
-}
+} // namespace zeek::plugin::Zeek_AsciiWriter

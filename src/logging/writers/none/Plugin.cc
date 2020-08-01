@@ -5,14 +5,13 @@
 
 #include "None.h"
 
-namespace plugin {
-namespace Zeek_NoneWriter {
+namespace zeek::plugin::Zeek_NoneWriter {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::logging::Component("None", ::logging::writer::None::Instantiate));
+		AddComponent(new zeek::logging::Component("None", zeek::logging::writer::detail::None::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::NoneWriter";
@@ -21,5 +20,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::Zeek_NoneWriter

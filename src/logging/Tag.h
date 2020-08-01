@@ -20,10 +20,10 @@ namespace plugin {
 		zeek::plugin::ComponentManager<T, C>;
 }
 
-namespace logging {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, logging);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, logging);
 
-class Manager;
-class Component;
+namespace zeek::logging {
 
 /**
  * Class to identify a writer type.
@@ -128,4 +128,8 @@ protected:
 	explicit Tag(zeek::EnumVal* val);
 };
 
+} // namespace zeek::logging
+
+namespace logging {
+	using Tag [[deprecated("Remove in v4.1. Use zeek::logging::Tag.")]] = zeek::logging::Tag;
 }

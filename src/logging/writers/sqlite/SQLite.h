@@ -11,14 +11,14 @@
 #include "3rdparty/sqlite3.h"
 #include "Desc.h"
 
-namespace logging { namespace writer {
+namespace zeek::logging::writer::detail {
 
-class SQLite : public WriterBackend {
+class SQLite : public zeek::logging::WriterBackend {
 public:
-	explicit SQLite(WriterFrontend* frontend);
+	explicit SQLite(zeek::logging::WriterFrontend* frontend);
 	~SQLite() override;
 
-	static WriterBackend* Instantiate(WriterFrontend* frontend)
+	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
 		{ return new SQLite(frontend); }
 
 protected:
@@ -52,5 +52,4 @@ private:
 	threading::formatter::Ascii* io;
 };
 
-}
-}
+} // namespace zeek::logging::writer::detail

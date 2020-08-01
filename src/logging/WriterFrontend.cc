@@ -10,7 +10,7 @@
 using threading::Value;
 using threading::Field;
 
-namespace logging  {
+namespace zeek::logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
@@ -21,7 +21,6 @@ public:
 		: threading::InputMessage<WriterBackend>("Init", backend),
 		num_fields(num_fields), fields(fields)
 			{}
-
 
 	bool Process() override { return Object()->Init(num_fields, fields); }
 
@@ -92,11 +91,7 @@ private:
 	double network_time;
 };
 
-}
-
 // Frontend methods.
-
-using namespace logging;
 
 WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::EnumVal* arg_stream,
                                zeek::EnumVal* arg_writer, bool arg_local, bool arg_remote)
@@ -299,3 +294,5 @@ void WriterFrontend::DeleteVals(int num_fields, Value** vals)
 
 	delete [] vals;
 	}
+
+} // namespace zeek::logging

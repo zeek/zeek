@@ -5,14 +5,13 @@
 
 #include "SQLite.h"
 
-namespace plugin {
-namespace Zeek_SQLiteWriter {
+namespace zeek::plugin::Zeek_SQLiteWriter {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::logging::Component("SQLite", ::logging::writer::SQLite::Instantiate));
+		AddComponent(new zeek::logging::Component("SQLite", zeek::logging::writer::detail::SQLite::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::SQLiteWriter";
@@ -21,5 +20,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::Zeek_SQLiteWriter

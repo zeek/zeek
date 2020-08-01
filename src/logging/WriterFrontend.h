@@ -4,9 +4,9 @@
 
 #include "WriterBackend.h"
 
-namespace logging  {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, logging);
 
-class Manager;
+namespace zeek::logging  {
 
 /**
  * Bridge class between the logging::Manager and backend writer threads. The
@@ -209,4 +209,8 @@ protected:
 	threading::Value*** write_buffer;	// Buffer of size WRITER_BUFFER_SIZE.
 };
 
+} // namespace zeek::logging
+
+namespace logging {
+	using WriterFrontend [[deprecated("Remove in v4.1. Use zeek::logging::WriterFrontend.")]] = zeek::logging::WriterFrontend;
 }

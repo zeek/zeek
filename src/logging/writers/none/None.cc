@@ -1,13 +1,11 @@
 
 #include <algorithm>
+#include <iostream>
 
 #include "None.h"
 #include "none.bif.h"
 
-#include <iostream>
-
-using namespace logging;
-using namespace writer;
+namespace zeek::logging::writer::detail {
 
 bool None::DoInit(const WriterInfo& info, int num_fields,
 	    const threading::Field* const * fields)
@@ -54,3 +52,5 @@ bool None::DoRotate(const char* rotated_path, double open, double close, bool te
 
 	return true;
 	}
+
+} // namespace zeek::logging::writer::detail

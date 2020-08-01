@@ -235,7 +235,7 @@ static void print_log(const std::vector<ValPtr>& vals)
 
 	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(network_time));
 	record->Assign(1, std::move(vec));
-	log_mgr->Write(plval.get(), record.get());
+	zeek::log_mgr->Write(plval.get(), record.get());
 	}
 
 ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,

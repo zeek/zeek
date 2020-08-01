@@ -28,7 +28,8 @@
 #include <broker/endpoint_info.hh>
 
 using namespace std;
-using namespace logging;
+
+namespace zeek::logging {
 
 struct Manager::Filter {
 	zeek::Val* fval;
@@ -1621,3 +1622,5 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	return result;
 	}
+
+} // namespace zeek::logging

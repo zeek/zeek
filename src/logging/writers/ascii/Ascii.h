@@ -10,18 +10,18 @@
 #include "Desc.h"
 #include "zlib.h"
 
-namespace plugin::Zeek_AsciiWriter { class Plugin; }
+namespace zeek::plugin::Zeek_AsciiWriter { class Plugin; }
 
-namespace logging { namespace writer {
+namespace zeek::logging::writer::detail {
 
-class Ascii : public WriterBackend {
+class Ascii : public zeek::logging::WriterBackend {
 public:
-	explicit Ascii(WriterFrontend* frontend);
+	explicit Ascii(zeek::logging::WriterFrontend* frontend);
 	~Ascii() override;
 
 	static std::string LogExt();
 
-	static WriterBackend* Instantiate(WriterFrontend* frontend)
+	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
 		{ return new Ascii(frontend); }
 
 protected:
@@ -79,5 +79,4 @@ private:
 	bool init_options;
 };
 
-}
-}
+} // namespace zeek::logging::writer::detail

@@ -102,7 +102,8 @@ zeek::detail::DNS_Mgr*& dns_mgr = zeek::detail::dns_mgr;
 zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
 zeek::detail::TimerMgr*& timer_mgr = zeek::detail::timer_mgr;
 
-logging::Manager* log_mgr = nullptr;
+zeek::logging::Manager* zeek::log_mgr = nullptr;
+zeek::logging::Manager*& log_mgr = zeek::log_mgr;
 threading::Manager* thread_mgr = nullptr;
 zeek::input::Manager* zeek::input_mgr = nullptr;
 zeek::input::Manager*& input_mgr = zeek::input_mgr;
@@ -305,7 +306,7 @@ void terminate_bro()
 	zeek::event_mgr.Drain();
 
 	notifier::registry.Terminate();
-	log_mgr->Terminate();
+	zeek::log_mgr->Terminate();
 	zeek::input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
@@ -321,7 +322,7 @@ void terminate_bro()
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete zeek::event_registry;
-	delete log_mgr;
+	delete zeek::log_mgr;
 	delete zeek::reporter;
 	delete zeek::plugin_mgr;
 	delete zeek::val_mgr;
@@ -581,7 +582,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
 	zeek::analyzer_mgr = new analyzer::Manager();
-	log_mgr = new logging::Manager();
+	zeek::log_mgr = new logging::Manager();
 	zeek::input_mgr = new input::Manager();
 	zeek::file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
@@ -659,7 +660,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(1);
 
 	iosource_mgr->InitPostScript();
-	log_mgr->InitPostScript();
+	zeek::log_mgr->InitPostScript();
 	zeek::plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();

@@ -23,12 +23,13 @@
 #include "ascii.bif.h"
 
 using namespace std;
-using namespace logging::writer;
 using namespace threading;
 using threading::Value;
 using threading::Field;
 
 static constexpr auto shadow_file_prefix = ".shadow.";
+
+namespace zeek::logging::writer::detail {
 
 /**
  * Information about an leftover log file: that is, one that a previous
@@ -190,7 +191,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	return rval;
 	}
 
-Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
+Ascii::Ascii(zeek::logging::WriterFrontend* frontend) : zeek::logging::WriterBackend(frontend)
 	{
 	fd = 0;
 	ascii_done = false;
@@ -783,8 +784,8 @@ void Ascii::RotateLeftoverLogs()
 				                        ll.filename.data(), ll.post_proc_func.data());
 			}
 
-		auto rotation_path = log_mgr->FormatRotationPath(
-		        writer_val, ll.Path(), ll.open_time, ll.close_time, false, ppf);
+		auto rotation_path = zeek::log_mgr->FormatRotationPath(
+			writer_val, ll.Path(), ll.open_time, ll.close_time, false, ppf);
 
 		rotation_path += ll.extension;
 
@@ -908,3 +909,5 @@ bool Ascii::InternalClose(int fd)
 
 	return false;
 	}
+
+} // namespace zeek::logging::writer::detail

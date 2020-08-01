@@ -493,7 +493,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	}
 
 bool Manager::PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
-                               const logging::WriterBackend::WriterInfo& info,
+                               const zeek::logging::WriterBackend::WriterInfo& info,
                                int num_fields, const threading::Field* const * fields,
                                const broker::endpoint_info& peer)
 	{
@@ -1243,7 +1243,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 		return false;
 		}
 
-	auto writer_info = std::unique_ptr<logging::WriterBackend::WriterInfo>(new logging::WriterBackend::WriterInfo);
+	auto writer_info = std::make_unique<zeek::logging::WriterBackend::WriterInfo>();
 	if ( ! writer_info->FromBroker(std::move(lc.writer_info())) )
 		{
 		zeek::reporter->Warning("failed to unpack remote log writer info");
@@ -1274,7 +1274,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 			}
 		}
 
-	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.release(), num_fields, fields) )
+	if ( ! zeek::log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.release(), num_fields, fields) )
 		{
 		zeek::ODesc d;
 		stream_id->Describe(&d);
@@ -1362,8 +1362,8 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 			}
 		}
 
-	log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(),
-	                         std::move(*path), num_fields, vals);
+	zeek::log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(),
+	                               std::move(*path), num_fields, vals);
 	fmt.EndRead();
 	return true;
 	}
@@ -1419,7 +1419,7 @@ void Manager::ProcessStatus(broker::status stat)
 	case broker::sc::peer_added:
 		++peer_count;
 		assert(ctx);
-		log_mgr->SendAllWritersTo(*ctx);
+		zeek::log_mgr->SendAllWritersTo(*ctx);
 		event = Broker::peer_added;
 		break;
 

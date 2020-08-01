@@ -187,7 +187,7 @@ public:
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
-	                      const logging::WriterBackend::WriterInfo& info,
+	                      const zeek::logging::WriterBackend::WriterInfo& info,
 	                      int num_fields,
 	                      const threading::Field* const * fields,
 	                      const broker::endpoint_info& peer = NoPeer);

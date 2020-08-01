@@ -10,9 +10,9 @@
 
 namespace broker { class data; }
 
-namespace logging  {
+ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
 
-class WriterFrontend;
+namespace zeek::logging {
 
 /**
  * Base class for writer implementation. When the logging::Manager creates a
@@ -398,5 +398,8 @@ private:
 	int rotation_counter; // Tracks FinishedRotation() calls.
 };
 
+} // namespace zeek::logging
 
+namespace logging {
+	using WriterBackend [[deprecated("Remove in v4.1. Use zeek::logging::WriterBackend.")]] = zeek::logging::WriterBackend;
 }

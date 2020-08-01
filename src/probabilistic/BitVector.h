@@ -10,7 +10,7 @@
 
 namespace broker { class data; }
 
-namespace probabilistic {
+namespace zeek::probabilistic::detail {
 
 /**
  * A vector of bits.
@@ -356,4 +356,8 @@ private:
 	size_type num_bits;
 };
 
+} // namespace zeek::probabilistic::detail
+
+namespace probabilistic {
+	using BitVector [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::BitVector.")]] = zeek::probabilistic::detail::BitVector;
 }

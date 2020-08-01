@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <memory>
 #include <vector>
 #include <string>
@@ -13,9 +15,9 @@
 
 namespace broker { class data; }
 
-namespace probabilistic {
+ZEEK_FORWARD_DECLARE_NAMESPACED(CounterVector, zeek, probabilistic, detail);
 
-class CounterVector;
+namespace zeek::probabilistic {
 
 /** Types of derived BloomFilter classes. */
 enum BloomFilterType { Basic, Counting };
@@ -94,13 +96,13 @@ protected:
 	 *
 	 * @param hasher The hasher to use for this Bloom filter.
 	 */
-	explicit BloomFilter(const Hasher* hasher);
+	explicit BloomFilter(const detail::Hasher* hasher);
 
 	virtual broker::expected<broker::data> DoSerialize() const = 0;
 	virtual bool DoUnserialize(const broker::data& data) = 0;
 	virtual BloomFilterType Type() const = 0;
 
-	const Hasher* hasher;
+	const detail::Hasher* hasher;
 };
 
 /**
@@ -117,7 +119,7 @@ public:
 	 *
 	 * @param cells The number of cells.
 	 */
-	BasicBloomFilter(const Hasher* hasher, size_t cells);
+	BasicBloomFilter(const detail::Hasher* hasher, size_t cells);
 
 	/**
 	 * Destructor.
@@ -176,7 +178,7 @@ protected:
 		{ return BloomFilterType::Basic; }
 
 private:
-	BitVector* bits;
+	detail::BitVector* bits;
 };
 
 /**
@@ -194,7 +196,7 @@ public:
 	 *
 	 * @param width The maximal bit-width of counter values.
 	 */
-	CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
+	CountingBloomFilter(const detail::Hasher* hasher, size_t cells, size_t width);
 
 	/**
 	 * Destructor.
@@ -225,7 +227,19 @@ protected:
 		{ return BloomFilterType::Counting; }
 
 private:
-	CounterVector* cells;
+	detail::CounterVector* cells;
 };
 
-}
+} // namespace zeek::probabilistic
+
+namespace probabilistic {
+
+	using BloomFilterType [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilterType.")]] = zeek::probabilistic::BloomFilterType;
+	constexpr auto Basic [[deprecated("Remove in v4.1. Use zeek::probabilistic::Basic.")]] = zeek::probabilistic::Basic;
+	constexpr auto Counting [[deprecated("Remove in v4.1. Use zeek::probabilistic::Counting.")]] = zeek::probabilistic::Counting;
+
+	using BloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilter.")]] = zeek::probabilistic::BloomFilter;
+	using BasicBloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BasicBloomFilter.")]] = zeek::probabilistic::BasicBloomFilter;
+	using CountingBloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::CountingBloomFilter.")]] = zeek::probabilistic::CountingBloomFilter;
+
+} // namespace probabilistic

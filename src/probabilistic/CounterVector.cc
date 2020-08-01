@@ -11,7 +11,7 @@
 #include "BitVector.h"
 #include "util.h"
 
-using namespace probabilistic;
+namespace zeek::probabilistic::detail {
 
 CounterVector::CounterVector(size_t arg_width, size_t cells)
 	{
@@ -143,8 +143,6 @@ CounterVector& CounterVector::Merge(const CounterVector& other)
 	return *this;
 	}
 
-namespace probabilistic {
-
 CounterVector& CounterVector::operator|=(const CounterVector& other)
 	{
 	return Merge(other);
@@ -155,8 +153,6 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y)
 	CounterVector cv(x);
 	return cv |= y;
 	}
-
-}
 
 uint64_t CounterVector::Hash() const
 	{
@@ -190,5 +186,4 @@ std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& da
 	return cv;
 	}
 
-
-
+} // namespace zeek::probabilistic::detail

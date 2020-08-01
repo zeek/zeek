@@ -10,7 +10,7 @@
 
 #include "digest.h"
 
-using namespace probabilistic;
+namespace zeek::probabilistic::detail {
 
 BitVector::size_type BitVector::npos = static_cast<BitVector::size_type>(-1);
 BitVector::block_type BitVector::bits_per_block =
@@ -263,8 +263,6 @@ BitVector& BitVector::operator-=(BitVector const& other)
 	return *this;
 	}
 
-namespace probabilistic {
-
 BitVector operator&(BitVector const& x, BitVector const& y)
 	{
 	BitVector b(x);
@@ -317,8 +315,6 @@ bool operator<(BitVector const& x, BitVector const& y)
 
 	return false;
 	}
-
-}
 
 void BitVector::Resize(size_type n, bool value)
 	{
@@ -581,3 +577,5 @@ BitVector::size_type BitVector::find_from(size_type i) const
 
 	return i * bits_per_block + lowest_bit(bits[i]);
 	}
+
+} // namespace zeek::probabilistic::detail

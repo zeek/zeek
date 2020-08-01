@@ -9,7 +9,7 @@
 #include "Reporter.h"
 #include "Dict.h"
 
-namespace probabilistic {
+namespace zeek::probabilistic::detail {
 
 static void topk_element_hash_delete_func(void* val)
 	{
@@ -519,4 +519,5 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 	assert(i == numElements);
 	return true;
 	}
-}
+
+} // namespace zeek::probabilistic::detail

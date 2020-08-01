@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -10,9 +12,9 @@
 
 namespace broker { class data; }
 
-namespace probabilistic {
+ZEEK_FORWARD_DECLARE_NAMESPACED(BitVector, zeek, probabilistic, detail);
 
-class BitVector;
+namespace zeek::probabilistic::detail {
 
 /**
  * A vector of counters, each of which has a fixed number of bits.
@@ -154,4 +156,8 @@ private:
 	size_t width;
 };
 
+} // namespace zeek::probabilistic::detail
+
+namespace probabilistic {
+	using CounterVector [[deprecated("Remove in v4.1. Use zeek::probabilisitc::detail::CounterVector.")]] = zeek::probabilistic::detail::CounterVector;
 }

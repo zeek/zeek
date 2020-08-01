@@ -13,14 +13,14 @@
 #include "../util.h"
 #include "../Reporter.h"
 
-using namespace probabilistic;
+namespace zeek::probabilistic {
 
 BloomFilter::BloomFilter()
 	{
 	hasher = nullptr;
 	}
 
-BloomFilter::BloomFilter(const Hasher* arg_hasher)
+BloomFilter::BloomFilter(const detail::Hasher* arg_hasher)
 	{
 	hasher = arg_hasher;
 	}
@@ -56,7 +56,7 @@ std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
 	if ( ! type )
 		return nullptr;
 
-	auto hasher_ = Hasher::Unserialize((*v)[1]);
+	auto hasher_ = detail::Hasher::Unserialize((*v)[1]);
 	if ( ! hasher_ )
 		return nullptr;
 
@@ -130,7 +130,7 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 	BasicBloomFilter* copy = new BasicBloomFilter();
 
 	copy->hasher = hasher->Clone();
-	copy->bits = new BitVector(*bits);
+	copy->bits = new detail::BitVector(*bits);
 
 	return copy;
 	}
@@ -145,10 +145,10 @@ BasicBloomFilter::BasicBloomFilter()
 	bits = nullptr;
 	}
 
-BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
+BasicBloomFilter::BasicBloomFilter(const detail::Hasher* hasher, size_t cells)
 	: BloomFilter(hasher)
 	{
-	bits = new BitVector(cells);
+	bits = new detail::BitVector(cells);
 	}
 
 BasicBloomFilter::~BasicBloomFilter()
@@ -158,7 +158,7 @@ BasicBloomFilter::~BasicBloomFilter()
 
 void BasicBloomFilter::Add(const zeek::detail::HashKey* key)
 	{
-	Hasher::digest_vector h = hasher->Hash(key);
+	detail::Hasher::digest_vector h = hasher->Hash(key);
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		bits->Set(h[i] % bits->Size());
@@ -166,7 +166,7 @@ void BasicBloomFilter::Add(const zeek::detail::HashKey* key)
 
 size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const
 	{
-	Hasher::digest_vector h = hasher->Hash(key);
+	detail::Hasher::digest_vector h = hasher->Hash(key);
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		{
@@ -185,7 +185,7 @@ broker::expected<broker::data> BasicBloomFilter::DoSerialize() const
 
 bool BasicBloomFilter::DoUnserialize(const broker::data& data)
 	{
-	auto b = BitVector::Unserialize(data);
+	auto b = detail::BitVector::Unserialize(data);
 	if ( ! b )
 		return false;
 
@@ -198,11 +198,11 @@ CountingBloomFilter::CountingBloomFilter()
 	cells = nullptr;
 	}
 
-CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
-					 size_t arg_cells, size_t width)
+CountingBloomFilter::CountingBloomFilter(const detail::Hasher* hasher,
+                                         size_t arg_cells, size_t width)
 	: BloomFilter(hasher)
 	{
-	cells = new CounterVector(width, arg_cells);
+	cells = new detail::CounterVector(width, arg_cells);
 	}
 
 CountingBloomFilter::~CountingBloomFilter()
@@ -249,7 +249,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 	CountingBloomFilter* copy = new CountingBloomFilter();
 
 	copy->hasher = hasher->Clone();
-	copy->cells = new CounterVector(*cells);
+	copy->cells = new detail::CounterVector(*cells);
 
 	return copy;
 	}
@@ -262,7 +262,7 @@ std::string CountingBloomFilter::InternalState() const
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.
 void CountingBloomFilter::Add(const zeek::detail::HashKey* key)
 	{
-	Hasher::digest_vector h = hasher->Hash(key);
+	detail::Hasher::digest_vector h = hasher->Hash(key);
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		cells->Increment(h[i] % cells->Size());
@@ -270,14 +270,14 @@ void CountingBloomFilter::Add(const zeek::detail::HashKey* key)
 
 size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const
 	{
-	Hasher::digest_vector h = hasher->Hash(key);
+	detail::Hasher::digest_vector h = hasher->Hash(key);
 
-	CounterVector::size_type min =
-		std::numeric_limits<CounterVector::size_type>::max();
+	detail::CounterVector::size_type min =
+		std::numeric_limits<detail::CounterVector::size_type>::max();
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		{
-		CounterVector::size_type cnt = cells->Count(h[i] % cells->Size());
+		detail::CounterVector::size_type cnt = cells->Count(h[i] % cells->Size());
 		if ( cnt  < min )
 			min = cnt;
 		}
@@ -293,10 +293,12 @@ broker::expected<broker::data> CountingBloomFilter::DoSerialize() const
 
 bool CountingBloomFilter::DoUnserialize(const broker::data& data)
 	{
-	auto c = CounterVector::Unserialize(data);
+	auto c = detail::CounterVector::Unserialize(data);
 	if ( ! c )
 		return false;
 
 	cells = c.release();
 	return true;
 	}
+
+} // namespace zeek::probabilistic

@@ -14,10 +14,8 @@
 
 namespace broker { class data; }
 
-namespace probabilistic {
-	class BloomFilter;
-	class CardinalityCounter;
-}
+ZEEK_FORWARD_DECLARE_NAMESPACED(BloomFilter, zeek, probabilistic);
+ZEEK_FORWARD_DECLARE_NAMESPACED(CardinalityCounter, zeek, probabilistic, detail);
 
 namespace zeek {
 
@@ -306,7 +304,7 @@ private:
 
 class BloomFilterVal : public OpaqueVal {
 public:
-	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
+	explicit BloomFilterVal(zeek::probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
 
 	ValPtr DoClone(CloneState* state) override;
@@ -337,13 +335,13 @@ private:
 
 	zeek::TypePtr type;
 	zeek::detail::CompositeHash* hash;
-	probabilistic::BloomFilter* bloom_filter;
+	zeek::probabilistic::BloomFilter* bloom_filter;
 };
 
 
 class CardinalityVal : public OpaqueVal {
 public:
-	explicit CardinalityVal(probabilistic::CardinalityCounter*);
+	explicit CardinalityVal(zeek::probabilistic::detail::CardinalityCounter*);
 	~CardinalityVal() override;
 
 	ValPtr DoClone(CloneState* state) override;
@@ -355,7 +353,7 @@ public:
 
 	bool Typify(zeek::TypePtr type);
 
-	probabilistic::CardinalityCounter* Get()	{ return c; };
+	zeek::probabilistic::detail::CardinalityCounter* Get()	{ return c; };
 
 protected:
 	CardinalityVal();
@@ -364,7 +362,7 @@ protected:
 private:
 	zeek::TypePtr type;
 	zeek::detail::CompositeHash* hash;
-	probabilistic::CardinalityCounter* c;
+	zeek::probabilistic::detail::CardinalityCounter* c;
 };
 
 class ParaglobVal : public OpaqueVal {

@@ -13,7 +13,7 @@
 
 #include <broker/data.hh>
 
-using namespace probabilistic;
+namespace zeek::probabilistic::detail {
 
 Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
@@ -178,3 +178,5 @@ bool DoubleHasher::Equals(const Hasher* other) const
 	const DoubleHasher* o = static_cast<const DoubleHasher*>(other);
 	return h1 == o->h1 && h2 == o->h2;
 	}
+
+} // namespace zeek::probabilistic::detail

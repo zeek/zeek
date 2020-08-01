@@ -11,7 +11,7 @@
 
 namespace broker { class data; }
 
-namespace probabilistic {
+namespace zeek::probabilistic::detail {
 
 /**
  * A probabilistic cardinality counter using the HyperLogLog algorithm.
@@ -186,4 +186,8 @@ private:
 	int p; // the log2 of m
 };
 
+} // namespace zeek::probabilistic::detail
+
+namespace probabilistic {
+	using CardinalityCounter [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::CardinalityCounter.")]] = zeek::probabilistic::detail::CardinalityCounter;
 }

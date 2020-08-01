@@ -217,7 +217,7 @@ TypePtr Type::ShallowClone()
 			return zeek::make_intrusive<Type>(tag, base_type);
 
 		default:
-			reporter->InternalError("cloning illegal base Type");
+			zeek::reporter->InternalError("cloning illegal base Type");
 	}
 	return nullptr;
 	}
@@ -291,7 +291,7 @@ bool TypeList::AllMatch(const Type* t, bool is_init) const
 void TypeList::Append(TypePtr t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
-		reporter->InternalError("pure type-list violation");
+		zeek::reporter->InternalError("pure type-list violation");
 
 	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
@@ -591,7 +591,7 @@ string FuncType::FlavorString() const
 		return "hook";
 
 	default:
-		reporter->InternalError("Invalid function flavor");
+		zeek::reporter->InternalError("Invalid function flavor");
 		return "invalid_func_flavor";
 	}
 	}
@@ -1062,8 +1062,8 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 
 		if ( ! doc )
 			{
-			reporter->InternalWarning("Failed to lookup record doc: %s",
-			                          GetName().c_str());
+			zeek::reporter->InternalWarning("Failed to lookup record doc: %s",
+			                                GetName().c_str());
 			continue;
 			}
 
@@ -1210,7 +1210,7 @@ TypePtr EnumType::ShallowClone()
 
 EnumType::~EnumType() = default;
 
-// Note, we use reporter->Error() here (not Error()) to include the current script
+// Note, we use zeek::reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
 void EnumType::AddName(const string& module_name, const char* name, bool is_export, zeek::detail::Expr* deprecation)
@@ -1218,7 +1218,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 	/* implicit, auto-increment */
 	if ( counter < 0)
 		{
-		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		zeek::reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
 		return;
 		}
@@ -1231,7 +1231,7 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	/* explicit value specified */
 	if ( counter > 0 )
 		{
-		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		zeek::reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
 		return;
 		}
@@ -1244,7 +1244,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	{
 	if ( Lookup(val) )
 		{
-		reporter->Error("enumerator value in enumerated type definition already exists");
+		zeek::reporter->Error("enumerator value in enumerated type definition already exists");
 		SetError();
 		return;
 		}
@@ -1272,7 +1272,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		     || (id->HasVal() && val != id->GetVal()->AsEnum())
 		     || (names.find(fullname) != names.end() && names[fullname] != val) )
 			{
-			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
+			zeek::reporter->Error("identifier or enumerator value in enumerated type definition already exists");
 			SetError();
 			return;
 			}
@@ -1378,8 +1378,8 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 		if ( ! doc )
 			{
-			reporter->InternalWarning("Enum %s documentation lookup failure",
-			                          it->second.c_str());
+			zeek::reporter->InternalWarning("Enum %s documentation lookup failure",
+			                                it->second.c_str());
 			continue;
 			}
 
@@ -1664,7 +1664,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		}
 
 	case TYPE_UNION:
-		reporter->Error("union type in same_type()");
+		zeek::reporter->Error("union type in same_type()");
 	}
 	return false;
 	}
@@ -1724,7 +1724,7 @@ const Type* flatten_type(const Type* t)
 	const auto& types = tl->GetTypes();
 
 	if ( types.size() == 0 )
-		reporter->InternalError("empty type list in flatten_type");
+		zeek::reporter->InternalError("empty type list in flatten_type");
 
 	const auto& ft = types[0];
 
@@ -1774,7 +1774,7 @@ bool is_assignable(TypeTag t)
 		return false;
 
 	case TYPE_UNION:
-		reporter->Error("union type in is_assignable()");
+		zeek::reporter->Error("union type in is_assignable()");
 	}
 
 	return false;
@@ -1803,7 +1803,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	else
 		{
-		reporter->InternalError("non-arithmetic tags in max_type()");
+		zeek::reporter->InternalError("non-arithmetic tags in max_type()");
 		return TYPE_ERROR;
 		}
 	}
@@ -2039,11 +2039,11 @@ TypePtr merge_types(const TypePtr& arg_t1,
 		return zeek::make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
 
 	case TYPE_UNION:
-		reporter->InternalError("union type in merge_types()");
+		zeek::reporter->InternalError("union type in merge_types()");
 		return nullptr;
 
 	default:
-		reporter->InternalError("bad type in merge_types()");
+		zeek::reporter->InternalError("bad type in merge_types()");
 		return nullptr;
 	}
 	}
@@ -2055,7 +2055,7 @@ TypePtr merge_type_list(zeek::detail::ListExpr* elements)
 
 	if ( tl.size() < 1 )
 		{
-		reporter->Error("no type can be inferred for empty list");
+		zeek::reporter->Error("no type can be inferred for empty list");
 		return nullptr;
 		}
 
@@ -2068,7 +2068,7 @@ TypePtr merge_type_list(zeek::detail::ListExpr* elements)
 		t = merge_types(t, tl[i]);
 
 	if ( ! t )
-		reporter->Error("inconsistent types in list");
+		zeek::reporter->Error("inconsistent types in list");
 
 	return t;
 	}

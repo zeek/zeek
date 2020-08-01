@@ -119,7 +119,7 @@ struct val_converter {
 			return zeek::make_intrusive<zeek::StringVal>(a.size(), a.data());
 		case zeek::TYPE_FILE:
 			{
-			auto file = BroFile::Get(a.data());
+			auto file = zeek::File::Get(a.data());
 
 			if ( file )
 				return zeek::make_intrusive<zeek::Val>(std::move(file));
@@ -136,7 +136,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_ADDR )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
-			return zeek::make_intrusive<zeek::AddrVal>(IPAddr(*bits));
+			return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(*bits));
 			}
 
 		return nullptr;
@@ -147,7 +147,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_SUBNET )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
-			return zeek::make_intrusive<zeek::SubNetVal>(IPPrefix(IPAddr(*bits), a.length()));
+			return zeek::make_intrusive<zeek::SubNetVal>(zeek::IPPrefix(zeek::IPAddr(*bits), a.length()));
 			}
 
 		return nullptr;
@@ -421,13 +421,13 @@ struct val_converter {
 			if ( ! exact_text || ! anywhere_text )
 				return nullptr;
 
-			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			auto* re = new zeek::RE_Matcher(exact_text->c_str(),
 			                                anywhere_text->c_str());
 
 			if ( ! re->Compile() )
 				{
-				reporter->Error("failed compiling unserialized pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				zeek::reporter->Error("failed compiling unserialized pattern: %s, %s",
+				                      exact_text->c_str(), anywhere_text->c_str());
 				delete re;
 				return nullptr;
 				}
@@ -745,15 +745,15 @@ struct type_checker {
 			if ( ! exact_text || ! anywhere_text )
 				return false;
 
-			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			auto* re = new zeek::RE_Matcher(exact_text->c_str(),
 			                                anywhere_text->c_str());
 			auto compiled = re->Compile();
 			delete re;
 
 			if ( ! compiled )
 				{
-				reporter->Error("failed compiling pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				zeek::reporter->Error("failed compiling pattern: %s, %s",
+				                      exact_text->c_str(), anywhere_text->c_str());
 				return false;
 				}
 
@@ -871,7 +871,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 				}
 			else
 				{
-				reporter->InternalWarning("Closure with non-ScriptFunc");
+				zeek::reporter->InternalWarning("Closure with non-ScriptFunc");
 				return broker::ec::invalid_data;
 				}
 			}
@@ -890,7 +890,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		else
 			rval = broker::table();
 
-		HashKey* hk;
+		zeek::detail::HashKey* hk;
 		zeek::TableEntryVal* entry;
 		auto c = table->InitForIteration();
 
@@ -986,7 +986,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		}
 	case zeek::TYPE_PATTERN:
 		{
-		const RE_Matcher* p = v->AsPattern();
+		const zeek::RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}
@@ -995,15 +995,15 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		auto c = v->AsOpaqueVal()->Serialize();
 		if ( ! c )
 			{
-			reporter->Error("unsupported opaque type for serialization");
+			zeek::reporter->Error("unsupported opaque type for serialization");
 			break;
 			}
 
 		return {c};
 		}
 	default:
-		reporter->Error("unsupported Broker::Data type: %s",
-		                zeek::type_name(v->GetType()->Tag()));
+		zeek::reporter->Error("unsupported Broker::Data type: %s",
+		                      zeek::type_name(v->GetType()->Tag()));
 		break;
 	}
 
@@ -1018,7 +1018,7 @@ zeek::RecordValPtr bro_broker::make_data_val(zeek::Val* v)
 	if  ( data )
 		rval->Assign(0, zeek::make_intrusive<DataVal>(move(*data)));
 	else
-		reporter->Warning("did not get a value from val_to_data");
+		zeek::reporter->Warning("did not get a value from val_to_data");
 
 	return rval;
 	}
@@ -1122,15 +1122,15 @@ broker::data& bro_broker::opaque_field_to_data(zeek::RecordVal* v, zeek::detail:
 	const auto& d = v->GetField(0);
 
 	if ( ! d )
-		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
-		                       "Broker::Data's opaque field is not set");
+		zeek::reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		                             "Broker::Data's opaque field is not set");
 
 	// RuntimeError throws an exception which causes this line to never exceute.
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
 	return static_cast<DataVal*>(d.get())->data;
 	}
 
-void bro_broker::DataVal::ValDescribe(ODesc* d) const
+void bro_broker::DataVal::ValDescribe(zeek::ODesc* d) const
 	{
 	d->Add("broker::data{");
 	d->Add(broker::to_string(data));

@@ -5,13 +5,9 @@
 #include "Obj.h"
 #include "List.h"
 
-class CCL;
-class NFA_State;
-class EquivClass;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(CCL, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(EquivClass, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-
-using NFA_state_list = zeek::PList<NFA_State>;
 
 #define NO_ACCEPT 0
 
@@ -24,6 +20,10 @@ using NFA_state_list = zeek::PList<NFA_State>;
 #define SYM_EPSILON 259
 #define SYM_CCL 260
 
+namespace zeek::detail {
+
+class NFA_State;
+using NFA_state_list = zeek::PList<NFA_State>;
 
 class NFA_State : public zeek::Obj  {
 public:
@@ -135,3 +135,15 @@ extern NFA_state_list* epsilon_closure(NFA_state_list* states);
 
 // For sorting NFA states based on their ID fields (decreasing)
 extern bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2);
+
+} // namespace zeek::detail
+
+using NFA_state_list [[deprecated("Remove in v4.1. Use zeek::detail::NFA_state_list.")]] = zeek::detail::NFA_state_list;
+using NFA_State [[deprecated("Remove in v4.1. Use zeek::detail::NFA_State.")]] = zeek::detail::NFA_State;
+using EpsilonState [[deprecated("Remove in v4.1. Use zeek::detail::EpsilonState.")]] = zeek::detail::EpsilonState;
+using NFA_Machine [[deprecated("Remove in v4.1. Use zeek::detail::NFA_Machine.")]] = zeek::detail::NFA_Machine;
+
+// TODO: could at least the first two of these methods be made static methods in NFA_Machine and NFA_State to remove them from the namespace?
+constexpr auto make_alternate [[deprecated("Remove in v4.1. Use zeek::detail::make_alternate.")]] = zeek::detail::make_alternate;
+constexpr auto epsilon_closure [[deprecated("Remove in v4.1. Use zeek::detail::epsilon_closure.")]] = zeek::detail::epsilon_closure;
+constexpr auto NFA_state_cmp_neg [[deprecated("Remove in v4.1. Use zeek::detail::NFA_state_cmp_neg.")]] = zeek::detail::NFA_state_cmp_neg;

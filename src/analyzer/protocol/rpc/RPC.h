@@ -100,7 +100,7 @@ protected:
 
 class RPC_Interpreter {
 public:
-	explicit RPC_Interpreter(analyzer::Analyzer* analyzer);
+	explicit RPC_Interpreter(zeek::analyzer::Analyzer* analyzer);
 	virtual ~RPC_Interpreter();
 
 	// Delivers the given RPC.  Returns true if "len" bytes were
@@ -123,7 +123,7 @@ protected:
 	void Weird(const char* name, const char* addl = "");
 
 	std::map<uint32_t, RPC_CallInfo*> calls;
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 };
 
 
@@ -186,7 +186,7 @@ protected:
 /* Support Analyzer for reassembling RPC-over-TCP messages */
 class Contents_RPC final : public tcp::TCP_SupportAnalyzer {
 public:
-	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
+	Contents_RPC(zeek::Connection* conn, bool orig, RPC_Interpreter* interp);
 	~Contents_RPC() override;
 
 protected:
@@ -232,7 +232,7 @@ protected:
 
 class RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	RPC_Analyzer(const char* name, Connection* conn,
+	RPC_Analyzer(const char* name, zeek::Connection* conn,
 			RPC_Interpreter* arg_interp);
 	~RPC_Analyzer() override;
 
@@ -240,7 +240,7 @@ public:
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	void ExpireTimer(double t);
 

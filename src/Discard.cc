@@ -14,6 +14,8 @@
 #include "IP.h"
 #include "Reporter.h" // for InterpreterException
 
+namespace zeek::detail {
+
 Discarder::Discarder()
 	{
 	check_ip = zeek::id::find_func("discarder_check_ip");
@@ -33,7 +35,7 @@ bool Discarder::IsActive()
 	return check_ip || check_tcp || check_udp || check_icmp;
 	}
 
-bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
+bool Discarder::NextPacket(const zeek::IP_Hdr* ip, int len, int caplen)
 	{
 	bool discard_packet = false;
 
@@ -46,7 +48,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			discard_packet = check_ip->Invoke(&args)->AsBool();
 			}
 
-		catch ( InterpreterException& e )
+		catch ( zeek::InterpreterException& e )
 			{
 			discard_packet = false;
 			}
@@ -101,7 +103,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 				discard_packet = check_tcp->Invoke(&args)->AsBool();
 				}
 
-			catch ( InterpreterException& e )
+			catch ( zeek::InterpreterException& e )
 				{
 				discard_packet = false;
 				}
@@ -125,7 +127,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 				discard_packet = check_udp->Invoke(&args)->AsBool();
 				}
 
-			catch ( InterpreterException& e )
+			catch ( zeek::InterpreterException& e )
 				{
 				discard_packet = false;
 				}
@@ -145,7 +147,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 				discard_packet = check_icmp->Invoke(&args)->AsBool();
 				}
 
-			catch ( InterpreterException& e )
+			catch ( zeek::InterpreterException& e )
 				{
 				discard_packet = false;
 				}
@@ -165,3 +167,5 @@ zeek::Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int cap
 
 	return new zeek::StringVal(new zeek::String(data, len, true));
 	}
+
+} // namespace zeek::detail

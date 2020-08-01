@@ -68,7 +68,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
-	EventHandlerPtr event = nullptr;
+	zeek::EventHandlerPtr event = nullptr;
 	zeek::ValPtr reply;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
@@ -280,7 +280,7 @@ zeek::RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 	return rep;
 	}
 
-MOUNT_Analyzer::MOUNT_Analyzer(Connection* conn)
+MOUNT_Analyzer::MOUNT_Analyzer(zeek::Connection* conn)
 	: RPC_Analyzer("MOUNT", conn, new MOUNT_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;

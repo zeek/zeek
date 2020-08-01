@@ -4,6 +4,8 @@
 #include "util.h"
 #include "Conn.h"
 
+namespace zeek {
+
 EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 		: src_addr(c->OrigAddr()), dst_addr(c->RespAddr()),
 		  src_port(c->OrigPort()), dst_port(c->RespPort()),
@@ -52,3 +54,5 @@ bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 
 	return true;
 	}
+
+} // namespace zeek

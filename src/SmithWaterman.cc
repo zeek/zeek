@@ -11,14 +11,16 @@
 #include "Reporter.h"
 #include "Val.h"
 
-BroSubstring::BroSubstring(const BroSubstring& bst)
+namespace zeek::detail {
+
+Substring::Substring(const Substring& bst)
 : zeek::String((const zeek::String&) bst), _num(), _new(bst._new)
 	{
 	for ( BSSAlignVecCIt it = bst._aligns.begin(); it != bst._aligns.end(); ++it )
 		_aligns.push_back(*it);
 	}
 
-const BroSubstring& BroSubstring::operator=(const BroSubstring& bst)
+const Substring& Substring::operator=(const Substring& bst)
 	{
 	zeek::String::operator=(bst);
 
@@ -32,12 +34,12 @@ const BroSubstring& BroSubstring::operator=(const BroSubstring& bst)
 	return *this;
 	}
 
-void BroSubstring::AddAlignment(const zeek::String* str, int index)
+void Substring::AddAlignment(const zeek::String* str, int index)
 	{
 	_aligns.push_back(BSSAlign(str, index));
 	}
 
-bool BroSubstring::DoesCover(const BroSubstring* bst) const
+bool Substring::DoesCover(const Substring* bst) const
 	{
 	if ( _aligns.size() != bst->_aligns.size() )
 		return false;
@@ -56,7 +58,7 @@ bool BroSubstring::DoesCover(const BroSubstring* bst) const
 	return true;
 	}
 
-zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
+zeek::VectorVal* Substring::VecToPolicy(Vec* vec)
 	{
 	static auto sw_substring_type = zeek::id::find_type<zeek::RecordType>("sw_substring");
 	static auto sw_align_type = zeek::id::find_type<zeek::RecordType>("sw_align");
@@ -69,7 +71,7 @@ zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 		{
 		for ( size_t i = 0; i < vec->size(); ++i )
 			{
-			BroSubstring* bst = (*vec)[i];
+			Substring* bst = (*vec)[i];
 
 			auto st_val = zeek::make_intrusive<zeek::RecordVal>(sw_substring_type);
 			st_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::String(*bst)));
@@ -96,7 +98,7 @@ zeek::VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	return result.release();
 	}
 
-BroSubstring::Vec* BroSubstring::VecFromPolicy(zeek::VectorVal* vec)
+Substring::Vec* Substring::VecFromPolicy(zeek::VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
@@ -108,7 +110,7 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(zeek::VectorVal* vec)
 			continue;
 
 		const zeek::String* str = v->AsRecordVal()->GetField(0)->AsString();
-		BroSubstring* substr = new BroSubstring(*str);
+		auto* substr = new Substring(*str);
 
 		const zeek::VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
@@ -128,11 +130,11 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(zeek::VectorVal* vec)
 	return result;
 	}
 
-char* BroSubstring::VecToString(Vec* vec)
+char* Substring::VecToString(Vec* vec)
 	{
 	std::string result("[");
 
-	for ( BroSubstring::VecIt it = vec->begin(); it != vec->end(); ++it )
+	for ( Substring::VecIt it = vec->begin(); it != vec->end(); ++it )
 		{
 		result += (*it)->CheckString();
 		result += ",";
@@ -142,14 +144,14 @@ char* BroSubstring::VecToString(Vec* vec)
 	return strdup(result.c_str());
 	}
 
-zeek::String::IdxVec* BroSubstring::GetOffsetsVec(const Vec* vec, unsigned int index)
+zeek::String::IdxVec* Substring::GetOffsetsVec(const Vec* vec, unsigned int index)
 	{
 	zeek::String::IdxVec* result = new zeek::String::IdxVec();
 
 	for ( VecCIt it = vec->begin(); it != vec->end(); ++it )
 		{
 		int start, end;
-		const BroSubstring* bst = (*it);
+		const Substring* bst = (*it);
 
 		if ( bst->_aligns.size() <= index )
 			continue;
@@ -166,13 +168,13 @@ zeek::String::IdxVec* BroSubstring::GetOffsetsVec(const Vec* vec, unsigned int i
 	}
 
 
-bool BroSubstringCmp::operator()(const BroSubstring* bst1,
-				 const BroSubstring* bst2) const
+bool SubstringCmp::operator()(const Substring* bst1,
+				 const Substring* bst2) const
 	{
 	if ( _index >= bst1->GetNumAlignments() ||
 	     _index >= bst2->GetNumAlignments() )
 		{
-		reporter->Warning("BroSubstringCmp::operator(): invalid index for input strings.\n");
+		zeek::reporter->Warning("SubstringCmp::operator(): invalid index for input strings.\n");
 		return false;
 		}
 
@@ -260,7 +262,7 @@ private:
 // @node: starting node.
 // @params: SW parameters.
 //
-static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
+static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix,
 			      SWNode* node, SWParams& params)
 	{
 	std::string substring("");
@@ -287,7 +289,7 @@ static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 			if ( substring.size() >= params._min_toklen )
 				{
 				reverse(substring.begin(), substring.end());
-				BroSubstring* bst = new BroSubstring(substring);
+				auto* bst = new Substring(substring);
 				bst->AddAlignment(matrix.GetRowsString(), row-1);
 				bst->AddAlignment(matrix.GetColsString(), col-1);
 				result->push_back(bst);
@@ -305,7 +307,7 @@ static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 	if ( substring.size() > 0 )
 		{
 		reverse(substring.begin(), substring.end());
-		BroSubstring* bst = new BroSubstring(substring);
+		auto* bst = new Substring(substring);
 		bst->AddAlignment(matrix.GetRowsString(), row-1);
 		bst->AddAlignment(matrix.GetColsString(), col-1);
 		result->push_back(bst);
@@ -324,10 +326,10 @@ static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 // common subsequences while tracking which nodes were visited earlier and which
 // substrings are redundant (i.e., fully covered by a larger common substring).
 //
-static void sw_collect_multiple(BroSubstring::Vec* result,
+static void sw_collect_multiple(Substring::Vec* result,
 				SWNodeMatrix& matrix, SWParams& params)
 	{
-	std::vector<BroSubstring::Vec*> als;
+	std::vector<Substring::Vec*> als;
 
 	for ( int i = matrix.GetHeight() - 1; i > 0; --i )
 		{
@@ -338,21 +340,21 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 			if ( ! (node->swn_byte_assigned && ! node->swn_visited) )
 				continue;
 
-			BroSubstring::Vec* new_al = new BroSubstring::Vec();
+			auto* new_al = new Substring::Vec();
 			sw_collect_single(new_al, matrix, node, params);
 
-			for ( std::vector<BroSubstring::Vec*>::iterator it = als.begin();
+			for ( std::vector<Substring::Vec*>::iterator it = als.begin();
 			      it != als.end(); ++it )
 				{
-				BroSubstring::Vec* old_al = *it;
+				Substring::Vec* old_al = *it;
 
 				if ( old_al == nullptr )
 					continue;
 
-				for ( BroSubstring::VecIt it2 = old_al->begin();
+				for ( Substring::VecIt it2 = old_al->begin();
 				      it2 != old_al->end(); ++it2 )
 					{
-					for ( BroSubstring::VecIt it3 = new_al->begin();
+					for ( Substring::VecIt it3 = new_al->begin();
 					      it3 != new_al->end(); ++it3 )
 						{
 						if ( (*it2)->DoesCover(*it3) )
@@ -380,15 +382,15 @@ end_loop:
 			}
 		}
 
-	for ( std::vector<BroSubstring::Vec*>::iterator it = als.begin();
+	for ( std::vector<Substring::Vec*>::iterator it = als.begin();
 	      it != als.end(); ++it )
 		{
-		BroSubstring::Vec* al = *it;
+		Substring::Vec* al = *it;
 
 		if ( al == nullptr )
 			continue;
 
-		for ( BroSubstring::VecIt it2 = al->begin();
+		for ( Substring::VecIt it2 = al->begin();
 		      it2 != al->end(); ++it2 )
 			result->push_back(*it2);
 
@@ -398,10 +400,10 @@ end_loop:
 
 // The main Smith-Waterman algorithm.
 //
-BroSubstring::Vec* smith_waterman(const zeek::String* s1, const zeek::String* s2,
+Substring::Vec* smith_waterman(const zeek::String* s1, const zeek::String* s2,
 					SWParams& params)
 	{
-	BroSubstring::Vec* result = new BroSubstring::Vec();
+	auto* result = new Substring::Vec();
 
 	if ( ! s1 || s1->Len() < int(params._min_toklen) ||
 	     ! s2 || s2->Len() < int(params._min_toklen) )
@@ -558,9 +560,11 @@ BroSubstring::Vec* smith_waterman(const zeek::String* s1, const zeek::String* s2
 		sw_collect_single(result, matrix, node_max, params);
 
 	if ( len1 > len2 )
-		sort(result->begin(), result->end(), BroSubstringCmp(0));
+		sort(result->begin(), result->end(), SubstringCmp(0));
 	else
-		sort(result->begin(), result->end(), BroSubstringCmp(1));
+		sort(result->begin(), result->end(), SubstringCmp(1));
 
 	return result;
 	}
+
+} // namespace zeek::detail

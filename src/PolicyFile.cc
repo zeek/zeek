@@ -32,12 +32,12 @@ static PolicyFileMap policy_files;
 int how_many_lines_in(const char* policy_filename)
 	{
 	if ( ! policy_filename )
-		reporter->InternalError("NULL value passed to how_many_lines_in\n");
+		zeek::reporter->InternalError("NULL value passed to how_many_lines_in\n");
 
 	FILE* throwaway = fopen(policy_filename, "r");
 	if ( ! throwaway )
 		{
-		debug_msg("No such policy file: %s.\n", policy_filename);
+		zeek::detail::debug_msg("No such policy file: %s.\n", policy_filename);
 		return -1;
 		}
 
@@ -51,7 +51,7 @@ int how_many_lines_in(const char* policy_filename)
 		match = policy_files.find(policy_filename);
 		if ( match == policy_files.end() )
 			{
-			debug_msg("Policy file %s was not loaded.\n", policy_filename);
+			zeek::detail::debug_msg("Policy file %s was not loaded.\n", policy_filename);
 			return -1;
 			}
 		}
@@ -69,14 +69,14 @@ bool LoadPolicyFileText(const char* policy_filename)
 
 	if ( ! f )
 		{
-		debug_msg("No such policy file: %s.\n", policy_filename);
+		zeek::detail::debug_msg("No such policy file: %s.\n", policy_filename);
 		return false;
 		}
 
 	PolicyFile* pf = new PolicyFile;
 
 	if ( policy_files.find(policy_filename) != policy_files.end() )
-		debug_msg("Policy file %s already loaded\n", policy_filename);
+		zeek::detail::debug_msg("Policy file %s already loaded\n", policy_filename);
 
 	policy_files.insert(PolicyFileMap::value_type(policy_filename, pf));
 
@@ -85,7 +85,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 		{
 		char buf[256];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("fstat failed on %s: %s", policy_filename, buf);
+		zeek::reporter->Error("fstat failed on %s: %s", policy_filename, buf);
 		fclose(f);
 		return false;
 		}
@@ -97,7 +97,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 	// (probably fine with UTF-8)
 	pf->filedata = new char[size+1];
 	if ( fread(pf->filedata, size, 1, f) != 1 )
-        reporter->InternalError("Failed to fread() file data");
+        zeek::reporter->InternalError("Failed to fread() file data");
 	pf->filedata[size] = 0;
 	fclose(f);
 
@@ -129,7 +129,7 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 	FILE* throwaway = fopen(policy_filename, "r");
 	if ( ! throwaway )
 		{
-		debug_msg("No such policy file: %s.\n", policy_filename);
+		zeek::detail::debug_msg("No such policy file: %s.\n", policy_filename);
 		return false;
 		}
 
@@ -143,7 +143,7 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 		match = policy_files.find(policy_filename);
 		if ( match == policy_files.end() )
 			{
-			debug_msg("Policy file %s was not loaded.\n", policy_filename);
+			zeek::detail::debug_msg("Policy file %s was not loaded.\n", policy_filename);
 			return false;
 			}
 		}
@@ -155,7 +155,7 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 
 	if ( start_line > pf->lines.size() )
 		{
-		debug_msg("Line number %d out of range; %s has %d lines\n",
+		zeek::detail::debug_msg("Line number %d out of range; %s has %d lines\n",
 			start_line, policy_filename, int(pf->lines.size()));
 		return false;
 		}
@@ -166,10 +166,10 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 	for ( unsigned int i = 0; i < how_many_lines; ++i )
 		{
 		if ( show_numbers )
-			debug_msg("%d\t", i + start_line);
+			zeek::detail::debug_msg("%d\t", i + start_line);
 
 		const char* line = pf->lines[start_line + i - 1];
-		debug_msg("%s\n", line);
+		zeek::detail::debug_msg("%s\n", line);
 		}
 
 	return true;

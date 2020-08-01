@@ -1,3 +1,61 @@
+3.3.0-dev.38 | 2020-08-01 09:21:17 -0700
+
+  * Properly forward-declare zeek::plugin::plugin in DebugLogger (Tim Wojtulewicz, Corelight)
+
+  * Rename Brofiler to ScriptCoverageManager (Tim Wojtulewicz, Corelight)
+
+  * Move Conn and related types to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move reassembler code to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move Session code to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move ODesc to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Stats and related classes to zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Move a few low-use classes to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move DebugLogger to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move all of the hashing classes/functions to zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move all of the Packet-related classes to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move EventMgr, EventHandler, and EventRegistry code to zeek namespace. Rename mgr to event_mgr. (Tim Wojtulewicz, Corelight)
+
+  * Move Timer and PriorityQueue classes to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move BroFile to zeek namespace, rename to File (Tim Wojtulewicz, Corelight)
+
+  * Move Reporter to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move DNS_Mgr to zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move BroSubstring to zeek::detail, rename to Substring (Tim Wojtulewicz)
+
+  * Move regex matching code to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move all of the rule matching code to zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Move IP Addr/Prefix/Header classes into namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move all debugger code into the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Restore globally-namespaced plugin_mgr variable, move zeek::plugin::plugin_mgr to zeek::plugin_mgr (Tim Wojtulewicz, Corelight)
+
+  * Move all base analyzer classes to zeek::analyzer namespace (Tim Wojtulewicz, Corelight)
+
+  * Move base Tag class to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Update submodule
+
+     [nomail] (Johanna Amann, Corelight)
+
+  * Update submodule(s)
+
+     [nomail] (Jon Siwek, Corelight)
+
 
 3.3.0-dev.11 | 2020-07-30 17:47:44 +0000
 

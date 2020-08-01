@@ -90,7 +90,7 @@
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"
-#include "Brofiler.h"
+#include "ScriptCoverageManager.h"
 #include "zeekygen/Manager.h"
 #include "module_util.h"
 #include "IntrusivePtr.h"
@@ -146,7 +146,7 @@ static void parser_new_enum (void)
 	if ( cur_decl_type_id )
 		cur_enum_type = new zeek::EnumType(cur_decl_type_id->Name());
 	else
-		reporter->FatalError("incorrect syntax for enum type declaration");
+		zeek::reporter->FatalError("incorrect syntax for enum type declaration");
 	}
 
 static void parser_redef_enum (zeek::detail::ID *id)
@@ -157,11 +157,11 @@ static void parser_redef_enum (zeek::detail::ID *id)
 
 	// abort on errors; enums need to be accessible to continue parsing
 	if ( ! id->GetType() )
-		reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
+		zeek::reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
 	else
 		{
 		if ( ! id->GetType() || id->GetType()->Tag() != zeek::TYPE_ENUM )
-			reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
+			zeek::reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
 		cur_enum_type = id->GetType()->AsEnumType();
 		}
 	}
@@ -236,7 +236,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	id_list* id_l;
 	zeek::detail::InitClass ic;
 	zeek::Val* val;
-	RE_Matcher* re;
+	zeek::RE_Matcher* re;
 	zeek::detail::Expr* expr;
 	zeek::detail::EventExpr* event_expr;
 	zeek::detail::Stmt* stmt;
@@ -458,9 +458,9 @@ expr:
 			zeek::detail::set_location(@1, @3);
 
 			if ( $1->Tag() == zeek::detail::EXPR_INDEX && $1->AsIndexExpr()->IsSlice() )
-				reporter->Error("index slice assignment may not be used"
-				                " in arbitrary expression contexts, only"
-				                " as a statement");
+				zeek::reporter->Error("index slice assignment may not be used"
+				                      " in arbitrary expression contexts, only"
+				                      " as a statement");
 
 			$$ = zeek::detail::get_assign_expr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3}, in_init).release();
 			}
@@ -681,7 +681,7 @@ expr:
 			else
 				{
 				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					zeek::reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 
 				if ( ! id->GetType() )
 					{
@@ -695,7 +695,7 @@ expr:
 					zeek::EnumType* t = id->GetType()->AsEnumType();
 					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )
-						reporter->InternalError("enum value not found for %s", id->Name());
+						zeek::reporter->InternalError("enum value not found for %s", id->Name());
 					$$ = new zeek::detail::ConstExpr(t->GetEnumVal(intval));
 					}
 				else
@@ -715,7 +715,7 @@ expr:
 			{
 			zeek::detail::set_location(@3);
 
-			RE_Matcher* re = new RE_Matcher($3);
+			auto* re = new zeek::RE_Matcher($3);
 			delete [] $3;
 
 			if ( $4 )
@@ -801,7 +801,7 @@ enum_body_elem:
 			assert(cur_enum_type);
 
 			if ( $3->GetType()->Tag() != zeek::TYPE_COUNT )
-				reporter->Error("enumerator is not a count constant");
+				zeek::reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(zeek::detail::current_module, $1,
 				                       $3->InternalUnsigned(), is_export, $4);
@@ -813,7 +813,7 @@ enum_body_elem:
 			   error message if users triy to use a negative integer (will also
 			   catch other cases, but that's fine.)
 			*/
-			reporter->Error("enumerator is not a count constant");
+			zeek::reporter->Error("enumerator is not a count constant");
 			}
 
 	|	TOK_ID opt_deprecated
@@ -920,7 +920,7 @@ type:
 	|	TOK_UNION '{' type_list '}'
 				{
 				zeek::detail::set_location(@1, @4);
-				reporter->Error("union type not implemented");
+				zeek::reporter->Error("union type not implemented");
 				$$ = 0;
 				}
 
@@ -935,7 +935,7 @@ type:
 				{
 				zeek::detail::set_location(@1);
 				// $$ = new TypeList();
-				reporter->Error("list type not implemented");
+				zeek::reporter->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -943,7 +943,7 @@ type:
 				{
 				zeek::detail::set_location(@1);
 				// $$ = new TypeList($3);
-				reporter->Error("list type not implemented");
+				zeek::reporter->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -1003,7 +1003,7 @@ type:
 				Ref($$);
 
 				if ( $1->IsDeprecated() )
-					reporter->Warning("%s", $1->GetDeprecationWarning().c_str());
+					zeek::reporter->Warning("%s", $1->GetDeprecationWarning().c_str());
 				}
 			}
 	;
@@ -1190,7 +1190,7 @@ func_hdr:
 			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
-				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
+				zeek::reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
 			begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
@@ -1330,7 +1330,7 @@ index_slice:
 			                     zeek::detail::ExprPtr{zeek::NewRef{}, $1});
 
 			if ( ! zeek::IsIntegral(low->GetType()->Tag()) || ! zeek::IsIntegral(high->GetType()->Tag()) )
-				reporter->Error("slice notation must have integral values as indexes");
+				zeek::reporter->Error("slice notation must have integral values as indexes");
 
 			auto le = zeek::make_intrusive<zeek::detail::ListExpr>(std::move(low));
 			le->Append(std::move(high));
@@ -1400,11 +1400,11 @@ attr:
 					zeek::make_intrusive<zeek::detail::ConstExpr>(zeek::IntrusivePtr{zeek::AdoptRef{}, $3}));
 			else
 				{
-				ODesc d;
+				zeek::ODesc d;
 				$3->Describe(&d);
 				Unref($3);
-				reporter->Error("'&deprecated=%s' must use a string literal",
-				                d.Description());
+				zeek::reporter->Error("'&deprecated=%s' must use a string literal",
+				                      d.Description());
 				$$ = new zeek::detail::Attr(zeek::detail::ATTR_DEPRECATED);
 				}
 			}
@@ -1416,7 +1416,7 @@ stmt:
 			zeek::detail::set_location(@1, @4);
 			$$ = $3;
 			if ( $2 )
-			    brofiler.DecIgnoreDepth();
+			    zeek::detail::script_coverage_mgr.DecIgnoreDepth();
 			}
 
 	|	TOK_PRINT expr_list ';' opt_no_test
@@ -1424,7 +1424,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::PrintStmt(zeek::IntrusivePtr{zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_EVENT event ';' opt_no_test
@@ -1432,7 +1432,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::EventStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt
@@ -1468,7 +1468,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::NextStmt;
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_BREAK ';' opt_no_test
@@ -1476,7 +1476,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::BreakStmt;
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_FALLTHROUGH ';' opt_no_test
@@ -1484,7 +1484,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::FallthroughStmt;
 			if ( ! $3 )
-				brofiler.AddStmt($$);
+				zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_RETURN ';' opt_no_test
@@ -1492,7 +1492,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::ReturnStmt(0);
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_RETURN expr ';' opt_no_test
@@ -1500,7 +1500,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::ReturnStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_ADD expr ';' opt_no_test
@@ -1508,7 +1508,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::AddStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_DELETE expr ';' opt_no_test
@@ -1516,7 +1516,7 @@ stmt:
 			zeek::detail::set_location(@1, @3);
 			$$ = new zeek::detail::DelStmt({zeek::AdoptRef{}, $2});
 			if ( ! $4 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
@@ -1527,7 +1527,7 @@ stmt:
 			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			               VAR_REGULAR).release();
 			if ( ! $8 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
@@ -1538,7 +1538,7 @@ stmt:
 			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			               VAR_CONST).release();
 			if ( ! $8 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt
@@ -1554,7 +1554,7 @@ stmt:
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5},
 			                                  {zeek::AdoptRef{}, $10}, {zeek::AdoptRef{}, $7}, false);
 			if ( $9 )
-			    brofiler.DecIgnoreDepth();
+			    zeek::detail::script_coverage_mgr.DecIgnoreDepth();
 			}
 
 
@@ -1571,7 +1571,7 @@ stmt:
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $4}, {zeek::AdoptRef{}, $6},
 			                                  {zeek::AdoptRef{}, $11}, {zeek::AdoptRef{}, $8}, true);
 			if ( $10 )
-			    brofiler.DecIgnoreDepth();
+			    zeek::detail::script_coverage_mgr.DecIgnoreDepth();
 			}
 
 	|	index_slice '=' expr ';' opt_no_test
@@ -1581,7 +1581,7 @@ stmt:
 			                                  {zeek::AdoptRef{}, $3}, in_init));
 
 			if ( ! $5 )
-				brofiler.AddStmt($$);
+				zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	expr ';' opt_no_test
@@ -1589,7 +1589,7 @@ stmt:
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::ExprStmt({zeek::AdoptRef{}, $1});
 			if ( ! $3 )
-			    brofiler.AddStmt($$);
+			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
 	|	';'
@@ -1628,7 +1628,7 @@ event:
 					}
 
 				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					zeek::reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 				}
 
 			$$ = new zeek::detail::EventExpr($1, {zeek::AdoptRef{}, $3});
@@ -1840,7 +1840,7 @@ global_or_event_id:
 
 					if ( t->Tag() != zeek::TYPE_FUNC ||
 					     t->AsFuncType()->Flavor() != zeek::FUNC_FLAVOR_FUNCTION )
-						reporter->Warning("%s", $$->GetDeprecationWarning().c_str());
+						zeek::reporter->Warning("%s", $$->GetDeprecationWarning().c_str());
 					}
 
 				delete [] $1;
@@ -1867,7 +1867,7 @@ resolve_id:
 			$$ = id.release();
 
 			if ( ! $$ )
-				reporter->Error("identifier not defined: %s", $1);
+				zeek::reporter->Error("identifier not defined: %s", $1);
 
 			delete [] $1;
 			}
@@ -1881,7 +1881,7 @@ opt_no_test:
 
 opt_no_test_block:
 		TOK_NO_TEST
-			{ $$ = true; brofiler.IncIgnoreDepth(); }
+			{ $$ = true; zeek::detail::script_coverage_mgr.IncIgnoreDepth(); }
 	|
 			{ $$ = false; }
 
@@ -1895,10 +1895,10 @@ opt_deprecated:
 				$$ = new zeek::detail::ConstExpr({zeek::AdoptRef{}, $3});
 			else
 				{
-				ODesc d;
+				zeek::ODesc d;
 				$3->Describe(&d);
-				reporter->Error("'&deprecated=%s' must use a string literal",
-				                d.Description());
+				zeek::reporter->Error("'&deprecated=%s' must use a string literal",
+				                      d.Description());
 				$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<zeek::StringVal>(""));
 				}
 			}
@@ -1913,22 +1913,22 @@ int yyerror(const char msg[])
 		g_curr_debug_error = copy_string(msg);
 
 	if ( last_tok[0] == '\n' )
-		reporter->Error("%s, on previous line", msg);
+		zeek::reporter->Error("%s, on previous line", msg);
 	else if ( last_tok[0] == '\0' )
 		{
 		if ( last_filename )
-			reporter->Error("%s, at end of file %s", msg, last_filename);
+			zeek::reporter->Error("%s, at end of file %s", msg, last_filename);
 		else
-			reporter->Error("%s, at end of file", msg);
+			zeek::reporter->Error("%s, at end of file", msg);
 		}
 	else
 		{
 		if ( last_last_tok_filename && last_tok_filename &&
 		     ! streq(last_last_tok_filename, last_tok_filename) )
-			reporter->Error("%s, at or near \"%s\" or end of file %s",
-			                msg, last_tok, last_last_tok_filename);
+			zeek::reporter->Error("%s, at or near \"%s\" or end of file %s",
+			                      msg, last_tok, last_last_tok_filename);
 		else
-			reporter->Error("%s, at or near \"%s\"", msg, last_tok);
+			zeek::reporter->Error("%s, at or near \"%s\"", msg, last_tok);
 		}
 
 	return 0;

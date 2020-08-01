@@ -20,15 +20,17 @@ static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	       e->state != analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
 	}
 
+namespace zeek::detail {
+
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	zeek::analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
 
 	if ( ! root || ! root->IsAnalyzer("TCP") )
 		return false;
 
-	analyzer::tcp::TCP_Analyzer* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(root);
+	::analyzer::tcp::TCP_Analyzer* ta = static_cast<::analyzer::tcp::TCP_Analyzer*>(root);
 
 	if ( tcpstates & STATE_STATELESS )
 		return true;
@@ -120,7 +122,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		return payload_size >= val;
 
 	default:
-		reporter->InternalError("unknown comparison type");
+		zeek::reporter->InternalError("unknown comparison type");
 	}
 
 	// Should not be reached
@@ -160,7 +162,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	{
 	if ( ! id->HasVal() )
 		{
-		reporter->Error("undefined value");
+		zeek::reporter->Error("undefined value");
 		return false;
 		}
 
@@ -196,3 +198,5 @@ void RuleConditionEval::PrintDebug()
 	{
 	fprintf(stderr, "	RuleConditionEval: %s\n", id->Name());
 	}
+
+} // namespace zeek::detail

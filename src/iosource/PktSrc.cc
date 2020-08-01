@@ -90,7 +90,7 @@ double PktSrc::CurrentPacketWallClock()
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
-	if ( Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
+	if ( zeek::Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
 		{
 		char buf[512];
 		snprintf(buf, sizeof(buf),
@@ -120,10 +120,10 @@ void PktSrc::Opened(const Properties& arg_props)
 		// data to read.
 		if ( props.selectable_fd != -1 )
 			if ( ! iosource_mgr->RegisterFd(props.selectable_fd, this) )
-				reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
+				zeek::reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
 		}
 
-	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
+	DBG_LOG(zeek::DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
 
 void PktSrc::Closed()
@@ -133,7 +133,7 @@ void PktSrc::Closed()
 	if ( props.is_live && props.selectable_fd != -1 )
 		iosource_mgr->UnregisterFd(props.selectable_fd, this);
 
-	DBG_LOG(DBG_PKTIO, "Closed source %s", props.path.c_str());
+	DBG_LOG(zeek::DBG_PKTIO, "Closed source %s", props.path.c_str());
 	}
 
 void PktSrc::Error(const std::string& msg)
@@ -141,24 +141,24 @@ void PktSrc::Error(const std::string& msg)
 	// We don't report this immediately, Bro will ask us for the error
 	// once it notices we aren't open.
 	errbuf = msg;
-	DBG_LOG(DBG_PKTIO, "Error with source %s: %s",
+	DBG_LOG(zeek::DBG_PKTIO, "Error with source %s: %s",
 		IsOpen() ? props.path.c_str() : "<not open>",
 		msg.c_str());
 	}
 
 void PktSrc::Info(const std::string& msg)
 	{
-	reporter->Info("%s", msg.c_str());
+	zeek::reporter->Info("%s", msg.c_str());
 	}
 
-void PktSrc::Weird(const std::string& msg, const Packet* p)
+void PktSrc::Weird(const std::string& msg, const zeek::Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p, nullptr);
+	zeek::sessions->Weird(msg.c_str(), p, nullptr);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
 	{
-	reporter->InternalError("%s", msg.c_str());
+	zeek::reporter->InternalError("%s", msg.c_str());
 	}
 
 void PktSrc::ContinueAfterSuspend()
@@ -269,7 +269,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	// Compile filter.
-	BPF_Program* code = new BPF_Program();
+	auto* code = new zeek::detail::BPF_Program();
 
 	if ( ! code->Compile(zeek::BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
@@ -296,7 +296,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	return true;
 	}
 
-BPF_Program* PktSrc::GetBPFFilter(int index)
+zeek::detail::BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
 	if ( index < 0 )
 		return nullptr;
@@ -306,7 +306,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
 	{
-	BPF_Program* code = GetBPFFilter(index);
+	zeek::detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{
@@ -321,7 +321,7 @@ bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_ch
 	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
 	}
 
-bool PktSrc::GetCurrentPacket(const Packet** pkt)
+bool PktSrc::GetCurrentPacket(const zeek::Packet** pkt)
 	{
 	if ( ! have_packet )
 		return false;

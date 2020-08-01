@@ -9,7 +9,7 @@
 // This class implements the top-k algorithm. Or - to be more precise - an
 // interpretation of it.
 
-class CompositeHash;
+ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 
 namespace probabilistic {
 
@@ -152,8 +152,8 @@ private:
 	 *
 	 * @returns HashKey for value
 	 */
-	HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
-	HashKey* GetHash(const zeek::ValPtr& v) const
+	zeek::detail::HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
+	zeek::detail::HashKey* GetHash(const zeek::ValPtr& v) const
 		{ return GetHash(v.get()); }
 
 	/**
@@ -164,7 +164,7 @@ private:
 	void Typify(zeek::TypePtr t);
 
 	zeek::TypePtr type;
-	CompositeHash* hash;
+	zeek::detail::CompositeHash* hash;
 	std::list<Bucket*> buckets;
 	zeek::PDict<Element>* elementDict;
 	uint64_t size; // how many elements are we tracking?

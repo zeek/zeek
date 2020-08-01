@@ -17,7 +17,7 @@
 
 using namespace analyzer::ftp;
 
-FTP_Analyzer::FTP_Analyzer(Connection* conn)
+FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
@@ -77,7 +77,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 	zeek::Args vl;
 
-	EventHandlerPtr f;
+	zeek::EventHandlerPtr f;
 	if ( orig )
 		{
 		int cmd_len;
@@ -109,9 +109,9 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			     "AUTH", cmd_len) == 0 )
 			auth_requested = std::string(line, end_of_line - line);
 
-		if ( rule_matcher )
-			Conn()->Match(Rule::FTP, (const u_char *) cmd,
-				end_of_line - cmd, true, true, true, true);
+		if ( zeek::detail::rule_matcher )
+			Conn()->Match(zeek::detail::Rule::FTP, (const u_char *) cmd,
+			              end_of_line - cmd, true, true, true, true);
 		}
 	else
 		{
@@ -166,7 +166,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			// Server wants to proceed with an ADAT exchange and we
 			// know how to analyze the GSI mechanism, so attach analyzer
 			// to look for that.
-			Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+			Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 			if ( ssl )
 				{
 				ssl->AddSupportAnalyzer(new FTP_ADAT_Analyzer(Conn(), true));
@@ -217,7 +217,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			line = skip_whitespace(line + cmd_len, end_of_line);
 			zeek::StringVal encoded(end_of_line - line, line);
-			decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
+			decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
 
 			if ( first_token )
 				{
@@ -292,7 +292,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				line += 5;
 				zeek::StringVal encoded(end_of_line - line, line);
-				decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
+				decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
 				}
 
 			break;

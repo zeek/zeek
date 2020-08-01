@@ -248,7 +248,7 @@ public:
 
 class DNS_Interpreter {
 public:
-	explicit DNS_Interpreter(analyzer::Analyzer* analyzer);
+	explicit DNS_Interpreter(zeek::analyzer::Analyzer* analyzer);
 
 	void ParseMessage(const u_char* data, int len, int is_query);
 
@@ -338,12 +338,12 @@ protected:
 	bool ParseRR_DS(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
-	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
-					const u_char*& data, int& len,
-					zeek::String* question_name,
-					zeek::String* original_name);
+	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, zeek::EventHandlerPtr event,
+	                            const u_char*& data, int& len,
+	                            zeek::String* question_name,
+	                            zeek::String* original_name);
 
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	bool first_message;
 };
 
@@ -358,7 +358,7 @@ typedef enum {
 // ### This should be merged with TCP_Contents_RPC.
 class Contents_DNS final : public tcp::TCP_SupportAnalyzer {
 public:
-	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
+	Contents_DNS(zeek::Connection* c, bool orig, DNS_Interpreter* interp);
 	~Contents_DNS() override;
 
 	void Flush();		///< process any partially-received data
@@ -381,11 +381,11 @@ protected:
 // Works for both TCP and UDP.
 class DNS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DNS_Analyzer(Connection* conn);
+	explicit DNS_Analyzer(zeek::Connection* conn);
 	~DNS_Analyzer() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	void Init() override;
 	void Done() override;
@@ -393,7 +393,7 @@ public:
 					tcp::TCP_Endpoint* peer, bool gen_event) override;
 	void ExpireTimer(double t);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 protected:

@@ -2,10 +2,14 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <math.h>
 #include <stdint.h>
 
-class PriorityQueue;
+ZEEK_FORWARD_DECLARE_NAMESPACED(PriorityQueue, zeek::detail);
+
+namespace zeek::detail {
 
 class PQ_Element {
 public:
@@ -95,3 +99,8 @@ protected:
 	int max_heap_size = 0;
 	uint64_t cumulative_num = 0;
 };
+
+} // namespace zeek::detail
+
+using PQ_Element [[deprecated("Remove in v4.1. Use zeek::detail::PQ_Element.")]] = zeek::detail::PQ_Element;
+using PriorityQueue [[deprecated("Remove in v4.1. Use zeek::detail::PriorityQueue.")]] = zeek::detail::PriorityQueue;

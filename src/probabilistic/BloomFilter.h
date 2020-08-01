@@ -35,7 +35,7 @@ public:
 	 *
 	 * @param key The key associated with the element to add.
 	 */
-	virtual void Add(const HashKey* key) = 0;
+	virtual void Add(const zeek::detail::HashKey* key) = 0;
 
 	/**
 	 * Retrieves the associated count of a given value.
@@ -44,7 +44,7 @@ public:
 	 *
 	 * @return The counter associated with *key*.
 	 */
-	virtual size_t Count(const HashKey* key) const = 0;
+	virtual size_t Count(const zeek::detail::HashKey* key) const = 0;
 
 	/**
 	 * Checks whether the Bloom filter is empty.
@@ -168,8 +168,8 @@ protected:
 	BasicBloomFilter();
 
 	// Overridden from BloomFilter.
-	void Add(const HashKey* key) override;
-	size_t Count(const HashKey* key) const override;
+	void Add(const zeek::detail::HashKey* key) override;
+	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
 	BloomFilterType Type() const override
@@ -217,8 +217,8 @@ protected:
 	CountingBloomFilter();
 
 	// Overridden from BloomFilter.
-	void Add(const HashKey* key) override;
-	size_t Count(const HashKey* key) const override;
+	void Add(const zeek::detail::HashKey* key) override;
+	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
 	BloomFilterType Type() const override

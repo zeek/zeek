@@ -7,7 +7,7 @@ namespace analyzer { namespace smb {
 
 class SMB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SMB_Analyzer(Connection* conn);
+	explicit SMB_Analyzer(zeek::Connection* conn);
 	~SMB_Analyzer() override;
 
 	void Done() override;
@@ -18,7 +18,7 @@ public:
 	bool HasSMBHeader(int len, const u_char* data);
 	void NeedResync();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new SMB_Analyzer(conn); }
 
 protected:

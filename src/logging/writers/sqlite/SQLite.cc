@@ -286,7 +286,7 @@ int SQLite::AddParams(Value* val, int pos)
 
 	case zeek::TYPE_TABLE:
 		{
-		ODesc desc;
+		zeek::ODesc desc;
 		desc.Clear();
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(set_separator);
@@ -308,7 +308,7 @@ int SQLite::AddParams(Value* val, int pos)
 
 	case zeek::TYPE_VECTOR:
 		{
-		ODesc desc;
+		zeek::ODesc desc;
 		desc.Clear();
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(set_separator);

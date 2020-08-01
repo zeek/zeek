@@ -16,7 +16,9 @@
 #define DEFAULT_SIZE 128
 #define SLOP 10
 
-ODesc::ODesc(desc_type t, BroFile* arg_f)
+namespace zeek {
+
+ODesc::ODesc(desc_type t, zeek::File* arg_f)
 	{
 	type = t;
 	style = STANDARD_STYLE;
@@ -75,7 +77,7 @@ void ODesc::PushIndent()
 void ODesc::PopIndent()
 	{
 	if ( --indent_level < 0 )
-		reporter->InternalError("ODesc::PopIndent underflow");
+		zeek::reporter->InternalError("ODesc::PopIndent underflow");
 
 	NL();
 	}
@@ -83,7 +85,7 @@ void ODesc::PopIndent()
 void ODesc::PopIndentNoNL()
 	{
 	if ( --indent_level < 0 )
-		reporter->InternalError("ODesc::PopIndent underflow");
+		zeek::reporter->InternalError("ODesc::PopIndent underflow");
 	}
 
 void ODesc::Add(const char* s, int do_indent)
@@ -178,12 +180,12 @@ void ODesc::Add(double d, bool no_exp)
 		}
 	}
 
-void ODesc::Add(const IPAddr& addr)
+void ODesc::Add(const zeek::IPAddr& addr)
 	{
 	Add(addr.AsString());
 	}
 
-void ODesc::Add(const IPPrefix& prefix)
+void ODesc::Add(const zeek::IPPrefix& prefix)
 	{
 	Add(prefix.AsString());
 	}
@@ -358,7 +360,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 			if ( ! write_failed )
 				// Most likely it's a "disk full" so report
 				// subsequent failures only once.
-				reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
+				zeek::reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
 
 			write_failed = true;
 			return;
@@ -424,3 +426,5 @@ bool ODesc::FindType(const zeek::Type* type)
 
 	return false;
 	}
+
+} // namespace zeek

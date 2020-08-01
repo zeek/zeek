@@ -19,11 +19,11 @@ const bool DEBUG_tcp_contents = false;
 const bool DEBUG_tcp_connection_close = false;
 const bool DEBUG_tcp_match_undelivered = false;
 
-TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
-				TCP_Analyzer* arg_tcp_analyzer,
-				TCP_Reassembler::Type arg_type,
-				TCP_Endpoint* arg_endp)
-	: Reassembler(1, REASSEM_TCP)
+TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
+                                 TCP_Analyzer* arg_tcp_analyzer,
+                                 TCP_Reassembler::Type arg_type,
+                                 TCP_Endpoint* arg_endp)
+	: zeek::Reassembler(1, zeek::REASSEM_TCP)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
@@ -92,11 +92,11 @@ uint64_t TCP_Reassembler::NumUndeliveredBytes() const
 	return last_block.upper - last_reassem_seq;
 	}
 
-void TCP_Reassembler::SetContentsFile(BroFilePtr f)
+void TCP_Reassembler::SetContentsFile(zeek::FilePtr f)
 	{
 	if ( ! f->IsOpen() )
 		{
-		reporter->Error("no such file \"%s\"", f->Name());
+		zeek::reporter->Error("no such file \"%s\"", f->Name());
 		return;
 		}
 
@@ -203,7 +203,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 	if ( up_to_seq <= last_reassem_seq )
 		// This should never happen. (Reassembler::TrimToSeq has the only call
 		// to this method and only if this condition is not true).
-		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
+		zeek::reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
 	if ( zeek::BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
@@ -282,7 +282,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 
 void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	{
-	if ( block_list.Empty() || ! rule_matcher )
+	if ( block_list.Empty() || ! zeek::detail::rule_matcher )
 		return;
 
 	const auto& last_block = block_list.LastBlock();
@@ -312,12 +312,12 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 		if ( b.upper > last_reassem_seq )
 			break;
 
-		tcp_analyzer->Conn()->Match(Rule::PAYLOAD, b.block, b.Size(),
+		tcp_analyzer->Conn()->Match(zeek::detail::Rule::PAYLOAD, b.block, b.Size(),
 		                            false, false, IsOrig(), false);
 		}
 	}
 
-void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const BroFilePtr& f)
+void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const zeek::FilePtr& f)
 	{
 	auto it = block_list.Begin();
 
@@ -348,12 +348,12 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const B
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(const DataBlock& b, const BroFilePtr& f)
+void TCP_Reassembler::RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr& f)
 	{
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
 
-	reporter->Error("TCP_Reassembler contents write failed");
+	zeek::reporter->Error("TCP_Reassembler contents write failed");
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
@@ -363,12 +363,12 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const BroFilePtr& f)
 		);
 	}
 
-void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const BroFilePtr& f)
+void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::FilePtr& f)
 	{
 	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
-	reporter->Error("TCP_Reassembler contents gap write failed");
+	zeek::reporter->Error("TCP_Reassembler contents gap write failed");
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
@@ -378,7 +378,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const Br
 		);
 	}
 
-void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it)
+void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
 
@@ -542,13 +542,13 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 
 	if ( test_active )
 		{
-		++tot_ack_events;
-		tot_ack_bytes += seq - trim_seq;
+		++zeek::detail::tot_ack_events;
+		zeek::detail::tot_ack_bytes += seq - trim_seq;
 
 		if ( num_missing > 0 )
 			{
-			++tot_gap_events;
-			tot_gap_bytes += num_missing;
+			++zeek::detail::tot_gap_events;
+			zeek::detail::tot_gap_bytes += num_missing;
 			}
 		}
 

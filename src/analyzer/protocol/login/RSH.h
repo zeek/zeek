@@ -24,7 +24,7 @@ class Rsh_Analyzer;
 
 class Contents_Rsh_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
-	Contents_Rsh_Analyzer(Connection* conn, bool orig, Rsh_Analyzer* analyzer);
+	Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig, Rsh_Analyzer* analyzer);
 	~Contents_Rsh_Analyzer() override;
 
 	rsh_state RshSaveState() const	{ return save_state; }
@@ -41,14 +41,14 @@ protected:
 
 class Rsh_Analyzer final : public Login_Analyzer {
 public:
-	explicit Rsh_Analyzer(Connection* conn);
+	explicit Rsh_Analyzer(zeek::Connection* conn);
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Rsh_Analyzer(conn); }
 
 	Contents_Rsh_Analyzer* contents_orig;

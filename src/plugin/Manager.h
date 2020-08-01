@@ -12,7 +12,8 @@
 #include "../Reporter.h"
 #include "../ZeekArgs.h"
 
-namespace zeek::plugin {
+namespace zeek {
+namespace plugin {
 
 // Macros that trigger plugin hooks. We put this into macros to short-cut the
 // code for the most common case that no plugin defines the hook.
@@ -25,7 +26,7 @@ namespace zeek::plugin {
  * @param method_call The \a Manager method corresponding to the hook.
  */
 #define PLUGIN_HOOK_VOID(hook, method_call) \
-	{ if ( plugin_mgr->HavePluginForHook(zeek::plugin::hook) ) plugin_mgr->method_call; }
+	{ if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) ) zeek::plugin_mgr->method_call; }
 
 /**
  * Macro to trigger hooks that return a result.
@@ -38,7 +39,7 @@ namespace zeek::plugin {
  * the hook.
  */
 #define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result) \
-	(plugin_mgr->HavePluginForHook(zeek::plugin::hook) ? plugin_mgr->method_call : (default_result))
+	(zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) ? zeek::plugin_mgr->method_call : (default_result))
 
 /**
  * A singleton object managing all plugins.
@@ -480,7 +481,11 @@ std::list<T *> Manager::Components() const
 	return result;
 	}
 
-}
+} // namespace plugin
+
+extern zeek::plugin::Manager* plugin_mgr;
+
+} // namespace zeek
 
 // TOOD: should this just be zeek::detail?
 namespace zeek::detail::plugin {
@@ -499,10 +504,10 @@ public:
 }
 
 namespace plugin {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager instead.")]] = zeek::plugin::Manager;
+	using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager.")]] = zeek::plugin::Manager;
 }
 
 /**
  * The global plugin manager singleton.
  */
-extern zeek::plugin::Manager* plugin_mgr;
+extern zeek::plugin::Manager*& plugin_mgr [[deprecated("Remove in v4.1. Use zeek::plugin_mgr.")]];

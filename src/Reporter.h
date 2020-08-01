@@ -15,21 +15,21 @@
 #include "BroList.h"
 #include "net_util.h"
 
-namespace analyzer { class Analyzer; }
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 namespace file_analysis { class File; }
-class Connection;
-class Reporter;
-class EventHandlerPtr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 using StringValPtr = zeek::IntrusivePtr<StringVal>;
-}
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -46,16 +46,12 @@ protected:
 	InterpreterException()	{}
 };
 
-class IPAddr;
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
 class Reporter {
 public:
-	using IPPair = std::pair<IPAddr, IPAddr>;
-	using ConnTuple = std::tuple<IPAddr, IPAddr, uint32_t, uint32_t, TransportProto>;
+	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
+	using ConnTuple = std::tuple<zeek::IPAddr, zeek::IPAddr, uint32_t, uint32_t, TransportProto>;
 	using WeirdCountMap = std::unordered_map<std::string, uint64_t>;
 	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
 	using WeirdConnTupleMap = std::map<ConnTuple, WeirdCountMap>;
@@ -104,7 +100,7 @@ public:
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
-	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
+	void Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -120,7 +116,7 @@ public:
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.
-	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
+	void AnalyzerError(zeek::analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always
@@ -155,7 +151,7 @@ public:
 	/**
 	 * Reset/cleanup state tracking for a "flow" weird.
 	 */
-	void ResetFlowWeird(const IPAddr& orig, const IPAddr& resp);
+	void ResetFlowWeird(const zeek::IPAddr& orig, const zeek::IPAddr& resp);
 
 	/**
 	 * Reset/cleanup state tracking for a "expired conn" weird.
@@ -263,18 +259,18 @@ public:
 		{ after_zeek_init = true; }
 
 private:
-	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
+	void DoLog(const char* prefix, zeek::EventHandlerPtr event, FILE* out,
 		   Connection* conn, val_list* addl, bool location, bool time,
 		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
 	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
 	// and that takes va_list anyway.
-	void WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	void WeirdHelper(zeek::EventHandlerPtr event, val_list vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
-	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
+	bool PermitFlowWeird(const char* name, const zeek::IPAddr& o, const zeek::IPAddr& r);
 	bool PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id);
 
 	bool EmitToStderr(bool flag)
@@ -305,3 +301,11 @@ private:
 };
 
 extern Reporter* reporter;
+
+} // namespace zeek
+
+using Reporter [[deprecated("Remove in v4.1. Use zeek::Reporter.")]] = zeek::Reporter;
+using ReporterException [[deprecated("Remove in v4.1. Use zeek::ReporterException.")]] = zeek::ReporterException;
+using InterpreterException [[deprecated("Remove in v4.1. Use zeek::InterpreterException.")]] = zeek::InterpreterException;
+
+extern zeek::Reporter*& reporter [[deprecated("Remove v4.1. Use zeek::reporter.")]];

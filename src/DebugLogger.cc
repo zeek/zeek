@@ -7,18 +7,28 @@
 #include "Net.h"
 #include "plugin/Plugin.h"
 
-DebugLogger debug_logger;
+zeek::detail::DebugLogger zeek::detail::debug_logger;
+zeek::detail::DebugLogger& debug_logger = zeek::detail::debug_logger;
+
+namespace zeek::detail {
 
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
-	{ "serial", 0, false }, { "rules", 0, false },
+	{ "serial", 0, false },
+	{ "rules", 0, false },
 	{ "string", 0, false },
-	{ "notifiers", 0, false },  { "main-loop", 0, false },
-	{ "dpd", 0, false }, { "tm", 0, false },
-	{ "logging", 0, false }, {"input", 0, false },
-	{ "threading", 0, false }, { "file_analysis", 0, false },
-	{ "plugins", 0, false }, { "zeekygen", 0, false },
-	{ "pktio", 0, false }, { "broker", 0, false },
+	{ "notifiers", 0, false },
+	{ "main-loop", 0, false },
+	{ "dpd", 0, false },
+	{ "tm", 0, false },
+	{ "logging", 0, false },
+	{"input", 0, false },
+	{ "threading", 0, false },
+	{ "file_analysis", 0, false },
+	{ "plugins", 0, false },
+	{ "zeekygen", 0, false },
+	{ "pktio", 0, false },
+	{ "broker", 0, false },
 	{ "scripts", 0, false},
 	{ "supervisor", 0, false}
 };
@@ -45,8 +55,8 @@ void DebugLogger::OpenDebugLog(const char* filename)
 		if ( ! file )
 			{
 			// The reporter may not be initialized here yet.
-			if ( reporter )
-				reporter->FatalError("can't open '%s' for debugging output", filename);
+			if ( zeek::reporter )
+				zeek::reporter->FatalError("can't open '%s' for debugging output", filename);
 			else
 				{
 				fprintf(stderr, "can't open '%s' for debugging output\n", filename);
@@ -132,7 +142,7 @@ void DebugLogger::EnableStreams(const char* s)
 				}
 			}
 
-		reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
+		zeek::reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
 
 next:
 		tok = strtok(0, ",");
@@ -182,5 +192,7 @@ void DebugLogger::Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...)
 	fputc('\n', file);
 	fflush(file);
 	}
+
+} // namespace zeek::detail
 
 #endif

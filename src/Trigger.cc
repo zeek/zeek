@@ -135,14 +135,14 @@ Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
 	location = arg_location;
 	timeout_value = -1;
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: instantiating", Name());
 
 	if ( is_return )
 		{
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )
 			{
-			reporter->Error("return trigger in context which does not allow delaying result");
+			zeek::reporter->Error("return trigger in context which does not allow delaying result");
 			Unref(this);
 			return;
 			}
@@ -204,7 +204,7 @@ void Trigger::Terminate()
 
 Trigger::~Trigger()
 	{
-	DBG_LOG(DBG_NOTIFIERS, "%s: deleting", Name());
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: deleting", Name());
 
 	for ( ValCache::iterator i = cache.begin(); i != cache.end(); ++i )
 		Unref(i->second);
@@ -230,11 +230,11 @@ bool Trigger::Eval()
 	if ( disabled )
 		return true;
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: evaluating", Name());
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: evaluating", Name());
 
 	if ( delayed )
 		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: skipping eval due to delayed call",
+		DBG_LOG(zeek::DBG_NOTIFIERS, "%s: skipping eval due to delayed call",
 				Name());
 		return false;
 		}
@@ -277,7 +277,7 @@ bool Trigger::Eval()
 
 	if ( f->HasDelayed() )
 		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: eval has delayed", Name());
+		DBG_LOG(zeek::DBG_NOTIFIERS, "%s: eval has delayed", Name());
 		assert(!v);
 		Unref(f);
 		return false;
@@ -286,13 +286,13 @@ bool Trigger::Eval()
 	if ( ! v || v->IsZero() )
 		{
 		// Not true. Perhaps next time...
-		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
+		DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger condition is false", Name());
 		Unref(f);
 		Init();
 		return false;
 		}
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is true, executing",
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger condition is true, executing",
 			Name());
 
 	v = nullptr;
@@ -314,7 +314,7 @@ bool Trigger::Eval()
 
 #ifdef DEBUG
 		const char* pname = copy_string(trigger->Name());
-		DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching result", Name(), pname);
+		DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger has parent %s, caching result", Name(), pname);
 		delete [] pname;
 #endif
 
@@ -344,7 +344,7 @@ void Trigger::Timeout()
 	if ( disabled )
 		return;
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: timeout", Name());
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: timeout", Name());
 	if ( timeout_stmts )
 		{
 		stmt_flow_type flow;
@@ -367,7 +367,7 @@ void Trigger::Timeout()
 
 #ifdef DEBUG
 			const char* pname = copy_string(trigger->Name());
-			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
+			DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
 			delete [] pname;
 #endif
 			auto queued = trigger->Cache(frame->GetCall(), v.get());
@@ -408,7 +408,7 @@ void Trigger::Register(Val* val)
 
 void Trigger::UnregisterAll()
 	{
-	DBG_LOG(DBG_NOTIFIERS, "%s: unregistering all", Name());
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: unregistering all", Name());
 
 	for ( const auto& o : objs )
 		{
@@ -427,7 +427,7 @@ void Trigger::Attach(Trigger *trigger)
 
 #ifdef DEBUG
 	const char* pname = copy_string(trigger->Name());
-	DBG_LOG(DBG_NOTIFIERS, "%s: attaching to %s", Name(), pname);
+	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: attaching to %s", Name(), pname);
 	delete [] pname;
 #endif
 
@@ -510,7 +510,7 @@ double Manager::GetNextTimeout()
 
 void Manager::Process()
 	{
-	DBG_LOG(DBG_NOTIFIERS, "evaluating all pending triggers");
+	DBG_LOG(zeek::DBG_NOTIFIERS, "evaluating all pending triggers");
 
 	// While we iterate over the list, executing statements, we may
 	// in fact trigger new triggers and thereby modify the list.

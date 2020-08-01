@@ -55,7 +55,7 @@ private:
 	int fd;
 	gzFile gzfile;
 	std::string fname;
-	ODesc desc;
+	zeek::ODesc desc;
 	bool ascii_done;
 
 	// Options set from the script-level.

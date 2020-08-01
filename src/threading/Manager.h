@@ -9,9 +9,9 @@
 
 namespace threading {
 
-class HeartbeatTimer final : public Timer {
+class HeartbeatTimer final : public zeek::detail::Timer {
 public:
-	HeartbeatTimer(double t) : Timer(t, TIMER_THREAD_HEARTBEAT) {}
+	HeartbeatTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_THREAD_HEARTBEAT) {}
 	virtual ~HeartbeatTimer() {}
 
 	void Dispatch(double t, bool is_expire) override;

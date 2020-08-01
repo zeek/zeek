@@ -13,7 +13,7 @@
 #include "util.h"
 
 #ifdef DEBUG
-#define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
+#define DEBUG_STR(msg) DBG_LOG(zeek::DBG_STRING, msg)
 #else
 #define DEBUG_STR(msg)
 #endif

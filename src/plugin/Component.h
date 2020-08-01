@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include "zeek-config.h"
 #include <string>
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
 namespace zeek::plugin {
 
@@ -82,7 +83,7 @@ public:
 	 *
 	 * @param d The description object to use.
 	 */
-	void Describe(ODesc* d) const;
+	void Describe(zeek::ODesc* d) const;
 
 protected:
 	/**
@@ -92,7 +93,7 @@ protected:
 	 *
 	 * @param d The description object to use.
 	  */
-	virtual void DoDescribe(ODesc* d) const	{ }
+	virtual void DoDescribe(zeek::ODesc* d) const	{ }
 
 private:
 	// Disable.

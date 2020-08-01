@@ -13,7 +13,7 @@
 
 static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 
-static Connection* add_connection()
+static zeek::Connection* add_connection()
 	{
 	static constexpr double network_time_start = 1439471031;
 	net_update_time(network_time_start);
@@ -25,18 +25,18 @@ static Connection* add_connection()
 	conn_id.src_port = htons(23132);
 	conn_id.dst_port = htons(80);
 	ConnIDKey key = BuildConnIDKey(conn_id);
-	Connection* conn = new Connection(sessions, key, network_time_start,
+	zeek::Connection* conn = new Connection(sessions, key, network_time_start,
 	                                  &conn_id, 1, &p, nullptr);
 	conn->SetTransport(TRANSPORT_TCP);
 	sessions->Insert(conn);
 	return conn;
 	}
 
-static analyzer::Analyzer* add_analyzer(Connection* conn)
+static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	{
 	analyzer::tcp::TCP_Analyzer* tcp = new analyzer::tcp::TCP_Analyzer(conn);
 	analyzer::pia::PIA* pia = new analyzer::pia::PIA_TCP(conn);
-	auto a = analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
+	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
 	conn->SetRootAnalyzer(tcp, pia);
@@ -69,7 +69,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 			}
 
 		chunk = {};
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		}
 
 	zeek::detail::fuzzer_cleanup_one_input();

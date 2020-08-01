@@ -4,7 +4,7 @@
 
 using namespace analyzer::zip;
 
-ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
+ZIP_Analyzer::ZIP_Analyzer(zeek::Connection* conn, bool orig, Method arg_method)
 : tcp::TCP_SupportAnalyzer("ZIP", conn, orig)
 	{
 	zip = nullptr;

@@ -19,7 +19,7 @@
 
 extern void rules_error(const char* msg);
 extern void rules_error(const char* msg, const char* addl);
-extern void rules_error(Rule* id, const char* msg);
+extern void rules_error(zeek::detail::Rule* id, const char* msg);
 extern int rules_lex(void);
 extern int rules_parse(void);
 extern "C" int rules_wrap(void);
@@ -27,21 +27,24 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
-class BroFile;
-class IntSet;
-class IP_Hdr;
-class IPPrefix;
-class RE_Match_State;
-class Specific_RE_Matcher;
-class RuleMatcher;
-extern RuleMatcher* rule_matcher;
-
+namespace zeek { class File; }
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Match_State, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IntSet, zeek::detail);
 
 namespace analyzer {
 	namespace pia { class PIA; }
-	class Analyzer;
 }
+
+namespace zeek::detail {
+
+extern RuleMatcher* rule_matcher;
 
 // RuleHdrTest and associated things:
 
@@ -63,7 +66,7 @@ using bstr_list = zeek::PList<zeek::String>;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                                std::vector<IPPrefix>* prefix_vector = nullptr);
+                                std::vector<zeek::IPPrefix>* prefix_vector = nullptr);
 extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
@@ -75,7 +78,7 @@ public:
 
 	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
-	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<zeek::IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -92,7 +95,7 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
-	std::vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
+	std::vector<zeek::IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32_t offset;
 	uint32_t size;
 
@@ -139,7 +142,7 @@ class RuleEndpointState {
 public:
 	~RuleEndpointState();
 
-	analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
+	zeek::analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
 	bool IsOrig()		{ return is_orig; }
 
 	// For flipping roles.
@@ -151,15 +154,15 @@ public:
 	// Returns -1 if no chunk has been fed yet at all.
 	int PayloadSize()	{ return payload_size; }
 
-	analyzer::pia::PIA* PIA() const	{ return pia; }
+	::analyzer::pia::PIA* PIA() const	{ return pia; }
 
 private:
 	friend class RuleMatcher;
 
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
-	RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
-			  RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA);
+	RuleEndpointState(zeek::analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
+	                  RuleEndpointState* arg_opposite, ::analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher {
 		RE_Match_State* state;
@@ -168,9 +171,9 @@ private:
 
 	using matcher_list = zeek::PList<Matcher>;
 
-	analyzer::Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
-	analyzer::pia::PIA* pia;
+	::analyzer::pia::PIA* pia;
 
 	matcher_list matchers;
 	rule_hdr_test_list hdr_tests;
@@ -250,8 +253,7 @@ public:
 	 * @return The results of the signature matching.
 	 */
 	MIME_Matches* Match(RuleFileMagicState* state, const u_char* data,
-	                   uint64_t len, MIME_Matches* matches = nullptr) const;
-
+	                    uint64_t len, MIME_Matches* matches = nullptr) const;
 
 	/**
 	 * Resets a state object used with matching file magic signatures.
@@ -263,8 +265,9 @@ public:
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
-	RuleEndpointState* InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-					int caplen, RuleEndpointState* opposite, bool is_orig, analyzer::pia::PIA* pia);
+	RuleEndpointState* InitEndpoint(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+	                                int caplen, RuleEndpointState* opposite, bool is_orig,
+	                                ::analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
 	void FinishEndpoint(RuleEndpointState* state);
@@ -308,7 +311,7 @@ public:
 	                               const RuleEndpointState* state) const;
 
 	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
-	void DumpStats(BroFile* f);
+	void DumpStats(zeek::File* f);
 
 private:
 	// Delete node and all children.
@@ -351,7 +354,7 @@ private:
 
 	void PrintTreeDebug(RuleHdrTest* node);
 
-	void DumpStateStats(BroFile* f, RuleHdrTest* hdr_test);
+	void DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test);
 
 	static bool AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	                                   const AcceptingMatchSet& ams);
@@ -372,8 +375,8 @@ public:
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
-	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-				 int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
+	void InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+	                         int caplen, bool from_orig, ::analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.
@@ -390,3 +393,20 @@ private:
 	RuleEndpointState* orig_match_state;
 	RuleEndpointState* resp_match_state;
 };
+
+} // namespace zeek::detail
+
+using Range [[deprecated("Remove in v4.1. Use zeek::detail::Range.")]] = zeek::detail::Range;
+using MaskedValue [[deprecated("Remove in v4.1. Use zeek::detail::MaskedValue.")]] = zeek::detail::MaskedValue;
+using RuleHdrTest [[deprecated("Remove in v4.1. Use zeek::detail::RuleHdrTest.")]] = zeek::detail::RuleHdrTest;
+using RuleEndpointState [[deprecated("Remove in v4.1. Use zeek::detail::RuleEndpointState.")]] = zeek::detail::RuleEndpointState;
+using RuleFileMagicState [[deprecated("Remove in v4.1. Use zeek::detail::RuleFileMagicState.")]] = zeek::detail::RuleFileMagicState;
+using RuleMatcher [[deprecated("Remove in v4.1. Use zeek::detail::RuleMatcher.")]] = zeek::detail::RuleMatcher;
+using RuleMatcherState [[deprecated("Remove in v4.1. Use zeek::detail::RuleMatcherState.")]] = zeek::detail::RuleMatcherState;
+
+using maskedvalue_list [[deprecated("Remove in v4.1. Use zeek::detail::maskedvalue_list.")]] = zeek::detail::maskedvalue_list;
+using string_list [[deprecated("Remove in v4.1. Use zeek::detail::string_list.")]] = zeek::detail::string_list;
+using bstr_list [[deprecated("Remove in v4.1. Use zeek::detail::bstr_list.")]] = zeek::detail::bstr_list;
+using rule_hdr_test_list [[deprecated("Remove in v4.1. Use zeek::detail::rule_hdr_test_list.")]] = zeek::detail::rule_hdr_test_list;
+
+extern zeek::detail::RuleMatcher*& rule_matcher [[deprecated("Remove in v4.1. Use zeek::detail::rule_matcher.")]];

@@ -8,7 +8,7 @@ namespace analyzer { namespace rpc {
 
 class PortmapperInterp : public RPC_Interpreter {
 public:
-	explicit PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	explicit PortmapperInterp(zeek::analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
@@ -17,7 +17,7 @@ protected:
 			   double last_time, int reply_len) override;
 	uint32_t CheckPort(uint32_t port);
 
-	void Event(EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply);
+	void Event(zeek::EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply);
 
 	zeek::ValPtr ExtractMapping(const u_char*& buf, int& len);
 	zeek::ValPtr ExtractPortRequest(const u_char*& buf, int& len);
@@ -26,11 +26,11 @@ protected:
 
 class Portmapper_Analyzer : public RPC_Analyzer {
 public:
-	explicit Portmapper_Analyzer(Connection* conn);
+	explicit Portmapper_Analyzer(zeek::Connection* conn);
 	~Portmapper_Analyzer() override;
 	void Init() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 };
 

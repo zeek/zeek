@@ -240,7 +240,7 @@ void Ascii::InitConfigOptions()
 			zeek::BifConst::LogAscii::meta_prefix->Len()
 			);
 
-	ODesc tsfmt;
+	zeek::ODesc tsfmt;
 	zeek::BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
 	json_timestamps.assign(
 			(const char*) tsfmt.Bytes(),
@@ -724,8 +724,8 @@ static std::vector<LeftoverLog> find_leftover_logs()
 				if ( ll->error.empty() )
 					rval.emplace_back(std::move(*ll));
 				else
-					reporter->Error("failed to process leftover log '%s': %s",
-					                log_name.data(), ll->error.data());
+					zeek::reporter->Error("failed to process leftover log '%s': %s",
+					                      log_name.data(), ll->error.data());
 				}
 			}
 		else
@@ -735,7 +735,7 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 	for ( const auto& f : stale_shadow_files )
 		if ( unlink(f.data()) != 0 )
-			reporter->Error("cannot unlink %s: %s", f.data(), strerror(errno));
+			zeek::reporter->Error("cannot unlink %s: %s", f.data(), strerror(errno));
 
 	closedir(d);
 	return rval;
@@ -777,10 +777,10 @@ void Ascii::RotateLeftoverLogs()
 			if ( func )
 				ppf = std::move(func);
 			else
-				reporter->Warning("Could not postprocess log '%s' with intended "
-								  "postprocessor function '%s', proceeding "
-								  " with the default function",
-								  ll.filename.data(), ll.post_proc_func.data());
+				zeek::reporter->Warning("Could not postprocess log '%s' with intended "
+				                        "postprocessor function '%s', proceeding "
+				                        " with the default function",
+				                        ll.filename.data(), ll.post_proc_func.data());
 			}
 
 		auto rotation_path = log_mgr->FormatRotationPath(
@@ -797,25 +797,25 @@ void Ascii::RotateLeftoverLogs()
 		rot_info->Assign(5, zeek::val_mgr->False());
 
 		if ( rename(ll.filename.data(), rotation_path.data()) != 0 )
-			reporter->FatalError("Found leftover/unprocessed log '%s', but "
-								 "failed to rotate it: %s",
-								 ll.filename.data(), strerror(errno));
+			zeek::reporter->FatalError("Found leftover/unprocessed log '%s', but "
+			                           "failed to rotate it: %s",
+			                           ll.filename.data(), strerror(errno));
 
 		if ( ! ll.DeleteShadow() )
 			// Unusual failure to report, but not strictly fatal.
-			reporter->Warning("Failed to unlink %s: %s",
-			                  ll.shadow_filename.data(), strerror(errno));
+			zeek::reporter->Warning("Failed to unlink %s: %s",
+			                        ll.shadow_filename.data(), strerror(errno));
 
 		try
 			{
 			ppf->Invoke(std::move(rot_info));
-			reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ",
+			zeek::reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ",
 			               ll.filename.data(), rotation_path.data());
 			}
-		catch ( InterpreterException& e )
+		catch ( zeek::InterpreterException& e )
 			{
-			reporter->Warning("Postprocess function '%s' failed for leftover log '%s'",
-			                  ppf->Name(), ll.filename.data());
+			zeek::reporter->Warning("Postprocess function '%s' failed for leftover log '%s'",
+			                        ppf->Name(), ll.filename.data());
 			}
 		}
 	}

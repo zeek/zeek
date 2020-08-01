@@ -6,19 +6,19 @@
 const input::Tag input::Tag::Error;
 
 input::Tag::Tag(type_t type, subtype_t subtype)
-	: ::Tag(input_mgr->GetTagType(), type, subtype)
+	: zeek::Tag(input_mgr->GetTagType(), type, subtype)
 	{
 	}
 
 input::Tag& input::Tag::operator=(const input::Tag& other)
 	{
-	::Tag::operator=(other);
+	zeek::Tag::operator=(other);
 	return *this;
 	}
 
 const zeek::EnumValPtr& input::Tag::AsVal() const
 	{
-	return ::Tag::AsVal(input_mgr->GetTagType());
+	return zeek::Tag::AsVal(input_mgr->GetTagType());
 	}
 
 zeek::EnumVal* input::Tag::AsEnumVal() const
@@ -27,9 +27,9 @@ zeek::EnumVal* input::Tag::AsEnumVal() const
 	}
 
 input::Tag::Tag(zeek::EnumValPtr val)
-	: ::Tag(std::move(val))
+	: zeek::Tag(std::move(val))
 	{ }
 
 input::Tag::Tag(zeek::EnumVal* val)
-	: ::Tag({zeek::NewRef{}, val})
+	: zeek::Tag({zeek::NewRef{}, val})
 	{ }

@@ -26,15 +26,15 @@
 ## .. zeek:see:: set_login_state
 function get_login_state%(cid: conn_id%): count
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	zeek::Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	analyzer::Analyzer* la = c->FindAnalyzer("Login");
+	zeek::analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
 		return zeek::val_mgr->False();
 
-	return zeek::val_mgr->Count(int(static_cast<analyzer::login::Login_Analyzer*>(la)->LoginState()));
+	return zeek::val_mgr->Count(int(static_cast<::analyzer::login::Login_Analyzer*>(la)->LoginState()));
 	%}
 
 ## Sets the login state of a connection with a login analyzer.
@@ -50,14 +50,14 @@ function get_login_state%(cid: conn_id%): count
 ## .. zeek:see:: get_login_state
 function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	zeek::Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	analyzer::Analyzer* la = c->FindAnalyzer("Login");
+	zeek::analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
 		return zeek::val_mgr->False();
 
-	static_cast<analyzer::login::Login_Analyzer*>(la)->SetLoginState(analyzer::login::login_state(new_state));
+	static_cast<::analyzer::login::Login_Analyzer*>(la)->SetLoginState(::analyzer::login::login_state(new_state));
 	return zeek::val_mgr->True();
 	%}

@@ -7,7 +7,7 @@
 
 using namespace analyzer::MySQL;
 
-MySQL_Analyzer::MySQL_Analyzer(Connection* c)
+MySQL_Analyzer::MySQL_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("MySQL", c)
 	{
 	interp = new binpac::MySQL::MySQL_Conn(this);

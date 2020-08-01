@@ -586,8 +586,8 @@ void MIME_Entity::init()
 MIME_Entity::~MIME_Entity()
 	{
 	if ( ! end_of_data )
-		reporter->AnalyzerError(message ? message->GetAnalyzer() : nullptr,
-		            "missing MIME_Entity::EndOfData() before ~MIME_Entity");
+		zeek::reporter->AnalyzerError(message ? message->GetAnalyzer() : nullptr,
+		                              "missing MIME_Entity::EndOfData() before ~MIME_Entity");
 
 	delete current_header_line;
 	delete content_encoding_str;
@@ -973,7 +973,7 @@ int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 	{
 	if ( ! multipart_boundary )
 		{
-		reporter->Warning("boundary delimiter was not specified for a multipart message\n");
+		zeek::reporter->Warning("boundary delimiter was not specified for a multipart message\n");
 		DEBUG_MSG("headers of the MIME entity for debug:\n");
 		DebugPrintHeaders();
 		return NOT_MULTIPART_BOUNDARY;
@@ -1150,19 +1150,19 @@ void MIME_Entity::StartDecodeBase64()
 	{
 	if ( base64_decoder )
 		{
-		reporter->InternalWarning("previous MIME Base64 decoder not released");
+		zeek::reporter->InternalWarning("previous MIME Base64 decoder not released");
 		delete base64_decoder;
 		}
 
-	analyzer::Analyzer* analyzer = message->GetAnalyzer();
+	zeek::analyzer::Analyzer* analyzer = message->GetAnalyzer();
 
 	if ( ! analyzer )
 		{
-		reporter->InternalWarning("no analyzer associated with MIME message");
+		zeek::reporter->InternalWarning("no analyzer associated with MIME message");
 		return;
 		}
 
-	base64_decoder = new Base64Converter(analyzer->Conn());
+	base64_decoder = new zeek::detail::Base64Converter(analyzer->Conn());
 	}
 
 void MIME_Entity::FinishDecodeBase64()
@@ -1189,7 +1189,7 @@ bool MIME_Entity::GetDataBuffer()
 	int ret = message->RequestBuffer(&data_buf_length, &data_buf_data);
 	if ( ! ret || data_buf_length == 0 || data_buf_data == nullptr )
 		{
-		// reporter->InternalError("cannot get data buffer from MIME_Message", "");
+		// zeek::reporter->InternalError("cannot get data buffer from MIME_Message", "");
 		return false;
 		}
 
@@ -1329,7 +1329,7 @@ zeek::TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	return t;
 	}
 
-MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
+MIME_Mail::MIME_Mail(zeek::analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 : MIME_Message(mail_analyzer), md5_hash()
 	{
 	analyzer = mail_analyzer;
@@ -1355,7 +1355,7 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 	if ( mime_content_hash )
 		{
 		compute_content_hash = 1;
-		md5_hash = hash_init(Hash_MD5);
+		md5_hash = zeek::detail::hash_init(zeek::detail::Hash_MD5);
 		}
 	else
 		compute_content_hash = 0;
@@ -1375,7 +1375,7 @@ void MIME_Mail::Done()
 	if ( compute_content_hash && mime_content_hash )
 		{
 		u_char* digest = new u_char[16];
-		hash_final(md5_hash, digest);
+		zeek::detail::hash_final(md5_hash, digest);
 		md5_hash = nullptr;
 
 		analyzer->EnqueueConnEvent(mime_content_hash,
@@ -1459,15 +1459,15 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (char*) data_buffer->Bytes() + buffer_start )
 		{
-		reporter->AnalyzerError(GetAnalyzer(),
-		                                "MIME buffer misalignment");
+		zeek::reporter->AnalyzerError(GetAnalyzer(),
+		                              "MIME buffer misalignment");
 		return;
 		}
 
 	if ( compute_content_hash )
 		{
 		content_hash_length += len;
-		hash_update(md5_hash, (const u_char*) buf, len);
+		zeek::detail::hash_update(md5_hash, (const u_char*) buf, len);
 		}
 
 	if ( mime_entity_data || mime_all_data )
@@ -1554,8 +1554,8 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 			break;
 
 		default:
-			reporter->AnalyzerError(GetAnalyzer(),
-			                                "unrecognized MIME_Mail event");
+			zeek::reporter->AnalyzerError(GetAnalyzer(),
+			                              "unrecognized MIME_Mail event");
 			return;
 	}
 

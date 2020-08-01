@@ -19,6 +19,8 @@
 #include "Reporter.h"
 #include "module_util.h"
 
+namespace zeek::detail {
+
 // BreakpointTimer used for time-based breakpoints
 class BreakpointTimer final : public Timer {
 public:
@@ -121,13 +123,13 @@ void DbgBreakpoint::RemoveFromStmt()
 
 bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 	{
-	if ( plr.type == plrUnknown )
+	if ( plr.type == PLR_UNKNOWN )
 		{
 		debug_msg("Breakpoint specifier invalid or operation canceled.\n");
 		return false;
 		}
 
-	if ( plr.type == plrFileAndLine )
+	if ( plr.type == PLR_FILE_AND_LINE )
 		{
 		kind = BP_LINE;
 		source_filename = plr.filename;
@@ -146,7 +148,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 		}
 
-	else if ( plr.type == plrFunction )
+	else if ( plr.type == PLR_FUNCTION )
 		{
 		std::string loc_s(loc_str);
 		kind = BP_FUNC;
@@ -211,13 +213,13 @@ bool DbgBreakpoint::Reset()
 	case BP_FUNC:
 	case BP_STMT:
 	case BP_LINE:
-		plr.type = plrFunction;
+		plr.type = PLR_FUNCTION;
 		//### How to deal with wildcards?
 		//### perhaps save user choices?--tough...
 		break;
 	}
 
-	reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
+	zeek::reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
 
 	// Cannot be reached.
 	return false;
@@ -240,7 +242,7 @@ BreakCode DbgBreakpoint::HasHit()
 	if ( temporary )
 		{
 		SetEnable(false);
-		return bcHitAndDelete;
+		return BC_HIT_AND_DELETE;
 		}
 
 	if ( condition.size() )
@@ -254,7 +256,7 @@ BreakCode DbgBreakpoint::HasHit()
 			condition.c_str());
 			SetCondition("");
 			PrintHitMsg();
-			return bcHit;
+			return BC_HIT;
 			}
 
 		if ( ! zeek::IsIntegral(yes->GetType()->Tag()) &&
@@ -262,13 +264,13 @@ BreakCode DbgBreakpoint::HasHit()
 			{
 			PrintHitMsg();
 			debug_msg("Breakpoint condition should return an integral type");
-			return bcHitAndDelete;
+			return BC_HIT_AND_DELETE;
 			}
 
 		yes->CoerceToInt();
 		if ( yes->IsZero() )
 			{
-			return bcNoHit;
+			return BC_NO_HIT;
 			}
 		}
 
@@ -279,26 +281,26 @@ BreakCode DbgBreakpoint::HasHit()
 			{
 			hit_count = 0;
 			PrintHitMsg();
-			return bcHit;
+			return BC_HIT;
 			}
 
-		return bcNoHit;
+		return BC_NO_HIT;
 		}
 
 	PrintHitMsg();
-	return bcHit;
+	return BC_HIT;
 	}
 
 BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 	{
 	if ( ! IsEnabled() )
-		return bcNoHit;
+		return BC_NO_HIT;
 
 	switch ( kind ) {
 	case BP_STMT:
 	case BP_FUNC:
 		if ( at_stmt != s )
-			return bcNoHit;
+			return BC_NO_HIT;
 		break;
 
 	case BP_LINE:
@@ -310,7 +312,7 @@ BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 		assert(false);
 
 	default:
-		reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
+		zeek::reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
 	}
 
 	// If we got here, that means that the breakpoint could hit,
@@ -327,13 +329,13 @@ BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 BreakCode DbgBreakpoint::ShouldBreak(double t)
 	{
 	if ( kind != BP_TIME )
-		reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
+		zeek::reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
 
 	if ( t < at_time )
-		return bcNoHit;
+		return BC_NO_HIT;
 
 	if ( ! IsEnabled() )
-		return bcNoHit;
+		return BC_NO_HIT;
 
 	BreakCode code = HasHit();
 	if ( code )
@@ -368,6 +370,8 @@ void DbgBreakpoint::PrintHitMsg()
 		assert(false);
 
 	default:
-		reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
+		zeek::reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
 	}
 	}
+
+} // namespace zeek::detail

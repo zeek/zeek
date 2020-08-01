@@ -108,7 +108,7 @@ bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
 	}
 
 
-RPC_Interpreter::RPC_Interpreter(analyzer::Analyzer* arg_analyzer)
+RPC_Interpreter::RPC_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	}
@@ -308,7 +308,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 	else if ( n < 0 )
 		{
-		reporter->AnalyzerError(analyzer, "RPC underflow");
+		zeek::reporter->AnalyzerError(analyzer, "RPC underflow");
 		return 0;
 		}
 
@@ -412,8 +412,8 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 	return (expected == processed);
 	}
 
-Contents_RPC::Contents_RPC(Connection* conn, bool orig,
-				RPC_Interpreter* arg_interp)
+Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
+                           RPC_Interpreter* arg_interp)
 	: tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
@@ -513,8 +513,8 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		if ( resync_toskip != 0 )
 			{
 			// Should never happen.
-			reporter->AnalyzerError(this,
-			  "RPC resync: skipping over data failed");
+			zeek::reporter->AnalyzerError(
+				this, "RPC resync: skipping over data failed");
 			return false;
 			}
 
@@ -665,8 +665,8 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! dummy_p )
 					{
-					reporter->AnalyzerError(this,
-					  "inconsistent RPC record marker extraction");
+					zeek::reporter->AnalyzerError(
+						this, "inconsistent RPC record marker extraction");
 					return;
 					}
 
@@ -720,14 +720,15 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		} // end while
 	}
 
-RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
-				RPC_Interpreter* arg_interp)
+RPC_Analyzer::RPC_Analyzer(const char* name, zeek::Connection* conn,
+                           RPC_Interpreter* arg_interp)
 	: tcp::TCP_ApplicationAnalyzer(name, conn),
 	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
-			network_time + rpc_timeout, true, TIMER_RPC_EXPIRE);
+		                   network_time + rpc_timeout, true,
+		                   zeek::detail::TIMER_RPC_EXPIRE);
 	}
 
 RPC_Analyzer::~RPC_Analyzer()
@@ -736,7 +737,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = std::min(len, caplen);
@@ -763,5 +764,5 @@ void RPC_Analyzer::Done()
 void RPC_Analyzer::ExpireTimer(double /* t */)
 	{
 	Event(connection_timeout);
-	sessions->Remove(Conn());
+	zeek::sessions->Remove(Conn());
 	}

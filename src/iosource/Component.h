@@ -113,7 +113,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	void DoDescribe(ODesc* d) const override;
+	void DoDescribe(zeek::ODesc* d) const override;
 
 private:
 	std::vector<std::string> prefixes;
@@ -160,7 +160,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	void DoDescribe(ODesc* d) const override;
+	void DoDescribe(zeek::ODesc* d) const override;
 
 private:
 	std::vector<std::string> prefixes;

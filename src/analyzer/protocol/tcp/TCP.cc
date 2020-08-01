@@ -42,7 +42,7 @@ namespace { // local namespace
 static const int ORIG = 1;
 static const int RESP = 2;
 
-static zeek::RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
+static zeek::RecordVal* build_syn_packet_val(bool is_orig, const zeek::IP_Hdr* ip,
                                              const struct tcphdr* tcp)
 	{
 	int winscale = -1;
@@ -123,13 +123,13 @@ static zeek::RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 	}
 
 
-TCP_Analyzer::TCP_Analyzer(Connection* conn)
+TCP_Analyzer::TCP_Analyzer(zeek::Connection* conn)
 : TransportLayerAnalyzer("TCP", conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-				network_time + tcp_SYN_timeout, false,
-				TIMER_TCP_EXPIRE);
+	                   network_time + tcp_SYN_timeout, false,
+	                   zeek::detail::TIMER_TCP_EXPIRE);
 
 	deferred_gen_event = close_deferred = 0;
 
@@ -179,16 +179,16 @@ void TCP_Analyzer::Done()
 	finished = 1;
 	}
 
-analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
+zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::ID arg_id)
 	{
-	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+	zeek::analyzer::Analyzer* child = zeek::analyzer::TransportLayerAnalyzer::FindChild(arg_id);
 
 	if ( child )
 		return child;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		{
-		analyzer::Analyzer* child = (*i)->FindChild(arg_id);
+		zeek::analyzer::Analyzer* child = (*i)->FindChild(arg_id);
 		if ( child )
 			return child;
 		}
@@ -196,16 +196,16 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
 	return nullptr;
 	}
 
-analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
+zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::Tag arg_tag)
 	{
-	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+	zeek::analyzer::Analyzer* child = zeek::analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
 
 	if ( child )
 		return child;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		{
-		analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
+		zeek::analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
 		if ( child )
 			return child;
 		}
@@ -213,9 +213,9 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
 	return nullptr;
 	}
 
-bool TCP_Analyzer::RemoveChildAnalyzer(ID id)
+bool TCP_Analyzer::RemoveChildAnalyzer(zeek::analyzer::ID id)
 	{
-	auto rval = analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
+	auto rval = zeek::analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
 
 	if ( rval )
 		return rval;
@@ -232,7 +232,7 @@ void TCP_Analyzer::EnableReassembly()
 	}
 
 void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
-					TCP_Reassembler* rresp)
+                                  TCP_Reassembler* rresp)
 	{
 	orig->AddReassembler(rorig);
 	rorig->SetDstAnalyzer(this);
@@ -496,8 +496,8 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 
 			if ( tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-					t + tcp_attempt_delay, true,
-					TIMER_TCP_ATTEMPT);
+				                   t + tcp_attempt_delay, true,
+				                   zeek::detail::TIMER_TCP_ATTEMPT);
 			}
 		else
 			{
@@ -726,8 +726,8 @@ void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
 
 		if ( connection_reset )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
-					t + tcp_reset_delay, true,
-					TIMER_TCP_RESET);
+			                   t + tcp_reset_delay, true,
+			                   zeek::detail::TIMER_TCP_RESET);
 		}
 	}
 
@@ -800,7 +800,7 @@ void TCP_Analyzer::GeneratePacketEvent(
 	}
 
 bool TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
-				const IP_Hdr* ip, const struct tcphdr* tp,
+				const zeek::IP_Hdr* ip, const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, uint64_t rel_data_seq,
 				bool is_orig, TCP_Flags flags)
 	{
@@ -818,7 +818,7 @@ void TCP_Analyzer::CheckRecording(bool need_contents, TCP_Flags flags)
 	Conn()->SetRecordCurrentPacket(record_current_packet);
 	}
 
-void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip)
+void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
@@ -1045,7 +1045,7 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	}
 
 void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -1247,7 +1247,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			if ( child->Removing() )
 				child->Done();
 
-			DBG_LOG(DBG_ANALYZER, "%s deleted child %s",
+			DBG_LOG(zeek::DBG_ANALYZER, "%s deleted child %s",
 			        fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 			i = packet_children.erase(i);
 			delete child;
@@ -1277,7 +1277,7 @@ void TCP_Analyzer::FlipRoles()
 	{
 	Analyzer::FlipRoles();
 
-	sessions->tcp_stats.FlipState(orig->state, resp->state);
+	zeek::sessions->tcp_stats.FlipState(orig->state, resp->state);
 	TCP_Endpoint* tmp_ep = resp;
 	resp = orig;
 	orig = tmp_ep;
@@ -1485,7 +1485,7 @@ void TCP_Analyzer::AttemptTimer(double /* t */)
 		is_active = 0;
 
 		// All done with this connection.
-		sessions->Remove(Conn());
+		zeek::sessions->Remove(Conn());
 		}
 	}
 
@@ -1505,7 +1505,7 @@ void TCP_Analyzer::PartialCloseTimer(double /* t */)
 			return;
 
 		Event(connection_partial_close);
-		sessions->Remove(Conn());
+		zeek::sessions->Remove(Conn());
 		}
 	}
 
@@ -1535,7 +1535,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 				// the session remove and Unref() us here.
 				Event(connection_timeout);
 				is_active = 0;
-				sessions->Remove(Conn());
+				zeek::sessions->Remove(Conn());
 				return;
 				}
 			}
@@ -1550,7 +1550,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 				// before setting up an attempt timer,
 				// so we need to clean it up here.
 				Event(connection_timeout);
-				sessions->Remove(Conn());
+				zeek::sessions->Remove(Conn());
 				return;
 				}
 			}
@@ -1560,7 +1560,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	// ### if PQ_Element's were Obj's, could just Ref the timer
 	// and adjust its value here, instead of creating a new timer.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + tcp_session_timer,
-			false, TIMER_TCP_EXPIRE);
+	                   false, zeek::detail::TIMER_TCP_EXPIRE);
 	}
 
 void TCP_Analyzer::ResetTimer(double /* t */)
@@ -1571,12 +1571,12 @@ void TCP_Analyzer::ResetTimer(double /* t */)
 	if ( ! BothClosed() )
 		ConnectionReset();
 
-	sessions->Remove(Conn());
+	zeek::sessions->Remove(Conn());
 	}
 
 void TCP_Analyzer::DeleteTimer(double /* t */)
 	{
-	sessions->Remove(Conn());
+	zeek::sessions->Remove(Conn());
 	}
 
 void TCP_Analyzer::ConnDeleteTimer(double t)
@@ -1584,7 +1584,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFilePtr f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::FilePtr f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1601,7 +1601,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFilePtr f)
 		}
 	}
 
-BroFilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
+zeek::FilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:
@@ -1624,8 +1624,8 @@ BroFilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
 		break;
 	}
 
-	reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
-	                direction);
+	zeek::reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
+	                      direction);
 	return nullptr;
 	}
 
@@ -1694,17 +1694,17 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		// Note, even if tcp_close_delay is zero, we can't
 		// simply do:
 		//
-		//	sessions->Remove(this);
+		//	zeek::sessions->Remove(this);
 		//
 		// here, because that would cause the object to be
 		// deleted out from under us.
 		if ( tcp_close_delay != 0.0 )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ConnDeleteTimer,
-				Conn()->LastTime() + tcp_close_delay, false,
-				TIMER_CONN_DELETE);
+			                   Conn()->LastTime() + tcp_close_delay, false,
+			                   zeek::detail::TIMER_CONN_DELETE);
 		else
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), false,
-					TIMER_TCP_DELETE);
+			                   zeek::detail::TIMER_TCP_DELETE);
 		}
 
 	else
@@ -1713,8 +1713,8 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			{ // First time we've seen anything from this side.
 			if ( connection_partial_close )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::PartialCloseTimer,
-					Conn()->LastTime() + tcp_partial_close_delay, false,
-					TIMER_TCP_PARTIAL_CLOSE );
+				                   Conn()->LastTime() + tcp_partial_close_delay, false,
+				                   zeek::detail::TIMER_TCP_PARTIAL_CLOSE );
 			}
 
 		else
@@ -1722,8 +1722,8 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			// Create a timer to look for the other side closing,
 			// too.
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-					Conn()->LastTime() + tcp_session_timer, false,
-					TIMER_TCP_EXPIRE);
+			                   Conn()->LastTime() + tcp_session_timer, false,
+			                   zeek::detail::TIMER_TCP_EXPIRE);
 			}
 		}
 	}
@@ -1761,9 +1761,9 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 	return endp && endp->HadGap();
 	}
 
-void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
+void TCP_Analyzer::AddChildPacketAnalyzer(zeek::analyzer::Analyzer* a)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s added packet child %s",
 			this->GetAnalyzerName(), a->GetAnalyzerName());
 
 	packet_children.push_back(a);
@@ -1902,10 +1902,10 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 
 void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+						const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(zeek::DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}
@@ -1918,7 +1918,7 @@ void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
 
 void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 	{
-	analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
+	zeek::analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
 	for ( ; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->EndpointEOF(is_orig);
 	}
@@ -1926,7 +1926,7 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, bool gen_event)
 	{
-	analyzer::SupportAnalyzer* sa =
+	zeek::analyzer::SupportAnalyzer* sa =
 		endpoint->IsOrig() ? orig_supporters : resp_supporters;
 
 	for ( ; sa; sa = sa->Sibling() )
@@ -1936,30 +1936,30 @@ void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 
 void TCP_ApplicationAnalyzer::ConnectionFinished(bool half_finished)
 	{
-	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 
-	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionReset()
 	{
-	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 
-	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 	}
 
 void TCP_ApplicationAnalyzer::PacketWithRST()
 	{
-	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 
-	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 	}
 
@@ -1984,7 +1984,7 @@ int endian_flip(int n)
 
 bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen,
 			const u_char* /* data */,
-			const IP_Hdr* ip, const struct tcphdr* /* tp */)
+			const zeek::IP_Hdr* ip, const struct tcphdr* /* tp */)
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
@@ -2092,7 +2092,7 @@ zeek::RecordVal* TCPStats_Endpoint::BuildStats()
 	return stats;
 	}
 
-TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
+TCPStats_Analyzer::TCPStats_Analyzer(zeek::Connection* c)
 	: TCP_ApplicationAnalyzer("TCPSTATS", c),
 	  orig_stats(), resp_stats()
 	{
@@ -2124,7 +2124,7 @@ void TCPStats_Analyzer::Done()
 		);
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

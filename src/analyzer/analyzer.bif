@@ -10,43 +10,43 @@ module Analyzer;
 
 function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool
 	%{
-	bool result = analyzer_mgr->EnableAnalyzer(id->AsEnumVal());
+	bool result = zeek::analyzer_mgr->EnableAnalyzer(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Analyzer::__disable_analyzer%(id: Analyzer::Tag%) : bool
 	%{
-	bool result = analyzer_mgr->DisableAnalyzer(id->AsEnumVal());
+	bool result = zeek::analyzer_mgr->DisableAnalyzer(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Analyzer::__disable_all_analyzers%(%) : any
 	%{
-	analyzer_mgr->DisableAllAnalyzers();
+	zeek::analyzer_mgr->DisableAllAnalyzers();
 	return nullptr;
 	%}
 
 function Analyzer::__register_for_port%(id: Analyzer::Tag, p: port%) : bool
 	%{
-	bool result = analyzer_mgr->RegisterAnalyzerForPort(id->AsEnumVal(), p);
+	bool result = zeek::analyzer_mgr->RegisterAnalyzerForPort(id->AsEnumVal(), p);
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 					analyzer: Analyzer::Tag, tout: interval%) : bool
 	%{
-	analyzer_mgr->ScheduleAnalyzer(orig->AsAddr(), resp->AsAddr(), resp_p, analyzer->AsEnumVal(), tout);
+	zeek::analyzer_mgr->ScheduleAnalyzer(orig->AsAddr(), resp->AsAddr(), resp_p, analyzer->AsEnumVal(), tout);
 	return zeek::val_mgr->True();
 	%}
 
 function __name%(atype: Analyzer::Tag%) : string
 	%{
-	const auto& n = analyzer_mgr->GetComponentName(zeek::IntrusivePtr{zeek::NewRef{}, atype->AsEnumVal()});
+	const auto& n = zeek::analyzer_mgr->GetComponentName(zeek::IntrusivePtr{zeek::NewRef{}, atype->AsEnumVal()});
 	return zeek::make_intrusive<zeek::StringVal>(n);
 	%}
 
 function __tag%(name: string%) : Analyzer::Tag
 	%{
-	analyzer::Tag t = analyzer_mgr->GetComponentTag(name->CheckString());
+	analyzer::Tag t = zeek::analyzer_mgr->GetComponentTag(name->CheckString());
 	return t.AsVal();
 	%}

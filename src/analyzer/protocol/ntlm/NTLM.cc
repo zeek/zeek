@@ -7,7 +7,7 @@
 
 using namespace analyzer::ntlm;
 
-NTLM_Analyzer::NTLM_Analyzer(Connection* c)
+NTLM_Analyzer::NTLM_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("NTLM", c)
 	{
 	interp = new binpac::NTLM::NTLM_Conn(this);

@@ -14,11 +14,11 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Portmapper", ::analyzer::rpc::Portmapper_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_RPC", nullptr));
-		AddComponent(new ::analyzer::Component("Contents_NFS", nullptr));
+		AddComponent(new zeek::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Portmapper", ::analyzer::rpc::Portmapper_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Contents_RPC", nullptr));
+		AddComponent(new zeek::analyzer::Component("Contents_NFS", nullptr));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::RPC";

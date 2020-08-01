@@ -13,7 +13,7 @@ class ZIP_Analyzer final : public tcp::TCP_SupportAnalyzer {
 public:
 	enum Method { GZIP, DEFLATE };
 
-	ZIP_Analyzer(Connection* conn, bool orig, Method method = GZIP);
+	ZIP_Analyzer(zeek::Connection* conn, bool orig, Method method = GZIP);
 	~ZIP_Analyzer() override;
 
 	void Done() override;

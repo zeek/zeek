@@ -63,7 +63,7 @@ struct NetbiosDGM_RawMsgHdr {
 
 class NetbiosSSN_Interpreter {
 public:
-	explicit NetbiosSSN_Interpreter(Analyzer* analyzer);
+	explicit NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* analyzer);
 
 	void ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, bool is_query);
@@ -88,8 +88,8 @@ protected:
 
 	void ParseSambaMsg(const u_char* data, int len, bool is_query);
 
-	void Event(EventHandlerPtr event, const u_char* data, int len,
-			int is_orig = -1);
+	void Event(zeek::EventHandlerPtr event, const u_char* data, int len,
+	           int is_orig = -1);
 
 	// Pass in name/length, returns in xname/xlen the converted
 	// name/length.  Returns 0 on failure; xname may still be
@@ -98,7 +98,7 @@ protected:
 			u_char*& xname, int& xlen);
 
 protected:
-	Analyzer* analyzer;
+	zeek::analyzer::Analyzer* analyzer;
 	//SMB_Session* smb_session;
 };
 
@@ -114,7 +114,7 @@ typedef enum {
 // ### This should be merged with TCP_Contents_RPC, TCP_Contents_DNS.
 class Contents_NetbiosSSN final : public tcp::TCP_SupportAnalyzer {
 public:
-	Contents_NetbiosSSN(Connection* conn, bool orig,
+	Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
 				NetbiosSSN_Interpreter* interp);
 	~Contents_NetbiosSSN() override;
 
@@ -141,14 +141,14 @@ protected:
 
 class NetbiosSSN_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit NetbiosSSN_Analyzer(Connection* conn);
+	explicit NetbiosSSN_Analyzer(zeek::Connection* conn);
 	~NetbiosSSN_Analyzer() override;
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
 
 protected:

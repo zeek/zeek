@@ -5,6 +5,8 @@
 #include "RuleCondition.h"
 #include "RuleMatcher.h"
 
+namespace zeek::detail {
+
 // Start at one as we want search for this within a list,
 // and List's is_member returns zero for non-membership ...
 unsigned int Rule::rule_counter = 1;
@@ -99,3 +101,5 @@ void Rule::SortHdrTests()
 	// FIXME: Do nothing for now - we may want to come up with
 	// something clever here.
 	}
+
+} // namespace zeek::detail

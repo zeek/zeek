@@ -69,7 +69,7 @@ BifItem::~BifItem()
 	{
 	}
 
-void HookArgument::Describe(ODesc* d) const
+void HookArgument::Describe(zeek::ODesc* d) const
 	{
 	switch ( type ) {
 	case BOOL:
@@ -347,27 +347,27 @@ void Plugin::AddComponent(zeek::plugin::Component* c)
 
 Plugin::hook_list Plugin::EnabledHooks() const
 	{
-	return plugin_mgr->HooksEnabledForPlugin(this);
+	return zeek::plugin_mgr->HooksEnabledForPlugin(this);
 	}
 
 void Plugin::EnableHook(zeek::plugin::HookType hook, int priority)
 	{
-	plugin_mgr->EnableHook(hook, this, priority);
+	zeek::plugin_mgr->EnableHook(hook, this, priority);
 	}
 
 void Plugin::DisableHook(zeek::plugin::HookType hook)
 	{
-	plugin_mgr->DisableHook(hook, this);
+	zeek::plugin_mgr->DisableHook(hook, this);
 	}
 
 void Plugin::RequestEvent(EventHandlerPtr handler)
 	{
-	plugin_mgr->RequestEvent(handler, this);
+	zeek::plugin_mgr->RequestEvent(handler, this);
 	}
 
 void Plugin::RequestBroObjDtor(Obj* obj)
 	{
-	plugin_mgr->RequestBroObjDtor(obj, this);
+	zeek::plugin_mgr->RequestBroObjDtor(obj, this);
 	}
 
 int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
@@ -462,7 +462,7 @@ void Plugin::InitializeComponents()
 		(*i)->Initialize();
 	}
 
-void Plugin::Describe(ODesc* d) const
+void Plugin::Describe(zeek::ODesc* d) const
 	{
 	d->Add(config.name);
 

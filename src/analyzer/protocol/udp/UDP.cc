@@ -15,7 +15,7 @@
 
 using namespace analyzer::udp;
 
-UDP_Analyzer::UDP_Analyzer(Connection* conn)
+UDP_Analyzer::UDP_Analyzer(zeek::Connection* conn)
 : TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();
@@ -42,7 +42,7 @@ void UDP_Analyzer::Done()
 	}
 
 void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-                                 uint64_t seq, const IP_Hdr* ip, int caplen)
+                                 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -70,7 +70,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	     len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
 	     (data[0] & 0x08) == 0x08 )
 		{
-		auto& vxlan_ports = analyzer_mgr->GetVxlanPorts();
+		auto& vxlan_ports = zeek::analyzer_mgr->GetVxlanPorts();
 
 		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(),
 		               ntohs(up->uh_dport)) != vxlan_ports.end() )
@@ -184,7 +184,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			request_len += ulen;
 #ifdef DEBUG
 			if ( request_len < 0 )
-				reporter->Warning("wrapping around for UDP request length");
+				zeek::reporter->Warning("wrapping around for UDP request length");
 #endif
 			}
 
@@ -202,7 +202,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			reply_len += ulen;
 #ifdef DEBUG
 			if ( reply_len < 0 )
-				reporter->Warning("wrapping around for UDP reply length");
+				zeek::reporter->Warning("wrapping around for UDP reply length");
 #endif
 			}
 
@@ -258,7 +258,7 @@ void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
 	                              is_orig, threshold);
 	}
 
-bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
+bool UDP_Analyzer::ValidateChecksum(const zeek::IP_Hdr* ip, const udphdr* up, int len)
 	{
 	uint32_t sum;
 

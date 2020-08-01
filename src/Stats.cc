@@ -15,18 +15,24 @@
 #include "input.h"
 #include "Func.h"
 
-uint64_t killed_by_inactivity = 0;
+uint64_t zeek::detail::killed_by_inactivity = 0;
+uint64_t& killed_by_inactivity = zeek::detail::killed_by_inactivity;
 
-uint64_t tot_ack_events = 0;
-uint64_t tot_ack_bytes = 0;
-uint64_t tot_gap_events = 0;
-uint64_t tot_gap_bytes = 0;
+uint64_t zeek::detail::tot_ack_events = 0;
+uint64_t& tot_ack_events = zeek::detail::tot_ack_events;
+uint64_t zeek::detail::tot_ack_bytes = 0;
+uint64_t& tot_ack_bytes = zeek::detail::tot_ack_bytes;
+uint64_t zeek::detail::tot_gap_events = 0;
+uint64_t& tot_gap_events = zeek::detail::tot_gap_events;
+uint64_t zeek::detail::tot_gap_bytes = 0;
+uint64_t& tot_gap_bytes = zeek::detail::tot_gap_bytes;
 
+namespace zeek::detail {
 
-class ProfileTimer final : public Timer {
+class ProfileTimer final : public zeek::detail::Timer {
 public:
 	ProfileTimer(double t, ProfileLogger* l, double i)
-	: Timer(t, TIMER_PROFILE)
+		: zeek::detail::Timer(t, zeek::detail::TIMER_PROFILE)
 		{
 		logger = l;
 		interval = i;
@@ -45,17 +51,17 @@ void ProfileTimer::Dispatch(double t, bool is_expire)
 
 	// Reinstall timer.
 	if ( ! is_expire )
-		timer_mgr->Add(new ProfileTimer(network_time + interval,
-						logger, interval));
+		zeek::detail::timer_mgr->Add(new ProfileTimer(network_time + interval,
+		                                              logger, interval));
 	}
 
 
-ProfileLogger::ProfileLogger(BroFile* arg_file, double interval)
+ProfileLogger::ProfileLogger(zeek::File* arg_file, double interval)
 : SegmentStatsReporter()
 	{
 	file = arg_file;
 	log_count = 0;
-	timer_mgr->Add(new ProfileTimer(1, this, interval));
+	zeek::detail::timer_mgr->Add(new ProfileTimer(1, this, interval));
 	}
 
 ProfileLogger::~ProfileLogger()
@@ -168,10 +174,10 @@ void ProfileLogger::Log()
 		Reassembler::TotalMemoryAllocation() / 1024));
 
 	// Signature engine.
-	if ( expensive && rule_matcher )
+	if ( expensive && zeek::detail::rule_matcher )
 		{
-		RuleMatcher::Stats stats;
-		rule_matcher->GetStats(&stats);
+		zeek::detail::RuleMatcher::Stats stats;
+		zeek::detail::rule_matcher->GetStats(&stats);
 
 		file->Write(fmt("%06f RuleMatcher: matchers=%d nfa_states=%d dfa_states=%d "
 			"ncomputed=%d mem=%dK\n", network_time, stats.matchers,
@@ -179,12 +185,12 @@ void ProfileLogger::Log()
 		}
 
 	file->Write(fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
-		network_time,
-		timer_mgr->Size(), timer_mgr->PeakSize(),
-		network_time - timer_mgr->LastTimestamp()));
+	                network_time,
+	                zeek::detail::timer_mgr->Size(), zeek::detail::timer_mgr->PeakSize(),
+	                network_time - zeek::detail::timer_mgr->LastTimestamp()));
 
-	DNS_Mgr::Stats dstats;
-	dns_mgr->GetStats(&dstats);
+	zeek::detail::DNS_Mgr::Stats dstats;
+	zeek::detail::dns_mgr->GetStats(&dstats);
 
 	file->Write(fmt("%.06f DNS_Mgr: requests=%lu succesful=%lu failed=%lu pending=%lu cached_hosts=%lu cached_addrs=%lu\n",
 					network_time,
@@ -196,13 +202,13 @@ void ProfileLogger::Log()
 
 	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 
-	unsigned int* current_timers = TimerMgr::CurrentTimers();
-	for ( int i = 0; i < NUM_TIMER_TYPES; ++i )
+	unsigned int* current_timers = zeek::detail::TimerMgr::CurrentTimers();
+	for ( int i = 0; i < zeek::detail::NUM_TIMER_TYPES; ++i )
 		{
 		if ( current_timers[i] )
 			file->Write(fmt("%.06f         %s = %d\n", network_time,
-					timer_type_to_string((TimerType) i),
-					current_timers[i]));
+			                zeek::detail::timer_type_to_string(static_cast<zeek::detail::TimerType>(i)),
+			                current_timers[i]));
 		}
 
 	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));
@@ -312,7 +318,7 @@ void ProfileLogger::Log()
 	// (and for consistency we dispatch it *now*)
 	if ( profiling_update )
 		{
-		mgr.Dispatch(new Event(profiling_update, {
+		zeek::event_mgr.Dispatch(new zeek::Event(profiling_update, {
 					zeek::make_intrusive<zeek::Val>(zeek::IntrusivePtr{zeek::NewRef{}, file}),
 					zeek::val_mgr->Bool(expensive),
 					}));
@@ -369,10 +375,10 @@ void SampleLogger::SegmentProfile(const char* /* name */,
                                   double dtime, int dmem)
 	{
 	if ( load_sample )
-		mgr.Enqueue(load_sample,
-		            zeek::IntrusivePtr{zeek::NewRef{}, load_samples},
-		            zeek::make_intrusive<zeek::IntervalVal>(dtime, Seconds),
-		            zeek::val_mgr->Int(dmem)
+		zeek::event_mgr.Enqueue(load_sample,
+		                        zeek::IntrusivePtr{zeek::NewRef{}, load_samples},
+		                        zeek::make_intrusive<zeek::IntervalVal>(dtime, Seconds),
+		                        zeek::val_mgr->Int(dmem)
 		);
 	}
 
@@ -408,7 +414,7 @@ void SegmentProfiler::Report()
 	}
 
 PacketProfiler::PacketProfiler(unsigned int mode, double freq,
-				BroFile* arg_file)
+                               zeek::File* arg_file)
 	{
 	update_mode = mode;
 	update_freq = freq;
@@ -482,3 +488,5 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 	byte_cnt += bytes;
 	time = t;
 	}
+
+} // namespace zeek::detail

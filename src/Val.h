@@ -28,33 +28,38 @@
 namespace zeek {
 template<typename T> class PDict;
 class String;
-};
+}
 template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
+namespace zeek {
+class File;
+using FilePtr = zeek::IntrusivePtr<File>;
+}
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
 
 namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
-class BroFile;
-class PrefixTable;
-class IPAddr;
-class IPPrefix;
+ZEEK_FORWARD_DECLARE_NAMESPACED(PrefixTable, zeek::detail);
 class StateAccess;
-class RE_Matcher;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
-class CompositeHash;
-class HashKey;
+ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 
 extern double bro_start_network_time;
 
 namespace zeek {
 
 using FuncPtr = zeek::IntrusivePtr<Func>;
-using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+using FilePtr = zeek::IntrusivePtr<File>;
 
 class Val;
 class PortVal;
@@ -99,7 +104,7 @@ union BroValUnion {
 
 	String* string_val;
 	zeek::Func* func_val;
-	BroFile* file_val;
+	File* file_val;
 	RE_Matcher* re_val;
 	zeek::PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
@@ -128,7 +133,7 @@ union BroValUnion {
 	constexpr BroValUnion(zeek::Func* value) noexcept
 		: func_val(value) {}
 
-	constexpr BroValUnion(BroFile* value) noexcept
+	constexpr BroValUnion(File* value) noexcept
 		: file_val(value) {}
 
 	constexpr BroValUnion(RE_Matcher* value) noexcept
@@ -152,10 +157,10 @@ public:
 	explicit Val(zeek::FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Val(BroFile* f);
+	explicit Val(File* f);
 	// Note, the file will be closed after this Val is destructed if there's
 	// no other remaining references.
-	explicit Val(BroFilePtr f);
+	explicit Val(FilePtr f);
 
 	// Extra arg to differentiate from protected version.
 	Val(zeek::TypePtr t, bool type_type)
@@ -241,7 +246,7 @@ public:
 	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
 	CONST_ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
-	CONST_ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
+	CONST_ACCESSOR(zeek::TYPE_FILE, File*, file_val, AsFile)
 	CONST_ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
@@ -275,7 +280,7 @@ public:
 	// are protected to avoid external state changes.
 	// ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
 	ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
-	ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
+	ACCESSOR(zeek::TYPE_FILE, File*, file_val, AsFile)
 	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
@@ -754,7 +759,7 @@ protected:
 	int expire_access_time;
 };
 
-class TableValTimer final : public Timer {
+class TableValTimer final : public zeek::detail::Timer {
 public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;
@@ -802,7 +807,7 @@ public:
 	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(ValPtr index, std::unique_ptr<HashKey> k,
+	bool Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
 	            ValPtr new_val, bool broker_forward = true);
 
 	// Returns true if the assignment typechecked, false if not. The
@@ -811,10 +816,10 @@ public:
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, Val* new_val);
 
-	// Same as other Assign() method, but takes a precomuted HashKey and
+	// Same as other Assign() method, but takes a precomuted zeek::detail::HashKey and
 	// deletes it when done.
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
-	bool Assign(Val* index, HashKey* k, Val* new_val);
+	bool Assign(Val* index, zeek::detail::HashKey* k, Val* new_val);
 
 	ValPtr SizeVal() const override;
 
@@ -916,10 +921,10 @@ public:
 	/**
 	 * @return  The index corresponding to the given HashKey.
 	 */
-	ListValPtr RecreateIndex(const HashKey& k) const;
+	ListValPtr RecreateIndex(const zeek::detail::HashKey& k) const;
 
 	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
-	ListVal* RecoverIndex(const HashKey* k) const
+	ListVal* RecoverIndex(const zeek::detail::HashKey* k) const
 		{ return RecreateIndex(*k).release(); }
 
 	/**
@@ -939,14 +944,14 @@ public:
 	 * @param k  The hash key to lookup.
 	 * @return  Same as Remove(const Val&).
 	 */
-	ValPtr Remove(const HashKey& k);
+	ValPtr Remove(const zeek::detail::HashKey& k);
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const Val* index)
 		{ return Remove(*index).release(); }
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
-	Val* Delete(const HashKey* k)
+	Val* Delete(const zeek::detail::HashKey* k)
 		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
@@ -978,7 +983,7 @@ public:
 	// Returns the Prefix table used inside the table (if present).
 	// This allows us to do more direct queries to this specialized
 	// type that the general Table API does not allow.
-	const PrefixTable* Subnets() const { return subnets; }
+	const zeek::detail::PrefixTable* Subnets() const { return subnets; }
 
 	void Describe(ODesc* d) const override;
 
@@ -992,7 +997,7 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	void ClearTimer(Timer* t)
+	void ClearTimer(zeek::detail::Timer* t)
 		{
 		if ( timer == t )
 			timer = nullptr;
@@ -1003,10 +1008,10 @@ public:
 	 * @return  The hash of the index value or nullptr if
 	 * type-checking failed.
 	 */
-	std::unique_ptr<HashKey> MakeHashKey(const Val& index) const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey(const Val& index) const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* ComputeHash(const Val* index) const;
+	zeek::detail::HashKey* ComputeHash(const Val* index) const;
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
@@ -1081,13 +1086,13 @@ protected:
 	ValPtr DoClone(CloneState* state) override;
 
 	zeek::TableTypePtr table_type;
-	CompositeHash* table_hash;
+	zeek::detail::CompositeHash* table_hash;
 	zeek::detail::AttributesPtr attrs;
 	zeek::detail::ExprPtr expire_time;
 	zeek::detail::ExprPtr expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
-	PrefixTable* subnets;
+	zeek::detail::PrefixTable* subnets;
 	ValPtr def_val;
 	zeek::detail::ExprPtr change_func;
 	std::string broker_store;

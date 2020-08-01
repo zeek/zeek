@@ -11,8 +11,8 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("NetbiosSSN", ::analyzer::netbios_ssn::NetbiosSSN_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_NetbiosSSN", nullptr));
+		AddComponent(new zeek::analyzer::Component("NetbiosSSN", ::analyzer::netbios_ssn::NetbiosSSN_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Contents_NetbiosSSN", nullptr));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::NetBIOS";

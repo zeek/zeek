@@ -6,14 +6,14 @@
 
 #include "IntrusivePtr.h"
 
-class IP_Hdr;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
 namespace zeek {
 using FuncPtr = zeek::IntrusivePtr<Func>;
-}
+
+namespace detail {
 
 class Discarder {
 public:
@@ -22,7 +22,7 @@ public:
 
 	bool IsActive();
 
-	bool NextPacket(const IP_Hdr* ip, int len, int caplen);
+	bool NextPacket(const zeek::IP_Hdr* ip, int len, int caplen);
 
 protected:
 	zeek::Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
@@ -35,3 +35,6 @@ protected:
 	// Maximum amount of application data passed to filtering functions.
 	int discarder_maxlen;
 };
+
+} // namespace detail
+} // namespace zeek

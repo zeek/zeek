@@ -225,7 +225,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	zeek::VectorVal *certs_vec = certs->AsVectorVal();
 	if ( certs_vec->Size() < 1 )
 		{
-		reporter->Error("No certificates given in vector");
+		zeek::reporter->Error("No certificates given in vector");
 		return x509_result_record(-1, "no certificates");
 		}
 
@@ -511,7 +511,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	zeek::VectorVal *certs_vec = certs->AsVectorVal();
 	if ( ! certs_vec || certs_vec->Size() < 1 )
 		{
-		reporter->Error("No certificates given in vector");
+		zeek::reporter->Error("No certificates given in vector");
 		return x509_result_record(-1, "no certificates");
 		}
 
@@ -551,7 +551,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 		if ( ! chain )
 			{
-			reporter->Error("Encountered valid chain that could not be resolved");
+			zeek::reporter->Error("Encountered valid chain that could not be resolved");
 			sk_X509_pop_free(chain, X509_free);
 			goto x509_verify_chainerror;
 			}
@@ -568,7 +568,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 				chainVector->Assign(i, zeek::make_intrusive<file_analysis::X509Val>(currcert));
 			else
 				{
-				reporter->InternalWarning("OpenSSL returned null certificate");
+				zeek::reporter->InternalWarning("OpenSSL returned null certificate");
 				sk_X509_pop_free(chain, X509_free);
 				goto x509_verify_chainerror;
 				}
@@ -623,7 +623,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	bool precert = issuer_key_hash->Len() > 0;
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
-		reporter->Error("Invalid issuer_key_hash length");
+		zeek::reporter->Error("Invalid issuer_key_hash length");
 		return zeek::val_mgr->False();
 		}
 
@@ -647,7 +647,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		int pos = X509_get_ext_by_NID(x, NID_ct_precert_scts, -1);
 		if ( pos < 0 )
 			{
-			reporter->Error("NID_ct_precert_scts not found");
+			zeek::reporter->Error("NID_ct_precert_scts not found");
 			return zeek::val_mgr->False();
 			}
 #else
@@ -751,7 +751,7 @@ sct_verify_err:
 	if (key)
 		EVP_PKEY_free(key);
 
-	reporter->Error("%s", errstr.c_str());
+	zeek::reporter->Error("%s", errstr.c_str());
 	return zeek::val_mgr->False();
 	%}
 
@@ -768,7 +768,7 @@ zeek::StringValPtr x509_entity_hash(file_analysis::X509Val *cert_handle, unsigne
 
 	if ( type > 2 )
 		{
-		reporter->InternalError("Unknown type in x509_entity_hash");
+		zeek::reporter->InternalError("Unknown type in x509_entity_hash");
 		return nullptr;
 		}
 

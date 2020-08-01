@@ -7,7 +7,7 @@
 
 using namespace analyzer::bittorrent;
 
-BitTorrent_Analyzer::BitTorrent_Analyzer(Connection* c)
+BitTorrent_Analyzer::BitTorrent_Analyzer(zeek::Connection* c)
 : tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
 	{
 	interp = new binpac::BitTorrent::BitTorrent_Conn(this);

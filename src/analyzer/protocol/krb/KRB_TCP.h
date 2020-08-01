@@ -11,7 +11,7 @@ namespace analyzer { namespace krb_tcp {
 class KRB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit KRB_Analyzer(Connection* conn);
+	explicit KRB_Analyzer(zeek::Connection* conn);
 	~KRB_Analyzer() override;
 
 	void Done() override;
@@ -26,7 +26,7 @@ public:
 	                                         const bro_uint_t enctype)
 		{ return zeek::val_mgr->EmptyString(); }
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
 protected:

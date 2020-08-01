@@ -8,6 +8,8 @@
 
 #include <string.h>
 
+namespace zeek::detail {
+
 class IntSet {
 public:
 	// n is a hint for the value of the largest integer.
@@ -64,3 +66,7 @@ inline void IntSet::Clear()
 	{
 	memset(set, 0, size);
 	}
+
+} // namespace zeek::detail
+
+using IntSet [[deprecated("Remove in v4.1. Use zeek::detail::IntSet.")]] = zeek::detail::IntSet;

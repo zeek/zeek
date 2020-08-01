@@ -8,8 +8,8 @@
 
 using namespace analyzer::RADIUS;
 
-RADIUS_Analyzer::RADIUS_Analyzer(Connection* c)
-	: analyzer::Analyzer("RADIUS", c)
+RADIUS_Analyzer::RADIUS_Analyzer(zeek::Connection* c)
+	: zeek::analyzer::Analyzer("RADIUS", c)
 	{
 	interp = new binpac::RADIUS::RADIUS_Conn(this);
 	}
@@ -25,7 +25,7 @@ void RADIUS_Analyzer::Done()
 	}
 
 void RADIUS_Analyzer::DeliverPacket(int len, const u_char* data,
-				    bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+				    bool orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

@@ -24,7 +24,7 @@ zeek::EnumValPtr query_status(bool success)
 	return rval;
 	}
 
-void StoreHandleVal::ValDescribe(ODesc* d) const
+void StoreHandleVal::ValDescribe(zeek::ODesc* d) const
 	{
 	//using BifEnum::Broker::BackendType;
 	d->Add("broker::store::");

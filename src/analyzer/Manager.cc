@@ -17,7 +17,7 @@
 
 #include "protocol/tcp/events.bif.h"
 
-using namespace analyzer;
+using namespace zeek::analyzer;
 
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
 				     uint16_t _resp_p, uint16_t _proto)
@@ -105,14 +105,14 @@ void Manager::InitPostScript()
 void Manager::DumpDebug()
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_ANALYZER, "Available analyzers after zeek_init():");
+	DBG_LOG(zeek::DBG_ANALYZER, "Available analyzers after zeek_init():");
 	std::list<Component*> all_analyzers = GetComponents();
 	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
-		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
-			IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
+		DBG_LOG(zeek::DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
+		        IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
 
-	DBG_LOG(DBG_ANALYZER, " ");
-	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
+	DBG_LOG(zeek::DBG_ANALYZER, " ");
+	DBG_LOG(zeek::DBG_ANALYZER, "Analyzers by port:");
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
 		{
@@ -121,7 +121,7 @@ void Manager::DumpDebug()
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
 			s += std::string(GetComponentName(*j)) + " ";
 
-		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
+		DBG_LOG(zeek::DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
 		}
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
@@ -131,7 +131,7 @@ void Manager::DumpDebug()
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
 			s += std::string(GetComponentName(*j)) + " ";
 
-		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
+		DBG_LOG(zeek::DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
 
 #endif
@@ -148,7 +148,7 @@ bool Manager::EnableAnalyzer(const Tag& tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -161,7 +161,7 @@ bool Manager::EnableAnalyzer(zeek::EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -174,7 +174,7 @@ bool Manager::DisableAnalyzer(const Tag& tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -187,7 +187,7 @@ bool Manager::DisableAnalyzer(zeek::EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -195,14 +195,14 @@ bool Manager::DisableAnalyzer(zeek::EnumVal* val)
 
 void Manager::DisableAllAnalyzers()
 	{
-	DBG_LOG(DBG_ANALYZER, "Disabling all analyzers");
+	DBG_LOG(zeek::DBG_ANALYZER, "Disabling all analyzers");
 
 	std::list<Component*> all_analyzers = GetComponents();
 	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		(*i)->SetEnabled(false);
 	}
 
-analyzer::Tag Manager::GetAnalyzerTag(const char* name)
+zeek::analyzer::Tag Manager::GetAnalyzerTag(const char* name)
 	{
 	return GetComponentTag(name);
 	}
@@ -260,7 +260,7 @@ bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint
 
 #ifdef DEBUG
 	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
+	DBG_LOG(zeek::DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
 	l->insert(tag);
@@ -276,7 +276,7 @@ bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, ui
 
 #ifdef DEBUG
 	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
+	DBG_LOG(zeek::DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
 	l->erase(tag);
@@ -360,31 +360,31 @@ Manager::tag_set* Manager::LookupPort(zeek::PortVal* val, bool add_if_not_found)
 
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
-	tcp::TCP_Analyzer* tcp = nullptr;
-	udp::UDP_Analyzer* udp = nullptr;
-	icmp::ICMP_Analyzer* icmp = nullptr;
+	::analyzer::tcp::TCP_Analyzer* tcp = nullptr;
+	::analyzer::udp::UDP_Analyzer* udp = nullptr;
+	::analyzer::icmp::ICMP_Analyzer* icmp = nullptr;
 	TransportLayerAnalyzer* root = nullptr;
-	pia::PIA* pia = nullptr;
+	::analyzer::pia::PIA* pia = nullptr;
 	bool check_port = false;
 
 	switch ( conn->ConnTransport() ) {
 
 	case TRANSPORT_TCP:
-		root = tcp = new tcp::TCP_Analyzer(conn);
-		pia = new pia::PIA_TCP(conn);
+		root = tcp = new ::analyzer::tcp::TCP_Analyzer(conn);
+		pia = new ::analyzer::pia::PIA_TCP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
 
 	case TRANSPORT_UDP:
-		root = udp = new udp::UDP_Analyzer(conn);
-		pia = new pia::PIA_UDP(conn);
+		root = udp = new ::analyzer::udp::UDP_Analyzer(conn);
+		pia = new ::analyzer::pia::PIA_UDP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
 
 	case TRANSPORT_ICMP: {
-		root = icmp = new icmp::ICMP_Analyzer(conn);
+		root = icmp = new ::analyzer::icmp::ICMP_Analyzer(conn);
 		DBG_ANALYZER(conn, "activated ICMP analyzer");
 		break;
 		}
@@ -410,14 +410,14 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 				{
 				for ( tag_set::const_iterator j = ports->begin(); j != ports->end(); ++j )
 					{
-					Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*j, conn);
+					Analyzer* analyzer = zeek::analyzer_mgr->InstantiateAnalyzer(*j, conn);
 
 					if ( ! analyzer )
 						continue;
 
 					root->AddChildAnalyzer(analyzer, false);
 					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
-							  analyzer_mgr->GetComponentName(*j).c_str(), resp_port);
+					                  zeek::analyzer_mgr->GetComponentName(*j).c_str(), resp_port);
 					}
 				}
 			}
@@ -466,25 +466,25 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 				auto src = zeek::make_intrusive<zeek::AddrVal>(conn->OrigAddr());
 
 				if ( ! stp_skip_src->FindOrDefault(src) )
-					tcp->AddChildAnalyzer(new stepping_stone::SteppingStone_Analyzer(conn), false);
+					tcp->AddChildAnalyzer(new ::analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
 				}
 			}
 
 		if ( IsEnabled(analyzer_tcpstats) )
 			// Add TCPStats analyzer. This needs to see packets so
 			// we cannot add it as a normal child.
-			tcp->AddChildPacketAnalyzer(new tcp::TCPStats_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new ::analyzer::tcp::TCPStats_Analyzer(conn));
 
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			tcp->AddChildPacketAnalyzer(new conn_size::ConnSize_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new ::analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
 
 	else
 		{
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			root->AddChildAnalyzer(new conn_size::ConnSize_Analyzer(conn));
+			root->AddChildAnalyzer(new ::analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
 
 	if ( pia )
@@ -524,9 +524,9 @@ void Manager::ExpireScheduledAnalyzers()
 
 			conns.erase(i);
 
-			DBG_LOG(DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
-				analyzer_mgr->GetComponentName(a->analyzer).c_str(),
-				fmt_conn_id(a->conn.orig, 0, a->conn.resp, a->conn.resp_p));
+			DBG_LOG(zeek::DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
+			        zeek::analyzer_mgr->GetComponentName(a->analyzer).c_str(),
+			        fmt_conn_id(a->conn.orig, 0, a->conn.resp, a->conn.resp_p));
 
 			delete a;
 			found = true;
@@ -620,7 +620,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 	for ( tag_set::iterator it = expected.begin(); it != expected.end(); ++it )
 		{
-		Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*it, conn);
+		Analyzer* analyzer = zeek::analyzer_mgr->InstantiateAnalyzer(*it, conn);
 
 		if ( ! analyzer )
 			continue;
@@ -632,7 +632,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 			                   conn->ConnVal(), it->AsVal());
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
-		                  analyzer_mgr->GetComponentName(*it).c_str());
+		                  zeek::analyzer_mgr->GetComponentName(*it).c_str());
 		}
 
 	return expected.size();

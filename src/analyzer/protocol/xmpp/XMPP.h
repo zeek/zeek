@@ -10,7 +10,7 @@ namespace analyzer { namespace xmpp {
 
 class XMPP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit XMPP_Analyzer(Connection* conn);
+	explicit XMPP_Analyzer(zeek::Connection* conn);
 	~XMPP_Analyzer() override;
 
 	void Done() override;
@@ -22,7 +22,7 @@ public:
 
 	void StartTLS();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new XMPP_Analyzer(conn); }
 
 protected:

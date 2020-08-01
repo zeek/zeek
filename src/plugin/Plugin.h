@@ -16,9 +16,8 @@
 
 #define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
-class ODesc;
-class Event;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Event, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
@@ -360,7 +359,7 @@ public:
 	 *
 	 * @param d Description object to use for rendering.
 	 */
-	void Describe(ODesc* d) const;
+	void Describe(zeek::ODesc* d) const;
 
 private:
 	Type type;
@@ -491,7 +490,7 @@ public:
 	 * is disabled, the rendering will include a list of all components
 	 * and BiF items.
 	 */
-	void Describe(ODesc* d) const;
+	void Describe(zeek::ODesc* d) const;
 
 	/**
 	 * Registers an individual BiF that the plugin defines. The

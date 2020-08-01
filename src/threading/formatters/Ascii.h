@@ -47,8 +47,8 @@ public:
 	Ascii(threading::MsgThread* t, const SeparatorInfo& info);
 	virtual ~Ascii();
 
-	virtual bool Describe(ODesc* desc, threading::Value* val, const std::string& name = "") const;
-	virtual bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
+	virtual bool Describe(zeek::ODesc* desc, threading::Value* val, const std::string& name = "") const;
+	virtual bool Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
 	                      threading::Value** vals) const;
 	virtual threading::Value* ParseValue(const std::string& s, const std::string& name,
 		                                 zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const;

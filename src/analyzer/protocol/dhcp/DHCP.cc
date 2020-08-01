@@ -5,7 +5,7 @@
 
 using namespace analyzer::dhcp;
 
-DHCP_Analyzer::DHCP_Analyzer(Connection* conn)
+DHCP_Analyzer::DHCP_Analyzer(zeek::Connection* conn)
 : Analyzer("DHCP", conn)
 	{
 	interp = new binpac::DHCP::DHCP_Conn(this);
@@ -22,7 +22,7 @@ void DHCP_Analyzer::Done()
 	}
 
 void DHCP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+			bool orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

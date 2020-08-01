@@ -16,7 +16,8 @@
 
 #include <math.h>
 
-#define log2of10 3.32192809488736234787
+constexpr double log2of10 = 3.32192809488736234787;
+
 /*  RT_LOG2  --  Calculate log to the base 2  */
 static double rt_log2(double x)
 {
@@ -24,7 +25,9 @@ static double rt_log2(double x)
 }
 
 // RT_INCIRC = pow(pow(256.0, (double) (RT_MONTEN / 2)) - 1, 2.0);
-#define RT_INCIRC 281474943156225.0
+constexpr double RT_INCIRC = 281474943156225.0;
+
+namespace zeek::detail {
 
 RandTest::RandTest()
 	{
@@ -142,3 +145,5 @@ void RandTest::end(double* r_ent, double* r_chisq,
 	*r_montepicalc = montepi;
 	*r_scc = scc;
 	}
+
+} // namespace zeek::detail

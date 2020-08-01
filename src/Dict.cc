@@ -28,7 +28,7 @@ namespace detail {
 
 class DictEntry {
 public:
-	DictEntry(void* k, int l, hash_t h, void* val) : key(k), len(l), hash(h), value(val) {}
+	DictEntry(void* k, int l, zeek::detail::hash_t h, void* val) : key(k), len(l), hash(h), value(val) {}
 
 	~DictEntry()
 		{
@@ -37,7 +37,7 @@ public:
 
 	void* key;
 	int len;
-	hash_t hash;
+	zeek::detail::hash_t hash;
 	void* value;
 };
 
@@ -77,11 +77,11 @@ TEST_CASE("dict operation")
 	uint32_t val = 10;
 	uint32_t key_val = 5;
 
-	HashKey* key = new HashKey(key_val);
+	zeek::detail::HashKey* key = new zeek::detail::HashKey(key_val);
 	dict.Insert(key, &val);
 	CHECK(dict.Length() == 1);
 
-	HashKey* key2 = new HashKey(key_val);
+	zeek::detail::HashKey* key2 = new zeek::detail::HashKey(key_val);
 	uint32_t* lookup = dict.Lookup(key2);
 	CHECK(*lookup == val);
 
@@ -102,7 +102,7 @@ TEST_CASE("dict operation")
 
 	uint32_t val2 = 15;
 	uint32_t key_val2 = 25;
-	key2 = new HashKey(key_val2);
+	key2 = new zeek::detail::HashKey(key_val2);
 
 	dict.Insert(key, &val);
 	dict.Insert(key2, &val2);
@@ -123,13 +123,13 @@ TEST_CASE("dict nthentry")
 
 	uint32_t val = 15;
 	uint32_t key_val = 5;
-	HashKey* okey = new HashKey(key_val);
-	HashKey* ukey = new HashKey(key_val);
+	zeek::detail::HashKey* okey = new zeek::detail::HashKey(key_val);
+	zeek::detail::HashKey* ukey = new zeek::detail::HashKey(key_val);
 
 	uint32_t val2 = 10;
 	uint32_t key_val2 = 25;
-	HashKey* okey2 = new HashKey(key_val2);
-	HashKey* ukey2 = new HashKey(key_val2);
+	zeek::detail::HashKey* okey2 = new zeek::detail::HashKey(key_val2);
+	zeek::detail::HashKey* ukey2 = new zeek::detail::HashKey(key_val2);
 
 	unordered.Insert(ukey, &val);
 	unordered.Insert(ukey2, &val2);
@@ -158,16 +158,16 @@ TEST_CASE("dict iteration")
 
 	uint32_t val = 15;
 	uint32_t key_val = 5;
-	HashKey* key = new HashKey(key_val);
+	zeek::detail::HashKey* key = new zeek::detail::HashKey(key_val);
 
 	uint32_t val2 = 10;
 	uint32_t key_val2 = 25;
-	HashKey* key2 = new HashKey(key_val2);
+	zeek::detail::HashKey* key2 = new zeek::detail::HashKey(key_val2);
 
 	dict.Insert(key, &val);
 	dict.Insert(key2, &val2);
 
-	HashKey* it_key;
+	zeek::detail::HashKey* it_key;
 	zeek::IterCookie* it = dict.InitForIteration();
 	CHECK(it != nullptr);
 	int count = 0;
@@ -264,12 +264,12 @@ void Dictionary::DeInit()
 	tbl2 = nullptr;
 	}
 
-void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
+void* Dictionary::Lookup(const void* key, int key_size, zeek::detail::hash_t hash) const
 	{
 	if ( ! tbl && ! tbl2 )
 		return nullptr;
 
-	hash_t h;
+	zeek::detail::hash_t h;
 	zeek::PList<detail::DictEntry>* chain;
 
 	// Figure out which hash table to look in.
@@ -292,7 +292,7 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 	return nullptr;
 	}
 
-void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
+void* Dictionary::Insert(void* key, int key_size, zeek::detail::hash_t hash, void* val,
 				bool copy_key)
 	{
 	if ( ! tbl )
@@ -319,13 +319,13 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
 	return old_val;
 	}
 
-void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
+void* Dictionary::Remove(const void* key, int key_size, zeek::detail::hash_t hash,
 				bool dont_delete)
 	{
 	if ( ! tbl && ! tbl2 )
 		return nullptr;
 
-	hash_t h;
+	zeek::detail::hash_t h;
 	zeek::PList<detail::DictEntry>* chain;
 	int* num_entries_ptr;
 
@@ -368,7 +368,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 	return nullptr;
 	}
 
-void* Dictionary::DoRemove(detail::DictEntry* entry, hash_t h,
+void* Dictionary::DoRemove(detail::DictEntry* entry, zeek::detail::hash_t h,
 				zeek::PList<detail::DictEntry>* chain, int chain_offset)
 	{
 	void* entry_value = entry->value;
@@ -424,7 +424,7 @@ void Dictionary::StopIteration(IterCookie* cookie) const
 	delete cookie;
 	}
 
-void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) const
+void* Dictionary::NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie, int return_hash) const
 	{
 	if ( ! tbl && ! tbl2 )
 		{
@@ -446,7 +446,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 		// and removing from the tail is cheaper.
 		entry = cookie->inserted.remove_nth(cookie->inserted.length()-1);
 		if ( return_hash )
-			h = new HashKey(entry->key, entry->len, entry->hash);
+			h = new zeek::detail::HashKey(entry->key, entry->len, entry->hash);
 
 		return entry->value;
 		}
@@ -471,7 +471,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 		entry = (*ttbl[b])[o];
 		++cookie->offset;
 		if ( return_hash )
-			h = new HashKey(entry->key, entry->len, entry->hash);
+			h = new zeek::detail::HashKey(entry->key, entry->len, entry->hash);
 		return entry->value;
 		}
 
@@ -503,7 +503,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 
 	entry = (*ttbl[b])[0];
 	if ( return_hash )
-		h = new HashKey(entry->key, entry->len, entry->hash);
+		h = new zeek::detail::HashKey(entry->key, entry->len, entry->hash);
 
 	cookie->bucket = b;
 	cookie->offset = 1;
@@ -543,7 +543,7 @@ void* Dictionary::Insert(detail::DictEntry* new_entry, bool copy_key)
 	zeek::PList<detail::DictEntry>** ttbl;
 	int* num_entries_ptr;
 	int* max_num_entries_ptr;
-	hash_t h = new_entry->hash % num_buckets;
+	zeek::detail::hash_t h = new_entry->hash % num_buckets;
 
 	// We must be careful when we are in the middle of resizing.
 	// If the new entry hashes to a bucket in the old table we
@@ -650,7 +650,7 @@ void Dictionary::StartChangeSize(int new_size)
 		return;
 
 	if ( tbl2 )
-		reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
+		zeek::reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
 
 	Init2(new_size);
 
@@ -697,7 +697,7 @@ void Dictionary::FinishChangeSize()
 	{
 	// Cheap safety check.
 	if ( num_entries != 0 )
-		reporter->InternalError(
+		zeek::reporter->InternalError(
 		    "Dictionary::FinishChangeSize: num_entries is %d\n",
 		    num_entries);
 

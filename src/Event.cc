@@ -13,13 +13,13 @@
 #include "iosource/PktSrc.h"
 #include "Net.h"
 
-EventMgr mgr;
+zeek::EventMgr zeek::event_mgr;
+zeek::EventMgr& mgr = zeek::event_mgr;
 
-uint64_t num_events_queued = 0;
-uint64_t num_events_dispatched = 0;
+namespace zeek {
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
+             SourceID arg_src, zeek::analyzer::ID arg_aid, Obj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
@@ -52,14 +52,14 @@ void Event::Dispatch(bool no_remote)
 		no_remote = true;
 
 	if ( handler->ErrorHandler() )
-		reporter->BeginErrorHandler();
+		zeek::reporter->BeginErrorHandler();
 
 	try
 		{
 		handler->Call(&args, no_remote);
 		}
 
-	catch ( InterpreterException& e )
+	catch ( zeek::InterpreterException& e )
 		{
 		// Already reported.
 		}
@@ -69,7 +69,7 @@ void Event::Dispatch(bool no_remote)
 		Unref(obj);
 
 	if ( handler->ErrorHandler() )
-		reporter->EndErrorHandler();
+		zeek::reporter->EndErrorHandler();
 	}
 
 EventMgr::EventMgr()
@@ -94,7 +94,7 @@ EventMgr::~EventMgr()
 	}
 
 void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
-                              SourceID src, analyzer::ID aid, TimerMgr* mgr,
+                              SourceID src, analyzer::ID aid, zeek::detail::TimerMgr* mgr,
                               Obj* obj)
 	{
 	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
@@ -102,7 +102,7 @@ void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
                           SourceID src, analyzer::ID aid,
-                          TimerMgr* mgr, Obj* obj)
+                          zeek::detail::TimerMgr* mgr, Obj* obj)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -112,7 +112,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
                           SourceID src, analyzer::ID aid,
-                          TimerMgr* mgr, Obj* obj)
+                          zeek::detail::TimerMgr* mgr, Obj* obj)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
@@ -122,7 +122,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       SourceID src, analyzer::ID aid, Obj* obj)
+                       SourceID src, zeek::analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}
@@ -145,7 +145,7 @@ void EventMgr::QueueEvent(Event* event)
 		tail = event;
 		}
 
-	++num_events_queued;
+	++event_mgr.num_events_queued;
 	}
 
 void EventMgr::Dispatch(Event* event, bool no_remote)
@@ -160,7 +160,7 @@ void EventMgr::Drain()
 	if ( event_queue_flush_point )
 		Enqueue(event_queue_flush_point, zeek::Args{});
 
-	SegmentProfiler prof(segment_logger, "draining-events");
+	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "draining-events");
 
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
@@ -188,7 +188,7 @@ void EventMgr::Drain()
 			current->Dispatch();
 			Unref(current);
 
-			++num_events_dispatched;
+			++event_mgr.num_events_dispatched;
 			current = next;
 			}
 		}
@@ -242,5 +242,7 @@ void EventMgr::InitPostScript()
 	{
 	iosource_mgr->Register(this, true, false);
 	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
-		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
+		zeek::reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}
+
+} // namespace zeek

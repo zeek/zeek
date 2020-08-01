@@ -30,18 +30,18 @@ class Component;
  *
  * The script-layer analogue is Input::Reader.
  */
-class Tag : public ::Tag  {
+class Tag : public zeek::Tag  {
 public:
 	/*
 	 * Copy constructor.
 	 */
-	Tag(const Tag& other) : ::Tag(other) {}
+	Tag(const Tag& other) : zeek::Tag(other) {}
 
 	/**
 	 * Default constructor. This initializes the tag with an error value
 	 * that will make \c operator \c bool return false.
 	 */
-	Tag() : ::Tag() {}
+	Tag() : zeek::Tag() {}
 
 	/**
 	 * Destructor.
@@ -64,7 +64,7 @@ public:
 	 */
 	bool operator==(const Tag& other) const
 		{
-		return ::Tag::operator==(other);
+		return zeek::Tag::operator==(other);
 		}
 
 	/**
@@ -72,7 +72,7 @@ public:
 	 */
 	bool operator!=(const Tag& other) const
 		{
-		return ::Tag::operator!=(other);
+		return zeek::Tag::operator!=(other);
 		}
 
 	/**
@@ -80,7 +80,7 @@ public:
 	 */
 	bool operator<(const Tag& other) const
 		{
-		return ::Tag::operator<(other);
+		return zeek::Tag::operator<(other);
 		}
 
 	/**

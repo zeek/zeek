@@ -173,7 +173,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		DeliverBody(len, data, trailing_CRLF);
 	}
 
-class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler {
+class HTTP_Entity::UncompressedOutput : public zeek::analyzer::OutputHandler {
 public:
 	UncompressedOutput(HTTP_Entity* e)	{ entity = e; }
 	void DeliverStream(int len, const u_char* data, bool orig) override
@@ -218,9 +218,9 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
 	if ( deliver_body )
 		MIME_Entity::Deliver(len, data, trailing_CRLF);
 
-	Rule::PatternType rule =
+	zeek::detail::Rule::PatternType rule =
 		http_message->IsOrig() ?
-			Rule::HTTP_REQUEST_BODY : Rule::HTTP_REPLY_BODY;
+			zeek::detail::Rule::HTTP_REQUEST_BODY : zeek::detail::Rule::HTTP_REPLY_BODY;
 
 	http_message->MyHTTP_Analyzer()->Conn()->
 		Match(rule, (const u_char*) data, len,
@@ -798,8 +798,8 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		reporter->AnalyzerError(MyHTTP_Analyzer(),
-		                                "unrecognized HTTP message event");
+		zeek::reporter->AnalyzerError(MyHTTP_Analyzer(),
+		                              "unrecognized HTTP message event");
 		return;
 	}
 
@@ -825,7 +825,7 @@ void HTTP_Message::Weird(const char* msg)
 	analyzer->Weird(msg);
 	}
 
-HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
+HTTP_Analyzer::HTTP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("HTTP", conn)
 	{
 	num_requests = num_replies = 0;
@@ -1238,24 +1238,24 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		{
-		reporter->AnalyzerError(this, "HTTP ParseRequest failed");
+		zeek::reporter->AnalyzerError(this, "HTTP ParseRequest failed");
 		return -1;
 		}
 
 	request_method = zeek::make_intrusive<zeek::StringVal>(end_of_method - line, line);
 
-	Conn()->Match(Rule::HTTP_REQUEST,
+	Conn()->Match(zeek::detail::Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
 			unescaped_URI->AsString()->Len(), true, true, true, true);
 
 	return 1;
 
 bad_http_request_with_version:
-	reporter->Weird(Conn(), "bad_HTTP_request_with_version");
+	zeek::reporter->Weird(Conn(), "bad_HTTP_request_with_version");
 	return 0;
 
 error:
-	reporter->Weird(Conn(), "bad_HTTP_request");
+	zeek::reporter->Weird(Conn(), "bad_HTTP_request");
 	return 0;
 	}
 
@@ -1618,9 +1618,9 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 
 	if ( http_header )
 		{
-		Rule::PatternType rule =
-			is_orig ?  Rule::HTTP_REQUEST_HEADER :
-					Rule::HTTP_REPLY_HEADER;
+		zeek::detail::Rule::PatternType rule =
+			is_orig ?  zeek::detail::Rule::HTTP_REQUEST_HEADER :
+					zeek::detail::Rule::HTTP_REPLY_HEADER;
 
 		zeek::data_chunk_t hd_name = h->get_name();
 		zeek::data_chunk_t hd_value = h->get_value();
@@ -1712,7 +1712,7 @@ void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
 	}
 
 zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
-                                              analyzer::Analyzer* analyzer)
+                                           zeek::analyzer::Analyzer* analyzer)
 	{
 	zeek::byte_vec decoded_URI = new u_char[line_end - line + 1];
 	zeek::byte_vec URI_p = decoded_URI;

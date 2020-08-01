@@ -2,12 +2,18 @@
 
 #pragma once
 
-#include <string>
+#include "zeek-config.h"
 
+#include <string>
 #include <stdint.h>
 
-class IPAddr;
-class IPPrefix;
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
+
+struct in_addr;
+struct in6_addr;
+
+namespace zeek::detail {
 
 // Abstract base class.
 class SerializationFormat {
@@ -28,10 +34,10 @@ public:
 	virtual bool Read(bool* v, const char* tag) = 0;
 	virtual bool Read(double* d, const char* tag) = 0;
 	virtual bool Read(std::string* s, const char* tag) = 0;
-	virtual bool Read(IPAddr* addr, const char* tag) = 0;
-	virtual bool Read(IPPrefix* prefix, const char* tag) = 0;
-	virtual bool Read(struct in_addr* addr, const char* tag) = 0;
-	virtual bool Read(struct in6_addr* addr, const char* tag) = 0;
+	virtual bool Read(zeek::IPAddr* addr, const char* tag) = 0;
+	virtual bool Read(zeek::IPPrefix* prefix, const char* tag) = 0;
+	virtual bool Read(in_addr* addr, const char* tag) = 0;
+	virtual bool Read(in6_addr* addr, const char* tag) = 0;
 
 	// Returns number of raw bytes read since last call to StartRead().
 	int BytesRead() const	{ return bytes_read; }
@@ -62,10 +68,10 @@ public:
 	virtual bool Write(const char* s, const char* tag) = 0;
 	virtual bool Write(const char* buf, int len, const char* tag) = 0;
 	virtual bool Write(const std::string& s, const char* tag) = 0;
-	virtual bool Write(const IPAddr& addr, const char* tag) = 0;
-	virtual bool Write(const IPPrefix& prefix, const char* tag) = 0;
-	virtual bool Write(const struct in_addr& addr, const char* tag) = 0;
-	virtual bool Write(const struct in6_addr& addr, const char* tag) = 0;
+	virtual bool Write(const zeek::IPAddr& addr, const char* tag) = 0;
+	virtual bool Write(const zeek::IPPrefix& prefix, const char* tag) = 0;
+	virtual bool Write(const in_addr& addr, const char* tag) = 0;
+	virtual bool Write(const in6_addr& addr, const char* tag) = 0;
 
 	virtual bool WriteOpenTag(const char* tag) = 0;
 	virtual bool WriteCloseTag(const char* tag) = 0;
@@ -107,10 +113,10 @@ public:
 	bool Read(double* d, const char* tag) override;
 	bool Read(char** str, int* len, const char* tag) override;
 	bool Read(std::string* s, const char* tag) override;
-	bool Read(IPAddr* addr, const char* tag) override;
-	bool Read(IPPrefix* prefix, const char* tag) override;
-	bool Read(struct in_addr* addr, const char* tag) override;
-	bool Read(struct in6_addr* addr, const char* tag) override;
+	bool Read(zeek::IPAddr* addr, const char* tag) override;
+	bool Read(zeek::IPPrefix* prefix, const char* tag) override;
+	bool Read(in_addr* addr, const char* tag) override;
+	bool Read(in6_addr* addr, const char* tag) override;
 	bool Write(int v, const char* tag) override;
 	bool Write(uint16_t v, const char* tag) override;
 	bool Write(uint32_t v, const char* tag) override;
@@ -122,11 +128,16 @@ public:
 	bool Write(const char* s, const char* tag) override;
 	bool Write(const char* buf, int len, const char* tag) override;
 	bool Write(const std::string& s, const char* tag) override;
-	bool Write(const IPAddr& addr, const char* tag) override;
-	bool Write(const IPPrefix& prefix, const char* tag) override;
-	bool Write(const struct in_addr& addr, const char* tag) override;
-	bool Write(const struct in6_addr& addr, const char* tag) override;
+	bool Write(const zeek::IPAddr& addr, const char* tag) override;
+	bool Write(const zeek::IPPrefix& prefix, const char* tag) override;
+	bool Write(const in_addr& addr, const char* tag) override;
+	bool Write(const in6_addr& addr, const char* tag) override;
 	bool WriteOpenTag(const char* tag) override;
 	bool WriteCloseTag(const char* tag) override;
 	bool WriteSeparator() override;
 };
+
+} // namespace zeek::detail
+
+using SerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::SerializationFormat.")]] = zeek::detail::SerializationFormat;
+using BinarySerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::BinarySerializationFormat.")]] = zeek::detail::BinarySerializationFormat;

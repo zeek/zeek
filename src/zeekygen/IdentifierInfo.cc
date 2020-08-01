@@ -100,7 +100,7 @@ string IdentifierInfo::GetDeclaringScriptForField(const string& field) const
 
 string IdentifierInfo::DoReStructuredText(bool roles_only) const
 	{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetIndentSpaces(3);
 	d.SetQuotes(true);
 	id->DescribeReST(&d, roles_only);

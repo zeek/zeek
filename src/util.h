@@ -125,10 +125,10 @@ inline void bytetohex(unsigned char byte, char* hex_out)
 
 std::string get_unescaped_string(const std::string& str);
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
-ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
-                          bool escape_all);
+zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len,
+                                bool escape_all);
 std::string get_escaped_string(const char* str, size_t len, bool escape_all);
 
 inline std::string get_escaped_string(const std::string& str, bool escape_all)
@@ -200,7 +200,7 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 extern std::string strstrip(std::string s);
 
 extern void hmac_md5(size_t size, const unsigned char* bytes,
-			unsigned char digest[16]);
+                     unsigned char digest[16]);
 
 // Initializes RNGs for zeek::random_number() and MD5 usage.  If load_file is given,
 // the seeds (both random & MD5) are loaded from that file.  This takes

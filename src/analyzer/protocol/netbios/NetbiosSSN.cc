@@ -49,14 +49,14 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
 	}
 
 
-NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(Analyzer* arg_analyzer)
+NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	//smb_session = arg_smb_session;
 	}
 
 void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
-				const u_char* data, int len, bool is_query)
+                                          const u_char* data, int len, bool is_query)
 	{
 	if ( netbios_session_message )
 		analyzer->EnqueueConnEvent(netbios_session_message,
@@ -314,8 +314,8 @@ void NetbiosSSN_Interpreter::ParseKeepAlive(const u_char* data, int len,
 	Event(netbios_session_keepalive, data, len);
 	}
 
-void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
-					int len, int is_orig)
+void NetbiosSSN_Interpreter::Event(zeek::EventHandlerPtr event, const u_char* data,
+                                   int len, int is_orig)
 	{
 	if ( ! event )
 		return;
@@ -332,8 +332,8 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 	}
 
 
-Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
-					NetbiosSSN_Interpreter* arg_interp)
+Contents_NetbiosSSN::Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
+                                         NetbiosSSN_Interpreter* arg_interp)
 : tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
@@ -453,7 +453,7 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	state = NETBIOS_SSN_TYPE;
 	}
 
-NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
+NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
 	{
 	//smb_session = new SMB_Session(this);
@@ -471,8 +471,8 @@ NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
-				network_time + netbios_ssn_session_timeout, true,
-				TIMER_NB_EXPIRE);
+		                   network_time + netbios_ssn_session_timeout, true,
+		                   zeek::detail::TIMER_NB_EXPIRE);
 		}
 	}
 
@@ -511,7 +511,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 	}
 
 void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -531,10 +531,10 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 		     netbios_ssn_session_timeout - 1.0 )
 		{
 		Event(connection_timeout);
-		sessions->Remove(Conn());
+		zeek::sessions->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
-				t + netbios_ssn_session_timeout,
-				true, TIMER_NB_EXPIRE);
+		                   t + netbios_ssn_session_timeout,
+		                   true, zeek::detail::TIMER_NB_EXPIRE);
 	}

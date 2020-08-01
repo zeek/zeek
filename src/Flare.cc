@@ -21,8 +21,8 @@ Flare::Flare()
 	char buf[256];
 	bro_strerror_r(errno, buf, sizeof(buf));
 
-	if ( reporter )
-		reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
+	if ( zeek::reporter )
+		zeek::reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
 	else
 		{
 		fprintf(stderr, "unexpected pipe %s failure: %s", which, buf);

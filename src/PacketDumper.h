@@ -6,6 +6,8 @@
 
 #include <sys/types.h> // for u_char
 
+namespace zeek::detail {
+
 class PacketDumper {
 public:
 	explicit PacketDumper(pcap_dumper_t* pkt_dump);
@@ -19,3 +21,5 @@ protected:
 
 	void SortTimeStamp(struct timeval* timestamp);
 };
+
+} // namespace zeek::detail

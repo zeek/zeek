@@ -25,13 +25,13 @@ import sys
 inputfile = sys.argv[1]
 
 init_tmpl = '''
-   {
-      DebugCmdInfo* info;
-      %(name_init)s
-      info = new DebugCmdInfo (%(cmd)s, names, %(num_names)s, %(resume)s, "%(help)s",
-                               %(repeatable)s);
-      g_DebugCmdInfos.push_back(info);
-   }
+\t{
+\t\tzeek::detail::DebugCmdInfo* info;
+\t\t%(name_init)s
+\t\tinfo = new zeek::detail::DebugCmdInfo(%(cmd)s, names, %(num_names)s, %(resume)s, "%(help)s",
+\t\t                                      %(repeatable)s);
+\t\tzeek::detail::g_DebugCmdInfos.push_back(info);
+\t}
 '''
 
 enum_str = '''
@@ -49,13 +49,16 @@ init_str = '''
 //
 
 #include "util.h"
-void init_global_dbg_constants () {
+void zeek::detail::init_global_dbg_constants () {
 ''' % inputfile
 
 def outputrecord():
     global init_str, enum_str
 
-    dbginfo["name_init"] = "const char * const names[] = {\n\t%s\n      };\n" % ",\n\t".join(dbginfo["names"])
+    if dbginfo["names"]:
+        dbginfo["name_init"] = "const char * const names[] = {\n\t\t\t%s\n\t\t};\n" % ",\n\t\t\t".join(dbginfo["names"])
+    else:
+        dbginfo["name_init"] = "const char * const names[] = { };\n"
 
     dbginfo["num_names"] = len(dbginfo["names"])
 
@@ -102,8 +105,8 @@ for line in inputf:
 # output the last record
 outputrecord()
 
-init_str += "   \n}\n"
-enum_str += "   dcLast\n};\n"
+init_str += "\t\n}\n"
+enum_str += "\tdcLast\n};\n"
 
 debugcmds = open("DebugCmdConstants.h", "w")
 debugcmds.write(enum_str)

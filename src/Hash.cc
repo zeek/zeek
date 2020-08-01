@@ -13,6 +13,8 @@
 #include "highwayhash/highwayhash_target.h"
 #include "highwayhash/instruction_sets.h"
 
+namespace zeek::detail {
+
 alignas(32) uint64_t KeyedHash::shared_highwayhash_key[4];
 alignas(32) uint64_t KeyedHash::cluster_highwayhash_key[4];
 alignas(16) unsigned long long KeyedHash::shared_siphash_key[2];
@@ -83,7 +85,7 @@ void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
 	if ( ! KeyedHash::IsInitialized() )
-		reporter->InternalError("Zeek's hash functions aren't fully initialized");
+		zeek::reporter->InternalError("Zeek's hash functions aren't fully initialized");
 	}
 
 HashKey::HashKey(bro_int_t i)
@@ -214,3 +216,5 @@ hash_t HashKey::HashBytes(const void* bytes, int size)
 	{
 	return KeyedHash::Hash64(bytes, size);
 	}
+
+} // namespace zeek::detail

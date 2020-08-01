@@ -10,7 +10,7 @@
 #include <sys/types.h> // for u_char
 
 struct pcap_pkthdr;
-class BPF_Program;
+ZEEK_FORWARD_DECLARE_NAMESPACED(BPF_Program, zeek::detail);
 
 namespace iosource {
 
@@ -136,7 +136,7 @@ public:
 	 * @return The BPF filter associated, or null if none has been
 	 * (successfully) compiled.
 	 */
-	BPF_Program* GetBPFFilter(int index);
+	zeek::detail::BPF_Program* GetBPFFilter(int index);
 
 	/**
 	 * Applies a precompiled BPF filter to a packet. This will close the
@@ -163,7 +163,7 @@ public:
 	 *
 	 * @return True if the current packet is available, or false if not.
 	 */
-	bool GetCurrentPacket(const Packet** hdr);
+	bool GetCurrentPacket(const zeek::Packet** hdr);
 
 	// PacketSource interace for derived classes to override.
 
@@ -297,7 +297,7 @@ protected:
 	 *
 	 * @param pkt The packet associated with the weird, or null if none.
 	 */
-	void Weird(const std::string& msg, const Packet* pkt);
+	void Weird(const std::string& msg, const zeek::Packet* pkt);
 
 	/**
 	 * Can be called from derived classes to flag an internal error,
@@ -340,7 +340,7 @@ protected:
 	 * if not packet is available or an error occured (which must be
 	 * flageed via Error()).
 	 */
-	virtual bool ExtractNextPacket(Packet* pkt) = 0;
+	virtual bool ExtractNextPacket(zeek::Packet* pkt) = 0;
 
 	/**
 	 * Signals that the data of previously extracted packet will no
@@ -365,10 +365,10 @@ private:
 	Properties props;
 
 	bool have_packet;
-	Packet current_packet;
+	zeek::Packet current_packet;
 
 	// For BPF filtering support.
-	std::vector<BPF_Program *> filters;
+	std::vector<zeek::detail::BPF_Program *> filters;
 
 	// Only set in pseudo-realtime mode.
 	double first_timestamp;

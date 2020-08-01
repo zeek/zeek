@@ -15,7 +15,7 @@ using namespace threading::formatter;
 // If the value we'd write out would match exactly the a reserved string, we
 // escape the first character so that the output won't be ambigious. If this
 // function returns true, it has added an escaped version of data to desc.
-static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data, int size)
+static inline bool escapeReservedContent(zeek::ODesc* desc, const string& reserved, const char* data, int size)
 	{
 	if ( size != (int)reserved.size() || memcmp(data, reserved.data(), size) != 0 )
 		return false;
@@ -56,7 +56,7 @@ Ascii::~Ascii()
 	{
 	}
 
-bool Ascii::Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
+bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
                      threading::Value** vals) const
 	{
 	for ( int i = 0; i < num_fields; i++ )
@@ -71,7 +71,7 @@ bool Ascii::Describe(ODesc* desc, int num_fields, const threading::Field* const 
 	return true;
 	}
 
-bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) const
+bool Ascii::Describe(zeek::ODesc* desc, threading::Value* val, const string& name) const
 	{
 	if ( ! val->present )
 		{

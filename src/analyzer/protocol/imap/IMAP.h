@@ -12,7 +12,7 @@ namespace analyzer { namespace imap {
 
 class IMAP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit IMAP_Analyzer(Connection* conn);
+	explicit IMAP_Analyzer(zeek::Connection* conn);
 	~IMAP_Analyzer() override;
 
 	void Done() override;
@@ -24,7 +24,7 @@ public:
 
 	void StartTLS();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new IMAP_Analyzer(conn); }
 
 protected:

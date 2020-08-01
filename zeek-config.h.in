@@ -275,7 +275,16 @@ extern const char* BRO_VERSION_FUNCTION();
 	#define ZEEK_LSAN_DISABLE_SCOPE(x)
 #endif
 
-// Note: macro for internal use only during deprecation/namespacing process.
-#define ZEEK_FORWARD_DECLARE_NAMESPACED(cls, ns) \
+// Note: macros for internal use only during deprecation/namespacing process.
+// This uses funny VA_ARGS tricks so that we can overload the name and have multiple macros for
+// varying namespace lengths.
+#define GET_MACRO(_0, _1, _2, _3, NAME, ...) NAME
+#define ZEEK_FORWARD_DECLARE_NAMESPACED( ... ) GET_MACRO(_0, ##__VA_ARGS__, ZEEK_FDN_3, ZEEK_FDN_2, ZEEK_FDN_1, ZEEK_FDN_0)(__VA_ARGS__)
+#define ZEEK_FDN_0()
+#define ZEEK_FDN_1(cls)
+#define ZEEK_FDN_2(cls, ns) \
 	namespace ns { class cls; } \
 	using cls [[deprecated("Remove in v4.1. Use " #ns "::" #cls " instead.")]] = ns::cls;
+#define ZEEK_FDN_3(cls, ns1, ns2) \
+	namespace ns1::ns2 { class cls; } \
+	namespace ns2 { using cls [[deprecated("Remove in v4.1. Use " #ns1 "::" #ns2 "::" #cls " instead.")]] = ns1::ns2::cls; }

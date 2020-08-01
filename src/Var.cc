@@ -27,7 +27,7 @@ static zeek::ValPtr init_val(zeek::detail::Expr* init,
 		{
 		return init->InitVal(t, std::move(aggr));
 		}
-	catch ( InterpreterException& e )
+	catch ( zeek::InterpreterException& e )
 		{
 		return nullptr;
 		}
@@ -541,11 +541,11 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 
 					if ( f->attrs && f->attrs->Find(zeek::detail::ATTR_DEFAULT) )
 						{
-						reporter->PushLocation(args->GetLocationInfo());
-						reporter->Warning(
+						zeek::reporter->PushLocation(args->GetLocationInfo());
+						zeek::reporter->Warning(
 						    "&default on parameter '%s' has no effect (not a %s declaration)",
 						    args->FieldName(i), t->FlavorString().data());
-						reporter->PopLocation();
+						zeek::reporter->PopLocation();
 						}
 					}
 				}
@@ -597,7 +597,7 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 			break;
 
 		default:
-			reporter->InternalError("invalid function flavor");
+			zeek::reporter->InternalError("invalid function flavor");
 			break;
 		}
 		}
@@ -659,53 +659,53 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 		zeek::detail::current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 	}
 
-class OuterIDBindingFinder : public TraversalCallback {
+class OuterIDBindingFinder : public zeek::detail::TraversalCallback {
 public:
 	OuterIDBindingFinder(zeek::detail::Scope* s)
 		{
 		scopes.emplace_back(s);
 		}
 
-	TraversalCode PreExpr(const zeek::detail::Expr*) override;
-	TraversalCode PostExpr(const zeek::detail::Expr*) override;
+	zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr*) override;
+	zeek::detail::TraversalCode PostExpr(const zeek::detail::Expr*) override;
 
 	std::vector<zeek::detail::Scope*> scopes;
 	std::vector<const zeek::detail::NameExpr*> outer_id_references;
 };
 
-TraversalCode OuterIDBindingFinder::PreExpr(const zeek::detail::Expr* expr)
+zeek::detail::TraversalCode OuterIDBindingFinder::PreExpr(const zeek::detail::Expr* expr)
 	{
 	if ( expr->Tag() == zeek::detail::EXPR_LAMBDA )
 		{
 		auto le = static_cast<const zeek::detail::LambdaExpr*>(expr);
 		scopes.emplace_back(le->GetScope());
-		return TC_CONTINUE;
+		return zeek::detail::TC_CONTINUE;
 		}
 
 	if ( expr->Tag() != zeek::detail::EXPR_NAME )
-		return TC_CONTINUE;
+		return zeek::detail::TC_CONTINUE;
 
 	auto* e = static_cast<const zeek::detail::NameExpr*>(expr);
 
 	if ( e->Id()->IsGlobal() )
-		return TC_CONTINUE;
+		return zeek::detail::TC_CONTINUE;
 
 	for ( const auto& scope : scopes )
 		if ( scope->Find(e->Id()->Name()) )
 			// Shadowing is not allowed, so if it's found at inner scope, it's
 			// not something we have to worry about also being at outer scope.
-			return TC_CONTINUE;
+			return zeek::detail::TC_CONTINUE;
 
 	outer_id_references.push_back(e);
-	return TC_CONTINUE;
+	return zeek::detail::TC_CONTINUE;
 	}
 
-TraversalCode OuterIDBindingFinder::PostExpr(const zeek::detail::Expr* expr)
+zeek::detail::TraversalCode OuterIDBindingFinder::PostExpr(const zeek::detail::Expr* expr)
 	{
 	if ( expr->Tag() == zeek::detail::EXPR_LAMBDA )
 		scopes.pop_back();
 
-	return TC_CONTINUE;
+	return zeek::detail::TC_CONTINUE;
 	}
 
 void end_func(zeek::detail::StmtPtr body)
@@ -836,7 +836,7 @@ zeek::ListVal* internal_list_val(const char* name)
 			}
 
 		else
-			reporter->InternalError("internal variable %s is not a list", name);
+			zeek::reporter->InternalError("internal variable %s is not a list", name);
 		}
 
 	return nullptr;
@@ -857,7 +857,7 @@ zeek::Func* internal_func(const char* name)
 		return nullptr;
 	}
 
-EventHandlerPtr internal_handler(const char* name)
+zeek::EventHandlerPtr internal_handler(const char* name)
 	{
-	return event_registry->Register(name);
+	return zeek::event_registry->Register(name);
 	}

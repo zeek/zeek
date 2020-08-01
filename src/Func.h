@@ -120,7 +120,7 @@ public:
 
 	virtual FuncPtr DoClone();
 
-	virtual TraversalCode Traverse(TraversalCallback* cb) const;
+	virtual detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
 	static const FuncPtr& GetFuncPtrByID(uint32_t id)

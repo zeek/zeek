@@ -183,7 +183,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 	auto wl_table = wl_val->AsTable();
 	std::unordered_set<std::string> whitelist_set;
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	IterCookie* c = wl_table->InitForIteration();
 	TableEntryVal* v;
 

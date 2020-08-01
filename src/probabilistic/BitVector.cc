@@ -498,12 +498,12 @@ uint64_t BitVector::Hash() const
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	uint64_t digest;
-	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
+	EVP_MD_CTX* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 
 	for ( size_type i = 0; i < Blocks(); ++i )
-		hash_update(ctx, &bits[i], sizeof(bits[i]));
+		zeek::detail::hash_update(ctx, &bits[i], sizeof(bits[i]));
 
-	hash_final(ctx, buf);
+	zeek::detail::hash_final(ctx, buf);
 	memcpy(&digest, buf, sizeof(digest)); // Use the first bytes as digest
 	return digest;
 	}
@@ -581,4 +581,3 @@ BitVector::size_type BitVector::find_from(size_type i) const
 
 	return i * bits_per_block + lowest_bit(bits[i]);
 	}
-

@@ -3,26 +3,25 @@
 
 #pragma once
 
-#include "RE.h" // for typedef AcceptingSet
-#include "Obj.h"
-
 #include <map>
 #include <string>
 
 #include <assert.h>
 #include <sys/types.h> // for u_char
 
+#include "NFA.h"
+#include "RE.h" // for typedef AcceptingSet
+#include "Obj.h"
+
+namespace zeek::detail {
+
 class DFA_State;
+class DFA_Machine;
 
 // Transitions to the uncomputed state indicate that we haven't yet
 // computed the state to go to.
 #define DFA_UNCOMPUTED_STATE -2
 #define DFA_UNCOMPUTED_STATE_PTR ((DFA_State*) DFA_UNCOMPUTED_STATE)
-
-#include "NFA.h"
-
-class DFA_Machine;
-class DFA_State;
 
 class DFA_State : public zeek::Obj {
 public:
@@ -152,3 +151,10 @@ inline DFA_State* DFA_State::Xtion(int sym, DFA_Machine* machine)
 	else
 		return xtions[sym];
 	}
+
+} // namespace zeek::detail
+
+using DFA_State [[deprecated("Remove in v4.1. Use zeek::detail::DFA_State.")]] = zeek::detail::DFA_State;
+using DigestStr [[deprecated("Remove in v4.1. Use zeek::detail::DigestStr.")]] = zeek::detail::DigestStr;
+using DFA_State_Cache [[deprecated("Remove in v4.1. Use zeek::detail::DFA_State_Cache.")]] = zeek::detail::DFA_State_Cache;
+using DFA_Machine [[deprecated("Remove in v4.1. Use zeek::detail::DFA_Machine.")]] = zeek::detail::DFA_Machine;

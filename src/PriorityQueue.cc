@@ -9,6 +9,8 @@
 #include "Reporter.h"
 #include "util.h"
 
+namespace zeek::detail {
+
 PriorityQueue::PriorityQueue(int initial_size) : max_heap_size(initial_size)
 	{
 	heap = new PQ_Element*[max_heap_size];
@@ -49,7 +51,7 @@ PQ_Element* PriorityQueue::Remove(PQ_Element* e)
 	PQ_Element* e2 = Remove();
 
 	if ( e != e2 )
-		reporter->InternalError("inconsistency in PriorityQueue::Remove");
+		zeek::reporter->InternalError("inconsistency in PriorityQueue::Remove");
 
 	return e2;
 	}
@@ -135,3 +137,5 @@ void PriorityQueue::BubbleDown(int bin)
 			}
 		}
 	}
+
+} // namespace zeek::detail

@@ -11,7 +11,7 @@
 
 using namespace analyzer::file;
 
-File_Analyzer::File_Analyzer(const char* name, Connection* conn)
+File_Analyzer::File_Analyzer(const char* name, zeek::Connection* conn)
 	: TCP_ApplicationAnalyzer(name, conn)
 	{
 	buffer_len = 0;
@@ -72,7 +72,7 @@ void File_Analyzer::Done()
 
 void File_Analyzer::Identify()
 	{
-	RuleMatcher::MIME_Matches matches;
+	zeek::detail::RuleMatcher::MIME_Matches matches;
 	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
 	                     &matches);
 	std::string match = matches.empty() ? "<unknown>"

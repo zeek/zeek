@@ -10,6 +10,8 @@
 #include "broker/Manager.h"
 #include "broker/Data.h"
 
+namespace zeek {
+
 EventHandler::EventHandler(std::string arg_name)
 	{
 	name = std::move(arg_name);
@@ -78,7 +80,7 @@ void EventHandler::Call(zeek::Args* vl, bool no_remote)
 					{
 					valid_args = false;
 					auto_publish.clear();
-					reporter->Error("failed auto-remote event '%s', disabled", Name());
+					zeek::reporter->Error("failed auto-remote event '%s', disabled", Name());
 					break;
 					}
 				}
@@ -118,9 +120,11 @@ void EventHandler::NewEvent(zeek::Args* vl)
 
 	auto vargs = zeek::MakeCallArgumentVector(*vl, GetType()->Params());
 
-	Event* ev = new Event(new_event, {
+	auto ev = new zeek::Event(new_event, {
 			zeek::make_intrusive<zeek::StringVal>(name),
 			std::move(vargs),
 			});
-	mgr.Dispatch(ev);
+	zeek::event_mgr.Dispatch(ev);
 	}
+
+} // namespace zeek

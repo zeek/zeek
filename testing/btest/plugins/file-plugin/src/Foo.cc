@@ -25,4 +25,3 @@ bool Foo::DeliverStream(const u_char* data, uint64 len)
 	mgr.QueueEvent(foo_piece, args);
     return true;
     }
-

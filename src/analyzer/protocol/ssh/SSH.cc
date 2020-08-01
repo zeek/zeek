@@ -11,7 +11,7 @@
 
 using namespace analyzer::SSH;
 
-SSH_Analyzer::SSH_Analyzer(Connection* c)
+SSH_Analyzer::SSH_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("SSH", c)
 	{
 	interp = new binpac::SSH::SSH_Conn(this);

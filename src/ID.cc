@@ -42,8 +42,8 @@ const zeek::TypePtr& zeek::id::find_type(std::string_view name)
 	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find type named: %s",
-		                        std::string(name).data());
+		zeek::reporter->InternalError("Failed to find type named: %s",
+		                              std::string(name).data());
 
 	return id->GetType();
 	}
@@ -53,8 +53,8 @@ const zeek::ValPtr& zeek::id::find_val(std::string_view name)
 	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s",
-		                        std::string(name).data());
+		zeek::reporter->InternalError("Failed to find variable named: %s",
+		                              std::string(name).data());
 
 	return id->GetVal();
 	}
@@ -64,12 +64,12 @@ const zeek::ValPtr& zeek::id::find_const(std::string_view name)
 	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s",
-		                        std::string(name).data());
+		zeek::reporter->InternalError("Failed to find variable named: %s",
+		                              std::string(name).data());
 
 	if ( ! id->IsConst() )
-		reporter->InternalError("Variable is not 'const', but expected to be: %s",
-		                        std::string(name).data());
+		zeek::reporter->InternalError("Variable is not 'const', but expected to be: %s",
+		                              std::string(name).data());
 
 	return id->GetVal();
 	}
@@ -82,8 +82,8 @@ zeek::FuncPtr zeek::id::find_func(std::string_view name)
 		return nullptr;
 
 	if ( ! IsFunc(v->GetType()->Tag()) )
-		reporter->InternalError("Expected variable '%s' to be a function",
-		                        std::string(name).data());
+		zeek::reporter->InternalError("Expected variable '%s' to be a function",
+		                              std::string(name).data());
 
 	return v->AsFuncPtr();
 	}
@@ -159,12 +159,12 @@ void ID::SetVal(zeek::ValPtr v)
 	     type->Tag() == TYPE_FUNC &&
 	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 		{
-		EventHandler* handler = event_registry->Lookup(name);
+		EventHandler* handler = zeek::event_registry->Lookup(name);
 		if ( ! handler )
 			{
 			handler = new EventHandler(name);
 			handler->SetFunc(val->AsFuncPtr());
-			event_registry->Register(handler);
+			zeek::event_registry->Register(handler);
 			}
 		else
 			{
@@ -250,7 +250,7 @@ void ID::UpdateValAttrs()
 		const auto& attr = attrs->Find(ATTR_ERROR_HANDLER);
 
 		if ( attr )
-			event_registry->SetErrorHandler(Name());
+			zeek::event_registry->SetErrorHandler(Name());
 		}
 
 	if ( GetType()->Tag() == TYPE_RECORD )

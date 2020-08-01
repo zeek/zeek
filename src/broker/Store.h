@@ -117,7 +117,7 @@ public:
 		: zeek::OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}, store_pid{store.frontend_id()}
 		{ }
 
-	void ValDescribe(ODesc* d) const override;
+	void ValDescribe(zeek::ODesc* d) const override;
 
 	broker::store store;
 	broker::store::proxy proxy;

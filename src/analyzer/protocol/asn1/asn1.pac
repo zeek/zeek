@@ -120,7 +120,7 @@ zeek::ValPtr asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t)
 	case zeek::TYPE_COUNTER:
 		return zeek::val_mgr->Count(v);
 	default:
-		reporter->Error("bad asn1_integer_to_val tag: %s", zeek::type_name(t));
+		zeek::reporter->Error("bad asn1_integer_to_val tag: %s", zeek::type_name(t));
 		return zeek::val_mgr->Count(v);
 	}
 	}

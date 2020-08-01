@@ -21,7 +21,7 @@ enum HasherType { Default, Double };
  */
 class Hasher {
 public:
-	typedef hash_t digest;
+	typedef zeek::detail::hash_t digest;
 	typedef std::vector<digest> digest_vector;
 	struct seed_t {
 		// actually HH_U64, which has the same type
@@ -72,7 +72,7 @@ public:
 	 *
 	 * @return Vector of *k* hash values.
 	 */
-	digest_vector Hash(const HashKey* key) const;
+	digest_vector Hash(const zeek::detail::HashKey* key) const;
 
 	/**
 	 * Computes the hashes for a set of bytes.

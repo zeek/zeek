@@ -190,7 +190,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			if ( it != fb.end() )
 				{
 				// We already had a first frag earlier.
-				reporter->Weird(connection()->bro_analyzer()->Conn(),
+				zeek::reporter->Weird(connection()->bro_analyzer()->Conn(),
 						"multiple_first_fragments_in_dce_rpc_reassembly");
 				connection()->bro_analyzer()->SetSkip(true);
 				return false;
@@ -212,14 +212,14 @@ flow DCE_RPC_Flow(is_orig: bool) {
 
 				if ( fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
 					{
-					reporter->Weird(connection()->bro_analyzer()->Conn(),
+					zeek::reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_many_dce_rpc_msgs_in_reassembly");
 					connection()->bro_analyzer()->SetSkip(true);
 					}
 
 				if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
 					{
-					reporter->Weird(connection()->bro_analyzer()->Conn(),
+					zeek::reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_much_dce_rpc_fragment_data");
 					connection()->bro_analyzer()->SetSkip(true);
 					}
@@ -235,7 +235,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 
 			if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
 				{
-				reporter->Weird(connection()->bro_analyzer()->Conn(),
+				zeek::reporter->Weird(connection()->bro_analyzer()->Conn(),
 				                "too_much_dce_rpc_fragment_data");
 				connection()->bro_analyzer()->SetSkip(true);
 				}

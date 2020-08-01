@@ -14,17 +14,16 @@ typedef struct bpf_timeval pkt_timeval;
 typedef struct timeval pkt_timeval;
 #endif
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
+
 template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<zeek::Val>;
 using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
-}
-
-class ODesc;
-class IP_Hdr;
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -130,11 +129,11 @@ public:
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * correspondign object.
 	 */
-	const IP_Hdr IP() const;
+	const zeek::IP_Hdr IP() const;
 
 	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
-	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
+	 * also everything in zeek::IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
 	zeek::RecordValPtr ToRawPktHdrVal() const;
 
@@ -242,3 +241,13 @@ private:
 	// True if L2 processing succeeded.
 	bool l2_valid;
 };
+
+} // namespace zeek
+
+using Layer3Proto [[deprecated("Remove in v4.1. Use zeek::Layer3Proto.")]] = zeek::Layer3Proto;
+using Packet [[deprecated("Remove in v4.1. Use zeek::Packet.")]] = zeek::Packet;
+
+constexpr auto L3_UNKNOWN [[deprecated("Remove in v4.1. Use zeek::L3_UNKNOWN")]] = zeek::L3_UNKNOWN;
+constexpr auto L3_IPV4 [[deprecated("Remove in v4.1. Use zeek::L3_IPV4")]] = zeek::L3_IPV4;
+constexpr auto L3_IPV6 [[deprecated("Remove in v4.1. Use zeek::L3_IPV6")]] = zeek::L3_IPV6;
+constexpr auto L3_ARP [[deprecated("Remove in v4.1. Use zeek::L3_ARP")]] = zeek::L3_ARP;

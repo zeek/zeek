@@ -17,17 +17,17 @@
 
 using namespace analyzer::login;
 
-static RE_Matcher* re_skip_authentication = nullptr;
-static RE_Matcher* re_direct_login_prompts;
-static RE_Matcher* re_login_prompts;
-static RE_Matcher* re_login_non_failure_msgs;
-static RE_Matcher* re_login_failure_msgs;
-static RE_Matcher* re_login_success_msgs;
-static RE_Matcher* re_login_timeouts;
+static zeek::RE_Matcher* re_skip_authentication = nullptr;
+static zeek::RE_Matcher* re_direct_login_prompts;
+static zeek::RE_Matcher* re_login_prompts;
+static zeek::RE_Matcher* re_login_non_failure_msgs;
+static zeek::RE_Matcher* re_login_failure_msgs;
+static zeek::RE_Matcher* re_login_success_msgs;
+static zeek::RE_Matcher* re_login_timeouts;
 
-static RE_Matcher* init_RE(zeek::ListVal* l);
+static zeek::RE_Matcher* init_RE(zeek::ListVal* l);
 
-Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
+Login_Analyzer::Login_Analyzer(const char* name, zeek::Connection* conn)
     : tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
@@ -91,7 +91,7 @@ void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			str[j++] = line[i];
 		else
 			{
-			if ( Conn()->FlagEvent(NUL_IN_LINE) )
+			if ( Conn()->FlagEvent(zeek::NUL_IN_LINE) )
 				Weird("NUL_in_line");
 			}
 
@@ -129,8 +129,8 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state != LOGIN_STATE_CONFUSED )
 		{
-		reporter->AnalyzerError(this,
-		                                "bad state in Login_Analyzer::NewLine");
+		zeek::reporter->AnalyzerError(
+			this, "bad state in Login_Analyzer::NewLine");
 		return;
 		}
 
@@ -373,7 +373,7 @@ void Login_Analyzer::EndpointEOF(bool orig)
 		}
 	}
 
-void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
+void Login_Analyzer::LoginEvent(zeek::EventHandlerPtr f, const char* line,
 	bool no_user_okay)
 	{
 	if ( ! f )
@@ -446,7 +446,7 @@ const char* Login_Analyzer::GetUsername(const char* line) const
 	return line;
 	}
 
-void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
+void Login_Analyzer::LineEvent(zeek::EventHandlerPtr f, const char* line)
 	{
 	if ( ! f )
 		return;
@@ -572,8 +572,8 @@ char* Login_Analyzer::PeekUserText()
 	{
 	if ( num_user_text <= 0 )
 		{
-		reporter->AnalyzerError(this,
-		  "underflow in Login_Analyzer::PeekUserText()");
+		zeek::reporter->AnalyzerError(
+			this, "underflow in Login_Analyzer::PeekUserText()");
 		return nullptr;
 		}
 
@@ -625,9 +625,9 @@ void Login_Analyzer::FlushEmptyTypeahead()
 		delete [] PopUserText();
 	}
 
-RE_Matcher* init_RE(zeek::ListVal* l)
+zeek::RE_Matcher* init_RE(zeek::ListVal* l)
 	{
-	RE_Matcher* re = l->BuildRE();
+	zeek::RE_Matcher* re = l->BuildRE();
 	if ( re )
 		re->Compile();
 

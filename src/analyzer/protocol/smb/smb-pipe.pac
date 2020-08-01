@@ -49,7 +49,7 @@ refine connection SMB_Conn += {
 
 		if ( it == fid_to_analyzer_map.end() )
 			{
-			auto tmp_analyzer = analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer()->Conn());
+			auto tmp_analyzer = zeek::analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer()->Conn());
 			pipe_dcerpc = static_cast<analyzer::dce_rpc::DCE_RPC_Analyzer *>(tmp_analyzer);
 
 			if ( pipe_dcerpc )

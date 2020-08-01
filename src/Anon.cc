@@ -75,7 +75,7 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 // Keep the specified prefix unchanged.
 bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
 	{
-	reporter->InternalError("prefix preserving is not supported for the anonymizer");
+	zeek::reporter->InternalError("prefix preserving is not supported for the anonymizer");
 	return false;
 	}
 
@@ -172,7 +172,7 @@ bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 
 	if ( ! before_anonymization )
 		{
-		reporter->Error("prefix perservation specified after anonymization begun");
+		zeek::reporter->Error("prefix perservation specified after anonymization begun");
 		return false;
 		}
 
@@ -219,7 +219,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block()
 	int block_size = 1024;
 	Node* block = new Node[block_size];
 	if ( ! block )
-		reporter->InternalError("out of memory!");
+		zeek::reporter->InternalError("out of memory!");
 
 	blocks.push_back(block);
 
@@ -271,7 +271,7 @@ ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, int swivel) c
 AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	{
 	if ( a == 0 || a == 0xFFFFFFFFU )
-		reporter->InternalError("0.0.0.0 and 255.255.255.255 should never get into the tree");
+		zeek::reporter->InternalError("0.0.0.0 and 255.255.255.255 should never get into the tree");
 
 	// Become a peer.
 	// Algorithm: create two nodes, the two peers.  Leave orig node as
@@ -354,7 +354,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 			}
 		}
 
-	reporter->InternalError("out of memory!");
+	zeek::reporter->InternalError("out of memory!");
 	return nullptr;
 	}
 
@@ -421,14 +421,14 @@ ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_
 			new_ip = ip;
 
 		else if ( ! ip_anonymizer[method] )
-			reporter->InternalError("IP anonymizer not initialized");
+			zeek::reporter->InternalError("IP anonymizer not initialized");
 
 		else
 			new_ip = ip_anonymizer[method]->Anonymize(ip);
 		}
 
 	else
-		reporter->InternalError("invalid IP anonymization method");
+		zeek::reporter->InternalError("invalid IP anonymization method");
 
 #ifdef LOG_ANONYMIZATION_MAPPING
 	log_anonymization_mapping(ip, new_ip);
@@ -444,9 +444,9 @@ ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_
 void zeek::detail::log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
-		mgr.Enqueue(anonymization_mapping,
-		            zeek::make_intrusive<zeek::AddrVal>(input),
-			zeek::make_intrusive<AddrVal>(output)
+		zeek::event_mgr.Enqueue(anonymization_mapping,
+		                        zeek::make_intrusive<zeek::AddrVal>(input),
+		                        zeek::make_intrusive<AddrVal>(output)
 		);
 	}
 

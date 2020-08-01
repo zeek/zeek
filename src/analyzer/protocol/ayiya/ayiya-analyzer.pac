@@ -15,12 +15,12 @@ flow AYIYA_Flow
 
 	function process_ayiya(pdu: PDU): bool
 		%{
-		Connection *c = connection()->bro_analyzer()->Conn();
-		const EncapsulationStack* e = c->GetEncapsulation();
+		zeek::Connection* c = connection()->bro_analyzer()->Conn();
+		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
-			reporter->Weird(c, "tunnel_depth");
+			zeek::reporter->Weird(c, "tunnel_depth");
 			return false;
 			}
 
@@ -33,7 +33,7 @@ flow AYIYA_Flow
 		if ( ${pdu.next_header} != IPPROTO_IPV6 &&
 		     ${pdu.next_header} != IPPROTO_IPV4 )
 			{
-			reporter->Weird(c, "ayiya_tunnel_non_ip");
+			zeek::reporter->Weird(c, "ayiya_tunnel_non_ip");
 			return false;
 			}
 
@@ -56,8 +56,8 @@ flow AYIYA_Flow
 			return false;
 			}
 
-		IP_Hdr* inner = 0;
-		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
+		zeek::IP_Hdr* inner = 0;
+		int result = zeek::sessions->ParseIPPacket(${pdu.packet}.length(),
 		     ${pdu.packet}.data(), ${pdu.next_header}, inner);
 
 		if ( result == 0 )
@@ -84,9 +84,9 @@ flow AYIYA_Flow
 			return false;
 			}
 
-		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
+		zeek::EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 
-		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		zeek::sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 
 		return true;
 		%}

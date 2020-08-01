@@ -12,7 +12,7 @@ namespace analyzer { namespace rfb {
 class RFB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit RFB_Analyzer(Connection* conn);
+	explicit RFB_Analyzer(zeek::Connection* conn);
 	~RFB_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -24,8 +24,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
 		{ return new RFB_Analyzer(conn); }
 
 protected:

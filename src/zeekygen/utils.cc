@@ -89,8 +89,8 @@ time_t zeekygen::get_mtime(const string& filename)
 	struct stat s;
 
 	if ( stat(filename.c_str(), &s) < 0 )
-		reporter->InternalError("Zeekygen failed to stat file '%s': %s",
-		                        filename.c_str(), strerror(errno));
+		zeek::reporter->InternalError("Zeekygen failed to stat file '%s': %s",
+		                              filename.c_str(), strerror(errno));
 
 	return s.st_mtime;
 	}

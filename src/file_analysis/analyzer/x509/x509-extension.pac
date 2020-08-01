@@ -38,7 +38,7 @@ refine connection MockConnection += {
 		if ( ! x509_ocsp_ext_signed_certificate_timestamp )
 			return true;
 
-		mgr.Enqueue(x509_ocsp_ext_signed_certificate_timestamp,
+		zeek::event_mgr.Enqueue(x509_ocsp_ext_signed_certificate_timestamp,
 			bro_analyzer()->GetFile()->ToVal(),
 			zeek::val_mgr->Count(version),
 			zeek::make_intrusive<zeek::StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),

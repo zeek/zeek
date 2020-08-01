@@ -4,10 +4,11 @@
 #include <sys/types.h> // for u_char
 #include "util.h"
 
-class Rule;
-class RuleEndpointState;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+
+namespace zeek::detail {
 
 // Base class for all rule conditions except patterns and "header".
 class RuleCondition {
@@ -115,3 +116,12 @@ public:
 private:
 	zeek::detail::ID* id;
 };
+
+} // namespace zeek::detail
+
+using RuleCondition [[deprecated("Remove in v4.1. Use zeek::detail::RuleCondition.")]] = zeek::detail::RuleCondition;
+using RuleConditionTCPState [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionTCPState.")]] = zeek::detail::RuleConditionTCPState;
+using RuleConditionIPOptions [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionIPOptions.")]] = zeek::detail::RuleConditionIPOptions;
+using RuleConditionSameIP [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionSameIP.")]] = zeek::detail::RuleConditionSameIP;
+using RuleConditionPayloadSize [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionPayloadSize.")]] = zeek::detail::RuleConditionPayloadSize;
+using RuleConditionEval [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionEval.")]] = zeek::detail::RuleConditionEval;

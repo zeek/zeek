@@ -35,7 +35,7 @@ JSON::~JSON()
 	{
 	}
 
-bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
+bool JSON::Describe(zeek::ODesc* desc, int num_fields, const Field* const * fields,
                     Value** vals) const
 	{
 	rapidjson::StringBuffer buffer;
@@ -55,7 +55,7 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 	return true;
 	}
 
-bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
+bool JSON::Describe(zeek::ODesc* desc, Value* val, const std::string& name) const
 	{
 	if ( desc->IsBinary() )
 		{
@@ -201,7 +201,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			}
 
 		default:
-			reporter->Warning("Unhandled type in JSON::BuildJSON");
+			zeek::reporter->Warning("Unhandled type in JSON::BuildJSON");
 			break;
 		}
 	}

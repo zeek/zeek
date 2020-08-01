@@ -12,19 +12,21 @@
 #include <tuple>
 #include <type_traits>
 
-class EventMgr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventMgr, zeek);
+
+namespace zeek {
 
 class Event final : public zeek::Obj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
-	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	      SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	      zeek::Obj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
 
 	SourceID Source() const		{ return src; }
-	analyzer::ID Analyzer() const	{ return aid; }
+	zeek::analyzer::ID Analyzer() const	{ return aid; }
 	EventHandlerPtr Handler() const	{ return handler; }
 	const zeek::Args& Args() const	{ return args; }
 
@@ -40,13 +42,10 @@ protected:
 	EventHandlerPtr handler;
 	zeek::Args args;
 	SourceID src;
-	analyzer::ID aid;
+	zeek::analyzer::ID aid;
 	zeek::Obj* obj;
 	Event* next_event;
 };
-
-extern uint64_t num_events_queued;
-extern uint64_t num_events_dispatched;
 
 class EventMgr final : public zeek::Obj, public iosource::IOSource {
 public:
@@ -63,8 +62,8 @@ public:
 	// arguments when there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
-			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
+	                    SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                    zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
 	// function always takes ownership of decrementing the reference count of
@@ -74,8 +73,8 @@ public:
 	// existence check.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
-			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
+	                SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Same as QueueEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
@@ -83,8 +82,8 @@ public:
 	// each of its elements.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
-			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
+	                SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	/**
 	 * Adds an event to the queue.  If no handler is found for the event
@@ -99,7 +98,7 @@ public:
 	 * reference to until dispatching the event.
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-	             SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	             SourceID src = SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	             zeek::Obj* obj = nullptr);
 
 	/**
@@ -124,7 +123,7 @@ public:
 
 	// Returns the ID of the analyzer which raised the last event, or 0 if
 	// non-analyzer event.
-	analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
+	zeek::analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
 
 	int Size() const
 		{ return num_events_queued - num_events_dispatched; }
@@ -136,16 +135,28 @@ public:
 	const char* Tag() override { return "EventManager"; }
 	void InitPostScript();
 
+	uint64_t num_events_queued = 0;
+	uint64_t num_events_dispatched = 0;
+
 protected:
 	void QueueEvent(Event* event);
 
 	Event* head;
 	Event* tail;
 	SourceID current_src;
-	analyzer::ID current_aid;
+	zeek::analyzer::ID current_aid;
 	zeek::RecordVal* src_val;
 	bool draining;
 	zeek::detail::Flare queue_flare;
 };
 
-extern EventMgr mgr;
+extern EventMgr event_mgr;
+
+} // namespace zeek
+
+using Event [[deprecated("Remove in v4.1. Use zeek::Event.")]] = zeek::Event;
+using EventMgr [[deprecated("Remove in v4.1. Use zeek::EventMgr.")]] = zeek::EventMgr;
+extern zeek::EventMgr& mgr [[deprecated("Remove in v4.1. Use zeek::event_mgr")]];
+
+extern uint64_t& num_events_queued [[deprecated("Remove in v4.1. Use zeek::event_mgr.num_events_queued")]];
+extern uint64_t& num_events_dispatched [[deprecated("Remove in v4.1. Use zeek::event_mgr.num_events_dispatched")]];

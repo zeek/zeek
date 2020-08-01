@@ -295,7 +295,7 @@ refine connection Handshake_Conn += {
 
 	function proc_certificate_status(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
-		ODesc common;
+		zeek::ODesc common;
 		common.AddRaw("Analyzer::ANALYZER_SSL");
 		common.Add(bro_analyzer()->Conn()->StartTime());
 		common.AddRaw("F");
@@ -303,7 +303,7 @@ refine connection Handshake_Conn += {
 
 		if ( status_type == 1 && response.length() > 0 ) // ocsp
 			{
-			ODesc file_handle;
+			zeek::ODesc file_handle;
 			file_handle.Add(common.Description());
 			file_handle.Add("ocsp");
 
@@ -323,7 +323,7 @@ refine connection Handshake_Conn += {
 			}
 		else if ( response.length() == 0 )
 			{
-			reporter->Weird(bro_analyzer()->Conn(), "SSL_zero_length_stapled_OCSP_message");
+			zeek::reporter->Weird(bro_analyzer()->Conn(), "SSL_zero_length_stapled_OCSP_message");
 			}
 
 		return true;

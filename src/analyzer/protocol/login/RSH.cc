@@ -13,8 +13,8 @@ using namespace analyzer::login;
 
 // FIXME: this code should probably be merged with Rlogin.cc.
 
-Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
-						Rsh_Analyzer* arg_analyzer)
+Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig,
+                                             Rsh_Analyzer* arg_analyzer)
 : tcp::ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
 	{
 	num_bytes_to_scan = 0;
@@ -131,8 +131,8 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "bad state in Contents_Rsh_Analyzer::DoDeliver");
+			zeek::reporter->AnalyzerError(
+				this, "bad state in Contents_Rsh_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -144,7 +144,7 @@ void Contents_Rsh_Analyzer::BadProlog()
 	state = RSH_UNKNOWN;
 	}
 
-Rsh_Analyzer::Rsh_Analyzer(Connection* conn)
+Rsh_Analyzer::Rsh_Analyzer(zeek::Connection* conn)
 : Login_Analyzer("RSH", conn)
 	{
 	contents_orig = new Contents_Rsh_Analyzer(conn, true, this);
@@ -205,7 +205,7 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
 		{
-		reporter->AnalyzerError(this, "multiple rsh client names");
+		zeek::reporter->AnalyzerError(this, "multiple rsh client names");
 		return;
 		}
 
@@ -216,8 +216,8 @@ void Rsh_Analyzer::ServerUserName(const char* s)
 	{
 	if ( username )
 		{
-		reporter->AnalyzerError(this,
-		                                "multiple rsh initial client names");
+		zeek::reporter->AnalyzerError(this,
+		                              "multiple rsh initial client names");
 		return;
 		}
 

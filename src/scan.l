@@ -48,7 +48,7 @@ extern zeek::EnumType* cur_enum_type;
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
 
-int_list if_stack;
+zeek::detail::int_list if_stack;
 
 int line_number = 1;
 const char* filename = 0; // Absolute path of file currently being parsed.
@@ -68,11 +68,11 @@ char last_tok[128];
 // a read fails.
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
-		reporter->Error("read failed with \"%s\"", strerror(errno));
+		zeek::reporter->Error("read failed with \"%s\"", strerror(errno));
 
 static void deprecated_attr(const char* attr)
 	{
-	reporter->Warning("Use of deprecated attribute: %s", attr);
+	zeek::reporter->Warning("Use of deprecated attribute: %s", attr);
 	}
 
 static std::string find_relative_file(const std::string& filename, const std::string& ext)
@@ -181,7 +181,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len, true)))
+	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len, true)))
 }
 
 	/* IPv4 literal constant patterns */
@@ -190,7 +190,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	RET_CONST(new zeek::SubNetVal(IPPrefix(IPAddr(ip), len)))
+	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len)))
 }
 
 [!%*/+\-,:;<=>?()\[\]{}~$|&^]	return yytext[0];
@@ -297,13 +297,13 @@ when	return TOK_WHEN;
 		auto lf = file_stack[num_files - 1];
 
 		if ( lf->name )
-			reporter->Warning("deprecated script loaded from %s:%d %s",
+			zeek::reporter->Warning("deprecated script loaded from %s:%d %s",
 			                  lf->name, lf->line, comment);
 		else
-			reporter->Warning("deprecated script loaded from command line arguments %s", comment);
+			zeek::reporter->Warning("deprecated script loaded from command line arguments %s", comment);
 		}
 	else
-		reporter->Warning("deprecated script loaded %s", comment);
+		zeek::reporter->Warning("deprecated script loaded %s", comment);
 	}
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
@@ -316,7 +316,7 @@ when	return TOK_WHEN;
 		char path[MAXPATHLEN];
 
 		if ( ! getcwd(path, MAXPATHLEN) )
-			reporter->InternalError("getcwd failed: %s", strerror(errno));
+			zeek::reporter->InternalError("getcwd failed: %s", strerror(errno));
 		else
 			rval = std::string(path) + "/" + rval;
 		}
@@ -345,15 +345,15 @@ when	return TOK_WHEN;
 	case -1:
 		// No plugin in charge of this file.
 		if ( path.empty() )
-			reporter->Error("failed to find file associated with @load-sigs %s",
-			                file);
+			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
+			                      file);
 		else
 			sig_files.push_back(copy_string(path.c_str()));
 		break;
 
 	case 0:
-		if ( ! reporter->Errors() )
-			reporter->Error("Plugin reported error loading signatures %s", file);
+		if ( ! zeek::reporter->Errors() )
+			zeek::reporter->Error("Plugin reported error loading signatures %s", file);
 
 		exit(1);
 		break;
@@ -375,12 +375,12 @@ when	return TOK_WHEN;
 	switch ( rc ) {
 	case -1:
 		// No plugin in charge of this file.
-		plugin_mgr->ActivateDynamicPlugin(plugin);
+		zeek::plugin_mgr->ActivateDynamicPlugin(plugin);
 		break;
 
 	case 0:
-		if ( ! reporter->Errors() )
-			reporter->Error("Plugin reported error loading plugin %s", plugin);
+		if ( ! zeek::reporter->Errors() )
+			zeek::reporter->Error("Plugin reported error loading plugin %s", plugin);
 
 		exit(1);
 		break;
@@ -401,7 +401,7 @@ when	return TOK_WHEN;
 	std::string path = find_relative_script_file(file);
 
 	if ( path.empty() )
-		reporter->Error("failed find file associated with @unload %s", file);
+		zeek::reporter->Error("failed find file associated with @unload %s", file);
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
@@ -460,7 +460,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			reporter->Error("bad port number - %s", yytext);
+			zeek::reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_TCP)->Ref())
@@ -469,7 +469,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			reporter->Error("bad port number - %s", yytext);
+			zeek::reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UDP)->Ref())
@@ -478,7 +478,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
-			reporter->Error("bad port number - %s", yytext);
+			zeek::reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
@@ -487,7 +487,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
-			reporter->Error("bad port number - %s", yytext);
+			zeek::reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
@@ -502,7 +502,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 "0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
+{H}("."{H})+		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
@@ -524,13 +524,13 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 			{
 			s[i++] = *text;
 			if ( i >= len )
-				reporter->InternalError("bad string length computation");
+				zeek::reporter->InternalError("bad string length computation");
 			}
 		}
 
 	// Get rid of trailing quote.
 	if ( s[i-1] != '"' )
-		reporter->InternalError("string scanning confused");
+		zeek::reporter->InternalError("string scanning confused");
 
 	s[i-1] = '\0';
 
@@ -556,7 +556,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 <RE>[\\\n]	return yytext[0];	// should cause a parse error
 
-<*>.	reporter->Error("unrecognized character - %s", yytext);
+<*>.	zeek::reporter->Error("unrecognized character - %s", yytext);
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 
@@ -584,11 +584,11 @@ static int load_files(const char* orig_file)
 
 	if ( rc == 0 )
 		{
-		if ( ! reporter->Errors() )
+		if ( ! zeek::reporter->Errors() )
 			// This is just in case the plugin failed to report
 			// the error itself, in which case we want to at
 			// least tell the user that something went wrong.
-			reporter->Error("Plugin reported error loading %s", orig_file);
+			zeek::reporter->Error("Plugin reported error loading %s", orig_file);
 
 		exit(1);
 		}
@@ -602,17 +602,17 @@ static int load_files(const char* orig_file)
 		f = stdin;
 		file_path = canonical_stdin_path;
 
-		if ( g_policy_debug )
+		if ( zeek::detail::g_policy_debug )
 			{
-			debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
-			g_policy_debug = false;
+			zeek::detail::debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
+			zeek::detail::g_policy_debug = false;
 			}
 		}
 
 	else
 		{
 		if ( file_path.empty() )
-			reporter->FatalError("can't find %s", orig_file);
+			zeek::reporter->FatalError("can't find %s", orig_file);
 
 		if ( is_dir(file_path.c_str()) )
 			f = open_package(file_path);
@@ -620,7 +620,7 @@ static int load_files(const char* orig_file)
 			f = open_file(file_path);
 
 		if ( ! f )
-			reporter->FatalError("can't open %s", file_path.c_str());
+			zeek::reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
 	ScannedFile sf(file_stack.length(), file_path);
@@ -635,12 +635,12 @@ static int load_files(const char* orig_file)
 
 	files_scanned.push_back(std::move(sf));
 
-	if ( g_policy_debug && ! file_path.empty() )
+	if ( zeek::detail::g_policy_debug && ! file_path.empty() )
 		{
 		// Add the filename to the file mapping table (Debug.h).
-		Filemap* map = new Filemap;
-		HashKey* key = new HashKey(file_path.c_str());
-		g_dbgfilemaps.emplace(file_path, map);
+		zeek::detail::Filemap* map = new zeek::detail::Filemap;
+		zeek::detail::HashKey* key = new zeek::detail::HashKey(file_path.c_str());
+		zeek::detail::g_dbgfilemaps.emplace(file_path, map);
 		LoadPolicyFileText(file_path.c_str());
 		}
 
@@ -650,7 +650,7 @@ static int load_files(const char* orig_file)
 
 	zeekygen_mgr->Script(file_path);
 
-	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
+	DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s", file_path.c_str());
 
 	// "orig_file", could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.
@@ -670,23 +670,23 @@ void begin_RE()
 	BEGIN(RE);
 	}
 
-class LocalNameFinder : public TraversalCallback {
+class LocalNameFinder : public zeek::detail::TraversalCallback {
 public:
 	LocalNameFinder()
 		{}
 
-	virtual TraversalCode PreExpr(const zeek::detail::Expr* expr)
+	virtual zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr)
 		{
 		if ( expr->Tag() != EXPR_NAME )
-			return TC_CONTINUE;
+			return zeek::detail::TC_CONTINUE;
 
 		const zeek::detail::NameExpr* name_expr = static_cast<const zeek::detail::NameExpr*>(expr);
 
 		if ( name_expr->Id()->IsGlobal() )
-			return TC_CONTINUE;
+			return zeek::detail::TC_CONTINUE;
 
 		local_names.push_back(name_expr);
-		return TC_CONTINUE;
+		return zeek::detail::TC_CONTINUE;
 		}
 
 	std::vector<const zeek::detail::NameExpr*> local_names;
@@ -750,7 +750,7 @@ void do_atifndef(const char *id)
 void do_atelse()
 	{
 	if ( current_depth == 0 )
-		reporter->Error("@else without @if...");
+		zeek::reporter->Error("@else without @if...");
 
 	if ( ! if_stack.empty() && current_depth > if_stack.back() )
 		return;
@@ -770,7 +770,7 @@ void do_atelse()
 void do_atendif()
 	{
 	if ( current_depth == 0 )
-		reporter->Error("unbalanced @if... @endif");
+		zeek::reporter->Error("unbalanced @if... @endif");
 
 	if ( current_depth == if_stack.back() )
 		{
@@ -790,7 +790,7 @@ static zeek::name_list essential_input_files;
 void add_essential_input_file(const char* file)
 	{
 	if ( ! file )
-		reporter->InternalError("empty filename");
+		zeek::reporter->InternalError("empty filename");
 
 	if ( ! filename )
 		(void) load_files(file);
@@ -801,7 +801,7 @@ void add_essential_input_file(const char* file)
 void add_input_file(const char* file)
 	{
 	if ( ! file )
-		reporter->InternalError("empty filename");
+		zeek::reporter->InternalError("empty filename");
 
 	if ( ! filename )
 		(void) load_files(file);
@@ -812,7 +812,7 @@ void add_input_file(const char* file)
 void add_input_file_at_front(const char* file)
 	{
 	if ( ! file )
-		reporter->InternalError("empty filename");
+		zeek::reporter->InternalError("empty filename");
 
 	if ( ! filename )
 		(void) load_files(file);
@@ -841,7 +841,7 @@ int yywrap()
 	{
 	last_filename = ::filename;
 
-	if ( reporter->Errors() > 0 )
+	if ( zeek::reporter->Errors() > 0 )
 		return 1;
 
 	if ( ! did_builtin_init && file_stack.length() == 1 )
@@ -947,8 +947,8 @@ int yywrap()
 
 			if ( ! id )
 				{
-				reporter->Error("unknown identifier '%s' in command-line options",
-				                id_str.data());
+				zeek::reporter->Error("unknown identifier '%s' in command-line options",
+				                      id_str.data());
 				continue;
 				}
 
@@ -958,15 +958,15 @@ int yywrap()
 
 			if ( ! type )
 				{
-				reporter->Error("can't set value of '%s' in command-line "
-				                "options: unknown type", id_str.data());
+				zeek::reporter->Error("can't set value of '%s' in command-line "
+				                      "options: unknown type", id_str.data());
 				continue;
 				}
 
 			if ( val_str.empty() && ! zeek::IsString(type->Tag()) )
 				{
-				reporter->Error("must assign non-empty value to '%s' in "
-				                "command-line options", id_str.data());
+				zeek::reporter->Error("must assign non-empty value to '%s' in "
+				                      "command-line options", id_str.data());
 				continue;
 				}
 
@@ -1046,8 +1046,8 @@ ScannedFile::ScannedFile(int arg_include_level,
 		auto res = realpath(name.data(), buf);
 
 		if ( ! res )
-			reporter->FatalError("failed to get realpath() of %s: %s",
-			                     name.data(), strerror(errno));
+			zeek::reporter->FatalError("failed to get realpath() of %s: %s",
+			                           name.data(), strerror(errno));
 
 		canonical_path = res;
 		}
@@ -1064,6 +1064,6 @@ bool ScannedFile::AlreadyScanned() const
 			break;
 			}
 
-	DBG_LOG(DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
+	DBG_LOG(zeek::DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
 	return rval;
 	}

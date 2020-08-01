@@ -15,6 +15,8 @@
 #include "Func.h"
 #include "IPAddr.h"
 
+namespace zeek::detail {
+
 CompositeHash::CompositeHash(zeek::TypeListPtr composite_type)
 	: type(std::move(composite_type))
 	{
@@ -212,7 +214,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			auto lv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
 			struct HashKeyComparer {
-				bool operator()(const HashKey* a, const HashKey* b) const
+				bool operator()(const zeek::detail::HashKey* a, const zeek::detail::HashKey* b) const
 					{
 					if ( a->Hash() != b->Hash() )
 						return a->Hash() < b->Hash();
@@ -224,8 +226,8 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					}
 			};
 
-			std::map<HashKey*, int, HashKeyComparer> hashkeys;
-			HashKey* k;
+			std::map<zeek::detail::HashKey*, int, HashKeyComparer> hashkeys;
+			zeek::detail::HashKey* k;
 			auto idx = 0;
 
 			while ( tbl->NextEntry(k, it) )
@@ -305,7 +307,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 		default:
 			{
-			reporter->InternalError("bad index type in CompositeHash::SingleValHash");
+			zeek::reporter->InternalError("bad index type in CompositeHash::SingleValHash");
 			return nullptr;
 			}
 		}
@@ -336,7 +338,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	}
 
 
-std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool type_check) const
+std::unique_ptr<zeek::detail::HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool type_check) const
 	{
 	auto v = &argv;
 
@@ -385,10 +387,10 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const zeek::Val& argv, bool 
 			return nullptr;
 		}
 
-	return std::make_unique<HashKey>((k == key), (void*) k, kp - k);
+	return std::make_unique<zeek::detail::HashKey>((k == key), (void*) k, kp - k);
 	}
 
-std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v, bool type_check) const
+std::unique_ptr<zeek::detail::HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v, bool type_check) const
 	{
 	if ( v->GetType()->Tag() == zeek::TYPE_LIST )
 		{
@@ -406,7 +408,7 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v,
 	switch ( singleton_tag ) {
 	case zeek::TYPE_INTERNAL_INT:
 	case zeek::TYPE_INTERNAL_UNSIGNED:
-		return std::make_unique<HashKey>(v->ForceAsInt());
+		return std::make_unique<zeek::detail::HashKey>(v->ForceAsInt());
 
 	case zeek::TYPE_INTERNAL_ADDR:
 		return v->AsAddr().MakeHashKey();
@@ -415,12 +417,12 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v,
 		return v->AsSubNet().MakeHashKey();
 
 	case zeek::TYPE_INTERNAL_DOUBLE:
-		return std::make_unique<HashKey>(v->InternalDouble());
+		return std::make_unique<zeek::detail::HashKey>(v->InternalDouble());
 
 	case zeek::TYPE_INTERNAL_VOID:
 	case zeek::TYPE_INTERNAL_OTHER:
 		if ( v->GetType()->Tag() == zeek::TYPE_FUNC )
-			return std::make_unique<HashKey>(v->AsFunc()->GetUniqueFuncID());
+			return std::make_unique<zeek::detail::HashKey>(v->AsFunc()->GetUniqueFuncID());
 
 		if ( v->GetType()->Tag() == zeek::TYPE_PATTERN )
 			{
@@ -432,20 +434,20 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const zeek::Val* v,
 			char* key = new char[n];
 			std::memcpy(key, texts[0], strlen(texts[0]) + 1);
 			std::memcpy(key + strlen(texts[0]) + 1, texts[1], strlen(texts[1]) + 1);
-			return std::make_unique<HashKey>(false, key, n);
+			return std::make_unique<zeek::detail::HashKey>(false, key, n);
 			}
 
-		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
+		zeek::reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return nullptr;
 
 	case zeek::TYPE_INTERNAL_STRING:
-		return std::make_unique<HashKey>(v->AsString());
+		return std::make_unique<zeek::detail::HashKey>(v->AsString());
 
 	case zeek::TYPE_INTERNAL_ERROR:
 		return nullptr;
 
 	default:
-		reporter->InternalError("bad internal type in CompositeHash::ComputeSingletonHash");
+		zeek::reporter->InternalError("bad internal type in CompositeHash::ComputeSingletonHash");
 		return nullptr;
 	}
 	}
@@ -599,7 +601,7 @@ int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const zeek::Val* v,
 
 		default:
 			{
-			reporter->InternalError("bad index type in CompositeHash::CompositeHash");
+			zeek::reporter->InternalError("bad index type in CompositeHash::CompositeHash");
 			return 0;
 			}
 		}
@@ -709,7 +711,7 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 	return offset;
 	}
 
-zeek::ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
+zeek::ListValPtr CompositeHash::RecoverVals(const zeek::detail::HashKey& k) const
 	{
 	auto l = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 	const auto& tl = type->GetTypes();
@@ -725,19 +727,19 @@ zeek::ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
 		}
 
 	if ( kp != k_end )
-		reporter->InternalError("under-ran key in CompositeHash::DescribeKey %zd", k_end - kp);
+		zeek::reporter->InternalError("under-ran key in CompositeHash::DescribeKey %zd", k_end - kp);
 
 	return l;
 	}
 
 const char* CompositeHash::RecoverOneVal(
-	const HashKey& k, const char* kp0,
+	const zeek::detail::HashKey& k, const char* kp0,
 	const char* const k_end, zeek::Type* t,
 	zeek::ValPtr* pval, bool optional) const
 	{
 	// k->Size() == 0 for a single empty string.
 	if ( kp0 >= k_end && k.Size() > 0 )
-		reporter->InternalError("over-ran key in CompositeHash::RecoverVals");
+		zeek::reporter->InternalError("over-ran key in CompositeHash::RecoverVals");
 
 	zeek::TypeTag tag = t->Tag();
 	zeek::InternalTypeTag it = t->InternalType();
@@ -769,7 +771,7 @@ const char* CompositeHash::RecoverOneVal(
 			*pval = zeek::val_mgr->Int(*kp);
 		else
 			{
-			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
+			zeek::reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
 			*pval = nullptr;
 			}
 		}
@@ -791,7 +793,7 @@ const char* CompositeHash::RecoverOneVal(
 			break;
 
 		default:
-			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
+			zeek::reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
 			*pval = nullptr;
 			break;
 		}
@@ -817,7 +819,7 @@ const char* CompositeHash::RecoverOneVal(
 		const uint32_t* const kp = AlignType<uint32_t>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+4);
 
-		IPAddr addr(IPv6, kp, IPAddr::Network);
+		zeek::IPAddr addr(IPv6, kp, zeek::IPAddr::Network);
 
 		switch ( tag ) {
 		case zeek::TYPE_ADDR:
@@ -825,7 +827,7 @@ const char* CompositeHash::RecoverOneVal(
 			break;
 
 		default:
-			reporter->InternalError("bad internal address in CompositeHash::RecoverOneVal()");
+			zeek::reporter->InternalError("bad internal address in CompositeHash::RecoverOneVal()");
 			*pval = nullptr;
 			break;
 		}
@@ -852,33 +854,33 @@ const char* CompositeHash::RecoverOneVal(
 			const auto& f = zeek::Func::GetFuncPtrByID(*kp);
 
 			if ( ! f )
-				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
+				zeek::reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
 			*pval = zeek::make_intrusive<zeek::Val>(f);
 			const auto& pvt = (*pval)->GetType();
 
 			if ( ! pvt )
-				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
+				zeek::reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
 
 			else if ( t->Tag() != zeek::TYPE_FUNC && ! same_type(pvt, t) )
 				// ### Maybe fix later, but may be fundamentally
 				// un-checkable --US
-				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+				zeek::reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
 
 			// ### A crude approximation for now.
 			else if ( t->Tag() == zeek::TYPE_FUNC && pvt->Tag() != zeek::TYPE_FUNC )
-				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+				zeek::reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
 			}
 			break;
 
 		case zeek::TYPE_PATTERN:
 			{
-			RE_Matcher* re = nullptr;
+			zeek::RE_Matcher* re = nullptr;
 			if ( is_singleton )
 				{
 				kp1 = kp0;
 				int divider = strlen(kp0) + 1;
-				re = new RE_Matcher(kp1, kp1 + divider);
+				re = new zeek::RE_Matcher(kp1, kp1 + divider);
 				kp1 += k.Size();
 				}
 			else
@@ -886,13 +888,13 @@ const char* CompositeHash::RecoverOneVal(
 				const uint64_t* const len = AlignType<uint64_t>(kp0);
 
 				kp1 = reinterpret_cast<const char*>(len+2);
-				re = new RE_Matcher(kp1, kp1 + len[0]);
+				re = new zeek::RE_Matcher(kp1, kp1 + len[0]);
 				kp1 += len[0] + len[1];
 				}
 
 			if ( ! re->Compile() )
-				reporter->InternalError("failed compiling table/set key pattern: %s",
-				                        re->PatternText());
+				zeek::reporter->InternalError("failed compiling table/set key pattern: %s",
+				                              re->PatternText());
 
 			*pval = zeek::make_intrusive<zeek::PatternVal>(re);
 			}
@@ -921,7 +923,7 @@ const char* CompositeHash::RecoverOneVal(
 				// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Branch)
 				if ( ! (v || optional) )
 					{
-					reporter->InternalError("didn't recover expected number of fields from HashKey");
+					zeek::reporter->InternalError("didn't recover expected number of fields from HashKey");
 					pval = nullptr;
 					break;
 					}
@@ -1023,7 +1025,7 @@ const char* CompositeHash::RecoverOneVal(
 
 		default:
 			{
-			reporter->InternalError("bad index type in CompositeHash::DescribeKey");
+			zeek::reporter->InternalError("bad index type in CompositeHash::DescribeKey");
 			}
 		}
 		}
@@ -1058,3 +1060,5 @@ const char* CompositeHash::RecoverOneVal(
 
 	return kp1;
 	}
+
+} // namespace zeek::detail

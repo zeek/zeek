@@ -53,7 +53,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::d
 	regex_t re;
 	if ( regcomp(&re, regex.c_str(), REG_EXTENDED|REG_NOSUB) )
 		{
-		debug_msg("Invalid regular expression: %s\n", regex.c_str());
+		zeek::detail::debug_msg("Invalid regular expression: %s\n", regex.c_str());
 		return;
 		}
 
@@ -80,14 +80,14 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 
 	while ( true )
 		{
-		debug_msg("There were multiple matches, please choose:\n");
+		zeek::detail::debug_msg("There were multiple matches, please choose:\n");
 
 		for ( size_t i = 0; i < choices.size(); i++ )
-			debug_msg("[%lu] %s\n", i+1, choices[i]->Name());
+			zeek::detail::debug_msg("[%lu] %s\n", i+1, choices[i]->Name());
 
-		debug_msg("[a] All of the above\n");
-		debug_msg("[n] None of the above\n");
-		debug_msg("Enter your choice: ");
+		zeek::detail::debug_msg("[a] All of the above\n");
+		zeek::detail::debug_msg("[n] None of the above\n");
+		zeek::detail::debug_msg("Enter your choice: ");
 
 		char charinput[256];
 		if ( ! fgets(charinput, sizeof(charinput) - 1, stdin) )
@@ -123,7 +123,10 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 // DebugCmdInfo implementation
 //
 
-zeek::PQueue<DebugCmdInfo> g_DebugCmdInfos;
+zeek::PQueue<zeek::detail::DebugCmdInfo> zeek::detail::g_DebugCmdInfos;
+zeek::PQueue<zeek::detail::DebugCmdInfo>& g_DebugCmdInfos = zeek::detail::g_DebugCmdInfos;
+
+namespace zeek::detail {
 
 DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
 : cmd(info.cmd), helpstring(nullptr)
@@ -203,7 +206,7 @@ static int dbg_backtrace_internal(int start, int end)
 	if ( start < 0 || end < 0 ||
 	     (unsigned) start >= g_frame_stack.size() ||
 	     (unsigned) end >= g_frame_stack.size() )
-		reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
+		zeek::reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
 	if ( start < end )
 		{
@@ -334,7 +337,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	// for 'list', 'break', etc.
 	const zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 	if ( ! stmt )
-		reporter->InternalError("Assertion failed: %s", "stmt != 0");
+		zeek::reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
 	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 	g_debugger_state.last_loc = loc;
@@ -374,7 +377,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 		zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
-			reporter->InternalError("Assertion failed: %s", "stmt != 0");
+			zeek::reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
 		DbgBreakpoint* bp = new DbgBreakpoint();
 		bp->SetID(g_debugger_state.NextBPID());
@@ -537,7 +540,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 				break;
 
 			default:
-				reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
+				zeek::reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
 			}
 			}
 
@@ -663,7 +666,7 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		{
 		vector<ParseLocationRec> plrs = parse_location_string(args[0]);
 		ParseLocationRec plr = plrs[0];
-		if ( plr.type == plrUnknown )
+		if ( plr.type == PLR_UNKNOWN )
 			{
 			debug_msg("Invalid location specifier\n");
 			return false;
@@ -722,3 +725,5 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 	debug_msg("Invalid argument");
 	return 0;
 	}
+
+} // namespace zeek::detail

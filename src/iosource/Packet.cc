@@ -19,6 +19,8 @@ extern "C" {
 #endif
 }
 
+namespace zeek {
+
 void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
 		  std::string arg_tag)
@@ -66,9 +68,9 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 		ProcessLayer2();
 	}
 
-const IP_Hdr Packet::IP() const
+const zeek::IP_Hdr Packet::IP() const
 	{
-	return IP_Hdr((struct ip *) (data + hdr_size), false);
+	return zeek::IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)
@@ -654,13 +656,13 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 
 	if ( l3_proto == L3_IPV4 )
 		{
-		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
+		zeek::IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
 		return ip_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else if ( l3_proto == L3_IPV6 )
 		{
-		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
+		zeek::IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
 		return ip6_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
@@ -683,8 +685,10 @@ zeek::ValPtr Packet::FmtEUI48(const u_char* mac) const
 
 void Packet::Describe(ODesc* d) const
 	{
-	const IP_Hdr ip = IP();
+	const zeek::IP_Hdr ip = IP();
 	d->Add(ip.SrcAddr());
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
+
+} // namespace zeek

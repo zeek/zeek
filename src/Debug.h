@@ -14,15 +14,22 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(DbgBreakpoint, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(DbgWatch, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(DbgDisplay, zeek::detail);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<Val>;
-}
+
+extern std::string current_module;
+
+namespace detail {
 
 // This needs to be defined before we do the includes that come after it.
-enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
-struct ParseLocationRec {
+enum ParseLocationRecType { PLR_UNKNOWN, PLR_FILE_AND_LINE, PLR_FUNCTION };
+class ParseLocationRec {
+public:
 	ParseLocationRecType type;
 	int32_t line;
 	zeek::detail::Stmt* stmt;
@@ -30,19 +37,10 @@ struct ParseLocationRec {
 };
 
 class StmtLocMapping;
-typedef zeek::PQueue<StmtLocMapping> Filemap; // mapping for a single file
+using Filemap = zeek::PQueue<StmtLocMapping>; // mapping for a single file
 
-class DbgBreakpoint;
-class DbgWatch;
-class DbgDisplay;
-class StmtHashFn;
-
-typedef std::map<int, DbgBreakpoint*> BPIDMapType;
-typedef std::multimap<const zeek::detail::Stmt*, DbgBreakpoint*> BPMapType;
-
-namespace zeek {
-extern std::string current_module;
-}
+using BPIDMapType = std::map<int, zeek::detail::DbgBreakpoint*>;
+using BPMapType = std::multimap<const zeek::detail::Stmt*, zeek::detail::DbgBreakpoint*>;
 
 class TraceState {
 public:
@@ -92,8 +90,8 @@ public:
 	zeek::detail::Location last_loc;	// used by 'list'; the last location listed
 
 	BPIDMapType breakpoints;	// BPID -> Breakpoint
-	std::vector<DbgWatch*> watches;
-	std::vector<DbgDisplay*> displays;
+	std::vector<zeek::detail::DbgWatch*> watches;
+	std::vector<zeek::detail::DbgDisplay*> displays;
 	BPMapType breakpoint_map;	// maps Stmt -> Breakpoints on it
 
 protected:
@@ -121,7 +119,6 @@ protected:
 	zeek::detail::Location loc;
 	zeek::detail::Stmt* stmt;
 };
-
 
 extern bool g_policy_debug;		// enable debugging facility
 extern DebuggerState g_debugger_state;
@@ -183,3 +180,36 @@ extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
+
+} // namespace zeek::detail
+} // namespace zeek
+
+constexpr auto plrUnknown [[deprecated("Remove in v4.1. Use zeek::detail::PLR_UNKNOWN.")]] = zeek::detail::PLR_UNKNOWN;
+constexpr auto plrFileAndLine [[deprecated("Remove in v4.1. Use zeek::detail::PLR_FILE_AND_LINE.")]] = zeek::detail::PLR_FILE_AND_LINE;
+constexpr auto plrFunction [[deprecated("Remove in v4.1. Use zeek::detail::PLR_FUNCTION.")]] = zeek::detail::PLR_FUNCTION;
+using ParseLocationRec [[deprecated("Remove in v4.1. Use zeek::detail::ParseLocationRec.")]] = zeek::detail::ParseLocationRec;
+using Filemap [[deprecated("Remove in v4.1. Use zeek::detail::Filemap.")]] = zeek::detail::Filemap;
+using BPIDMapType [[deprecated("Remove in v4.1. Use zeek::detail::BPIDMapType.")]] = zeek::detail::BPIDMapType;
+using BPMapType [[deprecated("Remove in v4.1. Use zeek::detail::BPMapType.")]] = zeek::detail::BPMapType;
+using TraceState [[deprecated("Remove in v4.1. Use zeek::detail::TraceState.")]] = zeek::detail::TraceState;
+using DebuggerState [[deprecated("Remove in v4.1. Use zeek::detail::DebuggerState.")]] = zeek::detail::DebuggerState;
+using StmtLocMapping [[deprecated("Remove in v4.1. Use zeek::detail::StmtLocMapping.")]] = zeek::detail::StmtLocMapping;
+
+constexpr auto parse_location_string [[deprecated("Remove in v4.1. Use zeek::detail::parse_location_string.")]] = zeek::detail::parse_location_string;
+constexpr auto pre_execute_stmt [[deprecated("Remove in v4.1. Use zeek::detail::pre_execute_stmt.")]] = zeek::detail::pre_execute_stmt;
+constexpr auto post_execute_stmt [[deprecated("Remove in v4.1. Use zeek::detail::post_execute_stmt.")]] = zeek::detail::post_execute_stmt;
+constexpr auto dbg_init_debugger [[deprecated("Remove in v4.1. Use zeek::detail::dbg_init_debugger.")]] = zeek::detail::dbg_init_debugger;
+constexpr auto dbg_shutdown_debugger [[deprecated("Remove in v4.1. Use zeek::detail::dbg_shutdown_debugger.")]] = zeek::detail::dbg_shutdown_debugger;
+constexpr auto dbg_handle_debug_input [[deprecated("Remove in v4.1. Use zeek::detail::dbg_handle_debug_input.")]] = zeek::detail::dbg_handle_debug_input;
+constexpr auto dbg_execute_command [[deprecated("Remove in v4.1. Use zeek::detail::dbg_execute_command.")]] = zeek::detail::dbg_execute_command;
+constexpr auto dbg_eval_expr [[deprecated("Remove in v4.1. Use zeek::detail::dbg_eval_expr.")]] = zeek::detail::dbg_eval_expr;
+constexpr auto dbg_read_internal_state [[deprecated("Remove in v4.1. Use zeek::detail::dbg_read_internal_state.")]] = zeek::detail::dbg_read_internal_state;
+constexpr auto get_context_description [[deprecated("Remove in v4.1. Use zeek::detail::get_context_description.")]] = zeek::detail::get_context_description;
+constexpr auto debug_msg [[deprecated("Remove in v4.1. Use zeek::detail::debug_msg.")]] = zeek::detail::debug_msg;
+
+extern bool& g_policy_debug [[deprecated("Remove in v4.1. Use zeek::detail:g_policy_debug")]];
+extern zeek::detail::DebuggerState& g_debugger_state [[deprecated("Remove in v4.1. Use zeek::detail:g_debugger_state")]];
+extern std::string& current_module [[deprecated("Remove in v4.1. Use zeek::current_module.")]];
+extern zeek::detail::TraceState& g_trace_state [[deprecated("Remove in v4.1. Use zeek::detail::g_trace_state.")]];
+extern zeek::detail::Frame*& g_dbg_locals [[deprecated("Remove in v4.1. Use zeek::detail::g_dbg_locals.")]];
+extern std::map<std::string, zeek::detail::Filemap*>& g_dbgfilemaps [[deprecated("Remove in v4.1. Use zeek::detail::g_dbgfilemaps.")]];

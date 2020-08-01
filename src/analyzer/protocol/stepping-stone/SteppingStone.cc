@@ -61,7 +61,7 @@ void SteppingStoneEndpoint::Done()
 	}
 
 bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
-		const u_char* data, const IP_Hdr* /* ip */,
+		const u_char* data, const zeek::IP_Hdr* /* ip */,
 		const struct tcphdr* tp)
 	{
 	if ( caplen < len )
@@ -129,7 +129,7 @@ bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen
 	return true;
 	}
 
-void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
+void SteppingStoneEndpoint::Event(zeek::EventHandlerPtr f, int id1, int id2)
 	{
 	if ( ! f )
 		return;
@@ -152,10 +152,10 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 	);
 	}
 
-SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
+SteppingStone_Analyzer::SteppingStone_Analyzer(zeek::Connection* c)
 : tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
-	stp_manager = sessions->GetSTPManager();
+	stp_manager = zeek::sessions->GetSTPManager();
 
 	orig_endp = resp_endp = nullptr;
 	orig_stream_pos = resp_stream_pos = 1;
@@ -172,7 +172,7 @@ void SteppingStone_Analyzer::Init()
 
 void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+						const zeek::IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
 						ip, caplen);

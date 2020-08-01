@@ -170,7 +170,7 @@ public:
 	 *
 	 * @param msg  The message. It will be prefixed with the thread's name.
 	 */
-	void Debug(DebugStream stream, const char* msg);
+	void Debug(zeek::DebugStream stream, const char* msg);
 #endif
 
 	/**

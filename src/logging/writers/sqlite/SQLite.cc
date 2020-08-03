@@ -64,7 +64,6 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 
 	case zeek::TYPE_INT:
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 	case zeek::TYPE_PORT: // note that we do not save the protocol at the moment. Just like in the case of the ascii-writer
 		type = "integer";
 		break;
@@ -250,7 +249,6 @@ int SQLite::AddParams(Value* val, int pos)
 		return sqlite3_bind_int(st, pos, val->val.int_val);
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return sqlite3_bind_int(st, pos, val->val.uint_val);
 
 	case zeek::TYPE_PORT:

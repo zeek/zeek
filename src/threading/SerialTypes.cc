@@ -131,7 +131,6 @@ bool Value::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	case zeek::TYPE_BOOL:
 	case zeek::TYPE_INT:
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 	case zeek::TYPE_PORT:
 	case zeek::TYPE_SUBNET:
 	case zeek::TYPE_ADDR:
@@ -192,7 +191,6 @@ bool Value::Read(zeek::detail::SerializationFormat* fmt)
 		return fmt->Read(&val.int_val, "int");
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return fmt->Read(&val.uint_val, "uint");
 
 	case zeek::TYPE_PORT: {
@@ -339,7 +337,6 @@ bool Value::Write(zeek::detail::SerializationFormat* fmt) const
 		return fmt->Write(val.int_val, "int");
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return fmt->Write(val.uint_val, "uint");
 
 	case zeek::TYPE_PORT:
@@ -452,7 +449,6 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			return zeek::val_mgr->Int(val->val.int_val).release();
 
 		case zeek::TYPE_COUNT:
-		case zeek::TYPE_COUNTER:
 			return zeek::val_mgr->Count(val->val.int_val).release();
 
 		case zeek::TYPE_DOUBLE:

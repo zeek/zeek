@@ -8,6 +8,12 @@ Zeek 4.0.0
 
 TODO: nothing notable yet
 
+Removed Functionality
+---------------------
+
+- The counter type was removed. This type was never fully functional/used
+  anywhere.
+
 Zeek 3.2.0
 ==========
 

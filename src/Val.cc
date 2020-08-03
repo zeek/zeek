@@ -517,10 +517,6 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			writer.Uint64(val->AsCount());
 			break;
 
-		case TYPE_COUNTER:
-			writer.Uint64(val->AsCounter());
-			break;
-
 		case TYPE_TIME:
 			writer.Double(val->AsTime());
 			break;
@@ -3449,7 +3445,7 @@ ValPtr check_and_promote(ValPtr v,
 			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v.get(), false, expr_location);
 			return nullptr;
 			}
-		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
+		else if ( t_tag == TYPE_COUNT )
 			promoted_v = zeek::val_mgr->Count(v->CoerceToUnsigned());
 		else // port
 			{

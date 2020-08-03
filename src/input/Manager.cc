@@ -809,7 +809,6 @@ bool Manager::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	case zeek::TYPE_BOOL:
 	case zeek::TYPE_INT:
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 	case zeek::TYPE_PORT:
 	case zeek::TYPE_SUBNET:
 	case zeek::TYPE_ADDR:
@@ -1929,7 +1928,6 @@ int Manager::GetValueLength(const Value* val) const
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		length += sizeof(val->val.uint_val);
 		break;
 
@@ -2025,7 +2023,6 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		return sizeof(val->val.int_val);
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		memcpy(data+startpos, (const void*) &(val->val.uint_val), sizeof(val->val.uint_val));
 		return sizeof(val->val.uint_val);
 
@@ -2214,7 +2211,6 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 		return zeek::val_mgr->Int(val->val.int_val).release();
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return zeek::val_mgr->Count(val->val.int_val).release();
 
 	case zeek::TYPE_DOUBLE:

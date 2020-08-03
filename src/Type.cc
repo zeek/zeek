@@ -203,7 +203,6 @@ TypePtr Type::ShallowClone()
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_COUNT:
-		case TYPE_COUNTER:
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
@@ -1543,7 +1542,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-	case TYPE_COUNTER:
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1745,7 +1743,6 @@ bool is_assignable(TypeTag t)
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-	case TYPE_COUNTER:
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1797,8 +1794,6 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		CHECK_TYPE(TYPE_INT);
 		CHECK_TYPE(TYPE_COUNT);
 
-		// Note - mixing two TYPE_COUNTER's still promotes to
-		// a TYPE_COUNT.
 		return TYPE_COUNT;
 		}
 	else

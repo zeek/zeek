@@ -93,8 +93,6 @@ struct val_converter {
 		{
 		if ( type->Tag() == zeek::TYPE_COUNT )
 			return zeek::val_mgr->Count(a);
-		if ( type->Tag() == zeek::TYPE_COUNTER )
-			return zeek::val_mgr->Count(a);
 		return nullptr;
 		}
 
@@ -463,8 +461,6 @@ struct type_checker {
 		{
 		if ( type->Tag() == zeek::TYPE_COUNT )
 			return true;
-		if ( type->Tag() == zeek::TYPE_COUNTER )
-			return true;
 		return false;
 		}
 
@@ -796,8 +792,6 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		return {v->AsInt()};
 	case zeek::TYPE_COUNT:
 		return {v->AsCount()};
-	case zeek::TYPE_COUNTER:
-		return {v->AsCounter()};
 	case zeek::TYPE_PORT:
 		{
 		auto p = v->AsPortVal();

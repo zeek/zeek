@@ -90,7 +90,6 @@ bool Ascii::Describe(zeek::ODesc* desc, threading::Value* val, const string& nam
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		desc->Add(val->val.uint_val);
 		break;
 
@@ -260,7 +259,6 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		val->val.uint_val = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;

@@ -179,7 +179,6 @@ void Plugin::RenderVal(const threading::Value* val, ODesc &d) const
 				break;
 
 			case TYPE_COUNT:
-			case TYPE_COUNTER:
 				d.Add(val->val.uint_val);
 				break;
 

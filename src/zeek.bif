@@ -48,7 +48,7 @@ bro_int_t parse_int(const char*& fmt)
 	}
 
 static zeek::TypeTag ok_d_fmt[] = {
-	zeek::TYPE_BOOL, zeek::TYPE_ENUM, zeek::TYPE_INT, zeek::TYPE_COUNT, zeek::TYPE_COUNTER, zeek::TYPE_PORT,
+	zeek::TYPE_BOOL, zeek::TYPE_ENUM, zeek::TYPE_INT, zeek::TYPE_COUNT, zeek::TYPE_PORT,
 	zeek::TYPE_SUBNET,
 	zeek::TYPE_ERROR
 };

@@ -1685,12 +1685,9 @@ BitExpr::BitExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	if ( (bt1 == zeek::TYPE_COUNT || bt1 == zeek::TYPE_COUNTER) &&
-	     (bt2 == zeek::TYPE_COUNT || bt2 == zeek::TYPE_COUNTER) )
+	if ( (bt1 == zeek::TYPE_COUNT) && (bt2 == zeek::TYPE_COUNT) )
 		{
-		if ( bt1 == zeek::TYPE_COUNTER && bt2 == zeek::TYPE_COUNTER )
-			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
-		else if ( is_vector(op1) || is_vector(op2) )
+		if ( is_vector(op1) || is_vector(op2) )
 			SetType(zeek::make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_COUNT)));
 		else
 			SetType(base_type(zeek::TYPE_COUNT));

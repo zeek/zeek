@@ -957,7 +957,6 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		}
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		lval->val.uint_val = val->InternalUnsigned();
 		break;
 

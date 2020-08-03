@@ -237,7 +237,6 @@ public:
 	CONST_ACCESSOR2(zeek::TYPE_BOOL, bool, int_val, AsBool)
 	CONST_ACCESSOR2(zeek::TYPE_INT, bro_int_t, int_val, AsInt)
 	CONST_ACCESSOR2(zeek::TYPE_COUNT, bro_uint_t, uint_val, AsCount)
-	CONST_ACCESSOR2(zeek::TYPE_COUNTER, bro_uint_t, uint_val, AsCounter)
 	CONST_ACCESSOR2(zeek::TYPE_DOUBLE, double, double_val, AsDouble)
 	CONST_ACCESSOR2(zeek::TYPE_TIME, double, double_val, AsTime)
 	CONST_ACCESSOR2(zeek::TYPE_INTERVAL, double, double_val, AsInterval)

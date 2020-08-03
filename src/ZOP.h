@@ -112,6 +112,8 @@ public:
 				const FrameReMap* mappings) const;
 	int NumFrameSlots() const;
 
+	// Returns nil if this instruction doesn't have an associated constant.
+	IntrusivePtr<Val> ConstVal() const;
 	const char* ConstDump() const;
 
 	ZOp op;

@@ -8,7 +8,7 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
 
-namespace analyzer { namespace pia {
+namespace zeek::analyzer::pia {
 
 // Abstract PIA class providing common functionality for both TCP and UDP.
 // Accepts only packet input.
@@ -118,10 +118,10 @@ protected:
 
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
 // packets before passing payload on to children).
-class PIA_TCP : public PIA, public tcp::TCP_ApplicationAnalyzer {
+class PIA_TCP : public PIA, public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit PIA_TCP(zeek::Connection* conn)
-		: PIA(this), tcp::TCP_ApplicationAnalyzer("PIA_TCP", conn)
+		: PIA(this), zeek::analyzer::tcp::TCP_ApplicationAnalyzer("PIA_TCP", conn)
 		{ stream_mode = false; SetConn(conn); }
 
 	~PIA_TCP() override;
@@ -172,4 +172,10 @@ private:
 	bool stream_mode;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::pia
+
+namespace analzyer::pia {
+	using PIA [[deprecated("Remove in v4.1. Use zeek::analyzer::pia::PIA.")]] = zeek::analyzer::pia::PIA;
+	using PIA_TCP [[deprecated("Remove in v4.1. Use zeek::analyzer::pia::PIA_TCP.")]] = zeek::analyzer::pia::PIA_TCP;
+	using PIA_UDP [[deprecated("Remove in v4.1. Use zeek::analyzer::pia::PIA_UDP.")]] = zeek::analyzer::pia::PIA_UDP;
+}

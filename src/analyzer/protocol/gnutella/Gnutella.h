@@ -33,7 +33,7 @@ public:
 };
 
 
-class Gnutella_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class Gnutella_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit Gnutella_Analyzer(zeek::Connection* conn);
 	~Gnutella_Analyzer() override;

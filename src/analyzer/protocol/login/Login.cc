@@ -28,7 +28,7 @@ static zeek::RE_Matcher* re_login_timeouts;
 static zeek::RE_Matcher* init_RE(zeek::ListVal* l);
 
 Login_Analyzer::Login_Analyzer(const char* name, zeek::Connection* conn)
-    : tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
+    : zeek::analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
 	num_user_lines_seen = lines_scanned = 0;
@@ -80,7 +80,7 @@ Login_Analyzer::~Login_Analyzer()
 
 void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	char* str = new char[length+1];
 
@@ -117,8 +117,8 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state == LOGIN_STATE_AUTHENTICATE )
 		{
-		if ( TCP()->OrigState() == tcp::TCP_ENDPOINT_PARTIAL ||
-		     TCP()->RespState() == tcp::TCP_ENDPOINT_PARTIAL )
+		if ( TCP()->OrigState() == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+		     TCP()->RespState() == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL )
 			state = LOGIN_STATE_CONFUSED;	// unknown login state
 		else
 			{
@@ -364,7 +364,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 void Login_Analyzer::EndpointEOF(bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
 
 	if ( state == LOGIN_STATE_AUTHENTICATE && HaveTypeahead() )
 		{

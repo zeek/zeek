@@ -7,7 +7,7 @@
 
 namespace analyzer { namespace finger {
 
-class Finger_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class Finger_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit Finger_Analyzer(zeek::Connection* conn);
 	~Finger_Analyzer() override {}
@@ -20,8 +20,8 @@ public:
 		{ return new Finger_Analyzer(conn); }
 
 protected:
-	tcp::ContentLine_Analyzer* content_line_orig;
-	tcp::ContentLine_Analyzer* content_line_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_resp;
 	int did_deliver;
 };
 

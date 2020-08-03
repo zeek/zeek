@@ -8,7 +8,7 @@ namespace analyzer { namespace login { class NVT_Analyzer; }}
 
 namespace analyzer { namespace ftp {
 
-class FTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class FTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit FTP_Analyzer(zeek::Connection* conn);
 

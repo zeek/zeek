@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace file {
 
-class File_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class File_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	File_Analyzer(const char* name, zeek::Connection* conn);
 

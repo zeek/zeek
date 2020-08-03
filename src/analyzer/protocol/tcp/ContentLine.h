@@ -4,13 +4,13 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 
-namespace analyzer { namespace tcp {
+namespace zeek::analyzer::tcp {
 
 #define CR_as_EOL 1
 #define LF_as_EOL 2
 
 // Slightly smaller than 16MB so that the buffer is not unnecessarily resized to 32M.
-#define DEFAULT_MAX_LINE_LENGTH 16 * 1024 * 1024 - 100
+constexpr auto DEFAULT_MAX_LINE_LENGTH = 16 * 1024 * 1024 - 100;
 
 class ContentLine_Analyzer : public TCP_SupportAnalyzer {
 public:
@@ -114,4 +114,8 @@ protected:
 	bool skip_partial;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::tcp
+
+namespace analyzer::tcp {
+	using ContentLine_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::ContentLine_Analyzer.")]] = zeek::analyzer::tcp::ContentLine_Analyzer;
+}

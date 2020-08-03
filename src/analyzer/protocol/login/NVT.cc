@@ -308,7 +308,7 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
 			break;
 			}
 
-		static_cast<tcp::TCP_ApplicationAnalyzer*>
+		static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>
 			(endp->Parent())->SetEnv(endp->IsOrig(),
 							var_name, var_val);
 		}
@@ -381,7 +381,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 
 NVT_Analyzer::NVT_Analyzer(zeek::Connection* conn, bool orig)
-	: tcp::ContentLine_Analyzer("NVT", conn, orig), options()
+	: zeek::analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options()
 	{
 	}
 

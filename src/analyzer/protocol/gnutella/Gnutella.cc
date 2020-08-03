@@ -34,7 +34,7 @@ GnutellaMsgState::GnutellaMsgState()
 
 
 Gnutella_Analyzer::Gnutella_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
 	{
 	state = 0;
 	new_state = 0;
@@ -54,7 +54,7 @@ Gnutella_Analyzer::~Gnutella_Analyzer()
 
 void Gnutella_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
@@ -126,9 +126,9 @@ bool Gnutella_Analyzer::IsHTTP(std::string header)
 		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			pia::PIA* pia = static_cast<zeek::analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
+			zeek::analyzer::pia::PIA* pia = static_cast<zeek::analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
 			if ( pia )
-				static_cast<pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
+				static_cast<zeek::analyzer::pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}
 
 		Parent()->RemoveChildAnalyzer(this);
@@ -301,7 +301,7 @@ void Gnutella_Analyzer::DeliverMessages(int len, const u_char* data, bool orig)
 
 void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	ms = orig ? orig_msg_state : resp_msg_state;
 	ms->current_offset = 0;

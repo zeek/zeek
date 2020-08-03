@@ -20,7 +20,7 @@ typedef enum {
 // Maximum # lines look after login for failure.
 #define MAX_LOGIN_LOOKAHEAD 10
 
-class Login_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class Login_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	Login_Analyzer(const char* name, zeek::Connection* conn);
 	~Login_Analyzer() override;

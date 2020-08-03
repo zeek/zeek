@@ -14,7 +14,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::tcp;
+namespace zeek::analyzer::tcp {
 
 TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 	{
@@ -319,3 +319,5 @@ void TCP_Endpoint::Gap(uint64_t seq, uint64_t len)
 					gap_cnt, gap_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_gap, IsOrig(), t);
 	}
+
+} // namespace zeek::analyzer::tcp

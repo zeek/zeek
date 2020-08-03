@@ -4,7 +4,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::tcp;
+namespace zeek::analyzer::tcp {
 
 TCPStateStats::TCPStateStats()
 	{
@@ -81,3 +81,5 @@ void TCPStateStats::PrintStats(zeek::File* file, const char* prefix)
 		file->Write("\n");
 		}
 	}
+
+} // namespace zeek::analyzer::tcp

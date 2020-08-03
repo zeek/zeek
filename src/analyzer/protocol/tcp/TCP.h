@@ -13,13 +13,13 @@
 // - TCP_ApplicationAnalyzer is an abstract base class for analyzers for a
 //   protocol running on top of TCP.
 //
-namespace analyzer { namespace pia { class PIA_TCP; } };
 
-namespace analyzer { namespace tcp {
+ZEEK_FORWARD_DECLARE_NAMESPACED(PIA_TCP, zeek, analyzer::pia);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Endpoint, zeek, analyzer::tcp);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Reassembler, zeek, analyzer::tcp);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_ApplicationAnalyzer, zeek, analyzer::tcp);
 
-class TCP_Endpoint;
-class TCP_ApplicationAnalyzer;
-class TCP_Reassembler;
+namespace zeek::analyzer::tcp {
 
 class TCP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
@@ -74,7 +74,7 @@ public:
 protected:
 	friend class TCP_ApplicationAnalyzer;
 	friend class TCP_Reassembler;
-	friend class analyzer::pia::PIA_TCP;
+	friend class zeek::analyzer::pia::PIA_TCP;
 
 	// Analyzer interface.
 	void Init() override;
@@ -302,4 +302,12 @@ protected:
 	TCPStats_Endpoint* resp_stats;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::tcp
+
+namespace analyzer::tcp {
+	using TCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Analyzer.")]] = zeek::analyzer::tcp::TCP_Analyzer;
+	using TCP_ApplicationAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ApplicationAnalyzer.")]] = zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
+	using TCP_SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_SupportAnalyzer.")]] = zeek::analyzer::tcp::TCP_SupportAnalyzer;
+	using TCPStats_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Endpoint.")]] = zeek::analyzer::tcp::TCPStats_Endpoint;
+	using TCPStats_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Analyzer.")]] = zeek::analyzer::tcp::TCPStats_Analyzer;
+}

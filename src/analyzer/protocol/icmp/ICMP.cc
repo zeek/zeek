@@ -18,7 +18,7 @@
 
 #include <netinet/icmp6.h>
 
-using namespace analyzer::icmp;
+namespace zeek::analyzer::icmp {
 
 ICMP_Analyzer::ICMP_Analyzer(zeek::Connection* c)
 	: TransportLayerAnalyzer("ICMP", c),
@@ -873,7 +873,7 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 	return vv;
 	}
 
-int analyzer::icmp::ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 
@@ -901,7 +901,7 @@ int analyzer::icmp::ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one
 	}
 	}
 
-int analyzer::icmp::ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 
@@ -932,3 +932,5 @@ int analyzer::icmp::ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one
 	default:			is_one_way = true; return icmp_code;
 	}
 	}
+
+} // namespace zeek::analyzer::icmp

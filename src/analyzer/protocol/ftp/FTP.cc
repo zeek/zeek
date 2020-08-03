@@ -18,7 +18,7 @@
 using namespace analyzer::ftp;
 
 FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("FTP", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
 
@@ -43,11 +43,11 @@ FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
 
 void FTP_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( nvt_orig->HasPartialLine() &&
-	     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
-	      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) )
+	     (TCP()->OrigState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED ||
+	      TCP()->OrigPrevState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED) )
 		// ### should include the partial text
 		Weird("partial_ftp_request");
 	}
@@ -62,7 +62,7 @@ static uint32_t get_reply_code(int len, const char* line)
 
 void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
 
 	if ( (orig && ! ftp_request) || (! orig && ! ftp_reply) )
 		return;

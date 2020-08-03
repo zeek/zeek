@@ -7,7 +7,7 @@
 
 namespace analyzer { namespace rdp {
 
-class RDP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class RDP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit RDP_Analyzer(zeek::Connection* conn);
@@ -26,7 +26,7 @@ protected:
 	binpac::RDP::RDP_Conn* interp;
 
 	bool had_gap;
-	pia::PIA_TCP *pia;
+	zeek::analyzer::pia::PIA_TCP *pia;
 };
 
 } } // namespace analyzer::*

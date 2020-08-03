@@ -22,7 +22,7 @@ typedef enum {
 
 class Rsh_Analyzer;
 
-class Contents_Rsh_Analyzer final : public tcp::ContentLine_Analyzer {
+class Contents_Rsh_Analyzer final : public zeek::analyzer::tcp::ContentLine_Analyzer {
 public:
 	Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig, Rsh_Analyzer* analyzer);
 	~Contents_Rsh_Analyzer() override;

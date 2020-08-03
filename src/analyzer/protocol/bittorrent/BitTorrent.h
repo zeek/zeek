@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace bittorrent {
 
-class BitTorrent_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class BitTorrent_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit BitTorrent_Analyzer(zeek::Connection* conn);
 	~BitTorrent_Analyzer() override;

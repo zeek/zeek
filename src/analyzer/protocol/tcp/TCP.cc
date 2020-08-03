@@ -19,12 +19,12 @@
 #include "events.bif.h"
 #include "types.bif.h"
 
-using namespace analyzer::tcp;
-
 namespace { // local namespace
 	const bool DEBUG_tcp_data_sent = false;
 	const bool DEBUG_tcp_connection_close = false;
 }
+
+namespace zeek::analyzer::tcp {
 
 // The following are not included in all systems' tcp.h.
 
@@ -35,7 +35,6 @@ namespace { // local namespace
 #ifndef TH_CWR
 #define TH_CWR  0x80
 #endif
-
 
 #define TOO_LARGE_SEQ_DELTA 1048576
 
@@ -822,7 +821,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
-		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		auto* pia = static_cast<zeek::analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= ORIG;
@@ -830,7 +829,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 
 	if ( ! is_orig && ! (first_packet_seen & RESP) )
 		{
-		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		auto* pia = static_cast<zeek::analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= RESP;
@@ -838,8 +837,8 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	}
 
 uint64_t TCP_Analyzer::get_relative_seq(const TCP_Endpoint* endpoint,
-                                      uint32_t cur_base, uint32_t last,
-                                      uint32_t wraps, bool* underflow)
+                                        uint32_t cur_base, uint32_t last,
+                                        uint32_t wraps, bool* underflow)
 	{
 	int32_t delta = seq_delta(cur_base, last);
 
@@ -2133,3 +2132,5 @@ void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	else
 		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
 	}
+
+} // namespace zeek::analyzer::tcp

@@ -8,7 +8,7 @@
 #include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
-using namespace analyzer::pia;
+namespace zeek::analyzer::pia {
 
 PIA::PIA(zeek::analyzer::Analyzer* arg_as_analyzer)
 	: state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
@@ -193,7 +193,7 @@ PIA_TCP::~PIA_TCP()
 
 void PIA_TCP::Init()
 	{
-	tcp::TCP_ApplicationAnalyzer::Init();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Init();
 
 	if ( Parent()->IsAnalyzer("TCP") )
 		{
@@ -253,7 +253,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 
 void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( stream_buffer.state == SKIPPING )
 		return;
@@ -283,7 +283,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( stream_buffer.state == BUFFERING )
 		// We use data=nil to mark an undelivered.
@@ -435,3 +435,5 @@ void PIA_TCP::ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer)
 			analyzer->NextUndelivered(b->seq, b->len, b->is_orig);
 		}
 	}
+
+} // namespace zeek::analyzer::pia

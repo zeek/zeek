@@ -19,6 +19,8 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_ApplicationAnalyzer, zeek, analyzer::tcp);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PIA, zeek, analyzer::pia);
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
@@ -28,11 +30,6 @@ using FilePtr = zeek::IntrusivePtr<File>;
 
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
-
-namespace analyzer {
-namespace tcp { class TCP_ApplicationAnalyzer; }
-namespace pia { class PIA; }
-}
 
 namespace zeek::analyzer {
 
@@ -633,7 +630,7 @@ protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
 	friend class zeek::Connection;
-	friend class ::analyzer::tcp::TCP_ApplicationAnalyzer;
+	friend class zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
 
 	/**
 	 * Return a string represantation of an analyzer, containing its name
@@ -938,13 +935,13 @@ public:
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(zeek::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	::analyzer::pia::PIA* GetPIA() const		{ return pia; }
+	zeek::analyzer::pia::PIA* GetPIA() const		{ return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -956,7 +953,7 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 private:
-	::analyzer::pia::PIA* pia;
+	zeek::analyzer::pia::PIA* pia;
 };
 
 } // namespace zeek::analyzer

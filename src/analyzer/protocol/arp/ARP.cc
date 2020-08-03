@@ -7,7 +7,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::arp;
+namespace zeek::analyzer::arp {
 
 ARP_Analyzer::ARP_Analyzer()
 	{
@@ -240,3 +240,5 @@ zeek::StringValPtr ARP_Analyzer::ToEthAddrStr(const u_char* addr)
 			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 	return zeek::make_intrusive<zeek::StringVal>(buf);
 	}
+
+} // namespace zeek::analyzer::arp

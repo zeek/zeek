@@ -5,14 +5,14 @@
 #include "analyzer/Analyzer.h"
 #include <netinet/udp.h>
 
-namespace analyzer { namespace udp {
+namespace zeek::analyzer::udp {
 
-typedef enum {
+enum UDP_EndpointState {
 	UDP_INACTIVE,	// no packet seen
 	UDP_ACTIVE,	// packets seen
-} UDP_EndpointState;
+};
 
-		class UDP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
+class UDP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
 	explicit UDP_Analyzer(zeek::Connection* conn);
 	~UDP_Analyzer() override;
@@ -51,4 +51,14 @@ private:
 	uint32_t rep_chk_cnt, rep_chk_thresh;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::udp
+
+namespace analyzer::udp {
+
+	using UDP_EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_EndpointState.")]] = zeek::analyzer::udp::UDP_EndpointState;
+	constexpr auto UDP_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_INACTIVE.")]] = zeek::analyzer::udp::UDP_INACTIVE;
+	constexpr auto UDP_ACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_ACTIVE.")]] = zeek::analyzer::udp::UDP_ACTIVE;
+
+	using UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_Analyzer.")]] = zeek::analyzer::udp::UDP_Analyzer;
+
+} // namespace analyzer::udp

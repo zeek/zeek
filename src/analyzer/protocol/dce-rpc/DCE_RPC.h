@@ -11,7 +11,7 @@
 
 namespace analyzer { namespace dce_rpc {
 
-class DCE_RPC_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class DCE_RPC_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit DCE_RPC_Analyzer(zeek::Connection* conn);
 	~DCE_RPC_Analyzer() override;

@@ -43,7 +43,7 @@ enum btt_benc_states {
 	BENC_STATE_STR2,
 };
 
-class BitTorrentTracker_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class BitTorrentTracker_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit BitTorrentTracker_Analyzer(zeek::Connection* conn);
 	~BitTorrentTracker_Analyzer() override;

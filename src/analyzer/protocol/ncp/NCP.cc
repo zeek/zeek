@@ -164,7 +164,7 @@ void NCP_FrameBuffer::compute_msg_length()
 	}
 
 Contents_NCP_Analyzer::Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, NCP_Session* arg_session)
-: tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
+: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
 	resync = true;
@@ -177,7 +177,7 @@ Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
 
 void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	auto tcp = static_cast<NCP_Analyzer*>(Parent())->TCP();
 
@@ -185,7 +185,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		{
 		resync_set = true;
 		resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-						tcp::TCP_ENDPOINT_ESTABLISHED;
+			zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
 		}
 
 	if ( tcp && tcp->HadGap(orig) )
@@ -238,14 +238,14 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 
 void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 
 	buffer.Reset();
 	resync = true;
 	}
 
 NCP_Analyzer::NCP_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("NCP", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NCP", conn)
 	{
 	session = new NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);

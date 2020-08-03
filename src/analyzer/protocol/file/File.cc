@@ -19,7 +19,7 @@ File_Analyzer::File_Analyzer(const char* name, zeek::Connection* conn)
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	int n = std::min(len, BUFFER_SIZE - buffer_len);
 
@@ -54,7 +54,7 @@ void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 
 void File_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( buffer_len && buffer_len != BUFFER_SIZE )
 		Identify();

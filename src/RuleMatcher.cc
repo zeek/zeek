@@ -184,8 +184,8 @@ void RuleHdrTest::PrintDebug()
 	}
 
 RuleEndpointState::RuleEndpointState(zeek::analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
-					  RuleEndpointState* arg_opposite,
-					  ::analyzer::pia::PIA* arg_PIA)
+                                     RuleEndpointState* arg_opposite,
+                                     zeek::analyzer::pia::PIA* arg_PIA)
 	{
 	payload_size = -1;
 	analyzer = arg_analyzer;
@@ -741,7 +741,7 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 RuleEndpointState* RuleMatcher::InitEndpoint(zeek::analyzer::Analyzer* analyzer,
                                              const zeek::IP_Hdr* ip, int caplen,
                                              RuleEndpointState* opposite,
-                                             bool from_orig, ::analyzer::pia::PIA* pia)
+                                             bool from_orig, zeek::analyzer::pia::PIA* pia)
 	{
 	RuleEndpointState* state =
 		new RuleEndpointState(analyzer, from_orig, opposite, pia);
@@ -1420,7 +1420,7 @@ uint32_t id_to_uint(const char* id)
 	}
 
 void RuleMatcherState::InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
-                                           int caplen, bool from_orig, ::analyzer::pia::PIA* pia)
+                                           int caplen, bool from_orig, zeek::analyzer::pia::PIA* pia)
 	{
 	if ( ! rule_matcher )
 		return;

@@ -7,7 +7,7 @@
 using namespace analyzer::rdp;
 
 RDP_Analyzer::RDP_Analyzer(zeek::Connection* c)
-	: tcp::TCP_ApplicationAnalyzer("RDP", c)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);
 
@@ -22,7 +22,7 @@ RDP_Analyzer::~RDP_Analyzer()
 
 void RDP_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -30,13 +30,13 @@ void RDP_Analyzer::Done()
 
 void RDP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -56,7 +56,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			if ( ! pia )
 				{
-				pia = new pia::PIA_TCP(Conn());
+				pia = new zeek::analyzer::pia::PIA_TCP(Conn());
 
 				if ( ! AddChildAnalyzer(pia) )
 					{
@@ -95,7 +95,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void RDP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

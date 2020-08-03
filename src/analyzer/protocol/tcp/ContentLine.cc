@@ -4,7 +4,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::tcp;
+namespace zeek::analyzer::tcp {
 
 ContentLine_Analyzer::ContentLine_Analyzer(zeek::Connection* conn, bool orig, int max_line_length)
 : TCP_SupportAnalyzer("CONTENTLINE", conn, orig), max_line_length(max_line_length)
@@ -338,3 +338,5 @@ void ContentLine_Analyzer::SkipBytes(int64_t length)
 	skip_pending = 0;
 	seq_to_skip = SeqDelivered() + length;
 	}
+
+} // namespace zeek::analyzer::tcp

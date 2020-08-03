@@ -1797,7 +1797,7 @@ zeek::RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 
 Contents_DNS::Contents_DNS(zeek::Connection* conn, bool orig,
 				DNS_Interpreter* arg_interp)
-: tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
+: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
 	{
 	interp = arg_interp;
 
@@ -1890,7 +1890,7 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 	}
 
 DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("DNS", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("DNS", conn)
 	{
 	interp = new DNS_Interpreter(this);
 	contents_dns_orig = contents_dns_resp = nullptr;
@@ -1921,7 +1921,7 @@ void DNS_Analyzer::Init()
 
 void DNS_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		Event(udp_session_done);
@@ -1932,15 +1932,16 @@ void DNS_Analyzer::Done()
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->ParseMessage(data, len, orig ? 1 : 0);
 	}
 
 
-void DNS_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint, tcp::TCP_Endpoint* peer,
-					bool gen_event)
+void DNS_Analyzer::ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
+                                    zeek::analyzer::tcp::TCP_Endpoint* peer,
+                                    bool gen_event)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
 	assert(contents_dns_orig && contents_dns_resp);
 	contents_dns_orig->Flush();

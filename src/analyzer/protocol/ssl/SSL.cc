@@ -11,7 +11,7 @@
 using namespace analyzer::ssl;
 
 SSL_Analyzer::SSL_Analyzer(zeek::Connection* c)
-: tcp::TCP_ApplicationAnalyzer("SSL", c)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
@@ -26,7 +26,7 @@ SSL_Analyzer::~SSL_Analyzer()
 
 void SSL_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -36,7 +36,7 @@ void SSL_Analyzer::Done()
 
 void SSL_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	handshake_interp->FlowEOF(is_orig);
 	}
@@ -50,7 +50,7 @@ void SSL_Analyzer::StartEncryption()
 
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -86,7 +86,7 @@ void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, 
 
 void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

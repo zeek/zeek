@@ -334,7 +334,7 @@ void NetbiosSSN_Interpreter::Event(zeek::EventHandlerPtr event, const u_char* da
 
 Contents_NetbiosSSN::Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
                                          NetbiosSSN_Interpreter* arg_interp)
-: tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
+: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
 	type = flags = msg_size = 0;
@@ -365,7 +365,7 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 
 void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	{
-	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	if ( state == NETBIOS_SSN_TYPE )
 		{
@@ -454,7 +454,7 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
 	{
 	//smb_session = new SMB_Session(this);
 	interp = new NetbiosSSN_Interpreter(this);
@@ -484,7 +484,7 @@ NetbiosSSN_Analyzer::~NetbiosSSN_Analyzer()
 
 void NetbiosSSN_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 	interp->Timeout();
 
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP && ! did_session_done )
@@ -495,15 +495,15 @@ void NetbiosSSN_Analyzer::Done()
 
 void NetbiosSSN_Analyzer::EndpointEOF(bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
 
 	(orig ? orig_netbios : resp_netbios)->Flush();
 	}
 
-void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-				tcp::TCP_Endpoint* peer, bool gen_event)
+void NetbiosSSN_Analyzer::ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
+                                           zeek::analyzer::tcp::TCP_Endpoint* peer, bool gen_event)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
 	// Question: Why do we flush *both* endpoints upon connection close?
 	// orig_netbios->Flush();
@@ -513,7 +513,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 	if ( orig )
 		interp->ParseMessageUDP(data, len, true);

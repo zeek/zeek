@@ -100,8 +100,8 @@ class HTTP_Message final : public mime::MIME_Message {
 friend class HTTP_Entity;
 
 public:
-	HTTP_Message(HTTP_Analyzer* analyzer, tcp::ContentLine_Analyzer* cl,
-			 bool is_orig, int expect_body, int64_t init_header_length);
+	HTTP_Message(HTTP_Analyzer* analyzer, zeek::analyzer::tcp::ContentLine_Analyzer* cl,
+	             bool is_orig, int expect_body, int64_t init_header_length);
 	~HTTP_Message() override;
 	void Done(bool interrupted, const char* msg);
 	void Done() override { Done(false, "message ends normally"); }
@@ -129,7 +129,7 @@ public:
 
 protected:
 	HTTP_Analyzer* analyzer;
-	tcp::ContentLine_Analyzer* content_line;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line;
 	bool is_orig;
 
 	char* entity_data_buffer;
@@ -148,7 +148,7 @@ protected:
 	zeek::RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
 };
 
-class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class HTTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	HTTP_Analyzer(zeek::Connection* conn);
 
@@ -168,7 +168,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer
 	void EndpointEOF(bool is_orig) override;
 	void ConnectionFinished(bool half_finished) override;
 	void ConnectionReset() override;
@@ -210,8 +210,8 @@ protected:
 	int HTTP_RequestLine(const char* line, const char* end_of_line);
 	int HTTP_ReplyLine(const char* line, const char* end_of_line);
 
-	void InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig,
-				int expect_body, int64_t init_header_length);
+	void InitHTTPMessage(zeek::analyzer::tcp::ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig,
+	                     int expect_body, int64_t init_header_length);
 
 	const char* PrefixMatch(const char* line, const char* end_of_line,
 				const char* prefix);
@@ -248,7 +248,7 @@ protected:
 	int request_ongoing, reply_ongoing;
 
 	bool connect_request;
-	pia::PIA_TCP *pia;
+	zeek::analyzer::pia::PIA_TCP *pia;
 	// set to true after a connection was upgraded
 	bool upgraded;
 	// set to true when encountering an "connection" header in a reply.
@@ -271,8 +271,8 @@ protected:
 	int reply_code;
 	zeek::StringValPtr reply_reason_phrase;
 
-	tcp::ContentLine_Analyzer* content_line_orig;
-	tcp::ContentLine_Analyzer* content_line_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_resp;
 
 	HTTP_Message* request_message;
 	HTTP_Message* reply_message;

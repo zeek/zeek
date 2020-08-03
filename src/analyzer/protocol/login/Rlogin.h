@@ -30,7 +30,7 @@ typedef enum {
 
 class Rlogin_Analyzer;
 
-class Contents_Rlogin_Analyzer final : public tcp::ContentLine_Analyzer {
+class Contents_Rlogin_Analyzer final : public zeek::analyzer::tcp::ContentLine_Analyzer {
 public:
 	Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig,
 	                         Rlogin_Analyzer* analyzer);

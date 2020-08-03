@@ -303,9 +303,9 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, ::analyzer::pia::PIA* pia);
+	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, zeek::analyzer::pia::PIA* pia);
 	zeek::analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
-	::analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
+	zeek::analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
@@ -382,7 +382,7 @@ protected:
 	uint32_t hist_seen;
 
 	zeek::analyzer::TransportLayerAnalyzer* root_analyzer;
-	::analyzer::pia::PIA* primary_PIA;
+	zeek::analyzer::pia::PIA* primary_PIA;
 
 	zeek::UID uid;	// Globally unique connection ID.
 	zeek::detail::WeirdStateMap weird_state;

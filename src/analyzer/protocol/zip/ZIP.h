@@ -9,7 +9,7 @@
 
 namespace analyzer { namespace zip {
 
-class ZIP_Analyzer final : public tcp::TCP_SupportAnalyzer {
+class ZIP_Analyzer final : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
 public:
 	enum Method { GZIP, DEFLATE };
 

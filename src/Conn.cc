@@ -690,7 +690,8 @@ void Connection::IDString(zeek::ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-void Connection::SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, ::analyzer::pia::PIA* pia)
+void Connection::SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer,
+                                 zeek::analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;

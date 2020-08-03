@@ -11,7 +11,7 @@
 
 namespace analyzer { namespace sip_tcp {
 
-class SIP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class SIP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SIP_Analyzer(zeek::Connection* conn);
 	~SIP_Analyzer() override;
@@ -20,7 +20,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)

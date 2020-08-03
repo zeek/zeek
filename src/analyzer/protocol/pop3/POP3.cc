@@ -27,7 +27,7 @@ static const char* pop3_cmd_word[] = {
 
 
 POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("POP3", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("POP3", conn)
 	{
 	masterState = POP3_START;
 	subState = POP3_WOK;
@@ -45,10 +45,10 @@ POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
 
 	mail = nullptr;
 
-	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
+	cl_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(cl_orig);
 
-	cl_resp = new tcp::ContentLine_Analyzer(conn, false);
+	cl_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false);
 	AddSupportAnalyzer(cl_resp);
 	}
 
@@ -58,7 +58,7 @@ POP3_Analyzer::~POP3_Analyzer()
 
 void POP3_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( mail )
 		EndData();
@@ -67,7 +67,7 @@ void POP3_Analyzer::Done()
 
 void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	if ( tls )
 		{

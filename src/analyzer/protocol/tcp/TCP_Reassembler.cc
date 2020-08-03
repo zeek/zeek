@@ -11,13 +11,13 @@
 
 #include <algorithm>
 
-using namespace analyzer::tcp;
+namespace zeek::analyzer::tcp {
 
 // Note, sequence numbers are relative. I.e., they start with 1.
 
-const bool DEBUG_tcp_contents = false;
-const bool DEBUG_tcp_connection_close = false;
-const bool DEBUG_tcp_match_undelivered = false;
+constexpr bool DEBUG_tcp_contents = false;
+constexpr bool DEBUG_tcp_connection_close = false;
+constexpr bool DEBUG_tcp_match_undelivered = false;
 
 TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
                                  TCP_Analyzer* arg_tcp_analyzer,
@@ -680,3 +680,5 @@ bool TCP_Reassembler::DataPending() const
 
 	return false;
 	}
+
+} // namespace zeek::analyzer::tcp

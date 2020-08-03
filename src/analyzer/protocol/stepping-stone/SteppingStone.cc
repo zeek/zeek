@@ -13,9 +13,9 @@
 #include "util.h"
 #include "events.bif.h"
 
-using namespace analyzer::stepping_stone;
+namespace zeek::analyzer::stepping_stone {
 
-SteppingStoneEndpoint::SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m)
+SteppingStoneEndpoint::SteppingStoneEndpoint(zeek::analyzer::tcp::TCP_Endpoint* e, SteppingStoneManager* m)
 	{
 	endp = e;
 	stp_max_top_seq = 0;
@@ -61,8 +61,8 @@ void SteppingStoneEndpoint::Done()
 	}
 
 bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
-		const u_char* data, const zeek::IP_Hdr* /* ip */,
-		const struct tcphdr* tp)
+                                     const u_char* data, const zeek::IP_Hdr* /* ip */,
+                                     const struct tcphdr* tp)
 	{
 	if ( caplen < len )
 		len = caplen;
@@ -153,7 +153,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 	}
 
 SteppingStone_Analyzer::SteppingStone_Analyzer(zeek::Connection* c)
-: tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
 	stp_manager = zeek::sessions->GetSTPManager();
 
@@ -163,7 +163,7 @@ SteppingStone_Analyzer::SteppingStone_Analyzer(zeek::Connection* c)
 
 void SteppingStone_Analyzer::Init()
 	{
-	tcp::TCP_ApplicationAnalyzer::Init();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Init();
 
 	assert(TCP());
 	orig_endp = new SteppingStoneEndpoint(TCP()->Orig(), stp_manager);
@@ -171,11 +171,11 @@ void SteppingStone_Analyzer::Init()
 	}
 
 void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
-						bool is_orig, uint64_t seq,
-						const zeek::IP_Hdr* ip, int caplen)
+                                           bool is_orig, uint64_t seq,
+                                           const zeek::IP_Hdr* ip, int caplen)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
-						ip, caplen);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
+	                                                            ip, caplen);
 
 	if ( is_orig )
 		orig_endp->DataSent(network_time, seq, len, caplen, data, nullptr, nullptr);
@@ -186,7 +186,7 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
 						bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( is_orig )
 		{
@@ -205,7 +205,7 @@ void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
 
 void SteppingStone_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	orig_endp->Done();
 	resp_endp->Done();
@@ -213,3 +213,5 @@ void SteppingStone_Analyzer::Done()
 	Unref(orig_endp);
 	Unref(resp_endp);
 	}
+
+} // namespace zeek::analyzer::stepping_stone

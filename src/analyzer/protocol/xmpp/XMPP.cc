@@ -7,7 +7,7 @@
 using namespace analyzer::xmpp;
 
 XMPP_Analyzer::XMPP_Analyzer(zeek::Connection* conn)
-	: tcp::TCP_ApplicationAnalyzer("XMPP", conn)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("XMPP", conn)
 	{
 	interp = unique_ptr<binpac::XMPP::XMPP_Conn>(new binpac::XMPP::XMPP_Conn(this));
 	had_gap = false;
@@ -20,7 +20,7 @@ XMPP_Analyzer::~XMPP_Analyzer()
 
 void XMPP_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -28,13 +28,13 @@ void XMPP_Analyzer::Done()
 
 void XMPP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void XMPP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	if ( tls_active )
 		{
@@ -66,7 +66,7 @@ void XMPP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void XMPP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

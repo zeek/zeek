@@ -37,10 +37,7 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IntSet, zeek::detail);
-
-namespace analyzer {
-	namespace pia { class PIA; }
-}
+ZEEK_FORWARD_DECLARE_NAMESPACED(PIA, zeek, analyzer::pia);
 
 namespace zeek::detail {
 
@@ -154,7 +151,7 @@ public:
 	// Returns -1 if no chunk has been fed yet at all.
 	int PayloadSize()	{ return payload_size; }
 
-	::analyzer::pia::PIA* PIA() const	{ return pia; }
+	zeek::analyzer::pia::PIA* PIA() const	{ return pia; }
 
 private:
 	friend class RuleMatcher;
@@ -162,7 +159,7 @@ private:
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
 	RuleEndpointState(zeek::analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
-	                  RuleEndpointState* arg_opposite, ::analyzer::pia::PIA* arg_PIA);
+	                  RuleEndpointState* arg_opposite, zeek::analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher {
 		RE_Match_State* state;
@@ -173,7 +170,7 @@ private:
 
 	zeek::analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
-	::analyzer::pia::PIA* pia;
+	zeek::analyzer::pia::PIA* pia;
 
 	matcher_list matchers;
 	rule_hdr_test_list hdr_tests;
@@ -267,7 +264,7 @@ public:
 	// it needs to be given.
 	RuleEndpointState* InitEndpoint(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
 	                                int caplen, RuleEndpointState* opposite, bool is_orig,
-	                                ::analyzer::pia::PIA* pia);
+	                                zeek::analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
 	void FinishEndpoint(RuleEndpointState* state);
@@ -376,7 +373,7 @@ public:
 
 	// ip may be nil.
 	void InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
-	                         int caplen, bool from_orig, ::analyzer::pia::PIA* pia = nullptr);
+	                         int caplen, bool from_orig, zeek::analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

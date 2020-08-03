@@ -82,7 +82,7 @@ protected:
 	void compute_msg_length() override;
 };
 
-class Contents_NCP_Analyzer : public tcp::TCP_SupportAnalyzer {
+class Contents_NCP_Analyzer : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, NCP_Session* session);
 	~Contents_NCP_Analyzer() override;
@@ -99,7 +99,7 @@ protected:
 	bool resync_set;
 };
 
-class NCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class NCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit NCP_Analyzer(zeek::Connection* conn);
 	~NCP_Analyzer() override;

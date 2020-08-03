@@ -3,7 +3,7 @@
 
 #include "TCP_Endpoint.h"
 
-namespace analyzer { namespace tcp {
+namespace zeek::analyzer::tcp {
 
 // A TCPStateStats object tracks the distribution of TCP states for
 // the currently active connections.
@@ -65,4 +65,8 @@ private:
 	unsigned int state_cnt[TCP_ENDPOINT_RESET+1][TCP_ENDPOINT_RESET+1];
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::tcp
+
+namespace analyzer::tcp {
+	using TCPStateStats [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStateStats.")]] = zeek::analyzer::tcp::TCPStateStats;
+}

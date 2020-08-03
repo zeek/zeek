@@ -61,7 +61,7 @@ typedef enum {
 	POP3_WOK,
 } POP3_SubState;
 
-class POP3_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class POP3_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit POP3_Analyzer(zeek::Connection* conn);
 	~POP3_Analyzer() override;
@@ -110,8 +110,8 @@ protected:
 
 private:
 	bool tls;
-	tcp::ContentLine_Analyzer* cl_orig;
-	tcp::ContentLine_Analyzer* cl_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } } // namespace analyzer::*

@@ -7,7 +7,7 @@
 using namespace analyzer::imap;
 
 IMAP_Analyzer::IMAP_Analyzer(zeek::Connection* conn)
-	: tcp::TCP_ApplicationAnalyzer("IMAP", conn)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IMAP", conn)
 	{
 	interp = new binpac::IMAP::IMAP_Conn(this);
 	had_gap = false;
@@ -21,7 +21,7 @@ IMAP_Analyzer::~IMAP_Analyzer()
 
 void IMAP_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -29,13 +29,13 @@ void IMAP_Analyzer::Done()
 
 void IMAP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	if ( tls_active )
 		{
@@ -67,7 +67,7 @@ void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void IMAP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

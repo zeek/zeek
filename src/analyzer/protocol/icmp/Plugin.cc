@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("ICMP", ::analyzer::icmp::ICMP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("ICMP", zeek::analyzer::icmp::ICMP_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::ICMP";

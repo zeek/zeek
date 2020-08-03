@@ -10,7 +10,7 @@ namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace ssl {
 
-class SSL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class SSL_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SSL_Analyzer(zeek::Connection* conn);
 	~SSL_Analyzer() override;
@@ -25,7 +25,7 @@ public:
 	// Tell the analyzer that encryption has started.
 	void StartEncryption();
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)

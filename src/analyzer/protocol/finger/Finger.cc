@@ -14,24 +14,24 @@
 using namespace analyzer::finger;
 
 Finger_Analyzer::Finger_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("FINGER", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("FINGER", conn)
 	{
 	did_deliver = 0;
-	content_line_orig = new tcp::ContentLine_Analyzer(conn, true, 1000);
+	content_line_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true, 1000);
 	content_line_orig->SetIsNULSensitive(true);
-	content_line_resp = new tcp::ContentLine_Analyzer(conn, false, 1000);
+	content_line_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false, 1000);
 	AddSupportAnalyzer(content_line_orig);
 	AddSupportAnalyzer(content_line_resp);
 	}
 
 void Finger_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( TCP() )
 		if ( (! did_deliver || content_line_orig->HasPartialLine()) &&
-		     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
-		      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) )
+		     (TCP()->OrigState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED ||
+		      TCP()->OrigPrevState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED) )
 			// ### should include the partial text
 			Weird("partial_finger_request");
 	}

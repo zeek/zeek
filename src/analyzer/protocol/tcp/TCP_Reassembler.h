@@ -7,10 +7,9 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Analyzer, zeek, analyzer::tcp);
 
-namespace analyzer::tcp {
-
-class TCP_Analyzer;
+namespace zeek::analyzer::tcp {
 
 class TCP_Reassembler final : public zeek::Reassembler {
 public:
@@ -114,4 +113,8 @@ private:
 	Type type;
 };
 
-} // namespace analyzer::tcp
+} // namespace zeek::analyzer::tcp
+
+namespace analyzer::tcp {
+	using TCP_Reassembler [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Reassembler.")]] = zeek::analyzer::tcp::TCP_Reassembler;
+}

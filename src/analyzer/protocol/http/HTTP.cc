@@ -595,8 +595,8 @@ void HTTP_Entity::SubmitAllHeaders()
 	}
 
 HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
-				tcp::ContentLine_Analyzer* arg_cl, bool arg_is_orig,
-				int expect_body, int64_t init_header_length)
+                           zeek::analyzer::tcp::ContentLine_Analyzer* arg_cl, bool arg_is_orig,
+                           int expect_body, int64_t init_header_length)
 : MIME_Message (arg_analyzer)
 	{
 	analyzer = arg_analyzer;
@@ -836,7 +836,7 @@ void HTTP_Message::Weird(const char* msg)
 	}
 
 HTTP_Analyzer::HTTP_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("HTTP", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("HTTP", conn)
 	{
 	num_requests = num_replies = 0;
 	num_request_lines = num_reply_lines = 0;
@@ -858,10 +858,10 @@ HTTP_Analyzer::HTTP_Analyzer(zeek::Connection* conn)
 	upgrade_connection = false;
 	upgrade_protocol.clear();
 
-	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
+	content_line_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
 
-	content_line_resp = new tcp::ContentLine_Analyzer(conn, false);
+	content_line_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false);
 	content_line_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(content_line_resp);
 	}
@@ -871,7 +871,7 @@ void HTTP_Analyzer::Done()
 	if ( IsFinished() )
 		return;
 
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	RequestMade(true, "message interrupted when connection done");
 	ReplyMade(true, "message interrupted when connection done");
@@ -897,7 +897,7 @@ void HTTP_Analyzer::Done()
 
 void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( TCP() && TCP()->IsPartial() )
 		return;
@@ -916,7 +916,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
 
-	tcp::ContentLine_Analyzer* content_line =
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line =
 		is_orig ? content_line_orig : content_line_resp;
 
 	if ( content_line->IsPlainDelivery() )
@@ -1048,7 +1048,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				// End of message header reached, set up
 				// tunnel decapsulation.
-				pia = new pia::PIA_TCP(Conn());
+				pia = new zeek::analyzer::pia::PIA_TCP(Conn());
 
 				if ( AddChildAnalyzer(pia) )
 					{
@@ -1080,14 +1080,14 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	// DEBUG_MSG("Undelivered from %"PRIu64": %d bytes\n", seq, length);
 
 	HTTP_Message* msg =
 		is_orig ? request_message : reply_message;
 
-	tcp::ContentLine_Analyzer* content_line =
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line =
 		is_orig ? content_line_orig : content_line_resp;
 
 	if ( ! content_line->IsSkippedContents(seq, len) )
@@ -1123,7 +1123,7 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 
 void HTTP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 
 	// DEBUG_MSG("%.6f eof\n", network_time);
 
@@ -1135,7 +1135,7 @@ void HTTP_Analyzer::EndpointEOF(bool is_orig)
 
 void HTTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
 	// DEBUG_MSG("%.6f connection finished\n", network_time);
 	RequestMade(true, "message ends as connection is finished");
@@ -1144,7 +1144,7 @@ void HTTP_Analyzer::ConnectionFinished(bool half_finished)
 
 void HTTP_Analyzer::ConnectionReset()
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionReset();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionReset();
 
 	RequestMade(true, "message interrupted by RST");
 	ReplyMade(true, "message interrupted by RST");
@@ -1152,7 +1152,7 @@ void HTTP_Analyzer::ConnectionReset()
 
 void HTTP_Analyzer::PacketWithRST()
 	{
-	tcp::TCP_ApplicationAnalyzer::PacketWithRST();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::PacketWithRST();
 
 	RequestMade(true, "message interrupted by RST");
 	ReplyMade(true, "message interrupted by RST");
@@ -1680,8 +1680,8 @@ void HTTP_Analyzer::HTTP_MessageDone(bool is_orig, HTTP_Message* /* message */)
 		ReplyMade(false, "message ends normally");
 	}
 
-void HTTP_Analyzer::InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*& message,
-		bool is_orig, int expect_body, int64_t init_header_length)
+void HTTP_Analyzer::InitHTTPMessage(zeek::analyzer::tcp::ContentLine_Analyzer* cl, HTTP_Message*& message,
+                                    bool is_orig, int expect_body, int64_t init_header_length)
 	{
 	if ( message )
 		{

@@ -27,7 +27,7 @@ static const char* unknown_cmd = "(UNKNOWN)";
 
 
 SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("SMTP", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = false;
 	expect_recver = true;
@@ -46,12 +46,12 @@ SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 	line_after_gap = nullptr;
 	mail = nullptr;
 	UpdateState(first_cmd, 0, true);
-	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
+	cl_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true);
 	cl_orig->SetIsNULSensitive(true);
 	cl_orig->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_orig);
 
-	cl_resp = new tcp::ContentLine_Analyzer(conn, false);
+	cl_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false);
 	cl_resp->SetIsNULSensitive(true);
 	cl_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_resp);
@@ -59,7 +59,7 @@ SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 
 void SMTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
 	if ( ! half_finished && mail )
 		EndData();
@@ -72,7 +72,7 @@ SMTP_Analyzer::~SMTP_Analyzer()
 
 void SMTP_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( mail )
 		EndData();
@@ -80,7 +80,7 @@ void SMTP_Analyzer::Done()
 
 void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( len <= 0 )
 		return;
@@ -118,7 +118,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 
 void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	// If an TLS transaction has been initiated, forward to child and abort.
 	if ( state == SMTP_IN_TLS )

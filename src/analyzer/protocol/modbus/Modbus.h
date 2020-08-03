@@ -5,7 +5,7 @@
 
 namespace analyzer { namespace modbus {
 
-class ModbusTCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class ModbusTCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit ModbusTCP_Analyzer(zeek::Connection* conn);
 	~ModbusTCP_Analyzer() override;

@@ -30,7 +30,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-namespace analyzer::arp {
+namespace zeek::analyzer::arp {
 
 class ARP_Analyzer : public zeek::Obj {
 public:
@@ -57,4 +57,8 @@ protected:
 	void Corrupted(const char* string);
 };
 
-} // namespace analyzer::arp
+} // namespace zeek::analyzer::arp
+
+namespace analyer::arp {
+	using ARP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::arp::ARP_Analyzer.")]] = zeek::analyzer::arp::ARP_Analyzer;
+}

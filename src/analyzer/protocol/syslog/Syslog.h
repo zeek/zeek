@@ -28,7 +28,7 @@ protected:
 
 // #include "Syslog_tcp_pac.h"
 //
-//class Syslog_tcp::TCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+//class Syslog_tcp::TCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 //public:
 //	Syslog_tcp::TCP_Analyzer(zeek::Connection* conn);
 //	virtual ~Syslog_tcp::TCP_Analyzer();

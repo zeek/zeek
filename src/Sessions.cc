@@ -72,7 +72,7 @@ void IPTunnelTimer::Dispatch(double t, bool is_expire)
 NetSessions::NetSessions()
 	{
 	if ( stp_correlate_pair )
-		stp_manager = new ::analyzer::stepping_stone::SteppingStoneManager();
+		stp_manager = new zeek::analyzer::stepping_stone::SteppingStoneManager();
 	else
 		stp_manager = nullptr;
 
@@ -96,7 +96,7 @@ NetSessions::NetSessions()
 		pkt_profiler = nullptr;
 
 	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new ::analyzer::arp::ARP_Analyzer();
+		arp_analyzer = new zeek::analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = nullptr;
 
@@ -403,9 +403,9 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ::analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
-								icmpp->icmp_code,
-								id.is_one_way);
+		id.dst_port = zeek::analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
+		                                                      icmpp->icmp_code,
+		                                                      id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -419,9 +419,9 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ::analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
-								icmpp->icmp_code,
-								id.is_one_way);
+		id.dst_port = zeek::analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
+		                                                      icmpp->icmp_code,
+		                                                      id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -1011,10 +1011,10 @@ void NetSessions::Remove(Connection* c)
 
 		if ( c->ConnTransport() == TRANSPORT_TCP )
 			{
-			auto ta = static_cast<::analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
+			auto ta = static_cast<zeek::analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
 			assert(ta->IsAnalyzer("TCP"));
-			::analyzer::tcp::TCP_Endpoint* to = ta->Orig();
-			::analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
+			zeek::analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			zeek::analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			tcp_stats.StateLeft(to->state, tr->state);
 			}

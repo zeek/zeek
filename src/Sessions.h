@@ -23,9 +23,8 @@ namespace zeek { struct ConnID; }
 using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
-
-namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
-namespace analyzer { namespace arp { class ARP_Analyzer; } }
+ZEEK_FORWARD_DECLARE_NAMESPACED(SteppingStoneManager, zeek, analyzer::stepping_stone);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ARP_Analyzer, zeek, analyzer::arp);
 
 namespace zeek {
 
@@ -95,7 +94,7 @@ public:
 		return packet_filter;
 		}
 
-	::analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
+	zeek::analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
 
 	unsigned int CurrentConnections()
 		{
@@ -172,7 +171,7 @@ public:
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
 	unsigned int MemoryAllocation();
-	::analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
+	zeek::analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 protected:
 	friend class ConnCompressor;
@@ -235,9 +234,9 @@ protected:
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
-	::analyzer::arp::ARP_Analyzer* arp_analyzer;
+	zeek::analyzer::arp::ARP_Analyzer* arp_analyzer;
 
-	::analyzer::stepping_stone::SteppingStoneManager* stp_manager;
+	zeek::analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	zeek::detail::Discarder* discarder;
 	zeek::detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;

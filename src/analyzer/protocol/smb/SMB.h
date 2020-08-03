@@ -5,7 +5,7 @@
 
 namespace analyzer { namespace smb {
 
-class SMB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class SMB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SMB_Analyzer(zeek::Connection* conn);
 	~SMB_Analyzer() override;

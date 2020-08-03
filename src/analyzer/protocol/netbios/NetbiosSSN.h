@@ -112,7 +112,7 @@ typedef enum {
 } NetbiosSSN_State;
 
 // ### This should be merged with TCP_Contents_RPC, TCP_Contents_DNS.
-class Contents_NetbiosSSN final : public tcp::TCP_SupportAnalyzer {
+class Contents_NetbiosSSN final : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
 				NetbiosSSN_Interpreter* interp);
@@ -139,7 +139,7 @@ protected:
 	NetbiosSSN_State state;
 };
 
-class NetbiosSSN_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class NetbiosSSN_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit NetbiosSSN_Analyzer(zeek::Connection* conn);
 	~NetbiosSSN_Analyzer() override;
@@ -152,8 +152,8 @@ public:
 		{ return new NetbiosSSN_Analyzer(conn); }
 
 protected:
-	void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-					tcp::TCP_Endpoint* peer, bool gen_event) override;
+	void ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
+	                      zeek::analyzer::tcp::TCP_Endpoint* peer, bool gen_event) override;
 	void EndpointEOF(bool is_orig) override;
 
 	void ExpireTimer(double t);

@@ -22,7 +22,7 @@ static zeek::RecordTypePtr bittorrent_benc_value;
 static zeek::TableTypePtr bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(zeek::Connection* c)
-: tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
 	{
 	if ( ! bt_tracker_headers )
 		{
@@ -78,13 +78,13 @@ BitTorrentTracker_Analyzer::~BitTorrentTracker_Analyzer()
 
 void BitTorrentTracker_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
 void BitTorrentTracker_Analyzer::DeliverStream(int len, const u_char* data,
 						bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -208,7 +208,7 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 
 void BitTorrentTracker_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	ProtocolViolation("BitTorrentTracker: cannot recover from content gap");
 
@@ -220,7 +220,7 @@ void BitTorrentTracker_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 
 void BitTorrentTracker_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	}
 
 void BitTorrentTracker_Analyzer::InitBencParser(void)

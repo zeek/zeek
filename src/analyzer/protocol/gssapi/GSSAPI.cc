@@ -8,7 +8,7 @@
 using namespace analyzer::gssapi;
 
 GSSAPI_Analyzer::GSSAPI_Analyzer(zeek::Connection* c)
-	: tcp::TCP_ApplicationAnalyzer("GSSAPI", c)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("GSSAPI", c)
 	{
 	interp = new binpac::GSSAPI::GSSAPI_Conn(this);
 	}
@@ -20,7 +20,7 @@ GSSAPI_Analyzer::~GSSAPI_Analyzer()
 
 void GSSAPI_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -28,13 +28,13 @@ void GSSAPI_Analyzer::Done()
 
 void GSSAPI_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void GSSAPI_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -51,6 +51,6 @@ void GSSAPI_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void GSSAPI_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}

@@ -11,12 +11,12 @@ namespace zeek {
 using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
 }
 
-namespace analyzer { namespace icmp {
+namespace zeek::analyzer::icmp {
 
-typedef enum {
+enum ICMP_EndpointState {
 	ICMP_INACTIVE,	// no packet seen
 	ICMP_ACTIVE,	// packets seen
-} ICMP_EndpointState;
+};
 
 // We do not have an PIA for ICMP (yet) and therefore derive from
 // RuleMatcherState to perform our own matching.
@@ -98,4 +98,17 @@ private:
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::icmp
+
+namespace analyzer::icmp {
+
+	using ICMP_EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::icmp::ICMP_EndpointState.")]] = zeek::analyzer::icmp::ICMP_EndpointState;
+	constexpr auto ICMP_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::icmp::ICMP_INACTIVE.")]] = zeek::analyzer::icmp::ICMP_INACTIVE;
+	constexpr auto ICMP_ACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::icmp::ICMP_ACTIVE.")]] = zeek::analyzer::icmp::ICMP_ACTIVE;
+
+	using ICMP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::icmp::ICMP_Analyzer.")]] = zeek::analyzer::icmp::ICMP_Analyzer;
+
+	constexpr auto ICMP4_counterpart [[deprecated("Remove in v4.1. Use zeek::analyzer::icmp::ICMP4_counterpart.")]] = zeek::analyzer::icmp::ICMP4_counterpart;
+	constexpr auto ICMP6_counterpart [[deprecated("Remove in v6.1. Use zeek::analyzer::icmp::ICMP6_counterpart.")]] = zeek::analyzer::icmp::ICMP6_counterpart;
+
+} // namespace analyzer::icmp

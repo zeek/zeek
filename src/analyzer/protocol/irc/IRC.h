@@ -9,7 +9,7 @@ namespace analyzer { namespace irc {
 /**
 * \brief Main class for analyzing IRC traffic.
 */
-class IRC_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class IRC_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 	enum { WAIT_FOR_REGISTRATION, REGISTERED, };
 	enum { NO_ZIP, ACCEPT_ZIP, ZIP_LOADED, };
 public:
@@ -64,8 +64,8 @@ private:
 	*/
 	std::vector<std::string> SplitWords(const std::string& input, char split);
 
-	tcp::ContentLine_Analyzer* cl_orig;
-	tcp::ContentLine_Analyzer* cl_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
 	bool starttls; // if true, connection has been upgraded to tls
 };
 

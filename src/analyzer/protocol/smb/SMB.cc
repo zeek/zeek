@@ -7,7 +7,7 @@ using namespace analyzer::smb;
 #define SMB_MAX_LEN (1<<18)
 
 SMB_Analyzer::SMB_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("SMB", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SMB", conn)
 	{
 	chunks=0;
 	interp = new binpac::SMB::SMB_Conn(this);

@@ -13,7 +13,7 @@ using namespace std;
 using namespace analyzer::dce_rpc;
 
 DCE_RPC_Analyzer::DCE_RPC_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
 	{
 	had_gap = false;
 	interp = new binpac::DCE_RPC::DCE_RPC_Conn(this);

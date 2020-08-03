@@ -20,7 +20,7 @@
 using namespace zeek::analyzer;
 
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-				     uint16_t _resp_p, uint16_t _proto)
+                              uint16_t _resp_p, uint16_t _proto)
 	{
 	if ( _orig == IPAddr::v4_unspecified )
 		// don't use the IPv4 mapping, use the literal unspecified address
@@ -360,31 +360,29 @@ Manager::tag_set* Manager::LookupPort(zeek::PortVal* val, bool add_if_not_found)
 
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
-	::analyzer::tcp::TCP_Analyzer* tcp = nullptr;
-	::analyzer::udp::UDP_Analyzer* udp = nullptr;
-	::analyzer::icmp::ICMP_Analyzer* icmp = nullptr;
+	zeek::analyzer::tcp::TCP_Analyzer* tcp = nullptr;
 	TransportLayerAnalyzer* root = nullptr;
-	::analyzer::pia::PIA* pia = nullptr;
+	zeek::analyzer::pia::PIA* pia = nullptr;
 	bool check_port = false;
 
 	switch ( conn->ConnTransport() ) {
 
 	case TRANSPORT_TCP:
-		root = tcp = new ::analyzer::tcp::TCP_Analyzer(conn);
-		pia = new ::analyzer::pia::PIA_TCP(conn);
+		root = tcp = new zeek::analyzer::tcp::TCP_Analyzer(conn);
+		pia = new zeek::analyzer::pia::PIA_TCP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
 
 	case TRANSPORT_UDP:
-		root = udp = new ::analyzer::udp::UDP_Analyzer(conn);
-		pia = new ::analyzer::pia::PIA_UDP(conn);
+		root = new zeek::analyzer::udp::UDP_Analyzer(conn);
+		pia = new zeek::analyzer::pia::PIA_UDP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
 
 	case TRANSPORT_ICMP: {
-		root = icmp = new ::analyzer::icmp::ICMP_Analyzer(conn);
+		root = new zeek::analyzer::icmp::ICMP_Analyzer(conn);
 		DBG_ANALYZER(conn, "activated ICMP analyzer");
 		break;
 		}
@@ -466,14 +464,14 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 				auto src = zeek::make_intrusive<zeek::AddrVal>(conn->OrigAddr());
 
 				if ( ! stp_skip_src->FindOrDefault(src) )
-					tcp->AddChildAnalyzer(new ::analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
+					tcp->AddChildAnalyzer(new zeek::analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
 				}
 			}
 
 		if ( IsEnabled(analyzer_tcpstats) )
 			// Add TCPStats analyzer. This needs to see packets so
 			// we cannot add it as a normal child.
-			tcp->AddChildPacketAnalyzer(new ::analyzer::tcp::TCPStats_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new zeek::analyzer::tcp::TCPStats_Analyzer(conn));
 
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.

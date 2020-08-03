@@ -61,7 +61,7 @@ protected:
 	Endpoint resp_state;
 };
 
-class DNP3_TCP_Analyzer : public DNP3_Base, public tcp::TCP_ApplicationAnalyzer {
+class DNP3_TCP_Analyzer : public DNP3_Base, public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit DNP3_TCP_Analyzer(zeek::Connection* conn);
 	~DNP3_TCP_Analyzer() override;

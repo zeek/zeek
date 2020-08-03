@@ -13,10 +13,10 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::udp;
+namespace zeek::analyzer::udp {
 
 UDP_Analyzer::UDP_Analyzer(zeek::Connection* conn)
-: TransportLayerAnalyzer("UDP", conn)
+	: zeek::analyzer::TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();
 	conn->SetInactivityTimeout(udp_inactivity_timeout);
@@ -279,3 +279,5 @@ bool UDP_Analyzer::ValidateChecksum(const zeek::IP_Hdr* ip, const udphdr* up, in
 
 	return sum == 0xffff;
 	}
+
+} // namespace zeek::analyzer::udp

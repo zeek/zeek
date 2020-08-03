@@ -414,7 +414,7 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 
 Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
                            RPC_Interpreter* arg_interp)
-	: tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
+	: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
@@ -426,7 +426,7 @@ Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
 
 void Contents_RPC::Init()
 	{
-	tcp::TCP_SupportAnalyzer::Init();
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::Init();
 	}
 
 Contents_RPC::~Contents_RPC()
@@ -435,7 +435,7 @@ Contents_RPC::~Contents_RPC()
 
 void Contents_RPC::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
 	}
 
@@ -454,12 +454,12 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		// is fully established we are in sync (since it's the first chunk
 		// of data after the SYN if its not established we need to
 		// resync.
-		tcp::TCP_Analyzer* tcp =
-			static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		zeek::analyzer::tcp::TCP_Analyzer* tcp =
+			static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 		assert(tcp);
 
 		if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-							tcp::TCP_ENDPOINT_ESTABLISHED )
+							zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED )
 			{
 			NeedResync();
 			}
@@ -621,7 +621,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 
 void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 	uint32_t marker;
 	bool last_frag;
 
@@ -722,7 +722,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 RPC_Analyzer::RPC_Analyzer(const char* name, zeek::Connection* conn,
                            RPC_Interpreter* arg_interp)
-	: tcp::TCP_ApplicationAnalyzer(name, conn),
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer(name, conn),
 	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
@@ -739,7 +739,7 @@ RPC_Analyzer::~RPC_Analyzer()
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = std::min(len, caplen);
 
 	if ( orig )
@@ -756,7 +756,7 @@ void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 void RPC_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->Timeout();
 	}

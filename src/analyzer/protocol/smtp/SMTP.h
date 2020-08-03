@@ -35,7 +35,7 @@ typedef enum {
 } SMTP_State;
 
 
-class SMTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class SMTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SMTP_Analyzer(zeek::Connection* conn);
 	~SMTP_Analyzer() override;
@@ -90,8 +90,8 @@ protected:
 	mime::MIME_Mail* mail;
 
 private:
-	tcp::ContentLine_Analyzer* cl_orig;
-	tcp::ContentLine_Analyzer* cl_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } } // namespace analyzer::*

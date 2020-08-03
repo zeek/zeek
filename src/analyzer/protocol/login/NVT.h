@@ -122,7 +122,7 @@ protected:
 	void InconsistentOption(unsigned int type) override;
 };
 
-class NVT_Analyzer final : public tcp::ContentLine_Analyzer {
+class NVT_Analyzer final : public zeek::analyzer::tcp::ContentLine_Analyzer {
 public:
 	NVT_Analyzer(zeek::Connection* conn, bool orig);
 	~NVT_Analyzer() override;

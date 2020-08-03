@@ -588,7 +588,7 @@ void Expr::Describe(ODesc* d) const
 	if ( IsParen() && ! d->IsBinary() )
 		d->Add("(");
 
-	if ( d->IsPortable() || d->IsBinary() )
+	if ( d->IsParseable() || d->IsBinary() )
 		AddTag(d);
 
 	if ( d->DoOrig() )
@@ -829,7 +829,7 @@ void NameExpr::ExprDescribe(ODesc* d) const
 		d->Add(id->Name());
 	else
 		{
-		if ( d->IsPortable() )
+		if ( d->IsParseable() )
 			d->Add(id->Name());
 		else
 			d->AddCS(id->Name());
@@ -6910,7 +6910,7 @@ TraversalCode CallExpr::Traverse(TraversalCallback* cb) const
 void CallExpr::ExprDescribe(ODesc* d) const
 	{
 	func->Describe(d);
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() || d->IsParseable() )
 		{
 		d->Add("(");
 		args->Describe(d);
@@ -7026,7 +7026,7 @@ TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
 
 void InlineExpr::ExprDescribe(ODesc* d) const
 	{
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() || d->IsParseable() )
 		{
 		d->Add("inline(");
 		args->Describe(d);
@@ -7300,7 +7300,7 @@ TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 void EventExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(name.c_str());
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() || d->IsParseable() )
 		{
 		d->Add("(");
 		args->Describe(d);
@@ -7654,7 +7654,7 @@ void ListExpr::ExprDescribe(ODesc* d) const
 
 	loop_over_list(exprs, i)
 		{
-		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
+		if ( (d->IsReadable() || d->IsParseable()) && i > 0 )
 			d->Add(", ");
 
 		exprs[i]->Describe(d);

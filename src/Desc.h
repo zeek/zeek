@@ -14,7 +14,7 @@
 
 typedef enum {
 	DESC_READABLE,
-	DESC_PORTABLE,
+	DESC_PARSEABLE,
 	DESC_BINARY,
 } desc_type;
 
@@ -35,7 +35,7 @@ public:
 	~ODesc();
 
 	bool IsReadable() const		{ return type == DESC_READABLE; }
-	bool IsPortable() const		{ return type == DESC_PORTABLE; }
+	bool IsParseable() const	{ return type == DESC_PARSEABLE; }
 	bool IsBinary() const		{ return type == DESC_BINARY; }
 
 	bool IsShort() const		{ return is_short; }
@@ -61,7 +61,10 @@ public:
 
 	void SetFlush(bool arg_do_flush)	{ do_flush = arg_do_flush; }
 
-	void EnableEscaping();
+	bool Escaping() const	{ return escape; }
+	void EnableEscaping()	{ escape = true; }
+	void DisableEscaping()	{ escape = false; }
+
 	void EnableUTF8();
 	void AddEscapeSequence(const char* s) { escape_sequences.insert(s); }
 	void AddEscapeSequence(const char* s, size_t n)

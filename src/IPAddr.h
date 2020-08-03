@@ -623,9 +623,10 @@ public:
 	/**
 	 * Returns a string representation of the prefix. IPv4 addresses
 	 * will be returned in dotted representation, IPv6 addresses in
-	 * compressed hex.
+	 * compressed hex.  If "parseable" is true, then inclues []'s
+	 * around IPv6 addresses.
 	 */
-	std::string AsString() const;
+	std::string AsString(bool parseable = false) const;
 
 	operator std::string() const	{ return AsString(); }
 

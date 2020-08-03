@@ -298,6 +298,7 @@ vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
 <ZAM>types		return TOK_TYPES;
+<ZAM>vals		return TOK_VALS;
 <ZAM>"<ZAM-file>"	return TOK_ZAM_FILE;
 
 &add_func	return TOK_ATTR_ADD_FUNC;

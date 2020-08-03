@@ -29,7 +29,7 @@
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_IS_SET TOK_ATTR_IS_USED
 %token TOK_ATTR_DEPRECATED
 
-%token TOK_ZAM_FILE TOK_TYPES
+%token TOK_ZAM_FILE TOK_TYPES TOK_VALS
 
 %token TOK_DEBUG
 
@@ -1906,11 +1906,25 @@ opt_deprecated:
 	|
 			{ $$ = nullptr; }
 
-ZAM_info:	ZAM_types
+ZAM_info:	ZAM_types ZAM_vals
 	;
 
 ZAM_types:	TOK_TYPES '{' type_list ',' '}'
 	|
+	;
+
+ZAM_vals:	TOK_VALS '{' ZAM_val_list ',' '}'
+	|
+	;
+
+ZAM_val_list:	ZAM_val
+	|	ZAM_val_list ',' ZAM_val
+	;
+
+ZAM_val:	TOK_CONSTANT
+	|	'-' TOK_CONSTANT
+	|	TOK_ID
+	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
 	;
 
 %%

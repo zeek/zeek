@@ -36,7 +36,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 
 	indent_level = 0;
 	is_short = false;
-	want_quotes = false;
+	want_quotes = IsParseable();
 	do_flush = true;
 	do_orig = true;
 	include_stats = false;
@@ -54,11 +54,6 @@ ODesc::~ODesc()
 		}
 	else if ( base )
 		free(base);
-	}
-
-void ODesc::EnableEscaping()
-	{
-	escape = true;
 	}
 
 void ODesc::EnableUTF8 ()
@@ -199,7 +194,7 @@ void ODesc::AddCS(const char* s)
 
 void ODesc::AddBytes(const BroString* s)
 	{
-	if ( IsReadable() )
+	if ( IsReadable() || IsParseable() )
 		{
 		if ( Style() == RAW_STYLE )
 			AddBytes(reinterpret_cast<const char*>(s->Bytes()), s->Len());

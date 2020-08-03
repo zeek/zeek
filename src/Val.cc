@@ -305,7 +305,7 @@ bool Val::RemoveFrom(Val* v) const
 
 void Val::Describe(ODesc* d) const
 	{
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		type->Describe(d);
 		d->SP();
@@ -321,7 +321,7 @@ void Val::DescribeReST(ODesc* d) const
 
 void Val::ValDescribe(ODesc* d) const
 	{
-	if ( d->IsReadable() && type->Tag() == TYPE_BOOL )
+	if ( (d->IsReadable() || d->IsParseable()) && type->Tag() == TYPE_BOOL )
 		{
 		d->Add(CoerceToInt() ? "T" : "F");
 		return;
@@ -332,10 +332,19 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
 	case TYPE_INTERNAL_DOUBLE:	d->Add(val.double_val); break;
 	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
-	case TYPE_INTERNAL_ADDR:	d->Add(val.addr_val->AsString().c_str()); break;
+
+	case TYPE_INTERNAL_ADDR:
+		if ( d->IsParseable() )
+			d->Add(val.addr_val->AsURIString().c_str());
+		else
+			d->Add(val.addr_val->AsString().c_str());
+		break;
 
 	case TYPE_INTERNAL_SUBNET:
-		d->Add(val.subnet_val->AsString().c_str());
+		if ( d->IsParseable() )
+			d->Add(val.subnet_val->AsString(true).c_str());
+		else
+			d->Add(val.subnet_val->AsString().c_str());
 		break;
 
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
@@ -1033,12 +1042,28 @@ StringVal* StringVal::ToUpper()
 
 void StringVal::ValDescribe(ODesc* d) const
 	{
-	// Should reintroduce escapes ? ###
-	if ( d->WantQuotes() )
+	if ( d->IsParseable() )
+		{
 		d->Add("\"");
-	d->AddBytes(val.string_val);
-	if ( d->WantQuotes() )
+
+		// We assume that escaping has not been set, because
+		// it interacts in a non-parseable fashion with printing
+		// out regular expressions.
+		d->EnableEscaping();
+		d->AddBytes(val.string_val);
+		d->DisableEscaping();
 		d->Add("\"");
+		}
+
+	else if ( d->WantQuotes() )
+		{
+		d->Add("\"");
+		d->AddBytes(val.string_val);
+		d->Add("\"");
+		}
+
+	else
+		d->AddBytes(val.string_val);
 	}
 
 unsigned int StringVal::MemoryAllocation() const
@@ -1264,7 +1289,7 @@ TableVal* ListVal::ConvertToSet() const
 
 void ListVal::Describe(ODesc* d) const
 	{
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		type->Describe(d);
 		d->SP();
@@ -1276,7 +1301,7 @@ void ListVal::Describe(ODesc* d) const
 		{
 		if ( i > 0 )
 			{
-			if ( d->IsReadable() || d->IsPortable() )
+			if ( d->IsReadable() || d->IsParseable() )
 				{
 				d->Add(",");
 				d->SP();
@@ -2168,7 +2193,7 @@ void TableVal::Describe(ODesc* d) const
 	const PDict<TableEntryVal>* tbl = AsTable();
 	int n = tbl->Length();
 
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		table_type->Describe(d);
 		d->SP();
@@ -2176,7 +2201,7 @@ void TableVal::Describe(ODesc* d) const
 		d->SP();
 		}
 
-	if ( d->IsPortable() || d->IsReadable() )
+	if ( d->IsParseable() || d->IsReadable() )
 		{
 		d->Add("{");
 		d->PushIndent();
@@ -2242,7 +2267,7 @@ void TableVal::Describe(ODesc* d) const
 	if ( tbl->NextEntry(c) )
 		reporter->InternalError("hash table overflow in TableVal::Describe");
 
-	if ( d->IsPortable() || d->IsReadable() )
+	if ( d->IsParseable() || d->IsReadable() )
 		{
 		d->PopIndent();
 		d->Add("}");
@@ -2845,7 +2870,7 @@ void RecordVal::Describe(ODesc* d) const
 	int n = vl->Size();
 	auto record_type = Type()->AsRecordType();
 
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		record_type->Describe(d);
 		d->SP();

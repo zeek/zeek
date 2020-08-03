@@ -421,8 +421,11 @@ public:
 	// If non-nil, then iteration information for a loop.
 	IterInfo* iter_info = nullptr;
 
+	// This is only used to return values stored elsewhere in this
+	// object - it's not set directly.
+	//
 	// If we cared about memory penny-pinching, we could make
-	// this a pointer and only instantiate as needed.
+	// this a pointer and only instantiate as needed.  
 	val_vec vv;
 };
 

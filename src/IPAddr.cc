@@ -290,7 +290,7 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
 	prefix.Mask(this->length);
 	}
 
-string IPPrefix::AsString() const
+string IPPrefix::AsString(bool parseable) const
 	{
 	char l[16];
 
@@ -299,7 +299,12 @@ string IPPrefix::AsString() const
 	else
 		modp_uitoa10(length, l);
 
-	return prefix.AsString() +"/" + l;
+	auto addr = prefix.AsString();
+
+	if ( parseable )
+		return "[" + addr + "]/" + l;
+	else
+		return addr +"/" + l;
 	}
 
 HashKey* IPPrefix::GetHashKey() const

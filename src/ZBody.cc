@@ -359,7 +359,7 @@ public:
 
 	void AddItem(T item)
 		{
-		if ( item_map.count(item) == 0 )
+		if ( item && item_map.count(item) == 0 )
 			{
 			items.push_back(item);
 			item_map[item] = items.size();
@@ -386,39 +386,72 @@ protected:
 void ZBody::SaveTo(FILE* f) const
 	{
 	ItemTracker<const BroType*> types;
+	ItemTracker<const Val*> vals;
 
 	for ( auto i : insts )
 		{
-		if ( i->t )
-			types.AddItem(i->t);
-		if ( i->t2 )
-			types.AddItem(i->t2);
+		types.AddItem(i->t);
+		types.AddItem(i->t2);
+
+		// The following leaks.  We could fix it with enough
+		// horsing around (or if we could get ItemTracker to
+		// use IntrusivePtr<Val> instead of Val*), but given
+		// it's a one-time leak, we just abide it.
+		vals.AddItem(i->ConstVal().release());
 
 		auto& aux = i->aux;
-		if ( aux && aux->types )
+		if ( ! aux )
+			continue;
+
+		if ( aux->types )
 			for ( auto j = 0; j < aux->n; ++j )
 				{
-				auto t = aux->types[j].get();
-				if ( t )
-					types.AddItem(t);
+				types.AddItem(aux->types[j].get());
+				vals.AddItem(aux->constants[j].get());
 				}
+
+		auto ii = aux->iter_info;
+		if ( ii )
+			{
+			for ( auto t : ii->loop_var_types )
+				types.AddItem(t);
+
+			types.AddItem(ii->value_var_type);
+			types.AddItem(ii->vec_type);
+			types.AddItem(ii->yield_type);
+			}
 		}
 
 	fprintf(f, "<ZAM-file>\n");
 
-	auto types_vec = types.Items();
+	auto& types_vec = types.Items();
 
-	if ( types_vec.size() > 0 )
+	if ( types_vec.size() > 0 && 0 )
 		{
 		fprintf(f, "types {\n");
 		for ( auto t : types_vec )
 			{
-			ODesc d;
+			ODesc d(DESC_PARSEABLE);
 			DescribeType(t, &d);
 			fprintf(f, "%s,\n", d.Description());
 			}
 
-		fprintf(f, "}");
+		fprintf(f, "}\n");
+		}
+
+	auto& vals_vec = vals.Items();
+
+	if ( vals_vec.size() > 0 )
+		{
+		fprintf(f, "vals {\n");
+		for ( auto v : vals_vec )
+			{
+			ODesc d(DESC_PARSEABLE);
+			v->Describe(&d);
+			fprintf(f, "%s,\n", d.Description());
+			}
+
+		fprintf(f, "}\n");
 		}
 	}
 

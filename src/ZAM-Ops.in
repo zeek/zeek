@@ -1758,10 +1758,10 @@ eval auto columns = frame[z.v3].ToVal(z.t)
 eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
-internal-op Log-Write
+internal-op Log-WriteC
 side-effects
-type VVC
-eval auto id = z.c.ToVal(log_ID_enum_type)
+type VV
+eval auto id = z.aux->constants[0]
 eval auto columns = frame[z.v2].ToVal(z.t)
 eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
@@ -1775,11 +1775,11 @@ eval auto id = frame[z.v1].ToVal(log_ID_enum_type)
 eval auto columns = frame[z.v2].ToVal(z.t)
 eval (void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 
-internal-op Log-Write
+internal-op Log-WriteC
 side-effects
 op1-read
-type VC
-eval auto id = z.c.ToVal(log_ID_enum_type)
+type V
+eval auto id = z.aux->constants[0]
 eval auto columns = frame[z.v1].ToVal(z.t)
 eval (void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 

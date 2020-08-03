@@ -677,16 +677,25 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	auto columns_n = columns->AsNameExpr();
 	auto col_slot = FrameSlot(columns_n);
 
+	bool const_id = (id->Tag() == EXPR_CONST);
+
+	ZInstAux* aux = nullptr;
+
+	if ( const_id )
+		{
+		aux = new ZInstAux(1);
+		aux->Add(0, id->AsConstExpr()->ValuePtr());
+		}
+
 	ZInstI z;
 
 	if ( n )
 		{
 		int nslot = Frame1Slot(n, OP1_WRITE);
-		if ( id->Tag() == EXPR_CONST )
+		if ( const_id )
 			{
-			z = ZInstI(OP_LOG_WRITE_VVC, nslot, col_slot,
-					id->AsConstExpr());
-			z.op_type = OP_VVc;
+			z = ZInstI(OP_LOG_WRITEC_VV, nslot, col_slot);
+			z.aux = aux;
 			}
 		else
 			z = ZInstI(OP_LOG_WRITE_VVV, nslot,
@@ -694,10 +703,10 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 		}
 	else
 		{
-		if ( id->Tag() == EXPR_CONST )
+		if ( const_id )
 			{
-			z = ZInstI(OP_LOG_WRITE_VC, col_slot, id->AsConstExpr());
-			z.op_type = OP_Vc;
+			z = ZInstI(OP_LOG_WRITEC_V, col_slot, id->AsConstExpr());
+			z.aux = aux;
 			}
 		else
 			z = ZInstI(OP_LOG_WRITE_VV, FrameSlot(id->AsNameExpr()),
@@ -1975,12 +1984,14 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		ii->loop_var_types.push_back(id->Type());
 		}
 
+	auto aux = new ZInstAux(0);
+	aux->iter_info = ii;
+
 	auto info = NewSlot(false);	// false <- IterInfo isn't managed
 	auto z = ZInstI(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
 	z.op_type = OP_VV;
 	z.SetType(value_var ? value_var->Type() : nullptr);
-	z.aux = new ZInstAux(0);
-	z.aux->iter_info = ii;
+	z.aux = aux;
 
 	auto init_end = AddInst(z);
 
@@ -1991,11 +2002,13 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 				info, 0);
 		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
+		z.aux = aux;	// so ZOpt.cc can get to it
 		}
 	else
 		{
 		z = ZInstI(OP_NEXT_TABLE_ITER_VV, info, 0);
 		z.op_type = OP_VV_I2;
+		z.aux = aux;	// so ZOpt.cc can get to it
 		}
 
 	return FinishLoop(iter_head, z, f->LoopBody(), info);

@@ -25,7 +25,6 @@ static const char* op_type_name(ZAMOpType ot)
 		case OP_V_I1:		return "V_I1";
 		case OP_VC_I1:		return "VC_I1";
 		case OP_VC:		return "VC";
-		case OP_Vc:		return "Vc";
 		case OP_VV:		return "VV";
 		case OP_VV_I2:		return "VV_I2";
 		case OP_VV_I1_I2:	return "VV_I1_I2";
@@ -33,7 +32,6 @@ static const char* op_type_name(ZAMOpType ot)
 		case OP_VVC:		return "VVC";
 		case OP_VVC_I2:		return "VVC_I2";
 		case OP_ViC_ID:		return "ViC_ID";
-		case OP_VVc:		return "VVc";
 		case OP_VVV:		return "VVV";
 		case OP_VVV_I3:		return "VVV_I3";
 		case OP_VVV_I2_I3:	return "VVV_I2_I3";
@@ -118,17 +116,8 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		printf("%s, %s", id1, ConstDump());
 		break;
 
-	case OP_Vc:
-		printf("%s, <special-constant>", id1);
-		break;
-
 	case OP_VVC:
-		// Special-case OP_LOG_WRITE_VVC, which uses a different
-		// type for its constant.
-		if ( op == OP_LOG_WRITE_VVC )
-			printf("%s, %s, %llu", id1, id2, c.uint_val);
-		else
-			printf("%s, %s, %s", id1, id2, ConstDump());
+		printf("%s, %s, %s", id1, id2, ConstDump());
 		break;
 
 	case OP_V_I1:
@@ -141,10 +130,6 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 
 	case OP_VV_FRAME:
 		printf("%s, interpreter frame[%d]", id1, v2);
-		break;
-
-	case OP_VVc:
-		printf("%s, %s, <special-constant>", id1, id2);
 		break;
 
 	case OP_VV_I2:
@@ -213,14 +198,12 @@ int ZInst::NumFrameSlots() const
 	case OP_VVVC:	return 3;
 	case OP_C:	return 0;
 	case OP_VC:	return 1;
-	case OP_Vc:	return 1;
 	case OP_VVC:	return 2;
 
 	case OP_V_I1:	return 0;
 	case OP_VC_I1:	return 0;
 	case OP_VV_I1_I2:	return 0;
 	case OP_VV_FRAME:	return 1;
-	case OP_VVc:	return 2;
 	case OP_VV_I2:	return 1;
 	case OP_VVC_I2:	return 1;
 	case OP_ViC_ID:	return 1;
@@ -413,7 +396,6 @@ bool ZInstI::AssignsToSlot1() const
 	// its behavior here.
 	case OP_V:
 	case OP_VC:
-	case OP_Vc:
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
@@ -422,7 +404,6 @@ bool ZInstI::AssignsToSlot1() const
 	case OP_VVVC_I2_I3:
 	case OP_VVVV_I2_I3_I4:
 	case OP_VV:
-	case OP_VVc:
 	case OP_VVC:
 	case OP_VVV_I3:
 	case OP_VVVV_I3_I4:
@@ -453,7 +434,6 @@ bool ZInstI::UsesSlot(int slot) const
 
 	case OP_V:
 	case OP_VC:
-	case OP_Vc:
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
@@ -464,7 +444,6 @@ bool ZInstI::UsesSlot(int slot) const
 		return v1_match;
 
 	case OP_VV:
-	case OP_VVc:
 	case OP_VVC:
 	case OP_VVV_I3:
 	case OP_VVVV_I3_I4:
@@ -499,7 +478,6 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 
 	case OP_V:
 	case OP_VC:
-	case OP_Vc:
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
@@ -514,7 +492,6 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 		return true;
 
 	case OP_VV:
-	case OP_VVc:
 	case OP_VVC:
 	case OP_VVV_I3:
 	case OP_VVVV_I3_I4:
@@ -562,7 +539,6 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 
 	case OP_V:
 	case OP_VC:
-	case OP_Vc:
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
@@ -573,7 +549,6 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 		break;
 
 	case OP_VV:
-	case OP_VVc:
 	case OP_VVC:
 	case OP_VVV_I3:
 	case OP_VVVV_I3_I4:

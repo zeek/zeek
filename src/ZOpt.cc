@@ -321,9 +321,9 @@ bool ZAM::PruneUnused()
 			inst->v2 = inst->v3;
 			break;
 
-		case OP_LOG_WRITE_VVC:
-			inst->op = OP_LOG_WRITE_VC;
-			inst->op_type = OP_Vc;
+		case OP_LOG_WRITEC_VV:
+			inst->op = OP_LOG_WRITEC_V;
+			inst->op_type = OP_V;
 			inst->v1 = inst->v2;
 			break;
 
@@ -379,7 +379,7 @@ void ZAM::ComputeFrameLifetimes()
 		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
 			{
 			// These assign to an arbitrary long list of variables.
-			auto iter_vars = inst->c.iter_info;
+			auto iter_vars = inst->aux->iter_info;
 			auto depth = inst->loop_depth;
 
 			for ( auto v : iter_vars->loop_vars )
@@ -576,7 +576,7 @@ void ZAM::ReMapFrame()
 		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
 			{
 			// Rewrite iteration variables.
-			auto iter_vars = inst->c.iter_info;
+			auto iter_vars = inst->aux->iter_info;
 			for ( auto& v : iter_vars->loop_vars )
 				{
 				ASSERT(v >= 0 && v < n1_slots);
@@ -988,7 +988,7 @@ bool ZAM::VarIsAssigned(int slot, const ZInstI* i) const
 	if ( i->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
 	     i->op == OP_NEXT_TABLE_ITER_VV )
 		{
-		auto iter_vars = i->c.iter_info;
+		auto iter_vars = i->aux->iter_info;
 		for ( auto v : iter_vars->loop_vars )
 			if ( v == slot )
 				return true;

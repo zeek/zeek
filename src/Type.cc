@@ -1542,6 +1542,10 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	case TYPE_COUNTER:
+#pragma GCC diagnostic pop
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1743,6 +1747,10 @@ bool is_assignable(TypeTag t)
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	case TYPE_COUNTER:
+#pragma GCC diagnostic pop
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:

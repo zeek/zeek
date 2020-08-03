@@ -344,47 +344,74 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	return result;
 	}
 
+
+// Class for tracking items of a given type that we need to
+// (1) save in a readable form, and (2) maintain a mapping so
+// that we can refer to the items when saving instructions.
+//
+// The basic idea is we make one pass through the instructions
+// accumulating items, and a second pass then saving instructions
+// using references to the items.
+template<typename T>
+class ItemTracker {
+public:
+	ItemTracker()	{ }
+
+	void AddItem(T item)
+		{
+		if ( item_map.count(item) == 0 )
+			{
+			items.push_back(item);
+			item_map[item] = items.size();
+			}
+		}
+
+	int FindItem(const T item) const
+		{
+		auto el = item_map.find(item);
+		if ( el == item_map.end() )
+			return -1;
+		else
+			return el->second;
+		}
+
+	const std::vector<T>& Items()	{ return items; }
+
+protected:
+	std::vector<T> items;
+	std::unordered_map<T, int> item_map;	// inverse
+};
+
+
 void ZBody::SaveTo(FILE* f) const
 	{
-	// Collect all of the types that will be required.
-
-	std::vector<const BroType*> types;
-	std::unordered_map<const BroType*, int> type_map;	// inverse
+	ItemTracker<const BroType*> types;
 
 	for ( auto i : insts )
 		{
-		if ( i->t && type_map.count(i->t) == 0 )
-			{
-			types.push_back(i->t);
-			type_map[i->t] = types.size();
-			}
-
-		if ( i->t2 && type_map.count(i->t2) == 0 )
-			{
-			types.push_back(i->t2);
-			type_map[i->t2] = types.size();
-			}
+		if ( i->t )
+			types.AddItem(i->t);
+		if ( i->t2 )
+			types.AddItem(i->t2);
 
 		auto& aux = i->aux;
 		if ( aux && aux->types )
 			for ( auto j = 0; j < aux->n; ++j )
 				{
 				auto t = aux->types[j].get();
-
 				if ( t )
-					{
-					types.push_back(t);
-					type_map[t] = types.size();
-					}
+					types.AddItem(t);
 				}
 		}
 
 	fprintf(f, "<ZAM-file>\n");
 
-	if ( types.size() > 0 )
+	auto types_vec = types.Items();
+
+	if ( types_vec.size() > 0 )
 		{
 		fprintf(f, "types {\n");
-		for ( auto t : types )
+		for ( auto t : types_vec )
 			{
 			ODesc d;
 			DescribeType(t, &d);

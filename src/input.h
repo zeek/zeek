@@ -20,6 +20,8 @@ extern void add_input_file_at_front(const char* file);
 // given namelist.
 extern void add_to_name_list(char* s, char delim, name_list& nl);
 
+extern void scan_ZAM_file(const char* zfn, FILE* zf);
+
 extern void begin_RE();
 
 extern void do_atif(Expr* expr);

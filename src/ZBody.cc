@@ -366,11 +366,19 @@ void ZBody::SaveTo(FILE* f) const
 			}
 		}
 
-	for ( auto t : types )
+	fprintf(f, "<ZAM-file>\n");
+
+	if ( types.size() > 0 )
 		{
-		ODesc d;
-		DescribeType(t, &d);
-		fprintf(f, "type (%lx): %s\n", t, d.Description());
+		fprintf(f, "types {\n");
+		for ( auto t : types )
+			{
+			ODesc d;
+			DescribeType(t, &d);
+			fprintf(f, "%s,\n", d.Description());
+			}
+
+		fprintf(f, "}");
 		}
 	}
 
@@ -434,7 +442,7 @@ void ZBody::DescribeType(const BroType* t, ODesc* d) const
 		break;
 
 	case TYPE_TYPE:
-		d->AddSP("type");
+		// d->AddSP("type");
 		DescribeType(t->AsTypeType()->Type(), d);
 		break;
 
@@ -482,10 +490,10 @@ void ZBody::DescribeType(const BroType* t, ODesc* d) const
 			}
 
 		d->Add(")");
-
 		auto yt = f->YieldType();
 
-		if ( yt )
+		if ( f->Flavor() == FUNC_FLAVOR_FUNCTION &&
+		     yt && yt->Tag() != TYPE_VOID )
 			{
 			d->AddSP(":");
 			DescribeType(yt, d);

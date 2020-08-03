@@ -29,6 +29,8 @@
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_IS_SET TOK_ATTR_IS_USED
 %token TOK_ATTR_DEPRECATED
 
+%token TOK_ZAM_FILE TOK_TYPES
+
 %token TOK_DEBUG
 
 %token TOK_NO_TEST
@@ -63,7 +65,7 @@
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
 %type <func_type> func_hdr func_params
-%type <type_l> type_list
+%type <type_l> type_list opt_type_list
 %type <type_decl> type_decl formal_args_decl
 %type <type_decl_l> type_decl_list formal_args_decl_list
 %type <record> formal_args
@@ -90,6 +92,7 @@
 /* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
 #include "Scope.h"
+#include "ScriptAnaly.h"
 #include "Reporter.h"
 #include "Brofiler.h"
 #include "zeekygen/Manager.h"
@@ -269,7 +272,7 @@ static bool expr_is_table_type_name(const Expr* expr)
 
 %%
 
-bro:
+zeek:
 		decl_list stmt_list
 			{
 			if ( stmts )
@@ -281,9 +284,12 @@ bro:
 			// have file positions associated with them.
 			set_location(no_location);
 			}
+
+	|	TOK_ZAM_FILE { in_ZAM_file = true; } ZAM_info
+
 	|
-		/* Silly way of allowing the debugger to call yyparse()
-		 * on an expr rather than a file.
+		/* Allow the debugger to call yyparse() on an expr rather
+		 * than a file.
 		 */
 		TOK_DEBUG { in_debug = true; } expr
 			{
@@ -917,7 +923,7 @@ type:
 				$$ = new TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
 				}
 
-	|	TOK_SET '[' type_list ']'
+	|	TOK_SET '[' opt_type_list ']'
 				{
 				set_location(@1, @4);
 				$$ = new SetType({AdoptRef{}, $3}, nullptr);
@@ -1022,6 +1028,16 @@ type:
 					reporter->Warning("%s", $1->GetDeprecationWarning().c_str());
 				}
 			}
+	;
+
+opt_type_list:	type_list
+	|
+		{
+		if ( ! in_ZAM_file )
+			reporter->Error("empty type list not allowed");
+
+		$$ = new TypeList(base_type(TYPE_ANY));
+		}
 	;
 
 type_list:
@@ -1889,6 +1905,13 @@ opt_deprecated:
 			}
 	|
 			{ $$ = nullptr; }
+
+ZAM_info:	ZAM_types
+	;
+
+ZAM_types:	TOK_TYPES '{' type_list ',' '}'
+	|
+	;
 
 %%
 

@@ -8,6 +8,7 @@
 #include "IntrusivePtr.h"
 #include "Val.h"
 #include "Reporter.h"
+#include "ScriptAnaly.h"
 #include "module_util.h"
 
 typedef PList<Scope> scope_list;
@@ -132,7 +133,8 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
 		ID* id = scopes[i]->Lookup(fullname);
 		if ( id )
 			{
-			if ( need_export && ! id->IsExport() && ! in_debug )
+			if ( need_export && ! id->IsExport() &&
+			     ! in_debug && ! in_ZAM_file )
 				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 

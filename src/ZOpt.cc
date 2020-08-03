@@ -29,7 +29,7 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 			{
 			auto sf = fopen(f->save_file, "w");
 			if ( ! sf )
-				reporter->Error("cannot save to file:",
+				reporter->Error("cannot save to file: %s",
 						f->save_file);
 			else
 				{

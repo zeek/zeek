@@ -89,6 +89,9 @@ public:
 };
 
 
+// Whether we're in the midst of parsing a ZAM file.
+extern bool in_ZAM_file;
+
 // We track which functions are definitely not recursive.  We do this
 // as the negative, rather than tracking functions known to be recursive,
 // so that if we don't do the analysis at all (it's driven by inlining),

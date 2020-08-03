@@ -57,6 +57,8 @@ const char* filename = 0; // Absolute path of file currently being parsed.
 const char* last_filename = 0; // Absolute path of last file parsed.
 static const char* last_id_tok = 0;
 
+static bool scanning_ZAM_file = false;
+
 const char* last_tok_filename = 0;
 const char* last_last_tok_filename = 0;
 char last_tok[128];
@@ -153,6 +155,7 @@ static int load_files(const char* file);
 
 %option nounput nodefault
 
+%s ZAM
 %x RE
 %x IGNORE
 
@@ -193,7 +196,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {WS}	/* eat whitespace */
 
-<INITIAL,IGNORE>\n	{
+<INITIAL,IGNORE,ZAM>\n	{
 			++line_number;
 			++yylloc.first_line;
 			++yylloc.last_line;
@@ -293,6 +296,9 @@ type	return TOK_TYPE;
 union	return TOK_UNION;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
+
+<ZAM>types		return TOK_TYPES;
+<ZAM>"<ZAM-file>"	return TOK_ZAM_FILE;
 
 &add_func	return TOK_ATTR_ADD_FUNC;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
@@ -716,6 +722,20 @@ static int load_files(const char* orig_file)
 	return 1;
 	}
 
+void scan_ZAM_file(const char* zfn, FILE* zf)
+	{
+	DBG_LOG(DBG_SCRIPTS, "Loading ZAM file %s", zfn);
+
+	yy_switch_to_buffer(yy_create_buffer(zf, YY_BUF_SIZE));
+
+	yylloc.first_line = yylloc.last_line = line_number = 1;
+	yylloc.filename = filename = copy_string(zfn);
+
+	BEGIN(ZAM);
+
+	scanning_ZAM_file = true;
+	}
+
 void begin_RE()
 	{
 	BEGIN(RE);
@@ -893,6 +913,10 @@ int yywrap()
 	last_filename = ::filename;
 
 	if ( reporter->Errors() > 0 )
+		return 1;
+
+	if ( scanning_ZAM_file )
+		// No postprocessing or nested files.
 		return 1;
 
 	if ( ! did_builtin_init && file_stack.length() == 1 )

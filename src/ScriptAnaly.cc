@@ -5,13 +5,15 @@
 #include "Reduce.h"
 #include "Inline.h"
 #include "ZAM.h"
+#include "input.h"
 #include "Desc.h"
 #include "EventRegistry.h"
 #include "Reporter.h"
 
 
-std::unordered_set<const Func*> non_recursive_funcs;
+bool in_ZAM_file = false;
 
+std::unordered_set<const Func*> non_recursive_funcs;
 
 
 void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
@@ -353,10 +355,12 @@ void analyze_scripts()
 		if ( save_file )
 			{
 			printf("have file for %s\n", fn);
+			scan_ZAM_file(fn, save_file);
+			yyparse();
 			fclose(save_file);
 			}
-
-		f->save_file = copy_string(fn);
+		else
+			f->save_file = copy_string(fn);
 
 		optimize_func(f->func, f->scope, f->body);
 		}

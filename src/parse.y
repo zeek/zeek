@@ -50,7 +50,7 @@
 %left '*' '/' '%'
 %left TOK_INCR TOK_DECR
 %right '!' '~'
-%left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
+%left '$' '[' ']' '(' ')' TOK_HAS_FIELD
 %nonassoc TOK_AS TOK_IS
 
 %type <b> opt_no_test opt_no_test_block TOK_PATTERN_END

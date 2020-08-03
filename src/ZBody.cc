@@ -364,6 +364,19 @@ void ZBody::SaveTo(FILE* f) const
 			types.push_back(i->t2);
 			type_map[i->t2] = types.size();
 			}
+
+		auto& aux = i->aux;
+		if ( aux && aux->types )
+			for ( auto j = 0; j < aux->n; ++j )
+				{
+				auto t = aux->types[j].get();
+
+				if ( t )
+					{
+					types.push_back(t);
+					type_map[t] = types.size();
+					}
+				}
 		}
 
 	fprintf(f, "<ZAM-file>\n");

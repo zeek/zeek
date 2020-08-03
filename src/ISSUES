@@ -54,6 +54,14 @@ TEST SUITE
 
 Test suite should split into error tests vs. functionality tests
 
+Recursive invocation of loops will fail because iter_info is per-loop
+	and not per-loop-instantiation.  Making it dynamic for
+	potentially recursive functions is thorny because we want to
+	recover memory even if the loop doesn't undergo a normal
+	termination but instead executes a "return", say.  Need to
+	use an intrusive pointer or a managed_slot temporary (probably
+	best).
+
 the original problem is actually problematic in practice to solve
 	due to occurring in benign locations
 

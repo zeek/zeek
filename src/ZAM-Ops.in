@@ -1339,8 +1339,8 @@ eval if ( ! can_cast_value_to_type(v, z.t) ) { pc = z.v2; continue; }
 
 
 internal-op Init-Table-Loop
-type VVC
-eval auto ii = z.c.iter_info
+type VV
+eval auto ii = z.aux->iter_info
 eval ii->tv = frame[z.v2].table_val
 eval ii->loop_vals = ii->tv->AsTable()
 eval ii->c = ii->loop_vals->InitForIteration()
@@ -1379,7 +1379,7 @@ eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
 eval auto val_var_t = ii->value_var_type
-eval if ( IsManagedType(val_var_t) ) DeleteManagedType(frame[z.v1], val_var_t)
+eval if ( z.is_managed ) DeleteManagedType(frame[z.v1], val_var_t)
 eval frame[z.v1] = BuildVal(tev_p, val_var_t)
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
 eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
@@ -1391,7 +1391,7 @@ eval }
 
 internal-op Init-Vector-Loop
 type VV
-eval auto ii = z.c.iter_info
+eval auto ii = z.aux->iter_info
 eval ii->vv = frame[z.v2].vector_val->RawVector()
 eval ii->n = ii->vv->Size()
 eval ii->iter = 0
@@ -1411,7 +1411,7 @@ eval ++ii->iter
 
 internal-op Init-String-Loop
 type VV
-eval auto ii = z.c.iter_info
+eval auto ii = z.aux->iter_info
 eval ii->s = frame[z.v2].string_val->AsString()
 eval ii->iter = 0
 eval ii->n = ii->s->Len()

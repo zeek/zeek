@@ -435,7 +435,7 @@ void ZAM::ComputeFrameLifetimes()
 			}
 			break;
 
-		case OP_INIT_TABLE_LOOP_VVC:
+		case OP_INIT_TABLE_LOOP_VV:
 		case OP_INIT_VECTOR_LOOP_VV:
 		case OP_INIT_STRING_LOOP_VV:
 			{

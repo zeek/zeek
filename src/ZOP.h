@@ -352,6 +352,7 @@ public:
 		delete [] slots;
 		delete [] constants;
 		delete [] types;
+		delete iter_info;
 		}
 
 	IntrusivePtr<Val> ToVal(const ZAMValUnion* frame, int i) const
@@ -416,6 +417,9 @@ public:
 	int* slots = nullptr;
 	IntrusivePtr<Val>* constants = nullptr;
 	IntrusivePtr<BroType>* types = nullptr;
+
+	// If non-nil, then iteration information for a loop.
+	IterInfo* iter_info = nullptr;
 
 	// If we cared about memory penny-pinching, we could make
 	// this a pointer and only instantiate as needed.

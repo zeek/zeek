@@ -1975,14 +1975,13 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		ii->loop_var_types.push_back(id->Type());
 		}
 
-	ZAMValUnion ii_val;
-	ii_val.iter_info = ii;
-
 	auto info = NewSlot(false);	// false <- IterInfo isn't managed
-	auto z = ZInstI(OP_INIT_TABLE_LOOP_VVC, info, FrameSlot(val));
-	z.c = ii_val;
-	z.op_type = OP_VVc;
+	auto z = ZInstI(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
+	z.op_type = OP_VV;
 	z.SetType(value_var ? value_var->Type() : nullptr);
+	z.aux = new ZInstAux(0);
+	z.aux->iter_info = ii;
+
 	auto init_end = AddInst(z);
 
 	auto iter_head = StartingBlock();
@@ -1990,14 +1989,12 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		{
 		z = ZInstI(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, FrameSlot(value_var),
 				info, 0);
-		z.c = ii_val;
 		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
 		}
 	else
 		{
 		z = ZInstI(OP_NEXT_TABLE_ITER_VV, info, 0);
-		z.c = ii_val;
 		z.op_type = OP_VV_I2;
 		}
 
@@ -2013,13 +2010,11 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	ii->vec_type = val->Type()->AsVectorType();
 	ii->yield_type = ii->vec_type->YieldType();
 
-	ZAMValUnion ii_val;
-	ii_val.iter_info = ii;
-
 	auto info = NewSlot(false);
 	auto z = ZInstI(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
-	z.c = ii_val;
-	z.op_type = OP_VVc;
+	z.op_type = OP_VV;
+	z.aux = new ZInstAux(0);
+	z.aux->iter_info = ii;
 
 	auto init_end = AddInst(z);
 
@@ -2036,13 +2031,11 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
-	ZAMValUnion ii_val;
-	ii_val.iter_info = new IterInfo();
-
 	auto info = NewSlot(false);
 	auto z = ZInstI(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
-	z.c = ii_val;
-	z.op_type = OP_VVc;
+	z.op_type = OP_VV;
+	z.aux = new ZInstAux(0);
+	z.aux->iter_info = new IterInfo();
 
 	auto init_end = AddInst(z);
 

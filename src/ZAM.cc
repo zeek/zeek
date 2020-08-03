@@ -884,16 +884,16 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 		ZOp op;
 
 		switch ( call_case ) {
-		case 2: op = n ? OP_CALL2_Vc : OP_CALL2_c; break;
-		case 3: op = n ? OP_CALL3_Vc : OP_CALL3_c; break;
-		case 4: op = n ? OP_CALL4_Vc : OP_CALL4_c; break;
-		case 5: op = n ? OP_CALL5_Vc : OP_CALL5_c; break;
+		case 2: op = n ? OP_CALL2_V : OP_CALL2_X; break;
+		case 3: op = n ? OP_CALL3_V : OP_CALL3_X; break;
+		case 4: op = n ? OP_CALL4_V : OP_CALL4_X; break;
+		case 5: op = n ? OP_CALL5_V : OP_CALL5_X; break;
 
 		default:
 			if ( indirect )
-				op = n ? OP_INDCALLN_VVc : OP_INDCALLN_Vc;
+				op = n ? OP_INDCALLN_VV : OP_INDCALLN_V;
 			else
-				op = n ? OP_CALLN_Vc : OP_CALLN_c;
+				op = n ? OP_CALLN_V : OP_CALLN_X;
 			break;
 		}
 
@@ -905,13 +905,13 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 			if ( indirect)
 				{
 				z = ZInstI(op, n_slot, FrameSlot(func));
-				z.op_type = OP_VVc;
+				z.op_type = OP_VV;
 				}
 
 			else
 				{
 				z = ZInstI(op, n_slot);
-				z.op_type = OP_Vc;
+				z.op_type = OP_V;
 				}
 			}
 		else
@@ -919,12 +919,12 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 			if ( indirect )
 				{
 				z = ZInstI(op, FrameSlot(func));
-				z.op_type = OP_Vc;
+				z.op_type = OP_V;
 				}
 			else
 				{
 				z = ZInstI(op);
-				z.op_type = OP_c;
+				z.op_type = OP_X;
 				}
 			}
 

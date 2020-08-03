@@ -1026,8 +1026,7 @@ eval @v
 
 # Calls with 2-5 arguments and no return value.
 internal-op Call2
-op1-read
-type c
+type X
 side-effects
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
@@ -1038,9 +1037,9 @@ eval (void) z.func->Call(args, f)
 
 # Same with a return value.
 internal-assignment-op Call2
-type Vc
-side-effects OP_CALL2_c
-side-effects-op-type OP_c
+type V
+side-effects OP_CALL2_X
+side-effects-op-type OP_X
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
@@ -1052,8 +1051,7 @@ eval auto v = v_ptr.get()
 eval @v
 
 internal-op Call3
-op1-read
-type c
+type X
 side-effects
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
@@ -1065,9 +1063,9 @@ eval (void) z.func->Call(args, f)
 
 # Same with a return value.
 internal-assignment-op Call3
-type Vc
-side-effects OP_CALL3_c
-side-effects-op-type OP_c
+type V
+side-effects OP_CALL3_X
+side-effects-op-type OP_X
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
@@ -1080,8 +1078,7 @@ eval auto v = v_ptr.get()
 eval @v
 
 internal-op Call4
-op1-read
-type c
+type X
 side-effects
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
@@ -1094,9 +1091,9 @@ eval (void) z.func->Call(args, f)
 
 # Same with a return value.
 internal-assignment-op Call4
-type Vc
-side-effects OP_CALL4_c
-side-effects-op-type OP_c
+type V
+side-effects OP_CALL4_X
+side-effects-op-type OP_X
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
@@ -1110,8 +1107,7 @@ eval auto v = v_ptr.get()
 eval @v
 
 internal-op Call5
-op1-read
-type c
+type X
 side-effects
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
@@ -1125,9 +1121,9 @@ eval (void) z.func->Call(args, f)
 
 # Same with a return value.
 internal-assignment-op Call5
-type Vc
-side-effects OP_CALL5_c
-side-effects-op-type OP_c
+type V
+side-effects OP_CALL5_X
+side-effects-op-type OP_X
 eval auto aux = z.aux
 eval std::vector<IntrusivePtr<Val>> args
 eval args.push_back(aux->ToVal(frame, 0))
@@ -1144,8 +1140,7 @@ eval @v
 # ... and with an arbitrary number of arguments.
 
 internal-op CallN
-op1-read
-type c
+type X
 side-effects
 eval auto aux = z.aux
 eval auto n = aux->n
@@ -1156,9 +1151,9 @@ eval (void) z.func->Call(args, f)
 
 # Same with a return value.
 internal-assignment-op CallN
-type Vc
-side-effects OP_CALLN_c
-side-effects-op-type OP_c
+type V
+side-effects OP_CALLN_X
+side-effects-op-type OP_X
 eval auto aux = z.aux
 eval auto n = aux->n
 eval std::vector<IntrusivePtr<Val>> args
@@ -1172,7 +1167,7 @@ eval @v
 # Same, but for indirect calls via a local variable.
 internal-op IndCallN
 op1-read
-type Vc
+type V
 side-effects
 eval auto func = frame[z.v1].func_val
 eval auto aux = z.aux
@@ -1184,9 +1179,9 @@ eval (void) func->Call(args, f)
 
 # Same with a return value.
 internal-assignment-op IndCallN
-type VVc
-side-effects OP_INDCALLN_Vc
-side-effects-op-type OP_Vc
+type VV
+side-effects OP_INDCALLN_V
+side-effects-op-type OP_V
 eval auto func = frame[z.v2].func_val
 eval auto aux = z.aux
 eval auto n = aux->n

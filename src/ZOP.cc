@@ -21,7 +21,6 @@ static const char* op_type_name(ZAMOpType ot)
 	switch ( ot ) {
 		case OP_X:		return "X";
 		case OP_C:		return "C";
-		case OP_c:		return "c";
 		case OP_V:		return "V";
 		case OP_V_I1:		return "V_I1";
 		case OP_VC_I1:		return "VC_I1";
@@ -113,10 +112,6 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 
 	case OP_C:
 		printf("%s", ConstDump());
-		break;
-
-	case OP_c:
-		printf("<special-constant>");
 		break;
 
 	case OP_VC:
@@ -217,7 +212,6 @@ int ZInst::NumFrameSlots() const
 	case OP_VVVV:	return 4;
 	case OP_VVVC:	return 3;
 	case OP_C:	return 0;
-	case OP_c:	return 0;
 	case OP_VC:	return 1;
 	case OP_Vc:	return 1;
 	case OP_VVC:	return 2;
@@ -408,7 +402,6 @@ bool ZInstI::AssignsToSlot1() const
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
-	case OP_c:
 	case OP_V_I1:
 	case OP_VC_I1:
 	case OP_VV_I1_I2:
@@ -452,7 +445,6 @@ bool ZInstI::UsesSlot(int slot) const
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
-	case OP_c:
 	case OP_V_I1:
 	case OP_VC_I1:
 	case OP_VV_I1_I2:
@@ -499,7 +491,6 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
-	case OP_c:
 	case OP_V_I1:
 	case OP_VC_I1:
 	case OP_VV_I1_I2:
@@ -563,7 +554,6 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
-	case OP_c:
 	case OP_V_I1:
 	case OP_VC_I1:
 	case OP_VV_I1_I2:

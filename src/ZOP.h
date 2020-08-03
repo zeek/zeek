@@ -24,7 +24,7 @@ typedef enum {
 // Used for low-level optimization (so important that they're correct),
 // and for dumping statements.
 typedef enum {
-	OP_X, OP_C, OP_c, OP_V, OP_V_I1, OP_VC_I1,
+	OP_X, OP_C, OP_V, OP_V_I1, OP_VC_I1,
 
 	OP_VC,
 	OP_Vc,

@@ -97,6 +97,10 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 		return TYPE_INTERNAL_INT;
 
 	case TYPE_COUNT:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	case TYPE_COUNTER:
+#pragma GCC diagnostic pop
 	case TYPE_PORT:
 		return TYPE_INTERNAL_UNSIGNED;
 
@@ -936,8 +940,11 @@ constexpr auto TYPE_BOOL = zeek::TYPE_BOOL;
 constexpr auto TYPE_INT = zeek::TYPE_INT;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_COUNT instead.")]]
 constexpr auto TYPE_COUNT = zeek::TYPE_COUNT;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 [[deprecated("Remove in v4.1. TYPE_COUNTER was removed. Use zeek::TYPE_COUNT instead.")]]
 constexpr auto TYPE_COUNTER = zeek::TYPE_COUNTER;
+#pragma GCC diagnostic pop
 [[deprecated("Remove in v4.1. Use zeek::TYPE_DOUBLE instead.")]]
 constexpr auto TYPE_DOUBLE = zeek::TYPE_DOUBLE;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_TIME instead.")]]

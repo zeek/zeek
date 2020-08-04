@@ -9,8 +9,9 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::irc;
 using namespace std;
+
+namespace zeek::analyzer::irc {
 
 IRC_Analyzer::IRC_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IRC", conn)
@@ -1162,8 +1163,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		orig_zip_status = ZIP_LOADED;
 		resp_zip_status = ZIP_LOADED;
-		AddSupportAnalyzer(new zip::ZIP_Analyzer(Conn(), true));
-		AddSupportAnalyzer(new zip::ZIP_Analyzer(Conn(), false));
+		AddSupportAnalyzer(new zeek::analyzer::zip::ZIP_Analyzer(Conn(), true));
+		AddSupportAnalyzer(new zeek::analyzer::zip::ZIP_Analyzer(Conn(), false));
 		}
 
 	return;
@@ -1222,3 +1223,5 @@ vector<string> IRC_Analyzer::SplitWords(const string& input, char split)
 
 	return words;
 	}
+
+} // namespace zeek::analyzer::irc

@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("DNS", ::analyzer::dns::DNS_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("DNS", zeek::analyzer::dns::DNS_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("Contents_DNS", nullptr));
 
 		zeek::plugin::Configuration config;

@@ -8,7 +8,7 @@
 
 #include "imap_pac.h"
 
-namespace analyzer { namespace imap {
+namespace zeek::analyzer::imap {
 
 class IMAP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -34,4 +34,10 @@ protected:
 	bool tls_active;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::imap
+
+namespace analyzer::imap {
+
+using IMAP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::imap::IMAP_Analyzer.")]] = zeek::analyzer::imap::IMAP_Analyzer;
+
+} // namespace analyzer::imap

@@ -9,7 +9,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::file;
+namespace zeek::analyzer::file {
 
 File_Analyzer::File_Analyzer(const char* name, zeek::Connection* conn)
 	: TCP_ApplicationAnalyzer(name, conn)
@@ -87,3 +87,5 @@ void File_Analyzer::Identify()
 			zeek::make_intrusive<zeek::StringVal>(match)
 		);
 	}
+
+} // namespace zeek::analyzer::file

@@ -16,7 +16,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-using namespace analyzer::vxlan;
+namespace zeek::analyzer::vxlan {
 
 void VXLAN_Analyzer::Done()
 	{
@@ -107,3 +107,5 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
 	zeek::sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);
 	}
+
+} // namespace zeek::analyzer::vxlan

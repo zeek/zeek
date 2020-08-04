@@ -28,7 +28,7 @@
 
 #define TELNET_IAC 255
 
-using namespace analyzer::login;
+namespace zeek::analyzer::login {
 
 TelnetOption::TelnetOption(NVT_Analyzer* arg_endp, unsigned int arg_code)
 	{
@@ -117,6 +117,7 @@ void TelnetOption::BadOption()
 	endp->Event(bad_option);
 	}
 
+namespace detail {
 
 void TelnetTerminalOption::RecvSubOption(u_char* data, int len)
 	{
@@ -379,6 +380,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 	// in ex/redund-binary-opt.trace.
 	}
 
+} // namespace detail
 
 NVT_Analyzer::NVT_Analyzer(zeek::Connection* conn, bool orig)
 	: zeek::analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options()
@@ -405,23 +407,23 @@ TelnetOption* NVT_Analyzer::FindOption(unsigned int code)
 		{ // Maybe we haven't created this option yet.
 		switch ( code ) {
 		case TELNET_OPTION_BINARY:
-			opt = new TelnetBinaryOption(this);
+			opt = new detail::TelnetBinaryOption(this);
 			break;
 
 		case TELNET_OPTION_TERMINAL:
-			opt = new TelnetTerminalOption(this);
+			opt = new detail::TelnetTerminalOption(this);
 			break;
 
 		case TELNET_OPTION_ENCRYPT:
-			opt = new TelnetEncryptOption(this);
+			opt = new detail::TelnetEncryptOption(this);
 			break;
 
 		case TELNET_OPTION_AUTHENTICATE:
-			opt = new TelnetAuthenticateOption(this);
+			opt = new detail::TelnetAuthenticateOption(this);
 			break;
 
 		case TELNET_OPTION_ENVIRON:
-			opt = new TelnetEnvironmentOption(this);
+			opt = new detail::TelnetEnvironmentOption(this);
 			break;
 		}
 		}
@@ -734,3 +736,5 @@ void NVT_Analyzer::BadOptionTermination(unsigned int /* code */)
 	{
 	Event(bad_option_termination);
 	}
+
+} // namespace zeek::analyzer::login

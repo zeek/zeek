@@ -6,12 +6,10 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::rfb;
+namespace zeek::analyzer::rfb {
 
 RFB_Analyzer::RFB_Analyzer(zeek::Connection* c)
-
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("RFB", c)
-
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("RFB", c)
 	{
 	interp = new binpac::RFB::RFB_Conn(this);
 	had_gap = false;
@@ -76,3 +74,5 @@ void RFB_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::rfb

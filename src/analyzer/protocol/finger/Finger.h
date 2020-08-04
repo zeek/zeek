@@ -5,7 +5,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace finger {
+namespace zeek::analyzer::finger {
 
 class Finger_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -25,4 +25,10 @@ protected:
 	int did_deliver;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::finger
+
+namespace analyzer::finger {
+
+	using Finger_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::finger::Finger_Analyzer.")]] = zeek::analyzer::finger::Finger_Analyzer;
+
+} // namespace analyzer::finger

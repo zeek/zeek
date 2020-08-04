@@ -4,7 +4,7 @@
 
 #include "snmp_pac.h"
 
-namespace analyzer { namespace snmp {
+namespace zeek::analyzer::snmp {
 
 class SNMP_Analyzer final : public zeek::analyzer::Analyzer {
 
@@ -25,4 +25,10 @@ protected:
 	binpac::SNMP::SNMP_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::snmp
+
+namespace analyzer::snmp {
+
+using SNMP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::snmp::SNMP_Analyzer.")]] = zeek::analyzer::snmp::SNMP_Analyzer;
+
+} // namespace analyzer::snmp

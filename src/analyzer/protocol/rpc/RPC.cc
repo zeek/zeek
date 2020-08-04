@@ -14,8 +14,6 @@
 
 #include <stdlib.h>
 
-using namespace analyzer::rpc;
-
 namespace { // local namespace
 	const bool DEBUG_rpc_resync = false;
 }
@@ -25,6 +23,8 @@ namespace { // local namespace
 // TODO: make this configurable
 #define MAX_RPC_LEN 65536
 
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
 	{
@@ -412,8 +412,10 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 	return (expected == processed);
 	}
 
+} // namespace detail
+
 Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
-                           RPC_Interpreter* arg_interp)
+                           detail::RPC_Interpreter* arg_interp)
 	: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
@@ -721,7 +723,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 RPC_Analyzer::RPC_Analyzer(const char* name, zeek::Connection* conn,
-                           RPC_Interpreter* arg_interp)
+                           detail::RPC_Interpreter* arg_interp)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer(name, conn),
 	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
@@ -737,7 +739,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+                                 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = std::min(len, caplen);
@@ -766,3 +768,5 @@ void RPC_Analyzer::ExpireTimer(double /* t */)
 	Event(connection_timeout);
 	zeek::sessions->Remove(Conn());
 	}
+
+} // namespace zeek::analyzer::rpc

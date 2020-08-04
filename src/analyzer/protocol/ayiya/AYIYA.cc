@@ -2,7 +2,7 @@
 #include "AYIYA.h"
 #include "Func.h"
 
-using namespace analyzer::ayiya;
+namespace zeek::analyzer::ayiya {
 
 AYIYA_Analyzer::AYIYA_Analyzer(zeek::Connection* conn)
 : Analyzer("AYIYA", conn)
@@ -34,3 +34,5 @@ void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::ayiya

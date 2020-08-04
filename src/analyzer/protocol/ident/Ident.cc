@@ -11,7 +11,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::ident;
+namespace zeek::analyzer::ident {
 
 Ident_Analyzer::Ident_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IDENT", conn)
@@ -255,3 +255,5 @@ void Ident_Analyzer::BadReply(int length, const char* line)
 		did_bad_reply = true;
 		}
 	}
+
+} // namespace zeek::analyzer::ident

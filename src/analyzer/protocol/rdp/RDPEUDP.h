@@ -4,7 +4,8 @@
 #include "analyzer/protocol/udp/UDP.h"
 #include "rdpeudp_pac.h"
 
-namespace analyzer { namespace rdpeudp {
+namespace zeek::analyzer::rdpeudp {
+
 class RDP_Analyzer final : public zeek::analyzer::Analyzer {
 
 public:
@@ -21,4 +22,10 @@ protected:
 	binpac::RDPEUDP::RDPEUDP_Conn* interp;
 };
 
-} }
+} // namespace zeek::analyzer::rdpeudp
+
+namespace analyzer::rdpeudp {
+
+using RDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rdpeudp::RDP_Analyzer.")]] = zeek::analyzer::rdpeudp::RDP_Analyzer;
+
+} // namespace analyzer::rdpeudp

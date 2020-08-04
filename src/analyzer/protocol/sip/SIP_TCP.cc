@@ -7,7 +7,7 @@
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "events.bif.h"
 
-using namespace analyzer::sip_tcp;
+namespace zeek::analyzer::sip_tcp {
 
 SIP_Analyzer::SIP_Analyzer(zeek::Connection* conn)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SIP_TCP", conn)
@@ -65,3 +65,5 @@ void SIP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::sip_tcp

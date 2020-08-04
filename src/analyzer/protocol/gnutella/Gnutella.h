@@ -4,13 +4,15 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 
-#define ORIG_OK               0x1
-#define RESP_OK               0x2
+namespace zeek::analyzer::gnutella {
 
-#define GNUTELLA_MSG_SIZE     23
-#define GNUTELLA_MAX_PAYLOAD  1024
+constexpr int ORIG_OK = 0x1;
+constexpr int RESP_OK = 0x2;
 
-namespace analyzer { namespace gnutella {
+constexpr int GNUTELLA_MSG_SIZE = 23;
+constexpr int GNUTELLA_MAX_PAYLOAD = 1024;
+
+namespace detail {
 
 class GnutellaMsgState {
 public:
@@ -32,6 +34,7 @@ public:
 	unsigned int payload_left;
 };
 
+} // namespace detail
 
 class Gnutella_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -54,7 +57,7 @@ private:
 
 	void DeliverLines(int len, const u_char* data, bool orig);
 
-	void SendEvents(GnutellaMsgState* p, bool is_orig);
+	void SendEvents(detail::GnutellaMsgState* p, bool is_orig);
 
 	void DissectMessage(char* msg);
 	void DeliverMessages(int len, const u_char* data, bool orig);
@@ -63,9 +66,16 @@ private:
 	int new_state;
 	int sent_establish;
 
-	GnutellaMsgState* orig_msg_state;
-	GnutellaMsgState* resp_msg_state;
-	GnutellaMsgState* ms;
+	detail::GnutellaMsgState* orig_msg_state;
+	detail::GnutellaMsgState* resp_msg_state;
+	detail::GnutellaMsgState* ms;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::gnutella
+
+namespace analyzer::gnutella {
+
+	using GnutellaMsgState [[deprecated("Remove in v4.1. Use zeek::analyzer::gnutella::detail::GnutellaMsgState.")]] = zeek::analyzer::gnutella::detail::GnutellaMsgState;
+	using Gnutella_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gnutella::Gnutella_Analyzer.")]] = zeek::analyzer::gnutella::Gnutella_Analyzer;
+
+} // namespace analyzer::gnutella

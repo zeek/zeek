@@ -5,7 +5,7 @@
 #include "Reporter.h"
 #include "events.bif.h"
 
-using namespace analyzer::MySQL;
+namespace zeek::analyzer::mysql {
 
 MySQL_Analyzer::MySQL_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("MySQL", c)
@@ -63,3 +63,5 @@ void MySQL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::mysql

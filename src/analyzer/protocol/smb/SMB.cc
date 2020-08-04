@@ -1,6 +1,6 @@
 #include "SMB.h"
 
-using namespace analyzer::smb;
+namespace zeek::analyzer::smb {
 
 // This was 1<<17 originally but was changed due to larger messages
 // being seen.
@@ -85,3 +85,5 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		NeedResync();
 		}
 	}
+
+} // namespace zeek::analyzer::smb

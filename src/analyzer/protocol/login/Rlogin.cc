@@ -9,7 +9,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::login;
+namespace zeek::analyzer::login {
 
 Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
 	: zeek::analyzer::tcp::ContentLine_Analyzer("CONTENTLINE", conn, orig)
@@ -249,3 +249,5 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 			zeek::make_intrusive<zeek::StringVal>(s)
 		);
 	}
+
+} // namespace zeek::analyzer::login

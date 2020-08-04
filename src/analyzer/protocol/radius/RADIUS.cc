@@ -6,7 +6,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::RADIUS;
+namespace zeek::analyzer::radius {
 
 RADIUS_Analyzer::RADIUS_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::Analyzer("RADIUS", c)
@@ -38,3 +38,5 @@ void RADIUS_Analyzer::DeliverPacket(int len, const u_char* data,
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::radius

@@ -12,8 +12,6 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::smtp;
-
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	#cmd,
 
@@ -26,14 +24,16 @@ static const char* unknown_cmd = "(UNKNOWN)";
 #define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 
+namespace zeek::analyzer::smtp {
+
 SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = false;
 	expect_recver = true;
-	state = SMTP_CONNECTED;
+	state = detail::SMTP_CONNECTED;
 	last_replied_cmd = -1;
-	first_cmd = SMTP_CMD_CONN_ESTABLISHMENT;
+	first_cmd = detail::SMTP_CMD_CONN_ESTABLISHMENT;
 	pending_reply = 0;
 
 	// Some clients appear to assume pipelining is always enabled
@@ -90,7 +90,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 
 	Unexpected(is_orig, "content gap", buf_len, buf);
 
-	if ( state == SMTP_IN_DATA )
+	if ( state == detail::SMTP_IN_DATA )
 		{
 		// Record the SMTP data gap and terminate the
 		// ongoing mail transaction.
@@ -113,7 +113,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	// Missing either the sender's packets or their replies
 	// (e.g. code 354) is critical, so we set state to SMTP_AFTER_GAP
 	// in both cases
-	state = SMTP_AFTER_GAP;
+	state = detail::SMTP_AFTER_GAP;
 	}
 
 void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
@@ -121,7 +121,7 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	// If an TLS transaction has been initiated, forward to child and abort.
-	if ( state == SMTP_IN_TLS )
+	if ( state == detail::SMTP_IN_TLS )
 		{
 		ForwardStream(length, line, orig);
 		return;
@@ -176,7 +176,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 		{
 		int cmd_code = -1;
 
-		if ( state == SMTP_AFTER_GAP )
+		if ( state == detail::SMTP_AFTER_GAP )
 			{
 			// Don't know whether it is a command line or
 			// a data line.
@@ -186,18 +186,18 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				new zeek::String((const u_char *) line, length, true);
 			}
 
-		else if ( state == SMTP_IN_DATA && line[0] == '.' && length == 1 )
+		else if ( state == detail::SMTP_IN_DATA && line[0] == '.' && length == 1 )
 			{
 			cmd = ".";
 			cmd_len = 1;
-			cmd_code = SMTP_CMD_END_OF_DATA;
+			cmd_code = detail::SMTP_CMD_END_OF_DATA;
 			NewCmd(cmd_code);
 
 			expect_sender = false;
 			expect_recver = true;
 			}
 
-		else if ( state == SMTP_IN_DATA )
+		else if ( state == detail::SMTP_IN_DATA )
 			{
 			// Check "." for end of data.
 			expect_recver = false; // ?? MAY server respond to mail data?
@@ -227,11 +227,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				}
 			}
 
-		else if ( state == SMTP_IN_AUTH )
+		else if ( state == detail::SMTP_IN_AUTH )
 			{
 			cmd = "***";
 			cmd_len = 2;
-			cmd_code = SMTP_CMD_AUTH_ANSWER;
+			cmd_code = detail::SMTP_CMD_AUTH_ANSWER;
 			NewCmd(cmd_code);
 			}
 
@@ -262,7 +262,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			// turn calls BeginData() and EndData(),  and
 			// RequestEvent() in different orders for the
 			// two commands.
-			if ( cmd_code == SMTP_CMD_END_OF_DATA )
+			if ( cmd_code == detail::SMTP_CMD_END_OF_DATA )
 				UpdateState(cmd_code, 0, orig);
 
 			if ( smtp_request )
@@ -273,7 +273,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 					RequestEvent(cmd_len, cmd, data_len, line);
 				}
 
-			if ( cmd_code != SMTP_CMD_END_OF_DATA )
+			if ( cmd_code != detail::SMTP_CMD_END_OF_DATA )
 				UpdateState(cmd_code, 0, orig);
 			}
 		}
@@ -336,11 +336,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				{
 				int cmd_code = last_replied_cmd;
 				switch ( cmd_code ) {
-					case SMTP_CMD_CONN_ESTABLISHMENT:
+					case detail::SMTP_CMD_CONN_ESTABLISHMENT:
 						cmd = ">";
 						break;
 
-					case SMTP_CMD_END_OF_DATA:
+					case detail::SMTP_CMD_END_OF_DATA:
 						cmd = ".";
 						break;
 
@@ -361,7 +361,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			}
 
 		// Process SMTP extensions, e.g. PIPELINING.
-		if ( last_replied_cmd == SMTP_CMD_EHLO && reply_code == 250 )
+		if ( last_replied_cmd == detail::SMTP_CMD_EHLO && reply_code == 250 )
 			{
 			const char* ext;
 			int ext_len;
@@ -399,7 +399,7 @@ void SMTP_Analyzer::StartTLS()
 	{
 	// STARTTLS was succesful. Remove SMTP support analyzers, add SSL
 	// analyzer, and throw event signifying the change.
-	state = SMTP_IN_TLS;
+	state = detail::SMTP_IN_TLS;
 	expect_sender = expect_recver = true;
 
 	RemoveSupportAnalyzer(cl_orig);
@@ -429,9 +429,9 @@ void SMTP_Analyzer::StartTLS()
 
 void SMTP_Analyzer::NewReply(int reply_code, bool orig)
 	{
-	if ( state == SMTP_AFTER_GAP && reply_code > 0 )
+	if ( state == detail::SMTP_AFTER_GAP && reply_code > 0 )
 		{
-		state = SMTP_GAP_RECOVERY;
+		state = detail::SMTP_GAP_RECOVERY;
 		RequestEvent(strlen(unknown_cmd), unknown_cmd, 0, "");
 		/*
 		if ( line_after_gap )
@@ -469,21 +469,21 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 	{
 	int st = state;
 
-	if ( st == SMTP_QUIT && reply_code == 0 )
+	if ( st == detail::SMTP_QUIT && reply_code == 0 )
 		UnexpectedCommand(cmd_code, reply_code);
 
 	switch ( cmd_code ) {
-	case SMTP_CMD_CONN_ESTABLISHMENT:
+	case detail::SMTP_CMD_CONN_ESTABLISHMENT:
 		switch ( reply_code ) {
 		case 0:
-			if ( st != SMTP_CONNECTED )
+			if ( st != detail::SMTP_CONNECTED )
 				{
 				// Impossible state, because the command
 				// CONN_ESTABLISHMENT should only appear
 				// in the very beginning.
 				UnexpectedCommand(cmd_code, reply_code);
 				}
-			state = SMTP_INITIATED;
+			state = detail::SMTP_INITIATED;
 			break;
 
 		case 220:
@@ -491,7 +491,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 
 		case 421:
 		case 554:
-			state = SMTP_NOT_AVAILABLE;
+			state = detail::SMTP_NOT_AVAILABLE;
 			break;
 
 		default:
@@ -500,13 +500,13 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 		break;
 
-	case SMTP_CMD_EHLO:
-	case SMTP_CMD_HELO:
+	case detail::SMTP_CMD_EHLO:
+	case detail::SMTP_CMD_HELO:
 		switch ( reply_code ) {
 			case 0:
-				if ( st != SMTP_INITIATED )
+				if ( st != detail::SMTP_INITIATED )
 					UnexpectedCommand(cmd_code, reply_code);
-				state = SMTP_READY;
+				state = detail::SMTP_READY;
 				break;
 
 			case 250:
@@ -517,7 +517,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 			case 501:
 			case 504:
 			case 550:
-				state = SMTP_INITIATED;
+				state = detail::SMTP_INITIATED;
 				break;
 
 			default:
@@ -526,15 +526,15 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 		break;
 
-	case SMTP_CMD_MAIL:
-	case SMTP_CMD_SEND:
-	case SMTP_CMD_SOML:
-	case SMTP_CMD_SAML:
+	case detail::SMTP_CMD_MAIL:
+	case detail::SMTP_CMD_SEND:
+	case detail::SMTP_CMD_SOML:
+	case detail::SMTP_CMD_SAML:
 		switch ( reply_code ) {
 			case 0:
-				if ( st != SMTP_READY )
+				if ( st != detail::SMTP_READY )
 					UnexpectedCommand(cmd_code, reply_code);
-				state = SMTP_MAIL_OK;
+				state = detail::SMTP_MAIL_OK;
 				break;
 
 			case 250:
@@ -549,8 +549,8 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 			case 550:
 			case 552:
 			case 553:
-				if ( state != SMTP_IN_DATA )
-					state = SMTP_READY;
+				if ( state != detail::SMTP_IN_DATA )
+					state = detail::SMTP_READY;
 				break;
 
 			default:
@@ -559,12 +559,12 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 		break;
 
-	case SMTP_CMD_RCPT:
+	case detail::SMTP_CMD_RCPT:
 		switch ( reply_code ) {
 			case 0:
-				if ( st != SMTP_MAIL_OK && st != SMTP_RCPT_OK )
+				if ( st != detail::SMTP_MAIL_OK && st != detail::SMTP_RCPT_OK )
 					UnexpectedCommand(cmd_code, reply_code);
-				state = SMTP_RCPT_OK;
+				state = detail::SMTP_RCPT_OK;
 				break;
 
 			case 250:
@@ -591,10 +591,10 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 		break;
 
-	case SMTP_CMD_DATA:
+	case detail::SMTP_CMD_DATA:
 		switch ( reply_code ) {
 			case 0:
-				if ( state != SMTP_RCPT_OK )
+				if ( state != detail::SMTP_RCPT_OK )
 					UnexpectedCommand(cmd_code, reply_code);
 				BeginData(orig);
 				break;
@@ -603,9 +603,9 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 				break;
 
 			case 421:
-				if ( state == SMTP_IN_DATA )
+				if ( state == detail::SMTP_IN_DATA )
 					EndData();
-				state = SMTP_QUIT;
+				state = detail::SMTP_QUIT;
 				break;
 
 			case 500:
@@ -613,27 +613,27 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 			case 503:
 			case 451:
 			case 554:
-				if ( state == SMTP_IN_DATA )
+				if ( state == detail::SMTP_IN_DATA )
 					EndData();
-				state = SMTP_READY;
+				state = detail::SMTP_READY;
 				break;
 
 			default:
 				UnexpectedReply(cmd_code, reply_code);
-				if ( state == SMTP_IN_DATA )
+				if ( state == detail::SMTP_IN_DATA )
 					EndData();
-				state = SMTP_READY;
+				state = detail::SMTP_READY;
 				break;
 		}
 		break;
 
-	case SMTP_CMD_END_OF_DATA:
+	case detail::SMTP_CMD_END_OF_DATA:
 		switch ( reply_code ) {
 			case 0:
-				if ( st != SMTP_IN_DATA )
+				if ( st != detail::SMTP_IN_DATA )
 					UnexpectedCommand(cmd_code, reply_code);
 				EndData();
-				state = SMTP_AFTER_DATA;
+				state = detail::SMTP_AFTER_DATA;
 				break;
 
 			case 250:
@@ -652,13 +652,13 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 
 		if ( reply_code > 0 )
-			state = SMTP_READY;
+			state = detail::SMTP_READY;
 		break;
 
-	case SMTP_CMD_RSET:
+	case detail::SMTP_CMD_RSET:
 		switch ( reply_code ) {
 			case 0:
-				state = SMTP_READY;
+				state = detail::SMTP_READY;
 				break;
 
 			case 250:
@@ -671,10 +671,10 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 
 		break;
 
-	case SMTP_CMD_QUIT:
+	case detail::SMTP_CMD_QUIT:
 		switch ( reply_code ) {
 			case 0:
-				state = SMTP_QUIT;
+				state = detail::SMTP_QUIT;
 				break;
 
 			case 221:
@@ -687,8 +687,8 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 
 		break;
 
-	case SMTP_CMD_AUTH:
-		if ( st != SMTP_READY )
+	case detail::SMTP_CMD_AUTH:
+		if ( st != detail::SMTP_READY )
 			UnexpectedCommand(cmd_code, reply_code);
 
 		switch ( reply_code ) {
@@ -697,11 +697,11 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 				break;
 
 			case 334:
-				state = SMTP_IN_AUTH;
+				state = detail::SMTP_IN_AUTH;
 				break;
 
 			case 235:
-				state = SMTP_INITIATED;
+				state = detail::SMTP_INITIATED;
 				break;
 
 			case 432:
@@ -713,13 +713,13 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 			case 535:
 			case 538:
 			default:
-				state = SMTP_INITIATED;
+				state = detail::SMTP_INITIATED;
 				break;
 		}
 		break;
 
-	case SMTP_CMD_AUTH_ANSWER:
-		if ( st != SMTP_IN_AUTH )
+	case detail::SMTP_CMD_AUTH_ANSWER:
+		if ( st != detail::SMTP_IN_AUTH )
 			UnexpectedCommand(cmd_code, reply_code);
 
 		switch ( reply_code ) {
@@ -728,19 +728,19 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 				break;
 
 			case 334:
-				state = SMTP_IN_AUTH;
+				state = detail::SMTP_IN_AUTH;
 				break;
 
 			case 235:
 			case 535:
 			default:
-				state = SMTP_INITIATED;
+				state = detail::SMTP_INITIATED;
 				break;
 		}
 		break;
 
-	case SMTP_CMD_TURN:
-		if ( st != SMTP_READY )
+	case detail::SMTP_CMD_TURN:
+		if ( st != detail::SMTP_READY )
 			UnexpectedCommand(cmd_code, reply_code);
 
 		switch ( reply_code ) {
@@ -752,7 +752,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 				// flip-side
 				orig_is_sender = ! orig_is_sender;
 
-				state = SMTP_CONNECTED;
+				state = detail::SMTP_CONNECTED;
 				expect_sender = false;
 				expect_recver = true;
 				break;
@@ -763,9 +763,9 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 		break;
 
-	case SMTP_CMD_STARTTLS:
-	case SMTP_CMD_X_ANONYMOUSTLS:
-		if ( st != SMTP_READY )
+	case detail::SMTP_CMD_STARTTLS:
+	case detail::SMTP_CMD_X_ANONYMOUSTLS:
+		if ( st != detail::SMTP_READY )
 			UnexpectedCommand(cmd_code, reply_code);
 
 		switch ( reply_code ) {
@@ -784,16 +784,16 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 		}
 		break;
 
-	case SMTP_CMD_VRFY:
-	case SMTP_CMD_EXPN:
-	case SMTP_CMD_HELP:
-	case SMTP_CMD_NOOP:
+	case detail::SMTP_CMD_VRFY:
+	case detail::SMTP_CMD_EXPN:
+	case detail::SMTP_CMD_HELP:
+	case detail::SMTP_CMD_NOOP:
 		// These commands do not affect state.
 		// ?? However, later we may want to add reply
 		// and state check code.
 
 	default:
-		if ( st == SMTP_GAP_RECOVERY && reply_code == 354 )
+		if ( st == detail::SMTP_GAP_RECOVERY && reply_code == 354 )
 			{
 			BeginData(orig);
 			}
@@ -805,10 +805,10 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 	// of data line might have been lost due to gaps in trace).  Note,
 	// BeginData() won't be called till the next DATA command.
 #if 0
-	if ( state == SMTP_IN_DATA && reply_code >= 400 )
+	if ( state == detail::SMTP_IN_DATA && reply_code >= 400 )
 		{
 		EndData();
-		state = SMTP_READY;
+		state = detail::SMTP_READY;
 		}
 #endif
 	}
@@ -839,10 +839,10 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 
 	// special case because we cannot define our usual macros with "-"
 	if ( istrequal(cmd, "X-ANONYMOUSTLS", cmd_len) )
-		return SMTP_CMD_X_ANONYMOUSTLS;
+		return detail::SMTP_CMD_X_ANONYMOUSTLS;
 
-	for ( int code = SMTP_CMD_EHLO; code < SMTP_CMD_LAST; ++code )
-		if ( istrequal(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
+	for ( int code = detail::SMTP_CMD_EHLO; code < detail::SMTP_CMD_LAST; ++code )
+		if ( istrequal(cmd, smtp_cmd_word[code - detail::SMTP_CMD_EHLO], cmd_len) )
 			return code;
 
 	return -1;
@@ -919,7 +919,7 @@ void SMTP_Analyzer::ProcessData(int length, const char* line)
 
 void SMTP_Analyzer::BeginData(bool orig)
 	{
-	state = SMTP_IN_DATA;
+	state = detail::SMTP_IN_DATA;
 	skip_data = false; // reset the flag at the beginning of the mail
 	if ( mail != nullptr )
 		{
@@ -928,7 +928,7 @@ void SMTP_Analyzer::BeginData(bool orig)
 		delete mail;
 		}
 
-	mail = new mime::MIME_Mail(this, orig);
+	mail = new zeek::analyzer::mime::MIME_Mail(this, orig);
 	}
 
 void SMTP_Analyzer::EndData()
@@ -942,3 +942,5 @@ void SMTP_Analyzer::EndData()
 		mail = nullptr;
 		}
 	}
+
+} // namespace zeek::analyzer::smtp

@@ -12,7 +12,6 @@
 #include "consts.bif.h"
 
 using namespace std;
-using namespace analyzer::ncp;
 
 #include "NCP.h"
 #include "Sessions.h"
@@ -22,6 +21,9 @@ using namespace analyzer::ncp;
 	((little_endian) ? \
 	 uint16(xbyte(bytes, 0)) | ((uint16(xbyte(bytes, 1))) << 8) : \
 	 uint16(xbyte(bytes, 1)) | ((uint16(xbyte(bytes, 0))) << 8))
+
+namespace zeek::analyzer::ncp {
+namespace detail {
 
 NCP_Session::NCP_Session(zeek::analyzer::Analyzer* a)
 : analyzer(a)
@@ -163,7 +165,9 @@ void NCP_FrameBuffer::compute_msg_length()
 		msg_len = (msg_len << 8) | data[4+i];
 	}
 
-Contents_NCP_Analyzer::Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, NCP_Session* arg_session)
+} // namespace detail
+
+Contents_NCP_Analyzer::Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, detail::NCP_Session* arg_session)
 : zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
@@ -247,7 +251,7 @@ void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 NCP_Analyzer::NCP_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NCP", conn)
 	{
-	session = new NCP_Session(this);
+	session = new detail::NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);
 	AddSupportAnalyzer(o_ncp);
 	r_ncp = new Contents_NCP_Analyzer(conn, false, session);
@@ -258,3 +262,5 @@ NCP_Analyzer::~NCP_Analyzer()
 	{
 	delete session;
 	}
+
+} // namespace zeek::analyzer::ncp

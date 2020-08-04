@@ -14,7 +14,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::pop3;
+namespace zeek::analyzer::pop3 {
 
 #undef POP3_CMD_DEF
 #define POP3_CMD_DEF(cmd)	#cmd,
@@ -25,14 +25,13 @@ static const char* pop3_cmd_word[] = {
 
 #define POP3_CMD_WORD(code) ((code >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
 
-
 POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("POP3", conn)
 	{
-	masterState = POP3_START;
-	subState = POP3_WOK;
-	state = START;
-	lastState = START;
+	masterState = detail::POP3_START;
+	subState = detail::POP3_WOK;
+	state = detail::START;
+	lastState = detail::START;
 
 	guessing = false;
 	waitingForAuthentication = false;
@@ -145,7 +144,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			}
 
 		switch ( state ) {
-		case AUTH_LOGIN:
+		case detail::AUTH_LOGIN:
 			// Format: Line 1 - User
 			//         Line 2 - Password
 			if ( authLines == 1 )
@@ -156,7 +155,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 
 			break;
 
-		case AUTH_PLAIN:
+		case detail::AUTH_PLAIN:
 			{
 			// Format: "authorization identity<NUL>authentication
 			//		identity<NUL>password"
@@ -195,7 +194,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 			}
 
-		case AUTH_CRAM_MD5:
+		case detail::AUTH_CRAM_MD5:
 			{ // Format: "user<space>password-hash"
 			const char* s;
 			const char* str = (char*) decoded->CheckString();
@@ -209,7 +208,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 			}
 
-		case AUTH:
+		case detail::AUTH:
 			break;
 
 		default:
@@ -268,8 +267,8 @@ void POP3_Analyzer::ProcessClientCmd()
 		if ( ! waitingForAuthentication )
 			{
 			Weird("pop3_client_command_unknown");
-			if ( subState == POP3_WOK )
-				subState = POP3_OK;
+			if ( subState == detail::POP3_WOK )
+				subState = detail::POP3_OK;
 			}
 		return;
 		}
@@ -279,31 +278,31 @@ void POP3_Analyzer::ProcessClientCmd()
 	const char* message = tokens.size() > 1 ? tokens[1].c_str() : "";
 
 	switch ( cmd_code ) {
-	case POP3_CMD_ERR:
-	case POP3_CMD_OK:
+	case detail::POP3_CMD_ERR:
+	case detail::POP3_CMD_OK:
 		Weird("pop3_client_sending_server_commands");
 		break;
 
-	case POP3_CMD_USER:
-		if ( masterState == POP3_AUTHORIZATION )
+	case detail::POP3_CMD_USER:
+		if ( masterState == detail::POP3_AUTHORIZATION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			state = USER;
-			subState = POP3_WOK;
+			state = detail::USER;
+			subState = detail::POP3_WOK;
 			user = message;
 			}
 		else
 			NotAllowed(cmd, "authorization");
 		break;
 
-	case POP3_CMD_PASS:
-		if ( masterState == POP3_AUTHORIZATION )
+	case detail::POP3_CMD_PASS:
+		if ( masterState == detail::POP3_AUTHORIZATION )
 			{
-			if ( state == USER )
+			if ( state == detail::USER )
 				{
 				POP3Event(pop3_request, true, cmd, message);
-				state = PASS;
-				subState = POP3_WOK;
+				state = detail::PASS;
+				subState = detail::POP3_WOK;
 				password = message;
 				}
 			else
@@ -314,12 +313,12 @@ void POP3_Analyzer::ProcessClientCmd()
 			NotAllowed(cmd, "authorization");
 		break;
 
-	case POP3_CMD_APOP:
-		if ( masterState == POP3_AUTHORIZATION )
+	case detail::POP3_CMD_APOP:
+		if ( masterState == detail::POP3_AUTHORIZATION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			state = APOP;
-			subState = POP3_WOK;
+			state = detail::APOP;
+			subState = detail::POP3_WOK;
 
 			char* arg1 = copy_string(message);
 			char* e;
@@ -333,32 +332,32 @@ void POP3_Analyzer::ProcessClientCmd()
 			NotAllowed(cmd, "authorization");
 		break;
 
-	case POP3_CMD_AUTH:
-		if ( masterState == POP3_AUTHORIZATION )
+	case detail::POP3_CMD_AUTH:
+		if ( masterState == detail::POP3_AUTHORIZATION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
 			if ( ! *message )
 				{
 				requestForMultiLine = true;
-				state = AUTH;
-				subState = POP3_WOK;
+				state = detail::AUTH;
+				subState = detail::POP3_WOK;
 				}
 			else
 				{
 				if ( strstr(message, "LOGIN") )
-					state = AUTH_LOGIN;
+					state = detail::AUTH_LOGIN;
 				else if ( strstr(message, "PLAIN") )
-					state = AUTH_PLAIN;
+					state = detail::AUTH_PLAIN;
 				else if ( strstr(message, "CRAM-MD5") )
-					state = AUTH_CRAM_MD5;
+					state = detail::AUTH_CRAM_MD5;
 				else
 					{
-					state = AUTH;
+					state = detail::AUTH;
 					POP3Event(pop3_unexpected, true, cmd,
 						fmt("unknown AUTH method %s", message));
 					}
 
-				subState = POP3_WOK;
+				subState = detail::POP3_WOK;
 				waitingForAuthentication = true;
 				authLines = 0;
 				}
@@ -368,31 +367,31 @@ void POP3_Analyzer::ProcessClientCmd()
 				"pass must follow the command 'USER'");
 		break;
 
-	case POP3_CMD_STAT:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_STAT:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = STAT;
+			subState = detail::POP3_WOK;
+			state = detail::STAT;
 			}
 		else
 			NotAllowed(cmd, "transaction");
 		break;
 
-	case POP3_CMD_LIST:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_LIST:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
 			if ( ! *message )
 				{
 				requestForMultiLine = true;
-				state = LIST;
-				subState = POP3_WOK;
+				state = detail::LIST;
+				subState = detail::POP3_WOK;
 				}
 			else
 				{
-				state = LIST;
-				subState = POP3_WOK;
+				state = detail::LIST;
+				subState = detail::POP3_WOK;
 				}
 			}
 		else
@@ -401,148 +400,148 @@ void POP3_Analyzer::ProcessClientCmd()
 				requestForMultiLine = true;
 
 			guessing = true;
-			lastState = LIST;
+			lastState = detail::LIST;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_RETR:
+	case detail::POP3_CMD_RETR:
 		requestForMultiLine = true;
-		if ( masterState == POP3_TRANSACTION )
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = RETR;
+			subState = detail::POP3_WOK;
+			state = detail::RETR;
 			}
 		else
 			{
 			guessing = true;
-			lastState = RETR;
+			lastState = detail::RETR;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_DELE:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_DELE:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = DELE;
+			subState = detail::POP3_WOK;
+			state = detail::DELE;
 			}
 		else
 			{
 			guessing = true;
-			lastState = DELE;
+			lastState = detail::DELE;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_RSET:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_RSET:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = RSET;
+			subState = detail::POP3_WOK;
+			state = detail::RSET;
 			}
 		else
 			{
 			guessing = true;
-			lastState = RSET;
+			lastState = detail::RSET;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_NOOP:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_NOOP:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = NOOP;
+			subState = detail::POP3_WOK;
+			state = detail::NOOP;
 			}
 		else
 			{
 			guessing = true;
-			lastState = NOOP;
+			lastState = detail::NOOP;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_LAST:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_LAST:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = LAST;
+			subState = detail::POP3_WOK;
+			state = detail::LAST;
 			}
 		else
 			{
 			guessing = true;
-			lastState = LAST;
+			lastState = detail::LAST;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_QUIT:
-		if ( masterState == POP3_AUTHORIZATION ||
-		     masterState == POP3_TRANSACTION ||
-		     masterState == POP3_START )
+	case detail::POP3_CMD_QUIT:
+		if ( masterState == detail::POP3_AUTHORIZATION ||
+		     masterState == detail::POP3_TRANSACTION ||
+		     masterState == detail::POP3_START )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = QUIT;
+			subState = detail::POP3_WOK;
+			state = detail::QUIT;
 			}
 		else
 			{
 			guessing = true;
-			lastState = LAST;
+			lastState = detail::LAST;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_TOP:
+	case detail::POP3_CMD_TOP:
 		requestForMultiLine = true;
 
-		if ( masterState == POP3_TRANSACTION )
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = TOP;
+			subState = detail::POP3_WOK;
+			state = detail::TOP;
 			}
 		else
 			{
 			guessing = true;
-			lastState = TOP;
+			lastState = detail::TOP;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_CAPA:
+	case detail::POP3_CMD_CAPA:
 		POP3Event(pop3_request, true, cmd, message);
-		subState = POP3_WOK;
-		state = CAPA;
+		subState = detail::POP3_WOK;
+		state = detail::CAPA;
 		requestForMultiLine = true;
 		break;
 
-	case POP3_CMD_STLS:
+	case detail::POP3_CMD_STLS:
 		POP3Event(pop3_request, true, cmd, message);
-		subState = POP3_WOK;
-		state = STLS;
+		subState = detail::POP3_WOK;
+		state = detail::STLS;
 		break;
 
-	case POP3_CMD_UIDL:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_UIDL:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
 			if ( ! *message )
 				{
 				requestForMultiLine = true;
-				state = UIDL;
-				subState = POP3_WOK;
+				state = detail::UIDL;
+				subState = detail::POP3_WOK;
 				}
 			else
 				{
-				state = UIDL;
-				subState = POP3_WOK;
+				state = detail::UIDL;
+				subState = detail::POP3_WOK;
 				}
 			}
 		else
@@ -551,22 +550,22 @@ void POP3_Analyzer::ProcessClientCmd()
 				requestForMultiLine = true;
 
 			guessing = true;
-			lastState = UIDL;
+			lastState = detail::UIDL;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
 
-	case POP3_CMD_XSENDER:
-		if ( masterState == POP3_TRANSACTION )
+	case detail::POP3_CMD_XSENDER:
+		if ( masterState == detail::POP3_TRANSACTION )
 			{
 			POP3Event(pop3_request, true, cmd, message);
-			subState = POP3_WOK;
-			state = LAST;
+			subState = detail::POP3_WOK;
+			state = detail::LAST;
 			}
 		else
 			{
 			guessing = true;
-			lastState = XSENDER;
+			lastState = detail::XSENDER;
 			NotAllowed(cmd, "transaction");
 			}
 		break;
@@ -610,7 +609,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			}
 		else
 			{
-			if ( state == RETR || state == TOP )
+			if ( state == detail::RETR || state == detail::TOP )
 				{
 				int data_len = end_of_line - line;
 				ProcessData(data_len, line);
@@ -642,8 +641,8 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 						line, length);
 
 			Weird("pop3_server_command_unknown");
-			if ( subState == POP3_WOK )
-				subState = POP3_OK;
+			if ( subState == detail::POP3_WOK )
+				subState = detail::POP3_OK;
 			}
 		return;
 		}
@@ -653,13 +652,13 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 	const char* message = tokens.size() > 1 ? tokens[1].c_str() : "";
 
 	switch ( cmd_code ) {
-	case POP3_CMD_OK:
-		if ( subState == POP3_WOK )
-			subState = POP3_OK;
+	case detail::POP3_CMD_OK:
+		if ( subState == detail::POP3_WOK )
+			subState = detail::POP3_OK;
 
 		if ( guessing )
 			{
-			masterState = POP3_TRANSACTION;
+			masterState = detail::POP3_TRANSACTION;
 			guessing = false;
 			state = lastState;
 			POP3Event(pop3_unexpected, false, cmd,
@@ -667,43 +666,43 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			}
 
 		switch ( state ) {
-		case START:
-			masterState = POP3_AUTHORIZATION;
+		case detail::START:
+			masterState = detail::POP3_AUTHORIZATION;
 			break;
 
-		case USER:
-			state = USER;
-			masterState = POP3_AUTHORIZATION;
+		case detail::USER:
+			state = detail::USER;
+			masterState = detail::POP3_AUTHORIZATION;
 			ProtocolConfirmation();
 			break;
 
-		case PASS:
-		case APOP:
-		case NOOP:
-		case LAST:
-		case STAT:
-		case RSET:
-		case DELE:
-		case XSENDER:
-			if ( masterState == POP3_AUTHORIZATION )
+		case detail::PASS:
+		case detail::APOP:
+		case detail::NOOP:
+		case detail::LAST:
+		case detail::STAT:
+		case detail::RSET:
+		case detail::DELE:
+		case detail::XSENDER:
+			if ( masterState == detail::POP3_AUTHORIZATION )
 				AuthSuccessfull();
-			masterState = POP3_TRANSACTION;
+			masterState = detail::POP3_TRANSACTION;
 			break;
 
-		case AUTH:
-		case AUTH_PLAIN:
-		case AUTH_CRAM_MD5:
-		case AUTH_LOGIN:
+		case detail::AUTH:
+		case detail::AUTH_PLAIN:
+		case detail::AUTH_CRAM_MD5:
+		case detail::AUTH_LOGIN:
 			if ( requestForMultiLine == true )
 				multiLine = true;
 			if ( waitingForAuthentication )
-				masterState = POP3_TRANSACTION;
+				masterState = detail::POP3_TRANSACTION;
 			waitingForAuthentication = false;
 			AuthSuccessfull();
 			break;
 
-		case TOP:
-		case RETR:
+		case detail::TOP:
+		case detail::RETR:
 			{
 			int data_len = end_of_line - line;
 			if ( ! mail )
@@ -715,29 +714,29 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			break;
 			}
 
-		case CAPA:
+		case detail::CAPA:
 			ProtocolConfirmation();
 			// Fall-through.
 
-		case UIDL:
-		case LIST:
+		case detail::UIDL:
+		case detail::LIST:
 			if (requestForMultiLine == true)
 				multiLine = true;
 			break;
 
-		case STLS:
+		case detail::STLS:
 			ProtocolConfirmation();
 			tls = true;
 			StartTLS();
 			return;
 
-		case QUIT:
-			if ( masterState == POP3_AUTHORIZATION ||
-			     masterState == POP3_START )
-				masterState = POP3_FINISHED;
+		case detail::QUIT:
+			if ( masterState == detail::POP3_AUTHORIZATION ||
+			     masterState == detail::POP3_START )
+				masterState = detail::POP3_FINISHED;
 
-			else if ( masterState == POP3_TRANSACTION )
-				masterState = POP3_UPDATE;
+			else if ( masterState == detail::POP3_TRANSACTION )
+				masterState = detail::POP3_UPDATE;
 
 			break;
 		}
@@ -749,9 +748,9 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			FinishClientCmd();
 		break;
 
-	case POP3_CMD_ERR:
-		if ( subState == POP3_WOK )
-			subState = POP3_OK;
+	case detail::POP3_CMD_ERR:
+		if ( subState == detail::POP3_WOK )
+			subState = detail::POP3_OK;
 
 		multiLine = false;
 		requestForMultiLine = false;
@@ -759,18 +758,18 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 		waitingForAuthentication = false;
 
 		switch ( state ) {
-		case START:
+		case detail::START:
 			break;
 
-		case USER:
-		case PASS:
-		case APOP:
-		case AUTH:
-		case AUTH_LOGIN:
-		case AUTH_PLAIN:
-		case AUTH_CRAM_MD5:
-			masterState = POP3_AUTHORIZATION;
-			state = START;
+		case detail::USER:
+		case detail::PASS:
+		case detail::APOP:
+		case detail::AUTH:
+		case detail::AUTH_LOGIN:
+		case detail::AUTH_PLAIN:
+		case detail::AUTH_CRAM_MD5:
+			masterState = detail::POP3_AUTHORIZATION;
+			state = detail::START;
 			waitingForAuthentication = false;
 
 			if ( user.size() )
@@ -778,27 +777,27 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 					user.c_str(), password.c_str());
 			break;
 
-		case NOOP:
-		case LAST:
-		case STAT:
-		case RSET:
-		case DELE:
-		case LIST:
-		case RETR:
-		case UIDL:
-		case TOP:
-		case XSENDER:
-			masterState = POP3_TRANSACTION;
+		case detail::NOOP:
+		case detail::LAST:
+		case detail::STAT:
+		case detail::RSET:
+		case detail::DELE:
+		case detail::LIST:
+		case detail::RETR:
+		case detail::UIDL:
+		case detail::TOP:
+		case detail::XSENDER:
+			masterState = detail::POP3_TRANSACTION;
 			break;
 
-		case CAPA:
+		case detail::CAPA:
 			break;
 
-		case QUIT:
-			if ( masterState == POP3_AUTHORIZATION ||
-			     masterState == POP3_TRANSACTION ||
-			     masterState == POP3_START )
-				masterState = POP3_FINISHED;
+		case detail::QUIT:
+			if ( masterState == detail::POP3_AUTHORIZATION ||
+			     masterState == detail::POP3_TRANSACTION ||
+			     masterState == detail::POP3_START )
+				masterState = detail::POP3_FINISHED;
 			break;
 		}
 
@@ -839,7 +838,7 @@ void POP3_Analyzer::AuthSuccessfull()
 void POP3_Analyzer::BeginData(bool orig)
 	{
 	delete mail;
-	mail = new mime::MIME_Mail(this, orig);
+	mail = new zeek::analyzer::mime::MIME_Mail(this, orig);
 	}
 
 void POP3_Analyzer::EndData()
@@ -864,7 +863,7 @@ int POP3_Analyzer::ParseCmd(std::string cmd)
 	if ( cmd.size() == 0 )
 		return -1;
 
-	for ( int code = POP3_CMD_OK; code < POP3_CMD_END; ++code )
+	for ( int code = detail::POP3_CMD_OK; code < detail::POP3_CMD_END; ++code )
 		{
 		char c = cmd.c_str()[0];
 		if ( c == '+' || c == '-' )
@@ -929,3 +928,5 @@ void POP3_Analyzer::POP3Event(zeek::EventHandlerPtr event, bool is_orig,
 
 	EnqueueConnEvent(event, std::move(vl));
 	}
+
+} // namespace zeek::analyzer::pop3

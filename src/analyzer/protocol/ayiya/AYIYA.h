@@ -2,7 +2,7 @@
 
 #include "ayiya_pac.h"
 
-namespace analyzer { namespace ayiya {
+namespace zeek::analyzer::ayiya {
 
 class AYIYA_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -20,4 +20,8 @@ protected:
 	binpac::AYIYA::AYIYA_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ayiya
+
+namespace analyzer::ayiya {
+	using AYIYA_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ayiya::AYIYA_Analyzer.")]] = zeek::analyzer::ayiya::AYIYA_Analyzer;
+}

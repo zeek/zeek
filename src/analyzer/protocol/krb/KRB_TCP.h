@@ -6,7 +6,7 @@
 
 #include "krb_TCP_pac.h"
 
-namespace analyzer { namespace krb_tcp {
+namespace zeek::analyzer::krb_tcp {
 
 class KRB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
@@ -34,4 +34,10 @@ protected:
 	bool had_gap;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::krb_tcp
+
+namespace analyzer::krb_tcp {
+
+using KRB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::krb_tcp::KRB_Analyzer.")]] = zeek::analyzer::krb_tcp::KRB_Analyzer;
+
+} // namespace analyzer::krb_tcp

@@ -7,7 +7,7 @@
 #include "Scope.h"
 #include "mqtt_pac.h"
 
-using namespace analyzer::MQTT;
+namespace zeek::analyzer::mqtt {
 
 MQTT_Analyzer::MQTT_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("MQTT", c)
@@ -55,3 +55,5 @@ void MQTT_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::mqtt

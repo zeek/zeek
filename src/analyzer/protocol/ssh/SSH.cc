@@ -9,7 +9,7 @@
 #include "types.bif.h"
 #include "events.bif.h"
 
-using namespace analyzer::SSH;
+namespace zeek::analyzer::ssh {
 
 SSH_Analyzer::SSH_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SSH", c)
@@ -175,3 +175,5 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 			}
 		}
 	}
+
+} // namespace zeek::analyzer::ssh

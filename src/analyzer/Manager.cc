@@ -475,14 +475,14 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			tcp->AddChildPacketAnalyzer(new ::analyzer::conn_size::ConnSize_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new zeek::analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
 
 	else
 		{
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			root->AddChildAnalyzer(new ::analyzer::conn_size::ConnSize_Analyzer(conn));
+			root->AddChildAnalyzer(new zeek::analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
 
 	if ( pia )

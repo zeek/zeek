@@ -4,7 +4,7 @@
 
 #include "dhcp_pac.h"
 
-namespace analyzer { namespace dhcp {
+namespace zeek::analyzer::dhcp {
 
 class DHCP_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -22,4 +22,8 @@ protected:
 	binpac::DHCP::DHCP_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::dhcp
+
+namespace analyzer::dhcp {
+	using DHCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dhcp::DHCP_Analyzer.")]] = zeek::analyzer::dhcp::DHCP_Analyzer;
+}

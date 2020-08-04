@@ -3,7 +3,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "smb_pac.h"
 
-namespace analyzer { namespace smb {
+namespace zeek::analyzer::smb {
 
 class SMB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -31,4 +31,10 @@ protected:
 	bool need_sync;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::smb
+
+namespace analyzer::smb {
+
+using SMB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::smb::SMB_Analyzer.")]] = zeek::analyzer::smb::SMB_Analyzer;
+
+} // namespace analyzer::smb

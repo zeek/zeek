@@ -5,7 +5,7 @@
 #include "analyzer/protocol/udp/UDP.h"
 #include "sip_pac.h"
 
-namespace analyzer { namespace SIP {
+namespace zeek::analyzer::sip{
 
 class SIP_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -25,4 +25,10 @@ protected:
 	binpac::SIP::SIP_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::sip
+
+namespace analyzer::SIP {
+
+using SIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::sip::SIP_Analyzer.")]] = zeek::analyzer::sip::SIP_Analyzer;
+
+} // namespace analyzer::SIP

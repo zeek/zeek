@@ -4,9 +4,9 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 
-namespace analyzer { namespace login { class NVT_Analyzer; }}
+ZEEK_FORWARD_DECLARE_NAMESPACED(NVT_Analyzer, zeek, analyzer::login);
 
-namespace analyzer { namespace ftp {
+namespace zeek::analyzer::ftp {
 
 class FTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -21,8 +21,8 @@ public:
 		}
 
 protected:
-	login::NVT_Analyzer* nvt_orig;
-	login::NVT_Analyzer* nvt_resp;
+	zeek::analyzer::login::NVT_Analyzer* nvt_orig;
+	zeek::analyzer::login::NVT_Analyzer* nvt_resp;
 	uint32_t pending_reply;	// code associated with multi-line reply, or 0
 	std::string auth_requested;	// AUTH method requested
 };
@@ -49,4 +49,11 @@ protected:
 	bool first_token;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ftp
+
+namespace analyzer::ftp {
+
+	using FTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ftp::FTP_Analyzer.")]] = zeek::analyzer::ftp::FTP_Analyzer;
+	using FTP_ADAT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ftp::FTP_ADAT_Analyzer.")]] = zeek::analyzer::ftp::FTP_ADAT_Analyzer;
+
+} // namespace analyzer::ftp

@@ -10,7 +10,7 @@
 
 #include <mutex>
 
-namespace analyzer { namespace krb {
+namespace zeek::analyzer::krb {
 
 class KRB_Analyzer final : public zeek::analyzer::Analyzer {
 
@@ -43,4 +43,10 @@ private:
 #endif
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::krb
+
+namespace analyzer::krb {
+
+using KRB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::krb::KRB_Analyzer.")]] = zeek::analyzer::krb::KRB_Analyzer;
+
+} // namespace analyzer::krb

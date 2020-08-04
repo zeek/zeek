@@ -4,7 +4,7 @@
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "analyzer/Manager.h"
 
-using namespace analyzer::xmpp;
+namespace zeek::analyzer::xmpp {
 
 XMPP_Analyzer::XMPP_Analyzer(zeek::Connection* conn)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("XMPP", conn)
@@ -83,3 +83,5 @@ void XMPP_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 	}
+
+} // namespace zeek::analyzer::xmpp

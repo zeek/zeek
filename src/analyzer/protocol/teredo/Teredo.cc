@@ -9,13 +9,9 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::teredo;
+namespace zeek::analyzer::teredo {
 
-void Teredo_Analyzer::Done()
-	{
-	Analyzer::Done();
-	Event(udp_session_done);
-	}
+namespace detail {
 
 bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
                                   bool found_origin, bool found_auth)
@@ -134,6 +130,14 @@ zeek::RecordValPtr TeredoEncapsulation::BuildVal(const zeek::IP_Hdr* inner) cons
 	return teredo_hdr;
 	}
 
+} // namespace detail
+
+void Teredo_Analyzer::Done()
+	{
+	Analyzer::Done();
+	Event(udp_session_done);
+	}
+
 void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
                                     uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
@@ -144,7 +148,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	else
 		valid_resp = false;
 
-	TeredoEncapsulation te(this);
+	detail::TeredoEncapsulation te(this);
 
 	if ( ! te.Parse(data, len) )
 		{
@@ -230,3 +234,5 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	zeek::sessions->DoNextInnerPacket(network_time, nullptr, inner, e, ec);
 	}
+
+} // namespace zeek::analyzer::teredo

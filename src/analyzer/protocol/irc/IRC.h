@@ -4,7 +4,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace irc {
+namespace zeek::analyzer::irc {
 
 /**
 * \brief Main class for analyzing IRC traffic.
@@ -69,4 +69,10 @@ private:
 	bool starttls; // if true, connection has been upgraded to tls
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::irc
+
+namespace analyzer::irc {
+
+using IRC_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::irc::IRC_Analyzer.")]] = zeek::analyzer::irc::IRC_Analyzer;
+
+} // namespace analyzer::irc

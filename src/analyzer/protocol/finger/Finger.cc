@@ -11,7 +11,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::finger;
+namespace zeek::analyzer::finger {
 
 Finger_Analyzer::Finger_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("FINGER", conn)
@@ -91,3 +91,5 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		);
 		}
 	}
+
+} // namespace zeek::analyzer::finger

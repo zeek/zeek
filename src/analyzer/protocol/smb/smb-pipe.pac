@@ -5,7 +5,7 @@
 refine connection SMB_Conn += {
 	%member{
 		map<uint32,bool> tree_is_pipe_map;
-		map<uint64,analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;
+		map<uint64,zeek::analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;
 	%}
 
 	%cleanup{
@@ -44,13 +44,13 @@ refine connection SMB_Conn += {
 
 	function forward_dce_rpc(pipe_data: bytestring, fid: uint64, is_orig: bool): bool
 		%{
-		analyzer::dce_rpc::DCE_RPC_Analyzer *pipe_dcerpc = nullptr;
+		zeek::analyzer::dce_rpc::DCE_RPC_Analyzer *pipe_dcerpc = nullptr;
 		auto it = fid_to_analyzer_map.find(fid);
 
 		if ( it == fid_to_analyzer_map.end() )
 			{
 			auto tmp_analyzer = zeek::analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer()->Conn());
-			pipe_dcerpc = static_cast<analyzer::dce_rpc::DCE_RPC_Analyzer *>(tmp_analyzer);
+			pipe_dcerpc = static_cast<zeek::analyzer::dce_rpc::DCE_RPC_Analyzer *>(tmp_analyzer);
 
 			if ( pipe_dcerpc )
 				{

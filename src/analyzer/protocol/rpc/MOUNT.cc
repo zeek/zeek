@@ -13,7 +13,8 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::rpc;
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
@@ -280,8 +281,10 @@ zeek::RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 	return rep;
 	}
 
+} // namespace detail
+
 MOUNT_Analyzer::MOUNT_Analyzer(zeek::Connection* conn)
-	: RPC_Analyzer("MOUNT", conn, new MOUNT_Interp(this))
+	: RPC_Analyzer("MOUNT", conn, new detail::MOUNT_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;
 	}
@@ -298,3 +301,5 @@ void MOUNT_Analyzer::Init()
 		AddSupportAnalyzer(resp_rpc);
 		}
 	}
+
+} // namespace zeek::analyzer::rpc

@@ -3,7 +3,7 @@
 #include "events.bif.h"
 #include "rdpeudp_pac.h"
 
-using namespace analyzer::rdpeudp;
+namespace zeek::analyzer::rdpeudp {
 
 RDP_Analyzer::RDP_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::Analyzer("RDPEUDP", c)
@@ -35,3 +35,5 @@ void RDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::rdpeudp

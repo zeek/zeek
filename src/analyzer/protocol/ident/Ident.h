@@ -5,7 +5,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace ident {
+namespace zeek::analyzer::ident {
 
 class Ident_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -33,4 +33,10 @@ protected:
 	bool did_bad_reply;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ident
+
+namespace analyzer::ident {
+
+using Ident_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ident::Ident_Analyzer.")]] = zeek::analyzer::ident::Ident_Analyzer;
+
+} // namespace analyzer::ident

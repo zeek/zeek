@@ -9,14 +9,15 @@
 
 #include "zeek-config.h"
 
-using namespace analyzer::rpc;
-
 #define PMAPPROC_NULL 0
 #define PMAPPROC_SET 1
 #define PMAPPROC_UNSET 2
 #define PMAPPROC_GETPORT 3
 #define PMAPPROC_DUMP 4
 #define PMAPPROC_CALLIT 5
+
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 bool PortmapperInterp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
@@ -289,8 +290,10 @@ void PortmapperInterp::Event(zeek::EventHandlerPtr f, zeek::ValPtr request, BifE
 	analyzer->EnqueueConnEvent(f, std::move(vl));
 	}
 
+} // namespace detail
+
 Portmapper_Analyzer::Portmapper_Analyzer(zeek::Connection* conn)
-: RPC_Analyzer("PORTMAPPER", conn, new PortmapperInterp(this))
+: RPC_Analyzer("PORTMAPPER", conn, new detail::PortmapperInterp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;
 	}
@@ -311,3 +314,5 @@ void Portmapper_Analyzer::Init()
 		AddSupportAnalyzer(resp_rpc);
 		}
 	}
+
+} // namespace zeek::analyzer::rpc

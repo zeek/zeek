@@ -8,7 +8,7 @@
 #include "ssl_pac.h"
 #include "tls-handshake_pac.h"
 
-using namespace analyzer::ssl;
+namespace zeek::analyzer::ssl {
 
 SSL_Analyzer::SSL_Analyzer(zeek::Connection* c)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
@@ -90,3 +90,5 @@ void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::ssl

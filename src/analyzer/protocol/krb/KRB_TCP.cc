@@ -5,7 +5,7 @@
 #include "types.bif.h"
 #include "events.bif.h"
 
-using namespace analyzer::krb_tcp;
+namespace zeek::analyzer::krb_tcp {
 
 KRB_Analyzer::KRB_Analyzer(zeek::Connection* conn)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("KRB_TCP", conn)
@@ -63,3 +63,5 @@ void KRB_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::krb_tcp

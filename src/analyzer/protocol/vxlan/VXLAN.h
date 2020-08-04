@@ -4,7 +4,7 @@
 
 #include "analyzer/Analyzer.h"
 
-namespace analyzer { namespace vxlan {
+namespace zeek::analyzer::vxlan {
 
 class VXLAN_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -21,4 +21,10 @@ public:
 		{ return new VXLAN_Analyzer(conn); }
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::vxlan
+
+namespace analyzer::vxlan {
+
+using VXLAN_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::vxlan::VXLAN_Analyzer.")]] = zeek::analyzer::vxlan::VXLAN_Analyzer;
+
+} // namespace analyzer::vxlan

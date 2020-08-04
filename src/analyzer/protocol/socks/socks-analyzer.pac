@@ -40,7 +40,7 @@ refine connection SOCKS_Conn += {
 			                                array_to_string(${request.user}));
 			}
 
-		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
 
 		return true;
 		%}
@@ -62,7 +62,7 @@ refine connection SOCKS_Conn += {
 			}
 
 		bro_analyzer()->ProtocolConfirmation();
-		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
 		return true;
 		%}
 
@@ -115,7 +115,7 @@ refine connection SOCKS_Conn += {
 			                                zeek::val_mgr->Port(${request.port}, TRANSPORT_TCP),
 			                                zeek::val_mgr->EmptyString());
 
-		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
 
 		return true;
 		%}
@@ -155,7 +155,7 @@ refine connection SOCKS_Conn += {
 			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 
 		bro_analyzer()->ProtocolConfirmation();
-		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
 		return true;
 		%}
 

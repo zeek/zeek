@@ -6,7 +6,7 @@
 
 #include "bittorrent_pac.h"
 
-namespace analyzer { namespace bittorrent {
+namespace zeek::analyzer::bittorrent {
 
 class BitTorrent_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -29,4 +29,10 @@ protected:
 	uint64_t stream_len_orig, stream_len_resp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::bittorrent
+
+namespace analyzer::bittorrent {
+
+	using BitTorrent_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::BitTorrent_Analyzer.")]] = zeek::analyzer::bittorrent::BitTorrent_Analyzer;
+
+}

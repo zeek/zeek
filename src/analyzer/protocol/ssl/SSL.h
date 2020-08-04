@@ -8,7 +8,7 @@ namespace binpac { namespace SSL { class SSL_Conn; } }
 
 namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
-namespace analyzer { namespace ssl {
+namespace zeek::analyzer::ssl {
 
 class SSL_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -38,4 +38,10 @@ protected:
 
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ssl
+
+namespace analyzer::ssl {
+
+using SSL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ssl::SSL_Analyzer.")]] = zeek::analyzer::ssl::SSL_Analyzer;
+
+} // namespace analyzer::ssl

@@ -5,7 +5,7 @@
 #include "Reporter.h"
 #include "events.bif.h"
 
-using namespace analyzer::gssapi;
+namespace zeek::analyzer::gssapi {
 
 GSSAPI_Analyzer::GSSAPI_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("GSSAPI", c)
@@ -54,3 +54,5 @@ void GSSAPI_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::gssapi

@@ -4,7 +4,7 @@
 #include "events.bif.h"
 #include "types.bif.h"
 
-using namespace analyzer::rdp;
+namespace zeek::analyzer::rdp {
 
 RDP_Analyzer::RDP_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("RDP", c)
@@ -99,3 +99,5 @@ void RDP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::rdp

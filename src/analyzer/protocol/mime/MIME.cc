@@ -19,7 +19,7 @@
 // headers of form: <name>=<value>; <param_1>=<param_val_1>;
 // <param_2>=<param_val_2>; ... (so that
 
-namespace analyzer { namespace mime {
+namespace zeek::analyzer::mime {
 
 static const zeek::data_chunk_t null_data_chunk = { 0, nullptr };
 
@@ -438,11 +438,6 @@ zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
 
 	return new zeek::String(true, (zeek::byte_vec) dest, j);
 	}
-
-
-} } // namespace analyzer::*
-
-using namespace analyzer::mime;
 
 MIME_Multiline::MIME_Multiline()
 	{
@@ -1567,3 +1562,24 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 			zeek::make_intrusive<zeek::StringVal>(detail)
 		);
 	}
+
+} // namespace zeek::analyzer::mime
+
+
+namespace analyzer::mime {
+
+zeek::StringVal* new_string_val(int length, const char* data)
+	{ return zeek::analyzer::mime::to_string_val(length, data).release(); }
+zeek::StringVal* new_string_val(const char* data, const char* end_of_data)
+	{ return zeek::analyzer::mime::to_string_val(data, end_of_data).release(); }
+zeek::StringVal* new_string_val(const zeek::data_chunk_t buf)
+	{ return zeek::analyzer::mime::to_string_val(buf).release(); }
+
+zeek::StringValPtr to_string_val(int length, const char* data)
+	{ return zeek::analyzer::mime::to_string_val(length, data); }
+zeek::StringValPtr to_string_val(const char* data, const char* end_of_data)
+	{ return zeek::analyzer::mime::to_string_val(data, end_of_data); }
+zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf)
+	{ return zeek::analyzer::mime::to_string_val(buf); }
+
+} // namespace analyzer::mime

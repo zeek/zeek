@@ -5,9 +5,11 @@
 #include "Login.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace login {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Rsh_Analyzer, zeek, analyzer::login);
 
-typedef enum {
+namespace zeek::analyzer::login {
+
+enum rsh_state {
 	RSH_FIRST_NULL,		// waiting to see first NUL
 	RSH_CLIENT_USER_NAME,	// scanning client user name up to NUL
 	RSH_SERVER_USER_NAME,	// scanning server user name up to NUL
@@ -18,9 +20,7 @@ typedef enum {
 	RSH_PRESUMED_REJECTED,	// apparently server said No Way
 
 	RSH_UNKNOWN,	// we don't know what state we're in
-} rsh_state;
-
-class Rsh_Analyzer;
+};
 
 class Contents_Rsh_Analyzer final : public zeek::analyzer::tcp::ContentLine_Analyzer {
 public:
@@ -55,4 +55,20 @@ public:
 	Contents_Rsh_Analyzer* contents_resp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::login
+
+namespace analyzer::login {
+
+	using rsh_state [[deprecated("Remove in v4.1. Use zeek::analyzer::login::rsh_state.")]] = zeek::analyzer::login::rsh_state;
+	constexpr auto RSH_FIRST_NULL [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_FIRST_NULL.")]] = zeek::analyzer::login::RSH_FIRST_NULL;
+	constexpr auto RSH_CLIENT_USER_NAME [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_CLIENT_USER_NAME.")]] = zeek::analyzer::login::RSH_CLIENT_USER_NAME;
+	constexpr auto RSH_SERVER_USER_NAME [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_SERVER_USER_NAME.")]] = zeek::analyzer::login::RSH_SERVER_USER_NAME;
+	constexpr auto RSH_INITIAL_CMD [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_INITIAL_CMD.")]] = zeek::analyzer::login::RSH_INITIAL_CMD;
+	constexpr auto RSH_LINE_MODE [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_LINE_MODE.")]] = zeek::analyzer::login::RSH_LINE_MODE;
+	constexpr auto RSH_PRESUMED_REJECTED [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_PRESUMED_REJECTED.")]] = zeek::analyzer::login::RSH_PRESUMED_REJECTED;
+	constexpr auto RSH_UNKNOWN [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RSH_UNKNOWN.")]] = zeek::analyzer::login::RSH_UNKNOWN;
+
+	using Contents_Rsh_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Contents_Rsh_Analyzer.")]] = zeek::analyzer::login::Contents_Rsh_Analyzer;
+	using Rsh_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Rsh_Analyzer.")]] = zeek::analyzer::login::Rsh_Analyzer;
+
+} // namespace analyzer::login

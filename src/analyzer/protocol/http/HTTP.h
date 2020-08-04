@@ -11,7 +11,7 @@
 #include "IPAddr.h"
 #include "analyzer/protocol/http/events.bif.h"
 
-namespace analyzer { namespace http {
+namespace zeek::analyzer::http {
 
 enum CHUNKED_TRANSFER_STATE {
 	NON_CHUNKED_TRANSFER,
@@ -27,10 +27,10 @@ class HTTP_Entity;
 class HTTP_Message;
 class HTTP_Analyzer;
 
-class HTTP_Entity final : public mime::MIME_Entity {
+class HTTP_Entity final : public zeek::analyzer::mime::MIME_Entity {
 public:
-	HTTP_Entity(HTTP_Message* msg, MIME_Entity* parent_entity,
-			int expect_body);
+	HTTP_Entity(HTTP_Message* msg, zeek::analyzer::mime::MIME_Entity* parent_entity,
+	            int expect_body);
 	~HTTP_Entity() override
 		{
 		if ( zip )
@@ -58,7 +58,7 @@ protected:
 	int64_t body_length;
 	int64_t header_length;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-	zip::ZIP_Analyzer* zip;
+	zeek::analyzer::zip::ZIP_Analyzer* zip;
 	bool deliver_body;
 	bool is_partial_content;
 	uint64_t offset;
@@ -66,7 +66,7 @@ protected:
 	bool send_size; // whether to send size indication to FAF
 	std::string precomputed_file_id;
 
-	MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
+	zeek::analyzer::mime::MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
 
 	void DeliverBody(int len, const char* data, bool trailing_CRLF);
 	void DeliverBodyClear(int len, const char* data, bool trailing_CRLF);
@@ -75,7 +75,7 @@ protected:
 
 	void SetPlainDelivery(int64_t length);
 
-	void SubmitHeader(mime::MIME_Header* h) override;
+	void SubmitHeader(zeek::analyzer::mime::MIME_Header* h) override;
 	void SubmitAllHeaders() override;
 };
 
@@ -96,7 +96,7 @@ enum {
 // HTTP_Message::EndEntity	-> Message::Done
 // HTTP_MessageDone	-> {Request,Reply}Made
 
-class HTTP_Message final : public mime::MIME_Message {
+class HTTP_Message final : public zeek::analyzer::mime::MIME_Message {
 friend class HTTP_Entity;
 
 public:
@@ -108,16 +108,16 @@ public:
 
 	bool Undelivered(int64_t len);
 
-	void BeginEntity(mime::MIME_Entity* /* entity */) override;
-	void EndEntity(mime::MIME_Entity* entity) override;
-	void SubmitHeader(mime::MIME_Header* h) override;
-	void SubmitAllHeaders(mime::MIME_HeaderList& /* hlist */) override;
+	void BeginEntity(zeek::analyzer::mime::MIME_Entity* /* entity */) override;
+	void EndEntity(zeek::analyzer::mime::MIME_Entity* entity) override;
+	void SubmitHeader(zeek::analyzer::mime::MIME_Header* h) override;
+	void SubmitAllHeaders(zeek::analyzer::mime::MIME_HeaderList& /* hlist */) override;
 	void SubmitData(int len, const char* buf) override;
 	bool RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail) override;
 
-	void SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */);
+	void SubmitTrailingHeaders(zeek::analyzer::mime::MIME_HeaderList& /* hlist */);
 	void SetPlainDelivery(int64_t length);
 	void SkipEntityData();
 
@@ -152,7 +152,7 @@ class HTTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer 
 public:
 	HTTP_Analyzer(zeek::Connection* conn);
 
-	void HTTP_Header(bool is_orig, mime::MIME_Header* h);
+	void HTTP_Header(bool is_orig, zeek::analyzer::mime::MIME_Header* h);
 	void HTTP_EntityData(bool is_orig, zeek::String* entity_data);
 	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
@@ -284,4 +284,26 @@ extern void escape_URI_char(unsigned char ch, unsigned char*& p);
 extern zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
                                   zeek::analyzer::Analyzer* analyzer);
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::http
+
+namespace analyzer::http {
+
+	using CHUNKED_TRANSFER_STATE [[deprecated("Remove in v4.1. Use zeek::analyzer::http::CHUNKED_TRANSFER_STATE.")]] = zeek::analyzer::http::CHUNKED_TRANSFER_STATE;
+	constexpr auto NON_CHUNKED_TRANSFER [[deprecated("Remove in v4.1. Use zeek::analyzer::http::NON_CHUNKED_TRANSFER.")]] = zeek::analyzer::http::NON_CHUNKED_TRANSFER;
+	constexpr auto BEFORE_CHUNK [[deprecated("Remove in v4.1. Use zeek::analyzer::http::BEFORE_CHUNK.")]] = zeek::analyzer::http::BEFORE_CHUNK;
+	constexpr auto EXPECT_CHUNK_SIZE [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_SIZE.")]] = zeek::analyzer::http::EXPECT_CHUNK_SIZE;
+	constexpr auto EXPECT_CHUNK_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_DATA.")]] = zeek::analyzer::http::EXPECT_CHUNK_DATA;
+	constexpr auto EXPECT_CHUNK_DATA_CRLF [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_DATA_CRLF.")]] = zeek::analyzer::http::EXPECT_CHUNK_DATA_CRLF;
+	constexpr auto EXPECT_CHUNK_TRAILER [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_TRAILER.")]] = zeek::analyzer::http::EXPECT_CHUNK_TRAILER;
+	constexpr auto EXPECT_NOTHING [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_NOTHING.")]] = zeek::analyzer::http::EXPECT_NOTHING;
+
+	using HTTP_Entity [[deprecated("Remove in v4.1. Use zeek::analyzer::http::HTTP_Entity.")]] = zeek::analyzer::http::HTTP_Entity;
+	using HTTP_Message [[deprecated("Remove in v4.1. Use zeek::analyzer::http::HTTP_Message.")]] = zeek::analyzer::http::HTTP_Message;
+	using HTTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::http::HTTP_Analyzer.")]] = zeek::analyzer::http::HTTP_Analyzer;
+
+	constexpr auto is_reserved_URI_char [[deprecated("Remove in v4.1. Use zeek::analyzer::http::is_reserved_URI_char.")]] = zeek::analyzer::http::is_reserved_URI_char;
+	constexpr auto is_unreserved_URI_char [[deprecated("Remove in v4.1. Use zeek::analyzer::http::is_unreserved_URI_char.")]] = zeek::analyzer::http::is_unreserved_URI_char;
+	constexpr auto escape_URI_char [[deprecated("Remove in v4.1. Use zeek::analyzer::http::escape_URI_char.")]] = zeek::analyzer::http::escape_URI_char;
+	constexpr auto unescape_URI [[deprecated("Remove in v4.1. Use zeek::analyzer::http::unescape_URI.")]] = zeek::analyzer::http::unescape_URI;
+
+} // namespace analyzer::http

@@ -15,7 +15,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::login;
+namespace zeek::analyzer::login {
 
 static zeek::RE_Matcher* re_skip_authentication = nullptr;
 static zeek::RE_Matcher* re_direct_login_prompts;
@@ -633,3 +633,5 @@ zeek::RE_Matcher* init_RE(zeek::ListVal* l)
 
 	return re;
 	}
+
+} // namespace zeek::analyzer::login

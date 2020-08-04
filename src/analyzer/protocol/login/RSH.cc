@@ -9,7 +9,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::login;
+namespace zeek::analyzer::login {
 
 // FIXME: this code should probably be merged with Rlogin.cc.
 
@@ -223,3 +223,5 @@ void Rsh_Analyzer::ServerUserName(const char* s)
 
 	username = new zeek::StringVal(s);
 	}
+
+} // namespace zeek::analyzer::login

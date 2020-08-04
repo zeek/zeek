@@ -6,7 +6,7 @@
 
 #include "xmpp_pac.h"
 
-namespace analyzer { namespace xmpp {
+namespace zeek::analyzer::xmpp {
 
 class XMPP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -32,4 +32,10 @@ protected:
 	bool tls_active;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::xmpp
+
+namespace analyzer::xmpp {
+
+using XMPP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::xmpp::XMPP_Analyzer.")]] = zeek::analyzer::xmpp::XMPP_Analyzer;
+
+} // namespace analyzer::xmpp

@@ -100,18 +100,18 @@
 #include "Reporter.h"
 #include "events.bif.h"
 
-using namespace analyzer::dnp3;
+constexpr unsigned int PSEUDO_LENGTH_INDEX = 2;		// index of len field of DNP3 Pseudo Link Layer
+constexpr unsigned int PSEUDO_CONTROL_FIELD_INDEX = 3;	// index of ctrl field of DNP3 Pseudo Link Layer
+constexpr unsigned int PSEUDO_TRANSPORT_INDEX = 10;		// index of DNP3 Pseudo Transport Layer
+constexpr unsigned int PSEUDO_APP_LAYER_INDEX = 11;		// index of first DNP3 app-layer byte.
+constexpr unsigned int PSEUDO_TRANSPORT_LEN = 1;		// length of DNP3 Transport Layer
+constexpr unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Layer
 
-const unsigned int PSEUDO_LENGTH_INDEX = 2;		// index of len field of DNP3 Pseudo Link Layer
-const unsigned int PSEUDO_CONTROL_FIELD_INDEX = 3;	// index of ctrl field of DNP3 Pseudo Link Layer
-const unsigned int PSEUDO_TRANSPORT_INDEX = 10;		// index of DNP3 Pseudo Transport Layer
-const unsigned int PSEUDO_APP_LAYER_INDEX = 11;		// index of first DNP3 app-layer byte.
-const unsigned int PSEUDO_TRANSPORT_LEN = 1;		// length of DNP3 Transport Layer
-const unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Layer
+namespace zeek::analyzer::dnp3 {
+namespace detail {
 
 bool DNP3_Base::crc_table_initialized = false;
 unsigned int DNP3_Base::crc_table[256];
-
 
 DNP3_Base::DNP3_Base(zeek::analyzer::Analyzer* arg_analyzer)
 	{
@@ -385,6 +385,7 @@ unsigned int DNP3_Base::CalcCRC(int len, const u_char* data)
 	return ~crc & 0xFFFF;
 	}
 
+} // namespace detail
 DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(zeek::Connection* c)
 	: DNP3_Base(this), TCP_ApplicationAnalyzer("DNP3_TCP", c)
 	{
@@ -456,3 +457,5 @@ void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, ui
 		throw;
 		}
 	}
+
+} // namespace zeek::analyzer::dnp3

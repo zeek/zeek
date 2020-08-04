@@ -5,7 +5,7 @@
 #include "analyzer/protocol/pia/PIA.h"
 #include "rdp_pac.h"
 
-namespace analyzer { namespace rdp {
+namespace zeek::analyzer::rdp {
 
 class RDP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
@@ -29,4 +29,10 @@ protected:
 	zeek::analyzer::pia::PIA_TCP *pia;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::rdp
+
+namespace analyzer::rdp {
+
+using RDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rdp::RDP_Analyzer.")]] = zeek::analyzer::rdp::RDP_Analyzer;
+
+} // namespace analyzer::rdp

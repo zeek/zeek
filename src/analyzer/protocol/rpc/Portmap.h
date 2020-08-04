@@ -4,7 +4,8 @@
 
 #include "RPC.h"
 
-namespace analyzer { namespace rpc {
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 class PortmapperInterp : public RPC_Interpreter {
 public:
@@ -24,6 +25,8 @@ protected:
 	zeek::ValPtr ExtractCallItRequest(const u_char*& buf, int& len);
 };
 
+} // namespace detail
+
 class Portmapper_Analyzer : public RPC_Analyzer {
 public:
 	explicit Portmapper_Analyzer(zeek::Connection* conn);
@@ -34,4 +37,11 @@ public:
 		{ return new Portmapper_Analyzer(conn); }
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::detail
+
+namespace analyzer::rpc {
+
+using PortmapperInterp [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::PortmapperInterp.")]] = zeek::analyzer::rpc::detail::PortmapperInterp;
+using Portmapper_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::Portmapper_Analyzer.")]] = zeek::analyzer::rpc::Portmapper_Analyzer;
+
+} // namespace analyzer::rpc

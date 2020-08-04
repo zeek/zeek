@@ -15,20 +15,20 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::ftp;
+namespace zeek::analyzer::ftp {
 
 FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
 
-	nvt_orig = new login::NVT_Analyzer(conn, true);
+	nvt_orig = new zeek::analyzer::login::NVT_Analyzer(conn, true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetCRLFAsEOL(LF_as_EOL);
 	nvt_orig->SetIsNULSensitive(LF_as_EOL);
 
-	nvt_resp = new login::NVT_Analyzer(conn, false);
+	nvt_resp = new zeek::analyzer::login::NVT_Analyzer(conn, false);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetCRLFAsEOL(LF_as_EOL);
@@ -331,3 +331,5 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( done )
 		Parent()->Remove();
 	}
+
+} // namespace zeek::analyzer::ftp

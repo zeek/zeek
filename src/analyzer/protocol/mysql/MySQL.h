@@ -7,7 +7,7 @@
 
 #include "mysql_pac.h"
 
-namespace analyzer { namespace MySQL {
+namespace zeek::analyzer::mysql {
 
 class MySQL_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
@@ -32,4 +32,10 @@ protected:
 	bool had_gap;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::mysql
+
+namespace analyzer::MySQL {
+
+using MySQL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::mysql::MySQL_Analyzer.")]] = zeek::analyzer::mysql::MySQL_Analyzer;
+
+} // namespace analyzer::MySQL

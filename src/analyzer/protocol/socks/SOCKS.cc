@@ -4,7 +4,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::socks;
+namespace zeek::analyzer::socks {
 
 SOCKS_Analyzer::SOCKS_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SOCKS", conn)
@@ -90,3 +90,5 @@ void SOCKS_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::socks

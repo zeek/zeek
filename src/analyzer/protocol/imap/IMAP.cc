@@ -4,7 +4,7 @@
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "analyzer/Manager.h"
 
-using namespace analyzer::imap;
+namespace zeek::analyzer::imap {
 
 IMAP_Analyzer::IMAP_Analyzer(zeek::Connection* conn)
 	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IMAP", conn)
@@ -83,3 +83,5 @@ void IMAP_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 	}
+
+} // namespace zeek::analyzer::imap

@@ -22,7 +22,8 @@
 
 #include "ncp_pac.h"
 
-namespace analyzer { namespace ncp {
+namespace zeek::analyzer::ncp {
+namespace detail {
 
 // Create a general NCP_Session class so that it can be used in
 // case the RPC conversation is tunneled through other connections,
@@ -82,17 +83,19 @@ protected:
 	void compute_msg_length() override;
 };
 
+} // namespace detail
+
 class Contents_NCP_Analyzer : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
 public:
-	Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, NCP_Session* session);
+	Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, detail::NCP_Session* session);
 	~Contents_NCP_Analyzer() override;
 
 protected:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	NCP_FrameBuffer buffer;
-	NCP_Session* session;
+	detail::NCP_FrameBuffer buffer;
+	detail::NCP_Session* session;
 
 	// Re-sync for partial connections (or after a content gap).
 	bool resync;
@@ -109,9 +112,19 @@ public:
 
 protected:
 
-	NCP_Session* session;
+	detail::NCP_Session* session;
 	Contents_NCP_Analyzer * o_ncp;
 	Contents_NCP_Analyzer * r_ncp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ncp
+
+namespace analyzer::ncp {
+
+using NCP_Session [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::detail::NCP_Session.")]] = zeek::analyzer::ncp::detail::NCP_Session;
+using FrameBuffer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::detail::FrameBuffer.")]] = zeek::analyzer::ncp::detail::FrameBuffer;
+using NCP_FrameBuffer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::detail::NCP_FrameBuffer.")]] = zeek::analyzer::ncp::detail::NCP_FrameBuffer;
+using Contents_NCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::Contents_NCP_Analyzer.")]] = zeek::analyzer::ncp::Contents_NCP_Analyzer;
+using NCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::NCP_Analyzer.")]] = zeek::analyzer::ncp::NCP_Analyzer;
+
+} // namespace analyzer::ncp

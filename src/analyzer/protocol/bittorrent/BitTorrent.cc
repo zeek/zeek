@@ -5,7 +5,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::bittorrent;
+namespace zeek::analyzer::bittorrent {
 
 BitTorrent_Analyzer::BitTorrent_Analyzer(zeek::Connection* c)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
@@ -124,3 +124,5 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 		                 zeek::val_mgr->Bool(orig),
 		                 zeek::make_intrusive<zeek::StringVal>(msg));
 	}
+
+} // namespace zeek::analyzer::bittorrent

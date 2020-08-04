@@ -2,12 +2,11 @@
 
 #include "events.bif.h"
 
-
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include "rfb_pac.h"
 
-namespace analyzer { namespace rfb {
+namespace zeek::analyzer::rfb {
 
 class RFB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
@@ -35,4 +34,10 @@ protected:
 
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::rfb
+
+namespace analyzer::rfb {
+
+using RFB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rfb::RFB_Analyzer.")]] = zeek::analyzer::rfb::RFB_Analyzer;
+
+} // namespace analyzer::rfb

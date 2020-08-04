@@ -6,7 +6,7 @@
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
 
-namespace analyzer { namespace conn_size {
+namespace zeek::analyzer::conn_size {
 
 class ConnSize_Analyzer : public zeek::analyzer::Analyzer {
 public:
@@ -50,4 +50,8 @@ protected:
 	double duration_thresh;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::conn_size
+
+namespace analyzer::conn_size {
+	using ConnSize_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::conn_size::ConnSize_Analyzer.")]] = zeek::analyzer::conn_size::ConnSize_Analyzer;
+}

@@ -2,7 +2,7 @@
 
 #include "gtpv1_pac.h"
 
-namespace analyzer { namespace gtpv1 {
+namespace zeek::analyzer::gtpv1 {
 
 class GTPv1_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -20,4 +20,10 @@ protected:
 	binpac::GTPv1::GTPv1_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::gtpv1
+
+namespace analyzer::gtpv1 {
+
+	using GTPv1_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gtpv1::GTPv1_Analyzer.")]] = zeek::analyzer::gtpv1::GTPv1_Analyzer;
+
+} // namespace analyzer::gtpv1

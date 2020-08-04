@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace analyzer { namespace file {
+namespace zeek::analyzer::file {
 
 class File_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -51,4 +51,12 @@ public:
 		{ return new FTP_Data(conn); }
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::file
+
+namespace analyzer::file {
+
+	using File_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::file::File_Analyzer.")]] = zeek::analyzer::file::File_Analyzer;
+	using IRC_Data [[deprecated("Remove in v4.1. Use zeek::analyzer::file::IRC_Data.")]] = zeek::analyzer::file::IRC_Data;
+	using FTP_Data [[deprecated("Remove in v4.1. Use zeek::analyzer::file::FTP_Data.")]] = zeek::analyzer::file::FTP_Data;
+
+} // namespace analyzer::file

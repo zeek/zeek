@@ -7,7 +7,7 @@
 #include "types.bif.h"
 #include "events.bif.h"
 
-using namespace analyzer::krb;
+namespace zeek::analyzer::krb {
 
 bool KRB_Analyzer::krb_available = false;
 #ifdef USE_KRB5
@@ -157,3 +157,5 @@ zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* princ
 	return nullptr;
 #endif
 	}
+
+} // namespace zeek::analyzer::krb

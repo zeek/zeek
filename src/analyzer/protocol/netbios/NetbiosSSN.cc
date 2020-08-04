@@ -13,11 +13,12 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::netbios_ssn;
-
-double netbios_ssn_session_timeout = 15.0;
+constexpr double netbios_ssn_session_timeout = 15.0;
 
 #define MAKE_INT16(dest, src) dest = *src; dest <<=8; src++; dest |= *src; src++;
+
+namespace zeek::analyzer::netbios_ssn {
+namespace detail {
 
 NetbiosSSN_RawMsgHdr::NetbiosSSN_RawMsgHdr(const u_char*& data, int& len)
 	{
@@ -47,7 +48,6 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
 	MAKE_INT16(length, data); len -= 2;
 	MAKE_INT16(offset, data);; len -= 2;
 	}
-
 
 NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
@@ -161,7 +161,6 @@ void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
 						bool is_query)
 	{
-
 	NetbiosDGM_RawMsgHdr hdr(data, len);
 
 	if ( unsigned(hdr.length-14) > unsigned(len) )
@@ -331,16 +330,17 @@ void NetbiosSSN_Interpreter::Event(zeek::EventHandlerPtr event, const u_char* da
 		                           zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, false)));
 	}
 
+} // namespace detail
 
 Contents_NetbiosSSN::Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
-                                         NetbiosSSN_Interpreter* arg_interp)
+                                         detail::NetbiosSSN_Interpreter* arg_interp)
 : zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
 	type = flags = msg_size = 0;
 	msg_buf = nullptr;
 	buf_n = buf_len = msg_size = 0;
-	state = NETBIOS_SSN_TYPE;
+	state = detail::NETBIOS_SSN_TYPE;
 	}
 
 Contents_NetbiosSSN::~Contents_NetbiosSSN()
@@ -367,10 +367,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	{
 	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	if ( state == NETBIOS_SSN_TYPE )
+	if ( state == detail::NETBIOS_SSN_TYPE )
 		{
 		type = *data;
-		state = NETBIOS_SSN_FLAGS;
+		state = detail::NETBIOS_SSN_FLAGS;
 
 		++data;
 		--len;
@@ -379,10 +379,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == NETBIOS_SSN_FLAGS )
+	if ( state == detail::NETBIOS_SSN_FLAGS )
 		{
 		flags = *data;
-		state = NETBIOS_SSN_LEN_HI;
+		state = detail::NETBIOS_SSN_LEN_HI;
 
 		++data;
 		--len;
@@ -391,10 +391,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == NETBIOS_SSN_LEN_HI )
+	if ( state == detail::NETBIOS_SSN_LEN_HI )
 		{
 		msg_size = (*data) << 8;
-		state = NETBIOS_SSN_LEN_LO;
+		state = detail::NETBIOS_SSN_LEN_LO;
 
 		++data;
 		--len;
@@ -403,10 +403,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == NETBIOS_SSN_LEN_LO )
+	if ( state == detail::NETBIOS_SSN_LEN_LO )
 		{
 		msg_size += *data;
-		state = NETBIOS_SSN_BUF;
+		state = detail::NETBIOS_SSN_BUF;
 
 		buf_n = 0;
 
@@ -433,7 +433,7 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state != NETBIOS_SSN_BUF )
+	if ( state != detail::NETBIOS_SSN_BUF )
 		Conn()->Internal("state inconsistency in Contents_NetbiosSSN::Deliver");
 
 	int n;
@@ -450,14 +450,14 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	interp->ParseMessage(type, flags, msg_buf, msg_size, IsOrig());
 	buf_n = 0;
 
-	state = NETBIOS_SSN_TYPE;
+	state = detail::NETBIOS_SSN_TYPE;
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
 	{
 	//smb_session = new SMB_Session(this);
-	interp = new NetbiosSSN_Interpreter(this);
+	interp = new detail::NetbiosSSN_Interpreter(this);
 	orig_netbios = resp_netbios = nullptr;
 	did_session_done = 0;
 
@@ -538,3 +538,5 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 		                   t + netbios_ssn_session_timeout,
 		                   true, zeek::detail::TIMER_NB_EXPIRE);
 	}
+
+} // namespace zeek::analyzer::netbios_ssn

@@ -4,7 +4,7 @@
 
 #include "Login.h"
 
-namespace analyzer { namespace login {
+namespace zeek::analyzer::login {
 
 class Telnet_Analyzer : public Login_Analyzer {
 public:
@@ -15,4 +15,10 @@ public:
 		{ return new Telnet_Analyzer(conn); }
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::login
+
+namespace analyzer::login {
+
+	using Telnet_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Telnet_Analyzer.")]] = zeek::analyzer::login::Telnet_Analyzer;
+
+} // namespace analyzer::login

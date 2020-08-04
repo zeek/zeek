@@ -4,7 +4,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::syslog;
+namespace zeek::analyzer::syslog {
 
 Syslog_Analyzer::Syslog_Analyzer(zeek::Connection* conn)
 : Analyzer("SYSLOG", conn)
@@ -93,3 +93,5 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 //	interp->NewGap(orig, len);
 //	}
+
+} // namespace zeek::analyzer::syslog

@@ -14,7 +14,9 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::gnutella;
+namespace zeek::analyzer::gnutella {
+
+namespace detail {
 
 GnutellaMsgState::GnutellaMsgState()
 	{
@@ -32,6 +34,7 @@ GnutellaMsgState::GnutellaMsgState()
 	payload_len = 0;
 	}
 
+} // namespace detail
 
 Gnutella_Analyzer::Gnutella_Analyzer(zeek::Connection* conn)
 : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
@@ -42,8 +45,8 @@ Gnutella_Analyzer::Gnutella_Analyzer(zeek::Connection* conn)
 
 	ms = nullptr;
 
-	orig_msg_state = new GnutellaMsgState();
-	resp_msg_state = new GnutellaMsgState();
+	orig_msg_state = new detail::GnutellaMsgState();
+	resp_msg_state = new detail::GnutellaMsgState();
 	}
 
 Gnutella_Analyzer::~Gnutella_Analyzer()
@@ -66,7 +69,7 @@ void Gnutella_Analyzer::Done()
 
 	if ( gnutella_partial_binary_msg )
 		{
-		GnutellaMsgState* p = orig_msg_state;
+		detail::GnutellaMsgState* p = orig_msg_state;
 
 		for ( int i = 0; i < 2; ++i, p = resp_msg_state )
 			{
@@ -206,7 +209,7 @@ void Gnutella_Analyzer::DissectMessage(char* msg)
 	}
 
 
-void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
+void Gnutella_Analyzer::SendEvents(detail::GnutellaMsgState* p, bool is_orig)
 	{
 	if ( p->msg_sent )
 		return;
@@ -317,3 +320,5 @@ void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	else if ( gnutella_binary_msg )
 		DeliverMessages(len, data, orig);
 	}
+
+} // namespace zeek::analyzer::gnutella

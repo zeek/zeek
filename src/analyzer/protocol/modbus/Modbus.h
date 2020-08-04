@@ -3,7 +3,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "modbus_pac.h"
 
-namespace analyzer { namespace modbus {
+namespace zeek::analyzer::modbus {
 
 class ModbusTCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -23,4 +23,10 @@ protected:
 	binpac::ModbusTCP::ModbusTCP_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::modbus
+
+namespace analyzer::modbus {
+
+using ModbusTCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::modbus::ModbusTCP_Analyzer.")]] = zeek::analyzer::modbus::ModbusTCP_Analyzer;
+
+} // namespace analyzer::modbus

@@ -12,6 +12,6 @@ function skip_smtp_data%(c: connection%): any
 	%{
 	zeek::analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
 	if ( sa )
-		static_cast<::analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
+		static_cast<zeek::analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
 	return nullptr;
 	%}

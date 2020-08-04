@@ -8,13 +8,15 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 
-namespace analyzer { namespace bittorrent {
+namespace zeek::analyzer::bittorrent {
 
 // If the following is defined, then the analyzer will store all of
 // the headers seen in tracker messages.
 //#define BTTRACKER_STORE_HEADERS 1
 
-enum btt_states {
+namespace detail {
+
+enum BTT_States {
 	BTT_REQ_GET,
 	BTT_REQ_HEADER,
 	BTT_REQ_DONE,
@@ -22,19 +24,19 @@ enum btt_states {
 	BTT_RES_STATUS,
 	BTT_RES_HEADER,
 	BTT_RES_BODY,
-	BTT_RES_DONE,
+	BTT_RES_DONE
 };
 
 // "benc" = Bencode ("Bee-Encode"), per http://en.wikipedia.org/wiki/Bencode
-enum btt_benc_types {
+enum BTT_BencTypes {
 	BENC_TYPE_INT  = 0,
 	BENC_TYPE_STR  = 1,
 	BENC_TYPE_DIR  = 2,
 	BENC_TYPE_LIST = 3,
-	BENC_TYPE_NONE = 10,
+	BENC_TYPE_NONE = 10
 };
 
-enum btt_benc_states {
+enum BTT_BencStates {
 	BENC_STATE_EMPTY,
 	BENC_STATE_INT1,
 	BENC_STATE_INT2,
@@ -42,6 +44,8 @@ enum btt_benc_states {
 	BENC_STATE_STR1,
 	BENC_STATE_STR2,
 };
+
+} // namespace detail
 
 class BitTorrentTracker_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -75,10 +79,10 @@ protected:
 	void ResponseHeader(char* name, char* value)
 		{ ParseHeader(name, value, false); }
 	void ResponseBody();
-	void ResponseBenc(int name_len, char* name, enum btt_benc_types type,
-				int value_len, char* value);
-	void ResponseBenc(int name_len, char* name, enum btt_benc_types type,
-				bro_int_t value);
+	void ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type,
+	                  int value_len, char* value);
+	void ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type,
+	                  bro_int_t value);
 	int ResponseParseBenc();
 	void EmitResponse();
 
@@ -88,7 +92,7 @@ protected:
 	bool keep_alive;
 
 	// Request.
-	enum btt_states req_state;
+	detail::BTT_States req_state;
 	char req_buf[BTTRACKER_BUF];
 	char* req_buf_pos;
 	unsigned int req_buf_len;
@@ -96,7 +100,7 @@ protected:
 	zeek::TableVal* req_val_headers;
 
 	// Response.
-	enum btt_states res_state;
+	detail::BTT_States res_state;
 	bool res_allow_blank_line;
 	char res_buf[BTTRACKER_BUF];
 	char* res_buf_pos;
@@ -108,10 +112,10 @@ protected:
 
 	std::vector<char> benc_stack;
 	std::vector<unsigned int> benc_count;
-	enum btt_benc_states benc_state;
+	detail::BTT_BencStates benc_state;
 
 	char* benc_raw;
-	enum btt_benc_types benc_raw_type;
+	detail::BTT_BencTypes benc_raw_type;
 	unsigned int benc_raw_len;
 
 	char* benc_key;
@@ -129,4 +133,34 @@ protected:
 	bool stop_orig, stop_resp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::bittorrent
+
+namespace analyzer::bittorrent {
+
+	using btt_states [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_States.")]] = zeek::analyzer::bittorrent::detail::BTT_States;
+	constexpr auto BTT_REQ_GET [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_REQ_GET.")]] = zeek::analyzer::bittorrent::detail::BTT_REQ_GET;
+	constexpr auto BTT_REQ_HEADER [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_REQ_HEADER.")]] = zeek::analyzer::bittorrent::detail::BTT_REQ_HEADER;
+	constexpr auto BTT_REQ_DONE [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_REQ_DONE.")]] = zeek::analyzer::bittorrent::detail::BTT_REQ_DONE;
+	constexpr auto BTT_RES_STATUS [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_RES_STATUS.")]] = zeek::analyzer::bittorrent::detail::BTT_RES_STATUS;
+	constexpr auto BTT_RES_HEADER [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_RES_HEADER.")]] = zeek::analyzer::bittorrent::detail::BTT_RES_HEADER;
+	constexpr auto BTT_RES_BODY [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_RES_BODY.")]] = zeek::analyzer::bittorrent::detail::BTT_RES_BODY;
+	constexpr auto BTT_RES_DONE [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_RES_DONE.")]] = zeek::analyzer::bittorrent::detail::BTT_RES_DONE;
+
+	using btt_benc_types [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_BencTypes.")]] = zeek::analyzer::bittorrent::detail::BTT_BencTypes;
+	constexpr auto BENC_TYPE_INT [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_TYPE_INT.")]] = zeek::analyzer::bittorrent::detail::BENC_TYPE_INT;
+	constexpr auto BENC_TYPE_STR [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_TYPE_STR.")]] = zeek::analyzer::bittorrent::detail::BENC_TYPE_STR;
+	constexpr auto BENC_TYPE_DIR [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_TYPE_DIR.")]] = zeek::analyzer::bittorrent::detail::BENC_TYPE_DIR;
+	constexpr auto BENC_TYPE_LIST [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_TYPE_LIST.")]] = zeek::analyzer::bittorrent::detail::BENC_TYPE_LIST;
+	constexpr auto BENC_TYPE_NONE [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_TYPE_NONE.")]] = zeek::analyzer::bittorrent::detail::BENC_TYPE_NONE;
+
+	using btt_benc_states [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BTT_BencStates.")]] = zeek::analyzer::bittorrent::detail::BTT_BencStates;
+	constexpr auto BENC_STATE_EMPTY [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_STATE_EMPTY.")]] = zeek::analyzer::bittorrent::detail::BENC_STATE_EMPTY;
+	constexpr auto BENC_STATE_INT1 [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_STATE_INT1.")]] = zeek::analyzer::bittorrent::detail::BENC_STATE_INT1;
+	constexpr auto BENC_STATE_INT2 [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_STATE_INT2.")]] = zeek::analyzer::bittorrent::detail::BENC_STATE_INT2;
+	constexpr auto BENC_STATE_INT3 [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_STATE_INT3.")]] = zeek::analyzer::bittorrent::detail::BENC_STATE_INT3;
+	constexpr auto BENC_STATE_STR1 [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_STATE_STR1.")]] = zeek::analyzer::bittorrent::detail::BENC_STATE_STR1;
+	constexpr auto BENC_STATE_STR2 [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::detail::BENC_STATE_STR2.")]] = zeek::analyzer::bittorrent::detail::BENC_STATE_STR2;
+
+	using BitTorrentTracker_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::BitTorrentTracker_Analyzer.")]] = zeek::analyzer::bittorrent::BitTorrentTracker_Analyzer;
+
+	}

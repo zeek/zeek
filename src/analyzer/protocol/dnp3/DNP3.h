@@ -6,7 +6,9 @@
 
 #include "dnp3_pac.h"
 
-namespace analyzer { namespace dnp3 {
+namespace zeek::analyzer::dnp3 {
+
+namespace detail {
 
 class DNP3_Base {
 public:
@@ -61,7 +63,9 @@ protected:
 	Endpoint resp_state;
 };
 
-class DNP3_TCP_Analyzer : public DNP3_Base, public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+} // namespace detail
+
+class DNP3_TCP_Analyzer : public detail::DNP3_Base, public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit DNP3_TCP_Analyzer(zeek::Connection* conn);
 	~DNP3_TCP_Analyzer() override;
@@ -75,7 +79,7 @@ public:
 		{ return new DNP3_TCP_Analyzer(conn); }
 };
 
-class DNP3_UDP_Analyzer : public DNP3_Base, public zeek::analyzer::Analyzer {
+class DNP3_UDP_Analyzer : public detail::DNP3_Base, public zeek::analyzer::Analyzer {
 public:
 	explicit DNP3_UDP_Analyzer(zeek::Connection* conn);
 	~DNP3_UDP_Analyzer() override;
@@ -88,4 +92,11 @@ public:
 };
 
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::dnp3
+
+namespace analyzer::dnp3 {
+	using DNP3_Base [[deprecated("Remove in v4.1. Use zeek::analyzer::dnp3::detail::DNP3_Base.")]] = zeek::analyzer::dnp3::detail::DNP3_Base;
+	using DNP3_TCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dnp3::DNP3_TCP_Analyzer.")]] = zeek::analyzer::dnp3::DNP3_TCP_Analyzer;
+	using DNP3_UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dnp3::DNP3_UDP_Analyzer.")]] = zeek::analyzer::dnp3::DNP3_UDP_Analyzer;
+
+}

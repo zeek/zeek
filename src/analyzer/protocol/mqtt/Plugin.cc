@@ -12,7 +12,7 @@ public:
 	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new zeek::analyzer::Component("MQTT",
-		             ::analyzer::MQTT::MQTT_Analyzer::InstantiateAnalyzer));
+		             zeek::analyzer::mqtt::MQTT_Analyzer::InstantiateAnalyzer));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::MQTT";

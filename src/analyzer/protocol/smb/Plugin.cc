@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("SMB", ::analyzer::smb::SMB_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("SMB", zeek::analyzer::smb::SMB_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("Contents_SMB", nullptr));
 
 		zeek::plugin::Configuration config;

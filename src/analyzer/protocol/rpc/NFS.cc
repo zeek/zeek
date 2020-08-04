@@ -13,7 +13,8 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::rpc;
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
@@ -816,9 +817,10 @@ zeek::ValPtr NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	return zeek::val_mgr->Bool(extract_XDR_uint32(buf, n));
 	}
 
+} // namespace detail
 
 NFS_Analyzer::NFS_Analyzer(zeek::Connection* conn)
-	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
+	: RPC_Analyzer("NFS", conn, new detail::NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;
 	}
@@ -835,3 +837,5 @@ void NFS_Analyzer::Init()
 		AddSupportAnalyzer(resp_rpc);
 		}
 	}
+
+} // namespace zeek::analyzer::rpc

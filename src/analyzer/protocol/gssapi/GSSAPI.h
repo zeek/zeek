@@ -7,7 +7,7 @@
 
 #include "gssapi_pac.h"
 
-namespace analyzer { namespace gssapi {
+namespace zeek::analyzer::gssapi {
 
 class GSSAPI_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
@@ -31,4 +31,10 @@ protected:
 	binpac::GSSAPI::GSSAPI_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::gssapi
+
+namespace analyzer::gssapi {
+
+	using GSSAPI_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gssapi::GSSAPI_Analyzer.")]] = zeek::analyzer::gssapi::GSSAPI_Analyzer;
+
+} // namespace analyzer::gssapi

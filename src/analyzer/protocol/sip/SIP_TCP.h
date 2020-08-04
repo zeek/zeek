@@ -9,7 +9,7 @@
 
 #include "sip_TCP_pac.h"
 
-namespace analyzer { namespace sip_tcp {
+namespace zeek::analyzer::sip_tcp {
 
 class SIP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -31,4 +31,10 @@ protected:
 	bool had_gap;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::sip_tcp
+
+namespace analyzer::sip_tcp {
+
+using SIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::sip_tcp::SIP_Analyzer.")]] = zeek::analyzer::sip_tcp::SIP_Analyzer;
+
+} // namespace analyzer::sip_tcp

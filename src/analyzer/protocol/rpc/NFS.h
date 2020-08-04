@@ -5,7 +5,8 @@
 #include "RPC.h"
 #include "NetVar.h"
 
-namespace analyzer { namespace rpc {
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 class NFS_Interp : public RPC_Interpreter {
 public:
@@ -79,6 +80,8 @@ protected:
 	zeek::ValPtr ExtractBool(const u_char*& buf, int& n);
 };
 
+} // namespace detail
+
 class NFS_Analyzer : public RPC_Analyzer {
 public:
 	explicit NFS_Analyzer(zeek::Connection* conn);
@@ -88,5 +91,11 @@ public:
 		{ return new NFS_Analyzer(conn); }
 };
 
+} // namespace zeek::analyzer::rpc
 
-} } // namespace analyzer::*
+namespace analyzer::rpc {
+
+using NFS_Interp [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::NFS_Interp.")]] = zeek::analyzer::rpc::detail::NFS_Interp;
+using NFS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::NFS_Analyzer.")]] = zeek::analyzer::rpc::NFS_Analyzer;
+
+} // namespace analyzer::rpc

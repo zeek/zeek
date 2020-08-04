@@ -13,6 +13,6 @@ function set_ssl_established%(c: connection%): any
 	%{
 	zeek::analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 	if ( sa )
-		static_cast<::analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
 	return nullptr;
 	%}

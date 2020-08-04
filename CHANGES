@@ -1,4 +1,13 @@
 
+3.2.0-rc1.4 | 2020-08-10 10:08:18 -0700
+
+  * GH-1100: Fix reported body-length of HTTP messages w/ sub-entities (Jon Siwek, Corelight)
+
+    The body-lengths of sub-entities, like multipart messages, got counted
+    twice by mistake: once upon the end of the sub-entity and then again
+    upon the end of the top-level entity that contains all sub-entities.
+    The size of just the top-level entity is the correct one to use.
+
 3.2.0-rc1.3 | 2020-07-30 13:25:32 -0700
 
   * Fix potential heap-use-after-free access (Dominik Charousset, Corelight)

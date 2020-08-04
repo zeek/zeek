@@ -210,7 +210,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=modbus, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NTLM::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=ntlm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=ntp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NetControl::DROP, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_drop, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NetControl::DROP_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_drop, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NetControl::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_shunt, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -255,7 +255,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NTP::LOG, [columns=NTP::Info, ev=NTP::log_ntp, path=ntp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::DROP_LOG, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])) -> <no result>
@@ -301,7 +301,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Modbus::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NTLM::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NTP::LOG)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NetControl::DROP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NetControl::DROP_LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NetControl::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NetControl::SHUNT)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Notice::ALARM_LOG)) -> <no result>
@@ -346,7 +346,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NTLM::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NetControl::DROP, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NetControl::DROP_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NetControl::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -391,7 +391,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Modbus::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NTLM::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NTP::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NetControl::DROP, default)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NetControl::DROP_LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NetControl::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NetControl::SHUNT, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Notice::ALARM_LOG, default)) -> <no result>
@@ -436,7 +436,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NTP::LOG, [columns=NTP::Info, ev=NTP::log_ntp, path=ntp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::DROP_LOG, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])) -> <no result>
@@ -1133,7 +1133,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=modbus, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NTLM::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=ntlm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=ntp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NetControl::DROP, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_drop, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
+0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NetControl::DROP_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_drop, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NetControl::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_shunt, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1178,7 +1178,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NTP::LOG, [columns=NTP::Info, ev=NTP::log_ntp, path=ntp]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::DROP_LOG, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm]))
@@ -1224,7 +1224,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Modbus::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NTLM::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NTP::LOG))
-0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NetControl::DROP))
+0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NetControl::DROP_LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NetControl::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NetControl::SHUNT))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Notice::ALARM_LOG))
@@ -1269,7 +1269,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NTLM::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NetControl::DROP, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
+0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NetControl::DROP_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NetControl::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1314,7 +1314,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Modbus::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NTLM::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NTP::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NetControl::DROP, default))
+0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NetControl::DROP_LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NetControl::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NetControl::SHUNT, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Notice::ALARM_LOG, default))
@@ -1359,7 +1359,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NTP::LOG, [columns=NTP::Info, ev=NTP::log_ntp, path=ntp]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::DROP_LOG, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm]))
@@ -2055,7 +2055,7 @@
 0.000000 | HookCallFunction Log::__add_filter(Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=modbus, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(NTLM::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=ntlm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(NTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=ntp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::__add_filter(NetControl::DROP, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_drop, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
+0.000000 | HookCallFunction Log::__add_filter(NetControl::DROP_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_drop, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(NetControl::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=netcontrol_shunt, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -2100,7 +2100,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])
 0.000000 | HookCallFunction Log::__create_stream(NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])
 0.000000 | HookCallFunction Log::__create_stream(NTP::LOG, [columns=NTP::Info, ev=NTP::log_ntp, path=ntp])
-0.000000 | HookCallFunction Log::__create_stream(NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
+0.000000 | HookCallFunction Log::__create_stream(NetControl::DROP_LOG, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
 0.000000 | HookCallFunction Log::__create_stream(NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])
 0.000000 | HookCallFunction Log::__create_stream(NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])
 0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])
@@ -2146,7 +2146,7 @@
 0.000000 | HookCallFunction Log::add_default_filter(Modbus::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(NTLM::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(NTP::LOG)
-0.000000 | HookCallFunction Log::add_default_filter(NetControl::DROP)
+0.000000 | HookCallFunction Log::add_default_filter(NetControl::DROP_LOG)
 0.000000 | HookCallFunction Log::add_default_filter(NetControl::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(NetControl::SHUNT)
 0.000000 | HookCallFunction Log::add_default_filter(Notice::ALARM_LOG)
@@ -2191,7 +2191,7 @@
 0.000000 | HookCallFunction Log::add_filter(Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(NTLM::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(NTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::add_filter(NetControl::DROP, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
+0.000000 | HookCallFunction Log::add_filter(NetControl::DROP_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(NetControl::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -2236,7 +2236,7 @@
 0.000000 | HookCallFunction Log::add_stream_filters(Modbus::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(NTLM::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(NTP::LOG, default)
-0.000000 | HookCallFunction Log::add_stream_filters(NetControl::DROP, default)
+0.000000 | HookCallFunction Log::add_stream_filters(NetControl::DROP_LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(NetControl::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(NetControl::SHUNT, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Notice::ALARM_LOG, default)
@@ -2281,7 +2281,7 @@
 0.000000 | HookCallFunction Log::create_stream(Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])
 0.000000 | HookCallFunction Log::create_stream(NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])
 0.000000 | HookCallFunction Log::create_stream(NTP::LOG, [columns=NTP::Info, ev=NTP::log_ntp, path=ntp])
-0.000000 | HookCallFunction Log::create_stream(NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
+0.000000 | HookCallFunction Log::create_stream(NetControl::DROP_LOG, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
 0.000000 | HookCallFunction Log::create_stream(NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])
 0.000000 | HookCallFunction Log::create_stream(NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])
 0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])

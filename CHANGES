@@ -1,3 +1,29 @@
+
+3.3.0-dev.50 | 2020-08-04 20:22:48 +0000
+
+  * Fix incorrect conflict detection of namespaced-enum-names
+
+    E.g. defining a `Foo::RED` enum name when a `GLOBAL::RED` identifier
+    already exists would previously be treated as an error, even though the
+    names don't truly conflict. (Jon Siwek, Corelight)
+
+  * GH-1080: Treat enum name re-use across different enum types as an error (Jon Siwek, Corelight)
+
+  * GH-1080: Rename conflicting NetControl::DROP enum definitions
+
+    ``NetControl::DROP`` had 3 conflicting definitions that could potentially
+    be used incorrectly without any warnings or type-checking errors.
+    Such enum redefinition conflicts are now caught and treated as errors,
+    so the ``NetControl::DROP`` enums had to be renamed:
+
+    * The use as enum of type ``Log::ID`` is renamed to ``NetControl::DROP_LOG``
+
+    * The use as enum of type ``NetControl::CatchReleaseInfo`` is renamed to
+      ``NetControl::DROP_REQUESTED``
+
+    * The use as enum of type ``NetControl::RuleType`` is unchanged and still
+      named ``NetControl::DROP`` (Jon Siwek, Corelight)
+
 3.3.0-dev.44 | 2020-08-04 08:47:08 -0700
 
   * Silence compiler warnings related to deprecated TYPE_COUNTER (Jon Siwek, Corelight)

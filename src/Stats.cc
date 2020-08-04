@@ -198,7 +198,7 @@ void ProfileLogger::Log()
 					dstats.cached_hosts, dstats.cached_addresses));
 
 	zeek::detail::trigger::Manager::Stats tstats;
-	trigger_mgr->GetStats(&tstats);
+	zeek::detail::trigger_mgr->GetStats(&tstats);
 
 	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 

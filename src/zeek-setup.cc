@@ -116,7 +116,8 @@ zeek::iosource::Manager*& iosource_mgr = zeek::iosource_mgr;
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
 zeek::Broker::Manager*& broker_mgr = zeek::broker_mgr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
-zeek::detail::trigger::Manager* trigger_mgr = nullptr;
+zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
+zeek::detail::trigger::Manager*& trigger_mgr = zeek::detail::trigger_mgr;
 
 std::vector<std::string> zeek_script_prefixes;
 zeek::detail::Stmt* stmts;
@@ -583,14 +584,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::detail::dns_mgr->SetDir(".state");
 
 	zeek::iosource_mgr = new iosource::Manager();
-	event_registry = new EventRegistry();
+	zeek::event_registry = new EventRegistry();
 	zeek::analyzer_mgr = new analyzer::Manager();
 	zeek::log_mgr = new logging::Manager();
 	zeek::input_mgr = new input::Manager();
 	zeek::file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
-	broker_mgr = new zeek::Broker::Manager(broker_real_time);
-	trigger_mgr = new zeek::detail::trigger::Manager();
+	zeek::broker_mgr = new zeek::Broker::Manager(broker_real_time);
+	zeek::detail::trigger_mgr = new zeek::detail::trigger::Manager();
 
 	zeek::plugin_mgr->InitPreScript();
 	zeek::analyzer_mgr->InitPreScript();
@@ -819,7 +820,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		zeek::event_mgr.Enqueue(zeek_init, zeek::Args{});
 
 	EventRegistry::string_list dead_handlers =
-		event_registry->UnusedHandlers();
+		zeek::event_registry->UnusedHandlers();
 
 	if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
 		{

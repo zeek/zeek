@@ -454,7 +454,7 @@ bool Trigger::Cache(const zeek::detail::CallExpr* expr, Val* v)
 
 	Ref(v);
 
-	trigger_mgr->Queue(this);
+	zeek::detail::trigger_mgr->Queue(this);
 	return true;
 	}
 
@@ -480,7 +480,7 @@ void Trigger::Describe(ODesc* d) const
 
 void Trigger::Modified(zeek::notifier::detail::Modifiable* m)
 	{
-	trigger_mgr->Queue(this);
+	zeek::detail::trigger_mgr->Queue(this);
 	}
 
 const char* Trigger::Name() const

@@ -199,7 +199,7 @@ void EventMgr::Drain()
 
 	// Make sure all of the triggers get processed every time the events
 	// drain.
-	trigger_mgr->Process();
+	zeek::detail::trigger_mgr->Process();
 	}
 
 void EventMgr::Describe(ODesc* d) const

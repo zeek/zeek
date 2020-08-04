@@ -386,6 +386,7 @@ protected:
 void ZBody::SaveTo(FILE* f) const
 	{
 	ItemTracker<const BroType*> types;
+	ItemTracker<const ZInstAux*> auxes;
 	ItemTracker<const Val*> vals;
 
 	for ( auto i : insts )
@@ -402,6 +403,8 @@ void ZBody::SaveTo(FILE* f) const
 		auto& aux = i->aux;
 		if ( ! aux )
 			continue;
+
+		auxes.AddItem(aux);
 
 		if ( aux->types )
 			for ( auto j = 0; j < aux->n; ++j )
@@ -426,7 +429,7 @@ void ZBody::SaveTo(FILE* f) const
 
 	auto& types_vec = types.Items();
 
-	if ( types_vec.size() > 0 && 0 )
+	if ( types_vec.size() > 0 )
 		{
 		fprintf(f, "types {\n");
 		for ( auto t : types_vec )
@@ -453,6 +456,122 @@ void ZBody::SaveTo(FILE* f) const
 
 		fprintf(f, "}\n");
 		}
+
+	const auto NA = " NA";
+
+	auto& aux_vec = auxes.Items();
+
+	if ( aux_vec.size() > 0 )
+		{
+		fprintf(f, "aux {\n");
+
+		for ( auto a : aux_vec )
+			{
+			fprintf(f, "%d", a->n);
+
+			if ( a->n > 0 )
+				{
+				for ( auto i = 0; i < a->n; ++i )
+					{
+					fprintf(f, " {");
+					auto c = a->constants[i].get();
+					if ( c )
+						fprintf(f, " %d NA", vals.FindItem(c));
+					else
+						fprintf(f, " NA %d", a->slots[i]);
+
+					auto t = a->types[i].get();
+					if ( t )
+						fprintf(f, " %d", types.FindItem(t));
+					else
+						fprintf(f, NA);
+
+					fprintf(f, " },");
+					}
+				}
+
+			fprintf(f, "\n");
+
+			auto& ii = a->iter_info;
+			if ( ! ii )
+				continue;
+
+			fprintf(f, " [ %lu", ii->loop_var_types.size());
+
+			for ( auto t : ii->loop_var_types )
+				fprintf(f, " %d,", types.FindItem(t));
+
+			if ( ii->value_var_type )
+				fprintf(f, " %d,", types.FindItem(ii->value_var_type));
+			else
+				fprintf(f, NA);
+
+			if ( ii->vec_type )
+				fprintf(f, " %d,", types.FindItem(ii->vec_type));
+			else
+				fprintf(f, NA);
+
+			if ( ii->yield_type )
+				fprintf(f, " %d,", types.FindItem(ii->yield_type));
+			else
+				fprintf(f, NA);
+
+			fprintf(f, "]\n");
+			}
+
+		fprintf(f, "}\n");
+		}
+
+	fprintf(f, "insts {\n");
+
+	int inst_num = 0;
+
+	for ( auto i : insts )
+		{
+		fprintf(f, "%d %d %d %s", inst_num++, i->op, i->op_type,
+			ZOP_name(i->op));
+
+		int n = i->NumSlots();
+		int v;
+
+		for ( v = 0; v < n; ++v )
+			{
+			int s;
+			switch ( v ) {
+			case 0:	s = i->v1; break;
+			case 1:	s = i->v2; break;
+			case 2:	s = i->v3; break;
+			case 3:	s = i->v4; break;
+
+			default:
+				reporter->InternalError("slot inconsistency");
+			}
+
+			fprintf(f, " %d", s);
+			}
+
+		for ( ; v < 4; ++v )
+			fprintf(f, NA);
+
+		auto val = i->ConstVal().get();
+		if ( val )
+			fprintf(f, " %d", vals.FindItem(val));
+		else
+			fprintf(f, NA);
+
+		if ( i->t )
+			fprintf(f, " %d", types.FindItem(i->t));
+		else
+			fprintf(f, NA);
+		if ( i->t2 )
+			fprintf(f, " %d", types.FindItem(i->t2));
+		else
+			fprintf(f, NA);
+
+		fprintf(f, "\n");
+		}
+
+	fprintf(f, "}\n");
 	}
 
 void ZBody::ProfileExecution() const

@@ -110,7 +110,13 @@ public:
 
 	const char* VName(int max_n, int n, int inst_num,
 				const FrameReMap* mappings) const;
+
+	// Number of slots that refer to a frame element.  These always
+	// come first, if we use additional slots.
 	int NumFrameSlots() const;
+
+	// Total number of slots in use.  >= NumFrameSlots()
+	int NumSlots() const;
 
 	// Returns nil if this instruction doesn't have an associated constant.
 	IntrusivePtr<Val> ConstVal() const;

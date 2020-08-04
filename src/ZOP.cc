@@ -219,6 +219,40 @@ int ZInst::NumFrameSlots() const
 	}
 	}
 
+int ZInst::NumSlots() const
+	{
+	switch ( op_type ) {
+	case OP_X:	return 0;
+	case OP_C:	return 0;
+	case OP_V:	return 1;
+	case OP_VC:	return 1;
+	case OP_VV:	return 2;
+	case OP_VVC:	return 2;
+	case OP_VVV:	return 3;
+	case OP_VVVC:	return 3;
+	case OP_VVVV:	return 4;
+
+	case OP_V_I1:	return 1;
+	case OP_VC_I1:	return 1;
+
+	case OP_VV_I1_I2:	return 2;
+	case OP_VV_FRAME:	return 2;
+	case OP_VV_I2:	return 2;
+	case OP_VVC_I2:	return 2;
+	case OP_ViC_ID:	return 2;
+
+	case OP_VVV_I3:	return 3;
+	case OP_VVV_I2_I3:	return 3;
+	case OP_VVVC_I3:	return 3;
+	case OP_VVVC_I2_I3:	return 3;
+	case OP_VVVC_I1_I2_I3:	return 3;
+
+	case OP_VVVV_I4:	return 4;
+	case OP_VVVV_I3_I4:	return 4;
+	case OP_VVVV_I2_I3_I4:	return 4;
+	}
+	}
+
 const char* ZInst::VName(int max_n, int n, int inst_num,
 				const FrameReMap* mappings) const
 	{

@@ -20,7 +20,10 @@ testport 45
 testporttcp 42/tcp
 testportudp 42/udp
 testaddr 127.0.0.1
-testaddr 2607:f8b0:4005:801::200e
+testaddr 2607:f8b0:4005:801::1
+testaddr [2607:f8b0:4005:801::2]
+testsub 2607:f8b0:4001:801::/48
+testsub [2607:f8b0:4002:801::]/48
 testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
@@ -41,6 +44,7 @@ export {
 	option testporttcp = 40/udp;
 	option testportudp = 40/tcp;
 	option testaddr = 127.0.0.1;
+	option testsub = 0.0.0.0/0;
 	option testtime = network_time();
 	option testinterval = 1sec;
 	option teststring = "a";

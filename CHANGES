@@ -1,4 +1,13 @@
 
+3.3.0-dev.53 | 2020-08-05 12:35:50 -0700
+
+  * Fix deprecation warnings in fuzz targets (Jon Siwek, Corelight)
+
+  * Remove dbg_read_internal_state() (Jon Siwek, Corelight)
+
+    It's never had a definition anyway and the namespacing/deprecation
+    process was now causing a compile error in debug/fuzzing builds w/ GCC
+
 3.3.0-dev.50 | 2020-08-04 20:22:48 +0000
 
   * Fix incorrect conflict detection of namespaced-enum-names

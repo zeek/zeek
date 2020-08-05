@@ -166,11 +166,6 @@ int dbg_execute_command(const char* cmd);
 // Interactive expression evaluation.
 zeek::ValPtr dbg_eval_expr(const char* expr);
 
-// Extra debugging facilities.
-// TODO: current connections, memory allocated, other internal data structures.
-// ### Note: not currently defined.
-int dbg_read_internal_state();
-
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
 std::string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detail::Frame* frame);
 
@@ -203,7 +198,6 @@ constexpr auto dbg_shutdown_debugger [[deprecated("Remove in v4.1. Use zeek::det
 constexpr auto dbg_handle_debug_input [[deprecated("Remove in v4.1. Use zeek::detail::dbg_handle_debug_input.")]] = zeek::detail::dbg_handle_debug_input;
 constexpr auto dbg_execute_command [[deprecated("Remove in v4.1. Use zeek::detail::dbg_execute_command.")]] = zeek::detail::dbg_execute_command;
 constexpr auto dbg_eval_expr [[deprecated("Remove in v4.1. Use zeek::detail::dbg_eval_expr.")]] = zeek::detail::dbg_eval_expr;
-constexpr auto dbg_read_internal_state [[deprecated("Remove in v4.1. Use zeek::detail::dbg_read_internal_state.")]] = zeek::detail::dbg_read_internal_state;
 constexpr auto get_context_description [[deprecated("Remove in v4.1. Use zeek::detail::get_context_description.")]] = zeek::detail::get_context_description;
 constexpr auto debug_msg [[deprecated("Remove in v4.1. Use zeek::detail::debug_msg.")]] = zeek::detail::debug_msg;
 

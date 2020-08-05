@@ -18,17 +18,17 @@ static zeek::Connection* add_connection()
 	static constexpr double network_time_start = 1439471031;
 	net_update_time(network_time_start);
 
-	Packet p;
-	ConnID conn_id;
-	conn_id.src_addr = IPAddr("1.2.3.4");
-	conn_id.dst_addr = IPAddr("5.6.7.8");
+	zeek::Packet p;
+	zeek::ConnID conn_id;
+	conn_id.src_addr = zeek::IPAddr("1.2.3.4");
+	conn_id.dst_addr = zeek::IPAddr("5.6.7.8");
 	conn_id.src_port = htons(23132);
 	conn_id.dst_port = htons(80);
-	ConnIDKey key = BuildConnIDKey(conn_id);
-	zeek::Connection* conn = new Connection(sessions, key, network_time_start,
+	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(conn_id);
+	zeek::Connection* conn = new zeek::Connection(zeek::sessions, key, network_time_start,
 	                                  &conn_id, 1, &p, nullptr);
 	conn->SetTransport(TRANSPORT_TCP);
-	sessions->Insert(conn);
+	zeek::sessions->Insert(conn);
 	return conn;
 	}
 

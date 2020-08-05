@@ -565,7 +565,7 @@ void Dictionary::Clear()
 				delete_func(table[i].value);
 			table[i].Clear();
 			}
-		delete [] table;
+		free(table);
 		table = nullptr;
 		}
 
@@ -729,7 +729,7 @@ void* Dictionary::Insert(void* key, int key_size, zeek::detail::hash_t hash, voi
 		v = table[position].value;
 		table[position].value = val;
 		if ( ! copy_key )
-			delete (char*)key;
+			delete [] (char*)key;
 
 		if ( order )
 			{//set new v to order too.

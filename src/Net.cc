@@ -42,29 +42,16 @@ extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 }
 
+static double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
+extern int signal_val;
+
+namespace zeek::net {
+namespace detail {
+
 zeek::iosource::PktDumper* pkt_dumper = nullptr;
-
-bool reading_live = false;
-bool reading_traces = false;
-bool have_pending_timers = false;
-double pseudo_realtime = 0.0;
-double network_time = 0.0;	// time according to last packet timestamp
-				// (or current time)
-double processing_start_time = 0.0;	// time started working on current pkt
-double bro_start_time = 0.0; // time Bro started.
-double bro_start_network_time;	// timestamp of first packet
-double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
-bool terminating = false;	// whether we're done reading and finishing up
-bool is_parsing = false;
-
-const zeek::Packet *current_pkt = nullptr;
-int current_dispatched = 0;
-double current_timestamp = 0.0;
 zeek::iosource::PktSrc* current_pktsrc = nullptr;
 zeek::iosource::IOSource* current_iosrc = nullptr;
-
-std::list<ScannedFile> files_scanned;
-std::vector<std::string> sig_files;
+bool have_pending_timers = false;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -221,9 +208,9 @@ void expire_timers(zeek::iosource::PktSrc* src_ps)
 
 void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* src_ps)
 	{
-	if ( ! bro_start_network_time )
+	if ( ! zeek_start_network_time )
 		{
-		bro_start_network_time = t;
+		zeek_start_network_time = t;
 
 		if ( network_time_init )
 			zeek::event_mgr.Enqueue(network_time_init, zeek::Args{});
@@ -330,9 +317,7 @@ void net_run()
 		current_dispatched = 0;
 		current_iosrc = nullptr;
 
-		extern int signal_val;
-
-		if ( signal_val == SIGTERM || signal_val == SIGINT )
+		if ( ::signal_val == SIGTERM || ::signal_val == SIGINT )
 			// We received a signal while processing the
 			// current packet and its related events.
 			// Should we put the signal handling into an IOSource?
@@ -412,7 +397,27 @@ void net_delete()
 		delete zeek::detail::ip_anonymizer[i];
 	}
 
-int _processing_suspended = 0;
+std::list<ScannedFile> files_scanned;
+std::vector<std::string> sig_files;
+
+} // namespace detail
+
+bool reading_live = false;
+bool reading_traces = false;
+double pseudo_realtime = 0.0;
+double network_time = 0.0;	// time according to last packet timestamp
+                            // (or current time)
+double processing_start_time = 0.0;	// time started working on current pkt
+double zeek_start_time = 0.0; // time Bro started.
+double zeek_start_network_time;	// timestamp of first packet
+bool terminating = false;	// whether we're done reading and finishing up
+bool is_parsing = false;
+
+const zeek::Packet *current_pkt = nullptr;
+int current_dispatched = 0;
+double current_timestamp = 0.0;
+
+static int _processing_suspended = 0;
 
 void net_suspend_processing()
 	{
@@ -433,3 +438,29 @@ void net_continue_processing()
 
 	--_processing_suspended;
 	}
+
+bool net_is_processing_suspended()	{ return _processing_suspended; }
+
+} // namespace zeek::net
+
+// Remove all of these in v4.1.
+zeek::iosource::PktSrc*& current_pktsrc = zeek::net::detail::current_pktsrc;
+zeek::iosource::IOSource*& current_iosrc = zeek::net::detail::current_iosrc;
+zeek::iosource::PktDumper*& pkt_dumper = zeek::net::detail::pkt_dumper;
+bool& have_pending_timers = zeek::net::detail::have_pending_timers;
+
+bool& reading_live = zeek::net::reading_live;
+bool& reading_traces = zeek::net::reading_traces;
+double& pseudo_realtime = zeek::net::pseudo_realtime;
+double& processing_start_time = zeek::net::processing_start_time;
+double& bro_start_time = zeek::net::zeek_start_time;
+double& bro_start_network_time = zeek::net::zeek_start_network_time;
+bool& terminating = zeek::net::terminating;
+bool& is_parsing = zeek::net::is_parsing;
+
+const zeek::Packet*& current_pkt = zeek::net::current_pkt;
+int& current_dispatched = zeek::net::current_dispatched;
+double& current_timestamp = zeek::net::current_timestamp;
+
+std::list<zeek::net::detail::ScannedFile>& files_scanned = zeek::net::detail::files_scanned;
+std::vector<std::string>& sig_files = zeek::net::detail::sig_files;

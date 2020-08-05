@@ -226,7 +226,7 @@ void Reporter::InternalWarning(const char* fmt, ...)
 
 void Reporter::Syslog(const char* fmt, ...)
 	{
-	if ( reading_traces )
+	if ( zeek::net::reading_traces )
 		return;
 
 	va_list ap;
@@ -313,7 +313,7 @@ bool Reporter::PermitNetWeird(const char* name)
 	++count;
 
 	if ( count == 1 )
-		zeek::detail::timer_mgr->Add(new NetWeirdTimer(network_time, name,
+		zeek::detail::timer_mgr->Add(new NetWeirdTimer(zeek::net::network_time, name,
 		                                               weird_sampling_duration));
 
 	if ( count <= weird_sampling_threshold )
@@ -333,7 +333,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 	auto& map = flow_weird_state[endpoints];
 
 	if ( map.empty() )
-		zeek::detail::timer_mgr->Add(new FlowWeirdTimer(network_time, endpoints,
+		zeek::detail::timer_mgr->Add(new FlowWeirdTimer(zeek::net::network_time, endpoints,
 		                                                weird_sampling_duration));
 
 	auto& count = map[name];
@@ -360,7 +360,7 @@ bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& c
 	auto& map = expired_conn_weird_state[conn_tuple];
 
 	if ( map.empty() )
-		zeek::detail::timer_mgr->Add(new ConnTupleWeirdTimer(network_time,
+		zeek::detail::timer_mgr->Add(new ConnTupleWeirdTimer(zeek::net::network_time,
 		                                                     std::move(conn_tuple),
 		                                                     weird_sampling_duration));
 
@@ -562,7 +562,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(network_time ? network_time : current_time()));
+			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(zeek::net::network_time ? zeek::net::network_time : current_time()));
 
 		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(buffer));
 
@@ -594,10 +594,10 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		std::string s = "";
 
-		if ( bro_start_network_time != 0.0 )
+		if ( zeek::net::zeek_start_network_time != 0.0 )
 			{
 			char tmp[32];
-			snprintf(tmp, 32, "%.6f", network_time);
+			snprintf(tmp, 32, "%.6f", zeek::net::network_time);
 			s += std::string(tmp) + " ";
 			}
 

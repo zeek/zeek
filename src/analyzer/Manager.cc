@@ -499,14 +499,14 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 void Manager::ExpireScheduledAnalyzers()
 	{
-	if ( ! network_time )
+	if ( ! zeek::net::network_time )
 		return;
 
 	while ( conns_by_timeout.size() )
 		{
 		ScheduledAnalyzer* a = conns_by_timeout.top();
 
-		if ( a->timeout > network_time )
+		if ( a->timeout > zeek::net::network_time )
 			return;
 
 		conns_by_timeout.pop();
@@ -540,7 +540,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 			TransportProto proto, const Tag& analyzer,
 			double timeout)
 	{
-	if ( ! network_time )
+	if ( ! zeek::net::network_time )
 		{
 		reporter->Warning("cannot schedule analyzers before processing begins; ignored");
 		return;
@@ -554,7 +554,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 	ScheduledAnalyzer* a = new ScheduledAnalyzer;
 	a->conn = ConnIndex(orig, resp, resp_p, proto);
 	a->analyzer = analyzer;
-	a->timeout = network_time + timeout;
+	a->timeout = zeek::net::network_time + timeout;
 
 	conns.insert(std::make_pair(a->conn, a));
 	conns_by_timeout.push(a);
@@ -597,7 +597,7 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 
 	for ( conns_map::iterator i = all.first; i != all.second; i++ )
 		{
-		if ( i->second->timeout > network_time )
+		if ( i->second->timeout > zeek::net::network_time )
 			result.insert(i->second->analyzer);
 		}
 

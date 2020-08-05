@@ -115,7 +115,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, zeek::make_intrusive<zeek::TimeVal>(network_time));
+	val->Assign(last_active_idx, zeek::make_intrusive<zeek::TimeVal>(zeek::net::network_time));
 	}
 
 double File::GetLastActivityTime() const
@@ -250,7 +250,7 @@ bool File::IsComplete() const
 
 void File::ScheduleInactivityTimer() const
 	{
-	zeek::detail::timer_mgr->Add(new detail::FileTimer(network_time, id, GetTimeoutInterval()));
+	zeek::detail::timer_mgr->Add(new detail::FileTimer(zeek::net::network_time, id, GetTimeoutInterval()));
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
@@ -469,7 +469,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 			}
 
 		// Forward data to the reassembler.
-		file_reassembler->NewBlock(network_time, offset, len, data);
+		file_reassembler->NewBlock(zeek::net::network_time, offset, len, data);
 		}
 	else if ( stream_offset == offset )
 		{
@@ -482,7 +482,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 		// This is data that doesn't match the offset and the reassembler
 		// needs to be enabled.
 		file_reassembler = new FileReassembler(this, stream_offset);
-		file_reassembler->NewBlock(network_time, offset, len, data);
+		file_reassembler->NewBlock(zeek::net::network_time, offset, len, data);
 		}
 	else
 		{

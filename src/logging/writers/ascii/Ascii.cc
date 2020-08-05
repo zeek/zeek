@@ -398,7 +398,7 @@ Ascii::~Ascii()
 	if ( ! ascii_done )
 		// In case of errors aborting the logging altogether,
 		// DoFinish() may not have been called.
-		CloseFile(network_time);
+		CloseFile(zeek::net::network_time);
 
 	delete formatter;
 	}

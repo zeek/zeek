@@ -63,5 +63,5 @@ zeek::StringVal* utf16_bytestring_to_utf8_val(zeek::Connection* conn, const byte
 
 function network_time(): double
 	%{
-	return ::network_time;
+	return zeek::net::network_time;
 	%}

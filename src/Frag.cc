@@ -154,7 +154,7 @@ void FragReassembler::AddFragment(double t, const zeek::IP_Hdr* ip, const u_char
 	pkt += hdr_len;
 	len -= hdr_len;
 
-	NewBlock(network_time, offset, len, pkt);
+	NewBlock(zeek::net::network_time, offset, len, pkt);
 	}
 
 void FragReassembler::Weird(const char* name) const
@@ -278,7 +278,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 			{
 			zeek::reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
-			Expire(network_time);
+			Expire(zeek::net::network_time);
 			delete [] pkt_start;
 			return;
 			}

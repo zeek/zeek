@@ -90,7 +90,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 
 	if ( duration_thresh != 0 )
 		{
-		if ( ( network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
+		if ( ( zeek::net::network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
 					ConnVal(),

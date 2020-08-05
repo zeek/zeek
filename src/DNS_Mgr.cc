@@ -1338,7 +1338,7 @@ double DNS_Mgr::GetNextTimeout()
 	if ( asyncs_timeouts.empty() )
 		return -1;
 
-	return network_time + DNS_TIMEOUT;
+	return zeek::net::network_time + DNS_TIMEOUT;
 	}
 
 void DNS_Mgr::Process()
@@ -1350,7 +1350,7 @@ void DNS_Mgr::Process()
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() && ! terminating )
+		if ( req->time + DNS_TIMEOUT > current_time() && ! zeek::net::terminating )
 			break;
 
 		if ( ! req->processed )

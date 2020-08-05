@@ -863,7 +863,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 
 			info = new WriterBackend::WriterInfo;
 			info->path = copy_string(path.c_str());
-			info->network_time = network_time;
+			info->network_time = zeek::net::network_time;
 
 			zeek::detail::HashKey* k;
 			zeek::IterCookie* c = filter->config->AsTable()->InitForIteration();
@@ -1151,7 +1151,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
 	winfo->writer = nullptr;
-	winfo->open_time = network_time;
+	winfo->open_time = zeek::net::network_time;
 	winfo->rotation_timer = nullptr;
 	winfo->interval = 0;
 	winfo->postprocessor = nullptr;
@@ -1345,7 +1345,7 @@ bool Manager::Flush(zeek::EnumVal* id)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		i->second->writer->Flush(network_time);
+		i->second->writer->Flush(zeek::net::network_time);
 
 	RemoveDisabledWriters(stream);
 
@@ -1441,14 +1441,14 @@ void RotationTimer::Dispatch(double t, bool is_expire)
 
 	if ( ! is_expire )
 		{
-		winfo->open_time = network_time;
+		winfo->open_time = zeek::net::network_time;
 		log_mgr->InstallRotationTimer(winfo);
 		}
 	}
 
 void Manager::InstallRotationTimer(WriterInfo* winfo)
 	{
-	if ( terminating )
+	if ( zeek::net::terminating )
 		return;
 
 	if ( winfo->rotation_timer )
@@ -1461,25 +1461,25 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 
 	if ( rotation_interval )
 		{
-		// When this is called for the first time, network_time can still be
+		// When this is called for the first time, zeek::net::network_time can still be
 		// zero. If so, we set a timer which fires immediately but doesn't
 		// rotate when it expires.
-		if ( ! network_time )
+		if ( ! zeek::net::network_time )
 			winfo->rotation_timer = new RotationTimer(1, winfo, false);
 		else
 			{
 			if ( ! winfo->open_time )
-				winfo->open_time = network_time;
+				winfo->open_time = zeek::net::network_time;
 
 			static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
 			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 			double base = parse_rotate_base_time(base_time);
 			double delta_t =
-				calc_next_rotate(network_time, rotation_interval, base);
+				calc_next_rotate(zeek::net::network_time, rotation_interval, base);
 
 			winfo->rotation_timer =
-				new RotationTimer(network_time + delta_t, winfo, true);
+				new RotationTimer(zeek::net::network_time + delta_t, winfo, true);
 			}
 
 		zeek::detail::timer_mgr->Add(winfo->rotation_timer);
@@ -1553,7 +1553,7 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 void Manager::Rotate(WriterInfo* winfo)
 	{
 	DBG_LOG(zeek::DBG_LOGGING, "Rotating %s at %.6f",
-		winfo->writer->Name(), network_time);
+		winfo->writer->Name(), zeek::net::network_time);
 
 	static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
 
@@ -1566,11 +1566,11 @@ void Manager::Rotate(WriterInfo* winfo)
 
 	auto rotation_path = FormatRotationPath({zeek::NewRef{}, winfo->type},
 	                                        winfo->writer->Info().path,
-	                                        winfo->open_time, network_time,
-	                                        terminating,
+	                                        winfo->open_time, zeek::net::network_time,
+	                                        zeek::net::terminating,
 	                                        std::move(ppf));
 
-	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, network_time, terminating);
+	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, zeek::net::network_time, zeek::net::terminating);
 
 	++rotations_pending;
 	}
@@ -1585,12 +1585,12 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	if ( ! success )
 		{
 		DBG_LOG(zeek::DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,",
-			writer->Name(), filename, network_time);
+			writer->Name(), filename, zeek::net::network_time);
 		return true;
 		}
 
 	DBG_LOG(zeek::DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
-		writer->Name(), network_time, new_name);
+		writer->Name(), zeek::net::network_time, new_name);
 
 	WriterInfo* winfo = FindWriter(writer);
 	if ( ! winfo )

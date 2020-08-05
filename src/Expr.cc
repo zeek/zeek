@@ -3861,7 +3861,7 @@ bool ScheduleExpr::IsPure() const
 
 ValPtr ScheduleExpr::Eval(Frame* f) const
 	{
-	if ( terminating )
+	if ( zeek::net::terminating )
 		return nullptr;
 
 	auto when_val = when->Eval(f);
@@ -3872,7 +3872,7 @@ ValPtr ScheduleExpr::Eval(Frame* f) const
 	double dt = when_val->InternalDouble();
 
 	if ( when->GetType()->Tag() == zeek::TYPE_INTERVAL )
-		dt += network_time;
+		dt += zeek::net::network_time;
 
 	auto args = eval_list(f, event->Args());
 

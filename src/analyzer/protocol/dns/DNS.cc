@@ -1908,7 +1908,7 @@ DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-		                   network_time + dns_session_timeout, true,
+		                   zeek::net::network_time + dns_session_timeout, true,
 		                   zeek::detail::TIMER_DNS_EXPIRE);
 		}
 	}
@@ -1956,7 +1956,7 @@ void DNS_Analyzer::ExpireTimer(double t)
 	// The - 1.0 in the following is to allow 1 second for the
 	// common case of a single request followed by a single reply,
 	// so we don't needlessly set the timer twice in that case.
-	if ( t - Conn()->LastTime() >= dns_session_timeout - 1.0 || terminating )
+	if ( t - Conn()->LastTime() >= dns_session_timeout - 1.0 || zeek::net::terminating )
 		{
 		Event(connection_timeout);
 		zeek::sessions->Remove(Conn());

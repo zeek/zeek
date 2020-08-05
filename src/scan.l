@@ -347,7 +347,7 @@ when	return TOK_WHEN;
 			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
 			                      file);
 		else
-			sig_files.push_back(copy_string(path.c_str()));
+			zeek::net::detail::sig_files.push_back(copy_string(path.c_str()));
 		break;
 
 	case 0:
@@ -404,8 +404,8 @@ when	return TOK_WHEN;
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		ScannedFile sf(file_stack.length(), std::move(path), true);
-		files_scanned.push_back(std::move(sf));
+		zeek::net::detail::ScannedFile sf(file_stack.length(), std::move(path), true);
+		zeek::net::detail::files_scanned.push_back(std::move(sf));
 		}
 	}
 
@@ -594,7 +594,7 @@ static int load_files(const char* orig_file)
 
 	assert(rc == -1); // No plugin in charge of this file.
 
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( streq(orig_file, "-") )
 		{
@@ -622,7 +622,7 @@ static int load_files(const char* orig_file)
 			zeek::reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	ScannedFile sf(file_stack.length(), file_path);
+	zeek::net::detail::ScannedFile sf(file_stack.length(), file_path);
 
 	if ( sf.AlreadyScanned() )
 		{
@@ -632,7 +632,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	files_scanned.push_back(std::move(sf));
+	zeek::net::detail::files_scanned.push_back(std::move(sf));
 
 	if ( zeek::detail::g_policy_debug && ! file_path.empty() )
 		{
@@ -888,9 +888,9 @@ int yywrap()
 	// the scanned file is "__load__.zeek", that part of the flattened
 	// file name is discarded. If the prefix is non-empty, it gets placed
 	// in front of the flattened path, separated with another '.'
-	std::list<ScannedFile>::iterator it;
 	bool found_prefixed_files = false;
-	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+	for ( auto it = zeek::net::detail::files_scanned.begin();
+	      it != zeek::net::detail::files_scanned.end(); ++it )
 		{
 		if ( it->skipped || it->prefixes_checked )
 			continue;
@@ -1028,10 +1028,10 @@ FileInfo::~FileInfo()
 		zeek::detail::current_module = restore_module;
 	}
 
-ScannedFile::ScannedFile(int arg_include_level,
-                         std::string arg_name,
-                         bool arg_skipped,
-                         bool arg_prefixes_checked)
+zeek::net::detail::ScannedFile::ScannedFile(int arg_include_level,
+                                            std::string arg_name,
+                                            bool arg_skipped,
+                                            bool arg_prefixes_checked)
 	: include_level(arg_include_level),
 	  skipped(arg_skipped),
 	  prefixes_checked(arg_prefixes_checked),
@@ -1052,11 +1052,11 @@ ScannedFile::ScannedFile(int arg_include_level,
 		}
 	}
 
-bool ScannedFile::AlreadyScanned() const
+bool zeek::net::detail::ScannedFile::AlreadyScanned() const
 	{
 	auto rval = false;
 
-	for ( const auto& it : files_scanned )
+	for ( const auto& it : zeek::net::detail::files_scanned )
 		if ( it.canonical_path == canonical_path )
 			{
 			rval = true;

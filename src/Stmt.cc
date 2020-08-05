@@ -169,7 +169,7 @@ ExprListStmt::~ExprListStmt() = default;
 
 ValPtr ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
-	last_access = network_time;
+	last_access = zeek::net::network_time;
 	flow = FLOW_NEXT;
 
 	auto vals = eval_list(f, l.get());
@@ -233,7 +233,7 @@ static void print_log(const std::vector<ValPtr>& vals)
 		vec->Assign(vec->Size(), zeek::make_intrusive<zeek::StringVal>(d.Description()));
 		}
 
-	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(network_time));
+	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(zeek::net::network_time));
 	record->Assign(1, std::move(vec));
 	zeek::log_mgr->Write(plval.get(), record.get());
 	}

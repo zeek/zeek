@@ -85,12 +85,12 @@ TraversalCode zeek::detail::trigger::TriggerTraversalCallback::PreExpr(const zee
 class TriggerTimer final : public Timer {
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
-	: Timer(network_time + arg_timeout, TIMER_TRIGGER)
+	: Timer(zeek::net::network_time + arg_timeout, TIMER_TRIGGER)
 		{
 		Ref(arg_trigger);
 		trigger = arg_trigger;
 		timeout = arg_timeout;
-		time = network_time;
+		time = zeek::net::network_time;
 		}
 
 	~TriggerTimer()
@@ -505,7 +505,7 @@ Manager::~Manager()
 
 double Manager::GetNextTimeout()
 	{
-	return pending->empty() ? -1 : network_time + 0.100;
+	return pending->empty() ? -1 : zeek::net::network_time + 0.100;
 	}
 
 void Manager::Process()

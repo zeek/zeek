@@ -381,7 +381,7 @@ protected:
 	 * @param is_termination whether the Manager (and probably Bro) is in a
 	 *        terminating state.  If true, then the timeout cannot be postponed.
 	 */
-	void Timeout(const std::string& file_id, bool is_terminating = ::terminating);
+	void Timeout(const std::string& file_id, bool is_terminating = zeek::net::terminating);
 
 	/**
 	 * Immediately remove file_analysis::File object associated with \a file_id.

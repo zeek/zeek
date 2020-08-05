@@ -419,7 +419,7 @@ void set_processing_status(const char* status, const char* reason);
 // perspective.  In particular, if we're reading from a savefile this
 // is the time of the most recent packet, not the time returned by
 // gettimeofday().
-extern double network_time;
+extern double& network_time [[deprecated("Remove in v4.1. Use zeek::net::network_time.")]];
 
 // Returns the current time.
 // (In pseudo-realtime mode this is faked to be the start time of the

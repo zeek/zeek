@@ -200,10 +200,10 @@ void zeek::detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 	//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
 	// Also note the Stem process has its own polling loop with similar logic.
 	if ( zeek::Supervisor::ThisNode()->parent_pid != getppid() )
-		zeek_terminate_loop("supervised node was orphaned");
+		zeek::net::detail::zeek_terminate_loop("supervised node was orphaned");
 
 	if ( ! is_expire )
-		timer_mgr->Add(new ParentProcessCheckTimer(network_time + interval,
+		timer_mgr->Add(new ParentProcessCheckTimer(zeek::net::network_time + interval,
 		                                           interval));
 	}
 

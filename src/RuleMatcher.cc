@@ -1235,11 +1235,11 @@ void RuleMatcher::DumpStats(zeek::File* f)
 	GetStats(&stats);
 
 	f->Write(fmt("%.6f computed dfa states = %d; classes = ??; "
-			"computed trans. = %d; matchers = %d; mem = %d\n",
-			network_time, stats.dfa_states, stats.computed,
-			stats.matchers, stats.mem));
-	f->Write(fmt("%.6f DFA cache hits = %d; misses = %d\n", network_time,
-			stats.hits, stats.misses));
+	             "computed trans. = %d; matchers = %d; mem = %d\n",
+	             zeek::net::network_time, stats.dfa_states, stats.computed,
+	             stats.matchers, stats.mem));
+	f->Write(fmt("%.6f DFA cache hits = %d; misses = %d\n", zeek::net::network_time,
+	             stats.hits, stats.misses));
 
 	DumpStateStats(f, root);
 	}
@@ -1256,9 +1256,9 @@ void RuleMatcher::DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test)
 			RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
 			assert(set->re);
 
-			f->Write(fmt("%.6f %d DFA states in %s group %d from sigs ", network_time,
-					 set->re->DFA()->NumStates(),
-					 Rule::TypeToString((Rule::PatternType)i), j));
+			f->Write(fmt("%.6f %d DFA states in %s group %d from sigs ", zeek::net::network_time,
+			             set->re->DFA()->NumStates(),
+			             Rule::TypeToString((Rule::PatternType)i), j));
 
 			for ( const auto& id : set->ids )
 				{

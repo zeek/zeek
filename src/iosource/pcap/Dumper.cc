@@ -81,7 +81,7 @@ void PcapDumper::Open()
 			}
 		}
 
-	props.open_time = network_time;
+	props.open_time = zeek::net::network_time;
 	props.hdr_size = zeek::Packet::GetLinkHeaderSize(pcap_datalink(pd));
 	Opened(props);
 	}

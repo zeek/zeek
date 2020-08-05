@@ -331,7 +331,7 @@ function current_time%(%): time
 ## .. zeek:see:: current_time
 function network_time%(%): time
 	%{
-	return zeek::make_intrusive<zeek::TimeVal>(network_time);
+	return zeek::make_intrusive<zeek::TimeVal>(zeek::net::network_time);
 	%}
 
 ## Returns a system environment variable.
@@ -388,7 +388,7 @@ function exit%(code: int%): any
 ## .. zeek:see:: exit zeek_is_terminating
 function terminate%(%): bool
 	%{
-	if ( terminating )
+	if ( zeek::net::terminating )
 		return zeek::val_mgr->False();
 
 	terminate_processing();
@@ -1871,7 +1871,7 @@ function zeek_args%(%): string_vec
 ## .. zeek:see:: reading_traces packet_source
 function reading_live_traffic%(%): bool
 	%{
-	return zeek::val_mgr->Bool(reading_live);
+	return zeek::val_mgr->Bool(zeek::net::reading_live);
 	%}
 
 ## Checks whether Zeek reads traffic from a trace file (as opposed to from a
@@ -1882,7 +1882,7 @@ function reading_live_traffic%(%): bool
 ## .. zeek:see:: reading_live_traffic packet_source
 function reading_traces%(%): bool
 	%{
-	return zeek::val_mgr->Bool(reading_traces);
+	return zeek::val_mgr->Bool(zeek::net::reading_traces);
 	%}
 
 ## Returns: the packet source being read by Zeek.
@@ -2105,7 +2105,7 @@ function dump_rule_stats%(f: file%): bool
 ## .. zeek:see:: terminate
 function zeek_is_terminating%(%): bool
 	%{
-	return zeek::val_mgr->Bool(terminating);
+	return zeek::val_mgr->Bool(zeek::net::terminating);
 	%}
 
 ## Returns the hostname of the machine Zeek runs on.
@@ -3361,7 +3361,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(1, std::move(orig_endp));
 	c->Assign(2, std::move(resp_endp));
 
-	c->Assign(3, zeek::make_intrusive<zeek::TimeVal>(network_time));
+	c->Assign(3, zeek::make_intrusive<zeek::TimeVal>(zeek::net::network_time));
 	c->Assign(4, zeek::make_intrusive<zeek::IntervalVal>(0.0));
 	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
 	c->Assign(6, zeek::val_mgr->EmptyString());	// history
@@ -3396,8 +3396,8 @@ function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
 
-	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&pkt) )
+	if ( ! zeek::net::detail::current_pktsrc ||
+	     ! zeek::net::detail::current_pktsrc->GetCurrentPacket(&pkt) )
 		return zeek::val_mgr->False();
 
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
@@ -3429,8 +3429,8 @@ function get_current_packet%(%) : pcap_packet
 	const Packet* p;
 	auto pkt = zeek::make_intrusive<zeek::RecordVal>(pcap_packet);
 
-	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&p) )
+	if ( ! zeek::net::detail::current_pktsrc ||
+	     ! zeek::net::detail::current_pktsrc->GetCurrentPacket(&p) )
 		{
 		pkt->Assign(0, zeek::val_mgr->Count(0));
 		pkt->Assign(1, zeek::val_mgr->Count(0));
@@ -3461,8 +3461,8 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;
 
-	if ( current_pktsrc &&
-	     current_pktsrc->GetCurrentPacket(&p) )
+	if ( zeek::net::detail::current_pktsrc &&
+	     zeek::net::detail::current_pktsrc->GetCurrentPacket(&p) )
 		{
 		return p->ToRawPktHdrVal();
 		}
@@ -3684,10 +3684,10 @@ static constexpr double mmdb_msg_suppression_duration = 300;
 
 static void report_mmdb_msg(const char* format, ...)
 	{
-	if ( network_time > mmdb_msg_suppression_time + mmdb_msg_suppression_duration )
+	if ( zeek::net::network_time > mmdb_msg_suppression_time + mmdb_msg_suppression_duration )
 		{
 		mmdb_msg_count = 0;
-		mmdb_msg_suppression_time = network_time;
+		mmdb_msg_suppression_time = zeek::net::network_time;
 		}
 
 	if ( mmdb_msg_count >= mmdb_msg_limit )
@@ -4697,10 +4697,10 @@ function rotate_file_by_name%(f: string%): rotate_info
 	bool is_addl_pkt_dumper = false;
 
 	// Special case: one of current dump files.
-	if ( pkt_dumper && streq(pkt_dumper->Path().c_str(), f->CheckString()) )
+	if ( zeek::net::detail::pkt_dumper && streq(zeek::net::detail::pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_pkt_dumper = true;
-		pkt_dumper->Close();
+		zeek::net::detail::pkt_dumper->Close();
 		}
 
 	if ( addl_pkt_dumper &&
@@ -4725,8 +4725,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 
 	if ( is_pkt_dumper )
 		{
-		info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(pkt_dumper->OpenTime()));
-		pkt_dumper->Open();
+		info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(zeek::net::detail::pkt_dumper->OpenTime()));
+		zeek::net::detail::pkt_dumper->Open();
 		}
 
 	if ( is_addl_pkt_dumper )
@@ -4749,7 +4749,7 @@ function calc_next_rotate%(i: interval%) : interval
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	double base = parse_rotate_base_time(base_time);
-	return zeek::make_intrusive<zeek::IntervalVal>(calc_next_rotate(network_time, i, base));
+	return zeek::make_intrusive<zeek::IntervalVal>(calc_next_rotate(zeek::net::network_time, i, base));
 	%}
 
 ## Returns the size of a given file.
@@ -5007,7 +5007,7 @@ function is_remote_event%(%) : bool
 ## .. zeek:see:: continue_processing
 function suspend_processing%(%) : any
 	%{
-	net_suspend_processing();
+	zeek::net::net_suspend_processing();
 	return nullptr;
 	%}
 
@@ -5016,7 +5016,7 @@ function suspend_processing%(%) : any
 ## .. zeek:see:: suspend_processing
 function continue_processing%(%) : any
 	%{
-	net_continue_processing();
+	zeek::net::net_continue_processing();
 	return nullptr;
 	%}
 

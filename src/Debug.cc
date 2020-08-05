@@ -158,7 +158,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 	va_start(args, fmt);
 
 	// Prefix includes timestamp and file/line info.
-	fprintf(trace_file, "%.6f ", network_time);
+	fprintf(trace_file, "%.6f ", zeek::net::network_time);
 
 	const zeek::detail::Stmt* stmt;
 	zeek::detail::Location loc;

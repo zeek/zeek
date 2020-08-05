@@ -115,7 +115,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 
 	// If there aren't any sources and exit_only_after_terminate is false, just
 	// return an empty set of sources. We want the main loop to end.
-	if ( Size() == 0 && ( ! zeek::BifConst::exit_only_after_terminate || terminating ) )
+	if ( Size() == 0 && ( ! zeek::BifConst::exit_only_after_terminate || zeek::net::terminating ) )
 		return;
 
 	double timeout = -1;
@@ -166,7 +166,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 					}
 				else
 					{
-					if ( ! pseudo_realtime )
+					if ( ! zeek::net::pseudo_realtime )
 						// A pcap file is always ready to process unless it's suspended
 						ready->push_back(pkt_src);
 					}
@@ -315,7 +315,7 @@ void Manager::Register(PktSrc* src)
 	// little bit for those sources.
 	if ( src->IsLive() )
 		poll_interval = 10;
-	else if ( pseudo_realtime )
+	else if ( zeek::net::pseudo_realtime )
 		poll_interval = 1;
 
 	Register(src, false);

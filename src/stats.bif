@@ -140,7 +140,7 @@ function get_proc_stats%(%): ProcStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ProcStats);
 	int n = 0;
 
-	double elapsed_time = current_time() - bro_start_time;
+	double elapsed_time = current_time() - zeek::net::zeek_start_time;
 	double user_time =
 		double(ru.ru_utime.tv_sec) + double(ru.ru_utime.tv_usec) / 1e6;
 	double system_time =
@@ -152,7 +152,7 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, zeek::val_mgr->Count(0));
 #endif
 
-	r->Assign(n++, zeek::make_intrusive<zeek::TimeVal>(bro_start_time));
+	r->Assign(n++, zeek::make_intrusive<zeek::TimeVal>(zeek::net::zeek_start_time));
 
 	r->Assign(n++, zeek::make_intrusive<zeek::IntervalVal>(elapsed_time, Seconds));
 	r->Assign(n++, zeek::make_intrusive<zeek::IntervalVal>(user_time, Seconds));

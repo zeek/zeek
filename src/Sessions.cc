@@ -632,11 +632,11 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 			{
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
 			                     tunnel_type);
-			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
-	        zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(network_time, tunnel_idx));
+			ip_tunnels[tunnel_idx] = TunnelActivity(ec, zeek::net::network_time);
+	        zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(zeek::net::network_time, tunnel_idx));
 			}
 		else
-			it->second.second = network_time;
+			it->second.second = zeek::net::network_time;
 
 		if ( gre_version == 0 )
 			DoNextInnerPacket(t, pkt, caplen, len, data, gre_link_type,
@@ -758,9 +758,9 @@ void NetSessions::DoNextInnerPacket(double t, const zeek::Packet* pkt,
 		ts = pkt->ts;
 	else
 		{
-		ts.tv_sec = (time_t) network_time;
+		ts.tv_sec = (time_t) zeek::net::network_time;
 		ts.tv_usec = (suseconds_t)
-		    ((network_time - (double)ts.tv_sec) * 1000000);
+		    ((zeek::net::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
 	const u_char* data = nullptr;
@@ -796,9 +796,9 @@ void NetSessions::DoNextInnerPacket(double t, const zeek::Packet* pkt,
 		ts = pkt->ts;
 	else
 		{
-		ts.tv_sec = (time_t) network_time;
+		ts.tv_sec = (time_t) zeek::net::network_time;
 		ts.tv_usec = (suseconds_t)
-		    ((network_time - (double)ts.tv_sec) * 1000000);
+		    ((zeek::net::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
 	EncapsulationStack* outer = prev ?
@@ -1310,7 +1310,7 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 
 void NetSessions::DumpPacket(const zeek::Packet *pkt, int len)
 	{
-	if ( ! pkt_dumper )
+	if ( ! zeek::net::detail::pkt_dumper )
 		return;
 
 	if ( len != 0 )
@@ -1321,7 +1321,7 @@ void NetSessions::DumpPacket(const zeek::Packet *pkt, int len)
 			const_cast<zeek::Packet *>(pkt)->cap_len = len;
 		}
 
-	pkt_dumper->Dump(pkt);
+	zeek::net::detail::pkt_dumper->Dump(pkt);
 	}
 
 void NetSessions::Weird(const char* name, const zeek::Packet* pkt,
@@ -1350,7 +1350,7 @@ unsigned int NetSessions::ConnectionMemoryUsage()
 	{
 	unsigned int mem = 0;
 
-	if ( terminating )
+	if ( zeek::net::terminating )
 		// Connections have been flushed already.
 		return 0;
 
@@ -1370,7 +1370,7 @@ unsigned int NetSessions::ConnectionMemoryUsageConnVals()
 	{
 	unsigned int mem = 0;
 
-	if ( terminating )
+	if ( zeek::net::terminating )
 		// Connections have been flushed already.
 		return 0;
 
@@ -1388,7 +1388,7 @@ unsigned int NetSessions::ConnectionMemoryUsageConnVals()
 
 unsigned int NetSessions::MemoryAllocation()
 	{
-	if ( terminating )
+	if ( zeek::net::terminating )
 		// Connections have been flushed already.
 		return 0;
 

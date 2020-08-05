@@ -76,7 +76,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			}
 		}
 
-	Conn()->SetLastTime(current_timestamp);
+	Conn()->SetLastTime(zeek::net::current_timestamp);
 
 	if ( zeek::detail::rule_matcher )
 		{
@@ -99,9 +99,9 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 		len_stat += len;
 
 	if ( ip->NextProto() == IPPROTO_ICMP )
-		NextICMP4(current_timestamp, icmpp, len, caplen, data, ip);
+		NextICMP4(zeek::net::current_timestamp, icmpp, len, caplen, data, ip);
 	else if ( ip->NextProto() == IPPROTO_ICMPV6 )
-		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
+		NextICMP6(zeek::net::current_timestamp, icmpp, len, caplen, data, ip);
 	else
 		{
 		zeek::reporter->AnalyzerError(
@@ -345,7 +345,8 @@ zeek::RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& da
 		{
 		bad_hdr_len = 0;
 		ip_len = ip_hdr->TotalLen();
-		bad_checksum = ! current_pkt->l3_checksummed && (ones_complement_checksum((void*) ip_hdr->IP4_Hdr(), ip_hdr_len, 0) != 0xffff);
+		bad_checksum = ! zeek::net::current_pkt->l3_checksummed &&
+			(ones_complement_checksum((void*) ip_hdr->IP4_Hdr(), ip_hdr_len, 0) != 0xffff);
 
 		src_addr = ip_hdr->SrcAddr();
 		dst_addr = ip_hdr->DstAddr();

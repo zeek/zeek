@@ -119,7 +119,7 @@ const char* File::Name() const
 bool File::Open(FILE* file, const char* mode)
 	{
 	static bool fds_maximized = false;
-	open_time = network_time ? network_time : current_time();
+	open_time = zeek::net::network_time ? zeek::net::network_time : current_time();
 
 	if ( ! fds_maximized )
 		{

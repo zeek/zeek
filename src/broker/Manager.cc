@@ -923,7 +923,7 @@ void Manager::Process()
 	// Ensure that time gets update before processing broker messages, or events
 	// based on them might get scheduled wrong.
 	if ( use_real_time )
-		net_update_time(current_time());
+		zeek::net::detail::net_update_time(current_time());
 
 	bool had_input = false;
 
@@ -995,11 +995,11 @@ void Manager::Process()
 
 	if ( had_input )
 		{
-		if ( network_time == 0 )
+		if ( zeek::net::network_time == 0 )
 			// If we're getting Broker messages, but still haven't initialized
-			// network_time, may as well do so now because otherwise the
+			// zeek::net::network_time, may as well do so now because otherwise the
 			// broker/cluster logs will end up using timestamp 0.
-			net_update_time(current_time());
+			zeek::net::detail::net_update_time(current_time());
 		}
 	}
 

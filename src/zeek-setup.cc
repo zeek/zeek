@@ -249,7 +249,7 @@ void done_with_network()
 	if ( zeek::detail::profiling_logger )
 		zeek::detail::profiling_logger->Log();
 
-	terminating = true;
+	zeek::net::terminating = true;
 
 	zeek::analyzer_mgr->Done();
 	zeek::detail::timer_mgr->Expire();
@@ -257,7 +257,7 @@ void done_with_network()
 	zeek::event_mgr.Drain();
 	zeek::event_mgr.Drain();
 
-	net_finish(1);
+	zeek::net::detail::net_finish(1);
 
 #ifdef USE_PERFTOOLS_DEBUG
 
@@ -281,7 +281,7 @@ void terminate_bro()
 	{
 	set_processing_status("TERMINATING", "terminate_bro");
 
-	terminating = true;
+	zeek::net::terminating = true;
 
 	zeek::iosource_mgr->Wakeup("terminate_bro");
 
@@ -337,6 +337,8 @@ void terminate_bro()
 	zeek::reporter = nullptr;
 	}
 
+namespace zeek::net::detail {
+
 void zeek_terminate_loop(const char* reason)
 	{
 	set_processing_status("TERMINATING", reason);
@@ -357,12 +359,14 @@ void zeek_terminate_loop(const char* reason)
 	exit(0);
 	}
 
+} // namespace zeek::net::detail
+
 RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
 
-	if ( ! terminating )
+	if ( ! zeek::net::terminating )
 		zeek::iosource_mgr->Wakeup("sig_handler");
 
 	return RETSIGVAL;
@@ -456,7 +460,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( zeek_prefixes )
 		tokenize_string(zeek_prefixes, ":", &zeek_script_prefixes);
 
-	pseudo_realtime = options.pseudo_realtime;
+	zeek::net::pseudo_realtime = options.pseudo_realtime;
 
 #ifdef USE_PERFTOOLS_DEBUG
 	perftools_leaks = options.perftools_check_leaks;
@@ -484,7 +488,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");
 
-	bro_start_time = current_time(true);
+	zeek::net::zeek_start_time = current_time(true);
 
 	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
@@ -636,9 +640,9 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	HeapLeakChecker::Disabler disabler;
 #endif
 
-	is_parsing = true;
+	zeek::net::is_parsing = true;
 	yyparse();
-	is_parsing = false;
+	zeek::net::is_parsing = false;
 
 	RecordVal::DoneParsing();
 	TableVal::DoneParsing();
@@ -721,7 +725,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		all_signature_files.emplace_back(std::move(sf));
 
 	// Append signature files defined in @load-sigs
-	for ( const auto& sf : sig_files )
+	for ( const auto& sf : zeek::net::detail::sig_files )
 		all_signature_files.emplace_back(sf);
 
 	if ( ! all_signature_files.empty() )
@@ -759,7 +763,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		}
 
 	if ( dns_type != DNS_PRIME )
-		net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
+		zeek::net::detail::net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
 	if ( ! g_policy_debug )
 		{
@@ -811,10 +815,10 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 			zeek::detail::segment_logger = zeek::detail::profiling_logger;
 		}
 
-	if ( ! reading_live && ! reading_traces )
+	if ( ! zeek::net::reading_live && ! zeek::net::reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
-		net_update_time(current_time());
+		zeek::net::detail::net_update_time(current_time());
 
 	if ( zeek_init )
 		zeek::event_mgr.Enqueue(zeek_init, zeek::Args{});
@@ -859,14 +863,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( zeek_script_loaded )
 		{
 		// Queue events reporting loaded scripts.
-		for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+		for ( const auto& file : zeek::net::detail::files_scanned )
 			{
-			if ( i->skipped )
+			if ( file.skipped )
 				continue;
 
 			zeek::event_mgr.Enqueue(zeek_script_loaded,
-			                        zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
-			                        zeek::val_mgr->Count(i->include_level));
+			                        zeek::make_intrusive<zeek::StringVal>(file.name.c_str()),
+			                        zeek::val_mgr->Count(file.include_level));
 			}
 		}
 
@@ -882,7 +886,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::reporter->ZeekInitDone();
 	zeek::analyzer_mgr->DumpDebug();
 
-	have_pending_timers = ! reading_traces && zeek::detail::timer_mgr->Size() > 0;
+	zeek::net::detail::have_pending_timers = ! zeek::net::reading_traces && zeek::detail::timer_mgr->Size() > 0;
 
 	return {0, std::move(options)};
 	}
@@ -892,7 +896,7 @@ int zeek::detail::cleanup(bool did_net_run)
 	if ( did_net_run )
 		done_with_network();
 
-	net_delete();
+	zeek::net::detail::net_delete();
 	terminate_bro();
 
 	sqlite3_shutdown();

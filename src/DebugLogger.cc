@@ -159,7 +159,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [%s] ",
-			network_time, current_time(true), g->prefix);
+			zeek::net::network_time, current_time(true), g->prefix);
 
 	for ( int i = g->indent; i > 0; --i )
 		fputs("   ", file);
@@ -182,7 +182,7 @@ void DebugLogger::Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-			network_time, current_time(true), plugin.Name().c_str());
+			zeek::net::network_time, current_time(true), plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);

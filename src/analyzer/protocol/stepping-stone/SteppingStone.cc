@@ -178,27 +178,27 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 	                                                            ip, caplen);
 
 	if ( is_orig )
-		orig_endp->DataSent(network_time, seq, len, caplen, data, nullptr, nullptr);
+		orig_endp->DataSent(zeek::net::network_time, seq, len, caplen, data, nullptr, nullptr);
 	else
-		resp_endp->DataSent(network_time, seq, len, caplen, data, nullptr, nullptr);
+		resp_endp->DataSent(zeek::net::network_time, seq, len, caplen, data, nullptr, nullptr);
 	}
 
 void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
-						bool is_orig)
+                                           bool is_orig)
 	{
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( is_orig )
 		{
-		orig_endp->DataSent(network_time, orig_stream_pos, len, len,
-					data, nullptr, nullptr);
+		orig_endp->DataSent(zeek::net::network_time, orig_stream_pos, len, len,
+		                    data, nullptr, nullptr);
 		orig_stream_pos += len;
 		}
 
 	else
 		{
-		resp_endp->DataSent(network_time, resp_stream_pos, len, len,
-					data, nullptr, nullptr);
+		resp_endp->DataSent(zeek::net::network_time, resp_stream_pos, len, len,
+		                    data, nullptr, nullptr);
 		resp_stream_pos += len;
 		}
 	}

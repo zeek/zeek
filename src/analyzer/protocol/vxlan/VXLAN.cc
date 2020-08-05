@@ -61,8 +61,8 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	len -= vxlan_len;
 
 	pkt_timeval ts;
-	ts.tv_sec = (time_t) current_timestamp;
-	ts.tv_usec = (suseconds_t) ((current_timestamp - (double)ts.tv_sec) * 1000000);
+	ts.tv_sec = (time_t) zeek::net::current_timestamp;
+	ts.tv_usec = (suseconds_t) ((zeek::net::current_timestamp - (double)ts.tv_sec) * 1000000);
 	zeek::Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
 
 	if ( ! pkt.Layer2Valid() )
@@ -105,7 +105,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		                     inner->ToPktHdrVal(), zeek::val_mgr->Count(vni));
 
 	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
-	zeek::sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);
+	zeek::sessions->DoNextInnerPacket(zeek::net::network_time, &pkt, inner, estack, ec);
 	}
 
 } // namespace zeek::analyzer::vxlan

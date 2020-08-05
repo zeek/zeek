@@ -16,6 +16,8 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
+namespace zeek::net { extern double network_time; }
+
 namespace zeek::detail {
 
 class StmtList;
@@ -51,7 +53,7 @@ public:
 
 	ForStmt* AsForStmt();
 
-	void RegisterAccess() const	{ last_access = network_time; access_count++; }
+	void RegisterAccess() const	{ last_access = zeek::net::network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 

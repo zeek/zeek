@@ -130,7 +130,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	zeek::detail::timer_mgr->Add(new detail::HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
+	zeek::detail::timer_mgr->Add(new detail::HeartbeatTimer(zeek::net::network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
@@ -191,10 +191,10 @@ void Manager::Flush()
 	{
 	bool do_beat = false;
 
-	if ( network_time && (network_time > next_beat || ! next_beat) )
+	if ( zeek::net::network_time && (zeek::net::network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + zeek::BifConst::Threading::heartbeat_interval;
+		next_beat = ::zeek::net::network_time + zeek::BifConst::Threading::heartbeat_interval;
 		}
 
 	did_process = false;
@@ -213,7 +213,7 @@ void Manager::Flush()
 
 			if ( msg->Process() )
 				{
-				if ( network_time )
+				if ( zeek::net::network_time )
 					did_process = true;
 				}
 
@@ -253,7 +253,8 @@ void Manager::Flush()
 		delete t;
 		}
 
-//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, zeek::detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
+	// fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", zeek::net::network_time,
+	//         zeek::detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
 const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()

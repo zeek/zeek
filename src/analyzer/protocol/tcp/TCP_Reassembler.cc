@@ -195,7 +195,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%" PRIu64", last_reassm=%" PRIu64", "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
-		          network_time, IsOrig(), up_to_seq, last_reassem_seq,
+		          zeek::net::network_time, IsOrig(), up_to_seq, last_reassem_seq,
 		          endpoint->FIN_cnt, endpoint->RST_cnt,
 		          peer->FIN_cnt, peer->RST_cnt);
 		}
@@ -225,7 +225,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 			{
 			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%" PRIu64", len=%" PRIu64", "
 					  "skip_deliveries=%d\n",
-					  network_time, IsOrig(), last_reassem_seq,
+					  zeek::net::network_time, IsOrig(), last_reassem_seq,
 					  up_to_seq - last_reassem_seq,
 					  skip_deliveries);
 			}
@@ -440,7 +440,7 @@ void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
+		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", zeek::net::network_time,  n, IsOrig());
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -477,7 +477,7 @@ bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 	if ( DEBUG_tcp_contents )
 		{
 		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%" PRIu64" upper=%" PRIu64" ack=%" PRIu64"\n",
-		          network_time, IsOrig(), seq, upper_seq, ack);
+		          zeek::net::network_time, IsOrig(), seq, upper_seq, ack);
 		}
 
 	if ( skip_deliveries )
@@ -581,7 +581,7 @@ void TCP_Reassembler::CheckEOF()
 		if ( DEBUG_tcp_connection_close )
 			{
 			DEBUG_MSG("%.6f EOF for %d\n",
-			          network_time, endp->IsOrig());
+			          zeek::net::network_time, endp->IsOrig());
 			}
 
 		did_EOF = true;

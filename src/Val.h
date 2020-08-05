@@ -48,15 +48,16 @@ namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrefixTable, zeek::detail);
-class StateAccess;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 
-extern double bro_start_network_time;
-
 namespace zeek {
+namespace net {
+	extern double network_time;
+	extern double zeek_start_network_time;
+}
 
 using FuncPtr = zeek::IntrusivePtr<Func>;
 using FilePtr = zeek::IntrusivePtr<File>;
@@ -730,7 +731,7 @@ public:
 		: val(std::move(v))
 		{
 		expire_access_time =
-			int(network_time - bro_start_network_time);
+			int(net::network_time - net::zeek_start_network_time);
 		}
 
 	TableEntryVal* Clone(Val::CloneState* state);
@@ -743,9 +744,9 @@ public:
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
-		{ return bro_start_network_time + expire_access_time; }
+		{ return net::zeek_start_network_time + expire_access_time; }
 	void SetExpireAccess(double time)
-		{ expire_access_time = int(time - bro_start_network_time); }
+		{ expire_access_time = int(time - net::zeek_start_network_time); }
 
 protected:
 	friend class TableVal;

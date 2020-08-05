@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 	auto& options = setup_result.options;
 	auto do_net_run = zeek::iosource_mgr->Size() > 0 ||
-	                  have_pending_timers ||
+	                  zeek::net::detail::have_pending_timers ||
 	                  zeek::BifConst::exit_only_after_terminate;
 
 	if ( do_net_run )
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 				mem_net_start_malloced / 1024 / 1024);
 			}
 
-		net_run();
+		zeek::net::detail::net_run();
 
 		double time_net_done = current_time(true);;
 

@@ -10,12 +10,12 @@
 #include "../ZeekString.h"
 #include "../Event.h"
 
-namespace analyzer {
+namespace zeek::analyzer {
 
-class AnalyzerTimer final : public Timer {
+class AnalyzerTimer final : public zeek::detail::Timer {
 public:
 	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-			double arg_t, int arg_do_expire, TimerType arg_type);
+	              double arg_t, int arg_do_expire, zeek::detail::TimerType arg_type);
 
 	virtual ~AnalyzerTimer();
 
@@ -31,12 +31,12 @@ protected:
 	int do_expire;
 };
 
-}
+} // namespace zeek::analyzer
 
-using namespace analyzer;
+using namespace zeek::analyzer;
 
 AnalyzerTimer::AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-			     double arg_t, int arg_do_expire, TimerType arg_type)
+			     double arg_t, int arg_do_expire, zeek::detail::TimerType arg_type)
 	: Timer(arg_t, arg_type)
 	{
 	Init(arg_analyzer, arg_timer, arg_do_expire);
@@ -72,7 +72,7 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 	Ref(analyzer->Conn());
 	}
 
-analyzer::ID Analyzer::id_counter = 0;
+zeek::analyzer::ID Analyzer::id_counter = 0;
 
 const char* Analyzer::GetAnalyzerName() const
 	{
@@ -214,7 +214,7 @@ void Analyzer::Done()
 	}
 
 void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
-				const IP_Hdr* ip, int caplen)
+                          const zeek::IP_Hdr* ip, int caplen)
 	{
 	if ( skip )
 		return;
@@ -297,7 +297,7 @@ void Analyzer::NextEndOfData(bool is_orig)
 	}
 
 void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+				uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	if ( output_handler )
 		output_handler->DeliverPacket(len, data, is_orig, seq,
@@ -413,7 +413,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	if ( init )
 		analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added child %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s added child %s",
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
 	return true;
 	}
@@ -446,7 +446,7 @@ bool Analyzer::RemoveChild(const analyzer_list& children, ID id)
 		if ( i->finished || i->removing )
 			return false;
 
-		DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
+		DBG_LOG(zeek::DBG_ANALYZER, "%s disabling child %s",
 		        fmt_analyzer(this).c_str(), fmt_analyzer(i).c_str());
 		// We just flag it as being removed here but postpone
 		// actually doing that to later. Otherwise, we'd need
@@ -559,7 +559,7 @@ void Analyzer::DeleteChild(analyzer_list::iterator i)
 		child->removing = false;
 		}
 
-	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s deleted child %s 3",
 		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 
 	children.erase(i);
@@ -570,7 +570,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
 	if ( HasSupportAnalyzer(analyzer->GetAnalyzerTag(), analyzer->IsOrig()) )
 		{
-		DBG_LOG(DBG_ANALYZER, "%s already has %s %s",
+		DBG_LOG(zeek::DBG_ANALYZER, "%s already has %s %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -598,7 +598,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 	analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added %s support %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s added %s support %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -606,7 +606,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s disabled %s support analyzer %s",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s disabled %s support analyzer %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -644,35 +644,35 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 	}
 
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+				uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
 			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
 	}
 
 void Analyzer::EndOfData(bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s EndOfData(%s)",
+	DBG_LOG(zeek::DBG_ANALYZER, "%s EndOfData(%s)",
 			fmt_analyzer(this).c_str(), is_orig ? "T" : "F");
 	}
 
 void Analyzer::FlipRoles()
 	{
-	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
+	DBG_LOG(zeek::DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
 
 	LOOP_OVER_CHILDREN(i)
 		(*i)->FlipRoles();
@@ -702,7 +702,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 		return;
 
 	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	mgr.Enqueue(protocol_confirmation, ConnVal(), tval, zeek::val_mgr->Count(id));
+	zeek::event_mgr.Enqueue(protocol_confirmation, ConnVal(), tval, zeek::val_mgr->Count(id));
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -724,20 +724,20 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		r = zeek::make_intrusive<zeek::StringVal>(reason);
 
 	const auto& tval = tag.AsVal();
-	mgr.Enqueue(protocol_violation, ConnVal(), tval, zeek::val_mgr->Count(id), std::move(r));
+	zeek::event_mgr.Enqueue(protocol_violation, ConnVal(), tval, zeek::val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
-			bool do_expire, TimerType type)
+                        bool do_expire, zeek::detail::TimerType type)
 	{
-	Timer* analyzer_timer = new
+	zeek::detail::Timer* analyzer_timer = new
 		AnalyzerTimer(this, timer, t, do_expire, type);
 
-	timer_mgr->Add(analyzer_timer);
+	zeek::detail::timer_mgr->Add(analyzer_timer);
 	timers.push_back(analyzer_timer);
 	}
 
-void Analyzer::RemoveTimer(Timer* t)
+void Analyzer::RemoveTimer(zeek::detail::Timer* t)
 	{
 	timers.remove(t);
 	}
@@ -753,7 +753,7 @@ void Analyzer::CancelTimers()
 
 	// TODO: could be a for_each
 	for ( auto timer : tmp )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	timers_canceled = true;
 	timers.clear();
@@ -858,7 +858,7 @@ SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const
 	}
 
 void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
 
@@ -926,12 +926,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-                                             BroFilePtr /* f */)
+                                             zeek::FilePtr /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-BroFilePtr TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+zeek::FilePtr TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;

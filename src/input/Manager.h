@@ -202,8 +202,8 @@ private:
 	bool UnrollRecordType(std::vector<threading::Field*> *fields, const zeek::RecordType *rec, const std::string& nameprepend, bool allow_file_func) const;
 
 	// Send events
-	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
-	void SendEvent(EventHandlerPtr ev, std::list<zeek::Val*> events) const;
+	void SendEvent(zeek::EventHandlerPtr ev, const int numvals, ...) const;
+	void SendEvent(zeek::EventHandlerPtr ev, std::list<zeek::Val*> events) const;
 
 	// Implementation of SendEndOfData (send end_of_data event).
 	void SendEndOfData(const Stream *i);
@@ -212,7 +212,7 @@ private:
 	bool CallPred(zeek::Func* pred_func, const int numvals, ...) const;
 
 	// Get a hashkey for a set of threading::Values.
-	HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
+	zeek::detail::HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
 
 	// Get the memory used by a specific value.
 	int GetValueLength(const threading::Value* val) const;
@@ -253,7 +253,7 @@ private:
 
 	std::map<ReaderFrontend*, Stream*> readers;
 
-	EventHandlerPtr end_of_data;
+	zeek::EventHandlerPtr end_of_data;
 };
 
 

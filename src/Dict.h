@@ -167,25 +167,29 @@ public:
 	// contents, and deleting it.  These come in two flavors: one
 	// which takes a HashKey, and the other which takes a raw key,
 	// its size, and its (unmodulated) hash.
-	//lookup may move the key to right place if in the old zone to speed up the next lookup.
-	void* Lookup(const HashKey* key) const;
-	void* Lookup(const void* key, int key_size, hash_t h) const;
+	// Lookup may move the key to right place if in the old zone to speed up
+	// the next lookup.
+	void* Lookup(const zeek::detail::HashKey* key) const;
+	void* Lookup(const void* key, int key_size, zeek::detail::hash_t h) const;
 
 	// Returns previous value, or 0 if none.
-	void* Insert(HashKey* key, void* val)
+	void* Insert(zeek::detail::HashKey* key, void* val)
 		{ return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false); }
 
 	// If copy_key is true, then the key is copied, otherwise it's assumed
 	// that it's a heap pointer that now belongs to the Dictionary to
 	// manage as needed.
-	void* Insert(void* key, int key_size, hash_t hash, void* val, bool copy_key);
+	void* Insert(void* key, int key_size, zeek::detail::hash_t hash, void* val,
+	             bool copy_key);
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
 	// If dontdelete is true, the key's bytes will not be deleted.
-	void* Remove(const HashKey* key)
+	void* Remove(const zeek::detail::HashKey* key)
 		{ return Remove(key->Key(), key->Size(), key->Hash()); }
-	void* Remove(const void* key, int key_size, hash_t hash, bool dont_delete = false);
+
+	void* Remove(const void* key, int key_size, zeek::detail::hash_t hash,
+	             bool dont_delete = false);
 
 	// Number of entries.
 	int Length() const
@@ -230,7 +234,9 @@ public:
 	// If return_hash is true, a HashKey for the entry is returned in h,
 	// which should be delete'd when no longer needed.
 	IterCookie* InitForIteration() const;
-	void* NextEntry(HashKey*& h, IterCookie*& cookie, bool return_hash) const;
+
+	void* NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const;
+
 	void StopIteration(IterCookie* cookie) const;
 
 	void SetDeleteFunc(dict_delete_func f)		{ delete_func = f; }
@@ -270,10 +276,10 @@ private:
 	int ThresholdEntries() const;
 
 	// Used to improve the distribution of the original hash.
-	hash_t FibHash(hash_t h) const;
+	zeek::detail::hash_t FibHash(zeek::detail::hash_t h) const;
 
 	// Maps a hash to the appropriate n-bit table bucket.
-	int BucketByHash(hash_t h, int bit) const;
+	int BucketByHash(zeek::detail::hash_t h, int bit) const;
 
 	// Given a position of a non-empty item in the table, find the related bucket.
 	int BucketByPosition(int position) const;
@@ -305,14 +311,14 @@ private:
 
 	//Iteration
 	IterCookie* InitForIterationNonConst();
-	void* NextEntryNonConst(HashKey*& h, IterCookie*& cookie, bool return_hash);
+	void* NextEntryNonConst(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash);
 	void StopIterationNonConst(IterCookie* cookie);
 
 	//Lookup
-	int LinearLookupIndex(const void* key, int key_size, hash_t hash) const;
-	int LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position = nullptr,
+	int LinearLookupIndex(const void* key, int key_size, zeek::detail::hash_t hash) const;
+	int LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int* insert_position = nullptr,
 		int* insert_distance = nullptr);
-	int LookupIndex(const void* key, int key_size, hash_t hash, int begin, int end,
+	int LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int begin, int end,
 		int* insert_position = nullptr, int* insert_distance  = nullptr);
 
 	/// Insert entry, Adjust cookies when necessary.
@@ -383,17 +389,17 @@ public:
 		Dictionary(ordering, initial_size) {}
 	T* Lookup(const char* key) const
 		{
-		HashKey h(key);
+		zeek::detail::HashKey h(key);
 		return (T*) Dictionary::Lookup(&h);
 		}
-	T* Lookup(const HashKey* key) const
+	T* Lookup(const zeek::detail::HashKey* key) const
 		{ return (T*) Dictionary::Lookup(key); }
 	T* Insert(const char* key, T* val)
 		{
-		HashKey h(key);
+		zeek::detail::HashKey h(key);
 		return (T*) Dictionary::Insert(&h, (void*) val);
 		}
-	T* Insert(HashKey* key, T* val)
+	T* Insert(zeek::detail::HashKey* key, T* val)
 		{ return (T*) Dictionary::Insert(key, (void*) val); }
 	T* NthEntry(int n) const
 		{ return (T*) Dictionary::NthEntry(n); }
@@ -404,14 +410,14 @@ public:
 		}
 	T* NextEntry(IterCookie*& cookie) const
 		{
-		HashKey* h;
+		zeek::detail::HashKey* h;
 		return (T*) Dictionary::NextEntry(h, cookie, false);
 		}
-	T* NextEntry(HashKey*& h, IterCookie*& cookie) const
+	T* NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie) const
 		{ return (T*) Dictionary::NextEntry(h, cookie, true); }
-	T* RemoveEntry(const HashKey* key)
+	T* RemoveEntry(const zeek::detail::HashKey* key)
 		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
-	T* RemoveEntry(const HashKey& key)
+	T* RemoveEntry(const zeek::detail::HashKey& key)
 		{ return (T*) Remove(key.Key(), key.Size(), key.Hash()); }
 };
 

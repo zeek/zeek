@@ -4,16 +4,16 @@
 
 namespace analyzer { namespace ayiya {
 
-class AYIYA_Analyzer final : public analyzer::Analyzer {
+class AYIYA_Analyzer final : public zeek::analyzer::Analyzer {
 public:
-	explicit AYIYA_Analyzer(Connection* conn);
+	explicit AYIYA_Analyzer(zeek::Connection* conn);
 	virtual ~AYIYA_Analyzer();
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen);
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new AYIYA_Analyzer(conn); }
 
 protected:

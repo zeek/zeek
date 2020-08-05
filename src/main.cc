@@ -22,8 +22,8 @@ int main(int argc, char** argv)
 
 	if ( do_net_run )
 		{
-		if ( profiling_logger )
-			profiling_logger->Log();
+		if ( zeek::detail::profiling_logger )
+			zeek::detail::profiling_logger->Log();
 
 #ifdef USE_PERFTOOLS_DEBUG
 		if ( perftools_leaks )
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 #endif
 
 		if ( zeek::Supervisor::ThisNode() )
-			timer_mgr->Add(new zeek::ParentProcessCheckTimer(1, 1));
+			zeek::detail::timer_mgr->Add(new zeek::detail::ParentProcessCheckTimer(1, 1));
 
 		double time_net_start = current_time(true);;
 

@@ -20,11 +20,11 @@ zeek::EnumValPtr query_status(bool success)
 		failure_val = store_query_status->Lookup("Broker", "FAILURE");
 		}
 
-	auto rval = store_query_status->GetVal(success ? success_val : failure_val);
+	auto rval = store_query_status->GetEnumVal(success ? success_val : failure_val);
 	return rval;
 	}
 
-void StoreHandleVal::ValDescribe(ODesc* d) const
+void StoreHandleVal::ValDescribe(zeek::ODesc* d) const
 	{
 	//using BifEnum::Broker::BackendType;
 	d->Add("broker::store::");

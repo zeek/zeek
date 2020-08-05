@@ -13,9 +13,8 @@
 #include "IPAddr.h"
 #include "util.h"
 
-class EventHandler;
-class DNS_Mgr_Request;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(DNS_Mgr_Request, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
@@ -28,10 +27,13 @@ using ListValPtr = zeek::IntrusivePtr<ListVal>;
 using TableValPtr = zeek::IntrusivePtr<TableVal>;
 }
 
-using DNS_mgr_request_list = zeek::PList<DNS_Mgr_Request>;
-
+// Defined in nb_dns.h
 struct nb_dns_info;
 struct nb_dns_result;
+
+namespace zeek::detail {
+
+using DNS_mgr_request_list = zeek::PList<DNS_Mgr_Request>;
 
 class DNS_Mapping;
 
@@ -57,7 +59,7 @@ public:
 	// a set of addr.
 	zeek::TableValPtr LookupHost(const char* host);
 
-	zeek::ValPtr LookupAddr(const IPAddr& addr);
+	zeek::ValPtr LookupAddr(const zeek::IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
@@ -66,7 +68,7 @@ public:
 	void Resolve();
 	bool Save();
 
-	const char* LookupAddrInCache(const IPAddr& addr);
+	const char* LookupAddrInCache(const zeek::IPAddr& addr);
 	zeek::TableValPtr LookupNameInCache(const std::string& name);
 	const char* LookupTextInCache(const std::string& name);
 
@@ -81,7 +83,7 @@ public:
 		virtual void Timeout() = 0;
 	};
 
-	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
+	void AsyncLookupAddr(const zeek::IPAddr& host, LookupCallback* callback);
 	void AsyncLookupName(const std::string& name, LookupCallback* callback);
 	void AsyncLookupNameText(const std::string& name, LookupCallback* callback);
 
@@ -103,10 +105,10 @@ protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
-	void Event(EventHandlerPtr e, DNS_Mapping* dm);
-	void Event(EventHandlerPtr e, DNS_Mapping* dm,
+	void Event(zeek::EventHandlerPtr e, DNS_Mapping* dm);
+	void Event(zeek::EventHandlerPtr e, DNS_Mapping* dm,
 	           zeek::ListValPtr l1, zeek::ListValPtr l2);
-	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
+	void Event(zeek::EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
 	zeek::ValPtr BuildMappingVal(DNS_Mapping* dm);
 
@@ -116,7 +118,7 @@ protected:
 	void DumpAddrList(FILE* f, zeek::ListVal* al);
 
 	typedef std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
-	typedef std::map<IPAddr, DNS_Mapping*> AddrMap;
+	typedef std::map<zeek::IPAddr, DNS_Mapping*> AddrMap;
 	typedef std::map<std::string, DNS_Mapping*> TextMap;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, const AddrMap& m);
@@ -132,7 +134,7 @@ protected:
 
 	// Finish the request if we have a result.  If not, time it out if
 	// requested.
-	void CheckAsyncAddrRequest(const IPAddr& addr, bool timeout);
+	void CheckAsyncAddrRequest(const zeek::IPAddr& addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
@@ -162,7 +164,7 @@ protected:
 
 	struct AsyncRequest {
 		double time;
-		IPAddr host;
+		zeek::IPAddr host;
 		std::string name;
 		CallbackList callbacks;
 		bool is_txt;
@@ -210,7 +212,7 @@ protected:
 
 	};
 
-	typedef std::map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
+	typedef std::map<zeek::IPAddr, AsyncRequest*> AsyncRequestAddrMap;
 	AsyncRequestAddrMap asyncs_addrs;
 
 	typedef std::map<std::string, AsyncRequest*> AsyncRequestNameMap;
@@ -240,3 +242,14 @@ protected:
 };
 
 extern DNS_Mgr* dns_mgr;
+
+} // namespace zeek::detail
+
+using DNS_Mgr [[deprecated("Remove in v4.1. Use zeek::detail::DNS_Mgr.")]] = zeek::detail::DNS_Mgr;
+extern zeek::detail::DNS_Mgr*& dns_mgr [[deprecated("Remove in v4.1. Use zeek::detail::dns_mgr.")]];
+
+using DNS_MgrMode [[deprecated("Remove in v4.1. Use zeek::detail::DNS_MgrMode.")]] = zeek::detail::DNS_MgrMode;
+constexpr auto DNS_PRIME [[deprecated("Remove in v4.1. Use zeek::detail::DNS_PRIME.")]] = zeek::detail::DNS_PRIME;
+constexpr auto DNS_FORCE [[deprecated("Remove in v4.1. Use zeek::detail::DNS_FORCE.")]] = zeek::detail::DNS_FORCE;
+constexpr auto DNS_DEFAULT [[deprecated("Remove in v4.1. Use zeek::detail::DNS_DEFAULT.")]] = zeek::detail::DNS_DEFAULT;
+constexpr auto DNS_FAKE [[deprecated("Remove in v4.1. Use zeek::detail::DNS_FAKE.")]] = zeek::detail::DNS_FAKE;

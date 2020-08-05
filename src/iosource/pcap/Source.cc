@@ -47,7 +47,7 @@ void PcapSource::Close()
 	Closed();
 
 	if ( Pcap::file_done )
-		mgr.Enqueue(Pcap::file_done, zeek::make_intrusive<zeek::StringVal>(props.path));
+		zeek::event_mgr.Enqueue(Pcap::file_done, zeek::make_intrusive<zeek::StringVal>(props.path));
 	}
 
 void PcapSource::OpenLive()
@@ -191,7 +191,7 @@ void PcapSource::OpenOffline()
 	Opened(props);
 	}
 
-bool PcapSource::ExtractNextPacket(Packet* pkt)
+bool PcapSource::ExtractNextPacket(zeek::Packet* pkt)
 	{
 	if ( ! pd )
 		return false;
@@ -210,11 +210,11 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 	case PCAP_ERROR: // -1
 		// Error occurred while reading the packet.
 		if ( props.is_live )
-			reporter->Error("failed to read a packet from %s: %s",
-			                props.path.data(), pcap_geterr(pd));
+			zeek::reporter->Error("failed to read a packet from %s: %s",
+			                      props.path.data(), pcap_geterr(pd));
 		else
-			reporter->FatalError("failed to read a packet from %s: %s",
-			                     props.path.data(), pcap_geterr(pd));
+			zeek::reporter->FatalError("failed to read a packet from %s: %s",
+			                           props.path.data(), pcap_geterr(pd));
 		return false;
 	case 0:
 		// Read from live interface timed out (ok).
@@ -223,7 +223,7 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		// Read a packet without problem.
 		break;
 	default:
-		reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
+		zeek::reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
 		return false;
 	}
 
@@ -258,7 +258,7 @@ bool PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	BPF_Program* code = GetBPFFilter(index);
+	zeek::detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{

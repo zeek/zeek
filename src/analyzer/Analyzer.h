@@ -16,21 +16,25 @@
 #include "../Timer.h"
 #include "../IntrusivePtr.h"
 
-class BroFile;
-using BroFilePtr = zeek::IntrusivePtr<BroFile>;
-
-class Rule;
-class Connection;
-class IP_Hdr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+class File;
+using FilePtr = zeek::IntrusivePtr<File>;
 }
 
-namespace analyzer {
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
 
+namespace analyzer {
 namespace tcp { class TCP_ApplicationAnalyzer; }
 namespace pia { class PIA; }
+}
+
+namespace zeek::analyzer {
 
 class Analyzer;
 class AnalyzerTimer;
@@ -57,7 +61,7 @@ public:
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
 				   bool orig, uint64_t seq,
-				   const IP_Hdr* ip, int caplen)
+				   const zeek::IP_Hdr* ip, int caplen)
 		{ }
 
 	/**
@@ -155,7 +159,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const IP_Hdr* ip = nullptr, int caplen = 0);
+			uint64_t seq = -1, const zeek::IP_Hdr* ip = nullptr, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -208,7 +212,7 @@ public:
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
 					bool orig, uint64_t seq,
-					const IP_Hdr* ip, int caplen);
+					const zeek::IP_Hdr* ip, int caplen);
 
 	/**
 	 * Forwards stream input on to all child analyzers. If the analyzer
@@ -239,7 +243,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen);
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -302,14 +306,14 @@ public:
 	 * If this analyzer was activated by a signature match, this returns
 	 * the signature that did so. Returns null otherwise.
 	 */
-	const Rule* Signature() const		{ return signature; }
+	const zeek::detail::Rule* Signature() const		{ return signature; }
 
 	/**
 	 * Sets the signature that activated this analyzer, if any.
 	 *
 	 * @param sig The signature.
 	 */
-	void SetSignature(const Rule* sig)	{ signature = sig; }
+	void SetSignature(const zeek::detail::Rule* sig)	{ signature = sig; }
 
 	/**
 	 * Signals the analyzer to skip all further input processsing. The \a
@@ -628,8 +632,8 @@ public:
 protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
-	friend class ::Connection;
-	friend class tcp::TCP_ApplicationAnalyzer;
+	friend class zeek::Connection;
+	friend class ::analyzer::tcp::TCP_ApplicationAnalyzer;
 
 	/**
 	 * Return a string represantation of an analyzer, containing its name
@@ -660,7 +664,7 @@ protected:
 	 * @param type The timer's type.
 	 */
 	void AddTimer(analyzer_timer_func timer, double t, bool do_expire,
-			TimerType type);
+	              detail::TimerType type);
 
 	/**
 	 * Cancels all timers added previously via AddTimer().
@@ -671,7 +675,7 @@ protected:
 	 * Removes a given timer. This is an internal method and shouldn't be
 	 * used by derived class. It does not cancel the timer.
 	 */
-	void RemoveTimer(Timer* t);
+	void RemoveTimer(detail::Timer* t);
 
 	/**
 	 * Returns true if the analyzer has associated an SupportAnalyzer of a given type.
@@ -730,7 +734,7 @@ private:
 
 	Connection* conn;
 	Analyzer* parent;
-	const Rule* signature;
+	const zeek::detail::Rule* signature;
 	OutputHandler* output_handler;
 
 	analyzer_list children;
@@ -755,13 +759,13 @@ private:
  * Convenience macro to add a new timer.
  */
 #define ADD_ANALYZER_TIMER(timer, t, do_expire, type) \
-	   AddTimer(analyzer::analyzer_timer_func(timer), (t), (do_expire), (type))
+	AddTimer(zeek::analyzer::analyzer_timer_func(timer), (t), (do_expire), (type))
 
 /**
  * Internal convenience macro to iterate over the list of child analyzers.
  */
 #define LOOP_OVER_CHILDREN(var) \
-	for ( analyzer::analyzer_list::iterator var = children.begin(); \
+	for ( zeek::analyzer::analyzer_list::iterator var = children.begin(); \
 	      var != children.end(); var++ )
 
 /**
@@ -769,14 +773,14 @@ private:
  * analyzers.
  */
 #define LOOP_OVER_CONST_CHILDREN(var) \
-	for ( analyzer::analyzer_list::const_iterator var = children.begin(); \
+	for ( zeek::analyzer::analyzer_list::const_iterator var = children.begin(); \
 	      var != children.end(); var++ )
 
 /**
  * Convenience macro to iterate over a given list of child analyzers.
  */
 #define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) \
-	for ( analyzer::analyzer_list::iterator var = the_kids.begin(); \
+	for ( zeek::analyzer::analyzer_list::iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 /**
@@ -784,7 +788,7 @@ private:
  * analyzers.
  */
 #define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
-	for ( analyzer::analyzer_list::const_iterator var = the_kids.begin(); \
+	for ( zeek::analyzer::analyzer_list::const_iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 /**
@@ -837,7 +841,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -917,7 +921,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, BroFilePtr f);
+	virtual void SetContentsFile(unsigned int direction, zeek::FilePtr f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -927,20 +931,20 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual BroFilePtr GetContentsFile(unsigned int direction) const;
+	virtual zeek::FilePtr GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(pia::PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	pia::PIA* GetPIA() const		{ return pia; }
+	::analyzer::pia::PIA* GetPIA() const		{ return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -952,7 +956,18 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 private:
-	pia::PIA* pia;
+	::analyzer::pia::PIA* pia;
 };
 
+} // namespace zeek::analyzer
+
+namespace analyzer {
+	using Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::Analyzer instead.")]] = zeek::analyzer::Analyzer;
+	using AnalyzerTimer [[deprecated("Remove in v4.1. Use zeek::analyzer::AnalyzerTimer instead.")]] = zeek::analyzer::AnalyzerTimer;
+	using SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::SupportAnalyzer instead.")]] = zeek::analyzer::SupportAnalyzer;
+	using OutputHandler [[deprecated("Remove in v4.1. Use zeek::analyzer::OutputHandler instead.")]] = zeek::analyzer::OutputHandler;
+	using TransportLayerAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::TransportLayerAnalyzer instead.")]] = zeek::analyzer::TransportLayerAnalyzer;
+
+	using analyzer_list [[deprecated("Remove in v4.1. Use zeek::analyzer::analyzer_list instead.")]] = zeek::analyzer::analyzer_list;
+	using ID [[deprecated("Remove in v4.1. Use zeek::analyzer::ID instead.")]] = zeek::analyzer::ID;
 }

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <sys/stat.h> // for ino_t
 
 #include <list>
@@ -15,7 +17,7 @@ namespace iosource {
 	class PktDumper;
 	}
 
-class Packet;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
 extern void net_init(const std::optional<std::string>& interfaces,
                      const std::optional<std::string>& pcap_input_file,
@@ -26,7 +28,7 @@ extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
-extern void net_packet_dispatch(double t, const Packet* pkt,
+extern void net_packet_dispatch(double t, const zeek::Packet* pkt,
 			iosource::PktSrc* src_ps);
 extern void expire_timers(iosource::PktSrc* src_ps = nullptr);
 extern void zeek_terminate_loop(const char* reason);
@@ -77,7 +79,7 @@ extern bool terminating;
 // True if Bro is currently parsing scripts.
 extern bool is_parsing;
 
-extern const Packet* current_pkt;
+extern const zeek::Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
 extern iosource::PktSrc* current_pktsrc;
@@ -86,24 +88,23 @@ extern iosource::IOSource* current_iosrc;
 extern iosource::PktDumper* pkt_dumper;	// where to save packets
 
 // Script file we have already scanned (or are in the process of scanning).
-// They are identified by device and inode number.
+// They are identified by normalized realpath.
 struct ScannedFile {
-	dev_t dev;
-	ino_t inode;
 	int include_level;
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
 	std::string name;
+	std::string canonical_path; // normalized, absolute path via realpath()
 
-	ScannedFile(dev_t arg_dev, ino_t arg_inode, int arg_include_level,
-	            const std::string& arg_name, bool arg_skipped = false,
-	            bool arg_prefixes_checked = false)
-		: dev(arg_dev), inode(arg_inode),
-		  include_level(arg_include_level),
-		  skipped(arg_skipped),
-		  prefixes_checked(arg_prefixes_checked),
-		  name(arg_name)
-		{ }
+	ScannedFile(int arg_include_level,
+	            std::string arg_name, bool arg_skipped = false,
+	            bool arg_prefixes_checked = false);
+
+	/**
+	 * Compares the canonical path of this file against every canonical path
+	 * in files_scanned and returns whether there's any match.
+	 */
+	bool AlreadyScanned() const;
 };
 
 extern std::list<ScannedFile> files_scanned;

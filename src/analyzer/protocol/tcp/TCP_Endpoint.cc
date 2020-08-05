@@ -56,7 +56,7 @@ TCP_Endpoint::~TCP_Endpoint()
 	delete contents_processor;
 	}
 
-Connection* TCP_Endpoint::Conn() const
+zeek::Connection* TCP_Endpoint::Conn() const
 	{
 	return tcp_analyzer->Conn();
 	}
@@ -72,7 +72,7 @@ void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
 	peer = p;
 	if ( IsOrig() )
 		// Only one Endpoint adds the initial state to the counter.
-		sessions->tcp_stats.StateEntered(state, peer->state);
+		zeek::sessions->tcp_stats.StateEntered(state, peer->state);
 	}
 
 bool TCP_Endpoint::HadGap() const
@@ -156,11 +156,11 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		prev_state = state;
 		state = new_state;
 		if ( IsOrig() )
-			sessions->tcp_stats.ChangeState(prev_state, state,
-						peer->state, peer->state);
+			zeek::sessions->tcp_stats.ChangeState(prev_state, state,
+			                                      peer->state, peer->state);
 		else
-			sessions->tcp_stats.ChangeState(peer->state, peer->state,
-						prev_state, state);
+			zeek::sessions->tcp_stats.ChangeState(peer->state, peer->state,
+			                                      prev_state, state);
 		}
 	}
 
@@ -200,8 +200,8 @@ uint64_t TCP_Endpoint::Size() const
 	}
 
 bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
-				const u_char* data,
-				const IP_Hdr* ip, const struct tcphdr* tp)
+                            const u_char* data,
+                            const zeek::IP_Hdr* ip, const struct tcphdr* tp)
 	{
 	bool status = false;
 
@@ -234,7 +234,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 			{
 			char buf[256];
 			bro_strerror_r(errno, buf, sizeof(buf));
-			reporter->Error("TCP contents write failed: %s", buf);
+			zeek::reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )
 				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
@@ -254,7 +254,7 @@ void TCP_Endpoint::AckReceived(uint64_t seq)
 		contents_processor->AckReceived(seq);
 	}
 
-void TCP_Endpoint::SetContentsFile(BroFilePtr f)
+void TCP_Endpoint::SetContentsFile(zeek::FilePtr f)
 	{
 	contents_file = std::move(f);
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);

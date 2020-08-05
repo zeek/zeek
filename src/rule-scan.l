@@ -12,6 +12,7 @@
 #include "rule-parse.h"
 
 int rules_line_number = 0;
+
 %}
 
 %x PS
@@ -42,74 +43,74 @@ PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
 }
 
 {IP6}	{
-	rules_lval.prefixval = new IPPrefix(IPAddr(extract_ip(yytext)), 128, true);
+	rules_lval.prefixval = new zeek::IPPrefix(zeek::IPAddr(extract_ip(yytext)), 128, true);
 	return TOK_IP6;
 	}
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
 	std::string ip = extract_ip_and_len(yytext, &len);
-	rules_lval.prefixval = new IPPrefix(IPAddr(ip), len, true);
+	rules_lval.prefixval = new zeek::IPPrefix(zeek::IPAddr(ip), len, true);
 	return TOK_IP6;
 	}
 
 [!\]\[{}&:,-]	return rules_text[0];
 
-"<="	{ rules_lval.val = RuleHdrTest::LE; return TOK_COMP; }
-">="	{ rules_lval.val = RuleHdrTest::GE; return TOK_COMP; }
-"<"	{ rules_lval.val = RuleHdrTest::LT; return TOK_COMP; }
-">"	{ rules_lval.val = RuleHdrTest::GT; return TOK_COMP; }
-"="	{ rules_lval.val = RuleHdrTest::EQ; return TOK_COMP; }
-"=="	{ rules_lval.val = RuleHdrTest::EQ; return TOK_COMP; }
-"!="	{ rules_lval.val = RuleHdrTest::NE; return TOK_COMP; }
+"<="	{ rules_lval.val = zeek::detail::RuleHdrTest::LE; return TOK_COMP; }
+">="	{ rules_lval.val = zeek::detail::RuleHdrTest::GE; return TOK_COMP; }
+"<"	{ rules_lval.val = zeek::detail::RuleHdrTest::LT; return TOK_COMP; }
+">"	{ rules_lval.val = zeek::detail::RuleHdrTest::GT; return TOK_COMP; }
+"="	{ rules_lval.val = zeek::detail::RuleHdrTest::EQ; return TOK_COMP; }
+"=="	{ rules_lval.val = zeek::detail::RuleHdrTest::EQ; return TOK_COMP; }
+"!="	{ rules_lval.val = zeek::detail::RuleHdrTest::NE; return TOK_COMP; }
 
-ip	{ rules_lval.val = RuleHdrTest::IP; return TOK_PROT; }
-ip6	{ rules_lval.val = RuleHdrTest::IPv6; return TOK_PROT; }
-icmp	{ rules_lval.val = RuleHdrTest::ICMP; return TOK_PROT; }
-icmp6	{ rules_lval.val = RuleHdrTest::ICMPv6; return TOK_PROT; }
-tcp	{ rules_lval.val = RuleHdrTest::TCP; return TOK_PROT; }
-udp	{ rules_lval.val = RuleHdrTest::UDP; return TOK_PROT; }
+ip	{ rules_lval.val = zeek::detail::RuleHdrTest::IP; return TOK_PROT; }
+ip6	{ rules_lval.val = zeek::detail::RuleHdrTest::IPv6; return TOK_PROT; }
+icmp	{ rules_lval.val = zeek::detail::RuleHdrTest::ICMP; return TOK_PROT; }
+icmp6	{ rules_lval.val = zeek::detail::RuleHdrTest::ICMPv6; return TOK_PROT; }
+tcp	{ rules_lval.val = zeek::detail::RuleHdrTest::TCP; return TOK_PROT; }
+udp	{ rules_lval.val = zeek::detail::RuleHdrTest::UDP; return TOK_PROT; }
 
 true	{ rules_lval.val = true; return TOK_BOOL; }
 false	{ rules_lval.val = false; return TOK_BOOL; }
 
 established	{
-		rules_lval.val = RuleConditionTCPState::STATE_ESTABLISHED;
+		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ESTABLISHED;
 		return TOK_TCP_STATE_SYM;
 		}
 
 originator	{
-		rules_lval.val = RuleConditionTCPState::STATE_ORIG;
+		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ORIG;
 		return TOK_TCP_STATE_SYM;
 		}
 
 responder	{
-		rules_lval.val = RuleConditionTCPState::STATE_RESP;
+		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_RESP;
 		return TOK_TCP_STATE_SYM;
 		}
 
 stateless	{
-		rules_lval.val = RuleConditionTCPState::STATE_STATELESS;
+		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_STATELESS;
 		return TOK_TCP_STATE_SYM;
 		}
 
 lsrr		{
-		rules_lval.val = RuleConditionIPOptions::OPT_LSRR;
+		rules_lval.val = zeek::detail::RuleConditionIPOptions::OPT_LSRR;
 		return TOK_IP_OPTION_SYM;
 		}
 
 lsrre		{
-		rules_lval.val = RuleConditionIPOptions::OPT_LSRRE;
+		rules_lval.val = zeek::detail::RuleConditionIPOptions::OPT_LSRRE;
 		return TOK_IP_OPTION_SYM;
 		}
 
 rr		{
-		rules_lval.val = RuleConditionIPOptions::OPT_RR;
+		rules_lval.val = zeek::detail::RuleConditionIPOptions::OPT_RR;
 		return TOK_IP_OPTION_SYM;
 		}
 
 ssrr		{
-		rules_lval.val = RuleConditionIPOptions::OPT_SSRR;
+		rules_lval.val = zeek::detail::RuleConditionIPOptions::OPT_SSRR;
 		return TOK_IP_OPTION_SYM;
 		}
 
@@ -133,18 +134,18 @@ src-port	return TOK_SRC_PORT;
 tcp-state	return TOK_TCP_STATE;
 active		return TOK_ACTIVE;
 
-file-magic { rules_lval.val = Rule::FILE_MAGIC; return TOK_PATTERN_TYPE; }
-payload	{ rules_lval.val = Rule::PAYLOAD; return TOK_PATTERN_TYPE; }
-http-request	{ rules_lval.val = Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
-http-request-body	{ rules_lval.val = Rule::HTTP_REQUEST_BODY; return TOK_PATTERN_TYPE; }
-http-reply-body	{ rules_lval.val = Rule::HTTP_REPLY_BODY; return TOK_PATTERN_TYPE; }
-http-body	{ rules_lval.val = Rule::HTTP_REPLY_BODY; return TOK_PATTERN_TYPE; }
-http-request-header	{ rules_lval.val = Rule::HTTP_REQUEST_HEADER; return TOK_PATTERN_TYPE; }
-http-reply-header	{ rules_lval.val = Rule::HTTP_REPLY_HEADER; return TOK_PATTERN_TYPE; }
-http	{ rules_lval.val = Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
+file-magic { rules_lval.val = zeek::detail::Rule::FILE_MAGIC; return TOK_PATTERN_TYPE; }
+payload	{ rules_lval.val = zeek::detail::Rule::PAYLOAD; return TOK_PATTERN_TYPE; }
+http-request	{ rules_lval.val = zeek::detail::Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
+http-request-body	{ rules_lval.val = zeek::detail::Rule::HTTP_REQUEST_BODY; return TOK_PATTERN_TYPE; }
+http-reply-body	{ rules_lval.val = zeek::detail::Rule::HTTP_REPLY_BODY; return TOK_PATTERN_TYPE; }
+http-body	{ rules_lval.val = zeek::detail::Rule::HTTP_REPLY_BODY; return TOK_PATTERN_TYPE; }
+http-request-header	{ rules_lval.val = zeek::detail::Rule::HTTP_REQUEST_HEADER; return TOK_PATTERN_TYPE; }
+http-reply-header	{ rules_lval.val = zeek::detail::Rule::HTTP_REPLY_HEADER; return TOK_PATTERN_TYPE; }
+http	{ rules_lval.val = zeek::detail::Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
 
-ftp	{ rules_lval.val = Rule::FTP; return TOK_PATTERN_TYPE; }
-finger	{ rules_lval.val = Rule::FINGER; return TOK_PATTERN_TYPE; }
+ftp	{ rules_lval.val = zeek::detail::Rule::FTP; return TOK_PATTERN_TYPE; }
+finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 
 {D}("."{D}){3}{OWS}"/"{OWS}{D}	{
 	char* s = strchr(yytext, '/');

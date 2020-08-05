@@ -9,7 +9,7 @@
 
 using namespace analyzer::login;
 
-Telnet_Analyzer::Telnet_Analyzer(Connection* conn)
+Telnet_Analyzer::Telnet_Analyzer(zeek::Connection* conn)
 : Login_Analyzer("TELNET", conn)
 	{
 	NVT_Analyzer* nvt_orig = new NVT_Analyzer(conn, true);
@@ -21,4 +21,3 @@ Telnet_Analyzer::Telnet_Analyzer(Connection* conn)
 	AddSupportAnalyzer(nvt_orig);
 	AddSupportAnalyzer(nvt_resp);
 	}
-

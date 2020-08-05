@@ -4,6 +4,8 @@
 #include "util.h"
 #include "Conn.h"
 
+namespace zeek {
+
 EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 		: src_addr(c->OrigAddr()), dst_addr(c->RespAddr()),
 		  src_port(c->OrigPort()), dst_port(c->RespPort()),
@@ -26,7 +28,7 @@ zeek::RecordValPtr EncapsulatingConn::ToVal() const
 	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>(dst_addr));
 	id_val->Assign(3, zeek::val_mgr->Port(ntohs(dst_port), proto));
 	rv->Assign(0, std::move(id_val));
-	rv->Assign(1, zeek::BifType::Enum::Tunnel::Type->GetVal(type));
+	rv->Assign(1, zeek::BifType::Enum::Tunnel::Type->GetEnumVal(type));
 
 	rv->Assign(2, zeek::make_intrusive<zeek::StringVal>(uid.Base62("C").c_str()));
 
@@ -52,3 +54,5 @@ bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 
 	return true;
 	}
+
+} // namespace zeek

@@ -8,12 +8,12 @@ namespace file_analysis {
 class File;
 
 FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
-	: Reassembler(starting_offset, REASSEM_FILE), the_file(f), flushing(false)
+	: zeek::Reassembler(starting_offset, zeek::REASSEM_FILE), the_file(f), flushing(false)
 	{
 	}
 
 FileReassembler::FileReassembler()
-	: Reassembler(), the_file(nullptr), flushing(false)
+	: zeek::Reassembler(), the_file(nullptr), flushing(false)
 	{
 	}
 
@@ -50,7 +50,7 @@ uint64_t FileReassembler::FlushTo(uint64_t sequence)
 	return rval;
 	}
 
-void FileReassembler::BlockInserted(DataBlockMap::const_iterator it)
+void FileReassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
 

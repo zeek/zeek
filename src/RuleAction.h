@@ -6,8 +6,10 @@
 
 #include <sys/types.h> // for u_char
 
-class Rule;
-class RuleEndpointState;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
+
+namespace zeek::detail {
 
 // Base class of all rule actions.
 class RuleAction {
@@ -69,12 +71,12 @@ public:
 
 	void PrintDebug() override;
 
-	analyzer::Tag Analyzer() const { return analyzer; }
-	analyzer::Tag ChildAnalyzer() const { return child_analyzer; }
+	zeek::analyzer::Tag Analyzer() const { return analyzer; }
+	zeek::analyzer::Tag ChildAnalyzer() const { return child_analyzer; }
 
 private:
-	analyzer::Tag analyzer;
-	analyzer::Tag child_analyzer;
+	zeek::analyzer::Tag analyzer;
+	zeek::analyzer::Tag child_analyzer;
 };
 
 class RuleActionEnable : public RuleActionAnalyzer {
@@ -96,3 +98,12 @@ public:
 
 	void PrintDebug() override;
 };
+
+} // namespace zeek::detail
+
+using RuleAction [[deprecated("Remove in v4.1. Use zeek::detail::RuleAction.")]] = zeek::detail::RuleAction;
+using RuleActionEvent [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionEvent.")]] = zeek::detail::RuleActionEvent;
+using RuleActionMIME [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionMIME.")]] = zeek::detail::RuleActionMIME;
+using RuleActionAnalyzer [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionAnalyzer.")]] = zeek::detail::RuleActionAnalyzer;
+using RuleActionEnable [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionEnable.")]] = zeek::detail::RuleActionEnable;
+using RuleActionDisable [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionDisable.")]] = zeek::detail::RuleActionDisable;

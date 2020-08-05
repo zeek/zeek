@@ -1,21 +1,17 @@
 #pragma once
 
-class Connection;
-
-namespace analyzer { class Analyzer; }
-
 #include "util.h"
 #include "Val.h"
 #include "IntrusivePtr.h"
-#include "event.bif.func_h"
 #include "analyzer/Analyzer.h"
 #include "file_analysis/Analyzer.h"
+#include "event.bif.func_h"
 
 #include "binpac.h"
 
 namespace binpac {
 
-using BroAnalyzer = analyzer::Analyzer*;
+using BroAnalyzer = zeek::analyzer::Analyzer*;
 using BroFileAnalyzer = file_analysis::Analyzer;
 using BroVal = zeek::Val*;
 using BroPortVal = zeek::PortVal*;
@@ -38,9 +34,9 @@ inline zeek::StringValPtr to_stringval(const_bytestring const& str)
 	return zeek::make_intrusive<zeek::StringVal>(str.length(), (const char*) str.begin());
     }
 
-zeek::StringValPtr utf16_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::StringValPtr utf16_to_utf8_val(zeek::Connection* conn, const bytestring& utf16);
 
 [[deprecated("Remove in v4.1.  Use utf16_to_utf8_val() instead.")]]
-zeek::StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16);
+zeek::StringVal* utf16_bytestring_to_utf8_val(zeek::Connection* conn, const bytestring& utf16);
 
 } // namespace binpac

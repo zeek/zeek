@@ -110,7 +110,7 @@ function get_conn_stats%(%): ConnStats
 	ADD_STAT(s.max_ICMP_conns);
 	ADD_STAT(s.cumulative_ICMP_conns);
 
-	r->Assign(n++, zeek::val_mgr->Count(killed_by_inactivity));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::killed_by_inactivity));
 
 	return r;
 	%}
@@ -193,8 +193,8 @@ function get_event_stats%(%): EventStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(EventStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(num_events_queued));
-	r->Assign(n++, zeek::val_mgr->Count(num_events_dispatched));
+	r->Assign(n++, zeek::val_mgr->Count(event_mgr.num_events_queued));
+	r->Assign(n++, zeek::val_mgr->Count(event_mgr.num_events_dispatched));
 
 	return r;
 	%}
@@ -220,10 +220,10 @@ function get_reassembler_stats%(%): ReassemblerStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ReassemblerStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FILE)));
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FRAG)));
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_TCP)));
-	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_UNKNOWN)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_FILE)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_FRAG)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_TCP)));
+	r->Assign(n++, zeek::val_mgr->Count(Reassembler::MemoryAllocation(zeek::REASSEM_UNKNOWN)));
 
 	return r;
 	%}
@@ -249,8 +249,8 @@ function get_dns_stats%(%): DNSStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(DNSStats);
 	int n = 0;
 
-	DNS_Mgr::Stats dstats;
-	dns_mgr->GetStats(&dstats);
+	zeek::detail::DNS_Mgr::Stats dstats;
+	zeek::detail::dns_mgr->GetStats(&dstats);
 
 	r->Assign(n++, zeek::val_mgr->Count(unsigned(dstats.requests)));
 	r->Assign(n++, zeek::val_mgr->Count(unsigned(dstats.successful)));
@@ -283,9 +283,9 @@ function get_timer_stats%(%): TimerStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(TimerStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(unsigned(timer_mgr->Size())));
-	r->Assign(n++, zeek::val_mgr->Count(unsigned(timer_mgr->PeakSize())));
-	r->Assign(n++, zeek::val_mgr->Count(timer_mgr->CumulativeNum()));
+	r->Assign(n++, zeek::val_mgr->Count(unsigned(zeek::detail::timer_mgr->Size())));
+	r->Assign(n++, zeek::val_mgr->Count(unsigned(zeek::detail::timer_mgr->PeakSize())));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::timer_mgr->CumulativeNum()));
 
 	return r;
 	%}
@@ -365,10 +365,10 @@ function get_gap_stats%(%): GapStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(GapStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(tot_ack_events));
-	r->Assign(n++, zeek::val_mgr->Count(tot_ack_bytes));
-	r->Assign(n++, zeek::val_mgr->Count(tot_gap_events));
-	r->Assign(n++, zeek::val_mgr->Count(tot_gap_bytes));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_ack_events));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_ack_bytes));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_gap_events));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::detail::tot_gap_bytes));
 
 	return r;
 	%}
@@ -397,10 +397,10 @@ function get_matcher_stats%(%): MatcherStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(MatcherStats);
 	int n = 0;
 
-	RuleMatcher::Stats s;
+	zeek::detail::RuleMatcher::Stats s;
 	memset(&s, 0, sizeof(s));
-	if ( rule_matcher )
-		rule_matcher->GetStats(&s);
+	if ( zeek::detail::rule_matcher )
+		zeek::detail::rule_matcher->GetStats(&s);
 
 	r->Assign(n++, zeek::val_mgr->Count(s.matchers));
 	r->Assign(n++, zeek::val_mgr->Count(s.nfa_states));

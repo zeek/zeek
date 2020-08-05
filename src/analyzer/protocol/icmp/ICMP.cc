@@ -20,7 +20,7 @@
 
 using namespace analyzer::icmp;
 
-ICMP_Analyzer::ICMP_Analyzer(Connection* c)
+ICMP_Analyzer::ICMP_Analyzer(zeek::Connection* c)
 	: TransportLayerAnalyzer("ICMP", c),
 	icmp_conn_val(), type(), code(), request_len(-1), reply_len(-1)
 	{
@@ -35,7 +35,7 @@ void ICMP_Analyzer::Done()
 	}
 
 void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+			bool is_orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -64,8 +64,8 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "unexpected IP proto in ICMP analyzer: %d", ip->NextProto());
+			zeek::reporter->AnalyzerError(
+				this, "unexpected IP proto in ICMP analyzer: %d", ip->NextProto());
 			return;
 		}
 
@@ -78,7 +78,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	Conn()->SetLastTime(current_timestamp);
 
-	if ( rule_matcher )
+	if ( zeek::detail::rule_matcher )
 		{
 		if ( ! matcher_state.MatcherInitialized(is_orig) )
 			matcher_state.InitEndpointMatcher(this, ip, len, is_orig, nullptr);
@@ -104,8 +104,8 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
 	else
 		{
-		reporter->AnalyzerError(this,
-		  "expected ICMP as IP packet's protocol, got %d", ip->NextProto());
+		zeek::reporter->AnalyzerError(
+			this, "expected ICMP as IP packet's protocol, got %d", ip->NextProto());
 		return;
 		}
 
@@ -113,13 +113,13 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	if ( caplen >= len )
 		ForwardPacket(len, data, is_orig, seq, ip, caplen);
 
-	if ( rule_matcher )
-		matcher_state.Match(Rule::PAYLOAD, data, len, is_orig,
-					false, false, true);
+	if ( zeek::detail::rule_matcher )
+		matcher_state.Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig,
+		                    false, false, true);
 	}
 
 void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
-		const u_char*& data, const IP_Hdr* ip_hdr )
+		const u_char*& data, const zeek::IP_Hdr* ip_hdr )
 	{
 	switch ( icmpp->icmp_type )
 		{
@@ -140,7 +140,7 @@ void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int c
 	}
 
 void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
-							  const u_char*& data, const IP_Hdr* ip_hdr )
+							  const u_char*& data, const zeek::IP_Hdr* ip_hdr )
 	{
 	switch ( icmpp->icmp_type )
 		{
@@ -199,12 +199,13 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 
 void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
                               int icmpv6, const u_char* data,
-                              const IP_Hdr* ip_hdr)
+                              const zeek::IP_Hdr* ip_hdr)
     {
 	if ( icmp_sent )
 		EnqueueConnEvent(icmp_sent,
 			ConnVal(),
-			BuildICMPVal(icmpp, len, icmpv6, ip_hdr)
+			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
+			BuildInfo(icmpp, len, icmpv6, ip_hdr)
 		);
 
 	if ( icmp_sent_payload )
@@ -214,13 +215,14 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 		EnqueueConnEvent(icmp_sent_payload,
 			ConnVal(),
 			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
+			BuildInfo(icmpp, len, icmpv6, ip_hdr),
 			zeek::make_intrusive<zeek::StringVal>(payload)
 		);
 		}
 	}
 
 zeek::RecordValPtr ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
-                                               int icmpv6, const IP_Hdr* ip_hdr)
+                                               int icmpv6, const zeek::IP_Hdr* ip_hdr)
 	{
 	if ( ! icmp_conn_val )
 		{
@@ -239,7 +241,20 @@ zeek::RecordValPtr ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len
 	return icmp_conn_val;
 	}
 
-TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* src_port, uint32_t* dst_port)
+zeek::RecordValPtr ICMP_Analyzer::BuildInfo(const struct icmp* icmpp, int len,
+                                            bool icmpv6, const zeek::IP_Hdr* ip_hdr)
+	{
+	static auto icmp_info = zeek::id::find_type<zeek::RecordType>("icmp_info");
+	auto rval = zeek::make_intrusive<zeek::RecordVal>(icmp_info);
+	rval->Assign(0, zeek::val_mgr->Bool(icmpv6));
+	rval->Assign(1, zeek::val_mgr->Count(icmpp->icmp_type));
+	rval->Assign(2, zeek::val_mgr->Count(icmpp->icmp_code));
+	rval->Assign(3, zeek::val_mgr->Count(len));
+	rval->Assign(4, zeek::val_mgr->Count(ip_hdr->TTL()));
+	return rval;
+	}
+
+TransportProto ICMP_Analyzer::GetContextProtocol(const zeek::IP_Hdr* ip_hdr, uint32_t* src_port, uint32_t* dst_port)
 	{
 	const u_char* transport_hdr;
 	uint32_t ip_hdr_len = ip_hdr->HdrLen();
@@ -306,15 +321,15 @@ TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t*
 
 zeek::RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	{
-	const IP_Hdr ip_hdr_data((const struct ip*) data, false);
-	const IP_Hdr* ip_hdr = &ip_hdr_data;
+	const zeek::IP_Hdr ip_hdr_data((const struct ip*) data, false);
+	const zeek::IP_Hdr* ip_hdr = &ip_hdr_data;
 
 	uint32_t ip_hdr_len = ip_hdr->HdrLen();
 
 	uint32_t ip_len, frag_offset;
 	TransportProto proto = TRANSPORT_UNKNOWN;
 	int DF, MF, bad_hdr_len, bad_checksum;
-	IPAddr src_addr, dst_addr;
+	zeek::IPAddr src_addr, dst_addr;
 	uint32_t src_port, dst_port;
 
 	if ( len < (int)sizeof(struct ip) || ip_hdr_len > uint32_t(len) )
@@ -376,8 +391,8 @@ zeek::RecordValPtr ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& da
 	int DF = 0, MF = 0, bad_hdr_len = 0;
 	TransportProto proto = TRANSPORT_UNKNOWN;
 
-	IPAddr src_addr;
-	IPAddr dst_addr;
+	zeek::IPAddr src_addr;
+	zeek::IPAddr dst_addr;
 	uint32_t ip_len, frag_offset = 0;
 	uint32_t src_port, dst_port;
 
@@ -389,8 +404,8 @@ zeek::RecordValPtr ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& da
 		}
 	else
 		{
-		const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data, false, len);
-		const IP_Hdr* ip_hdr = &ip_hdr_data;
+		const zeek::IP_Hdr ip_hdr_data((const struct ip6_hdr*) data, false, len);
+		const zeek::IP_Hdr* ip_hdr = &ip_hdr_data;
 
 		ip_len = ip_hdr->TotalLen();
 		src_addr = ip_hdr->SrcAddr();
@@ -437,7 +452,7 @@ bool ICMP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
 	return false;
 	}
 
-void ICMP_Analyzer::Describe(ODesc* d) const
+void ICMP_Analyzer::Describe(zeek::ODesc* d) const
 	{
 	d->Add(Conn()->StartTime());
 	d->Add("(");
@@ -491,16 +506,16 @@ void ICMP_Analyzer::UpdateEndpointVal(const zeek::ValPtr& endp_arg, bool is_orig
 unsigned int ICMP_Analyzer::MemoryAllocation() const
 	{
 	return Analyzer::MemoryAllocation()
-		+ padded_sizeof(*this) - padded_sizeof(Connection)
+		+ padded_sizeof(*this) - padded_sizeof(zeek::Connection)
 		+ (icmp_conn_val ? icmp_conn_val->MemoryAllocation() : 0);
 	}
 
 
 void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
-					 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+					 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
 	// For handling all Echo related ICMP messages
-	EventHandlerPtr f = nullptr;
+	zeek::EventHandlerPtr f = nullptr;
 
 	if ( ip_hdr->NextProto() == IPPROTO_ICMPV6 )
 		f = (icmpp->icmp_type == ICMP6_ECHO_REQUEST)
@@ -520,6 +535,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
+		BuildInfo(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
 		zeek::val_mgr->Count(iid),
 		zeek::val_mgr->Count(iseq),
 		zeek::make_intrusive<zeek::StringVal>(payload)
@@ -528,9 +544,9 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_router_advertisement;
+	zeek::EventHandlerPtr f = icmp_router_advertisement;
 
 	if ( ! f )
 		return;
@@ -548,6 +564,7 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		BuildInfo(icmpp, len, 1, ip_hdr),
 		zeek::val_mgr->Count(icmpp->icmp_num_addrs), // Cur Hop Limit
 		zeek::val_mgr->Bool(icmpp->icmp_wpa & 0x80), // Managed
 		zeek::val_mgr->Bool(icmpp->icmp_wpa & 0x40), // Other
@@ -564,23 +581,24 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_neighbor_advertisement;
+	zeek::EventHandlerPtr f = icmp_neighbor_advertisement;
 
 	if ( ! f )
 		return;
 
-	IPAddr tgtaddr;
+	zeek::IPAddr tgtaddr;
 
 	if ( caplen >= (int)sizeof(in6_addr) )
-		tgtaddr = IPAddr(*((const in6_addr*)data));
+		tgtaddr = zeek::IPAddr(*((const in6_addr*)data));
 
 	int opt_offset = sizeof(in6_addr);
 
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		BuildInfo(icmpp, len, 1, ip_hdr),
 		zeek::val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
 		zeek::val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
 		zeek::val_mgr->Bool(icmpp->icmp_num_addrs & 0x20), // Override
@@ -591,23 +609,24 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_neighbor_solicitation;
+	zeek::EventHandlerPtr f = icmp_neighbor_solicitation;
 
 	if ( ! f )
 		return;
 
-	IPAddr tgtaddr;
+	zeek::IPAddr tgtaddr;
 
 	if ( caplen >= (int)sizeof(in6_addr) )
-		tgtaddr = IPAddr(*((const in6_addr*)data));
+		tgtaddr = zeek::IPAddr(*((const in6_addr*)data));
 
 	int opt_offset = sizeof(in6_addr);
 
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		BuildInfo(icmpp, len, 1, ip_hdr),
 		zeek::make_intrusive<zeek::AddrVal>(tgtaddr),
 		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset)
 	);
@@ -615,26 +634,27 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_redirect;
+	zeek::EventHandlerPtr f = icmp_redirect;
 
 	if ( ! f )
 		return;
 
-	IPAddr tgtaddr, dstaddr;
+	zeek::IPAddr tgtaddr, dstaddr;
 
 	if ( caplen >= (int)sizeof(in6_addr) )
-		tgtaddr = IPAddr(*((const in6_addr*)data));
+		tgtaddr = zeek::IPAddr(*((const in6_addr*)data));
 
 	if ( caplen >= 2 * (int)sizeof(in6_addr) )
-		dstaddr = IPAddr(*((const in6_addr*)(data + sizeof(in6_addr))));
+		dstaddr = zeek::IPAddr(*((const in6_addr*)(data + sizeof(in6_addr))));
 
 	int opt_offset = 2 * sizeof(in6_addr);
 
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		BuildInfo(icmpp, len, 1, ip_hdr),
 		zeek::make_intrusive<zeek::AddrVal>(tgtaddr),
 		zeek::make_intrusive<zeek::AddrVal>(dstaddr),
 		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset)
@@ -643,9 +663,9 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+			 int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = icmp_router_solicitation;
+	zeek::EventHandlerPtr f = icmp_router_solicitation;
 
 	if ( ! f )
 		return;
@@ -653,15 +673,16 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		ConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		BuildInfo(icmpp, len, 1, ip_hdr),
 		BuildNDOptionsVal(caplen, data)
 	);
 	}
 
 
 void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
-		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+		int len, int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = nullptr;
+	zeek::EventHandlerPtr f = nullptr;
 
 	switch ( icmpp->icmp_type )
 		{
@@ -678,6 +699,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		EnqueueConnEvent(f,
 			ConnVal(),
 			BuildICMPVal(icmpp, len, 0, ip_hdr),
+			BuildInfo(icmpp, len, 0, ip_hdr),
 			zeek::val_mgr->Count(icmpp->icmp_code),
 			ExtractICMP4Context(caplen, data)
 		);
@@ -685,9 +707,9 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 
 
 void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
-		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+		int len, int caplen, const u_char*& data, const zeek::IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = nullptr;
+	zeek::EventHandlerPtr f = nullptr;
 
 	switch ( icmpp->icmp_type )
 		{
@@ -716,6 +738,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		EnqueueConnEvent(f,
 			ConnVal(),
 			BuildICMPVal(icmpp, len, 1, ip_hdr),
+			BuildInfo(icmpp, len, 1, ip_hdr),
 			zeek::val_mgr->Count(icmpp->icmp_code),
 			ExtractICMP6Context(caplen, data)
 		);
@@ -793,7 +816,7 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 				info->Assign(2, zeek::val_mgr->Bool(A_flag));
 				info->Assign(3, zeek::make_intrusive<zeek::IntervalVal>((double)ntohl(valid_life), Seconds));
 				info->Assign(4, zeek::make_intrusive<zeek::IntervalVal>((double)ntohl(prefer_life), Seconds));
-				info->Assign(5, zeek::make_intrusive<zeek::AddrVal>(IPAddr(prefix)));
+				info->Assign(5, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(prefix)));
 				rv->Assign(3, std::move(info));
 				}
 

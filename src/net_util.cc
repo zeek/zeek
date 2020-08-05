@@ -35,7 +35,7 @@ int ones_complement_checksum(const void* p, int b, uint32_t sum)
 	return sum;
 	}
 
-int ones_complement_checksum(const IPAddr& a, uint32_t sum)
+int ones_complement_checksum(const zeek::IPAddr& a, uint32_t sum)
 	{
 	const uint32_t* bytes;
 	int len = a.GetBytes(&bytes);
@@ -58,7 +58,7 @@ int icmp_checksum(const struct icmp* icmpp, int len)
 	}
 
 #ifdef ENABLE_MOBILE_IPV6
-int mobility_header_checksum(const IP_Hdr* ip)
+int mobility_header_checksum(const zeek::IP_Hdr* ip)
 	{
 	const ip6_mobility* mh = ip->MobilityHeader();
 
@@ -83,7 +83,7 @@ int mobility_header_checksum(const IP_Hdr* ip)
 	}
 #endif
 
-int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
+int icmp6_checksum(const struct icmp* icmpp, const zeek::IP_Hdr* ip, int len)
 	{
 	// ICMP6 uses the same checksum function as ICMP4 but a different
 	// pseudo-header over which it is computed.
@@ -131,8 +131,8 @@ char addr_to_class(uint32_t addr)
 		return 'A';
 	}
 
-const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
-			const IPAddr& dst_addr, uint32_t dst_port)
+const char* fmt_conn_id(const zeek::IPAddr& src_addr, uint32_t src_port,
+                        const zeek::IPAddr& dst_addr, uint32_t dst_port)
 	{
 	static char buffer[512];
 
@@ -144,10 +144,10 @@ const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
 	}
 
 const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port,
-			const uint32_t* dst_addr, uint32_t dst_port)
+                        const uint32_t* dst_addr, uint32_t dst_port)
 	{
-	IPAddr src(IPv6, src_addr, IPAddr::Network);
-	IPAddr dst(IPv6, dst_addr, IPAddr::Network);
+	zeek::IPAddr src(IPv6, src_addr, zeek::IPAddr::Network);
+	zeek::IPAddr dst(IPv6, dst_addr, zeek::IPAddr::Network);
 	return fmt_conn_id(src, src_port, dst, dst_port);
 	}
 

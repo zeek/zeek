@@ -9,11 +9,14 @@
 #include <sys/resource.h>
 #include <stdint.h>
 
-class BroFile;
+namespace zeek { class File; }
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
+
+namespace zeek::detail {
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
@@ -70,18 +73,18 @@ protected:
 
 class ProfileLogger final : public SegmentStatsReporter {
 public:
-	ProfileLogger(BroFile* file, double interval);
+	ProfileLogger(zeek::File* file, double interval);
 	~ProfileLogger() override;
 
 	void Log();
-	BroFile* File()	{ return file; }
+	zeek::File* File()	{ return file; }
 
 protected:
 	void SegmentProfile(const char* name, const zeek::detail::Location* loc,
 	                    double dtime, int dmem) override;
 
 private:
-	BroFile* file;
+	zeek::File* file;
 	unsigned int log_count;
 };
 
@@ -120,7 +123,7 @@ extern uint64_t tot_gap_bytes;
 
 class PacketProfiler {
 public:
-	PacketProfiler(unsigned int mode, double freq, BroFile* arg_file);
+	PacketProfiler(unsigned int mode, double freq, zeek::File* arg_file);
 	~PacketProfiler();
 
 	static const unsigned int MODE_TIME = 1;
@@ -130,7 +133,7 @@ public:
 	void ProfilePkt(double t, unsigned int bytes);
 
 protected:
-	BroFile* file;
+	zeek::File* file;
 	unsigned int update_mode;
 	double update_freq;
 	double last_Utime, last_Stime, last_Rtime;
@@ -139,3 +142,24 @@ protected:
 	uint64_t pkt_cnt;
 	uint64_t byte_cnt;
 };
+
+} // namespace zeek::detail
+
+using SegmentStatsReporter [[deprecated("Remove in v4.1. Use zeek::detail::SegmentStatsReporter.")]] = zeek::detail::SegmentStatsReporter;
+using SegmentProfiler [[deprecated("Remove in v4.1. Use zeek::detail::SegmentProfiler.")]] = zeek::detail::SegmentProfiler;
+using ProfileLogger [[deprecated("Remove in v4.1. Use zeek::detail::ProfileLogger.")]] = zeek::detail::ProfileLogger;
+using SampleLogger [[deprecated("Remove in v4.1. Use zeek::detail::SampleLogger.")]] = zeek::detail::SampleLogger;
+using PacketProfiler [[deprecated("Remove in v4.1. Use zeek::detail::PacketProfiler.")]] = zeek::detail::PacketProfiler;
+
+extern zeek::detail::ProfileLogger*& profiling_logger [[deprecated("Remove in v4.1. Use zeek::detail::profiling_logger.")]];
+extern zeek::detail::ProfileLogger*& segment_logger [[deprecated("Remove in v4.1. Use zeek::detail::segment_logger.")]];
+extern zeek::detail::SampleLogger*& sample_logger [[deprecated("Remove in v4.1. Use zeek::detail::sample_logger.")]];
+
+// Connection statistics.
+extern uint64_t& killed_by_inactivity [[deprecated("Remove in v4.1. Use zeek::detail::killed_by_inactivity.")]];
+
+// Content gap statistics.
+extern uint64_t& tot_ack_events [[deprecated("Remove in v4.1. Use zeek::detail::tot_ack_events.")]];
+extern uint64_t& tot_ack_bytes [[deprecated("Remove in v4.1. Use zeek::detail::tot_ack_bytes.")]];
+extern uint64_t& tot_gap_events [[deprecated("Remove in v4.1. Use zeek::detail::tot_gap_events.")]];
+extern uint64_t& tot_gap_bytes [[deprecated("Remove in v4.1. Use zeek::detail::tot_gap_bytes.")]];

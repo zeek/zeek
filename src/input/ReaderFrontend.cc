@@ -69,7 +69,7 @@ void ReaderFrontend::Init(const int arg_num_fields,
 		return;
 
 	if ( initialized )
-		reporter->InternalError("reader initialize twice");
+		zeek::reporter->InternalError("reader initialize twice");
 
 	num_fields = arg_num_fields;
 	fields = arg_fields;
@@ -85,7 +85,7 @@ void ReaderFrontend::Update()
 
 	if ( ! initialized )
 		{
-		reporter->Error("Tried to call update on uninitialized reader");
+		zeek::reporter->Error("Tried to call update on uninitialized reader");
 		return;
 		}
 

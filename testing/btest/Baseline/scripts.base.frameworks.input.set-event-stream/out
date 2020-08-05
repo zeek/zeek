@@ -1,0 +1,7 @@
+entry notification Input::EVENT_NEW: [s=one]
+entry notification Input::EVENT_NEW: [s=two]
+entry notification Input::EVENT_NEW: [s=three]
+entry notification Input::EVENT_NEW: [s=four]
+entry notification Input::EVENT_NEW: [s=five]
+entry notification Input::EVENT_NEW: [s=six]
+done

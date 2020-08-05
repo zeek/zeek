@@ -9,6 +9,8 @@
 
 using std::min;
 
+namespace zeek {
+
 uint64_t Reassembler::total_size = 0;
 uint64_t Reassembler::sizes[REASSEM_NUM];
 
@@ -369,7 +371,7 @@ uint64_t Reassembler::TotalSize() const
 	return block_list.DataSize() + old_block_list.DataSize();
 	}
 
-void Reassembler::Describe(ODesc* d) const
+void Reassembler::Describe(zeek::ODesc* d) const
 	{
 	d->Add("reassembler");
 	}
@@ -385,3 +387,4 @@ uint64_t Reassembler::MemoryAllocation(ReassemblerType rtype)
 	return Reassembler::sizes[rtype];
 	}
 
+} // namespace zeek

@@ -11,8 +11,8 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("NCP", ::analyzer::ncp::NCP_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_NCP", nullptr));
+		AddComponent(new zeek::analyzer::Component("NCP", ::analyzer::ncp::NCP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Contents_NCP", nullptr));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::NCP";

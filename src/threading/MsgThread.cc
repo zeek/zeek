@@ -107,7 +107,7 @@ public:
 class DebugMessage final : public OutputMessage<MsgThread>
 {
 public:
-	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
+	DebugMessage(zeek::DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
 		{ stream = arg_stream; msg = copy_string(arg_msg); }
 
@@ -120,7 +120,7 @@ public:
 		}
 private:
 	const char* msg;
-	DebugStream stream;
+	zeek::DebugStream stream;
 };
 #endif
 
@@ -140,7 +140,7 @@ public:
 		bool success = thread_mgr->SendEvent(Object(), name, num_vals, val);
 
 		if ( ! success )
-			reporter->Error("SendEvent for event %s failed", name);
+			zeek::reporter->Error("SendEvent for event %s failed", name);
 
 		return true; // We do not want to die if sendEvent fails because the event did not return.
 		}
@@ -163,35 +163,35 @@ bool ReporterMessage::Process()
 	switch ( type ) {
 
 	case INFO:
-		reporter->Info("%s: %s", Object()->Name(), msg);
+		zeek::reporter->Info("%s: %s", Object()->Name(), msg);
 		break;
 
 	case WARNING:
-		reporter->Warning("%s: %s", Object()->Name(), msg);
+		zeek::reporter->Warning("%s: %s", Object()->Name(), msg);
 		break;
 
 	case ERROR:
-		reporter->Error("%s: %s", Object()->Name(), msg);
+		zeek::reporter->Error("%s: %s", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR:
-		reporter->FatalError("%s: %s", Object()->Name(), msg);
+		zeek::reporter->FatalError("%s: %s", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR_WITH_CORE:
-		reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
+		zeek::reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_WARNING:
-		reporter->InternalWarning("%s: %s", Object()->Name(), msg);
+		zeek::reporter->InternalWarning("%s: %s", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_ERROR :
-		reporter->InternalError("%s: %s", Object()->Name(), msg);
+		zeek::reporter->InternalError("%s: %s", Object()->Name(), msg);
 		break;
 
 	default:
-		reporter->InternalError("unknown ReporterMessage type %d", type);
+		zeek::reporter->InternalError("unknown ReporterMessage type %d", type);
 	}
 
 	return true;
@@ -207,7 +207,7 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullp
 	thread_mgr->AddMsgThread(this);
 
 	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
-		reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
+		zeek::reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
 
 	SetClosed(false);
 	}
@@ -276,7 +276,7 @@ void MsgThread::OnWaitForStop()
 			assert ( msg );
 
 			if ( ! msg->Process() )
-				reporter->Error("%s failed during thread termination", msg->Name());
+				zeek::reporter->Error("%s failed during thread termination", msg->Name());
 
 			delete msg;
 			}
@@ -351,7 +351,7 @@ void MsgThread::InternalError(const char* msg)
 
 #ifdef DEBUG
 
-void MsgThread::Debug(DebugStream stream, const char* msg)
+void MsgThread::Debug(zeek::DebugStream stream, const char* msg)
 	{
 	SendOut(new DebugMessage(stream, this, msg));
 	}
@@ -366,7 +366,7 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 		return;
 		}
 
-	DBG_LOG(DBG_THREADING, "Sending '%s' to %s ...", msg->Name(), Name());
+	DBG_LOG(zeek::DBG_THREADING, "Sending '%s' to %s ...", msg->Name(), Name());
 
 	queue_in.Put(msg);
 	++cnt_sent_in;
@@ -399,7 +399,7 @@ BasicOutputMessage* MsgThread::RetrieveOut()
 	if ( ! msg )
 		return nullptr;
 
-	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
+	DBG_LOG(zeek::DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
 
 	return msg;
 	}
@@ -413,7 +413,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 
 #ifdef DEBUG
 	std::string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
-	Debug(DBG_THREADING, s.c_str());
+	Debug(zeek::DBG_THREADING, s.c_str());
 #endif
 
 	return msg;
@@ -476,7 +476,7 @@ void MsgThread::Process()
 
 		if ( ! msg->Process() )
 			{
-			reporter->Error("%s failed, terminating thread", msg->Name());
+			zeek::reporter->Error("%s failed, terminating thread", msg->Name());
 			SignalStop();
 			}
 

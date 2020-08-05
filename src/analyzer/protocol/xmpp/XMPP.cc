@@ -6,7 +6,7 @@
 
 using namespace analyzer::xmpp;
 
-XMPP_Analyzer::XMPP_Analyzer(Connection* conn)
+XMPP_Analyzer::XMPP_Analyzer(zeek::Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("XMPP", conn)
 	{
 	interp = unique_ptr<binpac::XMPP::XMPP_Conn>(new binpac::XMPP::XMPP_Conn(this));
@@ -79,7 +79,7 @@ void XMPP_Analyzer::StartTLS()
 
 	tls_active = true;
 
-	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 	}

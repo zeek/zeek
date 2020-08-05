@@ -46,7 +46,7 @@ static vector<string> summary_comment(const vector<string>& cmnts)
 	return rval;
 	}
 
-static void add_summary_rows(const ODesc& id_desc, const vector<string>& cmnts,
+static void add_summary_rows(const zeek::ODesc& id_desc, const vector<string>& cmnts,
                              ReStructuredTextTable* table)
 	{
 	vector<string> row;
@@ -83,7 +83,7 @@ static string make_summary(const string& heading, char underline, char border,
 	      it != id_list.end(); ++it )
 		{
 		auto* id = (*it)->GetID();
-		ODesc d;
+		zeek::ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 		add_summary_rows(d, summary_comment((*it)->GetComments()), &table);
@@ -106,7 +106,7 @@ static string make_redef_summary(const string& heading, char underline,
 	      ++it )
 		{
 		auto* id = (*it)->GetID();
-		ODesc d;
+		zeek::ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 
@@ -187,7 +187,7 @@ void ScriptInfo::DoInitPostScript()
 		if ( id->IsType() )
 			{
 			types.push_back(info);
-			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",
+			DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",
 			        id->Name(), name.c_str());
 			continue;
 			}
@@ -196,22 +196,22 @@ void ScriptInfo::DoInitPostScript()
 			{
 			switch ( id->GetType()->AsFuncType()->Flavor() ) {
 			case zeek::FUNC_FLAVOR_HOOK:
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
+				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
 				        id->Name(), name.c_str());
 				hooks.push_back(info);
 				break;
 			case zeek::FUNC_FLAVOR_EVENT:
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a event",
+				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a event",
 				        id->Name(), name.c_str());
 				events.push_back(info);
 				break;
 			case zeek::FUNC_FLAVOR_FUNCTION:
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a function",
+				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a function",
 				        id->Name(), name.c_str());
 				functions.push_back(info);
 				break;
 			default:
-				reporter->InternalError("Invalid function flavor");
+				zeek::reporter->InternalError("Invalid function flavor");
 				break;
 			}
 
@@ -222,13 +222,13 @@ void ScriptInfo::DoInitPostScript()
 			{
 			if ( id->GetAttr(zeek::detail::ATTR_REDEF) )
 				{
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
+				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
 				        id->Name(), name.c_str());
 				redef_options.push_back(info);
 				}
 			else
 				{
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a constant",
+				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a constant",
 				        id->Name(), name.c_str());
 				constants.push_back(info);
 				}
@@ -237,7 +237,7 @@ void ScriptInfo::DoInitPostScript()
 			}
 		else if ( id->IsOption() )
 			{
-			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as an runtime option",
+			DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as an runtime option",
 							id->Name(), name.c_str());
 			options.push_back(info);
 
@@ -249,7 +249,7 @@ void ScriptInfo::DoInitPostScript()
 			// documentation.
 			continue;
 
-		DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a state variable",
+		DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a state variable",
 		        id->Name(), name.c_str());
 		state_vars.push_back(info);
 		}
@@ -377,8 +377,8 @@ time_t ScriptInfo::DoGetModificationTime() const
 				}
 
 			if ( ! info )
-				reporter->InternalWarning("Zeekygen failed to get mtime of %s",
-				                          it->c_str());
+				zeek::reporter->InternalWarning("Zeekygen failed to get mtime of %s",
+				                                it->c_str());
 			continue;
 			}
 

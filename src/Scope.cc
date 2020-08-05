@@ -30,7 +30,7 @@ Scope::Scope(zeek::detail::IDPtr id,
 		if ( id_type->Tag() == zeek::TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != zeek::TYPE_FUNC )
-			reporter->InternalError("bad scope id");
+			zeek::reporter->InternalError("bad scope id");
 
 		zeek::FuncType* ft = id->GetType()->AsFuncType();
 		return_type = ft->Yield();
@@ -138,8 +138,8 @@ const zeek::detail::IDPtr& lookup_ID(const char* name, const char* curr_module,
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				reporter->Error("identifier is not exported: %s",
-				                fullname.c_str());
+				zeek::reporter->Error("identifier is not exported: %s",
+				                      fullname.c_str());
 
 			return id;
 			}
@@ -159,7 +159,7 @@ zeek::detail::IDPtr install_ID(const char* name, const char* module_name,
                                bool is_global, bool is_export)
 	{
 	if ( scopes.empty() && ! is_global )
-		reporter->InternalError("local identifier in global scope");
+		zeek::reporter->InternalError("local identifier in global scope");
 
 	zeek::detail::IDScope scope;
 	if ( is_export || ! module_name ||
@@ -201,7 +201,7 @@ void push_scope(zeek::detail::IDPtr id,
 ScopePtr pop_scope()
 	{
 	if ( scopes.empty() )
-		reporter->InternalError("scope underflow");
+		zeek::reporter->InternalError("scope underflow");
 	scopes.pop_back();
 
 	Scope* old_top = top_scope;
@@ -223,7 +223,7 @@ Scope* global_scope()
 
 }
 
-const zeek::detail::ID* lookup_ID(
+zeek::detail::ID* lookup_ID(
 	const char* name, const char* module,
 	bool no_global,
 	bool same_module_only,

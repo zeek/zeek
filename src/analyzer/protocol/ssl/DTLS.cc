@@ -10,8 +10,8 @@
 
 using namespace analyzer::dtls;
 
-DTLS_Analyzer::DTLS_Analyzer(Connection* c)
-: analyzer::Analyzer("DTLS", c)
+DTLS_Analyzer::DTLS_Analyzer(zeek::Connection* c)
+: zeek::analyzer::Analyzer("DTLS", c)
 	{
 	interp = new binpac::DTLS::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
@@ -32,7 +32,7 @@ void DTLS_Analyzer::Done()
 	handshake_interp->FlowEOF(false);
 	}
 
-void DTLS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void DTLS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

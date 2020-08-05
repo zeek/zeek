@@ -16,7 +16,7 @@ krb5_keytab KRB_Analyzer::krb_keytab = nullptr;
 std::once_flag KRB_Analyzer::krb_initialized;
 #endif
 
-KRB_Analyzer::KRB_Analyzer(Connection* conn)
+KRB_Analyzer::KRB_Analyzer(zeek::Connection* conn)
 	: Analyzer("KRB", conn)
 	{
 	interp = new binpac::KRB::KRB_Conn(this);
@@ -29,7 +29,7 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 static void warn_krb(const char* msg, krb5_context ctx, krb5_error_code code)
 	{
 	auto err = krb5_get_error_message(ctx, code);
-	reporter->Warning("%s (%s)", msg, err);
+	zeek::reporter->Warning("%s (%s)", msg, err);
 	krb5_free_error_message(ctx, err);
 	}
 
@@ -41,7 +41,7 @@ void KRB_Analyzer::Initialize_Krb()
 	const char* keytab_filename = zeek::BifConst::KRB::keytab->CheckString();
 	if ( access(keytab_filename, R_OK) != 0 )
 		{
-		reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);
+		zeek::reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);
 		return;
 		}
 
@@ -73,7 +73,7 @@ void KRB_Analyzer::Done()
 	}
 
 void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-				 uint64_t seq, const IP_Hdr* ip, int caplen)
+				 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -99,14 +99,14 @@ zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* princ
 	int pos = principal->FindSubstring(&delim);
 	if ( pos == -1 )
 		{
-		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
+		zeek::reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
 	std::unique_ptr<zeek::String> service = unique_ptr<zeek::String>(principal->GetSubstring(0, pos));
 	std::unique_ptr<zeek::String> hostname = unique_ptr<zeek::String>(principal->GetSubstring(pos + 1, -1));
 	if ( !service || !hostname )
 		{
-		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
+		zeek::reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
 	krb5_principal sprinc;

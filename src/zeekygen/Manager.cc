@@ -17,14 +17,14 @@ using namespace std;
 
 static void DbgAndWarn(const char* msg)
 	{
-	if ( reporter->Errors() )
+	if ( zeek::reporter->Errors() )
 		// We've likely already reported to real source of the problem
 		// as an error, avoid adding an additional warning which may
 		// be confusing.
 		return;
 
-	reporter->Warning("%s", msg);
-	DBG_LOG(DBG_ZEEKYGEN, "%s", msg);
+	zeek::reporter->Warning("%s", msg);
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "%s", msg);
 	}
 
 static void WarnMissingScript(const char* type, const zeek::detail::ID* id,
@@ -54,7 +54,7 @@ static string RemoveLeadingSpace(const string& s)
 // use for indexing.
 static string NormalizeScriptPath(const string& path)
 	{
-	if ( auto p = plugin_mgr->LookupPluginByPath(path) )
+	if ( auto p = zeek::plugin_mgr->LookupPluginByPath(path) )
 		{
 		auto rval = normalize_path(path);
 		auto prefix = SafeBasename(p->PluginDirectory()).result;
@@ -88,8 +88,9 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	// a PATH component that starts with a tilde (such as "~/bin").  A simple
 	// workaround is to just run bro with a relative or absolute path.
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
-		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by specifying the absolute or relative path to Zeek): %s",
-		                        path_to_bro.c_str(), strerror(errno));
+		zeek::reporter->InternalError(
+			"Zeekygen can't get mtime of zeek binary %s (try again by specifying the absolute or relative path to Zeek): %s",
+			path_to_bro.c_str(), strerror(errno));
 
 	// Internal error will abort above in the case that stat isn't initialized
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
@@ -144,7 +145,7 @@ void Manager::Script(const string& path)
 	ScriptInfo* info = new ScriptInfo(name, path);
 	scripts.map[name] = info;
 	all_info.push_back(info);
-	DBG_LOG(DBG_ZEEKYGEN, "Made ScriptInfo %s", name.c_str());
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Made ScriptInfo %s", name.c_str());
 
 	if ( ! info->IsPkgLoader() )
 		return;
@@ -161,7 +162,7 @@ void Manager::Script(const string& path)
 	PackageInfo* pkginfo = new PackageInfo(name);
 	packages.map[name] = pkginfo;
 	all_info.push_back(pkginfo);
-	DBG_LOG(DBG_ZEEKYGEN, "Made PackageInfo %s", name.c_str());
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Made PackageInfo %s", name.c_str());
 	}
 
 void Manager::ScriptDependency(const string& path, const string& dep)
@@ -188,7 +189,7 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 		}
 
 	script_info->AddDependency(depname);
-	DBG_LOG(DBG_ZEEKYGEN, "Added script dependency %s for %s",
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Added script dependency %s for %s",
 	        depname.c_str(), name.c_str());
 
 	for ( size_t i = 0; i < comment_buffer.size(); ++i )
@@ -212,7 +213,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 		}
 
 	script_info->AddModule(module);
-	DBG_LOG(DBG_ZEEKYGEN, "Added module usage %s in %s",
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Added module usage %s in %s",
 	        module.c_str(), name.c_str());
 	}
 
@@ -268,7 +269,7 @@ void Manager::StartType(zeek::detail::IDPtr id)
 		return;
 		}
 
-	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo (incomplete) %s, in %s",
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Making IdentifierInfo (incomplete) %s, in %s",
 	        id->Name(), script.c_str());
 	incomplete_type = CreateIdentifierInfo(std::move(id), script_info);
 	}
@@ -287,7 +288,7 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 		{
 		if ( incomplete_type->Name() == id->Name() )
 			{
-			DBG_LOG(DBG_ZEEKYGEN, "Finished document for type %s", id->Name());
+			DBG_LOG(zeek::DBG_ZEEKYGEN, "Finished document for type %s", id->Name());
 			incomplete_type->CompletedTypeDecl();
 			incomplete_type = nullptr;
 			return;
@@ -317,7 +318,7 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 		{
 		// Internally-created identifier (e.g. file/proto analyzer enum tags).
 		// Handled specially since they don't have a script location.
-		DBG_LOG(DBG_ZEEKYGEN, "Made internal IdentifierInfo %s",
+		DBG_LOG(zeek::DBG_ZEEKYGEN, "Made internal IdentifierInfo %s",
 		        id->Name());
 		CreateIdentifierInfo(id, nullptr);
 		return;
@@ -332,7 +333,7 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 		return;
 		}
 
-	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo %s, in script %s",
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Making IdentifierInfo %s, in script %s",
 	        id->Name(), script.c_str());
 	CreateIdentifierInfo(std::move(id), script_info);
 	}
@@ -356,7 +357,7 @@ void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* fiel
 	string script = NormalizeScriptPath(path);
 	idd->AddRecordField(field, script, comment_buffer);
 	comment_buffer.clear();
-	DBG_LOG(DBG_ZEEKYGEN, "Document record field %s, identifier %s, script %s",
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Document record field %s, identifier %s, script %s",
 	        field->id, id->Name(), script.c_str());
 	}
 
@@ -394,7 +395,7 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path,
 	script_info->AddRedef(id_info);
 	comment_buffer.clear();
 	last_identifier_seen = id_info;
-	DBG_LOG(DBG_ZEEKYGEN, "Added redef of %s from %s",
+	DBG_LOG(zeek::DBG_ZEEKYGEN, "Added redef of %s from %s",
 	        id->Name(), from_script.c_str());
 	}
 

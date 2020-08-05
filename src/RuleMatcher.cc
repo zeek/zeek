@@ -25,6 +25,8 @@
 
 using namespace std;
 
+namespace zeek::detail {
+
 // FIXME: Things that are not fully implemented/working yet:
 //
 //		  - "ip-options" always evaluates to false
@@ -61,7 +63,7 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 	level = 0;
 	}
 
-RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
+RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<zeek::IPPrefix> arg_v)
 	{
 	prot = arg_prot;
 	offset = 0;
@@ -181,9 +183,9 @@ void RuleHdrTest::PrintDebug()
 	fprintf(stderr, "\n");
 	}
 
-RuleEndpointState::RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
+RuleEndpointState::RuleEndpointState(zeek::analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
 					  RuleEndpointState* arg_opposite,
-					  analyzer::pia::PIA* arg_PIA)
+					  ::analyzer::pia::PIA* arg_PIA)
 	{
 	payload_size = -1;
 	analyzer = arg_analyzer;
@@ -263,7 +265,7 @@ bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file %s", f.data());
+			zeek::reporter->Error("Can't open signature file %s", f.data());
 			return false;
 			}
 
@@ -480,7 +482,7 @@ static inline uint32_t getval(const u_char* data, int size)
 		return ntohl(*(uint32_t*) data);
 
 	default:
-		reporter->InternalError("illegal HdrTest size");
+		zeek::reporter->InternalError("illegal HdrTest size");
 	}
 
 	// Should not be reached.
@@ -503,12 +505,12 @@ static inline bool match_or(const maskedvalue_list& mvals, uint32_t v, FuncT com
 
 // Evaluate a prefix list (matches if at least one value matches).
 template <typename FuncT>
-static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
+static inline bool match_or(const vector<zeek::IPPrefix>& prefixes, const zeek::IPAddr& a,
                             FuncT comp)
 	{
 	for ( size_t i = 0; i < prefixes.size(); ++i )
 		{
-		IPAddr masked(a);
+		zeek::IPAddr masked(a);
 		masked.Mask(prefixes[i].LengthIPv6());
 		if ( comp(masked, prefixes[i].Prefix()) )
 			return true;
@@ -532,12 +534,12 @@ static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v,
 
 // Evaluate a prefix list (doesn't match if any value matches).
 template <typename FuncT>
-static inline bool match_not_and(const vector<IPPrefix>& prefixes,
-                                 const IPAddr& a, FuncT comp)
+static inline bool match_not_and(const vector<zeek::IPPrefix>& prefixes,
+                                 const zeek::IPAddr& a, FuncT comp)
 	{
 	for ( size_t i = 0; i < prefixes.size(); ++i )
 		{
-		IPAddr masked(a);
+		zeek::IPAddr masked(a);
 		masked.Mask(prefixes[i].LengthIPv6());
 		if ( comp(masked, prefixes[i].Prefix()) )
 			return false;
@@ -574,42 +576,42 @@ static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
 			break;
 
 		default:
-			reporter->InternalError("unknown RuleHdrTest comparison type");
+			zeek::reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
 	}
 	return false;
 	}
 
-static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
+static inline bool compare(const vector<zeek::IPPrefix>& prefixes, const zeek::IPAddr& a,
                            RuleHdrTest::Comp comp)
 	{
 	switch ( comp ) {
 		case RuleHdrTest::EQ:
-			return match_or(prefixes, a, std::equal_to<IPAddr>());
+			return match_or(prefixes, a, std::equal_to<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::NE:
-			return match_not_and(prefixes, a, std::equal_to<IPAddr>());
+			return match_not_and(prefixes, a, std::equal_to<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::LT:
-			return match_or(prefixes, a, std::less<IPAddr>());
+			return match_or(prefixes, a, std::less<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::GT:
-			return match_or(prefixes, a, std::greater<IPAddr>());
+			return match_or(prefixes, a, std::greater<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::LE:
-			return match_or(prefixes, a, std::less_equal<IPAddr>());
+			return match_or(prefixes, a, std::less_equal<zeek::IPAddr>());
 			break;
 
 		case RuleHdrTest::GE:
-			return match_or(prefixes, a, std::greater_equal<IPAddr>());
+			return match_or(prefixes, a, std::greater_equal<zeek::IPAddr>());
 			break;
 
 		default:
-			reporter->InternalError("unknown RuleHdrTest comparison type");
+			zeek::reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
 	}
 	return false;
@@ -635,7 +637,7 @@ RuleFileMagicState* RuleMatcher::InitFileMagic() const
 bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
                                          const AcceptingMatchSet& ams)
 	{
-	DBG_LOG(DBG_RULES, "Checking rule: %s", r->id);
+	DBG_LOG(zeek::DBG_RULES, "Checking rule: %s", r->id);
 
 	// Check whether all patterns of the rule have matched.
 	for ( const auto& pattern : r->patterns )
@@ -650,7 +652,7 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 		// FIXME: How to check for offset ??? ###
 		}
 
-	DBG_LOG(DBG_RULES, "All patterns of rule satisfied");
+	DBG_LOG(zeek::DBG_RULES, "All patterns of rule satisfied");
 
 	return true;
 	}
@@ -664,16 +666,16 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 
 	if ( ! state )
 		{
-		reporter->Warning("RuleFileMagicState not initialized yet.");
+		zeek::reporter->Warning("RuleFileMagicState not initialized yet.");
 		return rval;
 		}
 
 #ifdef DEBUG
-	if ( debug_logger.IsEnabled(DBG_RULES) )
+	if ( debug_logger.IsEnabled(zeek::DBG_RULES) )
 		{
 		const char* s = fmt_bytes(reinterpret_cast<const char*>(data),
 		                          min(40, static_cast<int>(len)));
-		DBG_LOG(DBG_RULES, "Matching %s rules on |%s%s|",
+		DBG_LOG(zeek::DBG_RULES, "Matching %s rules on |%s%s|",
 		        Rule::TypeToString(Rule::FILE_MAGIC), s,
 		        len > 40 ? "..." : "");
 		}
@@ -690,7 +692,7 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 	if ( ! newmatch )
 		return rval;
 
-	DBG_LOG(DBG_RULES, "New pattern match found");
+	DBG_LOG(zeek::DBG_RULES, "New pattern match found");
 
 	AcceptingMatchSet accepted_matches;
 
@@ -736,10 +738,10 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 	return rval;
 	}
 
-RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
-						const IP_Hdr* ip, int caplen,
-						RuleEndpointState* opposite,
-						bool from_orig, analyzer::pia::PIA* pia)
+RuleEndpointState* RuleMatcher::InitEndpoint(zeek::analyzer::Analyzer* analyzer,
+                                             const zeek::IP_Hdr* ip, int caplen,
+                                             RuleEndpointState* opposite,
+                                             bool from_orig, ::analyzer::pia::PIA* pia)
 	{
 	RuleEndpointState* state =
 		new RuleEndpointState(analyzer, from_orig, opposite, pia);
@@ -751,7 +753,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		{
 		RuleHdrTest* hdr_test = tests[h];
 
-		DBG_LOG(DBG_RULES, "HdrTest %d matches (%s%s)", hdr_test->id,
+		DBG_LOG(zeek::DBG_RULES, "HdrTest %d matches (%s%s)", hdr_test->id,
 				hdr_test->pattern_rules ? "+" : "-",
 				hdr_test->pure_rules ? "+" : "-");
 
@@ -829,7 +831,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 					break;
 
 				default:
-					reporter->InternalError("unknown RuleHdrTest protocol type");
+					zeek::reporter->InternalError("unknown RuleHdrTest protocol type");
 					break;
 				}
 
@@ -854,7 +856,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	{
 	if ( ! state )
 		{
-		reporter->Warning("RuleEndpointState not initialized yet.");
+		zeek::reporter->Warning("RuleEndpointState not initialized yet.");
 		return;
 		}
 
@@ -866,12 +868,12 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	bool newmatch = false;
 
 #ifdef DEBUG
-	if ( debug_logger.IsEnabled(DBG_RULES) )
+	if ( debug_logger.IsEnabled(zeek::DBG_RULES) )
 		{
 		const char* s =
 			fmt_bytes((const char *) data, min(40, data_len));
 
-		DBG_LOG(DBG_RULES, "Matching %s rules [%d,%d] on |%s%s|",
+		DBG_LOG(zeek::DBG_RULES, "Matching %s rules [%d,%d] on |%s%s|",
 				Rule::TypeToString(type), bol, eol, s,
 				data_len > 40 ? "..." : "");
 		}
@@ -902,7 +904,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	if ( ! newmatch )
 		return;
 
-	DBG_LOG(DBG_RULES, "New pattern match found");
+	DBG_LOG(zeek::DBG_RULES, "New pattern match found");
 
 	AcceptingMatchSet accepted_matches;
 
@@ -938,17 +940,17 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 		{
 		Rule* r = *it;
 
-		DBG_LOG(DBG_RULES, "Accepted rule: %s", r->id);
+		DBG_LOG(zeek::DBG_RULES, "Accepted rule: %s", r->id);
 
 		for ( const auto& h : state->hdr_tests )
 			{
-			DBG_LOG(DBG_RULES, "Checking for accepted rule on HdrTest %d", h->id);
+			DBG_LOG(zeek::DBG_RULES, "Checking for accepted rule on HdrTest %d", h->id);
 
 			// Skip if rule does not belong to this node.
 			if ( ! h->ruleset->Contains(r->Index()) )
 				continue;
 
-			DBG_LOG(DBG_RULES, "On current node");
+			DBG_LOG(zeek::DBG_RULES, "On current node");
 
 			// Skip if rule already fired for this connection.
 			if ( is_member_of(state->matched_rules, r->Index()) )
@@ -962,7 +964,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 				state->matched_text.push_back(s);
 				}
 
-			DBG_LOG(DBG_RULES, "And has not already fired");
+			DBG_LOG(zeek::DBG_RULES, "And has not already fired");
 			// Eval additional conditions.
 			if ( ! EvalRuleConditions(r, state, data, data_len, false) )
 				continue;
@@ -1004,11 +1006,11 @@ bool RuleMatcher::ExecRulePurely(Rule* r, zeek::String* s,
 	if ( is_member_of(state->matched_rules, r->Index()) )
 		return false;
 
-	DBG_LOG(DBG_RULES, "Checking rule %s purely", r->ID());
+	DBG_LOG(zeek::DBG_RULES, "Checking rule %s purely", r->ID());
 
 	if ( EvalRuleConditions(r, state, nullptr, 0, eos) )
 		{
-		DBG_LOG(DBG_RULES, "MATCH!");
+		DBG_LOG(zeek::DBG_RULES, "MATCH!");
 
 		if ( s )
 			ExecRuleActions(r, state, s->Bytes(), s->Len(), eos);
@@ -1024,7 +1026,7 @@ bool RuleMatcher::ExecRulePurely(Rule* r, zeek::String* s,
 bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 		const u_char* data, int len, bool eos)
 	{
-	DBG_LOG(DBG_RULES, "Evaluating conditions for rule %s", r->ID());
+	DBG_LOG(zeek::DBG_RULES, "Evaluating conditions for rule %s", r->ID());
 
 	// Check for other rules which have to match first.
 	for ( const auto& pc : r->preconds )
@@ -1061,7 +1063,7 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 		if ( ! cond->DoMatch(r, state, data, len) )
 			return false;
 
-	DBG_LOG(DBG_RULES, "Conditions met: MATCH! %s", r->ID());
+	DBG_LOG(zeek::DBG_RULES, "Conditions met: MATCH! %s", r->ID());
 	return true;
 	}
 
@@ -1227,7 +1229,7 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 		GetStats(stats, h);
 	}
 
-void RuleMatcher::DumpStats(BroFile* f)
+void RuleMatcher::DumpStats(zeek::File* f)
 	{
 	Stats stats;
 	GetStats(&stats);
@@ -1242,7 +1244,7 @@ void RuleMatcher::DumpStats(BroFile* f)
 	DumpStateStats(f, root);
 	}
 
-void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
+void RuleMatcher::DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test)
 	{
 	if ( ! hdr_test )
 		return;
@@ -1289,7 +1291,7 @@ static zeek::Val* get_bro_val(const char* label)
 // if the prefix_vector param isn't null, appending to that is preferred
 // over appending to the masked val list.
 static bool val_to_maskedval(zeek::Val* v, maskedvalue_list* append_to,
-                             vector<IPPrefix>* prefix_vector)
+                             vector<zeek::IPPrefix>* prefix_vector)
 	{
 	MaskedValue* mval = new MaskedValue;
 
@@ -1356,7 +1358,7 @@ static bool val_to_maskedval(zeek::Val* v, maskedvalue_list* append_to,
 	}
 
 void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                         vector<IPPrefix>* prefix_vector)
+                         vector<zeek::IPPrefix>* prefix_vector)
 	{
 	zeek::Val* v = get_bro_val(id);
 	if ( ! v )
@@ -1417,8 +1419,8 @@ uint32_t id_to_uint(const char* id)
 	return 0;
 	}
 
-void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-					   int caplen, bool from_orig, analyzer::pia::PIA* pia)
+void RuleMatcherState::InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+                                           int caplen, bool from_orig, ::analyzer::pia::PIA* pia)
 	{
 	if ( ! rule_matcher )
 		return;
@@ -1492,3 +1494,5 @@ void RuleMatcherState::ClearMatchState(bool orig)
 	else if ( resp_match_state )
 		rule_matcher->ClearEndpointState(resp_match_state);
 	}
+
+} // namespace zeek::detail

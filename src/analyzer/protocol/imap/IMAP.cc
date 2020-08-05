@@ -6,7 +6,7 @@
 
 using namespace analyzer::imap;
 
-IMAP_Analyzer::IMAP_Analyzer(Connection* conn)
+IMAP_Analyzer::IMAP_Analyzer(zeek::Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("IMAP", conn)
 	{
 	interp = new binpac::IMAP::IMAP_Conn(this);
@@ -79,7 +79,7 @@ void IMAP_Analyzer::StartTLS()
 	// TLS datastream.
 	tls_active = true;
 
-	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 	}

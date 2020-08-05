@@ -13,8 +13,7 @@
 
 #include "TraverseTypes.h"
 
-class CompositeHash;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
 namespace zeek::detail {
@@ -66,7 +65,6 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	Stmt()	{}
 	explicit Stmt(BroStmtTag arg_tag);
 
 	void AddTag(ODesc* d) const;

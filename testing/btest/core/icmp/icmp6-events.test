@@ -13,103 +13,103 @@
 
 # @TEST-EXEC: btest-diff output
 
-event icmp_sent(c: connection, icmp: icmp_conn)
+event icmp_sent(c: connection, info: icmp_info)
     {
     print "icmp_sent";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     }
 
-event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
+event icmp_echo_request(c: connection, info: icmp_info, id: count, seq: count, payload: string)
     {
     print "icmp_echo_request (id=" + fmt("%d", id) + ", seq=" + fmt("%d", seq) + ", payload=" + payload + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     }
 
-event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
+event icmp_echo_reply(c: connection, info: icmp_info, id: count, seq: count, payload: string)
     {
     print "icmp_echo_reply (id=" + fmt("%d", id) + ", seq=" + fmt("%d", seq) + ", payload=" + payload + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     }
 
-event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+event icmp_unreachable(c: connection, info: icmp_info, code: count, context: icmp_context)
     {
     print "icmp_unreachable (code=" + fmt("%d", code) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     print "  icmp_context: " + fmt("%s", context);
     }
 
-event icmp_packet_too_big(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+event icmp_packet_too_big(c: connection, info: icmp_info, code: count, context: icmp_context)
     {
     print "icmp_packet_too_big (code=" + fmt("%d", code) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     print "  icmp_context: " + fmt("%s", context);
     }
 
-event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+event icmp_time_exceeded(c: connection, info: icmp_info, code: count, context: icmp_context)
     {
     print "icmp_time_exceeded (code=" + fmt("%d", code) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     print "  icmp_context: " + fmt("%s", context);
     }
 
-event icmp_parameter_problem(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+event icmp_parameter_problem(c: connection, info: icmp_info, code: count, context: icmp_context)
     {
     print "icmp_parameter_problem (code=" + fmt("%d", code) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     print "  icmp_context: " + fmt("%s", context);
     }
 
-event icmp_redirect(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options)
+event icmp_redirect(c: connection, info: icmp_info, tgt: addr, dest: addr, options: icmp6_nd_options)
     {
     print "icmp_redirect (tgt=" + fmt("%s", tgt) + ", dest=" + fmt("%s", dest) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
 	print "  options: " + fmt("%s", options);
     }
 
-event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+event icmp_error_message(c: connection, info: icmp_info, code: count, context: icmp_context)
     {
     print "icmp_error_message (code=" + fmt("%d", code) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
     print "  icmp_context: " + fmt("%s", context);
     }
 
-event icmp_neighbor_solicitation(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options)
+event icmp_neighbor_solicitation(c: connection, info: icmp_info, tgt: addr, options: icmp6_nd_options)
     {
     print "icmp_neighbor_solicitation (tgt=" + fmt("%s", tgt) + ")";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
 	print "  options: " + fmt("%s", options);
     }
 
-event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options)
+event icmp_neighbor_advertisement(c: connection, info: icmp_info, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options)
     {
     print "icmp_neighbor_advertisement (tgt=" + fmt("%s", tgt) + ")";
 	print "    router=" + fmt("%s", router);
 	print "    solicited=" + fmt("%s", solicited);
 	print "    override=" + fmt("%s", override);
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
 	print "  options: " + fmt("%s", options);
     }
 
-event icmp_router_solicitation(c: connection, icmp: icmp_conn, options: icmp6_nd_options)
+event icmp_router_solicitation(c: connection, info: icmp_info, options: icmp6_nd_options)
     {
     print "icmp_router_solicitation";
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
 	print "  options: " + fmt("%s", options);
     }
 
-event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options)
+event icmp_router_advertisement(c: connection, info: icmp_info, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options)
     {
     print "icmp_router_advertisement";
 	print "    cur_hop_limit=" + fmt("%s", cur_hop_limit);
@@ -123,6 +123,6 @@ event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: c
 	print "    reachable_time=" + fmt("%s", reachable_time);
 	print "    retrans_timer=" + fmt("%s", retrans_timer);
     print "  conn_id: " + fmt("%s", c$id);
-    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_info: " + fmt("%s", info);
 	print "  options: " + fmt("%s", options);
     }

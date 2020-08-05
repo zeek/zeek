@@ -14,9 +14,9 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
 namespace zeek {
+
 using EnumTypePtr = zeek::IntrusivePtr<zeek::EnumType>;
 using EnumValPtr = zeek::IntrusivePtr<zeek::EnumVal>;
-}
 
 /**
  * Class to identify an analyzer type.
@@ -157,3 +157,7 @@ private:
 	subtype_t subtype;      // Subtype.
 	mutable zeek::EnumValPtr val;   // Script-layer value.
 };
+
+} // namespace zeek
+
+using Tag [[deprecated("Remove in v4.1. Use zeek::Tag instead")]] = zeek::Tag;

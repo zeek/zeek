@@ -110,13 +110,13 @@ bool BasicBloomFilter::Merge(const BloomFilter* other)
 
 	if ( ! hasher->Equals(o->hasher) )
 		{
-		reporter->Error("incompatible hashers in BasicBloomFilter merge");
+		zeek::reporter->Error("incompatible hashers in BasicBloomFilter merge");
 		return false;
 		}
 
 	else if ( bits->Size() != o->bits->Size() )
 		{
-		reporter->Error("different bitvector size in BasicBloomFilter merge");
+		zeek::reporter->Error("different bitvector size in BasicBloomFilter merge");
 		return false;
 		}
 
@@ -156,7 +156,7 @@ BasicBloomFilter::~BasicBloomFilter()
 	delete bits;
 	}
 
-void BasicBloomFilter::Add(const HashKey* key)
+void BasicBloomFilter::Add(const zeek::detail::HashKey* key)
 	{
 	Hasher::digest_vector h = hasher->Hash(key);
 
@@ -164,7 +164,7 @@ void BasicBloomFilter::Add(const HashKey* key)
 		bits->Set(h[i] % bits->Size());
 	}
 
-size_t BasicBloomFilter::Count(const HashKey* key) const
+size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const
 	{
 	Hasher::digest_vector h = hasher->Hash(key);
 
@@ -229,13 +229,13 @@ bool CountingBloomFilter::Merge(const BloomFilter* other)
 
 	if ( ! hasher->Equals(o->hasher) )
 		{
-		reporter->Error("incompatible hashers in CountingBloomFilter merge");
+		zeek::reporter->Error("incompatible hashers in CountingBloomFilter merge");
 		return false;
 		}
 
 	else if ( cells->Size() != o->cells->Size() )
 		{
-		reporter->Error("different bitvector size in CountingBloomFilter merge");
+		zeek::reporter->Error("different bitvector size in CountingBloomFilter merge");
 		return false;
 		}
 
@@ -260,7 +260,7 @@ std::string CountingBloomFilter::InternalState() const
 	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.
-void CountingBloomFilter::Add(const HashKey* key)
+void CountingBloomFilter::Add(const zeek::detail::HashKey* key)
 	{
 	Hasher::digest_vector h = hasher->Hash(key);
 
@@ -268,7 +268,7 @@ void CountingBloomFilter::Add(const HashKey* key)
 		cells->Increment(h[i] % cells->Size());
 	}
 
-size_t CountingBloomFilter::Count(const HashKey* key) const
+size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const
 	{
 	Hasher::digest_vector h = hasher->Hash(key);
 

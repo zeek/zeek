@@ -93,8 +93,6 @@ struct val_converter {
 		{
 		if ( type->Tag() == zeek::TYPE_COUNT )
 			return zeek::val_mgr->Count(a);
-		if ( type->Tag() == zeek::TYPE_COUNTER )
-			return zeek::val_mgr->Count(a);
 		return nullptr;
 		}
 
@@ -119,7 +117,7 @@ struct val_converter {
 			return zeek::make_intrusive<zeek::StringVal>(a.size(), a.data());
 		case zeek::TYPE_FILE:
 			{
-			auto file = BroFile::Get(a.data());
+			auto file = zeek::File::Get(a.data());
 
 			if ( file )
 				return zeek::make_intrusive<zeek::Val>(std::move(file));
@@ -136,7 +134,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_ADDR )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
-			return zeek::make_intrusive<zeek::AddrVal>(IPAddr(*bits));
+			return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(*bits));
 			}
 
 		return nullptr;
@@ -147,7 +145,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_SUBNET )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
-			return zeek::make_intrusive<zeek::SubNetVal>(IPPrefix(IPAddr(*bits), a.length()));
+			return zeek::make_intrusive<zeek::SubNetVal>(zeek::IPPrefix(zeek::IPAddr(*bits), a.length()));
 			}
 
 		return nullptr;
@@ -191,7 +189,7 @@ struct val_converter {
 			if ( i == -1 )
 				return nullptr;
 
-			auto rval = etype->GetVal(i);
+			auto rval = etype->GetEnumVal(i);
 			return rval;
 			}
 
@@ -239,7 +237,7 @@ struct val_converter {
 
 			auto list_val = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
-			for ( auto i = 0u; i < indices->size(); ++i )
+			for ( size_t i = 0; i < indices->size(); ++i )
 				{
 				auto index_val = bro_broker::data_to_val(move((*indices)[i]),
 				                                         expected_index_types[i].get());
@@ -298,7 +296,7 @@ struct val_converter {
 
 			auto list_val = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ANY);
 
-			for ( auto i = 0u; i < indices->size(); ++i )
+			for ( size_t i = 0; i < indices->size(); ++i )
 				{
 				auto index_val = bro_broker::data_to_val(move((*indices)[i]),
 				                                         expected_index_types[i].get());
@@ -386,7 +384,7 @@ struct val_converter {
 			auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::IntrusivePtr{zeek::NewRef{}, rt});
 			auto idx = 0u;
 
-			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
+			for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
 					return nullptr;
@@ -421,13 +419,13 @@ struct val_converter {
 			if ( ! exact_text || ! anywhere_text )
 				return nullptr;
 
-			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			auto* re = new zeek::RE_Matcher(exact_text->c_str(),
 			                                anywhere_text->c_str());
 
 			if ( ! re->Compile() )
 				{
-				reporter->Error("failed compiling unserialized pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				zeek::reporter->Error("failed compiling unserialized pattern: %s, %s",
+				                      exact_text->c_str(), anywhere_text->c_str());
 				delete re;
 				return nullptr;
 				}
@@ -462,8 +460,6 @@ struct type_checker {
 	result_type operator()(uint64_t a)
 		{
 		if ( type->Tag() == zeek::TYPE_COUNT )
-			return true;
-		if ( type->Tag() == zeek::TYPE_COUNTER )
 			return true;
 		return false;
 		}
@@ -574,7 +570,7 @@ struct type_checker {
 						{
 						indices_to_check.reserve(indices->size());
 
-						for ( auto i = 0u; i < indices->size(); ++i )
+						for ( size_t i = 0; i < indices->size(); ++i )
 							indices_to_check.emplace_back(&(*indices)[i]);
 						}
 					}
@@ -582,7 +578,7 @@ struct type_checker {
 					{
 					indices_to_check.reserve(indices->size());
 
-					for ( auto i = 0u; i < indices->size(); ++i )
+					for ( size_t i = 0; i < indices->size(); ++i )
 						indices_to_check.emplace_back(&(*indices)[i]);
 					}
 				}
@@ -592,7 +588,7 @@ struct type_checker {
 			if ( expected_index_types.size() != indices_to_check.size() )
 				return false;
 
-			for ( auto i = 0u; i < indices_to_check.size(); ++i )
+			for ( size_t i = 0; i < indices_to_check.size(); ++i )
 				{
 				auto expect = expected_index_types[i].get();
 				auto& index_to_check = *(indices_to_check)[i];
@@ -633,7 +629,7 @@ struct type_checker {
 						{
 						indices_to_check.reserve(indices->size());
 
-						for ( auto i = 0u; i < indices->size(); ++i )
+						for ( size_t i = 0; i < indices->size(); ++i )
 							indices_to_check.emplace_back(&(*indices)[i]);
 						}
 					}
@@ -641,7 +637,7 @@ struct type_checker {
 					{
 					indices_to_check.reserve(indices->size());
 
-					for ( auto i = 0u; i < indices->size(); ++i )
+					for ( size_t i = 0; i < indices->size(); ++i )
 						indices_to_check.emplace_back(&(*indices)[i]);
 					}
 				}
@@ -654,7 +650,7 @@ struct type_checker {
 				return false;
 				}
 
-			for ( auto i = 0u; i < indices_to_check.size(); ++i )
+			for ( size_t i = 0; i < indices_to_check.size(); ++i )
 				{
 				auto expect = expected_index_types[i].get();
 				auto& index_to_check = *(indices_to_check)[i];
@@ -715,7 +711,7 @@ struct type_checker {
 			auto rt = type->AsRecordType();
 			auto idx = 0u;
 
-			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
+			for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
 					return false;
@@ -745,15 +741,15 @@ struct type_checker {
 			if ( ! exact_text || ! anywhere_text )
 				return false;
 
-			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			auto* re = new zeek::RE_Matcher(exact_text->c_str(),
 			                                anywhere_text->c_str());
 			auto compiled = re->Compile();
 			delete re;
 
 			if ( ! compiled )
 				{
-				reporter->Error("failed compiling pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				zeek::reporter->Error("failed compiling pattern: %s, %s",
+				                      exact_text->c_str(), anywhere_text->c_str());
 				return false;
 				}
 
@@ -796,8 +792,6 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		return {v->AsInt()};
 	case zeek::TYPE_COUNT:
 		return {v->AsCount()};
-	case zeek::TYPE_COUNTER:
-		return {v->AsCounter()};
 	case zeek::TYPE_PORT:
 		{
 		auto p = v->AsPortVal();
@@ -871,7 +865,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 				}
 			else
 				{
-				reporter->InternalWarning("Closure with non-ScriptFunc");
+				zeek::reporter->InternalWarning("Closure with non-ScriptFunc");
 				return broker::ec::invalid_data;
 				}
 			}
@@ -890,7 +884,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		else
 			rval = broker::table();
 
-		HashKey* hk;
+		zeek::detail::HashKey* hk;
 		zeek::TableEntryVal* entry;
 		auto c = table->InitForIteration();
 
@@ -964,7 +958,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		size_t num_fields = v->GetType()->AsRecordType()->NumFields();
 		rval.reserve(num_fields);
 
-		for ( auto i = 0u; i < num_fields; ++i )
+		for ( size_t i = 0; i < num_fields; ++i )
 			{
 			auto item_val = rec->GetFieldOrDefault(i);
 
@@ -986,7 +980,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		}
 	case zeek::TYPE_PATTERN:
 		{
-		const RE_Matcher* p = v->AsPattern();
+		const zeek::RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}
@@ -995,15 +989,15 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		auto c = v->AsOpaqueVal()->Serialize();
 		if ( ! c )
 			{
-			reporter->Error("unsupported opaque type for serialization");
+			zeek::reporter->Error("unsupported opaque type for serialization");
 			break;
 			}
 
 		return {c};
 		}
 	default:
-		reporter->Error("unsupported Broker::Data type: %s",
-		                zeek::type_name(v->GetType()->Tag()));
+		zeek::reporter->Error("unsupported Broker::Data type: %s",
+		                      zeek::type_name(v->GetType()->Tag()));
 		break;
 	}
 
@@ -1018,7 +1012,7 @@ zeek::RecordValPtr bro_broker::make_data_val(zeek::Val* v)
 	if  ( data )
 		rval->Assign(0, zeek::make_intrusive<DataVal>(move(*data)));
 	else
-		reporter->Warning("did not get a value from val_to_data");
+		zeek::reporter->Warning("did not get a value from val_to_data");
 
 	return rval;
 	}
@@ -1035,72 +1029,72 @@ struct data_type_getter {
 
 	result_type operator()(broker::none)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::NONE);
 		}
 
 	result_type operator()(bool)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::BOOL);
 		}
 
 	result_type operator()(uint64_t)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::COUNT);
 		}
 
 	result_type operator()(int64_t)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::INT);
 		}
 
 	result_type operator()(double)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::DOUBLE);
 		}
 
 	result_type operator()(const std::string&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::STRING);
 		}
 
 	result_type operator()(const broker::address&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::ADDR);
 		}
 
 	result_type operator()(const broker::subnet&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::SUBNET);
 		}
 
 	result_type operator()(const broker::port&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::PORT);
 		}
 
 	result_type operator()(const broker::timestamp&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::TIME);
 		}
 
 	result_type operator()(const broker::timespan&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::INTERVAL);
 		}
 
 	result_type operator()(const broker::enum_value&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::ENUM);
 		}
 
 	result_type operator()(const broker::set&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::SET);
 		}
 
 	result_type operator()(const broker::table&)
 		{
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::TABLE);
 		}
 
 	result_type operator()(const broker::vector&)
@@ -1108,7 +1102,7 @@ struct data_type_getter {
 		// Note that Broker uses vectors to store record data, so there's
 		// no actual way to tell if this data was originally associated
 		// with a Bro record.
-		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR);
+		return zeek::BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::VECTOR);
 		}
 };
 
@@ -1122,15 +1116,15 @@ broker::data& bro_broker::opaque_field_to_data(zeek::RecordVal* v, zeek::detail:
 	const auto& d = v->GetField(0);
 
 	if ( ! d )
-		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
-		                       "Broker::Data's opaque field is not set");
+		zeek::reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		                             "Broker::Data's opaque field is not set");
 
 	// RuntimeError throws an exception which causes this line to never exceute.
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
 	return static_cast<DataVal*>(d.get())->data;
 	}
 
-void bro_broker::DataVal::ValDescribe(ODesc* d) const
+void bro_broker::DataVal::ValDescribe(zeek::ODesc* d) const
 	{
 	d->Add("broker::data{");
 	d->Add(broker::to_string(data));

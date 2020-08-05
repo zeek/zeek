@@ -120,7 +120,7 @@ void Stmt::DecrBPCount()
 	if ( breakpoint_count )
 		--breakpoint_count;
 	else
-		reporter->InternalError("breakpoint count decremented below 0");
+		zeek::reporter->InternalError("breakpoint count decremented below 0");
 	}
 
 void Stmt::AddTag(ODesc* d) const
@@ -203,7 +203,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-static BroFile* print_stdout = nullptr;
+static zeek::File* print_stdout = nullptr;
 
 static EnumValPtr lookup_enum_val(const char* module_name, const char* name)
 	{
@@ -216,7 +216,7 @@ static EnumValPtr lookup_enum_val(const char* module_name, const char* name)
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
 
-	return et->GetVal(index);
+	return et->GetEnumVal(index);
 	}
 
 static void print_log(const std::vector<ValPtr>& vals)
@@ -244,9 +244,9 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 	RegisterAccess();
 
 	if ( ! print_stdout )
-		print_stdout = new BroFile(stdout);
+		print_stdout = new zeek::File(stdout);
 
-	BroFile* f = print_stdout;
+	zeek::File* f = print_stdout;
 	int offset = 0;
 
 	if ( vals.size() > 0 && (vals)[0]->GetType()->Tag() == TYPE_FILE )
@@ -270,7 +270,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 		return nullptr;
 		}
 	case BifEnum::Log::REDIRECT_STDOUT:
-		if ( f->File() == stdout )
+		if ( f->FileHandle() == stdout )
 			{
 			// Should catch even printing to a "manually opened" stdout file,
 			// like "/dev/stdout" or "-".
@@ -279,8 +279,8 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 			}
 		break;
 	default:
-		reporter->InternalError("unknown Log::PrintLogType value: %d",
-		                        print_log_type);
+		zeek::reporter->InternalError("unknown Log::PrintLogType value: %d",
+		                              print_log_type);
 		break;
 	}
 
@@ -745,9 +745,10 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 
 	if ( ! hk )
 		{
-		reporter->PushLocation(e->GetLocationInfo());
-		reporter->InternalError("switch expression type mismatch (%s/%s)",
-		    type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
+		zeek::reporter->PushLocation(e->GetLocationInfo());
+		zeek::reporter->InternalError("switch expression type mismatch (%s/%s)",
+		                              type_name(v->GetType()->Tag()),
+		                              type_name(e->GetType()->Tag()));
 		}
 
 	int* label_idx = case_label_value_map.Lookup(hk.get());
@@ -785,9 +786,10 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 
 		if ( ! hk )
 			{
-			reporter->PushLocation(e->GetLocationInfo());
-			reporter->Error("switch expression type mismatch (%s/%s)",
-					type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
+			zeek::reporter->PushLocation(e->GetLocationInfo());
+			zeek::reporter->Error("switch expression type mismatch (%s/%s)",
+			                      type_name(v->GetType()->Tag()),
+			                      type_name(e->GetType()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 
@@ -980,7 +982,7 @@ ValPtr EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	auto h = event_expr->Handler();
 
 	if ( args && h )
-		mgr.Enqueue(h, std::move(*args));
+		zeek::event_mgr.Enqueue(h, std::move(*args));
 
 	flow = FLOW_NEXT;
 	return nullptr;
@@ -1001,7 +1003,8 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 
 WhileStmt::WhileStmt(ExprPtr arg_loop_condition,
                      StmtPtr arg_body)
-	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
+	: Stmt(STMT_WHILE),
+	  loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->GetType()->Tag()) )

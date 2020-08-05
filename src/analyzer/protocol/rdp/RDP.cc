@@ -6,7 +6,7 @@
 
 using namespace analyzer::rdp;
 
-RDP_Analyzer::RDP_Analyzer(Connection* c)
+RDP_Analyzer::RDP_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);
@@ -60,9 +60,9 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! AddChildAnalyzer(pia) )
 					{
-					reporter->AnalyzerError(this,
-					                        "failed to add TCP child analyzer "
-					                        "to RDP analyzer: already exists");
+					zeek::reporter->AnalyzerError(this,
+					                              "failed to add TCP child analyzer "
+					                              "to RDP analyzer: already exists");
 					return;
 					}
 

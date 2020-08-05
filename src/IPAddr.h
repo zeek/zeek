@@ -13,11 +13,16 @@
 namespace zeek { class String; }
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
-struct ConnID;
-class HashKey;
+namespace zeek { struct ConnID; }
+using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
+
+namespace zeek {
+namespace detail {
 
 struct ConnIDKey {
 	in6_addr ip1;
@@ -42,6 +47,13 @@ struct ConnIDKey {
 		return *this;
 		}
 };
+
+/**
+ * Returns a map key for a given ConnID.
+ */
+ConnIDKey BuildConnIDKey(const ConnID& id);
+
+} // namespace detail
 
 /**
  * Class storing both IPv4 and IPv6 addresses.
@@ -250,10 +262,10 @@ public:
 	/**
 	 * Returns a key that can be used to lookup the IP Address in a hash table.
 	 */
-	std::unique_ptr<HashKey> MakeHashKey() const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey() const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* GetHashKey() const;
+	zeek::detail::HashKey* GetHashKey() const;
 
 	/**
 	 * Masks out lower bits of the address.
@@ -382,7 +394,7 @@ public:
 	  */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
-	friend ConnIDKey BuildConnIDKey(const ConnID& id);
+	friend detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id);
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -515,11 +527,6 @@ inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
 	}
 
 /**
-  * Returns a map key for a given ConnID.
-  */
-ConnIDKey BuildConnIDKey(const ConnID& id);
-
-/**
  * Class storing both IPv4 and IPv6 prefixes
  * (i.e., \c 192.168.1.1/16 and \c FD00::/8.
  */
@@ -634,10 +641,10 @@ public:
 	/**
 	 * Returns a key that can be used to lookup the IP Prefix in a hash table.
 	 */
-	std::unique_ptr<HashKey> MakeHashKey() const;
+	std::unique_ptr<zeek::detail::HashKey> MakeHashKey() const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* GetHashKey() const;
+	zeek::detail::HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the
 	  * inter-thread communication.
@@ -721,3 +728,11 @@ private:
 	IPAddr prefix;	// We store it as an address with the non-prefix bits masked out via Mask().
 	uint8_t length = 0;	// The bit length of the prefix relative to full IPv6 addr.
 };
+
+} // namespace zeek
+
+using ConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::ConnIDKey.")]] = zeek::detail::ConnIDKey;
+using IPAddr [[deprecated("Remove in v4.1. Use zeek::IPAddr.")]] = zeek::IPAddr;
+using IPPrefix [[deprecated("Remove in v4.1. Use zeek::IPPrefix.")]] = zeek::IPPrefix;
+
+constexpr auto BuildConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::BuildConnIDKey.")]] = zeek::detail::BuildConnIDKey;

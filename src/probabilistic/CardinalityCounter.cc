@@ -50,11 +50,11 @@ void CardinalityCounter::Init(uint64_t size)
 		alpha_m = 0.7213 / (1 + 1.079 / m);
 
 	else
-		reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be 16, 32, 64 or bigger than 128", size);
+		zeek::reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be 16, 32, 64 or bigger than 128", size);
 
 	double calc_p = log2(m);
 	if ( trunc(calc_p) != calc_p )
-		reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be a power of 2", size);
+		zeek::reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be a power of 2", size);
 
 	p = calc_p;
 
@@ -177,7 +177,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 
 	V = 0;
 
-	for ( unsigned int i = 0; i < m; i++ )
+	for ( size_t i = 0; i < m; i++ )
 		{
 		if ( temp[i] > buckets[i] )
 			buckets[i] = temp[i];

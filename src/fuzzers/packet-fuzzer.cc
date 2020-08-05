@@ -25,21 +25,21 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 		if ( ! chunk )
 			break;
 
-		Packet pkt;
+		zeek::Packet pkt;
 		auto timestamp = 42;
 		pkt_timeval ts = {timestamp, 0};
 		pkt.Init(DLT_RAW, &ts, chunk->size, chunk->size, chunk->data.get(), false, "");
 
 		try
 			{
-			sessions->NextPacket(timestamp, &pkt);
+			zeek::sessions->NextPacket(timestamp, &pkt);
 			}
 		catch ( binpac::Exception const &e )
 			{
 			}
 
 		chunk = {};
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		}
 
 	zeek::detail::fuzzer_cleanup_one_input();

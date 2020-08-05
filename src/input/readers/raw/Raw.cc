@@ -108,7 +108,7 @@ std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 
 	catch ( const std::system_error& e )
 		{
-		reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
+		zeek::reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
 		}
 
 	return lock;
@@ -311,7 +311,7 @@ bool Raw::CloseInput()
 		return false;
 		}
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Raw reader starting close");
+	Debug(zeek::DBG_INPUT, "Raw reader starting close");
 #endif
 
 	file.reset(nullptr);
@@ -326,7 +326,7 @@ bool Raw::CloseInput()
 		}
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Raw reader finished close");
+	Debug(zeek::DBG_INPUT, "Raw reader finished close");
 #endif
 
 	return true;
@@ -421,14 +421,14 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		return result;
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Raw reader created, will perform first update");
+	Debug(zeek::DBG_INPUT, "Raw reader created, will perform first update");
 #endif
 
 	// after initialization - do update
 	DoUpdate();
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "First update went through");
+	Debug(zeek::DBG_INPUT, "First update went through");
 #endif
 	return true;
 	}
@@ -697,7 +697,7 @@ bool Raw::DoUpdate()
 
 
 #ifdef DEBUG
-	Debug(DBG_INPUT, "DoUpdate finished successfully");
+	Debug(zeek::DBG_INPUT, "DoUpdate finished successfully");
 #endif
 
 	return true;
@@ -713,12 +713,12 @@ bool Raw::DoHeartbeat(double network_time, double current_time)
 		case MODE_REREAD:
 		case MODE_STREAM:
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Starting Heartbeat update");
+	Debug(zeek::DBG_INPUT, "Starting Heartbeat update");
 #endif
 			Update();	// call update and not DoUpdate, because update
 					// checks disabled.
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Finished with heartbeat update");
+	Debug(zeek::DBG_INPUT, "Finished with heartbeat update");
 #endif
 			break;
 		default:

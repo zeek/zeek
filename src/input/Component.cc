@@ -24,7 +24,7 @@ Component::~Component()
 	{
 	}
 
-void Component::DoDescribe(ODesc* d) const
+void Component::DoDescribe(zeek::ODesc* d) const
 	{
 	d->Add("Input::READER_");
 	d->Add(CanonicalName());

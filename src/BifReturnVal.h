@@ -10,6 +10,8 @@ namespace zeek {
 using ValPtr = zeek::IntrusivePtr<zeek::Val>;
 }
 
+namespace zeek::detail {
+
 /**
  * A simple wrapper class to use for the return value of BIFs so that
  * they may return either a Val* or IntrusivePtr<Val> (the former could
@@ -30,3 +32,7 @@ public:
 
 	zeek::ValPtr rval;
 };
+
+} // namespace zeek::detail
+
+using BifReturnVal [[deprecated("Remove in v4.1. Use zeek::detail::BifReturnVal.")]] = zeek::detail::BifReturnVal;

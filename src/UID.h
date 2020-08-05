@@ -2,15 +2,14 @@
 
 #pragma once
 
-#include "util.h" // for bro_int_t
-
+#include <string.h>
 #include <string>
 
-#include <string.h>
+#include "util.h" // for bro_int_t
 
 #define BRO_UID_LEN 2
 
-namespace Bro {
+namespace zeek {
 
 /**
  * A class for creating/managing UIDs of arbitrary bit-length and converting
@@ -98,4 +97,8 @@ inline UID& UID::operator=(const UID& other)
 	return *this;
 	}
 
-} // namespace Bro
+} // namespace zeek
+
+namespace Bro {
+	using UID [[deprecated("Remove in v4.1. Use zeek::UID.")]] = zeek::UID;
+}

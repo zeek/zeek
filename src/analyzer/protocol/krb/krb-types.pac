@@ -61,7 +61,7 @@ zeek::RecordValPtr proc_host_address(const BroAnalyzer a, const KRB_Host_Address
 				}
 
 			auto bytes = reinterpret_cast<const uint32_t*>(addr_bytes.data());
-			rv->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv4, bytes, IPAddr::Network)));
+			rv->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv4, bytes, zeek::IPAddr::Network)));
 			return rv;
 			}
 		case 24:
@@ -73,7 +73,7 @@ zeek::RecordValPtr proc_host_address(const BroAnalyzer a, const KRB_Host_Address
 				}
 
 			auto bytes = reinterpret_cast<const uint32_t*>(addr_bytes.data());
-			rv->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, bytes, IPAddr::Network)));
+			rv->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, bytes, zeek::IPAddr::Network)));
 			return rv;
 			}
 		case 20:

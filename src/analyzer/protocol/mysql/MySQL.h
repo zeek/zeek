@@ -12,7 +12,7 @@ namespace analyzer { namespace MySQL {
 class MySQL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit MySQL_Analyzer(Connection* conn);
+	explicit MySQL_Analyzer(zeek::Connection* conn);
 	~MySQL_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -24,7 +24,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new MySQL_Analyzer(conn); }
 
 protected:

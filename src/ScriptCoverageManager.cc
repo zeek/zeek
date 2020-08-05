@@ -1,4 +1,4 @@
-#include "Brofiler.h"
+#include "ScriptCoverageManager.h"
 
 #include <cstdio>
 #include <cstring>
@@ -15,18 +15,20 @@
 
 using namespace std;
 
-Brofiler::Brofiler()
+namespace zeek::detail {
+
+ScriptCoverageManager::ScriptCoverageManager()
 	: ignoring(0), delim('\t')
 	{
 	}
 
-Brofiler::~Brofiler()
+ScriptCoverageManager::~ScriptCoverageManager()
 	{
 	for ( auto& s : stmts )
 		Unref(s);
 	}
 
-void Brofiler::AddStmt(zeek::detail::Stmt* s)
+void ScriptCoverageManager::AddStmt(zeek::detail::Stmt* s)
 	{
 	if ( ignoring != 0 )
 		return;
@@ -35,7 +37,7 @@ void Brofiler::AddStmt(zeek::detail::Stmt* s)
 	stmts.push_back(s);
 	}
 
-bool Brofiler::ReadStats()
+bool ScriptCoverageManager::ReadStats()
 	{
 	char* bf = zeekenv("ZEEK_PROFILER_FILE");
 
@@ -85,7 +87,7 @@ bool Brofiler::ReadStats()
 	return true;
 	}
 
-bool Brofiler::WriteStats()
+bool ScriptCoverageManager::WriteStats()
 	{
 	char* bf = zeekenv("ZEEK_PROFILER_FILE");
 
@@ -96,7 +98,7 @@ bool Brofiler::WriteStats()
 
 	if ( ! ensure_intermediate_dirs(dirname.result.data()) )
 		{
-		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
+		zeek::reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
@@ -111,7 +113,7 @@ bool Brofiler::WriteStats()
 
 		if ( fd == -1 )
 			{
-			reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
+			zeek::reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
 			return false;
 			}
 		f = fdopen(fd, "w");
@@ -123,7 +125,7 @@ bool Brofiler::WriteStats()
 
 	if ( ! f )
 		{
-		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
+		zeek::reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
@@ -154,3 +156,5 @@ bool Brofiler::WriteStats()
 	fclose(f);
 	return true;
 	}
+
+} // namespace zeek::detail

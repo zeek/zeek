@@ -26,7 +26,7 @@ static const char* pop3_cmd_word[] = {
 #define POP3_CMD_WORD(code) ((code >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
 
 
-POP3_Analyzer::POP3_Analyzer(Connection* conn)
+POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("POP3", conn)
 	{
 	masterState = POP3_START;
@@ -136,7 +136,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		++authLines;
 
 		zeek::String encoded(line);
-		zeek::String* decoded = decode_base64(&encoded, nullptr, Conn());
+		zeek::String* decoded = zeek::detail::decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{
@@ -213,8 +213,8 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "unexpected POP3 authorization state");
+			zeek::reporter->AnalyzerError(
+				this, "unexpected POP3 authorization state");
 			delete decoded;
 			return;
 		}
@@ -572,7 +572,7 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default:
-		reporter->AnalyzerError(this, "unknown POP3 command");
+		zeek::reporter->AnalyzerError(this, "unknown POP3 command");
 		return;
 	}
 	}
@@ -821,7 +821,7 @@ void POP3_Analyzer::StartTLS()
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
 
-	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
@@ -845,7 +845,7 @@ void POP3_Analyzer::BeginData(bool orig)
 void POP3_Analyzer::EndData()
 	{
 	if ( ! mail )
-		reporter->Warning("unmatched end of data");
+		zeek::reporter->Warning("unmatched end of data");
 	else
 		{
 		mail->Done();
@@ -870,7 +870,7 @@ int POP3_Analyzer::ParseCmd(std::string cmd)
 		if ( c == '+' || c == '-' )
 			cmd = cmd.substr(1);
 
-		for ( unsigned int i = 0; i < cmd.size(); ++i )
+		for ( size_t i = 0; i < cmd.size(); ++i )
 			cmd[i] = toupper(cmd[i]);
 
 		if ( ! cmd.compare(pop3_cmd_word[code]) )
@@ -910,8 +910,8 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
 	return tokens;
 	}
 
-void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
-				const char* arg1, const char* arg2)
+void POP3_Analyzer::POP3Event(zeek::EventHandlerPtr event, bool is_orig,
+                              const char* arg1, const char* arg2)
 	{
 	if ( ! event )
 		return;

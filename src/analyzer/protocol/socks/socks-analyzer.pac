@@ -98,7 +98,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, zeek::IPAddr::Network)));
 				break;
 
 			default:
@@ -138,7 +138,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, zeek::IPAddr::Network)));
 				break;
 
 			default:
@@ -175,13 +175,13 @@ refine connection SOCKS_Conn += {
 
 	function socks5_unsupported_authentication_method(auth_method: uint8): bool
 		%{
-		reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", fmt("%d", auth_method));
+		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", fmt("%d", auth_method));
 		return true;
 		%}
 
 	function socks5_unsupported_authentication_version(auth_method: uint8, version: uint8): bool
 		%{
-		reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", fmt("method %d, version %d", auth_method, version));
+		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", fmt("method %d, version %d", auth_method, version));
 		return true;
 		%}
 

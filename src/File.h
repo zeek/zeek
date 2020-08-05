@@ -16,25 +16,23 @@
 #include "IntrusivePtr.h"
 #include "util.h"
 
-namespace zeek {
-	class Type;
-	using TypePtr = zeek::IntrusivePtr<zeek::Type>;
-}
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
-class BroFile;
-using BroFilePtr = zeek::IntrusivePtr<BroFile>;
+namespace zeek {
+class Type;
+using TypePtr = zeek::IntrusivePtr<zeek::Type>;
 
-class BroFile final : public zeek::Obj {
+class File;
+using FilePtr = zeek::IntrusivePtr<File>;
+
+class File final : public zeek::Obj {
 public:
-	explicit BroFile(FILE* arg_f);
-	BroFile(FILE* arg_f, const char* filename, const char* access);
-	BroFile(const char* filename, const char* access);
-	~BroFile() override;
+	explicit File(FILE* arg_f);
+	File(FILE* arg_f, const char* filename, const char* access);
+	File(const char* filename, const char* access);
+	~File() override;
 
 	const char* Name() const;
 
@@ -77,9 +75,9 @@ public:
 	static void CloseOpenFiles();
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
-	static BroFilePtr Get(const char* name);
-	[[deprecated("Remove in v4.1.  Use BroFile::Get().")]]
-	static BroFile* GetFile(const char* name)
+	static FilePtr Get(const char* name);
+	[[deprecated("Remove in v4.1.  Use File::Get().")]]
+	static File* GetFile(const char* name)
 		{ return Get(name).release(); }
 
 	void EnableRawOutput()		{ raw_output = true; }
@@ -89,7 +87,7 @@ protected:
 
 	friend class zeek::detail::PrintStmt;
 
-	BroFile()	{ Init(); }
+	File()	{ Init(); }
 	void Init();
 
 	/**
@@ -105,7 +103,7 @@ protected:
 	// (Protected because we do not want anyone to write directly
 	// to the file, but the PrintStmt friend uses this to check whether
 	// it's really stdout.)
-	FILE* File();
+	FILE* FileHandle();
 
 	// Raises a file_opened event.
 	void RaiseOpenEvent();
@@ -123,5 +121,11 @@ protected:
 	static const int MIN_BUFFER_SIZE = 1024;
 
 private:
-	static std::list<std::pair<std::string, BroFile*>> open_files;
+	static std::list<std::pair<std::string, File*>> open_files;
 };
+
+} // namespace zeek
+
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File instead.")]] = zeek::File;
+using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr instead.")]] = zeek::FilePtr;

@@ -39,7 +39,7 @@ enum TypeTag {
 	TYPE_BOOL,      // 1
 	TYPE_INT,       // 2
 	TYPE_COUNT,     // 3
-	TYPE_COUNTER,   // 4
+	TYPE_COUNTER [[deprecated("Remove in v4.1. TYPE_COUNTER was removed; use TYPE_COUNT instead.")]], // 4
 	TYPE_DOUBLE,    // 5
 	TYPE_TIME,      // 6
 	TYPE_INTERVAL,  // 7
@@ -97,7 +97,10 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 		return TYPE_INTERNAL_INT;
 
 	case TYPE_COUNT:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	case TYPE_COUNTER:
+#pragma GCC diagnostic pop
 	case TYPE_PORT:
 		return TYPE_INTERNAL_UNSIGNED;
 
@@ -427,7 +430,10 @@ public:
 	 */
 	struct Prototype {
 		bool deprecated;
+		std::string deprecation_msg;
 		RecordTypePtr args;
+		// Maps from parameter index in canonical prototype to
+		// parameter index in this alternate prorotype.
 		std::map<int, int> offsets;
 	};
 
@@ -706,7 +712,10 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	const zeek::EnumValPtr& GetVal(bro_int_t i);
+	const zeek::EnumValPtr& GetEnumVal(bro_int_t i);
+
+	[[deprecated("Remove in v4.1. Use GetEnumVal() instead.")]]
+	zeek::EnumVal* GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,
@@ -812,7 +821,7 @@ inline bool is_assignable(Type* t)
 	{ return zeek::is_assignable(t->Tag()); }
 
 // True if the given type tag corresponds to an integral type.
-inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }
+inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT ); }
 
 // True if the given type tag corresponds to an arithmetic type.
 inline bool IsArithmetic(TypeTag t)	{ return (IsIntegral(t) || t == TYPE_DOUBLE); }
@@ -931,8 +940,11 @@ constexpr auto TYPE_BOOL = zeek::TYPE_BOOL;
 constexpr auto TYPE_INT = zeek::TYPE_INT;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_COUNT instead.")]]
 constexpr auto TYPE_COUNT = zeek::TYPE_COUNT;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_COUNTER instead.")]]
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+[[deprecated("Remove in v4.1. TYPE_COUNTER was removed. Use zeek::TYPE_COUNT instead.")]]
 constexpr auto TYPE_COUNTER = zeek::TYPE_COUNTER;
+#pragma GCC diagnostic pop
 [[deprecated("Remove in v4.1. Use zeek::TYPE_DOUBLE instead.")]]
 constexpr auto TYPE_DOUBLE = zeek::TYPE_DOUBLE;
 [[deprecated("Remove in v4.1. Use zeek::TYPE_TIME instead.")]]

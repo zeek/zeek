@@ -45,10 +45,10 @@ std::string Foo::RandomString(const int len)
 	"abcdefghijklmnopqrstuvwxyz";
 
 	for (int i = 0; i < len; ++i)
-		// bro_random is not thread-safe; as we are only using one simultaneous thread
+		// zeek::random_number() is not thread-safe; as we are only using one simultaneous thread
 		// here, this should not matter in this case. If this test ever starts showing
 		// random errors, this might be the culprit.
-		s[i] = values[bro_random() / (RAND_MAX / sizeof(values))];
+		s[i] = values[zeek::random_number() / (zeek::max_random() / sizeof(values))];
 
 	return s;
 	}
@@ -107,7 +107,6 @@ threading::Value* Foo::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtype)
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		val->val.uint_val = random();
 		break;
 

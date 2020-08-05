@@ -127,7 +127,7 @@ inline static std::unique_lock<std::mutex> acquire_lock(std::mutex& m)
 		}
 	catch ( const std::system_error& e )
 		{
-		reporter->FatalErrorWithCore("cannot lock mutex: %s", e.what());
+		zeek::reporter->FatalErrorWithCore("cannot lock mutex: %s", e.what());
 		// Never gets here.
 		throw std::exception();
 		}
@@ -218,7 +218,7 @@ inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues()
 
 	catch ( const std::system_error& e )
 		{
-		reporter->FatalErrorWithCore("cannot lock all mutexes: %s", e.what());
+		zeek::reporter->FatalErrorWithCore("cannot lock all mutexes: %s", e.what());
 		// Never gets here.
 		throw std::exception();
 		}

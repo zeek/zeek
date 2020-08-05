@@ -13,7 +13,7 @@
 #include "util.h"
 
 #ifdef DEBUG
-#define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
+#define DEBUG_STR(msg) DBG_LOG(zeek::DBG_STRING, msg)
 #else
 #define DEBUG_STR(msg)
 #endif
@@ -301,7 +301,7 @@ int String::FindSubstring(const String* s) const
 
 String::Vec* String::Split(const String::IdxVec& indices) const
 	{
-	unsigned int i;
+	size_t i;
 
 	if ( indices.empty() )
 		return nullptr;
@@ -482,8 +482,8 @@ String* concatenate(String::Vec& v)
 
 void delete_strings(std::vector<const String*>& v)
 	{
-	for ( unsigned int i = 0; i < v.size(); ++i )
-		delete v[i];
+	for ( auto& elem : v )
+		delete elem;
 	v.clear();
 	}
 

@@ -1,0 +1,20 @@
+{
+[b] = 3,
+[whatever] = 5,
+[a] = 5
+}
+{
+I am really a set!,
+Believe me - I am a set,
+I am a set!
+}
+{
+[b] = [a=2, b=d, c={
+elem1,
+elem2
+}],
+[a] = [a=1, b=c, c={
+elem1,
+elem2
+}]
+}

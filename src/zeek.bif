@@ -48,7 +48,7 @@ bro_int_t parse_int(const char*& fmt)
 	}
 
 static zeek::TypeTag ok_d_fmt[] = {
-	zeek::TYPE_BOOL, zeek::TYPE_ENUM, zeek::TYPE_INT, zeek::TYPE_COUNT, zeek::TYPE_COUNTER, zeek::TYPE_PORT,
+	zeek::TYPE_BOOL, zeek::TYPE_ENUM, zeek::TYPE_INT, zeek::TYPE_COUNT, zeek::TYPE_PORT,
 	zeek::TYPE_SUBNET,
 	zeek::TYPE_ERROR
 };
@@ -66,7 +66,7 @@ static int check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
 	return 0;
 	}
 
-static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
+static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 	{
 	zeek::TypeTag t = v->GetType()->Tag();
 	zeek::InternalTypeTag it = v->GetType()->InternalType();
@@ -126,8 +126,8 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 	char fmt_buf[512];
 	char out_buf[512];
 
-	ODesc s;
-	s.SetStyle(RAW_STYLE);
+	zeek::ODesc s;
+	s.SetStyle(zeek::RAW_STYLE);
 
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
 		zeek::emit_builtin_error("precision specified for non-floating point");
@@ -268,7 +268,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, ODesc* d)
 	++fmt;
 	}
 
-static int next_fmt(const char*& fmt, const zeek::Args* args, ODesc* d, int& n)
+static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, int& n)
 	{
 	const char* fp = fmt;
 
@@ -520,7 +520,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	FILE* f = popen(prog, "w");
 	if ( ! f )
 		{
-		reporter->Error("Failed to popen %s", prog);
+		zeek::reporter->Error("Failed to popen %s", prog);
 		return zeek::val_mgr->False();
 		}
 
@@ -533,7 +533,7 @@ function piped_exec%(program: string, to_write: string%): bool
 
 	if ( bytes_written != input_data_len )
 		{
-		reporter->Error("Failed to write all given data to %s", prog);
+		zeek::reporter->Error("Failed to write all given data to %s", prog);
 		return zeek::val_mgr->False();
 		}
 
@@ -561,7 +561,7 @@ function md5_hash%(...%): string
 	%{
 	unsigned char digest[MD5_DIGEST_LENGTH];
 	MD5Val::digest(@ARG@, digest);
-	return zeek::make_intrusive<zeek::StringVal>(md5_digest_print(digest));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(digest));
 	%}
 
 ## Computes the SHA1 hash value of the provided list of arguments.
@@ -581,7 +581,7 @@ function sha1_hash%(...%): string
 	%{
 	unsigned char digest[SHA_DIGEST_LENGTH];
 	SHA1Val::digest(@ARG@, digest);
-	return zeek::make_intrusive<zeek::StringVal>(sha1_digest_print(digest));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha1_digest_print(digest));
 	%}
 
 ## Computes the SHA256 hash value of the provided list of arguments.
@@ -601,7 +601,7 @@ function sha256_hash%(...%): string
 	%{
 	unsigned char digest[SHA256_DIGEST_LENGTH];
 	SHA256Val::digest(@ARG@, digest);
-	return zeek::make_intrusive<zeek::StringVal>(sha256_digest_print(digest));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(digest));
 	%}
 
 ## Computes an HMAC-MD5 hash value of the provided list of arguments. The HMAC
@@ -616,8 +616,8 @@ function sha256_hash%(...%): string
 function md5_hmac%(...%): string
 	%{
 	unsigned char hmac[MD5_DIGEST_LENGTH];
-	MD5Val::hmac(@ARG@, KeyedHash::shared_hmac_md5_key, hmac);
-	return zeek::make_intrusive<zeek::StringVal>(md5_digest_print(hmac));
+	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can
@@ -807,7 +807,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	     v->GetType()->Yield()->Tag() != zeek::TYPE_STRING )
 		{
 		// reporter->Error will throw an exception.
-		reporter->Error("paraglob requires a vector of strings for initialization.");
+		zeek::reporter->Error("paraglob requires a vector of strings for initialization.");
 		return nullptr;
 		}
 
@@ -827,7 +827,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	// Thrown if paraglob fails to add a pattern.
 	catch (const paraglob::add_error& e)
 		{
-		reporter->Error("Paraglob failed to add pattern: %s", e.what());
+		zeek::reporter->Error("Paraglob failed to add pattern: %s", e.what());
 		return nullptr;
 		}
 	%}
@@ -872,7 +872,7 @@ function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 ## .. zeek:see:: hrw_weight
 function fnv1a32%(input: any%): count
 	%{
-	ODesc desc(DESC_BINARY);
+	zeek::ODesc desc(DESC_BINARY);
 	input->Describe(&desc);
 	auto bytes = desc.Bytes();
 
@@ -930,7 +930,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
+	auto result = bro_uint_t(double(max) * double(zeek::random_number()) / (zeek::max_random() + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 
@@ -946,7 +946,7 @@ function rand%(max: count%): count
 ##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	bro_srandom(seed);
+	zeek::seed_random(seed);
 	return nullptr;
 	%}
 
@@ -959,7 +959,7 @@ function srand%(seed: count%): any
 ## s: The string to log via syslog
 function syslog%(s: string%): any
 	%{
-	reporter->Syslog("%s", s->CheckString());
+	zeek::reporter->Syslog("%s", s->CheckString());
 	return nullptr;
 	%}
 
@@ -978,7 +978,7 @@ function syslog%(s: string%): any
 function identify_data%(data: string, return_mime: bool &default=T%): string
 	%{
 	if ( ! return_mime )
-		reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
+		zeek::reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
 	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
 
@@ -998,7 +998,7 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 ## .. zeek:see:: identify_data
 function file_magic%(data: string%): mime_matches
 	%{
-	RuleMatcher::MIME_Matches matches;
+	zeek::detail::RuleMatcher::MIME_Matches matches;
 	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
 	return file_analysis::GenMIMEMatchesVal(matches);
 	%}
@@ -1175,7 +1175,7 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 	%{
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
+		zeek::reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
@@ -1194,7 +1194,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 	%{
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
+		zeek::reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
@@ -1214,14 +1214,14 @@ function check_subnet%(search: subnet, t: any%): bool
 	%{
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
+		zeek::reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
-	const PrefixTable* pt = t->AsTableVal()->Subnets();
+	const zeek::detail::PrefixTable* pt = t->AsTableVal()->Subnets();
 	if ( ! pt )
 		{
-		reporter->Error("check_subnet encountered nonexisting prefix table.");
+		zeek::reporter->Error("check_subnet encountered nonexisting prefix table.");
 		return nullptr;
 		}
 
@@ -1561,7 +1561,7 @@ function order%(v: any, ...%) : index_vec
 ## Returns: A string concatentation of all arguments.
 function cat%(...%): string
 	%{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
 
 	for ( const auto& a : @ARG@ )
@@ -1588,7 +1588,7 @@ function cat%(...%): string
 ## .. zeek:see:: cat string_cat
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
 
 	int pre_size = 0;
@@ -1664,7 +1664,7 @@ function fmt%(...%): string
 	// checks that.
 
 	const char* fmt = fmt_v->AsString()->CheckString();
-	ODesc d;
+	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
 
 	int n = 0;
@@ -1699,7 +1699,7 @@ function fmt%(...%): string
 ## .. zeek:see:: fmt cat cat_sep string_cat to_json
 function print_raw%(...%): bool
 	%{
-	ODesc d(DESC_READABLE);
+	zeek::ODesc d(DESC_READABLE);
 	d.SetStyle(RAW_STYLE);
 	describe_vals(@ARG@, &d, 0);
 	printf("%.*s", d.Len(), d.Description());
@@ -1737,7 +1737,7 @@ function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
 		{
-		reporter->Error("negative sqrt argument");
+		zeek::reporter->Error("negative sqrt argument");
 		return zeek::make_intrusive<zeek::DoubleVal>(-1.0);
 		}
 
@@ -1792,7 +1792,7 @@ function log10%(d: double%): double
 ##          none.
 function current_analyzer%(%) : count
 	%{
-	return zeek::val_mgr->Count(mgr.CurrentAnalyzer());
+	return zeek::val_mgr->Count(zeek::event_mgr.CurrentAnalyzer());
 	%}
 
 ## Returns Zeek's process ID.
@@ -1840,7 +1840,7 @@ function record_type_to_vector%(rt: string%): string_vec
 ## Returns: The type name of *t*.
 function type_name%(t: any%): string
 	%{
-	ODesc d;
+	zeek::ODesc d;
 	t->GetType()->Describe(&d);
 
 	String* s = new String(1, d.TakeBytes(), d.Len());
@@ -1955,9 +1955,10 @@ function global_ids%(%): id_table
 		rec->Assign(3, zeek::val_mgr->Bool(id->IsEnumConst()));
 		rec->Assign(4, zeek::val_mgr->Bool(id->IsOption()));
 		rec->Assign(5, zeek::val_mgr->Bool(id->IsRedefinable()));
+		rec->Assign(6, zeek::val_mgr->Bool(id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil));
 
 		if ( id->HasVal() )
-			rec->Assign(6, id->GetVal());
+			rec->Assign(7, id->GetVal());
 
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
 		ids->Assign(std::move(id_name), std::move(rec));
@@ -2001,7 +2002,7 @@ function record_fields%(rec: any%): record_field_table
 
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
-			reporter->Error("record_fields string argument does not name a record type");
+			zeek::reporter->Error("record_fields string argument does not name a record type");
 			return zeek::make_intrusive<zeek::TableVal>(record_field_table);
 			}
 
@@ -2029,8 +2030,8 @@ function record_fields%(rec: any%): record_field_table
 ##              get_timer_stats
 function do_profiling%(%) : any
 	%{
-	if ( profiling_logger )
-		profiling_logger->Log();
+	if ( zeek::detail::profiling_logger )
+		zeek::detail::profiling_logger->Log();
 
 	return nullptr;
 	%}
@@ -2045,7 +2046,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ip->AsAddr().IsLoopback() )
 		return zeek::val_mgr->True();
 
-	list<IPAddr> addrs;
+	list<zeek::IPAddr> addrs;
 
 	char host[MAXHOSTNAMELEN];
 
@@ -2058,8 +2059,8 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPv4, (uint32_t*)ent->h_addr_list[len],
-			                       IPAddr::Network));
+			addrs.push_back(zeek::IPAddr(IPv4, (uint32_t*)ent->h_addr_list[len],
+			                       zeek::IPAddr::Network));
 		}
 
 	ent = gethostbyname2(host, AF_INET6);
@@ -2067,11 +2068,11 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPv6, (uint32_t*)ent->h_addr_list[len],
-			                       IPAddr::Network));
+			addrs.push_back(zeek::IPAddr(IPv6, (uint32_t*)ent->h_addr_list[len],
+			                       zeek::IPAddr::Network));
 		}
 
-	list<IPAddr>::const_iterator it;
+	list<zeek::IPAddr>::const_iterator it;
 	for ( it = addrs.begin(); it != addrs.end(); ++it )
 		{
 		if ( *it == ip->AsAddr() )
@@ -2091,8 +2092,8 @@ function is_local_interface%(ip: addr%) : bool
 ## .. zeek:see:: get_matcher_stats
 function dump_rule_stats%(f: file%): bool
 	%{
-	if ( rule_matcher )
-		rule_matcher->DumpStats(f);
+	if ( zeek::detail::rule_matcher )
+		zeek::detail::rule_matcher->DumpStats(f);
 
 	return zeek::val_mgr->True();
 	%}
@@ -2236,11 +2237,11 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	len -= 4;
 
 	if ( ( len % 16 ) != 0 )
-		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
+		zeek::reporter->Warning("Bad ip6_routing data length: %d", s->Len());
 
 	while ( len > 0 )
 		{
-		IPAddr a(IPv6, (const uint32_t*) bytes, IPAddr::Network);
+		zeek::IPAddr a(IPv6, (const uint32_t*) bytes, zeek::IPAddr::Network);
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::AddrVal>(a));
 		bytes += 16;
 		len -= 16;
@@ -2483,11 +2484,11 @@ function to_addr%(ip: string%): addr
 	zeek::ValPtr ret;
 	in6_addr tmp;
 
-	if ( IPAddr::ConvertString(s, &tmp) )
-		ret = zeek::make_intrusive<zeek::AddrVal>(IPAddr(tmp));
+	if ( zeek::IPAddr::ConvertString(s, &tmp) )
+		ret = zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(tmp));
 	else
 		{
-		ret = zeek::make_intrusive<zeek::AddrVal>(IPAddr());
+		ret = zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr());
 		zeek::emit_builtin_error("failed converting string to IP address", ip);
 		}
 
@@ -2503,7 +2504,7 @@ function to_addr%(ip: string%): addr
 function is_valid_ip%(ip: string%): bool
 	%{
 	char* s = ip->AsString()->Render();
-	auto rval = IPAddr::IsValid(s);
+	auto rval = zeek::IPAddr::IsValid(s);
 	delete [] s;
 	return zeek::val_mgr->Bool(rval);
 	%}
@@ -2892,7 +2893,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 	bro_uint_t len = hexstr->AsString()->Len();
 	if ( len % 2 != 0 )
 		{
-		reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
+		zeek::reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 
@@ -2908,13 +2909,13 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 		if ( res == EOF )
 			{
-			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
+			zeek::reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
 			return zeek::val_mgr->EmptyString();
 			}
 
 		else if ( res != 1 )
 			{
-			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
+			zeek::reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
 			return zeek::val_mgr->EmptyString();
 			}
 
@@ -2935,12 +2936,12 @@ function hexstr_to_bytestring%(hexstr: string%): string
 ## .. zeek:see:: decode_base64
 function encode_base64%(s: string, a: string &default=""%): string
 	%{
-	String* t = encode_base64(s->AsString(), a->AsString());
+	String* t = zeek::detail::encode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("Broker query has an invalid data store");
+		zeek::reporter->Error("Broker query has an invalid data store");
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -2957,12 +2958,12 @@ function encode_base64%(s: string, a: string &default=""%): string
 ## .. zeek:see:: decode_base64_conn encode_base64
 function decode_base64%(s: string, a: string &default=""%): string
 	%{
-	String* t = decode_base64(s->AsString(), a->AsString());
+	String* t = zeek::detail::decode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", s->CheckString());
+		zeek::reporter->Error("error in decoding string %s", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -2990,12 +2991,12 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 		return zeek::val_mgr->EmptyString();
 		}
 
-	String* t = decode_base64(s->AsString(), a->AsString(), conn);
+	String* t = zeek::detail::decode_base64(s->AsString(), a->AsString(), conn);
 	if ( t )
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", s->CheckString());
+		zeek::reporter->Error("error in decoding string %s", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -3155,7 +3156,7 @@ function strptime%(fmt: string, d: string%) : time
 	if ( ! localtime_r(&timeval, &t) ||
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
-		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		zeek::reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
 		return zeek::make_intrusive<zeek::TimeVal>(0.0);
 		}
 
@@ -3205,9 +3206,9 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 ## .. zeek:see:: mask_addr
 function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	%{
-	IPAddr addr1(a1->AsAddr());
+	zeek::IPAddr addr1(a1->AsAddr());
 	addr1.Mask(top_bits_from_a1);
-	IPAddr addr2(a2->AsAddr());
+	zeek::IPAddr addr2(a2->AsAddr());
 	addr2.ReverseMask(top_bits_from_a1);
 	return zeek::make_intrusive<zeek::AddrVal>(addr1|addr2);
 	%}
@@ -3253,19 +3254,19 @@ static zeek::EnumValPtr map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
-		return zeek::id::transport_proto->GetVal(0);
+		return zeek::id::transport_proto->GetEnumVal(0);
 
 	case TRANSPORT_TCP:
-		return zeek::id::transport_proto->GetVal(1);
+		return zeek::id::transport_proto->GetEnumVal(1);
 
 	case TRANSPORT_UDP:
-		return zeek::id::transport_proto->GetVal(2);
+		return zeek::id::transport_proto->GetEnumVal(2);
 
 	case TRANSPORT_ICMP:
-		return zeek::id::transport_proto->GetVal(3);
+		return zeek::id::transport_proto->GetEnumVal(3);
 
 	default:
-		reporter->InternalError("bad connection type in map_conn_type()");
+		zeek::reporter->InternalError("bad connection type in map_conn_type()");
 	}
 
 	// Cannot be reached;
@@ -3288,7 +3289,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	if ( ! c )
 		{
 		zeek::emit_builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return zeek::id::transport_proto->GetVal(0);
+		return zeek::id::transport_proto->GetEnumVal(0);
 		}
 
 	return map_conn_type(c->ConnTransport());
@@ -3374,9 +3375,9 @@ const char* conn_id_string(zeek::Val* c)
 	const auto& id = (*(c->AsRecord()))[0];
 	auto vl = id->AsRecord();
 
-	const IPAddr& orig_h = (*vl)[0]->AsAddr();
+	const zeek::IPAddr& orig_h = (*vl)[0]->AsAddr();
 	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
-	const IPAddr& resp_h = (*vl)[2]->AsAddr();
+	const zeek::IPAddr& resp_h = (*vl)[2]->AsAddr();
 	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
 
 	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
@@ -3436,7 +3437,7 @@ function get_current_packet%(%) : pcap_packet
 		pkt->Assign(2, zeek::val_mgr->Count(0));
 		pkt->Assign(3, zeek::val_mgr->Count(0));
 		pkt->Assign(4, zeek::val_mgr->EmptyString());
-		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
@@ -3445,7 +3446,7 @@ function get_current_packet%(%) : pcap_packet
 	pkt->Assign(2, zeek::val_mgr->Count(p->cap_len));
 	pkt->Assign(3, zeek::val_mgr->Count(p->len));
 	pkt->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
-	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(p->link_type));
+	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
 
 	return pkt;
 	%}
@@ -3517,7 +3518,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 
-class LookupHostCallback : public DNS_Mgr::LookupCallback {
+class LookupHostCallback : public zeek::detail::DNS_Mgr::LookupCallback {
 public:
 	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
 				bool arg_lookup_name)
@@ -3533,7 +3534,7 @@ public:
 		Unref(trigger);
 		}
 
-	// Overridden from DNS_Mgr:Lookup:Callback.
+	// Overridden from zeek::detail::DNS_Mgr:Lookup:Callback.
 	virtual void Resolved(const char* name)
 		{
 		zeek::Val* result = new zeek::StringVal(name);
@@ -3601,7 +3602,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupAddr(host->AsAddr(),
+	zeek::detail::dns_mgr->AsyncLookupAddr(host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3630,7 +3631,7 @@ function lookup_hostname_txt%(host: string%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupNameText(host->CheckString(),
+	zeek::detail::dns_mgr->AsyncLookupNameText(host->CheckString(),
 				 new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3659,7 +3660,7 @@ function lookup_hostname%(host: string%) : addr_set
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupName(host->CheckString(),
+	zeek::detail::dns_mgr->AsyncLookupName(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetCall(), false));
 	return nullptr;
 	%}
@@ -3699,7 +3700,7 @@ static void report_mmdb_msg(const char* format, ...)
 	std::string msg = fmt(format, al);
 	va_end(al);
 
-	reporter->Info("%s", msg.data());
+	zeek::reporter->Info("%s", msg.data());
 	}
 
 class MMDB {
@@ -3858,7 +3859,7 @@ static void mmdb_check_asn()
 		}
 	}
 
-static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
+static bool mmdb_lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result,
                         bool asn)
 	{
 	struct sockaddr_storage ss = {0};
@@ -3892,12 +3893,12 @@ static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
 	return result.found_entry;
 	}
 
-static bool mmdb_lookup_loc(const IPAddr& addr, MMDB_lookup_result_s& result)
+static bool mmdb_lookup_loc(const zeek::IPAddr& addr, MMDB_lookup_result_s& result)
 	{
 	return mmdb_lookup(addr, result, false);
 	}
 
-static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
+static bool mmdb_lookup_asn(const zeek::IPAddr& addr, MMDB_lookup_result_s& result)
 	{
 	return mmdb_lookup(addr, result, true);
 	}
@@ -4323,7 +4324,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		{
-		reporter->Error("cannot find connection");
+		zeek::reporter->Error("cannot find connection");
 		return zeek::val_mgr->False();
 		}
 
@@ -4331,7 +4332,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! a )
 		{
 		if ( err_if_no_conn )
-			reporter->Error("connection does not have analyzer specified to disable");
+			zeek::reporter->Error("connection does not have analyzer specified to disable");
 		return zeek::val_mgr->False();
 		}
 
@@ -4437,9 +4438,9 @@ function open%(f: string%): file
 	const char* file = f->CheckString();
 
 	if ( streq(file, "-") )
-		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(stdout, "-", "w"));
+		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
 	else
-		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(file, "w"));
+		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(file, "w"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4454,7 +4455,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<BroFile>(f->CheckString(), "a"));
+	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(f->CheckString(), "a"));
 	%}
 
 ## Closes an open file and flushes any buffered content.
@@ -4996,7 +4997,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Returns: True if the last raised event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
-	return zeek::val_mgr->Bool(mgr.CurrentSource() != SOURCE_LOCAL);
+	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != SOURCE_LOCAL);
 	%}
 
 ## Stops Zeek's packet processing. This function is used to synchronize
@@ -5031,11 +5032,11 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 				bol: bool, eol: bool,
 				from_orig: bool, clear: bool%) : bool
 	%{
-	if ( ! rule_matcher )
+	if ( ! zeek::detail::rule_matcher )
 		return zeek::val_mgr->False();
 
-	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
-			from_orig, bol, eol, clear);
+	c->Match((zeek::detail::Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
+	         from_orig, bol, eol, clear);
 
 	return zeek::val_mgr->True();
 	%}
@@ -5156,4 +5157,15 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
 	%{
 	return val->ToJSON(only_loggable, field_escape_pattern);
+	%}
+
+## Compresses a given path by removing '..'s and the parent directory it
+## references and also removing dual '/'s and extraneous '/./'s.
+##
+## dir: a path string, either relative or absolute.
+##
+## Returns: a compressed version of the input path.
+function compress_path%(dir: string%): string
+	%{
+	return zeek::make_intrusive<zeek::StringVal>(normalize_path(dir->ToStdString()));
 	%}

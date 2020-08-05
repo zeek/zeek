@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("Gnutella", ::analyzer::gnutella::Gnutella_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Gnutella", ::analyzer::gnutella::Gnutella_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::Gnutella";

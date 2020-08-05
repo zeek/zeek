@@ -7,7 +7,7 @@
 
 using namespace analyzer::gssapi;
 
-GSSAPI_Analyzer::GSSAPI_Analyzer(Connection* c)
+GSSAPI_Analyzer::GSSAPI_Analyzer(zeek::Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("GSSAPI", c)
 	{
 	interp = new binpac::GSSAPI::GSSAPI_Conn(this);

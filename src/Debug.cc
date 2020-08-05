@@ -35,16 +35,41 @@ using namespace std;
 #include <readline/history.h>
 #endif
 
-bool g_policy_debug = false;
-DebuggerState g_debugger_state;
-TraceState g_trace_state;
-std::map<string, Filemap*> g_dbgfilemaps;
+bool zeek::detail::g_policy_debug = false;
+bool& g_policy_debug = zeek::detail::g_policy_debug;
+
+zeek::detail::DebuggerState zeek::detail::g_debugger_state;
+zeek::detail::DebuggerState& g_debugger_state = zeek::detail::g_debugger_state;
+
+zeek::detail::TraceState zeek::detail::g_trace_state;
+zeek::detail::TraceState& g_trace_state = zeek::detail::g_trace_state;
+
+std::map<string, zeek::detail::Filemap*> zeek::detail::g_dbgfilemaps;
+std::map<string, zeek::detail::Filemap*>& g_dbgfilemaps = zeek::detail::g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next
 // command unless you've exited a function.
 static bool step_or_next_pending = false;
 static zeek::detail::Frame* last_frame;
+
+// The following values are needed by parse.y.
+// Evaluates the given expression in the context of the currently selected
+// frame.  Returns the resulting value, or nil if none (or there was an error).
+zeek::detail::Expr* g_curr_debug_expr = nullptr;
+const char* g_curr_debug_error = nullptr;
+bool in_debug = false;
+
+// ### fix this hardwired access to external variables etc.
+struct yy_buffer_state;
+typedef struct yy_buffer_state* YY_BUFFER_STATE;
+YY_BUFFER_STATE bro_scan_string(const char*);
+
+extern YYLTYPE yylloc;	// holds start line and column of token
+extern int line_number;
+extern const char* filename;
+
+namespace zeek::detail {
 
 DebuggerState::DebuggerState()
 	{
@@ -66,7 +91,7 @@ DebuggerState::~DebuggerState()
 bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2)
 	{
 	if ( ! m2  )
-		reporter->InternalError("Assertion failed: m2 != 0");
+		zeek::reporter->InternalError("Assertion failed: m2 != 0");
 
 	return loc.first_line > m2->loc.first_line ||
 		(loc.first_line == m2->loc.first_line &&
@@ -195,7 +220,7 @@ void get_first_statement(zeek::detail::Stmt* list, zeek::detail::Stmt*& first, z
 	}
 
 static void parse_function_name(vector<ParseLocationRec>& result,
-				ParseLocationRec& plr, const string& s)
+                                ParseLocationRec& plr, const string& s)
 	{ // function name
 	const auto& id = zeek::detail::lookup_ID(s.c_str(), zeek::detail::current_module.c_str());
 
@@ -203,21 +228,21 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		string fullname = make_full_var_name(zeek::detail::current_module.c_str(), s.c_str());
 		debug_msg("Function %s not defined.\n", fullname.c_str());
-		plr.type = plrUnknown;
+		plr.type = PLR_UNKNOWN;
 		return;
 		}
 
 	if ( ! id->GetType()->AsFuncType() )
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
-		plr.type = plrUnknown;
+		plr.type = PLR_UNKNOWN;
 		return;
 		}
 
 	if ( ! id->HasVal() )
 		{
 		debug_msg("Function %s declared but not defined.\n", id->Name());
-		plr.type = plrUnknown;
+		plr.type = PLR_UNKNOWN;
 		return;
 		}
 
@@ -227,7 +252,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 	if ( bodies.size() == 0 )
 		{
 		debug_msg("Function %s is a built-in function\n", id->Name());
-		plr.type = plrUnknown;
+		plr.type = PLR_UNKNOWN;
 		return;
 		}
 
@@ -256,7 +281,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			char charinput[256];
 			if ( ! fgets(charinput, sizeof(charinput) - 1, stdin) )
 				{
-				plr.type = plrUnknown;
+				plr.type = PLR_UNKNOWN;
 				return;
 				}
 
@@ -270,7 +295,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 
 			if ( input == "n" )
 				{
-				plr.type = plrUnknown;
+				plr.type = PLR_UNKNOWN;
 				return;
 				}
 
@@ -283,7 +308,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			}
 		}
 
-	plr.type = plrFunction;
+	plr.type = PLR_FUNCTION;
 
 	// Find first atomic (non-STMT_LIST) statement
 	zeek::detail::Stmt* first;
@@ -311,7 +336,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			if ( ! first )
 				continue;
 
-			plr.type = plrFunction;
+			plr.type = PLR_FUNCTION;
 			plr.stmt = first;
 			plr.filename = stmt_loc.filename;
 			plr.line = stmt_loc.last_line;
@@ -326,7 +351,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 	result.push_back(ParseLocationRec());
 	ParseLocationRec& plr = result[0];
 
-	// If plrFileAndLine, set this to the filename you want; for
+	// If PLR_FILE_AND_LINE, set this to the filename you want; for
 	// memory management reasons, the real filename is set when looking
 	// up the line number to find the corresponding statement.
 	std::string loc_filename;
@@ -334,7 +359,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 	if ( sscanf(s.c_str(), "%d", &plr.line) )
 		{ // just a line number (implicitly referring to the current file)
 		loc_filename = g_debugger_state.last_loc.filename;
-		plr.type = plrFileAndLine;
+		plr.type = PLR_FILE_AND_LINE;
 		}
 
 	else
@@ -350,33 +375,33 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			string line_string = s.substr(pos_colon + 1, s.length() - pos_colon);
 
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
-				plr.type = plrUnknown;
+				plr.type = PLR_UNKNOWN;
 
 			string path(find_script_file(filename, bro_path()));
 
 			if ( path.empty() )
 				{
 				debug_msg("No such policy file: %s.\n", filename.c_str());
-				plr.type = plrUnknown;
+				plr.type = PLR_UNKNOWN;
 				return result;
 				}
 
 			loc_filename = path;
-			plr.type = plrFileAndLine;
+			plr.type = PLR_FILE_AND_LINE;
 			}
 		}
 
-	if ( plr.type == plrFileAndLine )
+	if ( plr.type == PLR_FILE_AND_LINE )
 		{
 		auto iter = g_dbgfilemaps.find(loc_filename);
 		if ( iter == g_dbgfilemaps.end() )
-			reporter->InternalError("Policy file %s should have been loaded\n",
-					loc_filename.data());
+			zeek::reporter->InternalError("Policy file %s should have been loaded\n",
+			                              loc_filename.data());
 
 		if ( plr.line > how_many_lines_in(loc_filename.data()) )
 			{
 			debug_msg("No line %d in %s.\n", plr.line, loc_filename.data());
-			plr.type = plrUnknown;
+			plr.type = PLR_UNKNOWN;
 			return result;
 			}
 
@@ -612,7 +637,7 @@ int dbg_execute_command(const char* cmd)
 #endif
 
 	if ( int(cmd_code) >= num_debug_cmds() )
-		reporter->InternalError("Assertion failed: int(cmd_code) < num_debug_cmds()");
+		zeek::reporter->InternalError("Assertion failed: int(cmd_code) < num_debug_cmds()");
 
 	// Dispatch to the op-specific handler (with args).
 	int retcode = dbg_dispatch_cmd(cmd_code, arguments);
@@ -621,7 +646,7 @@ int dbg_execute_command(const char* cmd)
 
 	const DebugCmdInfo* info = get_debug_cmd_info(cmd_code);
 	if ( ! info  )
-		reporter->InternalError("Assertion failed: info");
+		zeek::reporter->InternalError("Assertion failed: info");
 
 	if ( ! info )
 		return -2;	// ### yuck, why -2?
@@ -634,7 +659,7 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 	{
 	switch ( cmd_code ) {
 	case dcHelp:
-		dbg_cmd_help(cmd_code, args);
+		zeek::detail::dbg_cmd_help(cmd_code, args);
 		break;
 
 	case dcQuit:
@@ -664,11 +689,11 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 		break;
 
 	case dcBreak:
-		dbg_cmd_break(cmd_code, args);
+		zeek::detail::dbg_cmd_break(cmd_code, args);
 		break;
 
 	case dcBreakCondition:
-		dbg_cmd_break_condition(cmd_code, args);
+		zeek::detail::dbg_cmd_break_condition(cmd_code, args);
 		break;
 
 	case dcDeleteBreak:
@@ -676,26 +701,26 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 	case dcDisableBreak:
 	case dcEnableBreak:
 	case dcIgnoreBreak:
-		dbg_cmd_break_set_state(cmd_code, args);
+		zeek::detail::dbg_cmd_break_set_state(cmd_code, args);
 		break;
 
 	case dcPrint:
-		dbg_cmd_print(cmd_code, args);
+		zeek::detail::dbg_cmd_print(cmd_code, args);
 		break;
 
 	case dcBacktrace:
-		return dbg_cmd_backtrace(cmd_code, args);
+		return zeek::detail::dbg_cmd_backtrace(cmd_code, args);
 
 	case dcFrame:
 	case dcUp:
 	case dcDown:
-		return dbg_cmd_frame(cmd_code, args);
+		return zeek::detail::dbg_cmd_frame(cmd_code, args);
 
 	case dcInfo:
-		return dbg_cmd_info(cmd_code, args);
+		return zeek::detail::dbg_cmd_info(cmd_code, args);
 
 	case dcList:
-		return dbg_cmd_list(cmd_code, args);
+		return zeek::detail::dbg_cmd_list(cmd_code, args);
 
 	case dcDisplay:
 	case dcUndisplay:
@@ -703,7 +728,7 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 		break;
 
 	case dcTrace:
-		return dbg_cmd_trace(cmd_code, args);
+		return zeek::detail::dbg_cmd_trace(cmd_code, args);
 
 	default:
 		debug_msg("INTERNAL ERROR: "
@@ -778,7 +803,7 @@ int dbg_handle_debug_input()
 
 	const zeek::detail::Stmt* stmt = curr_frame->GetNextStmt();
 	if ( ! stmt )
-		reporter->InternalError("Assertion failed: stmt != 0");
+		zeek::reporter->InternalError("Assertion failed: stmt != 0");
 
 	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 
@@ -884,7 +909,7 @@ bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f)
 		p = g_debugger_state.breakpoint_map.equal_range(stmt);
 
 		if ( p.first == p.second )
-			reporter->InternalError("Breakpoint count nonzero, but no matching breakpoints");
+			zeek::reporter->InternalError("Breakpoint count nonzero, but no matching breakpoints");
 
 		for ( BPMapType::iterator i = p.first; i != p.second; ++i )
 			{
@@ -932,22 +957,6 @@ bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::V
 	return true;
 	}
 
-
-// Evaluates the given expression in the context of the currently selected
-// frame.  Returns the resulting value, or nil if none (or there was an error).
-zeek::detail::Expr* g_curr_debug_expr = nullptr;
-const char* g_curr_debug_error = nullptr;
-bool in_debug = false;
-
-// ### fix this hardwired access to external variables etc.
-struct yy_buffer_state;
-typedef struct yy_buffer_state* YY_BUFFER_STATE;
-YY_BUFFER_STATE bro_scan_string(const char*);
-
-extern YYLTYPE yylloc;	// holds start line and column of token
-extern int line_number;
-extern const char* filename;
-
 zeek::ValPtr dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
@@ -957,11 +966,11 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 		(g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
 
 	if ( ! (frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size())  )
-		reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
+		zeek::reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
 
 	zeek::detail::Frame* frame = g_frame_stack[frame_idx];
 	if ( ! (frame)  )
-		reporter->InternalError("Assertion failed: frame");
+		zeek::reporter->InternalError("Assertion failed: frame");
 
 	const zeek::detail::ScriptFunc* func = frame->GetFunction();
 	if ( func )
@@ -1011,3 +1020,5 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 
 	return result;
 	}
+
+} // namespace zeek::detail

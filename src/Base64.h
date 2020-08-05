@@ -6,7 +6,9 @@
 namespace zeek { class String; }
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+
+namespace zeek::detail {
 
 // Maybe we should have a base class for generic decoders?
 class Base64Converter {
@@ -60,5 +62,15 @@ protected:
 
 };
 
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a = nullptr, Connection* conn = nullptr);
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a = nullptr, Connection* conn = nullptr);
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
+
+} // namespace zeek::detail
+
+using Base64Converter [[deprecated("Remove in v4.1. Use zeek::detail::Base64Converter.")]] = zeek::detail::Base64Converter;
+
+// These can't be constexpr auto definitions due to the default parameters.
+[[deprecated("Remove in v4.1. Use zeek::detail::decode_base64.")]]
+zeek::String* decode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
+[[deprecated("Remove in v4.1. Use zeek::detail::encode_base64.")]]
+zeek::String* encode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);

@@ -6,18 +6,18 @@
 
 namespace analyzer { namespace vxlan {
 
-class VXLAN_Analyzer final : public analyzer::Analyzer {
+class VXLAN_Analyzer final : public zeek::analyzer::Analyzer {
 public:
-	explicit VXLAN_Analyzer(Connection* conn)
+	explicit VXLAN_Analyzer(zeek::Connection* conn)
 	    : Analyzer("VXLAN", conn)
 		{}
 
 	void Done() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new VXLAN_Analyzer(conn); }
 };
 

@@ -527,6 +527,10 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string
 #	{
 #
 #	}
+# event dns_EDNS_ecs(c: connection, msg: dns_msg, opt: dns_edns_ecs)
+# 	{
+#		
+# 	}
 #
 #event dns_TSIG_addl(c: connection, msg: dns_msg, ans: dns_tsig_additional)
 #	{

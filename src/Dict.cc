@@ -73,8 +73,6 @@ public:
 		}
 	};
 
-// namespace detail
-
 TEST_SUITE_BEGIN("Dict");
 
 TEST_CASE("dict construction")
@@ -95,11 +93,11 @@ TEST_CASE("dict operation")
 	uint32_t val = 10;
 	uint32_t key_val = 5;
 
-	HashKey* key = new HashKey(key_val);
+	zeek::detail::HashKey* key = new zeek::detail::HashKey(key_val);
 	dict.Insert(key, &val);
 	CHECK(dict.Length() == 1);
 
-	HashKey* key2 = new HashKey(key_val);
+	zeek::detail::HashKey* key2 = new zeek::detail::HashKey(key_val);
 	uint32_t* lookup = dict.Lookup(key2);
 	CHECK(*lookup == val);
 
@@ -120,7 +118,7 @@ TEST_CASE("dict operation")
 
 	uint32_t val2 = 15;
 	uint32_t key_val2 = 25;
-	key2 = new HashKey(key_val2);
+	key2 = new zeek::detail::HashKey(key_val2);
 
 	dict.Insert(key, &val);
 	dict.Insert(key2, &val2);
@@ -141,13 +139,13 @@ TEST_CASE("dict nthentry")
 
 	uint32_t val = 15;
 	uint32_t key_val = 5;
-	HashKey* okey = new HashKey(key_val);
-	HashKey* ukey = new HashKey(key_val);
+	zeek::detail::HashKey* okey = new zeek::detail::HashKey(key_val);
+	zeek::detail::HashKey* ukey = new zeek::detail::HashKey(key_val);
 
 	uint32_t val2 = 10;
 	uint32_t key_val2 = 25;
-	HashKey* okey2 = new HashKey(key_val2);
-	HashKey* ukey2 = new HashKey(key_val2);
+	zeek::detail::HashKey* okey2 = new zeek::detail::HashKey(key_val2);
+	zeek::detail::HashKey* ukey2 = new zeek::detail::HashKey(key_val2);
 
 	unordered.Insert(ukey, &val);
 	unordered.Insert(ukey2, &val2);
@@ -176,17 +174,17 @@ TEST_CASE("dict iteration")
 
 	uint32_t val = 15;
 	uint32_t key_val = 5;
-	HashKey* key = new HashKey(key_val);
+	zeek::detail::HashKey* key = new zeek::detail::HashKey(key_val);
 
 	uint32_t val2 = 10;
 	uint32_t key_val2 = 25;
-	HashKey* key2 = new HashKey(key_val2);
+	zeek::detail::HashKey* key2 = new zeek::detail::HashKey(key_val2);
 
 	dict.Insert(key, &val);
 	dict.Insert(key2, &val2);
 
-	HashKey* it_key;
-	IterCookie* it = dict.InitForIteration();
+	zeek::detail::HashKey* it_key;
+	zeek::IterCookie* it = dict.InitForIteration();
 	CHECK(it != nullptr);
 	int count = 0;
 
@@ -254,7 +252,7 @@ int Dictionary::ThresholdEntries() const
 	return capacity - ( capacity>>DICT_LOAD_FACTOR_BITS );
 	}
 
-hash_t Dictionary::FibHash(hash_t h) const
+zeek::detail::hash_t Dictionary::FibHash(zeek::detail::hash_t h) const
 	{
 	//GoldenRatio phi = (sqrt(5)+1)/2 = 1.6180339887...
 	//1/phi = phi - 1
@@ -264,16 +262,16 @@ hash_t Dictionary::FibHash(hash_t h) const
 	}
 
 // return position in dict with 2^bit size.
-int Dictionary::BucketByHash(hash_t h, int log2_table_size) const //map h to n-bit
+int Dictionary::BucketByHash(zeek::detail::hash_t h, int log2_table_size) const //map h to n-bit
 	{
 	ASSERT(log2_table_size>=0);
 	if ( ! log2_table_size )
 		return 0; //<< >> breaks on  64.
 
 #ifdef DICT_NO_FIB_HASH
-	hash_t hash = h;
+	zeek::detail::hash_t hash = h;
 #else
-	hash_t hash = FibHash(h);
+	zeek::detail::hash_t hash = FibHash(h);
 #endif
 
 	int m = 64 - log2_table_size;
@@ -605,12 +603,12 @@ void generic_delete_func(void* v)
 // Look up now also possibly modifies the entry. Why? if the entry is found but not positioned
 // according to the current dict (so it's before SizeUp), it will be moved to the right
 // position so next lookup is fast.
-void* Dictionary::Lookup(const HashKey* key) const
+void* Dictionary::Lookup(const zeek::detail::HashKey* key) const
 	{
 	return Lookup(key->Key(), key->Size(), key->Hash());
 	}
 
-void* Dictionary::Lookup(const void* key, int key_size, hash_t h) const
+void* Dictionary::Lookup(const void* key, int key_size, zeek::detail::hash_t h) const
 	{
 	Dictionary* d = const_cast<Dictionary*>(this);
 	int position = d->LookupIndex(key, key_size, h);
@@ -618,7 +616,7 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t h) const
 	}
 
 //for verification purposes
-int Dictionary::LinearLookupIndex(const void* key, int key_size, hash_t hash) const
+int Dictionary::LinearLookupIndex(const void* key, int key_size, zeek::detail::hash_t hash) const
 	{
 	for ( int i = 0; i < Capacity(); i++ )
 		if ( ! table[i].Empty() && table[i].Equal((const char*)key, key_size, hash) )
@@ -628,7 +626,7 @@ int Dictionary::LinearLookupIndex(const void* key, int key_size, hash_t hash) co
 
 // Lookup position for all possible table_sizes caused by remapping. Remap it immediately
 // if not in the middle of iteration.
-int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position, int* insert_distance)
+int Dictionary::LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int* insert_position, int* insert_distance)
 	{
 	ASSERT_VALID(this);
 	if ( ! table)
@@ -682,7 +680,7 @@ int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int* ins
 // position/distance if required. The starting point for the search may not be the bucket
 // for the current table size since this method is also used to search for an item in the
 // previous table size.
-int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int bucket, int end,
+int Dictionary::LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int bucket, int end,
                             int* insert_position/*output*/, int* insert_distance/*output*/)
 	{
 	ASSERT(bucket>=0 && bucket < Buckets());
@@ -705,7 +703,7 @@ int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int buck
 // Insert
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, bool copy_key)
+void* Dictionary::Insert(void* key, int key_size, zeek::detail::hash_t hash, void* val, bool copy_key)
 	{
 	ASSERT_VALID(this);
 
@@ -866,7 +864,7 @@ void Dictionary::SizeUp()
 // Remove
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* Dictionary::Remove(const void* key, int key_size, hash_t hash, bool dont_delete)
+void* Dictionary::Remove(const void* key, int key_size, zeek::detail::hash_t hash, bool dont_delete)
 	{//cookie adjustment: maintain inserts here. maintain next in lower level version.
 	ASSERT_VALID(this);
 	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators)); //only robust iterators exist.
@@ -1036,7 +1034,7 @@ void Dictionary::StopIterationNonConst(IterCookie* cookie) //const
 	delete cookie;
 	}
 
-void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, bool return_hash) //const
+void* Dictionary::NextEntryNonConst(zeek::detail::HashKey*& h, IterCookie*& c, bool return_hash) //const
 	{
 	// If there are any inserted entries, return them first.
 	// That keeps the list small and helps avoiding searching
@@ -1058,7 +1056,7 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, bool return_has
 		// and removing from the tail is cheaper.
 		detail::DictEntry e = c->inserted->back();
 		if ( return_hash )
-			h = new HashKey(e.GetKey(), e.key_size, e.hash);
+			h = new zeek::detail::HashKey(e.GetKey(), e.key_size, e.hash);
 		void* v = e.value;
 		c->inserted->pop_back();
 		return v;
@@ -1106,7 +1104,7 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, bool return_has
 	ASSERT(! table[c->next].Empty());
 	void* v = table[c->next].value;
 	if ( return_hash )
-		h = new HashKey(table[c->next].GetKey(), table[c->next].key_size, table[c->next].hash);
+		h = new zeek::detail::HashKey(table[c->next].GetKey(), table[c->next].key_size, table[c->next].hash);
 
 	//prepare for next time.
 	c->next = Next(c->next);
@@ -1120,7 +1118,7 @@ IterCookie* Dictionary::InitForIteration() const
 	Dictionary* dp = const_cast<Dictionary*>(this);
 	return dp->InitForIterationNonConst();
 	}
-void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, bool return_hash) const
+void* Dictionary::NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const
 	{
 	Dictionary* dp = const_cast<Dictionary*>(this);
 	return dp->NextEntryNonConst(h, cookie, return_hash);

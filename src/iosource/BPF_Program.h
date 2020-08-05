@@ -8,6 +8,8 @@ extern "C" {
 
 #include <stdint.h>
 
+namespace zeek::detail {
+
 // BPF_Programs are an abstraction around struct bpf_program,
 // to create a clean facility for creating, compiling, and
 // freeing such programs.
@@ -53,3 +55,7 @@ protected:
 	bool m_matches_anything;
 	struct bpf_program m_program;
 };
+
+} // namespace zeek::detail
+
+using BPF_Program [[deprecated("Remove in v4.1. Use zeek::detail::BPF_Program.")]] = zeek::detail::BPF_Program;

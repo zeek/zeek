@@ -19,6 +19,8 @@ extern "C" {
 #endif
 }
 
+namespace zeek {
+
 void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
 		  std::string arg_tag)
@@ -66,9 +68,9 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 		ProcessLayer2();
 	}
 
-const IP_Hdr Packet::IP() const
+const zeek::IP_Hdr Packet::IP() const
 	{
-	return IP_Hdr((struct ip *) (data + hdr_size), false);
+	return zeek::IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)
@@ -626,7 +628,7 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
+		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_ETHERNET));
 		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
@@ -643,24 +645,24 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 			l3 = BifEnum::L3_ARP;
 		}
 	else
-		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
 
 	l2_hdr->Assign(1, zeek::val_mgr->Count(len));
 	l2_hdr->Assign(2, zeek::val_mgr->Count(cap_len));
 
-	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetVal(l3));
+	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetEnumVal(l3));
 
 	pkt_hdr->Assign(0, std::move(l2_hdr));
 
 	if ( l3_proto == L3_IPV4 )
 		{
-		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
+		zeek::IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
 		return ip_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else if ( l3_proto == L3_IPV6 )
 		{
-		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
+		zeek::IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
 		return ip6_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
@@ -683,8 +685,10 @@ zeek::ValPtr Packet::FmtEUI48(const u_char* mac) const
 
 void Packet::Describe(ODesc* d) const
 	{
-	const IP_Hdr ip = IP();
+	const zeek::IP_Hdr ip = IP();
 	d->Add(ip.SrcAddr());
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
+
+} // namespace zeek

@@ -9,12 +9,12 @@ namespace analyzer { namespace ident {
 
 class Ident_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit Ident_Analyzer(Connection* conn);
+	explicit Ident_Analyzer(zeek::Connection* conn);
 	void Done() override;
 
 	void DeliverStream(int length, const u_char* data, bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new Ident_Analyzer(conn); }
 
 protected:

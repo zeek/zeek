@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b %INPUT  >output 2>&1
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 # Demo policy for string functions
 #
@@ -28,6 +28,12 @@ event zeek_init()
 	for ( i in res_split )
 		print res_split[i];
 
+	print fmt("Splitting '%s' at %d points in zero-indexed mode...", s1, |idx1|);
+	res_split = str_split_indices(s1, idx1);
+
+	for ( i in res_split )
+		print res_split[i];
+
 	print fmt();
 	print fmt("Substrings");
 	print fmt("----------");
@@ -45,4 +51,3 @@ event zeek_init()
 	print fmt("ids: %d", strstr(s1, "ids"));
 	print fmt("nono: %d", strstr(s1, "nono"));
 }
-

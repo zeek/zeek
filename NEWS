@@ -3,6 +3,41 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.0
+==========
+
+New Functionality
+-----------------
+
+TODO: nothing notable yet
+
+Changed Functionality
+---------------------
+
+- ``NetControl::DROP`` had 3 conflicting definitions that could potentially
+  be used incorrectly without any warnings or type-checking errors.
+  Such enum redefinition conflicts are now caught and treated as errors,
+  so the ``NetControl::DROP`` enums had to be renamed:
+
+  - The use as enum of type ``Log::ID`` is renamed to ``NetControl::DROP_LOG``
+
+  - The use as enum of type ``NetControl::CatchReleaseInfo`` is renamed to
+    ``NetControl::DROP_REQUESTED``
+
+  - The use as enum of type ``NetControl::RuleType`` is unchanged and still
+    named ``NetControl::DROP``
+
+Removed Functionality
+---------------------
+
+- The counter type was removed. This type was never fully functional/used
+  anywhere.
+
+Deprecated Functionality
+------------------------
+
+TODO: nothing notable yet
+
 Zeek 3.2.0
 ==========
 
@@ -54,6 +89,22 @@ New Functionality
 - ``Reporter::conn_weird`` now correctly handles weirds for expired connections,
   for which no connection state information is available in the core anymore. These
   cases will raise the new ``expired_conn_weird`` event.
+
+- Broker Store table synchronization (experimental).
+
+  Zeek now supports synchronizing tables/sets across clusters using a backing Broker
+  store. The same feature also allows persistent storage of data in tables/sets
+  over Zeek restarts. This feature is implemented using the new ``&backend`` attribute.
+
+  To synchronize a table over a cluster, you can, e.g., use:
+
+    global t: table[string] of count &backend=Broker::MEMORY;
+
+  This feature is documented in detail here:
+
+    https://docs.zeek.org/en/current/frameworks/broker.html#broker-store-backed-zeek-tables-for-data-synchronization-and-persistence
+
+  Note: this feature is experimental and the syntax/specifics can change in the future.
 
 Changed Functionality
 ---------------------
@@ -254,6 +305,30 @@ Deprecated Functionality
   ``IntervalVal()``, ``TimeVal()`` or ``DoubleVal()`` constructors.
 
 - The "BroString.h" file is deprecated, use "ZeekString.h"
+
+- The str_split() BIF is deprecated, use str_split_indices().  Note
+  that the former returns a vector with indices starting at 1 while the
+  later returns a vector with indices starting at 0.
+
+- The ``icmp_conn`` parameter of ICMP events is deprecated, there's an
+  alternate version with an ``icmp_info`` parameter to use instead.
+  The ``icmp_conn`` record passed to ICMP events has always been re-used
+  amongst all events within an ICMP "connection", so the
+  ``itype``, ``icode``, ``len``, and ``hlim`` fields as inspected in
+  handlers never appears to change even if the underlying packet data
+  has different values for those fields.  However, it's not known if
+  anyone relied on that behavior, so the new ``icmp_info`` record is
+  introduced with the more-expected behavior of being created and
+  populated for each new event.  It also removes the orig_h/resp_h
+  fields since those are redundant with what's already available in
+  the connection parameter.
+
+- External plugins should include Zeek header files like
+  ``#include <zeek/Foo.h>`` instead of ``#include <Foo.h>``.  The later
+  style is considered deprecated.  Reliance on ``zeek-config --include_dir``
+  to contain ``$prefix/include/zeek`` is also deprecated: its replacement
+  output is expected to be just ``$prefix/include``, with it currently
+  outputting both paths, delimited by a colon, during the deprecation period.
 
 Zeek 3.1.0
 ==========

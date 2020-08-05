@@ -8,7 +8,7 @@
 
 using namespace analyzer::rfb;
 
-RFB_Analyzer::RFB_Analyzer(Connection* c)
+RFB_Analyzer::RFB_Analyzer(zeek::Connection* c)
 
 : tcp::TCP_ApplicationAnalyzer("RFB", c)
 

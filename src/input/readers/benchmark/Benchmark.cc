@@ -159,7 +159,6 @@ threading::Value* Benchmark::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtyp
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		val->val.uint_val = random();
 		break;
 

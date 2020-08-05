@@ -9,8 +9,10 @@
 #include "Sessions.h"
 #include "Reporter.h"
 
-#define MIN_ACCEPTABLE_FRAG_SIZE 64
-#define MAX_ACCEPTABLE_FRAG_SIZE 64000
+constexpr uint32_t MIN_ACCEPTABLE_FRAG_SIZE = 64;
+constexpr uint32_t MAX_ACCEPTABLE_FRAG_SIZE = 64000;
+
+namespace zeek::detail {
 
 FragTimer::~FragTimer()
 	{
@@ -23,12 +25,12 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 	if ( f )
 		f->Expire(t);
 	else
-		reporter->InternalWarning("fragment timer dispatched w/o reassembler");
+		zeek::reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
-FragReassembler::FragReassembler(NetSessions* arg_s,
-			const IP_Hdr* ip, const u_char* pkt,
-			const FragReassemblerKey& k, double t)
+FragReassembler::FragReassembler(zeek::NetSessions* arg_s,
+                                 const zeek::IP_Hdr* ip, const u_char* pkt,
+                                 const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
 	s = arg_s;
@@ -56,7 +58,7 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	if ( frag_timeout != 0.0 )
 		{
 		expire_timer = new FragTimer(this, t + frag_timeout);
-		timer_mgr->Add(expire_timer);
+		zeek::detail::timer_mgr->Add(expire_timer);
 		}
 	else
 		expire_timer = nullptr;
@@ -71,7 +73,7 @@ FragReassembler::~FragReassembler()
 	delete reassembled_pkt;
 	}
 
-void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
+void FragReassembler::AddFragment(double t, const zeek::IP_Hdr* ip, const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
@@ -161,20 +163,20 @@ void FragReassembler::Weird(const char* name) const
 
 	if ( version == 4 )
 		{
-		IP_Hdr hdr((const ip*)proto_hdr, false);
+		zeek::IP_Hdr hdr((const ip*)proto_hdr, false);
 		s->Weird(name, &hdr);
 		}
 
 	else if ( version == 6 )
 		{
-		IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
+		zeek::IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
 		s->Weird(name, &hdr);
 		}
 
 	else
 		{
-		reporter->InternalWarning("Unexpected IP version in FragReassembler");
-		reporter->Weird(name);
+		zeek::reporter->InternalWarning("Unexpected IP version in FragReassembler");
+		zeek::reporter->Weird(name);
 		}
 	}
 
@@ -274,7 +276,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 
 		if ( b.upper > n )
 			{
-			reporter->InternalWarning("bad fragment reassembly");
+			zeek::reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
 			Expire(network_time);
 			delete [] pkt_start;
@@ -293,7 +295,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		{
 		struct ip* reassem4 = (struct ip*) pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
-		reassembled_pkt = new IP_Hdr(reassem4, true);
+		reassembled_pkt = new zeek::IP_Hdr(reassem4, true);
 		DeleteTimer();
 		}
 
@@ -301,15 +303,15 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		{
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
-		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
-		reassembled_pkt = new IP_Hdr(reassem6, true, n, chain);
+		const zeek::IPv6_Hdr_Chain* chain = new zeek::IPv6_Hdr_Chain(reassem6, next_proto, n);
+		reassembled_pkt = new zeek::IP_Hdr(reassem6, true, n, chain);
 		DeleteTimer();
 		}
 
 	else
 		{
-		reporter->InternalWarning("bad IP version in fragment reassembly: %d",
-		                          version);
+		zeek::reporter->InternalWarning("bad IP version in fragment reassembly: %d",
+		                                version);
 		delete [] pkt_start;
 		}
 	}
@@ -320,7 +322,7 @@ void FragReassembler::Expire(double t)
 	expire_timer->ClearReassembler();
 	expire_timer = nullptr;	// timer manager will delete it
 
-	sessions->Remove(this);
+	zeek::sessions->Remove(this);
 	}
 
 void FragReassembler::DeleteTimer()
@@ -328,7 +330,9 @@ void FragReassembler::DeleteTimer()
 	if ( expire_timer )
 		{
 		expire_timer->ClearReassembler();
-		timer_mgr->Cancel(expire_timer);
+		zeek::detail::timer_mgr->Cancel(expire_timer);
 		expire_timer = nullptr;	// timer manager will delete it
 		}
 	}
+
+} // namespace zeek::detail

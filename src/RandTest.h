@@ -10,6 +10,8 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EntropyVal, zeek);
 
+namespace zeek::detail {
+
 class RandTest {
 public:
 	RandTest();
@@ -29,3 +31,5 @@ private:
 	double cexp, montex, montey, montepi,
 	       sccu0, scclast, scct1, scct2, scct3;
 };
+
+} // namespace zeek::detail

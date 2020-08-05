@@ -21,20 +21,20 @@ class TCP_Endpoint;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
 
-class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer {
+class TCP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
 public:
-	explicit TCP_Analyzer(Connection* conn);
+	explicit TCP_Analyzer(zeek::Connection* conn);
 	~TCP_Analyzer() override;
 
 	void EnableReassembly();
 
 	// Add a child analyzer that will always get the packets,
 	// independently of whether we do any reassembly.
-	void AddChildPacketAnalyzer(analyzer::Analyzer* a);
+	void AddChildPacketAnalyzer(zeek::analyzer::Analyzer* a);
 
-	Analyzer* FindChild(ID id) override;
-	Analyzer* FindChild(Tag tag) override;
-	bool RemoveChildAnalyzer(ID id) override;
+	Analyzer* FindChild(zeek::analyzer::ID id) override;
+	Analyzer* FindChild(zeek::analyzer::Tag tag) override;
+	bool RemoveChildAnalyzer(zeek::analyzer::ID id) override;
 
 	// True if the connection has closed in some sense, false otherwise.
 	bool IsClosed() const	{ return orig->did_close || resp->did_close; }
@@ -60,15 +60,15 @@ public:
 	// the test is whether it has any outstanding, un-acked data.
 	bool DataPending(TCP_Endpoint* closing_endp);
 
-	void SetContentsFile(unsigned int direction, BroFilePtr f) override;
-	BroFilePtr GetContentsFile(unsigned int direction) const override;
+	void SetContentsFile(unsigned int direction, zeek::FilePtr f) override;
+	zeek::FilePtr GetContentsFile(unsigned int direction) const override;
 
 	// From Analyzer.h
 	void UpdateConnVal(zeek::RecordVal *conn_val) override;
 
 	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new TCP_Analyzer(conn); }
 
 protected:
@@ -79,7 +79,8 @@ protected:
 	// Analyzer interface.
 	void Init() override;
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+	                   const zeek::IP_Hdr* ip, int caplen) override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void FlipRoles() override;
@@ -134,14 +135,14 @@ protected:
 				 bool is_orig, TCP_Flags flags);
 
 	bool DeliverData(double t, const u_char* data, int len, int caplen,
-			const IP_Hdr* ip, const struct tcphdr* tp,
-			TCP_Endpoint* endpoint, uint64_t rel_data_seq,
-			bool is_orig, TCP_Flags flags);
+	                 const zeek::IP_Hdr* ip, const struct tcphdr* tp,
+	                 TCP_Endpoint* endpoint, uint64_t rel_data_seq,
+	                 bool is_orig, TCP_Flags flags);
 
 	void CheckRecording(bool need_contents, TCP_Flags flags);
-	void CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip);
+	void CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip);
 
-	friend class ConnectionTimer;
+	friend class zeek::detail::ConnectionTimer;
 	void AttemptTimer(double t);
 	void PartialCloseTimer(double t);
 	void ExpireTimer(double t);
@@ -169,7 +170,7 @@ private:
 	TCP_Endpoint* orig;
 	TCP_Endpoint* resp;
 
-	using analyzer_list = std::list<analyzer::Analyzer*>;
+	using analyzer_list = std::list<zeek::analyzer::Analyzer*>;
 	analyzer_list packet_children;
 
 	unsigned int first_packet_seen: 2;
@@ -189,12 +190,12 @@ private:
 	unsigned int seen_first_ACK: 1;
 };
 
-class TCP_ApplicationAnalyzer : public analyzer::Analyzer {
+class TCP_ApplicationAnalyzer : public zeek::analyzer::Analyzer {
 public:
-	TCP_ApplicationAnalyzer(const char* name, Connection* conn)
+	TCP_ApplicationAnalyzer(const char* name, zeek::Connection* conn)
 		: Analyzer(name, conn), tcp(nullptr) { }
 
-	explicit TCP_ApplicationAnalyzer(Connection* conn)
+	explicit TCP_ApplicationAnalyzer(zeek::Connection* conn)
 		: Analyzer(conn), tcp(nullptr) { }
 
 	~TCP_ApplicationAnalyzer() override { }
@@ -227,7 +228,7 @@ public:
 	virtual void PacketWithRST();
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 	void Init() override;
 
 	// This suppresses violations if the TCP connection wasn't
@@ -243,10 +244,10 @@ private:
 	TCP_Analyzer* tcp;
 };
 
-class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer {
+class TCP_SupportAnalyzer : public zeek::analyzer::SupportAnalyzer {
 public:
-	TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
-		: analyzer::SupportAnalyzer(name, conn, arg_orig)	{ }
+	TCP_SupportAnalyzer(const char* name, zeek::Connection* conn, bool arg_orig)
+		: zeek::analyzer::SupportAnalyzer(name, conn, arg_orig)	{ }
 
 	~TCP_SupportAnalyzer() override {}
 
@@ -265,7 +266,7 @@ public:
 	explicit TCPStats_Endpoint(TCP_Endpoint* endp);
 
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-			const IP_Hdr* ip, const struct tcphdr* tp);
+	              const zeek::IP_Hdr* ip, const struct tcphdr* tp);
 
 	zeek::RecordVal* BuildStats();
 
@@ -284,18 +285,18 @@ protected:
 
 class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit TCPStats_Analyzer(Connection* c);
+	explicit TCPStats_Analyzer(zeek::Connection* c);
 	~TCPStats_Analyzer() override;
 
 	void Init() override;
 	void Done() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new TCPStats_Analyzer(conn); }
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;

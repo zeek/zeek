@@ -13,9 +13,8 @@
 #include "ZeekArgs.h"
 #include "WeirdState.h"
 
-class Connection;
-class EventHandlerPtr;
-
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 namespace zeek {
@@ -179,14 +178,14 @@ public:
 	 * @param h pointer to an event handler.
 	 * @return true if event has a handler and the file isn't ignored.
 	 */
-	bool FileEventAvailable(EventHandlerPtr h);
+	bool FileEventAvailable(zeek::EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle, the only parameter
 	 * to that event is the \c fa_file record..
 	 * @param h pointer to an event handler.
 	 */
-	void FileEvent(EventHandlerPtr h);
+	void FileEvent(zeek::EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -194,7 +193,7 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, val_list* vl);
+	void FileEvent(zeek::EventHandlerPtr h, val_list* vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -202,14 +201,14 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, val_list vl);
+	void FileEvent(zeek::EventHandlerPtr h, val_list vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
 	 * @param h pointer to an event handler.
 	 * @param args list of argument values to pass to event call.
 	 */
-	void FileEvent(EventHandlerPtr h, zeek::Args args);
+	void FileEvent(zeek::EventHandlerPtr h, zeek::Args args);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.
@@ -253,8 +252,8 @@ protected:
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
-	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
+	File(const std::string& file_id, const std::string& source_name, zeek::Connection* conn = nullptr,
+	     zeek::analyzer::Tag tag = zeek::analyzer::Tag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -263,12 +262,12 @@ protected:
 	 * @param is_orig true if the connection originator is sending the file.
 	 * @return true if the connection was previously unknown.
 	 */
-	bool UpdateConnectionFields(Connection* conn, bool is_orig);
+	bool UpdateConnectionFields(zeek::Connection* conn, bool is_orig);
 
 	/**
 	 * Raise the file_over_new_connection event with given arguments.
 	 */
-	void RaiseFileOverNewConnection(Connection* conn, bool is_orig);
+	void RaiseFileOverNewConnection(zeek::Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.
@@ -373,7 +372,7 @@ protected:
 		zeek::String::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
 
-	WeirdStateMap weird_state;
+	zeek::detail::WeirdStateMap weird_state;
 
 	static int id_idx;
 	static int parent_id_idx;

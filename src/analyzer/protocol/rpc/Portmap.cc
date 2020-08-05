@@ -78,7 +78,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 				     double start_time, double last_time,
 				     int reply_len)
 	{
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 	zeek::ValPtr reply;
 	int success = (status == BifEnum::RPC_SUCCESS);
 
@@ -262,7 +262,7 @@ uint32_t PortmapperInterp::CheckPort(uint32_t port)
 	return port;
 	}
 
-void PortmapperInterp::Event(EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply)
+void PortmapperInterp::Event(zeek::EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply)
 	{
 	if ( ! f )
 		return;
@@ -280,7 +280,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, zeek::ValPtr request, BifEnum::r
 		}
 	else
 		{
-		vl.emplace_back(zeek::BifType::Enum::rpc_status->GetVal(status));
+		vl.emplace_back(zeek::BifType::Enum::rpc_status->GetEnumVal(status));
 
 		if ( request )
 			vl.emplace_back(std::move(request));
@@ -289,7 +289,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, zeek::ValPtr request, BifEnum::r
 	analyzer->EnqueueConnEvent(f, std::move(vl));
 	}
 
-Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)
+Portmapper_Analyzer::Portmapper_Analyzer(zeek::Connection* conn)
 : RPC_Analyzer("PORTMAPPER", conn, new PortmapperInterp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;

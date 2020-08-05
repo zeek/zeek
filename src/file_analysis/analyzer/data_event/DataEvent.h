@@ -58,11 +58,11 @@ protected:
 	 *        sequential file data.
 	 */
 	DataEvent(zeek::RecordValPtr args, File* file,
-	          EventHandlerPtr ce, EventHandlerPtr se);
+	          zeek::EventHandlerPtr ce, zeek::EventHandlerPtr se);
 
 private:
-	EventHandlerPtr chunk_event;
-	EventHandlerPtr stream_event;
+	zeek::EventHandlerPtr chunk_event;
+	zeek::EventHandlerPtr stream_event;
 };
 
 } // namespace file_analysis

@@ -19,30 +19,30 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	seed_t tmpseed;
-	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
+	EVP_MD_CTX* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 
 	assert(sizeof(tmpseed) == 16);
 
 	static auto global_hash_seed = zeek::id::find_val<zeek::StringVal>("global_hash_seed");
 
 	if ( data )
-		hash_update(ctx, data, size);
+		zeek::detail::hash_update(ctx, data, size);
 
 	else if ( global_hash_seed->Len() > 0 )
-		hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
+		zeek::detail::hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
 
 	else
 		{
 		unsigned int first_seed = initial_seed();
-		hash_update(ctx, &first_seed, sizeof(first_seed));
+		zeek::detail::hash_update(ctx, &first_seed, sizeof(first_seed));
 		}
 
-	hash_final(ctx, buf);
+	zeek::detail::hash_final(ctx, buf);
 	memcpy(&tmpseed, buf, sizeof(tmpseed)); // Use the first bytes as seed.
 	return tmpseed;
 	}
 
-Hasher::digest_vector Hasher::Hash(const HashKey* key) const
+Hasher::digest_vector Hasher::Hash(const zeek::detail::HashKey* key) const
 	{
 	return Hash(key->Key(), key->Size());
 	}
@@ -119,7 +119,7 @@ DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
 	for ( size_t i = 1; i <= k; ++i )
 		{
 		seed_t s = Seed();
-		s.h[0] += bro_prng(i);
+		s.h[0] += zeek::prng(i);
 		hash_functions.push_back(UHF(s));
 		}
 	}
@@ -149,7 +149,7 @@ bool DefaultHasher::Equals(const Hasher* other) const
 	}
 
 DoubleHasher::DoubleHasher(size_t k, seed_t seed)
-	: Hasher(k, seed), h1(seed + bro_prng(1)), h2(seed + bro_prng(2))
+	: Hasher(k, seed), h1(seed + zeek::prng(1)), h2(seed + zeek::prng(2))
 	{
 	}
 

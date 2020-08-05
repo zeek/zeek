@@ -23,10 +23,10 @@ void TopkVal::Typify(zeek::TypePtr t)
 	type = std::move(t);
 	auto tl = zeek::make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
-	hash = new CompositeHash(std::move(tl));
+	hash = new zeek::detail::CompositeHash(std::move(tl));
 	}
 
-HashKey* TopkVal::GetHash(Val* v) const
+zeek::detail::HashKey* TopkVal::GetHash(Val* v) const
 	{
 	auto key = hash->MakeHashKey(*v, true);
 	assert(key);
@@ -87,7 +87,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		{
 		if ( ! same_type(type, value->type) )
 			{
-			reporter->Error("Cannot merge top-k elements of differing types.");
+			zeek::reporter->Error("Cannot merge top-k elements of differing types.");
 			return;
 			}
 		}
@@ -103,7 +103,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 			{
 			Element* e = *eit;
 			// lookup if we already know this one...
-			HashKey* key = GetHash(e->value);
+			zeek::detail::HashKey* key = GetHash(e->value);
 			Element* olde = (Element*) elementDict->Lookup(key);
 
 			if ( olde == nullptr )
@@ -158,7 +158,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		assert(b->elements.size() > 0);
 
 		Element* e = b->elements.front();
-		HashKey* key = GetHash(e->value);
+		zeek::detail::HashKey* key = GetHash(e->value);
 		elementDict->RemoveEntry(key);
 		delete key;
 		delete e;
@@ -186,7 +186,7 @@ zeek::VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
-		reporter->Error("Cannot return topk of empty");
+		zeek::reporter->Error("Cannot return topk of empty");
 		return nullptr;
 		}
 
@@ -222,13 +222,13 @@ zeek::VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 
 uint64_t TopkVal::GetCount(Val* value) const
 	{
-	HashKey* key = GetHash(value);
+	zeek::detail::HashKey* key = GetHash(value);
 	Element* e = (Element*) elementDict->Lookup(key);
 	delete key;
 
 	if ( e == nullptr )
 		{
-		reporter->Error("GetCount for element that is not in top-k");
+		zeek::reporter->Error("GetCount for element that is not in top-k");
 		return 0;
 		}
 
@@ -237,13 +237,13 @@ uint64_t TopkVal::GetCount(Val* value) const
 
 uint64_t TopkVal::GetEpsilon(Val* value) const
 	{
-	HashKey* key = GetHash(value);
+	zeek::detail::HashKey* key = GetHash(value);
 	Element* e = (Element*) elementDict->Lookup(key);
 	delete key;
 
 	if ( e == nullptr )
 		{
-		reporter->Error("GetEpsilon for element that is not in top-k");
+		zeek::reporter->Error("GetEpsilon for element that is not in top-k");
 		return 0;
 		}
 
@@ -263,7 +263,7 @@ uint64_t TopkVal::GetSum() const
 		}
 
 	if ( pruned )
-		reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
+		zeek::reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
 
 	return sum;
 	}
@@ -277,12 +277,12 @@ void TopkVal::Encountered(zeek::ValPtr encountered)
 	else
 		if ( ! same_type(type, encountered->GetType()) )
 			{
-			reporter->Error("Trying to add element to topk with differing type from other elements");
+			zeek::reporter->Error("Trying to add element to topk with differing type from other elements");
 			return;
 			}
 
 	// Step 1 - get the hash.
-	HashKey* key = GetHash(encountered);
+	zeek::detail::HashKey* key = GetHash(encountered);
 	Element* e = (Element*) elementDict->Lookup(key);
 
 	if ( e == nullptr )
@@ -326,7 +326,7 @@ void TopkVal::Encountered(zeek::ValPtr encountered)
 
 			// evict oldest element with least hits.
 			assert(b->elements.size() > 0);
-			HashKey* deleteKey = GetHash((*(b->elements.begin()))->value);
+			zeek::detail::HashKey* deleteKey = GetHash((*(b->elements.begin()))->value);
 			b->elements.erase(b->elements.begin());
 			Element* deleteElement = (Element*) elementDict->RemoveEntry(deleteKey);
 			assert(deleteElement); // there has to have been a minimal element...
@@ -506,7 +506,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 			b->elements.insert(b->elements.end(), e);
 
-			HashKey* key = GetHash(e->value);
+			zeek::detail::HashKey* key = GetHash(e->value);
 			assert (elementDict->Lookup(key) == nullptr);
 
 			elementDict->Insert(key, e);

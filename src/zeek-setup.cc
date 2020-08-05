@@ -41,7 +41,7 @@ extern "C" {
 #include "Anon.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "Brofiler.h"
+#include "ScriptCoverageManager.h"
 #include "Traverse.h"
 #include "Trigger.h"
 #include "Hash.h"
@@ -67,7 +67,8 @@ extern "C" {
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "3rdparty/doctest.h"
 
-Brofiler brofiler;
+zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
+zeek::detail::ScriptCoverageManager& brofiler = zeek::detail::script_coverage_mgr;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -85,15 +86,25 @@ int perftools_leaks = 0;
 int perftools_profile = 0;
 #endif
 
-DNS_Mgr* dns_mgr;
-TimerMgr* timer_mgr;
 zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::ValManager*& val_mgr = zeek::val_mgr;
+zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
+zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
+zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
+zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
+
+zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
+zeek::detail::RuleMatcher*& rule_matcher = zeek::detail::rule_matcher;
+
+zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
+zeek::detail::DNS_Mgr*& dns_mgr = zeek::detail::dns_mgr;
+
+zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
+zeek::detail::TimerMgr*& timer_mgr = zeek::detail::timer_mgr;
+
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
-zeek::plugin::Manager* plugin_mgr = nullptr;
-analyzer::Manager* analyzer_mgr = nullptr;
 file_analysis::Manager* file_mgr = nullptr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
 iosource::Manager* iosource_mgr = nullptr;
@@ -103,11 +114,14 @@ zeek::detail::trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
 zeek::detail::Stmt* stmts;
-RuleMatcher* rule_matcher = nullptr;
-EventRegistry* event_registry = nullptr;
-ProfileLogger* profiling_logger = nullptr;
-ProfileLogger* segment_logger = nullptr;
-SampleLogger* sample_logger = nullptr;
+zeek::EventRegistry* zeek::event_registry = nullptr;
+zeek::EventRegistry*& event_registry = zeek::event_registry;
+zeek::detail::ProfileLogger* zeek::detail::profiling_logger = nullptr;
+zeek::detail::ProfileLogger*& profiling_logger = zeek::detail::profiling_logger;
+zeek::detail::ProfileLogger* zeek::detail::segment_logger = nullptr;
+zeek::detail::ProfileLogger*& segment_logger = zeek::detail::segment_logger;
+zeek::detail::SampleLogger* zeek::detail::sample_logger = nullptr;
+zeek::detail::SampleLogger*& sample_logger = zeek::detail::sample_logger;
 int signal_val = 0;
 extern char version[];
 const char* command_line_policy = nullptr;
@@ -161,7 +175,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 
 bool show_plugins(int level)
 	{
-	zeek::plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	zeek::plugin::Manager::plugin_list plugins = zeek::plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{
@@ -169,7 +183,7 @@ bool show_plugins(int level)
 		return false;
 		}
 
-	ODesc d;
+	zeek::ODesc d;
 
 	if ( level == 1 )
 		d.SetShort();
@@ -192,7 +206,7 @@ bool show_plugins(int level)
 
 	printf("%s", d.Description());
 
-	zeek::plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+	zeek::plugin::Manager::inactive_plugin_list inactives = zeek::plugin_mgr->InactivePlugins();
 
 	if ( inactives.size() && ! requested_plugins.size() )
 		{
@@ -218,23 +232,23 @@ void done_with_network()
 
 	if ( net_done )
 		{
-		mgr.Drain();
+		zeek::event_mgr.Drain();
 		// Don't propagate this event to remote clients.
-		mgr.Dispatch(new Event(net_done,
-		                       {zeek::make_intrusive<zeek::TimeVal>(timer_mgr->Time())}),
-		             true);
+		zeek::event_mgr.Dispatch(
+			new zeek::Event(net_done, {zeek::make_intrusive<zeek::TimeVal>(zeek::detail::timer_mgr->Time())}),
+			true);
 		}
 
-	if ( profiling_logger )
-		profiling_logger->Log();
+	if ( zeek::detail::profiling_logger )
+		zeek::detail::profiling_logger->Log();
 
 	terminating = true;
 
-	analyzer_mgr->Done();
-	timer_mgr->Expire();
-	dns_mgr->Flush();
-	mgr.Drain();
-	mgr.Drain();
+	zeek::analyzer_mgr->Done();
+	zeek::detail::timer_mgr->Expire();
+	zeek::detail::dns_mgr->Flush();
+	zeek::event_mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	net_finish(1);
 
@@ -268,58 +282,58 @@ void terminate_bro()
 	// the termination process.
 	file_mgr->Terminate();
 
-	brofiler.WriteStats();
+	zeek::detail::script_coverage_mgr.WriteStats();
 
 	if ( zeek_done )
-		mgr.Enqueue(zeek_done, zeek::Args{});
+		zeek::event_mgr.Enqueue(zeek_done, zeek::Args{});
 
-	timer_mgr->Expire();
-	mgr.Drain();
+	zeek::detail::timer_mgr->Expire();
+	zeek::event_mgr.Drain();
 
-	if ( profiling_logger )
+	if ( zeek::detail::profiling_logger )
 		{
 		// FIXME: There are some occasional crashes in the memory
 		// allocation code when killing Bro.  Disabling this for now.
 		if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
-			profiling_logger->Log();
+			zeek::detail::profiling_logger->Log();
 
-		delete profiling_logger;
+		delete zeek::detail::profiling_logger;
 		}
 
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
 	notifier::registry.Terminate();
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
-	dns_mgr->Terminate();
+	zeek::detail::dns_mgr->Terminate();
 
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
-	plugin_mgr->FinishPlugins();
+	zeek::plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
-	delete analyzer_mgr;
+	delete zeek::analyzer_mgr;
 	delete file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
-	delete event_registry;
+	delete zeek::event_registry;
 	delete log_mgr;
-	delete reporter;
-	delete plugin_mgr;
+	delete zeek::reporter;
+	delete zeek::plugin_mgr;
 	delete zeek::val_mgr;
 
 	// free the global scope
 	zeek::detail::pop_scope();
 
-	reporter = nullptr;
+	zeek::reporter = nullptr;
 	}
 
 void zeek_terminate_loop(const char* reason)
 	{
 	set_processing_status("TERMINATING", reason);
-	reporter->Info("%s", reason);
+	zeek::reporter->Info("%s", reason);
 
 	net_get_final_stats();
 	done_with_network();
@@ -329,9 +343,9 @@ void zeek_terminate_loop(const char* reason)
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.
-	BroFile::CloseOpenFiles();
+	zeek::File::CloseOpenFiles();
 
-	delete rule_matcher;
+	delete zeek::detail::rule_matcher;
 
 	exit(0);
 	}
@@ -415,12 +429,12 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(context.run());
 		}
 
-	auto stem_state = zeek::Supervisor::CreateStem(options.supervisor_mode);
+	auto stem = zeek::Supervisor::CreateStem(options.supervisor_mode);
 
 	if ( zeek::Supervisor::ThisNode() )
 		zeek::Supervisor::ThisNode()->Init(&options);
 
-	brofiler.ReadStats();
+	zeek::detail::script_coverage_mgr.ReadStats();
 
 	auto dns_type = options.dns_mode;
 
@@ -468,7 +482,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
-	plugin_mgr = new zeek::plugin::Manager();
+	zeek::plugin_mgr = new zeek::plugin::Manager();
 
 #ifdef DEBUG
 	if ( options.debug_log_streams )
@@ -487,8 +501,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		zeek::Supervisor::Config cfg = {};
 		cfg.zeek_exe_path = zeek_exe_path;
 		options.filter_supervisor_options();
-		zeek::supervisor_mgr = new zeek::Supervisor(std::move(cfg),
-		                                            std::move(*stem_state));
+		zeek::supervisor_mgr = new zeek::Supervisor(std::move(cfg), std::move(*stem));
 		}
 
 	const char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
@@ -514,7 +527,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
-		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
+		zeek::reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
 #ifdef USE_IDMEF
 	char* libidmef_dtd_path_cstr = new char[options.libidmef_dtd_file.size() + 1];
@@ -524,7 +537,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	createCurrentDoc("1.0");		// Set a global XML document
 #endif
 
-	timer_mgr = new PQ_TimerMgr();
+	zeek::detail::timer_mgr = new zeek::detail::PQ_TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_cfg, bro_argv[0]);
@@ -535,7 +548,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( ! options.bare_mode )
 		add_input_file("base/init-default.zeek");
 
-	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
+	zeek::plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
 	     options.script_options_to_set.empty() &&
@@ -556,16 +569,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	push_scope(nullptr, nullptr);
 
-	dns_mgr = new DNS_Mgr(dns_type);
+	zeek::detail::dns_mgr = new zeek::detail::DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
 	// chicken and the egg problem.  It would be configurable by parsing
 	// policy, but we can't parse policy without DNS resolution.
-	dns_mgr->SetDir(".state");
+	zeek::detail::dns_mgr->SetDir(".state");
 
 	iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
-	analyzer_mgr = new analyzer::Manager();
+	zeek::analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
@@ -573,8 +586,8 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	broker_mgr = new bro_broker::Manager(broker_real_time);
 	trigger_mgr = new zeek::detail::trigger::Manager();
 
-	plugin_mgr->InitPreScript();
-	analyzer_mgr->InitPreScript();
+	zeek::plugin_mgr->InitPreScript();
+	zeek::analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
 
@@ -583,14 +596,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	for ( set<string>::const_iterator i = requested_plugins.begin();
 	      i != requested_plugins.end(); i++ )
 		{
-		if ( ! plugin_mgr->ActivateDynamicPlugin(*i) )
+		if ( ! zeek::plugin_mgr->ActivateDynamicPlugin(*i) )
 			missing_plugin = true;
 		}
 
 	if ( missing_plugin )
-		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
+		zeek::reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
-	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
+	zeek::plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
 	init_event_handlers();
 
@@ -638,17 +651,18 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		"BinPAC::flowbuffer_contract_threshold")->GetVal()->AsCount();
 	binpac::init(&flowbuffer_policy);
 
-	plugin_mgr->InitBifs();
+	zeek::plugin_mgr->InitBifs();
 
-	if ( reporter->Errors() > 0 )
+	if ( zeek::reporter->Errors() > 0 )
 		exit(1);
 
 	iosource_mgr->InitPostScript();
-	plugin_mgr->InitPostScript();
+	log_mgr->InitPostScript();
+	zeek::plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
-	timer_mgr->InitPostScript();
-	mgr.InitPostScript();
+	zeek::detail::timer_mgr->InitPostScript();
+	zeek::event_mgr.InitPostScript();
 
 	if ( zeek::supervisor_mgr )
 		zeek::supervisor_mgr->InitPostScript();
@@ -659,13 +673,13 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(success ? 0 : 1);
 		}
 
-	analyzer_mgr->InitPostScript();
+	zeek::analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
-	dns_mgr->InitPostScript();
+	zeek::detail::dns_mgr->InitPostScript();
 
 	if ( options.parse_only )
 		{
-		int rc = (reporter->Errors() > 0 ? 1 : 0);
+		int rc = (zeek::reporter->Errors() > 0 ? 1 : 0);
 		exit(rc);
 		}
 
@@ -673,13 +687,13 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	}
 #endif
 
-	if ( reporter->Errors() > 0 )
+	if ( zeek::reporter->Errors() > 0 )
 		{
-		delete dns_mgr;
+		delete zeek::detail::dns_mgr;
 		exit(1);
 		}
 
-	reporter->InitOptions();
+	zeek::reporter->InitOptions();
 	KeyedHash::InitOptions();
 	zeekygen_mgr->GenerateDocs();
 
@@ -688,7 +702,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		const auto& id = global_scope()->Find("cmd_line_bpf_filter");
 
 		if ( ! id )
-			reporter->InternalError("global cmd_line_bpf_filter not defined");
+			zeek::reporter->InternalError("global cmd_line_bpf_filter not defined");
 
 		id->SetVal(zeek::make_intrusive<zeek::StringVal>(*options.pcap_filter));
 		}
@@ -708,7 +722,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		rule_matcher = new RuleMatcher(options.signature_re_level);
 		if ( ! rule_matcher->ReadFiles(all_signature_files) )
 			{
-			delete dns_mgr;
+			delete zeek::detail::dns_mgr;
 			exit(1);
 			}
 
@@ -753,14 +767,14 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( dns_type == DNS_PRIME )
 		{
-		dns_mgr->Verify();
-		dns_mgr->Resolve();
+		zeek::detail::dns_mgr->Verify();
+		zeek::detail::dns_mgr->Resolve();
 
-		if ( ! dns_mgr->Save() )
-			reporter->FatalError("can't update DNS cache");
+		if ( ! zeek::detail::dns_mgr->Save() )
+			zeek::reporter->FatalError("can't update DNS cache");
 
-		mgr.Drain();
-		delete dns_mgr;
+		zeek::event_mgr.Drain();
+		delete zeek::detail::dns_mgr;
 		exit(0);
 		}
 
@@ -769,9 +783,9 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		{
 		const auto& id = global_scope()->Find(*options.identifier_to_print);
 		if ( ! id )
-			reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
+			zeek::reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
 
-		ODesc desc;
+		zeek::ODesc desc;
 		desc.SetQuotes(true);
 		desc.SetIncludeStats(true);
 		id->DescribeExtended(&desc);
@@ -783,11 +797,11 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( profiling_interval > 0 )
 		{
 		const auto& profiling_file = zeek::id::find_val("profiling_file");
-		profiling_logger = new ProfileLogger(profiling_file->AsFile(),
-			profiling_interval);
+		zeek::detail::profiling_logger = new ProfileLogger(profiling_file->AsFile(),
+		                                                   profiling_interval);
 
 		if ( segment_profiling )
-			segment_logger = profiling_logger;
+			zeek::detail::segment_logger = zeek::detail::profiling_logger;
 		}
 
 	if ( ! reading_live && ! reading_traces )
@@ -796,7 +810,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		net_update_time(current_time());
 
 	if ( zeek_init )
-		mgr.Enqueue(zeek_init, zeek::Args{});
+		zeek::event_mgr.Enqueue(zeek_init, zeek::Args{});
 
 	EventRegistry::string_list dead_handlers =
 		event_registry->UnusedHandlers();
@@ -804,7 +818,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
 		{
 		for ( const string& handler : dead_handlers )
-			reporter->Warning("event handler never invoked: %s", handler.c_str());
+			zeek::reporter->Warning("event handler never invoked: %s", handler.c_str());
 		}
 
 	// Enable LeakSanitizer before zeek_init() and even before executing
@@ -826,7 +840,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 			}
 		catch ( InterpreterException& )
 			{
-			reporter->FatalError("failed to execute script statements at top-level scope");
+			zeek::reporter->FatalError("failed to execute script statements at top-level scope");
 			}
 
 		g_frame_stack.pop_back();
@@ -843,25 +857,25 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 			if ( i->skipped )
 				continue;
 
-			mgr.Enqueue(zeek_script_loaded,
-			            zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
-			            zeek::val_mgr->Count(i->include_level));
+			zeek::event_mgr.Enqueue(zeek_script_loaded,
+			                        zeek::make_intrusive<zeek::StringVal>(i->name.c_str()),
+			                        zeek::val_mgr->Count(i->include_level));
 			}
 		}
 
-	reporter->ReportViaEvents(true);
+	zeek::reporter->ReportViaEvents(true);
 
 	// Drain the event queue here to support the protocols framework configuring DPM
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 
-	if ( reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
-		reporter->FatalError("errors occurred while initializing");
+	if ( zeek::reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
+		zeek::reporter->FatalError("errors occurred while initializing");
 
 	broker_mgr->ZeekInitDone();
-	reporter->ZeekInitDone();
-	analyzer_mgr->DumpDebug();
+	zeek::reporter->ZeekInitDone();
+	zeek::analyzer_mgr->DumpDebug();
 
-	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
+	have_pending_timers = ! reading_traces && zeek::detail::timer_mgr->Size() > 0;
 
 	return {0, std::move(options)};
 	}
@@ -882,7 +896,7 @@ int zeek::detail::cleanup(bool did_net_run)
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.
-	BroFile::CloseOpenFiles();
+	zeek::File::CloseOpenFiles();
 
 	delete rule_matcher;
 

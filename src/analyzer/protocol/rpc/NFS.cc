@@ -123,7 +123,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
-	EventHandlerPtr event = nullptr;
+	zeek::EventHandlerPtr event = nullptr;
 	zeek::ValPtr reply;
 	BifEnum::NFS3::status_t nfs_status = BifEnum::NFS3::NFS3ERR_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
@@ -242,7 +242,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = zeek::BifType::Enum::NFS3::proc_t->GetVal(c->Proc());
+			reply = zeek::BifType::Enum::NFS3::proc_t->GetEnumVal(c->Proc());
 			event = nfs_proc_not_implemented;
 			}
 		else
@@ -318,8 +318,8 @@ zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_
 		auxgids->Assign(i, zeek::val_mgr->Count(c->AuxGIDs()[i]));
 
 	auto info = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NFS3::info_t);
-	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
-	info->Assign(1, zeek::BifType::Enum::NFS3::status_t->GetVal(nfs_status));
+	info->Assign(0, zeek::BifType::Enum::rpc_status->GetEnumVal(rpc_status));
+	info->Assign(1, zeek::BifType::Enum::NFS3::status_t->GetEnumVal(nfs_status));
 	info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(c->StartTime()));
 	info->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(c->LastTime()-c->StartTime()));
 	info->Assign(4, zeek::val_mgr->Count(c->RPCLen()));
@@ -422,14 +422,14 @@ zeek::RecordValPtr NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 zeek::EnumValPtr NFS_Interp::nfs3_time_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
-	auto rval = zeek::BifType::Enum::NFS3::time_how_t->GetVal(t);
+	auto rval = zeek::BifType::Enum::NFS3::time_how_t->GetEnumVal(t);
 	return rval;
 	}
 
 zeek::EnumValPtr NFS_Interp::nfs3_ftype(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
-	auto rval = zeek::BifType::Enum::NFS3::file_type_t->GetVal(t);
+	auto rval = zeek::BifType::Enum::NFS3::file_type_t->GetEnumVal(t);
 	return rval;
 	}
 
@@ -519,7 +519,7 @@ zeek::RecordValPtr NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 zeek::EnumValPtr NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
-	auto rval = zeek::BifType::Enum::NFS3::stable_how_t->GetVal(stable);
+	auto rval = zeek::BifType::Enum::NFS3::stable_how_t->GetEnumVal(stable);
 	return rval;
 	}
 
@@ -817,7 +817,7 @@ zeek::ValPtr NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	}
 
 
-NFS_Analyzer::NFS_Analyzer(Connection* conn)
+NFS_Analyzer::NFS_Analyzer(zeek::Connection* conn)
 	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;

@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("MQTT",
+		AddComponent(new zeek::analyzer::Component("MQTT",
 		             ::analyzer::MQTT::MQTT_Analyzer::InstantiateAnalyzer));
 
 		zeek::plugin::Configuration config;

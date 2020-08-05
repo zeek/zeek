@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("ConnSize", ::analyzer::conn_size::ConnSize_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("ConnSize", ::analyzer::conn_size::ConnSize_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::ConnSize";

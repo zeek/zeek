@@ -23,7 +23,7 @@ Component::~Component()
 	{
 	}
 
-void Component::DoDescribe(ODesc* d) const
+void Component::DoDescribe(zeek::ODesc* d) const
 	{
 	d->Add("Log::WRITER_");
 	d->Add(CanonicalName());

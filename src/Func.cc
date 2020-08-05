@@ -193,13 +193,13 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 		}
 	}
 
-TraversalCode Func::Traverse(TraversalCallback* cb) const
+detail::TraversalCode Func::Traverse(detail::TraversalCallback* cb) const
 	{
 	// FIXME: Make a fake scope for builtins?
 	zeek::detail::Scope* old_scope = cb->current_scope;
 	cb->current_scope = scope.get();
 
-	TraversalCode tc = cb->PreFunction(this);
+	detail::TraversalCode tc = cb->PreFunction(this);
 	HANDLE_TC_STMT_PRE(tc);
 
 	// FIXME: Traverse arguments to builtin functions, too.
@@ -208,9 +208,9 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 		tc = scope->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 
-		for ( unsigned int i = 0; i < bodies.size(); ++i )
+		for ( const auto& body : bodies )
 			{
-			tc = bodies[i].stmts->Traverse(cb);
+			tc = body.stmts->Traverse(cb);
 			HANDLE_TC_STMT_PRE(tc);
 			}
 		}
@@ -242,7 +242,7 @@ void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 	if ( ! handled )
 		{
 		if ( hook_result )
-			reporter->InternalError("plugin set processed flag to false but actually returned a value");
+			zeek::reporter->InternalError("plugin set processed flag to false but actually returned a value");
 
 		// The plugin result hasn't been processed yet (read: fall
 		// into ::Call method).
@@ -252,15 +252,15 @@ void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 	switch ( flavor ) {
 	case zeek::FUNC_FLAVOR_EVENT:
 		if ( hook_result )
-			reporter->InternalError("plugin returned non-void result for event %s",
-			                        this->Name());
+			zeek::reporter->InternalError("plugin returned non-void result for event %s",
+			                              this->Name());
 
 		break;
 
 	case zeek::FUNC_FLAVOR_HOOK:
 		if ( hook_result->GetType()->Tag() != zeek::TYPE_BOOL )
-			reporter->InternalError("plugin returned non-bool for hook %s",
-			                        this->Name());
+			zeek::reporter->InternalError("plugin returned non-bool for hook %s",
+			                              this->Name());
 
 		break;
 
@@ -271,14 +271,14 @@ void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 		if ( (! yt) || yt->Tag() == zeek::TYPE_VOID )
 			{
 			if ( hook_result )
-				reporter->InternalError("plugin returned non-void result for void method %s",
-				                        this->Name());
+				zeek::reporter->InternalError("plugin returned non-void result for void method %s",
+				                              this->Name());
 			}
 
 		else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != zeek::TYPE_ANY )
 			{
-			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-			                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
+			zeek::reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
+			                              hook_result->GetType()->Tag(), yt->Tag(), this->Name());
 			}
 
 		break;
@@ -453,8 +453,8 @@ zeek::ValPtr ScriptFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) c
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )
-		reporter->Warning("non-void function returning without a value: %s",
-				  Name());
+		zeek::reporter->Warning("non-void function returning without a value: %s",
+		                        Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -523,8 +523,8 @@ bool ScriptFunc::StrengthenClosureReference(zeek::detail::Frame* f)
 void ScriptFunc::SetClosureFrame(zeek::detail::Frame* f)
 	{
 	if ( closure )
-		reporter->InternalError("Tried to override closure for ScriptFunc %s.",
-					Name());
+		zeek::reporter->InternalError("Tried to override closure for ScriptFunc %s.",
+		                              Name());
 
 	// Have to use weak references initially because otherwise Ref'ing the
 	// original frame creates a circular reference: the function holds a
@@ -587,10 +587,10 @@ void ScriptFunc::Describe(ODesc* d) const
 
 	d->NL();
 	d->AddCount(frame_size);
-	for ( unsigned int i = 0; i < bodies.size(); ++i )
+	for ( const auto& body : bodies )
 		{
-		bodies[i].stmts->AccessStats(d);
-		bodies[i].stmts->Describe(d);
+		body.stmts->AccessStats(d);
+		body.stmts->Describe(d);
 		}
 	}
 
@@ -618,9 +618,9 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	const auto& id = zeek::detail::lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
-		reporter->InternalError("built-in function %s missing", Name());
+		zeek::reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
-		reporter->InternalError("built-in function %s multiply defined", Name());
+		zeek::reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->GetType<zeek::FuncType>();
 	id->SetVal(zeek::make_intrusive<zeek::Val>(zeek::IntrusivePtr{zeek::NewRef{}, this}));
@@ -788,31 +788,51 @@ function_ingredients::function_ingredients(zeek::detail::ScopePtr scope, zeek::d
 	this->body = std::move(body);
 	}
 
-} // namespace detail
-
-void emit_builtin_error(const char* msg)
-	{
-	emit_builtin_error(msg, zeek::ValPtr{});
-	}
-
-void emit_builtin_error(const char* msg, zeek::ValPtr arg)
-	{
-	emit_builtin_error(msg, arg.get());
-	}
-
-void emit_builtin_error(const char* msg, Obj* arg)
+static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)
 	{
 	auto emit = [=](const zeek::detail::CallExpr* ce)
 		{
 		if ( ce )
-			ce->Error(msg, arg);
+			{
+			if ( unwind )
+				{
+				if ( arg )
+					{
+					ODesc d;
+					arg->Describe(&d);
+					zeek::reporter->ExprRuntimeError(ce, "%s (%s), during call:", msg,
+					                                 d.Description());
+					}
+				else
+					zeek::reporter->ExprRuntimeError(ce, "%s", msg);
+				}
+			else
+				ce->Error(msg, arg);
+			}
 		else
-			reporter->Error(msg, arg);
+			{
+			if ( arg )
+				{
+				if ( unwind )
+					zeek::reporter->RuntimeError(arg->GetLocationInfo(), "%s", msg);
+				else
+					arg->Error(msg);
+				}
+			else
+				{
+				if ( unwind )
+					zeek::reporter->RuntimeError(nullptr, "%s", msg);
+				else
+					zeek::reporter->Error("%s", msg);
+				}
+			}
 		};
 
 
 	if ( zeek::detail::call_stack.empty() )
 		{
+		// Shouldn't happen unless someone (mistakenly) calls builtin_error()
+		// from somewhere that's not even evaluating script-code.
 		emit(nullptr);
 		return;
 		}
@@ -866,6 +886,39 @@ void emit_builtin_error(const char* msg, Obj* arg)
 		emit(last_call.call);
 	}
 
+void emit_builtin_exception(const char* msg)
+	{
+	emit_builtin_error_common(msg, nullptr, true);
+	}
+
+void emit_builtin_exception(const char* msg, const zeek::ValPtr& arg)
+	{
+	emit_builtin_error_common(msg, arg.get(), true);
+	}
+
+void emit_builtin_exception(const char* msg, Obj* arg)
+	{
+	emit_builtin_error_common(msg, arg, true);
+	}
+
+} // namespace detail
+
+
+void emit_builtin_error(const char* msg)
+	{
+	zeek::detail::emit_builtin_error_common(msg, nullptr, false);
+	}
+
+void emit_builtin_error(const char* msg, const zeek::ValPtr& arg)
+	{
+	zeek::detail::emit_builtin_error_common(msg, arg.get(), false);
+	}
+
+void emit_builtin_error(const char* msg, Obj* arg)
+	{
+	zeek::detail::emit_builtin_error_common(msg, arg, false);
+	}
+
 } // namespace zeek
 
 void builtin_error(const char* msg)
@@ -873,7 +926,7 @@ void builtin_error(const char* msg)
 	zeek::emit_builtin_error(msg);
 	}
 
-void builtin_error(const char* msg, zeek::ValPtr arg)
+void builtin_error(const char* msg, const zeek::ValPtr& arg)
 	{
 	zeek::emit_builtin_error(msg, arg);
 	}

@@ -12,7 +12,7 @@
 using namespace file_analysis;
 
 DataEvent::DataEvent(zeek::RecordValPtr args, File* file,
-                     EventHandlerPtr ce, EventHandlerPtr se)
+                     zeek::EventHandlerPtr ce, zeek::EventHandlerPtr se)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
 	                          std::move(args), file),
 	chunk_event(ce), stream_event(se)
@@ -27,14 +27,14 @@ file_analysis::Analyzer* DataEvent::Instantiate(zeek::RecordValPtr args,
 
 	if ( ! chunk_val && ! stream_val ) return nullptr;
 
-	EventHandlerPtr chunk;
-	EventHandlerPtr stream;
+	zeek::EventHandlerPtr chunk;
+	zeek::EventHandlerPtr stream;
 
 	if ( chunk_val )
-		chunk = event_registry->Lookup(chunk_val->AsFunc()->Name());
+		chunk = zeek::event_registry->Lookup(chunk_val->AsFunc()->Name());
 
 	if ( stream_val )
-		stream = event_registry->Lookup(stream_val->AsFunc()->Name());
+		stream = zeek::event_registry->Lookup(stream_val->AsFunc()->Name());
 
 	return new DataEvent(std::move(args), file, chunk, stream);
 	}
@@ -43,10 +43,10 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	{
 	if ( ! chunk_event ) return true;
 
-	mgr.Enqueue(chunk_event,
-	            GetFile()->ToVal(),
-	            zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, false)),
-	            zeek::val_mgr->Count(offset)
+	zeek::event_mgr.Enqueue(chunk_event,
+	                        GetFile()->ToVal(),
+	                        zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, false)),
+	                        zeek::val_mgr->Count(offset)
 	);
 
 	return true;
@@ -56,9 +56,9 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( ! stream_event ) return true;
 
-	mgr.Enqueue(stream_event,
-	            GetFile()->ToVal(),
-	            zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, false))
+	zeek::event_mgr.Enqueue(stream_event,
+	                        GetFile()->ToVal(),
+	                        zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, false))
 	);
 
 	return true;

@@ -11,8 +11,8 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("FTP", ::analyzer::ftp::FTP_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("FTP_ADAT", nullptr));
+		AddComponent(new zeek::analyzer::Component("FTP", ::analyzer::ftp::FTP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("FTP_ADAT", nullptr));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::FTP";

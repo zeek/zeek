@@ -10,12 +10,12 @@ namespace analyzer { namespace ftp {
 
 class FTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit FTP_Analyzer(Connection* conn);
+	explicit FTP_Analyzer(zeek::Connection* conn);
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{
 		return new FTP_Analyzer(conn);
 		}
@@ -34,9 +34,9 @@ protected:
  * analyzer just decodes the tokens and passes them on to the parent, which must
  * be an SSL analyzer instance.
  */
-class FTP_ADAT_Analyzer final : public analyzer::SupportAnalyzer {
+class FTP_ADAT_Analyzer final : public zeek::analyzer::SupportAnalyzer {
 public:
-	FTP_ADAT_Analyzer(Connection* conn, bool arg_orig)
+	FTP_ADAT_Analyzer(zeek::Connection* conn, bool arg_orig)
 	    : SupportAnalyzer("FTP_ADAT", conn, arg_orig),
 	      first_token(true) { }
 

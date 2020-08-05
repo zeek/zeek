@@ -36,7 +36,7 @@ export {
 		## watching the IP address and will add a new rule after the current rule expires.
 		ADDED,
 		## A drop was requested by catch and release.
-		DROP,
+		DROP_REQUESTED,
 		## An address was successfully blocked by catch and release.
 		DROPPED,
 		## An address was unblocked after the timeout expired.
@@ -384,7 +384,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		blocks[a] = bi;
 		event NetControl::catch_release_block_new(a, bi);
 		blocks[a] = bi;
-		log = populate_log_record(a, bi, DROP);
+		log = populate_log_record(a, bi, DROP_REQUESTED);
 		Log::write(CATCH_RELEASE, log);
 		return bi;
 		}

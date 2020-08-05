@@ -14,8 +14,8 @@ static void pipe_fail(int eno)
 	char tmp[256];
 	bro_strerror_r(eno, tmp, sizeof(tmp));
 
-	if ( reporter )
-		reporter->FatalError("Pipe failure: %s", tmp);
+	if ( zeek::reporter )
+		zeek::reporter->FatalError("Pipe failure: %s", tmp);
 	else
 		fprintf(stderr, "Pipe failure: %s", tmp);
 	}

@@ -15,7 +15,7 @@ using namespace threading::formatter;
 // If the value we'd write out would match exactly the a reserved string, we
 // escape the first character so that the output won't be ambigious. If this
 // function returns true, it has added an escaped version of data to desc.
-static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data, int size)
+static inline bool escapeReservedContent(zeek::ODesc* desc, const string& reserved, const char* data, int size)
 	{
 	if ( size != (int)reserved.size() || memcmp(data, reserved.data(), size) != 0 )
 		return false;
@@ -56,7 +56,7 @@ Ascii::~Ascii()
 	{
 	}
 
-bool Ascii::Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
+bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
                      threading::Value** vals) const
 	{
 	for ( int i = 0; i < num_fields; i++ )
@@ -71,7 +71,7 @@ bool Ascii::Describe(ODesc* desc, int num_fields, const threading::Field* const 
 	return true;
 	}
 
-bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) const
+bool Ascii::Describe(zeek::ODesc* desc, threading::Value* val, const string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -90,7 +90,6 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		desc->Add(val->val.uint_val);
 		break;
 
@@ -155,7 +154,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 		desc->AddEscapeSequence(separators.set_separator);
 
-		for ( int j = 0; j < val->val.set_val.size; j++ )
+		for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
@@ -182,7 +181,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 		desc->AddEscapeSequence(separators.set_separator);
 
-		for ( int j = 0; j < val->val.vector_val.size; j++ )
+		for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
@@ -260,7 +259,6 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		break;
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		val->val.uint_val = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
@@ -360,9 +358,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		{
 		// how many entries do we have...
 		unsigned int length = 1;
-		for ( unsigned int i = 0; i < s.size(); i++ )
+		for ( const auto& c : s )
 			{
-			if ( s[i] == separators.set_separator[0] )
+			if ( c == separators.set_separator[0] )
 				length++;
 			}
 

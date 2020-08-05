@@ -9,10 +9,13 @@
 #include <limits.h>
 #include <stdint.h>
 
-class RuleCondition;
-class RuleAction;
-class RuleHdrTest;
-class Rule;
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleCondition, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleAction, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleHdrTest, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
+
+namespace zeek::detail {
 
 using rule_list = zeek::PList<Rule>;
 using rule_dict = std::map<std::string, Rule*>;
@@ -107,3 +110,9 @@ private:
 	// Array of rules indexed by payloadid.
 	static rule_list rule_table;
 	};
+
+} // namespace zeek::detail
+
+using Rule [[deprecated("Remove in v4.1. Use zeek::detail::Rule.")]] = zeek::detail::Rule;
+using rule_list [[deprecated("Remove in v4.1. Use zeek::detail::rule_list.")]] = zeek::detail::rule_list;
+using rule_dict [[deprecated("Remove in v4.1. Use zeek::detail::rule_dict.")]] = zeek::detail::rule_dict;

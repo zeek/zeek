@@ -19,7 +19,7 @@
 
 using namespace analyzer::dns;
 
-DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer)
+DNS_Interpreter::DNS_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	first_message = true;
@@ -181,7 +181,7 @@ bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 		return false;
 		}
 
-	EventHandlerPtr dns_event = nullptr;
+	zeek::EventHandlerPtr dns_event = nullptr;
 
 	if ( msg->QR == 0 )
 		dns_event = dns_request;
@@ -536,7 +536,7 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 		analyzer->Weird("DNS_RR_length_mismatch");
 		}
 
-	EventHandlerPtr reply_event;
+	zeek::EventHandlerPtr reply_event;
 	switch ( msg->atype ) {
 		case TYPE_NS:
 			reply_event = dns_NS_reply;
@@ -700,8 +700,6 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
 	{
-	// We need a pair-value set mechanism here to dump useful information
-	// out to the policy side of the house if rdlength > 0.
 
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_EDNS_addl,
@@ -710,13 +708,88 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 			msg->BuildEDNS_Val()
 		);
 
-	// Currently EDNS supports the movement of type:data pairs
-	// in the RR_DATA section.  Here's where we should put together
-	// a corresponding mechanism.
-	if ( rdlength > 0 )
-		{ // deal with data
-		data += rdlength;
-		len -= rdlength;
+	// parse EDNS options
+	while ( len > 0 )
+		{
+		uint16_t option_code = ExtractShort(data, len);
+		int option_len = ExtractShort(data, len);
+		// check for invalid option length
+		if ( (option_len > len) || (0 == option_len) ) {
+			break;
+		}
+		len -= option_len;
+
+		// TODO: Implement additional option codes
+		switch ( option_code )
+			{
+			case TYPE_ECS:
+				{
+				// must be 4 bytes + variable number of octets for address
+				if ( option_len <= 4 ) {
+					break;
+				}
+
+				EDNS_ECS opt{};
+				uint16_t ecs_family = ExtractShort(data, option_len);
+				uint16_t source_scope = ExtractShort(data, option_len);
+				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
+				opt.ecs_scp_pfx_len = source_scope & 0xff;
+
+				// ADDRESS, variable number of octets, contains either an IPv4 or
+				// IPv6 address, depending on FAMILY, which MUST be truncated to the
+				// number of bits indicated by the SOURCE PREFIX-LENGTH field,
+				// padding with 0 bits to pad to the end of the last octet needed.
+				if ( ecs_family == zeek::L3_IPV4 )
+					{
+					opt.ecs_family = zeek::make_intrusive<zeek::StringVal>("v4");
+					uint32_t addr = 0;
+					for (uint16_t shift_factor = 3; option_len > 0; option_len--)
+						{
+						addr |= data[0] << (shift_factor * 8);
+						data++;
+						shift_factor--;
+						}
+					addr = htonl(addr);
+					opt.ecs_addr = zeek::make_intrusive<zeek::AddrVal>(addr);
+					}
+				else if ( ecs_family == zeek::L3_IPV6 )
+					{
+					opt.ecs_family = zeek::make_intrusive<zeek::StringVal>("v6");
+					uint32_t addr[4] = { 0 };
+					for (uint16_t i = 0, shift_factor = 15; option_len > 0; option_len--)
+						{
+						addr[i / 4] |= data[0] << ((shift_factor % 4) * 8);
+						data++;
+						i++;
+						shift_factor--;
+						}
+
+					for (uint8_t i = 0; i < 4; i++)
+						{
+						addr[i] = htonl(addr[i]);
+						}
+					opt.ecs_addr = zeek::make_intrusive<zeek::AddrVal>(addr);
+					}
+				else
+					{
+					// non ipv4/ipv6 family address
+					data += option_len;
+					break;
+					}
+
+				analyzer->EnqueueConnEvent(dns_EDNS_ecs,
+					analyzer->ConnVal(),
+					msg->BuildHdrVal(),
+					msg->BuildEDNS_ECS_Val(&opt)
+				);
+				break;
+				}
+			default:
+				{
+				data += option_len;
+				break;
+				}
+			}
 		}
 
 	return true;
@@ -1225,7 +1298,7 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 			}
 		}
 
-	EventHandlerPtr event;
+	zeek::EventHandlerPtr event;
 	if ( msg->atype == TYPE_AAAA )
 		event = dns_AAAA_reply;
 	else
@@ -1261,7 +1334,7 @@ bool DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	}
 
 static zeek::StringValPtr
-extract_char_string(analyzer::Analyzer* analyzer,
+extract_char_string(zeek::analyzer::Analyzer* analyzer,
                     const u_char*& data, int& len, int& rdlen)
 	{
 	if ( rdlen <= 0 )
@@ -1394,10 +1467,10 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 
 
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
-						EventHandlerPtr event,
-						const u_char*& data, int& len,
-						zeek::String* question_name,
-						zeek::String* original_name)
+                                             zeek::EventHandlerPtr event,
+                                             const u_char*& data, int& len,
+                                             zeek::String* question_name,
+                                             zeek::String* original_name)
 	{
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
@@ -1518,6 +1591,19 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 	return r;
 	}
 
+zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_ECS_Val(struct EDNS_ECS* opt)
+	{
+	static auto dns_edns_ecs = zeek::id::find_type<zeek::RecordType>("dns_edns_ecs");
+	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_edns_ecs);
+
+	r->Assign(0, opt->ecs_family);
+	r->Assign(1, zeek::val_mgr->Count(opt->ecs_src_pfx_len));
+	r->Assign(2, zeek::val_mgr->Count(opt->ecs_scp_pfx_len));
+	r->Assign(3, opt->ecs_addr);
+
+	return r;
+	}
+
 zeek::RecordValPtr DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	{
 	static auto dns_tsig_additional = zeek::id::find_type<zeek::RecordType>("dns_tsig_additional");
@@ -1611,7 +1697,7 @@ zeek::RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	return r;
 	}
 
-Contents_DNS::Contents_DNS(Connection* conn, bool orig,
+Contents_DNS::Contents_DNS(zeek::Connection* conn, bool orig,
 				DNS_Interpreter* arg_interp)
 : tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
 	{
@@ -1638,6 +1724,12 @@ void Contents_DNS::Flush()
 	}
 
 void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	while ( len > 0 )
+		ProcessChunk(len, data, orig);
+	}
+
+void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 	{
 	if ( state == DNS_LEN_HI )
 		{
@@ -1686,6 +1778,9 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 	for ( n = 0; buf_n < msg_size && n < len; ++n )
 		msg_buf[buf_n++] = data[n];
 
+	data += n;
+	len -= n;
+
 	if ( buf_n < msg_size )
 		// Haven't filled up the message buffer yet, no more to do.
 		return;
@@ -1694,13 +1789,9 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 
 	buf_n = 0;
 	state = DNS_LEN_HI;
-
-	if ( n < len )
-		// More data to munch on.
-		DeliverStream(len - n, data + n, orig);
 	}
 
-DNS_Analyzer::DNS_Analyzer(Connection* conn)
+DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("DNS", conn)
 	{
 	interp = new DNS_Interpreter(this);
@@ -1716,8 +1807,8 @@ DNS_Analyzer::DNS_Analyzer(Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-					network_time + dns_session_timeout, true,
-					TIMER_DNS_EXPIRE);
+		                   network_time + dns_session_timeout, true,
+		                   zeek::detail::TIMER_DNS_EXPIRE);
 		}
 	}
 
@@ -1741,7 +1832,7 @@ void DNS_Analyzer::Done()
 	}
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->ParseMessage(data, len, orig ? 1 : 0);
@@ -1766,9 +1857,10 @@ void DNS_Analyzer::ExpireTimer(double t)
 	if ( t - Conn()->LastTime() >= dns_session_timeout - 1.0 || terminating )
 		{
 		Event(connection_timeout);
-		sessions->Remove(Conn());
+		zeek::sessions->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-				t + dns_session_timeout, true, TIMER_DNS_EXPIRE);
+		                   t + dns_session_timeout, true,
+		                   zeek::detail::TIMER_DNS_EXPIRE);
 	}

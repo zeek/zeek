@@ -64,7 +64,6 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 
 	case zeek::TYPE_INT:
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 	case zeek::TYPE_PORT: // note that we do not save the protocol at the moment. Just like in the case of the ascii-writer
 		type = "integer";
 		break;
@@ -250,7 +249,6 @@ int SQLite::AddParams(Value* val, int pos)
 		return sqlite3_bind_int(st, pos, val->val.int_val);
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return sqlite3_bind_int(st, pos, val->val.uint_val);
 
 	case zeek::TYPE_PORT:
@@ -286,7 +284,7 @@ int SQLite::AddParams(Value* val, int pos)
 
 	case zeek::TYPE_TABLE:
 		{
-		ODesc desc;
+		zeek::ODesc desc;
 		desc.Clear();
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(set_separator);
@@ -294,7 +292,7 @@ int SQLite::AddParams(Value* val, int pos)
 		if ( ! val->val.set_val.size )
 			desc.Add(empty_field);
 		else
-			for ( int j = 0; j < val->val.set_val.size; j++ )
+			for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
 				{
 				if ( j > 0 )
 					desc.AddRaw(set_separator);
@@ -308,7 +306,7 @@ int SQLite::AddParams(Value* val, int pos)
 
 	case zeek::TYPE_VECTOR:
 		{
-		ODesc desc;
+		zeek::ODesc desc;
 		desc.Clear();
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(set_separator);
@@ -316,7 +314,7 @@ int SQLite::AddParams(Value* val, int pos)
 		if ( ! val->val.vector_val.size )
 			desc.Add(empty_field);
 		else
-			for ( int j = 0; j < val->val.vector_val.size; j++ )
+			for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
 				{
 				if ( j > 0 )
 					desc.AddRaw(set_separator);

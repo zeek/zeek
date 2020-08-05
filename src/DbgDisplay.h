@@ -2,7 +2,9 @@
 
 #pragma once
 
-class Expr;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+
+namespace zeek::detail {
 
 // Automatic displays: display these at each stoppage.
 class DbgDisplay {
@@ -23,3 +25,7 @@ protected:
 	bool enabled;
 	Expr* expression;
 	};
+
+} // namespace zeek::detail
+
+using DbgDisplay [[deprecated("Remove in v4.1. Use zeek::detail::DbgDisplay.")]] = zeek::detail::DbgDisplay;

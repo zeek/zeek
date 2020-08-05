@@ -9,11 +9,10 @@
 #include "../zeek-config.h"
 #include "../util.h"
 
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
-namespace analyzer {
-
-class Analyzer;
+namespace zeek::analyzer {
 
 /**
  * Component description for plugins providing analyzers.
@@ -35,7 +34,7 @@ public:
 	 *
 	 * @param factory A factory function to instantiate instances of the
 	 * analyzer's class, which must be derived directly or indirectly
-	 * from analyzer::Analyzer. This is typically a static \c
+	 * from zeek::analyzer::Analyzer. This is typically a static \c
 	 * Instatiate() method inside the class that just allocates and
 	 * returns a new instance.
 	 *
@@ -107,4 +106,8 @@ private:
 	bool enabled;	// True if the analyzer is enabled.
 };
 
-}
+} // namespace zeek::analyzer
+
+namespace analyzer {
+	using Component [[deprecated("Remove in v4.1. Use zeek::analyzer::Component.")]] = zeek::analyzer::Component;
+} // namespace analyzer

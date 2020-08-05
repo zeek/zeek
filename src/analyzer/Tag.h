@@ -21,28 +21,28 @@ namespace plugin {
 		zeek::plugin::ComponentManager<T, C>;
 }
 
-namespace analyzer {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, analyzer);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, analyzer);
 
-class Manager;
-class Component;
+namespace zeek::analyzer {
 
 /**
  * Class to identify a protocol analyzer type.
  *
  * The script-layer analogue is Analyzer::Tag.
  */
-class Tag : public ::Tag  {
+class Tag : public zeek::Tag  {
 public:
 	/*
 	 * Copy constructor.
 	 */
-	Tag(const Tag& other) : ::Tag(other) {}
+	Tag(const Tag& other) : zeek::Tag(other) {}
 
 	/**
 	 * Default constructor. This initializes the tag with an error value
 	 * that will make \c operator \c bool return false.
 	 */
-	Tag() : ::Tag() {}
+	Tag() : zeek::Tag() {}
 
 	/**
 	 * Destructor.
@@ -65,7 +65,7 @@ public:
 	 */
 	bool operator==(const Tag& other) const
 		{
-		return ::Tag::operator==(other);
+		return zeek::Tag::operator==(other);
 		}
 
 	/**
@@ -73,7 +73,7 @@ public:
 	 */
 	bool operator!=(const Tag& other) const
 		{
-		return ::Tag::operator!=(other);
+		return zeek::Tag::operator!=(other);
 		}
 
 	/**
@@ -81,7 +81,7 @@ public:
 	 */
 	bool operator<(const Tag& other) const
 		{
-		return ::Tag::operator<(other);
+		return zeek::Tag::operator<(other);
 		}
 
 	/**
@@ -125,4 +125,8 @@ protected:
 	explicit Tag(zeek::EnumVal* val);
 };
 
-}
+} // namespace zeek::analyzer
+
+namespace analyzer {
+	using Tag [[deprecated("Remove in v4.1. Use zeek::analyzer::Tag")]] = zeek::analyzer::Tag;
+} // namespace analyzer

@@ -21,7 +21,7 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire)
 
 Manager::Manager()
 	{
-	DBG_LOG(DBG_THREADING, "Creating thread manager ...");
+	DBG_LOG(zeek::DBG_THREADING, "Creating thread manager ...");
 
 	did_process = true;
 	next_beat = 0;
@@ -36,7 +36,7 @@ Manager::~Manager()
 
 void Manager::Terminate()
 	{
-	DBG_LOG(DBG_THREADING, "Terminating thread manager ...");
+	DBG_LOG(zeek::DBG_THREADING, "Terminating thread manager ...");
 	terminating = true;
 
 	// First process remaining thread output for the message threads.
@@ -64,7 +64,7 @@ void Manager::Terminate()
 
 void Manager::AddThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
+	DBG_LOG(zeek::DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
 
 	if ( ! heartbeat_timer_running )
@@ -73,13 +73,13 @@ void Manager::AddThread(BasicThread* thread)
 
 void Manager::AddMsgThread(MsgThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "%s is a MsgThread ...", thread->Name());
+	DBG_LOG(zeek::DBG_THREADING, "%s is a MsgThread ...", thread->Name());
 	msg_threads.push_back(thread);
 	}
 
 void Manager::KillThreads()
 	{
-	DBG_LOG(DBG_THREADING, "Killing threads ...");
+	DBG_LOG(zeek::DBG_THREADING, "Killing threads ...");
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
 		(*i)->Kill();
@@ -87,7 +87,7 @@ void Manager::KillThreads()
 
 void Manager::KillThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Killing thread %s ...", thread->Name());
+	DBG_LOG(zeek::DBG_THREADING, "Killing thread %s ...", thread->Name());
 	thread->Kill();
 	}
 
@@ -127,7 +127,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
+	zeek::detail::timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
@@ -135,16 +135,16 @@ void Manager::StartHeartbeatTimer()
 // one reporter message.
 bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int num_vals, Value* *vals) const
 	{
-	EventHandler* handler = event_registry->Lookup(name);
+	zeek::EventHandler* handler = zeek::event_registry->Lookup(name);
 	if ( handler == nullptr )
 		{
-		reporter->Warning("Thread %s: Event %s not found", thread->Name(), name.c_str());
+		zeek::reporter->Warning("Thread %s: Event %s not found", thread->Name(), name.c_str());
 		Value::delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals",
+	DBG_LOG(zeek::DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals",
 	        thread->Name(), name.c_str(), num_vals);
 #endif
 
@@ -152,7 +152,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
 		{
-		reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(), name.c_str());
+		zeek::reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(), name.c_str());
 		Value::delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
@@ -179,7 +179,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	if ( convert_error )
 		return false;
 	else if ( handler )
-		mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
 
 	return true;
 	}
@@ -216,7 +216,7 @@ void Manager::Flush()
 
 			else
 				{
-				reporter->Error("%s failed, terminating thread", msg->Name());
+				zeek::reporter->Error("%s failed, terminating thread", msg->Name());
 				t->SignalStop();
 				}
 
@@ -250,7 +250,7 @@ void Manager::Flush()
 		delete t;
 		}
 
-//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);
+//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, zeek::detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
 const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()

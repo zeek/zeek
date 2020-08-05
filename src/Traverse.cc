@@ -5,6 +5,8 @@
 #include "Stmt.h"
 #include "input.h"
 
+namespace zeek::detail {
+
 TraversalCode traverse_all(TraversalCallback* cb)
 	{
 	if ( ! zeek::detail::global_scope() )
@@ -22,3 +24,5 @@ TraversalCode traverse_all(TraversalCallback* cb)
 	tc = stmts->Traverse(cb);
 	HANDLE_TC_STMT_POST(tc);
 	}
+
+} // namespace zeek::detail

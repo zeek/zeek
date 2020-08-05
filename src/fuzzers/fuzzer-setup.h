@@ -54,9 +54,9 @@ void fuzzer_cleanup_one_input()
 	file_mgr->Terminate();
 	timer_mgr->Expire();
 
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 	sessions->Drain();
-	mgr.Drain();
+	zeek::event_mgr.Drain();
 	sessions->Clear();
 	terminating = false;
 	}

@@ -1,4 +1,467 @@
 
+3.3.0-dev.53 | 2020-08-05 12:35:50 -0700
+
+  * Fix deprecation warnings in fuzz targets (Jon Siwek, Corelight)
+
+  * Remove dbg_read_internal_state() (Jon Siwek, Corelight)
+
+    It's never had a definition anyway and the namespacing/deprecation
+    process was now causing a compile error in debug/fuzzing builds w/ GCC
+
+3.3.0-dev.50 | 2020-08-04 20:22:48 +0000
+
+  * Fix incorrect conflict detection of namespaced-enum-names
+
+    E.g. defining a `Foo::RED` enum name when a `GLOBAL::RED` identifier
+    already exists would previously be treated as an error, even though the
+    names don't truly conflict. (Jon Siwek, Corelight)
+
+  * GH-1080: Treat enum name re-use across different enum types as an error (Jon Siwek, Corelight)
+
+  * GH-1080: Rename conflicting NetControl::DROP enum definitions
+
+    ``NetControl::DROP`` had 3 conflicting definitions that could potentially
+    be used incorrectly without any warnings or type-checking errors.
+    Such enum redefinition conflicts are now caught and treated as errors,
+    so the ``NetControl::DROP`` enums had to be renamed:
+
+    * The use as enum of type ``Log::ID`` is renamed to ``NetControl::DROP_LOG``
+
+    * The use as enum of type ``NetControl::CatchReleaseInfo`` is renamed to
+      ``NetControl::DROP_REQUESTED``
+
+    * The use as enum of type ``NetControl::RuleType`` is unchanged and still
+      named ``NetControl::DROP`` (Jon Siwek, Corelight)
+
+3.3.0-dev.44 | 2020-08-04 08:47:08 -0700
+
+  * Silence compiler warnings related to deprecated TYPE_COUNTER (Jon Siwek, Corelight)
+
+3.3.0-dev.42 | 2020-08-03 10:37:38 -0700
+
+  * Remove counter type, only leaving compatibility enum. The type was unused/non-functional.
+    See GH-1095 (Johanna Amann, Corelight).
+
+3.3.0-dev.38 | 2020-08-01 09:21:17 -0700
+
+  * Properly forward-declare zeek::plugin::plugin in DebugLogger (Tim Wojtulewicz, Corelight)
+
+  * Rename Brofiler to ScriptCoverageManager (Tim Wojtulewicz, Corelight)
+
+  * Move Conn and related types to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move reassembler code to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move Session code to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move ODesc to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Stats and related classes to zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Move a few low-use classes to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move DebugLogger to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move all of the hashing classes/functions to zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move all of the Packet-related classes to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move EventMgr, EventHandler, and EventRegistry code to zeek namespace. Rename mgr to event_mgr. (Tim Wojtulewicz, Corelight)
+
+  * Move Timer and PriorityQueue classes to namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move BroFile to zeek namespace, rename to File (Tim Wojtulewicz, Corelight)
+
+  * Move Reporter to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move DNS_Mgr to zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move BroSubstring to zeek::detail, rename to Substring (Tim Wojtulewicz)
+
+  * Move regex matching code to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move all of the rule matching code to zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Move IP Addr/Prefix/Header classes into namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move all debugger code into the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Restore globally-namespaced plugin_mgr variable, move zeek::plugin::plugin_mgr to zeek::plugin_mgr (Tim Wojtulewicz, Corelight)
+
+  * Move all base analyzer classes to zeek::analyzer namespace (Tim Wojtulewicz, Corelight)
+
+  * Move base Tag class to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Update submodule
+
+     [nomail] (Johanna Amann, Corelight)
+
+  * Update submodule(s)
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.3.0-dev.11 | 2020-07-30 17:47:44 +0000
+
+  * Use .empty() instead of checking size against zero (Tim Wojtulewicz, Corelight)
+
+  * Use properly-sized loop variables or convert to ranged-for (bugprone-too-small-loop-variable) (Tim Wojtulewicz, Corelight)
+
+  * Fix potential heap-use-after-free access (Dominik Charousset, Corelight)
+
+3.3.0-dev.4 | 2020-07-28 19:56:35 +0000
+
+  * GH-1083: Fix Input Framework 'change' events for 'set' destinations (Jon Siwek, Corelight)
+
+3.3.0-dev.1 | 2020-07-27 12:04:48 -0700
+
+  * Update site/local.zeek compatibility test (Jon Siwek, Corelight)
+
+3.3.0-dev | 2020-07-27 11:49:28 -0700
+
+  * Reserve spot in NEWS for 4.0.0 (Jon Siwek, Corelight)
+
+3.2.0-dev.992 | 2020-07-27 11:36:53 -0700
+
+  * Fix potential NetbiosSSN analyzer stack overflow (Jon Siwek, Corelight)
+
+    The Contents_NetbiosSSN analyzer used a recursive message parsing
+    function that determined the size of the next message from the input
+    packet-data itself.  A packet containing a sequence of many small
+    messages could cause a stack overflow since a recursion happened after
+    processing each message.
+
+  * Fix potential DNS analyzer stack overflow (Jon Siwek, Corelight)
+
+    The Contents_DNS analyzer used a recursive message parsing function that
+    determined the size of the next message from the input packet-data
+    itself.  A packet containing a sequence of many small messages could
+    cause a stack overflow since a recursion happened after processing
+    each message.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=24272
+
+3.2.0-dev.988 | 2020-07-27 11:19:20 -0700
+
+  * Update submodules to release versions in prep for release/3.2 branch (Jon Siwek, Corelight)
+
+3.2.0-dev.986 | 2020-07-24 13:57:19 -0700
+
+  * Misc/minor cleanup after reviewing new Broker table store code (Jon Siwek, Corelight)
+
+    Just some naming/style + minor memory management tweaks (avoid
+    some copies; use move semantics).
+
+3.2.0-dev.985 | 2020-07-24 11:40:22 -0700
+
+  * MySQL: Fix EOF parsing logic bug. (Vlad Grigorescu)
+
+    We were correctly NOT expecting an EOF, but because we were parsing the
+    header and then not parsing the rest, we would get out of sync
+
+3.2.0-dev.979 | 2020-07-24 09:03:06 -0700
+
+  * Implement EDNS Client Subnet Option (Ron Wellman)
+
+3.2.0-dev.974 | 2020-07-23 13:02:13 -0700
+
+    * origin/topic/jsiwek/gh-1076-fix-random:
+      Deprecate bro_srandom(), replace with zeek::seed_random().
+      Add zeek::max_random() & fix misuse of RAND_MAX w/ zeek::random_number()
+      Deprecate bro_random(), replace with zeek::random_number()
+      Deprecate bro_prng(), replace with zeek::prng()
+      GH-1076: Fix bro_srandom() to replace 0 seeds with 1
+      GH-1076: Fix bro_prng() implementation
+      GH-1076: Fix use of getrandom() (Tim Wojtulewicz, Corelight)
+
+  * Deprecate bro_srandom(), replace with zeek::seed_random().
+
+    Avoiding zeek::srandom() to avoid potential for confusion with srandom() (Jon Siwek, Corelight)
+
+  * Add zeek::max_random() & fix misuse of RAND_MAX w/ zeek::random_number()
+
+    In deterministic mode, RAND_MAX is not related to the result of
+    zeek::random_number() (formerly bro_random()), but some logic was
+    using RAND_MAX as indication of the possible range of values.  The
+    new zeek::max_random() will give the correct upper-bound regardless
+    of whether deterministic-mode is used. (Jon Siwek, Corelight)
+
+  * Deprecate bro_random(), replace with zeek::random_number()
+
+    Avoiding the use of zeek::random() due to potential for confusion
+    with random(). (Jon Siwek, Corelight)
+
+  * Deprecate bro_prng(), replace with zeek::prng()
+
+    The type used for storing the state of the RNG is changed from
+    `unsigned int` to `long int` since the former has a minimal range
+    of [0, 65,535] while the RNG function itself has a range of
+    [1, 2147483646].  A `long int` must be capable of
+    [−2147483647, +2147483647] and is also the return type of `random()`,
+    which is what zeek::prng() aims to roughly parity. (Jon Siwek, Corelight)
+
+  * GH-1076: Fix bro_srandom() to replace 0 seeds with 1
+
+    The bro_prng() implementation cannot generate 0 as a result since it
+    causes every subsequent number from the PRNG to also be 0, so use the
+    number 1 instead of 0. (Jon Siwek, Corelight)
+
+  * GH-1076: Fix bro_prng() implementation
+
+    The intermediate result of the PRNG used unsigned storage, preventing
+    the ( result < 0 ) branch from ever being evaluated.  This could cause
+    return values to exceed the modulus as well as RAND_MAX.
+
+    One interesting effect of this is potential for the rand() BIF to
+    return values outside the requested maximum limit.
+
+    Another interesting effect of this is that a PacketFilter may start
+    randomly dropping packets even if it was not configured for
+    random-packet-drops. (Jon Siwek, Corelight)
+
+  * GH-1076: Fix use of getrandom()
+
+    The availability and use of getrandom() actually caused unrandom and
+    deterministic results in terms of Zeek's random number generation. (Jon Siwek, Corelight)
+
+3.2.0-dev.965 | 2020-07-23 08:31:41 -0700
+
+  * GH-1068: Add zeek symlink to allow "zeek/Foo.h" include style
+
+    Also changes `zeek-config --include_dir` to now output
+    `$prefix/include:$prefix/include/zeek` instead of only
+    `$prefix/include/zeek` (Jon Siwek, Corelight)
+
+3.2.0-dev.962 | 2020-07-21 12:39:34 -0700
+
+  * Add zeek-archiver tool as submodule
+
+    This is added to the default Zeek build as a convenience since it's the
+    new suggested method for archiving the logs produced by a Supervised
+    Zeek Cluster. (Jon Siwek, Corelight)
+
+3.2.0-dev.959 | 2020-07-21 15:34:59 +0000
+
+  * Broker Store table synchronizatio, (Johanna Amann, Corelight)
+
+    Zeek now supports synchronizing tables/sets across clusters using
+    a backing Broker store. The same feature also allows persistent
+    storage of data in tables/sets over Zeek restarts. This feature is
+    implemented using the new ``&backend`` attribute.
+
+    To synchronize a table over a cluster, you can, e.g., use:
+
+        global t: table[string] of count &backend=Broker::MEMORY;
+
+    This feature is documented in detail here:
+
+        https://docs.zeek.org/en/current/frameworks/broker.html#broker-store-backed-zeek-tables-for-data-synchronization-and-persistence
+
+    This feature is experimental and the syntax/specifics can change in the future.
+
+3.2.0-dev.919 | 2020-07-17 16:37:11 -0700
+
+  * Use namespaced version of Location to silence warnings (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.915 | 2020-07-17 16:10:46 -0700
+
+  * Various deprecation fixes, reported by failed Spicy builds (Tim Wojtulewicz, Corelight)
+
+    - Add deprecated version of ID::SetType() that takes Type*
+    - Add deprecated versions of zeek::set_location in the global namespace
+    - Fix global namespace version of lookup_ID to return ID*
+
+  * Add deprecated version of EnumType::GetVal() to return EnumVal* (Tim Wojtulewicz, Corelight)
+
+    Rename IntrusivePtr version to GetEnumVal
+
+3.2.0-dev.911 | 2020-07-17 22:32:42 +0000
+
+  * Fix race condition in ensure_dir()
+
+    If something else created the dir between the stat() and mkdir(),
+    it previously reported that as a failure. (Jon Siwek, Corelight)
+
+  * Fix tokenize_string() to work with delimiters of length > 1. (Jon Siwek, Corelight)
+
+3.2.0-dev.908 | 2020-07-17 10:19:07 +0000
+
+  * GH-734: Improve handling of lambdas that escape enclosing frame.
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.906 | 2020-07-17 10:08:31 +0000
+
+  * GH-837: Add test cases for mismatched Broker SSL configs. (Jon Siwek, Corelight)
+
+  * GH-837: Emit reporter errors for Broker errors. (Jon Siwek,
+    Corelight)
+
+  * Fix incorrect/missing Broker error status code numbers. (Jon Siwek, Corelight)
+
+3.2.0-dev.902 | 2020-07-14 19:10:36 -0700
+
+  * GH-1062: fix integer conversion errors related to Tag subtypes (Jon Siwek, Corelight)
+
+3.2.0-dev.899 | 2020-07-14 00:02:05 +0000
+
+  * Improve Broker store API's handling of invalid arguments
+
+    * Some methods mistakenly returned a bool instead of QueryResult
+      when passed an invalid `opaque of Broker::Store` handle.
+
+    * Now generates a runtime exception for store_name() and is_closed()
+      calls that pass an invalid `opaque of Broker::Store` handle as any
+      returned value can't be reasonably used in any subsequent logic.
+
+    * Descriptions of any invalid arguments are now given in the error
+      message. (Jon Siwek, Corelight)
+
+  * Add zeek::detail::emit_builtin_exception() functions
+
+    These work like zeek::emit_builtin_error(), but also throw an InterpreterException (Jon Siwek, Corelight)
+
+  * GH-1024: fix crash on passing wrong types to Broker store API (Jon Siwek, Corelight)
+
+3.2.0-dev.894 | 2020-07-13 12:12:17 -0700
+
+  * GH-1019: deprecate icmp_conn params for ICMP events
+
+    Previously, a single `icmp_conn` record was built per ICMP "connection"
+    and re-used for all events generated from it.  This may have been a
+    historical attempt at performance optimization, but:
+
+      * By default, Zeek does not load any scripts that handle ICMP events.
+
+      * The one script Zeek ships with that does handle ICMP events,
+        "detect-traceroute", is already noted as being disabled due to
+        potential performance problems of doing that kind of analysis.
+
+      * Re-use of the original `icmp_conn` record tends to misreport
+        TTL and length values since they come from original packet instead
+        of the current one.
+
+      * Even if we chose to still re-use `icmp_conn` records and just fill
+        in a new TTL and length value each packet, a user script could have
+        stored a reference to the record and not be expecting those values
+        to be changed out from underneath them.
+
+    Now, a new `icmp_info` record is created/populated in all ICMP events
+    and should be used instead of `icmp_conn`.  It also removes the
+    orig_h/resp_h fields as those are redundant with what's already
+    available in the connection record. (Jon Siwek, Corelight)
+
+3.2.0-dev.892 | 2020-07-13 12:10:22 -0700
+
+  * Fix wrong frame offsets for locals of alternate event/hook prototypes
+
+    Local frame offsets were being assigned based on number of the alternate
+    prototype's parameters, which may end up having less total parameters
+    than the canonical prototype, causing the local value to incorrectly
+    overwrite an event/hook argument value. (Jon Siwek, Corelight)
+
+  * Add deprecation expression to deprecated prototype/parameter messages (Jon Siwek, Corelight)
+
+  * Improve "use of deprecated prototype" warning message
+
+    The location information now points out the place of the deprecated
+    prototype instead of the location where the ID was initially declared
+    (which may not itself be a deprecated prototype). (Jon Siwek, Corelight)
+
+  * Emit deprecation warning for use of &deprecated function parameters
+
+    Particularly, this is meant for using &deprecated on canonical
+    event/hook prototype parameters to encourage users to create handlers
+    to another, non-deprecated prototype.  i.e. for canonical prototypes,
+    we may not always want to put &deprecated directly on the prototype
+    itself since that signals deprecation of the ID entirely. (Jon Siwek, Corelight)
+
+3.2.0-dev.885 | 2020-07-10 11:20:41 -0700
+
+  * Add more error checks to shadow log parsing (Jon Siwek, Corelight)
+
+    i.e. Coverity warns about possible use of ftell() negative return value
+
+3.2.0-dev.884 | 2020-07-09 14:09:58 -0700
+
+  * Add Supervisor::{stdout,stderr}_hook (Jon Siwek, Corelight)
+
+    These allow capturing/handling the stdout/stderr of child processes
+    via Zeek scripts.
+
+  * Add Log::rotation_format_func and Log::default_rotation_dir options (Jon Siwek, Corelight)
+
+    These may be redefined to customize log rotation path prefixes,
+    including use of a directory.  File extensions are still up to
+    individual log writers to add themselves during the actual rotation.
+
+    These new also allow for some simplication to the default
+    ASCII postprocessor function: it eliminates the need for it doing an
+    extra/awkward rename() operation that only changes the timestamp format.
+
+    This also teaches the supervisor framework to use these new options
+    to rotate ascii logs into a log-queue/ directory with a specific
+    file name format (intended for an external archiver process to
+    monitor separately).
+
+  * Allow Zeek function equality comparisons (Jon Siwek, Corelight)
+
+    Equality between two functions acts like a pointer comparison.
+
+  * Implement leftover log rotation/archival for supervised nodes (Jon Siwek, Corelight)
+
+    This helps prevent a node from being killed/crashing in the middle
+    of writing a log, restarting, and eventually clobbering that log
+    file that never underwent the rotation/archival process.
+
+    The old `archive-log` and `post-terminate` scripts as used by
+    ZeekControl previously implemented this behavior, but the new logic is
+    entirely in the ASCII writer.  It uses ".shadow" log files stored
+    alongside the real log to help detect such scenarios and rotate them
+    correctly upon the next startup of the Zeek process.
+
+  * Move some supervisor structures to detail namespace (Jon Siwek, Corelight)
+
+    * StemHandle -> detail::SupervisorStemHandle
+    * SupervisedNode -> detail::SupervisedNode
+    * Supervisor::Node -> detail::SupervisorNode
+
+  * Improve default supervisor stdout/stderr handling (Jon Siwek, Corelight)
+
+    The stdout/stderr of child processes is now redirected over a pipe back
+    to the supervisor process so that it can prefix the output with
+    the name of the emitting node.
+
+  * Factor Supervisor initialization data to separate struct from Stem (Jon Siwek, Corelight)
+
+  * Move ParentProcessCheckTimer to detail namespace (Jon Siwek, Corelight)
+
+3.2.0-dev.874 | 2020-07-08 17:46:20 -0700
+
+  * scan.l: Remove "constant" did_module_restore logic / dead code (Arne Welzel)
+
+3.2.0-dev.872 | 2020-07-08 12:25:11 -0700
+
+  * Fix FreeBSD CI script to install right SWIG package (Jon Siwek, Corelight)
+
+3.2.0-dev.870 | 2020-07-08 15:41:15 +0000
+
+  * Fix WhileStmt to call Stmt(Tag) constructor. (Jon Siwek,
+    Corelight)
+
+3.2.0-dev.868 | 2020-07-08 15:39:46 +0000
+
+  * GH-928: use realpath() instead of inode to de-duplicate scripts.
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.864 | 2020-07-06 21:06:41 -0700
+
+  * GH-1040: Add zero-indexed version of str_split (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.862 | 2020-07-06 20:40:44 -0700
+
+  * GH-1041: Move compress_path to a bif that uses normalize_path (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.859 | 2020-07-06 14:55:00 +0000
 
   * Add backtrace() and print_backtrace() BIF functions. (Jon Siwek,

@@ -11,7 +11,9 @@
 #include "ID.h"
 #include "UID.h"
 
-class Connection;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+
+namespace zeek {
 
 /**
  * Represents various types of tunnel "connections", that is, a pair of
@@ -40,11 +42,11 @@ public:
 	 * @param d The tunnel destination address, likely taken from an IP header.
 	 * @param t The type of IP tunnel.
 	 */
-	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
+	EncapsulatingConn(const zeek::IPAddr& s, const zeek::IPAddr& d,
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
 		  proto(TRANSPORT_UNKNOWN), type(t),
-		  uid(Bro::UID(bits_per_uid))
+		  uid(zeek::UID(bits_per_uid))
 		{
 		}
 
@@ -119,13 +121,13 @@ public:
 		}
 
 protected:
-	IPAddr src_addr;
-	IPAddr dst_addr;
+	zeek::IPAddr src_addr;
+	zeek::IPAddr dst_addr;
 	uint16_t src_port;
 	uint16_t dst_port;
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
-	Bro::UID uid;
+	zeek::UID uid;
 };
 
 /**
@@ -225,3 +227,5 @@ public:
 protected:
 	std::vector<EncapsulatingConn>* conns;
 };
+
+} // namespace zeek

@@ -37,6 +37,8 @@
 #include "ID.h"
 
 #include "broker/Data.h"
+#include "broker/Store.h"
+#include "broker/Manager.h"
 
 #include "threading/formatters/JSON.h"
 
@@ -59,10 +61,10 @@ static const FileTypePtr& GetStringFileType() noexcept
 	return string_file_type;
 	}
 
-Val::Val(BroFile* f) : Val({AdoptRef{}, f})
+Val::Val(zeek::File* f) : Val({AdoptRef{}, f})
 	{}
 
-Val::Val(BroFilePtr f)
+Val::Val(zeek::FilePtr f)
 	: val(f.release()), type(GetStringFileType())
 	{
 	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
@@ -515,10 +517,6 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			writer.Uint64(val->AsCount());
 			break;
 
-		case TYPE_COUNTER:
-			writer.Uint64(val->AsCounter());
-			break;
-
 		case TYPE_TIME:
 			writer.Double(val->AsTime());
 			break;
@@ -573,7 +571,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			else
 				writer.StartObject();
 
-			HashKey* k;
+			zeek::detail::HashKey* k;
 			TableEntryVal* entry;
 			auto c = table->InitForIteration();
 			while ( (entry = table->NextEntry(k, c)) )
@@ -1343,7 +1341,7 @@ TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
 	return rval;
 	}
 
-TableValTimer::TableValTimer(TableVal* val, double t) : Timer(t, TIMER_TABLE_VAL)
+TableValTimer::TableValTimer(TableVal* val, double t) : zeek::detail::Timer(t, zeek::detail::TIMER_TABLE_VAL)
 	{
 	table = val;
 	}
@@ -1438,11 +1436,11 @@ void TableVal::Init(TableTypePtr t)
 	def_val = nullptr;
 
 	if ( table_type->IsSubNetIndex() )
-		subnets = new PrefixTable;
+		subnets = new zeek::detail::PrefixTable;
 	else
 		subnets = nullptr;
 
-	table_hash = new CompositeHash(table_type->GetIndices());
+	table_hash = new zeek::detail::CompositeHash(table_type->GetIndices());
 	val.table_val = new PDict<zeek::TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
@@ -1450,7 +1448,7 @@ void TableVal::Init(TableTypePtr t)
 TableVal::~TableVal()
 	{
 	if ( timer )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	delete table_hash;
 	delete AsTable();
@@ -1511,6 +1509,16 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 
 	if ( cf )
 		change_func = cf->GetExpr();
+
+	auto bs = attrs->Find(zeek::detail::ATTR_BROKER_STORE);
+	if ( bs && broker_store.empty() )
+		{
+		auto c = bs->GetExpr()->Eval(nullptr);
+		assert(c);
+		assert(c->GetType()->Tag() == zeek::TYPE_STRING);
+		broker_store = c->AsStringVal()->AsString()->CheckString();
+		broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
+		}
 	}
 
 void TableVal::CheckExpireAttr(detail::AttrTag at)
@@ -1530,16 +1538,16 @@ void TableVal::CheckExpireAttr(detail::AttrTag at)
 			}
 
 		if ( timer )
-			timer_mgr->Cancel(timer);
+			zeek::detail::timer_mgr->Cancel(timer);
 
 		// As network_time is not necessarily initialized yet,
 		// we set a timer which fires immediately.
 		timer = new TableValTimer(this, 1);
-		timer_mgr->Add(timer);
+		zeek::detail::timer_mgr->Add(timer);
 		}
 	}
 
-bool TableVal::Assign(ValPtr index, ValPtr new_val)
+bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward)
 	{
 	auto k = MakeHashKey(*index);
 
@@ -1549,7 +1557,7 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val)
 		return false;
 		}
 
-	return Assign(std::move(index), std::move(k), std::move(new_val));
+	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward);
 	}
 
 bool TableVal::Assign(Val* index, Val* new_val)
@@ -1557,8 +1565,8 @@ bool TableVal::Assign(Val* index, Val* new_val)
 	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
 	}
 
-bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
-                      ValPtr new_val)
+bool TableVal::Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
+                      ValPtr new_val, bool broker_forward)
 	{
 	bool is_set = table_type->IsSet();
 
@@ -1566,7 +1574,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
 		InternalWarning("bad set/table in TableVal::Assign");
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
-	HashKey k_copy(k->Key(), k->Size(), k->Hash());
+	zeek::detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
 
 	// If the dictionary index already existed, the insert may free up the
@@ -1591,11 +1599,19 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
 
 	Modified();
 
-	if ( change_func )
+	if ( change_func || ( broker_forward && ! broker_store.empty() ) )
 		{
-		auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
-		const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
-		CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+		auto change_index = index ? std::move(index)
+		                          : RecreateIndex(k_copy);
+
+		if ( broker_forward && ! broker_store.empty() )
+			SendToStore(change_index.get(), new_entry_val, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+
+		if ( change_func )
+			{
+			const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
+			CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			}
 		}
 
 	delete old_entry_val;
@@ -1603,9 +1619,9 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<HashKey> k,
 	return true;
 	}
 
-bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
+bool TableVal::Assign(Val* index, zeek::detail::HashKey* k, Val* new_val)
 	{
-	return Assign({NewRef{}, index}, std::unique_ptr<HashKey>{k}, {AdoptRef{}, new_val});
+	return Assign({NewRef{}, index}, std::unique_ptr<zeek::detail::HashKey>{k}, {AdoptRef{}, new_val});
 	}
 
 ValPtr TableVal::SizeVal() const
@@ -1637,11 +1653,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	TableEntryVal* v;
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
-		std::unique_ptr<HashKey> hk{k};
+		std::unique_ptr<zeek::detail::HashKey> hk{k};
 
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
@@ -1685,7 +1701,7 @@ bool TableVal::RemoveFrom(Val* val) const
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
 		// Not sure that this is 100% sound, since the HashKey
@@ -1717,7 +1733,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		}
 
 	IterCookie* c = t1->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( t1->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1740,7 +1756,7 @@ bool TableVal::EqualTo(const TableVal& tv) const
 		return false;
 
 	IterCookie* c = t0->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( t0->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1767,7 +1783,7 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 		return false;
 
 	IterCookie* c = t0->InitForIteration();
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( t0->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -2056,12 +2072,12 @@ bool TableVal::UpdateTimestamp(Val* index)
 	return true;
 	}
 
-ListValPtr TableVal::RecreateIndex(const HashKey& k) const
+ListValPtr TableVal::RecreateIndex(const zeek::detail::HashKey& k) const
 	{
 	return table_hash->RecoverVals(k);
 	}
 
-void TableVal::CallChangeFunc(const Val* index,
+void TableVal::CallChangeFunc(const ValPtr& index,
                               const ValPtr& old_value,
                               OnChangeType tpe)
 	{
@@ -2076,9 +2092,7 @@ void TableVal::CallChangeFunc(const Val* index,
 		auto thefunc = change_func->Eval(nullptr);
 
 		if ( ! thefunc )
-			{
 			return;
-			}
 
 		if ( thefunc->GetType()->Tag() != TYPE_FUNC )
 			{
@@ -2087,29 +2101,39 @@ void TableVal::CallChangeFunc(const Val* index,
 			}
 
 		const zeek::Func* f = thefunc->AsFunc();
-		auto lv = index->AsListVal();
+		zeek::Args vl;
 
-		Args vl;
-		vl.reserve(2 + lv->Length() + table_type->IsTable());
+		// we either get passed the raw index_val - or a ListVal with exactly one element.
+		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+			vl.reserve(2 + index->AsListVal()->Length() + table_type->IsTable());
+		else
+			vl.reserve(3 + table_type->IsTable());
+
 		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
 			{
 			case ELEMENT_NEW:
-				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_NEW));
 				break;
 			case ELEMENT_CHANGED:
-				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED));
 				break;
 			case ELEMENT_REMOVED:
-				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED));
 				break;
 			case ELEMENT_EXPIRED:
-				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
 
-		for ( const auto& v : lv->Vals() )
-			vl.emplace_back(v);
+
+		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+			{
+			for ( const auto& v : index->AsListVal()->Vals() )
+				vl.emplace_back(v);
+			}
+		else
+			vl.emplace_back(index);
 
 		if ( table_type->IsTable() )
 			vl.emplace_back(old_value);
@@ -2124,9 +2148,115 @@ void TableVal::CallChangeFunc(const Val* index,
 	in_change_func = false;
 	}
 
-ValPtr TableVal::Remove(const Val& index)
+void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe)
+	{
+	if ( broker_store.empty() || ! index )
+		return;
+
+	try
+		{
+		auto handle = broker_mgr->LookupStore(broker_store);
+
+		if ( ! handle )
+			return;
+
+		// we either get passed the raw index_val - or a ListVal with exactly one element.
+		// Since Broker does not support ListVals, we have to unoll this in the second case.
+		const Val* index_val;
+		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+			{
+			if ( index->AsListVal()->Length() != 1 )
+				{
+				zeek::emit_builtin_error("table with complex index not supported for &broker_store");
+				return;
+				}
+
+			index_val = index->AsListVal()->Idx(0).get();
+			}
+		else
+			{
+			index_val = index;
+			}
+
+		auto broker_index = bro_broker::val_to_data(index_val);
+
+		if ( ! broker_index )
+			{
+			zeek::emit_builtin_error("invalid Broker data conversation for table index");
+			return;
+			}
+
+		switch ( tpe )
+			{
+			case ELEMENT_NEW:
+			case ELEMENT_CHANGED:
+				{
+				broker::optional<broker::timespan> expiry;
+
+				auto expire_time = GetExpireTime();
+				if ( expire_time == 0 )
+					// Entry is set to immediately expire. Let's not forward it.
+					break;
+
+				if ( expire_time > 0 )
+					{
+					if ( attrs->Find(zeek::detail::ATTR_EXPIRE_CREATE) )
+						{
+						// for create expiry, we have to substract the already elapsed time from the expiry.
+						auto e = expire_time - (network_time - new_entry_val->ExpireAccessTime());
+						if ( e <= 0 )
+							// element already expired? Let's not insert it.
+							break;
+
+						expiry = bro_broker::convert_expiry(e);
+						}
+					else
+						expiry = bro_broker::convert_expiry(expire_time);
+					}
+
+				if ( table_type->IsSet() )
+					handle->store.put(std::move(*broker_index), broker::data(), expiry);
+				else
+					{
+					if ( ! new_entry_val )
+						{
+						zeek::emit_builtin_error("did not receive new value for Broker datastore send operation");
+						return;
+						}
+
+					auto new_value = new_entry_val->GetVal().get();
+					auto broker_val = bro_broker::val_to_data(new_value);
+					if ( ! broker_val )
+						{
+						zeek::emit_builtin_error("invalid Broker data conversation for table value");
+						return;
+						}
+
+					handle->store.put(std::move(*broker_index), std::move(*broker_val), expiry);
+					}
+				break;
+				}
+
+			case ELEMENT_REMOVED:
+				handle->store.erase(std::move(*broker_index));
+				break;
+
+			case ELEMENT_EXPIRED:
+				// we do nothing here. The Broker store does its own expiration - so the element
+				// should expire at about the same time.
+				break;
+			}
+		}
+	catch ( InterpreterException& e )
+		{
+		zeek::emit_builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
+		}
+	}
+
+ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	{
 	auto k = MakeHashKey(index);
+
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
 	ValPtr va;
 
@@ -2140,13 +2270,20 @@ ValPtr TableVal::Remove(const Val& index)
 
 	Modified();
 
+	if ( broker_forward && ! broker_store.empty() )
+		SendToStore(&index, nullptr, ELEMENT_REMOVED);
+
 	if ( change_func )
-		CallChangeFunc(&index, va, ELEMENT_REMOVED);
+		{
+		// this is totally cheating around the fact that we need a Intrusive pointer.
+		ValPtr changefunc_val = RecreateIndex(*(k.get()));
+		CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
+		}
 
 	return va;
 	}
 
-ValPtr TableVal::Remove(const HashKey& k)
+ValPtr TableVal::Remove(const zeek::detail::HashKey& k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
 	ValPtr va;
@@ -2166,10 +2303,14 @@ ValPtr TableVal::Remove(const HashKey& k)
 
 	Modified();
 
-	if ( change_func && va )
+	if ( va && ( change_func || ! broker_store.empty() ) )
 		{
 		auto index = table_hash->RecoverVals(k);
-		CallChangeFunc(index.get(), va, ELEMENT_REMOVED);
+		if ( ! broker_store.empty() )
+			SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
+
+		if ( change_func && va )
+			CallChangeFunc(index, va, ELEMENT_REMOVED);
 		}
 
 	return va;
@@ -2182,7 +2323,7 @@ ListValPtr TableVal::ToListVal(TypeTag t) const
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	HashKey* k;
+	zeek::detail::HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
 		auto index = table_hash->RecoverVals(*k);
@@ -2254,7 +2395,7 @@ void TableVal::Describe(ODesc* d) const
 
 	for ( int i = 0; i < n; ++i )
 		{
-		HashKey* k;
+		zeek::detail::HashKey* k;
 		TableEntryVal* v = tbl->NextEntry(k, c);
 
 		if ( ! v )
@@ -2387,7 +2528,7 @@ void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
 void TableVal::InitTimer(double delay)
 	{
 	timer = new TableValTimer(this, network_time + delay);
-	timer_mgr->Add(timer);
+	zeek::detail::timer_mgr->Add(timer);
 	}
 
 void TableVal::DoExpire(double t)
@@ -2410,7 +2551,7 @@ void TableVal::DoExpire(double t)
 		tbl->MakeRobustCookie(expire_cookie);
 		}
 
-	HashKey* k = nullptr;
+	zeek::detail::HashKey* k = nullptr;
 	TableEntryVal* v = nullptr;
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
@@ -2473,7 +2614,8 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecreateIndex(*k);
-				CallChangeFunc(idx.get(), v->GetVal(), ELEMENT_EXPIRED);
+
+				CallChangeFunc(idx, v->GetVal(), ELEMENT_EXPIRED);
 				}
 
 			delete v;
@@ -2518,7 +2660,7 @@ double TableVal::GetExpireTime()
 	expire_time = nullptr;
 
 	if ( timer )
-		timer_mgr->Cancel(timer);
+		zeek::detail::timer_mgr->Cancel(timer);
 
 	return -1;
 	}
@@ -2594,7 +2736,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
-	HashKey* key;
+	zeek::detail::HashKey* key;
 	TableEntryVal* val;
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
@@ -2619,7 +2761,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 		// As network_time is not necessarily initialized yet, we set
 		// a timer which fires immediately.
 		timer = new TableValTimer(this, 1);
-		timer_mgr->Add(timer);
+		zeek::detail::timer_mgr->Add(timer);
 		}
 
 	if ( expire_func )
@@ -2650,10 +2792,10 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
-HashKey* TableVal::ComputeHash(const Val* index) const
+zeek::detail::HashKey* TableVal::ComputeHash(const Val* index) const
 	{ return MakeHashKey(*index).release(); }
 
-std::unique_ptr<HashKey> TableVal::MakeHashKey(const Val& index) const
+std::unique_ptr<zeek::detail::HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
 	return table_hash->MakeHashKey(index, true);
 	}
@@ -2689,7 +2831,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 	const PDict<zeek::TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
-	HashKey* key;
+	zeek::detail::HashKey* key;
 	TableEntryVal* val;
 
 	ParseTimeTableState rval;
@@ -2707,7 +2849,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 void TableVal::RebuildTable(ParseTimeTableState ptts)
 	{
 	delete table_hash;
-	table_hash = new CompositeHash(table_type->GetIndices());
+	table_hash = new zeek::detail::CompositeHash(table_type->GetIndices());
 
 	for ( auto& [key, val] : ptts )
 		Assign(std::move(key), std::move(val));
@@ -3303,7 +3445,7 @@ ValPtr check_and_promote(ValPtr v,
 			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v.get(), false, expr_location);
 			return nullptr;
 			}
-		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
+		else if ( t_tag == TYPE_COUNT )
 			promoted_v = zeek::val_mgr->Count(v->CoerceToUnsigned());
 		else // port
 			{

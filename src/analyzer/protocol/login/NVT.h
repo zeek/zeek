@@ -124,7 +124,7 @@ protected:
 
 class NVT_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
-	NVT_Analyzer(Connection* conn, bool orig);
+	NVT_Analyzer(zeek::Connection* conn, bool orig);
 	~NVT_Analyzer() override;
 
 	TelnetOption* FindOption(unsigned int code);

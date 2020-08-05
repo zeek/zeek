@@ -7,6 +7,8 @@
 
 #include "IntSet.h"
 
+namespace zeek::detail {
+
 void IntSet::Expand(unsigned int i)
 	{
 	unsigned int newsize = i / 8 + 1;
@@ -19,3 +21,5 @@ void IntSet::Expand(unsigned int i)
 	size = newsize;
 	set = newset;
 	}
+
+} // namespace zeek::detail

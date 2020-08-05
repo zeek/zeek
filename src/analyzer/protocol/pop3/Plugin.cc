@@ -11,7 +11,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("POP3", ::analyzer::pop3::POP3_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("POP3", ::analyzer::pop3::POP3_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::POP3";

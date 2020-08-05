@@ -53,9 +53,9 @@ void Hash::Finalize()
 	if ( ! file_hash )
 		return;
 
-	mgr.Enqueue(file_hash,
-	            GetFile()->ToVal(),
-	            zeek::make_intrusive<zeek::StringVal>(kind),
-	            hash->Get()
+	zeek::event_mgr.Enqueue(file_hash,
+	                        GetFile()->ToVal(),
+	                        zeek::make_intrusive<zeek::StringVal>(kind),
+	                        hash->Get()
 	);
 	}

@@ -150,7 +150,7 @@ protected:
 
 class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	HTTP_Analyzer(Connection* conn);
+	HTTP_Analyzer(zeek::Connection* conn);
 
 	void HTTP_Header(bool is_orig, mime::MIME_Header* h);
 	void HTTP_EntityData(bool is_orig, zeek::String* entity_data);
@@ -195,7 +195,7 @@ public:
 	int GetRequestOngoing() { return request_ongoing; };
 	int GetReplyOngoing() { return reply_ongoing; };
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()
@@ -282,6 +282,6 @@ extern bool is_reserved_URI_char(unsigned char ch);
 extern bool is_unreserved_URI_char(unsigned char ch);
 extern void escape_URI_char(unsigned char ch, unsigned char*& p);
 extern zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
-                                     analyzer::Analyzer* analyzer);
+                                  zeek::analyzer::Analyzer* analyzer);
 
 } } // namespace analyzer::*

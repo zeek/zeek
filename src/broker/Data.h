@@ -5,7 +5,7 @@
 #include "Frame.h"
 #include "Expr.h"
 
-class ODesc;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
 namespace threading {
 struct Value;
@@ -104,7 +104,7 @@ public:
 		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
-	void ValDescribe(ODesc* d) const override;
+	void ValDescribe(zeek::ODesc* d) const override;
 
 	zeek::ValPtr castTo(zeek::Type* t);
 	bool canCastTo(zeek::Type* t) const;
@@ -205,10 +205,10 @@ T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
 	{
 	auto ptr = caf::get_if<T>(&d);
 	if ( ! ptr )
-		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
-		                       "data is of type '%s' not of type '%s'",
-		                       caf::visit(type_name_getter{tag}, d),
-		                       zeek::type_name(tag));
+		zeek::reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		                             "data is of type '%s' not of type '%s'",
+		                             caf::visit(type_name_getter{tag}, d),
+		                             zeek::type_name(tag));
 
 	return *ptr;
 	}

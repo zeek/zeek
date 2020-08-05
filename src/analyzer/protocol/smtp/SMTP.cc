@@ -26,7 +26,7 @@ static const char* unknown_cmd = "(UNKNOWN)";
 #define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 
-SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
+SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = false;
@@ -405,7 +405,7 @@ void SMTP_Analyzer::StartTLS()
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
 
-	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 

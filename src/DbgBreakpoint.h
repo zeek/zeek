@@ -5,11 +5,12 @@
 #include <string>
 #include "util.h"
 
-struct ParseLocationRec;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ParseLocationRec, zeek::detail);
 
-enum BreakCode { bcNoHit, bcHit, bcHitAndDelete };
+namespace zeek::detail {
+
+enum BreakCode { BC_NO_HIT, BC_HIT, BC_HIT_AND_DELETE };
 class DbgBreakpoint {
 	enum Kind { BP_STMT = 0, BP_FUNC, BP_LINE, BP_TIME };
 
@@ -81,3 +82,15 @@ protected:
 
 	std::string condition;	// condition to evaluate; nil for none
 };
+
+} // namespace zeek::detail
+
+using DbgBreakPoint [[deprecated("Remove in v4.1. Use zeek::detail::DbgBreakpoint.")]] = zeek::detail::DbgBreakpoint;
+
+using BreakCode [[deprecated("Remove in v4.1. Use zeek::detail::BreakCode.")]] = zeek::detail::BreakCode;
+[[deprecated("Remove in v4.1. Use zeek::detail::BC_NO_HIT.")]]
+constexpr auto bcNoHit = zeek::detail::BC_NO_HIT;
+[[deprecated("Remove in v4.1. Use zeek::detail::BC_HIT.")]]
+constexpr auto bcHit = zeek::detail::BC_HIT;
+[[deprecated("Remove in v4.1. Use zeek::detail::BC_HIT_AND_DELETE.")]]
+constexpr auto bcHitAndDelete = zeek::detail::BC_HIT_AND_DELETE;

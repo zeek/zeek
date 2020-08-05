@@ -11,7 +11,7 @@
 
 using namespace analyzer::login;
 
-Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
+Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
 : tcp::ContentLine_Analyzer("CONTENTLINE", conn, orig)
 	{
 	num_bytes_to_scan = 0;
@@ -194,8 +194,8 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			reporter->AnalyzerError(this,
-			  "bad state in Contents_Rlogin_Analyzer::DoDeliver");
+			zeek::reporter->AnalyzerError(
+				this, "bad state in Contents_Rlogin_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -208,7 +208,7 @@ void Contents_Rlogin_Analyzer::BadProlog()
 	}
 
 
-Rlogin_Analyzer::Rlogin_Analyzer(Connection* conn)
+Rlogin_Analyzer::Rlogin_Analyzer(zeek::Connection* conn)
 : Login_Analyzer("RLOGIN", conn)
 	{
 	Contents_Rlogin_Analyzer* orig =
@@ -227,7 +227,7 @@ void Rlogin_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
 		{
-		reporter->AnalyzerError(this, "multiple rlogin client names");
+		zeek::reporter->AnalyzerError(this, "multiple rlogin client names");
 		return;
 		}
 

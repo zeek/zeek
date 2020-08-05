@@ -58,6 +58,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-rocksdb       try to find a RocksDB installation for use in Broker
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
+    --disable-archiver     don't build or install zeek-archiver tool
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
 
@@ -155,6 +156,7 @@ append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
+append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL  true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
@@ -266,6 +268,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
+            ;;
+        --disable-archiver)
+            append_cache_entry INSTALL_ZEEK_ARCHIVER    BOOL   false
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true

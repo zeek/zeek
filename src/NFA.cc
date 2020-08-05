@@ -9,6 +9,8 @@
 
 #include <algorithm>
 
+namespace zeek::detail {
+
 static int nfa_state_id = 0;
 
 NFA_State::NFA_State(int arg_sym, EquivClass* ec)
@@ -369,3 +371,5 @@ bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2)
 	else
 		return false;
 	}
+
+} // namespace zeek::detail

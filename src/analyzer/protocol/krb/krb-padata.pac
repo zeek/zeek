@@ -62,14 +62,14 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				{
 				const bytestring& cert = element->pa_data_element()->pa_pk_as_req()->cert();
 
-				ODesc common;
+				zeek::ODesc common;
 				common.AddRaw("Analyzer::ANALYZER_KRB");
 				common.Add(bro_analyzer->Conn()->StartTime());
 				// Request means is_orig=T
 				common.AddRaw("T", 1);
 				bro_analyzer->Conn()->IDString(&common);
 
-				ODesc file_handle;
+				zeek::ODesc file_handle;
 				file_handle.Add(common.Description());
 				file_handle.Add(0);
 
@@ -86,14 +86,14 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				{
 				const bytestring& cert = element->pa_data_element()->pa_pk_as_rep()->cert();
 
-				ODesc common;
+				zeek::ODesc common;
 				common.AddRaw("Analyzer::ANALYZER_KRB");
 				common.Add(bro_analyzer->Conn()->StartTime());
 				// Response means is_orig=F
 				common.AddRaw("F", 1);
 				bro_analyzer->Conn()->IDString(&common);
 
-				ODesc file_handle;
+				zeek::ODesc file_handle;
 				file_handle.Add(common.Description());
 				file_handle.Add(1);
 

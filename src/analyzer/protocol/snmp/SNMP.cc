@@ -8,7 +8,7 @@
 
 using namespace analyzer::snmp;
 
-SNMP_Analyzer::SNMP_Analyzer(Connection* conn)
+SNMP_Analyzer::SNMP_Analyzer(zeek::Connection* conn)
 	: Analyzer("SNMP", conn)
 	{
 	interp = new binpac::SNMP::SNMP_Conn(this);
@@ -26,7 +26,7 @@ void SNMP_Analyzer::Done()
 	}
 
 void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                  uint64_t seq, const IP_Hdr* ip, int caplen)
+                                  uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

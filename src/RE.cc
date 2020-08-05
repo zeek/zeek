@@ -12,15 +12,21 @@
 #include "Reporter.h"
 #include "ZeekString.h"
 
-CCL* curr_ccl = nullptr;
-
-Specific_RE_Matcher* rem;
-NFA_Machine* nfa = nullptr;
-int case_insensitive = 0;
+zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
+zeek::detail::CCL*& curr_ccl = zeek::detail::curr_ccl;
+zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;
+zeek::detail::Specific_RE_Matcher*& rem = zeek::detail::rem;
+zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
+zeek::detail::NFA_Machine*& nfa = zeek::detail::nfa;
+int zeek::detail::case_insensitive = 0;
+int& case_insensitive = zeek::detail::case_insensitive;
 
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);
 extern void RE_done_with_scan();
+
+namespace zeek {
+namespace detail {
 
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
 : equiv_class(NUM_SYM)
@@ -129,7 +135,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 
 	if ( parse_status )
 		{
-		reporter->Error("error compiling pattern /%s/", pattern_text);
+		zeek::reporter->Error("error compiling pattern /%s/", pattern_text);
 		Unref(nfa);
 		nfa = nullptr;
 		return false;
@@ -151,7 +157,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
 	if ( (size_t)set.length() != idx.size() )
-		reporter->InternalError("compileset: lengths of sets differ");
+		zeek::reporter->InternalError("compileset: lengths of sets differ");
 
 	rem = this;
 
@@ -165,7 +171,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 
 		if ( parse_status )
 			{
-			reporter->Error("error compiling pattern /%s/", set[i]);
+			zeek::reporter->Error("error compiling pattern /%s/", set[i]);
 
 			if ( set_nfa && set_nfa != nfa )
 				Unref(set_nfa);
@@ -440,51 +446,6 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
 	}
 
-RE_Matcher::RE_Matcher()
-	{
-	re_anywhere = new Specific_RE_Matcher(MATCH_ANYWHERE);
-	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
-	}
-
-RE_Matcher::RE_Matcher(const char* pat)
-	{
-	re_anywhere = new Specific_RE_Matcher(MATCH_ANYWHERE);
-	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
-
-	AddPat(pat);
-	}
-
-RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
-	{
-	re_anywhere = new Specific_RE_Matcher(MATCH_ANYWHERE);
-	re_anywhere->SetPat(anywhere_pat);
-	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
-	re_exact->SetPat(exact_pat);
-	}
-
-RE_Matcher::~RE_Matcher()
-	{
-	delete re_anywhere;
-	delete re_exact;
-	}
-
-void RE_Matcher::AddPat(const char* new_pat)
-	{
-	re_anywhere->AddPat(new_pat);
-	re_exact->AddPat(new_pat);
-	}
-
-void RE_Matcher::MakeCaseInsensitive()
-	{
-	re_anywhere->MakeCaseInsensitive();
-	re_exact->MakeCaseInsensitive();
-	}
-
-bool RE_Matcher::Compile(bool lazy)
-	{
-	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
-	}
-
 static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 				const char* merge_op)
 	{
@@ -513,3 +474,52 @@ RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2)
 	{
 	return matcher_merge(re1, re2, "|");
 	}
+
+} // namespace detail
+
+RE_Matcher::RE_Matcher()
+	{
+	re_anywhere = new detail::Specific_RE_Matcher(zeek::detail::MATCH_ANYWHERE);
+	re_exact = new detail::Specific_RE_Matcher(zeek::detail::MATCH_EXACTLY);
+	}
+
+RE_Matcher::RE_Matcher(const char* pat)
+	{
+	re_anywhere = new detail::Specific_RE_Matcher(zeek::detail::MATCH_ANYWHERE);
+	re_exact = new detail::Specific_RE_Matcher(zeek::detail::MATCH_EXACTLY);
+
+	AddPat(pat);
+	}
+
+RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
+	{
+	re_anywhere = new detail::Specific_RE_Matcher(zeek::detail::MATCH_ANYWHERE);
+	re_anywhere->SetPat(anywhere_pat);
+	re_exact = new detail::Specific_RE_Matcher(zeek::detail::MATCH_EXACTLY);
+	re_exact->SetPat(exact_pat);
+	}
+
+RE_Matcher::~RE_Matcher()
+	{
+	delete re_anywhere;
+	delete re_exact;
+	}
+
+void RE_Matcher::AddPat(const char* new_pat)
+	{
+	re_anywhere->AddPat(new_pat);
+	re_exact->AddPat(new_pat);
+	}
+
+void RE_Matcher::MakeCaseInsensitive()
+	{
+	re_anywhere->MakeCaseInsensitive();
+	re_exact->MakeCaseInsensitive();
+	}
+
+bool RE_Matcher::Compile(bool lazy)
+	{
+	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
+	}
+
+} // namespace zeek

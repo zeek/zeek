@@ -53,7 +53,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::d
 	regex_t re;
 	if ( regcomp(&re, regex.c_str(), REG_EXTENDED|REG_NOSUB) )
 		{
-		debug_msg("Invalid regular expression: %s\n", regex.c_str());
+		zeek::detail::debug_msg("Invalid regular expression: %s\n", regex.c_str());
 		return;
 		}
 
@@ -80,14 +80,14 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 
 	while ( true )
 		{
-		debug_msg("There were multiple matches, please choose:\n");
+		zeek::detail::debug_msg("There were multiple matches, please choose:\n");
 
-		for ( unsigned int i = 0; i < choices.size(); ++i )
-			debug_msg("[%d] %s\n", i+1, choices[i]->Name());
+		for ( size_t i = 0; i < choices.size(); i++ )
+			zeek::detail::debug_msg("[%lu] %s\n", i+1, choices[i]->Name());
 
-		debug_msg("[a] All of the above\n");
-		debug_msg("[n] None of the above\n");
-		debug_msg("Enter your choice: ");
+		zeek::detail::debug_msg("[a] All of the above\n");
+		zeek::detail::debug_msg("[n] None of the above\n");
+		zeek::detail::debug_msg("Enter your choice: ");
 
 		char charinput[256];
 		if ( ! fgets(charinput, sizeof(charinput) - 1, stdin) )
@@ -123,7 +123,10 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 // DebugCmdInfo implementation
 //
 
-zeek::PQueue<DebugCmdInfo> g_DebugCmdInfos;
+zeek::PQueue<zeek::detail::DebugCmdInfo> zeek::detail::g_DebugCmdInfos;
+zeek::PQueue<zeek::detail::DebugCmdInfo>& g_DebugCmdInfos = zeek::detail::g_DebugCmdInfos;
+
+namespace zeek::detail {
 
 DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
 : cmd(info.cmd), helpstring(nullptr)
@@ -203,7 +206,7 @@ static int dbg_backtrace_internal(int start, int end)
 	if ( start < 0 || end < 0 ||
 	     (unsigned) start >= g_frame_stack.size() ||
 	     (unsigned) end >= g_frame_stack.size() )
-		reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
+		zeek::reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
 	if ( start < end )
 		{
@@ -334,7 +337,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	// for 'list', 'break', etc.
 	const zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 	if ( ! stmt )
-		reporter->InternalError("Assertion failed: %s", "stmt != 0");
+		zeek::reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
 	const zeek::detail::Location loc = *stmt->GetLocationInfo();
 	g_debugger_state.last_loc = loc;
@@ -366,7 +369,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 	int cond_index = -1; // at which argument pos. does bp condition start?
 
-	if ( args.size() == 0 || args[0] == "if" )
+	if ( args.empty() || args[0] == "if" )
 		{ // break on next stmt
 		int user_frame_number =
 			g_frame_stack.size() - 1 -
@@ -374,7 +377,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 		zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
-			reporter->InternalError("Assertion failed: %s", "stmt != 0");
+			zeek::reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
 		DbgBreakpoint* bp = new DbgBreakpoint();
 		bp->SetID(g_debugger_state.NextBPID());
@@ -412,11 +415,11 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 				  locstrings[strindex].c_str());
 			vector<ParseLocationRec> plrs =
 				parse_location_string(locstrings[strindex]);
-			for ( unsigned int i = 0; i < plrs.size(); ++i )
+			for ( const auto& plr : plrs )
 				{
 				DbgBreakpoint* bp = new DbgBreakpoint();
 				bp->SetID(g_debugger_state.NextBPID());
-				if ( ! bp->SetLocation(plrs[i], locstrings[strindex]) )
+				if ( ! bp->SetLocation(plr, locstrings[strindex]) )
 					{
 					debug_msg("Breakpoint not set.\n");
 					delete bp;
@@ -431,22 +434,22 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 		}
 
 	// Is there a condition specified?
-	if ( cond_index >= 0 && bps.size() )
+	if ( cond_index >= 0 && ! bps.empty() )
 		{
 		// ### Implement conditions
 		string cond;
-		for ( int i = cond_index; i < int(args.size()); ++i )
+		for ( const auto& arg : args )
 			{
-			cond += args[i];
+			cond += arg;
 			cond += "    ";
 			}
 		bps[0]->SetCondition(cond);
 		}
 
-	for ( unsigned int i = 0; i < bps.size(); ++i )
+	for ( auto& bp : bps )
 		{
-		bps[i]->SetTemporary(false);
-		g_debugger_state.breakpoints[bps[i]->GetID()] = bps[i];
+		bp->SetTemporary(false);
+		g_debugger_state.breakpoints[bp->GetID()] = bp;
 		}
 
 	return 0;
@@ -490,7 +493,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 		return 0;
 		}
 
-	if ( g_debugger_state.breakpoints.size() == 0 )
+	if ( g_debugger_state.breakpoints.empty() )
 		{
 		debug_msg ("No breakpoints currently set.\n");
 		return -1;
@@ -498,7 +501,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 
 	vector<int> bps_to_change;
 
-	if ( args.size() == 0 )
+	if ( args.empty() )
 		{
 		BPIDMapType::iterator iter;
 		for ( iter = g_debugger_state.breakpoints.begin();
@@ -507,15 +510,13 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 		}
 	else
 		{
-		for ( unsigned int i = 0; i < args.size(); ++i )
-			if ( int idx = atoi(args[i].c_str()) )
+		for ( const auto& arg : args )
+			if ( int idx = atoi(arg.c_str()) )
 				bps_to_change.push_back(idx);
 		}
 
-	for ( unsigned int i = 0; i < bps_to_change.size(); ++i )
+	for ( auto bp_change : bps_to_change )
 		{
-		int bp_change = bps_to_change[i];
-
 		BPIDMapType::iterator result =
 			g_debugger_state.breakpoints.find(bp_change);
 
@@ -539,7 +540,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 				break;
 
 			default:
-				reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
+				zeek::reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
 			}
 			}
 
@@ -559,10 +560,10 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 
 	// Just concatenate all the 'args' into one expression.
 	string expr;
-	for ( int i = 0; i < int(args.size()); ++i )
+	for ( size_t i = 0; i < args.size(); ++i )
 		{
 		expr += args[i];
-		if ( i < int(args.size()) - 1 )
+		if ( i < args.size() - 1 )
 			expr += " ";
 		}
 
@@ -589,7 +590,7 @@ int dbg_cmd_info(DebugCmd cmd, const vector<string>& args)
 	{
 	assert(cmd == dcInfo);
 
-	if ( ! args.size() )
+	if ( args.empty() )
 		{
 		debug_msg("Syntax: info info-command\n");
 		debug_msg("List of info-commands:\n");
@@ -637,7 +638,7 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		return 0;
 		}
 
-	if ( args.size() == 0 )
+	if ( args.empty() )
 		{
 		// Special case: if we just hit a breakpoint, then show
 		// that line without advancing first.
@@ -665,7 +666,7 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		{
 		vector<ParseLocationRec> plrs = parse_location_string(args[0]);
 		ParseLocationRec plr = plrs[0];
-		if ( plr.type == plrUnknown )
+		if ( plr.type == PLR_UNKNOWN )
 			{
 			debug_msg("Invalid location specifier\n");
 			return false;
@@ -702,7 +703,7 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 	{
 	assert(cmd == dcTrace);
 
-	if ( args.size() == 0 )
+	if ( args.empty() )
 		{
 		debug_msg("Execution tracing is %s.\n",
 		g_trace_state.DoTrace() ? "on" : "off" );
@@ -724,3 +725,5 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 	debug_msg("Invalid argument");
 	return 0;
 	}
+
+} // namespace zeek::detail

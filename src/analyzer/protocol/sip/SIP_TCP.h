@@ -13,7 +13,7 @@ namespace analyzer { namespace sip_tcp {
 
 class SIP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SIP_Analyzer(Connection* conn);
+	explicit SIP_Analyzer(zeek::Connection* conn);
 	~SIP_Analyzer() override;
 
 	void Done() override;
@@ -23,7 +23,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new SIP_Analyzer(conn); }
 
 protected:

@@ -16,7 +16,7 @@
 
 using namespace threading;
 
-bool Field::Read(SerializationFormat* fmt)
+bool Field::Read(zeek::detail::SerializationFormat* fmt)
 	{
 	int t;
 	int st;
@@ -53,7 +53,7 @@ bool Field::Read(SerializationFormat* fmt)
 	return true;
 	}
 
-bool Field::Write(SerializationFormat* fmt) const
+bool Field::Write(zeek::detail::SerializationFormat* fmt) const
 	{
 	assert(name);
 
@@ -107,7 +107,7 @@ Value::~Value()
 
 	else if ( type == zeek::TYPE_TABLE )
 		{
-		for ( int i = 0; i < val.set_val.size; i++ )
+		for ( bro_int_t i = 0; i < val.set_val.size; i++ )
 			delete val.set_val.vals[i];
 
 		delete [] val.set_val.vals;
@@ -115,7 +115,7 @@ Value::~Value()
 
 	else if ( type == zeek::TYPE_VECTOR )
 		{
-		for ( int i = 0; i < val.vector_val.size; i++ )
+		for ( bro_int_t i = 0; i < val.vector_val.size; i++ )
 			delete val.vector_val.vals[i];
 
 		delete [] val.vector_val.vals;
@@ -131,7 +131,6 @@ bool Value::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	case zeek::TYPE_BOOL:
 	case zeek::TYPE_INT:
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 	case zeek::TYPE_PORT:
 	case zeek::TYPE_SUBNET:
 	case zeek::TYPE_ADDR:
@@ -173,7 +172,7 @@ bool Value::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	return false;
 	}
 
-bool Value::Read(SerializationFormat* fmt)
+bool Value::Read(zeek::detail::SerializationFormat* fmt)
 	{
 	int ty, sty;
 
@@ -192,7 +191,6 @@ bool Value::Read(SerializationFormat* fmt)
 		return fmt->Read(&val.int_val, "int");
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return fmt->Read(&val.uint_val, "uint");
 
 	case zeek::TYPE_PORT: {
@@ -286,7 +284,7 @@ bool Value::Read(SerializationFormat* fmt)
 
 		val.set_val.vals = new Value* [val.set_val.size];
 
-		for ( int i = 0; i < val.set_val.size; ++i )
+		for ( bro_int_t i = 0; i < val.set_val.size; ++i )
 			{
 			val.set_val.vals[i] = new Value;
 
@@ -304,7 +302,7 @@ bool Value::Read(SerializationFormat* fmt)
 
 		val.vector_val.vals = new Value* [val.vector_val.size];
 
-		for ( int i = 0; i < val.vector_val.size; ++i )
+		for ( bro_int_t i = 0; i < val.vector_val.size; ++i )
 			{
 			val.vector_val.vals[i] = new Value;
 
@@ -316,14 +314,14 @@ bool Value::Read(SerializationFormat* fmt)
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s in Value::Read",
-		                        zeek::type_name(type));
+		zeek::reporter->InternalError("unsupported type %s in Value::Read",
+		                              zeek::type_name(type));
 	}
 
 	return false;
 	}
 
-bool Value::Write(SerializationFormat* fmt) const
+bool Value::Write(zeek::detail::SerializationFormat* fmt) const
 	{
 	if ( ! (fmt->Write((int)type, "type") &&
 		fmt->Write((int)subtype, "subtype") &&
@@ -339,7 +337,6 @@ bool Value::Write(SerializationFormat* fmt) const
 		return fmt->Write(val.int_val, "int");
 
 	case zeek::TYPE_COUNT:
-	case zeek::TYPE_COUNTER:
 		return fmt->Write(val.uint_val, "uint");
 
 	case zeek::TYPE_PORT:
@@ -420,8 +417,8 @@ bool Value::Write(SerializationFormat* fmt) const
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s in Value::Write",
-		                        zeek::type_name(type));
+		zeek::reporter->InternalError("unsupported type %s in Value::Write",
+		                              zeek::type_name(type));
 	}
 
 	// unreachable
@@ -452,7 +449,6 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			return zeek::val_mgr->Int(val->val.int_val).release();
 
 		case zeek::TYPE_COUNT:
-		case zeek::TYPE_COUNTER:
 			return zeek::val_mgr->Count(val->val.int_val).release();
 
 		case zeek::TYPE_DOUBLE:
@@ -475,14 +471,14 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 		case zeek::TYPE_ADDR:
 			{
-			IPAddr* addr = nullptr;
+			zeek::IPAddr* addr = nullptr;
 			switch ( val->val.addr_val.family ) {
 				case IPv4:
-					addr = new IPAddr(val->val.addr_val.in.in4);
+					addr = new zeek::IPAddr(val->val.addr_val.in.in4);
 					break;
 
 				case IPv6:
-					addr = new IPAddr(val->val.addr_val.in.in6);
+					addr = new zeek::IPAddr(val->val.addr_val.in.in6);
 					break;
 
 				default:
@@ -496,14 +492,14 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 		case zeek::TYPE_SUBNET:
 			{
-			IPAddr* addr = nullptr;
+			zeek::IPAddr* addr = nullptr;
 			switch ( val->val.subnet_val.prefix.family ) {
 				case IPv4:
-					addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
+					addr = new zeek::IPAddr(val->val.subnet_val.prefix.in.in4);
 					break;
 
 				case IPv6:
-					addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
+					addr = new zeek::IPAddr(val->val.subnet_val.prefix.in.in6);
 					break;
 
 				default:
@@ -517,7 +513,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 		case zeek::TYPE_PATTERN:
 			{
-			RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
+			auto* re = new zeek::RE_Matcher(val->val.pattern_text_val);
 			re->Compile();
 			return new zeek::PatternVal(re);
 			}
@@ -546,8 +542,8 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 					if ( ! enum_id )
 						{
-						reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
-						        enum_name.data(), source.c_str());
+						zeek::reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
+						                        enum_name.data(), source.c_str());
 
 						have_error = true;
 						return nullptr;
@@ -611,8 +607,8 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 			if ( ! id || ! id->IsEnumConst() )
 				{
-				reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
-				        enum_string.c_str(), source.c_str());
+				zeek::reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
+				                        enum_string.c_str(), source.c_str());
 
 				have_error = true;
 				return nullptr;
@@ -622,19 +618,19 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			int intval = t->Lookup(id->ModuleName(), id->Name());
 			if ( intval < 0 )
 				{
-				reporter->Warning("Enum value '%s' for source '%s' not found.",
-				        enum_string.c_str(), source.c_str());
+				zeek::reporter->Warning("Enum value '%s' for source '%s' not found.",
+				                        enum_string.c_str(), source.c_str());
 
 				have_error = true;
 				return nullptr;
 				}
 
-			auto rval = t->GetVal(intval);
+			auto rval = t->GetEnumVal(intval);
 			return rval.release();
 			}
 
 		default:
-			reporter->InternalError("Unsupported type in SerialTypes::ValueToVal from source %s", source.c_str());
+			zeek::reporter->InternalError("Unsupported type in SerialTypes::ValueToVal from source %s", source.c_str());
 		}
 
 	assert(false);

@@ -12,7 +12,7 @@
 using namespace analyzer::irc;
 using namespace std;
 
-IRC_Analyzer::IRC_Analyzer(Connection* conn)
+IRC_Analyzer::IRC_Analyzer(zeek::Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("IRC", conn)
 	{
 	invalid_msg_count = 0;
@@ -126,7 +126,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			pos = myline.length();
 
 		command = myline.substr(0, pos);
-		for ( unsigned int i = 0; i < command.size(); ++i )
+		for ( size_t i = 0; i < command.size(); ++i )
 			command[i] = toupper(command[i]);
 
 		// Adjust for the no-parameter case
@@ -225,7 +225,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			int services = 0;
 			int servers = 0;
 
-			for ( unsigned int i = 1; i < parts.size(); ++i )
+			for ( size_t i = 1; i < parts.size(); ++i )
 				{
 				if ( parts[i] == "users" )
 					users = atoi(parts[i-1].c_str());
@@ -274,11 +274,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
 
-			for ( unsigned int i = 0; i < parts.size(); ++i )
+			for ( auto& part : parts )
 				{
-				if ( parts[i][0] == '@' )
-					parts[i] = parts[i].substr(1);
-				auto idx = zeek::make_intrusive<zeek::StringVal>(parts[i].c_str());
+				if ( part[0] == '@' )
+					part = part.substr(1);
+				auto idx = zeek::make_intrusive<zeek::StringVal>(part);
 				set->Assign(std::move(idx), nullptr);
 				}
 
@@ -302,7 +302,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			int services = 0;
 			int servers = 0;
 
-			for ( unsigned int i = 1; i < parts.size(); ++i )
+			for ( size_t i = 1; i < parts.size(); ++i )
 				{
 				if ( parts[i] == "users," )
 					users = atoi(parts[i-1].c_str());
@@ -332,7 +332,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			vector<string> parts = SplitWords(params, ' ');
 			int channels = 0;
-			for ( unsigned int i = 1; i < parts.size(); ++i )
+			for ( size_t i = 1; i < parts.size(); ++i )
 				if ( parts[i] == ":channels" )
 					channels = atoi(parts[i - 1].c_str());
 
@@ -402,7 +402,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts.erase(parts.begin(), parts.begin() + 4);
 
 			string real_name = parts[0];
-			for ( unsigned int i = 1; i < parts.size(); ++i )
+			for ( size_t i = 1; i < parts.size(); ++i )
 				real_name = real_name + " " + parts[i];
 
 			if ( real_name[0] == ':' )
@@ -462,9 +462,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
 
-			for ( unsigned int i = 0; i < parts.size(); ++i )
+			for ( const auto& part : parts )
 				{
-				auto idx = zeek::make_intrusive<zeek::StringVal>(parts[i].c_str());
+				auto idx = zeek::make_intrusive<zeek::StringVal>(part);
 				set->Assign(std::move(idx), nullptr);
 				}
 
@@ -637,7 +637,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			// Calculate IP address.
 			uint32_t raw_ip = 0;
-			for ( unsigned int i = 0; i < parts[3].size(); ++i )
+			for ( size_t i = 0; i < parts[3].size(); ++i )
 				{
 				string s = parts[3].substr(i, 1);
 				raw_ip = (10 * raw_ip) + atoi(s.c_str());
@@ -741,7 +741,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		else vl.emplace_back(zeek::val_mgr->EmptyString());
 
 		string realname;
-		for ( unsigned int i = 3; i < parts.size(); i++ )
+		for ( size_t i = 3; i < parts.size(); i++ )
 			{
 			realname += parts[i];
 			if ( i > 3 )
@@ -791,7 +791,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( parts.size() > 2 )
 			{
 			string comment = parts[2];
-			for ( unsigned int i = 3; i < parts.size(); ++i )
+			for ( size_t i = 3; i < parts.size(); ++i )
 				comment += " " + parts[i];
 
 			if ( comment[0] == ':' )
@@ -835,7 +835,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			passwords = SplitWords(parts[1], ',');
 
 		string empty_string = "";
-		for ( unsigned int i = 0; i < channels.size(); ++i )
+		for ( size_t i = 0; i < channels.size(); ++i )
 			{
 			auto info = zeek::make_intrusive<zeek::RecordVal>(irc_join_info);
 			info->Assign(0, zeek::make_intrusive<zeek::StringVal>(nickname.c_str()));
@@ -942,9 +942,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		vector<string> channelList = SplitWords(channels, ',');
 		auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
 
-		for ( unsigned int i = 0; i < channelList.size(); ++i )
+		for ( const auto& channel : channelList )
 			{
-			auto idx = zeek::make_intrusive<zeek::StringVal>(channelList[i].c_str());
+			auto idx = zeek::make_intrusive<zeek::StringVal>(channel);
 			set->Assign(std::move(idx), nullptr);
 			}
 
@@ -1178,7 +1178,7 @@ void IRC_Analyzer::StartTLS()
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
 
-	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 

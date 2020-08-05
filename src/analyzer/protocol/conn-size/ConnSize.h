@@ -8,9 +8,9 @@
 
 namespace analyzer { namespace conn_size {
 
-class ConnSize_Analyzer : public analyzer::Analyzer {
+class ConnSize_Analyzer : public zeek::analyzer::Analyzer {
 public:
-	explicit ConnSize_Analyzer(Connection* c);
+	explicit ConnSize_Analyzer(zeek::Connection* c);
 	~ConnSize_Analyzer() override;
 
 	void Init() override;
@@ -26,15 +26,15 @@ public:
 	void SetDurationThreshold(double duration);
 	double GetDurationThreshold() { return duration_thresh; };
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
+	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
 	void CheckThresholds(bool is_orig);
 
-	void ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig);
+	void ThresholdEvent(zeek::EventHandlerPtr f, uint64_t threshold, bool is_orig);
 
 	uint64_t orig_bytes;
 	uint64_t resp_bytes;

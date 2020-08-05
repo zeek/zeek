@@ -10,8 +10,8 @@
 ## .. zeek:see:: skip_http_entity_data
 function skip_smtp_data%(c: connection%): any
 	%{
-	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
+	zeek::analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
 	if ( sa )
-		static_cast<analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
+		static_cast<::analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
 	return nullptr;
 	%}

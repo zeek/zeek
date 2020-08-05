@@ -76,7 +76,7 @@ ARP_Analyzer::~ARP_Analyzer()
 #endif
 
 
-void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
+void ARP_Analyzer::NextPacket(double t, const zeek::Packet* pkt)
 	{
 	const u_char *data = pkt->data;
 	// Check whether the packet is OK ("inspired" in tcpdump's print-arp.c).
@@ -180,7 +180,7 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	}
 	}
 
-void ARP_Analyzer::Describe(ODesc* d) const
+void ARP_Analyzer::Describe(zeek::ODesc* d) const
 	{
 	d->Add("<ARP analyzer>");
 	d->NL();
@@ -191,36 +191,34 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 	if ( ! bad_arp )
 		return;
 
-	mgr.Enqueue(bad_arp,
-		ToAddrVal(ar_spa(hdr)),
-		ToEthAddrStr((const u_char*) ar_sha(hdr)),
-		ToAddrVal(ar_tpa(hdr)),
-		ToEthAddrStr((const u_char*) ar_tha(hdr)),
-		zeek::make_intrusive<zeek::StringVal>(msg)
-	);
+	zeek::event_mgr.Enqueue(bad_arp,
+	                        ToAddrVal(ar_spa(hdr)),
+	                        ToEthAddrStr((const u_char*) ar_sha(hdr)),
+	                        ToAddrVal(ar_tpa(hdr)),
+	                        ToEthAddrStr((const u_char*) ar_tha(hdr)),
+	                        zeek::make_intrusive<zeek::StringVal>(msg));
 	}
 
 void ARP_Analyzer::Corrupted(const char* msg)
 	{
-	reporter->Weird(msg);
+	zeek::reporter->Weird(msg);
 	}
 
-void ARP_Analyzer::RREvent(EventHandlerPtr e,
-				const u_char* src, const u_char *dst,
-				const char* spa, const char* sha,
-				const char* tpa, const char* tha)
+void ARP_Analyzer::RREvent(zeek::EventHandlerPtr e,
+                           const u_char* src, const u_char *dst,
+                           const char* spa, const char* sha,
+                           const char* tpa, const char* tha)
 	{
 	if ( ! e )
 		return;
 
-	mgr.Enqueue(e,
-		ToEthAddrStr(src),
-		ToEthAddrStr(dst),
-		ToAddrVal(spa),
-		ToEthAddrStr((const u_char*) sha),
-		ToAddrVal(tpa),
-		ToEthAddrStr((const u_char*) tha)
-	);
+	zeek::event_mgr.Enqueue(e,
+	                        ToEthAddrStr(src),
+	                        ToEthAddrStr(dst),
+	                        ToAddrVal(spa),
+	                        ToEthAddrStr((const u_char*) sha),
+	                        ToAddrVal(tpa),
+	                        ToEthAddrStr((const u_char*) tha));
 	}
 
 zeek::AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)

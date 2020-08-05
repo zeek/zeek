@@ -90,7 +90,7 @@ public:
 			{
 			memcpy(key_here, arg_key, key_size);
 			if ( ! copy_key )
-				delete (char*)arg_key; //own the arg_key, now don't need it.
+				delete [] (char*)arg_key; //own the arg_key, now don't need it.
 			}
 		else
 			{
@@ -123,7 +123,7 @@ public:
 	void Clear()
 		{
 		if( key_size > 8 )
-			delete key;
+			delete [] key;
 		SetEmpty();
 		}
 

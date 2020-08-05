@@ -1253,8 +1253,8 @@ uint64_t rand64bit()
 
 int int_list_cmp(const void* v1, const void* v2)
 	{
-	ptr_compat_int i1 = *(ptr_compat_int*) v1;
-	ptr_compat_int i2 = *(ptr_compat_int*) v2;
+	std::intptr_t i1 = *(std::intptr_t*) v1;
+	std::intptr_t i2 = *(std::intptr_t*) v2;
 
 	if ( i1 < i2 )
 		return -1;

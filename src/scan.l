@@ -46,7 +46,7 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
-ptr_compat_int current_depth = 0;
+std::intptr_t current_depth = 0;
 
 zeek::detail::int_list if_stack;
 

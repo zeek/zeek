@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
-#include "util.h" // for ptr_compat_int
 
 namespace zeek::detail {
 
-using int_list = std::vector<ptr_compat_int>;
+using int_list = std::vector<std::intptr_t>;
 
 class CCL {
 public:

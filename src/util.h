@@ -86,16 +86,14 @@ typedef uint64_t bro_uint_t;
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
 // which represent their entities as void* pointers.
 //
+#define PRI_PTR_COMPAT_INT PRIdPTR // Format to use with printf.
+#define PRI_PTR_COMPAT_UINT PRIuPTR
 #if SIZEOF_VOID_P == 8
-typedef uint64_t ptr_compat_uint;
-typedef int64_t ptr_compat_int;
-#define PRI_PTR_COMPAT_INT PRId64 // Format to use with printf.
-#define PRI_PTR_COMPAT_UINT PRIu64
+typedef uint64_t ptr_compat_uint [[deprecated("Remove in v4.1. Use std::uintptr_t.")]];
+typedef int64_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::intptr_t.")]];
 #elif SIZEOF_VOID_P == 4
-typedef uint32_t ptr_compat_uint;
-typedef int32_t ptr_compat_int;
-#define PRI_PTR_COMPAT_INT PRId32
-#define PRI_PTR_COMPAT_UINT PRIu32
+typedef uint32_t ptr_compat_uint [[deprecated("Remove in v4.1. Use std::uintptr_t")]];
+typedef int32_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::iintptr_t")]];
 #else
 # error "Unsupported pointer size."
 #endif
@@ -243,7 +241,7 @@ extern uint64_t rand64bit();
 // Unfortunately, it introduces circular dependencies when defined in one of
 // the obvious places (like Event.h or RemoteSerializer.h)
 
-typedef ptr_compat_uint SourceID;
+using SourceID = std::uintptr_t;
 #define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
 

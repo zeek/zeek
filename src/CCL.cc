@@ -31,7 +31,7 @@ void CCL::Negate()
 
 void CCL::Add(int sym)
 	{
-	ptr_compat_int sym_p = ptr_compat_int(sym);
+	auto sym_p = static_cast<std::intptr_t>(sym);
 
 	// Check to see if the character is already in the ccl.
 	for ( auto sym : *syms )

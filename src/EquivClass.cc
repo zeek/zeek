@@ -4,6 +4,7 @@
 
 #include "EquivClass.h"
 #include "CCL.h"
+#include "util.h"
 
 namespace zeek::detail {
 

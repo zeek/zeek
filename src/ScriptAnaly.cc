@@ -348,7 +348,7 @@ void analyze_scripts()
 			}
 
 		char fn[8192];
-		snprintf(fn, sizeof fn, "%s-%s:%d.ZAM", l->filename,
+		snprintf(fn, sizeof fn, "%s#%s:%d.ZAM", l->filename,
 				f->func->Name(), l->first_line);
 
 		auto save_file = fopen(fn, "r");

@@ -350,255 +350,102 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 // that we can refer to the items when saving instructions.
 //
 // The basic idea is we make one pass through the instructions
-// accumulating items, and a second pass then saving instructions
-// using references to the items.
+// accumulating items (and colatnstructing string representations,
+// which are provided by template specializations), and a second
+// pass then saving instructions using the representations.
+//
+// Note that items are deemed equivalent if they have the same
+// string representation.  This both makes the save representation
+// more compact and quicker to load, and also addresses the problem
+// of items that are transient, such as Val's constructed using
+// ZAMValUnion::ToVal, which will have a different pointer value
+// every time we instantiate them.
+
+// Constant used to represent a missing value.
+const auto NA = "-";
+const auto SP_NA = " -";	// same but with a leading space
+
+// Type used to hold the representation of an item.
+using RepType = std::string;
+
 template<typename T>
 class ItemTracker {
 public:
 	ItemTracker()	{ }
 
-	void AddItem(T item)
+	virtual void AddItem(T item)
 		{
-		if ( item && item_map.count(item) == 0 )
+		if ( ! item )
+			return;
+
+		auto rep = ItemRep(item);
+
+		if ( item_map.count(rep) == 0 )
 			{
-			items.push_back(item);
-			item_map[item] = items.size();
+			items.push_back(rep);
+			item_map[rep] = items.size();
 			}
 		}
 
 	int FindItem(const T item) const
 		{
-		auto el = item_map.find(item);
+		auto rep = ItemRep(item);
+
+		auto el = item_map.find(rep);
 		if ( el == item_map.end() )
 			return -1;
 		else
 			return el->second;
 		}
 
-	const std::vector<T>& Items()	{ return items; }
+	// Writes the items to the given file, using the given tag.  Does
+	// nothing if there are no items.
+	void Render(FILE* f, const char* tag) const
+		{
+		if ( items.size() == 0 )
+			return;
+
+		fprintf(f, "<%s> {\n", tag);
+		for ( auto i : items )
+			fprintf(f, " %s,\n", i.c_str());
+		fprintf(f, "}\n");
+		}
 
 protected:
-	std::vector<T> items;
-	std::unordered_map<T, int> item_map;	// inverse
+	// This is specialized per type T.
+	virtual RepType ItemRep(const T item) const = 0;
+
+	std::vector<RepType> items;
+	std::unordered_map<RepType, int> item_map;	// inverse
 };
 
 
-void ZBody::SaveTo(FILE* f) const
-	{
-	ItemTracker<const BroType*> types;
-	ItemTracker<const ZInstAux*> auxes;
-	ItemTracker<const Val*> vals;
-
-	for ( auto i : insts )
+class ValTracker : public ItemTracker<const Val*> {
+protected:
+	RepType ItemRep(const Val* item) const override
 		{
-		types.AddItem(i->t);
-		types.AddItem(i->t2);
+		ODesc d(DESC_PARSEABLE);
+		item->Describe(&d);
+		return RepType(d.Description());
+		}
+};
 
-		// The following leaks.  We could fix it with enough
-		// horsing around (or if we could get ItemTracker to
-		// use IntrusivePtr<Val> instead of Val*), but given
-		// it's a one-time leak, we just abide it.
-		vals.AddItem(i->ConstVal().release());
 
-		auto& aux = i->aux;
-		if ( ! aux )
-			continue;
-
-		auxes.AddItem(aux);
-
-		if ( aux->types )
-			for ( auto j = 0; j < aux->n; ++j )
-				{
-				types.AddItem(aux->types[j].get());
-				vals.AddItem(aux->constants[j].get());
-				}
-
-		auto ii = aux->iter_info;
-		if ( ii )
-			{
-			for ( auto t : ii->loop_var_types )
-				types.AddItem(t);
-
-			types.AddItem(ii->value_var_type);
-			types.AddItem(ii->vec_type);
-			types.AddItem(ii->yield_type);
-			}
+class TypeTracker : public ItemTracker<const BroType*> {
+protected:
+	RepType ItemRep(const BroType* item) const override
+		{
+		ODesc d(DESC_PARSEABLE);
+		DescribeType(item, &d);
+		return RepType(d.Description());
 		}
 
-	fprintf(f, "<ZAM-file>\n");
+	// Describes the given type in a form that is parse-able (which
+	// is more detailed than what we get just using BroType::Describe()).
+	void DescribeType(const BroType* t, ODesc* d) const;
+};
 
-	auto& types_vec = types.Items();
-
-	if ( types_vec.size() > 0 )
-		{
-		fprintf(f, "types {\n");
-		for ( auto t : types_vec )
-			{
-			ODesc d(DESC_PARSEABLE);
-			DescribeType(t, &d);
-			fprintf(f, "%s,\n", d.Description());
-			}
-
-		fprintf(f, "}\n");
-		}
-
-	auto& vals_vec = vals.Items();
-
-	if ( vals_vec.size() > 0 )
-		{
-		fprintf(f, "vals {\n");
-		for ( auto v : vals_vec )
-			{
-			ODesc d(DESC_PARSEABLE);
-			v->Describe(&d);
-			fprintf(f, "%s,\n", d.Description());
-			}
-
-		fprintf(f, "}\n");
-		}
-
-	const auto NA = " NA";
-
-	auto& aux_vec = auxes.Items();
-
-	if ( aux_vec.size() > 0 )
-		{
-		fprintf(f, "aux {\n");
-
-		for ( auto a : aux_vec )
-			{
-			fprintf(f, "%d", a->n);
-
-			if ( a->n > 0 )
-				{
-				for ( auto i = 0; i < a->n; ++i )
-					{
-					fprintf(f, " {");
-					auto c = a->constants[i].get();
-					if ( c )
-						fprintf(f, " %d NA", vals.FindItem(c));
-					else
-						fprintf(f, " NA %d", a->slots[i]);
-
-					auto t = a->types[i].get();
-					if ( t )
-						fprintf(f, " %d", types.FindItem(t));
-					else
-						fprintf(f, NA);
-
-					fprintf(f, " },");
-					}
-				}
-
-			fprintf(f, "\n");
-
-			auto& ii = a->iter_info;
-			if ( ! ii )
-				continue;
-
-			fprintf(f, " [ %lu", ii->loop_var_types.size());
-
-			for ( auto t : ii->loop_var_types )
-				fprintf(f, " %d,", types.FindItem(t));
-
-			if ( ii->value_var_type )
-				fprintf(f, " %d,", types.FindItem(ii->value_var_type));
-			else
-				fprintf(f, NA);
-
-			if ( ii->vec_type )
-				fprintf(f, " %d,", types.FindItem(ii->vec_type));
-			else
-				fprintf(f, NA);
-
-			if ( ii->yield_type )
-				fprintf(f, " %d,", types.FindItem(ii->yield_type));
-			else
-				fprintf(f, NA);
-
-			fprintf(f, "]\n");
-			}
-
-		fprintf(f, "}\n");
-		}
-
-	fprintf(f, "insts {\n");
-
-	int inst_num = 0;
-
-	for ( auto i : insts )
-		{
-		fprintf(f, "%d %d %d %s", inst_num++, i->op, i->op_type,
-			ZOP_name(i->op));
-
-		int n = i->NumSlots();
-		int v;
-
-		for ( v = 0; v < n; ++v )
-			{
-			int s;
-			switch ( v ) {
-			case 0:	s = i->v1; break;
-			case 1:	s = i->v2; break;
-			case 2:	s = i->v3; break;
-			case 3:	s = i->v4; break;
-
-			default:
-				reporter->InternalError("slot inconsistency");
-			}
-
-			fprintf(f, " %d", s);
-			}
-
-		for ( ; v < 4; ++v )
-			fprintf(f, NA);
-
-		auto val = i->ConstVal().get();
-		if ( val )
-			fprintf(f, " %d", vals.FindItem(val));
-		else
-			fprintf(f, NA);
-
-		if ( i->t )
-			fprintf(f, " %d", types.FindItem(i->t));
-		else
-			fprintf(f, NA);
-		if ( i->t2 )
-			fprintf(f, " %d", types.FindItem(i->t2));
-		else
-			fprintf(f, NA);
-
-		fprintf(f, "\n");
-		}
-
-	fprintf(f, "}\n");
-	}
-
-void ZBody::ProfileExecution() const
-	{
-	if ( inst_count->size() == 0 )
-		{
-		printf("%s has an empty body\n", func_name);
-		return;
-		}
-
-	if ( (*inst_count)[0] == 0 )
-		{
-		printf("%s did not execute\n", func_name);
-		return;
-		}
-
-	printf("%s CPU time: %.06f\n", func_name, *CPU_time);
-
-	for ( int i = 0; i < inst_count->size(); ++i )
-		{
-		printf("%s %d %d %.06f ", func_name, i,
-			(*inst_count)[i], (*inst_CPU)[i]);
-		insts[i]->Dump(i, &frame_denizens);
-		}
-	}
-
-void ZBody::DescribeType(const BroType* t, ODesc* d) const
+void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 	{
 	auto t_name = t->GetName();
 
@@ -744,6 +591,233 @@ void ZBody::DescribeType(const BroType* t, ODesc* d) const
 	case TYPE_UNION:
 		reporter->InternalError("union type in ZBody::DescribeType()");
 	}
+	}
+
+
+class AuxTracker : public ItemTracker<const ZInstAux*> {
+public:
+	// AuxTracker's are complex because to describe a ZInstAux
+	// requires referencing the types and values within it, so
+	// we need those trackers too.
+	AuxTracker(TypeTracker& _tt, ValTracker& _vt)
+	: tt(_tt), vt(_vt)
+		{
+		}
+
+	// A refinement to AddItem that knows how to unpacket the elements
+	// of a ZInstAux.
+	void AddItem(const ZInstAux* item) override;
+
+protected:
+	RepType ItemRep(const ZInstAux* item) const override;
+
+	TypeTracker& tt;
+	ValTracker& vt;
+};
+
+void AuxTracker::AddItem(const ZInstAux* item)
+	{
+	if ( ! item )
+		return;
+
+	if ( item->types )
+		for ( auto i = 0; i < item->n; ++i )
+			{
+			tt.AddItem(item->types[i].get());
+			vt.AddItem(item->constants[i].get());
+			}
+
+	auto ii = item->iter_info;
+	if ( ii )
+		{
+		for ( auto t : ii->loop_var_types )
+			tt.AddItem(t);
+
+		tt.AddItem(ii->value_var_type);
+		tt.AddItem(ii->vec_type);
+		tt.AddItem(ii->yield_type);
+		}
+
+	// Now that we've added all of our components, we can render
+	// a representation of this item, so add it too using the normal
+	// mechanism.
+	ItemTracker::AddItem(item);
+	}
+
+RepType AuxTracker::ItemRep(const ZInstAux* item) const
+	{
+	ODesc d(DESC_PARSEABLE);
+
+	d.Add(item->n);
+	d.SP();
+
+	if ( item->n > 0 )
+		{
+		for ( auto i = 0; i < item->n; ++i )
+			{
+			d.AddSP("{");
+
+			auto c = item->constants[i].get();
+			if ( c )
+				{
+				d.Add(vt.FindItem(c));
+				d.AddSP(",");
+				d.Add(NA);
+				}
+			else
+				{
+				d.Add(NA);
+				d.AddSP(",");
+				d.Add(item->slots[i]);
+				}
+
+			d.AddSP(",");
+
+			auto t = item->types[i].get();
+			if ( t )
+				d.Add(tt.FindItem(t));
+			else
+				d.Add(NA);
+
+			d.AddSP(" },");
+			}
+		}
+
+	d.NL();
+
+	auto& ii = item->iter_info;
+	if ( ii )
+		{
+		d.Add(" [ ");
+		d.Add(int(ii->loop_var_types.size()));
+		d.SP();
+
+		for ( auto t : ii->loop_var_types )
+			{
+			d.Add(tt.FindItem(t));
+			d.AddSP(",");
+			}
+
+		if ( ii->value_var_type )
+			d.Add(tt.FindItem(ii->value_var_type));
+		else
+			d.Add(NA);
+
+		d.AddSP(",");
+
+		if ( ii->vec_type )
+			d.Add(tt.FindItem(ii->vec_type));
+		else
+			d.Add(NA);
+
+		d.AddSP(",");
+
+		if ( ii->yield_type )
+			d.Add(tt.FindItem(ii->yield_type));
+		else
+			d.Add(NA);
+
+		d.Add("]\n");
+		}
+
+	return RepType(d.Description());
+	}
+
+
+void ZBody::SaveTo(FILE* f) const
+	{
+	TypeTracker types;
+	ValTracker vals;
+	AuxTracker auxes(types, vals);
+
+	for ( auto i : insts )
+		{
+		types.AddItem(i->t);
+		types.AddItem(i->t2);
+		vals.AddItem(i->ConstVal().get());
+		auxes.AddItem(i->aux);
+		}
+
+	fprintf(f, "<ZAM-file>\n");
+
+	types.Render(f, "types");
+	vals.Render(f, "vals");
+	auxes.Render(f, "aux");
+
+	fprintf(f, "<insts> {\n");
+
+	int inst_num = 0;
+
+	for ( auto i : insts )
+		{
+		fprintf(f, "%d %d %d %s", inst_num++, i->op, i->op_type,
+			ZOP_name(i->op));
+
+		int n = i->NumSlots();
+		int v;
+
+		for ( v = 0; v < n; ++v )
+			{
+			int s;
+			switch ( v ) {
+			case 0:	s = i->v1; break;
+			case 1:	s = i->v2; break;
+			case 2:	s = i->v3; break;
+			case 3:	s = i->v4; break;
+
+			default:
+				reporter->InternalError("slot inconsistency");
+			}
+
+			fprintf(f, " %d", s);
+			}
+
+		for ( ; v < 4; ++v )
+			fprintf(f, SP_NA);
+
+		auto val = i->ConstVal();
+		if ( val )
+			fprintf(f, " %d", vals.FindItem(val.get()));
+		else
+			fprintf(f, SP_NA);
+
+		if ( i->t )
+			fprintf(f, " %d", types.FindItem(i->t));
+		else
+			fprintf(f, SP_NA);
+		if ( i->t2 )
+			fprintf(f, " %d", types.FindItem(i->t2));
+		else
+			fprintf(f, SP_NA);
+
+		fprintf(f, "\n");
+		}
+
+	fprintf(f, "}\n");
+	}
+
+void ZBody::ProfileExecution() const
+	{
+	if ( inst_count->size() == 0 )
+		{
+		printf("%s has an empty body\n", func_name);
+		return;
+		}
+
+	if ( (*inst_count)[0] == 0 )
+		{
+		printf("%s did not execute\n", func_name);
+		return;
+		}
+
+	printf("%s CPU time: %.06f\n", func_name, *CPU_time);
+
+	for ( int i = 0; i < inst_count->size(); ++i )
+		{
+		printf("%s %d %d %.06f ", func_name, i,
+			(*inst_count)[i], (*inst_CPU)[i]);
+		insts[i]->Dump(i, &frame_denizens);
+		}
 	}
 
 bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,

@@ -194,9 +194,13 @@ TEST_CASE("dict iteration")
 		{
 		if ( count == 0 )
 			{
-			// The DictEntry constructor typecasts this down to a uint32_t, so we can't just check the
-			// value directly.
-			// TODO: why?
+			// The DictEntry constructor typecasts this down to a uint32_t, so
+			// we can't just check the value directly.
+			// Explanation: hash_t is 64bit, open-dict only uses 32bit hash to
+			// save space for each item (24 bytes aligned). OpenDict has table
+			// size of 2^N and only take the lower bits of the hash. (The
+			// original hash takes transformation in FibHash() to map into a
+			// smaller 2^N range).
 			CHECK(it_key->Hash() == (uint32_t)key2->Hash());
 			CHECK(*entry == 10);
 			}

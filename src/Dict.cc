@@ -523,7 +523,7 @@ void Dictionary::Dump(int level) const
 			if ( table[i].Empty() )
 				printf("%'10d \n", i);
 			else
-				printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016llx(%3d) %2d\n",
+				printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016" PRIx64 "(%3d) %2d\n",
 					i, (i<=remap_end? "*":  ""), BucketByPosition(i), (int)table[i].distance, OffsetInClusterByPosition(i),
 					uint(table[i].hash), FibHash(table[i].hash), (int)FibHash(table[i].hash)&0xFF, (int)table[i].key_size);
 		}

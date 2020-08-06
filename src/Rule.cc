@@ -75,7 +75,7 @@ void Rule::AddPattern(const char* str, Rule::PatternType type,
 			uint32_t offset, uint32_t depth)
 	{
 	Pattern* p = new Pattern;
-	p->pattern = copy_string(str);
+	p->pattern = zeek::util::copy_string(str);
 	p->type = type;
 	p->id = ++pattern_counter;
 	p->offset = offset;
@@ -88,7 +88,7 @@ void Rule::AddPattern(const char* str, Rule::PatternType type,
 void Rule::AddRequires(const char* id, bool opposite_direction, bool negate)
 	{
 	Precond* p = new Precond;
-	p->id = copy_string(id);
+	p->id = zeek::util::copy_string(id);
 	p->rule = nullptr;
 	p->opposite_dir = opposite_direction;
 	p->negate = negate;

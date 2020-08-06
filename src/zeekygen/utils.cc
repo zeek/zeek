@@ -132,6 +132,6 @@ bool zeekygen::is_all_whitespace(const string& s)
 
 string zeekygen::redef_indication(const string& from_script)
 	{
-	return fmt("(present if :doc:`/scripts/%s` is loaded)",
-	           from_script.c_str());
+	return zeek::util::fmt("(present if :doc:`/scripts/%s` is loaded)",
+	                       from_script.c_str());
 	}

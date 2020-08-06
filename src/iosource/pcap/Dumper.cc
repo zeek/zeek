@@ -51,7 +51,7 @@ void PcapDumper::Open()
 
 		if ( exists < 0 && errno != ENOENT )
 			{
-			Error(fmt("can't stat file %s: %s", props.path.c_str(), strerror(errno)));
+			Error(zeek::util::fmt("can't stat file %s: %s", props.path.c_str(), strerror(errno)));
 			return;
 			}
 		}
@@ -76,7 +76,7 @@ void PcapDumper::Open()
 		dumper = (pcap_dumper_t*) fopen(props.path.c_str(), "a");
 		if ( ! dumper )
 			{
-			Error(fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
+			Error(zeek::util::fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
 			return;
 			}
 		}

@@ -83,7 +83,7 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
@@ -117,13 +117,13 @@ zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* princ
 		return nullptr;
 		}
 
-	auto tkt = static_cast<krb5_ticket*>(safe_malloc(sizeof(krb5_ticket)));
+	auto tkt = static_cast<krb5_ticket*>(zeek::util::safe_malloc(sizeof(krb5_ticket)));
 	memset(tkt, 0, sizeof(krb5_ticket));
 
 	tkt->server = sprinc;
 	tkt->enc_part.enctype = enctype;
 
-	auto ctd = static_cast<char*>(safe_malloc(ciphertext->Len()));
+	auto ctd = static_cast<char*>(zeek::util::safe_malloc(ciphertext->Len()));
 	memcpy(ctd, ciphertext->Bytes(), ciphertext->Len());
 	tkt->enc_part.ciphertext.data = ctd;
 	tkt->enc_part.ciphertext.length = ciphertext->Len();

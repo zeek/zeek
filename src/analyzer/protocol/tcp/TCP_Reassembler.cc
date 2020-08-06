@@ -365,7 +365,7 @@ void TCP_Reassembler::RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr&
 
 void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::FilePtr& f)
 	{
-	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
+	if ( f->Write(zeek::util::fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
 	zeek::reporter->Error("TCP_Reassembler contents gap write failed");

@@ -63,7 +63,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		return;
 		}
 
-	if ( ! is_dir(dir) )
+	if ( ! zeek::util::is_dir(dir) )
 		{
 		DBG_LOG(zeek::DBG_PLUGINS, "Not a valid plugin directory: %s", dir.c_str());
 		return;
@@ -73,7 +73,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	const std::string magic = dir + "/__bro_plugin__";
 
-	if ( is_file(magic) )
+	if ( zeek::util::is_file(magic) )
 		{
 		// It's a plugin, get it's name.
 		std::ifstream in(magic.c_str());
@@ -83,8 +83,8 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 		std::string name;
 		std::getline(in, name);
-		strstrip(name);
-		string lower_name = strtolower(name);
+		zeek::util::strstrip(name);
+		string lower_name = zeek::util::strtolower(name);
 
 		if ( name.empty() )
 			reporter->FatalError("empty plugin magic file %s", magic.c_str());
@@ -141,7 +141,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found)
 	{
-	dynamic_plugin_map::iterator m = dynamic_plugins.find(strtolower(name));
+	dynamic_plugin_map::iterator m = dynamic_plugins.find(zeek::util::strtolower(name));
 
 	if ( m == dynamic_plugins.end() )
 		{
@@ -177,50 +177,50 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	// Add the "scripts" and "bif" directories to ZEEKPATH.
 	std::string scripts = dir + "scripts";
 
-	if ( is_dir(scripts) )
+	if ( zeek::util::is_dir(scripts) )
 		{
 		DBG_LOG(zeek::DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
-		add_to_bro_path(scripts);
+		zeek::util::add_to_zeek_path(scripts);
 		}
 
 	string init;
 
 	// First load {scripts}/__preload__.zeek automatically.
-	for (const string& ext : script_extensions)
+	for (const string& ext : zeek::util::script_extensions)
 		{
 		init = dir + "scripts/__preload__" + ext;
 
-		if ( is_file(init) )
+		if ( zeek::util::is_file(init) )
 			{
 			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			warn_if_legacy_script(init);
+			zeek::util::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
 		}
 
 	// Load {bif,scripts}/__load__.zeek automatically.
-	for (const string& ext : script_extensions)
+	for (const string& ext : zeek::util::script_extensions)
 		{
 		init = dir + "lib/bif/__load__" + ext;
 
-		if ( is_file(init) )
+		if ( zeek::util::is_file(init) )
 			{
 			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			warn_if_legacy_script(init);
+			zeek::util::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
 		}
 
-	for (const string& ext : script_extensions)
+	for (const string& ext : zeek::util::script_extensions)
 		{
 		init = dir + "scripts/__load__" + ext;
 
-		if ( is_file(init) )
+		if ( zeek::util::is_file(init) )
 			{
 			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			warn_if_legacy_script(init);
+			zeek::util::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -259,7 +259,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			DBG_LOG(zeek::DBG_PLUGINS, "  InitialzingComponents");
 			current_plugin->InitializeComponents();
 
-			plugins_by_path.insert(std::make_pair(normalize_path(dir), current_plugin));
+			plugins_by_path.insert(std::make_pair(zeek::util::normalize_path(dir), current_plugin));
 
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
@@ -268,7 +268,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			// Make sure the name the plugin reports is consistent with
 			// what we expect from its magic file.
-			if ( strtolower(current_plugin->Name()) != strtolower(name) )
+			if ( zeek::util::strtolower(current_plugin->Name()) != zeek::util::strtolower(name) )
 				reporter->FatalError("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str());
 
@@ -306,7 +306,7 @@ bool Manager::ActivateDynamicPlugins(bool all)
 	{
 	// Activate plugins that our environment tells us to.
 	vector<string> p;
-	tokenize_string(bro_plugin_activate(), ",", &p);
+	zeek::util::tokenize_string(zeek::util::zeek_plugin_activate(), ",", &p);
 
 	for ( size_t n = 0; n < p.size(); ++n )
 		ActivateDynamicPluginInternal(p[n], true);
@@ -337,7 +337,7 @@ void Manager::UpdateInputFiles()
 
 static bool plugin_cmp(const Plugin* a, const Plugin* b)
 	{
-	return strtolower(a->Name()) < strtolower(b->Name());
+	return zeek::util::strtolower(a->Name()) < zeek::util::strtolower(b->Name());
 	}
 
 void Manager::RegisterPlugin(Plugin *plugin)
@@ -346,7 +346,7 @@ void Manager::RegisterPlugin(Plugin *plugin)
 
 	if ( current_dir && current_sopath )
 		// A dynamic plugin, record its location.
-		plugin->SetPluginLocation(normalize_path(current_dir), current_sopath);
+		plugin->SetPluginLocation(zeek::util::normalize_path(current_dir), current_sopath);
 
 	current_plugin = plugin;
 	}
@@ -355,7 +355,7 @@ void Manager::RegisterBifFile(const char* plugin, bif_init_func c)
 	{
 	bif_init_func_map* bifs = BifFilesInternal();
 
-	std::string lower_plugin = strtolower(plugin);
+	std::string lower_plugin = zeek::util::strtolower(plugin);
 	bif_init_func_map::iterator i = bifs->find(lower_plugin);
 
 	if ( i == bifs->end() )
@@ -398,7 +398,7 @@ void Manager::InitBifs()
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
 	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
-		bif_init_func_map::const_iterator b = bifs->find(strtolower((*i)->Name()));
+		bif_init_func_map::const_iterator b = bifs->find(zeek::util::strtolower((*i)->Name()));
 
 		if ( b != bifs->end() )
 			{
@@ -447,7 +447,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 
 		for ( plugin_list::const_iterator j = all->begin(); j != all->end(); j++ )
 			{
-			if ( (*i).first == strtolower((*j)->Name()) )
+			if ( (*i).first == zeek::util::strtolower((*j)->Name()) )
 				{
 				found = true;
 				break;
@@ -483,10 +483,10 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 
 Plugin* Manager::LookupPluginByPath(std::string_view _path)
 	{
-	auto path = normalize_path(_path);
+	auto path = zeek::util::normalize_path(_path);
 
-	if ( is_file(path) )
-		path = SafeDirname(path).result;
+	if ( zeek::util::is_file(path) )
+		path = zeek::util::SafeDirname(path).result;
 
 	while ( path.size() )
 		{
@@ -509,7 +509,7 @@ Plugin* Manager::LookupPluginByPath(std::string_view _path)
 static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)
 	{
 	if ( a.first == b.first )
-		return strtolower(a.second->Name()) < strtolower(a.second->Name());
+		return zeek::util::strtolower(a.second->Name()) < zeek::util::strtolower(a.second->Name());
 
 	// Reverse sort.
 	return a.first > b.first;

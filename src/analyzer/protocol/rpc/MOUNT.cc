@@ -19,7 +19,7 @@ namespace detail {
 bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100005 )
-		Weird("bad_RPC_program", fmt("%d", c->Program()));
+		Weird("bad_RPC_program", zeek::util::fmt("%d", c->Program()));
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
@@ -50,7 +50,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 			n = 0;
 			}
 		else
-			Weird("unknown_MOUNT_request", fmt("%u", proc));
+			Weird("unknown_MOUNT_request", zeek::util::fmt("%u", proc));
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.

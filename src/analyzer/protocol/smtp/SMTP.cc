@@ -85,7 +85,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	if ( len <= 0 )
 		return;
 
-	const char* buf = fmt("seq = %" PRIu64", len = %d", seq, len);
+	const char* buf = zeek::util::fmt("seq = %" PRIu64", len = %d", seq, len);
 	int buf_len = strlen(buf);
 
 	Unexpected(is_orig, "content gap", buf_len, buf);
@@ -240,8 +240,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			expect_sender = false;
 			expect_recver = true;
 
-			get_word(length, line, cmd_len, cmd);
-			line = skip_whitespace(line + cmd_len, end_of_line);
+			zeek::util::get_word(length, line, cmd_len, cmd);
+			line = zeek::util::skip_whitespace(line + cmd_len, end_of_line);
 			cmd_code = ParseCmd(cmd_len, cmd);
 
 			if ( cmd_code == -1 )
@@ -299,8 +299,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			{
 			reply_code = -1;
 			Unexpected(is_sender, "reply code out of range", length, line);
-			ProtocolViolation(fmt("reply code %d out of range",
-						reply_code), line, length);
+			ProtocolViolation(zeek::util::fmt("reply code %d out of range",
+			                                  reply_code), line, length);
 			}
 
 		else
@@ -319,12 +319,12 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( reply_code >= 0 && length > 3 && line[3] == '-' )
 				{ // A continued reply.
 				pending_reply = reply_code;
-				line = skip_whitespace(line+4, end_of_line);
+				line = zeek::util::skip_whitespace(line+4, end_of_line);
 				}
 
 			else
 				{ // This is the end of the reply.
-				line = skip_whitespace(line+3, end_of_line);
+				line = zeek::util::skip_whitespace(line+3, end_of_line);
 
 				pending_reply = 0;
 				expect_sender = true;
@@ -366,7 +366,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			const char* ext;
 			int ext_len;
 
-			get_word(end_of_line - line, line, ext_len, ext);
+			zeek::util::get_word(end_of_line - line, line, ext_len, ext);
 			ProcessExtension(ext_len, ext);
 			}
 		}

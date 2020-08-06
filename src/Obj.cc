@@ -45,7 +45,7 @@ void Location::Describe(zeek::ODesc* d) const
 bool Location::operator==(const Location& l) const
 	{
 	if ( filename == l.filename ||
-	     (filename && l.filename && streq(filename, l.filename)) )
+	     (filename && l.filename && zeek::util::streq(filename, l.filename)) )
 		return first_line == l.first_line && last_line == l.last_line;
 	else
 		return false;
@@ -137,7 +137,7 @@ bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location*
 	if ( ! start || ! end )
 		return false;
 
-	if ( end->filename && ! streq(start->filename, end->filename) )
+	if ( end->filename && ! zeek::util::streq(start->filename, end->filename) )
 		return false;
 
 	if ( location && (start == &zeek::detail::no_location || end == &zeek::detail::no_location) )

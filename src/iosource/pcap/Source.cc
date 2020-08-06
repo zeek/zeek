@@ -61,7 +61,7 @@ void PcapSource::OpenLive()
 
 		if ( pcap_findalldevs(&devs, errbuf) < 0 )
 			{
-			Error(fmt("pcap_findalldevs: %s", errbuf));
+			Error(zeek::util::fmt("pcap_findalldevs: %s", errbuf));
 			return;
 			}
 
@@ -157,7 +157,7 @@ void PcapSource::OpenLive()
 #endif
 
 #ifdef HAVE_PCAP_INT_H
-	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
+	Info(zeek::util::fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
 	props.selectable_fd = pcap_get_selectable_fd(pd);
@@ -328,12 +328,12 @@ void PcapSource::PcapError(const char* where)
 	std::string location;
 
 	if ( where )
-		location = fmt(" (%s)", where);
+		location = zeek::util::fmt(" (%s)", where);
 
 	if ( pd )
-		Error(fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
+		Error(zeek::util::fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
 	else
-		Error(fmt("pcap_error: not open%s", location.c_str()));
+		Error(zeek::util::fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
 	}

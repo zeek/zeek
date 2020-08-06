@@ -20,7 +20,7 @@ void PacketFilter::AddSrc(const zeek::IPAddr& src, uint32_t tcp_flags, double pr
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = probability * static_cast<double>(zeek::max_random());
+	f->probability = probability * static_cast<double>(zeek::util::max_random());
 	auto prev = static_cast<Filter*>(src_filter.Insert(src, 128, f));
 	delete prev;
 	}
@@ -29,7 +29,7 @@ void PacketFilter::AddSrc(zeek::Val* src, uint32_t tcp_flags, double probability
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = probability * static_cast<double>(zeek::max_random());
+	f->probability = probability * static_cast<double>(zeek::util::max_random());
 	auto prev = static_cast<Filter*>(src_filter.Insert(src, f));
 	delete prev;
 	}
@@ -38,7 +38,7 @@ void PacketFilter::AddDst(const zeek::IPAddr& dst, uint32_t tcp_flags, double pr
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = probability * static_cast<double>(zeek::max_random());
+	f->probability = probability * static_cast<double>(zeek::util::max_random());
 	auto prev = static_cast<Filter*>(dst_filter.Insert(dst, 128, f));
 	delete prev;
 	}
@@ -47,7 +47,7 @@ void PacketFilter::AddDst(zeek::Val* dst, uint32_t tcp_flags, double probability
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = probability * static_cast<double>(zeek::max_random());
+	f->probability = probability * static_cast<double>(zeek::util::max_random());
 	auto prev = static_cast<Filter*>(dst_filter.Insert(dst, f));
 	delete prev;
 	}
@@ -115,7 +115,7 @@ bool PacketFilter::MatchFilter(const Filter& f, const zeek::IP_Hdr& ip,
 			return false;
 		}
 
-	return zeek::random_number() < f.probability;
+	return zeek::util::random_number() < f.probability;
 	}
 
 } // namespace zeek::detail

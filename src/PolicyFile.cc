@@ -84,7 +84,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 	if ( fstat(fileno(f), &st) != 0 )
 		{
 		char buf[256];
-		bro_strerror_r(errno, buf, sizeof(buf));
+		zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 		zeek::reporter->Error("fstat failed on %s: %s", policy_filename, buf);
 		fclose(f);
 		return false;

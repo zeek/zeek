@@ -450,7 +450,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		if ( gre_version != 0 && gre_version != 1 )
 			{
 			Weird("unknown_gre_version", ip_hdr, encapsulation,
-			      fmt("%d", gre_version));
+			      zeek::util::fmt("%d", gre_version));
 			return;
 			}
 
@@ -528,7 +528,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 				{
 				// Enhanced GRE payload must be PPP.
 				Weird("egre_protocol_type", ip_hdr, encapsulation,
-				      fmt("%d", proto_typ));
+				      zeek::util::fmt("%d", proto_typ));
 				return;
 				}
 			}
@@ -661,7 +661,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		}
 
 	default:
-		Weird("unknown_protocol", pkt, encapsulation, fmt("%d", proto));
+		Weird("unknown_protocol", pkt, encapsulation, zeek::util::fmt("%d", proto));
 		return;
 	}
 
@@ -1331,7 +1331,7 @@ void NetSessions::Weird(const char* name, const zeek::Packet* pkt,
 		dump_this_packet = true;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		zeek::reporter->Weird(fmt("%s_in_tunnel", name), addl);
+		zeek::reporter->Weird(zeek::util::fmt("%s_in_tunnel", name), addl);
 	else
 		zeek::reporter->Weird(name, addl);
 	}
@@ -1341,7 +1341,7 @@ void NetSessions::Weird(const char* name, const zeek::IP_Hdr* ip,
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		zeek::reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
-		                      fmt("%s_in_tunnel", name), addl);
+		                      zeek::util::fmt("%s_in_tunnel", name), addl);
 	else
 		zeek::reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}

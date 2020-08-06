@@ -59,7 +59,7 @@ public:
 
 	void MakeCaseInsensitive();
 
-	void SetPat(const char* pat)	{ pattern_text = copy_string(pat); }
+	void SetPat(const char* pat)	{ pattern_text = zeek::util::copy_string(pat); }
 
 	bool Compile(bool lazy = false);
 

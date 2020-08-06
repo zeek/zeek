@@ -11,7 +11,7 @@ Component::Component(component::Type arg_type, const std::string& arg_name)
 	{
 	type = arg_type;
 	name = arg_name;
-	canon_name = canonify_name(name);
+	canon_name = zeek::util::canonify_name(name);
 	}
 
 Component::~Component()

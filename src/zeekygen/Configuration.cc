@@ -46,7 +46,7 @@ Config::Config(const string& arg_file, const string& delim)
 		{
 		++line_number;
 		vector<string> tokens;
-		tokenize_string(line, delim, &tokens);
+		zeek::util::tokenize_string(line, delim, &tokens);
 		tokens.erase(remove(tokens.begin(), tokens.end(), ""), tokens.end());
 
 		if ( tokens.empty() )

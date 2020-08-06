@@ -97,7 +97,7 @@ void TimerMgr::Process()
 	// move forward and the timers won't fire correctly.
 	iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
 	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::net::reading_live || zeek::net::net_is_processing_suspended() )
-		zeek::net::detail::net_update_time(current_time());
+		zeek::net::detail::net_update_time(zeek::util::current_time());
 
 	// Just advance the timer manager based on the current network time. This won't actually
 	// change the time, but will dispatch any timers that need dispatching.

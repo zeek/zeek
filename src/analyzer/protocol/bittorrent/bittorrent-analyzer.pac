@@ -49,7 +49,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 	function validate_message_length(len: uint32): bool
 		%{
 		if ( len > MSGLEN_LIMIT )
-			throw Exception(fmt("message length prefix exceeds limit: %u > %u",
+			throw Exception(zeek::util::fmt("message length prefix exceeds limit: %u > %u",
 					len, MSGLEN_LIMIT));
 		return true;
 		%}

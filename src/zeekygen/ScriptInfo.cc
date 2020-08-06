@@ -161,7 +161,7 @@ static string make_redef_details(const string& heading, char underline,
 ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
     : Info(),
       name(arg_name), path(arg_path),
-      is_pkg_loader(is_package_loader(name)),
+      is_pkg_loader(zeek::util::is_package_loader(name)),
       dependencies(), module_usages(), comments(), id_info(),
       redef_options(), constants(), state_vars(), types(), events(), hooks(),
       functions(), redefs()
@@ -317,20 +317,20 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 			if ( it != dependencies.begin() )
 				rval += ", ";
 
-			string path = find_script_file(*it, bro_path());
+			string path = zeek::util::find_script_file(*it, zeek::util::zeek_path());
 			string doc = *it;
 
-			if ( ! path.empty() && is_dir(path.c_str()) )
+			if ( ! path.empty() && zeek::util::is_dir(path.c_str()) )
 				// Reference the package.
 				doc += "/index";
 
-			rval += fmt(":doc:`%s </scripts/%s>`", it->c_str(), doc.c_str());
+			rval += zeek::util::fmt(":doc:`%s </scripts/%s>`", it->c_str(), doc.c_str());
 			}
 
 		rval += "\n";
 		}
 
-	//rval += fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
+	//rval += zeek::util::fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
 	rval += "\n";
 	rval += zeekygen::make_heading("Summary", '~');
 	rval += make_summary("Runtime Options", '#', '=', options);
@@ -368,7 +368,7 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 		if ( ! info )
 			{
-			for (const string& ext : script_extensions)
+			for (const string& ext : zeek::util::script_extensions)
 				{
 				string pkg_name = *it + "/__load__" + ext;
 				info = zeekygen_mgr->GetScriptInfo(pkg_name);

@@ -81,9 +81,9 @@ static std::string find_relative_file(const std::string& filename, const std::st
 		return std::string();
 
 	if ( filename[0] == '.' )
-		return find_file(filename, SafeDirname(::filename).result, ext);
+		return zeek::util::find_file(filename, zeek::util::SafeDirname(::filename).result, ext);
 	else
-		return find_file(filename, bro_path(), ext);
+		return zeek::util::find_file(filename, zeek::util::zeek_path(), ext);
 	}
 
 static std::string find_relative_script_file(const std::string& filename)
@@ -92,9 +92,9 @@ static std::string find_relative_script_file(const std::string& filename)
 		return std::string();
 
 	if ( filename[0] == '.' )
-		return find_script_file(filename, SafeDirname(::filename).result);
+		return zeek::util::find_script_file(filename, zeek::util::SafeDirname(::filename).result);
 	else
-		return find_script_file(filename, bro_path());
+		return zeek::util::find_script_file(filename, zeek::util::zeek_path());
 	}
 
 class FileInfo {
@@ -175,12 +175,12 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 	/* IPv6 literal constant patterns */
 {IP6}	{
-	RET_CONST(new zeek::AddrVal(extract_ip(yytext)))
+	RET_CONST(new zeek::AddrVal(zeek::util::extract_ip(yytext)))
 }
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	std::string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = zeek::util::extract_ip_and_len(yytext, &len);
 	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len, true)))
 }
 
@@ -189,7 +189,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	std::string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = zeek::util::extract_ip_and_len(yytext, &len);
 	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len)))
 }
 
@@ -289,7 +289,7 @@ when	return TOK_WHEN;
 
 @deprecated.* {
 	auto num_files = file_stack.length();
-	auto comment = skip_whitespace(yytext + 11);
+	auto comment = zeek::util::skip_whitespace(yytext + 11);
 
 	if ( num_files > 0 )
 		{
@@ -308,7 +308,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	std::string rval = SafeDirname(::filename).result;
+	std::string rval = zeek::util::SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -324,11 +324,11 @@ when	return TOK_WHEN;
 	}
 
 @FILENAME	{
-	RET_CONST(new zeek::StringVal(SafeBasename(::filename).result));
+	RET_CONST(new zeek::StringVal(zeek::util::SafeBasename(::filename).result));
 	}
 
 @load{WS}{FILE}	{
-	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
+	const char* new_file = zeek::util::skip_whitespace(yytext + 5);	// Skip "@load".
 	std::string loader = ::filename;  // load_files may change ::filename, save copy
 	std::string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
@@ -336,7 +336,7 @@ when	return TOK_WHEN;
 	}
 
 @load-sigs{WS}{FILE} {
-	const char* file = skip_whitespace(yytext + 10);
+	const char* file = zeek::util::skip_whitespace(yytext + 10);
 	std::string path = find_relative_file(file, ".sig");
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, file, path), -1);
 
@@ -347,7 +347,7 @@ when	return TOK_WHEN;
 			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
 			                      file);
 		else
-			zeek::net::detail::sig_files.push_back(copy_string(path.c_str()));
+			zeek::net::detail::sig_files.push_back(zeek::util::copy_string(path.c_str()));
 		break;
 
 	case 0:
@@ -368,7 +368,7 @@ when	return TOK_WHEN;
 	}
 
 @load-plugin{WS}{ID} {
-	const char* plugin = skip_whitespace(yytext + 12);
+	const char* plugin = zeek::util::skip_whitespace(yytext + 12);
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::PLUGIN, plugin, ""), -1);
 
 	switch ( rc ) {
@@ -396,7 +396,7 @@ when	return TOK_WHEN;
 
 @unload{WS}{FILE}	{
 	// Skip "@unload".
-	const char* file = skip_whitespace(yytext + 7);
+	const char* file = zeek::util::skip_whitespace(yytext + 7);
 	std::string path = find_relative_script_file(file);
 
 	if ( path.empty() )
@@ -410,7 +410,7 @@ when	return TOK_WHEN;
 	}
 
 @prefixes{WS}("+"?)={WS}{PREFIX}	{
-	char* pref = skip_whitespace(yytext + 9);	// Skip "@prefixes".
+	char* pref = zeek::util::skip_whitespace(yytext + 9);	// Skip "@prefixes".
 
 	int append = 0;
 	if ( *pref == '+' )
@@ -419,12 +419,12 @@ when	return TOK_WHEN;
 		++pref;
 		}
 
-	pref = skip_whitespace(pref + 1);	// Skip over '='.
+	pref = zeek::util::skip_whitespace(pref + 1);	// Skip over '='.
 
 	if ( ! append )
 		zeek_script_prefixes = { "" }; // don't delete the "" prefix
 
-	tokenize_string(pref, ":", &zeek_script_prefixes);
+	zeek::util::tokenize_string(pref, ":", &zeek_script_prefixes);
 	}
 
 @if	return TOK_ATIF;
@@ -445,7 +445,7 @@ T	RET_CONST(zeek::val_mgr->True()->Ref())
 F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 {ID}	{
-	yylval.str = copy_string(yytext);
+	yylval.str = zeek::util::copy_string(yytext);
 	last_id_tok = yylval.str;
 	return TOK_ID;
 	}
@@ -516,7 +516,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		if ( *text == '\\' )
 			{
 			++text;	// skip '\'
-			s[i++] = expand_escape(text);
+			s[i++] = zeek::util::expand_escape(text);
 			--text;	// point to end of sequence
 			}
 		else
@@ -537,7 +537,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	}
 
 <RE>([^/\\\n]|{ESCSEQ})+	{
-	yylval.str = copy_string(yytext);
+	yylval.str = zeek::util::copy_string(yytext);
 	return TOK_PATTERN_TEXT;
 	}
 
@@ -596,7 +596,7 @@ static int load_files(const char* orig_file)
 
 	FILE* f = nullptr;
 
-	if ( streq(orig_file, "-") )
+	if ( zeek::util::streq(orig_file, "-") )
 		{
 		f = stdin;
 		file_path = canonical_stdin_path;
@@ -613,10 +613,10 @@ static int load_files(const char* orig_file)
 		if ( file_path.empty() )
 			zeek::reporter->FatalError("can't find %s", orig_file);
 
-		if ( is_dir(file_path.c_str()) )
-			f = open_package(file_path);
+		if ( zeek::util::is_dir(file_path.c_str()) )
+			f = zeek::util::open_package(file_path);
 		else
-			f = open_file(file_path);
+			f = zeek::util::open_file(file_path);
 
 		if ( ! f )
 			zeek::reporter->FatalError("can't open %s", file_path.c_str());
@@ -659,7 +659,7 @@ static int load_files(const char* orig_file)
 
 	// Don't delete the old filename - it's pointed to by
 	// every Obj created when parsing it.
-	yylloc.filename = filename = copy_string(file_path.c_str());
+	yylloc.filename = filename = zeek::util::copy_string(file_path.c_str());
 
 	return 1;
 	}
@@ -794,7 +794,7 @@ void add_essential_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		essential_input_files.push_back(copy_string(file));
+		essential_input_files.push_back(zeek::util::copy_string(file));
 	}
 
 void add_input_file(const char* file)
@@ -805,7 +805,7 @@ void add_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.push_back(copy_string(file));
+		input_files.push_back(zeek::util::copy_string(file));
 	}
 
 void add_input_file_at_front(const char* file)
@@ -816,7 +816,7 @@ void add_input_file_at_front(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.push_front(copy_string(file));
+		input_files.push_front(zeek::util::copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, zeek::name_list& nl)
@@ -827,7 +827,7 @@ void add_to_name_list(char* s, char delim, zeek::name_list& nl)
 		if ( s_delim )
 			*s_delim = 0;
 
-		nl.push_back(copy_string(s));
+		nl.push_back(zeek::util::copy_string(s));
 
 		if ( s_delim )
 			s = s_delim + 1;
@@ -903,8 +903,8 @@ int yywrap()
 			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
-			std::string canon = without_bropath_component(it->name);
-			std::string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
+			std::string canon = zeek::util::without_zeekpath_component(it->name);
+			std::string flat = zeek::util::flatten_script_name(canon, zeek_script_prefixes[i]);
 			std::string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
@@ -973,7 +973,7 @@ int yywrap()
 			auto fmt_str = use_quotes ? "redef %s %s= \"%s\";"
 			                          : "redef %s %s= %s;";
 
-			policy += fmt(fmt_str, id_str.data(), op.data(), val_str.data());
+			policy += zeek::util::fmt(fmt_str, id_str.data(), op.data(), val_str.data());
 			}
 
 		params.clear();

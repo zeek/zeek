@@ -535,7 +535,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 				DEBUG_MSG("%.6f RPC resync: "
 						  "discard small pieces: %d\n",
 							  zeek::net::network_time, len);
-				Conn()->Weird("RPC_resync", fmt("discard %d bytes\n", len));
+				Conn()->Weird("RPC_resync", zeek::util::fmt("discard %d bytes\n", len));
 				}
 
 			NeedResync();
@@ -678,7 +678,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 					//		zeek::net::network_time, IsOrig(), marker, last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
 
 				if ( ! msg_buf.AddToExpected(marker) )
-					Conn()->Weird("RPC_message_too_long", fmt("%" PRId64, msg_buf.GetExpected()));
+					Conn()->Weird("RPC_message_too_long", zeek::util::fmt("%" PRId64, msg_buf.GetExpected()));
 
 				if ( last_frag )
 					state = WAIT_FOR_LAST_DATA;

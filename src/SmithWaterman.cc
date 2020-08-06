@@ -359,7 +359,7 @@ static void sw_collect_multiple(Substring::Vec* result,
 						{
 						if ( (*it2)->DoesCover(*it3) )
 							{
-							delete_each(new_al);
+							zeek::util::delete_each(new_al);
 							delete new_al;
 							new_al = nullptr;
 							goto end_loop;
@@ -367,7 +367,7 @@ static void sw_collect_multiple(Substring::Vec* result,
 
 						if ( (*it3)->DoesCover(*it2) )
 							{
-							delete_each(old_al);
+							zeek::util::delete_each(old_al);
 							delete old_al;
 							*it = 0;
 							goto end_loop;

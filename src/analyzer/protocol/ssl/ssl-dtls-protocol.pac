@@ -32,7 +32,7 @@ enum AnalyzerState {
 			return string("ENCRYPTED");
 
 		default:
-			return string(fmt("UNKNOWN (%d)", state_nr));
+			return string(zeek::util::fmt("UNKNOWN (%d)", state_nr));
 		}
 		}
 %}

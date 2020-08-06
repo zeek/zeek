@@ -855,14 +855,14 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 					if ( const auto& val = filter->field_name_map->Find(fn) )
 						{
 						delete [] filter->fields[j]->name;
-						filter->fields[j]->name = copy_string(val->AsStringVal()->CheckString());
+						filter->fields[j]->name = zeek::util::copy_string(val->AsStringVal()->CheckString());
 						}
 					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
 				}
 
 			info = new WriterBackend::WriterInfo;
-			info->path = copy_string(path.c_str());
+			info->path = zeek::util::copy_string(path.c_str());
 			info->network_time = zeek::net::network_time;
 
 			zeek::detail::HashKey* k;
@@ -874,7 +874,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 				auto index = filter->config->RecreateIndex(*k);
 				string key = index->Idx(0)->AsString()->CheckString();
 				string value = v->GetVal()->AsString()->CheckString();
-				info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
+				info->config.insert(std::make_pair(zeek::util::copy_string(key.c_str()), zeek::util::copy_string(value.c_str())));
 				delete k;
 				}
 
@@ -944,14 +944,14 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 
 		if ( s )
 			{
-			lval->val.string_val.data = copy_string(s);
+			lval->val.string_val.data = zeek::util::copy_string(s);
 			lval->val.string_val.length = strlen(s);
 			}
 
 		else
 			{
 			val->GetType()->Error("enum type does not contain value", val);
-			lval->val.string_val.data = copy_string("");
+			lval->val.string_val.data = zeek::util::copy_string("");
 			lval->val.string_val.length = 0;
 			}
 		break;
@@ -995,7 +995,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		{
 		const zeek::File* f = val->AsFile();
 		string s = f->Name();
-		lval->val.string_val.data = copy_string(s.c_str());
+		lval->val.string_val.data = zeek::util::copy_string(s.c_str());
 		lval->val.string_val.length = s.size();
 		break;
 		}
@@ -1006,7 +1006,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		const zeek::Func* f = val->AsFunc();
 		f->Describe(&d);
 		const char* s = d.Description();
-		lval->val.string_val.data = copy_string(s);
+		lval->val.string_val.data = zeek::util::copy_string(s);
 		lval->val.string_val.length = strlen(s);
 		break;
 		}
@@ -1179,7 +1179,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 			if ( f->postprocessor )
 				{
 				delete [] winfo->info->post_proc_func;
-				winfo->info->post_proc_func = copy_string(f->postprocessor->Name());
+				winfo->info->post_proc_func = zeek::util::copy_string(f->postprocessor->Name());
 				}
 
 			break;
@@ -1215,7 +1215,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	winfo->info->rotation_interval = winfo->interval;
-	winfo->info->rotation_base = parse_rotate_base_time(base_time);
+	winfo->info->rotation_base = zeek::util::parse_rotate_base_time(base_time);
 
 	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
 	winfo->writer->Init(num_fields, fields);
@@ -1474,9 +1474,9 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 			static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
 			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
-			double base = parse_rotate_base_time(base_time);
+			double base = zeek::util::parse_rotate_base_time(base_time);
 			double delta_t =
-				calc_next_rotate(zeek::net::network_time, rotation_interval, base);
+				zeek::util::calc_next_rotate(zeek::net::network_time, rotation_interval, base);
 
 			winfo->rotation_timer =
 				new RotationTimer(zeek::net::network_time + delta_t, winfo, true);
@@ -1522,7 +1522,7 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 		auto prefix = rp_val->GetField(1)->AsString()->CheckString();
 		auto dir = dir_val->AsString()->CheckString();
 
-		if ( ! streq(dir, "") && ! ensure_intermediate_dirs(dir) )
+		if ( ! zeek::util::streq(dir, "") && ! zeek::util::ensure_intermediate_dirs(dir) )
 			{
 			zeek::reporter->Error("Failed to create dir '%s' returned by "
 			                      "Log::rotation_format_func for path %.*s: %s",
@@ -1531,17 +1531,17 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 			dir = "";
 			}
 
-		if ( streq(dir, "") )
+		if ( zeek::util::streq(dir, "") )
 			rval = prefix;
 		else
-			rval = fmt("%s/%s", dir, prefix);
+			rval = zeek::util::fmt("%s/%s", dir, prefix);
 
 		}
 	catch ( zeek::InterpreterException& e )
 		{
 		auto rot_str = format_rotation_time_fallback((time_t)open);
-		rval = fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
-		           rot_str.data());
+		rval = zeek::util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
+		                       rot_str.data());
 		zeek::reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
 		                      "continuing with rotation to: ./%s",
 		                      static_cast<int>(path.size()), path.data(), rval.data());

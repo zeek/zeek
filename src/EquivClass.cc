@@ -189,7 +189,7 @@ void EquivClass::Dump(FILE* f)
 
 int EquivClass::Size() const
 	{
-	return padded_sizeof(*this) + pad_size(sizeof(int) * size * (ccl_flags ? 5 : 4));
+	return padded_sizeof(*this) + zeek::util::pad_size(sizeof(int) * size * (ccl_flags ? 5 : 4));
 	}
 
 } // namespace zeek::detail

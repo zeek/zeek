@@ -22,7 +22,7 @@ public:
 	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
 				double open, double close, bool success, bool terminating)
 		: threading::OutputMessage<WriterFrontend>("RotationFinished", writer),
-		new_name(copy_string(new_name)), old_name(copy_string(old_name)), open(open),
+		new_name(zeek::util::copy_string(new_name)), old_name(zeek::util::copy_string(old_name)), open(open),
 		close(close), success(success), terminating(terminating)	{ }
 
 	~RotationFinishedMessage() override
@@ -97,8 +97,8 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig && bppf) )
 		return false;
 
-	path = copy_string(bpath->c_str());
-	post_proc_func = copy_string(bppf->c_str());
+	path = zeek::util::copy_string(bpath->c_str());
+	post_proc_func = zeek::util::copy_string(bppf->c_str());
 	rotation_base = *brotation_base;
 	rotation_interval = *brotation_interval;
 	network_time = *bnetwork_time;
@@ -111,7 +111,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 		if ( ! (k && v) )
 			return false;
 
-		auto p = std::make_pair(copy_string(k->c_str()), copy_string(v->c_str()));
+		auto p = std::make_pair(zeek::util::copy_string(k->c_str()), zeek::util::copy_string(v->c_str()));
 		config.insert(p);
 		}
 

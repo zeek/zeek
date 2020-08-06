@@ -49,7 +49,7 @@ void DebugLogger::OpenDebugLog(const char* filename)
 	{
 	if ( filename )
 		{
-		filename = log_file_name(filename);
+		filename = zeek::util::log_file_name(filename);
 
 		file = fopen(filename, "w");
 		if ( ! file )
@@ -93,7 +93,7 @@ void DebugLogger::ShowStreamsHelp()
 void DebugLogger::EnableStreams(const char* s)
 	{
 	char* brkt;
-	char* tmp = copy_string(s);
+	char* tmp = zeek::util::copy_string(s);
 	char* tok = strtok(tmp, ",");
 
 	while ( tok )
@@ -159,7 +159,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [%s] ",
-			zeek::net::network_time, current_time(true), g->prefix);
+			zeek::net::network_time, zeek::util::current_time(true), g->prefix);
 
 	for ( int i = g->indent; i > 0; --i )
 		fputs("   ", file);
@@ -176,13 +176,13 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 void DebugLogger::Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...)
 	{
 	std::string tok = std::string("plugin-") + plugin.Name();
-	tok = strreplace(tok, "::", "-");
+	tok = zeek::util::strreplace(tok, "::", "-");
 
 	if ( enabled_streams.find(tok) == enabled_streams.end() )
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-			zeek::net::network_time, current_time(true), plugin.Name().c_str());
+			zeek::net::network_time, zeek::util::current_time(true), plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);

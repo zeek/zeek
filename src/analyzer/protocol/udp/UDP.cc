@@ -124,7 +124,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int ulen = ntohs(up->uh_ulen);
 	if ( ulen != len )
-		Weird("UDP_datagram_length_mismatch", fmt("%d != %d", ulen, len));
+		Weird("UDP_datagram_length_mismatch", zeek::util::fmt("%d != %d", ulen, len));
 
 	len -= sizeof(struct udphdr);
 	ulen -= sizeof(struct udphdr);

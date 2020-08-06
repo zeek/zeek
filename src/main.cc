@@ -9,7 +9,7 @@
 
 int main(int argc, char** argv)
 	{
-	auto time_start = current_time(true);
+	auto time_start = zeek::util::current_time(true);
 	auto setup_result = zeek::detail::setup(argc, argv);
 
 	if ( setup_result.code )
@@ -40,41 +40,41 @@ int main(int argc, char** argv)
 		if ( zeek::Supervisor::ThisNode() )
 			zeek::detail::timer_mgr->Add(new zeek::detail::ParentProcessCheckTimer(1, 1));
 
-		double time_net_start = current_time(true);;
+		double time_net_start = zeek::util::current_time(true);;
 
 		uint64_t mem_net_start_total;
 		uint64_t mem_net_start_malloced;
 
 		if ( options.print_execution_time )
 			{
-			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
+			zeek::util::get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
 
 			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
 
 			fprintf(stderr, "# initialization %" PRIu64 "M/%" PRIu64 "M\n",
-				mem_net_start_total / 1024 / 1024,
-				mem_net_start_malloced / 1024 / 1024);
+			        mem_net_start_total / 1024 / 1024,
+			        mem_net_start_malloced / 1024 / 1024);
 			}
 
 		zeek::net::detail::net_run();
 
-		double time_net_done = current_time(true);;
+		double time_net_done = zeek::util::current_time(true);
 
 		uint64_t mem_net_done_total;
 		uint64_t mem_net_done_malloced;
 
 		if ( options.print_execution_time )
 			{
-			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
+			zeek::util::get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
 
 			fprintf(stderr, "# total time %.6f, processing %.6f\n",
-				time_net_done - time_start, time_net_done - time_net_start);
+			        time_net_done - time_start, time_net_done - time_net_start);
 
 			fprintf(stderr, "# total mem %" PRId64 "M/%" PRId64 "M, processing %" PRId64 "M/%" PRId64 "M\n",
-				mem_net_done_total / 1024 / 1024,
-				mem_net_done_malloced / 1024 / 1024,
-				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
-				(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
+			        mem_net_done_total / 1024 / 1024,
+			        mem_net_done_malloced / 1024 / 1024,
+			        (mem_net_done_total - mem_net_start_total) / 1024 / 1024,
+			        (mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
 			}
 		}
 

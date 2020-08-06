@@ -284,9 +284,9 @@ void DFA_State::Stats(unsigned int* computed, unsigned int* uncomputed)
 unsigned int DFA_State::Size()
 	{
 	return sizeof(*this)
-		+ pad_size(sizeof(DFA_State*) * num_sym)
-		+ (accept ? pad_size(sizeof(int) * accept->size()) : 0)
-		+ (nfa_states ? pad_size(sizeof(NFA_State*) * nfa_states->length()) : 0)
+		+ zeek::util::pad_size(sizeof(DFA_State*) * num_sym)
+		+ (accept ? zeek::util::pad_size(sizeof(int) * accept->size()) : 0)
+		+ (nfa_states ? zeek::util::pad_size(sizeof(NFA_State*) * nfa_states->length()) : 0)
 		+ (meta_ec ? meta_ec->Size() : 0);
 	}
 
@@ -373,7 +373,7 @@ void DFA_State_Cache::GetStats(Stats* s)
 		++s->dfa_states;
 		s->nfa_states += e->NFAStateNum();
 		e->Stats(&s->computed, &s->uncomputed);
-		s->mem += pad_size(e->Size()) + padded_sizeof(*e);
+		s->mem += zeek::util::pad_size(e->Size()) + padded_sizeof(*e);
 		}
 	}
 

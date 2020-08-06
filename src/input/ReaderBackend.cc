@@ -63,7 +63,7 @@ public:
 
 	ReaderErrorMessage(ReaderFrontend* reader, Type arg_type, const char* arg_msg)
 		: threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader)
-		{ type = arg_type; msg = copy_string(arg_msg); }
+		{ type = arg_type; msg = zeek::util::copy_string(arg_msg); }
 
 	~ReaderErrorMessage() override 	 { delete [] msg; }
 

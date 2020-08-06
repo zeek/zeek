@@ -48,7 +48,7 @@ void CCL::Sort()
 
 unsigned int CCL::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + padded_sizeof(*syms) + pad_size(syms->size() * sizeof(int_list::value_type));
+	return padded_sizeof(*this) + padded_sizeof(*syms) + zeek::util::pad_size(syms->size() * sizeof(int_list::value_type));
 	}
 
 } // namespace zeek::detail

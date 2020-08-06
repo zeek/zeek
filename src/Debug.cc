@@ -119,7 +119,7 @@ FILE* TraceState::SetTraceFile(const char* filename)
 	{
 	FILE* newfile;
 
-	if ( streq(filename, "-") )
+	if ( zeek::util::streq(filename, "-") )
 		newfile = stderr;
 	else
 		newfile = fopen(filename, "w");
@@ -179,7 +179,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 	if ( ! loc.filename )
 		{
-		loc.filename = copy_string("<no filename>");
+		loc.filename = zeek::util::copy_string("<no filename>");
 		loc.last_line = 0;
 		}
 
@@ -377,7 +377,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
 				plr.type = PLR_UNKNOWN;
 
-			string path(find_script_file(filename, bro_path()));
+			string path(zeek::util::find_script_file(filename, zeek::util::zeek_path()));
 
 			if ( path.empty() )
 				{
@@ -555,7 +555,7 @@ int dbg_execute_command(const char* cmd)
 	if ( ! cmd )
 		return 0;
 
-	if ( streq(cmd, "") ) // do the GDB command completion
+	if ( zeek::util::streq(cmd, "") ) // do the GDB command completion
 		{
 #ifdef HAVE_READLINE
 		int i;
@@ -581,7 +581,7 @@ int dbg_execute_command(const char* cmd)
 			return 0;
 		}
 
-	char* localcmd = copy_string(cmd);
+	char* localcmd = zeek::util::copy_string(cmd);
 
 	string opstring;
 	vector<string> arguments;
@@ -768,7 +768,7 @@ string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detai
 		loc = *stmt->GetLocationInfo();
 	else
 		{
-		loc.filename = copy_string("<no filename>");
+		loc.filename = zeek::util::copy_string("<no filename>");
 		loc.last_line = 0;
 		}
 
@@ -831,7 +831,7 @@ int dbg_handle_debug_input()
 
 		// readline uses malloc, and we want to be consistent
 		// with it.
-		input_line = (char*) safe_malloc(1024);
+		input_line = (char*) zeek::util::safe_malloc(1024);
 		input_line[1023] = 0;
 		// ### Maybe it's not always stdin.
 		input_line = fgets(input_line, 1023, stdin);

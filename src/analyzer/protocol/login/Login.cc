@@ -323,14 +323,14 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 	else
 		{
-		if ( streq(name, "USER") )
+		if ( zeek::util::streq(name, "USER") )
 			{
 			if ( username )
 				{
 				const zeek::String* u = username->AsString();
 				const zeek::byte_vec ub = u->Bytes();
 				const char* us = (const char*) ub;
-				if ( ! streq(val, us) )
+				if ( ! zeek::util::streq(val, us) )
 					Confused("multiple_USERs", val);
 				Unref(username);
 				}
@@ -339,19 +339,19 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 			username = new zeek::StringVal(val);
 			}
 
-		else if ( login_terminal && streq(name, "TERM") )
+		else if ( login_terminal && zeek::util::streq(name, "TERM") )
 			EnqueueConnEvent(login_terminal,
 				ConnVal(),
 				zeek::make_intrusive<zeek::StringVal>(val)
 			);
 
-		else if ( login_display && streq(name, "DISPLAY") )
+		else if ( login_display && zeek::util::streq(name, "DISPLAY") )
 			EnqueueConnEvent(login_display,
 				ConnVal(),
 				zeek::make_intrusive<zeek::StringVal>(val)
 			);
 
-		else if ( login_prompt && streq(name, "TTYPROMPT") )
+		else if ( login_prompt && zeek::util::streq(name, "TTYPROMPT") )
 			EnqueueConnEvent(login_prompt,
 				ConnVal(),
 				zeek::make_intrusive<zeek::StringVal>(val)
@@ -562,7 +562,7 @@ void Login_Analyzer::AddUserText(const char* line)
 		if ( ++user_text_last == MAX_USER_TEXT )
 			user_text_last = 0;
 
-		user_text[user_text_last] = copy_string(line);
+		user_text[user_text_last] = zeek::util::copy_string(line);
 
 		++num_user_text;
 		}
@@ -612,7 +612,7 @@ bool Login_Analyzer::MatchesTypeahead(const char* line) const
 		if ( i == MAX_USER_TEXT )
 			i = 0;
 
-		if ( streq(user_text[i], line) )
+		if ( zeek::util::streq(user_text[i], line) )
 			return true;
 		}
 

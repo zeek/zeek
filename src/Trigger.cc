@@ -313,7 +313,7 @@ bool Trigger::Eval()
 		assert(trigger->attached == this);
 
 #ifdef DEBUG
-		const char* pname = copy_string(trigger->Name());
+		const char* pname = zeek::util::copy_string(trigger->Name());
 		DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger has parent %s, caching result", Name(), pname);
 		delete [] pname;
 #endif
@@ -366,7 +366,7 @@ void Trigger::Timeout()
 			assert(trigger->attached == this);
 
 #ifdef DEBUG
-			const char* pname = copy_string(trigger->Name());
+			const char* pname = zeek::util::copy_string(trigger->Name());
 			DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
 			delete [] pname;
 #endif
@@ -426,7 +426,7 @@ void Trigger::Attach(Trigger *trigger)
 	assert(! trigger->delayed);
 
 #ifdef DEBUG
-	const char* pname = copy_string(trigger->Name());
+	const char* pname = zeek::util::copy_string(trigger->Name());
 	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: attaching to %s", Name(), pname);
 	delete [] pname;
 #endif
@@ -486,8 +486,8 @@ void Trigger::Modified(zeek::notifier::detail::Modifiable* m)
 const char* Trigger::Name() const
 	{
 	assert(location);
-	return fmt("%s:%d-%d", location->filename,
-			location->first_line, location->last_line);
+	return zeek::util::fmt("%s:%d-%d", location->filename,
+	                       location->first_line, location->last_line);
 	}
 
 

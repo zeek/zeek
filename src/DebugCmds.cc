@@ -37,7 +37,7 @@ static bool string_is_regex(const string& s)
 static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::detail::ID*>& matches,
                                         bool func_only = false)
 	{
-	if ( streq(orig_regex.c_str(), "") )
+	if ( zeek::util::streq(orig_regex.c_str(), "") )
 		return;
 
 	string regex = "^";

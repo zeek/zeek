@@ -397,7 +397,7 @@ refine connection SNMP_Conn += {
 		// Unwind now to stop parsing because it's definitely the
 		// wrong protocol and parsing further could be expensive.
 		// Upper layer of analyzer will catch and call ProtocolViolation().
-		throw binpac::Exception(fmt("Got ASN.1 tag %d, expect %d",
+		throw binpac::Exception(zeek::util::fmt("Got ASN.1 tag %d, expect %d",
 		                        rec->tag(), expect));
 		return false;
 		%}
@@ -412,7 +412,7 @@ refine connection SNMP_Conn += {
 			// order bit is set.
 			return true;
 
-		throw binpac::Exception(fmt("ASN.1 integer width overflow: %d", len));
+		throw binpac::Exception(zeek::util::fmt("ASN.1 integer width overflow: %d", len));
 		return false;
 		%}
 

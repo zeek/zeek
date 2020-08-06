@@ -11,7 +11,7 @@ namespace zeek::file_analysis::detail {
 
 Hash::Hash(zeek::RecordValPtr args, zeek::file_analysis::File* file,
            zeek::HashVal* hv, const char* arg_kind)
-	: zeek::file_analysis::Analyzer(zeek::file_mgr->GetComponentTag(to_upper(arg_kind).c_str()),
+	: zeek::file_analysis::Analyzer(zeek::file_mgr->GetComponentTag(zeek::util::to_upper(arg_kind).c_str()),
 	                                std::move(args), file),
 	  hash(hv), fed(false), kind(arg_kind)
 	{

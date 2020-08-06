@@ -137,7 +137,7 @@ zeek::threading::Value* Benchmark::EntryToVal(zeek::TypeTag type, zeek::TypeTag 
 	case zeek::TYPE_STRING:
 		{
 		std::string rnd = RandomString(10);
-		val->val.string_val.data = copy_string(rnd.c_str());
+		val->val.string_val.data = zeek::util::copy_string(rnd.c_str());
 		val->val.string_val.length = rnd.size();
 		break;
 		}

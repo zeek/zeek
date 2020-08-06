@@ -350,7 +350,7 @@ bool DNP3_Base::CheckCRC(int len, const u_char* data, const u_char* crc16, const
 	if ( crc16[0] == (crc & 0xff) && crc16[1] == (crc & 0xff00) >> 8 )
 		return true;
 
-	analyzer->Weird(fmt("dnp3_corrupt_%s_checksum", where));
+	analyzer->Weird(zeek::util::fmt("dnp3_corrupt_%s_checksum", where));
 	return false;
 	}
 

@@ -61,20 +61,20 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	const auto& i = zeek::detail::global_scope()->Find(ID->CheckString());
 	if ( ! i )
 		{
-		zeek::emit_builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
+		zeek::emit_builtin_error(zeek::util::fmt("Could not find ID named '%s'", ID->CheckString()));
 		return zeek::val_mgr->False();
 		}
 
 	if ( ! i->HasVal() )
 		{
 		// should be impossible because initialization is enforced
-		zeek::emit_builtin_error(fmt("ID '%s' has no value", ID->CheckString()));
+		zeek::emit_builtin_error(zeek::util::fmt("ID '%s' has no value", ID->CheckString()));
 		return zeek::val_mgr->False();
 		}
 
 	if ( ! i->IsOption() )
 		{
-		zeek::emit_builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
+		zeek::emit_builtin_error(zeek::util::fmt("ID '%s' is not an option", ID->CheckString()));
 		return zeek::val_mgr->False();
 		}
 
@@ -85,7 +85,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 
 		if ( ! val_from_data )
 			{
-			zeek::emit_builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
+			zeek::emit_builtin_error(zeek::util::fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
 			                             ID->CheckString(), dv->data.get_type_name(),
 			                             type_name(i->GetType()->Tag())));
 			return zeek::val_mgr->False();
@@ -109,7 +109,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			return zeek::val_mgr->Bool(rval);
 			}
 
-		zeek::emit_builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
+		zeek::emit_builtin_error(zeek::util::fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
 		                             ID->CheckString(), type_name(val->GetType()->Tag()),
 		                             type_name(i->GetType()->Tag())));
 		return zeek::val_mgr->False();
@@ -148,19 +148,19 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 	const auto& i = zeek::detail::global_scope()->Find(ID->CheckString());
 	if ( ! i )
 		{
-		zeek::emit_builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
+		zeek::emit_builtin_error(zeek::util::fmt("Could not find ID named '%s'", ID->CheckString()));
 		return zeek::val_mgr->False();
 		}
 
 	if ( ! i->IsOption() )
 		{
-		zeek::emit_builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
+		zeek::emit_builtin_error(zeek::util::fmt("ID '%s' is not an option", ID->CheckString()));
 		return zeek::val_mgr->False();
 		}
 
 	if ( on_change->GetType()->Tag() != TYPE_FUNC )
 		{
-		zeek::emit_builtin_error(fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
+		zeek::emit_builtin_error(zeek::util::fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
 			                     type_name(on_change->GetType()->Tag()), ID->CheckString()));
 		return zeek::val_mgr->False();
 		}
@@ -174,21 +174,21 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 	const auto& args = on_change->GetType()->AsFuncType()->ParamList()->GetTypes();
 	if ( args.size() < 2 || args.size() > 3 )
 		{
-		zeek::emit_builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %zu",
+		zeek::emit_builtin_error(zeek::util::fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %zu",
 		                             ID->CheckString(), args.size()));
 		return zeek::val_mgr->False();
 		}
 
 	if ( args[0]->Tag() != TYPE_STRING )
 		{
-		zeek::emit_builtin_error(fmt("First argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
+		zeek::emit_builtin_error(zeek::util::fmt("First argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
 		                             ID->CheckString(), type_name(args[0]->Tag())));
 		return zeek::val_mgr->False();
 		}
 
 	if ( ! same_type(args[1], i->GetType()) )
 		{
-		zeek::emit_builtin_error(fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
+		zeek::emit_builtin_error(zeek::util::fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
 		                             type_name(i->GetType()->Tag()), ID->CheckString(),
 		                             type_name(args[1]->Tag())));
 		return zeek::val_mgr->False();
@@ -196,14 +196,14 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 
 	if ( args.size() == 3 && args[2]->Tag() != TYPE_STRING )
 		{
-		zeek::emit_builtin_error(fmt("Third argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
+		zeek::emit_builtin_error(zeek::util::fmt("Third argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
 			ID->CheckString(), type_name(args[2]->Tag())));
 		return zeek::val_mgr->False();
 		}
 
 	if ( ! same_type(on_change->GetType()->AsFuncType()->Yield(), i->GetType()) )
 		{
-		zeek::emit_builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
+		zeek::emit_builtin_error(zeek::util::fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
 		                             type_name(i->GetType()->Tag()), ID->CheckString(),
 		                             type_name(on_change->GetType()->AsFuncType()->Yield()->Tag())));
 		return zeek::val_mgr->False();

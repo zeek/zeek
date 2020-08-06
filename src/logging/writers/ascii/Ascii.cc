@@ -106,7 +106,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( ! sf_stream )
 		{
-		rval.error = fmt("Failed to open %s: %s",
+		rval.error = zeek::util::fmt("Failed to open %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
@@ -115,7 +115,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( res == -1 )
 		{
-		rval.error = fmt("Failed to fseek(SEEK_END) on %s: %s",
+		rval.error = zeek::util::fmt("Failed to fseek(SEEK_END) on %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
@@ -125,7 +125,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( sf_len == -1 )
 		{
-		rval.error = fmt("Failed to ftell() on %s: %s",
+		rval.error = zeek::util::fmt("Failed to ftell() on %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
@@ -135,7 +135,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( res == -1 )
 		{
-		rval.error = fmt("Failed to fseek(SEEK_SET) on %s: %s",
+		rval.error = zeek::util::fmt("Failed to fseek(SEEK_SET) on %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
@@ -152,11 +152,11 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 		}
 
 	std::string_view sf_view(sf_content.get(), sf_len);
-	auto sf_lines = tokenize_string(sf_view, '\n');
+	auto sf_lines = zeek::util::tokenize_string(sf_view, '\n');
 
 	if ( sf_lines.size() < 2 )
 		{
-		rval.error = fmt("Found leftover log, '%s', but the associated shadow "
+		rval.error = zeek::util::fmt("Found leftover log, '%s', but the associated shadow "
 		                 " file, '%s', required to process it is invalid",
 		                 rval.filename.data(), rval.shadow_filename.data());
 		return rval;
@@ -170,7 +170,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use shadow file's modification time as creation time.
 	if ( stat(rval.shadow_filename.data(), &st) != 0 )
 		{
-		rval.error = fmt("Failed to stat %s: %s",
+		rval.error = zeek::util::fmt("Failed to stat %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
@@ -180,7 +180,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use log file's modification time for closing time.
 	if ( stat(rval.filename.data(), &st) != 0 )
 		{
-		rval.error = fmt("Failed to stat %s: %s",
+		rval.error = zeek::util::fmt("Failed to stat %s: %s",
 		                 rval.filename.data(), strerror(errno));
 		return rval;
 		}
@@ -462,17 +462,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const zeek::threading
 				return false;
 				}
 
-			safe_write(sfd, ext.data(), ext.size());
-			safe_write(sfd, "\n", 1);
+			zeek::util::safe_write(sfd, ext.data(), ext.size());
+			zeek::util::safe_write(sfd, "\n", 1);
 
 			auto ppf = info.post_proc_func;
 
 			if ( ppf )
-				safe_write(sfd, ppf, strlen(ppf));
+				zeek::util::safe_write(sfd, ppf, strlen(ppf));
 
-			safe_write(sfd, "\n", 1);
+			zeek::util::safe_write(sfd, "\n", 1);
 
-			safe_close(sfd);
+			zeek::util::safe_close(sfd);
 			}
 		}
 
@@ -552,16 +552,16 @@ bool Ascii::WriteHeader(const string& path)
 
 	string str = meta_prefix
 		+ "separator " // Always use space as separator here.
-		+ get_escaped_string(separator, false)
+		+ zeek::util::get_escaped_string(separator, false)
 		+ "\n";
 
 	if ( ! InternalWrite(fd, str.c_str(), str.length()) )
 		return false;
 
-	if ( ! (WriteHeaderField("set_separator", get_escaped_string(set_separator, false)) &&
-	        WriteHeaderField("empty_field", get_escaped_string(empty_field, false)) &&
-	        WriteHeaderField("unset_field", get_escaped_string(unset_field, false)) &&
-	        WriteHeaderField("path", get_escaped_string(path, false)) &&
+	if ( ! (WriteHeaderField("set_separator", zeek::util::get_escaped_string(set_separator, false)) &&
+	        WriteHeaderField("empty_field", zeek::util::get_escaped_string(empty_field, false)) &&
+	        WriteHeaderField("unset_field", zeek::util::get_escaped_string(unset_field, false)) &&
+	        WriteHeaderField("path", zeek::util::get_escaped_string(path, false)) &&
 	        WriteHeaderField("open", Timestamp(0))) )
 		return false;
 
@@ -615,7 +615,7 @@ bool Ascii::DoWrite(int num_fields, const zeek::threading::Field* const * fields
 		{
 		// It would so escape the first character.
 		char hex[4] = {'\\', 'x', '0', '0'};
-		bytetohex(bytes[0], hex + 2);
+		zeek::util::bytetohex(bytes[0], hex + 2);
 
 		if ( ! InternalWrite(fd, hex, 4) )
 			goto write_error;
@@ -659,7 +659,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 	if ( rename(fname.c_str(), nname.c_str()) != 0 )
 		{
 		char buf[256];
-		bro_strerror_r(errno, buf, sizeof(buf));
+		zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 		Error(Fmt("failed to rename %s to %s: %s", fname.c_str(),
 		          nname.c_str(), buf));
 		FinishedRotation();
@@ -717,7 +717,7 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 		std::string log_name = dp->d_name + prefix_len;
 
-		if ( is_file(log_name) )
+		if ( zeek::util::is_file(log_name) )
 			{
 			if ( auto ll = parse_shadow_log(log_name) )
 				{
@@ -822,7 +822,7 @@ void Ascii::RotateLeftoverLogs()
 
 string Ascii::LogExt()
 	{
-	const char* ext = zeekenv("ZEEK_LOG_SUFFIX");
+	const char* ext = zeek::util::zeekenv("ZEEK_LOG_SUFFIX");
 
 	if ( ! ext )
 		ext = "log";
@@ -857,7 +857,7 @@ string Ascii::Timestamp(double t)
 bool Ascii::InternalWrite(int fd, const char* data, int len)
 	{
 	if ( ! gzfile )
-		return safe_write(fd, data, len);
+		return zeek::util::safe_write(fd, data, len);
 
 	while ( len > 0 )
 		{
@@ -881,7 +881,7 @@ bool Ascii::InternalClose(int fd)
 	{
 	if ( ! gzfile )
 		{
-		safe_close(fd);
+		zeek::util::safe_close(fd);
 		return true;
 		}
 

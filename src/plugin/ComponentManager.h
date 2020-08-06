@@ -221,7 +221,7 @@ template <class T, class C>
 C* ComponentManager<T, C>::Lookup(const std::string& name) const
 	{
 	typename std::map<std::string, C*>::const_iterator i =
-	        components_by_name.find(to_upper(name));
+		components_by_name.find(zeek::util::to_upper(name));
 	return i != components_by_name.end() ? i->second : 0;
 	}
 
@@ -259,7 +259,7 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	        component->Tag().AsVal()->InternalInt(), component));
 
 	// Install an identfier for enum value
-	std::string id = fmt("%s%s", prefix.c_str(), cname.c_str());
+	std::string id = zeek::util::fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);

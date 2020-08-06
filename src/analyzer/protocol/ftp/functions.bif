@@ -206,7 +206,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		uint32_t a = ntohl(addr[0]);
 		uint32_t pn = p->Port();
-		return zeek::make_intrusive<zeek::StringVal>(fmt("%d,%d,%d,%d,%d,%d",
+		return zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%d,%d,%d,%d,%d,%d",
 		                                                 a >> 24, (a >> 16) & 0xff,
 		                                                 (a >> 8) & 0xff, a & 0xff,
 		                                                 pn >> 8, pn & 0xff));

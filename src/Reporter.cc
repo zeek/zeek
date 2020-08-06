@@ -126,7 +126,7 @@ void Reporter::FatalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	set_processing_status("TERMINATED", "fatal_error");
+	zeek::util::set_processing_status("TERMINATED", "fatal_error");
 	fflush(stderr);
 	fflush(stdout);
 	_exit(1);
@@ -142,7 +142,7 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 
 	va_end(ap);
 
-	set_processing_status("TERMINATED", "fatal_error");
+	zeek::util::set_processing_status("TERMINATED", "fatal_error");
 	abort();
 	}
 
@@ -195,7 +195,7 @@ void Reporter::InternalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	set_processing_status("TERMINATED", "internal_error");
+	zeek::util::set_processing_status("TERMINATED", "internal_error");
 	abort();
 	}
 
@@ -562,7 +562,8 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(zeek::net::network_time ? zeek::net::network_time : current_time()));
+			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(
+				                zeek::net::network_time ? zeek::net::network_time : zeek::util::current_time()));
 
 		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(buffer));
 

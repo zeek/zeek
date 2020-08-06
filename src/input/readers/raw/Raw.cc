@@ -82,7 +82,7 @@ void Raw::ClosePipeEnd(int i)
 	if ( pipes[i] == -1 )
 		return;
 
-	safe_close(pipes[i]);
+	zeek::util::safe_close(pipes[i]);
 	pipes[i] = -1;
 	}
 
@@ -92,7 +92,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 		return true;
 
 	char buf[256];
-	bro_strerror_r(errno, buf, sizeof(buf));
+	zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 	Error(Fmt("failed to set fd flags: %s", buf));
 	return false;
 	}
@@ -199,7 +199,7 @@ bool Raw::Execute()
 			else
 				{
 				char buf[256];
-				bro_strerror_r(errno, buf, sizeof(buf));
+				zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 				Warning(Fmt("Could not set child process group: %s", buf));
 				}
 			}
@@ -295,7 +295,7 @@ bool Raw::OpenInput()
 			if ( fseek(file.get(), pos, whence) < 0 )
 				{
 				char buf[256];
-				bro_strerror_r(errno, buf, sizeof(buf));
+				zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 				Error(Fmt("Seek failed in init: %s", buf));
 				}
 			}
@@ -459,7 +459,8 @@ int64_t Raw::GetLine(FILE* arg_file)
 		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
-		int found = strstr_n(pos, (unsigned char*) buf.get(), separator.size(), (unsigned char*) separator.c_str());
+		int found = zeek::util::strstr_n(pos, (unsigned char*) buf.get(),
+		                                 separator.size(), (unsigned char*) separator.c_str());
 
 		if ( found == -1 )
 			{
@@ -678,10 +679,10 @@ bool Raw::DoUpdate()
 
 		Value** vals = new Value*[4];
 		vals[0] = new Value(zeek::TYPE_STRING, true);
-		vals[0]->val.string_val.data = copy_string(Info().name);
+		vals[0]->val.string_val.data = zeek::util::copy_string(Info().name);
 		vals[0]->val.string_val.length = strlen(Info().name);
 		vals[1] = new Value(zeek::TYPE_STRING, true);
-		vals[1]->val.string_val.data = copy_string(Info().source);
+		vals[1]->val.string_val.data = zeek::util::copy_string(Info().source);
 		vals[1]->val.string_val.length = strlen(Info().source);
 		vals[2] = new Value(zeek::TYPE_COUNT, true);
 		vals[2]->val.int_val = code;

@@ -233,7 +233,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
 			{
 			char buf[256];
-			bro_strerror_r(errno, buf, sizeof(buf));
+			zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 			zeek::reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )

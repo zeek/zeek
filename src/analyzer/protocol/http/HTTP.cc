@@ -115,7 +115,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		switch ( chunked_transfer_state ) {
 		case EXPECT_CHUNK_SIZE:
 			ASSERT(trailing_CRLF);
-			if ( ! atoi_n(len, data, nullptr, 16, expect_data_length) )
+			if ( ! zeek::util::atoi_n(len, data, nullptr, 16, expect_data_length) )
 				{
 				http_message->Weird("HTTP_bad_chunk_size");
 				expect_data_length = 0;
@@ -373,7 +373,7 @@ void HTTP_Entity::SubmitHeader(zeek::analyzer::mime::MIME_Header* h)
 		if ( ! zeek::analyzer::mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
-			if ( atoi_n(vt.length, vt.data, nullptr, 10, n) )
+			if ( zeek::util::atoi_n(vt.length, vt.data, nullptr, 10, n) )
 				{
 				content_length = n;
 
@@ -435,8 +435,8 @@ void HTTP_Entity::SubmitHeader(zeek::analyzer::mime::MIME_Header* h)
 		              instance_length_str.c_str());
 
 		int64_t f, l;
-		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
-		atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
+		zeek::util::atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
+		zeek::util::atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )
@@ -446,9 +446,9 @@ void HTTP_Entity::SubmitHeader(zeek::analyzer::mime::MIME_Header* h)
 			{
 			if ( instance_length_str != "*" )
 				{
-				if ( ! atoi_n(instance_length_str.size(),
-				              instance_length_str.c_str(), nullptr, 10,
-				              instance_length) )
+				if ( ! zeek::util::atoi_n(instance_length_str.size(),
+				                          instance_length_str.c_str(), nullptr, 10,
+				                          instance_length) )
 					instance_length = 0;
 				}
 
@@ -1095,7 +1095,7 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(zeek::analyzer::mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%" PRIu64", len=%d", seq, len));
+				zeek::util::fmt("seq=%" PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body
@@ -1198,7 +1198,7 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 		return nullptr;
 
 	const char* orig_line = line;
-	line = skip_whitespace(line, end_of_line);
+	line = zeek::util::skip_whitespace(line, end_of_line);
 
 	if ( line == orig_line )
 		// Word didn't end at prefix.
@@ -1242,7 +1242,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		goto error;
 	}
 
-	rest = skip_whitespace(end_of_method, end_of_line);
+	rest = zeek::util::skip_whitespace(end_of_method, end_of_line);
 
 	if ( rest == end_of_method )
 		goto error;
@@ -1293,7 +1293,7 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	for ( version_start = end_of_uri; version_start < end_of_line; ++version_start )
 		{
 		end_of_uri = version_start;
-		version_start = skip_whitespace(version_start, end_of_line);
+		version_start = zeek::util::skip_whitespace(version_start, end_of_line);
 		if ( PrefixMatch(version_start, end_of_line, "HTTP/") )
 			break;
 		}
@@ -1313,7 +1313,7 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 							version_start));
 
 			version_end = version_start + 3;
-			if ( skip_whitespace(version_end, end_of_line) != end_of_line )
+			if ( zeek::util::skip_whitespace(version_end, end_of_line) != end_of_line )
 				HTTP_Event("crud after HTTP version is ignored",
 					   zeek::analyzer::mime::to_string_val(line, end_of_line));
 			}
@@ -1409,7 +1409,7 @@ void HTTP_Analyzer::HTTP_Request()
 			request_method,
 			TruncateURI(request_URI),
 			TruncateURI(unescaped_URI),
-			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", request_version.ToDouble()))
+			zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%.1f", request_version.ToDouble()))
 		);
 	}
 
@@ -1418,7 +1418,7 @@ void HTTP_Analyzer::HTTP_Reply()
 	if ( http_reply )
 		EnqueueConnEvent(http_reply,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", reply_version.ToDouble())),
+			zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%.1f", reply_version.ToDouble())),
 			zeek::val_mgr->Count(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase :
@@ -1537,7 +1537,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		return 0;
 		}
 
-	rest = skip_whitespace(rest, end_of_line);
+	rest = zeek::util::skip_whitespace(rest, end_of_line);
 
 	if ( rest + 3 > end_of_line )
 		{
@@ -1560,7 +1560,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		return 1;
 		}
 
-	rest = skip_whitespace(rest, end_of_line);
+	rest = zeek::util::skip_whitespace(rest, end_of_line);
 	reply_reason_phrase =
 	    zeek::make_intrusive<zeek::StringVal>(end_of_line - rest, (const char *) rest);
 
@@ -1718,8 +1718,8 @@ bool is_unreserved_URI_char(unsigned char ch)
 void escape_URI_char(unsigned char ch, unsigned char*& p)
 	{
 	*p++ = '%';
-	*p++ = encode_hex((ch >> 4) & 0xf);
-	*p++ = encode_hex(ch & 0xf);
+	*p++ = zeek::util::encode_hex((ch >> 4) & 0xf);
+	*p++ = zeek::util::encode_hex(ch & 0xf);
 	}
 
 zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
@@ -1766,8 +1766,8 @@ zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
 
 			else if ( isxdigit(line[0]) && isxdigit(line[1]) )
 				{
-				*URI_p++ = (decode_hex(line[0]) << 4) +
-					   decode_hex(line[1]);
+				*URI_p++ = (zeek::util::decode_hex(line[0]) << 4) +
+					zeek::util::decode_hex(line[1]);
 				++line; // place line at the last hex digit
 				}
 
@@ -1792,11 +1792,11 @@ zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
 				// It could just be ASCII encoded into this
 				// unicode escaping structure.
 				if ( ! (line[1] == '0' && line[2] == '0' ) )
-					*URI_p++ = (decode_hex(line[1]) << 4) +
-					            decode_hex(line[2]);
+					*URI_p++ = (zeek::util::decode_hex(line[1]) << 4) +
+					            zeek::util::decode_hex(line[2]);
 
-				*URI_p++ = (decode_hex(line[3]) << 4) +
-					    decode_hex(line[4]);
+				*URI_p++ = (zeek::util::decode_hex(line[3]) << 4) +
+					    zeek::util::decode_hex(line[4]);
 
 				line += 4;
 				}

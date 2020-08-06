@@ -84,7 +84,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 			}
 
 	"{"{NAME}"}"	{
-			char* nmstr = copy_string(yytext+1);
+			char* nmstr = zeek::util::copy_string(yytext+1);
 			nmstr[yyleng - 2] = '\0';  // chop trailing brace
 
 			std::string namedef = zeek::detail::rem->LookupDef(nmstr);
@@ -212,7 +212,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 <INITIAL,SC_QUOTE,SC_FIRST_CCL,SC_CCL>{ESCSEQ}	{
 			const char* esc_text = yytext + 1;
-			yylval.int_val = expand_escape(esc_text);
+			yylval.int_val = zeek::util::expand_escape(esc_text);
 
 			if ( YY_START == SC_FIRST_CCL )
 				BEGIN(SC_CCL);

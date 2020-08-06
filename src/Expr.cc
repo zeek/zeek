@@ -1265,8 +1265,8 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 			}
 
 		else if ( bt1 != bt2 && bt1 != zeek::TYPE_ANY )
-			ExprError(fmt("incompatible vector append: %s and %s",
-					  type_name(bt1), type_name(bt2)));
+			ExprError(zeek::util::fmt("incompatible vector append: %s and %s",
+			                          type_name(bt1), type_name(bt2)));
 
 		else
 			SetType(op1->GetType());
@@ -1487,12 +1487,12 @@ ValPtr DivideExpr::AddrFold(Val* v1, Val* v2) const
 	if ( a.GetFamily() == IPv4 )
 		{
 		if ( mask > 32 )
-			RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
+			RuntimeError(zeek::util::fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
 		}
 	else
 		{
 		if ( mask > 128 )
-			RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
+			RuntimeError(zeek::util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
 		}
 
 	return zeek::make_intrusive<zeek::SubNetVal>(a, mask);
@@ -2249,8 +2249,8 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 	{
 	if ( ! IsArithmetic(bt2) )
 		{
-		ExprError(fmt("assignment of non-arithmetic value to arithmetic (%s/%s)",
-				type_name(bt1), type_name(bt2)));
+		ExprError(zeek::util::fmt("assignment of non-arithmetic value to arithmetic (%s/%s)",
+		                          type_name(bt1), type_name(bt2)));
 		return false;
 		}
 
@@ -2459,7 +2459,7 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 			{
 			const NameExpr* n = (const NameExpr*) op1.get();
 			td->type = op2->GetType();
-			td->id = copy_string(n->Id()->Name());
+			td->id = zeek::util::copy_string(n->Id()->Name());
 			}
 
 		return true;
@@ -2519,8 +2519,8 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
 	if ( match_type == DOES_NOT_MATCH_INDEX )
 		{
 		std::string error_msg =
-		    fmt("expression with type '%s' is not a type that can be indexed",
-		        type_name(op1->GetType()->Tag()));
+		    zeek::util::fmt("expression with type '%s' is not a type that can be indexed",
+		                    type_name(op1->GetType()->Tag()));
 		SetError(error_msg.data());
 		}
 
@@ -2806,7 +2806,7 @@ void IndexExpr::Assign(Frame* f, ValPtr v)
 				const auto& vt = v->GetType();
 				auto vtt = vt->Tag();
 				std::string tn = vtt == zeek::TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(fmt(
+				RuntimeErrorWithCallStack(zeek::util::fmt(
 				  "vector index assignment failed for invalid type '%s', value: %s",
 				  tn.data(), d.Description()));
 				}
@@ -2828,7 +2828,7 @@ void IndexExpr::Assign(Frame* f, ValPtr v)
 				const auto& vt = v->GetType();
 				auto vtt = vt->Tag();
 				std::string tn = vtt == zeek::TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(fmt(
+				RuntimeErrorWithCallStack(zeek::util::fmt(
 				  "table index assignment failed for invalid type '%s', value: %s",
 				  tn.data(), d.Description()));
 				}
@@ -2875,7 +2875,7 @@ TraversalCode IndexExpr::Traverse(TraversalCallback* cb) const
 
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)),
-	  field_name(copy_string(arg_field_name)), td(nullptr), field(0)
+	  field_name(zeek::util::copy_string(arg_field_name)), td(nullptr), field(0)
 	{
 	if ( IsError() )
 		return;
@@ -3036,7 +3036,7 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 
 		FieldAssignExpr* field = (FieldAssignExpr*) e;
 		const auto& field_type = field->GetType();
-		char* field_name = copy_string(field->FieldName());
+		char* field_name = zeek::util::copy_string(field->FieldName());
 		record_types->push_back(new TypeDecl(field_name, field_type));
 		}
 
@@ -3315,7 +3315,7 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		if ( ! element || ! tval->Assign(std::move(element), nullptr) )
 			{
-			Error(fmt("initialization type mismatch in set"), e);
+			Error(zeek::util::fmt("initialization type mismatch in set"), e);
 			return nullptr;
 			}
 		}
@@ -3387,7 +3387,7 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const
 
 		if ( ! vec->Assign(i, e->Eval(f)) )
 			{
-			RuntimeError(fmt("type mismatch at index %d", i));
+			RuntimeError(zeek::util::fmt("type mismatch at index %d", i));
 			return nullptr;
 			}
 		}
@@ -3413,7 +3413,7 @@ ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		if ( ! v || ! vec->Assign(i, std::move(v)) )
 			{
-			Error(fmt("initialization type mismatch at index %d", i), e);
+			Error(zeek::util::fmt("initialization type mismatch at index %d", i), e);
 			return nullptr;
 			}
 		}
@@ -3460,7 +3460,7 @@ bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
 	if ( td )
 		{
 		td->type = op->GetType();
-		td->id = copy_string(field_name.c_str());
+		td->id = zeek::util::copy_string(field_name.c_str());
 		}
 
 	return true;
@@ -3584,8 +3584,8 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, zeek::RecordTypePtr r)
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
 				{
-				ExprError(fmt("orphaned field \"%s\" in record coercion",
-				              sub_r->FieldName(i)));
+				ExprError(zeek::util::fmt("orphaned field \"%s\" in record coercion",
+				                          sub_r->FieldName(i)));
 				break;
 				}
 
@@ -3626,7 +3626,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, zeek::RecordTypePtr r)
 				if ( ! is_arithmetic_promotable(sup_t_i.get(), sub_t_i.get()) &&
 				     ! is_record_promotable(sup_t_i.get(), sub_t_i.get()) )
 					{
-					std::string error_msg = fmt(
+					std::string error_msg = zeek::util::fmt(
 						"type clash for field \"%s\"", sub_r->FieldName(i));
 					Error(error_msg.c_str(), sub_t_i.get());
 					SetError();
@@ -3646,7 +3646,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, zeek::RecordTypePtr r)
 				{
 				if ( ! t_r->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
 					{
-					std::string error_msg = fmt(
+					std::string error_msg = zeek::util::fmt(
 						"non-optional field \"%s\" missing", t_r->FieldName(i));
 					Error(error_msg.c_str());
 					SetError();
@@ -4010,7 +4010,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
 		auto s = reinterpret_cast<const unsigned char*>(s1->CheckString());
-		auto res = strstr_n(s2->Len(), s2->Bytes(), s1->Len(), s) != -1;
+		auto res = zeek::util::strstr_n(s2->Len(), s2->Bytes(), s1->Len(), s) != -1;
 		return zeek::val_mgr->Bool(res);
 		}
 
@@ -4096,7 +4096,7 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
 		     // run-time errors when we apply this analysis during
 		     // parsing.  Really we should instead do it after we've
 		     // parsed the entire set of scripts.
-		     streq(((NameExpr*) func.get())->Id()->Name(), "fmt") &&
+		     zeek::util::streq(((NameExpr*) func.get())->Id()->Name(), "fmt") &&
 		     // The following is needed because fmt might not yet
 		     // be bound as a name.
 		     did_builtin_init &&
@@ -4594,7 +4594,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 			if ( ! vec->Assign(i, e->Eval(nullptr)) )
 				{
-				e->Error(fmt("type mismatch at index %d", i));
+				e->Error(zeek::util::fmt("type mismatch at index %d", i));
 				return nullptr;
 				}
 			}

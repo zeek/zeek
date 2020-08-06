@@ -91,7 +91,7 @@ static std::string trim_whitespace(const char* in)
 	char* out = new char[n + 1];
 	char* out_p = out;
 
-	in = skip_whitespace(in);
+	in = zeek::util::skip_whitespace(in);
 
 	while ( *in )
 		{
@@ -245,7 +245,7 @@ static std::string commands[] = {
 void POP3_Analyzer::NotAllowed(const char* cmd, const char* state)
 	{
 	POP3Event(pop3_unexpected, true, cmd,
-		fmt("not allowed in other state than '%s'", state));
+		zeek::util::fmt("not allowed in other state than '%s'", state));
 	}
 
 void POP3_Analyzer::ProcessClientCmd()
@@ -320,7 +320,7 @@ void POP3_Analyzer::ProcessClientCmd()
 			state = detail::APOP;
 			subState = detail::POP3_WOK;
 
-			char* arg1 = copy_string(message);
+			char* arg1 = zeek::util::copy_string(message);
 			char* e;
 			for ( e = arg1; *e && *e != ' ' && *e != '\t'; ++e )
 				;
@@ -354,7 +354,7 @@ void POP3_Analyzer::ProcessClientCmd()
 					{
 					state = detail::AUTH;
 					POP3Event(pop3_unexpected, true, cmd,
-						fmt("unknown AUTH method %s", message));
+						zeek::util::fmt("unknown AUTH method %s", message));
 					}
 
 				subState = detail::POP3_WOK;
@@ -634,11 +634,11 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 		{
 		if ( ! waitingForAuthentication )
 			{
-			ProtocolViolation(fmt("unknown server command (%s)",
-						(tokens.size() > 0 ?
-							tokens[0].c_str() :
-							"???")),
-						line, length);
+			ProtocolViolation(zeek::util::fmt("unknown server command (%s)",
+			                                  (tokens.size() > 0 ?
+			                                   tokens[0].c_str() :
+			                                   "???")),
+			                  line, length);
 
 			Weird("pop3_server_command_unknown");
 			if ( subState == detail::POP3_WOK )

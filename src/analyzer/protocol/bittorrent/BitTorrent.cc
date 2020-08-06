@@ -59,8 +59,8 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			Parent()->RemoveChildAnalyzer(this);
 		else
 			{
-			DeliverWeird(fmt("Stopping BitTorrent analysis: protocol violation (%s)",
-					e.c_msg()), orig);
+			DeliverWeird(zeek::util::fmt("Stopping BitTorrent analysis: protocol violation (%s)",
+			                             e.c_msg()), orig);
 			this_stop = true;
 			if ( stop_orig && stop_resp )
 				ProtocolViolation("BitTorrent: content gap and/or protocol violation");

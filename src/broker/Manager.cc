@@ -84,17 +84,17 @@ struct scoped_reporter_location {
 #ifdef DEBUG
 static std::string RenderMessage(std::string topic, const broker::data& x)
 	{
-	return fmt("%s -> %s", broker::to_string(x).c_str(), topic.c_str());
+	return zeek::util::fmt("%s -> %s", broker::to_string(x).c_str(), topic.c_str());
 	}
 
 static std::string RenderEvent(std::string topic, std::string name, const broker::data& args)
 	{
-	return fmt("%s(%s) -> %s", name.c_str(), broker::to_string(args).c_str(), topic.c_str());
+	return zeek::util::fmt("%s(%s) -> %s", name.c_str(), broker::to_string(args).c_str(), topic.c_str());
 	}
 
 static std::string RenderMessage(const broker::store::response& x)
 	{
-	return fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
+	return zeek::util::fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
 	}
 
 static std::string RenderMessage(const broker::vector* xs)
@@ -119,7 +119,7 @@ static std::string RenderMessage(const broker::status& s)
 
 static std::string RenderMessage(const broker::error& e)
 	{
-	return fmt("%s (%s)", broker::to_string(e.code()).c_str(),
+	return zeek::util::fmt("%s (%s)", broker::to_string(e.code()).c_str(),
 		   caf::to_string(e.context()).c_str());
 	}
 
@@ -174,14 +174,14 @@ void Manager::InitPostScript()
 
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 
-	if ( streq(scheduler_policy, "sharing") )
+	if ( zeek::util::streq(scheduler_policy, "sharing") )
 		config.set("scheduler.policy", caf::atom("sharing"));
-	else if ( streq(scheduler_policy, "stealing") )
+	else if ( zeek::util::streq(scheduler_policy, "stealing") )
 		config.set("scheduler.policy", caf::atom("stealing"));
 	else
 		zeek::reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
 
-	auto max_threads_env = zeekenv("ZEEK_BROKER_MAX_THREADS");
+	auto max_threads_env = zeek::util::zeekenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )
 		config.set("scheduler.max-threads", atoi(max_threads_env));
@@ -369,7 +369,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	DBG_LOG(zeek::DBG_BROKER, "Starting to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
-	auto e = zeekenv("ZEEK_DEFAULT_CONNECT_RETRY");
+	auto e = zeek::util::zeekenv("ZEEK_DEFAULT_CONNECT_RETRY");
 
 	if ( e )
 		retry = atoi(e);
@@ -394,7 +394,7 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 		return;
 
 	DBG_LOG(zeek::DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
-		addr.c_str(), port);
+	        addr.c_str(), port);
 
 	FlushLogBuffers();
 	bstate->endpoint.unpeer_nosync(addr, port);
@@ -679,7 +679,7 @@ void Manager::Error(const char* format, ...)
 	{
 	va_list args;
 	va_start(args, format);
-	auto msg = vfmt(format, args);
+	auto msg = zeek::util::vfmt(format, args);
 	va_end(args);
 
 	if ( script_scope )
@@ -923,7 +923,7 @@ void Manager::Process()
 	// Ensure that time gets update before processing broker messages, or events
 	// based on them might get scheduled wrong.
 	if ( use_real_time )
-		zeek::net::detail::net_update_time(current_time());
+		zeek::net::detail::net_update_time(zeek::util::current_time());
 
 	bool had_input = false;
 
@@ -999,7 +999,7 @@ void Manager::Process()
 			// If we're getting Broker messages, but still haven't initialized
 			// zeek::net::network_time, may as well do so now because otherwise the
 			// broker/cluster logs will end up using timestamp 0.
-			zeek::net::detail::net_update_time(current_time());
+			zeek::net::detail::net_update_time(zeek::util::current_time());
 		}
 	}
 
@@ -1216,7 +1216,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		}
 
 	if ( vl.size() == args.size() )
-		zeek::event_mgr.Enqueue(handler, std::move(vl), SOURCE_BROKER);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), zeek::util::SOURCE_BROKER);
 	}
 
 bool Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
@@ -1499,7 +1499,7 @@ void Manager::ProcessError(broker::error err)
 	else
 		{
 		ec = BifEnum::Broker::ErrorCode::CAF_ERROR;
-		msg = fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
+		msg = zeek::util::fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
 		}
 
 	zeek::event_mgr.Enqueue(::Broker::error,

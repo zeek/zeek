@@ -669,12 +669,12 @@ expr:
 							        false, is_export);
 */
 
-					yyerror(fmt("unknown identifier %s", $1));
+					yyerror(zeek::util::fmt("unknown identifier %s", $1));
 					YYERROR;
 					}
 				else
 					{
-					yyerror(fmt("unknown identifier %s", $1));
+					yyerror(zeek::util::fmt("unknown identifier %s", $1));
 					YYERROR;
 					}
 				}
@@ -1182,7 +1182,7 @@ func_hdr:
 	|	TOK_EVENT event_id func_params opt_attr
 			{
 			const char* name = $2->Name();
-			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
+			if ( zeek::util::streq("bro_init", name) || zeek::util::streq("bro_done", name) || zeek::util::streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
 				zeek::reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
@@ -1618,7 +1618,7 @@ event:
 				{
 				if ( ! id->IsGlobal() )
 					{
-					yyerror(fmt("local identifier \"%s\" cannot be used to reference an event", $1));
+					yyerror(zeek::util::fmt("local identifier \"%s\" cannot be used to reference an event", $1));
 					YYERROR;
 					}
 
@@ -1905,7 +1905,7 @@ opt_deprecated:
 int yyerror(const char msg[])
 	{
 	if ( in_debug )
-		g_curr_debug_error = copy_string(msg);
+		g_curr_debug_error = zeek::util::copy_string(msg);
 
 	if ( last_tok[0] == '\n' )
 		zeek::reporter->Error("%s, on previous line", msg);
@@ -1919,7 +1919,7 @@ int yyerror(const char msg[])
 	else
 		{
 		if ( last_last_tok_filename && last_tok_filename &&
-		     ! streq(last_last_tok_filename, last_tok_filename) )
+		     ! zeek::util::streq(last_last_tok_filename, last_tok_filename) )
 			zeek::reporter->Error("%s, at or near \"%s\" or end of file %s",
 			                      msg, last_tok, last_last_tok_filename);
 		else

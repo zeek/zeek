@@ -113,7 +113,7 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 			copied_set->re = nullptr;
 			copied_set->ids = orig_set->ids;
 			for ( const auto& pattern : orig_set->patterns )
-				copied_set->patterns.push_back(copy_string(pattern));
+				copied_set->patterns.push_back(zeek::util::copy_string(pattern));
 			delete copied_set;
 			// TODO: Why do we create copied_set only to then
 			// never use it?
@@ -261,7 +261,7 @@ bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 
 	for ( const auto& f : files )
 		{
-		rules_in = open_file(find_file(f, bro_path(), ".sig"));
+		rules_in = zeek::util::open_file(zeek::util::find_file(f, zeek::util::zeek_path(), ".sig"));
 
 		if ( ! rules_in )
 			{
@@ -673,8 +673,8 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(zeek::DBG_RULES) )
 		{
-		const char* s = fmt_bytes(reinterpret_cast<const char*>(data),
-		                          min(40, static_cast<int>(len)));
+		const char* s = zeek::util::fmt_bytes(reinterpret_cast<const char*>(data),
+		                                      min(40, static_cast<int>(len)));
 		DBG_LOG(zeek::DBG_RULES, "Matching %s rules on |%s%s|",
 		        Rule::TypeToString(Rule::FILE_MAGIC), s,
 		        len > 40 ? "..." : "");
@@ -871,7 +871,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	if ( debug_logger.IsEnabled(zeek::DBG_RULES) )
 		{
 		const char* s =
-			fmt_bytes((const char *) data, min(40, data_len));
+			zeek::util::fmt_bytes((const char *) data, min(40, data_len));
 
 		DBG_LOG(zeek::DBG_RULES, "Matching %s rules [%d,%d] on |%s%s|",
 				Rule::TypeToString(type), bol, eol, s,
@@ -1234,12 +1234,12 @@ void RuleMatcher::DumpStats(zeek::File* f)
 	Stats stats;
 	GetStats(&stats);
 
-	f->Write(fmt("%.6f computed dfa states = %d; classes = ??; "
-	             "computed trans. = %d; matchers = %d; mem = %d\n",
-	             zeek::net::network_time, stats.dfa_states, stats.computed,
-	             stats.matchers, stats.mem));
-	f->Write(fmt("%.6f DFA cache hits = %d; misses = %d\n", zeek::net::network_time,
-	             stats.hits, stats.misses));
+	f->Write(zeek::util::fmt("%.6f computed dfa states = %d; classes = ??; "
+	                         "computed trans. = %d; matchers = %d; mem = %d\n",
+	                         zeek::net::network_time, stats.dfa_states, stats.computed,
+	                         stats.matchers, stats.mem));
+	f->Write(zeek::util::fmt("%.6f DFA cache hits = %d; misses = %d\n", zeek::net::network_time,
+	                         stats.hits, stats.misses));
 
 	DumpStateStats(f, root);
 	}
@@ -1256,14 +1256,14 @@ void RuleMatcher::DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test)
 			RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
 			assert(set->re);
 
-			f->Write(fmt("%.6f %d DFA states in %s group %d from sigs ", zeek::net::network_time,
-			             set->re->DFA()->NumStates(),
-			             Rule::TypeToString((Rule::PatternType)i), j));
+			f->Write(zeek::util::fmt("%.6f %d DFA states in %s group %d from sigs ", zeek::net::network_time,
+			                         set->re->DFA()->NumStates(),
+			                         Rule::TypeToString((Rule::PatternType)i), j));
 
 			for ( const auto& id : set->ids )
 				{
 				Rule* r = Rule::rule_table[id - 1];
-				f->Write(fmt("%s ", r->ID()));
+				f->Write(zeek::util::fmt("%s ", r->ID()));
 				}
 
 			f->Write("\n");
@@ -1399,7 +1399,7 @@ char* id_to_str(const char* id)
 	return dst;
 
 error:
-	char* dummy = copy_string("<error>");
+	char* dummy = zeek::util::copy_string("<error>");
 	return dummy;
 	}
 

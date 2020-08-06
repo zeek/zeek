@@ -36,7 +36,7 @@ public:
 	zeek::ListValPtr RecoverVals(const zeek::detail::HashKey* k) const
 		{ return RecoverVals(*k); }
 
-	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + pad_size(size); }
+	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + zeek::util::pad_size(size); }
 
 protected:
 	std::unique_ptr<zeek::detail::HashKey> ComputeSingletonHash(const zeek::Val* v, bool type_check) const;

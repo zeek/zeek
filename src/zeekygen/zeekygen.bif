@@ -11,7 +11,7 @@
 
 static zeek::StringValPtr comments_to_val(const vector<string>& comments)
 	{
-	return zeek::make_intrusive<zeek::StringVal>(implode_string_vector(comments));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::util::implode_string_vector(comments));
 	}
 %%}
 

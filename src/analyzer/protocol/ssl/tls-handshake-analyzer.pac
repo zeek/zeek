@@ -55,7 +55,7 @@ refine connection Handshake_Conn += {
 			{
 			// This should be impossible due to the binpac parser
 			// and protocol description
-			bro_analyzer()->ProtocolViolation(fmt("Impossible extension length: %zu", length));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("Impossible extension length: %zu", length));
 			bro_analyzer()->SetSkip(true);
 			return true;
 			}
@@ -203,7 +203,7 @@ refine connection Handshake_Conn += {
 				ServerName* servername = (*list)[i];
 				if ( servername->name_type() != 0 )
 					{
-					bro_analyzer()->Weird("ssl_ext_unknown_server_name_type", fmt("%d", servername->name_type()));
+					bro_analyzer()->Weird("ssl_ext_unknown_server_name_type", zeek::util::fmt("%d", servername->name_type()));
 					continue;
 					}
 
@@ -288,7 +288,7 @@ refine connection Handshake_Conn += {
 
 	function proc_unknown_handshake(hs: HandshakeRecord, is_orig: bool) : bool
 		%{
-		bro_analyzer()->ProtocolViolation(fmt("unknown handshake message (%d) from %s",
+		bro_analyzer()->ProtocolViolation(zeek::util::fmt("unknown handshake message (%d) from %s",
 			${hs.msg_type}, orig_label(is_orig).c_str()));
 		return true;
 		%}

@@ -319,7 +319,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 ## .. zeek:see:: network_time
 function current_time%(%): time
 	%{
-	return zeek::make_intrusive<zeek::TimeVal>(current_time());
+	return zeek::make_intrusive<zeek::TimeVal>(zeek::util::current_time());
 	%}
 
 ## Returns the timestamp of the last packet processed. This function returns
@@ -344,7 +344,7 @@ function network_time%(%): time
 ## .. zeek:see:: setenv
 function getenv%(var: string%): string
 	%{
-	const char* env_val = zeekenv(var->CheckString());
+	const char* env_val = zeek::util::zeekenv(var->CheckString());
 	if ( ! env_val )
 		env_val = "";	// ###
 	return zeek::make_intrusive<zeek::StringVal>(env_val);
@@ -391,7 +391,7 @@ function terminate%(%): bool
 	if ( zeek::net::terminating )
 		return zeek::val_mgr->False();
 
-	terminate_processing();
+	zeek::util::terminate_processing();
 	return zeek::val_mgr->True();
 	%}
 
@@ -415,10 +415,10 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 			return false;
 			}
 
-		char* tmp = copy_string(key->AsString()->CheckString());
-		to_upper(tmp);
-		std::string var1 = fmt("ZEEK_ARG_%s", tmp);
-		std::string var2 = fmt("BRO_ARG_%s", tmp); // legacy support
+		char* tmp = zeek::util::copy_string(key->AsString()->CheckString());
+		zeek::util::to_upper(tmp);
+		std::string var1 = zeek::util::fmt("ZEEK_ARG_%s", tmp);
+		std::string var2 = zeek::util::fmt("BRO_ARG_%s", tmp); // legacy support
 		delete [] tmp;
 
 		if ( set )
@@ -930,7 +930,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = bro_uint_t(double(max) * double(zeek::random_number()) / (zeek::max_random() + 1.0));
+	auto result = bro_uint_t(double(max) * double(zeek::util::random_number()) / (zeek::util::max_random() + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 
@@ -946,7 +946,7 @@ function rand%(max: count%): count
 ##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	zeek::seed_random(seed);
+	zeek::util::seed_random(seed);
 	return nullptr;
 	%}
 
@@ -1123,8 +1123,9 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 function unique_id%(prefix: string%) : string
 	%{
 	char tmp[20];
-	uint64_t uid = calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
-	return zeek::make_intrusive<zeek::StringVal>(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	uint64_t uid = zeek::util::calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
+	return zeek::make_intrusive<zeek::StringVal>(
+		zeek::util::uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 
 ## Creates an identifier that is unique with high probability.
@@ -1141,8 +1142,9 @@ function unique_id_from%(pool: int, prefix: string%) : string
 	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
 
 	char tmp[20];
-	uint64_t uid = calculate_unique_id(pool);
-	return zeek::make_intrusive<zeek::StringVal>(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	uint64_t uid = zeek::util::calculate_unique_id(pool);
+	return zeek::make_intrusive<zeek::StringVal>(
+	       zeek::util::uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 
 # ===========================================================================
@@ -2653,11 +2655,11 @@ function to_port%(s: string%): port
         if ( ! errno )
             {
             ++slash;
-            if ( streq(slash, "tcp") )
+            if ( zeek::util::streq(slash, "tcp") )
                 return zeek::val_mgr->Port(port, TRANSPORT_TCP);
-            else if ( streq(slash, "udp") )
+            else if ( zeek::util::streq(slash, "udp") )
                 return zeek::val_mgr->Port(port, TRANSPORT_UDP);
-            else if ( streq(slash, "icmp") )
+            else if ( zeek::util::streq(slash, "icmp") )
                 return zeek::val_mgr->Port(port, TRANSPORT_ICMP);
             }
         }
@@ -3380,8 +3382,8 @@ const char* conn_id_string(zeek::Val* c)
 	const zeek::IPAddr& resp_h = (*vl)[2]->AsAddr();
 	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
 
-	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
-	                               resp_h.AsString().c_str(), resp_p);
+	return zeek::util::fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
+	                       resp_h.AsString().c_str(), resp_p);
 	}
 %%}
 
@@ -3697,7 +3699,7 @@ static void report_mmdb_msg(const char* format, ...)
 
 	va_list al;
 	va_start(al, format);
-	std::string msg = fmt(format, al);
+	std::string msg = zeek::util::fmt(format, al);
 	va_end(al);
 
 	zeek::reporter->Info("%s", msg.data());
@@ -4437,7 +4439,7 @@ function open%(f: string%): file
 	%{
 	const char* file = f->CheckString();
 
-	if ( streq(file, "-") )
+	if ( zeek::util::streq(file, "-") )
 		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
 	else
 		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(file, "w"));
@@ -4544,8 +4546,8 @@ function mkdir%(f: string%): bool
 		     && S_ISDIR(filestat.st_mode) )
 			return zeek::val_mgr->True();
 
-		zeek::emit_builtin_error(fmt("cannot create directory '%s': %s", filename,
-		                             strerror(error)));
+		zeek::emit_builtin_error(zeek::util::fmt("cannot create directory '%s': %s", filename,
+		                                         strerror(error)));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4569,8 +4571,8 @@ function rmdir%(d: string%): bool
 
 	if ( rmdir(dirname) < 0 )
 		{
-		zeek::emit_builtin_error(fmt("cannot remove directory '%s': %s", dirname,
-		                             strerror(errno)));
+		zeek::emit_builtin_error(zeek::util::fmt("cannot remove directory '%s': %s", dirname,
+		                                         strerror(errno)));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4593,8 +4595,8 @@ function unlink%(f: string%): bool
 
 	if ( unlink(filename) < 0 )
 		{
-		zeek::emit_builtin_error(fmt("cannot unlink file '%s': %s", filename,
-		                             strerror(errno)));
+		zeek::emit_builtin_error(zeek::util::fmt("cannot unlink file '%s': %s", filename,
+		                                         strerror(errno)));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4619,8 +4621,8 @@ function rename%(src_f: string, dst_f: string%): bool
 
 	if ( rename(src_filename, dst_filename) < 0 )
 		{
-		zeek::emit_builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
-		                             dst_filename, strerror(errno)));
+		zeek::emit_builtin_error(zeek::util::fmt("cannot rename file '%s' to '%s': %s", src_filename,
+		                                         dst_filename, strerror(errno)));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4697,20 +4699,20 @@ function rotate_file_by_name%(f: string%): rotate_info
 	bool is_addl_pkt_dumper = false;
 
 	// Special case: one of current dump files.
-	if ( zeek::net::detail::pkt_dumper && streq(zeek::net::detail::pkt_dumper->Path().c_str(), f->CheckString()) )
+	if ( zeek::net::detail::pkt_dumper && zeek::util::streq(zeek::net::detail::pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_pkt_dumper = true;
 		zeek::net::detail::pkt_dumper->Close();
 		}
 
 	if ( addl_pkt_dumper &&
-	     streq(addl_pkt_dumper->Path().c_str(), f->CheckString()) )
+	     zeek::util::streq(addl_pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_addl_pkt_dumper = true;
 		addl_pkt_dumper->Close();
 		}
 
-	FILE* file = rotate_file(f->CheckString(), info.get());
+	FILE* file = zeek::util::rotate_file(f->CheckString(), info.get());
 	if ( ! file )
 		{
 		// Record indicating error.
@@ -4748,8 +4750,8 @@ function calc_next_rotate%(i: interval%) : interval
 	static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
-	double base = parse_rotate_base_time(base_time);
-	return zeek::make_intrusive<zeek::IntervalVal>(calc_next_rotate(zeek::net::network_time, i, base));
+	double base = zeek::util::parse_rotate_base_time(base_time);
+	return zeek::make_intrusive<zeek::IntervalVal>(zeek::util::calc_next_rotate(zeek::net::network_time, i, base));
 	%}
 
 ## Returns the size of a given file.
@@ -4997,7 +4999,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Returns: True if the last raised event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
-	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != SOURCE_LOCAL);
+	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != zeek::util::SOURCE_LOCAL);
 	%}
 
 ## Stops Zeek's packet processing. This function is used to synchronize
@@ -5167,5 +5169,5 @@ function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern
 ## Returns: a compressed version of the input path.
 function compress_path%(dir: string%): string
 	%{
-	return zeek::make_intrusive<zeek::StringVal>(normalize_path(dir->ToStdString()));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::util::normalize_path(dir->ToStdString()));
 	%}

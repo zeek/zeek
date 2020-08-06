@@ -108,12 +108,12 @@ std::string render_call_stack()
 			arg_desc += d.Description();
 			}
 
-		rval += fmt("#%d %s(%s)", lvl, name, arg_desc.data());
+		rval += zeek::util::fmt("#%d %s(%s)", lvl, name, arg_desc.data());
 
 		if ( ci.call )
 			{
 			auto loc = ci.call->GetLocationInfo();
-			rval += fmt(" at %s:%d", loc->filename, loc->first_line);
+			rval += zeek::util::fmt(" at %s:%d", loc->filename, loc->first_line);
 			}
 
 		++lvl;
@@ -700,7 +700,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 	const zeek::detail::Expr* fmt_str_arg = args[0];
 	if ( fmt_str_arg->GetType()->Tag() != zeek::TYPE_STRING )
 		{
-		call->Error("first argument to fmt() needs to be a format string");
+		call->Error("first argument to zeek::util::fmt() needs to be a format string");
 		return false;
 		}
 
@@ -729,7 +729,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 
 		if ( args.length() != num_fmt + 1 )
 			{
-			call->Error("mismatch between format string to fmt() and number of arguments passed");
+			call->Error("mismatch between format string to zeek::util::fmt() and number of arguments passed");
 			return false;
 			}
 		}

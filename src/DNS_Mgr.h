@@ -62,7 +62,7 @@ public:
 	zeek::ValPtr LookupAddr(const zeek::IPAddr& addr);
 
 	// Define the directory where to store the data.
-	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
+	void SetDir(const char* arg_dir)	{ dir = zeek::util::copy_string(arg_dir); }
 
 	void Verify();
 	void Resolve();

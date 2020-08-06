@@ -78,7 +78,7 @@ public:
 
 	ReporterMessage(Type arg_type, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
-		{ type = arg_type; msg = copy_string(arg_msg); }
+		{ type = arg_type; msg = zeek::util::copy_string(arg_msg); }
 
 	~ReporterMessage() override 	 { delete [] msg; }
 
@@ -112,7 +112,7 @@ class DebugMessage final : public OutputMessage<MsgThread>
 public:
 	DebugMessage(zeek::DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
-		{ stream = arg_stream; msg = copy_string(arg_msg); }
+		{ stream = arg_stream; msg = zeek::util::copy_string(arg_msg); }
 
 	~DebugMessage() override	{ delete [] msg; }
 
@@ -132,7 +132,7 @@ class SendEventMessage final : public OutputMessage<MsgThread> {
 public:
 	SendEventMessage(MsgThread* thread, const char* name, const int num_vals, Value* *val)
 		: OutputMessage<MsgThread>("SendEvent", thread),
-	  name(copy_string(name)), num_vals(num_vals), val(val) {}
+	  name(zeek::util::copy_string(name)), num_vals(num_vals), val(val) {}
 
 	~SendEventMessage() override	{ delete [] name; }
 
@@ -303,7 +303,7 @@ void MsgThread::Heartbeat()
 	if ( child_sent_finish )
 		return;
 
-	SendIn(new detail::HeartbeatMessage(this, zeek::net::network_time, current_time()));
+	SendIn(new detail::HeartbeatMessage(this, zeek::net::network_time, zeek::util::current_time()));
 	}
 
 void MsgThread::Finished()

@@ -20,11 +20,11 @@ BasicThread::BasicThread()
 	killed = false;
 
 	buf_len = STD_FMT_BUF_LEN;
-	buf = (char*) safe_malloc(buf_len);
+	buf = (char*) zeek::util::safe_malloc(buf_len);
 
 	strerr_buffer = nullptr;
 
-	name = copy_string(fmt("thread-%" PRIu64, ++thread_counter));
+	name = zeek::util::copy_string(zeek::util::fmt("thread-%" PRIu64, ++thread_counter));
 
 	thread_mgr->AddThread(this);
 	}
@@ -41,13 +41,13 @@ BasicThread::~BasicThread()
 void BasicThread::SetName(const char* arg_name)
 	{
 	delete [] name;
-	name = copy_string(arg_name);
+	name = zeek::util::copy_string(arg_name);
 	}
 
 void BasicThread::SetOSName(const char* arg_name)
 	{
 	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
-	zeek::set_thread_name(arg_name, thread.native_handle());
+	zeek::util::set_thread_name(arg_name, thread.native_handle());
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)
@@ -55,7 +55,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 	if ( buf_len > 10 * STD_FMT_BUF_LEN )
 		{
 		// Shrink back to normal.
-		buf = (char*) safe_realloc(buf, STD_FMT_BUF_LEN);
+		buf = (char*) zeek::util::safe_realloc(buf, STD_FMT_BUF_LEN);
 		buf_len = STD_FMT_BUF_LEN;
 		}
 
@@ -67,7 +67,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) safe_realloc(buf, buf_len);
+		buf = (char*) zeek::util::safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
@@ -83,7 +83,7 @@ const char* BasicThread::Strerror(int err)
 	if ( ! strerr_buffer )
 		strerr_buffer = new char[256];
 
-	bro_strerror_r(err, strerr_buffer, 256);
+	zeek::util::zeek_strerror_r(err, strerr_buffer, 256);
 	return strerr_buffer;
 	}
 

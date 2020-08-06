@@ -261,7 +261,7 @@ X509_STORE* X509::GetRootStore(zeek::TableVal* root_certs)
 		::X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
-			zeek::emit_builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
+			zeek::emit_builtin_error(zeek::util::fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
 			return nullptr;
 			}
 
@@ -408,7 +408,7 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 
 				else
 					{
-					zeek::reporter->Weird(GetFile(), "x509_san_ip_length", fmt("%d", gen->d.ip->length));
+					zeek::reporter->Weird(GetFile(), "x509_san_ip_length", zeek::util::fmt("%d", gen->d.ip->length));
 					continue;
 					}
 			}

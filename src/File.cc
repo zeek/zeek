@@ -68,8 +68,8 @@ File::File(FILE* arg_f, const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = arg_f;
-	name = copy_string(arg_name);
-	access = copy_string(arg_access);
+	name = zeek::util::copy_string(arg_name);
+	access = zeek::util::copy_string(arg_access);
 	t = zeek::base_type(zeek::TYPE_STRING);
 	is_open = (f != nullptr);
 	}
@@ -78,15 +78,15 @@ File::File(const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = nullptr;
-	name = copy_string(arg_name);
-	access = copy_string(arg_access);
+	name = zeek::util::copy_string(arg_name);
+	access = zeek::util::copy_string(arg_access);
 	t = zeek::base_type(zeek::TYPE_STRING);
 
-	if ( streq(name, "/dev/stdin") )
+	if ( zeek::util::streq(name, "/dev/stdin") )
 		f = stdin;
-	else if ( streq(name, "/dev/stdout") )
+	else if ( zeek::util::streq(name, "/dev/stdout") )
 		f = stdout;
-	else if ( streq(name, "/dev/stderr") )
+	else if ( zeek::util::streq(name, "/dev/stderr") )
 		f = stderr;
 
 	if ( f )
@@ -119,7 +119,7 @@ const char* File::Name() const
 bool File::Open(FILE* file, const char* mode)
 	{
 	static bool fds_maximized = false;
-	open_time = zeek::net::network_time ? zeek::net::network_time : current_time();
+	open_time = zeek::net::network_time ? zeek::net::network_time : zeek::util::current_time();
 
 	if ( ! fds_maximized )
 		{
@@ -282,7 +282,7 @@ zeek::RecordVal* File::Rotate()
 
 	static auto rotate_info = zeek::id::find_type<zeek::RecordType>("rotate_info");
 	auto* info = new zeek::RecordVal(rotate_info);
-	FILE* newf = rotate_file(name, info);
+	FILE* newf = zeek::util::rotate_file(name, info);
 
 	if ( ! newf )
 		{

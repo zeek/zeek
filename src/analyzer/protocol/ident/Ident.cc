@@ -112,7 +112,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			return;
 			}
 
-		line = skip_whitespace(line + 1, end_of_line);
+		line = zeek::util::skip_whitespace(line + 1, end_of_line);
 		int restlen = end_of_line - line;
 
 		int is_error;
@@ -132,7 +132,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			return;
 			}
 
-		line = skip_whitespace(line, end_of_line);
+		line = zeek::util::skip_whitespace(line, end_of_line);
 
 		if ( line >= end_of_line || line[0] != ':' )
 			{
@@ -140,7 +140,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			return;
 			}
 
-		line = skip_whitespace(line + 1, end_of_line);
+		line = zeek::util::skip_whitespace(line + 1, end_of_line);
 
 		if ( is_error )
 			{
@@ -176,7 +176,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 				new zeek::String((const u_char*) sys_type,
 				                    sys_end - sys_type + 1, true);
 
-			line = skip_whitespace(colon + 1, end_of_line);
+			line = zeek::util::skip_whitespace(colon + 1, end_of_line);
 
 			EnqueueConnEvent(ident_reply,
 				ConnVal(),
@@ -214,7 +214,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 	{
 	int n = 0;
 
-	line = skip_whitespace(line, end_of_line);
+	line = zeek::util::skip_whitespace(line, end_of_line);
 	if ( line >= end_of_line || ! isdigit(*line) )
 		return nullptr;
 
@@ -227,7 +227,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 		}
 	while ( line < end_of_line && isdigit(*line) );
 
-	line = skip_whitespace(line, end_of_line);
+	line = zeek::util::skip_whitespace(line, end_of_line);
 
 	if ( n < 0 || n > 65535 )
 		{

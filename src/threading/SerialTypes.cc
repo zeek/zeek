@@ -32,7 +32,7 @@ bool Field::Read(zeek::detail::SerializationFormat* fmt)
 		if ( ! fmt->Read(&tmp_secondary_name, "secondary_name") )
 			return false;
 
-		secondary_name = copy_string(tmp_secondary_name.c_str());
+		secondary_name = zeek::util::copy_string(tmp_secondary_name.c_str());
 		}
 	else
 		secondary_name = nullptr;
@@ -45,7 +45,7 @@ bool Field::Read(zeek::detail::SerializationFormat* fmt)
 	if ( ! success )
 		return false;
 
-	name = copy_string(tmp_name.c_str());
+	name = zeek::util::copy_string(tmp_name.c_str());
 
 	type = static_cast<zeek::TypeTag>(t);
 	subtype = static_cast<zeek::TypeTag>(st);

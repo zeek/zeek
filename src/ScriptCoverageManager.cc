@@ -39,7 +39,7 @@ void ScriptCoverageManager::AddStmt(zeek::detail::Stmt* s)
 
 bool ScriptCoverageManager::ReadStats()
 	{
-	char* bf = zeekenv("ZEEK_PROFILER_FILE");
+	char* bf = zeek::util::zeekenv("ZEEK_PROFILER_FILE");
 
 	if ( ! bf )
 		return false;
@@ -56,7 +56,7 @@ bool ScriptCoverageManager::ReadStats()
 	ss.clear();
 
 	std::vector<std::string> lines;
-	tokenize_string(file_contents, "\n", &lines);
+	zeek::util::tokenize_string(file_contents, "\n", &lines);
 	string delimiter;
 	delimiter = delim;
 
@@ -66,7 +66,7 @@ bool ScriptCoverageManager::ReadStats()
 			continue;
 
 		std::vector<std::string> line_components;
-		tokenize_string(line, delimiter, &line_components);
+		zeek::util::tokenize_string(line, delimiter, &line_components);
 
 		if ( line_components.size() != 3 )
 			{
@@ -80,7 +80,7 @@ bool ScriptCoverageManager::ReadStats()
 
 		pair<string, string> location_desc(std::move(location), std::move(desc));
 		uint64_t count;
-		atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
+		zeek::util::atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
 		usage_map.emplace(std::move(location_desc), count);
 		}
 
@@ -89,14 +89,14 @@ bool ScriptCoverageManager::ReadStats()
 
 bool ScriptCoverageManager::WriteStats()
 	{
-	char* bf = zeekenv("ZEEK_PROFILER_FILE");
+	char* bf = zeek::util::zeekenv("ZEEK_PROFILER_FILE");
 
 	if ( ! bf )
 		return false;
 
-	SafeDirname dirname{bf};
+	zeek::util::SafeDirname dirname{bf};
 
-	if ( ! ensure_intermediate_dirs(dirname.result.data()) )
+	if ( ! zeek::util::ensure_intermediate_dirs(dirname.result.data()) )
 		{
 		zeek::reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;

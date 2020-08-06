@@ -439,7 +439,7 @@ void Connection::AppendAddl(const char* str)
 	const char* old = cv->GetField(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	cv->Assign(6, zeek::make_intrusive<zeek::StringVal>(fmt(format, old, str)));
+	cv->Assign(6, zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt(format, old, str)));
 	}
 
 // Returns true if the character at s separates a version number.
@@ -535,7 +535,7 @@ void Connection::EnqueueEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer*
                               zeek::Args args)
 	{
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)

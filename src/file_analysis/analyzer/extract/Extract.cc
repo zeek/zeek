@@ -22,7 +22,7 @@ Extract::Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
 		{
 		fd = 0;
 		char buf[128];
-		bro_strerror_r(errno, buf, sizeof(buf));
+		zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 		zeek::reporter->Error("cannot open %s: %s", filename.c_str(), buf);
 		}
 	}
@@ -30,7 +30,7 @@ Extract::Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
 Extract::~Extract()
 	{
 	if ( fd )
-		safe_close(fd);
+		zeek::util::safe_close(fd);
 	}
 
 static const zeek::ValPtr& get_extract_field_val(const zeek::RecordValPtr& args,
@@ -107,7 +107,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 	if ( towrite > 0 )
 		{
-		safe_write(fd, reinterpret_cast<const char*>(data), towrite);
+		zeek::util::safe_write(fd, reinterpret_cast<const char*>(data), towrite);
 		depth += towrite;
 		}
 
@@ -119,7 +119,7 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 	if ( depth == offset )
 		{
 		char* tmp = new char[len]();
-		safe_write(fd, tmp, len);
+		zeek::util::safe_write(fd, tmp, len);
 		delete [] tmp;
 		depth += len;
 		}

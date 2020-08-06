@@ -70,14 +70,14 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( ${request.reserved} != 0 )
 			{
-			bro_analyzer()->ProtocolViolation(fmt("invalid value in reserved field: %d", ${request.reserved}));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value in reserved field: %d", ${request.reserved}));
 			bro_analyzer()->SetSkip(true);
 			return false;
 			}
 
 		if ( (${request.command} == 0) || (${request.command} > 3) )
 			{
-			bro_analyzer()->ProtocolViolation(fmt("undefined value in command field: %d", ${request.command}));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("undefined value in command field: %d", ${request.command}));
 			bro_analyzer()->SetSkip(true);
 			return false;
 			}
@@ -102,7 +102,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			default:
-				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
+				bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
 				return false;
 			}
 
@@ -142,7 +142,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			default:
-				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
+				bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
 				return false;
 			}
 
@@ -175,13 +175,13 @@ refine connection SOCKS_Conn += {
 
 	function socks5_unsupported_authentication_method(auth_method: uint8): bool
 		%{
-		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", fmt("%d", auth_method));
+		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", zeek::util::fmt("%d", auth_method));
 		return true;
 		%}
 
 	function socks5_unsupported_authentication_version(auth_method: uint8, version: uint8): bool
 		%{
-		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", fmt("method %d, version %d", auth_method, version));
+		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", zeek::util::fmt("method %d, version %d", auth_method, version));
 		return true;
 		%}
 
@@ -196,7 +196,7 @@ refine connection SOCKS_Conn += {
 
 	function version_error(version: uint8): bool
 		%{
-		bro_analyzer()->ProtocolViolation(fmt("unsupported/unknown SOCKS version %d", version));
+		bro_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported/unknown SOCKS version %d", version));
 		return true;
 		%}
 

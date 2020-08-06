@@ -29,16 +29,16 @@ struct Field {
 	 * Constructor.
 	 */
 	Field(const char* name, const char* secondary_name, zeek::TypeTag type, zeek::TypeTag subtype, bool optional)
-		: name(name ? copy_string(name) : nullptr),
-		  secondary_name(secondary_name ? copy_string(secondary_name) : nullptr),
+		: name(name ? zeek::util::copy_string(name) : nullptr),
+		  secondary_name(secondary_name ? zeek::util::copy_string(secondary_name) : nullptr),
 		  type(type), subtype(subtype), optional(optional)	{ }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name ? copy_string(other.name) : nullptr),
-		  secondary_name(other.secondary_name ? copy_string(other.secondary_name) : nullptr),
+		: name(other.name ? zeek::util::copy_string(other.name) : nullptr),
+		  secondary_name(other.secondary_name ? zeek::util::copy_string(other.secondary_name) : nullptr),
 		  type(other.type), subtype(other.subtype), optional(other.optional)	{ }
 
 	~Field()

@@ -637,7 +637,7 @@ protected:
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)
-		{ return std::string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
+		{ return std::string(a->GetAnalyzerName()) + zeek::util::fmt("[%d]", a->GetID()); }
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if

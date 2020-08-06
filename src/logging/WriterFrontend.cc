@@ -36,7 +36,7 @@ public:
 	              const double close, const bool terminating)
 		: zeek::threading::InputMessage<WriterBackend>("Rotate", backend),
 		frontend(frontend),
-		rotated_path(copy_string(rotated_path)), open(open),
+		rotated_path(zeek::util::copy_string(rotated_path)), open(open),
 		close(close), terminating(terminating) { }
 
 	virtual ~RotateMessage()	{ delete [] rotated_path; }
@@ -113,7 +113,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::
 	fields = nullptr;
 
 	const char* w = arg_writer->GetType()->AsEnumType()->Lookup(arg_writer->InternalInt());
-	name = copy_string(fmt("%s/%s", arg_info.path, w));
+	name = zeek::util::copy_string(zeek::util::fmt("%s/%s", arg_info.path, w));
 
 	if ( local )
 		{

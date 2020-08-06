@@ -40,7 +40,7 @@ ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, zeek::
 	info = new ReaderBackend::ReaderInfo(arg_info);
 
 	const char* t = type->GetType()->AsEnumType()->Lookup(type->InternalInt());
-	name = copy_string(fmt("%s/%s", arg_info.source, t));
+	name = zeek::util::copy_string(zeek::util::fmt("%s/%s", arg_info.source, t));
 
 	backend = input_mgr->CreateBackend(this, type);
 	assert(backend);

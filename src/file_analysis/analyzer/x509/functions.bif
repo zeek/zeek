@@ -29,7 +29,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
 	if ( ! untrusted_certs )
 		{
-		zeek::emit_builtin_error(fmt("Untrusted certificate stack initialization error: %s",
+		zeek::emit_builtin_error(zeek::util::fmt("Untrusted certificate stack initialization error: %s",
 		                       ERR_error_string(ERR_get_error(),NULL)));
 		return 0;
 		}
@@ -46,7 +46,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);
-			zeek::emit_builtin_error(fmt("No certificate in opaque in stack"));
+			zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque in stack"));
 			return 0;
 			}
 
@@ -243,7 +243,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		zeek::emit_builtin_error(fmt("No certificate in opaque"));
+		zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque"));
 		return x509_result_record(-1, "No certificate in opaque");
 		}
 
@@ -528,7 +528,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		zeek::emit_builtin_error(fmt("No certificate in opaque"));
+		zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque"));
 		return x509_result_record(-1, "No certificate in opaque");
 		}
 

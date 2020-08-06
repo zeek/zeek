@@ -244,8 +244,8 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 	string source((const char*) bsource->Bytes(), bsource->Len());
 
 	ReaderBackend::ReaderInfo rinfo;
-	rinfo.source = copy_string(source.c_str());
-	rinfo.name = copy_string(name.c_str());
+	rinfo.source = zeek::util::copy_string(source.c_str());
+	rinfo.name = zeek::util::copy_string(name.c_str());
 
 	auto mode_val = description->GetFieldOrDefault("mode");
 	auto mode = mode_val->AsEnumVal();
@@ -282,7 +282,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 			auto index = info->config->RecreateIndex(*k);
 			string key = index->Idx(0)->AsString()->CheckString();
 			string value = v->GetVal()->AsString()->CheckString();
-			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
+			rinfo.config.insert(std::make_pair(zeek::util::copy_string(key.c_str()), zeek::util::copy_string(value.c_str())));
 			delete k;
 			}
 		}
@@ -1828,7 +1828,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, const int numvals, ...) const
 	va_end(lP);
 
 	if ( ev )
-		zeek::event_mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::SOURCE_LOCAL);
 	}
 
 void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
@@ -1845,7 +1845,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
 		vl.emplace_back(zeek::AdoptRef{}, *i);
 
 	if ( ev )
-		zeek::event_mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.

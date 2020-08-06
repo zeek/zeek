@@ -143,7 +143,7 @@ void Stmt::AccessStats(ODesc* d) const
 	if ( d->IncludeStats() )
 		{
 		d->Add("(@");
-		d->Add(last_access ? fmt_access_time(last_access) : "<never>");
+		d->Add(last_access ? zeek::util::fmt_access_time(last_access) : "<never>");
 		d->Add(" #");
 		d->Add(access_count);
 		d->Add(")");

@@ -386,7 +386,7 @@ protected:
 	 * mainly for debugging purposes.
 	 */
 	explicit Message(const char* arg_name)
-		{ name = copy_string(arg_name); }
+		{ name = zeek::util::copy_string(arg_name); }
 
 private:
 	const char* name;

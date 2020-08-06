@@ -421,7 +421,7 @@ detail::ID* Val::GetID() const
 void Val::SetID(detail::ID* id)
 	{
 	delete [] bound_id;
-	bound_id = id ? copy_string(id->Name()) : nullptr;
+	bound_id = id ? zeek::util::copy_string(id->Name()) : nullptr;
 	}
 #endif
 
@@ -558,7 +558,7 @@ static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			writer.String(json_escape_utf8(string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			writer.String(zeek::util::json_escape_utf8(std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
 			break;
 			}
 
@@ -1331,7 +1331,7 @@ unsigned int ListVal::MemoryAllocation() const
 	for ( const auto& val : vals )
 		size += val->MemoryAllocation();
 
-	size += pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
+	size += zeek::util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
 	return size + padded_sizeof(*this) + type->MemoryAllocation();
 	}
 
@@ -2445,7 +2445,7 @@ void TableVal::Describe(ODesc* d) const
 		if ( d->IsReadable() && ! d->IsShort() && d->IncludeStats() )
 			{
 			d->Add(" @");
-			d->Add(fmt_access_time(v->ExpireAccessTime()));
+			d->Add(zeek::util::fmt_access_time(v->ExpireAccessTime()));
 			}
 		}
 
@@ -3174,7 +3174,7 @@ unsigned int RecordVal::MemoryAllocation() const
 		    size += v->MemoryAllocation();
 		}
 
-	size += pad_size(vl.capacity() * sizeof(ValPtr));
+	size += zeek::util::pad_size(vl.capacity() * sizeof(ValPtr));
 	size += padded_sizeof(vl);
 	return size + padded_sizeof(*this);
 	}

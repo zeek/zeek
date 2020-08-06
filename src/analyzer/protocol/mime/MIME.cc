@@ -1083,8 +1083,8 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 				if ( i + 2 < len )
 					{
 					int a, b;
-					a = decode_hex(data[i+1]);
-					b = decode_hex(data[i+2]);
+					a = zeek::util::decode_hex(data[i+1]);
+					b = zeek::util::decode_hex(data[i+2]);
 
 					if ( a >= 0 && b >= 0 )
 						{
@@ -1114,7 +1114,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 
 		else
 			{
-			IllegalEncoding(fmt("control characters in quoted-printable encoding: %d", (int) (data[i])));
+			IllegalEncoding(zeek::util::fmt("control characters in quoted-printable encoding: %d", (int) (data[i])));
 			DataOctet(data[i]);
 			}
 		}

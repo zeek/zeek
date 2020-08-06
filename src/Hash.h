@@ -199,7 +199,7 @@ private:
 	inline static uint8_t shared_hmac_md5_key[16];
 	inline static bool seeds_initialized = false;
 
-	friend void ::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+	friend void zeek::util::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
 	friend BifReturnVal zeek::BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
 };
 
@@ -258,7 +258,7 @@ public:
 	int Size() const	{ return size; }
 	hash_t Hash() const	{ return hash; }
 
-	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + pad_size(size); }
+	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + zeek::util::pad_size(size); }
 
 	static hash_t HashBytes(const void* bytes, int size);
 protected:

@@ -36,7 +36,7 @@ static void write_plugin_section_heading(FILE* f, const zeek::plugin::Plugin* p)
 static void write_analyzer_component(FILE* f, const zeek::analyzer::Component* c)
 	{
 	const auto& atag = zeek::analyzer_mgr->GetTagType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
+	string tag = zeek::util::fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
 		zeek::reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -47,7 +47,7 @@ static void write_analyzer_component(FILE* f, const zeek::analyzer::Component* c
 static void write_analyzer_component(FILE* f, const zeek::file_analysis::Component* c)
 	{
 	const auto& atag = zeek::file_mgr->GetTagType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
+	string tag = zeek::util::fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Files", tag.c_str()) < 0 )
 		zeek::reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -193,9 +193,9 @@ TargetFile::TargetFile(const string& arg_name)
 	{
 	if ( name.find('/') != string::npos )
 		{
-		string dir = SafeDirname(name).result;
+		string dir = zeek::util::SafeDirname(name).result;
 
-		if ( ! ensure_intermediate_dirs(dir.c_str()) )
+		if ( ! zeek::util::ensure_intermediate_dirs(dir.c_str()) )
 			zeek::reporter->FatalError("Zeekygen failed to make dir %s",
 			                           dir.c_str());
 		}
@@ -352,7 +352,7 @@ void PackageTarget::DoGenerate() const
 	for ( manifest_t::const_iterator it = pkg_manifest.begin();
 	      it != pkg_manifest.end(); ++it )
 		{
-		string header = fmt("Package: %s", it->first->Name().c_str());
+		string header = zeek::util::fmt("Package: %s", it->first->Name().c_str());
 		header += "\n" + string(header.size(), '=');
 
 		fprintf(file.f, "%s\n\n", header.c_str());
@@ -412,9 +412,9 @@ void ScriptTarget::DoFindDependencies(const vector<Info*>& infos)
 
 	for ( size_t i = 0; i < script_deps.size(); ++i )
 		{
-		if ( is_package_loader(script_deps[i]->Name()) )
+		if ( zeek::util::is_package_loader(script_deps[i]->Name()) )
 			{
-			string pkg_dir = SafeDirname(script_deps[i]->Name()).result;
+			string pkg_dir = zeek::util::SafeDirname(script_deps[i]->Name()).result;
 			string target_file = Name() + pkg_dir + "/index.rst";
 			Target* t = new PackageTarget(target_file, pkg_dir);
 			t->FindDependencies(infos);
@@ -434,7 +434,7 @@ vector<string> dir_contents_recursive(string dir)
 	while ( dir[dir.size() - 1] == '/' )
 		dir.erase(dir.size() - 1, 1);
 
-	char* dir_copy = copy_string(dir.c_str());
+	char* dir_copy = zeek::util::copy_string(dir.c_str());
 	char** scan_path = new char*[2];
 	scan_path[0] = dir_copy;
 	scan_path[1] = NULL;

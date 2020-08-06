@@ -107,7 +107,7 @@ namespace zeek::detail {
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
-	name = copy_string(arg_name);
+	name = zeek::util::copy_string(arg_name);
 	scope = arg_scope;
 	is_export = arg_is_export;
 	is_option = false;
@@ -309,9 +309,9 @@ std::string ID::GetDeprecationWarning() const
 		result = depr_attr->DeprecationMessage();
 
 	if ( result.empty() )
-		return fmt("deprecated (%s)", Name());
+		return zeek::util::fmt("deprecated (%s)", Name());
 	else
-		return fmt("deprecated (%s): %s", Name(), result.c_str());
+		return zeek::util::fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
 void ID::AddAttrs(AttributesPtr a)
@@ -614,10 +614,10 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 			ODesc expr_desc;
 			ir->init_expr->Describe(&expr_desc);
 			redef_str = expr_desc.Description();
-			redef_str = strreplace(redef_str, "\n", " ");
+			redef_str = zeek::util::strreplace(redef_str, "\n", " ");
 
 			d->Add(":Redefinition: ");
-			d->Add(fmt("from :doc:`/scripts/%s`", ir->from_script.data()));
+			d->Add(zeek::util::fmt("from :doc:`/scripts/%s`", ir->from_script.data()));
 			d->NL();
 			d->PushIndent();
 

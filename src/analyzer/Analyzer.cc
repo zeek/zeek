@@ -232,7 +232,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
 			}
 		catch ( binpac::Exception const &e )
 			{
-			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -255,7 +255,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 			}
 		catch ( binpac::Exception const &e )
 			{
-			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -278,7 +278,7 @@ void Analyzer::NextUndelivered(uint64_t seq, int len, bool is_orig)
 			}
 		catch ( binpac::Exception const &e )
 			{
-			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -648,14 +648,14 @@ void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	{
 	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
-			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+			zeek::util::fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
 	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
-			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+			zeek::util::fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
@@ -714,10 +714,10 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 
 	if ( data && len )
 		{
-		const char *tmp = copy_string(reason);
-		r = zeek::make_intrusive<zeek::StringVal>(fmt("%s [%s%s]", tmp,
-		                                              fmt_bytes(data, min(40, len)),
-		                                              len > 40 ? "..." : ""));
+		const char *tmp = zeek::util::copy_string(reason);
+		r = zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%s [%s%s]", tmp,
+		                                                          zeek::util::fmt_bytes(data, min(40, len)),
+		                                                          len > 40 ? "..." : ""));
 		delete [] tmp;
 		}
 	else

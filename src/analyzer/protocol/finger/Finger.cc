@@ -50,12 +50,12 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( ! finger_request )
 			return;
 
-		line = skip_whitespace(line, end_of_line);
+		line = zeek::util::skip_whitespace(line, end_of_line);
 
 		// Check for /W.
 		int long_cnt = (line + 2 <= end_of_line && line[0] == '/' && toupper(line[1]) == 'W');
 		if ( long_cnt )
-			line = skip_whitespace(line+2, end_of_line);
+			line = zeek::util::skip_whitespace(line+2, end_of_line);
 
 		assert(line <= end_of_line);
 		size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.

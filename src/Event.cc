@@ -19,7 +19,7 @@ zeek::EventMgr& mgr = zeek::event_mgr;
 namespace zeek {
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             SourceID arg_src, zeek::analyzer::ID arg_aid, Obj* arg_obj)
+             zeek::util::SourceID arg_src, zeek::analyzer::ID arg_aid, Obj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
@@ -48,7 +48,7 @@ void Event::Describe(ODesc* d) const
 
 void Event::Dispatch(bool no_remote)
 	{
-	if ( src == SOURCE_BROKER )
+	if ( src == zeek::util::SOURCE_BROKER )
 		no_remote = true;
 
 	if ( handler->ErrorHandler() )
@@ -75,7 +75,7 @@ void Event::Dispatch(bool no_remote)
 EventMgr::EventMgr()
 	{
 	head = tail = nullptr;
-	current_src = SOURCE_LOCAL;
+	current_src = zeek::util::SOURCE_LOCAL;
 	current_aid = 0;
 	src_val = nullptr;
 	draining = false;
@@ -122,7 +122,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       SourceID src, zeek::analyzer::ID aid, Obj* obj)
+                       zeek::util::SourceID src, zeek::analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}
@@ -225,7 +225,7 @@ void EventMgr::Process()
 	// here to the current time since otherwise it won't move forward.
 	zeek::iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
 	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::net::reading_live )
-		zeek::net::detail::net_update_time(current_time());
+		zeek::net::detail::net_update_time(zeek::util::current_time());
 
 	queue_flare.Extinguish();
 

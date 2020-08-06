@@ -43,13 +43,13 @@ PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
 }
 
 {IP6}	{
-	rules_lval.prefixval = new zeek::IPPrefix(zeek::IPAddr(extract_ip(yytext)), 128, true);
+	rules_lval.prefixval = new zeek::IPPrefix(zeek::IPAddr(zeek::util::extract_ip(yytext)), 128, true);
 	return TOK_IP6;
 	}
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	std::string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = zeek::util::extract_ip_and_len(yytext, &len);
 	rules_lval.prefixval = new zeek::IPPrefix(zeek::IPAddr(ip), len, true);
 	return TOK_IP6;
 	}

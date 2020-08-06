@@ -22,7 +22,7 @@ static inline bool escapeReservedContent(zeek::ODesc* desc, const string& reserv
 		return false;
 
 	char hex[4] = {'\\', 'x', '0', '0'};
-	bytetohex(*data, hex + 2);
+	zeek::util::bytetohex(*data, hex + 2);
 	desc->AddRaw(hex, 4);
 	desc->AddN(data + 1, size - 1);
 	return true;
@@ -223,15 +223,15 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 	case zeek::TYPE_ENUM:
 	case zeek::TYPE_STRING:
 		{
-		string unescaped = get_unescaped_string(s);
+		string unescaped = zeek::util::get_unescaped_string(s);
 		val->val.string_val.length = unescaped.size();
-		val->val.string_val.data = copy_string(unescaped.c_str());
+		val->val.string_val.data = zeek::util::copy_string(unescaped.c_str());
 		break;
 		}
 
 	case zeek::TYPE_BOOL:
 		{
-		auto stripped = strstrip(s);
+		auto stripped = zeek::util::strstrip(s);
 		if ( stripped == "T" || stripped == "1" )
 			val->val.int_val = 1;
 		else if ( stripped == "F" || stripped == "0" )
@@ -267,20 +267,20 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 
 	case zeek::TYPE_PORT:
 		{
-		auto stripped = strstrip(s);
+		auto stripped = zeek::util::strstrip(s);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		pos = stripped.find('/');
 		string numberpart;
 		if ( pos != std::string::npos && stripped.length() > pos + 1 )
 			{
 			auto proto = stripped.substr(pos+1);
-			if ( strtolower(proto) == "tcp" )
+			if ( zeek::util::strtolower(proto) == "tcp" )
 				val->val.port_val.proto = TRANSPORT_TCP;
-			else if ( strtolower(proto) == "udp" )
+			else if ( zeek::util::strtolower(proto) == "udp" )
 				val->val.port_val.proto = TRANSPORT_UDP;
-			else if ( strtolower(proto) == "icmp" )
+			else if ( zeek::util::strtolower(proto) == "icmp" )
 				val->val.port_val.proto = TRANSPORT_ICMP;
-			else if ( strtolower(proto) == "unknown" )
+			else if ( zeek::util::strtolower(proto) == "unknown" )
 				val->val.port_val.proto = TRANSPORT_UNKNOWN;
 			else
 				GetThread()->Warning(GetThread()->Fmt("Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
@@ -299,7 +299,7 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 
 	case zeek::TYPE_SUBNET:
 		{
-		string unescaped = strstrip(get_unescaped_string(s));
+		string unescaped = zeek::util::strstrip(zeek::util::get_unescaped_string(s));
 		size_t pos = unescaped.find('/');
 		if ( pos == unescaped.npos )
 			{
@@ -322,14 +322,14 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 
 	case zeek::TYPE_ADDR:
 		{
-		string unescaped = strstrip(get_unescaped_string(s));
+		string unescaped = zeek::util::strstrip(zeek::util::get_unescaped_string(s));
 		val->val.addr_val = ParseAddr(unescaped);
 		break;
 		}
 
 	case zeek::TYPE_PATTERN:
 		{
-		string candidate = get_unescaped_string(s);
+		string candidate = zeek::util::get_unescaped_string(s);
 		// A string is a candidate pattern iff it begins and ends with
 		// a '/'. Rather or not the rest of the string is legal will
 		// be determined later when it is given to the RE engine.
@@ -341,7 +341,7 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 				// Remove the '/'s
 				candidate.erase(0, 1);
 				candidate.erase(candidate.size() - 1);
-				val->val.pattern_text_val = copy_string(candidate.c_str());
+				val->val.pattern_text_val = zeek::util::copy_string(candidate.c_str());
 				break;
 				}
 			}

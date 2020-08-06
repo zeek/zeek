@@ -174,7 +174,8 @@ void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, cons
 		case zeek::TYPE_FILE:
 		case zeek::TYPE_FUNC:
 			{
-			writer.String(json_escape_utf8(std::string(val->val.string_val.data, val->val.string_val.length)));
+			writer.String(zeek::util::json_escape_utf8(
+				              std::string(val->val.string_val.data, val->val.string_val.length)));
 			break;
 			}
 

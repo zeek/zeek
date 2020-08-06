@@ -182,7 +182,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	if ( convert_error )
 		return false;
 	else if ( handler )
-		zeek::event_mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), zeek::util::SOURCE_LOCAL);
 
 	return true;
 	}

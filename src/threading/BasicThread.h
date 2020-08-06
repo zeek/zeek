@@ -113,7 +113,7 @@ public:
 	bool Killed()  const { return killed; }
 
 	/**
-	 * A version of fmt() that the thread can safely use.
+	 * A version of zeek::util::fmt() that the thread can safely use.
 	 *
 	 * This is safe to call from Run() but must not be used from any
 	 * other thread than the current one.

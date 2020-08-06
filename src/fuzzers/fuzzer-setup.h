@@ -20,9 +20,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 		auto constexpr oss_fuzz_scripts = "oss-fuzz-zeek-scripts";
 		auto fuzzer_path = get_exe_path(*argv[0]);
 		auto fuzzer_dir = SafeDirname(fuzzer_path).result;
-		std::string fs = fmt("%s/%s", fuzzer_dir.data(), oss_fuzz_scripts);
+		std::string fs = zeek::util::fmt("%s/%s", fuzzer_dir.data(), oss_fuzz_scripts);
 		auto p = fs.data();
-		auto oss_fuzz_zeekpath = fmt(".:%s:%s/policy:%s/site", p, p, p);
+		auto oss_fuzz_zeekpath = zeek::util::fmt(".:%s:%s/policy:%s/site", p, p, p);
 
 		if ( setenv("ZEEKPATH", oss_fuzz_zeekpath, true) == -1 )
 			abort();

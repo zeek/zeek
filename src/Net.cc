@@ -80,7 +80,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			// handler and the allocation routines are not
 			// reentrant.
 
-			double ct = current_time();
+			double ct = zeek::util::current_time();
 
 			int int_ct = int(ct);
 			int frac_ct = int((ct - int_ct) * 1e6);
@@ -234,7 +234,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 		if ( load_freq == 0 )
 			load_freq = uint32_t(0xffffffff) / uint32_t(load_sample_freq);
 
-		if ( uint32_t(zeek::random_number() & 0xffffffff) < load_freq )
+		if ( uint32_t(zeek::util::random_number() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
@@ -263,7 +263,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 
 void net_run()
 	{
-	set_processing_status("RUNNING", "net_run");
+	zeek::util::set_processing_status("RUNNING", "net_run");
 
 	std::vector<zeek::iosource::IOSource*> ready;
 	ready.reserve(zeek::iosource_mgr->TotalSize());
@@ -281,7 +281,7 @@ void net_run()
 		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
 			DBG_LOG(zeek::DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
-				current_time(), ready.size());
+			        zeek::util::current_time(), ready.size());
 
 			if ( ! ready.empty() )
 				loop_counter = 0;
@@ -307,7 +307,7 @@ void net_run()
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			net_update_time(current_time());
+			net_update_time(zeek::util::current_time());
 			expire_timers();
 			}
 
@@ -364,7 +364,7 @@ void net_get_final_stats()
 
 void net_finish(int drain_events)
 	{
-	set_processing_status("TERMINATING", "net_finish");
+	zeek::util::set_processing_status("TERMINATING", "net_finish");
 
 	if ( drain_events )
 		{
@@ -389,7 +389,7 @@ void net_finish(int drain_events)
 
 void net_delete()
 	{
-	set_processing_status("TERMINATING", "net_delete");
+	zeek::util::set_processing_status("TERMINATING", "net_delete");
 
 	delete zeek::sessions;
 

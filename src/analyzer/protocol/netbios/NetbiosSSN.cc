@@ -105,7 +105,7 @@ void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 		break;
 
  	default:
-		analyzer->Weird("unknown_netbios_type", fmt("0x%x", type));
+		analyzer->Weird("unknown_netbios_type", zeek::util::fmt("0x%x", type));
 		break;
 	}
 	}
@@ -146,7 +146,7 @@ void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 	NetbiosSSN_RawMsgHdr hdr(data, len);
 
 	if ( hdr.length > unsigned(len) )
-		analyzer->Weird("excess_netbios_hdr_len", fmt("(%d > %d)",
+		analyzer->Weird("excess_netbios_hdr_len", zeek::util::fmt("(%d > %d)",
 					hdr.length, len));
 
 	else if ( hdr.length < unsigned(len) )
@@ -164,12 +164,12 @@ void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
 	NetbiosDGM_RawMsgHdr hdr(data, len);
 
 	if ( unsigned(hdr.length-14) > unsigned(len) )
-		analyzer->Weird("excess_netbios_hdr_len", fmt("(%d > %d)",
+		analyzer->Weird("excess_netbios_hdr_len", zeek::util::fmt("(%d > %d)",
 				hdr.length, len));
 
 	else if ( hdr.length < unsigned(len) )
 		{
-		analyzer->Weird("deficit_netbios_hdr_len", fmt("(%d < %d)",
+		analyzer->Weird("deficit_netbios_hdr_len", zeek::util::fmt("(%d < %d)",
 				hdr.length, len));
 		len = hdr.length;
 		}

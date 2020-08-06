@@ -1387,7 +1387,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_mss_invalid_len", fmt("%d", length));
+					Weird("tcp_option_mss_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1401,7 +1401,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_window_scale_invalid_len", fmt("%d", length));
+					Weird("tcp_option_window_scale_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1410,7 +1410,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length != 2 )
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_sack_invalid_len", fmt("%d", length));
+					Weird("tcp_option_sack_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1432,7 +1432,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_sack_blocks_invalid_len", fmt("%d", length));
+					Weird("tcp_option_sack_blocks_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1448,7 +1448,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_timestamps_invalid_len", fmt("%d", length));
+					Weird("tcp_option_timestamps_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1906,7 +1906,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 	DBG_LOG(zeek::DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
-			fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
+	        zeek::util::fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)

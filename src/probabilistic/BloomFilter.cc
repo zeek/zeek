@@ -137,7 +137,7 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 
 std::string BasicBloomFilter::InternalState() const
 	{
-	return fmt("%" PRIu64, bits->Hash());
+	return zeek::util::fmt("%" PRIu64, bits->Hash());
 	}
 
 BasicBloomFilter::BasicBloomFilter()
@@ -256,7 +256,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 
 std::string CountingBloomFilter::InternalState() const
 	{
-	return fmt("%" PRIu64, cells->Hash());
+	return zeek::util::fmt("%" PRIu64, cells->Hash());
 	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.

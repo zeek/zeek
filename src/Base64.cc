@@ -193,7 +193,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 		else
 			{
 			if ( ++errored == 1 )
-				IllegalEncoding(fmt("character %d ignored by Base64 decoding", (int) (data[dlen])));
+				IllegalEncoding(zeek::util::fmt("character %d ignored by Base64 decoding", (int) (data[dlen])));
 			}
 
 		++dlen;
@@ -210,7 +210,8 @@ int Base64Converter::Done(int* pblen, char** pbuf)
 	if ( base64_group_next != 0 )
 		{
 		if ( base64_group_next < 4 )
-			IllegalEncoding(fmt("incomplete base64 group, padding with %d bits of 0", (4-base64_group_next) * 6));
+			IllegalEncoding(zeek::util::fmt("incomplete base64 group, padding with %d bits of 0",
+			                                (4-base64_group_next) * 6));
 		Decode(4 - base64_group_next, padding, pblen, pbuf);
 		return -1;
 		}

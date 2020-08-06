@@ -41,7 +41,7 @@ function Broker::__create_master%(id: string, b: BackendType,
 
 	if ( ! store )
 		{
-		zeek::emit_builtin_error(fmt("Could not create Broker master store '%s'", name));
+		zeek::emit_builtin_error(zeek::util::fmt("Could not create Broker master store '%s'", name));
 		return nullptr;
 		}
 
@@ -66,7 +66,7 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 
 	if ( ! store )
 		{
-		zeek::emit_builtin_error(fmt("Could not create clone of Broker store '%s'", name));
+		zeek::emit_builtin_error(zeek::util::fmt("Could not create clone of Broker store '%s'", name));
 		return nullptr;
 		}
 

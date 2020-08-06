@@ -390,7 +390,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, stream_offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
+	        zeek::util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
@@ -494,7 +494,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
+	        zeek::util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;

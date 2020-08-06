@@ -24,7 +24,7 @@ Component::~Component()
 PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type, factory_callback arg_factory)
 	: iosource::Component(zeek::plugin::component::PKTSRC, arg_name)
 	{
-	tokenize_string(arg_prefix, ":", &prefixes);
+	zeek::util::tokenize_string(arg_prefix, ":", &prefixes);
 	type = arg_type;
 	factory = arg_factory;
 	}
@@ -110,7 +110,7 @@ void PktSrcComponent::DoDescribe(zeek::ODesc* d) const
 PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
 	: zeek::plugin::Component(zeek::plugin::component::PKTDUMPER, name)
 	{
-	tokenize_string(arg_prefix, ":", &prefixes);
+	zeek::util::tokenize_string(arg_prefix, ":", &prefixes);
 	factory = arg_factory;
 	}
 

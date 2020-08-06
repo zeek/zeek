@@ -322,7 +322,7 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 	case detail::BTT_REQ_DONE:
 		if ( *line )
 			{
-			auto msg = fmt("Got post request data: %s\n", line);
+			auto msg = zeek::util::fmt("Got post request data: %s\n", line);
 			Weird("bittorrent_tracker_data_post_request", msg);
 			DeliverWeird(msg, true);
 			}

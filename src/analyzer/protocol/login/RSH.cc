@@ -171,7 +171,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	zeek::Args vl;
 	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
-	line = skip_whitespace(line);
+	line = zeek::util::skip_whitespace(line);
 	vl.emplace_back(ConnVal());
 
 	if ( client_name )

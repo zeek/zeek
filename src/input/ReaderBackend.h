@@ -75,7 +75,7 @@ public:
 	struct ReaderInfo
 		{
 		// Structure takes ownership of the strings.
-		typedef std::map<const char*, const char*, CompareString> config_map;
+		typedef std::map<const char*, const char*, zeek::util::CompareString> config_map;
 
 		/**
 		 * A string left to the interpretation of the reader
@@ -111,12 +111,12 @@ public:
 
 		ReaderInfo(const ReaderInfo& other)
 			{
-			source = other.source ? copy_string(other.source) : nullptr;
-			name = other.name ? copy_string(other.name) : nullptr;
+			source = other.source ? zeek::util::copy_string(other.source) : nullptr;
+			name = other.name ? zeek::util::copy_string(other.name) : nullptr;
 			mode = other.mode;
 
 			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-				config.insert(std::make_pair(copy_string(i->first), copy_string(i->second)));
+				config.insert(std::make_pair(zeek::util::copy_string(i->first), zeek::util::copy_string(i->second)));
 			}
 
 		~ReaderInfo()

@@ -251,7 +251,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 	case AUTHENTICATION_NAME:
 		{
 		char* auth_name = new char[len];
-		safe_strncpy(auth_name, (char*) data + 1, len);
+		zeek::util::safe_strncpy(auth_name, (char*) data + 1, len);
 		endp->SetAuthName(auth_name);
 		}
 		break;

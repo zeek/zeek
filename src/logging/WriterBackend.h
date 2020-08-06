@@ -50,7 +50,7 @@ public:
 	struct WriterInfo
 		{
 		// Structure takes ownership of these strings.
-		typedef std::map<const char*, const char*, CompareString> config_map;
+		typedef std::map<const char*, const char*, zeek::util::CompareString> config_map;
 
 		/**
 		 * A string left to the interpretation of the writer
@@ -98,14 +98,15 @@ public:
 
 		WriterInfo(const WriterInfo& other)
 			{
-			path = other.path ? copy_string(other.path) : nullptr;
-			post_proc_func = other.post_proc_func ? copy_string(other.post_proc_func) : nullptr;
+			path = other.path ? zeek::util::copy_string(other.path) : nullptr;
+			post_proc_func = other.post_proc_func ? zeek::util::copy_string(other.post_proc_func) : nullptr;
 			rotation_interval = other.rotation_interval;
 			rotation_base = other.rotation_base;
 			network_time = other.network_time;
 
 			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-				config.insert(std::make_pair(copy_string(i->first), copy_string(i->second)));
+				config.insert(std::make_pair(zeek::util::copy_string(i->first),
+				                             zeek::util::copy_string(i->second)));
 			}
 
 		~WriterInfo()

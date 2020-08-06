@@ -12,7 +12,7 @@ using namespace zeek::detail;
 static void pipe_fail(int eno)
 	{
 	char tmp[256];
-	bro_strerror_r(eno, tmp, sizeof(tmp));
+	zeek::util::zeek_strerror_r(eno, tmp, sizeof(tmp));
 
 	if ( zeek::reporter )
 		zeek::reporter->FatalError("Pipe failure: %s", tmp);

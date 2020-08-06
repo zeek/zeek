@@ -22,25 +22,30 @@ hook Intel::filter_item(item: Intel::Item)
 		break;
 	}
 
-event do_it()
-	{
-	Intel::seen([$host=10.0.0.1,
-	             $where=SOMEWHERE]);
-	Intel::seen([$host=10.0.0.2,
-	             $where=SOMEWHERE]);
-	}
-
 global log_lines = 0;
 event Intel::log_intel(rec: Intel::Info)
 	{
 	++log_lines;
-	if ( log_lines == 1 )
+	if ( log_lines == 3 )
 		terminate();
 	}
 
-event zeek_init() &priority=-10
+global entries_read = 0;
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
+	{
+	++entries_read;
+
+	if ( entries_read == 2 )
+		{
+		Intel::seen([$host=10.0.0.1, $where=SOMEWHERE]);
+		Intel::seen([$host=10.0.0.2, $where=SOMEWHERE]);
+		}
+	}
+
+event zeek_init() &priority=+100
 	{
 	Intel::insert([$indicator="10.0.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
 	Intel::insert([$indicator="10.0.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
-	schedule 1sec { do_it() };
+	Intel::seen([$host=10.0.0.1, $where=SOMEWHERE]);
+	Intel::seen([$host=10.0.0.2, $where=SOMEWHERE]);
 	}

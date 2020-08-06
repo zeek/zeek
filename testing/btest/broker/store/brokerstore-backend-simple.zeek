@@ -9,8 +9,6 @@
 #
 # @TEST-EXEC: btest-diff master.out
 # @TEST-EXEC: btest-diff clone.out
-# @TEST-EXEC: diff master.out clone.out
-# @TEST-EXEC: diff master.out clone2.out
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {

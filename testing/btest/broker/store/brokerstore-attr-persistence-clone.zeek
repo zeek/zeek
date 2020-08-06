@@ -8,8 +8,6 @@
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
 # @TEST-EXEC: btest-diff output3
-# @TEST-EXEC: diff output1 output2
-# @TEST-EXEC: diff output2 output3
 
 # the first test writes out the sqlite files...
 

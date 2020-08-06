@@ -17,7 +17,7 @@ redef exit_only_after_terminate = T;
 redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };
 redef Intel::item_expiration = 9sec;
-redef table_expire_interval = 3sec;
+redef table_expire_interval = 2sec;
 
 global runs = 0;
 event do_it()

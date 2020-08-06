@@ -1,7 +1,7 @@
 entry notification Input::EVENT_NEW: [s=one]
 entry notification Input::EVENT_NEW: [s=two]
 entry notification Input::EVENT_NEW: [s=three]
-entry notification Input::EVENT_REMOVED: [s=three]
 entry notification Input::EVENT_REMOVED: [s=two]
+entry notification Input::EVENT_REMOVED: [s=three]
 entry notification Input::EVENT_NEW: [s=four]
 done

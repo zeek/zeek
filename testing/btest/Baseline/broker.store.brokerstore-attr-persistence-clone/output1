@@ -1,19 +1,19 @@
 {
-[b] = 3,
+[a] = 5,
 [whatever] = 5,
-[a] = 5
+[b] = 3
 }
 {
+I am a set!,
 I am really a set!,
-Believe me - I am a set,
-I am a set!
+Believe me - I am a set
 }
 {
-[b] = [a=2, b=d, c={
+[a] = [a=1, b=c, c={
 elem1,
 elem2
 }],
-[a] = [a=1, b=c, c={
+[b] = [a=2, b=d, c={
 elem1,
 elem2
 }]

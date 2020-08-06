@@ -1,18 +1,18 @@
 Peer added
 {
-[b] = 3,
+[a] = 3,
 [whatever] = 5,
-[a] = 3
+[b] = 3
 }
 {
 hi
 }
 {
-[b] = [a=2, b=d, c={
+[a] = [a=1, b=c, c={
 elem1,
 elem2
 }],
-[a] = [a=1, b=c, c={
+[b] = [a=2, b=d, c={
 elem1,
 elem2
 }]

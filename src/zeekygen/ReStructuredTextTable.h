@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-namespace zeekygen {
+namespace zeek::zeekygen::detail {
 
 /**
  * A reST table with arbitrary number of columns.
@@ -46,5 +46,11 @@ private:
 	std::vector<std::vector<std::string> > rows;
 	std::vector<size_t> longest_row_in_column;
 };
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+using ReStructuredTextTable [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ReStructuredTextTable.")]] = zeek::zeekygen::detail::ReStructuredTextTable;
 
 } // namespace zeekygen

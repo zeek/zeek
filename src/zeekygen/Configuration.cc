@@ -10,8 +10,9 @@
 #include <algorithm>
 #include <errno.h>
 
-using namespace zeekygen;
 using namespace std;
+
+namespace zeek::zeekygen::detail {
 
 static TargetFactory create_target_factory()
 	{
@@ -98,5 +99,7 @@ time_t Config::GetModificationTime() const
 	if ( file.empty() )
 		return 0;
 
-	return zeekygen::get_mtime(file);
+	return get_mtime(file);
 	}
+
+} // namespace zeek::zeekygen::detail

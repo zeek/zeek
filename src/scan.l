@@ -146,19 +146,19 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	zeekygen_mgr->SummaryComment(::filename, yytext + 3);
+	zeek::detail::zeekygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
 ##<.* {
 	std::string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
 
-	zeekygen_mgr->PostComment(yytext + 3, hint);
+	zeek::detail::zeekygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
 	if ( yytext[2] != '#' )
-		zeekygen_mgr->PreComment(yytext + 2);
+		zeek::detail::zeekygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
@@ -332,7 +332,7 @@ when	return TOK_WHEN;
 	std::string loader = ::filename;  // load_files may change ::filename, save copy
 	std::string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
-	zeekygen_mgr->ScriptDependency(loader, loading);
+	zeek::detail::zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
@@ -647,7 +647,7 @@ static int load_files(const char* orig_file)
 	// this @load was done when we're finished processing it.
 	file_stack.push_back(new FileInfo(zeek::detail::current_module));
 
-	zeekygen_mgr->Script(file_path);
+	zeek::detail::zeekygen_mgr->Script(file_path);
 
 	DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s", file_path.c_str());
 

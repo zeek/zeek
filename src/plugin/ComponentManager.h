@@ -140,7 +140,7 @@ ComponentManager<T, C>::ComponentManager(const std::string& arg_module, const st
 	{
 	auto id = zeek::detail::install_ID(local_id.c_str(), module.c_str(), true, true);
 	add_type(id.get(), tag_enum_type, nullptr);
-	zeekygen_mgr->Identifier(std::move(id));
+	zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 	}
 
 template <class T, class C>

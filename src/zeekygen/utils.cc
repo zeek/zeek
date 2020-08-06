@@ -9,10 +9,11 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-using namespace zeekygen;
 using namespace std;
 
-bool zeekygen::prettify_params(string& s)
+namespace zeek::zeekygen::detail {
+
+bool prettify_params(string& s)
 	{
 	size_t identifier_start_pos = 0;
 	bool in_identifier = false;
@@ -78,13 +79,13 @@ bool zeekygen::prettify_params(string& s)
 	return false;
 	}
 
-bool zeekygen::is_public_api(const zeek::detail::ID* id)
+bool is_public_api(const zeek::detail::ID* id)
 	{
 	return (id->Scope() == zeek::detail::SCOPE_GLOBAL) ||
 	       (id->Scope() == zeek::detail::SCOPE_MODULE && id->IsExport());
 	}
 
-time_t zeekygen::get_mtime(const string& filename)
+time_t get_mtime(const string& filename)
 	{
 	struct stat s;
 
@@ -95,12 +96,12 @@ time_t zeekygen::get_mtime(const string& filename)
 	return s.st_mtime;
 	}
 
-string zeekygen::make_heading(const string& heading, char underline)
+string make_heading(const string& heading, char underline)
 	{
 	return heading + "\n" + string(heading.size(), underline) + "\n";
 	}
 
-size_t zeekygen::end_of_first_sentence(const string& s)
+size_t end_of_first_sentence(const string& s)
 	{
 	size_t rval = 0;
 
@@ -121,7 +122,7 @@ size_t zeekygen::end_of_first_sentence(const string& s)
 	return rval;
 	}
 
-bool zeekygen::is_all_whitespace(const string& s)
+bool is_all_whitespace(const string& s)
 	{
 	for ( size_t i = 0; i < s.size(); ++i )
 		if ( ! isspace(s[i]) )
@@ -130,8 +131,10 @@ bool zeekygen::is_all_whitespace(const string& s)
 	return true;
 	}
 
-string zeekygen::redef_indication(const string& from_script)
+string redef_indication(const string& from_script)
 	{
 	return zeek::util::fmt("(present if :doc:`/scripts/%s` is loaded)",
 	                       from_script.c_str());
 	}
+
+} // namespace zeek::zeekygen::detail

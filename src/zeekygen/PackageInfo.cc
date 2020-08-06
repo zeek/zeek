@@ -9,7 +9,8 @@
 #include <errno.h>
 
 using namespace std;
-using namespace zeekygen;
+
+namespace zeek::zeekygen::detail {
 
 PackageInfo::PackageInfo(const string& arg_name)
     : Info(),
@@ -54,5 +55,7 @@ time_t PackageInfo::DoGetModificationTime() const
 	if ( readme_file.empty() )
 		return 0;
 
-	return zeekygen::get_mtime(readme_file);
+	return get_mtime(readme_file);
 	}
+
+} // namespace zeek::zeekygen::detail

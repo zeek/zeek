@@ -16,11 +16,10 @@
 #include "util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PackageInfo, zeek, zeekygen, detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ScriptInfoInfo, zeek, zeekygen, detail);
 
-namespace zeekygen {
-
-class PackageInfo;
-class ScriptInfo;
+namespace zeek::zeekygen::detail {
 
 /**
  * Map of info objects.  Just a wrapper around std::map to improve code
@@ -262,6 +261,18 @@ bool Manager::IsUpToDate(const std::string& target_file,
 	return true;
 	}
 
+} // namespace zeek::zeekygen::detail
+
+namespace zeek::detail {
+
+extern zeek::zeekygen::detail::Manager* zeekygen_mgr;
+
+} // namespace zeek::detail
+
+namespace zeekygen {
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Manager.")]] = zeek::zeekygen::detail::Manager;
+
 } // namespace zeekygen
 
-extern zeekygen::Manager* zeekygen_mgr;
+extern zeek::zeekygen::detail::Manager*& zeekygen_mgr [[deprecated("Remove in v4.1. Use zeek::detail::zeekygen_mgr.")]];

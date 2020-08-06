@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include <string>
+#include "zeek-config.h"
 
 #include <time.h> // for time_t
+#include <string>
 
-namespace zeek::detail { class ID; }
-using ID [[deprecated("Remove in v4.1. Use zeek::detail::ID instead")]] = zeek::detail::ID;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
-namespace zeekygen {
+namespace zeek::zeekygen::detail {
 
 /**
  * Transform content of a Zeekygen comment which may contain function
@@ -63,5 +63,17 @@ bool is_all_whitespace(const std::string& s);
  * record field.
  */
 std::string redef_indication(const std::string& from_script);
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+constexpr auto prettify_params [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::prettify_params.")]] = zeek::zeekygen::detail::prettify_params;
+constexpr auto is_public_api [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::is_public_api.")]] = zeek::zeekygen::detail::is_public_api;
+constexpr auto get_mtime [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::get_mtime.")]] = zeek::zeekygen::detail::get_mtime;
+constexpr auto make_heading [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::make_heading.")]] = zeek::zeekygen::detail::make_heading;
+constexpr auto end_of_first_sentence [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::end_of_first_sentence.")]] = zeek::zeekygen::detail::end_of_first_sentence;
+constexpr auto is_all_whitespace [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::is_all_whitespace.")]] = zeek::zeekygen::detail::is_all_whitespace;
+constexpr auto redef_indication [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::redef_indication.")]] = zeek::zeekygen::detail::redef_indication;
 
 } // namespace zeekygen

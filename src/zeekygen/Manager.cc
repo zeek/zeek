@@ -1,6 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Manager.h"
+
+#include <utility>
+#include <cstdlib>
+
 #include "plugin/Manager.h"
 #include "util.h"
 #include "Info.h"
@@ -9,11 +13,9 @@
 #include "IdentifierInfo.h"
 #include "Expr.h"
 
-#include <utility>
-#include <cstdlib>
-
-using namespace zeekygen;
 using namespace std;
+
+namespace zeek::zeekygen::detail {
 
 static void DbgAndWarn(const char* msg)
 	{
@@ -457,3 +459,5 @@ string Manager::GetEnumTypeName(const string& id) const
 	map<string, string>::const_iterator it = enum_mappings.find(id);
 	return it == enum_mappings.end() ? "" : it->second;
 	}
+
+} // namespace zeek::zeekygen::detail

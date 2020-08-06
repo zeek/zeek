@@ -13,7 +13,8 @@
 #include "Type.h"
 
 using namespace std;
-using namespace zeekygen;
+
+namespace zeek::zeekygen::detail {
 
 bool IdInfoComp::operator ()(const IdentifierInfo* lhs,
                              const IdentifierInfo* rhs) const
@@ -27,11 +28,11 @@ static vector<string> summary_comment(const vector<string>& cmnts)
 
 	for ( size_t i = 0; i < cmnts.size(); ++i )
 		{
-		size_t end = zeekygen::end_of_first_sentence(cmnts[i]);
+		size_t end = end_of_first_sentence(cmnts[i]);
 
 		if ( end == string::npos )
 			{
-			if ( zeekygen::is_all_whitespace(cmnts[i]) )
+			if ( is_all_whitespace(cmnts[i]) )
 				break;
 
 			rval.push_back(cmnts[i]);
@@ -89,7 +90,7 @@ static string make_summary(const string& heading, char underline, char border,
 		add_summary_rows(d, summary_comment((*it)->GetComments()), &table);
 		}
 
-	return zeekygen::make_heading(heading, underline) + table.AsString(border)
+	return make_heading(heading, underline) + table.AsString(border)
 	        + "\n";
 	}
 
@@ -118,7 +119,7 @@ static string make_redef_summary(const string& heading, char underline,
 			add_summary_rows(d, summary_comment(iit->comments), &table);
 		}
 
-	return zeekygen::make_heading(heading, underline) + table.AsString(border)
+	return make_heading(heading, underline) + table.AsString(border)
 	        + "\n";
 	}
 
@@ -128,7 +129,7 @@ static string make_details(const string& heading, char underline,
 	if ( id_list.empty() )
 		return "";
 
-	string rval = zeekygen::make_heading(heading, underline);
+	string rval = make_heading(heading, underline);
 
 	for ( id_info_list::const_iterator it = id_list.begin();
 	      it != id_list.end(); ++it )
@@ -146,7 +147,7 @@ static string make_redef_details(const string& heading, char underline,
 	if ( id_set.empty() )
 		return "";
 
-	string rval = zeekygen::make_heading(heading, underline);
+	string rval = make_heading(heading, underline);
 
 	for ( id_info_set::const_iterator it = id_set.begin();
 	      it != id_set.end(); ++it )
@@ -181,7 +182,7 @@ void ScriptInfo::DoInitPostScript()
 		IdentifierInfo* info = it->second;
 		auto* id = info->GetID();
 
-		if ( ! zeekygen::is_public_api(id) )
+		if ( ! is_public_api(id) )
 			continue;
 
 		if ( id->IsType() )
@@ -278,7 +279,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 	string rval;
 
 	rval += ":tocdepth: 3\n\n";
-	rval += zeekygen::make_heading(name, '=');
+	rval += make_heading(name, '=');
 
 	for ( string_set::const_iterator it = module_usages.begin();
 	      it != module_usages.end(); ++it )
@@ -332,7 +333,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 
 	//rval += zeek::util::fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
 	rval += "\n";
-	rval += zeekygen::make_heading("Summary", '~');
+	rval += make_heading("Summary", '~');
 	rval += make_summary("Runtime Options", '#', '=', options);
 	rval += make_summary("Redefinable Options", '#', '=', redef_options);
 	rval += make_summary("Constants", '#', '=', constants);
@@ -343,7 +344,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 	rval += make_summary("Hooks", '#', '=', hooks);
 	rval += make_summary("Functions", '#', '=', functions);
 	rval += "\n";
-	rval += zeekygen::make_heading("Detailed Interface", '~');
+	rval += make_heading("Detailed Interface", '~');
 	rval += make_details("Runtime Options", '#', options);
 	rval += make_details("Redefinable Options", '#', redef_options);
 	rval += make_details("Constants", '#', constants);
@@ -359,19 +360,19 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 
 time_t ScriptInfo::DoGetModificationTime() const
 	{
-	time_t most_recent = zeekygen::get_mtime(path);
+	time_t most_recent = get_mtime(path);
 
 	for ( string_set::const_iterator it = dependencies.begin();
 	      it != dependencies.end(); ++it )
 		{
-		Info* info = zeekygen_mgr->GetScriptInfo(*it);
+		Info* info = zeek::detail::zeekygen_mgr->GetScriptInfo(*it);
 
 		if ( ! info )
 			{
 			for (const string& ext : zeek::util::script_extensions)
 				{
 				string pkg_name = *it + "/__load__" + ext;
-				info = zeekygen_mgr->GetScriptInfo(pkg_name);
+				info = zeek::detail::zeekygen_mgr->GetScriptInfo(pkg_name);
 				if ( info )
 					break;
 				}
@@ -390,3 +391,5 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 	return most_recent;
 	}
+
+} // namespace zeek::zeekygen::detail

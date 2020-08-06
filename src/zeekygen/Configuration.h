@@ -9,7 +9,7 @@
 
 #include <time.h> // for time_t
 
-namespace zeekygen {
+namespace zeek::zeekygen::detail {
 
 class Info;
 
@@ -59,5 +59,12 @@ private:
 	std::vector<Target*> targets;
 	TargetFactory target_factory;
 };
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+using Config [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Config.")]] = zeek::zeekygen::detail::Config;
+using Info [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Info.")]] = zeek::zeekygen::detail::Info;
 
 } // namespace zeekygen

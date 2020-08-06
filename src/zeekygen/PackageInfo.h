@@ -9,7 +9,7 @@
 
 #include <time.h> // for time_t
 
-namespace zeekygen {
+namespace zeek::zeekygen::detail {
 
 /**
  * Information about a Zeek script package.
@@ -45,5 +45,11 @@ private:
 	std::string pkg_name;
 	std::vector<std::string> readme;
 };
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+using PackageInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::PackageInfo.")]] = zeek::zeekygen::detail::PackageInfo;
 
 } // namespace zeekygen

@@ -5,7 +5,7 @@
 #include <string>
 #include <ctime>
 
-namespace zeekygen {
+namespace zeek::zeekygen::detail{
 
 /**
  * Abstract base class for any thing that Zeekygen can document.
@@ -66,5 +66,11 @@ private:
 	virtual void DoInitPostScript()
 		{ }
 };
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+using Info [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Info.")]] = zeek::zeekygen::detail::Info;
 
 } // namespace zeekygen

@@ -25,7 +25,7 @@ static zeek::StringValPtr comments_to_val(const vector<string>& comments)
 function get_identifier_comments%(name: string%): string
 	%{
 	using namespace zeekygen;
-	IdentifierInfo* d = zeekygen_mgr->GetIdentifierInfo(name->CheckString());
+	zeek::zeekygen::detail::IdentifierInfo* d = zeek::detail::zeekygen_mgr->GetIdentifierInfo(name->CheckString());
 
 	if ( ! d )
 		return zeek::val_mgr->EmptyString();
@@ -45,7 +45,7 @@ function get_identifier_comments%(name: string%): string
 function get_script_comments%(name: string%): string
 	%{
 	using namespace zeekygen;
-	ScriptInfo* d = zeekygen_mgr->GetScriptInfo(name->CheckString());
+	zeek::zeekygen::detail::ScriptInfo* d = zeek::detail::zeekygen_mgr->GetScriptInfo(name->CheckString());
 
 	if ( ! d )
 		return zeek::val_mgr->EmptyString();
@@ -63,7 +63,7 @@ function get_script_comments%(name: string%): string
 function get_package_readme%(name: string%): string
 	%{
 	using namespace zeekygen;
-	PackageInfo* d = zeekygen_mgr->GetPackageInfo(name->CheckString());
+	zeek::zeekygen::detail::PackageInfo* d = zeek::detail::zeekygen_mgr->GetPackageInfo(name->CheckString());
 
 	if ( ! d )
 		return zeek::val_mgr->EmptyString();
@@ -90,7 +90,7 @@ function get_record_field_comments%(name: string%): string
 
 	string id = accessor.substr(0, i);
 
-	IdentifierInfo* d = zeekygen_mgr->GetIdentifierInfo(id);
+	zeek::zeekygen::detail::IdentifierInfo* d = zeek::detail::zeekygen_mgr->GetIdentifierInfo(id);
 
 	if ( ! d )
 		return zeek::val_mgr->EmptyString();

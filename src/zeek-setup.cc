@@ -110,7 +110,8 @@ zeek::input::Manager* zeek::input_mgr = nullptr;
 zeek::input::Manager*& input_mgr = zeek::input_mgr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::file_analysis::Manager*& file_mgr = zeek::file_mgr;
-zeekygen::Manager* zeekygen_mgr = nullptr;
+zeek::zeekygen::detail::Manager* zeek::detail::zeekygen_mgr = nullptr;
+zeek::zeekygen::detail::Manager*& zeekygen_mgr = zeek::detail::zeekygen_mgr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
 zeek::iosource::Manager*& iosource_mgr = zeek::iosource_mgr;
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
@@ -320,7 +321,7 @@ void terminate_bro()
 
 	zeek::plugin_mgr->FinishPlugins();
 
-	delete zeekygen_mgr;
+	delete zeek::detail::zeekygen_mgr;
 	delete zeek::analyzer_mgr;
 	delete zeek::file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
@@ -551,7 +552,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::detail::timer_mgr = new zeek::detail::PQ_TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
-	zeekygen_mgr = new zeekygen::Manager(zeekygen_cfg, bro_argv[0]);
+	zeek::detail::zeekygen_mgr = new zeek::zeekygen::detail::Manager(zeekygen_cfg, bro_argv[0]);
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
@@ -600,7 +601,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::plugin_mgr->InitPreScript();
 	zeek::analyzer_mgr->InitPreScript();
 	zeek::file_mgr->InitPreScript();
-	zeekygen_mgr->InitPreScript();
+	zeek::detail::zeekygen_mgr->InitPreScript();
 
 	bool missing_plugin = false;
 
@@ -670,7 +671,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::iosource_mgr->InitPostScript();
 	zeek::log_mgr->InitPostScript();
 	zeek::plugin_mgr->InitPostScript();
-	zeekygen_mgr->InitPostScript();
+	zeek::detail::zeekygen_mgr->InitPostScript();
 	zeek::broker_mgr->InitPostScript();
 	zeek::detail::timer_mgr->InitPostScript();
 	zeek::event_mgr.InitPostScript();
@@ -706,7 +707,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	zeek::reporter->InitOptions();
 	KeyedHash::InitOptions();
-	zeekygen_mgr->GenerateDocs();
+	zeek::detail::zeekygen_mgr->GenerateDocs();
 
 	if ( options.pcap_filter )
 		{

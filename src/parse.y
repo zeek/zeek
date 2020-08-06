@@ -1032,7 +1032,7 @@ type_decl:
 			$$ = new zeek::TypeDecl($1, {zeek::AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
-				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
+				zeek::detail::zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
 			}
 	;
 
@@ -1067,7 +1067,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			zeek::detail::current_module = $2;
-			zeekygen_mgr->ModuleUsage(::filename, zeek::detail::current_module);
+			zeek::detail::zeekygen_mgr->ModuleUsage(::filename, zeek::detail::current_module);
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
@@ -1079,7 +1079,7 @@ decl:
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
 			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_REGULAR);
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
@@ -1088,7 +1088,7 @@ decl:
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
 			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_OPTION);
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
@@ -1097,7 +1097,7 @@ decl:
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
 			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_CONST);
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
@@ -1107,18 +1107,18 @@ decl:
 			add_global(id, {zeek::AdoptRef{}, $3}, $4, init,
 			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
 			           VAR_REDEF);
-			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
+			zeek::detail::zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ parser_redef_enum($3); zeekygen_mgr->Redef($3, ::filename); }
+			{ parser_redef_enum($3); zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
 		enum_body '}' ';'
 			{
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
+			{ cur_decl_type_id = $3; zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
 			{ ++in_record; }
 		type_decl_list
@@ -1135,14 +1135,14 @@ decl:
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({zeek::NewRef{}, $2});  }
+			{ cur_decl_type_id = $2; zeek::detail::zeekygen_mgr->StartType({zeek::NewRef{}, $2});  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			add_type(id.get(), {zeek::AdoptRef{}, $5},
 			         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6});
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	func_hdr { func_hdr_location = @1; } func_body
@@ -1177,7 +1177,7 @@ func_hdr:
 				zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
 				std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{

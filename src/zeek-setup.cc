@@ -233,7 +233,7 @@ bool show_plugins(int level)
 
 void done_with_network()
 	{
-	zeek::util::set_processing_status("TERMINATING", "done_with_network");
+	zeek::util::detail::set_processing_status("TERMINATING", "done_with_network");
 
 	// Cancel any pending alarms (watchdog, in particular).
 	(void) alarm(0);
@@ -280,7 +280,7 @@ void done_with_network()
 
 void terminate_bro()
 	{
-	zeek::util::set_processing_status("TERMINATING", "terminate_bro");
+	zeek::util::detail::set_processing_status("TERMINATING", "terminate_bro");
 
 	zeek::net::terminating = true;
 
@@ -342,7 +342,7 @@ namespace zeek::net::detail {
 
 void zeek_terminate_loop(const char* reason)
 	{
-	zeek::util::set_processing_status("TERMINATING", reason);
+	zeek::util::detail::set_processing_status("TERMINATING", reason);
 	zeek::reporter->Info("%s", reason);
 
 	net_get_final_stats();
@@ -364,7 +364,7 @@ void zeek_terminate_loop(const char* reason)
 
 RETSIGTYPE sig_handler(int signo)
 	{
-	zeek::util::set_processing_status("TERMINATING", "sig_handler");
+	zeek::util::detail::set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
 
 	if ( ! zeek::net::terminating )
@@ -375,7 +375,7 @@ RETSIGTYPE sig_handler(int signo)
 
 static void atexit_handler()
 	{
-	zeek::util::set_processing_status("TERMINATED", "atexit");
+	zeek::util::detail::set_processing_status("TERMINATED", "atexit");
 	}
 
 static void bro_new_handler()
@@ -407,7 +407,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	ZEEK_LSAN_DISABLE();
 	std::set_new_handler(bro_new_handler);
 
-	auto zeek_exe_path = zeek::util::get_exe_path(argv[0]);
+	auto zeek_exe_path = zeek::util::detail::get_exe_path(argv[0]);
 
 	if ( zeek_exe_path.empty() )
 		{
@@ -487,7 +487,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		proc_status_file = zeek::util::copy_string(options.process_status_file->data());
 
 	atexit(atexit_handler);
-	zeek::util::set_processing_status("INITIALIZING", "main");
+	zeek::util::detail::set_processing_status("INITIALIZING", "main");
 
 	zeek::net::zeek_start_time = zeek::util::current_time(true);
 
@@ -521,9 +521,9 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( options.random_seed_input_file )
 		seed_load_file = options.random_seed_input_file->data();
 
-	zeek::util::init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : nullptr),
-	                             options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr,
-	                             options.deterministic_mode);
+	zeek::util::detail::init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : nullptr),
+	                                     options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr,
+	                                     options.deterministic_mode);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 

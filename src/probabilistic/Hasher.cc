@@ -33,7 +33,7 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 
 	else
 		{
-		unsigned int first_seed = zeek::util::initial_seed();
+		unsigned int first_seed = zeek::util::detail::initial_seed();
 		zeek::detail::hash_update(ctx, &first_seed, sizeof(first_seed));
 		}
 
@@ -119,7 +119,7 @@ DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
 	for ( size_t i = 1; i <= k; ++i )
 		{
 		seed_t s = Seed();
-		s.h[0] += zeek::util::prng(i);
+		s.h[0] += zeek::util::detail::prng(i);
 		hash_functions.push_back(UHF(s));
 		}
 	}
@@ -149,7 +149,7 @@ bool DefaultHasher::Equals(const Hasher* other) const
 	}
 
 DoubleHasher::DoubleHasher(size_t k, seed_t seed)
-	: Hasher(k, seed), h1(seed + zeek::util::prng(1)), h2(seed + zeek::util::prng(2))
+	: Hasher(k, seed), h1(seed + zeek::util::detail::prng(1)), h2(seed + zeek::util::detail::prng(2))
 	{
 	}
 

@@ -20,7 +20,7 @@ AnonymizeIPAddr* zeek::detail::ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {
 
 static uint32_t rand32()
 	{
-	return ((zeek::util::random_number() & 0xffff) << 16) | (zeek::util::random_number() & 0xffff);
+	return ((zeek::util::detail::random_number() & 0xffff) << 16) | (zeek::util::detail::random_number() & 0xffff);
 	}
 
 // From tcpdpriv.
@@ -104,7 +104,7 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 	uint8_t digest[16];
 	ipaddr32_t output = 0;
 
-	zeek::util::hmac_md5(sizeof(input), (u_char*)(&input), digest);
+	zeek::util::detail::hmac_md5(sizeof(input), (u_char*)(&input), digest);
 
 	for ( int i = 0; i < 4; ++i )
 		output = (output << 8) | digest[i];
@@ -132,7 +132,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 		prefix.prefix = htonl((input & ~(prefix_mask>>i)) | (1<<(31-i)));
 
 		// HK(PAD(x_0 ... x_{i-1})).
-		zeek::util::hmac_md5(sizeof(prefix), (u_char*) &prefix, digest);
+		zeek::util::detail::hmac_md5(sizeof(prefix), (u_char*) &prefix, digest);
 
 		// f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
 		ipaddr32_t bit_mask = (digest[0] & 1) << (31-i);

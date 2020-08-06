@@ -19,13 +19,13 @@ namespace zeek {
 class Event final : public zeek::Obj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
-	      zeek::util::SourceID src = zeek::util::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	      zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	      zeek::Obj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
 
-	zeek::util::SourceID Source() const		{ return src; }
+	zeek::util::detail::SourceID Source() const		{ return src; }
 	zeek::analyzer::ID Analyzer() const	{ return aid; }
 	EventHandlerPtr Handler() const	{ return handler; }
 	const zeek::Args& Args() const	{ return args; }
@@ -41,7 +41,7 @@ protected:
 
 	EventHandlerPtr handler;
 	zeek::Args args;
-	zeek::util::SourceID src;
+	zeek::util::detail::SourceID src;
 	zeek::analyzer::ID aid;
 	zeek::Obj* obj;
 	Event* next_event;
@@ -62,7 +62,7 @@ public:
 	// arguments when there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
-	                    zeek::util::SourceID src = zeek::util::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                    zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	                    zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
@@ -73,7 +73,7 @@ public:
 	// existence check.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
-	                zeek::util::SourceID src = zeek::util::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	// Same as QueueEvent, except taking the event's argument list via a
@@ -82,7 +82,7 @@ public:
 	// each of its elements.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
-	                zeek::util::SourceID src = zeek::util::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	                zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
 	/**
@@ -98,7 +98,7 @@ public:
 	 * reference to until dispatching the event.
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-	             zeek::util::SourceID src = zeek::util::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
+	             zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	             zeek::Obj* obj = nullptr);
 
 	/**
@@ -119,7 +119,7 @@ public:
 	bool HasEvents() const	{ return head != nullptr; }
 
 	// Returns the source ID of last raised event.
-	zeek::util::SourceID CurrentSource() const	{ return current_src; }
+	zeek::util::detail::SourceID CurrentSource() const	{ return current_src; }
 
 	// Returns the ID of the analyzer which raised the last event, or 0 if
 	// non-analyzer event.
@@ -143,7 +143,7 @@ protected:
 
 	Event* head;
 	Event* tail;
-	zeek::util::SourceID current_src;
+	zeek::util::detail::SourceID current_src;
 	zeek::analyzer::ID current_aid;
 	zeek::RecordVal* src_val;
 	bool draining;

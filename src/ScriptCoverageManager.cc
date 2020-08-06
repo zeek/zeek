@@ -96,7 +96,7 @@ bool ScriptCoverageManager::WriteStats()
 
 	zeek::util::SafeDirname dirname{bf};
 
-	if ( ! zeek::util::ensure_intermediate_dirs(dirname.result.data()) )
+	if ( ! zeek::util::detail::ensure_intermediate_dirs(dirname.result.data()) )
 		{
 		zeek::reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;

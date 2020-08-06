@@ -58,12 +58,12 @@ static string NormalizeScriptPath(const string& path)
 	{
 	if ( auto p = zeek::plugin_mgr->LookupPluginByPath(path) )
 		{
-		auto rval = zeek::util::normalize_path(path);
+		auto rval = zeek::util::detail::normalize_path(path);
 		auto prefix = zeek::util::SafeBasename(p->PluginDirectory()).result;
 		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
 		}
 
-	return zeek::util::without_zeekpath_component(path);
+	return zeek::util::detail::without_zeekpath_component(path);
 	}
 
 Manager::Manager(const string& arg_config, const string& bro_command)

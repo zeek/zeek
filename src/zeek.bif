@@ -391,7 +391,7 @@ function terminate%(%): bool
 	if ( zeek::net::terminating )
 		return zeek::val_mgr->False();
 
-	zeek::util::terminate_processing();
+	zeek::util::detail::terminate_processing();
 	return zeek::val_mgr->True();
 	%}
 
@@ -930,7 +930,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = bro_uint_t(double(max) * double(zeek::util::random_number()) / (zeek::util::max_random() + 1.0));
+	auto result = bro_uint_t(double(max) * double(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 
@@ -946,7 +946,7 @@ function rand%(max: count%): count
 ##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	zeek::util::seed_random(seed);
+	zeek::util::detail::seed_random(seed);
 	return nullptr;
 	%}
 
@@ -4712,7 +4712,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 		addl_pkt_dumper->Close();
 		}
 
-	FILE* file = zeek::util::rotate_file(f->CheckString(), info.get());
+	FILE* file = zeek::util::detail::rotate_file(f->CheckString(), info.get());
 	if ( ! file )
 		{
 		// Record indicating error.
@@ -4750,8 +4750,8 @@ function calc_next_rotate%(i: interval%) : interval
 	static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
-	double base = zeek::util::parse_rotate_base_time(base_time);
-	return zeek::make_intrusive<zeek::IntervalVal>(zeek::util::calc_next_rotate(zeek::net::network_time, i, base));
+	double base = zeek::util::detail::parse_rotate_base_time(base_time);
+	return zeek::make_intrusive<zeek::IntervalVal>(zeek::util::detail::calc_next_rotate(zeek::net::network_time, i, base));
 	%}
 
 ## Returns the size of a given file.
@@ -4999,7 +4999,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Returns: True if the last raised event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
-	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != zeek::util::SOURCE_LOCAL);
+	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != zeek::util::detail::SOURCE_LOCAL);
 	%}
 
 ## Stops Zeek's packet processing. This function is used to synchronize
@@ -5169,5 +5169,5 @@ function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern
 ## Returns: a compressed version of the input path.
 function compress_path%(dir: string%): string
 	%{
-	return zeek::make_intrusive<zeek::StringVal>(zeek::util::normalize_path(dir->ToStdString()));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::util::detail::normalize_path(dir->ToStdString()));
 	%}

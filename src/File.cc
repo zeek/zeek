@@ -282,7 +282,7 @@ zeek::RecordVal* File::Rotate()
 
 	static auto rotate_info = zeek::id::find_type<zeek::RecordType>("rotate_info");
 	auto* info = new zeek::RecordVal(rotate_info);
-	FILE* newf = zeek::util::rotate_file(name, info);
+	FILE* newf = zeek::util::detail::rotate_file(name, info);
 
 	if ( ! newf )
 		{

@@ -410,14 +410,14 @@ size_t Dictionary::MemoryAllocation() const
 	size_t size = padded_sizeof(*this);
 	if ( table )
 		{
-		size += pad_size(Capacity() * sizeof(detail::DictEntry));
+		size += zeek::util::pad_size(Capacity() * sizeof(detail::DictEntry));
 		for ( int i = Capacity()-1; i>=0; i-- )
 			if ( ! table[i].Empty() && table[i].key_size > 8 )
-				size += pad_size(table[i].key_size);
+				size += zeek::util::pad_size(table[i].key_size);
 		}
 
 	if ( order )
-		size += padded_sizeof(std::vector<detail::DictEntry>) + pad_size(sizeof(detail::DictEntry) * order->capacity());
+		size += padded_sizeof(std::vector<detail::DictEntry>) + zeek::util::pad_size(sizeof(detail::DictEntry) * order->capacity());
 
 	return size;
 	}
@@ -497,7 +497,7 @@ void Dictionary::Dump(int level) const
 		{
 		if ( table[i].Empty() )
 			continue;
-		key_size += pad_size(table[i].key_size);
+		key_size += zeek::util::pad_size(table[i].key_size);
 		if ( ! table[i].value )
 			continue;
 		}

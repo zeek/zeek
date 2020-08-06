@@ -1216,7 +1216,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		}
 
 	if ( vl.size() == args.size() )
-		zeek::event_mgr.Enqueue(handler, std::move(vl), zeek::util::SOURCE_BROKER);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), zeek::util::detail::SOURCE_BROKER);
 	}
 
 bool Manager::ProcessLogCreate(broker::zeek::LogCreate lc)

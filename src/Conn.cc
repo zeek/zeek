@@ -512,13 +512,13 @@ void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyz
 		return;
 
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
 	{
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
+	zeek::event_mgr.Enqueue(f, zeek::val_list_to_args(vl), zeek::util::detail::SOURCE_LOCAL,
 	                        a ? a->GetID() : 0, this);
 	}
 
@@ -535,7 +535,7 @@ void Connection::EnqueueEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer*
                               zeek::Args args)
 	{
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)

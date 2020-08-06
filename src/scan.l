@@ -175,12 +175,12 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 	/* IPv6 literal constant patterns */
 {IP6}	{
-	RET_CONST(new zeek::AddrVal(zeek::util::extract_ip(yytext)))
+	RET_CONST(new zeek::AddrVal(zeek::util::detail::extract_ip(yytext)))
 }
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	std::string ip = zeek::util::extract_ip_and_len(yytext, &len);
+	std::string ip = zeek::util::detail::extract_ip_and_len(yytext, &len);
 	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len, true)))
 }
 
@@ -189,7 +189,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	std::string ip = zeek::util::extract_ip_and_len(yytext, &len);
+	std::string ip = zeek::util::detail::extract_ip_and_len(yytext, &len);
 	RET_CONST(new zeek::SubNetVal(zeek::IPPrefix(zeek::IPAddr(ip), len)))
 }
 
@@ -516,7 +516,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		if ( *text == '\\' )
 			{
 			++text;	// skip '\'
-			s[i++] = zeek::util::expand_escape(text);
+			s[i++] = zeek::util::detail::expand_escape(text);
 			--text;	// point to end of sequence
 			}
 		else
@@ -614,7 +614,7 @@ static int load_files(const char* orig_file)
 			zeek::reporter->FatalError("can't find %s", orig_file);
 
 		if ( zeek::util::is_dir(file_path.c_str()) )
-			f = zeek::util::open_package(file_path);
+			f = zeek::util::detail::open_package(file_path);
 		else
 			f = zeek::util::open_file(file_path);
 
@@ -903,8 +903,8 @@ int yywrap()
 			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
-			std::string canon = zeek::util::without_zeekpath_component(it->name);
-			std::string flat = zeek::util::flatten_script_name(canon, zeek_script_prefixes[i]);
+			std::string canon = zeek::util::detail::without_zeekpath_component(it->name);
+			std::string flat = zeek::util::detail::flatten_script_name(canon, zeek_script_prefixes[i]);
 			std::string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )

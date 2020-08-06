@@ -212,7 +212,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 <INITIAL,SC_QUOTE,SC_FIRST_CCL,SC_CCL>{ESCSEQ}	{
 			const char* esc_text = yytext + 1;
-			yylval.int_val = zeek::util::expand_escape(esc_text);
+			yylval.int_val = zeek::util::detail::expand_escape(esc_text);
 
 			if ( YY_START == SC_FIRST_CCL )
 				BEGIN(SC_CCL);

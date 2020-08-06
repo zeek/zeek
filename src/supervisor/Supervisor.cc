@@ -624,7 +624,7 @@ size_t Supervisor::ProcessMessages()
 Stem::Stem(State ss)
 	: parent_pid(ss.parent_pid), signal_flare(new zeek::detail::Flare()), pipe(std::move(ss.pipe))
 	{
-	zeek::util::set_thread_name("zeek.stem");
+	zeek::util::detail::set_thread_name("zeek.stem");
 	pipe->Swap();
 	stem = this;
 	setsignal(SIGCHLD, stem_signal_handler);
@@ -840,7 +840,7 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node)
 		{
 		setsignal(SIGCHLD, SIG_DFL);
 		setsignal(SIGTERM, SIG_DFL);
-		zeek::util::set_thread_name(zeek::util::fmt("zeek.%s", node->Name().data()));
+		zeek::util::detail::set_thread_name(zeek::util::fmt("zeek.%s", node->Name().data()));
 		SupervisedNode rval;
 		rval.config = node->config;
 		rval.parent_pid = ppid;
@@ -1610,7 +1610,7 @@ std::string Supervisor::Create(const Supervisor::NodeConfig& node)
 
 	if ( node.directory )
 		{
-		auto res = zeek::util::ensure_intermediate_dirs(node.directory->data());
+		auto res = zeek::util::detail::ensure_intermediate_dirs(node.directory->data());
 
 		if ( ! res )
 			return zeek::util::fmt("failed to create working directory %s\n",

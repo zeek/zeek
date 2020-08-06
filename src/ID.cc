@@ -222,8 +222,8 @@ void ID::SetVal(ExprPtr ev, InitClass c)
 
 	if ( ! val )
 		{
-		Error(fmt("%s initializer applied to ID without value",
-		          c == INIT_EXTRA ? "+=" : "-="), this);
+		Error(zeek::util::fmt("%s initializer applied to ID without value",
+		                      c == INIT_EXTRA ? "+=" : "-="), this);
 		return;
 		}
 

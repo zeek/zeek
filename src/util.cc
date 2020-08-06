@@ -72,7 +72,10 @@ using namespace std;
 
 extern const char* proc_status_file;
 
-namespace zeek::util {
+static bool can_read(const string& path)
+	{
+	return access(path.c_str(), R_OK) == 0;
+	}
 
 static bool starts_with(std::string_view s, std::string_view beginning)
 	{
@@ -103,6 +106,11 @@ TEST_CASE("util ends_with")
 	CHECK(ends_with("abcde", "fg") == false);
 	CHECK(ends_with("abcde", "abcedf") == false);
 	}
+
+static string zeek_path_value;
+
+namespace zeek::util {
+namespace detail {
 
 TEST_CASE("util extract_ip")
 	{
@@ -165,6 +173,863 @@ std::string extract_ip_and_len(const std::string& i, int* len)
 
 	return extract_ip(i.substr(0, pos));
 	}
+
+
+static constexpr int parse_octal_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '7' )
+		return ch - '0';
+	else
+		return -1;
+	}
+
+static constexpr int parse_hex_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '9' )
+		return ch - '0';
+	else if ( ch >= 'a' && ch <= 'f' )
+		return 10 + ch - 'a';
+	else if ( ch >= 'A' && ch <= 'F' )
+		return 10 + ch - 'A';
+	else
+		return -1;
+	}
+
+int expand_escape(const char*& s)
+	{
+	switch ( *(s++) ) {
+	case 'b': return '\b';
+	case 'f': return '\f';
+	case 'n': return '\n';
+	case 'r': return '\r';
+	case 't': return '\t';
+	case 'a': return '\a';
+	case 'v': return '\v';
+
+	case '0': case '1': case '2': case '3': case '4':
+	case '5': case '6': case '7':
+		{ // \<octal>{1,3}
+		--s;	// put back the first octal digit
+		const char* start = s;
+
+		// require at least one octal digit and parse at most three
+
+		int result = parse_octal_digit(*s++);
+
+		if ( result < 0 )
+			{
+			zeek::reporter->Error("bad octal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_octal_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 3) | digit;
+			++s;
+
+			// third digit?
+			digit = parse_octal_digit(*s);
+
+			if ( digit >= 0 )
+				{
+				result = (result << 3) | digit;
+				++s;
+				}
+			}
+
+		return result;
+		}
+
+	case 'x':
+		{ /* \x<hex> */
+		const char* start = s;
+
+		// Look at most 2 characters, so that "\x0ddir" -> "^Mdir".
+
+		int result = parse_hex_digit(*s++);
+
+		if ( result < 0 )
+			{
+			zeek::reporter->Error("bad hexadecimal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_hex_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 4) | digit;
+			++s;
+			}
+
+		return result;
+		}
+
+	default:
+		return s[-1];
+	}
+	}
+
+const char* fmt_access_time(double t)
+	{
+	static char buf[256];
+	time_t time = (time_t) t;
+	struct tm ts;
+
+	if ( ! localtime_r(&time, &ts) )
+		{
+		zeek::reporter->InternalError("unable to get time");
+		}
+
+	strftime(buf, sizeof(buf), "%d/%m-%H:%M", &ts);
+	return buf;
+	}
+
+bool ensure_intermediate_dirs(const char* dirname)
+	{
+	if ( ! dirname || strlen(dirname) == 0 )
+		return false;
+
+	bool absolute = dirname[0] == '/';
+	string path = normalize_path(dirname);
+
+	const auto path_components = tokenize_string(path, '/');
+
+	string current_dir;
+
+	for ( size_t i = 0; i < path_components.size(); ++i )
+		{
+		if ( i > 0 || absolute )
+			current_dir += "/";
+
+		current_dir += path_components[i];
+
+		if ( ! ensure_dir(current_dir.c_str()) )
+			return false;
+		}
+
+	return true;
+	}
+
+bool ensure_dir(const char *dirname)
+	{
+	if ( mkdir(dirname, 0700) == 0 )
+		return true;
+
+	auto mkdir_errno = errno;
+	struct stat st;
+
+	if ( stat(dirname, &st) == -1 )
+		{
+		// Show the original failure reason for mkdir() since nothing's there
+		// or we can't even tell what is now.
+		zeek::reporter->Warning("can't create directory %s: %s",
+		                        dirname, strerror(mkdir_errno));
+		return false;
+		}
+
+	if ( S_ISDIR(st.st_mode) )
+		return true;
+
+	zeek::reporter->Warning("%s exists but is not a directory", dirname);
+	return false;
+	}
+
+void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
+	{
+	if ( ! zeek::detail::KeyedHash::seeds_initialized )
+		zeek::reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
+
+	zeek::detail::internal_md5(bytes, size, digest);
+
+	for ( int i = 0; i < 16; ++i )
+		digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
+
+	zeek::detail::internal_md5(digest, 16, digest);
+	}
+
+static bool read_random_seeds(const char* read_file, uint32_t* seed,
+				std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
+	{
+	FILE* f = nullptr;
+
+	if ( ! (f = fopen(read_file, "r")) )
+		{
+		zeek::reporter->Warning("Could not open seed file '%s': %s",
+		                        read_file, strerror(errno));
+		return false;
+		}
+
+	// Read seed for srandom().
+	if ( fscanf(f, "%u", seed) != 1 )
+		{
+		fclose(f);
+		return false;
+		}
+
+	// Read seeds for hmac-md5/siphash/highwayhash.
+	for ( auto &v : buf )
+		{
+		int tmp;
+		if ( fscanf(f, "%u", &tmp) != 1 )
+			{
+			fclose(f);
+			return false;
+			}
+
+		v = tmp;
+		}
+
+	fclose(f);
+	return true;
+	}
+
+static bool write_random_seeds(const char* write_file, uint32_t seed,
+				std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
+	{
+	FILE* f = nullptr;
+
+	if ( ! (f = fopen(write_file, "w+")) )
+		{
+		zeek::reporter->Warning("Could not create seed file '%s': %s",
+		                        write_file, strerror(errno));
+		return false;
+		}
+
+	fprintf(f, "%u\n", seed);
+
+	for ( const auto &v: buf )
+		fprintf(f, "%u\n", v);
+
+	fclose(f);
+	return true;
+	}
+
+static bool zeek_rand_determistic = false;
+static long int zeek_rand_state = 0;
+static bool first_seed_saved = false;
+static unsigned int first_seed = 0;
+
+static void zeek_srandom(unsigned int seed, bool deterministic)
+	{
+	zeek_rand_state = seed == 0 ? 1 : seed;
+	zeek_rand_determistic = deterministic;
+
+	srandom(seed);
+	}
+
+void seed_random(unsigned int seed)
+	{
+	if ( zeek_rand_determistic )
+		zeek_rand_state = seed == 0 ? 1 : seed;
+	else
+		srandom(seed);
+	}
+
+void init_random_seed(const char* read_file, const char* write_file,
+                      bool use_empty_seeds)
+	{
+	std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
+	size_t pos = 0;	// accumulates entropy
+	bool seeds_done = false;
+	uint32_t seed = 0;
+
+	if ( read_file )
+		{
+		if ( ! read_random_seeds(read_file, &seed, buf) )
+			zeek::reporter->FatalError("Could not load seeds from file '%s'.\n",
+			                           read_file);
+		else
+			seeds_done = true;
+		}
+	else if ( use_empty_seeds )
+		seeds_done = true;
+
+	if ( ! seeds_done )
+		{
+#ifdef HAVE_GETRANDOM
+		// getrandom() guarantees reads up to 256 bytes are always successful,
+		assert(sizeof(buf) < 256);
+		auto nbytes = getrandom(buf.data(), sizeof(buf), 0);
+		assert(nbytes == sizeof(buf));
+		pos += nbytes / sizeof(uint32_t);
+#else
+		// Gather up some entropy.
+		gettimeofday((struct timeval *)(buf.data() + pos), 0);
+		pos += sizeof(struct timeval) / sizeof(uint32_t);
+
+		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
+#if defined(O_NONBLOCK)
+		int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
+#elif defined(O_NDELAY)
+		int fd = open("/dev/urandom", O_RDONLY | O_NDELAY);
+#else
+		int fd = open("/dev/urandom", O_RDONLY);
+#endif
+
+		if ( fd >= 0 )
+			{
+			int amt = read(fd, buf.data() + pos,
+					sizeof(uint32_t) * (zeek::detail::KeyedHash::SEED_INIT_SIZE - pos));
+			safe_close(fd);
+
+			if ( amt > 0 )
+				pos += amt / sizeof(uint32_t);
+			else
+				// Clear errno, which can be set on some
+				// systems due to a lack of entropy.
+				errno = 0;
+			}
+#endif
+
+		if ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE )
+			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %zu",
+			                           zeek::detail::KeyedHash::SEED_INIT_SIZE, pos);
+
+		if ( ! seed )
+			{
+			for ( size_t i = 0; i < pos; ++i )
+				{
+				seed ^= buf[i];
+				seed = (seed << 1) | (seed >> 31);
+				}
+			}
+		else
+			seeds_done = true;
+		}
+
+	zeek_srandom(seed, seeds_done);
+
+	if ( ! first_seed_saved )
+		{
+		first_seed = seed;
+		first_seed_saved = true;
+		}
+
+	if ( ! zeek::detail::KeyedHash::IsInitialized() )
+		zeek::detail::KeyedHash::InitializeSeeds(buf);
+
+	if ( write_file && ! write_random_seeds(write_file, seed, buf) )
+		zeek::reporter->Error("Could not write seeds to file '%s'.\n",
+		                      write_file);
+	}
+
+unsigned int initial_seed()
+	{
+	return first_seed;
+	}
+
+bool have_random_seed()
+	{
+	return zeek_rand_determistic;
+	}
+
+constexpr uint32_t zeek_prng_mod = 2147483647;
+constexpr uint32_t zeek_prng_max = zeek_prng_mod - 1;
+
+long int max_random()
+	{
+	return zeek_rand_determistic ? zeek_prng_max : RAND_MAX;
+	}
+
+long int prng(long int state)
+	{
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.  (Lehmer RNG, Schrage's method)
+	// Note: the choice of "long int" storage type for the state is mostly
+	// for parity with the possible return values of random().
+	constexpr uint32_t m = zeek_prng_mod;
+	constexpr uint32_t a = 16807;
+	constexpr uint32_t q = m / a;
+	constexpr uint32_t r = m % a;
+
+	uint32_t rem = state % q;
+	uint32_t div = state / q;
+	int32_t s = a * rem;
+	int32_t t = r * div;
+	int32_t res = s - t;
+
+	if ( res < 0 )
+		res += m;
+
+	return res;
+	}
+
+long int random_number()
+	{
+	if ( ! zeek_rand_determistic )
+		return random(); // Use system PRNG.
+
+	zeek_rand_state = detail::prng(zeek_rand_state);
+
+	return zeek_rand_state;
+	}
+
+// Returns a 64-bit random string.
+uint64_t rand64bit()
+	{
+	uint64_t base = 0;
+	int i;
+
+	for ( i = 1; i <= 4; ++i )
+		base = (base<<16) | detail::random_number();
+	return base;
+	}
+
+const array<string, 2> script_extensions = {".zeek", ".bro"};
+
+void warn_if_legacy_script(std::string_view filename)
+	{
+	if ( ends_with(filename, ".bro") )
+		{
+		std::string x(filename);
+		zeek::reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
+		}
+	}
+
+TEST_CASE("util is_package_loader")
+	{
+	CHECK(is_package_loader("/some/path/__load__.zeek") == true);
+	CHECK(is_package_loader("/some/path/notload.zeek") == false);
+	}
+
+bool is_package_loader(const string& path)
+	{
+	string filename(std::move(SafeBasename(path).result));
+
+	for ( const string& ext : script_extensions )
+		{
+		if ( filename == "__load__" + ext )
+			{
+			warn_if_legacy_script(filename);
+			return true;
+			}
+		}
+
+	return false;
+	}
+
+void add_to_zeek_path(const string& dir)
+	{
+	// Make sure path is initialized.
+	zeek_path();
+
+	zeek_path_value += string(":") + dir;
+	}
+
+FILE* open_package(string& path, const string& mode)
+	{
+	string arg_path = path;
+	path.append("/__load__");
+
+	for ( const string& ext : script_extensions )
+		{
+		string p = path + ext;
+		if ( can_read(p) )
+			{
+			warn_if_legacy_script(path);
+			path.append(ext);
+			return open_file(path, mode);
+			}
+		}
+
+	path.append(script_extensions[0]);
+	string package_loader = "__load__" + script_extensions[0];
+	zeek::reporter->Error("Failed to open package '%s': missing '%s' file",
+	                      arg_path.c_str(), package_loader.c_str());
+	return nullptr;
+	}
+
+void SafePathOp::CheckValid(const char* op_result, const char* path,
+                            bool error_aborts)
+	{
+	if ( op_result )
+		{
+		result = op_result;
+		error = false;
+		}
+	else
+		{
+		if ( error_aborts )
+			zeek::reporter->InternalError("Path operation failed on %s: %s",
+			                              path ? path : "<null>", strerror(errno));
+		else
+			error = true;
+		}
+	}
+
+TEST_CASE("util flatten_script_name")
+	{
+	CHECK(flatten_script_name("script", "some/path") == "some.path.script");
+	CHECK(flatten_script_name("other/path/__load__.zeek", "some/path") == "some.path.other.path");
+	CHECK(flatten_script_name("path/to/script", "") == "path.to.script");
+	}
+
+string flatten_script_name(const string& name, const string& prefix)
+	{
+	string rval = prefix;
+
+	if ( ! rval.empty() )
+		rval.append(".");
+
+	if ( is_package_loader(name) )
+		rval.append(SafeDirname(name).result);
+	else
+		rval.append(name);
+
+	size_t i;
+
+	while ( (i = rval.find('/')) != string::npos )
+		rval[i] = '.';
+
+	return rval;
+	}
+
+TEST_CASE("util normalize_path")
+	{
+	CHECK(normalize_path("/1/2/3") == "/1/2/3");
+	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
+	CHECK(normalize_path("/1/2/../3") == "/1/3");
+	CHECK(normalize_path("1/2/3/") == "1/2/3");
+	CHECK(normalize_path("1/2//3///") == "1/2/3");
+	CHECK(normalize_path("~/zeek/testing") == "~/zeek/testing");
+	CHECK(normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~/zeek/testing/../././.") == "~/zeek");
+	CHECK(normalize_path("./zeek") == "./zeek");
+	CHECK(normalize_path("../zeek") == "../zeek");
+	CHECK(normalize_path("../zeek/testing/..") == "../zeek");
+	CHECK(normalize_path("./zeek/..") == ".");
+	CHECK(normalize_path("./zeek/../..") == "..");
+	CHECK(normalize_path("./zeek/../../..") == "../..");
+	CHECK(normalize_path("./..") == "..");
+	CHECK(normalize_path("../..") == "../..");
+	CHECK(normalize_path("/..") == "/..");
+	CHECK(normalize_path("~/..") == "~/..");
+	CHECK(normalize_path("/../..") == "/../..");
+	CHECK(normalize_path("~/../..") == "~/../..");
+	CHECK(normalize_path("zeek/..") == "");
+	CHECK(normalize_path("zeek/../..") == "..");
+	}
+
+string normalize_path(std::string_view path)
+	{
+	if ( path.find("/.") == std::string_view::npos &&
+	     path.find("//") == std::string_view::npos )
+		{
+		// no need to normalize anything
+		if ( path.size() > 1 && path.back() == '/' )
+			path.remove_suffix(1);
+		return std::string(path);
+		}
+
+	size_t n;
+	vector<std::string_view> final_components;
+	string new_path;
+	new_path.reserve(path.size());
+
+	if ( ! path.empty() && path[0] == '/' )
+		new_path = "/";
+
+	const auto components = tokenize_string(path, '/');
+	final_components.reserve(components.size());
+
+	for ( auto it = components.begin(); it != components.end(); ++it )
+		{
+		if ( *it == "" ) continue;
+		if ( *it == "." && it != components.begin() ) continue;
+
+		final_components.push_back(*it);
+
+		if ( *it == ".." )
+			{
+			auto cur_idx = final_components.size() - 1;
+
+			if ( cur_idx != 0 )
+				{
+				auto last_idx = cur_idx - 1;
+				auto& last_component = final_components[last_idx];
+
+				if ( last_component == "/" || last_component == "~" ||
+				     last_component == ".." )
+					continue;
+
+				if ( last_component == "." )
+					{
+					last_component = "..";
+					final_components.pop_back();
+					}
+				else
+					{
+					final_components.pop_back();
+					final_components.pop_back();
+					}
+				}
+			}
+		}
+
+	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
+		{
+		new_path.append(*it);
+		new_path.append("/");
+		}
+
+	if ( new_path.size() > 1 && new_path[new_path.size() - 1] == '/' )
+		new_path.erase(new_path.size() - 1);
+
+	return new_path;
+	}
+
+string without_zeekpath_component(std::string_view path)
+	{
+	string rval = normalize_path(path);
+
+	const auto paths = tokenize_string(zeek_path(), ':');
+
+	for ( size_t i = 0; i < paths.size(); ++i )
+		{
+		string common = normalize_path(paths[i]);
+
+		if ( rval.find(common) != 0 )
+			continue;
+
+		// Found the containing directory.
+		std::string_view v(rval);
+		v.remove_prefix(common.size());
+
+		// Remove leading path separators.
+		while ( !v.empty() && v.front() == '/' )
+			v.remove_prefix(1);
+
+		return std::string(v);
+		}
+
+	return rval;
+	}
+
+std::string get_exe_path(const std::string& invocation)
+	{
+	if ( invocation.empty() )
+		return "";
+
+	if ( invocation[0] == '/' || invocation[0] == '~' )
+		// Absolute path
+		return invocation;
+
+	if ( invocation.find('/') != std::string::npos )
+		{
+		// Relative path
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			fprintf(stderr, "failed to get current directory: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		return std::string(cwd) + "/" + invocation;
+		}
+
+	auto path = getenv("PATH");
+
+	if ( ! path )
+		return "";
+
+	return find_file(invocation, path);
+	}
+
+FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
+	{
+	// Build file names.
+	const int buflen = strlen(name) + 128;
+
+	auto newname_buf = std::make_unique<char[]>(buflen);
+	auto tmpname_buf = std::make_unique<char[]>(buflen + 4);
+	auto newname = newname_buf.get();
+	auto tmpname = tmpname_buf.get();
+
+	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
+	         name, getpid(), zeek::net::network_time);
+	newname[buflen-1] = '\0';
+	strcpy(tmpname, newname);
+	strcat(tmpname, ".tmp");
+
+	// First open the new file using a temporary name.
+	FILE* newf = fopen(tmpname, "w");
+	if ( ! newf )
+		{
+		zeek::reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
+		return nullptr;
+		}
+
+	// Then move old file to "<name>.<pid>.<timestamp>" and make sure
+	// it really gets created.
+	struct stat dummy;
+	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
+		{
+		zeek::reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
+		fclose(newf);
+		unlink(newname);
+		unlink(tmpname);
+		return nullptr;
+		}
+
+	// Close current file, and move the tmp to its place.
+	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
+		{
+		zeek::reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
+		exit(1);	// hard to fix, but shouldn't happen anyway...
+		}
+
+	// Init rotate_info.
+	if ( rotate_info )
+		{
+		rotate_info->Assign<zeek::StringVal>(0, name);
+		rotate_info->Assign<zeek::StringVal>(1, newname);
+		rotate_info->Assign<zeek::TimeVal>(2, zeek::net::network_time);
+		rotate_info->Assign<zeek::TimeVal>(3, zeek::net::network_time);
+		}
+
+	return newf;
+	}
+
+const char* log_file_name(const char* tag)
+	{
+	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
+	return fmt("%s.%s", tag, (env ? env : "log"));
+	}
+
+double parse_rotate_base_time(const char* rotate_base_time)
+	{
+	double base = -1;
+
+	if ( rotate_base_time && rotate_base_time[0] != '\0' )
+		{
+		struct tm t;
+		if ( ! strptime(rotate_base_time, "%H:%M", &t) )
+			zeek::reporter->Error("calc_next_rotate(): can't parse rotation base time");
+		else
+			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
+		}
+
+	return base;
+	}
+
+double calc_next_rotate(double current, double interval, double base)
+	{
+	if ( ! interval )
+		{
+		zeek::reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
+		interval = 86400;
+		}
+
+	// Calculate start of day.
+	time_t teatime = time_t(current);
+
+	struct tm t;
+	if ( ! localtime_r(&teatime, &t) )
+		{
+		zeek::reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
+
+		// fall back to the method used if no base time is given
+		base = -1;
+		}
+
+	if ( base < 0 )
+		// No base time given. To get nice timestamps, we round
+		// the time up to the next multiple of the rotation interval.
+		return floor(current / interval) * interval
+			+ interval - current;
+
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
+
+	// current < startofday + base + i * interval <= current + interval
+	return startofday + base +
+		ceil((current - startofday - base) / interval) * interval -
+			current;
+	}
+
+void terminate_processing()
+	{
+	if ( ! zeek::net::terminating )
+		raise(SIGTERM);
+	}
+
+void set_processing_status(const char* status, const char* reason)
+	{
+	if ( ! proc_status_file )
+		return;
+
+	// This function can be called from a signal context, so we have to
+	// make sure to only call reentrant functions and to restore errno
+	// afterwards.
+
+	int old_errno = errno;
+
+	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0700);
+
+	if ( fd < 0 )
+		{
+		char buf[256];
+		zeek_strerror_r(errno, buf, sizeof(buf));
+		if ( zeek::reporter )
+			zeek::reporter->Error("Failed to open process status file '%s': %s",
+			                      proc_status_file, buf);
+		else
+			fprintf(stderr, "Failed to open process status file '%s': %s\n",
+			        proc_status_file, buf);
+		errno = old_errno;
+		return;
+		}
+
+	auto write_str = [](int fd, const char* s)
+		{
+		int len = strlen(s);
+		while ( len )
+			{
+			int n = write(fd, s, len);
+
+			if ( n < 0 && errno != EINTR && errno != EAGAIN )
+				// Ignore errors, as they're too difficult to
+				// safely report here.
+				break;
+
+			s += n;
+			len -= n;
+			}
+		};
+
+	write_str(fd, status);
+	write_str(fd, " [");
+	write_str(fd, reason);
+	write_str(fd, "]\n");
+	safe_close(fd);
+
+	errno = old_errno;
+	}
+
+void set_thread_name(const char* name, pthread_t tid)
+	{
+#ifdef HAVE_LINUX
+	prctl(PR_SET_NAME, name, 0, 0, 0);
+#endif
+
+#ifdef __APPLE__
+	pthread_setname_np(name);
+#endif
+
+#ifdef __FreeBSD__
+	pthread_set_name_np(tid, name);
+#endif
+	}
+
+} // namespace detail
 
 TEST_CASE("util get_unescaped_string")
 	{
@@ -302,105 +1167,6 @@ TEST_CASE("util streq")
 int streq(const char* s1, const char* s2)
 	{
 	return ! strcmp(s1, s2);
-	}
-
-static constexpr int parse_octal_digit(char ch) noexcept
-	{
-	if ( ch >= '0' && ch <= '7' )
-		return ch - '0';
-	else
-		return -1;
-	}
-
-static constexpr int parse_hex_digit(char ch) noexcept
-	{
-	if ( ch >= '0' && ch <= '9' )
-		return ch - '0';
-	else if ( ch >= 'a' && ch <= 'f' )
-		return 10 + ch - 'a';
-	else if ( ch >= 'A' && ch <= 'F' )
-		return 10 + ch - 'A';
-	else
-		return -1;
-	}
-
-int expand_escape(const char*& s)
-	{
-	switch ( *(s++) ) {
-	case 'b': return '\b';
-	case 'f': return '\f';
-	case 'n': return '\n';
-	case 'r': return '\r';
-	case 't': return '\t';
-	case 'a': return '\a';
-	case 'v': return '\v';
-
-	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7':
-		{ // \<octal>{1,3}
-		--s;	// put back the first octal digit
-		const char* start = s;
-
-		// require at least one octal digit and parse at most three
-
-		int result = parse_octal_digit(*s++);
-
-		if ( result < 0 )
-			{
-			zeek::reporter->Error("bad octal escape: %s", start);
-			return 0;
-			}
-
-		// second digit?
-		int digit = parse_octal_digit(*s);
-
-		if ( digit >= 0 )
-			{
-			result = (result << 3) | digit;
-			++s;
-
-			// third digit?
-			digit = parse_octal_digit(*s);
-
-			if ( digit >= 0 )
-				{
-				result = (result << 3) | digit;
-				++s;
-				}
-			}
-
-		return result;
-		}
-
-	case 'x':
-		{ /* \x<hex> */
-		const char* start = s;
-
-		// Look at most 2 characters, so that "\x0ddir" -> "^Mdir".
-
-		int result = parse_hex_digit(*s++);
-
-		if ( result < 0 )
-			{
-			zeek::reporter->Error("bad hexadecimal escape: %s", start);
-			return 0;
-			}
-
-		// second digit?
-		int digit = parse_hex_digit(*s);
-
-		if ( digit >= 0 )
-			{
-			result = (result << 4) | digit;
-			++s;
-			}
-
-		return result;
-		}
-
-	default:
-		return s[-1];
-	}
 	}
 
 char* skip_whitespace(char* s)
@@ -862,71 +1628,6 @@ const char* fmt(const char* format, ...)
 	return rval;
 	}
 
-const char* fmt_access_time(double t)
-	{
-	static char buf[256];
-	time_t time = (time_t) t;
-	struct tm ts;
-
-	if ( ! localtime_r(&time, &ts) )
-		{
-		zeek::reporter->InternalError("unable to get time");
-		}
-
-	strftime(buf, sizeof(buf), "%d/%m-%H:%M", &ts);
-	return buf;
-	}
-
-bool ensure_intermediate_dirs(const char* dirname)
-	{
-	if ( ! dirname || strlen(dirname) == 0 )
-		return false;
-
-	bool absolute = dirname[0] == '/';
-	string path = normalize_path(dirname);
-
-	const auto path_components = tokenize_string(path, '/');
-
-	string current_dir;
-
-	for ( size_t i = 0; i < path_components.size(); ++i )
-		{
-		if ( i > 0 || absolute )
-			current_dir += "/";
-
-		current_dir += path_components[i];
-
-		if ( ! ensure_dir(current_dir.c_str()) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool ensure_dir(const char *dirname)
-	{
-	if ( mkdir(dirname, 0700) == 0 )
-		return true;
-
-	auto mkdir_errno = errno;
-	struct stat st;
-
-	if ( stat(dirname, &st) == -1 )
-		{
-		// Show the original failure reason for mkdir() since nothing's there
-		// or we can't even tell what is now.
-		zeek::reporter->Warning("can't create directory %s: %s",
-		                        dirname, strerror(mkdir_errno));
-		return false;
-		}
-
-	if ( S_ISDIR(st.st_mode) )
-		return true;
-
-	zeek::reporter->Warning("%s exists but is not a directory", dirname);
-	return false;
-	}
-
 bool is_dir(const std::string& path)
 	{
 	struct stat st;
@@ -999,247 +1700,6 @@ std::string strstrip(std::string s)
 	return s;
 	}
 
-void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
-	{
-	if ( ! zeek::detail::KeyedHash::seeds_initialized )
-		zeek::reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
-
-	zeek::detail::internal_md5(bytes, size, digest);
-
-	for ( int i = 0; i < 16; ++i )
-		digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
-
-	zeek::detail::internal_md5(digest, 16, digest);
-	}
-
-static bool read_random_seeds(const char* read_file, uint32_t* seed,
-				std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
-	{
-	FILE* f = nullptr;
-
-	if ( ! (f = fopen(read_file, "r")) )
-		{
-		zeek::reporter->Warning("Could not open seed file '%s': %s",
-		                        read_file, strerror(errno));
-		return false;
-		}
-
-	// Read seed for srandom().
-	if ( fscanf(f, "%u", seed) != 1 )
-		{
-		fclose(f);
-		return false;
-		}
-
-	// Read seeds for hmac-md5/siphash/highwayhash.
-	for ( auto &v : buf )
-		{
-		int tmp;
-		if ( fscanf(f, "%u", &tmp) != 1 )
-			{
-			fclose(f);
-			return false;
-			}
-
-		v = tmp;
-		}
-
-	fclose(f);
-	return true;
-	}
-
-static bool write_random_seeds(const char* write_file, uint32_t seed,
-				std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
-	{
-	FILE* f = nullptr;
-
-	if ( ! (f = fopen(write_file, "w+")) )
-		{
-		zeek::reporter->Warning("Could not create seed file '%s': %s",
-		                        write_file, strerror(errno));
-		return false;
-		}
-
-	fprintf(f, "%u\n", seed);
-
-	for ( const auto &v: buf )
-		fprintf(f, "%u\n", v);
-
-	fclose(f);
-	return true;
-	}
-
-static bool zeek_rand_determistic = false;
-static long int zeek_rand_state = 0;
-static bool first_seed_saved = false;
-static unsigned int first_seed = 0;
-
-static void zeek_srandom(unsigned int seed, bool deterministic)
-	{
-	zeek_rand_state = seed == 0 ? 1 : seed;
-	zeek_rand_determistic = deterministic;
-
-	srandom(seed);
-	}
-
-void seed_random(unsigned int seed)
-	{
-	if ( zeek_rand_determistic )
-		zeek_rand_state = seed == 0 ? 1 : seed;
-	else
-		srandom(seed);
-	}
-
-void init_random_seed(const char* read_file, const char* write_file,
-                      bool use_empty_seeds)
-	{
-	std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
-	size_t pos = 0;	// accumulates entropy
-	bool seeds_done = false;
-	uint32_t seed = 0;
-
-	if ( read_file )
-		{
-		if ( ! read_random_seeds(read_file, &seed, buf) )
-			zeek::reporter->FatalError("Could not load seeds from file '%s'.\n",
-			                           read_file);
-		else
-			seeds_done = true;
-		}
-	else if ( use_empty_seeds )
-		seeds_done = true;
-
-	if ( ! seeds_done )
-		{
-#ifdef HAVE_GETRANDOM
-		// getrandom() guarantees reads up to 256 bytes are always successful,
-		assert(sizeof(buf) < 256);
-		auto nbytes = getrandom(buf.data(), sizeof(buf), 0);
-		assert(nbytes == sizeof(buf));
-		pos += nbytes / sizeof(uint32_t);
-#else
-		// Gather up some entropy.
-		gettimeofday((struct timeval *)(buf.data() + pos), 0);
-		pos += sizeof(struct timeval) / sizeof(uint32_t);
-
-		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
-#if defined(O_NONBLOCK)
-		int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
-#elif defined(O_NDELAY)
-		int fd = open("/dev/urandom", O_RDONLY | O_NDELAY);
-#else
-		int fd = open("/dev/urandom", O_RDONLY);
-#endif
-
-		if ( fd >= 0 )
-			{
-			int amt = read(fd, buf.data() + pos,
-					sizeof(uint32_t) * (zeek::detail::KeyedHash::SEED_INIT_SIZE - pos));
-			safe_close(fd);
-
-			if ( amt > 0 )
-				pos += amt / sizeof(uint32_t);
-			else
-				// Clear errno, which can be set on some
-				// systems due to a lack of entropy.
-				errno = 0;
-			}
-#endif
-
-		if ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE )
-			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %zu",
-			                           zeek::detail::KeyedHash::SEED_INIT_SIZE, pos);
-
-		if ( ! seed )
-			{
-			for ( size_t i = 0; i < pos; ++i )
-				{
-				seed ^= buf[i];
-				seed = (seed << 1) | (seed >> 31);
-				}
-			}
-		else
-			seeds_done = true;
-		}
-
-	zeek_srandom(seed, seeds_done);
-
-	if ( ! first_seed_saved )
-		{
-		first_seed = seed;
-		first_seed_saved = true;
-		}
-
-	if ( ! zeek::detail::KeyedHash::IsInitialized() )
-		zeek::detail::KeyedHash::InitializeSeeds(buf);
-
-	if ( write_file && ! write_random_seeds(write_file, seed, buf) )
-		zeek::reporter->Error("Could not write seeds to file '%s'.\n",
-		                      write_file);
-	}
-
-unsigned int initial_seed()
-	{
-	return first_seed;
-	}
-
-bool have_random_seed()
-	{
-	return zeek_rand_determistic;
-	}
-
-constexpr uint32_t zeek_prng_mod = 2147483647;
-constexpr uint32_t zeek_prng_max = zeek_prng_mod - 1;
-
-long int max_random()
-	{
-	return zeek_rand_determistic ? zeek_prng_max : RAND_MAX;
-	}
-
-long int prng(long int state)
-	{
-	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.  (Lehmer RNG, Schrage's method)
-	// Note: the choice of "long int" storage type for the state is mostly
-	// for parity with the possible return values of random().
-	constexpr uint32_t m = zeek_prng_mod;
-	constexpr uint32_t a = 16807;
-	constexpr uint32_t q = m / a;
-	constexpr uint32_t r = m % a;
-
-	uint32_t rem = state % q;
-	uint32_t div = state / q;
-	int32_t s = a * rem;
-	int32_t t = r * div;
-	int32_t res = s - t;
-
-	if ( res < 0 )
-		res += m;
-
-	return res;
-	}
-
-long int random_number()
-	{
-	if ( ! zeek_rand_determistic )
-		return random(); // Use system PRNG.
-
-	zeek_rand_state = zeek::util::prng(zeek_rand_state);
-
-	return zeek_rand_state;
-	}
-
-// Returns a 64-bit random string.
-uint64_t rand64bit()
-	{
-	uint64_t base = 0;
-	int i;
-
-	for ( i = 1; i <= 4; ++i )
-		base = (base<<16) | zeek::util::random_number();
-	return base;
-	}
-
 int int_list_cmp(const void* v1, const void* v2)
 	{
 	std::intptr_t i1 = *(std::intptr_t*) v1;
@@ -1252,8 +1712,6 @@ int int_list_cmp(const void* v1, const void* v2)
 	else
 		return 1;
 	}
-
-static string zeek_path_value;
 
 const std::string& zeek_path()
 	{
@@ -1268,14 +1726,6 @@ const std::string& zeek_path()
 		}
 
 	return zeek_path_value;
-	}
-
-extern void add_to_zeek_path(const string& dir)
-	{
-	// Make sure path is initialized.
-	zeek_path();
-
-	zeek_path_value += string(":") + dir;
 	}
 
 const char* zeek_plugin_path()
@@ -1312,39 +1762,6 @@ string zeek_prefixes()
 	return rval;
 	}
 
-TEST_CASE("util is_package_loader")
-	{
-	CHECK(is_package_loader("/some/path/__load__.zeek") == true);
-	CHECK(is_package_loader("/some/path/notload.zeek") == false);
-	}
-
-const array<string, 2> script_extensions = {".zeek", ".bro"};
-
-void warn_if_legacy_script(std::string_view filename)
-	{
-	if ( ends_with(filename, ".bro") )
-		{
-		std::string x(filename);
-		zeek::reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
-		}
-	}
-
-bool is_package_loader(const string& path)
-	{
-	string filename(std::move(SafeBasename(path).result));
-
-	for ( const string& ext : script_extensions )
-		{
-		if ( filename == "__load__" + ext )
-			{
-			warn_if_legacy_script(filename);
-			return true;
-			}
-		}
-
-	return false;
-	}
-
 FILE* open_file(const string& path, const string& mode)
 	{
 	if ( path.empty() )
@@ -1360,34 +1777,6 @@ FILE* open_file(const string& path, const string& mode)
 		}
 
 	return rval;
-	}
-
-static bool can_read(const string& path)
-	{
-	return access(path.c_str(), R_OK) == 0;
-	}
-
-FILE* open_package(string& path, const string& mode)
-	{
-	string arg_path = path;
-	path.append("/__load__");
-
-	for ( const string& ext : script_extensions )
-		{
-		string p = path + ext;
-		if ( can_read(p) )
-			{
-			warn_if_legacy_script(path);
-			path.append(ext);
-			return open_file(path, mode);
-			}
-		}
-
-	path.append(script_extensions[0]);
-	string package_loader = "__load__" + script_extensions[0];
-	zeek::reporter->Error("Failed to open package '%s': missing '%s' file",
-	                      arg_path.c_str(), package_loader.c_str());
-	return nullptr;
 	}
 
 TEST_CASE("util path ops")
@@ -1413,24 +1802,6 @@ TEST_CASE("util path ops")
 		SafeBasename b2("justafile", false);
 		CHECK(b2.result == "justafile");
 		CHECK(! b2.error);
-		}
-	}
-
-void SafePathOp::CheckValid(const char* op_result, const char* path,
-                            bool error_aborts)
-	{
-	if ( op_result )
-		{
-		result = op_result;
-		error = false;
-		}
-	else
-		{
-		if ( error_aborts )
-			zeek::reporter->InternalError("Path operation failed on %s: %s",
-			                              path ? path : "<null>", strerror(errno));
-		else
-			error = true;
 		}
 	}
 
@@ -1494,33 +1865,6 @@ string implode_string_vector(const std::vector<std::string>& v,
 
 		rval += v[i];
 		}
-
-	return rval;
-	}
-
-TEST_CASE("util flatten_script_name")
-	{
-	CHECK(flatten_script_name("script", "some/path") == "some.path.script");
-	CHECK(flatten_script_name("other/path/__load__.zeek", "some/path") == "some.path.other.path");
-	CHECK(flatten_script_name("path/to/script", "") == "path.to.script");
-	}
-
-string flatten_script_name(const string& name, const string& prefix)
-	{
-	string rval = prefix;
-
-	if ( ! rval.empty() )
-		rval.append(".");
-
-	if ( is_package_loader(name) )
-		rval.append(SafeDirname(name).result);
-	else
-		rval.append(name);
-
-	size_t i;
-
-	while ( (i = rval.find('/')) != string::npos )
-		rval[i] = '.';
 
 	return rval;
 	}
@@ -1591,128 +1935,6 @@ vector<std::string_view> tokenize_string(std::string_view input, const char deli
 	return rval;
 	}
 
-TEST_CASE("util normalize_path")
-	{
-	CHECK(normalize_path("/1/2/3") == "/1/2/3");
-	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
-	CHECK(normalize_path("/1/2/../3") == "/1/3");
-	CHECK(normalize_path("1/2/3/") == "1/2/3");
-	CHECK(normalize_path("1/2//3///") == "1/2/3");
-	CHECK(normalize_path("~/zeek/testing") == "~/zeek/testing");
-	CHECK(normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
-	CHECK(normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
-	CHECK(normalize_path("~/zeek/testing/../././.") == "~/zeek");
-	CHECK(normalize_path("./zeek") == "./zeek");
-	CHECK(normalize_path("../zeek") == "../zeek");
-	CHECK(normalize_path("../zeek/testing/..") == "../zeek");
-	CHECK(normalize_path("./zeek/..") == ".");
-	CHECK(normalize_path("./zeek/../..") == "..");
-	CHECK(normalize_path("./zeek/../../..") == "../..");
-	CHECK(normalize_path("./..") == "..");
-	CHECK(normalize_path("../..") == "../..");
-	CHECK(normalize_path("/..") == "/..");
-	CHECK(normalize_path("~/..") == "~/..");
-	CHECK(normalize_path("/../..") == "/../..");
-	CHECK(normalize_path("~/../..") == "~/../..");
-	CHECK(normalize_path("zeek/..") == "");
-	CHECK(normalize_path("zeek/../..") == "..");
-	}
-
-string normalize_path(std::string_view path)
-	{
-	if ( path.find("/.") == std::string_view::npos &&
-	     path.find("//") == std::string_view::npos )
-		{
-		// no need to normalize anything
-		if ( path.size() > 1 && path.back() == '/' )
-			path.remove_suffix(1);
-		return std::string(path);
-		}
-
-	size_t n;
-	vector<std::string_view> final_components;
-	string new_path;
-	new_path.reserve(path.size());
-
-	if ( ! path.empty() && path[0] == '/' )
-		new_path = "/";
-
-	const auto components = tokenize_string(path, '/');
-	final_components.reserve(components.size());
-
-	for ( auto it = components.begin(); it != components.end(); ++it )
-		{
-		if ( *it == "" ) continue;
-		if ( *it == "." && it != components.begin() ) continue;
-
-		final_components.push_back(*it);
-
-		if ( *it == ".." )
-			{
-			auto cur_idx = final_components.size() - 1;
-
-			if ( cur_idx != 0 )
-				{
-				auto last_idx = cur_idx - 1;
-				auto& last_component = final_components[last_idx];
-
-				if ( last_component == "/" || last_component == "~" ||
-				     last_component == ".." )
-					continue;
-
-				if ( last_component == "." )
-					{
-					last_component = "..";
-					final_components.pop_back();
-					}
-				else
-					{
-					final_components.pop_back();
-					final_components.pop_back();
-					}
-				}
-			}
-		}
-
-	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
-		{
-		new_path.append(*it);
-		new_path.append("/");
-		}
-
-	if ( new_path.size() > 1 && new_path[new_path.size() - 1] == '/' )
-		new_path.erase(new_path.size() - 1);
-
-	return new_path;
-	}
-
-string without_zeekpath_component(std::string_view path)
-	{
-	string rval = normalize_path(path);
-
-	const auto paths = tokenize_string(zeek_path(), ':');
-
-	for ( size_t i = 0; i < paths.size(); ++i )
-		{
-		string common = normalize_path(paths[i]);
-
-		if ( rval.find(common) != 0 )
-			continue;
-
-		// Found the containing directory.
-		std::string_view v(rval);
-		v.remove_prefix(common.size());
-
-		// Remove leading path separators.
-		while ( !v.empty() && v.front() == '/' )
-			v.remove_prefix(1);
-
-		return std::string(v);
-		}
-
-	return rval;
-	}
-
 static string find_file_in_path(const string& filename, const string& path,
                                 const vector<string>& opt_ext)
 	{
@@ -1747,38 +1969,6 @@ static string find_file_in_path(const string& filename, const string& path,
 	return string();
 	}
 
-std::string get_exe_path(const std::string& invocation)
-	{
-	if ( invocation.empty() )
-		return "";
-
-	if ( invocation[0] == '/' || invocation[0] == '~' )
-		// Absolute path
-		return invocation;
-
-	if ( invocation.find('/') != std::string::npos )
-		{
-		// Relative path
-		char cwd[PATH_MAX];
-
-		if ( ! getcwd(cwd, sizeof(cwd)) )
-			{
-			fprintf(stderr, "failed to get current directory: %s\n",
-			        strerror(errno));
-			exit(1);
-			}
-
-		return std::string(cwd) + "/" + invocation;
-		}
-
-	auto path = getenv("PATH");
-
-	if ( ! path )
-		return "";
-
-	return find_file(invocation, path);
-	}
-
 string find_file(const string& filename, const string& path_set,
                  const string& opt_ext)
 	{
@@ -1805,7 +1995,7 @@ string find_script_file(const string& filename, const string& path_set)
 	vector<string> paths;
 	tokenize_string(path_set, ":", &paths);
 
-	vector<string> ext(script_extensions.begin(), script_extensions.end());
+	vector<string> ext(detail::script_extensions.begin(), detail::script_extensions.end());
 
 	for ( size_t n = 0; n < paths.size(); ++n )
 		{
@@ -1813,14 +2003,14 @@ string find_script_file(const string& filename, const string& path_set)
 
 		if ( ! f.empty() )
 			{
-			warn_if_legacy_script(f);
+			detail::warn_if_legacy_script(f);
 			return f;
 			}
 		}
 
 	if ( ends_with(filename, ".bro") )
 		{
-		warn_if_legacy_script(filename);
+		detail::warn_if_legacy_script(filename);
 
 		// We were looking for a file explicitly ending in .bro and didn't
 		// find it, so fall back to one ending in .zeek, if it exists.
@@ -1831,179 +2021,7 @@ string find_script_file(const string& filename, const string& path_set)
 	return string();
 	}
 
-FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
-	{
-	// Build file names.
-	const int buflen = strlen(name) + 128;
-
-	auto newname_buf = std::make_unique<char[]>(buflen);
-	auto tmpname_buf = std::make_unique<char[]>(buflen + 4);
-	auto newname = newname_buf.get();
-	auto tmpname = tmpname_buf.get();
-
-	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
-	         name, getpid(), zeek::net::network_time);
-	newname[buflen-1] = '\0';
-	strcpy(tmpname, newname);
-	strcat(tmpname, ".tmp");
-
-	// First open the new file using a temporary name.
-	FILE* newf = fopen(tmpname, "w");
-	if ( ! newf )
-		{
-		zeek::reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
-		return nullptr;
-		}
-
-	// Then move old file to "<name>.<pid>.<timestamp>" and make sure
-	// it really gets created.
-	struct stat dummy;
-	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
-		{
-		zeek::reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
-		fclose(newf);
-		unlink(newname);
-		unlink(tmpname);
-		return nullptr;
-		}
-
-	// Close current file, and move the tmp to its place.
-	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
-		{
-		zeek::reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
-		exit(1);	// hard to fix, but shouldn't happen anyway...
-		}
-
-	// Init rotate_info.
-	if ( rotate_info )
-		{
-		rotate_info->Assign<zeek::StringVal>(0, name);
-		rotate_info->Assign<zeek::StringVal>(1, newname);
-		rotate_info->Assign<zeek::TimeVal>(2, zeek::net::network_time);
-		rotate_info->Assign<zeek::TimeVal>(3, zeek::net::network_time);
-		}
-
-	return newf;
-	}
-
-const char* log_file_name(const char* tag)
-	{
-	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
-	return fmt("%s.%s", tag, (env ? env : "log"));
-	}
-
-double parse_rotate_base_time(const char* rotate_base_time)
-	{
-	double base = -1;
-
-	if ( rotate_base_time && rotate_base_time[0] != '\0' )
-		{
-		struct tm t;
-		if ( ! strptime(rotate_base_time, "%H:%M", &t) )
-			zeek::reporter->Error("calc_next_rotate(): can't parse rotation base time");
-		else
-			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
-		}
-
-	return base;
-	}
-
-double calc_next_rotate(double current, double interval, double base)
-	{
-	if ( ! interval )
-		{
-		zeek::reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
-		interval = 86400;
-		}
-
-	// Calculate start of day.
-	time_t teatime = time_t(current);
-
-	struct tm t;
-	if ( ! localtime_r(&teatime, &t) )
-		{
-		zeek::reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
-
-		// fall back to the method used if no base time is given
-		base = -1;
-		}
-
-	if ( base < 0 )
-		// No base time given. To get nice timestamps, we round
-		// the time up to the next multiple of the rotation interval.
-		return floor(current / interval) * interval
-			+ interval - current;
-
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
-
-	// current < startofday + base + i * interval <= current + interval
-	return startofday + base +
-		ceil((current - startofday - base) / interval) * interval -
-			current;
-	}
-
-
 RETSIGTYPE sig_handler(int signo);
-
-void terminate_processing()
-	{
-	if ( ! zeek::net::terminating )
-		raise(SIGTERM);
-	}
-
-void set_processing_status(const char* status, const char* reason)
-	{
-	if ( ! proc_status_file )
-		return;
-
-	// This function can be called from a signal context, so we have to
-	// make sure to only call reentrant functions and to restore errno
-	// afterwards.
-
-	int old_errno = errno;
-
-	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0700);
-
-	if ( fd < 0 )
-		{
-		char buf[256];
-		zeek_strerror_r(errno, buf, sizeof(buf));
-		if ( zeek::reporter )
-			zeek::reporter->Error("Failed to open process status file '%s': %s",
-			                      proc_status_file, buf);
-		else
-			fprintf(stderr, "Failed to open process status file '%s': %s\n",
-			        proc_status_file, buf);
-		errno = old_errno;
-		return;
-		}
-
-	auto write_str = [](int fd, const char* s)
-		{
-		int len = strlen(s);
-		while ( len )
-			{
-			int n = write(fd, s, len);
-
-			if ( n < 0 && errno != EINTR && errno != EAGAIN )
-				// Ignore errors, as they're too difficult to
-				// safely report here.
-				break;
-
-			s += n;
-			len -= n;
-			}
-		};
-
-	write_str(fd, status);
-	write_str(fd, " [");
-	write_str(fd, reason);
-	write_str(fd, "]\n");
-	safe_close(fd);
-
-	errno = old_errno;
-	}
 
 double current_time(bool real)
 	{
@@ -2085,7 +2103,7 @@ uint64_t calculate_unique_id(size_t pool)
 	if ( uid_pool[pool].needs_init )
 		{
 		// This is the first time we need a UID for this pool.
-		if ( ! have_random_seed() )
+		if ( ! detail::have_random_seed() )
 			{
 			// If we don't need deterministic output (as
 			// indicated by a set seed), we calculate the
@@ -2105,7 +2123,7 @@ uint64_t calculate_unique_id(size_t pool)
 			gettimeofday(&unique.time, 0);
 			unique.pool = (uint64_t) pool;
 			unique.pid = getpid();
-			unique.rnd = static_cast<int>(zeek::util::random_number());
+			unique.rnd = static_cast<int>(detail::random_number());
 
 			uid_instance = zeek::detail::HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.
@@ -2509,34 +2527,19 @@ string json_escape_utf8(const string& val)
 	return result;
 	}
 
-void set_thread_name(const char* name, pthread_t tid)
-	{
-#ifdef HAVE_LINUX
-	prctl(PR_SET_NAME, name, 0, 0, 0);
-#endif
-
-#ifdef __APPLE__
-	pthread_setname_np(name);
-#endif
-
-#ifdef __FreeBSD__
-	pthread_set_name_np(tid, name);
-#endif
-	}
-
 } // namespace zeek::util
 
 // Remove in v4.1.
 double& network_time = zeek::net::network_time;
 
 unsigned int bro_prng(unsigned int  state)
-	{ return zeek::util::prng(state); }
+	{ return zeek::util::detail::prng(state); }
 
 long int bro_random()
-	{ return zeek::util::random_number(); }
+	{ return zeek::util::detail::random_number(); }
 
 void bro_srandom(unsigned int seed)
-	{ zeek::util::seed_random(seed); }
+	{ zeek::util::detail::seed_random(seed); }
 
 zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len, bool escape_all)
 	{ return zeek::util::get_escaped_string(d, str, len, escape_all); }
@@ -2580,7 +2583,7 @@ std::string implode_string_vector(const std::vector<std::string>& v,
 	{ return zeek::util::implode_string_vector(v, delim); }
 std::string flatten_script_name(const std::string& name,
                                 const std::string& prefix)
-	{ return zeek::util::flatten_script_name(name, prefix); }
+	{ return zeek::util::detail::flatten_script_name(name, prefix); }
 
 std::string find_file(const std::string& filename, const std::string& path_set,
                       const std::string& opt_ext)
@@ -2588,7 +2591,7 @@ std::string find_file(const std::string& filename, const std::string& path_set,
 FILE* open_file(const std::string& path, const std::string& mode)
 	{ return zeek::util::open_file(path, mode); }
 FILE* open_package(std::string& path, const std::string& mode)
-	{ return zeek::util::open_package(path, mode); }
+	{ return zeek::util::detail::open_package(path, mode); }
 
 double current_time(bool real)
 	{ return zeek::util::current_time(real); }
@@ -2598,12 +2601,12 @@ uint64_t calculate_unique_id()
 uint64_t calculate_unique_id(const size_t pool)
 	{ return zeek::util::calculate_unique_id(pool); }
 
-const array<string, 2>& script_extensions = zeek::util::script_extensions;
+const array<string, 2>& script_extensions = zeek::util::detail::script_extensions;
 
 namespace zeek {
 
 void set_thread_name(const char* name, pthread_t tid)
-	{ zeek::util::set_thread_name(name, tid); }
+	{ zeek::util::detail::set_thread_name(name, tid); }
 
 } // namespace zeek
 

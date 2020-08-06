@@ -180,47 +180,47 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	if ( zeek::util::is_dir(scripts) )
 		{
 		DBG_LOG(zeek::DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
-		zeek::util::add_to_zeek_path(scripts);
+		zeek::util::detail::add_to_zeek_path(scripts);
 		}
 
 	string init;
 
 	// First load {scripts}/__preload__.zeek automatically.
-	for (const string& ext : zeek::util::script_extensions)
+	for (const string& ext : zeek::util::detail::script_extensions)
 		{
 		init = dir + "scripts/__preload__" + ext;
 
 		if ( zeek::util::is_file(init) )
 			{
 			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			zeek::util::warn_if_legacy_script(init);
+			zeek::util::detail::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
 		}
 
 	// Load {bif,scripts}/__load__.zeek automatically.
-	for (const string& ext : zeek::util::script_extensions)
+	for (const string& ext : zeek::util::detail::script_extensions)
 		{
 		init = dir + "lib/bif/__load__" + ext;
 
 		if ( zeek::util::is_file(init) )
 			{
 			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			zeek::util::warn_if_legacy_script(init);
+			zeek::util::detail::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
 		}
 
-	for (const string& ext : zeek::util::script_extensions)
+	for (const string& ext : zeek::util::detail::script_extensions)
 		{
 		init = dir + "scripts/__load__" + ext;
 
 		if ( zeek::util::is_file(init) )
 			{
 			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			zeek::util::warn_if_legacy_script(init);
+			zeek::util::detail::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -259,7 +259,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			DBG_LOG(zeek::DBG_PLUGINS, "  InitialzingComponents");
 			current_plugin->InitializeComponents();
 
-			plugins_by_path.insert(std::make_pair(zeek::util::normalize_path(dir), current_plugin));
+			plugins_by_path.insert(std::make_pair(zeek::util::detail::normalize_path(dir), current_plugin));
 
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
@@ -346,7 +346,7 @@ void Manager::RegisterPlugin(Plugin *plugin)
 
 	if ( current_dir && current_sopath )
 		// A dynamic plugin, record its location.
-		plugin->SetPluginLocation(zeek::util::normalize_path(current_dir), current_sopath);
+		plugin->SetPluginLocation(zeek::util::detail::normalize_path(current_dir), current_sopath);
 
 	current_plugin = plugin;
 	}
@@ -483,7 +483,7 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 
 Plugin* Manager::LookupPluginByPath(std::string_view _path)
 	{
-	auto path = zeek::util::normalize_path(_path);
+	auto path = zeek::util::detail::normalize_path(_path);
 
 	if ( zeek::util::is_file(path) )
 		path = zeek::util::SafeDirname(path).result;

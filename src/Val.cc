@@ -2445,7 +2445,7 @@ void TableVal::Describe(ODesc* d) const
 		if ( d->IsReadable() && ! d->IsShort() && d->IncludeStats() )
 			{
 			d->Add(" @");
-			d->Add(zeek::util::fmt_access_time(v->ExpireAccessTime()));
+			d->Add(zeek::util::detail::fmt_access_time(v->ExpireAccessTime()));
 			}
 		}
 

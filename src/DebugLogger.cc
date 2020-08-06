@@ -49,7 +49,7 @@ void DebugLogger::OpenDebugLog(const char* filename)
 	{
 	if ( filename )
 		{
-		filename = zeek::util::log_file_name(filename);
+		filename = zeek::util::detail::log_file_name(filename);
 
 		file = fopen(filename, "w");
 		if ( ! file )

@@ -196,7 +196,7 @@ TargetFile::TargetFile(const string& arg_name)
 		{
 		string dir = zeek::util::SafeDirname(name).result;
 
-		if ( ! zeek::util::ensure_intermediate_dirs(dir.c_str()) )
+		if ( ! zeek::util::detail::ensure_intermediate_dirs(dir.c_str()) )
 			zeek::reporter->FatalError("Zeekygen failed to make dir %s",
 			                           dir.c_str());
 		}
@@ -413,7 +413,7 @@ void ScriptTarget::DoFindDependencies(const vector<Info*>& infos)
 
 	for ( size_t i = 0; i < script_deps.size(); ++i )
 		{
-		if ( zeek::util::is_package_loader(script_deps[i]->Name()) )
+		if ( zeek::util::detail::is_package_loader(script_deps[i]->Name()) )
 			{
 			string pkg_dir = zeek::util::SafeDirname(script_deps[i]->Name()).result;
 			string target_file = Name() + pkg_dir + "/index.rst";

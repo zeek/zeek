@@ -162,7 +162,7 @@ static string make_redef_details(const string& heading, char underline,
 ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
     : Info(),
       name(arg_name), path(arg_path),
-      is_pkg_loader(zeek::util::is_package_loader(name)),
+      is_pkg_loader(zeek::util::detail::is_package_loader(name)),
       dependencies(), module_usages(), comments(), id_info(),
       redef_options(), constants(), state_vars(), types(), events(), hooks(),
       functions(), redefs()
@@ -369,7 +369,7 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 		if ( ! info )
 			{
-			for (const string& ext : zeek::util::script_extensions)
+			for (const string& ext : zeek::util::detail::script_extensions)
 				{
 				string pkg_name = *it + "/__load__" + ext;
 				info = zeek::detail::zeekygen_mgr->GetScriptInfo(pkg_name);

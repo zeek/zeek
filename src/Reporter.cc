@@ -126,7 +126,7 @@ void Reporter::FatalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	zeek::util::set_processing_status("TERMINATED", "fatal_error");
+	zeek::util::detail::set_processing_status("TERMINATED", "fatal_error");
 	fflush(stderr);
 	fflush(stdout);
 	_exit(1);
@@ -142,7 +142,7 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 
 	va_end(ap);
 
-	zeek::util::set_processing_status("TERMINATED", "fatal_error");
+	zeek::util::detail::set_processing_status("TERMINATED", "fatal_error");
 	abort();
 	}
 
@@ -195,7 +195,7 @@ void Reporter::InternalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	zeek::util::set_processing_status("TERMINATED", "internal_error");
+	zeek::util::detail::set_processing_status("TERMINATED", "internal_error");
 	abort();
 	}
 

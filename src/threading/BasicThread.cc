@@ -47,7 +47,7 @@ void BasicThread::SetName(const char* arg_name)
 void BasicThread::SetOSName(const char* arg_name)
 	{
 	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
-	zeek::util::set_thread_name(arg_name, thread.native_handle());
+	zeek::util::detail::set_thread_name(arg_name, thread.native_handle());
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)

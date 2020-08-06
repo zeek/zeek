@@ -19,7 +19,8 @@ zeek::EventMgr& mgr = zeek::event_mgr;
 namespace zeek {
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             zeek::util::SourceID arg_src, zeek::analyzer::ID arg_aid, Obj* arg_obj)
+             zeek::util::detail::SourceID arg_src, zeek::analyzer::ID arg_aid,
+             Obj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
@@ -48,7 +49,7 @@ void Event::Describe(ODesc* d) const
 
 void Event::Dispatch(bool no_remote)
 	{
-	if ( src == zeek::util::SOURCE_BROKER )
+	if ( src == zeek::util::detail::SOURCE_BROKER )
 		no_remote = true;
 
 	if ( handler->ErrorHandler() )
@@ -75,7 +76,7 @@ void Event::Dispatch(bool no_remote)
 EventMgr::EventMgr()
 	{
 	head = tail = nullptr;
-	current_src = zeek::util::SOURCE_LOCAL;
+	current_src = zeek::util::detail::SOURCE_LOCAL;
 	current_aid = 0;
 	src_val = nullptr;
 	draining = false;
@@ -94,14 +95,14 @@ EventMgr::~EventMgr()
 	}
 
 void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
-                              SourceID src, analyzer::ID aid, zeek::detail::TimerMgr* mgr,
+                              zeek::util::detail::SourceID src, analyzer::ID aid, zeek::detail::TimerMgr* mgr,
                               Obj* obj)
 	{
 	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
-                          SourceID src, analyzer::ID aid,
+                          zeek::util::detail::SourceID src, analyzer::ID aid,
                           zeek::detail::TimerMgr* mgr, Obj* obj)
 	{
 	auto args = zeek::val_list_to_args(vl);
@@ -111,7 +112,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
-                          SourceID src, analyzer::ID aid,
+                          zeek::util::detail::SourceID src, analyzer::ID aid,
                           zeek::detail::TimerMgr* mgr, Obj* obj)
 	{
 	auto args = zeek::val_list_to_args(*vl);
@@ -122,7 +123,8 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       zeek::util::SourceID src, zeek::analyzer::ID aid, Obj* obj)
+                       zeek::util::detail::SourceID src,
+                       zeek::analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}

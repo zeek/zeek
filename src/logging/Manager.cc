@@ -1215,7 +1215,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	winfo->info->rotation_interval = winfo->interval;
-	winfo->info->rotation_base = zeek::util::parse_rotate_base_time(base_time);
+	winfo->info->rotation_base = zeek::util::detail::parse_rotate_base_time(base_time);
 
 	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
 	winfo->writer->Init(num_fields, fields);
@@ -1474,9 +1474,9 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 			static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
 			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
-			double base = zeek::util::parse_rotate_base_time(base_time);
+			double base = zeek::util::detail::parse_rotate_base_time(base_time);
 			double delta_t =
-				zeek::util::calc_next_rotate(zeek::net::network_time, rotation_interval, base);
+				zeek::util::detail::calc_next_rotate(zeek::net::network_time, rotation_interval, base);
 
 			winfo->rotation_timer =
 				new RotationTimer(zeek::net::network_time + delta_t, winfo, true);
@@ -1522,7 +1522,7 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 		auto prefix = rp_val->GetField(1)->AsString()->CheckString();
 		auto dir = dir_val->AsString()->CheckString();
 
-		if ( ! zeek::util::streq(dir, "") && ! zeek::util::ensure_intermediate_dirs(dir) )
+		if ( ! zeek::util::streq(dir, "") && ! zeek::util::detail::ensure_intermediate_dirs(dir) )
 			{
 			zeek::reporter->Error("Failed to create dir '%s' returned by "
 			                      "Log::rotation_format_func for path %.*s: %s",

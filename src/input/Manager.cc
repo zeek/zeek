@@ -1828,7 +1828,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, const int numvals, ...) const
 	va_end(lP);
 
 	if ( ev )
-		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::detail::SOURCE_LOCAL);
 	}
 
 void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
@@ -1845,7 +1845,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
 		vl.emplace_back(zeek::AdoptRef{}, *i);
 
 	if ( ev )
-		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::detail::SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.

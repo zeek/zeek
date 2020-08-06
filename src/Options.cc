@@ -431,7 +431,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		if ( path->empty() )
 			return;
 
-		*path = zeek::util::normalize_path(*path);
+		*path = zeek::util::detail::normalize_path(*path);
 
 		if ( (*path)[0] == '/' || (*path)[0] == '~' )
 			// Absolute path

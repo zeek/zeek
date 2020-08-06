@@ -234,7 +234,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 		if ( load_freq == 0 )
 			load_freq = uint32_t(0xffffffff) / uint32_t(load_sample_freq);
 
-		if ( uint32_t(zeek::util::random_number() & 0xffffffff) < load_freq )
+		if ( uint32_t(zeek::util::detail::random_number() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
@@ -263,7 +263,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 
 void net_run()
 	{
-	zeek::util::set_processing_status("RUNNING", "net_run");
+	zeek::util::detail::set_processing_status("RUNNING", "net_run");
 
 	std::vector<zeek::iosource::IOSource*> ready;
 	ready.reserve(zeek::iosource_mgr->TotalSize());
@@ -364,7 +364,7 @@ void net_get_final_stats()
 
 void net_finish(int drain_events)
 	{
-	zeek::util::set_processing_status("TERMINATING", "net_finish");
+	zeek::util::detail::set_processing_status("TERMINATING", "net_finish");
 
 	if ( drain_events )
 		{
@@ -389,7 +389,7 @@ void net_finish(int drain_events)
 
 void net_delete()
 	{
-	zeek::util::set_processing_status("TERMINATING", "net_delete");
+	zeek::util::detail::set_processing_status("TERMINATING", "net_delete");
 
 	delete zeek::sessions;
 

@@ -473,7 +473,7 @@ struct ltstr {
 
 // Versions of realloc/malloc which abort() on out of memory
 
-inline size_t pad_size(size_t size)
+constexpr size_t pad_size(size_t size)
 	{
 	// We emulate glibc here (values measured on Linux i386).
 	// FIXME: We should better copy the portable value definitions from glibc.

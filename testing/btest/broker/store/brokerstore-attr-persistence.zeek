@@ -1,10 +1,7 @@
-# @TEST-PORT: BROKER_PORT
-
 # @TEST-EXEC: zeek -B broker -b one.zeek > output1
 # @TEST-EXEC: zeek -B broker -b two.zeek > output2
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
-# @TEST-EXEC: diff output1 output2
 
 # the first test writes out the sqlite files...
 

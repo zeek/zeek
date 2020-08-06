@@ -1086,16 +1086,23 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto r = e->AsRecordCoerceExpr();
 	auto op = r->GetOp1()->AsNameExpr();
-	auto map = r->Map();
-	auto map_size = r->MapSize();
 
 	int op_slot = FrameSlot(op);
-	auto zop = OP_RECORD_COERCE_VVV;
-	ZInstI z(zop, Frame1Slot(n, zop), op_slot, map_size);
+	auto zop = OP_RECORD_COERCE_VV;
+	ZInstI z(zop, Frame1Slot(n, zop), op_slot);
 
 	z.SetType(e->Type());
-	z.op_type = OP_VVV_I3;
-	z.int_ptr = map;
+	z.op_type = OP_VV;
+
+	auto map = r->Map();
+	auto map_size = r->MapSize();
+	z.aux = new ZInstAux(map_size);
+
+	for ( auto i = 0; i < map_size; ++i )
+		z.aux->Add(i, map[i], nullptr);
+
+	// Mark the integer entries in z.aux as not being frame slots as usual.
+	z.aux->slots = nullptr;
 
 	return AddInst(z);
 	}

@@ -458,10 +458,10 @@ void ZAM::ComputeFrameLifetimes()
 
 		default:
 			// Look for slots in auxiliary information.
-			if ( ! inst->aux )
+			auto aux = inst->aux;
+			if ( ! aux || ! aux->slots )
 				break;
 
-			auto aux = inst->aux;
 			for ( auto j = 0; j < aux->n; ++j )
 				{
 				if ( aux->slots[j] < 0 )
@@ -601,10 +601,10 @@ void ZAM::ReMapFrame()
 
 		default:
 			// Update slots in auxiliary information.
-			if ( ! inst->aux )
+			auto aux = inst->aux;
+			if ( ! aux || ! aux->slots )
 				break;
 
-			auto aux = inst->aux;
 			for ( auto j = 0; j < aux->n; ++j )
 				{
 				auto& slot = aux->slots[j];
@@ -1018,9 +1018,9 @@ bool ZAM::VarIsUsed(int slot) const
 		if ( inst->live && inst->UsesSlot(slot) )
 			return true;
 
-		if ( inst->aux )
+		auto aux = inst->aux;
+		if ( aux && aux->slots )
 			{
-			auto aux = inst->aux;
 			for ( int j = 0; j < aux->n; ++j )
 				if ( aux->slots[j] == slot )
 					return true;

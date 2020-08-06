@@ -831,11 +831,11 @@ eval frame[z.v1].vector_val = vec_coerce_DU(frame[z.v2].vector_val)
 direct-unary-op Record-Coerce RecordCoerce
 
 internal-op Record-Coerce
-type VVV
+type VV
 eval auto rt = z.t->AsRecordType()
 eval auto v = frame[z.v2].record_val
-eval auto map = z.int_ptr
-eval auto map_size = z.v3
+eval auto map = z.aux->ints
+eval auto map_size = z.aux->n
 eval auto to_r = coerce_to_record(rt, v, map, map_size)
 eval Unref(frame[z.v1].record_val)
 eval frame[z.v1].record_val = to_r.release()

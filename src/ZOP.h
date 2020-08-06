@@ -143,9 +143,6 @@ public:
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
 
-	// Only used by Record-Coerce.
-	int* int_ptr = nullptr;
-
 	// Auxiliary information.  We could in principle use this to
 	// consolidate a bunch of the above, though at the cost of
 	// slightly slower access.
@@ -347,7 +344,7 @@ public:
 		n = _n;
 		if ( n > 0 )
 			{
-			slots = new int[n];
+			slots = ints = new int[n];
 			constants = new IntrusivePtr<Val>[n];
 			types = new IntrusivePtr<BroType>[n];
 			}
@@ -355,7 +352,7 @@ public:
 
 	~ZInstAux()
 		{
-		delete [] slots;
+		delete [] ints;
 		delete [] constants;
 		delete [] types;
 		delete iter_info;
@@ -403,24 +400,28 @@ public:
 
 	void Add(int i, int slot, IntrusivePtr<BroType> t)
 		{
-		slots[i] = slot;
+		ints[i] = slot;
 		constants[i] = nullptr;
 		types[i] = t;
 		}
 
 	void Add(int i, IntrusivePtr<Val> c)
 		{
-		slots[i] = -1;
+		ints[i] = -1;
 		constants[i] = c;
 		types[i] = nullptr;
 		}
 
 	// These are parallel arrays, used to build up lists of values.
-	// Each element is either a frame slot or a constant.  We track
-	// its type, too, enabling us to use ZAMValUnion::ToVal to convert
-	// to a Val*.
+	// Each element is either an integer or a constant.  Usually the
+	// integer is a frame slot (in which case "slots" points to "ints";
+	// if not, it's nil).
+	//
+	// We track associated types, too, enabling us to use
+	// ZAMValUnion::ToVal to convert frame slots or constants to Val*'s.
 	int n;	// size of arrays
-	int* slots = nullptr;
+	int* slots = nullptr;	// either nil or points to ints
+	int* ints = nullptr;
 	IntrusivePtr<Val>* constants = nullptr;
 	IntrusivePtr<BroType>* types = nullptr;
 

@@ -354,7 +354,7 @@ void analyze_scripts()
 		auto save_file = fopen(fn, "r");
 		if ( save_file )
 			{
-			printf("have file for %s\n", fn);
+			// printf("have file for %s\n", fn);
 			scan_ZAM_file(fn, save_file);
 			yyparse();
 			fclose(save_file);

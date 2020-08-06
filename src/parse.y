@@ -29,7 +29,7 @@
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_IS_SET TOK_ATTR_IS_USED
 %token TOK_ATTR_DEPRECATED
 
-%token TOK_ZAM_FILE TOK_TYPES TOK_VALS
+%token TOK_ZAM_FILE TOK_TYPES TOK_VALS TOK_AUX TOK_INSTS TOK_OP_NAME
 
 %token TOK_DEBUG
 
@@ -1906,7 +1906,7 @@ opt_deprecated:
 	|
 			{ $$ = nullptr; }
 
-ZAM_info:	ZAM_types ZAM_vals
+ZAM_info:	ZAM_types ZAM_vals ZAM_auxes ZAM_insts
 	;
 
 ZAM_types:	TOK_TYPES '{' type_list ',' '}'
@@ -1914,6 +1914,14 @@ ZAM_types:	TOK_TYPES '{' type_list ',' '}'
 	;
 
 ZAM_vals:	TOK_VALS '{' ZAM_val_list ',' '}'
+	|
+	;
+
+ZAM_auxes:	TOK_AUX '{' ZAM_aux_list '}'
+	|
+	;
+
+ZAM_insts:	TOK_INSTS '{' ZAM_inst_list '}'
 	|
 	;
 
@@ -1925,6 +1933,46 @@ ZAM_val:	TOK_CONSTANT
 	|	'-' TOK_CONSTANT
 	|	TOK_ID
 	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
+	;
+
+ZAM_aux_list:	ZAM_aux
+	|	ZAM_aux_list ZAM_aux
+	;
+
+ZAM_aux:	ZAM_aux_vals ZAM_aux_iter_info ','
+	;
+
+ZAM_aux_vals:	TOK_CONSTANT ZAM_aux_item_list
+	;
+
+ZAM_aux_item_list:
+		ZAM_aux_item_list '{' ZAM_ind_com ZAM_ind_com ZAM_ind '}'
+	|
+	;
+
+ZAM_aux_iter_info:
+		'[' ZAM_aux_ii_item_list ']'
+	|
+	;
+
+ZAM_aux_ii_item_list:
+		ZAM_aux_ii_item_list ',' ZAM_ind
+	|	ZAM_ind
+	;
+
+ZAM_ind_com:	ZAM_ind ','
+	;
+
+ZAM_ind:	TOK_CONSTANT
+	|	'-'
+	;
+
+ZAM_inst_list:	ZAM_inst_list ZAM_inst
+	|
+	;
+
+ZAM_inst:	TOK_CONSTANT TOK_CONSTANT TOK_CONSTANT TOK_OP_NAME
+		ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind
 	;
 
 %%

@@ -63,6 +63,8 @@ const char* last_tok_filename = 0;
 const char* last_last_tok_filename = 0;
 char last_tok[128];
 
+int RE_prev_state = 0;
+
 #define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1); \
                         last_last_tok_filename = last_tok_filename; \
                         last_tok_filename = ::filename;
@@ -297,9 +299,12 @@ union	return TOK_UNION;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
-<ZAM>types		return TOK_TYPES;
-<ZAM>vals		return TOK_VALS;
 <ZAM>"<ZAM-file>"	return TOK_ZAM_FILE;
+<ZAM>"<aux>"		return TOK_AUX;
+<ZAM>"<insts>"		return TOK_INSTS;
+<ZAM>"<types>"		return TOK_TYPES;
+<ZAM>"<vals>"		return TOK_VALS;
+<ZAM>({IDCOMPONENT}-)+{IDCOMPONENT}	return TOK_OP_NAME;
 
 &add_func	return TOK_ATTR_ADD_FUNC;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
@@ -576,13 +581,13 @@ F	RET_CONST(val_mgr->GetFalse())
 	}
 
 <RE>"/"	{
-	BEGIN(INITIAL);
+	BEGIN(RE_prev_state);
 	yylval.b = false;
 	return TOK_PATTERN_END;
 	}
 
 <RE>"/i"	{
-	BEGIN(INITIAL);
+	BEGIN(RE_prev_state);
 	yylval.b = true;
 	return TOK_PATTERN_END;
 	}
@@ -739,6 +744,7 @@ void scan_ZAM_file(const char* zfn, FILE* zf)
 
 void begin_RE()
 	{
+	RE_prev_state = YY_START;
 	BEGIN(RE);
 	}
 

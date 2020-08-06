@@ -679,18 +679,18 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 			else
 				d.Add(NA);
 
-			d.AddSP(" },");
+			d.AddSP(" }");
 			}
-		}
 
-	d.NL();
+		d.NL();
+		}
 
 	auto& ii = item->iter_info;
 	if ( ii )
 		{
-		d.Add(" [ ");
+		d.Add(" [");
 		d.Add(int(ii->loop_var_types.size()));
-		d.SP();
+		d.AddSP(",");
 
 		for ( auto t : ii->loop_var_types )
 			{
@@ -717,7 +717,7 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 		else
 			d.Add(NA);
 
-		d.Add("]\n");
+		d.Add("]");
 		}
 
 	return RepType(d.Description());

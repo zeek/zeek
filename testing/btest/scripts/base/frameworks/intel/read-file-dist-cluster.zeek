@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff manager-1/intel.log
 # @TEST-EXEC: btest-diff worker-1/.stdout
@@ -41,16 +41,44 @@ redef enum Intel::Where += {
 
 event do_it()
 	{
+	if ( Cluster::node == "manager-1" )
+		{
+		Broker::publish(Cluster::node_topic("worker-2"), do_it);
+		return;
+		}
+
 	Intel::seen([$host=1.2.3.4, $where=Intel::IN_A_TEST]);
 	Intel::seen([$indicator="e@mail.com", $indicator_type=Intel::EMAIL, $where=Intel::IN_A_TEST]);
+
+	if ( Cluster::node == "worker-1" )
+		Broker::publish(Cluster::node_topic("manager-1"), do_it);
 	}
 
-event zeek_init()
+global hi_count = 0;
+
+event start_it()
 	{
-	# Delay the workers searching for hits briefly to allow for the data distribution
-	# mechanism to distribute the data to the workers.
-	if ( Cluster::local_node_type() == Cluster::WORKER )
-		schedule 4sec { do_it() };
+	Broker::publish(Cluster::node_topic("worker-1"), do_it);
+	}
+
+event hi()
+	{
+	if ( Cluster::node == "manager-1" )
+		{
+		++hi_count;
+
+		if ( hi_count == 2 )
+			# Give more time for intel distribution.
+			schedule 1sec { start_it() };
+		}
+	else
+		Broker::publish(Cluster::node_topic("manager-1"), hi);
+	}
+
+event Cluster::node_up(name: string, id: string) &priority=-100
+	{
+	if ( Cluster::node == "manager-1" )
+		Broker::publish(Cluster::node_topic(name), hi);
 	}
 
 event do_terminate()

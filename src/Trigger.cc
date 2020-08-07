@@ -296,7 +296,7 @@ bool Trigger::Eval()
 			Name());
 
 	v = nullptr;
-	stmt_flow_type flow;
+	StmtFlowType flow;
 
 	try
 		{
@@ -347,7 +347,7 @@ void Trigger::Timeout()
 	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: timeout", Name());
 	if ( timeout_stmts )
 		{
-		stmt_flow_type flow;
+		StmtFlowType flow;
 		FramePtr f{zeek::AdoptRef{}, frame->Clone()};
 		ValPtr v;
 

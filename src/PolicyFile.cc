@@ -10,12 +10,12 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 #include "Debug.h"
 #include "util.h"
 #include "PolicyFile.h"
 #include "Reporter.h"
+
+using namespace std;
 
 struct PolicyFile {
 	PolicyFile ()	{ filedata = nullptr; lmtime = 0; }
@@ -28,6 +28,8 @@ struct PolicyFile {
 
 typedef map<string, PolicyFile*> PolicyFileMap;
 static PolicyFileMap policy_files;
+
+namespace zeek::detail {
 
 int how_many_lines_in(const char* policy_filename)
 	{
@@ -174,3 +176,5 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 
 	return true;
 	}
+
+} // namespace zeek::detail

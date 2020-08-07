@@ -1857,8 +1857,8 @@ function zeek_args%(%): string_vec
 	auto sv = zeek::id::string_vec;
 	auto rval = zeek::make_intrusive<zeek::VectorVal>(std::move(sv));
 
-	for ( auto i = 0; i < bro_argc; ++i )
-		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::StringVal>(bro_argv[i]));
+	for ( auto i = 0; i < zeek::detail::zeek_argc; ++i )
+		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::StringVal>(zeek::detail::zeek_argv[i]));
 
 	return rval;
 	%}

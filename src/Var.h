@@ -16,17 +16,17 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 
 namespace zeek::detail {
-using StmtPtr = zeek::IntrusivePtr<zeek::detail::Stmt>;
-}
 
-typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
+using StmtPtr = zeek::IntrusivePtr<zeek::detail::Stmt>;
+
+enum DeclType { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, };
 
 extern void add_global(const zeek::detail::IDPtr& id,
                        zeek::TypePtr t,
                        zeek::detail::InitClass c,
                        zeek::detail::ExprPtr init,
                        std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr,
-                       decl_type dt);
+                       DeclType dt);
 
 extern zeek::detail::StmtPtr add_local(
 	zeek::detail::IDPtr id,
@@ -34,7 +34,7 @@ extern zeek::detail::StmtPtr add_local(
 	zeek::detail::InitClass c,
 	zeek::detail::ExprPtr init,
 	std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr,
-	decl_type dt);
+	DeclType dt);
 
 extern zeek::detail::ExprPtr add_and_assign_local(
 	zeek::detail::IDPtr id,
@@ -53,6 +53,22 @@ extern void end_func(zeek::detail::StmtPtr body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
 extern id_list gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body);
+
+} // namespace zeek::detail
+
+using decl_type [[deprecated("Remove in v4.1. Use zeek::detail::DeclType.")]] = zeek::detail::DeclType;
+constexpr auto VAR_REGULAR [[deprecated("Remove in v4.1. Use zeek::detail::VAR_REGULAR.")]] = zeek::detail::VAR_REGULAR;
+constexpr auto VAR_CONST [[deprecated("Remove in v4.1. Use zeek::detail::VAR_CONST.")]] = zeek::detail::VAR_CONST;
+constexpr auto VAR_REDEF [[deprecated("Remove in v4.1. Use zeek::detail::VAR_REDEF.")]] = zeek::detail::VAR_REDEF;
+constexpr auto VAR_OPTION [[deprecated("Remove in v4.1. Use zeek::detail::VAR_OPTION.")]] = zeek::detail::VAR_OPTION;
+
+constexpr auto add_global [[deprecated("Remove in v4.1. Use zeek::detail::add_global.")]] = zeek::detail::add_global;
+constexpr auto add_local [[deprecated("Remove in v4.1. Use zeek::detail::add_local.")]] = zeek::detail::add_local;
+constexpr auto add_and_assign_local [[deprecated("Remove in v4.1. Use zeek::detail::add_and_assign_local.")]] = zeek::detail::add_and_assign_local;
+constexpr auto add_type [[deprecated("Remove in v4.1. Use zeek::detail::add_type.")]] = zeek::detail::add_type;
+constexpr auto begin_func [[deprecated("Remove in v4.1. Use zeek::detail::begin_func.")]] = zeek::detail::begin_func;
+constexpr auto end_func [[deprecated("Remove in v4.1. Use zeek::detail::end_func.")]] = zeek::detail::end_func;
+constexpr auto gather_outer_ids [[deprecated("Remove in v4.1. Use zeek::detail::gather_outer_ids.")]] = zeek::detail::gather_outer_ids;
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_val().")]]
 extern zeek::Val* internal_val(const char* name);

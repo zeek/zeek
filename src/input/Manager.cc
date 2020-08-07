@@ -2320,8 +2320,8 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 		// \0's...
 		string enum_string(val->val.string_val.data, val->val.string_val.length);
 
-		string module = extract_module_name(enum_string.c_str());
-		string var = extract_var_name(enum_string.c_str());
+		string module = zeek::detail::extract_module_name(enum_string.c_str());
+		string var = zeek::detail::extract_var_name(enum_string.c_str());
 
 		// Well, this is kind of stupid, because EnumType just
 		// mangles the module name and the var name together again...

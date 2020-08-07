@@ -33,11 +33,11 @@ using StmtPtr = zeek::IntrusivePtr<Stmt>;
 
 class Stmt : public Obj {
 public:
-	BroStmtTag Tag() const	{ return tag; }
+	StmtTag Tag() const	{ return tag; }
 
 	~Stmt() override;
 
-	virtual ValPtr Exec(Frame* f, stmt_flow_type& flow) const = 0;
+	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) const = 0;
 
 	Stmt* Ref()			{ zeek::Ref(this); return this; }
 
@@ -67,12 +67,12 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	explicit Stmt(BroStmtTag arg_tag);
+	explicit Stmt(StmtTag arg_tag);
 
 	void AddTag(ODesc* d) const;
 	void DescribeDone(ODesc* d) const;
 
-	BroStmtTag tag;
+	StmtTag tag;
 	int breakpoint_count;	// how many breakpoints on this statement
 
 	// FIXME: Learn the exact semantics of mutable.
@@ -87,13 +87,13 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ExprListStmt(BroStmtTag t, ListExprPtr arg_l);
+	ExprListStmt(StmtTag t, ListExprPtr arg_l);
 
 	~ExprListStmt() override;
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	virtual ValPtr DoExec(std::vector<ValPtr> vals,
-	                      stmt_flow_type& flow) const = 0;
+	                      StmtFlowType& flow) const = 0;
 
 	void Describe(ODesc* d) const override;
 
@@ -107,7 +107,7 @@ public:
 
 protected:
 	ValPtr DoExec(std::vector<ValPtr> vals,
-	              stmt_flow_type& flow) const override;
+	              StmtFlowType& flow) const override;
 };
 
 class ExprStmt : public Stmt {
@@ -115,7 +115,7 @@ public:
 	explicit ExprStmt(ExprPtr e);
 	~ExprStmt() override;
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	const Expr* StmtExpr() const	{ return e.get(); }
 
@@ -124,9 +124,9 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ExprStmt(BroStmtTag t, ExprPtr e);
+	ExprStmt(StmtTag t, ExprPtr e);
 
-	virtual ValPtr DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
+	virtual ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const;
 
 	bool IsPure() const override;
 
@@ -146,7 +146,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ValPtr DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	StmtPtr s1;
@@ -191,7 +191,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ValPtr DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	// Initialize composite hash and case label map.
@@ -225,7 +225,7 @@ public:
 	explicit AddStmt(ExprPtr e);
 
 	bool IsPure() const override;
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
@@ -235,7 +235,7 @@ public:
 	explicit DelStmt(ExprPtr e);
 
 	bool IsPure() const override;
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
@@ -244,7 +244,7 @@ class EventStmt final : public ExprStmt {
 public:
 	explicit EventStmt(EventExprPtr e);
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -265,7 +265,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	ExprPtr loop_condition;
 	StmtPtr body;
@@ -291,7 +291,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ValPtr DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
 
 	id_list* loop_vars;
 	StmtPtr body;
@@ -304,7 +304,7 @@ class NextStmt final : public Stmt {
 public:
 	NextStmt() : Stmt(STMT_NEXT)	{ }
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -318,7 +318,7 @@ class BreakStmt final : public Stmt {
 public:
 	BreakStmt() : Stmt(STMT_BREAK)	{ }
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -332,7 +332,7 @@ class FallthroughStmt final : public Stmt {
 public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -346,7 +346,7 @@ class ReturnStmt final : public ExprStmt {
 public:
 	explicit ReturnStmt(ExprPtr e);
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	void Describe(ODesc* d) const override;
 };
@@ -356,7 +356,7 @@ public:
 	StmtList();
 	~StmtList() override;
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	const stmt_list& Stmts() const	{ return stmts; }
 	stmt_list& Stmts()		{ return stmts; }
@@ -376,7 +376,7 @@ public:
 	EventBodyList() : StmtList()
 		{ topmost = false; tag = STMT_EVENT_BODY_LIST; }
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -392,7 +392,7 @@ class InitStmt final : public Stmt {
 public:
 	explicit InitStmt(std::vector<IDPtr> arg_inits);
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	const std::vector<IDPtr>& Inits() const
 		{ return inits; }
@@ -409,7 +409,7 @@ class NullStmt final : public Stmt {
 public:
 	NullStmt() : Stmt(STMT_NULL)	{ }
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
@@ -425,7 +425,7 @@ public:
 	         ExprPtr timeout, bool is_return);
 	~WhenStmt() override;
 
-	ValPtr Exec(Frame* f, stmt_flow_type& flow) const override;
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
 	const Expr* Cond() const	{ return cond.get(); }

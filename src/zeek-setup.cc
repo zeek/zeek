@@ -120,8 +120,10 @@ zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
 zeek::detail::trigger::Manager*& trigger_mgr = zeek::detail::trigger_mgr;
 
-std::vector<std::string> zeek_script_prefixes;
-zeek::detail::Stmt* stmts;
+std::vector<std::string> zeek::detail::zeek_script_prefixes;
+std::vector<std::string>& zeek_script_prefixes = zeek::detail::zeek_script_prefixes;
+zeek::detail::Stmt* zeek::detail::stmts = nullptr;
+zeek::detail::Stmt*& stmts = zeek::detail::stmts;
 zeek::EventRegistry* zeek::event_registry = nullptr;
 zeek::EventRegistry*& event_registry = zeek::event_registry;
 zeek::detail::ProfileLogger* zeek::detail::profiling_logger = nullptr;
@@ -132,8 +134,10 @@ zeek::detail::SampleLogger* zeek::detail::sample_logger = nullptr;
 zeek::detail::SampleLogger*& sample_logger = zeek::detail::sample_logger;
 int signal_val = 0;
 extern char version[];
-const char* command_line_policy = nullptr;
-vector<string> params;
+const char* zeek::detail::command_line_policy = nullptr;
+const char*& command_line_policy = zeek::detail::command_line_policy;
+vector<string> zeek::detail::params;
+vector<string>& params = zeek::detail::params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
@@ -149,8 +153,10 @@ zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 zeek::OpaqueTypePtr paraglob_type;
 
 // Keep copy of command line
-int bro_argc;
-char** bro_argv;
+int zeek::detail::zeek_argc;
+int& bro_argc = zeek::detail::zeek_argc;
+char** zeek::detail::zeek_argv;
+char**& bro_argv = zeek::detail::zeek_argv;
 
 const char* zeek_version()
 	{
@@ -415,11 +421,11 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(1);
 		}
 
-	bro_argc = argc;
-	bro_argv = new char* [argc];
+	zeek_argc = argc;
+	zeek_argv = new char* [argc];
 
 	for ( int i = 0; i < argc; i++ )
-		bro_argv[i] = zeek::util::copy_string(argv[i]);
+		zeek_argv[i] = zeek::util::copy_string(argv[i]);
 
 	auto options = zopts ? *zopts : zeek::parse_cmdline(argc, argv);
 
@@ -552,7 +558,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	zeek::detail::timer_mgr = new zeek::detail::PQ_TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
-	zeek::detail::zeekygen_mgr = new zeek::zeekygen::detail::Manager(zeekygen_cfg, bro_argv[0]);
+	zeek::detail::zeekygen_mgr = new zeek::zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
@@ -842,7 +848,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( stmts )
 		{
-		stmt_flow_type flow;
+		StmtFlowType flow;
 		Frame f(current_scope()->Length(), nullptr, nullptr);
 		g_frame_stack.push_back(&f);
 

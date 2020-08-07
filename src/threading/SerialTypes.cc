@@ -603,7 +603,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 			// let's try looking it up by global ID.
-			const auto& id = zeek::detail::lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+			const auto& id = zeek::detail::lookup_ID(enum_string.c_str(), zeek::detail::GLOBAL_MODULE_NAME);
 
 			if ( ! id || ! id->IsEnumConst() )
 				{

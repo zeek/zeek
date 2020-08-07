@@ -139,7 +139,7 @@ ComponentManager<T, C>::ComponentManager(const std::string& arg_module, const st
 	  tag_enum_type(zeek::make_intrusive<zeek::EnumType>(module + "::" + local_id))
 	{
 	auto id = zeek::detail::install_ID(local_id.c_str(), module.c_str(), true, true);
-	add_type(id.get(), tag_enum_type, nullptr);
+	zeek::detail::add_type(id.get(), tag_enum_type, nullptr);
 	zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 	}
 

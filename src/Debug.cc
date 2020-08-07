@@ -930,7 +930,7 @@ bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f)
 	return true;
 	}
 
-bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, stmt_flow_type* flow)
+bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, zeek::detail::StmtFlowType* flow)
 	{
 	// Handle the case where someone issues a "next" debugger command,
 	// but we're at a return statement, so the next statement is in

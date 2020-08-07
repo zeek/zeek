@@ -1247,7 +1247,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		return;
 		}
 
-	auto fullname = make_full_var_name(module_name.c_str(), name);
+	auto fullname = zeek::detail::make_full_var_name(module_name.c_str(), name);
 	auto id = zeek::id::find(fullname);
 
 	if ( ! id )
@@ -1298,14 +1298,14 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 void EnumType::AddNameInternal(const string& module_name, const char* name,
                                bro_int_t val, bool is_export)
 	{
-	string fullname = make_full_var_name(module_name.c_str(), name);
+	string fullname = zeek::detail::make_full_var_name(module_name.c_str(), name);
 	names[fullname] = val;
 	}
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
 	NameMap::const_iterator pos =
-		names.find(make_full_var_name(module_name.c_str(), name).c_str());
+		names.find(zeek::detail::make_full_var_name(module_name.c_str(), name).c_str());
 
 	if ( pos == names.end() )
 		return -1;

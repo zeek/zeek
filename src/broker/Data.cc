@@ -189,7 +189,7 @@ struct val_converter {
 		if ( type->Tag() == zeek::TYPE_ENUM )
 			{
 			auto etype = type->AsEnumType();
-			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.data());
+			auto i = etype->Lookup(zeek::detail::GLOBAL_MODULE_NAME, a.name.data());
 
 			if ( i == -1 )
 				return nullptr;
@@ -540,7 +540,7 @@ struct type_checker {
 		if ( type->Tag() == zeek::TYPE_ENUM )
 			{
 			auto etype = type->AsEnumType();
-			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.data());
+			auto i = etype->Lookup(zeek::detail::GLOBAL_MODULE_NAME, a.name.data());
 			return i != -1;
 			}
 

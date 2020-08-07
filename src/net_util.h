@@ -116,6 +116,23 @@ struct ip6_rthdr {
 #define	TCPOPT_TIMESTAMP TCPOPT_TSTAMP
 #endif
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
+
+namespace zeek {
+
+// Returns the ones-complement checksum of a chunk of b short-aligned bytes.
+extern int ones_complement_checksum(const void* p, int b, uint32_t sum);
+
+extern int ones_complement_checksum(const zeek::IPAddr& a, uint32_t sum);
+
+extern int icmp6_checksum(const struct icmp* icmpp, const zeek::IP_Hdr* ip, int len);
+extern int icmp_checksum(const struct icmp* icmpp, int len);
+
+#ifdef ENABLE_MOBILE_IPV6
+extern int mobility_header_checksum(const zeek::IP_Hdr* ip);
+#endif
+
 // True if sequence # a is between b and c (b <= a <= c).  It must be true
 // that b <= c in the sequence space.
 inline bool seq_between(uint32_t a, uint32_t b, uint32_t c)
@@ -131,21 +148,6 @@ inline int32_t seq_delta(uint32_t a, uint32_t b)
 	{
 	return a - b;
 	}
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-
-// Returns the ones-complement checksum of a chunk of b short-aligned bytes.
-extern int ones_complement_checksum(const void* p, int b, uint32_t sum);
-
-extern int ones_complement_checksum(const zeek::IPAddr& a, uint32_t sum);
-
-extern int icmp6_checksum(const struct icmp* icmpp, const zeek::IP_Hdr* ip, int len);
-extern int icmp_checksum(const struct icmp* icmpp, int len);
-
-#ifdef ENABLE_MOBILE_IPV6
-extern int mobility_header_checksum(const zeek::IP_Hdr* ip);
-#endif
 
 // Returns 'A', 'B', 'C' or 'D'
 extern char addr_to_class(uint32_t addr);
@@ -229,4 +231,44 @@ inline uint64_t ntohll(uint64_t i)
 inline uint64_t htonll(uint64_t i) { return ntohll(i); }
 #endif
 
+#endif
+
+} // namespace zeek
+
+constexpr auto seq_between [[deprecated("Remove in v4.1. Use zeek::seq_between.")]] = zeek::seq_between;
+constexpr auto seq_delta [[deprecated("Remove in v4.1. Use zeek::seq_delta.")]] = zeek::seq_delta;
+constexpr auto icmp6_checksum [[deprecated("Remove in v4.1. Use zeek::icmp6_checksum.")]] = zeek::icmp6_checksum;
+constexpr auto icmp_checksum [[deprecated("Remove in v4.1. Use zeek::icmp_checksum.")]] = zeek::icmp_checksum;
+
+[[deprecated("Remove in v4.1. Use zeek::ones_complement_checksum.")]]
+inline int ones_complement_checksum(const void* p, int b, uint32_t sum)
+	{ return zeek::ones_complement_checksum(p, b, sum); }
+[[deprecated("Remove in v4.1. Use zeek::ones_complement_checksum.")]]
+inline int ones_complement_checksum(const zeek::IPAddr& a, uint32_t sum)
+	{ return zeek::ones_complement_checksum(a, sum); }
+
+#ifdef ENABLE_MOBILE_IPV6
+constexpr auto mobility_header_checksum [[deprecated("Remove in v4.1. Use zeek::mobility_header_checksum.")]] = zeek::mobility_header_checksum;
+#endif
+
+constexpr auto addr_to_class [[deprecated("Remove in v4.1. Use zeek::addr_to_class.")]] = zeek::addr_to_class;
+
+[[deprecated("Remove in v4.1. Use zeek::fmt_conn_id.")]]
+inline const char* fmt_conn_id(const zeek::IPAddr& src_addr, uint32_t src_port,
+                               const zeek::IPAddr& dst_addr, uint32_t dst_port)
+	{ return zeek::fmt_conn_id(src_addr, src_port, dst_addr, dst_port); }
+[[deprecated("Remove in v4.1. Use zeek::fmt_conn_id.")]]
+inline const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port,
+                               const uint32_t* dst_addr, uint32_t dst_port)
+	{ return zeek::fmt_conn_id(src_addr, src_port, dst_addr, dst_port); }
+
+constexpr auto fmt_mac [[deprecated("Remove in v4.1. Use zeek::fmt_mac.")]] = zeek::fmt_mac;
+constexpr auto extract_uint32 [[deprecated("Remove in v4.1. Use zeek::extract_uint32.")]] = zeek::extract_uint32;
+
+constexpr auto ntohd [[deprecated("Remove in v4.1. Use zeek::ntohd.")]] = zeek::ntohd;
+constexpr auto htond [[deprecated("Remove in v4.1. Use zeek::htond.")]] = zeek::htond;
+
+#ifndef HAVE_BYTEORDER_64
+constexpr auto ntohll [[deprecated("Remove in v4.1. Use zeek::ntohll.")]] = zeek::ntohll;
+constexpr auto htonll [[deprecated("Remove in v4.1. Use zeek::htonll.")]] = zeek::htonll;
 #endif

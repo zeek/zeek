@@ -633,7 +633,7 @@ refine flow DHCP_Flow += {
 			sv = zeek::make_intrusive<zeek::StringVal>(${v.client_id.hwaddr}.length(),
 			                                     (const char*)${v.client_id.hwaddr}.begin());
 		else
-			sv = zeek::make_intrusive<zeek::StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(),
+			sv = zeek::make_intrusive<zeek::StringVal>(zeek::fmt_mac(${v.client_id.hwaddr}.begin(),
 			                                     ${v.client_id.hwaddr}.length()));
 
 		client_id->Assign(1, std::move(sv));

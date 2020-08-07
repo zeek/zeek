@@ -125,7 +125,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
                      zeek::detail::InitClass c,
                      zeek::detail::ExprPtr init,
                      std::unique_ptr<std::vector<AttrPtr>> attr,
-                     decl_type dt,
+                     DeclType dt,
                      bool do_init)
 	{
 	if ( id->GetType() )
@@ -327,7 +327,7 @@ void add_global(
 	zeek::TypePtr t,
 	zeek::detail::InitClass c, zeek::detail::ExprPtr init,
 	std::unique_ptr<std::vector<AttrPtr>> attr,
-	decl_type dt)
+	DeclType dt)
 	{
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
@@ -336,7 +336,7 @@ zeek::detail::StmtPtr add_local(
 	zeek::detail::IDPtr id, zeek::TypePtr t,
 	zeek::detail::InitClass c, zeek::detail::ExprPtr init,
 	std::unique_ptr<std::vector<AttrPtr>> attr,
-	decl_type dt)
+	DeclType dt)
 	{
 	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
 
@@ -861,3 +861,5 @@ zeek::EventHandlerPtr internal_handler(const char* name)
 	{
 	return zeek::event_registry->Register(name);
 	}
+
+} // namespace zeek::detail

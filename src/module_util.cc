@@ -11,6 +11,8 @@
 
 using namespace std;
 
+namespace zeek::detail {
+
 static int streq(const char* s1, const char* s2)
 	{
 	return ! strcmp(s1, s2);
@@ -111,3 +113,5 @@ string make_full_var_name(const char* module_name, const char* var_name)
 
 	return full_name;
 	}
+
+} // namespace zeek::detail

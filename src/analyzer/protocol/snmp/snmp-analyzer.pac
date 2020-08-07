@@ -38,7 +38,7 @@ zeek::AddrValPtr network_address_to_val(const ASN1Encoding* na)
 		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr());
 
 	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
-	uint32 network_order = extract_uint32(data);
+	uint32 network_order = zeek::extract_uint32(data);
 	return zeek::make_intrusive<zeek::AddrVal>(ntohl(network_order));
 	}
 

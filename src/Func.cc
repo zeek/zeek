@@ -375,7 +375,7 @@ zeek::ValPtr ScriptFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) c
 			GetType()->FlavorString().c_str(), d.Description());
 		}
 
-	stmt_flow_type flow = FLOW_NEXT;
+	StmtFlowType flow = FLOW_NEXT;
 	zeek::ValPtr result;
 
 	for ( const auto& body : bodies )

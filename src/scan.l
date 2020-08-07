@@ -151,7 +151,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ##<.* {
 	std::string hint(cur_enum_type && last_id_tok ?
-	            make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
+	            zeek::detail::make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
 
 	zeek::detail::zeekygen_mgr->PostComment(yytext + 3, hint);
 }
@@ -422,9 +422,9 @@ when	return TOK_WHEN;
 	pref = zeek::util::skip_whitespace(pref + 1);	// Skip over '='.
 
 	if ( ! append )
-		zeek_script_prefixes = { "" }; // don't delete the "" prefix
+		zeek::detail::zeek_script_prefixes = { "" }; // don't delete the "" prefix
 
-	zeek::util::tokenize_string(pref, ":", &zeek_script_prefixes);
+	zeek::util::tokenize_string(pref, ":", &zeek::detail::zeek_script_prefixes);
 	}
 
 @if	return TOK_ATIF;
@@ -897,14 +897,14 @@ int yywrap()
 
 		it->prefixes_checked = true;
 		// Prefixes are pushed onto a stack, so iterate backwards.
-		for ( int i = zeek_script_prefixes.size() - 1; i >= 0; --i )
+		for ( int i = zeek::detail::zeek_script_prefixes.size() - 1; i >= 0; --i )
 			{
 			// Don't look at empty prefixes.
-			if ( ! zeek_script_prefixes[i][0] )
+			if ( ! zeek::detail::zeek_script_prefixes[i][0] )
 				continue;
 
 			std::string canon = zeek::util::detail::without_zeekpath_component(it->name);
-			std::string flat = zeek::util::detail::flatten_script_name(canon, zeek_script_prefixes[i]);
+			std::string flat = zeek::util::detail::flatten_script_name(canon, zeek::detail::zeek_script_prefixes[i]);
 			std::string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
@@ -926,11 +926,11 @@ int yywrap()
 		return 0;
 
 	// Add redef statements for any X=Y command line parameters.
-	if ( ! params.empty() )
+	if ( ! zeek::detail::params.empty() )
 		{
 		std::string policy;
 
-		for ( const auto& pi : params )
+		for ( const auto& pi : zeek::detail::params )
 			{
 			auto p = pi.data();
 
@@ -976,7 +976,7 @@ int yywrap()
 			policy += zeek::util::fmt(fmt_str, id_str.data(), op.data(), val_str.data());
 			}
 
-		params.clear();
+		zeek::detail::params.clear();
 		yylloc.filename = filename = "<params>";
 		yy_scan_string(policy.c_str());
 		return 0;
@@ -987,18 +987,18 @@ int yywrap()
 	// Use a synthetic filename, and add an extra semicolon on its own
 	// line (so that things like @load work), so that a semicolon is
 	// not strictly necessary.
-	if ( command_line_policy )
+	if ( zeek::detail::command_line_policy )
 		{
-		int tmp_len = strlen(command_line_policy) + 32;
+		int tmp_len = strlen(zeek::detail::command_line_policy) + 32;
 		char* tmp = new char[tmp_len];
-		snprintf(tmp, tmp_len, "%s\n;\n", command_line_policy);
+		snprintf(tmp, tmp_len, "%s\n;\n", zeek::detail::command_line_policy);
 		yylloc.filename = filename = "<command line>";
 
 		yy_scan_string(tmp);
 		delete [] tmp;
 
 		// Make sure we do not get here again:
-		command_line_policy = 0;
+		zeek::detail::command_line_policy = 0;
 
 		return 0;
 		}

@@ -435,12 +435,12 @@ void Supervisor::HandleChildSignal()
 		stem_pipe->In().UnsetFlags(FD_CLOEXEC);
 		stem_pipe->Out().UnsetFlags(FD_CLOEXEC);
 
-		char** args = new char*[bro_argc + 1];
+		char** args = new char*[zeek::detail::zeek_argc + 1];
 		args[0] = config.zeek_exe_path.data();
-		args[bro_argc] = nullptr;
+		args[zeek::detail::zeek_argc] = nullptr;
 
-		for ( auto i = 1; i < bro_argc; ++i )
-			args[i] = bro_argv[i];
+		for ( auto i = 1; i < zeek::detail::zeek_argc; ++i )
+			args[i] = zeek::detail::zeek_argv[i];
 
 		auto res = execv(config.zeek_exe_path.data(), args);
 		fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n",

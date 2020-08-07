@@ -109,9 +109,9 @@ void ProfileLogger::Log()
 		first_stime = stime;
 
 		file->Write(zeek::util::fmt("%.06f Command line: ", zeek::net::network_time ));
-		for ( int i = 0; i < bro_argc; i++ )
+		for ( int i = 0; i < zeek_argc; i++ )
 			{
-			file->Write(bro_argv[i]);
+			file->Write(zeek_argv[i]);
 			file->Write(" ");
 			}
 		file->Write(zeek::util::fmt("\n%.06f ------------------------\n", zeek::net::network_time));

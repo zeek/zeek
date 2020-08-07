@@ -148,7 +148,7 @@ std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 
 // Return true to continue execution, false to abort.
 bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f);
-bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, stmt_flow_type* flow);
+bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, StmtFlowType* flow);
 
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands

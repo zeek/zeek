@@ -50,7 +50,7 @@ refine flow DHCP_Flow += {
 
 		if ( dhcp_message )
 			{
-			std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
+			std::string mac_str = zeek::fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
 			double secs = static_cast<double>(${msg.secs});
 
 			auto dhcp_msg_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::Msg);

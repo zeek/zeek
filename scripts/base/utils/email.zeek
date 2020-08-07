@@ -8,9 +8,9 @@ function extract_email_addrs_vec(str: string): string_vec
 	{
 	local addrs: vector of string = vector();
 
-	local raw_addrs = find_all(str, /(^|[<,:[:blank:]])[^<,:[:blank:]@]+"@"[^>,;[:blank:]]+([>,;[:blank:]]|$)/);
-	for ( raw_addr in raw_addrs )
-		addrs += gsub(raw_addr, /[<>,:;[:blank:]]/, "");
+	local raw_addrs = find_all_ordered(str, /(^|[<,:[:blank:]])[^<,:[:blank:]@]+"@"[^>,;[:blank:]]+([>,;[:blank:]]|$)/);
+	for ( i in raw_addrs )
+		addrs += gsub(raw_addrs[i], /[<>,:;[:blank:]]/, "");
 
 	return addrs;
 	}

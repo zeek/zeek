@@ -22,7 +22,7 @@ event zeek_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
 	SumStats::create([$name="test",
-	                  $epoch=10secs,
+	                  $epoch=15secs,
 	                  $reducers=set(r1),
 	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = 
 	                  	{
@@ -64,7 +64,7 @@ event Cluster::node_up(name: string, id: string)
 		if ( Cluster::node == "worker-1" )
 			{
 			schedule 0.1sec { do_stats(1) };
-			schedule 5secs { do_stats(60) };
+			schedule 1secs { do_stats(60) };
 			}
 		if ( Cluster::node == "worker-2" )
 			schedule 0.5sec { do_stats(40) };

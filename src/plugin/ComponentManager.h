@@ -265,10 +265,12 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	                       nullptr);
 	}
 
-} // namespace plugin
+} // namespace zeek::plugin
 
 namespace plugin {
-	template <class T, class C>
-	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
-		zeek::plugin::ComponentManager<T, C>;
-}
+
+template <class T, class C>
+using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
+	zeek::plugin::ComponentManager<T, C>;
+
+} // namespace plugin

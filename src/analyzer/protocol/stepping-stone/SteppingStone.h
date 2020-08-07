@@ -81,7 +81,7 @@ protected:
 	int endp_cnt = 0;
 };
 
-} // namespace analyzer::stepping_stone
+} // namespace zeek::analyzer::stepping_stone
 
 namespace analyzer::stepping_stone {
 	using SteppingStoneEndpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::stepping_stone::SteppingStoneEndpoint.")]] = zeek::analyzer::stepping_stone::SteppingStoneEndpoint;

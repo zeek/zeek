@@ -70,10 +70,12 @@ T TaggedComponent<T>::Tag() const
 
 template <class T> typename T::type_t TaggedComponent<T>::type_counter(0);
 
-} // namespace plugin
+} // namespace zeek::plugin
 
 namespace plugin {
+
 	template <class T>
 	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
 		zeek::plugin::TaggedComponent<T>;
-}
+
+} // namespace plugin

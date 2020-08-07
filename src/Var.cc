@@ -17,7 +17,7 @@
 #include "module_util.h"
 #include "ID.h"
 
-using namespace zeek::detail;
+namespace zeek::detail {
 
 static zeek::ValPtr init_val(zeek::detail::Expr* init,
                              const zeek::Type* t,

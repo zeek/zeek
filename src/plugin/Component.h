@@ -105,7 +105,7 @@ private:
 	std::string canon_name;
 };
 
-}
+} // namespace zeek::plugin
 
 namespace plugin
 {

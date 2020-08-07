@@ -162,7 +162,7 @@ private:
 	threading::MsgThread* thread;
 };
 
-} // zeek::threading
+} // namespace zeek::threading
 
 namespace threading::formatter {
 	using Formatter [[deprecated("Remove in v4.1. Use zeek::threading::Formatter.")]] = zeek::threading::Formatter;

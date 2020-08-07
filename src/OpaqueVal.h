@@ -381,7 +381,7 @@ private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 };
 
-}
+} // namespace zeek
 
 using OpaqueMgr [[deprecated("Remove in v4.1. Use zeek::OpaqueMgr instead.")]] = zeek::OpaqueMgr;
 using OpaqueVal [[deprecated("Remove in v4.1. Use zeek::OpaqueVal instead.")]] = zeek::OpaqueVal;

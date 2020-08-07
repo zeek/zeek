@@ -445,7 +445,7 @@ protected:
 	bool is_return;
 };
 
-}
+} // namespace zeek::detail
 
 using Stmt [[deprecated("Remove in v4.1. Use zeek::detail::Stmt instead.")]] = zeek::detail::Stmt;
 using ExprListStmt [[deprecated("Remove in v4.1. Use zeek::detail::ExprListStmt instead.")]] = zeek::detail::ExprListStmt;

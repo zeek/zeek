@@ -1434,7 +1434,7 @@ extern bool can_cast_value_to_type(const Val* v, zeek::Type* t);
 // specific instance later.
 extern bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t);
 
-}
+} // namespace zeek
 
 using Val [[deprecated("Remove in v4.1. Use zeek::Val instead.")]] = zeek::Val;
 using PortVal [[deprecated("Remove in v4.1. Use zeek::PortVal instead.")]] = zeek::PortVal;

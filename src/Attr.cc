@@ -228,7 +228,7 @@ void Attributes::Describe(ODesc* d) const
 
 	loop_over_list(*attrs, i)
 		{
-		if ( (d->IsReadable() || d->IsParseable()) && i > 0 )
+		if ( d->IsReadable() && i > 0 )
 			d->Add(", ");
 
 		(*attrs)[i]->Describe(d);

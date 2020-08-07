@@ -29,7 +29,7 @@
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_IS_SET TOK_ATTR_IS_USED
 %token TOK_ATTR_DEPRECATED
 
-%token TOK_ZAM_FILE TOK_TYPES TOK_VALS TOK_AUX TOK_INSTS TOK_OP_NAME
+%token TOK_ZAM_FILE TOK_TYPES TOK_VALS TOK_ATTRS TOK_AUX TOK_INSTS TOK_OP_NAME
 
 %token TOK_DEBUG
 
@@ -832,7 +832,7 @@ enum_body_elem:
 	|	TOK_ID '=' '-' TOK_CONSTANT
 			{
 			/* We only accept counts as enumerator, but we want to return a nice
-			   error message if users triy to use a negative integer (will also
+			   error message if users try to use a negative integer (will also
 			   catch other cases, but that's fine.)
 			*/
 			reporter->Error("enumerator is not a count constant");
@@ -1906,7 +1906,7 @@ opt_deprecated:
 	|
 			{ $$ = nullptr; }
 
-ZAM_info:	ZAM_types ZAM_vals ZAM_auxes ZAM_insts
+ZAM_info:	ZAM_types ZAM_vals ZAM_auxes ZAM_attrs ZAM_insts
 	;
 
 ZAM_types:	TOK_TYPES '{' type_list ',' '}'
@@ -1918,6 +1918,10 @@ ZAM_vals:	TOK_VALS '{' ZAM_val_list ',' '}'
 	;
 
 ZAM_auxes:	TOK_AUX '{' ZAM_aux_list '}'
+	|
+	;
+
+ZAM_attrs:	TOK_ATTRS '{' ZAM_attrs_list '}'
 	|
 	;
 
@@ -1933,6 +1937,13 @@ ZAM_val:	TOK_CONSTANT
 	|	'-' TOK_CONSTANT
 	|	TOK_ID
 	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
+	;
+
+ZAM_attrs_list:	ZAM_attr_set ','
+	|	ZAM_attrs_list ZAM_attr_set ','
+	;
+
+ZAM_attr_set:	TOK_CONSTANT attr_list ';'
 	;
 
 ZAM_aux_list:	ZAM_aux
@@ -1964,7 +1975,8 @@ ZAM_ind_com:	ZAM_ind ','
 	;
 
 ZAM_ind:	TOK_CONSTANT
-	|	'-'
+	|	'-' TOK_CONSTANT
+	|	'*'
 	;
 
 ZAM_inst_list:	ZAM_inst_list ZAM_inst
@@ -1973,6 +1985,11 @@ ZAM_inst_list:	ZAM_inst_list ZAM_inst
 
 ZAM_inst:	TOK_CONSTANT TOK_CONSTANT TOK_CONSTANT TOK_OP_NAME
 		ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind
+		ZAM_ind ZAM_ID ZAM_ID
+	;
+
+ZAM_ID:		TOK_ID
+	|	'*'
 	;
 
 %%

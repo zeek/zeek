@@ -362,8 +362,8 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 // every time we instantiate them.
 
 // Constant used to represent a missing value.
-const auto NA = "-";
-const auto SP_NA = " -";	// same but with a leading space
+const auto NA = "*";
+const auto SP_NA = " *";	// same but with a leading space
 
 // Type used to hold the representation of an item.
 using RepType = std::string;
@@ -426,6 +426,20 @@ protected:
 		{
 		ODesc d(DESC_PARSEABLE);
 		item->Describe(&d);
+		return RepType(d.Description());
+		}
+};
+
+
+class AttrTracker : public ItemTracker<const Attributes*> {
+protected:
+	RepType ItemRep(const Attributes* item) const override
+		{
+		ODesc d(DESC_PARSEABLE);
+		item->Describe(&d);
+		// We need a delimiter to mark the end of the list,
+		// to allow representing multiple lists unambiguously.
+		d.Add(";");
 		return RepType(d.Description());
 		}
 };
@@ -668,7 +682,7 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 				{
 				d.Add(NA);
 				d.AddSP(",");
-				d.Add(item->slots[i]);
+				d.Add(item->ints[i]);
 				}
 
 			d.AddSP(",");
@@ -681,8 +695,6 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 
 			d.AddSP(" }");
 			}
-
-		d.NL();
 		}
 
 	auto& ii = item->iter_info;
@@ -729,13 +741,18 @@ void ZBody::SaveTo(FILE* f) const
 	TypeTracker types;
 	ValTracker vals;
 	AuxTracker auxes(types, vals);
+	AttrTracker attrs;
 
 	for ( auto i : insts )
 		{
+		if ( i->e )
+			reporter->InternalError("ZAM save file needs support for expressions");
+
 		types.AddItem(i->t);
 		types.AddItem(i->t2);
 		vals.AddItem(i->ConstVal().get());
 		auxes.AddItem(i->aux);
+		attrs.AddItem(i->attrs);
 		}
 
 	fprintf(f, "<ZAM-file>\n");
@@ -743,6 +760,7 @@ void ZBody::SaveTo(FILE* f) const
 	types.Render(f, "types");
 	vals.Render(f, "vals");
 	auxes.Render(f, "aux");
+	attrs.Render(f, "attrs");
 
 	fprintf(f, "<insts> {\n");
 
@@ -787,6 +805,21 @@ void ZBody::SaveTo(FILE* f) const
 			fprintf(f, SP_NA);
 		if ( i->t2 )
 			fprintf(f, " %d", types.FindItem(i->t2));
+		else
+			fprintf(f, SP_NA);
+
+		if ( i->attrs )
+			fprintf(f, " %d", attrs.FindItem(i->attrs));
+		else
+			fprintf(f, SP_NA);
+
+		if ( i->func )
+			fprintf(f, " %s", i->func->Name());
+		else
+			fprintf(f, SP_NA);
+
+		if ( i->event_handler )
+			fprintf(f, " %s", i->event_handler->Name());
 		else
 			fprintf(f, SP_NA);
 

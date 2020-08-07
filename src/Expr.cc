@@ -588,7 +588,7 @@ void Expr::Describe(ODesc* d) const
 	if ( IsParen() && ! d->IsBinary() )
 		d->Add("(");
 
-	if ( d->IsParseable() || d->IsBinary() )
+	if ( d->IsBinary() )
 		AddTag(d);
 
 	if ( d->DoOrig() )

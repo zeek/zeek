@@ -300,6 +300,7 @@ vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
 <ZAM>"<ZAM-file>"	return TOK_ZAM_FILE;
+<ZAM>"<attrs>"		return TOK_ATTRS;
 <ZAM>"<aux>"		return TOK_AUX;
 <ZAM>"<insts>"		return TOK_INSTS;
 <ZAM>"<types>"		return TOK_TYPES;

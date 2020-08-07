@@ -17,7 +17,7 @@ ci_template: &CI_TEMPLATE
       (
       $CIRRUS_BRANCH == 'master' ||
       $CIRRUS_BRANCH =~ 'release/.*' ||
-      $CIRRUS_BRANCH == 'topic/timw/open-dict'
+      $CIRRUS_BRANCH == 'topic/jsiwek/open-dict'
       )
     )
 

@@ -7,7 +7,8 @@
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker ../clone.zeek >../clone2.out"
 # @TEST-EXEC: btest-bg-wait 15
 #
-# @TEST-EXEC: btest-diff worker-1/.stderr
+# @TEST-EXEC: grep -v PEER_UNAVAILABLE worker-1/.stderr > worker-1-stderr
+# @TEST-EXEC: btest-diff worker-1-stderr
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {

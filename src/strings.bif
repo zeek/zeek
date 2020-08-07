@@ -943,7 +943,7 @@ function safe_shell_quote%(source: string%): string
 ##
 ## Returns: The set of strings in *str* that match *re*, or the empty set.
 ##
-## .. zeek:see: find_last strstr
+## .. zeek:see: find_all_ordered find_last strstr
 function find_all%(str: string, re: pattern%) : string_set
 	%{
 	auto a = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
@@ -965,6 +965,38 @@ function find_all%(str: string, re: pattern%) : string_set
 	return a;
 	%}
 
+## Finds all occurrences of a pattern in a string.  The order in which
+## occurrences are found is preverved and the return value may contain
+## duplicate elements.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: All strings in *str* that match *re*, or an empty vector.
+##
+## .. zeek:see: find_all find_last strstr
+function find_all_ordered%(str: string, re: pattern%) : string_vec
+	%{
+	auto a = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+
+	const u_char* s = str->Bytes();
+	const u_char* e = s + str->Len();
+
+	for ( const u_char* t = s; t < e; ++t )
+		{
+		int n = re->MatchPrefix(t, e - t);
+		if ( n >= 0 )
+			{
+			auto idx = zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+			a->Assign(a->Size(), std::move(idx));
+			t += n - 1;
+			}
+		}
+
+	return a;
+	%}
+
 ## Finds the last occurrence of a pattern in a string. This function returns
 ## the match that starts at the largest index in the string, which is not
 ## necessarily the longest match.  For example, a pattern of ``/.*/`` will
@@ -976,7 +1008,7 @@ function find_all%(str: string, re: pattern%) : string_set
 ##
 ## Returns: The last string in *str* that matches *re*, or the empty string.
 ##
-## .. zeek:see: find_all strstr
+## .. zeek:see: find_all find_all_ordered strstr
 function find_last%(str: string, re: pattern%) : string
 	%{
 	const u_char* s = str->Bytes();

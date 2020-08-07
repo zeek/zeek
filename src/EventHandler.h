@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroList.h"
+#include "ZeekList.h"
 #include "ZeekArgs.h"
 #include "Type.h"
 

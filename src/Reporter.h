@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "BroList.h"
+#include "ZeekList.h"
 #include "net_util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);

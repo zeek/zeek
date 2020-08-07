@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroList.h"
+#include "ZeekList.h"
 #include "analyzer/Analyzer.h"
 #include "iosource/IOSource.h"
 #include "Flare.h"

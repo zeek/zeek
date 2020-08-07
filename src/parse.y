@@ -78,15 +78,17 @@
 #include <string.h>
 #include <assert.h>
 
+#include <set>
+#include <string>
+
 #include "input.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "Desc.h"
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
 #include "Val.h"
 #include "Var.h"
-/* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"
@@ -94,9 +96,6 @@
 #include "zeekygen/Manager.h"
 #include "module_util.h"
 #include "IntrusivePtr.h"
-
-#include <set>
-#include <string>
 
 extern const char* filename;  // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.

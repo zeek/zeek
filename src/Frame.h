@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroList.h" // for typedef val_list
+#include "ZeekList.h" // for typedef val_list
 #include "Obj.h"
 #include "IntrusivePtr.h"
 #include "ZeekArgs.h"

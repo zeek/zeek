@@ -6,7 +6,7 @@
 #include <string>
 
 #include "Obj.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);

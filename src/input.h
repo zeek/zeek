@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include "BroList.h"
+#include "ZeekList.h"
 
 // These are required by the lexer in scan.l and are intentionally not namespaced.
 extern int yyparse();

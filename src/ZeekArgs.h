@@ -3,7 +3,7 @@
 #pragma once
 
 #include <vector>
-#include "BroList.h"
+#include "ZeekList.h"
 
 namespace zeek {
 

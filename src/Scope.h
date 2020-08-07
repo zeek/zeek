@@ -8,7 +8,7 @@
 #include <map>
 
 #include "Obj.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "IntrusivePtr.h"
 #include "TraverseTypes.h"
 

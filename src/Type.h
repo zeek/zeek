@@ -4,7 +4,7 @@
 
 #include "Obj.h"
 #include "Attr.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "IntrusivePtr.h"
 
 #include <string>

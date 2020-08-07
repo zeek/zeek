@@ -1,7 +1,7 @@
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: btest-bg-run master "zeek -B broker -b ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run master "zeek -B broker -b %DIR/sort-stuff.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b %DIR/sort-stuff.zeek ../clone.zeek >../clone.out"
 # @TEST-EXEC: btest-bg-wait 15
 #
 # @TEST-EXEC: btest-diff clone.out
@@ -48,9 +48,9 @@ event insert_stuff()
 	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -92,9 +92,9 @@ event zeek_init()
 
 event dump_tables()
 	{
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	terminate();
 	}
 

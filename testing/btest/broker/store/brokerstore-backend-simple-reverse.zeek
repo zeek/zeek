@@ -2,13 +2,15 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 
-# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker ../clone.zeek >../clone.out"
-# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker ../clone2.zeek >../clone2.out"
+# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker %DIR/sort-stuff.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker %DIR/sort-stuff.zeek ../clone2.zeek >../clone2.out"
 # @TEST-EXEC: btest-bg-wait 40
 #
 # @TEST-EXEC: btest-diff master.out
 # @TEST-EXEC: btest-diff clone.out
+# @TEST-EXEC: diff master.out clone.out
+# @TEST-EXEC: diff master.out clone2.out
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -54,9 +56,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	if ( terminate_count == 2)
 		{
 		terminate();
-		print t;
-		print s;
-		print r;
+		print sort_table(t);
+		print sort_set(s);
+		print sort_table(r);
 		}
 	}
 
@@ -98,9 +100,9 @@ event dump_tables()
 	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	schedule 10sec { terminate_me() };
 	}
 
@@ -136,9 +138,9 @@ global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::M
 
 event dump_tables()
 	{
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	terminate();
 	}
 

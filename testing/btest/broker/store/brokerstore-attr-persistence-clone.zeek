@@ -1,13 +1,15 @@
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: zeek -B broker -b one.zeek > output1
-# @TEST-EXEC: btest-bg-run master "cp ../*.sqlite . && zeek -B broker -b ../two.zeek >../output2"
-# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b ../three.zeek >../output3"
+# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek one.zeek > output1
+# @TEST-EXEC: btest-bg-run master "cp ../*.sqlite . && zeek -B broker -b %DIR/sort-stuff.zeek ../two.zeek >../output2"
+# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b %DIR/sort-stuff.zeek ../three.zeek >../output3"
 # @TEST-EXEC: btest-bg-wait 15
 
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
 # @TEST-EXEC: btest-diff output3
+# @TEST-EXEC: diff output1 output2
+# @TEST-EXEC: diff output2 output3
 
 # the first test writes out the sqlite files...
 
@@ -45,9 +47,9 @@ event zeek_init()
 	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
 @TEST-END-FILE
@@ -79,9 +81,9 @@ event zeek_init()
 	tablestore = Broker::create_master("table", Broker::SQLITE);
 	setstore = Broker::create_master("set", Broker::SQLITE);
 	recordstore = Broker::create_master("rec", Broker::SQLITE);
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -121,9 +123,9 @@ event zeek_init()
 
 event print_me()
 	{
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	terminate();
 	}
 

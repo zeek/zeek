@@ -1,7 +1,8 @@
-# @TEST-EXEC: zeek -B broker -b one.zeek > output1
-# @TEST-EXEC: zeek -B broker -b two.zeek > output2
+# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek one.zeek > output1
+# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek two.zeek > output2
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
+# @TEST-EXEC: diff output1 output2
 
 # the first test writes out the sqlite files...
 
@@ -39,9 +40,9 @@ event zeek_init()
 	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
 @TEST-END-FILE
@@ -70,8 +71,8 @@ event zeek_init()
 	tablestore = Broker::create_master("table", Broker::SQLITE);
 	setstore = Broker::create_master("set", Broker::SQLITE);
 	recordstore = Broker::create_master("rec", Broker::SQLITE);
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 @TEST-END-FILE

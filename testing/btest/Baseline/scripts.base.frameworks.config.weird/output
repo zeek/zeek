@@ -1,9 +1,5 @@
 Config values set
-{
-whitelisted_net_weird,
-whitelisted_flow_weird,
-whitelisted_conn_weird
-}
+[whitelisted_conn_weird, whitelisted_flow_weird, whitelisted_net_weird]
 10
 10
 5.0 secs

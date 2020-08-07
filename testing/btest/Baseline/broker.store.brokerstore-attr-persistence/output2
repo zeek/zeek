@@ -1,20 +1,9 @@
-{
-[a] = 5,
-[whatever] = 5,
-[b] = 3
-}
-{
-I am a set!,
-Believe me - I am a set,
-I am really a set!
-}
-{
-[a] = [a=1, b=c, c={
+[[key=a, val=5], [key=b, val=3], [key=whatever, val=5]]
+[Believe me - I am a set, I am a set!, I am really a set!]
+[[key=a, val=[a=1, b=c, c={
 elem1,
 elem2
-}],
-[b] = [a=2, b=d, c={
+}]], [key=b, val=[a=2, b=d, c={
 elem1,
 elem2
-}]
-}
+}]]]

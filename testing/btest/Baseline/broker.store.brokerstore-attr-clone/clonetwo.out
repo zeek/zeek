@@ -1,19 +1,10 @@
 Peer added
-{
-[a] = 3,
-[whatever] = 5,
-[b] = 3
-}
-{
-hi
-}
-{
-[a] = [a=1, b=c, c={
+[[key=a, val=3], [key=b, val=3], [key=whatever, val=5]]
+[hi]
+[[key=a, val=[a=1, b=c, c={
 elem1,
 elem2
-}],
-[b] = [a=2, b=d, c={
+}]], [key=b, val=[a=2, b=d, c={
 elem1,
 elem2
-}]
-}
+}]]]

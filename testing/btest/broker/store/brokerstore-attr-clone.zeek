@@ -2,9 +2,9 @@
 
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: btest-bg-run master "zeek -B broker -b ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run cloneone "zeek -B broker -b ../cloneone.zeek >../cloneone.out"
-# @TEST-EXEC: btest-bg-run clonetwo "zeek -B broker -b ../clonetwo.zeek >../clonetwo.out"
+# @TEST-EXEC: btest-bg-run master "zeek -B broker -b %DIR/sort-stuff.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run cloneone "zeek -B broker -b %DIR/sort-stuff.zeek ../cloneone.zeek >../cloneone.out"
+# @TEST-EXEC: btest-bg-run clonetwo "zeek -B broker -b %DIR/sort-stuff.zeek ../clonetwo.zeek >../clonetwo.out"
 # @TEST-EXEC: btest-bg-wait 15
 #
 # @TEST-EXEC: btest-diff master.out
@@ -39,9 +39,9 @@ event zeek_init()
 
 event dump_tables()
 	{
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -95,9 +95,9 @@ event send_stuff_over()
 	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
 event killmeplease()
@@ -142,9 +142,9 @@ event zeek_init()
 
 event dump_tables()
 	{
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	terminate();
 	}
 

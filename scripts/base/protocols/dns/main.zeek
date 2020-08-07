@@ -285,12 +285,19 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 				else
 					{
 					# Just pick an arbitrary, unpaired query.
+					local tid: count;
+					local found_one = F;
+
 					for ( trans_id, q in c$dns_state$pending_queries )
 						if ( Queue::len(q) > 0 )
 							{
-							c$dns_state$pending_query = pop_msg(c$dns_state$pending_queries, trans_id);
+							tid = trans_id;
+							found_one = T;
 							break;
 							}
+
+					if ( found_one )
+						c$dns_state$pending_query = pop_msg(c$dns_state$pending_queries, tid);
 					}
 				}
 			}

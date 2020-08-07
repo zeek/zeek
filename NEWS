@@ -27,6 +27,11 @@ Changed Functionality
   - The use as enum of type ``NetControl::RuleType`` is unchanged and still
     named ``NetControl::DROP``
 
+- The extract_email_addrs_vec() BIF now returns all occurrences of emails,
+  including duplicates, with preserved order of occurrence.  This seems like
+  the original/documented intent of the function, but the previous
+  implementation did not preserve ordering or duplicates.
+
 Removed Functionality
 ---------------------
 

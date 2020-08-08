@@ -1,15 +1,12 @@
-# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek one.zeek > output1
-# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek two.zeek > output2
+# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
+# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek common.zeek two.zeek > output2
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
 # @TEST-EXEC: diff output1 output2
 
 # the first test writes out the sqlite files...
 
-@TEST-START-FILE one.zeek
-
-module TestModule;
-
+@TEST-START-FILE common.zeek
 global tablestore: opaque of Broker::Store;
 global setstore: opaque of Broker::Store;
 global recordstore: opaque of Broker::Store;
@@ -17,12 +14,15 @@ global recordstore: opaque of Broker::Store;
 type testrec: record {
 	a: count;
 	b: string;
-	c: set[string];
+	c: vector of string;
 };
 
 global t: table[string] of count &broker_store="table";
 global s: set[string] &broker_store="set";
 global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
+@TEST-END-FILE
+
+@TEST-START-FILE one.zeek
 
 event zeek_init()
 	{
@@ -37,9 +37,9 @@ event zeek_init()
 	add s["I am a set!"];
 	add s["I am really a set!"];
 	add s["Believe me - I am a set"];
-	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
-	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
-	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
+	r["a"] = testrec($a=1, $b="b", $c=vector("elem1", "elem2"));
+	r["a"] = testrec($a=1, $b="c", $c=vector("elem1", "elem2"));
+	r["b"] = testrec($a=2, $b="d", $c=vector("elem1", "elem2"));
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
@@ -49,22 +49,6 @@ event zeek_init()
 @TEST-START-FILE two.zeek
 
 # the second one reads them in again
-
-module TestModule;
-
-global tablestore: opaque of Broker::Store;
-global setstore: opaque of Broker::Store;
-global recordstore: opaque of Broker::Store;
-
-type testrec: record {
-	a: count;
-	b: string;
-	c: set[string];
-};
-
-global t: table[string] of count &broker_store="table";
-global s: set[string] &broker_store="set";
-global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
 
 event zeek_init()
 	{

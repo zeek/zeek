@@ -1,10 +1,12 @@
 #
-# @TEST-EXEC: zeek -C -r $TRACES/modbus/modbusSmall.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/modbus/modbusSmall.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
+
+@load base/protocols/modbus
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)
 {

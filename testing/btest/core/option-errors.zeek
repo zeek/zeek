@@ -1,4 +1,4 @@
-# @TEST-EXEC-FAIL: zeek %INPUT
+# @TEST-EXEC-FAIL: zeek -b %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 option testbool;

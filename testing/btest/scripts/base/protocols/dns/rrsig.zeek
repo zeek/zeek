@@ -1,8 +1,8 @@
-# @TEST-EXEC: zeek -C -r $TRACES/dnssec/rrsig.pcap %INPUT > output
+# @TEST-EXEC: zeek -b -C -r $TRACES/dnssec/rrsig.pcap %INPUT > output
 # @TEST-EXEC: btest-diff dns.log
 # @TEST-EXEC: btest-diff output
 
-#@load policy/protocols/dns/auth-addl
+@load base/protocols/dns
 
 event dns_RRSIG(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_rr)
 	{

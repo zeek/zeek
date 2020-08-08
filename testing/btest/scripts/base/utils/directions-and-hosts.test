@@ -1,9 +1,8 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# These are loaded by default.
-#@load base/utils/site
-#@load base/utils/directions-and-hosts
+@load base/utils/site
+@load base/utils/directions-and-hosts
 
 redef Site::local_nets += { 10.0.0.0/8 };
 

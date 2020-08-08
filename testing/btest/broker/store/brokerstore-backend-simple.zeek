@@ -2,10 +2,10 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 
-# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker %DIR/sort-stuff.zeek ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone.out"
-# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone2.out"
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b -B broker ../common.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b -B broker ../common.zeek ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b -B broker ../common.zeek ../clone.zeek >../clone2.out"
+# @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: btest-diff master.out
 # @TEST-EXEC: btest-diff clone.out
@@ -20,6 +20,42 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+@TEST-START-FILE common.zeek
+@load base/frameworks/cluster
+@load base/frameworks/broker
+
+function sort_set(s: set[string]): vector of string
+	{
+	local v: vector of string = vector();
+
+	for ( e in s )
+		v += e;
+
+	sort(v, strcmp);
+	return v;
+	}
+
+type TableEntry: record {
+	key: string;
+	val: any;
+};
+
+function sort_table(t: table[string] of any): vector of TableEntry
+	{
+	local vs: vector of string = vector();
+	local rval: vector of TableEntry = vector();
+
+	for ( k, v in t )
+		vs += k;
+
+	sort(vs, strcmp);
+
+	for ( i in vs )
+		rval += TableEntry($key=vs[i], $val=t[vs[i]]);
+
+	return rval;
+	}
+@TEST-END-FILE
 
 @TEST-START-FILE master.zeek
 redef exit_only_after_terminate = T;

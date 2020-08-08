@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stdout
+
+@load base/frameworks/sumstats
 
 redef exit_only_after_terminate=T;
 

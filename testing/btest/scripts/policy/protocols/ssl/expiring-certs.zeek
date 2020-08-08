@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/tls/tls-expired-cert.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/tls-expired-cert.trace %INPUT
 # @TEST-EXEC: btest-diff notice.log
 
 @load protocols/ssl/expiring-certs

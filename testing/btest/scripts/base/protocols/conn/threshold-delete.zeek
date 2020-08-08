@@ -1,8 +1,10 @@
-# @TEST-EXEC: zeek -r $TRACES/irc-dcc-send.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
 #
 # This tests that no events are raised once all thresholds have been deleted.
+
+@load base/protocols/conn
 
 event connection_established(c: connection)
 	{

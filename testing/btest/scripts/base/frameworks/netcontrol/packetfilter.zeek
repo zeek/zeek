@@ -1,6 +1,10 @@
-# @TEST-EXEC: zeek -r $TRACES/smtp.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/smtp.trace %INPUT
 # @TEST-EXEC: btest-diff conn.log
 
+@load base/protocols/conn
+@load base/protocols/smtp
+@load base/protocols/dns
+@load base/frameworks/dpd
 @load base/frameworks/netcontrol
 
 event NetControl::init()

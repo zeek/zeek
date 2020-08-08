@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2019-06-07-02-00-46
+#open	2020-08-08-04-25-02
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1536797872.428637	ClEkJM2Vm5giqnMf4h	127.0.0.1	65389	127.0.0.1	6666	irc_invalid_names_line	-	F	zeek
-#close	2019-06-07-02-00-46
+1536797872.428637	CHhAvVGS1DHFjwGM9	127.0.0.1	65389	127.0.0.1	6666	irc_invalid_names_line	-	F	zeek
+#close	2020-08-08-04-25-02

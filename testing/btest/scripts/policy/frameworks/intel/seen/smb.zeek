@@ -1,6 +1,7 @@
-# @TEST-EXEC: zeek -C -r $TRACES/smb/smb2readwrite.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/smb/smb2readwrite.pcap %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
+@load base/protocols/smb
 @load base/frameworks/intel
 @load frameworks/intel/seen
 

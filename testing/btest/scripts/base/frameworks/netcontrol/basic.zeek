@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff netcontrol.log
 # @TEST-EXEC: btest-diff netcontrol_shunt.log
 # @TEST-EXEC: btest-diff netcontrol_drop.log

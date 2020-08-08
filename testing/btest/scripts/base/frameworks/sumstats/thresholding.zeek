@@ -1,5 +1,8 @@
-# @TEST-EXEC: zeek %INPUT | sort >output
+# @TEST-EXEC: zeek -b %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
+
+@load base/frameworks/sumstats
+@load base/frameworks/notice
 
 redef enum Notice::Type += {
 	Test_Notice,

@@ -1,8 +1,7 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default.
-#@load base/utils/pattern
+@load base/utils/patterns
 
 global r1 = set_to_regex(set("blah", "bleh", "blarg"), "(~~)");
 global r2 = set_to_regex(set("blah", "bleh", "blarg"), "foo(~~)bar");

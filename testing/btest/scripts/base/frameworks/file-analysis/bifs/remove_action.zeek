@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT >get.out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT >get.out
 # @TEST-EXEC: btest-diff get.out
+
+@load base/protocols/http
 
 redef test_file_analysis_source = "HTTP";
 

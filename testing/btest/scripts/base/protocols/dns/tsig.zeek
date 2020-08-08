@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek -r $TRACES/dns-tsig.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/dns-tsig.trace %INPUT >out
 # @TEST-EXEC: btest-diff out
+
+@load base/protocols/dns
 
 redef dns_skip_all_addl = F;
 

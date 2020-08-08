@@ -3,12 +3,15 @@
 # @TEST-PORT: BROKER_PORT3
 # @TEST-PORT: BROKER_PORT4
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run proxy-1   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/notice.log
+
+@load base/frameworks/notice
+@load base/frameworks/cluster
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -30,7 +33,7 @@ event Cluster::node_down(name: string, id: string)
 	terminate();
 	}
 
-event delayed_notice()
+event do_notice()
 	{
 	NOTICE([$note=Test_Notice,
 	        $msg="test notice!",
@@ -38,17 +41,33 @@ event delayed_notice()
 	}
 
 event ready()
-    {
+	{
+	print "ready";
+
+	if ( Cluster::node == "manager-1" )
+		Broker::publish(Cluster::node_topic("worker-1"), ready);
 	if ( Cluster::node == "worker-1" )
-		schedule 4secs { delayed_notice() };
+		schedule 1sec { do_notice() };
 	if ( Cluster::node == "worker-2" )
-		schedule 1secs { delayed_notice() };
-    }
+		{
+		event do_notice();
+		Broker::publish(Cluster::node_topic("manager-1"), ready);
+		}
+	}
 
 event Notice::suppressed(n: Notice::Info)
 	{
+	print "suppressed", n$note, n$identifier;
+
 	if ( Cluster::node == "worker-1" )
 		terminate();
+	}
+
+event Notice::begin_suppression(ts: time, suppress_for: interval, note: Notice::Type,
+								identifier: string)
+	{
+	print "begin suppression", suppress_for, note, identifier;
+	Broker::publish(Cluster::node_topic("manager-1"), ready);
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
@@ -60,7 +79,7 @@ event Cluster::node_up(name: string, id: string)
 	peer_count = peer_count + 1;
 
 	if ( peer_count == 3 )
-		Broker::publish(Cluster::worker_topic, ready);
+		Broker::publish(Cluster::node_topic("worker-2"), ready);
 	}
 
 @endif

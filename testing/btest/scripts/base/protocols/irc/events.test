@@ -1,9 +1,11 @@
 # Test IRC events
 
-# @TEST-EXEC: zeek -r $TRACES/irc-dcc-send.trace %INPUT
-# @TEST-EXEC: zeek -r $TRACES/irc-basic.trace %INPUT
-# @TEST-EXEC: zeek -r $TRACES/irc-whitespace.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/irc-basic.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/irc-whitespace.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/irc
 
 event irc_privmsg_message(c: connection, is_orig: bool, source: string, target: string, message: string)
 	{

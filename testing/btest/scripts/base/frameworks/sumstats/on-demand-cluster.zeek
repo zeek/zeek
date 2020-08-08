@@ -2,13 +2,16 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-wait 30
 
 # @TEST-EXEC: btest-diff manager-1/.stdout
 #
+
+@load base/frameworks/cluster
+@load base/frameworks/sumstats
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -37,11 +40,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 global ready_for_data: event();
 
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
-	}
-
 event on_demand()
 	{
 	local host = 7.2.1.5;
@@ -54,6 +52,15 @@ event on_demand()
 		if ( Cluster::node == "manager-1" )
 		  terminate();
 		}
+	}
+
+global ready_count = 0;
+event ready_to_demand()
+	{
+	++ready_count;
+
+	if ( ready_count == 2 )
+		event on_demand();
 	}
 
 event ready_for_data()
@@ -73,7 +80,7 @@ event ready_for_data()
 		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
 		}
 
-	schedule 1sec { on_demand() };
+	Broker::publish(Cluster::manager_topic, ready_to_demand);
 	}
 
 global peer_count = 0;
@@ -84,8 +91,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 
 	++peer_count;
 	if ( peer_count == 2 )
-		{
-		event ready_for_data();
-		}
+		Broker::publish(Cluster::worker_topic, ready_for_data);
 	}
 

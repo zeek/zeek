@@ -29,7 +29,7 @@ event zeek_init() &priority=5
 	local r1: SumStats::Reducer = [$stream="test.metric", 
 	                               $apply=set(SumStats::TOPK)];
 	SumStats::create([$name="topk-test", 
-	                  $epoch=1secs,
+	                  $epoch=5secs,
 	                  $reducers=set(r1),
 	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{

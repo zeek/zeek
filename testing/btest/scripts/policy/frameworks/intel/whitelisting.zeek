@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -Cr $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -Cr $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
 #@TEST-START-FILE intel.dat
@@ -12,6 +12,8 @@ meta.wikimedia.org	Intel::DOMAIN	source1	also bad	http://some-data-distributor.c
 meta.wikimedia.org	Intel::DOMAIN	source2	also bad	T	http://some-data-distributor.com/1
 #@TEST-END-FILE
 
+@load base/protocols/http
+@load base/protocols/dns
 @load base/frameworks/intel
 @load frameworks/intel/whitelist
 @load frameworks/intel/seen

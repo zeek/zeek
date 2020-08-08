@@ -2,12 +2,15 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
 
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
+
+@load base/frameworks/sumstats
+@load base/frameworks/cluster
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -20,6 +23,7 @@ redef Cluster::nodes = {
 redef Log::default_rotation_interval = 0secs;
 
 global n = 0;
+global did_data = F;
 
 event zeek_init() &priority=5
 	{
@@ -29,12 +33,14 @@ event zeek_init() &priority=5
 	                  $reducers=set(r1),
 	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
+	                  	if ( ! did_data ) return;
 	                  	local r = result["test"];
 	                  	print fmt("Host: %s - num:%d - sum:%.1f - avg:%.1f - max:%.1f - min:%.1f - var:%.1f - std_dev:%.1f - unique:%d - hllunique:%d", key$host, r$num, r$sum, r$average, r$max, r$min, r$variance, r$std_dev, r$unique, r$hll_unique);
 	                  	},
 	                  $epoch_finished(ts: time) =
 	                  	{
-	                  	terminate();
+	                  	if ( did_data )
+	                  		terminate();
 	                  	}]);
 	}
 
@@ -67,6 +73,8 @@ event ready_for_data()
 		SumStats::observe("test", [$host=7.2.1.5], [$num=91]);
 		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
 		}
+
+	did_data = T;
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )

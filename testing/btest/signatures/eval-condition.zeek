@@ -1,6 +1,9 @@
-# @TEST-EXEC: zeek -r $TRACES/ftp/ipv4.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv4.trace %INPUT
 # @TEST-EXEC: btest-diff conn.log
 
+@load base/protocols/conn
+@load base/protocols/ftp
+@load base/frameworks/dpd
 @load-sigs blah.sig
 
 @TEST-START-FILE blah.sig

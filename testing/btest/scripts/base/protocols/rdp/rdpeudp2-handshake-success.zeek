@@ -1,8 +1,10 @@
-# @TEST-EXEC: zeek -Cr $TRACES/rdp/rdpeudp2-handshake-success.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -Cr $TRACES/rdp/rdpeudp2-handshake-success.pcap %INPUT >out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/rdp
+@load base/protocols/conn
+@load base/frameworks/dpd
 
 event rdpeudp_syn(c: connection)
 	{

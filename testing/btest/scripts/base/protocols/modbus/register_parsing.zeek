@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/modbus/fuzz-1011.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/modbus/fuzz-1011.trace %INPUT >output
 # @TEST-EXEC: btest-diff modbus.log
 # @TEST-EXEC: btest-diff output
 
@@ -9,6 +9,8 @@
 # should not trigger any asserts, but generate a protocol_violation (in this
 # case TCP_ApplicationAnalyzer::ProtocolViolation asserts its behavior for
 # incomplete connections).
+
+@load base/protocols/modbus
 
 event modbus_read_input_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 	{

@@ -1,12 +1,15 @@
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff manager-1/intel.log
+
+@load base/frameworks/intel
+@load base/frameworks/cluster
 
 # @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {

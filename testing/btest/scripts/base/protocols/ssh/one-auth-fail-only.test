@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek -C -r $TRACES/ssh/sshguess.pcap %INPUT | sort >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/ssh/sshguess.pcap %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
+
+@load base/protocols/ssh
 
 event ssh_auth_attempted(c: connection, authenticated: bool)
 	{

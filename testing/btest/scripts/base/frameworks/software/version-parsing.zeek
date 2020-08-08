@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek %INPUT > output
+# @TEST-EXEC: zeek -b %INPUT > output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff output
+
+@load base/frameworks/software
 
 module Software;
 

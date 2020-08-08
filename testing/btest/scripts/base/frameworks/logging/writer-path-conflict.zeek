@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff reporter.log
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff http-2.log
@@ -6,6 +6,7 @@
 # @TEST-EXEC: btest-diff http-2-2.log
 
 @load base/protocols/http
+@load base/frameworks/reporter
 
 event zeek_init()
 	{

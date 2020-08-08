@@ -1,6 +1,10 @@
 # This tests a normal SSL connection and the log it outputs.
 
-# @TEST-EXEC: zeek -r $TRACES/tls/tls1_1.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/tls1_1.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log
 # @TEST-EXEC: test ! -f dpd.log
+
+@load base/protocols/ssl
+@load base/files/x509
+@load base/frameworks/dpd

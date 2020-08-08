@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff notice.log
 
 @load frameworks/software/vulnerable

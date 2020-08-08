@@ -1,6 +1,10 @@
-# @TEST-EXEC: zeek -r $TRACES/tcp/miss_end_data.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/tcp/miss_end_data.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff conn.log
+
+@load base/protocols/conn
+@load base/protocols/http
+@load base/frameworks/dpd
 
 redef report_gaps_for_partial = T;
 

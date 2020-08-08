@@ -1,2 +1,6 @@
-# @TEST-EXEC: zeek -C -r $TRACES/wlanmon.pcap
+# @TEST-EXEC: zeek -b -C -r $TRACES/wlanmon.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
+
+@load base/protocols/conn
+@load base/protocols/dns
+@load base/frameworks/dpd

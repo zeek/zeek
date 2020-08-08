@@ -2,10 +2,10 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 
-# @TEST-EXEC: zeek %DIR/sort-stuff.zeek preseed-sqlite.zeek;
-# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker %DIR/sort-stuff.zeek ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone.out"
-# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone2.out"
+# @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek preseed-sqlite.zeek;
+# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b -B broker %DIR/sort-stuff.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b -B broker %DIR/sort-stuff.zeek ../clone.zeek >../clone2.out"
 # @TEST-EXEC: btest-bg-wait 40
 #
 # @TEST-EXEC: btest-diff master.out
@@ -57,6 +57,8 @@ event zeek_init()
 @TEST-END-FILE
 
 @TEST-START-FILE master.zeek
+@load base/frameworks/cluster
+
 redef exit_only_after_terminate = T;
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0secs;
@@ -96,6 +98,8 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 @TEST-END-FILE
 
 @TEST-START-FILE clone.zeek
+@load base/frameworks/cluster
+
 redef exit_only_after_terminate = T;
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0secs;

@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek -r ${TRACES}/wikipedia.trace  %INPUT >out
+# @TEST-EXEC: zeek -b -r ${TRACES}/wikipedia.trace  %INPUT >out
 # @TEST-EXEC: btest-diff http.log
+
+@load base/protocols/http
 
 module Foo;
 

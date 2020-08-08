@@ -1,8 +1,10 @@
 # Test that certificate caching works as expected.
 
-# @TEST-EXEC: zeek -r $TRACES/tls/google-duplicate.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.trace %INPUT
 # @TEST-EXEC: btest-diff x509.log
 # @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
 
 redef X509::caching_required_encounters = 1;
 

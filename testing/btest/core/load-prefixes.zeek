@@ -1,6 +1,6 @@
 # A test of prefix-based @load'ing
 
-# @TEST-EXEC: zeek addprefixes >output
+# @TEST-EXEC: zeek -b base/utils/site base/protocols/http addprefixes >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE addprefixes.zeek

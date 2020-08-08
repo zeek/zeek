@@ -1,6 +1,8 @@
-# @TEST-EXEC: zeek -r $TRACES/http/bro.org.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/http/bro.org.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff config.log
+
+@load base/frameworks/config
 
 event zeek_init()
 	{

@@ -2,5 +2,7 @@
 # include an appropriate ZLIB header on deflated 
 # content.
 #
-# @TEST-EXEC: zeek -r $TRACES/http/missing-zlib-header.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/missing-zlib-header.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
+
+@load base/protocols/http

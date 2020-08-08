@@ -1,9 +1,11 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run controllee  ZEEKPATH=$ZEEKPATH:.. zeek -Bbroker %INPUT frameworks/control/controllee Broker::default_port=$BROKER_PORT
-# @TEST-EXEC: btest-bg-run controller  ZEEKPATH=$ZEEKPATH:.. zeek -Bbroker %INPUT test-redef frameworks/control/controller Control::host=127.0.0.1 Control::host_port=$BROKER_PORT Control::cmd=configuration_update
+# @TEST-EXEC: btest-bg-run controllee  ZEEKPATH=$ZEEKPATH:.. zeek -b -Bbroker %INPUT frameworks/control/controllee Broker::default_port=$BROKER_PORT
+# @TEST-EXEC: btest-bg-run controller  ZEEKPATH=$ZEEKPATH:.. zeek -b -Bbroker %INPUT test-redef frameworks/control/controller Control::host=127.0.0.1 Control::host_port=$BROKER_PORT Control::cmd=configuration_update
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff controllee/.stdout
+
+@load base/frameworks/control
 
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;
 

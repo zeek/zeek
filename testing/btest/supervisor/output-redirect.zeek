@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff zeek/supervisor.out
 # @TEST-EXEC: btest-diff zeek/.stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-sort | grep -v 'while waiting for thread'" btest-diff zeek/.stderr
 
 # This test checks the default stdout/stderr redirection will get intercepted
 # by the supervisor process and prefixed with the associated node name.

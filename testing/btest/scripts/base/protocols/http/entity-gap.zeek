@@ -1,6 +1,9 @@
-# @TEST-EXEC: zeek -r $TRACES/http/entity_gap.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/entity_gap.trace %INPUT
 # @TEST-EXEC: btest-diff entity_data
 # @TEST-EXEC: btest-diff extract_files/file0
+
+@load base/protocols/http
+@load base/files/extract
 
 global f = open("entity_data");
 global fn = 0;

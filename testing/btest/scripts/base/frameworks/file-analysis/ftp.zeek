@@ -1,6 +1,8 @@
-# @TEST-EXEC: zeek -r $TRACES/ftp/retr.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/retr.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff thefile
+
+@load base/protocols/ftp
 
 redef test_file_analysis_source = "FTP_DATA";
 

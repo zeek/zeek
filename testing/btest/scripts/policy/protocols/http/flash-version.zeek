@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r ${TRACES}/http/flash-version.trace %INPUT 
+# @TEST-EXEC: zeek -b -r ${TRACES}/http/flash-version.trace %INPUT 
 # @TEST-EXEC: btest-diff software.log
 
 @load protocols/http/software

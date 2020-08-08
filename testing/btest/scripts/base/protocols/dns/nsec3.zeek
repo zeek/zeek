@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/dnssec/nsec3.pcap %INPUT > output
+# @TEST-EXEC: zeek -b -C -r $TRACES/dnssec/nsec3.pcap %INPUT > output
 # @TEST-EXEC: btest-diff dns.log
 # @TEST-EXEC: btest-diff output
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
+# @TEST-EXEC: btest-bg-run zeekproc zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: cat zeekproc/reporter.log > output
 # @TEST-EXEC: cat zeekproc/.stdout >> output
@@ -8,6 +8,9 @@
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 192.168.1.1	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1
 # @TEST-END-FILE
+
+@load base/frameworks/intel
+@load base/frameworks/reporter
 
 redef exit_only_after_terminate = T;
 
@@ -25,7 +28,7 @@ event do_it()
 	terminate();
 	}
 
-event zeek_init() &priority=-10
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
 	{
-	schedule 3sec { do_it() };
+	event do_it();
 	}

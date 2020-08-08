@@ -1,4 +1,9 @@
-# @TEST-EXEC: zeek -r $TRACES/tunnels/gre-pptp.pcap
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/gre-pptp.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff tunnel.log
 # @TEST-EXEC: btest-diff dns.log
+#
+@load base/frameworks/tunnels
+@load base/frameworks/dpd
+@load base/protocols/conn
+@load base/protocols/dns

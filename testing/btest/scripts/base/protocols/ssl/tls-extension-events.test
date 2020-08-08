@@ -1,7 +1,9 @@
-# @TEST-EXEC: zeek -C -r $TRACES/tls/chrome-34-google.trace %INPUT
-# @TEST-EXEC: zeek -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
-# @TEST-EXEC: zeek -C -r $TRACES/tls/tls13_psk_succesfull.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/chrome-34-google.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls13_psk_succesfull.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
 
 event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_vec)
 	{

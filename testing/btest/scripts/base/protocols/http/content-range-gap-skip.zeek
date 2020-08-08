@@ -1,8 +1,10 @@
-# @TEST-EXEC: zeek -r $TRACES/http/content-range-gap-skip.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/content-range-gap-skip.trace %INPUT
 
 # In this trace, we should be able to determine that a gap lies
 # entirely within the body of an entity that specifies Content-Range,
 # and so further deliveries after the gap can still be made.
+
+@load base/protocols/http
 
 global got_gap = F;
 global got_data_after_gap = F;

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/var-services-std-ports.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff expire-nums-output
 # @TEST-EXEC: btest-diff expire-nets-output

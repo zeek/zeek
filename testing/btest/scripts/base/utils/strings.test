@@ -1,8 +1,7 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default.
-#@load base/utils/strings
+@load base/utils/strings
 
 function test_binary_string(s: string)
 	{

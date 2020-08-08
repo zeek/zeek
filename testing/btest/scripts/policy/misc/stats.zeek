@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff stats.log
 
 @load policy/misc/stats

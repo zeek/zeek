@@ -66,7 +66,7 @@ public:
 		ASSERT_VALID(this);
 		if( robust )
 			{
-			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this),d->cookies->end());
+			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this), d->cookies->end());
 			delete inserted;
 			delete visited;
 			}
@@ -302,7 +302,7 @@ int Dictionary::EndOfClusterByBucket(int bucket) const
 	{
 	ASSERT(bucket>=0 && bucket < Buckets());
 	int i = bucket;
-	while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) <= bucket)
+	while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) <= bucket )
 		i++;
 	return i;
 	}
@@ -369,7 +369,7 @@ void Dictionary::AssertValid() const
 	bool valid = true;
 	int n = num_entries;
 	for ( int i = Capacity()-1; i >= 0; i-- )
-		if ( table && ! table[i].Empty())
+		if ( table && ! table[i].Empty() )
 			n--;
 
 	ASSERT((valid = (n==0)));
@@ -444,7 +444,7 @@ void Dictionary::DumpKeys() const
 	int max_distance = 0;
 
 	DistanceStats(max_distance);
-	if( binary )
+	if ( binary )
 		{
 		sprintf(key_file, "%d.%d.%lu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
 		std::ofstream f(key_file, std::ios::binary|std::ios::out|std::ios::trunc);
@@ -493,7 +493,7 @@ void Dictionary::DistanceStats(int& max_distance, int* distances, int num_distan
 void Dictionary::Dump(int level) const
 	{
 	int key_size = 0;
-	for (int i=0; i<Capacity(); i++)
+	for ( int i = 0; i < Capacity(); i++ )
 		{
 		if ( table[i].Empty() )
 			continue;
@@ -561,7 +561,7 @@ void Dictionary::Clear()
 		{
 		for ( int i = Capacity() - 1; i >= 0; i-- )
 			{
-			if ( table[i].Empty())
+			if ( table[i].Empty() )
 				continue;
 			if ( delete_func )
 				delete_func(table[i].value);
@@ -592,8 +592,8 @@ void Dictionary::Clear()
 void Dictionary::Init()
 	{
 	ASSERT(! table);
-	table = (detail::DictEntry*)malloc(sizeof(detail::DictEntry)*Capacity(true));
-	for (int i = Capacity()-1; i >= 0; i--)
+	table = (detail::DictEntry*)malloc(sizeof(detail::DictEntry) * Capacity(true));
+	for ( int i = Capacity() - 1; i >= 0; i-- )
 		table[i].SetEmpty();
 	}
 
@@ -635,7 +635,7 @@ int Dictionary::LinearLookupIndex(const void* key, int key_size, zeek::detail::h
 int Dictionary::LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int* insert_position, int* insert_distance)
 	{
 	ASSERT_VALID(this);
-	if ( ! table)
+	if ( ! table )
 		return -1;
 
 	int bucket = BucketByHash(hash, log2_buckets);
@@ -661,7 +661,7 @@ int Dictionary::LookupIndex(const void* key, int key_size, zeek::detail::hash_t 
 				{
 				ASSERT(position == linear_position);//same as linearLookup
 				//remap immediately if no iteration is on.
-				if ( !num_iterators )
+				if ( ! num_iterators )
 					{
 					Remap(position, &position);
 					ASSERT(position == LookupIndex(key, key_size, hash));
@@ -814,7 +814,7 @@ void Dictionary::InsertAndRelocate(detail::DictEntry& entry, int insert_position
 		if ( table[insert_position].Empty() )
 			{   //the condition to end the loop.
 			table[insert_position] = entry;
-			if (last_affected_position)
+			if ( last_affected_position )
 				*last_affected_position = insert_position;
 			return;
 			}
@@ -851,7 +851,7 @@ void Dictionary::SizeUp()
 	int prev_capacity = Capacity();
 	log2_buckets++;
 	int capacity = Capacity();
-	table = (detail::DictEntry*)realloc(table, capacity*sizeof(detail::DictEntry));
+	table = (detail::DictEntry*)realloc(table, capacity * sizeof(detail::DictEntry));
 	for ( int i = prev_capacity; i < capacity; i++ )
 		table[i].SetEmpty();
 
@@ -1118,17 +1118,18 @@ void* Dictionary::NextEntryNonConst(zeek::detail::HashKey*& h, IterCookie*& c, b
 	return v;
 	}
 
-
 IterCookie* Dictionary::InitForIteration() const
 	{
 	Dictionary* dp = const_cast<Dictionary*>(this);
 	return dp->InitForIterationNonConst();
 	}
+
 void* Dictionary::NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const
 	{
 	Dictionary* dp = const_cast<Dictionary*>(this);
 	return dp->NextEntryNonConst(h, cookie, return_hash);
 	}
+
 void Dictionary::StopIteration(IterCookie* cookie) const
 	{
 	Dictionary* dp = const_cast<Dictionary*>(this);

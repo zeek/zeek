@@ -59,7 +59,7 @@ namespace detail {
 /**
  * An entry stored in the dictionary.
  */
-class DictEntry{
+class DictEntry {
 public:
 
 #ifdef DEBUG
@@ -127,7 +127,7 @@ public:
 		SetEmpty();
 		}
 
-	const char* GetKey() const { return key_size <= 8? key_here : key; }
+	const char* GetKey() const { return key_size <= 8 ? key_here : key; }
 
 	bool Equal(const char* arg_key, int arg_key_size, zeek::detail::hash_t arg_hash) const
 		{//only 40-bit hash comparison.
@@ -158,7 +158,7 @@ public:
  * the keys but not the values. The dictionary size will be bounded at around 100K. 1M
  * entries is the absolute limit. Only Connections use that many entries, and that is rare.
  */
-class Dictionary{
+class Dictionary {
 public:
 	explicit Dictionary(DictOrder ordering = UNORDERED, int initial_size = DEFAULT_DICT_SIZE);
 	~Dictionary();
@@ -249,21 +249,21 @@ public:
 	size_t MemoryAllocation() const;
 
 	/// The capacity of the table, Buckets + Overflow Size.
-	int Capacity(bool expected=false) const;
+	int Capacity(bool expected = false) const;
 
 	//Debugging
 #ifdef DEBUG
 	void AssertValid() const;
 #endif//DEBUG
 	void Dump(int level=0) const;
-	void DistanceStats(int& max_distance, int* distances=0, int num_distances=0) const;
+	void DistanceStats(int& max_distance, int* distances = 0, int num_distances = 0) const;
 	void DumpKeys() const;
 
 private:
 	friend zeek::IterCookie;
 
 	/// Buckets of the table, not including overflow size.
-	int Buckets(bool expected=false) const;
+	int Buckets(bool expected = false) const;
 
 	//bucket math
 	int Log2(int num) const;

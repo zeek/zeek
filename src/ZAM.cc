@@ -356,7 +356,20 @@ Stmt* ZAM::CompileBody()
 			auto& info = shared_frame_denizens[i];
 
 			for ( auto& start : info.id_start )
+				{
+				// It can happen that the identifier's
+				// origination instruction was optimized
+				// away, if due to slot sharing it's of
+				// the form "slotX = slotX".  In that
+				// case, look forward for the next viable
+				// instruction.
+				while ( start < insts1.size() &&
+					inst1_to_inst2[start] == -1 )
+					++start;
+
+				ASSERT(start < insts1.size());
 				start = inst1_to_inst2[start];
+				}
 
 			shared_frame_denizens_final.push_back(info);
 			}

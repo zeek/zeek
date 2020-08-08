@@ -29,7 +29,8 @@
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_IS_SET TOK_ATTR_IS_USED
 %token TOK_ATTR_DEPRECATED
 
-%token TOK_ZAM_FILE TOK_TYPES TOK_VALS TOK_ATTRS TOK_AUX TOK_INSTS TOK_OP_NAME
+%token TOK_ZAM_FILE TOK_FRAME TOK_GLOBALS TOK_CASES TOK_TYPES TOK_VALS
+%token TOK_ATTRS TOK_AUX TOK_INSTS TOK_OP_NAME
 
 %token TOK_DEBUG
 
@@ -285,7 +286,7 @@ zeek:
 			set_location(no_location);
 			}
 
-	|	TOK_ZAM_FILE { in_ZAM_file = true; } ZAM_info
+	|	TOK_ZAM_FILE { in_ZAM_file = true; } TOK_ID ZAM_info
 
 	|
 		/* Allow the debugger to call yyparse() on an expr rather
@@ -1906,7 +1907,24 @@ opt_deprecated:
 	|
 			{ $$ = nullptr; }
 
-ZAM_info:	ZAM_types ZAM_vals ZAM_auxes ZAM_attrs ZAM_insts
+ZAM_info:	ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
+		ZAM_auxes ZAM_attrs ZAM_insts
+	;
+
+ZAM_frame:	TOK_FRAME '{' ZAM_frame_layout '}'
+	|
+	;
+
+ZAM_globals:	TOK_GLOBALS '{' ZAM_globals_list '}'
+	|
+	;
+
+ZAM_frame_slot_item:
+		TOK_CONSTANT ',' TOK_CONSTANT ','
+	;
+
+ZAM_cases_set:	ZAM_cases_set ZAM_cases
+	|
 	;
 
 ZAM_types:	TOK_TYPES '{' type_list ',' '}'
@@ -1927,6 +1945,49 @@ ZAM_attrs:	TOK_ATTRS '{' ZAM_attrs_list '}'
 
 ZAM_insts:	TOK_INSTS '{' ZAM_inst_list '}'
 	|
+	;
+
+ZAM_frame_layout:
+		ZAM_frame_layout ZAM_frame_slot
+	|	ZAM_frame_slot
+	;
+
+ZAM_frame_slot:	ZAM_frame_slot_list ',' TOK_CONSTANT
+	;
+
+ZAM_frame_slot_list:
+		ZAM_frame_slot_list ',' ZAM_frame_slot_item
+	|	ZAM_frame_slot_item
+	;
+
+ZAM_frame_slot_item:
+		'{' TOK_CONSTANT ',' TOK_CONSTANT '}'
+	;
+
+ZAM_globals_list:
+		ZAM_globals_list ZAM_global_pair
+	|
+	;
+
+ZAM_global_pair:
+		TOK_ID ',' TOK_CONSTANT ','
+	;
+
+ZAM_cases:	TOK_CASES type '{' ZAM_cases_list '}'
+	;
+
+ZAM_cases_list: ZAM_cases_list ZAM_cases_item
+	|
+	;
+
+ZAM_cases_item:	'{' ZAM_case_pairs '}'
+	;
+
+ZAM_case_pairs:	ZAM_case_pairs ZAM_case_pair
+	|
+	;
+
+ZAM_case_pair:	TOK_CONSTANT ',' TOK_CONSTANT ','
 	;
 
 ZAM_val_list:	ZAM_val

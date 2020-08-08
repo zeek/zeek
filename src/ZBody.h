@@ -51,6 +51,15 @@ protected:
 	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,
 				const Location* loc) const;
 
+	template<class T> void SaveCaseMap(FILE* f, const T& val) const;
+	void SaveCaseMap(FILE* f, const bro_int_t& val) const;
+	void SaveCaseMap(FILE* f, const bro_uint_t& val) const;
+	void SaveCaseMap(FILE* f, const double& val) const;
+	void SaveCaseMap(FILE* f, const std::string& val) const;
+
+	template<class T> void SaveCaseMaps(FILE* f, const CaseMaps<T>& cms,
+						const char* cms_name) const;
+
 	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
 
 	void Dump();
@@ -61,8 +70,6 @@ protected:
 
 	vector<ZInst*> insts;
 
-	// The same, but renumbered to take into account removal of
-	// dead statements.
 	FrameReMap frame_denizens;
 	int frame_size;
 

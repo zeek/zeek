@@ -161,6 +161,11 @@ ZBody::ZBody(const char* _func_name, vector<ZInstI*>& instsI,
 	frame_denizens = _frame_denizens;
 	frame_size = frame_denizens.size();
 
+	// Concretize the names of the frame denizens.
+	for ( auto& f : frame_denizens )
+		for ( auto i = 0; i < f.ids.size(); ++i )
+			f.names.push_back(f.ids[i]->Name());
+
 	managed_slots = _managed_slots;
 
 	globals = _globals;
@@ -755,7 +760,40 @@ void ZBody::SaveTo(FILE* f) const
 		attrs.AddItem(i->attrs);
 		}
 
-	fprintf(f, "<ZAM-file>\n");
+	fprintf(f, "<ZAM-file> %s\n", func_name);
+
+	if ( frame_size > 0 )
+		{
+		fprintf(f, "<frame> {\n");
+
+		for ( auto& fr : frame_denizens )
+			{
+			int n = fr.names.size();
+
+			for ( auto i = 0; i < n; ++i )
+				fprintf(f, " {\"%s\", %d},",
+					fr.names[i], fr.id_start[i]);
+
+			fprintf(f, "\n %d\n", fr.is_managed);
+			}
+
+		fprintf(f, "}\n");
+		}
+
+	if ( globals.size() > 0 )
+		{
+		fprintf(f, "<globals> {\n");
+
+		for ( auto& g : globals )
+			fprintf(f, " %s, %d,", g.id->Name(), g.slot);
+
+		fprintf(f, "\n}\n");
+		}
+
+	SaveCaseMaps(f, int_cases, "int");
+	SaveCaseMaps(f, uint_cases, "count");
+	SaveCaseMaps(f, double_cases, "double");
+	SaveCaseMaps(f, str_cases, "string");
 
 	types.Render(f, "types");
 	vals.Render(f, "vals");
@@ -884,15 +922,65 @@ bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
 	return true;
 	}
 
+void ZBody::SaveCaseMap(FILE* f, const bro_int_t& val) const
+	{
+	fprintf(f, "%lld", val);
+	}
+void ZBody::SaveCaseMap(FILE* f, const bro_uint_t& val) const
+	{
+	fprintf(f, "%llu", val);
+	}
+void ZBody::SaveCaseMap(FILE* f, const double& val) const
+	{
+	fprintf(f, "%lf", val);
+	}
+void ZBody::SaveCaseMap(FILE* f, const std::string& val) const
+	{
+	StringVal vs(val.c_str());
+	ODesc d(DESC_PARSEABLE);
+	vs.Describe(&d);
+	fprintf(f, "%s", d.Description());
+	}
+
+template<class T> void ZBody::SaveCaseMaps(FILE* f, const CaseMaps<T>& cms,
+						const char* cms_name) const
+	{
+	if ( cms.size() == 0 )
+		return;
+
+	fprintf(f, "<cases> %s {\n", cms_name);
+
+	for ( auto& cm : cms )
+		{
+		fprintf(f, " {");
+		for ( auto& cmv : cm )
+			{
+			fprintf(f, " ");
+			SaveCaseMap(f, cmv.first);
+			fprintf(f, ", %d, ", cmv.second);
+			}
+		fprintf(f, "}\n");
+		}
+
+	fprintf(f, "}\n");
+	}
+
 void ZBody::Dump()
 	{
 	printf("Frame:\n");
 
 	for ( auto i = 0; i < frame_denizens.size(); ++i )
 		{
+		auto& d = frame_denizens[i];
+
 		printf("frame[%d] =", i);
-		for ( auto& id : frame_denizens[i].ids )
-			printf(" %s", id->Name());
+
+		if ( d.names.size() > 0 )
+			for ( auto& n : d.names )
+				printf(" %s", n);
+		else
+			for ( auto& id : d.ids )
+				printf(" %s", id->Name());
 		printf("\n");
 		}
 

@@ -72,6 +72,11 @@ public:
 	// frame offset.
 	std::vector<ID*> ids;
 
+	// A parallel vector, only used for fully compiled code, which
+	// gives the names of the identifiers.  When in use, "ids" may
+	// be empty.
+	std::vector<const char*> names;
+
 	// The statement number where a given identifier starts its scope,
 	// parallel to "ids".
 	std::vector<int> id_start;

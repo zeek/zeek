@@ -261,15 +261,13 @@ const char* ZInst::VName(int max_n, int n, int inst_num,
 
 	int slot = n == 1 ? v1 : (n == 2 ? v2 : (n == 3 ? v3 : v4));
 
-	const ID* id;
-
 	// Find which identifier manifests at this instruction.
 	ASSERT(slot >= 0 && slot < mappings->size());
 
 	auto& map = (*mappings)[slot];
 
 	int i;
-	for ( i = 0; i < map.ids.size(); ++i )
+	for ( i = 0; i < map.id_start.size(); ++i )
 		{
 		// If the slot is right at the boundary between
 		// two identifiers, then it matters whether this
@@ -282,14 +280,14 @@ const char* ZInst::VName(int max_n, int n, int inst_num,
 			break;
 		}
 
-	if ( i < map.ids.size() )
+	if ( i < map.id_start.size() )
 		{
 		ASSERT(i > 0);
 		}
 
-	id = map.ids[i-1];
+	auto id = map.names.size() > 0 ? map.names[i-1] : map.ids[i-1]->Name();
 
-	return copy_string(fmt("%d (%s)", slot, id->Name()));
+	return copy_string(fmt("%d (%s)", slot, id));
 	}
 
 IntrusivePtr<Val> ZInst::ConstVal() const
@@ -374,7 +372,7 @@ const char* ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
 		auto& map = (*remappings)[slot];
 
 		int i;
-		for ( i = 0; i < map.ids.size(); ++i )
+		for ( i = 0; i < map.id_start.size(); ++i )
 			{
 			// If the slot is right at the boundary between
 			// two identifiers, then it matters whether this
@@ -387,11 +385,12 @@ const char* ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
 				break;
 			}
 
-		if ( i < map.ids.size() )
+		if ( i < map.id_start.size() )
 			{
 			ASSERT(i > 0);
 			}
 
+		// For ZInstI's, map.ids is always populated.
 		id = map.ids[i-1];
 		}
 

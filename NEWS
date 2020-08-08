@@ -32,6 +32,12 @@ Changed Functionality
   the original/documented intent of the function, but the previous
   implementation did not preserve ordering or duplicates.
 
+- The Dictionary implementation is replaced (no API changes).  The new version
+  uses clustered hashing, a variation of Robinhood / Open Addressing hashing.
+  This implementation generally performs better and utilizes less memory
+  than the previous one.  A detailed explanation of the implementation is here:
+  https://jasonlue.github.io/algo/2019/08/20/clustered-hashing.html
+
 Removed Functionality
 ---------------------
 

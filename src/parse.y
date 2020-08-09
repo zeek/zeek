@@ -2094,6 +2094,8 @@ ZAM_case_pairs:	ZAM_case_pairs ZAM_case_pair
 
 ZAM_case_pair:	expr ',' ZAM_ind ','
 			{
+			// See ZAM_val on use of "expr" here.
+
 			auto v = $1->Eval(nullptr);
 
 			switch ( ZAM_cases_type ) {
@@ -2130,7 +2132,17 @@ ZAM_val_list:	ZAM_val
 	;
 
 ZAM_val:	expr
-			{ $$ = $1->Eval(nullptr).release(); }
+			{
+			// You might think that $1 could just be TOK_CONSTANT,
+			// but unfortunately those don't include '-' prefixes.
+			// We can't just include a '-' TOK_CONSTANT production
+			// because a TOK_CONSTANT can be a complex entity
+			// (e.g., an "interval") that takes some work to
+			// cleanly negate.  "expr" is somewhat overkill,
+			// but it then gives us an Eval method to get to
+			// the correct final constant Val representation.
+			$$ = $1->Eval(nullptr).release();
+			}
 	;
 
 ZAM_aux_list:	ZAM_aux_list ZAM_aux

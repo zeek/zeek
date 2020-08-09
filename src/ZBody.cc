@@ -513,16 +513,19 @@ protected:
 	RepType ItemRep(const BroType* item) const override
 		{
 		ODesc d(DESC_PARSEABLE);
-		DescribeType(item, &d);
+		DescribeType(item, &d, true);
 		return RepType(d.Description());
 		}
 
 	// Describes the given type in a form that is parse-able (which
 	// is more detailed than what we get just using BroType::Describe()).
-	void DescribeType(const BroType* t, ODesc* d) const;
+	//
+	// top_level is true if we're describing the type stand-alone
+	// (not as a component of another type).
+	void DescribeType(const BroType* t, ODesc* d, bool top_level) const;
 };
 
-void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
+void TypeTracker::DescribeType(const BroType* t, ODesc* d, bool top_level) const
 	{
 	auto t_name = t->GetName();
 
@@ -559,7 +562,7 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 
 	case TYPE_TYPE:
 		// d->AddSP("type");
-		DescribeType(t->AsTypeType()->Type(), d);
+		DescribeType(t->AsTypeType()->Type(), d, false);
 		break;
 
 	case TYPE_TABLE:
@@ -572,14 +575,14 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 		else
 			d->Add("set[");
 
-		DescribeType(tbl->Indices(), d);
+		DescribeType(tbl->Indices(), d, false);
 
 		d->Add("]");
 
 		if ( yt )
 			{
 			d->Add(" of ");
-			DescribeType(yt, d);
+			DescribeType(yt, d, false);
 			}
 		break;
 		}
@@ -599,7 +602,7 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 			d->Add(args->FieldName(i));
 			d->AddSP(":");
 
-			DescribeType(args->FieldType(i), d);
+			DescribeType(args->FieldType(i), d, false);
 
 			if ( i < n - 1 )
 				d->AddSP(",");
@@ -612,7 +615,7 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 		     yt && yt->Tag() != TYPE_VOID )
 			{
 			d->AddSP(":");
-			DescribeType(yt, d);
+			DescribeType(yt, d, false);
 			}
 
 		break;
@@ -630,7 +633,7 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 			d->Add(rt->FieldName(i));
 			d->AddSP(":");
 
-			DescribeType(rt->FieldType(i), d);
+			DescribeType(rt->FieldType(i), d, false);
 			d->AddSP(";");
 			}
 
@@ -640,15 +643,21 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 
 	case TYPE_LIST:
 		{
+		if ( top_level )
+			d->AddSP("list {");
+
 		auto l = t->AsTypeList()->Types();
 		int n = l->length();
 
 		for ( auto i = 0; i < n; ++i )
 			{
-			DescribeType((*l)[i], d);
+			DescribeType((*l)[i], d, false);
 			if ( i < n - 1 )
 				d->AddSP(",");
 			}
+
+		if ( top_level )
+			d->Add(" }");
 
 		break;
 		}
@@ -657,7 +666,7 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d) const
 	case TYPE_FILE:
 		d->Add(type_name(t->Tag()));
 		d->Add(" of ");
-		DescribeType(t->YieldType(), d);
+		DescribeType(t->YieldType(), d, false);
 		break;
 
 	case TYPE_OPAQUE:

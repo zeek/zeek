@@ -992,12 +992,10 @@ type:
 				$$ = $4;
 				}
 
-	|	TOK_LIST
-				{
-				set_location(@1);
-				// $$ = new TypeList();
-				reporter->Error("list type not implemented");
-				$$ = 0;
+	|	TOK_LIST '{' type_list '}'
+				{ // Used internally for ZAM savefiles
+				set_location(@1, @4);
+				$$ = $3;
 				}
 
 	|	TOK_LIST TOK_OF type

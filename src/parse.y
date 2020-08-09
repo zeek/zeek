@@ -2076,13 +2076,13 @@ ZAM_cases:	TOK_CASES ZAM_cases_type
 	;
 
 ZAM_cases_type:	TOK_INT
-			{ $$ = TYPE_INT; ZAM_int_cases.clear(); }
+			{ $$ = TYPE_INT; }
 	|	TOK_COUNT
-			{ $$ = TYPE_COUNT; ZAM_uint_cases.clear(); }
+			{ $$ = TYPE_COUNT; }
 	|	TOK_DOUBLE
-			{ $$ = TYPE_DOUBLE; ZAM_double_cases.clear(); }
+			{ $$ = TYPE_DOUBLE; }
 	|	TOK_STRING
-			{ $$ = TYPE_STRING; ZAM_str_cases.clear(); }
+			{ $$ = TYPE_STRING; }
 	;
 
 ZAM_cases_list: ZAM_cases_list ZAM_cases_item
@@ -2094,18 +2094,22 @@ ZAM_cases_item:	'{' ZAM_case_pairs '}'
 			switch ( ZAM_cases_type ) {
 			case TYPE_INT:
 				ZAM_int_cases_set.push_back(ZAM_int_cases);
+				ZAM_int_cases.clear();
 				break;
 
 			case TYPE_COUNT:
 				ZAM_uint_cases_set.push_back(ZAM_uint_cases);
+				ZAM_uint_cases.clear();
 				break;
 
 			case TYPE_DOUBLE:
 				ZAM_double_cases_set.push_back(ZAM_double_cases);
+				ZAM_double_cases.clear();
 				break;
 
 			case TYPE_STRING:
 				ZAM_str_cases_set.push_back(ZAM_str_cases);
+				ZAM_str_cases.clear();
 				break;
 
 			default:

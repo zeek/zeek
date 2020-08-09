@@ -55,12 +55,12 @@
 %nonassoc TOK_AS TOK_IS
 
 %type <b> opt_no_test opt_no_test_block TOK_PATTERN_END
-%type <str> TOK_ID TOK_PATTERN_TEXT
+%type <str> TOK_ID TOK_PATTERN_TEXT ZAM_ID
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <expr> opt_init
-%type <val> TOK_CONSTANT
+%type <val> TOK_CONSTANT ZAM_val
 %type <expr> expr opt_expr init anonymous_function lambda_body index_slice opt_deprecated
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
@@ -74,7 +74,12 @@
 %type <c_case> case
 %type <case_l> case_list
 %type <attr> attr
-%type <attr_l> attr_list opt_attr
+%type <attr_l> attr_list opt_attr ZAM_attr_set
+%type <ZAM_int> ZAM_ind
+%type <ZAM_cases_type> ZAM_cases_type
+%type <ZAM_frame_info> ZAM_frame_slot_list ZAM_frame_slot
+%type <ZAM_frame_layout> ZAM_frame ZAM_frame_layout
+%type <ZAM_globals> ZAM_globals ZAM_globals_list
 
 %{
 #include <stdlib.h>
@@ -82,8 +87,10 @@
 #include <assert.h>
 
 #include "input.h"
+#include "ZBody.h"
 #include "BroList.h"
 #include "Desc.h"
+#include "EventRegistry.h"
 #include "Expr.h"
 #include "Func.h"
 #include "IntrusivePtr.h"
@@ -143,6 +150,28 @@ ID* func_id = 0;
 static Location func_hdr_location;
 EnumType *cur_enum_type = 0;
 static ID* cur_decl_type_id = 0;
+
+// Used for parsing ZAM save files.
+static TypeTag ZAM_cases_type;
+
+static std::map<bro_int_t, int> ZAM_int_cases;
+static std::map<bro_uint_t, int> ZAM_uint_cases;
+static std::map<double, int> ZAM_double_cases;
+static std::map<std::string, int> ZAM_str_cases;
+
+static ZBody::CaseMaps<bro_int_t> ZAM_int_cases_set;
+static ZBody::CaseMaps<bro_uint_t> ZAM_uint_cases_set;
+static ZBody::CaseMaps<double> ZAM_double_cases_set;
+static ZBody::CaseMaps<std::string> ZAM_str_cases_set;
+
+static std::vector<Attributes*> ZAM_attr_sets;
+static const type_list* ZAM_types;
+static std::vector<Val*> ZAM_vals;
+static std::vector<ZInst*> ZAM_insts;
+static std::vector<ZInstAux*> ZAM_auxes;
+static ZInstAux* curr_ZAM_aux;
+static int curr_ZAM_aux_index;
+static std::vector<int> ZAM_aux_iter_vec;
 
 static void parser_new_enum (void)
 	{
@@ -269,6 +298,12 @@ static bool expr_is_table_type_name(const Expr* expr)
 	Attr* attr;
 	attr_list* attr_l;
 	attr_tag attrtag;
+
+	int ZAM_int;
+	TypeTag ZAM_cases_type;
+	FrameSharingInfo* ZAM_frame_info;
+	FrameReMap* ZAM_frame_layout;
+	std::vector<GlobalInfo>* ZAM_globals;
 }
 
 %%
@@ -286,7 +321,7 @@ zeek:
 			set_location(no_location);
 			}
 
-	|	TOK_ZAM_FILE { in_ZAM_file = true; } TOK_ID ZAM_info
+	|	TOK_ZAM_FILE ZAM_init TOK_ID ZAM_info
 
 	|
 		/* Allow the debugger to call yyparse() on an expr rather
@@ -1907,20 +1942,37 @@ opt_deprecated:
 	|
 			{ $$ = nullptr; }
 
+
+ZAM_init:
+		{
+		in_ZAM_file = true;
+
+		ZAM_int_cases_set.clear();
+		ZAM_uint_cases_set.clear();
+		ZAM_double_cases_set.clear();
+		ZAM_str_cases_set.clear();
+
+		ZAM_types = nullptr;
+		ZAM_attr_sets.clear();
+		ZAM_vals.clear();
+		ZAM_insts.clear();
+		}
+	;
+
 ZAM_info:	ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
 		ZAM_auxes ZAM_attrs ZAM_insts
 	;
 
 ZAM_frame:	TOK_FRAME '{' ZAM_frame_layout '}'
+			{ $$ = $3; }
 	|
+			{ $$ = nullptr; }
 	;
 
 ZAM_globals:	TOK_GLOBALS '{' ZAM_globals_list '}'
+			{ $$ = $3; }
 	|
-	;
-
-ZAM_frame_slot_item:
-		TOK_CONSTANT ',' TOK_CONSTANT ','
+			{ $$ = nullptr; }
 	;
 
 ZAM_cases_set:	ZAM_cases_set ZAM_cases
@@ -1928,6 +1980,7 @@ ZAM_cases_set:	ZAM_cases_set ZAM_cases
 	;
 
 ZAM_types:	TOK_TYPES '{' type_list ',' '}'
+			{ ZAM_types = $3->Types(); }
 	|
 	;
 
@@ -1949,31 +2002,61 @@ ZAM_insts:	TOK_INSTS '{' ZAM_inst_list '}'
 
 ZAM_frame_layout:
 		ZAM_frame_layout ZAM_frame_slot
-	|	ZAM_frame_slot
+			{
+			$1->push_back(*$2);
+			delete $2;
+			}
+	|
+			{ $$ = new FrameReMap; }
 	;
 
-ZAM_frame_slot:	ZAM_frame_slot_list ',' TOK_CONSTANT
+ZAM_frame_slot:	ZAM_frame_slot_list ',' ZAM_ind
+		{
+		$1->is_managed = $3;
+		}
 	;
 
 ZAM_frame_slot_list:
-		ZAM_frame_slot_list ',' ZAM_frame_slot_item
-	|	ZAM_frame_slot_item
-	;
+		ZAM_frame_slot_list ',' '{' TOK_CONSTANT ',' ZAM_ind '}'
+			{
+			$1->names.push_back(copy_string($4->AsString()->CheckString()));
+			$1->id_start.push_back($6);
+			}
 
-ZAM_frame_slot_item:
-		'{' TOK_CONSTANT ',' TOK_CONSTANT '}'
+	|	'{' TOK_CONSTANT ',' ZAM_ind '}'
+			{
+			$$ = new FrameSharingInfo;
+			$$->names.push_back(copy_string($2->AsString()->CheckString()));
+			$$->id_start.push_back($4);
+			Unref($2);
+			}
 	;
 
 ZAM_globals_list:
-		ZAM_globals_list ZAM_global_pair
+		ZAM_globals_list TOK_ID ',' ZAM_ind ','
+			{
+			GlobalInfo gi;
+			gi.id = lookup_ID($2, GLOBAL_MODULE_NAME).release();
+			gi.slot = $4;
+			$1->push_back(gi);
+			}
 	|
+			{ $$ = new std::vector<GlobalInfo>; }
 	;
 
-ZAM_global_pair:
-		TOK_ID ',' TOK_CONSTANT ','
+ZAM_cases:	TOK_CASES ZAM_cases_type
+			{ ZAM_cases_type = $2; }
+		'{' ZAM_cases_list '}'
 	;
 
-ZAM_cases:	TOK_CASES type '{' ZAM_cases_list '}'
+ZAM_cases_type:	TOK_INT
+			{ $$ = TYPE_INT; ZAM_int_cases.clear(); }
+	|	TOK_COUNT
+			{ $$ = TYPE_COUNT; ZAM_uint_cases.clear(); }
+	|	TOK_DOUBLE
+			{ $$ = TYPE_DOUBLE; ZAM_double_cases.clear(); }
+	|	TOK_STRING
+			{ $$ = TYPE_STRING; ZAM_str_cases.clear(); }
 	;
 
 ZAM_cases_list: ZAM_cases_list ZAM_cases_item
@@ -1981,76 +2064,219 @@ ZAM_cases_list: ZAM_cases_list ZAM_cases_item
 	;
 
 ZAM_cases_item:	'{' ZAM_case_pairs '}'
+			{
+			switch ( ZAM_cases_type ) {
+			case TYPE_INT:
+				ZAM_int_cases_set.push_back(ZAM_int_cases);
+				break;
+
+			case TYPE_COUNT:
+				ZAM_uint_cases_set.push_back(ZAM_uint_cases);
+				break;
+
+			case TYPE_DOUBLE:
+				ZAM_double_cases_set.push_back(ZAM_double_cases);
+				break;
+
+			case TYPE_STRING:
+				ZAM_str_cases_set.push_back(ZAM_str_cases);
+				break;
+
+			default:
+				reporter->InternalError("bad case type in ZAM save file");
+			}
+			}
 	;
 
 ZAM_case_pairs:	ZAM_case_pairs ZAM_case_pair
 	|
 	;
 
-ZAM_case_pair:	TOK_CONSTANT ',' TOK_CONSTANT ','
+ZAM_case_pair:	expr ',' ZAM_ind ','
+			{
+			auto v = $1->Eval(nullptr);
+
+			switch ( ZAM_cases_type ) {
+			case TYPE_INT:
+				ZAM_int_cases[v->ForceAsInt()] = $3;
+				break;
+
+			case TYPE_COUNT:
+				ZAM_uint_cases[v->ForceAsUInt()] = $3;
+				break;
+
+			case TYPE_DOUBLE:
+				ZAM_double_cases[v->AsDouble()] = $3;
+				break;
+
+			case TYPE_STRING:
+				{
+				auto s = v->AsString()->CheckString();
+				ZAM_str_cases[std::string(s)] = $3;
+				break;
+				}
+
+			default:
+				reporter->InternalError("bad case type in ZAM save file");
+			}
+			Unref($1);
+			}
 	;
 
 ZAM_val_list:	ZAM_val
+			{ ZAM_vals.push_back($1); }
 	|	ZAM_val_list ',' ZAM_val
+			{ ZAM_vals.push_back($3); }
 	;
 
-ZAM_val:	TOK_CONSTANT
-	|	'-' TOK_CONSTANT
-	|	TOK_ID
-	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
+ZAM_val:	expr
+			{ $$ = $1->Eval(nullptr).release(); }
 	;
 
-ZAM_attrs_list:	ZAM_attr_set ','
-	|	ZAM_attrs_list ZAM_attr_set ','
-	;
-
-ZAM_attr_set:	TOK_CONSTANT attr_list ';'
-	;
-
-ZAM_aux_list:	ZAM_aux
-	|	ZAM_aux_list ZAM_aux
+ZAM_aux_list:	ZAM_aux_list ZAM_aux
+			{ ZAM_auxes.push_back(curr_ZAM_aux); }
+	|
+			{ ZAM_auxes.clear(); }
 	;
 
 ZAM_aux:	ZAM_aux_vals ZAM_aux_iter_info ','
 	;
 
-ZAM_aux_vals:	TOK_CONSTANT ZAM_aux_item_list
+ZAM_aux_vals:	ZAM_ind	{
+			curr_ZAM_aux = new ZInstAux($1);
+			curr_ZAM_aux_index = 0;
+			ZAM_aux_iter_vec.clear();
+			}
+		ZAM_aux_item_list
 	;
 
 ZAM_aux_item_list:
-		ZAM_aux_item_list '{' ZAM_ind_com ZAM_ind_com ZAM_ind '}'
+		ZAM_aux_item_list '{' ZAM_ind ',' ZAM_ind ',' ZAM_ind '}'
+			{
+			auto c = $3 >= 0 ? ZAM_vals[$3] : nullptr;
+			IntrusivePtr<Val> c_p = {NewRef{}, c};
+			auto i = $5;
+			auto t = $7 >= 0 ? (*ZAM_types)[$7] : nullptr;
+			IntrusivePtr<BroType> t_p = {NewRef{}, t};
+
+			curr_ZAM_aux->constants[curr_ZAM_aux_index] = c_p;
+			curr_ZAM_aux->ints[curr_ZAM_aux_index] = i;
+			curr_ZAM_aux->types[curr_ZAM_aux_index] = t_p;
+
+			++curr_ZAM_aux_index;
+			}
 	|
 	;
 
 ZAM_aux_iter_info:
 		'[' ZAM_aux_ii_item_list ']'
+			{
+			auto ii = new IterInfo;
+			auto& iv = ZAM_aux_iter_vec;
+			auto& zt = *ZAM_types;
+			auto ind = 0;
+
+			auto num_loop_vars = iv[ind++];
+
+			while ( num_loop_vars-- > 0 )
+				{
+				auto t = zt[iv[ind++]];
+				ii->loop_var_types.push_back(t);
+				}
+
+			auto t = iv[ind] >= 0 ? zt[iv[ind]] : nullptr;
+			ii->value_var_type = t;
+			++ind;
+
+			t = iv[ind] >= 0 ? zt[iv[ind]] : nullptr;
+			ii->vec_type = t ? t->AsVectorType() : nullptr;
+			++ind;
+
+			t = iv[ind] >= 0 ? zt[iv[ind]] : nullptr;
+			ii->yield_type = t;
+
+			curr_ZAM_aux->iter_info = ii;
+			}
 	|
+			{ curr_ZAM_aux->iter_info = nullptr; }
 	;
 
 ZAM_aux_ii_item_list:
 		ZAM_aux_ii_item_list ',' ZAM_ind
+			{ ZAM_aux_iter_vec.push_back($3); }
 	|	ZAM_ind
+			{ ZAM_aux_iter_vec.push_back($1); }
 	;
 
-ZAM_ind_com:	ZAM_ind ','
+ZAM_attrs_list:	ZAM_attrs_list ZAM_attr_set ','
+			{
+			auto a = new Attributes($2, nullptr, false, false);
+			ZAM_attr_sets.push_back(a);
+			}
+	|
+	;
+
+ZAM_attr_set:	TOK_CONSTANT attr_list ';'
+			{ $$ = $2; }
 	;
 
 ZAM_ind:	TOK_CONSTANT
+			{ $$ = $1->AsCount(); Unref($1); }
 	|	'-' TOK_CONSTANT
+			{ $$ = -$2->AsCount(); Unref($2); }
 	|	'*'
+			{ $$ = -99; }
 	;
 
 ZAM_inst_list:	ZAM_inst_list ZAM_inst
 	|
 	;
 
-ZAM_inst:	TOK_CONSTANT TOK_CONSTANT TOK_CONSTANT TOK_OP_NAME
-		ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind ZAM_ind
-		ZAM_ind ZAM_ID ZAM_ID
+ZAM_inst:	ZAM_ind ZAM_ind ZAM_ind TOK_OP_NAME
+		ZAM_ind ZAM_ind ZAM_ind ZAM_ind
+		ZAM_ind ZAM_ind ZAM_ind ZAM_ind
+		ZAM_ID ZAM_ID
+			{
+			auto z = new ZInst(ZOp($2), ZAMOpType($3));
+			z->v1 = $5;
+			z->v2 = $6;
+			z->v3 = $7;
+			z->v4 = $8;
+
+			if ( $9 >= 0 )
+				{
+				IntrusivePtr<Val> v = {NewRef{}, ZAM_vals[$9]};
+				z->c = ZAMValUnion(v, v->Type());
+				}
+			else
+				z->c = ZAMValUnion();
+
+			auto& zt = *ZAM_types;
+			z->t = $10 >= 0 ? zt[$10] : nullptr;
+			z->t2 = $11 >= 0 ? zt[$11] : nullptr;
+
+			z->attrs = $12 >= 0 ? ZAM_attr_sets[$12] : nullptr;
+
+			if ( $13 )
+				{
+				auto fn = lookup_ID($13, GLOBAL_MODULE_NAME);
+				z->func = fn->ID_Val()->AsFunc();
+				}
+			else
+				z->func = nullptr;
+
+			if ( $14 )
+				z->event_handler = event_registry->Lookup($14);
+			else
+				z->event_handler = nullptr;
+
+			ZAM_insts.push_back(z);
+			}
 	;
 
 ZAM_ID:		TOK_ID
 	|	'*'
+			{ $$ = nullptr; }
 	;
 
 %%

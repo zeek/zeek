@@ -25,6 +25,7 @@
 #include "Var.h"
 #include "Debug.h"
 #include "PolicyFile.h"
+#include "ZBody.h"
 #include "broparse.h"
 #include "Reporter.h"
 #include "RE.h"

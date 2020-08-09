@@ -248,6 +248,9 @@ void Attributes::DescribeReST(ODesc* d, bool shorten) const
 
 void Attributes::CheckAttr(Attr* a)
 	{
+	if ( ! type )
+		return;
+
 	switch ( a->Tag() ) {
 	case ATTR_DEPRECATED:
 	case ATTR_IS_SET:

@@ -95,7 +95,7 @@ public:
 protected:
 	void CheckAttr(Attr* attr);
 
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<BroType> type;	// if null, then no checking performed
 	attr_list* attrs;
 	bool in_record;
 	bool global_var;

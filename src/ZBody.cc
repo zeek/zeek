@@ -355,7 +355,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 // that we can refer to the items when saving instructions.
 //
 // The basic idea is we make one pass through the instructions
-// accumulating items (and colatnstructing string representations,
+// accumulating items (and constructing string representations,
 // which are provided by template specializations), and a second
 // pass then saving instructions using the representations.
 //
@@ -387,8 +387,8 @@ public:
 
 		if ( item_map.count(rep) == 0 )
 			{
+			item_map[rep] = items.size();	// 0-based
 			items.push_back(rep);
-			item_map[rep] = items.size();
 			}
 		}
 

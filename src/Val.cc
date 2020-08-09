@@ -1204,8 +1204,11 @@ void PatternVal::SetMatcher(RE_Matcher* re)
 
 void PatternVal::ValDescribe(ODesc* d) const
 	{
+	auto p = AsPattern();
+	auto pt = d->IsParseable() ? p->OrigText() : p->PatternText();
+
 	d->Add("/");
-	d->Add(AsPattern()->PatternText());
+	d->Add(pt);
 	d->Add("/");
 	}
 

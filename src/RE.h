@@ -215,6 +215,9 @@ public:
 	const char* PatternText() const	{ return re_exact->PatternText(); }
 	const char* AnywherePatternText() const	{ return re_anywhere->PatternText(); }
 
+	const char* OrigText() const
+		{ return orig_text ? orig_text : PatternText(); }
+
 	unsigned int MemoryAllocation() const
 		{
 		return padded_sizeof(*this)
@@ -225,6 +228,11 @@ public:
 protected:
 	Specific_RE_Matcher* re_anywhere;
 	Specific_RE_Matcher* re_exact;
+
+	// The text originally used to construct the pattern.  Made available
+	// for constructing clean ZAM save files.  If more than one pattern
+	// has been blended in via AddPat, then this is nil.
+	char* orig_text = nullptr;
 };
 
 extern RE_Matcher* RE_Matcher_conjunction(const RE_Matcher* re1, const RE_Matcher* re2);

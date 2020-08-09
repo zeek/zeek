@@ -452,6 +452,8 @@ RE_Matcher::RE_Matcher(const char* pat)
 	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
 
 	AddPat(pat);
+
+	orig_text = copy_string(pat);
 	}
 
 RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
@@ -466,12 +468,16 @@ RE_Matcher::~RE_Matcher()
 	{
 	delete re_anywhere;
 	delete re_exact;
+	delete orig_text;
 	}
 
 void RE_Matcher::AddPat(const char* new_pat)
 	{
 	re_anywhere->AddPat(new_pat);
 	re_exact->AddPat(new_pat);
+
+	if ( orig_text )
+		orig_text = nullptr;
 	}
 
 void RE_Matcher::MakeCaseInsensitive()

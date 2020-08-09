@@ -358,6 +358,8 @@ void analyze_scripts()
 			scan_ZAM_file(fn, save_file);
 			yyparse();
 			fclose(save_file);
+
+			f->func->ReplaceBody(f->body, {NewRef{}, ZAM_body});
 #if 0
 			// The following is just for testing to see whether
 			// a recovered .ZAM file can be exactly reproduced.
@@ -369,9 +371,10 @@ void analyze_scripts()
 #endif
 			}
 		else
+			{
 			f->save_file = copy_string(fn);
-
-		optimize_func(f->func, f->scope, f->body);
+			optimize_func(f->func, f->scope, f->body);
+			}
 		}
 
 	finalize_functions(funcs);

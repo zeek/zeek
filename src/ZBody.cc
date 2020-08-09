@@ -139,8 +139,8 @@ StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
 	}
 
 
-ZBody::ZBody(const char* _func_name, vector<ZInstI*>& instsI,
-		FrameReMap& _frame_denizens, std::vector<int>& _managed_slots,
+ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
+		std::vector<int>& _managed_slots,
 		std::vector<GlobalInfo>& _globals, bool non_recursive,
 		CaseMaps<bro_int_t>& _int_cases, 
 		CaseMaps<bro_uint_t>& _uint_cases,
@@ -149,14 +149,6 @@ ZBody::ZBody(const char* _func_name, vector<ZInstI*>& instsI,
 : Stmt(STMT_COMPILED)
 	{
 	func_name = _func_name;
-
-	for ( auto i : instsI )
-		{
-		insts.push_back(i);
-		if ( i->stmt )
-			insts.back()->loc =
-				i->stmt->Original()->GetLocationInfo();
-		}
 
 	frame_denizens = _frame_denizens;
 	frame_size = frame_denizens.size();
@@ -183,20 +175,6 @@ ZBody::ZBody(const char* _func_name, vector<ZInstI*>& instsI,
 		for ( auto i = 0; i < managed_slots.size(); ++i )
 			fixed_frame[managed_slots[i]].managed_val = nullptr;
 		}
-
-	if ( analysis_options.report_profile )
-		{
-		inst_count = new vector<int>;
-		inst_CPU = new vector<double>;
-		for ( auto i : insts )
-			{
-			inst_count->push_back(0);
-			inst_CPU->push_back(0.0);
-			}
-
-		CPU_time = new double;
-		*CPU_time = 0.0;
-		}
 	}
 
 ZBody::~ZBody()
@@ -215,6 +193,44 @@ ZBody::~ZBody()
 
 	delete inst_count;
 	delete CPU_time;
+	}
+
+void ZBody::SetInsts(vector<ZInst*>& _insts)
+	{
+	for ( auto i : _insts )
+		insts.push_back(i);
+
+	InitProfile();
+	}
+
+void ZBody::SetInsts(vector<ZInstI*>& instsI)
+	{
+	for ( auto i : instsI )
+		{
+		insts.push_back(i);
+		if ( i->stmt )
+			insts.back()->loc =
+				i->stmt->Original()->GetLocationInfo();
+		}
+
+	InitProfile();
+	}
+
+void ZBody::InitProfile()
+	{
+	if ( analysis_options.report_profile )
+		{
+		inst_count = new vector<int>;
+		inst_CPU = new vector<double>;
+		for ( auto i : insts )
+			{
+			inst_count->push_back(0);
+			inst_CPU->push_back(0.0);
+			}
+
+		CPU_time = new double;
+		*CPU_time = 0.0;
+		}
 	}
 
 IntrusivePtr<Val> ZBody::Exec(Frame* f, stmt_flow_type& flow) const
@@ -890,6 +906,11 @@ void ZBody::SaveTo(FILE* f) const
 			fprintf(f, SP_NA);
 		if ( i->t2 )
 			fprintf(f, " %d", types.FindItem(i->t2));
+		else
+			fprintf(f, SP_NA);
+
+		if ( i->aux )
+			fprintf(f, " %d", auxes.FindItem(i->aux));
 		else
 			fprintf(f, SP_NA);
 

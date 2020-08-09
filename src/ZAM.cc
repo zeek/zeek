@@ -421,9 +421,12 @@ Stmt* ZAM::CompileBody()
 	if ( non_recursive )
 		func->UseStaticFrame();
 
-	return new ZBody(func->Name(), insts2, shared_frame_denizens_final,
+	auto zb = new ZBody(func->Name(), shared_frame_denizens_final,
 				managed_slotsI, globalsI, non_recursive,
 				int_cases, uint_cases, double_cases, str_cases);
+	zb->SetInsts(insts2);
+
+	return zb;
 	}
 
 void ZAM::Init()

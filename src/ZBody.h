@@ -24,8 +24,8 @@ public:
 	template<class T> using CaseMap = std::map<T, int>;
 	template<class T> using CaseMaps = std::vector<CaseMap<T>>;
 
-	ZBody(const char* _func_name, vector<ZInstI*>& instsI,
-		FrameReMap& _frame_denizens, std::vector<int>& _managed_slots,
+	ZBody(const char* _func_name, FrameReMap& _frame_denizens,
+		std::vector<int>& _managed_slots,
 		std::vector<GlobalInfo>& _globals, bool non_recursive,
 		CaseMaps<bro_int_t>& _int_cases,
 		CaseMaps<bro_uint_t>& _uint_cases,
@@ -33,6 +33,12 @@ public:
 		CaseMaps<std::string>& _str_cases);
 
 	~ZBody() override;
+
+	// These are split out from the constructor to allow construction
+	// of a ZBody from either save-file full instructions (first method)
+	// or intermediary instructions (second method).
+	void SetInsts(vector<ZInst*>& insts);
+	void SetInsts(vector<ZInstI*>& instsI);
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
@@ -42,6 +48,9 @@ public:
 
 protected:
 	friend class ResumptionAM;
+
+	// Initializes profiling information, if needed.
+	void InitProfile();
 
 	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
 					stmt_flow_type& flow) const;

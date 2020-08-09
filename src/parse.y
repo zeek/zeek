@@ -78,8 +78,6 @@
 %type <ZAM_int> ZAM_ind
 %type <ZAM_cases_type> ZAM_cases_type
 %type <ZAM_frame_info> ZAM_frame_slot_list ZAM_frame_slot
-%type <ZAM_frame_layout> ZAM_frame ZAM_frame_layout
-%type <ZAM_globals> ZAM_globals ZAM_globals_list
 
 %{
 #include <stdlib.h>
@@ -154,6 +152,9 @@ static ID* cur_decl_type_id = 0;
 // Used for parsing ZAM save files.
 static TypeTag ZAM_cases_type;
 
+static FrameReMap ZAM_frame_layout;
+static std::vector<GlobalInfo> ZAM_globals;
+
 static std::map<bro_int_t, int> ZAM_int_cases;
 static std::map<bro_uint_t, int> ZAM_uint_cases;
 static std::map<double, int> ZAM_double_cases;
@@ -174,6 +175,8 @@ static std::vector<ZInstAux*> ZAM_auxes;
 static ZInstAux* curr_ZAM_aux;
 static int curr_ZAM_aux_index;
 static std::vector<int> ZAM_aux_iter_vec;
+
+ZBody* ZAM_body;
 
 static void parser_new_enum (void)
 	{
@@ -304,8 +307,6 @@ static bool expr_is_table_type_name(const Expr* expr)
 	int ZAM_int;
 	TypeTag ZAM_cases_type;
 	FrameSharingInfo* ZAM_frame_info;
-	FrameReMap* ZAM_frame_layout;
-	std::vector<GlobalInfo>* ZAM_globals;
 }
 
 %%
@@ -323,10 +324,7 @@ zeek:
 			set_location(no_location);
 			}
 
-	|	TOK_ZAM_FILE ZAM_init TOK_ID TOK_CONSTANT ZAM_info
-			{
-			// ZAM_body = new ZBody($3, ZAM_insts,
-			}
+	|	TOK_ZAM_FILE ZAM_info
 
 	|
 		/* Allow the debugger to call yyparse() on an expr rather
@@ -1952,6 +1950,9 @@ ZAM_init:
 		{
 		in_ZAM_file = true;
 
+		ZAM_frame_layout.clear();
+		ZAM_globals.clear();
+
 		ZAM_int_cases_set.clear();
 		ZAM_uint_cases_set.clear();
 		ZAM_double_cases_set.clear();
@@ -1966,20 +1967,32 @@ ZAM_init:
 		}
 	;
 
-ZAM_info:	ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
+ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
+		ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
 		ZAM_auxes ZAM_attrs ZAM_loc_files ZAM_locs ZAM_insts
+			{
+			std::vector<int> managed_slots;
+			for ( auto s : ZAM_frame_layout )
+				managed_slots.push_back(s.is_managed);
+
+			ZAM_body = new ZBody($2, ZAM_frame_layout,
+						managed_slots, ZAM_globals,
+						! $3,
+						ZAM_int_cases_set,
+						ZAM_uint_cases_set,
+						ZAM_double_cases_set,
+						ZAM_str_cases_set);
+
+			ZAM_body->SetInsts(ZAM_insts);
+			}
 	;
 
 ZAM_frame:	TOK_FRAME '{' ZAM_frame_layout '}'
-			{ $$ = $3; }
 	|
-			{ $$ = nullptr; }
 	;
 
 ZAM_globals:	TOK_GLOBALS '{' ZAM_globals_list '}'
-			{ $$ = $3; }
 	|
-			{ $$ = nullptr; }
 	;
 
 ZAM_cases_set:	ZAM_cases_set ZAM_cases
@@ -2018,11 +2031,10 @@ ZAM_insts:	TOK_INSTS '{' ZAM_inst_list '}'
 ZAM_frame_layout:
 		ZAM_frame_layout ZAM_frame_slot
 			{
-			$1->push_back(*$2);
+			ZAM_frame_layout.push_back(*$2);
 			delete $2;
 			}
 	|
-			{ $$ = new FrameReMap; }
 	;
 
 ZAM_frame_slot:	ZAM_frame_slot_list ',' ZAM_ind
@@ -2053,10 +2065,9 @@ ZAM_globals_list:
 			GlobalInfo gi;
 			gi.id = lookup_ID($2, GLOBAL_MODULE_NAME).release();
 			gi.slot = $4;
-			$1->push_back(gi);
+			ZAM_globals.push_back(gi);
 			}
 	|
-			{ $$ = new std::vector<GlobalInfo>; }
 	;
 
 ZAM_cases:	TOK_CASES ZAM_cases_type
@@ -2278,7 +2289,8 @@ ZAM_inst_list:	ZAM_inst_list ZAM_inst
 ZAM_inst:	ZAM_ind ZAM_ind ZAM_ind TOK_OP_NAME
 		ZAM_ind ZAM_ind ZAM_ind ZAM_ind
 		ZAM_ind ZAM_ind ZAM_ind ZAM_ind
-		ZAM_ind ZAM_ind ',' ZAM_ID ZAM_ID
+		ZAM_ind ZAM_ind ZAM_ind ','
+		ZAM_ID ZAM_ID
 			{
 			auto z = new ZInst(ZOp($2), ZAMOpType($3));
 			z->v1 = $5;
@@ -2298,20 +2310,21 @@ ZAM_inst:	ZAM_ind ZAM_ind ZAM_ind TOK_OP_NAME
 			z->t = $10 >= 0 ? zt[$10] : nullptr;
 			z->t2 = $11 >= 0 ? zt[$11] : nullptr;
 
-			z->attrs = $12 >= 0 ? ZAM_attr_sets[$12] : nullptr;
-			z->loc = $13 >= 0 ? ZAM_locs[$13] : nullptr;
-			z->is_managed = $14;
+			z->aux = $12 >= 0 ? ZAM_auxes[$12] : nullptr;
+			z->attrs = $13 >= 0 ? ZAM_attr_sets[$13] : nullptr;
+			z->loc = $14 >= 0 ? ZAM_locs[$14] : nullptr;
+			z->is_managed = $15;
 
-			if ( $16 )
+			if ( $17 )
 				{
-				auto fn = lookup_ID($16, GLOBAL_MODULE_NAME);
+				auto fn = lookup_ID($17, GLOBAL_MODULE_NAME);
 				z->func = fn->ID_Val()->AsFunc();
 				}
 			else
 				z->func = nullptr;
 
-			if ( $17 )
-				z->event_handler = event_registry->Lookup($17);
+			if ( $18 )
+				z->event_handler = event_registry->Lookup($18);
 			else
 				z->event_handler = nullptr;
 

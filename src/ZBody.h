@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ZOP.h"
+#include "ZInst.h"
 
 
 // Static information about globals used in a function.  There's a parallel

@@ -307,6 +307,8 @@ when	return TOK_WHEN;
 <ZAM>"<frame>"		return TOK_FRAME;
 <ZAM>"<globals>"	return TOK_GLOBALS;
 <ZAM>"<insts>"		return TOK_INSTS;
+<ZAM>"<loc-files>"	return TOK_LOC_FILES;
+<ZAM>"<locs>"		return TOK_LOCS;
 <ZAM>"<types>"		return TOK_TYPES;
 <ZAM>"<vals>"		return TOK_VALS;
 <ZAM>({IDCOMPONENT}-)+{IDCOMPONENT}	return TOK_OP_NAME;

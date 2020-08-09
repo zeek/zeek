@@ -30,7 +30,7 @@
 %token TOK_ATTR_DEPRECATED
 
 %token TOK_ZAM_FILE TOK_FRAME TOK_GLOBALS TOK_CASES TOK_TYPES TOK_VALS
-%token TOK_ATTRS TOK_AUX TOK_INSTS TOK_OP_NAME
+%token TOK_ATTRS TOK_AUX TOK_LOC_FILES TOK_LOCS TOK_INSTS TOK_OP_NAME
 
 %token TOK_DEBUG
 
@@ -167,6 +167,8 @@ static ZBody::CaseMaps<std::string> ZAM_str_cases_set;
 static std::vector<Attributes*> ZAM_attr_sets;
 static const type_list* ZAM_types;
 static std::vector<Val*> ZAM_vals;
+static std::vector<const char*> ZAM_loc_filenames;
+static std::vector<const Location*> ZAM_locs;
 static std::vector<ZInst*> ZAM_insts;
 static std::vector<ZInstAux*> ZAM_auxes;
 static ZInstAux* curr_ZAM_aux;
@@ -321,7 +323,10 @@ zeek:
 			set_location(no_location);
 			}
 
-	|	TOK_ZAM_FILE ZAM_init TOK_ID ZAM_info
+	|	TOK_ZAM_FILE ZAM_init TOK_ID TOK_CONSTANT ZAM_info
+			{
+			// ZAM_body = new ZBody($3, ZAM_insts,
+			}
 
 	|
 		/* Allow the debugger to call yyparse() on an expr rather
@@ -1955,12 +1960,14 @@ ZAM_init:
 		ZAM_types = nullptr;
 		ZAM_attr_sets.clear();
 		ZAM_vals.clear();
+		ZAM_loc_filenames.clear();
+		ZAM_locs.clear();
 		ZAM_insts.clear();
 		}
 	;
 
 ZAM_info:	ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
-		ZAM_auxes ZAM_attrs ZAM_insts
+		ZAM_auxes ZAM_attrs ZAM_loc_files ZAM_locs ZAM_insts
 	;
 
 ZAM_frame:	TOK_FRAME '{' ZAM_frame_layout '}'
@@ -1993,6 +2000,14 @@ ZAM_auxes:	TOK_AUX '{' ZAM_aux_list '}'
 	;
 
 ZAM_attrs:	TOK_ATTRS '{' ZAM_attrs_list '}'
+	|
+	;
+
+ZAM_loc_files:	TOK_LOC_FILES '{' ZAM_loc_file_list '}'
+	|
+	;
+
+ZAM_locs:	TOK_LOCS '{' ZAM_loc_list '}'
 	|
 	;
 
@@ -2232,12 +2247,28 @@ ZAM_attr_set:	TOK_CONSTANT attr_list ';'
 			{ $$ = $2; }
 	;
 
-ZAM_ind:	TOK_CONSTANT
-			{ $$ = $1->AsCount(); Unref($1); }
-	|	'-' TOK_CONSTANT
-			{ $$ = -$2->AsCount(); Unref($2); }
-	|	'*'
-			{ $$ = -99; }
+ZAM_loc_file_list:
+		ZAM_loc_file_list ZAM_file_loc
+	|
+	;
+
+ZAM_file_loc:	TOK_CONSTANT ','
+			{
+			ZAM_loc_filenames.push_back(
+				copy_string($1->AsString()->CheckString()));
+			}
+	;
+
+ZAM_loc_list:	ZAM_loc_list ZAM_loc
+	|
+	;
+
+ZAM_loc:	ZAM_ind ',' ZAM_ind ',' ZAM_ind ','
+			{
+			auto fn = copy_string(ZAM_loc_filenames[$1]);
+			auto loc = new Location(fn, $3, $5, 0, 0);
+			ZAM_locs.push_back(loc);
+			}
 	;
 
 ZAM_inst_list:	ZAM_inst_list ZAM_inst
@@ -2247,7 +2278,7 @@ ZAM_inst_list:	ZAM_inst_list ZAM_inst
 ZAM_inst:	ZAM_ind ZAM_ind ZAM_ind TOK_OP_NAME
 		ZAM_ind ZAM_ind ZAM_ind ZAM_ind
 		ZAM_ind ZAM_ind ZAM_ind ZAM_ind
-		ZAM_ID ZAM_ID
+		ZAM_ind ZAM_ind ',' ZAM_ID ZAM_ID
 			{
 			auto z = new ZInst(ZOp($2), ZAMOpType($3));
 			z->v1 = $5;
@@ -2268,22 +2299,32 @@ ZAM_inst:	ZAM_ind ZAM_ind ZAM_ind TOK_OP_NAME
 			z->t2 = $11 >= 0 ? zt[$11] : nullptr;
 
 			z->attrs = $12 >= 0 ? ZAM_attr_sets[$12] : nullptr;
+			z->loc = $13 >= 0 ? ZAM_locs[$13] : nullptr;
+			z->is_managed = $14;
 
-			if ( $13 )
+			if ( $16 )
 				{
-				auto fn = lookup_ID($13, GLOBAL_MODULE_NAME);
+				auto fn = lookup_ID($16, GLOBAL_MODULE_NAME);
 				z->func = fn->ID_Val()->AsFunc();
 				}
 			else
 				z->func = nullptr;
 
-			if ( $14 )
-				z->event_handler = event_registry->Lookup($14);
+			if ( $17 )
+				z->event_handler = event_registry->Lookup($17);
 			else
 				z->event_handler = nullptr;
 
 			ZAM_insts.push_back(z);
 			}
+	;
+
+ZAM_ind:	TOK_CONSTANT
+			{ $$ = $1->AsCount(); Unref($1); }
+	|	'-' TOK_CONSTANT
+			{ $$ = -$2->AsCount(); Unref($2); }
+	|	'*'
+			{ $$ = -99; }
 	;
 
 ZAM_ID:		TOK_ID

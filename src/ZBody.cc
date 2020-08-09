@@ -449,6 +449,48 @@ protected:
 		}
 };
 
+class LocFileTracker : public ItemTracker<const char*> {
+protected:
+	RepType ItemRep(const char* item) const override
+		{
+		ODesc d(DESC_PARSEABLE);
+		d.Add("\"");
+		d.Add(item);
+		d.Add("\"");
+		return RepType(d.Description());
+		}
+};
+
+class LocTracker : public ItemTracker<const Location*> {
+public:
+	LocTracker(LocFileTracker& _lf) : lf(_lf)	{ }
+
+	// A refinement to AddItem that knows how to populate the
+	// LocFileTracker.
+	void AddItem(const Location* item) override
+		{
+		if ( ! item )
+			return;
+		
+		lf.AddItem(item->filename);
+		ItemTracker::AddItem(item);
+		}
+
+protected:
+	RepType ItemRep(const Location* item) const override
+		{
+		ODesc d(DESC_PARSEABLE);
+		d.Add(lf.FindItem(item->filename));
+		d.AddSP(",");
+		d.Add(item->first_line);
+		d.AddSP(",");
+		d.Add(item->last_line);
+		return RepType(d.Description());
+		}
+
+	LocFileTracker& lf;
+};
+
 
 class TypeTracker : public ItemTracker<const BroType*> {
 protected:
@@ -623,7 +665,7 @@ public:
 		{
 		}
 
-	// A refinement to AddItem that knows how to unpacket the elements
+	// A refinement to AddItem that knows how to unpack the elements
 	// of a ZInstAux.
 	void AddItem(const ZInstAux* item) override;
 
@@ -747,6 +789,8 @@ void ZBody::SaveTo(FILE* f) const
 	ValTracker vals;
 	AuxTracker auxes(types, vals);
 	AttrTracker attrs;
+	LocFileTracker loc_files;
+	LocTracker locs(loc_files);
 
 	for ( auto i : insts )
 		{
@@ -758,9 +802,10 @@ void ZBody::SaveTo(FILE* f) const
 		vals.AddItem(i->ConstVal().get());
 		auxes.AddItem(i->aux);
 		attrs.AddItem(i->attrs);
+		locs.AddItem(i->loc);
 		}
 
-	fprintf(f, "<ZAM-file> %s\n", func_name);
+	fprintf(f, "<ZAM-file> %s %d\n", func_name, ! fixed_frame);
 
 	if ( frame_size > 0 )
 		{
@@ -774,7 +819,7 @@ void ZBody::SaveTo(FILE* f) const
 				fprintf(f, " {\"%s\", %d},",
 					fr.names[i], fr.id_start[i]);
 
-			fprintf(f, "\n %d\n", fr.is_managed);
+			fprintf(f, " %d\n", fr.is_managed);
 			}
 
 		fprintf(f, "}\n");
@@ -799,6 +844,8 @@ void ZBody::SaveTo(FILE* f) const
 	vals.Render(f, "vals");
 	auxes.Render(f, "aux");
 	attrs.Render(f, "attrs");
+	loc_files.Render(f, "loc-files");
+	locs.Render(f, "locs");
 
 	fprintf(f, "<insts> {\n");
 
@@ -850,6 +897,16 @@ void ZBody::SaveTo(FILE* f) const
 			fprintf(f, " %d", attrs.FindItem(i->attrs));
 		else
 			fprintf(f, SP_NA);
+
+		if ( i->loc )
+			fprintf(f, " %d", locs.FindItem(i->loc));
+		else
+			fprintf(f, SP_NA);
+
+		// The stupid comma in the following is to keep the
+		// overly-thinking-it scanner from converting a sequence
+		// like "0 hrw_hash" to be "0 hr" (an interval!).
+		fprintf(f, " %d,", i->is_managed);
 
 		if ( i->func )
 			fprintf(f, " %s", i->func->Name());

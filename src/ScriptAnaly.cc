@@ -358,6 +358,15 @@ void analyze_scripts()
 			scan_ZAM_file(fn, save_file);
 			yyparse();
 			fclose(save_file);
+#if 0
+			// The following is just for testing to see whether
+			// a recovered .ZAM file can be exactly reproduced.
+			char fn2[8192];
+			snprintf(fn2, sizeof fn2, "%s2", fn);
+			auto save_file2 = fopen(fn2, "w");
+			ZAM_body->SaveTo(save_file2);
+			fclose(save_file2);
+#endif
 			}
 		else
 			f->save_file = copy_string(fn);

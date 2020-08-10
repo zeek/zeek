@@ -561,8 +561,9 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d, bool top_level) const
 		break;
 
 	case TYPE_TYPE:
-		// d->AddSP("type");
+		d->AddSP("type {");
 		DescribeType(t->AsTypeType()->Type(), d, false);
+		d->Add("}");
 		break;
 
 	case TYPE_TABLE:
@@ -776,6 +777,12 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 		d.Add(int(ii->loop_var_types.size()));
 		d.AddSP(",");
 
+		for ( auto v : ii->loop_vars )
+			{
+			d.Add(v);
+			d.AddSP(",");
+			}
+
 		for ( auto t : ii->loop_var_types )
 			{
 			d.Add(tt.FindItem(t));
@@ -803,6 +810,13 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 
 		d.Add("]");
 		}
+
+	d.AddSP(",");
+
+	if ( item->id_val )
+		d.Add(item->id_val->Name());
+	else
+		d.Add(NA);
 
 	return RepType(d.Description());
 	}

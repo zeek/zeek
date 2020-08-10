@@ -1597,7 +1597,7 @@ internal-assignment-op Load-Global
 type VVC
 eval if ( global_state[z.v2] != GS_UNLOADED ) break
 eval global_state[z.v2] = GS_CLEAN
-eval auto v = z.c.id_val->ID_Val()
+eval auto v = z.aux->id_val->ID_Val()
 eval @v
 
 # We need a special form here for loading global types, as they don't
@@ -1608,7 +1608,7 @@ eval if ( global_state[z.v2] != GS_UNLOADED ) break
 eval global_state[z.v2] = GS_CLEAN
 eval auto& v = frame[z.v1].type_val
 eval Unref(v)
-eval IntrusivePtr<BroType> t = {NewRef{}, z.c.id_val->AsType()};
+eval IntrusivePtr<BroType> t = {NewRef{}, z.aux->id_val->AsType()};
 eval v = new TypeType(t)
 
 internal-op Store-Val

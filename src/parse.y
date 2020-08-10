@@ -992,6 +992,12 @@ type:
 				$$ = $4;
 				}
 
+	|	TOK_TYPE '{' type '}'
+				{ // Used internally for ZAM savefiles
+				set_location(@1, @4);
+				$$ = new TypeType({NewRef{}, $3});
+				}
+
 	|	TOK_LIST '{' type_list '}'
 				{ // Used internally for ZAM savefiles
 				set_location(@1, @4);
@@ -1970,8 +1976,9 @@ ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
 		ZAM_auxes ZAM_attrs ZAM_loc_files ZAM_locs ZAM_insts
 			{
 			std::vector<int> managed_slots;
-			for ( auto s : ZAM_frame_layout )
-				managed_slots.push_back(s.is_managed);
+			for ( auto i = 0; i < ZAM_frame_layout.size(); ++i )
+				if ( ZAM_frame_layout[i].is_managed )
+					managed_slots.push_back(i);
 
 			ZAM_body = new ZBody($2, ZAM_frame_layout,
 						managed_slots, ZAM_globals,
@@ -2179,7 +2186,11 @@ ZAM_aux_list:	ZAM_aux_list ZAM_aux
 			{ ZAM_auxes.clear(); }
 	;
 
-ZAM_aux:	ZAM_aux_vals ZAM_aux_iter_info ','
+ZAM_aux:	ZAM_aux_vals ZAM_aux_iter_info ',' ZAM_ID ','
+			{
+			if ( $4 )
+				curr_ZAM_aux->id_val = lookup_ID($4, GLOBAL_MODULE_NAME).release();
+			}
 	;
 
 ZAM_aux_vals:	ZAM_ind	{
@@ -2213,12 +2224,17 @@ ZAM_aux_iter_info:
 			{
 			auto ii = new IterInfo;
 			auto& iv = ZAM_aux_iter_vec;
-			auto& zt = *ZAM_types;
 			auto ind = 0;
 
 			auto num_loop_vars = iv[ind++];
+			int n = num_loop_vars;
 
-			while ( num_loop_vars-- > 0 )
+			while ( n-- > 0 )
+				ii->loop_vars.push_back(iv[ind++]);
+
+			auto& zt = *ZAM_types;
+			n = num_loop_vars;
+			while ( n-- > 0 )
 				{
 				auto t = zt[iv[ind++]];
 				ii->loop_var_types.push_back(t);

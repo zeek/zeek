@@ -70,9 +70,6 @@ union ZAMValUnion {
 	// Used for managing "for" loops.  Implicit memory management.
 	IterInfo* iter_info;
 
-	// Used for loading/spilling globals; also, local vectors.
-	ID* id_val;
-
 	// Used for generic access to managed objects.
 	BroObj* managed_val;
 };

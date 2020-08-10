@@ -305,14 +305,14 @@ private:
 
 	//Iteration
 	IterCookie* InitForIterationNonConst();
-	void* NextEntryNonConst(HashKey*& h, IterCookie*& cookie, bool return_hash);
+	void* NextEntryNonConst(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash);
 	void StopIterationNonConst(IterCookie* cookie);
 
 	//Lookup
-	int LinearLookupIndex(const void* key, int key_size, hash_t hash) const;
-	int LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position = nullptr,
+	int LinearLookupIndex(const void* key, int key_size, zeek::detail::hash_t hash) const;
+	int LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int* insert_position = nullptr,
 		int* insert_distance = nullptr);
-	int LookupIndex(const void* key, int key_size, hash_t hash, int begin, int end,
+	int LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int begin, int end,
 		int* insert_position = nullptr, int* insert_distance  = nullptr);
 
 	/// Insert entry, Adjust cookies when necessary.

@@ -450,6 +450,10 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
+	// Returns true if our identifier is a global with a constant value
+	// that can be propagated.
+	bool FoldableGlobal() const;
+
 	void ExprDescribe(ODesc* d) const override;
 
 	IntrusivePtr<ID> id;

@@ -779,7 +779,7 @@ bool NameExpr::IsPure() const
 
 bool NameExpr::IsReduced(Reducer* c) const
 	{
-	if ( id->IsGlobal() && id->IsConst() && is_atomic_type(id->Type()) )
+	if ( FoldableGlobal() )
 		return false;
 
 	return c->NameIsReduced(this);
@@ -792,7 +792,7 @@ Expr* NameExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( c->Optimizing() )
 		return this->Ref();
 
-	if ( id->IsGlobal() && id->IsConst() && is_atomic_type(id->Type()) )
+	if ( FoldableGlobal() )
 		{
 		IntrusivePtr<Val> v = {NewRef{}, id->ID_Val()};
 		ASSERT(v);
@@ -810,6 +810,14 @@ IntrusivePtr<Expr> NameExpr::Duplicate()
 	return make_intrusive<NameExpr>(id, in_const_init);
 	}
 
+bool NameExpr::FoldableGlobal() const
+	{
+	return id->IsGlobal() && id->IsConst() && is_atomic_type(id->Type()) &&
+		// Make sure constant can be changed on the command line
+		// or such.
+		! id->FindAttr(ATTR_REDEF);
+	}
+
 TraversalCode NameExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);
@@ -821,7 +829,6 @@ TraversalCode NameExpr::Traverse(TraversalCallback* cb) const
 	tc = cb->PostExpr(this);
 	HANDLE_TC_EXPR_POST(tc);
 	}
-
 
 void NameExpr::ExprDescribe(ODesc* d) const
 	{

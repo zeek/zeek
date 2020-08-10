@@ -446,6 +446,15 @@ protected:
 	RepType ItemRep(const Val* item) const override
 		{
 		ODesc d(DESC_PARSEABLE);
+
+		// Special case for integers: we need these to be
+		// parsed as such, and not as counts.
+		auto t = item->Type();
+		if ( t->Tag() != TYPE_BOOL && t->Tag() != TYPE_ENUM &&
+		     t->InternalType() == TYPE_INTERNAL_INT &&
+		     item->ForceAsInt() >= 0 )
+			d.Add("+");
+
 		item->Describe(&d);
 		return RepType(d.Description());
 		}

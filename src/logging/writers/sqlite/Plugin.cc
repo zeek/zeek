@@ -5,7 +5,7 @@
 
 #include "SQLite.h"
 
-namespace zeek::plugin::Zeek_SQLiteWriter {
+namespace zeek::plugin::detail::Zeek_SQLiteWriter {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -20,4 +20,4 @@ public:
 		}
 } plugin;
 
-} // namespace zeek::plugin::Zeek_SQLiteWriter
+} // namespace zeek::plugin::detail::Zeek_SQLiteWriter

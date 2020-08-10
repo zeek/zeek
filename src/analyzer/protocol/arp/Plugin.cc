@@ -1,10 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-
 #include "plugin/Plugin.h"
 
-namespace plugin {
-namespace Zeek_ARP {
+namespace zeek::plugin::detail::Zeek_ARP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -17,5 +15,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_ARP

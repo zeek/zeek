@@ -2,7 +2,7 @@
 
 #include "Plugin.h"
 
-namespace zeek::plugin::Zeek_RawReader {
+namespace zeek::plugin::detail::Zeek_RawReader {
 
 Plugin plugin;
 
@@ -33,4 +33,4 @@ std::unique_lock<std::mutex> Plugin::ForkMutex()
 	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
 	}
 
-} // namespace zeek::plugin::Zeek_RawReader
+} // namespace zeek::plugin::detail::Zeek_RawReader

@@ -2,8 +2,7 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_RFB {
+namespace zeek::plugin::detail::Zeek_RFB {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,5 +18,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_RFB

@@ -5,8 +5,7 @@
 
 #include "DCE_RPC.h"
 
-namespace plugin {
-namespace Zeek_DCE_RPC {
+namespace zeek::plugin::detail::Zeek_DCE_RPC {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -21,5 +20,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_DCE_RPC

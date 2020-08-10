@@ -4,7 +4,7 @@
 
 #include "Config.h"
 
-namespace zeek::plugin::Zeek_ConfigReader {
+namespace zeek::plugin::detail::Zeek_ConfigReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,4 +19,4 @@ public:
 		}
 } plugin;
 
-}
+} // namespace zeek::plugin::detail::Zeek_ConfigReader

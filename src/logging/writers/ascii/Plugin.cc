@@ -5,7 +5,7 @@
 
 #include "Ascii.h"
 
-namespace zeek::plugin::Zeek_AsciiWriter {
+namespace zeek::plugin::detail::Zeek_AsciiWriter {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -26,4 +26,4 @@ protected:
 
 } plugin;
 
-} // namespace zeek::plugin::Zeek_AsciiWriter
+} // namespace zeek::plugin::detail::Zeek_AsciiWriter

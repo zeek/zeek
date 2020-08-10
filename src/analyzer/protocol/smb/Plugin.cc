@@ -4,8 +4,7 @@
 
 #include "SMB.h"
 
-namespace plugin {
-namespace Zeek_SMB {
+namespace zeek::plugin::detail::Zeek_SMB {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -21,5 +20,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_SMB

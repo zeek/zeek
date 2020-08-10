@@ -4,8 +4,7 @@
 
 #include "NTLM.h"
 
-namespace plugin {
-namespace Zeek_NTLM {
+namespace zeek::plugin::detail::Zeek_NTLM {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_NTLM

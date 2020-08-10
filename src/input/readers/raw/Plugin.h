@@ -8,7 +8,7 @@
 
 #include "Raw.h"
 
-namespace zeek::plugin::Zeek_RawReader {
+namespace zeek::plugin::detail::Zeek_RawReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -28,4 +28,4 @@ private:
 
 extern Plugin plugin;
 
-} // namespace zeek::plugin::Zeek_RawReader
+} // namespace zeek::plugin::detail::Zeek_RawReader

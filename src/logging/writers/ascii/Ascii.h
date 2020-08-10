@@ -10,7 +10,7 @@
 #include "Desc.h"
 #include "zlib.h"
 
-namespace zeek::plugin::Zeek_AsciiWriter { class Plugin; }
+namespace zeek::plugin::detail::Zeek_AsciiWriter { class Plugin; }
 
 namespace zeek::logging::writer::detail {
 
@@ -37,7 +37,7 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	friend class plugin::Zeek_AsciiWriter::Plugin;
+	friend class zeek::plugin::detail::Zeek_AsciiWriter::Plugin;
 
 	static void RotateLeftoverLogs();
 

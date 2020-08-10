@@ -4,7 +4,7 @@
 
 #include "Benchmark.h"
 
-namespace zeek::plugin::Zeek_BenchmarkReader {
+namespace zeek::plugin::detail::Zeek_BenchmarkReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,4 +19,4 @@ public:
 		}
 } plugin;
 
-}
+} // namespace zeek::plugin::detail::Zeek_BenchmarkReader

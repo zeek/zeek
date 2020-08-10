@@ -7,8 +7,7 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_Login {
+namespace zeek::plugin::detail::Zeek_Login {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -29,5 +28,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_Login

@@ -5,7 +5,7 @@
 #include "plugin/Plugin.h"
 #include "iosource/Component.h"
 
-namespace zeek::plugin::Zeek_Pcap {
+namespace zeek::plugin::detail::Zeek_Pcap {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -24,4 +24,4 @@ public:
 		}
 } plugin;
 
-} // namespace zeek::plugin::Zeek_Pcap
+} // namespace zeek::plugin::detail::Zeek_Pcap

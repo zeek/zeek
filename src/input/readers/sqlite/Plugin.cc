@@ -4,7 +4,7 @@
 
 #include "SQLite.h"
 
-namespace zeek::plugin::Zeek_SQLiteReader {
+namespace zeek::plugin::detail::Zeek_SQLiteReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,4 +19,4 @@ public:
 		}
 } plugin;
 
-}
+} // namespae zeek::plugin::detail::Zeek_SQLiteReader

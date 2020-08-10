@@ -4,7 +4,7 @@
 
 #include "Ascii.h"
 
-namespace zeek::plugin::Zeek_AsciiReader {
+namespace zeek::plugin::detail::Zeek_AsciiReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,4 +19,4 @@ public:
 		}
 } plugin;
 
-}
+} // namespace zeek::plugin::detail::Zeek_AsciiReader

@@ -5,7 +5,7 @@
 
 #include "None.h"
 
-namespace zeek::plugin::Zeek_NoneWriter {
+namespace zeek::plugin::detail::Zeek_NoneWriter {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -20,4 +20,4 @@ public:
 		}
 } plugin;
 
-} // namespace zeek::plugin::Zeek_NoneWriter
+} // namespace zeek::plugin::detail::Zeek_NoneWriter

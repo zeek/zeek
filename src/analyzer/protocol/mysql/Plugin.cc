@@ -4,8 +4,7 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_MySQL {
+namespace zeek::plugin::detail::Zeek_MySQL {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,5 +18,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_MySQL

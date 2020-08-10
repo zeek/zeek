@@ -4,7 +4,7 @@
 
 #include "Binary.h"
 
-namespace zeek::plugin::Zeek_BinaryReader {
+namespace zeek::plugin::detail::Zeek_BinaryReader {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -19,4 +19,4 @@ public:
 		}
 } plugin;
 
-}
+} // namespace zeek::plugin::detail::Zeek_BinaryReader

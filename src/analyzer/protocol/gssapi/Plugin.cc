@@ -4,8 +4,7 @@
 
 #include "GSSAPI.h"
 
-namespace plugin {
-namespace Zeek_GSSAPI {
+namespace zeek::plugin::detail::Zeek_GSSAPI {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_GSSAPI

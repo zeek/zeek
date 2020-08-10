@@ -4,8 +4,7 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_ICMP {
+namespace zeek::plugin::detail::Zeek_ICMP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_ICMP

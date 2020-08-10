@@ -3,8 +3,7 @@
 
 #include "plugin/Plugin.h"
 
-namespace plugin {
-namespace Zeek_MIME {
+namespace zeek::plugin::detail::Zeek_MIME {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
@@ -17,5 +16,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_MIME

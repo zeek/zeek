@@ -34,7 +34,6 @@ typedef enum {
 
 	OP_VVC,
 	OP_VVC_I2,
-	OP_ViC_ID,
 	OP_VVV,
 	OP_VVV_I3,
 	OP_VVV_I2_I3,
@@ -267,12 +266,9 @@ public:
 	// Updates used (not assigned) slots per the given mapping.
 	void UpdateSlots(std::vector<int>& slot_mapping);
 
-	bool IsGlobalLoad() const
-		{
-		// This is a bit dicey - we rely on knowing that the
-		// op_type for any form of global load is unique.
-		return op_type == OP_ViC_ID;
-		}
+	// True if the instruction corresponds to loading a global into
+	// the ZAM frame.
+	bool IsGlobalLoad() const;
 
 	bool IsFrameStore() const
 		{ return op == OP_STORE_VAL_VV || op == OP_STORE_ANY_VAL_VV; }
@@ -445,5 +441,24 @@ public:
 };
 
 extern const char* ZOP_name(ZOp op);
+
+// Maps a generic operation to a specific one associated with the given type.
+// The third argument governs what to do if the given type has no assignment
+// flavor.  If true, this leads to an assertion failure.  If false, and
+// if there's no flavor for the type, then OP_NOP is returned.
+extern ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict=true);
+
+// Maps first operands and then type tags to operands.
+extern std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>> 
+        assignment_flavor;
+        
+// Maps flavorful assignments to their non-assignment counterpart.
+// Used for optimization when we determine that the assigned-to
+// value is superfluous.
+extern std::unordered_map<ZOp, ZOp> assignmentless_op;
+
+// Maps flavorful assignments to what op-type their non-assignment
+// counterpart uses.
+extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
 
 extern bool ZAM_error;

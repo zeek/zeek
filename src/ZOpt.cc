@@ -72,62 +72,6 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 	}
 
 
-// Maps first operands and then type tags to operands.
-static std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>>
-	assignment_flavor;
-
-// Maps flavorful assignments to their non-assignment counterpart.
-// Used for optimization when we determine that the assigned-to
-// value is superfluous.
-static std::unordered_map<ZOp, ZOp> assignmentless_op;
-
-// Maps flavorful assignments to what op-type their non-assignment
-// counterpart uses.
-static std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
-
-ZOp ZAM::AssignmentFlavor(ZOp orig, TypeTag tag)
-	{
-	static bool did_init = false;
-
-	if ( ! did_init )
-		{
-		std::unordered_map<TypeTag, ZOp> empty_map;
-
-#include "ZAM-AssignFlavorsDefs.h"
-
-		did_init = true;
-		}
-
-	// Map type tag to equivalent, as needed.
-	switch ( tag ) {
-	case TYPE_BOOL:
-	case TYPE_ENUM:
-		tag = TYPE_INT;
-		break;
-
-	case TYPE_COUNTER:
-	case TYPE_PORT:
-		tag = TYPE_COUNT;
-		break;
-
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		tag = TYPE_DOUBLE;
-		break;
-
-	default:
-		break;
-	}
-
-	ASSERT(assignment_flavor.count(orig) > 0);
-
-	auto orig_map = assignment_flavor[orig];
-	ASSERT(orig_map.count(tag) > 0);
-
-	return orig_map[tag];
-	}
-
-
 void ZAM::OptimizeInsts()
 	{
 	// Do accounting for targeted statements.

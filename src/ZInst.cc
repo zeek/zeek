@@ -31,7 +31,6 @@ static const char* op_type_name(ZAMOpType ot)
 		case OP_VV_FRAME:	return "VV_FRAME";
 		case OP_VVC:		return "VVC";
 		case OP_VVC_I2:		return "VVC_I2";
-		case OP_ViC_ID:		return "ViC_ID";
 		case OP_VVV:		return "VVV";
 		case OP_VVV_I3:		return "VVV_I3";
 		case OP_VVV_I2_I3:	return "VVV_I2_I3";
@@ -56,6 +55,66 @@ bool op_side_effects[] = {
 #include "ZAM-OpSideEffects.h"
 	false,	// OP_NOP
 };
+
+
+std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>> assignment_flavor;
+std::unordered_map<ZOp, ZOp> assignmentless_op;
+std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
+
+ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict)
+	{
+	static bool did_init = false;
+
+	if ( ! did_init )
+		{
+		std::unordered_map<TypeTag, ZOp> empty_map;
+
+#include "ZAM-AssignFlavorsDefs.h"
+
+		did_init = true;
+		}
+
+	// Map type tag to equivalent, as needed.
+	switch ( tag ) {
+	case TYPE_BOOL:
+	case TYPE_ENUM:
+		tag = TYPE_INT;
+		break;
+
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		tag = TYPE_COUNT;
+		break;
+
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		tag = TYPE_DOUBLE;
+		break;
+
+	default:
+		break;
+	}
+
+	if ( assignment_flavor.count(orig) == 0 )
+		{
+		if ( strict )
+			ASSERT(false);
+		else
+			return OP_NOP;
+		}
+
+	auto orig_map = assignment_flavor[orig];
+
+	if ( orig_map.count(tag) == 0 )
+		{
+		if ( strict )
+			ASSERT(false);
+		else
+			return OP_NOP;
+		}
+
+	return orig_map[tag];
+	}
 
 
 void ZInst::Dump(int inst_num, const FrameReMap* mappings) const
@@ -144,10 +203,6 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		printf("%s, %d, %s", id1, v2, ConstDump());
 		break;
 
-	case OP_ViC_ID:
-		printf("%s, %d, ID %s", id1, v2, obj_desc(c.any_val));
-		break;
-
 	case OP_VVV_I3:
 		printf("%s, %s, %d", id1, id2, v3);
 		break;
@@ -206,7 +261,6 @@ int ZInst::NumFrameSlots() const
 	case OP_VV_FRAME:	return 1;
 	case OP_VV_I2:	return 1;
 	case OP_VVC_I2:	return 1;
-	case OP_ViC_ID:	return 1;
 	case OP_VVV_I3:	return 2;
 	case OP_VVV_I2_I3:	return 1;
 
@@ -239,7 +293,6 @@ int ZInst::NumSlots() const
 	case OP_VV_FRAME:	return 2;
 	case OP_VV_I2:	return 2;
 	case OP_VVC_I2:	return 2;
-	case OP_ViC_ID:	return 2;
 
 	case OP_VVV_I3:	return 3;
 	case OP_VVV_I2_I3:	return 3;
@@ -313,7 +366,6 @@ IntrusivePtr<Val> ZInst::ConstVal() const
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VV_I1_I2:
-	case OP_ViC_ID:
 	case OP_VVV_I3:
 	case OP_VVV_I2_I3:
 	case OP_VVVV_I4:
@@ -465,7 +517,6 @@ bool ZInstI::AssignsToSlot1() const
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
-	case OP_ViC_ID:
 	case OP_VVV_I2_I3:
 	case OP_VVVC_I2_I3:
 	case OP_VVVV_I2_I3_I4:
@@ -503,7 +554,6 @@ bool ZInstI::UsesSlot(int slot) const
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
-	case OP_ViC_ID:
 	case OP_VVV_I2_I3:
 	case OP_VVVC_I2_I3:
 	case OP_VVVV_I2_I3_I4:
@@ -547,7 +597,6 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
-	case OP_ViC_ID:
 	case OP_VVV_I2_I3:
 	case OP_VVVC_I2_I3:
 	case OP_VVVV_I2_I3_I4:
@@ -608,7 +657,6 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 	case OP_VV_FRAME:
 	case OP_VV_I2:
 	case OP_VVC_I2:
-	case OP_ViC_ID:
 	case OP_VVV_I2_I3:
 	case OP_VVVC_I2_I3:
 	case OP_VVVV_I2_I3_I4:
@@ -641,6 +689,27 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 	// given it's an assignment target.
 	if ( op1_flavor[op] == OP1_READ )
 		v1 = slot_mapping[v1];
+	}
+
+bool ZInstI::IsGlobalLoad() const
+	{
+	static std::unordered_set<ZOp> global_ops;
+
+	if ( global_ops.size() == 0 )
+		{
+		// Initialize the set.
+		for ( int t = 0; t < NUM_TYPES; ++t )
+			{
+			TypeTag tag = TypeTag(t);
+			ZOp global_op_flavor =
+				AssignmentFlavor(OP_LOAD_GLOBAL_VVC, tag, false);
+
+			if ( global_op_flavor != OP_NOP )
+				global_ops.insert(global_op_flavor);
+			}
+		}
+
+	return global_ops.count(op) > 0;
 	}
 
 void ZInstI::InitConst(const ConstExpr* ce)

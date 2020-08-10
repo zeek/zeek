@@ -2404,7 +2404,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 
 	ZInstI z(op, slot, global_id_to_info[id]);
 	z.SetType(id->Type());
-	z.op_type = OP_ViC_ID;
+	z.op_type = OP_VV_I2;
 
 	z.aux = new ZInstAux(0);
 	z.aux->id_val = id;

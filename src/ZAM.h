@@ -317,10 +317,6 @@ protected:
 	// different from the methods above that relate to the initial
 	// compilation.
 
-	// Maps a generic operation to a specific one associated with
-	// the given type.
-	ZOp AssignmentFlavor(ZOp orig, TypeTag tag);
-
 	// Optimizing the low-level compiled instructions.
 	void OptimizeInsts();
 

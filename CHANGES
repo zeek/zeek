@@ -1,4 +1,8 @@
 
+3.2.0 | 2020-08-10 10:08:59 -0700
+
+  * Release 3.2.0.
+
 3.2.0-rc1.4 | 2020-08-10 10:08:18 -0700
 
   * GH-1100: Fix reported body-length of HTTP messages w/ sub-entities (Jon Siwek, Corelight)

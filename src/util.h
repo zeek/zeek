@@ -421,7 +421,6 @@ bool is_file(const std::string& path);
 extern int int_list_cmp(const void* v1, const void* v2);
 
 extern const std::string& zeek_path();
-extern const char* zeek_magic_path();
 extern const char* zeek_plugin_path();
 extern const char* zeek_plugin_activate();
 extern std::string zeek_prefixes();
@@ -704,7 +703,6 @@ static const zeek::util::detail::SourceID SOURCE_BROKER [[deprecated("Remove in 
 
 constexpr auto int_list_cmp [[deprecated("Remove in v4.1. Use zeek::util::int_list_cmp.")]] = zeek::util::int_list_cmp;
 constexpr auto bro_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_path.")]] = zeek::util::zeek_path;
-constexpr auto bro_magic_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_magic_path.")]] = zeek::util::zeek_magic_path;
 constexpr auto bro_plugin_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_plugin_path.")]] = zeek::util::zeek_plugin_path;
 constexpr auto bro_plugin_activate [[deprecated("Remove in v4.1. Use zeek::util::zeek_plugin_activate.")]] = zeek::util::zeek_plugin_activate;
 constexpr auto bro_prefixes [[deprecated("Remove in v4.1. Use zeek::util::zeek_prefixes.")]] = zeek::util::zeek_prefixes;

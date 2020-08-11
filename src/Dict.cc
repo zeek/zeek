@@ -446,7 +446,7 @@ void Dictionary::DumpKeys() const
 	DistanceStats(max_distance);
 	if ( binary )
 		{
-		sprintf(key_file, "%d.%d.%lu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		sprintf(key_file, "%d.%d.%zu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
 		std::ofstream f(key_file, std::ios::binary|std::ios::out|std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -458,7 +458,7 @@ void Dictionary::DumpKeys() const
 		}
 	else
 		{
-		sprintf(key_file, "%d.%d.%lu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		sprintf(key_file, "%d.%d.%zu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
 		std::ofstream f(key_file, std::ios::out|std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -506,7 +506,7 @@ void Dictionary::Dump(int level) const
 	int distances[DICT_NUM_DISTANCES];
 	int max_distance = 0;
 	DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
-	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %10zu mem/ent %3lu key/ent %3d lg %2d remaps %1d remap_end %4d ",
+	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %10zu mem/ent %3zu key/ent %3d lg %2d remaps %1d remap_end %4d ",
 		Capacity(), Length(), MaxLength(), (double)Length()/(table? Capacity() : 1),
 		max_distance, MemoryAllocation(), (MemoryAllocation())/(Length()?Length():1), key_size / (Length()?Length():1),
 		log2_buckets, remaps, remap_end);

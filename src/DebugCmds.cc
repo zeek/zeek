@@ -83,7 +83,7 @@ static void choose_global_symbols_regex(const string& regex, vector<zeek::detail
 		zeek::detail::debug_msg("There were multiple matches, please choose:\n");
 
 		for ( size_t i = 0; i < choices.size(); i++ )
-			zeek::detail::debug_msg("[%lu] %s\n", i+1, choices[i]->Name());
+			zeek::detail::debug_msg("[%zu] %s\n", i+1, choices[i]->Name());
 
 		zeek::detail::debug_msg("[a] All of the above\n");
 		zeek::detail::debug_msg("[n] None of the above\n");

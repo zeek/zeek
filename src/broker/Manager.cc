@@ -1198,7 +1198,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 			{
 			auto expected_name = zeek::type_name(expected_type->Tag());
 
-	        zeek::reporter->Warning("failed to convert remote event '%s' arg #%lu,"
+	        zeek::reporter->Warning("failed to convert remote event '%s' arg #%zu,"
 	                                " got %s, expected %s",
 	                                name.data(), i, got_type,
 	                                expected_name);
@@ -1268,7 +1268,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 			fields[i] = field;
 		else
 			{
-			zeek::reporter->Warning("failed to convert remote log field # %lu", i);
+			zeek::reporter->Warning("failed to convert remote log field # %zu", i);
 			delete [] fields;
 			return false;
 			}

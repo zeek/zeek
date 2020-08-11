@@ -1148,7 +1148,8 @@ void init_random_seed(const char* read_file, const char* write_file,
 #endif
 
 		if ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE )
-			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %lu", zeek::detail::KeyedHash::SEED_INIT_SIZE, pos);
+			zeek::reporter->FatalError("Could not read enough random data. Wanted %d, got %zu",
+			                           zeek::detail::KeyedHash::SEED_INIT_SIZE, pos);
 
 		if ( ! seed )
 			{

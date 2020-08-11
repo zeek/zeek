@@ -16,7 +16,7 @@ bool in_ZAM_file = false;
 std::unordered_set<const Func*> non_recursive_funcs;
 
 
-void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
+void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 			IntrusivePtr<Stmt>& body)
 	{
 	if ( reporter->Errors() > 0 )
@@ -32,10 +32,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	if ( analysis_options.only_func )
 		printf("Original: %s\n", obj_desc(body));
 
-	ProfileFunc pf_orig;
-	body->Traverse(&pf_orig);
-
-	if ( pf_orig.num_when_stmts > 0 || pf_orig.num_lambdas > 0 )
+	if ( pf->num_when_stmts > 0 || pf->num_lambdas > 0 )
 		{
 		if ( analysis_options.only_func )
 			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
@@ -271,7 +268,7 @@ void analyze_scripts()
 
 	for ( auto& f : funcs )
 		{
-		f->pf = new ProfileFunc();
+		f->pf = new ProfileFunc(true);
 		f->body->Traverse(f->pf);
 		func_profs[f->func] = f->pf;
 		}
@@ -343,13 +340,13 @@ void analyze_scripts()
 			{
 			// Don't bother looking for prior compilation,
 			// or creating such.
-			optimize_func(f->func, f->scope, f->body);
+			optimize_func(f->func, f->pf, f->scope, f->body);
 			continue;
 			}
 
 		char fn[8192];
-		snprintf(fn, sizeof fn, "%s#%s:%d.ZAM", l->filename,
-				f->func->Name(), l->first_line);
+		snprintf(fn, sizeof fn, "%s#%s:%d.%lx.ZAM", l->filename,
+				f->func->Name(), l->first_line, f->pf->hash_val);
 
 		auto save_file = fopen(fn, "r");
 		if ( save_file )
@@ -373,7 +370,7 @@ void analyze_scripts()
 		else
 			{
 			f->save_file = copy_string(fn);
-			optimize_func(f->func, f->scope, f->body);
+			optimize_func(f->func, f->pf, f->scope, f->body);
 			}
 		}
 

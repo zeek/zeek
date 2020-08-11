@@ -1598,6 +1598,7 @@ type VVC
 eval if ( global_state[z.v2] != GS_UNLOADED ) break
 eval global_state[z.v2] = GS_CLEAN
 eval auto v = z.aux->id_val->ID_Val()
+eval if ( ! v ) { ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val); break; }
 eval @v
 
 # We need a special form here for loading global types, as they don't

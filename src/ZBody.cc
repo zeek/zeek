@@ -66,6 +66,12 @@ void ZAM_run_time_error(const char* msg, const BroObj* o)
 	ZAM_error = true;
 	}
 
+void ZAM_run_time_error(const Location* loc, const char* msg, const BroObj* o)
+	{
+	reporter->RuntimeError(loc, "%s (%s)", msg, obj_desc(o));
+	ZAM_error = true;
+	}
+
 
 // Unary vector operations never work on managed types, so no need
 // to pass in the type ...  However, the RHS, which normally would

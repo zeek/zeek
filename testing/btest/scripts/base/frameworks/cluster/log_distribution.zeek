@@ -6,13 +6,15 @@
 # Note: the logger names are chosen on purpose such that one is a prefix of the
 # other to help verify that the node-specific Cluster topics are able to
 # uniquely target a particular node.
-# @TEST-EXEC: btest-bg-run logger-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run logger-10 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-10 zeek %INPUT
-# @TEST-EXEC: btest-bg-run manager ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
+# @TEST-EXEC: btest-bg-run logger-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run logger-10 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-10 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run manager ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff logger-1/test.log
 # @TEST-EXEC: btest-diff logger-10/test.log
+
+@load base/frameworks/cluster
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::manager_is_logger = F;

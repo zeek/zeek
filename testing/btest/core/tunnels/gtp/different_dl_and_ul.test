@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/tunnels/gtp/gtp2_different_udp_port.pcap
+# @TEST-EXEC: zeek -b -C -r $TRACES/tunnels/gtp/gtp2_different_udp_port.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff tunnel.log
@@ -8,3 +8,8 @@
 # The Downlink GTP tunnel uses port 2152 for both src and dst.
 # (checksums are incorrect because packets were anonymized and tcprewrite
 # seems to fail to correct the checksums when there's IP fragmentation).
+#
+@load base/frameworks/tunnels
+@load base/frameworks/dpd
+@load base/protocols/conn
+@load base/protocols/http

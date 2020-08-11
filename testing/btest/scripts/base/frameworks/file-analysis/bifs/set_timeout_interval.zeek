@@ -1,6 +1,8 @@
-# @TEST-EXEC: btest-bg-run zeek zeek -r $TRACES/http/206_example_b.pcap $SCRIPTS/file-analysis-test.zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 8
+# @TEST-EXEC: btest-bg-run zeek zeek -b -r $TRACES/http/206_example_b.pcap $SCRIPTS/file-analysis-test.zeek %INPUT
+# @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff zeek/.stdout
+
+@load base/protocols/http
 
 global cnt: count = 0;
 global timeout_cnt: count = 0;

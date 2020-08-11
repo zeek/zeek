@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek -r $TRACES/http/pipelined-requests.trace %INPUT > output
+# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.trace %INPUT > output
 # @TEST-EXEC: btest-diff http.log
+
+@load base/protocols/http
 
 # mime type is irrelevant to this test, so filter it out
 event zeek_init()

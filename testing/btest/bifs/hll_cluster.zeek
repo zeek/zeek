@@ -2,15 +2,17 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 #
-# @TEST-EXEC: zeek %INPUT>out
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek runnumber=1 %INPUT
-# @TEST-EXEC: btest-bg-run worker-2 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek runnumber=2 %INPUT
+# @TEST-EXEC: zeek -b %INPUT>out
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT runnumber=1
+# @TEST-EXEC: btest-bg-run worker-2 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT runnumber=2
 # @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
+
+@load base/frameworks/cluster
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -32,6 +34,11 @@ event zeek_init()
 	}
 
 global runnumber: count &redef; # differentiate runs
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
+	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
@@ -78,8 +85,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		}
 
 	event hll_data(c);
-
-	terminate();
 	}
 
 @endif

@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: zeek -r $TRACES/dnp3/dnp3.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/dnp3/dnp3.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $1}' | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/dnp3/events.bif  | grep "^event dnp3_" | wc -l >total
@@ -7,6 +7,8 @@
 # @TEST-EXEC: btest-diff coverage
 # @TEST-EXEC: btest-diff dnp3.log
 #
+@load base/protocols/dnp3
+
 event dnp3_application_request_header(c: connection, is_orig: bool, application_control: count, fc: count)
 	{
 	print "dnp3_application_request_header", is_orig, application_control, fc;

@@ -1,6 +1,8 @@
-# @TEST-EXEC: zeek -r $TRACES/http/bro.org.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/http/bro.org.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff config.log
+
+@load base/frameworks/config
 
 event zeek_init()
 	{
@@ -13,7 +15,14 @@ event zeek_init()
 
 event zeek_init() &priority = -10
 	{
-	print Reporter::get_weird_sampling_whitelist();
+	local v: vector of string = vector();
+	local wl = Reporter::get_weird_sampling_whitelist();
+
+	for ( e in wl )
+		v += e;
+
+	sort(v, strcmp);
+	print v;
 	print Reporter::get_weird_sampling_rate();
 	print Reporter::get_weird_sampling_threshold();
 	print Reporter::get_weird_sampling_duration();

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/rdp/rdp-proprietary-encryption.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/rdp/rdp-proprietary-encryption.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/rdp

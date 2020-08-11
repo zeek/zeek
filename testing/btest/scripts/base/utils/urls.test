@@ -1,8 +1,7 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default.
-#@load base/utils/urls
+@load base/utils/urls
 
 print decompose_uri("https://www.example.com/");
 print decompose_uri("http://example.com:99/test//?foo=bar");

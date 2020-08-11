@@ -2,10 +2,10 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 
-# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -B broker ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -B broker ../clone.zeek >../clone.out"
-# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -B broker ../clone.zeek >../clone2.out"
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b -B broker ../common.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b -B broker ../common.zeek ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b -B broker ../common.zeek ../clone.zeek >../clone2.out"
+# @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: btest-diff master.out
 # @TEST-EXEC: btest-diff clone.out
@@ -20,24 +20,58 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+@TEST-START-FILE common.zeek
+@load base/frameworks/cluster
+@load base/frameworks/broker
 
-@TEST-START-FILE master.zeek
 redef exit_only_after_terminate = T;
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0secs;
 
-module TestModule;
-
 type testrec: record {
 	a: count;
 	b: string;
-	c: set[string];
+	c: vector of string;
 };
 
 global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
 
+function sort_set(s: set[string]): vector of string
+	{
+	local v: vector of string = vector();
+
+	for ( e in s )
+		v += e;
+
+	sort(v, strcmp);
+	return v;
+	}
+
+type TableEntry: record {
+	key: string;
+	val: any;
+};
+
+function sort_table(t: table[string] of any): vector of TableEntry
+	{
+	local vs: vector of string = vector();
+	local rval: vector of TableEntry = vector();
+
+	for ( k, v in t )
+		vs += k;
+
+	sort(vs, strcmp);
+
+	for ( i in vs )
+		rval += TableEntry($key=vs[i], $val=t[vs[i]]);
+
+	return rval;
+	}
+@TEST-END-FILE
+
+@TEST-START-FILE master.zeek
 event zeek_init()
 	{
 	t["a"] = 5;
@@ -47,52 +81,48 @@ event zeek_init()
 	t["a"] = 3;
 	t["b"] = 3;
 	t["c"] = 4;
-	t["whatever"] = 5;
 	delete t["c"];
-	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
-	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
-	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
-	print t;
-	print s;
-	print r;
+	t["whatever"] = 5;
+	r["a"] = testrec($a=1, $b="b", $c=vector("elem1", "elem2"));
+	r["a"] = testrec($a=1, $b="c", $c=vector("elem1", "elem2"));
+	r["b"] = testrec($a=2, $b="d", $c=vector("elem1", "elem2"));
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	}
 
+global peers_lost = 0;
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	terminate();
+	++peers_lost;
+
+	if ( peers_lost == 2 )
+		terminate();
 	}
 
 @TEST-END-FILE
 
 @TEST-START-FILE clone.zeek
-redef exit_only_after_terminate = T;
-redef Log::enable_local_logging = T;
-redef Log::default_rotation_interval = 0secs;
-
-module TestModule;
-
-type testrec: record {
-	a: count;
-	b: string;
-	c: set[string];
-};
-
-global t: table[string] of count &backend=Broker::MEMORY;
-global s: set[string] &backend=Broker::MEMORY;
-global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
-
 
 event dump_tables()
 	{
-	print t;
-	print s;
-	print r;
+	print sort_table(t);
+	print sort_set(s);
+	print sort_table(r);
 	terminate();
 	}
 
+event check_all_set()
+	{
+	if ( "whatever" in t && "hi" in s && "b" in r )
+		event dump_tables();
+	else
+		schedule 0.1sec { check_all_set() };
+	}
+
+
 event Cluster::node_up(name: string, id: string)
 	{
-	#print "node up", name;
-	schedule 4secs { dump_tables() };
+	schedule 0.1sec { check_all_set() };
 	}
 @TEST-END-FILE

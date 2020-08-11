@@ -1,8 +1,8 @@
-TableErrorEvent, String 'l' contained no parseable number, Reporter::WARNING
-TableErrorEvent, Could not convert line '\x09l' of ../input.log to Val. Ignoring line., Reporter::WARNING
 EventErrorEvent, String 'l' contained no parseable number, Reporter::WARNING
 EventErrorEvent, Could not convert line '\x09l' of ../input.log to Val. Ignoring line., Reporter::WARNING
 Event, [c=5]
+TableErrorEvent, String 'l' contained no parseable number, Reporter::WARNING
+TableErrorEvent, Could not convert line '\x09l' of ../input.log to Val. Ignoring line., Reporter::WARNING
 {
 [] = [c=5]
 }

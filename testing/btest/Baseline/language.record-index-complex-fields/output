@@ -4,24 +4,24 @@
 [two] = 2,
 [one] = 1
 }, tags_s={
-b,
-a
+a,
+b
 }]
 }
 }
 {
 [a=13, tags_v=[, , 2, 3], tags_t={
-[five] = 5,
-[four] = 4
+[four] = 4,
+[five] = 5
 }, tags_s={
-c,
-d
+d,
+c
 }],
 [a=4, tags_v=[0, 1], tags_t={
 [two] = 2,
 [one] = 1
 }, tags_s={
-b,
-a
+a,
+b
 }]
 }

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/tcp/ssh-dups.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -C -r $TRACES/tcp/ssh-dups.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event tcp_multiple_retransmissions(c: connection, is_orig: bool, threshold: count)

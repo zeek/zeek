@@ -2,12 +2,12 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 45
 
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 #
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -17,8 +17,12 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+@load base/frameworks/sumstats
+@load base/frameworks/cluster
+
 redef Log::default_rotation_interval = 0secs;
 
+global did_data = F;
 
 event zeek_init() &priority=5
 	{
@@ -29,6 +33,7 @@ event zeek_init() &priority=5
 	                  $reducers=set(r1),
 	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
+	                  	if ( ! did_data ) return;
 	                  	local r = result["test.metric"];
 	                  	local s: vector of SumStats::Observation;
 	                  	s = topk_get_top(r$topk, 5);
@@ -40,7 +45,8 @@ event zeek_init() &priority=5
 	                  	},
 	                  $epoch_finished(ts: time) = 
 	                  	{
-	                  	terminate();
+	                  	if ( did_data )
+	                  		terminate();
 	                  	}]);
 
 
@@ -96,6 +102,8 @@ event ready_for_data()
 			SumStats::observe("test.metric", [$str="counter"], [$num=995]);
 			}
 		}
+
+	did_data = T;
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )

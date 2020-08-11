@@ -1,6 +1,11 @@
-# @TEST-EXEC: zeek -r $TRACES/tunnels/gtp/gtp7_ipv6.pcap
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/gtp/gtp7_ipv6.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff tunnel.log
 
 # While the majority of user plane traffic inside the GTP tunnel is still IPv4,
 # there is sometimes already native IPv6.
+
+@load base/frameworks/tunnels
+@load base/frameworks/dpd
+@load base/protocols/conn
+@load base/protocols/dns

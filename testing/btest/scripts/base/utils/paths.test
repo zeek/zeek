@@ -1,8 +1,7 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default.
-#@load base/utils/paths
+@load base/utils/paths
 
 function test_extract(str: string, expect: string)
 	{

@@ -1,5 +1,5 @@
-@load base/files/extract
 @load base/files/hash
+@load base/files/extract
 
 redef FileExtract::prefix = "./";
 

@@ -1,78 +1,96 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Dict.h"
+
 #include "zeek-config.h"
 
 #ifdef HAVE_MEMORY_H
 #include <memory.h>
 #endif
+#include <algorithm>
+#include <signal.h>
+#include <climits>
+#include <fstream>
+
+#include "Reporter.h"
+#include "util.h"
 
 #include "3rdparty/doctest.h"
 
-#include "Dict.h"
-#include "Reporter.h"
-
-// If the mean bucket length exceeds the following then Insert() will
-// increase the size of the hash table.
-constexpr double DEFAULT_DENSITY_THRESH = 3.0;
-
-// Threshold above which we do not try to ensure that the hash size
-// is prime.
-constexpr int PRIME_THRESH = 1000;
-
-// Default number of hash buckets in dictionary.  The dictionary will
-// increase the size of the hash table as needed.
-constexpr int DEFAULT_DICT_SIZE = 16;
+#ifdef DEBUG
+#define ASSERT_VALID(o)	o->AssertValid()
+#else
+#define ASSERT_VALID(o)
+#endif//DEBUG
 
 namespace zeek {
-namespace detail {
 
-class DictEntry {
-public:
-	DictEntry(void* k, int l, zeek::detail::hash_t h, void* val) : key(k), len(l), hash(h), value(val) {}
-
-	~DictEntry()
-		{
-		delete [] (char*) key;
-		}
-
-	void* key;
-	int len;
-	zeek::detail::hash_t hash;
-	void* value;
-};
-
-} //namespace detail
-
-// The value of an iteration cookie is the bucket and offset within the
-// bucket at which to start looking for the next value to return.
 class IterCookie {
 public:
-	IterCookie(int b, int o) : bucket(b), offset(o) {}
+	IterCookie(Dictionary* d) : d(d) {}
 
-	int bucket, offset;
-	zeek::PList<detail::DictEntry>** ttbl = nullptr;
-	const int* num_buckets_p = nullptr;
-	zeek::PList<detail::DictEntry> inserted;	// inserted while iterating
-};
+	bool robust = false;
+	Dictionary* d = nullptr;
 
-} // namespace zeek
+	// Index for the next valid entry. -1 is the default, meaning we haven't started
+	// iterating yet.
+	int next = -1; //index for next valid entry. -1 is default not started yet.
+
+	// Tracks the new entries inserted while iterating. Only used for robust cookies.
+	std::vector<detail::DictEntry>* inserted = nullptr;
+
+	// Tracks the entries already visited but were moved across the next iteration
+	// point due to an insertion. Only used for robust cookies.
+	std::vector<detail::DictEntry>* visited = nullptr;
+
+	void MakeRobust()
+		{
+		// IterCookies can't be made robust after iteration has started.
+		ASSERT(next < 0);
+		ASSERT(d && d->cookies);
+
+		robust = true;
+		inserted = new std::vector<detail::DictEntry>();
+		visited = new std::vector<detail::DictEntry>();
+		d->cookies->push_back(this);
+		}
+
+	void AssertValid() const
+		{
+		ASSERT(d && -1 <= next && next <= d->Capacity());
+		ASSERT(( ! robust && ! inserted && ! visited ) || ( robust && inserted && visited ));
+		}
+
+	~IterCookie()
+		{
+		ASSERT_VALID(this);
+		if( robust )
+			{
+			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this), d->cookies->end());
+			delete inserted;
+			delete visited;
+			}
+		}
+	};
+
+// namespace detail
 
 TEST_SUITE_BEGIN("Dict");
 
 TEST_CASE("dict construction")
 	{
-	zeek::PDict<int> dict;
-	CHECK(dict.IsOrdered() == false);
+	PDict<int> dict;
+	CHECK(! dict.IsOrdered());
 	CHECK(dict.Length() == 0);
 
-	zeek::PDict<int> dict2(zeek::ORDERED);
-	CHECK(dict2.IsOrdered() == true);
+	PDict<int> dict2(ORDERED);
+	CHECK(dict2.IsOrdered());
 	CHECK(dict2.Length() == 0);
 	}
 
 TEST_CASE("dict operation")
 	{
-	zeek::PDict<uint32_t> dict;
+	PDict<uint32_t> dict;
 
 	uint32_t val = 10;
 	uint32_t key_val = 5;
@@ -88,7 +106,7 @@ TEST_CASE("dict operation")
 	dict.Remove(key2);
 	CHECK(dict.Length() == 0);
 	uint32_t* lookup2 = dict.Lookup(key2);
-	CHECK(lookup2 == (uint32_t*)nullptr);
+	CHECK(lookup2 == (uint32_t*)0);
 	delete key2;
 
 	CHECK(dict.MaxLength() == 1);
@@ -118,8 +136,8 @@ TEST_CASE("dict operation")
 
 TEST_CASE("dict nthentry")
 	{
-	zeek::PDict<uint32_t> unordered(zeek::UNORDERED);
-	zeek::PDict<uint32_t> ordered(zeek::ORDERED);
+	PDict<uint32_t> unordered(UNORDERED);
+	PDict<uint32_t> ordered(ORDERED);
 
 	uint32_t val = 15;
 	uint32_t key_val = 5;
@@ -139,7 +157,7 @@ TEST_CASE("dict nthentry")
 
 	// NthEntry returns null for unordered dicts
 	uint32_t* lookup = unordered.NthEntry(0);
-	CHECK(lookup == (uint32_t*)nullptr);
+	CHECK(lookup == (uint32_t*)0);
 
 	// Ordered dicts are based on order of insertion, nothing about the
 	// data itself
@@ -154,7 +172,7 @@ TEST_CASE("dict nthentry")
 
 TEST_CASE("dict iteration")
 	{
-	zeek::PDict<uint32_t> dict;
+	PDict<uint32_t> dict;
 
 	uint32_t val = 15;
 	uint32_t key_val = 5;
@@ -168,7 +186,7 @@ TEST_CASE("dict iteration")
 	dict.Insert(key2, &val2);
 
 	zeek::detail::HashKey* it_key;
-	zeek::IterCookie* it = dict.InitForIteration();
+	IterCookie* it = dict.InitForIteration();
 	CHECK(it != nullptr);
 	int count = 0;
 
@@ -176,12 +194,19 @@ TEST_CASE("dict iteration")
 		{
 		if ( count == 0 )
 			{
-			CHECK(it_key->Hash() == key2->Hash());
+			// The DictEntry constructor typecasts this down to a uint32_t, so
+			// we can't just check the value directly.
+			// Explanation: hash_t is 64bit, open-dict only uses 32bit hash to
+			// save space for each item (24 bytes aligned). OpenDict has table
+			// size of 2^N and only take the lower bits of the hash. (The
+			// original hash takes transformation in FibHash() to map into a
+			// smaller 2^N range).
+			CHECK(it_key->Hash() == (uint32_t)key2->Hash());
 			CHECK(*entry == 10);
 			}
 		else
 			{
-			CHECK(it_key->Hash() == key->Hash());
+			CHECK(it_key->Hash() == (uint32_t)key->Hash());
 			CHECK(*entry == 15);
 			}
 		count++;
@@ -195,573 +220,920 @@ TEST_CASE("dict iteration")
 
 TEST_SUITE_END();
 
-namespace zeek {
-
-Dictionary::Dictionary(DictOrder ordering, int initial_size)
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//bucket math
+int Dictionary::Log2(int num) const
 	{
-	if ( ordering == ORDERED )
-		order = new zeek::PList<detail::DictEntry>;
-
-	if ( initial_size > 0 )
-		Init(initial_size);
+	int i = 0;
+	while ( num >>= 1 )
+		i++;
+	return i;
 	}
 
-Dictionary::~Dictionary()
+int Dictionary::Buckets(bool expected) const
 	{
-	DeInit();
-	delete order;
+	int buckets = ( 1 << log2_buckets );
+	if ( expected )
+		return buckets;
+	return table ? buckets : 0;
 	}
 
-void Dictionary::Clear()
+int Dictionary::Capacity(bool expected) const
 	{
-	DeInit();
-	tbl = nullptr;
-	tbl2 = nullptr;
-	num_entries = 0;
-	num_entries2 = 0;
+	int capacity = ( 1 << log2_buckets ) + ( log2_buckets+0 );
+	if ( expected )
+		return capacity;
+	return table ? capacity : 0;
 	}
 
-void Dictionary::DeInit()
+int Dictionary::ThresholdEntries() const
 	{
-	if ( ! tbl )
-		return;
-
-	for ( int i = 0; i < num_buckets; ++i )
-		if ( tbl[i] )
-			{
-			zeek::PList<detail::DictEntry>* chain = tbl[i];
-			for ( const auto& e : *chain )
-				{
-				if ( delete_func )
-					delete_func(e->value);
-				delete e;
-				}
-
-			delete chain;
-			}
-
-	delete [] tbl;
-	tbl = nullptr;
-
-	if ( ! tbl2 )
-		return;
-
-	for ( int i = 0; i < num_buckets2; ++i )
-		if ( tbl2[i] )
-			{
-			zeek::PList<detail::DictEntry>* chain = tbl2[i];
-			for ( const auto& e : *chain )
-				{
-				if ( delete_func )
-					delete_func(e->value);
-				delete e;
-				}
-
-			delete chain;
-			}
-
-	delete [] tbl2;
-	tbl2 = nullptr;
+	// Increase the size of the dictionary when it is 75% full. However, when the dictionary
+	// is small ( <= 20 elements ), only resize it when it's 100% full. The dictionary will
+	// always resize when the current insertion causes it to be full. This ensures that the
+	// current insertion should always be successful.
+	int capacity = Capacity();
+	if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
+		return capacity; //20 or less elements, 1.0, only size up when necessary.
+	return capacity - ( capacity >> detail::DICT_LOAD_FACTOR_BITS );
 	}
 
-void* Dictionary::Lookup(const void* key, int key_size, zeek::detail::hash_t hash) const
+zeek::detail::hash_t Dictionary::FibHash(zeek::detail::hash_t h) const
 	{
-	if ( ! tbl && ! tbl2 )
-		return nullptr;
-
-	zeek::detail::hash_t h;
-	zeek::PList<detail::DictEntry>* chain;
-
-	// Figure out which hash table to look in.
-	h = hash % num_buckets;
-	if ( ! tbl2 || h >= tbl_next_ind )
-		chain = tbl[h];
-	else
-		chain = tbl2[hash % num_buckets2];
-
-	if ( chain )
-		{
-		for ( const auto& entry : *chain )
-			{
-			if ( entry->hash == hash && entry->len == key_size &&
-			     ! memcmp(key, entry->key, key_size) )
-				return entry->value;
-			}
-		}
-
-	return nullptr;
+	//GoldenRatio phi = (sqrt(5)+1)/2 = 1.6180339887...
+	//1/phi = phi - 1
+	h &= detail::HASH_MASK;
+	h *= 11400714819323198485llu; //2^64/phi
+	return h;
 	}
 
-void* Dictionary::Insert(void* key, int key_size, zeek::detail::hash_t hash, void* val,
-				bool copy_key)
+// return position in dict with 2^bit size.
+int Dictionary::BucketByHash(zeek::detail::hash_t h, int log2_table_size) const //map h to n-bit
 	{
-	if ( ! tbl )
-		Init(DEFAULT_DICT_SIZE);
+	ASSERT(log2_table_size>=0);
+	if ( ! log2_table_size )
+		return 0; //<< >> breaks on  64.
 
-	detail::DictEntry* new_entry = new detail::DictEntry(key, key_size, hash, val);
-	void* old_val = Insert(new_entry, copy_key);
+#ifdef DICT_NO_FIB_HASH
+	zeek::detail::hash_t hash = h;
+#else
+	zeek::detail::hash_t hash = FibHash(h);
+#endif
 
-	if ( old_val )
-		{
-		// We didn't need the new detail::DictEntry, the key was already
-		// present.
-		delete new_entry;
-		}
-	else if ( order )
-		order->push_back(new_entry);
-
-	// Resize logic.
-	if ( tbl2 )
-		MoveChains();
-	else if ( num_entries >= thresh_entries )
-		StartChangeSize(num_buckets * 2 + 1);
-
-	return old_val;
+	int m = 64 - log2_table_size;
+	hash <<= m;
+	hash >>= m;
+	ASSERT(hash>=0);
+	return hash;
 	}
 
-void* Dictionary::Remove(const void* key, int key_size, zeek::detail::hash_t hash,
-				bool dont_delete)
+//given entry at index i, return it's perfect bucket position.
+int Dictionary::BucketByPosition(int position) const
 	{
-	if ( ! tbl && ! tbl2 )
-		return nullptr;
-
-	zeek::detail::hash_t h;
-	zeek::PList<detail::DictEntry>* chain;
-	int* num_entries_ptr;
-
-	// Figure out which hash table to look in
-	h = hash % num_buckets;
-	if ( ! tbl2 || h >= tbl_next_ind )
-		{
-		chain = tbl[h];
-		num_entries_ptr = &num_entries;
-		}
-	else
-		{
-		chain = tbl2[hash % num_buckets2];
-		num_entries_ptr = &num_entries2;
-		}
-
-	if ( ! chain )
-		return nullptr;
-
-	size_t chain_length = chain->length();
-
-	for ( auto i = 0u; i < chain_length; ++i )
-		{
-		detail::DictEntry* entry = (*chain)[i];
-
-		if ( entry->hash == hash && entry->len == key_size &&
-		     ! memcmp(key, entry->key, key_size) )
-			{
-			void* entry_value = DoRemove(entry, h, chain, i);
-
-			if ( dont_delete )
-				entry->key = nullptr;
-
-			delete entry;
-			--*num_entries_ptr;
-			return entry_value;
-			}
-		}
-
-	return nullptr;
+	ASSERT(table && position>=0 && position < Capacity() && ! table[position].Empty());
+	return position - table[position].distance;
 	}
 
-void* Dictionary::DoRemove(detail::DictEntry* entry, zeek::detail::hash_t h,
-				zeek::PList<detail::DictEntry>* chain, int chain_offset)
+////////////////////////////////////////////////////////////////////////////////////////////////
+//Cluster Math
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Dictionary::EndOfClusterByBucket(int bucket) const
 	{
-	void* entry_value = entry->value;
-
-	chain->remove_nth(chain_offset);
-	if ( order )
-		order->remove(entry);
-
-	// Adjust existing cookies.
-	for ( const auto& c : cookies )
-		{
-		// Is the affected bucket the current one?
-		if ( (unsigned int) c->bucket == h )
-			{
-			if ( c->offset > chain_offset )
-				--c->offset;
-
-			// The only other important case here occurs when we
-			// are deleting the current entry which
-			// simultaniously happens to be the last one in this
-			// bucket. This means that we would have to move on
-			// to the next non-empty bucket. Fortunately,
-			// NextEntry() will do exactly the right thing in
-			// this case. :-)
-			}
-
-		// This item may have been inserted during this iteration.
-		if ( (unsigned int) c->bucket > h )
-			c->inserted.remove(entry);
-		}
-
-	return entry_value;
+	ASSERT(bucket>=0 && bucket < Buckets());
+	int i = bucket;
+	while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) <= bucket )
+		i++;
+	return i;
 	}
 
-void* Dictionary::NthEntry(int n, const void*& key, int& key_len) const
+int Dictionary::HeadOfClusterByPosition( int position) const
 	{
-	if ( ! order || n < 0 || n >= Length() )
-		return nullptr;
+	// Finding the first entry in the bucket chain.
+	ASSERT(0 <= position && position < Capacity() && ! table[position].Empty());
 
-	detail::DictEntry* entry = (*order)[n];
-	key = entry->key;
-	key_len = entry->len;
-	return entry->value;
+	// Look backward for the first item with the same bucket as myself.
+	int bucket = BucketByPosition(position);
+	int i = position;
+	while ( i >= bucket && BucketByPosition(i) == bucket )
+		i--;
+
+	return i == bucket ? i : i + 1;
 	}
 
-IterCookie* Dictionary::InitForIteration() const
+int Dictionary::TailOfClusterByPosition(int position) const
 	{
-	return new IterCookie(0, 0);
+	ASSERT(0 <= position && position < Capacity() && ! table[position].Empty());
+
+	int bucket = BucketByPosition(position);
+	int i = position;
+	while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) == bucket )
+		i++; //stop just over the tail.
+
+	return i - 1;
 	}
 
-void Dictionary::StopIteration(IterCookie* cookie) const
+int Dictionary::EndOfClusterByPosition(int position) const
 	{
-	delete cookie;
+	return TailOfClusterByPosition(position)+1;
 	}
 
-void* Dictionary::NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie, int return_hash) const
+int Dictionary::OffsetInClusterByPosition(int position) const
 	{
-	if ( ! tbl && ! tbl2 )
-		{
-		const_cast<zeek::PList<IterCookie>*>(&cookies)->remove(cookie);
-		delete cookie;
-		cookie = nullptr;
-		return nullptr;
-		}
-
-	// If there are any inserted entries, return them first.
-	// That keeps the list small and helps avoiding searching
-	// a large list when deleting an entry.
-
-	detail::DictEntry* entry;
-
-	if ( cookie->inserted.length() )
-		{
-		// Return the last one. Order doesn't matter,
-		// and removing from the tail is cheaper.
-		entry = cookie->inserted.remove_nth(cookie->inserted.length()-1);
-		if ( return_hash )
-			h = new zeek::detail::HashKey(entry->key, entry->len, entry->hash);
-
-		return entry->value;
-		}
-
-	int b = cookie->bucket;
-	int o = cookie->offset;
-	zeek::PList<detail::DictEntry>** ttbl;
-	const int* num_buckets_p;
-
-	if ( ! cookie->ttbl )
-		{
-		// XXX maybe we could update cookie->b from tbl_next_ind here?
-		cookie->ttbl = tbl;
-		cookie->num_buckets_p = &num_buckets;
-		}
-
-	ttbl = cookie->ttbl;
-	num_buckets_p = cookie->num_buckets_p;
-
-	if ( ttbl[b] && ttbl[b]->length() > o )
-		{
-		entry = (*ttbl[b])[o];
-		++cookie->offset;
-		if ( return_hash )
-			h = new zeek::detail::HashKey(entry->key, entry->len, entry->hash);
-		return entry->value;
-		}
-
-	++b;	// Move on to next non-empty bucket.
-	while ( b < *num_buckets_p && (! ttbl[b] || ttbl[b]->length() == 0) )
-		++b;
-
-	if ( b >= *num_buckets_p )
-		{
-		// If we're resizing, we need to search the 2nd table too.
-		if ( ttbl == tbl && tbl2 )
-			{
-			cookie->ttbl = tbl2;
-			cookie->num_buckets_p = &num_buckets2;
-			cookie->bucket = 0;
-			cookie->offset = 0;
-			return Dictionary::NextEntry(h, cookie, return_hash);
-			}
-
-		// All done.
-
-		// FIXME: I don't like removing the const here. But is there
-		// a better way?
-		const_cast<zeek::PList<IterCookie>*>(&cookies)->remove(cookie);
-		delete cookie;
-		cookie = nullptr;
-		return nullptr;
-		}
-
-	entry = (*ttbl[b])[0];
-	if ( return_hash )
-		h = new zeek::detail::HashKey(entry->key, entry->len, entry->hash);
-
-	cookie->bucket = b;
-	cookie->offset = 1;
-
-	return entry->value;
+	ASSERT(0 <= position && position < Capacity() && ! table[position].Empty());
+	int head = HeadOfClusterByPosition(position);
+	return position - head;
 	}
 
-void Dictionary::Init(int size)
+// Find the next valid entry after the position. Positiion can be -1, which means
+// look for the next valid entry point altogether.
+int Dictionary::Next(int position) const
 	{
-	num_buckets = NextPrime(size);
-	tbl = new zeek::PList<detail::DictEntry>*[num_buckets];
-
-	for ( int i = 0; i < num_buckets; ++i )
-		tbl[i] = nullptr;
-
-	max_num_entries = num_entries = 0;
-	SetDensityThresh(DEFAULT_DENSITY_THRESH);
-	}
-
-void Dictionary::Init2(int size)
-	{
-	num_buckets2 = NextPrime(size);
-	tbl2 = new zeek::PList<detail::DictEntry>*[num_buckets2];
-
-	for ( int i = 0; i < num_buckets2; ++i )
-		tbl2[i] = nullptr;
-
-	max_num_entries2 = num_entries2 = 0;
-	}
-
-// private
-void* Dictionary::Insert(detail::DictEntry* new_entry, bool copy_key)
-	{
-	if ( ! tbl )
-		Init(DEFAULT_DICT_SIZE);
-
-	zeek::PList<detail::DictEntry>** ttbl;
-	int* num_entries_ptr;
-	int* max_num_entries_ptr;
-	zeek::detail::hash_t h = new_entry->hash % num_buckets;
-
-	// We must be careful when we are in the middle of resizing.
-	// If the new entry hashes to a bucket in the old table we
-	// haven't moved yet, we need to put it in the old table. If
-	// we didn't do it this way, we would sometimes have to
-	// search both tables which is probably more expensive.
-
-	if ( ! tbl2 || h >= tbl_next_ind )
-		{
-		ttbl = tbl;
-		num_entries_ptr = &num_entries;
-		max_num_entries_ptr = &max_num_entries;
-		}
-	else
-		{
-		ttbl = tbl2;
-		h = new_entry->hash % num_buckets2;
-		num_entries_ptr = &num_entries2;
-		max_num_entries_ptr = &max_num_entries2;
-		}
-
-	zeek::PList<detail::DictEntry>* chain = ttbl[h];
-
-	int n = new_entry->len;
-
-	if ( chain )
-		{
-		for ( int i = 0; i < chain->length(); ++i )
-			{
-			detail::DictEntry* entry = (*chain)[i];
-
-			if ( entry->hash == new_entry->hash &&
-			     entry->len == n &&
-			     ! memcmp(entry->key, new_entry->key, n) )
-				{
-				void* old_value = entry->value;
-				entry->value = new_entry->value;
-				return old_value;
-				}
-			}
-		}
-	else
-		// Create new chain.
-		chain = ttbl[h] = new zeek::PList<detail::DictEntry>;
-
-	// If we got this far, then we couldn't use an existing copy
-	// of the key, so make a new one if necessary.
-	if ( copy_key )
-		{
-		void* old_key = new_entry->key;
-		new_entry->key = (void*) new char[n];
-		memcpy(new_entry->key, old_key, n);
-		delete (char*) old_key;
-		}
-
-	// We happen to know (:-() that appending is more efficient
-	// on lists than prepending.
-	chain->push_back(new_entry);
-
-	++cumulative_entries;
-	if ( *max_num_entries_ptr < ++*num_entries_ptr )
-		*max_num_entries_ptr = *num_entries_ptr;
-
-	// For ongoing iterations: If we already passed the bucket where this
-	// entry was put, add it to the cookie's list of inserted entries.
-	for ( const auto& c : cookies )
-		{
-		if ( h < (unsigned int) c->bucket )
-			c->inserted.push_back(new_entry);
-		}
-
-	return nullptr;
-	}
-
-int Dictionary::NextPrime(int n) const
-	{
-	if ( (n & 0x1) == 0 )
-		// Even.
-		++n;
-
-	if ( n > PRIME_THRESH )
-		// Too expensive to test for primality, just stick with it.
-		return n;
-
-	while ( ! IsPrime(n) )
-		n += 2;
-
-	return n;
-	}
-
-bool Dictionary::IsPrime(int n) const
-	{
-	for ( int j = 3; j * j <= n; ++j )
-		if ( n % j == 0 )
-			return false;
-
-	return true;
-	}
-
-void Dictionary::StartChangeSize(int new_size)
-	{
-	// Only start resizing if there isn't any iteration in progress.
-	if ( ! cookies.empty() )
-		return;
-
-	if ( tbl2 )
-		zeek::reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
-
-	Init2(new_size);
-
-	tbl_next_ind = 0;
-
-	// Preserve threshold density
-	SetDensityThresh2(DensityThresh());
-	}
-
-void Dictionary::MoveChains()
-	{
-	// Do not change current distribution if there an ongoing iteration.
-	if ( ! cookies.empty() )
-		return;
-
-	// Attempt to move this many entries (must do at least 2)
-	int num = 8;
+	ASSERT(table && -1 <= position && position < Capacity());
 
 	do
 		{
-		zeek::PList<detail::DictEntry>* chain = tbl[tbl_next_ind++];
+		position++;
+		} while ( position < Capacity() && table[position].Empty() );
 
-		if ( ! chain )
+	return position;
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//Debugging
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+#define DUMPIF(f) if(f) Dump(1)
+#ifdef DEBUG
+void Dictionary::AssertValid() const
+	{
+	bool valid = true;
+	int n = num_entries;
+	for ( int i = Capacity()-1; i >= 0; i-- )
+		if ( table && ! table[i].Empty() )
+			n--;
+
+	ASSERT((valid = (n==0)));
+	DUMPIF(! valid);
+
+	//entries must clustered together
+	for ( int i = 1; i < Capacity(); i++ )
+		{
+		if ( table[i].Empty() )
 			continue;
 
-		tbl[tbl_next_ind - 1] = nullptr;
-
-		for ( const auto& elem : *chain )
+		if ( table[i-1].Empty() )
 			{
-			Insert(elem, false);
-			--num_entries;
-			--num;
+			ASSERT((valid=(table[i].distance == 0)));
+			DUMPIF(! valid);
 			}
-
-		delete chain;
+		else
+			{
+			ASSERT((valid=(table[i].bucket >= table[i-1].bucket)));
+			DUMPIF(! valid);
+			if ( table[i].bucket == table[i-1].bucket )
+				{
+				ASSERT((valid=(table[i].distance == table[i-1].distance+1)));
+				DUMPIF(! valid);
+				}
+			else
+				{
+				ASSERT((valid=(table[i].distance <= table[i-1].distance)));
+				DUMPIF(! valid);
+				}
+			}
 		}
-	while ( num > 0 && int(tbl_next_ind) < num_buckets );
-
-	if ( int(tbl_next_ind) >= num_buckets )
-		FinishChangeSize();
 	}
+#endif//DEBUG
 
-void Dictionary::FinishChangeSize()
+size_t Dictionary::MemoryAllocation() const
 	{
-	// Cheap safety check.
-	if ( num_entries != 0 )
-		zeek::reporter->InternalError(
-		    "Dictionary::FinishChangeSize: num_entries is %d\n",
-		    num_entries);
-
-	for ( int i = 0; i < num_buckets; ++i )
-		delete tbl[i];
-	delete [] tbl;
-
-	tbl = tbl2;
-	tbl2 = nullptr;
-
-	num_buckets = num_buckets2;
-	num_entries = num_entries2;
-	max_num_entries = max_num_entries2;
-	den_thresh = den_thresh2;
-	thresh_entries = thresh_entries2;
-
-	num_buckets2 = 0;
-	num_entries2 = 0;
-	max_num_entries2 = 0;
-	den_thresh2 = 0;
-	thresh_entries2 = 0;
-	}
-
-unsigned int Dictionary::MemoryAllocation() const
-	{
-	int size = padded_sizeof(*this);
-
-	if ( ! tbl )
-		return size;
-
-	for ( int i = 0; i < num_buckets; ++i )
-		if ( tbl[i] )
-			{
-			zeek::PList<detail::DictEntry>* chain = tbl[i];
-			for ( const auto& c : *chain )
-				size += padded_sizeof(detail::DictEntry) + pad_size(c->len);
-			size += chain->MemoryAllocation();
-			}
-
-	size += pad_size(num_buckets * sizeof(zeek::PList<detail::DictEntry>*));
+	size_t size = padded_sizeof(*this);
+	if ( table )
+		{
+		size += pad_size(Capacity() * sizeof(detail::DictEntry));
+		for ( int i = Capacity()-1; i>=0; i-- )
+			if ( ! table[i].Empty() && table[i].key_size > 8 )
+				size += pad_size(table[i].key_size);
+		}
 
 	if ( order )
-		size += order->MemoryAllocation();
-
-	if ( tbl2 )
-		{
-		for ( int i = 0; i < num_buckets2; ++i )
-			if ( tbl2[i] )
-				{
-				zeek::PList<detail::DictEntry>* chain = tbl2[i];
-				for ( const auto& c : *chain )
-					size += padded_sizeof(detail::DictEntry) + pad_size(c->len);
-				size += chain->MemoryAllocation();
-				}
-
-		size += pad_size(num_buckets2 * sizeof(zeek::PList<detail::DictEntry>*));
-		}
+		size += padded_sizeof(std::vector<detail::DictEntry>) + pad_size(sizeof(detail::DictEntry) * order->capacity());
 
 	return size;
 	}
 
+void Dictionary::DumpKeys() const
+	{
+	if ( ! table )
+		return;
+
+	char key_file[100];
+	// Detect string or binary from first key.
+	int i=0;
+	while ( table[i].Empty() && i < Capacity() )
+		i++;
+
+	bool binary = false;
+	const char* key = table[i].GetKey();
+	for ( int j = 0; j < table[i].key_size; j++ )
+		if ( ! isprint(key[j]) )
+			{
+			binary = true;
+			break;
+			}
+	int max_distance = 0;
+
+	DistanceStats(max_distance);
+	if ( binary )
+		{
+		sprintf(key_file, "%d.%d.%lu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		std::ofstream f(key_file, std::ios::binary|std::ios::out|std::ios::trunc);
+		for ( int idx = 0; idx < Capacity(); idx++ )
+			if ( ! table[idx].Empty() )
+				{
+				int key_size = table[idx].key_size;
+				f.write((const char*)&key_size, sizeof(int));
+				f.write(table[idx].GetKey(), table[idx].key_size);
+				}
+		}
+	else
+		{
+		sprintf(key_file, "%d.%d.%lu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		std::ofstream f(key_file, std::ios::out|std::ios::trunc);
+		for ( int idx = 0; idx < Capacity(); idx++ )
+			if ( ! table[idx].Empty() )
+				{
+				std::string s((char*)table[idx].GetKey(), table[idx].key_size);
+				f << s << std::endl;
+				}
+		}
+	}
+
+void Dictionary::DistanceStats(int& max_distance, int* distances, int num_distances) const
+	{
+	max_distance = 0;
+	for ( int i = 0; i < num_distances; i++ )
+		distances[i] = 0;
+
+	for ( int i = 0; i < Capacity(); i++ )
+		{
+		if ( table[i].Empty() )
+			continue;
+		if ( table[i].distance > max_distance )
+			max_distance = table[i].distance;
+		if ( num_distances <= 0 || ! distances )
+			continue;
+		if ( table[i].distance >= num_distances-1 )
+			distances[num_distances-1]++;
+		else
+			distances[table[i].distance]++;
+		}
+	}
+
+void Dictionary::Dump(int level) const
+	{
+	int key_size = 0;
+	for ( int i = 0; i < Capacity(); i++ )
+		{
+		if ( table[i].Empty() )
+			continue;
+		key_size += pad_size(table[i].key_size);
+		if ( ! table[i].value )
+			continue;
+		}
+
+#define DICT_NUM_DISTANCES 5
+	int distances[DICT_NUM_DISTANCES];
+	int max_distance = 0;
+	DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
+	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %10zu mem/ent %3lu key/ent %3d lg %2d remaps %1d remap_end %4d ",
+		Capacity(), Length(), MaxLength(), (double)Length()/(table? Capacity() : 1),
+		max_distance, MemoryAllocation(), (MemoryAllocation())/(Length()?Length():1), key_size / (Length()?Length():1),
+		log2_buckets, remaps, remap_end);
+	if ( Length() > 0 )
+		{
+		for (int i = 0; i < DICT_NUM_DISTANCES-1; i++)
+			printf("[%d]%2d%% ", i, 100*distances[i]/Length());
+		printf("[%d+]%2d%% ", DICT_NUM_DISTANCES-1, 100*distances[DICT_NUM_DISTANCES-1]/Length());
+		}
+	else
+		printf("\n");
+
+	printf("\n");
+	if ( level >= 1 )
+		{
+		printf("%-10s %1s %-10s %-4s %-4s %-10s %-18s %-2s\n", "Index", "*","Bucket", "Dist", "Off", "Hash", "FibHash", "KeySize");
+		for ( int i = 0; i < Capacity(); i++ )
+			if ( table[i].Empty() )
+				printf("%'10d \n", i);
+			else
+				printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016" PRIx64 "(%3d) %2d\n",
+					i, (i<=remap_end? "*":  ""), BucketByPosition(i), (int)table[i].distance, OffsetInClusterByPosition(i),
+					uint(table[i].hash), FibHash(table[i].hash), (int)FibHash(table[i].hash)&0xFF, (int)table[i].key_size);
+		}
+	}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//Initialization.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Dictionary::Dictionary(DictOrder ordering, int initial_size)
+	{
+	if ( initial_size > 0 )
+		{
+		// If an initial size is speicified, init the table right away. Otherwise wait until the
+		// first insertion to init.
+		log2_buckets = Log2(initial_size);
+		Init();
+		}
+
+	if ( ordering == ORDERED )
+		order = new std::vector<detail::DictEntry>;
+	}
+
+Dictionary::~Dictionary()
+	{
+	Clear();
+	}
+
+void Dictionary::Clear()
+	{
+	if ( table )
+		{
+		for ( int i = Capacity() - 1; i >= 0; i-- )
+			{
+			if ( table[i].Empty() )
+				continue;
+			if ( delete_func )
+				delete_func(table[i].value);
+			table[i].Clear();
+			}
+		free(table);
+		table = nullptr;
+		}
+
+	if ( order )
+		{
+		delete order;
+		order = nullptr;
+		}
+	if ( cookies )
+		{
+		delete cookies;
+		cookies = nullptr;
+		}
+	log2_buckets = 0;
+	num_iterators = 0;
+	remaps = 0;
+	remap_end = -1;
+	num_entries = 0;
+	max_entries = 0;
+	}
+
+void Dictionary::Init()
+	{
+	ASSERT(! table);
+	table = (detail::DictEntry*)malloc(sizeof(detail::DictEntry) * Capacity(true));
+	for ( int i = Capacity() - 1; i >= 0; i-- )
+		table[i].SetEmpty();
+	}
+
+// private
 void generic_delete_func(void* v)
 	{
 	free(v);
+	}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//Lookup
+
+// Look up now also possibly modifies the entry. Why? if the entry is found but not positioned
+// according to the current dict (so it's before SizeUp), it will be moved to the right
+// position so next lookup is fast.
+void* Dictionary::Lookup(const zeek::detail::HashKey* key) const
+	{
+	return Lookup(key->Key(), key->Size(), key->Hash());
+	}
+
+void* Dictionary::Lookup(const void* key, int key_size, zeek::detail::hash_t h) const
+	{
+	Dictionary* d = const_cast<Dictionary*>(this);
+	int position = d->LookupIndex(key, key_size, h);
+	return position >= 0 ? table[position].value : nullptr;
+	}
+
+//for verification purposes
+int Dictionary::LinearLookupIndex(const void* key, int key_size, zeek::detail::hash_t hash) const
+	{
+	for ( int i = 0; i < Capacity(); i++ )
+		if ( ! table[i].Empty() && table[i].Equal((const char*)key, key_size, hash) )
+			return i;
+	return -1;
+	}
+
+// Lookup position for all possible table_sizes caused by remapping. Remap it immediately
+// if not in the middle of iteration.
+int Dictionary::LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int* insert_position, int* insert_distance)
+	{
+	ASSERT_VALID(this);
+	if ( ! table )
+		return -1;
+
+	int bucket = BucketByHash(hash, log2_buckets);
+#ifdef DEBUG
+	int linear_position = LinearLookupIndex(key, key_size, hash);
+#endif//DEBUG
+	int position = LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position, insert_distance);
+	if ( position >= 0 )
+		{
+		ASSERT(position == linear_position);//same as linearLookup
+		return position;
+		}
+
+	for ( int i = 1; i <= remaps; i++ )
+		{
+		int prev_bucket = BucketByHash(hash,log2_buckets - i);
+		if ( prev_bucket <= remap_end )
+			{
+			// possibly here. insert_position & insert_distance returned on failed lookup is
+			// not valid in previous table_sizes.
+			position = LookupIndex(key, key_size, hash, prev_bucket, remap_end+1);
+			if ( position >= 0 )
+				{
+				ASSERT(position == linear_position);//same as linearLookup
+				//remap immediately if no iteration is on.
+				if ( ! num_iterators )
+					{
+					Remap(position, &position);
+					ASSERT(position == LookupIndex(key, key_size, hash));
+					}
+				return position;
+				}
+			}
+		}
+	//not found
+#ifdef DEBUG
+	if ( linear_position >= 0 )
+		{//different. stop and try to see whats happending.
+		ASSERT(false);
+		//rerun the function in debugger to track down the bug.
+		LookupIndex(key, key_size, hash);
+		}
+#endif//DEBUG
+	return -1;
+	}
+
+// Returns the position of the item if it exists. Otherwise returns -1, but set the insert
+// position/distance if required. The starting point for the search may not be the bucket
+// for the current table size since this method is also used to search for an item in the
+// previous table size.
+int Dictionary::LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int bucket, int end,
+                            int* insert_position/*output*/, int* insert_distance/*output*/)
+	{
+	ASSERT(bucket>=0 && bucket < Buckets());
+	int i = bucket;
+	for ( ; i < end && ! table[i].Empty() && BucketByPosition(i) <= bucket; i++ )
+		if ( BucketByPosition(i) == bucket && table[i].Equal((char*)key, key_size, hash) )
+			return i;
+
+	//no such cluster, or not found in the cluster.
+	if ( insert_position )
+		*insert_position = i;
+
+	if ( insert_distance )
+		*insert_distance = i - bucket;
+
+	return -1;
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Insert
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* Dictionary::Insert(void* key, int key_size, zeek::detail::hash_t hash, void* val, bool copy_key)
+	{
+	ASSERT_VALID(this);
+
+	// Allow insertions only if there's no active non-robust iterations.
+	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators));
+
+	// Initialize the table if it hasn't been done yet. This saves memory storing a bunch
+	// of empty dicts.
+	if ( ! table )
+		Init();
+
+	void* v = nullptr;
+	//if found. i is the position
+	//if not found, i is the insert position, d is the distance of key on position i.
+	int insert_position = -1, insert_distance = -1;
+	int position = LookupIndex(key, key_size, hash, &insert_position, &insert_distance);
+	if ( position >= 0 )
+		{
+		v = table[position].value;
+		table[position].value = val;
+		if ( ! copy_key )
+			delete [] (char*)key;
+
+		if ( order )
+			{//set new v to order too.
+			auto it = std::find(order->begin(), order->end(), table[position]);
+			ASSERT(it != order->end());
+			it->value = val;
+			}
+
+		if ( cookies && ! cookies->empty() )
+			//need to set new v for cookies too.
+			for ( auto c: *cookies )
+				{
+				ASSERT_VALID(c);
+				//ASSERT(false);
+				auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
+				if ( it != c->inserted->end() )
+					it->value = val;
+				}
+		}
+	else
+		{
+		// Allocate memory for key if necesary. Key is updated to reflect internal key if necessary.
+		detail::DictEntry entry(key, key_size, hash, val, insert_distance, copy_key);
+		InsertRelocateAndAdjust(entry, insert_position);
+		if ( order )
+			order->push_back(entry);
+
+		num_entries++;
+		cum_entries++;
+		if ( max_entries < num_entries )
+			max_entries = num_entries;
+		if ( num_entries > ThresholdEntries() )
+			SizeUp();
+		}
+
+	// Remap after insert can adjust asap to shorten period of mixed table.
+	// TODO: however, if remap happens right after size up, then it consumes more cpu for this cycle,
+	// a possible hiccup point.
+	if ( Remapping() )
+		Remap();
+	ASSERT_VALID(this);
+	return v;
+	}
+
+///e.distance is adjusted to be the one at insert_position.
+void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position)
+	{
+#ifdef DEBUG
+	entry.bucket = BucketByHash(entry.hash,log2_buckets);
+#endif//DEBUG
+	int last_affected_position = insert_position;
+	InsertAndRelocate(entry, insert_position, &last_affected_position);
+
+	// If remapping in progress, adjust the remap_end to step back a little to cover the new
+	// range if the changed range straddles over remap_end.
+	if ( Remapping() && insert_position <= remap_end && remap_end < last_affected_position )
+		{//[i,j] range changed. if map_end in between. then possibly old entry pushed down across map_end.
+		remap_end = last_affected_position; //adjust to j on the conservative side.
+		}
+
+	if ( cookies && ! cookies->empty() )
+		for ( auto c: *cookies )
+			AdjustOnInsert(c, entry, insert_position, last_affected_position);
+	}
+
+/// insert entry into position, relocate other entries when necessary.
+void Dictionary::InsertAndRelocate(detail::DictEntry& entry, int insert_position, int* last_affected_position)
+	{///take out the head of cluster and append to the end of the cluster.
+	while ( true )
+		{
+		if ( insert_position >= Capacity() )
+			{
+			ASSERT(insert_position == Capacity());
+			SizeUp(); //copied all the items to new table. as it's just copying without remapping, insert_position is now empty.
+			table[insert_position] = entry;
+			if ( last_affected_position )
+				*last_affected_position = insert_position;
+			return;
+			}
+		if ( table[insert_position].Empty() )
+			{   //the condition to end the loop.
+			table[insert_position] = entry;
+			if ( last_affected_position )
+				*last_affected_position = insert_position;
+			return;
+			}
+
+		//the to-be-swapped-out item appends to the end of its original cluster.
+		auto t = table[insert_position];
+		int next = EndOfClusterByPosition(insert_position);
+		t.distance += next - insert_position;
+
+		//swap
+		table[insert_position] = entry;
+		entry = t;
+		insert_position = next; //append to the end of the current cluster.
+		}
+	}
+
+/// Adjust Cookies on Insert.
+void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position, int last_affected_position)
+	{
+	ASSERT(c);
+	ASSERT_VALID(c);
+	if ( insert_position < c->next )
+		c->inserted->push_back(entry);
+	if ( insert_position < c->next && c->next <= last_affected_position )
+		{
+		int k = TailOfClusterByPosition(c->next);
+		ASSERT(k >= 0 && k < Capacity());
+		c->visited->push_back(table[k]);
+		}
+	}
+
+void Dictionary::SizeUp()
+	{
+	int prev_capacity = Capacity();
+	log2_buckets++;
+	int capacity = Capacity();
+	table = (detail::DictEntry*)realloc(table, capacity * sizeof(detail::DictEntry));
+	for ( int i = prev_capacity; i < capacity; i++ )
+		table[i].SetEmpty();
+
+	// REmap from last to first in reverse order. SizeUp can be triggered by 2 conditions, one of
+	// which is that the last space in the table is occupied and there's nowhere to put new items.
+	// In this case, the table doubles in capacity and the item is put at the prev_capacity
+	// position with the old hash. We need to cover this item (?).
+	remap_end = prev_capacity; //prev_capacity instead of prev_capacity-1.
+
+	//another remap starts.
+	remaps++; //used in Lookup() to cover SizeUp with incomplete remaps.
+	ASSERT(remaps <= log2_buckets);//because we only sizeUp, one direction. we know the previous log2_buckets.
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Remove
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* Dictionary::Remove(const void* key, int key_size, zeek::detail::hash_t hash, bool dont_delete)
+	{//cookie adjustment: maintain inserts here. maintain next in lower level version.
+	ASSERT_VALID(this);
+	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators)); //only robust iterators exist.
+	ASSERT(! dont_delete); //this is a poorly designed flag. if on, the internal has nowhere to return and memory is lost.
+
+	int position = LookupIndex(key, key_size, hash);
+	if ( position < 0 )
+		return nullptr;
+
+	detail::DictEntry entry = RemoveRelocateAndAdjust(position);
+	num_entries--;
+	ASSERT(num_entries >= 0);
+	//e is about to be invalid. remove it from all references.
+	if ( order )
+		order->erase(std::remove(order->begin(), order->end(), entry), order->end());
+
+	void* v = entry.value;
+	entry.Clear();
+	ASSERT_VALID(this);
+	return v;
+	}
+
+detail::DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
+	{
+	int last_affected_position = position;
+	detail::DictEntry entry = RemoveAndRelocate(position, &last_affected_position);
+
+#ifdef DEBUG
+	//validation: index to i-1 should be continuous without empty spaces.
+	for ( int k = position; k < last_affected_position; k++ )
+		ASSERT(! table[k].Empty());
+#endif//DEBUG
+
+	if ( cookies && ! cookies->empty() )
+		for ( auto c: *cookies )
+			AdjustOnRemove(c, entry, position, last_affected_position);
+
+	return entry;
+	}
+
+detail::DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected_position)
+	{
+	//fill the empty position with the tail of the cluster of position+1.
+	ASSERT(position >= 0 && position < Capacity() && ! table[position].Empty());
+
+	detail::DictEntry entry = table[position];
+	while ( true )
+		{
+		if ( position == Capacity() - 1 || table[position+1].Empty() || table[position+1].distance == 0 )
+			{
+			//no next cluster to fill, or next position is empty or next position is already in perfect bucket.
+			table[position].SetEmpty();
+			if ( last_affected_position )
+				*last_affected_position = position;
+			return entry;
+			}
+		int next = TailOfClusterByPosition(position+1);
+		table[position] = table[next];
+		table[position].distance -= next - position; //distance improved for the item.
+		position = next;
+		}
+
+	return entry;
+	}
+
+void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position, int last_affected_position)
+	{
+	ASSERT_VALID(c);
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry), c->inserted->end());
+	if ( position < c->next && c->next <= last_affected_position )
+		{
+		int moved = HeadOfClusterByPosition(c->next-1);
+		if ( moved < position )
+			moved = position;
+		c->inserted->push_back(table[moved]);
+		}
+
+	//if not already the end of the dictionary, adjust next to a valid one.
+	if ( c->next < Capacity() && table[c->next].Empty() )
+		c->next = Next(c->next);
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//Remap
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Dictionary::Remap()
+	{
+	///since remap should be very fast. take more at a time.
+	///delay Remap when cookie is there. hard to handle cookie iteration while size changes.
+	///remap from bottom up.
+	///remap creates two parts of the dict: [0,remap_end] (remap_end, ...]. the former is mixed with old/new entries; the latter contains all new entries.
+	///
+	if ( num_iterators )
+		return;
+
+	int left = detail::DICT_REMAP_ENTRIES;
+	while ( remap_end >= 0 && left > 0 )
+		{
+		if ( ! table[remap_end].Empty() && Remap(remap_end) )
+			left--;
+		else//< successful Remap may increase remap_end in the case of SizeUp due to insert. if so, remap_end need to be worked on again.
+			remap_end--;
+		}
+	if ( remap_end < 0 )
+		remaps = 0; //done remapping.
+	}
+
+bool Dictionary::Remap(int position, int* new_position)
+	{
+	ASSERT_VALID(this);
+	///Remap changes item positions by remove() and insert(). to avoid excessive operation. avoid it when safe iteration is in progress.
+	ASSERT(! cookies || cookies->empty());
+	int current = BucketByPosition(position);//current bucket
+	int expected = BucketByHash(table[position].hash, log2_buckets); //expected bucket in new table.
+	//equal because 1: it's a new item, 2: it's an old item, but new bucket is the same as old. 50% of old items act this way due to fibhash.
+	if ( current == expected )
+		return false;
+	detail::DictEntry entry = RemoveAndRelocate(position); // no iteration cookies to adjust, no need for last_affected_position.
+#ifdef DEBUG
+	entry.bucket = expected;
+#endif//DEBUG
+
+	//find insert position.
+	int insert_position = EndOfClusterByBucket(expected);
+	if ( new_position )
+		*new_position = insert_position;
+	entry.distance = insert_position - expected;
+	InsertAndRelocate(entry, insert_position);// no iteration cookies to adjust, no need for last_affected_position.
+	ASSERT_VALID(this);
+	return true;
+	}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Iteration
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* Dictionary::NthEntry(int n, const void*& key, int& key_size) const
+	{
+	if ( ! order || n < 0 || n >= Length() )
+		return nullptr;
+	detail::DictEntry entry = (*order)[n];
+	key = entry.GetKey();
+	key_size = entry.key_size;
+	return entry.value;
+	}
+
+void Dictionary::MakeRobustCookie(IterCookie* cookie)
+	{ //make sure c->next >= 0.
+	if ( ! cookies )
+		cookies = new std::vector<IterCookie*>;
+	cookie->MakeRobust();
+	ASSERT_VALID(cookie);
+	}
+
+IterCookie* Dictionary::InitForIterationNonConst() //const
+	{
+	num_iterators++;
+	return new IterCookie(const_cast<Dictionary*>(this));
+	}
+
+void Dictionary::StopIterationNonConst(IterCookie* cookie) //const
+	{
+	ASSERT(num_iterators > 0);
+	if ( num_iterators > 0 )
+		num_iterators--;
+	delete cookie;
+	}
+
+void* Dictionary::NextEntryNonConst(zeek::detail::HashKey*& h, IterCookie*& c, bool return_hash) //const
+	{
+	// If there are any inserted entries, return them first.
+	// That keeps the list small and helps avoiding searching
+	// a large list when deleting an entry.
+	ASSERT(c);
+	ASSERT_VALID(c);
+	if ( ! table )
+		{
+		if ( num_iterators > 0 )
+			num_iterators--;
+		delete c;
+		c = nullptr;
+		return nullptr; //end of iteration.
+		}
+
+	if ( c->inserted && ! c->inserted->empty() )
+		{
+		// Return the last one. Order doesn't matter,
+		// and removing from the tail is cheaper.
+		detail::DictEntry e = c->inserted->back();
+		if ( return_hash )
+			h = new zeek::detail::HashKey(e.GetKey(), e.key_size, e.hash);
+		void* v = e.value;
+		c->inserted->pop_back();
+		return v;
+		}
+
+	if ( c->next < 0 )
+		c->next = Next(-1);
+
+	// if resize happens during iteration. before sizeup, c->next points to Capacity(),
+	// but now Capacity() doubles up and c->next doesn't point to the end anymore.
+	// this is fine because c->next may be filled now.
+	// however, c->next can also be empty.
+	// before sizeup, we use c->next >= Capacity() to indicate the end of the iteration.
+	// now this guard is invalid, we may face c->next is valid but empty now.F
+	//fix it here.
+	int capacity = Capacity();
+	if ( c->next < capacity && table[c->next].Empty() )
+		{
+		ASSERT(false); //stop to check the condition here. why it's happening.
+		c->next = Next(c->next);
+		}
+
+	//filter out visited keys.
+	if ( c->visited && ! c->visited->empty() )
+		//filter out visited entries.
+		while ( c->next < capacity )
+			{
+			ASSERT(! table[c->next].Empty());
+			auto it = std::find(c->visited->begin(), c->visited->end(), table[c->next]);
+			if ( it == c->visited->end() )
+				break;
+			c->visited->erase(it);
+			c->next = Next(c->next);
+			}
+
+	if ( c->next >= capacity )
+		{//end.
+		if ( num_iterators > 0 )
+			num_iterators--;
+		delete c;
+		c = nullptr;
+		return nullptr; //end of iteration.
+		}
+
+	ASSERT(! table[c->next].Empty());
+	void* v = table[c->next].value;
+	if ( return_hash )
+		h = new zeek::detail::HashKey(table[c->next].GetKey(), table[c->next].key_size, table[c->next].hash);
+
+	//prepare for next time.
+	c->next = Next(c->next);
+	ASSERT_VALID(c);
+	return v;
+	}
+
+IterCookie* Dictionary::InitForIteration() const
+	{
+	Dictionary* dp = const_cast<Dictionary*>(this);
+	return dp->InitForIterationNonConst();
+	}
+
+void* Dictionary::NextEntry(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const
+	{
+	Dictionary* dp = const_cast<Dictionary*>(this);
+	return dp->NextEntryNonConst(h, cookie, return_hash);
+	}
+
+void Dictionary::StopIteration(IterCookie* cookie) const
+	{
+	Dictionary* dp = const_cast<Dictionary*>(this);
+	dp->StopIterationNonConst(cookie);
 	}
 
 } // namespace zeek

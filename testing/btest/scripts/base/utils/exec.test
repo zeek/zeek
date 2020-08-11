@@ -21,7 +21,28 @@ function test_cmd(label: string, cmd: Exec::Command)
 	{
 	when ( local result = Exec::run(cmd) )
 		{
-		print label, result;
+		local file_content = "";
+
+		if ( result?$files )
+			{
+			local which_test = "out1" in result$files;
+
+			if ( which_test )
+				file_content = fmt("out1 -> %s, out2 -> %s",
+				                   result$files["out1"],
+				                   result$files["out2"]);
+			else
+				file_content = fmt("out3 -> %s, out4 -> %s",
+				                   result$files["out3"],
+				                   result$files["out4"]);
+			}
+
+		print fmt("%s - exit: %s, signal: %s, stdout: %s, stderr: %s, files: %s",
+		          label, result$exit_code, result$signal_exit,
+		          result?$stdout ? result$stdout : "",
+		          result?$stderr ? result$stderr : "",
+		          file_content);
+
 		check_exit_condition();
 		}
 	}

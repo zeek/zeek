@@ -3,7 +3,7 @@
 # It does a second test at the same time which configures the old
 # failing behavior.
 
-# @TEST-EXEC: btest-bg-run zeek zeek %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/init 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv does-exist.dat does-not-exist.dat
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next 10 || (btest-bg-wait -k 1 && false)

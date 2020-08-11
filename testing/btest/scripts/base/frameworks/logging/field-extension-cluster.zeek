@@ -1,8 +1,8 @@
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 #
-# @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek %INPUT"
-# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
+# @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/http.log
 
@@ -15,6 +15,8 @@ redef Cluster::nodes = {
 @TEST-END-FILE
 
 @load base/protocols/conn
+@load base/protocols/http
+@load base/frameworks/cluster
 
 @if ( Cluster::node == "worker-1" )
 redef exit_only_after_terminate = T;

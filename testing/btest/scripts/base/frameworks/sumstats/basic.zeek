@@ -1,6 +1,8 @@
-# @TEST-EXEC: btest-bg-run standalone zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-run standalone zeek -b %INPUT
+# @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff standalone/.stdout
+
+@load base/frameworks/sumstats
 
 redef exit_only_after_terminate=T;
 

@@ -1,8 +1,10 @@
 # Just a very basic test to check if ANALYZER_DATA_EVENT works.
 # Also check if "in" works with binary data.
-# @TEST-EXEC: zeek -r $TRACES/pe/pe.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/pe/pe.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
+
+@load base/protocols/ftp
 
 event stream_data(f: fa_file, data: string)
 	{

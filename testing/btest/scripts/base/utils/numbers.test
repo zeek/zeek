@@ -1,8 +1,7 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default.
-#@load base/utils/numbers
+@load base/utils/numbers
 
 print extract_count("These aren't the numbers you're looking for.");
 print extract_count("13These aren't the numbers you're looking for.");

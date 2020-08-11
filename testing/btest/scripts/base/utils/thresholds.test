@@ -1,8 +1,7 @@
-# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default.
-#@load base/utils/thresholds
+@load base/utils/thresholds
 
 redef default_notice_thresholds = { 2, 4, 6, 8, 10 };
 const my_thresholds: vector of count = { 2, 4, 6, 8, 10 };

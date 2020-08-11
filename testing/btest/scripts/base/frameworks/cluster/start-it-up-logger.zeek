@@ -5,19 +5,21 @@
 # @TEST-PORT: BROKER_PORT5
 # @TEST-PORT: BROKER_PORT6
 #
-# @TEST-EXEC: btest-bg-run logger-1  CLUSTER_NODE=logger-1  ZEEKPATH=$ZEEKPATH:.. zeek %INPUT
-# @TEST-EXEC: btest-bg-run manager-1 CLUSTER_NODE=manager-1 ZEEKPATH=$ZEEKPATH:.. zeek %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   CLUSTER_NODE=proxy-1   ZEEKPATH=$ZEEKPATH:.. zeek %INPUT
-# @TEST-EXEC: btest-bg-run proxy-2   CLUSTER_NODE=proxy-2   ZEEKPATH=$ZEEKPATH:.. zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  CLUSTER_NODE=worker-1  ZEEKPATH=$ZEEKPATH:.. zeek %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  CLUSTER_NODE=worker-2  ZEEKPATH=$ZEEKPATH:.. zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-run logger-1  CLUSTER_NODE=logger-1  ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run manager-1 CLUSTER_NODE=manager-1 ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run proxy-1   CLUSTER_NODE=proxy-1   ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run proxy-2   CLUSTER_NODE=proxy-2   ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  CLUSTER_NODE=worker-1  ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  CLUSTER_NODE=worker-2  ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff logger-1/.stdout
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
+
+@load base/frameworks/cluster
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::manager_is_logger = F;

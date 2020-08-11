@@ -328,13 +328,16 @@ function request_all_current_keys(uid: string, ss_name: string, cleanup: bool)
 	if ( uid in stats_keys && |stats_keys[uid]| > 0 )
 		{
 		#print fmt("    -- %d remaining keys here", |stats_keys[uid]|);
-		for ( key in stats_keys[uid] )
+		local key: Key;
+		for ( k in stats_keys[uid] )
 			{
-			done_with[uid] = 0;
-			event SumStats::cluster_get_result(uid, ss_name, key, cleanup);
-			delete stats_keys[uid][key];
+			key = k;
 			break; # only a single key
 			}
+
+		done_with[uid] = 0;
+		event SumStats::cluster_get_result(uid, ss_name, key, cleanup);
+		delete stats_keys[uid][key];
 		}
 	else
 		{

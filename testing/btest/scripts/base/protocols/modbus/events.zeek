@@ -1,11 +1,15 @@
 #
-# @TEST-EXEC: zeek -r $TRACES/modbus/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
+# @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
 # @TEST-EXEC: btest-diff conn.log
+
+@load base/protocols/modbus
+@load base/protocols/conn
+@load base/frameworks/dpd
 
 redef DPD::ignore_violations_after = 1;
 

@@ -1,3 +1,111 @@
+3.3.0-dev.97 | 2020-08-11 11:34:17 -0700
+
+  * Move Dict constants to detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Add a few missing deprecation fixes (Tim Wojtulewicz, Corelight)
+
+  * Adjust Dict whitespace/style (Jon Siwek, Corelight)
+
+  * Adjust more btest timings (Jon Siwek, Corelight)
+
+  * Improve termination reliability/speed for brokerstore btests (Jon Siwek, Corelight)
+
+  * General btest cleanup
+
+    - Use `-b` most everywhere, it will save time.
+
+    - Start some intel tests upon the input file being fully read instead of
+      at an arbitrary time.
+
+    - Improve termination condition for some sumstats/cluster tests.
+
+    - Filter uninteresting output from some supervisor tests.
+
+    - Test for `notice_policy.log` is no longer needed. (Jon Siwek, Corelight)
+
+  * Update NEWS about change in Dictionary implementation (Jon Siwek, Corelight)
+
+  * Improve Intel expire-item btest to be less time-sensitive (Jon Siwek, Corelight)
+
+  * Improve btests with unstable table/set output ordering
+
+    Particularly, the final output order of a table/set is sensitive to
+    order of input/insertions and some tests were converting
+    std::unordered_{set,map} to Zeek table/set and iteration over those
+    standard containers may not always loop through elements in the same
+    order across all platforms. (Jon Siwek, Corelight)
+
+  * Update doc submodule (Jon Siwek, Corelight)
+
+  * Adjust a few btests that were unstable due to time-sensitivity (Jon Siwek, Corelight)
+
+  * Fix DNS script deleting a table element while iterating
+
+    Doesn't typically cause any problems since the loop breaks after
+    deleting, except there's now an assert in debug builds catching
+    potential problems like this. (Jon Siwek, Corelight)
+
+  * Improve a brokerstore btest to filter out Broker connection messages (Jon Siwek, Corelight)
+
+  * Sort output of a few SumStats cluster tests
+
+    The order of $epoch_result() function calls among all keys within a
+    single epoch isn't consequential. (Jon Siwek, Corelight)
+
+  * Fix extract_first_email_addr() to really return the first email
+
+    The use of find_all() in extract_email_addrs_vec() extracted occurrences
+    to an intermediate set and thus lost any sense of ordering.
+
+    This changes extract_email_addrs_vec() to use find_all_ordered() and
+    return all occurrences of email addresses found in the argument,
+    included duplicates, with their order of occurrence preserved. (Jon Siwek, Corelight)
+
+  * Add find_all_ordered() BIF
+
+    Operates similar to find_all(), except returns a vector instead of
+    set to allow preservation of order/duplicates. (Jon Siwek, Corelight)
+
+  * Extend external test suite canonifier with set-sorting logic
+
+    Two new canonifiers: one to sort the contents of conn.log "service"
+    field and another to sort the contents of any field of type "set". (Jon Siwek, Corelight)
+
+  * Update btests/baselines for OpenDict compat
+
+    Haven't checked different build configurations yet, but all except
+    a few SumStats tests are stable for me now.  The external tests
+    are also completely failing, but haven't looked at those yet. (Jon Siwek, Corelight)
+
+  * Fix new/malloc/delete/free mismatches in Dictionary code (Jon Siwek, Corelight)
+
+  * Add explanation for a Dict TODO item (Jon Siwek, Corelight)
+
+  * Fix compiler warning in Dictionary debug/dump printf format string (Jon Siwek, Corelight)
+
+  * Overwrite old Dict.h/cc with new ones (Tim Wojtulewicz, Corelight)
+
+  * Fix issue with sumstats script and fix baselines that were crashing previously (Tim Wojtulewicz, Corelight)
+
+  * Extend the timeouts on a few intel tests, update baselines (Tim Wojtulewicz, Corelight)
+
+  * Updating test baselines for new dictionary code due to changes in ordering of fields in the dictionary (Tim Wojtulewicz, Corelight)
+
+  * Add namespaces for OpenDict files (Tim Wojtulewicz, Corelight)
+
+  * Add unit tests from Dict into OpenDict files (Tim Wojtulewicz, Corelight)
+
+  * Build fixups
+
+    - Fix some clang-tidy warnings
+    - Add std:: namespaces for ofstream and ios
+    - Remove some unused methods (Tim Wojtulewicz, Corelight)
+
+  * Massive formatting cleanup (jasonlue)
+
+  * Remove key reference after insertion because the key may become invalid afterwards. (jasonlue)
+
+  * add Clustered Hashing based Open Addressing Dict. To replace the existing dict, #define USE_OPEN_DICT (jasonlue)
 
 3.3.0-dev.55 | 2020-08-10 09:57:36 -0700
 

@@ -23,6 +23,8 @@ fi
     | `dirname $0`/diff-remove-uids \
     | `dirname $0`/diff-remove-file-ids \
     | `dirname $0`/diff-remove-x509-names \
+    | `dirname $0`/diff-sort-conn-service \
+    | `dirname $0`/diff-sort-set-elements \
     | `dirname $0`/diff-sort \
     | eval $addl
 

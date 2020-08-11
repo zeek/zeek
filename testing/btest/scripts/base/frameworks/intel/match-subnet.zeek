@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
+# @TEST-EXEC: btest-bg-run zeekproc zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: cat zeekproc/intel.log > output
 # @TEST-EXEC: cat zeekproc/.stdout >> output
@@ -13,6 +13,8 @@
 192.168.142.0/26	Intel::SUBNET	source1	this subnetwork is inside	http://some-data-distributor.com/4
 192.168.128.0/18	Intel::SUBNET	source1	this subnetwork might be baaad	http://some-data-distributor.com/5
 # @TEST-END-FILE
+
+@load base/frameworks/intel
 
 redef exit_only_after_terminate = T;
 
@@ -29,9 +31,13 @@ event do_it()
 	             $where=SOMEWHERE]);
 	}
 
-event zeek_init() &priority=-10
+global read = 0;
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
 	{
-	schedule 1sec { do_it() };
+	++read;
+
+	if ( read == 6 )
+		event do_it();
 	}
 
 global log_lines = 0;

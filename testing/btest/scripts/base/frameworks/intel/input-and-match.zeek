@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
+# @TEST-EXEC: btest-bg-run zeekproc zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff zeekproc/intel.log
 
@@ -9,6 +9,8 @@
 1.2.3.4	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1234
 e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distributor.com/100000
 @TEST-END-FILE
+
+@load base/frameworks/intel
 
 redef exit_only_after_terminate = T;
 redef Intel::read_files += { "../intel.dat" };
@@ -32,7 +34,11 @@ event Intel::log_intel(rec: Intel::Info)
 		terminate();
 	}
 
-event zeek_init() &priority=-10
+global reads = 0;
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
 	{
-	schedule 1sec { do_it() };
+	++reads;
+
+	if ( reads == 3 )
+		event do_it();
 	}

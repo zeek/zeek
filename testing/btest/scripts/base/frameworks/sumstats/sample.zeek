@@ -1,5 +1,7 @@
-# @TEST-EXEC: zeek %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stdout
+
+@load base/frameworks/sumstats
 
 event zeek_init() &priority=5
 	{

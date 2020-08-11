@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/smtp-multi-addr.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/smtp-multi-addr.pcap %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
 @TEST-START-FILE intel.dat
@@ -11,6 +11,7 @@ angle-addr@example.com	Intel::EMAIL	source1	test entry	http://some-data-distribu
 name-addr@example.com	Intel::EMAIL	source1	test entry	http://some-data-distributor.com/100000
 @TEST-END-FILE
 
+@load base/protocols/smtp
 @load base/frameworks/intel
 @load frameworks/intel/seen
 

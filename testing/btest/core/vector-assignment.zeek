@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 
 # This regression test checks a special case in the vector code. In this case
 # UnaryExpr will be called with a Type() of any. Tests succeeds if it does not

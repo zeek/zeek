@@ -13,8 +13,8 @@ begin table_func, {
 [initial] = conditions
 }
 end table_func, {
-[initial] = conditions,
-[the test] = works
+[the test] = works,
+[initial] = conditions
 }
 foo_hook, test
 foo_hook, hello

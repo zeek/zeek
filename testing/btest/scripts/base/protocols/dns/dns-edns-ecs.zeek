@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/dns-edns-ecs.pcap %INPUT > output
+# @TEST-EXEC: zeek -b -C -r $TRACES/dns-edns-ecs.pcap %INPUT > output
 # @TEST-EXEC: btest-diff output
 
 @load policy/protocols/dns/auth-addl

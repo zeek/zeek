@@ -8,6 +8,9 @@
 
 class ProfileFunc : public TraversalCallback {
 public:
+	ProfileFunc(bool _compute_hash = false)
+		{ compute_hash = _compute_hash; }
+
 	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 
@@ -40,6 +43,9 @@ public:
 	// True if makes a call through an expression.
 	bool does_indirect_calls;
 
+	// Hash value.  Only valid if constructor requested it.
+	std::size_t hash_val = 0;
+
 	int num_stmts = 0;
 	int num_when_stmts = 0;
 	int num_lambdas = 0;
@@ -49,4 +55,35 @@ protected:
 	// Whether we're separately processing a "when" condition to
 	// mine out its script calls.
 	bool in_when = false;
+
+	// We only compute a hash over the function if requested, since
+	// it's somewhat expensive.
+	bool compute_hash;
+
+	// The following are for computing a consistent hash that isn't
+	// too profligate in how much it needs to compute over.
+
+	// Checks whether we've already noted this type, and, if not,
+	// updates the hash with it.
+	void CheckType(const BroType* t);
+
+	void UpdateHash(int val)
+		{
+		auto h = std::hash<int>{}(val);
+		MergeInHash(h);
+		}
+
+	void UpdateHash(const BroObj* o);
+
+	void MergeInHash(std::size_t h)
+		{
+		// Taken from Boost.
+		hash_val = h + 0x9e3779b9 + (hash_val << 6) + (hash_val >> 2);
+		}
+
+	// Types we've already processed, so we don't add clutter "types"
+	// with redundant entries.  We use two forms, one by name
+	// (if available) and one by raw pointer (if not).
+	std::unordered_set<std::string> seen_types;
+	std::unordered_set<const BroType*> seen_type_ptrs;
 };

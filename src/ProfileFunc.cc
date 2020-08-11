@@ -10,7 +10,12 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 	{
 	++num_stmts;
 
-	if ( s->Tag() == STMT_INIT )
+	auto tag = s->Tag();
+
+	if ( compute_hash )
+		UpdateHash(int(tag));
+
+	if ( tag == STMT_INIT )
 		{
 		// Don't recurse into these, as we don't want to
 		// consider a local that only appears in one of these
@@ -21,7 +26,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		return TC_ABORTSTMT;
 		}
 
-	switch ( s->Tag() ) {
+	switch ( tag ) {
 	case STMT_WHEN:
 		++num_when_stmts;
 
@@ -72,7 +77,8 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 		}
 		break;
 
-	default: break;
+	default:
+		break;
 	}
 
 	return TC_CONTINUE;
@@ -82,7 +88,20 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	{
 	++num_exprs;
 
-	switch ( e->Tag() ) {
+	auto tag = e->Tag();
+
+	if ( compute_hash )
+		UpdateHash(int(tag));
+
+	switch ( tag ) {
+	case EXPR_CONST:
+		if ( compute_hash )
+			{
+			CheckType(e->Type().release());
+			UpdateHash(e->AsConstExpr()->Value());
+			}
+		break;
+
 	case EXPR_NAME:
 		{
 		auto n = e->AsNameExpr();
@@ -91,6 +110,10 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			globals.insert(id);
 		else
 			locals.insert(id);
+
+		if ( compute_hash )
+			CheckType(e->Type().release());
+
 		break;
 		}
 
@@ -157,4 +180,28 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	}
 
 	return TC_CONTINUE;
+	}
+
+void ProfileFunc::CheckType(const BroType* t)
+	{
+	auto& tn = t->GetName();
+	if ( tn.size() > 0 && seen_types.count(tn) > 0 )
+		return;
+
+	if ( seen_type_ptrs.count(t) > 0 )
+		return;
+
+	seen_types.insert(tn);
+	seen_type_ptrs.insert(t);
+
+	UpdateHash(t);
+	}
+
+void ProfileFunc::UpdateHash(const BroObj* o)
+	{
+	ODesc d;
+	o->Describe(&d);
+	std::string desc(d.Description());
+	auto h = std::hash<std::string>{}(desc);
+	MergeInHash(h);
 	}

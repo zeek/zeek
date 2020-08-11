@@ -1343,7 +1343,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVV,
 					n0, n1, op2, 0);
 			branch_v = 4;
-			z.t = n0->Type().release();
+			z.t2 = n0->Type().release();
 			}
 
 		else if ( name0 )
@@ -1351,7 +1351,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVC,
 					n0, op2, c1, 0);
 			branch_v = 3;
-			z.t = n0->Type().release();
+			z.t2 = n0->Type().release();
 			}
 
 		else if ( name1 )
@@ -1359,7 +1359,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVCV,
 					n1, op2, c0, 0);
 			branch_v = 3;
-			z.t = n1->Type().release();
+			z.t2 = n1->Type().release();
 			}
 
 		else
@@ -1373,7 +1373,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 					slot, FrameSlot(op2), 0, c1);
 			z.op_type = OP_VVVC_I3;
 			branch_v = 3;
-			z.t = c0->Type().release();
+			z.t2 = c0->Type().release();
 			}
 
 		return AddInst(z);
@@ -2634,27 +2634,27 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVV,
 					n1, l_e0_n, l_e1_n, n2);
-			z.t = l_e0_n->Type().release();
+			z.t2 = l_e0_n->Type().release();
 			}
 
 		else if ( l_e0_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVC,
 					n1, l_e0_n, n2, l_e1_c);
-			z.t = l_e0_n->Type().release();
+			z.t2 = l_e0_n->Type().release();
 			}
 
 		else if ( l_e1_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVCV,
 					n1, l_e1_n, n2, l_e0_c);
-			z.t = l_e1_n->Type().release();
+			z.t2 = l_e1_n->Type().release();
 			}
 
 		else
 			{
 			// Ugh, both are constants.  Assign first to
-			// a temporary.
+			// a temporary. 
 			auto slot = NewSlot(l_e0_c->Type());
 			auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, l_e0_c);
 			z.CheckIfManaged(l_e0_c);
@@ -2663,7 +2663,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_VVVC, FrameSlot(n1),
 					slot, FrameSlot(n2), l_e1_c);
 			z.op_type = OP_VVVC;
-			z.t = l_e0_c->Type().release();
+			z.t2 = l_e0_c->Type().release();
 			}
 
 		return AddInst(z);

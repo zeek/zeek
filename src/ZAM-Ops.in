@@ -367,21 +367,16 @@ type VVV
 eval auto op1 = frame[z.v1].ToVal(z.t)
 eval if ( frame[z.v2].table_val->Lookup(op1.get()) ) { pc = z.v3; continue; }
 
-# Same, but for a constant index.
-internal-op Val-Is-In-Table
-type VVC
-eval auto op1 = z.c.ToVal(z.t)
-eval frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1.get()) != nullptr
-
 # Variants for indexing two values, one of which might be a constant.
-# We set the instructions's type to be that of the first variable index.
-# We get the second variable's type, or that of a constant in either
-# position, by digging it out of the table's type.
+# We set the instructions's *second* type to be that of the first variable
+# index.  We get the type of the second variable (if any) by digging it
+# out of the table's type.  For a constant in either position, we use
+# the main instruction type, as always.
 
 internal-op Val2-Is-In-Table
 type VVVV
 eval auto& tt_ind = *frame[z.v4].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = frame[z.v2].ToVal(z.t)
+eval auto op1 = frame[z.v2].ToVal(z.t2)
 eval auto op2 = frame[z.v3].ToVal(tt_ind[1])
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
@@ -392,7 +387,7 @@ internal-op Val2-Is-In-Table-Cond
 op1-read
 type VVVV
 eval auto& tt_ind = *frame[z.v3].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = frame[z.v1].ToVal(z.t)
+eval auto op1 = frame[z.v1].ToVal(z.t2)
 eval auto op2 = frame[z.v2].ToVal(tt_ind[1])
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
@@ -403,7 +398,7 @@ internal-op Val2-Is-Not-In-Table-Cond
 op1-read
 type VVVV
 eval auto& tt_ind = *frame[z.v3].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = frame[z.v1].ToVal(z.t)
+eval auto op1 = frame[z.v1].ToVal(z.t2)
 eval auto op2 = frame[z.v2].ToVal(tt_ind[1])
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
@@ -412,9 +407,8 @@ eval if ( frame[z.v3].table_val->Lookup(&lv) ) { pc = z.v4; continue; }
 
 internal-op Val2-Is-In-Table
 type VVVC
-eval auto& tt_ind = *frame[z.v3].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = frame[z.v2].ToVal(z.t)
-eval auto op2 = z.c.ToVal(tt_ind[1])
+eval auto op1 = frame[z.v2].ToVal(z.t2)
+eval auto op2 = z.c.ToVal(z.t)
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
 eval lv.Append(op2.release())
@@ -423,9 +417,8 @@ eval frame[z.v1].int_val = frame[z.v3].table_val->Lookup(&lv) != nullptr
 internal-op Val2-Is-In-Table-Cond
 op1-read
 type VVVC
-eval auto& tt_ind = *frame[z.v2].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = frame[z.v1].ToVal(z.t)
-eval auto op2 = z.c.ToVal(tt_ind[1])
+eval auto op1 = frame[z.v1].ToVal(z.t2)
+eval auto op2 = z.c.ToVal(z.t)
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
 eval lv.Append(op2.release())
@@ -434,9 +427,8 @@ eval if ( ! frame[z.v2].table_val->Lookup(&lv) ) { pc = z.v3; continue; }
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
 type VVVC
-eval auto& tt_ind = *frame[z.v2].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = frame[z.v1].ToVal(z.t)
-eval auto op2 = z.c.ToVal(tt_ind[1])
+eval auto op1 = frame[z.v1].ToVal(z.t2)
+eval auto op2 = z.c.ToVal(z.t)
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
 eval lv.Append(op2.release())
@@ -444,9 +436,8 @@ eval if ( frame[z.v2].table_val->Lookup(&lv) ) { pc = z.v3; continue; }
 
 internal-op Val2-Is-In-Table
 type VVCV
-eval auto& tt_ind = *frame[z.v3].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = z.c.ToVal(tt_ind[0])
-eval auto op2 = frame[z.v2].ToVal(z.t)
+eval auto op1 = z.c.ToVal(z.t)
+eval auto op2 = frame[z.v2].ToVal(z.t2)
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
 eval lv.Append(op2.release())
@@ -455,9 +446,8 @@ eval frame[z.v1].int_val = frame[z.v3].table_val->Lookup(&lv) != nullptr
 internal-op Val2-Is-In-Table-Cond
 op1-read
 type VVCV
-eval auto& tt_ind = *frame[z.v2].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = z.c.ToVal(tt_ind[0])
-eval auto op2 = frame[z.v1].ToVal(z.t)
+eval auto op1 = z.c.ToVal(z.t)
+eval auto op2 = frame[z.v1].ToVal(z.t2)
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
 eval lv.Append(op2.release())
@@ -466,9 +456,8 @@ eval if ( ! frame[z.v2].table_val->Lookup(&lv) ) { pc = z.v3; continue; }
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
 type VVCV
-eval auto& tt_ind = *frame[z.v2].table_val->Type()->AsTableType()->IndexTypes()
-eval auto op1 = z.c.ToVal(tt_ind[0])
-eval auto op2 = frame[z.v1].ToVal(z.t)
+eval auto op1 = z.c.ToVal(z.t)
+eval auto op2 = frame[z.v1].ToVal(z.t2)
 eval ListVal lv(TYPE_ANY)
 eval lv.Append(op1.release())
 eval lv.Append(op2.release())

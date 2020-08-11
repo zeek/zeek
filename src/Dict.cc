@@ -253,16 +253,16 @@ int Dictionary::ThresholdEntries() const
 	// always resize when the current insertion causes it to be full. This ensures that the
 	// current insertion should always be successful.
 	int capacity = Capacity();
-	if ( log2_buckets <= DICT_THRESHOLD_BITS )
+	if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
 		return capacity; //20 or less elements, 1.0, only size up when necessary.
-	return capacity - ( capacity>>DICT_LOAD_FACTOR_BITS );
+	return capacity - ( capacity >> detail::DICT_LOAD_FACTOR_BITS );
 	}
 
 zeek::detail::hash_t Dictionary::FibHash(zeek::detail::hash_t h) const
 	{
 	//GoldenRatio phi = (sqrt(5)+1)/2 = 1.6180339887...
 	//1/phi = phi - 1
-	h &= HASH_MASK;
+	h &= detail::HASH_MASK;
 	h *= 11400714819323198485llu; //2^64/phi
 	return h;
 	}
@@ -967,7 +967,7 @@ void Dictionary::Remap()
 	if ( num_iterators )
 		return;
 
-	int left = DICT_REMAP_ENTRIES;
+	int left = detail::DICT_REMAP_ENTRIES;
 	while ( remap_end >= 0 && left > 0 )
 		{
 		if ( ! table[remap_end].Empty() && Remap(remap_end) )

@@ -15,6 +15,13 @@ typedef void (*dict_delete_func)(void*);
 
 namespace zeek {
 
+enum DictOrder { ORDERED, UNORDERED };
+
+// A dict_delete_func that just calls delete.
+extern void generic_delete_func(void*);
+
+namespace detail {
+
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.
 constexpr uint32_t HASH_MASK = 0xFFFFFFFF; //only lower 32 bits.
@@ -24,37 +31,22 @@ constexpr uint32_t HASH_MASK = 0xFFFFFFFF; //only lower 32 bits.
 
 // When incrementally resizing and remapping, it remaps DICT_REMAP_ENTRIES each step. Use
 // 2 for debug. 16 is best for a release build.
-#ifndef DICT_REMAP_ENTRIES
 constexpr uint8_t DICT_REMAP_ENTRIES = 16;
-#endif
 
 // Load factor = 1 - 0.5 ^ LOAD_FACTOR_BITS. 0.75 is the optimal value for release builds.
-#ifndef DICT_LOAD_FACTOR_BITS
 constexpr uint8_t DICT_LOAD_FACTOR_BITS = 2;
-#endif
 
 // Default number of hash buckets in dictionary.  The dictionary will
 // increase the size of the hash table as needed.
-#ifndef DEFAULT_DICT_SIZE
 constexpr uint8_t DEFAULT_DICT_SIZE = 0;
-#endif
 
 // When log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes effective.
 // Basically if dict size < 2^DICT_THRESHOLD_BITS + n, we size up only if necessary.
-#ifndef DICT_THRESHOLD_BITS
 constexpr uint8_t DICT_THRESHOLD_BITS = 3;
-#endif
 
 // The value of an iteration cookie is the bucket and offset within the
 // bucket at which to start looking for the next value to return.
 constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
-
-enum DictOrder { ORDERED, UNORDERED };
-
-// A dict_delete_func that just calls delete.
-extern void generic_delete_func(void*);
-
-namespace detail {
 
 /**
  * An entry stored in the dictionary.
@@ -160,7 +152,7 @@ public:
  */
 class Dictionary {
 public:
-	explicit Dictionary(DictOrder ordering = UNORDERED, int initial_size = DEFAULT_DICT_SIZE);
+	explicit Dictionary(DictOrder ordering = UNORDERED, int initial_size = detail::DEFAULT_DICT_SIZE);
 	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its

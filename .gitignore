@@ -1,6 +1,7 @@
 build
 tmp
 *.gcov
+*.ZAM
 
 # Configuration and build directories for CLion
 .idea

@@ -72,6 +72,7 @@ function minimize_info(info: Info): Info
 	rval$user = info$user;
 	rval$passive = info$passive;
 	rval$pending_commands = PendingCmds();
+	return rval;
 	}
 
 ## A set of commands where the argument can be expected to refer

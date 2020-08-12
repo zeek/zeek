@@ -44,6 +44,10 @@ export {
 		## ASCII version of the alarm log is emailed in bulk to the
 		## address(es) configured in :zeek:id:`Notice::mail_dest`.
 		ACTION_ALARM,
+		## Indicates that the notice should result in a drop action.
+		## The exact action taken depends on loaded policy scripts;
+		## see e.g. :zeek:see:`NetControl::acld_rule_policy`.
+		ACTION_DROP,
 	};
 
 	## Type that represents a set of actions.

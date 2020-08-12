@@ -83,7 +83,8 @@ const acld_add_to_remove: table[string] of string = {
 	["dropudpdsthostport"] ="restoreudpdsthostport",
 	["permittcpdsthostport"] ="unpermittcpdsthostport",
 	["permitudpdsthostport"] ="unpermitudpdsthostport",
-	["nullzero"] ="nonullzero"
+	["nullzero"] ="nonullzero", 
+	["filter"]="nofilter", 
 };
 
 event NetControl::acld_rule_added(id: count, r: Rule, msg: string)

@@ -429,7 +429,7 @@ public:
 	// If non-nil, then iteration information for a loop.
 	IterInfo* iter_info = nullptr;
 
-	// Used for manipulating globals.
+	// Used for manipulating globals and accessing function names.
 	ID* id_val = nullptr;
 
 	// This is only used to return values stored elsewhere in this

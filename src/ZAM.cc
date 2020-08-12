@@ -847,8 +847,6 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	if ( indirect )
 		call_case = -1;	// force default of CallN
 
-	bool aux_call = true;	// whether instruction uses .aux field
-
 	auto nt = n ? n->Type()->Tag() : TYPE_VOID;
 	auto n_slot = n ? Frame1Slot(n, OP1_WRITE) : -1;
 
@@ -856,7 +854,6 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 
 	if ( call_case == 0 )
 		{
-		aux_call = false;
 		if ( n )
 			z = ZInstI(AssignmentFlavor(OP_CALL0_V, nt), n_slot);
 		else
@@ -865,7 +862,6 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 
 	else if ( call_case == 1 )
 		{
-		aux_call = false;
 		auto arg0 = args[0];
 		auto n0 = arg0->Tag() == EXPR_NAME ?
 						arg0->AsNameExpr() : nullptr;
@@ -957,7 +953,13 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 		}
 
 	if ( ! indirect )
+		{
+		if ( ! z.aux )
+			z.aux = new ZInstAux(0);
+
+		z.aux->id_val = func_id;	// remember for save file
 		z.func = func_id->ID_Val()->AsFunc();
+		}
 
 	if ( n )
 		{

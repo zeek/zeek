@@ -968,7 +968,7 @@ void ZBody::SaveTo(FILE* f) const
 		fprintf(f, " %d,", i->is_managed);
 
 		if ( i->func )
-			fprintf(f, " %s", i->func->Name());
+			fprintf(f, " %s", i->aux->id_val->Name());
 		else
 			fprintf(f, SP_NA);
 

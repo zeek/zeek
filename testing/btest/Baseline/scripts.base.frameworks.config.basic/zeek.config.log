@@ -3,23 +3,26 @@
 #empty_field	(empty)
 #unset_field	-
 #path	config
-#open	2020-07-06-18-21-36
+#open	2020-08-12-20-01-23
 #fields	ts	id	old_value	new_value	location
 #types	time	string	string	string	string
-1594059696.059713	testbool	T	F	../configfile
-1594059696.059713	testcount	0	1	../configfile
-1594059696.059713	testcount	1	2	../configfile
-1594059696.059713	testint	0	-1	../configfile
-1594059696.059713	testenum	SSH::LOG	Conn::LOG	../configfile
-1594059696.059713	testport	42/tcp	45/unknown	../configfile
-1594059696.059713	testporttcp	40/udp	42/tcp	../configfile
-1594059696.059713	testportudp	40/tcp	42/udp	../configfile
-1594059696.059713	testaddr	127.0.0.1	127.0.0.1	../configfile
-1594059696.059713	testaddr	127.0.0.1	2607:f8b0:4005:801::200e	../configfile
-1594059696.059713	testinterval	1.0 sec	1.0 min	../configfile
-1594059696.059713	testtime	0.0	1507321987.0	../configfile
-1594059696.059713	test_set	(empty)	a,d,b,c,erdbeerschnitzel	../configfile
-1594059696.059713	test_vector	(empty)	1,2,3,4,5,6	../configfile
-1594059696.059713	test_set	a,d,b,c,erdbeerschnitzel	(empty)	../configfile
-1594059696.059713	test_set	(empty)	\x2d	../configfile
-#close	2020-07-06-18-21-36
+1597262483.997269	testbool	T	F	../configfile
+1597262483.997269	testcount	0	1	../configfile
+1597262483.997269	testcount	1	2	../configfile
+1597262483.997513	testint	0	-1	../configfile
+1597262483.997513	testenum	SSH::LOG	Conn::LOG	../configfile
+1597262483.997513	testport	42/tcp	45/unknown	../configfile
+1597262483.997513	testporttcp	40/udp	42/tcp	../configfile
+1597262483.997513	testportudp	40/tcp	42/udp	../configfile
+1597262483.997513	testaddr	127.0.0.1	127.0.0.1	../configfile
+1597262483.997513	testaddr	127.0.0.1	2607:f8b0:4005:801::1	../configfile
+1597262483.997513	testaddr	2607:f8b0:4005:801::1	2607:f8b0:4005:801::2	../configfile
+1597262483.997513	testsub	0.0.0.0/0	2607:f8b0:4001::/48	../configfile
+1597262483.997513	testsub	2607:f8b0:4001::/48	2607:f8b0:4002::/48	../configfile
+1597262483.997513	testinterval	1.0 sec	1.0 min	../configfile
+1597262483.997513	testtime	0.0	1507321987.0	../configfile
+1597262483.997513	test_set	(empty)	a,d,b,c,erdbeerschnitzel	../configfile
+1597262483.997513	test_vector	(empty)	1,2,3,4,5,6	../configfile
+1597262483.997513	test_set	a,d,b,c,erdbeerschnitzel	(empty)	../configfile
+1597262483.997513	test_set	(empty)	\x2d	../configfile
+#close	2020-08-12-20-01-24

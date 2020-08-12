@@ -80,9 +80,12 @@ threading::Value::addr_t Formatter::ParseAddr(const std::string &s) const
 	else
 		{
 		val.family = IPv6;
-		if ( inet_pton(AF_INET6, s.c_str(), val.in.in6.s6_addr) <=0 )
+		std::string clean_s = s;
+		if ( s.front() == '[' && s.back() == ']' )
+			clean_s = s.substr(1, s.length() - 2);
+		if ( inet_pton(AF_INET6, clean_s.c_str(), val.in.in6.s6_addr) <= 0 )
 			{
-			thread->Warning(thread->Fmt("Bad address: %s", s.c_str()));
+			thread->Warning(thread->Fmt("Bad address: %s", clean_s.c_str()));
 			memset(val.in.in6.s6_addr, 0, sizeof(val.in.in6.s6_addr));
 			}
 		}

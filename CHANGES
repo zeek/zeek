@@ -1,3 +1,20 @@
+
+3.3.0-dev.107 | 2020-08-12 20:01:37 +0000
+
+  * Accept bracketed ipv6 addresses (Justin Azoff, Corelight)
+
+  * Fix minimize_info in ftp/main not returning a value.
+    Fixes GH-1120 (Johanna Amann, Corelight)
+
+  * Fix config reader regular expression for MUSL (Seth Hall, Corelight)
+
+  * Moved verb ACTION_DROP to base/frameworks/notice/main.zeek.
+    ACTION_DROP is not only part of catch-n-release subsystem and can be useful in other cases (Aashish Sharma)
+
+  * Added new acld verbs of filter and nofilter (Aashish Sharma)
+
+  * Fix some printf warnings with size_t values (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.97 | 2020-08-11 11:34:17 -0700
 
   * Move Dict constants to detail namespace (Tim Wojtulewicz, Corelight)

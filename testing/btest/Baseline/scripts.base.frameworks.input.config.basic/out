@@ -26,3 +26,4 @@ test_set, {
 test_set, {
 -
 }
+teststring, abc

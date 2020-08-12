@@ -24,6 +24,7 @@ test_vector 1	2	3	4	5	6
 test_set (empty)
 test_set EMPTY
 test_set -
+teststring      abc   
 @TEST-END-FILE
 
 @load base/protocols/ssh

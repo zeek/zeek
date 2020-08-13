@@ -44,6 +44,8 @@ public:
 
 	void SaveTo(FILE* f) const;
 
+	void Dump() const;
+
 	void ProfileExecution() const;
 
 protected:
@@ -71,7 +73,6 @@ protected:
 
 	IntrusivePtr<Stmt> Duplicate() override	{ return {NewRef{}, this}; }
 
-	void Dump();
 	void StmtDescribe(ODesc* d) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

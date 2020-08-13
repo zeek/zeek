@@ -1081,7 +1081,7 @@ template<class T> void ZBody::SaveCaseMaps(FILE* f, const CaseMaps<T>& cms,
 	fprintf(f, "}\n");
 	}
 
-void ZBody::Dump()
+void ZBody::Dump() const
 	{
 	printf("Frame:\n");
 

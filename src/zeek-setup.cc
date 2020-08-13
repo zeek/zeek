@@ -158,6 +158,8 @@ int& bro_argc = zeek::detail::zeek_argc;
 char** zeek::detail::zeek_argv;
 char**& bro_argv = zeek::detail::zeek_argv;
 
+namespace zeek {
+
 const char* zeek_version()
 	{
 #ifdef DEBUG
@@ -176,6 +178,8 @@ const char* zeek_version()
 #endif
 	}
 
+namespace detail {
+
 static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 	{
 	std::vector<const char*> rval;
@@ -187,7 +191,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 	return rval;
 	}
 
-bool show_plugins(int level)
+static bool show_plugins(int level)
 	{
 	zeek::plugin::Manager::plugin_list plugins = zeek::plugin_mgr->ActivePlugins();
 
@@ -237,7 +241,7 @@ bool show_plugins(int level)
 	return count != 0;
 	}
 
-void done_with_network()
+static void done_with_network()
 	{
 	zeek::util::detail::set_processing_status("TERMINATING", "done_with_network");
 
@@ -284,7 +288,7 @@ void done_with_network()
 	ZEEK_LSAN_DISABLE();
 	}
 
-void terminate_bro()
+static void terminate_bro()
 	{
 	zeek::util::detail::set_processing_status("TERMINATING", "terminate_bro");
 
@@ -344,30 +348,6 @@ void terminate_bro()
 	zeek::reporter = nullptr;
 	}
 
-namespace zeek::net::detail {
-
-void zeek_terminate_loop(const char* reason)
-	{
-	zeek::util::detail::set_processing_status("TERMINATING", reason);
-	zeek::reporter->Info("%s", reason);
-
-	net_get_final_stats();
-	done_with_network();
-	net_delete();
-
-	terminate_bro();
-
-	// Close files after net_delete(), because net_delete()
-	// might write to connection content files.
-	zeek::File::CloseOpenFiles();
-
-	delete zeek::detail::rule_matcher;
-
-	exit(0);
-	}
-
-} // namespace zeek::net::detail
-
 RETSIGTYPE sig_handler(int signo)
 	{
 	zeek::util::detail::set_processing_status("TERMINATING", "sig_handler");
@@ -407,8 +387,8 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
-zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
-                                              zeek::Options* zopts)
+zeek::detail::SetupResult setup(int argc, char** argv,
+                                zeek::Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();
 	std::set_new_handler(bro_new_handler);
@@ -898,7 +878,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	return {0, std::move(options)};
 	}
 
-int zeek::detail::cleanup(bool did_net_run)
+int cleanup(bool did_net_run)
 	{
 	if ( did_net_run )
 		done_with_network();
@@ -920,3 +900,30 @@ int zeek::detail::cleanup(bool did_net_run)
 
 	return 0;
 	}
+
+} // namespace detail
+
+namespace net::detail {
+
+void zeek_terminate_loop(const char* reason)
+	{
+	zeek::util::detail::set_processing_status("TERMINATING", reason);
+	zeek::reporter->Info("%s", reason);
+
+	net_get_final_stats();
+	zeek::detail::done_with_network();
+	net_delete();
+
+	zeek::detail::terminate_bro();
+
+	// Close files after net_delete(), because net_delete()
+	// might write to connection content files.
+	zeek::File::CloseOpenFiles();
+
+	delete zeek::detail::rule_matcher;
+
+	exit(0);
+	}
+
+} // namespace net::detail
+} // namespace zeek

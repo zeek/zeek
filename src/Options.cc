@@ -15,14 +15,16 @@
 #include "bsd-getopt-long.h"
 #include "logging/writers/ascii/Ascii.h"
 
-void zeek::Options::filter_supervisor_options()
+namespace zeek {
+
+void Options::filter_supervisor_options()
 	{
 	pcap_filter = {};
 	signature_files = {};
 	pcap_output_file = {};
 	}
 
-void zeek::Options::filter_supervised_node_options()
+void Options::filter_supervised_node_options()
 	{
 	auto og = *this;
 	*this = {};
@@ -64,14 +66,14 @@ void zeek::Options::filter_supervised_node_options()
 	script_options_to_set = og.script_options_to_set;
 	}
 
-bool zeek::fake_dns()
+bool fake_dns()
 	{
 	return zeek::util::zeekenv("ZEEK_DNS_FAKE");
 	}
 
 extern const char* zeek_version();
 
-void zeek::usage(const char* prog, int code)
+void usage(const char* prog, int code)
 	{
 	fprintf(stderr, "zeek version %s\n", zeek_version());
 
@@ -138,9 +140,9 @@ void zeek::usage(const char* prog, int code)
 	exit(code);
 	}
 
-zeek::Options zeek::parse_cmdline(int argc, char** argv)
+Options parse_cmdline(int argc, char** argv)
 	{
-	zeek::Options rval;
+	Options rval;
 
 	// When running unit tests, the first argument on the command line must be
 	// --test, followed by doctest options. Optionally, users can use "--" as
@@ -479,3 +481,5 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 
 	return rval;
 	}
+
+} // namespace zeek

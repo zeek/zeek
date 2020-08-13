@@ -1806,7 +1806,9 @@ function getpid%(%) : count
 	%}
 
 %%{
+namespace zeek {
 extern const char* zeek_version();
+} // namespace zeek
 %%}
 
 ## Returns the Zeek version string.
@@ -1814,7 +1816,7 @@ extern const char* zeek_version();
 ## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
 function zeek_version%(%): string
 	%{
-	return zeek::make_intrusive<zeek::StringVal>(zeek_version());
+	return zeek::make_intrusive<zeek::StringVal>(zeek::zeek_version());
 	%}
 
 ## Converts a record type name to a vector of strings, where each element is

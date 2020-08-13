@@ -677,13 +677,6 @@ bool ZAM::BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args)
 
 bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	{
-	if ( ! log_ID_enum_type )
-		{
-		auto log_ID_type = lookup_ID("ID", "Log");
-		ASSERT(log_ID_type);
-		log_ID_enum_type = log_ID_type->Type()->AsEnumType();
-		}
-
 	auto id = args[0];
 	auto columns = args[1];
 

@@ -181,6 +181,16 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		for ( auto i = 0; i < managed_slots.size(); ++i )
 			fixed_frame[managed_slots[i]].managed_val = nullptr;
 		}
+
+	// It's a little weird doing this in the constructor, but unless
+	// we add a general "initialize for ZAM" function, this is as good
+	// a place as any.
+	if ( ! log_ID_enum_type )
+		{
+		auto log_ID_type = lookup_ID("ID", "Log");
+		ASSERT(log_ID_type);
+		log_ID_enum_type = log_ID_type->Type()->AsEnumType();
+		}
 	}
 
 ZBody::~ZBody()

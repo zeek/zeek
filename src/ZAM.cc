@@ -202,6 +202,9 @@ Stmt* ZAM::CompileBody()
 
 	(void) body->Compile(this);
 
+	if ( reporter->Errors() > 0 )
+		return nullptr;
+
 	if ( LastStmt(body)->Tag() != STMT_RETURN )
 		SyncGlobals(nullptr);
 

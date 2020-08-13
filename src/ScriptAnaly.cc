@@ -133,6 +133,9 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 		auto zam = new ZAM(f, scope, new_body, ud, rc, pf_red);
 		new_body = zam->CompileBody();
 
+		if ( reporter->Errors() > 0 )
+			return;
+
 		if ( analysis_options.only_func || analysis_options.dump_code )
 			zam->Dump();
 

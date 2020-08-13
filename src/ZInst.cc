@@ -693,6 +693,10 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 
 bool ZInstI::IsGlobalLoad() const
 	{
+	if ( op == OP_LOAD_GLOBAL_TYPE_VV )
+		// These don't have flavors.
+		return true;
+
 	static std::unordered_set<ZOp> global_ops;
 
 	if ( global_ops.size() == 0 )

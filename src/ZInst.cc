@@ -702,7 +702,7 @@ bool ZInstI::IsGlobalLoad() const
 			{
 			TypeTag tag = TypeTag(t);
 			ZOp global_op_flavor =
-				AssignmentFlavor(OP_LOAD_GLOBAL_VVC, tag, false);
+				AssignmentFlavor(OP_LOAD_GLOBAL_VV, tag, false);
 
 			if ( global_op_flavor != OP_NOP )
 				global_ops.insert(global_op_flavor);

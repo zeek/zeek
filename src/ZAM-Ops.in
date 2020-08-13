@@ -1583,7 +1583,7 @@ eval auto v = f->NthElement(z.v2)
 eval @v
 
 internal-assignment-op Load-Global
-type VVC
+type VV
 eval if ( global_state[z.v2] != GS_UNLOADED ) break
 eval global_state[z.v2] = GS_CLEAN
 eval auto v = z.aux->id_val->ID_Val()
@@ -1593,7 +1593,7 @@ eval @v
 # We need a special form here for loading global types, as they don't
 # fit the usual template.
 internal-op Load-Global-Type
-type VVC
+type VV
 eval if ( global_state[z.v2] != GS_UNLOADED ) break
 eval global_state[z.v2] = GS_CLEAN
 eval auto& v = frame[z.v1].type_val

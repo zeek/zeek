@@ -2398,9 +2398,9 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 	if ( id->AsType() )
 		// Need a special load for these, as they don't fit
 		// with the usual template.
-		op = OP_LOAD_GLOBAL_TYPE_VVC;
+		op = OP_LOAD_GLOBAL_TYPE_VV;
 	else
-		op = AssignmentFlavor(OP_LOAD_GLOBAL_VVC, id->Type()->Tag());
+		op = AssignmentFlavor(OP_LOAD_GLOBAL_VV, id->Type()->Tag());
 
 	auto slot = RawSlot(id);
 

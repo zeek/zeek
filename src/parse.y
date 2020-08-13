@@ -325,7 +325,10 @@ zeek:
 			}
 
 	|	TOK_ZAM_FILE ZAM_info
-			{ filename = nullptr; }
+			{
+			filename = nullptr;
+			set_location(no_location);
+			}
 
 	|
 		/* Allow the debugger to call yyparse() on an expr rather

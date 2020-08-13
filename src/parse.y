@@ -2177,6 +2177,10 @@ ZAM_val:	expr
 			// cleanly negate.  "expr" is somewhat overkill,
 			// but it then gives us an Eval method to get to
 			// the correct final constant Val representation.
+			//
+			// Another issue arises with expressing Inf's and
+			// NaN's, which Zeek doesn't support directly as
+			// constants.
 			$$ = $1->Eval(nullptr).release();
 			}
 	;

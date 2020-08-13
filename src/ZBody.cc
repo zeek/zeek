@@ -456,10 +456,28 @@ protected:
 		// Special case for integers: we need these to be
 		// parsed as such, and not as counts.
 		auto t = item->Type();
-		if ( t->Tag() != TYPE_BOOL && t->Tag() != TYPE_ENUM &&
-		     t->InternalType() == TYPE_INTERNAL_INT &&
-		     item->ForceAsInt() >= 0 )
+		if ( t->Tag() == TYPE_INT && item->ForceAsInt() >= 0 )
 			d.Add("+");
+
+		// Special case for doubles that aren't representable
+		// directly as Zeek constants.  (Note, strictly speaking
+		// these could occur for "time" and "interval" types,
+		// but at present we don't support those.)
+		if ( t->Tag() == TYPE_DOUBLE )
+			{
+			auto infinity = RepType("1e9999");
+			double d = item->AsDouble();
+			if ( isinf(d) )
+				{
+				if ( d < 0 )
+					return RepType("-") + infinity;
+				else
+					return infinity;
+				}
+
+			if ( isnan(d) )
+				return infinity + "/" + infinity;
+			}
 
 		item->Describe(&d);
 		return RepType(d.Description());

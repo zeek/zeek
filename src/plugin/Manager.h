@@ -481,14 +481,7 @@ std::list<T *> Manager::Components() const
 	return result;
 	}
 
-} // namespace plugin
-
-extern zeek::plugin::Manager* plugin_mgr;
-
-} // namespace zeek
-
-// TOOD: should this just be zeek::detail?
-namespace zeek::detail::plugin {
+namespace detail {
 
 /**
  * Internal class used by bifcl-generated code to register its init functions at runtime.
@@ -501,7 +494,12 @@ public:
 		}
 };
 
-}
+} // namespace detail
+} // namespace plugin
+
+extern zeek::plugin::Manager* plugin_mgr;
+
+} // namespace zeek
 
 namespace plugin {
 	using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager.")]] = zeek::plugin::Manager;

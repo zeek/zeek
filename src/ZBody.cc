@@ -477,6 +477,10 @@ protected:
 			{
 			auto infinity = RepType("1e9999");
 			double d = item->AsDouble();
+
+			if ( fpclassify(d) == FP_ZERO && signbit(d) )
+				return RepType("-0.0");
+
 			if ( isinf(d) )
 				{
 				if ( d < 0 )

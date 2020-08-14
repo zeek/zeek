@@ -2,8 +2,10 @@
 
 #pragma once
 
-#include "ZeekString.h"
 #include <map>
+#include <vector>
+
+#include "ZeekString.h"
 
 namespace zeek::detail {
 
@@ -16,9 +18,7 @@ namespace zeek::detail {
 class Substring : public zeek::String {
 
 public:
-	typedef std::vector<Substring*> Vec;
-	typedef Vec::iterator VecIt;
-	typedef Vec::const_iterator VecCIt;
+	using Vec = std::vector<Substring*>;
 
 	// An alignment to another string.
 	//
@@ -37,9 +37,7 @@ public:
 		int index;
 	};
 
-	typedef std::vector<BSSAlign> BSSAlignVec;
-	typedef BSSAlignVec::iterator BSSAlignVecIt;
-	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
+	using BSSAlignVec = std::vector<BSSAlign>;
 
 	explicit Substring(const std::string& string)
 		: zeek::String(string), _num(), _new(false) { }
@@ -74,11 +72,10 @@ public:
 	static Vec* VecFromPolicy(zeek::VectorVal* vec);
 	static char* VecToString(Vec* vec);
 	static zeek::String::IdxVec* GetOffsetsVec(const Vec* vec,
-	                                              unsigned int index);
+	                                           unsigned int index);
 
 private:
-	typedef std::map<std::string, void*> DataMap;
-	typedef DataMap::iterator DataMapIt;
+	using DataMap = std::map<std::string, void*>;
 
 	Substring();
 

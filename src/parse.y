@@ -1986,7 +1986,7 @@ ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
 
 			ZAM_body = new ZBody($2, ZAM_frame_layout,
 						managed_slots, ZAM_globals,
-						! $3,
+						! $3->AsCount(),
 						ZAM_int_cases_set,
 						ZAM_uint_cases_set,
 						ZAM_double_cases_set,

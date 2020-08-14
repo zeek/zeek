@@ -1190,7 +1190,7 @@ int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, uint64_t start, 
 	// Also don't bother (and return an error) if the end is before the start.
 	if ( (end != -1 ) && end < start )
 		{
-		reporter->Error("find_str: end position must be greater than start position");
+		zeek::reporter->Error("find_str: end position must be greater than start position");
 		return -1;
 		}
 

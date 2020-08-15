@@ -156,6 +156,11 @@ struct EDNS_ECS {
 	zeek::IntrusivePtr<zeek::AddrVal> ecs_addr;	///< EDNS client subnet address
 };
 
+struct EDNS_TCP_KEEPALIVE {
+	bool     keepalive_timeout_omitted; // whether the keepalive timeout is omitted
+	uint16_t keepalive_timeout; // the timeout value sent by the client/server
+};
+
 struct TSIG_DATA {
 	zeek::String* alg_name;
 	unsigned long time_s;
@@ -211,6 +216,7 @@ public:
 	zeek::RecordValPtr BuildAnswerVal();
 	zeek::RecordValPtr BuildEDNS_Val();
 	zeek::RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
+	zeek::RecordValPtr BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE*);
 	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
 	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
 	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);

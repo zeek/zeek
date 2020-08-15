@@ -43,6 +43,7 @@ void zeek_legacy_netvar_init()
 	::dns_soa = zeek::id::find_type("dns_soa")->AsRecordType();
 	::dns_edns_additional = zeek::id::find_type("dns_edns_additional")->AsRecordType();
 	::dns_edns_ecs = zeek::id::find_type("dns_edns_ecs")->AsRecordType();
+	::dns_edns_tcp_keepalive = zeek::id::find_type("dns_edns_tcp_keepalive")->AsRecordType();
 	::dns_tsig_additional = zeek::id::find_type("dns_tsig_additional")->AsRecordType();
 	::dns_rrsig_rr = zeek::id::find_type("dns_rrsig_rr")->AsRecordType();
 	::dns_dnskey_rr = zeek::id::find_type("dns_dnskey_rr")->AsRecordType();

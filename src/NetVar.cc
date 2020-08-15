@@ -108,6 +108,7 @@ zeek::RecordType* dns_answer;
 zeek::RecordType* dns_soa;
 zeek::RecordType* dns_edns_additional;
 zeek::RecordType* dns_edns_ecs;
+zeek::RecordType* dns_edns_tcp_keepalive;
 zeek::RecordType* dns_tsig_additional;
 zeek::RecordType* dns_rrsig_rr;
 zeek::RecordType* dns_dnskey_rr;

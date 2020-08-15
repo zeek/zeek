@@ -3700,6 +3700,14 @@ type dns_edns_ecs: record {
 	address: string;	##< Client Subnet Address.
 };
 
+## An DNS EDNS TCP Keepalive (TCP_KA) record.
+##
+## .. zeek:see:: dns_EDNS_tcp_keepalive
+type dns_edns_tcp_keepalive: record {
+	keepalive_timeout_omitted: bool; ##< Whether timeout value is omitted
+	keepalive_timeout: count; ##<  Timeout value
+};
+
 ## An additional DNS TSIG record.
 ##
 ## .. zeek:see:: dns_TSIG_addl

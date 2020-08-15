@@ -792,7 +792,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				};
 				if ( option_len == 0 || option_len == 2) 
 					{ 
-					// 0 bytes is permitted by RFC 7828, showing that the timeout value is missing.
+					// 0 bytes is permitted by RFC 7828, showing that the timeout value is omitted.
 					if (option_len == 2) {
 						edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
 						edns_tcp_keepalive.keepalive_timeout_omitted = false;

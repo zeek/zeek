@@ -814,7 +814,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 					}
 				else 
 					{
-						break; // error. MUST BE 0 or 2 bytes
+					break; // error. MUST BE 0 or 2 bytes
 					}
 				} // END EDNS TCP KEEPALIVE 
 

@@ -800,9 +800,9 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 
 					if (analyzer->Conn()->ConnTransport() == TRANSPORT_UDP) {
 						/*
-							* Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT 
-							* negotiate TCP Keepalive timeout in DNS-over-UDP.
-							*/
+						* Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT 
+						* negotiate TCP Keepalive timeout in DNS-over-UDP.
+						*/
 						analyzer->Weird("EDNS_TCP_Keepalive_Record_In_UDP");
 					}
 					analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive,

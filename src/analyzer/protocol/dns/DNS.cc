@@ -253,7 +253,6 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	bool status;
 	switch ( msg->atype ) {
 		case TYPE_A:
-			// analyzer->Weird("parsing_A_record");
 			status = ParseRR_A(msg, data, len, rdlength);
 			break;
 

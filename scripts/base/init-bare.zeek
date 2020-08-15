@@ -3705,7 +3705,7 @@ type dns_edns_ecs: record {
 ## .. zeek:see:: dns_EDNS_tcp_keepalive
 type dns_edns_tcp_keepalive: record {
 	keepalive_timeout_omitted: bool; ##< Whether timeout value is omitted
-	keepalive_timeout: count; ##<  Timeout value
+	keepalive_timeout: count; ##<  Timeout value, in 100ms
 };
 
 ## An additional DNS TSIG record.

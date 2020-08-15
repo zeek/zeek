@@ -158,7 +158,7 @@ struct EDNS_ECS {
 
 struct EDNS_TCP_KEEPALIVE {
 	bool     keepalive_timeout_omitted; // whether the keepalive timeout is omitted
-	uint16_t keepalive_timeout; // the timeout value sent by the client/server
+	uint16_t keepalive_timeout; // the timeout value (in 100ms) sent by the client/server
 };
 
 struct TSIG_DATA {

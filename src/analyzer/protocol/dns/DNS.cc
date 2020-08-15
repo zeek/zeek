@@ -713,7 +713,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 		uint16_t option_code = ExtractShort(data, len);
 		int option_len = ExtractShort(data, len);
 		// check for invalid option length
-		if ( (option_len > len) || (0 == option_len) ) {
+		if ( (option_len > len) ) {
 			break;
 		}
 		len -= option_len;
@@ -786,39 +786,36 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 
 			case TYPE_TCP_KA:
 				{
-					EDNS_TCP_KEEPALIVE edns_tcp_keepalive{
-						.keepalive_timeout_omitted = true,
-						.keepalive_timeout = 0
-						
-					};
-					if ( option_len == 0 || option_len == 2) 
-						{ 
-							// 0 bytes is permitted by RFC 7828, showing that the timeout value is missing.
-							if (option_len == 2) {
-								edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
-								edns_tcp_keepalive.keepalive_timeout_omitted = false;
-							}
+				EDNS_TCP_KEEPALIVE edns_tcp_keepalive{
+					.keepalive_timeout_omitted = true,
+					.keepalive_timeout = 0
+				};
+				if ( option_len == 0 || option_len == 2) 
+					{ 
+					// 0 bytes is permitted by RFC 7828, showing that the timeout value is missing.
+					if (option_len == 2) {
+						edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
+						edns_tcp_keepalive.keepalive_timeout_omitted = false;
+					}
 
-							if (analyzer->Conn()->ConnTransport() == TRANSPORT_UDP) {
-								/*
-								 * Based on RFC 7828, clients and servers MUST NOT negotiate
-								 * TCP Keepalive timeout in DNS-over-UDP.
-								 * Record in Weird and proceed to the next EDNS option
-								 */
-								analyzer->Weird("EDNS_TCP_Keepalive_Record_In_UDP");
-								break;
-							}
-							analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive,
-								analyzer->ConnVal(),
-								msg->BuildHdrVal(),
-								msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive)
-							);
-							break;
-						}
-					else 
-						{
-							break; // error. MUST BE 0 or 2 bytes
-						}
+					if (analyzer->Conn()->ConnTransport() == TRANSPORT_UDP) {
+						/*
+							* Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT 
+							* negotiate TCP Keepalive timeout in DNS-over-UDP.
+							*/
+						analyzer->Weird("EDNS_TCP_Keepalive_Record_In_UDP");
+					}
+					analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive,
+						analyzer->ConnVal(),
+						msg->BuildHdrVal(),
+						msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive)
+					);
+					break;
+					}
+				else 
+					{
+						break; // error. MUST BE 0 or 2 bytes
+					}
 				} // END EDNS TCP KEEPALIVE 
 
 			default:

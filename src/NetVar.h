@@ -153,6 +153,8 @@ extern zeek::RecordType* dns_edns_ecs;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* dns_edns_tcp_keepalive;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
+extern zeek::RecordType* dns_edns_cookie;
+[[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* dns_tsig_additional;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* dns_rrsig_rr;

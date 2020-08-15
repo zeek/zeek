@@ -29,6 +29,7 @@ typedef enum {
 	DNS_CODE_NAME_ERR = 3,		///< no such domain
 	DNS_CODE_NOT_IMPL = 4,		///< not implemented
 	DNS_CODE_REFUSED = 5,		///< refused
+	DNS_CODE_BADCOOKIE = 23,    ///< Bad cookie value (RFC 7873, IANA early allocation)
 } DNS_Code;
 
 typedef enum {
@@ -92,6 +93,7 @@ typedef enum {
 	TYPE_N3U = 7,			///< RFC6975
 	TYPE_ECS = 8,			///< RFC7871
 	TYPE_EXPIRE = 9,		///< RFC7314
+	TYPE_COOKIE = 10,       ///< RFC7873
 	TYPE_TCP_KA = 11,		///< RFC7828
 	TYPE_PAD = 12,			///< RFC7830
 	TYPE_CHAIN = 13,		///< RFC7901
@@ -161,6 +163,11 @@ struct EDNS_TCP_KEEPALIVE {
 	uint16_t keepalive_timeout; // the timeout value (in 100ms) sent by the client/server
 };
 
+struct EDNS_COOKIE {
+	zeek::String* client_cookie;
+	zeek::String* server_cookie;
+};
+
 struct TSIG_DATA {
 	zeek::String* alg_name;
 	unsigned long time_s;
@@ -217,6 +224,7 @@ public:
 	zeek::RecordValPtr BuildEDNS_Val();
 	zeek::RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
 	zeek::RecordValPtr BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE*);
+	zeek::RecordValPtr BuildEDNS_COOKIE_Val(struct EDNS_COOKIE*);
 	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
 	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
 	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);

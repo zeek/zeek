@@ -810,13 +810,49 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 						msg->BuildHdrVal(),
 						msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive)
 					);
-					break;
+					
 					}
 				else 
 					{
-					break; // error. MUST BE 0 or 2 bytes
+					// error. MUST BE 0 or 2 bytes
 					}
+				data += option_len;
+				break;
 				} // END EDNS TCP KEEPALIVE 
+
+			case TYPE_COOKIE:
+				{
+				EDNS_COOKIE cookie{};
+				if (option_len != 8 && !(option_len >= 16 && option_len <= 40)) {
+					/*
+					* option length for DNS Cookie must be 8 bytes (with client cookie only)
+					* OR
+					* between 16 bytes to 40 bytes (with an 8 bytes client and an 8 to 32 bytes
+					* server cookie)
+					*/
+					break;
+				}
+				int remaining_cookie_len = option_len;
+				int client_cookie_len = 8;
+
+				cookie.client_cookie = ExtractStream(data, client_cookie_len, client_cookie_len);
+				cookie.server_cookie = nullptr;
+
+				remaining_cookie_len -= 8;
+
+				if (remaining_cookie_len >= 8) {
+					cookie.server_cookie = ExtractStream(data, remaining_cookie_len, remaining_cookie_len);
+				}
+
+				analyzer->EnqueueConnEvent(dns_EDNS_cookie,
+					analyzer->ConnVal(),
+					msg->BuildHdrVal(),
+					msg->BuildEDNS_COOKIE_Val(&cookie)
+				);
+
+				data += option_len;
+				break;
+				} // END EDNS COOKIE
 
 			default:
 				{
@@ -1645,6 +1681,19 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE* 
 
 	r->Assign(0, zeek::val_mgr->Bool(opt->keepalive_timeout_omitted));
 	r->Assign(1, zeek::val_mgr->Count(opt->keepalive_timeout));
+
+	return r;
+	}
+
+zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_COOKIE_Val(struct EDNS_COOKIE* opt)
+	{
+	static auto dns_edns_cookie = zeek::id::find_type<zeek::RecordType>("dns_edns_cookie");
+	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_edns_cookie);
+
+	r->Assign(0, zeek::make_intrusive<zeek::StringVal>(opt->client_cookie));
+	if (opt->server_cookie != nullptr) {
+		r->Assign(1, zeek::make_intrusive<zeek::StringVal>(opt->server_cookie));
+	}
 
 	return r;
 	}

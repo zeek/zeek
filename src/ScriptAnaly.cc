@@ -265,6 +265,9 @@ void analyze_scripts()
 		did_init = true;
 		}
 
+	if ( ! analysis_options.activate )
+		return;
+
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile functions.
 	std::unordered_map<const BroFunc*, const ProfileFunc*> func_profs;

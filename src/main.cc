@@ -299,6 +299,8 @@ void terminate_bro()
 
 	plugin_mgr->FinishPlugins();
 
+	finish_script_execution();
+
 	delete zeekygen_mgr;
 	delete analyzer_mgr;
 	delete file_mgr;
@@ -314,8 +316,6 @@ void terminate_bro()
 	pop_scope();
 
 	reporter = 0;
-
-	finish_script_execution();
 	}
 
 void zeek_terminate_loop(const char* reason)

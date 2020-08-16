@@ -738,8 +738,13 @@ public:
 		{
 		}
 
-	// A refinement to AddItem that knows how to unpack the elements
-	// of a ZInstAux.
+	// A version of AddItem that knows how to unpack the elements
+	// of a ZInstAux.  Note that if iteration information (iter_info)
+	// is present, we require that its 'n' field is set uniquely
+	// (and consistently for subsequent access via FindItem).
+	// This is important because iteration information isn't reentrant -
+	// two concurrent loops must have distinct information even if
+	// they completely match on the static elements.
 	void AddItem(const ZInstAux* item) override;
 
 protected:
@@ -855,6 +860,13 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 		else
 			d.Add(NA);
 
+		// Here we add in the unique/consistent field, to prevent
+		// sharing of items that otherwise fully match.  This
+		// field is ignored when parsing a save file, since its
+		// sole role is to ensure uniqueness.
+		d.AddSP(",");
+		d.Add(ii->n);
+
 		d.Add("]");
 		}
 
@@ -878,6 +890,8 @@ void ZBody::SaveTo(FILE* f) const
 	LocFileTracker loc_files;
 	LocTracker locs(loc_files);
 
+	int iter_cnt = 0;
+
 	for ( auto i : insts )
 		{
 		if ( i->e )
@@ -886,7 +900,11 @@ void ZBody::SaveTo(FILE* f) const
 		types.AddItem(i->t);
 		types.AddItem(i->t2);
 		vals.AddItem(i->ConstVal().get());
+
+		if ( i->aux && i->aux->iter_info )
+			i->aux->iter_info->n = ++iter_cnt;
 		auxes.AddItem(i->aux);
+
 		attrs.AddItem(i->attrs);
 		locs.AddItem(i->loc);
 		}

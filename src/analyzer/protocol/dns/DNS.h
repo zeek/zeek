@@ -29,7 +29,6 @@ typedef enum {
 	DNS_CODE_NAME_ERR = 3,		///< no such domain
 	DNS_CODE_NOT_IMPL = 4,		///< not implemented
 	DNS_CODE_REFUSED = 5,		///< refused
-	DNS_CODE_BADCOOKIE = 23,    ///< Bad cookie value (RFC 7873, IANA early allocation)
 } DNS_Code;
 
 typedef enum {
@@ -159,13 +158,13 @@ struct EDNS_ECS {
 };
 
 struct EDNS_TCP_KEEPALIVE {
-	bool     keepalive_timeout_omitted; // whether the keepalive timeout is omitted
-	uint16_t keepalive_timeout; // the timeout value (in 100ms) sent by the client/server
+	bool     keepalive_timeout_omitted; ///< whether the keepalive timeout is omitted
+	uint16_t keepalive_timeout; ///< the timeout value (in 100ms) sent by the client/server
 };
 
 struct EDNS_COOKIE {
-	zeek::String* client_cookie;
-	zeek::String* server_cookie;
+	zeek::String* client_cookie; ///< cookie value sent by the client (8 bytes)
+	zeek::String* server_cookie; ///< cookie value sent by the server (0 or 8-32 bytes)
 };
 
 struct TSIG_DATA {

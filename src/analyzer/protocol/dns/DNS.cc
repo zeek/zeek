@@ -816,7 +816,6 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 					{
 					// error. MUST BE 0 or 2 bytes
 					}
-				data += option_len;
 				break;
 				} // END EDNS TCP KEEPALIVE 
 
@@ -850,7 +849,6 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 					msg->BuildEDNS_COOKIE_Val(&cookie)
 				);
 
-				data += option_len;
 				break;
 				} // END EDNS COOKIE
 

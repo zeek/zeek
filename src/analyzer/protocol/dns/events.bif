@@ -540,7 +540,7 @@ event dns_EDNS_ecs%(c: connection, msg: dns_msg, opt: dns_edns_ecs%);
 ##
 ## msg: The parsed DNS message header.
 ##
-## opt: The parsed EDNS option.
+## opt: The parsed EDNS Keepalive option.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
@@ -563,7 +563,7 @@ event dns_EDNS_tcp_keepalive%(c: connection, msg: dns_msg, opt: dns_edns_tcp_kee
 ##
 ## msg: The parsed DNS message header.
 ##
-## opt: The parsed EDNS option.
+## opt: The parsed EDNS Cookie option.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl

@@ -594,7 +594,7 @@ internal-op Index-VecC
 type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
-eval auto ind = z.v3
+eval unsigned int ind = z.v3
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
@@ -602,7 +602,7 @@ internal-op Index-Any-VecC
 type VVV
 eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
-eval auto ind = z.v3
+eval unsigned int ind = z.v3
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
 eval auto v = vec[ind].ToVal(vv->YieldType())
 eval Unref(frame[z.v1].any_val)

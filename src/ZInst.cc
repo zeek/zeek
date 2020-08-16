@@ -319,7 +319,7 @@ const char* ZInst::VName(int max_n, int n, int inst_num,
 
 	auto& map = (*mappings)[slot];
 
-	int i;
+	unsigned int i;
 	for ( i = 0; i < map.id_start.size(); ++i )
 		{
 		// If the slot is right at the boundary between
@@ -423,7 +423,7 @@ const char* ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
 
 		auto& map = (*remappings)[slot];
 
-		int i;
+		unsigned int i;
 		for ( i = 0; i < map.id_start.size(); ++i )
 			{
 			// If the slot is right at the boundary between

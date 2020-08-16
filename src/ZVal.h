@@ -144,7 +144,7 @@ public:
 
 	bool IsManagedYieldType() const	{ return managed_yt != nullptr; }
 
-	int Size() const		{ return zvec.size(); }
+	unsigned int Size() const	{ return zvec.size(); }
 
 	const ZVU_vec& ConstVec() const	{ return zvec; }
 	ZVU_vec& ModVec()		{ return zvec; }
@@ -167,7 +167,7 @@ public:
 		}
 
 	// Sets the given element, with accompanying memory management.
-	void SetElement(int n, ZAMValUnion& v)
+	void SetElement(unsigned int n, ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
@@ -184,7 +184,7 @@ public:
 	// type.  This isn't necessary for the case where 'v' has been
 	// newly constructed, but is necessary if we're copying an
 	// existing 'v'.
-	void CopyElement(int n, ZAMValUnion& v)
+	void CopyElement(unsigned int n, ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
@@ -263,7 +263,7 @@ public:
 		DeleteManagedMembers();
 		}
 
-	int Size() const		{ return zvec.size(); }
+	unsigned int Size() const	{ return zvec.size(); }
 
 	void Assign(unsigned int field, ZAMValUnion v)
 		{

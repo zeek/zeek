@@ -1980,7 +1980,7 @@ ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
 		ZAM_auxes ZAM_attrs ZAM_loc_files ZAM_locs ZAM_insts
 			{
 			std::vector<int> managed_slots;
-			for ( auto i = 0; i < ZAM_frame_layout.size(); ++i )
+			for ( unsigned int i = 0; i < ZAM_frame_layout.size(); ++i )
 				if ( ZAM_frame_layout[i].is_managed )
 					managed_slots.push_back(i);
 

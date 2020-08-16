@@ -161,7 +161,7 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 
 	// Concretize the names of the frame denizens.
 	for ( auto& f : frame_denizens )
-		for ( auto i = 0; i < f.ids.size(); ++i )
+		for ( unsigned int i = 0; i < f.ids.size(); ++i )
 			f.names.push_back(f.ids[i]->Name());
 
 	managed_slots = _managed_slots;
@@ -178,7 +178,7 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		{
 		fixed_frame = new ZAMValUnion[frame_size];
 
-		for ( auto i = 0; i < managed_slots.size(); ++i )
+		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			fixed_frame[managed_slots[i]].managed_val = nullptr;
 		}
 
@@ -198,7 +198,7 @@ ZBody::~ZBody()
 	if ( fixed_frame )
 		{
 		// Free slots with explicit memory management.
-		for ( auto i = 0; i < managed_slots.size(); ++i )
+		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			{
 			auto& v = fixed_frame[managed_slots[i]];
 			DeleteManagedType(v, nullptr);
@@ -364,7 +364,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	if ( ! fixed_frame )
 		{
 		// Free those slots for which we do explicit memory management.
-		for ( auto i = 0; i < managed_slots.size(); ++i )
+		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			{
 			auto& v = frame[managed_slots[i]];
 			DeleteManagedType(v, nullptr);
@@ -1049,7 +1049,7 @@ void ZBody::ProfileExecution() const
 
 	printf("%s CPU time: %.06f\n", func_name, *CPU_time);
 
-	for ( int i = 0; i < inst_count->size(); ++i )
+	for ( unsigned int i = 0; i < inst_count->size(); ++i )
 		{
 		printf("%s %d %d %.06f ", func_name, i,
 			(*inst_count)[i], (*inst_CPU)[i]);
@@ -1135,7 +1135,7 @@ void ZBody::Dump() const
 	{
 	printf("Frame:\n");
 
-	for ( auto i = 0; i < frame_denizens.size(); ++i )
+	for ( unsigned i = 0; i < frame_denizens.size(); ++i )
 		{
 		auto& d = frame_denizens[i];
 
@@ -1152,7 +1152,7 @@ void ZBody::Dump() const
 
 	printf("Final code:\n");
 
-	for ( int i = 0; i < insts.size(); ++i )
+	for ( unsigned i = 0; i < insts.size(); ++i )
 		{
 		auto& inst = insts[i];
 		printf("%d: ", i);

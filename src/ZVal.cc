@@ -341,7 +341,7 @@ bool ZAM_record::SetToDefault(unsigned int field)
 
 void ZAM_record::DeleteManagedMembers()
 	{
-	for ( auto i = 0; i < zvec.size(); ++i )
+	for ( unsigned int i = 0; i < zvec.size(); ++i )
 		{
 		if ( IsInRecord(i) && IsManaged(i) )
 			{

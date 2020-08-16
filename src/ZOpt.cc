@@ -140,7 +140,7 @@ bool ZAM::CollapseGoTos()
 	{
 	bool did_collapse = false;
 
-	for ( int i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto i0 = insts1[i];
 
@@ -171,7 +171,7 @@ bool ZAM::CollapseGoTos()
 
 		// Collapse branch-to-next-statement, taking into
 		// account dead code.
-		int j = i + 1;
+		unsigned int j = i + 1;
 
 		bool branches_into_dead = false;
 		while ( j < insts1.size() && ! insts1[j]->live )
@@ -209,7 +209,7 @@ bool ZAM::PruneUnused()
 	{
 	bool did_prune = false;
 
-	for ( int i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -308,7 +308,7 @@ void ZAM::ComputeFrameLifetimes()
 	denizen_beginning.clear();
 	denizen_ending.clear();
 
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 		if ( ! inst->live )
@@ -438,7 +438,7 @@ void ZAM::ReMapFrame()
 	frame1_to_frame2.resize(frame_layout1.size(), -1);
 	managed_slotsI.clear();
 
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -459,7 +459,7 @@ void ZAM::ReMapFrame()
 #if 0
 	printf("%s frame remapping:\n", func->Name());
 
-	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+	for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )
 		{
 		auto& s = shared_frame_denizens[i];
 		printf("*%d (%s) %lu [%d->%d]:",
@@ -479,7 +479,7 @@ void ZAM::ReMapFrame()
 	std::vector<GlobalInfo> used_globals;
 	std::vector<int> remapped_globals;
 
-	for ( auto i = 0; i < globalsI.size(); ++i )
+	for ( unsigned int i = 0; i < globalsI.size(); ++i )
 		{
 		auto& g = globalsI[i];
 		g.slot = frame1_to_frame2[g.slot];
@@ -500,7 +500,7 @@ void ZAM::ReMapFrame()
 
 	int n1_slots = frame1_to_frame2.size();
 
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -667,7 +667,7 @@ void ZAM::ReMapInterpreterFrame()
 	// Rewrite references to interpreter slots to reflect remapped
 	// locations.
 
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -700,7 +700,7 @@ void ZAM::ReMapVar(ID* id, int slot, int inst)
 	bool is_managed = IsManagedType(id->Type());
 
 	int apt_slot = -1;
-	for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+	for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )
 		{
 		auto& s = shared_frame_denizens[i];
 
@@ -897,7 +897,7 @@ const ZInstI* ZAM::EndOfLoop(const ZInstI* inst, int depth) const
 	{
 	auto i = inst->inst_num;
 
-	while ( i < insts1.size() && insts1[i]->loop_depth >= depth )
+	while ( i < int(insts1.size()) && insts1[i]->loop_depth >= depth )
 		++i;
 
 	if ( i == inst->inst_num )
@@ -914,7 +914,7 @@ const ZInstI* ZAM::EndOfLoop(const ZInstI* inst, int depth) const
 
 bool ZAM::VarIsAssigned(int slot) const
 	{
-	for ( int i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
 		if ( inst->live && VarIsAssigned(slot, inst) )
@@ -956,7 +956,7 @@ bool ZAM::VarIsAssigned(int slot, const ZInstI* i) const
 
 bool ZAM::VarIsUsed(int slot) const
 	{
-	for ( int i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
 		if ( inst->live && inst->UsesSlot(slot) )
@@ -991,10 +991,10 @@ ZInstI* ZAM::FindLiveTarget(ZInstI* goto_target)
 	int idx = goto_target->inst_num;
 	ASSERT(idx >= 0 && idx <= insts1.size());
 
-	while ( idx < insts1.size() && ! insts1[idx]->live )
+	while ( idx < int(insts1.size()) && ! insts1[idx]->live )
 		++idx;
 
-	if ( idx == insts1.size() )
+	if ( idx == int(insts1.size()) )
 		return pending_inst;
 	else
 		return insts1[idx];

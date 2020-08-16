@@ -243,11 +243,11 @@ Stmt* ZAM::CompileBody()
 
 	// Concretize instruction numbers in inst1 so we can
 	// easily move through the code.
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		insts1[i]->inst_num = i;
 
 	// Compute which instructions are inside loops.
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( auto i = 0; i < int(insts1.size()); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -292,7 +292,7 @@ Stmt* ZAM::CompileBody()
 		OptimizeInsts();
 
 	// Move branches to dead code forward to their successor live code.
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 		if ( ! inst->live )
@@ -321,7 +321,7 @@ Stmt* ZAM::CompileBody()
 	// Dead instructions map to -1.
 	std::vector<int> inst1_to_inst2;
 
-	for ( auto i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		if ( insts1[i]->live )
 			{
@@ -333,10 +333,10 @@ Stmt* ZAM::CompileBody()
 		}
 
 	// Re-concretize instruction numbers, and concretize GoTo's.
-	for ( auto i = 0; i < insts2.size(); ++i )
+	for ( unsigned int i = 0; i < insts2.size(); ++i )
 		insts2[i]->inst_num = i;
 
-	for ( auto i = 0; i < insts2.size(); ++i )
+	for ( unsigned int i = 0; i < insts2.size(); ++i )
 		{
 		auto inst = insts2[i];
 
@@ -354,7 +354,7 @@ Stmt* ZAM::CompileBody()
 	// create them.
 	if ( shared_frame_denizens.size() > 0 )
 		{ // update
-		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+		for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )
 			{
 			auto& info = shared_frame_denizens[i];
 
@@ -366,7 +366,7 @@ Stmt* ZAM::CompileBody()
 				// the form "slotX = slotX".  In that
 				// case, look forward for the next viable
 				// instruction.
-				while ( start < insts1.size() &&
+				while ( start < int(insts1.size()) &&
 					inst1_to_inst2[start] == -1 )
 					++start;
 
@@ -380,7 +380,7 @@ Stmt* ZAM::CompileBody()
 
 	else
 		{ // create
-		for ( auto i = 0; i < frame_denizens.size(); ++i )
+		for ( unsigned int i = 0; i < frame_denizens.size(); ++i )
 			{
 			FrameSharingInfo info;
 			info.ids.push_back(frame_denizens[i]);
@@ -2431,7 +2431,7 @@ void ZAM::Dump()
 		{
 		printf("Final frame:\n");
 
-		for ( auto i = 0; i < shared_frame_denizens.size(); ++i )
+		for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )
 			{
 			printf("frame2[%d] =", i);
 			for ( auto& id : shared_frame_denizens[i].ids )
@@ -2445,7 +2445,7 @@ void ZAM::Dump()
 
 	auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
 
-	for ( int i = 0; i < insts1.size(); ++i )
+	for ( unsigned int i = 0; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
 		auto depth = inst->loop_depth;
@@ -2459,7 +2459,7 @@ void ZAM::Dump()
 
 	remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
 
-	for ( int i = 0; i < insts2.size(); ++i )
+	for ( unsigned int i = 0; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
 		auto depth = inst->loop_depth;
@@ -2471,20 +2471,20 @@ void ZAM::Dump()
 	if ( insts2.size() > 0 )
 		printf("Final code:\n");
 
-	for ( int i = 0; i < insts2.size(); ++i )
+	for ( unsigned int i = 0; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
 		printf("%d: ", i);
 		inst->Dump(&frame_denizens, remappings);
 		}
 
-	for ( int i = 0; i < int_casesI.size(); ++i )
+	for ( unsigned int i = 0; i < int_casesI.size(); ++i )
 		DumpIntCases(i);
-	for ( int i = 0; i < uint_casesI.size(); ++i )
+	for ( unsigned int i = 0; i < uint_casesI.size(); ++i )
 		DumpUIntCases(i);
-	for ( int i = 0; i < double_casesI.size(); ++i )
+	for ( unsigned int i = 0; i < double_casesI.size(); ++i )
 		DumpDoubleCases(i);
-	for ( int i = 0; i < str_casesI.size(); ++i )
+	for ( unsigned int i = 0; i < str_casesI.size(); ++i )
 		DumpStrCases(i);
 	}
 
@@ -2917,7 +2917,7 @@ void ZAM::ResolveGoTos(GoToSets& gotos, const InstLabel l)
 	{
 	auto& g = gotos.back();
 
-	for ( int i = 0; i < g.size(); ++i )
+	for ( unsigned int i = 0; i < g.size(); ++i )
 		SetGoTo(g[i], l);
 
 	gotos.pop_back();
@@ -2956,7 +2956,7 @@ InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
 	{
 	int n = s.stmt_num;
 
-	if ( n == insts1.size() - 1 )
+	if ( n == int(insts1.size()) - 1 )
 		{
 		if ( ! pending_inst )
 			pending_inst = new ZInstI();

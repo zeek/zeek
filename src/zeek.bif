@@ -4873,7 +4873,7 @@ function compress_path%(dir: string%): string
 		// Path is absolute.
 		r[ri++] = '/';
 
-	for ( auto i = 0; i < tokens.size(); ++i )
+	for ( unsigned int i = 0; i < tokens.size(); ++i )
 		{
 		if ( i > 0 )
 			// Add delimiter between tokens.

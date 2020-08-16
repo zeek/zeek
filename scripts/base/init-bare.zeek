@@ -3713,7 +3713,7 @@ type dns_edns_tcp_keepalive: record {
 ## .. zeek:see:: dns_EDNS_cookie
 type dns_edns_cookie: record {
 	client_cookie: string;	##< Cookie from the client (fixed 8 bytes).
-	server_cookie: string &default="";	##< Cookie from the server (8 to 32 bytes).
+	server_cookie: string &default="";	##< Cookie from the server (0 bytes if missing, or 8 to 32 bytes).
 };
 
 ## An additional DNS TSIG record.

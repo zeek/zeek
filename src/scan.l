@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#include "IntrusivePtr.h"
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
@@ -20,7 +21,6 @@
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
-#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Var.h"
 #include "Debug.h"

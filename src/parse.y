@@ -84,6 +84,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "IntrusivePtr.h"
 #include "input.h"
 #include "ZBody.h"
 #include "BroList.h"
@@ -91,7 +92,6 @@
 #include "EventRegistry.h"
 #include "Expr.h"
 #include "Func.h"
-#include "IntrusivePtr.h"
 #include "Stmt.h"
 #include "Val.h"
 #include "Var.h"
@@ -176,7 +176,7 @@ static ZInstAux* curr_ZAM_aux;
 static int curr_ZAM_aux_index;
 static std::vector<int> ZAM_aux_iter_vec;
 
-ZBody* ZAM_body;
+IntrusivePtr<ZBody> ZAM_body;
 
 static void parser_new_enum (void)
 	{
@@ -1984,7 +1984,7 @@ ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
 				if ( ZAM_frame_layout[i].is_managed )
 					managed_slots.push_back(i);
 
-			ZAM_body = new ZBody($2, ZAM_frame_layout,
+			ZAM_body = make_intrusive<ZBody>($2, ZAM_frame_layout,
 						managed_slots, ZAM_globals,
 						! $3->AsCount(),
 						ZAM_int_cases_set,

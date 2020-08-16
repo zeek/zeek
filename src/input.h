@@ -47,4 +47,4 @@ class Stmt;
 extern Stmt* stmts;	// global statements
 
 class ZBody;
-extern ZBody* ZAM_body;	// parsed ZAM save file
+extern IntrusivePtr<ZBody> ZAM_body;	// parsed ZAM save file

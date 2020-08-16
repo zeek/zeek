@@ -362,7 +362,8 @@ void analyze_scripts()
 			yyparse();
 			fclose(save_file);
 
-			f->func->ReplaceBody(f->body, {NewRef{}, ZAM_body});
+			f->func->ReplaceBody(f->body, ZAM_body);
+			f->body = ZAM_body;
 #if 0
 			// The following is just for testing to see whether
 			// a recovered .ZAM file can be exactly reproduced.

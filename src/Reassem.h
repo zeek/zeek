@@ -307,11 +307,11 @@ protected:
 	DataBlockList block_list;
 	DataBlockList old_block_list;
 
-	uint64_t last_reassem_seq;
-	uint64_t trim_seq;	// how far we've trimmed
-	uint32_t max_old_blocks;
+	uint64_t last_reassem_seq = 0;
+	uint64_t trim_seq = 0;	// how far we've trimmed
+	uint32_t max_old_blocks = 0;
 
-	ReassemblerType rtype;
+	ReassemblerType rtype = REASSEM_UNKNOWN;
 
 	static uint64_t total_size;
 	static uint64_t sizes[REASSEM_NUM];

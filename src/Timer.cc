@@ -75,6 +75,8 @@ TimerMgr::TimerMgr() {
         iosource_mgr->Register(this, true);
 }
 
+TimerMgr::~TimerMgr() { q.reset(); }
+
 int TimerMgr::Advance(double arg_t, int max_expire) {
     DBG_LOG(DBG_TM, "advancing timer mgr to %.6f", arg_t);
 
@@ -120,11 +122,20 @@ void TimerMgr::InitPostScript() {
 void TimerMgr::Add(Timer* timer) {
     DBG_LOG(DBG_TM, "Adding timer %s (%p) at %.6f", timer_type_to_string(timer->Type()), timer, timer->Time());
 
-    // Add the timer even if it's already expired - that way, if
-    // multiple already-added timers are added, they'll still
-    // execute in sorted order.
-    if ( ! q->Add(timer) )
-        reporter->InternalError("out of memory");
+    if ( timer->Time() - run_state::network_time == 5.0 )
+        q_5s.push_back(timer);
+    else if ( timer->Time() - run_state::network_time == 6.0 )
+        q_6s.push_back(timer);
+    else
+        // Add the timer even if it's already expired - that way, if
+        // multiple already-added timers are added, they'll still
+        // execute in sorted order.
+        if ( ! q->Add(timer) )
+            reporter->InternalError("out of memory");
+
+    cumulative_num++;
+    if ( Size() > peak_size )
+        peak_size = Size();
 
     ++current_timers[timer->Type()];
 }
@@ -140,45 +151,124 @@ void TimerMgr::Expire() {
 }
 
 int TimerMgr::DoAdvance(double new_t, int max_expire) {
-    Timer* timer = Top();
+    auto res = Top();
+    QueueIndex index = res.first;
+    Timer* timer = res.second;
+
     for ( num_expired = 0; (num_expired < max_expire || dispatch_all_expired) && timer && timer->Time() <= new_t;
           ++num_expired ) {
         last_timestamp = timer->Time();
         --current_timers[timer->Type()];
 
-        // Remove it before dispatching, since the dispatch
-        // can otherwise delete it, and then we won't know
-        // whether we should delete it too.
-        (void)Remove();
+        Remove(index);
+
+        if ( timer->active ) {
+            DBG_LOG(zeek::DBG_TM, "Dispatching timer %s (%p)", timer_type_to_string(timer->Type()), timer);
+            timer->Dispatch(new_t, false);
+        }
+        else {
+            --num_expired;
+        }
 
         DBG_LOG(DBG_TM, "Dispatching timer %s (%p)", timer_type_to_string(timer->Type()), timer);
         timer->Dispatch(new_t, false);
         delete timer;
 
-        timer = Top();
+        res = Top();
+        index = res.first;
+        timer = res.second;
     }
 
     return num_expired;
 }
 
 void TimerMgr::Remove(Timer* timer) {
+    timer->active = false;
+
+    std::deque<Timer*>::iterator it;
+
+    if ( ! q_5s.empty() ) {
+        it = std::find(q_5s.begin(), q_5s.end(), timer);
+        if ( it != q_5s.end() ) {
+            q_5s.erase(it);
+            --current_timers[timer->Type()];
+            delete timer;
+            return;
+        }
+    }
+
+    if ( ! q_6s.empty() ) {
+        it = std::find(q_6s.begin(), q_6s.end(), timer);
+        if ( it != q_6s.end() ) {
+            q_6s.erase(it);
+            --current_timers[timer->Type()];
+            delete timer;
+            return;
+        }
+    }
+
     if ( ! q->Remove(timer) )
         reporter->InternalError("asked to remove a missing timer");
 
     --current_timers[timer->Type()];
+
     delete timer;
 }
 
 double TimerMgr::GetNextTimeout() {
-    Timer* top = Top();
+    const auto& [index, top] = Top();
     if ( top )
         return std::max(0.0, top->Time() - run_state::network_time);
 
     return -1;
 }
 
-Timer* TimerMgr::Remove() { return (Timer*)q->Remove(); }
+Timer* TimerMgr::Remove(QueueIndex index) {
+    Timer* top = nullptr;
+    if ( index == QueueIndex::NONE ) {
+        auto res = Top();
+        index = res.first;
+        top = res.second;
+    }
 
-Timer* TimerMgr::Top() { return (Timer*)q->Top(); }
+    if ( index == QueueIndex::Q5 )
+        q_5s.pop_front();
+    else if ( index == QueueIndex::Q6 )
+        q_6s.pop_front();
+    else if ( index == QueueIndex::PQ )
+        q->Remove();
+
+    return top;
+}
+
+
+std::pair<TimerMgr::QueueIndex, Timer*> TimerMgr::Top() {
+    Timer* top = nullptr;
+    QueueIndex index = QueueIndex::NONE;
+
+    if ( ! q_5s.empty() ) {
+        top = q_5s.front();
+        index = QueueIndex::Q5;
+    }
+
+    if ( ! q_6s.empty() ) {
+        Timer* t = q_6s.front();
+        if ( ! top || t->Time() < top->Time() ) {
+            top = t;
+            index = QueueIndex::Q6;
+        }
+    }
+
+    if ( q->Size() > 0 ) {
+        Timer* t = static_cast<Timer*>(q->Top());
+
+        if ( ! top || t->Time() < top->Time() ) {
+            index = QueueIndex::PQ;
+            top = t;
+        }
+    }
+
+    return {index, top};
+}
 
 } // namespace zeek::detail

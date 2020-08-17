@@ -793,18 +793,21 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				if ( option_len == 0 || option_len == 2) 
 					{ 
 					// 0 bytes is permitted by RFC 7828, showing that the timeout value is omitted.
-					if (option_len == 2) {
+					if (option_len == 2) 
+						{
 						edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
 						edns_tcp_keepalive.keepalive_timeout_omitted = false;
-					}
+						}
 
-					if (analyzer->Conn()->ConnTransport() == TRANSPORT_UDP) {
+					if (analyzer->Conn()->ConnTransport() == TRANSPORT_UDP) 
+						{
 						/*
 						* Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT 
 						* negotiate TCP Keepalive timeout in DNS-over-UDP.
 						*/
-						analyzer->Weird("EDNS_TCP_Keepalive_Record_In_UDP");
-					}
+						analyzer->Weird("EDNS_TCP_Keepalive_In_UDP");
+						}
+						
 					analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive,
 						analyzer->ConnVal(),
 						msg->BuildHdrVal(),
@@ -814,7 +817,8 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 					}
 				else 
 					{
-					// error. MUST BE 0 or 2 bytes
+					// error. MUST BE 0 or 2 bytes. skip
+					data += option_len;
 					}
 				break;
 				} // END EDNS TCP KEEPALIVE 
@@ -822,26 +826,28 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 			case TYPE_COOKIE:
 				{
 				EDNS_COOKIE cookie{};
-				if (option_len != 8 && !(option_len >= 16 && option_len <= 40)) {
+				if (option_len != 8 && ! (option_len >= 16 && option_len <= 40)) 
+					{
 					/*
 					* option length for DNS Cookie must be 8 bytes (with client cookie only)
 					* OR
 					* between 16 bytes to 40 bytes (with an 8 bytes client and an 8 to 32 bytes
 					* server cookie)
 					*/
+					data += option_len;
 					break;
-				}
-				int remaining_cookie_len = option_len;
+					}
+
 				int client_cookie_len = 8;
+				int server_cookie_len = option_len - client_cookie_len;
 
 				cookie.client_cookie = ExtractStream(data, client_cookie_len, client_cookie_len);
 				cookie.server_cookie = nullptr;
 
-				remaining_cookie_len -= 8;
-
-				if (remaining_cookie_len >= 8) {
-					cookie.server_cookie = ExtractStream(data, remaining_cookie_len, remaining_cookie_len);
-				}
+				if (server_cookie_len >= 8) 
+					{
+					cookie.server_cookie = ExtractStream(data, server_cookie_len, server_cookie_len);
+					}
 
 				analyzer->EnqueueConnEvent(dns_EDNS_cookie,
 					analyzer->ConnVal(),

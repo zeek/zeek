@@ -193,8 +193,7 @@ void ProfileLogger::Log()
 		                      run_state::network_time, stats.matchers, stats.nfa_states,
 		                      stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
-
-	file->Write(util::fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n", run_state::network_time,
+	file->Write(util::fmt("%.06f Timers: current=%zu max=%zu lag=%.2fs\n", run_state::network_time,
 	                      timer_mgr->Size(), timer_mgr->PeakSize(),
 	                      run_state::network_time - timer_mgr->LastTimestamp()));
 

@@ -72,11 +72,11 @@ TimerMgr::TimerMgr()
 	num_expired = 0;
 	last_advance = last_timestamp = 0;
 
+	q = std::make_unique<PriorityQueue>();
+
 	if ( iosource_mgr )
 		iosource_mgr->Register(this, true);
 	}
-
-TimerMgr::~TimerMgr() { }
 
 int TimerMgr::Advance(double arg_t, int max_expire)
 	{
@@ -113,17 +113,7 @@ void TimerMgr::InitPostScript()
 		iosource_mgr->Register(this, true);
 	}
 
-PQ_TimerMgr::PQ_TimerMgr() : TimerMgr()
-	{
-	q = new PriorityQueue;
-	}
-
-PQ_TimerMgr::~PQ_TimerMgr()
-	{
-	delete q;
-	}
-
-void PQ_TimerMgr::Add(Timer* timer)
+void TimerMgr::Add(Timer* timer)
 	{
 	DBG_LOG(DBG_TM, "Adding timer %s (%p) at %.6f", timer_type_to_string(timer->Type()), timer,
 	        timer->Time());
@@ -137,7 +127,7 @@ void PQ_TimerMgr::Add(Timer* timer)
 	++current_timers[timer->Type()];
 	}
 
-void PQ_TimerMgr::Expire()
+void TimerMgr::Expire()
 	{
 	Timer* timer;
 	while ( (timer = Remove()) )
@@ -149,7 +139,7 @@ void PQ_TimerMgr::Expire()
 		}
 	}
 
-int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
+int TimerMgr::DoAdvance(double new_t, int max_expire)
 	{
 	Timer* timer = Top();
 	for ( num_expired = 0; (num_expired < max_expire) && timer && timer->Time() <= new_t;
@@ -173,7 +163,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 	return num_expired;
 	}
 
-void PQ_TimerMgr::Remove(Timer* timer)
+void TimerMgr::Remove(Timer* timer)
 	{
 	if ( ! q->Remove(timer) )
 		reporter->InternalError("asked to remove a missing timer");
@@ -182,13 +172,23 @@ void PQ_TimerMgr::Remove(Timer* timer)
 	delete timer;
 	}
 
-double PQ_TimerMgr::GetNextTimeout()
+double TimerMgr::GetNextTimeout()
 	{
 	Timer* top = Top();
 	if ( top )
 		return std::max(0.0, top->Time() - run_state::network_time);
 
 	return -1;
+	}
+
+Timer* TimerMgr::Remove()
+	{
+	return (Timer*)q->Remove();
+	}
+
+Timer* TimerMgr::Top()
+	{
+	return (Timer*)q->Top();
 	}
 
 	} // namespace zeek::detail

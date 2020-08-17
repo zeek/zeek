@@ -1181,7 +1181,7 @@ function count_substr%(str: string, sub: string%) : count
 
 %%{
 
-int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, uint64_t start, int64_t end, bool rfind)
+static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind)
 	{
 	// Don't bother if the start is after the end of the string.
 	if ( start > str->Len() )
@@ -1194,7 +1194,7 @@ int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, uint64_t start, 
 		return -1;
 		}
 
-	size_t end_pos = str->Len();
+	int64_t end_pos = str->Len();
 	if ( end >= 0 && end < str->Len() )
 		end_pos = end;
 
@@ -1247,7 +1247,7 @@ function find_str%(str: string, sub: string, start: count &default=0, end: int &
 ## Returns: The position of the substring. Returns -1 if the string wasn't found. Prints an error if the
 ## starting position is after the ending position.
 ##
-function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : count
+function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
 	%{
 	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true));
 	%}
@@ -1340,7 +1340,7 @@ function ljust%(str: string, width: count, fill: string &default=" "%) : string
 
 %%{
 
-static zeek::StringValPtr do_rjust(zeek::StringVal* str, int width, char fill)
+static zeek::StringValPtr do_rjust(zeek::StringVal* str, uint64_t width, char fill)
 	{
 	string new_s = str->ToStdString();
 

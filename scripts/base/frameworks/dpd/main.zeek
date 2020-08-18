@@ -54,8 +54,8 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 	{
 	local analyzer = Analyzer::name(atype);
 
-	if ( fmt("-%s",analyzer) in c$service )
-		delete c$service[fmt("-%s", analyzer)];
+	# This is okay even if the service isn't present.
+	delete c$service[fmt("-%s", analyzer)];
 
 	add c$service[analyzer];
 	}

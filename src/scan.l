@@ -311,7 +311,7 @@ when	return TOK_WHEN;
 <ZAM>"<locs>"		return TOK_LOCS;
 <ZAM>"<types>"		return TOK_TYPES;
 <ZAM>"<vals>"		return TOK_VALS;
-<ZAM>({IDCOMPONENT}-)+{IDCOMPONENT}	return TOK_OP_NAME;
+<ZAM>({IDCOMPONENT}-+)+{IDCOMPONENT}	return TOK_OP_NAME;
 
 &add_func	return TOK_ATTR_ADD_FUNC;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;

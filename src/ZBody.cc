@@ -16,8 +16,10 @@
 
 // Just needed for BiFs.
 #include "Net.h"
-#include "logging/Manager.h"
+#include "analyzer/Manager.h"
 #include "broker/Manager.h"
+#include "file_analysis/Manager.h"
+#include "logging/Manager.h"
 
 
 BroType* log_ID_enum_type;

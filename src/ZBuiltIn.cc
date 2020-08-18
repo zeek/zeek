@@ -54,6 +54,12 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	else if ( streq(func->Name(), "get_port_transport_proto") )
 		return BuiltIn_get_port_etc(n, args);
 
+	else if ( streq(func->Name(), "network_time") )
+		return BuiltIn_network_time(n, args);
+
+	else if ( streq(func->Name(), "current_time") )
+		return BuiltIn_current_time(n, args);
+
 	else if ( streq(func->Name(), "reading_live_traffic") )
 		return BuiltIn_reading_live_traffic(n, args);
 
@@ -62,6 +68,15 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 
 	else if ( streq(func->Name(), "strstr") )
 		return BuiltIn_strstr(n, args);
+
+	else if ( streq(func->Name(), "Analyzer::__name") )
+		return BuiltIn_Analyzer__name(n, args);
+
+	else if ( streq(func->Name(), "Files::__enable_reassembly") )
+		return BuiltIn_Files__enable_reassembly(n, args);
+
+	else if ( streq(func->Name(), "Files::__set_reassembly_buffer") )
+		return BuiltIn_Files__set_reassembly_buffer(n, args);
 
 	return false;
 	}
@@ -254,6 +269,36 @@ bool ZAM::BuiltIn_get_port_etc(const NameExpr* n, const expr_list& args)
 	return true;
 	}
 
+bool ZAM::BuiltIn_network_time(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	AddInst(ZInstI(OP_NETWORK_TIME_V, nslot));
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_current_time(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	AddInst(ZInstI(OP_CURRENT_TIME_V, nslot));
+
+	return true;
+	}
+
 bool ZAM::BuiltIn_reading_live_traffic(const NameExpr* n, const expr_list& args)
 	{
 	if ( ! n )
@@ -292,8 +337,6 @@ bool ZAM::BuiltIn_strstr(const NameExpr* n, const expr_list& args)
 		return true;
 		}
 
-	int nslot = Frame1Slot(n, OP1_WRITE);
-
 	auto big = args[0];
 	auto little = args[1];
 
@@ -311,6 +354,80 @@ bool ZAM::BuiltIn_strstr(const NameExpr* n, const expr_list& args)
 		z = GenInst(this, OP_STRSTR_VCV, n, little_n, big->AsConstExpr());
 	else
 		return false;
+
+	AddInst(z);
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_Analyzer__name(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	if ( args[0]->Tag() == EXPR_CONST )
+		// Doesn't seem worth developing a variant for this weird
+		// usage cast.
+		return false;
+
+	int nslot = Frame1Slot(n, OP1_WRITE);
+	auto arg_t = args[0]->AsNameExpr();
+
+	auto z = ZInstI(OP_ANALYZER__NAME_VV, nslot, FrameSlot(arg_t));
+	z.SetType(args[0]->Type());
+
+	AddInst(z);
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_Files__enable_reassembly(const NameExpr* n,
+						const expr_list& args)
+	{
+	if ( n )
+		// While this built-in nominally returns a value, existing
+		// script code ignores it, so for now we don't bother
+		// special-casing the possibility that it doesn't.
+		return false;
+
+	if ( args[0]->Tag() == EXPR_CONST )
+		// Weird!
+		return false;
+
+	auto arg_f = args[0]->AsNameExpr();
+
+	AddInst(ZInstI(OP_FILES__ENABLE_REASSEMBLY_V, FrameSlot(arg_f)));
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n,
+						const expr_list& args)
+	{
+	if ( n )
+		// See above for enable_reassembly
+		return false;
+
+	if ( args[0]->Tag() == EXPR_CONST )
+		// Weird!
+		return false;
+
+	auto arg_f = FrameSlot(args[0]->AsNameExpr());
+
+	ZInstI z;
+
+	if ( args[1]->Tag() == EXPR_CONST )
+		{
+		auto arg_cnt = args[1]->AsConstExpr()->Value()->ForceAsUInt();
+		z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VC, arg_f, arg_cnt);
+		z.op_type = OP_VV_I2;
+		}
+	else
+		z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg_f,
+				FrameSlot(args[1]->AsNameExpr()));
 
 	AddInst(z);
 

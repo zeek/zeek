@@ -1792,6 +1792,14 @@ eval else if ( mask == UDP_PORT_MASK ) v = 2
 eval else if ( mask == ICMP_PORT_MASK ) v = 3
 eval frame[z.v1].uint_val = v
 
+internal-op Network-Time
+type V
+eval frame[z.v1].double_val = network_time
+
+internal-op Current-Time
+type V
+eval frame[z.v1].double_val = current_time()
+
 internal-op Reading-Live-Traffic
 type V
 eval frame[z.v1].int_val = reading_live
@@ -1817,3 +1825,27 @@ type VVC
 eval auto big = frame[z.v2].string_val
 eval auto little = z.c.string_val
 eval frame[z.v1].int_val = 1 + big->AsString()->FindSubstring(little->AsString())
+
+internal-op Analyzer--Name
+type VV
+eval auto atype = frame[z.v2].ToVal(z.t)
+eval auto& name = analyzer_mgr->GetComponentName(atype->AsEnumVal())
+eval frame[z.v1].string_val = new StringVal(name)
+
+internal-op Files--Enable-Reassembly
+op1-read
+type V
+eval auto f = frame[z.v1].string_val->CheckString()
+eval file_mgr->EnableReassembly(f)
+
+internal-op Files--Set-Reassembly-Buffer
+op1-read
+type VV
+eval auto f = frame[z.v1].string_val->CheckString()
+eval file_mgr->SetReassemblyBuffer(f, frame[z.v2].uint_val)
+
+internal-op Files--Set-Reassembly-Buffer
+op1-read
+type VC
+eval auto f = frame[z.v1].string_val->CheckString()
+eval file_mgr->SetReassemblyBuffer(f, bro_uint_t(z.v2))

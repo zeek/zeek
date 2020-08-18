@@ -1,0 +1,2 @@
+error in /Users/robin/bro/master/testing/btest/.tmp/language.global-unset-addto/global-unset-addto.zeek, line 4: += initializer applied to ID without value (a)
+error in /Users/robin/bro/master/testing/btest/.tmp/language.global-unset-addto/global-unset-addto.zeek, line 5: -= initializer applied to ID without value (b)

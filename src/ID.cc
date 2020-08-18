@@ -220,6 +220,13 @@ void ID::SetVal(ExprPtr ev, InitClass c)
 	if ( ! a )
 		Internal("no add/delete function in ID::SetVal");
 
+	if ( ! val )
+		{
+		Error(fmt("%s initializer applied to ID without value",
+		          c == INIT_EXTRA ? "+=" : "-="), this);
+		return;
+		}
+
 	EvalFunc(a->GetExpr(), std::move(ev));
 	}
 

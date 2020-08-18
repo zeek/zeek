@@ -326,6 +326,8 @@ set(MAIN_SRCS
     WeirdState.cc
     ZAM.cc
     ZBody.cc
+    ZBuiltIn.cc
+    ZGen.cc
     ZInst.cc
     ZOpt.cc
     ZVal.cc

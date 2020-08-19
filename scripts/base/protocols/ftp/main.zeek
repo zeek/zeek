@@ -378,3 +378,11 @@ event connection_reset(c: connection)
 	if ( ! c?$ftp ) return;
 	ftp_process_pending(c);
 	}
+
+# We only saw half the connection
+event connection_half_finished(c: connection)
+	{
+	if ( ! c?$ftp ) return;
+	ftp_process_pending(c);
+	}
+

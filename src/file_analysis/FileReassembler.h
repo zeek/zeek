@@ -62,5 +62,7 @@ protected:
 } // namespace zeek::file_analysis
 
 namespace file_analysis {
-	using FileReassembler [[deprecated("Remove in v4.1. Use zeek::file_analysis::FileReassembler.")]] = zeek::file_analysis::FileReassembler;
+
+using FileReassembler [[deprecated("Remove in v4.1. Use zeek::file_analysis::FileReassembler.")]] = zeek::file_analysis::FileReassembler;
+
 } // namespace file_analysis

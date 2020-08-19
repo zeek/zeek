@@ -200,7 +200,7 @@ private:
 
 namespace file_analysis {
 
-	using X509 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509.")]] = zeek::file_analysis::detail::X509;
-	using X509Val [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509Val.")]] = zeek::file_analysis::detail::X509Val;
+using X509 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509.")]] = zeek::file_analysis::detail::X509;
+using X509Val [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509Val.")]] = zeek::file_analysis::detail::X509Val;
 
 } // namespace file_analysis

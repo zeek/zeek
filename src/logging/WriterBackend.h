@@ -402,5 +402,7 @@ private:
 } // namespace zeek::logging
 
 namespace logging {
-	using WriterBackend [[deprecated("Remove in v4.1. Use zeek::logging::WriterBackend.")]] = zeek::logging::WriterBackend;
-}
+
+using WriterBackend [[deprecated("Remove in v4.1. Use zeek::logging::WriterBackend.")]] = zeek::logging::WriterBackend;
+
+} // namespace logging

@@ -92,5 +92,7 @@ private:
 } // namespace zeek::file_analysis
 
 namespace file_analysis {
-	using Component [[deprecated("Remove in v4.1. Use zeek::file_analysis::Component.")]] = zeek::file_analysis::Component;
+
+using Component [[deprecated("Remove in v4.1. Use zeek::file_analysis::Component.")]] = zeek::file_analysis::Component;
+
 } // namespace file_analysis

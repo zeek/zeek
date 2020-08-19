@@ -55,10 +55,10 @@ private:
 
 namespace analyzer::udp {
 
-	using UDP_EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_EndpointState.")]] = zeek::analyzer::udp::UDP_EndpointState;
-	constexpr auto UDP_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_INACTIVE.")]] = zeek::analyzer::udp::UDP_INACTIVE;
-	constexpr auto UDP_ACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_ACTIVE.")]] = zeek::analyzer::udp::UDP_ACTIVE;
+using UDP_EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_EndpointState.")]] = zeek::analyzer::udp::UDP_EndpointState;
+constexpr auto UDP_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_INACTIVE.")]] = zeek::analyzer::udp::UDP_INACTIVE;
+constexpr auto UDP_ACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_ACTIVE.")]] = zeek::analyzer::udp::UDP_ACTIVE;
 
-	using UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_Analyzer.")]] = zeek::analyzer::udp::UDP_Analyzer;
+using UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_Analyzer.")]] = zeek::analyzer::udp::UDP_Analyzer;
 
 } // namespace analyzer::udp

@@ -161,9 +161,9 @@ protected:
 
 namespace file_analysis {
 
-	using Hash [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Hash.")]] = zeek::file_analysis::detail::Hash;
-	using MD5 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::MD5.")]] = zeek::file_analysis::detail::MD5;
-	using SHA1 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA1.")]] = zeek::file_analysis::detail::SHA1;
-	using SHA256 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA256.")]] = zeek::file_analysis::detail::SHA256;
+using Hash [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Hash.")]] = zeek::file_analysis::detail::Hash;
+using MD5 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::MD5.")]] = zeek::file_analysis::detail::MD5;
+using SHA1 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA1.")]] = zeek::file_analysis::detail::SHA1;
+using SHA256 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA256.")]] = zeek::file_analysis::detail::SHA256;
 
 } // namespace file_analysis

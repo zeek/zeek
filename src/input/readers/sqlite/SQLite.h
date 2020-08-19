@@ -48,5 +48,7 @@ private:
 } // namespace zeek::input::reader
 
 namespace input::reader {
-	using SQLite [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::SQLite.")]] = zeek::input::reader::detail::SQLite;
-}
+
+using SQLite [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::SQLite.")]] = zeek::input::reader::detail::SQLite;
+
+} // namespace input::reader

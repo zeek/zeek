@@ -116,5 +116,7 @@ private:
 } // namespace zeek::analyzer::tcp
 
 namespace analyzer::tcp {
-	using TCP_Reassembler [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Reassembler.")]] = zeek::analyzer::tcp::TCP_Reassembler;
-}
+
+using TCP_Reassembler [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Reassembler.")]] = zeek::analyzer::tcp::TCP_Reassembler;
+
+} // namespace analyzer::tcp

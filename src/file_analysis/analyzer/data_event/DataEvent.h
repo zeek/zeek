@@ -69,6 +69,6 @@ private:
 
 namespace file_analysis {
 
-	using DataEvent [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::DataEvent.")]] = zeek::file_analysis::detail::DataEvent;
+using DataEvent [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::DataEvent.")]] = zeek::file_analysis::detail::DataEvent;
 
 } // namespace file_analysis

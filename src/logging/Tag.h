@@ -131,5 +131,7 @@ protected:
 } // namespace zeek::logging
 
 namespace logging {
-	using Tag [[deprecated("Remove in v4.1. Use zeek::logging::Tag.")]] = zeek::logging::Tag;
-}
+
+using Tag [[deprecated("Remove in v4.1. Use zeek::logging::Tag.")]] = zeek::logging::Tag;
+
+} // namespace logging

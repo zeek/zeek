@@ -189,7 +189,7 @@ private:
 
 namespace file_analysis {
 
-	using ID [[deprecated("Remove in v4.1. Use zeek::file_analysis::ID.")]] = zeek::file_analysis::ID;
-	using Analyzer [[deprecated("Remove in v4.1. Use zeek::file_analysis::Analyzer.")]] = zeek::file_analysis::Analyzer;
+using ID [[deprecated("Remove in v4.1. Use zeek::file_analysis::ID.")]] = zeek::file_analysis::ID;
+using Analyzer [[deprecated("Remove in v4.1. Use zeek::file_analysis::Analyzer.")]] = zeek::file_analysis::Analyzer;
 
 } // namespace file_analysis

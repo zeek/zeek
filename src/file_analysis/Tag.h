@@ -125,5 +125,7 @@ protected:
 } // namespace zeek::file_analysis
 
 namespace file_analysis {
-	using Tag [[deprecated("Remove in v4.1. Use zeek::file_analysis::Tag.")]] = zeek::file_analysis::Tag;
+
+using Tag [[deprecated("Remove in v4.1. Use zeek::file_analysis::Tag.")]] = zeek::file_analysis::Tag;
+
 } // namespace file_analysis

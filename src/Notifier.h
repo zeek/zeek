@@ -122,10 +122,10 @@ protected:
 
 namespace notifier {
 
-	using Receiver [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Receiver.")]] = zeek::notifier::detail::Receiver;
-	using Registry [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Registry.")]] = zeek::notifier::detail::Registry;
-	using Modifiable [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Modifiable.")]] = zeek::notifier::detail::Modifiable;
+using Receiver [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Receiver.")]] = zeek::notifier::detail::Receiver;
+using Registry [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Registry.")]] = zeek::notifier::detail::Registry;
+using Modifiable [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Modifiable.")]] = zeek::notifier::detail::Modifiable;
 
-	extern zeek::notifier::detail::Registry& registry [[deprecated("Remove from v4.1. Use zeek::notifier::detail::registry.")]];
+extern zeek::notifier::detail::Registry& registry [[deprecated("Remove from v4.1. Use zeek::notifier::detail::registry.")]];
 
 } // namespace notifier

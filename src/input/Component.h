@@ -63,5 +63,7 @@ private:
 } // namespace zeek::input
 
 namespace input {
-	using Component [[deprecated("Remove in v4.1. Use zeek::input::Component.")]] = zeek::input::Component;
-}
+
+using Component [[deprecated("Remove in v4.1. Use zeek::input::Component.")]] = zeek::input::Component;
+
+} // namespace input

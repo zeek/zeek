@@ -133,5 +133,7 @@ private:
 } // namespace zeek::input
 
 namespace input {
-	using ReaderFrontend [[deprecated("Remove in v4.1. Use zeek::input::ReaderFrontend.")]] = zeek::input::ReaderFrontend;
-}
+
+using ReaderFrontend [[deprecated("Remove in v4.1. Use zeek::input::ReaderFrontend.")]] = zeek::input::ReaderFrontend;
+
+} // namespace input

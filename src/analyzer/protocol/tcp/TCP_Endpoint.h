@@ -256,15 +256,15 @@ protected:
 
 namespace analyzer::tcp {
 
-	using EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::EndpointState.")]] = zeek::analyzer::tcp::EndpointState;
-	constexpr auto TCP_ENDPOINT_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE;
-	constexpr auto TCP_ENDPOINT_SYN_SENT [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT;
-	constexpr auto TCP_ENDPOINT_SYN_ACK_SENT [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
-	constexpr auto TCP_ENDPOINT_PARTIAL [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL;
-	constexpr auto TCP_ENDPOINT_ESTABLISHED [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
-	constexpr auto TCP_ENDPOINT_CLOSED [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED;
-	constexpr auto TCP_ENDPOINT_RESET [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_RESET.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_RESET;
+using EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::EndpointState.")]] = zeek::analyzer::tcp::EndpointState;
+constexpr auto TCP_ENDPOINT_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE;
+constexpr auto TCP_ENDPOINT_SYN_SENT [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT;
+constexpr auto TCP_ENDPOINT_SYN_ACK_SENT [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
+constexpr auto TCP_ENDPOINT_PARTIAL [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL;
+constexpr auto TCP_ENDPOINT_ESTABLISHED [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
+constexpr auto TCP_ENDPOINT_CLOSED [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED;
+constexpr auto TCP_ENDPOINT_RESET [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_RESET.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_RESET;
 
-	using TCP_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Endpoint.")]] = zeek::analyzer::tcp::TCP_Endpoint;
+using TCP_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Endpoint.")]] = zeek::analyzer::tcp::TCP_Endpoint;
 
 } // namespace analyzer::tcp

@@ -502,8 +502,10 @@ extern zeek::plugin::Manager* plugin_mgr;
 } // namespace zeek
 
 namespace plugin {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager.")]] = zeek::plugin::Manager;
-}
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager.")]] = zeek::plugin::Manager;
+
+} // namespace plugin
 
 /**
  * The global plugin manager singleton.

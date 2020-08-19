@@ -59,6 +59,8 @@ protected:
 
 } // namespace zeek::analyzer::arp
 
-namespace analyer::arp {
-	using ARP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::arp::ARP_Analyzer.")]] = zeek::analyzer::arp::ARP_Analyzer;
-}
+namespace analyzer::arp {
+
+using ARP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::arp::ARP_Analyzer.")]] = zeek::analyzer::arp::ARP_Analyzer;
+
+} // namespace analyzer::arp

@@ -383,5 +383,7 @@ private:
 } // namespace zeek::iosource
 
 namespace iosource {
-	using PktSrc [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrc.")]] = zeek::iosource::PktSrc;
-}
+
+using PktSrc [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrc.")]] = zeek::iosource::PktSrc;
+
+} // namespace iosource

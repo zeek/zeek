@@ -47,5 +47,7 @@ private:
 } // namespace zeek::input::reader::detail
 
 namespace input::reader {
-	using Binary [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Binary.")]] = zeek::input::reader::detail::Binary;
-}
+
+using Binary [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Binary.")]] = zeek::input::reader::detail::Binary;
+
+} // namespace input::reader

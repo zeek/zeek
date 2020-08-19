@@ -47,5 +47,7 @@ private:
 } // namespace zeek::threading::formatter
 
 namespace threading::formatter {
-	using JSON [[deprecated("Remove in v4.1. Use zeek::threading::formatter::JSON.")]] = zeek::threading::formatter::JSON;
-}
+
+using JSON [[deprecated("Remove in v4.1. Use zeek::threading::formatter::JSON.")]] = zeek::threading::formatter::JSON;
+
+} // namespace threading::formatter

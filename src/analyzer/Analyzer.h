@@ -959,12 +959,14 @@ private:
 } // namespace zeek::analyzer
 
 namespace analyzer {
-	using Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::Analyzer instead.")]] = zeek::analyzer::Analyzer;
-	using AnalyzerTimer [[deprecated("Remove in v4.1. Use zeek::analyzer::AnalyzerTimer instead.")]] = zeek::analyzer::AnalyzerTimer;
-	using SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::SupportAnalyzer instead.")]] = zeek::analyzer::SupportAnalyzer;
-	using OutputHandler [[deprecated("Remove in v4.1. Use zeek::analyzer::OutputHandler instead.")]] = zeek::analyzer::OutputHandler;
-	using TransportLayerAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::TransportLayerAnalyzer instead.")]] = zeek::analyzer::TransportLayerAnalyzer;
 
-	using analyzer_list [[deprecated("Remove in v4.1. Use zeek::analyzer::analyzer_list instead.")]] = zeek::analyzer::analyzer_list;
-	using ID [[deprecated("Remove in v4.1. Use zeek::analyzer::ID instead.")]] = zeek::analyzer::ID;
-}
+using Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::Analyzer instead.")]] = zeek::analyzer::Analyzer;
+using AnalyzerTimer [[deprecated("Remove in v4.1. Use zeek::analyzer::AnalyzerTimer instead.")]] = zeek::analyzer::AnalyzerTimer;
+using SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::SupportAnalyzer instead.")]] = zeek::analyzer::SupportAnalyzer;
+using OutputHandler [[deprecated("Remove in v4.1. Use zeek::analyzer::OutputHandler instead.")]] = zeek::analyzer::OutputHandler;
+using TransportLayerAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::TransportLayerAnalyzer instead.")]] = zeek::analyzer::TransportLayerAnalyzer;
+
+using analyzer_list [[deprecated("Remove in v4.1. Use zeek::analyzer::analyzer_list instead.")]] = zeek::analyzer::analyzer_list;
+using ID [[deprecated("Remove in v4.1. Use zeek::analyzer::ID instead.")]] = zeek::analyzer::ID;
+
+} // namespace analyzer

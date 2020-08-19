@@ -212,5 +212,7 @@ protected:
 } // namespace zeek::logging
 
 namespace logging {
-	using WriterFrontend [[deprecated("Remove in v4.1. Use zeek::logging::WriterFrontend.")]] = zeek::logging::WriterFrontend;
-}
+
+using WriterFrontend [[deprecated("Remove in v4.1. Use zeek::logging::WriterFrontend.")]] = zeek::logging::WriterFrontend;
+
+} // namespace logging

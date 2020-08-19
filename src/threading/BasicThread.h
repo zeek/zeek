@@ -216,5 +216,7 @@ private:
 } // namespace zeek::threading
 
 namespace threading {
-	using BasicThread [[deprecated("Remove in v4.1. Use zeek::threading::BasicThread.")]] = zeek::threading::BasicThread;
-}
+
+using BasicThread [[deprecated("Remove in v4.1. Use zeek::threading::BasicThread.")]] = zeek::threading::BasicThread;
+
+} // namespace threading

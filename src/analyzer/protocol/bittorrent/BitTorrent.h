@@ -33,6 +33,6 @@ protected:
 
 namespace analyzer::bittorrent {
 
-	using BitTorrent_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::BitTorrent_Analyzer.")]] = zeek::analyzer::bittorrent::BitTorrent_Analyzer;
+using BitTorrent_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::bittorrent::BitTorrent_Analyzer.")]] = zeek::analyzer::bittorrent::BitTorrent_Analyzer;
 
-}
+} // namespace analyzer::bittorrent

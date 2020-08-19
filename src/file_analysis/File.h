@@ -398,5 +398,7 @@ protected:
 } // namespace file_analysis
 
 namespace file_analysis {
-	using File [[deprecated("Remove in v4.1. Use zeek::file_analysis::File.")]] = zeek::file_analysis::File;
+
+using File [[deprecated("Remove in v4.1. Use zeek::file_analysis::File.")]] = zeek::file_analysis::File;
+
 } // namespace zeek::file_analysis

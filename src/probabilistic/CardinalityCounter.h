@@ -189,5 +189,7 @@ private:
 } // namespace zeek::probabilistic::detail
 
 namespace probabilistic {
-	using CardinalityCounter [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::CardinalityCounter.")]] = zeek::probabilistic::detail::CardinalityCounter;
-}
+
+using CardinalityCounter [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::CardinalityCounter.")]] = zeek::probabilistic::detail::CardinalityCounter;
+
+} // namespace probabilistic

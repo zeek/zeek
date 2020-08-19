@@ -89,5 +89,7 @@ private:
 } // namespace zeek::iosource
 
 namespace iosource {
-	using IOSource [[deprecated("Remove in v4.1. Use zeek::iosource::IOSource.")]] = zeek::iosource::IOSource;
-}
+
+using IOSource [[deprecated("Remove in v4.1. Use zeek::iosource::IOSource.")]] = zeek::iosource::IOSource;
+
+} // namespace iosource

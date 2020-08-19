@@ -167,9 +167,13 @@ extern threading::Manager* thread_mgr;
 
 extern zeek::threading::Manager*& thread_mgr [[deprecated("Remove in v4.1. Use zeek::thread_mgr.")]];
 
-namespace threading::detail {
-	using HeartbeatTimer [[deprecated("Remove in v4.1. Use zeek::threading::detail::HeartbeatTimer.")]] = zeek::threading::detail::HeartbeatTimer;
-}
 namespace threading {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::threading::Manager.")]] = zeek::threading::Manager;
-}
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::threading::Manager.")]] = zeek::threading::Manager;
+
+namespace detail {
+
+using HeartbeatTimer [[deprecated("Remove in v4.1. Use zeek::threading::detail::HeartbeatTimer.")]] = zeek::threading::detail::HeartbeatTimer;
+
+} // namespace detail
+} // namespace threading

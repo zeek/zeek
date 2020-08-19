@@ -126,5 +126,7 @@ protected:
 } // namespace zeek::input
 
 namespace input {
-	using Tag [[deprecated("Remove in v4.1. Use zeek::input::Tag.")]] = zeek::input::Tag;
-}
+
+using Tag [[deprecated("Remove in v4.1. Use zeek::input::Tag.")]] = zeek::input::Tag;
+
+} // namespace input

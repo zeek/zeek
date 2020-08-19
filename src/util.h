@@ -771,11 +771,13 @@ constexpr auto zeekenv [[deprecated("Remove in v4.1. Use zeek::util::zeekenv.")]
 constexpr auto json_escape_utf8 [[deprecated("Remove in v4.1. Use zeek::util::json_escape_utf8.")]] = zeek::util::json_escape_utf8;
 
 namespace zeek {
-	[[deprecated("Remove in v4.1. Use zeek::util::set_thread_name.")]]
-	void set_thread_name(const char* name, pthread_t tid = pthread_self());
 
-	constexpr auto prng [[deprecated("Remove in v4.1. Use zeek::util::detail::prng.")]] = zeek::util::detail::prng;
-	constexpr auto random_number [[deprecated("Remove in v4.1. Use zeek::util::detail::random_number.")]] = zeek::util::detail::random_number;
-	constexpr auto max_random [[deprecated("Remove in v4.1. Use zeek::util::detail::max_random.")]] = zeek::util::detail::max_random;
-	constexpr auto seed_random [[deprecated("Remove in v4.1. Use zeek::util::detail::seed_random.")]] = zeek::util::detail::seed_random;
-}
+[[deprecated("Remove in v4.1. Use zeek::util::set_thread_name.")]]
+void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+constexpr auto prng [[deprecated("Remove in v4.1. Use zeek::util::detail::prng.")]] = zeek::util::detail::prng;
+constexpr auto random_number [[deprecated("Remove in v4.1. Use zeek::util::detail::random_number.")]] = zeek::util::detail::random_number;
+constexpr auto max_random [[deprecated("Remove in v4.1. Use zeek::util::detail::max_random.")]] = zeek::util::detail::max_random;
+constexpr auto seed_random [[deprecated("Remove in v4.1. Use zeek::util::detail::seed_random.")]] = zeek::util::detail::seed_random;
+
+} // namespace zeek

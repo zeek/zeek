@@ -53,7 +53,7 @@ protected:
 
 namespace analyzer::ftp {
 
-	using FTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ftp::FTP_Analyzer.")]] = zeek::analyzer::ftp::FTP_Analyzer;
-	using FTP_ADAT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ftp::FTP_ADAT_Analyzer.")]] = zeek::analyzer::ftp::FTP_ADAT_Analyzer;
+using FTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ftp::FTP_Analyzer.")]] = zeek::analyzer::ftp::FTP_Analyzer;
+using FTP_ADAT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ftp::FTP_ADAT_Analyzer.")]] = zeek::analyzer::ftp::FTP_ADAT_Analyzer;
 
 } // namespace analyzer::ftp

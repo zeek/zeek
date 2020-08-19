@@ -171,8 +171,8 @@ private:
 
 namespace iosource {
 
-	using Component [[deprecated("Remove in v4.1. Use zeek::iosource::Component.")]] = zeek::iosource::Component;
-	using PktSrcComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrcComponent.")]] = zeek::iosource::PktSrcComponent;
-	using PktDumperComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumperComponent.")]] = zeek::iosource::PktDumperComponent;
+using Component [[deprecated("Remove in v4.1. Use zeek::iosource::Component.")]] = zeek::iosource::Component;
+using PktSrcComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrcComponent.")]] = zeek::iosource::PktSrcComponent;
+using PktDumperComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumperComponent.")]] = zeek::iosource::PktDumperComponent;
 
 } // namespace iosource

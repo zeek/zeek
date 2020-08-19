@@ -29,6 +29,6 @@ protected:
 
 namespace analyzer::finger {
 
-	using Finger_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::finger::Finger_Analyzer.")]] = zeek::analyzer::finger::Finger_Analyzer;
+using Finger_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::finger::Finger_Analyzer.")]] = zeek::analyzer::finger::Finger_Analyzer;
 
 } // namespace analyzer::finger

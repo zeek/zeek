@@ -445,7 +445,9 @@ extern file_analysis::Manager* file_mgr;
 } // namespace zeek
 
 namespace file_analysis {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::file_analysis::Manager.")]] = zeek::file_analysis::Manager;
-}
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::file_analysis::Manager.")]] = zeek::file_analysis::Manager;
+
+} // namespace file_analysis
 
 extern zeek::file_analysis::Manager*& file_mgr [[deprecated("Remove in v4.1. Use zeek::file_mgr.")]];

@@ -83,6 +83,6 @@ private:
 
 namespace file_analysis {
 
-	using Entropy [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Entropy.")]] = zeek::file_analysis::detail::Entropy;
+using Entropy [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Entropy.")]] = zeek::file_analysis::detail::Entropy;
 
 } // namespace file_analysis

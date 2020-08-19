@@ -24,6 +24,6 @@ protected:
 
 namespace analyzer::gtpv1 {
 
-	using GTPv1_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gtpv1::GTPv1_Analyzer.")]] = zeek::analyzer::gtpv1::GTPv1_Analyzer;
+using GTPv1_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gtpv1::GTPv1_Analyzer.")]] = zeek::analyzer::gtpv1::GTPv1_Analyzer;
 
 } // namespace analyzer::gtpv1

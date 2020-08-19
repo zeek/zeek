@@ -53,5 +53,7 @@ protected:
 } // namespace zeek::analyzer::conn_size
 
 namespace analyzer::conn_size {
-	using ConnSize_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::conn_size::ConnSize_Analyzer.")]] = zeek::analyzer::conn_size::ConnSize_Analyzer;
-}
+
+using ConnSize_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::conn_size::ConnSize_Analyzer.")]] = zeek::analyzer::conn_size::ConnSize_Analyzer;
+
+} // namespace analyzer::conn_size

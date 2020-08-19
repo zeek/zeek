@@ -309,5 +309,7 @@ extern logging::Manager* log_mgr;
 extern zeek::logging::Manager*& log_mgr [[deprecated("Remove in v4.1. Use zeek::log_mgr.")]];
 
 namespace logging {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::logging::Manager.")]] = zeek::logging::Manager;
-}
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::logging::Manager.")]] = zeek::logging::Manager;
+
+} // namespace logging

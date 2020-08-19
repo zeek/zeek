@@ -349,14 +349,32 @@ event successful_connection_remove(c: connection) &priority=-5
 		}
 	}
 
-# Use remove event to cover connections terminated by RST.
-event successful_connection_remove(c: connection) &priority=-5
+function ftp_process_pending(c: connection)
 	{
-	if ( ! c?$ftp ) return;
-
 	for ( ca, cmdarg in c$ftp$pending_commands )
 		{
 		c$ftp$cmdarg = cmdarg;
 		ftp_message(c$ftp);
 		}
+	}
+
+# If the control connection finished normally.
+event connection_finished(c: connection)
+	{
+	if ( ! c?$ftp ) return;
+	ftp_process_pending(c);
+	}
+
+# If the connection is still active when Zeek is shutting down
+event connection_pending(c: connection)
+	{
+	if ( ! c?$ftp ) return;
+	ftp_process_pending(c);
+	}
+
+# One side of the established connection terminated it with a reset
+event connection_reset(c: connection)
+	{
+	if ( ! c?$ftp ) return;
+	ftp_process_pending(c);
 	}

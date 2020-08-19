@@ -1,3 +1,10 @@
+3.3.0-dev.119 | 2020-08-19 14:35:51 -0700
+
+  * Misc strings.bif adjustments
+
+    * Declare rfind_str() with correct return type
+    * Fix compiler warnings for signed/unsigned comparisons (Jon Siwek, Corelight)
+
 3.3.0-dev.117 | 2020-08-19 14:12:06 -0700
 
   * Use constexpr for IPAddr::v4_mapped_prefix declaration

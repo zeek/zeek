@@ -39,11 +39,11 @@ so that is instead handled by a separate GitHub Action:
 
   https://github.com/zeek/ci-email-action
 
-The configuration of that GitHub Action is typical: it's just the
-``.github/workflows/ci-notification.yml`` file, which set SMTP/mail info
-via secrets stored in GitHub for the Zeek repository:
+The configuration of that GitHub Action is typical: it's the
+``.github/workflows/ci-notification.yml`` file, which sets SMTP/mail info
+via secrets stored in GitHub for the Zeek organization:
 
-  https://github.com/zeek/zeek/settings/secrets
+  https://github.com/organizations/zeek/settings/secrets
 
 The particular values used for those are currently from the Zeek project's AWS
 Simple Email Service configuration.

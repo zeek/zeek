@@ -1,4 +1,10 @@
 
+3.3.0-dev.115 | 2020-08-19 11:49:24 -0700
+
+  * Update docs for configuring CI email notifications (Jon Siwek, Corelight)
+
+    Secrets are now stored organization-wide rather than per-repository.
+
 3.3.0-dev.113 | 2020-08-18 12:10:26 -0700
 
   * GH-467: Catch use of &add_func/&delete_func on IDs without values. (Robin Sommer, Corelight)

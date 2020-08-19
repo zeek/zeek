@@ -304,6 +304,13 @@ event successful_connection_remove(c: connection) &priority=-5
 		smtp_message(c);
 	}
 
+# Handle the case of us only seeing one side of the connection due to split-routing
+event connection_half_finished(c: connection)
+	{
+	if ( c?$smtp )
+		smtp_message(c);
+	}
+
 event smtp_starttls(c: connection) &priority=5
 	{
 	if ( c?$smtp )

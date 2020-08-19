@@ -11,6 +11,8 @@
 #include <string>
 #include <optional>
 
+#include "ScannedFile.h"
+
 ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
@@ -43,30 +45,6 @@ extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
 // to reading a trace (in which case we don't want to wait in real-time
 // on future timers).
 extern bool have_pending_timers;
-
-
-// Script file we have already scanned (or are in the process of scanning).
-// They are identified by normalized realpath.
-struct ScannedFile {
-	int include_level;
-	bool skipped;		// This ScannedFile was @unload'd.
-	bool prefixes_checked;	// If loading prefixes for this file has been tried.
-	std::string name;
-	std::string canonical_path; // normalized, absolute path via realpath()
-
-	ScannedFile(int arg_include_level,
-	            std::string arg_name, bool arg_skipped = false,
-	            bool arg_prefixes_checked = false);
-
-	/**
-	 * Compares the canonical path of this file against every canonical path
-	 * in files_scanned and returns whether there's any match.
-	 */
-	bool AlreadyScanned() const;
-};
-
-extern std::list<ScannedFile> files_scanned;
-extern std::vector<std::string> sig_files;
 
 } // namespace detail
 
@@ -144,7 +122,3 @@ extern bool& is_parsing [[deprecated("Remove in v4.1. Use zeek::net::is_parsing.
 extern const zeek::Packet*& current_pkt [[deprecated("Remove in v4.1. Use zeek::net::current_pkt.")]];
 extern int& current_dispatched [[deprecated("Remove in v4.1. Use zeek::net::current_dispatched.")]];
 extern double& current_timestamp [[deprecated("Remove in v4.1. Use zeek::net::current_timestamp.")]];
-
-using ScannedFile [[deprecated("Remove in v4.1. Use zeek::net::detail::ScannedFile.")]] = zeek::net::detail::ScannedFile;
-extern std::list<zeek::net::detail::ScannedFile>& files_scanned [[deprecated("Remove in v4.1. Use zeek::net::detail::files_scanned.")]];
-extern std::vector<std::string>& sig_files [[deprecated("Remove in v4.1. Use zeek::net::detail::sig_files.")]];

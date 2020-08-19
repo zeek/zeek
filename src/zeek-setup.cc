@@ -46,6 +46,7 @@ extern "C" {
 #include "Trigger.h"
 #include "Hash.h"
 #include "Func.h"
+#include "ScannedFile.h"
 
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
@@ -712,7 +713,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 		all_signature_files.emplace_back(std::move(sf));
 
 	// Append signature files defined in @load-sigs
-	for ( const auto& sf : zeek::net::detail::sig_files )
+	for ( const auto& sf : zeek::detail::sig_files )
 		all_signature_files.emplace_back(sf);
 
 	if ( ! all_signature_files.empty() )
@@ -850,7 +851,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	if ( zeek_script_loaded )
 		{
 		// Queue events reporting loaded scripts.
-		for ( const auto& file : zeek::net::detail::files_scanned )
+		for ( const auto& file : zeek::detail::files_scanned )
 			{
 			if ( file.skipped )
 				continue;

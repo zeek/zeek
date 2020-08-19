@@ -397,9 +397,6 @@ void net_delete()
 		delete zeek::detail::ip_anonymizer[i];
 	}
 
-std::list<ScannedFile> files_scanned;
-std::vector<std::string> sig_files;
-
 } // namespace detail
 
 bool reading_live = false;
@@ -461,6 +458,3 @@ bool& is_parsing = zeek::net::is_parsing;
 const zeek::Packet*& current_pkt = zeek::net::current_pkt;
 int& current_dispatched = zeek::net::current_dispatched;
 double& current_timestamp = zeek::net::current_timestamp;
-
-std::list<zeek::net::detail::ScannedFile>& files_scanned = zeek::net::detail::files_scanned;
-std::vector<std::string>& sig_files = zeek::net::detail::sig_files;

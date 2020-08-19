@@ -34,6 +34,7 @@
 #include "Net.h"
 #include "Traverse.h"
 #include "module_util.h"
+#include "ScannedFile.h"
 
 #include "analyzer/Analyzer.h"
 #include "zeekygen/Manager.h"
@@ -347,7 +348,7 @@ when	return TOK_WHEN;
 			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
 			                      file);
 		else
-			zeek::net::detail::sig_files.push_back(zeek::util::copy_string(path.c_str()));
+			zeek::detail::sig_files.push_back(zeek::util::copy_string(path.c_str()));
 		break;
 
 	case 0:
@@ -404,8 +405,8 @@ when	return TOK_WHEN;
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		zeek::net::detail::ScannedFile sf(file_stack.length(), std::move(path), true);
-		zeek::net::detail::files_scanned.push_back(std::move(sf));
+		zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true);
+		zeek::detail::files_scanned.push_back(std::move(sf));
 		}
 	}
 
@@ -571,8 +572,6 @@ YYLTYPE zeek::detail::GetCurrentLocation()
 	return currloc;
 	}
 
-static auto constexpr canonical_stdin_path = "<stdin>";
-
 static int load_files(const char* orig_file)
 	{
 	std::string file_path = find_relative_script_file(orig_file);
@@ -599,7 +598,7 @@ static int load_files(const char* orig_file)
 	if ( zeek::util::streq(orig_file, "-") )
 		{
 		f = stdin;
-		file_path = canonical_stdin_path;
+		file_path = zeek::detail::ScannedFile::canonical_stdin_path;
 
 		if ( zeek::detail::g_policy_debug )
 			{
@@ -622,7 +621,7 @@ static int load_files(const char* orig_file)
 			zeek::reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	zeek::net::detail::ScannedFile sf(file_stack.length(), file_path);
+	zeek::detail::ScannedFile sf(file_stack.length(), file_path);
 
 	if ( sf.AlreadyScanned() )
 		{
@@ -632,7 +631,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	zeek::net::detail::files_scanned.push_back(std::move(sf));
+	zeek::detail::files_scanned.push_back(std::move(sf));
 
 	if ( zeek::detail::g_policy_debug && ! file_path.empty() )
 		{
@@ -889,13 +888,12 @@ int yywrap()
 	// file name is discarded. If the prefix is non-empty, it gets placed
 	// in front of the flattened path, separated with another '.'
 	bool found_prefixed_files = false;
-	for ( auto it = zeek::net::detail::files_scanned.begin();
-	      it != zeek::net::detail::files_scanned.end(); ++it )
+	for ( auto& scanned_file : zeek::detail::files_scanned )
 		{
-		if ( it->skipped || it->prefixes_checked )
+		if ( scanned_file.skipped || scanned_file.prefixes_checked )
 			continue;
 
-		it->prefixes_checked = true;
+		scanned_file.prefixes_checked = true;
 		// Prefixes are pushed onto a stack, so iterate backwards.
 		for ( int i = zeek::detail::zeek_script_prefixes.size() - 1; i >= 0; --i )
 			{
@@ -903,7 +901,7 @@ int yywrap()
 			if ( ! zeek::detail::zeek_script_prefixes[i][0] )
 				continue;
 
-			std::string canon = zeek::util::detail::without_zeekpath_component(it->name);
+			std::string canon = zeek::util::detail::without_zeekpath_component(scanned_file.name);
 			std::string flat = zeek::util::detail::flatten_script_name(canon, zeek::detail::zeek_script_prefixes[i]);
 			std::string path = find_relative_script_file(flat);
 
@@ -914,7 +912,7 @@ int yywrap()
 				}
 
 			//printf("====== prefix search ======\n");
-			//printf("File  : %s\n", it->name.c_str());
+			//printf("File  : %s\n", scanned_file.name.c_str());
 			//printf("Canon : %s\n", canon.c_str());
 			//printf("Flat  : %s\n", flat.c_str());
 			//printf("Found : %s\n", path.empty() ? "F" : "T");
@@ -1026,43 +1024,4 @@ FileInfo::~FileInfo()
 
 	if ( restore_module != "" )
 		zeek::detail::current_module = restore_module;
-	}
-
-zeek::net::detail::ScannedFile::ScannedFile(int arg_include_level,
-                                            std::string arg_name,
-                                            bool arg_skipped,
-                                            bool arg_prefixes_checked)
-	: include_level(arg_include_level),
-	  skipped(arg_skipped),
-	  prefixes_checked(arg_prefixes_checked),
-	  name(std::move(arg_name))
-	{
-	if ( name == canonical_stdin_path )
-		canonical_path = canonical_stdin_path;
-	else
-		{
-		char buf[PATH_MAX];
-		auto res = realpath(name.data(), buf);
-
-		if ( ! res )
-			zeek::reporter->FatalError("failed to get realpath() of %s: %s",
-			                           name.data(), strerror(errno));
-
-		canonical_path = res;
-		}
-	}
-
-bool zeek::net::detail::ScannedFile::AlreadyScanned() const
-	{
-	auto rval = false;
-
-	for ( const auto& it : zeek::net::detail::files_scanned )
-		if ( it.canonical_path == canonical_path )
-			{
-			rval = true;
-			break;
-			}
-
-	DBG_LOG(zeek::DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
-	return rval;
 	}

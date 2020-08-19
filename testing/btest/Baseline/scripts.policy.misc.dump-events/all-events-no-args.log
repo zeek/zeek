@@ -105,6 +105,7 @@
 1254722774.763825 Broker::log_flush
 1254722774.763825 smtp_request
 1254722775.105467 smtp_reply
+1254722775.105999 connection_finished
 1254722776.690444 Broker::log_flush
 1254722776.690444 new_connection
 1437831776.764391 ChecksumOffloading::check
@@ -231,14 +232,16 @@
 1437831800.217854 net_done
 1437831800.217854 Broker::log_flush
 1437831800.217854 filter_change_tracking
+1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
 1437831800.217854 successful_connection_remove
+1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 successful_connection_remove
+1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 successful_connection_remove
+1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 successful_connection_remove
+1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
 1437831800.217854 successful_connection_remove
 1437831800.217854 zeek_done

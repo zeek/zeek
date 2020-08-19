@@ -82,14 +82,12 @@ typedef int8_t int8;
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
 // which represent their entities as void* pointers.
 //
-#define PRI_PTR_COMPAT_INT PRIdPTR // Format to use with printf.
-#define PRI_PTR_COMPAT_UINT PRIuPTR
 #if SIZEOF_VOID_P == 8
 typedef uint64_t ptr_compat_uint [[deprecated("Remove in v4.1. Use std::uintptr_t.")]];
 typedef int64_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::intptr_t.")]];
 #elif SIZEOF_VOID_P == 4
 typedef uint32_t ptr_compat_uint [[deprecated("Remove in v4.1. Use std::uintptr_t")]];
-typedef int32_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::iintptr_t")]];
+typedef int32_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::intptr_t")]];
 #else
 # error "Unsupported pointer size."
 #endif
@@ -224,7 +222,6 @@ void set_thread_name(const char* name, pthread_t tid = pthread_self());
 // the obvious places (like Event.h or RemoteSerializer.h)
 
 using SourceID = std::uintptr_t;
-#define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 constexpr SourceID SOURCE_LOCAL = 0;
 
 // TODO: This is a temporary marker to flag events coming in via Broker.

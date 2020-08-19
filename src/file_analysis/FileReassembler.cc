@@ -12,10 +12,6 @@ FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
 	{
 	}
 
-FileReassembler::~FileReassembler()
-	{
-	}
-
 uint64_t FileReassembler::Flush()
 	{
 	if ( flushing )

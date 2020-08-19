@@ -15,7 +15,7 @@ class FileReassembler final : public zeek::Reassembler {
 public:
 
 	FileReassembler(File* f, uint64_t starting_offset);
-	~FileReassembler() override;
+	~FileReassembler() override = default;
 
 	void Done();
 

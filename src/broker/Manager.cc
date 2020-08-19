@@ -749,7 +749,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, zeek::Val* event)
 	return true;
 	}
 
-zeek::RecordVal* Manager::MakeEvent(val_list* args, zeek::detail::Frame* frame)
+zeek::RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 	{
 	auto rval = new zeek::RecordVal(zeek::BifType::Record::Broker::Event);
 	auto arg_vec = zeek::make_intrusive<zeek::VectorVal>(vector_of_data_type);

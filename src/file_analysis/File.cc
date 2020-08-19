@@ -625,13 +625,13 @@ void File::FileEvent(zeek::EventHandlerPtr h)
 	FileEvent(h, zeek::Args{val});
 	}
 
-void File::FileEvent(zeek::EventHandlerPtr h, val_list* vl)
+void File::FileEvent(zeek::EventHandlerPtr h, ValPList* vl)
 	{
 	FileEvent(h, zeek::val_list_to_args(*vl));
 	delete vl;
 	}
 
-void File::FileEvent(zeek::EventHandlerPtr h, val_list vl)
+void File::FileEvent(zeek::EventHandlerPtr h, ValPList vl)
 	{
 	FileEvent(h, zeek::val_list_to_args(vl));
 	}

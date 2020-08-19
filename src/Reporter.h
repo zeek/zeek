@@ -260,12 +260,12 @@ public:
 
 private:
 	void DoLog(const char* prefix, zeek::EventHandlerPtr event, FILE* out,
-		   Connection* conn, val_list* addl, bool location, bool time,
+		   Connection* conn, ValPList* addl, bool location, bool time,
 		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
 	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
 	// and that takes va_list anyway.
-	void WeirdHelper(zeek::EventHandlerPtr event, val_list vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	void WeirdHelper(zeek::EventHandlerPtr event, ValPList vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }

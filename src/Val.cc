@@ -3521,7 +3521,7 @@ bool same_atomic_val(const Val* v1, const Val* v2)
 	return false;
 	}
 
-void describe_vals(const val_list* vals, ODesc* d, int offset)
+void describe_vals(const ValPList* vals, ODesc* d, int offset)
 	{
 	if ( ! d->IsReadable() )
 		{
@@ -3556,7 +3556,7 @@ void describe_vals(const std::vector<ValPtr>& vals,
 		}
 	}
 
-void delete_vals(val_list* vals)
+void delete_vals(ValPList* vals)
 	{
 	if ( vals )
 		{

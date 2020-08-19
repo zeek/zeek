@@ -3022,7 +3022,7 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 	// Spin through the list, which should be comprised only of
 	// record-field-assign expressions, and build up a
 	// record type to associate with this constructor.
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 	type_decl_list* record_types = new type_decl_list(exprs.length());
 
 	for ( const auto& e : exprs )
@@ -3130,7 +3130,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		attrs = zeek::make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
-	const expr_list& cle = op->AsListExpr()->Exprs();
+	const ExprPList& cle = op->AsListExpr()->Exprs();
 
 	// check and promote all index expressions in ctor list
 	for ( const auto& expr : cle )
@@ -3143,7 +3143,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		if ( idx_expr->Tag() != EXPR_LIST )
 			continue;
 
-		expr_list& idx_exprs = idx_expr->AsListExpr()->Exprs();
+		ExprPList& idx_exprs = idx_expr->AsListExpr()->Exprs();
 
 		if ( idx_exprs.length() != static_cast<int>(indices.size()) )
 			continue;
@@ -3176,7 +3176,7 @@ ValPtr TableConstructorExpr::Eval(Frame* f) const
 		return nullptr;
 
 	auto aggr = zeek::make_intrusive<zeek::TableVal>(GetType<TableType>(), attrs);
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
 		expr->EvalIntoAggregate(type.get(), aggr.get(), f);
@@ -3196,7 +3196,7 @@ ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	auto tval = aggr ?
 	        TableValPtr{zeek::AdoptRef{}, aggr.release()->AsTableVal()} :
 	zeek::make_intrusive<zeek::TableVal>(std::move(tt), attrs);
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
 		expr->EvalIntoAggregate(t, tval.get(), nullptr);
@@ -3248,7 +3248,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 		attrs = zeek::make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
-	expr_list& cle = op->AsListExpr()->Exprs();
+	ExprPList& cle = op->AsListExpr()->Exprs();
 
 	if ( indices.size() == 1 )
 		{
@@ -3286,7 +3286,7 @@ ValPtr SetConstructorExpr::Eval(Frame* f) const
 
 	auto aggr = zeek::make_intrusive<zeek::TableVal>(IntrusivePtr{zeek::NewRef{}, type->AsTableType()},
 	                                     attrs);
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
 		{
@@ -3307,7 +3307,7 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	auto tval = aggr ?
 	        TableValPtr{zeek::AdoptRef{}, aggr.release()->AsTableVal()} :
 	zeek::make_intrusive<zeek::TableVal>(std::move(tt), attrs);
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& e : exprs )
 		{
@@ -3379,7 +3379,7 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const
 		return nullptr;
 
 	auto vec = zeek::make_intrusive<zeek::VectorVal>(GetType<zeek::VectorType>());
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
 		{
@@ -3404,7 +3404,7 @@ ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	auto vec = aggr ?
 	        VectorValPtr{zeek::AdoptRef{}, aggr.release()->AsVectorVal()} :
 	zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
-	const expr_list& exprs = op->AsListExpr()->Exprs();
+	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
 		{
@@ -4210,7 +4210,7 @@ void CallExpr::ExprDescribe(ODesc* d) const
 	}
 
 LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
-                       id_list arg_outer_ids) : Expr(EXPR_LAMBDA)
+                       IDPList arg_outer_ids) : Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
@@ -4742,7 +4742,7 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 RecordAssignExpr::RecordAssignExpr(const ExprPtr& record,
                                    const ExprPtr& init_list, bool is_init)
 	{
-	const expr_list& inits = init_list->AsListExpr()->Exprs();
+	const ExprPList& inits = init_list->AsListExpr()->Exprs();
 
 	RecordType* lhs = record->GetType()->AsRecordType();
 
@@ -4968,7 +4968,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	{
-	expr_list& el = elements->Exprs();
+	ExprPList& el = elements->Exprs();
 	const auto& tl = types->GetTypes();
 
 	if ( tl.size() == 1 && tl[0]->Tag() == zeek::TYPE_ANY )
@@ -5003,7 +5003,7 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 
 bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	{
-	expr_list& el = args->Exprs();
+	ExprPList& el = args->Exprs();
 	int ntypes = types->NumFields();
 
 	// give variadic BIFs automatic pass
@@ -5012,7 +5012,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 
 	if ( el.length() < ntypes )
 		{
-		expr_list def_elements;
+		ExprPList def_elements;
 
 		// Start from rightmost parameter, work backward to fill in missing
 		// arguments using &default expressions.
@@ -5047,7 +5047,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 
 bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
 	{
-	expr_list& el = elements->Exprs();
+	ExprPList& el = elements->Exprs();
 
 	if ( type->Tag() == zeek::TYPE_ANY )
 		return true;
@@ -5075,7 +5075,7 @@ bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
 
 std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l)
 	{
-	const expr_list& e = l->Exprs();
+	const ExprPList& e = l->Exprs();
 	auto rval = std::make_optional<std::vector<ValPtr>>();
 	rval->reserve(e.length());
 

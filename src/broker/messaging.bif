@@ -47,7 +47,7 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 	return rval;
 	}
 
-static bool publish_event_args(zeek::val_list& args, const zeek::String* topic,
+static bool publish_event_args(zeek::ValPList& args, const zeek::String* topic,
                                zeek::detail::Frame* frame)
 	{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
@@ -84,7 +84,7 @@ function Broker::make_event%(...%): Broker::Event
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	const auto& bif_args = @ARGS@;
-	val_list args(bif_args->size());
+	ValPList args(bif_args->size());
 
 	for ( auto i = 0u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
@@ -104,7 +104,7 @@ function Broker::make_event%(...%): Broker::Event
 function Broker::publish%(topic: string, ...%): bool
 	%{
 	const auto& bif_args = @ARGS@;
-	val_list args(bif_args->size() - 1);
+	ValPList args(bif_args->size() - 1);
 
 	for ( auto i = 1u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
@@ -194,7 +194,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		return zeek::val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
-	val_list args(bif_args->size() - 2);
+	ValPList args(bif_args->size() - 2);
 
 	for ( auto i = 2u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
@@ -231,7 +231,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		return zeek::val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
-	val_list args(bif_args->size() - 2);
+	ValPList args(bif_args->size() - 2);
 
 	for ( auto i = 2u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());

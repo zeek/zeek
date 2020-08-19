@@ -621,7 +621,7 @@ Manager::HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent,
                           zeek::Args* vecargs) const
 	{
 	HookArgumentList args;
-	val_list vargs;
+	ValPList vargs;
 
 	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
 		{
@@ -865,7 +865,7 @@ bool Manager::HookLogWrite(const std::string& writer,
 	}
 
 bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-                           const zeek::Connection* conn, const val_list* addl, bool location,
+                           const zeek::Connection* conn, const ValPList* addl, bool location,
                            const zeek::detail::Location* location1,
                            const zeek::detail::Location* location2,
                            bool time, const std::string& message)

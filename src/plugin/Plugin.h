@@ -226,7 +226,7 @@ public:
 	/**
 	 * Constructor with a list of Bro values argument.
 	 */
-	explicit HookArgument(const val_list* a)	{ type = VAL_LIST; arg.vals = a; }
+	explicit HookArgument(const ValPList* a)	{ type = VAL_LIST; arg.vals = a; }
 
 	/**
 	 * Constructor with a void pointer argument.
@@ -339,7 +339,7 @@ public:
 	 * Returns the value for a list of Bro values argument. The argument's type must
 	 * match accordingly.
 	 */
-	const val_list* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
+	const ValPList* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
 
 	/**
 	 * Returns the value as a zeek::Args.
@@ -375,7 +375,7 @@ private:
 		const zeek::detail::Frame* frame;
 		int int_;
 		const Val* val;
-		const val_list* vals;
+		const ValPList* vals;
 		const zeek::Args* args;
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
@@ -682,7 +682,7 @@ protected:
 	HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent, zeek::Args* args);
 
 	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]
-	virtual std::pair<bool, Val*> HookCallFunction(const zeek::Func* func, zeek::detail::Frame *parent, val_list* args);
+	virtual std::pair<bool, Val*> HookCallFunction(const zeek::Func* func, zeek::detail::Frame *parent, ValPList* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
@@ -833,7 +833,7 @@ protected:
 	 *         if the event call should be skipped
 	 */
 	virtual bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
-	                          const Connection* conn, const val_list* addl, bool location,
+	                          const Connection* conn, const ValPList* addl, bool location,
 	                          const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                          bool time, const std::string& message);
 

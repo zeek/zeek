@@ -150,7 +150,7 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, TypePtr t, bool arg_in_record, bool is_global)
+Attributes::Attributes(AttrPList* a, TypePtr t, bool arg_in_record, bool is_global)
 	{
 	attrs_list.resize(a->length());
 	attrs.reserve(a->length());
@@ -537,7 +537,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		const auto& table_index_types = the_table->GetIndexTypes();
 
-		type_list expected_args(1 + static_cast<int>(table_index_types.size()));
+		TypePList expected_args(1 + static_cast<int>(table_index_types.size()));
 		expected_args.push_back(type->AsTableType());
 
 		for ( const auto& t : table_index_types )

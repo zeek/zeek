@@ -154,7 +154,7 @@ void Stmt::AccessStats(ODesc* d) const
 ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l)
 	: Stmt(t), l(std::move(arg_l))
 	{
-	const expr_list& e = l->Exprs();
+	const ExprPList& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
 		const auto& t = expr->GetType();
@@ -192,7 +192,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	const expr_list& e = l->Exprs();
+	const ExprPList& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
 		tc = expr->Traverse(cb);
@@ -484,7 +484,7 @@ static StmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-Case::Case(ListExprPtr arg_expr_cases, id_list* arg_type_cases,
+Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases,
            StmtPtr arg_s)
 	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases),
 	  s(std::move(arg_s))
@@ -525,7 +525,7 @@ void Case::Describe(ODesc* d) const
 
 	if ( expr_cases )
 		{
-		const expr_list& e = expr_cases->Exprs();
+		const ExprPList& e = expr_cases->Exprs();
 
 		d->AddCount(e.length());
 
@@ -541,7 +541,7 @@ void Case::Describe(ODesc* d) const
 
 	if ( type_cases )
 		{
-		const id_list& t = *type_cases;
+		const IDPList& t = *type_cases;
 
 		d->AddCount(t.length());
 
@@ -622,7 +622,7 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 		{
 		Case* c = (*cases)[i];
 		ListExpr* le = c->ExprCases();
-		id_list* tl = c->TypeCases();
+		IDPList* tl = c->TypeCases();
 
 		if ( le )
 			{
@@ -637,7 +637,7 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 				continue;
 				}
 
-			expr_list& exprs = le->Exprs();
+			ExprPList& exprs = le->Exprs();
 
 			loop_over_list(exprs, j)
 				{
@@ -1081,7 +1081,7 @@ ValPtr WhileStmt::Exec(Frame* f, StmtFlowType& flow) const
 	return rval;
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars, ExprPtr loop_expr)
+ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 	: ExprStmt(STMT_FOR, std::move(loop_expr))
 	{
 	loop_vars = arg_loop_vars;
@@ -1163,7 +1163,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, ExprPtr loop_expr)
 		e->Error("target to iterate over must be a table, set, vector, or string");
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars,
+ForStmt::ForStmt(IDPList* arg_loop_vars,
                  ExprPtr loop_expr, IDPtr val_var)
 	: ForStmt(arg_loop_vars, std::move(loop_expr))
 	{

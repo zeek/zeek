@@ -502,7 +502,7 @@ void Connection::Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyz
 		             zeek::IntrusivePtr{zeek::AdoptRef{}, v1});
 	}
 
-void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
+void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, ValPList vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -515,14 +515,14 @@ void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyz
 	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list vl)
+void Connection::ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, ValPList vl)
 	{
 	// "this" is passed as a cookie for the event
 	zeek::event_mgr.Enqueue(f, zeek::val_list_to_args(vl), zeek::util::detail::SOURCE_LOCAL,
 	                        a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, val_list* vl)
+void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, ValPList* vl)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
@@ -572,7 +572,7 @@ void Connection::CancelTimers()
 	// call RemoveTimer(), which would then modify the list we're just
 	// traversing. Thus, we first make a copy of the list which we then
 	// iterate through.
-	timer_list tmp(timers.length());
+	TimerPList tmp(timers.length());
 	std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
 
 	for ( const auto& timer : tmp )

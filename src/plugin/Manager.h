@@ -389,7 +389,7 @@ public:
 	 *         if the event call should be skipped
 	 */
 	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
-	                  const Connection* conn, const val_list* addl, bool location,
+	                  const Connection* conn, const ValPList* addl, bool location,
 	                  const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                  bool time, const std::string& message);
 

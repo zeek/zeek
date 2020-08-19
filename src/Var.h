@@ -52,7 +52,7 @@ extern void begin_func(zeek::detail::IDPtr id, const char* module_name,
 extern void end_func(zeek::detail::StmtPtr body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
-extern id_list gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body);
+extern IDPList gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body);
 
 } // namespace zeek::detail
 

@@ -9,7 +9,7 @@
 #include "analyzer/Tag.h"
 #include "AnalyzerSet.h"
 #include "ZeekString.h"
-#include "ZeekList.h" // for val_list
+#include "ZeekList.h" // for ValPList
 #include "ZeekArgs.h"
 #include "WeirdState.h"
 
@@ -193,7 +193,7 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(zeek::EventHandlerPtr h, val_list* vl);
+	void FileEvent(zeek::EventHandlerPtr h, ValPList* vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -201,7 +201,7 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(zeek::EventHandlerPtr h, val_list vl);
+	void FileEvent(zeek::EventHandlerPtr h, ValPList vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.

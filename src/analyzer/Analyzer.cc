@@ -748,7 +748,7 @@ void Analyzer::CancelTimers()
 	// call RemoveTimer(), which would then modify the list we're just
 	// traversing.  Thus, we first make a copy of the list which we then
 	// iterate through.
-	timer_list tmp(timers.length());
+	TimerPList tmp(timers.length());
 	std::copy(timers.begin(), timers.end(), back_inserter(tmp));
 
 	// TODO: could be a for_each
@@ -813,7 +813,7 @@ void Analyzer::Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2)
 		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
 	}
 
-void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
+void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList* vl)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 
@@ -821,7 +821,7 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 		conn->EnqueueEvent(f, this, std::move(args));
 	}
 
-void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
+void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -829,7 +829,7 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
 		conn->EnqueueEvent(f, this, std::move(args));
 	}
 
-void Analyzer::ConnectionEventFast(EventHandlerPtr f, val_list vl)
+void Analyzer::ConnectionEventFast(EventHandlerPtr f, ValPList vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 	conn->EnqueueEvent(f, this, std::move(args));

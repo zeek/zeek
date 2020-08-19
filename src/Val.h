@@ -1408,10 +1408,10 @@ extern ValPtr check_and_promote(
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
-extern void describe_vals(const val_list* vals, ODesc* d, int offset=0);
+extern void describe_vals(const ValPList* vals, ODesc* d, int offset=0);
 extern void describe_vals(const std::vector<ValPtr>& vals,
                           ODesc* d, size_t offset = 0);
-extern void delete_vals(val_list* vals);
+extern void delete_vals(ValPList* vals);
 
 // True if the given Val* has a vector type.
 inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == zeek::TYPE_VECTOR; }

@@ -236,7 +236,7 @@ public:
 	 * @return an `Event` record value.  If an invalid event or arguments
 	 * were supplied the optional "name" field will not be set.
 	 */
-	zeek::RecordVal* MakeEvent(val_list* args, zeek::detail::Frame* frame);
+	zeek::RecordVal* MakeEvent(ValPList* args, zeek::detail::Frame* frame);
 
 	/**
 	 * Register interest in peer event messages that use a certain topic prefix.

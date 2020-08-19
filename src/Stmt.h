@@ -155,14 +155,14 @@ protected:
 
 class Case final : public Obj {
 public:
-	Case(ListExprPtr c, id_list* types, StmtPtr arg_s);
+	Case(ListExprPtr c, IDPList* types, StmtPtr arg_s);
 	~Case() override;
 
 	const ListExpr* ExprCases() const	{ return expr_cases.get(); }
 	ListExpr* ExprCases()		{ return expr_cases.get(); }
 
-	const id_list* TypeCases() const	{ return type_cases; }
-	id_list* TypeCases()		{ return type_cases; }
+	const IDPList* TypeCases() const	{ return type_cases; }
+	IDPList* TypeCases()		{ return type_cases; }
 
 	const Stmt* Body() const	{ return s.get(); }
 	Stmt* Body()			{ return s.get(); }
@@ -173,7 +173,7 @@ public:
 
 protected:
 	ListExprPtr expr_cases;
-	id_list* type_cases;
+	IDPList* type_cases;
 	StmtPtr s;
 };
 
@@ -273,14 +273,14 @@ protected:
 
 class ForStmt final : public ExprStmt {
 public:
-	ForStmt(id_list* loop_vars, ExprPtr loop_expr);
+	ForStmt(IDPList* loop_vars, ExprPtr loop_expr);
 	// Special constructor for key value for loop.
-	ForStmt(id_list* loop_vars, ExprPtr loop_expr, IDPtr val_var);
+	ForStmt(IDPList* loop_vars, ExprPtr loop_expr, IDPtr val_var);
 	~ForStmt() override;
 
 	void AddBody(StmtPtr arg_body)	{ body = std::move(arg_body); }
 
-	const id_list* LoopVar() const	{ return loop_vars; }
+	const IDPList* LoopVar() const	{ return loop_vars; }
 	const Expr* LoopExpr() const	{ return e.get(); }
 	const Stmt* LoopBody() const	{ return body.get(); }
 
@@ -293,7 +293,7 @@ public:
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
 
-	id_list* loop_vars;
+	IDPList* loop_vars;
 	StmtPtr body;
 	// Stores the value variable being used for a key value for loop.
 	// Always set to nullptr unless special constructor is called.
@@ -358,8 +358,8 @@ public:
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
-	const stmt_list& Stmts() const	{ return stmts; }
-	stmt_list& Stmts()		{ return stmts; }
+	const StmtPList& Stmts() const	{ return stmts; }
+	StmtPList& Stmts()		{ return stmts; }
 
 	void Describe(ODesc* d) const override;
 
@@ -368,7 +368,7 @@ public:
 protected:
 	bool IsPure() const override;
 
-	stmt_list stmts;
+	StmtPList stmts;
 };
 
 class EventBodyList final : public StmtList {

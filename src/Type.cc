@@ -350,7 +350,7 @@ int IndexType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
 	const auto& types = indices->GetTypes();
-	const expr_list& exprs = index->Exprs();
+	const ExprPList& exprs = index->Exprs();
 
 	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET &&
 	     exprs.length() == 1 && exprs[0]->GetType()->Tag() == TYPE_ADDR )
@@ -603,7 +603,7 @@ int FuncType::MatchesIndex(zeek::detail::ListExpr* const index) const
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
-bool FuncType::CheckArgs(const type_list* args, bool is_init) const
+bool FuncType::CheckArgs(const TypePList* args, bool is_init) const
 	{
 	std::vector<TypePtr> as;
 	as.reserve(args->length());
@@ -1455,7 +1455,7 @@ const TypePtr& VectorType::Yield() const
 
 int VectorType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
-	expr_list& el = index->Exprs();
+	ExprPList& el = index->Exprs();
 
 	if ( el.length() != 1 && el.length() != 2)
 		return DOES_NOT_MATCH_INDEX;
@@ -2119,7 +2119,7 @@ TypePtr init_type(zeek::detail::Expr* init)
 		}
 
 	zeek::detail::ListExpr* init_list = init->AsListExpr();
-	const expr_list& el = init_list->Exprs();
+	const ExprPList& el = init_list->Exprs();
 
 	if ( el.length() == 0 )
 		{

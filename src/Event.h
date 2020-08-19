@@ -61,7 +61,7 @@ public:
 	// because it would be a waste of effort to construct all the event
 	// arguments when there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
-	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
+	void QueueEventFast(const EventHandlerPtr &h, ValPList vl,
 	                    zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	                    zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
@@ -72,7 +72,7 @@ public:
 	// QueueEventFast() instead of this function to prevent the redundant
 	// existence check.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
-	void QueueEvent(const EventHandlerPtr &h, val_list vl,
+	void QueueEvent(const EventHandlerPtr &h, ValPList vl,
 	                zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 
@@ -81,7 +81,7 @@ public:
 	// memory pointed to by 'vl' as well as decrementing the reference count of
 	// each of its elements.
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
-	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
+	void QueueEvent(const EventHandlerPtr &h, ValPList* vl,
 	                zeek::util::detail::SourceID src = zeek::util::detail::SOURCE_LOCAL, zeek::analyzer::ID aid = 0,
 	                zeek::detail::TimerMgr* mgr = nullptr, zeek::Obj* obj = nullptr);
 

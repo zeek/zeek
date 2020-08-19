@@ -25,7 +25,7 @@ using Args = std::vector<ValPtr>;
  * @return  the converted argument list
  *
  */
-Args val_list_to_args(const val_list& vl);
+Args val_list_to_args(const ValPList& vl);
 
 /**
  * Creates a vector of "call_argument" meta data describing the arguments to

@@ -94,14 +94,14 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
-void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
+void EventMgr::QueueEventFast(const EventHandlerPtr &h, ValPList vl,
                               zeek::util::detail::SourceID src, analyzer::ID aid, zeek::detail::TimerMgr* mgr,
                               Obj* obj)
 	{
 	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
 	}
 
-void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
+void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList vl,
                           zeek::util::detail::SourceID src, analyzer::ID aid,
                           zeek::detail::TimerMgr* mgr, Obj* obj)
 	{
@@ -111,7 +111,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
 		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
-void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
+void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList* vl,
                           zeek::util::detail::SourceID src, analyzer::ID aid,
                           zeek::detail::TimerMgr* mgr, Obj* obj)
 	{

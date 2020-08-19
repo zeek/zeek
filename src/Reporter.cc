@@ -235,7 +235,7 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, ValPList vl, const char* fmt_name, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt_name);
@@ -453,7 +453,7 @@ void Reporter::Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const c
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
-                     Connection* conn, val_list* addl, bool location, bool time,
+                     Connection* conn, ValPList* addl, bool location, bool time,
                      const char* postfix, const char* fmt, va_list ap)
 	{
 	static char tmp[512];

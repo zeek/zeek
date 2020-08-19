@@ -583,21 +583,21 @@ public:
 	 * Connection::ConnectionEvent().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
+	void ConnectionEvent(EventHandlerPtr f, ValPList* vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, val_list vl);
+	void ConnectionEvent(EventHandlerPtr f, ValPList vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEventFast().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
-	void ConnectionEventFast(EventHandlerPtr f, val_list vl);
+	void ConnectionEventFast(EventHandlerPtr f, ValPList vl);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -743,7 +743,7 @@ private:
 
 	bool protocol_confirmed;
 
-	timer_list timers;
+	TimerPList timers;
 	bool timers_canceled;
 	bool skip;
 	bool finished;

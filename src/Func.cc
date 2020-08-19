@@ -286,7 +286,7 @@ void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 	}
 	}
 
-zeek::Val* Func::Call(val_list* args, zeek::detail::Frame* parent) const
+zeek::Val* Func::Call(ValPList* args, zeek::detail::Frame* parent) const
 	{
 	auto zargs = zeek::val_list_to_args(*args);
 	return Invoke(&zargs, parent).release();
@@ -498,7 +498,7 @@ void ScriptFunc::AddBody(zeek::detail::StmtPtr new_body,
 	sort(bodies.begin(), bodies.end());
 	}
 
-void ScriptFunc::AddClosure(id_list ids, zeek::detail::Frame* f)
+void ScriptFunc::AddClosure(IDPList ids, zeek::detail::Frame* f)
 	{
 	if ( ! f )
 		return;
@@ -689,7 +689,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 	if ( f->TheFunc() != zeek::BifFunc::fmt_bif)
 		return true;
 
-	const expr_list& args = call->Args()->Exprs();
+	const ExprPList& args = call->Args()->Exprs();
 	if ( args.length() == 0 )
 		{
 		// Empty calls are allowed, since you can't just

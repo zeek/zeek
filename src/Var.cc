@@ -744,12 +744,12 @@ zeek::Val* internal_val(const char* name)
 	return zeek::id::find_val(name).get();
 	}
 
-id_list gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body)
+IDPList gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body)
 	{
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);
 
-	id_list idl ( cb.outer_id_references.size() );
+	IDPList idl ( cb.outer_id_references.size() );
 
 	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
 		{

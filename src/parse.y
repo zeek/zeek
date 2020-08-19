@@ -232,7 +232,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	bool b;
 	char* str;
 	zeek::detail::ID* id;
-	zeek::id_list* id_l;
+	zeek::IDPList* id_l;
 	zeek::detail::InitClass ic;
 	zeek::Val* val;
 	zeek::RE_Matcher* re;
@@ -1255,7 +1255,7 @@ lambda_body:
 			auto ingredients = std::make_unique<zeek::detail::function_ingredients>(
 				zeek::IntrusivePtr{zeek::NewRef{}, zeek::detail::current_scope()},
 				zeek::IntrusivePtr{zeek::AdoptRef{}, $3});
-			zeek::id_list outer_ids = zeek::detail::gather_outer_ids(zeek::detail::pop_scope().get(), ingredients->body.get());
+			zeek::IDPList outer_ids = zeek::detail::gather_outer_ids(zeek::detail::pop_scope().get(), ingredients->body.get());
 
 			$$ = new zeek::detail::LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}
@@ -1653,7 +1653,7 @@ case_type_list:
 	|
 		case_type
 			{
-			$$ = new zeek::id_list;
+			$$ = new zeek::IDPList;
 			$$->push_back($1);
 			}
 	;
@@ -1704,7 +1704,7 @@ for_head:
 				                                    false, false);
 				}
 
-			auto* loop_vars = new zeek::id_list;
+			auto* loop_vars = new zeek::IDPList;
 			loop_vars->push_back(loop_var.release());
 
 			$$ = new zeek::detail::ForStmt(loop_vars, {zeek::AdoptRef{}, $5});
@@ -1742,7 +1742,7 @@ for_head:
 			else
 				val_var = zeek::detail::install_ID($5, module, false, false);
 
-			auto* loop_vars = new zeek::id_list;
+			auto* loop_vars = new zeek::IDPList;
 			loop_vars->push_back(key_var.release());
 
 			$$ = new zeek::detail::ForStmt(loop_vars, {zeek::AdoptRef{}, $7}, std::move(val_var));
@@ -1773,7 +1773,7 @@ local_id_list:
 			{ $1->push_back($3); }
 	|	local_id
 			{
-			$$ = new zeek::id_list;
+			$$ = new zeek::IDPList;
 			$$->push_back($1);
 			}
 	;

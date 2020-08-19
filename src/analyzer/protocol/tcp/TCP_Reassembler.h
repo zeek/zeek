@@ -82,7 +82,6 @@ public:
 		{ return seq + length <= seq_to_skip; }
 
 private:
-	TCP_Reassembler()	{ }
 
 	void Undelivered(uint64_t up_to_seq) override;
 	void Gap(uint64_t seq, uint64_t len);

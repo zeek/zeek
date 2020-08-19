@@ -65,7 +65,7 @@ public:
 	void Describe(ODesc* d) const;
 
 protected:
-	Timer()	= default;
+
 	TimerType type{};
 };
 

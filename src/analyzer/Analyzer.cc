@@ -22,13 +22,12 @@ public:
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
-	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
 
 	void Init(Analyzer* analyzer, analyzer_timer_func timer, int do_expire);
 
-	Analyzer* analyzer;
+	Analyzer* analyzer = nullptr;
 	analyzer_timer_func timer;
-	int do_expire;
+	int do_expire = 0;
 };
 
 } // namespace zeek::analyzer

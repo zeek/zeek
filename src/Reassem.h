@@ -292,7 +292,6 @@ public:
 	void SetMaxOldBlocks(uint32_t count)	{ max_old_blocks = count; }
 
 protected:
-	Reassembler()	{ }
 
 	friend class DataBlockList;
 

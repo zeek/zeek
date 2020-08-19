@@ -327,11 +327,11 @@ ZAM_record::ZAM_record(RecordVal* _rv, RecordType* _rt)
 bool ZAM_record::SetToDefault(unsigned int field)
 	{
 	auto v = rt->FieldDefault(field);
-	auto td = rt->FieldDecl(field);
-	auto t = td->type;
-
 	if ( ! v )
 		return false;
+
+	auto td = rt->FieldDecl(field);
+	auto t = td->type;
 
 	ZAMValUnion zvu(v, t.get());
 	Assign(field, zvu);

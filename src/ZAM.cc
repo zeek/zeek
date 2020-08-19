@@ -558,9 +558,23 @@ const CompiledStmt ZAM::ConstructSet(const NameExpr* n, const Expr* e)
 const CompiledStmt ZAM::ConstructRecord(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
+	auto rc = e->AsRecordConstructorExpr();
+	int* map = rc->Map();
 
-	auto z = GenInst(this, OP_CONSTRUCT_RECORD_V, n);
-	z.aux = InternalBuildVals(con);
+	ZInstI z;
+
+	if ( map )
+		{
+		z = GenInst(this, OP_CONSTRUCT_KNOWN_RECORD_V, n);
+		z.aux = InternalBuildVals(con);
+		z.aux->map = map;
+		}
+	else
+		{
+		z = GenInst(this, OP_CONSTRUCT_RECORD_V, n);
+		z.aux = InternalBuildVals(con);
+		}
+
 	z.t = e->Type().get();
 
 	return AddInst(z);

@@ -426,6 +426,10 @@ public:
 	IntrusivePtr<Val>* constants = nullptr;
 	IntrusivePtr<BroType>* types = nullptr;
 
+	// The following is only used for OP_CONSTRUCT_KNOWN_RECORD_V,
+	// to map elements in slots/constants/types to record field offsets.
+	const int* map = nullptr;
+
 	// If non-nil, then iteration information for a loop.
 	IterInfo* iter_info = nullptr;
 

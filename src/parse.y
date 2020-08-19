@@ -174,6 +174,8 @@ static std::vector<ZInst*> ZAM_insts;
 static std::vector<ZInstAux*> ZAM_auxes;
 static ZInstAux* curr_ZAM_aux;
 static int curr_ZAM_aux_index;
+static int* ZAM_aux_map;
+static int ZAM_aux_map_ind;
 static std::vector<int> ZAM_aux_iter_vec;
 
 IntrusivePtr<ZBody> ZAM_body;
@@ -663,10 +665,8 @@ expr:
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
 					{
-					auto rce = make_intrusive<RecordConstructorExpr>(
-					            IntrusivePtr<ListExpr>{AdoptRef{}, $4});
 					IntrusivePtr<RecordType> rt{NewRef{}, ctor_type->AsRecordType()};
-					$$ = new RecordCoerceExpr(std::move(rce), std::move(rt));
+					$$ = new RecordConstructorExpr(rt, IntrusivePtr<ListExpr>{AdoptRef{}, $4});
 					}
 					break;
 
@@ -2194,10 +2194,10 @@ ZAM_aux_list:	ZAM_aux_list ZAM_aux
 			{ ZAM_auxes.clear(); }
 	;
 
-ZAM_aux:	ZAM_aux_vals ZAM_aux_iter_info ',' ZAM_ID ','
+ZAM_aux:	ZAM_aux_vals ZAM_map_vals ZAM_aux_iter_info ',' ZAM_ID ','
 			{
-			if ( $4 )
-				curr_ZAM_aux->id_val = lookup_ID($4, GLOBAL_MODULE_NAME).release();
+			if ( $5 )
+				curr_ZAM_aux->id_val = lookup_ID($5, GLOBAL_MODULE_NAME).release();
 			}
 	;
 
@@ -2207,6 +2207,23 @@ ZAM_aux_vals:	ZAM_ind	{
 			ZAM_aux_iter_vec.clear();
 			}
 		ZAM_aux_item_list
+	;
+
+ZAM_map_vals:	';' '{' ZAM_ind
+			{
+			ZAM_aux_map = new int[$3];
+			ZAM_aux_map_ind = 0;
+			}
+		ZAM_map_list '}'
+			{ curr_ZAM_aux->map = ZAM_aux_map; }
+	|
+	;
+
+ZAM_map_list:	ZAM_map_list ZAM_ind
+			{
+			ZAM_aux_map[ZAM_aux_map_ind++] = $2;
+			}
+	|
 	;
 
 ZAM_aux_item_list:

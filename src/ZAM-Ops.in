@@ -737,6 +737,18 @@ eval auto& r = frame[z.v1].record_val
 eval Unref(r)
 eval r = new_r
 
+internal-op Construct-Known-Record
+type V
+eval auto rt = z.t->AsRecordType()
+eval auto new_r = new RecordVal(rt)
+eval auto aux = z.aux
+eval auto n = aux->n
+eval auto map = aux->map
+eval for ( auto i = 0; i < n; ++i ) new_r->Assign(map[i], aux->ToVal(frame, i).get())
+eval auto& r = frame[z.v1].record_val
+eval Unref(r)
+eval r = new_r
+
 direct-unary-op Vector-Constructor ConstructVector
 
 internal-op Construct-Vector

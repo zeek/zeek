@@ -822,6 +822,22 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 
 			d.AddSP(" }");
 			}
+
+		if ( item->map )
+			{
+			d.AddSP("; {");
+
+			d.Add(item->n);
+			d.SP();
+
+			for ( auto i = 0; i < item->n; ++i )
+				{
+				d.Add(item->map[i]);
+				d.SP();
+				}
+
+			d.AddSP("}");
+			}
 		}
 
 	auto& ii = item->iter_info;

@@ -5231,13 +5231,64 @@ RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			continue;
 			}
 
-		FieldAssignExpr* field = (FieldAssignExpr*) e;
+		FieldAssignExpr* field = e->AsFieldAssignExpr();
 		IntrusivePtr<BroType> field_type = field->Type();
 		char* field_name = copy_string(field->FieldName());
 		record_types->push_back(new TypeDecl(std::move(field_type), field_name));
 		}
 
 	SetType(make_intrusive<RecordType>(record_types));
+	}
+
+RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<RecordType> known_rt,
+				IntrusivePtr<ListExpr> constructor_list)
+	: UnaryExpr(EXPR_RECORD_CONSTRUCTOR, std::move(constructor_list))
+	{
+	if ( IsError() )
+		return;
+
+	SetType(known_rt);
+	rt = known_rt;
+
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+	map = new int[exprs.length()];
+
+	int i = 0;
+	for ( const auto& e : exprs )
+		{
+		if ( e->Tag() != EXPR_FIELD_ASSIGN )
+			{
+			Error("bad type in record constructor", e);
+			SetError();
+			continue;
+			}
+
+		auto field = e->AsFieldAssignExpr();
+		int index = known_rt->FieldOffset(field->FieldName());
+
+		if ( index < 0 )
+			{
+			Error("no such field in record", e);
+			SetError();
+			continue;
+			}
+
+		auto field_type = field->Type();
+
+		// We could consider factoring out the check-and-promote
+		// code in RecordCoerceExpr so we don't have to insist
+		// on direct type equivalence here, but for now we keep
+		// things simple.
+		auto known_ft = known_rt->FieldType(index);
+
+		if ( ! same_type(field_type.get(), known_ft) )
+			{
+			Error("incompatible field type", e);
+			SetError();
+			}
+
+		map[i++] = index;
+		}
 	}
 
 IntrusivePtr<Val> RecordConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
@@ -5262,13 +5313,16 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	ListVal* lv = v->AsListVal();
 	RecordType* rt = type->AsRecordType();
 
-	if ( lv->Length() != rt->NumFields() )
+	if ( ! map && lv->Length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
 	auto rv = make_intrusive<RecordVal>(rt);
 
 	for ( int i = 0; i < lv->Length(); ++i )
-		rv->Assign(i, lv->Index(i)->Ref());
+		{
+		int ind = map ? map[i] : i;
+		rv->Assign(ind, lv->Index(i)->Ref());
+		}
 
 	return rv;
 	}
@@ -5287,8 +5341,7 @@ bool RecordConstructorExpr::HasReducedOps(Reducer* c) const
 	return true;
 	}
 
-Expr* RecordConstructorExpr::Reduce(Reducer* c,
-					IntrusivePtr<Stmt>& red_stmt)
+Expr* RecordConstructorExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = ReduceToSingletons(c);
 
@@ -5334,14 +5387,28 @@ IntrusivePtr<Stmt> RecordConstructorExpr::ReduceToSingletons(Reducer* c)
 IntrusivePtr<Expr> RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	return make_intrusive<RecordConstructorExpr>(op_l);
+
+	if ( map )
+		return make_intrusive<RecordConstructorExpr>(rt, op_l);
+	else
+		return make_intrusive<RecordConstructorExpr>(op_l);
 	}
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	{
-	d->Add("[");
-	op->Describe(d);
-	d->Add("]");
+	if ( map )
+		{
+		d->Add(rt->GetName());
+		d->Add("(");
+		op->Describe(d);
+		d->Add(")");
+		}
+	else
+		{
+		d->Add("[");
+		op->Describe(d);
+		d->Add("]");
+		}
 	}
 
 TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,

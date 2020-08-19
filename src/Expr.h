@@ -96,6 +96,7 @@ class CondExpr;
 class RecordCoerceExpr;
 class TableConstructorExpr;
 class SetConstructorExpr;
+class RecordConstructorExpr;
 
 struct function_ingredients;
 
@@ -342,6 +343,7 @@ public:
 	ACCESSORS(EXPR_RECORD_COERCE, RecordCoerceExpr, AsRecordCoerceExpr);
 	ACCESSORS(EXPR_TABLE_CONSTRUCTOR, TableConstructorExpr, AsTableConstructorExpr);
 	ACCESSORS(EXPR_SET_CONSTRUCTOR, SetConstructorExpr, AsSetConstructorExpr);
+	ACCESSORS(EXPR_RECORD_CONSTRUCTOR, RecordConstructorExpr, AsRecordConstructorExpr);
 
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
@@ -1091,6 +1093,14 @@ class RecordConstructorExpr : public UnaryExpr {
 public:
 	explicit RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_list);
 
+	// This form is used to construct records of a known type.
+	explicit RecordConstructorExpr(IntrusivePtr<RecordType> known_rt,
+				IntrusivePtr<ListExpr> constructor_list);
+
+	~RecordConstructorExpr() override	{ delete map; }
+
+	int* Map() const	{ return map; }
+
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
@@ -1102,6 +1112,13 @@ protected:
 	IntrusivePtr<Expr> Duplicate() override;
 
 	void ExprDescribe(ODesc* d) const override;
+
+	// For constructing records of a known type, map[] provides
+	// a mapping from positions in the constructor list to positions
+	// in the record we're constructing.
+	int* map = nullptr;
+
+	IntrusivePtr<RecordType> rt;	// for convenience
 };
 
 class TableConstructorExpr : public UnaryExpr {

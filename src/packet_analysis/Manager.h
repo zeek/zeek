@@ -87,6 +87,16 @@ public:
 	 */
 	void ProcessPacket(Packet* packet);
 
+	/**
+	 * Looks up a packet analyzer by identifier considering the context
+	 * as given by current_state.
+	 *
+	 * @param identifier The identifier to look up.
+	 *
+	 * @return The analyzer corresponding to the identifier.
+	 */
+	AnalyzerPtr Dispatch(uint32_t identifier);
+
 private:
 
 	/**
@@ -98,8 +108,6 @@ private:
 	 * @param data Pointer to remaining payload.
 	 */
 	void CustomEncapsulationSkip(Packet* packet, const uint8_t* data);
-
-	AnalyzerPtr Dispatch(uint32_t identifier);
 
 	DispatcherPtr GetDispatcher(Config& configuration, const std::string& dispatcher_name);
 

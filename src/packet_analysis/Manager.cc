@@ -147,44 +147,22 @@ void Manager::ProcessPacket(Packet* packet)
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
 
-	// Dispatch and analyze layers
-	AnalyzerResult result = AnalyzerResult::Continue;
-	uint32_t next_layer_id = packet->link_type;
+	// Start packet analysis
 	const uint8_t* data = packet->data;
-	do
+
+	auto root_analyzer = Dispatch(packet->link_type);
+	if ( root_analyzer == nullptr )
 		{
-		auto current_analyzer = Dispatch(next_layer_id);
+		DBG_LOG(DBG_PACKET_ANALYSIS, "No analyzer for link type: %#x.",	packet->link_type);
+		packet->Weird("no_suitable_analyzer_found");
+		}
+	else
+		{
+		auto result = root_analyzer->Analyze(packet, data);
 
-		// Analyzer not found
-		if ( current_analyzer == nullptr )
-			{
-			DBG_LOG(DBG_PACKET_ANALYSIS, "Could not find analyzer for identifier %#x", next_layer_id);
-			packet->Weird("no_suitable_analyzer_found");
-			break;
-			}
-
-		// Analyze this layer and get identifier of next layer protocol
-		std::tie(result, next_layer_id) = current_analyzer->Analyze(packet, data);
-
-#ifdef DEBUG
-		switch ( result )
-			{
-			case AnalyzerResult::Continue:
-				DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
-				        current_analyzer->GetAnalyzerName(), next_layer_id);
-				break;
-			case AnalyzerResult::Terminate:
-				DBG_LOG(DBG_PACKET_ANALYSIS, "Done, last found layer identifier was %#x.", next_layer_id);
-				break;
-			case AnalyzerResult::Failed:
-				DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis failed in %s", current_analyzer->GetAnalyzerName());
-			}
-#endif
-
-		} while ( result == AnalyzerResult::Continue );
-
-	if ( result == AnalyzerResult::Terminate )
-		CustomEncapsulationSkip(packet, data);
+		if (result == AnalyzerResult::Terminate)
+			CustomEncapsulationSkip(packet, data);
+		}
 
 	// Processing finished, reset analyzer set state for next packet
 	current_state = root_dispatcher;

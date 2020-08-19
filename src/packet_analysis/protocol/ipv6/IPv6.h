@@ -12,7 +12,7 @@ public:
 	IPv6Analyzer();
 	~IPv6Analyzer() override = default;
 
-	AnalysisResultTuple Analyze(Packet* packet, const uint8_t*& data) override;
+	AnalyzerResult Analyze(Packet* packet, const uint8_t*& data) override;
 
 	static AnalyzerPtr Instantiate()
 		{

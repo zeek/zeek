@@ -44,4 +44,23 @@ bool Analyzer::IsAnalyzer(const char* name)
 	return packet_mgr->GetComponentName(tag).compare(name) == 0;
 	}
 
+AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
+		const uint8_t*& data, uint32_t identifier) const
+	{
+	auto inner_analyzer = packet_mgr->Dispatch(identifier);
+
+	if ( inner_analyzer == nullptr )
+		{
+		//TODO: Handle default analysis here
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
+				GetAnalyzerName(), identifier);
+		packet->Weird("no_suitable_analyzer_found");
+		return AnalyzerResult::Failed;
+		}
+
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
+			GetAnalyzerName(), identifier);
+	return inner_analyzer->Analyze(packet, data);
+	}
+
 }

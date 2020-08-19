@@ -10,7 +10,7 @@ EthernetAnalyzer::EthernetAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple EthernetAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	auto end_of_data = packet->GetEndOfData();
 
@@ -19,7 +19,7 @@ zeek::packet_analysis::AnalysisResultTuple EthernetAnalyzer::Analyze(Packet* pac
 	if ( data + 16 >= end_of_data )
 		{
 		packet->Weird("truncated_ethernet_frame");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	// Skip past Cisco FabricPath to encapsulated ethernet frame.
@@ -30,7 +30,7 @@ zeek::packet_analysis::AnalysisResultTuple EthernetAnalyzer::Analyze(Packet* pac
 		if ( data + cfplen + 14 >= end_of_data )
 			{
 			packet->Weird("truncated_link_header_cfp");
-			return { AnalyzerResult::Failed, 0 };
+			return AnalyzerResult::Failed;
 			}
 
 		data += cfplen;
@@ -47,7 +47,7 @@ zeek::packet_analysis::AnalysisResultTuple EthernetAnalyzer::Analyze(Packet* pac
 	if ( protocol >= 1536 )
 		{
 		data += 14;
-		return { AnalyzerResult::Continue, protocol };
+		return AnalyzeInnerPacket(packet, data, protocol);
 		}
 
 	// Other ethernet frame types
@@ -56,27 +56,28 @@ zeek::packet_analysis::AnalysisResultTuple EthernetAnalyzer::Analyze(Packet* pac
 		if ( data + 16 >= end_of_data )
 			{
 			packet->Weird("truncated_ethernet_frame");
-			return { AnalyzerResult::Failed, 0 };
+			return AnalyzerResult::Failed;
 			}
 
 		// In the following we use undefined EtherTypes to signal uncommon
 		// frame types. This allows specialized analyzers to take over.
 		// Note that pdata remains at the start of the ethernet frame.
+		//TODO: Lookup the analyzers on startup
 
 		// IEEE 802.2 SNAP
 		if ( data[14] == 0xAA && data[15] == 0xAA)
-			return { AnalyzerResult::Continue, 1502 };
+			return AnalyzeInnerPacket(packet, data, 1502);
 
 		// Novell raw IEEE 802.3
 		if ( data[14] == 0xFF && data[15] == 0xFF)
-			return { AnalyzerResult::Continue, 1503 };
+			return AnalyzeInnerPacket(packet, data, 1503);
 
 
 		// IEEE 802.2 LLC
-		return { AnalyzerResult::Continue, 1501 };
+		return AnalyzeInnerPacket(packet, data, 1501);
 		}
 
 	// Undefined (1500 < EtherType < 1536)
 	packet->Weird("undefined_ether_type");
-	return { AnalyzerResult::Failed, protocol };
+	return AnalyzerResult::Failed;
 	}

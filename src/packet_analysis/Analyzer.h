@@ -68,18 +68,29 @@ public:
 	 * protocol, the data reference should be updated to point to that payload.
 	 *
 	 * @param packet The packet to analyze.
-	 *
 	 * @param data Reference to the payload pointer into the raw packet.
 	 *
 	 * @return A tuple of analysis result and identifier. The result indicates
 	 * how to proceed. If analysis can continue, the identifier determines the
 	 * encapsulated protocol.
 	 */
-	virtual AnalysisResultTuple Analyze(Packet* packet, const uint8_t*& data) = 0;
+	virtual AnalyzerResult Analyze(Packet* packet, const uint8_t*& data) = 0;
 
 protected:
 	friend class Manager;
 
+	/**
+	 * Triggers analysis of the encapsulated packet. The encapsulated protocol
+	 * is determined using the given identifier.
+	 *
+	 * @param packet The packet to analyze.
+	 * @param data Reference to the payload pointer into the raw packet.
+	 * @param identifier The identifier of the encapsulated protocol.
+	 *
+	 * @return The outcome of the analysis.
+	 */
+	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
+			uint32_t identifier) const;
 private:
 	Tag tag;
 

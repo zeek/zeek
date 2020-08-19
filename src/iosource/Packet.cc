@@ -560,16 +560,16 @@ void Packet::ProcessLayer2()
 			}
 		}
 
-	else if ( encap_hdr_size )
+	else if ( zeek::detail::encap_hdr_size )
 		{
 		// Blanket encapsulation. We assume that what remains is IP.
-		if ( pdata + encap_hdr_size + sizeof(struct ip) >= end_of_data )
+		if ( pdata + zeek::detail::encap_hdr_size + sizeof(struct ip) >= end_of_data )
 			{
 			Weird("no_ip_left_after_encap");
 			return;
 			}
 
-		pdata += encap_hdr_size;
+		pdata += zeek::detail::encap_hdr_size;
 
 		const struct ip* ip = (const struct ip *)pdata;
 

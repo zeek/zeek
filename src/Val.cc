@@ -2557,8 +2557,8 @@ void TableVal::DoExpire(double t)
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
-	for ( int i = 0; i < table_incremental_step &&
-			 (v = tbl->NextEntry(k, expire_cookie)); ++i )
+	for ( int i = 0; i < zeek::detail::table_incremental_step &&
+		      (v = tbl->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2632,10 +2632,10 @@ void TableVal::DoExpire(double t)
 	if ( ! v )
 		{
 		expire_cookie = nullptr;
-		InitTimer(table_expire_interval);
+		InitTimer(zeek::detail::table_expire_interval);
 		}
 	else
-		InitTimer(table_expire_delay);
+		InitTimer(zeek::detail::table_expire_delay);
 	}
 
 double TableVal::GetExpireTime()

@@ -326,10 +326,10 @@ void Connection::SetInactivityTimeout(double timeout)
 
 void Connection::EnableStatusUpdateTimer()
 	{
-	if ( connection_status_update && connection_status_update_interval )
+	if ( connection_status_update && zeek::detail::connection_status_update_interval )
 		{
 		ADD_TIMER(&Connection::StatusUpdateTimer,
-		          zeek::net::network_time + connection_status_update_interval, 0,
+		          zeek::net::network_time + zeek::detail::connection_status_update_interval, 0,
 		          zeek::detail::TIMER_CONN_STATUS_UPDATE);
 		installed_status_timer = 1;
 		}
@@ -339,7 +339,7 @@ void Connection::StatusUpdateTimer(double t)
 	{
 	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
-	          zeek::net::network_time + connection_status_update_interval, 0,
+	          zeek::net::network_time + zeek::detail::connection_status_update_interval, 0,
 	          zeek::detail::TIMER_CONN_STATUS_UPDATE);
 	}
 
@@ -389,7 +389,7 @@ const zeek::RecordValPtr& Connection::ConnVal()
 		conn_val->Assign(6, zeek::val_mgr->EmptyString());	// history
 
 		if ( ! uid )
-			uid.Set(bits_per_uid);
+			uid.Set(zeek::detail::bits_per_uid);
 
 		conn_val->Assign(7, zeek::make_intrusive<zeek::StringVal>(uid.Base62("C").c_str()));
 

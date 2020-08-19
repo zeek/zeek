@@ -122,7 +122,7 @@ RETSIGTYPE watchdog(int /* signo */)
 
 	last_watchdog_proc_time = processing_start_time;
 
-	(void) alarm(watchdog_interval);
+	(void) alarm(zeek::detail::watchdog_interval);
 	return RETSIGVAL;
 	}
 
@@ -193,7 +193,7 @@ void net_init(const std::optional<std::string>& interface,
 		{
 		// Set up the watchdog to make sure we don't wedge.
 		(void) setsignal(SIGALRM, watchdog);
-		(void) alarm(watchdog_interval);
+		(void) alarm(zeek::detail::watchdog_interval);
 		}
 	}
 
@@ -203,7 +203,7 @@ void expire_timers(zeek::iosource::PktSrc* src_ps)
 
 	current_dispatched +=
 		zeek::detail::timer_mgr->Advance(network_time,
-			max_timer_expires - current_dispatched);
+			zeek::detail::max_timer_expires - current_dispatched);
 	}
 
 void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* src_ps)
@@ -232,7 +232,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 		static uint32_t load_freq = 0;
 
 		if ( load_freq == 0 )
-			load_freq = uint32_t(0xffffffff) / uint32_t(load_sample_freq);
+			load_freq = uint32_t(0xffffffff) / uint32_t(zeek::detail::load_sample_freq);
 
 		if ( uint32_t(zeek::util::detail::random_number() & 0xffffffff) < load_freq )
 			{

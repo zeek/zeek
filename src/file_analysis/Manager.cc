@@ -70,7 +70,7 @@ string Manager::HashHandle(const string& handle) const
 	zeek::detail::hash128_t hash;
 	zeek::detail::KeyedHash::StaticHash128(handle.data(), handle.size(), &hash);
 
-	return zeek::UID(bits_per_uid, hash, 2).Base62("F");
+	return zeek::UID(zeek::detail::bits_per_uid, hash, 2).Base62("F");
 	}
 
 void Manager::SetHandle(const string& handle)

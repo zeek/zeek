@@ -399,7 +399,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	// the scheduled ones.
 	if ( ! scheduled )
 		{ // Let's see if it's a port we know.
-		if ( check_port && ! dpd_ignore_ports )
+		if ( check_port && ! zeek::detail::dpd_ignore_ports )
 			{
 			int resp_port = ntohs(conn->RespPort());
 			tag_set* ports = LookupPort(conn->ConnTransport(), resp_port, false);
@@ -430,9 +430,9 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		// be turned on later by the TCP PIA.
 
 		bool reass = root->GetChildren().size() ||
-				dpd_reassemble_first_packets ||
-				tcp_content_deliver_all_orig ||
-				tcp_content_deliver_all_resp;
+				zeek::detail::dpd_reassemble_first_packets ||
+				zeek::detail::tcp_content_deliver_all_orig ||
+				zeek::detail::tcp_content_deliver_all_resp;
 
 		if ( tcp_contents && ! reass )
 			{

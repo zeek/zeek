@@ -46,7 +46,7 @@ public:
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
 		  proto(TRANSPORT_UNKNOWN), type(t),
-		  uid(zeek::UID(bits_per_uid))
+		  uid(zeek::UID(detail::bits_per_uid))
 		{
 		}
 

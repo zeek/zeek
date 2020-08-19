@@ -36,8 +36,8 @@ TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
 	seq_to_skip = 0;
 	in_delivery = false;
 
-	if ( tcp_max_old_segments )
-		SetMaxOldBlocks(tcp_max_old_segments);
+	if ( zeek::detail::tcp_max_old_segments )
+		SetMaxOldBlocks(zeek::detail::tcp_max_old_segments);
 
 	if ( ::tcp_contents )
 		{
@@ -50,8 +50,8 @@ TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
 			tcp_content_delivery_ports_resp;
 		auto result = ports->FindOrDefault(dst_port_val);
 
-		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
-		     (! IsOrig() && tcp_content_deliver_all_resp) ||
+		if ( (IsOrig() && zeek::detail::tcp_content_deliver_all_orig) ||
+		     (! IsOrig() && zeek::detail::tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
 		}
@@ -272,7 +272,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 	if ( record_contents_file )
 		RecordToSeq(last_reassem_seq, up_to_seq, record_contents_file);
 
-	if ( tcp_match_undelivered )
+	if ( zeek::detail::tcp_match_undelivered )
 		MatchUndelivered(up_to_seq, false);
 
 	// But we need to re-adjust last_reassem_seq in either case.
@@ -422,8 +422,8 @@ void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 		// the now-delivered data.
 		TrimToSeq(last_reassem_seq);
 
-	else if ( e->NoDataAcked() && tcp_max_initial_window &&
-		  e->Size() > static_cast<uint64_t>(tcp_max_initial_window) )
+	else if ( e->NoDataAcked() && zeek::detail::tcp_max_initial_window &&
+		  e->Size() > static_cast<uint64_t>(zeek::detail::tcp_max_initial_window) )
 		// We've sent quite a bit of data, yet none of it has
 		// been acked.  Presume that we're not seeing the peer's
 		// acks (perhaps due to filtering or split routing) and
@@ -504,16 +504,16 @@ bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 	NewBlock(t, seq, len, data);
 	flags = TCP_Flags();
 
-	if ( Endpoint()->NoDataAcked() && tcp_max_above_hole_without_any_acks &&
-	     NumUndeliveredBytes() > static_cast<uint64_t>(tcp_max_above_hole_without_any_acks) )
+	if ( Endpoint()->NoDataAcked() && zeek::detail::tcp_max_above_hole_without_any_acks &&
+	     NumUndeliveredBytes() > static_cast<uint64_t>(zeek::detail::tcp_max_above_hole_without_any_acks) )
 		{
 		tcp_analyzer->Weird("above_hole_data_without_any_acks");
 		ClearBlocks();
 		skip_deliveries = true;
 		}
 
-	if ( tcp_excessive_data_without_further_acks &&
-	     block_list.DataSize() > static_cast<uint64_t>(tcp_excessive_data_without_further_acks) )
+	if ( zeek::detail::tcp_excessive_data_without_further_acks &&
+	     block_list.DataSize() > static_cast<uint64_t>(zeek::detail::tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();

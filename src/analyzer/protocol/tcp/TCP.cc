@@ -127,7 +127,7 @@ TCP_Analyzer::TCP_Analyzer(zeek::Connection* conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-	                   zeek::net::network_time + tcp_SYN_timeout, false,
+	                   zeek::net::network_time + zeek::detail::tcp_SYN_timeout, false,
 	                   zeek::detail::TIMER_TCP_EXPIRE);
 
 	deferred_gen_event = close_deferred = 0;
@@ -275,7 +275,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, int len, int caplen)
 	{
-	if ( ! zeek::net::current_pkt->l3_checksummed && ! ignore_checksums && caplen >= len &&
+	if ( ! zeek::net::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >= len &&
 	     ! endpoint->ValidChecksum(tp, len) )
 		{
 		Weird("bad_TCP_checksum");
@@ -493,9 +493,9 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			else
 				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
 
-			if ( tcp_attempt_delay )
+			if ( zeek::detail::tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-				                   t + tcp_attempt_delay, true,
+				                   t + zeek::detail::tcp_attempt_delay, true,
 				                   zeek::detail::TIMER_TCP_ATTEMPT);
 			}
 		else
@@ -725,7 +725,7 @@ void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
 
 		if ( connection_reset )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
-			                   t + tcp_reset_delay, true,
+			                   t + zeek::detail::tcp_reset_delay, true,
 			                   zeek::detail::TIMER_TCP_RESET);
 		}
 	}
@@ -1113,8 +1113,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		++endpoint->FIN_cnt;
 
-		if ( endpoint->FIN_cnt >= tcp_storm_thresh && zeek::net::current_timestamp <
-		     endpoint->last_time + tcp_storm_interarrival_thresh )
+		if ( endpoint->FIN_cnt >= zeek::detail::tcp_storm_thresh && zeek::net::current_timestamp <
+		     endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
 			Weird("FIN_storm");
 
 		endpoint->FIN_seq = rel_seq + seg_len;
@@ -1124,8 +1124,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		++endpoint->RST_cnt;
 
-		if ( endpoint->RST_cnt >= tcp_storm_thresh && zeek::net::current_timestamp <
-		     endpoint->last_time + tcp_storm_interarrival_thresh )
+		if ( endpoint->RST_cnt >= zeek::detail::tcp_storm_thresh && zeek::net::current_timestamp <
+		     endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
 			Weird("RST_storm");
 
 		// This now happens often enough that it's
@@ -1513,7 +1513,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	if ( ! is_active )
 		return;
 
-	if ( Conn()->LastTime() + tcp_connection_linger < t )
+	if ( Conn()->LastTime() + zeek::detail::tcp_connection_linger < t )
 		{
 		if ( orig->did_close || resp->did_close )
 			{
@@ -1558,7 +1558,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	// Connection still active, so reschedule timer.
 	// ### if PQ_Element's were Obj's, could just Ref the timer
 	// and adjust its value here, instead of creating a new timer.
-	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + tcp_session_timer,
+	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + zeek::detail::tcp_session_timer,
 	                   false, zeek::detail::TIMER_TCP_EXPIRE);
 	}
 
@@ -1664,7 +1664,8 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 	if ( DEBUG_tcp_connection_close )
 		{
 		DEBUG_MSG("%.6f close_complete=%d tcp_close_delay=%f\n",
-		          zeek::net::network_time, close_complete, tcp_close_delay);
+		          zeek::net::network_time, close_complete,
+		          zeek::detail::tcp_close_delay);
 		}
 
 	if ( close_complete )
@@ -1697,9 +1698,9 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		//
 		// here, because that would cause the object to be
 		// deleted out from under us.
-		if ( tcp_close_delay != 0.0 )
+		if ( zeek::detail::tcp_close_delay != 0.0 )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ConnDeleteTimer,
-			                   Conn()->LastTime() + tcp_close_delay, false,
+			                   Conn()->LastTime() + zeek::detail::tcp_close_delay, false,
 			                   zeek::detail::TIMER_CONN_DELETE);
 		else
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), false,
@@ -1712,7 +1713,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			{ // First time we've seen anything from this side.
 			if ( connection_partial_close )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::PartialCloseTimer,
-				                   Conn()->LastTime() + tcp_partial_close_delay, false,
+				                   Conn()->LastTime() + zeek::detail::tcp_partial_close_delay, false,
 				                   zeek::detail::TIMER_TCP_PARTIAL_CLOSE );
 			}
 
@@ -1721,7 +1722,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			// Create a timer to look for the other side closing,
 			// too.
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-			                   Conn()->LastTime() + tcp_session_timer, false,
+			                   Conn()->LastTime() + zeek::detail::tcp_session_timer, false,
 			                   zeek::detail::TIMER_TCP_EXPIRE);
 			}
 		}
@@ -1869,7 +1870,7 @@ bool TCP_Analyzer::IsReuse(double t, const u_char* pkt)
 		  resp->state != TCP_ENDPOINT_RESET )
 		Weird("active_connection_reuse");
 
-	else if ( t - Conn()->LastTime() < tcp_connection_linger &&
+	else if ( t - Conn()->LastTime() < zeek::detail::tcp_connection_linger &&
 		  orig->state != TCP_ENDPOINT_RESET &&
 		  resp->state != TCP_ENDPOINT_RESET )
 		Weird("premature_connection_reuse");

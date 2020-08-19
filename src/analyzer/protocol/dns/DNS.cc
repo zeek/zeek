@@ -59,7 +59,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	// There is a great deal of non-DNS traffic that runs on port 53.
 	// This should weed out most of it.
-	if ( dns_max_queries > 0 && msg.qdcount > dns_max_queries )
+	if ( zeek::detail::dns_max_queries > 0 && msg.qdcount > zeek::detail::dns_max_queries )
 		{
 		analyzer->ProtocolViolation("DNS_Conn_count_too_large");
 		analyzer->Weird("DNS_Conn_count_too_large");
@@ -87,8 +87,8 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	analyzer->ProtocolConfirmation();
 
-	int skip_auth = dns_skip_all_auth;
-	int skip_addl = dns_skip_all_addl;
+	int skip_auth = zeek::detail::dns_skip_all_auth;
+	int skip_addl = zeek::detail::dns_skip_all_addl;
 	if ( msg.ancount > 0 )
 		{ // We did an answer, so can potentially skip auth/addl.
 		static auto dns_skip_auth = zeek::id::find_val<zeek::TableVal>("dns_skip_auth");
@@ -1908,7 +1908,7 @@ DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-		                   zeek::net::network_time + dns_session_timeout, true,
+		                   zeek::net::network_time + zeek::detail::dns_session_timeout, true,
 		                   zeek::detail::TIMER_DNS_EXPIRE);
 		}
 	}
@@ -1956,14 +1956,14 @@ void DNS_Analyzer::ExpireTimer(double t)
 	// The - 1.0 in the following is to allow 1 second for the
 	// common case of a single request followed by a single reply,
 	// so we don't needlessly set the timer twice in that case.
-	if ( t - Conn()->LastTime() >= dns_session_timeout - 1.0 || zeek::net::terminating )
+	if ( t - Conn()->LastTime() >= zeek::detail::dns_session_timeout - 1.0 || zeek::net::terminating )
 		{
 		Event(connection_timeout);
 		zeek::sessions->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-		                   t + dns_session_timeout, true,
+		                   t + zeek::detail::dns_session_timeout, true,
 		                   zeek::detail::TIMER_DNS_EXPIRE);
 	}
 

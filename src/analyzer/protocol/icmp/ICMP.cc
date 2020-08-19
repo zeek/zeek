@@ -24,7 +24,7 @@ ICMP_Analyzer::ICMP_Analyzer(zeek::Connection* c)
 	: TransportLayerAnalyzer("ICMP", c),
 	icmp_conn_val(), type(), code(), request_len(-1), reply_len(-1)
 	{
-	c->SetInactivityTimeout(icmp_inactivity_timeout);
+	c->SetInactivityTimeout(zeek::detail::icmp_inactivity_timeout);
 	}
 
 void ICMP_Analyzer::Done()
@@ -49,7 +49,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	const struct icmp* icmpp = (const struct icmp*) data;
 
-	if ( ! ignore_checksums && caplen >= len )
+	if ( ! zeek::detail::ignore_checksums && caplen >= len )
 		{
 		int chksum = 0;
 

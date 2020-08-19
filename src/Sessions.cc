@@ -89,9 +89,10 @@ NetSessions::NetSessions()
 	num_packets_processed = 0;
 	static auto pkt_profile_file = zeek::id::find_val("pkt_profile_file");
 
-	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
-		pkt_profiler = new zeek::detail::PacketProfiler(pkt_profile_mode,
-				pkt_profile_freq, pkt_profile_file->AsFile());
+	if ( zeek::detail::pkt_profile_mode && zeek::detail::pkt_profile_freq > 0 && pkt_profile_file )
+		pkt_profiler = new zeek::detail::PacketProfiler(zeek::detail::pkt_profile_mode,
+		                                                zeek::detail::pkt_profile_freq,
+		                                                pkt_profile_file->AsFile());
 	else
 		pkt_profiler = nullptr;
 
@@ -139,7 +140,7 @@ void NetSessions::NextPacket(double t, const zeek::Packet* pkt)
 
 	dump_this_packet = false;
 
-	if ( record_all_packets )
+	if ( zeek::detail::record_all_packets )
 		DumpPacket(pkt);
 
 	if ( pkt->hdr_size > pkt->cap_len )
@@ -188,7 +189,7 @@ void NetSessions::NextPacket(double t, const zeek::Packet* pkt)
 		}
 
 
-	if ( dump_this_packet && ! record_all_packets )
+	if ( dump_this_packet && ! zeek::detail::record_all_packets )
 		DumpPacket(pkt);
 	}
 
@@ -275,7 +276,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
 
-	if ( ! pkt->l2_checksummed && ! ignore_checksums && ip4 &&
+	if ( ! pkt->l2_checksummed && ! zeek::detail::ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
 		Weird("bad_IP_checksum", pkt, encapsulation);
@@ -1273,10 +1274,10 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 			{
 			// The new connection is starting either without a SYN,
 			// or with a SYN ack. This means it's a partial connection.
-			if ( ! partial_connection_ok )
+			if ( ! zeek::detail::partial_connection_ok )
 				return false;
 
-			if ( tcp_flags & TH_SYN && ! tcp_SYN_ack_ok )
+			if ( tcp_flags & TH_SYN && ! zeek::detail::tcp_SYN_ack_ok )
 				return false;
 
 			// Try to guess true responder by the port numbers.

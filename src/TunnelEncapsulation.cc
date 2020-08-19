@@ -13,7 +13,7 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 	{
 	if ( ! uid )
 		{
-		uid.Set(bits_per_uid);
+		uid.Set(zeek::detail::bits_per_uid);
 		c->SetUID(uid);
 		}
 	}

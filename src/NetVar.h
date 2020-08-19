@@ -6,7 +6,7 @@
 #include "EventRegistry.h"
 #include "Stats.h"
 
-namespace zeek {
+namespace zeek::detail {
 
 extern int watchdog_interval;
 
@@ -104,78 +104,77 @@ extern void init_general_global_var();
 extern void init_event_handlers();
 extern void init_net_var();
 
-} // namespace zeek
+} // namespace zeek::detail
 
-constexpr auto init_general_global_var [[deprecated("Remove in v4.1. Use zeek::init_general_global_var.")]] = zeek::init_general_global_var;
-constexpr auto init_event_handlers [[deprecated("Remove in v4.1. Use zeek::init_event_handlers.")]] = zeek::init_event_handlers;
-constexpr auto init_net_var [[deprecated("Remove in v4.1. Use zeek::init_net_var.")]] = zeek::init_net_var;
+constexpr auto init_general_global_var [[deprecated("Remove in v4.1. Use zeek::detail::init_general_global_var.")]] = zeek::detail::init_general_global_var;
+constexpr auto init_event_handlers [[deprecated("Remove in v4.1. Use zeek::detail::init_event_handlers.")]] = zeek::detail::init_event_handlers;
+constexpr auto init_net_var [[deprecated("Remove in v4.1. Use zeek::detail::init_net_var.")]] = zeek::detail::init_net_var;
 
-extern int& watchdog_interval [[deprecated("Remove in v4.1. Use zeek::watchdog_interval.")]];
-extern int& max_timer_expires [[deprecated("Remove in v4.1. Use zeek::max_timer_expires.")]];
-extern int& ignore_checksums [[deprecated("Remove in v4.1. Use zeek::ignore_checksums.")]];
-extern int& partial_connection_ok [[deprecated("Remove in v4.1. Use zeek::partial_connection_ok.")]];
-extern int& tcp_SYN_ack_ok [[deprecated("Remove in v4.1. Use zeek::tcp_SYN_ack_ok.")]];
-extern int& tcp_match_undelivered [[deprecated("Remove in v4.1. Use zeek::tcp_match_undelivered.")]];
-extern int& encap_hdr_size [[deprecated("Remove in v4.1. Use zeek::encap_hdr_size.")]];
-extern double& frag_timeout [[deprecated("Remove in v4.1. Use zeek::frag_timeout.")]];
-extern double& tcp_SYN_timeout [[deprecated("Remove in v4.1. Use zeek::tcp_SYN_timeout.")]];
-extern double& tcp_session_timer [[deprecated("Remove in v4.1. Use zeek::tcp_session_timer.")]];
-extern double& tcp_connection_linger [[deprecated("Remove in v4.1. Use zeek::tcp_connection_linger.")]];
-extern double& tcp_attempt_delay [[deprecated("Remove in v4.1. Use zeek::tcp_attempt_delay.")]];
-extern double& tcp_close_delay [[deprecated("Remove in v4.1. Use zeek::tcp_close_delay.")]];
-extern double& tcp_partial_close_delay [[deprecated("Remove in v4.1. Use zeek::tcp_partial_close_delay.")]];
-extern double& tcp_reset_delay [[deprecated("Remove in v4.1. Use zeek::tcp_reset_delay.")]];
-extern int& tcp_max_initial_window [[deprecated("Remove in v4.1. Use zeek::tcp_max_initial_window.")]];
-extern int& tcp_max_above_hole_without_any_acks [[deprecated("Remove in v4.1. Use zeek::tcp_max_above_hole_without_any_acks.")]];
-extern int& tcp_excessive_data_without_further_acks [[deprecated("Remove in v4.1. Use zeek::tcp_excessive_data_without_further_acks.")]];
-extern int& tcp_max_old_segments [[deprecated("Remove in v4.1. Use zeek::tcp_max_old_segments.")]];
-extern double& non_analyzed_lifetime [[deprecated("Remove in v4.1. Use zeek::non_analyzed_lifetime.")]];
-extern double& tcp_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::tcp_inactivity_timeout.")]];
-extern double& udp_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::udp_inactivity_timeout.")]];
-extern double& icmp_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::icmp_inactivity_timeout.")]];
-extern int& tcp_storm_thresh [[deprecated("Remove in v4.1. Use zeek::tcp_storm_thresh.")]];
-extern double& tcp_storm_interarrival_thresh [[deprecated("Remove in v4.1. Use zeek::tcp_storm_interarrival_thresh.")]];
-extern bool& tcp_content_deliver_all_orig [[deprecated("Remove in v4.1. Use zeek::tcp_content_deliver_all_orig.")]];
-extern bool& tcp_content_deliver_all_resp [[deprecated("Remove in v4.1. Use zeek::tcp_content_deliver_all_resp.")]];
-extern bool& udp_content_deliver_all_orig [[deprecated("Remove in v4.1. Use zeek::udp_content_deliver_all_orig.")]];
-extern bool& udp_content_deliver_all_resp [[deprecated("Remove in v4.1. Use zeek::udp_content_deliver_all_resp.")]];
-extern bool& udp_content_delivery_ports_use_resp [[deprecated("Remove in v4.1. Use zeek::udp_content_delivery_ports_use_resp.")]];
-extern double& dns_session_timeout [[deprecated("Remove in v4.1. Use zeek::dns_session_timeout.")]];
-extern double& rpc_timeout [[deprecated("Remove in v4.1. Use zeek::rpc_timeout.")]];
-extern int& mime_segment_length [[deprecated("Remove in v4.1. Use zeek::mime_segment_length.")]];
-extern int& mime_segment_overlap_length [[deprecated("Remove in v4.1. Use zeek::mime_segment_overlap_length.")]];
-extern int& http_entity_data_delivery_size [[deprecated("Remove in v4.1. Use zeek::http_entity_data_delivery_size.")]];
-extern int& truncate_http_URI [[deprecated("Remove in v4.1. Use zeek::truncate_http_URI.")]];
-extern int& dns_skip_all_auth [[deprecated("Remove in v4.1. Use zeek::dns_skip_all_auth.")]];
-extern int& dns_skip_all_addl [[deprecated("Remove in v4.1. Use zeek::dns_skip_all_addl.")]];
-extern int& dns_max_queries [[deprecated("Remove in v4.1. Use zeek::dns_max_queries.")]];
-extern double& stp_delta [[deprecated("Remove in v4.1. Use zeek::stp_delta.")]];
-extern double& stp_idle_min [[deprecated("Remove in v4.1. Use zeek::stp_idle_min.")]];
-extern double& table_expire_interval [[deprecated("Remove in v4.1. Use zeek::table_expire_interval.")]];
-extern double& table_expire_delay [[deprecated("Remove in v4.1. Use zeek::table_expire_delay.")]];
-extern int& table_incremental_step [[deprecated("Remove in v4.1. Use zeek::table_incremental_step.")]];
-extern int& orig_addr_anonymization [[deprecated("Remove in v4.1. Use zeek::orig_addr_anonymization.")]];
-extern int& resp_addr_anonymization [[deprecated("Remove in v4.1. Use zeek::resp_addr_anonymization.")]];
-extern int& other_addr_anonymization [[deprecated("Remove in v4.1. Use zeek::other_addr_anonymization.")]];
-extern double& connection_status_update_interval [[deprecated("Remove in v4.1. Use zeek::connection_status_update_interval.")]];
-extern double& profiling_interval [[deprecated("Remove in v4.1. Use zeek::profiling_interval.")]];
-extern int& expensive_profiling_multiple [[deprecated("Remove in v4.1. Use zeek::expensive_profiling_multiple.")]];
-extern int& segment_profiling [[deprecated("Remove in v4.1. Use zeek::segment_profiling.")]];
-extern int& pkt_profile_mode [[deprecated("Remove in v4.1. Use zeek::pkt_profile_mode.")]];
-extern double& pkt_profile_freq [[deprecated("Remove in v4.1. Use zeek::pkt_profile_freq.")]];
-extern int& load_sample_freq [[deprecated("Remove in v4.1. Use zeek::load_sample_freq.")]];
-extern int& packet_filter_default [[deprecated("Remove in v4.1. Use zeek::packet_filter_default.")]];
-extern int& sig_max_group_size [[deprecated("Remove in v4.1. Use zeek::sig_max_group_size.")]];
-extern int& dpd_reassemble_first_packets [[deprecated("Remove in v4.1. Use zeek::dpd_reassemble_first_packets.")]];
-extern int& dpd_buffer_size [[deprecated("Remove in v4.1. Use zeek::dpd_buffer_size.")]];
-extern int& dpd_match_only_beginning [[deprecated("Remove in v4.1. Use zeek::dpd_match_only_beginning.")]];
-extern int& dpd_late_match_stop [[deprecated("Remove in v4.1. Use zeek::dpd_late_match_stop.")]];
-extern int& dpd_ignore_ports [[deprecated("Remove in v4.1. Use zeek::dpd_ignore_ports.")]];
-extern int& check_for_unused_event_handlers [[deprecated("Remove in v4.1. Use zeek::check_for_unused_event_handlers.")]];
-extern double& timer_mgr_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::timer_mgr_inactivity_timeout.")]];
-extern int& record_all_packets [[deprecated("Remove in v4.1. Use zeek::record_all_packets.")]];
-extern bro_uint_t& bits_per_uid [[deprecated("Remove in v4.1. Use zeek::bits_per_uid.")]];
-
+extern int& watchdog_interval [[deprecated("Remove in v4.1. Use zeek::detail::watchdog_interval.")]];
+extern int& max_timer_expires [[deprecated("Remove in v4.1. Use zeek::detail::max_timer_expires.")]];
+extern int& ignore_checksums [[deprecated("Remove in v4.1. Use zeek::detail::ignore_checksums.")]];
+extern int& partial_connection_ok [[deprecated("Remove in v4.1. Use zeek::detail::partial_connection_ok.")]];
+extern int& tcp_SYN_ack_ok [[deprecated("Remove in v4.1. Use zeek::detail::tcp_SYN_ack_ok.")]];
+extern int& tcp_match_undelivered [[deprecated("Remove in v4.1. Use zeek::detail::tcp_match_undelivered.")]];
+extern int& encap_hdr_size [[deprecated("Remove in v4.1. Use zeek::detail::encap_hdr_size.")]];
+extern double& frag_timeout [[deprecated("Remove in v4.1. Use zeek::detail::frag_timeout.")]];
+extern double& tcp_SYN_timeout [[deprecated("Remove in v4.1. Use zeek::detail::tcp_SYN_timeout.")]];
+extern double& tcp_session_timer [[deprecated("Remove in v4.1. Use zeek::detail::tcp_session_timer.")]];
+extern double& tcp_connection_linger [[deprecated("Remove in v4.1. Use zeek::detail::tcp_connection_linger.")]];
+extern double& tcp_attempt_delay [[deprecated("Remove in v4.1. Use zeek::detail::tcp_attempt_delay.")]];
+extern double& tcp_close_delay [[deprecated("Remove in v4.1. Use zeek::detail::tcp_close_delay.")]];
+extern double& tcp_partial_close_delay [[deprecated("Remove in v4.1. Use zeek::detail::tcp_partial_close_delay.")]];
+extern double& tcp_reset_delay [[deprecated("Remove in v4.1. Use zeek::detail::tcp_reset_delay.")]];
+extern int& tcp_max_initial_window [[deprecated("Remove in v4.1. Use zeek::detail::tcp_max_initial_window.")]];
+extern int& tcp_max_above_hole_without_any_acks [[deprecated("Remove in v4.1. Use zeek::detail::tcp_max_above_hole_without_any_acks.")]];
+extern int& tcp_excessive_data_without_further_acks [[deprecated("Remove in v4.1. Use zeek::detail::tcp_excessive_data_without_further_acks.")]];
+extern int& tcp_max_old_segments [[deprecated("Remove in v4.1. Use zeek::detail::tcp_max_old_segments.")]];
+extern double& non_analyzed_lifetime [[deprecated("Remove in v4.1. Use zeek::detail::non_analyzed_lifetime.")]];
+extern double& tcp_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::detail::tcp_inactivity_timeout.")]];
+extern double& udp_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::detail::udp_inactivity_timeout.")]];
+extern double& icmp_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::detail::icmp_inactivity_timeout.")]];
+extern int& tcp_storm_thresh [[deprecated("Remove in v4.1. Use zeek::detail::tcp_storm_thresh.")]];
+extern double& tcp_storm_interarrival_thresh [[deprecated("Remove in v4.1. Use zeek::detail::tcp_storm_interarrival_thresh.")]];
+extern bool& tcp_content_deliver_all_orig [[deprecated("Remove in v4.1. Use zeek::detail::tcp_content_deliver_all_orig.")]];
+extern bool& tcp_content_deliver_all_resp [[deprecated("Remove in v4.1. Use zeek::detail::tcp_content_deliver_all_resp.")]];
+extern bool& udp_content_deliver_all_orig [[deprecated("Remove in v4.1. Use zeek::detail::udp_content_deliver_all_orig.")]];
+extern bool& udp_content_deliver_all_resp [[deprecated("Remove in v4.1. Use zeek::detail::udp_content_deliver_all_resp.")]];
+extern bool& udp_content_delivery_ports_use_resp [[deprecated("Remove in v4.1. Use zeek::detail::udp_content_delivery_ports_use_resp.")]];
+extern double& dns_session_timeout [[deprecated("Remove in v4.1. Use zeek::detail::dns_session_timeout.")]];
+extern double& rpc_timeout [[deprecated("Remove in v4.1. Use zeek::detail::rpc_timeout.")]];
+extern int& mime_segment_length [[deprecated("Remove in v4.1. Use zeek::detail::mime_segment_length.")]];
+extern int& mime_segment_overlap_length [[deprecated("Remove in v4.1. Use zeek::detail::mime_segment_overlap_length.")]];
+extern int& http_entity_data_delivery_size [[deprecated("Remove in v4.1. Use zeek::detail::http_entity_data_delivery_size.")]];
+extern int& truncate_http_URI [[deprecated("Remove in v4.1. Use zeek::detail::truncate_http_URI.")]];
+extern int& dns_skip_all_auth [[deprecated("Remove in v4.1. Use zeek::detail::dns_skip_all_auth.")]];
+extern int& dns_skip_all_addl [[deprecated("Remove in v4.1. Use zeek::detail::dns_skip_all_addl.")]];
+extern int& dns_max_queries [[deprecated("Remove in v4.1. Use zeek::detail::dns_max_queries.")]];
+extern double& stp_delta [[deprecated("Remove in v4.1. Use zeek::detail::stp_delta.")]];
+extern double& stp_idle_min [[deprecated("Remove in v4.1. Use zeek::detail::stp_idle_min.")]];
+extern double& table_expire_interval [[deprecated("Remove in v4.1. Use zeek::detail::table_expire_interval.")]];
+extern double& table_expire_delay [[deprecated("Remove in v4.1. Use zeek::detail::table_expire_delay.")]];
+extern int& table_incremental_step [[deprecated("Remove in v4.1. Use zeek::detail::table_incremental_step.")]];
+extern int& orig_addr_anonymization [[deprecated("Remove in v4.1. Use zeek::detail::orig_addr_anonymization.")]];
+extern int& resp_addr_anonymization [[deprecated("Remove in v4.1. Use zeek::detail::resp_addr_anonymization.")]];
+extern int& other_addr_anonymization [[deprecated("Remove in v4.1. Use zeek::detail::other_addr_anonymization.")]];
+extern double& connection_status_update_interval [[deprecated("Remove in v4.1. Use zeek::detail::connection_status_update_interval.")]];
+extern double& profiling_interval [[deprecated("Remove in v4.1. Use zeek::detail::profiling_interval.")]];
+extern int& expensive_profiling_multiple [[deprecated("Remove in v4.1. Use zeek::detail::expensive_profiling_multiple.")]];
+extern int& segment_profiling [[deprecated("Remove in v4.1. Use zeek::detail::segment_profiling.")]];
+extern int& pkt_profile_mode [[deprecated("Remove in v4.1. Use zeek::detail::pkt_profile_mode.")]];
+extern double& pkt_profile_freq [[deprecated("Remove in v4.1. Use zeek::detail::pkt_profile_freq.")]];
+extern int& load_sample_freq [[deprecated("Remove in v4.1. Use zeek::detail::load_sample_freq.")]];
+extern int& packet_filter_default [[deprecated("Remove in v4.1. Use zeek::detail::packet_filter_default.")]];
+extern int& sig_max_group_size [[deprecated("Remove in v4.1. Use zeek::detail::sig_max_group_size.")]];
+extern int& dpd_reassemble_first_packets [[deprecated("Remove in v4.1. Use zeek::detail::dpd_reassemble_first_packets.")]];
+extern int& dpd_buffer_size [[deprecated("Remove in v4.1. Use zeek::detail::dpd_buffer_size.")]];
+extern int& dpd_match_only_beginning [[deprecated("Remove in v4.1. Use zeek::detail::dpd_match_only_beginning.")]];
+extern int& dpd_late_match_stop [[deprecated("Remove in v4.1. Use zeek::detail::dpd_late_match_stop.")]];
+extern int& dpd_ignore_ports [[deprecated("Remove in v4.1. Use zeek::detail::dpd_ignore_ports.")]];
+extern int& check_for_unused_event_handlers [[deprecated("Remove in v4.1. Use zeek::detail::check_for_unused_event_handlers.")]];
+extern double& timer_mgr_inactivity_timeout [[deprecated("Remove in v4.1. Use zeek::detail::timer_mgr_inactivity_timeout.")]];
+extern int& record_all_packets [[deprecated("Remove in v4.1. Use zeek::detail::record_all_packets.")]];
+extern bro_uint_t& bits_per_uid [[deprecated("Remove in v4.1. Use zeek::detail::bits_per_uid.")]];
 
 [[deprecated("Remove in v4.1.  Use zeek::id::conn_id.")]]
 extern zeek::RecordType* conn_id;

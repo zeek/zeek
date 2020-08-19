@@ -70,7 +70,7 @@ bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen
 	if ( len <= 0 )
 		return false;
 
-	double tmin = t - stp_delta;
+	double tmin = t - zeek::detail::stp_delta;
 
 	while ( stp_manager->OrderedEndpoints().length() > 0 )
 		{
@@ -95,7 +95,7 @@ bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen
 
 	stp_max_top_seq = top_seq;
 
-	if ( stp_last_time && t <= stp_last_time + stp_idle_min )
+	if ( stp_last_time && t <= stp_last_time + zeek::detail::stp_idle_min )
 		{
 		stp_last_time = t;
 		return true;

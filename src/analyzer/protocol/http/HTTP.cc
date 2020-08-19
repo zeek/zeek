@@ -779,9 +779,9 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 bool HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
 	if ( ! entity_data_buffer )
-		entity_data_buffer = new char[http_entity_data_delivery_size];
+		entity_data_buffer = new char[zeek::detail::http_entity_data_delivery_size];
 
-	*plen = http_entity_data_delivery_size;
+	*plen = zeek::detail::http_entity_data_delivery_size;
 	*pbuf = entity_data_buffer;
 	return true;
 	}
@@ -1381,12 +1381,12 @@ HTTP_Analyzer::TruncateURI(const zeek::StringValPtr& uri)
 	{
 	const zeek::String* str = uri->AsString();
 
-	if ( truncate_http_URI >= 0 && str->Len() > truncate_http_URI )
+	if ( zeek::detail::truncate_http_URI >= 0 && str->Len() > zeek::detail::truncate_http_URI )
 		{
-		u_char* s = new u_char[truncate_http_URI + 4];
-		memcpy(s, str->Bytes(), truncate_http_URI);
-		memcpy(s + truncate_http_URI, "...", 4);
-		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, s, truncate_http_URI+3));
+		u_char* s = new u_char[zeek::detail::truncate_http_URI + 4];
+		memcpy(s, str->Bytes(), zeek::detail::truncate_http_URI);
+		memcpy(s + zeek::detail::truncate_http_URI, "...", 4);
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, s, zeek::detail::truncate_http_URI+3));
 		}
 	else
 		return uri;

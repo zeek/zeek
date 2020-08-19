@@ -729,7 +729,7 @@ RPC_Analyzer::RPC_Analyzer(const char* name, zeek::Connection* conn,
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
-		                   zeek::net::network_time + rpc_timeout, true,
+		                   zeek::net::network_time + zeek::detail::rpc_timeout, true,
 		                   zeek::detail::TIMER_RPC_EXPIRE);
 	}
 

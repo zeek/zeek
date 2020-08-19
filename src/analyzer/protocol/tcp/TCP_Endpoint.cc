@@ -151,7 +151,7 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		// handshake.
 		if ( ! is_handshake(new_state) )
 			if ( is_handshake(state) && is_handshake(peer->state) )
-				Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
+				Conn()->SetInactivityTimeout(zeek::detail::tcp_inactivity_timeout);
 
 		prev_state = state;
 		state = new_state;

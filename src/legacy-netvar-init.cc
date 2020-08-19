@@ -4,7 +4,7 @@
 #include "ID.h"
 #include "Scope.h"
 
-namespace zeek {
+namespace zeek::detail {
 
 // Compiled separately to avoid deprecation warnings at the assignment sites.
 void zeek_legacy_netvar_init()
@@ -95,4 +95,4 @@ void zeek_legacy_netvar_init()
 		preserve_other_addr = anon_id->GetVal()->AsTableVal();
 	}
 
-} // namespace zeek
+} // namespace zeek::detail

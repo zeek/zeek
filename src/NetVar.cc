@@ -106,7 +106,7 @@ zeek::StringVal* global_hash_seed;
 // these files need to be included separately before the namespace is opened below.
 
 
-namespace zeek {
+namespace zeek::detail {
 
 int watchdog_interval;
 
@@ -198,7 +198,7 @@ int record_all_packets;
 
 bro_uint_t bits_per_uid;
 
-} // namespace zeek. The namespace has be closed here before we include the netvar_def files.
+} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def files.
 
 static void bif_init_event_handlers()
 	{
@@ -220,7 +220,7 @@ static void bif_init_net_var()
 #include "supervisor.bif.netvar_def"
 
 // Re-open the namespace now that the bif headers are all included.
-namespace zeek {
+namespace zeek::detail {
 
 void init_event_handlers()
 	{
@@ -348,70 +348,71 @@ void init_net_var()
 	timer_mgr_inactivity_timeout = zeek::id::find_val("timer_mgr_inactivity_timeout")->AsInterval();
 	}
 
-} // namespace zeek
+} // namespace zeek::detail
+
 // Remove in v4.1.
-int& watchdog_interval = zeek::watchdog_interval;
-int& max_timer_expires = zeek::max_timer_expires;
-int& ignore_checksums = zeek::ignore_checksums;
-int& partial_connection_ok = zeek::partial_connection_ok;
-int& tcp_SYN_ack_ok = zeek::tcp_SYN_ack_ok;
-int& tcp_match_undelivered = zeek::tcp_match_undelivered;
-int& encap_hdr_size = zeek::encap_hdr_size;
-double& frag_timeout = zeek::frag_timeout;
-double& tcp_SYN_timeout = zeek::tcp_SYN_timeout;
-double& tcp_session_timer = zeek::tcp_session_timer;
-double& tcp_connection_linger = zeek::tcp_connection_linger;
-double& tcp_attempt_delay = zeek::tcp_attempt_delay;
-double& tcp_close_delay = zeek::tcp_close_delay;
-double& tcp_partial_close_delay = zeek::tcp_partial_close_delay;
-double& tcp_reset_delay = zeek::tcp_reset_delay;
-int& tcp_max_initial_window = zeek::tcp_max_initial_window;
-int& tcp_max_above_hole_without_any_acks = zeek::tcp_max_above_hole_without_any_acks;
-int& tcp_excessive_data_without_further_acks = zeek::tcp_excessive_data_without_further_acks;
-int& tcp_max_old_segments = zeek::tcp_max_old_segments;
-double& non_analyzed_lifetime = zeek::non_analyzed_lifetime;
-double& tcp_inactivity_timeout = zeek::tcp_inactivity_timeout;
-double& udp_inactivity_timeout = zeek::udp_inactivity_timeout;
-double& icmp_inactivity_timeout = zeek::icmp_inactivity_timeout;
-int& tcp_storm_thresh = zeek::tcp_storm_thresh;
-double& tcp_storm_interarrival_thresh = zeek::tcp_storm_interarrival_thresh;
-bool& tcp_content_deliver_all_orig = zeek::tcp_content_deliver_all_orig;
-bool& tcp_content_deliver_all_resp = zeek::tcp_content_deliver_all_resp;
-bool& udp_content_deliver_all_orig = zeek::udp_content_deliver_all_orig;
-bool& udp_content_deliver_all_resp = zeek::udp_content_deliver_all_resp;
-bool& udp_content_delivery_ports_use_resp = zeek::udp_content_delivery_ports_use_resp;
-double& dns_session_timeout = zeek::dns_session_timeout;
-double& rpc_timeout = zeek::rpc_timeout;
-int& mime_segment_length = zeek::mime_segment_length;
-int& mime_segment_overlap_length = zeek::mime_segment_overlap_length;
-int& http_entity_data_delivery_size = zeek::http_entity_data_delivery_size;
-int& truncate_http_URI = zeek::truncate_http_URI;
-int& dns_skip_all_auth = zeek::dns_skip_all_auth;
-int& dns_skip_all_addl = zeek::dns_skip_all_addl;
-int& dns_max_queries = zeek::dns_max_queries;
-double& stp_delta = zeek::stp_delta;
-double& stp_idle_min = zeek::stp_idle_min;
-double& table_expire_interval = zeek::table_expire_interval;
-double& table_expire_delay = zeek::table_expire_delay;
-int& table_incremental_step = zeek::table_incremental_step;
-int& orig_addr_anonymization = zeek::orig_addr_anonymization;
-int& resp_addr_anonymization = zeek::resp_addr_anonymization;
-int& other_addr_anonymization = zeek::other_addr_anonymization;
-double& connection_status_update_interval = zeek::connection_status_update_interval;
-double& profiling_interval = zeek::profiling_interval;
-int& expensive_profiling_multiple = zeek::expensive_profiling_multiple;
-int& segment_profiling = zeek::segment_profiling;
-int& pkt_profile_mode = zeek::pkt_profile_mode;
-double& pkt_profile_freq = zeek::pkt_profile_freq;
-int& load_sample_freq = zeek::load_sample_freq;
-int& packet_filter_default = zeek::packet_filter_default;
-int& sig_max_group_size = zeek::sig_max_group_size;
-int& dpd_reassemble_first_packets = zeek::dpd_reassemble_first_packets;
-int& dpd_buffer_size = zeek::dpd_buffer_size;
-int& dpd_match_only_beginning = zeek::dpd_match_only_beginning;
-int& dpd_late_match_stop = zeek::dpd_late_match_stop;
-int& dpd_ignore_ports = zeek::dpd_ignore_ports;
-int& check_for_unused_event_handlers = zeek::check_for_unused_event_handlers;
-double& timer_mgr_inactivity_timeout = zeek::timer_mgr_inactivity_timeout;
-int& record_all_packets = zeek::record_all_packets;
-bro_uint_t& bits_per_uid = zeek::bits_per_uid;
+int& watchdog_interval = zeek::detail::watchdog_interval;
+int& max_timer_expires = zeek::detail::max_timer_expires;
+int& ignore_checksums = zeek::detail::ignore_checksums;
+int& partial_connection_ok = zeek::detail::partial_connection_ok;
+int& tcp_SYN_ack_ok = zeek::detail::tcp_SYN_ack_ok;
+int& tcp_match_undelivered = zeek::detail::tcp_match_undelivered;
+int& encap_hdr_size = zeek::detail::encap_hdr_size;
+double& frag_timeout = zeek::detail::frag_timeout;
+double& tcp_SYN_timeout = zeek::detail::tcp_SYN_timeout;
+double& tcp_session_timer = zeek::detail::tcp_session_timer;
+double& tcp_connection_linger = zeek::detail::tcp_connection_linger;
+double& tcp_attempt_delay = zeek::detail::tcp_attempt_delay;
+double& tcp_close_delay = zeek::detail::tcp_close_delay;
+double& tcp_partial_close_delay = zeek::detail::tcp_partial_close_delay;
+double& tcp_reset_delay = zeek::detail::tcp_reset_delay;
+int& tcp_max_initial_window = zeek::detail::tcp_max_initial_window;
+int& tcp_max_above_hole_without_any_acks = zeek::detail::tcp_max_above_hole_without_any_acks;
+int& tcp_excessive_data_without_further_acks = zeek::detail::tcp_excessive_data_without_further_acks;
+int& tcp_max_old_segments = zeek::detail::tcp_max_old_segments;
+double& non_analyzed_lifetime = zeek::detail::non_analyzed_lifetime;
+double& tcp_inactivity_timeout = zeek::detail::tcp_inactivity_timeout;
+double& udp_inactivity_timeout = zeek::detail::udp_inactivity_timeout;
+double& icmp_inactivity_timeout = zeek::detail::icmp_inactivity_timeout;
+int& tcp_storm_thresh = zeek::detail::tcp_storm_thresh;
+double& tcp_storm_interarrival_thresh = zeek::detail::tcp_storm_interarrival_thresh;
+bool& tcp_content_deliver_all_orig = zeek::detail::tcp_content_deliver_all_orig;
+bool& tcp_content_deliver_all_resp = zeek::detail::tcp_content_deliver_all_resp;
+bool& udp_content_deliver_all_orig = zeek::detail::udp_content_deliver_all_orig;
+bool& udp_content_deliver_all_resp = zeek::detail::udp_content_deliver_all_resp;
+bool& udp_content_delivery_ports_use_resp = zeek::detail::udp_content_delivery_ports_use_resp;
+double& dns_session_timeout = zeek::detail::dns_session_timeout;
+double& rpc_timeout = zeek::detail::rpc_timeout;
+int& mime_segment_length = zeek::detail::mime_segment_length;
+int& mime_segment_overlap_length = zeek::detail::mime_segment_overlap_length;
+int& http_entity_data_delivery_size = zeek::detail::http_entity_data_delivery_size;
+int& truncate_http_URI = zeek::detail::truncate_http_URI;
+int& dns_skip_all_auth = zeek::detail::dns_skip_all_auth;
+int& dns_skip_all_addl = zeek::detail::dns_skip_all_addl;
+int& dns_max_queries = zeek::detail::dns_max_queries;
+double& stp_delta = zeek::detail::stp_delta;
+double& stp_idle_min = zeek::detail::stp_idle_min;
+double& table_expire_interval = zeek::detail::table_expire_interval;
+double& table_expire_delay = zeek::detail::table_expire_delay;
+int& table_incremental_step = zeek::detail::table_incremental_step;
+int& orig_addr_anonymization = zeek::detail::orig_addr_anonymization;
+int& resp_addr_anonymization = zeek::detail::resp_addr_anonymization;
+int& other_addr_anonymization = zeek::detail::other_addr_anonymization;
+double& connection_status_update_interval = zeek::detail::connection_status_update_interval;
+double& profiling_interval = zeek::detail::profiling_interval;
+int& expensive_profiling_multiple = zeek::detail::expensive_profiling_multiple;
+int& segment_profiling = zeek::detail::segment_profiling;
+int& pkt_profile_mode = zeek::detail::pkt_profile_mode;
+double& pkt_profile_freq = zeek::detail::pkt_profile_freq;
+int& load_sample_freq = zeek::detail::load_sample_freq;
+int& packet_filter_default = zeek::detail::packet_filter_default;
+int& sig_max_group_size = zeek::detail::sig_max_group_size;
+int& dpd_reassemble_first_packets = zeek::detail::dpd_reassemble_first_packets;
+int& dpd_buffer_size = zeek::detail::dpd_buffer_size;
+int& dpd_match_only_beginning = zeek::detail::dpd_match_only_beginning;
+int& dpd_late_match_stop = zeek::detail::dpd_late_match_stop;
+int& dpd_ignore_ports = zeek::detail::dpd_ignore_ports;
+int& check_for_unused_event_handlers = zeek::detail::check_for_unused_event_handlers;
+double& timer_mgr_inactivity_timeout = zeek::detail::timer_mgr_inactivity_timeout;
+int& record_all_packets = zeek::detail::record_all_packets;
+bro_uint_t& bits_per_uid = zeek::detail::bits_per_uid;

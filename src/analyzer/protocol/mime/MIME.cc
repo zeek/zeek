@@ -1329,8 +1329,8 @@ MIME_Mail::MIME_Mail(zeek::analyzer::Analyzer* mail_analyzer, bool orig, int buf
 	{
 	analyzer = mail_analyzer;
 
-	min_overlap_length = mime_segment_overlap_length;
-	max_chunk_length = mime_segment_length;
+	min_overlap_length = zeek::detail::mime_segment_overlap_length;
+	max_chunk_length = zeek::detail::mime_segment_length;
 	is_orig = orig;
 
 	int length = buf_size;

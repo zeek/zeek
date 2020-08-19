@@ -90,7 +90,7 @@ public:
 	zeek::detail::PacketFilter* GetPacketFilter()
 		{
 		if ( ! packet_filter )
-			packet_filter = new zeek::detail::PacketFilter(packet_filter_default);
+			packet_filter = new zeek::detail::PacketFilter(detail::packet_filter_default);
 		return packet_filter;
 		}
 

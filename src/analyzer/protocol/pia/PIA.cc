@@ -104,8 +104,8 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	     len > 0 )
 		{
 		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
-		if ( pkt_buffer.size > dpd_buffer_size )
-			new_state = dpd_match_only_beginning ?
+		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size )
+			new_state = zeek::detail::dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
 		}
 
@@ -163,7 +163,7 @@ void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 			zeek::event_mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
-		pkt_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
+		pkt_buffer.state = zeek::detail::dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
 		return;
 		}
 
@@ -271,8 +271,8 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	if ( stream_buffer.state == BUFFERING || new_state == BUFFERING )
 		{
 		AddToBuffer(&stream_buffer, len, data, is_orig);
-		if ( stream_buffer.size > dpd_buffer_size )
-			new_state = dpd_match_only_beginning ?
+		if ( stream_buffer.size > zeek::detail::dpd_buffer_size )
+			new_state = zeek::detail::dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
 		}
 
@@ -310,7 +310,7 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 			zeek::event_mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
-		stream_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
+		stream_buffer.state = zeek::detail::dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
 		return;
 		}
 

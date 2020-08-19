@@ -19,7 +19,7 @@ UDP_Analyzer::UDP_Analyzer(zeek::Connection* conn)
 	: zeek::analyzer::TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();
-	conn->SetInactivityTimeout(udp_inactivity_timeout);
+	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
 	request_len = reply_len = -1;	// -1 means "haven't seen any activity"
 
 	req_chk_cnt = rep_chk_cnt = 0;
@@ -62,7 +62,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = ! zeek::net::current_pkt->l3_checksummed && ! ignore_checksums && caplen >=len;
+	auto validate_checksum = ! zeek::net::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >=len;
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
@@ -146,22 +146,22 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			do_udp_contents = true;
 		else
 			{
-			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
-			                                                 : up->uh_dport;
+			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? Conn()->RespPort()
+			                                                               : up->uh_dport;
 			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
 				{
 				auto result = udp_content_delivery_ports_orig->FindOrDefault(port_val);
 
-				if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
+				if ( zeek::detail::udp_content_deliver_all_orig || (result && result->AsBool()) )
 					do_udp_contents = true;
 				}
 			else
 				{
 				auto result = udp_content_delivery_ports_resp->FindOrDefault(port_val);
 
-				if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
+				if ( zeek::detail::udp_content_deliver_all_resp || (result && result->AsBool()) )
 					do_udp_contents = true;
 				}
 			}

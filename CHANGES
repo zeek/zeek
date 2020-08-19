@@ -1,3 +1,9 @@
+3.3.0-dev.117 | 2020-08-19 14:12:06 -0700
+
+  * Use constexpr for IPAddr::v4_mapped_prefix declaration
+
+    The inconsistent use of constexpr in the definition but not declaration
+    causes an unrecoverable error for Coverity as seen in issue 1431151 (Jon Siwek, Corelight)
 
 3.3.0-dev.115 | 2020-08-19 11:49:24 -0700
 

@@ -12,10 +12,6 @@
 
 #include "analyzer/Manager.h"
 
-constexpr uint8_t zeek::IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
-                                                         0, 0, 0, 0,
-                                                         0, 0, 0xff, 0xff };
-
 const zeek::IPAddr zeek::IPAddr::v4_unspecified = zeek::IPAddr(in4_addr{});
 
 const zeek::IPAddr zeek::IPAddr::v6_unspecified = zeek::IPAddr();

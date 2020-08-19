@@ -459,7 +459,10 @@ private:
 
 	in6_addr in6; // IPv6 or v4-to-v6-mapped address
 
-	static const uint8_t v4_mapped_prefix[12]; // top 96 bits of v4-mapped-addr
+	// Top 96 bits of a v4-mapped-addr.
+	static constexpr uint8_t v4_mapped_prefix[12] = { 0, 0, 0, 0,
+	                                                  0, 0, 0, 0,
+	                                                  0, 0, 0xff, 0xff };
 };
 
 inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order)

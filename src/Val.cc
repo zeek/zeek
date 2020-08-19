@@ -2062,10 +2062,12 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			}
 
 		const Func* f = thefunc->AsFunc();
-		const auto& index_list = *index->AsListVal()->Vals();
+		bool index_list = index->Type()->Tag() == TYPE_LIST;
+		int nind = index_list ?
+				index->AsListVal()->Vals()->length() : 1;
 
 		zeek::Args vl;
-		vl.reserve(2 + index_list.length() + table_type->IsTable());
+		vl.reserve(2 + nind + table_type->IsTable());
 		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
@@ -2083,8 +2085,15 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
 
-		for ( const auto& v : *index->AsListVal()->Vals() )
-			vl.emplace_back(NewRef{}, v);
+		if ( index_list )
+			{
+			for ( const auto& v : *index->AsListVal()->Vals() )
+				vl.emplace_back(NewRef{}, v);
+			}
+		else
+			// ### We cheat here until this method is redone
+			// to have index be an IntrusivePtr.
+			vl.emplace_back(NewRef{}, (Val*) index);
 
 		if ( table_type->IsTable() )
 			vl.emplace_back(NewRef{}, old_value);

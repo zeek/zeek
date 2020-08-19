@@ -1510,6 +1510,19 @@ eval auto index = z.aux->ToListVal(frame)
 eval frame[z.v1].table_val->Assign(index.get(), nullptr)
 method-post z.aux = v->aux
 
+op AddStmt1
+op1-read
+set-type $2
+type VV
+eval auto index = frame[z.v2].ToVal(z.t)
+eval frame[z.v1].table_val->Assign(index.get(), nullptr)
+
+op AddStmt1
+op1-read
+type VC
+eval auto index = z.c.ToVal(z.t)
+eval frame[z.v1].table_val->Assign(index.get(), nullptr)
+
 
 op DelTable
 op1-read

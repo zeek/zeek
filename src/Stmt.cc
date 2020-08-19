@@ -1482,6 +1482,16 @@ const CompiledStmt AddStmt::Compile(Compiler* c) const
 		reporter->InternalError("non-list in \"add\"");
 
 	IntrusivePtr<ListExpr> index_ptr = {NewRef{}, index->AsListExpr()};
+	auto& exprs = index_ptr->Exprs();
+
+	if ( exprs.length() == 1 )
+		{
+		auto e1 = exprs[0];
+		if ( e1->Tag() == EXPR_NAME )
+			return c->AddStmt1VV(aggr, e1->AsNameExpr());
+		else
+			return c->AddStmt1VC(aggr, e1->AsConstExpr());
+		}
 
 	auto internal_ind = c->BuildVals(index_ptr);
 

@@ -1202,7 +1202,9 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// TCP Fast Open).
 	CheckPIA_FirstPacket(is_orig, ip);
 
-	// Note the similar/inverse logic to connection_attempt.
+	// A very narrow definition of "successful," for performance reasons. i.e
+	// if a script only cares about established TCP connections, they can handle
+	// an event which doesn't fire too often.
 	if ( resp->state == TCP_ENDPOINT_ESTABLISHED ||
 	     orig->state == TCP_ENDPOINT_ESTABLISHED )
 		Conn()->SetSuccessful();

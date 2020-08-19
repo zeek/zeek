@@ -170,10 +170,9 @@ event connection_state_remove%(c: connection%);
 ## transport-layer-dependent criteria.  Zeek uses a flow-based definition of
 ## "connection" here that includes not only TCP sessions but also UDP and ICMP
 ## flows.  For anything except TCP, this event is raised with the first packet
-## of a previously unknown connection.  For TCP, this event is raised if the
-## responder host ever sends a packet or if the originator host ever sends a
-## packet that is not a SYN (i.e. the "success" status of a connection can be
-## useful to help weed out SYN scans).
+## of a previously unknown connection.  For TCP, this event is raised if either
+## host enters an established state. The "success" status of a connection can be
+## useful to help weed out SYN scans.
 ##
 ## c: The new connection.
 ##

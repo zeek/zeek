@@ -2037,7 +2037,7 @@ double current_time(bool real)
 	// This obviously only works for a single source ...
 	zeek::iosource::PktSrc* src = zeek::iosource_mgr->GetPktSrc();
 
-	if ( zeek::run_state::net_is_processing_suspended() )
+	if ( zeek::run_state::is_processing_suspended() )
 		return src->CurrentPacketTimestamp();
 
 	// We don't scale with pseudo_realtime here as that would give us a

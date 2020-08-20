@@ -82,7 +82,7 @@ double PktSrc::CurrentPacketTimestamp()
 double PktSrc::CurrentPacketWallClock()
 	{
 	// We stop time when we are suspended.
-	if ( zeek::run_state::net_is_processing_suspended() )
+	if ( zeek::run_state::is_processing_suspended() )
 		current_wallclock = zeek::util::current_time(true);
 
 	return current_wallclock;
@@ -204,13 +204,13 @@ void PktSrc::Process()
 		if ( zeek::run_state::pseudo_realtime )
 			{
 			current_pseudo = CheckPseudoTime();
-			zeek::run_state::detail::net_packet_dispatch(current_pseudo, &current_packet, this);
+			zeek::run_state::detail::dispatch_packet(current_pseudo, &current_packet, this);
 			if ( ! first_wallclock )
 				first_wallclock = zeek::util::current_time(true);
 			}
 
 		else
-			zeek::run_state::detail::net_packet_dispatch(current_packet.time, &current_packet, this);
+			zeek::run_state::detail::dispatch_packet(current_packet.time, &current_packet, this);
 		}
 
 	have_packet = false;
@@ -231,7 +231,7 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	// Don't return any packets if processing is suspended (except for the
 	// very first packet which we need to set up times).
-	if ( zeek::run_state::net_is_processing_suspended() && first_timestamp )
+	if ( zeek::run_state::is_processing_suspended() && first_timestamp )
 		return false;
 
 	if ( zeek::run_state::pseudo_realtime )
@@ -344,7 +344,7 @@ double PktSrc::GetNextTimeout()
 	// but we're not in pseudo-realtime mode, let the loop just spin as fast as it can. If we're
 	// in pseudo-realtime mode, find the next time that a packet is ready and have poll block until
 	// then.
-	if ( IsLive() || zeek::run_state::net_is_processing_suspended() )
+	if ( IsLive() || zeek::run_state::is_processing_suspended() )
 		return -1;
 	else if ( ! zeek::run_state::pseudo_realtime )
 		return 0;

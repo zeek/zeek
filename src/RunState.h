@@ -15,17 +15,17 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 namespace zeek::run_state {
 namespace detail {
 
-extern void net_init(const std::optional<std::string>& interfaces,
+extern void init_run(const std::optional<std::string>& interfaces,
                      const std::optional<std::string>& pcap_input_file,
                      const std::optional<std::string>& pcap_output_file,
                      bool do_watchdog);
-extern void net_run();
-extern void net_get_final_stats();
-extern void net_finish(int drain_events);
-extern void net_delete();	// Reclaim all memory, etc.
-extern void net_update_time(double new_network_time);
-extern void net_packet_dispatch(double t, const zeek::Packet* pkt,
-                                zeek::iosource::PktSrc* src_ps);
+extern void run_loop();
+extern void get_final_stats();
+extern void finish_run(int drain_events);
+extern void delete_run();	// Reclaim all memory, etc.
+extern void update_network_time(double new_network_time);
+extern void dispatch_packet(double t, const zeek::Packet* pkt,
+                            zeek::iosource::PktSrc* src_ps);
 extern void expire_timers(zeek::iosource::PktSrc* src_ps = nullptr);
 extern void zeek_terminate_loop(const char* reason);
 
@@ -44,9 +44,9 @@ extern bool have_pending_timers;
 
 // Functions to temporarily suspend processing of live input (network packets
 // and remote events/state). Turning this is on is sure to lead to data loss!
-extern void net_suspend_processing();
-extern void net_continue_processing();
-bool net_is_processing_suspended();
+extern void suspend_processing();
+extern void continue_processing();
+bool is_processing_suspended();
 
 // Whether we're reading live traffic.
 extern bool reading_live;
@@ -87,13 +87,13 @@ extern double current_timestamp;
 
 } // namespace zeek::run_state
 
-constexpr auto net_init [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_init.")]] = zeek::run_state::detail::net_init;
-constexpr auto net_run [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_run.")]] = zeek::run_state::detail::net_run;
-constexpr auto net_get_final_stats [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_get_final_stats.")]] = zeek::run_state::detail::net_get_final_stats;
-constexpr auto net_finish [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_finish.")]] = zeek::run_state::detail::net_finish;
-constexpr auto net_delete [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_delete.")]] = zeek::run_state::detail::net_delete;
-constexpr auto net_update_time [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_update_time.")]] = zeek::run_state::detail::net_update_time;
-constexpr auto net_packet_dispatch [[deprecated("Remove in v4.1. Use zeek::run_state::detail::net_packet_dispatch.")]] = zeek::run_state::detail::net_packet_dispatch;
+constexpr auto net_init [[deprecated("Remove in v4.1. Use zeek::run_state::detail::init_run.")]] = zeek::run_state::detail::init_run;
+constexpr auto net_run [[deprecated("Remove in v4.1. Use zeek::run_state::detail::run_run.")]] = zeek::run_state::detail::run_loop;
+constexpr auto net_get_final_stats [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_final_stats.")]] = zeek::run_state::detail::get_final_stats;
+constexpr auto net_finish [[deprecated("Remove in v4.1. Use zeek::run_state::detail::finish_run.")]] = zeek::run_state::detail::finish_run;
+constexpr auto net_delete [[deprecated("Remove in v4.1. Use zeek::run_state::detail::delete_run.")]] = zeek::run_state::detail::delete_run;
+constexpr auto net_update_time [[deprecated("Remove in v4.1. Use zeek::run_state::detail::update_network_time.")]] = zeek::run_state::detail::update_network_time;
+constexpr auto net_packet_dispatch [[deprecated("Remove in v4.1. Use zeek::run_state::detail::dispatch_packet.")]] = zeek::run_state::detail::dispatch_packet;
 constexpr auto expire_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::expire_timers.")]] = zeek::run_state::detail::expire_timers;
 constexpr auto zeek_terminate_loop [[deprecated("Remove in v4.1. Use zeek::run_state::detail::zeek_terminate_loop.")]] = zeek::run_state::detail::zeek_terminate_loop;
 extern zeek::iosource::PktSrc*& current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::current_pktsrc.")]];
@@ -101,9 +101,9 @@ extern zeek::iosource::IOSource*& current_iosrc [[deprecated("Remove in v4.1. Us
 extern zeek::iosource::PktDumper*& pkt_dumper [[deprecated("Remove in v4.1. Use zeek::run_state::detail::pkt_dumper.")]];
 extern bool& have_pending_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::have_pending_timers.")]];
 
-constexpr auto net_suspend_processing [[deprecated("Remove in v4.1. Use zeek::run_state::net_suspend_processing.")]] = zeek::run_state::net_suspend_processing;
-constexpr auto net_continue_processing [[deprecated("Remove in v4.1. Use zeek::run_state::net_continue_processing.")]] = zeek::run_state::net_continue_processing;
-constexpr auto net_is_processing_suspended [[deprecated("Remove in v4.1. Use zeek::run_state::net_is_processing_suspended.")]] = zeek::run_state::net_is_processing_suspended;
+constexpr auto net_suspend_processing [[deprecated("Remove in v4.1. Use zeek::run_state::suspend_processing.")]] = zeek::run_state::suspend_processing;
+constexpr auto net_continue_processing [[deprecated("Remove in v4.1. Use zeek::run_state::continue_processing.")]] = zeek::run_state::continue_processing;
+constexpr auto net_is_processing_suspended [[deprecated("Remove in v4.1. Use zeek::run_state::is_processing_suspended.")]] = zeek::run_state::is_processing_suspended;
 
 extern bool& reading_live [[deprecated("Remove in v4.1. Use zeek::run_state::reading_live.")]];
 extern bool& reading_traces [[deprecated("Remove in v4.1. Use zeek::run_state::reading_traces.")]];

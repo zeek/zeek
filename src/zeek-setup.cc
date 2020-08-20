@@ -269,7 +269,7 @@ static void done_with_network()
 	zeek::event_mgr.Drain();
 	zeek::event_mgr.Drain();
 
-	zeek::run_state::detail::net_finish(1);
+	zeek::run_state::detail::finish_run(1);
 
 #ifdef USE_PERFTOOLS_DEBUG
 
@@ -751,7 +751,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 		}
 
 	if ( dns_type != DNS_PRIME )
-		zeek::run_state::detail::net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
+		zeek::run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
 	if ( ! g_policy_debug )
 		{
@@ -806,7 +806,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	if ( ! zeek::run_state::reading_live && ! zeek::run_state::reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
-		zeek::run_state::detail::net_update_time(zeek::util::current_time());
+		zeek::run_state::detail::update_network_time(zeek::util::current_time());
 
 	if ( zeek_init )
 		zeek::event_mgr.Enqueue(zeek_init, zeek::Args{});
@@ -884,7 +884,7 @@ int cleanup(bool did_net_run)
 	if ( did_net_run )
 		done_with_network();
 
-	zeek::run_state::detail::net_delete();
+	zeek::run_state::detail::delete_run();
 	terminate_bro();
 
 	sqlite3_shutdown();
@@ -911,9 +911,9 @@ void zeek_terminate_loop(const char* reason)
 	zeek::util::detail::set_processing_status("TERMINATING", reason);
 	zeek::reporter->Info("%s", reason);
 
-	net_get_final_stats();
+	get_final_stats();
 	zeek::detail::done_with_network();
-	net_delete();
+	delete_run();
 
 	zeek::detail::terminate_bro();
 

@@ -16,7 +16,7 @@ static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 static zeek::Connection* add_connection()
 	{
 	static constexpr double network_time_start = 1439471031;
-	net_update_time(network_time_start);
+	zeek::run_state::detail::update_network_time(network_time_start);
 
 	zeek::Packet p;
 	zeek::ConnID conn_id;

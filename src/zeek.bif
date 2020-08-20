@@ -5012,7 +5012,7 @@ function is_remote_event%(%) : bool
 ## .. zeek:see:: continue_processing
 function suspend_processing%(%) : any
 	%{
-	zeek::run_state::net_suspend_processing();
+	zeek::run_state::suspend_processing();
 	return nullptr;
 	%}
 
@@ -5021,7 +5021,7 @@ function suspend_processing%(%) : any
 ## .. zeek:see:: suspend_processing
 function continue_processing%(%) : any
 	%{
-	zeek::run_state::net_continue_processing();
+	zeek::run_state::continue_processing();
 	return nullptr;
 	%}
 

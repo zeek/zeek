@@ -227,7 +227,7 @@ void EventMgr::Process()
 	// here to the current time since otherwise it won't move forward.
 	zeek::iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
 	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::run_state::reading_live )
-		zeek::run_state::detail::net_update_time(zeek::util::current_time());
+		zeek::run_state::detail::update_network_time(zeek::util::current_time());
 
 	queue_flare.Extinguish();
 

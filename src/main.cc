@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 			        mem_net_start_malloced / 1024 / 1024);
 			}
 
-		zeek::run_state::detail::net_run();
+		zeek::run_state::detail::run_loop();
 
 		double time_net_done = zeek::util::current_time(true);
 

@@ -15,7 +15,6 @@
 # endif
 #endif
 
-#include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -110,8 +109,8 @@ RETSIGTYPE watchdog(int /* signo */)
 
 				}
 
-			net_get_final_stats();
-			net_finish(0);
+			get_final_stats();
+			finish_run(0);
 
 			zeek::reporter->FatalErrorWithCore(
 				"**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
@@ -126,13 +125,13 @@ RETSIGTYPE watchdog(int /* signo */)
 	return RETSIGVAL;
 	}
 
-void net_update_time(double new_network_time)
+void update_network_time(double new_network_time)
 	{
 	network_time = new_network_time;
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
-void net_init(const std::optional<std::string>& interface,
+void init_run(const std::optional<std::string>& interface,
               const std::optional<std::string>& pcap_input_file,
               const std::optional<std::string>& pcap_output_file,
               bool do_watchdog)
@@ -206,7 +205,7 @@ void expire_timers(zeek::iosource::PktSrc* src_ps)
 			zeek::detail::max_timer_expires - current_dispatched);
 	}
 
-void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* src_ps)
+void dispatch_packet(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* src_ps)
 	{
 	if ( ! zeek_start_network_time )
 		{
@@ -217,7 +216,7 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 		}
 
 	// network_time never goes back.
-	net_update_time(zeek::detail::timer_mgr->Time() < t ? t : zeek::detail::timer_mgr->Time());
+	update_network_time(zeek::detail::timer_mgr->Time() < t ? t : zeek::detail::timer_mgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;
@@ -261,9 +260,9 @@ void net_packet_dispatch(double t, const zeek::Packet* pkt, zeek::iosource::PktS
 	current_pktsrc = nullptr;
 	}
 
-void net_run()
+void run_loop()
 	{
-	zeek::util::detail::set_processing_status("RUNNING", "net_run");
+	zeek::util::detail::set_processing_status("RUNNING", "run_loop");
 
 	std::vector<zeek::iosource::IOSource*> ready;
 	ready.reserve(zeek::iosource_mgr->TotalSize());
@@ -307,7 +306,7 @@ void net_run()
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			net_update_time(zeek::util::current_time());
+			update_network_time(zeek::util::current_time());
 			expire_timers();
 			}
 
@@ -342,14 +341,14 @@ void net_run()
 			}
 		}
 
-	// Get the final statistics now, and not when net_finish() is
+	// Get the final statistics now, and not when finish_run() is
 	// called, since that might happen quite a bit in the future
 	// due to expiring pending timers, and we don't want to ding
 	// for any packets dropped beyond this point.
-	net_get_final_stats();
+	get_final_stats();
 	}
 
-void net_get_final_stats()
+void get_final_stats()
 	{
 	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
 	if ( ps && ps->IsLive() )
@@ -362,9 +361,9 @@ void net_get_final_stats()
 		}
 	}
 
-void net_finish(int drain_events)
+void finish_run(int drain_events)
 	{
-	zeek::util::detail::set_processing_status("TERMINATING", "net_finish");
+	zeek::util::detail::set_processing_status("TERMINATING", "finish_run");
 
 	if ( drain_events )
 		{
@@ -387,9 +386,9 @@ void net_finish(int drain_events)
 #endif
 	}
 
-void net_delete()
+void delete_run()
 	{
-	zeek::util::detail::set_processing_status("TERMINATING", "net_delete");
+	zeek::util::detail::set_processing_status("TERMINATING", "delete_run");
 
 	delete zeek::sessions;
 
@@ -416,7 +415,7 @@ double current_timestamp = 0.0;
 
 static int _processing_suspended = 0;
 
-void net_suspend_processing()
+void suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
 		zeek::reporter->Info("processing suspended");
@@ -424,7 +423,7 @@ void net_suspend_processing()
 	++_processing_suspended;
 	}
 
-void net_continue_processing()
+void continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
@@ -436,7 +435,7 @@ void net_continue_processing()
 	--_processing_suspended;
 	}
 
-bool net_is_processing_suspended()	{ return _processing_suspended; }
+bool is_processing_suspended()	{ return _processing_suspended; }
 
 } // namespace zeek::run_state
 

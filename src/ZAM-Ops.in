@@ -88,6 +88,22 @@ eval auto copy = CopyVal($1)
 eval auto& vv = frame[z.v1].vector_val->RawVector()->ModVec()
 eval vv.push_back(copy)
 
+internal-op AppendToField
+type VVi
+op1-read
+eval auto v = CopyVal(frame[z.v2])
+eval auto fvv = frame[z.v1].record_val->RawFields()->Lookup(z.v3, ZAM_error)
+eval if ( ZAM_error ) ZAM_run_time_error(z.loc, fmt("field value missing: $%s", frame[z.v1].record_val->Type()->AsRecordType()->FieldName(z.v3)))
+eval else fvv.vector_val->RawVector()->ModVec().push_back(v)
+
+internal-op AppendToField
+type VCi
+op1-read
+eval auto v = CopyVal(z.c)
+eval auto fvv = frame[z.v1].record_val->RawFields()->Lookup(z.v2, ZAM_error)
+eval if ( ZAM_error ) ZAM_run_time_error(z.loc, fmt("field value missing: $%s", frame[z.v1].record_val->Type()->AsRecordType()->FieldName(z.v2)))
+eval else fvv.vector_val->RawVector()->ModVec().push_back(v)
+
 unary-expr-op Cast
 op-type X
 set-type $1

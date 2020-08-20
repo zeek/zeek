@@ -2225,7 +2225,11 @@ Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		IntrusivePtr<Stmt> red_stmt1;
 		IntrusivePtr<Stmt> red_stmt2;
 
-		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt1)};
+		if ( op1->Tag() == EXPR_FIELD )
+			red_stmt1 = op1->ReduceToSingletons(c);
+		else
+			op1 = {AdoptRef{}, op1->Reduce(c, red_stmt1)};
+
 		op2 = {AdoptRef{}, op2->Reduce(c, red_stmt2)};
 
 		auto append = new AppendToExpr(op1->Duplicate(), op2);
@@ -2290,6 +2294,7 @@ IntrusivePtr<Val> AppendToExpr::Eval(Frame* f) const
 
 bool AppendToExpr::IsReduced(Reducer* c) const
 	{
+	// These are created reduced.
 	return true;
 	}
 
@@ -2306,9 +2311,17 @@ Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 const CompiledStmt AppendToExpr::Compile(Compiler* c) const
 	{
-	auto n1 = op1->AsNameExpr();
 	auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
 	auto cc = op2->Tag() != EXPR_NAME ? op2->AsConstExpr() : nullptr;
+
+	if ( op1->Tag() == EXPR_FIELD )
+		{
+		auto f = op1->AsFieldExpr()->Field();
+		auto n1 = op1->GetOp1()->AsNameExpr();
+		return c->AppendToField(n1, n2, cc, f);
+		}
+
+	auto n1 = op1->AsNameExpr();
 
 	return n2 ? c->AppendToVV(n1, n2) : c->AppendToVC(n1, cc);
 	}

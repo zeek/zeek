@@ -1550,6 +1550,28 @@ const CompiledStmt ZAM::AssignTableElem(const Expr* e)
 	return AddInst(z);
 	}
 
+const CompiledStmt ZAM::AppendToField(const NameExpr* n1, const NameExpr* n2,
+					const ConstExpr* c, int offset)
+	{
+	ZInstI z;
+
+	if ( n2 )
+		{
+		z = ZInstI(OP_APPENDTOFIELD_VVi, FrameSlot(n1), FrameSlot(n2),
+				offset);
+		z.op_type = OP_VVV_I3;
+		}
+	else
+		{
+		z = ZInstI(OP_APPENDTOFIELD_VCi, FrameSlot(n1), offset, c);
+		z.op_type = OP_VVC_I2;
+		}
+
+	z.SetType(n2 ? n2->Type() : c->Type());
+
+	return AddInst(z);
+	}
+
 const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();

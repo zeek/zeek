@@ -72,6 +72,9 @@ public:
 	const CompiledStmt AssignVecElems(const Expr* e) override;
 	const CompiledStmt AssignTableElem(const Expr* e) override;
 
+        const CompiledStmt AppendToField(const NameExpr* n1, const NameExpr* n2,
+				const ConstExpr* c, int offset) override;
+
 	const CompiledStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverString(const ForStmt* f, const NameExpr* val);

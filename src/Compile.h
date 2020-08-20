@@ -86,6 +86,11 @@ public:
 	virtual const CompiledStmt AssignVecElems(const Expr* e) = 0;
 	virtual const CompiledStmt AssignTableElem(const Expr* e) = 0;
 
+	virtual const CompiledStmt AppendToField(const NameExpr* n1,
+							const NameExpr* n2,
+							const ConstExpr* c,
+							int offset) = 0;
+
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
 	virtual const CompiledStmt InitTable(ID* id, TableType* tt,

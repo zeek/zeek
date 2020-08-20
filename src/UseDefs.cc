@@ -538,6 +538,13 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 		AddInExprUDs(uds, f->Op());
 		}
 
+	else if ( e->Tag() == EXPR_FIELD )
+		{
+		// This happens for append-to-field.
+		auto f = e->AsFieldExpr();
+		AddInExprUDs(uds, f->Op());
+		}
+
 	else if ( e->Tag() != EXPR_CONST )
 		reporter->InternalError("bad tag in UseDefs::AddInExprUDs");
 	}

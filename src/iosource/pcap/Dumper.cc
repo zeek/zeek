@@ -5,7 +5,7 @@
 
 #include "Dumper.h"
 #include "../PktSrc.h"
-#include "../../Net.h"
+#include "../../RunState.h"
 
 #include "pcap.bif.h"
 
@@ -47,7 +47,7 @@ void PcapDumper::Open()
 	if ( append )
 		{
 		// See if output file already exists (and is non-empty).
-		exists = stat(props.path.c_str(), &s); ;
+		exists = stat(props.path.c_str(), &s);
 
 		if ( exists < 0 && errno != ENOENT )
 			{
@@ -81,7 +81,7 @@ void PcapDumper::Open()
 			}
 		}
 
-	props.open_time = zeek::net::network_time;
+	props.open_time = zeek::run_state::network_time;
 	props.hdr_size = zeek::Packet::GetLinkHeaderSize(pcap_datalink(pd));
 	Opened(props);
 	}

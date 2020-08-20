@@ -1,5 +1,5 @@
 
-#include "Net.h"
+#include "RunState.h"
 #include "threading/SerialTypes.h"
 #include "broker/Manager.h"
 
@@ -226,7 +226,7 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	write_buffer[write_buffer_pos++] = vals;
 
-	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || zeek::net::terminating )
+	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || zeek::run_state::terminating )
 		// Buffer full (or no bufferin desired or termiating).
 		FlushWriteBuffer();
 

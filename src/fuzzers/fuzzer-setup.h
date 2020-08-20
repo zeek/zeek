@@ -49,7 +49,7 @@ namespace zeek { namespace detail {
 
 void fuzzer_cleanup_one_input()
 	{
-	terminating = true;
+	run_state::terminating = true;
 	broker_mgr->ClearStores();
 	file_mgr->Terminate();
 	timer_mgr->Expire();
@@ -58,7 +58,7 @@ void fuzzer_cleanup_one_input()
 	sessions->Drain();
 	zeek::event_mgr.Drain();
 	sessions->Clear();
-	terminating = false;
+	run_state::terminating = false;
 	}
 
 }} // namespace zeek::detail

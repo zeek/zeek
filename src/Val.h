@@ -54,9 +54,11 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 
 namespace zeek {
-namespace net {
-	extern double network_time;
-	extern double zeek_start_network_time;
+namespace run_state {
+
+extern double network_time;
+extern double zeek_start_network_time;
+
 }
 
 using FuncPtr = zeek::IntrusivePtr<Func>;
@@ -731,7 +733,7 @@ public:
 		: val(std::move(v))
 		{
 		expire_access_time =
-			int(net::network_time - net::zeek_start_network_time);
+			int(run_state::network_time - run_state::zeek_start_network_time);
 		}
 
 	TableEntryVal* Clone(Val::CloneState* state);
@@ -744,9 +746,9 @@ public:
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
-		{ return net::zeek_start_network_time + expire_access_time; }
+		{ return run_state::zeek_start_network_time + expire_access_time; }
 	void SetExpireAccess(double time)
-		{ expire_access_time = int(time - net::zeek_start_network_time); }
+		{ expire_access_time = int(time - run_state::zeek_start_network_time); }
 
 protected:
 	friend class TableVal;

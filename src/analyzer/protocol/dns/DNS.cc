@@ -13,7 +13,7 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 
 #include "events.bif.h"
 
@@ -1908,7 +1908,7 @@ DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-		                   zeek::net::network_time + zeek::detail::dns_session_timeout, true,
+		                   zeek::run_state::network_time + zeek::detail::dns_session_timeout, true,
 		                   zeek::detail::TIMER_DNS_EXPIRE);
 		}
 	}
@@ -1956,7 +1956,7 @@ void DNS_Analyzer::ExpireTimer(double t)
 	// The - 1.0 in the following is to allow 1 second for the
 	// common case of a single request followed by a single reply,
 	// so we don't needlessly set the timer twice in that case.
-	if ( t - Conn()->LastTime() >= zeek::detail::dns_session_timeout - 1.0 || zeek::net::terminating )
+	if ( t - Conn()->LastTime() >= zeek::detail::dns_session_timeout - 1.0 || zeek::run_state::terminating )
 		{
 		Event(connection_timeout);
 		zeek::sessions->Remove(Conn());

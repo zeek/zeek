@@ -7,7 +7,7 @@
 #include <ctype.h>
 
 #include "Desc.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "Sessions.h"
@@ -194,8 +194,8 @@ void Connection::NextPacket(double t, bool is_orig,
                             // arguments for reproducing packets
                             const zeek::Packet *pkt)
 	{
-	zeek::net::current_timestamp = t;
-	zeek::net::current_pkt = pkt;
+	zeek::run_state::current_timestamp = t;
+	zeek::run_state::current_pkt = pkt;
 
 	if ( Skipping() )
 		return;
@@ -218,13 +218,13 @@ void Connection::NextPacket(double t, bool is_orig,
 	else
 		last_time = t;
 
-	zeek::net::current_timestamp = 0;
-	zeek::net::current_pkt = nullptr;
+	zeek::run_state::current_timestamp = 0;
+	zeek::run_state::current_pkt = nullptr;
 	}
 
 void Connection::SetLifetime(double lifetime)
 	{
-	ADD_TIMER(&Connection::DeleteTimer, zeek::net::network_time + lifetime, 0,
+	ADD_TIMER(&Connection::DeleteTimer, zeek::run_state::network_time + lifetime, 0,
 	          zeek::detail::TIMER_CONN_DELETE);
 	}
 
@@ -329,7 +329,7 @@ void Connection::EnableStatusUpdateTimer()
 	if ( connection_status_update && zeek::detail::connection_status_update_interval )
 		{
 		ADD_TIMER(&Connection::StatusUpdateTimer,
-		          zeek::net::network_time + zeek::detail::connection_status_update_interval, 0,
+		          zeek::run_state::network_time + zeek::detail::connection_status_update_interval, 0,
 		          zeek::detail::TIMER_CONN_STATUS_UPDATE);
 		installed_status_timer = 1;
 		}
@@ -339,7 +339,7 @@ void Connection::StatusUpdateTimer(double t)
 	{
 	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
-	          zeek::net::network_time + zeek::detail::connection_status_update_interval, 0,
+	          zeek::run_state::network_time + zeek::detail::connection_status_update_interval, 0,
 	          zeek::detail::TIMER_CONN_STATUS_UPDATE);
 	}
 

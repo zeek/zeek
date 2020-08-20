@@ -5,6 +5,7 @@
 #include "IP.h"
 #include "DebugLogger.h"
 #include "Reporter.h"
+#include "RunState.h"
 #include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
@@ -385,11 +386,11 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 		// worth the effort.
 
 		if ( b->is_orig )
-			reass_orig->DataSent(zeek::net::network_time, orig_seq = b->seq,
-					     b->len, b->data, tcp::TCP_Flags(), true);
+			reass_orig->DataSent(zeek::run_state::network_time, orig_seq = b->seq,
+			                     b->len, b->data, tcp::TCP_Flags(), true);
 		else
-			reass_resp->DataSent(zeek::net::network_time, resp_seq = b->seq,
-					     b->len, b->data, tcp::TCP_Flags(), true);
+			reass_resp->DataSent(zeek::run_state::network_time, resp_seq = b->seq,
+			                     b->len, b->data, tcp::TCP_Flags(), true);
 		}
 
 	// We also need to pass the current packet on.
@@ -397,11 +398,11 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 	if ( current->data )
 		{
 		if ( current->is_orig )
-			reass_orig->DataSent(zeek::net::network_time,
+			reass_orig->DataSent(zeek::run_state::network_time,
 					orig_seq = current->seq,
 					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		else
-			reass_resp->DataSent(zeek::net::network_time,
+			reass_resp->DataSent(zeek::run_state::network_time,
 					resp_seq = current->seq,
 					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		}

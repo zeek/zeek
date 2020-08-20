@@ -20,7 +20,7 @@
 #include "ZeekString.h"
 #include "CompHash.h"
 #include "Dict.h"
-#include "Net.h"
+#include "RunState.h"
 #include "File.h"
 #include "Func.h"
 #include "Desc.h"
@@ -1412,7 +1412,7 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	Init(std::move(t));
 	SetAttrs(std::move(a));
 
-	if ( ! zeek::net::is_parsing )
+	if ( ! zeek::run_state::is_parsing )
 		return;
 
 	for ( const auto& t : table_type->GetIndexTypes() )
@@ -1946,7 +1946,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 		if ( v )
 			{
 			if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
-				v->SetExpireAccess(net::network_time);
+				v->SetExpireAccess(run_state::network_time);
 
 			if ( v->GetVal() )
 				return v->GetVal();
@@ -1970,7 +1970,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 			if ( v )
 				{
 				if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
-					v->SetExpireAccess(net::network_time);
+					v->SetExpireAccess(run_state::network_time);
 
 				if ( v->GetVal() )
 					return v->GetVal();
@@ -2042,7 +2042,7 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search)
 		if ( entry )
 			{
 			if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
-				entry->SetExpireAccess(net::network_time);
+				entry->SetExpireAccess(run_state::network_time);
 			}
 		}
 
@@ -2068,7 +2068,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 	if ( ! v )
 		return false;
 
-	v->SetExpireAccess(net::network_time);
+	v->SetExpireAccess(run_state::network_time);
 
 	return true;
 	}
@@ -2204,7 +2204,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					if ( attrs->Find(zeek::detail::ATTR_EXPIRE_CREATE) )
 						{
 						// for create expiry, we have to substract the already elapsed time from the expiry.
-						auto e = expire_time - (net::network_time - new_entry_val->ExpireAccessTime());
+						auto e = expire_time - (run_state::network_time - new_entry_val->ExpireAccessTime());
 						if ( e <= 0 )
 							// element already expired? Let's not insert it.
 							break;
@@ -2528,7 +2528,7 @@ void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
 
 void TableVal::InitTimer(double delay)
 	{
-	timer = new TableValTimer(this, net::network_time + delay);
+	timer = new TableValTimer(this, run_state::network_time + delay);
 	zeek::detail::timer_mgr->Add(timer);
 	}
 
@@ -2595,7 +2595,7 @@ void TableVal::DoExpire(double t)
 					{
 					// User doesn't want us to expire
 					// this now.
-					v->SetExpireAccess(net::network_time - timeout + secs);
+					v->SetExpireAccess(run_state::network_time - timeout + secs);
 					delete k;
 					continue;
 					}
@@ -2874,7 +2874,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	auto vl = val.record_val = new std::vector<ValPtr>;
 	vl->reserve(n);
 
-	if ( zeek::net::is_parsing )
+	if ( zeek::run_state::is_parsing )
 		parse_time_records[rt].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )

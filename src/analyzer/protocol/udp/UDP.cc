@@ -4,7 +4,7 @@
 
 #include "zeek-config.h"
 
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "analyzer/protocol/udp/UDP.h"
 #include "analyzer/Manager.h"
@@ -62,7 +62,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = ! zeek::net::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >=len;
+	auto validate_checksum = ! zeek::run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >=len;
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
@@ -130,7 +130,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	ulen -= sizeof(struct udphdr);
 	caplen -= sizeof(struct udphdr);
 
-	Conn()->SetLastTime(zeek::net::current_timestamp);
+	Conn()->SetLastTime(zeek::run_state::current_timestamp);
 
 	if ( udp_contents )
 		{

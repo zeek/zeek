@@ -253,7 +253,6 @@ set(MAIN_SRCS
     List.cc
     Reporter.cc
     NFA.cc
-    Net.cc
     NetVar.cc
     Notifier.cc
     Obj.cc
@@ -271,6 +270,7 @@ set(MAIN_SRCS
     RuleAction.cc
     RuleCondition.cc
     RuleMatcher.cc
+    RunState.cc
     ScannedFile.cc
     Scope.cc
     ScriptCoverageManager.cc

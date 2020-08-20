@@ -2,7 +2,7 @@
 
 #include <errno.h>
 
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
 #include "TCP_Reassembler.h"

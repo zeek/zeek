@@ -7,7 +7,7 @@
 #include "MsgThread.h"
 #include "Manager.h"
 #include "iosource/Manager.h"
-#include "Net.h"
+#include "RunState.h"
 
 // Set by Zeek's main signal handler.
 extern int signal_val;
@@ -229,7 +229,7 @@ void MsgThread::OnSignalStop()
 
 	child_sent_finish = true;
 	// Signal thread to terminate.
-	SendIn(new detail::FinishMessage(this, zeek::net::network_time), true);
+	SendIn(new detail::FinishMessage(this, zeek::run_state::network_time), true);
 	}
 
 void MsgThread::OnWaitForStop()
@@ -303,7 +303,7 @@ void MsgThread::Heartbeat()
 	if ( child_sent_finish )
 		return;
 
-	SendIn(new detail::HeartbeatMessage(this, zeek::net::network_time, zeek::util::current_time()));
+	SendIn(new detail::HeartbeatMessage(this, zeek::run_state::network_time, zeek::util::current_time()));
 	}
 
 void MsgThread::Finished()
@@ -450,7 +450,7 @@ void MsgThread::Run()
 	// anymore.
 	if ( ! child_finished && ! Killed() )
 		{
-		OnFinish(zeek::net::network_time);
+		OnFinish(zeek::run_state::network_time);
 		Finished();
 		}
 	}

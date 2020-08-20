@@ -8,6 +8,7 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Reporter.h"
+#include "RunState.h"
 
 constexpr uint32_t MIN_ACCEPTABLE_FRAG_SIZE = 64;
 constexpr uint32_t MAX_ACCEPTABLE_FRAG_SIZE = 64000;
@@ -154,7 +155,7 @@ void FragReassembler::AddFragment(double t, const zeek::IP_Hdr* ip, const u_char
 	pkt += hdr_len;
 	len -= hdr_len;
 
-	NewBlock(zeek::net::network_time, offset, len, pkt);
+	NewBlock(zeek::run_state::network_time, offset, len, pkt);
 	}
 
 void FragReassembler::Weird(const char* name) const
@@ -278,7 +279,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 			{
 			zeek::reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
-			Expire(zeek::net::network_time);
+			Expire(zeek::run_state::network_time);
 			delete [] pkt_start;
 			return;
 			}

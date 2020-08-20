@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Net.h"
+#include "RunState.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -45,7 +45,7 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 static double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 extern int signal_val;
 
-namespace zeek::net {
+namespace zeek::run_state {
 namespace detail {
 
 zeek::iosource::PktDumper* pkt_dumper = nullptr;
@@ -438,23 +438,23 @@ void net_continue_processing()
 
 bool net_is_processing_suspended()	{ return _processing_suspended; }
 
-} // namespace zeek::net
+} // namespace zeek::run_state
 
 // Remove all of these in v4.1.
-zeek::iosource::PktSrc*& current_pktsrc = zeek::net::detail::current_pktsrc;
-zeek::iosource::IOSource*& current_iosrc = zeek::net::detail::current_iosrc;
-zeek::iosource::PktDumper*& pkt_dumper = zeek::net::detail::pkt_dumper;
-bool& have_pending_timers = zeek::net::detail::have_pending_timers;
+zeek::iosource::PktSrc*& current_pktsrc = zeek::run_state::detail::current_pktsrc;
+zeek::iosource::IOSource*& current_iosrc = zeek::run_state::detail::current_iosrc;
+zeek::iosource::PktDumper*& pkt_dumper = zeek::run_state::detail::pkt_dumper;
+bool& have_pending_timers = zeek::run_state::detail::have_pending_timers;
 
-bool& reading_live = zeek::net::reading_live;
-bool& reading_traces = zeek::net::reading_traces;
-double& pseudo_realtime = zeek::net::pseudo_realtime;
-double& processing_start_time = zeek::net::processing_start_time;
-double& bro_start_time = zeek::net::zeek_start_time;
-double& bro_start_network_time = zeek::net::zeek_start_network_time;
-bool& terminating = zeek::net::terminating;
-bool& is_parsing = zeek::net::is_parsing;
+bool& reading_live = zeek::run_state::reading_live;
+bool& reading_traces = zeek::run_state::reading_traces;
+double& pseudo_realtime = zeek::run_state::pseudo_realtime;
+double& processing_start_time = zeek::run_state::processing_start_time;
+double& bro_start_time = zeek::run_state::zeek_start_time;
+double& bro_start_network_time = zeek::run_state::zeek_start_network_time;
+bool& terminating = zeek::run_state::terminating;
+bool& is_parsing = zeek::run_state::is_parsing;
 
-const zeek::Packet*& current_pkt = zeek::net::current_pkt;
-int& current_dispatched = zeek::net::current_dispatched;
-double& current_timestamp = zeek::net::current_timestamp;
+const zeek::Packet*& current_pkt = zeek::run_state::current_pkt;
+int& current_dispatched = zeek::run_state::current_dispatched;
+double& current_timestamp = zeek::run_state::current_timestamp;

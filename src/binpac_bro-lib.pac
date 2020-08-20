@@ -4,6 +4,7 @@
 #include "Reporter.h"
 #include "Val.h"
 #include "ConvertUTF.h"
+#include "RunState.h"
 %}
 
 %code{
@@ -63,5 +64,5 @@ zeek::StringVal* utf16_bytestring_to_utf8_val(zeek::Connection* conn, const byte
 
 function network_time(): double
 	%{
-	return zeek::net::network_time;
+	return zeek::run_state::network_time;
 	%}

@@ -22,6 +22,7 @@
 #include "module_util.h"
 #include "Var.h"
 #include "IPAddr.h"
+#include "RunState.h"
 
 using namespace std;
 
@@ -1236,9 +1237,9 @@ void RuleMatcher::DumpStats(zeek::File* f)
 
 	f->Write(zeek::util::fmt("%.6f computed dfa states = %d; classes = ??; "
 	                         "computed trans. = %d; matchers = %d; mem = %d\n",
-	                         zeek::net::network_time, stats.dfa_states, stats.computed,
+	                         zeek::run_state::network_time, stats.dfa_states, stats.computed,
 	                         stats.matchers, stats.mem));
-	f->Write(zeek::util::fmt("%.6f DFA cache hits = %d; misses = %d\n", zeek::net::network_time,
+	f->Write(zeek::util::fmt("%.6f DFA cache hits = %d; misses = %d\n", zeek::run_state::network_time,
 	                         stats.hits, stats.misses));
 
 	DumpStateStats(f, root);
@@ -1256,7 +1257,8 @@ void RuleMatcher::DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test)
 			RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
 			assert(set->re);
 
-			f->Write(zeek::util::fmt("%.6f %d DFA states in %s group %d from sigs ", zeek::net::network_time,
+			f->Write(zeek::util::fmt("%.6f %d DFA states in %s group %d from sigs ",
+			                         zeek::run_state::network_time,
 			                         set->re->DFA()->NumStates(),
 			                         Rule::TypeToString((Rule::PatternType)i), j));
 

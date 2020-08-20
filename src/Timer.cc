@@ -5,7 +5,7 @@
 #include "util.h"
 #include "Timer.h"
 #include "Desc.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "broker/Manager.h"
 #include "iosource/Manager.h"
@@ -96,13 +96,13 @@ void TimerMgr::Process()
 	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
 	// move forward and the timers won't fire correctly.
 	iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::net::reading_live || zeek::net::net_is_processing_suspended() )
-		zeek::net::detail::net_update_time(zeek::util::current_time());
+	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::run_state::reading_live || zeek::run_state::net_is_processing_suspended() )
+		zeek::run_state::detail::net_update_time(zeek::util::current_time());
 
 	// Just advance the timer manager based on the current network time. This won't actually
 	// change the time, but will dispatch any timers that need dispatching.
-	zeek::net::current_dispatched += Advance(zeek::net::network_time,
-	                                         max_timer_expires - zeek::net::current_dispatched);
+	zeek::run_state::current_dispatched += Advance(zeek::run_state::network_time,
+	                                         max_timer_expires - zeek::run_state::current_dispatched);
 	}
 
 void TimerMgr::InitPostScript()
@@ -186,7 +186,7 @@ double PQ_TimerMgr::GetNextTimeout()
 	{
 	Timer* top = Top();
 	if ( top )
-		return std::max(0.0, top->Time() - zeek::net::network_time);
+		return std::max(0.0, top->Time() - zeek::run_state::network_time);
 
 	return -1;
 	}

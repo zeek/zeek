@@ -15,6 +15,7 @@
 #include <dirent.h>
 
 #include "Func.h"
+#include "RunState.h"
 #include "supervisor/Supervisor.h"
 #include "logging/Manager.h"
 #include "threading/SerialTypes.h"
@@ -398,7 +399,7 @@ Ascii::~Ascii()
 	if ( ! ascii_done )
 		// In case of errors aborting the logging altogether,
 		// DoFinish() may not have been called.
-		CloseFile(zeek::net::network_time);
+		CloseFile(zeek::run_state::network_time);
 
 	delete formatter;
 	}

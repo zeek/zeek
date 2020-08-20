@@ -31,7 +31,7 @@
 #include "broparse.h"
 #include "Reporter.h"
 #include "RE.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Traverse.h"
 #include "module_util.h"
 #include "ScannedFile.h"

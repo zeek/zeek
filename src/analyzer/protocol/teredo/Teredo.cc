@@ -6,6 +6,7 @@
 #include "Reporter.h"
 #include "Sessions.h"
 #include "ZeekString.h"
+#include "RunState.h"
 
 #include "events.bif.h"
 
@@ -232,7 +233,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	zeek::EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
-	zeek::sessions->DoNextInnerPacket(zeek::net::network_time, nullptr, inner, e, ec);
+	zeek::sessions->DoNextInnerPacket(zeek::run_state::network_time, nullptr, inner, e, ec);
 	}
 
 } // namespace zeek::analyzer::teredo

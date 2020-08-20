@@ -11,7 +11,7 @@
 #include "plugin/Manager.h"
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
-#include "Net.h"
+#include "RunState.h"
 
 zeek::EventMgr zeek::event_mgr;
 zeek::EventMgr& mgr = zeek::event_mgr;
@@ -226,8 +226,8 @@ void EventMgr::Process()
 	// reading live (which includes pseudo-realtime), advance the time
 	// here to the current time since otherwise it won't move forward.
 	zeek::iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::net::reading_live )
-		zeek::net::detail::net_update_time(zeek::util::current_time());
+	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::run_state::reading_live )
+		zeek::run_state::detail::net_update_time(zeek::util::current_time());
 
 	queue_flare.Extinguish();
 

@@ -11,7 +11,7 @@
 #include "Scope.h"
 #include "Stmt.h"
 #include "EventRegistry.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Traverse.h"
 #include "Trigger.h"
 #include "IPAddr.h"
@@ -3861,7 +3861,7 @@ bool ScheduleExpr::IsPure() const
 
 ValPtr ScheduleExpr::Eval(Frame* f) const
 	{
-	if ( zeek::net::terminating )
+	if ( zeek::run_state::terminating )
 		return nullptr;
 
 	auto when_val = when->Eval(f);
@@ -3872,7 +3872,7 @@ ValPtr ScheduleExpr::Eval(Frame* f) const
 	double dt = when_val->InternalDouble();
 
 	if ( when->GetType()->Tag() == zeek::TYPE_INTERVAL )
-		dt += zeek::net::network_time;
+		dt += zeek::run_state::network_time;
 
 	auto args = eval_list(f, event->Args());
 

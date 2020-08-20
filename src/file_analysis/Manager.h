@@ -7,7 +7,7 @@
 #include <map>
 
 #include "Component.h"
-#include "Net.h"
+#include "RunState.h"
 #include "RuleMatcher.h"
 
 #include "plugin/ComponentManager.h"
@@ -381,7 +381,7 @@ protected:
 	 * @param is_termination whether the Manager (and probably Bro) is in a
 	 *        terminating state.  If true, then the timeout cannot be postponed.
 	 */
-	void Timeout(const std::string& file_id, bool is_terminating = zeek::net::terminating);
+	void Timeout(const std::string& file_id, bool is_terminating = zeek::run_state::terminating);
 
 	/**
 	 * Immediately remove file_analysis::File object associated with \a file_id.

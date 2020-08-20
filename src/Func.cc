@@ -39,7 +39,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Scope.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "File.h"
 #include "Frame.h"

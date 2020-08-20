@@ -52,7 +52,7 @@
 #include "Obj.h"
 #include "Val.h"
 #include "NetVar.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
@@ -854,7 +854,7 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	auto tmpname = tmpname_buf.get();
 
 	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
-	         name, getpid(), zeek::net::network_time);
+	         name, getpid(), zeek::run_state::network_time);
 	newname[buflen-1] = '\0';
 	strcpy(tmpname, newname);
 	strcat(tmpname, ".tmp");
@@ -891,8 +891,8 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 		{
 		rotate_info->Assign<zeek::StringVal>(0, name);
 		rotate_info->Assign<zeek::StringVal>(1, newname);
-		rotate_info->Assign<zeek::TimeVal>(2, zeek::net::network_time);
-		rotate_info->Assign<zeek::TimeVal>(3, zeek::net::network_time);
+		rotate_info->Assign<zeek::TimeVal>(2, zeek::run_state::network_time);
+		rotate_info->Assign<zeek::TimeVal>(3, zeek::run_state::network_time);
 		}
 
 	return newf;
@@ -957,7 +957,7 @@ double calc_next_rotate(double current, double interval, double base)
 
 void terminate_processing()
 	{
-	if ( ! zeek::net::terminating )
+	if ( ! zeek::run_state::terminating )
 		raise(SIGTERM);
 	}
 
@@ -2031,13 +2031,13 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! zeek::net::pseudo_realtime || real || ! zeek::iosource_mgr || ! zeek::iosource_mgr->GetPktSrc() )
+	if ( ! zeek::run_state::pseudo_realtime || real || ! zeek::iosource_mgr || ! zeek::iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...
 	zeek::iosource::PktSrc* src = zeek::iosource_mgr->GetPktSrc();
 
-	if ( zeek::net::net_is_processing_suspended() )
+	if ( zeek::run_state::net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();
 
 	// We don't scale with pseudo_realtime here as that would give us a
@@ -2269,7 +2269,7 @@ void* debug_malloc(size_t t)
 	{
 	void* v = malloc(t);
 	if ( malloc_debug )
-		printf("%.6f malloc %x %d\n", zeek::net::network_time, v, t);
+		printf("%.6f malloc %x %d\n", zeek::run_state::network_time, v, t);
 	return v;
 	}
 
@@ -2277,14 +2277,14 @@ void* debug_realloc(void* v, size_t t)
 	{
 	v = realloc(v, t);
 	if ( malloc_debug )
-		printf("%.6f realloc %x %d\n", zeek::net::network_time, v, t);
+		printf("%.6f realloc %x %d\n", zeek::run_state::network_time, v, t);
 	return v;
 	}
 
 void debug_free(void* v)
 	{
 	if ( malloc_debug )
-		printf("%.6f free %x\n", zeek::net::network_time, v);
+		printf("%.6f free %x\n", zeek::run_state::network_time, v);
 	free(v);
 	}
 
@@ -2292,7 +2292,7 @@ void* operator new(size_t t)
 	{
 	void* v = malloc(t);
 	if ( malloc_debug )
-		printf("%.6f new %x %d\n", zeek::net::network_time, v, t);
+		printf("%.6f new %x %d\n", zeek::run_state::network_time, v, t);
 	return v;
 	}
 
@@ -2300,21 +2300,21 @@ void* operator new[](size_t t)
 	{
 	void* v = malloc(t);
 	if ( malloc_debug )
-		printf("%.6f new[] %x %d\n", zeek::net::network_time, v, t);
+		printf("%.6f new[] %x %d\n", zeek::run_state::network_time, v, t);
 	return v;
 	}
 
 void operator delete(void* v)
 	{
 	if ( malloc_debug )
-		printf("%.6f delete %x\n", zeek::net::network_time, v);
+		printf("%.6f delete %x\n", zeek::run_state::network_time, v);
 	free(v);
 	}
 
 void operator delete[](void* v)
 	{
 	if ( malloc_debug )
-		printf("%.6f delete %x\n", zeek::net::network_time, v);
+		printf("%.6f delete %x\n", zeek::run_state::network_time, v);
 	free(v);
 	}
 
@@ -2530,7 +2530,7 @@ string json_escape_utf8(const string& val)
 } // namespace zeek::util
 
 // Remove in v4.1.
-double& network_time = zeek::net::network_time;
+double& network_time = zeek::run_state::network_time;
 
 unsigned int bro_prng(unsigned int  state)
 	{ return zeek::util::detail::prng(state); }

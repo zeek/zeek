@@ -34,7 +34,7 @@
 #include "ZeekString.h"
 #include "Expr.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "ID.h"
@@ -1338,7 +1338,7 @@ double DNS_Mgr::GetNextTimeout()
 	if ( asyncs_timeouts.empty() )
 		return -1;
 
-	return zeek::net::network_time + DNS_TIMEOUT;
+	return zeek::run_state::network_time + DNS_TIMEOUT;
 	}
 
 void DNS_Mgr::Process()
@@ -1350,7 +1350,7 @@ void DNS_Mgr::Process()
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > zeek::util::current_time() && ! zeek::net::terminating )
+		if ( req->time + DNS_TIMEOUT > zeek::util::current_time() && ! zeek::run_state::terminating )
 			break;
 
 		if ( ! req->processed )

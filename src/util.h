@@ -111,7 +111,7 @@ extern char* strcasestr(const char* s, const char* find);
 // perspective.  In particular, if we're reading from a savefile this
 // is the time of the most recent packet, not the time returned by
 // gettimeofday().
-extern double& network_time [[deprecated("Remove in v4.1. Use zeek::net::network_time.")]];
+extern double& network_time [[deprecated("Remove in v4.1. Use zeek::run_state::network_time.")]];
 
 [[deprecated("Remove in v4.1: Use system snprintf instead")]]
 inline int safe_snprintf(char* str, size_t size, const char* format, ...)

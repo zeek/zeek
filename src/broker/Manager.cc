@@ -22,7 +22,7 @@
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
 #include "SerializationFormat.h"
-#include "Net.h"
+#include "RunState.h"
 
 using namespace std;
 
@@ -923,7 +923,7 @@ void Manager::Process()
 	// Ensure that time gets update before processing broker messages, or events
 	// based on them might get scheduled wrong.
 	if ( use_real_time )
-		zeek::net::detail::net_update_time(zeek::util::current_time());
+		zeek::run_state::detail::net_update_time(zeek::util::current_time());
 
 	bool had_input = false;
 
@@ -995,11 +995,11 @@ void Manager::Process()
 
 	if ( had_input )
 		{
-		if ( zeek::net::network_time == 0 )
+		if ( zeek::run_state::network_time == 0 )
 			// If we're getting Broker messages, but still haven't initialized
-			// zeek::net::network_time, may as well do so now because otherwise the
+			// zeek::run_state::network_time, may as well do so now because otherwise the
 			// broker/cluster logs will end up using timestamp 0.
-			zeek::net::detail::net_update_time(zeek::util::current_time());
+			zeek::run_state::detail::net_update_time(zeek::util::current_time());
 		}
 	}
 

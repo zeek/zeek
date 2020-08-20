@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #include "DebugLogger.h"
-#include "Net.h"
+#include "RunState.h"
 #include "plugin/Plugin.h"
 
 zeek::detail::DebugLogger zeek::detail::debug_logger;
@@ -159,7 +159,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [%s] ",
-			zeek::net::network_time, zeek::util::current_time(true), g->prefix);
+			zeek::run_state::network_time, zeek::util::current_time(true), g->prefix);
 
 	for ( int i = g->indent; i > 0; --i )
 		fputs("   ", file);
@@ -182,7 +182,7 @@ void DebugLogger::Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-			zeek::net::network_time, zeek::util::current_time(true), plugin.Name().c_str());
+			zeek::run_state::network_time, zeek::util::current_time(true), plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);

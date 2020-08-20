@@ -62,7 +62,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message* arg_message, zeek::analyzer::mime::MIME_E
 void HTTP_Entity::EndOfData()
 	{
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f: end of data\n", zeek::net::network_time);
+		DEBUG_MSG("%.6f: end of data\n", zeek::run_state::network_time);
 
 	if ( zip )
 		{
@@ -84,7 +84,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 	if ( DEBUG_http )
 		{
 		DEBUG_MSG("%.6f HTTP_Entity::Deliver len=%d, in_header=%d\n",
-		          zeek::net::network_time, len, in_header);
+		          zeek::run_state::network_time, len, in_header);
 		}
 
 	if ( end_of_data )
@@ -511,7 +511,7 @@ void HTTP_Entity::SubmitAllHeaders()
 	ASSERT(! in_header);
 
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f end of headers\n", zeek::net::network_time);
+		DEBUG_MSG("%.6f end of headers\n", zeek::run_state::network_time);
 
 	if ( Parent() &&
 	     Parent()->MIMEContentType() == zeek::analyzer::mime::CONTENT_TYPE_MULTIPART )
@@ -609,7 +609,7 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 	entity_data_buffer = nullptr;
 	BeginEntity(top_level);
 
-	start_time = zeek::net::network_time;
+	start_time = zeek::run_state::network_time;
 	body_length = 0;
 	content_gap_length = 0;
 	header_length = init_header_length;
@@ -642,7 +642,7 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 
 	zeek::analyzer::mime::MIME_Message::Done();
 
-	// DEBUG_MSG("%.6f HTTP message done.\n", zeek::net::network_time);
+	// DEBUG_MSG("%.6f HTTP message done.\n", zeek::run_state::network_time);
 	top_level->EndOfData();
 
 	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
@@ -684,7 +684,7 @@ bool HTTP_Message::Undelivered(int64_t len)
 void HTTP_Message::BeginEntity(zeek::analyzer::mime::MIME_Entity* entity)
 	{
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f: begin entity (%d)\n", zeek::net::network_time, is_orig);
+		DEBUG_MSG("%.6f: begin entity (%d)\n", zeek::run_state::network_time, is_orig);
 
 	current_entity = (HTTP_Entity*) entity;
 
@@ -698,7 +698,7 @@ void HTTP_Message::BeginEntity(zeek::analyzer::mime::MIME_Entity* entity)
 void HTTP_Message::EndEntity(zeek::analyzer::mime::MIME_Entity* entity)
 	{
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f: end entity (%d)\n", zeek::net::network_time, is_orig);
+		DEBUG_MSG("%.6f: end entity (%d)\n", zeek::run_state::network_time, is_orig);
 
 	if ( entity == top_level )
 		{
@@ -1126,7 +1126,7 @@ void HTTP_Analyzer::EndpointEOF(bool is_orig)
 	{
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 
-	// DEBUG_MSG("%.6f eof\n", zeek::net::network_time);
+	// DEBUG_MSG("%.6f eof\n", zeek::run_state::network_time);
 
 	if ( is_orig )
 		RequestMade(false, "message ends as connection contents are completely delivered");
@@ -1138,7 +1138,7 @@ void HTTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
-	// DEBUG_MSG("%.6f connection finished\n", zeek::net::network_time);
+	// DEBUG_MSG("%.6f connection finished\n", zeek::run_state::network_time);
 	RequestMade(true, "message ends as connection is finished");
 	ReplyMade(true, "message ends as connection is finished");
 	}
@@ -1170,7 +1170,7 @@ void HTTP_Analyzer::GenStats()
 		r->Assign(2, zeek::make_intrusive<zeek::DoubleVal>(request_version.ToDouble()));
 		r->Assign(3, zeek::make_intrusive<zeek::DoubleVal>(reply_version.ToDouble()));
 
-		// DEBUG_MSG("%.6f http_stats\n", zeek::net::network_time);
+		// DEBUG_MSG("%.6f http_stats\n", zeek::run_state::network_time);
 		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));
 		}
 	}
@@ -1369,7 +1369,7 @@ void HTTP_Analyzer::HTTP_Event(const char* category, const char* detail)
 void HTTP_Analyzer::HTTP_Event(const char* category, zeek::StringValPtr detail)
 	{
 	if ( http_event )
-		// DEBUG_MSG("%.6f http_event\n", zeek::net::network_time);
+		// DEBUG_MSG("%.6f http_event\n", zeek::run_state::network_time);
 		EnqueueConnEvent(http_event,
 			ConnVal(),
 			zeek::make_intrusive<zeek::StringVal>(category),
@@ -1403,7 +1403,7 @@ void HTTP_Analyzer::HTTP_Request()
 		connect_request = true;
 
 	if ( http_request )
-		// DEBUG_MSG("%.6f http_request\n", zeek::net::network_time);
+		// DEBUG_MSG("%.6f http_request\n", zeek::run_state::network_time);
 		EnqueueConnEvent(http_request,
 			ConnVal(),
 			request_method,
@@ -1438,7 +1438,7 @@ void HTTP_Analyzer::RequestMade(bool interrupted, const char* msg)
 	if ( request_message )
 		request_message->Done(interrupted, msg);
 
-	// DEBUG_MSG("%.6f request made\n", zeek::net::network_time);
+	// DEBUG_MSG("%.6f request made\n", zeek::run_state::network_time);
 
 	request_method = nullptr;
 	unescaped_URI = nullptr;
@@ -1459,7 +1459,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 
 	reply_ongoing = 0;
 
-	// DEBUG_MSG("%.6f reply made\n", zeek::net::network_time);
+	// DEBUG_MSG("%.6f reply made\n", zeek::run_state::network_time);
 
 	if ( reply_message )
 		reply_message->Done(interrupted, msg);
@@ -1644,7 +1644,7 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, zeek::analyzer::mime::MIME_Header*
 				is_orig, false, true, false);
 
 		if ( DEBUG_http )
-			DEBUG_MSG("%.6f http_header\n", zeek::net::network_time);
+			DEBUG_MSG("%.6f http_header\n", zeek::run_state::network_time);
 
 		auto upper_hn = zeek::analyzer::mime::to_string_val(h->get_name());
 		upper_hn->ToUpper();
@@ -1692,7 +1692,7 @@ void HTTP_Analyzer::InitHTTPMessage(zeek::analyzer::tcp::ContentLine_Analyzer* c
 		delete message;
 		}
 
-	// DEBUG_MSG("%.6f init http message\n", zeek::net::network_time);
+	// DEBUG_MSG("%.6f init http message\n", zeek::run_state::network_time);
 	message = new HTTP_Message(this, cl, is_orig, expect_body,
 					init_header_length);
 	}

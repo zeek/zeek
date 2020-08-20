@@ -1,6 +1,6 @@
 #include "binpac.h"
 
-#include "Net.h"
+#include "RunState.h"
 #include "Conn.h"
 #include "Sessions.h"
 #include "analyzer/Analyzer.h"

@@ -31,7 +31,6 @@ public:
 	std::string canonical_path; // normalized, absolute path via realpath()
 
 	static auto constexpr canonical_stdin_path = "<stdin>";
-
 };
 
 extern std::list<ScannedFile> files_scanned;

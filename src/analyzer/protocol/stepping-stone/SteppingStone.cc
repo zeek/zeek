@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
 #include "Sessions.h"
@@ -178,9 +178,9 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 	                                                            ip, caplen);
 
 	if ( is_orig )
-		orig_endp->DataSent(zeek::net::network_time, seq, len, caplen, data, nullptr, nullptr);
+		orig_endp->DataSent(zeek::run_state::network_time, seq, len, caplen, data, nullptr, nullptr);
 	else
-		resp_endp->DataSent(zeek::net::network_time, seq, len, caplen, data, nullptr, nullptr);
+		resp_endp->DataSent(zeek::run_state::network_time, seq, len, caplen, data, nullptr, nullptr);
 	}
 
 void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
@@ -190,14 +190,14 @@ void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
 
 	if ( is_orig )
 		{
-		orig_endp->DataSent(zeek::net::network_time, orig_stream_pos, len, len,
+		orig_endp->DataSent(zeek::run_state::network_time, orig_stream_pos, len, len,
 		                    data, nullptr, nullptr);
 		orig_stream_pos += len;
 		}
 
 	else
 		{
-		resp_endp->DataSent(zeek::net::network_time, resp_stream_pos, len, len,
+		resp_endp->DataSent(zeek::run_state::network_time, resp_stream_pos, len, len,
 		                    data, nullptr, nullptr);
 		resp_stream_pos += len;
 		}

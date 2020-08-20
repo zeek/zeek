@@ -15,7 +15,7 @@
 #include "Event.h"
 #include "EventHandler.h"
 #include "NetVar.h"
-#include "Net.h"
+#include "RunState.h"
 #include "CompHash.h"
 #include "Func.h"
 

@@ -9,7 +9,7 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 
 #include "events.bif.h"
 
@@ -471,7 +471,7 @@ NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
-		                   zeek::net::network_time + netbios_ssn_session_timeout, true,
+		                   zeek::run_state::network_time + netbios_ssn_session_timeout, true,
 		                   zeek::detail::TIMER_NB_EXPIRE);
 		}
 	}
@@ -526,8 +526,8 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 	// The - 1.0 in the following is to allow 1 second for the
 	// common case of a single request followed by a single reply,
 	// so we don't needlessly set the timer twice in that case.
-	if ( zeek::net::terminating ||
-	     zeek::net::network_time - Conn()->LastTime() >=
+	if ( zeek::run_state::terminating ||
+	     zeek::run_state::network_time - Conn()->LastTime() >=
 		     netbios_ssn_session_timeout - 1.0 )
 		{
 		Event(connection_timeout);

@@ -29,7 +29,7 @@ extern "C" {
 #include "Event.h"
 #include "File.h"
 #include "Reporter.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "Var.h"
 #include "Timer.h"
@@ -261,7 +261,7 @@ static void done_with_network()
 	if ( zeek::detail::profiling_logger )
 		zeek::detail::profiling_logger->Log();
 
-	zeek::net::terminating = true;
+	zeek::run_state::terminating = true;
 
 	zeek::analyzer_mgr->Done();
 	zeek::detail::timer_mgr->Expire();
@@ -269,7 +269,7 @@ static void done_with_network()
 	zeek::event_mgr.Drain();
 	zeek::event_mgr.Drain();
 
-	zeek::net::detail::net_finish(1);
+	zeek::run_state::detail::net_finish(1);
 
 #ifdef USE_PERFTOOLS_DEBUG
 
@@ -293,7 +293,7 @@ static void terminate_bro()
 	{
 	zeek::util::detail::set_processing_status("TERMINATING", "terminate_bro");
 
-	zeek::net::terminating = true;
+	zeek::run_state::terminating = true;
 
 	zeek::iosource_mgr->Wakeup("terminate_bro");
 
@@ -354,7 +354,7 @@ RETSIGTYPE sig_handler(int signo)
 	zeek::util::detail::set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
 
-	if ( ! zeek::net::terminating )
+	if ( ! zeek::run_state::terminating )
 		zeek::iosource_mgr->Wakeup("sig_handler");
 
 	return RETSIGVAL;
@@ -448,7 +448,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	if ( zeek_prefixes )
 		zeek::util::tokenize_string(zeek_prefixes, ":", &zeek_script_prefixes);
 
-	zeek::net::pseudo_realtime = options.pseudo_realtime;
+	zeek::run_state::pseudo_realtime = options.pseudo_realtime;
 
 #ifdef USE_PERFTOOLS_DEBUG
 	perftools_leaks = options.perftools_check_leaks;
@@ -476,7 +476,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	atexit(atexit_handler);
 	zeek::util::detail::set_processing_status("INITIALIZING", "main");
 
-	zeek::net::zeek_start_time = zeek::util::current_time(true);
+	zeek::run_state::zeek_start_time = zeek::util::current_time(true);
 
 	zeek::val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
@@ -628,9 +628,9 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	HeapLeakChecker::Disabler disabler;
 #endif
 
-	zeek::net::is_parsing = true;
+	zeek::run_state::is_parsing = true;
 	yyparse();
-	zeek::net::is_parsing = false;
+	zeek::run_state::is_parsing = false;
 
 	RecordVal::DoneParsing();
 	TableVal::DoneParsing();
@@ -751,7 +751,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 		}
 
 	if ( dns_type != DNS_PRIME )
-		zeek::net::detail::net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
+		zeek::run_state::detail::net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
 	if ( ! g_policy_debug )
 		{
@@ -803,10 +803,10 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 			zeek::detail::segment_logger = zeek::detail::profiling_logger;
 		}
 
-	if ( ! zeek::net::reading_live && ! zeek::net::reading_traces )
+	if ( ! zeek::run_state::reading_live && ! zeek::run_state::reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
-		zeek::net::detail::net_update_time(zeek::util::current_time());
+		zeek::run_state::detail::net_update_time(zeek::util::current_time());
 
 	if ( zeek_init )
 		zeek::event_mgr.Enqueue(zeek_init, zeek::Args{});
@@ -874,7 +874,7 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	zeek::reporter->ZeekInitDone();
 	zeek::analyzer_mgr->DumpDebug();
 
-	zeek::net::detail::have_pending_timers = ! zeek::net::reading_traces && zeek::detail::timer_mgr->Size() > 0;
+	zeek::run_state::detail::have_pending_timers = ! zeek::run_state::reading_traces && zeek::detail::timer_mgr->Size() > 0;
 
 	return {0, std::move(options)};
 	}
@@ -884,7 +884,7 @@ int cleanup(bool did_net_run)
 	if ( did_net_run )
 		done_with_network();
 
-	zeek::net::detail::net_delete();
+	zeek::run_state::detail::net_delete();
 	terminate_bro();
 
 	sqlite3_shutdown();
@@ -904,7 +904,7 @@ int cleanup(bool did_net_run)
 
 } // namespace detail
 
-namespace net::detail {
+namespace run_state::detail {
 
 void zeek_terminate_loop(const char* reason)
 	{
@@ -926,5 +926,5 @@ void zeek_terminate_loop(const char* reason)
 	exit(0);
 	}
 
-} // namespace net::detail
+} // namespace run_state::detail
 } // namespace zeek

@@ -25,7 +25,7 @@
 #include "Type.h"
 #include "Expr.h"
 #include "NetVar.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Event.h"
 #include "Reporter.h"
 #include "Desc.h"
@@ -119,7 +119,7 @@ const char* File::Name() const
 bool File::Open(FILE* file, const char* mode)
 	{
 	static bool fds_maximized = false;
-	open_time = zeek::net::network_time ? zeek::net::network_time : zeek::util::current_time();
+	open_time = zeek::run_state::network_time ? zeek::run_state::network_time : zeek::util::current_time();
 
 	if ( ! fds_maximized )
 		{

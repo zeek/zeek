@@ -268,7 +268,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	}
 
 
-void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
+void ZAM_vector::SetManagedElement(int n, const ZAMValUnion& v)
 	{
 	auto& zn = zvec[n];
 

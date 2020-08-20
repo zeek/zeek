@@ -78,7 +78,8 @@ protected:
 
 	const char* func_name;
 
-	vector<ZInst*> insts;
+	const ZInst* insts;
+	int ninst;
 
 	FrameReMap frame_denizens;
 	int frame_size;

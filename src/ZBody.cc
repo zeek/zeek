@@ -209,27 +209,40 @@ ZBody::~ZBody()
 		delete[] fixed_frame;
 		}
 
+	delete insts;
 	delete inst_count;
 	delete CPU_time;
 	}
 
 void ZBody::SetInsts(vector<ZInst*>& _insts)
 	{
-	for ( auto i : _insts )
-		insts.push_back(i);
+	ninst = _insts.size();
+	auto insts_copy = new ZInst[ninst];
+
+	for ( auto i = 0U; i < ninst; ++i )
+		insts_copy[i] = *_insts[i];
+
+	insts = insts_copy;
 
 	InitProfile();
 	}
 
 void ZBody::SetInsts(vector<ZInstI*>& instsI)
 	{
-	for ( auto i : instsI )
+	ninst = instsI.size();
+	auto insts_copy = new ZInst[ninst];
+
+	for ( auto i = 0U; i < ninst; ++i )
 		{
-		insts.push_back(i);
-		if ( i->stmt )
-			insts.back()->loc =
-				i->stmt->Original()->GetLocationInfo();
+		auto& iI = *instsI[i];
+		insts_copy[i] = iI;
+		if ( iI.stmt )
+			insts_copy[i].loc =
+				iI.stmt->Original()->GetLocationInfo();
+
 		}
+
+	insts = insts_copy;
 
 	InitProfile();
 	}
@@ -240,7 +253,7 @@ void ZBody::InitProfile()
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
-		for ( auto i : insts )
+		for ( auto i = 0U; i < ninst; ++i )
 			{
 			inst_count->push_back(0);
 			inst_CPU->push_back(0.0);
@@ -278,7 +291,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
 						nullptr;
 	int pc = start_pc;
-	int end_pc = insts.size();
+	int end_pc = ninst;
 
 #define BuildVal(v, t) ZAMValUnion(v, t)
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
@@ -326,7 +339,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
 	while ( pc < end_pc && ! ZAM_error ) {
-		auto& z = *insts[pc];
+		auto& z = insts[pc];
 
 #ifdef DEBUG
 		int profile_pc;
@@ -910,8 +923,10 @@ void ZBody::SaveTo(FILE* f) const
 
 	int iter_cnt = 0;
 
-	for ( auto i : insts )
+	for ( auto ii = 0U; ii < ninst; ++ii )
 		{
+		auto i = &insts[ii];
+
 		if ( i->e )
 			reporter->InternalError("ZAM save file needs support for expressions");
 
@@ -973,8 +988,10 @@ void ZBody::SaveTo(FILE* f) const
 
 	int inst_num = 0;
 
-	for ( auto i : insts )
+	for ( auto ii = 0U; ii < ninst; ++ii )
 		{
+		auto i = &insts[ii];
+
 		fprintf(f, "%d %d %d %s", inst_num++, i->op, i->op_type,
 			ZOP_name(i->op));
 
@@ -1071,7 +1088,7 @@ void ZBody::ProfileExecution() const
 		{
 		printf("%s %d %d %.06f ", func_name, i,
 			(*inst_count)[i], (*inst_CPU)[i]);
-		insts[i]->Dump(i, &frame_denizens);
+		insts[i].Dump(i, &frame_denizens);
 		}
 	}
 
@@ -1170,11 +1187,11 @@ void ZBody::Dump() const
 
 	printf("Final code:\n");
 
-	for ( unsigned i = 0; i < insts.size(); ++i )
+	for ( unsigned i = 0; i < ninst; ++i )
 		{
 		auto& inst = insts[i];
 		printf("%d: ", i);
-		inst->Dump(i, &frame_denizens);
+		inst.Dump(i, &frame_denizens);
 		}
 
 #if 0

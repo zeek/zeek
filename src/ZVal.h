@@ -184,7 +184,7 @@ public:
 	// type.  This isn't necessary for the case where 'v' has been
 	// newly constructed, but is necessary if we're copying an
 	// existing 'v'.
-	void CopyElement(unsigned int n, ZAMValUnion& v)
+	void CopyElement(unsigned int n, const ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
@@ -226,7 +226,7 @@ public:
 		}
 
 protected:
-	void SetManagedElement(int n, ZAMValUnion& v);
+	void SetManagedElement(int n, const ZAMValUnion& v);
 	void GrowVector(int size);
 
 	void DeleteMembers();

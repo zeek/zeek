@@ -63,7 +63,6 @@ public:
 		{ return use_defs_map.find(s) != use_defs_map.end(); }
 
 	UDs GetUsage(const Stmt* s) const	{ return FindUsage(s); }
-	UDs GetUsageAfter(const Stmt* s) const	{ return FindSuccUsage(s); }
 
 	// Removes assignments corresponding to unused temporaries.
 	// In the process, reports on locals that are assigned

@@ -1576,15 +1576,32 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();
 	auto value_var = f->ValueVar();
+	auto body = f->LoopBody();
 
 	auto ii = new IterInfo();
+
+	// Check whether the loop variables are actually used in the body.
+	// This is motivated by an idiom where there's both loop_vars and
+	// a value_var, but the script only actually needs the value_var;
+	// and also some weird cases where the script is managing a
+	// separate iteration process manually.
+	ProfileFunc body_pf;
+	body->Traverse(&body_pf);
+
+	int num_unused = 0;
 
 	for ( int i = 0; i < loop_vars->length(); ++i )
 		{
 		auto id = (*loop_vars)[i];
+
+		if ( body_pf.locals.count(id) == 0 )
+			++num_unused;
+
 		ii->loop_vars.push_back(FrameSlot(id));
 		ii->loop_var_types.push_back(id->Type());
 		}
+
+	bool no_loop_vars = (num_unused == loop_vars->length());
 
 	auto aux = new ZInstAux(0);
 	aux->iter_info = ii;
@@ -1596,24 +1613,27 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	z.aux = aux;
 
 	auto init_end = AddInst(z);
-
 	auto iter_head = StartingBlock();
+
 	if ( value_var )
 		{
-		z = ZInstI(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, FrameSlot(value_var),
-				info, 0);
+		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV :
+					OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
+		z = ZInstI(op, FrameSlot(value_var), info, 0);
 		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
 		z.aux = aux;	// so ZOpt.cc can get to it
 		}
 	else
 		{
-		z = ZInstI(OP_NEXT_TABLE_ITER_VV, info, 0);
+		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_VV :
+					OP_NEXT_TABLE_ITER_VV;
+		z = ZInstI(op, info, 0);
 		z.op_type = OP_VV_I2;
 		z.aux = aux;	// so ZOpt.cc can get to it
 		}
 
-	return FinishLoop(iter_head, z, f->LoopBody(), info);
+	return FinishLoop(iter_head, z, body, info);
 	}
 
 const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)

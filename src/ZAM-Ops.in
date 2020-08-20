@@ -1424,6 +1424,15 @@ eval	if ( IsManagedType(t) ) DeleteManagedType(var, t)
 eval	var = BuildVal(ind_lv_p, ii->loop_var_types[i])
 eval }
 
+internal-op Next-Table-Iter-No-Vars
+op1-read
+# v1 = iteration info
+# v2 = branch target if loop done
+type VV
+eval auto ii = frame[z.v1].iter_info
+eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(ii->c)
+eval if ( ! current_tev ) { pc = z.v2; continue; }
+
 internal-op Next-Table-Iter-Val-Var
 # v1 = slot of the "ValueVar"
 # v2 = iteration info
@@ -1446,6 +1455,19 @@ eval	auto loop_var_t = ii->loop_var_types[i]
 eval	if ( IsManagedType(loop_var_t) ) DeleteManagedType(frame[ind], loop_var_t)
 eval	frame[ind] = BuildVal(ind_lv_p, loop_var_t)
 eval }
+
+internal-op Next-Table-Iter-Val-Var-No-Vars
+# v1 = slot of the "ValueVar"
+# v2 = iteration info
+# v3 = branch target if loop done
+type VVV
+eval auto ii = frame[z.v2].iter_info
+eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(ii->c)
+eval if ( ! current_tev ) { pc = z.v3; continue; }
+eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
+eval auto val_var_t = ii->value_var_type
+eval if ( z.is_managed ) DeleteManagedType(frame[z.v1], val_var_t)
+eval frame[z.v1] = BuildVal(tev_p, val_var_t)
 
 internal-op Init-Vector-Loop
 type VV

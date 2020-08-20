@@ -350,6 +350,17 @@ void ZAM::ComputeFrameLifetimes()
 			}
 			break;
 
+		case OP_NEXT_TABLE_ITER_NO_VARS_VV:
+		case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV:
+			{
+			auto iter_vars = inst->aux->iter_info;
+			auto depth = inst->loop_depth;
+
+			if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV )
+				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+			}
+			break;
+
 		case OP_NEXT_VECTOR_ITER_VVV:
 		case OP_NEXT_STRING_ITER_VVV:
 			// Sometimes loops are written that don't actually

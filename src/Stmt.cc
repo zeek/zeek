@@ -2118,6 +2118,12 @@ void ForStmt::StmtDescribe(ODesc* d) const
 	if ( loop_vars->length() )
 		d->Add("]");
 
+	if ( value_var )
+		{
+		d->AddSP(",");
+		value_var->Describe(d);
+		}
+
 	if ( d->IsReadable() )
 		d->Add(" in ");
 

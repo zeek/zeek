@@ -1,4 +1,8 @@
 
+3.3.0-dev.142 | 2020-08-20 16:26:06 -0700
+
+  * Improve stability of config/cluster_resend btest (Jon Siwek, Corelight)
+
 3.3.0-dev.141 | 2020-08-20 14:56:15 -0700
 
   * Mark FileAssembler destructor as default, remove implementation (Tim Wojtulewicz, Corelight)

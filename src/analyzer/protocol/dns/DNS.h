@@ -92,7 +92,7 @@ typedef enum {
 	TYPE_N3U = 7,			///< RFC6975
 	TYPE_ECS = 8,			///< RFC7871
 	TYPE_EXPIRE = 9,		///< RFC7314
-	TYPE_COOKIE = 10,       ///< RFC7873
+	TYPE_COOKIE = 10,		///< RFC7873
 	TYPE_TCP_KA = 11,		///< RFC7828
 	TYPE_PAD = 12,			///< RFC7830
 	TYPE_CHAIN = 13,		///< RFC7901

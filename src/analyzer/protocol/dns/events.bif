@@ -528,11 +528,13 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_EDNS_ecs%(c: connection, msg: dns_msg, opt: dns_edns_ecs%);
 
-## Generated for DNS replies of type *EDNS*. For replies with multiple options,
-## an individual event is raised for each.
+## Generated for DNS replies of type *EDNS*, and an option field in this *EDNS* record has
+## an opt-type of 11. For replies with multiple option fields, an individual event is
+## raised for each.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
+## information about the DNS protocol. See `RFC7828 <https://tools.ietf.org/html/rfc7828>`__ for
+## more information about EDNS0 TCP keepalive. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the
@@ -551,11 +553,13 @@ event dns_EDNS_ecs%(c: connection, msg: dns_msg, opt: dns_edns_ecs%);
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_EDNS_tcp_keepalive%(c: connection, msg: dns_msg, opt: dns_edns_tcp_keepalive%);
 
-## Generated for DNS replies of type *EDNS*. For replies with multiple options,
-## an individual event is raised for each.
+## Generated for DNS replies of type *EDNS*, and an option field in this *EDNS* record has
+## an opt-type of 10. For replies with multiple options fields, an individual event
+## is raised for each.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
+## information about the DNS protocol. See `RFC7873 <https://tools.ietf.org/html/rfc7873>`__ for
+## more information about EDNS0 cookie. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the

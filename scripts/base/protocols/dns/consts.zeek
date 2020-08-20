@@ -110,6 +110,7 @@ export {
 		[20] = "BADNAME",       # Duplicate key name
 		[21] = "BADALG",        # Algorithm not supported
 		[22] = "BADTRUNC",      # draft-ietf-dnsext-tsig-sha-05.txt
+		[23] = "BADCOOKIE",     # Bad EDNS cookie value
 		[3842] = "BADSIG",      # 16 <= number collision with EDNS(16);
 		                        # this is a translation from TSIG(16)
 	} &default = function(n: count): string { return fmt("rcode-%d", n); };

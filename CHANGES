@@ -1,3 +1,25 @@
+3.3.0-dev.135 | 2020-08-20 10:23:29 -0700
+
+  * remove variables in netvar, use tabs in DNS.h and polish comments in dns events. (FlyingWithJerome)
+
+  * add new line at the end of the test baseline (FlyingWithJerome)
+
+  * add data+=option_len to skip unknown bytes (FlyingWithJerome)
+
+  * better explanation to server cookie (FlyingWithJerome)
+
+  * add edns-cookie testcase (FlyingWithJerome)
+
+  * remove data+=option_len error in cookie and keepalive (FlyingWithJerome)
+
+  * add EDNS cookie parsing (FlyingWithJerome)
+
+  * add testcases (FlyingWithJerome)
+
+  * add units (100ms) to comments (FlyingWithJerome)
+
+  * initial adding EDNS TCP keepalive (FlyingWithJerome)
+
 3.3.0-dev.119 | 2020-08-19 14:35:51 -0700
 
   * Misc strings.bif adjustments

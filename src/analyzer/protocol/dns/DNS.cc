@@ -700,7 +700,6 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
 	{
-
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_EDNS_addl,
 			analyzer->ConnVal(),
@@ -714,7 +713,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 		uint16_t option_code = ExtractShort(data, len);
 		int option_len = ExtractShort(data, len);
 		// check for invalid option length
-		if ( (option_len > len) || (0 == option_len) ) {
+		if ( (option_len > len) ) {
 			break;
 		}
 		len -= option_len;
@@ -783,7 +782,82 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 					msg->BuildEDNS_ECS_Val(&opt)
 				);
 				break;
-				}
+				} // END EDNS ECS 
+
+			case TYPE_TCP_KA:
+				{
+				EDNS_TCP_KEEPALIVE edns_tcp_keepalive{
+					.keepalive_timeout_omitted = true,
+					.keepalive_timeout = 0
+				};
+				if ( option_len == 0 || option_len == 2) 
+					{ 
+					// 0 bytes is permitted by RFC 7828, showing that the timeout value is omitted.
+					if (option_len == 2) 
+						{
+						edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
+						edns_tcp_keepalive.keepalive_timeout_omitted = false;
+						}
+
+					if (analyzer->Conn()->ConnTransport() == TRANSPORT_UDP) 
+						{
+						/*
+						* Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT 
+						* negotiate TCP Keepalive timeout in DNS-over-UDP.
+						*/
+						analyzer->Weird("EDNS_TCP_Keepalive_In_UDP");
+						}
+						
+					analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive,
+						analyzer->ConnVal(),
+						msg->BuildHdrVal(),
+						msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive)
+					);
+					
+					}
+				else 
+					{
+					// error. MUST BE 0 or 2 bytes. skip
+					data += option_len;
+					}
+				break;
+				} // END EDNS TCP KEEPALIVE 
+
+			case TYPE_COOKIE:
+				{
+				EDNS_COOKIE cookie{};
+				if (option_len != 8 && ! (option_len >= 16 && option_len <= 40)) 
+					{
+					/*
+					* option length for DNS Cookie must be 8 bytes (with client cookie only)
+					* OR
+					* between 16 bytes to 40 bytes (with an 8 bytes client and an 8 to 32 bytes
+					* server cookie)
+					*/
+					data += option_len;
+					break;
+					}
+
+				int client_cookie_len = 8;
+				int server_cookie_len = option_len - client_cookie_len;
+
+				cookie.client_cookie = ExtractStream(data, client_cookie_len, client_cookie_len);
+				cookie.server_cookie = nullptr;
+
+				if (server_cookie_len >= 8) 
+					{
+					cookie.server_cookie = ExtractStream(data, server_cookie_len, server_cookie_len);
+					}
+
+				analyzer->EnqueueConnEvent(dns_EDNS_cookie,
+					analyzer->ConnVal(),
+					msg->BuildHdrVal(),
+					msg->BuildEDNS_COOKIE_Val(&cookie)
+				);
+
+				break;
+				} // END EDNS COOKIE
+
 			default:
 				{
 				data += option_len;
@@ -1600,6 +1674,30 @@ zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_ECS_Val(struct EDNS_ECS* opt)
 	r->Assign(1, zeek::val_mgr->Count(opt->ecs_src_pfx_len));
 	r->Assign(2, zeek::val_mgr->Count(opt->ecs_scp_pfx_len));
 	r->Assign(3, opt->ecs_addr);
+
+	return r;
+	}
+
+zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE* opt)
+	{
+	static auto dns_edns_tcp_keepalive = zeek::id::find_type<zeek::RecordType>("dns_edns_tcp_keepalive");
+	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_edns_tcp_keepalive);
+
+	r->Assign(0, zeek::val_mgr->Bool(opt->keepalive_timeout_omitted));
+	r->Assign(1, zeek::val_mgr->Count(opt->keepalive_timeout));
+
+	return r;
+	}
+
+zeek::RecordValPtr DNS_MsgInfo::BuildEDNS_COOKIE_Val(struct EDNS_COOKIE* opt)
+	{
+	static auto dns_edns_cookie = zeek::id::find_type<zeek::RecordType>("dns_edns_cookie");
+	auto r = zeek::make_intrusive<zeek::RecordVal>(dns_edns_cookie);
+
+	r->Assign(0, zeek::make_intrusive<zeek::StringVal>(opt->client_cookie));
+	if (opt->server_cookie != nullptr) {
+		r->Assign(1, zeek::make_intrusive<zeek::StringVal>(opt->server_cookie));
+	}
 
 	return r;
 	}

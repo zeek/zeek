@@ -9,7 +9,7 @@ Zeek 4.0.0
 New Functionality
 -----------------
 
-TODO: nothing notable yet
+- Added support for EDNS0 Cookie and Keep-Alive options.
 
 Changed Functionality
 ---------------------

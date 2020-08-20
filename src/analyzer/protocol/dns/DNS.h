@@ -92,6 +92,7 @@ typedef enum {
 	TYPE_N3U = 7,			///< RFC6975
 	TYPE_ECS = 8,			///< RFC7871
 	TYPE_EXPIRE = 9,		///< RFC7314
+	TYPE_COOKIE = 10,		///< RFC7873
 	TYPE_TCP_KA = 11,		///< RFC7828
 	TYPE_PAD = 12,			///< RFC7830
 	TYPE_CHAIN = 13,		///< RFC7901
@@ -156,6 +157,16 @@ struct EDNS_ECS {
 	zeek::IntrusivePtr<zeek::AddrVal> ecs_addr;	///< EDNS client subnet address
 };
 
+struct EDNS_TCP_KEEPALIVE {
+	bool     keepalive_timeout_omitted; ///< whether the keepalive timeout is omitted
+	uint16_t keepalive_timeout; ///< the timeout value (in 100ms) sent by the client/server
+};
+
+struct EDNS_COOKIE {
+	zeek::String* client_cookie; ///< cookie value sent by the client (8 bytes)
+	zeek::String* server_cookie; ///< cookie value sent by the server (0 or 8-32 bytes)
+};
+
 struct TSIG_DATA {
 	zeek::String* alg_name;
 	unsigned long time_s;
@@ -211,6 +222,8 @@ public:
 	zeek::RecordValPtr BuildAnswerVal();
 	zeek::RecordValPtr BuildEDNS_Val();
 	zeek::RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
+	zeek::RecordValPtr BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE*);
+	zeek::RecordValPtr BuildEDNS_COOKIE_Val(struct EDNS_COOKIE*);
 	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
 	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
 	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);

@@ -1269,6 +1269,47 @@ eval val_vec args
 eval z.aux->FillValVec(args, frame)
 eval mgr.Enqueue(z.event_handler, std::move(args))
 
+internal-op Event0
+type X
+eval val_vec args(0)
+eval mgr.Enqueue(z.event_handler, std::move(args))
+
+internal-op Event1
+type V
+op1-read
+eval val_vec args(1)
+eval args.push_back(frame[z.v1].ToVal(z.t))
+eval mgr.Enqueue(z.event_handler, std::move(args))
+
+internal-op Event2
+type VV
+op1-read
+eval val_vec args(2)
+eval args.push_back(frame[z.v1].ToVal(z.t))
+eval args.push_back(frame[z.v2].ToVal(z.t2))
+eval mgr.Enqueue(z.event_handler, std::move(args))
+
+internal-op Event3
+type VVV
+op1-read
+eval val_vec args(3)
+eval args.push_back(frame[z.v1].ToVal(z.t))
+eval args.push_back(frame[z.v2].ToVal(z.t2))
+eval auto types = z.aux->types
+eval args.push_back(frame[z.v3].ToVal(types[2].get()))
+eval mgr.Enqueue(z.event_handler, std::move(args))
+
+internal-op Event4
+type VVVV
+op1-read
+eval val_vec args(4)
+eval args.push_back(frame[z.v1].ToVal(z.t))
+eval args.push_back(frame[z.v2].ToVal(z.t2))
+eval auto types = z.aux->types
+eval args.push_back(frame[z.v3].ToVal(types[2].get()))
+eval args.push_back(frame[z.v4].ToVal(types[3].get()))
+eval mgr.Enqueue(z.event_handler, std::move(args))
+
 
 op Return
 type X

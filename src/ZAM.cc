@@ -2435,9 +2435,82 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 
 const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 	{
-	ZInstI z(OP_EVENT_HL);
-	z.aux = InternalBuildVals(l);
+	auto exprs = l->Exprs();
+	int n = exprs.length();
+
+	bool all_vars = true;
+	for ( unsigned int i = 0; i < n; ++i )
+		if ( exprs[i]->Tag() == EXPR_CONST )
+			{
+			all_vars = false;
+			break;
+			}
+
+	if ( n > 4 || ! all_vars )
+		{ // do generic form
+		ZInstI z(OP_EVENT_HL);
+		z.aux = InternalBuildVals(l);
+		z.event_handler = h;
+		return AddInst(z);
+		}
+
+	ZInstI z;
 	z.event_handler = h;
+
+	if ( n == 0 )
+		{
+		z.op = OP_EVENT0_X;
+		z.op_type = OP_X;
+		}
+
+	else
+		{
+		auto n0 = exprs[0]->AsNameExpr();
+		z.v1 = FrameSlot(n0);
+		z.t = n0->Type().get();
+
+		if ( n == 1 )
+			{
+			z.op = OP_EVENT1_V;
+			z.op_type = OP_V;
+			}
+
+		else
+			{
+			auto n1 = exprs[1]->AsNameExpr();
+			z.v2 = FrameSlot(n1);
+			z.t2 = n1->Type().get();
+
+			if ( n == 2 )
+				{
+				z.op = OP_EVENT2_VV;
+				z.op_type = OP_VV;
+				}
+
+			else
+				{
+				z.aux = InternalBuildVals(l);
+
+				auto n2 = exprs[2]->AsNameExpr();
+				z.v3 = FrameSlot(n2);
+
+				if ( n == 3 )
+					{
+					z.op = OP_EVENT3_VVV;
+					z.op_type = OP_VVV;
+					}
+
+				else
+					{
+					z.op = OP_EVENT4_VVVV;
+					z.op_type = OP_VVVV;
+
+					auto n3 = exprs[3]->AsNameExpr();
+					z.v4 = FrameSlot(n3);
+					}
+				}
+			}
+		}
 
 	return AddInst(z);
 	}

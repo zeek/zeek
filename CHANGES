@@ -1,3 +1,21 @@
+
+3.3.0-dev.141 | 2020-08-20 14:56:15 -0700
+
+  * Mark FileAssembler destructor as default, remove implementation (Tim Wojtulewicz, Corelight)
+
+  * Remove a few protected or private no-op constructors (Tim Wojtulewicz, Corelight)
+
+  * Properly initialize Timer::type. Fixes Coverity 1431144. (Tim Wojtulewicz, Corelight)
+
+  * Properly initialize members of Reassembler. Fixes Coverity 1413348. (Tim Wojtulewicz, Corelight)
+
+  * Fix a number of Coverity issues in Dict (Tim Wojtulewicz, Corelight)
+
+    1431186: Asserting that an unsigned value is >= 0 is pointless
+    1431188/1431189/1431191: Side effect of using an assignment operator in a call to ASSERT()
+    1431193: Dereference after null check could lead to null being used
+    1431195: Use of rand() replaced with random()
+
 3.3.0-dev.135 | 2020-08-20 10:23:29 -0700
 
   * remove variables in netvar, use tabs in DNS.h and polish comments in dns events. (FlyingWithJerome)

@@ -15,7 +15,7 @@ class FileReassembler final : public zeek::Reassembler {
 public:
 
 	FileReassembler(File* f, uint64_t starting_offset);
-	~FileReassembler() override;
+	~FileReassembler() override = default;
 
 	void Done();
 
@@ -48,14 +48,13 @@ public:
 		{ return flushing; }
 
 protected:
-	FileReassembler();
 
 	void Undelivered(uint64_t up_to_seq) override;
 	void BlockInserted(zeek::DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
-	File* the_file;
-	bool flushing;
+	File* the_file = nullptr;
+	bool flushing = false;
 };
 
 } // namespace analyzer::*

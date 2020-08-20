@@ -401,7 +401,6 @@ public:
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
-	ConnectionTimer()	{}
 
 	void Init(Connection* conn, timer_func timer, bool do_expire);
 

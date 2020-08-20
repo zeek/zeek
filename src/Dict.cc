@@ -283,7 +283,7 @@ int Dictionary::BucketByHash(zeek::detail::hash_t h, int log2_table_size) const 
 	int m = 64 - log2_table_size;
 	hash <<= m;
 	hash >>= m;
-	ASSERT(hash>=0);
+
 	return hash;
 	}
 
@@ -368,36 +368,44 @@ void Dictionary::AssertValid() const
 	{
 	bool valid = true;
 	int n = num_entries;
-	for ( int i = Capacity()-1; i >= 0; i-- )
-		if ( table && ! table[i].Empty() )
-			n--;
 
-	ASSERT((valid = (n==0)));
+	if ( table )
+		for ( int i = Capacity()-1; i >= 0; i-- )
+			if ( ! table[i].Empty() )
+				n--;
+
+	valid = (n == 0);
+	ASSERT(valid);
 	DUMPIF(! valid);
 
 	//entries must clustered together
 	for ( int i = 1; i < Capacity(); i++ )
 		{
-		if ( table[i].Empty() )
+		if ( ! table || table[i].Empty() )
 			continue;
 
 		if ( table[i-1].Empty() )
 			{
-			ASSERT((valid=(table[i].distance == 0)));
+			valid = (table[i].distance == 0);
+			ASSERT(valid);
 			DUMPIF(! valid);
 			}
 		else
 			{
-			ASSERT((valid=(table[i].bucket >= table[i-1].bucket)));
+			valid = (table[i].bucket >= table[i-1].bucket);
+			ASSERT(valid);
 			DUMPIF(! valid);
+
 			if ( table[i].bucket == table[i-1].bucket )
 				{
-				ASSERT((valid=(table[i].distance == table[i-1].distance+1)));
+				valid = (table[i].distance == table[i-1].distance+1);
+				ASSERT(valid);
 				DUMPIF(! valid);
 				}
 			else
 				{
-				ASSERT((valid=(table[i].distance <= table[i-1].distance)));
+				valid = (table[i].distance <= table[i-1].distance);
+				ASSERT(valid);
 				DUMPIF(! valid);
 				}
 			}
@@ -446,7 +454,8 @@ void Dictionary::DumpKeys() const
 	DistanceStats(max_distance);
 	if ( binary )
 		{
-		sprintf(key_file, "%d.%d.%zu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		char key = char(random() % 26) + 'A';
+		sprintf(key_file, "%d.%d.%zu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), key);
 		std::ofstream f(key_file, std::ios::binary|std::ios::out|std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -458,7 +467,8 @@ void Dictionary::DumpKeys() const
 		}
 	else
 		{
-		sprintf(key_file, "%d.%d.%zu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		char key = char(random() % 26) + 'A';
+		sprintf(key_file, "%d.%d.%zu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), key);
 		std::ofstream f(key_file, std::ios::out|std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )

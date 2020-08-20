@@ -12,15 +12,6 @@ FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
 	{
 	}
 
-FileReassembler::FileReassembler()
-	: zeek::Reassembler(), the_file(nullptr), flushing(false)
-	{
-	}
-
-FileReassembler::~FileReassembler()
-	{
-	}
-
 uint64_t FileReassembler::Flush()
 	{
 	if ( flushing )

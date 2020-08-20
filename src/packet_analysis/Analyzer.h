@@ -10,9 +10,9 @@ namespace zeek::packet_analysis {
 /**
  * Result of packet analysis.
  */
+ //TODO: Replace with bool?
 enum class AnalyzerResult {
 	Failed,   // Analysis failed
-	Continue, // Analysis succeeded and an encapsulated protocol was determined
 	Terminate // Analysis succeeded and there is no further analysis to do
 };
 
@@ -42,6 +42,13 @@ public:
 	virtual ~Analyzer() = default;
 
 	/**
+	 * Initialize the analyzer. This method is called after the configuration
+	 * was read. Derived classes can override this method to implement custom
+	 * initialization.
+	 */
+	virtual void Initialize() { };
+
+	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
 	const Tag GetAnalyzerTag() const;
@@ -61,6 +68,15 @@ public:
 	 * @param name The name to check.
 	 */
 	bool IsAnalyzer(const char* name);
+
+	/**
+	 * Registers an analyzer to be dispatched for the given identifier.
+	 *
+	 * @param identifier The identifier an analyzer should be called for.
+	 * @param analyzer The analyzer that should be called.
+	 * @return True if the registration was successfull.
+	 */
+	bool RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer);
 
 	/**
 	 * Analyzes the given packet. The data reference points to the part of the
@@ -90,9 +106,11 @@ protected:
 	 * @return The outcome of the analysis.
 	 */
 	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
-			uint32_t identifier) const;
+	                                  uint32_t identifier) const;
+
 private:
 	Tag tag;
+	Dispatcher dispatcher;
 
 	void Init(const Tag& tag);
 };

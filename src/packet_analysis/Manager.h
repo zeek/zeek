@@ -2,23 +2,16 @@
 
 #pragma once
 
-#include <queue>
-#include <vector>
-
-#include "Config.h"
 #include "Tag.h"
 #include "Component.h"
 #include "plugin/ComponentManager.h"
 #include "iosource/Packet.h"
-#include "Dict.h"
-#include "net_util.h"
+#include "Dispatcher.h"
 
 namespace zeek::packet_analysis {
 
 class Analyzer;
-class Dispatcher;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
-using DispatcherPtr = std::shared_ptr<Dispatcher>;
 
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
@@ -30,7 +23,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Manager();
+	~Manager() = default;
 
 	/**
 	 * Second-stage initialization of the manager. This is called late
@@ -49,14 +42,6 @@ public:
 	 * have executed to ensure that any of their changes are applied.
 	 */
 	void DumpDebug(); // Called after zeek_init() events.
-
-	/**
-	 * Returns the tag associated with an analyer name, or the tag
-	 * associated with an error if no such analyzer exists.
-	 *
-	 * @param name The canonical analyzer name to check.
-	 */
-	Tag GetAnalyzerTag(const char* name);
 
 	/**
 	 * Instantiates a new analyzer instance.
@@ -87,18 +72,7 @@ public:
 	 */
 	void ProcessPacket(Packet* packet);
 
-	/**
-	 * Looks up a packet analyzer by identifier considering the context
-	 * as given by current_state.
-	 *
-	 * @param identifier The identifier to look up.
-	 *
-	 * @return The analyzer corresponding to the identifier.
-	 */
-	AnalyzerPtr Dispatch(uint32_t identifier);
-
 private:
-
 	/**
 	 * Skips a fixed amount of packet data that is defined by encap_hdr_size.
 	 * It is assumed that an IP header follows.
@@ -109,13 +83,8 @@ private:
 	 */
 	void CustomEncapsulationSkip(Packet* packet, const uint8_t* data);
 
-	DispatcherPtr GetDispatcher(Config& configuration, const std::string& dispatcher_name);
-
 	std::map<std::string, AnalyzerPtr> analyzers;
-	std::map<std::string, DispatcherPtr> dispatchers;
-	DispatcherPtr root_dispatcher = nullptr;
-	DispatcherPtr default_dispatcher = nullptr;
-	DispatcherPtr current_state = nullptr;
+	Dispatcher root_dispatcher;
 	AnalyzerPtr default_analyzer = nullptr;
 };
 

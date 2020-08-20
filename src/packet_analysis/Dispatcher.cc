@@ -3,6 +3,8 @@
 #include <algorithm>
 
 #include "Dispatcher.h"
+#include "Analyzer.h"
+#include "DebugLogger.h"
 
 namespace zeek::packet_analysis {
 
@@ -11,12 +13,12 @@ Dispatcher::~Dispatcher()
 	FreeValues();
 	}
 
-bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer, DispatcherPtr dispatcher)
+bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 	{
 	// If the table has size 1 and the entry is nullptr, there was nothing added yet. Just add it.
 	if ( table.size() == 1 && table[0] == nullptr )
 		{
-		table[0] = std::make_shared<Value>(analyzer, dispatcher);
+		table[0] = analyzer;
 		lowest_identifier = identifier;
 		return true;
 		}
@@ -48,7 +50,7 @@ bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer, DispatcherP
 	int64_t index = identifier - lowest_identifier;
 	if ( table[index] == nullptr )
 		{
-		table[index] = std::make_shared<Value>(analyzer, dispatcher);
+		table[index] = analyzer;
 		return true;
 		}
 
@@ -65,19 +67,19 @@ void Dispatcher::Register(const register_map& data)
 			                 });
 
 	// Register lowest first in order to do shifting only once
-	Register(lowest_new->first, lowest_new->second.first, lowest_new->second.second);
+	Register(lowest_new->first, lowest_new->second);
 	for ( auto i = data.begin(); i != data.end(); i++ )
 		{
 		// Already added if i == lowest_new
 		if ( i == lowest_new )
 			continue;
 
-		if ( ! Register(i->first, i->second.first, i->second.second) )
+		if ( ! Register(i->first, i->second) )
 			throw std::invalid_argument("Analyzer already registered!");
 		}
 	}
 
-ValuePtr Dispatcher::Lookup(uint32_t identifier) const
+AnalyzerPtr Dispatcher::Lookup(uint32_t identifier) const
 	{
 	int64_t index = identifier - lowest_identifier;
 	if ( index >= 0 && index < static_cast<int64_t>(table.size()) && table[index] != nullptr )
@@ -88,7 +90,7 @@ ValuePtr Dispatcher::Lookup(uint32_t identifier) const
 
 size_t Dispatcher::Size() const
 	{
-	return std::count_if(table.begin(), table.end(), [](ValuePtr v) { return v != nullptr; });
+	return std::count_if(table.begin(), table.end(), [](AnalyzerPtr a) { return a != nullptr; });
 	}
 
 void Dispatcher::Clear()
@@ -111,7 +113,7 @@ void Dispatcher::DumpDebug() const
 	for ( size_t i = 0; i < table.size(); i++ )
 		{
 		if ( table[i] != nullptr )
-			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8lx => %s, %p", i+lowest_identifier, table[i]->analyzer->GetAnalyzerName(), table[i]->dispatcher.get());
+			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8lx => %s", i+lowest_identifier, table[i]->GetAnalyzerName());
 		}
 #endif
 	}

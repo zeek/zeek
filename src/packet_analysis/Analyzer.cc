@@ -1,6 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
 #include "Analyzer.h"
 
 namespace zeek::packet_analysis {
@@ -20,7 +19,6 @@ Analyzer::Analyzer(const Tag& tag)
 	Init(tag);
 	}
 
-/* PRIVATE */
 void Analyzer::Init(const Tag& _tag)
 	{
 	tag = _tag;
@@ -41,13 +39,18 @@ const char* Analyzer::GetAnalyzerName() const
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return packet_mgr->GetComponentName(tag).compare(name) == 0;
+	return packet_mgr->GetComponentName(tag) == name;
+	}
+
+bool Analyzer::RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer)
+	{
+	return dispatcher.Register(identifier, std::move(analyzer));
 	}
 
 AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
 		const uint8_t*& data, uint32_t identifier) const
 	{
-	auto inner_analyzer = packet_mgr->Dispatch(identifier);
+	auto inner_analyzer = dispatcher.Lookup(identifier);
 
 	if ( inner_analyzer == nullptr )
 		{

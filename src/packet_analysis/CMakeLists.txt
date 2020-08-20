@@ -13,7 +13,6 @@ set(llanalyzer_SRCS
     Manager.cc
     Component.cc
     Tag.cc
-    Config.cc
 )
 
 bro_add_subdir_library(llanalyzer ${llanalyzer_SRCS})

@@ -2,12 +2,7 @@
 
 #include "Manager.h"
 
-#include <list>
-#include <pcap.h>
-
-#include "Config.h"
 #include "NetVar.h"
-#include "plugin/Manager.h"
 #include "Analyzer.h"
 #include "Dispatcher.h"
 
@@ -18,13 +13,17 @@ Manager::Manager()
 	{
 	}
 
-Manager::~Manager()
-	{
-	}
-
 void Manager::InitPostScript()
 	{
-	auto analyzer_mapping = zeek::id::find("PacketAnalyzer::config_map");
+	// Instantiate objects for all available analyzers
+	for ( const auto& analyzerComponent : GetComponents() )
+		{
+		if ( AnalyzerPtr newAnalyzer = InstantiateAnalyzer(analyzerComponent->Tag()) )
+			analyzers.emplace(analyzerComponent->Name(), newAnalyzer);
+		}
+
+	// Read in analyzer map and create dispatchers
+	auto& analyzer_mapping = zeek::id::find("PacketAnalyzer::config_map");
 	if ( ! analyzer_mapping )
 		return;
 
@@ -32,50 +31,48 @@ void Manager::InitPostScript()
 	if ( mapping_val->Size() == 0 )
 		return;
 
-	Config configuration;
 	for (unsigned int i = 0; i < mapping_val->Size(); i++)
 		{
 		auto* rv = mapping_val->At(i)->AsRecordVal();
-		auto parent = rv->GetField("parent");
-		std::string parent_name = parent ? Lookup(parent->AsEnumVal())->Name() : "ROOT";
+		//TODO: Make that field a string for usability reasons
+		//TODO: Check error handling when fields are omitted
+		auto& parent_tag = rv->GetField("parent");
+		std::string parent_name = parent_tag ? Lookup(parent_tag->AsEnumVal())->Name() : "ROOT";
 		auto identifier = rv->GetField("identifier")->AsCount();
-		auto analyzer = rv->GetField("analyzer")->AsEnumVal();
+		auto analyzer_tag = rv->GetField("analyzer")->AsEnumVal();
+		auto analyzer_name = Lookup(analyzer_tag)->Name();
 
-		configuration.AddMapping(parent_name, identifier, Lookup(analyzer)->Name());
-		}
-
-	// Instantiate objects for all analyzers
-	for ( const auto& current_dispatcher_config : configuration.GetDispatchers() )
-		{
-		for ( const auto& current_mapping : current_dispatcher_config.GetMappings() )
+		if ( analyzers.find(analyzer_name) == analyzers.end() )
 			{
-			// Check if already instantiated
-			if ( analyzers.count(current_mapping.second) != 0 )
-				continue;
-
-			// Check if analyzer exists
-			if ( AnalyzerPtr newAnalyzer = InstantiateAnalyzer(current_mapping.second) )
-				analyzers.emplace(current_mapping.second, newAnalyzer);
+			reporter->InternalWarning("Mapped analyzer %s not found.", analyzer_name.c_str());
+			continue;
 			}
+
+		if ( parent_name == "ROOT" )
+			{
+			root_dispatcher.Register(identifier, analyzers[analyzer_name]);
+			continue;
+			}
+
+		if ( analyzers.find(parent_name) == analyzers.end() )
+			{
+			reporter->InternalWarning("Parent analyzer %s not found.", parent_name.c_str());
+			continue;
+			}
+
+		auto& parent_analyzer = analyzers[parent_name];
+		parent_analyzer->RegisterAnalyzerMapping(identifier, analyzers[analyzer_name]);
 		}
 
-	// Generate Dispatchers, starting at root
-	root_dispatcher = GetDispatcher(configuration, "ROOT");
-	if ( root_dispatcher == nullptr )
-		reporter->InternalError("No dispatching configuration for ROOT of packet_analysis set.");
+	// Set default analyzer
+	auto da_it = analyzers.find("DefaultAnalyzer");
+	if ( da_it == analyzers.end() )
+		reporter->InternalError("DefaultAnalyzer not found.");
+	default_analyzer = da_it->second;
 
-	// Set up default analysis
-	auto it = analyzers.find("DefaultAnalyzer");
-	if ( it != analyzers.end() )
-		default_analyzer = it->second;
-	else
-		default_analyzer = InstantiateAnalyzer("DefaultAnalyzer");
-
-	default_dispatcher = nullptr;
-	if ( default_analyzer != nullptr )
-		default_dispatcher = GetDispatcher(configuration, "DefaultAnalyzer");
-
-	current_state = root_dispatcher;
+	// Initialize all analyzers
+	for ( auto& [name, analyzer] : analyzers )
+		analyzer->Initialize();
 	}
 
 void Manager::Done()
@@ -89,13 +86,6 @@ void Manager::DumpDebug()
 	for ( auto& current : GetComponents() )
 		{
 		DBG_LOG(DBG_PACKET_ANALYSIS, "    %s", current->Name().c_str());
-		}
-
-	DBG_LOG(DBG_PACKET_ANALYSIS, "ProtocolAnalyzerSet FSM:");
-	for ( const auto& current : dispatchers )
-		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "  Dispatcher (%p): %s", current.second.get(), current.first.c_str());
-		current.second->DumpDebug();
 		}
 #endif
 	}
@@ -128,7 +118,6 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 		{
 		reporter->InternalError("Mismatch of requested analyzer %s and instantiated analyzer %s. This usually means that the plugin author made a mistake.",
 		                        GetComponentName(tag).c_str(), GetComponentName(a->GetAnalyzerTag()).c_str());
-		return nullptr;
 		}
 
 	return a;
@@ -146,29 +135,18 @@ void Manager::ProcessPacket(Packet* packet)
 	static size_t counter = 0;
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
-
 	// Start packet analysis
 	const uint8_t* data = packet->data;
 
-	auto root_analyzer = Dispatch(packet->link_type);
-	if ( root_analyzer == nullptr )
-		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "No analyzer for link type: %#x.",	packet->link_type);
-		packet->Weird("no_suitable_analyzer_found");
-		}
-	else
-		{
-		auto result = root_analyzer->Analyze(packet, data);
+	auto root_analyzer = root_dispatcher.Lookup(packet->link_type);
+	auto analyzer = root_analyzer == nullptr ? default_analyzer : root_analyzer;
 
-		if (result == AnalyzerResult::Terminate)
-			CustomEncapsulationSkip(packet, data);
-		}
-
-	// Processing finished, reset analyzer set state for next packet
-	current_state = root_dispatcher;
+	auto result = analyzer->Analyze(packet, data);
+	if (result == AnalyzerResult::Terminate)
+		CustomEncapsulationSkip(packet, data);
 
 	// Calculate header size after processing packet layers.
-	packet->hdr_size = data - packet->data;
+	packet->hdr_size = static_cast<uint32_t>(data - packet->data);
 	}
 
 void Manager::CustomEncapsulationSkip(Packet* packet, const uint8_t* data)
@@ -202,68 +180,4 @@ void Manager::CustomEncapsulationSkip(Packet* packet, const uint8_t* data)
 				}
 			}
 		}
-	}
-
-AnalyzerPtr Manager::Dispatch(uint32_t identifier)
-	{
-	// Because leaf nodes (aka no more dispatching) can still have an existing analyzer that returns more identifiers,
-	// current_state needs to be checked to be not null. In this case there would have been an analyzer dispatched
-	// in the last layer, but no dispatcher for it (end of FSM)
-	ValuePtr result = nullptr;
-	if ( current_state )
-		result = current_state->Lookup(identifier);
-
-	if ( result == nullptr )
-		{
-		if ( current_state != default_dispatcher )
-			{
-			// Switch to default analysis once
-			current_state = default_dispatcher;
-			return default_analyzer;
-			}
-		return nullptr;
-		}
-	else
-		{
-		current_state = result->dispatcher;
-		return result->analyzer;
-		}
-	}
-
-DispatcherPtr Manager::GetDispatcher(Config& configuration, const std::string& dispatcher_name)
-	{
-	// Is it already created?
-	if ( dispatchers.count(dispatcher_name) != 0 )
-		return dispatchers[dispatcher_name];
-
-	// Create new dispatcher from config
-	std::optional<std::reference_wrapper<DispatcherConfig>> dispatcher_config =
-		configuration.GetDispatcherConfig(dispatcher_name);
-
-	if ( ! dispatcher_config )
-		// No such dispatcher found, this is therefore implicitly a leaf
-		return nullptr;
-
-	const auto& mappings = dispatcher_config->get().GetMappings();
-
-	DispatcherPtr dispatcher = std::make_shared<Dispatcher>();
-	dispatchers.emplace(dispatcher_name, dispatcher);
-
-	for ( const auto& current_mapping : mappings )
-		{
-		// No analyzer with this name. Report warning and ignore.
-		if ( analyzers.count(current_mapping.second) == 0 )
-			{
-			reporter->InternalWarning("No analyzer %s found for dispatching identifier %#x of %s, ignoring.",
-			                          current_mapping.second.c_str(),
-			                          current_mapping.first,
-			                          dispatcher_name.c_str());
-			continue;
-			}
-
-		dispatcher->Register(current_mapping.first, analyzers.at(current_mapping.second),
-		                     GetDispatcher(configuration, current_mapping.second));
-		}
-
-	return dispatcher;
 	}

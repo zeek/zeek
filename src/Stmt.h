@@ -25,11 +25,11 @@ class ForStmt;
 class EventExpr;
 class ListExpr;
 
-using EventExprPtr = zeek::IntrusivePtr<EventExpr>;
-using ListExprPtr = zeek::IntrusivePtr<ListExpr>;
+using EventExprPtr = IntrusivePtr<EventExpr>;
+using ListExprPtr = IntrusivePtr<ListExpr>;
 
 class Stmt;
-using StmtPtr = zeek::IntrusivePtr<Stmt>;
+using StmtPtr = IntrusivePtr<Stmt>;
 
 class Stmt : public Obj {
 public:
@@ -53,7 +53,7 @@ public:
 
 	ForStmt* AsForStmt();
 
-	void RegisterAccess() const	{ last_access = zeek::run_state::network_time; access_count++; }
+	void RegisterAccess() const	{ last_access = run_state::network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 
@@ -177,7 +177,7 @@ protected:
 	StmtPtr s;
 };
 
-using case_list = zeek::PList<Case>;
+using case_list = PList<Case>;
 
 class SwitchStmt final : public ExprStmt {
 public:
@@ -216,7 +216,7 @@ protected:
 	case_list* cases;
 	int default_case_idx;
 	CompositeHash* comp_hash;
-	zeek::PDict<int> case_label_value_map;
+	PDict<int> case_label_value_map;
 	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 

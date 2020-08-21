@@ -58,11 +58,11 @@ namespace zeek::detail {
 class DNS_Mgr_Request {
 public:
 	DNS_Mgr_Request(const char* h, int af, bool is_txt)
-	    : host(zeek::util::copy_string(h)), fam(af), qtype(is_txt ? 16 : 0), addr(),
+	    : host(util::copy_string(h)), fam(af), qtype(is_txt ? 16 : 0), addr(),
 	      request_pending()
 		{ }
 
-	DNS_Mgr_Request(const zeek::IPAddr& a)
+	DNS_Mgr_Request(const IPAddr& a)
 	    : host(), fam(), qtype(), addr(a), request_pending()
 		{ }
 
@@ -70,7 +70,7 @@ public:
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return host; }
-	const zeek::IPAddr& ReqAddr() const		{ return addr; }
+	const IPAddr& ReqAddr() const		{ return addr; }
 	bool ReqIsTxt() const	{ return qtype == 16; }
 
 	int MakeRequest(nb_dns_info* nb_dns);
@@ -82,7 +82,7 @@ protected:
 	char* host;	// if non-nil, this is a host request
 	int fam;	// address family query type for host requests
 	int qtype;	// Query type
-	zeek::IPAddr addr;
+	IPAddr addr;
 	int request_pending;
 };
 
@@ -108,7 +108,7 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 class DNS_Mapping {
 public:
 	DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl);
-	DNS_Mapping(const zeek::IPAddr& addr, struct hostent* h, uint32_t ttl);
+	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(FILE* f);
 
 	bool NoMapping() const		{ return no_mapping; }
@@ -118,15 +118,15 @@ public:
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return req_host; }
-	zeek::IPAddr ReqAddr() const		{ return req_addr; }
+	IPAddr ReqAddr() const		{ return req_addr; }
 	string ReqStr() const
 		{
 		return req_host ? req_host : req_addr.AsString();
 		}
 
-	zeek::ListValPtr Addrs();
-	zeek::TableValPtr AddrsSet();	// addresses returned as a set
-	zeek::StringValPtr Host();
+	ListValPtr Addrs();
+	TableValPtr AddrsSet();	// addresses returned as a set
+	StringValPtr Host();
 
 	double CreationTime() const	{ return creation_time; }
 
@@ -140,7 +140,7 @@ public:
 		if ( req_host && num_addrs == 0)
 			return false; // nothing to expire
 
-		return zeek::util::current_time() > (creation_time + req_ttl);
+		return util::current_time() > (creation_time + req_ttl);
 		}
 
 	int Type() const { return map_type; }
@@ -152,16 +152,16 @@ protected:
 	void Clear();
 
 	char* req_host;
-	zeek::IPAddr req_addr;
+	IPAddr req_addr;
 	uint32_t req_ttl;
 
 	int num_names;
 	char** names;
-	zeek::StringValPtr host_val;
+	StringValPtr host_val;
 
 	int num_addrs;
-	zeek::IPAddr* addrs;
-	zeek::ListValPtr addrs_val;
+	IPAddr* addrs;
+	ListValPtr addrs_val;
 
 	double creation_time;
 	int map_type;
@@ -175,26 +175,26 @@ void DNS_Mgr_mapping_delete_func(void* v)
 	delete (DNS_Mapping*) v;
 	}
 
-static zeek::TableValPtr empty_addr_set()
+static TableValPtr empty_addr_set()
 	{
-	auto addr_t = zeek::base_type(zeek::TYPE_ADDR);
-	auto set_index = zeek::make_intrusive<zeek::TypeList>(addr_t);
+	auto addr_t = base_type(TYPE_ADDR);
+	auto set_index = make_intrusive<TypeList>(addr_t);
 	set_index->Append(std::move(addr_t));
-	auto s = zeek::make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
-	return zeek::make_intrusive<zeek::TableVal>(std::move(s));
+	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+	return make_intrusive<TableVal>(std::move(s));
 	}
 
 DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
-	req_host = zeek::util::copy_string(host);
+	req_host = util::copy_string(host);
 	req_ttl = ttl;
 
 	if ( names && ! names[0] )
-		names[0] = zeek::util::copy_string(host);
+		names[0] = util::copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(const zeek::IPAddr& addr, struct hostent* h, uint32_t ttl)
+DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
 	req_addr = addr;
@@ -231,17 +231,17 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	failed = static_cast<bool>(failed_local);
 
 	if ( is_req_host )
-		req_host = zeek::util::copy_string(req_buf);
+		req_host = util::copy_string(req_buf);
 	else
-		req_addr = zeek::IPAddr(req_buf);
+		req_addr = IPAddr(req_buf);
 
 	num_names = 1;
 	names = new char*[num_names];
-	names[0] = zeek::util::copy_string(name_buf);
+	names[0] = util::copy_string(name_buf);
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new zeek::IPAddr[num_addrs];
+		addrs = new IPAddr[num_addrs];
 
 		for ( int i = 0; i < num_addrs; ++i )
 			{
@@ -255,7 +255,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			if ( newline )
 				*newline = '\0';
 
-			addrs[i] = zeek::IPAddr(buf);
+			addrs[i] = IPAddr(buf);
 			}
 		}
 	else
@@ -278,23 +278,23 @@ DNS_Mapping::~DNS_Mapping()
 	delete [] addrs;
 	}
 
-zeek::ListValPtr DNS_Mapping::Addrs()
+ListValPtr DNS_Mapping::Addrs()
 	{
 	if ( failed )
 		return nullptr;
 
 	if ( ! addrs_val )
 		{
-		addrs_val = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ADDR);
+		addrs_val = make_intrusive<ListVal>(TYPE_ADDR);
 
 		for ( int i = 0; i < num_addrs; ++i )
-			addrs_val->Append(zeek::make_intrusive<zeek::AddrVal>(addrs[i]));
+			addrs_val->Append(make_intrusive<AddrVal>(addrs[i]));
 		}
 
 	return addrs_val;
 	}
 
-zeek::TableValPtr DNS_Mapping::AddrsSet() {
+TableValPtr DNS_Mapping::AddrsSet() {
 	auto l = Addrs();
 
 	if ( ! l )
@@ -303,13 +303,13 @@ zeek::TableValPtr DNS_Mapping::AddrsSet() {
 	return l->ToSetVal();
 	}
 
-zeek::StringValPtr DNS_Mapping::Host()
+StringValPtr DNS_Mapping::Host()
 	{
 	if ( failed || num_names == 0 || ! names[0] )
 		return nullptr;
 
 	if ( ! host_val )
-		host_val = zeek::make_intrusive<zeek::StringVal>(names[0]);
+		host_val = make_intrusive<StringVal>(names[0]);
 
 	return host_val;
 	}
@@ -318,7 +318,7 @@ void DNS_Mapping::Init(struct hostent* h)
 	{
 	no_mapping = false;
 	init_failed = false;
-	creation_time = zeek::util::current_time();
+	creation_time = util::current_time();
 	host_val = nullptr;
 	addrs_val = nullptr;
 
@@ -331,21 +331,21 @@ void DNS_Mapping::Init(struct hostent* h)
 	map_type = h->h_addrtype;
 	num_names = 1;	// for now, just use official name
 	names = new char*[num_names];
-	names[0] = h->h_name ? zeek::util::copy_string(h->h_name) : nullptr;
+	names[0] = h->h_name ? util::copy_string(h->h_name) : nullptr;
 
 	for ( num_addrs = 0; h->h_addr_list[num_addrs]; ++num_addrs )
 		;
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new zeek::IPAddr[num_addrs];
+		addrs = new IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
 			if ( h->h_addrtype == AF_INET )
-				addrs[i] = zeek::IPAddr(IPv4, (uint32_t*)h->h_addr_list[i],
-				                  zeek::IPAddr::Network);
+				addrs[i] = IPAddr(IPv4, (uint32_t*)h->h_addr_list[i],
+				                  IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
-				addrs[i] = zeek::IPAddr(IPv6, (uint32_t*)h->h_addr_list[i],
-				                  zeek::IPAddr::Network);
+				addrs[i] = IPAddr(IPv6, (uint32_t*)h->h_addr_list[i],
+				                  IPAddr::Network);
 		}
 	else
 		addrs = nullptr;
@@ -411,11 +411,11 @@ void DNS_Mgr::InitSource()
 	// script-layer option to configure the DNS resolver as it may not be
 	// configured to the user's desired address at the time when we need to to
 	// the lookup.
-	auto dns_resolver = zeek::util::zeekenv("ZEEK_DNS_RESOLVER");
-	auto dns_resolver_addr = dns_resolver ? zeek::IPAddr(dns_resolver) : zeek::IPAddr();
+	auto dns_resolver = util::zeekenv("ZEEK_DNS_RESOLVER");
+	auto dns_resolver_addr = dns_resolver ? IPAddr(dns_resolver) : IPAddr();
 	char err[NB_DNS_ERRSIZE];
 
-	if ( dns_resolver_addr == zeek::IPAddr() )
+	if ( dns_resolver_addr == IPAddr() )
 		nb_dns = nb_dns_init(err);
 	else
 		{
@@ -439,12 +439,12 @@ void DNS_Mgr::InitSource()
 
 	if ( nb_dns )
 		{
-		if ( ! zeek::iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
-			zeek::reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
+		if ( ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
+			reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
 		}
 	else
 		{
-		zeek::reporter->Warning("problem initializing NB-DNS: %s", err);
+		reporter->Warning("problem initializing NB-DNS: %s", err);
 		}
 
 	did_init = true;
@@ -452,10 +452,10 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dm_rec = zeek::id::find_type<zeek::RecordType>("dns_mapping");
+	dm_rec = id::find_type<RecordType>("dns_mapping");
 
 	// Registering will call Init()
-	zeek::iosource_mgr->Register(this, true);
+	iosource_mgr->Register(this, true);
 
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];
@@ -463,12 +463,12 @@ void DNS_Mgr::InitPostScript()
 	LoadCache(fopen(cache_name, "r"));
 	}
 
-static zeek::TableValPtr fake_name_lookup_result(const char* name)
+static TableValPtr fake_name_lookup_result(const char* name)
 	{
 	hash128_t hash;
 	KeyedHash::StaticHash128(name, strlen(name), &hash);
-	auto hv = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ADDR);
-	hv->Append(zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&hash)));
+	auto hv = make_intrusive<ListVal>(TYPE_ADDR);
+	hv->Append(make_intrusive<AddrVal>(reinterpret_cast<const uint32_t*>(&hash)));
 	return hv->ToSetVal();
 	}
 
@@ -479,7 +479,7 @@ static const char* fake_text_lookup_result(const char* name)
 	return tmp;
 	}
 
-static const char* fake_addr_lookup_result(const zeek::IPAddr& addr)
+static const char* fake_addr_lookup_result(const IPAddr& addr)
 	{
 	static char tmp[128];
 	snprintf(tmp, sizeof(tmp), "fake_addr_lookup_result_%s",
@@ -487,7 +487,7 @@ static const char* fake_addr_lookup_result(const zeek::IPAddr& addr)
 	return tmp;
 	}
 
-zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
+TableValPtr DNS_Mgr::LookupHost(const char* name)
 	{
 	if ( mode == DNS_FAKE )
 		return fake_name_lookup_result(name);
@@ -508,7 +508,7 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 
 			if ( (d4 && d4->Failed()) || (d6 && d6->Failed()) )
 				{
-				zeek::reporter->Warning("no such host: %s", name);
+				reporter->Warning("no such host: %s", name);
 				return empty_addr_set();
 				}
 			else if ( d4 && d6 )
@@ -529,7 +529,7 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 		return empty_addr_set();
 
 	case DNS_FORCE:
-		zeek::reporter->FatalError("can't find DNS entry for %s in cache", name);
+		reporter->FatalError("can't find DNS entry for %s in cache", name);
 		return nullptr;
 
 	case DNS_DEFAULT:
@@ -539,12 +539,12 @@ zeek::TableValPtr DNS_Mgr::LookupHost(const char* name)
 		return LookupHost(name);
 
 	default:
-		zeek::reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
+		reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
 		return nullptr;
 	}
 	}
 
-zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
+ValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
 	InitSource();
 
@@ -560,8 +560,8 @@ zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 			else
 				{
 				string s(addr);
-				zeek::reporter->Warning("can't resolve IP address: %s", s.c_str());
-				return zeek::make_intrusive<zeek::StringVal>(s.c_str());
+				reporter->Warning("can't resolve IP address: %s", s.c_str());
+				return make_intrusive<StringVal>(s.c_str());
 				}
 			}
 		}
@@ -570,10 +570,10 @@ zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 	switch ( mode ) {
 	case DNS_PRIME:
 		requests.push_back(new DNS_Mgr_Request(addr));
-		return zeek::make_intrusive<zeek::StringVal>("<none>");
+		return make_intrusive<StringVal>("<none>");
 
 	case DNS_FORCE:
-		zeek::reporter->FatalError("can't find DNS entry for %s in cache",
+		reporter->FatalError("can't find DNS entry for %s in cache",
 		    addr.AsString().c_str());
 		return nullptr;
 
@@ -583,7 +583,7 @@ zeek::ValPtr DNS_Mgr::LookupAddr(const zeek::IPAddr& addr)
 		return LookupAddr(addr);
 
 	default:
-		zeek::reporter->InternalError("bad mode in DNS_Mgr::LookupAddr");
+		reporter->InternalError("bad mode in DNS_Mgr::LookupAddr");
 		return nullptr;
 	}
 	}
@@ -644,7 +644,7 @@ void DNS_Mgr::Resolve()
 		struct nb_dns_result r;
 		status = nb_dns_activity(nb_dns, &r, err);
 		if ( status < 0 )
-			zeek::reporter->Warning(
+			reporter->Warning(
 			    "NB-DNS error in DNS_Mgr::WaitForReplies (%s)",
 			    err);
 		else if ( status > 0 )
@@ -696,16 +696,16 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
 	if ( ! e )
 		return;
 
-	zeek::event_mgr.Enqueue(e, BuildMappingVal(dm));
+	event_mgr.Enqueue(e, BuildMappingVal(dm));
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
-					zeek::ListValPtr l1, zeek::ListValPtr l2)
+					ListValPtr l1, ListValPtr l2)
 	{
 	if ( ! e )
 		return;
 
-	zeek::event_mgr.Enqueue(e, BuildMappingVal(dm), l1->ToSetVal(), l2->ToSetVal());
+	event_mgr.Enqueue(e, BuildMappingVal(dm), l1->ToSetVal(), l2->ToSetVal());
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
@@ -713,20 +713,20 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 	if ( ! e )
 		return;
 
-	zeek::event_mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
+	event_mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
 	}
 
-zeek::ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
+ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
-	auto r = zeek::make_intrusive<zeek::RecordVal>(dm_rec);
+	auto r = make_intrusive<RecordVal>(dm_rec);
 
-	r->Assign(0, zeek::make_intrusive<zeek::TimeVal>(dm->CreationTime()));
-	r->Assign(1, zeek::make_intrusive<zeek::StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
-	r->Assign(2, zeek::make_intrusive<zeek::AddrVal>(dm->ReqAddr()));
-	r->Assign(3, zeek::val_mgr->Bool(dm->Valid()));
+	r->Assign(0, make_intrusive<TimeVal>(dm->CreationTime()));
+	r->Assign(1, make_intrusive<StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
+	r->Assign(2, make_intrusive<AddrVal>(dm->ReqAddr()));
+	r->Assign(3, val_mgr->Bool(dm->Valid()));
 
 	auto h = dm->Host();
-	r->Assign(4, h ? std::move(h) : zeek::make_intrusive<zeek::StringVal>("<none>"));
+	r->Assign(4, h ? std::move(h) : make_intrusive<StringVal>("<none>"));
 	r->Assign(5, dm->AddrsSet());
 
 	return r;
@@ -861,7 +861,7 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 
 	if ( ! prev_a || ! new_a )
 		{
-		zeek::reporter->InternalWarning("confused in DNS_Mgr::CompareMappings");
+		reporter->InternalWarning("confused in DNS_Mgr::CompareMappings");
 		return;
 		}
 
@@ -872,18 +872,18 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 		Event(dns_mapping_altered, new_dm, std::move(prev_delta), std::move(new_delta));
 	}
 
-zeek::ListValPtr DNS_Mgr::AddrListDelta(zeek::ListVal* al1, zeek::ListVal* al2)
+ListValPtr DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 	{
-	auto delta = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_ADDR);
+	auto delta = make_intrusive<ListVal>(TYPE_ADDR);
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		const zeek::IPAddr& al1_i = al1->Idx(i)->AsAddr();
+		const IPAddr& al1_i = al1->Idx(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			const zeek::IPAddr& al2_j = al2->Idx(j)->AsAddr();
+			const IPAddr& al2_j = al2->Idx(j)->AsAddr();
 			if ( al1_i == al2_j )
 				break;
 			}
@@ -896,11 +896,11 @@ zeek::ListValPtr DNS_Mgr::AddrListDelta(zeek::ListVal* al1, zeek::ListVal* al2)
 	return delta;
 	}
 
-void DNS_Mgr::DumpAddrList(FILE* f, zeek::ListVal* al)
+void DNS_Mgr::DumpAddrList(FILE* f, ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		const zeek::IPAddr& al_i = al->Idx(i)->AsAddr();
+		const IPAddr& al_i = al->Idx(i)->AsAddr();
 		fprintf(f, "%s%s", i > 0 ? "," : "", al_i.AsString().c_str());
 		}
 	}
@@ -932,7 +932,7 @@ void DNS_Mgr::LoadCache(FILE* f)
 		}
 
 	if ( ! m->NoMapping() )
-		zeek::reporter->FatalError("DNS cache corrupted");
+		reporter->FatalError("DNS cache corrupted");
 
 	delete m;
 	fclose(f);
@@ -961,7 +961,7 @@ void DNS_Mgr::Save(FILE* f, const HostMap& m)
 		}
 	}
 
-const char* DNS_Mgr::LookupAddrInCache(const zeek::IPAddr& addr)
+const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	{
 	AddrMap::iterator it = addr_mappings.find(addr);
 
@@ -982,7 +982,7 @@ const char* DNS_Mgr::LookupAddrInCache(const zeek::IPAddr& addr)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
-zeek::TableValPtr DNS_Mgr::LookupNameInCache(const string& name)
+TableValPtr DNS_Mgr::LookupNameInCache(const string& name)
 	{
 	HostMap::iterator it = host_mappings.find(name);
 	if ( it == host_mappings.end() )
@@ -1032,7 +1032,7 @@ const char* DNS_Mgr::LookupTextInCache(const string& name)
 	}
 
 static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
-                              zeek::TableValPtr result)
+                              TableValPtr result)
 	{
 	callback->Resolved(result.get());
 	delete callback;
@@ -1045,7 +1045,7 @@ static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
 	delete callback;
 	}
 
-void DNS_Mgr::AsyncLookupAddr(const zeek::IPAddr& host, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	{
 	InitSource();
 
@@ -1167,7 +1167,7 @@ static bool DoRequest(nb_dns_info* nb_dns, DNS_Mgr_Request* dr)
 		// dr stored in nb_dns cookie and deleted later when results available.
 		return true;
 
-	zeek::reporter->Warning("can't issue DNS request");
+	reporter->Warning("can't issue DNS request");
 	delete dr;
 	return false;
 	}
@@ -1204,14 +1204,14 @@ void DNS_Mgr::IssueAsyncRequests()
 			continue;
 			}
 
-		req->time = zeek::util::current_time();
+		req->time = util::current_time();
 		asyncs_timeouts.push(req);
 
 		++asyncs_pending;
 		}
 	}
 
-void DNS_Mgr::CheckAsyncAddrRequest(const zeek::IPAddr& addr, bool timeout)
+void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncHostRequest.
 
@@ -1338,7 +1338,7 @@ double DNS_Mgr::GetNextTimeout()
 	if ( asyncs_timeouts.empty() )
 		return -1;
 
-	return zeek::run_state::network_time + DNS_TIMEOUT;
+	return run_state::network_time + DNS_TIMEOUT;
 	}
 
 void DNS_Mgr::Process()
@@ -1350,7 +1350,7 @@ void DNS_Mgr::Process()
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > zeek::util::current_time() && ! zeek::run_state::terminating )
+		if ( req->time + DNS_TIMEOUT > util::current_time() && ! run_state::terminating )
 			break;
 
 		if ( ! req->processed )
@@ -1376,7 +1376,7 @@ void DNS_Mgr::Process()
 	int status = nb_dns_activity(nb_dns, &r, err);
 
 	if ( status < 0 )
-		zeek::reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
+		reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
 
 	else if ( status > 0 )
 		{
@@ -1416,7 +1416,7 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	int fd = nb_dns_fd(nb_dns);
 	if ( fd < 0 )
 		{
-		zeek::reporter->Warning("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		reporter->Warning("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
 		return -1;
 		}
 
@@ -1434,14 +1434,14 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	if ( status < 0 )
 		{
 		if ( errno != EINTR )
-			zeek::reporter->Warning("problem with DNS select");
+			reporter->Warning("problem with DNS select");
 
 		return -1;
 		}
 
 	if ( status > 1 )
 		{
-		zeek::reporter->Warning("strange return from DNS select");
+		reporter->Warning("strange return from DNS select");
 		return -1;
 		}
 
@@ -1462,7 +1462,7 @@ void DNS_Mgr::GetStats(Stats* stats)
 void DNS_Mgr::Terminate()
 	{
 	if ( nb_dns )
-		zeek::iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
+		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
 	}
 
 } // namespace zeek::detail

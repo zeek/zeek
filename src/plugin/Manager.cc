@@ -19,7 +19,8 @@
 #include "../input.h"
 
 using namespace std;
-using namespace zeek::plugin;
+
+namespace zeek::plugin {
 
 Plugin* Manager::current_plugin = nullptr;
 const char* Manager::current_dir = nullptr;
@@ -63,9 +64,9 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		return;
 		}
 
-	if ( ! zeek::util::is_dir(dir) )
+	if ( ! util::is_dir(dir) )
 		{
-		DBG_LOG(zeek::DBG_PLUGINS, "Not a valid plugin directory: %s", dir.c_str());
+		DBG_LOG(DBG_PLUGINS, "Not a valid plugin directory: %s", dir.c_str());
 		return;
 		}
 
@@ -73,7 +74,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	const std::string magic = dir + "/__bro_plugin__";
 
-	if ( zeek::util::is_file(magic) )
+	if ( util::is_file(magic) )
 		{
 		// It's a plugin, get it's name.
 		std::ifstream in(magic.c_str());
@@ -83,22 +84,22 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 		std::string name;
 		std::getline(in, name);
-		zeek::util::strstrip(name);
-		string lower_name = zeek::util::strtolower(name);
+		util::strstrip(name);
+		string lower_name = util::strtolower(name);
 
 		if ( name.empty() )
 			reporter->FatalError("empty plugin magic file %s", magic.c_str());
 
 		if ( dynamic_plugins.find(lower_name) != dynamic_plugins.end() )
 			{
-			DBG_LOG(zeek::DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(), dir.c_str());
+			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(), dir.c_str());
 			return;
 			}
 
 		// Record it, so that we can later activate it.
 		dynamic_plugins.insert(std::make_pair(lower_name, dir));
 
-		DBG_LOG(zeek::DBG_PLUGINS, "Found plugin %s in %s", name.c_str(), dir.c_str());
+		DBG_LOG(DBG_PLUGINS, "Found plugin %s in %s", name.c_str(), dir.c_str());
 		return;
 		}
 
@@ -108,7 +109,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	if ( ! d )
 		{
-		DBG_LOG(zeek::DBG_PLUGINS, "Cannot open directory %s", dir.c_str());
+		DBG_LOG(DBG_PLUGINS, "Cannot open directory %s", dir.c_str());
 		return;
 		}
 
@@ -128,7 +129,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 		if( stat(path.c_str(), &st) < 0 )
 			{
-			DBG_LOG(zeek::DBG_PLUGINS, "Cannot stat %s: %s", path.c_str(), strerror(errno));
+			DBG_LOG(DBG_PLUGINS, "Cannot stat %s: %s", path.c_str(), strerror(errno));
 			continue;
 			}
 
@@ -141,7 +142,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found)
 	{
-	dynamic_plugin_map::iterator m = dynamic_plugins.find(zeek::util::strtolower(name));
+	dynamic_plugin_map::iterator m = dynamic_plugins.find(util::strtolower(name));
 
 	if ( m == dynamic_plugins.end() )
 		{
@@ -153,7 +154,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		// this should be rare to begin with.
 		plugin_list* all_plugins = Manager::ActivePluginsInternal();
 
-		for ( plugin::Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
+		for ( Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
 			{
 			if ( (*i)->Name() == name )
 				return true;
@@ -172,55 +173,55 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	std::string dir = m->second + "/";
 
-	DBG_LOG(zeek::DBG_PLUGINS, "Activating plugin %s", name.c_str());
+	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
 
 	// Add the "scripts" and "bif" directories to ZEEKPATH.
 	std::string scripts = dir + "scripts";
 
-	if ( zeek::util::is_dir(scripts) )
+	if ( util::is_dir(scripts) )
 		{
-		DBG_LOG(zeek::DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
-		zeek::util::detail::add_to_zeek_path(scripts);
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
+		util::detail::add_to_zeek_path(scripts);
 		}
 
 	string init;
 
 	// First load {scripts}/__preload__.zeek automatically.
-	for (const string& ext : zeek::util::detail::script_extensions)
+	for (const string& ext : util::detail::script_extensions)
 		{
 		init = dir + "scripts/__preload__" + ext;
 
-		if ( zeek::util::is_file(init) )
+		if ( util::is_file(init) )
 			{
-			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			zeek::util::detail::warn_if_legacy_script(init);
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			util::detail::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
 		}
 
 	// Load {bif,scripts}/__load__.zeek automatically.
-	for (const string& ext : zeek::util::detail::script_extensions)
+	for (const string& ext : util::detail::script_extensions)
 		{
 		init = dir + "lib/bif/__load__" + ext;
 
-		if ( zeek::util::is_file(init) )
+		if ( util::is_file(init) )
 			{
-			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			zeek::util::detail::warn_if_legacy_script(init);
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			util::detail::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
 		}
 
-	for (const string& ext : zeek::util::detail::script_extensions)
+	for (const string& ext : util::detail::script_extensions)
 		{
 		init = dir + "scripts/__load__" + ext;
 
-		if ( zeek::util::is_file(init) )
+		if ( util::is_file(init) )
 			{
-			DBG_LOG(zeek::DBG_PLUGINS, "  Loading %s", init.c_str());
-			zeek::util::detail::warn_if_legacy_script(init);
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			util::detail::warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -230,7 +231,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	string dypattern = dir + "/lib/*." + HOST_ARCHITECTURE + DYNAMIC_PLUGIN_SUFFIX;
 
-	DBG_LOG(zeek::DBG_PLUGINS, "  Searching for shared libraries %s", dypattern.c_str());
+	DBG_LOG(DBG_PLUGINS, "  Searching for shared libraries %s", dypattern.c_str());
 
 	glob_t gl;
 
@@ -256,10 +257,10 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
-			DBG_LOG(zeek::DBG_PLUGINS, "  InitialzingComponents");
+			DBG_LOG(DBG_PLUGINS, "  InitialzingComponents");
 			current_plugin->InitializeComponents();
 
-			plugins_by_path.insert(std::make_pair(zeek::util::detail::normalize_path(dir), current_plugin));
+			plugins_by_path.insert(std::make_pair(util::detail::normalize_path(dir), current_plugin));
 
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
@@ -268,7 +269,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			// Make sure the name the plugin reports is consistent with
 			// what we expect from its magic file.
-			if ( zeek::util::strtolower(current_plugin->Name()) != zeek::util::strtolower(name) )
+			if ( util::strtolower(current_plugin->Name()) != util::strtolower(name) )
 				reporter->FatalError("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str());
 
@@ -276,7 +277,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			current_sopath = nullptr;
 			current_plugin = nullptr;
 
-			DBG_LOG(zeek::DBG_PLUGINS, "  Loaded %s", path);
+			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
 
 		globfree(&gl);
@@ -284,7 +285,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	else
 		{
-		DBG_LOG(zeek::DBG_PLUGINS, "  No shared library found");
+		DBG_LOG(DBG_PLUGINS, "  No shared library found");
 		}
 
 	// Mark this plugin as activated by clearing the path.
@@ -306,7 +307,7 @@ bool Manager::ActivateDynamicPlugins(bool all)
 	{
 	// Activate plugins that our environment tells us to.
 	vector<string> p;
-	zeek::util::tokenize_string(zeek::util::zeek_plugin_activate(), ",", &p);
+	util::tokenize_string(util::zeek_plugin_activate(), ",", &p);
 
 	for ( size_t n = 0; n < p.size(); ++n )
 		ActivateDynamicPluginInternal(p[n], true);
@@ -337,7 +338,7 @@ void Manager::UpdateInputFiles()
 
 static bool plugin_cmp(const Plugin* a, const Plugin* b)
 	{
-	return zeek::util::strtolower(a->Name()) < zeek::util::strtolower(b->Name());
+	return util::strtolower(a->Name()) < util::strtolower(b->Name());
 	}
 
 void Manager::RegisterPlugin(Plugin *plugin)
@@ -346,7 +347,7 @@ void Manager::RegisterPlugin(Plugin *plugin)
 
 	if ( current_dir && current_sopath )
 		// A dynamic plugin, record its location.
-		plugin->SetPluginLocation(zeek::util::detail::normalize_path(current_dir), current_sopath);
+		plugin->SetPluginLocation(util::detail::normalize_path(current_dir), current_sopath);
 
 	current_plugin = plugin;
 	}
@@ -355,7 +356,7 @@ void Manager::RegisterBifFile(const char* plugin, bif_init_func c)
 	{
 	bif_init_func_map* bifs = BifFilesInternal();
 
-	std::string lower_plugin = zeek::util::strtolower(plugin);
+	std::string lower_plugin = util::strtolower(plugin);
 	bif_init_func_map::iterator i = bifs->find(lower_plugin);
 
 	if ( i == bifs->end() )
@@ -398,7 +399,7 @@ void Manager::InitBifs()
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
 	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
-		bif_init_func_map::const_iterator b = bifs->find(zeek::util::strtolower((*i)->Name()));
+		bif_init_func_map::const_iterator b = bifs->find(util::strtolower((*i)->Name()));
 
 		if ( b != bifs->end() )
 			{
@@ -447,7 +448,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 
 		for ( plugin_list::const_iterator j = all->begin(); j != all->end(); j++ )
 			{
-			if ( (*i).first == zeek::util::strtolower((*j)->Name()) )
+			if ( (*i).first == util::strtolower((*j)->Name()) )
 				{
 				found = true;
 				break;
@@ -483,10 +484,10 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 
 Plugin* Manager::LookupPluginByPath(std::string_view _path)
 	{
-	auto path = zeek::util::detail::normalize_path(_path);
+	auto path = util::detail::normalize_path(_path);
 
-	if ( zeek::util::is_file(path) )
-		path = zeek::util::SafeDirname(path).result;
+	if ( util::is_file(path) )
+		path = util::SafeDirname(path).result;
 
 	while ( path.size() )
 		{
@@ -509,28 +510,28 @@ Plugin* Manager::LookupPluginByPath(std::string_view _path)
 static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)
 	{
 	if ( a.first == b.first )
-		return zeek::util::strtolower(a.second->Name()) < zeek::util::strtolower(a.second->Name());
+		return util::strtolower(a.second->Name()) < util::strtolower(a.second->Name());
 
 	// Reverse sort.
 	return a.first > b.first;
 	}
 
-std::list<std::pair<zeek::plugin::HookType, int> > Manager::HooksEnabledForPlugin(const Plugin* plugin) const
+std::list<std::pair<HookType, int> > Manager::HooksEnabledForPlugin(const Plugin* plugin) const
 	{
-	std::list<std::pair<zeek::plugin::HookType, int> > enabled;
+	std::list<std::pair<HookType, int> > enabled;
 
 	for ( int i = 0; i < NUM_HOOKS; i++ )
 		{
 		if ( hook_list* l = hooks[i] )
 			for ( const auto& [hook, hook_plugin] : *l )
 				if ( hook_plugin == plugin )
-					enabled.push_back(std::make_pair(static_cast<zeek::plugin::HookType>(i), hook));
+					enabled.push_back(std::make_pair(static_cast<HookType>(i), hook));
 		}
 
 	return enabled;
 	}
 
-void Manager::EnableHook(zeek::plugin::HookType hook, Plugin* plugin, int prio)
+void Manager::EnableHook(HookType hook, Plugin* plugin, int prio)
 	{
 	if ( ! hooks[hook] )
 		hooks[hook] = new hook_list;
@@ -548,7 +549,7 @@ void Manager::EnableHook(zeek::plugin::HookType hook, Plugin* plugin, int prio)
 	l->sort(hook_cmp);
 	}
 
-void Manager::DisableHook(zeek::plugin::HookType hook, Plugin* plugin)
+void Manager::DisableHook(HookType hook, Plugin* plugin)
 	{
 	hook_list* l = hooks[hook];
 
@@ -573,7 +574,7 @@ void Manager::DisableHook(zeek::plugin::HookType hook, Plugin* plugin)
 
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
-	DBG_LOG(zeek::DBG_PLUGINS, "Plugin %s requested event %s",
+	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",
 	        plugin->Name().c_str(), handler->Name());
 	handler->SetGenerateAlways();
 	}
@@ -587,15 +588,15 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(type));
 		args.push_back(HookArgument(file));
 		args.push_back(HookArgument(resolved));
-		MetaHookPre(zeek::plugin::HOOK_LOAD_FILE, args);
+		MetaHookPre(HOOK_LOAD_FILE, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_LOAD_FILE];
+	hook_list* l = hooks[HOOK_LOAD_FILE];
 
 	int rc = -1;
 
@@ -610,20 +611,20 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 				break;
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_LOAD_FILE, args, HookArgument(rc));
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOAD_FILE, args, HookArgument(rc));
 
 	return rc;
 	}
 
-std::pair<bool, zeek::ValPtr>
-Manager::HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent,
-                          zeek::Args* vecargs) const
+std::pair<bool, ValPtr>
+Manager::HookCallFunction(const Func* func, zeek::detail::Frame* parent,
+                          Args* vecargs) const
 	{
 	HookArgumentList args;
 	ValPList vargs;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		vargs.resize(vecargs->size());
 
@@ -633,12 +634,12 @@ Manager::HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent,
 		args.push_back(HookArgument(func));
 		args.push_back(HookArgument(parent));
 		args.push_back(HookArgument(&vargs));
-		MetaHookPre(zeek::plugin::HOOK_CALL_FUNCTION, args);
+		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_CALL_FUNCTION];
+	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	std::pair<bool, zeek::ValPtr> rval{false, nullptr};
+	std::pair<bool, ValPtr> rval{false, nullptr};
 
 	if ( l )
 		{
@@ -653,8 +654,8 @@ Manager::HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent,
 			}
 		}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_CALL_FUNCTION, args,
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_CALL_FUNCTION, args,
 		             HookArgument(std::make_pair(rval.first, rval.second.get())));
 
 	return rval;
@@ -664,13 +665,13 @@ bool Manager::HookQueueEvent(Event* event) const
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(event));
-		MetaHookPre(zeek::plugin::HOOK_QUEUE_EVENT, args);
+		MetaHookPre(HOOK_QUEUE_EVENT, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_QUEUE_EVENT];
+	hook_list* l = hooks[HOOK_QUEUE_EVENT];
 
 	bool result = false;
 
@@ -686,8 +687,8 @@ bool Manager::HookQueueEvent(Event* event) const
 				}
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_QUEUE_EVENT, args, HookArgument(result));
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_QUEUE_EVENT, args, HookArgument(result));
 
 	return result;
 	}
@@ -696,10 +697,10 @@ void Manager::HookDrainEvents() const
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
-		MetaHookPre(zeek::plugin::HOOK_DRAIN_EVENTS, args);
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		MetaHookPre(HOOK_DRAIN_EVENTS, args);
 
-	hook_list* l = hooks[zeek::plugin::HOOK_DRAIN_EVENTS];
+	hook_list* l = hooks[HOOK_DRAIN_EVENTS];
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
@@ -708,8 +709,8 @@ void Manager::HookDrainEvents() const
 			p->HookDrainEvents();
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_DRAIN_EVENTS, args, HookArgument());
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_DRAIN_EVENTS, args, HookArgument());
 
 	}
 
@@ -717,13 +718,13 @@ void Manager::HookSetupAnalyzerTree(Connection *conn) const
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(conn));
-		MetaHookPre(zeek::plugin::HOOK_SETUP_ANALYZER_TREE, args);
+		MetaHookPre(HOOK_SETUP_ANALYZER_TREE, args);
 		}
 
-	hook_list *l = hooks[zeek::plugin::HOOK_SETUP_ANALYZER_TREE];
+	hook_list *l = hooks[HOOK_SETUP_ANALYZER_TREE];
 
 	if ( l )
 		{
@@ -734,9 +735,9 @@ void Manager::HookSetupAnalyzerTree(Connection *conn) const
 			}
 		}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
+	if ( HavePluginForHook(META_HOOK_POST) )
 		{
-		MetaHookPost(zeek::plugin::HOOK_SETUP_ANALYZER_TREE, args, HookArgument());
+		MetaHookPost(HOOK_SETUP_ANALYZER_TREE, args, HookArgument());
 		}
 	}
 
@@ -744,13 +745,13 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(network_time));
-		MetaHookPre(zeek::plugin::HOOK_UPDATE_NETWORK_TIME, args);
+		MetaHookPre(HOOK_UPDATE_NETWORK_TIME, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_UPDATE_NETWORK_TIME];
+	hook_list* l = hooks[HOOK_UPDATE_NETWORK_TIME];
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
@@ -759,21 +760,21 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 			p->HookUpdateNetworkTime(network_time);
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_UPDATE_NETWORK_TIME, args, HookArgument());
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_UPDATE_NETWORK_TIME, args, HookArgument());
 	}
 
 void Manager::HookBroObjDtor(void* obj) const
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(obj));
-		MetaHookPre(zeek::plugin::HOOK_BRO_OBJ_DTOR, args);
+		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_BRO_OBJ_DTOR];
+	hook_list* l = hooks[HOOK_BRO_OBJ_DTOR];
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
@@ -782,8 +783,8 @@ void Manager::HookBroObjDtor(void* obj) const
 			p->HookBroObjDtor(obj);
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_BRO_OBJ_DTOR, args, HookArgument());
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
 	}
 
 void Manager::HookLogInit(const std::string& writer,
@@ -795,7 +796,7 @@ void Manager::HookLogInit(const std::string& writer,
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(writer));
 		args.push_back(HookArgument(instantiating_filter));
@@ -804,10 +805,10 @@ void Manager::HookLogInit(const std::string& writer,
 		args.push_back(HookArgument(&info));
 		args.push_back(HookArgument(num_fields));
 		args.push_back(HookArgument(std::make_pair(num_fields, fields)));
-		MetaHookPre(zeek::plugin::HOOK_LOG_INIT, args);
+		MetaHookPre(HOOK_LOG_INIT, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_LOG_INIT];
+	hook_list* l = hooks[HOOK_LOG_INIT];
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
@@ -817,8 +818,8 @@ void Manager::HookLogInit(const std::string& writer,
 			               num_fields, fields);
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_LOG_INIT, args, HookArgument());
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOG_INIT, args, HookArgument());
 	}
 
 bool Manager::HookLogWrite(const std::string& writer,
@@ -830,7 +831,7 @@ bool Manager::HookLogWrite(const std::string& writer,
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(writer));
 		args.push_back(HookArgument(filter));
@@ -838,10 +839,10 @@ bool Manager::HookLogWrite(const std::string& writer,
 		args.push_back(HookArgument(num_fields));
 		args.push_back(HookArgument(std::make_pair(num_fields, fields)));
 		args.push_back(HookArgument(vals));
-		MetaHookPre(zeek::plugin::HOOK_LOG_WRITE, args);
+		MetaHookPre(HOOK_LOG_WRITE, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_LOG_WRITE];
+	hook_list* l = hooks[HOOK_LOG_WRITE];
 
 	bool result = true;
 
@@ -858,14 +859,14 @@ bool Manager::HookLogWrite(const std::string& writer,
 				}
 			}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_LOG_WRITE, args, HookArgument(result));
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOG_WRITE, args, HookArgument(result));
 
 	return result;
 	}
 
 bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-                           const zeek::Connection* conn, const ValPList* addl, bool location,
+                           const Connection* conn, const ValPList* addl, bool location,
                            const zeek::detail::Location* location1,
                            const zeek::detail::Location* location2,
                            bool time, const std::string& message)
@@ -873,7 +874,7 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 	{
 	HookArgumentList args;
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(prefix));
 		args.push_back(HookArgument(conn));
@@ -883,10 +884,10 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 		args.push_back(HookArgument(location));
 		args.push_back(HookArgument(time));
 		args.push_back(HookArgument(message));
-		MetaHookPre(zeek::plugin::HOOK_REPORTER, args);
+		MetaHookPre(HOOK_REPORTER, args);
 		}
 
-	hook_list* l = hooks[zeek::plugin::HOOK_REPORTER];
+	hook_list* l = hooks[HOOK_REPORTER];
 
 	bool result = true;
 
@@ -904,23 +905,25 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 			}
 		}
 
-	if ( HavePluginForHook(zeek::plugin::META_HOOK_POST) )
-		MetaHookPost(zeek::plugin::HOOK_REPORTER, args, HookArgument(result));
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_REPORTER, args, HookArgument(result));
 
 	return result;
 	}
 
 
-void Manager::MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args) const
+void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
 	{
-	if ( hook_list* l = hooks[zeek::plugin::HOOK_CALL_FUNCTION] )
+	if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
 		for ( const auto& [hook_type, plugin] : *l )
 			plugin->MetaHookPre(hook, args);
 	}
 
-void Manager::MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result) const
+void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const
 	{
-	if ( hook_list* l = hooks[zeek::plugin::HOOK_CALL_FUNCTION] )
+	if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
 		for ( const auto& [hook_type, plugin] : *l )
 			plugin->MetaHookPost(hook, args, result);
 	}
+
+} // namespace zeek::plugin

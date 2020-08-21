@@ -45,7 +45,7 @@ struct Options {
 	bool ignore_checksums = false;
 	bool use_watchdog = false;
 	double pseudo_realtime = 0;
-	zeek::detail::DNS_MgrMode dns_mode = zeek::detail::DNS_DEFAULT;
+	detail::DNS_MgrMode dns_mode = detail::DNS_DEFAULT;
 
 	bool supervisor_mode = false;
 	bool parse_only = false;
@@ -82,7 +82,7 @@ struct Options {
  * @param argv  argument strings (same semantics as arguments to main())
  * @return  the parsed command-line options
  */
-zeek::Options parse_cmdline(int argc, char** argv);
+Options parse_cmdline(int argc, char** argv);
 
 /**
  * Print command-line Zeek usage information and exit.

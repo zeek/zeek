@@ -49,14 +49,14 @@ void DebugLogger::OpenDebugLog(const char* filename)
 	{
 	if ( filename )
 		{
-		filename = zeek::util::detail::log_file_name(filename);
+		filename = util::detail::log_file_name(filename);
 
 		file = fopen(filename, "w");
 		if ( ! file )
 			{
 			// The reporter may not be initialized here yet.
-			if ( zeek::reporter )
-				zeek::reporter->FatalError("can't open '%s' for debugging output", filename);
+			if ( reporter )
+				reporter->FatalError("can't open '%s' for debugging output", filename);
 			else
 				{
 				fprintf(stderr, "can't open '%s' for debugging output\n", filename);
@@ -93,7 +93,7 @@ void DebugLogger::ShowStreamsHelp()
 void DebugLogger::EnableStreams(const char* s)
 	{
 	char* brkt;
-	char* tmp = zeek::util::copy_string(s);
+	char* tmp = util::copy_string(s);
 	char* tok = strtok(tmp, ",");
 
 	while ( tok )
@@ -142,7 +142,7 @@ void DebugLogger::EnableStreams(const char* s)
 				}
 			}
 
-		zeek::reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
+		reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
 
 next:
 		tok = strtok(0, ",");
@@ -159,7 +159,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [%s] ",
-			zeek::run_state::network_time, zeek::util::current_time(true), g->prefix);
+			run_state::network_time, util::current_time(true), g->prefix);
 
 	for ( int i = g->indent; i > 0; --i )
 		fputs("   ", file);
@@ -173,16 +173,16 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 	fflush(file);
 	}
 
-void DebugLogger::Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...)
+void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 	{
 	std::string tok = std::string("plugin-") + plugin.Name();
-	tok = zeek::util::strreplace(tok, "::", "-");
+	tok = util::strreplace(tok, "::", "-");
 
 	if ( enabled_streams.find(tok) == enabled_streams.end() )
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-			zeek::run_state::network_time, zeek::util::current_time(true), plugin.Name().c_str());
+	        run_state::network_time, util::current_time(true), plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);

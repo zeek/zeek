@@ -18,8 +18,8 @@ zeek::EventMgr& mgr = zeek::event_mgr;
 
 namespace zeek {
 
-Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             zeek::util::detail::SourceID arg_src, zeek::analyzer::ID arg_aid,
+	Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
+             util::detail::SourceID arg_src, analyzer::ID arg_aid,
              Obj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
@@ -49,18 +49,18 @@ void Event::Describe(ODesc* d) const
 
 void Event::Dispatch(bool no_remote)
 	{
-	if ( src == zeek::util::detail::SOURCE_BROKER )
+	if ( src == util::detail::SOURCE_BROKER )
 		no_remote = true;
 
 	if ( handler->ErrorHandler() )
-		zeek::reporter->BeginErrorHandler();
+		reporter->BeginErrorHandler();
 
 	try
 		{
 		handler->Call(&args, no_remote);
 		}
 
-	catch ( zeek::InterpreterException& e )
+	catch ( InterpreterException& e )
 		{
 		// Already reported.
 		}
@@ -70,13 +70,13 @@ void Event::Dispatch(bool no_remote)
 		Unref(obj);
 
 	if ( handler->ErrorHandler() )
-		zeek::reporter->EndErrorHandler();
+		reporter->EndErrorHandler();
 	}
 
 EventMgr::EventMgr()
 	{
 	head = tail = nullptr;
-	current_src = zeek::util::detail::SOURCE_LOCAL;
+	current_src = util::detail::SOURCE_LOCAL;
 	current_aid = 0;
 	src_val = nullptr;
 	draining = false;
@@ -95,36 +95,36 @@ EventMgr::~EventMgr()
 	}
 
 void EventMgr::QueueEventFast(const EventHandlerPtr &h, ValPList vl,
-                              zeek::util::detail::SourceID src, analyzer::ID aid, zeek::detail::TimerMgr* mgr,
+                              util::detail::SourceID src, analyzer::ID aid, detail::TimerMgr* mgr,
                               Obj* obj)
 	{
-	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
+	QueueEvent(new Event(h, val_list_to_args(vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList vl,
-                          zeek::util::detail::SourceID src, analyzer::ID aid,
-                          zeek::detail::TimerMgr* mgr, Obj* obj)
+                          util::detail::SourceID src, analyzer::ID aid,
+                          detail::TimerMgr* mgr, Obj* obj)
 	{
-	auto args = zeek::val_list_to_args(vl);
+	auto args = val_list_to_args(vl);
 
 	if ( h )
 		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList* vl,
-                          zeek::util::detail::SourceID src, analyzer::ID aid,
-                          zeek::detail::TimerMgr* mgr, Obj* obj)
+                          util::detail::SourceID src, analyzer::ID aid,
+                          detail::TimerMgr* mgr, Obj* obj)
 	{
-	auto args = zeek::val_list_to_args(*vl);
+	auto args = val_list_to_args(*vl);
 	delete vl;
 
 	if ( h )
 		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
-void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       zeek::util::detail::SourceID src,
-                       zeek::analyzer::ID aid, Obj* obj)
+void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl,
+                       util::detail::SourceID src,
+                       analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}
@@ -160,9 +160,9 @@ void EventMgr::Dispatch(Event* event, bool no_remote)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		Enqueue(event_queue_flush_point, zeek::Args{});
+		Enqueue(event_queue_flush_point, Args{});
 
-	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "draining-events");
+	detail::SegmentProfiler prof(detail::segment_logger, "draining-events");
 
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
@@ -201,7 +201,7 @@ void EventMgr::Drain()
 
 	// Make sure all of the triggers get processed every time the events
 	// drain.
-	zeek::detail::trigger_mgr->Process();
+	detail::trigger_mgr->Process();
 	}
 
 void EventMgr::Describe(ODesc* d) const
@@ -225,9 +225,9 @@ void EventMgr::Process()
 	// If we don't have a source, or the source is closed, or we're
 	// reading live (which includes pseudo-realtime), advance the time
 	// here to the current time since otherwise it won't move forward.
-	zeek::iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::run_state::reading_live )
-		zeek::run_state::detail::update_network_time(zeek::util::current_time());
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || run_state::reading_live )
+		run_state::detail::update_network_time(util::current_time());
 
 	queue_flare.Extinguish();
 
@@ -242,9 +242,9 @@ void EventMgr::Process()
 
 void EventMgr::InitPostScript()
 	{
-	zeek::iosource_mgr->Register(this, true, false);
-	if ( ! zeek::iosource_mgr->RegisterFd(queue_flare.FD(), this) )
-		zeek::reporter->FatalError("Failed to register event manager FD with zeek::iosource_mgr");
+	iosource_mgr->Register(this, true, false);
+	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
+		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}
 
 } // namespace zeek

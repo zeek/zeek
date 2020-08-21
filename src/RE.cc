@@ -135,7 +135,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 
 	if ( parse_status )
 		{
-		zeek::reporter->Error("error compiling pattern /%s/", pattern_text);
+		reporter->Error("error compiling pattern /%s/", pattern_text);
 		Unref(nfa);
 		nfa = nullptr;
 		return false;
@@ -157,7 +157,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
 	if ( (size_t)set.length() != idx.size() )
-		zeek::reporter->InternalError("compileset: lengths of sets differ");
+		reporter->InternalError("compileset: lengths of sets differ");
 
 	rem = this;
 
@@ -171,7 +171,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 
 		if ( parse_status )
 			{
-			zeek::reporter->Error("error compiling pattern /%s/", set[i]);
+			reporter->Error("error compiling pattern /%s/", set[i]);
 
 			if ( set_nfa && set_nfa != nfa )
 				Unref(set_nfa);
@@ -215,7 +215,7 @@ bool Specific_RE_Matcher::MatchAll(const char* s)
 	return MatchAll((const u_char*)(s), strlen(s));
 	}
 
-bool Specific_RE_Matcher::MatchAll(const zeek::String* s)
+bool Specific_RE_Matcher::MatchAll(const String* s)
 	{
 	// s->Len() does not include '\0'.
 	return MatchAll(s->Bytes(), s->Len());
@@ -226,7 +226,7 @@ int Specific_RE_Matcher::Match(const char* s)
 	return Match((const u_char*)(s), strlen(s));
 	}
 
-int Specific_RE_Matcher::Match(const zeek::String* s)
+int Specific_RE_Matcher::Match(const String* s)
 	{
 	return Match(s->Bytes(), s->Len());
 	}
@@ -236,7 +236,7 @@ int Specific_RE_Matcher::LongestMatch(const char* s)
 	return LongestMatch((const u_char*)(s), strlen(s));
 	}
 
-int Specific_RE_Matcher::LongestMatch(const zeek::String* s)
+int Specific_RE_Matcher::LongestMatch(const String* s)
 	{
 	return LongestMatch(s->Bytes(), s->Len());
 	}
@@ -423,21 +423,21 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 	for ( int i = 0; i < ccl_list.length(); ++i )
 		size += ccl_list[i]->MemoryAllocation();
 
-	size += zeek::util::pad_size(sizeof(CCL*) * ccl_dict.size());
+	size += util::pad_size(sizeof(CCL*) * ccl_dict.size());
 	for ( const auto& entry : ccl_dict )
 		{
-		size += padded_sizeof(std::string) + zeek::util::pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.first.size());
 		size += entry.second->MemoryAllocation();
 		}
 
 	for ( const auto& entry : defs )
 		{
-		size += padded_sizeof(std::string) + zeek::util::pad_size(sizeof(std::string::value_type) * entry.first.size());
-		size += padded_sizeof(std::string) + zeek::util::pad_size(sizeof(std::string::value_type) * entry.second.size());
+		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.second.size());
 		}
 
 	return size + padded_sizeof(*this)
-		+ (pattern_text ? zeek::util::pad_size(strlen(pattern_text) + 1) : 0)
+		+ (pattern_text ? util::pad_size(strlen(pattern_text) + 1) : 0)
 		+ ccl_list.MemoryAllocation() - padded_sizeof(ccl_list)
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
@@ -479,23 +479,23 @@ RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2)
 
 RE_Matcher::RE_Matcher()
 	{
-	re_anywhere = new detail::Specific_RE_Matcher(zeek::detail::MATCH_ANYWHERE);
-	re_exact = new detail::Specific_RE_Matcher(zeek::detail::MATCH_EXACTLY);
+	re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
+	re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
 	}
 
 RE_Matcher::RE_Matcher(const char* pat)
 	{
-	re_anywhere = new detail::Specific_RE_Matcher(zeek::detail::MATCH_ANYWHERE);
-	re_exact = new detail::Specific_RE_Matcher(zeek::detail::MATCH_EXACTLY);
+	re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
+	re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
 
 	AddPat(pat);
 	}
 
 RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
 	{
-	re_anywhere = new detail::Specific_RE_Matcher(zeek::detail::MATCH_ANYWHERE);
+	re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
 	re_anywhere->SetPat(anywhere_pat);
-	re_exact = new detail::Specific_RE_Matcher(zeek::detail::MATCH_EXACTLY);
+	re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
 	re_exact->SetPat(exact_pat);
 	}
 

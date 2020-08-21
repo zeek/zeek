@@ -17,11 +17,11 @@ static void topk_element_hash_delete_func(void* val)
 	delete e;
 	}
 
-void TopkVal::Typify(zeek::TypePtr t)
+void TopkVal::Typify(TypePtr t)
 	{
 	assert(!hash && !type);
 	type = std::move(t);
-	auto tl = zeek::make_intrusive<zeek::TypeList>(type);
+	auto tl = make_intrusive<TypeList>(type);
 	tl->Append(type);
 	hash = new zeek::detail::CompositeHash(std::move(tl));
 	}
@@ -35,7 +35,7 @@ zeek::detail::HashKey* TopkVal::GetHash(Val* v) const
 
 TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	{
-	elementDict = new zeek::PDict<Element>;
+	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
 	numElements = 0;
@@ -45,7 +45,7 @@ TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 
 TopkVal::TopkVal() : OpaqueVal(topk_type)
 	{
-	elementDict = new zeek::PDict<Element>;
+	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = 0;
 	numElements = 0;
@@ -87,7 +87,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		{
 		if ( ! same_type(type, value->type) )
 			{
-			zeek::reporter->Error("Cannot merge top-k elements of differing types.");
+			reporter->Error("Cannot merge top-k elements of differing types.");
 			return;
 			}
 		}
@@ -175,23 +175,23 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-zeek::ValPtr TopkVal::DoClone(CloneState* state)
+ValPtr TopkVal::DoClone(CloneState* state)
 	{
-	auto clone = zeek::make_intrusive<TopkVal>(size);
+	auto clone = make_intrusive<TopkVal>(size);
 	clone->Merge(this);
 	return state->NewClone(this, std::move(clone));
 	}
 
-zeek::VectorValPtr TopkVal::GetTopK(int k) const // returns vector
+VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
-		zeek::reporter->Error("Cannot return topk of empty");
+		reporter->Error("Cannot return topk of empty");
 		return nullptr;
 		}
 
-	auto v = zeek::make_intrusive<zeek::VectorType>(type);
-	auto t = zeek::make_intrusive<zeek::VectorVal>(std::move(v));
+	auto v = make_intrusive<VectorType>(type);
+	auto t = make_intrusive<VectorVal>(std::move(v));
 
 	// this does no estimation if the results is correct!
 	// in any case - just to make this future-proof (and I am lazy) - this can return more than k.
@@ -228,7 +228,7 @@ uint64_t TopkVal::GetCount(Val* value) const
 
 	if ( e == nullptr )
 		{
-		zeek::reporter->Error("GetCount for element that is not in top-k");
+		reporter->Error("GetCount for element that is not in top-k");
 		return 0;
 		}
 
@@ -243,7 +243,7 @@ uint64_t TopkVal::GetEpsilon(Val* value) const
 
 	if ( e == nullptr )
 		{
-		zeek::reporter->Error("GetEpsilon for element that is not in top-k");
+		reporter->Error("GetEpsilon for element that is not in top-k");
 		return 0;
 		}
 
@@ -263,12 +263,12 @@ uint64_t TopkVal::GetSum() const
 		}
 
 	if ( pruned )
-		zeek::reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
+		reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
 
 	return sum;
 	}
 
-void TopkVal::Encountered(zeek::ValPtr encountered)
+void TopkVal::Encountered(ValPtr encountered)
 	{
 	// ok, let's see if we already know this one.
 
@@ -277,7 +277,7 @@ void TopkVal::Encountered(zeek::ValPtr encountered)
 	else
 		if ( ! same_type(type, encountered->GetType()) )
 			{
-			zeek::reporter->Error("Trying to add element to topk with differing type from other elements");
+			reporter->Error("Trying to add element to topk with differing type from other elements");
 			return;
 			}
 
@@ -429,7 +429,7 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 			{
 			Element* element = *eit;
 			d.emplace_back(element->epsilon);
-			auto v = zeek::Broker::detail::val_to_data(element->value.get());
+			auto v = Broker::detail::val_to_data(element->value.get());
 			if ( ! v )
 				return broker::ec::invalid_data;
 
@@ -494,7 +494,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
 			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
-			auto val = zeek::Broker::detail::data_to_val((*v)[idx++], type.get());
+			auto val = Broker::detail::data_to_val((*v)[idx++], type.get());
 
 			if ( ! (epsilon && val) )
 				return false;

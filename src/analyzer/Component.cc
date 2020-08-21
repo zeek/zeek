@@ -6,10 +6,10 @@
 #include "../Desc.h"
 #include "../util.h"
 
-using namespace zeek::analyzer;
+namespace zeek::analyzer {
 
 Component::Component(const std::string& name, factory_callback arg_factory, Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial)
-	: zeek::plugin::Component(zeek::plugin::component::ANALYZER, name),
+	: plugin::Component(plugin::component::ANALYZER, name),
 	  plugin::TaggedComponent<analyzer::Tag>(arg_subtype)
 	{
 	factory = arg_factory;
@@ -20,7 +20,7 @@ Component::Component(const std::string& name, factory_callback arg_factory, Tag:
 void Component::Initialize()
 	{
 	InitializeTag();
-	zeek::analyzer_mgr->RegisterComponent(this, "ANALYZER_");
+	analyzer_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 
 Component::~Component()
@@ -38,3 +38,5 @@ void Component::DoDescribe(ODesc* d) const
 
 	d->Add(enabled ? "enabled" : "disabled");
 	}
+
+} // namespace zeek::analyzer

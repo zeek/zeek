@@ -47,7 +47,7 @@ void PcapSource::Close()
 	Closed();
 
 	if ( Pcap::file_done )
-		zeek::event_mgr.Enqueue(Pcap::file_done, zeek::make_intrusive<zeek::StringVal>(props.path));
+		event_mgr.Enqueue(Pcap::file_done, make_intrusive<StringVal>(props.path));
 	}
 
 void PcapSource::OpenLive()
@@ -61,7 +61,7 @@ void PcapSource::OpenLive()
 
 		if ( pcap_findalldevs(&devs, errbuf) < 0 )
 			{
-			Error(zeek::util::fmt("pcap_findalldevs: %s", errbuf));
+			Error(util::fmt("pcap_findalldevs: %s", errbuf));
 			return;
 			}
 
@@ -110,7 +110,7 @@ void PcapSource::OpenLive()
 		return;
 		}
 
-	if ( pcap_set_snaplen(pd, zeek::BifConst::Pcap::snaplen) )
+	if ( pcap_set_snaplen(pd, BifConst::Pcap::snaplen) )
 		{
 		PcapError("pcap_set_snaplen");
 		return;
@@ -136,7 +136,7 @@ void PcapSource::OpenLive()
 		return;
 		}
 
-	if ( pcap_set_buffer_size(pd, zeek::BifConst::Pcap::bufsize * 1024 * 1024) )
+	if ( pcap_set_buffer_size(pd, BifConst::Pcap::bufsize * 1024 * 1024) )
 		{
 		PcapError("pcap_set_buffer_size");
 		return;
@@ -157,7 +157,7 @@ void PcapSource::OpenLive()
 #endif
 
 #ifdef HAVE_PCAP_INT_H
-	Info(zeek::util::fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
+	Info(util::fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
 	props.selectable_fd = pcap_get_selectable_fd(pd);
@@ -191,7 +191,7 @@ void PcapSource::OpenOffline()
 	Opened(props);
 	}
 
-bool PcapSource::ExtractNextPacket(zeek::Packet* pkt)
+bool PcapSource::ExtractNextPacket(Packet* pkt)
 	{
 	if ( ! pd )
 		return false;
@@ -210,11 +210,11 @@ bool PcapSource::ExtractNextPacket(zeek::Packet* pkt)
 	case PCAP_ERROR: // -1
 		// Error occurred while reading the packet.
 		if ( props.is_live )
-			zeek::reporter->Error("failed to read a packet from %s: %s",
-			                      props.path.data(), pcap_geterr(pd));
+			reporter->Error("failed to read a packet from %s: %s",
+			                props.path.data(), pcap_geterr(pd));
 		else
-			zeek::reporter->FatalError("failed to read a packet from %s: %s",
-			                           props.path.data(), pcap_geterr(pd));
+			reporter->FatalError("failed to read a packet from %s: %s",
+			                     props.path.data(), pcap_geterr(pd));
 		return false;
 	case 0:
 		// Read from live interface timed out (ok).
@@ -223,7 +223,7 @@ bool PcapSource::ExtractNextPacket(zeek::Packet* pkt)
 		// Read a packet without problem.
 		break;
 	default:
-		zeek::reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
+		reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
 		return false;
 	}
 
@@ -258,7 +258,7 @@ bool PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	zeek::iosource::detail::BPF_Program* code = GetBPFFilter(index);
+	iosource::detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{
@@ -328,12 +328,12 @@ void PcapSource::PcapError(const char* where)
 	std::string location;
 
 	if ( where )
-		location = zeek::util::fmt(" (%s)", where);
+		location = util::fmt(" (%s)", where);
 
 	if ( pd )
-		Error(zeek::util::fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
+		Error(util::fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
 	else
-		Error(zeek::util::fmt("pcap_error: not open%s", location.c_str()));
+		Error(util::fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
 	}

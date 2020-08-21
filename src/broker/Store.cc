@@ -8,15 +8,15 @@ zeek::OpaqueTypePtr& bro_broker::opaque_of_store_handle = zeek::Broker::detail::
 
 namespace zeek::Broker::detail {
 
-zeek::EnumValPtr query_status(bool success)
+EnumValPtr query_status(bool success)
 	{
-	static zeek::EnumType* store_query_status = nullptr;
+	static EnumType* store_query_status = nullptr;
 	static int success_val;
 	static int failure_val;
 
 	if ( ! store_query_status )
 		{
-		store_query_status = zeek::id::find_type("Broker::QueryStatus")->AsEnumType();
+		store_query_status = id::find_type("Broker::QueryStatus")->AsEnumType();
 		success_val = store_query_status->Lookup("Broker", "SUCCESS");
 		failure_val = store_query_status->Lookup("Broker", "FAILURE");
 		}
@@ -25,7 +25,7 @@ zeek::EnumValPtr query_status(bool success)
 	return rval;
 	}
 
-void StoreHandleVal::ValDescribe(zeek::ODesc* d) const
+void StoreHandleVal::ValDescribe(ODesc* d) const
 	{
 	//using BifEnum::Broker::BackendType;
 	d->Add("broker::store::");
@@ -100,7 +100,7 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	}
 
 broker::backend_options to_backend_options(broker::backend backend,
-                                           zeek::RecordVal* options)
+                                           RecordVal* options)
 	{
 	switch ( backend ) {
 	case broker::backend::sqlite:

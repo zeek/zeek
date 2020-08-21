@@ -40,7 +40,7 @@ static void maximize_num_fds()
 	{
 	struct rlimit rl;
 	if ( getrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		zeek::reporter->FatalError("maximize_num_fds(): getrlimit failed");
+		reporter->FatalError("maximize_num_fds(): getrlimit failed");
 
 	if ( rl.rlim_max == RLIM_INFINITY )
 		{
@@ -52,7 +52,7 @@ static void maximize_num_fds()
 	rl.rlim_cur = rl.rlim_max;
 
 	if ( setrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		zeek::reporter->FatalError("maximize_num_fds(): setrlimit failed");
+		reporter->FatalError("maximize_num_fds(): setrlimit failed");
 	}
 
 File::File(FILE* arg_f)
@@ -60,7 +60,7 @@ File::File(FILE* arg_f)
 	Init();
 	f = arg_f;
 	name = access = nullptr;
-	t = zeek::base_type(zeek::TYPE_STRING);
+	t = base_type(TYPE_STRING);
 	is_open = (f != nullptr);
 	}
 
@@ -68,9 +68,9 @@ File::File(FILE* arg_f, const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = arg_f;
-	name = zeek::util::copy_string(arg_name);
-	access = zeek::util::copy_string(arg_access);
-	t = zeek::base_type(zeek::TYPE_STRING);
+	name = util::copy_string(arg_name);
+	access = util::copy_string(arg_access);
+	t = base_type(TYPE_STRING);
 	is_open = (f != nullptr);
 	}
 
@@ -78,15 +78,15 @@ File::File(const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = nullptr;
-	name = zeek::util::copy_string(arg_name);
-	access = zeek::util::copy_string(arg_access);
-	t = zeek::base_type(zeek::TYPE_STRING);
+	name = util::copy_string(arg_name);
+	access = util::copy_string(arg_access);
+	t = base_type(TYPE_STRING);
 
-	if ( zeek::util::streq(name, "/dev/stdin") )
+	if ( util::streq(name, "/dev/stdin") )
 		f = stdin;
-	else if ( zeek::util::streq(name, "/dev/stdout") )
+	else if ( util::streq(name, "/dev/stdout") )
 		f = stdout;
-	else if ( zeek::util::streq(name, "/dev/stderr") )
+	else if ( util::streq(name, "/dev/stderr") )
 		f = stderr;
 
 	if ( f )
@@ -94,7 +94,7 @@ File::File(const char* arg_name, const char* arg_access)
 
 	else if ( ! Open() )
 		{
-		zeek::reporter->Error("cannot open %s: %s", name, strerror(errno));
+		reporter->Error("cannot open %s: %s", name, strerror(errno));
 		is_open = false;
 		}
 	}
@@ -119,7 +119,7 @@ const char* File::Name() const
 bool File::Open(FILE* file, const char* mode)
 	{
 	static bool fds_maximized = false;
-	open_time = zeek::run_state::network_time ? zeek::run_state::network_time : zeek::util::current_time();
+	open_time = run_state::network_time ? run_state::network_time : util::current_time();
 
 	if ( ! fds_maximized )
 		{
@@ -191,7 +191,7 @@ FILE* File::Seek(long new_position)
 		return nullptr;
 
 	if ( fseek(f, new_position, SEEK_SET) < 0 )
-		zeek::reporter->Error("seek failed");
+		reporter->Error("seek failed");
 
 	return f;
 	}
@@ -202,7 +202,7 @@ void File::SetBuf(bool arg_buffered)
 		return;
 
 	if ( setvbuf(f, NULL, arg_buffered ? _IOFBF : _IOLBF, 0) != 0 )
-		zeek::reporter->Error("setvbuf failed");
+		reporter->Error("setvbuf failed");
 
 	buffered = arg_buffered;
 	}
@@ -259,7 +259,7 @@ void File::Describe(ODesc* d) const
 		d->Add("(no type)");
 	}
 
-void File::SetAttrs(zeek::detail::Attributes* arg_attrs)
+void File::SetAttrs(detail::Attributes* arg_attrs)
 	{
 	if ( ! arg_attrs )
 		return;
@@ -267,11 +267,11 @@ void File::SetAttrs(zeek::detail::Attributes* arg_attrs)
 	attrs = arg_attrs;
 	Ref(attrs);
 
-	if ( attrs->Find(zeek::detail::ATTR_RAW_OUTPUT) )
+	if ( attrs->Find(detail::ATTR_RAW_OUTPUT) )
 		EnableRawOutput();
 	}
 
-zeek::RecordVal* File::Rotate()
+RecordVal* File::Rotate()
 	{
 	if ( ! is_open )
 		return nullptr;
@@ -280,9 +280,9 @@ zeek::RecordVal* File::Rotate()
 	if ( f == stdin || f == stdout || f == stderr )
 		return nullptr;
 
-	static auto rotate_info = zeek::id::find_type<zeek::RecordType>("rotate_info");
-	auto* info = new zeek::RecordVal(rotate_info);
-	FILE* newf = zeek::util::detail::rotate_file(name, info);
+	static auto rotate_info = id::find_type<RecordType>("rotate_info");
+	auto* info = new RecordVal(rotate_info);
+	FILE* newf = util::detail::rotate_file(name, info);
 
 	if ( ! newf )
 		{
@@ -290,7 +290,7 @@ zeek::RecordVal* File::Rotate()
 		return nullptr;
 		}
 
-	info->Assign<zeek::TimeVal>(2, open_time);
+	info->Assign<TimeVal>(2, open_time);
 
 	Unlink();
 
@@ -330,9 +330,9 @@ void File::RaiseOpenEvent()
 	if ( ! ::file_opened )
 		return;
 
-	FilePtr bf{zeek::NewRef{}, this};
-	auto* event = new zeek::Event(::file_opened, {zeek::make_intrusive<zeek::Val>(std::move(bf))});
-	zeek::event_mgr.Dispatch(event, true);
+	FilePtr bf{NewRef{}, this};
+	auto* event = new Event(::file_opened, {make_intrusive<Val>(std::move(bf))});
+	event_mgr.Dispatch(event, true);
 	}
 
 double File::Size()
@@ -341,7 +341,7 @@ double File::Size()
 	struct stat s;
 	if ( fstat(fileno(f), &s) < 0 )
 		{
-		zeek::reporter->Error("can't stat fd for %s: %s", name, strerror(errno));
+		reporter->Error("can't stat fd for %s: %s", name, strerror(errno));
 		return 0;
 		}
 
@@ -352,9 +352,9 @@ FilePtr File::Get(const char* name)
 	{
 	for ( const auto &el : open_files )
 		if ( el.first == name )
-			return {zeek::NewRef{}, el.second};
+			return {NewRef{}, el.second};
 
-	return zeek::make_intrusive<File>(name, "w");
+	return make_intrusive<File>(name, "w");
 	}
 
 } // namespace zeek

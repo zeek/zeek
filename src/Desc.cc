@@ -18,7 +18,7 @@
 
 namespace zeek {
 
-ODesc::ODesc(desc_type t, zeek::File* arg_f)
+ODesc::ODesc(DescType t, File* arg_f)
 	{
 	type = t;
 	style = STANDARD_STYLE;
@@ -27,7 +27,7 @@ ODesc::ODesc(desc_type t, zeek::File* arg_f)
 	if ( f == nullptr )
 		{
 		size = DEFAULT_SIZE;
-		base = zeek::util::safe_malloc(size);
+		base = util::safe_malloc(size);
 		((char*) base)[0] = '\0';
 		offset = 0;
 		}
@@ -77,7 +77,7 @@ void ODesc::PushIndent()
 void ODesc::PopIndent()
 	{
 	if ( --indent_level < 0 )
-		zeek::reporter->InternalError("ODesc::PopIndent underflow");
+		reporter->InternalError("ODesc::PopIndent underflow");
 
 	NL();
 	}
@@ -85,7 +85,7 @@ void ODesc::PopIndent()
 void ODesc::PopIndentNoNL()
 	{
 	if ( --indent_level < 0 )
-		zeek::reporter->InternalError("ODesc::PopIndent underflow");
+		reporter->InternalError("ODesc::PopIndent underflow");
 	}
 
 void ODesc::Add(const char* s, int do_indent)
@@ -180,12 +180,12 @@ void ODesc::Add(double d, bool no_exp)
 		}
 	}
 
-void ODesc::Add(const zeek::IPAddr& addr)
+void ODesc::Add(const IPAddr& addr)
 	{
 	Add(addr.AsString());
 	}
 
-void ODesc::Add(const zeek::IPPrefix& prefix)
+void ODesc::Add(const IPPrefix& prefix)
 	{
 	Add(prefix.AsString());
 	}
@@ -199,7 +199,7 @@ void ODesc::AddCS(const char* s)
 	Add(s);
 	}
 
-void ODesc::AddBytes(const zeek::String* s)
+void ODesc::AddBytes(const String* s)
 	{
 	if ( IsReadable() )
 		{
@@ -207,7 +207,7 @@ void ODesc::AddBytes(const zeek::String* s)
 			AddBytes(reinterpret_cast<const char*>(s->Bytes()), s->Len());
 		else
 			{
-			const char* str = s->Render(zeek::String::EXPANDED_STRING);
+			const char* str = s->Render(String::EXPANDED_STRING);
 			Add(str);
 			delete [] str;
 			}
@@ -335,7 +335,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 		if ( p.first )
 			{
 			AddBytesRaw(s, p.first - s);
-			zeek::util::get_escaped_string(this, p.first, p.second, true);
+			util::get_escaped_string(this, p.first, p.second, true);
 			s = p.first + p.second;
 			}
 		else
@@ -360,7 +360,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 			if ( ! write_failed )
 				// Most likely it's a "disk full" so report
 				// subsequent failures only once.
-				zeek::reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
+				reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
 
 			write_failed = true;
 			return;
@@ -388,7 +388,7 @@ void ODesc::Grow(unsigned int n)
 	while ( offset + n + SLOP >= size )
 		size *= 2;
 
-	base = zeek::util::safe_realloc(base, size);
+	base = util::safe_realloc(base, size);
 	}
 
 void ODesc::Clear()
@@ -400,24 +400,24 @@ void ODesc::Clear()
 		{
 		free(base);
 		size = DEFAULT_SIZE;
-		base = zeek::util::safe_malloc(size);
+		base = util::safe_malloc(size);
 		((char*) base)[0] = '\0';
 		}
 	}
 
-bool ODesc::PushType(const zeek::Type* type)
+bool ODesc::PushType(const Type* type)
 	{
 	auto res = encountered_types.insert(type);
 	return std::get<1>(res);
 	}
 
-bool ODesc::PopType(const zeek::Type* type)
+bool ODesc::PopType(const Type* type)
 	{
 	size_t res = encountered_types.erase(type);
 	return (res == 1);
 	}
 
-bool ODesc::FindType(const zeek::Type* type)
+bool ODesc::FindType(const Type* type)
 	{
 	auto res = encountered_types.find(type);
 

@@ -62,8 +62,8 @@ protected:
 
 };
 
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
+String* decode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
+String* encode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 
 } // namespace zeek::detail
 

@@ -11,31 +11,28 @@
 
 #include <sys/types.h> // for u_char
 
-namespace zeek { class File; }
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 
-namespace zeek { class Type; }
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-
 namespace zeek {
 
-enum desc_type {
+class File;
+class Type;
+
+enum DescType {
 	DESC_READABLE,
 	DESC_PORTABLE,
 	DESC_BINARY,
 };
 
-enum desc_style {
+enum DescStyle {
 	STANDARD_STYLE,
 	RAW_STYLE,
 };
 
 class ODesc {
 public:
-	explicit ODesc(desc_type t=DESC_READABLE, zeek::File* f=nullptr);
+	explicit ODesc(DescType t=DESC_READABLE, File* f=nullptr);
 
 	~ODesc();
 
@@ -56,8 +53,8 @@ public:
 	bool IncludeStats() const	{ return include_stats; }
 	void SetIncludeStats(bool s)	{ include_stats = s; }
 
-	desc_style Style() const	{ return style; }
-	void SetStyle(desc_style s)	{ style = s; }
+	DescStyle Style() const	{ return style; }
+	void SetStyle(DescStyle s)	{ style = s; }
 
 	void SetFlush(bool arg_do_flush)	{ do_flush = arg_do_flush; }
 
@@ -91,13 +88,13 @@ public:
 	void Add(int64_t i);
 	void Add(uint64_t u);
 	void Add(double d, bool no_exp=false);
-	void Add(const zeek::IPAddr& addr);
-	void Add(const zeek::IPPrefix& prefix);
+	void Add(const IPAddr& addr);
+	void Add(const IPPrefix& prefix);
 
 	// Add s as a counted string.
 	void AddCS(const char* s);
 
-	void AddBytes(const zeek::String* s);
+	void AddBytes(const String* s);
 
 	void Add(const char* s1, const char* s2)
 		{ Add(s1); Add(s2); }
@@ -134,7 +131,7 @@ public:
 	const char* Description() const		{ return (const char*) base; }
 
 	const u_char* Bytes() const	{ return (const u_char *) base; }
-	zeek::byte_vec TakeBytes()
+	byte_vec TakeBytes()
 		{
 		const void* t = base;
 		base = nullptr;
@@ -143,7 +140,7 @@ public:
 		// Don't clear offset, as we want to still support
 		// subsequent calls to Len().
 
-		return zeek::byte_vec(t);
+		return byte_vec(t);
 		}
 
 	int Len() const		{ return offset; }
@@ -152,9 +149,9 @@ public:
 
 	// Used to determine recursive types. Records push their types on here;
 	// if the same type (by address) is re-encountered, processing aborts.
-	bool PushType(const zeek::Type* type);
-	bool PopType(const zeek::Type* type);
-	bool FindType(const zeek::Type* type);
+	bool PushType(const Type* type);
+	bool PopType(const Type* type);
+	bool FindType(const Type* type);
 
 protected:
 	void Indent();
@@ -187,8 +184,8 @@ protected:
 	 */
 	size_t StartsWithEscapeSequence(const char* start, const char* end);
 
-	desc_type type;
-	desc_style style;
+	DescType type;
+	DescStyle style;
 
 	void* base;		// beginning of buffer
 	unsigned int offset;	// where we are in the buffer
@@ -204,23 +201,26 @@ protected:
 	using escape_set = std::set<std::string>;
 	escape_set escape_sequences; // additional sequences of chars to escape
 
-	zeek::File* f;	// or the file we're using.
+	File* f;	// or the file we're using.
 
 	int indent_level;
 	bool do_flush;
 	bool include_stats;
 
-	std::set<const zeek::Type*> encountered_types;
+	std::set<const Type*> encountered_types;
 };
 
 } // namespace zeek
 
+using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+
 using ODesc [[deprecated("Remove in v4.1. Use zeek::ODesc.")]] = zeek::ODesc;
-using desc_type [[deprecated("Remove in v4.1. Use zeek::desc_type.")]] = zeek::desc_type;
+using desc_type [[deprecated("Remove in v4.1. Use zeek::DescType.")]] = zeek::DescType;
 constexpr auto DESC_READABLE [[deprecated("Remove in v4.1. Use zeek::DESC_READABLE.")]] = zeek::DESC_READABLE;
 constexpr auto DESC_PORTABLE [[deprecated("Remove in v4.1. Use zeek::DESC_PORTABLE.")]] = zeek::DESC_PORTABLE;
 constexpr auto DESC_BINARY [[deprecated("Remove in v4.1. Use zeek::DESC_BINARY.")]] = zeek::DESC_BINARY;
 
-using desc_style [[deprecated("Remove in v4.1. Use zeek::desc_style.")]] = zeek::desc_style;
+using desc_style [[deprecated("Remove in v4.1. Use zeek::DescStyle.")]] = zeek::DescStyle;
 constexpr auto STANDARD_STYLE [[deprecated("Remove in v4.1. Use zeek::STANDARD_STYLE.")]] = zeek::STANDARD_STYLE;
 constexpr auto RAW_STYLE [[deprecated("Remove in v4.1. Use zeek::RAW_STYLE.")]] = zeek::RAW_STYLE;

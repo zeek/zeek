@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-using namespace zeek::detail;
+namespace zeek::detail {
 
 Flare::Flare()
 	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK)
@@ -19,10 +19,10 @@ Flare::Flare()
 		abort();
 
 	char buf[256];
-	zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
+	util::zeek_strerror_r(errno, buf, sizeof(buf));
 
-	if ( zeek::reporter )
-		zeek::reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
+	if ( reporter )
+		reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
 	else
 		{
 		fprintf(stderr, "unexpected pipe %s failure: %s", which, buf);
@@ -88,3 +88,5 @@ int Flare::Extinguish(bool signal_safe)
 
 	return rval;
 	}
+
+} // namespace zeek::detail

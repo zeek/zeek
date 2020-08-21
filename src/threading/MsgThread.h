@@ -43,7 +43,7 @@ class KillMeMessage;
  * that happens, the thread stops accepting any new messages, finishes
  * processes all remaining ones still in the queue, and then exits.
  */
-class MsgThread : public BasicThread, public zeek::iosource::IOSource
+class MsgThread : public BasicThread, public iosource::IOSource
 {
 public:
 	/**
@@ -88,7 +88,7 @@ public:
 	 *
 	 * @param vals the values to be given to the event
 	 */
-	void SendEvent(const char* name, const int num_vals, threading::Value* *vals);
+	void SendEvent(const char* name, const int num_vals, Value* *vals);
 
 	/**
 	 * Reports an informational message from the child thread. The main
@@ -186,7 +186,7 @@ public:
 	 *
 	 * @param msg  The message. It will be prefixed with the thread's name.
 	 */
-	void Debug(zeek::DebugStream stream, const char* msg);
+	void Debug(DebugStream stream, const char* msg);
 #endif
 
 	/**
@@ -386,7 +386,7 @@ protected:
 	 * mainly for debugging purposes.
 	 */
 	explicit Message(const char* arg_name)
-		{ name = zeek::util::copy_string(arg_name); }
+		{ name = util::copy_string(arg_name); }
 
 private:
 	const char* name;

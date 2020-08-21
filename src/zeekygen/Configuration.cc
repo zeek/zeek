@@ -37,8 +37,8 @@ Config::Config(const string& arg_file, const string& delim)
 	ifstream f(file.c_str());
 
 	if ( ! f.is_open() )
-		zeek::reporter->FatalError("failed to open Zeekygen config file '%s': %s",
-		                           file.c_str(), strerror(errno));
+		reporter->FatalError("failed to open Zeekygen config file '%s': %s",
+		                     file.c_str(), strerror(errno));
 
 	string line;
 	unsigned int line_number = 0;
@@ -47,7 +47,7 @@ Config::Config(const string& arg_file, const string& delim)
 		{
 		++line_number;
 		vector<string> tokens;
-		zeek::util::tokenize_string(line, delim, &tokens);
+		util::tokenize_string(line, delim, &tokens);
 		tokens.erase(remove(tokens.begin(), tokens.end(), ""), tokens.end());
 
 		if ( tokens.empty() )
@@ -59,21 +59,21 @@ Config::Config(const string& arg_file, const string& delim)
 			continue;
 
 		if ( tokens.size() != 3 )
-			zeek::reporter->FatalError("malformed Zeekygen target in %s:%u: %s",
-			                           file.c_str(), line_number, line.c_str());
+			reporter->FatalError("malformed Zeekygen target in %s:%u: %s",
+			                     file.c_str(), line_number, line.c_str());
 
 		Target* target = target_factory.Create(tokens[0], tokens[2], tokens[1]);
 
 		if ( ! target )
-			zeek::reporter->FatalError("unknown Zeekygen target type: %s",
-			                           tokens[0].c_str());
+			reporter->FatalError("unknown Zeekygen target type: %s",
+			                     tokens[0].c_str());
 
 		targets.push_back(target);
 		}
 
 	if ( f.bad() )
-		zeek::reporter->InternalError("error reading Zeekygen config file '%s': %s",
-		                              file.c_str(), strerror(errno));
+		reporter->InternalError("error reading Zeekygen config file '%s': %s",
+		                        file.c_str(), strerror(errno));
 	}
 
 Config::~Config()

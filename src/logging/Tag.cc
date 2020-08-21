@@ -24,22 +24,22 @@ Tag& Tag::operator=(const Tag&& other) noexcept
 	return *this;
 	}
 
-const zeek::EnumValPtr& Tag::AsVal() const
+const EnumValPtr& Tag::AsVal() const
 	{
 	return zeek::Tag::AsVal(log_mgr->GetTagType());
 	}
 
-zeek::EnumVal* Tag::AsEnumVal() const
+EnumVal* Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-Tag::Tag(zeek::EnumValPtr val)
+Tag::Tag(EnumValPtr val)
 	: zeek::Tag(std::move(val))
 	{ }
 
-Tag::Tag(zeek::EnumVal* val)
-	: zeek::Tag({zeek::NewRef{}, val})
+Tag::Tag(EnumVal* val)
+	: zeek::Tag({NewRef{}, val})
 	{ }
 
 } // namespace zeek::logging

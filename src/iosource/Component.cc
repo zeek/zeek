@@ -8,11 +8,11 @@
 namespace zeek::iosource {
 
 Component::Component(const std::string& name)
-	: zeek::plugin::Component(zeek::plugin::component::IOSOURCE, name)
+	: plugin::Component(plugin::component::IOSOURCE, name)
 	{
 	}
 
-Component::Component(zeek::plugin::component::Type type, const std::string& name)
+Component::Component(plugin::component::Type type, const std::string& name)
 	: plugin::Component(type, name)
 	{
 	}
@@ -22,9 +22,9 @@ Component::~Component()
 	}
 
 PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type, factory_callback arg_factory)
-	: iosource::Component(zeek::plugin::component::PKTSRC, arg_name)
+	: Component(plugin::component::PKTSRC, arg_name)
 	{
-	zeek::util::tokenize_string(arg_prefix, ":", &prefixes);
+	util::tokenize_string(arg_prefix, ":", &prefixes);
 	type = arg_type;
 	factory = arg_factory;
 	}
@@ -65,9 +65,9 @@ PktSrcComponent::factory_callback PktSrcComponent::Factory() const
 	return factory;
 	}
 
-void PktSrcComponent::DoDescribe(zeek::ODesc* d) const
+void PktSrcComponent::DoDescribe(ODesc* d) const
 	{
-	iosource::Component::DoDescribe(d);
+	Component::DoDescribe(d);
 
 	std::string prefs;
 
@@ -102,15 +102,15 @@ void PktSrcComponent::DoDescribe(zeek::ODesc* d) const
 		break;
 
 	default:
-		zeek::reporter->InternalError("unknown PkrSrc type");
+		reporter->InternalError("unknown PkrSrc type");
 	}
 
 	}
 
 PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
-	: zeek::plugin::Component(zeek::plugin::component::PKTDUMPER, name)
+	: plugin::Component(plugin::component::PKTDUMPER, name)
 	{
-	zeek::util::tokenize_string(arg_prefix, ":", &prefixes);
+	util::tokenize_string(arg_prefix, ":", &prefixes);
 	factory = arg_factory;
 	}
 
@@ -140,9 +140,9 @@ bool PktDumperComponent::HandlesPrefix(const std::string& prefix) const
 	return false;
 	}
 
-void PktDumperComponent::DoDescribe(zeek::ODesc* d) const
+void PktDumperComponent::DoDescribe(ODesc* d) const
 	{
-	zeek::plugin::Component::DoDescribe(d);
+	plugin::Component::DoDescribe(d);
 
 	std::string prefs;
 

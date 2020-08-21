@@ -47,7 +47,7 @@ namespace analyzer {
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
  */
-class Manager : public zeek::plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -102,7 +102,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool EnableAnalyzer(zeek::EnumVal* tag);
+	bool EnableAnalyzer(EnumVal* tag);
 
 	/**
 	 * Enables an analyzer type. Disabled analyzers will not be
@@ -123,7 +123,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool DisableAnalyzer(zeek::EnumVal* tag);
+	bool DisableAnalyzer(EnumVal* tag);
 
 	/**
 	 * Disables all currently registered analyzers.
@@ -151,7 +151,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 */
-	bool IsEnabled(zeek::EnumVal* tag);
+	bool IsEnabled(EnumVal* tag);
 
 	/**
 	 * Registers a well-known port for an analyzer. Once registered,
@@ -165,7 +165,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(zeek::EnumVal* tag, zeek::PortVal* port);
+	bool RegisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
 	/**
 	 * Registers a well-known port for an analyzer. Once registered,
@@ -194,7 +194,7 @@ public:
 	 * registered for the analyzer).
 	 *
 	 */
-	bool UnregisterAnalyzerForPort(zeek::EnumVal* tag, zeek::PortVal* port);
+	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
 	/**
 	 * Unregisters a well-known port for an anlyzers.
@@ -334,8 +334,8 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, zeek::PortVal* resp_p,
-	                      zeek::Val* analyzer, double timeout);
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
+	                      Val* analyzer, double timeout);
 
 	/**
 	 * @return the UDP port numbers to be associated with VXLAN traffic.
@@ -348,7 +348,7 @@ private:
 	using tag_set = std::set<Tag>;
 	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 
-	tag_set* LookupPort(zeek::PortVal* val, bool add_if_not_found);
+	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
 	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);

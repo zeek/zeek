@@ -46,7 +46,7 @@ void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed
 
 void KeyedHash::InitOptions()
 	{
-	calculate_digest(Hash_SHA256, zeek::BifConst::digest_salt->Bytes(), zeek::BifConst::digest_salt->Len(), reinterpret_cast<unsigned char*>(cluster_highwayhash_key));
+	calculate_digest(Hash_SHA256, BifConst::digest_salt->Bytes(), BifConst::digest_salt->Len(), reinterpret_cast<unsigned char*>(cluster_highwayhash_key));
 	}
 
 hash64_t KeyedHash::Hash64(const void* bytes, uint64_t size)
@@ -85,7 +85,7 @@ void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
 	if ( ! KeyedHash::IsInitialized() )
-		zeek::reporter->InternalError("Zeek's hash functions aren't fully initialized");
+		reporter->InternalError("Zeek's hash functions aren't fully initialized");
 	}
 
 HashKey::HashKey(bro_int_t i)
@@ -147,7 +147,7 @@ HashKey::HashKey(const char* s)
 	hash = HashBytes(key, size);
 	}
 
-HashKey::HashKey(const zeek::String* s)
+HashKey::HashKey(const String* s)
 	{
 	size = s->Len();
 	key = (void*) s->Bytes();

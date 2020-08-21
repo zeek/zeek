@@ -42,7 +42,7 @@ public:
 	/**
 	 * Returns the initial value of the identifier.
 	 */
-	const zeek::ValPtr& InitialVal() const
+	const ValPtr& InitialVal() const
 		{ return initial_val; }
 
 	/**
@@ -82,7 +82,7 @@ public:
 	 * differ from the script in which a record type is declared due to redefs.
 	 * @param comments Comments associated with the record field.
 	 */
-	void AddRecordField(const zeek::TypeDecl* field, const std::string& script,
+	void AddRecordField(const TypeDecl* field, const std::string& script,
 	                    std::vector<std::string>& comments);
 
 	/**
@@ -165,7 +165,7 @@ private:
 	struct RecordField {
 		~RecordField();
 
-		zeek::TypeDecl* field;
+		TypeDecl* field;
 		std::string from_script;
 		std::vector<std::string> comments;
 	};
@@ -175,7 +175,7 @@ private:
 
 	std::vector<std::string> comments;
 	zeek::detail::IDPtr id;
-	zeek::ValPtr initial_val;
+	ValPtr initial_val;
 	redef_list redefs;
 	record_field_map fields;
 	RecordField* last_field_seen;

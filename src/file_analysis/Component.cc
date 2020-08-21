@@ -9,16 +9,16 @@
 namespace zeek::file_analysis {
 
 Component::Component(const std::string& name, factory_callback arg_factory, Tag::subtype_t subtype)
-	: zeek::plugin::Component(zeek::plugin::component::FILE_ANALYZER, name),
-	  zeek::plugin::TaggedComponent<zeek::file_analysis::Tag>(subtype)
+	: plugin::Component(plugin::component::FILE_ANALYZER, name),
+	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
 	{
 	factory = arg_factory;
 	factory_func = nullptr;
 	}
 
 Component::Component(const std::string& name, factory_function arg_factory, Tag::subtype_t subtype)
-	: zeek::plugin::Component(zeek::plugin::component::FILE_ANALYZER, name),
-	  zeek::plugin::TaggedComponent<zeek::file_analysis::Tag>(subtype)
+	: plugin::Component(plugin::component::FILE_ANALYZER, name),
+	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
 	{
 	factory = nullptr;
 	factory_func = arg_factory;
@@ -34,7 +34,7 @@ Component::~Component()
 	{
 	}
 
-void Component::DoDescribe(zeek::ODesc* d) const
+void Component::DoDescribe(ODesc* d) const
 	{
 	if ( factory || factory_func )
 		{

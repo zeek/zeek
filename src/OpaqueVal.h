@@ -20,10 +20,10 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(CardinalityCounter, zeek, probabilistic, detail)
 namespace zeek {
 
 class OpaqueVal;
-using OpaqueValPtr = zeek::IntrusivePtr<OpaqueVal>;
+using OpaqueValPtr = IntrusivePtr<OpaqueVal>;
 
 class BloomFilterVal;
-using BloomFilterValPtr = zeek::IntrusivePtr<BloomFilterVal>;
+using BloomFilterValPtr = IntrusivePtr<BloomFilterVal>;
 
 /**
   * Singleton that registers all available all available types of opaque
@@ -98,8 +98,8 @@ private:
 class OpaqueVal : public Val {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit OpaqueVal(zeek::OpaqueType* t);
-	explicit OpaqueVal(zeek::OpaqueTypePtr t);
+	explicit OpaqueVal(OpaqueType* t);
+	explicit OpaqueVal(OpaqueTypePtr t);
 	~OpaqueVal() override;
 
 	/**
@@ -158,26 +158,26 @@ protected:
 	 * Helper function for derived class that need to record a type
 	 * during serialization.
 	 */
-	static broker::expected<broker::data> SerializeType(const zeek::TypePtr& t);
+	static broker::expected<broker::data> SerializeType(const TypePtr& t);
 
 	/**
 	 * Helper function for derived class that need to restore a type
 	 * during unserialization. Returns the type at reference count +1.
 	 */
-	static zeek::TypePtr UnserializeType(const broker::data& data);
+	static TypePtr UnserializeType(const broker::data& data);
 };
 
 class HashVal : public OpaqueVal {
 public:
 	template <class T>
-	static void digest_all(zeek::detail::HashAlgorithm alg, const T& vlist, u_char* result)
+	static void digest_all(detail::HashAlgorithm alg, const T& vlist, u_char* result)
 		{
-		auto h = zeek::detail::hash_init(alg);
+		auto h = detail::hash_init(alg);
 
 		for ( const auto& v : vlist )
 			digest_one(h, v);
 
-		zeek::detail::hash_final(h, result);
+		detail::hash_final(h, result);
 		}
 
 	bool IsValid() const;
@@ -192,8 +192,8 @@ protected:
 	HashVal()	{ valid = false; }
 
 	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
-	explicit HashVal(zeek::OpaqueType* t);
-	explicit HashVal(zeek::OpaqueTypePtr t);
+	explicit HashVal(OpaqueType* t);
+	explicit HashVal(OpaqueTypePtr t);
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
@@ -208,7 +208,7 @@ class MD5Val : public HashVal {
 public:
 	template <class T>
 	static void digest(const T& vlist, u_char result[MD5_DIGEST_LENGTH])
-		{ digest_all(zeek::detail::Hash_MD5, vlist, result); }
+		{ digest_all(detail::Hash_MD5, vlist, result); }
 
 	template <class T>
 	static void hmac(const T& vlist,
@@ -220,7 +220,7 @@ public:
 		for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
 			result[i] ^= key[i];
 
-		zeek::detail::internal_md5(result, MD5_DIGEST_LENGTH, result);
+		detail::internal_md5(result, MD5_DIGEST_LENGTH, result);
 		}
 
 	MD5Val();
@@ -244,7 +244,7 @@ class SHA1Val : public HashVal {
 public:
 	template <class T>
 	static void digest(const T& vlist, u_char result[SHA_DIGEST_LENGTH])
-		{ digest_all(zeek::detail::Hash_SHA1, vlist, result); }
+		{ digest_all(detail::Hash_SHA1, vlist, result); }
 
 	SHA1Val();
 	~SHA1Val();
@@ -267,7 +267,7 @@ class SHA256Val : public HashVal {
 public:
 	template <class T>
 	static void digest(const T& vlist, u_char result[SHA256_DIGEST_LENGTH])
-		{ digest_all(zeek::detail::Hash_SHA256, vlist, result); }
+		{ digest_all(detail::Hash_SHA256, vlist, result); }
 
 	SHA256Val();
 	~SHA256Val();
@@ -299,20 +299,20 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(EntropyVal)
 private:
-	zeek::detail::RandTest state;
+	detail::RandTest state;
 };
 
 class BloomFilterVal : public OpaqueVal {
 public:
-	explicit BloomFilterVal(zeek::probabilistic::BloomFilter* bf);
+	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
 
 	ValPtr DoClone(CloneState* state) override;
 
-	const zeek::TypePtr& Type() const
+	const TypePtr& Type() const
 		{ return type; }
 
-	bool Typify(zeek::TypePtr type);
+	bool Typify(TypePtr type);
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
@@ -333,36 +333,36 @@ private:
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
-	zeek::TypePtr type;
-	zeek::detail::CompositeHash* hash;
-	zeek::probabilistic::BloomFilter* bloom_filter;
+	TypePtr type;
+	detail::CompositeHash* hash;
+	probabilistic::BloomFilter* bloom_filter;
 };
 
 
 class CardinalityVal : public OpaqueVal {
 public:
-	explicit CardinalityVal(zeek::probabilistic::detail::CardinalityCounter*);
+	explicit CardinalityVal(probabilistic::detail::CardinalityCounter*);
 	~CardinalityVal() override;
 
 	ValPtr DoClone(CloneState* state) override;
 
 	void Add(const Val* val);
 
-	const zeek::TypePtr& Type() const
+	const TypePtr& Type() const
 		{ return type; }
 
-	bool Typify(zeek::TypePtr type);
+	bool Typify(TypePtr type);
 
-	zeek::probabilistic::detail::CardinalityCounter* Get()	{ return c; };
+	probabilistic::detail::CardinalityCounter* Get()	{ return c; };
 
 protected:
 	CardinalityVal();
 
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
-	zeek::TypePtr type;
-	zeek::detail::CompositeHash* hash;
-	zeek::probabilistic::detail::CardinalityCounter* c;
+	TypePtr type;
+	detail::CompositeHash* hash;
+	probabilistic::detail::CardinalityCounter* c;
 };
 
 class ParaglobVal : public OpaqueVal {

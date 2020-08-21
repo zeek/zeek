@@ -13,14 +13,15 @@
 #include "Scope.h"
 #include "ID.h"
 #include "IPAddr.h"
+#include "Event.h"
 
-using namespace zeek::detail;
+namespace zeek::detail {
 
-AnonymizeIPAddr* zeek::detail::ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
+AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
 static uint32_t rand32()
 	{
-	return ((zeek::util::detail::random_number() & 0xffff) << 16) | (zeek::util::detail::random_number() & 0xffff);
+	return ((util::detail::random_number() & 0xffff) << 16) | (util::detail::random_number() & 0xffff);
 	}
 
 // From tcpdpriv.
@@ -75,7 +76,7 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 // Keep the specified prefix unchanged.
 bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
 	{
-	zeek::reporter->InternalError("prefix preserving is not supported for the anonymizer");
+	reporter->InternalError("prefix preserving is not supported for the anonymizer");
 	return false;
 	}
 
@@ -104,7 +105,7 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 	uint8_t digest[16];
 	ipaddr32_t output = 0;
 
-	zeek::util::detail::hmac_md5(sizeof(input), (u_char*)(&input), digest);
+	util::detail::hmac_md5(sizeof(input), (u_char*)(&input), digest);
 
 	for ( int i = 0; i < 4; ++i )
 		output = (output << 8) | digest[i];
@@ -132,7 +133,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 		prefix.prefix = htonl((input & ~(prefix_mask>>i)) | (1<<(31-i)));
 
 		// HK(PAD(x_0 ... x_{i-1})).
-		zeek::util::detail::hmac_md5(sizeof(prefix), (u_char*) &prefix, digest);
+		util::detail::hmac_md5(sizeof(prefix), (u_char*) &prefix, digest);
 
 		// f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
 		ipaddr32_t bit_mask = (digest[0] & 1) << (31-i);
@@ -172,7 +173,7 @@ bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 
 	if ( ! before_anonymization )
 		{
-		zeek::reporter->Error("prefix perservation specified after anonymization begun");
+		reporter->Error("prefix perservation specified after anonymization begun");
 		return false;
 		}
 
@@ -219,7 +220,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block()
 	int block_size = 1024;
 	Node* block = new Node[block_size];
 	if ( ! block )
-		zeek::reporter->InternalError("out of memory!");
+		reporter->InternalError("out of memory!");
 
 	blocks.push_back(block);
 
@@ -271,7 +272,7 @@ ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, int swivel) c
 AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	{
 	if ( a == 0 || a == 0xFFFFFFFFU )
-		zeek::reporter->InternalError("0.0.0.0 and 255.255.255.255 should never get into the tree");
+		reporter->InternalError("0.0.0.0 and 255.255.255.255 should never get into the tree");
 
 	// Become a peer.
 	// Algorithm: create two nodes, the two peers.  Leave orig node as
@@ -354,15 +355,15 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 			}
 		}
 
-	zeek::reporter->InternalError("out of memory!");
+	reporter->InternalError("out of memory!");
 	return nullptr;
 	}
 
-static zeek::TableValPtr anon_preserve_orig_addr;
-static zeek::TableValPtr anon_preserve_resp_addr;
-static zeek::TableValPtr anon_preserve_other_addr;
+static TableValPtr anon_preserve_orig_addr;
+static TableValPtr anon_preserve_resp_addr;
+static TableValPtr anon_preserve_other_addr;
 
-void zeek::detail::init_ip_addr_anonymizers()
+void init_ip_addr_anonymizers()
 	{
 	ip_anonymizer[KEEP_ORIG_ADDR] = nullptr;
 	ip_anonymizer[SEQUENTIALLY_NUMBERED] = new AnonymizeIPAddr_Seq();
@@ -373,23 +374,23 @@ void zeek::detail::init_ip_addr_anonymizers()
 	auto id = global_scope()->Find("preserve_orig_addr");
 
 	if ( id )
-		anon_preserve_orig_addr = zeek::cast_intrusive<zeek::TableVal>(id->GetVal());
+		anon_preserve_orig_addr = cast_intrusive<TableVal>(id->GetVal());
 
 	id = global_scope()->Find("preserve_resp_addr");
 
 	if ( id )
-		anon_preserve_resp_addr = zeek::cast_intrusive<zeek::TableVal>(id->GetVal());
+		anon_preserve_resp_addr = cast_intrusive<TableVal>(id->GetVal());
 
 	id = global_scope()->Find("preserve_other_addr");
 
 	if ( id )
-		anon_preserve_other_addr = zeek::cast_intrusive<zeek::TableVal>(id->GetVal());
+		anon_preserve_other_addr = cast_intrusive<TableVal>(id->GetVal());
 	}
 
-ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
+ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 	{
 	TableVal* preserve_addr = nullptr;
-	auto addr = zeek::make_intrusive<zeek::AddrVal>(ip);
+	auto addr = make_intrusive<AddrVal>(ip);
 
 	int method = -1;
 
@@ -421,14 +422,14 @@ ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_
 			new_ip = ip;
 
 		else if ( ! ip_anonymizer[method] )
-			zeek::reporter->InternalError("IP anonymizer not initialized");
+			reporter->InternalError("IP anonymizer not initialized");
 
 		else
 			new_ip = ip_anonymizer[method]->Anonymize(ip);
 		}
 
 	else
-		zeek::reporter->InternalError("invalid IP anonymization method");
+		reporter->InternalError("invalid IP anonymization method");
 
 #ifdef LOG_ANONYMIZATION_MAPPING
 	log_anonymization_mapping(ip, new_ip);
@@ -438,16 +439,15 @@ ipaddr32_t zeek::detail::anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_
 
 #ifdef LOG_ANONYMIZATION_MAPPING
 
-#include "NetVar.h"
-#include "Event.h"
-
-void zeek::detail::log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
+void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
-		zeek::event_mgr.Enqueue(anonymization_mapping,
-		                        zeek::make_intrusive<zeek::AddrVal>(input),
-		                        zeek::make_intrusive<AddrVal>(output)
+		event_mgr.Enqueue(anonymization_mapping,
+		                  make_intrusive<AddrVal>(input),
+		                  make_intrusive<AddrVal>(output)
 		);
 	}
 
 #endif
+
+} // namespace zeek::detail

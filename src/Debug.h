@@ -32,15 +32,15 @@ class ParseLocationRec {
 public:
 	ParseLocationRecType type;
 	int32_t line;
-	zeek::detail::Stmt* stmt;
+	Stmt* stmt;
 	const char* filename;
 };
 
 class StmtLocMapping;
-using Filemap = zeek::PQueue<StmtLocMapping>; // mapping for a single file
+using Filemap = PQueue<StmtLocMapping>; // mapping for a single file
 
-using BPIDMapType = std::map<int, zeek::detail::DbgBreakpoint*>;
-using BPMapType = std::multimap<const zeek::detail::Stmt*, zeek::detail::DbgBreakpoint*>;
+using BPIDMapType = std::map<int, DbgBreakpoint*>;
+using BPMapType = std::multimap<const Stmt*, DbgBreakpoint*>;
 
 class TraceState {
 public:
@@ -87,11 +87,11 @@ public:
 
 	bool already_did_list;	// did we already do a 'list' command?
 
-	zeek::detail::Location last_loc;	// used by 'list'; the last location listed
+	Location last_loc;	// used by 'list'; the last location listed
 
 	BPIDMapType breakpoints;	// BPID -> Breakpoint
-	std::vector<zeek::detail::DbgWatch*> watches;
-	std::vector<zeek::detail::DbgDisplay*> displays;
+	std::vector<DbgWatch*> watches;
+	std::vector<DbgDisplay*> displays;
 	BPMapType breakpoint_map;	// maps Stmt -> Breakpoints on it
 
 protected:
@@ -101,7 +101,7 @@ protected:
 	int next_bp_id, next_watch_id, next_display_id;
 
 private:
-	zeek::detail::Frame* dbg_locals; // unused
+	Frame* dbg_locals; // unused
 };
 
 // Source line -> statement mapping.
@@ -109,15 +109,15 @@ private:
 class StmtLocMapping {
 public:
 	StmtLocMapping()	{ }
-	StmtLocMapping(const zeek::detail::Location* l, zeek::detail::Stmt* s)	{ loc = *l; stmt = s; }
+	StmtLocMapping(const Location* l, Stmt* s)	{ loc = *l; stmt = s; }
 
 	bool StartsAfter(const StmtLocMapping* m2);
-	const zeek::detail::Location& Loc() const	{ return loc; }
-	zeek::detail::Stmt* Statement() const		{ return stmt; }
+	const Location& Loc() const	{ return loc; }
+	Stmt* Statement() const		{ return stmt; }
 
 protected:
-	zeek::detail::Location loc;
-	zeek::detail::Stmt* stmt;
+	Location loc;
+	Stmt* stmt;
 };
 
 extern bool g_policy_debug;		// enable debugging facility
@@ -147,8 +147,8 @@ std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 // Debugging hooks.
 
 // Return true to continue execution, false to abort.
-bool pre_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f);
-bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::Val* result, StmtFlowType* flow);
+bool pre_execute_stmt(Stmt* stmt, Frame* f);
+bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, StmtFlowType* flow);
 
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
@@ -164,19 +164,19 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-zeek::ValPtr dbg_eval_expr(const char* expr);
+ValPtr dbg_eval_expr(const char* expr);
 
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
-std::string get_context_description(const zeek::detail::Stmt* stmt, const zeek::detail::Frame* frame);
+std::string get_context_description(const Stmt* stmt, const Frame* frame);
 
-extern zeek::detail::Frame* g_dbg_locals;	// variables created within debugger context
+extern Frame* g_dbg_locals;	// variables created within debugger context
 
 extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
 
-} // namespace zeek::detail
+} // namespace detail
 } // namespace zeek
 
 constexpr auto plrUnknown [[deprecated("Remove in v4.1. Use zeek::detail::PLR_UNKNOWN.")]] = zeek::detail::PLR_UNKNOWN;

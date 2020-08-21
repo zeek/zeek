@@ -14,11 +14,11 @@ namespace zeek::logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
-class InitMessage final : public zeek::threading::InputMessage<WriterBackend>
+class InitMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
-		: zeek::threading::InputMessage<WriterBackend>("Init", backend),
+		: threading::InputMessage<WriterBackend>("Init", backend),
 		num_fields(num_fields), fields(fields)
 			{}
 
@@ -29,14 +29,14 @@ private:
 	const Field * const* fields;
 };
 
-class RotateMessage final : public zeek::threading::InputMessage<WriterBackend>
+class RotateMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
 	              const double close, const bool terminating)
-		: zeek::threading::InputMessage<WriterBackend>("Rotate", backend),
+		: threading::InputMessage<WriterBackend>("Rotate", backend),
 		frontend(frontend),
-		rotated_path(zeek::util::copy_string(rotated_path)), open(open),
+		rotated_path(util::copy_string(rotated_path)), open(open),
 		close(close), terminating(terminating) { }
 
 	virtual ~RotateMessage()	{ delete [] rotated_path; }
@@ -51,11 +51,11 @@ private:
 	const bool terminating;
 };
 
-class WriteMessage final : public zeek::threading::InputMessage<WriterBackend>
+class WriteMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
-		: zeek::threading::InputMessage<WriterBackend>("Write", backend),
+		: threading::InputMessage<WriterBackend>("Write", backend),
 		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
 	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
@@ -66,11 +66,11 @@ private:
 	Value ***vals;
 };
 
-class SetBufMessage final : public zeek::threading::InputMessage<WriterBackend>
+class SetBufMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
-		: zeek::threading::InputMessage<WriterBackend>("SetBuf", backend),
+		: threading::InputMessage<WriterBackend>("SetBuf", backend),
 		enabled(enabled) { }
 
 	bool Process() override { return Object()->SetBuf(enabled); }
@@ -79,11 +79,11 @@ private:
 	const bool enabled;
 };
 
-class FlushMessage final : public zeek::threading::InputMessage<WriterBackend>
+class FlushMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	FlushMessage(WriterBackend* backend, double network_time)
-		: zeek::threading::InputMessage<WriterBackend>("Flush", backend),
+		: threading::InputMessage<WriterBackend>("Flush", backend),
 		network_time(network_time) {}
 
 	bool Process() override { return Object()->Flush(network_time); }
@@ -93,8 +93,8 @@ private:
 
 // Frontend methods.
 
-WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::EnumVal* arg_stream,
-                               zeek::EnumVal* arg_writer, bool arg_local, bool arg_remote)
+WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream,
+                               EnumVal* arg_writer, bool arg_local, bool arg_remote)
 	{
 	stream = arg_stream;
 	writer = arg_writer;
@@ -113,7 +113,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::
 	fields = nullptr;
 
 	const char* w = arg_writer->GetType()->AsEnumType()->Lookup(arg_writer->InternalInt());
-	name = zeek::util::copy_string(zeek::util::fmt("%s/%s", arg_info.path, w));
+	name = util::copy_string(util::fmt("%s/%s", arg_info.path, w));
 
 	if ( local )
 		{
@@ -158,7 +158,7 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 		return;
 
 	if ( initialized )
-		zeek::reporter->InternalError("writer initialize twice");
+		reporter->InternalError("writer initialize twice");
 
 	num_fields = arg_num_fields;
 	fields = arg_fields;
@@ -196,8 +196,8 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	if ( arg_num_fields != num_fields )
 		{
-		zeek::reporter->Warning("WriterFrontend %s expected %d fields in write, got %d. Skipping line.",
-		                        name, num_fields, arg_num_fields);
+		reporter->Warning("WriterFrontend %s expected %d fields in write, got %d. Skipping line.",
+		                  name, num_fields, arg_num_fields);
 		DeleteVals(arg_num_fields, vals);
 		return;
 		}
@@ -226,7 +226,7 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	write_buffer[write_buffer_pos++] = vals;
 
-	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || zeek::run_state::terminating )
+	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || run_state::terminating )
 		// Buffer full (or no bufferin desired or termiating).
 		FlushWriteBuffer();
 

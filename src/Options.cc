@@ -68,7 +68,7 @@ void Options::filter_supervised_node_options()
 
 bool fake_dns()
 	{
-	return zeek::util::zeekenv("ZEEK_DNS_FAKE");
+	return util::zeekenv("ZEEK_DNS_FAKE");
 	}
 
 extern const char* zeek_version();
@@ -123,16 +123,16 @@ void usage(const char* prog, int code)
 #endif
 
 	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
-	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", zeek::util::zeek_path().c_str());
-	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", zeek::util::zeek_plugin_path());
-	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", zeek::util::zeek_plugin_activate());
-	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", zeek::util::zeek_prefixes().c_str());
-	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", zeek::fake_dns() ? "on" : "off");
+	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", util::zeek_path().c_str());
+	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", util::zeek_plugin_path());
+	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", util::zeek_plugin_activate());
+	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", util::zeek_prefixes().c_str());
+	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", fake_dns() ? "on" : "off");
 	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", zeek::logging::writer::detail::Ascii::LogExt().c_str());
+	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::detail::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", zeek::util::zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
-	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", zeek::util::zeekenv("ZEEK_DNS_RESOLVER") ? zeek::util::zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
+	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", util::zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
+	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", util::zeekenv("ZEEK_DNS_RESOLVER") ? util::zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
 	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
 
 	fprintf(stderr, "\n");
@@ -238,7 +238,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	zeek::util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
 	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -344,9 +344,9 @@ Options parse_cmdline(int argc, char** argv)
 				rval.pseudo_realtime = atof(optarg);
 			break;
 		case 'F':
-			if ( rval.dns_mode != zeek::detail::DNS_DEFAULT )
+			if ( rval.dns_mode != detail::DNS_DEFAULT )
 				usage(zargs[0], 1);
-			rval.dns_mode = zeek::detail::DNS_FORCE;
+			rval.dns_mode = detail::DNS_FORCE;
 			break;
 		case 'G':
 			rval.random_seed_input_file = optarg;
@@ -361,9 +361,9 @@ Options parse_cmdline(int argc, char** argv)
 			++rval.print_plugins;
 			break;
 		case 'P':
-			if ( rval.dns_mode != zeek::detail::DNS_DEFAULT )
+			if ( rval.dns_mode != detail::DNS_DEFAULT )
 				usage(zargs[0], 1);
-			rval.dns_mode = zeek::detail::DNS_PRIME;
+			rval.dns_mode = detail::DNS_PRIME;
 			break;
 		case 'Q':
 			rval.print_execution_time = true;
@@ -433,7 +433,7 @@ Options parse_cmdline(int argc, char** argv)
 		if ( path->empty() )
 			return;
 
-		*path = zeek::util::detail::normalize_path(*path);
+		*path = util::detail::normalize_path(*path);
 
 		if ( (*path)[0] == '/' || (*path)[0] == '~' )
 			// Absolute path
@@ -442,7 +442,7 @@ Options parse_cmdline(int argc, char** argv)
 		if ( (*path)[0] != '.' )
 			{
 			// Look up file in ZEEKPATH
-			auto res = zeek::util::find_script_file(*path, zeek::util::zeek_path());
+			auto res = util::find_script_file(*path, util::zeek_path());
 
 			if ( res.empty() )
 				{

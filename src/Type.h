@@ -22,16 +22,14 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
 namespace zeek {
-using ValPtr = zeek::IntrusivePtr<Val>;
-using EnumValPtr = zeek::IntrusivePtr<EnumVal>;
-using TableValPtr = zeek::IntrusivePtr<TableVal>;
+
+using ValPtr = IntrusivePtr<Val>;
+using EnumValPtr = IntrusivePtr<EnumVal>;
+using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace detail {
-using ListExprPtr = zeek::IntrusivePtr<ListExpr>;
+using ListExprPtr = IntrusivePtr<ListExpr>;
 }
-}
-
-namespace zeek {
 
 // BRO types.
 enum TypeTag {
@@ -153,18 +151,18 @@ class TypeType;
 class OpaqueType;
 class FileType;
 
-using TypePtr = zeek::IntrusivePtr<Type>;
-using TypeListPtr = zeek::IntrusivePtr<TypeList>;
-using TableTypePtr = zeek::IntrusivePtr<TableType>;
-using SetTypePtr = zeek::IntrusivePtr<SetType>;
-using RecordTypePtr = zeek::IntrusivePtr<RecordType>;
-using SubNetTypePtr = zeek::IntrusivePtr<SubNetType>;
-using FuncTypePtr = zeek::IntrusivePtr<FuncType>;
-using EnumTypePtr = zeek::IntrusivePtr<EnumType>;
-using VectorTypePtr = zeek::IntrusivePtr<VectorType>;
-using TypeTypePtr = zeek::IntrusivePtr<TypeType>;
-using OpaqueTypePtr = zeek::IntrusivePtr<OpaqueType>;
-using FileTypePtr = zeek::IntrusivePtr<FileType>;
+using TypePtr = IntrusivePtr<Type>;
+using TypeListPtr = IntrusivePtr<TypeList>;
+using TableTypePtr = IntrusivePtr<TableType>;
+using SetTypePtr = IntrusivePtr<SetType>;
+using RecordTypePtr = IntrusivePtr<RecordType>;
+using SubNetTypePtr = IntrusivePtr<SubNetType>;
+using FuncTypePtr = IntrusivePtr<FuncType>;
+using EnumTypePtr = IntrusivePtr<EnumType>;
+using VectorTypePtr = IntrusivePtr<VectorType>;
+using TypeTypePtr = IntrusivePtr<TypeType>;
+using OpaqueTypePtr = IntrusivePtr<OpaqueType>;
+using FileTypePtr = IntrusivePtr<FileType>;
 
 constexpr int DOES_NOT_MATCH_INDEX = 0;
 constexpr int MATCHES_INDEX_SCALAR = 1;
@@ -174,7 +172,7 @@ class Type : public Obj {
 public:
 	static inline const TypePtr nil;
 
-	explicit Type(zeek::TypeTag tag, bool base_type = false);
+	explicit Type(TypeTag tag, bool base_type = false);
 
 	// Performs a shallow clone operation of the Bro type.
 	// This especially means that especially for tables the types
@@ -199,7 +197,7 @@ public:
 	// if it matches and produces a vector result; and
 	// DOES_NOT_MATCH_INDEX = 0 if it can't match (or the type
 	// is not an indexable type).
-	virtual int MatchesIndex(zeek::detail::ListExpr* index) const;
+	virtual int MatchesIndex(detail::ListExpr* index) const;
 
 	// Returns the type yielded by this type.  For example, if
 	// this type is a table[string] of port, then returns the "port"
@@ -262,7 +260,7 @@ public:
 		return tag == TYPE_TABLE && Yield();
 		}
 
-	Type* Ref()		{ zeek::Ref(this); return this; }
+	Type* Ref()		{ ::zeek::Ref(this); return this; }
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
@@ -348,7 +346,7 @@ protected:
 class IndexType : public Type {
 public:
 
-	int MatchesIndex(zeek::detail::ListExpr* index) const override;
+	int MatchesIndex(detail::ListExpr* index) const override;
 
 	const TypeListPtr& GetIndices() const
 		{ return indices; }
@@ -404,19 +402,19 @@ public:
 
 class SetType final : public TableType {
 public:
-	SetType(TypeListPtr ind, zeek::detail::ListExprPtr arg_elements);
+	SetType(TypeListPtr ind, detail::ListExprPtr arg_elements);
 	~SetType() override;
 
 	TypePtr ShallowClone() override;
 
 	[[deprecated("Remove in v4.1.  Use Elements() isntead.")]]
-	zeek::detail::ListExpr* SetElements() const	{ return elements.get(); }
+	detail::ListExpr* SetElements() const	{ return elements.get(); }
 
-	const zeek::detail::ListExprPtr& Elements() const
+	const detail::ListExprPtr& Elements() const
 		{ return elements; }
 
 protected:
-	zeek::detail::ListExprPtr elements;
+	detail::ListExprPtr elements;
 };
 
 class FuncType final : public Type {
@@ -461,7 +459,7 @@ public:
 	void ClearYieldType(FunctionFlavor arg_flav)
 		{ yield = nullptr; flavor = arg_flav; }
 
-	int MatchesIndex(zeek::detail::ListExpr* index) const override;
+	int MatchesIndex(detail::ListExpr* index) const override;
 	bool CheckArgs(const TypePList* args, bool is_init = false) const;
 	bool CheckArgs(const std::vector<TypePtr>& args,
 	               bool is_init = false) const;
@@ -492,7 +490,7 @@ public:
 		{ return prototypes; }
 
 protected:
-	friend FuncTypePtr zeek::make_intrusive<FuncType>();
+	friend FuncTypePtr make_intrusive<FuncType>();
 
 	FuncType() : Type(TYPE_FUNC) { flavor = FUNC_FLAVOR_FUNCTION; }
 	RecordTypePtr args;
@@ -505,14 +503,14 @@ protected:
 class TypeType final : public Type {
 public:
 	explicit TypeType(TypePtr t) : zeek::Type(TYPE_TYPE), type(std::move(t)) {}
-	TypePtr ShallowClone() override { return zeek::make_intrusive<TypeType>(type); }
+	TypePtr ShallowClone() override { return make_intrusive<TypeType>(type); }
 
 	const TypePtr& GetType() const
 		{ return type; }
 
 	template <class T>
-	zeek::IntrusivePtr<T> GetType() const
-		{ return zeek::cast_intrusive<T>(type); }
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* Type()			{ return type.get(); }
@@ -526,21 +524,21 @@ protected:
 class TypeDecl final {
 public:
 	TypeDecl() = default;
-	TypeDecl(const char* i, TypePtr t, zeek::detail::AttributesPtr attrs = nullptr);
+	TypeDecl(const char* i, TypePtr t, detail::AttributesPtr attrs = nullptr);
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
-	const zeek::detail::AttrPtr& GetAttr(zeek::detail::AttrTag a) const
-		{ return attrs ? attrs->Find(a) : zeek::detail::Attr::nil; }
+	const detail::AttrPtr& GetAttr(detail::AttrTag a) const
+		{ return attrs ? attrs->Find(a) : detail::Attr::nil; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	TypePtr type;
-	zeek::detail::AttributesPtr attrs;
+	detail::AttributesPtr attrs;
 	const char* id = nullptr;
 };
 
-using type_decl_list = zeek::PList<TypeDecl>;
+using type_decl_list = PList<TypeDecl>;
 
 class RecordType final : public Type {
 public:
@@ -574,8 +572,8 @@ public:
 	 * No check for invalid field name is performed.
 	 */
 	template <class T>
-	zeek::IntrusivePtr<T> GetFieldType(const char* field_name) const
-		{ return zeek::cast_intrusive<T>(GetFieldType(field_name)); }
+	IntrusivePtr<T> GetFieldType(const char* field_name) const
+		{ return cast_intrusive<T>(GetFieldType(field_name)); }
 
 	/**
 	 * Looks up a field by its index and returns its type.  No check for
@@ -589,10 +587,10 @@ public:
 	 * No check for invalid field offset is performed.
 	 */
 	template <class T>
-	zeek::IntrusivePtr<T> GetFieldType(int field_index) const
-		{ return zeek::cast_intrusive<T>((*types)[field_index]->type); }
+	IntrusivePtr<T> GetFieldType(int field_index) const
+		{ return cast_intrusive<T>((*types)[field_index]->type); }
 
-	zeek::ValPtr FieldDefault(int field) const;
+	ValPtr FieldDefault(int field) const;
 
 	// A field's offset is its position in the type_decl_list,
 	// starting at 0.  Returns negative if the field doesn't exist.
@@ -614,7 +612,7 @@ public:
 	 * @param rv  an optional record value, if given the values of
 	 * all fields will be provided in the returned table.
 	 */
-	zeek::TableValPtr GetRecordFieldsVal(const zeek::RecordVal* rv = nullptr) const;
+	TableValPtr GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 
 	// Returns null if all is ok, otherwise a pointer to an error message.
 	const char* AddFields(const type_decl_list& types,
@@ -628,10 +626,10 @@ public:
 	bool IsFieldDeprecated(int field) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->GetAttr(zeek::detail::ATTR_DEPRECATED) != nullptr;
+		return decl && decl->GetAttr(detail::ATTR_DEPRECATED) != nullptr;
 		}
 
-	bool FieldHasAttr(int field, zeek::detail::AttrTag at) const
+	bool FieldHasAttr(int field, detail::AttrTag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
 		return decl && decl->GetAttr(at) != nullptr;
@@ -655,7 +653,7 @@ public:
 class FileType final : public Type {
 public:
 	explicit FileType(TypePtr yield_type);
-	TypePtr ShallowClone() override { return zeek::make_intrusive<FileType>(yield); }
+	TypePtr ShallowClone() override { return make_intrusive<FileType>(yield); }
 	~FileType() override;
 
 	const TypePtr& Yield() const override
@@ -670,7 +668,7 @@ protected:
 class OpaqueType final : public Type {
 public:
 	explicit OpaqueType(const std::string& name);
-	TypePtr ShallowClone() override { return zeek::make_intrusive<OpaqueType>(name); }
+	TypePtr ShallowClone() override { return make_intrusive<OpaqueType>(name); }
 	~OpaqueType() override { };
 
 	const std::string& Name() const { return name; }
@@ -695,12 +693,12 @@ public:
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
-	void AddName(const std::string& module_name, const char* name, bool is_export, zeek::detail::Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bool is_export, detail::Expr* deprecation = nullptr);
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, zeek::detail::Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, detail::Expr* deprecation = nullptr);
 
 	// -1 indicates not found.
 	bro_int_t Lookup(const std::string& module_name, const char* name) const;
@@ -712,10 +710,10 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	const zeek::EnumValPtr& GetEnumVal(bro_int_t i);
+	const EnumValPtr& GetEnumVal(bro_int_t i);
 
 	[[deprecated("Remove in v4.1. Use GetEnumVal() instead.")]]
-	zeek::EnumVal* GetVal(bro_int_t i);
+	EnumVal* GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,
@@ -723,12 +721,12 @@ protected:
 
 	void CheckAndAddName(const std::string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,
-	                     zeek::detail::Expr* deprecation = nullptr);
+	                     detail::Expr* deprecation = nullptr);
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
 
-	using ValMap = std::unordered_map<bro_int_t, zeek::EnumValPtr>;
+	using ValMap = std::unordered_map<bro_int_t, EnumValPtr>;
 	ValMap vals;
 
 	// The counter is initialized to 0 and incremented on every implicit
@@ -748,7 +746,7 @@ public:
 
 	const TypePtr& Yield() const override;
 
-	int MatchesIndex(zeek::detail::ListExpr* index) const override;
+	int MatchesIndex(detail::ListExpr* index) const override;
 
 	// Returns true if this table type is "unspecified", which is what one
 	// gets using an empty "vector()" constructor.
@@ -780,7 +778,7 @@ inline bool same_type(const Type* t1, const TypePtr& t2,
     { return same_type(*t1, *t2, is_init, match_record_field_names); }
 
 // True if the two attribute lists are equivalent.
-extern bool same_attrs(const zeek::detail::Attributes* a1, const zeek::detail::Attributes* a2);
+extern bool same_attrs(const detail::Attributes* a1, const detail::Attributes* a2);
 
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.
@@ -803,10 +801,10 @@ TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
 // Given a list of expressions, returns a (ref'd) type reflecting
 // a merged type consistent across all of them, or nil if this
 // cannot be done.
-TypePtr merge_type_list(zeek::detail::ListExpr* elements);
+TypePtr merge_type_list(detail::ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
-TypePtr init_type(zeek::detail::Expr* init);
+TypePtr init_type(detail::Expr* init);
 
 // Returns true if argument is an atomic type.
 bool is_atomic_type(const Type& t);
@@ -818,7 +816,7 @@ inline bool is_atomic_type(const TypePtr& t)
 // True if the given type tag corresponds to type that can be assigned to.
 extern bool is_assignable(TypeTag t);
 inline bool is_assignable(Type* t)
-	{ return zeek::is_assignable(t->Tag()); }
+	{ return is_assignable(t->Tag()); }
 
 // True if the given type tag corresponds to an integral type.
 inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT ); }
@@ -869,7 +867,7 @@ inline bool BothString(TypeTag t1, TypeTag t2) { return (IsString(t1) && IsStrin
 inline bool EitherError(TypeTag t1, TypeTag t2) { return (IsErrorType(t1) || IsErrorType(t2)); }
 
 // Returns the basic (non-parameterized) type with the given type.
-const TypePtr& base_type(zeek::TypeTag tag);
+const TypePtr& base_type(TypeTag tag);
 
 // Returns the basic error type.
 inline const TypePtr& error_type()       { return base_type(TYPE_ERROR); }

@@ -23,7 +23,7 @@ class DFA_Machine;
 #define DFA_UNCOMPUTED_STATE -2
 #define DFA_UNCOMPUTED_STATE_PTR ((DFA_State*) DFA_UNCOMPUTED_STATE)
 
-class DFA_State : public zeek::Obj {
+class DFA_State : public Obj {
 public:
 	DFA_State(int state_num, const EquivClass* ec,
 			NFA_state_list* nfa_states, AcceptingSet* accept);
@@ -108,7 +108,7 @@ private:
 	std::map<DigestStr, DFA_State*> states;
 };
 
-class DFA_Machine : public zeek::Obj {
+class DFA_Machine : public Obj {
 public:
 	DFA_Machine(NFA_Machine* n, EquivClass* ec);
 	~DFA_Machine() override;

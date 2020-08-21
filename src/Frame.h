@@ -23,17 +23,17 @@ namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
 namespace zeek {
-using ValPtr = zeek::IntrusivePtr<Val>;
+using ValPtr = IntrusivePtr<Val>;
 
 namespace detail {
-using IDPtr = zeek::IntrusivePtr<ID>;
+using IDPtr = IntrusivePtr<ID>;
 
 namespace trigger {
-using TriggerPtr = zeek::IntrusivePtr<Trigger>;
+using TriggerPtr = IntrusivePtr<Trigger>;
 }
 
 class Frame;
-using FramePtr = zeek::IntrusivePtr<Frame>;
+using FramePtr = IntrusivePtr<Frame>;
 
 class Frame :  public Obj {
 public:
@@ -57,21 +57,21 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
-	const zeek::ValPtr& GetElement(int n) const
+	const ValPtr& GetElement(int n) const
 		{ return frame[n].val; }
 
 	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
-	zeek::Val* NthElement(int n) const	{ return frame[n].val.get(); }
+	Val* NthElement(int n) const	{ return frame[n].val.get(); }
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*.
 	 * @param n the index to set
 	 * @param v the value to set it to
 	 */
-	void SetElement(int n, zeek::ValPtr v);
+	void SetElement(int n, ValPtr v);
 
 	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]]
-	void SetElement(int n, zeek::Val* v);
+	void SetElement(int n, Val* v);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -80,8 +80,8 @@ public:
 	 * @param id the ID to associate
 	 * @param v the value to associate it with
 	 */
-	void SetElement(const zeek::detail::ID* id, zeek::ValPtr v);
-	void SetElement(const zeek::detail::IDPtr& id, zeek::ValPtr v)
+	void SetElement(const ID* id, ValPtr v);
+	void SetElement(const IDPtr& id, ValPtr v)
 		{ SetElement(id.get(), std::move(v)); }
 
 	/**
@@ -91,11 +91,11 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	const zeek::ValPtr& GetElementByID(const zeek::detail::IDPtr& id) const
+	const ValPtr& GetElementByID(const IDPtr& id) const
 		{ return GetElementByID(id.get()); }
 
 	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
-	zeek::Val* GetElement(const zeek::detail::ID* id) const
+	Val* GetElement(const ID* id) const
 		{ return GetElementByID(id).get(); }
 
 	/**
@@ -119,7 +119,7 @@ public:
 	 * @return the arguments passed to the function that this frame
 	 * is associated with.
 	 */
-	const zeek::Args* GetFuncArgs() const	{ return func_args; }
+	const Args* GetFuncArgs() const	{ return func_args; }
 
 	/**
 	 * Change the function that the frame is associated with.
@@ -133,12 +133,12 @@ public:
 	 *
 	 * @param stmt the statement to set it to.
 	 */
-	void SetNextStmt(zeek::detail::Stmt* stmt)	{ next_stmt = stmt; }
+	void SetNextStmt(Stmt* stmt)	{ next_stmt = stmt; }
 
 	/**
 	 * @return the next statement to be executed in the context of the frame.
 	 */
-	zeek::detail::Stmt* GetNextStmt() const	{ return next_stmt; }
+	Stmt* GetNextStmt() const	{ return next_stmt; }
 
 	/** Used to implement "next" command in debugger. */
 	void BreakBeforeNextStmt(bool should_break)
@@ -230,13 +230,13 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(zeek::detail::trigger::TriggerPtr arg_trigger);
+	void SetTrigger(trigger::TriggerPtr arg_trigger);
 	void ClearTrigger();
-	zeek::detail::trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
+	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
-	void SetCall(const zeek::detail::CallExpr* arg_call)	{ call = arg_call; }
+	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = nullptr; }
-	const zeek::detail::CallExpr* GetCall() const		{ return call; }
+	const CallExpr* GetCall() const		{ return call; }
 
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
@@ -255,13 +255,13 @@ private:
 	using OffsetMap = std::unordered_map<std::string, int>;
 
 	struct Element {
-		zeek::ValPtr val;
+		ValPtr val;
 		// Weak reference is used to prevent circular reference memory leaks
 		// in lambdas/closures.
 		bool weak_ref;
 	};
 
-	const zeek::ValPtr& GetElementByID(const zeek::detail::ID* id) const;
+	const ValPtr& GetElementByID(const ID* id) const;
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*, but does
@@ -271,7 +271,7 @@ private:
 	 * @param v the value to set it to (caller has not Ref'd and Frame will
 	 * not Unref it)
 	 */
-	void SetElementWeak(int n, zeek::Val* v);
+	void SetElementWeak(int n, Val* v);
 
 	/**
 	 * Clone an element at an offset into other frame if not equal to a given
@@ -287,7 +287,7 @@ private:
 	void ClearElement(int n);
 
 	/** Have we captured this id? */
-	bool IsOuterID(const zeek::detail::ID* in) const;
+	bool IsOuterID(const ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
@@ -334,10 +334,10 @@ private:
 	const zeek::Args* func_args;
 
 	/** The next statement to be evaluted in the context of this frame. */
-	zeek::detail::Stmt* next_stmt;
+	Stmt* next_stmt;
 
-	zeek::detail::trigger::TriggerPtr trigger;
-	const zeek::detail::CallExpr* call;
+	trigger::TriggerPtr trigger;
+	const CallExpr* call;
 
 	std::unique_ptr<std::vector<ScriptFunc*>> functions_with_closure_frame_reference;
 };

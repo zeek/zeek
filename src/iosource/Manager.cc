@@ -25,7 +25,7 @@ namespace zeek::iosource {
 Manager::WakeupHandler::WakeupHandler()
 	{
 	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
-		zeek::reporter->FatalError("Failed to register WakeupHandler's fd with iosource_mgr");
+		reporter->FatalError("Failed to register WakeupHandler's fd with iosource_mgr");
 	}
 
 Manager::WakeupHandler::~WakeupHandler()
@@ -40,7 +40,7 @@ void Manager::WakeupHandler::Process()
 
 void Manager::WakeupHandler::Ping(const std::string& where)
 	{
-	DBG_LOG(zeek::DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.c_str());
+	DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.c_str());
 	flare.Fire();
 	}
 
@@ -48,7 +48,7 @@ Manager::Manager()
 	{
 	event_queue = kqueue();
 	if ( event_queue == -1 )
-		zeek::reporter->FatalError("Failed to initialize kqueue: %s", strerror(errno));
+		reporter->FatalError("Failed to initialize kqueue: %s", strerror(errno));
 	}
 
 Manager::~Manager()
@@ -115,7 +115,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 
 	// If there aren't any sources and exit_only_after_terminate is false, just
 	// return an empty set of sources. We want the main loop to end.
-	if ( Size() == 0 && ( ! zeek::BifConst::exit_only_after_terminate || zeek::run_state::terminating ) )
+	if ( Size() == 0 && ( ! BifConst::exit_only_after_terminate || run_state::terminating ) )
 		return;
 
 	double timeout = -1;
@@ -166,7 +166,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 					}
 				else
 					{
-					if ( ! zeek::run_state::pseudo_realtime )
+					if ( ! run_state::pseudo_realtime )
 						// A pcap file is always ready to process unless it's suspended
 						ready->push_back(pkt_src);
 					}
@@ -174,7 +174,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 			}
 		}
 
-	DBG_LOG(zeek::DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n",
+	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n",
 		timeout, ready->size(), time_to_poll);
 
 	// If we didn't find any IOSources with zero timeouts or it's time to
@@ -195,7 +195,7 @@ void Manager::Poll(std::vector<IOSource*>* ready, double timeout, IOSource* time
 		// Ignore interrupts since we may catch one during shutdown and we don't want the
 		// error to get printed.
 		if ( errno != EINTR )
-			zeek::reporter->InternalWarning("Error calling kevent: %s", strerror(errno));
+			reporter->InternalWarning("Error calling kevent: %s", strerror(errno));
 		}
 	else if ( ret == 0 )
 		{
@@ -243,7 +243,7 @@ bool Manager::RegisterFd(int fd, IOSource* src)
 	if ( ret != -1 )
 		{
 		events.push_back({});
-		DBG_LOG(zeek::DBG_MAINLOOP, "Registered fd %d from %s", fd, src->Tag());
+		DBG_LOG(DBG_MAINLOOP, "Registered fd %d from %s", fd, src->Tag());
 		fd_map[fd] = src;
 
 		Wakeup("RegisterFd");
@@ -251,7 +251,7 @@ bool Manager::RegisterFd(int fd, IOSource* src)
 		}
 	else
 		{
-		zeek::reporter->Error("Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
+		reporter->Error("Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
 		return false;
 		}
 	}
@@ -264,7 +264,7 @@ bool Manager::UnregisterFd(int fd, IOSource* src)
 		EV_SET(&event, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
 		int ret = kevent(event_queue, &event, 1, NULL, 0, NULL);
 		if ( ret != -1 )
-			DBG_LOG(zeek::DBG_MAINLOOP, "Unregistered fd %d from %s", fd, src->Tag());
+			DBG_LOG(DBG_MAINLOOP, "Unregistered fd %d from %s", fd, src->Tag());
 
 		fd_map.erase(fd);
 
@@ -273,7 +273,7 @@ bool Manager::UnregisterFd(int fd, IOSource* src)
 		}
 	else
 		{
-		zeek::reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd, src->Tag());
+		reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd, src->Tag());
 		return false;
 		}
 	}
@@ -315,7 +315,7 @@ void Manager::Register(PktSrc* src)
 	// little bit for those sources.
 	if ( src->IsLive() )
 		poll_interval = 10;
-	else if ( zeek::run_state::pseudo_realtime )
+	else if ( run_state::pseudo_realtime )
 		poll_interval = 1;
 
 	Register(src, false);
@@ -350,7 +350,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 
 	PktSrcComponent* component = nullptr;
 
-	std::list<PktSrcComponent*> all_components = zeek::plugin_mgr->Components<PktSrcComponent>();
+	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
 	for ( const auto& c : all_components )
 		{
 		if ( c->HandlesPrefix(prefix) &&
@@ -364,14 +364,14 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 
 
 	if ( ! component )
-		zeek::reporter->FatalError("type of packet source '%s' not recognized, or mode not supported", prefix.c_str());
+		reporter->FatalError("type of packet source '%s' not recognized, or mode not supported", prefix.c_str());
 
 	// Instantiate packet source.
 
 	PktSrc* ps = (*component->Factory())(npath, is_live);
 	assert(ps);
 
-	DBG_LOG(zeek::DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
+	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
 
 	Register(ps);
 	return ps;
@@ -388,7 +388,7 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 
 	PktDumperComponent* component = nullptr;
 
-	std::list<PktDumperComponent*> all_components = zeek::plugin_mgr->Components<PktDumperComponent>();
+	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
 	for ( const auto& c : all_components )
 		{
 		if ( c->HandlesPrefix(prefix) )
@@ -399,7 +399,7 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 		}
 
 	if ( ! component )
-		zeek::reporter->FatalError("type of packet dumper '%s' not recognized", prefix.c_str());
+		reporter->FatalError("type of packet dumper '%s' not recognized", prefix.c_str());
 
 	// Instantiate packet dumper.
 
@@ -410,7 +410,7 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 		// Set an error message if it didn't open successfully.
 		pd->Error("could not open");
 
-	DBG_LOG(zeek::DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(), npath.c_str());
+	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(), npath.c_str());
 
 	pd->Init();
 	pkt_dumpers.push_back(pd);

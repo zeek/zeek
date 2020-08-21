@@ -10,18 +10,18 @@ ID Analyzer::id_counter = 0;
 
 Analyzer::~Analyzer()
 	{
-	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "Destroy file analyzer %s",
+	DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %s",
 	        file_mgr->GetComponentName(tag).c_str());
 	}
 
-void Analyzer::SetAnalyzerTag(const zeek::file_analysis::Tag& arg_tag)
+void Analyzer::SetAnalyzerTag(const file_analysis::Tag& arg_tag)
 	{
 	assert(! tag || tag == arg_tag);
 	tag = arg_tag;
 	}
 
-Analyzer::Analyzer(zeek::file_analysis::Tag arg_tag,
-                   zeek::RecordValPtr arg_args,
+Analyzer::Analyzer(file_analysis::Tag arg_tag,
+                   RecordValPtr arg_args,
                    File* arg_file)
 	: tag(arg_tag),
 	  args(std::move(arg_args)),
@@ -32,18 +32,18 @@ Analyzer::Analyzer(zeek::file_analysis::Tag arg_tag,
 	id = ++id_counter;
 	}
 
-Analyzer::Analyzer(zeek::RecordValPtr arg_args, File* arg_file)
+Analyzer::Analyzer(RecordValPtr arg_args, File* arg_file)
 	: Analyzer({}, std::move(arg_args), arg_file)
 	{}
 
-Analyzer::Analyzer(zeek::file_analysis::Tag arg_tag,
-                   zeek::RecordVal* arg_args,
+Analyzer::Analyzer(file_analysis::Tag arg_tag,
+                   RecordVal* arg_args,
                    File* arg_file)
-	: Analyzer(arg_tag, {zeek::NewRef{}, arg_args}, arg_file)
+	: Analyzer(arg_tag, {NewRef{}, arg_args}, arg_file)
 	{}
 
-Analyzer::Analyzer(zeek::RecordVal* arg_args, File* arg_file)
-	: Analyzer({}, {zeek::NewRef{}, arg_args}, arg_file)
+Analyzer::Analyzer(RecordVal* arg_args, File* arg_file)
+	: Analyzer({}, {NewRef{}, arg_args}, arg_file)
 	{}
 
 } // namespace zeek::file_analysis

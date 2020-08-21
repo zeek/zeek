@@ -14,8 +14,8 @@ namespace zeek::input {
 /**
  * Component description for plugins providing log readers.
  */
-class Component : public zeek::plugin::Component,
-                  public plugin::TaggedComponent<zeek::input::Tag> {
+class Component : public plugin::Component,
+                  public plugin::TaggedComponent<Tag> {
 public:
 	typedef ReaderBackend* (*factory_callback)(ReaderFrontend* frontend);
 
@@ -54,7 +54,7 @@ protected:
 	/**
 	  * Overriden from plugin::Component.
 	  */
-	void DoDescribe(zeek::ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;

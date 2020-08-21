@@ -17,10 +17,10 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 	char *buf;
 
 	if ( ! pbuf )
-		zeek::reporter->InternalError("nil pointer to encoding result buffer");
+		reporter->InternalError("nil pointer to encoding result buffer");
 
 	if ( *pbuf && (*pblen % 4 != 0) )
-		zeek::reporter->InternalError("Base64 encode buffer not a multiple of 4");
+		reporter->InternalError("Base64 encode buffer not a multiple of 4");
 
 	if ( *pbuf )
 		{
@@ -88,7 +88,7 @@ int* Base64Converter::InitBase64Table(const std::string& alphabet)
 	return base64_table;
 	}
 
-Base64Converter::Base64Converter(zeek::Connection* arg_conn, const std::string& arg_alphabet)
+Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{
@@ -123,7 +123,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 		base64_table = InitBase64Table(alphabet);
 
 	if ( ! pbuf )
-		zeek::reporter->InternalError("nil pointer to decoding result buffer");
+		reporter->InternalError("nil pointer to decoding result buffer");
 
 	if ( *pbuf )
 		{
@@ -193,7 +193,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 		else
 			{
 			if ( ++errored == 1 )
-				IllegalEncoding(zeek::util::fmt("character %d ignored by Base64 decoding", (int) (data[dlen])));
+				IllegalEncoding(util::fmt("character %d ignored by Base64 decoding", (int) (data[dlen])));
 			}
 
 		++dlen;
@@ -210,8 +210,8 @@ int Base64Converter::Done(int* pblen, char** pbuf)
 	if ( base64_group_next != 0 )
 		{
 		if ( base64_group_next < 4 )
-			IllegalEncoding(zeek::util::fmt("incomplete base64 group, padding with %d bits of 0",
-			                                (4-base64_group_next) * 6));
+			IllegalEncoding(util::fmt("incomplete base64 group, padding with %d bits of 0",
+			                          (4-base64_group_next) * 6));
 		Decode(4 - base64_group_next, padding, pblen, pbuf);
 		return -1;
 		}
@@ -228,15 +228,15 @@ void Base64Converter::IllegalEncoding(const char* msg)
 		if ( conn )
 			conn->Weird("base64_illegal_encoding", msg);
 		else
-			zeek::reporter->Error("%s", msg);
+			reporter->Error("%s", msg);
 		}
 
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
+String* decode_base64(const String* s, const String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
-		zeek::reporter->Error("base64 decoding alphabet is not 64 characters: %s",
-		                      a->CheckString());
+		reporter->Error("base64 decoding alphabet is not 64 characters: %s",
+		                a->CheckString());
 		return nullptr;
 		}
 
@@ -258,18 +258,18 @@ zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, zeek::
 	rlen += rlen2;
 
 	rbuf[rlen] = '\0';
-	return new zeek::String(true, (u_char*) rbuf, rlen);
+	return new String(true, (u_char*) rbuf, rlen);
 
 err:
 	delete [] rbuf;
 	return nullptr;
 	}
 
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
+String* encode_base64(const String* s, const String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
-		zeek::reporter->Error("base64 alphabet is not 64 characters: %s",
+		reporter->Error("base64 alphabet is not 64 characters: %s",
 		                      a->CheckString());
 		return nullptr;
 		}
@@ -279,7 +279,7 @@ zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, zeek::
 	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
-	return new zeek::String(true, (u_char*)outbuf, outlen);
+	return new String(true, (u_char*)outbuf, outlen);
 	}
 
 } // namespace zeek::detail

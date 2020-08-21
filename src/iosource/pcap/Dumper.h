@@ -21,7 +21,7 @@ protected:
 	// PktDumper interface.
 	void Open() override;
 	void Close() override;
-	bool Dump(const zeek::Packet* pkt) override;
+	bool Dump(const Packet* pkt) override;
 
 private:
 	Properties props;

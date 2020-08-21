@@ -39,12 +39,12 @@ void IdentifierInfo::AddRedef(const string& script, zeek::detail::InitClass ic,
 	redefs.push_back(redef);
 	}
 
-void IdentifierInfo::AddRecordField(const zeek::TypeDecl* field,
+void IdentifierInfo::AddRecordField(const TypeDecl* field,
                                     const string& script,
                                     vector<string>& comments)
 	{
 	RecordField* rf = new RecordField();
-	rf->field = new zeek::TypeDecl(*field);
+	rf->field = new TypeDecl(*field);
 	rf->from_script = script;
 	rf->comments = comments;
 
@@ -101,7 +101,7 @@ string IdentifierInfo::GetDeclaringScriptForField(const string& field) const
 
 string IdentifierInfo::DoReStructuredText(bool roles_only) const
 	{
-	zeek::ODesc d;
+	ODesc d;
 	d.SetIndentSpaces(3);
 	d.SetQuotes(true);
 	id->DescribeReST(&d, roles_only);
@@ -117,7 +117,7 @@ string IdentifierInfo::DoReStructuredText(bool roles_only) const
 		if ( i > 0 )
 			d.NL();
 
-		if ( zeek::IsFunc(id->GetType()->Tag()) )
+		if ( IsFunc(id->GetType()->Tag()) )
 			{
 			string s = comments[i];
 

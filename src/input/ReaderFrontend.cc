@@ -34,13 +34,13 @@ public:
 	bool Process() override { return Object()->Update(); }
 };
 
-ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, zeek::EnumVal* type)
+ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVal* type)
 	{
 	disabled = initialized = false;
 	info = new ReaderBackend::ReaderInfo(arg_info);
 
 	const char* t = type->GetType()->AsEnumType()->Lookup(type->InternalInt());
-	name = zeek::util::copy_string(zeek::util::fmt("%s/%s", arg_info.source, t));
+	name = util::copy_string(util::fmt("%s/%s", arg_info.source, t));
 
 	backend = input_mgr->CreateBackend(this, type);
 	assert(backend);
@@ -69,7 +69,7 @@ void ReaderFrontend::Init(const int arg_num_fields,
 		return;
 
 	if ( initialized )
-		zeek::reporter->InternalError("reader initialize twice");
+		reporter->InternalError("reader initialize twice");
 
 	num_fields = arg_num_fields;
 	fields = arg_fields;
@@ -85,7 +85,7 @@ void ReaderFrontend::Update()
 
 	if ( ! initialized )
 		{
-		zeek::reporter->Error("Tried to call update on uninitialized reader");
+		reporter->Error("Tried to call update on uninitialized reader");
 		return;
 		}
 

@@ -50,7 +50,7 @@ std::string Attr::DeprecationMessage() const
 	if ( ! expr )
 		return "";
 
-	auto ce = static_cast<zeek::detail::ConstExpr*>(expr.get());
+	auto ce = static_cast<ConstExpr*>(expr.get());
 	return ce->Value()->AsStringVal()->CheckString();
 	}
 
@@ -164,7 +164,7 @@ Attributes::Attributes(AttrPList* a, TypePtr t, bool arg_in_record, bool is_glob
 	// the necessary checking gets done.
 
 	for ( const auto& attr : *a )
-		AddAttr({zeek::NewRef{}, attr});
+		AddAttr({NewRef{}, attr});
 
 	delete a;
 	}
@@ -209,7 +209,7 @@ void Attributes::AddAttr(AttrPtr attr)
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
 	     ! Find(ATTR_REDEF) )
 		{
-		auto a = zeek::make_intrusive<Attr>(ATTR_REDEF);
+		auto a = make_intrusive<Attr>(ATTR_REDEF);
 		attrs_list.push_back(a.get());
 		attrs.emplace_back(std::move(a));
 		}
@@ -218,7 +218,7 @@ void Attributes::AddAttr(AttrPtr attr)
 	if ( ! global_var && attr->Tag() == ATTR_DEFAULT &&
 	     ! Find(ATTR_OPTIONAL) )
 		{
-		auto a = zeek::make_intrusive<Attr>(ATTR_OPTIONAL);
+		auto a = make_intrusive<Attr>(ATTR_OPTIONAL);
 		attrs_list.push_back(a.get());
 		attrs.emplace_back(std::move(a));
 		}

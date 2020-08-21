@@ -6,7 +6,7 @@
 
 namespace zeek::threading::formatter {
 
-class Ascii final : public zeek::threading::Formatter {
+class Ascii final : public Formatter {
 public:
 	/**
 	 * A struct to pass the necessary configuration values to the
@@ -44,14 +44,14 @@ public:
 	 * @param info SeparatorInfo structure defining the necessary
 	 * separators.
 	 */
-	Ascii(zeek::threading::MsgThread* t, const SeparatorInfo& info);
+	Ascii(MsgThread* t, const SeparatorInfo& info);
 	virtual ~Ascii();
 
-	virtual bool Describe(zeek::ODesc* desc, zeek::threading::Value* val, const std::string& name = "") const;
-	virtual bool Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
-	                      zeek::threading::Value** vals) const;
-	virtual zeek::threading::Value* ParseValue(const std::string& s, const std::string& name,
-	                                           zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const;
+	virtual bool Describe(ODesc* desc, Value* val, const std::string& name = "") const;
+	virtual bool Describe(ODesc* desc, int num_fields, const Field* const * fields,
+	                      Value** vals) const;
+	virtual Value* ParseValue(const std::string& s, const std::string& name,
+	                          TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 private:
 	bool CheckNumberError(const char* start, const char* end) const;

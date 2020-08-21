@@ -43,7 +43,7 @@ protected:
 	bool repeatable;
 };
 
-extern zeek::PQueue<DebugCmdInfo> g_DebugCmdInfos;
+extern PQueue<DebugCmdInfo> g_DebugCmdInfos;
 
 void init_global_dbg_constants ();
 

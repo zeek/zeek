@@ -14,8 +14,8 @@ namespace zeek::logging {
 /**
  * Component description for plugins providing log writers.
  */
-class Component : public zeek::plugin::Component,
-                  public zeek::plugin::TaggedComponent<logging::Tag> {
+class Component : public plugin::Component,
+                  public plugin::TaggedComponent<logging::Tag> {
 public:
 	typedef WriterBackend* (*factory_callback)(WriterFrontend* frontend);
 
@@ -54,7 +54,7 @@ protected:
 	/**
 	  * Overriden from plugin::Component.
 	  */
-	void DoDescribe(zeek::ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;

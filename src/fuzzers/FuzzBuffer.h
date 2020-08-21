@@ -4,7 +4,7 @@
 #include <memory>
 #include <optional>
 
-namespace zeek { namespace detail {
+namespace zeek::detail {
 
 /**
  * This structure helps chunk/simulate protocol conversions from arbitrary
@@ -71,4 +71,4 @@ private:
 	const unsigned char* end;
 };
 
-}} // namespace zeek::detail
+} // namespace zeek::detail

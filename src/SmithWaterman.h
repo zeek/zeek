@@ -13,7 +13,7 @@ namespace zeek::detail {
  * marked as being a common substring of arbitrarily many strings, for each
  * of which we store where the substring starts.
  */
-class Substring : public zeek::String {
+class Substring : public String {
 
 public:
 	typedef std::vector<Substring*> Vec;
@@ -24,12 +24,12 @@ public:
 	//
 	struct BSSAlign {
 
-		BSSAlign(const zeek::String* string, int index)
+		BSSAlign(const String* string, int index)
 			{ this->string = string; this->index = index; }
 
 		// The other string
 		//
-		const zeek::String* string;
+		const String* string;
 
 		// Offset in the string that substring
 		// starts at, counting from 0.
@@ -42,10 +42,10 @@ public:
 	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
 
 	explicit Substring(const std::string& string)
-		: zeek::String(string), _num(), _new(false) { }
+		: String(string), _num(), _new(false) { }
 
-	explicit Substring(const zeek::String& string)
-		: zeek::String(string), _num(), _new(false) { }
+	explicit Substring(const String& string)
+		: String(string), _num(), _new(false) { }
 
 	Substring(const Substring& bst);
 
@@ -58,7 +58,7 @@ public:
 	//
 	bool DoesCover(const Substring* bst) const;
 
-	void AddAlignment(const zeek::String* string, int index);
+	void AddAlignment(const String* string, int index);
 	const BSSAlignVec& GetAlignments() const	{ return _aligns; }
 	unsigned int GetNumAlignments() const	{ return _aligns.size(); }
 
@@ -70,11 +70,10 @@ public:
 
 	// Helper methods for vectors:
 	//
-	static zeek::VectorVal* VecToPolicy(Vec* vec);
-	static Vec* VecFromPolicy(zeek::VectorVal* vec);
+	static VectorVal* VecToPolicy(Vec* vec);
+	static Vec* VecFromPolicy(VectorVal* vec);
 	static char* VecToString(Vec* vec);
-	static zeek::String::IdxVec* GetOffsetsVec(const Vec* vec,
-	                                              unsigned int index);
+	static String::IdxVec* GetOffsetsVec(const Vec* vec, unsigned int index);
 
 private:
 	typedef std::map<std::string, void*> DataMap;
@@ -150,8 +149,8 @@ struct SWParams {
 // input strings where the string occurs.  On error, or if no common
 // subsequence exists, an empty vector is returned.
 //
-extern Substring::Vec* smith_waterman(const zeek::String* s1,
-                                      const zeek::String* s2,
+extern Substring::Vec* smith_waterman(const String* s1,
+                                      const String* s2,
                                       SWParams& params);
 
 } // namespace zeek::detail

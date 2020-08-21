@@ -58,7 +58,7 @@ public:
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
 				   bool orig, uint64_t seq,
-				   const zeek::IP_Hdr* ip, int caplen)
+				   const IP_Hdr* ip, int caplen)
 		{ }
 
 	/**
@@ -156,7 +156,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const zeek::IP_Hdr* ip = nullptr, int caplen = 0);
+			uint64_t seq = -1, const IP_Hdr* ip = nullptr, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -209,7 +209,7 @@ public:
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
 					bool orig, uint64_t seq,
-					const zeek::IP_Hdr* ip, int caplen);
+					const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Forwards stream input on to all child analyzers. If the analyzer
@@ -240,7 +240,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen);
+					uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -550,20 +550,20 @@ public:
 	 *
 	 * @param conn_val The connenction value being updated.
 	 */
-	virtual void UpdateConnVal(zeek::RecordVal *conn_val);
+	virtual void UpdateConnVal(RecordVal *conn_val);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::BuildConnVal().
 	 */
 	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
-	zeek::RecordVal* BuildConnVal();
+	RecordVal* BuildConnVal();
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnVal().
 	 */
-	const zeek::RecordValPtr& ConnVal();
+	const RecordValPtr& ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -576,7 +576,7 @@ public:
 	 * Connection::Event().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead (note it doesn't automatically ad the connection argument).")]]
-	void Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2 = nullptr);
+	void Event(EventHandlerPtr f, Val* v1, Val* v2 = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -603,7 +603,7 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::EnqueueEvent().
 	 */
-	void EnqueueConnEvent(EventHandlerPtr f, zeek::Args args);
+	void EnqueueConnEvent(EventHandlerPtr f, Args args);
 
 	/**
 	 * A version of EnqueueConnEvent() taking a variable number of arguments.
@@ -611,7 +611,7 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 		std::is_convertible_v<
-			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
+			std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
 		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 
@@ -637,7 +637,7 @@ protected:
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)
-		{ return std::string(a->GetAnalyzerName()) + zeek::util::fmt("[%d]", a->GetID()); }
+		{ return std::string(a->GetAnalyzerName()) + util::fmt("[%d]", a->GetID()); }
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if
@@ -838,7 +838,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -918,7 +918,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, zeek::FilePtr f);
+	virtual void SetContentsFile(unsigned int direction, FilePtr f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -928,20 +928,20 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual zeek::FilePtr GetContentsFile(unsigned int direction) const;
+	virtual FilePtr GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(zeek::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	zeek::analyzer::pia::PIA* GetPIA() const		{ return pia; }
+	analyzer::pia::PIA* GetPIA() const		{ return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -953,7 +953,7 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 private:
-	zeek::analyzer::pia::PIA* pia;
+	analyzer::pia::PIA* pia;
 };
 
 } // namespace zeek::analyzer

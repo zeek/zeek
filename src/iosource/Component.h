@@ -16,7 +16,7 @@ namespace zeek::iosource {
 /**
  * Component description for plugins providing IOSources.
  */
-class Component : public zeek::plugin::Component {
+class Component : public plugin::Component {
 public:
 	typedef IOSource* (*factory_callback)();
 
@@ -43,13 +43,13 @@ protected:
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of this type.
 	 */
-	Component(zeek::plugin::component::Type type, const std::string& name);
+	Component(plugin::component::Type type, const std::string& name);
 };
 
 /**
  * Component description for plugins providing a PktSrc for packet input.
  */
-class PktSrcComponent : public zeek::iosource::Component {
+class PktSrcComponent : public Component {
 public:
 	/**
 	 * Type of input a packet source supports.
@@ -113,7 +113,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	void DoDescribe(zeek::ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	std::vector<std::string> prefixes;
@@ -127,7 +127,7 @@ private:
  * PktDumpers aren't IOSurces but we locate them here to keep them along with
  * the PktSrc.
  */
-class PktDumperComponent : public zeek::plugin::Component  {
+class PktDumperComponent : public plugin::Component  {
 public:
 	typedef PktDumper* (*factory_callback)(const std::string& path, bool append);
 
@@ -160,7 +160,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	void DoDescribe(zeek::ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	std::vector<std::string> prefixes;

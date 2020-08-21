@@ -28,8 +28,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
-using StringValPtr = zeek::IntrusivePtr<StringVal>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+using StringValPtr = IntrusivePtr<StringVal>;
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -50,8 +50,8 @@ protected:
 
 class Reporter {
 public:
-	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
-	using ConnTuple = std::tuple<zeek::IPAddr, zeek::IPAddr, uint32_t, uint32_t, TransportProto>;
+	using IPPair = std::pair<IPAddr, IPAddr>;
+	using ConnTuple = std::tuple<IPAddr, IPAddr, uint32_t, uint32_t, TransportProto>;
 	using WeirdCountMap = std::unordered_map<std::string, uint64_t>;
 	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
 	using WeirdConnTupleMap = std::map<ConnTuple, WeirdCountMap>;
@@ -87,20 +87,20 @@ public:
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void ExprRuntimeError(const detail::Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void RuntimeError(const zeek::detail::Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void RuntimeError(const detail::Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
 	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
+	void Weird(RecordValPtr conn_id, StringValPtr uid,
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
-	void Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
+	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -116,7 +116,7 @@ public:
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.
-	void AnalyzerError(zeek::analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
+	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always
@@ -127,11 +127,11 @@ public:
 	// stack of location so that the most recent is always the one that
 	// will be assumed to be the current one. The pointer must remain
 	// valid until the location is popped.
-	void PushLocation(const zeek::detail::Location* location)
-		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(location, 0)); }
+	void PushLocation(const detail::Location* location)
+		{ locations.push_back(std::pair<const detail::Location*, const detail::Location*>(location, 0)); }
 
-	void PushLocation(const zeek::detail::Location* loc1, const zeek::detail::Location* loc2)
-		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(loc1, loc2)); }
+	void PushLocation(const detail::Location* loc1, const detail::Location* loc2)
+		{ locations.push_back(std::pair<const detail::Location*, const detail::Location*>(loc1, loc2)); }
 
 	// Removes the top-most location information from stack.
 	void PopLocation()
@@ -151,7 +151,7 @@ public:
 	/**
 	 * Reset/cleanup state tracking for a "flow" weird.
 	 */
-	void ResetFlowWeird(const zeek::IPAddr& orig, const zeek::IPAddr& resp);
+	void ResetFlowWeird(const IPAddr& orig, const IPAddr& resp);
 
 	/**
 	 * Reset/cleanup state tracking for a "expired conn" weird.
@@ -259,19 +259,19 @@ public:
 		{ after_zeek_init = true; }
 
 private:
-	void DoLog(const char* prefix, zeek::EventHandlerPtr event, FILE* out,
+	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, ValPList* addl, bool location, bool time,
 		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
 	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
 	// and that takes va_list anyway.
-	void WeirdHelper(zeek::EventHandlerPtr event, ValPList vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	void WeirdHelper(EventHandlerPtr event, ValPList vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
-	bool PermitFlowWeird(const char* name, const zeek::IPAddr& o, const zeek::IPAddr& r);
-	bool PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id);
+	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
+	bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
 
 	bool EmitToStderr(bool flag)
 		{ return flag || ! after_zeek_init; }
@@ -285,7 +285,7 @@ private:
 	bool after_zeek_init;
 	bool abort_on_scripting_errors = false;
 
-	std::list<std::pair<const zeek::detail::Location*, const zeek::detail::Location*> > locations;
+	std::list<std::pair<const detail::Location*, const detail::Location*> > locations;
 
 	uint64_t weird_count;
 	WeirdCountMap weird_count_by_type;

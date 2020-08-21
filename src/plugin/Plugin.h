@@ -30,7 +30,7 @@ namespace threading {
 
 namespace zeek {
 template <class T> class IntrusivePtr;
-using ValPtr = zeek::IntrusivePtr<Val>;
+using ValPtr = IntrusivePtr<Val>;
 class Obj;
 }
 
@@ -70,7 +70,7 @@ enum HookType {
 /**
  * Converts a hook type into a readable hook name.
  */
-extern const char* hook_name(zeek::plugin::HookType h);
+extern const char* hook_name(HookType h);
 
 /**
  * Helper class to capture a plugin's version.
@@ -206,7 +206,7 @@ public:
 	/**
 	 * Constructor with a function argument.
 	 */
-	explicit HookArgument(const zeek::Func* a)	{ type = FUNC; arg.func = a; }
+	explicit HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
 
 	/**
 	 * Constructor with an integer  argument.
@@ -241,7 +241,7 @@ public:
 	/**
 	 * Constructor with a Frame argument.
 	 */
-	explicit HookArgument(zeek::detail::Frame* f)	{ type = FRAME; arg.frame = f; }
+	explicit HookArgument(detail::Frame* f)	{ type = FRAME; arg.frame = f; }
 
 	/**
 	 * Constructor with a WriterInfo argument.
@@ -261,7 +261,7 @@ public:
 	/**
 	 * Constructor with a zeek::Args argument.
 	 */
-	explicit HookArgument(const zeek::Args* args)	{ type = ARG_LIST; arg.args = args; }
+	explicit HookArgument(const Args* args)	{ type = ARG_LIST; arg.args = args; }
 
 	/**
 	 * Returns the value for a boolen argument. The argument's type must
@@ -291,7 +291,7 @@ public:
 	 * Returns the value for a function argument. The argument's type must
 	 * match accordingly.
 	 */
-	const zeek::Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
+	const Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
 
 	/**
 	 * Returns the value for an integer argument. The argument's type must
@@ -342,9 +342,9 @@ public:
 	const ValPList* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
 
 	/**
-	 * Returns the value as a zeek::Args.
+	 * Returns the value as a Args.
 	 */
-	const zeek::Args* AsArgList() const	{ assert(type == ARG_LIST); return arg.args; }
+	const Args* AsArgList() const	{ assert(type == ARG_LIST); return arg.args; }
 
 	/**
 	 * Returns the value for a vod pointer argument. The argument's type
@@ -362,7 +362,7 @@ public:
 	 *
 	 * @param d Description object to use for rendering.
 	 */
-	void Describe(zeek::ODesc* d) const;
+	void Describe(ODesc* d) const;
 
 private:
 	Type type;
@@ -371,15 +371,15 @@ private:
 		double double_;
 		const Event* event;
 		const Connection* conn;
-		const zeek::Func* func;
-		const zeek::detail::Frame* frame;
+		const Func* func;
+		const detail::Frame* frame;
 		int int_;
 		const Val* val;
 		const ValPList* vals;
-		const zeek::Args* args;
+		const Args* args;
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
-		const zeek::detail::Location* loc;
+		const detail::Location* loc;
 	} arg;
 
 	// Outside union because these have dtors.
@@ -419,7 +419,7 @@ using HookArgumentList = std::list<HookArgument>;
  */
 class Plugin {
 public:
-	typedef std::list<zeek::plugin::Component *> component_list;
+	typedef std::list<Component *> component_list;
 	typedef std::list<BifItem> bif_item_list;
 	typedef std::list<std::pair<HookType, int> > hook_list;
 
@@ -493,7 +493,7 @@ public:
 	 * is disabled, the rendering will include a list of all components
 	 * and BiF items.
 	 */
-	void Describe(zeek::ODesc* d) const;
+	void Describe(ODesc* d) const;
 
 	/**
 	 * Registers an individual BiF that the plugin defines. The
@@ -534,7 +534,7 @@ public:
 	bool LoadBroFile(const std::string& file);
 
 protected:
-	friend class zeek::plugin::Manager;
+	friend class Manager;
 
 	/**
 	 * First-stage initialization of the plugin called early during Bro's
@@ -564,7 +564,7 @@ protected:
 	 *
 	 * @param c The component. The method takes ownership.
 	 */
-	void AddComponent(zeek::plugin::Component* c);
+	void AddComponent(Component* c);
 
 	/**
 	 * Calls the Initialize() function of all components.
@@ -590,7 +590,7 @@ protected:
 	 * highest to lowest. If two plugins specify the same priority, order
 	 * is undefined.
 	 */
-	void EnableHook(zeek::plugin::HookType hook, int priority = 0);
+	void EnableHook(HookType hook, int priority = 0);
 
 	/**
 	 * Disables a hook. Bro will no longer call the corresponding virtual
@@ -598,7 +598,7 @@ protected:
 	 *
 	 * @param hook The hook to disable.
 	 */
-	void DisableHook(zeek::plugin::HookType hook);
+	void DisableHook(HookType hook);
 
 	/**
 	 * Returns a list of hooks that are currently enabled for the plugin,
@@ -626,7 +626,7 @@ protected:
 	 *
 	 * @param handler The object being interested in.
 	 */
-	void RequestBroObjDtor(zeek::Obj* obj);
+	void RequestBroObjDtor(Obj* obj);
 
 	// Hook functions.
 
@@ -679,10 +679,10 @@ protected:
 	 * pair with the first member set to 'false' and null result value.
 	 */
 	virtual std::pair<bool, ValPtr>
-	HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent, zeek::Args* args);
+	HookFunctionCall(const Func* func, zeek::detail::Frame* parent, Args* args);
 
 	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]
-	virtual std::pair<bool, Val*> HookCallFunction(const zeek::Func* func, zeek::detail::Frame *parent, ValPList* args);
+	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, zeek::detail::Frame *parent, ValPList* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
@@ -838,8 +838,8 @@ protected:
 	                          bool time, const std::string& message);
 
 	// Meta hooks.
-	virtual void MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args);
-	virtual void MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
+	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
+	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
 
 private:
 

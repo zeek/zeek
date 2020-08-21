@@ -22,7 +22,7 @@ using TypePtr = IntrusivePtr<Type>;
 
 namespace detail {
 
-using ExprPtr = zeek::IntrusivePtr<zeek::detail::Expr>;
+using ExprPtr = IntrusivePtr<Expr>;
 
 enum AttrTag {
 	ATTR_OPTIONAL,
@@ -50,9 +50,9 @@ enum AttrTag {
 };
 
 class Attr;
-using AttrPtr = zeek::IntrusivePtr<Attr>;
+using AttrPtr = IntrusivePtr<Attr>;
 class Attributes;
-using AttributesPtr = zeek::IntrusivePtr<Attributes>;
+using AttributesPtr = IntrusivePtr<Attributes>;
 
 class Attr final : public Obj {
 public:
@@ -66,7 +66,7 @@ public:
 	AttrTag Tag() const	{ return tag; }
 
 	[[deprecated("Remove in v4.1.  Use GetExpr().")]]
-	zeek::detail::Expr* AttrExpr() const	{ return expr.get(); }
+	Expr* AttrExpr() const	{ return expr.get(); }
 
 	const ExprPtr& GetExpr() const
 		{ return expr; }
@@ -107,9 +107,9 @@ protected:
 class Attributes final : public Obj {
 public:
 	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
-	Attributes(AttrPList* a, zeek::TypePtr t, bool in_record, bool is_global);
+	Attributes(AttrPList* a, TypePtr t, bool in_record, bool is_global);
 
-	Attributes(std::vector<AttrPtr> a, zeek::TypePtr t,
+	Attributes(std::vector<AttrPtr> a, TypePtr t,
 	           bool in_record, bool is_global);
 	Attributes(TypePtr t, bool in_record, bool is_global);
 

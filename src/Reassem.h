@@ -252,7 +252,7 @@ private:
 	DataBlockMap block_map;
 };
 
-class Reassembler : public zeek::Obj {
+class Reassembler : public Obj {
 public:
 	Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
 	~Reassembler() override	{}
@@ -280,7 +280,7 @@ public:
 
 	uint64_t TotalSize() const;	// number of bytes buffered up
 
-	void Describe(zeek::ODesc* d) const override;
+	void Describe(ODesc* d) const override;
 
 	// Sum over all data buffered in some reassembler.
 	static uint64_t TotalMemoryAllocation()	{ return total_size; }

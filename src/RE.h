@@ -32,7 +32,7 @@ namespace detail {
 
 extern int case_insensitive;
 extern CCL* curr_ccl;
-extern zeek::detail::NFA_Machine* nfa;
+extern NFA_Machine* nfa;
 extern Specific_RE_Matcher* rem;
 extern const char* RE_parse_input;
 
@@ -43,7 +43,7 @@ using AcceptIdx = int;
 using AcceptingSet = std::set<AcceptIdx>;
 using MatchPos = uint64_t;
 using AcceptingMatchSet = std::map<AcceptIdx, MatchPos>;
-using string_list = zeek::name_list;
+using string_list = name_list;
 
 enum match_type { MATCH_ANYWHERE, MATCH_EXACTLY };
 
@@ -59,7 +59,7 @@ public:
 
 	void MakeCaseInsensitive();
 
-	void SetPat(const char* pat)	{ pattern_text = zeek::util::copy_string(pat); }
+	void SetPat(const char* pat)	{ pattern_text = util::copy_string(pat); }
 
 	bool Compile(bool lazy = false);
 
@@ -88,7 +88,7 @@ public:
 	void ConvertCCLs();
 
 	bool MatchAll(const char* s);
-	bool MatchAll(const zeek::String* s);
+	bool MatchAll(const String* s);
 
 	// Compiles a set of regular expressions simultaniously.
 	// 'idx' contains indizes associated with the expressions.
@@ -101,17 +101,17 @@ public:
 	// if the pattern matches empty strings, matching continues
 	// in an attempt to match at least one character.
 	int Match(const char* s);
-	int Match(const zeek::String* s);
+	int Match(const String* s);
 
 	int LongestMatch(const char* s);
-	int LongestMatch(const zeek::String* s);
+	int LongestMatch(const String* s);
 	int LongestMatch(const u_char* bv, int n);
 
 	EquivClass* EC()		{ return &equiv_class; }
 
 	const char* PatternText() const	{ return pattern_text; }
 
-	zeek::detail::DFA_Machine* DFA() const		{ return dfa; }
+	DFA_Machine* DFA() const		{ return dfa; }
 
 	void Dump(FILE* f);
 
@@ -135,10 +135,10 @@ protected:
 
 	std::map<std::string, std::string> defs;
 	std::map<std::string, CCL*> ccl_dict;
-	zeek::PList<CCL> ccl_list;
+	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;
-	zeek::detail::DFA_Machine* dfa;
+	DFA_Machine* dfa;
 	CCL* any_ccl;
 	AcceptingSet* accepted;
 };
@@ -173,11 +173,11 @@ public:
 	void AddMatches(const AcceptingSet& as, MatchPos position);
 
 protected:
-	zeek::detail::DFA_Machine* dfa;
+	DFA_Machine* dfa;
 	int* ecs;
 
 	AcceptingMatchSet accepted_matches;
-	zeek::detail::DFA_State* current_state;
+	DFA_State* current_state;
 	int current_pos;
 };
 
@@ -203,7 +203,7 @@ public:
 	// Returns true if s exactly matches the pattern, false otherwise.
 	bool MatchExactly(const char* s)
 		{ return re_exact->MatchAll(s); }
-	bool MatchExactly(const zeek::String* s)
+	bool MatchExactly(const String* s)
 		{ return re_exact->MatchAll(s); }
 
 	// Returns the position in s just beyond where the first match
@@ -212,14 +212,14 @@ public:
 	// in an attempt to match at least one character.
 	int MatchAnywhere(const char* s)
 		{ return re_anywhere->Match(s); }
-	int MatchAnywhere(const zeek::String* s)
+	int MatchAnywhere(const String* s)
 		{ return re_anywhere->Match(s); }
 
 	// Note: it matches the *longest* prefix and returns the
 	// length of matched prefix. It returns -1 on mismatch.
 	int MatchPrefix(const char* s)
 		{ return re_exact->LongestMatch(s); }
-	int MatchPrefix(const zeek::String* s)
+	int MatchPrefix(const String* s)
 		{ return re_exact->LongestMatch(s); }
 	int MatchPrefix(const u_char* s, int n)
 		{ return re_exact->LongestMatch(s, n); }

@@ -17,11 +17,11 @@
 #include "../input.h"
 #include "threading/SerialTypes.h"
 
-using namespace zeek::plugin;
+namespace zeek::plugin {
 
-const char* zeek::plugin::hook_name(zeek::plugin::HookType h)
+const char* hook_name(HookType h)
 {
-static constexpr const char* hook_names[int(zeek::plugin::NUM_HOOKS) + 1] = {
+static constexpr const char* hook_names[int(NUM_HOOKS) + 1] = {
 		// Order must match that of HookType.
 		"LoadFile",
 		"CallFunction",
@@ -69,7 +69,7 @@ BifItem::~BifItem()
 	{
 	}
 
-void HookArgument::Describe(zeek::ODesc* d) const
+void HookArgument::Describe(ODesc* d) const
 	{
 	switch ( type ) {
 	case BOOL:
@@ -319,7 +319,7 @@ Plugin::component_list Plugin::Components() const
 	return components;
 	}
 
-static bool component_cmp(const zeek::plugin::Component* a, const zeek::plugin::Component* b)
+static bool component_cmp(const Component* a, const Component* b)
 	{
 	return a->Name() < b->Name();
 	}
@@ -336,7 +336,7 @@ void Plugin::AddBifItem(const std::string& name, BifItem::Type type)
 	bif_items.push_back(bi);
 	}
 
-void Plugin::AddComponent(zeek::plugin::Component* c)
+void Plugin::AddComponent(Component* c)
 	{
 	components.push_back(c);
 
@@ -347,27 +347,27 @@ void Plugin::AddComponent(zeek::plugin::Component* c)
 
 Plugin::hook_list Plugin::EnabledHooks() const
 	{
-	return zeek::plugin_mgr->HooksEnabledForPlugin(this);
+	return plugin_mgr->HooksEnabledForPlugin(this);
 	}
 
-void Plugin::EnableHook(zeek::plugin::HookType hook, int priority)
+void Plugin::EnableHook(HookType hook, int priority)
 	{
-	zeek::plugin_mgr->EnableHook(hook, this, priority);
+	plugin_mgr->EnableHook(hook, this, priority);
 	}
 
-void Plugin::DisableHook(zeek::plugin::HookType hook)
+void Plugin::DisableHook(HookType hook)
 	{
-	zeek::plugin_mgr->DisableHook(hook, this);
+	plugin_mgr->DisableHook(hook, this);
 	}
 
 void Plugin::RequestEvent(EventHandlerPtr handler)
 	{
-	zeek::plugin_mgr->RequestEvent(handler, this);
+	plugin_mgr->RequestEvent(handler, this);
 	}
 
 void Plugin::RequestBroObjDtor(Obj* obj)
 	{
-	zeek::plugin_mgr->RequestBroObjDtor(obj, this);
+	plugin_mgr->RequestBroObjDtor(obj, this);
 	}
 
 int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
@@ -375,9 +375,9 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
-std::pair<bool, zeek::ValPtr>
-Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent,
-                         zeek::Args* args)
+std::pair<bool, ValPtr>
+Plugin::HookFunctionCall(const Func* func, zeek::detail::Frame* parent,
+                         Args* args)
 	{
 	ValPList vlargs(args->size());
 
@@ -390,15 +390,15 @@ Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent,
 #pragma GCC diagnostic pop
 
 	for ( auto i = 0u; i < args->size(); ++i )
-		(*args)[i] = {zeek::AdoptRef{}, vlargs[i]};
+		(*args)[i] = {AdoptRef{}, vlargs[i]};
 
-	return {handled, {zeek::AdoptRef{}, result}};
+	return {handled, {AdoptRef{}, result}};
 	}
 
-std::pair<bool, zeek::Val*> Plugin::HookCallFunction(
-	const zeek::Func* func, zeek::detail::Frame *parent, ValPList* args)
+std::pair<bool, Val*> Plugin::HookCallFunction(
+	const Func* func, zeek::detail::Frame *parent, ValPList* args)
 	{
-	std::pair<bool, zeek::Val*> result(false, NULL);
+	std::pair<bool, Val*> result(false, NULL);
 	return result;
 	}
 
@@ -448,11 +448,11 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 	return true;
 	}
 
-void Plugin::MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args)
+void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
 	{
 	}
 
-void Plugin::MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result)
+void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result)
 	{
 	}
 
@@ -462,7 +462,7 @@ void Plugin::InitializeComponents()
 		(*i)->Initialize();
 	}
 
-void Plugin::Describe(zeek::ODesc* d) const
+void Plugin::Describe(ODesc* d) const
 	{
 	d->Add(config.name);
 
@@ -557,3 +557,5 @@ void Plugin::Describe(zeek::ODesc* d) const
 		d->Add(")\n");
 		}
 	}
+
+} // namespace zeek::plugin

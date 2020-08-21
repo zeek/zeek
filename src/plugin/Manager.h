@@ -166,7 +166,7 @@ public:
 	 *
 	 * @return True if there's a plugin for that hook.
 	 */
-	bool HavePluginForHook(zeek::plugin::HookType hook) const
+	bool HavePluginForHook(HookType hook) const
 		{
 		// Inline to avoid the function call.
 		return hooks[hook] != nullptr;
@@ -178,7 +178,7 @@ public:
 	 *
 	 * @param plugin The plugin to return the hooks for.
 	 */
-	std::list<std::pair<zeek::plugin::HookType, int> > HooksEnabledForPlugin(const Plugin* plugin) const;
+	std::list<std::pair<HookType, int> > HooksEnabledForPlugin(const Plugin* plugin) const;
 
 	/**
 	 * Enables a hook for a given plugin.
@@ -189,7 +189,7 @@ public:
 	 *
 	 * prio: The priority to associate with the plugin for this hook.
 	 */
-	void EnableHook(zeek::plugin::HookType hook, Plugin* plugin, int prio);
+	void EnableHook(HookType hook, Plugin* plugin, int prio);
 
 	/**
 	 * Disables a hook for a given plugin.
@@ -198,7 +198,7 @@ public:
 	 *
 	 * plugin: The plugin that used to define the hook.
 	 */
-	void DisableHook(zeek::plugin::HookType hook, Plugin* plugin);
+	void DisableHook(HookType hook, Plugin* plugin);
 
 	/**
 	 * Registers interest in an event by a plugin, even if there's no handler
@@ -257,7 +257,7 @@ public:
 	 * the method returns null.
 	 */
 	std::pair<bool, ValPtr>
-	HookCallFunction(const zeek::Func* func, zeek::detail::Frame* parent, zeek::Args* args) const;
+	HookCallFunction(const Func* func, zeek::detail::Frame* parent, Args* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.
@@ -416,8 +416,8 @@ public:
 private:
 	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found = false);
 	void UpdateInputFiles();
-	void MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args) const;
-	void MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result) const;
+	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
+	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const;
 
 	 // All found dynamic plugins, mapping their names to base directory.
 	using dynamic_plugin_map = std::map<std::string, std::string>;
@@ -488,16 +488,16 @@ namespace detail {
  */
 class __RegisterBif {
 public:
-	__RegisterBif(const char* plugin, zeek::plugin::Manager::bif_init_func init)
+	__RegisterBif(const char* plugin, Manager::bif_init_func init)
 		{
-		zeek::plugin::Manager::RegisterBifFile(plugin, init);
+		Manager::RegisterBifFile(plugin, init);
 		}
 };
 
 } // namespace detail
 } // namespace plugin
 
-extern zeek::plugin::Manager* plugin_mgr;
+extern plugin::Manager* plugin_mgr;
 
 } // namespace zeek
 

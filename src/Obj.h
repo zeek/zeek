@@ -21,7 +21,7 @@ public:
 
 	Location() = default;
 
-	void Describe(zeek::ODesc* d) const;
+	void Describe(ODesc* d) const;
 
 	bool operator==(const Location& l) const;
 	bool operator!=(const Location& l) const
@@ -105,9 +105,9 @@ public:
 	[[noreturn]] void Internal(const char* msg) const;
 	void InternalWarning(const char* msg) const;
 
-	virtual void Describe(zeek::ODesc* d) const { /* FIXME: Add code */ };
+	virtual void Describe(ODesc* d) const { /* FIXME: Add code */ };
 
-	void AddLocation(zeek::ODesc* d) const;
+	void AddLocation(ODesc* d) const;
 
 	// Get location info for debugging.
 	const detail::Location* GetLocationInfo() const
@@ -144,9 +144,9 @@ protected:
 private:
 	friend class SuppressErrors;
 
-	void DoMsg(zeek::ODesc* d, const char s1[], const Obj* obj2 = nullptr,
+	void DoMsg(ODesc* d, const char s1[], const Obj* obj2 = nullptr,
 	           bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
-	void PinPoint(zeek::ODesc* d, const Obj* obj2 = nullptr,
+	void PinPoint(ODesc* d, const Obj* obj2 = nullptr,
 	              bool pinpoint_only = false) const;
 
 	friend inline void Ref(Obj* o);

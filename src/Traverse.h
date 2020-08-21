@@ -17,25 +17,25 @@ public:
 	TraversalCallback()	{ current_scope = nullptr; }
 	virtual ~TraversalCallback() {}
 
-	virtual TraversalCode PreFunction(const zeek::Func*) { return TC_CONTINUE; }
-	virtual TraversalCode PostFunction(const zeek::Func*) { return TC_CONTINUE; }
+	virtual TraversalCode PreFunction(const Func*) { return TC_CONTINUE; }
+	virtual TraversalCode PostFunction(const Func*) { return TC_CONTINUE; }
 
-	virtual TraversalCode PreStmt(const zeek::detail::Stmt*) { return TC_CONTINUE; }
-	virtual TraversalCode PostStmt(const zeek::detail::Stmt*) { return TC_CONTINUE; }
+	virtual TraversalCode PreStmt(const Stmt*) { return TC_CONTINUE; }
+	virtual TraversalCode PostStmt(const Stmt*) { return TC_CONTINUE; }
 
-	virtual TraversalCode PreExpr(const zeek::detail::Expr*) { return TC_CONTINUE; }
-	virtual TraversalCode PostExpr(const zeek::detail::Expr*) { return TC_CONTINUE; }
+	virtual TraversalCode PreExpr(const Expr*) { return TC_CONTINUE; }
+	virtual TraversalCode PostExpr(const Expr*) { return TC_CONTINUE; }
 
-	virtual TraversalCode PreID(const zeek::detail::ID*) { return TC_CONTINUE; }
-	virtual TraversalCode PostID(const zeek::detail::ID*) { return TC_CONTINUE; }
+	virtual TraversalCode PreID(const ID*) { return TC_CONTINUE; }
+	virtual TraversalCode PostID(const ID*) { return TC_CONTINUE; }
 
-	virtual TraversalCode PreTypedef(const zeek::detail::ID*) { return TC_CONTINUE; }
-	virtual TraversalCode PostTypedef(const zeek::detail::ID*) { return TC_CONTINUE; }
+	virtual TraversalCode PreTypedef(const ID*) { return TC_CONTINUE; }
+	virtual TraversalCode PostTypedef(const ID*) { return TC_CONTINUE; }
 
-	virtual TraversalCode PreDecl(const zeek::detail::ID*) { return TC_CONTINUE; }
-	virtual TraversalCode PostDecl(const zeek::detail::ID*) { return TC_CONTINUE; }
+	virtual TraversalCode PreDecl(const ID*) { return TC_CONTINUE; }
+	virtual TraversalCode PostDecl(const ID*) { return TC_CONTINUE; }
 
-	zeek::detail::Scope* current_scope;
+	Scope* current_scope;
 };
 
 TraversalCode traverse_all(TraversalCallback* cb);

@@ -5,13 +5,13 @@
 #include "../Desc.h"
 #include "../Reporter.h"
 
-using namespace zeek::plugin;
+namespace zeek::plugin {
 
 Component::Component(component::Type arg_type, const std::string& arg_name)
 	{
 	type = arg_type;
 	name = arg_name;
-	canon_name = zeek::util::canonify_name(name);
+	canon_name = util::canonify_name(name);
 	}
 
 Component::~Component()
@@ -28,7 +28,7 @@ component::Type Component::Type() const
 	return type;
 	}
 
-void Component::Describe(zeek::ODesc* d) const
+void Component::Describe(ODesc* d) const
 	{
 	d->Add("    ");
 	d->Add("[");
@@ -75,3 +75,5 @@ void Component::Describe(zeek::ODesc* d) const
 	DoDescribe(d);
 	d->Add(")");
 	}
+
+} // namespace zeek::plugin

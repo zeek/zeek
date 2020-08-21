@@ -5,7 +5,7 @@
 
 namespace zeek {
 
-Tag::Tag(const zeek::EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
+Tag::Tag(const EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
 	{
 	assert(arg_type > 0);
 
@@ -15,11 +15,11 @@ Tag::Tag(const zeek::EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
 	val = etype->GetEnumVal(i);
 	}
 
-Tag::Tag(zeek::EnumType* etype, type_t arg_type, subtype_t arg_subtype)
-	: Tag({zeek::NewRef{}, etype}, arg_type, arg_subtype)
+Tag::Tag(EnumType* etype, type_t arg_type, subtype_t arg_subtype)
+	: Tag({NewRef{}, etype}, arg_type, arg_subtype)
 	{ }
 
-Tag::Tag(zeek::EnumValPtr arg_val)
+Tag::Tag(EnumValPtr arg_val)
 	{
 	assert(arg_val);
 
@@ -30,8 +30,8 @@ Tag::Tag(zeek::EnumValPtr arg_val)
 	subtype = (i >> 31) & 0xffffffff;
 	}
 
-Tag::Tag(zeek::EnumVal* arg_val)
-	: Tag({zeek::NewRef{}, arg_val})
+Tag::Tag(EnumVal* arg_val)
+	: Tag({NewRef{}, arg_val})
 	{ }
 
 Tag::Tag(const Tag& other)
@@ -74,7 +74,7 @@ Tag& Tag::operator=(const Tag&& other) noexcept
 	return *this;
 	}
 
-const zeek::EnumValPtr& Tag::AsVal(const zeek::EnumTypePtr& etype) const
+const EnumValPtr& Tag::AsVal(const EnumTypePtr& etype) const
 	{
 	if ( ! val )
 		{
@@ -85,14 +85,14 @@ const zeek::EnumValPtr& Tag::AsVal(const zeek::EnumTypePtr& etype) const
 	return val;
 	}
 
-zeek::EnumVal* Tag::AsEnumVal(zeek::EnumType* etype) const
+EnumVal* Tag::AsEnumVal(EnumType* etype) const
 	{
-	return AsVal({zeek::NewRef{}, etype}).get();
+	return AsVal({NewRef{}, etype}).get();
 	}
 
 std::string Tag::AsString() const
 	{
-	return zeek::util::fmt("%" PRIu32 "/%" PRIu32, type, subtype);
+	return util::fmt("%" PRIu32 "/%" PRIu32, type, subtype);
 	}
 
 } // namespace zeek

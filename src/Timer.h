@@ -50,9 +50,9 @@ constexpr int NUM_TIMER_TYPES = int(TIMER_THREAD_HEARTBEAT) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 
-class Timer : public zeek::detail::PQ_Element {
+class Timer : public PQ_Element {
 public:
-	Timer(double t, TimerType arg_type) : zeek::detail::PQ_Element(t), type(arg_type) {}
+	Timer(double t, TimerType arg_type) : PQ_Element(t), type(arg_type) {}
 	~Timer() override { }
 
 	TimerType Type() const	{ return type; }
@@ -167,7 +167,7 @@ protected:
 	Timer* Remove()			{ return (Timer*) q->Remove(); }
 	Timer* Top()			{ return (Timer*) q->Top(); }
 
-	zeek::detail::PriorityQueue* q;
+	PriorityQueue* q;
 };
 
 extern TimerMgr* timer_mgr;

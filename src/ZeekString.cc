@@ -279,7 +279,7 @@ void String::ToUpper()
 
 unsigned int String::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + zeek::util::pad_size(n + final_NUL);
+	return padded_sizeof(*this) + util::pad_size(n + final_NUL);
 	}
 
 String* String::GetSubstring(int start, int len) const
@@ -296,7 +296,7 @@ String* String::GetSubstring(int start, int len) const
 
 int String::FindSubstring(const String* s) const
 	{
-	return zeek::util::strstr_n(n, b, s->Len(), s->Bytes());
+	return util::strstr_n(n, b, s->Len(), s->Bytes());
 	}
 
 String::Vec* String::Split(const String::IdxVec& indices) const
@@ -340,22 +340,22 @@ String::Vec* String::Split(const String::IdxVec& indices) const
 	return result;
 	}
 
-zeek::VectorVal* String:: VecToPolicy(Vec* vec)
+VectorVal* String:: VecToPolicy(Vec* vec)
 	{
-	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+	auto result = make_intrusive<VectorVal>(id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
 		String* string = (*vec)[i];
-		auto val = zeek::make_intrusive<zeek::StringVal>(string->Len(),
-		                                           (const char*) string->Bytes());
+		auto val = make_intrusive<StringVal>(string->Len(),
+		                                     (const char*) string->Bytes());
 		result->Assign(i+1, std::move(val));
 		}
 
 	return result.release();
 	}
 
-String::Vec* String::VecFromPolicy(zeek::VectorVal* vec)
+String::Vec* String::VecFromPolicy(VectorVal* vec)
 	{
 	Vec* result = new Vec();
 

@@ -8,7 +8,7 @@ namespace zeek::detail {
 
 struct SetupResult {
 	int code = 0;
-	zeek::Options options;
+	Options options;
 };
 
 /**
@@ -20,7 +20,7 @@ struct SetupResult {
  * needs to be provided regardless since some functionality requires
  * it, particularly, several things use the value of argv[0].
  */
-SetupResult setup(int argc, char** argv, zeek::Options* options = nullptr);
+SetupResult setup(int argc, char** argv, Options* options = nullptr);
 
 /**
  * Cleans up Zeek's global state.

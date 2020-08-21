@@ -17,42 +17,42 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 
 namespace zeek::detail {
 
-using StmtPtr = zeek::IntrusivePtr<zeek::detail::Stmt>;
+using StmtPtr = IntrusivePtr<Stmt>;
 
 enum DeclType { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, };
 
-extern void add_global(const zeek::detail::IDPtr& id,
-                       zeek::TypePtr t,
-                       zeek::detail::InitClass c,
-                       zeek::detail::ExprPtr init,
-                       std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr,
+extern void add_global(const IDPtr& id,
+                       TypePtr t,
+                       InitClass c,
+                       ExprPtr init,
+                       std::unique_ptr<std::vector<AttrPtr>> attr,
                        DeclType dt);
 
-extern zeek::detail::StmtPtr add_local(
-	zeek::detail::IDPtr id,
-	zeek::TypePtr t,
-	zeek::detail::InitClass c,
-	zeek::detail::ExprPtr init,
-	std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr,
+extern StmtPtr add_local(
+	IDPtr id,
+	TypePtr t,
+	InitClass c,
+	ExprPtr init,
+	std::unique_ptr<std::vector<AttrPtr>> attr,
 	DeclType dt);
 
-extern zeek::detail::ExprPtr add_and_assign_local(
-	zeek::detail::IDPtr id,
-	zeek::detail::ExprPtr init,
-	zeek::ValPtr val = nullptr);
+extern ExprPtr add_and_assign_local(
+	IDPtr id,
+	ExprPtr init,
+	ValPtr val = nullptr);
 
-extern void add_type(zeek::detail::ID* id, zeek::TypePtr t,
-                     std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attr);
+extern void add_type(ID* id, TypePtr t,
+                     std::unique_ptr<std::vector<AttrPtr>> attr);
 
-extern void begin_func(zeek::detail::IDPtr id, const char* module_name,
-                       zeek::FunctionFlavor flavor, bool is_redef,
-                       zeek::FuncTypePtr t,
-                       std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs = nullptr);
+extern void begin_func(IDPtr id, const char* module_name,
+                       FunctionFlavor flavor, bool is_redef,
+                       FuncTypePtr t,
+                       std::unique_ptr<std::vector<AttrPtr>> attrs = nullptr);
 
-extern void end_func(zeek::detail::StmtPtr body);
+extern void end_func(StmtPtr body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
-extern IDPList gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body);
+extern IDPList gather_outer_ids(Scope* scope, Stmt* body);
 
 } // namespace zeek::detail
 

@@ -46,10 +46,10 @@ using namespace std;
 
 namespace zeek {
 
-Val::Val(zeek::Func* f) : Val({NewRef{}, f})
+Val::Val(Func* f) : Val({NewRef{}, f})
 	{}
 
-Val::Val(zeek::FuncPtr f)
+Val::Val(FuncPtr f)
 	: val(f.release()), type(val.func_val->GetType())
 	{}
 
@@ -61,10 +61,10 @@ static const FileTypePtr& GetStringFileType() noexcept
 	return string_file_type;
 	}
 
-Val::Val(zeek::File* f) : Val({AdoptRef{}, f})
+Val::Val(File* f) : Val({AdoptRef{}, f})
 	{}
 
-Val::Val(zeek::FilePtr f)
+Val::Val(FilePtr f)
 	: val(f.release()), type(GetStringFileType())
 	{
 	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
@@ -89,14 +89,14 @@ Val::~Val()
 #define CONVERTER(tag, ctype, name) \
 	ctype name() \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name) \
 		return (ctype)(this); \
 		}
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name) \
 		return (const ctype)(this); \
 		}
 
@@ -104,17 +104,17 @@ Val::~Val()
 	CONVERTER(tag, ctype, name) \
 	CONST_CONVERTER(tag, ctype, name)
 
-CONVERTERS(zeek::TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
-CONVERTERS(zeek::TYPE_PORT, PortVal*, Val::AsPortVal)
-CONVERTERS(zeek::TYPE_SUBNET, SubNetVal*, Val::AsSubNetVal)
-CONVERTERS(zeek::TYPE_ADDR, AddrVal*, Val::AsAddrVal)
-CONVERTERS(zeek::TYPE_TABLE, TableVal*, Val::AsTableVal)
-CONVERTERS(zeek::TYPE_RECORD, RecordVal*, Val::AsRecordVal)
-CONVERTERS(zeek::TYPE_LIST, ListVal*, Val::AsListVal)
-CONVERTERS(zeek::TYPE_STRING, StringVal*, Val::AsStringVal)
-CONVERTERS(zeek::TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
-CONVERTERS(zeek::TYPE_ENUM, EnumVal*, Val::AsEnumVal)
-CONVERTERS(zeek::TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
+CONVERTERS(TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
+CONVERTERS(TYPE_PORT, PortVal*, Val::AsPortVal)
+CONVERTERS(TYPE_SUBNET, SubNetVal*, Val::AsSubNetVal)
+CONVERTERS(TYPE_ADDR, AddrVal*, Val::AsAddrVal)
+CONVERTERS(TYPE_TABLE, TableVal*, Val::AsTableVal)
+CONVERTERS(TYPE_RECORD, RecordVal*, Val::AsRecordVal)
+CONVERTERS(TYPE_LIST, ListVal*, Val::AsListVal)
+CONVERTERS(TYPE_STRING, StringVal*, Val::AsStringVal)
+CONVERTERS(TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
+CONVERTERS(TYPE_ENUM, EnumVal*, Val::AsEnumVal)
+CONVERTERS(TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
 
 ValPtr Val::CloneState::NewClone(Val* src, ValPtr dst)
 	{
@@ -156,7 +156,7 @@ ValPtr Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			return make_intrusive<zeek::Val>(AsFunc()->DoClone());
+			return make_intrusive<Val>(AsFunc()->DoClone());
 
 		if ( type->Tag() == TYPE_FILE )
 			{
@@ -187,7 +187,7 @@ ValPtr Val::DoClone(CloneState* state)
 	return nullptr;
  	}
 
-zeek::FuncPtr Val::AsFuncPtr() const
+FuncPtr Val::AsFuncPtr() const
 	{
 	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
 	return {NewRef{}, val.func_val};
@@ -297,29 +297,29 @@ ValPtr Val::SizeVal() const
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( val.int_val < 0 )
-			return zeek::val_mgr->Count(-val.int_val);
+			return val_mgr->Count(-val.int_val);
 		else
-			return zeek::val_mgr->Count(val.int_val);
+			return val_mgr->Count(val.int_val);
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return zeek::val_mgr->Count(val.uint_val);
+		return val_mgr->Count(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<zeek::DoubleVal>(fabs(val.double_val));
+		return make_intrusive<DoubleVal>(fabs(val.double_val));
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return zeek::val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
+			return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
 
 		if ( type->Tag() == TYPE_FILE )
-			return make_intrusive<zeek::DoubleVal>(val.file_val->Size());
+			return make_intrusive<DoubleVal>(val.file_val->Size());
 		break;
 
 	default:
 		break;
 	}
 
-	return zeek::val_mgr->Count(0);
+	return val_mgr->Count(0);
 	}
 
 unsigned int Val::MemoryAllocation() const
@@ -415,17 +415,17 @@ void Val::ValDescribeReST(ODesc* d) const
 #ifdef DEBUG
 detail::ID* Val::GetID() const
 	{
-	return bound_id ? zeek::detail::global_scope()->Find(bound_id).get() : nullptr;
+	return bound_id ? detail::global_scope()->Find(bound_id).get() : nullptr;
 	}
 
 void Val::SetID(detail::ID* id)
 	{
 	delete [] bound_id;
-	bound_id = id ? zeek::util::copy_string(id->Name()) : nullptr;
+	bound_id = id ? util::copy_string(id->Name()) : nullptr;
 	}
 #endif
 
-bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
+	bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
 	{
 	if ( !to_type || !from_type )
 		return true;
@@ -461,7 +461,7 @@ TableValPtr Val::GetRecordFields()
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
 		reporter->Error("non-record value/type passed to record_fields");
-		return make_intrusive<zeek::TableVal>(record_field_table);
+		return make_intrusive<TableVal>(record_field_table);
 		}
 
 	RecordType* rt = nullptr;
@@ -479,7 +479,7 @@ TableValPtr Val::GetRecordFields()
 		if ( t->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("non-record value/type passed to record_fields");
-			return make_intrusive<zeek::TableVal>(record_field_table);
+			return make_intrusive<TableVal>(record_field_table);
 			}
 
 		rt = t->AsRecordType();
@@ -489,7 +489,7 @@ TableValPtr Val::GetRecordFields()
 	}
 
 // This is a static method in this file to avoid including rapidjson's headers in Val.h because they're huge.
-static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer, Val* val,
+static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val* val,
                       bool only_loggable=false, RE_Matcher* re=nullptr, const string& key="")
 	{
 	if ( !key.empty() )
@@ -558,7 +558,7 @@ static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			writer.String(zeek::util::json_escape_utf8(std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			writer.String(util::json_escape_utf8(std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
 			break;
 			}
 
@@ -572,7 +572,7 @@ static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer
 			else
 				writer.StartObject();
 
-			zeek::detail::HashKey* k;
+			detail::HashKey* k;
 			TableEntryVal* entry;
 			auto c = table->InitForIteration();
 			while ( (entry = table->NextEntry(k, c)) )
@@ -586,7 +586,7 @@ static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer
 				else
 					{
 					rapidjson::StringBuffer buffer;
-					zeek::threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
+					threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
 					BuildJSON(key_writer, entry_key, only_loggable, re);
 					string key_str = buffer.GetString();
 
@@ -626,8 +626,8 @@ static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer
 
 					if ( re && re->MatchAnywhere(field_name) != 0 )
 						{
-						auto blank = make_intrusive<zeek::StringVal>("");
-						auto fn_val = make_intrusive<zeek::StringVal>(field_name);
+						auto blank = make_intrusive<StringVal>("");
+						auto fn_val = make_intrusive<StringVal>(field_name);
 						const auto& bs = *blank->AsString();
 						auto key_val = fn_val->Replace(re, bs, false);
 						key_str = key_val->ToStdString();
@@ -690,11 +690,11 @@ static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer
 StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re)
 	{
 	rapidjson::StringBuffer buffer;
-	zeek::threading::formatter::JSON::NullDoubleWriter writer(buffer);
+	threading::formatter::JSON::NullDoubleWriter writer(buffer);
 
 	BuildJSON(writer, this, only_loggable, re, "");
 
-	return make_intrusive<zeek::StringVal>(buffer.GetString());
+	return make_intrusive<StringVal>(buffer.GetString());
 	}
 
 void IntervalVal::ValDescribe(ODesc* d) const
@@ -772,7 +772,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 
 ValPtr PortVal::SizeVal() const
 	{
-	return zeek::val_mgr->Int(val.uint_val);
+	return val_mgr->Int(val.uint_val);
 	}
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
@@ -891,9 +891,9 @@ unsigned int AddrVal::MemoryAllocation() const
 ValPtr AddrVal::SizeVal() const
 	{
 	if ( val.addr_val->GetFamily() == IPv4 )
-		return zeek::val_mgr->Count(32);
+		return val_mgr->Count(32);
 	else
-		return zeek::val_mgr->Count(128);
+		return val_mgr->Count(128);
 	}
 
 ValPtr AddrVal::DoClone(CloneState* state)
@@ -951,7 +951,7 @@ unsigned int SubNetVal::MemoryAllocation() const
 ValPtr SubNetVal::SizeVal() const
 	{
 	int retained = 128 - val.subnet_val->LengthIPv6();
-	return make_intrusive<zeek::DoubleVal>(pow(2.0, double(retained)));
+	return make_intrusive<DoubleVal>(pow(2.0, double(retained)));
 	}
 
 void SubNetVal::ValDescribe(ODesc* d) const
@@ -1019,7 +1019,7 @@ StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 
 ValPtr StringVal::SizeVal() const
 	{
-	return zeek::val_mgr->Count(val.string_val->Len());
+	return val_mgr->Count(val.string_val->Len());
 	}
 
 int StringVal::Len()
@@ -1146,7 +1146,7 @@ StringValPtr StringVal::Replace(
 	// the NUL.
 	r[0] = '\0';
 
-	return make_intrusive<zeek::StringVal>(new String(true, result, r - result));
+	return make_intrusive<StringVal>(new String(true, result, r - result));
 	}
 
 ValPtr StringVal::DoClone(CloneState* state)
@@ -1154,7 +1154,7 @@ ValPtr StringVal::DoClone(CloneState* state)
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
-	return state->NewClone(this, make_intrusive<zeek::StringVal>(
+	return state->NewClone(this, make_intrusive<StringVal>(
 	        new String((u_char*) val.string_val->Bytes(),
 	                   val.string_val->Len(), true)));
 	}
@@ -1215,7 +1215,7 @@ ValPtr PatternVal::DoClone(CloneState* state)
 	auto re = new RE_Matcher(val.re_val->PatternText(),
 	                         val.re_val->AnywherePatternText());
 	re->Compile();
-	return state->NewClone(this, make_intrusive<zeek::PatternVal>(re));
+	return state->NewClone(this, make_intrusive<PatternVal>(re));
 	}
 
 ListVal::ListVal(TypeTag t)
@@ -1230,7 +1230,7 @@ ListVal::~ListVal()
 
 ValPtr ListVal::SizeVal() const
 	{
-	return zeek::val_mgr->Count(vals.size());
+	return val_mgr->Count(vals.size());
 	}
 
 RE_Matcher* ListVal::BuildRE() const
@@ -1275,7 +1275,7 @@ TableValPtr ListVal::ToSetVal() const
 	auto set_index = make_intrusive<TypeList>(pt);
 	set_index->Append(base_type(tag));
 	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
-	auto t = make_intrusive<zeek::TableVal>(std::move(s));
+	auto t = make_intrusive<TableVal>(std::move(s));
 
 	for ( const auto& val : vals )
 		t->Assign(val, nullptr);
@@ -1315,7 +1315,7 @@ void ListVal::Describe(ODesc* d) const
 
 ValPtr ListVal::DoClone(CloneState* state)
 	{
-	auto lv = make_intrusive<zeek::ListVal>(tag);
+	auto lv = make_intrusive<ListVal>(tag);
 	lv->vals.reserve(vals.size());
 	state->NewClone(this, lv);
 
@@ -1331,7 +1331,7 @@ unsigned int ListVal::MemoryAllocation() const
 	for ( const auto& val : vals )
 		size += val->MemoryAllocation();
 
-	size += zeek::util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
+	size += util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
 	return size + padded_sizeof(*this) + type->MemoryAllocation();
 	}
 
@@ -1342,7 +1342,7 @@ TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
 	return rval;
 	}
 
-TableValTimer::TableValTimer(TableVal* val, double t) : zeek::detail::Timer(t, zeek::detail::TIMER_TABLE_VAL)
+TableValTimer::TableValTimer(TableVal* val, double t) : detail::Timer(t, detail::TIMER_TABLE_VAL)
 	{
 	table = val;
 	}
@@ -1412,7 +1412,7 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	Init(std::move(t));
 	SetAttrs(std::move(a));
 
-	if ( ! zeek::run_state::is_parsing )
+	if ( ! run_state::is_parsing )
 		return;
 
 	for ( const auto& t : table_type->GetIndexTypes() )
@@ -1437,19 +1437,19 @@ void TableVal::Init(TableTypePtr t)
 	def_val = nullptr;
 
 	if ( table_type->IsSubNetIndex() )
-		subnets = new zeek::detail::PrefixTable;
+		subnets = new detail::PrefixTable;
 	else
 		subnets = nullptr;
 
-	table_hash = new zeek::detail::CompositeHash(table_type->GetIndices());
-	val.table_val = new PDict<zeek::TableEntryVal>;
+	table_hash = new detail::CompositeHash(table_type->GetIndices());
+	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
 TableVal::~TableVal()
 	{
 	if ( timer )
-		zeek::detail::timer_mgr->Cancel(timer);
+		detail::timer_mgr->Cancel(timer);
 
 	delete table_hash;
 	delete AsTable();
@@ -1460,7 +1460,7 @@ void TableVal::RemoveAll()
 	{
 	// Here we take the brute force approach.
 	delete AsTable();
-	val.table_val = new PDict<zeek::TableEntryVal>;
+	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
@@ -1477,7 +1477,7 @@ int TableVal::RecursiveSize() const
 	     GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
 		return n;
 
-	PDict<zeek::TableEntryVal>* v = val.table_val;
+	PDict<TableEntryVal>* v = val.table_val;
 	IterCookie* c = v->InitForIteration();
 
 	TableEntryVal* tv;
@@ -1511,12 +1511,12 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 	if ( cf )
 		change_func = cf->GetExpr();
 
-	auto bs = attrs->Find(zeek::detail::ATTR_BROKER_STORE);
+	auto bs = attrs->Find(detail::ATTR_BROKER_STORE);
 	if ( bs && broker_store.empty() )
 		{
 		auto c = bs->GetExpr()->Eval(nullptr);
 		assert(c);
-		assert(c->GetType()->Tag() == zeek::TYPE_STRING);
+		assert(c->GetType()->Tag() == TYPE_STRING);
 		broker_store = c->AsStringVal()->AsString()->CheckString();
 		broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
 		}
@@ -1539,12 +1539,12 @@ void TableVal::CheckExpireAttr(detail::AttrTag at)
 			}
 
 		if ( timer )
-			zeek::detail::timer_mgr->Cancel(timer);
+			detail::timer_mgr->Cancel(timer);
 
 		// As network_time is not necessarily initialized yet,
 		// we set a timer which fires immediately.
 		timer = new TableValTimer(this, 1);
-		zeek::detail::timer_mgr->Add(timer);
+		detail::timer_mgr->Add(timer);
 		}
 	}
 
@@ -1566,7 +1566,7 @@ bool TableVal::Assign(Val* index, Val* new_val)
 	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
 	}
 
-bool TableVal::Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
+bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
                       ValPtr new_val, bool broker_forward)
 	{
 	bool is_set = table_type->IsSet();
@@ -1575,7 +1575,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
 		InternalWarning("bad set/table in TableVal::Assign");
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
-	zeek::detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
+	detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
 
 	// If the dictionary index already existed, the insert may free up the
@@ -1620,14 +1620,14 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
 	return true;
 	}
 
-bool TableVal::Assign(Val* index, zeek::detail::HashKey* k, Val* new_val)
+bool TableVal::Assign(Val* index, detail::HashKey* k, Val* new_val)
 	{
-	return Assign({NewRef{}, index}, std::unique_ptr<zeek::detail::HashKey>{k}, {AdoptRef{}, new_val});
+	return Assign({NewRef{}, index}, std::unique_ptr<detail::HashKey>{k}, {AdoptRef{}, new_val});
 	}
 
 ValPtr TableVal::SizeVal() const
 	{
-	return zeek::val_mgr->Count(Size());
+	return val_mgr->Count(Size());
 	}
 
 bool TableVal::AddTo(Val* val, bool is_first_init) const
@@ -1651,14 +1651,14 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 		return false;
 		}
 
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	zeek::detail::HashKey* k;
+	detail::HashKey* k;
 	TableEntryVal* v;
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
-		std::unique_ptr<zeek::detail::HashKey> hk{k};
+		std::unique_ptr<detail::HashKey> hk{k};
 
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
@@ -1699,10 +1699,10 @@ bool TableVal::RemoveFrom(Val* val) const
 		return false;
 		}
 
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	zeek::detail::HashKey* k;
+	detail::HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
 		// Not sure that this is 100% sound, since the HashKey
@@ -1719,22 +1719,22 @@ bool TableVal::RemoveFrom(Val* val) const
 
 TableValPtr TableVal::Intersection(const TableVal& tv) const
 	{
-	auto result = make_intrusive<zeek::TableVal>(table_type);
+	auto result = make_intrusive<TableVal>(table_type);
 
-	const PDict<zeek::TableEntryVal>* t0 = AsTable();
-	const PDict<zeek::TableEntryVal>* t1 = tv.AsTable();
-	PDict<zeek::TableEntryVal>* t2 = result->AsNonConstTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv.AsTable();
+	PDict<TableEntryVal>* t2 = result->AsNonConstTable();
 
 	// Figure out which is smaller; assign it to t1.
 	if ( t1->Length() > t0->Length() )
 		{ // Swap.
-		const PDict<zeek::TableEntryVal>* tmp = t1;
+		const PDict<TableEntryVal>* tmp = t1;
 		t1 = t0;
 		t0 = tmp;
 		}
 
 	IterCookie* c = t1->InitForIteration();
-	zeek::detail::HashKey* k;
+	detail::HashKey* k;
 	while ( t1->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1750,14 +1750,14 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 
 bool TableVal::EqualTo(const TableVal& tv) const
 	{
-	const PDict<zeek::TableEntryVal>* t0 = AsTable();
-	const PDict<zeek::TableEntryVal>* t1 = tv.AsTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() != t1->Length() )
 		return false;
 
 	IterCookie* c = t0->InitForIteration();
-	zeek::detail::HashKey* k;
+	detail::HashKey* k;
 	while ( t0->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1777,14 +1777,14 @@ bool TableVal::EqualTo(const TableVal& tv) const
 
 bool TableVal::IsSubsetOf(const TableVal& tv) const
 	{
-	const PDict<zeek::TableEntryVal>* t0 = AsTable();
-	const PDict<zeek::TableEntryVal>* t1 = tv.AsTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() > t1->Length() )
 		return false;
 
 	IterCookie* c = t0->InitForIteration();
-	zeek::detail::HashKey* k;
+	detail::HashKey* k;
 	while ( t0->NextEntry(k, c) )
 		{
 		// Here we leverage the same assumption about consistent
@@ -1905,7 +1905,7 @@ ValPtr TableVal::Default(const ValPtr& index)
 		return nullptr;
 		}
 
-	const zeek::Func* f = def_val->AsFunc();
+	const Func* f = def_val->AsFunc();
 	Args vl;
 
 	if ( index->GetType()->Tag() == TYPE_LIST )
@@ -1951,13 +1951,13 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 			if ( v->GetVal() )
 				return v->GetVal();
 
-			return zeek::val_mgr->True();
+			return val_mgr->True();
 			}
 
 		return Val::nil;
 		}
 
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 
 	if ( tbl->Length() > 0 )
 		{
@@ -1975,7 +1975,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 				if ( v->GetVal() )
 					return v->GetVal();
 
-				return zeek::val_mgr->True();
+				return val_mgr->True();
 				}
 			}
 		}
@@ -2012,11 +2012,11 @@ VectorValPtr TableVal::LookupSubnets(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnets called on wrong table type");
 
-	auto result = make_intrusive<zeek::VectorVal>(id::find_type<VectorType>("subnet_vec"));
+	auto result = make_intrusive<VectorVal>(id::find_type<VectorType>("subnet_vec"));
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
-		result->Assign(result->Size(), make_intrusive<zeek::SubNetVal>(get<0>(element)));
+		result->Assign(result->Size(), make_intrusive<SubNetVal>(get<0>(element)));
 
 	return result;
 	}
@@ -2026,12 +2026,12 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnetValues called on wrong table type");
 
-	auto nt = make_intrusive<zeek::TableVal>(this->GetType<TableType>());
+	auto nt = make_intrusive<TableVal>(this->GetType<TableType>());
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
 		{
-		auto s = make_intrusive<zeek::SubNetVal>(get<0>(element));
+		auto s = make_intrusive<SubNetVal>(get<0>(element));
 		TableEntryVal* entry = reinterpret_cast<TableEntryVal*>(get<1>(element));
 
 		if ( entry && entry->GetVal() )
@@ -2073,7 +2073,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 	return true;
 	}
 
-ListValPtr TableVal::RecreateIndex(const zeek::detail::HashKey& k) const
+ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const
 	{
 	return table_hash->RecoverVals(k);
 	}
@@ -2101,11 +2101,11 @@ void TableVal::CallChangeFunc(const ValPtr& index,
 			return;
 			}
 
-		const zeek::Func* f = thefunc->AsFunc();
-		zeek::Args vl;
+		const Func* f = thefunc->AsFunc();
+		Args vl;
 
 		// we either get passed the raw index_val - or a ListVal with exactly one element.
-		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+		if ( index->GetType()->Tag() == TYPE_LIST )
 			vl.reserve(2 + index->AsListVal()->Length() + table_type->IsTable());
 		else
 			vl.reserve(3 + table_type->IsTable());
@@ -2128,7 +2128,7 @@ void TableVal::CallChangeFunc(const ValPtr& index,
 			}
 
 
-		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+		if ( index->GetType()->Tag() == TYPE_LIST )
 			{
 			for ( const auto& v : index->AsListVal()->Vals() )
 				vl.emplace_back(v);
@@ -2164,11 +2164,11 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		// we either get passed the raw index_val - or a ListVal with exactly one element.
 		// Since Broker does not support ListVals, we have to unoll this in the second case.
 		const Val* index_val;
-		if ( index->GetType()->Tag() == zeek::TYPE_LIST )
+		if ( index->GetType()->Tag() == TYPE_LIST )
 			{
 			if ( index->AsListVal()->Length() != 1 )
 				{
-				zeek::emit_builtin_error("table with complex index not supported for &broker_store");
+				emit_builtin_error("table with complex index not supported for &broker_store");
 				return;
 				}
 
@@ -2179,11 +2179,11 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			index_val = index;
 			}
 
-		auto broker_index = zeek::Broker::detail::val_to_data(index_val);
+		auto broker_index = Broker::detail::val_to_data(index_val);
 
 		if ( ! broker_index )
 			{
-			zeek::emit_builtin_error("invalid Broker data conversation for table index");
+			emit_builtin_error("invalid Broker data conversation for table index");
 			return;
 			}
 
@@ -2201,7 +2201,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 
 				if ( expire_time > 0 )
 					{
-					if ( attrs->Find(zeek::detail::ATTR_EXPIRE_CREATE) )
+					if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) )
 						{
 						// for create expiry, we have to substract the already elapsed time from the expiry.
 						auto e = expire_time - (run_state::network_time - new_entry_val->ExpireAccessTime());
@@ -2209,10 +2209,10 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 							// element already expired? Let's not insert it.
 							break;
 
-						expiry = zeek::Broker::detail::convert_expiry(e);
+						expiry = Broker::detail::convert_expiry(e);
 						}
 					else
-						expiry = zeek::Broker::detail::convert_expiry(expire_time);
+						expiry = Broker::detail::convert_expiry(expire_time);
 					}
 
 				if ( table_type->IsSet() )
@@ -2221,15 +2221,15 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( ! new_entry_val )
 						{
-						zeek::emit_builtin_error("did not receive new value for Broker datastore send operation");
+						emit_builtin_error("did not receive new value for Broker datastore send operation");
 						return;
 						}
 
 					auto new_value = new_entry_val->GetVal().get();
-					auto broker_val = zeek::Broker::detail::val_to_data(new_value);
+					auto broker_val = Broker::detail::val_to_data(new_value);
 					if ( ! broker_val )
 						{
-						zeek::emit_builtin_error("invalid Broker data conversation for table value");
+						emit_builtin_error("invalid Broker data conversation for table value");
 						return;
 						}
 
@@ -2250,7 +2250,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		}
 	catch ( InterpreterException& e )
 		{
-		zeek::emit_builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
+		emit_builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
 		}
 	}
 
@@ -2284,7 +2284,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	return va;
 	}
 
-ValPtr TableVal::Remove(const zeek::detail::HashKey& k)
+ValPtr TableVal::Remove(const detail::HashKey& k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
 	ValPtr va;
@@ -2319,12 +2319,12 @@ ValPtr TableVal::Remove(const zeek::detail::HashKey& k)
 
 ListValPtr TableVal::ToListVal(TypeTag t) const
 	{
-	auto l = make_intrusive<zeek::ListVal>(t);
+	auto l = make_intrusive<ListVal>(t);
 
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
-	zeek::detail::HashKey* k;
+	detail::HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
 		auto index = table_hash->RecoverVals(*k);
@@ -2375,7 +2375,7 @@ const detail::AttrPtr& TableVal::GetAttr(detail::AttrTag t) const
 
 void TableVal::Describe(ODesc* d) const
 	{
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	int n = tbl->Length();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -2396,7 +2396,7 @@ void TableVal::Describe(ODesc* d) const
 
 	for ( int i = 0; i < n; ++i )
 		{
-		zeek::detail::HashKey* k;
+		detail::HashKey* k;
 		TableEntryVal* v = tbl->NextEntry(k, c);
 
 		if ( ! v )
@@ -2445,7 +2445,7 @@ void TableVal::Describe(ODesc* d) const
 		if ( d->IsReadable() && ! d->IsShort() && d->IncludeStats() )
 			{
 			d->Add(" @");
-			d->Add(zeek::util::detail::fmt_access_time(v->ExpireAccessTime()));
+			d->Add(util::detail::fmt_access_time(v->ExpireAccessTime()));
 			}
 		}
 
@@ -2469,7 +2469,7 @@ bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val)
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
 		const auto& ind_k_i = ind_k->Idx(i);
-		auto expd = make_intrusive<zeek::ListVal>(TYPE_ANY);
+		auto expd = make_intrusive<ListVal>(TYPE_ANY);
 
 		for ( auto j = 0; j < lv->Length(); ++j )
 			{
@@ -2503,7 +2503,7 @@ bool TableVal::CheckAndAssign(ValPtr index, ValPtr new_val)
 	return Assign(std::move(index), std::move(new_val));
 	}
 
-void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
+void TableVal::InitDefaultFunc(detail::Frame* f)
 	{
 	// Value aready initialized.
 	if ( def_val )
@@ -2529,7 +2529,7 @@ void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
 void TableVal::InitTimer(double delay)
 	{
 	timer = new TableValTimer(this, run_state::network_time + delay);
-	zeek::detail::timer_mgr->Add(timer);
+	detail::timer_mgr->Add(timer);
 	}
 
 void TableVal::DoExpire(double t)
@@ -2537,7 +2537,7 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
-	PDict<zeek::TableEntryVal>* tbl = AsNonConstTable();
+	PDict<TableEntryVal>* tbl = AsNonConstTable();
 
 	double timeout = GetExpireTime();
 
@@ -2552,7 +2552,7 @@ void TableVal::DoExpire(double t)
 		tbl->MakeRobustCookie(expire_cookie);
 		}
 
-	zeek::detail::HashKey* k = nullptr;
+	detail::HashKey* k = nullptr;
 	TableEntryVal* v = nullptr;
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
@@ -2661,7 +2661,7 @@ double TableVal::GetExpireTime()
 	expire_time = nullptr;
 
 	if ( timer )
-		zeek::detail::timer_mgr->Cancel(timer);
+		detail::timer_mgr->Cancel(timer);
 
 	return -1;
 	}
@@ -2687,7 +2687,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 			return 0;
 			}
 
-		const zeek::Func* f = vf->AsFunc();
+		const Func* f = vf->AsFunc();
 		Args vl;
 
 		const auto& func_args = f->GetType()->ParamList()->GetTypes();
@@ -2731,13 +2731,13 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 
 ValPtr TableVal::DoClone(CloneState* state)
 	{
-	auto tv = make_intrusive<zeek::TableVal>(table_type);
+	auto tv = make_intrusive<TableVal>(table_type);
 	state->NewClone(this, tv);
 
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
-	zeek::detail::HashKey* key;
+	detail::HashKey* key;
 	TableEntryVal* val;
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
@@ -2762,7 +2762,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 		// As network_time is not necessarily initialized yet, we set
 		// a timer which fires immediately.
 		timer = new TableValTimer(this, 1);
-		zeek::detail::timer_mgr->Add(timer);
+		detail::timer_mgr->Add(timer);
 		}
 
 	if ( expire_func )
@@ -2778,7 +2778,7 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
-	PDict<zeek::TableEntryVal>* v = val.table_val;
+	PDict<TableEntryVal>* v = val.table_val;
 	IterCookie* c = v->InitForIteration();
 
 	TableEntryVal* tv;
@@ -2793,10 +2793,10 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
-zeek::detail::HashKey* TableVal::ComputeHash(const Val* index) const
+detail::HashKey* TableVal::ComputeHash(const Val* index) const
 	{ return MakeHashKey(*index).release(); }
 
-std::unique_ptr<zeek::detail::HashKey> TableVal::MakeHashKey(const Val& index) const
+std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
 	return table_hash->MakeHashKey(index, true);
 	}
@@ -2829,10 +2829,10 @@ void TableVal::DoneParsing()
 
 TableVal::ParseTimeTableState TableVal::DumpTableState()
 	{
-	const PDict<zeek::TableEntryVal>* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
-	zeek::detail::HashKey* key;
+	detail::HashKey* key;
 	TableEntryVal* val;
 
 	ParseTimeTableState rval;
@@ -2850,7 +2850,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 void TableVal::RebuildTable(ParseTimeTableState ptts)
 	{
 	delete table_hash;
-	table_hash = new zeek::detail::CompositeHash(table_type->GetIndices());
+	table_hash = new detail::CompositeHash(table_type->GetIndices());
 
 	for ( auto& [key, val] : ptts )
 		Assign(std::move(key), std::move(val));
@@ -2874,7 +2874,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	auto vl = val.record_val = new std::vector<ValPtr>;
 	vl->reserve(n);
 
-	if ( zeek::run_state::is_parsing )
+	if ( run_state::is_parsing )
 		parse_time_records[rt].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
@@ -2904,14 +2904,14 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 			TypeTag tag = type->Tag();
 
 			if ( tag == TYPE_RECORD )
-				def = make_intrusive<zeek::RecordVal>(cast_intrusive<RecordType>(type));
+				def = make_intrusive<RecordVal>(cast_intrusive<RecordType>(type));
 
 			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<zeek::TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
+				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
 				                                     IntrusivePtr{NewRef{}, a});
 
 			else if ( tag == TYPE_VECTOR )
-				def = make_intrusive<zeek::VectorVal>(cast_intrusive<VectorType>(type));
+				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
 		vl->emplace_back(std::move(def));
@@ -2925,7 +2925,7 @@ RecordVal::~RecordVal()
 
 ValPtr RecordVal::SizeVal() const
 	{
-	return zeek::val_mgr->Count(GetType()->AsRecordType()->NumFields());
+	return val_mgr->Count(GetType()->AsRecordType()->NumFields());
 	}
 
 void RecordVal::Assign(int field, ValPtr new_val)
@@ -3007,7 +3007,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 		return nullptr;
 
 	if ( ! aggr )
-		aggr = make_intrusive<zeek::RecordVal>(std::move(t));
+		aggr = make_intrusive<RecordVal>(std::move(t));
 
 	RecordType* ar_t = aggr->GetType()->AsRecordType();
 	const RecordType* rv_t = GetType()->AsRecordType();
@@ -3150,7 +3150,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = make_intrusive<zeek::RecordVal>(GetType<RecordType>(), false);
+	auto rv = make_intrusive<RecordVal>(GetType<RecordType>(), false);
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
@@ -3174,14 +3174,14 @@ unsigned int RecordVal::MemoryAllocation() const
 		    size += v->MemoryAllocation();
 		}
 
-	size += zeek::util::pad_size(vl.capacity() * sizeof(ValPtr));
+	size += util::pad_size(vl.capacity() * sizeof(ValPtr));
 	size += padded_sizeof(vl);
 	return size + padded_sizeof(*this);
 	}
 
 ValPtr EnumVal::SizeVal() const
 	{
-	return zeek::val_mgr->Int(val.int_val);
+	return val_mgr->Int(val.int_val);
 	}
 
 void EnumVal::ValDescribe(ODesc* d) const
@@ -3215,7 +3215,7 @@ VectorVal::~VectorVal()
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return zeek::val_mgr->Count(uint32_t(val.vector_val->size()));
+	return val_mgr->Count(uint32_t(val.vector_val->size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
@@ -3329,7 +3329,7 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
-	auto vv = make_intrusive<zeek::VectorVal>(GetType<VectorType>());
+	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
 	vv->val.vector_val->reserve(val.vector_val->size());
 	state->NewClone(this, vv);
 
@@ -3364,7 +3364,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 ValPtr check_and_promote(ValPtr v,
                          const Type* t,
                          bool is_init,
-                         const zeek::detail::Location* expr_location)
+                         const detail::Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;
@@ -3431,7 +3431,7 @@ ValPtr check_and_promote(ValPtr v,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
-			promoted_v = zeek::val_mgr->Int(v->CoerceToInt());
+			promoted_v = val_mgr->Int(v->CoerceToInt());
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
@@ -3447,7 +3447,7 @@ ValPtr check_and_promote(ValPtr v,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT )
-			promoted_v = zeek::val_mgr->Count(v->CoerceToUnsigned());
+			promoted_v = val_mgr->Count(v->CoerceToUnsigned());
 		else // port
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
@@ -3459,13 +3459,13 @@ ValPtr check_and_promote(ValPtr v,
 	case TYPE_INTERNAL_DOUBLE:
 		switch ( t_tag ) {
 		case TYPE_DOUBLE:
-			promoted_v = make_intrusive<zeek::DoubleVal>(v->CoerceToDouble());
+			promoted_v = make_intrusive<DoubleVal>(v->CoerceToDouble());
 			break;
 		case TYPE_INTERVAL:
-			promoted_v = make_intrusive<zeek::IntervalVal>(v->CoerceToDouble());
+			promoted_v = make_intrusive<IntervalVal>(v->CoerceToDouble());
 			break;
 		case TYPE_TIME:
-			promoted_v = make_intrusive<zeek::TimeVal>(v->CoerceToDouble());
+			promoted_v = make_intrusive<TimeVal>(v->CoerceToDouble());
 			break;
 		default:
 			reporter->InternalError("bad internal type in check_and_promote()");
@@ -3579,14 +3579,14 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 	if ( same_type(v->GetType(), t) )
 		return {NewRef{}, v};
 
-	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return nullptr;
 
-		return static_cast<zeek::Broker::detail::DataVal*>(dv.get())->castTo(t);
+		return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
 		}
 
 	return nullptr;
@@ -3605,14 +3605,14 @@ bool can_cast_value_to_type(const Val* v, Type* t)
 	if ( same_type(v->GetType(), t) )
 		return true;
 
-	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return false;
 
-		return static_cast<const zeek::Broker::detail::DataVal *>(dv.get())->canCastTo(t);
+		return static_cast<const Broker::detail::DataVal *>(dv.get())->canCastTo(t);
 		}
 
 	return false;
@@ -3628,7 +3628,7 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 	if ( same_type(s, t) )
 		return true;
 
-	if ( same_type(s, zeek::Broker::detail::DataVal::ScriptDataType()) )
+	if ( same_type(s, Broker::detail::DataVal::ScriptDataType()) )
 		// As Broker is dynamically typed, we don't know if we will be able
 		// to convert the type as intended. We optimistically assume that we
 		// will.
@@ -3654,7 +3654,7 @@ ValPtr Val::MakeCount(bro_uint_t u)
 
 ValManager::ValManager()
 	{
-	empty_string = make_intrusive<zeek::StringVal>("");
+	empty_string = make_intrusive<StringVal>("");
 	b_false = Val::MakeBool(false);
 	b_true = Val::MakeBool(true);
 

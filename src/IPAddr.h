@@ -124,7 +124,7 @@ public:
 	 * @param s String containing an IP address as either a dotted IPv4
 	 * address or a hex IPv6 address.
 	 */
-	explicit IPAddr(const zeek::String& s);
+	explicit IPAddr(const String& s);
 
 	/**
 	 * Constructs an address instance from a raw byte representation.
@@ -262,10 +262,10 @@ public:
 	/**
 	 * Returns a key that can be used to lookup the IP Address in a hash table.
 	 */
-	std::unique_ptr<zeek::detail::HashKey> MakeHashKey() const;
+	std::unique_ptr<detail::HashKey> MakeHashKey() const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	zeek::detail::HashKey* GetHashKey() const;
+	detail::HashKey* GetHashKey() const;
 
 	/**
 	 * Masks out lower bits of the address.
@@ -644,10 +644,10 @@ public:
 	/**
 	 * Returns a key that can be used to lookup the IP Prefix in a hash table.
 	 */
-	std::unique_ptr<zeek::detail::HashKey> MakeHashKey() const;
+	std::unique_ptr<detail::HashKey> MakeHashKey() const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	zeek::detail::HashKey* GetHashKey() const;
+	detail::HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the
 	  * inter-thread communication.

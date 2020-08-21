@@ -26,7 +26,7 @@ public:
 	 * internal formatting.
 	 *
 	 */
-	explicit Formatter(threading::MsgThread* t);
+	explicit Formatter(MsgThread* t);
 
 	/**
 	 * Destructor.
@@ -49,8 +49,8 @@ public:
 	 * @return Returns true on success, false on error. Errors must also
 	 * be flagged via the thread.
 	 */
-	virtual bool Describe(zeek::ODesc* desc, int num_fields, const threading::Field* const * fields,
-	                      threading::Value** vals) const = 0;
+	virtual bool Describe(ODesc* desc, int num_fields, const Field* const * fields,
+	                      Value** vals) const = 0;
 
 	/**
 	 * Convert a single threading value into an implementation-specific
@@ -65,7 +65,7 @@ public:
 	 * @return Returns true on success, false on error. Errors are also
 	 * flagged via the thread.
 	 */
-	virtual bool Describe(zeek::ODesc* desc, threading::Value* val, const std::string& name = "") const = 0;
+	virtual bool Describe(ODesc* desc, Value* val, const std::string& name = "") const = 0;
 
 	/**
 	 * Convert an implementation-specific textual representation of a
@@ -79,7 +79,8 @@ public:
 	 * @return The new value, or null on error. Errors must also be
 	 * flagged via the thread.
 	 */
-	virtual threading::Value* ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const = 0;
+	virtual Value* ParseValue(const std::string& s, const std::string& name, TypeTag type,
+	                          TypeTag subtype = TYPE_ERROR) const = 0;
 
 	/**
 	 * Convert an IP address into a string.
@@ -90,7 +91,7 @@ public:
 	 *
 	 * @return An ASCII representation of the address.
 	 */
-	static std::string Render(const threading::Value::addr_t& addr);
+	static std::string Render(const Value::addr_t& addr);
 
 	/**
 	 * Convert an subnet value into a string.
@@ -101,7 +102,7 @@ public:
 	 *
 	 * @return An ASCII representation of the subnet.
 	 */
-	static std::string Render(const threading::Value::subnet_t& subnet);
+	static std::string Render(const Value::subnet_t& subnet);
 
 	/**
 	 * Convert a double into a string. This renders the double with Bro's
@@ -149,17 +150,17 @@ public:
 	 * @return The address, which will be all-zero on error. Errors are
 	 * also flagged via the thread.
 	 */
-	threading::Value::addr_t ParseAddr(const std::string &addr) const;
+	Value::addr_t ParseAddr(const std::string &addr) const;
 
 protected:
 	/**
 	 * Returns the thread associated with the formatter via the
 	 * constructor.
 	 */
-	threading::MsgThread* GetThread() const	{ return thread; }
+	MsgThread* GetThread() const	{ return thread; }
 
 private:
-	threading::MsgThread* thread;
+	MsgThread* thread;
 };
 
 } // namespace zeek::threading

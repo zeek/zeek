@@ -2445,7 +2445,7 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 	{
 	auto exprs = l->Exprs();
-	int n = exprs.length();
+	unsigned int n = exprs.length();
 
 	bool all_vars = true;
 	for ( unsigned int i = 0; i < n; ++i )

@@ -77,7 +77,7 @@ bool UseDefs::RemoveUnused(int iter)
 
 	bool did_omission = false;
 
-	for ( int i = 0; i < stmts.size(); ++i )
+	for ( unsigned int i = 0; i < stmts.size(); ++i )
 		{
 		auto& s = stmts[i];
 

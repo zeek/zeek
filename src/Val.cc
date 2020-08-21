@@ -2764,8 +2764,8 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 	for ( auto& rv : rvs )
 		{
 		auto vs = rv->RawFields();
-		auto current_length = vs->Size();
-		auto required_length = rt->NumFields();
+		unsigned int current_length = vs->Size();
+		unsigned int required_length = rt->NumFields();
 
 		if ( required_length > current_length )
 			{

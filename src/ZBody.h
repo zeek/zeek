@@ -79,7 +79,7 @@ protected:
 	const char* func_name;
 
 	const ZInst* insts;
-	int ninst;
+	unsigned int ninst;
 
 	FrameReMap frame_denizens;
 	int frame_size;

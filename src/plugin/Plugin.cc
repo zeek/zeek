@@ -379,7 +379,7 @@ std::pair<bool, zeek::ValPtr>
 Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent,
                          zeek::Args* args)
 	{
-	val_list vlargs(args->size());
+	ValPList vlargs(args->size());
 
 	for ( auto& v : *args )
 		vlargs.push_back(v.release());
@@ -396,7 +396,7 @@ Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent,
 	}
 
 std::pair<bool, zeek::Val*> Plugin::HookCallFunction(
-	const zeek::Func* func, zeek::detail::Frame *parent, val_list* args)
+	const zeek::Func* func, zeek::detail::Frame *parent, ValPList* args)
 	{
 	std::pair<bool, zeek::Val*> result(false, NULL);
 	return result;
@@ -440,7 +440,7 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 	}
 
 bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-                          const Connection* conn, const val_list* addl, bool location,
+                          const Connection* conn, const ValPList* addl, bool location,
                           const zeek::detail::Location* location1,
                           const zeek::detail::Location* location2,
                           bool time, const std::string& message)

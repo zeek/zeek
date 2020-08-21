@@ -19,54 +19,54 @@ enum PrintLogType %{
 
 function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
 	%{
-	bool result = log_mgr->CreateStream(id->AsEnumVal(), stream->AsRecordVal());
+	bool result = zeek::log_mgr->CreateStream(id->AsEnumVal(), stream->AsRecordVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__remove_stream%(id: Log::ID%) : bool
 	%{
-	bool result = log_mgr->RemoveStream(id->AsEnumVal());
+	bool result = zeek::log_mgr->RemoveStream(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__enable_stream%(id: Log::ID%) : bool
 	%{
-	bool result = log_mgr->EnableStream(id->AsEnumVal());
+	bool result = zeek::log_mgr->EnableStream(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__disable_stream%(id: Log::ID%) : bool
 	%{
-	bool result = log_mgr->DisableStream(id->AsEnumVal());
+	bool result = zeek::log_mgr->DisableStream(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__add_filter%(id: Log::ID, filter: Log::Filter%) : bool
 	%{
-	bool result = log_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
+	bool result = zeek::log_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__remove_filter%(id: Log::ID, name: string%) : bool
 	%{
-	bool result = log_mgr->RemoveFilter(id->AsEnumVal(), name);
+	bool result = zeek::log_mgr->RemoveFilter(id->AsEnumVal(), name);
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__write%(id: Log::ID, columns: any%) : bool
 	%{
-	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	bool result = zeek::log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__set_buf%(id: Log::ID, buffered: bool%): bool
 	%{
-	bool result = log_mgr->SetBuf(id->AsEnumVal(), buffered);
+	bool result = zeek::log_mgr->SetBuf(id->AsEnumVal(), buffered);
 	return zeek::val_mgr->Bool(result);
 	%}
 
 function Log::__flush%(id: Log::ID%): bool
 	%{
-	bool result = log_mgr->Flush(id->AsEnumVal());
+	bool result = zeek::log_mgr->Flush(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}

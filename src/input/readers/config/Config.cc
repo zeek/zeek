@@ -15,12 +15,12 @@
 #include "input/Manager.h"
 #include "threading/SerialTypes.h"
 
-using namespace input::reader;
-using namespace threading;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
-Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
+namespace zeek::input::reader::detail {
+
+Config::Config(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
@@ -36,7 +36,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 			continue;
 
 		if ( id->GetType()->Tag() == zeek::TYPE_RECORD ||
-			 ! input::Manager::IsCompatibleType(id->GetType().get()) )
+		     ! zeek::input::Manager::IsCompatibleType(id->GetType().get()) )
 			{
 			option_types[id->Name()] = std::make_tuple(zeek::TYPE_ERROR, id->GetType()->Tag());
 			continue;
@@ -71,8 +71,9 @@ bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
 	empty_field.assign( (const char*) zeek::BifConst::InputConfig::empty_field->Bytes(),
 	                   zeek::BifConst::InputConfig::empty_field->Len());
 
-	formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
-	formatter = std::unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
+	formatter = std::unique_ptr<zeek::threading::Formatter>(
+		new zeek::threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -118,7 +119,7 @@ bool Config::DoUpdate()
 		return ! fail_on_file_problem;
 
 	switch ( Info().mode ) {
-		case MODE_REREAD:
+		case zeek::input::MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
@@ -145,14 +146,14 @@ bool Config::DoUpdate()
 			// File changed. Fall through to re-read.
 			}
 
-		case MODE_MANUAL:
-		case MODE_STREAM:
+		case zeek::input::MODE_MANUAL:
+		case zeek::input::MODE_STREAM:
 			{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
 			if ( file.is_open() )
 				{
-				if ( Info().mode == MODE_STREAM )
+				if ( Info().mode == zeek::input::MODE_STREAM )
 					{
 					file.clear(); // remove end of file evil bits
 					break;
@@ -247,14 +248,14 @@ bool Config::DoUpdate()
 			Value** fields = new Value*[2];
 			Value* keyval = new threading::Value(zeek::TYPE_STRING, true);
 			keyval->val.string_val.length = key.size();
-			keyval->val.string_val.data = copy_string(key.c_str());
+			keyval->val.string_val.data = zeek::util::copy_string(key.c_str());
 			fields[0] = keyval;
 			Value* val = new threading::Value(zeek::TYPE_STRING, true);
 			val->val.string_val.length = value.size();
-			val->val.string_val.data = copy_string(value.c_str());
+			val->val.string_val.data = zeek::util::copy_string(value.c_str());
 			fields[1] = val;
 
-			if ( Info().mode  == MODE_STREAM )
+			if ( Info().mode  == zeek::input::MODE_STREAM )
 				Put(fields);
 			else
 				SendEntry(fields);
@@ -263,13 +264,13 @@ bool Config::DoUpdate()
 			{
 			Value** vals = new Value*[4];
 			vals[0] = new Value(zeek::TYPE_STRING, true);
-			vals[0]->val.string_val.data = copy_string(Info().name);
+			vals[0]->val.string_val.data = zeek::util::copy_string(Info().name);
 			vals[0]->val.string_val.length = strlen(Info().name);
 			vals[1] = new Value(zeek::TYPE_STRING, true);
-			vals[1]->val.string_val.data = copy_string(Info().source);
+			vals[1]->val.string_val.data = zeek::util::copy_string(Info().source);
 			vals[1]->val.string_val.length = strlen(Info().source);
 			vals[2] = new Value(zeek::TYPE_STRING, true);
-			vals[2]->val.string_val.data = copy_string(key.c_str());
+			vals[2]->val.string_val.data = zeek::util::copy_string(key.c_str());
 			vals[2]->val.string_val.length = key.size();
 			vals[3] = eventval;
 
@@ -279,7 +280,7 @@ bool Config::DoUpdate()
 
 	regfree(&re);
 
-	if ( Info().mode != MODE_STREAM )
+	if ( Info().mode != zeek::input::MODE_STREAM )
 		EndCurrentSend();
 
 	// clean up all options we did not see
@@ -293,12 +294,12 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 	{
 	switch ( Info().mode )
 		{
-		case MODE_MANUAL:
+		case zeek::input::MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case MODE_REREAD:
-		case MODE_STREAM:
+		case zeek::input::MODE_REREAD:
+		case zeek::input::MODE_STREAM:
 			Update(); // Call Update, not DoUpdate, because Update
 				  // checks the "disabled" flag.
 			break;
@@ -309,3 +310,5 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
+
+} // namespace zeek::input::reader::detail

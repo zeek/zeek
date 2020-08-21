@@ -4,12 +4,12 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace irc {
+namespace zeek::analyzer::irc {
 
 /**
 * \brief Main class for analyzing IRC traffic.
 */
-class IRC_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class IRC_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 	enum { WAIT_FOR_REGISTRATION, REGISTERED, };
 	enum { NO_ZIP, ACCEPT_ZIP, ZIP_LOADED, };
 public:
@@ -64,9 +64,15 @@ private:
 	*/
 	std::vector<std::string> SplitWords(const std::string& input, char split);
 
-	tcp::ContentLine_Analyzer* cl_orig;
-	tcp::ContentLine_Analyzer* cl_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
 	bool starttls; // if true, connection has been upgraded to tls
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::irc
+
+namespace analyzer::irc {
+
+using IRC_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::irc::IRC_Analyzer.")]] = zeek::analyzer::irc::IRC_Analyzer;
+
+} // namespace analyzer::irc

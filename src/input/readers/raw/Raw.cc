@@ -20,13 +20,14 @@ extern "C" {
 #include "setsignal.h"
 }
 
-using namespace input::reader;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
+
+namespace zeek::input::reader::detail {
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
 
-Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
+Raw::Raw(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
 	{
 	execute = false;
 	firstrun = true;
@@ -81,7 +82,7 @@ void Raw::ClosePipeEnd(int i)
 	if ( pipes[i] == -1 )
 		return;
 
-	safe_close(pipes[i]);
+	zeek::util::safe_close(pipes[i]);
 	pipes[i] = -1;
 	}
 
@@ -91,7 +92,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 		return true;
 
 	char buf[256];
-	bro_strerror_r(errno, buf, sizeof(buf));
+	zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 	Error(Fmt("failed to set fd flags: %s", buf));
 	return false;
 	}
@@ -99,7 +100,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 
 std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 	{
-	auto lock = plugin::Zeek_RawReader::plugin.ForkMutex();
+	auto lock = plugin::detail::Zeek_RawReader::plugin.ForkMutex();
 
 	try
 		{
@@ -198,7 +199,7 @@ bool Raw::Execute()
 			else
 				{
 				char buf[256];
-				bro_strerror_r(errno, buf, sizeof(buf));
+				zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 				Warning(Fmt("Could not set child process group: %s", buf));
 				}
 			}
@@ -207,7 +208,7 @@ bool Raw::Execute()
 
 		ClosePipeEnd(stdout_out);
 
-		if ( Info().mode == MODE_STREAM )
+		if ( Info().mode == zeek::input::MODE_STREAM )
 			{
 			if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
 				return false;
@@ -294,7 +295,7 @@ bool Raw::OpenInput()
 			if ( fseek(file.get(), pos, whence) < 0 )
 				{
 				char buf[256];
-				bro_strerror_r(errno, buf, sizeof(buf));
+				zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 				Error(Fmt("Seek failed in init: %s", buf));
 				}
 			}
@@ -377,14 +378,15 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		}
 
 	it = info.config.find("offset"); // we want to seek to a given offset inside the file
-	if ( it != info.config.end() && ! execute && (Info().mode == MODE_STREAM || Info().mode == MODE_MANUAL) )
+	if ( it != info.config.end() && ! execute && (Info().mode == zeek::input::MODE_STREAM ||
+	                                              Info().mode == zeek::input::MODE_MANUAL) )
 		{
 		std::string offset_s = it->second;
 		offset = strtoll(offset_s.c_str(), 0, 10);
 		}
 	else if ( it != info.config.end() )
 		{
-		Error("Offset only is supported for MODE_STREAM and MODE_MANUAL; it is also not supported when executing a command");
+		Error("Offset only is supported for zeek::input::MODE_STREAM and zeek::input::MODE_MANUAL; it is also not supported when executing a command");
 		return false;
 		}
 
@@ -407,7 +409,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		return false;
 		}
 
-	if ( execute && Info().mode == MODE_REREAD )
+	if ( execute && Info().mode == zeek::input::MODE_REREAD )
 		{
 		// for execs this makes no sense - would have to execute each heartbeat?
 		Error("Rereading only supported for files, not for executables.");
@@ -457,7 +459,8 @@ int64_t Raw::GetLine(FILE* arg_file)
 		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
-		int found = strstr_n(pos, (unsigned char*) buf.get(), separator.size(), (unsigned char*) separator.c_str());
+		int found = zeek::util::strstr_n(pos, (unsigned char*) buf.get(),
+		                                 separator.size(), (unsigned char*) separator.c_str());
 
 		if ( found == -1 )
 			{
@@ -528,7 +531,7 @@ void Raw::WriteToStdin()
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
 		ClosePipeEnd(stdin_out);
 
-	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
+	if ( Info().mode == zeek::input::MODE_MANUAL && stdin_towrite != 0 )
 		{
 		Error(Fmt("Could not write whole string to stdin of child process in one go. Please use STREAM mode to pass more data to child."));
 		}
@@ -544,7 +547,7 @@ bool Raw::DoUpdate()
 	else
 		{
 		switch ( Info().mode  ) {
-		case MODE_REREAD:
+		case zeek::input::MODE_REREAD:
 			{
 			assert(childpid == -1); // mode may not be used to execute child programs
 			// check if the file has changed
@@ -566,9 +569,9 @@ bool Raw::DoUpdate()
 			// fallthrough
 			}
 
-		case MODE_MANUAL:
-		case MODE_STREAM:
-			if ( Info().mode == MODE_STREAM && file )
+		case zeek::input::MODE_MANUAL:
+		case zeek::input::MODE_STREAM:
+			if ( Info().mode == zeek::input::MODE_STREAM && file )
 				{
 				clearerr(file.get());  // remove end of file evil bits
 				break;
@@ -645,7 +648,7 @@ bool Raw::DoUpdate()
 			}
 		}
 
-	if ( ( Info().mode == MODE_MANUAL ) || ( Info().mode == MODE_REREAD ) )
+	if ( ( Info().mode == zeek::input::MODE_MANUAL ) || ( Info().mode == zeek::input::MODE_REREAD ) )
 		// done with the current data source
 		EndCurrentSend();
 
@@ -676,10 +679,10 @@ bool Raw::DoUpdate()
 
 		Value** vals = new Value*[4];
 		vals[0] = new Value(zeek::TYPE_STRING, true);
-		vals[0]->val.string_val.data = copy_string(Info().name);
+		vals[0]->val.string_val.data = zeek::util::copy_string(Info().name);
 		vals[0]->val.string_val.length = strlen(Info().name);
 		vals[1] = new Value(zeek::TYPE_STRING, true);
-		vals[1]->val.string_val.data = copy_string(Info().source);
+		vals[1]->val.string_val.data = zeek::util::copy_string(Info().source);
 		vals[1]->val.string_val.length = strlen(Info().source);
 		vals[2] = new Value(zeek::TYPE_COUNT, true);
 		vals[2]->val.int_val = code;
@@ -687,7 +690,7 @@ bool Raw::DoUpdate()
 		vals[3]->val.int_val = signal;
 
 		// and in this case we can signal end_of_data even for the streaming reader
-		if ( Info().mode == MODE_STREAM )
+		if ( Info().mode == zeek::input::MODE_STREAM )
 			EndCurrentSend();
 
 		SendEvent("InputRaw::process_finished", 4, vals);
@@ -706,12 +709,12 @@ bool Raw::DoUpdate()
 bool Raw::DoHeartbeat(double network_time, double current_time)
 	{
 	switch ( Info().mode ) {
-		case MODE_MANUAL:
+		case zeek::input::MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case MODE_REREAD:
-		case MODE_STREAM:
+		case zeek::input::MODE_REREAD:
+		case zeek::input::MODE_STREAM:
 #ifdef DEBUG
 	Debug(zeek::DBG_INPUT, "Starting Heartbeat update");
 #endif
@@ -727,3 +730,5 @@ bool Raw::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
+
+} // namespace zeek::input::reader::detail

@@ -7,9 +7,9 @@
 
 namespace binpac { namespace MQTT { class MQTT_Conn; } }
 
-namespace analyzer { namespace MQTT {
+namespace zeek::analyzer::mqtt {
 
-class MQTT_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class MQTT_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
 	MQTT_Analyzer(zeek::Connection* conn);
@@ -28,4 +28,10 @@ protected:
 
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::mqtt
+
+namespace analyzer::MQTT {
+
+using MQTT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::mqtt::MQTT_Analyzer.")]] = zeek::analyzer::mqtt::MQTT_Analyzer;
+
+} // namespace analyzer::mqtt

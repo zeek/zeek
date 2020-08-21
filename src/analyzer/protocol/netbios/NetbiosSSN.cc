@@ -9,15 +9,16 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 
 #include "events.bif.h"
 
-using namespace analyzer::netbios_ssn;
-
-double netbios_ssn_session_timeout = 15.0;
+constexpr double netbios_ssn_session_timeout = 15.0;
 
 #define MAKE_INT16(dest, src) dest = *src; dest <<=8; src++; dest |= *src; src++;
+
+namespace zeek::analyzer::netbios_ssn {
+namespace detail {
 
 NetbiosSSN_RawMsgHdr::NetbiosSSN_RawMsgHdr(const u_char*& data, int& len)
 	{
@@ -47,7 +48,6 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
 	MAKE_INT16(length, data); len -= 2;
 	MAKE_INT16(offset, data);; len -= 2;
 	}
-
 
 NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
@@ -105,7 +105,7 @@ void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 		break;
 
  	default:
-		analyzer->Weird("unknown_netbios_type", fmt("0x%x", type));
+		analyzer->Weird("unknown_netbios_type", zeek::util::fmt("0x%x", type));
 		break;
 	}
 	}
@@ -146,7 +146,7 @@ void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 	NetbiosSSN_RawMsgHdr hdr(data, len);
 
 	if ( hdr.length > unsigned(len) )
-		analyzer->Weird("excess_netbios_hdr_len", fmt("(%d > %d)",
+		analyzer->Weird("excess_netbios_hdr_len", zeek::util::fmt("(%d > %d)",
 					hdr.length, len));
 
 	else if ( hdr.length < unsigned(len) )
@@ -161,16 +161,15 @@ void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
 						bool is_query)
 	{
-
 	NetbiosDGM_RawMsgHdr hdr(data, len);
 
 	if ( unsigned(hdr.length-14) > unsigned(len) )
-		analyzer->Weird("excess_netbios_hdr_len", fmt("(%d > %d)",
+		analyzer->Weird("excess_netbios_hdr_len", zeek::util::fmt("(%d > %d)",
 				hdr.length, len));
 
 	else if ( hdr.length < unsigned(len) )
 		{
-		analyzer->Weird("deficit_netbios_hdr_len", fmt("(%d < %d)",
+		analyzer->Weird("deficit_netbios_hdr_len", zeek::util::fmt("(%d < %d)",
 				hdr.length, len));
 		len = hdr.length;
 		}
@@ -331,16 +330,17 @@ void NetbiosSSN_Interpreter::Event(zeek::EventHandlerPtr event, const u_char* da
 		                           zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, false)));
 	}
 
+} // namespace detail
 
 Contents_NetbiosSSN::Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
-                                         NetbiosSSN_Interpreter* arg_interp)
-: tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
+                                         detail::NetbiosSSN_Interpreter* arg_interp)
+: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
 	type = flags = msg_size = 0;
 	msg_buf = nullptr;
 	buf_n = buf_len = msg_size = 0;
-	state = NETBIOS_SSN_TYPE;
+	state = detail::NETBIOS_SSN_TYPE;
 	}
 
 Contents_NetbiosSSN::~Contents_NetbiosSSN()
@@ -365,12 +365,12 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 
 void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	{
-	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	if ( state == NETBIOS_SSN_TYPE )
+	if ( state == detail::NETBIOS_SSN_TYPE )
 		{
 		type = *data;
-		state = NETBIOS_SSN_FLAGS;
+		state = detail::NETBIOS_SSN_FLAGS;
 
 		++data;
 		--len;
@@ -379,10 +379,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == NETBIOS_SSN_FLAGS )
+	if ( state == detail::NETBIOS_SSN_FLAGS )
 		{
 		flags = *data;
-		state = NETBIOS_SSN_LEN_HI;
+		state = detail::NETBIOS_SSN_LEN_HI;
 
 		++data;
 		--len;
@@ -391,10 +391,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == NETBIOS_SSN_LEN_HI )
+	if ( state == detail::NETBIOS_SSN_LEN_HI )
 		{
 		msg_size = (*data) << 8;
-		state = NETBIOS_SSN_LEN_LO;
+		state = detail::NETBIOS_SSN_LEN_LO;
 
 		++data;
 		--len;
@@ -403,10 +403,10 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == NETBIOS_SSN_LEN_LO )
+	if ( state == detail::NETBIOS_SSN_LEN_LO )
 		{
 		msg_size += *data;
-		state = NETBIOS_SSN_BUF;
+		state = detail::NETBIOS_SSN_BUF;
 
 		buf_n = 0;
 
@@ -433,7 +433,7 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state != NETBIOS_SSN_BUF )
+	if ( state != detail::NETBIOS_SSN_BUF )
 		Conn()->Internal("state inconsistency in Contents_NetbiosSSN::Deliver");
 
 	int n;
@@ -450,14 +450,14 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 	interp->ParseMessage(type, flags, msg_buf, msg_size, IsOrig());
 	buf_n = 0;
 
-	state = NETBIOS_SSN_TYPE;
+	state = detail::NETBIOS_SSN_TYPE;
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
 	{
 	//smb_session = new SMB_Session(this);
-	interp = new NetbiosSSN_Interpreter(this);
+	interp = new detail::NetbiosSSN_Interpreter(this);
 	orig_netbios = resp_netbios = nullptr;
 	did_session_done = 0;
 
@@ -471,7 +471,7 @@ NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(zeek::Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
-		                   network_time + netbios_ssn_session_timeout, true,
+		                   zeek::run_state::network_time + netbios_ssn_session_timeout, true,
 		                   zeek::detail::TIMER_NB_EXPIRE);
 		}
 	}
@@ -484,7 +484,7 @@ NetbiosSSN_Analyzer::~NetbiosSSN_Analyzer()
 
 void NetbiosSSN_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 	interp->Timeout();
 
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP && ! did_session_done )
@@ -495,15 +495,15 @@ void NetbiosSSN_Analyzer::Done()
 
 void NetbiosSSN_Analyzer::EndpointEOF(bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
 
 	(orig ? orig_netbios : resp_netbios)->Flush();
 	}
 
-void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-				tcp::TCP_Endpoint* peer, bool gen_event)
+void NetbiosSSN_Analyzer::ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
+                                           zeek::analyzer::tcp::TCP_Endpoint* peer, bool gen_event)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
 	// Question: Why do we flush *both* endpoints upon connection close?
 	// orig_netbios->Flush();
@@ -513,7 +513,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 	if ( orig )
 		interp->ParseMessageUDP(data, len, true);
@@ -526,8 +526,8 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 	// The - 1.0 in the following is to allow 1 second for the
 	// common case of a single request followed by a single reply,
 	// so we don't needlessly set the timer twice in that case.
-	if ( terminating ||
-	     network_time - Conn()->LastTime() >=
+	if ( zeek::run_state::terminating ||
+	     zeek::run_state::network_time - Conn()->LastTime() >=
 		     netbios_ssn_session_timeout - 1.0 )
 		{
 		Event(connection_timeout);
@@ -538,3 +538,5 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 		                   t + netbios_ssn_session_timeout,
 		                   true, zeek::detail::TIMER_NB_EXPIRE);
 	}
+
+} // namespace zeek::analyzer::netbios_ssn

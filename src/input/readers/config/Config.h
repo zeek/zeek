@@ -12,14 +12,14 @@
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
 
-namespace input { namespace reader {
+namespace zeek::input::reader::detail {
 
 /**
  * Reader for Configuration files.
  */
-class Config : public ReaderBackend {
+class Config : public zeek::input::ReaderBackend {
 public:
-	explicit Config(ReaderFrontend* frontend);
+	explicit Config(zeek::input::ReaderFrontend* frontend);
 	~Config() override;
 
 	// prohibit copying and moving
@@ -28,7 +28,7 @@ public:
 	Config& operator=(const Config&) = delete;
 	Config& operator=(Config&&) = delete;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Config(frontend); }
+	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new Config(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
@@ -49,11 +49,15 @@ private:
 	std::string set_separator;
 	std::string empty_field;
 
-	std::unique_ptr<threading::formatter::Formatter> formatter;
+	std::unique_ptr<zeek::threading::Formatter> formatter;
 	std::unordered_map<std::string, std::tuple<zeek::TypeTag, zeek::TypeTag>> option_types;
 	std::unordered_map<std::string, std::string> option_values;
 };
 
+} // namespace zeek::input::reader::detail
 
-}
-}
+namespace input::reader {
+
+using Config [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Config.")]] = zeek::input::reader::detail::Config;
+
+} // namespace input::reader

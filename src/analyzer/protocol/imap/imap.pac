@@ -7,12 +7,13 @@
 %include bro.pac
 
 %extern{
+#include "zeek-config.h"
 #include "Reporter.h"
 #include "events.bif.h"
 
-namespace analyzer { namespace imap { class IMAP_Analyzer; } }
+namespace zeek::analyzer::imap { class IMAP_Analyzer; }
 namespace binpac { namespace IMAP { class IMAP_Conn; } }
-typedef analyzer::imap::IMAP_Analyzer* IMAPAnalyzer;
+using IMAPAnalyzer = zeek::analyzer::imap::IMAP_Analyzer*;
 
 #include "IMAP.h"
 %}

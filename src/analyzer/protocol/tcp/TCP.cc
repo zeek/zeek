@@ -8,7 +8,7 @@
 #include "analyzer/protocol/pia/PIA.h"
 
 #include "IP.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "File.h"
 #include "Event.h"
@@ -19,12 +19,12 @@
 #include "events.bif.h"
 #include "types.bif.h"
 
-using namespace analyzer::tcp;
-
 namespace { // local namespace
 	const bool DEBUG_tcp_data_sent = false;
 	const bool DEBUG_tcp_connection_close = false;
 }
+
+namespace zeek::analyzer::tcp {
 
 // The following are not included in all systems' tcp.h.
 
@@ -35,7 +35,6 @@ namespace { // local namespace
 #ifndef TH_CWR
 #define TH_CWR  0x80
 #endif
-
 
 #define TOO_LARGE_SEQ_DELTA 1048576
 
@@ -128,7 +127,7 @@ TCP_Analyzer::TCP_Analyzer(zeek::Connection* conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-	                   network_time + tcp_SYN_timeout, false,
+	                   zeek::run_state::network_time + zeek::detail::tcp_SYN_timeout, false,
 	                   zeek::detail::TIMER_TCP_EXPIRE);
 
 	deferred_gen_event = close_deferred = 0;
@@ -167,7 +166,7 @@ void TCP_Analyzer::Done()
 	{
 	Analyzer::Done();
 
-	if ( terminating && connection_pending && is_active && ! BothClosed() )
+	if ( zeek::run_state::terminating && connection_pending && is_active && ! BothClosed() )
 		Event(connection_pending);
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
@@ -276,7 +275,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, int len, int caplen)
 	{
-	if ( ! current_pkt->l3_checksummed && ! ignore_checksums && caplen >= len &&
+	if ( ! zeek::run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >= len &&
 	     ! endpoint->ValidChecksum(tp, len) )
 		{
 		Weird("bad_TCP_checksum");
@@ -494,9 +493,9 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			else
 				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
 
-			if ( tcp_attempt_delay )
+			if ( zeek::detail::tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-				                   t + tcp_attempt_delay, true,
+				                   t + zeek::detail::tcp_attempt_delay, true,
 				                   zeek::detail::TIMER_TCP_ATTEMPT);
 			}
 		else
@@ -726,7 +725,7 @@ void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
 
 		if ( connection_reset )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
-			                   t + tcp_reset_delay, true,
+			                   t + zeek::detail::tcp_reset_delay, true,
 			                   zeek::detail::TIMER_TCP_RESET);
 		}
 	}
@@ -822,7 +821,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
-		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		auto* pia = static_cast<zeek::analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= ORIG;
@@ -830,7 +829,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 
 	if ( ! is_orig && ! (first_packet_seen & RESP) )
 		{
-		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		auto* pia = static_cast<zeek::analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= RESP;
@@ -838,8 +837,8 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 	}
 
 uint64_t TCP_Analyzer::get_relative_seq(const TCP_Endpoint* endpoint,
-                                      uint32_t cur_base, uint32_t last,
-                                      uint32_t wraps, bool* underflow)
+                                        uint32_t cur_base, uint32_t last,
+                                        uint32_t wraps, bool* underflow)
 	{
 	int32_t delta = seq_delta(cur_base, last);
 
@@ -1075,7 +1074,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	uint32_t seq_one_past_segment = base_seq + seg_len;
 
 	init_endpoint(endpoint, flags, base_seq, seq_one_past_segment,
-	              current_timestamp);
+	              zeek::run_state::current_timestamp);
 
 	bool seq_underflow = false;
 	uint64_t rel_seq = get_relative_seq(endpoint, base_seq, endpoint->LastSeq(),
@@ -1092,7 +1091,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	update_window(endpoint, ntohs(tp->th_win), base_seq, ack_seq, flags);
 
 	if ( ! orig->did_close || ! resp->did_close )
-		Conn()->SetLastTime(current_timestamp);
+		Conn()->SetLastTime(zeek::run_state::current_timestamp);
 
 	if ( flags.SYN() )
 		{
@@ -1114,8 +1113,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		++endpoint->FIN_cnt;
 
-		if ( endpoint->FIN_cnt >= tcp_storm_thresh && current_timestamp <
-		     endpoint->last_time + tcp_storm_interarrival_thresh )
+		if ( endpoint->FIN_cnt >= zeek::detail::tcp_storm_thresh && zeek::run_state::current_timestamp <
+		     endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
 			Weird("FIN_storm");
 
 		endpoint->FIN_seq = rel_seq + seg_len;
@@ -1125,8 +1124,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		++endpoint->RST_cnt;
 
-		if ( endpoint->RST_cnt >= tcp_storm_thresh && current_timestamp <
-		     endpoint->last_time + tcp_storm_interarrival_thresh )
+		if ( endpoint->RST_cnt >= zeek::detail::tcp_storm_thresh && zeek::run_state::current_timestamp <
+		     endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
 			Weird("RST_storm");
 
 		// This now happens often enough that it's
@@ -1172,11 +1171,11 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		}
 
 	int32_t delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
-	endpoint->last_time = current_timestamp;
+	endpoint->last_time = zeek::run_state::current_timestamp;
 
 	bool do_close;
 	bool gen_event;
-	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
+	UpdateStateMachine(zeek::run_state::current_timestamp, endpoint, peer, base_seq, ack_seq,
 	                   len, delta_last, is_orig, flags, do_close, gen_event);
 
 	if ( flags.ACK() )
@@ -1211,7 +1210,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( DEBUG_tcp_data_sent )
 		{
 		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",
-			  network_time, len, caplen, Skipping());
+		          zeek::run_state::network_time, len, caplen, Skipping());
 		}
 
 	uint64_t rel_data_seq = flags.SYN() ? rel_seq + 1 : rel_seq;
@@ -1219,7 +1218,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int need_contents = 0;
 	if ( len > 0 && (caplen >= len || packet_children.size()) &&
 	     ! flags.RST() && ! Skipping() && ! seq_underflow )
-		need_contents = DeliverData(current_timestamp, data, len, caplen, ip,
+		need_contents = DeliverData(zeek::run_state::current_timestamp, data, len, caplen, ip,
 		                            tp, endpoint, rel_data_seq, is_orig, flags);
 
 	endpoint->CheckEOF();
@@ -1388,7 +1387,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_mss_invalid_len", fmt("%d", length));
+					Weird("tcp_option_mss_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1402,7 +1401,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_window_scale_invalid_len", fmt("%d", length));
+					Weird("tcp_option_window_scale_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1411,7 +1410,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length != 2 )
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_sack_invalid_len", fmt("%d", length));
+					Weird("tcp_option_sack_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1433,7 +1432,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_sack_blocks_invalid_len", fmt("%d", length));
+					Weird("tcp_option_sack_blocks_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1449,7 +1448,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_timestamps_invalid_len", fmt("%d", length));
+					Weird("tcp_option_timestamps_invalid_len", zeek::util::fmt("%d", length));
 					}
 				break;
 
@@ -1514,7 +1513,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	if ( ! is_active )
 		return;
 
-	if ( Conn()->LastTime() + tcp_connection_linger < t )
+	if ( Conn()->LastTime() + zeek::detail::tcp_connection_linger < t )
 		{
 		if ( orig->did_close || resp->did_close )
 			{
@@ -1559,7 +1558,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	// Connection still active, so reschedule timer.
 	// ### if PQ_Element's were Obj's, could just Ref the timer
 	// and adjust its value here, instead of creating a new timer.
-	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + tcp_session_timer,
+	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + zeek::detail::tcp_session_timer,
 	                   false, zeek::detail::TIMER_TCP_EXPIRE);
 	}
 
@@ -1665,7 +1664,8 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 	if ( DEBUG_tcp_connection_close )
 		{
 		DEBUG_MSG("%.6f close_complete=%d tcp_close_delay=%f\n",
-				network_time, close_complete, tcp_close_delay);
+		          zeek::run_state::network_time, close_complete,
+		          zeek::detail::tcp_close_delay);
 		}
 
 	if ( close_complete )
@@ -1698,9 +1698,9 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		//
 		// here, because that would cause the object to be
 		// deleted out from under us.
-		if ( tcp_close_delay != 0.0 )
+		if ( zeek::detail::tcp_close_delay != 0.0 )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ConnDeleteTimer,
-			                   Conn()->LastTime() + tcp_close_delay, false,
+			                   Conn()->LastTime() + zeek::detail::tcp_close_delay, false,
 			                   zeek::detail::TIMER_CONN_DELETE);
 		else
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), false,
@@ -1713,7 +1713,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			{ // First time we've seen anything from this side.
 			if ( connection_partial_close )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::PartialCloseTimer,
-				                   Conn()->LastTime() + tcp_partial_close_delay, false,
+				                   Conn()->LastTime() + zeek::detail::tcp_partial_close_delay, false,
 				                   zeek::detail::TIMER_TCP_PARTIAL_CLOSE );
 			}
 
@@ -1722,7 +1722,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			// Create a timer to look for the other side closing,
 			// too.
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-			                   Conn()->LastTime() + tcp_session_timer, false,
+			                   Conn()->LastTime() + zeek::detail::tcp_session_timer, false,
 			                   zeek::detail::TIMER_TCP_EXPIRE);
 			}
 		}
@@ -1870,7 +1870,7 @@ bool TCP_Analyzer::IsReuse(double t, const u_char* pkt)
 		  resp->state != TCP_ENDPOINT_RESET )
 		Weird("active_connection_reuse");
 
-	else if ( t - Conn()->LastTime() < tcp_connection_linger &&
+	else if ( t - Conn()->LastTime() < zeek::detail::tcp_connection_linger &&
 		  orig->state != TCP_ENDPOINT_RESET &&
 		  resp->state != TCP_ENDPOINT_RESET )
 		Weird("premature_connection_reuse");
@@ -1907,7 +1907,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 	DBG_LOG(zeek::DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
-			fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
+	        zeek::util::fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
@@ -2058,7 +2058,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 			}
 
 		DEBUG_MSG("%.6f rexmit %" PRIu64" + %d <= %" PRIu64" data_in_flight = %d\n",
-		 	network_time, seq, len, max_top_seq, data_in_flight);
+		          zeek::run_state::network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )
 			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
@@ -2129,7 +2129,9 @@ void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
-		orig_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
+		orig_stats->DataSent(zeek::run_state::network_time, seq, len, caplen, data, ip, nullptr);
 	else
-		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
+		resp_stats->DataSent(zeek::run_state::network_time, seq, len, caplen, data, ip, nullptr);
 	}
+
+} // namespace zeek::analyzer::tcp

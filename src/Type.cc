@@ -266,7 +266,7 @@ void Type::Describe(ODesc* d) const
 
 void Type::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(fmt(":zeek:type:`%s`", type_name(Tag())));
+	d->Add(zeek::util::fmt(":zeek:type:`%s`", type_name(Tag())));
 	}
 
 void Type::SetError()
@@ -339,7 +339,7 @@ unsigned int TypeList::MemoryAllocation() const
 	for ( const auto& t : types )
 		size += t->MemoryAllocation();
 
-	size += pad_size(types.capacity() * sizeof(decltype(types)::value_type));
+	size += zeek::util::pad_size(types.capacity() * sizeof(decltype(types)::value_type));
 
 	return Type::MemoryAllocation()
 		+ padded_sizeof(*this) - padded_sizeof(Type)
@@ -350,7 +350,7 @@ int IndexType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
 	const auto& types = indices->GetTypes();
-	const expr_list& exprs = index->Exprs();
+	const ExprPList& exprs = index->Exprs();
 
 	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET &&
 	     exprs.length() == 1 && exprs[0]->GetType()->Tag() == TYPE_ADDR )
@@ -553,8 +553,8 @@ FuncType::FuncType(RecordTypePtr arg_args,
 
 		else if ( has_default_arg )
 			{
-			const char* err_str = fmt("required parameter '%s' must precede "
-			                          "default parameters", td->id);
+			const char* err_str = zeek::util::fmt("required parameter '%s' must precede "
+			                                      "default parameters", td->id);
 			args->Error(err_str);
 			}
 
@@ -603,7 +603,7 @@ int FuncType::MatchesIndex(zeek::detail::ListExpr* const index) const
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
-bool FuncType::CheckArgs(const type_list* args, bool is_init) const
+bool FuncType::CheckArgs(const TypePList* args, bool is_init) const
 	{
 	std::vector<TypePtr> as;
 	as.reserve(args->length());
@@ -621,8 +621,8 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 
 	if ( my_args.size() != args.size() )
 		{
-		Warn(fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
-		         args.size(), my_args.size()));
+		Warn(zeek::util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
+		                     args.size(), my_args.size()));
 		return false;
 		}
 
@@ -631,8 +631,8 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 	for ( size_t i = 0; i < my_args.size(); ++i )
 		if ( ! same_type(args[i], my_args[i], is_init) )
 			{
-			Warn(fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
-				i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
+			Warn(zeek::util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
+			                     i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
 			success = false;
 			}
 
@@ -719,7 +719,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 			const auto& desired_type = args.GetFieldType(i);
 
 			if ( ! same_type(ptype, desired_type) ||
-			     ! streq(args.FieldName(i), p.args->FieldName(i)) )
+			     ! zeek::util::streq(args.FieldName(i), p.args->FieldName(i)) )
 				{
 				matched = false;
 				break;
@@ -744,7 +744,7 @@ TypeDecl::TypeDecl(const TypeDecl& other)
 	type = other.type;
 	attrs = other.attrs;
 
-	id = copy_string(other.id);
+	id = zeek::util::copy_string(other.id);
 	}
 
 TypeDecl::~TypeDecl()
@@ -821,7 +821,7 @@ int RecordType::FieldOffset(const char* field) const
 	loop_over_list(*types, i)
 		{
 		TypeDecl* td = (*types)[i];
-		if ( streq(td->id, field) )
+		if ( zeek::util::streq(td->id, field) )
 			return i;
 		}
 
@@ -1045,7 +1045,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			d->Add("<recursion>");
 		else
 			{
-			if ( num_fields == 1 && streq(td->id, "va_args") &&
+			if ( num_fields == 1 && zeek::util::streq(td->id, "va_args") &&
 			     td->type->Tag() == TYPE_ANY )
 				// This was a BIF using variable argument list
 				d->Add("...");
@@ -1056,8 +1056,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		if ( func_args )
 			continue;
 
-		using zeekygen::IdentifierInfo;
-		IdentifierInfo* doc = zeekygen_mgr->GetIdentifierInfo(GetName());
+		zeek::zeekygen::detail::IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( ! doc )
 			{
@@ -1076,7 +1075,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		     field_from_script != type_from_script )
 			{
 			d->PushIndent();
-			d->Add(zeekygen::redef_indication(field_from_script).c_str());
+			d->Add(zeek::zeekygen::detail::redef_indication(field_from_script).c_str());
 			d->PopIndent();
 			}
 
@@ -1096,7 +1095,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				{
 				string s = cmnts[i];
 
-				if ( zeekygen::prettify_params(s) )
+				if ( zeek::zeekygen::detail::prettify_params(s) )
 					d->NL();
 
 				d->Add(s.c_str());
@@ -1122,11 +1121,11 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 			result = deprecation->DeprecationMessage();
 
 		if ( result.empty() )
-			return fmt("deprecated (%s%s$%s)", GetName().c_str(), has_check ? "?" : "",
-				FieldName(field));
+			return zeek::util::fmt("deprecated (%s%s$%s)", GetName().c_str(), has_check ? "?" : "",
+			                       FieldName(field));
 		else
-			return fmt("deprecated (%s%s$%s): %s", GetName().c_str(), has_check ? "?" : "",
-				FieldName(field), result.c_str());
+			return zeek::util::fmt("deprecated (%s%s$%s): %s", GetName().c_str(), has_check ? "?" : "",
+			                       FieldName(field), result.c_str());
 		}
 
 	return "";
@@ -1182,7 +1181,7 @@ void OpaqueType::Describe(ODesc* d) const
 
 void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
+	d->Add(zeek::util::fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
 	}
 
 EnumType::EnumType(const string& name)
@@ -1248,7 +1247,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		return;
 		}
 
-	auto fullname = make_full_var_name(module_name.c_str(), name);
+	auto fullname = zeek::detail::make_full_var_name(module_name.c_str(), name);
 	auto id = zeek::id::find(fullname);
 
 	if ( ! id )
@@ -1260,7 +1259,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		if ( deprecation )
 			id->MakeDeprecated({zeek::NewRef{}, deprecation});
 
-		zeekygen_mgr->Identifier(std::move(id));
+		zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 		}
 	else
 		{
@@ -1299,14 +1298,14 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 void EnumType::AddNameInternal(const string& module_name, const char* name,
                                bro_int_t val, bool is_export)
 	{
-	string fullname = make_full_var_name(module_name.c_str(), name);
+	string fullname = zeek::detail::make_full_var_name(module_name.c_str(), name);
 	names[fullname] = val;
 	}
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
 	NameMap::const_iterator pos =
-		names.find(make_full_var_name(module_name.c_str(), name).c_str());
+		names.find(zeek::detail::make_full_var_name(module_name.c_str(), name).c_str());
 
 	if ( pos == names.end() )
 		return -1;
@@ -1373,12 +1372,11 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		d->PushIndent();
 
 		if ( roles_only )
-			d->Add(fmt(":zeek:enum:`%s`", it->second.c_str()));
+			d->Add(zeek::util::fmt(":zeek:enum:`%s`", it->second.c_str()));
 		else
-			d->Add(fmt(".. zeek:enum:: %s %s", it->second.c_str(), GetName().c_str()));
+			d->Add(zeek::util::fmt(".. zeek:enum:: %s %s", it->second.c_str(), GetName().c_str()));
 
-		using zeekygen::IdentifierInfo;
-		IdentifierInfo* doc = zeekygen_mgr->GetIdentifierInfo(it->second);
+		zeek::zeekygen::detail::IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(it->second);
 
 		if ( ! doc )
 			{
@@ -1393,7 +1391,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( doc->GetDeclaringScript() )
 			enum_from_script = doc->GetDeclaringScript()->Name();
 
-		IdentifierInfo* type_doc = zeekygen_mgr->GetIdentifierInfo(GetName());
+		zeek::zeekygen::detail::IdentifierInfo* type_doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( type_doc && type_doc->GetDeclaringScript() )
 			type_from_script = type_doc->GetDeclaringScript()->Name();
@@ -1403,7 +1401,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 			{
 			d->NL();
 			d->PushIndent();
-			d->Add(zeekygen::redef_indication(enum_from_script).c_str());
+			d->Add(zeek::zeekygen::detail::redef_indication(enum_from_script).c_str());
 			d->PopIndent();
 			}
 
@@ -1457,7 +1455,7 @@ const TypePtr& VectorType::Yield() const
 
 int VectorType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
-	expr_list& el = index->Exprs();
+	ExprPList& el = index->Exprs();
 
 	if ( el.length() != 1 && el.length() != 2)
 		return DOES_NOT_MATCH_INDEX;
@@ -1491,12 +1489,12 @@ void VectorType::Describe(ODesc* d) const
 
 void VectorType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(fmt(":zeek:type:`%s` of ", type_name(Tag())));
+	d->Add(zeek::util::fmt(":zeek:type:`%s` of ", type_name(Tag())));
 
 	if ( yield_type->GetName().empty() )
 		yield_type->DescribeReST(d, roles_only);
 	else
-		d->Add(fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
+		d->Add(zeek::util::fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
 	}
 
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an
@@ -1628,7 +1626,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
-			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
+			if ( (match_record_field_names && ! zeek::util::streq(td1->id, td2->id)) ||
 			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return false;
 			}
@@ -1856,8 +1854,8 @@ TypePtr merge_types(const TypePtr& arg_t1,
 		// there creating clones of the type, so safer to compare name.
 		if ( t1->GetName() != t2->GetName() )
 			{
-			std::string msg = fmt("incompatible enum types: '%s' and '%s'",
-			                      t1->GetName().data(), t2->GetName().data());
+			std::string msg = zeek::util::fmt("incompatible enum types: '%s' and '%s'",
+			                                  t1->GetName().data(), t2->GetName().data());
 
 			t1->Error(msg.data(), t2);
 			return nullptr;
@@ -1875,10 +1873,10 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			// actually see those changes from the redef.
 			return id->GetType();
 
-		std::string msg = fmt("incompatible enum types: '%s' and '%s'"
-		                      " ('%s' enum type ID is invalid)",
-		                      t1->GetName().data(), t2->GetName().data(),
-		                      t1->GetName().data());
+		std::string msg = zeek::util::fmt("incompatible enum types: '%s' and '%s'"
+		                                  " ('%s' enum type ID is invalid)",
+		                                  t1->GetName().data(), t2->GetName().data(),
+		                                  t1->GetName().data());
 		t1->Error(msg.data(), t2);
 		return nullptr;
 		}
@@ -1967,14 +1965,14 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 			auto tdl3_i = merge_types(td1->type, td2->type);
 
-			if ( ! streq(td1->id, td2->id) || ! tdl3_i )
+			if ( ! zeek::util::streq(td1->id, td2->id) || ! tdl3_i )
 				{
 				t1->Error("incompatible record fields", t2);
 				delete tdl3;
 				return nullptr;
 				}
 
-			tdl3->push_back(new TypeDecl(copy_string(td1->id), std::move(tdl3_i)));
+			tdl3->push_back(new TypeDecl(zeek::util::copy_string(td1->id), std::move(tdl3_i)));
 			}
 
 		return zeek::make_intrusive<RecordType>(tdl3);
@@ -2121,7 +2119,7 @@ TypePtr init_type(zeek::detail::Expr* init)
 		}
 
 	zeek::detail::ListExpr* init_list = init->AsListExpr();
-	const expr_list& el = init_list->Exprs();
+	const ExprPList& el = init_list->Exprs();
 
 	if ( el.length() == 0 )
 		{

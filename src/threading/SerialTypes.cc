@@ -14,7 +14,7 @@
 #include "Scope.h"
 #include "IPAddr.h"
 
-using namespace threading;
+namespace zeek::threading {
 
 bool Field::Read(zeek::detail::SerializationFormat* fmt)
 	{
@@ -32,7 +32,7 @@ bool Field::Read(zeek::detail::SerializationFormat* fmt)
 		if ( ! fmt->Read(&tmp_secondary_name, "secondary_name") )
 			return false;
 
-		secondary_name = copy_string(tmp_secondary_name.c_str());
+		secondary_name = zeek::util::copy_string(tmp_secondary_name.c_str());
 		}
 	else
 		secondary_name = nullptr;
@@ -45,7 +45,7 @@ bool Field::Read(zeek::detail::SerializationFormat* fmt)
 	if ( ! success )
 		return false;
 
-	name = copy_string(tmp_name.c_str());
+	name = zeek::util::copy_string(tmp_name.c_str());
 
 	type = static_cast<zeek::TypeTag>(t);
 	subtype = static_cast<zeek::TypeTag>(st);
@@ -603,7 +603,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 			// let's try looking it up by global ID.
-			const auto& id = zeek::detail::lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+			const auto& id = zeek::detail::lookup_ID(enum_string.c_str(), zeek::detail::GLOBAL_MODULE_NAME);
 
 			if ( ! id || ! id->IsEnumConst() )
 				{
@@ -636,3 +636,5 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 	assert(false);
 	return nullptr;
 	}
+
+} // namespace zeek::threading

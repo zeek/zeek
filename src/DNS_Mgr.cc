@@ -34,7 +34,7 @@
 #include "ZeekString.h"
 #include "Expr.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "ID.h"
@@ -58,7 +58,7 @@ namespace zeek::detail {
 class DNS_Mgr_Request {
 public:
 	DNS_Mgr_Request(const char* h, int af, bool is_txt)
-	    : host(copy_string(h)), fam(af), qtype(is_txt ? 16 : 0), addr(),
+	    : host(zeek::util::copy_string(h)), fam(af), qtype(is_txt ? 16 : 0), addr(),
 	      request_pending()
 		{ }
 
@@ -140,7 +140,7 @@ public:
 		if ( req_host && num_addrs == 0)
 			return false; // nothing to expire
 
-		return current_time() > (creation_time + req_ttl);
+		return zeek::util::current_time() > (creation_time + req_ttl);
 		}
 
 	int Type() const { return map_type; }
@@ -187,11 +187,11 @@ static zeek::TableValPtr empty_addr_set()
 DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
-	req_host = copy_string(host);
+	req_host = zeek::util::copy_string(host);
 	req_ttl = ttl;
 
 	if ( names && ! names[0] )
-		names[0] = copy_string(host);
+		names[0] = zeek::util::copy_string(host);
 	}
 
 DNS_Mapping::DNS_Mapping(const zeek::IPAddr& addr, struct hostent* h, uint32_t ttl)
@@ -231,13 +231,13 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	failed = static_cast<bool>(failed_local);
 
 	if ( is_req_host )
-		req_host = copy_string(req_buf);
+		req_host = zeek::util::copy_string(req_buf);
 	else
 		req_addr = zeek::IPAddr(req_buf);
 
 	num_names = 1;
 	names = new char*[num_names];
-	names[0] = copy_string(name_buf);
+	names[0] = zeek::util::copy_string(name_buf);
 
 	if ( num_addrs > 0 )
 		{
@@ -318,7 +318,7 @@ void DNS_Mapping::Init(struct hostent* h)
 	{
 	no_mapping = false;
 	init_failed = false;
-	creation_time = current_time();
+	creation_time = zeek::util::current_time();
 	host_val = nullptr;
 	addrs_val = nullptr;
 
@@ -331,7 +331,7 @@ void DNS_Mapping::Init(struct hostent* h)
 	map_type = h->h_addrtype;
 	num_names = 1;	// for now, just use official name
 	names = new char*[num_names];
-	names[0] = h->h_name ? copy_string(h->h_name) : nullptr;
+	names[0] = h->h_name ? zeek::util::copy_string(h->h_name) : nullptr;
 
 	for ( num_addrs = 0; h->h_addr_list[num_addrs]; ++num_addrs )
 		;
@@ -411,7 +411,7 @@ void DNS_Mgr::InitSource()
 	// script-layer option to configure the DNS resolver as it may not be
 	// configured to the user's desired address at the time when we need to to
 	// the lookup.
-	auto dns_resolver = zeekenv("ZEEK_DNS_RESOLVER");
+	auto dns_resolver = zeek::util::zeekenv("ZEEK_DNS_RESOLVER");
 	auto dns_resolver_addr = dns_resolver ? zeek::IPAddr(dns_resolver) : zeek::IPAddr();
 	char err[NB_DNS_ERRSIZE];
 
@@ -439,7 +439,7 @@ void DNS_Mgr::InitSource()
 
 	if ( nb_dns )
 		{
-		if ( ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
+		if ( ! zeek::iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
 			zeek::reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
 		}
 	else
@@ -455,7 +455,7 @@ void DNS_Mgr::InitPostScript()
 	dm_rec = zeek::id::find_type<zeek::RecordType>("dns_mapping");
 
 	// Registering will call Init()
-	iosource_mgr->Register(this, true);
+	zeek::iosource_mgr->Register(this, true);
 
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];
@@ -1204,7 +1204,7 @@ void DNS_Mgr::IssueAsyncRequests()
 			continue;
 			}
 
-		req->time = current_time();
+		req->time = zeek::util::current_time();
 		asyncs_timeouts.push(req);
 
 		++asyncs_pending;
@@ -1338,7 +1338,7 @@ double DNS_Mgr::GetNextTimeout()
 	if ( asyncs_timeouts.empty() )
 		return -1;
 
-	return network_time + DNS_TIMEOUT;
+	return zeek::run_state::network_time + DNS_TIMEOUT;
 	}
 
 void DNS_Mgr::Process()
@@ -1350,7 +1350,7 @@ void DNS_Mgr::Process()
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() && ! terminating )
+		if ( req->time + DNS_TIMEOUT > zeek::util::current_time() && ! zeek::run_state::terminating )
 			break;
 
 		if ( ! req->processed )
@@ -1462,7 +1462,7 @@ void DNS_Mgr::GetStats(Stats* stats)
 void DNS_Mgr::Terminate()
 	{
 	if ( nb_dns )
-		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
+		zeek::iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
 	}
 
 } // namespace zeek::detail

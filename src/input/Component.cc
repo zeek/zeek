@@ -6,7 +6,7 @@
 #include "../Desc.h"
 #include "../util.h"
 
-using namespace input;
+namespace zeek::input {
 
 Component::Component(const std::string& name, factory_callback arg_factory)
 	: zeek::plugin::Component(zeek::plugin::component::READER, name)
@@ -29,3 +29,5 @@ void Component::DoDescribe(zeek::ODesc* d) const
 	d->Add("Input::READER_");
 	d->Add(CanonicalName());
 	}
+
+} // namespace zeek::input

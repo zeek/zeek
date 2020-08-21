@@ -1,14 +1,16 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <stdint.h>
 
 #include <iosfwd>
 #include <thread>
 
-namespace threading {
+ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, threading);
 
-class Manager;
+namespace zeek::threading {
 
 /**
  * Base class for all threads.
@@ -111,7 +113,7 @@ public:
 	bool Killed()  const { return killed; }
 
 	/**
-	 * A version of fmt() that the thread can safely use.
+	 * A version of zeek::util::fmt() that the thread can safely use.
 	 *
 	 * This is safe to call from Run() but must not be used from any
 	 * other thread than the current one.
@@ -211,4 +213,10 @@ private:
 	static uint64_t thread_counter;
 };
 
-}
+} // namespace zeek::threading
+
+namespace threading {
+
+using BasicThread [[deprecated("Remove in v4.1. Use zeek::threading::BasicThread.")]] = zeek::threading::BasicThread;
+
+} // namespace threading

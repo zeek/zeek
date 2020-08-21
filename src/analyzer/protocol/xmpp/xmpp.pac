@@ -11,9 +11,9 @@
 #include "Reporter.h"
 #include "events.bif.h"
 
-namespace analyzer { namespace xmpp { class XMPP_Analyzer; } }
+namespace zeek::analyzer::xmpp { class XMPP_Analyzer; }
 namespace binpac { namespace XMPP { class XMPP_Conn; } }
-typedef analyzer::xmpp::XMPP_Analyzer* XMPPAnalyzer;
+using XMPPAnalyzer = zeek::analyzer::xmpp::XMPP_Analyzer*;
 
 #include "XMPP.h"
 %}

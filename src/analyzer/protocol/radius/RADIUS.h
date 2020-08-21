@@ -4,12 +4,11 @@
 
 #include "events.bif.h"
 
-
 #include "analyzer/protocol/udp/UDP.h"
 
 #include "radius_pac.h"
 
-namespace analyzer { namespace RADIUS {
+namespace zeek::analyzer::radius {
 
 class RADIUS_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -28,4 +27,10 @@ protected:
 	binpac::RADIUS::RADIUS_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::radius
+
+namespace analyzer::RADIUS {
+
+using RADIUS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::radius::RADIUS_Analyzer.")]] = zeek::analyzer::radius::RADIUS_Analyzer;
+
+} // namespace analyzer::RADIUS

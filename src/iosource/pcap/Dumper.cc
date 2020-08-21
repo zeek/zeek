@@ -5,11 +5,11 @@
 
 #include "Dumper.h"
 #include "../PktSrc.h"
-#include "../../Net.h"
+#include "../../RunState.h"
 
 #include "pcap.bif.h"
 
-using namespace iosource::pcap;
+namespace zeek::iosource::pcap {
 
 PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	{
@@ -47,11 +47,11 @@ void PcapDumper::Open()
 	if ( append )
 		{
 		// See if output file already exists (and is non-empty).
-		exists = stat(props.path.c_str(), &s); ;
+		exists = stat(props.path.c_str(), &s);
 
 		if ( exists < 0 && errno != ENOENT )
 			{
-			Error(fmt("can't stat file %s: %s", props.path.c_str(), strerror(errno)));
+			Error(zeek::util::fmt("can't stat file %s: %s", props.path.c_str(), strerror(errno)));
 			return;
 			}
 		}
@@ -76,12 +76,12 @@ void PcapDumper::Open()
 		dumper = (pcap_dumper_t*) fopen(props.path.c_str(), "a");
 		if ( ! dumper )
 			{
-			Error(fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
+			Error(zeek::util::fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
 			return;
 			}
 		}
 
-	props.open_time = network_time;
+	props.open_time = zeek::run_state::network_time;
 	props.hdr_size = zeek::Packet::GetLinkHeaderSize(pcap_datalink(pd));
 	Opened(props);
 	}
@@ -117,3 +117,5 @@ iosource::PktDumper* PcapDumper::Instantiate(const std::string& path, bool appen
 	{
 	return new PcapDumper(path, append);
 	}
+
+} // namespace zeek::iosource::pcap

@@ -8,7 +8,7 @@
 #include <utility>
 #include <optional>
 
-#include "BroList.h"
+#include "ZeekList.h"
 #include "IntrusivePtr.h"
 #include "Timer.h"
 #include "Type.h"
@@ -789,7 +789,7 @@ protected:
 class LambdaExpr final : public Expr {
 public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
-		   id_list outer_ids);
+	           IDPList outer_ids);
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -802,7 +802,7 @@ protected:
 private:
 	std::unique_ptr<function_ingredients> ingredients;
 
-	id_list outer_ids;
+	IDPList outer_ids;
 	std::string my_name;
 };
 
@@ -834,8 +834,8 @@ public:
 
 	void Append(ExprPtr e);
 
-	const expr_list& Exprs() const	{ return exprs; }
-	expr_list& Exprs()		{ return exprs; }
+	const ExprPList& Exprs() const	{ return exprs; }
+	ExprPList& Exprs()		{ return exprs; }
 
 	// True if the entire list represents pure values.
 	bool IsPure() const override;
@@ -854,7 +854,7 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	expr_list exprs;
+	ExprPList exprs;
 };
 
 

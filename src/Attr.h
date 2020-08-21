@@ -6,7 +6,7 @@
 #include <string>
 
 #include "Obj.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
@@ -107,7 +107,7 @@ protected:
 class Attributes final : public Obj {
 public:
 	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
-	Attributes(attr_list* a, zeek::TypePtr t, bool in_record, bool is_global);
+	Attributes(AttrPList* a, zeek::TypePtr t, bool in_record, bool is_global);
 
 	Attributes(std::vector<AttrPtr> a, zeek::TypePtr t,
 	           bool in_record, bool is_global);
@@ -133,7 +133,7 @@ public:
 	void DescribeReST(ODesc* d, bool shorten = false) const;
 
 	[[deprecated("Remove in v4.1. Use GetAttrs().")]]
-	const attr_list* Attrs() const
+	const AttrPList* Attrs() const
 		{ return &attrs_list; }
 
 	const std::vector<AttrPtr>& GetAttrs() const
@@ -148,7 +148,7 @@ protected:
 	std::vector<AttrPtr> attrs;
 
 	// Remove in v4.1. This is used by Attrs(), which is deprecated.
-	attr_list attrs_list;
+	AttrPList attrs_list;
 	bool in_record;
 	bool global_var;
 };

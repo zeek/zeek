@@ -85,12 +85,12 @@ TraversalCode zeek::detail::trigger::TriggerTraversalCallback::PreExpr(const zee
 class TriggerTimer final : public Timer {
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
-	: Timer(network_time + arg_timeout, TIMER_TRIGGER)
+	: Timer(zeek::run_state::network_time + arg_timeout, TIMER_TRIGGER)
 		{
 		Ref(arg_trigger);
 		trigger = arg_trigger;
 		timeout = arg_timeout;
-		time = network_time;
+		time = zeek::run_state::network_time;
 		}
 
 	~TriggerTimer()
@@ -296,7 +296,7 @@ bool Trigger::Eval()
 			Name());
 
 	v = nullptr;
-	stmt_flow_type flow;
+	StmtFlowType flow;
 
 	try
 		{
@@ -313,7 +313,7 @@ bool Trigger::Eval()
 		assert(trigger->attached == this);
 
 #ifdef DEBUG
-		const char* pname = copy_string(trigger->Name());
+		const char* pname = zeek::util::copy_string(trigger->Name());
 		DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger has parent %s, caching result", Name(), pname);
 		delete [] pname;
 #endif
@@ -347,7 +347,7 @@ void Trigger::Timeout()
 	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: timeout", Name());
 	if ( timeout_stmts )
 		{
-		stmt_flow_type flow;
+		StmtFlowType flow;
 		FramePtr f{zeek::AdoptRef{}, frame->Clone()};
 		ValPtr v;
 
@@ -366,7 +366,7 @@ void Trigger::Timeout()
 			assert(trigger->attached == this);
 
 #ifdef DEBUG
-			const char* pname = copy_string(trigger->Name());
+			const char* pname = zeek::util::copy_string(trigger->Name());
 			DBG_LOG(zeek::DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
 			delete [] pname;
 #endif
@@ -388,7 +388,7 @@ void Trigger::Timeout()
 void Trigger::Register(zeek::detail::ID* id)
 	{
 	assert(! disabled);
-	notifier::registry.Register(id, this);
+	zeek::notifier::detail::registry.Register(id, this);
 
 	Ref(id);
 	objs.push_back({id, id});
@@ -400,7 +400,7 @@ void Trigger::Register(Val* val)
 		return;
 
 	assert(! disabled);
-	notifier::registry.Register(val->Modifiable(), this);
+	zeek::notifier::detail::registry.Register(val->Modifiable(), this);
 
 	Ref(val);
 	objs.emplace_back(val, val->Modifiable());
@@ -412,7 +412,7 @@ void Trigger::UnregisterAll()
 
 	for ( const auto& o : objs )
 		{
-		notifier::registry.Unregister(o.second, this);
+		zeek::notifier::detail::registry.Unregister(o.second, this);
 		Unref(o.first);
 		}
 
@@ -426,7 +426,7 @@ void Trigger::Attach(Trigger *trigger)
 	assert(! trigger->delayed);
 
 #ifdef DEBUG
-	const char* pname = copy_string(trigger->Name());
+	const char* pname = zeek::util::copy_string(trigger->Name());
 	DBG_LOG(zeek::DBG_NOTIFIERS, "%s: attaching to %s", Name(), pname);
 	delete [] pname;
 #endif
@@ -454,7 +454,7 @@ bool Trigger::Cache(const zeek::detail::CallExpr* expr, Val* v)
 
 	Ref(v);
 
-	trigger_mgr->Queue(this);
+	zeek::detail::trigger_mgr->Queue(this);
 	return true;
 	}
 
@@ -478,24 +478,24 @@ void Trigger::Describe(ODesc* d) const
 	d->Add("<trigger>");
 	}
 
-void Trigger::Modified(notifier::Modifiable* m)
+void Trigger::Modified(zeek::notifier::detail::Modifiable* m)
 	{
-	trigger_mgr->Queue(this);
+	zeek::detail::trigger_mgr->Queue(this);
 	}
 
 const char* Trigger::Name() const
 	{
 	assert(location);
-	return fmt("%s:%d-%d", location->filename,
-			location->first_line, location->last_line);
+	return zeek::util::fmt("%s:%d-%d", location->filename,
+	                       location->first_line, location->last_line);
 	}
 
 
 
-Manager::Manager() : IOSource()
+Manager::Manager() : zeek::iosource::IOSource()
 	{
 	pending = new TriggerList();
-	iosource_mgr->Register(this, true);
+	zeek::iosource_mgr->Register(this, true);
 	}
 
 Manager::~Manager()
@@ -505,7 +505,7 @@ Manager::~Manager()
 
 double Manager::GetNextTimeout()
 	{
-	return pending->empty() ? -1 : network_time + 0.100;
+	return pending->empty() ? -1 : zeek::run_state::network_time + 0.100;
 	}
 
 void Manager::Process()
@@ -540,7 +540,7 @@ void Manager::Queue(Trigger* trigger)
 		Ref(trigger);
 		pending->push_back(trigger);
 		total_triggers++;
-		iosource_mgr->Wakeup(Tag());
+		zeek::iosource_mgr->Wakeup(Tag());
 		}
 	}
 

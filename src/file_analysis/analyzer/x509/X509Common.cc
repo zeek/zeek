@@ -14,15 +14,16 @@
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-X509Common::X509Common(const file_analysis::Tag& arg_tag,
-                       zeek::RecordValPtr arg_args, File* arg_file)
-	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
+X509Common::X509Common(const zeek::file_analysis::Tag& arg_tag,
+                       zeek::RecordValPtr arg_args,
+                       zeek::file_analysis::File* arg_file)
+	: zeek::file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{
 	}
 
-static void EmitWeird(const char* name, File* file, const char* addl = "")
+static void EmitWeird(const char* name, zeek::file_analysis::File* file, const char* addl = "")
 	{
 	if ( file )
 		zeek::reporter->Weird(file, name, addl);
@@ -30,7 +31,7 @@ static void EmitWeird(const char* name, File* file, const char* addl = "")
 		zeek::reporter->Weird(name);
 	}
 
-double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, File* f, zeek::Reporter* reporter)
+double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, zeek::file_analysis::File* f, zeek::Reporter* reporter)
 	{
 	time_t lResult = 0;
 
@@ -187,7 +188,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, File* f, zeek::Report
 	return lResult;
 }
 
-void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
+void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
 	{
 	// Ok, signed certificate timestamps are a bit of an odd case out; we don't
 	// want to use the (basically nonexistant) OpenSSL functionality to parse them.
@@ -231,7 +232,7 @@ void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION*
 	delete conn;
 	}
 
-void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr& h, bool global)
+void X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr& h, bool global)
 	{
 	char name[256];
 	char oid[256];
@@ -298,7 +299,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::E
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-zeek::StringValPtr file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
+zeek::StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, zeek::file_analysis::File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -338,3 +339,5 @@ zeek::StringValPtr file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File
 
 	return ext_val;
 	}
+
+} // namespace zeek::file_analysis::detail

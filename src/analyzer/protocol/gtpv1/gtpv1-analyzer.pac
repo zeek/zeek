@@ -323,7 +323,7 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(21, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", zeek::util::fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
@@ -392,7 +392,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(12, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", zeek::util::fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
@@ -470,7 +470,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(15, BuildEndUserAddr(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", zeek::util::fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
@@ -530,7 +530,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(9, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", zeek::util::fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
@@ -564,7 +564,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(2, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", zeek::util::fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
@@ -595,7 +595,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(1, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", zeek::util::fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}

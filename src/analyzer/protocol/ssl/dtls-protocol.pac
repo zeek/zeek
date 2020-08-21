@@ -74,7 +74,7 @@ refine connection SSL_Conn += {
 				{
 				reported_errors_++;
 				if ( reported_errors_ <= zeek::BifConst::SSL::dtls_max_reported_version_errors )
-					bro_analyzer()->ProtocolViolation(fmt("Invalid version in DTLS connection. Packet reported version: %d", version));
+					bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in DTLS connection. Packet reported version: %d", version));
 				}
 
 			if ( invalid_version_count_ > zeek::BifConst::SSL::dtls_max_version_errors )

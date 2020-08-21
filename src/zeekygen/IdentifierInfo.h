@@ -15,7 +15,7 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
 
-namespace zeekygen {
+namespace zeek::zeekygen::detail {
 
 class ScriptInfo;
 
@@ -181,5 +181,12 @@ private:
 	RecordField* last_field_seen;
 	ScriptInfo* declaring_script;
 };
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+using IdentifierInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::IdentifierInfo.")]] = zeek::zeekygen::detail::IdentifierInfo;
+using ScriptInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptInfo.")]] = zeek::zeekygen::detail::ScriptInfo;
 
 } // namespace zeekygen

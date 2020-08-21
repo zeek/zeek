@@ -14,7 +14,7 @@
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_init%(size: count%): opaque of topk
 	%{
-	auto v = zeek::make_intrusive<probabilistic::TopkVal>(size);
+	auto v = zeek::make_intrusive<zeek::probabilistic::detail::TopkVal>(size);
 	return v;
 	%}
 
@@ -33,7 +33,7 @@ function topk_init%(size: count%): opaque of topk
 function topk_add%(handle: opaque of topk, value: any%): any
 	%{
 	assert(handle);
-	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	auto* h = (zeek::probabilistic::detail::TopkVal*) handle;
 	h->Encountered({zeek::NewRef{}, value});
 
 	return nullptr;
@@ -52,7 +52,7 @@ function topk_add%(handle: opaque of topk, value: any%): any
 function topk_get_top%(handle: opaque of topk, k: count%): any_vec
 	%{
 	assert(handle);
-	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	auto* h = (zeek::probabilistic::detail::TopkVal*) handle;
 	return h->GetTopK(k);
 	%}
 
@@ -73,7 +73,7 @@ function topk_get_top%(handle: opaque of topk, k: count%): any_vec
 function topk_count%(handle: opaque of topk, value: any%): count
 	%{
 	assert(handle);
-	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	auto* h = (zeek::probabilistic::detail::TopkVal*) handle;
 	return zeek::val_mgr->Count(h->GetCount(value));
 	%}
 
@@ -93,7 +93,7 @@ function topk_count%(handle: opaque of topk, value: any%): count
 function topk_epsilon%(handle: opaque of topk, value: any%): count
 	%{
 	assert(handle);
-	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	auto* h = (zeek::probabilistic::detail::TopkVal*) handle;
 	return zeek::val_mgr->Count(h->GetEpsilon(value));
 	%}
 
@@ -112,7 +112,7 @@ function topk_epsilon%(handle: opaque of topk, value: any%): count
 function topk_size%(handle: opaque of topk%): count
 	%{
 	assert(handle);
-	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	auto* h = (zeek::probabilistic::detail::TopkVal*) handle;
 	return zeek::val_mgr->Count(h->GetSize());
 	%}
 
@@ -132,7 +132,7 @@ function topk_size%(handle: opaque of topk%): count
 function topk_sum%(handle: opaque of topk%): count
 	%{
 	assert(handle);
-	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	auto* h = (zeek::probabilistic::detail::TopkVal*) handle;
 	return zeek::val_mgr->Count(h->GetSum());
 	%}
 
@@ -152,8 +152,8 @@ function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
 	assert(handle1);
 	assert(handle2);
 
-	probabilistic::TopkVal* h1 = (probabilistic::TopkVal*) handle1;
-	probabilistic::TopkVal* h2 = (probabilistic::TopkVal*) handle2;
+	auto* h1 = (zeek::probabilistic::detail::TopkVal*) handle1;
+	auto* h2 = (zeek::probabilistic::detail::TopkVal*) handle2;
 
 	h1->Merge(h2);
 
@@ -178,8 +178,8 @@ function topk_merge_prune%(handle1: opaque of topk, handle2: opaque of topk%): a
 	assert(handle1);
 	assert(handle2);
 
-	probabilistic::TopkVal* h1 = (probabilistic::TopkVal*) handle1;
-	probabilistic::TopkVal* h2 = (probabilistic::TopkVal*) handle2;
+	auto* h1 = (zeek::probabilistic::detail::TopkVal*) handle1;
+	auto* h2 = (zeek::probabilistic::detail::TopkVal*) handle2;
 
 	h1->Merge(h2, true);
 

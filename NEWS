@@ -44,6 +44,11 @@ Removed Functionality
 - The counter type was removed. This type was never fully functional/used
   anywhere.
 
+- Removed the PRI_PTR_COMPAT_INT, PRI_PTR_COMPAT_UINT, and PRI_SOURCE_ID
+  macros. There are no deprecation warnings for these because they were C
+  macros. Use the PRIdPTR and PRIuPTR macros from the standard library
+  instead.
+
 Deprecated Functionality
 ------------------------
 

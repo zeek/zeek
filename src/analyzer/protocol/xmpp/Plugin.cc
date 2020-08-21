@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_XMPP {
+namespace zeek::plugin::detail::Zeek_XMPP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("XMPP", ::analyzer::xmpp::XMPP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("XMPP", zeek::analyzer::xmpp::XMPP_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::XMPP";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_XMPP

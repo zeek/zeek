@@ -1,6 +1,6 @@
 #include "binpac.h"
 
-#include "Net.h"
+#include "RunState.h"
 #include "Conn.h"
 #include "Sessions.h"
 #include "analyzer/Analyzer.h"
@@ -16,7 +16,7 @@ static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 static zeek::Connection* add_connection()
 	{
 	static constexpr double network_time_start = 1439471031;
-	net_update_time(network_time_start);
+	zeek::run_state::detail::update_network_time(network_time_start);
 
 	zeek::Packet p;
 	zeek::ConnID conn_id;
@@ -34,8 +34,8 @@ static zeek::Connection* add_connection()
 
 static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	{
-	analyzer::tcp::TCP_Analyzer* tcp = new analyzer::tcp::TCP_Analyzer(conn);
-	analyzer::pia::PIA* pia = new analyzer::pia::PIA_TCP(conn);
+	auto* tcp = new zeek::analyzer::tcp::TCP_Analyzer(conn);
+	auto* pia = new zeek::analyzer::pia::PIA_TCP(conn);
 	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());

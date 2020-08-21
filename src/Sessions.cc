@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 #include "Desc.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Event.h"
 #include "Timer.h"
 #include "NetVar.h"
@@ -72,7 +72,7 @@ void IPTunnelTimer::Dispatch(double t, bool is_expire)
 NetSessions::NetSessions()
 	{
 	if ( stp_correlate_pair )
-		stp_manager = new ::analyzer::stepping_stone::SteppingStoneManager();
+		stp_manager = new zeek::analyzer::stepping_stone::SteppingStoneManager();
 	else
 		stp_manager = nullptr;
 
@@ -89,14 +89,15 @@ NetSessions::NetSessions()
 	num_packets_processed = 0;
 	static auto pkt_profile_file = zeek::id::find_val("pkt_profile_file");
 
-	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
-		pkt_profiler = new zeek::detail::PacketProfiler(pkt_profile_mode,
-				pkt_profile_freq, pkt_profile_file->AsFile());
+	if ( zeek::detail::pkt_profile_mode && zeek::detail::pkt_profile_freq > 0 && pkt_profile_file )
+		pkt_profiler = new zeek::detail::PacketProfiler(zeek::detail::pkt_profile_mode,
+		                                                zeek::detail::pkt_profile_freq,
+		                                                pkt_profile_file->AsFile());
 	else
 		pkt_profiler = nullptr;
 
 	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new ::analyzer::arp::ARP_Analyzer();
+		arp_analyzer = new zeek::analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = nullptr;
 
@@ -139,7 +140,7 @@ void NetSessions::NextPacket(double t, const zeek::Packet* pkt)
 
 	dump_this_packet = false;
 
-	if ( record_all_packets )
+	if ( zeek::detail::record_all_packets )
 		DumpPacket(pkt);
 
 	if ( pkt->hdr_size > pkt->cap_len )
@@ -188,7 +189,7 @@ void NetSessions::NextPacket(double t, const zeek::Packet* pkt)
 		}
 
 
-	if ( dump_this_packet && ! record_all_packets )
+	if ( dump_this_packet && ! zeek::detail::record_all_packets )
 		DumpPacket(pkt);
 	}
 
@@ -275,7 +276,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
 
-	if ( ! pkt->l2_checksummed && ! ignore_checksums && ip4 &&
+	if ( ! pkt->l2_checksummed && ! zeek::detail::ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
 		Weird("bad_IP_checksum", pkt, encapsulation);
@@ -403,9 +404,9 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ::analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
-								icmpp->icmp_code,
-								id.is_one_way);
+		id.dst_port = zeek::analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
+		                                                      icmpp->icmp_code,
+		                                                      id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -419,9 +420,9 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ::analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
-								icmpp->icmp_code,
-								id.is_one_way);
+		id.dst_port = zeek::analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
+		                                                      icmpp->icmp_code,
+		                                                      id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -450,7 +451,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		if ( gre_version != 0 && gre_version != 1 )
 			{
 			Weird("unknown_gre_version", ip_hdr, encapsulation,
-			      fmt("%d", gre_version));
+			      zeek::util::fmt("%d", gre_version));
 			return;
 			}
 
@@ -528,7 +529,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 				{
 				// Enhanced GRE payload must be PPP.
 				Weird("egre_protocol_type", ip_hdr, encapsulation,
-				      fmt("%d", proto_typ));
+				      zeek::util::fmt("%d", proto_typ));
 				return;
 				}
 			}
@@ -632,11 +633,11 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 			{
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
 			                     tunnel_type);
-			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
-	        zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(network_time, tunnel_idx));
+			ip_tunnels[tunnel_idx] = TunnelActivity(ec, zeek::run_state::network_time);
+	        zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(zeek::run_state::network_time, tunnel_idx));
 			}
 		else
-			it->second.second = network_time;
+			it->second.second = zeek::run_state::network_time;
 
 		if ( gre_version == 0 )
 			DoNextInnerPacket(t, pkt, caplen, len, data, gre_link_type,
@@ -661,7 +662,7 @@ void NetSessions::DoNextPacket(double t, const zeek::Packet* pkt, const zeek::IP
 		}
 
 	default:
-		Weird("unknown_protocol", pkt, encapsulation, fmt("%d", proto));
+		Weird("unknown_protocol", pkt, encapsulation, zeek::util::fmt("%d", proto));
 		return;
 	}
 
@@ -758,9 +759,9 @@ void NetSessions::DoNextInnerPacket(double t, const zeek::Packet* pkt,
 		ts = pkt->ts;
 	else
 		{
-		ts.tv_sec = (time_t) network_time;
+		ts.tv_sec = (time_t) zeek::run_state::network_time;
 		ts.tv_usec = (suseconds_t)
-		    ((network_time - (double)ts.tv_sec) * 1000000);
+		    ((zeek::run_state::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
 	const u_char* data = nullptr;
@@ -796,9 +797,9 @@ void NetSessions::DoNextInnerPacket(double t, const zeek::Packet* pkt,
 		ts = pkt->ts;
 	else
 		{
-		ts.tv_sec = (time_t) network_time;
+		ts.tv_sec = (time_t) zeek::run_state::network_time;
 		ts.tv_usec = (suseconds_t)
-		    ((network_time - (double)ts.tv_sec) * 1000000);
+		    ((zeek::run_state::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
 	EncapsulationStack* outer = prev ?
@@ -1011,10 +1012,10 @@ void NetSessions::Remove(Connection* c)
 
 		if ( c->ConnTransport() == TRANSPORT_TCP )
 			{
-			auto ta = static_cast<::analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
+			auto ta = static_cast<zeek::analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
 			assert(ta->IsAnalyzer("TCP"));
-			::analyzer::tcp::TCP_Endpoint* to = ta->Orig();
-			::analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
+			zeek::analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			zeek::analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			tcp_stats.StateLeft(to->state, tr->state);
 			}
@@ -1273,10 +1274,10 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 			{
 			// The new connection is starting either without a SYN,
 			// or with a SYN ack. This means it's a partial connection.
-			if ( ! partial_connection_ok )
+			if ( ! zeek::detail::partial_connection_ok )
 				return false;
 
-			if ( tcp_flags & TH_SYN && ! tcp_SYN_ack_ok )
+			if ( tcp_flags & TH_SYN && ! zeek::detail::tcp_SYN_ack_ok )
 				return false;
 
 			// Try to guess true responder by the port numbers.
@@ -1310,7 +1311,7 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 
 void NetSessions::DumpPacket(const zeek::Packet *pkt, int len)
 	{
-	if ( ! pkt_dumper )
+	if ( ! zeek::run_state::detail::pkt_dumper )
 		return;
 
 	if ( len != 0 )
@@ -1321,7 +1322,7 @@ void NetSessions::DumpPacket(const zeek::Packet *pkt, int len)
 			const_cast<zeek::Packet *>(pkt)->cap_len = len;
 		}
 
-	pkt_dumper->Dump(pkt);
+	zeek::run_state::detail::pkt_dumper->Dump(pkt);
 	}
 
 void NetSessions::Weird(const char* name, const zeek::Packet* pkt,
@@ -1331,7 +1332,7 @@ void NetSessions::Weird(const char* name, const zeek::Packet* pkt,
 		dump_this_packet = true;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		zeek::reporter->Weird(fmt("%s_in_tunnel", name), addl);
+		zeek::reporter->Weird(zeek::util::fmt("%s_in_tunnel", name), addl);
 	else
 		zeek::reporter->Weird(name, addl);
 	}
@@ -1341,7 +1342,7 @@ void NetSessions::Weird(const char* name, const zeek::IP_Hdr* ip,
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		zeek::reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
-		                      fmt("%s_in_tunnel", name), addl);
+		                      zeek::util::fmt("%s_in_tunnel", name), addl);
 	else
 		zeek::reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
@@ -1350,7 +1351,7 @@ unsigned int NetSessions::ConnectionMemoryUsage()
 	{
 	unsigned int mem = 0;
 
-	if ( terminating )
+	if ( zeek::run_state::terminating )
 		// Connections have been flushed already.
 		return 0;
 
@@ -1370,7 +1371,7 @@ unsigned int NetSessions::ConnectionMemoryUsageConnVals()
 	{
 	unsigned int mem = 0;
 
-	if ( terminating )
+	if ( zeek::run_state::terminating )
 		// Connections have been flushed already.
 		return 0;
 
@@ -1388,7 +1389,7 @@ unsigned int NetSessions::ConnectionMemoryUsageConnVals()
 
 unsigned int NetSessions::MemoryAllocation()
 	{
-	if ( terminating )
+	if ( zeek::run_state::terminating )
 		// Connections have been flushed already.
 		return 0;
 

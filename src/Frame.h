@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "BroList.h" // for typedef val_list
+#include "ZeekList.h" // for typedef val_list
 #include "Obj.h"
 #include "IntrusivePtr.h"
 #include "ZeekArgs.h"
@@ -175,7 +175,7 @@ public:
 	 * *selection* have been cloned. All other values are made to be
 	 * null.
 	 */
-	Frame* SelectiveClone(const id_list& selection, ScriptFunc* func) const;
+	Frame* SelectiveClone(const IDPList& selection, ScriptFunc* func) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.
@@ -200,7 +200,7 @@ public:
 	 * @return the broker representaton, or an error if the serialization
 	 * failed.
 	 */
-	static broker::expected<broker::data> Serialize(const Frame* target, const id_list& selection);
+	static broker::expected<broker::data> Serialize(const Frame* target, const IDPList& selection);
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -218,7 +218,7 @@ public:
 	 *
 	 * @param ids the ids that the frame will intake.
 	 */
-	void AddKnownOffsets(const id_list& ids);
+	void AddKnownOffsets(const IDPList& ids);
 
 	/**
 	 * Captures *c* as this frame's closure and Refs all of the values
@@ -226,7 +226,7 @@ public:
 	 * the frame will unref it upon deconstruction. When calling this,
 	 * the frame's closure must not have been set yet.
 	 */
-	void CaptureClosure(Frame* c, id_list outer_ids);
+	void CaptureClosure(Frame* c, IDPList outer_ids);
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
@@ -293,16 +293,16 @@ private:
 	static broker::expected<broker::data>
 	SerializeOffsetMap(const OffsetMap& in);
 
-	/** Serializes an id_list */
+	/** Serializes an IDPList */
 	static broker::expected<broker::data>
-	SerializeIDList(const id_list& in);
+	SerializeIDList(const IDPList& in);
 
 	/** Unserializes an offset map. */
 	static std::pair<bool, std::unordered_map<std::string, int>>
 	UnserializeOffsetMap(const broker::vector& data);
 
-	/** Unserializes an id_list. */
-	static std::pair<bool, id_list>
+	/** Unserializes an IDPList. */
+	static std::pair<bool, IDPList>
 	UnserializeIDList(const broker::vector& data);
 
 	/** The number of vals that can be stored in this frame. */
@@ -320,7 +320,7 @@ private:
 	Frame* closure;
 
 	/** ID's used in this frame from the enclosing frame. */
-	id_list outer_ids;
+	IDPList outer_ids;
 
 	/**
 	 * Maps ID names to offsets. Used if this frame is  serialized

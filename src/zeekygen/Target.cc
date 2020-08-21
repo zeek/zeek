@@ -19,7 +19,8 @@
 #include <unistd.h>
 
 using namespace std;
-using namespace zeekygen;
+
+namespace zeek::zeekygen::detail {
 
 static void write_plugin_section_heading(FILE* f, const zeek::plugin::Plugin* p)
 	{
@@ -36,7 +37,7 @@ static void write_plugin_section_heading(FILE* f, const zeek::plugin::Plugin* p)
 static void write_analyzer_component(FILE* f, const zeek::analyzer::Component* c)
 	{
 	const auto& atag = zeek::analyzer_mgr->GetTagType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
+	string tag = zeek::util::fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
 		zeek::reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -44,10 +45,10 @@ static void write_analyzer_component(FILE* f, const zeek::analyzer::Component* c
 	fprintf(f, ":zeek:enum:`Analyzer::%s`\n\n", tag.c_str());
 	}
 
-static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
+static void write_analyzer_component(FILE* f, const zeek::file_analysis::Component* c)
 	{
-	const auto& atag = file_mgr->GetTagType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
+	const auto& atag = zeek::file_mgr->GetTagType();
+	string tag = zeek::util::fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Files", tag.c_str()) < 0 )
 		zeek::reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -79,8 +80,8 @@ static void write_plugin_components(FILE* f, const zeek::plugin::Plugin* p)
 
 		case zeek::plugin::component::FILE_ANALYZER:
 			{
-			const file_analysis::Component* c =
-			        dynamic_cast<const file_analysis::Component*>(component);
+			const auto* c =
+				dynamic_cast<const zeek::file_analysis::Component*>(component);
 
 			if ( c )
 				write_analyzer_component(f, c);
@@ -125,8 +126,8 @@ static void write_plugin_bif_items(FILE* f, const zeek::plugin::Plugin* p,
 
 	for ( it = bifitems.begin(); it != bifitems.end(); ++it )
 		{
-		zeekygen::IdentifierInfo* doc = zeekygen_mgr->GetIdentifierInfo(
-		                                        it->GetID());
+		IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(
+			it->GetID());
 
 		if ( doc )
 			fprintf(f, "%s\n\n", doc->ReStructuredText().c_str());
@@ -140,7 +141,7 @@ static void WriteAnalyzerTagDefn(FILE* f, const string& module)
 	{
 	string tag_id = module + "::Tag";
 
-	zeekygen::IdentifierInfo* doc = zeekygen_mgr->GetIdentifierInfo(tag_id);
+	IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(tag_id);
 
 	if ( ! doc )
 		zeek::reporter->InternalError("Zeekygen failed analyzer tag lookup: %s",
@@ -193,9 +194,9 @@ TargetFile::TargetFile(const string& arg_name)
 	{
 	if ( name.find('/') != string::npos )
 		{
-		string dir = SafeDirname(name).result;
+		string dir = zeek::util::SafeDirname(name).result;
 
-		if ( ! ensure_intermediate_dirs(dir.c_str()) )
+		if ( ! zeek::util::detail::ensure_intermediate_dirs(dir.c_str()) )
 			zeek::reporter->FatalError("Zeekygen failed to make dir %s",
 			                           dir.c_str());
 		}
@@ -247,7 +248,7 @@ void AnalyzerTarget::DoFindDependencies(const std::vector<Info *>& infos)
 
 void AnalyzerTarget::DoGenerate() const
 	{
-	if ( zeekygen_mgr->IsUpToDate(Name(), vector<Info*>()) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), vector<Info*>()) )
 		return;
 
 	if ( Pattern() != "*" )
@@ -341,8 +342,8 @@ void PackageTarget::DoFindDependencies(const vector<Info*>& infos)
 
 void PackageTarget::DoGenerate() const
 	{
-	if ( zeekygen_mgr->IsUpToDate(Name(), script_deps) &&
-	     zeekygen_mgr->IsUpToDate(Name(), pkg_deps) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), script_deps) &&
+	     zeek::detail::zeekygen_mgr->IsUpToDate(Name(), pkg_deps) )
 		return;
 
 	TargetFile file(Name());
@@ -352,7 +353,7 @@ void PackageTarget::DoGenerate() const
 	for ( manifest_t::const_iterator it = pkg_manifest.begin();
 	      it != pkg_manifest.end(); ++it )
 		{
-		string header = fmt("Package: %s", it->first->Name().c_str());
+		string header = zeek::util::fmt("Package: %s", it->first->Name().c_str());
 		header += "\n" + string(header.size(), '=');
 
 		fprintf(file.f, "%s\n\n", header.c_str());
@@ -390,7 +391,7 @@ void PackageIndexTarget::DoFindDependencies(const vector<Info*>& infos)
 
 void PackageIndexTarget::DoGenerate() const
 	{
-	if ( zeekygen_mgr->IsUpToDate(Name(), pkg_deps) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), pkg_deps) )
 		return;
 
 	TargetFile file(Name());
@@ -412,9 +413,9 @@ void ScriptTarget::DoFindDependencies(const vector<Info*>& infos)
 
 	for ( size_t i = 0; i < script_deps.size(); ++i )
 		{
-		if ( is_package_loader(script_deps[i]->Name()) )
+		if ( zeek::util::detail::is_package_loader(script_deps[i]->Name()) )
 			{
-			string pkg_dir = SafeDirname(script_deps[i]->Name()).result;
+			string pkg_dir = zeek::util::SafeDirname(script_deps[i]->Name()).result;
 			string target_file = Name() + pkg_dir + "/index.rst";
 			Target* t = new PackageTarget(target_file, pkg_dir);
 			t->FindDependencies(infos);
@@ -434,7 +435,7 @@ vector<string> dir_contents_recursive(string dir)
 	while ( dir[dir.size() - 1] == '/' )
 		dir.erase(dir.size() - 1, 1);
 
-	char* dir_copy = copy_string(dir.c_str());
+	char* dir_copy = zeek::util::copy_string(dir.c_str());
 	char** scan_path = new char*[2];
 	scan_path[0] = dir_copy;
 	scan_path[1] = NULL;
@@ -485,7 +486,7 @@ void ScriptTarget::DoGenerate() const
 			vector<ScriptInfo*> dep;
 			dep.push_back(script_deps[i]);
 
-			if ( zeekygen_mgr->IsUpToDate(target_filename, dep) )
+			if ( zeek::detail::zeekygen_mgr->IsUpToDate(target_filename, dep) )
 				continue;
 
 			TargetFile file(target_filename);
@@ -518,7 +519,7 @@ void ScriptTarget::DoGenerate() const
 
 	// Target is a single file, all matching scripts get written there.
 
-	if ( zeekygen_mgr->IsUpToDate(Name(), script_deps) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), script_deps) )
 		return;
 
 	TargetFile file(Name());
@@ -529,7 +530,7 @@ void ScriptTarget::DoGenerate() const
 
 void ScriptSummaryTarget::DoGenerate() const
 	{
-	if ( zeekygen_mgr->IsUpToDate(Name(), script_deps) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), script_deps) )
 		return;
 
 	TargetFile file(Name());
@@ -554,7 +555,7 @@ void ScriptSummaryTarget::DoGenerate() const
 
 void ScriptIndexTarget::DoGenerate() const
 	{
-	if ( zeekygen_mgr->IsUpToDate(Name(), script_deps) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), script_deps) )
 		return;
 
 	TargetFile file(Name());
@@ -585,7 +586,7 @@ void IdentifierTarget::DoFindDependencies(const vector<Info*>& infos)
 
 void IdentifierTarget::DoGenerate() const
 	{
-	if ( zeekygen_mgr->IsUpToDate(Name(), id_deps) )
+	if ( zeek::detail::zeekygen_mgr->IsUpToDate(Name(), id_deps) )
 		return;
 
 	TargetFile file(Name());
@@ -593,3 +594,5 @@ void IdentifierTarget::DoGenerate() const
 	for ( size_t i = 0; i < id_deps.size(); ++i )
 		fprintf(file.f, "%s\n\n", id_deps[i]->ReStructuredText().c_str());
 	}
+
+} // namespace zeek::zeekygen::detail

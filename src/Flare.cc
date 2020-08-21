@@ -19,7 +19,7 @@ Flare::Flare()
 		abort();
 
 	char buf[256];
-	bro_strerror_r(errno, buf, sizeof(buf));
+	zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 
 	if ( zeek::reporter )
 		zeek::reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);

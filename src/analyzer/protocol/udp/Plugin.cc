@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_UDP {
+namespace zeek::plugin::detail::Zeek_UDP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("UDP", ::analyzer::udp::UDP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("UDP", zeek::analyzer::udp::UDP_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::UDP";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_UDP

@@ -9,7 +9,9 @@
 
 #include "Component.h"
 
-namespace input {
+ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek::input);
+
+namespace zeek::input {
 
 /**
  * The modes a reader can be in.
@@ -40,8 +42,6 @@ enum ReaderMode {
 	/** Internal dummy mode for initialization. */
 	MODE_NONE
 };
-
-class ReaderFrontend;
 
 /**
  * Base class for reader implementation. When the input:Manager creates a new
@@ -75,7 +75,7 @@ public:
 	struct ReaderInfo
 		{
 		// Structure takes ownership of the strings.
-		typedef std::map<const char*, const char*, CompareString> config_map;
+		typedef std::map<const char*, const char*, zeek::util::CompareString> config_map;
 
 		/**
 		 * A string left to the interpretation of the reader
@@ -111,12 +111,12 @@ public:
 
 		ReaderInfo(const ReaderInfo& other)
 			{
-			source = other.source ? copy_string(other.source) : nullptr;
-			name = other.name ? copy_string(other.name) : nullptr;
+			source = other.source ? zeek::util::copy_string(other.source) : nullptr;
+			name = other.name ? zeek::util::copy_string(other.name) : nullptr;
 			mode = other.mode;
 
 			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-				config.insert(std::make_pair(copy_string(i->first), copy_string(i->second)));
+				config.insert(std::make_pair(zeek::util::copy_string(i->first), zeek::util::copy_string(i->second)));
 			}
 
 		~ReaderInfo()
@@ -364,4 +364,16 @@ private:
 	bool suppress_warnings = false;
 };
 
-}
+} // namespace zeek::input
+
+namespace input {
+
+using ReaderMode [[deprecated("Remove in v4.1. Use zeek::input::ReaderMode.")]] = zeek::input::ReaderMode;
+constexpr auto MODE_MANUAL [[deprecated("Remove in v4.1. Use zeek::input::MODE_MANUAL.")]] = zeek::input::MODE_MANUAL;
+constexpr auto MODE_REREAD [[deprecated("Remove in v4.1. Use zeek::input::MODE_REREAD.")]] = zeek::input::MODE_REREAD;
+constexpr auto MODE_STREAM [[deprecated("Remove in v4.1. Use zeek::input::MODE_STREAM.")]] = zeek::input::MODE_STREAM;
+constexpr auto MODE_NONE [[deprecated("Remove in v4.1. Use zeek::input::MODE_NONE.")]] = zeek::input::MODE_NONE;
+
+using ReaderBackend [[deprecated("Remove in v4.1. Use zeek::input::ReaderBackend.")]] = zeek::input::ReaderBackend;
+
+} // namespace input

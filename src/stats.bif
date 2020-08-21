@@ -44,9 +44,9 @@ function get_net_stats%(%): NetStats
 	uint64_t link = 0;
 	uint64_t bytes_recv = 0;
 
-	if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
+	if ( zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc() )
 		{
-		struct iosource::PktSrc::Stats stat;
+		struct zeek::iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
 		recv += stat.received;
 		drop += stat.dropped;
@@ -140,7 +140,7 @@ function get_proc_stats%(%): ProcStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ProcStats);
 	int n = 0;
 
-	double elapsed_time = current_time() - bro_start_time;
+	double elapsed_time = zeek::util::current_time() - zeek::run_state::zeek_start_time;
 	double user_time =
 		double(ru.ru_utime.tv_sec) + double(ru.ru_utime.tv_usec) / 1e6;
 	double system_time =
@@ -152,14 +152,14 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, zeek::val_mgr->Count(0));
 #endif
 
-	r->Assign(n++, zeek::make_intrusive<zeek::TimeVal>(bro_start_time));
+	r->Assign(n++, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::zeek_start_time));
 
 	r->Assign(n++, zeek::make_intrusive<zeek::IntervalVal>(elapsed_time, Seconds));
 	r->Assign(n++, zeek::make_intrusive<zeek::IntervalVal>(user_time, Seconds));
 	r->Assign(n++, zeek::make_intrusive<zeek::IntervalVal>(system_time, Seconds));
 
 	uint64_t total_mem;
-	get_memory_usage(&total_mem, NULL);
+	zeek::util::get_memory_usage(&total_mem, NULL);
 	r->Assign(n++, zeek::val_mgr->Count(unsigned(total_mem)));
 
 	r->Assign(n++, zeek::val_mgr->Count(unsigned(ru.ru_minflt)));
@@ -311,9 +311,9 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(FileAnalysisStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(file_mgr->CurrentFiles()));
-	r->Assign(n++, zeek::val_mgr->Count(file_mgr->MaxFiles()));
-	r->Assign(n++, zeek::val_mgr->Count(file_mgr->CumulativeFiles()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::file_mgr->CurrentFiles()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::file_mgr->MaxFiles()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::file_mgr->CumulativeFiles()));
 
 	return r;
 	%}
@@ -339,7 +339,7 @@ function get_thread_stats%(%): ThreadStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ThreadStats);
 	int n = 0;
 
-	r->Assign(n++, zeek::val_mgr->Count(thread_mgr->NumThreads()));
+	r->Assign(n++, zeek::val_mgr->Count(zeek::thread_mgr->NumThreads()));
 
 	return r;
 	%}

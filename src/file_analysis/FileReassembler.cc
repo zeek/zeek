@@ -1,11 +1,11 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "FileReassembler.h"
 #include "File.h"
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
-namespace file_analysis {
-
-class File;
+namespace zeek::file_analysis {
 
 FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
 	: zeek::Reassembler(starting_offset, zeek::REASSEM_FILE), the_file(f), flushing(false)

@@ -5,6 +5,7 @@
 #include "Hash.h"
 #include "Val.h"
 #include "IntrusivePtr.h"
+#include "RunState.h"
 
 #include "protocol/conn-size/ConnSize.h"
 #include "protocol/icmp/ICMP.h"
@@ -20,7 +21,7 @@
 using namespace zeek::analyzer;
 
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-				     uint16_t _resp_p, uint16_t _proto)
+                              uint16_t _resp_p, uint16_t _proto)
 	{
 	if ( _orig == IPAddr::v4_unspecified )
 		// don't use the IPv4 mapping, use the literal unspecified address
@@ -360,31 +361,29 @@ Manager::tag_set* Manager::LookupPort(zeek::PortVal* val, bool add_if_not_found)
 
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
-	::analyzer::tcp::TCP_Analyzer* tcp = nullptr;
-	::analyzer::udp::UDP_Analyzer* udp = nullptr;
-	::analyzer::icmp::ICMP_Analyzer* icmp = nullptr;
+	zeek::analyzer::tcp::TCP_Analyzer* tcp = nullptr;
 	TransportLayerAnalyzer* root = nullptr;
-	::analyzer::pia::PIA* pia = nullptr;
+	zeek::analyzer::pia::PIA* pia = nullptr;
 	bool check_port = false;
 
 	switch ( conn->ConnTransport() ) {
 
 	case TRANSPORT_TCP:
-		root = tcp = new ::analyzer::tcp::TCP_Analyzer(conn);
-		pia = new ::analyzer::pia::PIA_TCP(conn);
+		root = tcp = new zeek::analyzer::tcp::TCP_Analyzer(conn);
+		pia = new zeek::analyzer::pia::PIA_TCP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
 
 	case TRANSPORT_UDP:
-		root = udp = new ::analyzer::udp::UDP_Analyzer(conn);
-		pia = new ::analyzer::pia::PIA_UDP(conn);
+		root = new zeek::analyzer::udp::UDP_Analyzer(conn);
+		pia = new zeek::analyzer::pia::PIA_UDP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
 
 	case TRANSPORT_ICMP: {
-		root = icmp = new ::analyzer::icmp::ICMP_Analyzer(conn);
+		root = new zeek::analyzer::icmp::ICMP_Analyzer(conn);
 		DBG_ANALYZER(conn, "activated ICMP analyzer");
 		break;
 		}
@@ -401,7 +400,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	// the scheduled ones.
 	if ( ! scheduled )
 		{ // Let's see if it's a port we know.
-		if ( check_port && ! dpd_ignore_ports )
+		if ( check_port && ! zeek::detail::dpd_ignore_ports )
 			{
 			int resp_port = ntohs(conn->RespPort());
 			tag_set* ports = LookupPort(conn->ConnTransport(), resp_port, false);
@@ -432,9 +431,9 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		// be turned on later by the TCP PIA.
 
 		bool reass = root->GetChildren().size() ||
-				dpd_reassemble_first_packets ||
-				tcp_content_deliver_all_orig ||
-				tcp_content_deliver_all_resp;
+				zeek::detail::dpd_reassemble_first_packets ||
+				zeek::detail::tcp_content_deliver_all_orig ||
+				zeek::detail::tcp_content_deliver_all_resp;
 
 		if ( tcp_contents && ! reass )
 			{
@@ -466,25 +465,25 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 				auto src = zeek::make_intrusive<zeek::AddrVal>(conn->OrigAddr());
 
 				if ( ! stp_skip_src->FindOrDefault(src) )
-					tcp->AddChildAnalyzer(new ::analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
+					tcp->AddChildAnalyzer(new zeek::analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
 				}
 			}
 
 		if ( IsEnabled(analyzer_tcpstats) )
 			// Add TCPStats analyzer. This needs to see packets so
 			// we cannot add it as a normal child.
-			tcp->AddChildPacketAnalyzer(new ::analyzer::tcp::TCPStats_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new zeek::analyzer::tcp::TCPStats_Analyzer(conn));
 
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			tcp->AddChildPacketAnalyzer(new ::analyzer::conn_size::ConnSize_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new zeek::analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
 
 	else
 		{
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			root->AddChildAnalyzer(new ::analyzer::conn_size::ConnSize_Analyzer(conn));
+			root->AddChildAnalyzer(new zeek::analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
 
 	if ( pia )
@@ -501,14 +500,14 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 void Manager::ExpireScheduledAnalyzers()
 	{
-	if ( ! network_time )
+	if ( ! zeek::run_state::network_time )
 		return;
 
 	while ( conns_by_timeout.size() )
 		{
 		ScheduledAnalyzer* a = conns_by_timeout.top();
 
-		if ( a->timeout > network_time )
+		if ( a->timeout > zeek::run_state::network_time )
 			return;
 
 		conns_by_timeout.pop();
@@ -542,7 +541,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 			TransportProto proto, const Tag& analyzer,
 			double timeout)
 	{
-	if ( ! network_time )
+	if ( ! zeek::run_state::network_time )
 		{
 		reporter->Warning("cannot schedule analyzers before processing begins; ignored");
 		return;
@@ -556,7 +555,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 	ScheduledAnalyzer* a = new ScheduledAnalyzer;
 	a->conn = ConnIndex(orig, resp, resp_p, proto);
 	a->analyzer = analyzer;
-	a->timeout = network_time + timeout;
+	a->timeout = zeek::run_state::network_time + timeout;
 
 	conns.insert(std::make_pair(a->conn, a));
 	conns_by_timeout.push(a);
@@ -599,7 +598,7 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 
 	for ( conns_map::iterator i = all.first; i != all.second; i++ )
 		{
-		if ( i->second->timeout > network_time )
+		if ( i->second->timeout > zeek::run_state::network_time )
 			result.insert(i->second->analyzer);
 		}
 

@@ -6,14 +6,14 @@
 
 #include "logging/WriterBackend.h"
 
-namespace logging { namespace writer {
+namespace zeek::logging::writer::detail {
 
-class None : public WriterBackend {
+class None : public zeek::logging::WriterBackend {
 public:
-	explicit None(WriterFrontend* frontend) : WriterBackend(frontend)	{}
+	explicit None(zeek::logging::WriterFrontend* frontend) : zeek::logging::WriterBackend(frontend)	{}
 	~None() override {};
 
-	static WriterBackend* Instantiate(WriterFrontend* frontend)
+	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
 		{ return new None(frontend); }
 
 protected:
@@ -29,5 +29,4 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override { return true; }
 };
 
-}
-}
+} // namespace zeek::logging::writer::detail

@@ -19,7 +19,7 @@
 
 #include "analyzer/extract/Extract.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis {
 
 static zeek::TableValPtr empty_connection_table()
 	{
@@ -115,7 +115,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, zeek::make_intrusive<zeek::TimeVal>(network_time));
+	val->Assign(last_active_idx, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time));
 	}
 
 double File::GetLastActivityTime() const
@@ -214,7 +214,7 @@ bool File::SetExtractionLimit(zeek::RecordValPtr args, uint64_t bytes)
 	if ( ! a )
 		return false;
 
-	Extract* e = dynamic_cast<Extract*>(a);
+	auto* e = dynamic_cast<zeek::file_analysis::detail::Extract*>(a);
 
 	if ( ! e )
 		return false;
@@ -250,7 +250,7 @@ bool File::IsComplete() const
 
 void File::ScheduleInactivityTimer() const
 	{
-	zeek::detail::timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
+	zeek::detail::timer_mgr->Add(new detail::FileTimer(zeek::run_state::network_time, id, GetTimeoutInterval()));
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args)
@@ -390,7 +390,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, stream_offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
+	        zeek::util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
@@ -469,7 +469,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 			}
 
 		// Forward data to the reassembler.
-		file_reassembler->NewBlock(network_time, offset, len, data);
+		file_reassembler->NewBlock(zeek::run_state::network_time, offset, len, data);
 		}
 	else if ( stream_offset == offset )
 		{
@@ -482,7 +482,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 		// This is data that doesn't match the offset and the reassembler
 		// needs to be enabled.
 		file_reassembler = new FileReassembler(this, stream_offset);
-		file_reassembler->NewBlock(network_time, offset, len, data);
+		file_reassembler->NewBlock(zeek::run_state::network_time, offset, len, data);
 		}
 	else
 		{
@@ -494,7 +494,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
+	        zeek::util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = nullptr;
@@ -625,13 +625,13 @@ void File::FileEvent(zeek::EventHandlerPtr h)
 	FileEvent(h, zeek::Args{val});
 	}
 
-void File::FileEvent(zeek::EventHandlerPtr h, val_list* vl)
+void File::FileEvent(zeek::EventHandlerPtr h, ValPList* vl)
 	{
 	FileEvent(h, zeek::val_list_to_args(*vl));
 	delete vl;
 	}
 
-void File::FileEvent(zeek::EventHandlerPtr h, val_list vl)
+void File::FileEvent(zeek::EventHandlerPtr h, ValPList vl)
 	{
 	FileEvent(h, zeek::val_list_to_args(vl));
 	}
@@ -655,3 +655,5 @@ bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
 	{
 	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}
+
+} // namespace zeek::file_analysis

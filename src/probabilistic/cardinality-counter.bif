@@ -22,7 +22,7 @@ module GLOBAL;
 ##    hll_cardinality_copy
 function hll_cardinality_init%(err: double, confidence: double%): opaque of cardinality
 	%{
-	CardinalityCounter* c = new CardinalityCounter(err, confidence);
+	auto* c = new zeek::probabilistic::detail::CardinalityCounter(err, confidence);
 	auto cv = zeek::make_intrusive<zeek::CardinalityVal>(c);
 
 	return cv;
@@ -40,7 +40,7 @@ function hll_cardinality_init%(err: double, confidence: double%): opaque of card
 ##    hll_cardinality_init hll_cardinality_copy
 function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	%{
-	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+	auto* cv = static_cast<CardinalityVal*>(handle);
 
 	if ( ! cv->Type() && ! cv->Typify(elem->GetType()) )
 		{
@@ -73,8 +73,8 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 ##    hll_cardinality_init hll_cardinality_copy
 function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: opaque of cardinality%): bool
 	%{
-	CardinalityVal* v1 = static_cast<CardinalityVal*>(handle1);
-	CardinalityVal* v2 = static_cast<CardinalityVal*>(handle2);
+	auto* v1 = static_cast<CardinalityVal*>(handle1);
+	auto* v2 = static_cast<CardinalityVal*>(handle2);
 
 	if ( (v1->Type() != v2->Type()) && // both 0 is ok
 	     (v1->Type() != nullptr) && // any one 0 also is ok
@@ -85,8 +85,8 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 		return zeek::val_mgr->False();
 		}
 
-	CardinalityCounter* h1 = v1->Get();
-	CardinalityCounter* h2 = v2->Get();
+	zeek::probabilistic::detail::CardinalityCounter* h1 = v1->Get();
+	zeek::probabilistic::detail::CardinalityCounter* h2 = v2->Get();
 
 	bool res = h1->Merge(h2);
 	if ( ! res )
@@ -108,8 +108,8 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 ##    hll_cardinality_init hll_cardinality_copy
 function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 	%{
-	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
-	CardinalityCounter* h = cv->Get();
+	auto* cv = static_cast<CardinalityVal*>(handle);
+	zeek::probabilistic::detail::CardinalityCounter* h = cv->Get();
 
 	double estimate = h->Size();
 
@@ -126,9 +126,9 @@ function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 ##    hll_cardinality_init
 function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardinality
 	%{
-	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
-	CardinalityCounter* h = cv->Get();
-	CardinalityCounter* h2 = new CardinalityCounter(*h);
+	auto* cv = static_cast<CardinalityVal*>(handle);
+	zeek::probabilistic::detail::CardinalityCounter* h = cv->Get();
+	auto* h2 = new zeek::probabilistic::detail::CardinalityCounter(*h);
 	auto out = zeek::make_intrusive<zeek::CardinalityVal>(h2);
 
 	return out;

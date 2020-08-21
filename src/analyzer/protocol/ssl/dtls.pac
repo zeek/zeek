@@ -6,8 +6,8 @@
 %extern{
 #include "events.bif.h"
 
-namespace analyzer { namespace dtls { class DTLS_Analyzer; } }
-typedef analyzer::dtls::DTLS_Analyzer* DTLSAnalyzer;
+namespace zeek::analyzer::dtls { class DTLS_Analyzer; }
+using DTLSAnalyzer = zeek::analyzer::dtls::DTLS_Analyzer*;
 
 #include "DTLS.h"
 #include "consts.bif.h"

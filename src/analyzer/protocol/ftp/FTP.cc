@@ -15,20 +15,20 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::ftp;
+namespace zeek::analyzer::ftp {
 
 FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("FTP", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
 
-	nvt_orig = new login::NVT_Analyzer(conn, true);
+	nvt_orig = new zeek::analyzer::login::NVT_Analyzer(conn, true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetCRLFAsEOL(LF_as_EOL);
 	nvt_orig->SetIsNULSensitive(LF_as_EOL);
 
-	nvt_resp = new login::NVT_Analyzer(conn, false);
+	nvt_resp = new zeek::analyzer::login::NVT_Analyzer(conn, false);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetCRLFAsEOL(LF_as_EOL);
@@ -43,11 +43,11 @@ FTP_Analyzer::FTP_Analyzer(zeek::Connection* conn)
 
 void FTP_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( nvt_orig->HasPartialLine() &&
-	     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
-	      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) )
+	     (TCP()->OrigState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED ||
+	      TCP()->OrigPrevState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED) )
 		// ### should include the partial text
 		Weird("partial_ftp_request");
 	}
@@ -62,7 +62,7 @@ static uint32_t get_reply_code(int len, const char* line)
 
 void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
 
 	if ( (orig && ! ftp_request) || (! orig && ! ftp_reply) )
 		return;
@@ -84,9 +84,9 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		const char* cmd;
 		zeek::StringVal* cmd_str;
 
-		line = skip_whitespace(line, end_of_line);
-		get_word(end_of_line - line, line, cmd_len, cmd);
-		line = skip_whitespace(line + cmd_len, end_of_line);
+		line = zeek::util::skip_whitespace(line, end_of_line);
+		zeek::util::get_word(end_of_line - line, line, cmd_len, cmd);
+		line = zeek::util::skip_whitespace(line + cmd_len, end_of_line);
 
 		if ( cmd_len == 0 )
 			{
@@ -125,7 +125,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			     length > 3 && line[3] == ' ' )
 				{
 				// This is the end of the reply.
-				line = skip_whitespace(line + 3, end_of_line);
+				line = zeek::util::skip_whitespace(line + 3, end_of_line);
 				pending_reply = 0;
 				cont_resp = 0;
 				}
@@ -140,7 +140,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			if ( reply_code > 0 && length > 3 && line[3] == '-' )
 				{ // a continued reply
 				pending_reply = reply_code;
-				line = skip_whitespace(line + 4, end_of_line);
+				line = zeek::util::skip_whitespace(line + 4, end_of_line);
 				cont_resp = 1;
 				}
 			else
@@ -152,7 +152,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 						(const char*) data, length);
 
 				if ( line < end_of_line )
-					line = skip_whitespace(line, end_of_line);
+					line = zeek::util::skip_whitespace(line, end_of_line);
 				else
 					line = end_of_line;
 
@@ -210,12 +210,12 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		int cmd_len;
 		const char* cmd;
-		line = skip_whitespace(line, end_of_line);
-		get_word(len, line, cmd_len, cmd);
+		line = zeek::util::skip_whitespace(line, end_of_line);
+		zeek::util::get_word(len, line, cmd_len, cmd);
 
 		if ( strncmp(cmd, "ADAT", cmd_len) == 0 )
 			{
-			line = skip_whitespace(line + cmd_len, end_of_line);
+			line = zeek::util::skip_whitespace(line + cmd_len, end_of_line);
 			zeek::StringVal encoded(end_of_line - line, line);
 			decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
 
@@ -286,7 +286,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			if ( len > 3 && line[0] == '-' )
 				line++;
 
-			line = skip_whitespace(line, end_of_line);
+			line = zeek::util::skip_whitespace(line, end_of_line);
 
 			if ( end_of_line - line >= 5 && strncmp(line, "ADAT=", 5) == 0 )
 				{
@@ -331,3 +331,5 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( done )
 		Parent()->Remove();
 	}
+
+} // namespace zeek::analyzer::ftp

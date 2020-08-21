@@ -7,10 +7,13 @@
 #include "MsgThread.h"
 #include "Manager.h"
 #include "iosource/Manager.h"
+#include "RunState.h"
 
-using namespace threading;
+// Set by Zeek's main signal handler.
+extern int signal_val;
 
-namespace threading  {
+namespace zeek::threading {
+namespace detail {
 
 ////// Messages.
 
@@ -75,7 +78,7 @@ public:
 
 	ReporterMessage(Type arg_type, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
-		{ type = arg_type; msg = copy_string(arg_msg); }
+		{ type = arg_type; msg = zeek::util::copy_string(arg_msg); }
 
 	~ReporterMessage() override 	 { delete [] msg; }
 
@@ -109,7 +112,7 @@ class DebugMessage final : public OutputMessage<MsgThread>
 public:
 	DebugMessage(zeek::DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
-		{ stream = arg_stream; msg = copy_string(arg_msg); }
+		{ stream = arg_stream; msg = zeek::util::copy_string(arg_msg); }
 
 	~DebugMessage() override	{ delete [] msg; }
 
@@ -124,14 +127,12 @@ private:
 };
 #endif
 
-}
-
 // An event that the child wants to pass into the main event queue
 class SendEventMessage final : public OutputMessage<MsgThread> {
 public:
 	SendEventMessage(MsgThread* thread, const char* name, const int num_vals, Value* *val)
 		: OutputMessage<MsgThread>("SendEvent", thread),
-	  name(copy_string(name)), num_vals(num_vals), val(val) {}
+	  name(zeek::util::copy_string(name)), num_vals(num_vals), val(val) {}
 
 	~SendEventMessage() override	{ delete [] name; }
 
@@ -150,13 +151,6 @@ private:
 	const int num_vals;
 	Value* *val;
 };
-
-////// Methods.
-
-Message::~Message()
-	{
-	delete [] name;
-	}
 
 bool ReporterMessage::Process()
 	{
@@ -197,6 +191,15 @@ bool ReporterMessage::Process()
 	return true;
 	}
 
+} // namespace detail
+
+////// Methods.
+
+Message::~Message()
+	{
+	delete [] name;
+	}
+
 MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullptr, this)
 	{
 	cnt_sent_in = cnt_sent_out = 0;
@@ -206,7 +209,7 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullp
 	failed = false;
 	thread_mgr->AddMsgThread(this);
 
-	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(flare.FD(), this) )
 		zeek::reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
 
 	SetClosed(false);
@@ -216,11 +219,8 @@ MsgThread::~MsgThread()
 	{
 	// Unregister this thread from the iosource manager so it doesn't wake
 	// up the main poll anymore.
-	iosource_mgr->UnregisterFd(flare.FD(), this);
+	zeek::iosource_mgr->UnregisterFd(flare.FD(), this);
 	}
-
-// Set by Bro's main signal handler.
-extern int signal_val;
 
 void MsgThread::OnSignalStop()
 	{
@@ -229,7 +229,7 @@ void MsgThread::OnSignalStop()
 
 	child_sent_finish = true;
 	// Signal thread to terminate.
-	SendIn(new FinishMessage(this, network_time), true);
+	SendIn(new detail::FinishMessage(this, zeek::run_state::network_time), true);
 	}
 
 void MsgThread::OnWaitForStop()
@@ -303,43 +303,43 @@ void MsgThread::Heartbeat()
 	if ( child_sent_finish )
 		return;
 
-	SendIn(new HeartbeatMessage(this, network_time, current_time()));
+	SendIn(new detail::HeartbeatMessage(this, zeek::run_state::network_time, zeek::util::current_time()));
 	}
 
 void MsgThread::Finished()
 	{
 	child_finished = true;
-	SendOut(new FinishedMessage(this));
+	SendOut(new detail::FinishedMessage(this));
 	}
 
 void MsgThread::Info(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::INFO, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INFO, this, msg));
 	}
 
 void MsgThread::Warning(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::WARNING, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::WARNING, this, msg));
 	}
 
 void MsgThread::Error(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::ERROR, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::ERROR, this, msg));
 	}
 
 void MsgThread::FatalError(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::FATAL_ERROR, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR, this, msg));
 	}
 
 void MsgThread::FatalErrorWithCore(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::FATAL_ERROR_WITH_CORE, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR_WITH_CORE, this, msg));
 	}
 
 void MsgThread::InternalWarning(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::INTERNAL_WARNING, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INTERNAL_WARNING, this, msg));
 	}
 
 void MsgThread::InternalError(const char* msg)
@@ -353,7 +353,7 @@ void MsgThread::InternalError(const char* msg)
 
 void MsgThread::Debug(zeek::DebugStream stream, const char* msg)
 	{
-	SendOut(new DebugMessage(stream, this, msg));
+	SendOut(new detail::DebugMessage(stream, this, msg));
 	}
 
 #endif
@@ -390,7 +390,7 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 
 void MsgThread::SendEvent(const char* name, const int num_vals, Value* *vals)
 	{
-	SendOut(new SendEventMessage(this, name, num_vals, vals));
+	SendOut(new detail::SendEventMessage(this, name, num_vals, vals));
 	}
 
 BasicOutputMessage* MsgThread::RetrieveOut()
@@ -440,7 +440,7 @@ void MsgThread::Run()
 			// after all other outgoing messages (in particular
 			// error messages have been processed by then main
 			// thread).
-			SendOut(new KillMeMessage(this));
+			SendOut(new detail::KillMeMessage(this));
 			failed = true;
 			}
 		}
@@ -450,7 +450,7 @@ void MsgThread::Run()
 	// anymore.
 	if ( ! child_finished && ! Killed() )
 		{
-		OnFinish(network_time);
+		OnFinish(zeek::run_state::network_time);
 		Finished();
 		}
 	}
@@ -483,3 +483,5 @@ void MsgThread::Process()
 		delete msg;
 		}
 	}
+
+} // namespace zeek::threading

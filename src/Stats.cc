@@ -3,7 +3,7 @@
 #include "Conn.h"
 #include "File.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "ID.h"
 #include "Sessions.h"
@@ -51,7 +51,7 @@ void ProfileTimer::Dispatch(double t, bool is_expire)
 
 	// Reinstall timer.
 	if ( ! is_expire )
-		zeek::detail::timer_mgr->Add(new ProfileTimer(network_time + interval,
+		zeek::detail::timer_mgr->Add(new ProfileTimer(zeek::run_state::network_time + interval,
 		                                              logger, interval));
 	}
 
@@ -71,11 +71,11 @@ ProfileLogger::~ProfileLogger()
 
 void ProfileLogger::Log()
 	{
-	if ( terminating )
+	if ( zeek::run_state::terminating )
 		// Connections have been flushed already.
 		return;
 
-	file->Write(fmt("%.06f ------------------------\n", network_time));
+	file->Write(zeek::util::fmt("%.06f ------------------------\n", zeek::run_state::network_time));
 
 	// Do expensive profiling only occasionally.
 	bool expensive = false;
@@ -90,14 +90,14 @@ void ProfileLogger::Log()
 	struct timeval tv_stime = r.ru_stime;
 
 	uint64_t total, malloced;
-	get_memory_usage(&total, &malloced);
+	zeek::util::get_memory_usage(&total, &malloced);
 
 	static unsigned int first_total = 0;
 	static double first_rtime = 0;
 	static double first_utime = 0;
 	static double first_stime = 0;
 
-	double rtime = current_time();
+	double rtime = zeek::util::current_time();
 	double utime = double(tv_utime.tv_sec) + double(tv_utime.tv_usec) / 1e6;
 	double stime = double(tv_stime.tv_sec) + double(tv_stime.tv_usec) / 1e6;
 
@@ -108,27 +108,27 @@ void ProfileLogger::Log()
 		first_utime = utime;
 		first_stime = stime;
 
-		file->Write(fmt("%.06f Command line: ", network_time ));
-		for ( int i = 0; i < bro_argc; i++ )
+		file->Write(zeek::util::fmt("%.06f Command line: ", zeek::run_state::network_time ));
+		for ( int i = 0; i < zeek_argc; i++ )
 			{
-			file->Write(bro_argv[i]);
+			file->Write(zeek_argv[i]);
 			file->Write(" ");
 			}
-		file->Write(fmt("\n%.06f ------------------------\n", network_time));
+		file->Write(zeek::util::fmt("\n%.06f ------------------------\n", zeek::run_state::network_time));
 		}
 
-	file->Write(fmt("%.06f Memory: total=%" PRId64 "K total_adj=%" PRId64 "K malloced: %" PRId64 "K\n",
-		network_time, total / 1024, (total - first_total) / 1024,
+	file->Write(zeek::util::fmt("%.06f Memory: total=%" PRId64 "K total_adj=%" PRId64 "K malloced: %" PRId64 "K\n",
+		zeek::run_state::network_time, total / 1024, (total - first_total) / 1024,
 		malloced / 1024));
 
-	file->Write(fmt("%.06f Run-time: user+sys=%.1f user=%.1f sys=%.1f real=%.1f\n",
-		network_time, (utime + stime) - (first_utime + first_stime),
+	file->Write(zeek::util::fmt("%.06f Run-time: user+sys=%.1f user=%.1f sys=%.1f real=%.1f\n",
+		zeek::run_state::network_time, (utime + stime) - (first_utime + first_stime),
 		utime - first_utime, stime - first_stime, rtime - first_rtime));
 
 	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
 
-	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
-		network_time,
+	file->Write(zeek::util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
+		zeek::run_state::network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
 		sessions->CurrentConnections(),
@@ -141,20 +141,20 @@ void ProfileLogger::Log()
 	SessionStats s;
 	sessions->GetStats(s);
 
-	file->Write(fmt("%.06f Conns: tcp=%zu/%zu udp=%zu/%zu icmp=%zu/%zu\n",
-		network_time,
+	file->Write(zeek::util::fmt("%.06f Conns: tcp=%zu/%zu udp=%zu/%zu icmp=%zu/%zu\n",
+		zeek::run_state::network_time,
 		s.num_TCP_conns, s.max_TCP_conns,
 		s.num_UDP_conns, s.max_UDP_conns,
 		s.num_ICMP_conns, s.max_ICMP_conns
 		));
 
 	sessions->tcp_stats.PrintStats(file,
-			fmt("%.06f TCP-States:", network_time));
+			zeek::util::fmt("%.06f TCP-States:", zeek::run_state::network_time));
 
 	// Alternatively, if you prefer more compact output...
 	/*
-	file->Write(fmt("%.8f TCP-States: I=%d S=%d SA=%d SR=%d E=%d EF=%d ER=%d F=%d P=%d\n",
-		       network_time,
+	file->Write(zeek::util::fmt("%.8f TCP-States: I=%d S=%d SA=%d SR=%d E=%d EF=%d ER=%d F=%d P=%d\n",
+		       zeek::run_state::network_time,
 		       sessions->tcp_stats.StateInactive(),
 		       sessions->tcp_stats.StateRequest(),
 		       sessions->tcp_stats.StateSuccRequest(),
@@ -167,10 +167,10 @@ void ProfileLogger::Log()
 		       ));
 	*/
 
-	file->Write(fmt("%.06f Connections expired due to inactivity: %" PRIu64 "\n",
-		network_time, killed_by_inactivity));
+	file->Write(zeek::util::fmt("%.06f Connections expired due to inactivity: %" PRIu64 "\n",
+		zeek::run_state::network_time, killed_by_inactivity));
 
-	file->Write(fmt("%.06f Total reassembler data: %" PRIu64 "K\n", network_time,
+	file->Write(zeek::util::fmt("%.06f Total reassembler data: %" PRIu64 "K\n", zeek::run_state::network_time,
 		Reassembler::TotalMemoryAllocation() / 1024));
 
 	// Signature engine.
@@ -179,49 +179,49 @@ void ProfileLogger::Log()
 		zeek::detail::RuleMatcher::Stats stats;
 		zeek::detail::rule_matcher->GetStats(&stats);
 
-		file->Write(fmt("%06f RuleMatcher: matchers=%d nfa_states=%d dfa_states=%d "
-			"ncomputed=%d mem=%dK\n", network_time, stats.matchers,
+		file->Write(zeek::util::fmt("%06f RuleMatcher: matchers=%d nfa_states=%d dfa_states=%d "
+			"ncomputed=%d mem=%dK\n", zeek::run_state::network_time, stats.matchers,
 			stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
 
-	file->Write(fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
-	                network_time,
+	file->Write(zeek::util::fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
+	                zeek::run_state::network_time,
 	                zeek::detail::timer_mgr->Size(), zeek::detail::timer_mgr->PeakSize(),
-	                network_time - zeek::detail::timer_mgr->LastTimestamp()));
+	                zeek::run_state::network_time - zeek::detail::timer_mgr->LastTimestamp()));
 
 	zeek::detail::DNS_Mgr::Stats dstats;
 	zeek::detail::dns_mgr->GetStats(&dstats);
 
-	file->Write(fmt("%.06f DNS_Mgr: requests=%lu succesful=%lu failed=%lu pending=%lu cached_hosts=%lu cached_addrs=%lu\n",
-					network_time,
+	file->Write(zeek::util::fmt("%.06f DNS_Mgr: requests=%lu succesful=%lu failed=%lu pending=%lu cached_hosts=%lu cached_addrs=%lu\n",
+					zeek::run_state::network_time,
 					dstats.requests, dstats.successful, dstats.failed, dstats.pending,
 					dstats.cached_hosts, dstats.cached_addresses));
 
 	zeek::detail::trigger::Manager::Stats tstats;
-	trigger_mgr->GetStats(&tstats);
+	zeek::detail::trigger_mgr->GetStats(&tstats);
 
-	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
+	file->Write(zeek::util::fmt("%.06f Triggers: total=%lu pending=%lu\n", zeek::run_state::network_time, tstats.total, tstats.pending));
 
 	unsigned int* current_timers = zeek::detail::TimerMgr::CurrentTimers();
 	for ( int i = 0; i < zeek::detail::NUM_TIMER_TYPES; ++i )
 		{
 		if ( current_timers[i] )
-			file->Write(fmt("%.06f         %s = %d\n", network_time,
+			file->Write(zeek::util::fmt("%.06f         %s = %d\n", zeek::run_state::network_time,
 			                zeek::detail::timer_type_to_string(static_cast<zeek::detail::TimerType>(i)),
 			                current_timers[i]));
 		}
 
-	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));
+	file->Write(zeek::util::fmt("%0.6f Threads: current=%d\n", zeek::run_state::network_time, zeek::thread_mgr->NumThreads()));
 
-	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
+	const threading::Manager::msg_stats_list& thread_stats = zeek::thread_mgr->GetMsgThreadStats();
 	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
 	      i != thread_stats.end(); ++i )
 		{
 		threading::MsgThread::Stats s = i->second;
-		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
+		file->Write(zeek::util::fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
 				" (#queue r/w: in=%" PRIu64 "/%" PRIu64 " out=%" PRIu64 "/%" PRIu64 ")"
 			        "\n",
-			    network_time,
+			    zeek::run_state::network_time,
 			    i->first.c_str(),
 			    s.sent_in, s.sent_out,
 			    s.pending_in, s.pending_out,
@@ -232,12 +232,12 @@ void ProfileLogger::Log()
 
 	auto cs = broker_mgr->GetStatistics();
 
-	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
+	file->Write(zeek::util::fmt("%0.6f Comm: peers=%zu stores=%zu "
 			"pending_queries=%zu "
 			"events_in=%zu events_out=%zu "
 			"logs_in=%zu logs_out=%zu "
 			"ids_in=%zu ids_out=%zu ",
-			network_time, cs.num_peers, cs.num_stores,
+			zeek::run_state::network_time, cs.num_peers, cs.num_stores,
 			cs.num_pending_queries,
 			cs.num_events_incoming, cs.num_events_outgoing,
 			cs.num_logs_incoming, cs.num_logs_outgoing,
@@ -253,8 +253,8 @@ void ProfileLogger::Log()
 		int total_table_entries = 0;
 		int total_table_rentries = 0;
 
-		file->Write(fmt("%.06f Global_sizes > 100k: %dK\n",
-				network_time, mem / 1024));
+		file->Write(zeek::util::fmt("%.06f Global_sizes > 100k: %dK\n",
+				zeek::run_state::network_time, mem / 1024));
 
 		for ( const auto& global : globals )
 			{
@@ -294,12 +294,12 @@ void ProfileLogger::Log()
 
 				if ( print )
 					{
-					file->Write(fmt("%.06f                %s = %dK",
-						network_time, id->Name(),
+					file->Write(zeek::util::fmt("%.06f                %s = %dK",
+						zeek::run_state::network_time, id->Name(),
 						size / 1024));
 
 					if ( entries >= 0 )
-						file->Write(fmt(" (%d/%d entries)\n",
+						file->Write(zeek::util::fmt(" (%d/%d entries)\n",
 							entries, rentries));
 					else
 						file->Write("\n");
@@ -307,10 +307,10 @@ void ProfileLogger::Log()
 				}
 			}
 
-		file->Write(fmt("%.06f Global_sizes total: %dK\n",
-				network_time, mem / 1024));
-		file->Write(fmt("%.06f Total number of table entries: %d/%d\n",
-				network_time,
+		file->Write(zeek::util::fmt("%.06f Global_sizes total: %dK\n",
+				zeek::run_state::network_time, mem / 1024));
+		file->Write(zeek::util::fmt("%.06f Total number of table entries: %d/%d\n",
+				zeek::run_state::network_time,
 				total_table_entries, total_table_rentries));
 		}
 
@@ -329,17 +329,17 @@ void ProfileLogger::SegmentProfile(const char* name, const zeek::detail::Locatio
                                    double dtime, int dmem)
 	{
 	if ( name )
-		file->Write(fmt("%.06f segment-%s dt=%.06f dmem=%d\n",
-				network_time, name, dtime, dmem));
+		file->Write(zeek::util::fmt("%.06f segment-%s dt=%.06f dmem=%d\n",
+				zeek::run_state::network_time, name, dtime, dmem));
 	else if ( loc )
-		file->Write(fmt("%.06f segment-%s:%d dt=%.06f dmem=%d\n",
-				network_time,
+		file->Write(zeek::util::fmt("%.06f segment-%s:%d dt=%.06f dmem=%d\n",
+				zeek::run_state::network_time,
 				loc->filename ? loc->filename : "nofile",
 				loc->first_line,
 				dtime, dmem));
 	else
-		file->Write(fmt("%.06f segment-XXX dt=%.06f dmem=%d\n",
-				network_time, dtime, dmem));
+		file->Write(zeek::util::fmt("%.06f segment-XXX dt=%.06f dmem=%d\n",
+				zeek::run_state::network_time, dtime, dmem));
 	}
 
 
@@ -442,7 +442,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 		getrusage(RUSAGE_SELF, &res);
 		gettimeofday(&ptimestamp, 0);
 
-		get_memory_usage(&last_mem, nullptr);
+		zeek::util::get_memory_usage(&last_mem, nullptr);
 		last_Utime = res.ru_utime.tv_sec + res.ru_utime.tv_usec / 1e6;
 		last_Stime = res.ru_stime.tv_sec + res.ru_stime.tv_usec / 1e6;
 		last_Rtime = ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
@@ -466,14 +466,14 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 			ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
 
 		uint64_t curr_mem;
-		get_memory_usage(&curr_mem, nullptr);
+		zeek::util::get_memory_usage(&curr_mem, nullptr);
 
-		file->Write(fmt("%.06f %.03f %" PRIu64 " %" PRIu64 " %.03f %.03f %.03f %" PRIu64 "\n",
-				t, time-last_timestamp, pkt_cnt, byte_cnt,
-				curr_Rtime - last_Rtime,
-				curr_Utime - last_Utime,
-				curr_Stime - last_Stime,
-				curr_mem - last_mem));
+		file->Write(zeek::util::fmt("%.06f %.03f %" PRIu64 " %" PRIu64 " %.03f %.03f %.03f %" PRIu64 "\n",
+		                            t, time-last_timestamp, pkt_cnt, byte_cnt,
+		                            curr_Rtime - last_Rtime,
+		                            curr_Utime - last_Utime,
+		                            curr_Stime - last_Stime,
+		                            curr_mem - last_mem));
 
 		last_Utime = curr_Utime;
 		last_Stime = curr_Stime;

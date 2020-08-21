@@ -29,7 +29,7 @@ X509* helper_sk_X509_value(const STACK_OF(X509)* certs, int i)
 	return sk_X509_value(certs, i);
 	}
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
 #define OCSP_STRING_BUF_SIZE 2048
 
@@ -113,38 +113,40 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 	return true;
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateRequest(zeek::RecordValPtr args, File* file)
+zeek::file_analysis::Analyzer* OCSP::InstantiateRequest(zeek::RecordValPtr args,
+                                                        zeek::file_analysis::File* file)
 	{
 	return new OCSP(std::move(args), file, true);
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateReply(zeek::RecordValPtr args, File* file)
+zeek::file_analysis::Analyzer* OCSP::InstantiateReply(zeek::RecordValPtr args,
+                                                      zeek::file_analysis::File* file)
 	{
 	return new OCSP(std::move(args), file, false);
 	}
 
-file_analysis::OCSP::OCSP(zeek::RecordValPtr args, file_analysis::File* file,
+OCSP::OCSP(zeek::RecordValPtr args, zeek::file_analysis::File* file,
                           bool arg_request)
-	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"),
-	                                        std::move(args), file),
+	: X509Common::X509Common(zeek::file_mgr->GetComponentTag("OCSP"),
+	                         std::move(args), file),
 	  request(arg_request)
 	{
 	}
 
-bool file_analysis::OCSP::DeliverStream(const u_char* data, uint64_t len)
+bool OCSP::DeliverStream(const u_char* data, uint64_t len)
 	{
 	ocsp_data.append(reinterpret_cast<const char*>(data), len);
 	return true;
 	}
 
-bool file_analysis::OCSP::Undelivered(uint64_t offset, uint64_t len)
+bool OCSP::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}
 
 // we parse the entire OCSP response in EOF, because we just pass it on
 // to OpenSSL.
-bool file_analysis::OCSP::EndOfFile()
+bool OCSP::EndOfFile()
 	{
 	const unsigned char* ocsp_char = reinterpret_cast<const unsigned char*>(ocsp_data.data());
 
@@ -399,7 +401,7 @@ static uint64_t parse_request_version(OCSP_REQUEST* req)
 	}
 #endif
 
-void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
+void OCSP::ParseRequest(OCSP_REQUEST* req)
 	{
 	char buf[OCSP_STRING_BUF_SIZE]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
@@ -441,7 +443,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	BIO_free(bio);
 }
 
-void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
+void OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	{
 	//OCSP_RESPBYTES  *resp_bytes = resp->responseBytes;
 	OCSP_BASICRESP  *basic_resp = nullptr;
@@ -636,7 +638,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			::X509 *this_cert = X509_dup(helper_sk_X509_value(certs, i));
 			//::X509 *this_cert = X509_dup(sk_X509_value(certs, i));
 			if (this_cert)
-				certs_vector->Assign(i, zeek::make_intrusive<file_analysis::X509Val>(this_cert));
+				certs_vector->Assign(i, zeek::make_intrusive<X509Val>(this_cert));
 			else
 				zeek::reporter->Weird("OpenSSL returned null certificate");
 			}
@@ -662,7 +664,7 @@ clean_up:
 	BIO_free(bio);
 }
 
-void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
+void OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
 	{
 	// In OpenSSL 1.0.2+, we can get the extension by using NID_ct_cert_scts.
 	// In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
@@ -674,3 +676,5 @@ void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 #endif
 		ParseSignedCertificateTimestamps(ex);
 	}
+
+} // namespace zeek::file_analysis::detail

@@ -8,7 +8,7 @@
 #include "dtls_pac.h"
 #include "tls-handshake_pac.h"
 
-using namespace analyzer::dtls;
+namespace zeek::analyzer::dtls {
 
 DTLS_Analyzer::DTLS_Analyzer(zeek::Connection* c)
 : zeek::analyzer::Analyzer("DTLS", c)
@@ -66,6 +66,8 @@ void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, ui
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::dtls

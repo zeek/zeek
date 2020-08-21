@@ -55,7 +55,7 @@ refine connection Handshake_Conn += {
 			{
 			// This should be impossible due to the binpac parser
 			// and protocol description
-			bro_analyzer()->ProtocolViolation(fmt("Impossible extension length: %zu", length));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("Impossible extension length: %zu", length));
 			bro_analyzer()->SetSkip(true);
 			return true;
 			}
@@ -203,7 +203,7 @@ refine connection Handshake_Conn += {
 				ServerName* servername = (*list)[i];
 				if ( servername->name_type() != 0 )
 					{
-					bro_analyzer()->Weird("ssl_ext_unknown_server_name_type", fmt("%d", servername->name_type()));
+					bro_analyzer()->Weird("ssl_ext_unknown_server_name_type", zeek::util::fmt("%d", servername->name_type()));
 					continue;
 					}
 
@@ -288,7 +288,7 @@ refine connection Handshake_Conn += {
 
 	function proc_unknown_handshake(hs: HandshakeRecord, is_orig: bool) : bool
 		%{
-		bro_analyzer()->ProtocolViolation(fmt("unknown handshake message (%d) from %s",
+		bro_analyzer()->ProtocolViolation(zeek::util::fmt("unknown handshake message (%d) from %s",
 			${hs.msg_type}, orig_label(is_orig).c_str()));
 		return true;
 		%}
@@ -307,11 +307,11 @@ refine connection Handshake_Conn += {
 			file_handle.Add(common.Description());
 			file_handle.Add("ocsp");
 
-			string file_id = file_mgr->HashHandle(file_handle.Description());
+			string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
-			file_mgr->DataIn(reinterpret_cast<const u_char*>(response.data()),
-			                 response.length(), bro_analyzer()->GetAnalyzerTag(),
-			                 bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
+			zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(response.data()),
+			                       response.length(), bro_analyzer()->GetAnalyzerTag(),
+			                       bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
 
 			if ( ssl_stapled_ocsp )
 				zeek::BifEvent::enqueue_ssl_stapled_ocsp(bro_analyzer(),
@@ -319,7 +319,7 @@ refine connection Handshake_Conn += {
 				        ${rec.is_orig},
 				        zeek::make_intrusive<zeek::StringVal>(response.length(), (const char*) response.data()));
 
-			file_mgr->EndOfFile(file_id);
+			zeek::file_mgr->EndOfFile(file_id);
 			}
 		else if ( response.length() == 0 )
 			{

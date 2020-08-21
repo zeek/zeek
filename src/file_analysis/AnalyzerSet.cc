@@ -8,7 +8,7 @@
 #include "Val.h"
 #include "file_analysis/file_analysis.bif.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
 static void analyzer_del_func(void* v)
 	{
@@ -210,3 +210,5 @@ void AnalyzerSet::DrainModifications()
 	DBG_LOG(zeek::DBG_FILE_ANALYSIS, "[%s] End flushing analyzer mod queue.",
 	        file->GetID().c_str());
 	}
+
+} // namespace zeek::file_analysis::detail

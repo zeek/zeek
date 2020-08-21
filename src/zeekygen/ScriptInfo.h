@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek-config.h"
 #include "Info.h"
 
 #include <set>
@@ -12,17 +13,17 @@
 
 #include <time.h> // for time_t
 
-namespace zeekygen {
+ZEEK_FORWARD_DECLARE_NAMESPACED(IdentifierInfo, zeek, zeekygen, detail);
 
-class IdentifierInfo;
+namespace zeek::zeekygen::detail {
 
 struct IdInfoComp {
 	bool operator() (const IdentifierInfo* lhs,
 	                 const IdentifierInfo* rhs) const;
 };
 
-typedef std::set<IdentifierInfo*, IdInfoComp> id_info_set;
-typedef std::list<IdentifierInfo*> id_info_list;
+using id_info_set = std::set<IdentifierInfo*, IdInfoComp>;
+using id_info_list = std::list<IdentifierInfo*>;
 
 /**
  * Information about a Bro script.
@@ -118,5 +119,14 @@ private:
 	id_info_list functions;
 	id_info_set redefs;
 };
+
+} // namespace zeek::zeekygen::detail
+
+namespace zeekygen {
+
+using ScriptInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptInfo.")]] = zeek::zeekygen::detail::ScriptInfo;
+using id_info_set [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::id_info_set.")]] = zeek::zeekygen::detail::id_info_set;
+using id_info_list [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::id_info_list.")]] = zeek::zeekygen::detail::id_info_list;
+using IdInfoComp [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::IdInfoComp.")]] = zeek::zeekygen::detail::IdInfoComp;
 
 } // namespace zeekygen

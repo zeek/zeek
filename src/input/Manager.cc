@@ -15,17 +15,18 @@
 #include "Event.h"
 #include "EventHandler.h"
 #include "NetVar.h"
-#include "Net.h"
+#include "RunState.h"
 #include "CompHash.h"
 #include "Func.h"
 
 #include "../file_analysis/Manager.h"
 #include "../threading/SerialTypes.h"
 
-using namespace input;
 using namespace std;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
+
+namespace zeek::input {
 
 /**
  * InputHashes are used as Dictionaries to store the value and index hashes
@@ -243,8 +244,8 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 	string source((const char*) bsource->Bytes(), bsource->Len());
 
 	ReaderBackend::ReaderInfo rinfo;
-	rinfo.source = copy_string(source.c_str());
-	rinfo.name = copy_string(name.c_str());
+	rinfo.source = zeek::util::copy_string(source.c_str());
+	rinfo.name = zeek::util::copy_string(name.c_str());
 
 	auto mode_val = description->GetFieldOrDefault("mode");
 	auto mode = mode_val->AsEnumVal();
@@ -281,7 +282,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 			auto index = info->config->RecreateIndex(*k);
 			string key = index->Idx(0)->AsString()->CheckString();
 			string value = v->GetVal()->AsString()->CheckString();
-			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
+			rinfo.config.insert(std::make_pair(zeek::util::copy_string(key.c_str()), zeek::util::copy_string(value.c_str())));
 			delete k;
 			}
 		}
@@ -783,7 +784,7 @@ bool Manager::CreateAnalysisStream(zeek::RecordVal* fval)
 		return false;
 		}
 
-	stream->file_id = file_mgr->HashHandle(stream->name);
+	stream->file_id = zeek::file_mgr->HashHandle(stream->name);
 
 	assert(stream->reader);
 
@@ -1099,9 +1100,9 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 		{
 		readFields = 1;
 		assert(vals[0]->type == zeek::TYPE_STRING);
-		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
-		                 vals[0]->val.string_val.length,
-		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
+		zeek::file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                                      vals[0]->val.string_val.length,
+		                                      static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else
@@ -1437,7 +1438,7 @@ void Manager::SendEndOfData(const Stream *i)
 	          new zeek::StringVal(i->reader->Info().source));
 
 	if ( i->stream_type == ANALYSIS_STREAM )
-		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
+		zeek::file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
@@ -1469,9 +1470,9 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		{
 		readFields = 1;
 		assert(vals[0]->type == zeek::TYPE_STRING);
-		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
-		                 vals[0]->val.string_val.length,
-		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
+		zeek::file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                       vals[0]->val.string_val.length,
+		                       static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else
@@ -1827,7 +1828,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, const int numvals, ...) const
 	va_end(lP);
 
 	if ( ev )
-		zeek::event_mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::detail::SOURCE_LOCAL);
 	}
 
 void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
@@ -1844,7 +1845,7 @@ void Manager::SendEvent(zeek::EventHandlerPtr ev, list<zeek::Val*> events) const
 		vl.emplace_back(zeek::AdoptRef{}, *i);
 
 	if ( ev )
-		zeek::event_mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(ev, std::move(vl), zeek::util::detail::SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.
@@ -2319,8 +2320,8 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 		// \0's...
 		string enum_string(val->val.string_val.data, val->val.string_val.length);
 
-		string module = extract_module_name(enum_string.c_str());
-		string var = extract_var_name(enum_string.c_str());
+		string module = zeek::detail::extract_module_name(enum_string.c_str());
+		string var = zeek::detail::extract_var_name(enum_string.c_str());
 
 		// Well, this is kind of stupid, because EnumType just
 		// mangles the module name and the var name together again...
@@ -2511,3 +2512,5 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 
 	free(buf);
 	}
+
+} // namespace zeek::input

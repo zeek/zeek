@@ -4,7 +4,7 @@
 #include "File.h"
 #include "Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
 FileTimer::FileTimer(double t, const std::string& id, double interval)
 	: zeek::detail::Timer(t + interval, zeek::detail::TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
@@ -39,3 +39,5 @@ void FileTimer::Dispatch(double t, bool is_expire)
 	else if ( ! is_expire )
 		file->ScheduleInactivityTimer();
 	}
+
+} // namespace zeek::file_analysis::detail

@@ -7,9 +7,9 @@
 
 #include "mysql_pac.h"
 
-namespace analyzer { namespace MySQL {
+namespace zeek::analyzer::mysql {
 
-class MySQL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class MySQL_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit MySQL_Analyzer(zeek::Connection* conn);
@@ -21,7 +21,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
@@ -32,4 +32,10 @@ protected:
 	bool had_gap;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::mysql
+
+namespace analyzer::MySQL {
+
+using MySQL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::mysql::MySQL_Analyzer.")]] = zeek::analyzer::mysql::MySQL_Analyzer;
+
+} // namespace analyzer::MySQL

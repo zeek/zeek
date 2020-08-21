@@ -47,7 +47,7 @@ enum DNS_MgrMode {
 // Number of seconds we'll wait for a reply.
 #define DNS_TIMEOUT 5
 
-class DNS_Mgr final : public iosource::IOSource {
+class DNS_Mgr final : public zeek::iosource::IOSource {
 public:
 	explicit DNS_Mgr(DNS_MgrMode mode);
 	~DNS_Mgr() override;
@@ -62,7 +62,7 @@ public:
 	zeek::ValPtr LookupAddr(const zeek::IPAddr& addr);
 
 	// Define the directory where to store the data.
-	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
+	void SetDir(const char* arg_dir)	{ dir = zeek::util::copy_string(arg_dir); }
 
 	void Verify();
 	void Resolve();

@@ -279,7 +279,7 @@ void String::ToUpper()
 
 unsigned int String::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + pad_size(n + final_NUL);
+	return padded_sizeof(*this) + zeek::util::pad_size(n + final_NUL);
 	}
 
 String* String::GetSubstring(int start, int len) const
@@ -296,7 +296,7 @@ String* String::GetSubstring(int start, int len) const
 
 int String::FindSubstring(const String* s) const
 	{
-	return strstr_n(n, b, s->Len(), s->Bytes());
+	return zeek::util::strstr_n(n, b, s->Len(), s->Bytes());
 	}
 
 String::Vec* String::Split(const String::IdxVec& indices) const

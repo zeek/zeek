@@ -10,7 +10,7 @@
 
 #include "Reporter.h"
 
-using namespace probabilistic;
+namespace zeek::probabilistic::detail {
 
 int CardinalityCounter::OptimalB(double error, double confidence) const
 	{
@@ -279,14 +279,15 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 /*
  * Find Last Set bit
  */
-int
-CardinalityCounter::flsll(uint64_t mask)
-{
-        int bit;
+int CardinalityCounter::flsll(uint64_t mask)
+	{
+	int bit;
 
-        if (mask == 0)
-                return (0);
-        for (bit = 1; mask != 1; bit++)
-                mask = (uint64_t)mask >> 1;
-        return (bit);
-}
+	if (mask == 0)
+		return (0);
+	for (bit = 1; mask != 1; bit++)
+		mask = (uint64_t)mask >> 1;
+	return (bit);
+	}
+
+} // namespace zeek::probabilistic::detail

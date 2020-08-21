@@ -4,7 +4,7 @@
 #include "ID.h"
 #include "Desc.h"
 
-zeek::Args zeek::val_list_to_args(const val_list& vl)
+zeek::Args zeek::val_list_to_args(const ValPList& vl)
 	{
 	zeek::Args rval;
 	rval.reserve(vl.length());

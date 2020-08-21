@@ -12,11 +12,11 @@
 
 #include "threading/SerialTypes.h"
 
-using namespace input::reader;
-using namespace threading;
 using namespace std;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
+
+namespace zeek::input::reader::detail {
 
 FieldMapping::FieldMapping(const string& arg_name, const zeek::TypeTag& arg_type, int arg_position)
 	: name(arg_name), type(arg_type), subtype(zeek::TYPE_ERROR)
@@ -47,7 +47,7 @@ FieldMapping FieldMapping::subType()
 	return FieldMapping(name, subtype, position);
 	}
 
-Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
+Ascii::Ascii(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
@@ -113,8 +113,8 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	if ( set_separator.size() != 1 )
 		Error("set_separator length has to be 1. Separator will be truncated.");
 
-	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+	formatter = unique_ptr<zeek::threading::Formatter>(new zeek::threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -274,7 +274,7 @@ bool Ascii::DoUpdate()
 		return ! fail_on_file_problem;
 
 	switch ( Info().mode ) {
-		case MODE_REREAD:
+		case zeek::input::MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
@@ -301,14 +301,14 @@ bool Ascii::DoUpdate()
 			// File changed. Fall through to re-read.
 			}
 
-		case MODE_MANUAL:
-		case MODE_STREAM:
+		case zeek::input::MODE_MANUAL:
+		case zeek::input::MODE_STREAM:
 			{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
 			if ( file.is_open() )
 				{
-				if ( Info().mode == MODE_STREAM )
+				if ( Info().mode == zeek::input::MODE_STREAM )
 					{
 					file.clear(); // remove end of file evil bits
 					if ( ! ReadHeader(true) )
@@ -367,7 +367,7 @@ bool Ascii::DoUpdate()
 			if ( ! fit->present )
 				{
 				// add non-present field
-				fields[fpos] =  new Value((*fit).type, false);
+				fields[fpos] = new Value((*fit).type, false);
 				fpos++;
 				continue;
 				}
@@ -434,13 +434,13 @@ bool Ascii::DoUpdate()
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 		assert ( fpos == NumFields() );
 
-		if ( Info().mode == MODE_STREAM )
+		if ( Info().mode == zeek::input::MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( Info().mode != MODE_STREAM )
+	if ( Info().mode != zeek::input::MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -453,12 +453,12 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 	switch ( Info().mode )
 		{
-		case MODE_MANUAL:
+		case zeek::input::MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case MODE_REREAD:
-		case MODE_STREAM:
+		case zeek::input::MODE_REREAD:
+		case zeek::input::MODE_STREAM:
 			Update(); // Call Update, not DoUpdate, because Update
 				  // checks the "disabled" flag.
 			break;
@@ -469,3 +469,5 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
+
+} // namespace zeek::input::reader::detail

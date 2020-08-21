@@ -20,7 +20,7 @@
 #include "ZeekString.h"
 #include "CompHash.h"
 #include "Dict.h"
-#include "Net.h"
+#include "RunState.h"
 #include "File.h"
 #include "Func.h"
 #include "Desc.h"
@@ -421,7 +421,7 @@ detail::ID* Val::GetID() const
 void Val::SetID(detail::ID* id)
 	{
 	delete [] bound_id;
-	bound_id = id ? copy_string(id->Name()) : nullptr;
+	bound_id = id ? zeek::util::copy_string(id->Name()) : nullptr;
 	}
 #endif
 
@@ -489,7 +489,8 @@ TableValPtr Val::GetRecordFields()
 	}
 
 // This is a static method in this file to avoid including rapidjson's headers in Val.h because they're huge.
-static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val* val, bool only_loggable=false, RE_Matcher* re=nullptr, const string& key="")
+static void BuildJSON(zeek::threading::formatter::JSON::NullDoubleWriter& writer, Val* val,
+                      bool only_loggable=false, RE_Matcher* re=nullptr, const string& key="")
 	{
 	if ( !key.empty() )
 		writer.Key(key);
@@ -557,7 +558,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			writer.String(json_escape_utf8(string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			writer.String(zeek::util::json_escape_utf8(std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
 			break;
 			}
 
@@ -585,7 +586,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				else
 					{
 					rapidjson::StringBuffer buffer;
-					threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
+					zeek::threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
 					BuildJSON(key_writer, entry_key, only_loggable, re);
 					string key_str = buffer.GetString();
 
@@ -689,7 +690,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re)
 	{
 	rapidjson::StringBuffer buffer;
-	threading::formatter::JSON::NullDoubleWriter writer(buffer);
+	zeek::threading::formatter::JSON::NullDoubleWriter writer(buffer);
 
 	BuildJSON(writer, this, only_loggable, re, "");
 
@@ -1330,7 +1331,7 @@ unsigned int ListVal::MemoryAllocation() const
 	for ( const auto& val : vals )
 		size += val->MemoryAllocation();
 
-	size += pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
+	size += zeek::util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
 	return size + padded_sizeof(*this) + type->MemoryAllocation();
 	}
 
@@ -1411,7 +1412,7 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	Init(std::move(t));
 	SetAttrs(std::move(a));
 
-	if ( ! is_parsing )
+	if ( ! zeek::run_state::is_parsing )
 		return;
 
 	for ( const auto& t : table_type->GetIndexTypes() )
@@ -1945,7 +1946,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 		if ( v )
 			{
 			if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
-				v->SetExpireAccess(network_time);
+				v->SetExpireAccess(run_state::network_time);
 
 			if ( v->GetVal() )
 				return v->GetVal();
@@ -1969,7 +1970,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 			if ( v )
 				{
 				if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
-					v->SetExpireAccess(network_time);
+					v->SetExpireAccess(run_state::network_time);
 
 				if ( v->GetVal() )
 					return v->GetVal();
@@ -2041,7 +2042,7 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search)
 		if ( entry )
 			{
 			if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
-				entry->SetExpireAccess(network_time);
+				entry->SetExpireAccess(run_state::network_time);
 			}
 		}
 
@@ -2067,7 +2068,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 	if ( ! v )
 		return false;
 
-	v->SetExpireAccess(network_time);
+	v->SetExpireAccess(run_state::network_time);
 
 	return true;
 	}
@@ -2178,7 +2179,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			index_val = index;
 			}
 
-		auto broker_index = bro_broker::val_to_data(index_val);
+		auto broker_index = zeek::Broker::detail::val_to_data(index_val);
 
 		if ( ! broker_index )
 			{
@@ -2203,15 +2204,15 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					if ( attrs->Find(zeek::detail::ATTR_EXPIRE_CREATE) )
 						{
 						// for create expiry, we have to substract the already elapsed time from the expiry.
-						auto e = expire_time - (network_time - new_entry_val->ExpireAccessTime());
+						auto e = expire_time - (run_state::network_time - new_entry_val->ExpireAccessTime());
 						if ( e <= 0 )
 							// element already expired? Let's not insert it.
 							break;
 
-						expiry = bro_broker::convert_expiry(e);
+						expiry = zeek::Broker::detail::convert_expiry(e);
 						}
 					else
-						expiry = bro_broker::convert_expiry(expire_time);
+						expiry = zeek::Broker::detail::convert_expiry(expire_time);
 					}
 
 				if ( table_type->IsSet() )
@@ -2225,7 +2226,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 						}
 
 					auto new_value = new_entry_val->GetVal().get();
-					auto broker_val = bro_broker::val_to_data(new_value);
+					auto broker_val = zeek::Broker::detail::val_to_data(new_value);
 					if ( ! broker_val )
 						{
 						zeek::emit_builtin_error("invalid Broker data conversation for table value");
@@ -2444,7 +2445,7 @@ void TableVal::Describe(ODesc* d) const
 		if ( d->IsReadable() && ! d->IsShort() && d->IncludeStats() )
 			{
 			d->Add(" @");
-			d->Add(fmt_access_time(v->ExpireAccessTime()));
+			d->Add(zeek::util::detail::fmt_access_time(v->ExpireAccessTime()));
 			}
 		}
 
@@ -2527,7 +2528,7 @@ void TableVal::InitDefaultFunc(zeek::detail::Frame* f)
 
 void TableVal::InitTimer(double delay)
 	{
-	timer = new TableValTimer(this, network_time + delay);
+	timer = new TableValTimer(this, run_state::network_time + delay);
 	zeek::detail::timer_mgr->Add(timer);
 	}
 
@@ -2556,8 +2557,8 @@ void TableVal::DoExpire(double t)
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
-	for ( int i = 0; i < table_incremental_step &&
-			 (v = tbl->NextEntry(k, expire_cookie)); ++i )
+	for ( int i = 0; i < zeek::detail::table_incremental_step &&
+		      (v = tbl->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2594,7 +2595,7 @@ void TableVal::DoExpire(double t)
 					{
 					// User doesn't want us to expire
 					// this now.
-					v->SetExpireAccess(network_time - timeout + secs);
+					v->SetExpireAccess(run_state::network_time - timeout + secs);
 					delete k;
 					continue;
 					}
@@ -2631,10 +2632,10 @@ void TableVal::DoExpire(double t)
 	if ( ! v )
 		{
 		expire_cookie = nullptr;
-		InitTimer(table_expire_interval);
+		InitTimer(zeek::detail::table_expire_interval);
 		}
 	else
-		InitTimer(table_expire_delay);
+		InitTimer(zeek::detail::table_expire_delay);
 	}
 
 double TableVal::GetExpireTime()
@@ -2873,7 +2874,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	auto vl = val.record_val = new std::vector<ValPtr>;
 	vl->reserve(n);
 
-	if ( is_parsing )
+	if ( zeek::run_state::is_parsing )
 		parse_time_records[rt].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
@@ -3173,7 +3174,7 @@ unsigned int RecordVal::MemoryAllocation() const
 		    size += v->MemoryAllocation();
 		}
 
-	size += pad_size(vl.capacity() * sizeof(ValPtr));
+	size += zeek::util::pad_size(vl.capacity() * sizeof(ValPtr));
 	size += padded_sizeof(vl);
 	return size + padded_sizeof(*this);
 	}
@@ -3520,7 +3521,7 @@ bool same_atomic_val(const Val* v1, const Val* v2)
 	return false;
 	}
 
-void describe_vals(const val_list* vals, ODesc* d, int offset)
+void describe_vals(const ValPList* vals, ODesc* d, int offset)
 	{
 	if ( ! d->IsReadable() )
 		{
@@ -3555,7 +3556,7 @@ void describe_vals(const std::vector<ValPtr>& vals,
 		}
 	}
 
-void delete_vals(val_list* vals)
+void delete_vals(ValPList* vals)
 	{
 	if ( vals )
 		{
@@ -3578,14 +3579,14 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 	if ( same_type(v->GetType(), t) )
 		return {NewRef{}, v};
 
-	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return nullptr;
 
-		return static_cast<bro_broker::DataVal*>(dv.get())->castTo(t);
+		return static_cast<zeek::Broker::detail::DataVal*>(dv.get())->castTo(t);
 		}
 
 	return nullptr;
@@ -3604,14 +3605,14 @@ bool can_cast_value_to_type(const Val* v, Type* t)
 	if ( same_type(v->GetType(), t) )
 		return true;
 
-	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return false;
 
-		return static_cast<const bro_broker::DataVal *>(dv.get())->canCastTo(t);
+		return static_cast<const zeek::Broker::detail::DataVal *>(dv.get())->canCastTo(t);
 		}
 
 	return false;
@@ -3627,7 +3628,7 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 	if ( same_type(s, t) )
 		return true;
 
-	if ( same_type(s, bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(s, zeek::Broker::detail::DataVal::ScriptDataType()) )
 		// As Broker is dynamically typed, we don't know if we will be able
 		// to convert the type as intended. We optimistically assume that we
 		// will.

@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_IMAP {
+namespace zeek::plugin::detail::Zeek_IMAP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("IMAP", ::analyzer::imap::IMAP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("IMAP", zeek::analyzer::imap::IMAP_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::IMAP";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_IMAP

@@ -284,7 +284,7 @@ zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 			}
 
 		default:
-			zeek::reporter->Weird("unknown_mobility_type", fmt("%d", mob->ip6mob_type));
+			zeek::reporter->Weird("unknown_mobility_type", zeek::util::fmt("%d", mob->ip6mob_type));
 			break;
 		}
 
@@ -632,7 +632,7 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 
 	default:
 		zeek::reporter->Weird(SrcAddr(), DstAddr(), "unknown_routing_type",
-		                      fmt("%d", r->ip6r_type));
+		                      zeek::util::fmt("%d", r->ip6r_type));
 		break;
 	}
 	}

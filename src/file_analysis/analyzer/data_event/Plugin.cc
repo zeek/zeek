@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "file_analysis/Component.h"
 
-namespace plugin {
-namespace Zeek_FileDataEvent {
+namespace zeek::plugin::detail::Zeek_FileDataEvent {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new ::file_analysis::Component("DATA_EVENT", ::file_analysis::DataEvent::Instantiate));
+		AddComponent(new zeek::file_analysis::Component("DATA_EVENT", zeek::file_analysis::detail::DataEvent::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::FileDataEvent";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_FileDataEvent

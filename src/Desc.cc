@@ -27,7 +27,7 @@ ODesc::ODesc(desc_type t, zeek::File* arg_f)
 	if ( f == nullptr )
 		{
 		size = DEFAULT_SIZE;
-		base = safe_malloc(size);
+		base = zeek::util::safe_malloc(size);
 		((char*) base)[0] = '\0';
 		offset = 0;
 		}
@@ -335,7 +335,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 		if ( p.first )
 			{
 			AddBytesRaw(s, p.first - s);
-			get_escaped_string(this, p.first, p.second, true);
+			zeek::util::get_escaped_string(this, p.first, p.second, true);
 			s = p.first + p.second;
 			}
 		else
@@ -388,7 +388,7 @@ void ODesc::Grow(unsigned int n)
 	while ( offset + n + SLOP >= size )
 		size *= 2;
 
-	base = safe_realloc(base, size);
+	base = zeek::util::safe_realloc(base, size);
 	}
 
 void ODesc::Clear()
@@ -400,7 +400,7 @@ void ODesc::Clear()
 		{
 		free(base);
 		size = DEFAULT_SIZE;
-		base = safe_malloc(size);
+		base = zeek::util::safe_malloc(size);
 		((char*) base)[0] = '\0';
 		}
 	}

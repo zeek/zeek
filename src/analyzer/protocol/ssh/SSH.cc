@@ -9,10 +9,10 @@
 #include "types.bif.h"
 #include "events.bif.h"
 
-using namespace analyzer::SSH;
+namespace zeek::analyzer::ssh {
 
 SSH_Analyzer::SSH_Analyzer(zeek::Connection* c)
-	: tcp::TCP_ApplicationAnalyzer("SSH", c)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SSH", c)
 	{
 	interp = new binpac::SSH::SSH_Conn(this);
 	had_gap = false;
@@ -30,7 +30,7 @@ SSH_Analyzer::~SSH_Analyzer()
 
 void SSH_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -38,13 +38,13 @@ void SSH_Analyzer::Done()
 
 void SSH_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -69,7 +69,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 
 	auto encrypted_len = interp->get_encrypted_bytes_in_current_segment();
@@ -83,7 +83,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void SSH_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
@@ -175,3 +175,5 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 			}
 		}
 	}
+
+} // namespace zeek::analyzer::ssh

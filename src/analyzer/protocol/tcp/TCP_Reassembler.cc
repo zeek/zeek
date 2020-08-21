@@ -11,13 +11,13 @@
 
 #include <algorithm>
 
-using namespace analyzer::tcp;
+namespace zeek::analyzer::tcp {
 
 // Note, sequence numbers are relative. I.e., they start with 1.
 
-const bool DEBUG_tcp_contents = false;
-const bool DEBUG_tcp_connection_close = false;
-const bool DEBUG_tcp_match_undelivered = false;
+constexpr bool DEBUG_tcp_contents = false;
+constexpr bool DEBUG_tcp_connection_close = false;
+constexpr bool DEBUG_tcp_match_undelivered = false;
 
 TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
                                  TCP_Analyzer* arg_tcp_analyzer,
@@ -36,8 +36,8 @@ TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
 	seq_to_skip = 0;
 	in_delivery = false;
 
-	if ( tcp_max_old_segments )
-		SetMaxOldBlocks(tcp_max_old_segments);
+	if ( zeek::detail::tcp_max_old_segments )
+		SetMaxOldBlocks(zeek::detail::tcp_max_old_segments);
 
 	if ( ::tcp_contents )
 		{
@@ -50,8 +50,8 @@ TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
 			tcp_content_delivery_ports_resp;
 		auto result = ports->FindOrDefault(dst_port_val);
 
-		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
-		     (! IsOrig() && tcp_content_deliver_all_resp) ||
+		if ( (IsOrig() && zeek::detail::tcp_content_deliver_all_orig) ||
+		     (! IsOrig() && zeek::detail::tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
 		}
@@ -195,7 +195,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%" PRIu64", last_reassm=%" PRIu64", "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
-		          network_time, IsOrig(), up_to_seq, last_reassem_seq,
+		          zeek::run_state::network_time, IsOrig(), up_to_seq, last_reassem_seq,
 		          endpoint->FIN_cnt, endpoint->RST_cnt,
 		          peer->FIN_cnt, peer->RST_cnt);
 		}
@@ -225,7 +225,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 			{
 			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%" PRIu64", len=%" PRIu64", "
 					  "skip_deliveries=%d\n",
-					  network_time, IsOrig(), last_reassem_seq,
+					  zeek::run_state::network_time, IsOrig(), last_reassem_seq,
 					  up_to_seq - last_reassem_seq,
 					  skip_deliveries);
 			}
@@ -272,7 +272,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 	if ( record_contents_file )
 		RecordToSeq(last_reassem_seq, up_to_seq, record_contents_file);
 
-	if ( tcp_match_undelivered )
+	if ( zeek::detail::tcp_match_undelivered )
 		MatchUndelivered(up_to_seq, false);
 
 	// But we need to re-adjust last_reassem_seq in either case.
@@ -365,7 +365,7 @@ void TCP_Reassembler::RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr&
 
 void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::FilePtr& f)
 	{
-	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
+	if ( f->Write(zeek::util::fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
 	zeek::reporter->Error("TCP_Reassembler contents gap write failed");
@@ -422,8 +422,8 @@ void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 		// the now-delivered data.
 		TrimToSeq(last_reassem_seq);
 
-	else if ( e->NoDataAcked() && tcp_max_initial_window &&
-		  e->Size() > static_cast<uint64_t>(tcp_max_initial_window) )
+	else if ( e->NoDataAcked() && zeek::detail::tcp_max_initial_window &&
+		  e->Size() > static_cast<uint64_t>(zeek::detail::tcp_max_initial_window) )
 		// We've sent quite a bit of data, yet none of it has
 		// been acked.  Presume that we're not seeing the peer's
 		// acks (perhaps due to filtering or split routing) and
@@ -440,7 +440,7 @@ void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
+		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", zeek::run_state::network_time,  n, IsOrig());
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -477,7 +477,7 @@ bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 	if ( DEBUG_tcp_contents )
 		{
 		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%" PRIu64" upper=%" PRIu64" ack=%" PRIu64"\n",
-		          network_time, IsOrig(), seq, upper_seq, ack);
+		          zeek::run_state::network_time, IsOrig(), seq, upper_seq, ack);
 		}
 
 	if ( skip_deliveries )
@@ -504,16 +504,16 @@ bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 	NewBlock(t, seq, len, data);
 	flags = TCP_Flags();
 
-	if ( Endpoint()->NoDataAcked() && tcp_max_above_hole_without_any_acks &&
-	     NumUndeliveredBytes() > static_cast<uint64_t>(tcp_max_above_hole_without_any_acks) )
+	if ( Endpoint()->NoDataAcked() && zeek::detail::tcp_max_above_hole_without_any_acks &&
+	     NumUndeliveredBytes() > static_cast<uint64_t>(zeek::detail::tcp_max_above_hole_without_any_acks) )
 		{
 		tcp_analyzer->Weird("above_hole_data_without_any_acks");
 		ClearBlocks();
 		skip_deliveries = true;
 		}
 
-	if ( tcp_excessive_data_without_further_acks &&
-	     block_list.DataSize() > static_cast<uint64_t>(tcp_excessive_data_without_further_acks) )
+	if ( zeek::detail::tcp_excessive_data_without_further_acks &&
+	     block_list.DataSize() > static_cast<uint64_t>(zeek::detail::tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();
@@ -581,7 +581,7 @@ void TCP_Reassembler::CheckEOF()
 		if ( DEBUG_tcp_connection_close )
 			{
 			DEBUG_MSG("%.6f EOF for %d\n",
-			          network_time, endp->IsOrig());
+			          zeek::run_state::network_time, endp->IsOrig());
 			}
 
 		did_EOF = true;
@@ -680,3 +680,5 @@ bool TCP_Reassembler::DataPending() const
 
 	return false;
 	}
+
+} // namespace zeek::analyzer::tcp

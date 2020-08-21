@@ -4,7 +4,7 @@
 #include "NetVar.h"
 #include "Reporter.h"
 
-namespace analyzer { namespace teredo {
+namespace zeek::analyzer::teredo {
 
 class Teredo_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -50,6 +50,8 @@ protected:
 	bool valid_resp;
 };
 
+namespace detail {
+
 class TeredoEncapsulation {
 public:
 	explicit TeredoEncapsulation(const Teredo_Analyzer* ta)
@@ -86,4 +88,13 @@ protected:
 	const Teredo_Analyzer* analyzer;
 };
 
-} } // namespace analyzer::*
+} // namespace detail
+
+} // namespace zeek::analyzer::teredo
+
+namespace analyzer::teredo {
+
+using Teredo_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::teredo::Teredo_Analyzer.")]] = zeek::analyzer::teredo::Teredo_Analyzer;
+using TeredoEncapsulation [[deprecated("Remove in v4.1. Use zeek::analyzer::teredo::detail::TeredoEncapsulation.")]] = zeek::analyzer::teredo::detail::TeredoEncapsulation;
+
+} // namespace analyzer::teredo

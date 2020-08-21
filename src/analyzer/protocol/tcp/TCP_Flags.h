@@ -1,6 +1,6 @@
 #pragma once
 
-namespace analyzer { namespace tcp {
+namespace zeek::analyzer::tcp {
 
 class TCP_Flags {
 public:
@@ -46,7 +46,11 @@ inline std::string TCP_Flags::AsString() const
 	*p++ = '\0';
 	return tcp_flags;
 	}
-}
 
+} // namespace zeek::analyzer::tcp
 
-}
+namespace analyzer::tcp {
+
+using TCP_Flags [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Flags.")]] = zeek::analyzer::tcp::TCP_Flags;
+
+} // namespace analyzer::tcp

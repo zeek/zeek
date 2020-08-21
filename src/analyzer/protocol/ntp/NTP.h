@@ -7,7 +7,7 @@
 
 #include "ntp_pac.h"
 
-namespace analyzer { namespace NTP {
+namespace zeek::analyzer::ntp {
 
 class NTP_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -26,4 +26,10 @@ protected:
 	binpac::NTP::NTP_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ntp
+
+namespace analyzer::NTP {
+
+using NTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ntp::NTP_Analyzer.")]] = zeek::analyzer::ntp::NTP_Analyzer;
+
+} // namespace analyzer::NTP

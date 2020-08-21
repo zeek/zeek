@@ -4,14 +4,13 @@
 
 #include "NTLM.h"
 
-namespace plugin {
-namespace Zeek_NTLM {
+namespace zeek::plugin::detail::Zeek_NTLM {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("NTLM", ::analyzer::ntlm::NTLM_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("NTLM", zeek::analyzer::ntlm::NTLM_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::NTLM";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_NTLM

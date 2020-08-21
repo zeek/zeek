@@ -16,28 +16,29 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::http;
+namespace zeek::analyzer::http {
 
 const bool DEBUG_http = false;
 
 // The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a
 // message was interrupted.
-enum {
+enum HTTP_ExpectRequest {
 	EXPECT_REQUEST_LINE,
 	EXPECT_REQUEST_MESSAGE,
 	EXPECT_REQUEST_TRAILER,
 	EXPECT_REQUEST_NOTHING,
 };
 
-enum {
+enum HTTP_ExpectReply {
 	EXPECT_REPLY_LINE,
 	EXPECT_REPLY_MESSAGE,
 	EXPECT_REPLY_TRAILER,
 	EXPECT_REPLY_NOTHING,
 };
 
-HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, int arg_expect_body)
-:MIME_Entity(arg_message, parent_entity)
+HTTP_Entity::HTTP_Entity(HTTP_Message* arg_message, zeek::analyzer::mime::MIME_Entity* parent_entity,
+                         int arg_expect_body)
+	: zeek::analyzer::mime::MIME_Entity(arg_message, parent_entity)
 	{
 	http_message = arg_message;
 	expect_body = arg_expect_body;
@@ -61,7 +62,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 void HTTP_Entity::EndOfData()
 	{
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f: end of data\n", network_time);
+		DEBUG_MSG("%.6f: end of data\n", zeek::run_state::network_time);
 
 	if ( zip )
 		{
@@ -75,7 +76,7 @@ void HTTP_Entity::EndOfData()
 		http_message->MyHTTP_Analyzer()->
 			ForwardEndOfData(http_message->IsOrig());
 
-	MIME_Entity::EndOfData();
+	zeek::analyzer::mime::MIME_Entity::EndOfData();
 	}
 
 void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
@@ -83,13 +84,13 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 	if ( DEBUG_http )
 		{
 		DEBUG_MSG("%.6f HTTP_Entity::Deliver len=%d, in_header=%d\n",
-		          network_time, len, in_header);
+		          zeek::run_state::network_time, len, in_header);
 		}
 
 	if ( end_of_data )
 		{
 		// Multipart entities may have trailers
-		if ( content_type != mime::CONTENT_TYPE_MULTIPART )
+		if ( content_type != zeek::analyzer::mime::CONTENT_TYPE_MULTIPART )
 			IllegalFormat("data trailing the end of entity");
 		return;
 		}
@@ -100,13 +101,13 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 			http_message->MyHTTP_Analyzer()->Weird("http_no_crlf_in_header_list");
 
 		header_length += len;
-		MIME_Entity::Deliver(len, data, trailing_CRLF);
+		zeek::analyzer::mime::MIME_Entity::Deliver(len, data, trailing_CRLF);
 		return;
 		}
 
 	// Entity body.
-	if ( content_type == mime::CONTENT_TYPE_MULTIPART ||
-	     content_type == mime::CONTENT_TYPE_MESSAGE )
+	if ( content_type == zeek::analyzer::mime::CONTENT_TYPE_MULTIPART ||
+	     content_type == zeek::analyzer::mime::CONTENT_TYPE_MESSAGE )
 		DeliverBody(len, data, trailing_CRLF);
 
 	else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -114,7 +115,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		switch ( chunked_transfer_state ) {
 		case EXPECT_CHUNK_SIZE:
 			ASSERT(trailing_CRLF);
-			if ( ! atoi_n(len, data, nullptr, 16, expect_data_length) )
+			if ( ! zeek::util::atoi_n(len, data, nullptr, 16, expect_data_length) )
 				{
 				http_message->Weird("HTTP_bad_chunk_size");
 				expect_data_length = 0;
@@ -188,14 +189,14 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( encoding == GZIP || encoding == DEFLATE )
 		{
-		zip::ZIP_Analyzer::Method method =
+		zeek::analyzer::zip::ZIP_Analyzer::Method method =
 			encoding == GZIP ?
-				zip::ZIP_Analyzer::GZIP : zip::ZIP_Analyzer::DEFLATE;
+			zeek::analyzer::zip::ZIP_Analyzer::GZIP : zeek::analyzer::zip::ZIP_Analyzer::DEFLATE;
 
 		if ( ! zip )
 			{
 			// We don't care about the direction here.
-			zip = new zip::ZIP_Analyzer(
+			zip = new zeek::analyzer::zip::ZIP_Analyzer(
 				http_message->MyHTTP_Analyzer()->Conn(),
 						false, method);
 			zip->SetOutputHandler(new UncompressedOutput(this));
@@ -216,7 +217,7 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
 		body_length += 2;
 
 	if ( deliver_body )
-		MIME_Entity::Deliver(len, data, trailing_CRLF);
+		zeek::analyzer::mime::MIME_Entity::Deliver(len, data, trailing_CRLF);
 
 	zeek::detail::Rule::PatternType rule =
 		http_message->IsOrig() ?
@@ -248,18 +249,21 @@ bool HTTP_Entity::Undelivered(int64_t len)
 
 	if ( is_partial_content )
 		{
-		precomputed_file_id = file_mgr->Gap(body_length, len,
-		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		              http_message->MyHTTP_Analyzer()->Conn(),
-		              http_message->IsOrig(), precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->Gap(
+			body_length, len,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(), precomputed_file_id);
+
 		offset += len;
 		}
 	else
-		precomputed_file_id = file_mgr->Gap(body_length, len,
-		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                  http_message->MyHTTP_Analyzer()->Conn(),
-		                  http_message->IsOrig(),
-		                  precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->Gap(
+			body_length, len,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(),
+			precomputed_file_id);
 
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{
@@ -304,7 +308,7 @@ bool HTTP_Entity::Undelivered(int64_t len)
 void HTTP_Entity::SubmitData(int len, const char* buf)
 	{
 	if ( deliver_body )
-		MIME_Entity::SubmitData(len, buf);
+		zeek::analyzer::mime::MIME_Entity::SubmitData(len, buf);
 
 	if ( send_size && ( encoding == GZIP || encoding == DEFLATE ) )
 		// Auto-decompress in DeliverBody invalidates sizes derived from headers
@@ -313,33 +317,37 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	if ( is_partial_content )
 		{
 		if ( send_size && instance_length > 0 )
-			precomputed_file_id = file_mgr->SetSize(instance_length,
-			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig(), precomputed_file_id);
+			precomputed_file_id = zeek::file_mgr->SetSize(
+				instance_length,
+				http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+				http_message->MyHTTP_Analyzer()->Conn(),
+				http_message->IsOrig(), precomputed_file_id);
 
-		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
-		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig(), precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->DataIn(
+			reinterpret_cast<const u_char*>(buf), len, offset,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(), precomputed_file_id);
 
 		offset += len;
 		}
 	else
 		{
 		if ( send_size && content_length > 0 )
-			precomputed_file_id = file_mgr->SetSize(content_length,
-			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig(),
-			                  precomputed_file_id);
+			precomputed_file_id = zeek::file_mgr->SetSize(
+				content_length,
+				http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+				http_message->MyHTTP_Analyzer()->Conn(),
+				http_message->IsOrig(),
+				precomputed_file_id);
 
-		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf),
-		                 len,
-		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig(),
-		                 precomputed_file_id);
+		precomputed_file_id = zeek::file_mgr->DataIn(
+			reinterpret_cast<const u_char*>(buf),
+			len,
+			http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			http_message->MyHTTP_Analyzer()->Conn(),
+			http_message->IsOrig(),
+			precomputed_file_id);
 		}
 
 	send_size = false;
@@ -357,15 +365,15 @@ void HTTP_Entity::SetPlainDelivery(int64_t length)
 	// expect_data_length.
 	}
 
-void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
+void HTTP_Entity::SubmitHeader(zeek::analyzer::mime::MIME_Header* h)
 	{
-	if ( mime::istrequal(h->get_name(), "content-length") )
+	if ( zeek::analyzer::mime::istrequal(h->get_name(), "content-length") )
 		{
 		zeek::data_chunk_t vt = h->get_value_token();
-		if ( ! mime::is_null_data_chunk(vt) )
+		if ( ! zeek::analyzer::mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
-			if ( atoi_n(vt.length, vt.data, nullptr, 10, n) )
+			if ( zeek::util::atoi_n(vt.length, vt.data, nullptr, 10, n) )
 				{
 				content_length = n;
 
@@ -385,7 +393,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		}
 
 	// Figure out content-length for HTTP 206 Partial Content response
-	else if ( mime::istrequal(h->get_name(), "content-range") &&
+	else if ( zeek::analyzer::mime::istrequal(h->get_name(), "content-range") &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
 		zeek::data_chunk_t vt = h->get_value_token();
@@ -427,8 +435,8 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		              instance_length_str.c_str());
 
 		int64_t f, l;
-		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
-		atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
+		zeek::util::atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
+		zeek::util::atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )
@@ -438,9 +446,9 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			{
 			if ( instance_length_str != "*" )
 				{
-				if ( ! atoi_n(instance_length_str.size(),
-				              instance_length_str.c_str(), nullptr, 10,
-				              instance_length) )
+				if ( ! zeek::util::atoi_n(instance_length_str.size(),
+				                          instance_length_str.c_str(), nullptr, 10,
+				                          instance_length) )
 					instance_length = 0;
 				}
 
@@ -470,7 +478,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			}
 		}
 
-	else if ( mime::istrequal(h->get_name(), "transfer-encoding") )
+	else if ( zeek::analyzer::mime::istrequal(h->get_name(), "transfer-encoding") )
 		{
 		HTTP_Analyzer::HTTP_VersionNumber http_version;
 
@@ -480,21 +488,21 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			http_version = http_message->analyzer->GetReplyVersionNumber();
 
 		zeek::data_chunk_t vt = h->get_value_token();
-		if ( mime::istrequal(vt, "chunked") &&
+		if ( zeek::analyzer::mime::istrequal(vt, "chunked") &&
 		     http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
-	else if ( mime::istrequal(h->get_name(), "content-encoding") )
+	else if ( zeek::analyzer::mime::istrequal(h->get_name(), "content-encoding") )
 		{
 		zeek::data_chunk_t vt = h->get_value_token();
-		if ( mime::istrequal(vt, "gzip") || mime::istrequal(vt, "x-gzip") )
+		if ( zeek::analyzer::mime::istrequal(vt, "gzip") || zeek::analyzer::mime::istrequal(vt, "x-gzip") )
 			encoding = GZIP;
-		if ( mime::istrequal(vt, "deflate") )
+		if ( zeek::analyzer::mime::istrequal(vt, "deflate") )
 			encoding = DEFLATE;
 		}
 
-	MIME_Entity::SubmitHeader(h);
+	zeek::analyzer::mime::MIME_Entity::SubmitHeader(h);
 	}
 
 void HTTP_Entity::SubmitAllHeaders()
@@ -503,10 +511,10 @@ void HTTP_Entity::SubmitAllHeaders()
 	ASSERT(! in_header);
 
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f end of headers\n", network_time);
+		DEBUG_MSG("%.6f end of headers\n", zeek::run_state::network_time);
 
 	if ( Parent() &&
-	     Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+	     Parent()->MIMEContentType() == zeek::analyzer::mime::CONTENT_TYPE_MULTIPART )
 		{
 		// Don't treat single \r or \n characters in the multipart body content
 		// as lines because the MIME_Entity code will implicitly add back a
@@ -530,7 +538,7 @@ void HTTP_Entity::SubmitAllHeaders()
 		return;
 		}
 
-	MIME_Entity::SubmitAllHeaders();
+	zeek::analyzer::mime::MIME_Entity::SubmitAllHeaders();
 
 	if ( expect_body == HTTP_BODY_NOT_EXPECTED )
 		{
@@ -538,8 +546,8 @@ void HTTP_Entity::SubmitAllHeaders()
 		return;
 		}
 
-	if ( content_type == mime::CONTENT_TYPE_MULTIPART ||
-	     content_type == mime::CONTENT_TYPE_MESSAGE )
+	if ( content_type == zeek::analyzer::mime::CONTENT_TYPE_MULTIPART ||
+	     content_type == zeek::analyzer::mime::CONTENT_TYPE_MESSAGE )
 		{
 		// Do nothing.
 		// Make sure that we check for multiple/message contents first,
@@ -588,9 +596,9 @@ void HTTP_Entity::SubmitAllHeaders()
 	}
 
 HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
-				tcp::ContentLine_Analyzer* arg_cl, bool arg_is_orig,
-				int expect_body, int64_t init_header_length)
-: MIME_Message (arg_analyzer)
+                           zeek::analyzer::tcp::ContentLine_Analyzer* arg_cl, bool arg_is_orig,
+                           int expect_body, int64_t init_header_length)
+: zeek::analyzer::mime::MIME_Message (arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	content_line = arg_cl;
@@ -601,7 +609,7 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 	entity_data_buffer = nullptr;
 	BeginEntity(top_level);
 
-	start_time = network_time;
+	start_time = zeek::run_state::network_time;
 	body_length = 0;
 	content_gap_length = 0;
 	header_length = init_header_length;
@@ -632,9 +640,9 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 	if ( finished )
 		return;
 
-	MIME_Message::Done();
+	zeek::analyzer::mime::MIME_Message::Done();
 
-	// DEBUG_MSG("%.6f HTTP message done.\n", network_time);
+	// DEBUG_MSG("%.6f HTTP message done.\n", zeek::run_state::network_time);
 	top_level->EndOfData();
 
 	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
@@ -643,10 +651,10 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(top_level);
 
 		if ( he && ! he->FileID().empty() )
-			file_mgr->EndOfFile(he->FileID());
+			zeek::file_mgr->EndOfFile(he->FileID());
 		else
-			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                    MyHTTP_Analyzer()->Conn(), is_orig);
+			zeek::file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                          MyHTTP_Analyzer()->Conn(), is_orig);
 		}
 
 	if ( http_message_done )
@@ -673,10 +681,10 @@ bool HTTP_Message::Undelivered(int64_t len)
 	return false;
 	}
 
-void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
+void HTTP_Message::BeginEntity(zeek::analyzer::mime::MIME_Entity* entity)
 	{
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f: begin entity (%d)\n", network_time, is_orig);
+		DEBUG_MSG("%.6f: begin entity (%d)\n", zeek::run_state::network_time, is_orig);
 
 	current_entity = (HTTP_Entity*) entity;
 
@@ -687,10 +695,10 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 		);
 	}
 
-void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
+void HTTP_Message::EndEntity(zeek::analyzer::mime::MIME_Entity* entity)
 	{
 	if ( DEBUG_http )
-		DEBUG_MSG("%.6f: end entity (%d)\n", network_time, is_orig);
+		DEBUG_MSG("%.6f: end entity (%d)\n", zeek::run_state::network_time, is_orig);
 
 	if ( entity == top_level )
 		{
@@ -707,7 +715,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	current_entity = (HTTP_Entity*) entity->Parent();
 
 	if ( entity->Parent() &&
-	     entity->Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+	     entity->Parent()->MIMEContentType() == zeek::analyzer::mime::CONTENT_TYPE_MULTIPART )
 		{
 		content_line->SupressWeirds(false);
 		content_line->SetCRLFAsEOL();
@@ -723,19 +731,19 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(entity);
 
 		if ( he && ! he->FileID().empty() )
-			file_mgr->EndOfFile(he->FileID());
+			zeek::file_mgr->EndOfFile(he->FileID());
 		else
-			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                    MyHTTP_Analyzer()->Conn(), is_orig);
+			zeek::file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                          MyHTTP_Analyzer()->Conn(), is_orig);
 		}
 	}
 
-void HTTP_Message::SubmitHeader(mime::MIME_Header* h)
+void HTTP_Message::SubmitHeader(zeek::analyzer::mime::MIME_Header* h)
 	{
 	MyHTTP_Analyzer()->HTTP_Header(is_orig, h);
 	}
 
-void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
+void HTTP_Message::SubmitAllHeaders(zeek::analyzer::mime::MIME_HeaderList& hlist)
 	{
 	if ( http_all_headers )
 		analyzer->EnqueueConnEvent(http_all_headers,
@@ -753,7 +761,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		);
 	}
 
-void HTTP_Message::SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */)
+void HTTP_Message::SubmitTrailingHeaders(zeek::analyzer::mime::MIME_HeaderList& /* hlist */)
 	{
 	// Do nothing for now.  Note that if this ever changes do something
 	// which relies on the header list argument, that's currently not
@@ -771,9 +779,9 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 bool HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
 	if ( ! entity_data_buffer )
-		entity_data_buffer = new char[http_entity_data_delivery_size];
+		entity_data_buffer = new char[zeek::detail::http_entity_data_delivery_size];
 
-	*plen = http_entity_data_delivery_size;
+	*plen = zeek::detail::http_entity_data_delivery_size;
 	*pbuf = entity_data_buffer;
 	return true;
 	}
@@ -788,15 +796,15 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 	const char* category = "";
 
 	switch ( event_type ) {
-	case mime::MIME_EVENT_ILLEGAL_FORMAT:
+	case zeek::analyzer::mime::MIME_EVENT_ILLEGAL_FORMAT:
 		category = "illegal format";
 		break;
 
-	case mime::MIME_EVENT_ILLEGAL_ENCODING:
+	case zeek::analyzer::mime::MIME_EVENT_ILLEGAL_ENCODING:
 		category = "illegal encoding";
 		break;
 
-	case mime::MIME_EVENT_CONTENT_GAP:
+	case zeek::analyzer::mime::MIME_EVENT_CONTENT_GAP:
 		category = "content gap";
 		break;
 
@@ -829,7 +837,7 @@ void HTTP_Message::Weird(const char* msg)
 	}
 
 HTTP_Analyzer::HTTP_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("HTTP", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("HTTP", conn)
 	{
 	num_requests = num_replies = 0;
 	num_request_lines = num_reply_lines = 0;
@@ -851,10 +859,10 @@ HTTP_Analyzer::HTTP_Analyzer(zeek::Connection* conn)
 	upgrade_connection = false;
 	upgrade_protocol.clear();
 
-	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
+	content_line_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
 
-	content_line_resp = new tcp::ContentLine_Analyzer(conn, false);
+	content_line_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false);
 	content_line_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(content_line_resp);
 	}
@@ -864,7 +872,7 @@ void HTTP_Analyzer::Done()
 	if ( IsFinished() )
 		return;
 
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	RequestMade(true, "message interrupted when connection done");
 	ReplyMade(true, "message interrupted when connection done");
@@ -879,18 +887,18 @@ void HTTP_Analyzer::Done()
 
 	unanswered_requests = {};
 
-	file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
+	zeek::file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
 
 	/* TODO: this might be nice to have, but reply code is cleared by now.
 	if ( HTTP_ReplyCode() != 206 )
 		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
+		zeek::file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
 	*/
 	}
 
 void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( TCP() && TCP()->IsPartial() )
 		return;
@@ -909,7 +917,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
 
-	tcp::ContentLine_Analyzer* content_line =
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line =
 		is_orig ? content_line_orig : content_line_resp;
 
 	if ( content_line->IsPlainDelivery() )
@@ -964,7 +972,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				if ( ! RequestExpected() )
 					HTTP_Event("crud_trailing_HTTP_request",
-						   mime::to_string_val(line, end_of_line));
+						   zeek::analyzer::mime::to_string_val(line, end_of_line));
 				else
 					{
 					// We do see HTTP requests with a
@@ -1041,7 +1049,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				// End of message header reached, set up
 				// tunnel decapsulation.
-				pia = new pia::PIA_TCP(Conn());
+				pia = new zeek::analyzer::pia::PIA_TCP(Conn());
 
 				if ( AddChildAnalyzer(pia) )
 					{
@@ -1073,21 +1081,21 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	// DEBUG_MSG("Undelivered from %"PRIu64": %d bytes\n", seq, length);
 
 	HTTP_Message* msg =
 		is_orig ? request_message : reply_message;
 
-	tcp::ContentLine_Analyzer* content_line =
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line =
 		is_orig ? content_line_orig : content_line_resp;
 
 	if ( ! content_line->IsSkippedContents(seq, len) )
 		{
 		if ( msg )
-			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%" PRIu64", len=%d", seq, len));
+			msg->SubmitEvent(zeek::analyzer::mime::MIME_EVENT_CONTENT_GAP,
+				zeek::util::fmt("seq=%" PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body
@@ -1116,9 +1124,9 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 
 void HTTP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 
-	// DEBUG_MSG("%.6f eof\n", network_time);
+	// DEBUG_MSG("%.6f eof\n", zeek::run_state::network_time);
 
 	if ( is_orig )
 		RequestMade(false, "message ends as connection contents are completely delivered");
@@ -1128,16 +1136,16 @@ void HTTP_Analyzer::EndpointEOF(bool is_orig)
 
 void HTTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
-	// DEBUG_MSG("%.6f connection finished\n", network_time);
+	// DEBUG_MSG("%.6f connection finished\n", zeek::run_state::network_time);
 	RequestMade(true, "message ends as connection is finished");
 	ReplyMade(true, "message ends as connection is finished");
 	}
 
 void HTTP_Analyzer::ConnectionReset()
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionReset();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionReset();
 
 	RequestMade(true, "message interrupted by RST");
 	ReplyMade(true, "message interrupted by RST");
@@ -1145,7 +1153,7 @@ void HTTP_Analyzer::ConnectionReset()
 
 void HTTP_Analyzer::PacketWithRST()
 	{
-	tcp::TCP_ApplicationAnalyzer::PacketWithRST();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::PacketWithRST();
 
 	RequestMade(true, "message interrupted by RST");
 	ReplyMade(true, "message interrupted by RST");
@@ -1162,7 +1170,7 @@ void HTTP_Analyzer::GenStats()
 		r->Assign(2, zeek::make_intrusive<zeek::DoubleVal>(request_version.ToDouble()));
 		r->Assign(3, zeek::make_intrusive<zeek::DoubleVal>(reply_version.ToDouble()));
 
-		// DEBUG_MSG("%.6f http_stats\n", network_time);
+		// DEBUG_MSG("%.6f http_stats\n", zeek::run_state::network_time);
 		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));
 		}
 	}
@@ -1190,7 +1198,7 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 		return nullptr;
 
 	const char* orig_line = line;
-	line = skip_whitespace(line, end_of_line);
+	line = zeek::util::skip_whitespace(line, end_of_line);
 
 	if ( line == orig_line )
 		// Word didn't end at prefix.
@@ -1234,7 +1242,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		goto error;
 	}
 
-	rest = skip_whitespace(end_of_method, end_of_line);
+	rest = zeek::util::skip_whitespace(end_of_method, end_of_line);
 
 	if ( rest == end_of_method )
 		goto error;
@@ -1285,7 +1293,7 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	for ( version_start = end_of_uri; version_start < end_of_line; ++version_start )
 		{
 		end_of_uri = version_start;
-		version_start = skip_whitespace(version_start, end_of_line);
+		version_start = zeek::util::skip_whitespace(version_start, end_of_line);
 		if ( PrefixMatch(version_start, end_of_line, "HTTP/") )
 			break;
 		}
@@ -1305,12 +1313,12 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 							version_start));
 
 			version_end = version_start + 3;
-			if ( skip_whitespace(version_end, end_of_line) != end_of_line )
+			if ( zeek::util::skip_whitespace(version_end, end_of_line) != end_of_line )
 				HTTP_Event("crud after HTTP version is ignored",
-					   mime::to_string_val(line, end_of_line));
+					   zeek::analyzer::mime::to_string_val(line, end_of_line));
 			}
 		else
-			HTTP_Event("bad_HTTP_version", mime::to_string_val(line, end_of_line));
+			HTTP_Event("bad_HTTP_version", zeek::analyzer::mime::to_string_val(line, end_of_line));
 		}
 
 	// NormalizeURI(line, end_of_uri);
@@ -1336,7 +1344,7 @@ HTTP_Analyzer::HTTP_VersionNumber HTTP_Analyzer::HTTP_Version(int len, const cha
 		}
 	else
 		{
-		HTTP_Event("bad_HTTP_version", mime::to_string_val(len, data));
+		HTTP_Event("bad_HTTP_version", zeek::analyzer::mime::to_string_val(len, data));
 		return {};
 		}
 	}
@@ -1361,7 +1369,7 @@ void HTTP_Analyzer::HTTP_Event(const char* category, const char* detail)
 void HTTP_Analyzer::HTTP_Event(const char* category, zeek::StringValPtr detail)
 	{
 	if ( http_event )
-		// DEBUG_MSG("%.6f http_event\n", network_time);
+		// DEBUG_MSG("%.6f http_event\n", zeek::run_state::network_time);
 		EnqueueConnEvent(http_event,
 			ConnVal(),
 			zeek::make_intrusive<zeek::StringVal>(category),
@@ -1373,12 +1381,12 @@ HTTP_Analyzer::TruncateURI(const zeek::StringValPtr& uri)
 	{
 	const zeek::String* str = uri->AsString();
 
-	if ( truncate_http_URI >= 0 && str->Len() > truncate_http_URI )
+	if ( zeek::detail::truncate_http_URI >= 0 && str->Len() > zeek::detail::truncate_http_URI )
 		{
-		u_char* s = new u_char[truncate_http_URI + 4];
-		memcpy(s, str->Bytes(), truncate_http_URI);
-		memcpy(s + truncate_http_URI, "...", 4);
-		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, s, truncate_http_URI+3));
+		u_char* s = new u_char[zeek::detail::truncate_http_URI + 4];
+		memcpy(s, str->Bytes(), zeek::detail::truncate_http_URI);
+		memcpy(s + zeek::detail::truncate_http_URI, "...", 4);
+		return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, s, zeek::detail::truncate_http_URI+3));
 		}
 	else
 		return uri;
@@ -1395,13 +1403,13 @@ void HTTP_Analyzer::HTTP_Request()
 		connect_request = true;
 
 	if ( http_request )
-		// DEBUG_MSG("%.6f http_request\n", network_time);
+		// DEBUG_MSG("%.6f http_request\n", zeek::run_state::network_time);
 		EnqueueConnEvent(http_request,
 			ConnVal(),
 			request_method,
 			TruncateURI(request_URI),
 			TruncateURI(unescaped_URI),
-			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", request_version.ToDouble()))
+			zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%.1f", request_version.ToDouble()))
 		);
 	}
 
@@ -1410,7 +1418,7 @@ void HTTP_Analyzer::HTTP_Reply()
 	if ( http_reply )
 		EnqueueConnEvent(http_reply,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(fmt("%.1f", reply_version.ToDouble())),
+			zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%.1f", reply_version.ToDouble())),
 			zeek::val_mgr->Count(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase :
@@ -1430,7 +1438,7 @@ void HTTP_Analyzer::RequestMade(bool interrupted, const char* msg)
 	if ( request_message )
 		request_message->Done(interrupted, msg);
 
-	// DEBUG_MSG("%.6f request made\n", network_time);
+	// DEBUG_MSG("%.6f request made\n", zeek::run_state::network_time);
 
 	request_method = nullptr;
 	unescaped_URI = nullptr;
@@ -1451,7 +1459,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 
 	reply_ongoing = 0;
 
-	// DEBUG_MSG("%.6f reply made\n", network_time);
+	// DEBUG_MSG("%.6f reply made\n", zeek::run_state::network_time);
 
 	if ( reply_message )
 		reply_message->Done(interrupted, msg);
@@ -1512,47 +1520,47 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		// ##TODO: some server replies with an HTML document
 		// without a status line and a MIME header, when the
 		// request is malformed.
-		HTTP_Event("bad_HTTP_reply", mime::to_string_val(line, end_of_line));
+		HTTP_Event("bad_HTTP_reply", zeek::analyzer::mime::to_string_val(line, end_of_line));
 		return 0;
 		}
 
 	SetVersion(&reply_version, HTTP_Version(end_of_line - rest, rest));
 
 	for ( ; rest < end_of_line; ++rest )
-		if ( mime::is_lws(*rest) )
+		if ( zeek::analyzer::mime::is_lws(*rest) )
 			break;
 
 	if ( rest >= end_of_line )
 		{
 		HTTP_Event("HTTP_reply_code_missing",
-				mime::to_string_val(line, end_of_line));
+				zeek::analyzer::mime::to_string_val(line, end_of_line));
 		return 0;
 		}
 
-	rest = skip_whitespace(rest, end_of_line);
+	rest = zeek::util::skip_whitespace(rest, end_of_line);
 
 	if ( rest + 3 > end_of_line )
 		{
 		HTTP_Event("HTTP_reply_code_missing",
-			mime::to_string_val(line, end_of_line));
+			zeek::analyzer::mime::to_string_val(line, end_of_line));
 		return 0;
 		}
 
 	reply_code = HTTP_ReplyCode(rest);
 
 	for ( rest += 3; rest < end_of_line; ++rest )
-		if ( mime::is_lws(*rest) )
+		if ( zeek::analyzer::mime::is_lws(*rest) )
 			break;
 
 	if ( rest >= end_of_line )
 		{
 		HTTP_Event("HTTP_reply_reason_phrase_missing",
-			mime::to_string_val(line, end_of_line));
+			zeek::analyzer::mime::to_string_val(line, end_of_line));
 		// Tolerate missing reason phrase?
 		return 1;
 		}
 
-	rest = skip_whitespace(rest, end_of_line);
+	rest = zeek::util::skip_whitespace(rest, end_of_line);
 	reply_reason_phrase =
 	    zeek::make_intrusive<zeek::StringVal>(end_of_line - rest, (const char *) rest);
 
@@ -1594,29 +1602,29 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 	return HTTP_BODY_EXPECTED;
 	}
 
-void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
+void HTTP_Analyzer::HTTP_Header(bool is_orig, zeek::analyzer::mime::MIME_Header* h)
 	{
 	// To be "liberal", we only look at "keep-alive" on the client
 	// side, and if seen assume the connection to be persistent.
 	// This seems fairly safe - at worst, the client does indeed
 	// send additional requests, and the server ignores them.
-	if ( is_orig && mime::istrequal(h->get_name(), "connection") )
+	if ( is_orig && zeek::analyzer::mime::istrequal(h->get_name(), "connection") )
 		{
-		if ( mime::istrequal(h->get_value_token(), "keep-alive") )
+		if ( zeek::analyzer::mime::istrequal(h->get_value_token(), "keep-alive") )
 			keep_alive = 1;
 		}
 
 	if ( ! is_orig &&
-	     mime::istrequal(h->get_name(), "connection") )
+	     zeek::analyzer::mime::istrequal(h->get_name(), "connection") )
 		{
-		if ( mime::istrequal(h->get_value_token(), "close") )
+		if ( zeek::analyzer::mime::istrequal(h->get_value_token(), "close") )
 			connection_close = 1;
-		else if ( mime::istrequal(h->get_value_token(), "upgrade") )
+		else if ( zeek::analyzer::mime::istrequal(h->get_value_token(), "upgrade") )
 			upgrade_connection = true;
 		}
 
 	if ( ! is_orig &&
-	     mime::istrequal(h->get_name(), "upgrade") )
+	     zeek::analyzer::mime::istrequal(h->get_name(), "upgrade") )
 	     upgrade_protocol.assign(h->get_value_token().data, h->get_value_token().length);
 
 	if ( http_header )
@@ -1636,17 +1644,17 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 				is_orig, false, true, false);
 
 		if ( DEBUG_http )
-			DEBUG_MSG("%.6f http_header\n", network_time);
+			DEBUG_MSG("%.6f http_header\n", zeek::run_state::network_time);
 
-		auto upper_hn = mime::to_string_val(h->get_name());
+		auto upper_hn = zeek::analyzer::mime::to_string_val(h->get_name());
 		upper_hn->ToUpper();
 
 		EnqueueConnEvent(http_header,
 			ConnVal(),
 			zeek::val_mgr->Bool(is_orig),
-			mime::to_string_val(h->get_name()),
+			zeek::analyzer::mime::to_string_val(h->get_name()),
 			std::move(upper_hn),
-			mime::to_string_val(h->get_value())
+			zeek::analyzer::mime::to_string_val(h->get_value())
 		);
 		}
 	}
@@ -1673,8 +1681,8 @@ void HTTP_Analyzer::HTTP_MessageDone(bool is_orig, HTTP_Message* /* message */)
 		ReplyMade(false, "message ends normally");
 	}
 
-void HTTP_Analyzer::InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*& message,
-		bool is_orig, int expect_body, int64_t init_header_length)
+void HTTP_Analyzer::InitHTTPMessage(zeek::analyzer::tcp::ContentLine_Analyzer* cl, HTTP_Message*& message,
+                                    bool is_orig, int expect_body, int64_t init_header_length)
 	{
 	if ( message )
 		{
@@ -1684,7 +1692,7 @@ void HTTP_Analyzer::InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*
 		delete message;
 		}
 
-	// DEBUG_MSG("%.6f init http message\n", network_time);
+	// DEBUG_MSG("%.6f init http message\n", zeek::run_state::network_time);
 	message = new HTTP_Message(this, cl, is_orig, expect_body,
 					init_header_length);
 	}
@@ -1697,25 +1705,25 @@ void HTTP_Analyzer::SkipEntityData(bool is_orig)
 		msg->SkipEntityData();
 	}
 
-bool analyzer::http::is_reserved_URI_char(unsigned char ch)
+bool is_reserved_URI_char(unsigned char ch)
 	{ // see RFC 3986 (definition of URI)
 	return strchr(":/?#[]@!$&'()*+,;=", ch) != 0;
 	}
 
-bool analyzer::http::is_unreserved_URI_char(unsigned char ch)
+bool is_unreserved_URI_char(unsigned char ch)
 	{ // see RFC 3986 (definition of URI)
 	return isalnum(ch) != 0 || strchr("-_.!~*\'()", ch) != 0;
 	}
 
-void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
+void escape_URI_char(unsigned char ch, unsigned char*& p)
 	{
 	*p++ = '%';
-	*p++ = encode_hex((ch >> 4) & 0xf);
-	*p++ = encode_hex(ch & 0xf);
+	*p++ = zeek::util::encode_hex((ch >> 4) & 0xf);
+	*p++ = zeek::util::encode_hex(ch & 0xf);
 	}
 
-zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
-                                           zeek::analyzer::Analyzer* analyzer)
+zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
+                           zeek::analyzer::Analyzer* analyzer)
 	{
 	zeek::byte_vec decoded_URI = new u_char[line_end - line + 1];
 	zeek::byte_vec URI_p = decoded_URI;
@@ -1758,8 +1766,8 @@ zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* lin
 
 			else if ( isxdigit(line[0]) && isxdigit(line[1]) )
 				{
-				*URI_p++ = (decode_hex(line[0]) << 4) +
-					   decode_hex(line[1]);
+				*URI_p++ = (zeek::util::decode_hex(line[0]) << 4) +
+					zeek::util::decode_hex(line[1]);
 				++line; // place line at the last hex digit
 				}
 
@@ -1784,11 +1792,11 @@ zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* lin
 				// It could just be ASCII encoded into this
 				// unicode escaping structure.
 				if ( ! (line[1] == '0' && line[2] == '0' ) )
-					*URI_p++ = (decode_hex(line[1]) << 4) +
-					            decode_hex(line[2]);
+					*URI_p++ = (zeek::util::decode_hex(line[1]) << 4) +
+					            zeek::util::decode_hex(line[2]);
 
-				*URI_p++ = (decode_hex(line[3]) << 4) +
-					    decode_hex(line[4]);
+				*URI_p++ = (zeek::util::decode_hex(line[3]) << 4) +
+					    zeek::util::decode_hex(line[4]);
 
 				line += 4;
 				}
@@ -1812,3 +1820,5 @@ zeek::String* analyzer::http::unescape_URI(const u_char* line, const u_char* lin
 
 	return new zeek::String(true, decoded_URI, URI_p - decoded_URI);
 	}
+
+} // namespace zeek::analyzer::http

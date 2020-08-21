@@ -8,9 +8,9 @@
 
 #include "imap_pac.h"
 
-namespace analyzer { namespace imap {
+namespace zeek::analyzer::imap {
 
-class IMAP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class IMAP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit IMAP_Analyzer(zeek::Connection* conn);
 	~IMAP_Analyzer() override;
@@ -19,7 +19,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	void StartTLS();
@@ -34,4 +34,10 @@ protected:
 	bool tls_active;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::imap
+
+namespace analyzer::imap {
+
+using IMAP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::imap::IMAP_Analyzer.")]] = zeek::analyzer::imap::IMAP_Analyzer;
+
+} // namespace analyzer::imap

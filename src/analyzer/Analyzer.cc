@@ -231,7 +231,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
 			}
 		catch ( binpac::Exception const &e )
 			{
-			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -254,7 +254,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 			}
 		catch ( binpac::Exception const &e )
 			{
-			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -277,7 +277,7 @@ void Analyzer::NextUndelivered(uint64_t seq, int len, bool is_orig)
 			}
 		catch ( binpac::Exception const &e )
 			{
-			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -647,14 +647,14 @@ void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	{
 	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
-			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+			zeek::util::fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
 	DBG_LOG(zeek::DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
-			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+			zeek::util::fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
@@ -713,10 +713,10 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 
 	if ( data && len )
 		{
-		const char *tmp = copy_string(reason);
-		r = zeek::make_intrusive<zeek::StringVal>(fmt("%s [%s%s]", tmp,
-		                                              fmt_bytes(data, min(40, len)),
-		                                              len > 40 ? "..." : ""));
+		const char *tmp = zeek::util::copy_string(reason);
+		r = zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%s [%s%s]", tmp,
+		                                                          zeek::util::fmt_bytes(data, min(40, len)),
+		                                                          len > 40 ? "..." : ""));
 		delete [] tmp;
 		}
 	else
@@ -747,7 +747,7 @@ void Analyzer::CancelTimers()
 	// call RemoveTimer(), which would then modify the list we're just
 	// traversing.  Thus, we first make a copy of the list which we then
 	// iterate through.
-	timer_list tmp(timers.length());
+	TimerPList tmp(timers.length());
 	std::copy(timers.begin(), timers.end(), back_inserter(tmp));
 
 	// TODO: could be a for_each
@@ -812,7 +812,7 @@ void Analyzer::Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2)
 		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
 	}
 
-void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
+void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList* vl)
 	{
 	auto args = zeek::val_list_to_args(*vl);
 
@@ -820,7 +820,7 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 		conn->EnqueueEvent(f, this, std::move(args));
 	}
 
-void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
+void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 
@@ -828,7 +828,7 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
 		conn->EnqueueEvent(f, this, std::move(args));
 	}
 
-void Analyzer::ConnectionEventFast(EventHandlerPtr f, val_list vl)
+void Analyzer::ConnectionEventFast(EventHandlerPtr f, ValPList vl)
 	{
 	auto args = zeek::val_list_to_args(vl);
 	conn->EnqueueEvent(f, this, std::move(args));

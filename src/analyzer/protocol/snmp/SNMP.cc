@@ -6,7 +6,7 @@
 #include "types.bif.h"
 #include "events.bif.h"
 
-using namespace analyzer::snmp;
+namespace zeek::analyzer::snmp {
 
 SNMP_Analyzer::SNMP_Analyzer(zeek::Connection* conn)
 	: Analyzer("SNMP", conn)
@@ -36,6 +36,8 @@ void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::snmp

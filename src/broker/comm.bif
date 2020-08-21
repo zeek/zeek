@@ -59,7 +59,7 @@ enum PeerStatus %{
 
 function Broker::__listen%(a: string, p: port%): port
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 
 	if ( ! p->IsTCP() )
 		{
@@ -73,7 +73,7 @@ function Broker::__listen%(a: string, p: port%): port
 
 function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 
 	if ( ! p->IsTCP() )
 		{
@@ -87,7 +87,7 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 
 function Broker::__unpeer%(a: string, p: port%): bool
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 
 	if ( ! p->IsTCP() )
 		{
@@ -101,7 +101,7 @@ function Broker::__unpeer%(a: string, p: port%): bool
 
 function Broker::__peers%(%): PeerInfos
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<VectorType>("Broker::PeerInfos"));
 	auto i = 0;
 
@@ -142,6 +142,6 @@ function Broker::__peers%(%): PeerInfos
 
 function Broker::__node_id%(%): string
 	%{
-	bro_broker::Manager::ScriptScopeGuard ssg;
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
 	%}

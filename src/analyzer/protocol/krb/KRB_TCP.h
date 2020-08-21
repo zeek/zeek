@@ -6,9 +6,9 @@
 
 #include "krb_TCP_pac.h"
 
-namespace analyzer { namespace krb_tcp {
+namespace zeek::analyzer::krb_tcp {
 
-class KRB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class KRB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit KRB_Analyzer(zeek::Connection* conn);
@@ -18,7 +18,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	zeek::StringValPtr GetAuthenticationInfo(const zeek::String* principal,
@@ -34,4 +34,10 @@ protected:
 	bool had_gap;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::krb_tcp
+
+namespace analyzer::krb_tcp {
+
+using KRB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::krb_tcp::KRB_Analyzer.")]] = zeek::analyzer::krb_tcp::KRB_Analyzer;
+
+} // namespace analyzer::krb_tcp

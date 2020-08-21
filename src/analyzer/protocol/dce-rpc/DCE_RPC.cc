@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "DCE_RPC.h"
 
 #include <stdlib.h>
 #include <string>
@@ -8,12 +9,10 @@
 
 using namespace std;
 
-#include "DCE_RPC.h"
-
-using namespace analyzer::dce_rpc;
+namespace zeek::analyzer::dce_rpc {
 
 DCE_RPC_Analyzer::DCE_RPC_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
 	{
 	had_gap = false;
 	interp = new binpac::DCE_RPC::DCE_RPC_Conn(this);
@@ -62,6 +61,8 @@ void DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::dce_rpc

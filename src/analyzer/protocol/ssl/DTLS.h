@@ -5,10 +5,9 @@
 #include "analyzer/protocol/udp/UDP.h"
 
 namespace binpac { namespace DTLS { class SSL_Conn; } }
-
 namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
-namespace analyzer { namespace dtls {
+namespace zeek::analyzer::dtls {
 
 class DTLS_Analyzer final : public zeek::analyzer::Analyzer {
 public:
@@ -32,4 +31,10 @@ protected:
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::dtls
+
+namespace analyzer::dtls {
+
+using DTLS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dtls::DTLS_Analyzer.")]] = zeek::analyzer::dtls::DTLS_Analyzer;
+
+} // namespace analyzer::dtls

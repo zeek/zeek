@@ -9,7 +9,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "BroList.h"
+#include "ZeekList.h"
 #include "Obj.h"
 #include "IntrusivePtr.h"
 #include "Type.h" /* for function_flavor */
@@ -72,7 +72,7 @@ public:
 	bool HasBodies() const	{ return bodies.size(); }
 
 	[[deprecated("Remove in v4.1. Use Invoke() instead.")]]
-	zeek::Val* Call(val_list* args, zeek::detail::Frame* parent = nullptr) const;
+	zeek::Val* Call(ValPList* args, zeek::detail::Frame* parent = nullptr) const;
 
 	/**
 	 * Calls a Zeek function.
@@ -165,7 +165,7 @@ public:
 	 * @param ids IDs that are captured by the closure.
 	 * @param f the closure to be captured.
 	 */
-	void AddClosure(id_list ids, zeek::detail::Frame* f);
+	void AddClosure(IDPList ids, zeek::detail::Frame* f);
 
 	/**
 	 * Replaces the current closure with one built from *data*
@@ -192,7 +192,7 @@ public:
 	             size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
-	void SetOuterIDs(id_list ids)
+	void SetOuterIDs(IDPList ids)
 		{ outer_ids = std::move(ids); }
 
 	void Describe(ODesc* d) const override;
@@ -220,7 +220,7 @@ private:
 	size_t frame_size;
 
 	// List of the outer IDs used in the function.
-	id_list outer_ids;
+	IDPList outer_ids;
 	// The frame the ScriptFunc was initialized in.
 	zeek::detail::Frame* closure = nullptr;
 	bool weak_closure_ref = false;

@@ -213,14 +213,14 @@ void Frame::CloneNonFuncElement(int offset, ScriptFunc* func, Frame* other) cons
 	other->SetElement(offset, std::move(rval));
 	}
 
-Frame* Frame::SelectiveClone(const id_list& selection, ScriptFunc* func) const
+Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 	{
 	if ( selection.length() == 0 )
 		return nullptr;
 
-	id_list us;
+	IDPList us;
 	// and
-	id_list them;
+	IDPList them;
 
 	for ( const auto& we : selection )
 		{
@@ -279,16 +279,16 @@ Frame* Frame::SelectiveClone(const id_list& selection, ScriptFunc* func) const
 	return other;
 	}
 
-broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_list& selection)
+broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPList& selection)
 	{
 	broker::vector rval;
 
 	if ( selection.length() == 0 )
 		return {std::move(rval)};
 
-	id_list us;
+	IDPList us;
 	// and
-	id_list them;
+	IDPList them;
 
 	std::unordered_map<std::string, int> new_map;
 	if ( target->offset_map )
@@ -350,7 +350,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 		zeek::TypeTag tag = val->GetType()->Tag();
 
-		auto expected = bro_broker::val_to_data(val.get());
+		auto expected = zeek::Broker::detail::val_to_data(val.get());
 		if ( ! expected )
 			return broker::ec::invalid_data;
 
@@ -368,7 +368,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
 
-	id_list outer_ids;
+	IDPList outer_ids;
 	OffsetMap offset_map;
 	FramePtr closure;
 
@@ -477,7 +477,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 		broker::integer g = *has_type;
 		zeek::Type t( static_cast<zeek::TypeTag>(g) );
 
-		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
+		auto val = zeek::Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
 			return std::make_pair(false, nullptr);
 
@@ -487,7 +487,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 	return std::make_pair(true, std::move(rf));
 	}
 
-void Frame::AddKnownOffsets(const id_list& ids)
+void Frame::AddKnownOffsets(const IDPList& ids)
 	{
 	if ( ! offset_map )
 		offset_map = std::make_unique<OffsetMap>();
@@ -499,7 +499,7 @@ void Frame::AddKnownOffsets(const id_list& ids)
 		       });
 	}
 
-void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
+void Frame::CaptureClosure(Frame* c, IDPList arg_outer_ids)
 	{
 	if ( closure || outer_ids.length() )
 		zeek::reporter->InternalError("Attempted to override a closure.");
@@ -544,7 +544,7 @@ bool Frame::IsOuterID(const zeek::detail::ID* in) const
 		[&in](zeek::detail::ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
 	}
 
-broker::expected<broker::data> Frame::SerializeIDList(const id_list& in)
+broker::expected<broker::data> Frame::SerializeIDList(const IDPList& in)
 	{
 	broker::vector rval;
 
@@ -571,10 +571,10 @@ Frame::SerializeOffsetMap(const std::unordered_map<std::string, int>& in)
 	return {std::move(rval)};
 	}
 
-std::pair<bool, id_list>
+std::pair<bool, IDPList>
 Frame::UnserializeIDList(const broker::vector& data)
 	{
-	id_list rval;
+	IDPList rval;
 	if ( data.size() % 2 != 0 )
 		return std::make_pair(false, std::move(rval));
 
@@ -587,7 +587,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 			for ( auto& i : rval )
 				Unref(i);
 
-			rval = id_list{};
+			rval = IDPList{};
 			return std::make_pair(false, std::move(rval));
 			}
 
@@ -599,7 +599,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 			for ( auto& i : rval )
 				Unref(i);
 
-			rval = id_list{};
+			rval = IDPList{};
 			return std::make_pair(false, std::move(rval));
 			}
 

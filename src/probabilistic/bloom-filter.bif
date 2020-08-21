@@ -40,13 +40,13 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 		return nullptr;
 		}
 
-	size_t cells = BasicBloomFilter::M(fp, capacity);
-	size_t optimal_k = BasicBloomFilter::K(cells, capacity);
-	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
-                                 name->Len());
-	const Hasher* h = new DoubleHasher(optimal_k, seed);
+	size_t cells = zeek::probabilistic::BasicBloomFilter::M(fp, capacity);
+	size_t optimal_k = zeek::probabilistic::BasicBloomFilter::K(cells, capacity);
+	zeek::probabilistic::detail::Hasher::seed_t seed =
+		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0, name->Len());
+	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DoubleHasher(optimal_k, seed);
 
-	return zeek::make_intrusive<zeek::BloomFilterVal>(new BasicBloomFilter(h, cells));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new zeek::probabilistic::BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a basic Bloom filter. This function serves as a low-level
@@ -82,11 +82,11 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 		return nullptr;
 		}
 
-	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
-				       name->Len());
-	const Hasher* h = new DoubleHasher(k, seed);
+	zeek::probabilistic::detail::Hasher::seed_t seed =
+		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0, name->Len());
+	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DoubleHasher(k, seed);
 
-	return zeek::make_intrusive<zeek::BloomFilterVal>(new BasicBloomFilter(h, cells));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new zeek::probabilistic::BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a counting Bloom filter.
@@ -121,16 +121,16 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 		return nullptr;
 		}
 
-	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
-				       name->Len());
+	zeek::probabilistic::detail::Hasher::seed_t seed =
+		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0, name->Len());
 
-	const Hasher* h = new DefaultHasher(k, seed);
+	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DefaultHasher(k, seed);
 
 	uint16_t width = 1;
 	while ( max >>= 1 )
 		++width;
 
-	return zeek::make_intrusive<zeek::BloomFilterVal>(new CountingBloomFilter(h, cells, width));
+	return zeek::make_intrusive<zeek::BloomFilterVal>(new zeek::probabilistic::CountingBloomFilter(h, cells, width));
 	%}
 
 ## Adds an element to a Bloom filter.
@@ -144,7 +144,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 ##    bloomfilter_merge
 function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 	%{
-	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+	auto* bfv = static_cast<BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() && ! bfv->Typify(x->GetType()) )
 		reporter->Error("failed to set Bloom filter type");
@@ -171,7 +171,7 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ##    bloomfilter_merge
 function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	%{
-	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
+	const auto* bfv = static_cast<const BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() )
 		return zeek::val_mgr->Count(0);
@@ -196,7 +196,7 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 ##    bloomfilter_merge
 function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 	%{
-	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+	auto* bfv = static_cast<BloomFilterVal*>(bf);
 
 	if ( bfv->Type() ) // Untyped Bloom filters are already empty.
 		bfv->Clear();
@@ -222,8 +222,8 @@ function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 function bloomfilter_merge%(bf1: opaque of bloomfilter,
 			    bf2: opaque of bloomfilter%): opaque of bloomfilter
 	%{
-	const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
-	const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
+	const auto* bfv1 = static_cast<const BloomFilterVal*>(bf1);
+	const auto* bfv2 = static_cast<const BloomFilterVal*>(bf2);
 
 	if ( bfv1->Type() && // any one 0 is ok here
 	     bfv2->Type() &&
@@ -244,6 +244,6 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 ## Returns: a string with a representation of a Bloom filter's internal state.
 function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
 	%{
-	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+	auto* bfv = static_cast<BloomFilterVal*>(bf);
 	return zeek::make_intrusive<zeek::StringVal>(bfv->InternalState());
 	%}

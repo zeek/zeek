@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_Finger {
+namespace zeek::plugin::detail::Zeek_Finger {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("Finger", ::analyzer::finger::Finger_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Finger", zeek::analyzer::finger::Finger_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::Finger";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_Finger

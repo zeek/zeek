@@ -5,7 +5,8 @@
 #include <assert.h>
 
 using namespace std;
-using namespace zeekygen;
+
+namespace zeek::zeekygen::detail {
 
 ReStructuredTextTable::ReStructuredTextTable(size_t arg_num_cols)
 	: num_cols(arg_num_cols), rows(), longest_row_in_column()
@@ -66,3 +67,5 @@ string ReStructuredTextTable::AsString(char border) const
 	rval += MakeBorder(longest_row_in_column, border);
 	return rval;
 	}
+
+} // namespace zeek::zeekygen::detail

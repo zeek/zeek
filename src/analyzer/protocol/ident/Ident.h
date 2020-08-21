@@ -5,9 +5,9 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace ident {
+namespace zeek::analyzer::ident {
 
-class Ident_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class Ident_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit Ident_Analyzer(zeek::Connection* conn);
 	void Done() override;
@@ -26,11 +26,17 @@ protected:
 	void BadRequest(int length, const char* line);
 	void BadReply(int length, const char* line);
 
-	tcp::ContentLine_Analyzer* orig_ident;
-	tcp::ContentLine_Analyzer* resp_ident;
+	zeek::analyzer::tcp::ContentLine_Analyzer* orig_ident;
+	zeek::analyzer::tcp::ContentLine_Analyzer* resp_ident;
 
 	bool did_deliver;
 	bool did_bad_reply;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ident
+
+namespace analyzer::ident {
+
+using Ident_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ident::Ident_Analyzer.")]] = zeek::analyzer::ident::Ident_Analyzer;
+
+} // namespace analyzer::ident

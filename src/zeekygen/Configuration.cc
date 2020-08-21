@@ -10,8 +10,9 @@
 #include <algorithm>
 #include <errno.h>
 
-using namespace zeekygen;
 using namespace std;
+
+namespace zeek::zeekygen::detail {
 
 static TargetFactory create_target_factory()
 	{
@@ -46,7 +47,7 @@ Config::Config(const string& arg_file, const string& delim)
 		{
 		++line_number;
 		vector<string> tokens;
-		tokenize_string(line, delim, &tokens);
+		zeek::util::tokenize_string(line, delim, &tokens);
 		tokens.erase(remove(tokens.begin(), tokens.end(), ""), tokens.end());
 
 		if ( tokens.empty() )
@@ -98,5 +99,7 @@ time_t Config::GetModificationTime() const
 	if ( file.empty() )
 		return 0;
 
-	return zeekygen::get_mtime(file);
+	return get_mtime(file);
 	}
+
+} // namespace zeek::zeekygen::detail

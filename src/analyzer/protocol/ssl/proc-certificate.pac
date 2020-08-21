@@ -26,12 +26,13 @@
 			file_handle.Add(common.Description());
 			file_handle.Add(i);
 
-			string file_id = file_mgr->HashHandle(file_handle.Description());
+			string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
-			file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-			                 cert.length(), bro_analyzer()->GetAnalyzerTag(),
-			                 bro_analyzer()->Conn(), is_orig, file_id, i == 0 ? user_mime : ca_mime);
-			file_mgr->EndOfFile(file_id);
+			zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+			                       cert.length(), bro_analyzer()->GetAnalyzerTag(),
+			                       bro_analyzer()->Conn(), is_orig,
+			                       file_id, i == 0 ? user_mime : ca_mime);
+			zeek::file_mgr->EndOfFile(file_id);
 			}
 		return true;
 		%}

@@ -7,9 +7,9 @@
 
 #include "gssapi_pac.h"
 
-namespace analyzer { namespace gssapi {
+namespace zeek::analyzer::gssapi {
 
-class GSSAPI_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class GSSAPI_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit GSSAPI_Analyzer(zeek::Connection* conn);
@@ -21,7 +21,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
@@ -31,4 +31,10 @@ protected:
 	binpac::GSSAPI::GSSAPI_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::gssapi
+
+namespace analyzer::gssapi {
+
+using GSSAPI_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gssapi::GSSAPI_Analyzer.")]] = zeek::analyzer::gssapi::GSSAPI_Analyzer;
+
+} // namespace analyzer::gssapi

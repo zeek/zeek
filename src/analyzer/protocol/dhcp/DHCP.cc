@@ -3,7 +3,7 @@
 #include "events.bif.h"
 #include "types.bif.h"
 
-using namespace analyzer::dhcp;
+namespace zeek::analyzer::dhcp {
 
 DHCP_Analyzer::DHCP_Analyzer(zeek::Connection* conn)
 : Analyzer("DHCP", conn)
@@ -32,7 +32,9 @@ void DHCP_Analyzer::DeliverPacket(int len, const u_char* data,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 
 	}
+
+} // namespace zeek::analyzer::dhcp

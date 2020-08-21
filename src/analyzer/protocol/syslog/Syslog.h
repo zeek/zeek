@@ -6,7 +6,7 @@
 
 #include "syslog_pac.h"
 
-namespace analyzer { namespace syslog {
+namespace zeek::analyzer::syslog {
 
 class Syslog_Analyzer : public zeek::analyzer::Analyzer {
 public:
@@ -28,7 +28,7 @@ protected:
 
 // #include "Syslog_tcp_pac.h"
 //
-//class Syslog_tcp::TCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+//class Syslog_tcp::TCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 //public:
 //	Syslog_tcp::TCP_Analyzer(zeek::Connection* conn);
 //	virtual ~Syslog_tcp::TCP_Analyzer();
@@ -45,4 +45,11 @@ protected:
 //	binpac::Syslog_on_TCP::Syslog_TCP_Conn* interp;
 //};
 //
-} } // namespace analyzer::*
+
+} // namespace zeek::analyzer::syslog
+
+namespace analyzer::syslog {
+
+using Syslog_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::syslog::Syslog_Analyzer.")]] = zeek::analyzer::syslog::Syslog_Analyzer;
+
+} // namespace analyzer::syslog

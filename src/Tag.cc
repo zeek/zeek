@@ -92,7 +92,7 @@ zeek::EnumVal* Tag::AsEnumVal(zeek::EnumType* etype) const
 
 std::string Tag::AsString() const
 	{
-	return fmt("%" PRIu32 "/%" PRIu32, type, subtype);
+	return zeek::util::fmt("%" PRIu32 "/%" PRIu32, type, subtype);
 	}
 
 } // namespace zeek

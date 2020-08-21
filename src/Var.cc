@@ -17,7 +17,7 @@
 #include "module_util.h"
 #include "ID.h"
 
-using namespace zeek::detail;
+namespace zeek::detail {
 
 static zeek::ValPtr init_val(zeek::detail::Expr* init,
                              const zeek::Type* t,
@@ -84,7 +84,7 @@ static bool add_prototype(const zeek::detail::IDPtr& id, zeek::Type* t,
 
 		if ( alt_args->FieldDecl(i)->attrs )
 			{
-			alt_ft->Error(fmt("alternate function prototype arguments may not have attributes: arg '%s'", field), canon_ft);
+			alt_ft->Error(zeek::util::fmt("alternate function prototype arguments may not have attributes: arg '%s'", field), canon_ft);
 			return false;
 			}
 
@@ -92,7 +92,7 @@ static bool add_prototype(const zeek::detail::IDPtr& id, zeek::Type* t,
 
 		if ( o < 0 )
 			{
-			alt_ft->Error(fmt("alternate function prototype arg '%s' not found in canonical prototype", field), canon_ft);
+			alt_ft->Error(zeek::util::fmt("alternate function prototype arg '%s' not found in canonical prototype", field), canon_ft);
 			return false;
 			}
 
@@ -125,7 +125,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
                      zeek::detail::InitClass c,
                      zeek::detail::ExprPtr init,
                      std::unique_ptr<std::vector<AttrPtr>> attr,
-                     decl_type dt,
+                     DeclType dt,
                      bool do_init)
 	{
 	if ( id->GetType() )
@@ -327,7 +327,7 @@ void add_global(
 	zeek::TypePtr t,
 	zeek::detail::InitClass c, zeek::detail::ExprPtr init,
 	std::unique_ptr<std::vector<AttrPtr>> attr,
-	decl_type dt)
+	DeclType dt)
 	{
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
@@ -336,7 +336,7 @@ zeek::detail::StmtPtr add_local(
 	zeek::detail::IDPtr id, zeek::TypePtr t,
 	zeek::detail::InitClass c, zeek::detail::ExprPtr init,
 	std::unique_ptr<std::vector<AttrPtr>> attr,
-	decl_type dt)
+	DeclType dt)
 	{
 	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
 
@@ -469,12 +469,12 @@ static std::optional<zeek::FuncType::Prototype> func_type_check(const zeek::Func
 				auto msg = ad->DeprecationMessage();
 
 				if ( msg.empty() )
-					impl->Warn(fmt("use of deprecated parameter '%s'",
-				                   rval->args->FieldName(i)),
-				               decl, true);
+					impl->Warn(zeek::util::fmt("use of deprecated parameter '%s'",
+					                           rval->args->FieldName(i)),
+					           decl, true);
 				else
-					impl->Warn(fmt("use of deprecated parameter '%s': %s",
-				                   rval->args->FieldName(i), msg.data()),
+					impl->Warn(zeek::util::fmt("use of deprecated parameter '%s': %s",
+					                           rval->args->FieldName(i), msg.data()),
 				               decl, true);
 				}
 
@@ -553,11 +553,11 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 			if ( prototype->deprecated )
 				{
 				if ( prototype->deprecation_msg.empty() )
-					t->Warn(fmt("use of deprecated '%s' prototype", id->Name()),
+					t->Warn(zeek::util::fmt("use of deprecated '%s' prototype", id->Name()),
 					        prototype->args.get(), true);
 				else
-					t->Warn(fmt("use of deprecated '%s' prototype: %s",
-					            id->Name(), prototype->deprecation_msg.data()),
+					t->Warn(zeek::util::fmt("use of deprecated '%s' prototype: %s",
+					                        id->Name(), prototype->deprecation_msg.data()),
 					        prototype->args.get(), true);
 				}
 			}
@@ -648,7 +648,7 @@ void begin_func(zeek::detail::IDPtr id, const char* module_name,
 		if ( hide )
 			// Note the illegal '-' in hidden name implies we haven't
 			// clobbered any local variable names.
-			local_name = fmt("%s-hidden", local_name);
+			local_name = zeek::util::fmt("%s-hidden", local_name);
 
 		arg_id = zeek::detail::install_ID(local_name, module_name, false, false);
 		arg_id->SetType(arg_i->type);
@@ -744,12 +744,12 @@ zeek::Val* internal_val(const char* name)
 	return zeek::id::find_val(name).get();
 	}
 
-id_list gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body)
+IDPList gather_outer_ids(zeek::detail::Scope* scope, zeek::detail::Stmt* body)
 	{
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);
 
-	id_list idl ( cb.outer_id_references.size() );
+	IDPList idl ( cb.outer_id_references.size() );
 
 	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
 		{
@@ -861,3 +861,5 @@ zeek::EventHandlerPtr internal_handler(const char* name)
 	{
 	return zeek::event_registry->Register(name);
 	}
+
+} // namespace zeek::detail

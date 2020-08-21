@@ -7,8 +7,10 @@
 #include "iosource/Manager.h"
 #include "Event.h"
 #include "IPAddr.h"
+#include "RunState.h"
 
-using namespace threading;
+namespace zeek::threading {
+namespace detail {
 
 void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	{
@@ -18,6 +20,8 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	thread_mgr->SendHeartbeats();
 	thread_mgr->StartHeartbeatTimer();
 	}
+
+} // namespace detail
 
 Manager::Manager()
 	{
@@ -127,7 +131,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	zeek::detail::timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
+	zeek::detail::timer_mgr->Add(new detail::HeartbeatTimer(zeek::run_state::network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
@@ -179,7 +183,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	if ( convert_error )
 		return false;
 	else if ( handler )
-		zeek::event_mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
+		zeek::event_mgr.Enqueue(handler, std::move(vl), zeek::util::detail::SOURCE_LOCAL);
 
 	return true;
 	}
@@ -188,10 +192,10 @@ void Manager::Flush()
 	{
 	bool do_beat = false;
 
-	if ( network_time && (network_time > next_beat || ! next_beat) )
+	if ( zeek::run_state::network_time && (zeek::run_state::network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + zeek::BifConst::Threading::heartbeat_interval;
+		next_beat = ::zeek::run_state::network_time + zeek::BifConst::Threading::heartbeat_interval;
 		}
 
 	did_process = false;
@@ -210,7 +214,7 @@ void Manager::Flush()
 
 			if ( msg->Process() )
 				{
-				if ( network_time )
+				if ( zeek::run_state::network_time )
 					did_process = true;
 				}
 
@@ -250,7 +254,8 @@ void Manager::Flush()
 		delete t;
 		}
 
-//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, zeek::detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
+	// fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", zeek::run_state::network_time,
+	//         zeek::detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
 const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()
@@ -269,3 +274,5 @@ const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats(
 
 	return stats;
 	}
+
+} // namespace zeek::threading

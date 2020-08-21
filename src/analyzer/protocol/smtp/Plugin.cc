@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_SMTP {
+namespace zeek::plugin::detail::Zeek_SMTP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("SMTP", ::analyzer::smtp::SMTP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("SMTP", zeek::analyzer::smtp::SMTP_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::SMTP";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_SMTP

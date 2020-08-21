@@ -5,7 +5,7 @@
 #include <string>
 #include "Timer.h"
 
-namespace file_analysis {
+namespace zeek::file_analysis::detail {
 
 /**
  * Timer to periodically check if file analysis for a given file is inactive.
@@ -32,5 +32,11 @@ public:
 private:
 	std::string file_id;
 };
+
+} // namespace zeek::file_analysis::detail
+
+namespace file_analysis {
+
+using FileTimer [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::FileTimer.")]] = zeek::file_analysis::detail::FileTimer;
 
 } // namespace file_analysis

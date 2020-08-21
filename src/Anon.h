@@ -129,4 +129,4 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl);
 #define LOG_ANONYMIZATION_MAPPING
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output);
 
-}
+} // namespace zeek::detail

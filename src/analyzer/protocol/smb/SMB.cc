@@ -1,13 +1,13 @@
 #include "SMB.h"
 
-using namespace analyzer::smb;
+namespace zeek::analyzer::smb {
 
 // This was 1<<17 originally but was changed due to larger messages
 // being seen.
 #define SMB_MAX_LEN (1<<18)
 
 SMB_Analyzer::SMB_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("SMB", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SMB", conn)
 	{
 	chunks=0;
 	interp = new binpac::SMB::SMB_Conn(this);
@@ -81,7 +81,9 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		NeedResync();
 		}
 	}
+
+} // namespace zeek::analyzer::smb

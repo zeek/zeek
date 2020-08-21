@@ -204,7 +204,7 @@ public:
 	// arguments used for the event are whatevever is provided in 'vl'.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
-				val_list vl);
+	                     ValPList vl);
 
 	// Same as ConnectionEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
@@ -212,7 +212,7 @@ public:
 	// of each of its elements.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
-				val_list* vl);
+	                     ValPList* vl);
 
 	// Queues an event without first checking if there's any available event
 	// handlers (or remote consumes).  If it turns out there's actually nothing
@@ -224,7 +224,7 @@ public:
 	// there's no handlers to consume them).
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
-				val_list vl);
+	                         ValPList vl);
 
 	/**
 	 * Enqueues an event associated with this connection and given analyzer.
@@ -303,9 +303,9 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, ::analyzer::pia::PIA* pia);
+	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, zeek::analyzer::pia::PIA* pia);
 	zeek::analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
-	::analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
+	zeek::analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
@@ -346,7 +346,7 @@ protected:
 	zeek::detail::ConnIDKey key;
 	bool key_valid;
 
-	timer_list timers;
+	TimerPList timers;
 
 	zeek::IPAddr orig_addr;
 	zeek::IPAddr resp_addr;
@@ -382,7 +382,7 @@ protected:
 	uint32_t hist_seen;
 
 	zeek::analyzer::TransportLayerAnalyzer* root_analyzer;
-	::analyzer::pia::PIA* primary_PIA;
+	zeek::analyzer::pia::PIA* primary_PIA;
 
 	zeek::UID uid;	// Globally unique connection ID.
 	zeek::detail::WeirdStateMap weird_state;

@@ -9,13 +9,13 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::login;
+namespace zeek::analyzer::login {
 
 // FIXME: this code should probably be merged with Rlogin.cc.
 
 Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig,
                                              Rsh_Analyzer* arg_analyzer)
-: tcp::ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
+	: zeek::analyzer::tcp::ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
@@ -35,7 +35,7 @@ Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()
 
 void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 	{
-	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	zeek::analyzer::tcp::TCP_Analyzer* tcp = static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
 
 	int endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();
@@ -49,10 +49,10 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 
 		switch ( state ) {
 		case RSH_FIRST_NULL:
-			if ( endp_state == tcp::TCP_ENDPOINT_PARTIAL ||
+			if ( endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
 			     // We can be in closed if the data's due to
 			     // a dataful FIN being the first thing we see.
-			     endp_state == tcp::TCP_ENDPOINT_CLOSED )
+			     endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED )
 				{
 				state = RSH_UNKNOWN;
 				++len, --data;	// put back c and reprocess
@@ -171,7 +171,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	zeek::Args vl;
 	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
-	line = skip_whitespace(line);
+	line = zeek::util::skip_whitespace(line);
 	vl.emplace_back(ConnVal());
 
 	if ( client_name )
@@ -223,3 +223,5 @@ void Rsh_Analyzer::ServerUserName(const char* s)
 
 	username = new zeek::StringVal(s);
 	}
+
+} // namespace zeek::analyzer::login

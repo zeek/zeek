@@ -7,9 +7,9 @@
 #include "zlib.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
-namespace analyzer { namespace zip {
+namespace zeek::analyzer::zip {
 
-class ZIP_Analyzer final : public tcp::TCP_SupportAnalyzer {
+class ZIP_Analyzer final : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
 public:
 	enum Method { GZIP, DEFLATE };
 
@@ -27,4 +27,10 @@ protected:
 	Method method;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::zip
+
+namespace analyzer::zip {
+
+using ZIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::zip::ZIP_Analyzer.")]] = zeek::analyzer::zip::ZIP_Analyzer;
+
+} // namespace analyzer::zip

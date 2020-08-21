@@ -5,14 +5,13 @@
 
 #include "DCE_RPC.h"
 
-namespace plugin {
-namespace Zeek_DCE_RPC {
+namespace zeek::plugin::detail::Zeek_DCE_RPC {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("DCE_RPC", ::analyzer::dce_rpc::DCE_RPC_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("DCE_RPC", zeek::analyzer::dce_rpc::DCE_RPC_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::DCE_RPC";
@@ -21,5 +20,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_DCE_RPC

@@ -18,9 +18,9 @@ zeek::ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 	if ( pname->data()->size() == 1 )
 		return to_stringval(pname->data()[0][0]->encoding()->content());
 	if ( pname->data()->size() == 2 )
-		return zeek::make_intrusive<zeek::StringVal>(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
+		return zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
 	if ( pname->data()->size() == 3 ) // if the name-string has a third value, this will just append it, else this will return unknown as the principal name
-		return zeek::make_intrusive<zeek::StringVal>(fmt("%s/%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin(), (char *)pname->data()[0][2]->encoding()->content().begin()));
+		return zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%s/%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin(), (char *)pname->data()[0][2]->encoding()->content().begin()));
 
 	return zeek::make_intrusive<zeek::StringVal>("unknown");
 }

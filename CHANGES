@@ -1,3 +1,77 @@
+3.3.0-dev.177 | 2020-08-21 08:36:48 -0700
+
+  * Add missing namespace to usage of get_exe_path in fuzzer (Tim Wojtulewicz, Corelight)
+
+  * Rename methods in RunState to remove 'net' from their names (Tim Wojtulewicz, Corelight)
+
+  * Move zeek::net namespace to zeek::run_state namespace.
+
+    This also moves all of the code from Net.{h,cc} to RunState.{h,cc} and marks Net.h as deprecated (Tim Wojtulewicz, Corelight)
+
+  * Move ScannedFile class and associated globals into ScannedFile.h and out of Net.h and scan.l (Tim Wojtulewicz, Corelight)
+
+  * Rename types in ZeekList.h to be consistent with the style guide (Tim Wojtulewicz, Corelight)
+
+  * Move NetVar from zeek to zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Remove PRI_PTR_COMPAT macros (Tim Wojtulewicz, Corelight)
+
+  * Fix indentation of namespaced aliases (Tim Wojtulewicz, Corelight)
+
+  * Move zeek-setup code into namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move ZeekList types to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move __RegisterBif from zeek::detail::plugin to zeek::plugin::detail (Tim Wojtulewicz, Corelight)
+
+  * Remove unimplemented zeek_magic_path/bro_magic_path method (Tim Wojtulewicz, Corelight)
+
+  * Move all plugin classes into zeek::plugin::detail namespaces (Tim Wojtulewicz, Corelight)
+
+  * Rename BroList.h to ZeekList.h (Tim Wojtulewicz, Corelight)
+
+  * Move a few smaller files to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Tag the end of some namespaces for consistency (Tim Wojtulewicz, Corelight)
+
+  * Move a few of the zeek::util methods and variables to zeek::util::detail (Tim Wojtulewicz, Corelight)
+
+  * Move zeekygen code to zeek::zeekygen::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Mark zeek::util::pad_size as constexpr, which provides a small performance improvement (Tim Wojtulewicz, Corelight)
+
+  * Move everything in util.h to zeek::util namespace.
+
+    This commit includes renaming a number of methods prefixed with bro_ to be prefixed with zeek_. (Tim Wojtulewicz, Corelight)
+
+  * Deprecate ptr_compat_uint and ptr_compat_int in util.h (Tim Wojtulewicz, Corelight)
+
+  * Move NetVar.h to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move the functions and variables in Net.h to the zeek::net namespace. This includes moving network_time out of util.h. (Tim Wojtulewicz, Corelight)
+
+  * Add namespaced version of trigger_mgr, fix a couple uses of event_registry (Tim Wojtulewicz, Corelight)
+
+  * Move the remainder of the analyzers to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move arp, tcp, udp, pia, and stepping stone analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move bro_broker code to zeek::Broker namespace (Tim Wojtulewicz, Corelight)
+
+  * Move notifier code to zeek::notifier::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move threading classes to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move probabilistic code into zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move iosource code to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move logging code to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move input code to zeek namespaces (Tim Wojtulewicz, Corelight)
+
+  * Move file_analysis code to zeek namespaces (Tim Wojtulewicz, Corelight)
+
 
 3.3.0-dev.142 | 2020-08-20 16:26:06 -0700
 

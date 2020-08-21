@@ -4,15 +4,14 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_MQTT {
+namespace zeek::plugin::detail::Zeek_MQTT {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new zeek::analyzer::Component("MQTT",
-		             ::analyzer::MQTT::MQTT_Analyzer::InstantiateAnalyzer));
+		             zeek::analyzer::mqtt::MQTT_Analyzer::InstantiateAnalyzer));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::MQTT";
@@ -21,5 +20,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_MQTT

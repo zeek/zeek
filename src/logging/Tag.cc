@@ -3,39 +3,43 @@
 #include "Tag.h"
 #include "Manager.h"
 
-const logging::Tag logging::Tag::Error;
+namespace zeek::logging {
 
-logging::Tag::Tag(type_t type, subtype_t subtype)
+const Tag Tag::Error;
+
+Tag::Tag(type_t type, subtype_t subtype)
 	: zeek::Tag(log_mgr->GetTagType(), type, subtype)
 	{
 	}
 
-logging::Tag& logging::Tag::operator=(const logging::Tag& other)
+Tag& Tag::operator=(const Tag& other)
 	{
 	zeek::Tag::operator=(other);
 	return *this;
 	}
 
-logging::Tag& logging::Tag::operator=(const logging::Tag&& other) noexcept
+Tag& Tag::operator=(const Tag&& other) noexcept
 	{
 	zeek::Tag::operator=(other);
 	return *this;
 	}
 
-const zeek::EnumValPtr& logging::Tag::AsVal() const
+const zeek::EnumValPtr& Tag::AsVal() const
 	{
 	return zeek::Tag::AsVal(log_mgr->GetTagType());
 	}
 
-zeek::EnumVal* logging::Tag::AsEnumVal() const
+zeek::EnumVal* Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-logging::Tag::Tag(zeek::EnumValPtr val)
+Tag::Tag(zeek::EnumValPtr val)
 	: zeek::Tag(std::move(val))
 	{ }
 
-logging::Tag::Tag(zeek::EnumVal* val)
+Tag::Tag(zeek::EnumVal* val)
 	: zeek::Tag({zeek::NewRef{}, val})
 	{ }
+
+} // namespace zeek::logging

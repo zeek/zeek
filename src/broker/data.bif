@@ -33,12 +33,12 @@ type Broker::TableItem: record;
 
 function Broker::__data%(d: any%): Broker::Data
 	%{
-	return bro_broker::make_data_val(d);
+	return zeek::Broker::detail::make_data_val(d);
 	%}
 
 function Broker::__data_type%(d: Broker::Data%): Broker::DataType
 	%{
-	return bro_broker::get_data_type(d->AsRecordVal(), frame);
+	return zeek::Broker::detail::get_data_type(d->AsRecordVal(), frame);
 	%}
 
 # For testing only.
@@ -57,29 +57,29 @@ function Broker::__opaque_clone_through_serialization%(d: any%): any
 
 function Broker::__set_create%(%): Broker::Data
 	%{
-	return bro_broker::make_data_val(broker::set());
+	return zeek::Broker::detail::make_data_val(broker::set());
 	%}
 
 function Broker::__set_clear%(s: Broker::Data%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(),
-	                                                     zeek::TYPE_TABLE, frame);
+	auto& v = zeek::Broker::detail::require_data_type<broker::set>(s->AsRecordVal(),
+	                                                               zeek::TYPE_TABLE, frame);
 	v.clear();
 	return zeek::val_mgr->True();
 	%}
 
 function Broker::__set_size%(s: Broker::Data%): count
 	%{
-	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::set>(s->AsRecordVal(),
 	                                                     zeek::TYPE_TABLE, frame);
 	return zeek::val_mgr->Count(static_cast<uint64_t>(v.size()));
 	%}
 
 function Broker::__set_contains%(s: Broker::Data, key: any%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::set>(s->AsRecordVal(),
 	                                                     zeek::TYPE_TABLE, frame);
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -92,10 +92,10 @@ function Broker::__set_contains%(s: Broker::Data, key: any%): bool
 
 function Broker::__set_insert%(s: Broker::Data, key: any%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::set>(s->AsRecordVal(),
 	                                                     zeek::TYPE_TABLE, frame);
 
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -108,9 +108,9 @@ function Broker::__set_insert%(s: Broker::Data, key: any%): bool
 
 function Broker::__set_remove%(s: Broker::Data, key: any%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::set>(s->AsRecordVal(),
 	                                                     zeek::TYPE_TABLE, frame);
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -123,18 +123,18 @@ function Broker::__set_remove%(s: Broker::Data, key: any%): bool
 
 function Broker::__set_iterator%(s: Broker::Data%): opaque of Broker::SetIterator
 	%{
-	return zeek::make_intrusive<bro_broker::SetIterator>(s->AsRecordVal(), zeek::TYPE_TABLE, frame);
+	return zeek::make_intrusive<zeek::Broker::detail::SetIterator>(s->AsRecordVal(), zeek::TYPE_TABLE, frame);
 	%}
 
 function Broker::__set_iterator_last%(it: opaque of Broker::SetIterator%): bool
 	%{
-	auto set_it = static_cast<bro_broker::SetIterator*>(it);
+	auto set_it = static_cast<zeek::Broker::detail::SetIterator*>(it);
 	return zeek::val_mgr->Bool(set_it->it == set_it->dat.end());
 	%}
 
 function Broker::__set_iterator_next%(it: opaque of Broker::SetIterator%): bool
 	%{
-	auto set_it = static_cast<bro_broker::SetIterator*>(it);
+	auto set_it = static_cast<zeek::Broker::detail::SetIterator*>(it);
 
 	if ( set_it->it == set_it->dat.end() )
 		return zeek::val_mgr->False();
@@ -145,7 +145,7 @@ function Broker::__set_iterator_next%(it: opaque of Broker::SetIterator%): bool
 
 function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Broker::Data
 	%{
-	auto set_it = static_cast<bro_broker::SetIterator*>(it);
+	auto set_it = static_cast<zeek::Broker::detail::SetIterator*>(it);
 	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
 	if ( set_it->it == set_it->dat.end() )
@@ -154,18 +154,18 @@ function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Brok
 		return rval;
 		}
 
-	rval->Assign(0, zeek::make_intrusive<bro_broker::DataVal>(*set_it->it));
+	rval->Assign(0, zeek::make_intrusive<zeek::Broker::detail::DataVal>(*set_it->it));
 	return rval;
 	%}
 
 function Broker::__table_create%(%): Broker::Data
 	%{
-	return bro_broker::make_data_val(broker::table());
+	return zeek::Broker::detail::make_data_val(broker::table());
 	%}
 
 function Broker::__table_clear%(t: Broker::Data%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                       zeek::TYPE_TABLE, frame);
 	v.clear();
 	return zeek::val_mgr->True();
@@ -173,17 +173,17 @@ function Broker::__table_clear%(t: Broker::Data%): bool
 
 function Broker::__table_size%(t: Broker::Data%): count
 	%{
-	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                       zeek::TYPE_TABLE, frame);
 	return zeek::val_mgr->Count(static_cast<uint64_t>(v.size()));
 	%}
 
 function Broker::__table_contains%(t: Broker::Data, key: any%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                       zeek::TYPE_TABLE, frame);
 
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -196,10 +196,10 @@ function Broker::__table_contains%(t: Broker::Data, key: any%): bool
 
 function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::Data
 	%{
-	auto& table = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& table = zeek::Broker::detail::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                           zeek::TYPE_TABLE, frame);
 
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -207,7 +207,7 @@ function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 		}
 
-	auto v = bro_broker::val_to_data(val);
+	auto v = zeek::Broker::detail::val_to_data(val);
 
 	if ( ! v )
 		{
@@ -218,7 +218,7 @@ function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::
 	try
 		{
 		auto& prev = table.at(*k);
-		auto rval = bro_broker::make_data_val(move(prev));
+		auto rval = zeek::Broker::detail::make_data_val(move(prev));
 		prev = std::move(*v);
 		return rval;
 		}
@@ -231,10 +231,10 @@ function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::
 
 function Broker::__table_remove%(t: Broker::Data, key: any%): Broker::Data
 	%{
-	auto& table = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& table = zeek::Broker::detail::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                           zeek::TYPE_TABLE, frame);
 
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -248,7 +248,7 @@ function Broker::__table_remove%(t: Broker::Data, key: any%): Broker::Data
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 	else
 		{
-		auto rval = bro_broker::make_data_val(move(it->second));
+		auto rval = zeek::Broker::detail::make_data_val(move(it->second));
 		table.erase(it);
 		return rval;
 		}
@@ -256,10 +256,10 @@ function Broker::__table_remove%(t: Broker::Data, key: any%): Broker::Data
 
 function Broker::__table_lookup%(t: Broker::Data, key: any%): Broker::Data
 	%{
-	auto& table = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& table = zeek::Broker::detail::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                           zeek::TYPE_TABLE, frame);
 
-	auto k = bro_broker::val_to_data(key);
+	auto k = zeek::Broker::detail::val_to_data(key);
 
 	if ( ! k )
 		{
@@ -272,23 +272,23 @@ function Broker::__table_lookup%(t: Broker::Data, key: any%): Broker::Data
 	if ( it == table.end() )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 	else
-		return bro_broker::make_data_val(it->second);
+		return zeek::Broker::detail::make_data_val(it->second);
 	%}
 
 function Broker::__table_iterator%(t: Broker::Data%): opaque of Broker::TableIterator
 	%{
-	return zeek::make_intrusive<bro_broker::TableIterator>(t->AsRecordVal(), zeek::TYPE_TABLE, frame);
+	return zeek::make_intrusive<zeek::Broker::detail::TableIterator>(t->AsRecordVal(), zeek::TYPE_TABLE, frame);
 	%}
 
 function Broker::__table_iterator_last%(it: opaque of Broker::TableIterator%): bool
 	%{
-	auto ti = static_cast<bro_broker::TableIterator*>(it);
+	auto ti = static_cast<zeek::Broker::detail::TableIterator*>(it);
 	return zeek::val_mgr->Bool(ti->it == ti->dat.end());
 	%}
 
 function Broker::__table_iterator_next%(it: opaque of Broker::TableIterator%): bool
 	%{
-	auto ti = static_cast<bro_broker::TableIterator*>(it);
+	auto ti = static_cast<zeek::Broker::detail::TableIterator*>(it);
 
 	if ( ti->it == ti->dat.end() )
 		return zeek::val_mgr->False();
@@ -299,7 +299,7 @@ function Broker::__table_iterator_next%(it: opaque of Broker::TableIterator%): b
 
 function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): Broker::TableItem
 	%{
-	auto ti = static_cast<bro_broker::TableIterator*>(it);
+	auto ti = static_cast<zeek::Broker::detail::TableIterator*>(it);
 	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::TableItem);
 	auto key_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 	auto val_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
@@ -312,19 +312,19 @@ function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): 
 		return rval;
 		}
 
-	key_val->Assign(0, zeek::make_intrusive<bro_broker::DataVal>(ti->it->first));
-	val_val->Assign(0, zeek::make_intrusive<bro_broker::DataVal>(ti->it->second));
+	key_val->Assign(0, zeek::make_intrusive<zeek::Broker::detail::DataVal>(ti->it->first));
+	val_val->Assign(0, zeek::make_intrusive<zeek::Broker::detail::DataVal>(ti->it->second));
 	return rval;
 	%}
 
 function Broker::__vector_create%(%): Broker::Data
 	%{
-	return bro_broker::make_data_val(broker::vector());
+	return zeek::Broker::detail::make_data_val(broker::vector());
 	%}
 
 function Broker::__vector_clear%(v: Broker::Data%): bool
 	%{
-	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = zeek::Broker::detail::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          zeek::TYPE_VECTOR, frame);
 	vec.clear();
 	return zeek::val_mgr->True();
@@ -332,16 +332,16 @@ function Broker::__vector_clear%(v: Broker::Data%): bool
 
 function Broker::__vector_size%(v: Broker::Data%): count
 	%{
-	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = zeek::Broker::detail::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          zeek::TYPE_VECTOR, frame);
 	return zeek::val_mgr->Count(static_cast<uint64_t>(vec.size()));
 	%}
 
 function Broker::__vector_insert%(v: Broker::Data, idx:count, d: any%): bool
 	%{
-	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = zeek::Broker::detail::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          zeek::TYPE_VECTOR, frame);
-	auto item = bro_broker::val_to_data(d);
+	auto item = zeek::Broker::detail::val_to_data(d);
 
 	if ( ! item )
 		{
@@ -356,9 +356,9 @@ function Broker::__vector_insert%(v: Broker::Data, idx:count, d: any%): bool
 
 function Broker::__vector_replace%(v: Broker::Data, idx: count, d: any%): Broker::Data
 	%{
-	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = zeek::Broker::detail::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          zeek::TYPE_VECTOR, frame);
-	auto item = bro_broker::val_to_data(d);
+	auto item = zeek::Broker::detail::val_to_data(d);
 
 	if ( ! item )
 		{
@@ -369,49 +369,49 @@ function Broker::__vector_replace%(v: Broker::Data, idx: count, d: any%): Broker
 	if ( idx >= vec.size() )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
-	auto rval = bro_broker::make_data_val(move(vec[idx]));
+	auto rval = zeek::Broker::detail::make_data_val(move(vec[idx]));
 	vec[idx] = std::move(*item);
 	return rval;
 	%}
 
 function Broker::__vector_remove%(v: Broker::Data, idx: count%): Broker::Data
 	%{
-	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = zeek::Broker::detail::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          zeek::TYPE_VECTOR, frame);
 
 	if ( idx >= vec.size() )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
-	auto rval = bro_broker::make_data_val(move(vec[idx]));
+	auto rval = zeek::Broker::detail::make_data_val(move(vec[idx]));
 	vec.erase(vec.begin() + idx);
 	return rval;
 	%}
 
 function Broker::__vector_lookup%(v: Broker::Data, idx: count%): Broker::Data
 	%{
-	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = zeek::Broker::detail::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          zeek::TYPE_VECTOR, frame);
 
 	if ( idx >= vec.size() )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
-	return bro_broker::make_data_val(vec[idx]);
+	return zeek::Broker::detail::make_data_val(vec[idx]);
 	%}
 
 function Broker::__vector_iterator%(v: Broker::Data%): opaque of Broker::VectorIterator
 	%{
-	return zeek::make_intrusive<bro_broker::VectorIterator>(v->AsRecordVal(), zeek::TYPE_VECTOR, frame);
+	return zeek::make_intrusive<zeek::Broker::detail::VectorIterator>(v->AsRecordVal(), zeek::TYPE_VECTOR, frame);
 	%}
 
 function Broker::__vector_iterator_last%(it: opaque of Broker::VectorIterator%): bool
 	%{
-	auto vi = static_cast<bro_broker::VectorIterator*>(it);
+	auto vi = static_cast<zeek::Broker::detail::VectorIterator*>(it);
 	return zeek::val_mgr->Bool(vi->it == vi->dat.end());
 	%}
 
 function Broker::__vector_iterator_next%(it: opaque of Broker::VectorIterator%): bool
 	%{
-	auto vi = static_cast<bro_broker::VectorIterator*>(it);
+	auto vi = static_cast<zeek::Broker::detail::VectorIterator*>(it);
 
 	if ( vi->it == vi->dat.end() )
 		return zeek::val_mgr->False();
@@ -422,7 +422,7 @@ function Broker::__vector_iterator_next%(it: opaque of Broker::VectorIterator%):
 
 function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%): Broker::Data
 	%{
-	auto vi = static_cast<bro_broker::VectorIterator*>(it);
+	auto vi = static_cast<zeek::Broker::detail::VectorIterator*>(it);
 	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
 	if ( vi->it == vi->dat.end() )
@@ -431,30 +431,30 @@ function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%)
 		return rval;
 		}
 
-	rval->Assign(0, zeek::make_intrusive<bro_broker::DataVal>(*vi->it));
+	rval->Assign(0, zeek::make_intrusive<zeek::Broker::detail::DataVal>(*vi->it));
 	return rval;
 	%}
 
 function Broker::__record_create%(sz: count%): Broker::Data
 	%{
-	return bro_broker::make_data_val(broker::vector(sz));
+	return zeek::Broker::detail::make_data_val(broker::vector(sz));
 	%}
 
 function Broker::__record_size%(r: Broker::Data%): count
 	%{
-	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::vector>(r->AsRecordVal(),
 	                                                        zeek::TYPE_RECORD, frame);
 	return zeek::val_mgr->Count(static_cast<uint64_t>(v.size()));
 	%}
 
 function Broker::__record_assign%(r: Broker::Data, idx: count, d: any%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::vector>(r->AsRecordVal(),
 	                                                       zeek::TYPE_RECORD, frame);
 	if ( idx >= v.size() )
 		return zeek::val_mgr->False();
 
-	auto item = bro_broker::val_to_data(d);
+	auto item = zeek::Broker::detail::val_to_data(d);
 
 	if ( ! item )
 		{
@@ -468,29 +468,29 @@ function Broker::__record_assign%(r: Broker::Data, idx: count, d: any%): bool
 
 function Broker::__record_lookup%(r: Broker::Data, idx: count%): Broker::Data
 	%{
-	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
+	auto& v = zeek::Broker::detail::require_data_type<broker::vector>(r->AsRecordVal(),
 	                                                        zeek::TYPE_RECORD, frame);
 
 	if ( idx >= v.size() || caf::get_if<broker::none>(&v[idx]) )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
-	return bro_broker::make_data_val(v[idx]);
+	return zeek::Broker::detail::make_data_val(v[idx]);
 	%}
 
 function Broker::__record_iterator%(r: Broker::Data%): opaque of Broker::RecordIterator
 	%{
-	return zeek::make_intrusive<bro_broker::RecordIterator>(r->AsRecordVal(), zeek::TYPE_RECORD, frame);
+	return zeek::make_intrusive<zeek::Broker::detail::RecordIterator>(r->AsRecordVal(), zeek::TYPE_RECORD, frame);
 	%}
 
 function Broker::__record_iterator_last%(it: opaque of Broker::RecordIterator%): bool
 	%{
-	auto ri = static_cast<bro_broker::RecordIterator*>(it);
+	auto ri = static_cast<zeek::Broker::detail::RecordIterator*>(it);
 	return zeek::val_mgr->Bool(ri->it == ri->dat.end());
 	%}
 
 function Broker::__record_iterator_next%(it: opaque of Broker::RecordIterator%): bool
 	%{
-	auto ri = static_cast<bro_broker::RecordIterator*>(it);
+	auto ri = static_cast<zeek::Broker::detail::RecordIterator*>(it);
 
 	if ( ri->it == ri->dat.end() )
 		return zeek::val_mgr->False();
@@ -501,7 +501,7 @@ function Broker::__record_iterator_next%(it: opaque of Broker::RecordIterator%):
 
 function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%): Broker::Data
 	%{
-	auto ri = static_cast<bro_broker::RecordIterator*>(it);
+	auto ri = static_cast<zeek::Broker::detail::RecordIterator*>(it);
 	auto rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
 	if ( ri->it == ri->dat.end() )
@@ -513,6 +513,6 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 	if ( caf::get_if<broker::none>(&(*ri->it)) )
 		return rval; // field isn't set
 
-	rval->Assign(0, zeek::make_intrusive<bro_broker::DataVal>(*ri->it));
+	rval->Assign(0, zeek::make_intrusive<zeek::Broker::detail::DataVal>(*ri->it));
 	return rval;
 	%}

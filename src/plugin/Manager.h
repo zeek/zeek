@@ -389,7 +389,7 @@ public:
 	 *         if the event call should be skipped
 	 */
 	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
-	                  const Connection* conn, const val_list* addl, bool location,
+	                  const Connection* conn, const ValPList* addl, bool location,
 	                  const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                  bool time, const std::string& message);
 
@@ -481,14 +481,7 @@ std::list<T *> Manager::Components() const
 	return result;
 	}
 
-} // namespace plugin
-
-extern zeek::plugin::Manager* plugin_mgr;
-
-} // namespace zeek
-
-// TOOD: should this just be zeek::detail?
-namespace zeek::detail::plugin {
+namespace detail {
 
 /**
  * Internal class used by bifcl-generated code to register its init functions at runtime.
@@ -501,11 +494,18 @@ public:
 		}
 };
 
-}
+} // namespace detail
+} // namespace plugin
+
+extern zeek::plugin::Manager* plugin_mgr;
+
+} // namespace zeek
 
 namespace plugin {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager.")]] = zeek::plugin::Manager;
-}
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager.")]] = zeek::plugin::Manager;
+
+} // namespace plugin
 
 /**
  * The global plugin manager singleton.

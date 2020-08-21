@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_RADIUS {
+namespace zeek::plugin::detail::Zeek_RADIUS {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("RADIUS", ::analyzer::RADIUS::RADIUS_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("RADIUS", zeek::analyzer::radius::RADIUS_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::RADIUS";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_RADIUS

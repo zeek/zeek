@@ -18,7 +18,9 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
-namespace zeek::detail::trigger {
+namespace zeek::detail {
+namespace trigger {
+
 
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
@@ -26,7 +28,7 @@ namespace zeek::detail::trigger {
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger final : public Obj, public notifier::Receiver {
+class Trigger final : public Obj, public zeek::notifier::detail::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
@@ -76,7 +78,7 @@ public:
 
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	void Modified(notifier::Modifiable* m) override;
+	void Modified(zeek::notifier::detail::Modifiable* m) override;
 
 	// Overridden from notifer::Receiver.  If we're still waiting
 	// on an ID/Val to be modified at termination time, we can't hope
@@ -109,7 +111,7 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	std::vector<std::pair<Obj *, notifier::Modifiable*>> objs;
+	std::vector<std::pair<Obj *, zeek::notifier::detail::Modifiable*>> objs;
 
 	using ValCache = std::map<const zeek::detail::CallExpr*, Val*>;
 	ValCache cache;
@@ -117,7 +119,7 @@ private:
 
 using TriggerPtr = zeek::IntrusivePtr<Trigger>;
 
-class Manager final : public iosource::IOSource {
+class Manager final : public zeek::iosource::IOSource {
 public:
 
 	Manager();
@@ -143,11 +145,17 @@ private:
 	unsigned long total_triggers = 0;
 	};
 
-}
+} // namespace trigger
+
+extern trigger::Manager* trigger_mgr;
+
+} // namespace zeek::detail
 
 namespace trigger {
-	using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger instead")]] = zeek::detail::trigger::Trigger;
-	using Manager [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Manager instead")]] = zeek::detail::trigger::Manager;
-}
 
-extern zeek::detail::trigger::Manager* trigger_mgr;
+using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger.")]] = zeek::detail::trigger::Trigger;
+using Manager [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Manager.")]] = zeek::detail::trigger::Manager;
+
+} // namespace trigger
+
+extern zeek::detail::trigger::Manager*& trigger_mgr [[deprecated("Remove in v4.1. Use zeek::detail::trigger_mgr.")]];

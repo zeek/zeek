@@ -24,7 +24,7 @@
 #include "DebugLogger.h"
 #include "ID.h"
 #include "Val.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "zeek-config.h"
 #include "util.h"
@@ -180,7 +180,7 @@ read_msgs(int fd, std::string* buffer, char delim)
 static std::string make_create_message(const Supervisor::NodeConfig& node)
 	{
 	auto json_str = node.ToJSON();
-	return fmt("create %s %s", node.name.data(), json_str.data());
+	return zeek::util::fmt("create %s %s", node.name.data(), json_str.data());
 	}
 
 zeek::detail::ParentProcessCheckTimer::ParentProcessCheckTimer(double t,
@@ -200,10 +200,10 @@ void zeek::detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 	//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
 	// Also note the Stem process has its own polling loop with similar logic.
 	if ( zeek::Supervisor::ThisNode()->parent_pid != getppid() )
-		zeek_terminate_loop("supervised node was orphaned");
+		zeek::run_state::detail::zeek_terminate_loop("supervised node was orphaned");
 
 	if ( ! is_expire )
-		timer_mgr->Add(new ParentProcessCheckTimer(network_time + interval,
+		timer_mgr->Add(new ParentProcessCheckTimer(zeek::run_state::network_time + interval,
 		                                           interval));
 	}
 
@@ -255,8 +255,8 @@ Supervisor::~Supervisor()
 		return;
 		}
 
-	iosource_mgr->UnregisterFd(signal_flare.FD(), this);
-	iosource_mgr->UnregisterFd(stem_pipe->InFD(), this);
+	zeek::iosource_mgr->UnregisterFd(signal_flare.FD(), this);
+	zeek::iosource_mgr->UnregisterFd(stem_pipe->InFD(), this);
 
 	DBG_LOG(zeek::DBG_SUPERVISOR, "shutdown, killing stem process %d", stem_pid);
 
@@ -265,7 +265,7 @@ Supervisor::~Supervisor()
 	if ( kill_res == -1 )
 		{
 		char tmp[256];
-		bro_strerror_r(errno, tmp, sizeof(tmp));
+		zeek::util::zeek_strerror_r(errno, tmp, sizeof(tmp));
 		reporter->Error("Failed to send SIGTERM to stem process: %s", tmp);
 		}
 	else
@@ -276,7 +276,7 @@ Supervisor::~Supervisor()
 		if ( wait_res == -1 )
 			{
 			char tmp[256];
-			bro_strerror_r(errno, tmp, sizeof(tmp));
+			zeek::util::zeek_strerror_r(errno, tmp, sizeof(tmp));
 			reporter->Error("Failed to wait for stem process to exit: %s", tmp);
 			}
 		}
@@ -308,7 +308,7 @@ void Supervisor::ReapStem()
 	if ( res == -1 )
 		{
 		char tmp[256];
-		bro_strerror_r(errno, tmp, sizeof(tmp));
+		zeek::util::zeek_strerror_r(errno, tmp, sizeof(tmp));
 		reporter->Error("Supervisor failed to get exit status"
 			            " of stem process: %s", tmp);
 		return;
@@ -410,7 +410,7 @@ void Supervisor::HandleChildSignal()
 		{
 		stem_pid = 0;
 		char tmp[256];
-		bro_strerror_r(errno, tmp, sizeof(tmp));
+		zeek::util::zeek_strerror_r(errno, tmp, sizeof(tmp));
 		reporter->Error("failed to fork Zeek supervisor stem process: %s\n", tmp);
 		signal_flare.Fire();
 		// Sleep to avoid spinning too fast in a revival-fail loop.
@@ -421,9 +421,9 @@ void Supervisor::HandleChildSignal()
 	if ( stem_pid == 0 )
 		{
 		// Child stem process needs to exec()
-		auto stem_env = fmt("%d,%d,%d,%d,%d", stem_ppid,
-		              stem_pipe->In().ReadFD(), stem_pipe->In().WriteFD(),
-		              stem_pipe->Out().ReadFD(), stem_pipe->Out().WriteFD());
+		auto stem_env = zeek::util::fmt("%d,%d,%d,%d,%d", stem_ppid,
+		                                stem_pipe->In().ReadFD(), stem_pipe->In().WriteFD(),
+		                                stem_pipe->Out().ReadFD(), stem_pipe->Out().WriteFD());
 
 		if ( setenv("ZEEK_STEM", stem_env, true) == -1 )
 			{
@@ -435,12 +435,12 @@ void Supervisor::HandleChildSignal()
 		stem_pipe->In().UnsetFlags(FD_CLOEXEC);
 		stem_pipe->Out().UnsetFlags(FD_CLOEXEC);
 
-		char** args = new char*[bro_argc + 1];
+		char** args = new char*[zeek::detail::zeek_argc + 1];
 		args[0] = config.zeek_exe_path.data();
-		args[bro_argc] = nullptr;
+		args[zeek::detail::zeek_argc] = nullptr;
 
-		for ( auto i = 1; i < bro_argc; ++i )
-			args[i] = bro_argv[i];
+		for ( auto i = 1; i < zeek::detail::zeek_argc; ++i )
+			args[i] = zeek::detail::zeek_argv[i];
 
 		auto res = execv(config.zeek_exe_path.data(), args);
 		fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n",
@@ -449,11 +449,11 @@ void Supervisor::HandleChildSignal()
 		}
 	else
 		{
-		if ( ! iosource_mgr->UnregisterFd(stem_stdout.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->UnregisterFd(stem_stdout.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to unregister "
 								 "redirected stdout pipe");
 
-		if ( ! iosource_mgr->UnregisterFd(stem_stderr.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->UnregisterFd(stem_stderr.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to unregister "
 								 "redirected stderr pipe");
 
@@ -462,11 +462,11 @@ void Supervisor::HandleChildSignal()
 		stem_stdout.pipe = std::move(fork_res.stdout_pipe);
 		stem_stderr.pipe = std::move(fork_res.stderr_pipe);
 
-		if ( ! iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to register "
 								 "redirected stdout pipe");
 
-		if ( ! iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
+		if ( ! zeek::iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
 			reporter->FatalError("Revived supervisor stem failed to register "
 								 "redirected stderr pipe");
 		}
@@ -485,7 +485,7 @@ void Supervisor::HandleChildSignal()
 		{
 		const auto& node = n.second;
 		auto msg = make_create_message(node.config);
-		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+		zeek::util::safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 		}
 	}
 
@@ -494,18 +494,18 @@ void Supervisor::InitPostScript()
 	stem_stdout.hook = id::find_func("Supervisor::stdout_hook");
 	stem_stderr.hook = id::find_func("Supervisor::stderr_hook");
 
-	iosource_mgr->Register(this);
+	zeek::iosource_mgr->Register(this);
 
-	if ( ! iosource_mgr->RegisterFd(signal_flare.FD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(signal_flare.FD(), this) )
 		reporter->FatalError("Supervisor stem failed to register signal_flare");
 
-	if ( ! iosource_mgr->RegisterFd(stem_pipe->InFD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(stem_pipe->InFD(), this) )
 		reporter->FatalError("Supervisor stem failed to register stem_pipe");
 
-	if ( ! iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(stem_stdout.pipe->ReadFD(), this) )
 		reporter->FatalError("Supervisor stem failed to register stdout pipe");
 
-	if ( ! iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
+	if ( ! zeek::iosource_mgr->RegisterFd(stem_stderr.pipe->ReadFD(), this) )
 		reporter->FatalError("Supervisor stem failed to register stderr pipe");
 	}
 
@@ -593,7 +593,7 @@ size_t Supervisor::ProcessMessages()
 		{
 		DBG_LOG(zeek::DBG_SUPERVISOR, "read msg from Stem: %s", msg.data());
 		std::vector<std::string> msg_tokens;
-		tokenize_string(msg, " ", &msg_tokens);
+		zeek::util::tokenize_string(msg, " ", &msg_tokens);
 		const auto& type = msg_tokens[0];
 
 		if ( type == "status" )
@@ -611,7 +611,7 @@ size_t Supervisor::ProcessMessages()
 		else if ( type == "error" )
 			{
 			msg_tokens.erase(msg_tokens.begin());
-			auto err_msg = implode_string_vector(msg_tokens, " ");
+			auto err_msg = zeek::util::implode_string_vector(msg_tokens, " ");
 			reporter->Error("%s", err_msg.data());
 			}
 		else
@@ -624,7 +624,7 @@ size_t Supervisor::ProcessMessages()
 Stem::Stem(State ss)
 	: parent_pid(ss.parent_pid), signal_flare(new zeek::detail::Flare()), pipe(std::move(ss.pipe))
 	{
-	zeek::set_thread_name("zeek.stem");
+	zeek::util::detail::set_thread_name("zeek.stem");
 	pipe->Swap();
 	stem = this;
 	setsignal(SIGCHLD, stem_signal_handler);
@@ -826,7 +826,7 @@ std::optional<SupervisedNode> Stem::Revive()
 std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node)
 	{
 	auto ppid = getpid();
-	auto fork_res = fork_with_stdio_redirect(fmt("node %s", node->Name().data()));
+	auto fork_res = fork_with_stdio_redirect(zeek::util::fmt("node %s", node->Name().data()));
 	auto node_pid = fork_res.pid;
 
 	if ( node_pid == -1 )
@@ -840,7 +840,7 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node)
 		{
 		setsignal(SIGCHLD, SIG_DFL);
 		setsignal(SIGTERM, SIG_DFL);
-		zeek::set_thread_name(fmt("zeek.%s", node->Name().data()));
+		zeek::util::detail::set_thread_name(zeek::util::fmt("zeek.%s", node->Name().data()));
 		SupervisedNode rval;
 		rval.config = node->config;
 		rval.parent_pid = ppid;
@@ -848,7 +848,7 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node)
 		}
 
 	node->pid = node_pid;
-	auto prefix = fmt("[%s] ", node->Name().data());
+	auto prefix = zeek::util::fmt("[%s] ", node->Name().data());
 	node->stdout_pipe.pipe = std::move(fork_res.stdout_pipe);
 	node->stdout_pipe.prefix = prefix;
 	node->stdout_pipe.stream = stdout;
@@ -926,13 +926,13 @@ void Stem::Shutdown(int exit_code)
 
 void Stem::ReportStatus(const SupervisorNode& node) const
 	{
-	std::string msg = fmt("status %s %d", node.Name().data(), node.pid);
-	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
+	std::string msg = zeek::util::fmt("status %s %d", node.Name().data(), node.pid);
+	zeek::util::safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
 	}
 
 void Stem::Log(std::string_view type, const char* format, va_list args) const
 	{
-	auto raw_msg = vfmt(format, args);
+	auto raw_msg = zeek::util::vfmt(format, args);
 
 	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
 		{
@@ -944,7 +944,7 @@ void Stem::Log(std::string_view type, const char* format, va_list args) const
 	std::string msg{type.data(), type.size()};
 	msg += " ";
 	msg += raw_msg;
-	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
+	zeek::util::safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
 	}
 
 void Stem::LogDebug(const char* format, ...) const
@@ -1090,7 +1090,7 @@ std::optional<SupervisedNode> Stem::Poll()
 	for ( auto& msg : msgs )
 		{
 		std::vector<std::string> msg_tokens;
-		tokenize_string(std::move(msg), " ", &msg_tokens, 2);
+		zeek::util::tokenize_string(std::move(msg), " ", &msg_tokens, 2);
 		const auto& cmd = msg_tokens[0];
 		const auto& node_name = msg_tokens[1];
 
@@ -1153,7 +1153,7 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
 		setlinebuf(stdout);
 		setlinebuf(stderr);
 		std::vector<std::string> zeek_stem_nums;
-		tokenize_string(zeek_stem_env, ",", &zeek_stem_nums);
+		zeek::util::tokenize_string(zeek_stem_env, ",", &zeek_stem_nums);
 
 		if ( zeek_stem_nums.size() != 5 )
 			{
@@ -1507,7 +1507,7 @@ void SupervisedNode::Init(zeek::Options* options) const
 			exit(1);
 			}
 
-		safe_close(fd);
+		zeek::util::safe_close(fd);
 		}
 
 	if ( config.stdout_file )
@@ -1524,7 +1524,7 @@ void SupervisedNode::Init(zeek::Options* options) const
 			exit(1);
 			}
 
-		safe_close(fd);
+		zeek::util::safe_close(fd);
 		}
 
 	if ( config.cpu_affinity )
@@ -1602,23 +1602,23 @@ std::string Supervisor::Create(const Supervisor::NodeConfig& node)
 		return "node names must not be an empty string";
 
 	if ( node.name.find(' ') != std::string::npos )
-		return fmt("node names must not contain spaces: '%s'",
+		return zeek::util::fmt("node names must not contain spaces: '%s'",
 		           node.name.data());
 
 	if ( nodes.find(node.name) != nodes.end() )
-		return fmt("node with name '%s' already exists", node.name.data());
+		return zeek::util::fmt("node with name '%s' already exists", node.name.data());
 
 	if ( node.directory )
 		{
-		auto res = ensure_intermediate_dirs(node.directory->data());
+		auto res = zeek::util::detail::ensure_intermediate_dirs(node.directory->data());
 
 		if ( ! res )
-			return fmt("failed to create working directory %s\n",
-			           node.directory->data());
+			return zeek::util::fmt("failed to create working directory %s\n",
+			                       node.directory->data());
 		}
 
 	auto msg = make_create_message(node);
-	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+	zeek::util::safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 	nodes.emplace(node.name, node);
 	return "";
 	}
@@ -1630,7 +1630,7 @@ bool Supervisor::Destroy(std::string_view node_name)
 		std::stringstream ss;
 		ss << "destroy " << name;
 		std::string msg = ss.str();
-		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+		zeek::util::safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 		};
 
 	if ( node_name.empty() )
@@ -1659,7 +1659,7 @@ bool Supervisor::Restart(std::string_view node_name)
 		std::stringstream ss;
 		ss << "restart " << name;
 		std::string msg = ss.str();
-		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+		zeek::util::safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 		};
 
 	if ( node_name.empty() )

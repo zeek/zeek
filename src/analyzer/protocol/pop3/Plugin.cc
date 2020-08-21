@@ -4,14 +4,13 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_POP3 {
+namespace zeek::plugin::detail::Zeek_POP3 {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("POP3", ::analyzer::pop3::POP3_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("POP3", zeek::analyzer::pop3::POP3_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::POP3";
@@ -20,5 +19,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_POP3

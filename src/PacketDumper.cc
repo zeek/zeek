@@ -33,7 +33,7 @@ void PacketDumper::DumpPacket(const struct pcap_pkthdr* hdr,
 
 void PacketDumper::SortTimeStamp(struct timeval* timestamp)
 	{
-	if ( time_compare(&last_timestamp, timestamp) > 0 )
+	if ( zeek::util::time_compare(&last_timestamp, timestamp) > 0 )
 		*timestamp = last_timestamp;
 	else
 		last_timestamp = *timestamp;

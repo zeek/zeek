@@ -4,7 +4,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::gtpv1;
+namespace zeek::analyzer::gtpv1 {
 
 GTPv1_Analyzer::GTPv1_Analyzer(zeek::Connection* conn)
 : Analyzer("GTPV1", conn)
@@ -32,6 +32,8 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::gtpv1

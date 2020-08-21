@@ -24,7 +24,7 @@ class Rule {
 public:
 	Rule(const char* arg_id, const zeek::detail::Location& arg_location)
 		{
-		id = copy_string(arg_id);
+		id = zeek::util::copy_string(arg_id);
 		idx = rule_counter++;
 		location = arg_location;
 		active = true;

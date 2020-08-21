@@ -1,6 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Manager.h"
+
+#include <utility>
+#include <cstdlib>
+
 #include "plugin/Manager.h"
 #include "util.h"
 #include "Info.h"
@@ -9,11 +13,9 @@
 #include "IdentifierInfo.h"
 #include "Expr.h"
 
-#include <utility>
-#include <cstdlib>
-
-using namespace zeekygen;
 using namespace std;
+
+namespace zeek::zeekygen::detail {
 
 static void DbgAndWarn(const char* msg)
 	{
@@ -33,9 +35,9 @@ static void WarnMissingScript(const char* type, const zeek::detail::ID* id,
 	if ( script == "<command line>" )
 		return;
 
-	DbgAndWarn(fmt("Can't generate Zeekygen doumentation for %s %s, "
-	               "lookup of %s failed",
-	               type, id->Name(), script.c_str()));
+	DbgAndWarn(zeek::util::fmt("Can't generate Zeekygen doumentation for %s %s, "
+	                           "lookup of %s failed",
+	                           type, id->Name(), script.c_str()));
 	}
 
 static string RemoveLeadingSpace(const string& s)
@@ -56,12 +58,12 @@ static string NormalizeScriptPath(const string& path)
 	{
 	if ( auto p = zeek::plugin_mgr->LookupPluginByPath(path) )
 		{
-		auto rval = normalize_path(path);
-		auto prefix = SafeBasename(p->PluginDirectory()).result;
+		auto rval = zeek::util::detail::normalize_path(path);
+		auto prefix = zeek::util::SafeBasename(p->PluginDirectory()).result;
 		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
 		}
 
-	return without_bropath_component(path);
+	return zeek::util::detail::without_zeekpath_component(path);
 	}
 
 Manager::Manager(const string& arg_config, const string& bro_command)
@@ -69,7 +71,7 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	  identifiers(), all_info(), last_identifier_seen(), incomplete_type(),
 	  enum_mappings(), config(arg_config), bro_mtime()
 	{
-	if ( zeekenv("ZEEK_DISABLE_ZEEKYGEN") )
+	if ( zeek::util::zeekenv("ZEEK_DISABLE_ZEEKYGEN") )
 		disabled = true;
 
 	// If running bro without the "-X" option, then we don't need bro_mtime.
@@ -81,7 +83,7 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	// bro_command is a relative path).
 	const char* env_path = getenv("PATH");
 	string path = env_path ? string(env_path) + ":." : ".";
-	string path_to_bro = find_file(bro_command, path);
+	string path_to_bro = zeek::util::find_file(bro_command, path);
 	struct stat s;
 
 	// One way that find_file() could fail is when bro is located in
@@ -137,8 +139,8 @@ void Manager::Script(const string& path)
 
 	if ( scripts.GetInfo(name) )
 		{
-		DbgAndWarn(fmt("Duplicate Zeekygen script documentation: %s",
-		               name.c_str()));
+		DbgAndWarn(zeek::util::fmt("Duplicate Zeekygen script documentation: %s",
+		                           name.c_str()));
 		return;
 		}
 
@@ -150,12 +152,12 @@ void Manager::Script(const string& path)
 	if ( ! info->IsPkgLoader() )
 		return;
 
-	name = SafeDirname(name).result;
+	name = zeek::util::SafeDirname(name).result;
 
 	if ( packages.GetInfo(name) )
 		{
-		DbgAndWarn(fmt("Duplicate Zeekygen package documentation: %s",
-		               name.c_str()));
+		DbgAndWarn(zeek::util::fmt("Duplicate Zeekygen package documentation: %s",
+		                           name.c_str()));
 		return;
 		}
 
@@ -172,8 +174,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 
 	if ( dep.empty() )
 		{
-		DbgAndWarn(fmt("Empty Zeekygen script doc dependency: %s",
-		               path.c_str()));
+		DbgAndWarn(zeek::util::fmt("Empty Zeekygen script doc dependency: %s",
+		                           path.c_str()));
 		return;
 		}
 
@@ -183,8 +185,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Failed to add Zeekygen script doc dependency %s "
-		               "for %s", depname.c_str(), name.c_str()));
+		DbgAndWarn(zeek::util::fmt("Failed to add Zeekygen script doc dependency %s "
+		                           "for %s", depname.c_str(), name.c_str()));
 		return;
 		}
 
@@ -193,8 +195,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 	        depname.c_str(), name.c_str());
 
 	for ( size_t i = 0; i < comment_buffer.size(); ++i )
-		DbgAndWarn(fmt("Discarded extraneous Zeekygen comment: %s",
-		               comment_buffer[i].c_str()));
+		DbgAndWarn(zeek::util::fmt("Discarded extraneous Zeekygen comment: %s",
+		                           comment_buffer[i].c_str()));
 	}
 
 void Manager::ModuleUsage(const string& path, const string& module)
@@ -207,8 +209,8 @@ void Manager::ModuleUsage(const string& path, const string& module)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Failed to add Zeekygen module usage %s in %s",
-		               module.c_str(), name.c_str()));
+		DbgAndWarn(zeek::util::fmt("Failed to add Zeekygen module usage %s in %s",
+		                           module.c_str(), name.c_str()));
 		return;
 		}
 
@@ -255,8 +257,8 @@ void Manager::StartType(zeek::detail::IDPtr id)
 
 	if ( id->GetLocationInfo() == &zeek::detail::no_location )
 		{
-		DbgAndWarn(fmt("Can't generate zeekygen doumentation for %s, "
-		               "no location available", id->Name()));
+		DbgAndWarn(zeek::util::fmt("Can't generate zeekygen doumentation for %s, "
+		                           "no location available", id->Name()));
 		return;
 		}
 
@@ -310,7 +312,7 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 			return;
 			}
 
-		DbgAndWarn(fmt("Duplicate identifier documentation: %s", id->Name()));
+		DbgAndWarn(zeek::util::fmt("Duplicate identifier documentation: %s", id->Name()));
 		return;
 		}
 
@@ -348,9 +350,9 @@ void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* fiel
 
 	if ( ! idd )
 		{
-		DbgAndWarn(fmt("Can't generate zeekygen doumentation for "
-		               "record field %s, unknown record: %s",
-		               field->id, id->Name()));
+		DbgAndWarn(zeek::util::fmt("Can't generate zeekygen doumentation for "
+		                           "record field %s, unknown record: %s",
+		                           field->id, id->Name()));
 		return;
 		}
 
@@ -376,9 +378,9 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path,
 
 	if ( ! id_info )
 		{
-		DbgAndWarn(fmt("Can't generate zeekygen doumentation for "
-		               "redef of %s, identifier lookup failed",
-		               id->Name()));
+		DbgAndWarn(zeek::util::fmt("Can't generate zeekygen doumentation for "
+		                           "redef of %s, identifier lookup failed",
+		                           id->Name()));
 		return;
 		}
 
@@ -416,8 +418,8 @@ void Manager::SummaryComment(const string& script, const string& comment)
 	if ( info )
 		info->AddComment(RemoveLeadingSpace(comment));
 	else
-		DbgAndWarn(fmt("Lookup of script %s failed for summary comment %s",
-		               name.c_str(), comment.c_str()));
+		DbgAndWarn(zeek::util::fmt("Lookup of script %s failed for summary comment %s",
+		                           name.c_str(), comment.c_str()));
 	}
 
 void Manager::PreComment(const string& comment)
@@ -438,8 +440,8 @@ void Manager::PostComment(const string& comment, const string& id_hint)
 		if ( last_identifier_seen )
 			last_identifier_seen->AddComment(RemoveLeadingSpace(comment));
 		else
-			DbgAndWarn(fmt("Discarded unassociated Zeekygen comment %s",
-			               comment.c_str()));
+			DbgAndWarn(zeek::util::fmt("Discarded unassociated Zeekygen comment %s",
+			                           comment.c_str()));
 
 		return;
 		}
@@ -457,3 +459,5 @@ string Manager::GetEnumTypeName(const string& id) const
 	map<string, string>::const_iterator it = enum_mappings.find(id);
 	return it == enum_mappings.end() ? "" : it->second;
 	}
+
+} // namespace zeek::zeekygen::detail

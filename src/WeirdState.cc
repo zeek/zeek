@@ -1,5 +1,5 @@
 #include "WeirdState.h"
-#include "Net.h"
+#include "RunState.h"
 #include "util.h"
 
 namespace zeek::detail {
@@ -14,10 +14,10 @@ bool PermitWeird(WeirdStateMap& wsm, const char* name, uint64_t threshold,
 		return true;
 
 	if ( state.count == threshold + 1)
-		state.sampling_start_time = network_time;
+		state.sampling_start_time = zeek::run_state::network_time;
 	else
 		{
-		if ( network_time > state.sampling_start_time + duration )
+		if ( zeek::run_state::network_time > state.sampling_start_time + duration )
 			{
 			state.sampling_start_time = 0;
 			state.count = 1;

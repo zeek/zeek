@@ -4,7 +4,8 @@
 
 #include "RPC.h"
 
-namespace analyzer { namespace rpc {
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 class MOUNT_Interp : public RPC_Interpreter {
 public:
@@ -37,6 +38,8 @@ protected:
 	zeek::RecordValPtr mount3_mnt_reply(const u_char*& buf, int& n, BifEnum::MOUNT3::status_t status);
 };
 
+} // namespace detail
+
 class MOUNT_Analyzer : public RPC_Analyzer {
 public:
 	explicit MOUNT_Analyzer(zeek::Connection* conn);
@@ -46,5 +49,11 @@ public:
 		{ return new MOUNT_Analyzer(conn); }
 };
 
+} // namespace zeek::analyzer::rpc
 
-} } // namespace analyzer::*
+namespace analyzer::rpc {
+
+using MOUNT_Interp [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::MOUNT_Interp.")]] = zeek::analyzer::rpc::detail::MOUNT_Interp;
+using MOUNT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::MOUNT_Analyzer.")]] = zeek::analyzer::rpc::MOUNT_Analyzer;
+
+} // namespace analyzer::rpc

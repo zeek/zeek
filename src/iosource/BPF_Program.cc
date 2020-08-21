@@ -59,7 +59,7 @@ int pcap_compile_nopcap(int snaplen_arg, int linktype_arg,
 }
 #endif
 
-namespace zeek::detail {
+namespace zeek::iosource::detail {
 
 // Simple heuristic to identify filters that always match, so that we can
 // skip the filtering in that case. "ip or not ip" is Bro's default filter.
@@ -161,4 +161,4 @@ void BPF_Program::FreeCode()
 		}
 	}
 
-} // namespace zeek::detail
+} // namespace zeek::iosource::detail

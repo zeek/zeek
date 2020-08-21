@@ -48,15 +48,18 @@ namespace zeek::detail { class ScriptFunc; }
 using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrefixTable, zeek::detail);
-class StateAccess;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
 
-extern double bro_start_network_time;
-
 namespace zeek {
+namespace run_state {
+
+extern double network_time;
+extern double zeek_start_network_time;
+
+}
 
 using FuncPtr = zeek::IntrusivePtr<Func>;
 using FilePtr = zeek::IntrusivePtr<File>;
@@ -341,7 +344,7 @@ public:
 
 	// To be overridden by mutable derived class to enable change
 	// notification.
-	virtual notifier::Modifiable* Modifiable()	{ return nullptr; }
+	virtual zeek::notifier::detail::Modifiable* Modifiable()	{ return nullptr; }
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
@@ -730,7 +733,7 @@ public:
 		: val(std::move(v))
 		{
 		expire_access_time =
-			int(network_time - bro_start_network_time);
+			int(run_state::network_time - run_state::zeek_start_network_time);
 		}
 
 	TableEntryVal* Clone(Val::CloneState* state);
@@ -743,9 +746,9 @@ public:
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
-		{ return bro_start_network_time + expire_access_time; }
+		{ return run_state::zeek_start_network_time + expire_access_time; }
 	void SetExpireAccess(double time)
-		{ expire_access_time = int(time - bro_start_network_time); }
+		{ expire_access_time = int(time - run_state::zeek_start_network_time); }
 
 protected:
 	friend class TableVal;
@@ -771,7 +774,7 @@ protected:
 	TableVal* table;
 };
 
-class TableVal final : public Val, public notifier::Modifiable {
+class TableVal final : public Val, public zeek::notifier::detail::Modifiable {
 public:
 	explicit TableVal(zeek::TableTypePtr t, zeek::detail::AttributesPtr attrs = nullptr);
 
@@ -1012,7 +1015,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
 	zeek::detail::HashKey* ComputeHash(const Val* index) const;
 
-	notifier::Modifiable* Modifiable() override	{ return this; }
+	zeek::notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
 	// Retrieves and saves all table state (key-value pairs) for
 	// tables whose index type depends on the given zeek::RecordType.
@@ -1102,7 +1105,7 @@ protected:
 	static ParseTimeTableStates parse_time_table_states;
 };
 
-class RecordVal final : public Val, public notifier::Modifiable {
+class RecordVal final : public Val, public zeek::notifier::detail::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit RecordVal(zeek::RecordType* t, bool init_fields = true);
@@ -1255,7 +1258,7 @@ public:
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
-	notifier::Modifiable* Modifiable() override	{ return this; }
+	zeek::notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
@@ -1292,7 +1295,7 @@ protected:
 };
 
 
-class VectorVal final : public Val, public notifier::Modifiable {
+class VectorVal final : public Val, public zeek::notifier::detail::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit VectorVal(zeek::VectorType* t);
@@ -1372,7 +1375,7 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
-	notifier::Modifiable* Modifiable() override	{ return this; }
+	zeek::notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
 	/**
 	 * Inserts an element at the given position in the vector.  All elements
@@ -1407,10 +1410,10 @@ extern ValPtr check_and_promote(
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
-extern void describe_vals(const val_list* vals, ODesc* d, int offset=0);
+extern void describe_vals(const ValPList* vals, ODesc* d, int offset=0);
 extern void describe_vals(const std::vector<ValPtr>& vals,
                           ODesc* d, size_t offset = 0);
-extern void delete_vals(val_list* vals);
+extern void delete_vals(ValPList* vals);
 
 // True if the given Val* has a vector type.
 inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == zeek::TYPE_VECTOR; }
@@ -1433,7 +1436,7 @@ extern bool can_cast_value_to_type(const Val* v, zeek::Type* t);
 // specific instance later.
 extern bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t);
 
-}
+} // namespace zeek
 
 using Val [[deprecated("Remove in v4.1. Use zeek::Val instead.")]] = zeek::Val;
 using PortVal [[deprecated("Remove in v4.1. Use zeek::PortVal instead.")]] = zeek::PortVal;

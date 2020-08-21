@@ -2,7 +2,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::SIP;
+namespace zeek::analyzer::sip {
 
 SIP_Analyzer::SIP_Analyzer(zeek::Connection* c)
 	: zeek::analyzer::Analyzer("SIP", c)
@@ -39,6 +39,8 @@ void SIP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
+
+} // namespace zeek::analyzer::sip

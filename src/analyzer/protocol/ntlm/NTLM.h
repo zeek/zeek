@@ -7,9 +7,9 @@
 
 #include "ntlm_pac.h"
 
-namespace analyzer { namespace ntlm {
+namespace zeek::analyzer::ntlm {
 
-class NTLM_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class NTLM_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit NTLM_Analyzer(zeek::Connection* conn);
@@ -21,7 +21,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
@@ -31,4 +31,10 @@ protected:
 	binpac::NTLM::NTLM_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::ntlm
+
+namespace analyzer::ntlm {
+
+using NTLM_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ntlm::NTLM_Analyzer.")]] = zeek::analyzer::ntlm::NTLM_Analyzer;
+
+} // namespace analyzer::ntlm

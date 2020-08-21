@@ -5,15 +5,14 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_BitTorrent {
+namespace zeek::plugin::plugin::Zeek_BitTorrent {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("BitTorrent", ::analyzer::bittorrent::BitTorrent_Analyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("BitTorrentTracker", ::analyzer::bittorrent::BitTorrentTracker_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("BitTorrent", zeek::analyzer::bittorrent::BitTorrent_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("BitTorrentTracker", zeek::analyzer::bittorrent::BitTorrentTracker_Analyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::BitTorrent";
@@ -22,5 +21,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::plugin::Zeek_BitTorrent

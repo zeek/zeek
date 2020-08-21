@@ -12,7 +12,7 @@
 #include "Event.h"
 #include "Expr.h"
 #include "NetVar.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Conn.h"
 #include "Timer.h"
 #include "ID.h"
@@ -126,7 +126,7 @@ void Reporter::FatalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	set_processing_status("TERMINATED", "fatal_error");
+	zeek::util::detail::set_processing_status("TERMINATED", "fatal_error");
 	fflush(stderr);
 	fflush(stdout);
 	_exit(1);
@@ -142,7 +142,7 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 
 	va_end(ap);
 
-	set_processing_status("TERMINATED", "fatal_error");
+	zeek::util::detail::set_processing_status("TERMINATED", "fatal_error");
 	abort();
 	}
 
@@ -195,7 +195,7 @@ void Reporter::InternalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	set_processing_status("TERMINATED", "internal_error");
+	zeek::util::detail::set_processing_status("TERMINATED", "internal_error");
 	abort();
 	}
 
@@ -226,7 +226,7 @@ void Reporter::InternalWarning(const char* fmt, ...)
 
 void Reporter::Syslog(const char* fmt, ...)
 	{
-	if ( reading_traces )
+	if ( zeek::run_state::reading_traces )
 		return;
 
 	va_list ap;
@@ -235,7 +235,7 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, ValPList vl, const char* fmt_name, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt_name);
@@ -313,7 +313,7 @@ bool Reporter::PermitNetWeird(const char* name)
 	++count;
 
 	if ( count == 1 )
-		zeek::detail::timer_mgr->Add(new NetWeirdTimer(network_time, name,
+		zeek::detail::timer_mgr->Add(new NetWeirdTimer(zeek::run_state::network_time, name,
 		                                               weird_sampling_duration));
 
 	if ( count <= weird_sampling_threshold )
@@ -333,7 +333,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 	auto& map = flow_weird_state[endpoints];
 
 	if ( map.empty() )
-		zeek::detail::timer_mgr->Add(new FlowWeirdTimer(network_time, endpoints,
+		zeek::detail::timer_mgr->Add(new FlowWeirdTimer(zeek::run_state::network_time, endpoints,
 		                                                weird_sampling_duration));
 
 	auto& count = map[name];
@@ -360,7 +360,7 @@ bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& c
 	auto& map = expired_conn_weird_state[conn_tuple];
 
 	if ( map.empty() )
-		zeek::detail::timer_mgr->Add(new ConnTupleWeirdTimer(network_time,
+		zeek::detail::timer_mgr->Add(new ConnTupleWeirdTimer(zeek::run_state::network_time,
 		                                                     std::move(conn_tuple),
 		                                                     weird_sampling_duration));
 
@@ -453,7 +453,7 @@ void Reporter::Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const c
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
-                     Connection* conn, val_list* addl, bool location, bool time,
+                     Connection* conn, ValPList* addl, bool location, bool time,
                      const char* postfix, const char* fmt, va_list ap)
 	{
 	static char tmp[512];
@@ -562,7 +562,8 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(network_time ? network_time : current_time()));
+			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(
+				                zeek::run_state::network_time ? zeek::run_state::network_time : zeek::util::current_time()));
 
 		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(buffer));
 
@@ -594,10 +595,10 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		std::string s = "";
 
-		if ( bro_start_network_time != 0.0 )
+		if ( zeek::run_state::zeek_start_network_time != 0.0 )
 			{
 			char tmp[32];
-			snprintf(tmp, 32, "%.6f", network_time);
+			snprintf(tmp, 32, "%.6f", zeek::run_state::network_time);
 			s += std::string(tmp) + " ";
 			}
 

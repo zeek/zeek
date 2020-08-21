@@ -13,11 +13,13 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"
-#include "Net.h"
+#include "RunState.h"
 
 #include "events.bif.h"
 
-using namespace analyzer::dns;
+namespace zeek::analyzer::dns {
+
+namespace detail {
 
 DNS_Interpreter::DNS_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 	{
@@ -27,7 +29,7 @@ DNS_Interpreter::DNS_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
 
 void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	{
-	int hdr_len = sizeof(DNS_RawMsgHdr);
+	int hdr_len = sizeof(detail::DNS_RawMsgHdr);
 
 	if ( len < hdr_len )
 		{
@@ -35,7 +37,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		return;
 		}
 
-	DNS_MsgInfo msg((DNS_RawMsgHdr*) data, is_query);
+	detail::DNS_MsgInfo msg((detail::DNS_RawMsgHdr*) data, is_query);
 
 	if ( first_message && msg.QR && is_query == 1 )
 		{
@@ -57,7 +59,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	// There is a great deal of non-DNS traffic that runs on port 53.
 	// This should weed out most of it.
-	if ( dns_max_queries > 0 && msg.qdcount > dns_max_queries )
+	if ( zeek::detail::dns_max_queries > 0 && msg.qdcount > zeek::detail::dns_max_queries )
 		{
 		analyzer->ProtocolViolation("DNS_Conn_count_too_large");
 		analyzer->Weird("DNS_Conn_count_too_large");
@@ -76,8 +78,8 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		return;
 		}
 
-	if ( ! ParseAnswers(&msg, msg.ancount, DNS_ANSWER,
-				data, len, msg_start) )
+	if ( ! ParseAnswers(&msg, msg.ancount, detail::DNS_ANSWER,
+	                    data, len, msg_start) )
 		{
 		EndMessage(&msg);
 		return;
@@ -85,8 +87,8 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	analyzer->ProtocolConfirmation();
 
-	int skip_auth = dns_skip_all_auth;
-	int skip_addl = dns_skip_all_addl;
+	int skip_auth = zeek::detail::dns_skip_all_auth;
+	int skip_addl = zeek::detail::dns_skip_all_addl;
 	if ( msg.ancount > 0 )
 		{ // We did an answer, so can potentially skip auth/addl.
 		static auto dns_skip_auth = zeek::id::find_val<zeek::TableVal>("dns_skip_auth");
@@ -107,8 +109,8 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		}
 
 	msg.skip_event = skip_auth;
-	if ( ! ParseAnswers(&msg, msg.nscount, DNS_AUTHORITY,
-				data, len, msg_start) )
+	if ( ! ParseAnswers(&msg, msg.nscount, detail::DNS_AUTHORITY,
+	                    data, len, msg_start) )
 		{
 		EndMessage(&msg);
 		return;
@@ -122,8 +124,8 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		}
 
 	msg.skip_event = skip_addl;
-	if ( ! ParseAnswers(&msg, msg.arcount, DNS_ADDITIONAL,
-				data, len, msg_start) )
+	if ( ! ParseAnswers(&msg, msg.arcount, detail::DNS_ADDITIONAL,
+	                    data, len, msg_start) )
 		{
 		EndMessage(&msg);
 		return;
@@ -132,7 +134,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	EndMessage(&msg);
 	}
 
-void DNS_Interpreter::EndMessage(DNS_MsgInfo* msg)
+void DNS_Interpreter::EndMessage(detail::DNS_MsgInfo* msg)
 	{
 	if ( dns_end )
 		analyzer->EnqueueConnEvent(dns_end,
@@ -141,9 +143,9 @@ void DNS_Interpreter::EndMessage(DNS_MsgInfo* msg)
 		);
 	}
 
-bool DNS_Interpreter::ParseQuestions(DNS_MsgInfo* msg,
-				const u_char*& data, int& len,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseQuestions(detail::DNS_MsgInfo* msg,
+                                     const u_char*& data, int& len,
+                                     const u_char* msg_start)
 	{
 	int n = msg->qdcount;
 
@@ -152,9 +154,9 @@ bool DNS_Interpreter::ParseQuestions(DNS_MsgInfo* msg,
 	return n == 0;
 	}
 
-bool DNS_Interpreter::ParseAnswers(DNS_MsgInfo* msg, int n, DNS_AnswerType atype,
-				const u_char*& data, int& len,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseAnswers(detail::DNS_MsgInfo* msg, int n, detail::DNS_AnswerType atype,
+                                   const u_char*& data, int& len,
+                                   const u_char* msg_start)
 	{
 	msg->answer_type = atype;
 
@@ -164,9 +166,9 @@ bool DNS_Interpreter::ParseAnswers(DNS_MsgInfo* msg, int n, DNS_AnswerType atype
 	return n == 0;
 	}
 
-bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
-				const u_char*& data, int& len,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseQuestion(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len,
+                                    const u_char* msg_start)
 	{
 	u_char name[513];
 	int name_len = sizeof(name) - 1;
@@ -217,9 +219,9 @@ bool DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
-				const u_char*& data, int& len,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len,
+                                  const u_char* msg_start)
 	{
 	u_char name[513];
 	int name_len = sizeof(name) - 1;
@@ -239,7 +241,7 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	// re-interpreted by other, more adventurous RR types.
 
 	msg->query_name = zeek::make_intrusive<zeek::StringVal>(new zeek::String(name, name_end - name, true));
-	msg->atype = RR_Type(ExtractShort(data, len));
+	msg->atype = detail::RR_Type(ExtractShort(data, len));
 	msg->aclass = ExtractShort(data, len);
 	msg->ttl = ExtractLong(data, len);
 
@@ -252,54 +254,54 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 
 	bool status;
 	switch ( msg->atype ) {
-		case TYPE_A:
+		case detail::TYPE_A:
 			status = ParseRR_A(msg, data, len, rdlength);
 			break;
 
-		case TYPE_A6:
-		case TYPE_AAAA:
+		case detail::TYPE_A6:
+		case detail::TYPE_AAAA:
 			status = ParseRR_AAAA(msg, data, len, rdlength);
 			break;
 
-		case TYPE_NS:
-		case TYPE_CNAME:
-		case TYPE_PTR:
+		case detail::TYPE_NS:
+		case detail::TYPE_CNAME:
+		case detail::TYPE_PTR:
 			status = ParseRR_Name(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_SOA:
+		case detail::TYPE_SOA:
 			status = ParseRR_SOA(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_WKS:
+		case detail::TYPE_WKS:
 			status = ParseRR_WKS(msg, data, len, rdlength);
 			break;
 
-		case TYPE_HINFO:
+		case detail::TYPE_HINFO:
 			status = ParseRR_HINFO(msg, data, len, rdlength);
 			break;
 
-		case TYPE_MX:
+		case detail::TYPE_MX:
 			status = ParseRR_MX(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_TXT:
+		case detail::TYPE_TXT:
 			status = ParseRR_TXT(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_SPF:
+		case detail::TYPE_SPF:
 			status = ParseRR_SPF(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_CAA:
+		case detail::TYPE_CAA:
 			status = ParseRR_CAA(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_NBS:
+		case detail::TYPE_NBS:
 			status = ParseRR_NBS(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_SRV:
+		case detail::TYPE_SRV:
 			if ( ntohs(analyzer->Conn()->RespPort()) == 137 )
 				{
 				// This is an NBSTAT (NetBIOS NODE STATUS) record.
@@ -313,31 +315,31 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 
 			break;
 
-		case TYPE_EDNS:
+		case detail::TYPE_EDNS:
 			status = ParseRR_EDNS(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_TSIG:
+		case detail::TYPE_TSIG:
 			status = ParseRR_TSIG(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_RRSIG:
+		case detail::TYPE_RRSIG:
 			status = ParseRR_RRSIG(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_DNSKEY:
+		case detail::TYPE_DNSKEY:
 			status = ParseRR_DNSKEY(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_NSEC:
+		case detail::TYPE_NSEC:
 			status = ParseRR_NSEC(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_NSEC3:
+		case detail::TYPE_NSEC3:
 			status = ParseRR_NSEC3(msg, data, len, rdlength, msg_start);
 			break;
 
-		case TYPE_DS:
+		case detail::TYPE_DS:
 			status = ParseRR_DS(msg, data, len, rdlength, msg_start);
 			break;
 
@@ -350,7 +352,7 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 					msg->BuildAnswerVal()
 				);
 
-			analyzer->Weird("DNS_RR_unknown_type", fmt("%d", msg->atype));
+			analyzer->Weird("DNS_RR_unknown_type", zeek::util::fmt("%d", msg->atype));
 			data += rdlength;
 			len -= rdlength;
 			status = true;
@@ -361,8 +363,8 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	}
 
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
-					u_char* name, int name_len,
-					const u_char* msg_start, bool downcase)
+                                     u_char* name, int name_len,
+                                     const u_char* msg_start, bool downcase)
 	{
 	u_char* name_start = name;
 
@@ -391,8 +393,8 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len,
 	}
 
 bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len,
-				u_char*& name, int& name_len,
-				const u_char* msg_start)
+                                   u_char*& name, int& name_len,
+                                   const u_char* msg_start)
 	{
 	if ( len <= 0 )
 		return false;
@@ -518,9 +520,9 @@ uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
 	return val;
 	}
 
-bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_Name(detail::DNS_MsgInfo* msg,
+                                   const u_char*& data, int& len, int rdlength,
+                                   const u_char* msg_start)
 	{
 	const u_char* data_start = data;
 
@@ -538,17 +540,17 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 
 	zeek::EventHandlerPtr reply_event;
 	switch ( msg->atype ) {
-		case TYPE_NS:
+		case detail::TYPE_NS:
 			reply_event = dns_NS_reply;
 			break;
 
-		case TYPE_CNAME:
-		case TYPE_AAAA:
-		case TYPE_A6:
+		case detail::TYPE_CNAME:
+		case detail::TYPE_AAAA:
+		case detail::TYPE_A6:
 			reply_event = dns_CNAME_reply;
 			break;
 
-		case TYPE_PTR:
+		case detail::TYPE_PTR:
 			reply_event = dns_PTR_reply;
 			break;
 
@@ -568,9 +570,9 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_SOA(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength,
+                                  const u_char* msg_start)
 	{
 	const u_char* data_start = data;
 
@@ -623,9 +625,9 @@ bool DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_MX(detail::DNS_MsgInfo* msg,
+                                 const u_char*& data, int& len, int rdlength,
+                                 const u_char* msg_start)
 	{
 	const u_char* data_start = data;
 
@@ -653,18 +655,18 @@ bool DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_NBS(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_NBS(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength,
+                                  const u_char* msg_start)
 	{
 	data += rdlength;
 	len -= rdlength;
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_SRV(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength,
+                                  const u_char* msg_start)
 	{
 	const u_char* data_start = data;
 
@@ -696,9 +698,9 @@ bool DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg,
+                                   const u_char*& data, int& len, int rdlength,
+                                   const u_char* msg_start)
 	{
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_EDNS_addl,
@@ -721,14 +723,14 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 		// TODO: Implement additional option codes
 		switch ( option_code )
 			{
-			case TYPE_ECS:
+			case detail::TYPE_ECS:
 				{
 				// must be 4 bytes + variable number of octets for address
 				if ( option_len <= 4 ) {
 					break;
 				}
 
-				EDNS_ECS opt{};
+				detail::EDNS_ECS opt{};
 				uint16_t ecs_family = ExtractShort(data, option_len);
 				uint16_t source_scope = ExtractShort(data, option_len);
 				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
@@ -893,9 +895,9 @@ zeek::String* DNS_Interpreter::ExtractStream(const u_char*& data, int& len, int 
 	return rval;
 	}
 
-bool DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_TSIG(detail::DNS_MsgInfo* msg,
+                                   const u_char*& data, int& len, int rdlength,
+                                   const u_char* msg_start)
 	{
 	const u_char* data_start = data;
 	u_char alg_name[1024];
@@ -918,7 +920,7 @@ bool DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 
 	if ( dns_TSIG_addl )
 		{
-		TSIG_DATA tsig;
+		detail::TSIG_DATA tsig;
 		tsig.alg_name =
 			new zeek::String(alg_name, alg_name_end - alg_name, true);
 		tsig.sig = request_MAC;
@@ -938,9 +940,9 @@ bool DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_RRSIG(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start)
 	{
 	if ( ! dns_RRSIG || msg->skip_event )
 		{
@@ -973,52 +975,52 @@ bool DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 		return false;
 
 	int sig_len = rdlength - ((data - data_start) + 18);
-	DNSSEC_Algo dsa = DNSSEC_Algo(algo);
+	detail::DNSSEC_Algo dsa = detail::DNSSEC_Algo(algo);
 	zeek::String* sign = ExtractStream(data, len, sig_len);
 
 	switch ( dsa ) {
-		case RSA_MD5:
-			analyzer->Weird("DNSSEC_RRSIG_NotRecommended_ZoneSignAlgo", fmt("%d", algo));
+		case detail::RSA_MD5:
+			analyzer->Weird("DNSSEC_RRSIG_NotRecommended_ZoneSignAlgo", zeek::util::fmt("%d", algo));
 			break;
-		case Diffie_Hellman:
+		case detail::Diffie_Hellman:
 			break;
-		case DSA_SHA1:
+		case detail::DSA_SHA1:
 			break;
-		case Elliptic_Curve:
+		case detail::Elliptic_Curve:
 			break;
-		case RSA_SHA1:
+		case detail::RSA_SHA1:
 			break;
-		case DSA_NSEC3_SHA1:
+		case detail::DSA_NSEC3_SHA1:
 			break;
-		case RSA_SHA1_NSEC3_SHA1:
+		case detail::RSA_SHA1_NSEC3_SHA1:
 			break;
-		case RSA_SHA256:
+		case detail::RSA_SHA256:
 			break;
-		case RSA_SHA512:
+		case detail::RSA_SHA512:
 			break;
-		case GOST_R_34_10_2001:
+		case detail::GOST_R_34_10_2001:
 			break;
-		case ECDSA_curveP256withSHA256:
+		case detail::ECDSA_curveP256withSHA256:
 			break;
-		case ECDSA_curveP384withSHA384:
+		case detail::ECDSA_curveP384withSHA384:
 			break;
-		case Indirect:
-			analyzer->Weird("DNSSEC_RRSIG_Indirect_ZoneSignAlgo", fmt("%d", algo));
+		case detail::Indirect:
+			analyzer->Weird("DNSSEC_RRSIG_Indirect_ZoneSignAlgo", zeek::util::fmt("%d", algo));
 			break;
-		case PrivateDNS:
-			analyzer->Weird("DNSSEC_RRSIG_PrivateDNS_ZoneSignAlgo", fmt("%d", algo));
+		case detail::PrivateDNS:
+			analyzer->Weird("DNSSEC_RRSIG_PrivateDNS_ZoneSignAlgo", zeek::util::fmt("%d", algo));
 			break;
-		case PrivateOID:
-			analyzer->Weird("DNSSEC_RRSIG_PrivateOID_ZoneSignAlgo", fmt("%d", algo));
+		case detail::PrivateOID:
+			analyzer->Weird("DNSSEC_RRSIG_PrivateOID_ZoneSignAlgo", zeek::util::fmt("%d", algo));
 			break;
 		default:
-			analyzer->Weird("DNSSEC_RRSIG_unknown_ZoneSignAlgo", fmt("%d", algo));
+			analyzer->Weird("DNSSEC_RRSIG_unknown_ZoneSignAlgo", zeek::util::fmt("%d", algo));
 			break;
 	}
 
 	if ( dns_RRSIG )
 		{
-		RRSIG_DATA rrsig;
+		detail::RRSIG_DATA rrsig;
 		rrsig.type_covered = type_covered;
 		rrsig.algorithm = algo;
 		rrsig.labels = lab;
@@ -1040,9 +1042,9 @@ bool DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_DNSKEY(detail::DNS_MsgInfo* msg,
+                                     const u_char*& data, int& len, int rdlength,
+                                     const u_char* msg_start)
 	{
 	if ( ! dns_DNSKEY || msg->skip_event )
 		{
@@ -1059,7 +1061,7 @@ bool DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	auto proto_algo = ExtractShort(data, len);
 	unsigned int dprotocol = (proto_algo >> 8) & 0xff;
 	unsigned int dalgorithm = proto_algo & 0xff;
-	DNSSEC_Algo dsa = DNSSEC_Algo(dalgorithm);
+	detail::DNSSEC_Algo dsa = detail::DNSSEC_Algo(dalgorithm);
 	//Evaluating the size of remaining bytes for Public Key
 	zeek::String* key = ExtractStream(data, len, rdlength - 4);
 
@@ -1067,58 +1069,58 @@ bool DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	// flags bit  8: revoked
 	// flags bit 15: Secure Entry Point, key signing key
 	if ( (dflags & 0xfe7e) != 0 )
-		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Flag", fmt("%d", dflags));
+		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Flag", zeek::util::fmt("%d", dflags));
 
 	// flags bit 7, 8, and 15 all set
 	if ( (dflags & 0x0181) == 0x0181 )
-		analyzer->Weird("DNSSEC_DNSKEY_Revoked_KSK", fmt("%d", dflags));
+		analyzer->Weird("DNSSEC_DNSKEY_Revoked_KSK", zeek::util::fmt("%d", dflags));
 
 	if ( dprotocol != 3 )
-		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Protocol", fmt("%d", dprotocol));
+		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Protocol", zeek::util::fmt("%d", dprotocol));
 
 	switch ( dsa ) {
-		case RSA_MD5:
-			analyzer->Weird("DNSSEC_DNSKEY_NotRecommended_ZoneSignAlgo", fmt("%d", dalgorithm));
+		case detail::RSA_MD5:
+			analyzer->Weird("DNSSEC_DNSKEY_NotRecommended_ZoneSignAlgo", zeek::util::fmt("%d", dalgorithm));
 			break;
-		case Diffie_Hellman:
+		case detail::Diffie_Hellman:
 			break;
-		case DSA_SHA1:
+		case detail::DSA_SHA1:
 			break;
-		case Elliptic_Curve:
+		case detail::Elliptic_Curve:
 			break;
-		case RSA_SHA1:
+		case detail::RSA_SHA1:
 			break;
-		case DSA_NSEC3_SHA1:
+		case detail::DSA_NSEC3_SHA1:
 			break;
-		case RSA_SHA1_NSEC3_SHA1:
+		case detail::RSA_SHA1_NSEC3_SHA1:
 			break;
-		case RSA_SHA256:
+		case detail::RSA_SHA256:
 			break;
-		case RSA_SHA512:
+		case detail::RSA_SHA512:
 			break;
-		case GOST_R_34_10_2001:
+		case detail::GOST_R_34_10_2001:
 			break;
-		case ECDSA_curveP256withSHA256:
+		case detail::ECDSA_curveP256withSHA256:
 			break;
-		case ECDSA_curveP384withSHA384:
+		case detail::ECDSA_curveP384withSHA384:
 			break;
-		case Indirect:
-			analyzer->Weird("DNSSEC_DNSKEY_Indirect_ZoneSignAlgo", fmt("%d", dalgorithm));
+		case detail::Indirect:
+			analyzer->Weird("DNSSEC_DNSKEY_Indirect_ZoneSignAlgo", zeek::util::fmt("%d", dalgorithm));
 			break;
-		case PrivateDNS:
-			analyzer->Weird("DNSSEC_DNSKEY_PrivateDNS_ZoneSignAlgo", fmt("%d", dalgorithm));
+		case detail::PrivateDNS:
+			analyzer->Weird("DNSSEC_DNSKEY_PrivateDNS_ZoneSignAlgo", zeek::util::fmt("%d", dalgorithm));
 			break;
-		case PrivateOID:
-			analyzer->Weird("DNSSEC_DNSKEY_PrivateOID_ZoneSignAlgo", fmt("%d", dalgorithm));
+		case detail::PrivateOID:
+			analyzer->Weird("DNSSEC_DNSKEY_PrivateOID_ZoneSignAlgo", zeek::util::fmt("%d", dalgorithm));
 			break;
 		default:
-			analyzer->Weird("DNSSEC_DNSKEY_unknown_ZoneSignAlgo", fmt("%d", dalgorithm));
+			analyzer->Weird("DNSSEC_DNSKEY_unknown_ZoneSignAlgo", zeek::util::fmt("%d", dalgorithm));
 			break;
 	}
 
 	if ( dns_DNSKEY )
 		{
-		DNSKEY_DATA dnskey;
+		detail::DNSKEY_DATA dnskey;
 		dnskey.dflags = dflags;
 		dnskey.dalgorithm = dalgorithm;
 		dnskey.dprotocol = dprotocol;
@@ -1135,9 +1137,9 @@ bool DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_NSEC(detail::DNS_MsgInfo* msg,
+                                   const u_char*& data, int& len, int rdlength,
+                                   const u_char* msg_start)
 	{
 	if ( ! dns_NSEC || msg->skip_event )
 		{
@@ -1166,7 +1168,7 @@ bool DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 
 		if ( bmlen == 0 )
 			{
-			analyzer->Weird("DNSSEC_NSEC_bitmapLen0", fmt("%d", win_blck));
+			analyzer->Weird("DNSSEC_NSEC_bitmapLen0", zeek::util::fmt("%d", win_blck));
 			break;
 			}
 
@@ -1187,9 +1189,9 @@ bool DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start)
 	{
 	if ( ! dns_NSEC3 || msg->skip_event )
 		{
@@ -1241,7 +1243,7 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 		if ( bmlen == 0 )
 			{
-			analyzer->Weird("DNSSEC_NSEC3_bitmapLen0", fmt("%d", win_blck));
+			analyzer->Weird("DNSSEC_NSEC3_bitmapLen0", zeek::util::fmt("%d", win_blck));
 			break;
 			}
 
@@ -1252,7 +1254,7 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	if ( dns_NSEC3 )
 		{
-		NSEC3_DATA nsec3;
+		detail::NSEC3_DATA nsec3;
 		nsec3.nsec_flags = nsec_flags;
 		nsec3.nsec_hash_algo = hash_algo;
 		nsec3.nsec_iter = iter;
@@ -1273,9 +1275,9 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg,
+                                 const u_char*& data, int& len, int rdlength,
+                                 const u_char* msg_start)
 	{
 	if ( ! dns_DS || msg->skip_event )
 		{
@@ -1292,29 +1294,29 @@ bool DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 	uint32_t ds_algo_dtype = ExtractShort(data, len);
 	unsigned int ds_algo = (ds_algo_dtype >> 8) & 0xff;
 	unsigned int ds_dtype = ds_algo_dtype & 0xff;
-	DNSSEC_Digest ds_digest_type = DNSSEC_Digest(ds_dtype);
+	detail::DNSSEC_Digest ds_digest_type = detail::DNSSEC_Digest(ds_dtype);
 	zeek::String* ds_digest = ExtractStream(data, len, rdlength - 4);
 
 	switch ( ds_digest_type ) {
-		case SHA1:
+		case detail::SHA1:
 			break;
-		case SHA256:
+		case detail::SHA256:
 			break;
-		case GOST_R_34_11_94:
+		case detail::GOST_R_34_11_94:
 			break;
-		case SHA384:
+		case detail::SHA384:
 			break;
-		case analyzer::dns::reserved:
-			analyzer->Weird("DNSSEC_DS_ResrevedDigestType", fmt("%d", ds_dtype));
+		case detail::reserved:
+			analyzer->Weird("DNSSEC_DS_ResrevedDigestType", zeek::util::fmt("%d", ds_dtype));
 			break;
 		default:
-			analyzer->Weird("DNSSEC_DS_unknown_DigestType", fmt("%d", ds_dtype));
+			analyzer->Weird("DNSSEC_DS_unknown_DigestType", zeek::util::fmt("%d", ds_dtype));
 			break;
 	}
 
 	if ( dns_DS )
 		{
-		DS_DATA ds;
+		detail::DS_DATA ds;
 		ds.key_tag = ds_key_tag;
 		ds.algorithm = ds_algo;
 		ds.digest_type = ds_dtype;
@@ -1331,8 +1333,8 @@ bool DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength)
+bool DNS_Interpreter::ParseRR_A(detail::DNS_MsgInfo* msg,
+                                const u_char*& data, int& len, int rdlength)
 	{
 	if ( rdlength != 4 )
 		{
@@ -1353,8 +1355,8 @@ bool DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength)
+bool DNS_Interpreter::ParseRR_AAAA(detail::DNS_MsgInfo* msg,
+                                   const u_char*& data, int& len, int rdlength)
 	{
 	uint32_t addr[4];
 
@@ -1364,7 +1366,7 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 
 		if ( len < 0 )
 			{
-			if ( msg->atype == TYPE_AAAA )
+			if ( msg->atype == detail::TYPE_AAAA )
 				analyzer->Weird("DNS_AAAA_neg_length");
 			else
 				analyzer->Weird("DNS_A6_neg_length");
@@ -1373,7 +1375,7 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 		}
 
 	zeek::EventHandlerPtr event;
-	if ( msg->atype == TYPE_AAAA )
+	if ( msg->atype == detail::TYPE_AAAA )
 		event = dns_AAAA_reply;
 	else
 		event = dns_A6_reply;
@@ -1389,8 +1391,8 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_WKS(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength)
+bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength)
 	{
 	data += rdlength;
 	len -= rdlength;
@@ -1398,8 +1400,8 @@ bool DNS_Interpreter::ParseRR_WKS(DNS_MsgInfo* msg,
 	return true;
 	}
 
-bool DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength)
+bool DNS_Interpreter::ParseRR_HINFO(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength)
 	{
 	data += rdlength;
 	len -= rdlength;
@@ -1435,9 +1437,9 @@ extract_char_string(zeek::analyzer::Analyzer* analyzer,
 	return rval;
 	}
 
-bool DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_TXT(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength,
+                                  const u_char* msg_start)
 	{
 	if ( ! dns_TXT_reply || msg->skip_event )
 		{
@@ -1463,9 +1465,9 @@ bool DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 	return rdlength == 0;
 	}
 
-bool DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_SPF(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength,
+                                  const u_char* msg_start)
 	{
 	if ( ! dns_SPF_reply || msg->skip_event )
 		{
@@ -1491,9 +1493,9 @@ bool DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
 	return rdlength == 0;
 	}
 
-bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
-				const u_char*& data, int& len, int rdlength,
-				const u_char* msg_start)
+bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg,
+                                  const u_char*& data, int& len, int rdlength,
+                                  const u_char* msg_start)
 	{
 	if ( ! dns_CAA_reply || msg->skip_event )
 		{
@@ -1540,13 +1542,13 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 	}
 
 
-void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
+void DNS_Interpreter::SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg,
                                              zeek::EventHandlerPtr event,
                                              const u_char*& data, int& len,
                                              zeek::String* question_name,
                                              zeek::String* original_name)
 	{
-	RR_Type qtype = RR_Type(ExtractShort(data, len));
+	detail::RR_Type qtype = detail::RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
 
 	assert(event);
@@ -1560,7 +1562,6 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 		zeek::make_intrusive<zeek::StringVal>(original_name)
 	);
 	}
-
 
 DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	{
@@ -1585,7 +1586,7 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	id = ntohs(hdr->id);
 	is_query = arg_is_query;
 
-	atype = TYPE_ALL;
+	atype = detail::TYPE_ALL;
 	aclass = 0;
 	ttl = 0;
 
@@ -1795,15 +1796,17 @@ zeek::RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	return r;
 	}
 
+} // namespace detail
+
 Contents_DNS::Contents_DNS(zeek::Connection* conn, bool orig,
-				DNS_Interpreter* arg_interp)
-: tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
+                           detail::DNS_Interpreter* arg_interp)
+: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
 	{
 	interp = arg_interp;
 
 	msg_buf = nullptr;
 	buf_n = buf_len = msg_size = 0;
-	state = DNS_LEN_HI;
+	state = detail::DNS_LEN_HI;
 	}
 
 Contents_DNS::~Contents_DNS()
@@ -1829,10 +1832,10 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 
 void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 	{
-	if ( state == DNS_LEN_HI )
+	if ( state == detail::DNS_LEN_HI )
 		{
 		msg_size = (*data) << 8;
-		state = DNS_LEN_LO;
+		state = detail::DNS_LEN_LO;
 
 		++data;
 		--len;
@@ -1841,10 +1844,10 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state == DNS_LEN_LO )
+	if ( state == detail::DNS_LEN_LO )
 		{
 		msg_size += *data;
-		state = DNS_MESSAGE_BUFFER;
+		state = detail::DNS_MESSAGE_BUFFER;
 
 		buf_n = 0;
 
@@ -1853,13 +1856,13 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 			if ( buf_len < msg_size )
 				{
 				buf_len = msg_size;
-				msg_buf = (u_char*) safe_realloc((void*) msg_buf, buf_len);
+				msg_buf = (u_char*) zeek::util::safe_realloc((void*) msg_buf, buf_len);
 				}
 			}
 		else
 			{
 			buf_len = msg_size;
-			msg_buf = (u_char*) safe_malloc(buf_len);
+			msg_buf = (u_char*) zeek::util::safe_malloc(buf_len);
 			}
 
 		++data;
@@ -1869,7 +1872,7 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 			return;
 		}
 
-	if ( state != DNS_MESSAGE_BUFFER )
+	if ( state != detail::DNS_MESSAGE_BUFFER )
 		Conn()->Internal("state inconsistency in Contents_DNS::DeliverStream");
 
 	int n;
@@ -1886,13 +1889,13 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig)
 	ForwardPacket(msg_size, msg_buf, orig, -1, nullptr, 0);
 
 	buf_n = 0;
-	state = DNS_LEN_HI;
+	state = detail::DNS_LEN_HI;
 	}
 
 DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("DNS", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("DNS", conn)
 	{
-	interp = new DNS_Interpreter(this);
+	interp = new detail::DNS_Interpreter(this);
 	contents_dns_orig = contents_dns_resp = nullptr;
 
 	if ( Conn()->ConnTransport() == TRANSPORT_TCP )
@@ -1905,7 +1908,7 @@ DNS_Analyzer::DNS_Analyzer(zeek::Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-		                   network_time + dns_session_timeout, true,
+		                   zeek::run_state::network_time + zeek::detail::dns_session_timeout, true,
 		                   zeek::detail::TIMER_DNS_EXPIRE);
 		}
 	}
@@ -1921,7 +1924,7 @@ void DNS_Analyzer::Init()
 
 void DNS_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		Event(udp_session_done);
@@ -1932,15 +1935,16 @@ void DNS_Analyzer::Done()
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->ParseMessage(data, len, orig ? 1 : 0);
 	}
 
 
-void DNS_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint, tcp::TCP_Endpoint* peer,
-					bool gen_event)
+void DNS_Analyzer::ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
+                                    zeek::analyzer::tcp::TCP_Endpoint* peer,
+                                    bool gen_event)
 	{
-	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
 	assert(contents_dns_orig && contents_dns_resp);
 	contents_dns_orig->Flush();
@@ -1952,13 +1956,15 @@ void DNS_Analyzer::ExpireTimer(double t)
 	// The - 1.0 in the following is to allow 1 second for the
 	// common case of a single request followed by a single reply,
 	// so we don't needlessly set the timer twice in that case.
-	if ( t - Conn()->LastTime() >= dns_session_timeout - 1.0 || terminating )
+	if ( t - Conn()->LastTime() >= zeek::detail::dns_session_timeout - 1.0 || zeek::run_state::terminating )
 		{
 		Event(connection_timeout);
 		zeek::sessions->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-		                   t + dns_session_timeout, true,
+		                   t + zeek::detail::dns_session_timeout, true,
 		                   zeek::detail::TIMER_DNS_EXPIRE);
 	}
+
+} // namespace zeek::analyzer::dns

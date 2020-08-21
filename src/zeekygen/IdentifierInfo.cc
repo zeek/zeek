@@ -9,7 +9,8 @@
 #include "Expr.h"
 
 using namespace std;
-using namespace zeekygen;
+
+namespace zeek::zeekygen::detail {
 
 IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script)
 	: Info(),
@@ -120,7 +121,7 @@ string IdentifierInfo::DoReStructuredText(bool roles_only) const
 			{
 			string s = comments[i];
 
-			if ( zeekygen::prettify_params(s) )
+			if ( prettify_params(s) )
 				d.NL();
 
 			d.Add(s.c_str());
@@ -156,3 +157,5 @@ IdentifierInfo::RecordField::~RecordField()
 	{
 	delete field;
 	}
+
+} // namespace zeek::zeekygen::detail

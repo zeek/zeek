@@ -6,13 +6,16 @@
 #include "Expr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-
+namespace zeek::threading {
+	struct Value;
+	struct Field;
+}
 namespace threading {
-struct Value;
-struct Field;
+	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
+	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
 }
 
-namespace bro_broker {
+namespace zeek::Broker::detail {
 
 extern zeek::OpaqueTypePtr opaque_of_data_type;
 extern zeek::OpaqueTypePtr opaque_of_set_iterator;
@@ -21,9 +24,9 @@ extern zeek::OpaqueTypePtr opaque_of_vector_iterator;
 extern zeek::OpaqueTypePtr opaque_of_record_iterator;
 
 /**
- * Convert a broker port protocol to a bro port protocol.
+ * Convert a broker port protocol to a zeek port protocol.
  */
-TransportProto to_bro_port_proto(broker::port::protocol tp);
+TransportProto to_zeek_port_proto(broker::port::protocol tp);
 
 /**
  * Create a Broker::Data value from a Bro value.
@@ -65,34 +68,34 @@ broker::expected<broker::data> val_to_data(const zeek::Val* v);
 zeek::ValPtr data_to_val(broker::data d, zeek::Type* type);
 
 /**
- * Convert a Bro threading::Value to a Broker data value.
- * @param v a Bro threading::Value.
- * @return a Broker data value if the Bro threading::Value could be converted to one.
+ * Convert a zeek::threading::Value to a Broker data value.
+ * @param v a zeek::threading::Value.
+ * @return a Broker data value if the zeek::threading::Value could be converted to one.
  */
-broker::expected<broker::data> threading_val_to_data(const threading::Value* v);
+broker::expected<broker::data> threading_val_to_data(const zeek::threading::Value* v);
 
 /**
- * Convert a Bro threading::Field to a Broker data value.
- * @param f a Bro threading::Field.
- * @return a Broker data value if the Bro threading::Field could be converted to one.
+ * Convert a zeek::threading::Field to a Broker data value.
+ * @param f a zeek::threading::Field.
+ * @return a Broker data value if the zeek::threading::Field could be converted to one.
  */
-broker::data threading_field_to_data(const threading::Field* f);
+broker::data threading_field_to_data(const zeek::threading::Field* f);
 
 /**
- * Convert a Broker data value to a Bro threading::Value.
+ * Convert a Broker data value to a zeek::threading::Value.
  * @param d a Broker data value.
- * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
+ * @return a pointer to a new zeek::threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Value* data_to_threading_val(broker::data d);
+zeek::threading::Value* data_to_threading_val(broker::data d);
 
 /**
- * Convert a Broker data value to a Bro threading::Value.
+ * Convert a Broker data value to a zeek::threading::Value.
  * @param d a Broker data value.
- * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
+ * @return a pointer to a new zeek::threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Field* data_to_threading_field(broker::data d);
+zeek::threading::Field* data_to_threading_field(broker::data d);
 
 /**
  * A Bro value which wraps a Broker data value.
@@ -101,7 +104,7 @@ class DataVal : public zeek::OpaqueVal {
 public:
 
 	DataVal(broker::data arg_data)
-		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
+		: OpaqueVal(zeek::Broker::detail::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
 	void ValDescribe(zeek::ODesc* d) const override;
@@ -118,10 +121,10 @@ public:
 
 protected:
 	DataVal()
-		: OpaqueVal(bro_broker::opaque_of_data_type)
+		: OpaqueVal(zeek::Broker::detail::opaque_of_data_type)
 		{}
 
-	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
+	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
 };
 
 /**
@@ -228,7 +231,7 @@ class SetIterator : public zeek::OpaqueVal {
 public:
 
 	SetIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-	    : zeek::OpaqueVal(bro_broker::opaque_of_set_iterator),
+	    : zeek::OpaqueVal(zeek::Broker::detail::opaque_of_set_iterator),
 	      dat(require_data_type<broker::set>(v, zeek::TYPE_TABLE, f)),
 	      it(dat.begin())
 		{}
@@ -238,17 +241,17 @@ public:
 
 protected:
 	SetIterator()
-		: zeek::OpaqueVal(bro_broker::opaque_of_set_iterator)
+		: zeek::OpaqueVal(zeek::Broker::detail::opaque_of_set_iterator)
 		{}
 
-	DECLARE_OPAQUE_VALUE(bro_broker::SetIterator)
+	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
 };
 
 class TableIterator : public zeek::OpaqueVal {
 public:
 
 	TableIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-	    : zeek::OpaqueVal(bro_broker::opaque_of_table_iterator),
+	    : zeek::OpaqueVal(zeek::Broker::detail::opaque_of_table_iterator),
 	      dat(require_data_type<broker::table>(v, zeek::TYPE_TABLE, f)),
 	      it(dat.begin())
 		{}
@@ -258,17 +261,17 @@ public:
 
 protected:
 	TableIterator()
-		: zeek::OpaqueVal(bro_broker::opaque_of_table_iterator)
+		: zeek::OpaqueVal(zeek::Broker::detail::opaque_of_table_iterator)
 		{}
 
-	DECLARE_OPAQUE_VALUE(bro_broker::TableIterator)
+	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
 };
 
 class VectorIterator : public zeek::OpaqueVal {
 public:
 
 	VectorIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-	    : zeek::OpaqueVal(bro_broker::opaque_of_vector_iterator),
+	    : zeek::OpaqueVal(zeek::Broker::detail::opaque_of_vector_iterator),
 	      dat(require_data_type<broker::vector>(v, zeek::TYPE_VECTOR, f)),
 	      it(dat.begin())
 		{}
@@ -278,17 +281,17 @@ public:
 
 protected:
 	VectorIterator()
-		: zeek::OpaqueVal(bro_broker::opaque_of_vector_iterator)
+		: zeek::OpaqueVal(zeek::Broker::detail::opaque_of_vector_iterator)
 		{}
 
-	DECLARE_OPAQUE_VALUE(bro_broker::VectorIterator)
+	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
 };
 
 class RecordIterator : public zeek::OpaqueVal {
 public:
 
 	RecordIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-	    : zeek::OpaqueVal(bro_broker::opaque_of_record_iterator),
+	    : zeek::OpaqueVal(zeek::Broker::detail::opaque_of_record_iterator),
 	      dat(require_data_type<broker::vector>(v, zeek::TYPE_RECORD, f)),
 	      it(dat.begin())
 		{}
@@ -298,10 +301,59 @@ public:
 
 protected:
 	RecordIterator()
-		: zeek::OpaqueVal(bro_broker::opaque_of_record_iterator)
+		: zeek::OpaqueVal(zeek::Broker::detail::opaque_of_record_iterator)
 		{}
 
-	DECLARE_OPAQUE_VALUE(bro_broker::RecordIterator)
+	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 };
+
+} // namespace zeek::Broker
+
+namespace bro_broker {
+
+extern zeek::OpaqueTypePtr& opaque_of_data_type;
+extern zeek::OpaqueTypePtr& opaque_of_set_iterator;
+extern zeek::OpaqueTypePtr& opaque_of_table_iterator;
+extern zeek::OpaqueTypePtr& opaque_of_vector_iterator;
+extern zeek::OpaqueTypePtr& opaque_of_record_iterator;
+
+constexpr auto to_bro_port_proto [[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_zeek_port_proto.")]] = zeek::Broker::detail::to_zeek_port_proto;
+
+[[deprecated("Remove in v4.1. Use zeek::Broker::detail::make_data_val.")]]
+inline zeek::RecordValPtr make_data_val(zeek::Val* v)	 { return zeek::Broker::detail::make_data_val(v); }
+[[deprecated("Remove in v4.1. Use zeek::Broker::detail::make_data_val.")]]
+inline zeek::RecordValPtr make_data_val(broker::data d)	 { return zeek::Broker::detail::make_data_val(d); }
+
+constexpr auto get_data_type [[deprecated("Remove in v4.1. Use zeek::Broker::detail::get_data_type.")]] = zeek::Broker::detail::get_data_type;
+constexpr auto val_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::val_to_data.")]] = zeek::Broker::detail::val_to_data;
+constexpr auto data_to_val [[deprecated("Remove in v4.1. Use zeek::Broker::detail::data_to_val.")]] = zeek::Broker::detail::data_to_val;
+constexpr auto threading_val_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::threading_val_to_data.")]] = zeek::Broker::detail::threading_val_to_data;
+constexpr auto threading_field_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::threading_field_to_data.")]] = zeek::Broker::detail::threading_field_to_data;
+constexpr auto data_to_threading_val [[deprecated("Remove in v4.1. Use zeek::Broker::detail::data_to_threading_val.")]] = zeek::Broker::detail::data_to_threading_val;
+constexpr auto data_to_threading_field [[deprecated("Remove in v4.1. Use zeek::Broker::detail::data_to_threading_field.")]] = zeek::Broker::detail::data_to_threading_field;
+
+using DataVal [[deprecated("Remove in v4.1. Use zeek::Broker::detail::DataVal.")]] = zeek::Broker::detail::DataVal;
+using type_name_getter [[deprecated("Remove in v4.1. Use zeek::Broker::detail::type_name_getter.")]] = zeek::Broker::detail::type_name_getter;
+
+constexpr auto opaque_field_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::opaque_field_to_data.")]] = zeek::Broker::detail::opaque_field_to_data;
+
+template <typename T>
+[[deprecated("Remove in v4.1. Use zeek::Broker::detail::require_data_type.")]]
+T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
+	{
+	return zeek::Broker::detail::require_data_type<T>(d, tag, f);
+	}
+
+template <typename T>
+[[deprecated("Remove in v4.1. Use zeek::Broker::detail::require_data_type.")]]
+inline T& require_data_type(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
+	{
+	return zeek::Broker::detail::require_data_type<T>(v, tag, f);
+	}
+
+using SetIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::SetIterator.")]] = zeek::Broker::detail::SetIterator;
+using TableIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::TableIterator.")]] = zeek::Broker::detail::TableIterator;
+using VectorIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::VectorIterator.")]] = zeek::Broker::detail::VectorIterator;
+using RecordIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::RecordIterator.")]] = zeek::Broker::detail::RecordIterator;
 
 } // namespace bro_broker

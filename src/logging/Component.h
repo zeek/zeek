@@ -6,16 +6,16 @@
 #include "plugin/Component.h"
 #include "plugin/TaggedComponent.h"
 
-namespace logging {
+ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
+ZEEK_FORWARD_DECLARE_NAMESPACED(WriterBackend, zeek, logging);
 
-class WriterFrontend;
-class WriterBackend;
+namespace zeek::logging {
 
 /**
  * Component description for plugins providing log writers.
  */
 class Component : public zeek::plugin::Component,
-		  public plugin::TaggedComponent<logging::Tag> {
+                  public zeek::plugin::TaggedComponent<logging::Tag> {
 public:
 	typedef WriterBackend* (*factory_callback)(WriterFrontend* frontend);
 
@@ -60,4 +60,4 @@ private:
 	factory_callback factory;
 };
 
-}
+} // namespace zeek::logging

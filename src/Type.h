@@ -4,7 +4,7 @@
 
 #include "Obj.h"
 #include "Attr.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "IntrusivePtr.h"
 
 #include <string>
@@ -305,7 +305,7 @@ public:
 	~TypeList() override = default;
 
 	[[deprecated("Remove in v4.1. Use GetTypes() instead.")]]
-	const type_list* Types() const
+	const TypePList* Types() const
 		{ return &types_list; }
 
 	const std::vector<TypePtr>& GetTypes() const
@@ -342,7 +342,7 @@ protected:
 	std::vector<TypePtr> types;
 
 	// Remove in v4.1. This is used by Types(), which is deprecated.
-	type_list types_list;
+	TypePList types_list;
 };
 
 class IndexType : public Type {
@@ -357,7 +357,7 @@ public:
 	TypeList* Indices() const		{ return indices.get(); }
 
 	[[deprecated("Remove in v4.1. Use GetIndexTypes().")]]
-	const type_list* IndexTypes() const
+	const TypePList* IndexTypes() const
 		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -462,7 +462,7 @@ public:
 		{ yield = nullptr; flavor = arg_flav; }
 
 	int MatchesIndex(zeek::detail::ListExpr* index) const override;
-	bool CheckArgs(const type_list* args, bool is_init = false) const;
+	bool CheckArgs(const TypePList* args, bool is_init = false) const;
 	bool CheckArgs(const std::vector<TypePtr>& args,
 	               bool is_init = false) const;
 

@@ -7,7 +7,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::login;
+namespace zeek::analyzer::login {
 
 Telnet_Analyzer::Telnet_Analyzer(zeek::Connection* conn)
 : Login_Analyzer("TELNET", conn)
@@ -21,3 +21,5 @@ Telnet_Analyzer::Telnet_Analyzer(zeek::Connection* conn)
 	AddSupportAnalyzer(nvt_orig);
 	AddSupportAnalyzer(nvt_resp);
 	}
+
+} // namespace zeek::analyzer::login

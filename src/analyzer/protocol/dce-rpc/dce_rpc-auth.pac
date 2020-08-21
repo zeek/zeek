@@ -43,7 +43,7 @@ refine connection DCE_RPC_Conn += {
 					ntlm->DeliverStream(${auth.blob}.length(), ${auth.blob}.begin(), is_orig);
 				break;
 			default:
-				bro_analyzer()->Weird("unknown_dce_rpc_auth_type", fmt("%d", ${auth.type}));
+				bro_analyzer()->Weird("unknown_dce_rpc_auth_type", zeek::util::fmt("%d", ${auth.type}));
 				break;
 			}
 

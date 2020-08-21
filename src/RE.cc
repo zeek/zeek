@@ -423,21 +423,21 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 	for ( int i = 0; i < ccl_list.length(); ++i )
 		size += ccl_list[i]->MemoryAllocation();
 
-	size += pad_size(sizeof(CCL*) * ccl_dict.size());
+	size += zeek::util::pad_size(sizeof(CCL*) * ccl_dict.size());
 	for ( const auto& entry : ccl_dict )
 		{
-		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) + zeek::util::pad_size(sizeof(std::string::value_type) * entry.first.size());
 		size += entry.second->MemoryAllocation();
 		}
 
 	for ( const auto& entry : defs )
 		{
-		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
-		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.second.size());
+		size += padded_sizeof(std::string) + zeek::util::pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) + zeek::util::pad_size(sizeof(std::string::value_type) * entry.second.size());
 		}
 
 	return size + padded_sizeof(*this)
-		+ (pattern_text ? pad_size(strlen(pattern_text) + 1) : 0)
+		+ (pattern_text ? zeek::util::pad_size(strlen(pattern_text) + 1) : 0)
 		+ ccl_list.MemoryAllocation() - padded_sizeof(ccl_list)
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?

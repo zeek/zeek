@@ -4,7 +4,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::modbus;
+namespace zeek::analyzer::modbus {
 
 ModbusTCP_Analyzer::ModbusTCP_Analyzer(zeek::Connection* c)
 	: TCP_ApplicationAnalyzer("MODBUS", c)
@@ -42,3 +42,5 @@ void ModbusTCP_Analyzer::EndpointEOF(bool is_orig)
 	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
+
+} // namespace zeek::analyzer::modbus

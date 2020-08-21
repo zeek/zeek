@@ -11,10 +11,10 @@
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
-namespace logging  {
+namespace zeek::logging {
 
 class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend>
 {
@@ -22,7 +22,7 @@ public:
 	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
 				double open, double close, bool success, bool terminating)
 		: threading::OutputMessage<WriterFrontend>("RotationFinished", writer),
-		new_name(copy_string(new_name)), old_name(copy_string(old_name)), open(open),
+		new_name(zeek::util::copy_string(new_name)), old_name(zeek::util::copy_string(old_name)), open(open),
 		close(close), success(success), terminating(terminating)	{ }
 
 	~RotationFinishedMessage() override
@@ -63,11 +63,7 @@ public:
 	bool Process() override	{ Object()->SetDisable(); return true; }
 };
 
-}
-
 // Backend methods.
-
-using namespace logging;
 
 broker::data WriterBackend::WriterInfo::ToBroker() const
 	{
@@ -101,8 +97,8 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig && bppf) )
 		return false;
 
-	path = copy_string(bpath->c_str());
-	post_proc_func = copy_string(bppf->c_str());
+	path = zeek::util::copy_string(bpath->c_str());
+	post_proc_func = zeek::util::copy_string(bppf->c_str());
 	rotation_base = *brotation_base;
 	rotation_interval = *brotation_interval;
 	network_time = *bnetwork_time;
@@ -115,7 +111,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 		if ( ! (k && v) )
 			return false;
 
-		auto p = std::make_pair(copy_string(k->c_str()), copy_string(v->c_str()));
+		auto p = std::make_pair(zeek::util::copy_string(k->c_str()), zeek::util::copy_string(v->c_str()));
 		config.insert(p);
 		}
 
@@ -331,3 +327,5 @@ bool WriterBackend::OnHeartbeat(double network_time, double current_time)
 	SendOut(new FlushWriteBufferMessage(frontend));
 	return DoHeartbeat(network_time, current_time);
 	}
+
+} // namespace zeek::logging

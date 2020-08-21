@@ -21,7 +21,9 @@
 #include "logging/Manager.h"
 #include "logging/logging.bif.h"
 
-const char* stmt_name(BroStmtTag t)
+namespace zeek::detail {
+
+const char* stmt_name(StmtTag t)
 	{
 	static const char* stmt_names[int(NUM_STMTS)] = {
 		"alarm", // Does no longer exist, but kept for keeping enums consistent.
@@ -35,9 +37,7 @@ const char* stmt_name(BroStmtTag t)
 	return stmt_names[int(t)];
 	}
 
-namespace zeek::detail {
-
-Stmt::Stmt(BroStmtTag arg_tag)
+Stmt::Stmt(StmtTag arg_tag)
 	{
 	tag = arg_tag;
 	breakpoint_count = 0;
@@ -143,7 +143,7 @@ void Stmt::AccessStats(ODesc* d) const
 	if ( d->IncludeStats() )
 		{
 		d->Add("(@");
-		d->Add(last_access ? fmt_access_time(last_access) : "<never>");
+		d->Add(last_access ? zeek::util::detail::fmt_access_time(last_access) : "<never>");
 		d->Add(" #");
 		d->Add(access_count);
 		d->Add(")");
@@ -151,10 +151,10 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-ExprListStmt::ExprListStmt(BroStmtTag t, ListExprPtr arg_l)
+ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l)
 	: Stmt(t), l(std::move(arg_l))
 	{
-	const expr_list& e = l->Exprs();
+	const ExprPList& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
 		const auto& t = expr->GetType();
@@ -167,9 +167,9 @@ ExprListStmt::ExprListStmt(BroStmtTag t, ListExprPtr arg_l)
 
 ExprListStmt::~ExprListStmt() = default;
 
-ValPtr ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr ExprListStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
-	last_access = network_time;
+	last_access = zeek::run_state::network_time;
 	flow = FLOW_NEXT;
 
 	auto vals = eval_list(f, l.get());
@@ -192,7 +192,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	const expr_list& e = l->Exprs();
+	const ExprPList& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
 		tc = expr->Traverse(cb);
@@ -233,13 +233,13 @@ static void print_log(const std::vector<ValPtr>& vals)
 		vec->Assign(vec->Size(), zeek::make_intrusive<zeek::StringVal>(d.Description()));
 		}
 
-	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(network_time));
+	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time));
 	record->Assign(1, std::move(vec));
-	log_mgr->Write(plval.get(), record.get());
+	zeek::log_mgr->Write(plval.get(), record.get());
 	}
 
 ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
-                         stmt_flow_type& /* flow */) const
+                         StmtFlowType& /* flow */) const
 	{
 	RegisterAccess();
 
@@ -316,7 +316,7 @@ ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	SetLocationInfo(e->GetLocationInfo());
 	}
 
-ExprStmt::ExprStmt(BroStmtTag t, ExprPtr arg_e) : Stmt(t), e(std::move(arg_e))
+ExprStmt::ExprStmt(StmtTag t, ExprPtr arg_e) : Stmt(t), e(std::move(arg_e))
 	{
 	if ( e )
 		SetLocationInfo(e->GetLocationInfo());
@@ -324,7 +324,7 @@ ExprStmt::ExprStmt(BroStmtTag t, ExprPtr arg_e) : Stmt(t), e(std::move(arg_e))
 
 ExprStmt::~ExprStmt() = default;
 
-ValPtr ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr ExprStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -337,7 +337,7 @@ ValPtr ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		return nullptr;
 	}
 
-ValPtr ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
+ValPtr ExprStmt::DoExec(Frame* /* f */, Val* /* v */, StmtFlowType& /* flow */) const
 	{
 	return nullptr;
 	}
@@ -399,7 +399,7 @@ IfStmt::IfStmt(ExprPtr test,
 
 IfStmt::~IfStmt() = default;
 
-ValPtr IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+ValPtr IfStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 	{
 	// Treat 0 as false, but don't require 1 for true.
 	Stmt* do_stmt = v->IsZero() ? s2.get() : s1.get();
@@ -467,7 +467,7 @@ TraversalCode IfStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
+static StmtTag get_last_stmt_tag(const Stmt* stmt)
 	{
 	if ( ! stmt )
 		return STMT_NULL;
@@ -484,12 +484,12 @@ static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-Case::Case(ListExprPtr arg_expr_cases, id_list* arg_type_cases,
+Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases,
            StmtPtr arg_s)
 	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases),
 	  s(std::move(arg_s))
 	{
-	BroStmtTag t = get_last_stmt_tag(Body());
+	StmtTag t = get_last_stmt_tag(Body());
 
 	if ( t != STMT_BREAK && t != STMT_FALLTHROUGH && t != STMT_RETURN )
 		Error("case block must end in break/fallthrough/return statement");
@@ -525,7 +525,7 @@ void Case::Describe(ODesc* d) const
 
 	if ( expr_cases )
 		{
-		const expr_list& e = expr_cases->Exprs();
+		const ExprPList& e = expr_cases->Exprs();
 
 		d->AddCount(e.length());
 
@@ -541,7 +541,7 @@ void Case::Describe(ODesc* d) const
 
 	if ( type_cases )
 		{
-		const id_list& t = *type_cases;
+		const IDPList& t = *type_cases;
 
 		d->AddCount(t.length());
 
@@ -622,7 +622,7 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 		{
 		Case* c = (*cases)[i];
 		ListExpr* le = c->ExprCases();
-		id_list* tl = c->TypeCases();
+		IDPList* tl = c->TypeCases();
 
 		if ( le )
 			{
@@ -637,7 +637,7 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 				continue;
 				}
 
-			expr_list& exprs = le->Exprs();
+			ExprPList& exprs = le->Exprs();
 
 			loop_over_list(exprs, j)
 				{
@@ -817,7 +817,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 		return std::make_pair(label_idx, label_id);
 	}
 
-ValPtr SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+ValPtr SwitchStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 	{
 	ValPtr rval;
 
@@ -913,7 +913,7 @@ bool AddStmt::IsPure() const
 	return false;
 	}
 
-ValPtr AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr AddStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -949,7 +949,7 @@ bool DelStmt::IsPure() const
 	return false;
 	}
 
-ValPtr DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr DelStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -975,7 +975,7 @@ EventStmt::EventStmt(EventExprPtr arg_e)
 	{
 	}
 
-ValPtr EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr EventStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	auto args = eval_list(f, event_expr->Args());
@@ -1052,7 +1052,7 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr WhileStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1081,7 +1081,7 @@ ValPtr WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return rval;
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars, ExprPtr loop_expr)
+ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 	: ExprStmt(STMT_FOR, std::move(loop_expr))
 	{
 	loop_vars = arg_loop_vars;
@@ -1163,7 +1163,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, ExprPtr loop_expr)
 		e->Error("target to iterate over must be a table, set, vector, or string");
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars,
+ForStmt::ForStmt(IDPList* arg_loop_vars,
                  ExprPtr loop_expr, IDPtr val_var)
 	: ForStmt(arg_loop_vars, std::move(loop_expr))
 	{
@@ -1195,7 +1195,7 @@ ForStmt::~ForStmt()
 	delete loop_vars;
 	}
 
-ValPtr ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 	{
 	ValPtr ret;
 
@@ -1353,7 +1353,7 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+ValPtr NextStmt::Exec(Frame* /* f */, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_LOOP;
@@ -1380,7 +1380,7 @@ TraversalCode NextStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+ValPtr BreakStmt::Exec(Frame* /* f */, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_BREAK;
@@ -1407,7 +1407,7 @@ TraversalCode BreakStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+ValPtr FallthroughStmt::Exec(Frame* /* f */, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_FALLTHROUGH;
@@ -1478,7 +1478,7 @@ ReturnStmt::ReturnStmt(ExprPtr arg_e)
 		}
 	}
 
-ValPtr ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr ReturnStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_RETURN;
@@ -1517,7 +1517,7 @@ StmtList::~StmtList()
 		Unref(stmt);
 	}
 
-ValPtr StmtList::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1596,7 +1596,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr EventBodyList::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1621,7 +1621,7 @@ ValPtr EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 		}
 
 	// Simulate a return so the hooks operate properly.
-	stmt_flow_type ft = FLOW_RETURN;
+	StmtFlowType ft = FLOW_RETURN;
 	(void) post_execute_stmt(f->GetNextStmt(), f, nullptr, &ft);
 
 	return nullptr;
@@ -1662,7 +1662,7 @@ InitStmt::InitStmt(std::vector<IDPtr> arg_inits) : Stmt(STMT_INIT)
 		SetLocationInfo(inits[0]->GetLocationInfo());
 	}
 
-ValPtr InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1727,7 +1727,7 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+ValPtr NullStmt::Exec(Frame* /* f */, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1782,7 +1782,7 @@ WhenStmt::WhenStmt(ExprPtr arg_cond,
 
 WhenStmt::~WhenStmt() = default;
 
-ValPtr WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;

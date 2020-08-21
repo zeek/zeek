@@ -51,7 +51,7 @@ public:
 
 		max_entries = size;
 
-		entries = (T*) safe_malloc(max_entries * sizeof(T));
+		entries = (T*) zeek::util::safe_malloc(max_entries * sizeof(T));
 		}
 
 	List(const List& b)
@@ -60,7 +60,7 @@ public:
 		num_entries = b.num_entries;
 
 		if ( max_entries )
-			entries = (T*) safe_malloc(max_entries * sizeof(T));
+			entries = (T*) zeek::util::safe_malloc(max_entries * sizeof(T));
 		else
 			entries = nullptr;
 
@@ -81,7 +81,7 @@ public:
 	List(const T* arr, int n)
 		{
 		num_entries = max_entries = n;
-		entries = (T*) safe_malloc(max_entries * sizeof(T));
+		entries = (T*) zeek::util::safe_malloc(max_entries * sizeof(T));
 		memcpy(entries, arr, n * sizeof(T));
 		}
 
@@ -98,7 +98,7 @@ public:
 		num_entries = b.num_entries;
 
 		if ( max_entries )
-			entries = (T *) safe_malloc(max_entries * sizeof(T));
+			entries = (T *) zeek::util::safe_malloc(max_entries * sizeof(T));
 		else
 			entries = nullptr;
 
@@ -148,7 +148,7 @@ public:
 
 		if ( new_size != max_entries )
 			{
-			entries = (T*) safe_realloc((void*) entries, sizeof(T) * new_size);
+			entries = (T*) zeek::util::safe_realloc((void*) entries, sizeof(T) * new_size);
 			if ( entries )
 				max_entries = new_size;
 			else
@@ -159,7 +159,7 @@ public:
 		}
 
 	int MemoryAllocation() const
-		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(T)); }
+		{ return padded_sizeof(*this) + zeek::util::pad_size(max_entries * sizeof(T)); }
 
 	void push_front(const T& a)
 		{

@@ -9,7 +9,7 @@
 #include "Reporter.h"
 #include "Dict.h"
 
-namespace probabilistic {
+namespace zeek::probabilistic::detail {
 
 static void topk_element_hash_delete_func(void* val)
 	{
@@ -429,7 +429,7 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 			{
 			Element* element = *eit;
 			d.emplace_back(element->epsilon);
-			auto v = bro_broker::val_to_data(element->value.get());
+			auto v = zeek::Broker::detail::val_to_data(element->value.get());
 			if ( ! v )
 				return broker::ec::invalid_data;
 
@@ -494,7 +494,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
 			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
-			auto val = bro_broker::data_to_val((*v)[idx++], type.get());
+			auto val = zeek::Broker::detail::data_to_val((*v)[idx++], type.get());
 
 			if ( ! (epsilon && val) )
 				return false;
@@ -519,4 +519,5 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 	assert(i == numElements);
 	return true;
 	}
-}
+
+} // namespace zeek::probabilistic::detail

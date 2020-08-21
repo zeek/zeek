@@ -12,13 +12,13 @@
 #include "sqlite.bif.h"
 
 using namespace std;
-using namespace logging;
-using namespace writer;
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
-SQLite::SQLite(WriterFrontend* frontend)
-	: WriterBackend(frontend),
+namespace zeek::logging::writer::detail {
+
+SQLite::SQLite(zeek::logging::WriterFrontend* frontend)
+	: zeek::logging::WriterBackend(frontend),
 	  fields(), num_fields(), db(), st()
 	{
 	set_separator.assign(
@@ -36,8 +36,8 @@ SQLite::SQLite(WriterFrontend* frontend)
 			zeek::BifConst::LogSQLite::empty_field->Len()
 			);
 
-	threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);
-	io = new threading::formatter::Ascii(this, sep_info);
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);
+	io = new zeek::threading::formatter::Ascii(this, sep_info);
 	}
 
 SQLite::~SQLite()
@@ -112,7 +112,7 @@ bool SQLite::checkError(int code)
 	}
 
 bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
-			    const Field* const * arg_fields)
+                    const Field* const * arg_fields)
 	{
 	if ( sqlite3_threadsafe() == 0 )
 		{
@@ -365,3 +365,5 @@ bool SQLite::DoRotate(const char* rotated_path, double open, double close, bool 
 
 	return true;
         }
+
+} // namespace zeek::logging::writer::detail

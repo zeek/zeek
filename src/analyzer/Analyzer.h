@@ -19,6 +19,8 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
+ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_ApplicationAnalyzer, zeek, analyzer::tcp);
+ZEEK_FORWARD_DECLARE_NAMESPACED(PIA, zeek, analyzer::pia);
 
 namespace zeek {
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
@@ -28,11 +30,6 @@ using FilePtr = zeek::IntrusivePtr<File>;
 
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
-
-namespace analyzer {
-namespace tcp { class TCP_ApplicationAnalyzer; }
-namespace pia { class PIA; }
-}
 
 namespace zeek::analyzer {
 
@@ -586,21 +583,21 @@ public:
 	 * Connection::ConnectionEvent().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
+	void ConnectionEvent(EventHandlerPtr f, ValPList* vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
-	void ConnectionEvent(EventHandlerPtr f, val_list vl);
+	void ConnectionEvent(EventHandlerPtr f, ValPList vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEventFast().
 	 */
 	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
-	void ConnectionEventFast(EventHandlerPtr f, val_list vl);
+	void ConnectionEventFast(EventHandlerPtr f, ValPList vl);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -633,14 +630,14 @@ protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
 	friend class zeek::Connection;
-	friend class ::analyzer::tcp::TCP_ApplicationAnalyzer;
+	friend class zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
 
 	/**
 	 * Return a string represantation of an analyzer, containing its name
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)
-		{ return std::string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
+		{ return std::string(a->GetAnalyzerName()) + zeek::util::fmt("[%d]", a->GetID()); }
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if
@@ -746,7 +743,7 @@ private:
 
 	bool protocol_confirmed;
 
-	timer_list timers;
+	TimerPList timers;
 	bool timers_canceled;
 	bool skip;
 	bool finished;
@@ -938,13 +935,13 @@ public:
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(zeek::analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	::analyzer::pia::PIA* GetPIA() const		{ return pia; }
+	zeek::analyzer::pia::PIA* GetPIA() const		{ return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -956,18 +953,20 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 private:
-	::analyzer::pia::PIA* pia;
+	zeek::analyzer::pia::PIA* pia;
 };
 
 } // namespace zeek::analyzer
 
 namespace analyzer {
-	using Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::Analyzer instead.")]] = zeek::analyzer::Analyzer;
-	using AnalyzerTimer [[deprecated("Remove in v4.1. Use zeek::analyzer::AnalyzerTimer instead.")]] = zeek::analyzer::AnalyzerTimer;
-	using SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::SupportAnalyzer instead.")]] = zeek::analyzer::SupportAnalyzer;
-	using OutputHandler [[deprecated("Remove in v4.1. Use zeek::analyzer::OutputHandler instead.")]] = zeek::analyzer::OutputHandler;
-	using TransportLayerAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::TransportLayerAnalyzer instead.")]] = zeek::analyzer::TransportLayerAnalyzer;
 
-	using analyzer_list [[deprecated("Remove in v4.1. Use zeek::analyzer::analyzer_list instead.")]] = zeek::analyzer::analyzer_list;
-	using ID [[deprecated("Remove in v4.1. Use zeek::analyzer::ID instead.")]] = zeek::analyzer::ID;
-}
+using Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::Analyzer instead.")]] = zeek::analyzer::Analyzer;
+using AnalyzerTimer [[deprecated("Remove in v4.1. Use zeek::analyzer::AnalyzerTimer instead.")]] = zeek::analyzer::AnalyzerTimer;
+using SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::SupportAnalyzer instead.")]] = zeek::analyzer::SupportAnalyzer;
+using OutputHandler [[deprecated("Remove in v4.1. Use zeek::analyzer::OutputHandler instead.")]] = zeek::analyzer::OutputHandler;
+using TransportLayerAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::TransportLayerAnalyzer instead.")]] = zeek::analyzer::TransportLayerAnalyzer;
+
+using analyzer_list [[deprecated("Remove in v4.1. Use zeek::analyzer::analyzer_list instead.")]] = zeek::analyzer::analyzer_list;
+using ID [[deprecated("Remove in v4.1. Use zeek::analyzer::ID instead.")]] = zeek::analyzer::ID;
+
+} // namespace analyzer

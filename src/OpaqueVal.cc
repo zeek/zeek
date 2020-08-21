@@ -706,7 +706,7 @@ BloomFilterVal::BloomFilterVal()
 	bloom_filter = nullptr;
 	}
 
-BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
+BloomFilterVal::BloomFilterVal(zeek::probabilistic::BloomFilter* bf)
 	: OpaqueVal(bloomfilter_type)
 	{
 	hash = nullptr;
@@ -784,7 +784,7 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x,
 		return nullptr;
 		}
 
-	probabilistic::BloomFilter* copy = x->bloom_filter->Clone();
+	zeek::probabilistic::BloomFilter* copy = x->bloom_filter->Clone();
 
 	if ( ! copy->Merge(y->bloom_filter) )
 		{
@@ -851,7 +851,7 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 			return false;
 		}
 
-	auto bf = probabilistic::BloomFilter::Unserialize((*v)[1]);
+	auto bf = zeek::probabilistic::BloomFilter::Unserialize((*v)[1]);
 	if ( ! bf )
 		return false;
 
@@ -865,7 +865,7 @@ CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	hash = nullptr;
 	}
 
-CardinalityVal::CardinalityVal(probabilistic::CardinalityCounter* arg_c)
+CardinalityVal::CardinalityVal(zeek::probabilistic::detail::CardinalityCounter* arg_c)
 	: OpaqueVal(cardinality_type)
 	{
 	c = arg_c;
@@ -881,7 +881,7 @@ CardinalityVal::~CardinalityVal()
 ValPtr CardinalityVal::DoClone(CloneState* state)
 	{
 	return state->NewClone(this,
-			       zeek::make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
+			       zeek::make_intrusive<CardinalityVal>(new zeek::probabilistic::detail::CardinalityCounter(*c)));
 	}
 
 bool CardinalityVal::Typify(zeek::TypePtr arg_type)
@@ -945,7 +945,7 @@ bool CardinalityVal::DoUnserialize(const broker::data& data)
 			return false;
 		}
 
-	auto cu = probabilistic::CardinalityCounter::Unserialize((*v)[1]);
+	auto cu = zeek::probabilistic::detail::CardinalityCounter::Unserialize((*v)[1]);
 	if ( ! cu )
 		return false;
 

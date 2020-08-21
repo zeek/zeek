@@ -4,7 +4,7 @@
 
 #include "zeek-config.h"
 
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "analyzer/protocol/udp/UDP.h"
 #include "analyzer/Manager.h"
@@ -13,13 +13,13 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::udp;
+namespace zeek::analyzer::udp {
 
 UDP_Analyzer::UDP_Analyzer(zeek::Connection* conn)
-: TransportLayerAnalyzer("UDP", conn)
+	: zeek::analyzer::TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();
-	conn->SetInactivityTimeout(udp_inactivity_timeout);
+	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
 	request_len = reply_len = -1;	// -1 means "haven't seen any activity"
 
 	req_chk_cnt = rep_chk_cnt = 0;
@@ -62,7 +62,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = ! current_pkt->l3_checksummed && ! ignore_checksums && caplen >=len;
+	auto validate_checksum = ! zeek::run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >=len;
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
@@ -124,13 +124,13 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int ulen = ntohs(up->uh_ulen);
 	if ( ulen != len )
-		Weird("UDP_datagram_length_mismatch", fmt("%d != %d", ulen, len));
+		Weird("UDP_datagram_length_mismatch", zeek::util::fmt("%d != %d", ulen, len));
 
 	len -= sizeof(struct udphdr);
 	ulen -= sizeof(struct udphdr);
 	caplen -= sizeof(struct udphdr);
 
-	Conn()->SetLastTime(current_timestamp);
+	Conn()->SetLastTime(zeek::run_state::current_timestamp);
 
 	if ( udp_contents )
 		{
@@ -146,22 +146,22 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			do_udp_contents = true;
 		else
 			{
-			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
-			                                                 : up->uh_dport;
+			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? Conn()->RespPort()
+			                                                               : up->uh_dport;
 			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
 				{
 				auto result = udp_content_delivery_ports_orig->FindOrDefault(port_val);
 
-				if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
+				if ( zeek::detail::udp_content_deliver_all_orig || (result && result->AsBool()) )
 					do_udp_contents = true;
 				}
 			else
 				{
 				auto result = udp_content_delivery_ports_resp->FindOrDefault(port_val);
 
-				if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
+				if ( zeek::detail::udp_content_deliver_all_resp || (result && result->AsBool()) )
 					do_udp_contents = true;
 				}
 			}
@@ -268,14 +268,16 @@ bool UDP_Analyzer::ValidateChecksum(const zeek::IP_Hdr* ip, const udphdr* up, in
 	else
 		sum = 0;
 
-	sum = ones_complement_checksum(ip->SrcAddr(), sum);
-	sum = ones_complement_checksum(ip->DstAddr(), sum);
+	sum = zeek::ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = zeek::ones_complement_checksum(ip->DstAddr(), sum);
 	// Note, for IPv6, strictly speaking the protocol and length fields are
 	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
 	// we get the same checksum either way.
 	sum += htons(IPPROTO_UDP);
 	sum += htons((unsigned short) len);
-	sum = ones_complement_checksum((void*) up, len, sum);
+	sum = zeek::ones_complement_checksum((void*) up, len, sum);
 
 	return sum == 0xffff;
 	}
+
+} // namespace zeek::analyzer::udp

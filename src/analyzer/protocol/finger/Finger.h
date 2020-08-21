@@ -5,9 +5,9 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
-namespace analyzer { namespace finger {
+namespace zeek::analyzer::finger {
 
-class Finger_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class Finger_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit Finger_Analyzer(zeek::Connection* conn);
 	~Finger_Analyzer() override {}
@@ -20,9 +20,15 @@ public:
 		{ return new Finger_Analyzer(conn); }
 
 protected:
-	tcp::ContentLine_Analyzer* content_line_orig;
-	tcp::ContentLine_Analyzer* content_line_resp;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_orig;
+	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_resp;
 	int did_deliver;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::finger
+
+namespace analyzer::finger {
+
+using Finger_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::finger::Finger_Analyzer.")]] = zeek::analyzer::finger::Finger_Analyzer;
+
+} // namespace analyzer::finger

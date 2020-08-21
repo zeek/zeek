@@ -4,10 +4,10 @@
 #include "ReaderFrontend.h"
 #include "Manager.h"
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
-namespace input {
+namespace zeek::input {
 
 class PutMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
@@ -63,7 +63,7 @@ public:
 
 	ReaderErrorMessage(ReaderFrontend* reader, Type arg_type, const char* arg_msg)
 		: threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader)
-		{ type = arg_type; msg = copy_string(arg_msg); }
+		{ type = arg_type; msg = zeek::util::copy_string(arg_msg); }
 
 	~ReaderErrorMessage() override 	 { delete [] msg; }
 
@@ -340,4 +340,4 @@ void ReaderBackend::Error(const char* msg)
 	DisableFrontend();
 	}
 
-}
+} // namespace zeek::input

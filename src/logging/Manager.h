@@ -16,17 +16,19 @@
 
 namespace broker { struct endpoint_info; }
 ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
-class RotationTimer;
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
+ZEEK_FORWARD_DECLARE_NAMESPACED(RotationFinishedMessage, zeek, logging);
+
+namespace zeek {
 namespace logging {
 
-class WriterFrontend;
-class RotationFinishedMessage;
+class RotationTimer;
 
 /**
  * Singleton class for managing log streams.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public zeek::plugin::ComponentManager<Tag, Component> {
 public:
 
 	/**
@@ -251,7 +253,7 @@ protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;
 	friend class RotationFailedMessage;
-	friend class ::RotationTimer;
+	friend class RotationTimer;
 
 	// Instantiates a new WriterBackend of the given type (note that
 	// doing so creates a new thread!).
@@ -298,6 +300,16 @@ private:
 	zeek::FuncPtr rotation_format_func;
 };
 
-}
+} // namespace logging;
 
 extern logging::Manager* log_mgr;
+
+} // namespace zeek
+
+extern zeek::logging::Manager*& log_mgr [[deprecated("Remove in v4.1. Use zeek::log_mgr.")]];
+
+namespace logging {
+
+using Manager [[deprecated("Remove in v4.1. Use zeek::logging::Manager.")]] = zeek::logging::Manager;
+
+} // namespace logging

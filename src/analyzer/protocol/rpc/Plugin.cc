@@ -7,16 +7,15 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_RPC {
+namespace zeek::plugin::detail::Zeek_RPC {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("Portmapper", ::analyzer::rpc::Portmapper_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("NFS", zeek::analyzer::rpc::NFS_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("MOUNT", zeek::analyzer::rpc::MOUNT_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("Portmapper", zeek::analyzer::rpc::Portmapper_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("Contents_RPC", nullptr));
 		AddComponent(new zeek::analyzer::Component("Contents_NFS", nullptr));
 
@@ -27,5 +26,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_RPC

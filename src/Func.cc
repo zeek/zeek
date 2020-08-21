@@ -39,7 +39,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Scope.h"
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "File.h"
 #include "Frame.h"
@@ -108,12 +108,12 @@ std::string render_call_stack()
 			arg_desc += d.Description();
 			}
 
-		rval += fmt("#%d %s(%s)", lvl, name, arg_desc.data());
+		rval += zeek::util::fmt("#%d %s(%s)", lvl, name, arg_desc.data());
 
 		if ( ci.call )
 			{
 			auto loc = ci.call->GetLocationInfo();
-			rval += fmt(" at %s:%d", loc->filename, loc->first_line);
+			rval += zeek::util::fmt(" at %s:%d", loc->filename, loc->first_line);
 			}
 
 		++lvl;
@@ -286,7 +286,7 @@ void Func::CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
 	}
 	}
 
-zeek::Val* Func::Call(val_list* args, zeek::detail::Frame* parent) const
+zeek::Val* Func::Call(ValPList* args, zeek::detail::Frame* parent) const
 	{
 	auto zargs = zeek::val_list_to_args(*args);
 	return Invoke(&zargs, parent).release();
@@ -375,7 +375,7 @@ zeek::ValPtr ScriptFunc::Invoke(zeek::Args* args, zeek::detail::Frame* parent) c
 			GetType()->FlavorString().c_str(), d.Description());
 		}
 
-	stmt_flow_type flow = FLOW_NEXT;
+	StmtFlowType flow = FLOW_NEXT;
 	zeek::ValPtr result;
 
 	for ( const auto& body : bodies )
@@ -498,7 +498,7 @@ void ScriptFunc::AddBody(zeek::detail::StmtPtr new_body,
 	sort(bodies.begin(), bodies.end());
 	}
 
-void ScriptFunc::AddClosure(id_list ids, zeek::detail::Frame* f)
+void ScriptFunc::AddClosure(IDPList ids, zeek::detail::Frame* f)
 	{
 	if ( ! f )
 		return;
@@ -689,7 +689,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 	if ( f->TheFunc() != zeek::BifFunc::fmt_bif)
 		return true;
 
-	const expr_list& args = call->Args()->Exprs();
+	const ExprPList& args = call->Args()->Exprs();
 	if ( args.length() == 0 )
 		{
 		// Empty calls are allowed, since you can't just
@@ -700,7 +700,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 	const zeek::detail::Expr* fmt_str_arg = args[0];
 	if ( fmt_str_arg->GetType()->Tag() != zeek::TYPE_STRING )
 		{
-		call->Error("first argument to fmt() needs to be a format string");
+		call->Error("first argument to zeek::util::fmt() needs to be a format string");
 		return false;
 		}
 
@@ -729,7 +729,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 
 		if ( args.length() != num_fmt + 1 )
 			{
-			call->Error("mismatch between format string to fmt() and number of arguments passed");
+			call->Error("mismatch between format string to zeek::util::fmt() and number of arguments passed");
 			return false;
 			}
 		}

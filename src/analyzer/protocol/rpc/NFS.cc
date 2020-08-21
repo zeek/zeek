@@ -13,12 +13,13 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::rpc;
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100003 )
-		Weird("bad_RPC_program", fmt("%d", c->Program()));
+		Weird("bad_RPC_program", zeek::util::fmt("%d", c->Program()));
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
@@ -103,7 +104,7 @@ bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 			n = 0;
 			}
 		else
-			Weird("unknown_NFS_request", fmt("%u", proc));
+			Weird("unknown_NFS_request", zeek::util::fmt("%u", proc));
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.
@@ -816,9 +817,10 @@ zeek::ValPtr NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	return zeek::val_mgr->Bool(extract_XDR_uint32(buf, n));
 	}
 
+} // namespace detail
 
 NFS_Analyzer::NFS_Analyzer(zeek::Connection* conn)
-	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
+	: RPC_Analyzer("NFS", conn, new detail::NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;
 	}
@@ -835,3 +837,5 @@ void NFS_Analyzer::Init()
 		AddSupportAnalyzer(resp_rpc);
 		}
 	}
+
+} // namespace zeek::analyzer::rpc

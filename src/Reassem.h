@@ -27,7 +27,6 @@ enum ReassemblerType {
 
 class Reassembler;
 
-
 /**
  * A block/segment of data for use in the reassembly process.
  */

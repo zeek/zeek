@@ -14,6 +14,8 @@
 #include "IPAddr.h"
 #include "IP.h"
 
+namespace zeek {
+
 // - adapted from tcpdump
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 int ones_complement_checksum(const void* p, int b, uint32_t sum)
@@ -182,3 +184,5 @@ uint32_t extract_uint32(const u_char* data)
 
 	return val;
 	}
+
+} // namespace zeek

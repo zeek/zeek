@@ -18,11 +18,11 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 		{
 		// Set up an expected script search path for use with OSS-Fuzz
 		auto constexpr oss_fuzz_scripts = "oss-fuzz-zeek-scripts";
-		auto fuzzer_path = get_exe_path(*argv[0]);
+		auto fuzzer_path = zeek::util::detail::get_exe_path(*argv[0]);
 		auto fuzzer_dir = SafeDirname(fuzzer_path).result;
-		std::string fs = fmt("%s/%s", fuzzer_dir.data(), oss_fuzz_scripts);
+		std::string fs = zeek::util::fmt("%s/%s", fuzzer_dir.data(), oss_fuzz_scripts);
 		auto p = fs.data();
-		auto oss_fuzz_zeekpath = fmt(".:%s:%s/policy:%s/site", p, p, p);
+		auto oss_fuzz_zeekpath = zeek::util::fmt(".:%s:%s/policy:%s/site", p, p, p);
 
 		if ( setenv("ZEEKPATH", oss_fuzz_zeekpath, true) == -1 )
 			abort();
@@ -49,7 +49,7 @@ namespace zeek { namespace detail {
 
 void fuzzer_cleanup_one_input()
 	{
-	terminating = true;
+	run_state::terminating = true;
 	broker_mgr->ClearStores();
 	file_mgr->Terminate();
 	timer_mgr->Expire();
@@ -58,7 +58,7 @@ void fuzzer_cleanup_one_input()
 	sessions->Drain();
 	zeek::event_mgr.Drain();
 	sessions->Clear();
-	terminating = false;
+	run_state::terminating = false;
 	}
 
 }} // namespace zeek::detail

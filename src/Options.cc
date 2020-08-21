@@ -15,14 +15,16 @@
 #include "bsd-getopt-long.h"
 #include "logging/writers/ascii/Ascii.h"
 
-void zeek::Options::filter_supervisor_options()
+namespace zeek {
+
+void Options::filter_supervisor_options()
 	{
 	pcap_filter = {};
 	signature_files = {};
 	pcap_output_file = {};
 	}
 
-void zeek::Options::filter_supervised_node_options()
+void Options::filter_supervised_node_options()
 	{
 	auto og = *this;
 	*this = {};
@@ -64,14 +66,14 @@ void zeek::Options::filter_supervised_node_options()
 	script_options_to_set = og.script_options_to_set;
 	}
 
-bool zeek::fake_dns()
+bool fake_dns()
 	{
-	return zeekenv("ZEEK_DNS_FAKE");
+	return zeek::util::zeekenv("ZEEK_DNS_FAKE");
 	}
 
 extern const char* zeek_version();
 
-void zeek::usage(const char* prog, int code)
+void usage(const char* prog, int code)
 	{
 	fprintf(stderr, "zeek version %s\n", zeek_version());
 
@@ -121,16 +123,16 @@ void zeek::usage(const char* prog, int code)
 #endif
 
 	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
-	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", bro_path().c_str());
-	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", bro_plugin_path());
-	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", bro_plugin_activate());
-	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", bro_prefixes().c_str());
+	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", zeek::util::zeek_path().c_str());
+	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", zeek::util::zeek_plugin_path());
+	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", zeek::util::zeek_plugin_activate());
+	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", zeek::util::zeek_prefixes().c_str());
 	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", zeek::fake_dns() ? "on" : "off");
 	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
+	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", zeek::logging::writer::detail::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
-	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", zeekenv("ZEEK_DNS_RESOLVER") ? zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
+	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", zeek::util::zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
+	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", zeek::util::zeekenv("ZEEK_DNS_RESOLVER") ? zeek::util::zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
 	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
 
 	fprintf(stderr, "\n");
@@ -138,9 +140,9 @@ void zeek::usage(const char* prog, int code)
 	exit(code);
 	}
 
-zeek::Options zeek::parse_cmdline(int argc, char** argv)
+Options parse_cmdline(int argc, char** argv)
 	{
-	zeek::Options rval;
+	Options rval;
 
 	// When running unit tests, the first argument on the command line must be
 	// --test, followed by doctest options. Optionally, users can use "--" as
@@ -236,8 +238,8 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
-	             sizeof(opts));
+	zeek::util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
+	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
 	strncat(opts, "mM", 2);
@@ -431,7 +433,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		if ( path->empty() )
 			return;
 
-		*path = normalize_path(*path);
+		*path = zeek::util::detail::normalize_path(*path);
 
 		if ( (*path)[0] == '/' || (*path)[0] == '~' )
 			// Absolute path
@@ -440,7 +442,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		if ( (*path)[0] != '.' )
 			{
 			// Look up file in ZEEKPATH
-			auto res = find_script_file(*path, bro_path());
+			auto res = zeek::util::find_script_file(*path, zeek::util::zeek_path());
 
 			if ( res.empty() )
 				{
@@ -479,3 +481,5 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 
 	return rval;
 	}
+
+} // namespace zeek

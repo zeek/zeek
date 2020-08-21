@@ -12,8 +12,8 @@
 #include "Desc.h"
 #include "events.bif.h"
 
-namespace analyzer { namespace ssl { class SSL_Analyzer; } }
-typedef analyzer::ssl::SSL_Analyzer* SSLAnalyzer;
+namespace zeek::analyzer::ssl { class SSL_Analyzer; }
+using SSLAnalyzer = zeek::analyzer::ssl::SSL_Analyzer*;
 
 #include "SSL.h"
 %}

@@ -5,10 +5,11 @@
 #include "IP.h"
 #include "DebugLogger.h"
 #include "Reporter.h"
+#include "RunState.h"
 #include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
-using namespace analyzer::pia;
+namespace zeek::analyzer::pia {
 
 PIA::PIA(zeek::analyzer::Analyzer* arg_as_analyzer)
 	: state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
@@ -104,8 +105,8 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	     len > 0 )
 		{
 		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
-		if ( pkt_buffer.size > dpd_buffer_size )
-			new_state = dpd_match_only_beginning ?
+		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size )
+			new_state = zeek::detail::dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
 		}
 
@@ -163,7 +164,7 @@ void PIA_UDP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 			zeek::event_mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
-		pkt_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
+		pkt_buffer.state = zeek::detail::dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
 		return;
 		}
 
@@ -193,7 +194,7 @@ PIA_TCP::~PIA_TCP()
 
 void PIA_TCP::Init()
 	{
-	tcp::TCP_ApplicationAnalyzer::Init();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Init();
 
 	if ( Parent()->IsAnalyzer("TCP") )
 		{
@@ -253,7 +254,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 
 void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( stream_buffer.state == SKIPPING )
 		return;
@@ -271,8 +272,8 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	if ( stream_buffer.state == BUFFERING || new_state == BUFFERING )
 		{
 		AddToBuffer(&stream_buffer, len, data, is_orig);
-		if ( stream_buffer.size > dpd_buffer_size )
-			new_state = dpd_match_only_beginning ?
+		if ( stream_buffer.size > zeek::detail::dpd_buffer_size )
+			new_state = zeek::detail::dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
 		}
 
@@ -283,7 +284,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( stream_buffer.state == BUFFERING )
 		// We use data=nil to mark an undelivered.
@@ -310,7 +311,7 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 			zeek::event_mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
-		stream_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
+		stream_buffer.state = zeek::detail::dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
 		return;
 		}
 
@@ -385,11 +386,11 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 		// worth the effort.
 
 		if ( b->is_orig )
-			reass_orig->DataSent(network_time, orig_seq = b->seq,
-					     b->len, b->data, tcp::TCP_Flags(), true);
+			reass_orig->DataSent(zeek::run_state::network_time, orig_seq = b->seq,
+			                     b->len, b->data, tcp::TCP_Flags(), true);
 		else
-			reass_resp->DataSent(network_time, resp_seq = b->seq,
-					     b->len, b->data, tcp::TCP_Flags(), true);
+			reass_resp->DataSent(zeek::run_state::network_time, resp_seq = b->seq,
+			                     b->len, b->data, tcp::TCP_Flags(), true);
 		}
 
 	// We also need to pass the current packet on.
@@ -397,11 +398,11 @@ void PIA_TCP::ActivateAnalyzer(zeek::analyzer::Tag tag, const zeek::detail::Rule
 	if ( current->data )
 		{
 		if ( current->is_orig )
-			reass_orig->DataSent(network_time,
+			reass_orig->DataSent(zeek::run_state::network_time,
 					orig_seq = current->seq,
 					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		else
-			reass_resp->DataSent(network_time,
+			reass_resp->DataSent(zeek::run_state::network_time,
 					resp_seq = current->seq,
 					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		}
@@ -435,3 +436,5 @@ void PIA_TCP::ReplayStreamBuffer(zeek::analyzer::Analyzer* analyzer)
 			analyzer->NextUndelivered(b->seq, b->len, b->is_orig);
 		}
 	}
+
+} // namespace zeek::analyzer::pia

@@ -2,12 +2,13 @@
 %include bro.pac
 
 %extern{
+#include "zeek-config.h"
 #include "types.bif.h"
 #include "events.bif.h"
 
-namespace analyzer { namespace krb_tcp { class KRB_Analyzer; } }
+namespace zeek::analyzer::krb_tcp { class KRB_Analyzer; }
 namespace binpac { namespace KRB_TCP { class KRB_Conn; } }
-typedef analyzer::krb_tcp::KRB_Analyzer* KRBTCPAnalyzer;
+using KRBTCPAnalyzer = zeek::analyzer::krb_tcp::KRB_Analyzer*;
 
 #include "KRB_TCP.h"
 %}

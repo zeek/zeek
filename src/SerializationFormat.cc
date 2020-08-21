@@ -45,7 +45,7 @@ void SerializationFormat::StartWrite()
 
 	if ( ! output )
 		{
-		output = (char*)safe_malloc(INITIAL_SIZE);
+		output = (char*)zeek::util::safe_malloc(INITIAL_SIZE);
 		output_size = INITIAL_SIZE;
 		}
 
@@ -85,7 +85,7 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	while ( output_pos + count > output_size )
 		output_size *= GROWTH_FACTOR;
 
-	output = (char*)safe_realloc(output, output_size);
+	output = (char*)zeek::util::safe_realloc(output, output_size);
 
 	memcpy(output + output_pos, b, count);
 	output_pos += count;
@@ -180,7 +180,7 @@ bool BinarySerializationFormat::Read(double* d, const char* tag)
 bool BinarySerializationFormat::Read(char* v, const char* tag)
 	{
 	bool ret = ReadData(v, 1);
-	DBG_LOG(zeek::DBG_SERIAL, "Read char %s [%s]", fmt_bytes(v, 1), tag);
+	DBG_LOG(zeek::DBG_SERIAL, "Read char %s [%s]", zeek::util::fmt_bytes(v, 1), tag);
 	return ret;
 	}
 
@@ -218,7 +218,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 
 	*str = s;
 
-	DBG_LOG(zeek::DBG_SERIAL, "Read %d bytes |%s| [%s]", l, fmt_bytes(*str, l), tag);
+	DBG_LOG(zeek::DBG_SERIAL, "Read %d bytes |%s| [%s]", l, zeek::util::fmt_bytes(*str, l), tag);
 	return true;
 	}
 
@@ -303,7 +303,7 @@ bool BinarySerializationFormat::Read(struct in6_addr* addr, const char* tag)
 
 bool BinarySerializationFormat::Write(char v, const char* tag)
 	{
-	DBG_LOG(zeek::DBG_SERIAL, "Write char %s [%s]", fmt_bytes(&v, 1), tag);
+	DBG_LOG(zeek::DBG_SERIAL, "Write char %s [%s]", zeek::util::fmt_bytes(&v, 1), tag);
 	return WriteData(&v, 1);
 	}
 
@@ -434,7 +434,7 @@ bool BinarySerializationFormat::WriteSeparator()
 
 bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 	{
-	DBG_LOG(zeek::DBG_SERIAL, "Write bytes |%s| [%s]", fmt_bytes(buf, len), tag);
+	DBG_LOG(zeek::DBG_SERIAL, "Write bytes |%s| [%s]", zeek::util::fmt_bytes(buf, len), tag);
 	uint32_t l = htonl(len);
 	return WriteData(&l, sizeof(l)) && WriteData(buf, len);
 	}

@@ -1,5 +1,5 @@
 
-#include "Net.h"
+#include "RunState.h"
 #include "threading/SerialTypes.h"
 #include "broker/Manager.h"
 
@@ -7,21 +7,20 @@
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 
-using threading::Value;
-using threading::Field;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
-namespace logging  {
+namespace zeek::logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
-class InitMessage final : public threading::InputMessage<WriterBackend>
+class InitMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
-		: threading::InputMessage<WriterBackend>("Init", backend),
+		: zeek::threading::InputMessage<WriterBackend>("Init", backend),
 		num_fields(num_fields), fields(fields)
 			{}
-
 
 	bool Process() override { return Object()->Init(num_fields, fields); }
 
@@ -30,14 +29,14 @@ private:
 	const Field * const* fields;
 };
 
-class RotateMessage final : public threading::InputMessage<WriterBackend>
+class RotateMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
-		      const double close, const bool terminating)
-		: threading::InputMessage<WriterBackend>("Rotate", backend),
+	              const double close, const bool terminating)
+		: zeek::threading::InputMessage<WriterBackend>("Rotate", backend),
 		frontend(frontend),
-		rotated_path(copy_string(rotated_path)), open(open),
+		rotated_path(zeek::util::copy_string(rotated_path)), open(open),
 		close(close), terminating(terminating) { }
 
 	virtual ~RotateMessage()	{ delete [] rotated_path; }
@@ -52,11 +51,11 @@ private:
 	const bool terminating;
 };
 
-class WriteMessage final : public threading::InputMessage<WriterBackend>
+class WriteMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
-		: threading::InputMessage<WriterBackend>("Write", backend),
+		: zeek::threading::InputMessage<WriterBackend>("Write", backend),
 		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
 	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
@@ -67,11 +66,11 @@ private:
 	Value ***vals;
 };
 
-class SetBufMessage final : public threading::InputMessage<WriterBackend>
+class SetBufMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
-		: threading::InputMessage<WriterBackend>("SetBuf", backend),
+		: zeek::threading::InputMessage<WriterBackend>("SetBuf", backend),
 		enabled(enabled) { }
 
 	bool Process() override { return Object()->SetBuf(enabled); }
@@ -80,11 +79,11 @@ private:
 	const bool enabled;
 };
 
-class FlushMessage final : public threading::InputMessage<WriterBackend>
+class FlushMessage final : public zeek::threading::InputMessage<WriterBackend>
 {
 public:
 	FlushMessage(WriterBackend* backend, double network_time)
-		: threading::InputMessage<WriterBackend>("Flush", backend),
+		: zeek::threading::InputMessage<WriterBackend>("Flush", backend),
 		network_time(network_time) {}
 
 	bool Process() override { return Object()->Flush(network_time); }
@@ -92,11 +91,7 @@ private:
 	double network_time;
 };
 
-}
-
 // Frontend methods.
-
-using namespace logging;
 
 WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::EnumVal* arg_stream,
                                zeek::EnumVal* arg_writer, bool arg_local, bool arg_remote)
@@ -118,7 +113,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, zeek::
 	fields = nullptr;
 
 	const char* w = arg_writer->GetType()->AsEnumType()->Lookup(arg_writer->InternalInt());
-	name = copy_string(fmt("%s/%s", arg_info.path, w));
+	name = zeek::util::copy_string(zeek::util::fmt("%s/%s", arg_info.path, w));
 
 	if ( local )
 		{
@@ -231,7 +226,7 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	write_buffer[write_buffer_pos++] = vals;
 
-	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || terminating )
+	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || zeek::run_state::terminating )
 		// Buffer full (or no bufferin desired or termiating).
 		FlushWriteBuffer();
 
@@ -299,3 +294,5 @@ void WriterFrontend::DeleteVals(int num_fields, Value** vals)
 
 	delete [] vals;
 	}
+
+} // namespace zeek::logging

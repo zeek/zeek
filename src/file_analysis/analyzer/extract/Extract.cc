@@ -8,11 +8,11 @@
 #include "Event.h"
 #include "file_analysis/Manager.h"
 
-using namespace file_analysis;
+namespace zeek::file_analysis::detail {
 
-Extract::Extract(zeek::RecordValPtr args, File* file,
+Extract::Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
                  const std::string& arg_filename, uint64_t arg_limit)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
+    : file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("EXTRACT"),
                               std::move(args), file),
       filename(arg_filename), limit(arg_limit), depth(0)
 	{
@@ -22,7 +22,7 @@ Extract::Extract(zeek::RecordValPtr args, File* file,
 		{
 		fd = 0;
 		char buf[128];
-		bro_strerror_r(errno, buf, sizeof(buf));
+		zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 		zeek::reporter->Error("cannot open %s: %s", filename.c_str(), buf);
 		}
 	}
@@ -30,7 +30,7 @@ Extract::Extract(zeek::RecordValPtr args, File* file,
 Extract::~Extract()
 	{
 	if ( fd )
-		safe_close(fd);
+		zeek::util::safe_close(fd);
 	}
 
 static const zeek::ValPtr& get_extract_field_val(const zeek::RecordValPtr& args,
@@ -44,7 +44,8 @@ static const zeek::ValPtr& get_extract_field_val(const zeek::RecordValPtr& args,
 	return rval;
 	}
 
-file_analysis::Analyzer* Extract::Instantiate(zeek::RecordValPtr args, File* file)
+zeek::file_analysis::Analyzer* Extract::Instantiate(zeek::RecordValPtr args,
+                                                    zeek::file_analysis::File* file)
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
@@ -92,7 +93,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 	if ( limit_exceeded && file_extraction_limit )
 		{
-		File* f = GetFile();
+		zeek::file_analysis::File* f = GetFile();
 		f->FileEvent(file_extraction_limit, {
 			f->ToVal(),
 			GetArgs(),
@@ -106,7 +107,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 	if ( towrite > 0 )
 		{
-		safe_write(fd, reinterpret_cast<const char*>(data), towrite);
+		zeek::util::safe_write(fd, reinterpret_cast<const char*>(data), towrite);
 		depth += towrite;
 		}
 
@@ -118,10 +119,12 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 	if ( depth == offset )
 		{
 		char* tmp = new char[len]();
-		safe_write(fd, tmp, len);
+		zeek::util::safe_write(fd, tmp, len);
 		delete [] tmp;
 		depth += len;
 		}
 
 	return true;
 	}
+
+} // namespace zeek::file_analysis::detail

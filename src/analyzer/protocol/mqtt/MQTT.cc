@@ -7,10 +7,10 @@
 #include "Scope.h"
 #include "mqtt_pac.h"
 
-using namespace analyzer::MQTT;
+namespace zeek::analyzer::mqtt {
 
 MQTT_Analyzer::MQTT_Analyzer(zeek::Connection* c)
-	: tcp::TCP_ApplicationAnalyzer("MQTT", c)
+	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("MQTT", c)
 	{
 	interp = new binpac::MQTT::MQTT_Conn(this);
 	}
@@ -22,7 +22,7 @@ MQTT_Analyzer::~MQTT_Analyzer()
 
 void MQTT_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -30,13 +30,13 @@ void MQTT_Analyzer::Done()
 
 void MQTT_Analyzer::EndpointEOF(bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void MQTT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -46,12 +46,14 @@ void MQTT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
 void MQTT_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
+
+} // namespace zeek::analyzer::mqtt

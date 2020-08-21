@@ -24,7 +24,7 @@ void UID::Set(bro_uint_t bits, const uint64_t* v, size_t n)
 	size_t size = res.rem ? res.quot + 1 : res.quot;
 
 	for ( size_t i = 0; i < size; ++i )
-		uid[i] = v && i < n ? v[i] : calculate_unique_id();
+		uid[i] = v && i < n ? v[i] : zeek::util::calculate_unique_id();
 
 	if ( res.rem )
 		uid[0] >>= 64 - res.rem;
@@ -37,7 +37,7 @@ std::string UID::Base62(std::string prefix) const
 
 	char tmp[sizeof(uid) * 8 + 1];  // enough for even binary representation
 	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
-		prefix.append(uitoa_n(uid[i], tmp, sizeof(tmp), 62));
+		prefix.append(zeek::util::uitoa_n(uid[i], tmp, sizeof(tmp), 62));
 
 	return prefix;
 	}

@@ -2,7 +2,7 @@
 
 #include <errno.h>
 
-#include "Net.h"
+#include "RunState.h"
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
 #include "TCP_Reassembler.h"
@@ -14,7 +14,7 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::tcp;
+namespace zeek::analyzer::tcp {
 
 TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 	{
@@ -151,7 +151,7 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		// handshake.
 		if ( ! is_handshake(new_state) )
 			if ( is_handshake(state) && is_handshake(peer->state) )
-				Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
+				Conn()->SetInactivityTimeout(zeek::detail::tcp_inactivity_timeout);
 
 		prev_state = state;
 		state = new_state;
@@ -233,7 +233,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
 			{
 			char buf[256];
-			bro_strerror_r(errno, buf, sizeof(buf));
+			zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
 			zeek::reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )
@@ -319,3 +319,5 @@ void TCP_Endpoint::Gap(uint64_t seq, uint64_t len)
 					gap_cnt, gap_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_gap, IsOrig(), t);
 	}
+
+} // namespace zeek::analyzer::tcp

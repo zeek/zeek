@@ -78,15 +78,17 @@
 #include <string.h>
 #include <assert.h>
 
+#include <set>
+#include <string>
+
 #include "input.h"
-#include "BroList.h"
+#include "ZeekList.h"
 #include "Desc.h"
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
 #include "Val.h"
 #include "Var.h"
-/* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"
@@ -94,9 +96,6 @@
 #include "zeekygen/Manager.h"
 #include "module_util.h"
 #include "IntrusivePtr.h"
-
-#include <set>
-#include <string>
 
 extern const char* filename;  // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.
@@ -233,7 +232,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	bool b;
 	char* str;
 	zeek::detail::ID* id;
-	id_list* id_l;
+	zeek::IDPList* id_l;
 	zeek::detail::InitClass ic;
 	zeek::Val* val;
 	zeek::RE_Matcher* re;
@@ -259,10 +258,10 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 bro:
 		decl_list stmt_list
 			{
-			if ( stmts )
-				stmts->AsStmtList()->Stmts().push_back($2);
+			if ( zeek::detail::stmts )
+				zeek::detail::stmts->AsStmtList()->Stmts().push_back($2);
 			else
-				stmts = $2;
+				zeek::detail::stmts = $2;
 
 			// Any objects creates from here on out should not
 			// have file positions associated with them.
@@ -468,8 +467,8 @@ expr:
 	|	TOK_LOCAL local_id '=' expr
 			{
 			zeek::detail::set_location(@2, @4);
-			$$ = add_and_assign_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $4},
-			                          zeek::val_mgr->True()).release();
+			$$ = zeek::detail::add_and_assign_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $4},
+			                                        zeek::val_mgr->True()).release();
 			}
 
 	|	expr '[' expr_list ']'
@@ -497,9 +496,9 @@ expr:
 			func_hdr_location = @1;
 			auto func_id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
-			begin_func(std::move(func_id), zeek::detail::current_module.c_str(),
-		   	           zeek::FUNC_FLAVOR_FUNCTION, false,
-			           {zeek::AdoptRef{}, $3});
+			zeek::detail::begin_func(std::move(func_id), zeek::detail::current_module.c_str(),
+			                         zeek::FUNC_FLAVOR_FUNCTION, false,
+			                         {zeek::AdoptRef{}, $3});
 			}
 		 lambda_body
 			{
@@ -669,12 +668,12 @@ expr:
 							        false, is_export);
 */
 
-					yyerror(fmt("unknown identifier %s", $1));
+					yyerror(zeek::util::fmt("unknown identifier %s", $1));
 					YYERROR;
 					}
 				else
 					{
-					yyerror(fmt("unknown identifier %s", $1));
+					yyerror(zeek::util::fmt("unknown identifier %s", $1));
 					YYERROR;
 					}
 				}
@@ -1032,7 +1031,7 @@ type_decl:
 			$$ = new zeek::TypeDecl($1, {zeek::AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
-				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
+				zeek::detail::zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
 			}
 	;
 
@@ -1067,7 +1066,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			zeek::detail::current_module = $2;
-			zeekygen_mgr->ModuleUsage(::filename, zeek::detail::current_module);
+			zeek::detail::zeekygen_mgr->ModuleUsage(::filename, zeek::detail::current_module);
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
@@ -1076,49 +1075,49 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
-			           VAR_REGULAR);
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
+			                         zeek::detail::VAR_REGULAR);
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
-			           VAR_OPTION);
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
+			                         zeek::detail::VAR_OPTION);
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
-			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
-			           VAR_CONST);
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::add_global(id, {zeek::AdoptRef{}, $3}, $4, {zeek::AdoptRef{}, $5},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
+			                         zeek::detail::VAR_CONST);
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			zeek::detail::ExprPtr init{zeek::AdoptRef{}, $5};
-			add_global(id, {zeek::AdoptRef{}, $3}, $4, init,
-			           std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
-			           VAR_REDEF);
-			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
+			zeek::detail::add_global(id, {zeek::AdoptRef{}, $3}, $4, init,
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
+			                         zeek::detail::VAR_REDEF);
+			zeek::detail::zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ parser_redef_enum($3); zeekygen_mgr->Redef($3, ::filename); }
+			{ parser_redef_enum($3); zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
 		enum_body '}' ';'
 			{
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
+			{ cur_decl_type_id = $3; zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
 			{ ++in_record; }
 		type_decl_list
@@ -1135,14 +1134,14 @@ decl:
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({zeek::NewRef{}, $2});  }
+			{ cur_decl_type_id = $2; zeek::detail::zeekygen_mgr->StartType({zeek::NewRef{}, $2});  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			add_type(id.get(), {zeek::AdoptRef{}, $5},
-			         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6});
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::add_type(id.get(), {zeek::AdoptRef{}, $5},
+			                       std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6});
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	func_hdr { func_hdr_location = @1; } func_body
@@ -1173,40 +1172,40 @@ func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
-			begin_func(id, zeek::detail::current_module.c_str(),
-				zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
-				std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
+			zeek::detail::begin_func(id, zeek::detail::current_module.c_str(),
+				                     zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
-			zeekygen_mgr->Identifier(std::move(id));
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
 			const char* name = $2->Name();
-			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
+			if ( zeek::util::streq("bro_init", name) || zeek::util::streq("bro_done", name) || zeek::util::streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
 				zeek::reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
-			begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
-				   zeek::FUNC_FLAVOR_EVENT, 0, {zeek::NewRef{}, $3},
-				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
+			zeek::detail::begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
+				                     zeek::FUNC_FLAVOR_EVENT, 0, {zeek::NewRef{}, $3},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
 			{
 			$3->ClearYieldType(zeek::FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(zeek::base_type(zeek::TYPE_BOOL));
-			begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
-				   zeek::FUNC_FLAVOR_HOOK, 0, {zeek::NewRef{}, $3},
-				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
+			zeek::detail::begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
+				                     zeek::FUNC_FLAVOR_HOOK, 0, {zeek::NewRef{}, $3},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
-			begin_func({zeek::NewRef{}, $3}, zeek::detail::current_module.c_str(),
-				   zeek::FUNC_FLAVOR_EVENT, 1, {zeek::NewRef{}, $4},
-				   std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$5});
+			zeek::detail::begin_func({zeek::NewRef{}, $3}, zeek::detail::current_module.c_str(),
+				                     zeek::FUNC_FLAVOR_EVENT, 1, {zeek::NewRef{}, $4},
+			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$5});
 			$$ = $4;
 			}
 	;
@@ -1227,7 +1226,7 @@ func_body:
 		'}'
 			{
 			zeek::detail::set_location(func_hdr_location, @5);
-			end_func({zeek::AdoptRef{}, $3});
+			zeek::detail::end_func({zeek::AdoptRef{}, $3});
 			}
 	;
 
@@ -1256,7 +1255,7 @@ lambda_body:
 			auto ingredients = std::make_unique<zeek::detail::function_ingredients>(
 				zeek::IntrusivePtr{zeek::NewRef{}, zeek::detail::current_scope()},
 				zeek::IntrusivePtr{zeek::AdoptRef{}, $3});
-			id_list outer_ids = gather_outer_ids(zeek::detail::pop_scope().get(), ingredients->body.get());
+			zeek::IDPList outer_ids = zeek::detail::gather_outer_ids(zeek::detail::pop_scope().get(), ingredients->body.get());
 
 			$$ = new zeek::detail::LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}
@@ -1271,7 +1270,7 @@ begin_func:
 		func_params
 			{
 			auto id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
-			begin_func(id, zeek::detail::current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::AdoptRef{}, $1});
+			zeek::detail::begin_func(id, zeek::detail::current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::AdoptRef{}, $1});
 			$$ = id.release();
 			}
 	;
@@ -1517,10 +1516,10 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			zeek::detail::set_location(@1, @7);
-			$$ = add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
-			               {zeek::AdoptRef{}, $5},
-			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
-			               VAR_REGULAR).release();
+			$$ = zeek::detail::add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
+			                             {zeek::AdoptRef{}, $5},
+			                             std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
+			                             zeek::detail::VAR_REGULAR).release();
 			if ( ! $8 )
 			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
@@ -1528,10 +1527,10 @@ stmt:
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			zeek::detail::set_location(@1, @6);
-			$$ = add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
-			               {zeek::AdoptRef{}, $5},
-			               std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
-			               VAR_CONST).release();
+			$$ = zeek::detail::add_local({zeek::AdoptRef{}, $2}, {zeek::AdoptRef{}, $3}, $4,
+			                             {zeek::AdoptRef{}, $5},
+			                             std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$6},
+			                             zeek::detail::VAR_CONST).release();
 			if ( ! $8 )
 			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
@@ -1618,7 +1617,7 @@ event:
 				{
 				if ( ! id->IsGlobal() )
 					{
-					yyerror(fmt("local identifier \"%s\" cannot be used to reference an event", $1));
+					yyerror(zeek::util::fmt("local identifier \"%s\" cannot be used to reference an event", $1));
 					YYERROR;
 					}
 
@@ -1654,7 +1653,7 @@ case_type_list:
 	|
 		case_type
 			{
-			$$ = new id_list;
+			$$ = new zeek::IDPList;
 			$$->push_back($1);
 			}
 	;
@@ -1677,8 +1676,8 @@ case_type:
 			else
 				case_var = zeek::detail::install_ID(name, zeek::detail::current_module.c_str(), false, false);
 
-			add_local(case_var, std::move(type), zeek::detail::INIT_NONE, nullptr, nullptr,
-			          VAR_REGULAR);
+			zeek::detail::add_local(case_var, std::move(type), zeek::detail::INIT_NONE, nullptr, nullptr,
+			                        zeek::detail::VAR_REGULAR);
 			$$ = case_var.release();
 			}
 
@@ -1705,7 +1704,7 @@ for_head:
 				                                    false, false);
 				}
 
-			id_list* loop_vars = new id_list;
+			auto* loop_vars = new zeek::IDPList;
 			loop_vars->push_back(loop_var.release());
 
 			$$ = new zeek::detail::ForStmt(loop_vars, {zeek::AdoptRef{}, $5});
@@ -1743,7 +1742,7 @@ for_head:
 			else
 				val_var = zeek::detail::install_ID($5, module, false, false);
 
-			id_list* loop_vars = new id_list;
+			auto* loop_vars = new zeek::IDPList;
 			loop_vars->push_back(key_var.release());
 
 			$$ = new zeek::detail::ForStmt(loop_vars, {zeek::AdoptRef{}, $7}, std::move(val_var));
@@ -1774,7 +1773,7 @@ local_id_list:
 			{ $1->push_back($3); }
 	|	local_id
 			{
-			$$ = new id_list;
+			$$ = new zeek::IDPList;
 			$$->push_back($1);
 			}
 	;
@@ -1905,7 +1904,7 @@ opt_deprecated:
 int yyerror(const char msg[])
 	{
 	if ( in_debug )
-		g_curr_debug_error = copy_string(msg);
+		g_curr_debug_error = zeek::util::copy_string(msg);
 
 	if ( last_tok[0] == '\n' )
 		zeek::reporter->Error("%s, on previous line", msg);
@@ -1919,7 +1918,7 @@ int yyerror(const char msg[])
 	else
 		{
 		if ( last_last_tok_filename && last_tok_filename &&
-		     ! streq(last_last_tok_filename, last_tok_filename) )
+		     ! zeek::util::streq(last_last_tok_filename, last_tok_filename) )
 			zeek::reporter->Error("%s, at or near \"%s\" or end of file %s",
 			                      msg, last_tok, last_last_tok_filename);
 		else

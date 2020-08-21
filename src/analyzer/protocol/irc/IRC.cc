@@ -9,11 +9,12 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::irc;
 using namespace std;
 
+namespace zeek::analyzer::irc {
+
 IRC_Analyzer::IRC_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("IRC", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IRC", conn)
 	{
 	invalid_msg_count = 0;
 	invalid_msg_max_count = 20;
@@ -22,15 +23,15 @@ IRC_Analyzer::IRC_Analyzer(zeek::Connection* conn)
 	orig_zip_status = NO_ZIP;
 	resp_zip_status = NO_ZIP;
 	starttls = false;
-	cl_orig = new tcp::ContentLine_Analyzer(conn, true, 1000);
+	cl_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true, 1000);
 	AddSupportAnalyzer(cl_orig);
-	cl_resp = new tcp::ContentLine_Analyzer(conn, false, 1000);
+	cl_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false, 1000);
 	AddSupportAnalyzer(cl_resp);
 	}
 
 void IRC_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
 inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
@@ -46,7 +47,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
 	static auto irc_join_list = zeek::id::find_type<zeek::TableType>("irc_join_list");
 	static auto irc_join_info = zeek::id::find_type<zeek::RecordType>("irc_join_info");
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	if ( starttls )
 		{
@@ -1162,8 +1163,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		orig_zip_status = ZIP_LOADED;
 		resp_zip_status = ZIP_LOADED;
-		AddSupportAnalyzer(new zip::ZIP_Analyzer(Conn(), true));
-		AddSupportAnalyzer(new zip::ZIP_Analyzer(Conn(), false));
+		AddSupportAnalyzer(new zeek::analyzer::zip::ZIP_Analyzer(Conn(), true));
+		AddSupportAnalyzer(new zeek::analyzer::zip::ZIP_Analyzer(Conn(), false));
 		}
 
 	return;
@@ -1222,3 +1223,5 @@ vector<string> IRC_Analyzer::SplitWords(const string& input, char split)
 
 	return words;
 	}
+
+} // namespace zeek::analyzer::irc

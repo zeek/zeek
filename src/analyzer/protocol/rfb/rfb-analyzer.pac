@@ -181,7 +181,7 @@ refine connection RFB_Conn += {
 		else
 			{
 			// Shouldn't be a possible.
-			bro_analyzer()->ProtocolViolation(fmt("invalid RFB security type %u", msg->sectype()));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB security type %u", msg->sectype()));
 			}
 
 		return true;
@@ -235,7 +235,7 @@ refine connection RFB_Conn += {
 			}
 		else
 			{
-			bro_analyzer()->ProtocolViolation(fmt("unknown RFB auth selection: %u", ${msg.type}));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("unknown RFB auth selection: %u", ${msg.type}));
 			}
 
 		return true;
@@ -277,7 +277,7 @@ refine connection RFB_Conn += {
 			// Failed
 			server_state = SERVER_AUTH_FAILURE;
 		else
-			bro_analyzer()->ProtocolViolation(fmt("invalid RFB auth result: %u", ${msg.result}));
+			bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB auth result: %u", ${msg.result}));
 
 		return true;
 		%}
@@ -309,7 +309,7 @@ refine connection RFB_Conn += {
 
 	function handle_invalid_data(client: bool) : bool
 		%{
-		throw binpac::Exception(fmt("invalid data from RFB %s", client ? "client" : "server"));
+		throw binpac::Exception(zeek::util::fmt("invalid data from RFB %s", client ? "client" : "server"));
 		return true;
 		%}
 

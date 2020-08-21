@@ -19,7 +19,7 @@
 // headers of form: <name>=<value>; <param_1>=<param_val_1>;
 // <param_2>=<param_val_2>; ... (so that
 
-namespace analyzer { namespace mime {
+namespace zeek::analyzer::mime {
 
 static const zeek::data_chunk_t null_data_chunk = { 0, nullptr };
 
@@ -150,9 +150,9 @@ int fputs(zeek::data_chunk_t b, FILE* fp)
 
 void MIME_Mail::Undelivered(int len)
 	{
-	cur_entity_id = file_mgr->Gap(cur_entity_len, len,
-	                              analyzer->GetAnalyzerTag(), analyzer->Conn(),
-	                              is_orig, cur_entity_id);
+	cur_entity_id = zeek::file_mgr->Gap(cur_entity_len, len,
+	                                    analyzer->GetAnalyzerTag(), analyzer->Conn(),
+	                                    is_orig, cur_entity_id);
 	}
 
 bool istrequal(zeek::data_chunk_t s, const char* t)
@@ -438,11 +438,6 @@ zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
 
 	return new zeek::String(true, (zeek::byte_vec) dest, j);
 	}
-
-
-} } // namespace analyzer::*
-
-using namespace analyzer::mime;
 
 MIME_Multiline::MIME_Multiline()
 	{
@@ -1088,8 +1083,8 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 				if ( i + 2 < len )
 					{
 					int a, b;
-					a = decode_hex(data[i+1]);
-					b = decode_hex(data[i+2]);
+					a = zeek::util::decode_hex(data[i+1]);
+					b = zeek::util::decode_hex(data[i+2]);
 
 					if ( a >= 0 && b >= 0 )
 						{
@@ -1119,7 +1114,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 
 		else
 			{
-			IllegalEncoding(fmt("control characters in quoted-printable encoding: %d", (int) (data[i])));
+			IllegalEncoding(zeek::util::fmt("control characters in quoted-printable encoding: %d", (int) (data[i])));
 			DataOctet(data[i]);
 			}
 		}
@@ -1334,8 +1329,8 @@ MIME_Mail::MIME_Mail(zeek::analyzer::Analyzer* mail_analyzer, bool orig, int buf
 	{
 	analyzer = mail_analyzer;
 
-	min_overlap_length = mime_segment_overlap_length;
-	max_chunk_length = mime_segment_length;
+	min_overlap_length = zeek::detail::mime_segment_overlap_length;
+	max_chunk_length = zeek::detail::mime_segment_length;
 	is_orig = orig;
 
 	int length = buf_size;
@@ -1387,7 +1382,7 @@ void MIME_Mail::Done()
 
 	MIME_Message::Done();
 
-	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	zeek::file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1433,7 +1428,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 	if ( mime_end_entity )
 		analyzer->EnqueueConnEvent(mime_end_entity, analyzer->ConnVal());
 
-	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	zeek::file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
 	}
 
@@ -1492,9 +1487,10 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		);
 		}
 
-	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
-	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
-	                 cur_entity_id);
+	cur_entity_id = zeek::file_mgr->DataIn(
+		reinterpret_cast<const u_char*>(buf), len,
+		analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
+		cur_entity_id);
 
 	cur_entity_len += len;
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
@@ -1566,3 +1562,24 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 			zeek::make_intrusive<zeek::StringVal>(detail)
 		);
 	}
+
+} // namespace zeek::analyzer::mime
+
+
+namespace analyzer::mime {
+
+zeek::StringVal* new_string_val(int length, const char* data)
+	{ return zeek::analyzer::mime::to_string_val(length, data).release(); }
+zeek::StringVal* new_string_val(const char* data, const char* end_of_data)
+	{ return zeek::analyzer::mime::to_string_val(data, end_of_data).release(); }
+zeek::StringVal* new_string_val(const zeek::data_chunk_t buf)
+	{ return zeek::analyzer::mime::to_string_val(buf).release(); }
+
+zeek::StringValPtr to_string_val(int length, const char* data)
+	{ return zeek::analyzer::mime::to_string_val(length, data); }
+zeek::StringValPtr to_string_val(const char* data, const char* end_of_data)
+	{ return zeek::analyzer::mime::to_string_val(data, end_of_data); }
+zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf)
+	{ return zeek::analyzer::mime::to_string_val(buf); }
+
+} // namespace analyzer::mime

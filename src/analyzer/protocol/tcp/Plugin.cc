@@ -4,15 +4,14 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin {
-namespace Zeek_TCP {
+namespace zeek::plugin::detail::Zeek_TCP {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("TCP", ::analyzer::tcp::TCP_Analyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("TCPStats", ::analyzer::tcp::TCPStats_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("TCP", zeek::analyzer::tcp::TCP_Analyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("TCPStats", zeek::analyzer::tcp::TCPStats_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("CONTENTLINE", nullptr));
 		AddComponent(new zeek::analyzer::Component("Contents", nullptr));
 
@@ -23,5 +22,4 @@ public:
 		}
 } plugin;
 
-}
-}
+} // namespace zeek::plugin::detail::Zeek_TCP

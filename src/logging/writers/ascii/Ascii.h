@@ -10,25 +10,25 @@
 #include "Desc.h"
 #include "zlib.h"
 
-namespace plugin::Zeek_AsciiWriter { class Plugin; }
+namespace zeek::plugin::detail::Zeek_AsciiWriter { class Plugin; }
 
-namespace logging { namespace writer {
+namespace zeek::logging::writer::detail {
 
-class Ascii : public WriterBackend {
+class Ascii : public zeek::logging::WriterBackend {
 public:
-	explicit Ascii(WriterFrontend* frontend);
+	explicit Ascii(zeek::logging::WriterFrontend* frontend);
 	~Ascii() override;
 
 	static std::string LogExt();
 
-	static WriterBackend* Instantiate(WriterFrontend* frontend)
+	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
 		{ return new Ascii(frontend); }
 
 protected:
 	bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const* fields) override;
-	bool DoWrite(int num_fields, const threading::Field* const* fields,
-			     threading::Value** vals) override;
+	            const zeek::threading::Field* const* fields) override;
+	bool DoWrite(int num_fields, const zeek::threading::Field* const* fields,
+			     zeek::threading::Value** vals) override;
 	bool DoSetBuf(bool enabled) override;
 	bool DoRotate(const char* rotated_path, double open,
 			      double close, bool terminating) override;
@@ -37,7 +37,7 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	friend class plugin::Zeek_AsciiWriter::Plugin;
+	friend class zeek::plugin::detail::Zeek_AsciiWriter::Plugin;
 
 	static void RotateLeftoverLogs();
 
@@ -75,9 +75,8 @@ private:
 	bool enable_utf_8;
 	std::string json_timestamps;
 
-	threading::formatter::Formatter* formatter;
+	zeek::threading::Formatter* formatter;
 	bool init_options;
 };
 
-}
-}
+} // namespace zeek::logging::writer::detail

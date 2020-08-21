@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "ZeekString.h"
-#include "Net.h"
+#include "RunState.h"
 #include "Func.h"
 #include "Var.h"
 #include "Val.h"

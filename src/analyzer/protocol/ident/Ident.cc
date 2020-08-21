@@ -11,15 +11,15 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::ident;
+namespace zeek::analyzer::ident {
 
 Ident_Analyzer::Ident_Analyzer(zeek::Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("IDENT", conn)
+: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IDENT", conn)
 	{
 	did_bad_reply = did_deliver = false;
 
-	orig_ident = new tcp::ContentLine_Analyzer(conn, true, 1000);
-	resp_ident = new tcp::ContentLine_Analyzer(conn, false, 1000);
+	orig_ident = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true, 1000);
+	resp_ident = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false, 1000);
 
 	orig_ident->SetIsNULSensitive(true);
 	resp_ident->SetIsNULSensitive(true);
@@ -30,29 +30,29 @@ Ident_Analyzer::Ident_Analyzer(zeek::Connection* conn)
 
 void Ident_Analyzer::Done()
 	{
-	tcp::TCP_ApplicationAnalyzer::Done();
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( TCP() )
 		if ( (! did_deliver || orig_ident->HasPartialLine()) &&
-		     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
-		      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) &&
-		     TCP()->OrigPrevState() != tcp::TCP_ENDPOINT_PARTIAL &&
-		     TCP()->RespPrevState() != tcp::TCP_ENDPOINT_PARTIAL &&
-		     TCP()->OrigPrevState() != tcp::TCP_ENDPOINT_INACTIVE &&
-		     TCP()->RespPrevState() != tcp::TCP_ENDPOINT_INACTIVE )
+		     (TCP()->OrigState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED ||
+		      TCP()->OrigPrevState() == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED) &&
+		     TCP()->OrigPrevState() != zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL &&
+		     TCP()->RespPrevState() != zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL &&
+		     TCP()->OrigPrevState() != zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE &&
+		     TCP()->RespPrevState() != zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE )
 			Weird("partial_ident_request");
 	}
 
 void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	{
-	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
+	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 
 	int remote_port, local_port;
 	const char* line = (const char*) data;
 	const char* orig_line = line;
 	const char* end_of_line = line + length;
 
-	tcp::TCP_Endpoint* s = nullptr;
+	zeek::analyzer::tcp::TCP_Endpoint* s = nullptr;
 
 	if ( TCP() )
 		s = is_orig ? TCP()->Orig() : TCP()->Resp();
@@ -68,9 +68,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		line = ParsePair(line, end_of_line, remote_port, local_port);
 		if ( ! line )
 			{
-			if ( s && s->state == tcp::TCP_ENDPOINT_CLOSED &&
-			     (s->prev_state == tcp::TCP_ENDPOINT_INACTIVE ||
-			      s->prev_state == tcp::TCP_ENDPOINT_PARTIAL) )
+			if ( s && s->state == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED &&
+			     (s->prev_state == zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE ||
+			      s->prev_state == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL) )
 				// not surprising the request is mangled.
 				return;
 
@@ -102,9 +102,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		if ( ! line || line == end_of_line || line[0] != ':' )
 			{
-			if ( s && s->state == tcp::TCP_ENDPOINT_CLOSED &&
-			     (s->prev_state == tcp::TCP_ENDPOINT_INACTIVE ||
-			      s->prev_state == tcp::TCP_ENDPOINT_PARTIAL) )
+			if ( s && s->state == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED &&
+			     (s->prev_state == zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE ||
+			      s->prev_state == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL) )
 				// not surprising the request is mangled.
 				return;
 
@@ -112,7 +112,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			return;
 			}
 
-		line = skip_whitespace(line + 1, end_of_line);
+		line = zeek::util::skip_whitespace(line + 1, end_of_line);
 		int restlen = end_of_line - line;
 
 		int is_error;
@@ -132,7 +132,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			return;
 			}
 
-		line = skip_whitespace(line, end_of_line);
+		line = zeek::util::skip_whitespace(line, end_of_line);
 
 		if ( line >= end_of_line || line[0] != ':' )
 			{
@@ -140,7 +140,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			return;
 			}
 
-		line = skip_whitespace(line + 1, end_of_line);
+		line = zeek::util::skip_whitespace(line + 1, end_of_line);
 
 		if ( is_error )
 			{
@@ -176,7 +176,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 				new zeek::String((const u_char*) sys_type,
 				                    sys_end - sys_type + 1, true);
 
-			line = skip_whitespace(colon + 1, end_of_line);
+			line = zeek::util::skip_whitespace(colon + 1, end_of_line);
 
 			EnqueueConnEvent(ident_reply,
 				ConnVal(),
@@ -214,7 +214,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 	{
 	int n = 0;
 
-	line = skip_whitespace(line, end_of_line);
+	line = zeek::util::skip_whitespace(line, end_of_line);
 	if ( line >= end_of_line || ! isdigit(*line) )
 		return nullptr;
 
@@ -227,7 +227,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 		}
 	while ( line < end_of_line && isdigit(*line) );
 
-	line = skip_whitespace(line, end_of_line);
+	line = zeek::util::skip_whitespace(line, end_of_line);
 
 	if ( n < 0 || n > 65535 )
 		{
@@ -255,3 +255,5 @@ void Ident_Analyzer::BadReply(int length, const char* line)
 		did_bad_reply = true;
 		}
 	}
+
+} // namespace zeek::analyzer::ident

@@ -33,9 +33,9 @@ refine connection SMB_Conn += {
 			uint64 offset = read_offsets[${h.mid}];
 			read_offsets.erase(${h.mid});
 
-			file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, offset,
-			                 bro_analyzer()->GetAnalyzerTag(),
-			                 bro_analyzer()->Conn(), h->is_orig());
+			zeek::file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, offset,
+			                       bro_analyzer()->GetAnalyzerTag(),
+			                       bro_analyzer()->Conn(), h->is_orig());
 			}
 
 		return true;

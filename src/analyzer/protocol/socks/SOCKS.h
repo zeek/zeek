@@ -11,9 +11,9 @@ namespace binpac  {
    }
 }
 
-namespace analyzer { namespace socks {
+namespace zeek::analyzer::socks {
 
-class SOCKS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
+class SOCKS_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SOCKS_Analyzer(zeek::Connection* conn);
 	~SOCKS_Analyzer() override;
@@ -33,8 +33,14 @@ protected:
 	bool orig_done;
 	bool resp_done;
 
-	pia::PIA_TCP *pia;
+	zeek::analyzer::pia::PIA_TCP *pia;
 	binpac::SOCKS::SOCKS_Conn* interp;
 };
 
-} } // namespace analyzer::*
+} // namespace zeek::analyzer::socks
+
+namespace analyzer::socks {
+
+using SOCKS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::socks::SOCKS_Analyzer.")]] = zeek::analyzer::socks::SOCKS_Analyzer;
+
+} // namespace analyzer::socks

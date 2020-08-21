@@ -7,10 +7,11 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "IP.h"
 #include "Reporter.h"
+#include "RunState.h"
 
 #include "events.bif.h"
 
-using namespace analyzer::conn_size;
+namespace zeek::analyzer::conn_size {
 
 ConnSize_Analyzer::ConnSize_Analyzer(zeek::Connection* c)
     : Analyzer("CONNSIZE", c),
@@ -90,7 +91,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 
 	if ( duration_thresh != 0 )
 		{
-		if ( ( network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
+		if ( ( zeek::run_state::network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
 					ConnVal(),
@@ -205,3 +206,5 @@ void ConnSize_Analyzer::FlipRoles()
 	orig_pkts = resp_pkts;
 	resp_pkts = tmp;
 	}
+
+} // namespace zeek::analyzer::conn_size

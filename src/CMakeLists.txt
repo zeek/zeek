@@ -253,8 +253,8 @@ set(MAIN_SRCS
     List.cc
     Reporter.cc
     NFA.cc
-    Net.cc
     NetVar.cc
+    Notifier.cc
     Obj.cc
     OpaqueVal.cc
     Options.cc
@@ -270,12 +270,13 @@ set(MAIN_SRCS
     RuleAction.cc
     RuleCondition.cc
     RuleMatcher.cc
-    SmithWaterman.cc
+    RunState.cc
+    ScannedFile.cc
     Scope.cc
     ScriptCoverageManager.cc
     SerializationFormat.cc
     Sessions.cc
-    Notifier.cc
+    SmithWaterman.cc
     Stats.cc
     Stmt.cc
     Tag.cc

@@ -13,12 +13,13 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::rpc;
+namespace zeek::analyzer::rpc {
+namespace detail {
 
 bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100005 )
-		Weird("bad_RPC_program", fmt("%d", c->Program()));
+		Weird("bad_RPC_program", zeek::util::fmt("%d", c->Program()));
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
@@ -49,7 +50,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 			n = 0;
 			}
 		else
-			Weird("unknown_MOUNT_request", fmt("%u", proc));
+			Weird("unknown_MOUNT_request", zeek::util::fmt("%u", proc));
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.
@@ -280,8 +281,10 @@ zeek::RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 	return rep;
 	}
 
+} // namespace detail
+
 MOUNT_Analyzer::MOUNT_Analyzer(zeek::Connection* conn)
-	: RPC_Analyzer("MOUNT", conn, new MOUNT_Interp(this))
+	: RPC_Analyzer("MOUNT", conn, new detail::MOUNT_Interp(this))
 	{
 	orig_rpc = resp_rpc = nullptr;
 	}
@@ -298,3 +301,5 @@ void MOUNT_Analyzer::Init()
 		AddSupportAnalyzer(resp_rpc);
 		}
 	}
+
+} // namespace zeek::analyzer::rpc

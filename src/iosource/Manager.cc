@@ -166,7 +166,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 					}
 				else
 					{
-					if ( ! zeek::run_state::pseudo_realtime )
+					if ( ! zeek::run_state::pseudo_realtime && ! time_to_poll )
 						// A pcap file is always ready to process unless it's suspended
 						ready->push_back(pkt_src);
 					}

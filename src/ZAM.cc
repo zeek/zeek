@@ -1592,6 +1592,12 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 
 	bool no_loop_vars = (num_unused == loop_vars->length());
 
+	if ( value_var && body_pf.locals.count(value_var) == 0 )
+		// This is more clearly a coding botch - someone left in
+		// an unnecessary value_var variable.  But might as
+		// well not do the work.
+		value_var = nullptr;
+
 	auto aux = new ZInstAux(0);
 	aux->iter_info = ii;
 

@@ -3223,11 +3223,11 @@ Expr* RelExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 
 		if ( op1->IsZero() && op2->Type()->Tag() == TYPE_COUNT &&
-		     (Tag() == EXPR_LE || Tag() == EXPR_GT || Tag() == EXPR_GE) )
+		     (Tag() == EXPR_LE || Tag() == EXPR_GT) )
 			Warn("degenerate comparison");
 
 		if ( op2->IsZero() && op1->Type()->Tag() == TYPE_COUNT &&
-		     (Tag() == EXPR_LE || Tag() == EXPR_LT || Tag() == EXPR_GE) )
+		     (Tag() == EXPR_LT || Tag() == EXPR_GE) )
 			Warn("degenerate comparison");
 		}
 

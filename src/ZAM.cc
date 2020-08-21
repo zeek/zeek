@@ -516,17 +516,6 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	return AddInst(z);
 	}
 
-void ZAM::FlushVars(const Expr* e)
-	{
-	ProfileFunc expr_pf;
-	e->Traverse(&expr_pf);
-
-	SyncGlobals(expr_pf.globals, e);
-
-	for ( auto l : expr_pf.locals )
-		StoreLocal(l);
-	}
-
 const CompiledStmt ZAM::ConstructTable(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
@@ -1962,30 +1951,24 @@ const Stmt* ZAM::LastStmt(const Stmt* s) const
 		return s;
 	}
 
-const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
+void ZAM::LoadParam(ID* id)
 	{
 	if ( id->AsType() )
 		reporter->InternalError("don't know how to compile local variable that's a type not a value");
-
-	if ( ! is_load )
-		interpreter_locals.insert(id);
 
 	bool is_any = IsAny(id->Type());
 
 	ZOp op;
 
-	if ( is_load )
-		op = AssignmentFlavor(OP_LOAD_VAL_VV, id->Type()->Tag());
-	else
-		op = is_any ? OP_STORE_ANY_VAL_VV : OP_STORE_VAL_VV;
+	op = AssignmentFlavor(OP_LOAD_VAL_VV, id->Type()->Tag());
 
-	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
+	int slot = AddToFrame(id);
 
 	ZInstI z(op, slot, id->Offset());
 	z.SetType(id->Type());
 	z.op_type = OP_VV_FRAME;
 
-	return AddInst(z);
+	(void) AddInst(z);
 	}
 
 const CompiledStmt ZAM::LoadGlobal(ID* id)

@@ -64,9 +64,9 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 			// statement.
 			continue;
 
-		// Note, because functions with multiple bodies appear
-		// in "funcs" multiple times, but the following doesn't
-		// hurt to do more than once.
+		// Note, functions with multiple bodies appear in "funcs"
+		// multiple times, but the following doesn't hurt to do
+		// more than once.
 		func->SetFrameSize(remapped_intrp_frame_sizes[func]);
 		}
 	}
@@ -597,9 +597,6 @@ void ZAM::ReMapFrame()
 
 void ZAM::ReMapInterpreterFrame()
 	{
-	// Maps identifiers to their offset in the interpreter frame.
-	std::unordered_map<const ID*, int> interpreter_slots;
-
 	// First, track function parameters.  We could elide this
 	// if we decide to alter the calling sequence for compiled
 	// functions.
@@ -607,91 +604,20 @@ void ZAM::ReMapInterpreterFrame()
 	auto nparam = func->FType()->Args()->NumFields();
 	int next_interp_slot = 0;
 
-	// Track old-interpreter-slots-to-new, so we can update LOAD
-	// and STORE instructions.
-	std::unordered_map<int, int> old_intrp_slot_to_new;
-
 	for ( const auto& a : args )
 		{
 		if ( --nparam < 0 )
 			break;
 
 		ASSERT(a->Offset() == next_interp_slot);
-		interpreter_slots[a.get()] = next_interp_slot;
-		old_intrp_slot_to_new[a->Offset()] = next_interp_slot;
 		++next_interp_slot;
 		}
-
-	for ( auto& sf : shared_frame_denizens )
-		{
-		// Interpreter slot to use for these shared denizens, if any.
-		int cohort_slot = -1;
-
-		// First check to see whether this cohort already has a
-		// slot, which will happen if it includes a parameter.
-		for ( auto& id : sf.ids )
-			{
-			if ( interpreter_slots.count(id) > 0 )
-				{
-				ASSERT(cohort_slot < 0);
-				cohort_slot = interpreter_slots[id];
-				}
-			}
-
-		for ( auto& id : sf.ids )
-			{
-			if ( interpreter_locals.count(id) == 0 )
-				continue;
-
-			if ( interpreter_slots.count(id) > 0 )
-				// We already mapped this, presumably because
-				// it's a parameter.
-				continue;
-
-			// Need a slot for this ID.
-			if ( cohort_slot < 0 )
-				// New slot.
-				cohort_slot = next_interp_slot++;
-
-			ASSERT(old_intrp_slot_to_new.count(id->Offset()) == 0);
-			interpreter_slots[id] = cohort_slot;
-			old_intrp_slot_to_new[id->Offset()] = cohort_slot;
-
-			// Make the leap!
-			id->SetOffset(cohort_slot);
-			}
-		}
-
-	// It's conceivable that there are some locals that only live
-	// in interpreter-land, depending on what sort of expressions
-	// we defer to the interpreter.
-	for ( auto& id : interpreter_locals )
-		if ( interpreter_slots.count(id) == 0 )
-			interpreter_slots[id] = next_interp_slot++;
 
 	// Update frame sizes for functions that might have more than
 	// one body.
 	if ( remapped_intrp_frame_sizes.count(func) == 0 ||
 	     remapped_intrp_frame_sizes[func] < next_interp_slot )
 		remapped_intrp_frame_sizes[func] = next_interp_slot;
-
-	// Rewrite references to interpreter slots to reflect remapped
-	// locations.
-
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
-		{
-		auto inst = insts1[i];
-
-		if ( ! inst->live )
-			continue;
-
-		if ( inst->op_type == OP_VV_FRAME )
-			{
-			// All of these use v2 for the intepreter slot.
-			ASSERT(old_intrp_slot_to_new.count(inst->v2) > 0);
-			inst->v2 = old_intrp_slot_to_new[inst->v2];
-			}
-		}
 	}
 
 void ZAM::ReMapVar(ID* id, int slot, int inst)

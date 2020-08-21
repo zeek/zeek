@@ -247,12 +247,7 @@ protected:
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt(const Stmt* s) const;
 
-	void FlushVars(const Expr* e);
-
-	void LoadParam(ID* id)		{ LoadOrStoreLocal(id, true, true); }
-	void StoreLocal(ID* id)		{ LoadOrStoreLocal(id, false, false); }
-	const CompiledStmt LoadOrStoreLocal(ID* id, bool is_load, bool add);
-
+	void LoadParam(ID* id);
 	const CompiledStmt LoadGlobal(ID* id);
 
 	int AddToFrame(ID*);
@@ -372,9 +367,6 @@ protected:
 	// lifetime begins and ends.
 	AssociatedInsts denizen_beginning;
 	AssociatedInsts denizen_ending;
-
-	// Which locals appear in interpreted expressions.
-	std::unordered_set<const ID*> interpreter_locals;
 
 	// In the following, member variables ending in 'I' are intermediary
 	// values that get finalized when constructing the corresponding

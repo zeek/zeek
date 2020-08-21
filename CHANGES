@@ -1,4 +1,8 @@
 
+3.3.0-dev.182 | 2020-08-21 13:46:16 -0700
+
+  * Fix `zeek -NN` not printing canonical names for file analyzers (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.180 | 2020-08-21 13:28:23 -0700
 
   * Remove definition-less ThreadVal<->BrokerData conversion functions (Jon Siwek, Corelight)

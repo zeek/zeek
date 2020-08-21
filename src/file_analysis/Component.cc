@@ -36,7 +36,7 @@ Component::~Component()
 
 void Component::DoDescribe(zeek::ODesc* d) const
 	{
-	if ( factory )
+	if ( factory || factory_func )
 		{
 		d->Add("ANALYZER_");
 		d->Add(CanonicalName());

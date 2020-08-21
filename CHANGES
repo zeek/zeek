@@ -1,3 +1,11 @@
+
+3.3.0-dev.180 | 2020-08-21 13:28:23 -0700
+
+  * Remove definition-less ThreadVal<->BrokerData conversion functions (Jon Siwek, Corelight)
+
+    Their presence/deprecation may cause "undefined reference" build
+    failures for some compilers (GCC 9.3.0 in my case).
+
 3.3.0-dev.177 | 2020-08-21 08:36:48 -0700
 
   * Add missing namespace to usage of get_exe_path in fuzzer (Tim Wojtulewicz, Corelight)

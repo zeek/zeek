@@ -364,15 +364,6 @@ void analyze_scripts()
 
 			f->func->ReplaceBody(f->body, ZAM_body);
 			f->body = ZAM_body;
-#if 0
-			// The following is just for testing to see whether
-			// a recovered .ZAM file can be exactly reproduced.
-			char fn2[8192];
-			snprintf(fn2, sizeof fn2, "%s2", fn);
-			auto save_file2 = fopen(fn2, "w");
-			ZAM_body->SaveTo(save_file2);
-			fclose(save_file2);
-#endif
 			}
 		else
 			{

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "BroList.h"
 
@@ -48,3 +49,7 @@ extern Stmt* stmts;	// global statements
 
 class ZBody;
 extern IntrusivePtr<ZBody> ZAM_body;	// parsed ZAM save file
+
+// Size needed for interpreter frame associated with the given function.
+class Func;
+extern std::unordered_map<const Func*, unsigned int> ZAM_interp_frame;

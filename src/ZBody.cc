@@ -912,7 +912,7 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 	}
 
 
-void ZBody::SaveTo(FILE* f) const
+void ZBody::SaveTo(FILE* f, int interp_frame_size) const
 	{
 	TypeTracker types;
 	ValTracker vals;
@@ -942,7 +942,8 @@ void ZBody::SaveTo(FILE* f) const
 		locs.AddItem(i->loc);
 		}
 
-	fprintf(f, "<ZAM-file> %s %d\n", func_name, ! fixed_frame);
+	fprintf(f, "<ZAM-file> %s %d %d\n",
+		func_name, interp_frame_size, ! fixed_frame);
 
 	if ( frame_size > 0 )
 		{

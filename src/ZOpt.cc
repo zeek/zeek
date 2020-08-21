@@ -8,11 +8,17 @@
 #include "Reduce.h"
 #include "ScriptAnaly.h"
 #include "Reporter.h"
+#include "input.h"
 
 
 // Tracks per function its maximum remapped interpreter frame size.  We
 // can't do this when compiling individual functions since for event handlers
 // and hooks it needs to be computed across all of their bodies.
+//
+// Note, this is now not really needed, because we no longer use any
+// interpreter frame entries other than those for the function's arguments.
+// We keep the code in case that changes, for example when deciding to
+// compile functions that include "when" conditions.
 std::unordered_map<const Func*, int> remapped_intrp_frame_sizes;
 
 void finalize_functions(const std::vector<FuncInfo*>& funcs)
@@ -22,36 +28,36 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 	// to be the maximum needed to accommodate all of its
 	// remapped bodies.
 
-	for ( auto& f : funcs )
-		{
-		auto func = f->func;
-		if ( f->body->Tag() == STMT_COMPILED && f->save_file )
-			{
-			auto sf = fopen(f->save_file, "w");
-			if ( ! sf )
-				reporter->Error("cannot save to file: %s",
-						f->save_file);
-			else
-				{
-				f->body->AsZBody()->SaveTo(sf);
-				fclose(sf);
-				}
-			}
-		}
-
-	if ( remapped_intrp_frame_sizes.size() == 0 )
-		// We didn't do remapping.
-		return;
-
 	// Find any functions with bodies that weren't compiled and
-	// make sure we don't reduce their frame size.
+	// make sure we don't reduce their frame size.  For any loaded
+	// from ZAM save files, use the associated maximum interpreter
+	// frame size as a minimum.
 	for ( auto& f : funcs )
 		{
 		auto func = f->func;
+
+		// First, check for a maximum seen in ZAM save files.
+		if ( f->body->Tag() == STMT_COMPILED &&
+		     ZAM_interp_frame.count(func) > 0 )
+			{
+			int size = ZAM_interp_frame[func];
+
+			// If we haven't done remapping for one of its
+			// function bodies - or if we have but to a smaller
+			// value - then use this value.
+			if ( remapped_intrp_frame_sizes.count(func) == 0 ||
+			     remapped_intrp_frame_sizes[func] < size )
+				remapped_intrp_frame_sizes[func] = size;
+			}
+
+		// If we have non-compiled versions of the function's body,
+		// preserve the size they need.
+		int size = func->FrameSize();
+
 		if ( f->body->Tag() != STMT_COMPILED &&
 		     remapped_intrp_frame_sizes.count(func) > 0 &&
-		     func->FrameSize() > remapped_intrp_frame_sizes[func] )
-			remapped_intrp_frame_sizes[func] = func->FrameSize();
+		     size > remapped_intrp_frame_sizes[func] )
+			remapped_intrp_frame_sizes[func] = size;
 		}
 
 	for ( auto& f : funcs )
@@ -59,15 +65,27 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 		auto func = f->func;
 
 		if ( remapped_intrp_frame_sizes.count(func) == 0 )
-			// We didn't compile this function, presumably
-			// because it contained something like a "when"
-			// statement.
+			// No entry for this function, keep current frame size.
 			continue;
 
 		// Note, functions with multiple bodies appear in "funcs"
 		// multiple times, but the following doesn't hurt to do
 		// more than once.
 		func->SetFrameSize(remapped_intrp_frame_sizes[func]);
+
+		if ( f->body->Tag() == STMT_COMPILED && f->save_file )
+			{
+			auto zb = f->body->AsZBody();
+			auto sf = fopen(f->save_file, "w");
+			if ( ! sf )
+				reporter->Error("cannot save to file: %s",
+						f->save_file);
+			else
+				{
+				zb->SaveTo(sf, func->FrameSize());
+				fclose(sf);
+				}
+			}
 		}
 	}
 

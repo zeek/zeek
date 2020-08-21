@@ -42,7 +42,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	void SaveTo(FILE* f) const;
+	void SaveTo(FILE* f, int interp_frame_size) const;
 
 	void Dump() const;
 

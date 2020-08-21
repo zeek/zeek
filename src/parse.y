@@ -180,6 +180,8 @@ static std::vector<int> ZAM_aux_iter_vec;
 
 IntrusivePtr<ZBody> ZAM_body;
 
+std::unordered_map<const Func*, unsigned int> ZAM_interp_frame;
+
 static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
@@ -1975,7 +1977,7 @@ ZAM_init:
 		}
 	;
 
-ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
+ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT TOK_CONSTANT
 		ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
 		ZAM_auxes ZAM_attrs ZAM_loc_files ZAM_locs ZAM_insts
 			{
@@ -1984,9 +1986,24 @@ ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT
 				if ( ZAM_frame_layout[i].is_managed )
 					managed_slots.push_back(i);
 
+			auto id = lookup_ID($2, GLOBAL_MODULE_NAME).get();
+			auto id_v = id ? id->ID_Val() : nullptr;
+			if ( ! id_v )
+				reporter->InternalError("unknown function %s in ZAM save file", $2);
+
+			if ( id_v->Type()->Tag() != TYPE_FUNC )
+				reporter->InternalError("%s in ZAM save file is not a function", $2);
+
+			auto f = id_v->AsFunc();
+
+			auto frame_size = $3->AsCount();
+			if ( ZAM_interp_frame.count(f) == 0 ||
+			     ZAM_interp_frame[f] < frame_size )
+				ZAM_interp_frame[f] = frame_size;
+
 			ZAM_body = make_intrusive<ZBody>($2, ZAM_frame_layout,
 						managed_slots, ZAM_globals,
-						! $3->AsCount(),
+						! $4->AsCount(),
 						ZAM_int_cases_set,
 						ZAM_uint_cases_set,
 						ZAM_double_cases_set,

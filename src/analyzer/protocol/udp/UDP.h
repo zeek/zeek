@@ -12,34 +12,34 @@ enum UDP_EndpointState {
 	UDP_ACTIVE,	// packets seen
 };
 
-class UDP_Analyzer final : public zeek::analyzer::TransportLayerAnalyzer {
+class UDP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
-	explicit UDP_Analyzer(zeek::Connection* conn);
+	explicit UDP_Analyzer(Connection* conn);
 	~UDP_Analyzer() override;
 
 	void Init() override;
-	void UpdateConnVal(zeek::RecordVal *conn_val) override;
+	void UpdateConnVal(RecordVal *conn_val) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
 
 protected:
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 
 	void ChecksumEvent(bool is_orig, uint32_t threshold);
 
 	// Returns true if the checksum is valid, false if not
-	static bool ValidateChecksum(const zeek::IP_Hdr* ip, const struct udphdr* up,
+	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
 	                             int len);
 
 	bro_int_t request_len, reply_len;
 
 private:
-	void UpdateEndpointVal(zeek::RecordVal* endp, bool is_orig);
+	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
 
 #define HIST_ORIG_DATA_PKT 0x1
 #define HIST_RESP_DATA_PKT 0x2

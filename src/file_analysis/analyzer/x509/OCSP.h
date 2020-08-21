@@ -11,19 +11,19 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
 namespace zeek::file_analysis::detail {
 
-class OCSP : public zeek::file_analysis::detail::X509Common {
+class OCSP : public file_analysis::detail::X509Common {
 public:
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 	bool Undelivered(uint64_t offset, uint64_t len) override;
 	bool EndOfFile() override;
 
-	static zeek::file_analysis::Analyzer* InstantiateRequest(zeek::RecordValPtr args,
-	                                                         zeek::file_analysis::File* file);
-	static zeek::file_analysis::Analyzer* InstantiateReply(zeek::RecordValPtr args,
-	                                                       zeek::file_analysis::File* file);
+	static file_analysis::Analyzer* InstantiateRequest(RecordValPtr args,
+	                                                   file_analysis::File* file);
+	static file_analysis::Analyzer* InstantiateReply(RecordValPtr args,
+	                                                 file_analysis::File* file);
 
 protected:
-	OCSP(zeek::RecordValPtr args, zeek::file_analysis::File* file, bool request);
+	OCSP(RecordValPtr args, file_analysis::File* file, bool request);
 
 private:
 	void ParseResponse(OCSP_RESPONSE*);

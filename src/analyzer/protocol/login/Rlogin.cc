@@ -11,8 +11,8 @@
 
 namespace zeek::analyzer::login {
 
-Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
-	: zeek::analyzer::tcp::ContentLine_Analyzer("CONTENTLINE", conn, orig)
+Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
+	: analyzer::tcp::ContentLine_Analyzer("CONTENTLINE", conn, orig)
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
@@ -30,7 +30,7 @@ Contents_Rlogin_Analyzer::~Contents_Rlogin_Analyzer()
 
 void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 	{
-	auto* tcp = static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
 
 	int endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();
@@ -44,10 +44,10 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 
 		switch ( state ) {
 		case RLOGIN_FIRST_NULL:
-			if ( endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+			if ( endp_state == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
 			     // We can be in closed if the data's due to
 			     // a dataful FIN being the first thing we see.
-			     endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED )
+			     endp_state == analyzer::tcp::TCP_ENDPOINT_CLOSED )
 				{
 				state = RLOGIN_UNKNOWN;
 				++len, --data;	// put back c and reprocess
@@ -89,10 +89,10 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		case RLOGIN_SERVER_ACK:
-			if ( endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+			if ( endp_state == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
 			     // We can be in closed if the data's due to
 			     // a dataful FIN being the first thing we see.
-			     endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED )
+			     endp_state == analyzer::tcp::TCP_ENDPOINT_CLOSED )
 				{
 				state = RLOGIN_UNKNOWN;
 				++len, --data;	// put back c and reprocess
@@ -194,7 +194,7 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			zeek::reporter->AnalyzerError(
+			reporter->AnalyzerError(
 				this, "bad state in Contents_Rlogin_Analyzer::DoDeliver");
 			break;
 		}
@@ -208,7 +208,7 @@ void Contents_Rlogin_Analyzer::BadProlog()
 	}
 
 
-Rlogin_Analyzer::Rlogin_Analyzer(zeek::Connection* conn)
+Rlogin_Analyzer::Rlogin_Analyzer(Connection* conn)
 : Login_Analyzer("RLOGIN", conn)
 	{
 	Contents_Rlogin_Analyzer* orig =
@@ -227,11 +227,11 @@ void Rlogin_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
 		{
-		zeek::reporter->AnalyzerError(this, "multiple rlogin client names");
+		reporter->AnalyzerError(this, "multiple rlogin client names");
 		return;
 		}
 
-	client_name = new zeek::StringVal(s);
+	client_name = new StringVal(s);
 	}
 
 void Rlogin_Analyzer::ServerUserName(const char* s)
@@ -246,7 +246,7 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(s)
+			make_intrusive<StringVal>(s)
 		);
 	}
 

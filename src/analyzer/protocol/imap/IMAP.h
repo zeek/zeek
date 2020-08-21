@@ -10,21 +10,21 @@
 
 namespace zeek::analyzer::imap {
 
-class IMAP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class IMAP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit IMAP_Analyzer(zeek::Connection* conn);
+	explicit IMAP_Analyzer(Connection* conn);
 	~IMAP_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
+	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	void StartTLS();
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new IMAP_Analyzer(conn); }
 
 protected:

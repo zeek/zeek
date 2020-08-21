@@ -76,7 +76,7 @@ ARP_Analyzer::~ARP_Analyzer()
 #endif
 
 
-void ARP_Analyzer::NextPacket(double t, const zeek::Packet* pkt)
+void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	{
 	const u_char *data = pkt->data;
 	// Check whether the packet is OK ("inspired" in tcpdump's print-arp.c).
@@ -180,7 +180,7 @@ void ARP_Analyzer::NextPacket(double t, const zeek::Packet* pkt)
 	}
 	}
 
-void ARP_Analyzer::Describe(zeek::ODesc* d) const
+void ARP_Analyzer::Describe(ODesc* d) const
 	{
 	d->Add("<ARP analyzer>");
 	d->NL();
@@ -191,20 +191,20 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 	if ( ! bad_arp )
 		return;
 
-	zeek::event_mgr.Enqueue(bad_arp,
-	                        ToAddrVal(ar_spa(hdr)),
-	                        ToEthAddrStr((const u_char*) ar_sha(hdr)),
-	                        ToAddrVal(ar_tpa(hdr)),
-	                        ToEthAddrStr((const u_char*) ar_tha(hdr)),
-	                        zeek::make_intrusive<zeek::StringVal>(msg));
+	event_mgr.Enqueue(bad_arp,
+	                  ToAddrVal(ar_spa(hdr)),
+	                  ToEthAddrStr((const u_char*) ar_sha(hdr)),
+	                  ToAddrVal(ar_tpa(hdr)),
+	                  ToEthAddrStr((const u_char*) ar_tha(hdr)),
+	                  make_intrusive<StringVal>(msg));
 	}
 
 void ARP_Analyzer::Corrupted(const char* msg)
 	{
-	zeek::reporter->Weird(msg);
+	reporter->Weird(msg);
 	}
 
-void ARP_Analyzer::RREvent(zeek::EventHandlerPtr e,
+void ARP_Analyzer::RREvent(EventHandlerPtr e,
                            const u_char* src, const u_char *dst,
                            const char* spa, const char* sha,
                            const char* tpa, const char* tha)
@@ -212,7 +212,7 @@ void ARP_Analyzer::RREvent(zeek::EventHandlerPtr e,
 	if ( ! e )
 		return;
 
-	zeek::event_mgr.Enqueue(e,
+	event_mgr.Enqueue(e,
 	                        ToEthAddrStr(src),
 	                        ToEthAddrStr(dst),
 	                        ToAddrVal(spa),
@@ -221,24 +221,24 @@ void ARP_Analyzer::RREvent(zeek::EventHandlerPtr e,
 	                        ToEthAddrStr((const u_char*) tha));
 	}
 
-zeek::AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)
+AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)
 	{ return ToAddrVal(addr).release(); }
 
-zeek::AddrValPtr ARP_Analyzer::ToAddrVal(const void* addr)
+AddrValPtr ARP_Analyzer::ToAddrVal(const void* addr)
 	{
 	// ### For now, we only handle IPv4 addresses.
-	return zeek::make_intrusive<zeek::AddrVal>(*(const uint32_t*) addr);
+	return make_intrusive<AddrVal>(*(const uint32_t*) addr);
 	}
 
-zeek::StringVal* ARP_Analyzer::EthAddrToStr(const u_char* addr)
+StringVal* ARP_Analyzer::EthAddrToStr(const u_char* addr)
 	{ return ToEthAddrStr(addr).release(); }
 
-zeek::StringValPtr ARP_Analyzer::ToEthAddrStr(const u_char* addr)
+StringValPtr ARP_Analyzer::ToEthAddrStr(const u_char* addr)
 	{
 	char buf[1024];
 	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
 			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-	return zeek::make_intrusive<zeek::StringVal>(buf);
+	return make_intrusive<StringVal>(buf);
 	}
 
 } // namespace zeek::analyzer::arp

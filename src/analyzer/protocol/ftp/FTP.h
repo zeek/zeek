@@ -8,21 +8,21 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(NVT_Analyzer, zeek, analyzer::login);
 
 namespace zeek::analyzer::ftp {
 
-class FTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class FTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit FTP_Analyzer(zeek::Connection* conn);
+	explicit FTP_Analyzer(Connection* conn);
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new FTP_Analyzer(conn);
 		}
 
 protected:
-	zeek::analyzer::login::NVT_Analyzer* nvt_orig;
-	zeek::analyzer::login::NVT_Analyzer* nvt_resp;
+	analyzer::login::NVT_Analyzer* nvt_orig;
+	analyzer::login::NVT_Analyzer* nvt_resp;
 	uint32_t pending_reply;	// code associated with multi-line reply, or 0
 	std::string auth_requested;	// AUTH method requested
 };
@@ -34,9 +34,9 @@ protected:
  * analyzer just decodes the tokens and passes them on to the parent, which must
  * be an SSL analyzer instance.
  */
-class FTP_ADAT_Analyzer final : public zeek::analyzer::SupportAnalyzer {
+class FTP_ADAT_Analyzer final : public analyzer::SupportAnalyzer {
 public:
-	FTP_ADAT_Analyzer(zeek::Connection* conn, bool arg_orig)
+	FTP_ADAT_Analyzer(Connection* conn, bool arg_orig)
 	    : SupportAnalyzer("FTP_ADAT", conn, arg_orig),
 	      first_token(true) { }
 

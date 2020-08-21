@@ -7,10 +7,10 @@
 
 namespace zeek::analyzer::rdp {
 
-class RDP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class RDP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit RDP_Analyzer(zeek::Connection* conn);
+	explicit RDP_Analyzer(Connection* conn);
 	~RDP_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -19,14 +19,14 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new RDP_Analyzer(conn); }
 
 protected:
 	binpac::RDP::RDP_Conn* interp;
 
 	bool had_gap;
-	zeek::analyzer::pia::PIA_TCP *pia;
+	analyzer::pia::PIA_TCP *pia;
 };
 
 } // namespace zeek::analyzer::rdp

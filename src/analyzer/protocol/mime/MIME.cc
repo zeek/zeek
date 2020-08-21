@@ -21,7 +21,7 @@
 
 namespace zeek::analyzer::mime {
 
-static const zeek::data_chunk_t null_data_chunk = { 0, nullptr };
+static const data_chunk_t null_data_chunk = { 0, nullptr };
 
 int mime_header_only = 0;
 int mime_decode_data = 1;
@@ -98,7 +98,7 @@ static const char* MIMEContentEncodingName[] = {
 	nullptr,
 };
 
-bool is_null_data_chunk(zeek::data_chunk_t b)
+bool is_null_data_chunk(data_chunk_t b)
 	{
 	return b.data == nullptr;
 	}
@@ -108,39 +108,39 @@ bool is_lws(char ch)
 	return ch == 9 || ch == 32;
 	}
 
-zeek::StringVal* new_string_val(int length, const char* data)
+StringVal* new_string_val(int length, const char* data)
 	{ return to_string_val(length, data).release(); }
 
-zeek::StringVal* new_string_val(const char* data, const char* end_of_data)
+StringVal* new_string_val(const char* data, const char* end_of_data)
 	{ return to_string_val(data, end_of_data).release(); }
 
-zeek::StringVal* new_string_val(const zeek::data_chunk_t buf)
+StringVal* new_string_val(const data_chunk_t buf)
 	{ return to_string_val(buf).release(); }
 
-zeek::StringValPtr to_string_val(int length, const char* data)
+StringValPtr to_string_val(int length, const char* data)
 	{
-	return zeek::make_intrusive<zeek::StringVal>(length, data);
+	return make_intrusive<StringVal>(length, data);
 	}
 
-zeek::StringValPtr to_string_val(const char* data, const char* end_of_data)
+StringValPtr to_string_val(const char* data, const char* end_of_data)
 	{
-	return zeek::make_intrusive<zeek::StringVal>(end_of_data - data, data);
+	return make_intrusive<StringVal>(end_of_data - data, data);
 	}
 
-zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf)
+StringValPtr to_string_val(const data_chunk_t buf)
 	{
 	return to_string_val(buf.length, buf.data);
 	}
 
-static zeek::data_chunk_t get_data_chunk(zeek::String* s)
+static data_chunk_t get_data_chunk(String* s)
 	{
-	zeek::data_chunk_t b;
+	data_chunk_t b;
 	b.length = s->Len();
 	b.data = (const char*) s->Bytes();
 	return b;
 	}
 
-int fputs(zeek::data_chunk_t b, FILE* fp)
+int fputs(data_chunk_t b, FILE* fp)
 	{
 	for ( int i = 0; i < b.length; ++i )
 		if ( fputc(b.data[i], fp) == EOF )
@@ -150,12 +150,12 @@ int fputs(zeek::data_chunk_t b, FILE* fp)
 
 void MIME_Mail::Undelivered(int len)
 	{
-	cur_entity_id = zeek::file_mgr->Gap(cur_entity_len, len,
+	cur_entity_id = file_mgr->Gap(cur_entity_len, len,
 	                                    analyzer->GetAnalyzerTag(), analyzer->Conn(),
 	                                    is_orig, cur_entity_id);
 	}
 
-bool istrequal(zeek::data_chunk_t s, const char* t)
+bool istrequal(data_chunk_t s, const char* t)
 	{
 	int len = strlen(t);
 
@@ -233,7 +233,7 @@ int MIME_skip_lws_comments(int len, const char* data)
 	return len;
 	}
 
-int MIME_get_field_name(int len, const char* data, zeek::data_chunk_t* name)
+int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
 	{
 	int i = MIME_skip_lws_comments(len, data);
 	while ( i < len )
@@ -281,7 +281,7 @@ static bool MIME_is_token_char (char ch, bool is_boundary = false)
 
 // See RFC 2045, page 12.
 // A token is composed of characters that are not SPACE, CTLs or tspecials
-int MIME_get_token(int len, const char* data, zeek::data_chunk_t* token,
+int MIME_get_token(int len, const char* data, data_chunk_t* token,
                    bool is_boundary)
 	{
 	int i = 0;
@@ -313,7 +313,7 @@ int MIME_get_token(int len, const char* data, zeek::data_chunk_t* token,
 	return -1;
 	}
 
-int MIME_get_slash_token_pair(int len, const char* data, zeek::data_chunk_t* first, zeek::data_chunk_t* second)
+int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second)
 	{
 	int offset;
 	const char* data_start = data;
@@ -353,7 +353,7 @@ int MIME_get_slash_token_pair(int len, const char* data, zeek::data_chunk_t* fir
 	}
 
 // See RFC 2822, page 13.
-int MIME_get_quoted_string(int len, const char* data, zeek::data_chunk_t* str)
+int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
 	{
 	int offset = MIME_skip_lws_comments(len, data);
 
@@ -380,7 +380,7 @@ int MIME_get_quoted_string(int len, const char* data, zeek::data_chunk_t* str)
 	return -1;
 	}
 
-int MIME_get_value(int len, const char* data, zeek::String*& buf, bool is_boundary)
+int MIME_get_value(int len, const char* data, String*& buf, bool is_boundary)
 	{
 	int offset = 0;
 
@@ -392,7 +392,7 @@ int MIME_get_value(int len, const char* data, zeek::String*& buf, bool is_bounda
 
 	if ( len > 0 && *data == '"' )
 		{
-		zeek::data_chunk_t str;
+		data_chunk_t str;
 		int end = MIME_get_quoted_string(len, data, &str);
 		if ( end < 0 )
 			return -1;
@@ -403,12 +403,12 @@ int MIME_get_value(int len, const char* data, zeek::String*& buf, bool is_bounda
 
 	else
 		{
-		zeek::data_chunk_t str;
+		data_chunk_t str;
 		int end = MIME_get_token(len, data, &str, is_boundary);
 		if ( end < 0 )
 			return -1;
 
-		buf = new zeek::String((const u_char*)str.data, str.length, true);
+		buf = new String((const u_char*)str.data, str.length, true);
 		return offset + end;
 		}
 	}
@@ -416,7 +416,7 @@ int MIME_get_value(int len, const char* data, zeek::String*& buf, bool is_bounda
 // Decode each quoted-pair: a '\' followed by a character by the
 // quoted character. The decoded string is returned.
 
-zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
+String* MIME_decode_quoted_pairs(data_chunk_t buf)
 	{
 	const char* data = buf.data;
 	char* dest = new char[buf.length+1];
@@ -436,7 +436,7 @@ zeek::String* MIME_decode_quoted_pairs(zeek::data_chunk_t buf)
 			dest[j++] = data[i];
 	dest[j] = 0;
 
-	return new zeek::String(true, (zeek::byte_vec) dest, j);
+	return new String(true, (byte_vec) dest, j);
 	}
 
 MIME_Multiline::MIME_Multiline()
@@ -452,10 +452,10 @@ MIME_Multiline::~MIME_Multiline()
 
 void MIME_Multiline::append(int len, const char* data)
 	{
-	buffer.push_back(new zeek::String((const u_char*) data, len, true));
+	buffer.push_back(new String((const u_char*) data, len, true));
 	}
 
-zeek::String* MIME_Multiline::get_concatenated_line()
+String* MIME_Multiline::get_concatenated_line()
 	{
 	if ( buffer.empty() )
 		return nullptr;
@@ -472,7 +472,7 @@ MIME_Header::MIME_Header(MIME_Multiline* hl)
 	lines = hl;
 	name = value = value_token = rest_value = null_data_chunk;
 
-	zeek::String* s = hl->get_concatenated_line();
+	String* s = hl->get_concatenated_line();
 	int len = s->Len();
 	const char* data = (const char*) s->Bytes();
 
@@ -518,7 +518,7 @@ int MIME_Header::get_first_token()
 		}
 	}
 
-zeek::data_chunk_t MIME_Header::get_value_token()
+data_chunk_t MIME_Header::get_value_token()
 	{
 	if ( ! is_null_data_chunk(value_token) )
 		return value_token;
@@ -526,7 +526,7 @@ zeek::data_chunk_t MIME_Header::get_value_token()
 	return value_token;
 	}
 
-zeek::data_chunk_t MIME_Header::get_value_after_token()
+data_chunk_t MIME_Header::get_value_after_token()
 	{
 	if ( ! is_null_data_chunk(rest_value) )
 		return rest_value;
@@ -555,8 +555,8 @@ void MIME_Entity::init()
 
 	need_to_parse_parameters = 0;
 
-	content_type_str = zeek::make_intrusive<zeek::StringVal>("TEXT");
-	content_subtype_str = zeek::make_intrusive<zeek::StringVal>("PLAIN");
+	content_type_str = make_intrusive<StringVal>("TEXT");
+	content_subtype_str = make_intrusive<StringVal>("PLAIN");
 
 	content_encoding_str = nullptr;
 	multipart_boundary = nullptr;
@@ -581,7 +581,7 @@ void MIME_Entity::init()
 MIME_Entity::~MIME_Entity()
 	{
 	if ( ! end_of_data )
-		zeek::reporter->AnalyzerError(message ? message->GetAnalyzer() : nullptr,
+		reporter->AnalyzerError(message ? message->GetAnalyzer() : nullptr,
 		                              "missing MIME_Entity::EndOfData() before ~MIME_Entity");
 
 	delete current_header_line;
@@ -759,7 +759,7 @@ void MIME_Entity::FinishHeader()
 		delete h;
 	}
 
-int MIME_Entity::LookupMIMEHeaderName(zeek::data_chunk_t name)
+int MIME_Entity::LookupMIMEHeaderName(data_chunk_t name)
 	{
 	// A linear lookup should be fine for now.
 	// header names are case-insensitive (RFC 822, 2822, 2045).
@@ -790,11 +790,11 @@ void MIME_Entity::ParseMIMEHeader(MIME_Header* h)
 
 bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	{
-	zeek::data_chunk_t val = h->get_value();
+	data_chunk_t val = h->get_value();
 	int len = val.length;
 	const char* data = val.data;
 
-	zeek::data_chunk_t ty, subty;
+	data_chunk_t ty, subty;
 	int offset;
 
 	offset = MIME_get_slash_token_pair(len, data, &ty, &subty);
@@ -806,9 +806,9 @@ bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	data += offset;
 	len -= offset;
 
-	content_type_str = zeek::make_intrusive<zeek::StringVal>(ty.length, ty.data);
+	content_type_str = make_intrusive<StringVal>(ty.length, ty.data);
 	content_type_str->ToUpper();
-	content_subtype_str = zeek::make_intrusive<zeek::StringVal>(subty.length, subty.data);
+	content_subtype_str = make_intrusive<StringVal>(subty.length, subty.data);
 	content_subtype_str->ToUpper();
 
 	ParseContentType(ty, subty);
@@ -829,7 +829,7 @@ bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 
 bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 	{
-	zeek::data_chunk_t enc;
+	data_chunk_t enc;
 
 	enc = h->get_value_token();
 	if ( is_null_data_chunk(enc) )
@@ -839,12 +839,12 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 		}
 
 	delete content_encoding_str;
-	content_encoding_str = new zeek::String((const u_char*)enc.data, enc.length, true);
+	content_encoding_str = new String((const u_char*)enc.data, enc.length, true);
 	ParseContentEncoding(enc);
 
 	if ( need_to_parse_parameters )
 		{
-		zeek::data_chunk_t val = h->get_value_after_token();
+		data_chunk_t val = h->get_value_after_token();
 		if ( ! is_null_data_chunk(val) )
 			ParseFieldParameters(val.length, val.data);
 		}
@@ -854,7 +854,7 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 
 bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 	{
-	zeek::data_chunk_t attr;
+	data_chunk_t attr;
 
 	while ( true )
 		{
@@ -887,7 +887,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 		data += offset;
 		len -= offset;
 
-		zeek::String* val = nullptr;
+		String* val = nullptr;
 
 		if ( current_field_type == MIME_CONTENT_TYPE &&
 		     content_type == CONTENT_TYPE_MULTIPART &&
@@ -903,9 +903,9 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 				continue;
 				}
 
-			zeek::data_chunk_t vd = get_data_chunk(val);
+			data_chunk_t vd = get_data_chunk(val);
 			delete multipart_boundary;
-			multipart_boundary = new zeek::String((const u_char*)vd.data,
+			multipart_boundary = new String((const u_char*)vd.data,
 			                                   vd.length, true);
 			}
 		else
@@ -927,7 +927,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 	return true;
 	}
 
-void MIME_Entity::ParseContentType(zeek::data_chunk_t type, zeek::data_chunk_t sub_type)
+void MIME_Entity::ParseContentType(data_chunk_t type, data_chunk_t sub_type)
 	{
 	int i;
 	for ( i = 0; MIMEContentTypeName[i]; ++i )
@@ -954,7 +954,7 @@ void MIME_Entity::ParseContentType(zeek::data_chunk_t type, zeek::data_chunk_t s
 	}
 	}
 
-void MIME_Entity::ParseContentEncoding(zeek::data_chunk_t encoding_mechanism)
+void MIME_Entity::ParseContentEncoding(data_chunk_t encoding_mechanism)
 	{
 	int i;
 	for ( i = 0; MIMEContentEncodingName[i]; ++i )
@@ -968,7 +968,7 @@ int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 	{
 	if ( ! multipart_boundary )
 		{
-		zeek::reporter->Warning("boundary delimiter was not specified for a multipart message\n");
+		reporter->Warning("boundary delimiter was not specified for a multipart message\n");
 		DEBUG_MSG("headers of the MIME entity for debug:\n");
 		DebugPrintHeaders();
 		return NOT_MULTIPART_BOUNDARY;
@@ -978,7 +978,7 @@ int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 		{
 		len -= 2; data += 2;
 
-		zeek::data_chunk_t delim = get_data_chunk(multipart_boundary);
+		data_chunk_t delim = get_data_chunk(multipart_boundary);
 
 		int i;
 		for ( i = 0; i < len && i < delim.length; ++i )
@@ -1083,8 +1083,8 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 				if ( i + 2 < len )
 					{
 					int a, b;
-					a = zeek::util::decode_hex(data[i+1]);
-					b = zeek::util::decode_hex(data[i+2]);
+					a = util::decode_hex(data[i+1]);
+					b = util::decode_hex(data[i+2]);
 
 					if ( a >= 0 && b >= 0 )
 						{
@@ -1114,7 +1114,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 
 		else
 			{
-			IllegalEncoding(zeek::util::fmt("control characters in quoted-printable encoding: %d", (int) (data[i])));
+			IllegalEncoding(util::fmt("control characters in quoted-printable encoding: %d", (int) (data[i])));
 			DataOctet(data[i]);
 			}
 		}
@@ -1145,15 +1145,15 @@ void MIME_Entity::StartDecodeBase64()
 	{
 	if ( base64_decoder )
 		{
-		zeek::reporter->InternalWarning("previous MIME Base64 decoder not released");
+		reporter->InternalWarning("previous MIME Base64 decoder not released");
 		delete base64_decoder;
 		}
 
-	zeek::analyzer::Analyzer* analyzer = message->GetAnalyzer();
+	analyzer::Analyzer* analyzer = message->GetAnalyzer();
 
 	if ( ! analyzer )
 		{
-		zeek::reporter->InternalWarning("no analyzer associated with MIME message");
+		reporter->InternalWarning("no analyzer associated with MIME message");
 		return;
 		}
 
@@ -1184,7 +1184,7 @@ bool MIME_Entity::GetDataBuffer()
 	int ret = message->RequestBuffer(&data_buf_length, &data_buf_data);
 	if ( ! ret || data_buf_length == 0 || data_buf_data == nullptr )
 		{
-		// zeek::reporter->InternalError("cannot get data buffer from MIME_Message", "");
+		// reporter->InternalError("cannot get data buffer from MIME_Message", "");
 		return false;
 		}
 
@@ -1291,13 +1291,13 @@ void MIME_Entity::DebugPrintHeaders()
 #endif
 	}
 
-zeek::RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
+RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 	{ return ToHeaderVal(h).release(); }
 
-zeek::RecordValPtr MIME_Message::ToHeaderVal(MIME_Header* h)
+RecordValPtr MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
-	static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
-	auto header_record = zeek::make_intrusive<zeek::RecordVal>(mime_header_rec);
+	static auto mime_header_rec = id::find_type<RecordType>("mime_header_rec");
+	auto header_record = make_intrusive<RecordVal>(mime_header_rec);
 	header_record->Assign(0, to_string_val(h->get_name()));
 	auto upper_hn = to_string_val(h->get_name());
 	upper_hn->ToUpper();
@@ -1306,17 +1306,17 @@ zeek::RecordValPtr MIME_Message::ToHeaderVal(MIME_Header* h)
 	return header_record;
 	}
 
-zeek::TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
+TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	{ return ToHeaderTable(hlist).release(); }
 
-zeek::TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
+TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
-	static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
-	auto t = zeek::make_intrusive<zeek::TableVal>(mime_header_list);
+	static auto mime_header_list = id::find_type<TableType>("mime_header_list");
+	auto t = make_intrusive<TableVal>(mime_header_list);
 
 	for ( size_t i = 0; i < hlist.size(); ++i )
 		{
-		auto index = zeek::val_mgr->Count(i + 1);	// index starting from 1
+		auto index = val_mgr->Count(i + 1);	// index starting from 1
 		MIME_Header* h = hlist[i];
 		t->Assign(std::move(index), ToHeaderVal(h));
 		}
@@ -1324,7 +1324,7 @@ zeek::TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	return t;
 	}
 
-MIME_Mail::MIME_Mail(zeek::analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
+MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 : MIME_Message(mail_analyzer), md5_hash()
 	{
 	analyzer = mail_analyzer;
@@ -1345,12 +1345,12 @@ MIME_Mail::MIME_Mail(zeek::analyzer::Analyzer* mail_analyzer, bool orig, int buf
 		length = max_chunk_length;
 
 	buffer_start = data_start = 0;
-	data_buffer = new zeek::String(true, new u_char[length+1], length);
+	data_buffer = new String(true, new u_char[length+1], length);
 
 	if ( mime_content_hash )
 		{
 		compute_content_hash = 1;
-		md5_hash = zeek::detail::hash_init(zeek::detail::Hash_MD5);
+		md5_hash = zeek::detail::hash_init(detail::Hash_MD5);
 		}
 	else
 		compute_content_hash = 0;
@@ -1375,14 +1375,14 @@ void MIME_Mail::Done()
 
 		analyzer->EnqueueConnEvent(mime_content_hash,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(content_hash_length),
-			zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, digest, 16))
+			val_mgr->Count(content_hash_length),
+			make_intrusive<StringVal>(new String(true, digest, 16))
 		);
 		}
 
 	MIME_Message::Done();
 
-	zeek::file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1411,12 +1411,12 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 	{
 	if ( mime_entity_data )
 		{
-		zeek::String* s = concatenate(entity_content);
+		String* s = concatenate(entity_content);
 
 		analyzer->EnqueueConnEvent(mime_entity_data,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(s->Len()),
-			zeek::make_intrusive<zeek::StringVal>(s)
+			val_mgr->Count(s->Len()),
+			make_intrusive<StringVal>(s)
 		);
 
 		if ( ! mime_all_data )
@@ -1428,7 +1428,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 	if ( mime_end_entity )
 		analyzer->EnqueueConnEvent(mime_end_entity, analyzer->ConnVal());
 
-	zeek::file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
 	}
 
@@ -1454,7 +1454,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (char*) data_buffer->Bytes() + buffer_start )
 		{
-		zeek::reporter->AnalyzerError(GetAnalyzer(),
+		reporter->AnalyzerError(GetAnalyzer(),
 		                              "MIME buffer misalignment");
 		return;
 		}
@@ -1467,7 +1467,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 	if ( mime_entity_data || mime_all_data )
 		{
-		zeek::String* s = new zeek::String((const u_char*) buf, len, false);
+		String* s = new String((const u_char*) buf, len, false);
 
 		if ( mime_entity_data )
 			entity_content.push_back(s);
@@ -1482,12 +1482,12 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 		analyzer->EnqueueConnEvent(mime_segment_data,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(data_len),
-			zeek::make_intrusive<zeek::StringVal>(data_len, data)
+			val_mgr->Count(data_len),
+			make_intrusive<StringVal>(data_len, data)
 		);
 		}
 
-	cur_entity_id = zeek::file_mgr->DataIn(
+	cur_entity_id = file_mgr->DataIn(
 		reinterpret_cast<const u_char*>(buf), len,
 		analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
 		cur_entity_id);
@@ -1525,13 +1525,13 @@ void MIME_Mail::SubmitAllData()
 	{
 	if ( mime_all_data )
 		{
-		zeek::String* s = concatenate(all_content);
+		String* s = concatenate(all_content);
 		delete_strings(all_content);
 
 		analyzer->EnqueueConnEvent(mime_all_data,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(s->Len()),
-			zeek::make_intrusive<zeek::StringVal>(s)
+			val_mgr->Count(s->Len()),
+			make_intrusive<StringVal>(s)
 		);
 		}
 	}
@@ -1550,7 +1550,7 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 			break;
 
 		default:
-			zeek::reporter->AnalyzerError(GetAnalyzer(),
+			reporter->AnalyzerError(GetAnalyzer(),
 			                              "unrecognized MIME_Mail event");
 			return;
 	}
@@ -1558,8 +1558,8 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 	if ( mime_event )
 		analyzer->EnqueueConnEvent(mime_event,
 			analyzer->ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(category),
-			zeek::make_intrusive<zeek::StringVal>(detail)
+			make_intrusive<StringVal>(category),
+			make_intrusive<StringVal>(detail)
 		);
 	}
 

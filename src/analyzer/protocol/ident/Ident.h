@@ -7,14 +7,14 @@
 
 namespace zeek::analyzer::ident {
 
-class Ident_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class Ident_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit Ident_Analyzer(zeek::Connection* conn);
+	explicit Ident_Analyzer(Connection* conn);
 	void Done() override;
 
 	void DeliverStream(int length, const u_char* data, bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Ident_Analyzer(conn); }
 
 protected:
@@ -26,8 +26,8 @@ protected:
 	void BadRequest(int length, const char* line);
 	void BadReply(int length, const char* line);
 
-	zeek::analyzer::tcp::ContentLine_Analyzer* orig_ident;
-	zeek::analyzer::tcp::ContentLine_Analyzer* resp_ident;
+	analyzer::tcp::ContentLine_Analyzer* orig_ident;
+	analyzer::tcp::ContentLine_Analyzer* resp_ident;
 
 	bool did_deliver;
 	bool did_bad_reply;

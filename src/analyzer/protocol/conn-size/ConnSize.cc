@@ -13,7 +13,7 @@
 
 namespace zeek::analyzer::conn_size {
 
-ConnSize_Analyzer::ConnSize_Analyzer(zeek::Connection* c)
+ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
     : Analyzer("CONNSIZE", c),
       orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
       orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh(), duration_thresh()
@@ -46,15 +46,15 @@ void ConnSize_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void ConnSize_Analyzer::ThresholdEvent(zeek::EventHandlerPtr f, uint64_t threshold, bool is_orig)
+void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig)
 	{
 	if ( ! f )
 		return;
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		zeek::val_mgr->Count(threshold),
-		zeek::val_mgr->Bool(is_orig)
+		val_mgr->Count(threshold),
+		val_mgr->Bool(is_orig)
 	);
 	}
 
@@ -91,19 +91,19 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 
 	if ( duration_thresh != 0 )
 		{
-		if ( ( zeek::run_state::network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
+		if ( ( run_state::network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
 					ConnVal(),
-					zeek::make_intrusive<zeek::IntervalVal>(duration_thresh),
-					zeek::val_mgr->Bool(is_orig)
+					make_intrusive<IntervalVal>(duration_thresh),
+					val_mgr->Bool(is_orig)
 			);
 			duration_thresh = 0;
 			}
 		}
 	}
 
-void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
@@ -168,26 +168,26 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 	CheckThresholds(true);
 	}
 
-void ConnSize_Analyzer::UpdateConnVal(zeek::RecordVal *conn_val)
+void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
-	zeek::RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
-	zeek::RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
+	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
+	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
 
 	// endpoint is the RecordType from NetVar.h
-	int pktidx = zeek::id::endpoint->FieldOffset("num_pkts");
-	int bytesidx = zeek::id::endpoint->FieldOffset("num_bytes_ip");
+	int pktidx = id::endpoint->FieldOffset("num_pkts");
+	int bytesidx = id::endpoint->FieldOffset("num_bytes_ip");
 
 	if ( pktidx < 0 )
-		zeek::reporter->InternalError("'endpoint' record missing 'num_pkts' field");
+		reporter->InternalError("'endpoint' record missing 'num_pkts' field");
 
 	if ( bytesidx < 0 )
-		zeek::reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
+		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
-	orig_endp->Assign(pktidx, zeek::val_mgr->Count(orig_pkts));
-	orig_endp->Assign(bytesidx, zeek::val_mgr->Count(orig_bytes));
-	resp_endp->Assign(pktidx, zeek::val_mgr->Count(resp_pkts));
-	resp_endp->Assign(bytesidx, zeek::val_mgr->Count(resp_bytes));
+	orig_endp->Assign(pktidx, val_mgr->Count(orig_pkts));
+	orig_endp->Assign(bytesidx, val_mgr->Count(orig_bytes));
+	resp_endp->Assign(pktidx, val_mgr->Count(resp_pkts));
+	resp_endp->Assign(bytesidx, val_mgr->Count(resp_bytes));
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

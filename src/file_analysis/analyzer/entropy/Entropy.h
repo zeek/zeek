@@ -16,7 +16,7 @@ namespace zeek::file_analysis::detail {
 /**
  * An analyzer to produce entropy of file contents.
  */
-class Entropy : public zeek::file_analysis::Analyzer {
+class Entropy : public file_analysis::Analyzer {
 public:
 
 	/**
@@ -31,8 +31,8 @@ public:
 	 * @return the new Entropy analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                                  zeek::file_analysis::File* file);
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	                                            file_analysis::File* file);
 
 	/**
 	 * Calculate entropy of next chunk of file contents.
@@ -66,7 +66,7 @@ protected:
 	 * @param hv specific hash calculator object.
 	 * @param kind human readable name of the hash algorithm to use.
 	 */
-	Entropy(zeek::RecordValPtr args, zeek::file_analysis::File* file);
+	Entropy(RecordValPtr args, file_analysis::File* file);
 
 	/**
 	 * If some file contents have been seen, finalizes the entropy of them and
@@ -75,7 +75,7 @@ protected:
 	void Finalize();
 
 private:
-	zeek::EntropyVal* entropy;
+	EntropyVal* entropy;
 	bool fed;
 };
 

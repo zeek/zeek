@@ -16,22 +16,22 @@
 
 namespace zeek::file_analysis::detail {
 
-X509Common::X509Common(const zeek::file_analysis::Tag& arg_tag,
-                       zeek::RecordValPtr arg_args,
-                       zeek::file_analysis::File* arg_file)
-	: zeek::file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
+X509Common::X509Common(const file_analysis::Tag& arg_tag,
+                       RecordValPtr arg_args,
+                       file_analysis::File* arg_file)
+	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{
 	}
 
-static void EmitWeird(const char* name, zeek::file_analysis::File* file, const char* addl = "")
+static void EmitWeird(const char* name, file_analysis::File* file, const char* addl = "")
 	{
 	if ( file )
-		zeek::reporter->Weird(file, name, addl);
+		reporter->Weird(file, name, addl);
 	else
-		zeek::reporter->Weird(name);
+		reporter->Weird(name);
 	}
 
-double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, zeek::file_analysis::File* f, zeek::Reporter* reporter)
+double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* f, Reporter* reporter)
 	{
 	time_t lResult = 0;
 
@@ -206,7 +206,7 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
 	ASN1_OCTET_STRING* inner = d2i_ASN1_OCTET_STRING(NULL, (const unsigned char**) &ext_val_copy, ext_val->length);
 	if ( !inner )
 		{
-		zeek::reporter->Error("X509::ParseSignedCertificateTimestamps could not parse inner octet string");
+		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse inner octet string");
 		return;
 		}
 
@@ -220,7 +220,7 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
 	catch( const binpac::Exception& e )
 		{
 		// throw a warning or sth
-		zeek::reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
+		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
 		}
 
 	ASN1_OCTET_STRING_free(inner);
@@ -232,7 +232,7 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
 	delete conn;
 	}
 
-void X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr& h, bool global)
+void X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global)
 	{
 	char name[256];
 	char oid[256];
@@ -269,16 +269,16 @@ void X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr&
 		}
 
 	if ( ! ext_val )
-		ext_val = zeek::make_intrusive<zeek::StringVal>(0, "");
+		ext_val = make_intrusive<StringVal>(0, "");
 
-	auto pX509Ext = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, zeek::make_intrusive<zeek::StringVal>(name));
+	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
+	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, zeek::make_intrusive<zeek::StringVal>(short_name));
+		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
 
-	pX509Ext->Assign(2, zeek::make_intrusive<zeek::StringVal>(oid));
-	pX509Ext->Assign(3, zeek::val_mgr->Bool(critical));
+	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
+	pX509Ext->Assign(3, val_mgr->Bool(critical));
 	pX509Ext->Assign(4, ext_val);
 
 	// send off generic extension event
@@ -289,17 +289,17 @@ void X509Common::ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr&
 	// but I am not sure if there is a better way to do it...
 
 	if ( h == ocsp_extension )
-		zeek::event_mgr.Enqueue(h, GetFile()->ToVal(),
-		                        std::move(pX509Ext),
-		                        zeek::val_mgr->Bool(global));
+		event_mgr.Enqueue(h, GetFile()->ToVal(),
+		                  std::move(pX509Ext),
+		                  val_mgr->Bool(global));
 	else
-		zeek::event_mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
+		event_mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-zeek::StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, zeek::file_analysis::File* f)
+StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, file_analysis::File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -317,7 +317,7 @@ zeek::StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, zeek::file_analysis
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return zeek::val_mgr->EmptyString();
+		return val_mgr->EmptyString();
 		}
 
 	char* buffer = (char*) malloc(length);
@@ -326,13 +326,13 @@ zeek::StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, zeek::file_analysis
 		{
 		// Just emit an error here and try to continue instead of aborting
 		// because it's unclear the length value is very reliable.
-		zeek::reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
+		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
 		BIO_free_all(bio);
 		return nullptr;
 		}
 
 	BIO_read(bio, (void*) buffer, length);
-	auto ext_val = zeek::make_intrusive<zeek::StringVal>(length, buffer);
+	auto ext_val = make_intrusive<StringVal>(length, buffer);
 
 	free(buffer);
 	BIO_free_all(bio);

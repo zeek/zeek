@@ -38,7 +38,7 @@ unsigned int TCPStateStats::NumStatePartial() const
 	return sum;
 	}
 
-void TCPStateStats::PrintStats(zeek::File* file, const char* prefix)
+void TCPStateStats::PrintStats(File* file, const char* prefix)
 	{
 	file->Write(prefix);
 	file->Write("        Inact.  Syn.    SA      Part.   Est.    Fin.    Rst.\n");

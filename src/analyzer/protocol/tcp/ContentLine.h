@@ -14,7 +14,7 @@ constexpr auto DEFAULT_MAX_LINE_LENGTH = 16 * 1024 * 1024 - 100;
 
 class ContentLine_Analyzer : public TCP_SupportAnalyzer {
 public:
-	ContentLine_Analyzer(zeek::Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
+	ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 	~ContentLine_Analyzer() override;
 
 	void SupressWeirds(bool enable)
@@ -62,7 +62,7 @@ public:
 		{ return seq + length <= seq_to_skip; }
 
 protected:
-	ContentLine_Analyzer(const char* name, zeek::Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
+	ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 
 	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;

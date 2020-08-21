@@ -36,15 +36,15 @@ public:
 
 } // namespace detail
 
-class Gnutella_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class Gnutella_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit Gnutella_Analyzer(zeek::Connection* conn);
+	explicit Gnutella_Analyzer(Connection* conn);
 	~Gnutella_Analyzer() override;
 
 	void Done () override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Gnutella_Analyzer(conn); }
 
 private:

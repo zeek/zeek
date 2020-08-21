@@ -19,9 +19,9 @@ enum login_state {
 // Maximum # lines look after login for failure.
 #define MAX_LOGIN_LOOKAHEAD 10
 
-class Login_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class Login_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	Login_Analyzer(const char* name, zeek::Connection* conn);
+	Login_Analyzer(const char* name, Connection* conn);
 	~Login_Analyzer() override;
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
@@ -37,9 +37,9 @@ protected:
 	void NewLine(bool orig, char* line);
 	void AuthenticationDialog(bool orig, char* line);
 
-	void LoginEvent(zeek::EventHandlerPtr f, const char* line, bool no_user_okay=false);
+	void LoginEvent(EventHandlerPtr f, const char* line, bool no_user_okay=false);
 	const char* GetUsername(const char* line) const;
-	void LineEvent(zeek::EventHandlerPtr f, const char* line);
+	void LineEvent(EventHandlerPtr f, const char* line);
 	void Confused(const char* msg, const char* addl);
 	void ConfusionText(const char* line);
 
@@ -55,7 +55,7 @@ protected:
 	void AddUserText(const char* line);	// complains on overflow
 	char* PeekUserText();	// internal warning on underflow
 	char* PopUserText();		// internal warning on underflow
-	zeek::Val* PopUserTextVal();
+	Val* PopUserTextVal();
 
 	bool MatchesTypeahead(const char* line) const;
 	bool HaveTypeahead() const	{ return num_user_text > 0; }
@@ -68,8 +68,8 @@ protected:
 	int user_text_first, user_text_last;	// indices into user_text
 	int num_user_text;	// number of entries in user_text
 
-	zeek::Val* username;	// last username reported
-	zeek::Val* client_name;	// rlogin client name (or nil if none)
+	Val* username;	// last username reported
+	Val* client_name;	// rlogin client name (or nil if none)
 
 	login_state state;
 	int lines_scanned;

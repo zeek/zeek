@@ -6,8 +6,8 @@
 
 namespace zeek::analyzer::socks {
 
-SOCKS_Analyzer::SOCKS_Analyzer(zeek::Connection* conn)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SOCKS", conn)
+SOCKS_Analyzer::SOCKS_Analyzer(Connection* conn)
+: analyzer::tcp::TCP_ApplicationAnalyzer("SOCKS", conn)
 	{
 	interp = new binpac::SOCKS::SOCKS_Conn(this);
 	orig_done = resp_done = false;
@@ -29,7 +29,7 @@ void SOCKS_Analyzer::EndpointDone(bool orig)
 
 void SOCKS_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -37,13 +37,13 @@ void SOCKS_Analyzer::Done()
 
 void SOCKS_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -60,7 +60,7 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// are done with their part of the SOCKS protocol.
 		if ( ! pia )
 			{
-			pia = new zeek::analyzer::pia::PIA_TCP(Conn());
+			pia = new analyzer::pia::PIA_TCP(Conn());
 			if ( AddChildAnalyzer(pia) )
 				{
 				pia->FirstPacket(true, nullptr);
@@ -80,14 +80,14 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			}
 		catch ( const binpac::Exception& e )
 			{
-			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
 
 void SOCKS_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
 

@@ -10,8 +10,8 @@
 
 namespace zeek::analyzer::ssl {
 
-SSL_Analyzer::SSL_Analyzer(zeek::Connection* c)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
+SSL_Analyzer::SSL_Analyzer(Connection* c)
+: analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
@@ -26,7 +26,7 @@ SSL_Analyzer::~SSL_Analyzer()
 
 void SSL_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -36,7 +36,7 @@ void SSL_Analyzer::Done()
 
 void SSL_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	handshake_interp->FlowEOF(is_orig);
 	}
@@ -50,7 +50,7 @@ void SSL_Analyzer::StartEncryption()
 
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -67,7 +67,7 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
@@ -80,13 +80,13 @@ void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, 
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
 void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

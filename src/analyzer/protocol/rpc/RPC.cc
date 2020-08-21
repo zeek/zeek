@@ -108,7 +108,7 @@ bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
 	}
 
 
-RPC_Interpreter::RPC_Interpreter(zeek::analyzer::Analyzer* arg_analyzer)
+RPC_Interpreter::RPC_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	}
@@ -308,7 +308,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 	else if ( n < 0 )
 		{
-		zeek::reporter->AnalyzerError(analyzer, "RPC underflow");
+		reporter->AnalyzerError(analyzer, "RPC underflow");
 		return 0;
 		}
 
@@ -327,7 +327,7 @@ void RPC_Interpreter::Timeout()
 			const u_char* buf = nullptr;
 			int n = 0;
 
-			if ( ! RPC_BuildReply(c, BifEnum::RPC_TIMEOUT, buf, n, zeek::run_state::network_time, zeek::run_state::network_time, 0) )
+			if ( ! RPC_BuildReply(c, BifEnum::RPC_TIMEOUT, buf, n, run_state::network_time, run_state::network_time, 0) )
 				Weird("bad_RPC");
 			}
 		}
@@ -338,13 +338,13 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 	if ( rpc_dialogue )
 		analyzer->EnqueueConnEvent(rpc_dialogue,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(c->Program()),
-			zeek::val_mgr->Count(c->Version()),
-			zeek::val_mgr->Count(c->Proc()),
-			zeek::BifType::Enum::rpc_status->GetEnumVal(status),
-			zeek::make_intrusive<zeek::TimeVal>(c->StartTime()),
-			zeek::val_mgr->Count(c->CallLen()),
-			zeek::val_mgr->Count(reply_len)
+			val_mgr->Count(c->Program()),
+			val_mgr->Count(c->Version()),
+			val_mgr->Count(c->Proc()),
+			BifType::Enum::rpc_status->GetEnumVal(status),
+			make_intrusive<TimeVal>(c->StartTime()),
+			val_mgr->Count(c->CallLen()),
+			val_mgr->Count(reply_len)
 		);
 	}
 
@@ -353,11 +353,11 @@ void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 	if ( rpc_call )
 		analyzer->EnqueueConnEvent(rpc_call,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(c->XID()),
-			zeek::val_mgr->Count(c->Program()),
-			zeek::val_mgr->Count(c->Version()),
-			zeek::val_mgr->Count(c->Proc()),
-			zeek::val_mgr->Count(c->CallLen())
+			val_mgr->Count(c->XID()),
+			val_mgr->Count(c->Program()),
+			val_mgr->Count(c->Version()),
+			val_mgr->Count(c->Proc()),
+			val_mgr->Count(c->CallLen())
 		);
 	}
 
@@ -366,9 +366,9 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 	if ( rpc_reply )
 		analyzer->EnqueueConnEvent(rpc_reply,
 			analyzer->ConnVal(),
-			zeek::val_mgr->Count(xid),
-			zeek::BifType::Enum::rpc_status->GetEnumVal(status),
-			zeek::val_mgr->Count(reply_len)
+			val_mgr->Count(xid),
+			BifType::Enum::rpc_status->GetEnumVal(status),
+			val_mgr->Count(reply_len)
 		);
 	}
 
@@ -414,9 +414,9 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 
 } // namespace detail
 
-Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
+Contents_RPC::Contents_RPC(Connection* conn, bool orig,
                            detail::RPC_Interpreter* arg_interp)
-	: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
+	: analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
@@ -428,7 +428,7 @@ Contents_RPC::Contents_RPC(zeek::Connection* conn, bool orig,
 
 void Contents_RPC::Init()
 	{
-	zeek::analyzer::tcp::TCP_SupportAnalyzer::Init();
+	analyzer::tcp::TCP_SupportAnalyzer::Init();
 	}
 
 Contents_RPC::~Contents_RPC()
@@ -437,7 +437,7 @@ Contents_RPC::~Contents_RPC()
 
 void Contents_RPC::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
 	}
 
@@ -456,12 +456,12 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		// is fully established we are in sync (since it's the first chunk
 		// of data after the SYN if its not established we need to
 		// resync.
-		zeek::analyzer::tcp::TCP_Analyzer* tcp =
-			static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		analyzer::tcp::TCP_Analyzer* tcp =
+			static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 		assert(tcp);
 
 		if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-							zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED )
+							analyzer::tcp::TCP_ENDPOINT_ESTABLISHED )
 			{
 			NeedResync();
 			}
@@ -515,7 +515,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		if ( resync_toskip != 0 )
 			{
 			// Should never happen.
-			zeek::reporter->AnalyzerError(
+			reporter->AnalyzerError(
 				this, "RPC resync: skipping over data failed");
 			return false;
 			}
@@ -534,8 +534,8 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 				// TCP keep-alive retransmissions.
 				DEBUG_MSG("%.6f RPC resync: "
 						  "discard small pieces: %d\n",
-							  zeek::run_state::network_time, len);
-				Conn()->Weird("RPC_resync", zeek::util::fmt("discard %d bytes\n", len));
+							  run_state::network_time, len);
+				Conn()->Weird("RPC_resync", util::fmt("discard %d bytes\n", len));
 				}
 
 			NeedResync();
@@ -623,7 +623,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 
 void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 	uint32_t marker;
 	bool last_frag;
 
@@ -634,7 +634,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 	while (len > 0)
 		{
-		last_time = zeek::run_state::network_time;
+		last_time = run_state::network_time;
 
 		switch (state) {
 		case WAIT_FOR_MESSAGE:
@@ -649,7 +649,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 			msg_buf.Init(MAX_RPC_LEN, 0);
 			last_frag = false;
 			state = WAIT_FOR_MARKER;
-			start_time = zeek::run_state::network_time;
+			start_time = run_state::network_time;
 			// no break. fall through
 
 		case WAIT_FOR_MARKER:
@@ -667,7 +667,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! dummy_p )
 					{
-					zeek::reporter->AnalyzerError(
+					reporter->AnalyzerError(
 						this, "inconsistent RPC record marker extraction");
 					return;
 					}
@@ -675,10 +675,10 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 				last_frag = (marker & 0x80000000) != 0;
 				marker &= 0x7fffffff;
 					//printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <> processed= %llu <> len = %d\n",
-					//		zeek::run_state::network_time, IsOrig(), marker, last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
+					//		run_state::network_time, IsOrig(), marker, last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
 
 				if ( ! msg_buf.AddToExpected(marker) )
-					Conn()->Weird("RPC_message_too_long", zeek::util::fmt("%" PRId64, msg_buf.GetExpected()));
+					Conn()->Weird("RPC_message_too_long", util::fmt("%" PRId64, msg_buf.GetExpected()));
 
 				if ( last_frag )
 					state = WAIT_FOR_LAST_DATA;
@@ -722,14 +722,14 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		} // end while
 	}
 
-RPC_Analyzer::RPC_Analyzer(const char* name, zeek::Connection* conn,
+RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
                            detail::RPC_Interpreter* arg_interp)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer(name, conn),
+	: analyzer::tcp::TCP_ApplicationAnalyzer(name, conn),
 	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
-		                   zeek::run_state::network_time + zeek::detail::rpc_timeout, true,
+		                   run_state::network_time + zeek::detail::rpc_timeout, true,
 		                   zeek::detail::TIMER_RPC_EXPIRE);
 	}
 
@@ -739,26 +739,26 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+                                 uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = std::min(len, caplen);
 
 	if ( orig )
 		{
-		if ( ! interp->DeliverRPC(data, len, len, true, zeek::run_state::network_time, zeek::run_state::network_time) )
+		if ( ! interp->DeliverRPC(data, len, len, true, run_state::network_time, run_state::network_time) )
 			Weird("bad_RPC");
 		}
 	else
 		{
-		if ( ! interp->DeliverRPC(data, len, len, false, zeek::run_state::network_time, zeek::run_state::network_time) )
+		if ( ! interp->DeliverRPC(data, len, len, false, run_state::network_time, run_state::network_time) )
 			Weird("bad_RPC");
 		}
 	}
 
 void RPC_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->Timeout();
 	}
@@ -766,7 +766,7 @@ void RPC_Analyzer::Done()
 void RPC_Analyzer::ExpireTimer(double /* t */)
 	{
 	Event(connection_timeout);
-	zeek::sessions->Remove(Conn());
+	sessions->Remove(Conn());
 	}
 
 } // namespace zeek::analyzer::rpc

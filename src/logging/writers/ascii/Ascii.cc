@@ -107,7 +107,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( ! sf_stream )
 		{
-		rval.error = zeek::util::fmt("Failed to open %s: %s",
+		rval.error = util::fmt("Failed to open %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
@@ -116,7 +116,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( res == -1 )
 		{
-		rval.error = zeek::util::fmt("Failed to fseek(SEEK_END) on %s: %s",
+		rval.error = util::fmt("Failed to fseek(SEEK_END) on %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
@@ -126,7 +126,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( sf_len == -1 )
 		{
-		rval.error = zeek::util::fmt("Failed to ftell() on %s: %s",
+		rval.error = util::fmt("Failed to ftell() on %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
@@ -136,7 +136,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( res == -1 )
 		{
-		rval.error = zeek::util::fmt("Failed to fseek(SEEK_SET) on %s: %s",
+		rval.error = util::fmt("Failed to fseek(SEEK_SET) on %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
@@ -153,11 +153,11 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 		}
 
 	std::string_view sf_view(sf_content.get(), sf_len);
-	auto sf_lines = zeek::util::tokenize_string(sf_view, '\n');
+	auto sf_lines = util::tokenize_string(sf_view, '\n');
 
 	if ( sf_lines.size() < 2 )
 		{
-		rval.error = zeek::util::fmt("Found leftover log, '%s', but the associated shadow "
+		rval.error = util::fmt("Found leftover log, '%s', but the associated shadow "
 		                 " file, '%s', required to process it is invalid",
 		                 rval.filename.data(), rval.shadow_filename.data());
 		return rval;
@@ -171,7 +171,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use shadow file's modification time as creation time.
 	if ( stat(rval.shadow_filename.data(), &st) != 0 )
 		{
-		rval.error = zeek::util::fmt("Failed to stat %s: %s",
+		rval.error = util::fmt("Failed to stat %s: %s",
 		                 rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
@@ -181,7 +181,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use log file's modification time for closing time.
 	if ( stat(rval.filename.data(), &st) != 0 )
 		{
-		rval.error = zeek::util::fmt("Failed to stat %s: %s",
+		rval.error = util::fmt("Failed to stat %s: %s",
 		                 rval.filename.data(), strerror(errno));
 		return rval;
 		}
@@ -191,7 +191,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	return rval;
 	}
 
-Ascii::Ascii(zeek::logging::WriterFrontend* frontend) : zeek::logging::WriterBackend(frontend)
+Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	fd = 0;
 	ascii_done = false;
@@ -210,47 +210,47 @@ Ascii::Ascii(zeek::logging::WriterFrontend* frontend) : zeek::logging::WriterBac
 
 void Ascii::InitConfigOptions()
 	{
-	output_to_stdout = zeek::BifConst::LogAscii::output_to_stdout;
-	include_meta = zeek::BifConst::LogAscii::include_meta;
-	use_json = zeek::BifConst::LogAscii::use_json;
-	enable_utf_8 = zeek::BifConst::LogAscii::enable_utf_8;
-	gzip_level = zeek::BifConst::LogAscii::gzip_level;
+	output_to_stdout = BifConst::LogAscii::output_to_stdout;
+	include_meta = BifConst::LogAscii::include_meta;
+	use_json = BifConst::LogAscii::use_json;
+	enable_utf_8 = BifConst::LogAscii::enable_utf_8;
+	gzip_level = BifConst::LogAscii::gzip_level;
 
 	separator.assign(
-			(const char*) zeek::BifConst::LogAscii::separator->Bytes(),
-			zeek::BifConst::LogAscii::separator->Len()
+			(const char*) BifConst::LogAscii::separator->Bytes(),
+			BifConst::LogAscii::separator->Len()
 			);
 
 	set_separator.assign(
-			(const char*) zeek::BifConst::LogAscii::set_separator->Bytes(),
-			zeek::BifConst::LogAscii::set_separator->Len()
+			(const char*) BifConst::LogAscii::set_separator->Bytes(),
+			BifConst::LogAscii::set_separator->Len()
 			);
 
 	empty_field.assign(
-			(const char*) zeek::BifConst::LogAscii::empty_field->Bytes(),
-			zeek::BifConst::LogAscii::empty_field->Len()
+			(const char*) BifConst::LogAscii::empty_field->Bytes(),
+			BifConst::LogAscii::empty_field->Len()
 			);
 
 	unset_field.assign(
-			(const char*) zeek::BifConst::LogAscii::unset_field->Bytes(),
-			zeek::BifConst::LogAscii::unset_field->Len()
+			(const char*) BifConst::LogAscii::unset_field->Bytes(),
+			BifConst::LogAscii::unset_field->Len()
 			);
 
 	meta_prefix.assign(
-			(const char*) zeek::BifConst::LogAscii::meta_prefix->Bytes(),
-			zeek::BifConst::LogAscii::meta_prefix->Len()
+			(const char*) BifConst::LogAscii::meta_prefix->Bytes(),
+			BifConst::LogAscii::meta_prefix->Len()
 			);
 
-	zeek::ODesc tsfmt;
-	zeek::BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
+	ODesc tsfmt;
+	BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
 	json_timestamps.assign(
 			(const char*) tsfmt.Bytes(),
 			tsfmt.Len()
 			);
 
 	gzip_file_extension.assign(
-		(const char*) zeek::BifConst::LogAscii::gzip_file_extension->Bytes(),
-		zeek::BifConst::LogAscii::gzip_file_extension->Len()
+		(const char*) BifConst::LogAscii::gzip_file_extension->Bytes(),
+		BifConst::LogAscii::gzip_file_extension->Len()
 		);
 	}
 
@@ -359,22 +359,22 @@ bool Ascii::InitFormatter()
 
 	if ( use_json )
 		{
-		zeek::threading::formatter::JSON::TimeFormat tf = zeek::threading::formatter::JSON::TS_EPOCH;
+		threading::formatter::JSON::TimeFormat tf = threading::formatter::JSON::TS_EPOCH;
 
 		// Write out JSON formatted logs.
 		if ( strcmp(json_timestamps.c_str(), "JSON::TS_EPOCH") == 0 )
-			tf = zeek::threading::formatter::JSON::TS_EPOCH;
+			tf = threading::formatter::JSON::TS_EPOCH;
 		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_MILLIS") == 0 )
-			tf = zeek::threading::formatter::JSON::TS_MILLIS;
+			tf = threading::formatter::JSON::TS_MILLIS;
 		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_ISO8601") == 0 )
-			tf = zeek::threading::formatter::JSON::TS_ISO8601;
+			tf = threading::formatter::JSON::TS_ISO8601;
 		else
 			{
 			Error(Fmt("Invalid JSON timestamp format: %s", json_timestamps.c_str()));
 			return false;
 			}
 
-		formatter = new zeek::threading::formatter::JSON(this, tf);
+		formatter = new threading::formatter::JSON(this, tf);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}
@@ -387,8 +387,8 @@ bool Ascii::InitFormatter()
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
-		zeek::threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-		formatter = new zeek::threading::formatter::Ascii(this, sep_info);
+		threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+		formatter = new threading::formatter::Ascii(this, sep_info);
 		}
 
 	return true;
@@ -399,7 +399,7 @@ Ascii::~Ascii()
 	if ( ! ascii_done )
 		// In case of errors aborting the logging altogether,
 		// DoFinish() may not have been called.
-		CloseFile(zeek::run_state::network_time);
+		CloseFile(run_state::network_time);
 
 	delete formatter;
 	}
@@ -424,7 +424,7 @@ void Ascii::CloseFile(double t)
 	gzfile = nullptr;
 	}
 
-bool Ascii::DoInit(const WriterInfo& info, int num_fields, const zeek::threading::Field* const * fields)
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const * fields)
 	{
 	assert(! fd);
 
@@ -450,7 +450,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const zeek::threading
 
 		fname += ext;
 
-		bool use_shadow = zeek::Supervisor::ThisNode() && info.rotation_interval > 0;
+		bool use_shadow = Supervisor::ThisNode() && info.rotation_interval > 0;
 
 		if ( use_shadow )
 			{
@@ -463,17 +463,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const zeek::threading
 				return false;
 				}
 
-			zeek::util::safe_write(sfd, ext.data(), ext.size());
-			zeek::util::safe_write(sfd, "\n", 1);
+			util::safe_write(sfd, ext.data(), ext.size());
+			util::safe_write(sfd, "\n", 1);
 
 			auto ppf = info.post_proc_func;
 
 			if ( ppf )
-				zeek::util::safe_write(sfd, ppf, strlen(ppf));
+				util::safe_write(sfd, ppf, strlen(ppf));
 
-			zeek::util::safe_write(sfd, "\n", 1);
+			util::safe_write(sfd, "\n", 1);
 
-			zeek::util::safe_close(sfd);
+			util::safe_close(sfd);
 			}
 		}
 
@@ -553,16 +553,16 @@ bool Ascii::WriteHeader(const string& path)
 
 	string str = meta_prefix
 		+ "separator " // Always use space as separator here.
-		+ zeek::util::get_escaped_string(separator, false)
+		+ util::get_escaped_string(separator, false)
 		+ "\n";
 
 	if ( ! InternalWrite(fd, str.c_str(), str.length()) )
 		return false;
 
-	if ( ! (WriteHeaderField("set_separator", zeek::util::get_escaped_string(set_separator, false)) &&
-	        WriteHeaderField("empty_field", zeek::util::get_escaped_string(empty_field, false)) &&
-	        WriteHeaderField("unset_field", zeek::util::get_escaped_string(unset_field, false)) &&
-	        WriteHeaderField("path", zeek::util::get_escaped_string(path, false)) &&
+	if ( ! (WriteHeaderField("set_separator", util::get_escaped_string(set_separator, false)) &&
+	        WriteHeaderField("empty_field", util::get_escaped_string(empty_field, false)) &&
+	        WriteHeaderField("unset_field", util::get_escaped_string(unset_field, false)) &&
+	        WriteHeaderField("path", util::get_escaped_string(path, false)) &&
 	        WriteHeaderField("open", Timestamp(0))) )
 		return false;
 
@@ -596,8 +596,8 @@ bool Ascii::DoFinish(double network_time)
 	return true;
 	}
 
-bool Ascii::DoWrite(int num_fields, const zeek::threading::Field* const * fields,
-                    zeek::threading::Value** vals)
+bool Ascii::DoWrite(int num_fields, const threading::Field* const * fields,
+                    threading::Value** vals)
 	{
 	if ( ! fd )
 		DoInit(Info(), NumFields(), Fields());
@@ -616,7 +616,7 @@ bool Ascii::DoWrite(int num_fields, const zeek::threading::Field* const * fields
 		{
 		// It would so escape the first character.
 		char hex[4] = {'\\', 'x', '0', '0'};
-		zeek::util::bytetohex(bytes[0], hex + 2);
+		util::bytetohex(bytes[0], hex + 2);
 
 		if ( ! InternalWrite(fd, hex, 4) )
 			goto write_error;
@@ -660,14 +660,14 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 	if ( rename(fname.c_str(), nname.c_str()) != 0 )
 		{
 		char buf[256];
-		zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
+		util::zeek_strerror_r(errno, buf, sizeof(buf));
 		Error(Fmt("failed to rename %s to %s: %s", fname.c_str(),
 		          nname.c_str(), buf));
 		FinishedRotation();
 		return false;
 		}
 
-	bool use_shadow = zeek::Supervisor::ThisNode() && Info().rotation_interval > 0;
+	bool use_shadow = Supervisor::ThisNode() && Info().rotation_interval > 0;
 
 	if ( use_shadow )
 		{
@@ -718,15 +718,15 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 		std::string log_name = dp->d_name + prefix_len;
 
-		if ( zeek::util::is_file(log_name) )
+		if ( util::is_file(log_name) )
 			{
 			if ( auto ll = parse_shadow_log(log_name) )
 				{
 				if ( ll->error.empty() )
 					rval.emplace_back(std::move(*ll));
 				else
-					zeek::reporter->Error("failed to process leftover log '%s': %s",
-					                      log_name.data(), ll->error.data());
+					reporter->Error("failed to process leftover log '%s': %s",
+					                log_name.data(), ll->error.data());
 				}
 			}
 		else
@@ -736,7 +736,7 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 	for ( const auto& f : stale_shadow_files )
 		if ( unlink(f.data()) != 0 )
-			zeek::reporter->Error("cannot unlink %s: %s", f.data(), strerror(errno));
+			reporter->Error("cannot unlink %s: %s", f.data(), strerror(errno));
 
 	closedir(d);
 	return rval;
@@ -744,7 +744,7 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 void Ascii::RotateLeftoverLogs()
 	{
-	if ( ! zeek::Supervisor::ThisNode() )
+	if ( ! Supervisor::ThisNode() )
 		return;
 
 	// Log file crash recovery: if there's still leftover shadow files from the
@@ -762,68 +762,68 @@ void Ascii::RotateLeftoverLogs()
 
 	for ( const auto& ll : leftover_logs )
 		{
-		static auto rot_info_type = zeek::id::find_type<zeek::RecordType>("Log::RotationInfo");
-		static auto writer_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
+		static auto rot_info_type = id::find_type<RecordType>("Log::RotationInfo");
+		static auto writer_type = id::find_type<EnumType>("Log::Writer");
 		static auto writer_idx = writer_type->Lookup("Log", "WRITER_ASCII");
 		static auto writer_val = writer_type->GetEnumVal(writer_idx);
-		static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
+		static auto default_ppf = id::find_func("Log::__default_rotation_postprocessor");
 		assert(default_ppf);
 
 		auto ppf = default_ppf;
 
 		if ( ! ll.post_proc_func.empty() )
 			{
-			auto func = zeek::id::find_func(ll.post_proc_func.data());
+			auto func = id::find_func(ll.post_proc_func.data());
 
 			if ( func )
 				ppf = std::move(func);
 			else
-				zeek::reporter->Warning("Could not postprocess log '%s' with intended "
-				                        "postprocessor function '%s', proceeding "
-				                        " with the default function",
-				                        ll.filename.data(), ll.post_proc_func.data());
+				reporter->Warning("Could not postprocess log '%s' with intended "
+				                  "postprocessor function '%s', proceeding "
+				                  " with the default function",
+				                  ll.filename.data(), ll.post_proc_func.data());
 			}
 
-		auto rotation_path = zeek::log_mgr->FormatRotationPath(
+		auto rotation_path = log_mgr->FormatRotationPath(
 			writer_val, ll.Path(), ll.open_time, ll.close_time, false, ppf);
 
 		rotation_path += ll.extension;
 
-		auto rot_info = zeek::make_intrusive<zeek::RecordVal>(rot_info_type);
+		auto rot_info = make_intrusive<RecordVal>(rot_info_type);
 		rot_info->Assign(0, writer_val);
-		rot_info->Assign<zeek::StringVal>(1, rotation_path);
-		rot_info->Assign<zeek::StringVal>(2, ll.Path());
-		rot_info->Assign<zeek::TimeVal>(3, ll.open_time);
-		rot_info->Assign<zeek::TimeVal>(4, ll.close_time);
-		rot_info->Assign(5, zeek::val_mgr->False());
+		rot_info->Assign<StringVal>(1, rotation_path);
+		rot_info->Assign<StringVal>(2, ll.Path());
+		rot_info->Assign<TimeVal>(3, ll.open_time);
+		rot_info->Assign<TimeVal>(4, ll.close_time);
+		rot_info->Assign(5, val_mgr->False());
 
 		if ( rename(ll.filename.data(), rotation_path.data()) != 0 )
-			zeek::reporter->FatalError("Found leftover/unprocessed log '%s', but "
-			                           "failed to rotate it: %s",
-			                           ll.filename.data(), strerror(errno));
+			reporter->FatalError("Found leftover/unprocessed log '%s', but "
+			                     "failed to rotate it: %s",
+			                     ll.filename.data(), strerror(errno));
 
 		if ( ! ll.DeleteShadow() )
 			// Unusual failure to report, but not strictly fatal.
-			zeek::reporter->Warning("Failed to unlink %s: %s",
-			                        ll.shadow_filename.data(), strerror(errno));
+			reporter->Warning("Failed to unlink %s: %s",
+			                  ll.shadow_filename.data(), strerror(errno));
 
 		try
 			{
 			ppf->Invoke(std::move(rot_info));
-			zeek::reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ",
+			reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ",
 			               ll.filename.data(), rotation_path.data());
 			}
-		catch ( zeek::InterpreterException& e )
+		catch ( InterpreterException& e )
 			{
-			zeek::reporter->Warning("Postprocess function '%s' failed for leftover log '%s'",
-			                        ppf->Name(), ll.filename.data());
+			reporter->Warning("Postprocess function '%s' failed for leftover log '%s'",
+			                  ppf->Name(), ll.filename.data());
 			}
 		}
 	}
 
 string Ascii::LogExt()
 	{
-	const char* ext = zeek::util::zeekenv("ZEEK_LOG_SUFFIX");
+	const char* ext = util::zeekenv("ZEEK_LOG_SUFFIX");
 
 	if ( ! ext )
 		ext = "log";
@@ -858,7 +858,7 @@ string Ascii::Timestamp(double t)
 bool Ascii::InternalWrite(int fd, const char* data, int len)
 	{
 	if ( ! gzfile )
-		return zeek::util::safe_write(fd, data, len);
+		return util::safe_write(fd, data, len);
 
 	while ( len > 0 )
 		{
@@ -882,7 +882,7 @@ bool Ascii::InternalClose(int fd)
 	{
 	if ( ! gzfile )
 		{
-		zeek::util::safe_close(fd);
+		util::safe_close(fd);
 		return true;
 		}
 

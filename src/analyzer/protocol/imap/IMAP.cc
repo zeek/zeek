@@ -6,8 +6,8 @@
 
 namespace zeek::analyzer::imap {
 
-IMAP_Analyzer::IMAP_Analyzer(zeek::Connection* conn)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("IMAP", conn)
+IMAP_Analyzer::IMAP_Analyzer(Connection* conn)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("IMAP", conn)
 	{
 	interp = new binpac::IMAP::IMAP_Conn(this);
 	had_gap = false;
@@ -21,7 +21,7 @@ IMAP_Analyzer::~IMAP_Analyzer()
 
 void IMAP_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -29,13 +29,13 @@ void IMAP_Analyzer::Done()
 
 void IMAP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	if ( tls_active )
 		{
@@ -61,13 +61,13 @@ void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
 void IMAP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
@@ -79,7 +79,7 @@ void IMAP_Analyzer::StartTLS()
 	// TLS datastream.
 	tls_active = true;
 
-	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 	}

@@ -6,7 +6,7 @@
 
 namespace zeek::analyzer::gtpv1 {
 
-GTPv1_Analyzer::GTPv1_Analyzer(zeek::Connection* conn)
+GTPv1_Analyzer::GTPv1_Analyzer(Connection* conn)
 : Analyzer("GTPV1", conn)
 	{
 	interp = new binpac::GTPv1::GTPv1_Conn(this);
@@ -23,7 +23,7 @@ void GTPv1_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	try
@@ -32,7 +32,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

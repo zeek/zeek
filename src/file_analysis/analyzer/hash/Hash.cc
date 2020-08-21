@@ -9,9 +9,9 @@
 
 namespace zeek::file_analysis::detail {
 
-Hash::Hash(zeek::RecordValPtr args, zeek::file_analysis::File* file,
-           zeek::HashVal* hv, const char* arg_kind)
-	: zeek::file_analysis::Analyzer(zeek::file_mgr->GetComponentTag(zeek::util::to_upper(arg_kind).c_str()),
+Hash::Hash(RecordValPtr args, file_analysis::File* file,
+           HashVal* hv, const char* arg_kind)
+	: file_analysis::Analyzer(file_mgr->GetComponentTag(util::to_upper(arg_kind).c_str()),
 	                                std::move(args), file),
 	  hash(hv), fed(false), kind(arg_kind)
 	{
@@ -54,10 +54,10 @@ void Hash::Finalize()
 	if ( ! file_hash )
 		return;
 
-	zeek::event_mgr.Enqueue(file_hash,
-	                        GetFile()->ToVal(),
-	                        zeek::make_intrusive<zeek::StringVal>(kind),
-	                        hash->Get()
+	event_mgr.Enqueue(file_hash,
+	                  GetFile()->ToVal(),
+	                  make_intrusive<StringVal>(kind),
+	                  hash->Get()
 	);
 	}
 

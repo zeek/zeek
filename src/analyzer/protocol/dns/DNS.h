@@ -152,10 +152,10 @@ struct EDNS_ADDITIONAL {		// size
 };
 
 struct EDNS_ECS {
-	zeek::StringValPtr ecs_family;	///< EDNS client subnet address family
+	StringValPtr ecs_family;	///< EDNS client subnet address family
 	uint16_t ecs_src_pfx_len;	///< EDNS client subnet source prefix length
 	uint16_t ecs_scp_pfx_len;	///< EDNS client subnet scope prefix length
-	zeek::IntrusivePtr<zeek::AddrVal> ecs_addr;	///< EDNS client subnet address
+	IntrusivePtr<AddrVal> ecs_addr;	///< EDNS client subnet address
 };
 
 struct EDNS_TCP_KEEPALIVE {
@@ -169,10 +169,10 @@ struct EDNS_COOKIE {
 };
 
 struct TSIG_DATA {
-	zeek::String* alg_name;
+	String* alg_name;
 	unsigned long time_s;
 	unsigned short time_ms;
-	zeek::String* sig;
+	String* sig;
 	unsigned short fudge;
 	unsigned short orig_id;
 	unsigned short rr_error;
@@ -186,15 +186,15 @@ struct RRSIG_DATA {
 	unsigned long sig_exp;			// 32
 	unsigned long sig_incep;		// 32
 	unsigned short key_tag;			//16
-	zeek::String* signer_name;
-	zeek::String* signature;
+	String* signer_name;
+	String* signature;
 };
 
 struct DNSKEY_DATA {
 	unsigned short dflags;			// 16 : ExtractShort(data, len)
 	unsigned short dalgorithm;		// 8
 	unsigned short dprotocol;		// 8
-	zeek::String* public_key;			// Variable lenght Public Key
+	String* public_key;			// Variable lenght Public Key
 };
 
 struct NSEC3_DATA {
@@ -202,34 +202,34 @@ struct NSEC3_DATA {
 	unsigned short nsec_hash_algo;
 	unsigned short nsec_iter;
 	unsigned short nsec_salt_len;
-	zeek::String* nsec_salt;
+	String* nsec_salt;
 	unsigned short nsec_hlen;
-	zeek::String* nsec_hash;
-	zeek::VectorValPtr bitmaps;
+	String* nsec_hash;
+	VectorValPtr bitmaps;
 };
 
 struct DS_DATA {
 	unsigned short key_tag;			// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short digest_type;		// 8
-	zeek::String* digest_val;			// Variable lenght Digest of DNSKEY RR
+	String* digest_val;			// Variable lenght Digest of DNSKEY RR
 };
 
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
 
-	zeek::RecordValPtr BuildHdrVal();
-	zeek::RecordValPtr BuildAnswerVal();
-	zeek::RecordValPtr BuildEDNS_Val();
-	zeek::RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
-	zeek::RecordValPtr BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE*);
-	zeek::RecordValPtr BuildEDNS_COOKIE_Val(struct EDNS_COOKIE*);
-	zeek::RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
-	zeek::RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
-	zeek::RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
-	zeek::RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
-	zeek::RecordValPtr BuildDS_Val(struct DS_DATA*);
+	RecordValPtr BuildHdrVal();
+	RecordValPtr BuildAnswerVal();
+	RecordValPtr BuildEDNS_Val();
+	RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
+	RecordValPtr BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE*);
+	RecordValPtr BuildEDNS_COOKIE_Val(struct EDNS_COOKIE*);
+	RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
+	RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
+	RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
+	RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
+	RecordValPtr BuildDS_Val(struct DS_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -246,7 +246,7 @@ public:
 	int arcount;	///< number of additional RRs
 	int is_query;	///< whether it came from the session initiator
 
-	zeek::StringValPtr query_name;
+	StringValPtr query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
 	uint32_t ttl;
@@ -261,7 +261,7 @@ public:
 
 class DNS_Interpreter {
 public:
-	explicit DNS_Interpreter(zeek::analyzer::Analyzer* analyzer);
+	explicit DNS_Interpreter(analyzer::Analyzer* analyzer);
 
 	void ParseMessage(const u_char* data, int len, int is_query);
 
@@ -292,9 +292,9 @@ protected:
 
 	uint16_t ExtractShort(const u_char*& data, int& len);
 	uint32_t ExtractLong(const u_char*& data, int& len);
-	void ExtractOctets(const u_char*& data, int& len, zeek::String** p);
+	void ExtractOctets(const u_char*& data, int& len, String** p);
 
-	zeek::String* ExtractStream(const u_char*& data, int& len, int sig_len);
+	String* ExtractStream(const u_char*& data, int& len, int sig_len);
 
 	bool ParseRR_Name(detail::DNS_MsgInfo* msg,
 	                  const u_char*& data, int& len, int rdlength,
@@ -352,12 +352,12 @@ protected:
 	bool ParseRR_DS(detail::DNS_MsgInfo* msg,
 	                const u_char*& data, int& len, int rdlength,
 	                const u_char* msg_start);
-	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, zeek::EventHandlerPtr event,
+	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
 	                            const u_char*& data, int& len,
-	                            zeek::String* question_name,
-	                            zeek::String* original_name);
+	                            String* question_name,
+	                            String* original_name);
 
-	zeek::analyzer::Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	bool first_message;
 };
 
@@ -371,9 +371,9 @@ enum TCP_DNS_state {
 
 // Support analyzer which chunks the TCP stream into "packets".
 // ### This should be merged with TCP_Contents_RPC.
-class Contents_DNS final : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
+class Contents_DNS final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
-	Contents_DNS(zeek::Connection* c, bool orig, detail::DNS_Interpreter* interp);
+	Contents_DNS(Connection* c, bool orig, detail::DNS_Interpreter* interp);
 	~Contents_DNS() override;
 
 	void Flush();		///< process any partially-received data
@@ -394,21 +394,21 @@ protected:
 };
 
 // Works for both TCP and UDP.
-class DNS_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class DNS_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DNS_Analyzer(zeek::Connection* conn);
+	explicit DNS_Analyzer(Connection* conn);
 	~DNS_Analyzer() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	void Init() override;
 	void Done() override;
-	void ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
-	                      zeek::analyzer::tcp::TCP_Endpoint* peer, bool gen_event) override;
+	void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
+	                      analyzer::tcp::TCP_Endpoint* peer, bool gen_event) override;
 	void ExpireTimer(double t);
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 protected:

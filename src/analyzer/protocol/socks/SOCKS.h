@@ -13,9 +13,9 @@ namespace binpac  {
 
 namespace zeek::analyzer::socks {
 
-class SOCKS_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class SOCKS_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SOCKS_Analyzer(zeek::Connection* conn);
+	explicit SOCKS_Analyzer(Connection* conn);
 	~SOCKS_Analyzer() override;
 
 	void EndpointDone(bool orig);
@@ -25,7 +25,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SOCKS_Analyzer(conn); }
 
 protected:
@@ -33,7 +33,7 @@ protected:
 	bool orig_done;
 	bool resp_done;
 
-	zeek::analyzer::pia::PIA_TCP *pia;
+	analyzer::pia::PIA_TCP *pia;
 	binpac::SOCKS::SOCKS_Conn* interp;
 };
 

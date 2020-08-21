@@ -6,7 +6,7 @@
 
 namespace zeek::analyzer::modbus {
 
-ModbusTCP_Analyzer::ModbusTCP_Analyzer(zeek::Connection* c)
+ModbusTCP_Analyzer::ModbusTCP_Analyzer(Connection* c)
 	: TCP_ApplicationAnalyzer("MODBUS", c)
 	{
 	interp = new binpac::ModbusTCP::ModbusTCP_Conn(this);

@@ -64,15 +64,15 @@ enum POP3_SubState {
 
 } // namespace detail
 
-class POP3_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class POP3_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit POP3_Analyzer(zeek::Connection* conn);
+	explicit POP3_Analyzer(Connection* conn);
 	~POP3_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new POP3_Analyzer(conn);
 		}
@@ -105,16 +105,16 @@ protected:
 	std::vector<std::string> TokenizeLine(const std::string& input, char split);
 	int ParseCmd(std::string cmd);
 	void AuthSuccessfull();
-	void POP3Event(zeek::EventHandlerPtr event, bool is_orig,
+	void POP3Event(EventHandlerPtr event, bool is_orig,
 	               const char* arg1 = nullptr, const char* arg2 = nullptr);
 
-	zeek::analyzer::mime::MIME_Mail* mail;
+	analyzer::mime::MIME_Mail* mail;
 	std::list<std::string> cmds;
 
 private:
 	bool tls;
-	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
-	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
+	analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	analyzer::tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } // namespace zeek::analyzer::pop3

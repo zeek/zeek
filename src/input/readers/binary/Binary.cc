@@ -15,12 +15,12 @@ namespace zeek::input::reader::detail {
 
 streamsize Binary::chunk_size = 0;
 
-Binary::Binary(zeek::input::ReaderFrontend *frontend)
-	: zeek::input::ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true)
+Binary::Binary(ReaderFrontend *frontend)
+	: ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true)
 	{
 	if ( ! chunk_size )
 		{
-		chunk_size = zeek::BifConst::InputBinary::chunk_size;
+		chunk_size = BifConst::InputBinary::chunk_size;
 
 		if ( ! chunk_size )
 			chunk_size = 1024;
@@ -61,7 +61,7 @@ bool Binary::CloseInput()
 		}
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Binary reader starting close");
+	Debug(DBG_INPUT, "Binary reader starting close");
 #endif
 
 	in->close();
@@ -69,7 +69,7 @@ bool Binary::CloseInput()
 	in = nullptr;
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Binary reader finished close");
+	Debug(DBG_INPUT, "Binary reader finished close");
 #endif
 
 	return true;
@@ -83,8 +83,8 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 	ino = 0;
 	firstrun = true;
 
-	path_prefix.assign((const char*) zeek::BifConst::InputBinary::path_prefix->Bytes(),
-	                   zeek::BifConst::InputBinary::path_prefix->Len());
+	path_prefix.assign((const char*) BifConst::InputBinary::path_prefix->Bytes(),
+	                   BifConst::InputBinary::path_prefix->Len());
 
 	if ( ! info.source || strlen(info.source) == 0 )
 		{
@@ -100,7 +100,7 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 		return false;
 		}
 
-	if ( fields[0]->type != zeek::TYPE_STRING )
+	if ( fields[0]->type != TYPE_STRING )
 		{
 		Error("Filter for binary reader contains a non-string field.");
 		return false;
@@ -130,14 +130,14 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 		return false;
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Binary reader created, will perform first update");
+	Debug(DBG_INPUT, "Binary reader created, will perform first update");
 #endif
 
 	// after initialization - do update
 	DoUpdate();
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Binary reader did first update");
+	Debug(DBG_INPUT, "Binary reader did first update");
 #endif
 
 	return true;
@@ -198,7 +198,7 @@ bool Binary::DoUpdate()
 	else
 		{
 		switch ( Info().mode  ) {
-		case zeek::input::MODE_REREAD:
+		case MODE_REREAD:
 			{
 			switch ( UpdateModificationTime() ) {
 			case -1:
@@ -213,9 +213,9 @@ bool Binary::DoUpdate()
 			// fallthrough
 			}
 
-		case zeek::input::MODE_MANUAL:
-		case zeek::input::MODE_STREAM:
-			if ( Info().mode == zeek::input::MODE_STREAM && in )
+		case MODE_MANUAL:
+		case MODE_STREAM:
+			if ( Info().mode == MODE_STREAM && in )
 				{
 				in->clear(); // remove end of file evil bits
 				break;
@@ -242,22 +242,22 @@ bool Binary::DoUpdate()
 		Value** fields = new Value*[1];
 
 		// filter has exactly one text field. convert to it.
-		Value* val = new Value(zeek::TYPE_STRING, true);
+		Value* val = new Value(TYPE_STRING, true);
 		val->val.string_val.data = chunk;
 		val->val.string_val.length = size;
 		fields[0] = val;
 
-		if ( Info().mode == zeek::input::MODE_STREAM )
+		if ( Info().mode == MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( Info().mode != zeek::input::MODE_STREAM )
+	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "DoUpdate finished successfully");
+	Debug(DBG_INPUT, "DoUpdate finished successfully");
 #endif
 
 	return true;
@@ -266,19 +266,19 @@ bool Binary::DoUpdate()
 bool Binary::DoHeartbeat(double network_time, double current_time)
 	{
 	switch ( Info().mode ) {
-		case zeek::input::MODE_MANUAL:
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case zeek::input::MODE_REREAD:
-		case zeek::input::MODE_STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Starting Heartbeat update");
+	Debug(DBG_INPUT, "Starting Heartbeat update");
 #endif
 			Update();	// call update and not DoUpdate, because update
 					// checks disabled.
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Finished with heartbeat update");
+	Debug(DBG_INPUT, "Finished with heartbeat update");
 #endif
 			break;
 		default:

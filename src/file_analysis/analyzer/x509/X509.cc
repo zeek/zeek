@@ -23,8 +23,8 @@
 
 namespace zeek::file_analysis::detail {
 
-X509::X509(zeek::RecordValPtr args, zeek::file_analysis::File* file)
-	: X509Common::X509Common(zeek::file_mgr->GetComponentTag("X509"),
+X509::X509(RecordValPtr args, file_analysis::File* file)
+	: X509Common::X509Common(file_mgr->GetComponentTag("X509"),
 	                         std::move(args), file)
 	{
 	cert_data.clear();
@@ -53,7 +53,7 @@ bool X509::EndOfFile()
 		zeek::detail::hash_update(ctx, cert_char, cert_data.size());
 		zeek::detail::hash_final(ctx, buf);
 		std::string cert_sha256 = zeek::detail::sha256_digest_print(buf);
-		auto index = zeek::make_intrusive<zeek::StringVal>(cert_sha256);
+		auto index = make_intrusive<StringVal>(cert_sha256);
 		const auto& entry = certificate_cache->Find(index);
 
 		if ( entry )
@@ -65,7 +65,7 @@ bool X509::EndOfFile()
 			// yup, let's call the callback.
 
 			cache_hit_callback->Invoke(GetFile()->ToVal(), entry,
-			                           zeek::make_intrusive<zeek::StringVal>(cert_sha256));
+			                           make_intrusive<StringVal>(cert_sha256));
 			return false;
 			}
 		}
@@ -75,7 +75,7 @@ bool X509::EndOfFile()
 	::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
 	if ( ! ssl_cert )
 		{
-		zeek::reporter->Weird(GetFile(), "x509_cert_parse_error");
+		reporter->Weird(GetFile(), "x509_cert_parse_error");
 		return false;
 		}
 
@@ -86,10 +86,10 @@ bool X509::EndOfFile()
 
 	// and send the record on to scriptland
 	if ( x509_certificate )
-		zeek::event_mgr.Enqueue(x509_certificate,
-		                        GetFile()->ToVal(),
-		                        zeek::IntrusivePtr{zeek::NewRef{}, cert_val},
-		                        cert_record);
+		event_mgr.Enqueue(x509_certificate,
+		                  GetFile()->ToVal(),
+		                  IntrusivePtr{NewRef{}, cert_val},
+		                  cert_record);
 
 	// after parsing the certificate - parse the extensions...
 
@@ -113,26 +113,26 @@ bool X509::EndOfFile()
 	return false;
 	}
 
-zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
-                                          zeek::file_analysis::File* f)
+RecordValPtr X509::ParseCertificate(X509Val* cert_val,
+                                    file_analysis::File* f)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
 	char buf[2048]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
-	auto pX509Cert = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::Certificate);
+	auto pX509Cert = make_intrusive<RecordVal>(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, zeek::val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
-	pX509Cert->Assign(1, zeek::make_intrusive<zeek::StringVal>(len, buf));
+	pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	X509_NAME_print_ex(bio, X509_get_subject_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
-	pX509Cert->Assign(2, zeek::make_intrusive<zeek::StringVal>(len, buf));
+	pX509Cert->Assign(2, make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	X509_NAME *subject_name = X509_get_subject_name(ssl_cert);
@@ -152,17 +152,17 @@ zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 		// we found a common name
 		ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject_name, namepos)));
 		len = BIO_gets(bio, buf, sizeof(buf));
-		pX509Cert->Assign(4, zeek::make_intrusive<zeek::StringVal>(len, buf));
+		pX509Cert->Assign(4, make_intrusive<StringVal>(len, buf));
 		BIO_reset(bio);
 		}
 
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
-	pX509Cert->Assign(3, zeek::make_intrusive<zeek::StringVal>(len, buf));
+	pX509Cert->Assign(3, make_intrusive<StringVal>(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, zeek::reporter)));
-	pX509Cert->Assign(6, zeek::make_intrusive<zeek::TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, zeek::reporter)));
+	pX509Cert->Assign(5, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter)));
+	pX509Cert->Assign(6, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter)));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -172,7 +172,7 @@ zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(7, zeek::make_intrusive<zeek::StringVal>(buf));
+	pX509Cert->Assign(7, make_intrusive<StringVal>(buf));
 
 	// Special case for RDP server certificates. For some reason some (all?) RDP server
 	// certificates like to specify their key algorithm as md5WithRSAEncryption, which
@@ -194,25 +194,25 @@ zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	if ( ! i2t_ASN1_OBJECT(buf, 255, OBJ_nid2obj(X509_get_signature_nid(ssl_cert))) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(8, zeek::make_intrusive<zeek::StringVal>(buf));
+	pX509Cert->Assign(8, make_intrusive<StringVal>(buf));
 
 	// Things we can do when we have the key...
 	EVP_PKEY *pkey = X509_extract_key(ssl_cert);
 	if ( pkey != NULL )
 		{
 		if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_DSA )
-			pX509Cert->Assign(9, zeek::make_intrusive<zeek::StringVal>("dsa"));
+			pX509Cert->Assign(9, make_intrusive<StringVal>("dsa"));
 
 		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA )
 			{
-			pX509Cert->Assign(9, zeek::make_intrusive<zeek::StringVal>("rsa"));
+			pX509Cert->Assign(9, make_intrusive<StringVal>("rsa"));
 
 			const BIGNUM *e;
 			RSA_get0_key(EVP_PKEY_get0_RSA(pkey), NULL, &e, NULL);
 			char *exponent = BN_bn2dec(e);
 			if ( exponent != NULL )
 				{
-				pX509Cert->Assign(11, zeek::make_intrusive<zeek::StringVal>(exponent));
+				pX509Cert->Assign(11, make_intrusive<StringVal>(exponent));
 				OPENSSL_free(exponent);
 				exponent = NULL;
 				}
@@ -220,7 +220,7 @@ zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 #ifndef OPENSSL_NO_EC
 		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_EC )
 			{
-			pX509Cert->Assign(9, zeek::make_intrusive<zeek::StringVal>("ecdsa"));
+			pX509Cert->Assign(9, make_intrusive<StringVal>("ecdsa"));
 			pX509Cert->Assign(12, KeyCurve(pkey));
 			}
 #endif
@@ -232,7 +232,7 @@ zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(10, zeek::val_mgr->Count(length));
+			pX509Cert->Assign(10, val_mgr->Count(length));
 
 		EVP_PKEY_free(pkey);
 		}
@@ -241,7 +241,7 @@ zeek::RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	return pX509Cert;
 	}
 
-X509_STORE* X509::GetRootStore(zeek::TableVal* root_certs)
+X509_STORE* X509::GetRootStore(TableVal* root_certs)
 	{
 	// If this certificate store was built previously, just reuse the old one.
 	if ( x509_stores.count(root_certs) > 0 )
@@ -255,13 +255,13 @@ X509_STORE* X509::GetRootStore(zeek::TableVal* root_certs)
 		{
 		const auto& key = idxs->Idx(i);
 		auto val = root_certs->FindOrDefault(key);
-		zeek::StringVal* sv = val->AsStringVal();
+		StringVal* sv = val->AsStringVal();
 		assert(sv);
 		const uint8_t* data = sv->Bytes();
 		::X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
-			zeek::emit_builtin_error(zeek::util::fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
+			emit_builtin_error(util::fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
 			return nullptr;
 			}
 
@@ -291,15 +291,15 @@ void X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		{
 		if ( x509_ext_basic_constraints )
 			{
-			auto pBasicConstraint = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::BasicConstraints);
-			pBasicConstraint->Assign(0, zeek::val_mgr->Bool(constr->ca));
+			auto pBasicConstraint = make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
+			pBasicConstraint->Assign(0, val_mgr->Bool(constr->ca));
 
 			if ( constr->pathlen )
-				pBasicConstraint->Assign(1, zeek::val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+				pBasicConstraint->Assign(1, val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
-			zeek::event_mgr.Enqueue(x509_ext_basic_constraints,
-			                        GetFile()->ToVal(),
-			                        std::move(pBasicConstraint)
+			event_mgr.Enqueue(x509_ext_basic_constraints,
+			                  GetFile()->ToVal(),
+			                  std::move(pBasicConstraint)
 			);
 			}
 
@@ -307,7 +307,7 @@ void X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		}
 
 	else
-		zeek::reporter->Weird(GetFile(), "x509_invalid_basic_constraint");
+		reporter->Weird(GetFile(), "x509_invalid_basic_constraint");
 	}
 
 void X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
@@ -337,14 +337,14 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES *altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
 	if ( ! altname )
 		{
-		zeek::reporter->Weird(GetFile(), "x509_san_parse_error");
+		reporter->Weird(GetFile(), "x509_san_parse_error");
 		return;
 		}
 
-	zeek::VectorValPtr names;
-	zeek::VectorValPtr emails;
-	zeek::VectorValPtr uris;
-	zeek::VectorValPtr ips;
+	VectorValPtr names;
+	VectorValPtr emails;
+	VectorValPtr uris;
+	VectorValPtr ips;
 
 	bool otherfields = false;
 
@@ -357,7 +357,7 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 			{
 			if ( ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING )
 				{
-				zeek::reporter->Weird(GetFile(), "x509_san_non_string");
+				reporter->Weird(GetFile(), "x509_san_non_string");
 				continue;
 				}
 
@@ -366,27 +366,27 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 #else
 			const char* name = (const char*) ASN1_STRING_get0_data(gen->d.ia5);
 #endif
-			auto bs = zeek::make_intrusive<zeek::StringVal>(name);
+			auto bs = make_intrusive<StringVal>(name);
 
 			switch ( gen->type )
 				{
 				case GEN_DNS:
 					if ( names == nullptr )
-						names = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+						names = make_intrusive<VectorVal>(id::string_vec);
 
 					names->Assign(names->Size(), std::move(bs));
 					break;
 
 				case GEN_URI:
 					if ( uris == nullptr )
-						uris = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+						uris = make_intrusive<VectorVal>(id::string_vec);
 
 					uris->Assign(uris->Size(), std::move(bs));
 					break;
 
 				case GEN_EMAIL:
 					if ( emails == nullptr )
-						emails = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+						emails = make_intrusive<VectorVal>(id::string_vec);
 
 					emails->Assign(emails->Size(), std::move(bs));
 					break;
@@ -396,33 +396,33 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 		else if ( gen->type == GEN_IPADD )
 			{
 				if ( ips == nullptr )
-					ips = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("addr_vec"));
+					ips = make_intrusive<VectorVal>(id::find_type<VectorType>("addr_vec"));
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 
 				if( gen->d.ip->length == 4 )
-					ips->Assign(ips->Size(), zeek::make_intrusive<zeek::AddrVal>(*addr));
+					ips->Assign(ips->Size(), make_intrusive<AddrVal>(*addr));
 
 				else if ( gen->d.ip->length == 16 )
-					ips->Assign(ips->Size(), zeek::make_intrusive<zeek::AddrVal>(addr));
+					ips->Assign(ips->Size(), make_intrusive<AddrVal>(addr));
 
 				else
 					{
-					zeek::reporter->Weird(GetFile(), "x509_san_ip_length", zeek::util::fmt("%d", gen->d.ip->length));
+					reporter->Weird(GetFile(), "x509_san_ip_length", util::fmt("%d", gen->d.ip->length));
 					continue;
 					}
 			}
 
 		else
 			{
-			// zeek::reporter->Error("Subject alternative name contained unsupported fields. fuid %s", GetFile()->GetID().c_str());
+			// reporter->Error("Subject alternative name contained unsupported fields. fuid %s", GetFile()->GetID().c_str());
 			// This happens quite often - just mark it
 			otherfields = true;
 			continue;
 			}
 		}
 
-		auto sanExt = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::SubjectAlternativeName);
+		auto sanExt = make_intrusive<RecordVal>(BifType::Record::X509::SubjectAlternativeName);
 
 		if ( names != nullptr )
 			sanExt->Assign(0, names);
@@ -436,15 +436,15 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 		if ( ips != nullptr )
 			sanExt->Assign(3, ips);
 
-		sanExt->Assign(4, zeek::val_mgr->Bool(otherfields));
+		sanExt->Assign(4, val_mgr->Bool(otherfields));
 
-		zeek::event_mgr.Enqueue(x509_ext_subject_alternative_name,
+		event_mgr.Enqueue(x509_ext_subject_alternative_name,
 		                        GetFile()->ToVal(),
 		                        std::move(sanExt));
 	GENERAL_NAMES_free(altname);
 	}
 
-zeek::StringValPtr X509::KeyCurve(EVP_PKEY* key)
+StringValPtr X509::KeyCurve(EVP_PKEY* key)
 	{
 	assert(key != nullptr);
 
@@ -473,7 +473,7 @@ zeek::StringValPtr X509::KeyCurve(EVP_PKEY* key)
 	if ( curve_name == nullptr )
 		return nullptr;
 
-	return zeek::make_intrusive<zeek::StringVal>(curve_name);
+	return make_intrusive<StringVal>(curve_name);
 #endif
 	}
 
@@ -525,7 +525,7 @@ unsigned int X509::KeyLength(EVP_PKEY *key)
 		return 0; // unknown public key type
 	}
 
-	zeek::reporter->InternalError("cannot be reached");
+	reporter->InternalError("cannot be reached");
 	}
 
 X509Val::X509Val(::X509* arg_certificate) : OpaqueVal(x509_opaque_type)
@@ -544,9 +544,9 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
-zeek::ValPtr X509Val::DoClone(CloneState* state)
+ValPtr X509Val::DoClone(CloneState* state)
 	{
-	auto copy = zeek::make_intrusive<X509Val>();
+	auto copy = make_intrusive<X509Val>();
 	if ( certificate )
 		copy->certificate = X509_dup(certificate);
 

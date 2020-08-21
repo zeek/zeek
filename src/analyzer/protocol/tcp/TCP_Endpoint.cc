@@ -56,7 +56,7 @@ TCP_Endpoint::~TCP_Endpoint()
 	delete contents_processor;
 	}
 
-zeek::Connection* TCP_Endpoint::Conn() const
+Connection* TCP_Endpoint::Conn() const
 	{
 	return tcp_analyzer->Conn();
 	}
@@ -72,7 +72,7 @@ void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
 	peer = p;
 	if ( IsOrig() )
 		// Only one Endpoint adds the initial state to the counter.
-		zeek::sessions->tcp_stats.StateEntered(state, peer->state);
+		sessions->tcp_stats.StateEntered(state, peer->state);
 	}
 
 bool TCP_Endpoint::HadGap() const
@@ -156,10 +156,10 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		prev_state = state;
 		state = new_state;
 		if ( IsOrig() )
-			zeek::sessions->tcp_stats.ChangeState(prev_state, state,
+			sessions->tcp_stats.ChangeState(prev_state, state,
 			                                      peer->state, peer->state);
 		else
-			zeek::sessions->tcp_stats.ChangeState(peer->state, peer->state,
+			sessions->tcp_stats.ChangeState(peer->state, peer->state,
 			                                      prev_state, state);
 		}
 	}
@@ -201,7 +201,7 @@ uint64_t TCP_Endpoint::Size() const
 
 bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
                             const u_char* data,
-                            const zeek::IP_Hdr* ip, const struct tcphdr* tp)
+                            const IP_Hdr* ip, const struct tcphdr* tp)
 	{
 	bool status = false;
 
@@ -233,14 +233,14 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
 			{
 			char buf[256];
-			zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
-			zeek::reporter->Error("TCP contents write failed: %s", buf);
+			util::zeek_strerror_r(errno, buf, sizeof(buf));
+			reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )
 				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 					Conn()->ConnVal(),
-					zeek::val_mgr->Bool(IsOrig()),
-					zeek::make_intrusive<zeek::StringVal>(buf)
+					val_mgr->Bool(IsOrig()),
+					make_intrusive<StringVal>(buf)
 				);
 			}
 		}
@@ -254,7 +254,7 @@ void TCP_Endpoint::AckReceived(uint64_t seq)
 		contents_processor->AckReceived(seq);
 	}
 
-void TCP_Endpoint::SetContentsFile(zeek::FilePtr f)
+void TCP_Endpoint::SetContentsFile(FilePtr f)
 	{
 	contents_file = std::move(f);
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);

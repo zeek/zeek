@@ -18,12 +18,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
-using StringValPtr = zeek::IntrusivePtr<StringVal>;
+using StringValPtr = IntrusivePtr<StringVal>;
 }
 
 namespace zeek::file_analysis::detail {
 
-class X509Common : public zeek::file_analysis::Analyzer {
+class X509Common : public file_analysis::Analyzer {
 public:
 	~X509Common() override {};
 
@@ -38,22 +38,22 @@ public:
 	 *
 	 * @return The X509 extension value.
 	 */
-	static zeek::StringValPtr GetExtensionFromBIO(BIO* bio, zeek::file_analysis::File* f = nullptr);
+	static StringValPtr GetExtensionFromBIO(BIO* bio, file_analysis::File* f = nullptr);
 
-	static double GetTimeFromAsn1(const ASN1_TIME* atime, zeek::file_analysis::File* f,
-	                              zeek::Reporter* reporter);
+	static double GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* f,
+	                              Reporter* reporter);
 
 protected:
-	X509Common(const zeek::file_analysis::Tag& arg_tag,
-	           zeek::RecordValPtr arg_args,
-	           zeek::file_analysis::File* arg_file);
+	X509Common(const file_analysis::Tag& arg_tag,
+	           RecordValPtr arg_args,
+	           file_analysis::File* arg_file);
 
-	void ParseExtension(X509_EXTENSION* ex, const zeek::EventHandlerPtr& h, bool global);
+	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
 };
 
-} // namespace zeek:file_analysis
+} // namespace zeek::file_analysis
 
 namespace file_analysis {
 

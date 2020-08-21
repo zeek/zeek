@@ -10,9 +10,9 @@
 
 namespace zeek::file_analysis::detail {
 
-Extract::Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
+Extract::Extract(RecordValPtr args, file_analysis::File* file,
                  const std::string& arg_filename, uint64_t arg_limit)
-    : file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("EXTRACT"),
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
                               std::move(args), file),
       filename(arg_filename), limit(arg_limit), depth(0)
 	{
@@ -22,30 +22,30 @@ Extract::Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
 		{
 		fd = 0;
 		char buf[128];
-		zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
-		zeek::reporter->Error("cannot open %s: %s", filename.c_str(), buf);
+		util::zeek_strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("cannot open %s: %s", filename.c_str(), buf);
 		}
 	}
 
 Extract::~Extract()
 	{
 	if ( fd )
-		zeek::util::safe_close(fd);
+		util::safe_close(fd);
 	}
 
-static const zeek::ValPtr& get_extract_field_val(const zeek::RecordValPtr& args,
-                                                 const char* name)
+static const ValPtr& get_extract_field_val(const RecordValPtr& args,
+                                           const char* name)
 	{
 	const auto& rval = args->GetField(name);
 
 	if ( ! rval )
-		zeek::reporter->Error("File extraction analyzer missing arg field: %s", name);
+		reporter->Error("File extraction analyzer missing arg field: %s", name);
 
 	return rval;
 	}
 
-zeek::file_analysis::Analyzer* Extract::Instantiate(zeek::RecordValPtr args,
-                                                    zeek::file_analysis::File* file)
+file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args,
+                                              file_analysis::File* file)
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
@@ -93,12 +93,12 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 	if ( limit_exceeded && file_extraction_limit )
 		{
-		zeek::file_analysis::File* f = GetFile();
+		file_analysis::File* f = GetFile();
 		f->FileEvent(file_extraction_limit, {
 			f->ToVal(),
 			GetArgs(),
-			zeek::val_mgr->Count(limit),
-			zeek::val_mgr->Count(len)
+			val_mgr->Count(limit),
+			val_mgr->Count(len)
 		});
 
 		// Limit may have been modified by a BIF, re-check it.
@@ -107,7 +107,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 	if ( towrite > 0 )
 		{
-		zeek::util::safe_write(fd, reinterpret_cast<const char*>(data), towrite);
+		util::safe_write(fd, reinterpret_cast<const char*>(data), towrite);
 		depth += towrite;
 		}
 
@@ -119,7 +119,7 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 	if ( depth == offset )
 		{
 		char* tmp = new char[len]();
-		zeek::util::safe_write(fd, tmp, len);
+		util::safe_write(fd, tmp, len);
 		delete [] tmp;
 		depth += len;
 		}

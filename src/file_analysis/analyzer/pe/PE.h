@@ -11,12 +11,12 @@ namespace zeek::file_analysis::detail {
 /**
  * Analyze Portable Executable files
  */
-class PE : public zeek::file_analysis::Analyzer {
+class PE : public file_analysis::Analyzer {
 public:
 	~PE();
 
-	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                                  zeek::file_analysis::File* file)
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	                                            file_analysis::File* file)
 		{ return new PE(std::move(args), file); }
 
 	virtual bool DeliverStream(const u_char* data, uint64_t len);
@@ -24,7 +24,7 @@ public:
 	virtual bool EndOfFile();
 
 protected:
-	PE(zeek::RecordValPtr args, zeek::file_analysis::File* file);
+	PE(RecordValPtr args, file_analysis::File* file);
 	binpac::PE::File* interp;
 	binpac::PE::MockConnection* conn;
 	bool done;

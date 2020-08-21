@@ -8,16 +8,16 @@
 
 namespace zeek::analyzer::syslog {
 
-class Syslog_Analyzer : public zeek::analyzer::Analyzer {
+class Syslog_Analyzer : public analyzer::Analyzer {
 public:
-	explicit Syslog_Analyzer(zeek::Connection* conn);
+	explicit Syslog_Analyzer(Connection* conn);
 	~Syslog_Analyzer() override;
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Syslog_Analyzer(conn); }
 
 protected:
@@ -28,9 +28,9 @@ protected:
 
 // #include "Syslog_tcp_pac.h"
 //
-//class Syslog_tcp::TCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+//class Syslog_tcp::TCP_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 //public:
-//	Syslog_tcp::TCP_Analyzer(zeek::Connection* conn);
+//	Syslog_tcp::TCP_Analyzer(Connection* conn);
 //	virtual ~Syslog_tcp::TCP_Analyzer();
 //
 //	virtual void Done();
@@ -38,7 +38,7 @@ protected:
 //	virtual void Undelivered(uint64_t seq, int len, bool orig);
 //	virtual void EndpointEOF(tcp::TCP_Reassembler* endp);
 //
-//	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+//	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new Syslog_tcp::TCP_Analyzer(conn); }
 //
 //protected:

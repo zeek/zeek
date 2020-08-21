@@ -27,9 +27,9 @@ class HTTP_Entity;
 class HTTP_Message;
 class HTTP_Analyzer;
 
-class HTTP_Entity final : public zeek::analyzer::mime::MIME_Entity {
+class HTTP_Entity final : public analyzer::mime::MIME_Entity {
 public:
-	HTTP_Entity(HTTP_Message* msg, zeek::analyzer::mime::MIME_Entity* parent_entity,
+	HTTP_Entity(HTTP_Message* msg, analyzer::mime::MIME_Entity* parent_entity,
 	            int expect_body);
 	~HTTP_Entity() override
 		{
@@ -58,7 +58,7 @@ protected:
 	int64_t body_length;
 	int64_t header_length;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-	zeek::analyzer::zip::ZIP_Analyzer* zip;
+	analyzer::zip::ZIP_Analyzer* zip;
 	bool deliver_body;
 	bool is_partial_content;
 	uint64_t offset;
@@ -66,7 +66,7 @@ protected:
 	bool send_size; // whether to send size indication to FAF
 	std::string precomputed_file_id;
 
-	zeek::analyzer::mime::MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
+	analyzer::mime::MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
 
 	void DeliverBody(int len, const char* data, bool trailing_CRLF);
 	void DeliverBodyClear(int len, const char* data, bool trailing_CRLF);
@@ -75,7 +75,7 @@ protected:
 
 	void SetPlainDelivery(int64_t length);
 
-	void SubmitHeader(zeek::analyzer::mime::MIME_Header* h) override;
+	void SubmitHeader(analyzer::mime::MIME_Header* h) override;
 	void SubmitAllHeaders() override;
 };
 
@@ -96,11 +96,11 @@ enum {
 // HTTP_Message::EndEntity	-> Message::Done
 // HTTP_MessageDone	-> {Request,Reply}Made
 
-class HTTP_Message final : public zeek::analyzer::mime::MIME_Message {
+class HTTP_Message final : public analyzer::mime::MIME_Message {
 friend class HTTP_Entity;
 
 public:
-	HTTP_Message(HTTP_Analyzer* analyzer, zeek::analyzer::tcp::ContentLine_Analyzer* cl,
+	HTTP_Message(HTTP_Analyzer* analyzer, analyzer::tcp::ContentLine_Analyzer* cl,
 	             bool is_orig, int expect_body, int64_t init_header_length);
 	~HTTP_Message() override;
 	void Done(bool interrupted, const char* msg);
@@ -108,16 +108,16 @@ public:
 
 	bool Undelivered(int64_t len);
 
-	void BeginEntity(zeek::analyzer::mime::MIME_Entity* /* entity */) override;
-	void EndEntity(zeek::analyzer::mime::MIME_Entity* entity) override;
-	void SubmitHeader(zeek::analyzer::mime::MIME_Header* h) override;
-	void SubmitAllHeaders(zeek::analyzer::mime::MIME_HeaderList& /* hlist */) override;
+	void BeginEntity(analyzer::mime::MIME_Entity* /* entity */) override;
+	void EndEntity(analyzer::mime::MIME_Entity* entity) override;
+	void SubmitHeader(analyzer::mime::MIME_Header* h) override;
+	void SubmitAllHeaders(analyzer::mime::MIME_HeaderList& /* hlist */) override;
 	void SubmitData(int len, const char* buf) override;
 	bool RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail) override;
 
-	void SubmitTrailingHeaders(zeek::analyzer::mime::MIME_HeaderList& /* hlist */);
+	void SubmitTrailingHeaders(analyzer::mime::MIME_HeaderList& /* hlist */);
 	void SetPlainDelivery(int64_t length);
 	void SkipEntityData();
 
@@ -129,7 +129,7 @@ public:
 
 protected:
 	HTTP_Analyzer* analyzer;
-	zeek::analyzer::tcp::ContentLine_Analyzer* content_line;
+	analyzer::tcp::ContentLine_Analyzer* content_line;
 	bool is_orig;
 
 	char* entity_data_buffer;
@@ -145,18 +145,18 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	zeek::RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
+	RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
 };
 
-class HTTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class HTTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	HTTP_Analyzer(zeek::Connection* conn);
+	HTTP_Analyzer(Connection* conn);
 
-	void HTTP_Header(bool is_orig, zeek::analyzer::mime::MIME_Header* h);
-	void HTTP_EntityData(bool is_orig, zeek::String* entity_data);
+	void HTTP_Header(bool is_orig, analyzer::mime::MIME_Header* h);
+	void HTTP_EntityData(bool is_orig, String* entity_data);
 	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
-	void HTTP_Event(const char* category, zeek::StringValPtr detail);
+	void HTTP_Event(const char* category, StringValPtr detail);
 
 	void SkipEntityData(bool is_orig);
 
@@ -168,7 +168,7 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer
+	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer
 	void EndpointEOF(bool is_orig) override;
 	void ConnectionFinished(bool half_finished) override;
 	void ConnectionReset() override;
@@ -195,7 +195,7 @@ public:
 	int GetRequestOngoing() { return request_ongoing; };
 	int GetReplyOngoing() { return reply_ongoing; };
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()
@@ -210,7 +210,7 @@ protected:
 	int HTTP_RequestLine(const char* line, const char* end_of_line);
 	int HTTP_ReplyLine(const char* line, const char* end_of_line);
 
-	void InitHTTPMessage(zeek::analyzer::tcp::ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig,
+	void InitHTTPMessage(analyzer::tcp::ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig,
 	                     int expect_body, int64_t init_header_length);
 
 	const char* PrefixMatch(const char* line, const char* end_of_line,
@@ -230,14 +230,14 @@ protected:
 
 	void RequestMade(bool interrupted, const char* msg);
 	void ReplyMade(bool interrupted, const char* msg);
-	void RequestClash(zeek::Val* clash_val);
+	void RequestClash(Val* clash_val);
 
-	const zeek::String* UnansweredRequestMethod();
+	const String* UnansweredRequestMethod();
 
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 
-	zeek::StringValPtr TruncateURI(const zeek::StringValPtr& uri);
+	StringValPtr TruncateURI(const StringValPtr& uri);
 
 	int request_state, reply_state;
 	int num_requests, num_replies;
@@ -248,7 +248,7 @@ protected:
 	int request_ongoing, reply_ongoing;
 
 	bool connect_request;
-	zeek::analyzer::pia::PIA_TCP *pia;
+	analyzer::pia::PIA_TCP *pia;
 	// set to true after a connection was upgraded
 	bool upgraded;
 	// set to true when encountering an "connection" header in a reply.
@@ -257,22 +257,22 @@ protected:
 	// in a reply.
 	std::string upgrade_protocol;
 
-	zeek::StringValPtr request_method;
+	StringValPtr request_method;
 
 	// request_URI is in the original form (may contain '%<hex><hex>'
 	// sequences).
-	zeek::StringValPtr request_URI;
+	StringValPtr request_URI;
 
 	// unescaped_URI does not contain escaped sequences.
-	zeek::StringValPtr unescaped_URI;
+	StringValPtr unescaped_URI;
 
-	std::queue<zeek::StringValPtr> unanswered_requests;
+	std::queue<StringValPtr> unanswered_requests;
 
 	int reply_code;
-	zeek::StringValPtr reply_reason_phrase;
+	StringValPtr reply_reason_phrase;
 
-	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_orig;
-	zeek::analyzer::tcp::ContentLine_Analyzer* content_line_resp;
+	analyzer::tcp::ContentLine_Analyzer* content_line_orig;
+	analyzer::tcp::ContentLine_Analyzer* content_line_resp;
 
 	HTTP_Message* request_message;
 	HTTP_Message* reply_message;
@@ -281,8 +281,8 @@ protected:
 extern bool is_reserved_URI_char(unsigned char ch);
 extern bool is_unreserved_URI_char(unsigned char ch);
 extern void escape_URI_char(unsigned char ch, unsigned char*& p);
-extern zeek::String* unescape_URI(const u_char* line, const u_char* line_end,
-                                  zeek::analyzer::Analyzer* analyzer);
+extern String* unescape_URI(const u_char* line, const u_char* line_end,
+                            analyzer::Analyzer* analyzer);
 
 } // namespace zeek::analyzer::http
 

@@ -6,8 +6,8 @@
 
 namespace zeek::analyzer::ntp {
 
-NTP_Analyzer::NTP_Analyzer(zeek::Connection* c)
-	: zeek::analyzer::Analyzer("NTP", c)
+NTP_Analyzer::NTP_Analyzer(Connection* c)
+	: analyzer::Analyzer("NTP", c)
 	{
 	interp = new binpac::NTP::NTP_Conn(this);
 	}
@@ -24,7 +24,7 @@ NTP_Analyzer::~NTP_Analyzer()
 	}
 
 void NTP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+                                 uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -34,7 +34,7 @@ void NTP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

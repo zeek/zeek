@@ -9,10 +9,10 @@ namespace binpac { namespace MQTT { class MQTT_Conn; } }
 
 namespace zeek::analyzer::mqtt {
 
-class MQTT_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class MQTT_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
-	MQTT_Analyzer(zeek::Connection* conn);
+	MQTT_Analyzer(Connection* conn);
 	~MQTT_Analyzer() override;
 
 	void Done() override;
@@ -20,7 +20,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new MQTT_Analyzer(conn); }
 
 protected:

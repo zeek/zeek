@@ -6,7 +6,7 @@
 
 namespace zeek::analyzer::syslog {
 
-Syslog_Analyzer::Syslog_Analyzer(zeek::Connection* conn)
+Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
 : Analyzer("SYSLOG", conn)
 	{
 	interp = new binpac::Syslog::Syslog_Conn(this);
@@ -28,7 +28,7 @@ void Syslog_Analyzer::Done()
 		Event(udp_session_done);
 	}
 
-void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->NewData(orig, data, data + len);
@@ -49,8 +49,8 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //				t + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 //	}
 
-//Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(zeek::Connection* conn)
-//: zeek::analyzer::tcp::TCP_ApplicationAnalyzer(conn)
+//Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)
+//: analyzer::tcp::TCP_ApplicationAnalyzer(conn)
 //	{
 //	interp = new binpac::Syslog_on_TCP::Syslog_TCP_Conn(this);
 //	}
@@ -62,7 +62,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 //void Syslog_tcp::TCP_Analyzer::Done()
 //	{
-//	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+//	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 //
 //	interp->FlowEOF(true);
 //	interp->FlowEOF(false);
@@ -70,14 +70,14 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 //void Syslog_tcp::TCP_Analyzer::EndpointEOF(tcp::TCP_Reassembler* endp)
 //	{
-//	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(endp);
+//	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(endp);
 //	interp->FlowEOF(endp->IsOrig());
 //	}
 
 //void Syslog_tcp::TCP_Analyzer::DeliverStream(int len, const u_char* data,
 //						bool orig)
 //	{
-//	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+//	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 //
 //	assert(TCP());
 //
@@ -90,7 +90,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 //void Syslog_tcp::TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 //	{
-//	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+//	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 //	interp->NewGap(orig, len);
 //	}
 

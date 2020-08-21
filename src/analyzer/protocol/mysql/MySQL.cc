@@ -7,8 +7,8 @@
 
 namespace zeek::analyzer::mysql {
 
-MySQL_Analyzer::MySQL_Analyzer(zeek::Connection* c)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("MySQL", c)
+MySQL_Analyzer::MySQL_Analyzer(Connection* c)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("MySQL", c)
 	{
 	interp = new binpac::MySQL::MySQL_Conn(this);
 	had_gap = false;
@@ -21,7 +21,7 @@ MySQL_Analyzer::~MySQL_Analyzer()
 
 void MySQL_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -29,13 +29,13 @@ void MySQL_Analyzer::Done()
 
 void MySQL_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void MySQL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -53,13 +53,13 @@ void MySQL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
 void MySQL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

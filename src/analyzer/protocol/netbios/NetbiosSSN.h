@@ -70,7 +70,7 @@ enum NetbiosSSN_State {
 
 class NetbiosSSN_Interpreter {
 public:
-	explicit NetbiosSSN_Interpreter(zeek::analyzer::Analyzer* analyzer);
+	explicit NetbiosSSN_Interpreter(analyzer::Analyzer* analyzer);
 
 	void ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, bool is_query);
@@ -95,7 +95,7 @@ protected:
 
 	void ParseSambaMsg(const u_char* data, int len, bool is_query);
 
-	void Event(zeek::EventHandlerPtr event, const u_char* data, int len,
+	void Event(EventHandlerPtr event, const u_char* data, int len,
 	           int is_orig = -1);
 
 	// Pass in name/length, returns in xname/xlen the converted
@@ -105,16 +105,16 @@ protected:
 			u_char*& xname, int& xlen);
 
 protected:
-	zeek::analyzer::Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	//SMB_Session* smb_session;
 };
 
 } // namespace detail
 
 // ### This should be merged with TCP_Contents_RPC, TCP_Contents_DNS.
-class Contents_NetbiosSSN final : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
+class Contents_NetbiosSSN final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
-	Contents_NetbiosSSN(zeek::Connection* conn, bool orig,
+	Contents_NetbiosSSN(Connection* conn, bool orig,
 	                    detail::NetbiosSSN_Interpreter* interp);
 	~Contents_NetbiosSSN() override;
 
@@ -139,21 +139,21 @@ protected:
 	detail::NetbiosSSN_State state;
 };
 
-class NetbiosSSN_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class NetbiosSSN_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit NetbiosSSN_Analyzer(zeek::Connection* conn);
+	explicit NetbiosSSN_Analyzer(Connection* conn);
 	~NetbiosSSN_Analyzer() override;
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-	                   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
 
 protected:
-	void ConnectionClosed(zeek::analyzer::tcp::TCP_Endpoint* endpoint,
-	                      zeek::analyzer::tcp::TCP_Endpoint* peer, bool gen_event) override;
+	void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
+	                      analyzer::tcp::TCP_Endpoint* peer, bool gen_event) override;
 	void EndpointEOF(bool is_orig) override;
 
 	void ExpireTimer(double t);

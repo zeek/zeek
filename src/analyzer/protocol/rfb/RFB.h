@@ -8,10 +8,10 @@
 
 namespace zeek::analyzer::rfb {
 
-class RFB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class RFB_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit RFB_Analyzer(zeek::Connection* conn);
+	explicit RFB_Analyzer(Connection* conn);
 	~RFB_Analyzer() override;
 
 	// Overriden from Analyzer.
@@ -20,10 +20,10 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
+	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new RFB_Analyzer(conn); }
 
 protected:

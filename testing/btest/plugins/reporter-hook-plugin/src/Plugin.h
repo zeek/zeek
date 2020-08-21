@@ -3,22 +3,20 @@
 
 #include <plugin/Plugin.h>
 
-namespace plugin {
-namespace Reporter_Hook {
+namespace btest::plugin::Reporter_Hook {
 
-class Plugin : public ::plugin::Plugin
+class Plugin : public zeek::plugin::Plugin
 {
 protected:
-	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
-	                  const Connection* conn, const val_list* addl, bool location,
-	                  const Location* location1, const Location* location2,
+	bool HookReporter(const std::string& prefix, const zeek::EventHandlerPtr event,
+	                  const zeek::Connection* conn, const zeek::ValPList* addl, bool location,
+	                  const zeek::detail::Location* location1, const zeek::detail::Location* location2,
 	                  bool time, const std::string& buffer) override;
 
 	// Overridden from plugin::Plugin.
-	plugin::Configuration Configure() override;
+	zeek::plugin::Configuration Configure() override;
 };
 
 extern Plugin plugin;
 
-}
 }

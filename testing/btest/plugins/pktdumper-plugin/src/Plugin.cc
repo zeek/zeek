@@ -4,16 +4,15 @@
 #include "Foo.h"
 #include "iosource/Component.h"
 
+namespace btest::plugin::Demo_Foo { Plugin plugin; }
 
-namespace plugin { namespace Demo_Foo { Plugin plugin; } }
+using namespace btest::plugin::Demo_Foo;
 
-using namespace plugin::Demo_Foo;
-
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
-	AddComponent(new ::iosource::PktDumperComponent("FooPktDumper", "foo", ::plugin::Demo_Foo::Foo::Instantiate));
+	AddComponent(new zeek::iosource::PktDumperComponent("FooPktDumper", "foo", btest::plugin::Demo_Foo::Foo::Instantiate));
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Demo::Foo";
 	config.description = "A Foo packet dumper";
 	config.version.major = 1;

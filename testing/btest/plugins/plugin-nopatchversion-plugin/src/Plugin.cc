@@ -1,13 +1,13 @@
 
 #include "Plugin.h"
 
-namespace plugin { namespace Testing_NoPatchVersion { Plugin plugin; } }
+namespace btest::plugin::Testing_NoPatchVersion { Plugin plugin; }
 
-using namespace plugin::Testing_NoPatchVersion;
+using namespace btest::plugin::Testing_NoPatchVersion;
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Testing::NoPatchVersion";
 	config.description = "Testing a plugin without a specified patch version";
 	config.version.major = 0;

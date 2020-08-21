@@ -4,15 +4,16 @@
 #include "Foo.h"
 #include "iosource/Component.h"
 
-namespace plugin { namespace Demo_Foo { Plugin plugin; } }
+namespace btest::plugin::Demo_Foo { Plugin plugin; }
 
-using namespace plugin::Demo_Foo;
+using namespace btest::plugin::Demo_Foo;
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
-	AddComponent(new ::iosource::PktSrcComponent("FooPktSrc", "foo", ::iosource::PktSrcComponent::BOTH, ::plugin::Demo_Foo::Foo::Instantiate));
+	AddComponent(new zeek::iosource::PktSrcComponent("FooPktSrc", "foo", zeek::iosource::PktSrcComponent::BOTH,
+	                                                 btest::plugin::Demo_Foo::Foo::Instantiate));
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Demo::Foo";
 	config.description = "A Foo packet source";
 	config.version.major = 1;

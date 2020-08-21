@@ -8,7 +8,7 @@ extern "C" {
 #include <fcntl.h>
 #include <stdio.h>
 
-using namespace plugin::Demo_Foo;
+using namespace btest::plugin::Demo_Foo;
 
 Foo::Foo(const std::string& path, bool is_live)
 	{
@@ -25,7 +25,7 @@ Foo::Foo(const std::string& path, bool is_live)
 	props.is_live = 0;
 	}
 
-iosource::PktSrc* Foo::Instantiate(const std::string& path, bool is_live)
+zeek::iosource::PktSrc* Foo::Instantiate(const std::string& path, bool is_live)
 	{
 	return new Foo(path, is_live);
 	}
@@ -40,7 +40,7 @@ void Foo::Close()
 	Closed();
 	}
 
-bool Foo::ExtractNextPacket(Packet* pkt)
+bool Foo::ExtractNextPacket(zeek::Packet* pkt)
 	{
 	if ( packet.empty() )
 		{

@@ -4,19 +4,18 @@
 #include <Val.h>
 #include <iosource/PktSrc.h>
 
-namespace plugin {
-namespace Demo_Foo {
+namespace btest::plugin::Demo_Foo {
 
-class Foo : public iosource::PktSrc {
+class Foo : public zeek::iosource::PktSrc {
 public:
 	Foo(const std::string& path, bool is_live);
 
-	static PktSrc* Instantiate(const std::string& path, bool is_live);
+	static zeek::iosource::PktSrc* Instantiate(const std::string& path, bool is_live);
 
 protected:
 	virtual void Open();
 	virtual void Close();
-	virtual bool ExtractNextPacket(Packet* pkt);
+	virtual bool ExtractNextPacket(zeek::Packet* pkt);
 	virtual void DoneWithPacket();
 	virtual bool PrecompileFilter(int index, const std::string& filter);
 	virtual bool SetFilter(int index);
@@ -27,5 +26,4 @@ private:
 	std::string packet;
 };
 
-}
 }

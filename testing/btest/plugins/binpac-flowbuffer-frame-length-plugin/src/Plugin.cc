@@ -3,17 +3,16 @@
 
 #include "FOO.h"
 
-namespace plugin {
-namespace Foo_FOO {
+namespace btest::plugin::Foo_FOO {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new ::analyzer::Component("FOO",
-		             ::analyzer::FOO::FOO_Analyzer::InstantiateAnalyzer));
+		AddComponent(new zeek::analyzer::Component("FOO",
+		             btest::analyzer::FOO::FOO_Analyzer::InstantiateAnalyzer));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "FOO::Foo";
 		config.description = "Foo Analyzer analyzer";
 		config.version.major = 1;
@@ -22,5 +21,4 @@ public:
 		}
 } plugin;
 
-}
 }

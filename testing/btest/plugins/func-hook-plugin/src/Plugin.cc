@@ -8,17 +8,17 @@
 #include <zeek/Desc.h>
 #include <zeek/threading/Formatter.h>
 
-namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
+namespace btest::plugin::Demo_Hooks { Plugin plugin; }
 
-using namespace plugin::Demo_Hooks;
+using namespace btest::plugin::Demo_Hooks;
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
-	EnableHook(HOOK_CALL_FUNCTION);
-	EnableHook(META_HOOK_PRE);
-	EnableHook(META_HOOK_POST);
+	EnableHook(zeek::plugin::HOOK_CALL_FUNCTION);
+	EnableHook(zeek::plugin::META_HOOK_PRE);
+	EnableHook(zeek::plugin::META_HOOK_POST);
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Demo::Hooks";
 	config.description = "Exercises all plugin hooks";
 	config.version.major = 1;
@@ -27,34 +27,34 @@ plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-static void describe_hook_args(const plugin::HookArgumentList& args, ODesc* d)
+static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek::ODesc* d)
 	{
 	bool first = true;
 
-	for ( plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
+	for ( const auto& arg : args )
 		{
 		if ( ! first )
 			d->Add(", ");
 
-		i->Describe(d);
+		arg.Describe(d);
 		first = false;
 		}
 	}
 
-std::pair<bool, zeek::IntrusivePtr<Val>> Plugin::HookFunctionCall(
-	const Func* func, Frame* frame, zeek::Args* args)
+std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(
+	const zeek::Func* func, zeek::detail::Frame* frame, zeek::Args* args)
 	{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetShort();
-	HookArgument(func).Describe(&d);
-	HookArgument(args).Describe(&d);
-	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookFunctionCall",
-		d.Description());
+	zeek::plugin::HookArgument(func).Describe(&d);
+	zeek::plugin::HookArgument(args).Describe(&d);
+	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookFunctionCall",
+	        d.Description());
 
-	if ( streq(func->Name(), "foo") )
+	if ( zeek::util::streq(func->Name(), "foo") )
 		{
 		auto& vl = *args;
-		vl[0] = val_mgr->Count(42);
+		vl[0] = zeek::val_mgr->Count(42);
 		}
 
 	return {};
@@ -62,26 +62,26 @@ std::pair<bool, zeek::IntrusivePtr<Val>> Plugin::HookFunctionCall(
 
 void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args)
 	{
-	ODesc d;
+	zeek::ODesc d;
 	d.SetShort();
 	describe_hook_args(args, &d);
-	fprintf(stderr, "%.6f %-15s %s(%s)\n", network_time, "  MetaHookPre",
-		hook_name(hook), d.Description());
+	fprintf(stderr, "%.6f %-15s %s(%s)\n", zeek::run_state::network_time, "  MetaHookPre",
+	        hook_name(hook), d.Description());
 	}
 
 void Plugin::MetaHookPost(zeek::plugin::HookType hook,
 	                      const zeek::plugin::HookArgumentList& args,
                           zeek::plugin::HookArgument result)
 	{
-	ODesc d1;
+	zeek::ODesc d1;
 	d1.SetShort();
 	describe_hook_args(args, &d1);
 
-	ODesc d2;
+	zeek::ODesc d2;
 	d2.SetShort();
 	result.Describe(&d2);
 
-	fprintf(stderr, "%.6f %-15s %s(%s) -> %s\n", network_time, "  MetaHookPost",
-		hook_name(hook), d1.Description(),
-		d2.Description());
+	fprintf(stderr, "%.6f %-15s %s(%s) -> %s\n", zeek::run_state::network_time, "  MetaHookPost",
+	        hook_name(hook), d1.Description(),
+	        d2.Description());
 	}

@@ -5,23 +5,22 @@
 #include <events.bif.h>
 #include <file_analysis/Manager.h>
 
-using namespace plugin::Demo_Foo;
+using namespace btest::plugin::Demo_Foo;
 
-Foo::Foo(RecordVal* args, file_analysis::File* file)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("FOO"), args, file)
+Foo::Foo(zeek::RecordValPtr args, zeek::file_analysis::File* file)
+	: zeek::file_analysis::Analyzer(zeek::file_mgr->GetComponentTag("FOO"), std::move(args), file)
 	{
 	}
 
-file_analysis::Analyzer* Foo::Instantiate(RecordVal* args, file_analysis::File* file)
+zeek::file_analysis::Analyzer* Foo::Instantiate(zeek::RecordValPtr args, zeek::file_analysis::File* file)
 	{
-	return new Foo(args, file);
+	return new Foo(std::move(args), file);
 	}
 
-bool Foo::DeliverStream(const u_char* data, uint64 len)
+bool Foo::DeliverStream(const u_char* data, uint64_t len)
 	{
-	val_list* args = new val_list;
-	args->append(GetFile()->GetVal()->Ref());
-	args->append(new StringVal(new BroString(data, len, 0)));
-	mgr.QueueEvent(foo_piece, args);
+	zeek::event_mgr.Enqueue(foo_piece,
+	                        GetFile()->ToVal(),
+	                        zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, 0)));
     return true;
     }

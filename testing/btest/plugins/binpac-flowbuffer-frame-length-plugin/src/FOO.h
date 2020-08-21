@@ -7,11 +7,11 @@
 
 #include "foo_pac.h"
 
-namespace analyzer { namespace FOO {
+namespace btest::analyzer::FOO {
 
-class FOO_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class FOO_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	FOO_Analyzer(Connection* conn);
+	FOO_Analyzer(zeek::Connection* conn);
 	virtual ~FOO_Analyzer();
 
 	// Overriden from Analyzer.
@@ -23,7 +23,7 @@ public:
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
 		{ return new FOO_Analyzer(conn); }
 
 protected:
@@ -32,6 +32,6 @@ protected:
 
 };
 
-} } // namespace analyzer::FOO
+} // namespace btest::analyzer::FOO
 
 #endif

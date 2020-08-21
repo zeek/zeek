@@ -3,17 +3,15 @@
 
 #include <plugin/Plugin.h>
 
-namespace plugin {
-namespace Demo_Foo {
+namespace btest::plugin::Demo_Foo {
 
-class Plugin : public ::plugin::Plugin
+class Plugin : public zeek::plugin::Plugin
 {
 protected:
 	// Overridden from plugin::Plugin.
-	virtual plugin::Configuration Configure();
+	virtual zeek::plugin::Configuration Configure();
 };
 
 extern Plugin plugin;
 
-}
 }

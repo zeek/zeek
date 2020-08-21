@@ -6,9 +6,10 @@
 
 #include "foo.bif.h"
 
-using namespace analyzer::FOO;
+using namespace btest::analyzer::FOO;
+using namespace zeek::analyzer;
 
-FOO_Analyzer::FOO_Analyzer(Connection* c) : tcp::TCP_ApplicationAnalyzer("FOO", c)
+FOO_Analyzer::FOO_Analyzer(zeek::Connection* c) : tcp::TCP_ApplicationAnalyzer("FOO", c)
 	{
 	interp = new binpac::FOO::FOO_Conn(this);
 	had_gap = false;
@@ -53,7 +54,7 @@ void FOO_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	catch ( const binpac::Exception& e )
 		{
 		printf("Exception: %s\n", e.c_msg());
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

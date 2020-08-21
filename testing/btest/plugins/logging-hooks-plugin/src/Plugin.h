@@ -3,17 +3,20 @@
 
 #include <plugin/Plugin.h>
 
-namespace plugin {
-namespace Log_Hooks {
+namespace btest::plugin::Log_Hooks {
 
-class Plugin : public ::plugin::Plugin
+class Plugin : public zeek::plugin::Plugin
 {
 protected:
-	void HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local, bool remote, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields) override;
-	bool HookLogWrite(const std::string& writer, const std::string& filter, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields, threading::Value** vals) override;
+	void HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local,
+	                 bool remote, const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
+	                 const zeek::threading::Field* const* fields) override;
+	bool HookLogWrite(const std::string& writer, const std::string& filter,
+	                  const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
+	                  const zeek::threading::Field* const* fields, zeek::threading::Value** vals) override;
 
 	// Overridden from plugin::Plugin.
-	plugin::Configuration Configure() override;
+	zeek::plugin::Configuration Configure() override;
 
 private:
 	int round;
@@ -21,5 +24,4 @@ private:
 
 extern Plugin plugin;
 
-}
 }

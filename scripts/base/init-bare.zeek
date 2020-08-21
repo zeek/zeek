@@ -5357,8 +5357,9 @@ export {
         parent : PacketAnalyzer::Tag &optional;
 
         # A numeric identifier, which can be found in the packet data, that denotes the
-        # encapsulated protocol.
-        identifier : count;
+        # encapsulated protocol. This field is optional. If it is not included, the
+        # configured child analyzer will be used as default analyzer.
+        identifier : count &optional;
 
         # The analyzer that corresponds to the above identifier.
         analyzer : PacketAnalyzer::Tag;

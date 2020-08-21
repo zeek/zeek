@@ -36,9 +36,9 @@ void Manager::InitPostScript()
 		auto* rv = mapping_val->At(i)->AsRecordVal();
 		//TODO: Make that field a string for usability reasons
 		//TODO: Check error handling when fields are omitted
-		auto& parent_tag = rv->GetField("parent");
-		std::string parent_name = parent_tag ? Lookup(parent_tag->AsEnumVal())->Name() : "ROOT";
-		auto identifier = rv->GetField("identifier")->AsCount();
+		auto& parent_val = rv->GetField("parent");
+		std::string parent_name = parent_val ? Lookup(parent_val->AsEnumVal())->Name() : "ROOT";
+		auto& identifier_val = rv->GetField("identifier");
 		auto analyzer_tag = rv->GetField("analyzer")->AsEnumVal();
 		auto analyzer_name = Lookup(analyzer_tag)->Name();
 
@@ -50,7 +50,11 @@ void Manager::InitPostScript()
 
 		if ( parent_name == "ROOT" )
 			{
-			root_dispatcher.Register(identifier, analyzers[analyzer_name]);
+			if ( identifier_val )
+				root_dispatcher.Register(identifier_val->AsCount(),
+						analyzers[analyzer_name]);
+			else
+				default_analyzer = analyzers[analyzer_name];
 			continue;
 			}
 
@@ -61,14 +65,12 @@ void Manager::InitPostScript()
 			}
 
 		auto& parent_analyzer = analyzers[parent_name];
-		parent_analyzer->RegisterAnalyzerMapping(identifier, analyzers[analyzer_name]);
+		if ( identifier_val )
+			parent_analyzer->RegisterAnalyzerMapping(identifier_val->AsCount(),
+					analyzers[analyzer_name]);
+		else
+			parent_analyzer->RegisterDefaultAnalyzer(analyzers[analyzer_name]);
 		}
-
-	// Set default analyzer
-	auto da_it = analyzers.find("DefaultAnalyzer");
-	if ( da_it == analyzers.end() )
-		reporter->InternalError("DefaultAnalyzer not found.");
-	default_analyzer = da_it->second;
 
 	// Initialize all analyzers
 	for ( auto& [name, analyzer] : analyzers )
@@ -139,7 +141,12 @@ void Manager::ProcessPacket(Packet* packet)
 	const uint8_t* data = packet->data;
 
 	auto root_analyzer = root_dispatcher.Lookup(packet->link_type);
-	auto analyzer = root_analyzer == nullptr ? default_analyzer : root_analyzer;
+	auto analyzer = root_analyzer ? root_analyzer : default_analyzer;
+	if ( !analyzer )
+		{
+		reporter->InternalWarning("No analyzer for link type %#x", packet->link_type);
+		return;
+		}
 
 	auto result = analyzer->Analyze(packet, data);
 	if (result == AnalyzerResult::Terminate)

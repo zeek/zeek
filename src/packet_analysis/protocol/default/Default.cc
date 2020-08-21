@@ -24,3 +24,21 @@ zeek::packet_analysis::AnalyzerResult DefaultAnalyzer::Analyze(Packet* packet, c
 
 	return AnalyzeInnerPacket(packet, data, protocol);
 	}
+
+zeek::packet_analysis::AnalyzerResult DefaultAnalyzer::AnalyzeInnerPacket(Packet* packet,
+		const uint8_t*& data, uint32_t identifier) const
+	{
+	auto inner_analyzer = Lookup(identifier);
+
+	if ( inner_analyzer == nullptr )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Default analysis in %s failed, could not find analyzer for identifier %#x.",
+				GetAnalyzerName(), identifier);
+		packet->Weird("no_suitable_analyzer_found");
+		return AnalyzerResult::Failed;
+		}
+
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Default analysis in %s succeeded, next layer identifier is %#x.",
+			GetAnalyzerName(), identifier);
+	return inner_analyzer->Analyze(packet, data);
+	}

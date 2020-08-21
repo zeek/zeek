@@ -74,9 +74,16 @@ public:
 	 *
 	 * @param identifier The identifier an analyzer should be called for.
 	 * @param analyzer The analyzer that should be called.
-	 * @return True if the registration was successfull.
+	 * @return True if the registration was successful.
 	 */
 	bool RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer);
+
+	/**
+	 * Registers a default analyzer.
+	 *
+	 * @param default_analyzer The analyzer to use as default.
+	 */
+	void RegisterDefaultAnalyzer(AnalyzerPtr default_analyzer);
 
 	/**
 	 * Analyzes the given packet. The data reference points to the part of the
@@ -96,6 +103,16 @@ protected:
 	friend class Manager;
 
 	/**
+	 * Looks up the analyzer for the encapsulated protocol based on the given
+	 * identifier.
+	 *
+	 * @param identifier Identifier for the encapsulated protocol.
+	 * @return The analyzer registered for the given identifier. Returns a
+	 * nullptr if no analyzer is registered.
+	 */
+	AnalyzerPtr Lookup(uint32_t identifier) const;
+
+	/**
 	 * Triggers analysis of the encapsulated packet. The encapsulated protocol
 	 * is determined using the given identifier.
 	 *
@@ -105,12 +122,13 @@ protected:
 	 *
 	 * @return The outcome of the analysis.
 	 */
-	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
-	                                  uint32_t identifier) const;
+	virtual AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
+	                                          uint32_t identifier) const;
 
 private:
 	Tag tag;
 	Dispatcher dispatcher;
+	AnalyzerPtr default_analyzer = nullptr;
 
 	void Init(const Tag& tag);
 };

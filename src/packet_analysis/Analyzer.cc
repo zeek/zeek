@@ -47,14 +47,24 @@ bool Analyzer::RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer
 	return dispatcher.Register(identifier, std::move(analyzer));
 	}
 
+void Analyzer::RegisterDefaultAnalyzer(AnalyzerPtr default_analyzer)
+	{
+	this->default_analyzer = std::move(default_analyzer);
+	}
+
+AnalyzerPtr Analyzer::Lookup(uint32_t identifier) const
+	{
+	return dispatcher.Lookup(identifier);
+	}
+
 AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
 		const uint8_t*& data, uint32_t identifier) const
 	{
-	auto inner_analyzer = dispatcher.Lookup(identifier);
+	auto inner_analyzer = Lookup(identifier);
+	inner_analyzer = inner_analyzer ? inner_analyzer : default_analyzer;
 
 	if ( inner_analyzer == nullptr )
 		{
-		//TODO: Handle default analysis here
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
 				GetAnalyzerName(), identifier);
 		packet->Weird("no_suitable_analyzer_found");

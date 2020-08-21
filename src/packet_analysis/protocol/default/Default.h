@@ -18,6 +18,10 @@ public:
 		{
 		return std::make_shared<DefaultAnalyzer>();
 		}
+
+protected:
+	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
+			                          uint32_t identifier) const override;
 };
 
 }

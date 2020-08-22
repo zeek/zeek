@@ -117,7 +117,7 @@ public:
 
 		if ( yt )
 			{
-			general_yt = yt;
+			general_yt = yt->Ref();
 			managed_yt = IsManagedType(yt) ? yt : nullptr;
 			}
 		else
@@ -128,17 +128,22 @@ public:
 		{
 		if ( managed_yt )
 			DeleteMembers();
+
+		Unref(general_yt);
 		}
 
 	BroType* YieldType() const	{ return general_yt; }
 
 	void SetYieldType(BroType* yt)
 		{
-		if ( ! general_yt || general_yt->Tag() == TYPE_ANY )
+		if ( ! general_yt || general_yt->Tag() == TYPE_ANY ||
+		     general_yt->Tag() == TYPE_VOID )
 			{
 			general_yt = yt;
 			if ( IsManagedType(yt) )
 				managed_yt = yt;
+			else
+				managed_yt = nullptr;
 			}
 		}
 

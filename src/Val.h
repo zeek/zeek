@@ -1055,10 +1055,12 @@ public:
 	bool Remove(unsigned int index);
 
 protected:
+	// For a vector with yield type void, concretizes it to instead
+	// be of type t.
+	void Concretize(BroType* yt);
+
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
-
-	VectorType* vector_type;
 };
 
 // Checks the given value for consistency with the given type.  If an

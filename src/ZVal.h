@@ -134,7 +134,7 @@ public:
 
 	void SetYieldType(BroType* yt)
 		{
-		if ( ! general_yt )
+		if ( ! general_yt || general_yt->Tag() == TYPE_ANY )
 			{
 			general_yt = yt;
 			if ( IsManagedType(yt) )

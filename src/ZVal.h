@@ -139,7 +139,7 @@ public:
 		if ( ! general_yt || general_yt->Tag() == TYPE_ANY ||
 		     general_yt->Tag() == TYPE_VOID )
 			{
-			general_yt = yt;
+			general_yt = yt->Ref();
 			if ( IsManagedType(yt) )
 				managed_yt = yt;
 			else

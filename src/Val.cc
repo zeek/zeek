@@ -1860,7 +1860,17 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 			}
 
 		else
+			{
 			def_val = def_attr->AttrExpr()->Eval(0);
+
+			// If the default value is an empty vector, then
+			// ensure it has the correct type.
+
+			auto dt = def_val->Type();
+			if ( dt->Tag() == TYPE_VECTOR &&
+			     dt->AsVectorType()->IsUnspecifiedVector() )
+				def_val = make_intrusive<VectorVal>(ytype->AsVectorType());
+			}
 		}
 
 	if ( ! def_val )

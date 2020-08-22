@@ -39,8 +39,8 @@ function test_cmd(label: string, cmd: Exec::Command)
 
 		print fmt("%s - exit: %s, signal: %s, stdout: %s, stderr: %s, files: %s",
 		          label, result$exit_code, result$signal_exit,
-		          result?$stdout ? result$stdout : "",
-		          result?$stderr ? result$stderr : "",
+		          result?$stdout ? cat(result$stdout) : "",
+		          result?$stderr ? cat(result$stderr) : "",
 		          file_content);
 
 		check_exit_condition();

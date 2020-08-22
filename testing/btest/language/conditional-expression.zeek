@@ -2,9 +2,9 @@
 # @TEST-EXEC: btest-diff out
 
 function test_case(msg: string, expect: bool)
-        {
-        print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
-        }
+	{
+	print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
+	}
 
 global ct: count;
 
@@ -20,9 +20,8 @@ function f2(): bool
 	return F;
 	}
 
-
 event zeek_init()
-{
+	{
 	local a: count;
 	local b: count;
 	local res: count;
@@ -62,5 +61,29 @@ event zeek_init()
 	(T ? f1() : T) ? f1() : f2();
 	test_case( "associativity", ct == 2 );
 
-}
+	# Test for unspecified set coercion
+	local s: set[string] = { "one", "two", "three" };
+	local sT = T ? set() : s;
+	local sF = F ? s : set();
+	print |sT|, type_name(sT);
+	print |sF|, type_name(sF);
 
+	# Test for unspecified table coercion
+	local t: table[count] of string = { [1] = "one", [2] = "two", [3] = "three" };
+	local tT = T ? table() : t;
+	local tF = F ? t : table();
+	print |tT|, type_name(tT);
+	print |tF|, type_name(tF);
+
+	# Test for unspecified vector coercion
+	local v: vector of string = { "one", "two", "three" };
+	local vT = T ? vector() : v;
+	local vF = F ? v : vector();
+	print |vT|, type_name(vT);
+	print |vF|, type_name(vF);
+
+	# Test for ternary vector condition
+	local tvc = vector(T, F, T);
+	local tvr = tvc ? vector(1, 2, 3) : vector(4, 5, 6);
+	print tvr, type_name(tvr);
+	}

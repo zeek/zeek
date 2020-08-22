@@ -1369,6 +1369,11 @@ protected:
 
 	IntrusivePtr<Expr> func;
 	IntrusivePtr<ListExpr> args;
+
+	// The following is just for optimizing calls, to ensure we
+	// don't spend time hunting for run-time "any" argument mismatches
+	// if there's no possibility of encountering one.
+	bool has_any_arg;
 };
 
 class InlineExpr : public Expr {

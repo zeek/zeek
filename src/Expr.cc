@@ -6766,58 +6766,70 @@ CallExpr::CallExpr(IntrusivePtr<Expr> arg_func,
 
 	if ( ! func_type->MatchesIndex(args.get()) )
 		SetError("argument type mismatch in function call");
-	else
+
+	has_any_arg = false;
+
+	for ( auto a: args->Exprs() )
 		{
-		BroType* yield = func_type->YieldType();
-
-		if ( ! yield )
+		auto tag = a->Type()->Tag();
+		if ( tag == TYPE_ANY ||
+		     (tag == TYPE_VECTOR &&
+		      a->Type()->AsVectorType()->YieldType()->Tag() == TYPE_ANY) )
 			{
-			switch ( func_type->AsFuncType()->Flavor() ) {
-
-			case FUNC_FLAVOR_FUNCTION:
-				Error("function has no yield type");
-				SetError();
-				break;
-
-			case FUNC_FLAVOR_EVENT:
-				Error("event called in expression, use event statement instead");
-				SetError();
-				break;
-
-			case FUNC_FLAVOR_HOOK:
-				Error("hook has no yield type");
-				SetError();
-				break;
-
-			default:
-				Error("invalid function flavor");
-				SetError();
-				break;
+			has_any_arg = true;
+			break;
 			}
-			}
-		else
-			SetType({NewRef{}, yield});
+		}
 
-		// Check for call to built-ins that can be statically analyzed.
-		IntrusivePtr<Val> func_val;
+	BroType* yield = func_type->YieldType();
 
-		if ( func->Tag() == EXPR_NAME &&
-		     // This is cheating, but without it processing gets
-		     // quite confused regarding "value used but not set"
-		     // run-time errors when we apply this analysis during
-		     // parsing.  Really we should instead do it after we've
-		     // parsed the entire set of scripts.
-		     streq(((NameExpr*) func.get())->Id()->Name(), "fmt") &&
-		     // The following is needed because fmt might not yet
-		     // be bound as a name.
-		     did_builtin_init &&
-		     (func_val = func->Eval(nullptr)) )
-			{
-			::Func* f = func_val->AsFunc();
-			if ( f->GetKind() == Func::BUILTIN_FUNC &&
-			     ! check_built_in_call((BuiltinFunc*) f, this) )
-				SetError();
-			}
+	if ( ! yield )
+		{
+		switch ( func_type->AsFuncType()->Flavor() ) {
+
+		case FUNC_FLAVOR_FUNCTION:
+			Error("function has no yield type");
+			SetError();
+			break;
+
+		case FUNC_FLAVOR_EVENT:
+			Error("event called in expression, use event statement instead");
+			SetError();
+			break;
+
+		case FUNC_FLAVOR_HOOK:
+			Error("hook has no yield type");
+			SetError();
+			break;
+
+		default:
+			Error("invalid function flavor");
+			SetError();
+			break;
+		}
+		}
+	else
+		SetType({NewRef{}, yield});
+
+	// Check for call to built-ins that can be statically analyzed.
+	IntrusivePtr<Val> func_val;
+
+	if ( func->Tag() == EXPR_NAME &&
+	     // This is cheating, but without it processing gets
+	     // quite confused regarding "value used but not set"
+	     // run-time errors when we apply this analysis during
+	     // parsing.  Really we should instead do it after we've
+	     // parsed the entire set of scripts.
+	     streq(((NameExpr*) func.get())->Id()->Name(), "fmt") &&
+	     // The following is needed because fmt might not yet
+	     // be bound as a name.
+	     did_builtin_init &&
+	     (func_val = func->Eval(nullptr)) )
+		{
+		::Func* f = func_val->AsFunc();
+		if ( f->GetKind() == Func::BUILTIN_FUNC &&
+		     ! check_built_in_call((BuiltinFunc*) f, this) )
+			SetError();
 		}
 	}
 
@@ -6949,6 +6961,32 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	if ( func_val && v )
 		{
 		const ::Func* funcv = func_val->AsFunc();
+
+		if ( has_any_arg )
+			{
+			auto func_type = func->Type()->AsFuncType();
+			auto& f_arg_types = *func_type->ArgTypes()->Types();
+			auto& args_e = args->Exprs();
+			for ( unsigned int i = 0; i < args_e.size(); ++i )
+				{
+				auto tag = args_e[i]->Type()->Tag();
+
+				if ( tag != TYPE_ANY &&
+				     (tag != TYPE_VECTOR ||
+				      args_e[i]->Type()->AsVectorType()->YieldType()->Tag() != TYPE_ANY) )
+					continue;
+
+				auto vi_t = (*v)[i]->Type();
+				if ( ! same_type(vi_t, f_arg_types[i]) )
+					{
+					ODesc d;
+					vi_t->Describe(&d);
+					reporter->RuntimeError(GetLocationInfo(), "type-clash for \"any\" argument, concrete type is %s", d.Description());
+					return nullptr;
+					}
+				}
+			}
+
 		const CallExpr* current_call = f ? f->GetCall() : 0;
 
 		if ( f )

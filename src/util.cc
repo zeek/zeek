@@ -963,30 +963,12 @@ void terminate_processing()
 
 void set_processing_status(const char* status, const char* reason)
 	{
+	// This function can be called from a signal context, so we have to
+	// make sure to only call reentrant & async-signal-safe functions,
+	// and to restore errno afterwards.
+
 	if ( ! proc_status_file )
 		return;
-
-	// This function can be called from a signal context, so we have to
-	// make sure to only call reentrant functions and to restore errno
-	// afterwards.
-
-	int old_errno = errno;
-
-	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0700);
-
-	if ( fd < 0 )
-		{
-		char buf[256];
-		zeek_strerror_r(errno, buf, sizeof(buf));
-		if ( zeek::reporter )
-			zeek::reporter->Error("Failed to open process status file '%s': %s",
-			                      proc_status_file, buf);
-		else
-			fprintf(stderr, "Failed to open process status file '%s': %s\n",
-			        proc_status_file, buf);
-		errno = old_errno;
-		return;
-		}
 
 	auto write_str = [](int fd, const char* s)
 		{
@@ -1005,11 +987,41 @@ void set_processing_status(const char* status, const char* reason)
 			}
 		};
 
+	auto report_error_with_errno = [&](const char* msg)
+		{
+		// strerror_r() is not async-signal-safe, hence we don't do
+		// the translation from errno to string.
+		auto errno_str = std::to_string(errno);
+		write_str(2, msg);
+		write_str(2, " '");
+		write_str(2, proc_status_file);
+		write_str(2, "': ");
+		write_str(2, errno_str.c_str());
+		write_str(2, " [");
+		write_str(2, status);
+		write_str(2, "]\n");
+		};
+
+	int old_errno = errno;
+
+	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0700);
+	if ( fd < 0 )
+		{
+		report_error_with_errno("Failed to open process status file");
+		errno = old_errno;
+		return;
+		}
+
 	write_str(fd, status);
 	write_str(fd, " [");
 	write_str(fd, reason);
 	write_str(fd, "]\n");
-	safe_close(fd);
+
+	if ( close(fd) < 0 && errno != EINTR )
+			{
+			report_error_with_errno("Failed to close process status file");
+			abort(); // same as safe_close()
+			}
 
 	errno = old_errno;
 	}

@@ -1,3 +1,9 @@
+3.3.0-dev.190 | 2020-08-24 14:43:06 -0700
+
+  * Make set_processing_status() signal-safe.
+
+    Closes #574. (Robin Sommer, Corelight)
+
 3.3.0-dev.188 | 2020-08-24 14:30:43 -0700
 
   * GH-710: Check that &expire_func is a function and not hook/event (Jon Siwek, Corelight)

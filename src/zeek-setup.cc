@@ -566,6 +566,9 @@ zeek::detail::SetupResult setup(int argc, char** argv,
 	for ( const auto& script : options.scripts_to_load )
 		add_input_file(script.data());
 
+	if ( options.pcap_filter )
+		add_input_file("base/frameworks/packet-filter/main.zeek");
+
 	push_scope(nullptr, nullptr);
 
 	zeek::detail::dns_mgr = new zeek::detail::DNS_Mgr(dns_type);

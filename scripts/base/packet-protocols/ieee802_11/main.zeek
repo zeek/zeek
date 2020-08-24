@@ -1,4 +1,4 @@
-module LL_IEEE802_11;
+module PacketAnalyzer::IEEE802_11;
 
 const DLT_IEEE802_11 : count = 105;
 

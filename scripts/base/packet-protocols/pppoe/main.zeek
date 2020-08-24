@@ -1,4 +1,4 @@
-module LL_PPPOE;
+module PacketAnalyzer::PPPOE;
 
 redef PacketAnalyzer::config_map += {
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_PPPOE, $identifier=0x0021, $analyzer=PacketAnalyzer::ANALYZER_IPV4),

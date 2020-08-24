@@ -1,4 +1,4 @@
-module LL_LINUX_SLL;
+module PacketAnalyzer::LINUX_SLL;
 
 const DLT_LINUX_SLL : count = 113;
 

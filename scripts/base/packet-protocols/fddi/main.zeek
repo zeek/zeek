@@ -1,4 +1,4 @@
-module LL_FDDI;
+module PacketAnalyzer::FDDI;
 
 const DLT_FDDI : count = 10;
 

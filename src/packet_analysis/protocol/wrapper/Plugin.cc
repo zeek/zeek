@@ -4,7 +4,7 @@
 #include "plugin/Plugin.h"
 #include "packet_analysis/Component.h"
 
-namespace zeek::plugin::LLAnalyzer {
+namespace zeek::plugin::Zeek_Wrapper {
 
 class Plugin : public zeek::plugin::Plugin {
 public:

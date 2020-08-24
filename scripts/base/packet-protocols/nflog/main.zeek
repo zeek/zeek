@@ -1,4 +1,4 @@
-module LL_NFLOG;
+module PacketAnalyzer::NFLOG;
 
 const DLT_NFLOG : count = 239;
 const AF_INET : count = 2;

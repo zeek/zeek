@@ -1,4 +1,4 @@
-module LL_PPP_SERIAL;
+module PacketAnalyzer::PPP_SERIAL;
 
 const DLT_PPP_SERIAL : count = 50;
 

@@ -7,7 +7,7 @@ include_directories(BEFORE
 
 add_subdirectory(protocol)
 
-set(llanalyzer_SRCS
+set(packet_analysis_SRCS
     Analyzer.cc
     Dispatcher.cc
     Manager.cc
@@ -15,5 +15,5 @@ set(llanalyzer_SRCS
     Tag.cc
 )
 
-bro_add_subdir_library(llanalyzer ${llanalyzer_SRCS})
-add_dependencies(bro_llanalyzer generate_outputs)
+bro_add_subdir_library(packet_analysis ${packet_analysis_SRCS})
+add_dependencies(bro_packet_analysis generate_outputs)

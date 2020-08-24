@@ -107,9 +107,9 @@ protected:
 	/**
 	 * Constructor.
 	 *
-	 * @param type The main type. Note that the \a llanalyzer::Manager
-	 * manages the value space internally, so noone else should assign
-	 * any main types.
+	 * @param type The main type. Note that the \a zeek::packet_analysis::Manager
+	 * manages the value space internally, so noone else should assign any main
+	 * types.
 	 *
 	 * @param subtype The sub type, which is left to an analyzer for
 	 * interpretation. By default it's set to zero.

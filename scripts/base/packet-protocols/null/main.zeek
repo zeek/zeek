@@ -1,4 +1,4 @@
-module LL_NULL;
+module PacketAnalyzer::NULL;
 
 const DLT_NULL : count = 0;
 const AF_INET : count = 2;

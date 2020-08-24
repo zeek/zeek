@@ -1,4 +1,4 @@
-module LL_VLAN;
+module PacketAnalyzer::VLAN;
 
 redef PacketAnalyzer::config_map += {
    PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x8847, $analyzer=PacketAnalyzer::ANALYZER_MPLS),

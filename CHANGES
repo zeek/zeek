@@ -1,3 +1,24 @@
+3.3.0-dev.186 | 2020-08-24 14:28:25 -0700
+
+  * Fix a case where PktSrc gets processed twice in one runloop iteration
+
+    For a non-live PktSrc, it had a special-case to be considered "ready"
+    every iteration, but additionally every 1 in 100 iterations (the polling
+    frequency), if there were no other "ready" IOSources, it would get added
+    to the "ready" set a 2nd time.
+
+    This commit completely excludes PktSrc from being processed during the
+    1/100 runloop iteration where a Poll() happens.  That exclusion is
+    desirable for a second reason: if reading a pcap happens to do its final
+    Process() during that 1/100 polling-iteration and there's other
+    IOSources ready to process like EventMgr/TimerMgr, those sources have
+    logic to advance network-time to current-time if a PktSrc is no longer
+    open.  So in such a case, PktSrc::Process() closes, then
+    EventMgr::Process() sees there's no longer an active PktSrc and advances
+    to current-time, then EventMgr::Drain() happens and may dispatch
+    various events that were previous scheduled, with those events now
+    unexpectedly seeing a network_time() returning current-time. (Jon Siwek, Corelight)
+
 3.3.0-dev.184 | 2020-08-24 14:27:31 -0700
 
   * GH-594: Improve table initialization type-check error messages (Jon Siwek, Corelight)

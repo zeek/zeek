@@ -195,6 +195,12 @@ Attributes::Attributes(std::vector<AttrPtr> a,
 
 void Attributes::AddAttr(AttrPtr attr)
 	{
+	// Display a warning for duplicated tags on a type. &log tags are intentionally
+	// ignored here because duplicate log tags on record types are valid, and don't
+	// cause any significant breakage for other types.
+	if ( attr->Tag() != ATTR_LOG && Find(attr->Tag()) )
+		reporter->Warning("Found duplicate tag %s", attr_name(attr->Tag()));
+
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
 	attrs_list.push_back(attr.get());

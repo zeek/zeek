@@ -1,0 +1,2 @@
+warning in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.duplicate-attributes/duplicate-attributes.zeek, line 6: Found duplicate tag &default
+warning in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.duplicate-attributes/duplicate-attributes.zeek, line 6: Found duplicate tag &read_expire

@@ -2448,9 +2448,9 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 				}
 			else
 				{
-				Error(fmt("type mismatch in table value initialization: "
-				          "assigning '%s' to table with values of type '%s'",
-				          type_name(op2->GetType()->Tag()), type_name(yt->Tag())));
+				Error(util::fmt("type mismatch in table value initialization: "
+				                "assigning '%s' to table with values of type '%s'",
+				                type_name(op2->GetType()->Tag()), type_name(yt->Tag())));
 				return nullptr;
 				}
 			}

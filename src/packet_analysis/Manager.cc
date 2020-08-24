@@ -92,6 +92,49 @@ void Manager::DumpDebug()
 #endif
 	}
 
+AnalyzerPtr Manager::GetAnalyzer(EnumVal *val)
+	{
+	auto analyzer_comp = Lookup(val);
+	if ( ! analyzer_comp )
+		return nullptr;
+
+	return GetAnalyzer(analyzer_comp->Name());
+	}
+
+AnalyzerPtr Manager::GetAnalyzer(const std::string& name)
+	{
+	auto analyzer_it = analyzers.find(name);
+	if ( analyzer_it == analyzers.end() )
+		return nullptr;
+
+	return analyzer_it->second;
+	}
+
+void Manager::ProcessPacket(Packet* packet)
+	{
+#ifdef DEBUG
+	static size_t counter = 0;
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
+#endif
+	// Start packet analysis
+	const uint8_t* data = packet->data;
+
+	auto root_analyzer = root_dispatcher.Lookup(packet->link_type);
+	auto analyzer = root_analyzer ? root_analyzer : default_analyzer;
+	if ( !analyzer )
+		{
+		reporter->InternalWarning("No analyzer for link type %#x", packet->link_type);
+		return;
+		}
+
+	auto result = analyzer->Analyze(packet, data);
+	if (result == AnalyzerResult::Terminate)
+		CustomEncapsulationSkip(packet, data);
+
+	// Calculate header size after processing packet layers.
+	packet->hdr_size = static_cast<uint32_t>(data - packet->data);
+	}
+
 AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 	{
 	Component* c = Lookup(tag);
@@ -119,7 +162,7 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 	if ( tag != a->GetAnalyzerTag() )
 		{
 		reporter->InternalError("Mismatch of requested analyzer %s and instantiated analyzer %s. This usually means that the plugin author made a mistake.",
-		                        GetComponentName(tag).c_str(), GetComponentName(a->GetAnalyzerTag()).c_str());
+								GetComponentName(tag).c_str(), GetComponentName(a->GetAnalyzerTag()).c_str());
 		}
 
 	return a;
@@ -129,31 +172,6 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const std::string& name)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag) : nullptr;
-	}
-
-void Manager::ProcessPacket(Packet* packet)
-	{
-#ifdef DEBUG
-	static size_t counter = 0;
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
-#endif
-	// Start packet analysis
-	const uint8_t* data = packet->data;
-
-	auto root_analyzer = root_dispatcher.Lookup(packet->link_type);
-	auto analyzer = root_analyzer ? root_analyzer : default_analyzer;
-	if ( !analyzer )
-		{
-		reporter->InternalWarning("No analyzer for link type %#x", packet->link_type);
-		return;
-		}
-
-	auto result = analyzer->Analyze(packet, data);
-	if (result == AnalyzerResult::Terminate)
-		CustomEncapsulationSkip(packet, data);
-
-	// Calculate header size after processing packet layers.
-	packet->hdr_size = static_cast<uint32_t>(data - packet->data);
 	}
 
 void Manager::CustomEncapsulationSkip(Packet* packet, const uint8_t* data)

@@ -1,4 +1,4 @@
-module LL_ETHERNET;
+module PacketAnalyzer::Ethernet;
 
 const DLT_EN10MB : count = 1;
 
@@ -15,3 +15,7 @@ redef PacketAnalyzer::config_map += {
 	#PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x8864, $analyzer=PacketAnalyzer::ANALYZER_PPPOE),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $analyzer=PacketAnalyzer::ANALYZER_DEFAULTANALYZER)
 };
+
+const snap_analyzer: PacketAnalyzer::Tag &redef;
+const novell_raw_analyzer: PacketAnalyzer::Tag &redef;
+const llc_analyzer: PacketAnalyzer::Tag &redef;

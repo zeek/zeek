@@ -44,26 +44,22 @@ public:
 	void DumpDebug(); // Called after zeek_init() events.
 
 	/**
-	 * Instantiates a new analyzer instance.
+	 * Looks up an analyzer instance.
 	 *
-	 * @param tag The analyzer's tag.
+	 * @param val The analyzer's tag value.
 	 *
-	 * @return The new analyzer instance. Returns
-	 * null if tag is invalid, the requested analyzer is disabled, or the
-	 * analyzer can't be instantiated.
+	 * @return The analyzer instance or nullptr if no instance is found.
 	 */
-	AnalyzerPtr InstantiateAnalyzer(const Tag& tag);
+	AnalyzerPtr GetAnalyzer(EnumVal *val);
 
 	/**
-	 * Instantiates a new analyzer.
+	 * Looks up an analyzer instance.
 	 *
 	 * @param name The name of the analyzer.
 	 *
-	 * @return The new analyzer instance. Returns
-	 * null if the name is not known or if the requested analyzer that is
-	 * disabled.
+	 * @return The analyzer instance or nullptr if no instance is found.
 	 */
-	AnalyzerPtr InstantiateAnalyzer(const std::string& name);
+	AnalyzerPtr GetAnalyzer(const std::string& name);
 
 	/**
 	 * Processes a packet by applying the configured packet analyzers.
@@ -73,6 +69,26 @@ public:
 	void ProcessPacket(Packet* packet);
 
 private:
+	/**
+	 * Instantiates a new analyzer instance.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @return The new analyzer instance. Returns null if tag is invalid, the
+	 * requested analyzer is disabled, or the analyzer can't be instantiated.
+	 */
+	AnalyzerPtr InstantiateAnalyzer(const Tag& tag);
+
+	/**
+	 * Instantiates a new analyzer.
+	 *
+	 * @param name The name of the analyzer.
+	 *
+	 * @return The new analyzer instance. Returns null if the name is not known
+	 * or if the requested analyzer that is disabled.
+	 */
+	AnalyzerPtr InstantiateAnalyzer(const std::string& name);
+
 	/**
 	 * Skips a fixed amount of packet data that is defined by encap_hdr_size.
 	 * It is assumed that an IP header follows.

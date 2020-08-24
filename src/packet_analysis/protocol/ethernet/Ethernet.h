@@ -12,12 +12,20 @@ public:
 	EthernetAnalyzer();
 	~EthernetAnalyzer() override = default;
 
+	void Initialize() override;
 	AnalyzerResult Analyze(Packet* packet, const uint8_t*& data) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{
 		return std::make_shared<EthernetAnalyzer>();
 		}
+
+private:
+	AnalyzerPtr SNAPAnalyzer = nullptr;
+	AnalyzerPtr NovellRawAnalyzer = nullptr;
+	AnalyzerPtr LLCAnalyzer = nullptr;
+
+	AnalyzerPtr LoadAnalyzer(const std::string& name);
 };
 
 }

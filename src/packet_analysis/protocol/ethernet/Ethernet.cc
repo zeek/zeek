@@ -2,12 +2,33 @@
 
 #include "Ethernet.h"
 #include "NetVar.h"
+#include "Manager.h"
 
 using namespace zeek::packet_analysis::Ethernet;
 
 EthernetAnalyzer::EthernetAnalyzer()
 	: zeek::packet_analysis::Analyzer("Ethernet")
 	{
+	}
+
+void EthernetAnalyzer::Initialize()
+	{
+	SNAPAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::snap_analyzer");
+	NovellRawAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::novell_raw_analyzer");
+	LLCAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::llc_analyzer");
+	}
+
+zeek::packet_analysis::AnalyzerPtr EthernetAnalyzer::LoadAnalyzer(const std::string &name)
+	{
+	auto& analyzer = zeek::id::find(name);
+	if ( ! analyzer )
+		return nullptr;
+
+	auto& analyzer_val = analyzer->GetVal();
+	if ( ! analyzer_val )
+		return nullptr;
+
+	return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 	}
 
 zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
@@ -59,22 +80,25 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, 
 			return AnalyzerResult::Failed;
 			}
 
-		// In the following we use undefined EtherTypes to signal uncommon
-		// frame types. This allows specialized analyzers to take over.
+		// Let specialized analyzers take over for non Ethernet II frames.
 		// Note that pdata remains at the start of the ethernet frame.
-		//TODO: Lookup the analyzers on startup
 
-		// IEEE 802.2 SNAP
+		AnalyzerPtr eth_analyzer = nullptr;
+
 		if ( data[14] == 0xAA && data[15] == 0xAA)
-			return AnalyzeInnerPacket(packet, data, 1502);
+			// IEEE 802.2 SNAP
+			eth_analyzer = SNAPAnalyzer;
+		else if ( data[14] == 0xFF && data[15] == 0xFF)
+			// Novell raw IEEE 802.3
+			eth_analyzer = NovellRawAnalyzer;
+		else
+			// IEEE 802.2 LLC
+			eth_analyzer = LLCAnalyzer;
 
-		// Novell raw IEEE 802.3
-		if ( data[14] == 0xFF && data[15] == 0xFF)
-			return AnalyzeInnerPacket(packet, data, 1503);
+		if ( eth_analyzer )
+			return eth_analyzer->Analyze(packet, data);
 
-
-		// IEEE 802.2 LLC
-		return AnalyzeInnerPacket(packet, data, 1501);
+		return AnalyzerResult::Terminate;
 		}
 
 	// Undefined (1500 < EtherType < 1536)

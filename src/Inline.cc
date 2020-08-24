@@ -27,7 +27,8 @@ void Inliner::Analyze()
 			if ( func == f->func )
 				{
 				if ( analysis_options.report_recursive )
-					printf("%s is directly recursive\n",
+					fprintf(stderr,
+						"%s is directly recursive\n",
 						func->Name());
 
 				non_recursive_funcs.erase(func);
@@ -81,7 +82,7 @@ void Inliner::Analyze()
 						continue;
 
 					if ( analysis_options.report_recursive )
-						printf("%s is indirectly recursive, called by %s\n",
+						fprintf(stderr, "%s is indirectly recursive, called by %s\n",
 							c.first->Name(),
 							cc->Name());
 
@@ -106,7 +107,9 @@ void Inliner::Analyze()
 		// Candidates are non-event, non-hook, non-recursive
 		// functions ... that don't use lambdas or when's,
 		// since we don't currently compute the closures/frame
-		// sizes for them correctly.
+		// sizes for them correctly, and more fundamentally since
+		// we don't compile them and hence inlining them will
+		// make the parent non-compilable.
 		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION &&
 		     non_recursive_funcs.count(f->func) > 0 &&
 		     f->pf->num_lambdas == 0 && f->pf->num_when_stmts == 0 )

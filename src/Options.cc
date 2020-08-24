@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "Options.h"
+#include "ScriptAnaly.h"
 
 #include <algorithm>
 
@@ -87,6 +88,7 @@ void zeek::usage(const char* prog, int code)
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
+	fprintf(stderr, "    -u|--usage-issues              | find variable usage issues and exit; use -uu for deeper/more expensive analysis\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 #ifdef DEBUG
@@ -98,6 +100,8 @@ void zeek::usage(const char* prog, int code)
 	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
+	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help for options)\n");
+	fprintf(stderr, "    -o|--optimize-only=<func>      | enable script optimization only for the given function\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
@@ -133,6 +137,86 @@ void zeek::usage(const char* prog, int code)
 	fprintf(stderr, "\n");
 
 	exit(code);
+	}
+
+static void set_analysis_option(const char* opt)
+	{
+	if ( ! opt || streq(opt, "all") )
+		{
+		analysis_options.activate = true;
+		analysis_options.compile = true;
+		analysis_options.inliner = true;
+		analysis_options.optimize = true;
+		return;
+		}
+
+	if ( streq(opt, "help") )
+		{
+		fprintf(stderr, "--optimize options:\n");
+		fprintf(stderr, "    all	turns on compile, inline, xform-opt\n");
+		fprintf(stderr, "    compile	compile scripts to ZAM code; implies xform\n");
+		fprintf(stderr, "    delete	delete saved ZAM code\n");
+		fprintf(stderr, "    dump-code	dump ZAM code to stdout\n");
+		fprintf(stderr, "    dump-max-rds	dump maximal reaching-defs to stdout\n");
+		fprintf(stderr, "    dump-min-rds	dump minimal reaching-defs to stdout\n");
+		fprintf(stderr, "    dump-uds	dump use-defs to stdout\n");
+		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout\n");
+		fprintf(stderr, "    help	print this list\n");
+		fprintf(stderr, "    inline	inline function calls\n");
+		fprintf(stderr, "    no-load	do not load saved ZAM code\n");
+		fprintf(stderr, "    no-save	do not save ZAM code\n");
+		fprintf(stderr, "    no-ZAM-opt	turn off low-level ZAM optimization\n");
+		fprintf(stderr, "    overwrite	overwrite saved ZAM code\n");
+		fprintf(stderr, "    profile	generate to stdout a ZAM execution profile\n");
+		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
+		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
+		fprintf(stderr, "    xform-opt	optimize \"reduced\" form scripts; implies xform\n");
+		fprintf(stderr, "\n");
+		fprintf(stderr, "    -O		a bare --optimize/-O sets compile, inline and xform-opt\n");
+		fprintf(stderr, "\n");
+		fprintf(stderr, "--optimize-only=func	apply options to only the given function\n");
+		exit(0);
+		}
+
+	if ( streq(opt, "compile") )
+		analysis_options.compile = true;
+	else if ( streq(opt, "delete") )
+		analysis_options.delete_save_files = true;
+	else if ( streq(opt, "dump-code") )
+		analysis_options.dump_code = true;
+	else if ( streq(opt, "dump-max-rds") )
+		analysis_options.max_rd_trace = true;
+	else if ( streq(opt, "dump-min-rds") )
+		analysis_options.min_rd_trace = true;
+	else if ( streq(opt, "dump-uds") )
+		analysis_options.ud_dump = true;
+	else if ( streq(opt, "dump-xform") )
+		analysis_options.dump_xform = true;
+	else if ( streq(opt, "inline") )
+		analysis_options.inliner = true;
+	else if ( streq(opt, "no-load") )
+		analysis_options.no_load = true;
+	else if ( streq(opt, "no-save") )
+		analysis_options.no_save = true;
+	else if ( streq(opt, "no-ZAM-opt") )
+		analysis_options.no_ZAM_opt = true;
+	else if ( streq(opt, "overwrite") )
+		analysis_options.overwrite_save_files = true;
+	else if ( streq(opt, "profile") )
+		analysis_options.report_profile = true;
+	else if ( streq(opt, "recursive") )
+		analysis_options.inliner =
+			analysis_options.report_recursive = true;
+	else if ( streq(opt, "xform") )
+		analysis_options.activate = true;
+	else if ( streq(opt, "xform-opt") )
+		analysis_options.optimize = true;
+
+	else
+		{
+		fprintf(stderr,"zeek: unrecognized --optimize option: %s\n", opt);
+		exit(1);
+		}
 	}
 
 zeek::Options zeek::parse_cmdline(int argc, char** argv)
@@ -228,11 +312,14 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		{"jobs",	optional_argument, 0,	'j'},
 		{"test",		no_argument,		0,	'#'},
 
+		{"optimize",	optional_argument, 0,	'O'},
+		{"optimize-only",	required_argument, 0,	'o'},
+
 		{0,			0,			0,	0},
 	};
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CFNPQSWabdhuv",
 	             sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -317,6 +404,9 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		case 't':
 			rval.debug_script_tracing_file = optarg;
 			break;
+		case 'u':
+			++analysis_options.usage_issues;
+			break;
 		case 'v':
 			rval.print_version = true;
 			break;
@@ -350,6 +440,12 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			break;
 		case 'N':
 			++rval.print_plugins;
+			break;
+		case 'O':
+			set_analysis_option(optarg);
+			break;
+		case 'o':
+			analysis_options.only_func = copy_string(optarg);
 			break;
 		case 'P':
 			if ( rval.dns_mode != DNS_DEFAULT )
@@ -405,6 +501,22 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			usage(zargs[0], 1);
 			break;
 		}
+
+	if ( analysis_options.compile || analysis_options.optimize ||
+	     analysis_options.inliner || analysis_options.only_func )
+		analysis_options.activate = true;
+
+	if ( analysis_options.report_recursive )
+		analysis_options.inliner = true;
+
+	if ( analysis_options.usage_issues > 0 )
+		{
+		analysis_options.activate = true;
+		analysis_options.optimize = true;
+		}
+
+	if ( analysis_options.no_ZAM_opt )
+		analysis_options.compile = true;
 
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to

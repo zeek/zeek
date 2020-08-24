@@ -823,6 +823,10 @@ int main(int argc, char** argv)
 
 	analyze_scripts();
 
+	if ( analysis_options.usage_issues || analysis_options.report_recursive )
+		// These options are report-and-exit.
+		return 0;
+
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.

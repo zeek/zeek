@@ -6,6 +6,7 @@
 #include "Stmt.h"
 #include "Desc.h"
 #include "Reporter.h"
+#include "ScriptAnaly.h"
 
 
 void UseDefSet::Dump() const
@@ -166,9 +167,9 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 	auto uds = FindSuccUsage(s);
 	if ( ! uds || ! uds->HasID(id) )
 		{
-		if ( report && ! rc->IsTemporary(id) &&
-		     ! rc->IsConstantVar(id) && ! rc->IsNewLocal(id) &&
-		     ! id->FindAttr(ATTR_IS_USED) )
+		if ( report && analysis_options.usage_issues > 0 &&
+		     ! rc->IsTemporary(id) && ! rc->IsConstantVar(id) &&
+		     ! rc->IsNewLocal(id) && ! id->FindAttr(ATTR_IS_USED) )
 			reporter->Warning("%s assignment unused: %s",
 						id->Name(), obj_desc(s));
 

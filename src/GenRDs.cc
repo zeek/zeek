@@ -838,7 +838,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		if ( id->IsGlobal() )
 			break;
 
-		if ( ! mgr.HasPreMinRD(e, id) && ! id->FindAttr(ATTR_IS_SET) )
+		if ( analysis_options.usage_issues > 0 &&
+		     ! mgr.HasPreMinRD(e, id) && ! id->FindAttr(ATTR_IS_SET) )
 			e->Error("used without definition");
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
@@ -1013,7 +1014,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				return TC_ABORTSTMT;
 			}
 
-		if ( analysis_options.find_deep_uninits )
+		if ( analysis_options.usage_issues > 1 )
 			{
 			auto r_def = mgr.GetExprDI(r);
 
@@ -1298,7 +1299,7 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		else
 			mgr.CreatePostDef(di_i, dp, true);
 
-		if ( analysis_options.find_deep_uninits )
+		if ( analysis_options.usage_issues > 1 )
 			if ( t_i->Tag() == TYPE_RECORD )
 				CreateRecordRDs(di_i, dp, is_pre,
 						assume_full, rhs_di_i);
@@ -1320,7 +1321,7 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		auto n_i = rt->FieldName(i);
 		auto field_di = di->FindField(n_i);
 
-		if ( ! analysis_options.find_deep_uninits )
+		if ( analysis_options.usage_issues <= 1 )
 			continue;
 
 		// The following works correctly, but finds a number
@@ -1328,7 +1329,7 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		// record elements are not initialized.
 		if ( ! field_di || ! pre_rds->HasDI(field_di) )
 			{
-			printf("no reaching def for %s$%s (%s)\n",
+			printf("%s$%s (%s) may be used without definition\n",
 				di->Name(), n_i, obj_desc(o));
 			}
 

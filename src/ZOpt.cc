@@ -78,8 +78,11 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 			auto zb = f->body->AsZBody();
 			auto sf = fopen(f->save_file, "w");
 			if ( ! sf )
-				reporter->Error("cannot save to file: %s",
-						f->save_file);
+				{
+				fprintf(stderr, "cannot create ZAM save file %s: %s\n",
+					f->save_file, strerror(errno));
+				exit(1);
+				}
 			else
 				{
 				zb->SaveTo(sf, func->FrameSize());

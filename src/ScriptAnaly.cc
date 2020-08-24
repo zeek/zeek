@@ -237,27 +237,37 @@ void analyze_orphan_events()
 
 struct AnalyOpt analysis_options;
 
+static void check_env_opt(const char* opt, bool& opt_flag)
+	{
+	if ( getenv(opt) )
+		opt_flag = true;
+	}
+
 void analyze_scripts()
 	{
 	static bool did_init = false;
 
 	if ( ! did_init )
 		{
-		if ( getenv("ZEEK_ANALY") )
-			analysis_options.activate = true;
+		check_env_opt("ZEEK_ANALY", analysis_options.activate);
+		check_env_opt("ZEEK_ZAM_PROFILE", analysis_options.report_profile);
+		check_env_opt("ZEEK_MIN_RD_TRACE", analysis_options.min_rd_trace);
+		check_env_opt("ZEEK_MAX_RD_TRACE", analysis_options.max_rd_trace);
+		check_env_opt("ZEEK_UD_DUMP", analysis_options.ud_dump);
+		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
+		check_env_opt("ZEEK_OPTIMIZE", analysis_options.optimize);
+		check_env_opt("ZEEK_COMPILE", analysis_options.compile);
+		check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
+		check_env_opt("ZEEK_DUMP_CODE", analysis_options.dump_code);
+		check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
 
-		analysis_options.only_func = getenv("ZEEK_ONLY");
-		analysis_options.report_profile = getenv("ZEEK_ZAM_PROFILE");
-		analysis_options.find_deep_uninits = getenv("ZEEK_FIND_DEEP_UNINITS");
-		analysis_options.min_rd_trace = getenv("ZEEK_MIN_RD_TRACE");
-		analysis_options.max_rd_trace = getenv("ZEEK_MAX_RD_TRACE");
-		analysis_options.ud_dump = getenv("ZEEK_UD_DUMP");
-		analysis_options.inliner = getenv("ZEEK_INLINE");
-		analysis_options.optimize = getenv("ZEEK_OPTIMIZE");
-		analysis_options.compile = getenv("ZEEK_COMPILE");
-		analysis_options.no_ZAM_opt = getenv("ZEEK_NO_ZAM_OPT");
-		analysis_options.dump_code = getenv("ZEEK_DUMP_CODE");
-		analysis_options.dump_xform = getenv("ZEEK_DUMP_XFORM");
+		if ( getenv("ZEEK_USAGE_ISSUES") )
+			analysis_options.usage_issues = 1;
+		if ( getenv("ZEEK_DEEP_USAGE_ISSUES") )
+			analysis_options.usage_issues = 2;
+
+		if ( ! analysis_options.only_func )
+			analysis_options.only_func = getenv("ZEEK_ONLY");
 
 		if ( analysis_options.only_func )
 			analysis_options.activate = true;
@@ -265,7 +275,7 @@ void analyze_scripts()
 		did_init = true;
 		}
 
-	if ( ! analysis_options.activate )
+	if ( ! analysis_options.activate && ! analysis_options.usage_issues )
 		return;
 
 	// Now that everything's parsed and BiF's have been initialized,
@@ -342,7 +352,8 @@ void analyze_scripts()
 		// Construct the associated compiled-ZAM filename.
 		auto l = f->body->GetLocationInfo();
 
-		if ( ! l->filename || streq(l->filename, "<stdin>") )
+		if ( ! l->filename || streq(l->filename, "<stdin>") ||
+		     analysis_options.usage_issues > 0 )
 			{
 			// Don't bother looking for prior compilation,
 			// or creating such.
@@ -354,20 +365,45 @@ void analyze_scripts()
 		snprintf(fn, sizeof fn, "%s#%s:%d.%lx.ZAM", l->filename,
 				f->func->Name(), l->first_line, f->pf->hash_val);
 
+		bool did_load = false;
+
 		auto save_file = fopen(fn, "r");
 		if ( save_file )
 			{
-			// printf("have file for %s\n", fn);
-			scan_ZAM_file(fn, save_file);
-			yyparse();
-			fclose(save_file);
+			if ( analysis_options.delete_save_files ||
+			     analysis_options.overwrite_save_files )
+				{
+				fclose(save_file);
+				if ( remove(fn) < 0 )
+					{
+					fprintf(stderr, "could not remove ZAM save file %s: %s\n",
+						fn, strerror(errno));
+					exit(1);
+					}
+				}
 
-			f->func->ReplaceBody(f->body, ZAM_body);
-			f->body = ZAM_body;
+			else if ( analysis_options.no_load )
+				fclose(save_file);
+
+			else
+				{
+				scan_ZAM_file(fn, save_file);
+				yyparse();
+				fclose(save_file);
+
+				f->func->ReplaceBody(f->body, ZAM_body);
+				f->body = ZAM_body;
+
+				did_load = true;
+				}
 			}
-		else
+
+		if ( ! did_load )
 			{
-			f->save_file = copy_string(fn);
+			if ( ! analysis_options.no_save &&
+			     ! analysis_options.delete_save_files )
+				f->save_file = copy_string(fn);
+
 			optimize_func(f->func, f->pf, f->scope, f->body);
 			}
 		}

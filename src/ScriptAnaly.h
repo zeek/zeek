@@ -21,9 +21,13 @@ extern struct AnalyOpt {
 	// executation roughly 2x.
 	bool report_profile = false;
 
-	// If true, reports on uses of uninitialized record fields and
+	// If non-zero, looks for variables that are used-but-possibly-not-set,
+	// or set-but-not-used.
+	//
+	// If > 1, also reports on uses of uninitialized record fields and
 	// analyzes nested records in depth.  Warning: with the current
 	// data structures this greatly increases analysis time.
+	int usage_issues = 0;
 	bool find_deep_uninits = false;
 
 	// If true, activates tracing for the generation of minimum/maximum
@@ -58,6 +62,18 @@ extern struct AnalyOpt {
 	// interpreted scripts, and, if optimize is set, of then optimizing
 	// them.  Always done if only_func is set.
 	bool dump_xform = false;
+
+	// If true, do not load saved ZAM code.
+	bool no_load = false;
+
+	// If true, do not save new ZAM code.
+	bool no_save = false;
+
+	// Delete (and do not replace) any matching ZAM save files.
+	bool delete_save_files = false;
+
+	// Overwrite any matching ZAM save files.
+	bool overwrite_save_files = false;
 
 } analysis_options;
 

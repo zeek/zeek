@@ -112,7 +112,10 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			locals.insert(id);
 
 		if ( compute_hash )
+			{
+			UpdateHash(id);
 			CheckType(e->Type().release());
+			}
 
 		break;
 		}

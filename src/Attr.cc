@@ -512,9 +512,18 @@ void Attributes::CheckAttr(Attr* a)
 		const auto& expire_func = a->GetExpr();
 
 		if ( expire_func->GetType()->Tag() != TYPE_FUNC )
+			{
 			Error("&expire_func attribute is not a function");
+			break;
+			}
 
 		const FuncType* e_ft = expire_func->GetType()->AsFuncType();
+
+		if ( e_ft->Flavor() != FUNC_FLAVOR_FUNCTION )
+			{
+			Error("&expire_func attribute is not a function");
+			break;
+			}
 
 		if ( e_ft->Yield()->Tag() != TYPE_INTERVAL )
 			{

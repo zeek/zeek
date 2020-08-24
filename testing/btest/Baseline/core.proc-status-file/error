@@ -1,0 +1,4 @@
+Failed to open process status file '/cannot/write/to/this/file': XX [INITIALIZING]
+Failed to open process status file '/cannot/write/to/this/file': XX [RUNNING]
+Failed to open process status file '/cannot/write/to/this/file': XX [TERMINATED]
+Failed to open process status file '/cannot/write/to/this/file': XX [TERMINATING]

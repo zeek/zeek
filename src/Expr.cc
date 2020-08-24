@@ -2433,6 +2433,28 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		const auto& yt = tv->GetType()->Yield();
 
 		auto index = op1->InitVal(tt->GetIndices().get(), nullptr);
+
+		if ( ! same_type(*yt, *op2->GetType(), true) )
+			{
+			if ( yt->Tag() == TYPE_RECORD && op2->GetType()->Tag() == TYPE_RECORD )
+				{
+				if ( ! record_promotion_compatible(yt->AsRecordType(),
+				                                   op2->GetType()->AsRecordType()) )
+					{
+					Error("type mismatch in table value initialization: "
+					      "incompatible record types");
+					return nullptr;
+					}
+				}
+			else
+				{
+				Error(fmt("type mismatch in table value initialization: "
+				          "assigning '%s' to table with values of type '%s'",
+				          type_name(op2->GetType()->Tag()), type_name(yt->Tag())));
+				return nullptr;
+				}
+			}
+
 		auto v = op2->InitVal(yt.get(), nullptr);
 
 		if ( ! index || ! v )

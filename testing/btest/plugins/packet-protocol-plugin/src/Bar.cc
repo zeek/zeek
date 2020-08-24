@@ -10,7 +10,7 @@ Bar::Bar()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple Bar::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult Bar::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	auto end_of_data = packet->GetEndOfData();
 
@@ -18,7 +18,7 @@ zeek::packet_analysis::AnalysisResultTuple Bar::Analyze(Packet* packet, const ui
 	if ( data + 17 >= end_of_data )
 		{
 		packet->Weird("truncated_llc_header");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	auto dsap = data[14];
@@ -30,5 +30,5 @@ zeek::packet_analysis::AnalysisResultTuple Bar::Analyze(Packet* packet, const ui
 		val_mgr->Count(ssap),
 		val_mgr->Count(control));
 
-	return { AnalyzerResult::Terminate, 0 };
+	return AnalyzerResult::Terminate;
 	}

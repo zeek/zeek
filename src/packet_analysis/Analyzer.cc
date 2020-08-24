@@ -76,4 +76,15 @@ AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
 	return inner_analyzer->Analyze(packet, data);
 	}
 
+AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet, const uint8_t*& data) const
+	{
+	if ( default_analyzer )
+		return default_analyzer->Analyze(packet, data);
+
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
+			GetAnalyzerName());
+	packet->Weird("no_suitable_analyzer_found");
+	return AnalyzerResult::Terminate;
+	}
+
 }

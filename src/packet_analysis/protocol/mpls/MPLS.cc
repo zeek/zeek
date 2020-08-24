@@ -9,7 +9,7 @@ MPLSAnalyzer::MPLSAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	auto end_of_data = packet->GetEndOfData();
 
@@ -21,7 +21,7 @@ zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet,
 		if ( data + 4 >= end_of_data )
 			{
 			packet->Weird("truncated_link_header");
-			return { AnalyzerResult::Failed, 0 };
+			return AnalyzerResult::Failed;
 			}
 
 		end_of_stack = *(data + 2u) & 0x01;
@@ -33,7 +33,7 @@ zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet,
 	if ( data + sizeof(struct ip) >= end_of_data )
 		{
 		packet->Weird("no_ip_in_mpls_payload");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	auto ip = (const struct ip*)data;
@@ -46,9 +46,9 @@ zeek::packet_analysis::AnalysisResultTuple MPLSAnalyzer::Analyze(Packet* packet,
 		{
 		// Neither IPv4 nor IPv6.
 		packet->Weird("no_ip_in_mpls_payload");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	packet->hdr_size = (data - packet->data);
-	return { AnalyzerResult::Terminate, 0 };
+	return AnalyzerResult::Terminate;
 	}

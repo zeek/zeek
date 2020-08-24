@@ -125,6 +125,17 @@ protected:
 	virtual AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
 	                                          uint32_t identifier) const;
 
+	/**
+	 * Triggers default analysis of the encapsulated packet if the default analyzer
+	 * is set.
+	 *
+	 * @param packet The packet to analyze.
+	 * @param data Reference to the payload pointer into the raw packet.
+	 *
+	 * @return The outcome of the analysis.
+	 */
+	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data) const;
+
 private:
 	Tag tag;
 	Dispatcher dispatcher;

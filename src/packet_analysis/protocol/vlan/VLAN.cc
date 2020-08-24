@@ -10,12 +10,12 @@ VLANAnalyzer::VLANAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple VLANAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult VLANAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	if ( data + 4 >= packet->GetEndOfData() )
 		{
 		packet->Weird("truncated_VLAN_header");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	auto& vlan_ref = packet->vlan != 0 ? packet->inner_vlan : packet->vlan;
@@ -25,5 +25,5 @@ zeek::packet_analysis::AnalysisResultTuple VLANAnalyzer::Analyze(Packet* packet,
 	packet->eth_type = protocol;
 	data += 4; // Skip the VLAN header
 
-	return { AnalyzerResult::Continue, protocol };
+	return AnalyzeInnerPacket(packet, data, protocol);
 	}

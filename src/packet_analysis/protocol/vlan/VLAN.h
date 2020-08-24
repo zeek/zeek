@@ -12,7 +12,7 @@ public:
 	VLANAnalyzer();
 	~VLANAnalyzer() override = default;
 
-	AnalysisResultTuple Analyze(Packet* packet, const uint8_t*& data) override;
+	AnalyzerResult Analyze(Packet* packet, const uint8_t*& data) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{

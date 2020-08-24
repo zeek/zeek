@@ -10,7 +10,7 @@ IEEE802_11Analyzer::IEEE802_11Analyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	auto end_of_data = packet->GetEndOfData();
 
@@ -19,18 +19,18 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 	if ( data + len_80211 >= end_of_data )
 		{
 		packet->Weird("truncated_802_11_header");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	u_char fc_80211 = data[0]; // Frame Control field
 
 	// Skip non-data frame types (management & control).
 	if ( ! ((fc_80211 >> 2) & 0x02) )
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 
 	// Skip subtypes without data.
 	if ( (fc_80211 >> 4) & 0x04 )
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 
 	// 'To DS' and 'From DS' flags set indicate use of the 4th
 	// address field.
@@ -43,7 +43,7 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 		// Skip in case of A-MSDU subframes indicated by QoS
 		// control field.
 		if ( data[len_80211] & 0x80 )
-			return { AnalyzerResult::Failed, 0 };
+			return AnalyzerResult::Failed;
 
 		len_80211 += 2;
 		}
@@ -51,7 +51,7 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 	if ( data + len_80211 >= end_of_data )
 		{
 		packet->Weird("truncated_802_11_header");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	// Determine link-layer addresses based
@@ -85,7 +85,7 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 	if ( data + 8 >= end_of_data )
 		{
 		packet->Weird("truncated_802_11_header");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	// Check that the DSAP and SSAP are both SNAP and that the control
@@ -102,11 +102,11 @@ zeek::packet_analysis::AnalysisResultTuple IEEE802_11Analyzer::Analyze(Packet* p
 		// If this is a logical link control frame without the
 		// possibility of having a protocol we care about, we'll
 		// just skip it for now.
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	uint32_t protocol = (data[0] << 8) + data[1];
 	data += 2;
 
-	return { AnalyzerResult::Continue, protocol };
+	return AnalyzeInnerPacket(packet, data, protocol);
 	}

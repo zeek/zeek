@@ -10,16 +10,16 @@ NullAnalyzer::NullAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalysisResultTuple NullAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult NullAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	if ( data + 4 >= packet->GetEndOfData() )
 		{
 		packet->Weird("null_analyzer_failed");
-		return { AnalyzerResult::Failed, 0 };
+		return AnalyzerResult::Failed;
 		}
 
 	uint32_t protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
 	data += 4; // skip link header
 
-	return { AnalyzerResult::Continue, protocol };
+	return AnalyzeInnerPacket(packet, data, protocol);
 	}

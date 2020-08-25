@@ -1,45 +1,21 @@
-interpreter frame can be shrunk down to just arguments and those
-locals that need to be exposed
+could change basic calling coupling to be ZAMValUnion-based
+	- helps if compiler supports "when" and lambdas, so that *everything*
+	  can be inlined/compiled
 
-for records, can reserve-but-not-resize to initial size
-can remove CheckIfManaged / .is_managed?
 need to hook into notifier::Modifiable framework for aggregates
 
 need to fix IterInfo's to be (1) dynamic, via (2) IntrusivePtr's
 
-prune "a = a" assignments
-
-&&/|| conditionals to cascades
-
-initialization of records with field values pre-computed
-	- however, not via Clone(), which turns out to be more
-	  expensive than just constructing afresh
-
 hoist loop invariants
 
-expand records into pointers-to-blocks
-
-don't sync variables to the frame if they haven't changed since the
-	last time they were sync'd to the frame (or since we loaded
-	them initially, if parameters)
+unroll loops
 
 suppress sync-globals that are straight-line code from previous ones
 	for which no global was modified
 
 collapse dirty-global-V <x> / load-global-VC <x> sequences
 
-share frame slots across multiple locals if they have non-overlapping
-	effective scope, and aren't managed or have same management type
-
-versions of operators that take listval's that inline the values
-	rather than building val-vec's if a small number (including 0)
-
-	also, multi-operand version of Set-Val-Vec to set values
-	more quickly
-
-perhaps can remove Store-Any-Val and Load-Any-Val
-
-single val-vec maximally sized
+can remove Store-Any-Val
 
 don't consider modifying a global's element as a reaching-def for
 	the global itself (glb[5] = 3)

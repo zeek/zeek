@@ -16,8 +16,8 @@ namespace zeek::detail {
 Substring::Substring(const Substring& bst)
 : zeek::String((const zeek::String&) bst), _num(), _new(bst._new)
 	{
-	for ( BSSAlignVecCIt it = bst._aligns.begin(); it != bst._aligns.end(); ++it )
-		_aligns.push_back(*it);
+	for ( const auto& align : bst._aligns )
+		_aligns.push_back(align);
 	}
 
 const Substring& Substring::operator=(const Substring& bst)
@@ -26,8 +26,8 @@ const Substring& Substring::operator=(const Substring& bst)
 
 	_aligns.clear();
 
-	for ( BSSAlignVecCIt it = bst._aligns.begin(); it != bst._aligns.end(); ++it )
-		_aligns.push_back(*it);
+	for ( const auto& align : bst._aligns )
+		_aligns.push_back(align);
 
 	_new = bst._new;
 
@@ -44,9 +44,9 @@ bool Substring::DoesCover(const Substring* bst) const
 	if ( _aligns.size() != bst->_aligns.size() )
 		return false;
 
-	BSSAlignVecCIt it_bst = bst->_aligns.begin();
+	auto it_bst = bst->_aligns.begin();
 
-	for ( BSSAlignVecCIt it = _aligns.begin(); it != _aligns.end(); ++it, ++it_bst )
+	for ( auto it = _aligns.begin(); it != _aligns.end(); ++it, ++it_bst )
 		{
 		const BSSAlign& a = *it;
 		const BSSAlign& a_bst = *it_bst;
@@ -134,9 +134,9 @@ char* Substring::VecToString(Vec* vec)
 	{
 	std::string result("[");
 
-	for ( Substring::VecIt it = vec->begin(); it != vec->end(); ++it )
+	for ( const auto& ss : *vec )
 		{
-		result += (*it)->CheckString();
+		result += ss->CheckString();
 		result += ",";
 		}
 
@@ -148,17 +148,14 @@ zeek::String::IdxVec* Substring::GetOffsetsVec(const Vec* vec, unsigned int inde
 	{
 	zeek::String::IdxVec* result = new zeek::String::IdxVec();
 
-	for ( VecCIt it = vec->begin(); it != vec->end(); ++it )
+	for ( const auto& bst : *vec )
 		{
-		int start, end;
-		const Substring* bst = (*it);
-
 		if ( bst->_aligns.size() <= index )
 			continue;
 
 		const BSSAlign& align = bst->_aligns[index];
-		start = align.index;
-		end = start + bst->Len();
+		int start = align.index;
+		int end = start + bst->Len();
 
 		result->push_back(start);
 		result->push_back(end);
@@ -327,7 +324,7 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix,
 // substrings are redundant (i.e., fully covered by a larger common substring).
 //
 static void sw_collect_multiple(Substring::Vec* result,
-				SWNodeMatrix& matrix, SWParams& params)
+                                SWNodeMatrix& matrix, SWParams& params)
 	{
 	std::vector<Substring::Vec*> als;
 
@@ -343,21 +340,16 @@ static void sw_collect_multiple(Substring::Vec* result,
 			auto* new_al = new Substring::Vec();
 			sw_collect_single(new_al, matrix, node, params);
 
-			for ( std::vector<Substring::Vec*>::iterator it = als.begin();
-			      it != als.end(); ++it )
+			for ( auto& old_al : als )
 				{
-				Substring::Vec* old_al = *it;
-
 				if ( old_al == nullptr )
 					continue;
 
-				for ( Substring::VecIt it2 = old_al->begin();
-				      it2 != old_al->end(); ++it2 )
+				for ( const auto& old_ss : *old_al )
 					{
-					for ( Substring::VecIt it3 = new_al->begin();
-					      it3 != new_al->end(); ++it3 )
+					for ( const auto& new_ss : *new_al )
 						{
-						if ( (*it2)->DoesCover(*it3) )
+						if ( old_ss->DoesCover(new_ss) )
 							{
 							zeek::util::delete_each(new_al);
 							delete new_al;
@@ -365,11 +357,11 @@ static void sw_collect_multiple(Substring::Vec* result,
 							goto end_loop;
 							}
 
-						if ( (*it3)->DoesCover(*it2) )
+						if ( new_ss->DoesCover(old_ss) )
 							{
 							zeek::util::delete_each(old_al);
 							delete old_al;
-							*it = 0;
+							old_al = nullptr;
 							goto end_loop;
 							}
 						}
@@ -382,17 +374,13 @@ end_loop:
 			}
 		}
 
-	for ( std::vector<Substring::Vec*>::iterator it = als.begin();
-	      it != als.end(); ++it )
+	for ( const auto& al : als )
 		{
-		Substring::Vec* al = *it;
-
 		if ( al == nullptr )
 			continue;
 
-		for ( Substring::VecIt it2 = al->begin();
-		      it2 != al->end(); ++it2 )
-			result->push_back(*it2);
+		for ( const auto& bst : *al )
+			result->push_back(bst);
 
 		delete al;
 		}

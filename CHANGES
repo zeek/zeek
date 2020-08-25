@@ -1,3 +1,12 @@
+
+3.3.0-dev.194 | 2020-08-24 19:20:29 -0700
+
+  * Mark Continuation.h and PacketDumper.h as deprecated (Tim Wojtulewicz, Corelight)
+
+  * Remove vector iterator type aliases from SmithWaterman code, fix uses of them (Tim Wojtulewicz, Corelight)
+
+  * Fix warning with usage of fmt() (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.190 | 2020-08-24 14:43:06 -0700
 
   * Make set_processing_status() signal-safe.

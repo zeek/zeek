@@ -296,7 +296,6 @@ set(MAIN_SRCS
     bro_inet_ntop.c
     patricia.c
     setsignal.c
-    PacketDumper.cc
     strsep.c
     modp_numtoa.c
 

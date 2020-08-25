@@ -27,8 +27,7 @@ void Inliner::Analyze()
 			if ( func == f->func )
 				{
 				if ( analysis_options.report_recursive )
-					fprintf(stderr,
-						"%s is directly recursive\n",
+					printf("%s is directly recursive\n",
 						func->Name());
 
 				non_recursive_funcs.erase(func);
@@ -82,7 +81,7 @@ void Inliner::Analyze()
 						continue;
 
 					if ( analysis_options.report_recursive )
-						fprintf(stderr, "%s is indirectly recursive, called by %s\n",
+						printf("%s is indirectly recursive, called by %s\n",
 							c.first->Name(),
 							cc->Name());
 

@@ -36,6 +36,16 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 		{
 		if ( analysis_options.only_func )
 			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
+
+		if ( analysis_options.report_uncompilable &&
+		     // We already reported skipping-due-to-when
+		     pf->num_lambdas > 0 )
+			{
+			ODesc d;
+			body->AddLocation(&d);
+			printf("%s cannot be compiled due to use of lambda expressions (%s)\n",
+				f->Name(), d.Description());
+			}
 		return;
 		}
 
@@ -194,20 +204,19 @@ void analyze_orphan_functions()
 		{
 		auto func = f->func;
 
-		if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
-			// Too many of these are unused to be worth reporting.
+		if ( func->Flavor() == FUNC_FLAVOR_EVENT )
 			continue;
 
-		bool is_called =
-			called_functions.find(func) != called_functions.end();
+		if ( called_functions.find(func) != called_functions.end() )
+			// It's called.
+			continue;
 
-#if 0
-		if ( ! is_called && func->Flavor() == FUNC_FLAVOR_FUNCTION )
-			printf("orphan function %s\n", func->Name());
-#endif
-
-		if ( ! is_called && func->Flavor() == FUNC_FLAVOR_HOOK )
-			printf("orphan hook %s\n", func->Name());
+		ODesc d;
+		f->body->AddLocation(&d);
+		printf("orphan %s %s (%s)\n",
+			func->Flavor() == FUNC_FLAVOR_FUNCTION ?
+				"function" : "hook",
+			func->Name(), d.Description());
 		}
 	}
 
@@ -229,7 +238,12 @@ void analyze_orphan_events()
 			auto h = event_registry->Lookup(fn);
 			if ( (! h || ! h->Used()) &&
 			     globals.find(fn) == globals.end() )
-				printf("event %s cannot be generated\n", fn);
+				{
+				ODesc d;
+				f->body->AddLocation(&d);
+				printf("event %s cannot be generated (%s)\n",
+					fn, d.Description());
+				}
 			}
 		}
 	}
@@ -306,6 +320,14 @@ void analyze_scripts()
 
 			for ( auto bf : f->pf->when_calls )
 				when_funcs_to_do.insert(bf);
+
+			if ( analysis_options.report_uncompilable )
+				{
+				ODesc d;
+				f->func->AddLocation(&d);
+				printf("%s cannot be compiled due to use of \"when\" statement (%s)\n",
+					f->func->Name(), d.Description());
+				}
 			}
 		}
 
@@ -335,8 +357,12 @@ void analyze_scripts()
 		new_to_do.clear();
 		}
 
-	// analyze_orphan_events();
-	// analyze_orphan_functions();
+	if ( analysis_options.report_orphans )
+		{
+		analyze_orphan_events();
+		analyze_orphan_functions();
+		}
+
 	Inliner* inl = analysis_options.inliner ? new Inliner(funcs) : nullptr;
 
 	for ( auto& f : funcs )

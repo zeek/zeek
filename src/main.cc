@@ -823,7 +823,10 @@ int main(int argc, char** argv)
 
 	analyze_scripts();
 
-	if ( analysis_options.usage_issues || analysis_options.report_recursive )
+	if ( analysis_options.usage_issues ||
+	     analysis_options.report_orphans ||
+	     analysis_options.report_recursive ||
+	     analysis_options.report_uncompilable )
 		// These options are report-and-exit.
 		return 0;
 

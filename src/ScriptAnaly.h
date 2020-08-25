@@ -42,8 +42,14 @@ extern struct AnalyOpt {
 	bool inliner = false;
 
 	// If true, report which functions are directly and indirectly
-	// recursive.  Only germane if running the inliner.
+	// recursive, and exit.  Only germane if running the inliner.
 	bool report_recursive = false;
+
+	// If true, report on which functions cannot be compiled, and exit.
+	bool report_uncompilable = false;
+
+	// If true, report on orphan functions and events.
+	bool report_orphans = false;
 
 	// If true, do optimization on reduced interpreted scripts.
 	bool optimize = false;

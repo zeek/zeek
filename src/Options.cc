@@ -169,6 +169,8 @@ static void set_analysis_option(const char* opt)
 		fprintf(stderr, "    overwrite	overwrite saved ZAM code\n");
 		fprintf(stderr, "    profile	generate to stdout a ZAM execution profile\n");
 		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
+		fprintf(stderr, "    uncompilable	report on uncompilable functions and exit\n");
+		fprintf(stderr, "    unused	report on unused functions and events, and exit\n");
 		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
 		fprintf(stderr, "    xform-opt	optimize \"reduced\" form scripts; implies xform\n");
 		fprintf(stderr, "\n");
@@ -207,6 +209,12 @@ static void set_analysis_option(const char* opt)
 	else if ( streq(opt, "recursive") )
 		analysis_options.inliner =
 			analysis_options.report_recursive = true;
+	else if ( streq(opt, "uncompilable") )
+		analysis_options.activate =
+			analysis_options.report_uncompilable = true;
+	else if ( streq(opt, "unused") )
+		analysis_options.activate =
+			analysis_options.report_orphans = true;
 	else if ( streq(opt, "xform") )
 		analysis_options.activate = true;
 	else if ( streq(opt, "xform-opt") )

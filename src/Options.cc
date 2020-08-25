@@ -153,7 +153,7 @@ static void set_analysis_option(const char* opt)
 	if ( streq(opt, "help") )
 		{
 		fprintf(stderr, "--optimize options:\n");
-		fprintf(stderr, "    all	turns on compile, inline, xform-opt\n");
+		fprintf(stderr, "    all		turns on compile, inline, xform-opt\n");
 		fprintf(stderr, "    compile	compile scripts to ZAM code; implies xform\n");
 		fprintf(stderr, "    delete	delete saved ZAM code\n");
 		fprintf(stderr, "    dump-code	dump ZAM code to stdout\n");
@@ -172,7 +172,7 @@ static void set_analysis_option(const char* opt)
 		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
 		fprintf(stderr, "    xform-opt	optimize \"reduced\" form scripts; implies xform\n");
 		fprintf(stderr, "\n");
-		fprintf(stderr, "    -O		a bare --optimize/-O sets compile, inline and xform-opt\n");
+		fprintf(stderr, "--optimize	without an argument, equivalent to --optimize=all\n");
 		fprintf(stderr, "\n");
 		fprintf(stderr, "--optimize-only=func	apply options to only the given function\n");
 		exit(0);

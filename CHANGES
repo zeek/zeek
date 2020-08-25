@@ -1,4 +1,11 @@
 
+3.3.0-dev.195 | 2020-08-25 14:32:47 -0700
+
+  * Improve an Intel framework btest (Jon Siwek, Corelight)
+
+    Relying on non-atomic `cp` operation may not cooperate well with the
+    Input framework file re-reading logic.
+
 3.3.0-dev.194 | 2020-08-24 19:20:29 -0700
 
   * Mark Continuation.h and PacketDumper.h as deprecated (Tim Wojtulewicz, Corelight)

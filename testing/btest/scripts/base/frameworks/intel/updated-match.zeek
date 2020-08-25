@@ -1,9 +1,9 @@
-# @TEST-EXEC: cp intel1.dat intel.dat
+# @TEST-EXEC: mv intel1.dat intel.dat
 # @TEST-EXEC: btest-bg-run zeekproc zeek -b %INPUT
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeekproc/got1 15 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: cp intel2.dat intel.dat
+# @TEST-EXEC: mv intel2.dat intel.dat
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeekproc/got2 15 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: cp intel3.dat intel.dat
+# @TEST-EXEC: mv intel3.dat intel.dat
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: cat zeekproc/intel.log > output
 # @TEST-EXEC: cat zeekproc/notice.log >> output

@@ -235,7 +235,7 @@ void init_alternative_mode()
 	fprintf(fp_func_h, "#ifndef BRO_IN_NETVAR\n");
 	fprintf(fp_func_h, "#ifndef %s\n", guard);
 	fprintf(fp_func_h, "#define %s\n", guard);
-	fprintf(fp_func_h, "#include \"bro-bif.h\"\n");
+	fprintf(fp_func_h, "#include \"zeek-bif.h\"\n");
 	fprintf(fp_func_h, "#endif\n");
 	fprintf(fp_func_h, "#endif\n");
 	fprintf(fp_func_h, "\n");

@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "analyzer/Manager.h"
@@ -13,7 +13,7 @@ analyzer GSSAPI withcontext {
 	flow       : GSSAPI_Flow;
 };
 
-connection GSSAPI_Conn(bro_analyzer: BroAnalyzer) {
+connection GSSAPI_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = GSSAPI_Flow(true);
 	downflow = GSSAPI_Flow(false);
 };

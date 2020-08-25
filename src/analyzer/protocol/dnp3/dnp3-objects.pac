@@ -616,7 +616,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 	};
 }
   &let{
-	data_value: uint8 = case (object_type_field) of {  # this data_value is used for the Bro Event
+	data_value: uint8 = case (object_type_field) of {  # this data_value is used for the Zeek Event
 		0x0101 -> biwoflag;
 		0x0102 -> biwflag;
 		0x0a01 -> bowoflag;
@@ -1504,4 +1504,3 @@ type UpdateKeySig(prefix: uint16) = record {
 type UpdateKeyCon(prefix: uint16) = record {
 	mac: bytestring &length = prefix;
 } &byteorder = littleendian;
-

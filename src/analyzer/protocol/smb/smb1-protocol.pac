@@ -43,7 +43,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_message )
 			{
-			zeek::BifEvent::enqueue_smb1_message(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_message(zeek_analyzer(), zeek_analyzer()->Conn(),
 			                                SMBHeaderVal(h),
 			                                is_orig);
 			}
@@ -54,8 +54,8 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_empty_response )
 			{
-			zeek::BifEvent::enqueue_smb1_empty_response(bro_analyzer(),
-			                                      bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_empty_response(zeek_analyzer(),
+			                                      zeek_analyzer()->Conn(),
 			                                      SMBHeaderVal(header));
 			}
 		return true;
@@ -67,16 +67,16 @@ refine connection SMB_Conn += {
 			{
 			if ( smb1_empty_response )
 				{
-				zeek::BifEvent::enqueue_smb1_empty_response(bro_analyzer(),
-				                                      bro_analyzer()->Conn(),
+				zeek::BifEvent::enqueue_smb1_empty_response(zeek_analyzer(),
+				                                      zeek_analyzer()->Conn(),
 				                                      SMBHeaderVal(h));
 				}
 			}
 		else
 			{
 			if ( smb1_error )
-				zeek::BifEvent::enqueue_smb1_error(bro_analyzer(),
-				                             bro_analyzer()->Conn(),
+				zeek::BifEvent::enqueue_smb1_error(zeek_analyzer(),
+				                             zeek_analyzer()->Conn(),
 				                             SMBHeaderVal(h), is_orig);
 			}
 		return true;

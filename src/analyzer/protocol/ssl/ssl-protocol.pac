@@ -143,7 +143,7 @@ refine connection SSL_Conn += {
 		// stop processing if we already had a protocol violation or otherwhise
 		// decided that we do not want to parse anymore. Just setting skip is not
 		// enough for the data that is already in the pipe.
-		if ( bro_analyzer()->Skipping() )
+		if ( zeek_analyzer()->Skipping() )
 			return UNKNOWN_VERSION;
 
 		// re-check record layer version to be sure that we still are synchronized with
@@ -154,8 +154,8 @@ refine connection SSL_Conn += {
 			if ( version != SSLv30 && version != TLSv10 &&
 			     version != TLSv11 && version != TLSv12 )
 				{
-				bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
-				bro_analyzer()->SetSkip(true);
+				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
+				zeek_analyzer()->SetSkip(true);
 				return UNKNOWN_VERSION;
 				}
 			}
@@ -171,8 +171,8 @@ refine connection SSL_Conn += {
 				if ( version != SSLv20 && version != SSLv30 && version != TLSv10 &&
 				     version != TLSv11 && version != TLSv12 )
 					{
-					bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in SSL client hello. Version: %d", version));
-					bro_analyzer()->SetSkip(true);
+					zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in SSL client hello. Version: %d", version));
+					zeek_analyzer()->SetSkip(true);
 					return UNKNOWN_VERSION;
 					}
 
@@ -188,8 +188,8 @@ refine connection SSL_Conn += {
 
 			else // this is not SSL or TLS.
 				{
-				bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
-				bro_analyzer()->SetSkip(true);
+				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
+				zeek_analyzer()->SetSkip(true);
 				return UNKNOWN_VERSION;
 				}
 			}
@@ -198,8 +198,8 @@ refine connection SSL_Conn += {
 		if ( version != SSLv30 && version != TLSv10 &&
 		     version != TLSv11 && version != TLSv12 )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in TLS connection. Version: %d", version));
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in TLS connection. Version: %d", version));
+			zeek_analyzer()->SetSkip(true);
 			return UNKNOWN_VERSION;
 			}
 
@@ -209,8 +209,8 @@ refine connection SSL_Conn += {
 			return version;
 			}
 
-		bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
-		bro_analyzer()->SetSkip(true);
+		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
+		zeek_analyzer()->SetSkip(true);
 		return UNKNOWN_VERSION;
 		%}
 

@@ -383,8 +383,8 @@ refine connection RDP_Conn += {
 
 		if ( rdp_begin_encryption )
 			{
-			zeek::BifEvent::enqueue_rdp_begin_encryption(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_rdp_begin_encryption(zeek_analyzer(),
+			                                       zeek_analyzer()->Conn(),
 			                                       ${method});
 			}
 

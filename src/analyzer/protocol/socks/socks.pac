@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "SOCKS.h"
@@ -13,7 +13,7 @@ analyzer SOCKS withcontext {
     flow:       SOCKS_Flow;
 };
 
-connection SOCKS_Conn(bro_analyzer: BroAnalyzer) {
+connection SOCKS_Conn(zeek_analyzer: ZeekAnalyzer) {
     upflow   = SOCKS_Flow(true);
     downflow = SOCKS_Flow(false);
 };

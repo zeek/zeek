@@ -1,6 +1,6 @@
 # Netware Core Protocol
 
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "events.bif.h"

@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "events.bif.h"
@@ -11,7 +11,7 @@ analyzer RDP withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection RDP_Conn(bro_analyzer: BroAnalyzer) {
+connection RDP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = RDP_Flow(true);
 	downflow = RDP_Flow(false);
 };

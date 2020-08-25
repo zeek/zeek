@@ -1,5 +1,5 @@
 #
-# The development of Bro's Modbus analyzer has been made possible thanks to
+# The development of Zeek's Modbus analyzer has been made possible thanks to
 # the support of the Ministry of Security and Justice of the Kingdom of the
 # Netherlands within the projects of Hermes, Castor and Midas.
 #
@@ -88,8 +88,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_message )
 			{
-			zeek::BifEvent::enqueue_modbus_message(connection()->bro_analyzer(),
-			                                 connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_message(connection()->zeek_analyzer(),
+			                                 connection()->zeek_analyzer()->Conn(),
 			                                 HeaderToVal(header),
 			                                 is_orig());
 			}
@@ -106,7 +106,7 @@ refine flow ModbusTCP_Flow += {
 		if ( ! connection()->IsConfirmed() )
 			{
 			connection()->SetConfirmed();
-			connection()->bro_analyzer()->ProtocolConfirmation();
+			connection()->zeek_analyzer()->ProtocolConfirmation();
 			}
 
 		return true;
@@ -117,8 +117,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_exception )
 			{
-			zeek::BifEvent::enqueue_modbus_exception(connection()->bro_analyzer(),
-			                                   connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_exception(connection()->zeek_analyzer(),
+			                                   connection()->zeek_analyzer()->Conn(),
 			                                   HeaderToVal(header),
 			                                   ${message.code});
 			}
@@ -131,8 +131,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_coils_request )
 			{
-			zeek::BifEvent::enqueue_modbus_read_coils_request(connection()->bro_analyzer(),
-			                                            connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_coils_request(connection()->zeek_analyzer(),
+			                                            connection()->zeek_analyzer()->Conn(),
 			                                            HeaderToVal(header),
 			                                            ${message.start_address},
 			                                            ${message.quantity});
@@ -146,8 +146,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_coils_response )
 			{
-			zeek::BifEvent::enqueue_modbus_read_coils_response(connection()->bro_analyzer(),
-			                                             connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_coils_response(connection()->zeek_analyzer(),
+			                                             connection()->zeek_analyzer()->Conn(),
 			                                             HeaderToVal(header),
 			                                             bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
 			}
@@ -159,8 +159,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_discrete_inputs_request )
 			{
-			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_request(connection()->bro_analyzer(),
-			                                                      connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_request(connection()->zeek_analyzer(),
+			                                                      connection()->zeek_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.start_address}, ${message.quantity});
 			}
@@ -173,8 +173,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_discrete_inputs_response )
 			{
-			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_response(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_response(connection()->zeek_analyzer(),
+			                                                       connection()->zeek_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
 			}
@@ -188,8 +188,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_holding_registers_request )
 			{
-			zeek::BifEvent::enqueue_modbus_read_holding_registers_request(connection()->bro_analyzer(),
-			                                                        connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_holding_registers_request(connection()->zeek_analyzer(),
+			                                                        connection()->zeek_analyzer()->Conn(),
 			                                                        HeaderToVal(header),
 			                                                        ${message.start_address}, ${message.quantity});
 			}
@@ -202,7 +202,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    zeek::util::fmt("invalid value for modbus read holding register response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -217,8 +217,8 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			zeek::BifEvent::enqueue_modbus_read_holding_registers_response(connection()->bro_analyzer(),
-			                                                         connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_holding_registers_response(connection()->zeek_analyzer(),
+			                                                         connection()->zeek_analyzer()->Conn(),
 			                                                         HeaderToVal(header),
 			                                                         std::move(t));
 			}
@@ -232,8 +232,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_input_registers_request )
 			{
-			zeek::BifEvent::enqueue_modbus_read_input_registers_request(connection()->bro_analyzer(),
-			                                                      connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_input_registers_request(connection()->zeek_analyzer(),
+			                                                      connection()->zeek_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.start_address}, ${message.quantity});
 			}
@@ -246,7 +246,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    zeek::util::fmt("invalid value for modbus read input register response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -261,8 +261,8 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			zeek::BifEvent::enqueue_modbus_read_input_registers_response(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_input_registers_response(connection()->zeek_analyzer(),
+			                                                       connection()->zeek_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       std::move(t));
 			}
@@ -283,13 +283,13 @@ refine flow ModbusTCP_Flow += {
 				val = 1;
 			else
 				{
-				connection()->bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value for modbus write single coil request %d",
+				connection()->zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value for modbus write single coil request %d",
 				                                                    ${message.value}));
 				return false;
 				}
 
-			zeek::BifEvent::enqueue_modbus_write_single_coil_request(connection()->bro_analyzer(),
-			                                                   connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_single_coil_request(connection()->zeek_analyzer(),
+			                                                   connection()->zeek_analyzer()->Conn(),
 			                                                   HeaderToVal(header),
 			                                                   ${message.address},
 			                                                   val);
@@ -310,13 +310,13 @@ refine flow ModbusTCP_Flow += {
 				val = 1;
 			else
 				{
-				connection()->bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value for modbus write single coil response %d",
+				connection()->zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value for modbus write single coil response %d",
 				                                                    ${message.value}));
 				return false;
 				}
 
-			zeek::BifEvent::enqueue_modbus_write_single_coil_response(connection()->bro_analyzer(),
-			                                                    connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_single_coil_response(connection()->zeek_analyzer(),
+			                                                    connection()->zeek_analyzer()->Conn(),
 			                                                    HeaderToVal(header),
 			                                                    ${message.address},
 			                                                    val);
@@ -331,8 +331,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_register_request )
 			{
-			zeek::BifEvent::enqueue_modbus_write_single_register_request(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_single_register_request(connection()->zeek_analyzer(),
+			                                                       connection()->zeek_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       ${message.address}, ${message.value});
 			}
@@ -345,8 +345,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_register_response )
 			{
-			zeek::BifEvent::enqueue_modbus_write_single_register_response(connection()->bro_analyzer(),
-			                                                        connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_single_register_response(connection()->zeek_analyzer(),
+			                                                        connection()->zeek_analyzer()->Conn(),
 			                                                        HeaderToVal(header),
 			                                                        ${message.address}, ${message.value});
 			}
@@ -360,8 +360,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_coils_request )
 			{
-			zeek::BifEvent::enqueue_modbus_write_multiple_coils_request(connection()->bro_analyzer(),
-			                                                      connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_multiple_coils_request(connection()->zeek_analyzer(),
+			                                                      connection()->zeek_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.start_address},
 			                                                      bytestring_to_coils(${message.coils}, ${message.quantity}));
@@ -375,8 +375,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_coils_response )
 			{
-			zeek::BifEvent::enqueue_modbus_write_multiple_coils_response(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_multiple_coils_response(connection()->zeek_analyzer(),
+			                                                       connection()->zeek_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       ${message.start_address}, ${message.quantity});
 			}
@@ -390,7 +390,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    zeek::util::fmt("invalid value for modbus write multiple registers request byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -405,8 +405,8 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-				zeek::BifEvent::enqueue_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
-				                                                          connection()->bro_analyzer()->Conn(),
+				zeek::BifEvent::enqueue_modbus_write_multiple_registers_request(connection()->zeek_analyzer(),
+				                                                          connection()->zeek_analyzer()->Conn(),
 				                                                          HeaderToVal(header),
 				                                                          ${message.start_address}, std::move(t));
 			}
@@ -419,8 +419,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_registers_response )
 			{
-			zeek::BifEvent::enqueue_modbus_write_multiple_registers_response(connection()->bro_analyzer(),
-			                                                           connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_multiple_registers_response(connection()->zeek_analyzer(),
+			                                                           connection()->zeek_analyzer()->Conn(),
 			                                                           HeaderToVal(header),
 			                                                           ${message.start_address}, ${message.quantity});
 			}
@@ -447,8 +447,8 @@ refine flow ModbusTCP_Flow += {
 			//	t->Assign(i, l);
 			//	}
 
-			zeek::BifEvent::enqueue_modbus_read_file_record_request(connection()->bro_analyzer(),
-			                                                  connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_file_record_request(connection()->zeek_analyzer(),
+			                                                  connection()->zeek_analyzer()->Conn(),
 			                                                  HeaderToVal(header));
 			}
 
@@ -468,8 +468,8 @@ refine flow ModbusTCP_Flow += {
 			//	t->Assign(i, r);
 			//	}
 
-			zeek::BifEvent::enqueue_modbus_read_file_record_response(connection()->bro_analyzer(),
-			                                                   connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_file_record_response(connection()->zeek_analyzer(),
+			                                                   connection()->zeek_analyzer()->Conn(),
 			                                                   HeaderToVal(header));
 			}
 
@@ -500,8 +500,8 @@ refine flow ModbusTCP_Flow += {
 			//		}
 			//	}
 
-			zeek::BifEvent::enqueue_modbus_write_file_record_request(connection()->bro_analyzer(),
-			                                                   connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_file_record_request(connection()->zeek_analyzer(),
+			                                                   connection()->zeek_analyzer()->Conn(),
 			                                                   HeaderToVal(header));
 			}
 
@@ -532,8 +532,8 @@ refine flow ModbusTCP_Flow += {
 			//		t->Assign(i, k);
 			//		}
 
-			zeek::BifEvent::enqueue_modbus_write_file_record_response(connection()->bro_analyzer(),
-			                                                    connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_write_file_record_response(connection()->zeek_analyzer(),
+			                                                    connection()->zeek_analyzer()->Conn(),
 			                                                    HeaderToVal(header));
 			}
 
@@ -545,8 +545,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_mask_write_register_request )
 			{
-			zeek::BifEvent::enqueue_modbus_mask_write_register_request(connection()->bro_analyzer(),
-			                                                     connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_mask_write_register_request(connection()->zeek_analyzer(),
+			                                                     connection()->zeek_analyzer()->Conn(),
 			                                                     HeaderToVal(header),
 			                                                     ${message.address},
 			                                                     ${message.and_mask}, ${message.or_mask});
@@ -560,8 +560,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_mask_write_register_response )
 			{
-			zeek::BifEvent::enqueue_modbus_mask_write_register_response(connection()->bro_analyzer(),
-			                                                      connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_mask_write_register_response(connection()->zeek_analyzer(),
+			                                                      connection()->zeek_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.address},
 			                                                      ${message.and_mask}, ${message.or_mask});
@@ -575,7 +575,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.write_byte_count} % 2 != 0 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    zeek::util::fmt("invalid value for modbus read write multiple registers request write byte count %d", ${message.write_byte_count}));
 			return false;
 			}
@@ -590,8 +590,8 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			zeek::BifEvent::enqueue_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
-			                                                               connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_write_multiple_registers_request(connection()->zeek_analyzer(),
+			                                                               connection()->zeek_analyzer()->Conn(),
 			                                                               HeaderToVal(header),
 			                                                               ${message.read_start_address},
 			                                                               ${message.read_quantity},
@@ -607,7 +607,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    zeek::util::fmt("invalid value for modbus read write multiple registers response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -622,8 +622,8 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			zeek::BifEvent::enqueue_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
-			                                                                connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_write_multiple_registers_response(connection()->zeek_analyzer(),
+			                                                                connection()->zeek_analyzer()->Conn(),
 			                                                                HeaderToVal(header),
 			                                                                std::move(t));
 			}
@@ -636,8 +636,8 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_fifo_queue_request )
 			{
-			zeek::BifEvent::enqueue_modbus_read_fifo_queue_request(connection()->bro_analyzer(),
-			                                                 connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_fifo_queue_request(connection()->zeek_analyzer(),
+			                                                 connection()->zeek_analyzer()->Conn(),
 			                                                 HeaderToVal(header),
 			                                                 ${message.start_address});
 			}
@@ -651,7 +651,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    zeek::util::fmt("invalid value for modbus read FIFO queue response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -666,8 +666,8 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			zeek::BifEvent::enqueue_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
-			                                                  connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_modbus_read_fifo_queue_response(connection()->zeek_analyzer(),
+			                                                  connection()->zeek_analyzer()->Conn(),
 			                                                  HeaderToVal(header),
 			                                                  std::move(t));
 			}

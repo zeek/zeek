@@ -3,8 +3,8 @@ refine connection SMB_Conn += {
 	function proc_smb1_write_andx_request(h: SMB_Header, val: SMB1_write_andx_request): bool
 		%{
 		if ( smb1_write_andx_request )
-			zeek::BifEvent::enqueue_smb1_write_andx_request(bro_analyzer(),
-			                                          bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_write_andx_request(zeek_analyzer(),
+			                                          zeek_analyzer()->Conn(),
 			                                          SMBHeaderVal(h),
 			                                          ${val.file_id},
 			                                          ${val.write_offset},
@@ -14,8 +14,8 @@ refine connection SMB_Conn += {
 			{
 			zeek::file_mgr->DataIn(${val.data}.begin(), ${val.data}.length(),
 			                       ${val.write_offset},
-			                       bro_analyzer()->GetAnalyzerTag(),
-			                       bro_analyzer()->Conn(), h->is_orig());
+			                       zeek_analyzer()->GetAnalyzerTag(),
+			                       zeek_analyzer()->Conn(), h->is_orig());
 			}
 
 		return true;
@@ -24,8 +24,8 @@ refine connection SMB_Conn += {
 	function proc_smb1_write_andx_response(h: SMB_Header, val: SMB1_write_andx_response): bool
 		%{
 		if ( smb1_write_andx_response )
-			zeek::BifEvent::enqueue_smb1_write_andx_response(bro_analyzer(),
-			                                           bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_write_andx_response(zeek_analyzer(),
+			                                           zeek_analyzer()->Conn(),
 			                                           SMBHeaderVal(h),
 			                                           ${val.written_bytes});
 

@@ -4,7 +4,7 @@
 # till StartTLS does (or does not) kick in.
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "zeek-config.h"
@@ -25,7 +25,7 @@ analyzer IMAP withcontext {
 	flow:		 IMAP_Flow;
 };
 
-connection IMAP_Conn(bro_analyzer: IMAPAnalyzer) {
+connection IMAP_Conn(zeek_analyzer: IMAPAnalyzer) {
 	upflow = IMAP_Flow(true);
 	downflow = IMAP_Flow(false);
 };

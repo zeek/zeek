@@ -1,7 +1,7 @@
-# This code contributed to Bro by Nadi Sarrar.
+# This code contributed to Zeek by Nadi Sarrar.
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #define MSGLEN_LIMIT 0x40000
@@ -16,4 +16,3 @@ analyzer BitTorrent withcontext {
 
 %include bittorrent-protocol.pac
 %include bittorrent-analyzer.pac
-

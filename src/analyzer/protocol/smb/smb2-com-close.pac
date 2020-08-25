@@ -4,14 +4,14 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_close_request )
 			{
-			zeek::BifEvent::enqueue_smb2_close_request(bro_analyzer(),
-			                                     bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_close_request(zeek_analyzer(),
+			                                     zeek_analyzer()->Conn(),
 			                                     BuildSMB2HeaderVal(h),
 			                                     BuildSMB2GUID(${val.file_id}));
 			}
 
-		zeek::file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
-		                          bro_analyzer()->Conn(), h->is_orig());
+		zeek::file_mgr->EndOfFile(zeek_analyzer()->GetAnalyzerTag(),
+		                          zeek_analyzer()->Conn(), h->is_orig());
 
 		return true;
 		%}
@@ -28,10 +28,10 @@ refine connection SMB_Conn += {
 			                                  ${val.last_access_time},
 			                                  ${val.creation_time},
 			                                  ${val.change_time}));
-			resp->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
+			resp->Assign(3, smb2_file_attrs_to_zeek(${val.file_attrs}));
 
-			zeek::BifEvent::enqueue_smb2_close_response(bro_analyzer(),
-			                                      bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_close_response(zeek_analyzer(),
+			                                      zeek_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
 			                                      std::move(resp));
 			}

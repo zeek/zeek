@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "types.bif.h"
@@ -11,7 +11,7 @@ analyzer DHCP withcontext {
 	flow:		DHCP_Flow;
 };
 
-connection DHCP_Conn(bro_analyzer: BroAnalyzer) {
+connection DHCP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow = DHCP_Flow(true);
 	downflow = DHCP_Flow(false);
 };

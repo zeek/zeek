@@ -20,7 +20,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_request )
 			{
-			zeek::BifEvent::enqueue_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_request(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 						       to_stringval(method), to_stringval(uri),
 						       to_stringval(${vers.vers_str}));
 			}
@@ -32,10 +32,10 @@ refine flow SIP_Flow += {
 
 	function proc_sip_reply(vers: SIP_Version, code: int, reason: bytestring): bool
 		%{
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->ProtocolConfirmation();
 		if ( sip_reply )
 			{
-			zeek::BifEvent::enqueue_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_reply(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 						     to_stringval(${vers.vers_str}), code, to_stringval(reason));
 			}
 
@@ -53,7 +53,7 @@ refine flow SIP_Flow += {
 			{
 			auto nameval = to_stringval(name);
 			nameval->ToUpper();
-			zeek::BifEvent::enqueue_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_header(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 						      is_orig(), std::move(nameval), to_stringval(value));
 			}
 
@@ -65,7 +65,7 @@ refine flow SIP_Flow += {
 		return true;
 		%}
 
-	function build_sip_headers_val(): BroVal
+	function build_sip_headers_val(): ZeekVal
 		%{
 		static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
 		auto* t = new zeek::TableVal(mime_header_list);
@@ -83,7 +83,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_all_headers )
 			{
-			zeek::BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_all_headers(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 							   is_orig(), {zeek::AdoptRef{}, build_sip_headers_val()});
 			}
 
@@ -100,7 +100,7 @@ refine flow SIP_Flow += {
 		return true;
 		%}
 
-	function build_sip_header_val(name: const_bytestring, value: const_bytestring): BroVal
+	function build_sip_header_val(name: const_bytestring, value: const_bytestring): ZeekVal
 		%{
 		static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
 		auto* header_record = new zeek::RecordVal(mime_header_rec);
@@ -127,7 +127,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_begin_entity )
 			{
-			zeek::BifEvent::enqueue_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			zeek::BifEvent::enqueue_sip_begin_entity(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), is_orig());
 			}
 		%}
 
@@ -135,7 +135,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_end_entity )
 			{
-			zeek::BifEvent::enqueue_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			zeek::BifEvent::enqueue_sip_end_entity(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), is_orig());
 			}
 
 		return true;

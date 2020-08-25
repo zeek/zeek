@@ -7,10 +7,10 @@ refine connection SMB_Conn += {
 			auto req = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::SessionSetupRequest);
 			req->Assign(0, zeek::val_mgr->Count(${val.security_mode}));
 
-			zeek::BifEvent::enqueue_smb2_session_setup_request(bro_analyzer(),
-			                                             bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_session_setup_request(zeek_analyzer(),
+			                                             zeek_analyzer()->Conn(),
 			                                             BuildSMB2HeaderVal(h),
-														 std::move(req));
+			                                             std::move(req));
 			}
 
 		return true;
@@ -28,8 +28,8 @@ refine connection SMB_Conn += {
 			auto resp = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::SessionSetupResponse);
 			resp->Assign(0, std::move(flags));
 
-			zeek::BifEvent::enqueue_smb2_session_setup_response(bro_analyzer(),
-			                                              bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_session_setup_response(zeek_analyzer(),
+			                                              zeek_analyzer()->Conn(),
 			                                              BuildSMB2HeaderVal(h),
 			                                              std::move(resp));
 			}

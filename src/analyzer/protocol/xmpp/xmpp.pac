@@ -4,7 +4,7 @@
 # till StartTLS does (or does not) kick in.
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 
 %extern{
@@ -25,7 +25,7 @@ analyzer XMPP withcontext {
 	flow:		 XMPP_Flow;
 };
 
-connection XMPP_Conn(bro_analyzer: XMPPAnalyzer) {
+connection XMPP_Conn(zeek_analyzer: XMPPAnalyzer) {
 	upflow = XMPP_Flow(true);
 	downflow = XMPP_Flow(false);
 };

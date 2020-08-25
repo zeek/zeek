@@ -1,6 +1,6 @@
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "types.bif.h"
@@ -12,7 +12,7 @@ analyzer NTP withcontext {
 	flow:       NTP_Flow;
 };
 
-connection NTP_Conn(bro_analyzer: BroAnalyzer) {
+connection NTP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = NTP_Flow(true);
 	downflow = NTP_Flow(false);
 };

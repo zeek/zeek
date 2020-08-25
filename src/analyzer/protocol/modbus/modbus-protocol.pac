@@ -1,5 +1,5 @@
 #
-# The development of Bro's Modbus analyzer has been made possible thanks to
+# The development of Zeek's Modbus analyzer has been made possible thanks to
 # the support of the Ministry of Security and Justice of the Kingdom of the
 # Netherlands within the projects of Hermes, Castor and Midas.
 #
@@ -270,7 +270,7 @@ type WriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
 	quantity:      uint16;
 	byte_count:    uint8;
-	# We specify registers buffer with quantity and byte_count so that the analyzer 
+	# We specify registers buffer with quantity and byte_count so that the analyzer
 	# will choke if something doesn't match right (correct devices should make it right).
 	registers:     uint16[quantity] &length=byte_count;
 } &let {

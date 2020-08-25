@@ -23,7 +23,7 @@ refine connection SMB_Conn += {
 				dialects->Assign(i, std::move(dia));
 				}
 
-			zeek::BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_negotiate_request(zeek_analyzer(), zeek_analyzer()->Conn(),
 			                                         SMBHeaderVal(header),
 			                                         std::move(dialects));
 			}
@@ -119,7 +119,7 @@ refine connection SMB_Conn += {
 					ntlm->Assign(6, zeek::val_mgr->Count(${val.ntlm.max_raw_size}));
 					ntlm->Assign(7, zeek::val_mgr->Count(${val.ntlm.session_key}));
 					ntlm->Assign(8, std::move(capabilities));
-					ntlm->Assign(9, filetime2brotime(${val.ntlm.server_time}));
+					ntlm->Assign(9, filetime2zeektime(${val.ntlm.server_time}));
 
 					if ( ${val.ntlm.capabilities_extended_security} == false )
 						{
@@ -135,8 +135,8 @@ refine connection SMB_Conn += {
 					}
 					break;
 				}
-			zeek::BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
-			                                          bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_negotiate_response(zeek_analyzer(),
+			                                          zeek_analyzer()->Conn(),
 			                                          SMBHeaderVal(header),
 			                                          std::move(response));
 			}

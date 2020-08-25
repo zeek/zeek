@@ -7,8 +7,8 @@ refine connection SMB_Conn += {
 
 		if ( smb2_tree_disconnect_request )
 			{
-			zeek::BifEvent::enqueue_smb2_tree_disconnect_request(bro_analyzer(),
-			                                               bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_tree_disconnect_request(zeek_analyzer(),
+			                                               zeek_analyzer()->Conn(),
 			                                               BuildSMB2HeaderVal(header));
 			}
 
@@ -19,8 +19,8 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_tree_disconnect_response )
 			{
-			zeek::BifEvent::enqueue_smb2_tree_disconnect_response(bro_analyzer(),
-			                                                bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_tree_disconnect_response(zeek_analyzer(),
+			                                                zeek_analyzer()->Conn(),
 			                                                BuildSMB2HeaderVal(header));
 			}
 

@@ -19,24 +19,24 @@ refine connection XMPP_Conn += {
 
 		if ( is_orig && token == "stream:stream" )
 			// Yup, looks like xmpp...
-			bro_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->ProtocolConfirmation();
 
 		if ( token == "success" || token == "message" || token == "db:result"
 		     || token == "db:verify" || token == "presence" )
 			// Handshake has passed the phase where we should see StartTLS. Simply skip from hereon...
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->SetSkip(true);
 
 		if ( is_orig && ( token == "starttls" || token_no_ns == "starttls" ) )
 			client_starttls = true;
 
 		if ( !is_orig && ( token == "proceed" || token_no_ns == "proceed" ) && client_starttls )
 			{
-			bro_analyzer()->StartTLS();
+			zeek_analyzer()->StartTLS();
 			if ( xmpp_starttls )
-				zeek::BifEvent::enqueue_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
+				zeek::BifEvent::enqueue_xmpp_starttls(zeek_analyzer(), zeek_analyzer()->Conn());
 			}
 		else if ( !is_orig && token == "proceed" )
-			zeek::reporter->Weird(bro_analyzer()->Conn(), "XMPP: proceed without starttls");
+			zeek::reporter->Weird(zeek_analyzer()->Conn(), "XMPP: proceed without starttls");
 
 		// printf("Processed: %d %s %s %s \n", is_orig, c_str(name), c_str(rest), token_no_ns.c_str());
 

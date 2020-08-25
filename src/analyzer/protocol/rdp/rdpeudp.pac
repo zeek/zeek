@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "events.bif.h"
@@ -10,7 +10,7 @@ analyzer RDPEUDP withcontext {
 	flow:       RDPEUDP_Flow;
 };
 
-connection RDPEUDP_Conn(bro_analyzer: BroAnalyzer) {
+connection RDPEUDP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = RDPEUDP_Flow(true);
 	downflow = RDPEUDP_Flow(false);
 };

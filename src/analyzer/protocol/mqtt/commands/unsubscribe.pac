@@ -23,8 +23,8 @@ refine flow MQTT_Flow += {
 				topics->Assign(topics->Size(), std::move(unsubscribe_topic));
 				}
 
-			zeek::BifEvent::enqueue_mqtt_unsubscribe(connection()->bro_analyzer(),
-			                                   connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_mqtt_unsubscribe(connection()->zeek_analyzer(),
+			                                   connection()->zeek_analyzer()->Conn(),
 			                                   ${msg.msg_id},
 			                                   std::move(topics));
 			}

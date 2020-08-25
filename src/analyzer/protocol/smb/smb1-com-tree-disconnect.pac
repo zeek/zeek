@@ -3,8 +3,8 @@ refine connection SMB_Conn += {
 	function proc_smb1_tree_disconnect(header: SMB_Header, val: SMB1_tree_disconnect): bool
 		%{
 		if ( smb1_tree_disconnect )
-			zeek::BifEvent::enqueue_smb1_tree_disconnect(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_tree_disconnect(zeek_analyzer(),
+			                                       zeek_analyzer()->Conn(),
 			                                       SMBHeaderVal(header),
 			                                       ${val.is_orig});
 		return true;

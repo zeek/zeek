@@ -8,7 +8,7 @@
 %}
 
 %code{
-zeek::AddrValPtr binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
+zeek::AddrValPtr binpac::Unified2::Flow::unified2_addr_to_zeek_addr(std::vector<uint32_t>* a)
 	{
 	if ( a->size() == 1 )
 		{
@@ -42,7 +42,7 @@ zeek::ValPtr binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
 refine flow Flow += {
 
 	%member{
-		zeek::AddrValPtr unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
+		zeek::AddrValPtr unified2_addr_to_zeek_addr(std::vector<uint32_t>* a);
 		zeek::ValPtr to_port(uint16_t n, uint8_t p);
 	%}
 
@@ -80,14 +80,14 @@ refine flow Flow += {
 			ids_event->Assign(5, zeek::val_mgr->Count(${ev.signature_revision}));
 			ids_event->Assign(6, zeek::val_mgr->Count(${ev.classification_id}));
 			ids_event->Assign(7, zeek::val_mgr->Count(${ev.priority_id}));
-			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
-			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
+			ids_event->Assign(8, unified2_addr_to_zeek_addr(${ev.src_ip}));
+			ids_event->Assign(9, unified2_addr_to_zeek_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
 			ids_event->Assign(17, zeek::val_mgr->Count(${ev.packet_action}));
 
 			zeek::event_mgr.Enqueue(::unified2_event,
-					connection()->bro_analyzer()->GetFile()->ToVal(),
+					connection()->zeek_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 		return true;
@@ -106,8 +106,8 @@ refine flow Flow += {
 			ids_event->Assign(5, zeek::val_mgr->Count(${ev.signature_revision}));
 			ids_event->Assign(6, zeek::val_mgr->Count(${ev.classification_id}));
 			ids_event->Assign(7, zeek::val_mgr->Count(${ev.priority_id}));
-			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
-			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
+			ids_event->Assign(8, unified2_addr_to_zeek_addr(${ev.src_ip}));
+			ids_event->Assign(9, unified2_addr_to_zeek_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
 			ids_event->Assign(12, zeek::val_mgr->Count(${ev.impact_flag}));
@@ -117,7 +117,7 @@ refine flow Flow += {
 			ids_event->Assign(16, zeek::val_mgr->Count(${ev.vlan_id}));
 
 			zeek::event_mgr.Enqueue(::unified2_event,
-					connection()->bro_analyzer()->GetFile()->ToVal(),
+					connection()->zeek_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 
@@ -137,7 +137,7 @@ refine flow Flow += {
 			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
 			zeek::event_mgr.Enqueue(::unified2_packet,
-					connection()->bro_analyzer()->GetFile()->ToVal(),
+					connection()->zeek_analyzer()->GetFile()->ToVal(),
 					std::move(packet));
 			}
 

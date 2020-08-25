@@ -6,7 +6,7 @@
 
 %header{
 zeek::VectorValPtr process_rvas(const RVAS* rvas);
-zeek::TableValPtr characteristics_to_bro(uint32_t c, uint8_t len);
+zeek::TableValPtr characteristics_to_zeek(uint32_t c, uint8_t len);
 %}
 
 %code{
@@ -20,7 +20,7 @@ zeek::VectorValPtr process_rvas(const RVAS* rva_table)
 	return rvas;
 	}
 
-zeek::TableValPtr characteristics_to_bro(uint32_t c, uint8_t len)
+zeek::TableValPtr characteristics_to_zeek(uint32_t c, uint8_t len)
 	{
 	uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
 	auto char_set = zeek::make_intrusive<zeek::TableVal>(zeek::id::count_set);
@@ -66,7 +66,7 @@ refine flow File += {
 			dh->Assign(16, zeek::val_mgr->Count(${h.AddressOfNewExeHeader}));
 
 			zeek::event_mgr.Enqueue(pe_dos_header,
-			    connection()->bro_analyzer()->GetFile()->ToVal(),
+			    connection()->zeek_analyzer()->GetFile()->ToVal(),
 			    std::move(dh));
 			}
 		return true;
@@ -76,7 +76,7 @@ refine flow File += {
 		%{
 		if ( pe_dos_code )
 			zeek::event_mgr.Enqueue(pe_dos_code,
-			    connection()->bro_analyzer()->GetFile()->ToVal(),
+			    connection()->zeek_analyzer()->GetFile()->ToVal(),
 			    zeek::make_intrusive<zeek::StringVal>(code.length(), (const char*) code.data())
 			    );
 		return true;
@@ -102,10 +102,10 @@ refine flow File += {
 			fh->Assign(2, zeek::val_mgr->Count(${h.PointerToSymbolTable}));
 			fh->Assign(3, zeek::val_mgr->Count(${h.NumberOfSymbols}));
 			fh->Assign(4, zeek::val_mgr->Count(${h.SizeOfOptionalHeader}));
-			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
+			fh->Assign(5, characteristics_to_zeek(${h.Characteristics}, 16));
 
 			zeek::event_mgr.Enqueue(pe_file_header,
-			    connection()->bro_analyzer()->GetFile()->ToVal(),
+			    connection()->zeek_analyzer()->GetFile()->ToVal(),
 			    std::move(fh));
 			}
 
@@ -151,12 +151,12 @@ refine flow File += {
 			oh->Assign(19, zeek::val_mgr->Count(${h.size_of_headers}));
 			oh->Assign(20, zeek::val_mgr->Count(${h.checksum}));
 			oh->Assign(21, zeek::val_mgr->Count(${h.subsystem}));
-			oh->Assign(22, characteristics_to_bro(${h.dll_characteristics}, 16));
+			oh->Assign(22, characteristics_to_zeek(${h.dll_characteristics}, 16));
 
 			oh->Assign(23, process_rvas(${h.rvas}));
 
 			zeek::event_mgr.Enqueue(pe_optional_header,
-			    connection()->bro_analyzer()->GetFile()->ToVal(),
+			    connection()->zeek_analyzer()->GetFile()->ToVal(),
 			    std::move(oh));
 			}
 		return true;
@@ -185,10 +185,10 @@ refine flow File += {
 			section_header->Assign(6, zeek::val_mgr->Count(${h.non_used_ptr_to_line_nums}));
 			section_header->Assign(7, zeek::val_mgr->Count(${h.non_used_num_of_relocs}));
 			section_header->Assign(8, zeek::val_mgr->Count(${h.non_used_num_of_line_nums}));
-			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
+			section_header->Assign(9, characteristics_to_zeek(${h.characteristics}, 32));
 
 			zeek::event_mgr.Enqueue(pe_section_header,
-			    connection()->bro_analyzer()->GetFile()->ToVal(),
+			    connection()->zeek_analyzer()->GetFile()->ToVal(),
 			    std::move(section_header)
 			    );
 			}

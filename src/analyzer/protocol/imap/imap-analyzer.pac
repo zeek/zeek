@@ -17,23 +17,23 @@ refine connection IMAP_Conn += {
 		//printf("imap %s %s\n", commands.c_str(), tags.c_str());
 
 		if ( !is_orig && tags == "*" && commands == "ok" )
-			bro_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->ProtocolConfirmation();
 
 		if ( is_orig && ( command == "capability" || commands == "starttls" ) )
-			bro_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->ProtocolConfirmation();
 
 		if ( command == "authenticate" || command == "login" || command == "examine" || command == "create" || command == "list" || command == "fetch" )
 			{
-			bro_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->ProtocolConfirmation();
 			// Handshake has passed the phase where we should see StartTLS. Simply skip from hereon...
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->SetSkip(true);
 			return true;
 			}
 
 		if ( is_orig && commands == "starttls" )
 			{
 			if ( !client_starttls_id.empty() )
-				zeek::reporter->Weird(bro_analyzer()->Conn(), "IMAP: client sent duplicate StartTLS");
+				zeek::reporter->Weird(zeek_analyzer()->Conn(), "IMAP: client sent duplicate StartTLS");
 
 			client_starttls_id = tags;
 			}
@@ -42,13 +42,13 @@ refine connection IMAP_Conn += {
 			{
 			if ( commands == "ok" )
 				{
-				bro_analyzer()->StartTLS();
+				zeek_analyzer()->StartTLS();
 
 				if ( imap_starttls )
-					zeek::BifEvent::enqueue_imap_starttls(bro_analyzer(), bro_analyzer()->Conn());
+					zeek::BifEvent::enqueue_imap_starttls(zeek_analyzer(), zeek_analyzer()->Conn());
 				}
 			else
-				zeek::reporter->Weird(bro_analyzer()->Conn(), "IMAP: server refused StartTLS");
+				zeek::reporter->Weird(zeek_analyzer()->Conn(), "IMAP: server refused StartTLS");
 			}
 
 		return true;
@@ -67,7 +67,7 @@ refine connection IMAP_Conn += {
 			capv->Assign(i, zeek::make_intrusive<zeek::StringVal>(capability.length(), (const char*)capability.data()));
 			}
 
-		zeek::BifEvent::enqueue_imap_capabilities(bro_analyzer(), bro_analyzer()->Conn(), std::move(capv));
+		zeek::BifEvent::enqueue_imap_capabilities(zeek_analyzer(), zeek_analyzer()->Conn(), std::move(capv));
 		return true;
 		%}
 

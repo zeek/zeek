@@ -42,7 +42,7 @@ refine connection SSL_Conn += {
 		if ( foffset == 0 && length == flength )
 			{
 			//fprintf(stderr, "Complete fragment, forwarding...\n");
-			bro_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, ${rec.data}.begin(), ${rec.data}.end(), ${pdu.is_orig});
+			zeek_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, ${rec.data}.begin(), ${rec.data}.end(), ${pdu.is_orig});
 			return true;
 			}
 
@@ -55,7 +55,7 @@ refine connection SSL_Conn += {
 
 		if ( length > MAX_DTLS_HANDSHAKE_RECORD )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS record length %" PRId64 " larger than allowed maximum.", length));
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS record length %" PRId64 " larger than allowed maximum.", length));
 			return true;
 			}
 
@@ -77,7 +77,7 @@ refine connection SSL_Conn += {
 			{
 			if ( i->first_sequence_seen )
 				{
-				bro_analyzer()->ProtocolViolation("Saw second and different first message fragment for handshake.");
+				zeek_analyzer()->ProtocolViolation("Saw second and different first message fragment for handshake.");
 				return true;
 				}
 			// first sequence number was incorrect, let's fix that.
@@ -97,13 +97,13 @@ refine connection SSL_Conn += {
 		// copy data from fragment to buffer
 		if ( ${rec.data}.length() != flength )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS handshake record length does not match packet length"));
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS handshake record length does not match packet length"));
 			return true;
 			}
 
 		if ( foffset + flength > length )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS handshake fragment trying to write past end of buffer"));
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS handshake fragment trying to write past end of buffer"));
 			return true;
 			}
 
@@ -124,14 +124,14 @@ refine connection SSL_Conn += {
 			uint64 total_length = i->message_last_sequence - i->message_first_sequence;
 			if ( total_length > 30 )
 				{
-				bro_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS Message fragmented over more than 30 pieces. Cannot reassemble."));
+				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS Message fragmented over more than 30 pieces. Cannot reassemble."));
 				return true;
 				}
 
 			if ( ( ~(i->message_sequence_seen) & ( ( 1<<(total_length+1) ) -1 ) ) == 0 )
 				{
 				//fprintf(stderr, "ALl fragments here. Total length %u\n", length);
-				bro_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, i->buffer, i->buffer + length, ${pdu.is_orig});
+				zeek_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, i->buffer, i->buffer + length, ${pdu.is_orig});
 				}
 			}
 

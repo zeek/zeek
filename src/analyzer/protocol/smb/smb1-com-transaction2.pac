@@ -38,8 +38,8 @@ refine connection SMB_Conn += {
 			args->Assign(10, zeek::val_mgr->Count(${val.data_offset}));
 			args->Assign(11, zeek::val_mgr->Count(${val.setup_count}));
 
-			zeek::BifEvent::enqueue_smb1_transaction2_request(bro_analyzer(),
-			                                            bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_transaction2_request(zeek_analyzer(),
+			                                            zeek_analyzer()->Conn(),
 			                                            SMBHeaderVal(header),
 			                                            std::move(args),
 			                                            ${val.sub_cmd});
@@ -51,7 +51,7 @@ refine connection SMB_Conn += {
 	function proc_smb1_transaction2_response(header: SMB_Header, val: SMB1_transaction2_response): bool
 		%{
 		//if ( smb1_transaction2_response )
-		//	zeek::BifEvent::enqueue_smb1_transaction2_response(bro_analyzer(), bro_analyzer()->Conn(), SMBHeaderVal(header), ${val.sub_cmd});
+		//	zeek::BifEvent::enqueue_smb1_transaction2_response(zeek_analyzer(), zeek_analyzer()->Conn(), SMBHeaderVal(header), ${val.sub_cmd});
 		return true;
 		%}
 
@@ -138,8 +138,8 @@ refine connection SMB_Conn += {
 			result->Assign(3, zeek::val_mgr->Count(${val.info_level}));
 			result->Assign(4, zeek::val_mgr->Count(${val.search_storage_type}));
 			result->Assign(5, smb_string2stringval(${val.file_name}));
-			zeek::BifEvent::enqueue_smb1_trans2_find_first2_request(bro_analyzer(),
-			                                                        bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_trans2_find_first2_request(zeek_analyzer(),
+			                                                        zeek_analyzer()->Conn(),
 			                                                        SMBHeaderVal(header),
 			                                                        std::move(result));
 
@@ -217,11 +217,10 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_trans2_query_path_info_request )
 			{
-			zeek::BifEvent::enqueue_smb1_trans2_query_path_info_request(bro_analyzer(),
-			                                                      bro_analyzer()->Conn(),
-																  SMBHeaderVal(header),
-																  smb_string2stringval(${val.file_name}));
-
+			zeek::BifEvent::enqueue_smb1_trans2_query_path_info_request(zeek_analyzer(),
+			                                                      zeek_analyzer()->Conn(),
+			                                                      SMBHeaderVal(header),
+			                                                      smb_string2stringval(${val.file_name}));
 			}
 		return true;
 		%}
@@ -322,8 +321,8 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_trans2_get_dfs_referral_request )
 			{
-			zeek::BifEvent::enqueue_smb1_trans2_get_dfs_referral_request(bro_analyzer(),
-			                                                       bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_trans2_get_dfs_referral_request(zeek_analyzer(),
+			                                                       zeek_analyzer()->Conn(),
 			                                                       SMBHeaderVal(header),
 			                                                       smb_string2stringval(${val.file_name}));
 			}

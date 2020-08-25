@@ -2,7 +2,7 @@
 # Based heavily on the HTTP BinPAC analyzer
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "events.bif.h"
@@ -13,7 +13,7 @@ analyzer SIP withcontext {
 	flow:		 SIP_Flow;
 };
 
-connection SIP_Conn(bro_analyzer: BroAnalyzer) {
+connection SIP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow = SIP_Flow(true);
 	downflow = SIP_Flow(false);
 };

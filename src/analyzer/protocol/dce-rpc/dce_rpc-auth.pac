@@ -32,18 +32,18 @@ refine connection DCE_RPC_Conn += {
 			{
 			case 0x09:
 				if ( ! gssapi )
-					gssapi = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
+					gssapi = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
 				if ( gssapi )
 					gssapi->DeliverStream(${auth.blob}.length(), ${auth.blob}.begin(), is_orig);
 				break;
 			case 0x0a:
 				if ( ! ntlm )
-					ntlm = zeek::analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
+					ntlm = zeek::analyzer_mgr->InstantiateAnalyzer("NTLM", zeek_analyzer()->Conn());
 				if ( ntlm )
 					ntlm->DeliverStream(${auth.blob}.length(), ${auth.blob}.begin(), is_orig);
 				break;
 			default:
-				bro_analyzer()->Weird("unknown_dce_rpc_auth_type", zeek::util::fmt("%d", ${auth.type}));
+				zeek_analyzer()->Weird("unknown_dce_rpc_auth_type", zeek::util::fmt("%d", ${auth.type}));
 				break;
 			}
 

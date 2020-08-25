@@ -19,8 +19,8 @@ refine connection SMB_Conn += {
 	auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(), (const char*)${val.parameters}.data());
 	auto payload = zeek::make_intrusive<zeek::StringVal>(${val.data}.length(), (const char*)${val.data}.data());
 
-	zeek::BifEvent::enqueue_smb1_transaction2_secondary_request(bro_analyzer(),
-	                                                      bro_analyzer()->Conn(),
+	zeek::BifEvent::enqueue_smb1_transaction2_secondary_request(zeek_analyzer(),
+	                                                      zeek_analyzer()->Conn(),
 	                                                      SMBHeaderVal(header),
 	                                                      std::move(args),
 	                                                      std::move(parameters),

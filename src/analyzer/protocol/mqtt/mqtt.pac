@@ -1,7 +1,7 @@
 # Analyzer for MQTT Protocol (currently v3.1.1, no v5.0 support)
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "MQTT.h"
@@ -15,7 +15,7 @@ analyzer MQTT withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection MQTT_Conn(bro_analyzer: BroAnalyzer) {
+connection MQTT_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = MQTT_Flow(true);
 	downflow = MQTT_Flow(false);
 };
@@ -41,4 +41,3 @@ flow MQTT_Flow(is_orig: bool) {
 %include commands/disconnect.pac
 %include commands/pingreq.pac
 %include commands/pingresp.pac
-

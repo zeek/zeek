@@ -1,20 +1,20 @@
 %header{
-	zeek::ValPtr filetime2brotime(uint64_t ts);
+	zeek::ValPtr filetime2zeektime(uint64_t ts);
 	zeek::RecordValPtr build_version_record(NTLM_Version* val);
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
 %}
 
 %code{
 	// This is replicated from the SMB analyzer. :(
-	zeek::ValPtr filetime2brotime(uint64_t ts)
+	zeek::ValPtr filetime2zeektime(uint64_t ts)
 		{
 		double secs = (ts / 10000000.0);
 
-		// Bro can't support times back to the 1600's
+		// Zeek can't support times back to the 1600's
 		// so we subtract a lot of seconds.
-		auto bro_ts = zeek::make_intrusive<zeek::TimeVal>(secs - 11644473600.0);
+		auto zeek_ts = zeek::make_intrusive<zeek::TimeVal>(secs - 11644473600.0);
 
-		return bro_ts;
+		return zeek_ts;
 		}
 
 	zeek::RecordValPtr build_version_record(NTLM_Version* val)
@@ -60,7 +60,7 @@
 
 refine connection NTLM_Conn += {
 
-	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
+	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): ZeekVal
 		%{
 		zeek::RecordVal* result = new zeek::RecordVal(zeek::BifType::Record::NTLM::AVs);
 		for ( uint i = 0; ; i++ )
@@ -71,7 +71,7 @@ refine connection NTLM_Conn += {
 					// According to spec, the TargetInfo MUST be a sequence of
 					// AV_PAIRs and terminated by the null AV_PAIR when the
 					// TargetInfoLen is non-zero, so this is in violation.
-					bro_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
+					zeek_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
 
 				return result;
 				}
@@ -81,31 +81,31 @@ refine connection NTLM_Conn += {
 				case 0:
 					return result;
 				case 1:
-					result->Assign(0, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
+					result->Assign(0, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
 					break;
 				case 2:
-					result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_domain_name.data}));
+					result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].nb_domain_name.data}));
 					break;
 				case 3:
-					result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_computer_name.data}));
+					result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].dns_computer_name.data}));
 					break;
 				case 4:
-					result->Assign(3, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_domain_name.data}));
+					result->Assign(3, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].dns_domain_name.data}));
 					break;
 				case 5:
-					result->Assign(4, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
+					result->Assign(4, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
 					result->Assign(5, zeek::val_mgr->Bool(${val.pairs[i].constrained_auth}));
 					break;
 				case 7:
-					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
+					result->Assign(6, filetime2zeektime(${val.pairs[i].timestamp}));
 					break;
 				case 8:
 					result->Assign(7, zeek::val_mgr->Count(${val.pairs[i].single_host.machine_id}));
 					break;
 				case 9:
-					result->Assign(8, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
+					result->Assign(8, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
 					break;
 				}
 			}
@@ -121,16 +121,16 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
-		        result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
+		        result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.domain_name.string.data}));
 
 		if ( ${val}->has_workstation() )
-		        result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
+		        result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
 
-		zeek::BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
-		                                 bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_ntlm_negotiate(zeek_analyzer(),
+		                                 zeek_analyzer()->Conn(),
 		                                 std::move(result));
 
 		return true;
@@ -145,7 +145,7 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
-			result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.target_name.string.data}));
+			result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.target_name.string.data}));
 
 		if ( ${val}->has_version() )
 			result->Assign(2, build_version_record(${val.version}));
@@ -153,8 +153,8 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_target_info() )
 			result->Assign(3, {zeek::AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
 
-		zeek::BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
-		                                 bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_ntlm_challenge(zeek_analyzer(),
+		                                 zeek_analyzer()->Conn(),
 		                                 std::move(result));
 
 		return true;
@@ -169,13 +169,13 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )
-			result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
+			result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.domain_name.string.data}));
 
 		if ( ${val}->has_user_name() > 0 )
-			result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.user_name.string.data}));
+			result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.user_name.string.data}));
 
 		if ( ${val}->has_workstation() > 0 )
-			result->Assign(3, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
+			result->Assign(3, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_encrypted_session_key() > 0 )
 			result->Assign(4, to_stringval(${val.encrypted_session_key.string.data}));
@@ -183,8 +183,8 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 			result->Assign(5, build_version_record(${val.version}));
 
-		zeek::BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
-		                                    bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_ntlm_authenticate(zeek_analyzer(),
+		                                    zeek_analyzer()->Conn(),
 		                                    std::move(result));
 		return true;
 		%}

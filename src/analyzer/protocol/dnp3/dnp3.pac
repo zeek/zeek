@@ -1,6 +1,6 @@
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "events.bif.h"
@@ -13,4 +13,3 @@ analyzer DNP3 withcontext {
 
 %include dnp3-protocol.pac
 %include dnp3-analyzer.pac
-

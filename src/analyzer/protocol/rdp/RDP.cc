@@ -76,7 +76,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			if ( rdp_native_encrypted_data )
 				zeek::BifEvent::enqueue_rdp_native_encrypted_data(
-				        interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
+				        interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(),
 				        orig, len);
 			}
 		}

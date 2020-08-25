@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "zeek-config.h"
@@ -20,7 +20,7 @@ analyzer KRB_TCP withcontext {
 	flow:		KRB_Flow;
 };
 
-connection KRB_Conn(bro_analyzer: KRBTCPAnalyzer) {
+connection KRB_Conn(zeek_analyzer: KRBTCPAnalyzer) {
 	upflow = KRB_Flow(true);
 	downflow = KRB_Flow(false);
 };

@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "analyzer/Manager.h"
@@ -48,7 +48,7 @@ analyzer SMB withcontext {
 	flow:        SMB_Flow;
 };
 
-connection SMB_Conn(bro_analyzer: BroAnalyzer) {
+connection SMB_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = SMB_Flow(true);
 	downflow = SMB_Flow(false);
 };
@@ -108,7 +108,7 @@ function to_int(num: uint24): uint32
 	%}
 
 type SMB_TCP(is_orig: bool) = record {
-	# These are technically NetBIOS fields but it's considered 
+	# These are technically NetBIOS fields but it's considered
 	# to be SMB directly over TCP.  The fields are essentially
 	# the NBSS protocol but it's only used for framing here.
 	message_type : uint8;

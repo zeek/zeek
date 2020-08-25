@@ -78,8 +78,8 @@ refine connection SMB_Conn += {
 					break;
 				}
 
-			zeek::BifEvent::enqueue_smb1_session_setup_andx_request(bro_analyzer(),
-			                                                  bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_session_setup_andx_request(zeek_analyzer(),
+			                                                  zeek_analyzer()->Conn(),
 			                                                  SMBHeaderVal(header),
 			                                                  std::move(request));
 			}
@@ -112,8 +112,8 @@ refine connection SMB_Conn += {
 					break;
 				}
 
-			zeek::BifEvent::enqueue_smb1_session_setup_andx_response(bro_analyzer(),
-			                                                   bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_session_setup_andx_response(zeek_analyzer(),
+			                                                   zeek_analyzer()->Conn(),
 			                                                   SMBHeaderVal(header),
 			                                                   std::move(response));
 			}

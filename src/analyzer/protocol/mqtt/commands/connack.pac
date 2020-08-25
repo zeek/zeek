@@ -18,8 +18,8 @@ refine flow MQTT_Flow += {
 			auto m = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MQTT::ConnectAckMsg);
 			m->Assign(0, zeek::val_mgr->Count(${msg.return_code}));
 			m->Assign(1, zeek::val_mgr->Bool(${msg.session_present}));
-			zeek::BifEvent::enqueue_mqtt_connack(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_mqtt_connack(connection()->zeek_analyzer(),
+			                               connection()->zeek_analyzer()->Conn(),
 			                               std::move(m));
 			}
 

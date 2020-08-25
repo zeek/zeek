@@ -26,8 +26,8 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_read_request )
 			{
-			zeek::BifEvent::enqueue_smb2_read_request(bro_analyzer(),
-			                                    bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_read_request(zeek_analyzer(),
+			                                    zeek_analyzer()->Conn(),
 			                                    BuildSMB2HeaderVal(h),
 			                                    BuildSMB2GUID(${val.file_id}),
 			                                    ${val.offset},
@@ -51,8 +51,8 @@ refine connection SMB_Conn += {
 		if ( ! ${h.is_pipe} && ${val.data_len} > 0 )
 			{
 			zeek::file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, offset,
-			                       bro_analyzer()->GetAnalyzerTag(),
-			                       bro_analyzer()->Conn(), h->is_orig());
+			                       zeek_analyzer()->GetAnalyzerTag(),
+			                       zeek_analyzer()->Conn(), h->is_orig());
 			}
 
 		return true;

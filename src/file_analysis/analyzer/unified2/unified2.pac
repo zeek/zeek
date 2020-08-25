@@ -1,13 +1,13 @@
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 analyzer Unified2 withcontext {
 	analyzer:   Unified2_Analyzer;
 	flow:       Flow;
 };
 
-analyzer Unified2_Analyzer(bro_analyzer: BroFileAnalyzer) {
+analyzer Unified2_Analyzer(zeek_analyzer: ZeekFileAnalyzer) {
 	downflow = Flow;
 	upflow   = Flow;
 };

@@ -61,7 +61,8 @@ AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
 		const uint8_t*& data, uint32_t identifier) const
 	{
 	auto inner_analyzer = Lookup(identifier);
-	inner_analyzer = inner_analyzer ? inner_analyzer : default_analyzer;
+	if ( ! inner_analyzer )
+		inner_analyzer = default_analyzer;
 
 	if ( inner_analyzer == nullptr )
 		{

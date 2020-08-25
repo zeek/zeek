@@ -42,34 +42,35 @@ void Manager::InitPostScript()
 		auto analyzer_tag = rv->GetField("analyzer")->AsEnumVal();
 		auto analyzer_name = Lookup(analyzer_tag)->Name();
 
-		if ( analyzers.find(analyzer_name) == analyzers.end() )
+		auto analyzer_it = analyzers.find(analyzer_name);
+		if ( analyzer_it == analyzers.end() )
 			{
 			reporter->InternalWarning("Mapped analyzer %s not found.", analyzer_name.c_str());
 			continue;
 			}
+		auto& analyzer = analyzer_it->second;
 
 		if ( parent_name == "ROOT" )
 			{
 			if ( identifier_val )
-				root_dispatcher.Register(identifier_val->AsCount(),
-						analyzers[analyzer_name]);
+				root_dispatcher.Register(identifier_val->AsCount(), analyzer);
 			else
-				default_analyzer = analyzers[analyzer_name];
+				default_analyzer = analyzer;
 			continue;
 			}
 
-		if ( analyzers.find(parent_name) == analyzers.end() )
+		auto parent_analyzer_it = analyzers.find(parent_name);
+		if ( parent_analyzer_it == analyzers.end() )
 			{
 			reporter->InternalWarning("Parent analyzer %s not found.", parent_name.c_str());
 			continue;
 			}
+		auto& parent_analyzer = parent_analyzer_it->second;
 
-		auto& parent_analyzer = analyzers[parent_name];
 		if ( identifier_val )
-			parent_analyzer->RegisterAnalyzerMapping(identifier_val->AsCount(),
-					analyzers[analyzer_name]);
+			parent_analyzer->RegisterAnalyzerMapping(identifier_val->AsCount(), analyzer);
 		else
-			parent_analyzer->RegisterDefaultAnalyzer(analyzers[analyzer_name]);
+			parent_analyzer->RegisterDefaultAnalyzer(analyzer);
 		}
 
 	// Initialize all analyzers

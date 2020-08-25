@@ -1,4 +1,4 @@
-module PacketAnalyzer::DEFAULT;
+module PacketAnalyzer::Default;
 
 redef PacketAnalyzer::config_map += {
 	PacketAnalyzer::ConfigEntry($analyzer=PacketAnalyzer::ANALYZER_DEFAULTANALYZER),

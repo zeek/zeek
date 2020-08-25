@@ -1,4 +1,5 @@
 @load base/packet-protocols/default
+@load base/packet-protocols/skip
 @load base/packet-protocols/ethernet
 @load base/packet-protocols/fddi
 @load base/packet-protocols/ieee802_11

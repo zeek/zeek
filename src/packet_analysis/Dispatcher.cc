@@ -48,6 +48,7 @@ bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 		}
 
 	int64_t index = identifier - lowest_identifier;
+	//TODO: Allow to overwrite mappings?
 	if ( table[index] == nullptr )
 		{
 		table[index] = analyzer;

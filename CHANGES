@@ -1,4 +1,10 @@
 
+3.3.0-dev.202 | 2020-08-26 10:59:59 -0700
+
+  * GH-1145: Have mkdir in ensure_dir respect umask. (Vlad Grigorescu)
+
+    This also aligns with the mkdir BIF.
+
 3.3.0-dev.200 | 2020-08-25 19:47:02 -0700
 
   * Update plugin btests for namespace changes (Tim Wojtulewicz, Corelight)

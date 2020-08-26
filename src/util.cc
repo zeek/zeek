@@ -317,7 +317,7 @@ bool ensure_intermediate_dirs(const char* dirname)
 
 bool ensure_dir(const char *dirname)
 	{
-	if ( mkdir(dirname, 0700) == 0 )
+	if ( mkdir(dirname, 0777) == 0 )
 		return true;
 
 	auto mkdir_errno = errno;

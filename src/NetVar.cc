@@ -113,8 +113,6 @@ int partial_connection_ok;
 int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
 
-int encap_hdr_size;
-
 double frag_timeout;
 
 double tcp_SYN_timeout;
@@ -261,8 +259,6 @@ void init_net_var()
 	tcp_SYN_ack_ok = id::find_val("tcp_SYN_ack_ok")->AsBool();
 	tcp_match_undelivered = id::find_val("tcp_match_undelivered")->AsBool();
 
-	encap_hdr_size = id::find_val("encap_hdr_size")->AsCount();
-
 	frag_timeout = id::find_val("frag_timeout")->AsInterval();
 
 	tcp_SYN_timeout = id::find_val("tcp_SYN_timeout")->AsInterval();
@@ -365,7 +361,6 @@ int& ignore_checksums = zeek::detail::ignore_checksums;
 int& partial_connection_ok = zeek::detail::partial_connection_ok;
 int& tcp_SYN_ack_ok = zeek::detail::tcp_SYN_ack_ok;
 int& tcp_match_undelivered = zeek::detail::tcp_match_undelivered;
-int& encap_hdr_size = zeek::detail::encap_hdr_size;
 double& frag_timeout = zeek::detail::frag_timeout;
 double& tcp_SYN_timeout = zeek::detail::tcp_SYN_timeout;
 double& tcp_session_timer = zeek::detail::tcp_session_timer;

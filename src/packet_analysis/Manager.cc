@@ -2,7 +2,6 @@
 
 #include "Manager.h"
 
-#include "NetVar.h"
 #include "Analyzer.h"
 #include "Dispatcher.h"
 
@@ -132,8 +131,6 @@ void Manager::ProcessPacket(Packet* packet)
 		}
 
 	auto result = analyzer->Analyze(packet, data);
-	if (result == AnalyzerResult::Terminate)
-		CustomEncapsulationSkip(packet, data);
 
 	// Calculate header size after processing packet layers.
 	packet->hdr_size = static_cast<uint32_t>(data - packet->data);
@@ -176,37 +173,4 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const std::string& name)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag) : nullptr;
-	}
-
-void Manager::CustomEncapsulationSkip(Packet* packet, const uint8_t* data)
-	{
-	if ( zeek::detail::encap_hdr_size > 0 )
-		{
-		// Blanket encapsulation. We assume that what remains is IP.
-		if ( data + zeek::detail::encap_hdr_size + sizeof(struct ip) >= packet->GetEndOfData() )
-			{
-			packet->Weird("no_ip_left_after_encap");
-			return;
-			}
-
-		data += zeek::detail::encap_hdr_size;
-
-		auto ip = (const struct ip*)data;
-
-		switch ( ip->ip_v )
-			{
-			case 4:
-				packet->l3_proto = L3_IPV4;
-				break;
-			case 6:
-				packet->l3_proto = L3_IPV6;
-				break;
-			default:
-				{
-				// Neither IPv4 nor IPv6.
-				packet->Weird("no_ip_in_encap");
-				return;
-				}
-			}
-		}
 	}

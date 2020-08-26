@@ -89,16 +89,6 @@ private:
 	 */
 	AnalyzerPtr InstantiateAnalyzer(const std::string& name);
 
-	/**
-	 * Skips a fixed amount of packet data that is defined by encap_hdr_size.
-	 * It is assumed that an IP header follows.
-	 *
-	 * @param packet The packet to adapt.
-	 *
-	 * @param data Pointer to remaining payload.
-	 */
-	void CustomEncapsulationSkip(Packet* packet, const uint8_t* data);
-
 	std::map<std::string, AnalyzerPtr> analyzers;
 	Dispatcher root_dispatcher;
 	AnalyzerPtr default_analyzer = nullptr;

@@ -1225,10 +1225,6 @@ const rpc_timeout = 24 sec &redef;
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 0.0 sec &redef;
 
-## If positive, indicates the encapsulation header size that should
-## be skipped. This applies to all packets.
-const encap_hdr_size = 0 &redef;
-
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transferred by each endpoint. If true, these values are
 ## returned in the connection's :zeek:see:`endpoint` record value.

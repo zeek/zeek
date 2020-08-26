@@ -12,24 +12,45 @@ namespace zeek::packet_analysis {
 class Analyzer; // Forward declaration for Value
 using AnalyzerPtr = std::shared_ptr<zeek::packet_analysis::Analyzer>;
 
-using register_pair = std::pair<uint32_t, AnalyzerPtr>;
-using register_map = std::map<uint32_t, AnalyzerPtr>;
-
+/**
+ * The Dispatcher class manages identifier-to-analyzer mappings.
+ */
 class Dispatcher {
 public:
-	Dispatcher()
-		: table(std::vector<AnalyzerPtr>(1, nullptr))
-		{ }
-
+	Dispatcher() : table(std::vector<AnalyzerPtr>(1, nullptr)) { };
 	~Dispatcher();
 
-	bool Register(uint32_t identifier, AnalyzerPtr analyzer);
-	void Register(const register_map& data);
+	/**
+	 * Register an analyzer for a given identifier.
+	 *
+	 * @param identifier The identifier.
+	 * @param analyzer The analyzer to register.
+	 */
+	void Register(uint32_t identifier, AnalyzerPtr analyzer);
 
+	/**
+	 * Looks up the analyzer for an identifier.
+	 *
+	 * @param identifier The identifier to look up.
+	 * @return The analyzer registered for the given identifier. Returns a
+	 * nullptr if no analyzer is registered.
+	 */
 	AnalyzerPtr Lookup(uint32_t identifier) const;
 
-	size_t Size() const;
+	/**
+	 * Returns the number of registered analyzers.
+	 * @return Number of registered analyzers.
+	 */
+	size_t Count() const;
+
+	/**
+	 * Removes all mappings from the dispatcher.
+	 */
 	void Clear();
+
+	/**
+	 * Dumps out the data structure to the \c analyzer debug stream.
+	 */
 	void DumpDebug() const;
 
 private:

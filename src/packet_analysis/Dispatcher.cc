@@ -4,6 +4,7 @@
 
 #include "Dispatcher.h"
 #include "Analyzer.h"
+#include "Reporter.h"
 #include "DebugLogger.h"
 
 namespace zeek::packet_analysis {
@@ -13,14 +14,14 @@ Dispatcher::~Dispatcher()
 	FreeValues();
 	}
 
-bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
+void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 	{
 	// If the table has size 1 and the entry is nullptr, there was nothing added yet. Just add it.
 	if ( table.size() == 1 && table[0] == nullptr )
 		{
-		table[0] = analyzer;
+		table[0] = std::move(analyzer);
 		lowest_identifier = identifier;
-		return true;
+		return;
 		}
 
 	// If highestIdentifier == identifier, overwrite would happen -> no check needed, will return false
@@ -39,7 +40,7 @@ bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 			{
 			if ( table[i] != nullptr )
 				{
-				table.at(i + distance) = table.at(i);
+				table.at(i + distance) = std::move(table.at(i));
 				table.at(i) = nullptr;
 				}
 			}
@@ -48,36 +49,10 @@ bool Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 		}
 
 	int64_t index = identifier - lowest_identifier;
-	//TODO: Allow to overwrite mappings?
-	if ( table[index] == nullptr )
-		{
-		table[index] = analyzer;
-		return true;
-		}
-
-	return false;
-	}
-
-void Dispatcher::Register(const register_map& data)
-	{
-	// Search smallest and largest identifier and resize vector
-	const auto& lowest_new =
-		std::min_element(data.begin(), data.end(),
-		                 [](const register_pair& a, const register_pair& b) {
-			                 return a.first < b.first;
-			                 });
-
-	// Register lowest first in order to do shifting only once
-	Register(lowest_new->first, lowest_new->second);
-	for ( auto i = data.begin(); i != data.end(); i++ )
-		{
-		// Already added if i == lowest_new
-		if ( i == lowest_new )
-			continue;
-
-		if ( ! Register(i->first, i->second) )
-			throw std::invalid_argument("Analyzer already registered!");
-		}
+	if ( table[index] != nullptr )
+		reporter->InternalWarning("Overwriting packet analyzer mapping %#8" PRIx64 " => %s with %s",
+				index+lowest_identifier, table[index]->GetAnalyzerName(), analyzer->GetAnalyzerName());
+	table[index] = std::move(analyzer);
 	}
 
 AnalyzerPtr Dispatcher::Lookup(uint32_t identifier) const
@@ -89,7 +64,7 @@ AnalyzerPtr Dispatcher::Lookup(uint32_t identifier) const
 	return nullptr;
 	}
 
-size_t Dispatcher::Size() const
+size_t Dispatcher::Count() const
 	{
 	return std::count_if(table.begin(), table.end(), [](AnalyzerPtr a) { return a != nullptr; });
 	}
@@ -109,12 +84,12 @@ void Dispatcher::FreeValues()
 void Dispatcher::DumpDebug() const
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_PACKET_ANALYSIS, "  Dispatcher elements (used/total): %lu/%lu", Size(), table.size());
-	DBG_LOG(DBG_PACKET_ANALYSIS, "TABLE SIZE %lu", table.size());
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Dispatcher elements (used/total): %lu/%lu", Count(), table.size());
 	for ( size_t i = 0; i < table.size(); i++ )
 		{
 		if ( table[i] != nullptr )
-			DBG_LOG(DBG_PACKET_ANALYSIS, "    %#8lx => %s", i+lowest_identifier, table[i]->GetAnalyzerName());
+			DBG_LOG(DBG_PACKET_ANALYSIS, "%#8lx => %s",
+					i+lowest_identifier, table[i]->GetAnalyzerName());
 		}
 #endif
 	}

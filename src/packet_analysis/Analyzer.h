@@ -74,9 +74,8 @@ public:
 	 *
 	 * @param identifier The identifier an analyzer should be called for.
 	 * @param analyzer The analyzer that should be called.
-	 * @return True if the registration was successful.
 	 */
-	bool RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer);
+	void RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer);
 
 	/**
 	 * Registers a default analyzer.

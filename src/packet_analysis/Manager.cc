@@ -90,6 +90,9 @@ void Manager::DumpDebug()
 		{
 		DBG_LOG(DBG_PACKET_ANALYSIS, "    %s", current->Name().c_str());
 		}
+
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Root dispatcher:");
+	root_dispatcher.DumpDebug();
 #endif
 	}
 

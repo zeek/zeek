@@ -42,9 +42,9 @@ bool Analyzer::IsAnalyzer(const char* name)
 	return packet_mgr->GetComponentName(tag) == name;
 	}
 
-bool Analyzer::RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer)
+void Analyzer::RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer)
 	{
-	return dispatcher.Register(identifier, std::move(analyzer));
+	dispatcher.Register(identifier, std::move(analyzer));
 	}
 
 void Analyzer::RegisterDefaultAnalyzer(AnalyzerPtr default_analyzer)

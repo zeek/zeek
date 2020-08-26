@@ -34,7 +34,7 @@ refine connection GSSAPI_Conn += {
 			{
 			// ntlmssp
 			if ( ! ntlm )
-				ntlm = zeek::analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
+				ntlm = zeek::analyzer_mgr->InstantiateAnalyzer("NTLM", zeek_analyzer()->Conn());
 
 			if ( ntlm )
 				ntlm->DeliverStream(${val.ntlm}.length(),
@@ -44,7 +44,7 @@ refine connection GSSAPI_Conn += {
 		else if ( ${val.has_krb} )
 			{
 			if ( ! krb5 )
-				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
+				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
 
 			if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
 				{
@@ -61,8 +61,8 @@ refine connection GSSAPI_Conn += {
 		%{
 		if ( gssapi_neg_result )
 			{
-			zeek::BifEvent::enqueue_gssapi_neg_result(bro_analyzer(),
-			                                    bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_gssapi_neg_result(zeek_analyzer(),
+			                                    zeek_analyzer()->Conn(),
 			                                    binary_to_int64(${val.neg_state.encoding.content}));
 			}
 

@@ -3,7 +3,7 @@
 #include "Conn.h"
 %}
 
-connection AYIYA_Conn(bro_analyzer: BroAnalyzer)
+connection AYIYA_Conn(zeek_analyzer: ZeekAnalyzer)
 	{
 	upflow = AYIYA_Flow;
 	downflow = AYIYA_Flow;
@@ -15,7 +15,7 @@ flow AYIYA_Flow
 
 	function process_ayiya(pdu: PDU): bool
 		%{
-		zeek::Connection* c = connection()->bro_analyzer()->Conn();
+		zeek::Connection* c = connection()->zeek_analyzer()->Conn();
 		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
 		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
@@ -39,7 +39,7 @@ flow AYIYA_Flow
 
 		if ( ${pdu.packet}.length() < (int)sizeof(struct ip) )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),
 			    ${pdu.packet}.length());
 			return false;
@@ -50,7 +50,7 @@ flow AYIYA_Flow
 		if ( ( ${pdu.next_header} == IPPROTO_IPV6 && ip->ip_v != 6 ) ||
 		     ( ${pdu.next_header} == IPPROTO_IPV4 && ip->ip_v != 4) )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    "AYIYA next header mismatch", (const char*)${pdu.packet}.data(),
 			     ${pdu.packet}.length());
 			return false;
@@ -61,20 +61,20 @@ flow AYIYA_Flow
 		     ${pdu.packet}.data(), ${pdu.next_header}, inner);
 
 		if ( result == 0 )
-			connection()->bro_analyzer()->ProtocolConfirmation();
+			connection()->zeek_analyzer()->ProtocolConfirmation();
 
 		else if ( result == -2 )
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    "AYIYA next header internal mismatch", (const char*)${pdu.packet}.data(),
 			     ${pdu.packet}.length());
 
 		else if ( result < 0 )
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),
 			    ${pdu.packet}.length());
 
 		else
-			connection()->bro_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->ProtocolViolation(
 			    "AYIYA payload length", (const char*) ${pdu.packet}.data(),
 			    ${pdu.packet}.length());
 

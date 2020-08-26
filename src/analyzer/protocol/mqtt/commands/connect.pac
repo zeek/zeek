@@ -75,13 +75,13 @@ refine flow MQTT_Flow += {
 				                            reinterpret_cast<const char*>(${msg.pass.str}.begin())));
 				}
 
-			zeek::BifEvent::enqueue_mqtt_connect(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_mqtt_connect(connection()->zeek_analyzer(),
+			                               connection()->zeek_analyzer()->Conn(),
 			                               std::move(m));
 			}
 
 		// If a connect message was seen, let's say that confirms it.
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->ProtocolConfirmation();
 		return true;
 		%}
 };

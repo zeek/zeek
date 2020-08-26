@@ -13,8 +13,8 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_puback )
 			{
-			zeek::BifEvent::enqueue_mqtt_puback(connection()->bro_analyzer(),
-			                              connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_mqtt_puback(connection()->zeek_analyzer(),
+			                              connection()->zeek_analyzer()->Conn(),
 			                              is_orig,
 			                              ${msg.msg_id});
 			}

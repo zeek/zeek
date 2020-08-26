@@ -10,8 +10,8 @@ refine connection SMB_Conn += {
 			set_tree_is_pipe(${h.tree_id});
 
 			if ( smb_pipe_connect_heuristic )
-				zeek::BifEvent::enqueue_smb_pipe_connect_heuristic(bro_analyzer(),
-				                                             bro_analyzer()->Conn());
+				zeek::BifEvent::enqueue_smb_pipe_connect_heuristic(zeek_analyzer(),
+				                                             zeek_analyzer()->Conn());
 			}
 
 		if ( smb2_create_request )
@@ -20,8 +20,8 @@ refine connection SMB_Conn += {
 			requestinfo->Assign(0, std::move(filename));
 			requestinfo->Assign(1, zeek::val_mgr->Count(${val.disposition}));
 			requestinfo->Assign(2, zeek::val_mgr->Count(${val.create_options}));
-			zeek::BifEvent::enqueue_smb2_create_request(bro_analyzer(),
-			                                      bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_create_request(zeek_analyzer(),
+			                                      zeek_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
 			                                      std::move(requestinfo));
 			}
@@ -40,10 +40,10 @@ refine connection SMB_Conn += {
 			                                          ${val.last_access_time},
 			                                          ${val.creation_time},
 			                                          ${val.change_time}));
-			responseinfo->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
+			responseinfo->Assign(3, smb2_file_attrs_to_zeek(${val.file_attrs}));
 			responseinfo->Assign(4, zeek::val_mgr->Count(${val.create_action}));
-			zeek::BifEvent::enqueue_smb2_create_response(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_create_response(zeek_analyzer(),
+			                                       zeek_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
 			                                       std::move(responseinfo));
 			}

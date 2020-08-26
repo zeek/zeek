@@ -1,5 +1,5 @@
 %extern{
-#include "binpac_bro.h"
+#include "binpac_zeek.h"
 #include "util.h"
 #include "Reporter.h"
 #include "Val.h"

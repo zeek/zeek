@@ -233,7 +233,7 @@ static zeek::ValPtr BuildTeardownInd(const InformationElement* ie)
 	return zeek::val_mgr->Bool(ie->teardown_ind()->ind());
 	}
 
-void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
+void CreatePDP_Request(const ZeekAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_create_pdp_ctx_request ) return;
 
@@ -332,7 +332,7 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
-void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
+void CreatePDP_Response(const ZeekAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_create_pdp_ctx_response )
 	    return;
@@ -401,7 +401,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
-void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
+void UpdatePDP_Request(const ZeekAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_update_pdp_ctx_request )
 	    return;
@@ -479,7 +479,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
-void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
+void UpdatePDP_Response(const ZeekAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_update_pdp_ctx_response )
 	    return;
@@ -539,7 +539,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
-void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
+void DeletePDP_Request(const ZeekAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_delete_pdp_ctx_request )
 	    return;
@@ -573,7 +573,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
-void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
+void DeletePDP_Response(const ZeekAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_delete_pdp_ctx_response )
 	    return;
@@ -605,7 +605,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	}
 %}
 
-connection GTPv1_Conn(bro_analyzer: BroAnalyzer)
+connection GTPv1_Conn(zeek_analyzer: ZeekAnalyzer)
 	{
 	upflow = GTPv1_Flow(true);
 	downflow = GTPv1_Flow(false);
@@ -639,14 +639,14 @@ flow GTPv1_Flow(is_orig: bool)
 
 	function violate(r: string, pdu: GTPv1_Header): void
 		%{
-		BroAnalyzer a = connection()->bro_analyzer();
+		ZeekAnalyzer a = connection()->zeek_analyzer();
 		const_bytestring b = ${pdu.sourcedata};
 		a->ProtocolViolation(r.c_str(), (const char*) b.begin(), b.length());
 		%}
 
 	function process_gtpv1(pdu: GTPv1_Header): bool
 		%{
-		BroAnalyzer a = connection()->bro_analyzer();
+		ZeekAnalyzer a = connection()->zeek_analyzer();
 		zeek::Connection* c = a->Conn();
 		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 
@@ -711,7 +711,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 	function process_g_pdu(pdu: GTPv1_Header): bool
 		%{
-		BroAnalyzer a = connection()->bro_analyzer();
+		ZeekAnalyzer a = connection()->zeek_analyzer();
 		zeek::Connection* c = a->Conn();
 		const zeek::EncapsulationStack* e = c->GetEncapsulation();
 

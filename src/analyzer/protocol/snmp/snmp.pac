@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "Reporter.h"
@@ -12,7 +12,7 @@ analyzer SNMP withcontext {
 	flow:       SNMP_Flow;
 };
 
-connection SNMP_Conn(bro_analyzer: BroAnalyzer) {
+connection SNMP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow = SNMP_Flow(true);
 	downflow = SNMP_Flow(false);
 };

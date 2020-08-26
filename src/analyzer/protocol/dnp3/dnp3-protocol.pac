@@ -17,7 +17,7 @@ type Header_Block = record {
 } &byteorder = littleendian;
 
 type DNP3_Request = record {
-	addin_header: Header_Block;  ## added by Hui Lin in Bro code
+	addin_header: Header_Block;  ## added by Hui Lin in Zeek code
 	app_header: DNP3_Application_Request_Header;
 	data: case ( app_header.function_code ) of {
 		CONFIRM -> none_coonfirm: empty;

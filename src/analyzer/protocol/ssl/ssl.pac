@@ -6,7 +6,7 @@
 #  - ssl-record-layer.pac: describes the SSL record layer
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "Desc.h"
@@ -25,7 +25,7 @@ analyzer SSL withcontext {
 	flow:       SSL_Flow;
 };
 
-connection SSL_Conn(bro_analyzer: SSLAnalyzer) {
+connection SSL_Conn(zeek_analyzer: SSLAnalyzer) {
 	upflow = SSL_Flow(true);
 	downflow = SSL_Flow(false);
 };

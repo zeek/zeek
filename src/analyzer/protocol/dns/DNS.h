@@ -3,7 +3,7 @@
 #pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
-#include "binpac_bro.h"
+#include "binpac_zeek.h"
 
 namespace zeek::analyzer::dns {
 namespace detail {

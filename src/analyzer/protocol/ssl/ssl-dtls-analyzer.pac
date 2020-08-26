@@ -32,13 +32,13 @@ refine connection SSL_Conn += {
 	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
 		if ( ssl_alert )
-			zeek::BifEvent::enqueue_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_ssl_alert(zeek_analyzer(), zeek_analyzer()->Conn(),
 							${rec.is_orig}, level, desc);
 		return true;
 		%}
 	function proc_unknown_record(rec: SSLRecord) : bool
 		%{
-		bro_analyzer()->ProtocolViolation(zeek::util::fmt("unknown SSL record type (%d) from %s",
+		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unknown SSL record type (%d) from %s",
 				${rec.content_type},
 				orig_label(${rec.is_orig}).c_str()));
 		return true;
@@ -52,12 +52,12 @@ refine connection SSL_Conn += {
 			{
 			established_ = true;
 			if ( ssl_established )
-				zeek::BifEvent::enqueue_ssl_established(bro_analyzer(), bro_analyzer()->Conn());
+				zeek::BifEvent::enqueue_ssl_established(zeek_analyzer(), zeek_analyzer()->Conn());
 			}
 
 		if ( ssl_encrypted_data )
-			zeek::BifEvent::enqueue_ssl_encrypted_data(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+			zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
+				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}
@@ -65,8 +65,8 @@ refine connection SSL_Conn += {
 	function proc_plaintext_record(rec : SSLRecord) : bool
 		%{
 		if ( ssl_plaintext_data )
-			zeek::BifEvent::enqueue_ssl_plaintext_data(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+			zeek::BifEvent::enqueue_ssl_plaintext_data(zeek_analyzer(),
+				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}
@@ -74,8 +74,8 @@ refine connection SSL_Conn += {
 	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16, data: bytestring) : bool
 		%{
 		if ( ssl_heartbeat )
-			zeek::BifEvent::enqueue_ssl_heartbeat(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
+			zeek::BifEvent::enqueue_ssl_heartbeat(zeek_analyzer(),
+				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
 				zeek::make_intrusive<zeek::StringVal>(data.length(), (const char*) data.data()));
 		return true;
 		%}
@@ -84,8 +84,8 @@ refine connection SSL_Conn += {
 		%{
 		if ( version != SSLv20 )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in SSL server hello. Version: %d", version));
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in SSL server hello. Version: %d", version));
+			zeek_analyzer()->SetSkip(true);
 			return false;
 			}
 
@@ -96,8 +96,8 @@ refine connection SSL_Conn += {
 	function proc_ccs(rec: SSLRecord) : bool
 		%{
 		if ( ssl_change_cipher_spec )
-			zeek::BifEvent::enqueue_ssl_change_cipher_spec(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig});
+			zeek::BifEvent::enqueue_ssl_change_cipher_spec(zeek_analyzer(),
+				zeek_analyzer()->Conn(), ${rec.is_orig});
 
 		return true;
 		%}

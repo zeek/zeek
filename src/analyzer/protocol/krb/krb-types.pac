@@ -5,8 +5,8 @@ zeek::ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
 zeek::VectorValPtr proc_cipher_list(const Array* list);
 
-zeek::VectorValPtr proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list);
-zeek::RecordValPtr proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr);
+zeek::VectorValPtr proc_host_address_list(const ZeekAnalyzer a, const KRB_Host_Addresses* list);
+zeek::RecordValPtr proc_host_address(const ZeekAnalyzer a, const KRB_Host_Address* addr);
 
 zeek::VectorValPtr proc_tickets(const KRB_Ticket_Sequence* list);
 zeek::RecordValPtr proc_ticket(const KRB_Ticket* ticket);
@@ -33,7 +33,7 @@ zeek::VectorValPtr proc_cipher_list(const Array* list)
 	return ciphers;
 }
 
-zeek::VectorValPtr proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list)
+zeek::VectorValPtr proc_host_address_list(const ZeekAnalyzer a, const KRB_Host_Addresses* list)
 {
 	auto addrs = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Host_Address_Vector"));
 
@@ -45,7 +45,7 @@ zeek::VectorValPtr proc_host_address_list(const BroAnalyzer a, const KRB_Host_Ad
 	return addrs;
 }
 
-zeek::RecordValPtr proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
+zeek::RecordValPtr proc_host_address(const ZeekAnalyzer a, const KRB_Host_Address* addr)
 {
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Host_Address);
 	const auto& addr_bytes = addr->address()->data()->content();

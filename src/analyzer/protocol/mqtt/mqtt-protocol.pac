@@ -46,7 +46,7 @@ refine connection MQTT_Conn += {
 
 		if ( vals->size() > 4 )
 			{
-			this->bro_analyzer()->ProtocolViolation("malformed MQTT 'remaining length': too many bytes");
+			this->zeek_analyzer()->ProtocolViolation("malformed MQTT 'remaining length': too many bytes");
 			return 0;
 			}
 
@@ -57,7 +57,7 @@ refine connection MQTT_Conn += {
 			if ( multiplier > 128*128*128 )
 				{
 				// This is definitely a protocol violation
-				this->bro_analyzer()->ProtocolViolation("malformed MQTT 'remaining length': too large");
+				this->zeek_analyzer()->ProtocolViolation("malformed MQTT 'remaining length': too large");
 				return 0;
 				}
 			}
@@ -65,4 +65,3 @@ refine connection MQTT_Conn += {
 		return value;
 		%}
 };
-

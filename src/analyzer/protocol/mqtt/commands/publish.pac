@@ -42,15 +42,15 @@ refine flow MQTT_Flow += {
 
 			m->Assign(5, zeek::val_mgr->Count(${msg.payload}.length()));
 
-			zeek::BifEvent::enqueue_mqtt_publish(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_mqtt_publish(connection()->zeek_analyzer(),
+			                               connection()->zeek_analyzer()->Conn(),
 			                               ${pdu.is_orig},
 			                               ${msg.qos} == 0 ? 0 : ${msg.msg_id},
 			                               std::move(m));
 			}
 
 		// If a publish message was seen, let's say that confirms it.
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->ProtocolConfirmation();
 
 		return true;
 		%}

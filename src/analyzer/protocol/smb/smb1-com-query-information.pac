@@ -3,8 +3,8 @@ refine connection SMB_Conn += {
 	function proc_smb1_query_information_request(header: SMB_Header, val: SMB1_query_information_request): bool
 		%{
 		if ( smb1_query_information_request )
-			zeek::BifEvent::enqueue_smb1_query_information_request(bro_analyzer(),
-			                                                 bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_query_information_request(zeek_analyzer(),
+			                                                 zeek_analyzer()->Conn(),
 			                                                 SMBHeaderVal(header),
 			                                                 smb_string2stringval(${val.filename}));
 		return true;
@@ -38,4 +38,3 @@ type SMB1_query_information_response(header: SMB_Header) = record {
 } &let {
 	proc : bool = $context.connection.proc_smb1_query_information_response(header, this);
 };
-

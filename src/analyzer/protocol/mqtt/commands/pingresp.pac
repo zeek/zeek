@@ -11,8 +11,8 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_pingresp )
 			{
-			zeek::BifEvent::enqueue_mqtt_pingresp(connection()->bro_analyzer(),
-			                                connection()->bro_analyzer()->Conn());
+			zeek::BifEvent::enqueue_mqtt_pingresp(connection()->zeek_analyzer(),
+			                                connection()->zeek_analyzer()->Conn());
 			}
 
 		return true;

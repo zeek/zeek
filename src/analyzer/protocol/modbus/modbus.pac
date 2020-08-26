@@ -1,5 +1,5 @@
 #
-# The development of Bro's Modbus analyzer has been made possible thanks to
+# The development of Zeek's Modbus analyzer has been made possible thanks to
 # the support of the Ministry of Security and Justice of the Kingdom of the
 # Netherlands within the projects of Hermes, Castor and Midas.
 #
@@ -7,7 +7,7 @@
 #                    http://www.simplymodbus.ca/faq.htm
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "events.bif.h"
@@ -18,7 +18,7 @@ analyzer ModbusTCP withcontext {
 	flow:       ModbusTCP_Flow;
 };
 
-connection ModbusTCP_Conn(bro_analyzer: BroAnalyzer) {
+connection ModbusTCP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow = ModbusTCP_Flow(true);
 	downflow = ModbusTCP_Flow(false);
 };

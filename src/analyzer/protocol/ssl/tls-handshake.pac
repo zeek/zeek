@@ -1,7 +1,7 @@
 # Binpac analyzer just for the TLS handshake protocol and nothing else
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "Desc.h"
@@ -14,7 +14,7 @@ analyzer TLSHandshake withcontext {
 	flow:       Handshake_Flow;
 };
 
-connection Handshake_Conn(bro_analyzer: BroAnalyzer) {
+connection Handshake_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow = Handshake_Flow(true);
 	downflow = Handshake_Flow(false);
 };

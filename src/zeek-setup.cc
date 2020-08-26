@@ -61,7 +61,7 @@ extern "C" {
 #include "iosource/Manager.h"
 #include "broker/Manager.h"
 
-#include "binpac_bro.h"
+#include "binpac_zeek.h"
 
 #include "3rdparty/sqlite3.h"
 

@@ -7,7 +7,7 @@
 #include "analyzer/protocol/pia/PIA.h"
 #include "analyzer/protocol/zip/ZIP.h"
 #include "analyzer/protocol/mime/MIME.h"
-#include "binpac_bro.h"
+#include "binpac_zeek.h"
 #include "IPAddr.h"
 #include "analyzer/protocol/http/events.bif.h"
 

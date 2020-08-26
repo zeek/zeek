@@ -4,7 +4,7 @@
 %header{
 zeek::RecordValPtr BuildSMB2HeaderVal(SMB2_Header* hdr);
 zeek::RecordValPtr BuildSMB2GUID(SMB2_guid* file_id);
-zeek::RecordValPtr smb2_file_attrs_to_bro(SMB2_file_attributes* val);
+zeek::RecordValPtr smb2_file_attrs_to_zeek(SMB2_file_attributes* val);
 zeek::RecordValPtr BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv);
 %}
 
@@ -33,7 +33,7 @@ zeek::RecordValPtr BuildSMB2GUID(SMB2_guid* file_id)
 	return r;
 	}
 
-zeek::RecordValPtr smb2_file_attrs_to_bro(SMB2_file_attributes* val)
+zeek::RecordValPtr smb2_file_attrs_to_zeek(SMB2_file_attributes* val)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::FileAttrs);
 	r->Assign(0, zeek::val_mgr->Bool(${val.read_only}));
@@ -250,7 +250,7 @@ refine connection SMB_Conn += {
 
 		if ( smb2_message )
 			{
-			zeek::BifEvent::enqueue_smb2_message(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_message(zeek_analyzer(), zeek_analyzer()->Conn(),
 			                               BuildSMB2HeaderVal(h), is_orig);
 			}
 		return true;

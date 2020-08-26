@@ -125,14 +125,15 @@ include(BinPAC)
 
 set(BINPAC_AUXSRC
     ${CMAKE_SOURCE_DIR}/src/binpac.pac
+    ${CMAKE_SOURCE_DIR}/src/zeek.pac
     ${CMAKE_SOURCE_DIR}/src/bro.pac
-    ${CMAKE_SOURCE_DIR}/src/binpac_bro.h
+    ${CMAKE_SOURCE_DIR}/src/binpac_zeek.h
 )
 
 binpac_target(binpac-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
-binpac_target(binpac_bro-lib.pac)
+binpac_target(binpac_zeek-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
 ########################################################################

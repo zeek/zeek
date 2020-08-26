@@ -5,7 +5,7 @@
 #  - mysql-analyzer.pac: describes the MySQL analyzer code
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "events.bif.h"
@@ -17,7 +17,7 @@ analyzer MySQL withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection MySQL_Conn(bro_analyzer: BroAnalyzer) {
+connection MySQL_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = MySQL_Flow(true);
 	downflow = MySQL_Flow(false);
 };

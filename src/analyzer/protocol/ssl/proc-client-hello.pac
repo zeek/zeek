@@ -8,11 +8,11 @@
 		%{
 		if ( ! version_ok(version) )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported client SSL version 0x%04x", version));
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported client SSL version 0x%04x", version));
+			zeek_analyzer()->SetSkip(true);
 			}
 		else
-			bro_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->ProtocolConfirmation();
 
 		if ( ssl_client_hello )
 			{
@@ -42,7 +42,7 @@
 					}
 				}
 
-			zeek::BifEvent::enqueue_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_ssl_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
 							version, record_version(), ts,
 							zeek::make_intrusive<zeek::StringVal>(client_random.length(),
 							                                      (const char*) client_random.data()),

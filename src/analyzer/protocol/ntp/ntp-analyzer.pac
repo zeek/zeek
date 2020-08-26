@@ -133,7 +133,7 @@ refine flow NTP_Flow += {
 
 	function proc_ntp_message(msg: NTP_PDU): bool
 		%{
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->ProtocolConfirmation();
 
 		if ( ! ntp_message )
 			return false;
@@ -150,8 +150,8 @@ refine flow NTP_Flow += {
 		else if ( ${msg.mode} == 7 )
 			rv->Assign(4, BuildNTPMode7Msg(${msg.mode7}));
 
-		zeek::BifEvent::enqueue_ntp_message(connection()->bro_analyzer(),
-		                              connection()->bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_ntp_message(connection()->zeek_analyzer(),
+		                              connection()->zeek_analyzer()->Conn(),
 		                              is_orig(), std::move(rv));
 		return true;
 		%}

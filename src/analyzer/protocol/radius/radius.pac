@@ -3,7 +3,7 @@
 #  - radius-analyzer.pac: describes the RADIUS analyzer code
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "events.bif.h"
@@ -15,7 +15,7 @@ analyzer RADIUS withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection RADIUS_Conn(bro_analyzer: BroAnalyzer) {
+connection RADIUS_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = RADIUS_Flow(true);
 	downflow = RADIUS_Flow(false);
 };

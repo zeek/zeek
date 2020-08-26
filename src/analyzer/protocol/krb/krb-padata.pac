@@ -7,11 +7,11 @@
 %}
 
 %header{
-zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error);
+zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnalyzer zeek_analyzer, bool is_error);
 %}
 
 %code{
-zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
+zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnalyzer zeek_analyzer, bool is_error)
 {
 	auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Type_Value_Vector"));
 
@@ -64,10 +64,10 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 
 				zeek::ODesc common;
 				common.AddRaw("Analyzer::ANALYZER_KRB");
-				common.Add(bro_analyzer->Conn()->StartTime());
+				common.Add(zeek_analyzer->Conn()->StartTime());
 				// Request means is_orig=T
 				common.AddRaw("T", 1);
-				bro_analyzer->Conn()->IDString(&common);
+				zeek_analyzer->Conn()->IDString(&common);
 
 				zeek::ODesc file_handle;
 				file_handle.Add(common.Description());
@@ -76,8 +76,8 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
 				zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-				                       cert.length(), bro_analyzer->GetAnalyzerTag(),
-				                       bro_analyzer->Conn(), true, file_id,
+				                       cert.length(), zeek_analyzer->GetAnalyzerTag(),
+				                       zeek_analyzer->Conn(), true, file_id,
 				                       "application/x-x509-user-cert");
 				zeek::file_mgr->EndOfFile(file_id);
 
@@ -89,10 +89,10 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 
 				zeek::ODesc common;
 				common.AddRaw("Analyzer::ANALYZER_KRB");
-				common.Add(bro_analyzer->Conn()->StartTime());
+				common.Add(zeek_analyzer->Conn()->StartTime());
 				// Response means is_orig=F
 				common.AddRaw("F", 1);
-				bro_analyzer->Conn()->IDString(&common);
+				zeek_analyzer->Conn()->IDString(&common);
 
 				zeek::ODesc file_handle;
 				file_handle.Add(common.Description());
@@ -101,8 +101,8 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyz
 				string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
 
 				zeek::file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-				                       cert.length(), bro_analyzer->GetAnalyzerTag(),
-				                       bro_analyzer->Conn(), false, file_id,
+				                       cert.length(), zeek_analyzer->GetAnalyzerTag(),
+				                       zeek_analyzer->Conn(), false, file_id,
 				                       "application/x-x509-user-cert");
 				zeek::file_mgr->EndOfFile(file_id);
 

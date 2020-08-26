@@ -5,7 +5,7 @@
 # activated. We don't yet support SIP-over-TCP.
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "events.bif.h"
@@ -16,7 +16,7 @@ analyzer SIP_TCP withcontext {
 	flow:		 SIP_Flow;
 };
 
-connection SIP_Conn(bro_analyzer: BroAnalyzer) {
+connection SIP_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow = SIP_Flow(true);
 	downflow = SIP_Flow(false);
 };

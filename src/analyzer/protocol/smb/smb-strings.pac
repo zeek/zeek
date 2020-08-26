@@ -1,5 +1,5 @@
 %extern{
-#include "binpac_bro.h"
+#include "binpac_zeek.h"
 %}
 
 %code{
@@ -12,7 +12,7 @@ zeek::StringValPtr binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_
 		buf[i] = (*data)[i];
 
 	const bytestring bs = bytestring(buf.get(), length);
-	return utf16_to_utf8_val(bro_analyzer()->Conn(), bs);
+	return utf16_to_utf8_val(zeek_analyzer()->Conn(), bs);
 	}
 
 zeek::StringValPtr binpac::SMB::SMB_Conn::extract_string(SMB_string* s)

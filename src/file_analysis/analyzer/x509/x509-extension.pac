@@ -2,7 +2,7 @@
 # we just use it for the SignedCertificateTimestamp at the moment
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "types.bif.h"
@@ -15,7 +15,7 @@ analyzer X509Extension withcontext {
 	flow:       SignedCertTimestampExt;
 };
 
-connection MockConnection(bro_analyzer: BroFileAnalyzer) {
+connection MockConnection(zeek_analyzer: ZeekFileAnalyzer) {
 	upflow = SignedCertTimestampExt;
 	downflow = SignedCertTimestampExt;
 };
@@ -39,7 +39,7 @@ refine connection MockConnection += {
 			return true;
 
 		zeek::event_mgr.Enqueue(x509_ocsp_ext_signed_certificate_timestamp,
-			bro_analyzer()->GetFile()->ToVal(),
+			zeek_analyzer()->GetFile()->ToVal(),
 			zeek::val_mgr->Count(version),
 			zeek::make_intrusive<zeek::StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),
 			zeek::val_mgr->Count(timestamp),

@@ -3,8 +3,8 @@ refine connection SMB_Conn += {
 	function proc_smb1_check_directory_request(header: SMB_Header, val: SMB1_check_directory_request): bool
 		%{
 		if ( smb1_check_directory_request )
-			zeek::BifEvent::enqueue_smb1_check_directory_request(bro_analyzer(),
-			                                               bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_check_directory_request(zeek_analyzer(),
+			                                               zeek_analyzer()->Conn(),
 			                                               SMBHeaderVal(header),
 			                                               smb_string2stringval(${val.directory_name}));
 		return true;
@@ -13,8 +13,8 @@ refine connection SMB_Conn += {
 	function proc_smb1_check_directory_response(header: SMB_Header, val: SMB1_check_directory_response): bool
 		%{
 		if ( smb1_check_directory_response )
-			zeek::BifEvent::enqueue_smb1_check_directory_response(bro_analyzer(),
-			                                                bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_check_directory_response(zeek_analyzer(),
+			                                                zeek_analyzer()->Conn(),
 			                                                SMBHeaderVal(header));
 		return true;
 		%}

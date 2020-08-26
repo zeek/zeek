@@ -2,7 +2,7 @@
 refine flow RADIUS_Flow += {
 	function proc_radius_message(msg: RADIUS_PDU): bool
 		%{
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->ProtocolConfirmation();
 
 		if ( ! radius_message )
 			return false;
@@ -41,7 +41,7 @@ refine flow RADIUS_Flow += {
 			result->Assign(3, std::move(attributes));
 			}
 
-		zeek::BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
+		zeek::BifEvent::enqueue_radius_message(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), std::move(result));
 		return true;
 		%}
 
@@ -50,7 +50,7 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_attribute )
 			return false;
 
-		zeek::BifEvent::enqueue_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_radius_attribute(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 		                                    ${attr.code}, to_stringval(${attr.value}));
 		return true;
 		%}

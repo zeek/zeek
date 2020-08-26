@@ -1,7 +1,7 @@
 # binpac file for SSL analyzer
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "events.bif.h"
@@ -20,7 +20,7 @@ analyzer DTLS withcontext {
 	flow:       DTLS_Flow;
 };
 
-connection SSL_Conn(bro_analyzer: DTLSAnalyzer) {
+connection SSL_Conn(zeek_analyzer: DTLSAnalyzer) {
 	upflow = DTLS_Flow(true);
 	downflow = DTLS_Flow(false);
 };

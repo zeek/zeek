@@ -442,7 +442,7 @@ refine connection SSH_Conn += {
 						return true;
 
 
-					bro_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
+					zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
 					return true;
 
 					}

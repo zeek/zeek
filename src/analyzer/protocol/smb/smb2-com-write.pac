@@ -4,8 +4,8 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_write_request )
 			{
-			zeek::BifEvent::enqueue_smb2_write_request(bro_analyzer(),
-			                                     bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_write_request(zeek_analyzer(),
+			                                     zeek_analyzer()->Conn(),
 			                                     BuildSMB2HeaderVal(h),
 			                                     BuildSMB2GUID(${val.file_id}),
 			                                     ${val.offset},
@@ -15,8 +15,8 @@ refine connection SMB_Conn += {
 		if ( ! ${h.is_pipe} && ${val.data}.length() > 0 )
 			{
 			zeek::file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, ${val.offset},
-			                       bro_analyzer()->GetAnalyzerTag(),
-			                       bro_analyzer()->Conn(), h->is_orig());
+			                       zeek_analyzer()->GetAnalyzerTag(),
+			                       zeek_analyzer()->Conn(), h->is_orig());
 			}
 
 		return true;
@@ -27,8 +27,8 @@ refine connection SMB_Conn += {
 
 		if ( smb2_write_response )
 			{
-			zeek::BifEvent::enqueue_smb2_write_response(bro_analyzer(),
-			                                      bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_write_response(zeek_analyzer(),
+			                                      zeek_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
 			                                      ${val.write_count});
 			}

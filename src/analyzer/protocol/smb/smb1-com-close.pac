@@ -3,13 +3,13 @@ refine connection SMB_Conn += {
 	function proc_smb1_close_request(h: SMB_Header, val: SMB1_close_request): bool
 		%{
 		if ( smb1_close_request )
-			zeek::BifEvent::enqueue_smb1_close_request(bro_analyzer(),
-			                                     bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_close_request(zeek_analyzer(),
+			                                     zeek_analyzer()->Conn(),
 			                                     SMBHeaderVal(h),
 			                                     ${val.file_id});
 
-		zeek::file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
-		                          bro_analyzer()->Conn(), h->is_orig());
+		zeek::file_mgr->EndOfFile(zeek_analyzer()->GetAnalyzerTag(),
+		                          zeek_analyzer()->Conn(), h->is_orig());
 
 		return true;
 		%}

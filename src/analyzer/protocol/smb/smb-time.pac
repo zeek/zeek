@@ -1,5 +1,5 @@
 %header{
-zeek::ValPtr filetime2brotime(uint64_t ts);
+zeek::ValPtr filetime2zeektime(uint64_t ts);
 zeek::ValPtr time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
 
 zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
@@ -7,9 +7,9 @@ zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
 %}
 
 %code{
-zeek::ValPtr filetime2brotime(uint64_t ts)
+zeek::ValPtr filetime2zeektime(uint64_t ts)
 	{
-	// Bro can't support times back to the 1600's
+	// Zeek can't support times back to the 1600's
 	// so we subtract a lot of seconds.
 	double secs = (ts / 10000000.0L) - 11644473600.0L;
 	return zeek::make_intrusive<zeek::TimeVal>(secs);
@@ -33,10 +33,10 @@ zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
                                      uint64_t create, uint64_t change)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB::MACTimes);
-	r->Assign(0, filetime2brotime(modify));
-	r->Assign(1, filetime2brotime(access));
-	r->Assign(2, filetime2brotime(create));
-	r->Assign(3, filetime2brotime(change));
+	r->Assign(0, filetime2zeektime(modify));
+	r->Assign(1, filetime2zeektime(access));
+	r->Assign(2, filetime2zeektime(create));
+	r->Assign(3, filetime2zeektime(change));
 	return r;
 	}
 %}

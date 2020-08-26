@@ -5,7 +5,7 @@
 #  - ssh-analyzer.pac: describes the SSH analyzer code
 
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "types.bif.h"
@@ -18,7 +18,7 @@ analyzer SSH withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection SSH_Conn(bro_analyzer: BroAnalyzer) {
+connection SSH_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = SSH_Flow(true);
 	downflow = SSH_Flow(false);
 };

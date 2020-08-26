@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "analyzer/Manager.h"
@@ -14,7 +14,7 @@ analyzer NTLM withcontext {
 	flow       : NTLM_Flow;
 };
 
-connection NTLM_Conn(bro_analyzer: BroAnalyzer) {
+connection NTLM_Conn(zeek_analyzer: ZeekAnalyzer) {
 	upflow   = NTLM_Flow(true);
 	downflow = NTLM_Flow(false);
 };

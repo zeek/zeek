@@ -1,12 +1,12 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 analyzer PE withcontext {
 	connection: MockConnection;
 	flow:       File;
 };
 
-connection MockConnection(bro_analyzer: BroFileAnalyzer) {
+connection MockConnection(zeek_analyzer: ZeekFileAnalyzer) {
 	upflow = File;
 	downflow = File;
 };
@@ -16,5 +16,5 @@ connection MockConnection(bro_analyzer: BroFileAnalyzer) {
 flow File {
 	flowunit = PE_File withcontext(connection, this);
 }
- 
+
 %include pe-analyzer.pac

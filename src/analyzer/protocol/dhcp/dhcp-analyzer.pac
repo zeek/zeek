@@ -44,7 +44,7 @@ refine flow DHCP_Flow += {
 		// the message options.
 		if ( ${msg.cookie} != 0x63825363 )
 			{
-			connection()->bro_analyzer()->ProtocolViolation(zeek::util::fmt("bad cookie (%d)", ${msg.cookie}));
+			connection()->zeek_analyzer()->ProtocolViolation(zeek::util::fmt("bad cookie (%d)", ${msg.cookie}));
 			return false;
 			}
 
@@ -91,8 +91,8 @@ refine flow DHCP_Flow += {
 
 			init_options();
 
-			zeek::BifEvent::enqueue_dhcp_message(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dhcp_message(connection()->zeek_analyzer(),
+			                               connection()->zeek_analyzer()->Conn(),
 			                               ${msg.is_orig},
 			                               std::move(dhcp_msg_val),
 			                               std::move(options));
@@ -106,7 +106,7 @@ refine flow DHCP_Flow += {
 		// on a "connection".
 		// The binpac analyzer would have thrown an error before this point
 		// if there was a problem too (and subsequently called ProtocolViolation).
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->ProtocolConfirmation();
 
 		return true;
 		%}

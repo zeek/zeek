@@ -4,18 +4,18 @@ refine flow RFB_Flow += {
 		if ( client )
 			{
 			if ( rfb_client_version )
-				zeek::BifEvent::enqueue_rfb_client_version(connection()->bro_analyzer(),
-				                                     connection()->bro_analyzer()->Conn(),
+				zeek::BifEvent::enqueue_rfb_client_version(connection()->zeek_analyzer(),
+				                                     connection()->zeek_analyzer()->Conn(),
 				                                     to_stringval(major),
 				                                     to_stringval(minor));
 
-			connection()->bro_analyzer()->ProtocolConfirmation();
+			connection()->zeek_analyzer()->ProtocolConfirmation();
 			}
 		else
 			{
 			if ( rfb_server_version )
-				zeek::BifEvent::enqueue_rfb_server_version(connection()->bro_analyzer(),
-				                                     connection()->bro_analyzer()->Conn(),
+				zeek::BifEvent::enqueue_rfb_server_version(connection()->zeek_analyzer(),
+				                                     connection()->zeek_analyzer()->Conn(),
 				                                     to_stringval(major),
 				                                     to_stringval(minor));
 			}
@@ -26,21 +26,21 @@ refine flow RFB_Flow += {
 	function proc_rfb_share_flag(shared: bool) : bool
 		%{
 		if ( rfb_share_flag )
-			zeek::BifEvent::enqueue_rfb_share_flag(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), shared);
+			zeek::BifEvent::enqueue_rfb_share_flag(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), shared);
 		return true;
 		%}
 
 	function proc_security_types(msg: RFBSecurityType) : bool
 		%{
 		if ( rfb_authentication_type )
-			zeek::BifEvent::enqueue_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.sectype});
+			zeek::BifEvent::enqueue_rfb_authentication_type(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), ${msg.sectype});
 		return true;
 		%}
 
 	function proc_security_types37(msg: RFBAuthTypeSelected) : bool
 		%{
 		if ( rfb_authentication_type )
-			zeek::BifEvent::enqueue_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.type});
+			zeek::BifEvent::enqueue_rfb_authentication_type(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), ${msg.type});
 		return true;
 		%}
 
@@ -51,7 +51,7 @@ refine flow RFB_Flow += {
 			auto vec_ptr = ${msg.name};
 			auto name_ptr = &((*vec_ptr)[0]);
 			zeek::BifEvent::enqueue_rfb_server_parameters(
-			    connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 			    zeek::make_intrusive<zeek::StringVal>(${msg.name}->size(), (const char*)name_ptr),
 			    ${msg.width},
 			    ${msg.height});
@@ -62,7 +62,7 @@ refine flow RFB_Flow += {
 	function proc_handle_security_result(result : uint32) : bool
 		%{
 		if ( rfb_auth_result )
-			zeek::BifEvent::enqueue_rfb_auth_result(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
+			zeek::BifEvent::enqueue_rfb_auth_result(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), result);
 		return true;
 		%}
 };
@@ -181,7 +181,7 @@ refine connection RFB_Conn += {
 		else
 			{
 			// Shouldn't be a possible.
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB security type %u", msg->sectype()));
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB security type %u", msg->sectype()));
 			}
 
 		return true;
@@ -235,7 +235,7 @@ refine connection RFB_Conn += {
 			}
 		else
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("unknown RFB auth selection: %u", ${msg.type}));
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unknown RFB auth selection: %u", ${msg.type}));
 			}
 
 		return true;
@@ -277,7 +277,7 @@ refine connection RFB_Conn += {
 			// Failed
 			server_state = SERVER_AUTH_FAILURE;
 		else
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB auth result: %u", ${msg.result}));
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB auth result: %u", ${msg.result}));
 
 		return true;
 		%}

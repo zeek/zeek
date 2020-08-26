@@ -31,8 +31,8 @@ refine connection SOCKS_Conn += {
 			if ( ${request.v4a} )
 				sa->Assign(1, array_to_string(${request.name}));
 
-			zeek::BifEvent::enqueue_socks_request(bro_analyzer(),
-			                                bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_socks_request(zeek_analyzer(),
+			                                zeek_analyzer()->Conn(),
 			                                4,
 			                                ${request.command},
 			                                std::move(sa),
@@ -40,7 +40,7 @@ refine connection SOCKS_Conn += {
 			                                array_to_string(${request.user}));
 			}
 
-		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(zeek_analyzer())->EndpointDone(true);
 
 		return true;
 		%}
@@ -53,16 +53,16 @@ refine connection SOCKS_Conn += {
 			auto sa = zeek::make_intrusive<zeek::RecordVal>(socks_address);
 			sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(${reply.addr})));
 
-			zeek::BifEvent::enqueue_socks_reply(bro_analyzer(),
-			                              bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_socks_reply(zeek_analyzer(),
+			                              zeek_analyzer()->Conn(),
 			                              4,
 			                              ${reply.status},
 			                              std::move(sa),
 			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 			}
 
-		bro_analyzer()->ProtocolConfirmation();
-		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
+		zeek_analyzer()->ProtocolConfirmation();
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(zeek_analyzer())->EndpointDone(false);
 		return true;
 		%}
 
@@ -70,15 +70,15 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( ${request.reserved} != 0 )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value in reserved field: %d", ${request.reserved}));
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value in reserved field: %d", ${request.reserved}));
+			zeek_analyzer()->SetSkip(true);
 			return false;
 			}
 
 		if ( (${request.command} == 0) || (${request.command} > 3) )
 			{
-			bro_analyzer()->ProtocolViolation(zeek::util::fmt("undefined value in command field: %d", ${request.command}));
-			bro_analyzer()->SetSkip(true);
+			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("undefined value in command field: %d", ${request.command}));
+			zeek_analyzer()->SetSkip(true);
 			return false;
 			}
 
@@ -102,20 +102,20 @@ refine connection SOCKS_Conn += {
 				break;
 
 			default:
-				bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
+				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
 				return false;
 			}
 
 		if ( socks_request )
-			zeek::BifEvent::enqueue_socks_request(bro_analyzer(),
-			                                bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_socks_request(zeek_analyzer(),
+			                                zeek_analyzer()->Conn(),
 			                                5,
 			                                ${request.command},
 			                                std::move(sa),
 			                                zeek::val_mgr->Port(${request.port}, TRANSPORT_TCP),
 			                                zeek::val_mgr->EmptyString());
 
-		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(zeek_analyzer())->EndpointDone(true);
 
 		return true;
 		%}
@@ -142,20 +142,20 @@ refine connection SOCKS_Conn += {
 				break;
 
 			default:
-				bro_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
+				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
 				return false;
 			}
 
 		if ( socks_reply )
-			zeek::BifEvent::enqueue_socks_reply(bro_analyzer(),
-			                              bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_socks_reply(zeek_analyzer(),
+			                              zeek_analyzer()->Conn(),
 			                              5,
 			                              ${reply.reply},
 			                              std::move(sa),
 			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 
-		bro_analyzer()->ProtocolConfirmation();
-		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
+		zeek_analyzer()->ProtocolConfirmation();
+		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(zeek_analyzer())->EndpointDone(false);
 		return true;
 		%}
 
@@ -167,36 +167,36 @@ refine connection SOCKS_Conn += {
 		auto user = zeek::make_intrusive<zeek::StringVal>(${request.username}.length(), (const char*) ${request.username}.begin());
 		auto pass = zeek::make_intrusive<zeek::StringVal>(${request.password}.length(), (const char*) ${request.password}.begin());
 
-		zeek::BifEvent::enqueue_socks_login_userpass_request(bro_analyzer(),
-		                                               bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_socks_login_userpass_request(zeek_analyzer(),
+		                                               zeek_analyzer()->Conn(),
 		                                               std::move(user), std::move(pass));
 		return true;
 		%}
 
 	function socks5_unsupported_authentication_method(auth_method: uint8): bool
 		%{
-		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication_method", zeek::util::fmt("%d", auth_method));
+		zeek::reporter->Weird(zeek_analyzer()->Conn(), "socks5_unsupported_authentication_method", zeek::util::fmt("%d", auth_method));
 		return true;
 		%}
 
 	function socks5_unsupported_authentication_version(auth_method: uint8, version: uint8): bool
 		%{
-		zeek::reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", zeek::util::fmt("method %d, version %d", auth_method, version));
+		zeek::reporter->Weird(zeek_analyzer()->Conn(), "socks5_unsupported_authentication", zeek::util::fmt("method %d, version %d", auth_method, version));
 		return true;
 		%}
 
 	function socks5_auth_reply_userpass(reply: SOCKS5_Auth_Reply_UserPass_v1): bool
 		%{
 		if ( socks_login_userpass_reply )
-			zeek::BifEvent::enqueue_socks_login_userpass_reply(bro_analyzer(),
-			                                             bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_socks_login_userpass_reply(zeek_analyzer(),
+			                                             zeek_analyzer()->Conn(),
 			                                             ${reply.code});
 		return true;
 		%}
 
 	function version_error(version: uint8): bool
 		%{
-		bro_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported/unknown SOCKS version %d", version));
+		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported/unknown SOCKS version %d", version));
 		return true;
 		%}
 

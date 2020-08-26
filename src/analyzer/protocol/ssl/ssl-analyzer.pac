@@ -1,4 +1,4 @@
-# Analyzer for SSL (Bro-specific part).
+# Analyzer for SSL (Zeek-specific part).
 
 refine connection SSL_Conn += {
 
@@ -18,14 +18,14 @@ refine connection SSL_Conn += {
 	function proc_v2_client_master_key(rec: SSLRecord, cipher_kind: int) : bool
 		%{
 		if ( ssl_established )
-			zeek::BifEvent::enqueue_ssl_established(bro_analyzer(), bro_analyzer()->Conn());
+			zeek::BifEvent::enqueue_ssl_established(zeek_analyzer(), zeek_analyzer()->Conn());
 
 		return true;
 		%}
 
 	function proc_handshake(rec: SSLRecord, data: bytestring, is_orig: bool) : bool
 		%{
-		bro_analyzer()->SendHandshake(${rec.raw_tls_version}, data.begin(), data.end(), is_orig);
+		zeek_analyzer()->SendHandshake(${rec.raw_tls_version}, data.begin(), data.end(), is_orig);
 		return true;
 		%}
 };

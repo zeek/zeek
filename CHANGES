@@ -1,4 +1,12 @@
 
+3.3.0-dev.206 | 2020-08-26 11:20:58 -0700
+
+  * Rename bro-bif.h to zeek-bif.h (Tim Wojtulewicz, Corelight)
+
+  * Fix uses of bro.pac to use zeek.pac (Tim Wojtulewicz, Corelight)
+
+  * Rename the bro-related binpac files to zeek (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.202 | 2020-08-26 10:59:59 -0700
 
   * GH-1145: Have mkdir in ensure_dir respect umask. (Vlad Grigorescu)

@@ -45,7 +45,7 @@ refine connection RDPEUDP_Conn += {
 			orig_lossy_ = true;
 
 		if ( rdpeudp_syn )
-			zeek::BifEvent::enqueue_rdpeudp_syn(bro_analyzer(), bro_analyzer()->Conn());
+			zeek::BifEvent::enqueue_rdpeudp_syn(zeek_analyzer(), zeek_analyzer()->Conn());
 
 		state_ = NEED_SYNACK;
 		return true;
@@ -60,9 +60,9 @@ refine connection RDPEUDP_Conn += {
 			return false;
 
 		if ( rdpeudp_synack )
-			zeek::BifEvent::enqueue_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
+			zeek::BifEvent::enqueue_rdpeudp_synack(zeek_analyzer(), zeek_analyzer()->Conn());
 
-		bro_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->ProtocolConfirmation();
 		state_ = NEED_ACK;
 		resp_synex_flags_ = uUdpVer;
 
@@ -79,12 +79,12 @@ refine connection RDPEUDP_Conn += {
 			state_ = ESTABLISHED;
 
 			if ( rdpeudp_established )
-				zeek::BifEvent::enqueue_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 1);
+				zeek::BifEvent::enqueue_rdpeudp_established(zeek_analyzer(), zeek_analyzer()->Conn(), 1);
 			}
 
 		if ( state_ == ESTABLISHED && rdpeudp_data )
-			zeek::BifEvent::enqueue_rdpeudp_data(bro_analyzer(),
-							bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_rdpeudp_data(zeek_analyzer(),
+							zeek_analyzer()->Conn(),
 							is_orig,
 							1,
 							to_stringval(data)
@@ -102,14 +102,14 @@ refine connection RDPEUDP_Conn += {
 		if ( state_ == NEED_ACK )
 			{
 			if ( rdpeudp_established )
-				zeek::BifEvent::enqueue_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 2);
+				zeek::BifEvent::enqueue_rdpeudp_established(zeek_analyzer(), zeek_analyzer()->Conn(), 2);
 
 			state_ = ESTABLISHED;
 			}
 
 		if ( state_ == ESTABLISHED && rdpeudp_data )
-			zeek::BifEvent::enqueue_rdpeudp_data(bro_analyzer(),
-							bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_rdpeudp_data(zeek_analyzer(),
+							zeek_analyzer()->Conn(),
 							is_orig,
 							2,
 							to_stringval(data)

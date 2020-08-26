@@ -29,7 +29,7 @@ refine connection DCE_RPC_Conn += {
 	function proc_dce_rpc_pdu(pdu: DCE_RPC_PDU): bool
 		%{
 		// If a whole pdu message parsed ok, let's confirm the protocol
-		bro_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->ProtocolConfirmation();
 		return true;
 		%}
 
@@ -37,8 +37,8 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_message )
 			{
-			zeek::BifEvent::enqueue_dce_rpc_message(bro_analyzer(),
-			                                  bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_message(zeek_analyzer(),
+			                                  zeek_analyzer()->Conn(),
 			                                  ${header.is_orig},
 			                                  fid,
 			                                  ${header.PTYPE},
@@ -51,8 +51,8 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_bind )
 			{
-			zeek::BifEvent::enqueue_dce_rpc_bind(bro_analyzer(),
-			                               bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_bind(zeek_analyzer(),
+			                               zeek_analyzer()->Conn(),
 			                               fid,
 			                               ${req.id},
 			                               to_stringval(${req.abstract_syntax.uuid}),
@@ -67,8 +67,8 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_alter_context )
 			{
-			zeek::BifEvent::enqueue_dce_rpc_alter_context(bro_analyzer(),
-			                                        bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_alter_context(zeek_analyzer(),
+			                                        zeek_analyzer()->Conn(),
 			                                        fid,
 			                                        ${req.id},
 			                                        to_stringval(${req.abstract_syntax.uuid}),
@@ -92,8 +92,8 @@ refine connection DCE_RPC_Conn += {
 			else
 				sec_addr = zeek::make_intrusive<zeek::StringVal>(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
 
-			zeek::BifEvent::enqueue_dce_rpc_bind_ack(bro_analyzer(),
-			                                   bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_bind_ack(zeek_analyzer(),
+			                                   zeek_analyzer()->Conn(),
 			                                   fid,
 			                                   std::move(sec_addr));
 			}
@@ -104,8 +104,8 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_alter_context_resp )
 			{
-			zeek::BifEvent::enqueue_dce_rpc_alter_context_resp(bro_analyzer(),
-			                                             bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_alter_context_resp(zeek_analyzer(),
+			                                             zeek_analyzer()->Conn(),
 			                                             fid);
 			}
 		return true;
@@ -115,8 +115,8 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_request )
 			{
-			zeek::BifEvent::enqueue_dce_rpc_request(bro_analyzer(),
-			                                  bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_request(zeek_analyzer(),
+			                                  zeek_analyzer()->Conn(),
 			                                  fid,
 			                                  ${req.context_id},
 			                                  ${req.opnum},
@@ -132,8 +132,8 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_response )
 			{
-			zeek::BifEvent::enqueue_dce_rpc_response(bro_analyzer(),
-			                                   bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_dce_rpc_response(zeek_analyzer(),
+			                                   zeek_analyzer()->Conn(),
 			                                   fid,
 			                                   ${resp.context_id},
 			                                   get_cont_id_opnum_map(${resp.context_id}),

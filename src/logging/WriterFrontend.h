@@ -38,8 +38,8 @@ public:
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	WriterFrontend(const WriterBackend::WriterInfo& info, zeek::EnumVal* stream,
-	               zeek::EnumVal* writer, bool local, bool remote);
+	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream,
+	               EnumVal* writer, bool local, bool remote);
 
 	/**
 	 * Destructor.
@@ -188,8 +188,8 @@ protected:
 
 	void DeleteVals(int num_fields, threading::Value** vals);
 
-	zeek::EnumVal* stream;
-	zeek::EnumVal* writer;
+	EnumVal* stream;
+	EnumVal* writer;
 
 	WriterBackend* backend;	// The backend we have instantiated.
 	bool disabled;	// True if disabled.

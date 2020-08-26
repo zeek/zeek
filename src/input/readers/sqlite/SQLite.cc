@@ -20,27 +20,27 @@ using zeek::threading::Field;
 
 namespace zeek::input::reader::detail {
 
-SQLite::SQLite(zeek::input::ReaderFrontend *frontend)
-	: zeek::input::ReaderBackend(frontend),
+SQLite::SQLite(ReaderFrontend *frontend)
+	: ReaderBackend(frontend),
 	  fields(), num_fields(), mode(), started(), query(), db(), st()
 	{
 	set_separator.assign(
-			(const char*) zeek::BifConst::LogSQLite::set_separator->Bytes(),
-			zeek::BifConst::InputSQLite::set_separator->Len()
+			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
+			BifConst::InputSQLite::set_separator->Len()
 			);
 
 	unset_field.assign(
-			(const char*) zeek::BifConst::LogSQLite::unset_field->Bytes(),
-			zeek::BifConst::InputSQLite::unset_field->Len()
+			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
+			BifConst::InputSQLite::unset_field->Len()
 			);
 
 	empty_field.assign(
-			(const char*) zeek::BifConst::LogAscii::empty_field->Bytes(),
-			zeek::BifConst::InputSQLite::empty_field->Len()
+			(const char*) BifConst::LogAscii::empty_field->Bytes(),
+			BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new zeek::threading::formatter::Ascii(this, zeek::threading::formatter::Ascii::SeparatorInfo(
-		                                           std::string(), set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(
+		                                     std::string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -84,7 +84,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	// allows simultaneous writes to one file.
 	sqlite3_enable_shared_cache(1);
 
-	if ( Info().mode != zeek::input::MODE_MANUAL )
+	if ( Info().mode != MODE_MANUAL )
 		{
 		Error("SQLite only supports manual reading mode.");
 		return false;
@@ -138,8 +138,8 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	Value* val = new Value(field->type, true);
 
 	switch ( field->type ) {
-	case zeek::TYPE_ENUM:
-	case zeek::TYPE_STRING:
+	case TYPE_ENUM:
+	case TYPE_STRING:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		int length = sqlite3_column_bytes(st, pos);
@@ -152,7 +152,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case zeek::TYPE_BOOL:
+	case TYPE_BOOL:
 		{
 		if ( sqlite3_column_type(st, pos) != SQLITE_INTEGER )
 			{
@@ -174,21 +174,21 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case zeek::TYPE_INT:
+	case TYPE_INT:
 		val->val.int_val = sqlite3_column_int64(st, pos);
 		break;
 
-	case zeek::TYPE_DOUBLE:
-	case zeek::TYPE_TIME:
-	case zeek::TYPE_INTERVAL:
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
 		val->val.double_val = sqlite3_column_double(st, pos);
 		break;
 
-	case zeek::TYPE_COUNT:
+	case TYPE_COUNT:
 		val->val.uint_val = sqlite3_column_int64(st, pos);
 		break;
 
-	case zeek::TYPE_PORT:
+	case TYPE_PORT:
 		{
 		val->val.port_val.port = sqlite3_column_int(st, pos);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
@@ -207,7 +207,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		std::string s(text, sqlite3_column_bytes(st, pos));
@@ -220,7 +220,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		std::string s(text, sqlite3_column_bytes(st, pos));
@@ -228,8 +228,8 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case zeek::TYPE_TABLE:
-	case zeek::TYPE_VECTOR:
+	case TYPE_TABLE:
+	case TYPE_VECTOR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		std::string s(text, sqlite3_column_bytes(st, pos));
@@ -282,7 +282,7 @@ bool SQLite::DoUpdate()
 
 			if ( fields[j]->secondary_name != nullptr && strcmp(fields[j]->secondary_name, name) == 0 )
 				{
-				assert(fields[j]->type == zeek::TYPE_PORT);
+				assert(fields[j]->type == TYPE_PORT);
 				if ( submapping[j] != -1 )
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));

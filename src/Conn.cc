@@ -25,7 +25,7 @@ namespace zeek {
 namespace detail {
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
-				bool arg_do_expire)
+                           bool arg_do_expire)
 	{
 	conn = arg_conn;
 	timer = arg_timer;
@@ -36,7 +36,7 @@ void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 ConnectionTimer::~ConnectionTimer()
 	{
 	if ( conn->RefCnt() < 1 )
-		zeek::reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
+		reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
 
 	conn->RemoveTimer(this);
 	Unref(conn);
@@ -54,7 +54,7 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 	(conn->*timer)(t);
 
 	if ( conn->RefCnt() < 1 )
-		zeek::reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
+		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
 } // namespace detail
@@ -62,9 +62,9 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(zeek::NetSessions* s, const zeek::detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const zeek::Packet* pkt,
-                       const zeek::EncapsulationStack* arg_encap)
+Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
+                       const ConnID* id, uint32_t flow, const Packet* pkt,
+                       const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -122,7 +122,7 @@ Connection::Connection(zeek::NetSessions* s, const zeek::detail::ConnIDKey& k, d
 	++total_connections;
 
 	if ( arg_encap )
-		encapsulation = new zeek::EncapsulationStack(*arg_encap);
+		encapsulation = new EncapsulationStack(*arg_encap);
 	else
 		encapsulation = nullptr;
 	}
@@ -130,7 +130,7 @@ Connection::Connection(zeek::NetSessions* s, const zeek::detail::ConnIDKey& k, d
 Connection::~Connection()
 	{
 	if ( ! finished )
-		zeek::reporter->InternalError("Done() not called before destruction of Connection");
+		reporter->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
 
@@ -143,7 +143,7 @@ Connection::~Connection()
 	--current_connections;
 	}
 
-void Connection::CheckEncapsulation(const zeek::EncapsulationStack* arg_encap)
+void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 	{
 	if ( encapsulation && arg_encap )
 		{
@@ -154,7 +154,7 @@ void Connection::CheckEncapsulation(const zeek::EncapsulationStack* arg_encap)
 				             arg_encap->ToVal());
 
 			delete encapsulation;
-			encapsulation = new zeek::EncapsulationStack(*arg_encap);
+			encapsulation = new EncapsulationStack(*arg_encap);
 			}
 		}
 
@@ -162,7 +162,7 @@ void Connection::CheckEncapsulation(const zeek::EncapsulationStack* arg_encap)
 		{
 		if ( tunnel_changed )
 			{
-			zeek::EncapsulationStack empty;
+			EncapsulationStack empty;
 			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
 			}
 
@@ -175,7 +175,7 @@ void Connection::CheckEncapsulation(const zeek::EncapsulationStack* arg_encap)
 		if ( tunnel_changed )
 			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
 
-		encapsulation = new zeek::EncapsulationStack(*arg_encap);
+		encapsulation = new EncapsulationStack(*arg_encap);
 		}
 	}
 
@@ -188,14 +188,14 @@ void Connection::Done()
 	}
 
 void Connection::NextPacket(double t, bool is_orig,
-                            const zeek::IP_Hdr* ip, int len, int caplen,
+                            const IP_Hdr* ip, int len, int caplen,
                             const u_char*& data,
                             int& record_packet, int& record_content,
                             // arguments for reproducing packets
-                            const zeek::Packet *pkt)
+                            const Packet *pkt)
 	{
-	zeek::run_state::current_timestamp = t;
-	zeek::run_state::current_pkt = pkt;
+	run_state::current_timestamp = t;
+	run_state::current_pkt = pkt;
 
 	if ( Skipping() )
 		return;
@@ -218,14 +218,14 @@ void Connection::NextPacket(double t, bool is_orig,
 	else
 		last_time = t;
 
-	zeek::run_state::current_timestamp = 0;
-	zeek::run_state::current_pkt = nullptr;
+	run_state::current_timestamp = 0;
+	run_state::current_pkt = nullptr;
 	}
 
 void Connection::SetLifetime(double lifetime)
 	{
-	ADD_TIMER(&Connection::DeleteTimer, zeek::run_state::network_time + lifetime, 0,
-	          zeek::detail::TIMER_CONN_DELETE);
+	ADD_TIMER(&Connection::DeleteTimer, run_state::network_time + lifetime, 0,
+	          detail::TIMER_CONN_DELETE);
 	}
 
 bool Connection::IsReuse(double t, const u_char* pkt)
@@ -258,7 +258,7 @@ bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
 	return false;
 	}
 
-void Connection::HistoryThresholdEvent(zeek::EventHandlerPtr e, bool is_orig,
+void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
                                        uint32_t threshold)
 	{
 	if ( ! e )
@@ -271,8 +271,8 @@ void Connection::HistoryThresholdEvent(zeek::EventHandlerPtr e, bool is_orig,
 
 	EnqueueEvent(e, nullptr,
 		ConnVal(),
-		zeek::val_mgr->Bool(is_orig),
-		zeek::val_mgr->Count(threshold)
+		val_mgr->Bool(is_orig),
+		val_mgr->Count(threshold)
 	);
 	}
 
@@ -290,12 +290,12 @@ void Connection::InactivityTimer(double t)
 		{
 		Event(connection_timeout, nullptr);
 		sessions->Remove(this);
-		++zeek::detail::killed_by_inactivity;
+		++detail::killed_by_inactivity;
 		}
 	else
 		ADD_TIMER(&Connection::InactivityTimer,
 		          last_time + inactivity_timeout, 0,
-		          zeek::detail::TIMER_CONN_INACTIVITY);
+		          detail::TIMER_CONN_INACTIVITY);
 	}
 
 void Connection::RemoveConnectionTimer(double t)
@@ -311,15 +311,15 @@ void Connection::SetInactivityTimeout(double timeout)
 
 	// First cancel and remove any existing inactivity timer.
 	for ( const auto& timer : timers )
-		if ( timer->Type() == zeek::detail::TIMER_CONN_INACTIVITY )
+		if ( timer->Type() == detail::TIMER_CONN_INACTIVITY )
 			{
-			zeek::detail::timer_mgr->Cancel(timer);
+			detail::timer_mgr->Cancel(timer);
 			break;
 			}
 
 	if ( timeout )
 		ADD_TIMER(&Connection::InactivityTimer,
-		          last_time + timeout, 0, zeek::detail::TIMER_CONN_INACTIVITY);
+		          last_time + timeout, 0, detail::TIMER_CONN_INACTIVITY);
 
 	inactivity_timeout = timeout;
 	}
@@ -329,8 +329,8 @@ void Connection::EnableStatusUpdateTimer()
 	if ( connection_status_update && zeek::detail::connection_status_update_interval )
 		{
 		ADD_TIMER(&Connection::StatusUpdateTimer,
-		          zeek::run_state::network_time + zeek::detail::connection_status_update_interval, 0,
-		          zeek::detail::TIMER_CONN_STATUS_UPDATE);
+		          run_state::network_time + detail::connection_status_update_interval, 0,
+		          detail::TIMER_CONN_STATUS_UPDATE);
 		installed_status_timer = 1;
 		}
 	}
@@ -339,95 +339,95 @@ void Connection::StatusUpdateTimer(double t)
 	{
 	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
-	          zeek::run_state::network_time + zeek::detail::connection_status_update_interval, 0,
-	          zeek::detail::TIMER_CONN_STATUS_UPDATE);
+	          run_state::network_time + detail::connection_status_update_interval, 0,
+	          detail::TIMER_CONN_STATUS_UPDATE);
 	}
 
-zeek::RecordVal* Connection::BuildConnVal()
+RecordVal* Connection::BuildConnVal()
 	{
 	return ConnVal()->Ref()->AsRecordVal();
 	}
 
-const zeek::RecordValPtr& Connection::ConnVal()
+const RecordValPtr& Connection::ConnVal()
 	{
 	if ( ! conn_val )
 		{
-		conn_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
+		conn_val = make_intrusive<RecordVal>(id::connection);
 
 		TransportProto prot_type = ConnTransport();
 
-		auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
-		id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(orig_addr));
-		id_val->Assign(1, zeek::val_mgr->Port(ntohs(orig_port), prot_type));
-		id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>(resp_addr));
-		id_val->Assign(3, zeek::val_mgr->Port(ntohs(resp_port), prot_type));
+		auto id_val = make_intrusive<RecordVal>(id::conn_id);
+		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
+		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
+		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
+		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
-		auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-		orig_endp->Assign(0, zeek::val_mgr->Count(0));
-		orig_endp->Assign(1, zeek::val_mgr->Count(0));
-		orig_endp->Assign(4, zeek::val_mgr->Count(orig_flow_label));
+		auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
+		orig_endp->Assign(0, val_mgr->Count(0));
+		orig_endp->Assign(1, val_mgr->Count(0));
+		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-			orig_endp->Assign(5, zeek::make_intrusive<zeek::StringVal>(fmt_mac(orig_l2_addr, l2_len)));
+			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
-		auto resp_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-		resp_endp->Assign(0, zeek::val_mgr->Count(0));
-		resp_endp->Assign(1, zeek::val_mgr->Count(0));
-		resp_endp->Assign(4, zeek::val_mgr->Count(resp_flow_label));
+		auto resp_endp = make_intrusive<RecordVal>(id::endpoint);
+		resp_endp->Assign(0, val_mgr->Count(0));
+		resp_endp->Assign(1, val_mgr->Count(0));
+		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-			resp_endp->Assign(5, zeek::make_intrusive<zeek::StringVal>(fmt_mac(resp_l2_addr, l2_len)));
+			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
 
 		conn_val->Assign(0, std::move(id_val));
 		conn_val->Assign(1, std::move(orig_endp));
 		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
-		conn_val->Assign(6, zeek::val_mgr->EmptyString());	// history
+		conn_val->Assign(5, make_intrusive<TableVal>(id::string_set));	// service
+		conn_val->Assign(6, val_mgr->EmptyString());	// history
 
 		if ( ! uid )
 			uid.Set(zeek::detail::bits_per_uid);
 
-		conn_val->Assign(7, zeek::make_intrusive<zeek::StringVal>(uid.Base62("C").c_str()));
+		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(8, encapsulation->ToVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, zeek::val_mgr->Int(vlan));
+			conn_val->Assign(9, val_mgr->Int(vlan));
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, zeek::val_mgr->Int(inner_vlan));
+			conn_val->Assign(10, val_mgr->Int(inner_vlan));
 
 		}
 
 	if ( root_analyzer )
 		root_analyzer->UpdateConnVal(conn_val.get());
 
-	conn_val->Assign(3, zeek::make_intrusive<zeek::TimeVal>(start_time));	// ###
-	conn_val->Assign(4, zeek::make_intrusive<zeek::IntervalVal>(last_time - start_time));
-	conn_val->Assign(6, zeek::make_intrusive<zeek::StringVal>(history.c_str()));
-	conn_val->Assign(11, zeek::val_mgr->Bool(is_successful));
+	conn_val->Assign(3, make_intrusive<TimeVal>(start_time));	// ###
+	conn_val->Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
+	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
+	conn_val->Assign(11, val_mgr->Bool(is_successful));
 
 	conn_val->SetOrigin(this);
 
 	return conn_val;
 	}
 
-zeek::analyzer::Analyzer* Connection::FindAnalyzer(zeek::analyzer::ID id)
+analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
 	return root_analyzer ? root_analyzer->FindChild(id) : nullptr;
 	}
 
-zeek::analyzer::Analyzer* Connection::FindAnalyzer(const zeek::analyzer::Tag& tag)
+analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
 	{
 	return root_analyzer ? root_analyzer->FindChild(tag) : nullptr;
 	}
 
-zeek::analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
+analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 	{
 	return root_analyzer->FindChild(name);
 	}
@@ -439,7 +439,7 @@ void Connection::AppendAddl(const char* str)
 	const char* old = cv->GetField(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	cv->Assign(6, zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt(format, old, str)));
+	cv->Assign(6, make_intrusive<StringVal>(util::fmt(format, old, str)));
 	}
 
 // Returns true if the character at s separates a version number.
@@ -455,7 +455,7 @@ static inline bool is_version_sep(const char* s, const char* end)
 			isspace(s[0]);
 	}
 
-void Connection::Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
+void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len,
                        bool is_orig, bool bol, bool eol, bool clear_state)
 	{
 	if ( primary_PIA )
@@ -471,18 +471,18 @@ void Connection::RemovalEvent()
 		EnqueueEvent(successful_connection_remove, nullptr, ConnVal());
 	}
 
-void Connection::Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name)
+void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
 	{
 	if ( ! f )
 		return;
 
 	if ( name )
-		EnqueueEvent(f, analyzer, zeek::make_intrusive<zeek::StringVal>(name), ConnVal());
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
 	else
 		EnqueueEvent(f, analyzer, ConnVal());
 	}
 
-void Connection::Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2)
+void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
 	{
 	if ( ! f )
 		{
@@ -494,17 +494,17 @@ void Connection::Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyz
 	if ( v2 )
 		EnqueueEvent(f, analyzer,
 		             ConnVal(),
-		             zeek::IntrusivePtr{zeek::AdoptRef{}, v1},
-		             zeek::IntrusivePtr{zeek::AdoptRef{}, v2});
+		             IntrusivePtr{AdoptRef{}, v1},
+		             IntrusivePtr{AdoptRef{}, v2});
 	else
 		EnqueueEvent(f, analyzer,
 		             ConnVal(),
-		             zeek::IntrusivePtr{zeek::AdoptRef{}, v1});
+		             IntrusivePtr{AdoptRef{}, v1});
 	}
 
-void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, ValPList vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)
 	{
-	auto args = zeek::val_list_to_args(vl);
+	auto args = val_list_to_args(vl);
 
 	if ( ! f )
 		// This may actually happen if there is no local handler
@@ -512,40 +512,40 @@ void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyz
 		return;
 
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEventFast(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, ValPList vl)
+void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)
 	{
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, zeek::val_list_to_args(vl), zeek::util::detail::SOURCE_LOCAL,
+	event_mgr.Enqueue(f, val_list_to_args(vl), util::detail::SOURCE_LOCAL,
 	                        a ? a->GetID() : 0, this);
 	}
 
-void Connection::ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a, ValPList* vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList* vl)
 	{
-	auto args = zeek::val_list_to_args(*vl);
+	auto args = val_list_to_args(*vl);
 	delete vl;
 
 	if ( f )
 		EnqueueEvent(f, a, std::move(args));
 	}
 
-void Connection::EnqueueEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* a,
-                              zeek::Args args)
+void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
+                              Args args)
 	{
 	// "this" is passed as a cookie for the event
-	zeek::event_mgr.Enqueue(f, std::move(args), zeek::util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)
 	{
 	weird = 1;
-	zeek::reporter->Weird(this, name, addl ? addl : "");
+	reporter->Weird(this, name, addl ? addl : "");
 	}
 
 void Connection::AddTimer(timer_func timer, double t, bool do_expire,
-                          zeek::detail::TimerType type)
+                          detail::TimerType type)
 	{
 	if ( timers_canceled )
 		return;
@@ -556,12 +556,12 @@ void Connection::AddTimer(timer_func timer, double t, bool do_expire,
 	if ( ! key_valid )
 		return;
 
-	zeek::detail::Timer* conn_timer = new detail::ConnectionTimer(this, timer, t, do_expire, type);
-	zeek::detail::timer_mgr->Add(conn_timer);
+	detail::Timer* conn_timer = new detail::ConnectionTimer(this, timer, t, do_expire, type);
+	detail::timer_mgr->Add(conn_timer);
 	timers.push_back(conn_timer);
 	}
 
-void Connection::RemoveTimer(zeek::detail::Timer* t)
+void Connection::RemoveTimer(detail::Timer* t)
 	{
 	timers.remove(t);
 	}
@@ -576,7 +576,7 @@ void Connection::CancelTimers()
 	std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
 
 	for ( const auto& timer : tmp )
-		zeek::detail::timer_mgr->Cancel(timer);
+		detail::timer_mgr->Cancel(timer);
 
 	timers_canceled = 1;
 	timers.clear();
@@ -584,7 +584,7 @@ void Connection::CancelTimers()
 
 void Connection::FlipRoles()
 	{
-	zeek::IPAddr tmp_addr = resp_addr;
+	IPAddr tmp_addr = resp_addr;
 	resp_addr = orig_addr;
 	orig_addr = tmp_addr;
 
@@ -611,7 +611,7 @@ void Connection::FlipRoles()
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
 
-	zeek::analyzer_mgr->ApplyScheduledAnalyzers(this);
+	analyzer_mgr->ApplyScheduledAnalyzers(this);
 
 	AddHistory('^');
 	}
@@ -632,7 +632,7 @@ unsigned int Connection::MemoryAllocationConnVal() const
 	return conn_val ? conn_val->MemoryAllocation() : 0;
 	}
 
-void Connection::Describe(zeek::ODesc* d) const
+void Connection::Describe(ODesc* d) const
 	{
 	d->Add(start_time);
 	d->Add("(");
@@ -654,13 +654,13 @@ void Connection::Describe(zeek::ODesc* d) const
 
 		case TRANSPORT_UNKNOWN:
 			d->Add("unknown");
-			zeek::reporter->InternalWarning(
+			reporter->InternalWarning(
 				"unknown transport in Connction::Describe()");
 
 			break;
 
 		default:
-			zeek::reporter->InternalError(
+			reporter->InternalError(
 				"unhandled transport type in Connection::Describe");
 		}
 
@@ -679,7 +679,7 @@ void Connection::Describe(zeek::ODesc* d) const
 	d->NL();
 	}
 
-void Connection::IDString(zeek::ODesc* d) const
+void Connection::IDString(ODesc* d) const
 	{
 	d->Add(orig_addr);
 	d->AddRaw(":", 1);
@@ -690,8 +690,8 @@ void Connection::IDString(zeek::ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-void Connection::SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer,
-                                 zeek::analyzer::pia::PIA* pia)
+void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer,
+                                 analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;
@@ -705,8 +705,8 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		{
 		if ( conn_val )
 			{
-			zeek::RecordVal* endp = conn_val->GetField(is_orig ? 1 : 2)->AsRecordVal();
-			endp->Assign(4, zeek::val_mgr->Count(flow_label));
+			RecordVal* endp = conn_val->GetField(is_orig ? 1 : 2)->AsRecordVal();
+			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 
 		if ( connection_flow_label_changed &&
@@ -714,9 +714,9 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
 				ConnVal(),
-				zeek::val_mgr->Bool(is_orig),
-				zeek::val_mgr->Count(my_flow_label),
-				zeek::val_mgr->Count(flow_label)
+				val_mgr->Bool(is_orig),
+				val_mgr->Count(my_flow_label),
+				val_mgr->Count(flow_label)
 			);
 			}
 
@@ -732,7 +732,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
                              double duration)
 	{
-	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
+	return detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}
 
 } // namespace zeek

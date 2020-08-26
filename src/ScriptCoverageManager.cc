@@ -28,18 +28,18 @@ ScriptCoverageManager::~ScriptCoverageManager()
 		Unref(s);
 	}
 
-void ScriptCoverageManager::AddStmt(zeek::detail::Stmt* s)
+void ScriptCoverageManager::AddStmt(Stmt* s)
 	{
 	if ( ignoring != 0 )
 		return;
 
-	zeek::Ref(s);
+	Ref(s);
 	stmts.push_back(s);
 	}
 
 bool ScriptCoverageManager::ReadStats()
 	{
-	char* bf = zeek::util::zeekenv("ZEEK_PROFILER_FILE");
+	char* bf = util::zeekenv("ZEEK_PROFILER_FILE");
 
 	if ( ! bf )
 		return false;
@@ -56,7 +56,7 @@ bool ScriptCoverageManager::ReadStats()
 	ss.clear();
 
 	std::vector<std::string> lines;
-	zeek::util::tokenize_string(file_contents, "\n", &lines);
+	util::tokenize_string(file_contents, "\n", &lines);
 	string delimiter;
 	delimiter = delim;
 
@@ -66,7 +66,7 @@ bool ScriptCoverageManager::ReadStats()
 			continue;
 
 		std::vector<std::string> line_components;
-		zeek::util::tokenize_string(line, delimiter, &line_components);
+		util::tokenize_string(line, delimiter, &line_components);
 
 		if ( line_components.size() != 3 )
 			{
@@ -80,7 +80,7 @@ bool ScriptCoverageManager::ReadStats()
 
 		pair<string, string> location_desc(std::move(location), std::move(desc));
 		uint64_t count;
-		zeek::util::atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
+		util::atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
 		usage_map.emplace(std::move(location_desc), count);
 		}
 
@@ -89,16 +89,16 @@ bool ScriptCoverageManager::ReadStats()
 
 bool ScriptCoverageManager::WriteStats()
 	{
-	char* bf = zeek::util::zeekenv("ZEEK_PROFILER_FILE");
+	char* bf = util::zeekenv("ZEEK_PROFILER_FILE");
 
 	if ( ! bf )
 		return false;
 
-	zeek::util::SafeDirname dirname{bf};
+	util::SafeDirname dirname{bf};
 
-	if ( ! zeek::util::detail::ensure_intermediate_dirs(dirname.result.data()) )
+	if ( ! util::detail::ensure_intermediate_dirs(dirname.result.data()) )
 		{
-		zeek::reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
+		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
@@ -113,7 +113,7 @@ bool ScriptCoverageManager::WriteStats()
 
 		if ( fd == -1 )
 			{
-			zeek::reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
+			reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
 			return false;
 			}
 		f = fdopen(fd, "w");
@@ -125,11 +125,11 @@ bool ScriptCoverageManager::WriteStats()
 
 	if ( ! f )
 		{
-		zeek::reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
+		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
-	for ( list<zeek::detail::Stmt*>::const_iterator it = stmts.begin();
+	for ( list<Stmt*>::const_iterator it = stmts.begin();
 	      it != stmts.end(); ++it )
 		{
 		ODesc location_info;

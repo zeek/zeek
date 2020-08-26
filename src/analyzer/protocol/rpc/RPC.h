@@ -53,9 +53,9 @@ public:
 		     double last_time, int rpc_len);
 	~RPC_CallInfo();
 
-	void AddVal(zeek::ValPtr arg_v)		{ v = std::move(arg_v); }
-	const zeek::ValPtr& RequestVal() const		{ return v; }
-	zeek::ValPtr TakeRequestVal()		{ auto rv = std::move(v); return rv; }
+	void AddVal(ValPtr arg_v)		{ v = std::move(arg_v); }
+	const ValPtr& RequestVal() const		{ return v; }
+	ValPtr TakeRequestVal()		{ auto rv = std::move(v); return rv; }
 
 	bool CompareRexmit(const u_char* buf, int n) const;
 
@@ -96,12 +96,12 @@ protected:
 	int header_len;		// size of data before the arguments
 	bool valid_call;	// whether call was well-formed
 
-	zeek::ValPtr v;		// single (perhaps compound) value corresponding to call
+	ValPtr v;		// single (perhaps compound) value corresponding to call
 };
 
 class RPC_Interpreter {
 public:
-	explicit RPC_Interpreter(zeek::analyzer::Analyzer* analyzer);
+	explicit RPC_Interpreter(analyzer::Analyzer* analyzer);
 	virtual ~RPC_Interpreter();
 
 	// Delivers the given RPC.  Returns true if "len" bytes were
@@ -124,7 +124,7 @@ protected:
 	void Weird(const char* name, const char* addl = "");
 
 	std::map<uint32_t, RPC_CallInfo*> calls;
-	zeek::analyzer::Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 };
 
 
@@ -187,9 +187,9 @@ protected:
 } // namespace detail
 
 /* Support Analyzer for reassembling RPC-over-TCP messages */
-class Contents_RPC final : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
+class Contents_RPC final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
-	Contents_RPC(zeek::Connection* conn, bool orig, detail::RPC_Interpreter* interp);
+	Contents_RPC(Connection* conn, bool orig, detail::RPC_Interpreter* interp);
 	~Contents_RPC() override;
 
 protected:
@@ -233,9 +233,9 @@ protected:
 	int resync_toskip;
 };
 
-class RPC_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class RPC_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	RPC_Analyzer(const char* name, zeek::Connection* conn,
+	RPC_Analyzer(const char* name, Connection* conn,
 	             detail::RPC_Interpreter* arg_interp);
 	~RPC_Analyzer() override;
 
@@ -243,7 +243,7 @@ public:
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	void ExpireTimer(double t);
 

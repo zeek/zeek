@@ -8,9 +8,9 @@
 namespace zeek::logging::writer::detail {
 
 bool None::DoInit(const WriterInfo& info, int num_fields,
-	    const threading::Field* const * fields)
+                  const threading::Field* const * fields)
 	{
-	if ( zeek::BifConst::LogNone::debug )
+	if ( BifConst::LogNone::debug )
 		{
 		std::cout << "[logging::writer::None]" << std::endl;
 		std::cout << "  path=" << info.path << std::endl;
@@ -33,7 +33,7 @@ bool None::DoInit(const WriterInfo& info, int num_fields,
 			{
 			const threading::Field* field = fields[i];
 			std::cout << "  field " << field->name << ": "
-				  << zeek::type_name(field->type) << std::endl;
+				  << type_name(field->type) << std::endl;
 			}
 
 		std::cout << std::endl;

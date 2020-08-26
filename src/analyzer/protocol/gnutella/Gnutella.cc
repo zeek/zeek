@@ -36,8 +36,8 @@ GnutellaMsgState::GnutellaMsgState()
 
 } // namespace detail
 
-Gnutella_Analyzer::Gnutella_Analyzer(zeek::Connection* conn)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
+Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
+: analyzer::tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
 	{
 	state = 0;
 	new_state = 0;
@@ -57,7 +57,7 @@ Gnutella_Analyzer::~Gnutella_Analyzer()
 
 void Gnutella_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
@@ -76,9 +76,9 @@ void Gnutella_Analyzer::Done()
 			if ( ! p->msg_sent && p->msg_pos )
 				EnqueueConnEvent(gnutella_partial_binary_msg,
 				                 ConnVal(),
-				                 zeek::make_intrusive<zeek::StringVal>(p->msg),
-				                 zeek::val_mgr->Bool((i == 0)),
-				                 zeek::val_mgr->Count(p->msg_pos));
+				                 make_intrusive<StringVal>(p->msg),
+				                 val_mgr->Bool((i == 0)),
+				                 val_mgr->Count(p->msg_pos));
 
 			else if ( ! p->msg_sent && p->payload_left )
 				SendEvents(p, (i == 0));
@@ -122,16 +122,16 @@ bool Gnutella_Analyzer::IsHTTP(std::string header)
 	if ( gnutella_http_notify )
 		EnqueueConnEvent(gnutella_http_notify, ConnVal());
 
-	zeek::analyzer::Analyzer* a = zeek::analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
+	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
 
 	if ( a && Parent()->AddChildAnalyzer(a) )
 		{
 		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			zeek::analyzer::pia::PIA* pia = static_cast<zeek::analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
+			analyzer::pia::PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
 			if ( pia )
-				static_cast<zeek::analyzer::pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
+				static_cast<analyzer::pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}
 
 		Parent()->RemoveChildAnalyzer(this);
@@ -180,8 +180,8 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 			if ( gnutella_text_msg )
 				EnqueueConnEvent(gnutella_text_msg,
 				                 ConnVal(),
-				                 zeek::val_mgr->Bool(orig),
-				                 zeek::make_intrusive<zeek::StringVal>(ms->headers.data()));
+				                 val_mgr->Bool(orig),
+				                 make_intrusive<StringVal>(ms->headers.data()));
 
 			ms->headers = "";
 			state |= new_state;
@@ -217,15 +217,15 @@ void Gnutella_Analyzer::SendEvents(detail::GnutellaMsgState* p, bool is_orig)
 	if ( gnutella_binary_msg )
 		EnqueueConnEvent(gnutella_binary_msg,
 		                 ConnVal(),
-		                 zeek::val_mgr->Bool(is_orig),
-		                 zeek::val_mgr->Count(p->msg_type),
-		                 zeek::val_mgr->Count(p->msg_ttl),
-		                 zeek::val_mgr->Count(p->msg_hops),
-		                 zeek::val_mgr->Count(p->msg_len),
-		                 zeek::make_intrusive<zeek::StringVal>(p->payload),
-		                 zeek::val_mgr->Count(p->payload_len),
-		                 zeek::val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
-		                 zeek::val_mgr->Bool((p->payload_left == 0)));
+		                 val_mgr->Bool(is_orig),
+		                 val_mgr->Count(p->msg_type),
+		                 val_mgr->Count(p->msg_ttl),
+		                 val_mgr->Count(p->msg_hops),
+		                 val_mgr->Count(p->msg_len),
+		                 make_intrusive<StringVal>(p->payload),
+		                 val_mgr->Count(p->payload_len),
+		                 val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
+		                 val_mgr->Bool((p->payload_left == 0)));
 	}
 
 
@@ -304,7 +304,7 @@ void Gnutella_Analyzer::DeliverMessages(int len, const u_char* data, bool orig)
 
 void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	ms = orig ? orig_msg_state : resp_msg_state;
 	ms->current_offset = 0;

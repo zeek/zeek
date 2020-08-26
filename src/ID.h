@@ -22,13 +22,13 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
 namespace zeek {
 class Type;
-using TypePtr = zeek::IntrusivePtr<zeek::Type>;
-using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
-using TableTypePtr = zeek::IntrusivePtr<zeek::TableType>;
-using VectorTypePtr = zeek::IntrusivePtr<zeek::VectorType>;
-using EnumTypePtr = zeek::IntrusivePtr<zeek::EnumType>;
-using ValPtr = zeek::IntrusivePtr<zeek::Val>;
-using FuncPtr = zeek::IntrusivePtr<zeek::Func>;
+using TypePtr = IntrusivePtr<Type>;
+using RecordTypePtr = IntrusivePtr<RecordType>;
+using TableTypePtr = IntrusivePtr<TableType>;
+using VectorTypePtr = IntrusivePtr<VectorType>;
+using EnumTypePtr = IntrusivePtr<EnumType>;
+using ValPtr = IntrusivePtr<Val>;
+using FuncPtr = IntrusivePtr<Func>;
 }
 
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
@@ -37,15 +37,15 @@ namespace zeek::detail {
 
 class Attributes;
 class Expr;
-using ExprPtr = zeek::IntrusivePtr<Expr>;
+using ExprPtr = IntrusivePtr<Expr>;
 
 enum InitClass { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
 enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 class ID;
-using IDPtr = zeek::IntrusivePtr<ID>;
+using IDPtr = IntrusivePtr<ID>;
 
-class ID final : public Obj, public zeek::notifier::detail::Modifiable {
+class ID final : public Obj, public notifier::detail::Modifiable {
 public:
 	static inline const IDPtr nil;
 
@@ -63,7 +63,7 @@ public:
 
 	std::string ModuleName() const;
 
-	void SetType(zeek::TypePtr t);
+	void SetType(TypePtr t);
 	[[deprecated("Remove in v4.1.  Use version that takes IntrusivePtr.")]]
 	void SetType(zeek::Type* t);
 
@@ -76,8 +76,8 @@ public:
 		{ return type; }
 
 	template <class T>
-	zeek::IntrusivePtr<T> GetType() const
-		{ return zeek::cast_intrusive<T>(type); }
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
 
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
 	zeek::Type* AsType()		{ return is_type ? GetType().get() : nullptr; }
@@ -131,7 +131,7 @@ public:
 	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() const	{ return attrs.get(); }
 
-	const AttrPtr& GetAttr(zeek::detail::AttrTag t) const;
+	const AttrPtr& GetAttr(AttrTag t) const;
 
 	bool IsDeprecated() const;
 
@@ -158,7 +158,7 @@ public:
 	bool HasOptionHandlers() const
 		{ return !option_handlers.empty(); }
 
-	void AddOptionHandler(zeek::FuncPtr callback, int priority);
+	void AddOptionHandler(FuncPtr callback, int priority);
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
@@ -178,11 +178,11 @@ protected:
 	ValPtr val;
 	AttributesPtr attrs;
 	// contains list of functions that are called when an option changes
-	std::multimap<int, zeek::FuncPtr> option_handlers;
+	std::multimap<int, FuncPtr> option_handlers;
 
 };
 
-}
+} // namespace zeek::detail
 
 using ID [[deprecated("Remove in v4.1. Use zeek::detail::ID instead.")]] = zeek::detail::ID;
 
@@ -211,8 +211,8 @@ const TypePtr& find_type(std::string_view name);
  * @return  The type of the identifier.
  */
 template<class T>
-zeek::IntrusivePtr<T> find_type(std::string_view name)
-	{ return zeek::cast_intrusive<T>(find_type(name)); }
+IntrusivePtr<T> find_type(std::string_view name)
+	{ return cast_intrusive<T>(find_type(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -229,8 +229,8 @@ const ValPtr& find_val(std::string_view name);
  * @return  The current value of the identifier.
  */
 template<class T>
-zeek::IntrusivePtr<T> find_val(std::string_view name)
-	{ return zeek::cast_intrusive<T>(find_val(name)); }
+IntrusivePtr<T> find_val(std::string_view name)
+	{ return cast_intrusive<T>(find_val(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -247,8 +247,8 @@ const ValPtr& find_const(std::string_view name);
  * @return  The current value of the identifier.
  */
 template<class T>
-zeek::IntrusivePtr<T> find_const(std::string_view name)
-	{ return zeek::cast_intrusive<T>(find_const(name)); }
+IntrusivePtr<T> find_const(std::string_view name)
+	{ return cast_intrusive<T>(find_const(name)); }
 
 /**
  * Lookup an ID by its name and return the function it references.
@@ -256,7 +256,7 @@ zeek::IntrusivePtr<T> find_const(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current function value the identifier references.
  */
-zeek::FuncPtr find_func(std::string_view name);
+FuncPtr find_func(std::string_view name);
 
 extern RecordTypePtr conn_id;
 extern RecordTypePtr endpoint;
@@ -274,8 +274,7 @@ namespace detail {
 
 void init();
 
-} // namespace zeek::id::detail
-
+} // namespace detail
 } // namespace zeek::id
 
 using ID [[deprecated("Remove in v4.1 Use zeek::detail::ID instead.")]] = zeek::detail::ID;

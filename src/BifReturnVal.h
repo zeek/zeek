@@ -7,7 +7,7 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 namespace zeek {
-using ValPtr = zeek::IntrusivePtr<zeek::Val>;
+using ValPtr = IntrusivePtr<Val>;
 }
 
 namespace zeek::detail {
@@ -21,16 +21,16 @@ class BifReturnVal {
 public:
 
 	template <typename T>
-	BifReturnVal(zeek::IntrusivePtr<T> v) noexcept
-		: rval(zeek::AdoptRef{}, v.release())
+	BifReturnVal(IntrusivePtr<T> v) noexcept
+		: rval(AdoptRef{}, v.release())
 		{ }
 
 	BifReturnVal(std::nullptr_t) noexcept;
 
 	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
-	BifReturnVal(zeek::Val* v) noexcept;
+	BifReturnVal(Val* v) noexcept;
 
-	zeek::ValPtr rval;
+	ValPtr rval;
 };
 
 } // namespace zeek::detail

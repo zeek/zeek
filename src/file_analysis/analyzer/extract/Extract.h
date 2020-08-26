@@ -15,7 +15,7 @@ namespace zeek::file_analysis::detail {
 /**
  * An analyzer to extract content of files to local disk.
  */
-class Extract : public zeek::file_analysis::Analyzer {
+class Extract : public file_analysis::Analyzer {
 public:
 
 	/**
@@ -47,8 +47,8 @@ public:
 	 * @return the new Extract analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                                  zeek::file_analysis::File* file);
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	                                            file_analysis::File* file);
 
 	/**
 	 * Sets the maximum allowed extracted file size.  A value of zero means
@@ -67,7 +67,7 @@ protected:
 	 *        to which the contents of the file will be extracted/written.
 	 * @param arg_limit the maximum allowed file size.
 	 */
-	Extract(zeek::RecordValPtr args, zeek::file_analysis::File* file,
+	Extract(RecordValPtr args, file_analysis::File* file,
 	        const std::string& arg_filename, uint64_t arg_limit);
 
 private:

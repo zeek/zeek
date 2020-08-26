@@ -4,9 +4,9 @@
 
 namespace zeek::detail {
 
-prefix_t* PrefixTable::MakePrefix(const zeek::IPAddr& addr, int width)
+prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
 	{
-	prefix_t* prefix = (prefix_t*) zeek::util::safe_malloc(sizeof(prefix_t));
+	prefix_t* prefix = (prefix_t*) util::safe_malloc(sizeof(prefix_t));
 
 	addr.CopyIPv6(&prefix->add.sin6);
 	prefix->family = AF_INET6;
@@ -16,12 +16,13 @@ prefix_t* PrefixTable::MakePrefix(const zeek::IPAddr& addr, int width)
 	return prefix;
 	}
 
-zeek::IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
+IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
 	{
-	return zeek::IPPrefix(zeek::IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), zeek::IPAddr::Network), prefix->bitlen, true);
+	return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6),
+	                       IPAddr::Network), prefix->bitlen, true);
 	}
 
-void* PrefixTable::Insert(const zeek::IPAddr& addr, int width, void* data)
+void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_lookup(tree, prefix);
@@ -29,7 +30,7 @@ void* PrefixTable::Insert(const zeek::IPAddr& addr, int width, void* data)
 
 	if ( ! node )
 		{
-		zeek::reporter->InternalWarning("Cannot create node in patricia tree");
+		reporter->InternalWarning("Cannot create node in patricia tree");
 		return nullptr;
 		}
 
@@ -42,32 +43,32 @@ void* PrefixTable::Insert(const zeek::IPAddr& addr, int width, void* data)
 	return old;
 	}
 
-void* PrefixTable::Insert(const zeek::Val* value, void* data)
+void* PrefixTable::Insert(const Val* value, void* data)
 	{
 	// [elem] -> elem
-	if ( value->GetType()->Tag() == zeek::TYPE_LIST &&
+	if ( value->GetType()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
 		value = value->AsListVal()->Idx(0).get();
 
 	switch ( value->GetType()->Tag() ) {
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		return Insert(value->AsAddr(), 128, data);
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		return Insert(value->AsSubNet().Prefix(),
 				value->AsSubNet().LengthIPv6(), data);
 		break;
 
 	default:
-		zeek::reporter->InternalWarning("Wrong index type for PrefixTable");
+		reporter->InternalWarning("Wrong index type for PrefixTable");
 		return nullptr;
 	}
 	}
 
-std::list<std::tuple<zeek::IPPrefix,void*>> PrefixTable::FindAll(const zeek::IPAddr& addr, int width) const
+std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const IPAddr& addr, int width) const
 	{
-	std::list<std::tuple<zeek::IPPrefix,void*>> out;
+	std::list<std::tuple<IPPrefix,void*>> out;
 	prefix_t* prefix = MakePrefix(addr, width);
 
 	int elems = 0;
@@ -83,12 +84,12 @@ std::list<std::tuple<zeek::IPPrefix,void*>> PrefixTable::FindAll(const zeek::IPA
 	return out;
 	}
 
-std::list<std::tuple<zeek::IPPrefix,void*>> PrefixTable::FindAll(const zeek::SubNetVal* value) const
+std::list<std::tuple<IPPrefix,void*>> PrefixTable::FindAll(const SubNetVal* value) const
 	{
 	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
 	}
 
-void* PrefixTable::Lookup(const zeek::IPAddr& addr, int width, bool exact) const
+void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node =
@@ -102,31 +103,31 @@ void* PrefixTable::Lookup(const zeek::IPAddr& addr, int width, bool exact) const
 	return node ? node->data : nullptr;
 	}
 
-void* PrefixTable::Lookup(const zeek::Val* value, bool exact) const
+void* PrefixTable::Lookup(const Val* value, bool exact) const
 	{
 	// [elem] -> elem
-	if ( value->GetType()->Tag() == zeek::TYPE_LIST &&
+	if ( value->GetType()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
 		value = value->AsListVal()->Idx(0).get();
 
 	switch ( value->GetType()->Tag() ) {
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		return Lookup(value->AsAddr(), 128, exact);
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		return Lookup(value->AsSubNet().Prefix(),
 				value->AsSubNet().LengthIPv6(), exact);
 		break;
 
 	default:
-		zeek::reporter->InternalWarning("Wrong index type %d for PrefixTable",
-		                                value->GetType()->Tag());
+		reporter->InternalWarning("Wrong index type %d for PrefixTable",
+		                          value->GetType()->Tag());
 		return nullptr;
 	}
 	}
 
-void* PrefixTable::Remove(const zeek::IPAddr& addr, int width)
+void* PrefixTable::Remove(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_search_exact(tree, prefix);
@@ -141,25 +142,25 @@ void* PrefixTable::Remove(const zeek::IPAddr& addr, int width)
 	return old;
 	}
 
-void* PrefixTable::Remove(const zeek::Val* value)
+void* PrefixTable::Remove(const Val* value)
 	{
 	// [elem] -> elem
-	if ( value->GetType()->Tag() == zeek::TYPE_LIST &&
+	if ( value->GetType()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
 		value = value->AsListVal()->Idx(0).get();
 
 	switch ( value->GetType()->Tag() ) {
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		return Remove(value->AsAddr(), 128);
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		return Remove(value->AsSubNet().Prefix(),
 				value->AsSubNet().LengthIPv6());
 		break;
 
 	default:
-		zeek::reporter->InternalWarning("Wrong index type for PrefixTable");
+		reporter->InternalWarning("Wrong index type for PrefixTable");
 		return nullptr;
 	}
 	}

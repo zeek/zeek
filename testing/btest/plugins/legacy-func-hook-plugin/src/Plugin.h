@@ -3,13 +3,12 @@
 
 #include <plugin/Plugin.h>
 
-namespace plugin {
-namespace Demo_Hooks {
+namespace btest::plugin::Demo_Hooks {
 
 class Plugin : public zeek::plugin::Plugin
 {
 protected:
-	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* frame, val_list* args) override;
+	std::pair<bool, zeek::Val*> HookCallFunction(const zeek::Func* func, zeek::detail::Frame* frame, zeek::ValPList* args) override;
 
 	/* std::pair<bool, IntrusivePtr<Val>> HookFunctionCall(const Func* func, */
 	/*                                                     Frame* frame, */
@@ -22,10 +21,9 @@ protected:
 	                  zeek::plugin::HookArgument result) override;
 
 	// Overridden from plugin::Plugin.
-	plugin::Configuration Configure() override;
+	zeek::plugin::Configuration Configure() override;
 };
 
 extern Plugin plugin;
 
-}
 }

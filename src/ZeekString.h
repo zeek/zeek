@@ -138,8 +138,8 @@ public:
 	Vec* Split(const IdxVec& indices) const;
 
 	// Helper functions for vectors:
-	static zeek::VectorVal* VecToPolicy(Vec* vec);
-	static Vec* VecFromPolicy(zeek::VectorVal* vec);
+	static VectorVal* VecToPolicy(Vec* vec);
+	static Vec* VecFromPolicy(VectorVal* vec);
 	static char* VecToString(const Vec* vec);
 
 protected:

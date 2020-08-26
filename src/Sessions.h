@@ -54,19 +54,19 @@ public:
 	~NetSessions();
 
 	// Main entry point for packet processing.
-	void NextPacket(double t, const zeek::Packet* pkt);
+	void NextPacket(double t, const Packet* pkt);
 
 	void Done();	// call to drain events before destructing
 
 	// Returns a reassembled packet, or nil if there are still
 	// some missing fragments.
-	detail::FragReassembler* NextFragment(double t, const zeek::IP_Hdr* ip,
+	detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip,
 	                                      const u_char* pkt);
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
 	// no such connection or the Val is ill-formed.
-	Connection* FindConnection(zeek::Val* v);
+	Connection* FindConnection(Val* v);
 
 	void Remove(Connection* c);
 	void Remove(detail::FragReassembler* f);
@@ -82,27 +82,27 @@ public:
 
 	void GetStats(SessionStats& s) const;
 
-	void Weird(const char* name, const zeek::Packet* pkt,
-	           const zeek::EncapsulationStack* encap = nullptr, const char* addl = "");
-	void Weird(const char* name, const zeek::IP_Hdr* ip,
-	           const zeek::EncapsulationStack* encap = nullptr, const char* addl = "");
+	void Weird(const char* name, const Packet* pkt,
+	           const EncapsulationStack* encap = nullptr, const char* addl = "");
+	void Weird(const char* name, const IP_Hdr* ip,
+	           const EncapsulationStack* encap = nullptr, const char* addl = "");
 
-	zeek::detail::PacketFilter* GetPacketFilter()
+	detail::PacketFilter* GetPacketFilter()
 		{
 		if ( ! packet_filter )
-			packet_filter = new zeek::detail::PacketFilter(detail::packet_filter_default);
+			packet_filter = new detail::PacketFilter(detail::packet_filter_default);
 		return packet_filter;
 		}
 
-	zeek::analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
+	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
 
 	unsigned int CurrentConnections()
 		{
 		return tcp_conns.size() + udp_conns.size() + icmp_conns.size();
 		}
 
-	void DoNextPacket(double t, const zeek::Packet *pkt, const zeek::IP_Hdr* ip_hdr,
-	                  const zeek::EncapsulationStack* encapsulation);
+	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr,
+	                  const EncapsulationStack* encapsulation);
 
 	/**
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
@@ -118,9 +118,9 @@ public:
 	 *        the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	void DoNextInnerPacket(double t, const zeek::Packet *pkt,
-	                       const zeek::IP_Hdr* inner, const zeek::EncapsulationStack* prev,
-	                       const zeek::EncapsulatingConn& ec);
+	void DoNextInnerPacket(double t, const Packet *pkt,
+	                       const IP_Hdr* inner, const EncapsulationStack* prev,
+	                       const EncapsulatingConn& ec);
 
 	/**
 	 * Recurses on DoNextPacket for encapsulated Ethernet/IP packets.
@@ -137,11 +137,11 @@ public:
 	 *        including the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	void DoNextInnerPacket(double t, const zeek::Packet* pkt,
+	void DoNextInnerPacket(double t, const Packet* pkt,
                            uint32_t caplen, uint32_t len,
                            const u_char* data, int link_type,
-                           const zeek::EncapsulationStack* prev,
-                           const zeek::EncapsulatingConn& ec);
+                           const EncapsulationStack* prev,
+                           const EncapsulatingConn& ec);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -166,25 +166,25 @@ public:
 	 *         for other return values.
 	 */
 	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-	                  zeek::IP_Hdr*& inner);
+	                  IP_Hdr*& inner);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
 	unsigned int MemoryAllocation();
-	zeek::analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
+	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 protected:
 	friend class ConnCompressor;
 	friend class detail::IPTunnelTimer;
 
-	using ConnectionMap = std::map<zeek::detail::ConnIDKey, Connection*>;
+	using ConnectionMap = std::map<detail::ConnIDKey, Connection*>;
 	using FragmentMap = std::map<detail::FragReassemblerKey, detail::FragReassembler*>;
 
-	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
+	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32_t flow_label,
-			const zeek::Packet* pkt, const zeek::EncapsulationStack* encapsulation);
+			const Packet* pkt, const EncapsulationStack* encapsulation);
 
-	Connection* LookupConn(const ConnectionMap& conns, const zeek::detail::ConnIDKey& key);
+	Connection* LookupConn(const ConnectionMap& conns, const detail::ConnIDKey& key);
 
 	// Returns true if the port corresonds to an application
 	// for which there's a Bro analyzer (even if it might not
@@ -207,20 +207,20 @@ protected:
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.
-	void DumpPacket(const zeek::Packet *pkt, int len=0);
+	void DumpPacket(const Packet *pkt, int len=0);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-	                      const zeek::Packet *pkt, const zeek::EncapsulationStack* encap);
+	                      const Packet *pkt, const EncapsulationStack* encap);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by
 	// the new one.  Connection count stats get updated either way (so most
 	// cases should likely check that the key is not already in the map to
 	// avoid unnecessary incrementing of connecting counts).
-	void InsertConnection(ConnectionMap* m, const zeek::detail::ConnIDKey& key, Connection* conn);
+	void InsertConnection(ConnectionMap* m, const detail::ConnIDKey& key, Connection* conn);
 
 	ConnectionMap tcp_conns;
 	ConnectionMap udp_conns;
@@ -229,28 +229,28 @@ protected:
 
 	SessionStats stats;
 
-	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
-	using TunnelActivity = std::pair<zeek::EncapsulatingConn, double>;
+	using IPPair = std::pair<IPAddr, IPAddr>;
+	using TunnelActivity = std::pair<EncapsulatingConn, double>;
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
-	zeek::analyzer::arp::ARP_Analyzer* arp_analyzer;
+	analyzer::arp::ARP_Analyzer* arp_analyzer;
 
-	zeek::analyzer::stepping_stone::SteppingStoneManager* stp_manager;
-	zeek::detail::Discarder* discarder;
-	zeek::detail::PacketFilter* packet_filter;
+	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
+	detail::Discarder* discarder;
+	detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
-	zeek::detail::PacketProfiler* pkt_profiler;
+	detail::PacketProfiler* pkt_profiler;
 	bool dump_this_packet;	// if true, current packet should be recorded
 };
 
 namespace detail {
 
-class IPTunnelTimer final : public zeek::detail::Timer {
+class IPTunnelTimer final : public Timer {
 public:
 	IPTunnelTimer(double t, NetSessions::IPPair p)
-	: zeek::detail::Timer(t + zeek::BifConst::Tunnel::ip_tunnel_timeout,
-	                      zeek::detail::TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
+	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
+	        TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
 
 	~IPTunnelTimer() override {}
 

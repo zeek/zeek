@@ -27,7 +27,7 @@ namespace file_analysis {
 /**
  * Main entry point for interacting with file analysis.
  */
-class Manager : public zeek::plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 
 	/**
@@ -104,7 +104,7 @@ public:
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
 	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
-	                   const zeek::analyzer::Tag& tag, zeek::Connection* conn, bool is_orig,
+	                   const analyzer::Tag& tag, Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -130,8 +130,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64_t len, const zeek::analyzer::Tag& tag,
-	                   zeek::Connection* conn, bool is_orig,
+	std::string DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag,
+	                   Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -153,7 +153,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(const zeek::analyzer::Tag& tag, zeek::Connection* conn);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn);
 
 	/**
 	 * Signal the end of file data being transferred over a connection in
@@ -161,7 +161,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(const zeek::analyzer::Tag& tag, zeek::Connection* conn, bool is_orig);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn, bool is_orig);
 
 	/**
 	 * Signal the end of file data being transferred using the file identifier.
@@ -185,8 +185,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string Gap(uint64_t offset, uint64_t len, const zeek::analyzer::Tag& tag,
-	                zeek::Connection* conn, bool is_orig,
+	std::string Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag,
+	                Connection* conn, bool is_orig,
 	                const std::string& precomputed_file_id = "");
 
 	/**
@@ -204,7 +204,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64_t size, const zeek::analyzer::Tag& tag, zeek::Connection* conn,
+	std::string SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn,
 	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
@@ -251,10 +251,10 @@ public:
 	 *         else true.
 	 */
 	bool SetExtractionLimit(const std::string& file_id,
-	                        zeek::RecordValPtr args, uint64_t n) const;
+	                        RecordValPtr args, uint64_t n) const;
 
 	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
-	bool SetExtractionLimit(const std::string& file_id, zeek::RecordVal* args,
+	bool SetExtractionLimit(const std::string& file_id, RecordVal* args,
 	                        uint64_t n) const;
 
 	/**
@@ -275,11 +275,11 @@ public:
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
 	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
-	                 zeek::RecordValPtr args) const;
+	                 RecordValPtr args) const;
 
 	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
 	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
-	                 zeek::RecordVal* args) const;
+	                 RecordVal* args) const;
 
 	/**
 	 * Queue removal of an analyzer for a given file identifier.
@@ -289,11 +289,11 @@ public:
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
 	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
-	                    zeek::RecordValPtr args) const;
+	                    RecordValPtr args) const;
 
 	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
 	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
-	                    zeek::RecordVal* args) const;
+	                    RecordVal* args) const;
 
 	/**
 	 * Tells whether analysis for a file is active or ignored.
@@ -309,11 +309,11 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(const Tag& tag, zeek::RecordValPtr args,
+	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordValPtr args,
 	                              File* f) const;
 
 	[[deprecated("Remove in v4.1.  Pass in IntrusivePtr args instead.")]]
-	Analyzer* InstantiateAnalyzer(const Tag& tag, zeek::RecordVal* args, File* f) const;
+	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const;
 
 	/**
 	 * Returns a set of all matching MIME magic signatures for a given
@@ -349,7 +349,7 @@ public:
 		{ return cumulative_files; }
 
 protected:
-	friend class zeek::file_analysis::detail::FileTimer;
+	friend class detail::FileTimer;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -369,8 +369,8 @@ protected:
 	 *         exist, the activity time is refreshed along with any
 	 *         connection-related fields.
 	 */
-	File* GetFile(const std::string& file_id, zeek::Connection* conn = nullptr,
-	              const zeek::analyzer::Tag& tag = zeek::analyzer::Tag::Error,
+	File* GetFile(const std::string& file_id, Connection* conn = nullptr,
+	              const analyzer::Tag& tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
 	              const char* source_name = nullptr);
 
@@ -381,7 +381,7 @@ protected:
 	 * @param is_termination whether the Manager (and probably Bro) is in a
 	 *        terminating state.  If true, then the timeout cannot be postponed.
 	 */
-	void Timeout(const std::string& file_id, bool is_terminating = zeek::run_state::terminating);
+	void Timeout(const std::string& file_id, bool is_terminating = run_state::terminating);
 
 	/**
 	 * Immediately remove file_analysis::File object associated with \a file_id.
@@ -401,7 +401,7 @@ protected:
 	 * @return #current_file_id, which is a hash of a unique file handle string
 	 *         set by a \c get_file_handle event handler.
 	 */
-	std::string GetFileID(const zeek::analyzer::Tag& tag, zeek::Connection* c, bool is_orig);
+	std::string GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given
@@ -411,7 +411,7 @@ protected:
 	 * @return whether file analysis is disabled for the analyzer given by
 	 *         \a tag.
 	 */
-	static bool IsDisabled(const zeek::analyzer::Tag& tag);
+	static bool IsDisabled(const analyzer::Tag& tag);
 
 private:
 	typedef std::set<Tag> TagSet;
@@ -425,8 +425,8 @@ private:
 	zeek::detail::RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
-	inline static zeek::TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
-	inline static zeek::TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
+	inline static TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
+	inline static TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
 
 	size_t cumulative_files;
 	size_t max_files;
@@ -436,7 +436,7 @@ private:
  * Returns a script-layer value corresponding to the \c mime_matches type.
  * @param m The MIME match information with which to populate the value.
  */
-zeek::VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m);
+VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m);
 
 } // namespace file_analysis
 

@@ -8,9 +8,9 @@
 
 namespace zeek::analyzer::file {
 
-class File_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class File_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	File_Analyzer(const char* name, zeek::Connection* conn);
+	File_Analyzer(const char* name, Connection* conn);
 
 	void Done() override;
 
@@ -18,7 +18,7 @@ public:
 
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-//	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+//	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new File_Analyzer(conn); }
 
 protected:
@@ -33,21 +33,21 @@ protected:
 
 class IRC_Data : public File_Analyzer {
 public:
-	explicit IRC_Data(zeek::Connection* conn)
+	explicit IRC_Data(Connection* conn)
 		: File_Analyzer("IRC_Data", conn)
 		{ }
 
-	static Analyzer* Instantiate(zeek::Connection* conn)
+	static Analyzer* Instantiate(Connection* conn)
 		{ return new IRC_Data(conn); }
 };
 
 class FTP_Data : public File_Analyzer {
 public:
-	explicit FTP_Data(zeek::Connection* conn)
+	explicit FTP_Data(Connection* conn)
 		: File_Analyzer("FTP_Data", conn)
 		{ }
 
-	static Analyzer* Instantiate(zeek::Connection* conn)
+	static Analyzer* Instantiate(Connection* conn)
 		{ return new FTP_Data(conn); }
 };
 

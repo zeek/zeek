@@ -25,8 +25,8 @@ public:
 	SegmentStatsReporter()	{ }
 	virtual ~SegmentStatsReporter()	{ }
 
-	virtual void SegmentProfile(const char* name, const zeek::detail::Location* loc,
-					double dtime, int dmem) = 0;
+	virtual void SegmentProfile(const char* name, const Location* loc,
+	                            double dtime, int dmem) = 0;
 };
 
 
@@ -47,7 +47,7 @@ public:
 		}
 
 	SegmentProfiler(SegmentStatsReporter* arg_reporter,
-	                const zeek::detail::Location* arg_loc)
+	                const Location* arg_loc)
 	    : reporter(arg_reporter), name(), loc(arg_loc), initial_rusage()
 		{
 		if ( reporter )
@@ -66,7 +66,7 @@ protected:
 
 	SegmentStatsReporter* reporter;
 	const char* name;
-	const zeek::detail::Location* loc;
+	const Location* loc;
 	struct rusage initial_rusage;
 };
 
@@ -80,7 +80,7 @@ public:
 	zeek::File* File()	{ return file; }
 
 protected:
-	void SegmentProfile(const char* name, const zeek::detail::Location* loc,
+	void SegmentProfile(const char* name, const Location* loc,
 	                    double dtime, int dmem) override;
 
 private:
@@ -97,14 +97,14 @@ public:
 
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
-	void FunctionSeen(const zeek::Func* func);
-	void LocationSeen(const zeek::detail::Location* loc);
+	void FunctionSeen(const Func* func);
+	void LocationSeen(const Location* loc);
 
 protected:
-	void SegmentProfile(const char* name, const zeek::detail::Location* loc,
+	void SegmentProfile(const char* name, const Location* loc,
 	                    double dtime, int dmem) override;
 
-	zeek::TableVal* load_samples;
+	TableVal* load_samples;
 };
 
 
@@ -123,7 +123,7 @@ extern uint64_t tot_gap_bytes;
 
 class PacketProfiler {
 public:
-	PacketProfiler(unsigned int mode, double freq, zeek::File* arg_file);
+	PacketProfiler(unsigned int mode, double freq, File* arg_file);
 	~PacketProfiler();
 
 	static const unsigned int MODE_TIME = 1;
@@ -133,7 +133,7 @@ public:
 	void ProfilePkt(double t, unsigned int bytes);
 
 protected:
-	zeek::File* file;
+	File* file;
 	unsigned int update_mode;
 	double update_freq;
 	double last_Utime, last_Stime, last_Rtime;

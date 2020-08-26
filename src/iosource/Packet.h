@@ -22,8 +22,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 namespace zeek {
 
 template <class T> class IntrusivePtr;
-using ValPtr = zeek::IntrusivePtr<zeek::Val>;
-using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
+using ValPtr = IntrusivePtr<Val>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -129,16 +129,16 @@ public:
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * correspondign object.
 	 */
-	const zeek::IP_Hdr IP() const;
+	const IP_Hdr IP() const;
 
 	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
-	 * also everything in zeek::IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
+	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
-	zeek::RecordValPtr ToRawPktHdrVal() const;
+	RecordValPtr ToRawPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
-	zeek::RecordVal* BuildPktHdrVal() const;
+	RecordVal* BuildPktHdrVal() const;
 
 	/**
 	 * Static method returning the link-layer header size for a given
@@ -232,7 +232,7 @@ private:
 	void Weird(const char* name);
 
 	// Renders an MAC address into its ASCII representation.
-	zeek::ValPtr FmtEUI48(const u_char* mac) const;
+	ValPtr FmtEUI48(const u_char* mac) const;
 
 	// True if we need to delete associated packet memory upon
 	// destruction.

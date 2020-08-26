@@ -69,8 +69,8 @@ TimerMgr::TimerMgr()
 	num_expired = 0;
 	last_advance = last_timestamp = 0;
 
-	if ( zeek::iosource_mgr )
-		zeek::iosource_mgr->Register(this, true);
+	if ( iosource_mgr )
+		iosource_mgr->Register(this, true);
 	}
 
 TimerMgr::~TimerMgr()
@@ -79,7 +79,7 @@ TimerMgr::~TimerMgr()
 
 int TimerMgr::Advance(double arg_t, int max_expire)
 	{
-	DBG_LOG(zeek::DBG_TM, "advancing timer mgr to %.6f", arg_t);
+	DBG_LOG(DBG_TM, "advancing timer mgr to %.6f", arg_t);
 
 	t = arg_t;
 	last_timestamp = 0;
@@ -95,20 +95,20 @@ void TimerMgr::Process()
 	// If we don't have a source, or the source is closed, or we're reading live (which includes
 	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
 	// move forward and the timers won't fire correctly.
-	iosource::PktSrc* pkt_src = zeek::iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || zeek::run_state::reading_live || zeek::run_state::is_processing_suspended() )
-		zeek::run_state::detail::update_network_time(zeek::util::current_time());
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || run_state::reading_live || run_state::is_processing_suspended() )
+		run_state::detail::update_network_time(util::current_time());
 
 	// Just advance the timer manager based on the current network time. This won't actually
 	// change the time, but will dispatch any timers that need dispatching.
-	zeek::run_state::current_dispatched += Advance(
-		zeek::run_state::network_time, max_timer_expires - zeek::run_state::current_dispatched);
+	run_state::current_dispatched += Advance(
+		run_state::network_time, max_timer_expires - run_state::current_dispatched);
 	}
 
 void TimerMgr::InitPostScript()
 	{
-	if ( zeek::iosource_mgr )
-		zeek::iosource_mgr->Register(this, true);
+	if ( iosource_mgr )
+		iosource_mgr->Register(this, true);
 	}
 
 PQ_TimerMgr::PQ_TimerMgr() : TimerMgr()
@@ -123,14 +123,14 @@ PQ_TimerMgr::~PQ_TimerMgr()
 
 void PQ_TimerMgr::Add(Timer* timer)
 	{
-	DBG_LOG(zeek::DBG_TM, "Adding timer %s (%p) at %.6f",
+	DBG_LOG(DBG_TM, "Adding timer %s (%p) at %.6f",
 	        timer_type_to_string(timer->Type()), timer, timer->Time());
 
 	// Add the timer even if it's already expired - that way, if
 	// multiple already-added timers are added, they'll still
 	// execute in sorted order.
 	if ( ! q->Add(timer) )
-		zeek::reporter->InternalError("out of memory");
+		reporter->InternalError("out of memory");
 
 	++current_timers[timer->Type()];
 	}
@@ -140,7 +140,7 @@ void PQ_TimerMgr::Expire()
 	Timer* timer;
 	while ( (timer = Remove()) )
 		{
-		DBG_LOG(zeek::DBG_TM, "Dispatching timer %s (%p)",
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
 		        timer_type_to_string(timer->Type()), timer);
 		timer->Dispatch(t, true);
 		--current_timers[timer->Type()];
@@ -162,7 +162,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 		// whether we should delete it too.
 		(void) Remove();
 
-		DBG_LOG(zeek::DBG_TM, "Dispatching timer %s (%p)",
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
 		        timer_type_to_string(timer->Type()), timer);
 		timer->Dispatch(new_t, false);
 		delete timer;
@@ -176,7 +176,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 void PQ_TimerMgr::Remove(Timer* timer)
 	{
 	if ( ! q->Remove(timer) )
-		zeek::reporter->InternalError("asked to remove a missing timer");
+		reporter->InternalError("asked to remove a missing timer");
 
 	--current_timers[timer->Type()];
 	delete timer;
@@ -186,7 +186,7 @@ double PQ_TimerMgr::GetNextTimeout()
 	{
 	Timer* top = Top();
 	if ( top )
-		return std::max(0.0, top->Time() - zeek::run_state::network_time);
+		return std::max(0.0, top->Time() - run_state::network_time);
 
 	return -1;
 	}

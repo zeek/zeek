@@ -47,9 +47,9 @@ extern int signal_val;
 namespace zeek::run_state {
 namespace detail {
 
-zeek::iosource::PktDumper* pkt_dumper = nullptr;
-zeek::iosource::PktSrc* current_pktsrc = nullptr;
-zeek::iosource::IOSource* current_iosrc = nullptr;
+iosource::PktDumper* pkt_dumper = nullptr;
+iosource::PktSrc* current_pktsrc = nullptr;
+iosource::IOSource* current_iosrc = nullptr;
 bool have_pending_timers = false;
 
 RETSIGTYPE watchdog(int /* signo */)
@@ -79,7 +79,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			// handler and the allocation routines are not
 			// reentrant.
 
-			double ct = zeek::util::current_time();
+			double ct = util::current_time();
 
 			int int_ct = int(ct);
 			int frac_ct = int((ct - int_ct) * 1e6);
@@ -96,10 +96,10 @@ RETSIGTYPE watchdog(int /* signo */)
 					// saving the packet which caused the
 					// watchdog to trigger may be helpful,
 					// so we'll save that one nevertheless.
-					pkt_dumper = zeek::iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
+					pkt_dumper = iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
 					if ( ! pkt_dumper || pkt_dumper->IsError() )
 						{
-						zeek::reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
+						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
 						pkt_dumper = nullptr;
 						}
 					}
@@ -112,7 +112,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			get_final_stats();
 			finish_run(0);
 
-			zeek::reporter->FatalErrorWithCore(
+			reporter->FatalErrorWithCore(
 				"**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
 				int_ct, frac_ct, int_pst, frac_pst,
 				current_dispatched);
@@ -141,23 +141,23 @@ void init_run(const std::optional<std::string>& interface,
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = true;
 
-		zeek::iosource::PktSrc* ps = zeek::iosource_mgr->OpenPktSrc(*pcap_input_file, false);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*pcap_input_file, false);
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			zeek::reporter->FatalError("problem with trace file %s (%s)",
-			                           pcap_input_file->c_str(), ps->ErrorMsg());
+			reporter->FatalError("problem with trace file %s (%s)",
+			                     pcap_input_file->c_str(), ps->ErrorMsg());
 		}
 	else if ( interface )
 		{
 		reading_live = true;
 		reading_traces = false;
 
-		zeek::iosource::PktSrc* ps = zeek::iosource_mgr->OpenPktSrc(*interface, true);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*interface, true);
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			zeek::reporter->FatalError("problem with interface %s (%s)",
+			reporter->FatalError("problem with interface %s (%s)",
 			                           interface->c_str(), ps->ErrorMsg());
 		}
 
@@ -171,22 +171,22 @@ void init_run(const std::optional<std::string>& interface,
 	if ( pcap_output_file )
 		{
 		const char* writefile = pcap_output_file->data();
-		pkt_dumper = zeek::iosource_mgr->OpenPktDumper(writefile, false);
+		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
 
 		if ( ! pkt_dumper->IsOpen() )
-			zeek::reporter->FatalError("problem opening dump file %s (%s)",
+			reporter->FatalError("problem opening dump file %s (%s)",
 			                           writefile, pkt_dumper->ErrorMsg());
 
 		if ( const auto& id = zeek::detail::global_scope()->Find("trace_output_file") )
-			id->SetVal(zeek::make_intrusive<zeek::StringVal>(writefile));
+			id->SetVal(make_intrusive<StringVal>(writefile));
 		else
-			zeek::reporter->Error("trace_output_file not defined in bro.init");
+			reporter->Error("trace_output_file not defined in bro.init");
 		}
 
 	zeek::detail::init_ip_addr_anonymizers();
 
-	zeek::sessions = new zeek::NetSessions();
+	sessions = new NetSessions();
 
 	if ( do_watchdog )
 		{
@@ -196,7 +196,7 @@ void init_run(const std::optional<std::string>& interface,
 		}
 	}
 
-void expire_timers(zeek::iosource::PktSrc* src_ps)
+void expire_timers(iosource::PktSrc* src_ps)
 	{
 	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "expiring-timers");
 
@@ -205,14 +205,14 @@ void expire_timers(zeek::iosource::PktSrc* src_ps)
 			zeek::detail::max_timer_expires - current_dispatched);
 	}
 
-void dispatch_packet(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* src_ps)
+void dispatch_packet(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	{
 	if ( ! zeek_start_network_time )
 		{
 		zeek_start_network_time = t;
 
 		if ( network_time_init )
-			zeek::event_mgr.Enqueue(network_time_init, zeek::Args{});
+			event_mgr.Enqueue(network_time_init, Args{});
 		}
 
 	// network_time never goes back.
@@ -233,19 +233,19 @@ void dispatch_packet(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* 
 		if ( load_freq == 0 )
 			load_freq = uint32_t(0xffffffff) / uint32_t(zeek::detail::load_sample_freq);
 
-		if ( uint32_t(zeek::util::detail::random_number() & 0xffffffff) < load_freq )
+		if ( uint32_t(util::detail::random_number() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
-			zeek::event_mgr.Drain();
+			event_mgr.Drain();
 
 			zeek::detail::sample_logger = new zeek::detail::SampleLogger();
 			sp = new zeek::detail::SegmentProfiler(zeek::detail::sample_logger, "load-samp");
 			}
 		}
 
-	zeek::sessions->NextPacket(t, pkt);
-	zeek::event_mgr.Drain();
+	sessions->NextPacket(t, pkt);
+	event_mgr.Drain();
 
 	if ( sp )
 		{
@@ -262,15 +262,15 @@ void dispatch_packet(double t, const zeek::Packet* pkt, zeek::iosource::PktSrc* 
 
 void run_loop()
 	{
-	zeek::util::detail::set_processing_status("RUNNING", "run_loop");
+	util::detail::set_processing_status("RUNNING", "run_loop");
 
-	std::vector<zeek::iosource::IOSource*> ready;
-	ready.reserve(zeek::iosource_mgr->TotalSize());
+	std::vector<iosource::IOSource*> ready;
+	ready.reserve(iosource_mgr->TotalSize());
 
-	while ( zeek::iosource_mgr->Size() ||
-		(zeek::BifConst::exit_only_after_terminate && ! terminating) )
+	while ( iosource_mgr->Size() ||
+		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
-		zeek::iosource_mgr->FindReadySources(&ready);
+		iosource_mgr->FindReadySources(&ready);
 
 #ifdef DEBUG
 		static int loop_counter = 0;
@@ -279,38 +279,38 @@ void run_loop()
 		// starting with the first.
 		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
-			DBG_LOG(zeek::DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
-			        zeek::util::current_time(), ready.size());
+			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
+			        util::current_time(), ready.size());
 
 			if ( ! ready.empty() )
 				loop_counter = 0;
 			}
 #endif
 		current_iosrc = nullptr;
-		auto communication_enabled = zeek::broker_mgr->Active();
+		auto communication_enabled = broker_mgr->Active();
 
 		if ( ! ready.empty() )
 			{
 			for ( auto src : ready )
 				{
-				DBG_LOG(zeek::DBG_MAINLOOP, "processing source %s", src->Tag());
+				DBG_LOG(DBG_MAINLOOP, "processing source %s", src->Tag());
 				current_iosrc = src;
 				src->Process();
 				}
 			}
 		else if ( (have_pending_timers || communication_enabled ||
-		           zeek::BifConst::exit_only_after_terminate) &&
+		           BifConst::exit_only_after_terminate) &&
 		          ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			update_network_time(zeek::util::current_time());
+			update_network_time(util::current_time());
 			expire_timers();
 			}
 
-		zeek::event_mgr.Drain();
+		event_mgr.Drain();
 
 		processing_start_time = 0.0;	// = "we're not processing now"
 		current_dispatched = 0;
@@ -331,7 +331,7 @@ void run_loop()
 			{
 			auto have_active_packet_source = false;
 
-			zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
+			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
 			if ( ps && ps->IsOpen() )
 				have_active_packet_source = true;
 
@@ -350,30 +350,30 @@ void run_loop()
 
 void get_final_stats()
 	{
-	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
 	if ( ps && ps->IsLive() )
 		{
-		zeek::iosource::PktSrc::Stats s;
+		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
 		double dropped_pct = s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0 : 0.0;
-		zeek::reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
+		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
 		                     s.received, ps->Path().c_str(), s.dropped, dropped_pct);
 		}
 	}
 
 void finish_run(int drain_events)
 	{
-	zeek::util::detail::set_processing_status("TERMINATING", "finish_run");
+	util::detail::set_processing_status("TERMINATING", "finish_run");
 
 	if ( drain_events )
 		{
-		if ( zeek::sessions )
-			zeek::sessions->Drain();
+		if ( sessions )
+			sessions->Drain();
 
-		zeek::event_mgr.Drain();
+		event_mgr.Drain();
 
-		if ( zeek::sessions )
-			zeek::sessions->Done();
+		if ( sessions )
+			sessions->Done();
 		}
 
 #ifdef DEBUG
@@ -388,9 +388,9 @@ void finish_run(int drain_events)
 
 void delete_run()
 	{
-	zeek::util::detail::set_processing_status("TERMINATING", "delete_run");
+	util::detail::set_processing_status("TERMINATING", "delete_run");
 
-	delete zeek::sessions;
+	delete sessions;
 
 	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete zeek::detail::ip_anonymizer[i];
@@ -409,7 +409,7 @@ double zeek_start_network_time;	// timestamp of first packet
 bool terminating = false;	// whether we're done reading and finishing up
 bool is_parsing = false;
 
-const zeek::Packet *current_pkt = nullptr;
+const Packet *current_pkt = nullptr;
 int current_dispatched = 0;
 double current_timestamp = 0.0;
 
@@ -418,7 +418,7 @@ static int _processing_suspended = 0;
 void suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
-		zeek::reporter->Info("processing suspended");
+		reporter->Info("processing suspended");
 
 	++_processing_suspended;
 	}
@@ -427,8 +427,8 @@ void continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
-		zeek::reporter->Info("processing continued");
-		if ( zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc() )
+		reporter->Info("processing continued");
+		if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
 			ps->ContinueAfterSuspend();
 		}
 

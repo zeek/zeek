@@ -27,7 +27,7 @@ namespace zeek {
 Type::TypeAliasMap Type::type_aliases;
 
 // Note: This function must be thread-safe.
-const char* type_name(zeek::TypeTag t)
+const char* type_name(TypeTag t)
 	{
 	static constexpr const char* type_names[int(NUM_TYPES)] = {
 		"void",      // 0
@@ -64,7 +64,7 @@ const char* type_name(zeek::TypeTag t)
 	return type_names[int(t)];
 	}
 
-Type::Type(zeek::TypeTag t, bool arg_base_type)
+Type::Type(TypeTag t, bool arg_base_type)
 	: tag(t), internal_tag(to_internal_type_tag(tag)),
 	  is_network_order(zeek::is_network_order(t)),
 	  base_type(arg_base_type)
@@ -213,22 +213,22 @@ TypePtr Type::ShallowClone()
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
 		case TYPE_ANY:
-			return zeek::make_intrusive<Type>(tag, base_type);
+			return make_intrusive<Type>(tag, base_type);
 
 		default:
-			zeek::reporter->InternalError("cloning illegal base Type");
+			reporter->InternalError("cloning illegal base Type");
 	}
 	return nullptr;
 	}
 
-int Type::MatchesIndex(zeek::detail::ListExpr* const index) const
+int Type::MatchesIndex(detail::ListExpr* const index) const
 	{
 	if ( Tag() == TYPE_STRING )
 		{
 		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
 			return DOES_NOT_MATCH_INDEX;
 
-		if ( check_and_promote_exprs_to_type(index, zeek::base_type(zeek::TYPE_INT).get()) )
+		if ( check_and_promote_exprs_to_type(index, zeek::base_type(TYPE_INT).get()) )
 			return MATCHES_INDEX_SCALAR;
 		}
 
@@ -266,7 +266,7 @@ void Type::Describe(ODesc* d) const
 
 void Type::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(zeek::util::fmt(":zeek:type:`%s`", type_name(Tag())));
+	d->Add(util::fmt(":zeek:type:`%s`", type_name(Tag())));
 	}
 
 void Type::SetError()
@@ -290,7 +290,7 @@ bool TypeList::AllMatch(const Type* t, bool is_init) const
 void TypeList::Append(TypePtr t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
-		zeek::reporter->InternalError("pure type-list violation");
+		reporter->InternalError("pure type-list violation");
 
 	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
@@ -339,14 +339,14 @@ unsigned int TypeList::MemoryAllocation() const
 	for ( const auto& t : types )
 		size += t->MemoryAllocation();
 
-	size += zeek::util::pad_size(types.capacity() * sizeof(decltype(types)::value_type));
+	size += util::pad_size(types.capacity() * sizeof(decltype(types)::value_type));
 
 	return Type::MemoryAllocation()
 		+ padded_sizeof(*this) - padded_sizeof(Type)
 		+ size;
 	}
 
-int IndexType::MatchesIndex(zeek::detail::ListExpr* const index) const
+int IndexType::MatchesIndex(detail::ListExpr* const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
 	const auto& types = indices->GetTypes();
@@ -470,7 +470,7 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 
 TypePtr TableType::ShallowClone()
 	{
-	return zeek::make_intrusive<TableType>(indices, yield_type);
+	return make_intrusive<TableType>(indices, yield_type);
 	}
 
 bool TableType::IsUnspecifiedTable() const
@@ -479,7 +479,7 @@ bool TableType::IsUnspecifiedTable() const
 	return indices->GetTypes().empty();
 	}
 
-SetType::SetType(TypeListPtr ind, zeek::detail::ListExprPtr arg_elements)
+SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
 	: TableType(std::move(ind), nullptr), elements(std::move(arg_elements))
 	{
 	if ( elements )
@@ -502,8 +502,8 @@ SetType::SetType(TypeListPtr ind, zeek::detail::ListExprPtr arg_elements)
 
 			else if ( tl.size() == 1 )
 				{
-				TypePtr ft{zeek::NewRef{}, flatten_type(tl[0].get())};
-				indices = zeek::make_intrusive<TypeList>(ft);
+				TypePtr ft{NewRef{}, flatten_type(tl[0].get())};
+				indices = make_intrusive<TypeList>(ft);
 				indices->Append(std::move(ft));
 				}
 
@@ -520,7 +520,7 @@ SetType::SetType(TypeListPtr ind, zeek::detail::ListExprPtr arg_elements)
 					return;
 					}
 
-				indices = zeek::make_intrusive<TypeList>(t);
+				indices = make_intrusive<TypeList>(t);
 				indices->Append(std::move(t));
 				}
 			}
@@ -529,7 +529,7 @@ SetType::SetType(TypeListPtr ind, zeek::detail::ListExprPtr arg_elements)
 
 TypePtr SetType::ShallowClone()
 	{
-	return zeek::make_intrusive<SetType>(indices, elements);
+	return make_intrusive<SetType>(indices, elements);
 	}
 
 SetType::~SetType() = default;
@@ -537,7 +537,7 @@ SetType::~SetType() = default;
 FuncType::FuncType(RecordTypePtr arg_args,
                    TypePtr arg_yield, FunctionFlavor arg_flavor)
 	: Type(TYPE_FUNC), args(std::move(arg_args)),
-	  arg_types(zeek::make_intrusive<TypeList>()), yield(std::move(arg_yield))
+	  arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
 	{
 	flavor = arg_flavor;
 
@@ -548,13 +548,13 @@ FuncType::FuncType(RecordTypePtr arg_args,
 		{
 		const TypeDecl* td = args->FieldDecl(i);
 
-		if ( td->attrs && td->attrs->Find(zeek::detail::ATTR_DEFAULT) )
+		if ( td->attrs && td->attrs->Find(detail::ATTR_DEFAULT) )
 			has_default_arg = true;
 
 		else if ( has_default_arg )
 			{
-			const char* err_str = zeek::util::fmt("required parameter '%s' must precede "
-			                                      "default parameters", td->id);
+			const char* err_str = util::fmt("required parameter '%s' must precede "
+			                                "default parameters", td->id);
 			args->Error(err_str);
 			}
 
@@ -567,7 +567,7 @@ FuncType::FuncType(RecordTypePtr arg_args,
 
 TypePtr FuncType::ShallowClone()
 	{
-	auto f = zeek::make_intrusive<FuncType>();
+	auto f = make_intrusive<FuncType>();
 	f->args = args;
 	f->arg_types = arg_types;
 	f->yield = yield;
@@ -590,14 +590,14 @@ string FuncType::FlavorString() const
 		return "hook";
 
 	default:
-		zeek::reporter->InternalError("Invalid function flavor");
+		reporter->InternalError("Invalid function flavor");
 		return "invalid_func_flavor";
 	}
 	}
 
 FuncType::~FuncType() = default;
 
-int FuncType::MatchesIndex(zeek::detail::ListExpr* const index) const
+int FuncType::MatchesIndex(detail::ListExpr* const index) const
 	{
 	return check_and_promote_args(index, args.get()) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
@@ -609,7 +609,7 @@ bool FuncType::CheckArgs(const TypePList* args, bool is_init) const
 	as.reserve(args->length());
 
 	for ( auto a : *args )
-		as.emplace_back(zeek::NewRef{}, a);
+		as.emplace_back(NewRef{}, a);
 
 	return CheckArgs(as, is_init);
 	}
@@ -621,8 +621,8 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 
 	if ( my_args.size() != args.size() )
 		{
-		Warn(zeek::util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
-		                     args.size(), my_args.size()));
+		Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
+		               args.size(), my_args.size()));
 		return false;
 		}
 
@@ -631,8 +631,8 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 	for ( size_t i = 0; i < my_args.size(); ++i )
 		if ( ! same_type(args[i], my_args[i], is_init) )
 			{
-			Warn(zeek::util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
-			                     i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
+			Warn(util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
+			               i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
 			success = false;
 			}
 
@@ -719,7 +719,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 			const auto& desired_type = args.GetFieldType(i);
 
 			if ( ! same_type(ptype, desired_type) ||
-			     ! zeek::util::streq(args.FieldName(i), p.args->FieldName(i)) )
+			     ! util::streq(args.FieldName(i), p.args->FieldName(i)) )
 				{
 				matched = false;
 				break;
@@ -733,7 +733,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 	return {};
 	}
 
-TypeDecl::TypeDecl(const char* i, TypePtr t, zeek::detail::AttributesPtr arg_attrs)
+TypeDecl::TypeDecl(const char* i, TypePtr t, detail::AttributesPtr arg_attrs)
 	: type(std::move(t)),
 	  attrs(std::move(arg_attrs)),
 	  id(i)
@@ -744,7 +744,7 @@ TypeDecl::TypeDecl(const TypeDecl& other)
 	type = other.type;
 	attrs = other.attrs;
 
-	id = zeek::util::copy_string(other.id);
+	id = util::copy_string(other.id);
 	}
 
 TypeDecl::~TypeDecl()
@@ -786,7 +786,7 @@ TypePtr RecordType::ShallowClone()
 	auto pass = new type_decl_list();
 	for ( const auto& type : *types )
 		pass->push_back(new TypeDecl(*type));
-	return zeek::make_intrusive<RecordType>(pass);
+	return make_intrusive<RecordType>(pass);
 	}
 
 RecordType::~RecordType()
@@ -812,7 +812,7 @@ ValPtr RecordType::FieldDefault(int field) const
 	if ( ! td->attrs )
 		return nullptr;
 
-	const auto& def_attr = td->attrs->Find(zeek::detail::ATTR_DEFAULT);
+	const auto& def_attr = td->attrs->Find(detail::ATTR_DEFAULT);
 	return def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
 	}
 
@@ -821,7 +821,7 @@ int RecordType::FieldOffset(const char* field) const
 	loop_over_list(*types, i)
 		{
 		TypeDecl* td = (*types)[i];
-		if ( zeek::util::streq(td->id, field) )
+		if ( util::streq(td->id, field) )
 			return i;
 		}
 
@@ -919,9 +919,9 @@ static string container_type_name(const Type* ft)
 
 TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
-	static auto record_field = zeek::id::find_type<RecordType>("record_field");
-	static auto record_field_table = zeek::id::find_type<TableType>("record_field_table");
-	auto rval = zeek::make_intrusive<zeek::TableVal>(record_field_table);
+	static auto record_field = id::find_type<RecordType>("record_field");
+	static auto record_field_table = id::find_type<TableType>("record_field_table");
+	auto rval = make_intrusive<TableVal>(record_field_table);
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
@@ -932,16 +932,16 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		if ( rv )
 			fv = rv->GetField(i);
 
-		bool logged = (fd->attrs && fd->GetAttr(zeek::detail::ATTR_LOG) != nullptr);
+		bool logged = (fd->attrs && fd->GetAttr(detail::ATTR_LOG) != nullptr);
 
-		auto nr = zeek::make_intrusive<zeek::RecordVal>(record_field);
+		auto nr = make_intrusive<RecordVal>(record_field);
 
 		string s = container_type_name(ft.get());
-		nr->Assign(0, zeek::make_intrusive<zeek::StringVal>(s));
-		nr->Assign(1, zeek::val_mgr->Bool(logged));
+		nr->Assign(0, make_intrusive<StringVal>(s));
+		nr->Assign(1, val_mgr->Bool(logged));
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
-		auto field_name = zeek::make_intrusive<zeek::StringVal>(FieldName(i));
+		auto field_name = make_intrusive<StringVal>(FieldName(i));
 		rval->Assign(std::move(field_name), std::move(nr));
 		}
 
@@ -957,7 +957,7 @@ const char* RecordType::AddFields(const type_decl_list& others,
 
 	for ( const auto& td : others )
 		{
-		if ( ! td->GetAttr(zeek::detail::ATTR_DEFAULT) && ! td->GetAttr(zeek::detail::ATTR_OPTIONAL) )
+		if ( ! td->GetAttr(detail::ATTR_DEFAULT) && ! td->GetAttr(detail::ATTR_OPTIONAL) )
 			return "extension field must be &optional or have &default";
 		}
 
@@ -968,9 +968,9 @@ const char* RecordType::AddFields(const type_decl_list& others,
 		if ( add_log_attr )
 			{
 			if ( ! td->attrs )
-				td->attrs = zeek::make_intrusive<zeek::detail::Attributes>(td->type, true, false);
+				td->attrs = make_intrusive<detail::Attributes>(td->type, true, false);
 
-			td->attrs->AddAttr(zeek::make_intrusive<zeek::detail::Attr>(zeek::detail::ATTR_LOG));
+			td->attrs->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_LOG));
 			}
 
 		types->push_back(td);
@@ -1045,7 +1045,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			d->Add("<recursion>");
 		else
 			{
-			if ( num_fields == 1 && zeek::util::streq(td->id, "va_args") &&
+			if ( num_fields == 1 && util::streq(td->id, "va_args") &&
 			     td->type->Tag() == TYPE_ANY )
 				// This was a BIF using variable argument list
 				d->Add("...");
@@ -1056,12 +1056,12 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		if ( func_args )
 			continue;
 
-		zeek::zeekygen::detail::IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(GetName());
+		zeekygen::detail::IdentifierInfo* doc = detail::zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( ! doc )
 			{
-			zeek::reporter->InternalWarning("Failed to lookup record doc: %s",
-			                                GetName().c_str());
+			reporter->InternalWarning("Failed to lookup record doc: %s",
+			                          GetName().c_str());
 			continue;
 			}
 
@@ -1075,7 +1075,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		     field_from_script != type_from_script )
 			{
 			d->PushIndent();
-			d->Add(zeek::zeekygen::detail::redef_indication(field_from_script).c_str());
+			d->Add(zeekygen::detail::redef_indication(field_from_script).c_str());
 			d->PopIndent();
 			}
 
@@ -1095,7 +1095,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				{
 				string s = cmnts[i];
 
-				if ( zeek::zeekygen::detail::prettify_params(s) )
+				if ( zeekygen::detail::prettify_params(s) )
 					d->NL();
 
 				d->Add(s.c_str());
@@ -1117,15 +1117,15 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 	if ( decl)
 		{
 		string result;
-		if ( const auto& deprecation = decl->GetAttr(zeek::detail::ATTR_DEPRECATED) )
+		if ( const auto& deprecation = decl->GetAttr(detail::ATTR_DEPRECATED) )
 			result = deprecation->DeprecationMessage();
 
 		if ( result.empty() )
-			return zeek::util::fmt("deprecated (%s%s$%s)", GetName().c_str(), has_check ? "?" : "",
-			                       FieldName(field));
+			return util::fmt("deprecated (%s%s$%s)", GetName().c_str(), has_check ? "?" : "",
+			                 FieldName(field));
 		else
-			return zeek::util::fmt("deprecated (%s%s$%s): %s", GetName().c_str(), has_check ? "?" : "",
-			                       FieldName(field), result.c_str());
+			return util::fmt("deprecated (%s%s$%s): %s", GetName().c_str(), has_check ? "?" : "",
+			                 FieldName(field), result.c_str());
 		}
 
 	return "";
@@ -1181,7 +1181,7 @@ void OpaqueType::Describe(ODesc* d) const
 
 void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(zeek::util::fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
+	d->Add(util::fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
 	}
 
 EnumType::EnumType(const string& name)
@@ -1201,22 +1201,23 @@ EnumType::EnumType(const EnumType* e)
 TypePtr EnumType::ShallowClone()
 	{
 	if ( counter == 0 )
-		return zeek::make_intrusive<EnumType>(GetName());
+		return make_intrusive<EnumType>(GetName());
 
-	return zeek::make_intrusive<EnumType>(this);
+	return make_intrusive<EnumType>(this);
 	}
 
 EnumType::~EnumType() = default;
 
-// Note, we use zeek::reporter->Error() here (not Error()) to include the current script
+// Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
-void EnumType::AddName(const string& module_name, const char* name, bool is_export, zeek::detail::Expr* deprecation)
+void EnumType::AddName(const string& module_name, const char* name, bool is_export,
+                       detail::Expr* deprecation)
 	{
 	/* implicit, auto-increment */
 	if ( counter < 0)
 		{
-		zeek::reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
 		return;
 		}
@@ -1224,12 +1225,13 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, zeek::detail::Expr* deprecation)
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val,
+                       bool is_export, detail::Expr* deprecation)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
 		{
-		zeek::reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
 		return;
 		}
@@ -1238,28 +1240,28 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	}
 
 void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export, zeek::detail::Expr* deprecation)
+                               bro_int_t val, bool is_export, detail::Expr* deprecation)
 	{
 	if ( Lookup(val) )
 		{
-		zeek::reporter->Error("enumerator value in enumerated type definition already exists");
+		reporter->Error("enumerator value in enumerated type definition already exists");
 		SetError();
 		return;
 		}
 
-	auto fullname = zeek::detail::make_full_var_name(module_name.c_str(), name);
-	auto id = zeek::id::find(fullname);
+	auto fullname = detail::make_full_var_name(module_name.c_str(), name);
+	auto id = id::find(fullname);
 
 	if ( ! id )
 		{
-		id = zeek::detail::install_ID(name, module_name.c_str(), true, is_export);
-		id->SetType({zeek::NewRef{}, this});
+		id = detail::install_ID(name, module_name.c_str(), true, is_export);
+		id->SetType({NewRef{}, this});
 		id->SetEnumConst();
 
 		if ( deprecation )
-			id->MakeDeprecated({zeek::NewRef{}, deprecation});
+			id->MakeDeprecated({NewRef{}, deprecation});
 
-		zeek::detail::zeekygen_mgr->Identifier(std::move(id));
+		detail::zeekygen_mgr->Identifier(std::move(id));
 		}
 	else
 		{
@@ -1284,7 +1286,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = zeek::make_intrusive<zeek::EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, val);
+		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 
 	set<Type*> types = Type::GetAliases(GetName());
 	set<Type*>::const_iterator it;
@@ -1298,14 +1300,14 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 void EnumType::AddNameInternal(const string& module_name, const char* name,
                                bro_int_t val, bool is_export)
 	{
-	string fullname = zeek::detail::make_full_var_name(module_name.c_str(), name);
+	string fullname = detail::make_full_var_name(module_name.c_str(), name);
 	names[fullname] = val;
 	}
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
 	NameMap::const_iterator pos =
-		names.find(zeek::detail::make_full_var_name(module_name.c_str(), name).c_str());
+		names.find(detail::make_full_var_name(module_name.c_str(), name).c_str());
 
 	if ( pos == names.end() )
 		return -1;
@@ -1339,14 +1341,14 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 
 	if ( it == vals.end() )
 		{
-		auto ev = zeek::make_intrusive<zeek::EnumVal>(zeek::IntrusivePtr{zeek::NewRef{}, this}, i);
+		auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
 		return vals.emplace(i, std::move(ev)).first->second;
 		}
 
 	return it->second;
 	}
 
-zeek::EnumVal* EnumType::GetVal(bro_int_t i)
+EnumVal* EnumType::GetVal(bro_int_t i)
 	{
 	auto rval = GetEnumVal(i).get();
 	zeek::Ref(rval);
@@ -1372,16 +1374,16 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		d->PushIndent();
 
 		if ( roles_only )
-			d->Add(zeek::util::fmt(":zeek:enum:`%s`", it->second.c_str()));
+			d->Add(util::fmt(":zeek:enum:`%s`", it->second.c_str()));
 		else
-			d->Add(zeek::util::fmt(".. zeek:enum:: %s %s", it->second.c_str(), GetName().c_str()));
+			d->Add(util::fmt(".. zeek:enum:: %s %s", it->second.c_str(), GetName().c_str()));
 
-		zeek::zeekygen::detail::IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(it->second);
+		zeekygen::detail::IdentifierInfo* doc = detail::zeekygen_mgr->GetIdentifierInfo(it->second);
 
 		if ( ! doc )
 			{
-			zeek::reporter->InternalWarning("Enum %s documentation lookup failure",
-			                                it->second.c_str());
+			reporter->InternalWarning("Enum %s documentation lookup failure",
+			                          it->second.c_str());
 			continue;
 			}
 
@@ -1391,7 +1393,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( doc->GetDeclaringScript() )
 			enum_from_script = doc->GetDeclaringScript()->Name();
 
-		zeek::zeekygen::detail::IdentifierInfo* type_doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(GetName());
+		zeekygen::detail::IdentifierInfo* type_doc = detail::zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( type_doc && type_doc->GetDeclaringScript() )
 			type_from_script = type_doc->GetDeclaringScript()->Name();
@@ -1401,7 +1403,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 			{
 			d->NL();
 			d->PushIndent();
-			d->Add(zeek::zeekygen::detail::redef_indication(enum_from_script).c_str());
+			d->Add(zeekygen::detail::redef_indication(enum_from_script).c_str());
 			d->PopIndent();
 			}
 
@@ -1436,7 +1438,7 @@ VectorType::VectorType(TypePtr element_type)
 
 TypePtr VectorType::ShallowClone()
 	{
-	return zeek::make_intrusive<VectorType>(yield_type);
+	return make_intrusive<VectorType>(yield_type);
 	}
 
 VectorType::~VectorType() = default;
@@ -1448,12 +1450,12 @@ const TypePtr& VectorType::Yield() const
 	// return any as that's what other code historically expects for type
 	// comparisions.
 	if ( IsUnspecifiedVector() )
-		return zeek::base_type(zeek::TYPE_ANY);
+		return zeek::base_type(TYPE_ANY);
 
 	return yield_type;
 	}
 
-int VectorType::MatchesIndex(zeek::detail::ListExpr* const index) const
+int VectorType::MatchesIndex(detail::ListExpr* const index) const
 	{
 	ExprPList& el = index->Exprs();
 
@@ -1489,12 +1491,12 @@ void VectorType::Describe(ODesc* d) const
 
 void VectorType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(zeek::util::fmt(":zeek:type:`%s` of ", type_name(Tag())));
+	d->Add(util::fmt(":zeek:type:`%s` of ", type_name(Tag())));
 
 	if ( yield_type->GetName().empty() )
 		yield_type->DescribeReST(d, roles_only);
 	else
-		d->Add(zeek::util::fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
+		d->Add(util::fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
 	}
 
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an
@@ -1626,7 +1628,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
-			if ( (match_record_field_names && ! zeek::util::streq(td1->id, td2->id)) ||
+			if ( (match_record_field_names && ! util::streq(td1->id, td2->id)) ||
 			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return false;
 			}
@@ -1669,12 +1671,12 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		}
 
 	case TYPE_UNION:
-		zeek::reporter->Error("union type in same_type()");
+		reporter->Error("union type in same_type()");
 	}
 	return false;
 	}
 
-bool same_attrs(const zeek::detail::Attributes* a1, const zeek::detail::Attributes* a2)
+bool same_attrs(const detail::Attributes* a1, const detail::Attributes* a2)
 	{
 	if ( ! a1 )
 		return (a2 == nullptr);
@@ -1729,7 +1731,7 @@ const Type* flatten_type(const Type* t)
 	const auto& types = tl->GetTypes();
 
 	if ( types.size() == 0 )
-		zeek::reporter->InternalError("empty type list in flatten_type");
+		reporter->InternalError("empty type list in flatten_type");
 
 	const auto& ft = types[0];
 
@@ -1782,7 +1784,7 @@ bool is_assignable(TypeTag t)
 		return false;
 
 	case TYPE_UNION:
-		zeek::reporter->Error("union type in is_assignable()");
+		reporter->Error("union type in is_assignable()");
 	}
 
 	return false;
@@ -1809,7 +1811,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	else
 		{
-		zeek::reporter->InternalError("non-arithmetic tags in max_type()");
+		reporter->InternalError("non-arithmetic tags in max_type()");
 		return TYPE_ERROR;
 		}
 	}
@@ -1854,8 +1856,8 @@ TypePtr merge_types(const TypePtr& arg_t1,
 		// there creating clones of the type, so safer to compare name.
 		if ( t1->GetName() != t2->GetName() )
 			{
-			std::string msg = zeek::util::fmt("incompatible enum types: '%s' and '%s'",
-			                                  t1->GetName().data(), t2->GetName().data());
+			std::string msg = util::fmt("incompatible enum types: '%s' and '%s'",
+			                            t1->GetName().data(), t2->GetName().data());
 
 			t1->Error(msg.data(), t2);
 			return nullptr;
@@ -1864,7 +1866,7 @@ TypePtr merge_types(const TypePtr& arg_t1,
 		// Doing a lookup here as a roundabout way of ref-ing t1, without
 		// changing the function params which has t1 as const and also
 		// (potentially) avoiding a pitfall mentioned earlier about clones.
-		const auto& id = zeek::detail::global_scope()->Find(t1->GetName());
+		const auto& id = detail::global_scope()->Find(t1->GetName());
 
 		if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
 			// It should make most sense to return the real type here rather
@@ -1873,10 +1875,10 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			// actually see those changes from the redef.
 			return id->GetType();
 
-		std::string msg = zeek::util::fmt("incompatible enum types: '%s' and '%s'"
-		                                  " ('%s' enum type ID is invalid)",
-		                                  t1->GetName().data(), t2->GetName().data(),
-		                                  t1->GetName().data());
+		std::string msg = util::fmt("incompatible enum types: '%s' and '%s'"
+		                            " ('%s' enum type ID is invalid)",
+		                            t1->GetName().data(), t2->GetName().data(),
+		                            t1->GetName().data());
 		t1->Error(msg.data(), t2);
 		return nullptr;
 		}
@@ -1896,7 +1898,7 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			return nullptr;
 			}
 
-		tl3 = zeek::make_intrusive<TypeList>();
+		tl3 = make_intrusive<TypeList>();
 
 		for ( auto i = 0u; i < tl1.size(); ++i )
 			{
@@ -1925,9 +1927,9 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			}
 
 		if ( t1->IsSet() )
-			return zeek::make_intrusive<SetType>(std::move(tl3), nullptr);
+			return make_intrusive<SetType>(std::move(tl3), nullptr);
 		else
-			return zeek::make_intrusive<TableType>(std::move(tl3), std::move(y3));
+			return make_intrusive<TableType>(std::move(tl3), std::move(y3));
 		}
 
 	case TYPE_FUNC:
@@ -1940,12 +1942,12 @@ TypePtr merge_types(const TypePtr& arg_t1,
 
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
-		auto args = zeek::cast_intrusive<RecordType>(merge_types(ft1->Params(),
+		auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(),
 		                                                   ft2->Params()));
 		auto yield = t1->Yield() ?
 			merge_types(t1->Yield(), t2->Yield()) : nullptr;
 
-		return zeek::make_intrusive<FuncType>(std::move(args), std::move(yield),
+		return make_intrusive<FuncType>(std::move(args), std::move(yield),
 		                                ft1->Flavor());
 		}
 
@@ -1965,17 +1967,17 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 			auto tdl3_i = merge_types(td1->type, td2->type);
 
-			if ( ! zeek::util::streq(td1->id, td2->id) || ! tdl3_i )
+			if ( ! util::streq(td1->id, td2->id) || ! tdl3_i )
 				{
 				t1->Error("incompatible record fields", t2);
 				delete tdl3;
 				return nullptr;
 				}
 
-			tdl3->push_back(new TypeDecl(zeek::util::copy_string(td1->id), std::move(tdl3_i)));
+			tdl3->push_back(new TypeDecl(util::copy_string(td1->id), std::move(tdl3_i)));
 			}
 
-		return zeek::make_intrusive<RecordType>(tdl3);
+		return make_intrusive<RecordType>(tdl3);
 		}
 
 	case TYPE_LIST:
@@ -2018,7 +2020,7 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			return nullptr;
 			}
 
-		auto tl3 = zeek::make_intrusive<TypeList>();
+		auto tl3 = make_intrusive<TypeList>();
 
 		for ( auto i = 0u; i < l1.size(); ++i )
 			tl3->Append(merge_types(l1[i], l2[i]));
@@ -2033,7 +2035,7 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			return nullptr;
 			}
 
-		return zeek::make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
+		return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
 
 	case TYPE_FILE:
 		if ( ! same_type(t1->Yield(), t2->Yield()) )
@@ -2042,26 +2044,26 @@ TypePtr merge_types(const TypePtr& arg_t1,
 			return nullptr;
 			}
 
-		return zeek::make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
+		return make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
 
 	case TYPE_UNION:
-		zeek::reporter->InternalError("union type in merge_types()");
+		reporter->InternalError("union type in merge_types()");
 		return nullptr;
 
 	default:
-		zeek::reporter->InternalError("bad type in merge_types()");
+		reporter->InternalError("bad type in merge_types()");
 		return nullptr;
 	}
 	}
 
-TypePtr merge_type_list(zeek::detail::ListExpr* elements)
+TypePtr merge_type_list(detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();
 	const auto& tl = tl_type->GetTypes();
 
 	if ( tl.size() < 1 )
 		{
-		zeek::reporter->Error("no type can be inferred for empty list");
+		reporter->Error("no type can be inferred for empty list");
 		return nullptr;
 		}
 
@@ -2074,7 +2076,7 @@ TypePtr merge_type_list(zeek::detail::ListExpr* elements)
 		t = merge_types(t, tl[i]);
 
 	if ( ! t )
-		zeek::reporter->Error("inconsistent types in list");
+		reporter->Error("inconsistent types in list");
 
 	return t;
 	}
@@ -2099,9 +2101,9 @@ static Type* reduce_type(Type* t)
 		return t;
 	}
 
-TypePtr init_type(zeek::detail::Expr* init)
+TypePtr init_type(detail::Expr* init)
 	{
-	if ( init->Tag() != zeek::detail::EXPR_LIST )
+	if ( init->Tag() != detail::EXPR_LIST )
 		{
 		auto t = init->InitType();
 
@@ -2118,7 +2120,7 @@ TypePtr init_type(zeek::detail::Expr* init)
 		return t;
 		}
 
-	zeek::detail::ListExpr* init_list = init->AsListExpr();
+	detail::ListExpr* init_list = init->AsListExpr();
 	const ExprPList& el = init_list->Exprs();
 
 	if ( el.length() == 0 )
@@ -2128,7 +2130,7 @@ TypePtr init_type(zeek::detail::Expr* init)
 		}
 
 	// Could be a record, a set, or a list of table elements.
-	zeek::detail::Expr* e0 = el[0];
+	detail::Expr* e0 = el[0];
 
 	if ( e0->IsRecordElement(nullptr) )
 		// ListExpr's know how to build a record from their
@@ -2138,7 +2140,7 @@ TypePtr init_type(zeek::detail::Expr* init)
 	auto t = e0->InitType();
 
 	if ( t )
-		t = {zeek::NewRef{}, reduce_type(t.get())};
+		t = {NewRef{}, reduce_type(t.get())};
 
 	if ( ! t )
 		return nullptr;
@@ -2149,7 +2151,7 @@ TypePtr init_type(zeek::detail::Expr* init)
 		TypePtr ti;
 
 		if ( el_t )
-			ti = {zeek::NewRef{}, reduce_type(el_t.get())};
+			ti = {NewRef{}, reduce_type(el_t.get())};
 
 		if ( ! ti )
 			return nullptr;
@@ -2174,12 +2176,12 @@ TypePtr init_type(zeek::detail::Expr* init)
 	// it one, as that's what's required for creating a set type.
 	if ( t->Tag() != TYPE_LIST )
 		{
-		auto tl = zeek::make_intrusive<TypeList>(t);
+		auto tl = make_intrusive<TypeList>(t);
 		tl->Append(std::move(t));
 		t = std::move(tl);
 		}
 
-	return zeek::make_intrusive<SetType>(zeek::cast_intrusive<TypeList>(std::move(t)),
+	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)),
 	                               nullptr);
 	}
 
@@ -2198,16 +2200,16 @@ bool is_atomic_type(const Type& t)
 	}
 	}
 
-const TypePtr& base_type(zeek::TypeTag tag)
+const TypePtr& base_type(TypeTag tag)
 	{
 	static TypePtr base_types[NUM_TYPES];
 
 	// We could check here that "tag" actually corresponds to a basic type.
 	if ( ! base_types[tag] )
 		{
-		base_types[tag] = zeek::make_intrusive<Type>(tag, true);
+		base_types[tag] = make_intrusive<Type>(tag, true);
 		// Give the base types a pseudo-location for easier identification.
-		zeek::detail::Location l(type_name(tag), 0, 0, 0, 0);
+		detail::Location l(type_name(tag), 0, 0, 0, 0);
 		base_types[tag]->SetLocationInfo(&l);
 		}
 

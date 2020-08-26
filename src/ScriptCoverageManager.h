@@ -42,13 +42,13 @@ public:
 	void IncIgnoreDepth() { ignoring++; }
 	void DecIgnoreDepth() { ignoring--; }
 
-	void AddStmt(zeek::detail::Stmt* s);
+	void AddStmt(Stmt* s);
 
 private:
 	/**
 	 * The current, global ScriptCoverageManager instance creates this list at parse-time.
 	 */
-	std::list<zeek::detail::Stmt*> stmts;
+	std::list<Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of

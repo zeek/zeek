@@ -42,11 +42,11 @@ public:
 	 * @param d The tunnel destination address, likely taken from an IP header.
 	 * @param t The type of IP tunnel.
 	 */
-	EncapsulatingConn(const zeek::IPAddr& s, const zeek::IPAddr& d,
+	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
 		  proto(TRANSPORT_UNKNOWN), type(t),
-		  uid(zeek::UID(detail::bits_per_uid))
+		  uid(UID(detail::bits_per_uid))
 		{
 		}
 
@@ -82,10 +82,10 @@ public:
 	/**
 	 * Returns record value of type "EncapsulatingConn" representing the tunnel.
 	 */
-	zeek::RecordValPtr ToVal() const;
+	RecordValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	zeek::RecordVal* GetRecordVal() const
+	RecordVal* GetRecordVal() const
 		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulatingConn& ec1,
@@ -121,13 +121,13 @@ public:
 		}
 
 protected:
-	zeek::IPAddr src_addr;
-	zeek::IPAddr dst_addr;
+	IPAddr src_addr;
+	IPAddr dst_addr;
 	uint16_t src_port;
 	uint16_t dst_port;
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
-	zeek::UID uid;
+	UID uid;
 };
 
 /**
@@ -197,10 +197,10 @@ public:
 	 * Get the value of type "EncapsulatingConnVector" represented by the
 	 * entire encapsulation chain.
 	 */
-	zeek::VectorValPtr ToVal() const
+	VectorValPtr ToVal() const
 		{
-		auto vv = zeek::make_intrusive<zeek::VectorVal>(
-		    zeek::id::find_type<zeek::VectorType>("EncapsulatingConnVector"));
+		auto vv = make_intrusive<VectorVal>(
+		    id::find_type<VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
 			{
@@ -212,7 +212,7 @@ public:
 		}
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	zeek::VectorVal* GetVectorVal() const
+	VectorVal* GetVectorVal() const
 		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulationStack& e1,

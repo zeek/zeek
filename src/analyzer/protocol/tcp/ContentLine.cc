@@ -6,13 +6,13 @@
 
 namespace zeek::analyzer::tcp {
 
-ContentLine_Analyzer::ContentLine_Analyzer(zeek::Connection* conn, bool orig, int max_line_length)
+ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length)
 : TCP_SupportAnalyzer("CONTENTLINE", conn, orig), max_line_length(max_line_length)
 	{
 	InitState();
 	}
 
-ContentLine_Analyzer::ContentLine_Analyzer(const char* name, zeek::Connection* conn, bool orig, int max_line_length)
+ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length)
 : TCP_SupportAnalyzer(name, conn, orig), max_line_length(max_line_length)
 	{
 	InitState();
@@ -111,7 +111,7 @@ void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	{
 	if ( length < 0 )
 		{
-		zeek::reporter->AnalyzerError(
+		reporter->AnalyzerError(
 			this, "negative length for plain delivery");
 		return;
 		}
@@ -261,7 +261,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 
 			else
 				{
-				if ( ! suppress_weirds && Conn()->FlagEvent(zeek::SINGULAR_LF) )
+				if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_LF) )
 					Conn()->Weird("line_terminated_with_single_LF");
 				buf[offset++] = c;
 				}
@@ -280,7 +280,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 		}
 
 		if ( last_char == '\r' )
-			if ( ! suppress_weirds && Conn()->FlagEvent(zeek::SINGULAR_CR) )
+			if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_CR) )
 				Conn()->Weird("line_terminated_with_single_CR");
 
 		last_char = c;
@@ -310,7 +310,7 @@ void ContentLine_Analyzer::CheckNUL()
 			; // Ignore it.
 		else
 			{
-			if ( ! suppress_weirds && Conn()->FlagEvent(zeek::NUL_IN_LINE) )
+			if ( ! suppress_weirds && Conn()->FlagEvent(NUL_IN_LINE) )
 				Conn()->Weird("NUL_in_line");
 			flag_NULs = false;
 			}

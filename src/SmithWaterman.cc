@@ -14,7 +14,7 @@
 namespace zeek::detail {
 
 Substring::Substring(const Substring& bst)
-: zeek::String((const zeek::String&) bst), _num(), _new(bst._new)
+: String((const String&) bst), _num(), _new(bst._new)
 	{
 	for ( const auto& align : bst._aligns )
 		_aligns.push_back(align);
@@ -22,7 +22,7 @@ Substring::Substring(const Substring& bst)
 
 const Substring& Substring::operator=(const Substring& bst)
 	{
-	zeek::String::operator=(bst);
+	String::operator=(bst);
 
 	_aligns.clear();
 
@@ -34,7 +34,7 @@ const Substring& Substring::operator=(const Substring& bst)
 	return *this;
 	}
 
-void Substring::AddAlignment(const zeek::String* str, int index)
+void Substring::AddAlignment(const String* str, int index)
 	{
 	_aligns.push_back(BSSAlign(str, index));
 	}
@@ -58,14 +58,14 @@ bool Substring::DoesCover(const Substring* bst) const
 	return true;
 	}
 
-zeek::VectorVal* Substring::VecToPolicy(Vec* vec)
+VectorVal* Substring::VecToPolicy(Vec* vec)
 	{
-	static auto sw_substring_type = zeek::id::find_type<zeek::RecordType>("sw_substring");
-	static auto sw_align_type = zeek::id::find_type<zeek::RecordType>("sw_align");
-	static auto sw_align_vec_type = zeek::id::find_type<zeek::VectorType>("sw_align_vec");
-	static auto sw_substring_vec_type = zeek::id::find_type<zeek::VectorType>("sw_substring_vec");
+	static auto sw_substring_type = id::find_type<RecordType>("sw_substring");
+	static auto sw_align_type = id::find_type<RecordType>("sw_align");
+	static auto sw_align_vec_type = id::find_type<VectorType>("sw_align_vec");
+	static auto sw_substring_vec_type = id::find_type<VectorType>("sw_substring_vec");
 
-	auto result = zeek::make_intrusive<zeek::VectorVal>(sw_substring_vec_type);
+	auto result = make_intrusive<VectorVal>(sw_substring_vec_type);
 
 	if ( vec )
 		{
@@ -73,24 +73,24 @@ zeek::VectorVal* Substring::VecToPolicy(Vec* vec)
 			{
 			Substring* bst = (*vec)[i];
 
-			auto st_val = zeek::make_intrusive<zeek::RecordVal>(sw_substring_type);
-			st_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::String(*bst)));
+			auto st_val = make_intrusive<RecordVal>(sw_substring_type);
+			st_val->Assign(0, make_intrusive<StringVal>(new String(*bst)));
 
-			auto aligns = zeek::make_intrusive<zeek::VectorVal>(sw_align_vec_type);
+			auto aligns = make_intrusive<VectorVal>(sw_align_vec_type);
 
 			for ( unsigned int j = 0; j < bst->GetNumAlignments(); ++j )
 				{
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
-				auto align_val = zeek::make_intrusive<zeek::RecordVal>(sw_align_type);
-				align_val->Assign(0, zeek::make_intrusive<zeek::StringVal>(new zeek::String(*align.string)));
-				align_val->Assign(1, zeek::val_mgr->Count(align.index));
+				auto align_val = make_intrusive<RecordVal>(sw_align_type);
+				align_val->Assign(0, make_intrusive<StringVal>(new String(*align.string)));
+				align_val->Assign(1, val_mgr->Count(align.index));
 
 				aligns->Assign(j + 1, std::move(align_val));
 				}
 
 			st_val->Assign(1, std::move(aligns));
-			st_val->Assign(2, zeek::val_mgr->Bool(bst->IsNewAlignment()));
+			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
 			result->Assign(i + 1, std::move(st_val));
 			}
 		}
@@ -98,7 +98,7 @@ zeek::VectorVal* Substring::VecToPolicy(Vec* vec)
 	return result.release();
 	}
 
-Substring::Vec* Substring::VecFromPolicy(zeek::VectorVal* vec)
+Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
@@ -109,14 +109,14 @@ Substring::Vec* Substring::VecFromPolicy(zeek::VectorVal* vec)
 		if ( ! v )
 			continue;
 
-		const zeek::String* str = v->AsRecordVal()->GetField(0)->AsString();
+		const String* str = v->AsRecordVal()->GetField(0)->AsString();
 		auto* substr = new Substring(*str);
 
-		const zeek::VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
+		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
-			const zeek::RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
-			const zeek::String* str = align->GetField(0)->AsString();
+			const RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
+			const String* str = align->GetField(0)->AsString();
 			int index = align->GetField(1)->AsCount();
 			substr->AddAlignment(str, index);
 			}
@@ -144,9 +144,9 @@ char* Substring::VecToString(Vec* vec)
 	return strdup(result.c_str());
 	}
 
-zeek::String::IdxVec* Substring::GetOffsetsVec(const Vec* vec, unsigned int index)
+String::IdxVec* Substring::GetOffsetsVec(const Vec* vec, unsigned int index)
 	{
-	zeek::String::IdxVec* result = new zeek::String::IdxVec();
+	String::IdxVec* result = new String::IdxVec();
 
 	for ( const auto& bst : *vec )
 		{
@@ -171,7 +171,7 @@ bool SubstringCmp::operator()(const Substring* bst1,
 	if ( _index >= bst1->GetNumAlignments() ||
 	     _index >= bst2->GetNumAlignments() )
 		{
-		zeek::reporter->Warning("SubstringCmp::operator(): invalid index for input strings.\n");
+		reporter->Warning("SubstringCmp::operator(): invalid index for input strings.\n");
 		return false;
 		}
 
@@ -208,7 +208,7 @@ struct SWNode {
 //
 class SWNodeMatrix {
 public:
-	SWNodeMatrix(const zeek::String* s1, const zeek::String* s2)
+	SWNodeMatrix(const String* s1, const String* s2)
 	: _s1(s1), _s2(s2), _rows(s1->Len() + 1), _cols(s2->Len() + 1)
 		{
 		_nodes = new SWNode[_cols * _rows];
@@ -228,8 +228,8 @@ public:
 		return &(_nodes[row * _cols + col]);
 		}
 
-	const zeek::String* GetRowsString() const	{ return _s1; }
-	const zeek::String* GetColsString() const	{ return _s2; }
+	const String* GetRowsString() const	{ return _s1; }
+	const String* GetColsString() const	{ return _s2; }
 
 	int GetHeight() const	{ return _rows; }
 	int GetWidth() const	{ return _cols; }
@@ -246,8 +246,8 @@ public:
 		}
 
 private:
-	const zeek::String* _s1;
-	const zeek::String* _s2;
+	const String* _s1;
+	const String* _s2;
 
 	int _rows, _cols;
 	SWNode* _nodes;
@@ -351,7 +351,7 @@ static void sw_collect_multiple(Substring::Vec* result,
 						{
 						if ( old_ss->DoesCover(new_ss) )
 							{
-							zeek::util::delete_each(new_al);
+							util::delete_each(new_al);
 							delete new_al;
 							new_al = nullptr;
 							goto end_loop;
@@ -359,7 +359,7 @@ static void sw_collect_multiple(Substring::Vec* result,
 
 						if ( new_ss->DoesCover(old_ss) )
 							{
-							zeek::util::delete_each(old_al);
+							util::delete_each(old_al);
 							delete old_al;
 							old_al = nullptr;
 							goto end_loop;
@@ -388,7 +388,7 @@ end_loop:
 
 // The main Smith-Waterman algorithm.
 //
-Substring::Vec* smith_waterman(const zeek::String* s1, const zeek::String* s2,
+Substring::Vec* smith_waterman(const String* s1, const String* s2,
 					SWParams& params)
 	{
 	auto* result = new Substring::Vec();
@@ -405,8 +405,8 @@ Substring::Vec* smith_waterman(const zeek::String* s1, const zeek::String* s2,
 
 	int row = 0, col = 0;
 
-	zeek::byte_vec string1 = s1->Bytes();
-	zeek::byte_vec string2 = s2->Bytes();
+	byte_vec string1 = s1->Bytes();
+	byte_vec string2 = s2->Bytes();
 
 	SWNodeMatrix matrix(s1, s2);	// dynamic programming matrix.
 	SWNode* node_max = nullptr;	// pointer to the best score's node

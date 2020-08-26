@@ -7,18 +7,18 @@
 
 namespace zeek::analyzer::sip{
 
-class SIP_Analyzer final : public zeek::analyzer::Analyzer {
+class SIP_Analyzer final : public analyzer::Analyzer {
 public:
-	explicit SIP_Analyzer(zeek::Connection* conn);
+	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;
 
 	// Overridden from Analyzer
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-				   	   uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+				   	   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 	{ return new SIP_Analyzer(conn); }
 
 protected:

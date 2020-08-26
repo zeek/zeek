@@ -21,59 +21,59 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
 namespace zeek {
 
 template <class T> class IntrusivePtr;
-using TypePtr = zeek::IntrusivePtr<Type>;
+using TypePtr = IntrusivePtr<Type>;
 
 namespace detail {
 
-using AttrPtr = zeek::IntrusivePtr<Attr>;
-using IDPtr = zeek::IntrusivePtr<ID>;
+using AttrPtr = IntrusivePtr<Attr>;
+using IDPtr = IntrusivePtr<ID>;
 
 class Scope;
-using ScopePtr = zeek::IntrusivePtr<Scope>;
+using ScopePtr = IntrusivePtr<Scope>;
 
 class Scope : public Obj {
 public:
-	explicit Scope(zeek::detail::IDPtr id,
-	               std::unique_ptr<std::vector<zeek::detail::AttrPtr>> al);
+	explicit Scope(IDPtr id,
+	               std::unique_ptr<std::vector<AttrPtr>> al);
 
-	const zeek::detail::IDPtr& Find(std::string_view name) const;
+	const IDPtr& Find(std::string_view name) const;
 
 	template<typename N>
 	[[deprecated("Remove in v4.1.  Use Find().")]]
-	zeek::detail::ID* Lookup(N&& name) const
+	ID* Lookup(N&& name) const
 		{ return Find(name).get(); }
 
 	template<typename N, typename I>
 	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
 
-	zeek::detail::IDPtr Remove(std::string_view name);
+	IDPtr Remove(std::string_view name);
 
 	[[deprecated("Remove in v4.1.  Use GetID().")]]
-	zeek::detail::ID* ScopeID() const		{ return scope_id.get(); }
+	ID* ScopeID() const		{ return scope_id.get(); }
 
-	const zeek::detail::IDPtr& GetID() const
+	const IDPtr& GetID() const
 		{ return scope_id; }
 
-	const std::unique_ptr<std::vector<zeek::detail::AttrPtr>>& Attrs() const
+	const std::unique_ptr<std::vector<AttrPtr>>& Attrs() const
 		{ return attrs; }
 
 	[[deprecated("Remove in v4.1.  Use GetReturnTrype().")]]
-	zeek::Type* ReturnType() const	{ return return_type.get(); }
+	Type* ReturnType() const	{ return return_type.get(); }
 
-	const zeek::TypePtr& GetReturnType() const
+	const TypePtr& GetReturnType() const
 		{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
 	const auto& Vars()	{ return local; }
 
-	zeek::detail::IDPtr GenerateTemporary(const char* name);
+	IDPtr GenerateTemporary(const char* name);
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.
-	std::vector<zeek::detail::IDPtr> GetInits();
+	std::vector<IDPtr> GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(zeek::detail::IDPtr id)
+	void AddInit(IDPtr id)
 		{ inits.emplace_back(std::move(id)); }
 
 	void Describe(ODesc* d) const override;
@@ -81,26 +81,25 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	zeek::detail::IDPtr scope_id;
-	std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs;
-	zeek::TypePtr return_type;
-	std::map<std::string, zeek::detail::IDPtr, std::less<>> local;
-	std::vector<zeek::detail::IDPtr> inits;
+	IDPtr scope_id;
+	std::unique_ptr<std::vector<AttrPtr>> attrs;
+	TypePtr return_type;
+	std::map<std::string, IDPtr, std::less<>> local;
+	std::vector<IDPtr> inits;
 };
 
 // If no_global is true, don't search in the default "global" namespace.
-extern const zeek::detail::IDPtr& lookup_ID(
+extern const IDPtr& lookup_ID(
 	const char* name, const char* module,
 	bool no_global = false,
 	bool same_module_only = false,
 	bool check_export = true);
 
-extern zeek::detail::IDPtr install_ID(
+extern IDPtr install_ID(
 	const char* name, const char* module_name,
 	bool is_global, bool is_export);
 
-extern void push_scope(zeek::detail::IDPtr id,
-                       std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs);
+extern void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off.

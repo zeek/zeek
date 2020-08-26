@@ -28,17 +28,17 @@ public:
 	 * @param name  The name of the event handler to lookup/register.
 	 * @return  The event handler.
 	 */
-	zeek::EventHandlerPtr Register(std::string_view name);
+	EventHandlerPtr Register(std::string_view name);
 
-	void Register(zeek::EventHandlerPtr handler);
+	void Register(EventHandlerPtr handler);
 
 	// Return nil if unknown.
-	zeek::EventHandler* Lookup(std::string_view name);
+	EventHandler* Lookup(std::string_view name);
 
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
 	using string_list = std::vector<std::string>;
-	string_list Match(zeek::RE_Matcher* pattern);
+	string_list Match(RE_Matcher* pattern);
 
 	// Marks a handler as handling errors. Error handler will not be called
 	// recursively to avoid infinite loops in case they trigger an error
@@ -52,7 +52,7 @@ public:
 	void PrintDebug();
 
 private:
-	std::map<std::string, std::unique_ptr<zeek::EventHandler>, std::less<>> handlers;
+	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
 };
 
 extern EventRegistry* event_registry;

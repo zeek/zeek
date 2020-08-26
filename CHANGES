@@ -1,4 +1,10 @@
 
+3.3.0-dev.200 | 2020-08-25 19:47:02 -0700
+
+  * Update plugin btests for namespace changes (Tim Wojtulewicz, Corelight)
+
+  * Remove namespace qualifications where unnecessary. (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.196 | 2020-08-25 17:04:12 -0700
 
   * Fix closing timestamp of rotated log files in supervised-cluster mode (Jon Siwek, Corelight)

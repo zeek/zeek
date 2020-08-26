@@ -6,18 +6,19 @@
 #include <Conn.h>
 #include <Desc.h>
 #include <threading/Formatter.h>
+#include <RunState.h>
 
-namespace plugin { namespace Log_Hooks { Plugin plugin; } }
+namespace btest::plugin::Log_Hooks { Plugin plugin; }
 
-using namespace plugin::Log_Hooks;
+using namespace btest::plugin::Log_Hooks;
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
 	round = 0;
-	EnableHook(HOOK_LOG_INIT);
-	EnableHook(HOOK_LOG_WRITE);
+	EnableHook(zeek::plugin::HOOK_LOG_INIT);
+	EnableHook(zeek::plugin::HOOK_LOG_WRITE);
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Log::Hooks";
 	config.description = "Exercises Log hooks";
 	config.version.major = 1;
@@ -26,14 +27,16 @@ plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local, bool remote, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields)
+void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local,
+                         bool remote, const zeek::logging::WriterBackend::WriterInfo& info,
+                         int num_fields, const zeek::threading::Field* const* fields)
 	{
-	ODesc d;
+	zeek::ODesc d;
 
 	d.Add("{");
 	for ( int i=0; i < num_fields; i++ )
 		{
-		const threading::Field* f = fields[i];
+		const zeek::threading::Field* f = fields[i];
 
 		if ( i > 0 )
 			d.Add(", ");
@@ -45,10 +48,13 @@ void Plugin::HookLogInit(const std::string& writer, const std::string& instantia
 		}
 	d.Add("}");
 
-	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", network_time, "| HookLogInit", info.path, local, remote, d.Description());
+	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", zeek::run_state::network_time,
+	        "| HookLogInit", info.path, local, remote, d.Description());
 	}
 
-bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields, threading::Value** vals)
+bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
+                          const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
+                          const zeek::threading::Field* const* fields, zeek::threading::Value** vals)
 	{
 	round++;
 	if ( round == 1 ) // do not output line

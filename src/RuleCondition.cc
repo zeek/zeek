@@ -25,12 +25,12 @@ namespace zeek::detail {
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	zeek::analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
 
 	if ( ! root || ! root->IsAnalyzer("TCP") )
 		return false;
 
-	auto* ta = static_cast<zeek::analyzer::tcp::TCP_Analyzer*>(root);
+	auto* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(root);
 
 	if ( tcpstates & STATE_STATELESS )
 		return true;
@@ -122,7 +122,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		return payload_size >= val;
 
 	default:
-		zeek::reporter->InternalError("unknown comparison type");
+		reporter->InternalError("unknown comparison type");
 	}
 
 	// Should not be reached
@@ -131,25 +131,25 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 
 RuleConditionEval::RuleConditionEval(const char* func)
 	{
-	id = zeek::detail::global_scope()->Find(func).get();
+	id = global_scope()->Find(func).get();
 	if ( ! id )
 		{
 		rules_error("unknown identifier", func);
 		return;
 		}
 
-	if ( id->GetType()->Tag() == zeek::TYPE_FUNC )
+	if ( id->GetType()->Tag() == TYPE_FUNC )
 		{
 		// Validate argument quantity and type.
-		zeek::FuncType* f = id->GetType()->AsFuncType();
+		FuncType* f = id->GetType()->AsFuncType();
 
-		if ( f->Yield()->Tag() != zeek::TYPE_BOOL )
+		if ( f->Yield()->Tag() != TYPE_BOOL )
 			rules_error("eval function type must yield a 'bool'", func);
 
-		static auto signature_state = zeek::id::find_type<zeek::RecordType>("signature_state");
-		zeek::TypeList tl;
+		static auto signature_state = id::find_type<RecordType>("signature_state");
+		TypeList tl;
 		tl.Append(signature_state);
-		tl.Append(zeek::base_type(zeek::TYPE_STRING));
+		tl.Append(base_type(TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.GetTypes()) )
 			rules_error("eval function parameters must be a 'signature_state' "
@@ -162,22 +162,22 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	{
 	if ( ! id->HasVal() )
 		{
-		zeek::reporter->Error("undefined value");
+		reporter->Error("undefined value");
 		return false;
 		}
 
-	if ( id->GetType()->Tag() != zeek::TYPE_FUNC )
+	if ( id->GetType()->Tag() != TYPE_FUNC )
 		return id->GetVal()->AsBool();
 
 	// Call function with a signature_state value as argument.
-	zeek::Args args;
+	Args args;
 	args.reserve(2);
-	args.emplace_back(zeek::AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
+	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.emplace_back(zeek::make_intrusive<zeek::StringVal>(len, (const char*) data));
+		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
 	else
-		args.emplace_back(zeek::val_mgr->EmptyString());
+		args.emplace_back(val_mgr->EmptyString());
 
 	bool result = false;
 

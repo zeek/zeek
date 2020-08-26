@@ -14,7 +14,7 @@ namespace zeek::file_analysis::detail {
 /**
  * An analyzer to send file data to script-layer via events.
  */
-class DataEvent : public zeek::file_analysis::Analyzer {
+class DataEvent : public file_analysis::Analyzer {
 public:
 
 	/**
@@ -43,8 +43,8 @@ public:
 	 * @return the new DataEvent analyzer instance or a null pointer if
 	 *         no "chunk_event" or "stream_event" field was specfied in \a args.
 	 */
-	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                                  zeek::file_analysis::File* file);
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	                                            file_analysis::File* file);
 
 protected:
 
@@ -57,12 +57,12 @@ protected:
 	 * @param se pointer to event handler which will be called to receive
 	 *        sequential file data.
 	 */
-	DataEvent(zeek::RecordValPtr args, zeek::file_analysis::File* file,
-	          zeek::EventHandlerPtr ce, zeek::EventHandlerPtr se);
+	DataEvent(RecordValPtr args, file_analysis::File* file,
+	          EventHandlerPtr ce, EventHandlerPtr se);
 
 private:
-	zeek::EventHandlerPtr chunk_event;
-	zeek::EventHandlerPtr stream_event;
+	EventHandlerPtr chunk_event;
+	EventHandlerPtr stream_event;
 };
 
 } // namespace zeek::file_analysis::detail

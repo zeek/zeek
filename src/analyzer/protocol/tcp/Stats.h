@@ -59,7 +59,7 @@ public:
 		{ return Cnt(TCP_ENDPOINT_INACTIVE); }
 	unsigned int NumStatePartial() const;
 
-	void PrintStats(zeek::File* file, const char* prefix);
+	void PrintStats(File* file, const char* prefix);
 
 private:
 	unsigned int state_cnt[TCP_ENDPOINT_RESET+1][TCP_ENDPOINT_RESET+1];

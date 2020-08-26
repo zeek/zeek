@@ -23,9 +23,9 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 namespace zeek::detail {
 
 class NFA_State;
-using NFA_state_list = zeek::PList<NFA_State>;
+using NFA_state_list = PList<NFA_State>;
 
-class NFA_State : public zeek::Obj  {
+class NFA_State : public Obj  {
 public:
 	NFA_State(int sym, EquivClass* ec);
 	explicit NFA_State(CCL* ccl);
@@ -82,7 +82,7 @@ public:
 	EpsilonState()	: NFA_State(SYM_EPSILON, nullptr)	{ }
 };
 
-class NFA_Machine : public zeek::Obj {
+class NFA_Machine : public Obj {
 public:
 	explicit NFA_Machine(NFA_State* first, NFA_State* final = nullptr);
 	~NFA_Machine() override;

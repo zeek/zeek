@@ -7,8 +7,8 @@
 
 namespace zeek::analyzer::ntlm {
 
-NTLM_Analyzer::NTLM_Analyzer(zeek::Connection* c)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NTLM", c)
+NTLM_Analyzer::NTLM_Analyzer(Connection* c)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("NTLM", c)
 	{
 	interp = new binpac::NTLM::NTLM_Conn(this);
 	}
@@ -20,7 +20,7 @@ NTLM_Analyzer::~NTLM_Analyzer()
 
 void NTLM_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -28,13 +28,13 @@ void NTLM_Analyzer::Done()
 
 void NTLM_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void NTLM_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -45,13 +45,13 @@ void NTLM_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
 void NTLM_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
 

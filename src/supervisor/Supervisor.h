@@ -23,7 +23,6 @@
 #include "Options.h"
 
 namespace zeek {
-
 namespace detail {
 
 struct SupervisorStemHandle;
@@ -39,7 +38,7 @@ struct LineBufferedPipe {
 	 * A pipe that a parent process can read from to obtain output
 	 * written by a child process.
 	 */
-	std::unique_ptr<zeek::detail::Pipe> pipe;
+	std::unique_ptr<Pipe> pipe;
 	/**
 	 * A prefix to emit before data read from the pipe.
 	 */
@@ -77,6 +76,7 @@ struct LineBufferedPipe {
 	 */
 	FuncPtr hook;
 };
+
 } // namespace zeek::detail
 
 /**
@@ -315,11 +315,11 @@ private:
 
 	Config config;
 	pid_t stem_pid;
-	std::unique_ptr<zeek::detail::PipePair> stem_pipe;
-	zeek::detail::LineBufferedPipe stem_stdout;
-	zeek::detail::LineBufferedPipe stem_stderr;
+	std::unique_ptr<detail::PipePair> stem_pipe;
+	detail::LineBufferedPipe stem_stdout;
+	detail::LineBufferedPipe stem_stderr;
 	int last_signal = -1;
-	zeek::detail::Flare signal_flare;
+	detail::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;
 };
@@ -332,17 +332,17 @@ struct SupervisorStemHandle {
 	/**
 	 * Bidirectional pipes that allow the Supervisor and Stem to talk.
 	 */
-	std::unique_ptr<zeek::detail::PipePair> pipe;
+	std::unique_ptr<detail::PipePair> pipe;
 	/**
 	 * A pipe that the Supervisor can read from to obtain
 	 * any output written to the Stem's stdout.
 	 */
-	std::unique_ptr<zeek::detail::Pipe> stdout_pipe;
+	std::unique_ptr<detail::Pipe> stdout_pipe;
 	/**
 	 * A pipe that the Supervisor can read from to obtain
 	 * any output written to the Stem's stdout.
 	 */
-	std::unique_ptr<zeek::detail::Pipe> stderr_pipe;
+	std::unique_ptr<detail::Pipe> stderr_pipe;
 	/**
 	 * The Stem's process ID.
 	 */
@@ -369,7 +369,7 @@ struct SupervisedNode {
 	 * @param options  the Zeek options to extend/modify as appropriate
 	 * for the node's configuration.
 	 */
-	void Init(zeek::Options* options) const;
+	void Init(Options* options) const;
 
 	/**
 	 * The node's configuration options.
@@ -443,12 +443,12 @@ struct SupervisorNode {
 	 * A pipe that the Supervisor Stem can read from to obtain
 	 * any output written to the Nodes's stdout.
 	 */
-	zeek::detail::LineBufferedPipe stdout_pipe;
+	detail::LineBufferedPipe stdout_pipe;
 	/**
 	 * A pipe that the Supervisor Stem can read from to obtain
 	 * any output written to the Node's stdout.
 	 */
-	zeek::detail::LineBufferedPipe stderr_pipe;
+	detail::LineBufferedPipe stderr_pipe;
 };
 
 /**

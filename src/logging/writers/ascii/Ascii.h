@@ -14,21 +14,21 @@ namespace zeek::plugin::detail::Zeek_AsciiWriter { class Plugin; }
 
 namespace zeek::logging::writer::detail {
 
-class Ascii : public zeek::logging::WriterBackend {
+class Ascii : public WriterBackend {
 public:
-	explicit Ascii(zeek::logging::WriterFrontend* frontend);
+	explicit Ascii(WriterFrontend* frontend);
 	~Ascii() override;
 
 	static std::string LogExt();
 
-	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
+	static WriterBackend* Instantiate(WriterFrontend* frontend)
 		{ return new Ascii(frontend); }
 
 protected:
 	bool DoInit(const WriterInfo& info, int num_fields,
-	            const zeek::threading::Field* const* fields) override;
-	bool DoWrite(int num_fields, const zeek::threading::Field* const* fields,
-			     zeek::threading::Value** vals) override;
+	            const threading::Field* const* fields) override;
+	bool DoWrite(int num_fields, const threading::Field* const* fields,
+			     threading::Value** vals) override;
 	bool DoSetBuf(bool enabled) override;
 	bool DoRotate(const char* rotated_path, double open,
 			      double close, bool terminating) override;
@@ -37,7 +37,7 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	friend class zeek::plugin::detail::Zeek_AsciiWriter::Plugin;
+	friend class plugin::detail::Zeek_AsciiWriter::Plugin;
 
 	static void RotateLeftoverLogs();
 
@@ -55,7 +55,7 @@ private:
 	int fd;
 	gzFile gzfile;
 	std::string fname;
-	zeek::ODesc desc;
+	ODesc desc;
 	bool ascii_done;
 
 	// Options set from the script-level.
@@ -75,7 +75,7 @@ private:
 	bool enable_utf_8;
 	std::string json_timestamps;
 
-	zeek::threading::Formatter* formatter;
+	threading::Formatter* formatter;
 	bool init_options;
 };
 

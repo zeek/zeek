@@ -9,7 +9,7 @@ namespace detail {
 
 class PortmapperInterp : public RPC_Interpreter {
 public:
-	explicit PortmapperInterp(zeek::analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	explicit PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
@@ -18,22 +18,22 @@ protected:
 			   double last_time, int reply_len) override;
 	uint32_t CheckPort(uint32_t port);
 
-	void Event(zeek::EventHandlerPtr f, zeek::ValPtr request, BifEnum::rpc_status status, zeek::ValPtr reply);
+	void Event(EventHandlerPtr f, ValPtr request, BifEnum::rpc_status status, ValPtr reply);
 
-	zeek::ValPtr ExtractMapping(const u_char*& buf, int& len);
-	zeek::ValPtr ExtractPortRequest(const u_char*& buf, int& len);
-	zeek::ValPtr ExtractCallItRequest(const u_char*& buf, int& len);
+	ValPtr ExtractMapping(const u_char*& buf, int& len);
+	ValPtr ExtractPortRequest(const u_char*& buf, int& len);
+	ValPtr ExtractCallItRequest(const u_char*& buf, int& len);
 };
 
 } // namespace detail
 
 class Portmapper_Analyzer : public RPC_Analyzer {
 public:
-	explicit Portmapper_Analyzer(zeek::Connection* conn);
+	explicit Portmapper_Analyzer(Connection* conn);
 	~Portmapper_Analyzer() override;
 	void Init() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 };
 

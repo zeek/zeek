@@ -47,9 +47,9 @@ enum BTT_BencStates {
 
 } // namespace detail
 
-class BitTorrentTracker_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class BitTorrentTracker_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit BitTorrentTracker_Analyzer(zeek::Connection* conn);
+	explicit BitTorrentTracker_Analyzer(Connection* conn);
 	~BitTorrentTracker_Analyzer() override;
 
 	void Done() override;
@@ -57,7 +57,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new BitTorrentTracker_Analyzer(conn); }
 
 protected:
@@ -96,8 +96,8 @@ protected:
 	char req_buf[BTTRACKER_BUF];
 	char* req_buf_pos;
 	unsigned int req_buf_len;
-	zeek::StringVal* req_val_uri;
-	zeek::TableVal* req_val_headers;
+	StringVal* req_val_uri;
+	TableVal* req_val_headers;
 
 	// Response.
 	detail::BTT_States res_state;
@@ -106,9 +106,9 @@ protected:
 	char* res_buf_pos;
 	unsigned int res_buf_len;
 	bro_uint_t res_status;
-	zeek::TableVal* res_val_headers;
-	zeek::TableVal* res_val_peers;
-	zeek::TableVal* res_val_benc;
+	TableVal* res_val_headers;
+	TableVal* res_val_peers;
+	TableVal* res_val_benc;
 
 	std::vector<char> benc_stack;
 	std::vector<unsigned int> benc_count;

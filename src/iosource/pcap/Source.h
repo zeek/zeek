@@ -12,7 +12,7 @@ extern "C" {
 
 namespace zeek::iosource::pcap {
 
-class PcapSource : public zeek::iosource::PktSrc {
+class PcapSource : public PktSrc {
 public:
 	PcapSource(const std::string& path, bool is_live);
 	~PcapSource() override;
@@ -23,7 +23,7 @@ protected:
 	// PktSrc interface.
 	void Open() override;
 	void Close() override;
-	bool ExtractNextPacket(zeek::Packet* pkt) override;
+	bool ExtractNextPacket(Packet* pkt) override;
 	void DoneWithPacket() override;
 	bool PrecompileFilter(int index, const std::string& filter) override;
 	bool SetFilter(int index) override;

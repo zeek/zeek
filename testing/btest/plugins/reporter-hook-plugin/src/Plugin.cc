@@ -7,15 +7,15 @@
 #include <Desc.h>
 #include <threading/Formatter.h>
 
-namespace plugin { namespace Reporter_Hook { Plugin plugin; } }
+namespace btest::plugin::Reporter_Hook { Plugin plugin; }
 
-using namespace plugin::Reporter_Hook;
+using namespace btest::plugin::Reporter_Hook;
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
-	EnableHook(HOOK_REPORTER);
+	EnableHook(zeek::plugin::HOOK_REPORTER);
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Reporter::Hook";
 	config.description = "Exercise Reporter Hook";
 	config.version.major = 1;
@@ -24,12 +24,12 @@ plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event,
-                          const Connection* conn, const val_list* addl, bool location,
-                          const Location* location1, const Location* location2,
+bool Plugin::HookReporter(const std::string& prefix, const zeek::EventHandlerPtr event,
+                          const zeek::Connection* conn, const zeek::ValPList* addl, bool location,
+                          const zeek::detail::Location* location1, const zeek::detail::Location* location2,
                           bool time, const std::string& message)
 	{
-	ODesc d;
+	zeek::ODesc d;
 	if ( location1 )
 		location1->Describe(&d);
 	if ( location2 )
@@ -42,4 +42,3 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 
 	return true;
 	}
-

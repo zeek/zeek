@@ -32,7 +32,7 @@ public:
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	ReaderFrontend(const ReaderBackend::ReaderInfo& info, zeek::EnumVal* type);
+	ReaderFrontend(const ReaderBackend::ReaderInfo& info, EnumVal* type);
 
 	/**
 	 * Destructor.
@@ -118,7 +118,7 @@ public:
 	const threading::Field* const * Fields() const	{ return fields; }
 
 protected:
-	friend class zeek::input::Manager;
+	friend class Manager;
 
 private:
 	ReaderBackend* backend;	// The backend we have instanatiated.

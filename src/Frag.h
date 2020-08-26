@@ -18,21 +18,21 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(FragTimer, zeek::detail);
 
 namespace zeek::detail {
 
-using FragReassemblerKey = std::tuple<zeek::IPAddr, zeek::IPAddr, bro_uint_t>;
+using FragReassemblerKey = std::tuple<IPAddr, IPAddr, bro_uint_t>;
 
 class FragReassembler : public Reassembler {
 public:
-	FragReassembler(zeek::NetSessions* s, const zeek::IP_Hdr* ip, const u_char* pkt,
+	FragReassembler(NetSessions* s, const IP_Hdr* ip, const u_char* pkt,
 	                const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
-	void AddFragment(double t, const zeek::IP_Hdr* ip, const u_char* pkt);
+	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
 	void Expire(double t);
 	void DeleteTimer();
 	void ClearTimer()	{ expire_timer = nullptr; }
 
-	const zeek::IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
+	const IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
 	const FragReassemblerKey& Key() const	{ return key; }
 
 protected:
@@ -41,8 +41,8 @@ protected:
 	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
-	zeek::IP_Hdr* reassembled_pkt;
-	zeek::NetSessions* s;
+	IP_Hdr* reassembled_pkt;
+	NetSessions* s;
 	uint64_t frag_size;	// size of fully reassembled fragment
 	FragReassemblerKey key;
 	uint16_t next_proto; // first IPv6 fragment header's next proto field
@@ -51,10 +51,10 @@ protected:
 	FragTimer* expire_timer;
 };
 
-class FragTimer final : public zeek::detail::Timer {
+class FragTimer final : public Timer {
 public:
 	FragTimer(FragReassembler* arg_f, double arg_t)
-		: zeek::detail::Timer(arg_t, zeek::detail::TIMER_FRAG)
+		: Timer(arg_t, TIMER_FRAG)
 			{ f = arg_f; }
 	~FragTimer() override;
 

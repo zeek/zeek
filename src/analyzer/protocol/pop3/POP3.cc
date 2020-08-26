@@ -25,8 +25,8 @@ static const char* pop3_cmd_word[] = {
 
 #define POP3_CMD_WORD(code) ((code >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
 
-POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("POP3", conn)
+POP3_Analyzer::POP3_Analyzer(Connection* conn)
+: analyzer::tcp::TCP_ApplicationAnalyzer("POP3", conn)
 	{
 	masterState = detail::POP3_START;
 	subState = detail::POP3_WOK;
@@ -44,10 +44,10 @@ POP3_Analyzer::POP3_Analyzer(zeek::Connection* conn)
 
 	mail = nullptr;
 
-	cl_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true);
+	cl_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(cl_orig);
 
-	cl_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false);
+	cl_resp = new analyzer::tcp::ContentLine_Analyzer(conn, false);
 	AddSupportAnalyzer(cl_resp);
 	}
 
@@ -57,7 +57,7 @@ POP3_Analyzer::~POP3_Analyzer()
 
 void POP3_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( mail )
 		EndData();
@@ -66,7 +66,7 @@ void POP3_Analyzer::Done()
 
 void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	if ( tls )
 		{
@@ -77,7 +77,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( (TCP() && TCP()->IsPartial()) )
 		return;
 
-	zeek::String terminated_string(data, len, true);
+	String terminated_string(data, len, true);
 
 	if ( orig )
 		ProcessRequest(len, (char*) terminated_string.Bytes());
@@ -91,7 +91,7 @@ static std::string trim_whitespace(const char* in)
 	char* out = new char[n + 1];
 	char* out_p = out;
 
-	in = zeek::util::skip_whitespace(in);
+	in = util::skip_whitespace(in);
 
 	while ( *in )
 		{
@@ -134,8 +134,8 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		{
 		++authLines;
 
-		zeek::String encoded(line);
-		zeek::String* decoded = zeek::detail::decode_base64(&encoded, nullptr, Conn());
+		String encoded(line);
+		String* decoded = zeek::detail::decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{
@@ -212,7 +212,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			zeek::reporter->AnalyzerError(
+			reporter->AnalyzerError(
 				this, "unexpected POP3 authorization state");
 			delete decoded;
 			return;
@@ -245,7 +245,7 @@ static std::string commands[] = {
 void POP3_Analyzer::NotAllowed(const char* cmd, const char* state)
 	{
 	POP3Event(pop3_unexpected, true, cmd,
-		zeek::util::fmt("not allowed in other state than '%s'", state));
+		util::fmt("not allowed in other state than '%s'", state));
 	}
 
 void POP3_Analyzer::ProcessClientCmd()
@@ -320,7 +320,7 @@ void POP3_Analyzer::ProcessClientCmd()
 			state = detail::APOP;
 			subState = detail::POP3_WOK;
 
-			char* arg1 = zeek::util::copy_string(message);
+			char* arg1 = util::copy_string(message);
 			char* e;
 			for ( e = arg1; *e && *e != ' ' && *e != '\t'; ++e )
 				;
@@ -354,7 +354,7 @@ void POP3_Analyzer::ProcessClientCmd()
 					{
 					state = detail::AUTH;
 					POP3Event(pop3_unexpected, true, cmd,
-						zeek::util::fmt("unknown AUTH method %s", message));
+						util::fmt("unknown AUTH method %s", message));
 					}
 
 				subState = detail::POP3_WOK;
@@ -571,7 +571,7 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default:
-		zeek::reporter->AnalyzerError(this, "unknown POP3 command");
+		reporter->AnalyzerError(this, "unknown POP3 command");
 		return;
 	}
 	}
@@ -634,7 +634,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 		{
 		if ( ! waitingForAuthentication )
 			{
-			ProtocolViolation(zeek::util::fmt("unknown server command (%s)",
+			ProtocolViolation(util::fmt("unknown server command (%s)",
 			                                  (tokens.size() > 0 ?
 			                                   tokens[0].c_str() :
 			                                   "???")),
@@ -820,7 +820,7 @@ void POP3_Analyzer::StartTLS()
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
 
-	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
@@ -838,13 +838,13 @@ void POP3_Analyzer::AuthSuccessfull()
 void POP3_Analyzer::BeginData(bool orig)
 	{
 	delete mail;
-	mail = new zeek::analyzer::mime::MIME_Mail(this, orig);
+	mail = new analyzer::mime::MIME_Mail(this, orig);
 	}
 
 void POP3_Analyzer::EndData()
 	{
 	if ( ! mail )
-		zeek::reporter->Warning("unmatched end of data");
+		reporter->Warning("unmatched end of data");
 	else
 		{
 		mail->Done();
@@ -909,22 +909,22 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
 	return tokens;
 	}
 
-void POP3_Analyzer::POP3Event(zeek::EventHandlerPtr event, bool is_orig,
+void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
                               const char* arg1, const char* arg2)
 	{
 	if ( ! event )
 		return;
 
-	zeek::Args vl;
+	Args vl;
 	vl.reserve(2 + (bool)arg1 + (bool)arg2);
 
 	vl.emplace_back(ConnVal());
-	vl.emplace_back(zeek::val_mgr->Bool(is_orig));
+	vl.emplace_back(val_mgr->Bool(is_orig));
 
 	if ( arg1 )
-		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(arg1));
+		vl.emplace_back(make_intrusive<StringVal>(arg1));
 	if ( arg2 )
-		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(arg2));
+		vl.emplace_back(make_intrusive<StringVal>(arg2));
 
 	EnqueueConnEvent(event, std::move(vl));
 	}

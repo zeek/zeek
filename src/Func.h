@@ -25,12 +25,6 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
-namespace zeek::detail {
-using ScopePtr = zeek::IntrusivePtr<detail::Scope>;
-using IDPtr = zeek::IntrusivePtr<ID>;
-using StmtPtr = zeek::IntrusivePtr<Stmt>;
-}
-
 namespace caf {
 template <class> class expected;
 }
@@ -43,8 +37,16 @@ using caf::expected;
 
 namespace zeek {
 
+namespace detail {
+
+using ScopePtr = IntrusivePtr<Scope>;
+using IDPtr = IntrusivePtr<ID>;
+using StmtPtr = IntrusivePtr<Stmt>;
+
+} // namespace detail
+
 class Func;
-using FuncPtr = zeek::IntrusivePtr<Func>;
+using FuncPtr = IntrusivePtr<Func>;
 
 class Func : public Obj {
 public:
@@ -59,10 +61,10 @@ public:
 	~Func() override;
 
 	virtual bool IsPure() const = 0;
-	zeek::FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
+	FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
-		zeek::detail::StmtPtr stmts;
+		detail::StmtPtr stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
@@ -72,7 +74,7 @@ public:
 	bool HasBodies() const	{ return bodies.size(); }
 
 	[[deprecated("Remove in v4.1. Use Invoke() instead.")]]
-	zeek::Val* Call(ValPList* args, zeek::detail::Frame* parent = nullptr) const;
+	Val* Call(ValPList* args, detail::Frame* parent = nullptr) const;
 
 	/**
 	 * Calls a Zeek function.
@@ -80,16 +82,16 @@ public:
 	 * @param parent  the frame from which the function is being called.
 	 * @return  the return value of the function call.
 	 */
-	virtual zeek::ValPtr Invoke(
-		zeek::Args* args, zeek::detail::Frame* parent = nullptr) const = 0;
+	virtual ValPtr Invoke(
+		zeek::Args* args, detail::Frame* parent = nullptr) const = 0;
 
 	/**
 	 * A version of Invoke() taking a variable number of individual arguments.
 	 */
 	template <class... Args>
 	std::enable_if_t<
-		std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>,
-		zeek::ValPtr>
+		std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>,
+		ValPtr>
 	Invoke(Args&&... args) const
 		{
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
@@ -97,17 +99,17 @@ public:
 		}
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(zeek::detail::StmtPtr new_body,
-	                     const std::vector<zeek::detail::IDPtr>& new_inits,
+	virtual void AddBody(detail::StmtPtr new_body,
+	                     const std::vector<detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
-	virtual void SetScope(zeek::detail::ScopePtr newscope);
-	virtual zeek::detail::Scope* GetScope() const		{ return scope.get(); }
+	virtual void SetScope(detail::ScopePtr newscope);
+	virtual detail::Scope* GetScope() const		{ return scope.get(); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	virtual zeek::FuncType* FType() const { return type.get(); }
+	virtual FuncType* FType() const { return type.get(); }
 
-	const zeek::FuncTypePtr& GetType() const
+	const FuncTypePtr& GetType() const
 		{ return type; }
 
 	Kind GetKind() const	{ return kind; }
@@ -133,30 +135,30 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for checking result of plugin hook.
-	void CheckPluginResult(bool handled, const zeek::ValPtr& hook_result,
-	                       zeek::FunctionFlavor flavor) const;
+	void CheckPluginResult(bool handled, const ValPtr& hook_result,
+	                       FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
-	zeek::detail::ScopePtr scope;
+	detail::ScopePtr scope;
 	Kind kind;
 	uint32_t unique_id;
-	zeek::FuncTypePtr type;
+	FuncTypePtr type;
 	std::string name;
 	static inline std::vector<FuncPtr> unique_ids;
 };
 
 namespace detail {
 
-class ScriptFunc final : public zeek::Func {
+class ScriptFunc final : public Func {
 public:
-	ScriptFunc(const zeek::detail::IDPtr& id, zeek::detail::StmtPtr body,
-	        const std::vector<zeek::detail::IDPtr>& inits,
+	ScriptFunc(const IDPtr& id, StmtPtr body,
+	        const std::vector<IDPtr>& inits,
 	        size_t frame_size, int priority);
 
 	~ScriptFunc() override;
 
 	bool IsPure() const override;
-	zeek::ValPtr Invoke(zeek::Args* args, zeek::detail::Frame* parent) const override;
+	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -165,7 +167,7 @@ public:
 	 * @param ids IDs that are captured by the closure.
 	 * @param f the closure to be captured.
 	 */
-	void AddClosure(IDPList ids, zeek::detail::Frame* f);
+	void AddClosure(IDPList ids, Frame* f);
 
 	/**
 	 * Replaces the current closure with one built from *data*
@@ -178,7 +180,7 @@ public:
 	 * If the function's closure is a weak reference to the given frame,
 	 * upgrade to a strong reference of a shallow clone of that frame.
 	 */
-	bool StrengthenClosureReference(zeek::detail::Frame* f);
+	bool StrengthenClosureReference(Frame* f);
 
 	/**
 	 * Serializes this function's closure.
@@ -187,8 +189,8 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(zeek::detail::StmtPtr new_body,
-	             const std::vector<zeek::detail::IDPtr>& new_inits,
+	void AddBody(StmtPtr new_body,
+	             const std::vector<IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
@@ -198,15 +200,15 @@ public:
 	void Describe(ODesc* d) const override;
 
 protected:
-	ScriptFunc() : zeek::Func(SCRIPT_FUNC)	{}
-	zeek::detail::StmtPtr AddInits(
-		zeek::detail::StmtPtr body,
-		const std::vector<zeek::detail::IDPtr>& inits);
+	ScriptFunc() : Func(SCRIPT_FUNC)	{}
+	StmtPtr AddInits(
+		StmtPtr body,
+		const std::vector<IDPtr>& inits);
 
 	/**
 	 * Clones this function along with its closures.
 	 */
-	zeek::FuncPtr DoClone() override;
+	FuncPtr DoClone() override;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -214,7 +216,7 @@ protected:
 	 *
 	 * @param f the frame to be cloned.
 	 */
-	void SetClosureFrame(zeek::detail::Frame* f);
+	void SetClosureFrame(Frame* f);
 
 private:
 	size_t frame_size;
@@ -222,19 +224,19 @@ private:
 	// List of the outer IDs used in the function.
 	IDPList outer_ids;
 	// The frame the ScriptFunc was initialized in.
-	zeek::detail::Frame* closure = nullptr;
+	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
 };
 
-using built_in_func = BifReturnVal (*)(zeek::detail::Frame* frame, const zeek::Args* args);
+using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);
 
-class BuiltinFunc final : public zeek::Func {
+class BuiltinFunc final : public Func {
 public:
 	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	zeek::ValPtr Invoke(zeek::Args* args, zeek::detail::Frame* parent) const override;
+	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -246,10 +248,10 @@ protected:
 	bool is_pure;
 };
 
-extern bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call);
+extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
 struct CallInfo {
-	const zeek::detail::CallExpr* call;
+	const CallExpr* call;
 	const Func* func;
 	const zeek::Args& args;
 };
@@ -276,7 +278,7 @@ extern std::vector<CallInfo> call_stack;
 extern bool did_builtin_init;
 
 extern void emit_builtin_exception(const char* msg);
-extern void emit_builtin_exception(const char* msg, const zeek::ValPtr& arg);
+extern void emit_builtin_exception(const char* msg, const ValPtr& arg);
 extern void emit_builtin_exception(const char* msg, Obj* arg);
 
 } // namespace detail
@@ -285,7 +287,7 @@ extern std::string render_call_stack();
 
 // These methods are used by BIFs, so they're in the public namespace.
 extern void emit_builtin_error(const char* msg);
-extern void emit_builtin_error(const char* msg, const zeek::ValPtr&);
+extern void emit_builtin_error(const char* msg, const ValPtr&);
 extern void emit_builtin_error(const char* msg, Obj* arg);
 
 } // namespace zeek

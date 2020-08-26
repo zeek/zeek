@@ -41,7 +41,7 @@ namespace zeek::analyzer::tcp {
 static const int ORIG = 1;
 static const int RESP = 2;
 
-static zeek::RecordVal* build_syn_packet_val(bool is_orig, const zeek::IP_Hdr* ip,
+static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
                                              const struct tcphdr* tcp)
 	{
 	int winscale = -1;
@@ -106,29 +106,29 @@ static zeek::RecordVal* build_syn_packet_val(bool is_orig, const zeek::IP_Hdr* i
 		options += opt_len;
 		}
 
-	static auto SYN_packet = zeek::id::find_type<zeek::RecordType>("SYN_packet");
-	auto* v = new zeek::RecordVal(SYN_packet);
+	static auto SYN_packet = id::find_type<RecordType>("SYN_packet");
+	auto* v = new RecordVal(SYN_packet);
 
-	v->Assign(0, zeek::val_mgr->Bool(is_orig));
-	v->Assign(1, zeek::val_mgr->Bool(int(ip->DF())));
-	v->Assign(2, zeek::val_mgr->Count((ip->TTL())));
-	v->Assign(3, zeek::val_mgr->Count((ip->TotalLen())));
-	v->Assign(4, zeek::val_mgr->Count(ntohs(tcp->th_win)));
-	v->Assign(5, zeek::val_mgr->Int(winscale));
-	v->Assign(6, zeek::val_mgr->Count(MSS));
-	v->Assign(7, zeek::val_mgr->Bool(SACK));
+	v->Assign(0, val_mgr->Bool(is_orig));
+	v->Assign(1, val_mgr->Bool(int(ip->DF())));
+	v->Assign(2, val_mgr->Count((ip->TTL())));
+	v->Assign(3, val_mgr->Count((ip->TotalLen())));
+	v->Assign(4, val_mgr->Count(ntohs(tcp->th_win)));
+	v->Assign(5, val_mgr->Int(winscale));
+	v->Assign(6, val_mgr->Count(MSS));
+	v->Assign(7, val_mgr->Bool(SACK));
 
 	return v;
 	}
 
 
-TCP_Analyzer::TCP_Analyzer(zeek::Connection* conn)
+TCP_Analyzer::TCP_Analyzer(Connection* conn)
 : TransportLayerAnalyzer("TCP", conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-	                   zeek::run_state::network_time + zeek::detail::tcp_SYN_timeout, false,
-	                   zeek::detail::TIMER_TCP_EXPIRE);
+	                   run_state::network_time + detail::tcp_SYN_timeout, false,
+	                   detail::TIMER_TCP_EXPIRE);
 
 	deferred_gen_event = close_deferred = 0;
 
@@ -166,7 +166,7 @@ void TCP_Analyzer::Done()
 	{
 	Analyzer::Done();
 
-	if ( zeek::run_state::terminating && connection_pending && is_active && ! BothClosed() )
+	if ( run_state::terminating && connection_pending && is_active && ! BothClosed() )
 		Event(connection_pending);
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
@@ -178,16 +178,16 @@ void TCP_Analyzer::Done()
 	finished = 1;
 	}
 
-zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::ID arg_id)
+analyzer::Analyzer* TCP_Analyzer::FindChild(analyzer::ID arg_id)
 	{
-	zeek::analyzer::Analyzer* child = zeek::analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
 
 	if ( child )
 		return child;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		{
-		zeek::analyzer::Analyzer* child = (*i)->FindChild(arg_id);
+		analyzer::Analyzer* child = (*i)->FindChild(arg_id);
 		if ( child )
 			return child;
 		}
@@ -195,16 +195,16 @@ zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::ID arg_id)
 	return nullptr;
 	}
 
-zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::Tag arg_tag)
+analyzer::Analyzer* TCP_Analyzer::FindChild(analyzer::Tag arg_tag)
 	{
-	zeek::analyzer::Analyzer* child = zeek::analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
 
 	if ( child )
 		return child;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		{
-		zeek::analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
+		analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
 		if ( child )
 			return child;
 		}
@@ -212,9 +212,9 @@ zeek::analyzer::Analyzer* TCP_Analyzer::FindChild(zeek::analyzer::Tag arg_tag)
 	return nullptr;
 	}
 
-bool TCP_Analyzer::RemoveChildAnalyzer(zeek::analyzer::ID id)
+bool TCP_Analyzer::RemoveChildAnalyzer(analyzer::ID id)
 	{
-	auto rval = zeek::analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
+	auto rval = analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
 
 	if ( rval )
 		return rval;
@@ -275,7 +275,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, int len, int caplen)
 	{
-	if ( ! zeek::run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums && caplen >= len &&
+	if ( ! run_state::current_pkt->l3_checksummed && ! detail::ignore_checksums && caplen >= len &&
 	     ! endpoint->ValidChecksum(tp, len) )
 		{
 		Weird("bad_TCP_checksum");
@@ -495,8 +495,8 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 
 			if ( zeek::detail::tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-				                   t + zeek::detail::tcp_attempt_delay, true,
-				                   zeek::detail::TIMER_TCP_ATTEMPT);
+				                   t + detail::tcp_attempt_delay, true,
+				                   detail::TIMER_TCP_ATTEMPT);
 			}
 		else
 			{
@@ -787,19 +787,19 @@ void TCP_Analyzer::GeneratePacketEvent(
 	{
 	EnqueueConnEvent(tcp_packet,
 		ConnVal(),
-		zeek::val_mgr->Bool(is_orig),
-		zeek::make_intrusive<zeek::StringVal>(flags.AsString()),
-		zeek::val_mgr->Count(rel_seq),
-		zeek::val_mgr->Count(flags.ACK() ? rel_ack : 0),
-		zeek::val_mgr->Count(len),
+		val_mgr->Bool(is_orig),
+		make_intrusive<StringVal>(flags.AsString()),
+		val_mgr->Count(rel_seq),
+		val_mgr->Count(flags.ACK() ? rel_ack : 0),
+		val_mgr->Count(len),
 		// We need the min() here because Ethernet padding can lead to
 		// caplen > len.
-		zeek::make_intrusive<zeek::StringVal>(std::min(caplen, len), (const char*) data)
+		make_intrusive<StringVal>(std::min(caplen, len), (const char*) data)
 	);
 	}
 
 bool TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
-				const zeek::IP_Hdr* ip, const struct tcphdr* tp,
+				const IP_Hdr* ip, const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, uint64_t rel_data_seq,
 				bool is_orig, TCP_Flags flags)
 	{
@@ -817,11 +817,11 @@ void TCP_Analyzer::CheckRecording(bool need_contents, TCP_Flags flags)
 	Conn()->SetRecordCurrentPacket(record_current_packet);
 	}
 
-void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
+void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
-		auto* pia = static_cast<zeek::analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		auto* pia = static_cast<analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= ORIG;
@@ -829,7 +829,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const zeek::IP_Hdr* ip)
 
 	if ( ! is_orig && ! (first_packet_seen & RESP) )
 		{
-		auto* pia = static_cast<zeek::analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		auto* pia = static_cast<analyzer::pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= RESP;
@@ -1044,7 +1044,7 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	}
 
 void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -1074,7 +1074,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	uint32_t seq_one_past_segment = base_seq + seg_len;
 
 	init_endpoint(endpoint, flags, base_seq, seq_one_past_segment,
-	              zeek::run_state::current_timestamp);
+	              run_state::current_timestamp);
 
 	bool seq_underflow = false;
 	uint64_t rel_seq = get_relative_seq(endpoint, base_seq, endpoint->LastSeq(),
@@ -1091,19 +1091,19 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	update_window(endpoint, ntohs(tp->th_win), base_seq, ack_seq, flags);
 
 	if ( ! orig->did_close || ! resp->did_close )
-		Conn()->SetLastTime(zeek::run_state::current_timestamp);
+		Conn()->SetLastTime(run_state::current_timestamp);
 
 	if ( flags.SYN() )
 		{
 		syn_weirds(flags, endpoint, len);
-		zeek::RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
+		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
 		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
 			EnqueueConnEvent(connection_SYN_packet,
 				ConnVal(),
-				zeek::IntrusivePtr{zeek::NewRef{}, SYN_vals}
+				IntrusivePtr{NewRef{}, SYN_vals}
 			);
 
 		Unref(SYN_vals);
@@ -1113,8 +1113,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		++endpoint->FIN_cnt;
 
-		if ( endpoint->FIN_cnt >= zeek::detail::tcp_storm_thresh && zeek::run_state::current_timestamp <
-		     endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
+		if ( endpoint->FIN_cnt >= detail::tcp_storm_thresh && run_state::current_timestamp <
+		     endpoint->last_time + detail::tcp_storm_interarrival_thresh )
 			Weird("FIN_storm");
 
 		endpoint->FIN_seq = rel_seq + seg_len;
@@ -1124,8 +1124,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		++endpoint->RST_cnt;
 
-		if ( endpoint->RST_cnt >= zeek::detail::tcp_storm_thresh && zeek::run_state::current_timestamp <
-		     endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
+		if ( endpoint->RST_cnt >= detail::tcp_storm_thresh && run_state::current_timestamp <
+		     endpoint->last_time + detail::tcp_storm_interarrival_thresh )
 			Weird("RST_storm");
 
 		// This now happens often enough that it's
@@ -1171,11 +1171,11 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		}
 
 	int32_t delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
-	endpoint->last_time = zeek::run_state::current_timestamp;
+	endpoint->last_time = run_state::current_timestamp;
 
 	bool do_close;
 	bool gen_event;
-	UpdateStateMachine(zeek::run_state::current_timestamp, endpoint, peer, base_seq, ack_seq,
+	UpdateStateMachine(run_state::current_timestamp, endpoint, peer, base_seq, ack_seq,
 	                   len, delta_last, is_orig, flags, do_close, gen_event);
 
 	if ( flags.ACK() )
@@ -1210,7 +1210,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( DEBUG_tcp_data_sent )
 		{
 		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",
-		          zeek::run_state::network_time, len, caplen, Skipping());
+		          run_state::network_time, len, caplen, Skipping());
 		}
 
 	uint64_t rel_data_seq = flags.SYN() ? rel_seq + 1 : rel_seq;
@@ -1218,7 +1218,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int need_contents = 0;
 	if ( len > 0 && (caplen >= len || packet_children.size()) &&
 	     ! flags.RST() && ! Skipping() && ! seq_underflow )
-		need_contents = DeliverData(zeek::run_state::current_timestamp, data, len, caplen, ip,
+		need_contents = DeliverData(run_state::current_timestamp, data, len, caplen, ip,
 		                            tp, endpoint, rel_data_seq, is_orig, flags);
 
 	endpoint->CheckEOF();
@@ -1246,7 +1246,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			if ( child->Removing() )
 				child->Done();
 
-			DBG_LOG(zeek::DBG_ANALYZER, "%s deleted child %s",
+			DBG_LOG(DBG_ANALYZER, "%s deleted child %s",
 			        fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 			i = packet_children.erase(i);
 			delete child;
@@ -1276,7 +1276,7 @@ void TCP_Analyzer::FlipRoles()
 	{
 	Analyzer::FlipRoles();
 
-	zeek::sessions->tcp_stats.FlipState(orig->state, resp->state);
+	sessions->tcp_stats.FlipState(orig->state, resp->state);
 	TCP_Endpoint* tmp_ep = resp;
 	resp = orig;
 	orig = tmp_ep;
@@ -1284,15 +1284,15 @@ void TCP_Analyzer::FlipRoles()
 	resp->is_orig = !resp->is_orig;
 	}
 
-void TCP_Analyzer::UpdateConnVal(zeek::RecordVal *conn_val)
+void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	zeek::RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
-	zeek::RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
+	RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
+	RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
 
-	orig_endp_val->Assign(0, zeek::val_mgr->Count(orig->Size()));
-	orig_endp_val->Assign(1, zeek::val_mgr->Count(int(orig->state)));
-	resp_endp_val->Assign(0, zeek::val_mgr->Count(resp->Size()));
-	resp_endp_val->Assign(1, zeek::val_mgr->Count(int(resp->state)));
+	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
+	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));
+	resp_endp_val->Assign(0, val_mgr->Count(resp->Size()));
+	resp_endp_val->Assign(1, val_mgr->Count(int(resp->state)));
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
@@ -1347,34 +1347,34 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			auto length = kind < 2 ? 1 : o[1];
 			EnqueueConnEvent(tcp_option,
 				ConnVal(),
-				zeek::val_mgr->Bool(is_orig),
-				zeek::val_mgr->Count(kind),
-				zeek::val_mgr->Count(length)
+				val_mgr->Bool(is_orig),
+				val_mgr->Count(kind),
+				val_mgr->Count(length)
 				);
 			}
 
 	if ( tcp_options )
 		{
-		auto option_list = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::TCP::OptionList);
+		auto option_list = make_intrusive<VectorVal>(BifType::Vector::TCP::OptionList);
 
-		auto add_option_data = [](const zeek::RecordValPtr& rv, const u_char* odata, int olen)
+		auto add_option_data = [](const RecordValPtr& rv, const u_char* odata, int olen)
 			{
 			if ( olen <= 2 )
 				return;
 
 			auto data_len = olen - 2;
 			auto data = reinterpret_cast<const char*>(odata + 2);
-			rv->Assign(2, zeek::make_intrusive<zeek::StringVal>(data_len, data));
+			rv->Assign(2, make_intrusive<StringVal>(data_len, data));
 			};
 
 		for ( const auto& o : opts )
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			auto option_record = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::TCP::Option);
+			auto option_record = make_intrusive<RecordVal>(BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
-			option_record->Assign(0, zeek::val_mgr->Count(kind));
-			option_record->Assign(1, zeek::val_mgr->Count(length));
+			option_record->Assign(0, val_mgr->Count(kind));
+			option_record->Assign(1, val_mgr->Count(length));
 
 			switch ( kind ) {
 			case 2:
@@ -1382,12 +1382,12 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 4 )
 					{
 					auto mss = ntohs(*reinterpret_cast<const uint16_t*>(o + 2));
-					option_record->Assign(3, zeek::val_mgr->Count(mss));
+					option_record->Assign(3, val_mgr->Count(mss));
 					}
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_mss_invalid_len", zeek::util::fmt("%d", length));
+					Weird("tcp_option_mss_invalid_len", util::fmt("%d", length));
 					}
 				break;
 
@@ -1396,12 +1396,12 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 3 )
 					{
 					auto scale = o[2];
-					option_record->Assign(4, zeek::val_mgr->Count(scale));
+					option_record->Assign(4, val_mgr->Count(scale));
 					}
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_window_scale_invalid_len", zeek::util::fmt("%d", length));
+					Weird("tcp_option_window_scale_invalid_len", util::fmt("%d", length));
 					}
 				break;
 
@@ -1410,7 +1410,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length != 2 )
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_sack_invalid_len", zeek::util::fmt("%d", length));
+					Weird("tcp_option_sack_invalid_len", util::fmt("%d", length));
 					}
 				break;
 
@@ -1421,18 +1421,18 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto p = reinterpret_cast<const uint32_t*>(o + 2);
 					auto num_pointers = (length - 2) / 4;
-					auto vt = zeek::id::index_vec;
-					auto sack = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
+					auto vt = id::index_vec;
+					auto sack = make_intrusive<VectorVal>(std::move(vt));
 
 					for ( auto i = 0; i < num_pointers; ++i )
-						sack->Assign(sack->Size(), zeek::val_mgr->Count(ntohl(p[i])));
+						sack->Assign(sack->Size(), val_mgr->Count(ntohl(p[i])));
 
 					option_record->Assign(5, sack);
 					}
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_sack_blocks_invalid_len", zeek::util::fmt("%d", length));
+					Weird("tcp_option_sack_blocks_invalid_len", util::fmt("%d", length));
 					}
 				break;
 
@@ -1442,13 +1442,13 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
 					auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
-					option_record->Assign(6, zeek::val_mgr->Count(send));
-					option_record->Assign(7, zeek::val_mgr->Count(echo));
+					option_record->Assign(6, val_mgr->Count(send));
+					option_record->Assign(7, val_mgr->Count(echo));
 					}
 				else
 					{
 					add_option_data(option_record, o, length);
-					Weird("tcp_option_timestamps_invalid_len", zeek::util::fmt("%d", length));
+					Weird("tcp_option_timestamps_invalid_len", util::fmt("%d", length));
 					}
 				break;
 
@@ -1460,7 +1460,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 		EnqueueConnEvent(tcp_options,
 			ConnVal(),
-			zeek::val_mgr->Bool(is_orig),
+			val_mgr->Bool(is_orig),
 			std::move(option_list)
 			);
 		}
@@ -1484,7 +1484,7 @@ void TCP_Analyzer::AttemptTimer(double /* t */)
 		is_active = 0;
 
 		// All done with this connection.
-		zeek::sessions->Remove(Conn());
+		sessions->Remove(Conn());
 		}
 	}
 
@@ -1504,7 +1504,7 @@ void TCP_Analyzer::PartialCloseTimer(double /* t */)
 			return;
 
 		Event(connection_partial_close);
-		zeek::sessions->Remove(Conn());
+		sessions->Remove(Conn());
 		}
 	}
 
@@ -1534,7 +1534,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 				// the session remove and Unref() us here.
 				Event(connection_timeout);
 				is_active = 0;
-				zeek::sessions->Remove(Conn());
+				sessions->Remove(Conn());
 				return;
 				}
 			}
@@ -1549,7 +1549,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 				// before setting up an attempt timer,
 				// so we need to clean it up here.
 				Event(connection_timeout);
-				zeek::sessions->Remove(Conn());
+				sessions->Remove(Conn());
 				return;
 				}
 			}
@@ -1570,12 +1570,12 @@ void TCP_Analyzer::ResetTimer(double /* t */)
 	if ( ! BothClosed() )
 		ConnectionReset();
 
-	zeek::sessions->Remove(Conn());
+	sessions->Remove(Conn());
 	}
 
 void TCP_Analyzer::DeleteTimer(double /* t */)
 	{
-	zeek::sessions->Remove(Conn());
+	sessions->Remove(Conn());
 	}
 
 void TCP_Analyzer::ConnDeleteTimer(double t)
@@ -1583,7 +1583,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::FilePtr f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, FilePtr f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1600,7 +1600,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, zeek::FilePtr f)
 		}
 	}
 
-zeek::FilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
+FilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:
@@ -1623,7 +1623,7 @@ zeek::FilePtr TCP_Analyzer::GetContentsFile(unsigned int direction) const
 		break;
 	}
 
-	zeek::reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
+	reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
 	                      direction);
 	return nullptr;
 	}
@@ -1664,8 +1664,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 	if ( DEBUG_tcp_connection_close )
 		{
 		DEBUG_MSG("%.6f close_complete=%d tcp_close_delay=%f\n",
-		          zeek::run_state::network_time, close_complete,
-		          zeek::detail::tcp_close_delay);
+		          run_state::network_time, close_complete, detail::tcp_close_delay);
 		}
 
 	if ( close_complete )
@@ -1694,7 +1693,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		// Note, even if tcp_close_delay is zero, we can't
 		// simply do:
 		//
-		//	zeek::sessions->Remove(this);
+		//	sessions->Remove(this);
 		//
 		// here, because that would cause the object to be
 		// deleted out from under us.
@@ -1761,9 +1760,9 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 	return endp && endp->HadGap();
 	}
 
-void TCP_Analyzer::AddChildPacketAnalyzer(zeek::analyzer::Analyzer* a)
+void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
 	{
-	DBG_LOG(zeek::DBG_ANALYZER, "%s added packet child %s",
+	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
 			this->GetAnalyzerName(), a->GetAnalyzerName());
 
 	packet_children.push_back(a);
@@ -1783,7 +1782,7 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	if ( connection_EOF )
 		EnqueueConnEvent(connection_EOF,
 			ConnVal(),
-			zeek::val_mgr->Bool(endp->IsOrig())
+			val_mgr->Bool(endp->IsOrig())
 		);
 
 	const analyzer_list& children(GetChildren());
@@ -1902,12 +1901,12 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 
 void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const zeek::IP_Hdr* ip, int caplen)
+						const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(zeek::DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
-	        zeek::util::fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
+	        util::fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
@@ -1918,7 +1917,7 @@ void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
 
 void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
+	analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
 	for ( ; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->EndpointEOF(is_orig);
 	}
@@ -1926,7 +1925,7 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, bool gen_event)
 	{
-	zeek::analyzer::SupportAnalyzer* sa =
+	analyzer::SupportAnalyzer* sa =
 		endpoint->IsOrig() ? orig_supporters : resp_supporters;
 
 	for ( ; sa; sa = sa->Sibling() )
@@ -1936,30 +1935,30 @@ void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 
 void TCP_ApplicationAnalyzer::ConnectionFinished(bool half_finished)
 	{
-	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 
-	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionReset()
 	{
-	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 
-	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 	}
 
 void TCP_ApplicationAnalyzer::PacketWithRST()
 	{
-	for ( zeek::analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 
-	for ( zeek::analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 	}
 
@@ -1984,7 +1983,7 @@ int endian_flip(int n)
 
 bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen,
 			const u_char* /* data */,
-			const zeek::IP_Hdr* ip, const struct tcphdr* /* tp */)
+			const IP_Hdr* ip, const struct tcphdr* /* tp */)
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
@@ -2051,23 +2050,23 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 	int64_t sequence_delta = top_seq - max_top_seq;
 	if ( sequence_delta <= 0 )
 		{
-		if ( ! zeek::BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
+		if ( ! BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
 			{
 			++num_rxmit;
 			num_rxmit_bytes += len;
 			}
 
 		DEBUG_MSG("%.6f rexmit %" PRIu64" + %d <= %" PRIu64" data_in_flight = %d\n",
-		          zeek::run_state::network_time, seq, len, max_top_seq, data_in_flight);
+		          run_state::network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )
 			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
 				endp->TCP()->ConnVal(),
-				zeek::val_mgr->Bool(endp->IsOrig()),
-				zeek::val_mgr->Count(seq),
-				zeek::val_mgr->Count(len),
-				zeek::val_mgr->Count(data_in_flight),
-				zeek::val_mgr->Count(endp->peer->window)
+				val_mgr->Bool(endp->IsOrig()),
+				val_mgr->Count(seq),
+				val_mgr->Count(len),
+				val_mgr->Count(data_in_flight),
+				val_mgr->Count(endp->peer->window)
 			);
 		}
 	else
@@ -2076,23 +2075,23 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 	return false;
 	}
 
-zeek::RecordVal* TCPStats_Endpoint::BuildStats()
+RecordVal* TCPStats_Endpoint::BuildStats()
 	{
-	static auto endpoint_stats = zeek::id::find_type<zeek::RecordType>("endpoint_stats");
-	auto* stats = new zeek::RecordVal(endpoint_stats);
+	static auto endpoint_stats = id::find_type<RecordType>("endpoint_stats");
+	auto* stats = new RecordVal(endpoint_stats);
 
-	stats->Assign(0, zeek::val_mgr->Count(num_pkts));
-	stats->Assign(1, zeek::val_mgr->Count(num_rxmit));
-	stats->Assign(2, zeek::val_mgr->Count(num_rxmit_bytes));
-	stats->Assign(3, zeek::val_mgr->Count(num_in_order));
-	stats->Assign(4, zeek::val_mgr->Count(num_OO));
-	stats->Assign(5, zeek::val_mgr->Count(num_repl));
-	stats->Assign(6, zeek::val_mgr->Count(endian_type));
+	stats->Assign(0, val_mgr->Count(num_pkts));
+	stats->Assign(1, val_mgr->Count(num_rxmit));
+	stats->Assign(2, val_mgr->Count(num_rxmit_bytes));
+	stats->Assign(3, val_mgr->Count(num_in_order));
+	stats->Assign(4, val_mgr->Count(num_OO));
+	stats->Assign(5, val_mgr->Count(num_repl));
+	stats->Assign(6, val_mgr->Count(endian_type));
 
 	return stats;
 	}
 
-TCPStats_Analyzer::TCPStats_Analyzer(zeek::Connection* c)
+TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
 	: TCP_ApplicationAnalyzer("TCPSTATS", c),
 	  orig_stats(), resp_stats()
 	{
@@ -2119,19 +2118,19 @@ void TCPStats_Analyzer::Done()
 	if ( conn_stats )
 		EnqueueConnEvent(conn_stats,
 			ConnVal(),
-			zeek::IntrusivePtr{zeek::AdoptRef{}, orig_stats->BuildStats()},
-			zeek::IntrusivePtr{zeek::AdoptRef{}, resp_stats->BuildStats()}
+			IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
+			IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()}
 		);
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
-		orig_stats->DataSent(zeek::run_state::network_time, seq, len, caplen, data, ip, nullptr);
+		orig_stats->DataSent(run_state::network_time, seq, len, caplen, data, ip, nullptr);
 	else
-		resp_stats->DataSent(zeek::run_state::network_time, seq, len, caplen, data, ip, nullptr);
+		resp_stats->DataSent(run_state::network_time, seq, len, caplen, data, ip, nullptr);
 	}
 
 } // namespace zeek::analyzer::tcp

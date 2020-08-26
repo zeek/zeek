@@ -110,13 +110,13 @@ bool BasicBloomFilter::Merge(const BloomFilter* other)
 
 	if ( ! hasher->Equals(o->hasher) )
 		{
-		zeek::reporter->Error("incompatible hashers in BasicBloomFilter merge");
+		reporter->Error("incompatible hashers in BasicBloomFilter merge");
 		return false;
 		}
 
 	else if ( bits->Size() != o->bits->Size() )
 		{
-		zeek::reporter->Error("different bitvector size in BasicBloomFilter merge");
+		reporter->Error("different bitvector size in BasicBloomFilter merge");
 		return false;
 		}
 
@@ -137,7 +137,7 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 
 std::string BasicBloomFilter::InternalState() const
 	{
-	return zeek::util::fmt("%" PRIu64, bits->Hash());
+	return util::fmt("%" PRIu64, bits->Hash());
 	}
 
 BasicBloomFilter::BasicBloomFilter()
@@ -229,13 +229,13 @@ bool CountingBloomFilter::Merge(const BloomFilter* other)
 
 	if ( ! hasher->Equals(o->hasher) )
 		{
-		zeek::reporter->Error("incompatible hashers in CountingBloomFilter merge");
+		reporter->Error("incompatible hashers in CountingBloomFilter merge");
 		return false;
 		}
 
 	else if ( cells->Size() != o->cells->Size() )
 		{
-		zeek::reporter->Error("different bitvector size in CountingBloomFilter merge");
+		reporter->Error("different bitvector size in CountingBloomFilter merge");
 		return false;
 		}
 
@@ -256,7 +256,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 
 std::string CountingBloomFilter::InternalState() const
 	{
-	return zeek::util::fmt("%" PRIu64, cells->Hash());
+	return util::fmt("%" PRIu64, cells->Hash());
 	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.

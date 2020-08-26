@@ -8,10 +8,10 @@ namespace zeek::analyzer::login {
 
 class Telnet_Analyzer : public Login_Analyzer {
 public:
-	explicit Telnet_Analyzer(zeek::Connection* conn);
+	explicit Telnet_Analyzer(Connection* conn);
 	~Telnet_Analyzer() override {}
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Telnet_Analyzer(conn); }
 };
 

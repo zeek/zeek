@@ -66,18 +66,18 @@ Reporter::~Reporter()
 
 void Reporter::InitOptions()
 	{
-	info_to_stderr = zeek::id::find_val("Reporter::info_to_stderr")->AsBool();
-	warnings_to_stderr = zeek::id::find_val("Reporter::warnings_to_stderr")->AsBool();
-	errors_to_stderr = zeek::id::find_val("Reporter::errors_to_stderr")->AsBool();
-	weird_sampling_rate = zeek::id::find_val("Weird::sampling_rate")->AsCount();
-	weird_sampling_threshold = zeek::id::find_val("Weird::sampling_threshold")->AsCount();
-	weird_sampling_duration = zeek::id::find_val("Weird::sampling_duration")->AsInterval();
-	auto wl_val = zeek::id::find_val("Weird::sampling_whitelist")->AsTableVal();
+	info_to_stderr = id::find_val("Reporter::info_to_stderr")->AsBool();
+	warnings_to_stderr = id::find_val("Reporter::warnings_to_stderr")->AsBool();
+	errors_to_stderr = id::find_val("Reporter::errors_to_stderr")->AsBool();
+	weird_sampling_rate = id::find_val("Weird::sampling_rate")->AsCount();
+	weird_sampling_threshold = id::find_val("Weird::sampling_threshold")->AsCount();
+	weird_sampling_duration = id::find_val("Weird::sampling_duration")->AsInterval();
+	auto wl_val = id::find_val("Weird::sampling_whitelist")->AsTableVal();
 	auto wl_table = wl_val->AsTable();
 
-	zeek::detail::HashKey* k;
-	zeek::IterCookie* c = wl_table->InitForIteration();
-	zeek::TableEntryVal* v;
+	detail::HashKey* k;
+	IterCookie* c = wl_table->InitForIteration();
+	TableEntryVal* v;
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
@@ -126,7 +126,7 @@ void Reporter::FatalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	zeek::util::detail::set_processing_status("TERMINATED", "fatal_error");
+	util::detail::set_processing_status("TERMINATED", "fatal_error");
 	fflush(stderr);
 	fflush(stdout);
 	_exit(1);
@@ -142,11 +142,11 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 
 	va_end(ap);
 
-	zeek::util::detail::set_processing_status("TERMINATED", "fatal_error");
+	util::detail::set_processing_status("TERMINATED", "fatal_error");
 	abort();
 	}
 
-void Reporter::ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt, ...)
+void Reporter::ExprRuntimeError(const detail::Expr* expr, const char* fmt, ...)
 	{
 	++errors;
 
@@ -168,7 +168,7 @@ void Reporter::ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt,
 	throw InterpreterException();
 	}
 
-void Reporter::RuntimeError(const zeek::detail::Location* location, const char* fmt, ...)
+void Reporter::RuntimeError(const detail::Location* location, const char* fmt, ...)
 	{
 	++errors;
 	PushLocation(location);
@@ -195,11 +195,11 @@ void Reporter::InternalError(const char* fmt, ...)
 
 	va_end(ap);
 
-	zeek::util::detail::set_processing_status("TERMINATED", "internal_error");
+	util::detail::set_processing_status("TERMINATED", "internal_error");
 	abort();
 	}
 
-void Reporter::AnalyzerError(zeek::analyzer::Analyzer* a, const char* fmt, ...)
+void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...)
 	{
 	if ( a )
 		a->SetSkip(true);
@@ -226,7 +226,7 @@ void Reporter::InternalWarning(const char* fmt, ...)
 
 void Reporter::Syslog(const char* fmt, ...)
 	{
-	if ( zeek::run_state::reading_traces )
+	if ( run_state::reading_traces )
 		return;
 
 	va_list ap;
@@ -249,45 +249,45 @@ void Reporter::UpdateWeirdStats(const char* name)
 	++weird_count_by_type[name];
 	}
 
-class NetWeirdTimer final : public zeek::detail::Timer {
+class NetWeirdTimer final : public detail::Timer {
 public:
 	NetWeirdTimer(double t, const char* name, double timeout)
-		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_NET_WEIRD_EXPIRE),
+		: detail::Timer(t + timeout, detail::TIMER_NET_WEIRD_EXPIRE),
 		  weird_name(name)
 		{}
 
 	void Dispatch(double t, bool is_expire) override
-		{ zeek::reporter->ResetNetWeird(weird_name); }
+		{ reporter->ResetNetWeird(weird_name); }
 
 	std::string weird_name;
 };
 
-class FlowWeirdTimer final : public zeek::detail::Timer {
+class FlowWeirdTimer final : public detail::Timer {
 public:
-	using IPPair = std::pair<zeek::IPAddr, zeek::IPAddr>;
+	using IPPair = std::pair<IPAddr, IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
-		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_FLOW_WEIRD_EXPIRE),
+		: detail::Timer(t + timeout, detail::TIMER_FLOW_WEIRD_EXPIRE),
 		  endpoints(std::move(p))
 		{}
 
 	void Dispatch(double t, bool is_expire) override
-		{ zeek::reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
+		{ reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
 
 	IPPair endpoints;
 };
 
-class ConnTupleWeirdTimer final : public zeek::detail::Timer {
+class ConnTupleWeirdTimer final : public detail::Timer {
 public:
 	using ConnTuple = Reporter::ConnTuple;
 
 	ConnTupleWeirdTimer(double t, ConnTuple id, double timeout)
-		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_CONN_TUPLE_WEIRD_EXPIRE),
+		: detail::Timer(t + timeout, detail::TIMER_CONN_TUPLE_WEIRD_EXPIRE),
 		  conn_id(std::move(id))
 		{}
 
 	void Dispatch(double t, bool is_expire) override
-		{ zeek::reporter->ResetExpiredConnWeird(conn_id); }
+		{ reporter->ResetExpiredConnWeird(conn_id); }
 
 	ConnTuple conn_id;
 };
@@ -297,7 +297,7 @@ void Reporter::ResetNetWeird(const std::string& name)
 	net_weird_state.erase(name);
 	}
 
-void Reporter::ResetFlowWeird(const zeek::IPAddr& orig, const zeek::IPAddr& resp)
+void Reporter::ResetFlowWeird(const IPAddr& orig, const IPAddr& resp)
 	{
 	flow_weird_state.erase(std::make_pair(orig, resp));
 	}
@@ -313,8 +313,8 @@ bool Reporter::PermitNetWeird(const char* name)
 	++count;
 
 	if ( count == 1 )
-		zeek::detail::timer_mgr->Add(new NetWeirdTimer(zeek::run_state::network_time, name,
-		                                               weird_sampling_duration));
+		detail::timer_mgr->Add(new NetWeirdTimer(run_state::network_time, name,
+		                                         weird_sampling_duration));
 
 	if ( count <= weird_sampling_threshold )
 		return true;
@@ -327,14 +327,14 @@ bool Reporter::PermitNetWeird(const char* name)
 	}
 
 bool Reporter::PermitFlowWeird(const char* name,
-                               const zeek::IPAddr& orig, const zeek::IPAddr& resp)
+                               const IPAddr& orig, const IPAddr& resp)
 	{
 	auto endpoints = std::make_pair(orig, resp);
 	auto& map = flow_weird_state[endpoints];
 
 	if ( map.empty() )
-		zeek::detail::timer_mgr->Add(new FlowWeirdTimer(zeek::run_state::network_time, endpoints,
-		                                                weird_sampling_duration));
+		detail::timer_mgr->Add(new FlowWeirdTimer(run_state::network_time, endpoints,
+		                                          weird_sampling_duration));
 
 	auto& count = map[name];
 	++count;
@@ -349,7 +349,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return false;
 	}
 
-bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& conn_id)
+bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
 	{
 	auto conn_tuple = std::make_tuple(conn_id.GetField("orig_h")->AsAddr(),
 	                                  conn_id.GetField("resp_h")->AsAddr(),
@@ -360,9 +360,9 @@ bool Reporter::PermitExpiredConnWeird(const char* name, const zeek::RecordVal& c
 	auto& map = expired_conn_weird_state[conn_tuple];
 
 	if ( map.empty() )
-		zeek::detail::timer_mgr->Add(new ConnTupleWeirdTimer(zeek::run_state::network_time,
-		                                                     std::move(conn_tuple),
-		                                                     weird_sampling_duration));
+		detail::timer_mgr->Add(new ConnTupleWeirdTimer(run_state::network_time,
+		                                               std::move(conn_tuple),
+		                                               weird_sampling_duration));
 
 	auto& count = map[name];
 	++count;
@@ -388,7 +388,7 @@ void Reporter::Weird(const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(net_weird, {new zeek::StringVal(addl)}, "%s", name);
+	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
 	}
 
 void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
@@ -402,7 +402,7 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, {f->ToVal()->Ref(), new zeek::StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -417,11 +417,11 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new zeek::StringVal(addl)},
+	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
+void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
                      const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
@@ -433,11 +433,11 @@ void Reporter::Weird(zeek::RecordValPtr conn_id, zeek::StringValPtr uid,
 		}
 
 	WeirdHelper(expired_conn_weird,
-	            {conn_id.release(), uid.release(), new zeek::StringVal(addl)},
+	            {conn_id.release(), uid.release(), new StringVal(addl)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const char* name, const char* addl)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -448,7 +448,7 @@ void Reporter::Weird(const zeek::IPAddr& orig, const zeek::IPAddr& resp, const c
 		}
 
 	WeirdHelper(flow_weird,
-	            {new zeek::AddrVal(orig), new zeek::AddrVal(resp), new zeek::StringVal(addl)},
+	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -473,11 +473,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			{
 			ODesc d;
 
-			std::pair<const zeek::detail::Location*, const zeek::detail::Location*> locs = locations.back();
+			std::pair<const detail::Location*, const detail::Location*> locs = locations.back();
 
 			if ( locs.first )
 				{
-				if ( locs.first != &zeek::detail::no_location )
+				if ( locs.first != &detail::no_location )
 					locs.first->Describe(&d);
 
 				else
@@ -487,7 +487,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 					{
 					d.Add(" and ");
 
-					if ( locs.second != &zeek::detail::no_location )
+					if ( locs.second != &detail::no_location )
 						locs.second->Describe(&d);
 
 					else
@@ -558,29 +558,29 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		auto vl_size = 1 + (bool)time + (bool)location + (bool)conn +
 		               (addl ? addl->length() : 0);
 
-		zeek::Args vl;
+		Args vl;
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(zeek::make_intrusive<zeek::TimeVal>(
-				                zeek::run_state::network_time ? zeek::run_state::network_time : zeek::util::current_time()));
+			vl.emplace_back(make_intrusive<TimeVal>(
+				                run_state::network_time ? run_state::network_time : util::current_time()));
 
-		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(buffer));
+		vl.emplace_back(make_intrusive<StringVal>(buffer));
 
 		if ( location )
-			vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(loc_str.c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
 			vl.emplace_back(conn->ConnVal());
 
 		if ( addl )
 			for ( auto v : *addl )
-				vl.emplace_back(zeek::AdoptRef{}, v);
+				vl.emplace_back(AdoptRef{}, v);
 
 		if ( conn )
 			conn->EnqueueEvent(event, nullptr, std::move(vl));
 		else
-			zeek::event_mgr.Enqueue(event, std::move(vl));
+			event_mgr.Enqueue(event, std::move(vl));
 		}
 	else
 		{
@@ -595,10 +595,10 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		std::string s = "";
 
-		if ( zeek::run_state::zeek_start_network_time != 0.0 )
+		if ( run_state::zeek_start_network_time != 0.0 )
 			{
 			char tmp[32];
-			snprintf(tmp, 32, "%.6f", zeek::run_state::network_time);
+			snprintf(tmp, 32, "%.6f", run_state::network_time);
 			s += std::string(tmp) + " ";
 			}
 

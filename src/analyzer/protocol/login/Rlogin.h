@@ -30,9 +30,9 @@ enum rlogin_state {
 	RLOGIN_UNKNOWN,	// we don't know what state we're in
 };
 
-class Contents_Rlogin_Analyzer final : public zeek::analyzer::tcp::ContentLine_Analyzer {
+class Contents_Rlogin_Analyzer final : public analyzer::tcp::ContentLine_Analyzer {
 public:
-	Contents_Rlogin_Analyzer(zeek::Connection* conn, bool orig,
+	Contents_Rlogin_Analyzer(Connection* conn, bool orig,
 	                         Rlogin_Analyzer* analyzer);
 	~Contents_Rlogin_Analyzer() override;
 
@@ -55,13 +55,13 @@ protected:
 
 class Rlogin_Analyzer final : public Login_Analyzer {
 public:
-	explicit Rlogin_Analyzer(zeek::Connection* conn);
+	explicit Rlogin_Analyzer(Connection* conn);
 
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 	void TerminalType(const char* s);
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Rlogin_Analyzer(conn); }
 };
 

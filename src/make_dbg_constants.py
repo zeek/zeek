@@ -26,11 +26,11 @@ inputfile = sys.argv[1]
 
 init_tmpl = '''
 \t{
-\t\tzeek::detail::DebugCmdInfo* info;
+\t\tDebugCmdInfo* info;
 \t\t%(name_init)s
-\t\tinfo = new zeek::detail::DebugCmdInfo(%(cmd)s, names, %(num_names)s, %(resume)s, "%(help)s",
+\t\tinfo = new DebugCmdInfo(%(cmd)s, names, %(num_names)s, %(resume)s, "%(help)s",
 \t\t                                      %(repeatable)s);
-\t\tzeek::detail::g_DebugCmdInfos.push_back(info);
+\t\tg_DebugCmdInfos.push_back(info);
 \t}
 '''
 
@@ -49,7 +49,8 @@ init_str = '''
 //
 
 #include "util.h"
-void zeek::detail::init_global_dbg_constants () {
+namespace zeek::detail {\n
+void init_global_dbg_constants () {
 ''' % inputfile
 
 def outputrecord():
@@ -105,7 +106,7 @@ for line in inputf:
 # output the last record
 outputrecord()
 
-init_str += "\t\n}\n"
+init_str += "\t\n}\n\n} // namespace zeek::detail\n"
 enum_str += "\tdcLast\n};\n"
 
 debugcmds = open("DebugCmdConstants.h", "w")

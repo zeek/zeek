@@ -7,8 +7,8 @@
 
 namespace zeek::analyzer::bittorrent {
 
-BitTorrent_Analyzer::BitTorrent_Analyzer(zeek::Connection* c)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
+BitTorrent_Analyzer::BitTorrent_Analyzer(Connection* c)
+: analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
 	{
 	interp = new binpac::BitTorrent::BitTorrent_Conn(this);
 	stop_orig = stop_resp = false;
@@ -22,7 +22,7 @@ BitTorrent_Analyzer::~BitTorrent_Analyzer()
 
 void BitTorrent_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -33,7 +33,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
 	bool& this_stop = orig ? stop_orig : stop_resp;
 
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -59,7 +59,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			Parent()->RemoveChildAnalyzer(this);
 		else
 			{
-			DeliverWeird(zeek::util::fmt("Stopping BitTorrent analysis: protocol violation (%s)",
+			DeliverWeird(util::fmt("Stopping BitTorrent analysis: protocol violation (%s)",
 			                             e.c_msg()), orig);
 			this_stop = true;
 			if ( stop_orig && stop_resp )
@@ -70,7 +70,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	// TODO: Code commented out for now. I think that shoving data that
 	// is definitely wrong into the parser seems like a really bad idea.
@@ -112,7 +112,7 @@ void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 
 void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
@@ -121,8 +121,8 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	if ( bittorrent_peer_weird )
 		EnqueueConnEvent(bittorrent_peer_weird,
 		                 ConnVal(),
-		                 zeek::val_mgr->Bool(orig),
-		                 zeek::make_intrusive<zeek::StringVal>(msg));
+		                 val_mgr->Bool(orig),
+		                 make_intrusive<StringVal>(msg));
 	}
 
 } // namespace zeek::analyzer::bittorrent

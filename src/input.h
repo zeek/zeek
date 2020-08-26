@@ -46,7 +46,7 @@ extern std::vector<std::string> zeek_script_prefixes;	// -p flag
 extern const char* command_line_policy;	// -e flag
 extern std::vector<std::string> params;
 
-extern zeek::detail::Stmt* stmts; // global statements
+extern Stmt* stmts; // global statements
 
 } // namespace zeek::detail
 

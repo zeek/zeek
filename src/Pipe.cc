@@ -7,15 +7,15 @@
 #include <errno.h>
 #include <cstdio>
 
-using namespace zeek::detail;
+namespace zeek::detail {
 
 static void pipe_fail(int eno)
 	{
 	char tmp[256];
 	zeek::util::zeek_strerror_r(eno, tmp, sizeof(tmp));
 
-	if ( zeek::reporter )
-		zeek::reporter->FatalError("Pipe failure: %s", tmp);
+	if ( reporter )
+		reporter->FatalError("Pipe failure: %s", tmp);
 	else
 		fprintf(stderr, "Pipe failure: %s", tmp);
 	}
@@ -156,3 +156,5 @@ PipePair::PipePair(int flags, int status_flags, int* fds)
 	        Pipe(flags, flags, status_flags, status_flags, fds ? fds + 2 : nullptr)}
 	{
 	}
+
+} // namespace zeek::detail

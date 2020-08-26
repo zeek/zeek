@@ -90,17 +90,17 @@ public:
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
-	const zeek::EnumValPtr& AsVal() const;
+	const EnumValPtr& AsVal() const;
 
 	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	zeek::EnumVal* AsEnumVal() const;
+	EnumVal* AsEnumVal() const;
 
 	static const Tag Error;
 
 protected:
 	friend class analyzer::Manager;
-	friend class zeek::plugin::ComponentManager<Tag, Component>;
-	friend class zeek::plugin::TaggedComponent<Tag>;
+	friend class plugin::ComponentManager<Tag, Component>;
+	friend class plugin::TaggedComponent<Tag>;
 
 	/**
 	 * Constructor.
@@ -119,10 +119,10 @@ protected:
 	 *
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
-	explicit Tag(zeek::EnumValPtr val);
+	explicit Tag(EnumValPtr val);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead")]]
-	explicit Tag(zeek::EnumVal* val);
+	explicit Tag(EnumVal* val);
 };
 
 } // namespace zeek::analyzer

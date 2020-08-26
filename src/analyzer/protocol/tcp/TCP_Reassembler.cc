@@ -19,11 +19,11 @@ constexpr bool DEBUG_tcp_contents = false;
 constexpr bool DEBUG_tcp_connection_close = false;
 constexpr bool DEBUG_tcp_match_undelivered = false;
 
-TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
+TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
                                  TCP_Analyzer* arg_tcp_analyzer,
                                  TCP_Reassembler::Type arg_type,
                                  TCP_Endpoint* arg_endp)
-	: zeek::Reassembler(1, zeek::REASSEM_TCP)
+	: Reassembler(1, REASSEM_TCP)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
@@ -41,9 +41,9 @@ TCP_Reassembler::TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		static auto tcp_content_delivery_ports_orig = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_orig");
-		static auto tcp_content_delivery_ports_resp = zeek::id::find_val<zeek::TableVal>("tcp_content_delivery_ports_resp");
-		const auto& dst_port_val = zeek::val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
+		static auto tcp_content_delivery_ports_orig = id::find_val<TableVal>("tcp_content_delivery_ports_orig");
+		static auto tcp_content_delivery_ports_resp = id::find_val<TableVal>("tcp_content_delivery_ports_resp");
+		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
 		                                         TRANSPORT_TCP);
 		const auto& ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
@@ -92,11 +92,11 @@ uint64_t TCP_Reassembler::NumUndeliveredBytes() const
 	return last_block.upper - last_reassem_seq;
 	}
 
-void TCP_Reassembler::SetContentsFile(zeek::FilePtr f)
+void TCP_Reassembler::SetContentsFile(FilePtr f)
 	{
 	if ( ! f->IsOpen() )
 		{
-		zeek::reporter->Error("no such file \"%s\"", f->Name());
+		reporter->Error("no such file \"%s\"", f->Name());
 		return;
 		}
 
@@ -130,7 +130,7 @@ static inline bool established_or_cleanly_closing(const TCP_Endpoint* a,
 static inline bool report_gap(const TCP_Endpoint* a, const TCP_Endpoint* b)
 	{
 	return content_gap &&
-	       ( zeek::BifConst::report_gaps_for_partial ||
+	       ( BifConst::report_gaps_for_partial ||
 	         established_or_cleanly_closing(a, b) );
 	}
 
@@ -148,9 +148,9 @@ void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 	if ( report_gap(endp, endp->peer) )
 		dst_analyzer->EnqueueConnEvent(content_gap,
 			dst_analyzer->ConnVal(),
-			zeek::val_mgr->Bool(IsOrig()),
-			zeek::val_mgr->Count(seq),
-			zeek::val_mgr->Count(len)
+			val_mgr->Bool(IsOrig()),
+			val_mgr->Count(seq),
+			val_mgr->Count(len)
 		);
 
 	if ( type == Direct )
@@ -203,9 +203,9 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 	if ( up_to_seq <= last_reassem_seq )
 		// This should never happen. (Reassembler::TrimToSeq has the only call
 		// to this method and only if this condition is not true).
-		zeek::reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
+		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
-	if ( zeek::BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
+	if ( BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
 	      peer->FIN_cnt > 0 || peer->RST_cnt > 0) )
 		{
@@ -225,7 +225,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 			{
 			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%" PRIu64", len=%" PRIu64", "
 					  "skip_deliveries=%d\n",
-					  zeek::run_state::network_time, IsOrig(), last_reassem_seq,
+					  run_state::network_time, IsOrig(), last_reassem_seq,
 					  up_to_seq - last_reassem_seq,
 					  skip_deliveries);
 			}
@@ -317,7 +317,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 		}
 	}
 
-void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const zeek::FilePtr& f)
+void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const FilePtr& f)
 	{
 	auto it = block_list.Begin();
 
@@ -348,37 +348,37 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const z
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr& f)
+void TCP_Reassembler::RecordBlock(const DataBlock& b, const FilePtr& f)
 	{
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
 
-	zeek::reporter->Error("TCP_Reassembler contents write failed");
+	reporter->Error("TCP_Reassembler contents write failed");
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 			Endpoint()->Conn()->ConnVal(),
-			zeek::val_mgr->Bool(IsOrig()),
-			zeek::make_intrusive<zeek::StringVal>("TCP reassembler content write failure")
+			val_mgr->Bool(IsOrig()),
+			make_intrusive<StringVal>("TCP reassembler content write failure")
 		);
 	}
 
-void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::FilePtr& f)
+void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const FilePtr& f)
 	{
-	if ( f->Write(zeek::util::fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
+	if ( f->Write(util::fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
-	zeek::reporter->Error("TCP_Reassembler contents gap write failed");
+	reporter->Error("TCP_Reassembler contents gap write failed");
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 			Endpoint()->Conn()->ConnVal(),
-			zeek::val_mgr->Bool(IsOrig()),
-			zeek::make_intrusive<zeek::StringVal>("TCP reassembler gap write failure")
+			val_mgr->Bool(IsOrig()),
+			make_intrusive<StringVal>("TCP reassembler gap write failure")
 		);
 	}
 
-void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
+void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
 
@@ -440,7 +440,7 @@ void TCP_Reassembler::BlockInserted(zeek::DataBlockMap::const_iterator it)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", zeek::run_state::network_time,  n, IsOrig());
+		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", run_state::network_time,  n, IsOrig());
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -448,14 +448,14 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	     // we've ever seen for the connection.
 	     (n > 1 || endp->peer->HasDoneSomething()) )
 		{
-		zeek::String* b1_s = new zeek::String((const u_char*) b1, n, false);
-		zeek::String* b2_s = new zeek::String((const u_char*) b2, n, false);
+		String* b1_s = new String((const u_char*) b1, n, false);
+		String* b2_s = new String((const u_char*) b2, n, false);
 
 		tcp_analyzer->EnqueueConnEvent(rexmit_inconsistency,
 			tcp_analyzer->ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(b1_s),
-			zeek::make_intrusive<zeek::StringVal>(b2_s),
-			zeek::make_intrusive<zeek::StringVal>(flags.AsString())
+			make_intrusive<StringVal>(b1_s),
+			make_intrusive<StringVal>(b2_s),
+			make_intrusive<StringVal>(flags.AsString())
 		);
 		}
 	}
@@ -477,7 +477,7 @@ bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 	if ( DEBUG_tcp_contents )
 		{
 		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%" PRIu64" upper=%" PRIu64" ack=%" PRIu64"\n",
-		          zeek::run_state::network_time, IsOrig(), seq, upper_seq, ack);
+		          run_state::network_time, IsOrig(), seq, upper_seq, ack);
 		}
 
 	if ( skip_deliveries )
@@ -534,7 +534,7 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 		return;
 
 	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
-		( zeek::BifConst::report_gaps_for_partial ||
+		( BifConst::report_gaps_for_partial ||
 			(endp->state == TCP_ENDPOINT_ESTABLISHED &&
 				endp->peer->state == TCP_ENDPOINT_ESTABLISHED ) );
 
@@ -581,7 +581,7 @@ void TCP_Reassembler::CheckEOF()
 		if ( DEBUG_tcp_connection_close )
 			{
 			DEBUG_MSG("%.6f EOF for %d\n",
-			          zeek::run_state::network_time, endp->IsOrig());
+			          run_state::network_time, endp->IsOrig());
 			}
 
 		did_EOF = true;
@@ -609,9 +609,9 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 	if ( deliver_tcp_contents )
 		tcp_analyzer->EnqueueConnEvent(tcp_contents,
 			tcp_analyzer->ConnVal(),
-			zeek::val_mgr->Bool(IsOrig()),
-			zeek::val_mgr->Count(seq),
-			zeek::make_intrusive<zeek::StringVal>(len, (const char*) data)
+			val_mgr->Bool(IsOrig()),
+			val_mgr->Count(seq),
+			make_intrusive<StringVal>(len, (const char*) data)
 		);
 
 	// Q. Can we say this because it is already checked in DataSent()?

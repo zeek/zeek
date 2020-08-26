@@ -90,8 +90,8 @@ time_t get_mtime(const string& filename)
 	struct stat s;
 
 	if ( stat(filename.c_str(), &s) < 0 )
-		zeek::reporter->InternalError("Zeekygen failed to stat file '%s': %s",
-		                              filename.c_str(), strerror(errno));
+		reporter->InternalError("Zeekygen failed to stat file '%s': %s",
+		                        filename.c_str(), strerror(errno));
 
 	return s.st_mtime;
 	}
@@ -133,8 +133,8 @@ bool is_all_whitespace(const string& s)
 
 string redef_indication(const string& from_script)
 	{
-	return zeek::util::fmt("(present if :doc:`/scripts/%s` is loaded)",
-	                       from_script.c_str());
+	return util::fmt("(present if :doc:`/scripts/%s` is loaded)",
+	                 from_script.c_str());
 	}
 
 } // namespace zeek::zeekygen::detail

@@ -11,9 +11,9 @@
 
 namespace zeek::analyzer::dce_rpc {
 
-class DCE_RPC_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class DCE_RPC_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DCE_RPC_Analyzer(zeek::Connection* conn);
+	explicit DCE_RPC_Analyzer(Connection* conn);
 	~DCE_RPC_Analyzer() override;
 
 	void Done() override;
@@ -24,7 +24,7 @@ public:
 	bool SetFileID(uint64_t fid_in)
 		{ interp->set_file_id(fid_in); return true; }
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
 protected:

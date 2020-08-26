@@ -16,13 +16,13 @@ namespace zeek::threading::formatter {
 // If the value we'd write out would match exactly the a reserved string, we
 // escape the first character so that the output won't be ambigious. If this
 // function returns true, it has added an escaped version of data to desc.
-static inline bool escapeReservedContent(zeek::ODesc* desc, const string& reserved, const char* data, int size)
+static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data, int size)
 	{
 	if ( size != (int)reserved.size() || memcmp(data, reserved.data(), size) != 0 )
 		return false;
 
 	char hex[4] = {'\\', 'x', '0', '0'};
-	zeek::util::bytetohex(*data, hex + 2);
+	util::bytetohex(*data, hex + 2);
 	desc->AddRaw(hex, 4);
 	desc->AddN(data + 1, size - 1);
 	return true;
@@ -48,7 +48,7 @@ Ascii::SeparatorInfo::SeparatorInfo(const string& arg_separator,
 	empty_field = arg_empty_field;
 	}
 
-Ascii::Ascii(zeek::threading::MsgThread* t, const SeparatorInfo& info) : zeek::threading::Formatter(t)
+Ascii::Ascii(MsgThread* t, const SeparatorInfo& info) : Formatter(t)
 	{
 	separators = info;
 	}
@@ -57,8 +57,8 @@ Ascii::~Ascii()
 	{
 	}
 
-bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
-                     zeek::threading::Value** vals) const
+bool Ascii::Describe(ODesc* desc, int num_fields, const Field* const * fields,
+                     Value** vals) const
 	{
 	for ( int i = 0; i < num_fields; i++ )
 		{
@@ -72,7 +72,7 @@ bool Ascii::Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::F
 	return true;
 	}
 
-bool Ascii::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const string& name) const
+bool Ascii::Describe(ODesc* desc, Value* val, const string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -82,49 +82,49 @@ bool Ascii::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const strin
 
 	switch ( val->type ) {
 
-	case zeek::TYPE_BOOL:
+	case TYPE_BOOL:
 		desc->Add(val->val.int_val ? "T" : "F");
 		break;
 
-	case zeek::TYPE_INT:
+	case TYPE_INT:
 		desc->Add(val->val.int_val);
 		break;
 
-	case zeek::TYPE_COUNT:
+	case TYPE_COUNT:
 		desc->Add(val->val.uint_val);
 		break;
 
-	case zeek::TYPE_PORT:
+	case TYPE_PORT:
 		desc->Add(val->val.port_val.port);
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		desc->Add(Render(val->val.subnet_val));
 		break;
 
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		desc->Add(Render(val->val.addr_val));
 		break;
 
-	case zeek::TYPE_DOUBLE:
+	case TYPE_DOUBLE:
 		// Rendering via Add() truncates trailing 0s after the
 		// decimal point. The difference with TIME/INTERVAL is mainly
 		// to keep the log format consistent.
 		desc->Add(val->val.double_val, true);
 		break;
 
-	case zeek::TYPE_INTERVAL:
-	case zeek::TYPE_TIME:
+	case TYPE_INTERVAL:
+	case TYPE_TIME:
 		// Rendering via Render() keeps trailing 0s after the decimal
 		// point. The difference with DOUBLE is mainly to keep the
 		// log format consistent.
 		desc->Add(Render(val->val.double_val));
 		break;
 
-	case zeek::TYPE_ENUM:
-	case zeek::TYPE_STRING:
-	case zeek::TYPE_FILE:
-	case zeek::TYPE_FUNC:
+	case TYPE_ENUM:
+	case TYPE_STRING:
+	case TYPE_FILE:
+	case TYPE_FUNC:
 		{
 		int size = val->val.string_val.length;
 		const char* data = val->val.string_val.data;
@@ -145,7 +145,7 @@ bool Ascii::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const strin
 		break;
 		}
 
-	case zeek::TYPE_TABLE:
+	case TYPE_TABLE:
 		{
 		if ( ! val->val.set_val.size )
 			{
@@ -172,7 +172,7 @@ bool Ascii::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const strin
 		break;
 		}
 
-	case zeek::TYPE_VECTOR:
+	case TYPE_VECTOR:
 		{
 		if ( ! val->val.vector_val.size )
 			{
@@ -208,30 +208,30 @@ bool Ascii::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const strin
 	}
 
 
-zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::TypeTag type, zeek::TypeTag subtype) const
+Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
 	{
 	if ( ! separators.unset_field.empty() && s.compare(separators.unset_field) == 0 )  // field is not set...
-		return new zeek::threading::Value(type, false);
+		return new Value(type, false);
 
-	zeek::threading::Value* val = new zeek::threading::Value(type, subtype, true);
+	Value* val = new Value(type, subtype, true);
 	const char* start = s.c_str();
 	char* end = nullptr;
 	errno = 0;
 	size_t pos;
 
 	switch ( type ) {
-	case zeek::TYPE_ENUM:
-	case zeek::TYPE_STRING:
+	case TYPE_ENUM:
+	case TYPE_STRING:
 		{
-		string unescaped = zeek::util::get_unescaped_string(s);
+		string unescaped = util::get_unescaped_string(s);
 		val->val.string_val.length = unescaped.size();
-		val->val.string_val.data = zeek::util::copy_string(unescaped.c_str());
+		val->val.string_val.data = util::copy_string(unescaped.c_str());
 		break;
 		}
 
-	case zeek::TYPE_BOOL:
+	case TYPE_BOOL:
 		{
-		auto stripped = zeek::util::strstrip(s);
+		auto stripped = util::strstrip(s);
 		if ( stripped == "T" || stripped == "1" )
 			val->val.int_val = 1;
 		else if ( stripped == "F" || stripped == "0" )
@@ -245,42 +245,42 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 		break;
 		}
 
-	case zeek::TYPE_INT:
+	case TYPE_INT:
 		val->val.int_val = strtoll(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 		break;
 
-	case zeek::TYPE_DOUBLE:
-	case zeek::TYPE_TIME:
-	case zeek::TYPE_INTERVAL:
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
 		val->val.double_val = strtod(start, &end);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 		break;
 
-	case zeek::TYPE_COUNT:
+	case TYPE_COUNT:
 		val->val.uint_val = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 		break;
 
-	case zeek::TYPE_PORT:
+	case TYPE_PORT:
 		{
-		auto stripped = zeek::util::strstrip(s);
+		auto stripped = util::strstrip(s);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		pos = stripped.find('/');
 		string numberpart;
 		if ( pos != std::string::npos && stripped.length() > pos + 1 )
 			{
 			auto proto = stripped.substr(pos+1);
-			if ( zeek::util::strtolower(proto) == "tcp" )
+			if ( util::strtolower(proto) == "tcp" )
 				val->val.port_val.proto = TRANSPORT_TCP;
-			else if ( zeek::util::strtolower(proto) == "udp" )
+			else if ( util::strtolower(proto) == "udp" )
 				val->val.port_val.proto = TRANSPORT_UDP;
-			else if ( zeek::util::strtolower(proto) == "icmp" )
+			else if ( util::strtolower(proto) == "icmp" )
 				val->val.port_val.proto = TRANSPORT_ICMP;
-			else if ( zeek::util::strtolower(proto) == "unknown" )
+			else if ( util::strtolower(proto) == "unknown" )
 				val->val.port_val.proto = TRANSPORT_UNKNOWN;
 			else
 				GetThread()->Warning(GetThread()->Fmt("Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
@@ -297,9 +297,9 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 		}
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		{
-		string unescaped = zeek::util::strstrip(zeek::util::get_unescaped_string(s));
+		string unescaped = util::strstrip(util::get_unescaped_string(s));
 		size_t pos = unescaped.find('/');
 		if ( pos == unescaped.npos )
 			{
@@ -320,16 +320,16 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 		break;
 		}
 
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		{
-		string unescaped = zeek::util::strstrip(zeek::util::get_unescaped_string(s));
+		string unescaped = util::strstrip(util::get_unescaped_string(s));
 		val->val.addr_val = ParseAddr(unescaped);
 		break;
 		}
 
-	case zeek::TYPE_PATTERN:
+	case TYPE_PATTERN:
 		{
-		string candidate = zeek::util::get_unescaped_string(s);
+		string candidate = util::get_unescaped_string(s);
 		// A string is a candidate pattern iff it begins and ends with
 		// a '/'. Rather or not the rest of the string is legal will
 		// be determined later when it is given to the RE engine.
@@ -341,7 +341,7 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 				// Remove the '/'s
 				candidate.erase(0, 1);
 				candidate.erase(candidate.size() - 1);
-				val->val.pattern_text_val = zeek::util::copy_string(candidate.c_str());
+				val->val.pattern_text_val = util::copy_string(candidate.c_str());
 				break;
 				}
 			}
@@ -350,8 +350,8 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 		goto parse_error;
 		}
 
-	case zeek::TYPE_TABLE:
-	case zeek::TYPE_VECTOR:
+	case TYPE_TABLE:
+	case TYPE_VECTOR:
 		// First - common initialization
 		// Then - initialization for table.
 		// Then - initialization for vector.
@@ -374,15 +374,15 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 		if ( separators.empty_field.empty() && s.empty() )
 			length = 0;
 
-		zeek::threading::Value** lvals = new zeek::threading::Value* [length];
+		Value** lvals = new Value* [length];
 
-		if ( type == zeek::TYPE_TABLE )
+		if ( type == TYPE_TABLE )
 			{
 			val->val.set_val.vals = lvals;
 			val->val.set_val.size = length;
 			}
 
-		else if ( type == zeek::TYPE_VECTOR )
+		else if ( type == TYPE_VECTOR )
 			{
 			val->val.vector_val.vals = lvals;
 			val->val.vector_val.size = length;
@@ -410,7 +410,7 @@ zeek::threading::Value* Ascii::ParseValue(const string& s, const string& name, z
 				break;
 				}
 
-			zeek::threading::Value* newval = ParseValue(element, name, subtype);
+			Value* newval = ParseValue(element, name, subtype);
 			if ( newval == nullptr )
 				{
 				GetThread()->Warning("Error while reading set or vector");
@@ -475,7 +475,7 @@ parse_error:
 
 bool Ascii::CheckNumberError(const char* start, const char* end) const
 	{
-	zeek::threading::MsgThread* thread = GetThread();
+	MsgThread* thread = GetThread();
 
 	if ( end == start && *end != '\0'  ) {
 		thread->Warning(thread->Fmt("String '%s' contained no parseable number", start));

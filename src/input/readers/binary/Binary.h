@@ -12,12 +12,12 @@ namespace zeek::input::reader::detail {
 /**
  * Binary mode file reader.
  */
-class Binary : public zeek::input::ReaderBackend {
+class Binary : public ReaderBackend {
 public:
-	explicit Binary(zeek::input::ReaderFrontend* frontend);
+	explicit Binary(ReaderFrontend* frontend);
 	~Binary() override;
 
-	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend)
+	static ReaderBackend* Instantiate(ReaderFrontend* frontend)
 		{ return new Binary(frontend); }
 
 protected:

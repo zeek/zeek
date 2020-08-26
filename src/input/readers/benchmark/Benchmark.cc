@@ -16,20 +16,20 @@ using threading::Field;
 
 namespace zeek::input::reader::detail {
 
-Benchmark::Benchmark(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
+Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	num_lines = 0;
-	multiplication_factor = double(zeek::BifConst::InputBenchmark::factor);
-	autospread = double(zeek::BifConst::InputBenchmark::autospread);
-	spread = int(zeek::BifConst::InputBenchmark::spread);
-	add = int(zeek::BifConst::InputBenchmark::addfactor);
+	multiplication_factor = double(BifConst::InputBenchmark::factor);
+	autospread = double(BifConst::InputBenchmark::autospread);
+	spread = int(BifConst::InputBenchmark::spread);
+	add = int(BifConst::InputBenchmark::addfactor);
 	autospread_time = 0;
-	stopspreadat = int(zeek::BifConst::InputBenchmark::stopspreadat);
-	timedspread = double(zeek::BifConst::InputBenchmark::timedspread);
+	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
+	timedspread = double(BifConst::InputBenchmark::timedspread);
 	heartbeatstarttime = 0;
-	heartbeat_interval = double(zeek::BifConst::Threading::heartbeat_interval);
+	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
 
-	ascii = new zeek::threading::formatter::Ascii(this, zeek::threading::formatter::Ascii::SeparatorInfo());
+	ascii = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo());
 	}
 
 Benchmark::~Benchmark()
@@ -43,7 +43,7 @@ void Benchmark::DoClose()
 	{
 	}
 
-bool Benchmark::DoInit(const ReaderInfo& info, int num_fields, const zeek::threading::Field* const* fields)
+bool Benchmark::DoInit(const ReaderInfo& info, int num_fields, const threading::Field* const* fields)
 	{
 	num_lines = atoi(info.source);
 
@@ -88,11 +88,11 @@ bool Benchmark::DoUpdate()
 	int linestosend = num_lines * heartbeat_interval;
 	for ( int i = 0; i < linestosend; i++ )
 		{
-		zeek::threading::Value** field = new zeek::threading::Value*[NumFields()];
+		threading::Value** field = new threading::Value*[NumFields()];
 		for  (int j = 0; j < NumFields(); j++ )
 			field[j] = EntryToVal(Fields()[j]->type, Fields()[j]->subtype);
 
-		if ( Info().mode  == zeek::input::MODE_STREAM )
+		if ( Info().mode  == MODE_STREAM )
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
 		else
@@ -118,69 +118,69 @@ bool Benchmark::DoUpdate()
 
 	}
 
-	if ( Info().mode != zeek::input::MODE_STREAM )
+	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
 }
 
-zeek::threading::Value* Benchmark::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtype)
+threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 	{
-	auto* val = new zeek::threading::Value(type, subtype, true);
+	auto* val = new threading::Value(type, subtype, true);
 
 	// basically construct something random from the fields that we want.
 
 	switch ( type ) {
-	case zeek::TYPE_ENUM:
+	case TYPE_ENUM:
 		assert(false); // no enums, please.
 
-	case zeek::TYPE_STRING:
+	case TYPE_STRING:
 		{
 		std::string rnd = RandomString(10);
-		val->val.string_val.data = zeek::util::copy_string(rnd.c_str());
+		val->val.string_val.data = util::copy_string(rnd.c_str());
 		val->val.string_val.length = rnd.size();
 		break;
 		}
 
-	case zeek::TYPE_BOOL:
+	case TYPE_BOOL:
 		val->val.int_val = 1; // we never lie.
 		break;
 
-	case zeek::TYPE_INT:
+	case TYPE_INT:
 		val->val.int_val = random();
 		break;
 
-	case zeek::TYPE_TIME:
+	case TYPE_TIME:
 		val->val.double_val = CurrTime();
 		break;
 
-	case zeek::TYPE_DOUBLE:
-	case zeek::TYPE_INTERVAL:
+	case TYPE_DOUBLE:
+	case TYPE_INTERVAL:
 		val->val.double_val = random();
 		break;
 
-	case zeek::TYPE_COUNT:
+	case TYPE_COUNT:
 		val->val.uint_val = random();
 		break;
 
-	case zeek::TYPE_PORT:
+	case TYPE_PORT:
 		val->val.port_val.port = random() / (RAND_MAX / 60000);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		{
 		val->val.subnet_val.prefix = ascii->ParseAddr("192.168.17.1");
 		val->val.subnet_val.length = 16;
 		}
 		break;
 
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		val->val.addr_val = ascii->ParseAddr("192.168.17.1");
 		break;
 
-	case zeek::TYPE_TABLE:
-	case zeek::TYPE_VECTOR:
+	case TYPE_TABLE:
+	case TYPE_VECTOR:
 		// First - common initialization
 		// Then - initialization for table.
 		// Then - initialization for vector.
@@ -189,14 +189,14 @@ zeek::threading::Value* Benchmark::EntryToVal(zeek::TypeTag type, zeek::TypeTag 
 		// how many entries do we have...
 		unsigned int length = random() / (RAND_MAX / 15);
 
-		zeek::threading::Value** lvals = new zeek::threading::Value* [length];
+		threading::Value** lvals = new threading::Value* [length];
 
-		if ( type == zeek::TYPE_TABLE )
+		if ( type == TYPE_TABLE )
 			{
 			val->val.set_val.vals = lvals;
 			val->val.set_val.size = length;
 			}
-		else if ( type == zeek::TYPE_VECTOR )
+		else if ( type == TYPE_VECTOR )
 			{
 			val->val.vector_val.vals = lvals;
 			val->val.vector_val.size = length;
@@ -209,7 +209,7 @@ zeek::threading::Value* Benchmark::EntryToVal(zeek::TypeTag type, zeek::TypeTag 
 
 		for ( unsigned int pos = 0; pos < length; pos++ )
 			{
-			zeek::threading::Value* newval = EntryToVal(subtype, zeek::TYPE_ENUM);
+			threading::Value* newval = EntryToVal(subtype, TYPE_ENUM);
 			if ( newval == nullptr )
 				{
 				Error("Error while reading set");
@@ -241,19 +241,19 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 	heartbeatstarttime = CurrTime();
 
 	switch ( Info().mode ) {
-		case zeek::input::MODE_MANUAL:
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case zeek::input::MODE_REREAD:
-		case zeek::input::MODE_STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 			if ( multiplication_factor != 1 || add != 0 )
 				{
 				// we have to document at what time we changed the factor to what value.
-				zeek::threading::Value** v = new zeek::threading::Value*[2];
-				v[0] = new zeek::threading::Value(zeek::TYPE_COUNT, true);
+				threading::Value** v = new threading::Value*[2];
+				v[0] = new threading::Value(TYPE_COUNT, true);
 				v[0]->val.uint_val = num_lines;
-				v[1] = new zeek::threading::Value(zeek::TYPE_TIME, true);
+				v[1] = new threading::Value(TYPE_TIME, true);
 				v[1]->val.double_val = CurrTime();
 
 				SendEvent("lines_changed", 2, v);

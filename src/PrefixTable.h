@@ -29,24 +29,24 @@ public:
 	// Addr in network byte order. If data is zero, acts like a set.
 	// Returns ptr to old data if already existing.
 	// For existing items without data, returns non-nil if found.
-	void* Insert(const zeek::IPAddr& addr, int width, void* data = nullptr);
+	void* Insert(const IPAddr& addr, int width, void* data = nullptr);
 
 	// Value may be addr or subnet.
-	void* Insert(const zeek::Val* value, void* data = nullptr);
+	void* Insert(const Val* value, void* data = nullptr);
 
 	// Returns nil if not found, pointer to data otherwise.
 	// For items without data, returns non-nil if found.
 	// If exact is false, performs exact rather than longest-prefix match.
-	void* Lookup(const zeek::IPAddr& addr, int width, bool exact = false) const;
-	void* Lookup(const zeek::Val* value, bool exact = false) const;
+	void* Lookup(const IPAddr& addr, int width, bool exact = false) const;
+	void* Lookup(const Val* value, bool exact = false) const;
 
 	// Returns list of all found matches or empty list otherwise.
-	std::list<std::tuple<zeek::IPPrefix, void*>> FindAll(const zeek::IPAddr& addr, int width) const;
-	std::list<std::tuple<zeek::IPPrefix, void*>> FindAll(const zeek::SubNetVal* value) const;
+	std::list<std::tuple<IPPrefix, void*>> FindAll(const IPAddr& addr, int width) const;
+	std::list<std::tuple<IPPrefix, void*>> FindAll(const SubNetVal* value) const;
 
 	// Returns pointer to data or nil if not found.
-	void* Remove(const zeek::IPAddr& addr, int width);
-	void* Remove(const zeek::Val* value);
+	void* Remove(const IPAddr& addr, int width);
+	void* Remove(const Val* value);
 
 	void Clear()	{ Clear_Patricia(tree, delete_function); }
 
@@ -57,8 +57,8 @@ public:
 	void* GetNext(iterator* i);
 
 private:
-	static prefix_t* MakePrefix(const zeek::IPAddr& addr, int width);
-	static zeek::IPPrefix PrefixToIPPrefix(prefix_t* p);
+	static prefix_t* MakePrefix(const IPAddr& addr, int width);
+	static IPPrefix PrefixToIPPrefix(prefix_t* p);
 
 	patricia_tree_t* tree;
 	data_fn_t delete_function;

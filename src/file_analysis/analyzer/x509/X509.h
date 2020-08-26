@@ -67,7 +67,7 @@ namespace zeek::file_analysis::detail {
 
 class X509Val;
 
-class X509 : public zeek::file_analysis::detail::X509Common {
+class X509 : public file_analysis::detail::X509Common {
 public:
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 	bool Undelivered(uint64_t offset, uint64_t len) override;
@@ -86,10 +86,10 @@ public:
 	 * @param Returns the new record value and passes ownership to
 	 * caller.
 	 */
-	static zeek::RecordValPtr ParseCertificate(X509Val* cert_val, zeek::file_analysis::File* file = nullptr);
+	static RecordValPtr ParseCertificate(X509Val* cert_val, file_analysis::File* file = nullptr);
 
-	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                                  zeek::file_analysis::File* file)
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	                                            file_analysis::File* file)
 		{ return new X509(std::move(args), file); }
 
 	/**
@@ -102,7 +102,7 @@ public:
 	 *
 	 * @return OpenSSL's X509 store associated with the table value.
 	 */
-	static X509_STORE* GetRootStore(zeek::TableVal* root_certs);
+	static X509_STORE* GetRootStore(TableVal* root_certs);
 
 	/**
 	 * Frees memory obtained from OpenSSL that is associated with the global
@@ -117,17 +117,17 @@ public:
 	/**
 	 * Sets the table[string] that used as the certificate cache inside of Zeek.
 	 */
-	static void SetCertificateCache(zeek::TableValPtr cache)
+	static void SetCertificateCache(TableValPtr cache)
 		{ certificate_cache = std::move(cache); }
 
 	/**
 	 * Sets the callback when a certificate cache hit is encountered
 	 */
-	static void SetCertificateCacheHitCallback(zeek::FuncPtr func)
+	static void SetCertificateCacheHitCallback(FuncPtr func)
 		{ cache_hit_callback = std::move(func); }
 
 protected:
-	X509(zeek::RecordValPtr args, zeek::file_analysis::File* file);
+	X509(RecordValPtr args, file_analysis::File* file);
 
 private:
 	void ParseBasicConstraints(X509_EXTENSION* ex);
@@ -137,12 +137,12 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static zeek::StringValPtr KeyCurve(EVP_PKEY* key);
+	static StringValPtr KeyCurve(EVP_PKEY* key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 	/** X509 stores associated with global script-layer values */
-	inline static std::map<zeek::Val*, X509_STORE*> x509_stores = std::map<zeek::Val*, X509_STORE*>();
-	inline static zeek::TableValPtr certificate_cache = nullptr;
-	inline static zeek::FuncPtr cache_hit_callback = nullptr;
+	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
+	inline static TableValPtr certificate_cache = nullptr;
+	inline static FuncPtr cache_hit_callback = nullptr;
 };
 
 /**
@@ -152,7 +152,7 @@ private:
  * script-land. Otherwise, we cannot verify certificates from Bro
  * scriptland
  */
-class X509Val : public zeek::OpaqueVal {
+class X509Val : public OpaqueVal {
 public:
 	/**
 	 * Construct an X509Val.
@@ -170,7 +170,7 @@ public:
 	 *
 	 * @return A cloned X509Val.
 	 */
-	zeek::ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 	/**
 	 * Destructor.

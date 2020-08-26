@@ -26,8 +26,8 @@ static const char* unknown_cmd = "(UNKNOWN)";
 
 namespace zeek::analyzer::smtp {
 
-SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SMTP", conn)
+SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
+: analyzer::tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = false;
 	expect_recver = true;
@@ -46,12 +46,12 @@ SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 	line_after_gap = nullptr;
 	mail = nullptr;
 	UpdateState(first_cmd, 0, true);
-	cl_orig = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, true);
+	cl_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true);
 	cl_orig->SetIsNULSensitive(true);
 	cl_orig->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_orig);
 
-	cl_resp = new zeek::analyzer::tcp::ContentLine_Analyzer(conn, false);
+	cl_resp = new analyzer::tcp::ContentLine_Analyzer(conn, false);
 	cl_resp->SetIsNULSensitive(true);
 	cl_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_resp);
@@ -59,7 +59,7 @@ SMTP_Analyzer::SMTP_Analyzer(zeek::Connection* conn)
 
 void SMTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
+	analyzer::tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
 	if ( ! half_finished && mail )
 		EndData();
@@ -72,7 +72,7 @@ SMTP_Analyzer::~SMTP_Analyzer()
 
 void SMTP_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( mail )
 		EndData();
@@ -80,12 +80,12 @@ void SMTP_Analyzer::Done()
 
 void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( len <= 0 )
 		return;
 
-	const char* buf = zeek::util::fmt("seq = %" PRIu64", len = %d", seq, len);
+	const char* buf = util::fmt("seq = %" PRIu64", len = %d", seq, len);
 	int buf_len = strlen(buf);
 
 	Unexpected(is_orig, "content gap", buf_len, buf);
@@ -118,7 +118,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 
 void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	// If an TLS transaction has been initiated, forward to child and abort.
 	if ( state == detail::SMTP_IN_TLS )
@@ -183,7 +183,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			delete line_after_gap;
 
 			line_after_gap =
-				new zeek::String((const u_char *) line, length, true);
+				new String((const u_char *) line, length, true);
 			}
 
 		else if ( state == detail::SMTP_IN_DATA && line[0] == '.' && length == 1 )
@@ -221,8 +221,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				{
 				EnqueueConnEvent(smtp_data,
 					ConnVal(),
-					zeek::val_mgr->Bool(orig),
-					zeek::make_intrusive<zeek::StringVal>(data_len, line)
+					val_mgr->Bool(orig),
+					make_intrusive<StringVal>(data_len, line)
 				);
 				}
 			}
@@ -240,8 +240,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			expect_sender = false;
 			expect_recver = true;
 
-			zeek::util::get_word(length, line, cmd_len, cmd);
-			line = zeek::util::skip_whitespace(line + cmd_len, end_of_line);
+			util::get_word(length, line, cmd_len, cmd);
+			line = util::skip_whitespace(line + cmd_len, end_of_line);
 			cmd_code = ParseCmd(cmd_len, cmd);
 
 			if ( cmd_code == -1 )
@@ -299,7 +299,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			{
 			reply_code = -1;
 			Unexpected(is_sender, "reply code out of range", length, line);
-			ProtocolViolation(zeek::util::fmt("reply code %d out of range",
+			ProtocolViolation(util::fmt("reply code %d out of range",
 			                                  reply_code), line, length);
 			}
 
@@ -319,12 +319,12 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( reply_code >= 0 && length > 3 && line[3] == '-' )
 				{ // A continued reply.
 				pending_reply = reply_code;
-				line = zeek::util::skip_whitespace(line+4, end_of_line);
+				line = util::skip_whitespace(line+4, end_of_line);
 				}
 
 			else
 				{ // This is the end of the reply.
-				line = zeek::util::skip_whitespace(line+3, end_of_line);
+				line = util::skip_whitespace(line+3, end_of_line);
 
 				pending_reply = 0;
 				expect_sender = true;
@@ -351,11 +351,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 				EnqueueConnEvent(smtp_reply,
 					ConnVal(),
-					zeek::val_mgr->Bool(orig),
-					zeek::val_mgr->Count(reply_code),
-					zeek::make_intrusive<zeek::StringVal>(cmd),
-					zeek::make_intrusive<zeek::StringVal>(end_of_line - line, line),
-					zeek::val_mgr->Bool((pending_reply > 0))
+					val_mgr->Bool(orig),
+					val_mgr->Count(reply_code),
+					make_intrusive<StringVal>(cmd),
+					make_intrusive<StringVal>(end_of_line - line, line),
+					val_mgr->Bool((pending_reply > 0))
 				);
 				}
 			}
@@ -366,7 +366,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			const char* ext;
 			int ext_len;
 
-			zeek::util::get_word(end_of_line - line, line, ext_len, ext);
+			util::get_word(end_of_line - line, line, ext_len, ext);
 			ProcessExtension(ext_len, ext);
 			}
 		}
@@ -405,7 +405,7 @@ void SMTP_Analyzer::StartTLS()
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
 
-	Analyzer* ssl = zeek::analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
@@ -855,14 +855,14 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 
 	if ( smtp_request )
 		{
-		auto cmd_arg = zeek::make_intrusive<zeek::StringVal>(cmd_len, cmd);
+		auto cmd_arg = make_intrusive<StringVal>(cmd_len, cmd);
 		cmd_arg->ToUpper();
 
 		EnqueueConnEvent(smtp_request,
 			ConnVal(),
-			zeek::val_mgr->Bool(orig_is_sender),
+			val_mgr->Bool(orig_is_sender),
 			std::move(cmd_arg),
-			zeek::make_intrusive<zeek::StringVal>(arg_len, arg)
+			make_intrusive<StringVal>(arg_len, arg)
 		);
 		}
 	}
@@ -881,9 +881,9 @@ void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg,
 
 		EnqueueConnEvent(smtp_unexpected,
 			ConnVal(),
-			zeek::val_mgr->Bool(is_orig),
-			zeek::make_intrusive<zeek::StringVal>(msg),
-			zeek::make_intrusive<zeek::StringVal>(detail_len, detail)
+			val_mgr->Bool(is_orig),
+			make_intrusive<StringVal>(msg),
+			make_intrusive<StringVal>(detail_len, detail)
 		);
 		}
 	}
@@ -928,7 +928,7 @@ void SMTP_Analyzer::BeginData(bool orig)
 		delete mail;
 		}
 
-	mail = new zeek::analyzer::mime::MIME_Mail(this, orig);
+	mail = new analyzer::mime::MIME_Mail(this, orig);
 	}
 
 void SMTP_Analyzer::EndData()

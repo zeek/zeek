@@ -99,7 +99,7 @@ public:
 		}
 
 	IntrusivePtr(const IntrusivePtr& other) noexcept
-		: IntrusivePtr(zeek::NewRef{}, other.get())
+		: IntrusivePtr(NewRef{}, other.get())
 		{
 		}
 
@@ -183,7 +183,7 @@ template <class T, class... Ts>
 IntrusivePtr<T> make_intrusive(Ts&&... args)
 	{
 	// Assumes that objects start with a reference count of 1!
-	return {zeek::AdoptRef{}, new T(std::forward<Ts>(args)...)};
+	return {AdoptRef{}, new T(std::forward<Ts>(args)...)};
 	}
 
 /**
@@ -195,7 +195,7 @@ IntrusivePtr<T> make_intrusive(Ts&&... args)
 template <class T, class U>
 IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) noexcept
 	{
-	return {zeek::AdoptRef{}, static_cast<T*>(p.release())};
+	return {AdoptRef{}, static_cast<T*>(p.release())};
 	}
 
 } // namespace zeek

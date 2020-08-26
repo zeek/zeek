@@ -113,7 +113,7 @@ namespace detail {
 bool DNP3_Base::crc_table_initialized = false;
 unsigned int DNP3_Base::crc_table[256];
 
-DNP3_Base::DNP3_Base(zeek::analyzer::Analyzer* arg_analyzer)
+DNP3_Base::DNP3_Base(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	interp = new binpac::DNP3::DNP3_Conn(analyzer);
@@ -235,14 +235,14 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, 
 
 	if ( *len < 0 )
 		{
-		zeek::reporter->AnalyzerError(analyzer, "dnp3 negative input length: %d", *len);
+		reporter->AnalyzerError(analyzer, "dnp3 negative input length: %d", *len);
 		return -1;
 		}
 
 	if ( target_len < endp->buffer_len )
 		{
-		zeek::reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d",
-		                              target_len, endp->buffer_len);
+		reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d",
+		                        target_len, endp->buffer_len);
 		return -1;
 		}
 
@@ -250,8 +250,8 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, 
 
 	if ( endp->buffer_len + to_copy > MAX_BUFFER_SIZE )
 		{
-		zeek::reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d",
-		                              endp->buffer_len, to_copy);
+		reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d",
+		                        endp->buffer_len, to_copy);
 		return -1;
 		}
 
@@ -296,9 +296,9 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 
 		if ( data + n >= endp->buffer + endp->buffer_len )
 			{
-			zeek::reporter->AnalyzerError(analyzer,
-			                              "dnp3 app layer parsing overflow %d - %d",
-			                              endp->buffer_len, n);
+			reporter->AnalyzerError(analyzer,
+			                        "dnp3 app layer parsing overflow %d - %d",
+			                        endp->buffer_len, n);
 			return false;
 			}
 
@@ -350,7 +350,7 @@ bool DNP3_Base::CheckCRC(int len, const u_char* data, const u_char* crc16, const
 	if ( crc16[0] == (crc & 0xff) && crc16[1] == (crc & 0xff00) >> 8 )
 		return true;
 
-	analyzer->Weird(zeek::util::fmt("dnp3_corrupt_%s_checksum", where));
+	analyzer->Weird(util::fmt("dnp3_corrupt_%s_checksum", where));
 	return false;
 	}
 
@@ -386,7 +386,7 @@ unsigned int DNP3_Base::CalcCRC(int len, const u_char* data)
 	}
 
 } // namespace detail
-DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(zeek::Connection* c)
+DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(Connection* c)
 	: DNP3_Base(this), TCP_ApplicationAnalyzer("DNP3_TCP", c)
 	{
 	}
@@ -432,7 +432,7 @@ void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig)
 	Interpreter()->FlowEOF(is_orig);
 	}
 
-DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(zeek::Connection* c)
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c)
 	: DNP3_Base(this), Analyzer("DNP3_UDP", c)
 	{
 	}
@@ -441,7 +441,7 @@ DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
 	{
 	}
 
-void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

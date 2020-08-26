@@ -68,9 +68,9 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 		ProcessLayer2();
 	}
 
-const zeek::IP_Hdr Packet::IP() const
+const IP_Hdr Packet::IP() const
 	{
-	return zeek::IP_Hdr((struct ip *) (data + hdr_size), false);
+	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)
@@ -593,12 +593,12 @@ void Packet::ProcessLayer2()
 	hdr_size = (pdata - data);
 }
 
-zeek::RecordValPtr Packet::ToRawPktHdrVal() const
+RecordValPtr Packet::ToRawPktHdrVal() const
 	{
-	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
-	static auto l2_hdr_type = zeek::id::find_type<zeek::RecordType>("l2_hdr");
-	auto pkt_hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
-	auto l2_hdr = zeek::make_intrusive<zeek::RecordVal>(l2_hdr_type);
+	static auto raw_pkt_hdr_type = id::find_type<RecordType>("raw_pkt_hdr");
+	static auto l2_hdr_type = id::find_type<RecordType>("l2_hdr");
+	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
+	auto l2_hdr = make_intrusive<RecordVal>(l2_hdr_type);
 
 	bool is_ethernet = link_type == DLT_EN10MB;
 
@@ -628,41 +628,41 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_ETHERNET));
+		l2_hdr->Assign(0, BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_ETHERNET));
 		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
 		if ( vlan )
-			l2_hdr->Assign(5, zeek::val_mgr->Count(vlan));
+			l2_hdr->Assign(5, val_mgr->Count(vlan));
 
 		if ( inner_vlan )
-			l2_hdr->Assign(6, zeek::val_mgr->Count(inner_vlan));
+			l2_hdr->Assign(6, val_mgr->Count(inner_vlan));
 
-		l2_hdr->Assign(7, zeek::val_mgr->Count(eth_type));
+		l2_hdr->Assign(7, val_mgr->Count(eth_type));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
 			l3 = BifEnum::L3_ARP;
 		}
 	else
-		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
+		l2_hdr->Assign(0, BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
 
-	l2_hdr->Assign(1, zeek::val_mgr->Count(len));
-	l2_hdr->Assign(2, zeek::val_mgr->Count(cap_len));
+	l2_hdr->Assign(1, val_mgr->Count(len));
+	l2_hdr->Assign(2, val_mgr->Count(cap_len));
 
-	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetEnumVal(l3));
+	l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetEnumVal(l3));
 
 	pkt_hdr->Assign(0, std::move(l2_hdr));
 
 	if ( l3_proto == L3_IPV4 )
 		{
-		zeek::IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
+		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
 		return ip_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else if ( l3_proto == L3_IPV6 )
 		{
-		zeek::IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
+		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
 		return ip6_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
@@ -670,22 +670,22 @@ zeek::RecordValPtr Packet::ToRawPktHdrVal() const
 		return pkt_hdr;
 	}
 
-zeek::RecordVal* Packet::BuildPktHdrVal() const
+RecordVal* Packet::BuildPktHdrVal() const
 	{
 	return ToRawPktHdrVal().release();
 	}
 
-zeek::ValPtr Packet::FmtEUI48(const u_char* mac) const
+ValPtr Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
 		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	return zeek::make_intrusive<zeek::StringVal>(buf);
+	return make_intrusive<StringVal>(buf);
 	}
 
 void Packet::Describe(ODesc* d) const
 	{
-	const zeek::IP_Hdr ip = IP();
+	const IP_Hdr ip = IP();
 	d->Add(ip.SrcAddr());
 	d->Add("->");
 	d->Add(ip.DstAddr());

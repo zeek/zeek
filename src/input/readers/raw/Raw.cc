@@ -27,7 +27,7 @@ namespace zeek::input::reader::detail {
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
 
-Raw::Raw(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
+Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
 	{
 	execute = false;
 	firstrun = true;
@@ -35,10 +35,10 @@ Raw::Raw(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(fro
 	ino = 0;
 	forcekill = false;
 	offset = 0;
-	separator.assign( (const char*) zeek::BifConst::InputRaw::record_separator->Bytes(),
-			  zeek::BifConst::InputRaw::record_separator->Len());
+	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
+			  BifConst::InputRaw::record_separator->Len());
 
-	sep_length = zeek::BifConst::InputRaw::record_separator->Len();
+	sep_length = BifConst::InputRaw::record_separator->Len();
 
 	bufpos = 0;
 
@@ -82,7 +82,7 @@ void Raw::ClosePipeEnd(int i)
 	if ( pipes[i] == -1 )
 		return;
 
-	zeek::util::safe_close(pipes[i]);
+	util::safe_close(pipes[i]);
 	pipes[i] = -1;
 	}
 
@@ -92,7 +92,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 		return true;
 
 	char buf[256];
-	zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
+	util::zeek_strerror_r(errno, buf, sizeof(buf));
 	Error(Fmt("failed to set fd flags: %s", buf));
 	return false;
 	}
@@ -109,7 +109,7 @@ std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 
 	catch ( const std::system_error& e )
 		{
-		zeek::reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
+		reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
 		}
 
 	return lock;
@@ -199,7 +199,7 @@ bool Raw::Execute()
 			else
 				{
 				char buf[256];
-				zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
+				util::zeek_strerror_r(errno, buf, sizeof(buf));
 				Warning(Fmt("Could not set child process group: %s", buf));
 				}
 			}
@@ -208,7 +208,7 @@ bool Raw::Execute()
 
 		ClosePipeEnd(stdout_out);
 
-		if ( Info().mode == zeek::input::MODE_STREAM )
+		if ( Info().mode == MODE_STREAM )
 			{
 			if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
 				return false;
@@ -295,7 +295,7 @@ bool Raw::OpenInput()
 			if ( fseek(file.get(), pos, whence) < 0 )
 				{
 				char buf[256];
-				zeek::util::zeek_strerror_r(errno, buf, sizeof(buf));
+				util::zeek_strerror_r(errno, buf, sizeof(buf));
 				Error(Fmt("Seek failed in init: %s", buf));
 				}
 			}
@@ -312,7 +312,7 @@ bool Raw::CloseInput()
 		return false;
 		}
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Raw reader starting close");
+	Debug(DBG_INPUT, "Raw reader starting close");
 #endif
 
 	file.reset(nullptr);
@@ -327,7 +327,7 @@ bool Raw::CloseInput()
 		}
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Raw reader finished close");
+	Debug(DBG_INPUT, "Raw reader finished close");
 #endif
 
 	return true;
@@ -378,15 +378,15 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		}
 
 	it = info.config.find("offset"); // we want to seek to a given offset inside the file
-	if ( it != info.config.end() && ! execute && (Info().mode == zeek::input::MODE_STREAM ||
-	                                              Info().mode == zeek::input::MODE_MANUAL) )
+	if ( it != info.config.end() && ! execute && (Info().mode == MODE_STREAM ||
+	                                              Info().mode == MODE_MANUAL) )
 		{
 		std::string offset_s = it->second;
 		offset = strtoll(offset_s.c_str(), 0, 10);
 		}
 	else if ( it != info.config.end() )
 		{
-		Error("Offset only is supported for zeek::input::MODE_STREAM and zeek::input::MODE_MANUAL; it is also not supported when executing a command");
+		Error("Offset only is supported for MODE_STREAM and MODE_MANUAL; it is also not supported when executing a command");
 		return false;
 		}
 
@@ -398,18 +398,18 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		return false;
 		}
 
-	if ( fields[0]->type != zeek::TYPE_STRING )
+	if ( fields[0]->type != TYPE_STRING )
 		{
 		Error("First field for raw reader always has to be of type string.");
 		return false;
 		}
-	if ( use_stderr && fields[1]->type != zeek::TYPE_BOOL )
+	if ( use_stderr && fields[1]->type != TYPE_BOOL )
 		{
 		Error("Second field for raw reader always has to be of type bool.");
 		return false;
 		}
 
-	if ( execute && Info().mode == zeek::input::MODE_REREAD )
+	if ( execute && Info().mode == MODE_REREAD )
 		{
 		// for execs this makes no sense - would have to execute each heartbeat?
 		Error("Rereading only supported for files, not for executables.");
@@ -423,14 +423,14 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		return result;
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Raw reader created, will perform first update");
+	Debug(DBG_INPUT, "Raw reader created, will perform first update");
 #endif
 
 	// after initialization - do update
 	DoUpdate();
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "First update went through");
+	Debug(DBG_INPUT, "First update went through");
 #endif
 	return true;
 	}
@@ -459,8 +459,8 @@ int64_t Raw::GetLine(FILE* arg_file)
 		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
-		int found = zeek::util::strstr_n(pos, (unsigned char*) buf.get(),
-		                                 separator.size(), (unsigned char*) separator.c_str());
+		int found = util::strstr_n(pos, (unsigned char*) buf.get(),
+		                           separator.size(), (unsigned char*) separator.c_str());
 
 		if ( found == -1 )
 			{
@@ -531,7 +531,7 @@ void Raw::WriteToStdin()
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
 		ClosePipeEnd(stdin_out);
 
-	if ( Info().mode == zeek::input::MODE_MANUAL && stdin_towrite != 0 )
+	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
 		{
 		Error(Fmt("Could not write whole string to stdin of child process in one go. Please use STREAM mode to pass more data to child."));
 		}
@@ -547,7 +547,7 @@ bool Raw::DoUpdate()
 	else
 		{
 		switch ( Info().mode  ) {
-		case zeek::input::MODE_REREAD:
+		case MODE_REREAD:
 			{
 			assert(childpid == -1); // mode may not be used to execute child programs
 			// check if the file has changed
@@ -569,9 +569,9 @@ bool Raw::DoUpdate()
 			// fallthrough
 			}
 
-		case zeek::input::MODE_MANUAL:
-		case zeek::input::MODE_STREAM:
-			if ( Info().mode == zeek::input::MODE_STREAM && file )
+		case MODE_MANUAL:
+		case MODE_STREAM:
+			if ( Info().mode == MODE_STREAM && file )
 				{
 				clearerr(file.get());  // remove end of file evil bits
 				break;
@@ -608,14 +608,14 @@ bool Raw::DoUpdate()
 		Value** fields = new Value*[2]; // just always reserve 2. This means that our [] is too long by a count of 1 if not using stderr. But who cares...
 
 		// filter has exactly one text field. convert to it.
-		Value* val = new Value(zeek::TYPE_STRING, true);
+		Value* val = new Value(TYPE_STRING, true);
 		val->val.string_val.data = outbuf.release();
 		val->val.string_val.length = length;
 		fields[0] = val;
 
 		if ( use_stderr )
 			{
-			Value* bval = new Value(zeek::TYPE_BOOL, true);
+			Value* bval = new Value(TYPE_BOOL, true);
 			bval->val.int_val = 0;
 			fields[1] = bval;
 			}
@@ -636,11 +636,11 @@ bool Raw::DoUpdate()
 				break;
 
 			Value** fields = new Value*[2];
-			Value* val = new Value(zeek::TYPE_STRING, true);
+			Value* val = new Value(TYPE_STRING, true);
 			val->val.string_val.data = outbuf.release();
 			val->val.string_val.length = length;
 			fields[0] = val;
-			Value* bval = new Value(zeek::TYPE_BOOL, true);
+			Value* bval = new Value(TYPE_BOOL, true);
 			bval->val.int_val = 1; // yes, we are stderr
 			fields[1] = bval;
 
@@ -648,7 +648,7 @@ bool Raw::DoUpdate()
 			}
 		}
 
-	if ( ( Info().mode == zeek::input::MODE_MANUAL ) || ( Info().mode == zeek::input::MODE_REREAD ) )
+	if ( ( Info().mode == MODE_MANUAL ) || ( Info().mode == MODE_REREAD ) )
 		// done with the current data source
 		EndCurrentSend();
 
@@ -678,19 +678,19 @@ bool Raw::DoUpdate()
 			assert(false);
 
 		Value** vals = new Value*[4];
-		vals[0] = new Value(zeek::TYPE_STRING, true);
-		vals[0]->val.string_val.data = zeek::util::copy_string(Info().name);
+		vals[0] = new Value(TYPE_STRING, true);
+		vals[0]->val.string_val.data = util::copy_string(Info().name);
 		vals[0]->val.string_val.length = strlen(Info().name);
-		vals[1] = new Value(zeek::TYPE_STRING, true);
-		vals[1]->val.string_val.data = zeek::util::copy_string(Info().source);
+		vals[1] = new Value(TYPE_STRING, true);
+		vals[1]->val.string_val.data = util::copy_string(Info().source);
 		vals[1]->val.string_val.length = strlen(Info().source);
-		vals[2] = new Value(zeek::TYPE_COUNT, true);
+		vals[2] = new Value(TYPE_COUNT, true);
 		vals[2]->val.int_val = code;
-		vals[3] = new Value(zeek::TYPE_BOOL, true);
+		vals[3] = new Value(TYPE_BOOL, true);
 		vals[3]->val.int_val = signal;
 
 		// and in this case we can signal end_of_data even for the streaming reader
-		if ( Info().mode == zeek::input::MODE_STREAM )
+		if ( Info().mode == MODE_STREAM )
 			EndCurrentSend();
 
 		SendEvent("InputRaw::process_finished", 4, vals);
@@ -700,7 +700,7 @@ bool Raw::DoUpdate()
 
 
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "DoUpdate finished successfully");
+	Debug(DBG_INPUT, "DoUpdate finished successfully");
 #endif
 
 	return true;
@@ -709,19 +709,19 @@ bool Raw::DoUpdate()
 bool Raw::DoHeartbeat(double network_time, double current_time)
 	{
 	switch ( Info().mode ) {
-		case zeek::input::MODE_MANUAL:
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case zeek::input::MODE_REREAD:
-		case zeek::input::MODE_STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Starting Heartbeat update");
+			Debug(DBG_INPUT, "Starting Heartbeat update");
 #endif
 			Update();	// call update and not DoUpdate, because update
 					// checks disabled.
 #ifdef DEBUG
-	Debug(zeek::DBG_INPUT, "Finished with heartbeat update");
+			Debug(DBG_INPUT, "Finished with heartbeat update");
 #endif
 			break;
 		default:

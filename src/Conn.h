@@ -36,8 +36,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TransportLayerAnalyzer, zeek, analyzer);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 
 namespace zeek {
-using ValPtr = zeek::IntrusivePtr<Val>;
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+using ValPtr = IntrusivePtr<Val>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
 
 enum ConnEventToFlag {
 	NUL_IN_LINE,
@@ -49,23 +49,23 @@ enum ConnEventToFlag {
 typedef void (Connection::*timer_func)(double t);
 
 struct ConnID {
-	zeek::IPAddr src_addr;
-	zeek::IPAddr dst_addr;
+	IPAddr src_addr;
+	IPAddr dst_addr;
 	uint32_t src_port;
 	uint32_t dst_port;
 	bool is_one_way;	// if true, don't canonicalize order
 };
 
-static inline int addr_port_canon_lt(const zeek::IPAddr& addr1, uint32_t p1,
-                                     const zeek::IPAddr& addr2, uint32_t p2)
+static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
+                                     const IPAddr& addr2, uint32_t p2)
 	{
 	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
 
-class Connection final : public zeek::Obj {
+class Connection final : public Obj {
 public:
-	Connection(zeek::NetSessions* s, const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-	           uint32_t flow, const zeek::Packet* pkt, const zeek::EncapsulationStack* arg_encap);
+	Connection(NetSessions* s, const detail::ConnIDKey& k, double t, const ConnID* id,
+	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);
 	~Connection() override;
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -73,7 +73,7 @@ public:
 	// event if it's different from the previous encapsulation (or the
 	// first encountered). encap can be null to indicate no
 	// encapsulation.
-	void CheckEncapsulation(const zeek::EncapsulationStack* encap);
+	void CheckEncapsulation(const EncapsulationStack* encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -91,16 +91,16 @@ public:
 	// be recorded, otherwise just up through the transport header.
 	// Both are assumed set to true when called.
 	void NextPacket(double t, bool is_orig,
-	                const zeek::IP_Hdr* ip, int len, int caplen,
+	                const IP_Hdr* ip, int len, int caplen,
 	                const u_char*& data,
 	                int& record_packet, int& record_content,
 	                // arguments for reproducing packets
-	                const zeek::Packet *pkt);
+	                const Packet *pkt);
 
 	// Keys are only considered valid for a connection when a
 	// connection is in the session map. If it is removed, the key
 	// should be marked invalid.
-	const zeek::detail::ConnIDKey& Key() const	{ return key; }
+	const detail::ConnIDKey& Key() const	{ return key; }
 	void ClearKey()					{ key_valid = false; }
 	bool IsKeyValid() const			{ return key_valid; }
 
@@ -109,17 +109,17 @@ public:
 	double LastTime() const			{ return last_time; }
 	void SetLastTime(double t) 		{ last_time = t; }
 
-	const zeek::IPAddr& OrigAddr() const		{ return orig_addr; }
-	const zeek::IPAddr& RespAddr() const		{ return resp_addr; }
+	const IPAddr& OrigAddr() const		{ return orig_addr; }
+	const IPAddr& RespAddr() const		{ return resp_addr; }
 
 	uint32_t OrigPort() const			{ return orig_port; }
 	uint32_t RespPort() const			{ return resp_port; }
 
 	void FlipRoles();
 
-	zeek::analyzer::Analyzer* FindAnalyzer(zeek::analyzer::ID id);
-	zeek::analyzer::Analyzer* FindAnalyzer(const zeek::analyzer::Tag& tag);	// find first in tree.
-	zeek::analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
+	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
+	analyzer::Analyzer* FindAnalyzer(const analyzer::Tag& tag);	// find first in tree.
+	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }
 
@@ -167,18 +167,18 @@ public:
 	void EnableStatusUpdateTimer();
 
 	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
-	zeek::RecordVal* BuildConnVal();
+	RecordVal* BuildConnVal();
 
 	/**
 	 * Returns the associated "connection" record.
 	 */
-	const zeek::RecordValPtr& ConnVal();
+	const RecordValPtr& ConnVal();
 
 	void AppendAddl(const char* str);
 
 	LoginConn* AsLoginConn()		{ return login_conn; }
 
-	void Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
+	void Match(detail::Rule::PatternType type, const u_char* data, int len,
 	           bool is_orig, bool bol, bool eol, bool clear_state);
 
 	/**
@@ -190,29 +190,27 @@ public:
 	// given that event's first argument will be it, and it's second will be
 	// the connection value.  If 'name' is null, then the event's first
 	// argument is the connection value.
-	void Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, const char* name = nullptr);
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// 'v1' and 'v2' reference counts get decremented.  The event's first
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead (note it doesn't automatically add the connection argument).")]]
-	void Event(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer, zeek::Val* v1, zeek::Val* v2 = nullptr);
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
 	// arguments used for the event are whatevever is provided in 'vl'.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
-	                     ValPList vl);
+	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer, ValPList vl);
 
 	// Same as ConnectionEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' and also for decrementing the reference count
 	// of each of its elements.
 	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
-	void ConnectionEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
-	                     ValPList* vl);
+	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer, ValPList* vl);
 
 	// Queues an event without first checking if there's any available event
 	// handlers (or remote consumes).  If it turns out there's actually nothing
@@ -229,8 +227,8 @@ public:
 	/**
 	 * Enqueues an event associated with this connection and given analyzer.
 	 */
-	void EnqueueEvent(zeek::EventHandlerPtr f, zeek::analyzer::Analyzer* analyzer,
-	                  zeek::Args args);
+	void EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	                  Args args);
 
 	/**
 	 * A version of EnqueueEvent() taking a variable number of arguments.
@@ -238,8 +236,8 @@ public:
 	template <class... Args>
 	std::enable_if_t<
 		std::is_convertible_v<
-			std::tuple_element_t<0, std::tuple<Args...>>, zeek::ValPtr>>
-	EnqueueEvent(zeek::EventHandlerPtr h, zeek::analyzer::Analyzer* analyzer, Args&&... args)
+			std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
+	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
 		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Weird(const char* name, const char* addl = "");
@@ -260,8 +258,8 @@ public:
 		return true;
 		}
 
-	void Describe(zeek::ODesc* d) const override;
-	void IDString(zeek::ODesc* d) const;
+	void Describe(ODesc* d) const override;
+	void IDString(ODesc* d) const;
 
 	// Statistics.
 
@@ -295,7 +293,7 @@ public:
 	                        uint32_t& scaling_threshold,
 	                        uint32_t scaling_base = 10);
 
-	void HistoryThresholdEvent(zeek::EventHandlerPtr e, bool is_orig,
+	void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 	                           uint32_t threshold);
 
 	void AddHistory(char code)	{ history += code; }
@@ -303,18 +301,18 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(zeek::analyzer::TransportLayerAnalyzer* analyzer, zeek::analyzer::pia::PIA* pia);
-	zeek::analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
-	zeek::analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
+	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
+	analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
+	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	void SetUID(const zeek::UID &arg_uid)	 { uid = arg_uid; }
+	void SetUID(const UID &arg_uid)	 { uid = arg_uid; }
 
-	zeek::UID GetUID() const { return uid; }
+	UID GetUID() const { return uid; }
 
-	const zeek::EncapsulationStack* GetEncapsulation() const
+	const EncapsulationStack* GetEncapsulation() const
 		{ return encapsulation; }
 
 	void CheckFlowLabel(bool is_orig, uint32_t flow_label);
@@ -331,9 +329,9 @@ protected:
 	// is true, then the timer is also evaluated when Bro terminates,
 	// otherwise not.
 	void AddTimer(timer_func timer, double t, bool do_expire,
-	              zeek::detail::TimerType type);
+	              detail::TimerType type);
 
-	void RemoveTimer(zeek::detail::Timer* t);
+	void RemoveTimer(detail::Timer* t);
 
 	// Allow other classes to access pointers to these:
 	friend class detail::ConnectionTimer;
@@ -342,25 +340,25 @@ protected:
 	void StatusUpdateTimer(double t);
 	void RemoveConnectionTimer(double t);
 
-	zeek::NetSessions* sessions;
-	zeek::detail::ConnIDKey key;
+	NetSessions* sessions;
+	detail::ConnIDKey key;
 	bool key_valid;
 
 	TimerPList timers;
 
-	zeek::IPAddr orig_addr;
-	zeek::IPAddr resp_addr;
+	IPAddr orig_addr;
+	IPAddr resp_addr;
 	uint32_t orig_port, resp_port;	// in network order
 	TransportProto proto;
 	uint32_t orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32_t vlan, inner_vlan;	// VLAN this connection traverses, if available
-	u_char orig_l2_addr[zeek::Packet::l2_addr_len];	// Link-layer originator address, if available
-	u_char resp_l2_addr[zeek::Packet::l2_addr_len];	// Link-layer responder address, if available
+	u_char orig_l2_addr[Packet::l2_addr_len];	// Link-layer originator address, if available
+	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
-	zeek::RecordValPtr conn_val;
+	RecordValPtr conn_val;
 	LoginConn* login_conn;	// either nil, or this
-	const zeek::EncapsulationStack* encapsulation; // tunnels
+	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;
@@ -381,20 +379,20 @@ protected:
 	std::string history;
 	uint32_t hist_seen;
 
-	zeek::analyzer::TransportLayerAnalyzer* root_analyzer;
-	zeek::analyzer::pia::PIA* primary_PIA;
+	analyzer::TransportLayerAnalyzer* root_analyzer;
+	analyzer::pia::PIA* primary_PIA;
 
-	zeek::UID uid;	// Globally unique connection ID.
-	zeek::detail::WeirdStateMap weird_state;
+	UID uid;	// Globally unique connection ID.
+	detail::WeirdStateMap weird_state;
 };
 
 namespace detail {
 
-class ConnectionTimer final : public zeek::detail::Timer {
+class ConnectionTimer final : public Timer {
 public:
 	ConnectionTimer(Connection* arg_conn, timer_func arg_timer,
-	                double arg_t, bool arg_do_expire, zeek::detail::TimerType arg_type)
-		: zeek::detail::Timer(arg_t, arg_type)
+	                double arg_t, bool arg_do_expire, TimerType arg_type)
+		: Timer(arg_t, arg_type)
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
 	~ConnectionTimer() override;
 

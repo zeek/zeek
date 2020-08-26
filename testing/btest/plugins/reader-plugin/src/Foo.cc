@@ -10,13 +10,13 @@
 #include "threading/SerialTypes.h"
 #include "threading/Manager.h"
 
-using namespace input::reader;
-using threading::Value;
-using threading::Field;
+using namespace btest::input::reader;
+using zeek::threading::Value;
+using zeek::threading::Field;
 
-Foo::Foo(ReaderFrontend *frontend) : ReaderBackend(frontend)
+Foo::Foo(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
 	{
-	ascii = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo());
+	ascii = new zeek::threading::formatter::Ascii(this, zeek::threading::formatter::Ascii::SeparatorInfo());
 	}
 
 Foo::~Foo()
@@ -29,7 +29,7 @@ void Foo::DoClose()
 	{
 	}
 
-bool Foo::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
+bool Foo::DoInit(const zeek::input::ReaderBackend::ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	DoUpdate();
 	return true;
@@ -71,7 +71,7 @@ bool Foo::DoUpdate()
 	return true;
 }
 
-threading::Value* Foo::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtype)
+zeek::threading::Value* Foo::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtype)
 	{
 	Value* val = new Value(type, true);
 

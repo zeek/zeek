@@ -16,14 +16,14 @@ namespace zeek::input::reader::detail {
 // Description for input field mapping.
 struct FieldMapping {
 	std::string name;
-	zeek::TypeTag type;
-	zeek::TypeTag subtype; // internal type for sets and vectors
+	TypeTag type;
+	TypeTag subtype; // internal type for sets and vectors
 	int position;
 	int secondary_position; // for ports: pos of the second field
 	bool present;
 
-	FieldMapping(const std::string& arg_name, const zeek::TypeTag& arg_type, int arg_position);
-	FieldMapping(const std::string& arg_name, const zeek::TypeTag& arg_type, const zeek::TypeTag& arg_subtype, int arg_position);
+	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, int arg_position);
+	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position);
 
 	FieldMapping(const FieldMapping& arg);
 	FieldMapping() { position = -1; secondary_position = -1; }
@@ -34,9 +34,9 @@ struct FieldMapping {
 /**
  * Reader for structured ASCII files.
  */
-class Ascii : public zeek::input::ReaderBackend {
+class Ascii : public ReaderBackend {
 public:
-	explicit Ascii(zeek::input::ReaderFrontend* frontend);
+	explicit Ascii(ReaderFrontend* frontend);
 	~Ascii() override;
 
 	// prohibit copying and moving
@@ -45,7 +45,7 @@ public:
 	Ascii& operator=(const Ascii&) = delete;
 	Ascii& operator=(Ascii&&) = delete;
 
-	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new Ascii(frontend); }
+	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Ascii(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
@@ -82,7 +82,7 @@ private:
 	bool fail_on_file_problem;
 	std::string path_prefix;
 
-	std::unique_ptr<zeek::threading::Formatter> formatter;
+	std::unique_ptr<threading::Formatter> formatter;
 };
 
 } // namespace zeek::input::reader::detail

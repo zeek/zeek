@@ -22,9 +22,9 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 
 namespace zeek {
 template <class T> class IntrusivePtr;
-using ValPtr = zeek::IntrusivePtr<Val>;
-using ListValPtr = zeek::IntrusivePtr<ListVal>;
-using TableValPtr = zeek::IntrusivePtr<TableVal>;
+using ValPtr = IntrusivePtr<Val>;
+using ListValPtr = IntrusivePtr<ListVal>;
+using TableValPtr = IntrusivePtr<TableVal>;
 }
 
 // Defined in nb_dns.h
@@ -33,7 +33,7 @@ struct nb_dns_result;
 
 namespace zeek::detail {
 
-using DNS_mgr_request_list = zeek::PList<DNS_Mgr_Request>;
+using DNS_mgr_request_list = PList<DNS_Mgr_Request>;
 
 class DNS_Mapping;
 
@@ -47,7 +47,7 @@ enum DNS_MgrMode {
 // Number of seconds we'll wait for a reply.
 #define DNS_TIMEOUT 5
 
-class DNS_Mgr final : public zeek::iosource::IOSource {
+class DNS_Mgr final : public iosource::IOSource {
 public:
 	explicit DNS_Mgr(DNS_MgrMode mode);
 	~DNS_Mgr() override;
@@ -57,19 +57,19 @@ public:
 
 	// Looks up the address or addresses of the given host, and returns
 	// a set of addr.
-	zeek::TableValPtr LookupHost(const char* host);
+	TableValPtr LookupHost(const char* host);
 
-	zeek::ValPtr LookupAddr(const zeek::IPAddr& addr);
+	ValPtr LookupAddr(const IPAddr& addr);
 
 	// Define the directory where to store the data.
-	void SetDir(const char* arg_dir)	{ dir = zeek::util::copy_string(arg_dir); }
+	void SetDir(const char* arg_dir)	{ dir = util::copy_string(arg_dir); }
 
 	void Verify();
 	void Resolve();
 	bool Save();
 
-	const char* LookupAddrInCache(const zeek::IPAddr& addr);
-	zeek::TableValPtr LookupNameInCache(const std::string& name);
+	const char* LookupAddrInCache(const IPAddr& addr);
+	TableValPtr LookupNameInCache(const std::string& name);
 	const char* LookupTextInCache(const std::string& name);
 
 	// Support for async lookups.
@@ -79,11 +79,11 @@ public:
 		virtual ~LookupCallback()	{ }
 
 		virtual void Resolved(const char* name)	{ };
-		virtual void Resolved(zeek::TableVal* addrs)	{ };
+		virtual void Resolved(TableVal* addrs)	{ };
 		virtual void Timeout() = 0;
 	};
 
-	void AsyncLookupAddr(const zeek::IPAddr& host, LookupCallback* callback);
+	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
 	void AsyncLookupName(const std::string& name, LookupCallback* callback);
 	void AsyncLookupNameText(const std::string& name, LookupCallback* callback);
 
@@ -105,20 +105,20 @@ protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
-	void Event(zeek::EventHandlerPtr e, DNS_Mapping* dm);
-	void Event(zeek::EventHandlerPtr e, DNS_Mapping* dm,
-	           zeek::ListValPtr l1, zeek::ListValPtr l2);
-	void Event(zeek::EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm,
+	           ListValPtr l1, ListValPtr l2);
+	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
-	zeek::ValPtr BuildMappingVal(DNS_Mapping* dm);
+	ValPtr BuildMappingVal(DNS_Mapping* dm);
 
 	void AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r);
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
-	zeek::ListValPtr AddrListDelta(zeek::ListVal* al1, zeek::ListVal* al2);
-	void DumpAddrList(FILE* f, zeek::ListVal* al);
+	ListValPtr AddrListDelta(ListVal* al1, ListVal* al2);
+	void DumpAddrList(FILE* f, ListVal* al);
 
 	typedef std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
-	typedef std::map<zeek::IPAddr, DNS_Mapping*> AddrMap;
+	typedef std::map<IPAddr, DNS_Mapping*> AddrMap;
 	typedef std::map<std::string, DNS_Mapping*> TextMap;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, const AddrMap& m);
@@ -134,7 +134,7 @@ protected:
 
 	// Finish the request if we have a result.  If not, time it out if
 	// requested.
-	void CheckAsyncAddrRequest(const zeek::IPAddr& addr, bool timeout);
+	void CheckAsyncAddrRequest(const IPAddr& addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
@@ -158,13 +158,13 @@ protected:
 
 	bool did_init;
 
-	zeek::RecordTypePtr dm_rec;
+	RecordTypePtr dm_rec;
 
 	typedef std::list<LookupCallback*> CallbackList;
 
 	struct AsyncRequest {
 		double time;
-		zeek::IPAddr host;
+		IPAddr host;
 		std::string name;
 		CallbackList callbacks;
 		bool is_txt;
@@ -186,7 +186,7 @@ protected:
 			processed = true;
 			}
 
-		void Resolved(zeek::TableVal* addrs)
+		void Resolved(TableVal* addrs)
 			{
 			for ( CallbackList::iterator i = callbacks.begin();
 			      i != callbacks.end(); ++i )
@@ -212,7 +212,7 @@ protected:
 
 	};
 
-	typedef std::map<zeek::IPAddr, AsyncRequest*> AsyncRequestAddrMap;
+	typedef std::map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
 	AsyncRequestAddrMap asyncs_addrs;
 
 	typedef std::map<std::string, AsyncRequest*> AsyncRequestNameMap;

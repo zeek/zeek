@@ -12,11 +12,13 @@
 
 #include "analyzer/Manager.h"
 
-const zeek::IPAddr zeek::IPAddr::v4_unspecified = zeek::IPAddr(in4_addr{});
+namespace zeek {
 
-const zeek::IPAddr zeek::IPAddr::v6_unspecified = zeek::IPAddr();
+const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
 
-zeek::detail::ConnIDKey zeek::detail::BuildConnIDKey(const ConnID& id)
+const IPAddr IPAddr::v6_unspecified = IPAddr();
+
+detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id)
 	{
 	ConnIDKey key;
 
@@ -43,19 +45,17 @@ zeek::detail::ConnIDKey zeek::detail::BuildConnIDKey(const ConnID& id)
 	return key;
 	}
 
-namespace zeek {
-
-IPAddr::IPAddr(const zeek::String& s)
+IPAddr::IPAddr(const String& s)
 	{
 	Init(s.CheckString());
 	}
 
-zeek::detail::HashKey* IPAddr::GetHashKey() const
+detail::HashKey* IPAddr::GetHashKey() const
 	{ return MakeHashKey().release(); }
 
-std::unique_ptr<zeek::detail::HashKey> IPAddr::MakeHashKey() const
+std::unique_ptr<detail::HashKey> IPAddr::MakeHashKey() const
 	{
-	return std::make_unique<zeek::detail::HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
+	return std::make_unique<detail::HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
 	}
 
 static inline uint32_t bit_mask32(int bottom_bits)
@@ -70,7 +70,7 @@ void IPAddr::Mask(int top_bits_to_keep)
 	{
 	if ( top_bits_to_keep < 0 || top_bits_to_keep > 128 )
 		{
-		zeek::reporter->Error("Bad IPAddr::Mask value %d", top_bits_to_keep);
+		reporter->Error("Bad IPAddr::Mask value %d", top_bits_to_keep);
 		return;
 		}
 
@@ -94,7 +94,7 @@ void IPAddr::ReverseMask(int top_bits_to_chop)
 	{
 	if ( top_bits_to_chop < 0 || top_bits_to_chop > 128 )
 		{
-		zeek::reporter->Error("Bad IPAddr::ReverseMask value %d", top_bits_to_chop);
+		reporter->Error("Bad IPAddr::ReverseMask value %d", top_bits_to_chop);
 		return;
 		}
 
@@ -149,7 +149,7 @@ void IPAddr::Init(const char* s)
 	{
 	if ( ! ConvertString(s, &in6) )
 		{
-		zeek::reporter->Error("Bad IP address: %s", s);
+		reporter->Error("Bad IP address: %s", s);
 		memset(in6.s6_addr, 0, sizeof(in6.s6_addr));
 		}
 	}
@@ -235,7 +235,7 @@ IPPrefix::IPPrefix(const in4_addr& in4, uint8_t length)
 	{
 	if ( length > 32 )
 		{
-		zeek::reporter->Error("Bad in4_addr IPPrefix length : %d", length);
+		reporter->Error("Bad in4_addr IPPrefix length : %d", length);
 		this->length = 0;
 		}
 
@@ -247,7 +247,7 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 	{
 	if ( length > 128 )
 		{
-		zeek::reporter->Error("Bad in6_addr IPPrefix length : %d", length);
+		reporter->Error("Bad in6_addr IPPrefix length : %d", length);
 		this->length = 0;
 		}
 
@@ -284,7 +284,7 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
 	else
 		{
 		auto vstr = prefix.GetFamily() == IPv4 ? "v4" : "v6";
-		zeek::reporter->Error("Bad IPAddr(%s) IPPrefix length : %d", vstr, length);
+		reporter->Error("Bad IPAddr(%s) IPPrefix length : %d", vstr, length);
 		this->length = 0;
 		}
 
@@ -303,10 +303,10 @@ std::string IPPrefix::AsString() const
 	return prefix.AsString() +"/" + l;
 	}
 
-zeek::detail::HashKey* IPPrefix::GetHashKey() const
+detail::HashKey* IPPrefix::GetHashKey() const
 	{ return MakeHashKey().release(); }
 
-std::unique_ptr<zeek::detail::HashKey> IPPrefix::MakeHashKey() const
+std::unique_ptr<detail::HashKey> IPPrefix::MakeHashKey() const
 	{
 	struct {
 		in6_addr ip;
@@ -316,7 +316,7 @@ std::unique_ptr<zeek::detail::HashKey> IPPrefix::MakeHashKey() const
 	key.ip = prefix.in6;
 	key.len = Length();
 
-	return std::make_unique<zeek::detail::HashKey>(&key, sizeof(key));
+	return std::make_unique<detail::HashKey>(&key, sizeof(key));
 	}
 
 bool IPPrefix::ConvertString(const char* text, IPPrefix* result)

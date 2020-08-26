@@ -31,7 +31,7 @@ namespace detail {
 
 class NCP_Session {
 public:
-	explicit NCP_Session(zeek::analyzer::Analyzer* analyzer);
+	explicit NCP_Session(analyzer::Analyzer* analyzer);
 
 	void Deliver(bool is_orig, int len, const u_char* data);
 
@@ -43,7 +43,7 @@ public:
 protected:
 	void DeliverFrame(const binpac::NCP::ncp_frame* frame);
 
-	zeek::analyzer::Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	int req_frame_type;
 	int req_func;
 };
@@ -85,9 +85,9 @@ protected:
 
 } // namespace detail
 
-class Contents_NCP_Analyzer : public zeek::analyzer::tcp::TCP_SupportAnalyzer {
+class Contents_NCP_Analyzer : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
-	Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, detail::NCP_Session* session);
+	Contents_NCP_Analyzer(Connection* conn, bool orig, detail::NCP_Session* session);
 	~Contents_NCP_Analyzer() override;
 
 protected:
@@ -102,12 +102,12 @@ protected:
 	bool resync_set;
 };
 
-class NCP_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class NCP_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit NCP_Analyzer(zeek::Connection* conn);
+	explicit NCP_Analyzer(Connection* conn);
 	~NCP_Analyzer() override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NCP_Analyzer(conn); }
 
 protected:

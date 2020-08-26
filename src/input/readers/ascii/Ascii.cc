@@ -18,16 +18,16 @@ using zeek::threading::Field;
 
 namespace zeek::input::reader::detail {
 
-FieldMapping::FieldMapping(const string& arg_name, const zeek::TypeTag& arg_type, int arg_position)
-	: name(arg_name), type(arg_type), subtype(zeek::TYPE_ERROR)
+FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position)
+	: name(arg_name), type(arg_type), subtype(TYPE_ERROR)
 	{
 	position = arg_position;
 	secondary_position = -1;
 	present = true;
 	}
 
-FieldMapping::FieldMapping(const string& arg_name, const zeek::TypeTag& arg_type,
-		const zeek::TypeTag& arg_subtype, int arg_position)
+FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type,
+		const TypeTag& arg_subtype, int arg_position)
 	: name(arg_name), type(arg_type), subtype(arg_subtype)
 	{
 	position = arg_position;
@@ -47,7 +47,7 @@ FieldMapping FieldMapping::subType()
 	return FieldMapping(name, subtype, position);
 	}
 
-Ascii::Ascii(zeek::input::ReaderFrontend *frontend) : zeek::input::ReaderBackend(frontend)
+Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
@@ -67,23 +67,23 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	{
 	StopWarningSuppression();
 
-	separator.assign( (const char*) zeek::BifConst::InputAscii::separator->Bytes(),
-	                 zeek::BifConst::InputAscii::separator->Len());
+	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
+	                 BifConst::InputAscii::separator->Len());
 
-	set_separator.assign( (const char*) zeek::BifConst::InputAscii::set_separator->Bytes(),
-	                     zeek::BifConst::InputAscii::set_separator->Len());
+	set_separator.assign( (const char*) BifConst::InputAscii::set_separator->Bytes(),
+	                     BifConst::InputAscii::set_separator->Len());
 
-	empty_field.assign( (const char*) zeek::BifConst::InputAscii::empty_field->Bytes(),
-	                   zeek::BifConst::InputAscii::empty_field->Len());
+	empty_field.assign( (const char*) BifConst::InputAscii::empty_field->Bytes(),
+	                   BifConst::InputAscii::empty_field->Len());
 
-	unset_field.assign( (const char*) zeek::BifConst::InputAscii::unset_field->Bytes(),
-	                   zeek::BifConst::InputAscii::unset_field->Len());
+	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
+	                   BifConst::InputAscii::unset_field->Len());
 
-	fail_on_invalid_lines = zeek::BifConst::InputAscii::fail_on_invalid_lines;
-	fail_on_file_problem = zeek::BifConst::InputAscii::fail_on_file_problem;
+	fail_on_invalid_lines = BifConst::InputAscii::fail_on_invalid_lines;
+	fail_on_file_problem = BifConst::InputAscii::fail_on_file_problem;
 
-	path_prefix.assign((const char*) zeek::BifConst::InputAscii::path_prefix->Bytes(),
-	                   zeek::BifConst::InputAscii::path_prefix->Len());
+	path_prefix.assign((const char*) BifConst::InputAscii::path_prefix->Bytes(),
+	                   BifConst::InputAscii::path_prefix->Len());
 
 	// Set per-filter configuration options.
 	for ( ReaderInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
@@ -113,8 +113,8 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	if ( set_separator.size() != 1 )
 		Error("set_separator length has to be 1. Separator will be truncated.");
 
-	zeek::threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-	formatter = unique_ptr<zeek::threading::Formatter>(new zeek::threading::formatter::Ascii(this, sep_info));
+	threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+	formatter = unique_ptr<threading::Formatter>(new threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -274,7 +274,7 @@ bool Ascii::DoUpdate()
 		return ! fail_on_file_problem;
 
 	switch ( Info().mode ) {
-		case zeek::input::MODE_REREAD:
+		case MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
@@ -301,14 +301,14 @@ bool Ascii::DoUpdate()
 			// File changed. Fall through to re-read.
 			}
 
-		case zeek::input::MODE_MANUAL:
-		case zeek::input::MODE_STREAM:
+		case MODE_MANUAL:
+		case MODE_STREAM:
 			{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
 			if ( file.is_open() )
 				{
-				if ( Info().mode == zeek::input::MODE_STREAM )
+				if ( Info().mode == MODE_STREAM )
 					{
 					file.clear(); // remove end of file evil bits
 					if ( ! ReadHeader(true) )
@@ -407,7 +407,7 @@ bool Ascii::DoUpdate()
 			if ( (*fit).secondary_position != -1 )
 				{
 				// we have a port definition :)
-				assert(val->type == zeek::TYPE_PORT );
+				assert(val->type == TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
 				val->val.port_val.proto = formatter->ParseProto(stringfields[(*fit).secondary_position]);
@@ -434,13 +434,13 @@ bool Ascii::DoUpdate()
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 		assert ( fpos == NumFields() );
 
-		if ( Info().mode == zeek::input::MODE_STREAM )
+		if ( Info().mode == MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( Info().mode != zeek::input::MODE_STREAM )
+	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -453,12 +453,12 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 	switch ( Info().mode )
 		{
-		case zeek::input::MODE_MANUAL:
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case zeek::input::MODE_REREAD:
-		case zeek::input::MODE_STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 			Update(); // Call Update, not DoUpdate, because Update
 				  // checks the "disabled" flag.
 			break;

@@ -12,12 +12,12 @@ namespace zeek::notifier::detail {
 
 Receiver::Receiver()
 	{
-	DBG_LOG(zeek::DBG_NOTIFIERS, "creating receiver %p", this);
+	DBG_LOG(DBG_NOTIFIERS, "creating receiver %p", this);
 	}
 
 Receiver::~Receiver()
 	{
-	DBG_LOG(zeek::DBG_NOTIFIERS, "deleting receiver %p", this);
+	DBG_LOG(DBG_NOTIFIERS, "deleting receiver %p", this);
 	}
 
 Registry::~Registry()
@@ -28,7 +28,7 @@ Registry::~Registry()
 
 void Registry::Register(Modifiable* m, Receiver* r)
 	{
-	DBG_LOG(zeek::DBG_NOTIFIERS, "registering object %p for receiver %p", m, r);
+	DBG_LOG(DBG_NOTIFIERS, "registering object %p for receiver %p", m, r);
 
 	registrations.insert({m, r});
 	++m->num_receivers;
@@ -36,7 +36,7 @@ void Registry::Register(Modifiable* m, Receiver* r)
 
 void Registry::Unregister(Modifiable* m, Receiver* r)
 	{
-	DBG_LOG(zeek::DBG_NOTIFIERS, "unregistering object %p from receiver %p", m, r);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering object %p from receiver %p", m, r);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
@@ -52,7 +52,7 @@ void Registry::Unregister(Modifiable* m, Receiver* r)
 
 void Registry::Unregister(Modifiable* m)
 	{
-	DBG_LOG(zeek::DBG_NOTIFIERS, "unregistering object %p from all notifiers", m);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering object %p from all notifiers", m);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
@@ -63,7 +63,7 @@ void Registry::Unregister(Modifiable* m)
 
 void Registry::Modified(Modifiable* m)
 	{
-	DBG_LOG(zeek::DBG_NOTIFIERS, "object %p has been modified", m);
+	DBG_LOG(DBG_NOTIFIERS, "object %p has been modified", m);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )

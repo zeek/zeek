@@ -127,7 +127,7 @@ public:
 	 * declared.  This can be different from the place where the record type
 	 * is declared due to redefs.
 	 */
-	void RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* field,
+	void RecordField(const zeek::detail::ID* id, const TypeDecl* field,
 	                 const std::string& path);
 
 	/**
@@ -244,8 +244,8 @@ bool Manager::IsUpToDate(const std::string& target_file,
 			// Doesn't exist.
 			return false;
 
-		zeek::reporter->InternalError("Zeekygen failed to stat target file '%s': %s",
-		                              target_file.c_str(), strerror(errno));
+		reporter->InternalError("Zeekygen failed to stat target file '%s': %s",
+		                        target_file.c_str(), strerror(errno));
 		}
 
 	if ( difftime(bro_mtime, s.st_mtime) > 0 )
@@ -265,7 +265,7 @@ bool Manager::IsUpToDate(const std::string& target_file,
 
 namespace zeek::detail {
 
-extern zeek::zeekygen::detail::Manager* zeekygen_mgr;
+extern zeekygen::detail::Manager* zeekygen_mgr;
 
 } // namespace zeek::detail
 

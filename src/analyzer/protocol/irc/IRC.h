@@ -9,14 +9,14 @@ namespace zeek::analyzer::irc {
 /**
 * \brief Main class for analyzing IRC traffic.
 */
-class IRC_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class IRC_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 	enum { WAIT_FOR_REGISTRATION, REGISTERED, };
 	enum { NO_ZIP, ACCEPT_ZIP, ZIP_LOADED, };
 public:
 	/**
 	* \brief Constructor, builds a new analyzer object.
 	*/
-	explicit IRC_Analyzer(zeek::Connection* conn);
+	explicit IRC_Analyzer(Connection* conn);
 
 	/**
 	* \brief Called when connection is closed.
@@ -32,7 +32,7 @@ public:
 	*/
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new IRC_Analyzer(conn);
 		}
@@ -64,8 +64,8 @@ private:
 	*/
 	std::vector<std::string> SplitWords(const std::string& input, char split);
 
-	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
-	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
+	analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	analyzer::tcp::ContentLine_Analyzer* cl_resp;
 	bool starttls; // if true, connection has been upgraded to tls
 };
 

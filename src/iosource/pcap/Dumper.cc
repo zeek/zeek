@@ -27,7 +27,7 @@ void PcapDumper::Open()
 	{
 	int linktype = -1;
 
-	pd = pcap_open_dead(DLT_EN10MB, zeek::BifConst::Pcap::snaplen);
+	pd = pcap_open_dead(DLT_EN10MB, BifConst::Pcap::snaplen);
 
 	if ( ! pd )
 		{
@@ -51,7 +51,7 @@ void PcapDumper::Open()
 
 		if ( exists < 0 && errno != ENOENT )
 			{
-			Error(zeek::util::fmt("can't stat file %s: %s", props.path.c_str(), strerror(errno)));
+			Error(util::fmt("can't stat file %s: %s", props.path.c_str(), strerror(errno)));
 			return;
 			}
 		}
@@ -76,13 +76,13 @@ void PcapDumper::Open()
 		dumper = (pcap_dumper_t*) fopen(props.path.c_str(), "a");
 		if ( ! dumper )
 			{
-			Error(zeek::util::fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
+			Error(util::fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
 			return;
 			}
 		}
 
-	props.open_time = zeek::run_state::network_time;
-	props.hdr_size = zeek::Packet::GetLinkHeaderSize(pcap_datalink(pd));
+	props.open_time = run_state::network_time;
+	props.hdr_size = Packet::GetLinkHeaderSize(pcap_datalink(pd));
 	Opened(props);
 	}
 
@@ -99,7 +99,7 @@ void PcapDumper::Close()
 	Closed();
 	}
 
-bool PcapDumper::Dump(const zeek::Packet* pkt)
+bool PcapDumper::Dump(const Packet* pkt)
 	{
 	if ( ! dumper )
 		return false;

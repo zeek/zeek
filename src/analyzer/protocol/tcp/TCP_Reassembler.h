@@ -11,20 +11,20 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Analyzer, zeek, analyzer::tcp);
 
 namespace zeek::analyzer::tcp {
 
-class TCP_Reassembler final : public zeek::Reassembler {
+class TCP_Reassembler final : public Reassembler {
 public:
 	enum Type {
 		Direct,		// deliver to destination analyzer itself
 		Forward,	// forward to destination analyzer's children
 	};
 
-	TCP_Reassembler(zeek::analyzer::Analyzer* arg_dst_analyzer,
+	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	                TCP_Analyzer* arg_tcp_analyzer,
 	                Type arg_type, TCP_Endpoint* arg_endp);
 
 	void Done();
 
-	void SetDstAnalyzer(zeek::analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
+	void SetDstAnalyzer(analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
 	void SetType(Type arg_type)	{ type = arg_type; }
 
 	TCP_Analyzer* GetTCPAnalyzer()	{ return tcp_analyzer; }
@@ -46,8 +46,8 @@ public:
 	// from waiting_on_hole above; and is computed in a different fashion).
 	uint64_t NumUndeliveredBytes() const;
 
-	void SetContentsFile(zeek::FilePtr f);
-	const zeek::FilePtr& GetContentsFile() const	{ return record_contents_file; }
+	void SetContentsFile(FilePtr f);
+	const FilePtr& GetContentsFile() const	{ return record_contents_file; }
 
 	void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
 
@@ -85,11 +85,11 @@ private:
 	void Undelivered(uint64_t up_to_seq) override;
 	void Gap(uint64_t seq, uint64_t len);
 
-	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const zeek::FilePtr& f);
-	void RecordBlock(const zeek::DataBlock& b, const zeek::FilePtr& f);
-	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const zeek::FilePtr& f);
+	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const FilePtr& f);
+	void RecordBlock(const DataBlock& b, const FilePtr& f);
+	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const FilePtr& f);
 
-	void BlockInserted(zeek::DataBlockMap::const_iterator it) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	TCP_Endpoint* endp;
@@ -104,9 +104,9 @@ private:
 	bool in_delivery;
 	analyzer::tcp::TCP_Flags flags;
 
-	zeek::FilePtr record_contents_file;	// file on which to reassemble contents
+	FilePtr record_contents_file;	// file on which to reassemble contents
 
-	zeek::analyzer::Analyzer* dst_analyzer;
+	analyzer::Analyzer* dst_analyzer;
 	TCP_Analyzer* tcp_analyzer;
 
 	Type type;

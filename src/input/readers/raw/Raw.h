@@ -15,9 +15,9 @@ namespace zeek::input::reader::detail {
  * A reader that returns a file (or the output of a command) as a single
  * blob.
  */
-class Raw : public zeek::input::ReaderBackend {
+class Raw : public ReaderBackend {
 public:
-	explicit Raw(zeek::input::ReaderFrontend* frontend);
+	explicit Raw(ReaderFrontend* frontend);
 	~Raw() override;
 
 	// prohibit copying and moving
@@ -26,7 +26,7 @@ public:
 	Raw& operator=(const Raw&) = delete;
 	Raw& operator=(Raw&&) = delete;
 
-	static zeek::input::ReaderBackend* Instantiate(zeek::input::ReaderFrontend* frontend) { return new Raw(frontend); }
+	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Raw(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;

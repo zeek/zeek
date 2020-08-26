@@ -8,21 +8,21 @@
 
 namespace zeek::analyzer::xmpp {
 
-class XMPP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class XMPP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit XMPP_Analyzer(zeek::Connection* conn);
+	explicit XMPP_Analyzer(Connection* conn);
 	~XMPP_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
+	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	void StartTLS();
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new XMPP_Analyzer(conn); }
 
 protected:

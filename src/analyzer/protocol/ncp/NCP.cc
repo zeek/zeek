@@ -25,7 +25,7 @@ using namespace std;
 namespace zeek::analyzer::ncp {
 namespace detail {
 
-NCP_Session::NCP_Session(zeek::analyzer::Analyzer* a)
+NCP_Session::NCP_Session(analyzer::Analyzer* a)
 : analyzer(a)
 	{
 	req_frame_type = 0;
@@ -43,7 +43,7 @@ void NCP_Session::Deliver(bool is_orig, int len, const u_char* data)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		analyzer->ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		analyzer->ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
@@ -60,24 +60,24 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 			}
 		}
 
-	zeek::EventHandlerPtr f = frame->is_orig() ? ncp_request : ncp_reply;
+	EventHandlerPtr f = frame->is_orig() ? ncp_request : ncp_reply;
 	if ( f )
 		{
 		if ( frame->is_orig() )
 			analyzer->EnqueueConnEvent(f,
 				analyzer->ConnVal(),
-				zeek::val_mgr->Count(frame->frame_type()),
-				zeek::val_mgr->Count(frame->body_length()),
-				zeek::val_mgr->Count(req_func)
+				val_mgr->Count(frame->frame_type()),
+				val_mgr->Count(frame->body_length()),
+				val_mgr->Count(req_func)
 			);
 		else
 			analyzer->EnqueueConnEvent(f,
 				analyzer->ConnVal(),
-				zeek::val_mgr->Count(frame->frame_type()),
-				zeek::val_mgr->Count(frame->body_length()),
-				zeek::val_mgr->Count(req_frame_type),
-				zeek::val_mgr->Count(req_func),
-				zeek::val_mgr->Count(frame->reply()->completion_code())
+				val_mgr->Count(frame->frame_type()),
+				val_mgr->Count(frame->body_length()),
+				val_mgr->Count(req_frame_type),
+				val_mgr->Count(req_func),
+				val_mgr->Count(frame->reply()->completion_code())
 			);
 		}
 	}
@@ -131,7 +131,7 @@ int FrameBuffer::Deliver(int &len, const u_char* &data)
 
 		if ( msg_len > buf_len )
 			{
-			if ( msg_len > zeek::BifConst::NCP::max_frame_size )
+			if ( msg_len > BifConst::NCP::max_frame_size )
 				return 1;
 
 			buf_len = msg_len;
@@ -167,8 +167,8 @@ void NCP_FrameBuffer::compute_msg_length()
 
 } // namespace detail
 
-Contents_NCP_Analyzer::Contents_NCP_Analyzer(zeek::Connection* conn, bool orig, detail::NCP_Session* arg_session)
-: zeek::analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
+Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, detail::NCP_Session* arg_session)
+: analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
 	resync = true;
@@ -181,7 +181,7 @@ Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
 
 void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	auto tcp = static_cast<NCP_Analyzer*>(Parent())->TCP();
 
@@ -189,7 +189,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		{
 		resync_set = true;
 		resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-			zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
+			analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
 		}
 
 	if ( tcp && tcp->HadGap(orig) )
@@ -242,14 +242,14 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 
 void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 
 	buffer.Reset();
 	resync = true;
 	}
 
-NCP_Analyzer::NCP_Analyzer(zeek::Connection* conn)
-: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("NCP", conn)
+NCP_Analyzer::NCP_Analyzer(Connection* conn)
+: analyzer::tcp::TCP_ApplicationAnalyzer("NCP", conn)
 	{
 	session = new detail::NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);

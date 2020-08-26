@@ -8,25 +8,25 @@
 
 namespace zeek::analyzer::krb_tcp {
 
-class KRB_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class KRB_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 
 public:
-	explicit KRB_Analyzer(zeek::Connection* conn);
+	explicit KRB_Analyzer(Connection* conn);
 	~KRB_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from zeek::analyzer::tcp::TCP_ApplicationAnalyzer.
+	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	zeek::StringValPtr GetAuthenticationInfo(const zeek::String* principal,
-	                                         const zeek::String* ciphertext,
-	                                         const bro_uint_t enctype)
-		{ return zeek::val_mgr->EmptyString(); }
+	StringValPtr GetAuthenticationInfo(const String* principal,
+	                                   const String* ciphertext,
+	                                   const bro_uint_t enctype)
+		{ return val_mgr->EmptyString(); }
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
 protected:

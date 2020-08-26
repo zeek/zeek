@@ -8,7 +8,7 @@
 namespace zeek::logging {
 
 Component::Component(const std::string& name, factory_callback arg_factory)
-	: zeek::plugin::Component(zeek::plugin::component::WRITER, name)
+	: plugin::Component(plugin::component::WRITER, name)
 	{
 	factory = arg_factory;
 	}
@@ -23,7 +23,7 @@ Component::~Component()
 	{
 	}
 
-void Component::DoDescribe(zeek::ODesc* d) const
+void Component::DoDescribe(ODesc* d) const
 	{
 	d->Add("Log::WRITER_");
 	d->Add(CanonicalName());

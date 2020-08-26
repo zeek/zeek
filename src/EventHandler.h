@@ -12,7 +12,7 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 
 namespace zeek {
-using FuncPtr = zeek::IntrusivePtr<zeek::Func>;
+using FuncPtr = IntrusivePtr<Func>;
 
 class EventHandler {
 public:
@@ -20,22 +20,22 @@ public:
 
 	const char* Name()	{ return name.data(); }
 
-	const zeek::FuncPtr& GetFunc()
+	const FuncPtr& GetFunc()
 		{ return local; }
 
 	[[deprecated("Remove in v4.1.  Use GetFunc().")]]
-	zeek::Func* LocalHandler()	{ return local.get(); }
+	Func* LocalHandler()	{ return local.get(); }
 
-	const zeek::FuncTypePtr& GetType(bool check_export = true);
+	const FuncTypePtr& GetType(bool check_export = true);
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::FuncType* FType(bool check_export = true)
+	FuncType* FType(bool check_export = true)
 		{ return GetType().get(); }
 
-	void SetFunc(zeek::FuncPtr f);
+	void SetFunc(FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Use SetFunc().")]]
-	void SetLocalHandler(zeek::Func* f);
+	void SetLocalHandler(Func* f);
 
 	void AutoPublish(std::string topic)
 		{
@@ -71,8 +71,8 @@ private:
 	void NewEvent(zeek::Args* vl);	// Raise new_event() meta event.
 
 	std::string name;
-	zeek::FuncPtr local;
-	zeek::FuncTypePtr type;
+	FuncPtr local;
+	FuncTypePtr type;
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.

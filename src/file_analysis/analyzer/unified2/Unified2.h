@@ -14,17 +14,17 @@ namespace zeek::file_analysis::detail {
 /**
  * An analyzer to extract content of files from local disk.
  */
-class Unified2 : public zeek::file_analysis::Analyzer {
+class Unified2 : public file_analysis::Analyzer {
 public:
 	~Unified2() override;
 
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 
-	static zeek::file_analysis::Analyzer* Instantiate(zeek::RecordValPtr args,
-	                                                  zeek::file_analysis::File* file);
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
+	                                            file_analysis::File* file);
 
 protected:
-	Unified2(zeek::RecordValPtr args, zeek::file_analysis::File* file);
+	Unified2(RecordValPtr args, file_analysis::File* file);
 
 private:
 	binpac::Unified2::Unified2_Analyzer* interp;

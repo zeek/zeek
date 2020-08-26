@@ -199,16 +199,17 @@ private:
 	inline static uint8_t shared_hmac_md5_key[16];
 	inline static bool seeds_initialized = false;
 
-	friend void zeek::util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
-	friend BifReturnVal zeek::BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+	friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+	friend BifReturnVal BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
 };
 
 typedef enum {
 	HASH_KEY_INT,
 	HASH_KEY_DOUBLE,
 	HASH_KEY_STRING
-#define NUM_HASH_KEYS (int(zeek::detail::HASH_KEY_STRING) + 1)
 } HashKeyTag;
+
+constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
 class HashKey {
 public:
@@ -219,7 +220,7 @@ public:
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
 	explicit HashKey(const char* s);
-	explicit HashKey(const zeek::String* s);
+	explicit HashKey(const String* s);
 	~HashKey()
 		{
 		if ( is_our_dynamic )
@@ -258,7 +259,7 @@ public:
 	int Size() const	{ return size; }
 	hash_t Hash() const	{ return hash; }
 
-	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + zeek::util::pad_size(size); }
+	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + util::pad_size(size); }
 
 	static hash_t HashBytes(const void* bytes, int size);
 protected:

@@ -28,13 +28,13 @@ namespace trigger {
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger final : public Obj, public zeek::notifier::detail::Receiver {
+class Trigger final : public Obj, public notifier::detail::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(zeek::detail::Expr* cond, zeek::detail::Stmt* body, zeek::detail::Stmt* timeout_stmts, zeek::detail::Expr* timeout,
+	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
 		Frame* f, bool is_return, const Location* loc);
 	~Trigger() override;
 
@@ -65,8 +65,8 @@ public:
 	// Cache for return values of delayed function calls.  Returns whether
 	// the trigger is queued for later evaluation -- it may not be queued
 	// if the Val is null or it's disabled.
-	bool Cache(const zeek::detail::CallExpr* expr, Val* val);
-	Val* Lookup(const zeek::detail::CallExpr*);
+	bool Cache(const CallExpr* expr, Val* val);
+	Val* Lookup(const CallExpr*);
 
 	// Disable this trigger completely. Needed because Unref'ing the trigger
 	// may not immediately delete it as other references may still exist.
@@ -92,14 +92,14 @@ private:
 	friend class TriggerTimer;
 
 	void Init();
-	void Register(zeek::detail::ID* id);
+	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
 
-	zeek::detail::Expr* cond;
-	zeek::detail::Stmt* body;
-	zeek::detail::Stmt* timeout_stmts;
-	zeek::detail::Expr* timeout;
+	Expr* cond;
+	Stmt* body;
+	Stmt* timeout_stmts;
+	Expr* timeout;
 	double timeout_value;
 	Frame* frame;
 	bool is_return;
@@ -111,15 +111,15 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	std::vector<std::pair<Obj *, zeek::notifier::detail::Modifiable*>> objs;
+	std::vector<std::pair<Obj *, notifier::detail::Modifiable*>> objs;
 
-	using ValCache = std::map<const zeek::detail::CallExpr*, Val*>;
+	using ValCache = std::map<const CallExpr*, Val*>;
 	ValCache cache;
 };
 
-using TriggerPtr = zeek::IntrusivePtr<Trigger>;
+using TriggerPtr = IntrusivePtr<Trigger>;
 
-class Manager final : public zeek::iosource::IOSource {
+class Manager final : public iosource::IOSource {
 public:
 
 	Manager();

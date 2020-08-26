@@ -37,9 +37,9 @@ enum SMTP_State {
 
 } // namespace detail
 
-class SMTP_Analyzer final : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
+class SMTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit SMTP_Analyzer(zeek::Connection* conn);
+	explicit SMTP_Analyzer(Connection* conn);
 	~SMTP_Analyzer() override;
 
 	void Done() override;
@@ -49,7 +49,7 @@ public:
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new SMTP_Analyzer(conn);
 		}
@@ -86,14 +86,14 @@ protected:
 	int pending_reply;		// code assoc. w/ multi-line reply, or 0
 	std::list<int> pending_cmd_q;	// to support pipelining
 	bool skip_data;			// whether to skip message body
-	zeek::String* line_after_gap;	// last line before the first reply
+	String* line_after_gap;	// last line before the first reply
 					// after a gap
 
-	zeek::analyzer::mime::MIME_Mail* mail;
+	analyzer::mime::MIME_Mail* mail;
 
 private:
-	zeek::analyzer::tcp::ContentLine_Analyzer* cl_orig;
-	zeek::analyzer::tcp::ContentLine_Analyzer* cl_resp;
+	analyzer::tcp::ContentLine_Analyzer* cl_orig;
+	analyzer::tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } // namespace zeek::analyzer::smtp

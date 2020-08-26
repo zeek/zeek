@@ -55,7 +55,7 @@ Frame::~Frame()
 
 void Frame::AddFunctionWithClosureRef(ScriptFunc* func)
 	{
-	zeek::Ref(func);
+	Ref(func);
 
 	if ( ! functions_with_closure_frame_reference )
 		functions_with_closure_frame_reference = std::make_unique<std::vector<ScriptFunc*>>();
@@ -63,22 +63,22 @@ void Frame::AddFunctionWithClosureRef(ScriptFunc* func)
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
-void Frame::SetElement(int n, zeek::Val* v)
-	{ SetElement(n, {zeek::AdoptRef{}, v}); }
+void Frame::SetElement(int n, Val* v)
+	{ SetElement(n, {AdoptRef{}, v}); }
 
-void Frame::SetElement(int n, zeek::ValPtr v)
+void Frame::SetElement(int n, ValPtr v)
 	{
 	ClearElement(n);
 	frame[n] = {std::move(v), false};
 	}
 
-void Frame::SetElementWeak(int n, zeek::Val* v)
+void Frame::SetElementWeak(int n, Val* v)
 	{
 	ClearElement(n);
-	frame[n] = {{zeek::AdoptRef{}, v}, true};
+	frame[n] = {{AdoptRef{}, v}, true};
 	}
 
-void Frame::SetElement(const zeek::detail::ID* id, zeek::ValPtr v)
+void Frame::SetElement(const ID* id, ValPtr v)
 	{
 	if ( closure )
 		{
@@ -107,7 +107,7 @@ void Frame::SetElement(const zeek::detail::ID* id, zeek::ValPtr v)
 	SetElement(id->Offset(), std::move(v));
 	}
 
-const zeek::ValPtr& Frame::GetElementByID(const zeek::detail::ID* id) const
+const ValPtr& Frame::GetElementByID(const ID* id) const
 	{
 	if ( closure )
 		{
@@ -188,9 +188,9 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-static bool val_is_func(const zeek::ValPtr& v, ScriptFunc* func)
+static bool val_is_func(const ValPtr& v, ScriptFunc* func)
 	{
-	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
+	if ( v->GetType()->Tag() != TYPE_FUNC )
 		return false;
 
 	return v->AsFunc() == func;
@@ -245,7 +245,7 @@ Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 			}
 
 		if ( ! frame[id->Offset()].val )
-			zeek::reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
+			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
 		CloneNonFuncElement(id->Offset(), func, other);
 		}
@@ -308,7 +308,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 	if ( them.length() )
 		{
 		if ( ! target->closure )
-			zeek::reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
+			reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
 
 		rval.emplace_back(std::string("ClosureFrame"));
 
@@ -348,9 +348,9 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 
 		const auto& val = target->frame[location].val;
 
-		zeek::TypeTag tag = val->GetType()->Tag();
+		TypeTag tag = val->GetType()->Tag();
 
-		auto expected = zeek::Broker::detail::val_to_data(val.get());
+		auto expected = Broker::detail::val_to_data(val.get());
 		if ( ! expected )
 			return broker::ec::invalid_data;
 
@@ -452,7 +452,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 	int frame_size = body.size();
 
 	// We'll associate this frame with a function later.
-	auto rf = zeek::make_intrusive<Frame>(frame_size, nullptr, nullptr);
+	auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
 	rf->offset_map = std::make_unique<OffsetMap>(std::move(offset_map));
 
 	// Frame takes ownership of unref'ing elements in outer_ids
@@ -475,9 +475,9 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 			return std::make_pair(false, nullptr);
 
 		broker::integer g = *has_type;
-		zeek::Type t( static_cast<zeek::TypeTag>(g) );
+		Type t( static_cast<TypeTag>(g) );
 
-		auto val = zeek::Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
+		auto val = Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
 			return std::make_pair(false, nullptr);
 
@@ -493,7 +493,7 @@ void Frame::AddKnownOffsets(const IDPList& ids)
 		offset_map = std::make_unique<OffsetMap>();
 
 	std::transform(ids.begin(), ids.end(), std::inserter(*offset_map, offset_map->end()),
-		       [] (const zeek::detail::ID* id) -> std::pair<std::string, int>
+		       [] (const ID* id) -> std::pair<std::string, int>
 		       {
 		       return std::make_pair(std::string(id->Name()), id->Offset());
 		       });
@@ -502,12 +502,12 @@ void Frame::AddKnownOffsets(const IDPList& ids)
 void Frame::CaptureClosure(Frame* c, IDPList arg_outer_ids)
 	{
 	if ( closure || outer_ids.length() )
-		zeek::reporter->InternalError("Attempted to override a closure.");
+		reporter->InternalError("Attempted to override a closure.");
 
 	outer_ids = std::move(arg_outer_ids);
 
 	for ( auto& i : outer_ids )
-		zeek::Ref(i);
+		Ref(i);
 
 	closure = c;
 	if ( closure )
@@ -520,7 +520,7 @@ void Frame::CaptureClosure(Frame* c, IDPList arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(zeek::detail::trigger::TriggerPtr arg_trigger)
+void Frame::SetTrigger(trigger::TriggerPtr arg_trigger)
 	{
 	trigger = std::move(arg_trigger);
 	}
@@ -538,10 +538,10 @@ void Frame::ClearElement(int n)
 		frame[n] = {nullptr, false};
 	}
 
-bool Frame::IsOuterID(const zeek::detail::ID* in) const
+bool Frame::IsOuterID(const ID* in) const
 	{
 	return std::any_of(outer_ids.begin(), outer_ids.end(),
-		[&in](zeek::detail::ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
+		[&in](ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
 	}
 
 broker::expected<broker::data> Frame::SerializeIDList(const IDPList& in)
@@ -603,7 +603,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 			return std::make_pair(false, std::move(rval));
 			}
 
-		auto* id = new zeek::detail::ID(has_name->c_str(), zeek::detail::SCOPE_FUNCTION, false);
+		auto* id = new ID(has_name->c_str(), SCOPE_FUNCTION, false);
 		id->SetOffset(*has_offset);
 		rval.push_back(id);
 		std::advance(where, 1);

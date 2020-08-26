@@ -25,11 +25,11 @@ namespace zeek::file_analysis {
  * A plugin can provide a specific file analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public zeek::plugin::Component,
-                  public zeek::plugin::TaggedComponent<file_analysis::Tag> {
+class Component : public plugin::Component,
+                  public plugin::TaggedComponent<file_analysis::Tag> {
 public:
-	typedef Analyzer* (*factory_callback)(zeek::RecordVal* args, File* file);
-	using factory_function = Analyzer* (*)(zeek::RecordValPtr args, File* file);
+	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);
+	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);
 
 	/**
 	 * Constructor.
@@ -80,10 +80,10 @@ protected:
 	/**
 	  * Overriden from plugin::Component.
 	  */
-	void DoDescribe(zeek::ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 private:
-	friend class zeek::file_analysis::Manager;
+	friend class Manager;
 
 	factory_callback factory;	// The analyzer's factory callback (deprecated).
 	factory_function factory_func;	// The analyzer's factory callback.

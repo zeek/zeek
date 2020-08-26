@@ -82,15 +82,15 @@ double PktSrc::CurrentPacketTimestamp()
 double PktSrc::CurrentPacketWallClock()
 	{
 	// We stop time when we are suspended.
-	if ( zeek::run_state::is_processing_suspended() )
-		current_wallclock = zeek::util::current_time(true);
+	if ( run_state::is_processing_suspended() )
+		current_wallclock = util::current_time(true);
 
 	return current_wallclock;
 	}
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
-	if ( zeek::Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
+	if ( Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
 		{
 		char buf[512];
 		snprintf(buf, sizeof(buf),
@@ -112,7 +112,7 @@ void PktSrc::Opened(const Properties& arg_props)
 
 	if ( props.is_live )
 		{
-		Info(zeek::util::fmt("listening on %s\n", props.path.c_str()));
+		Info(util::fmt("listening on %s\n", props.path.c_str()));
 
 		// We only register the file descriptor if we're in live
 		// mode because libpcap's file descriptor for trace files
@@ -120,10 +120,10 @@ void PktSrc::Opened(const Properties& arg_props)
 		// data to read.
 		if ( props.selectable_fd != -1 )
 			if ( ! iosource_mgr->RegisterFd(props.selectable_fd, this) )
-				zeek::reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
+				reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
 		}
 
-	DBG_LOG(zeek::DBG_PKTIO, "Opened source %s", props.path.c_str());
+	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
 
 void PktSrc::Closed()
@@ -133,7 +133,7 @@ void PktSrc::Closed()
 	if ( props.is_live && props.selectable_fd != -1 )
 		iosource_mgr->UnregisterFd(props.selectable_fd, this);
 
-	DBG_LOG(zeek::DBG_PKTIO, "Closed source %s", props.path.c_str());
+	DBG_LOG(DBG_PKTIO, "Closed source %s", props.path.c_str());
 	}
 
 void PktSrc::Error(const std::string& msg)
@@ -141,29 +141,29 @@ void PktSrc::Error(const std::string& msg)
 	// We don't report this immediately, Bro will ask us for the error
 	// once it notices we aren't open.
 	errbuf = msg;
-	DBG_LOG(zeek::DBG_PKTIO, "Error with source %s: %s",
+	DBG_LOG(DBG_PKTIO, "Error with source %s: %s",
 		IsOpen() ? props.path.c_str() : "<not open>",
 		msg.c_str());
 	}
 
 void PktSrc::Info(const std::string& msg)
 	{
-	zeek::reporter->Info("%s", msg.c_str());
+	reporter->Info("%s", msg.c_str());
 	}
 
-void PktSrc::Weird(const std::string& msg, const zeek::Packet* p)
+void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	zeek::sessions->Weird(msg.c_str(), p, nullptr);
+	sessions->Weird(msg.c_str(), p, nullptr);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
 	{
-	zeek::reporter->InternalError("%s", msg.c_str());
+	reporter->InternalError("%s", msg.c_str());
 	}
 
 void PktSrc::ContinueAfterSuspend()
 	{
-	current_wallclock = zeek::util::current_time(true);
+	current_wallclock = util::current_time(true);
 	}
 
 double PktSrc::CheckPseudoTime()
@@ -175,9 +175,9 @@ double PktSrc::CheckPseudoTime()
 		return 0;
 
 	double pseudo_time = current_packet.time - first_timestamp;
-	double ct = (zeek::util::current_time(true) - first_wallclock) * zeek::run_state::pseudo_realtime;
+	double ct = (util::current_time(true) - first_wallclock) * run_state::pseudo_realtime;
 
-	return pseudo_time <= ct ? zeek::run_state::zeek_start_time + pseudo_time : 0;
+	return pseudo_time <= ct ? run_state::zeek_start_time + pseudo_time : 0;
 	}
 
 void PktSrc::InitSource()
@@ -201,16 +201,16 @@ void PktSrc::Process()
 
 	if ( current_packet.Layer2Valid() )
 		{
-		if ( zeek::run_state::pseudo_realtime )
+		if ( run_state::pseudo_realtime )
 			{
 			current_pseudo = CheckPseudoTime();
-			zeek::run_state::detail::dispatch_packet(current_pseudo, &current_packet, this);
+			run_state::detail::dispatch_packet(current_pseudo, &current_packet, this);
 			if ( ! first_wallclock )
-				first_wallclock = zeek::util::current_time(true);
+				first_wallclock = util::current_time(true);
 			}
 
 		else
-			zeek::run_state::detail::dispatch_packet(current_packet.time, &current_packet, this);
+			run_state::detail::dispatch_packet(current_packet.time, &current_packet, this);
 		}
 
 	have_packet = false;
@@ -231,11 +231,11 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	// Don't return any packets if processing is suspended (except for the
 	// very first packet which we need to set up times).
-	if ( zeek::run_state::is_processing_suspended() && first_timestamp )
+	if ( run_state::is_processing_suspended() && first_timestamp )
 		return false;
 
-	if ( zeek::run_state::pseudo_realtime )
-		current_wallclock = zeek::util::current_time(true);
+	if ( run_state::pseudo_realtime )
+		current_wallclock = util::current_time(true);
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
@@ -252,7 +252,7 @@ bool PktSrc::ExtractNextPacketInternal()
 		return true;
 		}
 
-	if ( zeek::run_state::pseudo_realtime && ! IsOpen() )
+	if ( run_state::pseudo_realtime && ! IsOpen() )
 		{
 		if ( broker_mgr->Active() )
 			iosource_mgr->Terminate();
@@ -269,11 +269,11 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	// Compile filter.
-	auto* code = new zeek::iosource::detail::BPF_Program();
+	auto* code = new detail::BPF_Program();
 
-	if ( ! code->Compile(zeek::BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
-		std::string msg = zeek::util::fmt("cannot compile BPF filter \"%s\"", filter.c_str());
+		std::string msg = util::fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
 		if ( *errbuf )
 			msg += ": " + std::string(errbuf);
@@ -296,7 +296,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	return true;
 	}
 
-zeek::iosource::detail::BPF_Program* PktSrc::GetBPFFilter(int index)
+detail::BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
 	if ( index < 0 )
 		return nullptr;
@@ -306,11 +306,11 @@ zeek::iosource::detail::BPF_Program* PktSrc::GetBPFFilter(int index)
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
 	{
-	zeek::iosource::detail::BPF_Program* code = GetBPFFilter(index);
+	detail::BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{
-		Error(zeek::util::fmt("BPF filter %d not compiled", index));
+		Error(util::fmt("BPF filter %d not compiled", index));
 		Close();
 		return false;
 		}
@@ -321,7 +321,7 @@ bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_ch
 	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
 	}
 
-bool PktSrc::GetCurrentPacket(const zeek::Packet** pkt)
+bool PktSrc::GetCurrentPacket(const Packet** pkt)
 	{
 	if ( ! have_packet )
 		return false;
@@ -344,16 +344,16 @@ double PktSrc::GetNextTimeout()
 	// but we're not in pseudo-realtime mode, let the loop just spin as fast as it can. If we're
 	// in pseudo-realtime mode, find the next time that a packet is ready and have poll block until
 	// then.
-	if ( IsLive() || zeek::run_state::is_processing_suspended() )
+	if ( IsLive() || run_state::is_processing_suspended() )
 		return -1;
-	else if ( ! zeek::run_state::pseudo_realtime )
+	else if ( ! run_state::pseudo_realtime )
 		return 0;
 
 	if ( ! have_packet )
 		ExtractNextPacketInternal();
 
 	double pseudo_time = current_packet.time - first_timestamp;
-	double ct = (zeek::util::current_time(true) - first_wallclock) * zeek::run_state::pseudo_realtime;
+	double ct = (util::current_time(true) - first_wallclock) * run_state::pseudo_realtime;
 	return std::max(0.0, pseudo_time - ct);
 	}
 

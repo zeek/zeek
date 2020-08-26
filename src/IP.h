@@ -22,8 +22,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(FragReassembler, zeek::detail);
 
 namespace zeek {
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
-using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+using VectorValPtr = IntrusivePtr<VectorVal>;
 
 #ifdef ENABLE_MOBILE_IPV6
 
@@ -141,11 +141,11 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	zeek::RecordValPtr ToVal(zeek::VectorValPtr chain) const;
-	zeek::RecordValPtr ToVal() const;
+	RecordValPtr ToVal(VectorValPtr chain) const;
+	RecordValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	zeek::RecordVal* BuildRecordVal(zeek::VectorVal* chain = nullptr) const;
+	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
 
 protected:
 	uint8_t type;
@@ -221,23 +221,23 @@ public:
 	 * option as defined by Mobile IPv6 (RFC 6275), then return it, else
 	 * return the source address in the main IPv6 header.
 	 */
-	zeek::IPAddr SrcAddr() const;
+	IPAddr SrcAddr() const;
 
 	/**
 	 * If the chain contains a Routing header with non-zero segments left,
 	 * then return the last address of the first such header, else return
 	 * the destination address of the main IPv6 header.
 	 */
-	zeek::IPAddr DstAddr() const;
+	IPAddr DstAddr() const;
 
 	/**
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
-	zeek::VectorValPtr ToVal() const;
+	VectorValPtr ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	zeek::VectorVal* BuildVal() const;
+	VectorVal* BuildVal() const;
 
 protected:
 	// for access to protected ctor that changes next header values that
@@ -286,14 +286,14 @@ protected:
 	/**
 	 * Home Address of the packet's source as defined by Mobile IPv6 (RFC 6275).
 	 */
-	zeek::IPAddr* homeAddr = nullptr;
+	IPAddr* homeAddr = nullptr;
 #endif
 
 	/**
 	 * The final destination address in chain's first Routing header that has
 	 * non-zero segments left.
 	 */
-	zeek::IPAddr* finalDst = nullptr;
+	IPAddr* finalDst = nullptr;
 };
 
 /**
@@ -365,19 +365,19 @@ public:
 	/**
 	 * Returns the source address held in the IP header.
 	 */
-	zeek::IPAddr IPHeaderSrcAddr() const;
+	IPAddr IPHeaderSrcAddr() const;
 
 	/**
 	 * Returns the destination address held in the IP header.
 	 */
-	zeek::IPAddr IPHeaderDstAddr() const;
+	IPAddr IPHeaderDstAddr() const;
 
 	/**
 	 * For IPv4 or IPv6 headers that don't contain a Home Address option
 	 * (Mobile IPv6, RFC 6275), return source address held in the IP header.
 	 * For IPv6 headers that contain a Home Address option, return that address.
 	 */
-	zeek::IPAddr SrcAddr() const;
+	IPAddr SrcAddr() const;
 
 	/**
 	 * For IPv4 or IPv6 headers that don't contain a Routing header with
@@ -385,7 +385,7 @@ public:
 	 * For IPv6 headers with a Routing header that has non-zero segments left,
 	 * return the last address in the first such Routing header.
 	 */
-	zeek::IPAddr DstAddr() const;
+	IPAddr DstAddr() const;
 
 	/**
 	 * Returns a pointer to the payload of the IP packet, usually an
@@ -531,28 +531,28 @@ public:
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
 	 */
-	zeek::RecordValPtr ToIPHdrVal() const;
+	RecordValPtr ToIPHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToIPHdrVal() instead.")]]
-	zeek::RecordVal* BuildIPHdrVal() const;
+	RecordVal* BuildIPHdrVal() const;
 
 	/**
 	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
-	zeek::RecordValPtr ToPktHdrVal() const;
+	RecordValPtr ToPktHdrVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
-	zeek::RecordVal* BuildPktHdrVal() const;
+	RecordVal* BuildPktHdrVal() const;
 
 	/**
 	 * Same as above, but simply add our values into the record at the
 	 * specified starting index.
 	 */
-	zeek::RecordValPtr ToPktHdrVal(zeek::RecordValPtr pkt_hdr, int sindex) const;
+	RecordValPtr ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const;
 
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
-	zeek::RecordVal* BuildPktHdrVal(zeek::RecordVal* pkt_hdr, int sindex) const;
+	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
 private:
 	const struct ip* ip4 = nullptr;

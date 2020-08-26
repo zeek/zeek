@@ -102,7 +102,7 @@ public:
 	 * @param vals Values passed to the event
 	 * @returns True on success false on failure.
 	 */
-	bool SendEvent(MsgThread* thread, const std::string& name, const int num_vals, threading::Value* *vals) const;
+	bool SendEvent(MsgThread* thread, const std::string& name, const int num_vals, Value* *vals) const;
 
 protected:
 	friend class BasicThread;

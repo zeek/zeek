@@ -28,7 +28,7 @@ template <class T> class IntrusivePtr;
 
 namespace detail {
 
-using IDPtr = zeek::IntrusivePtr<ID>;
+using IDPtr = IntrusivePtr<ID>;
 
 enum BroExprTag : int {
 	EXPR_ANY = -1,
@@ -80,21 +80,21 @@ class EventExpr;
 class Stmt;
 
 class Expr;
-using ExprPtr = zeek::IntrusivePtr<Expr>;
-using EventExprPtr = zeek::IntrusivePtr<EventExpr>;
-using ListExprPtr = zeek::IntrusivePtr<ListExpr>;
+using ExprPtr = IntrusivePtr<Expr>;
+using EventExprPtr = IntrusivePtr<EventExpr>;
+using ListExprPtr = IntrusivePtr<ListExpr>;
 
 class Expr : public Obj {
 public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	zeek::Type* Type() const		{ return type.get(); }
 
-	const zeek::TypePtr& GetType() const
+	const TypePtr& GetType() const
 		{ return type; }
 
 	template <class T>
-	zeek::IntrusivePtr<T> GetType() const
-		{ return zeek::cast_intrusive<T>(type); }
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
 
 	BroExprTag Tag() const	{ return tag; }
 
@@ -115,7 +115,7 @@ public:
 
 	// Returns the type corresponding to this expression interpreted
 	// as an initialization.  Returns nil if the initialization is illegal.
-	virtual zeek::TypePtr InitType() const;
+	virtual TypePtr InitType() const;
 
 	// Returns true if this expression, interpreted as an initialization,
 	// constitutes a record element, false otherwise.  If the TypeDecl*
@@ -197,7 +197,7 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
-	void SetType(zeek::TypePtr t);
+	void SetType(TypePtr t);
 
 	// Reports the given error and sets the expression's type to
 	// TYPE_ERROR.
@@ -209,13 +209,13 @@ protected:
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	zeek::TypePtr type;
+	TypePtr type;
 	bool paren;
 };
 
 class NameExpr final : public Expr {
 public:
-	explicit NameExpr(zeek::detail::IDPtr id, bool const_init = false);
+	explicit NameExpr(IDPtr id, bool const_init = false);
 
 	ID* Id() const		{ return id.get(); }
 
@@ -229,7 +229,7 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	zeek::detail::IDPtr id;
+	IDPtr id;
 	bool in_const_init;
 };
 
@@ -499,7 +499,7 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
-	zeek::TypePtr InitType() const override;
+	TypePtr InitType() const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
 	bool IsPure() const override;
@@ -608,7 +608,7 @@ class TableConstructorExpr final : public UnaryExpr {
 public:
 	TableConstructorExpr(ListExprPtr constructor_list,
 	                     std::unique_ptr<std::vector<AttrPtr>> attrs,
-	                     zeek::TypePtr arg_type = nullptr);
+	                     TypePtr arg_type = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
@@ -630,7 +630,7 @@ class SetConstructorExpr final : public UnaryExpr {
 public:
 	SetConstructorExpr(ListExprPtr constructor_list,
 	                   std::unique_ptr<std::vector<AttrPtr>> attrs,
-	                   zeek::TypePtr arg_type = nullptr);
+	                   TypePtr arg_type = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
@@ -651,7 +651,7 @@ protected:
 class VectorConstructorExpr final : public UnaryExpr {
 public:
 	explicit VectorConstructorExpr(ListExprPtr constructor_list,
-	                               zeek::TypePtr arg_type = nullptr);
+	                               TypePtr arg_type = nullptr);
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -678,7 +678,7 @@ protected:
 
 class ArithCoerceExpr final : public UnaryExpr {
 public:
-	ArithCoerceExpr(ExprPtr op, zeek::TypeTag t);
+	ArithCoerceExpr(ExprPtr op, TypeTag t);
 
 protected:
 	ValPtr FoldSingleVal(Val* v, InternalTypeTag t) const;
@@ -842,7 +842,7 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 
-	zeek::TypePtr InitType() const override;
+	TypePtr InitType() const override;
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
 	ExprPtr MakeLvalue() override;
 	void Assign(Frame* f, ValPtr v) override;
@@ -865,7 +865,7 @@ public:
 
 class CastExpr final : public UnaryExpr {
 public:
-	CastExpr(ExprPtr op, zeek::TypePtr t);
+	CastExpr(ExprPtr op, TypePtr t);
 
 protected:
 	ValPtr Eval(Frame* f) const override;
@@ -874,14 +874,14 @@ protected:
 
 class IsExpr final : public UnaryExpr {
 public:
-	IsExpr(ExprPtr op, zeek::TypePtr t);
+	IsExpr(ExprPtr op, TypePtr t);
 
 protected:
 	ValPtr Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	zeek::TypePtr t;
+	TypePtr t;
 };
 
 inline Val* Expr::ExprVal() const

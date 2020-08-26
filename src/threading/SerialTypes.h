@@ -21,24 +21,24 @@ struct Field {
 	//! Needed by input framework. Port fields have two names (one for the
 	//! port, one for the type), and this specifies the secondary name.
 	const char* secondary_name;
-	zeek::TypeTag type;	//! Type of the field.
-	zeek::TypeTag subtype;	//! Inner type for sets and vectors.
+	TypeTag type;	//! Type of the field.
+	TypeTag subtype;	//! Inner type for sets and vectors.
 	bool optional;	//! True if field is optional.
 
 	/**
 	 * Constructor.
 	 */
-	Field(const char* name, const char* secondary_name, zeek::TypeTag type, zeek::TypeTag subtype, bool optional)
-		: name(name ? zeek::util::copy_string(name) : nullptr),
-		  secondary_name(secondary_name ? zeek::util::copy_string(secondary_name) : nullptr),
+	Field(const char* name, const char* secondary_name, TypeTag type, TypeTag subtype, bool optional)
+		: name(name ? util::copy_string(name) : nullptr),
+		  secondary_name(secondary_name ? util::copy_string(secondary_name) : nullptr),
 		  type(type), subtype(subtype), optional(optional)	{ }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name ? zeek::util::copy_string(other.name) : nullptr),
-		  secondary_name(other.secondary_name ? zeek::util::copy_string(other.secondary_name) : nullptr),
+		: name(other.name ? util::copy_string(other.name) : nullptr),
+		  secondary_name(other.secondary_name ? util::copy_string(other.secondary_name) : nullptr),
 		  type(other.type), subtype(other.subtype), optional(other.optional)	{ }
 
 	~Field()
@@ -85,8 +85,8 @@ private:
  * those Vals supported).
  */
 struct Value {
-	zeek::TypeTag type;	//! The type of the value.
-	zeek::TypeTag subtype;	//! Inner type for sets and vectors.
+	TypeTag type;	//! The type of the value.
+	TypeTag subtype;	//! Inner type for sets and vectors.
 	bool present;	//! False for optional record fields that are not set.
 
 	struct set_t { bro_int_t size; Value** vals; };
@@ -141,8 +141,8 @@ struct Value {
 	* arg_present: False if the value represents an optional record field
 	* that is not set.
 	*/
-	Value(zeek::TypeTag arg_type = zeek::TYPE_ERROR, bool arg_present = true)
-		: type(arg_type), subtype(zeek::TYPE_VOID), present(arg_present)
+	Value(TypeTag arg_type = TYPE_ERROR, bool arg_present = true)
+		: type(arg_type), subtype(TYPE_VOID), present(arg_present)
 		{}
 
 	/**
@@ -155,7 +155,7 @@ struct Value {
 	* arg_present: False if the value represents an optional record field
 	* that is not set.
 	 */
-	Value(zeek::TypeTag arg_type, zeek::TypeTag arg_subtype, bool arg_present = true)
+	Value(TypeTag arg_type, TypeTag arg_subtype, bool arg_present = true)
 		: type(arg_type), subtype(arg_subtype), present(arg_present)
 		{}
 
@@ -187,7 +187,7 @@ struct Value {
 	 * Returns true if the type can be represented by a Value. If
 	 * `atomic_only` is true, will not permit composite types. This
 	 * method is thread-safe. */
-	static bool IsCompatibleType(zeek::Type* t, bool atomic_only=false);
+	static bool IsCompatibleType(Type* t, bool atomic_only=false);
 
 	/**
 	 * Convenience function to delete an array of value pointers.
@@ -207,7 +207,7 @@ struct Value {
 	 *                   immediately aborts.
 	 * @return Val representation of the threading::Value. nullptr on error.
 	 */
-	static zeek::Val* ValueToVal(const std::string& source, const threading::Value* val, bool& have_error);
+	static Val* ValueToVal(const std::string& source, const threading::Value* val, bool& have_error);
 
 private:
 	friend class IPAddr;

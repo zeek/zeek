@@ -120,7 +120,7 @@ void Stmt::DecrBPCount()
 	if ( breakpoint_count )
 		--breakpoint_count;
 	else
-		zeek::reporter->InternalError("breakpoint count decremented below 0");
+		reporter->InternalError("breakpoint count decremented below 0");
 	}
 
 void Stmt::AddTag(ODesc* d) const
@@ -143,7 +143,7 @@ void Stmt::AccessStats(ODesc* d) const
 	if ( d->IncludeStats() )
 		{
 		d->Add("(@");
-		d->Add(last_access ? zeek::util::detail::fmt_access_time(last_access) : "<never>");
+		d->Add(last_access ? util::detail::fmt_access_time(last_access) : "<never>");
 		d->Add(" #");
 		d->Add(access_count);
 		d->Add(")");
@@ -169,7 +169,7 @@ ExprListStmt::~ExprListStmt() = default;
 
 ValPtr ExprListStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
-	last_access = zeek::run_state::network_time;
+	last_access = run_state::network_time;
 	flow = FLOW_NEXT;
 
 	auto vals = eval_list(f, l.get());
@@ -203,7 +203,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-static zeek::File* print_stdout = nullptr;
+static File* print_stdout = nullptr;
 
 static EnumValPtr lookup_enum_val(const char* module_name, const char* name)
 	{
@@ -222,20 +222,20 @@ static EnumValPtr lookup_enum_val(const char* module_name, const char* name)
 static void print_log(const std::vector<ValPtr>& vals)
 	{
 	static auto plval = lookup_enum_val("Log", "PRINTLOG");
-	static auto lpli = zeek::id::find_type<RecordType>("Log::PrintLogInfo");
-	auto record = zeek::make_intrusive<zeek::RecordVal>(lpli);
-	auto vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+	static auto lpli = id::find_type<RecordType>("Log::PrintLogInfo");
+	auto record = make_intrusive<RecordVal>(lpli);
+	auto vec = make_intrusive<VectorVal>(id::string_vec);
 
 	for ( const auto& val : vals )
 		{
 		ODesc d(DESC_READABLE);
 		val->Describe(&d);
-		vec->Assign(vec->Size(), zeek::make_intrusive<zeek::StringVal>(d.Description()));
+		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time));
+	record->Assign(0, make_intrusive<TimeVal>(run_state::network_time));
 	record->Assign(1, std::move(vec));
-	zeek::log_mgr->Write(plval.get(), record.get());
+	log_mgr->Write(plval.get(), record.get());
 	}
 
 ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
@@ -244,9 +244,9 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 	RegisterAccess();
 
 	if ( ! print_stdout )
-		print_stdout = new zeek::File(stdout);
+		print_stdout = new File(stdout);
 
-	zeek::File* f = print_stdout;
+	File* f = print_stdout;
 	int offset = 0;
 
 	if ( vals.size() > 0 && (vals)[0]->GetType()->Tag() == TYPE_FILE )
@@ -259,7 +259,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 		}
 
 	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
-	        zeek::id::find_val("Log::print_to_log")->AsEnum());
+	        id::find_val("Log::print_to_log")->AsEnum());
 
 	switch ( print_log_type ) {
 	case BifEnum::Log::REDIRECT_NONE:
@@ -279,12 +279,12 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 			}
 		break;
 	default:
-		zeek::reporter->InternalError("unknown Log::PrintLogType value: %d",
-		                              print_log_type);
+		reporter->InternalError("unknown Log::PrintLogType value: %d",
+		                        print_log_type);
 		break;
 	}
 
-	desc_style style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
+	DescStyle style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
 
 	if ( f->IsRawOutput() )
 		{
@@ -602,7 +602,7 @@ static void int_del_func(void* v)
 
 void SwitchStmt::Init()
 	{
-	auto t = zeek::make_intrusive<TypeList>();
+	auto t = make_intrusive<TypeList>();
 	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
@@ -745,10 +745,10 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 
 	if ( ! hk )
 		{
-		zeek::reporter->PushLocation(e->GetLocationInfo());
-		zeek::reporter->InternalError("switch expression type mismatch (%s/%s)",
-		                              type_name(v->GetType()->Tag()),
-		                              type_name(e->GetType()->Tag()));
+		reporter->PushLocation(e->GetLocationInfo());
+		reporter->InternalError("switch expression type mismatch (%s/%s)",
+		                        type_name(v->GetType()->Tag()),
+		                        type_name(e->GetType()->Tag()));
 		}
 
 	int* label_idx = case_label_value_map.Lookup(hk.get());
@@ -786,10 +786,10 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 
 		if ( ! hk )
 			{
-			zeek::reporter->PushLocation(e->GetLocationInfo());
-			zeek::reporter->Error("switch expression type mismatch (%s/%s)",
-			                      type_name(v->GetType()->Tag()),
-			                      type_name(e->GetType()->Tag()));
+			reporter->PushLocation(e->GetLocationInfo());
+			reporter->Error("switch expression type mismatch (%s/%s)",
+			                type_name(v->GetType()->Tag()),
+			                type_name(e->GetType()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 
@@ -982,7 +982,7 @@ ValPtr EventStmt::Exec(Frame* f, StmtFlowType& flow) const
 	auto h = event_expr->Handler();
 
 	if ( args && h )
-		zeek::event_mgr.Enqueue(h, std::move(*args));
+		event_mgr.Enqueue(h, std::move(*args));
 
 	flow = FLOW_NEXT;
 	return nullptr;
@@ -1111,7 +1111,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 
 			else
 				{
-				add_local({zeek::NewRef{}, lv}, ind_type, INIT_NONE,
+				add_local({NewRef{}, lv}, ind_type, INIT_NONE,
 				          nullptr, nullptr, VAR_REGULAR);
 				}
 			}
@@ -1128,7 +1128,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({zeek::NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
 						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1149,7 +1149,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({zeek::NewRef{}, (*loop_vars)[0]},
+			add_local({NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
 					INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
@@ -1202,7 +1202,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
 		TableVal* tv = v->AsTableVal();
-		const PDict<zeek::TableEntryVal>* loop_vals = tv->AsTable();
+		const PDict<TableEntryVal>* loop_vals = tv->AsTable();
 
 		if ( ! loop_vals->Length() )
 			return nullptr;
@@ -1255,7 +1255,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0], zeek::val_mgr->Count(i));
+			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 
@@ -1269,7 +1269,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			auto sv = zeek::make_intrusive<zeek::StringVal>(1, (const char*) sval->Bytes() + i);
+			auto sv = make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
 			f->SetElement((*loop_vars)[0], std::move(sv));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1675,14 +1675,14 @@ ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow) const
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:
-			v = zeek::make_intrusive<zeek::RecordVal>(zeek::cast_intrusive<RecordType>(t));
+			v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
 			break;
 		case TYPE_VECTOR:
-			v = zeek::make_intrusive<zeek::VectorVal>(zeek::cast_intrusive<VectorType>(t));
+			v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 			break;
 		case TYPE_TABLE:
-			v = zeek::make_intrusive<zeek::TableVal>(zeek::cast_intrusive<TableType>(t),
-			                                         aggr->GetAttrs());
+			v = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
+			                             aggr->GetAttrs());
 			break;
 		default:
 			break;
@@ -1859,4 +1859,4 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-}
+} // namespace zeek::detail

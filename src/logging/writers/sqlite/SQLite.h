@@ -13,12 +13,12 @@
 
 namespace zeek::logging::writer::detail {
 
-class SQLite : public zeek::logging::WriterBackend {
+class SQLite : public WriterBackend {
 public:
-	explicit SQLite(zeek::logging::WriterFrontend* frontend);
+	explicit SQLite(WriterFrontend* frontend);
 	~SQLite() override;
 
-	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
+	static WriterBackend* Instantiate(WriterFrontend* frontend)
 		{ return new SQLite(frontend); }
 
 protected:
@@ -49,7 +49,7 @@ private:
 	std::string unset_field;
 	std::string empty_field;
 
-	zeek::threading::formatter::Ascii* io;
+	threading::formatter::Ascii* io;
 };
 
 } // namespace zeek::logging::writer::detail

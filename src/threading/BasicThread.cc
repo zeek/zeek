@@ -20,11 +20,11 @@ BasicThread::BasicThread()
 	killed = false;
 
 	buf_len = STD_FMT_BUF_LEN;
-	buf = (char*) zeek::util::safe_malloc(buf_len);
+	buf = (char*) util::safe_malloc(buf_len);
 
 	strerr_buffer = nullptr;
 
-	name = zeek::util::copy_string(zeek::util::fmt("thread-%" PRIu64, ++thread_counter));
+	name = util::copy_string(util::fmt("thread-%" PRIu64, ++thread_counter));
 
 	thread_mgr->AddThread(this);
 	}
@@ -41,13 +41,13 @@ BasicThread::~BasicThread()
 void BasicThread::SetName(const char* arg_name)
 	{
 	delete [] name;
-	name = zeek::util::copy_string(arg_name);
+	name = util::copy_string(arg_name);
 	}
 
 void BasicThread::SetOSName(const char* arg_name)
 	{
 	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
-	zeek::util::detail::set_thread_name(arg_name, thread.native_handle());
+	util::detail::set_thread_name(arg_name, thread.native_handle());
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)
@@ -55,7 +55,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 	if ( buf_len > 10 * STD_FMT_BUF_LEN )
 		{
 		// Shrink back to normal.
-		buf = (char*) zeek::util::safe_realloc(buf, STD_FMT_BUF_LEN);
+		buf = (char*) util::safe_realloc(buf, STD_FMT_BUF_LEN);
 		buf_len = STD_FMT_BUF_LEN;
 		}
 
@@ -67,7 +67,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) zeek::util::safe_realloc(buf, buf_len);
+		buf = (char*) util::safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
@@ -83,7 +83,7 @@ const char* BasicThread::Strerror(int err)
 	if ( ! strerr_buffer )
 		strerr_buffer = new char[256];
 
-	zeek::util::zeek_strerror_r(err, strerr_buffer, 256);
+	util::zeek_strerror_r(err, strerr_buffer, 256);
 	return strerr_buffer;
 	}
 
@@ -96,7 +96,7 @@ void BasicThread::Start()
 
 	thread = std::thread(&BasicThread::launcher, this);
 
-	DBG_LOG(zeek::DBG_THREADING, "Started thread %s", name);
+	DBG_LOG(DBG_THREADING, "Started thread %s", name);
 
 	OnStart();
 	}
@@ -109,7 +109,7 @@ void BasicThread::SignalStop()
 	if ( terminating )
 		return;
 
-	DBG_LOG(zeek::DBG_THREADING, "Signaling thread %s to terminate ...", name);
+	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
 
 	OnSignalStop();
 	}
@@ -119,7 +119,7 @@ void BasicThread::WaitForStop()
 	if ( ! started )
 		return;
 
-	DBG_LOG(zeek::DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
+	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
 
 	OnWaitForStop();
 
@@ -142,10 +142,10 @@ void BasicThread::Join()
 		}
 	catch ( const std::system_error& e )
 		{
-		zeek::reporter->FatalError("Failure joining thread %s with error %s", name, e.what());
+		reporter->FatalError("Failure joining thread %s with error %s", name, e.what());
 		}
 
-	DBG_LOG(zeek::DBG_THREADING, "Joined with thread %s", name);
+	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);
 	}
 
 void BasicThread::Kill()
@@ -160,7 +160,7 @@ void BasicThread::Kill()
 
 void BasicThread::Done()
 	{
-	DBG_LOG(zeek::DBG_THREADING, "Thread %s has finished", name);
+	DBG_LOG(DBG_THREADING, "Thread %s has finished", name);
 
 	terminating = true;
 	killed = true;

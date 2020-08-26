@@ -316,7 +316,7 @@ void set_processing_status(const char* status, const char* reason);
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if
 // given (open time is set network time).
-extern FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info);
+extern FILE* rotate_file(const char* name, RecordVal* rotate_info);
 
 // Parse a time string of the form "HH:MM" (as used for the rotation base
 // time) into a double representing the number of seconds. Returns -1 if the
@@ -354,8 +354,8 @@ inline void bytetohex(unsigned char byte, char* hex_out)
 
 std::string get_unescaped_string(const std::string& str);
 
-zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len,
-                                bool escape_all);
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
+                          bool escape_all);
 std::string get_escaped_string(const char* str, size_t len, bool escape_all);
 
 inline std::string get_escaped_string(const std::string& str, bool escape_all)
@@ -387,7 +387,7 @@ template<class T> int atoi_n(int len, const char* s, const char** end, int base,
 extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=nullptr);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 int strstr_n(const int big_len, const unsigned char* big,
-		const int little_len, const unsigned char* little);
+             const int little_len, const unsigned char* little);
 
 // Replaces all occurences of *o* in *s* with *n*.
 extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);

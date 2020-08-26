@@ -57,13 +57,13 @@ struct MaskedValue {
 	uint32_t mask;
 };
 
-using maskedvalue_list = zeek::PList<MaskedValue>;
-using string_list = zeek::PList<char>;
-using bstr_list = zeek::PList<zeek::String>;
+using maskedvalue_list = PList<MaskedValue>;
+using string_list = PList<char>;
+using bstr_list = PList<String>;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                                std::vector<zeek::IPPrefix>* prefix_vector = nullptr);
+                                std::vector<IPPrefix>* prefix_vector = nullptr);
 extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
@@ -75,7 +75,7 @@ public:
 
 	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
-	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<zeek::IPPrefix> arg_v);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -92,7 +92,7 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
-	std::vector<zeek::IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
+	std::vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32_t offset;
 	uint32_t size;
 
@@ -117,7 +117,7 @@ private:
 		int_list ids;	// (only needed for debugging)
 	};
 
-	using pattern_set_list = zeek::PList<PatternSet>;
+	using pattern_set_list = PList<PatternSet>;
 	pattern_set_list psets[Rule::TYPES];
 
 	// List of rules belonging to this node.
@@ -131,7 +131,7 @@ private:
 	RuleHdrTest* child;
 };
 
-using rule_hdr_test_list = zeek::PList<RuleHdrTest>;
+using rule_hdr_test_list = PList<RuleHdrTest>;
 
 // RuleEndpointState keeps the per-stream matching state of one
 // connection endpoint.
@@ -139,7 +139,7 @@ class RuleEndpointState {
 public:
 	~RuleEndpointState();
 
-	zeek::analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
+	analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
 	bool IsOrig()		{ return is_orig; }
 
 	// For flipping roles.
@@ -151,26 +151,26 @@ public:
 	// Returns -1 if no chunk has been fed yet at all.
 	int PayloadSize()	{ return payload_size; }
 
-	zeek::analyzer::pia::PIA* PIA() const	{ return pia; }
+	analyzer::pia::PIA* PIA() const	{ return pia; }
 
 private:
 	friend class RuleMatcher;
 
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
-	RuleEndpointState(zeek::analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
-	                  RuleEndpointState* arg_opposite, zeek::analyzer::pia::PIA* arg_PIA);
+	RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
+	                  RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher {
 		RE_Match_State* state;
 		Rule::PatternType type;
 	};
 
-	using matcher_list = zeek::PList<Matcher>;
+	using matcher_list = PList<Matcher>;
 
-	zeek::analyzer::Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
-	zeek::analyzer::pia::PIA* pia;
+	analyzer::pia::PIA* pia;
 
 	matcher_list matchers;
 	rule_hdr_test_list hdr_tests;
@@ -205,7 +205,7 @@ private:
 		RE_Match_State* state;
 	};
 
-	using matcher_list = zeek::PList<Matcher>;
+	using matcher_list = PList<Matcher>;
 	matcher_list matchers;
 };
 
@@ -262,9 +262,9 @@ public:
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
-	RuleEndpointState* InitEndpoint(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
+	RuleEndpointState* InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
 	                                int caplen, RuleEndpointState* opposite, bool is_orig,
-	                                zeek::analyzer::pia::PIA* pia);
+	                                analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
 	void FinishEndpoint(RuleEndpointState* state);
@@ -304,11 +304,11 @@ public:
 		unsigned int misses;	// # cache misses
 	};
 
-	zeek::Val* BuildRuleStateValue(const Rule* rule,
+	Val* BuildRuleStateValue(const Rule* rule,
 	                               const RuleEndpointState* state) const;
 
 	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
-	void DumpStats(zeek::File* f);
+	void DumpStats(File* f);
 
 private:
 	// Delete node and all children.
@@ -338,7 +338,7 @@ private:
 	// Eval a rule under the assumption that all its patterns
 	// have already matched.  s holds the text the rule matched,
 	// or nil if N/A.
-	bool ExecRulePurely(Rule* r, zeek::String* s,
+	bool ExecRulePurely(Rule* r, String* s,
 		RuleEndpointState* state, bool eos);
 
 	// Execute the actions associated with a rule.
@@ -351,7 +351,7 @@ private:
 
 	void PrintTreeDebug(RuleHdrTest* node);
 
-	void DumpStateStats(zeek::File* f, RuleHdrTest* hdr_test);
+	void DumpStateStats(File* f, RuleHdrTest* hdr_test);
 
 	static bool AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	                                   const AcceptingMatchSet& ams);
@@ -372,8 +372,8 @@ public:
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
-	void InitEndpointMatcher(zeek::analyzer::Analyzer* analyzer, const zeek::IP_Hdr* ip,
-	                         int caplen, bool from_orig, zeek::analyzer::pia::PIA* pia = nullptr);
+	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
+	                         int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

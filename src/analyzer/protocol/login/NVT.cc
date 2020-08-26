@@ -44,7 +44,7 @@ void TelnetOption::RecvOption(unsigned int type)
 
 	if ( ! peer )
 		{
-		zeek::reporter->AnalyzerError(
+		reporter->AnalyzerError(
 			endp, "option peer missing in TelnetOption::RecvOption");
 		return;
 		}
@@ -92,7 +92,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		break;
 
 	default:
-		zeek::reporter->AnalyzerError(
+		reporter->AnalyzerError(
 			endp, "bad option type in TelnetOption::RecvOption");
 		return;
 	}
@@ -176,7 +176,7 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 
 		if ( ! peer )
 			{
-			zeek::reporter->AnalyzerError(
+			reporter->AnalyzerError(
 				endp, "option peer missing in TelnetEncryptOption::RecvSubOption");
 			return;
 			}
@@ -216,7 +216,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 
 		if ( ! peer )
 			{
-			zeek::reporter->AnalyzerError(
+			reporter->AnalyzerError(
 				endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
 			return;
 			}
@@ -251,7 +251,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 	case AUTHENTICATION_NAME:
 		{
 		char* auth_name = new char[len];
-		zeek::util::safe_strncpy(auth_name, (char*) data + 1, len);
+		util::safe_strncpy(auth_name, (char*) data + 1, len);
 		endp->SetAuthName(auth_name);
 		}
 		break;
@@ -309,7 +309,7 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
 			break;
 			}
 
-		static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>
+		static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>
 			(endp->Parent())->SetEnv(endp->IsOrig(),
 							var_name, var_val);
 		}
@@ -382,8 +382,8 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 } // namespace detail
 
-NVT_Analyzer::NVT_Analyzer(zeek::Connection* conn, bool orig)
-	: zeek::analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options()
+NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
+	: analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options()
 	{
 	}
 
@@ -463,7 +463,7 @@ void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(new zeek::String(terminal, len, false))
+			make_intrusive<StringVal>(new String(terminal, len, false))
 		);
 	}
 
@@ -538,7 +538,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 
 			else
 				{
-				if ( Conn()->FlagEvent(zeek::SINGULAR_LF) )
+				if ( Conn()->FlagEvent(SINGULAR_LF) )
 					Conn()->Weird("line_terminated_with_single_LF");
 				buf[offset++] = c;
 				}
@@ -576,7 +576,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 		if ( ! (CRLFAsEOL() & CR_as_EOL) &&
 		     last_char == '\r' && c != '\n' && c != '\0' )
 			{
-			if ( Conn()->FlagEvent(zeek::SINGULAR_CR) )
+			if ( Conn()->FlagEvent(SINGULAR_CR) )
 				Weird("line_terminated_with_single_CR");
 			}
 

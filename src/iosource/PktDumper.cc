@@ -62,13 +62,13 @@ void PktDumper::Opened(const Properties& arg_props)
 	{
 	is_open = true;
 	props = arg_props;
-	DBG_LOG(zeek::DBG_PKTIO, "Opened dumper %s", props.path.c_str());
+	DBG_LOG(DBG_PKTIO, "Opened dumper %s", props.path.c_str());
 	}
 
 void PktDumper::Closed()
 	{
 	is_open = false;
-	DBG_LOG(zeek::DBG_PKTIO, "Closed dumper %s", props.path.c_str());
+	DBG_LOG(DBG_PKTIO, "Closed dumper %s", props.path.c_str());
 	props.path = "";
 	}
 
@@ -76,7 +76,7 @@ void PktDumper::Error(const std::string& msg)
 	{
 	errmsg = msg;
 
-	DBG_LOG(zeek::DBG_PKTIO, "Error with dumper %s: %s",
+	DBG_LOG(DBG_PKTIO, "Error with dumper %s: %s",
 		IsOpen() ? props.path.c_str() : "<not open>",
 		msg.c_str());
 	}

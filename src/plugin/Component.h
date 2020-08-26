@@ -83,7 +83,7 @@ public:
 	 *
 	 * @param d The description object to use.
 	 */
-	void Describe(zeek::ODesc* d) const;
+	void Describe(ODesc* d) const;
 
 protected:
 	/**
@@ -93,7 +93,7 @@ protected:
 	 *
 	 * @param d The description object to use.
 	  */
-	virtual void DoDescribe(zeek::ODesc* d) const	{ }
+	virtual void DoDescribe(ODesc* d) const	{ }
 
 private:
 	// Disable.

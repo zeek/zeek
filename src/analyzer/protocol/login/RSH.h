@@ -22,9 +22,9 @@ enum rsh_state {
 	RSH_UNKNOWN,	// we don't know what state we're in
 };
 
-class Contents_Rsh_Analyzer final : public zeek::analyzer::tcp::ContentLine_Analyzer {
+class Contents_Rsh_Analyzer final : public analyzer::tcp::ContentLine_Analyzer {
 public:
-	Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig, Rsh_Analyzer* analyzer);
+	Contents_Rsh_Analyzer(Connection* conn, bool orig, Rsh_Analyzer* analyzer);
 	~Contents_Rsh_Analyzer() override;
 
 	rsh_state RshSaveState() const	{ return save_state; }
@@ -41,14 +41,14 @@ protected:
 
 class Rsh_Analyzer final : public Login_Analyzer {
 public:
-	explicit Rsh_Analyzer(zeek::Connection* conn);
+	explicit Rsh_Analyzer(Connection* conn);
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Rsh_Analyzer(conn); }
 
 	Contents_Rsh_Analyzer* contents_orig;

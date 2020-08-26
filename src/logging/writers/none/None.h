@@ -8,12 +8,12 @@
 
 namespace zeek::logging::writer::detail {
 
-class None : public zeek::logging::WriterBackend {
+class None : public WriterBackend {
 public:
-	explicit None(zeek::logging::WriterFrontend* frontend) : zeek::logging::WriterBackend(frontend)	{}
+	explicit None(WriterFrontend* frontend) : WriterBackend(frontend)	{}
 	~None() override {};
 
-	static zeek::logging::WriterBackend* Instantiate(zeek::logging::WriterFrontend* frontend)
+	static WriterBackend* Instantiate(WriterFrontend* frontend)
 		{ return new None(frontend); }
 
 protected:

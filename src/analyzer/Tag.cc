@@ -3,33 +3,37 @@
 #include "Tag.h"
 #include "Manager.h"
 
-const zeek::analyzer::Tag zeek::analyzer::Tag::Error;
+namespace zeek::analyzer {
 
-zeek::analyzer::Tag::Tag(type_t type, subtype_t subtype)
-	: zeek::Tag(zeek::analyzer_mgr->GetTagType(), type, subtype)
+const Tag Tag::Error;
+
+Tag::Tag(type_t type, subtype_t subtype)
+	: zeek::Tag(analyzer_mgr->GetTagType(), type, subtype)
 	{
 	}
 
-zeek::analyzer::Tag& zeek::analyzer::Tag::operator=(const zeek::analyzer::Tag& other)
+Tag& Tag::operator=(const Tag& other)
 	{
 	zeek::Tag::operator=(other);
 	return *this;
 	}
 
-const zeek::EnumValPtr& zeek::analyzer::Tag::AsVal() const
+const EnumValPtr& Tag::AsVal() const
 	{
-	return zeek::Tag::AsVal(zeek::analyzer_mgr->GetTagType());
+	return zeek::Tag::AsVal(analyzer_mgr->GetTagType());
 	}
 
-zeek::EnumVal* zeek::analyzer::Tag::AsEnumVal() const
+EnumVal* Tag::AsEnumVal() const
 	{
 	return AsVal().get();
 	}
 
-zeek::analyzer::Tag::Tag(zeek::EnumValPtr val)
+Tag::Tag(EnumValPtr val)
 	: zeek::Tag(std::move(val))
 	{ }
 
-zeek::analyzer::Tag::Tag(zeek::EnumVal* val)
-	: zeek::Tag({zeek::NewRef{}, val})
+Tag::Tag(EnumVal* val)
+	: zeek::Tag({NewRef{}, val})
 	{ }
+
+} // namespace zeek::analyzer

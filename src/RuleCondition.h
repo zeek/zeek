@@ -114,7 +114,7 @@ public:
 
 	void PrintDebug() override;
 private:
-	zeek::detail::ID* id;
+	ID* id;
 };
 
 } // namespace zeek::detail

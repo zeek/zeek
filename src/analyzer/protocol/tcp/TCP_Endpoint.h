@@ -138,7 +138,7 @@ public:
 		return ack == start || ack == start + 1;
 		}
 
-	zeek::Connection* Conn() const;
+	Connection* Conn() const;
 
 	bool HasContents() const		{ return contents_processor != nullptr; }
 	bool HadGap() const;
@@ -182,12 +182,12 @@ public:
 	// Returns true if the data was used (and hence should be recorded
 	// in the save file), false otherwise.
 	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-	              const zeek::IP_Hdr* ip, const struct tcphdr* tp);
+	              const IP_Hdr* ip, const struct tcphdr* tp);
 
 	void AckReceived(uint64_t seq);
 
-	void SetContentsFile(zeek::FilePtr f);
-	const zeek::FilePtr& GetContentsFile() const	{ return contents_file; }
+	void SetContentsFile(FilePtr f);
+	const FilePtr& GetContentsFile() const	{ return contents_file; }
 
 	// Codes used for tracking history.  For responders, we shift these
 	// over by 16 bits in order to fit both originator and responder
@@ -210,12 +210,12 @@ public:
 	TCP_Endpoint* peer;
 	TCP_Reassembler* contents_processor;
 	TCP_Analyzer* tcp_analyzer;
-	zeek::FilePtr contents_file;
+	FilePtr contents_file;
 	uint32_t checksum_base;
 
 	double start_time, last_time;
-	zeek::IPAddr src_addr; // the other endpoint
-	zeek::IPAddr dst_addr; // this endpoint
+	IPAddr src_addr; // the other endpoint
+	IPAddr dst_addr; // this endpoint
 	uint32_t window; // current advertised window (*scaled*, not pre-scaling)
 	int window_scale;  // from the TCP option
 	uint32_t window_ack_seq; // at which ack_seq number did we record 'window'

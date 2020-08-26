@@ -42,7 +42,7 @@ refine flow FOO_Flow += {
         %{
         // printf("FOO %d %d\n", msg->hdr()->len(), msg->hdr_len());
         connection()->bro_analyzer()->ProtocolConfirmation();
-        BifEvent::Foo::generate_foo_message(
+        zeek::BifEvent::Foo::enqueue_foo_message(
                         connection()->bro_analyzer(),
                         connection()->bro_analyzer()->Conn(),
                         is_orig(),
@@ -57,4 +57,3 @@ refine flow FOO_Flow += {
 refine typeattr FOO_PDU += &let {
     proc: bool = $context.flow.proc_foo_message(this);
 };
-

@@ -20,7 +20,7 @@ namespace zeek::analyzer {
  * A plugin can provide a specific protocol analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public zeek::plugin::Component,
+class Component : public plugin::Component,
                   public plugin::TaggedComponent<analyzer::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(Connection* conn);

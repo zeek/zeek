@@ -6,8 +6,8 @@
 
 namespace zeek::analyzer::rdp {
 
-RDP_Analyzer::RDP_Analyzer(zeek::Connection* c)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("RDP", c)
+RDP_Analyzer::RDP_Analyzer(Connection* c)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);
 
@@ -22,7 +22,7 @@ RDP_Analyzer::~RDP_Analyzer()
 
 void RDP_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -30,13 +30,13 @@ void RDP_Analyzer::Done()
 
 void RDP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -56,11 +56,11 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			if ( ! pia )
 				{
-				pia = new zeek::analyzer::pia::PIA_TCP(Conn());
+				pia = new analyzer::pia::PIA_TCP(Conn());
 
 				if ( ! AddChildAnalyzer(pia) )
 					{
-					zeek::reporter->AnalyzerError(this,
+					reporter->AnalyzerError(this,
 					                              "failed to add TCP child analyzer "
 					                              "to RDP analyzer: already exists");
 					return;
@@ -75,7 +75,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		else
 			{
 			if ( rdp_native_encrypted_data )
-				zeek::BifEvent::enqueue_rdp_native_encrypted_data(
+				BifEvent::enqueue_rdp_native_encrypted_data(
 				        interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
 				        orig, len);
 			}
@@ -88,14 +88,14 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			}
 		catch ( const binpac::Exception& e )
 			{
-			ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
 
 void RDP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

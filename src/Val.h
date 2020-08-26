@@ -61,8 +61,8 @@ extern double zeek_start_network_time;
 
 }
 
-using FuncPtr = zeek::IntrusivePtr<Func>;
-using FilePtr = zeek::IntrusivePtr<File>;
+using FuncPtr = IntrusivePtr<Func>;
+using FilePtr = IntrusivePtr<File>;
 
 class Val;
 class PortVal;
@@ -79,15 +79,15 @@ class OpaqueVal;
 class VectorVal;
 class TableEntryVal;
 
-using AddrValPtr = zeek::IntrusivePtr<AddrVal>;
-using EnumValPtr = zeek::IntrusivePtr<EnumVal>;
-using ListValPtr = zeek::IntrusivePtr<ListVal>;
-using PortValPtr = zeek::IntrusivePtr<PortVal>;
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
-using StringValPtr = zeek::IntrusivePtr<StringVal>;
-using TableValPtr = zeek::IntrusivePtr<TableVal>;
-using ValPtr = zeek::IntrusivePtr<Val>;
-using VectorValPtr = zeek::IntrusivePtr<VectorVal>;
+using AddrValPtr = IntrusivePtr<AddrVal>;
+using EnumValPtr = IntrusivePtr<EnumVal>;
+using ListValPtr = IntrusivePtr<ListVal>;
+using PortValPtr = IntrusivePtr<PortVal>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+using StringValPtr = IntrusivePtr<StringVal>;
+using TableValPtr = IntrusivePtr<TableVal>;
+using ValPtr = IntrusivePtr<Val>;
+using VectorValPtr = IntrusivePtr<VectorVal>;
 
 union BroValUnion {
 	// Used for bool, int, enum.
@@ -106,10 +106,10 @@ union BroValUnion {
 	double double_val;
 
 	String* string_val;
-	zeek::Func* func_val;
+	Func* func_val;
 	File* file_val;
 	RE_Matcher* re_val;
-	zeek::PDict<TableEntryVal>* table_val;
+	PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
 	std::vector<ValPtr>* vector_val;
 
@@ -133,7 +133,7 @@ union BroValUnion {
 	constexpr BroValUnion(String* value) noexcept
 		: string_val(value) {}
 
-	constexpr BroValUnion(zeek::Func* value) noexcept
+	constexpr BroValUnion(Func* value) noexcept
 		: func_val(value) {}
 
 	constexpr BroValUnion(File* value) noexcept
@@ -142,7 +142,7 @@ union BroValUnion {
 	constexpr BroValUnion(RE_Matcher* value) noexcept
 		: re_val(value) {}
 
-	constexpr BroValUnion(zeek::PDict<TableEntryVal>* value) noexcept
+	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
 };
 
@@ -151,13 +151,13 @@ public:
 	static inline const ValPtr nil;
 
 	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
-	Val(double d, zeek::TypeTag t)
-		: val(d), type(zeek::base_type(t))
+	Val(double d, TypeTag t)
+		: val(d), type(base_type(t))
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Val(zeek::Func* f);
-	explicit Val(zeek::FuncPtr f);
+	explicit Val(Func* f);
+	explicit Val(FuncPtr f);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(File* f);
@@ -166,16 +166,16 @@ public:
 	explicit Val(FilePtr f);
 
 	// Extra arg to differentiate from protected version.
-	Val(zeek::TypePtr t, bool type_type)
-		: type(zeek::make_intrusive<zeek::TypeType>(std::move(t)))
+	Val(TypePtr t, bool type_type)
+		: type(make_intrusive<TypeType>(std::move(t)))
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	Val(zeek::Type* t, bool type_type) : Val({zeek::NewRef{}, t}, type_type)
+	Val(zeek::Type* t, bool type_type) : Val({NewRef{}, t}, type_type)
 		{}
 
 	Val()
-		: val(bro_int_t(0)), type(zeek::base_type(zeek::TYPE_ERROR))
+		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
 		{}
 
 	~Val() override;
@@ -215,17 +215,17 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	const zeek::Type* Type() const	{ return type.get(); }
 
-	const zeek::TypePtr& GetType() const
+	const TypePtr& GetType() const
 		{ return type; }
 
 	template <class T>
-	zeek::IntrusivePtr<T> GetType() const
-		{ return zeek::cast_intrusive<T>(type); }
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
 
 #define CONST_ACCESSOR(tag, ctype, accessor, name) \
 	const ctype name() const \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", zeek::type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
 		return val.accessor; \
 		}
 
@@ -233,71 +233,71 @@ public:
 #define CONST_ACCESSOR2(tag, ctype, accessor, name) \
 	ctype name() const \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", zeek::type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
 		return val.accessor; \
 		}
 
-	CONST_ACCESSOR2(zeek::TYPE_BOOL, bool, int_val, AsBool)
-	CONST_ACCESSOR2(zeek::TYPE_INT, bro_int_t, int_val, AsInt)
-	CONST_ACCESSOR2(zeek::TYPE_COUNT, bro_uint_t, uint_val, AsCount)
-	CONST_ACCESSOR2(zeek::TYPE_DOUBLE, double, double_val, AsDouble)
-	CONST_ACCESSOR2(zeek::TYPE_TIME, double, double_val, AsTime)
-	CONST_ACCESSOR2(zeek::TYPE_INTERVAL, double, double_val, AsInterval)
-	CONST_ACCESSOR2(zeek::TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
-	CONST_ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
-	CONST_ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
-	CONST_ACCESSOR(zeek::TYPE_FILE, File*, file_val, AsFile)
-	CONST_ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
+	CONST_ACCESSOR2(TYPE_BOOL, bool, int_val, AsBool)
+	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
+	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
+	CONST_ACCESSOR2(TYPE_DOUBLE, double, double_val, AsDouble)
+	CONST_ACCESSOR2(TYPE_TIME, double, double_val, AsTime)
+	CONST_ACCESSOR2(TYPE_INTERVAL, double, double_val, AsInterval)
+	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
+	CONST_ACCESSOR(TYPE_STRING, String*, string_val, AsString)
+	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
+	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
+	CONST_ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
+	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
+	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
+	CONST_ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
-		CHECK_TAG(type->Tag(), zeek::TYPE_SUBNET, "Val::SubNet", zeek::type_name)
+		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
 		return *val.subnet_val;
 		}
 
 	zeek::Type* AsType() const
 		{
-		CHECK_TAG(type->Tag(), zeek::TYPE_TYPE, "Val::Type", zeek::type_name)
+		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
 		return type.get();
 		}
 
 	const IPAddr& AsAddr() const
 		{
-		if ( type->Tag() != zeek::TYPE_ADDR )
-			BadTag("Val::AsAddr", zeek::type_name(type->Tag()));
+		if ( type->Tag() != TYPE_ADDR )
+			BadTag("Val::AsAddr", type_name(type->Tag()));
 		return *val.addr_val;
 		}
 
 #define ACCESSOR(tag, ctype, accessor, name) \
 	ctype name() \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", zeek::type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", type_name) \
 		return val.accessor; \
 		}
 
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
-	// ACCESSOR(zeek::TYPE_STRING, String*, string_val, AsString)
-	ACCESSOR(zeek::TYPE_FUNC, zeek::Func*, func_val, AsFunc)
-	ACCESSOR(zeek::TYPE_FILE, File*, file_val, AsFile)
-	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(zeek::TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
+	// ACCESSOR(TYPE_STRING, String*, string_val, AsString)
+	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
+	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
+	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
+	ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
-	zeek::FuncPtr AsFuncPtr() const;
+	FuncPtr AsFuncPtr() const;
 
 	const IPPrefix& AsSubNet()
 		{
-		CHECK_TAG(type->Tag(), zeek::TYPE_SUBNET, "Val::SubNet", zeek::type_name)
+		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
 		return *val.subnet_val;
 		}
 
 	const IPAddr& AsAddr()
 		{
-		if ( type->Tag() != zeek::TYPE_ADDR )
-			BadTag("Val::AsAddr", zeek::type_name(type->Tag()));
+		if ( type->Tag() != TYPE_ADDR )
+			BadTag("Val::AsAddr", type_name(type->Tag()));
 		return *val.addr_val;
 		}
 
@@ -344,14 +344,14 @@ public:
 
 	// To be overridden by mutable derived class to enable change
 	// notification.
-	virtual zeek::notifier::detail::Modifiable* Modifiable()	{ return nullptr; }
+	virtual notifier::detail::Modifiable* Modifiable()	{ return nullptr; }
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
-	zeek::detail::ID* GetID() const;
+	detail::ID* GetID() const;
 
-	void SetID(zeek::detail::ID* id);
+	void SetID(detail::ID* id);
 #endif
 
 	static bool WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val);
@@ -362,7 +362,7 @@ public:
 
 protected:
 
-	friend class zeek::EnumType;
+	friend class EnumType;
 	friend class ListVal;
 	friend class RecordVal;
 	friend class VectorVal;
@@ -377,21 +377,21 @@ protected:
 	static ValPtr MakeCount(bro_uint_t u);
 
 	template<typename V>
-	Val(V&& v, zeek::TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(zeek::base_type(t))
+	Val(V&& v, TypeTag t) noexcept
+		: val(std::forward<V>(v)), type(base_type(t))
 		{}
 
 	template<typename V>
-	Val(V&& v, zeek::TypePtr t) noexcept
+	Val(V&& v, TypePtr t) noexcept
 		: val(std::forward<V>(v)), type(std::move(t))
 		{}
 
-	explicit Val(zeek::TypePtr t) noexcept
+	explicit Val(TypePtr t) noexcept
 		: type(std::move(t))
 		{}
 
-	ACCESSOR(zeek::TYPE_TABLE, zeek::PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(zeek::TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
+	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
+	ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -407,7 +407,7 @@ protected:
 	virtual ValPtr DoClone(CloneState* state);
 
 	BroValUnion val;
-	zeek::TypePtr type;
+	TypePtr type;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -516,7 +516,7 @@ extern ValManager* val_mgr;
 class IntervalVal final : public Val {
 public:
 	IntervalVal(double quantity, double units = Seconds)
-		: Val(quantity * units, zeek::base_type(zeek::TYPE_INTERVAL))
+		: Val(quantity * units, base_type(TYPE_INTERVAL))
 		{}
 
 protected:
@@ -526,14 +526,14 @@ protected:
 class TimeVal final : public Val {
 public:
 	TimeVal(double t)
-		: Val(t, zeek::base_type(zeek::TYPE_TIME))
+		: Val(t, base_type(TYPE_TIME))
 		{}
 };
 
 class DoubleVal final : public Val {
 public:
 	DoubleVal(double v)
-		: Val(v, zeek::base_type(zeek::TYPE_DOUBLE))
+		: Val(v, base_type(TYPE_DOUBLE))
 		{}
 };
 
@@ -672,11 +672,11 @@ protected:
 // element in their index.
 class ListVal final : public Val {
 public:
-	explicit ListVal(zeek::TypeTag t);
+	explicit ListVal(TypeTag t);
 
 	~ListVal() override;
 
-	zeek::TypeTag BaseTag() const		{ return tag; }
+	TypeTag BaseTag() const		{ return tag; }
 
 	ValPtr SizeVal() const override;
 
@@ -724,7 +724,7 @@ protected:
 	ValPtr DoClone(CloneState* state) override;
 
 	std::vector<ValPtr> vals;
-	zeek::TypeTag tag;
+	TypeTag tag;
 };
 
 class TableEntryVal {
@@ -761,7 +761,7 @@ protected:
 	int expire_access_time;
 };
 
-class TableValTimer final : public zeek::detail::Timer {
+class TableValTimer final : public detail::Timer {
 public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;
@@ -774,13 +774,13 @@ protected:
 	TableVal* table;
 };
 
-class TableVal final : public Val, public zeek::notifier::detail::Modifiable {
+class TableVal final : public Val, public notifier::detail::Modifiable {
 public:
-	explicit TableVal(zeek::TableTypePtr t, zeek::detail::AttributesPtr attrs = nullptr);
+	explicit TableVal(TableTypePtr t, detail::AttributesPtr attrs = nullptr);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
-	explicit TableVal(zeek::TableType* t, zeek::detail::Attributes* attrs = nullptr)
-		: TableVal({zeek::NewRef{}, t}, {zeek::NewRef{}, attrs})
+	explicit TableVal(TableType* t, detail::Attributes* attrs = nullptr)
+		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
 		{}
 
 	~TableVal() override;
@@ -809,7 +809,7 @@ public:
 	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(ValPtr index, std::unique_ptr<zeek::detail::HashKey> k,
+	bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 	            ValPtr new_val, bool broker_forward = true);
 
 	// Returns true if the assignment typechecked, false if not. The
@@ -818,10 +818,10 @@ public:
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, Val* new_val);
 
-	// Same as other Assign() method, but takes a precomuted zeek::detail::HashKey and
+	// Same as other Assign() method, but takes a precomuted detail::HashKey and
 	// deletes it when done.
 	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
-	bool Assign(Val* index, zeek::detail::HashKey* k, Val* new_val);
+	bool Assign(Val* index, detail::HashKey* k, Val* new_val);
 
 	ValPtr SizeVal() const override;
 
@@ -923,10 +923,10 @@ public:
 	/**
 	 * @return  The index corresponding to the given HashKey.
 	 */
-	ListValPtr RecreateIndex(const zeek::detail::HashKey& k) const;
+	ListValPtr RecreateIndex(const detail::HashKey& k) const;
 
 	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
-	ListVal* RecoverIndex(const zeek::detail::HashKey* k) const
+	ListVal* RecoverIndex(const detail::HashKey* k) const
 		{ return RecreateIndex(*k).release(); }
 
 	/**
@@ -946,36 +946,36 @@ public:
 	 * @param k  The hash key to lookup.
 	 * @return  Same as Remove(const Val&).
 	 */
-	ValPtr Remove(const zeek::detail::HashKey& k);
+	ValPtr Remove(const detail::HashKey& k);
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const Val* index)
 		{ return Remove(*index).release(); }
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
-	Val* Delete(const zeek::detail::HashKey* k)
+	Val* Delete(const detail::HashKey* k)
 		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
-	ListValPtr ToListVal(zeek::TypeTag t = zeek::TYPE_ANY) const;
+	ListValPtr ToListVal(TypeTag t = TYPE_ANY) const;
 
 	// Returns a ListVal representation of the table (which must be a set
 	// with non-composite index type).
 	ListValPtr ToPureListVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToListVal() instead.")]]
-	ListVal* ConvertToList(zeek::TypeTag t=zeek::TYPE_ANY) const;
+	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
 	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
 	ListVal* ConvertToPureList() const;	// must be single index type
 
-	void SetAttrs(zeek::detail::AttributesPtr attrs);
+	void SetAttrs(detail::AttributesPtr attrs);
 
-	const zeek::detail::AttrPtr& GetAttr(zeek::detail::AttrTag t) const;
+	const detail::AttrPtr& GetAttr(detail::AttrTag t) const;
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
-	zeek::detail::Attributes* Attrs()	{ return attrs.get(); }
+	detail::Attributes* Attrs()	{ return attrs.get(); }
 
-	const zeek::detail::AttributesPtr& GetAttrs() const
+	const detail::AttributesPtr& GetAttrs() const
 		{ return attrs; }
 
 	// Returns the size of the table.
@@ -985,7 +985,7 @@ public:
 	// Returns the Prefix table used inside the table (if present).
 	// This allows us to do more direct queries to this specialized
 	// type that the general Table API does not allow.
-	const zeek::detail::PrefixTable* Subnets() const { return subnets; }
+	const detail::PrefixTable* Subnets() const { return subnets; }
 
 	void Describe(ODesc* d) const override;
 
@@ -995,11 +995,11 @@ public:
 	// If the &default attribute is not a function, or the functon has
 	// already been initialized, this does nothing. Otherwise, evaluates
 	// the function in the frame allowing it to capture its closure.
-	void InitDefaultFunc(zeek::detail::Frame* f);
+	void InitDefaultFunc(detail::Frame* f);
 
 	unsigned int MemoryAllocation() const override;
 
-	void ClearTimer(zeek::detail::Timer* t)
+	void ClearTimer(detail::Timer* t)
 		{
 		if ( timer == t )
 			timer = nullptr;
@@ -1010,16 +1010,16 @@ public:
 	 * @return  The hash of the index value or nullptr if
 	 * type-checking failed.
 	 */
-	std::unique_ptr<zeek::detail::HashKey> MakeHashKey(const Val& index) const;
+	std::unique_ptr<detail::HashKey> MakeHashKey(const Val& index) const;
 
 	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	zeek::detail::HashKey* ComputeHash(const Val* index) const;
+	detail::HashKey* ComputeHash(const Val* index) const;
 
-	zeek::notifier::detail::Modifiable* Modifiable() override	{ return this; }
+	notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
 	// Retrieves and saves all table state (key-value pairs) for
-	// tables whose index type depends on the given zeek::RecordType.
-	static void SaveParseTimeTableState(zeek::RecordType* rt);
+	// tables whose index type depends on the given RecordType.
+	static void SaveParseTimeTableState(RecordType* rt);
 
 	// Rebuilds all TableVals whose state was previously saved by
 	// SaveParseTimeTableState().  This is used to re-recreate the tables
@@ -1027,7 +1027,7 @@ public:
 	static void RebuildParseTimeTables();
 
 	// Clears all state that was used to track TableVals that depending
-	// on zeek::RecordTypes.
+	// on RecordTypes.
 	static void DoneParsing();
 
 	/**
@@ -1047,9 +1047,9 @@ public:
 	void EnableChangeNotifications() { in_change_func = false; }
 
 protected:
-	void Init(zeek::TableTypePtr t);
+	void Init(TableTypePtr t);
 
-	using TableRecordDependencies = std::unordered_map<zeek::RecordType*, std::vector<TableValPtr>>;
+	using TableRecordDependencies = std::unordered_map<RecordType*, std::vector<TableValPtr>>;
 
 	using ParseTimeTableState = std::vector<std::pair<ValPtr, ValPtr>>;
 	using ParseTimeTableStates = std::unordered_map<TableVal*, ParseTimeTableState>;
@@ -1057,7 +1057,7 @@ protected:
 	ParseTimeTableState DumpTableState();
 	void RebuildTable(ParseTimeTableState ptts);
 
-	void CheckExpireAttr(zeek::detail::AttrTag at);
+	void CheckExpireAttr(detail::AttrTag at);
 	bool ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val);
 	bool CheckAndAssign(ValPtr index, ValPtr new_val);
 
@@ -1087,16 +1087,16 @@ protected:
 
 	ValPtr DoClone(CloneState* state) override;
 
-	zeek::TableTypePtr table_type;
-	zeek::detail::CompositeHash* table_hash;
-	zeek::detail::AttributesPtr attrs;
-	zeek::detail::ExprPtr expire_time;
-	zeek::detail::ExprPtr expire_func;
+	TableTypePtr table_type;
+	detail::CompositeHash* table_hash;
+	detail::AttributesPtr attrs;
+	detail::ExprPtr expire_time;
+	detail::ExprPtr expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
-	zeek::detail::PrefixTable* subnets;
+	detail::PrefixTable* subnets;
 	ValPtr def_val;
-	zeek::detail::ExprPtr change_func;
+	detail::ExprPtr change_func;
 	std::string broker_store;
 	// prevent recursion of change functions
 	bool in_change_func = false;
@@ -1105,11 +1105,11 @@ protected:
 	static ParseTimeTableStates parse_time_table_states;
 };
 
-class RecordVal final : public Val, public zeek::notifier::detail::Modifiable {
+class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit RecordVal(zeek::RecordType* t, bool init_fields = true);
-	explicit RecordVal(zeek::RecordTypePtr t, bool init_fields = true);
+	explicit RecordVal(RecordType* t, bool init_fields = true);
+	explicit RecordVal(RecordTypePtr t, bool init_fields = true);
 
 	~RecordVal() override;
 
@@ -1131,7 +1131,7 @@ public:
 	 */
 	template <class T, class... Ts>
 	void Assign(int field, Ts&&... args)
-		{ Assign(field, zeek::make_intrusive<T>(std::forward<Ts>(args)...)); }
+		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
 
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	void Assign(int field, Val* new_val);
@@ -1157,8 +1157,8 @@ public:
 	 * @return  The value at the given field index cast to type @c T.
 	 */
 	template <class T>
-	zeek::IntrusivePtr<T> GetField(int field) const
-		{ return zeek::cast_intrusive<T>(GetField(field)); }
+	IntrusivePtr<T> GetField(int field) const
+		{ return cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Returns the value of a given field index if it's previously been
@@ -1189,8 +1189,8 @@ public:
 	 * field name exists, a fatal error occurs.
 	 */
 	template <class T>
-	zeek::IntrusivePtr<T> GetField(const char* field) const
-		{ return zeek::cast_intrusive<T>(GetField(field)); }
+	IntrusivePtr<T> GetField(const char* field) const
+		{ return cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Returns the value of a given field name if it's previously been
@@ -1211,8 +1211,8 @@ public:
 	 * type @c T.  If no such field name exists, a fatal error occurs.
 	 */
 	template <class T>
-	zeek::IntrusivePtr<T> GetFieldOrDefault(const char* field) const
-		{ return zeek::cast_intrusive<T>(GetField(field)); }
+	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
+		{ return cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
@@ -1249,21 +1249,21 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	RecordValPtr CoerceTo(zeek::RecordTypePtr other,
+	RecordValPtr CoerceTo(RecordTypePtr other,
 	                      RecordValPtr aggr,
 	                      bool allow_orphaning = false) const;
-	RecordValPtr CoerceTo(zeek::RecordTypePtr other,
+	RecordValPtr CoerceTo(RecordTypePtr other,
 	                      bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
-	zeek::notifier::detail::Modifiable* Modifiable() override	{ return this; }
+	notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
-	static void ResizeParseTimeRecords(zeek::RecordType* rt);
+	static void ResizeParseTimeRecords(RecordType* rt);
 
 	static void DoneParsing();
 
@@ -1272,7 +1272,7 @@ protected:
 
 	Obj* origin;
 
-	using RecordTypeValMap = std::unordered_map<zeek::RecordType*, std::vector<RecordValPtr>>;
+	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;
 };
 
@@ -1282,12 +1282,12 @@ public:
 
 protected:
 	friend class Val;
-	friend class zeek::EnumType;
+	friend class EnumType;
 
 	template<class T, class... Ts>
-	friend zeek::IntrusivePtr<T> zeek::make_intrusive(Ts&&... args);
+	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(zeek::EnumTypePtr t, bro_int_t i) : Val(i, std::move(t))
+	EnumVal(EnumTypePtr t, bro_int_t i) : Val(i, std::move(t))
 		{}
 
 	void ValDescribe(ODesc* d) const override;
@@ -1295,11 +1295,11 @@ protected:
 };
 
 
-class VectorVal final : public Val, public zeek::notifier::detail::Modifiable {
+class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit VectorVal(zeek::VectorType* t);
-	explicit VectorVal(zeek::VectorTypePtr t);
+	explicit VectorVal(VectorType* t);
+	explicit VectorVal(VectorTypePtr t);
 	~VectorVal() override;
 
 	ValPtr SizeVal() const override;
@@ -1317,7 +1317,7 @@ public:
 	//       the element was just created and thus has refcount 1.
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	bool Assign(unsigned int index, Val* element)
-		{ return Assign(index, {zeek::AdoptRef{}, element}); }
+		{ return Assign(index, {AdoptRef{}, element}); }
 	// Note: the following nullptr method can also go upon removing the above.
 	void Assign(unsigned int index, std::nullptr_t)
 		{ Assign(index, ValPtr{}); }
@@ -1326,7 +1326,7 @@ public:
 	bool Assign(Val* index, Val* element)
 		{
 		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(),
-		              {zeek::AdoptRef{}, element});
+		              {AdoptRef{}, element});
 		}
 
 	/**
@@ -1341,7 +1341,7 @@ public:
 
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	bool AssignRepeat(unsigned int index, unsigned int how_many, Val* element)
-		{ return AssignRepeat(index, how_many, {zeek::NewRef{}, element}); }
+		{ return AssignRepeat(index, how_many, {NewRef{}, element}); }
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.
@@ -1375,7 +1375,7 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
-	zeek::notifier::detail::Modifiable* Modifiable() override	{ return this; }
+	notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
 	/**
 	 * Inserts an element at the given position in the vector.  All elements
@@ -1389,7 +1389,7 @@ public:
 
 	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]]
 	bool Insert(unsigned int index, Val* element)
-		{ return Insert(index, {zeek::AdoptRef{}, element}); }
+		{ return Insert(index, {AdoptRef{}, element}); }
 
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);
@@ -1404,8 +1404,8 @@ protected:
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
 extern ValPtr check_and_promote(
-	ValPtr v, const zeek::Type* t, bool is_init,
-	const zeek::detail::Location* expr_location = nullptr);
+	ValPtr v, const Type* t, bool is_init,
+	const detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);
@@ -1416,25 +1416,25 @@ extern void describe_vals(const std::vector<ValPtr>& vals,
 extern void delete_vals(ValPList* vals);
 
 // True if the given Val* has a vector type.
-inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == zeek::TYPE_VECTOR; }
+inline bool is_vector(Val* v)	{ return v->GetType()->Tag() == TYPE_VECTOR; }
 inline bool is_vector(const ValPtr& v)	{ return is_vector(v.get()); }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //
 // Note: This implements the script-level cast operator.
-extern ValPtr cast_value_to_type(Val* v, zeek::Type* t);
+extern ValPtr cast_value_to_type(Val* v, Type* t);
 
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.
 //
 // Note: This implements the script-level type comparision operator.
-extern bool can_cast_value_to_type(const Val* v, zeek::Type* t);
+extern bool can_cast_value_to_type(const Val* v, Type* t);
 
 // Returns true if values of type s may support casting to type t. This is
 // purely static check to weed out cases early on that will never succeed.
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
-extern bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t);
+extern bool can_cast_value_to_type(const Type* s, Type* t);
 
 } // namespace zeek
 

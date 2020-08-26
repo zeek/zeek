@@ -26,7 +26,7 @@ bool JSON::NullDoubleWriter::Double(double d)
 	return rapidjson::Writer<rapidjson::StringBuffer>::Double(d);
 	}
 
-JSON::JSON(zeek::threading::MsgThread* t, TimeFormat tf) : zeek::threading::Formatter(t), surrounding_braces(true)
+JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
 	{
 	timestamps = tf;
 	}
@@ -35,8 +35,8 @@ JSON::~JSON()
 	{
 	}
 
-bool JSON::Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Field* const * fields,
-                    zeek::threading::Value** vals) const
+bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
+                    Value** vals) const
 	{
 	rapidjson::StringBuffer buffer;
 	NullDoubleWriter writer(buffer);
@@ -55,7 +55,7 @@ bool JSON::Describe(zeek::ODesc* desc, int num_fields, const zeek::threading::Fi
 	return true;
 	}
 
-bool JSON::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const std::string& name) const
+bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
 	{
 	if ( desc->IsBinary() )
 		{
@@ -78,14 +78,14 @@ bool JSON::Describe(zeek::ODesc* desc, zeek::threading::Value* val, const std::s
 	return true;
 	}
 
-zeek::threading::Value* JSON::ParseValue(const std::string& s, const std::string& name,
-                                         zeek::TypeTag type, zeek::TypeTag subtype) const
+Value* JSON::ParseValue(const std::string& s, const std::string& name,
+                        TypeTag type, TypeTag subtype) const
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return nullptr;
 	}
 
-void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, const std::string& name) const
+void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -98,36 +98,36 @@ void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, cons
 
 	switch ( val->type )
 		{
-		case zeek::TYPE_BOOL:
+		case TYPE_BOOL:
 			writer.Bool(val->val.int_val != 0);
 			break;
 
-		case zeek::TYPE_INT:
+		case TYPE_INT:
 			writer.Int64(val->val.int_val);
 			break;
 
-		case zeek::TYPE_COUNT:
+		case TYPE_COUNT:
 			writer.Uint64(val->val.uint_val);
 			break;
 
-		case zeek::TYPE_PORT:
+		case TYPE_PORT:
 			writer.Uint64(val->val.port_val.port);
 			break;
 
-		case zeek::TYPE_SUBNET:
+		case TYPE_SUBNET:
 			writer.String(Formatter::Render(val->val.subnet_val));
 			break;
 
-		case zeek::TYPE_ADDR:
+		case TYPE_ADDR:
 			writer.String(Formatter::Render(val->val.addr_val));
 			break;
 
-		case zeek::TYPE_DOUBLE:
-		case zeek::TYPE_INTERVAL:
+		case TYPE_DOUBLE:
+		case TYPE_INTERVAL:
 			writer.Double(val->val.double_val);
 			break;
 
-		case zeek::TYPE_TIME:
+		case TYPE_TIME:
 			{
 			if ( timestamps == TS_ISO8601 )
 				{
@@ -169,17 +169,17 @@ void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, cons
 			break;
 			}
 
-		case zeek::TYPE_ENUM:
-		case zeek::TYPE_STRING:
-		case zeek::TYPE_FILE:
-		case zeek::TYPE_FUNC:
+		case TYPE_ENUM:
+		case TYPE_STRING:
+		case TYPE_FILE:
+		case TYPE_FUNC:
 			{
-			writer.String(zeek::util::json_escape_utf8(
+			writer.String(util::json_escape_utf8(
 				              std::string(val->val.string_val.data, val->val.string_val.length)));
 			break;
 			}
 
-		case zeek::TYPE_TABLE:
+		case TYPE_TABLE:
 			{
 			writer.StartArray();
 
@@ -190,7 +190,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, cons
 			break;
 			}
 
-		case zeek::TYPE_VECTOR:
+		case TYPE_VECTOR:
 			{
 			writer.StartArray();
 
@@ -202,7 +202,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, zeek::threading::Value* val, cons
 			}
 
 		default:
-			zeek::reporter->Warning("Unhandled type in JSON::BuildJSON");
+			reporter->Warning("Unhandled type in JSON::BuildJSON");
 			break;
 		}
 	}

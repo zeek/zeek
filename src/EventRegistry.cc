@@ -9,11 +9,11 @@ namespace zeek {
 EventRegistry::EventRegistry() = default;
 EventRegistry::~EventRegistry() noexcept = default;
 
-zeek::EventHandlerPtr EventRegistry::Register(std::string_view name)
+EventHandlerPtr EventRegistry::Register(std::string_view name)
 	{
 	// If there already is an entry in the registry, we have a
 	// local handler on the script layer.
-	zeek::EventHandler* h = event_registry->Lookup(name);
+	EventHandler* h = event_registry->Lookup(name);
 
 	if ( h )
 		{
@@ -21,7 +21,7 @@ zeek::EventHandlerPtr EventRegistry::Register(std::string_view name)
 		return h;
 		}
 
-	h = new zeek::EventHandler(std::string(name));
+	h = new EventHandler(std::string(name));
 	event_registry->Register(h);
 
 	h->SetUsed();
@@ -29,12 +29,12 @@ zeek::EventHandlerPtr EventRegistry::Register(std::string_view name)
 	return h;
 	}
 
-void EventRegistry::Register(zeek::EventHandlerPtr handler)
+void EventRegistry::Register(EventHandlerPtr handler)
 	{
-	handlers[std::string(handler->Name())] = std::unique_ptr<zeek::EventHandler>(handler.Ptr());
+	handlers[std::string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
 	}
 
-zeek::EventHandler* EventRegistry::Lookup(std::string_view name)
+EventHandler* EventRegistry::Lookup(std::string_view name)
 	{
 	auto it = handlers.find(name);
 	if ( it != handlers.end() )
@@ -43,13 +43,13 @@ zeek::EventHandler* EventRegistry::Lookup(std::string_view name)
 	return nullptr;
 	}
 
-EventRegistry::string_list EventRegistry::Match(zeek::RE_Matcher* pattern)
+EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern)
 	{
 	string_list names;
 
 	for ( const auto& entry : handlers )
 		{
-		zeek::EventHandler* v = entry.second.get();
+		EventHandler* v = entry.second.get();
 		if ( v->GetFunc() && pattern->MatchExactly(v->Name()) )
 			names.push_back(entry.first);
 		}
@@ -63,7 +63,7 @@ EventRegistry::string_list EventRegistry::UnusedHandlers()
 
 	for ( const auto& entry : handlers )
 		{
-		zeek::EventHandler* v = entry.second.get();
+		EventHandler* v = entry.second.get();
 		if ( v->GetFunc() && ! v->Used() )
 			names.push_back(entry.first);
 		}
@@ -77,7 +77,7 @@ EventRegistry::string_list EventRegistry::UsedHandlers()
 
 	for ( const auto& entry : handlers )
 		{
-		zeek::EventHandler* v = entry.second.get();
+		EventHandler* v = entry.second.get();
 		if ( v->GetFunc() && v->Used() )
 			names.push_back(entry.first);
 		}
@@ -101,7 +101,7 @@ void EventRegistry::PrintDebug()
 	{
 	for ( const auto& entry : handlers )
 		{
-		zeek::EventHandler* v = entry.second.get();
+		EventHandler* v = entry.second.get();
 		fprintf(stderr, "Registered event %s (%s handler / %s)\n", v->Name(),
 				v->GetFunc() ? "local" : "no",
 				*v ? "active" : "not active"
@@ -111,7 +111,7 @@ void EventRegistry::PrintDebug()
 
 void EventRegistry::SetErrorHandler(std::string_view name)
 	{
-	zeek::EventHandler* eh = Lookup(name);
+	EventHandler* eh = Lookup(name);
 
 	if ( eh )
 		{
@@ -119,8 +119,8 @@ void EventRegistry::SetErrorHandler(std::string_view name)
 		return;
 		}
 
-	zeek::reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
-	                                std::string(name).c_str());
+	reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
+	                          std::string(name).c_str());
 	}
 
 } // namespace zeek

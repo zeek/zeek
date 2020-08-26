@@ -13,9 +13,9 @@ namespace zeek::analyzer::login {
 
 // FIXME: this code should probably be merged with Rlogin.cc.
 
-Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(zeek::Connection* conn, bool orig,
+Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
                                              Rsh_Analyzer* arg_analyzer)
-	: zeek::analyzer::tcp::ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
+	: analyzer::tcp::ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
@@ -35,7 +35,7 @@ Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()
 
 void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 	{
-	zeek::analyzer::tcp::TCP_Analyzer* tcp = static_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	analyzer::tcp::TCP_Analyzer* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
 
 	int endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();
@@ -49,10 +49,10 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 
 		switch ( state ) {
 		case RSH_FIRST_NULL:
-			if ( endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+			if ( endp_state == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
 			     // We can be in closed if the data's due to
 			     // a dataful FIN being the first thing we see.
-			     endp_state == zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED )
+			     endp_state == analyzer::tcp::TCP_ENDPOINT_CLOSED )
 				{
 				state = RSH_UNKNOWN;
 				++len, --data;	// put back c and reprocess
@@ -131,7 +131,7 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			zeek::reporter->AnalyzerError(
+			reporter->AnalyzerError(
 				this, "bad state in Contents_Rsh_Analyzer::DoDeliver");
 			break;
 		}
@@ -144,7 +144,7 @@ void Contents_Rsh_Analyzer::BadProlog()
 	state = RSH_UNKNOWN;
 	}
 
-Rsh_Analyzer::Rsh_Analyzer(zeek::Connection* conn)
+Rsh_Analyzer::Rsh_Analyzer(Connection* conn)
 : Login_Analyzer("RSH", conn)
 	{
 	contents_orig = new Contents_Rsh_Analyzer(conn, true, this);
@@ -168,31 +168,31 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			return;
 		}
 
-	zeek::Args vl;
+	Args vl;
 	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
-	line = zeek::util::skip_whitespace(line);
+	line = util::skip_whitespace(line);
 	vl.emplace_back(ConnVal());
 
 	if ( client_name )
-		vl.emplace_back(zeek::NewRef{}, client_name);
+		vl.emplace_back(NewRef{}, client_name);
 	else
-		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>("<none>"));
+		vl.emplace_back(make_intrusive<StringVal>("<none>"));
 
 	if ( username )
-		vl.emplace_back(zeek::NewRef{}, username);
+		vl.emplace_back(NewRef{}, username);
 	else
-		vl.emplace_back(zeek::make_intrusive<zeek::StringVal>("<none>"));
+		vl.emplace_back(make_intrusive<StringVal>("<none>"));
 
-	vl.emplace_back(zeek::make_intrusive<zeek::StringVal>(line));
+	vl.emplace_back(make_intrusive<StringVal>(line));
 
 	if ( orig )
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl.emplace_back(zeek::val_mgr->True());
+			vl.emplace_back(val_mgr->True());
 		else
-			vl.emplace_back(zeek::val_mgr->False());
+			vl.emplace_back(val_mgr->False());
 
 		EnqueueConnEvent(rsh_request, std::move(vl));
 		}
@@ -205,23 +205,22 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
 		{
-		zeek::reporter->AnalyzerError(this, "multiple rsh client names");
+		reporter->AnalyzerError(this, "multiple rsh client names");
 		return;
 		}
 
-	client_name = new zeek::StringVal(s);
+	client_name = new StringVal(s);
 	}
 
 void Rsh_Analyzer::ServerUserName(const char* s)
 	{
 	if ( username )
 		{
-		zeek::reporter->AnalyzerError(this,
-		                              "multiple rsh initial client names");
+		reporter->AnalyzerError(this, "multiple rsh initial client names");
 		return;
 		}
 
-	username = new zeek::StringVal(s);
+	username = new StringVal(s);
 	}
 
 } // namespace zeek::analyzer::login

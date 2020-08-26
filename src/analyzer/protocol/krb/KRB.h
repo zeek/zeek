@@ -12,22 +12,22 @@
 
 namespace zeek::analyzer::krb {
 
-class KRB_Analyzer final : public zeek::analyzer::Analyzer {
+class KRB_Analyzer final : public analyzer::Analyzer {
 
 public:
-	explicit KRB_Analyzer(zeek::Connection* conn);
+	explicit KRB_Analyzer(Connection* conn);
 	virtual ~KRB_Analyzer();
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-							   uint64_t seq, const zeek::IP_Hdr* ip, int caplen);
+							   uint64_t seq, const IP_Hdr* ip, int caplen);
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
-	zeek::StringValPtr GetAuthenticationInfo(const zeek::String* principal,
-	                                         const zeek::String* ciphertext,
-	                                         const bro_uint_t enctype);
+	StringValPtr GetAuthenticationInfo(const String* principal,
+	                                   const String* ciphertext,
+	                                   const bro_uint_t enctype);
 
 protected:
 

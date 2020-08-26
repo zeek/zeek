@@ -1,23 +1,27 @@
 
 #include "Foo.h"
 
-using namespace logging;
-using namespace writer;
+using namespace btest::logging::writer;
 
-bool Foo::DoInit(const WriterInfo& info, int num_fields,
-	    const threading::Field* const * fields)
+Foo::~Foo()
+	{
+	delete formatter;
+	}
+
+bool Foo::DoInit(const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
+                 const zeek::threading::Field* const * fields)
 	{
 	desc.EnableEscaping();
 	desc.AddEscapeSequence("|");
-    threading::formatter::Ascii::SeparatorInfo sep_info("|", ",", "-", "");
-    formatter = new threading::formatter::Ascii(this, sep_info);
+	zeek::threading::formatter::Ascii::SeparatorInfo sep_info("|", ",", "-", "");
+    formatter = new zeek::threading::formatter::Ascii(this, sep_info);
     path = info.path;
 
 	return true;
 	}
 
-bool Foo::DoWrite(int num_fields, const threading::Field* const* fields,
-                   threading::Value** vals)
+bool Foo::DoWrite(int num_fields, const zeek::threading::Field* const* fields,
+                  zeek::threading::Value** vals)
 	{
 	desc.Clear();
 
@@ -28,4 +32,3 @@ bool Foo::DoWrite(int num_fields, const threading::Field* const* fields,
 
     return true;
 	}
-

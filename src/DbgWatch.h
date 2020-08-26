@@ -12,13 +12,13 @@ namespace zeek::detail {
 
 class DbgWatch {
 public:
-	explicit DbgWatch(zeek::Obj* var_to_watch);
-	explicit DbgWatch(zeek::detail::Expr* expr_to_watch);
+	explicit DbgWatch(Obj* var_to_watch);
+	explicit DbgWatch(Expr* expr_to_watch);
 	~DbgWatch() = default;
 
 protected:
-	zeek::Obj* var;
-	zeek::detail::Expr* expr;
+	Obj* var;
+	Expr* expr;
 };
 
 } // namespace zeek::detail

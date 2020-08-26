@@ -28,31 +28,31 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-const zeek::FuncTypePtr& EventHandler::GetType(bool check_export)
+const FuncTypePtr& EventHandler::GetType(bool check_export)
 	{
 	if ( type )
 		return type;
 
-	const auto& id = zeek::detail::lookup_ID(name.data(), zeek::detail::current_module.c_str(),
-	                                         false, false, check_export);
+	const auto& id = detail::lookup_ID(name.data(), detail::current_module.c_str(),
+	                                   false, false, check_export);
 
 	if ( ! id )
-		return zeek::FuncType::nil;
+		return FuncType::nil;
 
-	if ( id->GetType()->Tag() != zeek::TYPE_FUNC )
-		return zeek::FuncType::nil;
+	if ( id->GetType()->Tag() != TYPE_FUNC )
+		return FuncType::nil;
 
-	type = id->GetType<zeek::FuncType>();
+	type = id->GetType<FuncType>();
 	return type;
 	}
 
-void EventHandler::SetFunc(zeek::FuncPtr f)
+void EventHandler::SetFunc(FuncPtr f)
 	{ local = std::move(f); }
 
-void EventHandler::SetLocalHandler(zeek::Func* f)
-	{ SetFunc({zeek::NewRef{}, f}); }
+void EventHandler::SetLocalHandler(Func* f)
+	{ SetFunc({NewRef{}, f}); }
 
-void EventHandler::Call(zeek::Args* vl, bool no_remote)
+void EventHandler::Call(Args* vl, bool no_remote)
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Event: %s\n", Name());
@@ -72,7 +72,7 @@ void EventHandler::Call(zeek::Args* vl, bool no_remote)
 
 			for ( auto i = 0u; i < vl->size(); ++i )
 				{
-				auto opt_data = zeek::Broker::detail::val_to_data((*vl)[i].get());
+				auto opt_data = Broker::detail::val_to_data((*vl)[i].get());
 
 				if ( opt_data )
 					xs.emplace_back(std::move(*opt_data));
@@ -80,7 +80,7 @@ void EventHandler::Call(zeek::Args* vl, bool no_remote)
 					{
 					valid_args = false;
 					auto_publish.clear();
-					zeek::reporter->Error("failed auto-remote event '%s', disabled", Name());
+					reporter->Error("failed auto-remote event '%s', disabled", Name());
 					break;
 					}
 				}
@@ -109,7 +109,7 @@ void EventHandler::Call(zeek::Args* vl, bool no_remote)
 		local->Invoke(vl);
 	}
 
-void EventHandler::NewEvent(zeek::Args* vl)
+void EventHandler::NewEvent(Args* vl)
 	{
 	if ( ! new_event )
 		return;
@@ -118,13 +118,13 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		// new_event() is the one event we don't want to report.
 		return;
 
-	auto vargs = zeek::MakeCallArgumentVector(*vl, GetType()->Params());
+	auto vargs = MakeCallArgumentVector(*vl, GetType()->Params());
 
-	auto ev = new zeek::Event(new_event, {
-			zeek::make_intrusive<zeek::StringVal>(name),
+	auto ev = new Event(new_event, {
+			make_intrusive<StringVal>(name),
 			std::move(vargs),
 			});
-	zeek::event_mgr.Dispatch(ev);
+	event_mgr.Dispatch(ev);
 	}
 
 } // namespace zeek

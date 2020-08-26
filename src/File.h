@@ -22,12 +22,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
 namespace zeek {
 class Type;
-using TypePtr = zeek::IntrusivePtr<zeek::Type>;
+using TypePtr = IntrusivePtr<Type>;
 
 class File;
-using FilePtr = zeek::IntrusivePtr<File>;
+using FilePtr = IntrusivePtr<File>;
 
-class File final : public zeek::Obj {
+class File final : public Obj {
 public:
 	explicit File(FILE* arg_f);
 	File(FILE* arg_f, const char* filename, const char* access);
@@ -46,9 +46,9 @@ public:
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::Type* FType() const	{ return t.get(); }
+	Type* FType() const	{ return t.get(); }
 
-	const zeek::TypePtr& GetType() const
+	const TypePtr& GetType() const
 		{ return t; }
 
 	// Whether the file is open in a general sense; it might
@@ -63,10 +63,10 @@ public:
 	void Describe(ODesc* d) const override;
 
 	// Rotates the logfile. Returns rotate_info.
-	zeek::RecordVal* Rotate();
+	RecordVal* Rotate();
 
 	// Set &raw_output attribute.
-	void SetAttrs(zeek::detail::Attributes* attrs);
+	void SetAttrs(detail::Attributes* attrs);
 
 	// Returns the current size of the file, after fresh stat'ing.
 	double Size();
@@ -85,7 +85,7 @@ public:
 
 protected:
 
-	friend class zeek::detail::PrintStmt;
+	friend class detail::PrintStmt;
 
 	File()	{ Init(); }
 	void Init();
@@ -109,10 +109,10 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	zeek::TypePtr t;
+	TypePtr t;
 	char* name;
 	char* access;
-	zeek::detail::Attributes* attrs;
+	detail::Attributes* attrs;
 	double open_time;
 	bool is_open;	// whether the file is open in a general sense
 	bool buffered;

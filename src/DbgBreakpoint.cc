@@ -152,10 +152,10 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 		{
 		std::string loc_s(loc_str);
 		kind = BP_FUNC;
-		function_name = make_full_var_name(zeek::detail::current_module.c_str(),
+		function_name = make_full_var_name(current_module.c_str(),
 		                                   loc_s.c_str());
 		at_stmt = plr.stmt;
-		const zeek::detail::Location* loc = at_stmt->GetLocationInfo();
+		const Location* loc = at_stmt->GetLocationInfo();
 		snprintf(description, sizeof(description), "%s at %s:%d",
 		         function_name.c_str(), loc->filename, loc->last_line);
 
@@ -167,7 +167,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 	return true;
 	}
 
-bool DbgBreakpoint::SetLocation(zeek::detail::Stmt* stmt)
+bool DbgBreakpoint::SetLocation(Stmt* stmt)
 	{
 	if ( ! stmt )
 		return false;
@@ -178,7 +178,7 @@ bool DbgBreakpoint::SetLocation(zeek::detail::Stmt* stmt)
 	SetEnable(true);
 	AddToGlobalMap();
 
-	const zeek::detail::Location* loc = stmt->GetLocationInfo();
+	const Location* loc = stmt->GetLocationInfo();
 	snprintf(description, sizeof(description), "%s:%d",
 		      loc->filename, loc->last_line);
 
@@ -219,7 +219,7 @@ bool DbgBreakpoint::Reset()
 		break;
 	}
 
-	zeek::reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
+	reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
 
 	// Cannot be reached.
 	return false;
@@ -259,8 +259,8 @@ BreakCode DbgBreakpoint::HasHit()
 			return BC_HIT;
 			}
 
-		if ( ! zeek::IsIntegral(yes->GetType()->Tag()) &&
-		     ! zeek::IsBool(yes->GetType()->Tag()) )
+		if ( ! IsIntegral(yes->GetType()->Tag()) &&
+		     ! IsBool(yes->GetType()->Tag()) )
 			{
 			PrintHitMsg();
 			debug_msg("Breakpoint condition should return an integral type");
@@ -291,7 +291,7 @@ BreakCode DbgBreakpoint::HasHit()
 	return BC_HIT;
 	}
 
-BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
+BreakCode DbgBreakpoint::ShouldBreak(Stmt* s)
 	{
 	if ( ! IsEnabled() )
 		return BC_NO_HIT;
@@ -312,7 +312,7 @@ BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 		assert(false);
 
 	default:
-		zeek::reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
+		reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
 	}
 
 	// If we got here, that means that the breakpoint could hit,
@@ -329,7 +329,7 @@ BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 BreakCode DbgBreakpoint::ShouldBreak(double t)
 	{
 	if ( kind != BP_TIME )
-		zeek::reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
+		reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
 
 	if ( t < at_time )
 		return BC_NO_HIT;
@@ -352,13 +352,13 @@ void DbgBreakpoint::PrintHitMsg()
 	case BP_LINE:
 		{
 		ODesc d;
-		zeek::detail::Frame* f = g_frame_stack.back();
-		const zeek::detail::ScriptFunc* func = f->GetFunction();
+		Frame* f = g_frame_stack.back();
+		const ScriptFunc* func = f->GetFunction();
 
 		if ( func )
 			func->DescribeDebug (&d, f->GetFuncArgs());
 
-		const zeek::detail::Location* loc = at_stmt->GetLocationInfo();
+		const Location* loc = at_stmt->GetLocationInfo();
 
 		debug_msg("Breakpoint %d, %s at %s:%d\n",
 			 GetID(), d.Description(),
@@ -370,7 +370,7 @@ void DbgBreakpoint::PrintHitMsg()
 		assert(false);
 
 	default:
-		zeek::reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
+		reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
 	}
 	}
 

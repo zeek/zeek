@@ -9,8 +9,8 @@
 
 namespace zeek::analyzer::sip_tcp {
 
-SIP_Analyzer::SIP_Analyzer(zeek::Connection* conn)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("SIP_TCP", conn)
+SIP_Analyzer::SIP_Analyzer(Connection* conn)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("SIP_TCP", conn)
 	{
 	interp = new binpac::SIP_TCP::SIP_Conn(this);
 	had_gap = false;
@@ -23,7 +23,7 @@ SIP_Analyzer::~SIP_Analyzer()
 
 void SIP_Analyzer::Done()
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -31,13 +31,13 @@ void SIP_Analyzer::Done()
 
 void SIP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void SIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -55,13 +55,13 @@ void SIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
 void SIP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

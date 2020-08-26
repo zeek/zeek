@@ -18,8 +18,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 namespace zeek {
-using RecordValPtr = zeek::IntrusivePtr<zeek::RecordVal>;
-using RecordTypePtr = zeek::IntrusivePtr<zeek::RecordType>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+using RecordTypePtr = IntrusivePtr<RecordType>;
 }
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(FileReassembler, zeek, file_analysis);
@@ -42,11 +42,11 @@ public:
 	/**
 	 * @return the wrapped \c fa_file record value, #val.
 	 */
-	const zeek::RecordValPtr& ToVal() const
+	const RecordValPtr& ToVal() const
 		{ return val; }
 
 	[[deprecated("Remove in v4.1.  Use ToVal().")]]
-	zeek::RecordVal* GetVal() const
+	RecordVal* GetVal() const
 		{ return val.get(); }
 
 	/**
@@ -78,10 +78,10 @@ public:
 	 * @param bytes new limit.
 	 * @return false if no extraction analyzer is active, else true.
 	 */
-	bool SetExtractionLimit(zeek::RecordValPtr args, uint64_t bytes);
+	bool SetExtractionLimit(RecordValPtr args, uint64_t bytes);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool SetExtractionLimit(zeek::RecordVal* args, uint64_t bytes);
+	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
 
 	/**
 	 * @return value of the "id" field from #val record.
@@ -126,10 +126,10 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool AddAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
@@ -137,10 +137,10 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordValPtr args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
 	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool RemoveAnalyzer(file_analysis::Tag tag, zeek::RecordVal* args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Signal that this analyzer can be deleted once it's safe to do so.
@@ -178,37 +178,37 @@ public:
 	 * @param h pointer to an event handler.
 	 * @return true if event has a handler and the file isn't ignored.
 	 */
-	bool FileEventAvailable(zeek::EventHandlerPtr h);
+	bool FileEventAvailable(EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle, the only parameter
 	 * to that event is the \c fa_file record..
 	 * @param h pointer to an event handler.
 	 */
-	void FileEvent(zeek::EventHandlerPtr h);
+	void FileEvent(EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
-	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(zeek::EventHandlerPtr h, ValPList* vl);
+	[[deprecated("Remove in v4.1. Use Args overload instead.")]]
+	void FileEvent(EventHandlerPtr h, ValPList* vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
-	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
-	void FileEvent(zeek::EventHandlerPtr h, ValPList vl);
+	[[deprecated("Remove in v4.1. Use Args overload instead.")]]
+	void FileEvent(EventHandlerPtr h, ValPList vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
 	 * @param h pointer to an event handler.
 	 * @param args list of argument values to pass to event call.
 	 */
-	void FileEvent(zeek::EventHandlerPtr h, zeek::Args args);
+	void FileEvent(EventHandlerPtr h, Args args);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.
@@ -252,8 +252,8 @@ protected:
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const std::string& file_id, const std::string& source_name, zeek::Connection* conn = nullptr,
-	     zeek::analyzer::Tag tag = zeek::analyzer::Tag::Error, bool is_orig = false);
+	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
+	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -262,12 +262,12 @@ protected:
 	 * @param is_orig true if the connection originator is sending the file.
 	 * @return true if the connection was previously unknown.
 	 */
-	bool UpdateConnectionFields(zeek::Connection* conn, bool is_orig);
+	bool UpdateConnectionFields(Connection* conn, bool is_orig);
 
 	/**
 	 * Raise the file_over_new_connection event with given arguments.
 	 */
-	void RaiseFileOverNewConnection(zeek::Connection* conn, bool is_orig);
+	void RaiseFileOverNewConnection(Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.
@@ -340,8 +340,8 @@ protected:
 	 * @param type the record type for which the field will be looked up.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
-	static int Idx(const std::string& field_name, const zeek::RecordType* type);
-	static int Idx(const std::string& field_name, const zeek::RecordTypePtr& type)
+	static int Idx(const std::string& field_name, const RecordType* type);
+	static int Idx(const std::string& field_name, const RecordTypePtr& type)
 		{ return Idx(field_name, type.get()); }
 
 	/**
@@ -351,7 +351,7 @@ protected:
 
 protected:
 	std::string id;                 /**< A pretty hash that likely identifies file */
-	zeek::RecordValPtr val;            /**< \c fa_file from script layer. */
+	RecordValPtr val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
@@ -369,7 +369,7 @@ protected:
 
 		bool full;
 		uint64_t size;
-		zeek::String::CVec chunks;
+		String::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
 
 	zeek::detail::WeirdStateMap weird_state;

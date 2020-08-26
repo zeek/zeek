@@ -16,7 +16,7 @@ krb5_keytab KRB_Analyzer::krb_keytab = nullptr;
 std::once_flag KRB_Analyzer::krb_initialized;
 #endif
 
-KRB_Analyzer::KRB_Analyzer(zeek::Connection* conn)
+KRB_Analyzer::KRB_Analyzer(Connection* conn)
 	: Analyzer("KRB", conn)
 	{
 	interp = new binpac::KRB::KRB_Conn(this);
@@ -29,19 +29,19 @@ KRB_Analyzer::KRB_Analyzer(zeek::Connection* conn)
 static void warn_krb(const char* msg, krb5_context ctx, krb5_error_code code)
 	{
 	auto err = krb5_get_error_message(ctx, code);
-	zeek::reporter->Warning("%s (%s)", msg, err);
+	reporter->Warning("%s (%s)", msg, err);
 	krb5_free_error_message(ctx, err);
 	}
 
 void KRB_Analyzer::Initialize_Krb()
 	{
-	if ( zeek::BifConst::KRB::keytab->Len() == 0 )
+	if ( BifConst::KRB::keytab->Len() == 0 )
 		return; // no keytab set
 
-	const char* keytab_filename = zeek::BifConst::KRB::keytab->CheckString();
+	const char* keytab_filename = BifConst::KRB::keytab->CheckString();
 	if ( access(keytab_filename, R_OK) != 0 )
 		{
-		zeek::reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);
+		reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);
 		return;
 		}
 
@@ -73,7 +73,7 @@ void KRB_Analyzer::Done()
 	}
 
 void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-				 uint64_t seq, const zeek::IP_Hdr* ip, int caplen)
+				 uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -83,30 +83,30 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
-zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* principal,
-                                                       const zeek::String* ciphertext,
-                                                       const bro_uint_t enctype)
+StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal,
+                                                 const String* ciphertext,
+                                                 const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( !krb_available )
 		return nullptr;
 
-	zeek::String delim("/");
+	String delim("/");
 	int pos = principal->FindSubstring(&delim);
 	if ( pos == -1 )
 		{
-		zeek::reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
+		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
-	std::unique_ptr<zeek::String> service = unique_ptr<zeek::String>(principal->GetSubstring(0, pos));
-	std::unique_ptr<zeek::String> hostname = unique_ptr<zeek::String>(principal->GetSubstring(pos + 1, -1));
+	std::unique_ptr<String> service = unique_ptr<String>(principal->GetSubstring(0, pos));
+	std::unique_ptr<String> hostname = unique_ptr<String>(principal->GetSubstring(pos + 1, -1));
 	if ( !service || !hostname )
 		{
-		zeek::reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
+		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
 	krb5_principal sprinc;
@@ -117,13 +117,13 @@ zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* princ
 		return nullptr;
 		}
 
-	auto tkt = static_cast<krb5_ticket*>(zeek::util::safe_malloc(sizeof(krb5_ticket)));
+	auto tkt = static_cast<krb5_ticket*>(util::safe_malloc(sizeof(krb5_ticket)));
 	memset(tkt, 0, sizeof(krb5_ticket));
 
 	tkt->server = sprinc;
 	tkt->enc_part.enctype = enctype;
 
-	auto ctd = static_cast<char*>(zeek::util::safe_malloc(ciphertext->Len()));
+	auto ctd = static_cast<char*>(util::safe_malloc(ciphertext->Len()));
 	memcpy(ctd, ciphertext->Bytes(), ciphertext->Len());
 	tkt->enc_part.ciphertext.data = ctd;
 	tkt->enc_part.ciphertext.length = ciphertext->Len();
@@ -147,7 +147,7 @@ zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* princ
 		return nullptr;
 		}
 
-	auto ret = zeek::make_intrusive<zeek::StringVal>(cp);
+	auto ret = make_intrusive<StringVal>(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
 	krb5_free_ticket(krb_context, tkt);

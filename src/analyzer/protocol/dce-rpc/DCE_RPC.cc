@@ -11,8 +11,8 @@ using namespace std;
 
 namespace zeek::analyzer::dce_rpc {
 
-DCE_RPC_Analyzer::DCE_RPC_Analyzer(zeek::Connection* conn)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
+DCE_RPC_Analyzer::DCE_RPC_Analyzer(Connection* conn)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
 	{
 	had_gap = false;
 	interp = new binpac::DCE_RPC::DCE_RPC_Conn(this);
@@ -61,7 +61,7 @@ void DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

@@ -47,7 +47,7 @@ static vector<string> summary_comment(const vector<string>& cmnts)
 	return rval;
 	}
 
-static void add_summary_rows(const zeek::ODesc& id_desc, const vector<string>& cmnts,
+static void add_summary_rows(const ODesc& id_desc, const vector<string>& cmnts,
                              ReStructuredTextTable* table)
 	{
 	vector<string> row;
@@ -84,7 +84,7 @@ static string make_summary(const string& heading, char underline, char border,
 	      it != id_list.end(); ++it )
 		{
 		auto* id = (*it)->GetID();
-		zeek::ODesc d;
+		ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 		add_summary_rows(d, summary_comment((*it)->GetComments()), &table);
@@ -107,7 +107,7 @@ static string make_redef_summary(const string& heading, char underline,
 	      ++it )
 		{
 		auto* id = (*it)->GetID();
-		zeek::ODesc d;
+		ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 
@@ -162,7 +162,7 @@ static string make_redef_details(const string& heading, char underline,
 ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
     : Info(),
       name(arg_name), path(arg_path),
-      is_pkg_loader(zeek::util::detail::is_package_loader(name)),
+      is_pkg_loader(util::detail::is_package_loader(name)),
       dependencies(), module_usages(), comments(), id_info(),
       redef_options(), constants(), state_vars(), types(), events(), hooks(),
       functions(), redefs()
@@ -188,31 +188,31 @@ void ScriptInfo::DoInitPostScript()
 		if ( id->IsType() )
 			{
 			types.push_back(info);
-			DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",
+			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",
 			        id->Name(), name.c_str());
 			continue;
 			}
 
-		if ( zeek::IsFunc(id->GetType()->Tag()) )
+		if ( IsFunc(id->GetType()->Tag()) )
 			{
 			switch ( id->GetType()->AsFuncType()->Flavor() ) {
-			case zeek::FUNC_FLAVOR_HOOK:
-				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
+			case FUNC_FLAVOR_HOOK:
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
 				        id->Name(), name.c_str());
 				hooks.push_back(info);
 				break;
-			case zeek::FUNC_FLAVOR_EVENT:
-				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a event",
+			case FUNC_FLAVOR_EVENT:
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a event",
 				        id->Name(), name.c_str());
 				events.push_back(info);
 				break;
-			case zeek::FUNC_FLAVOR_FUNCTION:
-				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a function",
+			case FUNC_FLAVOR_FUNCTION:
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a function",
 				        id->Name(), name.c_str());
 				functions.push_back(info);
 				break;
 			default:
-				zeek::reporter->InternalError("Invalid function flavor");
+				reporter->InternalError("Invalid function flavor");
 				break;
 			}
 
@@ -223,13 +223,13 @@ void ScriptInfo::DoInitPostScript()
 			{
 			if ( id->GetAttr(zeek::detail::ATTR_REDEF) )
 				{
-				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
 				        id->Name(), name.c_str());
 				redef_options.push_back(info);
 				}
 			else
 				{
-				DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a constant",
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a constant",
 				        id->Name(), name.c_str());
 				constants.push_back(info);
 				}
@@ -238,19 +238,19 @@ void ScriptInfo::DoInitPostScript()
 			}
 		else if ( id->IsOption() )
 			{
-			DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as an runtime option",
+			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as an runtime option",
 							id->Name(), name.c_str());
 			options.push_back(info);
 
 			continue;
 			}
 
-		if ( id->GetType()->Tag() == zeek::TYPE_ENUM )
+		if ( id->GetType()->Tag() == TYPE_ENUM )
 			// Enums are always referenced/documented from the type's
 			// documentation.
 			continue;
 
-		DBG_LOG(zeek::DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a state variable",
+		DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a state variable",
 		        id->Name(), name.c_str());
 		state_vars.push_back(info);
 		}
@@ -318,20 +318,20 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 			if ( it != dependencies.begin() )
 				rval += ", ";
 
-			string path = zeek::util::find_script_file(*it, zeek::util::zeek_path());
+			string path = util::find_script_file(*it, util::zeek_path());
 			string doc = *it;
 
-			if ( ! path.empty() && zeek::util::is_dir(path.c_str()) )
+			if ( ! path.empty() && util::is_dir(path.c_str()) )
 				// Reference the package.
 				doc += "/index";
 
-			rval += zeek::util::fmt(":doc:`%s </scripts/%s>`", it->c_str(), doc.c_str());
+			rval += util::fmt(":doc:`%s </scripts/%s>`", it->c_str(), doc.c_str());
 			}
 
 		rval += "\n";
 		}
 
-	//rval += zeek::util::fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
+	//rval += util::fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
 	rval += "\n";
 	rval += make_heading("Summary", '~');
 	rval += make_summary("Runtime Options", '#', '=', options);
@@ -369,7 +369,7 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 		if ( ! info )
 			{
-			for (const string& ext : zeek::util::detail::script_extensions)
+			for (const string& ext : util::detail::script_extensions)
 				{
 				string pkg_name = *it + "/__load__" + ext;
 				info = zeek::detail::zeekygen_mgr->GetScriptInfo(pkg_name);
@@ -378,8 +378,8 @@ time_t ScriptInfo::DoGetModificationTime() const
 				}
 
 			if ( ! info )
-				zeek::reporter->InternalWarning("Zeekygen failed to get mtime of %s",
-				                                it->c_str());
+				reporter->InternalWarning("Zeekygen failed to get mtime of %s",
+				                          it->c_str());
 			continue;
 			}
 

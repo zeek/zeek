@@ -6,9 +6,9 @@
 
 namespace zeek::analyzer::teredo {
 
-class Teredo_Analyzer final : public zeek::analyzer::Analyzer {
+class Teredo_Analyzer final : public analyzer::Analyzer {
 public:
-	explicit Teredo_Analyzer(zeek::Connection* conn)
+	explicit Teredo_Analyzer(Connection* conn)
 		: Analyzer("TEREDO", conn), valid_orig(false), valid_resp(false) {}
 
 	~Teredo_Analyzer() override = default;
@@ -16,9 +16,9 @@ public:
 	void Done() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const zeek::IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
 
 	/**
@@ -31,7 +31,7 @@ public:
 	void Weird(const char* name, bool force = false) const
 		{
 		if ( ProtocolConfirmed() || force )
-			zeek::reporter->Weird(Conn(), name);
+			reporter->Weird(Conn(), name);
 		}
 
 	/**
@@ -40,7 +40,7 @@ public:
 	 */
 	void Confirm()
 		{
-		if ( ! zeek::BifConst::Tunnel::delay_teredo_confirmation ||
+		if ( ! BifConst::Tunnel::delay_teredo_confirmation ||
 		     ( valid_orig && valid_resp ) )
 			ProtocolConfirmation();
 		}
@@ -74,7 +74,7 @@ public:
 	const u_char* Authentication() const
 		{ return auth; }
 
-	zeek::RecordValPtr BuildVal(const zeek::IP_Hdr* inner) const;
+	RecordValPtr BuildVal(const IP_Hdr* inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);

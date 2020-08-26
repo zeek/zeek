@@ -17,18 +17,18 @@
 
 namespace zeek::analyzer::login {
 
-static zeek::RE_Matcher* re_skip_authentication = nullptr;
-static zeek::RE_Matcher* re_direct_login_prompts;
-static zeek::RE_Matcher* re_login_prompts;
-static zeek::RE_Matcher* re_login_non_failure_msgs;
-static zeek::RE_Matcher* re_login_failure_msgs;
-static zeek::RE_Matcher* re_login_success_msgs;
-static zeek::RE_Matcher* re_login_timeouts;
+static RE_Matcher* re_skip_authentication = nullptr;
+static RE_Matcher* re_direct_login_prompts;
+static RE_Matcher* re_login_prompts;
+static RE_Matcher* re_login_non_failure_msgs;
+static RE_Matcher* re_login_failure_msgs;
+static RE_Matcher* re_login_success_msgs;
+static RE_Matcher* re_login_timeouts;
 
-static zeek::RE_Matcher* init_RE(zeek::ListVal* l);
+static RE_Matcher* init_RE(ListVal* l);
 
-Login_Analyzer::Login_Analyzer(const char* name, zeek::Connection* conn)
-    : zeek::analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
+Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
+    : analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
 	num_user_lines_seen = lines_scanned = 0;
@@ -45,13 +45,13 @@ Login_Analyzer::Login_Analyzer(const char* name, zeek::Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
-		zeek::ListValPtr skip_authentication = zeek::id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
-		zeek::ListValPtr direct_login_prompts = zeek::id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
-		zeek::ListValPtr login_prompts = zeek::id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
-		zeek::ListValPtr login_non_failure_msgs = zeek::id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
-		zeek::ListValPtr login_failure_msgs = zeek::id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
-		zeek::ListValPtr login_success_msgs = zeek::id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
-		zeek::ListValPtr login_timeouts = zeek::id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
+		ListValPtr skip_authentication = id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
+		ListValPtr direct_login_prompts = id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
+		ListValPtr login_prompts = id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
+		ListValPtr login_non_failure_msgs = id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
+		ListValPtr login_failure_msgs = id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
+		ListValPtr login_success_msgs = id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
+		ListValPtr login_timeouts = id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
 
 #ifdef USE_PERFTOOLS_DEBUG
 		HeapLeakChecker::Disabler disabler;
@@ -80,7 +80,7 @@ Login_Analyzer::~Login_Analyzer()
 
 void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	char* str = new char[length+1];
 
@@ -91,7 +91,7 @@ void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			str[j++] = line[i];
 		else
 			{
-			if ( Conn()->FlagEvent(zeek::NUL_IN_LINE) )
+			if ( Conn()->FlagEvent(NUL_IN_LINE) )
 				Weird("NUL_in_line");
 			}
 
@@ -117,8 +117,8 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state == LOGIN_STATE_AUTHENTICATE )
 		{
-		if ( TCP()->OrigState() == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
-		     TCP()->RespState() == zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL )
+		if ( TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+		     TCP()->RespState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL )
 			state = LOGIN_STATE_CONFUSED;	// unknown login state
 		else
 			{
@@ -129,7 +129,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state != LOGIN_STATE_CONFUSED )
 		{
-		zeek::reporter->AnalyzerError(
+		reporter->AnalyzerError(
 			this, "bad state in Login_Analyzer::NewLine");
 		return;
 		}
@@ -323,38 +323,38 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 	else
 		{
-		if ( zeek::util::streq(name, "USER") )
+		if ( util::streq(name, "USER") )
 			{
 			if ( username )
 				{
-				const zeek::String* u = username->AsString();
-				const zeek::byte_vec ub = u->Bytes();
+				const String* u = username->AsString();
+				const byte_vec ub = u->Bytes();
 				const char* us = (const char*) ub;
-				if ( ! zeek::util::streq(val, us) )
+				if ( ! util::streq(val, us) )
 					Confused("multiple_USERs", val);
 				Unref(username);
 				}
 
 			// "val" gets copied here.
-			username = new zeek::StringVal(val);
+			username = new StringVal(val);
 			}
 
-		else if ( login_terminal && zeek::util::streq(name, "TERM") )
+		else if ( login_terminal && util::streq(name, "TERM") )
 			EnqueueConnEvent(login_terminal,
 				ConnVal(),
-				zeek::make_intrusive<zeek::StringVal>(val)
+				make_intrusive<StringVal>(val)
 			);
 
-		else if ( login_display && zeek::util::streq(name, "DISPLAY") )
+		else if ( login_display && util::streq(name, "DISPLAY") )
 			EnqueueConnEvent(login_display,
 				ConnVal(),
-				zeek::make_intrusive<zeek::StringVal>(val)
+				make_intrusive<StringVal>(val)
 			);
 
-		else if ( login_prompt && zeek::util::streq(name, "TTYPROMPT") )
+		else if ( login_prompt && util::streq(name, "TTYPROMPT") )
 			EnqueueConnEvent(login_prompt,
 				ConnVal(),
-				zeek::make_intrusive<zeek::StringVal>(val)
+				make_intrusive<StringVal>(val)
 			);
 		}
 
@@ -364,7 +364,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 void Login_Analyzer::EndpointEOF(bool orig)
 	{
-	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
+	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
 
 	if ( state == LOGIN_STATE_AUTHENTICATE && HaveTypeahead() )
 		{
@@ -373,7 +373,7 @@ void Login_Analyzer::EndpointEOF(bool orig)
 		}
 	}
 
-void Login_Analyzer::LoginEvent(zeek::EventHandlerPtr f, const char* line,
+void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 	bool no_user_okay)
 	{
 	if ( ! f )
@@ -389,7 +389,7 @@ void Login_Analyzer::LoginEvent(zeek::EventHandlerPtr f, const char* line,
 			if ( no_user_okay )
 				{
 				Unref(username);
-				username = new zeek::StringVal("<none>");
+				username = new StringVal("<none>");
 				}
 
 			else
@@ -414,7 +414,7 @@ void Login_Analyzer::LoginEvent(zeek::EventHandlerPtr f, const char* line,
 			if ( no_user_okay )
 				{
 				Unref(username);
-				username = new zeek::StringVal("<none>");
+				username = new StringVal("<none>");
 				}
 
 			else
@@ -425,16 +425,16 @@ void Login_Analyzer::LoginEvent(zeek::EventHandlerPtr f, const char* line,
 			}
 		}
 
-	zeek::Val* password = HaveTypeahead() ?
-		PopUserTextVal() : new zeek::StringVal("<none>");
+	Val* password = HaveTypeahead() ?
+		PopUserTextVal() : new StringVal("<none>");
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		zeek::IntrusivePtr{zeek::NewRef{}, username},
-		client_name ? zeek::IntrusivePtr{zeek::NewRef{}, client_name}
-		            : zeek::val_mgr->EmptyString(),
-		zeek::IntrusivePtr{zeek::AdoptRef{}, password},
-		zeek::make_intrusive<zeek::StringVal>(line)
+		IntrusivePtr{NewRef{}, username},
+		client_name ? IntrusivePtr{NewRef{}, client_name}
+		            : val_mgr->EmptyString(),
+		IntrusivePtr{AdoptRef{}, password},
+		make_intrusive<StringVal>(line)
 	);
 	}
 
@@ -446,14 +446,14 @@ const char* Login_Analyzer::GetUsername(const char* line) const
 	return line;
 	}
 
-void Login_Analyzer::LineEvent(zeek::EventHandlerPtr f, const char* line)
+void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 	{
 	if ( ! f )
 		return;
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		zeek::make_intrusive<zeek::StringVal>(line)
+		make_intrusive<StringVal>(line)
 	);
 	}
 
@@ -465,8 +465,8 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 	if ( login_confused )
 		EnqueueConnEvent(login_confused,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(msg),
-			zeek::make_intrusive<zeek::StringVal>(line)
+			make_intrusive<StringVal>(msg),
+			make_intrusive<StringVal>(line)
 		);
 
 	if ( login_confused_text )
@@ -489,7 +489,7 @@ void Login_Analyzer::ConfusionText(const char* line)
 	if ( login_confused_text )
 		EnqueueConnEvent(login_confused_text,
 			ConnVal(),
-			zeek::make_intrusive<zeek::StringVal>(line)
+			make_intrusive<StringVal>(line)
 		);
 	}
 
@@ -562,7 +562,7 @@ void Login_Analyzer::AddUserText(const char* line)
 		if ( ++user_text_last == MAX_USER_TEXT )
 			user_text_last = 0;
 
-		user_text[user_text_last] = zeek::util::copy_string(line);
+		user_text[user_text_last] = util::copy_string(line);
 
 		++num_user_text;
 		}
@@ -572,7 +572,7 @@ char* Login_Analyzer::PeekUserText()
 	{
 	if ( num_user_text <= 0 )
 		{
-		zeek::reporter->AnalyzerError(
+		reporter->AnalyzerError(
 			this, "underflow in Login_Analyzer::PeekUserText()");
 		return nullptr;
 		}
@@ -595,14 +595,14 @@ char* Login_Analyzer::PopUserText()
 	return s;
 	}
 
-zeek::Val* Login_Analyzer::PopUserTextVal()
+Val* Login_Analyzer::PopUserTextVal()
 	{
 	char* s = PopUserText();
 
 	if ( s )
-		return new zeek::StringVal(new zeek::String(true, zeek::byte_vec(s), strlen(s)));
+		return new StringVal(new String(true, byte_vec(s), strlen(s)));
 	else
-		return zeek::val_mgr->EmptyString()->Ref();
+		return val_mgr->EmptyString()->Ref();
 	}
 
 bool Login_Analyzer::MatchesTypeahead(const char* line) const
@@ -612,7 +612,7 @@ bool Login_Analyzer::MatchesTypeahead(const char* line) const
 		if ( i == MAX_USER_TEXT )
 			i = 0;
 
-		if ( zeek::util::streq(user_text[i], line) )
+		if ( util::streq(user_text[i], line) )
 			return true;
 		}
 
@@ -625,9 +625,9 @@ void Login_Analyzer::FlushEmptyTypeahead()
 		delete [] PopUserText();
 	}
 
-zeek::RE_Matcher* init_RE(zeek::ListVal* l)
+RE_Matcher* init_RE(ListVal* l)
 	{
-	zeek::RE_Matcher* re = l->BuildRE();
+	RE_Matcher* re = l->BuildRE();
 	if ( re )
 		re->Compile();
 

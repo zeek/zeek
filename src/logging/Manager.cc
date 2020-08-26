@@ -32,24 +32,24 @@ using namespace std;
 namespace zeek::logging {
 
 struct Manager::Filter {
-	zeek::Val* fval;
+	Val* fval;
 	string name;
-	zeek::EnumVal* id;
-	zeek::Func* pred;
-	zeek::Func* path_func;
+	EnumVal* id;
+	Func* pred;
+	Func* path_func;
 	string path;
-	zeek::Val* path_val;
-	zeek::EnumVal* writer;
-	zeek::TableVal* config;
-	zeek::TableVal* field_name_map;
+	Val* path_val;
+	EnumVal* writer;
+	TableVal* config;
+	TableVal* field_name_map;
 	string scope_sep;
 	string ext_prefix;
-	zeek::Func* ext_func;
+	Func* ext_func;
 	int num_ext_fields;
 	bool local;
 	bool remote;
 	double interval;
-	zeek::Func* postprocessor;
+	Func* postprocessor;
 
 	int num_fields;
 	threading::Field** fields;
@@ -63,11 +63,11 @@ struct Manager::Filter {
 };
 
 struct Manager::WriterInfo {
-	zeek::EnumVal* type;
+	EnumVal* type;
 	double open_time;
-	zeek::detail::Timer* rotation_timer;
+	detail::Timer* rotation_timer;
 	double interval;
-	zeek::Func* postprocessor;
+	Func* postprocessor;
 	WriterFrontend* writer;
 	WriterBackend::WriterInfo* info;
 	bool from_remote;
@@ -76,11 +76,11 @@ struct Manager::WriterInfo {
 	};
 
 struct Manager::Stream {
- 	zeek::EnumVal* id;
+ 	EnumVal* id;
 	bool enabled;
 	string name;
-	zeek::RecordType* columns;
-	zeek::EventHandlerPtr event;
+	RecordType* columns;
+	EventHandlerPtr event;
 	list<Filter*> filters;
 
 	typedef pair<int, string> WriterPathPair;
@@ -145,16 +145,16 @@ Manager::~Manager()
 
 void Manager::InitPostScript()
 	{
-	rotation_format_func = zeek::id::find_func("Log::rotation_format_func");
+	rotation_format_func = id::find_func("Log::rotation_format_func");
 	}
 
-WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, zeek::EnumVal* tag)
+WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
 	{
 	Component* c = Lookup(tag);
 
 	if ( ! c )
 		{
-		zeek::reporter->Error("unknown writer type requested");
+		reporter->Error("unknown writer type requested");
 		return nullptr;
 		}
 
@@ -164,7 +164,7 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, zeek::EnumVal* t
 	return backend;
 	}
 
-Manager::Stream* Manager::FindStream(zeek::EnumVal* id)
+Manager::Stream* Manager::FindStream(EnumVal* id)
 	{
 	unsigned int idx = id->AsEnum();
 
@@ -234,15 +234,15 @@ void Manager::RemoveDisabledWriters(Stream* stream)
 		stream->writers.erase(*j);
 	}
 
-bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
+bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	{
-	if ( ! same_type(sval->GetType(), zeek::BifType::Record::Log::Stream, false) )
+	if ( ! same_type(sval->GetType(), BifType::Record::Log::Stream, false) )
 		{
-		zeek::reporter->Error("sval argument not of right type");
+		reporter->Error("sval argument not of right type");
 		return false;
 		}
 
-	zeek::RecordType* columns = sval->GetField("columns")
+	RecordType* columns = sval->GetField("columns")
 		->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	bool log_attr_present = false;
@@ -254,7 +254,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 		if ( ! threading::Value::IsCompatibleType(columns->GetFieldType(i).get()) )
 			{
-			zeek::reporter->Error("type of field '%s' is not support for logging output",
+			reporter->Error("type of field '%s' is not support for logging output",
 			                      columns->FieldName(i));
 
 			return false;
@@ -265,21 +265,21 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 	if ( ! log_attr_present )
 		{
-		zeek::reporter->Error("logged record type does not have any &log attributes");
+		reporter->Error("logged record type does not have any &log attributes");
 		return false;
 		}
 
 	const auto& event_val = sval->GetField("ev");
-	zeek::Func* event = event_val ? event_val->AsFunc() : nullptr;
+	Func* event = event_val ? event_val->AsFunc() : nullptr;
 
 	if ( event )
 		{
 		// Make sure the event is prototyped as expected.
 		const auto& etype = event->GetType();
 
-		if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
+		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
-			zeek::reporter->Error("stream event is a function, not an event");
+			reporter->Error("stream event is a function, not an event");
 			return false;
 			}
 
@@ -287,13 +287,13 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 		if ( args.size() != 1 )
 			{
-			zeek::reporter->Error("stream event must take a single argument");
+			reporter->Error("stream event must take a single argument");
 			return false;
 			}
 
 		if ( ! same_type(args[0], columns) )
 			{
-			zeek::reporter->Error("stream event's argument type does not match column record type");
+			reporter->Error("stream event's argument type does not match column record type");
 			return false;
 			}
 		}
@@ -315,18 +315,18 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 	streams[idx]->id = id->Ref()->AsEnumVal();
 	streams[idx]->enabled = true;
 	streams[idx]->name = id->GetType()->AsEnumType()->Lookup(idx);
-	streams[idx]->event = event ? zeek::event_registry->Lookup(event->Name()) : nullptr;
+	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
-	streams[idx]->enable_remote = zeek::id::find_val("Log::enable_remote_logging")->AsBool();
+	streams[idx]->enable_remote = id::find_val("Log::enable_remote_logging")->AsBool();
 
-	DBG_LOG(zeek::DBG_LOGGING, "Created new logging stream '%s', raising event %s",
+	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
 
 	return true;
 	}
 
-bool Manager::RemoveStream(zeek::EnumVal* id)
+bool Manager::RemoveStream(EnumVal* id)
 	{
 	unsigned int idx = id->AsEnum();
 
@@ -342,7 +342,7 @@ bool Manager::RemoveStream(zeek::EnumVal* id)
 		{
 		WriterInfo* winfo = i->second;
 
-		DBG_LOG(zeek::DBG_LOGGING, "Removed writer '%s' from stream '%s'",
+		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'",
 			winfo->writer->Name(), stream->name.c_str());
 
 		winfo->writer->Stop();
@@ -355,11 +355,11 @@ bool Manager::RemoveStream(zeek::EnumVal* id)
 	delete stream;
 	streams[idx] = nullptr;
 
-	DBG_LOG(zeek::DBG_LOGGING, "Removed logging stream '%s'", sname.c_str());
+	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", sname.c_str());
 	return true;
 	}
 
-bool Manager::EnableStream(zeek::EnumVal* id)
+bool Manager::EnableStream(EnumVal* id)
 	{
 	Stream* stream = FindStream(id);
 
@@ -371,11 +371,11 @@ bool Manager::EnableStream(zeek::EnumVal* id)
 
 	stream->enabled = true;
 
-	DBG_LOG(zeek::DBG_LOGGING, "Reenabled logging stream '%s'", stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Reenabled logging stream '%s'", stream->name.c_str());
 	return true;
 	}
 
-bool Manager::DisableStream(zeek::EnumVal* id)
+bool Manager::DisableStream(EnumVal* id)
 	{
 	Stream* stream = FindStream(id);
 
@@ -387,13 +387,13 @@ bool Manager::DisableStream(zeek::EnumVal* id)
 
 	stream->enabled = false;
 
-	DBG_LOG(zeek::DBG_LOGGING, "Disabled logging stream '%s'", stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Disabled logging stream '%s'", stream->name.c_str());
 	return true;
 	}
 
 // Helper for recursive record field unrolling.
-bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* rt,
-                             zeek::TableVal* include, zeek::TableVal* exclude,
+bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
+                             TableVal* include, TableVal* exclude,
                              const string& path, const list<int>& indices)
 	{
 	// Only include extensions for the outer record.
@@ -402,7 +402,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 	int i = 0;
 	for ( int j = 0; j < num_ext_fields + rt->NumFields(); ++j )
 		{
-		zeek::RecordType* rtype;
+		RecordType* rtype;
 		// If this is an ext field, set the rtype appropriately
 		if ( j < num_ext_fields )
 			{
@@ -418,7 +418,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 		const auto& t = rtype->GetFieldType(i);
 
 		// Ignore if &log not specified.
-		if ( ! rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_LOG) )
+		if ( ! rtype->FieldDecl(i)->GetAttr(detail::ATTR_LOG) )
 			continue;
 
 		list<int> new_indices = indices;
@@ -436,9 +436,9 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 		if ( j < num_ext_fields )
 			new_path = filter->ext_prefix + new_path;
 
-		if ( t->InternalType() == zeek::TYPE_INTERNAL_OTHER )
+		if ( t->InternalType() == TYPE_INTERNAL_OTHER )
 			{
-			if ( t->Tag() == zeek::TYPE_RECORD )
+			if ( t->Tag() == TYPE_RECORD )
 				{
 				// Recurse.
 				if ( ! TraverseRecord(stream, filter,
@@ -452,30 +452,30 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 				continue;
 				}
 
-			else if ( t->Tag() == zeek::TYPE_TABLE &&
+			else if ( t->Tag() == TYPE_TABLE &&
 				  t->AsTableType()->IsSet() )
 				{
 				// That's ok, we handle it below.
 				}
 
-			else if ( t->Tag() == zeek::TYPE_VECTOR )
+			else if ( t->Tag() == TYPE_VECTOR )
 				{
 				// That's ok, we handle it below.
 				}
 
-			else if ( t->Tag() == zeek::TYPE_FILE )
+			else if ( t->Tag() == TYPE_FILE )
 				{
 				// That's ok, we handle it below.
 				}
 
-			else if ( t->Tag() == zeek::TYPE_FUNC )
+			else if ( t->Tag() == TYPE_FUNC )
 				{
 				// That's ok, we handle it below.
 				}
 
 			else
 				{
-				zeek::reporter->Error("unsupported field type for log column");
+				reporter->Error("unsupported field type for log column");
 				return false;
 				}
 			}
@@ -483,7 +483,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 		// If include fields are specified, only include if explicitly listed.
 		if ( include )
 			{
-			auto new_path_val = zeek::make_intrusive<zeek::StringVal>(new_path.c_str());
+			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
 			bool result = (bool)include->FindOrDefault(new_path_val);
 
 			if ( ! result )
@@ -493,7 +493,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 		// If exclude fields are specified, do not only include if listed.
 		if ( exclude )
 			{
-			auto new_path_val = zeek::make_intrusive<zeek::StringVal>(new_path.c_str());
+			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
 			bool result = (bool)exclude->FindOrDefault(new_path_val);
 
 			if ( result )
@@ -509,22 +509,22 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 
 		if ( ! tmp )
 			{
-			zeek::reporter->Error("out of memory in add_filter");
+			reporter->Error("out of memory in add_filter");
 			return false;
 			}
 
 		++filter->num_fields;
 		filter->fields = (threading::Field**) tmp;
 
-		zeek::TypeTag st = zeek::TYPE_VOID;
+		TypeTag st = TYPE_VOID;
 
-		if ( t->Tag() == zeek::TYPE_TABLE )
+		if ( t->Tag() == TYPE_TABLE )
 			st = t->AsSetType()->GetIndices()->GetPureType()->Tag();
 
-		else if ( t->Tag() == zeek::TYPE_VECTOR )
+		else if ( t->Tag() == TYPE_VECTOR )
 			st = t->AsVectorType()->Yield()->Tag();
 
-		bool optional = (bool)rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL);
+		bool optional = (bool)rtype->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL);
 
 		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
 		}
@@ -532,11 +532,11 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* r
 	return true;
 	}
 
-bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
+bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	{
-	if ( ! same_type(fval->GetType(), zeek::BifType::Record::Log::Filter, false) )
+	if ( ! same_type(fval->GetType(), BifType::Record::Log::Filter, false) )
 		{
-		zeek::reporter->Error("filter argument not of right type");
+		reporter->Error("filter argument not of right type");
 		return false;
 		}
 
@@ -545,7 +545,7 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 		return false;
 
 	// Find the right writer type.
-	auto writer = fval->GetFieldOrDefault<zeek::EnumVal>("writer");
+	auto writer = fval->GetFieldOrDefault<EnumVal>("writer");
 
 	// Create a new Filter instance.
 
@@ -587,19 +587,19 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		if ( filter->ext_func->GetType()->Yield()->Tag() == zeek::TYPE_RECORD )
+		if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_RECORD )
 			{
 			filter->num_ext_fields = filter->ext_func->GetType()->Yield()->AsRecordType()->NumFields();
 			}
-		else if ( filter->ext_func->GetType()->Yield()->Tag() == zeek::TYPE_VOID )
+		else if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_VOID )
 			{
 			// This is a special marker for the default no-implementation
 			// of the ext_func and we'll allow it to slide.
 			}
 		else
 			{
-			zeek::reporter->Error("Return value of log_ext is not a record (got %s)",
-			                      zeek::type_name(filter->ext_func->GetType()->Yield()->Tag()));
+			reporter->Error("Return value of log_ext is not a record (got %s)",
+			                      type_name(filter->ext_func->GetType()->Yield()->Tag()));
 			delete filter;
 			return false;
 			}
@@ -639,34 +639,34 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 	stream->filters.push_back(filter);
 
 #ifdef DEBUG
-	zeek::ODesc desc;
+	ODesc desc;
 	writer->Describe(&desc);
 
-	DBG_LOG(zeek::DBG_LOGGING, "Created new filter '%s' for stream '%s'",
+	DBG_LOG(DBG_LOGGING, "Created new filter '%s' for stream '%s'",
 		filter->name.c_str(), stream->name.c_str());
 
-	DBG_LOG(zeek::DBG_LOGGING, "   writer    : %s", desc.Description());
-	DBG_LOG(zeek::DBG_LOGGING, "   path      : %s", filter->path.c_str());
-	DBG_LOG(zeek::DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
-	DBG_LOG(zeek::DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
+	DBG_LOG(DBG_LOGGING, "   writer    : %s", desc.Description());
+	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
+	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
+	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
 
 	for ( int i = 0; i < filter->num_fields; i++ )
 		{
 		threading::Field* field = filter->fields[i];
-		DBG_LOG(zeek::DBG_LOGGING, "   field %10s: %s",
-			field->name, zeek::type_name(field->type));
+		DBG_LOG(DBG_LOGGING, "   field %10s: %s",
+			field->name, type_name(field->type));
 		}
 #endif
 
 	return true;
 	}
 
-bool Manager::RemoveFilter(zeek::EnumVal* id, zeek::StringVal* name)
+bool Manager::RemoveFilter(EnumVal* id, StringVal* name)
 	{
 	return RemoveFilter(id, name->AsString()->CheckString());
 	}
 
-bool Manager::RemoveFilter(zeek::EnumVal* id, const string& name)
+bool Manager::RemoveFilter(EnumVal* id, const string& name)
 	{
 	Stream* stream = FindStream(id);
 	if ( ! stream )
@@ -679,7 +679,7 @@ bool Manager::RemoveFilter(zeek::EnumVal* id, const string& name)
 			{
 			Filter* filter = *i;
 			stream->filters.erase(i);
-			DBG_LOG(zeek::DBG_LOGGING, "Removed filter '%s' from stream '%s'",
+			DBG_LOG(DBG_LOGGING, "Removed filter '%s' from stream '%s'",
 				filter->name.c_str(), stream->name.c_str());
 			delete filter;
 			return true;
@@ -687,13 +687,13 @@ bool Manager::RemoveFilter(zeek::EnumVal* id, const string& name)
 		}
 
 	// If we don't find the filter, we don't treat that as an error.
-	DBG_LOG(zeek::DBG_LOGGING, "No filter '%s' for removing from stream '%s'",
+	DBG_LOG(DBG_LOGGING, "No filter '%s' for removing from stream '%s'",
 		name.c_str(), stream->name.c_str());
 
 	return true;
 	}
 
-bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
+bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	{
 	Stream* stream = FindStream(id);
 	if ( ! stream )
@@ -702,17 +702,17 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 	if ( ! stream->enabled )
 		return true;
 
-	auto columns = columns_arg->CoerceTo({zeek::NewRef{}, stream->columns});
+	auto columns = columns_arg->CoerceTo({NewRef{}, stream->columns});
 
 	if ( ! columns )
 		{
-		zeek::reporter->Error("incompatible log record type");
+		reporter->Error("incompatible log record type");
 		return false;
 		}
 
 	// Raise the log event.
 	if ( stream->event )
-		zeek::event_mgr.Enqueue(stream->event, columns);
+		event_mgr.Enqueue(stream->event, columns);
 
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin();
@@ -737,32 +737,32 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 
 		if ( filter->path_func )
 			{
-			zeek::ValPtr path_arg;
+			ValPtr path_arg;
 
 			if ( filter->path_val )
-				path_arg = {zeek::NewRef{}, filter->path_val};
+				path_arg = {NewRef{}, filter->path_val};
 			else
-				path_arg = zeek::val_mgr->EmptyString();
+				path_arg = val_mgr->EmptyString();
 
-			zeek::ValPtr rec_arg;
+			ValPtr rec_arg;
 			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
 
-			if ( rt->Tag() == zeek::TYPE_RECORD )
-				rec_arg = columns->CoerceTo(zeek::cast_intrusive<zeek::RecordType>(rt), true);
+			if ( rt->Tag() == TYPE_RECORD )
+				rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
 			else
 				// Can be TYPE_ANY here.
 				rec_arg = columns;
 
-			auto v = filter->path_func->Invoke(zeek::IntrusivePtr{zeek::NewRef{}, id},
+			auto v = filter->path_func->Invoke(IntrusivePtr{NewRef{}, id},
 			                                   std::move(path_arg),
 			                                   std::move(rec_arg));
 
 			if ( ! v )
 				return false;
 
-			if ( v->GetType()->Tag() != zeek::TYPE_STRING )
+			if ( v->GetType()->Tag() != TYPE_STRING )
 				{
-				zeek::reporter->Error("path_func did not return string");
+				reporter->Error("path_func did not return string");
 				return false;
 				}
 
@@ -775,7 +775,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			path = v->AsString()->CheckString();
 
 #ifdef DEBUG
-			DBG_LOG(zeek::DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
+			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
 				filter->name.c_str(), stream->name.c_str(), path.c_str());
 #endif
 			}
@@ -803,9 +803,9 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			          CheckFilterWriterConflict(w->second, filter) );
 
 			Unref(filter->path_val);
-			filter->path_val = new zeek::StringVal(new_path.c_str());
+			filter->path_val = new StringVal(new_path.c_str());
 
-			zeek::reporter->Warning(
+			reporter->Warning(
 				"Write using filter '%s' on path '%s' changed to"
 				" use new path '%s' to avoid conflict with filter '%s'",
 				filter->name.c_str(), path.c_str(), new_path.c_str(),
@@ -850,31 +850,31 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 				if ( filter->field_name_map )
 					{
 					const char* name = filter->fields[j]->name;
-					auto fn = zeek::make_intrusive<zeek::StringVal>(name);
+					auto fn = make_intrusive<StringVal>(name);
 
 					if ( const auto& val = filter->field_name_map->Find(fn) )
 						{
 						delete [] filter->fields[j]->name;
-						filter->fields[j]->name = zeek::util::copy_string(val->AsStringVal()->CheckString());
+						filter->fields[j]->name = util::copy_string(val->AsStringVal()->CheckString());
 						}
 					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
 				}
 
 			info = new WriterBackend::WriterInfo;
-			info->path = zeek::util::copy_string(path.c_str());
-			info->network_time = zeek::run_state::network_time;
+			info->path = util::copy_string(path.c_str());
+			info->network_time = run_state::network_time;
 
 			zeek::detail::HashKey* k;
-			zeek::IterCookie* c = filter->config->AsTable()->InitForIteration();
+			IterCookie* c = filter->config->AsTable()->InitForIteration();
 
-			zeek::TableEntryVal* v;
+			TableEntryVal* v;
 			while ( (v = filter->config->AsTable()->NextEntry(k, c)) )
 				{
 				auto index = filter->config->RecreateIndex(*k);
 				string key = index->Idx(0)->AsString()->CheckString();
 				string value = v->GetVal()->AsString()->CheckString();
-				info->config.insert(std::make_pair(zeek::util::copy_string(key.c_str()), zeek::util::copy_string(value.c_str())));
+				info->config.insert(std::make_pair(util::copy_string(key.c_str()), util::copy_string(value.c_str())));
 				delete k;
 				}
 
@@ -902,7 +902,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			DeleteVals(filter->num_fields, vals);
 
 #ifdef DEBUG
-			DBG_LOG(zeek::DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'",
+			DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'",
 				filter->name.c_str(), stream->name.c_str());
 #endif
 			return true;
@@ -913,7 +913,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 		writer->Write(filter->num_fields, vals);
 
 #ifdef DEBUG
-		DBG_LOG(zeek::DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
+		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
 			filter->name.c_str(), stream->name.c_str());
 #endif
 		}
@@ -921,7 +921,7 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 	return true;
 	}
 
-threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
+threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 	{
 	if ( ! ty )
 		ty = val->GetType().get();
@@ -932,57 +932,57 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 	threading::Value* lval = new threading::Value(ty->Tag());
 
 	switch ( lval->type ) {
-	case zeek::TYPE_BOOL:
-	case zeek::TYPE_INT:
+	case TYPE_BOOL:
+	case TYPE_INT:
 		lval->val.int_val = val->InternalInt();
 		break;
 
-	case zeek::TYPE_ENUM:
+	case TYPE_ENUM:
 		{
 		const char* s =
 			val->GetType()->AsEnumType()->Lookup(val->InternalInt());
 
 		if ( s )
 			{
-			lval->val.string_val.data = zeek::util::copy_string(s);
+			lval->val.string_val.data = util::copy_string(s);
 			lval->val.string_val.length = strlen(s);
 			}
 
 		else
 			{
 			val->GetType()->Error("enum type does not contain value", val);
-			lval->val.string_val.data = zeek::util::copy_string("");
+			lval->val.string_val.data = util::copy_string("");
 			lval->val.string_val.length = 0;
 			}
 		break;
 		}
 
-	case zeek::TYPE_COUNT:
+	case TYPE_COUNT:
 		lval->val.uint_val = val->InternalUnsigned();
 		break;
 
-	case zeek::TYPE_PORT:
+	case TYPE_PORT:
 		lval->val.port_val.port = val->AsPortVal()->Port();
 		lval->val.port_val.proto = val->AsPortVal()->PortType();
 		break;
 
-	case zeek::TYPE_SUBNET:
+	case TYPE_SUBNET:
 		val->AsSubNet().ConvertToThreadingValue(&lval->val.subnet_val);
 		break;
 
-	case zeek::TYPE_ADDR:
+	case TYPE_ADDR:
 		val->AsAddr().ConvertToThreadingValue(&lval->val.addr_val);
 		break;
 
-	case zeek::TYPE_DOUBLE:
-	case zeek::TYPE_TIME:
-	case zeek::TYPE_INTERVAL:
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
 		lval->val.double_val = val->InternalDouble();
 		break;
 
-	case zeek::TYPE_STRING:
+	case TYPE_STRING:
 		{
-		const zeek::String* s = val->AsString();
+		const String* s = val->AsString();
 		char* buf = new char[s->Len()];
 		memcpy(buf, s->Bytes(), s->Len());
 
@@ -991,33 +991,33 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		break;
 		}
 
-	case zeek::TYPE_FILE:
+	case TYPE_FILE:
 		{
-		const zeek::File* f = val->AsFile();
+		const File* f = val->AsFile();
 		string s = f->Name();
-		lval->val.string_val.data = zeek::util::copy_string(s.c_str());
+		lval->val.string_val.data = util::copy_string(s.c_str());
 		lval->val.string_val.length = s.size();
 		break;
 		}
 
-	case zeek::TYPE_FUNC:
+	case TYPE_FUNC:
 		{
-		zeek::ODesc d;
-		const zeek::Func* f = val->AsFunc();
+		ODesc d;
+		const Func* f = val->AsFunc();
 		f->Describe(&d);
 		const char* s = d.Description();
-		lval->val.string_val.data = zeek::util::copy_string(s);
+		lval->val.string_val.data = util::copy_string(s);
 		lval->val.string_val.length = strlen(s);
 		break;
 		}
 
-	case zeek::TYPE_TABLE:
+	case TYPE_TABLE:
 		{
 		auto set = val->AsTableVal()->ToPureListVal();
 		if ( ! set )
 			// ToPureListVal has reported an internal warning
 			// already. Just keep going by making something up.
-			set = zeek::make_intrusive<zeek::ListVal>(zeek::TYPE_INT);
+			set = make_intrusive<ListVal>(TYPE_INT);
 
 		lval->val.set_val.size = set->Length();
 		lval->val.set_val.vals = new threading::Value* [lval->val.set_val.size];
@@ -1028,9 +1028,9 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		break;
 		}
 
-	case zeek::TYPE_VECTOR:
+	case TYPE_VECTOR:
 		{
-		zeek::VectorVal* vec = val->AsVectorVal();
+		VectorVal* vec = val->AsVectorVal();
 		lval->val.vector_val.size = vec->Size();
 		lval->val.vector_val.vals =
 			new threading::Value* [lval->val.vector_val.size];
@@ -1046,30 +1046,30 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		}
 
 	default:
-		zeek::reporter->InternalError("unsupported type %s for log_write", zeek::type_name(lval->type));
+		reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));
 	}
 
 	return lval;
 	}
 
 threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
-                                               zeek::RecordVal* columns)
+                                               RecordVal* columns)
 	{
-	zeek::RecordValPtr ext_rec;
+	RecordValPtr ext_rec;
 
 	if ( filter->num_ext_fields > 0 )
 		{
-		auto res = filter->ext_func->Invoke(zeek::IntrusivePtr{zeek::NewRef{}, filter->path_val});
+		auto res = filter->ext_func->Invoke(IntrusivePtr{NewRef{}, filter->path_val});
 
 		if ( res )
-			ext_rec = {zeek::AdoptRef{}, res.release()->AsRecordVal()};
+			ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
 
 	for ( int i = 0; i < filter->num_fields; ++i )
 		{
-		zeek::Val* val;
+		Val* val;
 		if ( i < filter->num_ext_fields )
 			{
 			if ( ! ext_rec )
@@ -1107,8 +1107,8 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	return vals;
 	}
 
-bool Manager::CreateWriterForRemoteLog(zeek::EnumVal* id, zeek::EnumVal* writer, WriterBackend::WriterInfo* info,
-			   int num_fields, const threading::Field* const* fields)
+bool Manager::CreateWriterForRemoteLog(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
+                                       int num_fields, const threading::Field* const* fields)
 	{
 	return CreateWriter(id, writer, info, num_fields, fields, true, false, true);
 	}
@@ -1122,7 +1122,7 @@ static void delete_info_and_fields(WriterBackend::WriterInfo* info, int num_fiel
 	delete info;
 	}
 
-WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, WriterBackend::WriterInfo* info,
+WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
                                       int num_fields, const threading::Field* const* fields, bool local,
                                       bool remote, bool from_remote, const string& instantiating_filter)
 	{
@@ -1151,7 +1151,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
 	winfo->writer = nullptr;
-	winfo->open_time = zeek::run_state::network_time;
+	winfo->open_time = run_state::network_time;
 	winfo->rotation_timer = nullptr;
 	winfo->interval = 0;
 	winfo->postprocessor = nullptr;
@@ -1179,7 +1179,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 			if ( f->postprocessor )
 				{
 				delete [] winfo->info->post_proc_func;
-				winfo->info->post_proc_func = zeek::util::copy_string(f->postprocessor->Name());
+				winfo->info->post_proc_func = util::copy_string(f->postprocessor->Name());
 				}
 
 			break;
@@ -1195,12 +1195,12 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 		if ( winfo->info->post_proc_func &&
 		     strlen(winfo->info->post_proc_func) )
 			{
-			auto func = zeek::id::find_func(winfo->info->post_proc_func);
+			auto func = id::find_func(winfo->info->post_proc_func);
 
 			if ( func )
 				winfo->postprocessor = func.get();
 			else
-				zeek::reporter->Warning("failed log postprocessor function lookup: %s\n",
+				reporter->Warning("failed log postprocessor function lookup: %s\n",
 				                        winfo->info->post_proc_func);
 			}
 		}
@@ -1211,11 +1211,11 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 
 	// Still need to set the WriterInfo's rotation parameters, which we
 	// computed above.
-	static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
+	static auto log_rotate_base_time = id::find_val<StringVal>("log_rotate_base_time");
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	winfo->info->rotation_interval = winfo->interval;
-	winfo->info->rotation_base = zeek::util::detail::parse_rotate_base_time(base_time);
+	winfo->info->rotation_base = util::detail::parse_rotate_base_time(base_time);
 
 	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
 	winfo->writer->Init(num_fields, fields);
@@ -1243,7 +1243,7 @@ void Manager::DeleteVals(int num_fields, threading::Value** vals)
 	delete [] vals;
 	}
 
-bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const string& path, int num_fields,
+bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, int num_fields,
                               threading::Value** vals)
 	{
 	Stream* stream = FindStream(id);
@@ -1252,9 +1252,9 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 		{
 		// Don't know this stream.
 #ifdef DEBUG
-		zeek::ODesc desc;
+		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(zeek::DBG_LOGGING, "unknown stream %s in Manager::Write()",
+		DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::Write()",
 			desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
@@ -1274,9 +1274,9 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 		{
 		// Don't know this writer.
 #ifdef DEBUG
-		zeek::ODesc desc;
+		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(zeek::DBG_LOGGING, "unknown writer %s in Manager::Write()",
+		DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::Write()",
 			desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
@@ -1285,7 +1285,7 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 
 	w->second->writer->Write(num_fields, vals);
 
-	DBG_LOG(zeek::DBG_LOGGING,
+	DBG_LOG(DBG_LOGGING,
 		"Wrote pre-filtered record to path '%s' on stream '%s'",
 		path.c_str(), stream->name.c_str());
 
@@ -1294,7 +1294,7 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
-	auto et = zeek::id::find_type("Log::Writer")->AsEnumType();
+	auto et = id::find_type("Log::Writer")->AsEnumType();
 
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
@@ -1319,7 +1319,7 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 		}
 	}
 
-bool Manager::SetBuf(zeek::EnumVal* id, bool enabled)
+bool Manager::SetBuf(EnumVal* id, bool enabled)
 	{
 	Stream* stream = FindStream(id);
 	if ( ! stream )
@@ -1334,7 +1334,7 @@ bool Manager::SetBuf(zeek::EnumVal* id, bool enabled)
 	return true;
 	}
 
-bool Manager::Flush(zeek::EnumVal* id)
+bool Manager::Flush(EnumVal* id)
 	{
 	Stream* stream = FindStream(id);
 	if ( ! stream )
@@ -1345,7 +1345,7 @@ bool Manager::Flush(zeek::EnumVal* id)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		i->second->writer->Flush(zeek::run_state::network_time);
+		i->second->writer->Flush(run_state::network_time);
 
 	RemoveDisabledWriters(stream);
 
@@ -1365,7 +1365,7 @@ void Manager::Terminate()
 		}
 	}
 
-bool Manager::EnableRemoteLogs(zeek::EnumVal* stream_id)
+bool Manager::EnableRemoteLogs(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 
@@ -1376,7 +1376,7 @@ bool Manager::EnableRemoteLogs(zeek::EnumVal* stream_id)
 	return true;
 	}
 
-bool Manager::DisableRemoteLogs(zeek::EnumVal* stream_id)
+bool Manager::DisableRemoteLogs(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 
@@ -1387,7 +1387,7 @@ bool Manager::DisableRemoteLogs(zeek::EnumVal* stream_id)
 	return true;
 	}
 
-bool Manager::RemoteLogsAreEnabled(zeek::EnumVal* stream_id)
+bool Manager::RemoteLogsAreEnabled(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 
@@ -1397,7 +1397,7 @@ bool Manager::RemoteLogsAreEnabled(zeek::EnumVal* stream_id)
 	return stream->enable_remote;
 	}
 
-zeek::RecordType* Manager::StreamColumns(zeek::EnumVal* stream_id)
+RecordType* Manager::StreamColumns(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 
@@ -1441,14 +1441,14 @@ void RotationTimer::Dispatch(double t, bool is_expire)
 
 	if ( ! is_expire )
 		{
-		winfo->open_time = zeek::run_state::network_time;
+		winfo->open_time = run_state::network_time;
 		log_mgr->InstallRotationTimer(winfo);
 		}
 	}
 
 void Manager::InstallRotationTimer(WriterInfo* winfo)
 	{
-	if ( zeek::run_state::terminating )
+	if ( run_state::terminating )
 		return;
 
 	if ( winfo->rotation_timer )
@@ -1464,27 +1464,27 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 		// When this is called for the first time, zeek::run_state::network_time can still be
 		// zero. If so, we set a timer which fires immediately but doesn't
 		// rotate when it expires.
-		if ( ! zeek::run_state::network_time )
+		if ( ! run_state::network_time )
 			winfo->rotation_timer = new RotationTimer(1, winfo, false);
 		else
 			{
 			if ( ! winfo->open_time )
-				winfo->open_time = zeek::run_state::network_time;
+				winfo->open_time = run_state::network_time;
 
-			static auto log_rotate_base_time = zeek::id::find_val<zeek::StringVal>("log_rotate_base_time");
+			static auto log_rotate_base_time = id::find_val<StringVal>("log_rotate_base_time");
 			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
-			double base = zeek::util::detail::parse_rotate_base_time(base_time);
+			double base = util::detail::parse_rotate_base_time(base_time);
 			double delta_t =
-				zeek::util::detail::calc_next_rotate(zeek::run_state::network_time, rotation_interval, base);
+				util::detail::calc_next_rotate(run_state::network_time, rotation_interval, base);
 
 			winfo->rotation_timer =
-				new RotationTimer(zeek::run_state::network_time + delta_t, winfo, true);
+				new RotationTimer(run_state::network_time + delta_t, winfo, true);
 			}
 
 		zeek::detail::timer_mgr->Add(winfo->rotation_timer);
 
-		DBG_LOG(zeek::DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
+		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
 		        winfo->writer->Name(), winfo->rotation_timer->Time());
 		}
 	}
@@ -1499,18 +1499,18 @@ static std::string format_rotation_time_fallback(time_t t)
 	return buf;
 	}
 
-std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
+std::string Manager::FormatRotationPath(EnumValPtr writer,
                                         std::string_view path, double open,
                                         double close, bool terminating,
-                                        zeek::FuncPtr postprocessor)
+                                        FuncPtr postprocessor)
 	{
-	auto ri = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Log::RotationFmtInfo);
+	auto ri = make_intrusive<RecordVal>(BifType::Record::Log::RotationFmtInfo);
 	ri->Assign(0, std::move(writer));
-	ri->Assign<zeek::StringVal>(1, path.size(), path.data());
-	ri->Assign<zeek::TimeVal>(2, open);
-	ri->Assign<zeek::TimeVal>(3, close);
-	ri->Assign(4, zeek::val_mgr->Bool(terminating));
-	ri->Assign<zeek::Val>(5, std::move(postprocessor));
+	ri->Assign<StringVal>(1, path.size(), path.data());
+	ri->Assign<TimeVal>(2, open);
+	ri->Assign<TimeVal>(3, close);
+	ri->Assign(4, val_mgr->Bool(terminating));
+	ri->Assign<Val>(5, std::move(postprocessor));
 
 	std::string rval;
 
@@ -1522,29 +1522,29 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 		auto prefix = rp_val->GetField(1)->AsString()->CheckString();
 		auto dir = dir_val->AsString()->CheckString();
 
-		if ( ! zeek::util::streq(dir, "") && ! zeek::util::detail::ensure_intermediate_dirs(dir) )
+		if ( ! util::streq(dir, "") && ! util::detail::ensure_intermediate_dirs(dir) )
 			{
-			zeek::reporter->Error("Failed to create dir '%s' returned by "
-			                      "Log::rotation_format_func for path %.*s: %s",
-			                      dir, static_cast<int>(path.size()), path.data(),
-			                      strerror(errno));
+			reporter->Error("Failed to create dir '%s' returned by "
+			                "Log::rotation_format_func for path %.*s: %s",
+			                dir, static_cast<int>(path.size()), path.data(),
+			                strerror(errno));
 			dir = "";
 			}
 
-		if ( zeek::util::streq(dir, "") )
+		if ( util::streq(dir, "") )
 			rval = prefix;
 		else
-			rval = zeek::util::fmt("%s/%s", dir, prefix);
+			rval = util::fmt("%s/%s", dir, prefix);
 
 		}
-	catch ( zeek::InterpreterException& e )
+	catch ( InterpreterException& e )
 		{
 		auto rot_str = format_rotation_time_fallback((time_t)open);
-		rval = zeek::util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
-		                       rot_str.data());
-		zeek::reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
-		                      "continuing with rotation to: ./%s",
-		                      static_cast<int>(path.size()), path.data(), rval.data());
+		rval = util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
+		                 rot_str.data());
+		reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
+		                "continuing with rotation to: ./%s",
+		                static_cast<int>(path.size()), path.data(), rval.data());
 		}
 
 	return rval;
@@ -1552,25 +1552,25 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 
 void Manager::Rotate(WriterInfo* winfo)
 	{
-	DBG_LOG(zeek::DBG_LOGGING, "Rotating %s at %.6f",
-		winfo->writer->Name(), zeek::run_state::network_time);
+	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
+		winfo->writer->Name(), run_state::network_time);
 
-	static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
+	static auto default_ppf = id::find_func("Log::__default_rotation_postprocessor");
 
-	zeek::FuncPtr ppf;
+	FuncPtr ppf;
 
 	if ( winfo->postprocessor )
-		ppf = {zeek::NewRef{}, winfo->postprocessor};
+		ppf = {NewRef{}, winfo->postprocessor};
 	else
 		ppf = default_ppf;
 
-	auto rotation_path = FormatRotationPath({zeek::NewRef{}, winfo->type},
+	auto rotation_path = FormatRotationPath({NewRef{}, winfo->type},
 	                                        winfo->writer->Info().path,
-	                                        winfo->open_time, zeek::run_state::network_time,
-	                                        zeek::run_state::terminating,
+	                                        winfo->open_time, run_state::network_time,
+	                                        run_state::terminating,
 	                                        std::move(ppf));
 
-	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, zeek::run_state::network_time, zeek::run_state::terminating);
+	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, run_state::network_time, run_state::terminating);
 
 	++rotations_pending;
 	}
@@ -1584,29 +1584,29 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	if ( ! success )
 		{
-		DBG_LOG(zeek::DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,",
-			writer->Name(), filename, zeek::run_state::network_time);
+		DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,",
+		        writer->Name(), filename, run_state::network_time);
 		return true;
 		}
 
-	DBG_LOG(zeek::DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
-		writer->Name(), zeek::run_state::network_time, new_name);
+	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
+	        writer->Name(), run_state::network_time, new_name);
 
 	WriterInfo* winfo = FindWriter(writer);
 	if ( ! winfo )
 		return true;
 
-	auto info = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Log::RotationInfo);
-	info->Assign(0, {zeek::NewRef{}, winfo->type});
-	info->Assign(1, zeek::make_intrusive<zeek::StringVal>(new_name));
-	info->Assign(2, zeek::make_intrusive<zeek::StringVal>(winfo->writer->Info().path));
-	info->Assign(3, zeek::make_intrusive<zeek::TimeVal>(open));
-	info->Assign(4, zeek::make_intrusive<zeek::TimeVal>(close));
-	info->Assign(5, zeek::val_mgr->Bool(terminating));
+	auto info = make_intrusive<RecordVal>(BifType::Record::Log::RotationInfo);
+	info->Assign(0, {NewRef{}, winfo->type});
+	info->Assign(1, make_intrusive<StringVal>(new_name));
+	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
+	info->Assign(3, make_intrusive<TimeVal>(open));
+	info->Assign(4, make_intrusive<TimeVal>(close));
+	info->Assign(5, val_mgr->Bool(terminating));
 
-	static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
+	static auto default_ppf = id::find_func("Log::__default_rotation_postprocessor");
 
-	zeek::Func* func = winfo->postprocessor;
+	Func* func = winfo->postprocessor;
 
 	if ( ! func )
 		func = default_ppf.get();

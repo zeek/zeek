@@ -1,4 +1,8 @@
 
+3.3.0-dev.196 | 2020-08-25 17:04:12 -0700
+
+  * Fix closing timestamp of rotated log files in supervised-cluster mode (Jon Siwek, Corelight)
+
 3.3.0-dev.195 | 2020-08-25 14:32:47 -0700
 
   * Improve an Intel framework btest (Jon Siwek, Corelight)

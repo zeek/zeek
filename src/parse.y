@@ -1638,13 +1638,13 @@ case_list:
 
 case:
 		TOK_CASE expr_list ':' stmt_list
-			{ $$ = new zeek::detail::Case({zeek::AdoptRef{}, $2}, 0, {zeek::AdoptRef{}, $4}); }
+			{ $$ = new zeek::detail::Case({zeek::AdoptRef{}, $2}, nullptr, {zeek::AdoptRef{}, $4}); }
 	|
 		TOK_CASE case_type_list ':' stmt_list
 			{ $$ = new zeek::detail::Case(nullptr, $2, {zeek::AdoptRef{}, $4}); }
 	|
 		TOK_DEFAULT ':' stmt_list
-			{ $$ = new zeek::detail::Case(nullptr, 0, {zeek::AdoptRef{}, $3}); }
+			{ $$ = new zeek::detail::Case(nullptr, nullptr, {zeek::AdoptRef{}, $3}); }
 	;
 
 case_type_list:

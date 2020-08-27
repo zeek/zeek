@@ -842,16 +842,6 @@ int yywrap()
 	if ( zeek::reporter->Errors() > 0 )
 		return 1;
 
-	if ( ! did_builtin_init && file_stack.length() == 1 )
-		{
-		// ### This is a gross hack - we know that the first file
-		// we parse is init-bare.zeek, and after it it's safe to initialize
-		// the built-ins.  Furthermore, we want to initialize the
-		// built-in's *right* after parsing bro.init, so that other
-		// source files can use built-in's when initializing globals.
-		init_builtin_funcs();
-		}
-
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	if ( file_stack.length() > 0 )

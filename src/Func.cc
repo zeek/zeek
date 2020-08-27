@@ -902,6 +902,37 @@ void emit_builtin_exception(const char* msg, Obj* arg)
 	emit_builtin_error_common(msg, arg, true);
 	}
 
+void init_primary_bifs()
+	{
+	if ( did_builtin_init )
+		return;
+
+	ProcStats = id::find_type<RecordType>("ProcStats");
+	NetStats = id::find_type<RecordType>("NetStats");
+	MatcherStats = id::find_type<RecordType>("MatcherStats");
+	ConnStats = id::find_type<RecordType>("ConnStats");
+	ReassemblerStats = id::find_type<RecordType>("ReassemblerStats");
+	DNSStats = id::find_type<RecordType>("DNSStats");
+	GapStats = id::find_type<RecordType>("GapStats");
+	EventStats = id::find_type<RecordType>("EventStats");
+	TimerStats = id::find_type<RecordType>("TimerStats");
+	FileAnalysisStats = id::find_type<RecordType>("FileAnalysisStats");
+	ThreadStats = id::find_type<RecordType>("ThreadStats");
+	BrokerStats = id::find_type<RecordType>("BrokerStats");
+	ReporterStats = id::find_type<RecordType>("ReporterStats");
+
+	var_sizes = id::find_type("var_sizes")->AsTableType();
+
+#include "zeek.bif.func_init"
+#include "stats.bif.func_init"
+#include "reporter.bif.func_init"
+#include "strings.bif.func_init"
+#include "option.bif.func_init"
+#include "supervisor.bif.func_init"
+
+	did_builtin_init = true;
+	}
+
 } // namespace detail
 
 
@@ -935,32 +966,4 @@ void builtin_error(const char* msg, const zeek::ValPtr& arg)
 void builtin_error(const char* msg, zeek::Obj* arg)
 	{
 	zeek::emit_builtin_error(msg, arg);
-	}
-
-void init_builtin_funcs()
-	{
-	ProcStats = zeek::id::find_type<zeek::RecordType>("ProcStats");
-	NetStats = zeek::id::find_type<zeek::RecordType>("NetStats");
-	MatcherStats = zeek::id::find_type<zeek::RecordType>("MatcherStats");
-	ConnStats = zeek::id::find_type<zeek::RecordType>("ConnStats");
-	ReassemblerStats = zeek::id::find_type<zeek::RecordType>("ReassemblerStats");
-	DNSStats = zeek::id::find_type<zeek::RecordType>("DNSStats");
-	GapStats = zeek::id::find_type<zeek::RecordType>("GapStats");
-	EventStats = zeek::id::find_type<zeek::RecordType>("EventStats");
-	TimerStats = zeek::id::find_type<zeek::RecordType>("TimerStats");
-	FileAnalysisStats = zeek::id::find_type<zeek::RecordType>("FileAnalysisStats");
-	ThreadStats = zeek::id::find_type<zeek::RecordType>("ThreadStats");
-	BrokerStats = zeek::id::find_type<zeek::RecordType>("BrokerStats");
-	ReporterStats = zeek::id::find_type<zeek::RecordType>("ReporterStats");
-
-	var_sizes = zeek::id::find_type("var_sizes")->AsTableType();
-
-#include "zeek.bif.func_init"
-#include "stats.bif.func_init"
-#include "reporter.bif.func_init"
-#include "strings.bif.func_init"
-#include "option.bif.func_init"
-#include "supervisor.bif.func_init"
-
-	zeek::detail::did_builtin_init = true;
 	}

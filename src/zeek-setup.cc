@@ -637,7 +637,7 @@ SetupResult setup(int argc, char** argv,
 
 	init_general_global_var();
 	init_net_var();
-	init_builtin_funcs_subdirs();
+	run_bif_initializers();
 
 	// Must come after plugin activation (and also after hash
 	// initialization).

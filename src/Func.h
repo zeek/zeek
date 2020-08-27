@@ -276,6 +276,15 @@ extern std::vector<CallInfo> call_stack;
 
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
+extern std::vector<void (*)()> bif_initializers;
+
+inline void run_bif_initializers()
+	{
+	for ( const auto& bi : bif_initializers )
+		bi();
+
+	bif_initializers = {};
+	}
 
 extern void emit_builtin_exception(const char* msg);
 extern void emit_builtin_exception(const char* msg, const ValPtr& arg);
@@ -305,7 +314,6 @@ constexpr auto render_call_stack [[deprecated("Remove in v4.1. Use zeek::render_
 // renamed version inside the namespace, but the way that the code gets included complicates the matter. It
 // might need to be revisited after everything is namespaced everywhere else.
 void init_builtin_funcs();
-void init_builtin_funcs_subdirs();
 
 // TODO: do call_stack and did_builtin_init need to be aliased?
 

@@ -14,3 +14,13 @@
 
 # Load BiFs defined by plugins.
 @load base/bif/plugins
+
+# This sets up secondary/subdir BIFs such that they can be used by any
+# further scripts within their global initializations and is intended to be
+# the last thing done within this script.  It's called within @if simply so
+# that it executes at parse-time.  An alternative way to do that is to call
+# it during a global variable assignment/initialization.  Formally adding a
+# @run directive to the language whose sole purpose is parse-time code
+# execution would be another idea.
+@if ( __init_secondary_bifs() )
+@endif

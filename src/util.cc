@@ -1004,7 +1004,7 @@ void set_processing_status(const char* status, const char* reason)
 
 	int old_errno = errno;
 
-	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0700);
+	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0777);
 	if ( fd < 0 )
 		{
 		report_error_with_errno("Failed to open process status file");

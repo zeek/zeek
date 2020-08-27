@@ -429,7 +429,7 @@ const CompiledStmt PrintStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> PrintStmt::Duplicate()
 	{
-	return make_intrusive<PrintStmt>(l->Duplicate()->AsListExprPtr());
+	return SetSucc(new PrintStmt(l->Duplicate()->AsListExprPtr()));
 	}
 
 ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
@@ -495,7 +495,7 @@ const CompiledStmt ExprStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> ExprStmt::Duplicate()
 	{
-	return make_intrusive<ExprStmt>(e ? e->Duplicate() : nullptr);
+	return SetSucc(new ExprStmt(e ? e->Duplicate() : nullptr));
 	}
 
 Stmt* ExprStmt::DoReduce(Reducer* c)
@@ -783,8 +783,8 @@ const CompiledStmt IfStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> IfStmt::Duplicate()
 	{
-	return make_intrusive<IfStmt>(e->Duplicate(), s1->Duplicate(),
-					s2->Duplicate());
+	return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(),
+					s2->Duplicate()));
 	}
 
 void IfStmt::StmtDescribe(ODesc* d) const
@@ -1246,7 +1246,7 @@ IntrusivePtr<Stmt> SwitchStmt::Duplicate()
 	loop_over_list(*cases, i)
 		new_cases->append((*cases)[i]->Duplicate());
 
-	return make_intrusive<SwitchStmt>(e->Duplicate(), new_cases);
+	return SetSucc(new SwitchStmt(e->Duplicate(), new_cases));
 	}
 
 bool SwitchStmt::IsPure() const
@@ -1500,7 +1500,7 @@ const CompiledStmt AddStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> AddStmt::Duplicate()
 	{
-	return make_intrusive<AddStmt>(e->Duplicate());
+	return SetSucc(new AddStmt(e->Duplicate()));
 	}
 
 
@@ -1551,7 +1551,7 @@ const CompiledStmt DelStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> DelStmt::Duplicate()
 	{
-	return make_intrusive<DelStmt>(e->Duplicate());
+	return SetSucc(new DelStmt(e->Duplicate()));
 	}
 
 
@@ -1608,7 +1608,7 @@ const CompiledStmt EventStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> EventStmt::Duplicate()
 	{
-	return make_intrusive<EventStmt>(e->Duplicate()->AsEventExprPtr());
+	return SetSucc(new EventStmt(e->Duplicate()->AsEventExprPtr()));
 	}
 
 TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
@@ -1725,8 +1725,8 @@ const CompiledStmt WhileStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> WhileStmt::Duplicate()
 	{
-	return make_intrusive<WhileStmt>(loop_condition->Duplicate(),
-						body->Duplicate());
+	return SetSucc(new WhileStmt(loop_condition->Duplicate(),
+					body->Duplicate()));
 	}
 
 void WhileStmt::StmtDescribe(ODesc* d) const
@@ -2027,7 +2027,6 @@ const CompiledStmt ForStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> ForStmt::Duplicate()
 	{
-	IntrusivePtr<ForStmt> f;
 	auto expr_copy = e->Duplicate();
 
 	id_list* new_loop_vars = new id_list;
@@ -2038,14 +2037,15 @@ IntrusivePtr<Stmt> ForStmt::Duplicate()
 		new_loop_vars->append(id);
 		}
 
+	ForStmt* f;
 	if ( value_var )
-		f = make_intrusive<ForStmt>(new_loop_vars, expr_copy, value_var);
+		f = new ForStmt(new_loop_vars, expr_copy, value_var);
 	else
-		f = make_intrusive<ForStmt>(new_loop_vars, expr_copy);
+		f = new ForStmt(new_loop_vars, expr_copy);
 
 	f->AddBody(body->Duplicate());
 
-	return f;
+	return SetSucc(f);
 	}
 
 bool ForStmt::IsPure() const
@@ -2355,7 +2355,7 @@ const CompiledStmt ReturnStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> ReturnStmt::Duplicate()
 	{
-	return make_intrusive<ReturnStmt>(e ? e->Duplicate() : nullptr, true);
+	return SetSucc(new ReturnStmt(e ? e->Duplicate() : nullptr, true));
 	}
 
 void ReturnStmt::StmtDescribe(ODesc* d) const
@@ -2446,7 +2446,7 @@ IntrusivePtr<Stmt> CatchReturnStmt::Duplicate()
 	{
 	auto rv_dup = ret_var->Duplicate();
 	IntrusivePtr<NameExpr> rv_dup_ptr = {AdoptRef{}, rv_dup->AsNameExpr()};
-	return make_intrusive<CatchReturnStmt>(block->Duplicate(), rv_dup_ptr);
+	return SetSucc(new CatchReturnStmt(block->Duplicate(), rv_dup_ptr));
 	}
 
 void CatchReturnStmt::StmtDescribe(ODesc* d) const
@@ -2644,12 +2644,12 @@ const CompiledStmt StmtList::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> StmtList::Duplicate()
 	{
-	auto new_sl = make_intrusive<StmtList>();
+	auto new_sl = new StmtList();
 
 	for ( auto& stmt : Stmts() )
 		new_sl->Stmts().push_back(stmt->Duplicate().release());
 
-	return new_sl;
+	return SetSucc(new_sl);
 	}
 
 bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, Reducer* c)
@@ -2884,7 +2884,7 @@ IntrusivePtr<Stmt> InitStmt::Duplicate()
 		new_inits->append(id);
 		}
 
-	return make_intrusive<InitStmt>(new_inits);
+	return SetSucc(new InitStmt(new_inits));
 	}
 
 void InitStmt::StmtDescribe(ODesc* d) const
@@ -3018,7 +3018,7 @@ IntrusivePtr<Stmt> WhenStmt::Duplicate()
 	auto s2_d = s2 ? s2->Duplicate() : nullptr;
 	auto timeout_d = timeout ? timeout->Duplicate() : nullptr;
 
-	return make_intrusive<WhenStmt>(cond_d, s1_d, s2_d, timeout_d, is_return);
+	return SetSucc(new WhenStmt(cond_d, s1_d, s2_d, timeout_d, is_return));
 	}
 
 bool WhenStmt::IsPure() const
@@ -3121,7 +3121,7 @@ const CompiledStmt CheckAnyLenStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> CheckAnyLenStmt::Duplicate()
 	{
-	return make_intrusive<CheckAnyLenStmt>(e->Duplicate(), expected_len);
+	return SetSucc(new CheckAnyLenStmt(e->Duplicate(), expected_len));
 	}
 
 bool CheckAnyLenStmt::IsReduced(Reducer* c) const

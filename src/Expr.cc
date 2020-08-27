@@ -807,7 +807,7 @@ IntrusivePtr<Expr> NameExpr::Duplicate()
 	// We need to create a replicate because Reaching Defs for different
 	// instances of the name need to be kept distinct, and these are
 	// done based on the pointer to the NameExpr.
-	return make_intrusive<NameExpr>(id, in_const_init);
+	return SetSucc(new NameExpr(id, in_const_init));
 	}
 
 bool NameExpr::FoldableGlobal() const
@@ -1581,7 +1581,7 @@ IntrusivePtr<Val> CloneExpr::Fold(Val* v) const
 IntrusivePtr<Expr> CloneExpr::Duplicate()
 	{
 	// oh the irony
-	return make_intrusive<CloneExpr>(op->Duplicate());
+	return SetSucc(new CloneExpr(op->Duplicate()));
 	}
 
 IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
@@ -1820,7 +1820,7 @@ const CompiledStmt IncrExpr::Compile(Compiler* c) const
 
 IntrusivePtr<Expr> IncrExpr::Duplicate()
 	{
-	return make_intrusive<IncrExpr>(tag, op->Duplicate());
+	return SetSucc(new IncrExpr(tag, op->Duplicate()));
 	}
 
 bool IncrExpr::IsPure() const
@@ -1868,7 +1868,7 @@ Expr* ComplementExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 IntrusivePtr<Expr> ComplementExpr::Duplicate()
 	{
-	return make_intrusive<ComplementExpr>(op->Duplicate());
+	return SetSucc(new ComplementExpr(op->Duplicate()));
 	}
 
 NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
@@ -1905,7 +1905,7 @@ Expr* NotExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 IntrusivePtr<Expr> NotExpr::Duplicate()
 	{
-	return make_intrusive<NotExpr>(op->Duplicate());
+	return SetSucc(new NotExpr(op->Duplicate()));
 	}
 
 PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
@@ -1948,7 +1948,7 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> PosExpr::Duplicate()
 	{
-	return make_intrusive<PosExpr>(op->Duplicate());
+	return SetSucc(new PosExpr(op->Duplicate()));
 	}
 
 bool PosExpr::WillTransform(Reducer* c) const
@@ -2020,7 +2020,7 @@ Expr* NegExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 IntrusivePtr<Expr> NegExpr::Duplicate()
 	{
-	return make_intrusive<NegExpr>(op->Duplicate());
+	return SetSucc(new NegExpr(op->Duplicate()));
 	}
 
 SizeExpr::SizeExpr(IntrusivePtr<Expr> arg_op)
@@ -2052,7 +2052,7 @@ IntrusivePtr<Val> SizeExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> SizeExpr::Duplicate()
 	{
-	return make_intrusive<SizeExpr>(op->Duplicate());
+	return SetSucc(new SizeExpr(op->Duplicate()));
 	}
 
 AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
@@ -2129,7 +2129,7 @@ IntrusivePtr<Expr> AddExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<AddExpr>(op1_d, op2_d);
+	return SetSucc(new AddExpr(op1_d, op2_d));
 	}
 
 Expr* AddExpr::BuildSub(const IntrusivePtr<Expr>& op1,
@@ -2260,7 +2260,7 @@ IntrusivePtr<Expr> AddToExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<AddToExpr>(op1_d, op2_d);
+	return SetSucc(new AddToExpr(op1_d, op2_d));
 	}
 
 AppendToExpr::AppendToExpr(IntrusivePtr<Expr> arg_op1,
@@ -2330,7 +2330,7 @@ IntrusivePtr<Expr> AppendToExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<AppendToExpr>(op1_d, op2_d);
+	return SetSucc(new AppendToExpr(op1_d, op2_d));
 	}
 
 
@@ -2428,7 +2428,7 @@ IntrusivePtr<Expr> SubExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<SubExpr>(op1_d, op2_d);
+	return SetSucc(new SubExpr(op1_d, op2_d));
 	}
 
 RemoveFromExpr::RemoveFromExpr(IntrusivePtr<Expr> arg_op1,
@@ -2484,7 +2484,7 @@ IntrusivePtr<Expr> RemoveFromExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<RemoveFromExpr>(op1_d, op2_d);
+	return SetSucc(new RemoveFromExpr(op1_d, op2_d));
 	}
 
 TimesExpr::TimesExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
@@ -2554,7 +2554,7 @@ IntrusivePtr<Expr> TimesExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<TimesExpr>(op1_d, op2_d);
+	return SetSucc(new TimesExpr(op1_d, op2_d));
 	}
 
 DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
@@ -2624,7 +2624,7 @@ IntrusivePtr<Expr> DivideExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<DivideExpr>(op1_d, op2_d);
+	return SetSucc(new DivideExpr(op1_d, op2_d));
 	}
 
 IntrusivePtr<Val> DivideExpr::AddrFold(Val* v1, Val* v2) const
@@ -2678,7 +2678,7 @@ IntrusivePtr<Expr> ModExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<ModExpr>(op1_d, op2_d);
+	return SetSucc(new ModExpr(op1_d, op2_d));
 	}
 
 BoolExpr::BoolExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op1,
@@ -2887,7 +2887,7 @@ IntrusivePtr<Expr> BoolExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<BoolExpr>(tag, op1_d, op2_d);
+	return SetSucc(new BoolExpr(tag, op1_d, op2_d));
 	}
 
 bool BoolExpr::IsTrue(const IntrusivePtr<Expr>& e) const
@@ -3016,7 +3016,7 @@ IntrusivePtr<Expr> BitExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<BitExpr>(tag, op1_d, op2_d);
+	return SetSucc(new BitExpr(tag, op1_d, op2_d));
 	}
 
 EqExpr::EqExpr(BroExprTag arg_tag,
@@ -3143,7 +3143,7 @@ IntrusivePtr<Expr> EqExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<EqExpr>(tag, op1_d, op2_d);
+	return SetSucc(new EqExpr(tag, op1_d, op2_d));
 	}
 
 RelExpr::RelExpr(BroExprTag arg_tag,
@@ -3238,7 +3238,7 @@ IntrusivePtr<Expr> RelExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<RelExpr>(tag, op1_d, op2_d);
+	return SetSucc(new RelExpr(tag, op1_d, op2_d));
 	}
 
 CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
@@ -3477,7 +3477,7 @@ IntrusivePtr<Expr> CondExpr::Duplicate()
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	auto op3_d = op3->Duplicate();
-	return make_intrusive<CondExpr>(op1_d, op2_d, op3_d);
+	return SetSucc(new CondExpr(op1_d, op2_d, op3_d));
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
@@ -3596,7 +3596,7 @@ IntrusivePtr<Stmt> RefExpr::ReduceToLHS(Reducer* c)
 
 IntrusivePtr<Expr> RefExpr::Duplicate()
 	{
-	return make_intrusive<RefExpr>(op->Duplicate());
+	return SetSucc(new RefExpr(op->Duplicate()));
 	}
 
 AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
@@ -4385,7 +4385,7 @@ IntrusivePtr<Expr> AssignExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<AssignExpr>(op1_d, op2_d, is_init, val);
+	return SetSucc(new AssignExpr(op1_d, op2_d, is_init, val));
 	}
 
 IndexAssignExpr::IndexAssignExpr(IntrusivePtr<Expr> arg_op1,
@@ -4471,7 +4471,7 @@ IntrusivePtr<Expr> IndexAssignExpr::Duplicate()
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	auto op3_d = op3->Duplicate();
-	return make_intrusive<IndexAssignExpr>(op1_d, op2_d, op3_d);
+	return SetSucc(new IndexAssignExpr(op1_d, op2_d, op3_d));
 	}
 
 TraversalCode IndexAssignExpr::Traverse(TraversalCallback* cb) const
@@ -4538,7 +4538,7 @@ IntrusivePtr<Expr> IndexSliceAssignExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<IndexSliceAssignExpr>(op1_d, op2_d, is_init);
+	return SetSucc(new IndexSliceAssignExpr(op1_d, op2_d, is_init));
 	}
 
 
@@ -4775,7 +4775,7 @@ IntrusivePtr<Expr> IndexExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_l = op2->Duplicate()->AsListExprPtr();
-	return make_intrusive<IndexExpr>(op1_d, op2_l, is_slice);
+	return SetSucc(new IndexExpr(op1_d, op2_l, is_slice));
 	}
 
 IntrusivePtr<VectorVal> vector_bool_select(VectorType* vt, const VectorVal* v1,
@@ -4912,7 +4912,7 @@ Expr* AnyIndexExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 IntrusivePtr<Expr> AnyIndexExpr::Duplicate()
 	{
-	return make_intrusive<AnyIndexExpr>(op->Duplicate(), index);
+	return SetSucc(new AnyIndexExpr(op->Duplicate(), index));
 	}
 
 void AnyIndexExpr::ExprDescribe(ODesc* d) const
@@ -5050,8 +5050,7 @@ IntrusivePtr<Expr> FieldLHSAssignExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<FieldLHSAssignExpr>(op1_d, op2_d,
-							field_name, field);
+	return SetSucc(new FieldLHSAssignExpr(op1_d, op2_d, field_name, field));
 	}
 
 void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const
@@ -5151,7 +5150,7 @@ IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> FieldExpr::Duplicate()
 	{
-	return make_intrusive<FieldExpr>(op->Duplicate(), field_name);
+	return SetSucc(new FieldExpr(op->Duplicate(), field_name));
 	}
 
 void FieldExpr::ExprDescribe(ODesc* d) const
@@ -5205,7 +5204,7 @@ IntrusivePtr<Val> HasFieldExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> HasFieldExpr::Duplicate()
 	{
-	return make_intrusive<HasFieldExpr>(op->Duplicate(), field_name);
+	return SetSucc(new HasFieldExpr(op->Duplicate(), field_name));
 	}
 
 void HasFieldExpr::ExprDescribe(ODesc* d) const
@@ -5402,9 +5401,9 @@ IntrusivePtr<Expr> RecordConstructorExpr::Duplicate()
 	auto op_l = op->Duplicate()->AsListExprPtr();
 
 	if ( map )
-		return make_intrusive<RecordConstructorExpr>(rt, op_l);
+		return SetSucc(new RecordConstructorExpr(rt, op_l));
 	else
-		return make_intrusive<RecordConstructorExpr>(op_l);
+		return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
@@ -5596,9 +5595,9 @@ IntrusivePtr<Expr> TableConstructorExpr::Duplicate()
 	auto a = attrs ? attrs->Attrs() : nullptr;
 
 	if ( op->AsListExpr()->Exprs().empty() )
-		return make_intrusive<TableConstructorExpr>(op_l, a, nullptr);
+		return SetSucc(new TableConstructorExpr(op_l, a, nullptr));
 	else
-		return make_intrusive<TableConstructorExpr>(op_l, a, type);
+		return SetSucc(new TableConstructorExpr(op_l, a, type));
 	}
 
 IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
@@ -5736,9 +5735,9 @@ IntrusivePtr<Expr> SetConstructorExpr::Duplicate()
 	auto a = attrs ? attrs->Attrs() : nullptr;
 
 	if ( op->AsListExpr()->Exprs().empty() )
-		return make_intrusive<SetConstructorExpr>(op_l, a, nullptr);
+		return SetSucc(new SetConstructorExpr(op_l, a, nullptr));
 	else
-		return make_intrusive<SetConstructorExpr>(op_l, a, type);
+		return SetSucc(new SetConstructorExpr(op_l, a, type));
 	}
 
 IntrusivePtr<Stmt> SetConstructorExpr::ReduceToSingletons(Reducer* c)
@@ -5880,9 +5879,9 @@ IntrusivePtr<Expr> VectorConstructorExpr::Duplicate()
 	auto op_l = op->Duplicate()->AsListExprPtr();
 
 	if ( op->AsListExpr()->Exprs().empty() )
-		return make_intrusive<VectorConstructorExpr>(op_l, nullptr);
+		return SetSucc(new VectorConstructorExpr(op_l, nullptr));
 	else
-		return make_intrusive<VectorConstructorExpr>(op_l, type);
+		return SetSucc(new VectorConstructorExpr(op_l, type));
 	}
 
 void VectorConstructorExpr::ExprDescribe(ODesc* d) const
@@ -5941,7 +5940,7 @@ Expr* FieldAssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 IntrusivePtr<Expr> FieldAssignExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
-	return make_intrusive<FieldAssignExpr>(field_name.c_str(), op_dup);
+	return SetSucc(new FieldAssignExpr(field_name.c_str(), op_dup));
 	}
 
 bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
@@ -6089,7 +6088,7 @@ IntrusivePtr<Expr> ArithCoerceExpr::Duplicate()
 	else
 		tag = type->Tag();
 
-	return make_intrusive<ArithCoerceExpr>(op_dup, tag);
+	return SetSucc(new ArithCoerceExpr(op_dup, tag));
 	}
 
 RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
@@ -6229,7 +6228,7 @@ IntrusivePtr<Expr> RecordCoerceExpr::Duplicate()
 	auto op_dup = op->Duplicate();
 	auto rt = Type()->AsRecordType();
 	IntrusivePtr<RecordType> rt_p = {NewRef{}, rt};
-	return make_intrusive<RecordCoerceExpr>(op_dup, rt_p);
+	return SetSucc(new RecordCoerceExpr(op_dup, rt_p));
 	}
 
 extern IntrusivePtr<RecordVal> coerce_to_record(RecordType* rt, Val* v,
@@ -6346,7 +6345,7 @@ IntrusivePtr<Expr> TableCoerceExpr::Duplicate()
 	auto op_dup = op->Duplicate();
 	auto tt = Type()->AsTableType();
 	IntrusivePtr<TableType> tt_p = {NewRef{}, tt};
-	return make_intrusive<TableCoerceExpr>(op_dup, tt_p);
+	return SetSucc(new TableCoerceExpr(op_dup, tt_p));
 	}
 
 VectorCoerceExpr::VectorCoerceExpr(IntrusivePtr<Expr> arg_op,
@@ -6380,7 +6379,7 @@ IntrusivePtr<Expr> VectorCoerceExpr::Duplicate()
 	auto op_dup = op->Duplicate();
 	auto vt = Type()->AsVectorType();
 	IntrusivePtr<VectorType> vt_p = {NewRef{}, vt};
-	return make_intrusive<VectorCoerceExpr>(op_dup, vt_p);
+	return SetSucc(new VectorCoerceExpr(op_dup, vt_p));
 	}
 
 
@@ -6397,7 +6396,7 @@ IntrusivePtr<Val> CoerceToAnyExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> CoerceToAnyExpr::Duplicate()
 	{
-	return make_intrusive<CoerceToAnyExpr>(op->Duplicate());
+	return SetSucc(new CoerceToAnyExpr(op->Duplicate()));
 	}
 
 
@@ -6421,7 +6420,7 @@ IntrusivePtr<Val> CoerceFromAnyExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> CoerceFromAnyExpr::Duplicate()
 	{
-	return make_intrusive<CoerceFromAnyExpr>(op->Duplicate(), type);
+	return SetSucc(new CoerceFromAnyExpr(op->Duplicate(), type));
 	}
 
 
@@ -6552,7 +6551,7 @@ IntrusivePtr<Expr> ScheduleExpr::Duplicate()
 	{
 	auto when_d = when->Duplicate();
 	auto event_d = event->Duplicate()->AsEventExprPtr();
-	return make_intrusive<ScheduleExpr>(when_d, event_d);
+	return SetSucc(new ScheduleExpr(when_d, event_d));
 	}
 
 IntrusivePtr<Expr> ScheduleExpr::GetOp1() const
@@ -6729,7 +6728,7 @@ IntrusivePtr<Expr> InExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
-	return make_intrusive<InExpr>(op1_d, op2_d);
+	return SetSucc(new InExpr(op1_d, op2_d));
 	}
 
 bool InExpr::HasReducedOps(Reducer* c) const
@@ -7014,7 +7013,7 @@ IntrusivePtr<Expr> CallExpr::Duplicate()
 	auto func_type = func->Type();
 	auto in_hook = func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK;
 
-	return make_intrusive<CallExpr>(func_d, args_d, in_hook);
+	return SetSucc(new CallExpr(func_d, args_d, in_hook));
 	}
 
 TraversalCode CallExpr::Traverse(TraversalCallback* cb) const
@@ -7130,8 +7129,8 @@ IntrusivePtr<Expr> InlineExpr::Duplicate()
 	{
 	auto args_d = args->Duplicate()->AsListExprPtr();
 	auto body_d = body->Duplicate();
-	return make_intrusive<InlineExpr>(args_d, params, body_d, frame_offset,
-						type);
+	return SetSucc(new InlineExpr(args_d, params, body_d, frame_offset,
+					type));
 	}
 
 TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
@@ -7285,7 +7284,7 @@ IntrusivePtr<Expr> LambdaExpr::Duplicate()
 	{
 	auto ingr = std::make_unique<function_ingredients>(*ingredients);
 	ingr->body = ingr->body->Duplicate();
-	return make_intrusive<LambdaExpr>(std::move(ingr), outer_ids);
+	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
 	}
 
 void LambdaExpr::ExprDescribe(ODesc* d) const
@@ -7407,7 +7406,7 @@ const CompiledStmt EventExpr::Compile(Compiler* c) const
 IntrusivePtr<Expr> EventExpr::Duplicate()
 	{
 	auto args_d = args->Duplicate()->AsListExprPtr();
-	return make_intrusive<EventExpr>(name.c_str(), args_d);
+	return SetSucc(new EventExpr(name.c_str(), args_d));
 	}
 
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
@@ -7866,12 +7865,12 @@ IntrusivePtr<Stmt> ListExpr::ReduceToSingletons(Reducer* c)
 
 IntrusivePtr<Expr> ListExpr::Duplicate()
 	{
-	auto new_l = make_intrusive<ListExpr>();
+	auto new_l = new ListExpr();
 
 	loop_over_list(exprs, i)
 		new_l->Append(exprs[i]->Duplicate());
 
-	return new_l;
+	return SetSucc(new_l);
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
@@ -7980,7 +7979,7 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 
 IntrusivePtr<Expr> CastExpr::Duplicate()
 	{
-	return make_intrusive<CastExpr>(op->Duplicate(), type);
+	return SetSucc(new CastExpr(op->Duplicate(), type));
 	}
 
 IntrusivePtr<Val> cast_value(Val* v, BroType* t, const char*& error)
@@ -8032,7 +8031,7 @@ IntrusivePtr<Val> IsExpr::Fold(Val* v) const
 
 IntrusivePtr<Expr> IsExpr::Duplicate()
 	{
-	return make_intrusive<IsExpr>(op->Duplicate(), t);
+	return SetSucc(new IsExpr(op->Duplicate(), t));
 	}
 
 void IsExpr::ExprDescribe(ODesc* d) const

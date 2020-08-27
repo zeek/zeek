@@ -148,15 +148,21 @@ public:
 			return this;
 		}
 
-protected:
-	Stmt()	{ original = nullptr; }
-	explicit Stmt(BroStmtTag arg_tag);
-
 	void SetOriginal(Stmt* _orig)
 		{
 		if ( ! original )
 			original = _orig->Ref();
 		}
+
+	virtual IntrusivePtr<Stmt> SetSucc(Stmt* succ)
+		{
+		succ->SetOriginal(this);
+		return {AdoptRef{}, succ};
+		}
+
+protected:
+	Stmt()	{ original = nullptr; }
+	explicit Stmt(BroStmtTag arg_tag);
 
 	void AddTag(ODesc* d) const;
 	virtual void StmtDescribe(ODesc* d) const;

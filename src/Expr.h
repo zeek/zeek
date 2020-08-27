@@ -372,6 +372,12 @@ public:
 			return this;
 		}
 
+	IntrusivePtr<Expr> SetSucc(Expr* succ)
+		{
+		succ->SetOriginal(this);
+		return {AdoptRef{}, succ};
+		}
+
 	void Describe(ODesc* d) const override;
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;

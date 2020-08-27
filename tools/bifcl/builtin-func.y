@@ -16,6 +16,7 @@ using namespace std;
 extern int line_number;
 extern char* input_filename;
 extern char* plugin;
+extern int alternative_mode;
 
 #define print_line_directive(fp) fprintf(fp, "\n#line %d \"%s\"\n", line_number, input_filename)
 
@@ -535,6 +536,9 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
 					decl.c_namespace_end.c_str());
 
+			if ( alternative_mode && ! plugin )
+				fprintf(fp_netvar_init, "\tzeek::detail::bif_initializers.emplace_back([]()\n");
+
 			fprintf(fp_netvar_init, "\t{\n");
 			fprintf(fp_netvar_init, "\tconst auto& v = zeek::id::find_const%s(\"%s\");\n",
 					builtin_types[typeidx].cast_smart, decl.bro_fullname.c_str());
@@ -543,6 +547,9 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			fprintf(fp_netvar_init, "\t%s = v.get()%s;\n",
 					decl.c_fullname.c_str(), accessor);
 			fprintf(fp_netvar_init, "\t}\n");
+
+			if ( alternative_mode && ! plugin )
+				fprintf(fp_netvar_init, "\t);\n");
 
 			record_bif_item(decl.bro_fullname.c_str(), "CONSTANT");
 			}

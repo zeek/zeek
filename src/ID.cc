@@ -90,7 +90,7 @@ FuncPtr id::find_func(std::string_view name)
 	return v->AsFuncPtr();
 	}
 
-void id::detail::init()
+void id::detail::init_types()
 	{
 	conn_id = id::find_type<RecordType>("conn_id");
 	endpoint = id::find_type<RecordType>("endpoint");

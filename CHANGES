@@ -1,4 +1,8 @@
 
+3.3.0-dev.210 | 2020-08-27 15:34:14 -0700
+
+  * GH-158: Ensure packet-filter framework is loaded if -f option is passed (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.208 | 2020-08-27 11:12:22 -0700
 
   * GH-1145: Fix a umask issue for processing-status file (Vlad Grigorescu)

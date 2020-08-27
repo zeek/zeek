@@ -195,11 +195,32 @@ Attributes::Attributes(std::vector<AttrPtr> a,
 
 void Attributes::AddAttr(AttrPtr attr)
 	{
+	auto acceptable_duplicate_tag = [&](AttrPtr attr) -> bool
+		{
+		AttrTag new_tag = attr->Tag();
+
+		if ( new_tag == ATTR_DEPRECATED )
+			{
+			if ( ! attr->DeprecationMessage().empty() )
+				return false;
+
+			auto existing = Find(new_tag);
+			if ( existing && ! existing->DeprecationMessage().empty() )
+				return false;
+
+			return true;
+			}
+
+		return new_tag == ATTR_LOG || new_tag == ATTR_OPTIONAL || new_tag == ATTR_REDEF ||
+			new_tag == ATTR_BROKER_STORE_ALLOW_COMPLEX || new_tag == ATTR_RAW_OUTPUT ||
+			new_tag == ATTR_ERROR_HANDLER;
+		};
+
 	// Display a warning for duplicated tags on a type. &log tags are intentionally
 	// ignored here because duplicate log tags on record types are valid, and don't
 	// cause any significant breakage for other types.
-	if ( attr->Tag() != ATTR_LOG && Find(attr->Tag()) )
-		reporter->Warning("Found duplicate tag %s", attr_name(attr->Tag()));
+	if ( ! acceptable_duplicate_tag(attr) && Find(attr->Tag()) )
+		reporter->Error("Duplicate %s tag is ambiguous", attr_name(attr->Tag()));
 
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());

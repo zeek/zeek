@@ -1,6 +1,6 @@
-error in /mnt/data/tim/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 4: &default is not valid for global variables except for tables (&default=0)
-error in /mnt/data/tim/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: &default is not valid for global variables except for tables (&default=10)
-warning in /mnt/data/tim/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: Found duplicate tag &default
-error in /mnt/data/tim/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: &default is not valid for global variables except for tables (&default=9)
-error in /mnt/data/tim/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: &optional is not valid for global variables (&default=9, &optional)
-error in /mnt/data/tim/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 10: &default is not valid for global variables except for tables (&default=set())
+error in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 4: &default is not valid for global variables except for tables (&default=0)
+error in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: &default is not valid for global variables except for tables (&default=10)
+error in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: Duplicate &default tag is ambiguous
+error in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: &default is not valid for global variables except for tables (&default=9)
+error in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 9: &optional is not valid for global variables (&default=9, &optional)
+error in /Users/tim/Desktop/projects/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 10: &default is not valid for global variables except for tables (&default=set())

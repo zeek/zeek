@@ -345,7 +345,7 @@ elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
        ../auxil/highwayhash/highwayhash/hh_neon.cc
   )
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
-  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_vsx.cc PROPERTIES COMPILE_FLAGS
                               -mvsx)
   list(APPEND HH_SRCS
        ../auxil/highwayhash/highwayhash/hh_vsx.cc

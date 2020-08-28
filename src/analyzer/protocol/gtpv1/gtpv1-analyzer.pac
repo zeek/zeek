@@ -1,6 +1,7 @@
 %extern{
 #include "Sessions.h"
 #include "ZeekString.h"
+#include "GTPv1.h"
 %}
 
 %code{
@@ -729,42 +730,24 @@ flow GTPv1_Flow(is_orig: bool)
 			return false;
 			}
 
-		IP_Hdr* inner = 0;
-		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
-		     ${pdu.packet}.data(), ip->ip_v == 6 ? IPPROTO_IPV6 : IPPROTO_IPV4,
-		     inner);
+		int hdr_len = 8;
 
-		if ( result == 0 )
-			{
-			connection()->set_valid(is_orig(), true);
+		if ( pdu->has_opt() )
+			hdr_len += 4;
 
-			if ( (! zeek::BifConst::Tunnel::delay_gtp_confirmation) ||
-			     (connection()->valid(true) && connection()->valid(false)) )
-				a->ProtocolConfirmation();
-			}
+		if ( pdu->e_flag() && pdu->ext_hdrs() )
+			for ( const auto& eh : *pdu->ext_hdrs() )
+				hdr_len += 2 + eh->contents().length();
 
-		else if ( result == -2 )
-			violate("Invalid IP version in wrapped packet", pdu);
-
-		else if ( result < 0 )
-			violate("Truncated GTPv1", pdu);
-
-		else
-			violate("GTPv1 payload length", pdu);
-
-		if ( result != 0 )
-			{
-			delete inner;
-			return false;
-			}
+		auto next_hdr = ip->ip_v == 6 ? IPPROTO_IPV6 : IPPROTO_IPV4;
+		zeek::RecordValPtr hdr_val;
 
 		if ( ::gtpv1_g_pdu_packet )
-			zeek::BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
-			                                           inner->ToPktHdrVal());
+			hdr_val = BuildGTPv1Hdr(pdu);
 
-		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
-
-		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		static_cast<analyzer::gtpv1::GTPv1_Analyzer*>(
+			connection()->bro_analyzer())->SetInnerInfo(
+				hdr_len, next_hdr, std::move(hdr_val));
 
 		return true;
 		%}

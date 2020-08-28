@@ -9,14 +9,6 @@ namespace zeek::plugin {
 	template <class T> class TaggedComponent;
 	template <class T, class C>	class ComponentManager;
 }
-namespace plugin {
-	template <class T>
-	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
-		zeek::plugin::TaggedComponent<T>;
-	template <class T, class C>
-	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
-		zeek::plugin::ComponentManager<T, C>;
-}
 
 namespace zeek::packet_analysis {
 
@@ -87,15 +79,6 @@ public:
 	 */
 	const IntrusivePtr<EnumVal>& AsVal() const;
 
-	/**
-	 * Returns the \c Analyzer::Tag enum that corresponds to this tag.
-	 * The returned value does not have its ref-count increased.
-	 *
-	 * @param etype the script-layer enum type associated with the tag.
-	 */
-	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal() const;
-
 	static Tag Error;
 
 protected:
@@ -122,9 +105,6 @@ protected:
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
 	explicit Tag(IntrusivePtr<EnumVal> val);
-
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead")]]
-	explicit Tag(EnumVal* val);
 };
 
 }

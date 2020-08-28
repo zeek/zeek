@@ -23,18 +23,8 @@ const IntrusivePtr<EnumVal>& Tag::AsVal() const
 	return zeek::Tag::AsVal(packet_mgr->GetTagType());
 	}
 
-EnumVal* Tag::AsEnumVal() const
-	{
-	return AsVal().get();
-	}
-
 Tag::Tag(IntrusivePtr<EnumVal> val)
 	: zeek::Tag(std::move(val))
-	{
-	}
-
-Tag::Tag(EnumVal* val)
-	: zeek::Tag({NewRef {}, val})
 	{
 	}
 

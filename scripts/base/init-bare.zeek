@@ -5340,24 +5340,24 @@ event net_done(t: time)
 
 module PacketAnalyzer;
 
-# Defines a mapping for the PacketAnalyzer's configuration tree. This
-# maps from a parent analyzer to a child analyzer through a numeric
-# identifier.
+## Defines a mapping for the PacketAnalyzer's configuration tree. This
+## maps from a parent analyzer to a child analyzer through a numeric
+## identifier.
 export {
     type ConfigEntry : record {
-        # The parent analyzer. This analyzer will check for the *identifier* in the
-        # packet data to know whether to call the next analyzer. This field is optional.
-        # If it is not included, the identifier will attach to the "root" analyzer. The
-        # root analyzer uses the link layer identifier provided by the packet source to
-        # determine the protocol for the initial packet header.
+        ## The parent analyzer. This analyzer will check for the *identifier* in the
+        ## packet data to know whether to call the next analyzer. This field is optional.
+        ## If it is not included, the identifier will attach to the "root" analyzer. The
+        ## root analyzer uses the link layer identifier provided by the packet source to
+        ## determine the protocol for the initial packet header.
         parent : PacketAnalyzer::Tag &optional;
 
-        # A numeric identifier, which can be found in the packet data, that denotes the
-        # encapsulated protocol. This field is optional. If it is not included, the
-        # configured child analyzer will be used as default analyzer.
+        ## A numeric identifier, which can be found in the packet data, that denotes the
+        ## encapsulated protocol. This field is optional. If it is not included, the
+        ## configured child analyzer will be used as default analyzer.
         identifier : count &optional;
 
-        # The analyzer that corresponds to the above identifier.
+        ## The analyzer that corresponds to the above identifier.
         analyzer : PacketAnalyzer::Tag;
     };
 

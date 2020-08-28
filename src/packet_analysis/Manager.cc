@@ -30,7 +30,7 @@ void Manager::InitPostScript()
 	if ( mapping_val->Size() == 0 )
 		return;
 
-	for (unsigned int i = 0; i < mapping_val->Size(); i++)
+	for ( unsigned int i = 0; i < mapping_val->Size(); i++ )
 		{
 		auto* rv = mapping_val->At(i)->AsRecordVal();
 		//TODO: Make that field a string for usability reasons

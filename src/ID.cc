@@ -314,10 +314,10 @@ std::string ID::GetDeprecationWarning() const
 		return zeek::util::fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
-void ID::AddAttrs(AttributesPtr a)
+void ID::AddAttrs(AttributesPtr a, bool is_redef)
 	{
 	if ( attrs )
-		attrs->AddAttrs(a);
+		attrs->AddAttrs(a, is_redef);
 	else
 		attrs = std::move(a);
 

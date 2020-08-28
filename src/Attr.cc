@@ -193,7 +193,7 @@ Attributes::Attributes(std::vector<AttrPtr> a,
 		AddAttr(std::move(attr));
 	}
 
-void Attributes::AddAttr(AttrPtr attr)
+void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	{
 	auto acceptable_duplicate_tag = [&](const AttrPtr& attr, const AttrPtr& existing) -> bool
 		{
@@ -216,9 +216,12 @@ void Attributes::AddAttr(AttrPtr attr)
 	// Display a warning for duplicated tags on a type. &log tags are intentionally
 	// ignored here because duplicate log tags on record types are valid, and don't
 	// cause any significant breakage for other types.
-	auto existing = Find(attr->Tag());
-	if ( existing && ! acceptable_duplicate_tag(attr, existing) )
-		reporter->Error("Duplicate %s tag is ambiguous", attr_name(attr->Tag()));
+	if ( ! is_redef )
+		{
+		auto existing = Find(attr->Tag());
+		if ( existing && ! acceptable_duplicate_tag(attr, existing) )
+			reporter->Error("Duplicate %s tag is ambiguous", attr_name(attr->Tag()));
+		}
 
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
@@ -249,16 +252,16 @@ void Attributes::AddAttr(AttrPtr attr)
 		}
 	}
 
-void Attributes::AddAttrs(const AttributesPtr& a)
+void Attributes::AddAttrs(const AttributesPtr& a, bool is_redef)
 	{
 	for ( const auto& attr : a->GetAttrs() )
-		AddAttr(attr);
+		AddAttr(attr, is_redef);
 	}
 
-void Attributes::AddAttrs(Attributes* a)
+void Attributes::AddAttrs(Attributes* a, bool is_redef)
 	{
 	for ( const auto& attr : a->GetAttrs() )
-		AddAttr(attr);
+		AddAttr(attr, is_redef);
 
 	Unref(a);
 	}

@@ -213,7 +213,7 @@ static void make_var(const zeek::detail::IDPtr& id, zeek::TypePtr t,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(zeek::make_intrusive<zeek::detail::Attributes>(std::move(*attr), t, false, id->IsGlobal()));
+		id->AddAttrs(zeek::make_intrusive<zeek::detail::Attributes>(std::move(*attr), t, false, id->IsGlobal()), dt == VAR_REDEF);
 
 	if ( init )
 		{

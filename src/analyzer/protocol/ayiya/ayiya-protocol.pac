@@ -11,6 +11,7 @@ type PDU = record {
 } &let {
 	identity_len  = (1 << (identity_byte >> 4));
 	signature_len = (signature_byte >> 4) * 4;
+	hdr_len = 8 + identity_len + signature_len;
 	auth = auth_and_op >> 4;
 	op = auth_and_op & 0xF;
 } &byteorder = littleendian;

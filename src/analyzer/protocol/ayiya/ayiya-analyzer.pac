@@ -1,6 +1,7 @@
 %extern{
 #include "Sessions.h"
 #include "Conn.h"
+#include "AYIYA.h"
 %}
 
 connection AYIYA_Conn(zeek_analyzer: ZeekAnalyzer)
@@ -56,37 +57,7 @@ flow AYIYA_Flow
 			return false;
 			}
 
-		zeek::IP_Hdr* inner = 0;
-		int result = zeek::sessions->ParseIPPacket(${pdu.packet}.length(),
-		     ${pdu.packet}.data(), ${pdu.next_header}, inner);
-
-		if ( result == 0 )
-			connection()->zeek_analyzer()->ProtocolConfirmation();
-
-		else if ( result == -2 )
-			connection()->zeek_analyzer()->ProtocolViolation(
-			    "AYIYA next header internal mismatch", (const char*)${pdu.packet}.data(),
-			     ${pdu.packet}.length());
-
-		else if ( result < 0 )
-			connection()->zeek_analyzer()->ProtocolViolation(
-			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),
-			    ${pdu.packet}.length());
-
-		else
-			connection()->zeek_analyzer()->ProtocolViolation(
-			    "AYIYA payload length", (const char*) ${pdu.packet}.data(),
-			    ${pdu.packet}.length());
-
-		if ( result != 0 )
-			{
-			delete inner;
-			return false;
-			}
-
-		zeek::EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
-
-		zeek::sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		static_cast<zeek::analyzer::ayiya::AYIYA_Analyzer*>(connection()->zeek_analyzer())->SetInnerInfo(${pdu.hdr_len}, ${pdu.next_header});
 
 		return true;
 		%}

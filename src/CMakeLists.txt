@@ -348,7 +348,7 @@ elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
   set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               -mvsx)
   list(APPEND HH_SRCS
-       ../auxil/highwayhash/highwayhash/hh_vsc.cc
+       ../auxil/highwayhash/highwayhash/hh_vsx.cc
   )
 elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
   set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS

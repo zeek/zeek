@@ -2,6 +2,8 @@
 
 #include "ayiya_pac.h"
 
+namespace binpac::AYIYA { class AYIYA_Conn; }
+
 namespace analyzer { namespace ayiya {
 
 class AYIYA_Analyzer final : public analyzer::Analyzer {
@@ -16,8 +18,16 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new AYIYA_Analyzer(conn); }
 
+	void SetInnerInfo(int offset, uint8_t next)
+		{
+		inner_packet_offset = offset;
+		next_header = next;
+		}
+
 protected:
 	binpac::AYIYA::AYIYA_Conn* interp;
+	int inner_packet_offset = -1;
+	uint8_t next_header = 0;
 };
 
 } } // namespace analyzer::*

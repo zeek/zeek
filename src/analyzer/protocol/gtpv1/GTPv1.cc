@@ -34,4 +34,47 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		{
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
+
+	if ( inner_packet_offset <= 0 )
+		return;
+
+	auto odata = data;
+	auto olen = len;
+	data += inner_packet_offset;
+	len -= inner_packet_offset;
+	caplen -= inner_packet_offset;
+	inner_packet_offset = -1;
+
+	IP_Hdr* inner = nullptr;
+	int result = sessions->ParseIPPacket(len, data, next_header, inner);
+
+	if ( result == 0 )
+		{
+		interp->set_valid(orig, true);
+
+		if ( (! BifConst::Tunnel::delay_gtp_confirmation) ||
+		     (interp->valid(true) && interp->valid(false)) )
+			ProtocolConfirmation();
+
+		if ( gtp_hdr_val )
+			BifEvent::generate_gtpv1_g_pdu_packet(this, Conn(),
+			                                     gtp_hdr_val,
+			                                     inner->BuildPktHdrVal());
+
+		EncapsulatingConn ec(Conn(), BifEnum::Tunnel::GTPv1);
+		sessions->DoNextInnerPacket(network_time, nullptr,
+		                            inner, Conn()->GetEncapsulation(), ec);
+		}
+	else if ( result == -2 )
+		ProtocolViolation("Invalid IP version in wrapped packet",
+		                  reinterpret_cast<const char*>(odata), olen);
+	else if ( result < 0 )
+		ProtocolViolation("Truncated GTPv1",
+		                  reinterpret_cast<const char*>(odata), olen);
+	else
+		ProtocolViolation("GTPv1 payload length",
+		                  reinterpret_cast<const char*>(odata), olen);
+
+	if ( result != 0 )
+		delete inner;
 	}

@@ -22,8 +22,6 @@
 
 #include "analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "analyzer/protocol/stepping-stone/events.bif.h"
-#include "analyzer/protocol/arp/ARP.h"
-#include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
 
@@ -32,6 +30,8 @@
 #include "analyzer/Manager.h"
 #include "iosource/IOSource.h"
 #include "iosource/PktDumper.h"
+
+#include "pcap.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -96,11 +96,6 @@ NetSessions::NetSessions()
 	else
 		pkt_profiler = nullptr;
 
-	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new analyzer::arp::ARP_Analyzer();
-	else
-		arp_analyzer = nullptr;
-
 	memset(&stats, 0, sizeof(SessionStats));
 	}
 
@@ -108,7 +103,6 @@ NetSessions::~NetSessions()
 	{
 	delete packet_filter;
 	delete pkt_profiler;
-	Unref(arp_analyzer);
 	delete discarder;
 	delete stp_manager;
 
@@ -178,8 +172,8 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 	else if ( pkt->l3_proto == L3_ARP )
 		{
-		if ( arp_analyzer )
-			arp_analyzer->NextPacket(t, pkt);
+		// Do nothing here as ARP has moved into a packet analyzer
+		//TODO: Revisit the use of packet's l3_proto
 		}
 
 	else

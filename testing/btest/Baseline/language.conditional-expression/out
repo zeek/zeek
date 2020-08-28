@@ -5,3 +5,10 @@ false condition (PASS)
 associativity (PASS)
 associativity (PASS)
 associativity (PASS)
+0, set[string]
+0, set[string]
+0, table[count] of string
+0, table[count] of string
+0, vector of string
+0, vector of string
+[1, 5, 3], vector of count

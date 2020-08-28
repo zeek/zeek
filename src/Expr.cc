@@ -1897,19 +1897,18 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
 	else
 		{
 		TypeTag bt2 = op2->GetType()->Tag();
-
-		if ( is_vector(op2) )
-			bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
-
 		TypeTag bt3 = op3->GetType()->Tag();
 
-		if ( IsVector(bt3) )
-			bt3 = op3->GetType()->AsVectorType()->Yield()->Tag();
-
-		if ( is_vector(op1) && ! (is_vector(op2) && is_vector(op3)) )
+		if ( is_vector(op1) )
 			{
-			ExprError("vector conditional requires vector alternatives");
-			return;
+			if ( ! (is_vector(op2) && is_vector(op3)) )
+				{
+				ExprError("vector conditional requires vector alternatives");
+				return;
+				}
+
+			bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
+			bt3 = op3->GetType()->AsVectorType()->Yield()->Tag();
 			}
 
 		if ( BothArithmetic(bt2, bt3) )
@@ -1920,7 +1919,7 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
 			if ( bt3 != t )
 				op3 = make_intrusive<ArithCoerceExpr>(std::move(op3), t);
 
-			if ( is_vector(op2) )
+			if ( is_vector(op1) )
 				SetType(make_intrusive<VectorType>(base_type(t)));
 			else
 				SetType(base_type(t));
@@ -1931,10 +1930,42 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
 
 		else
 			{
-			if ( IsRecord(bt2) && IsRecord(bt3) &&
-			     ! same_type(op2->GetType(), op3->GetType()) )
+			if ( is_vector(op1) )
+				{
+				ExprError("vector conditional type clash between alternatives");
+				return;
+				}
+
+			if ( bt2 == zeek::TYPE_TABLE )
+				{
+				auto tt2 = op2->GetType<TableType>();
+				auto tt3 = op3->GetType<TableType>();
+
+				if ( tt2->IsUnspecifiedTable() )
+					op2 = make_intrusive<TableCoerceExpr>(std::move(op2), std::move(tt3));
+				else if( tt3->IsUnspecifiedTable() )
+					op3 = make_intrusive<TableCoerceExpr>(std::move(op3), std::move(tt2));
+				else if ( ! same_type(op2->GetType(), op3->GetType()) )
+					ExprError("operands must be of the same type");
+				}
+			else if ( bt2 == zeek::TYPE_VECTOR )
+				{
+				auto vt2 = op2->GetType<VectorType>();
+				auto vt3 = op3->GetType<VectorType>();
+
+				if ( vt2->IsUnspecifiedVector() )
+					op2 = make_intrusive<VectorCoerceExpr>(std::move(op2), std::move(vt3));
+				else if( vt3->IsUnspecifiedVector() )
+					op3 = make_intrusive<VectorCoerceExpr>(std::move(op3), std::move(vt2));
+				else if ( ! same_type(op2->GetType(), op3->GetType()) )
+					ExprError("operands must be of the same type");
+				}
+			else if ( ! same_type(op2->GetType(), op3->GetType()) )
+				// Records could potentially also coerce, but may have some cases
+				// where the coercion direction is ambiguous.
 				ExprError("operands must be of the same type");
-			else
+
+			if ( ! IsError() )
 				SetType(op2->GetType());
 			}
 		}

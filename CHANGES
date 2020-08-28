@@ -1,4 +1,10 @@
 
+3.3.0-dev.215 | 2020-08-28 16:51:40 -0700
+
+  * GH-926: Improve type-checking for ternary conditional operator (Jon Siwek, Corelight)
+
+  * Unbreak build on power architectures by fixing small cmake issue (Johanna Amann, Corelight)
+
 3.3.0-dev.211 | 2020-08-27 18:00:55 -0700
 
   * Potentially improve intel/remove-item-cluster btest (Jon Siwek, Corelight)

@@ -30,7 +30,7 @@ How much faster will your scripts run?  There's no simple answer to that.  It de
 
 * Those two factors add up to gains very often on the order of only 10-15%, rather than something a lot more dramatic.
 
-* In addition, there are some [types of scripts that currently can't be compiled](#Scripts-that-can't-be-compiled), and thus will remain interpreted.  If your processing bottlenecks in such scripts, you won't see much in the way of gains.
+* In addition, there are some [types of scripts that currently can't be compiled](#Scripts-that-cannot-be-compiled), and thus will remain interpreted.  If your processing bottlenecks in such scripts, you won't see much in the way of gains.
 
 * If your overall execution is short, then the time for loading the `.ZAM` files (or, worse, compiling from scratch) can predominate.
 
@@ -79,7 +79,7 @@ Here we list various issues with using script optimization, including both defic
 * The semantics of deleting a record field differ when the field is itself a record.  For the interpreter, the field is completely removed, whereas for compiled scripts, it is replaced with a completely empty record.
 <br>
 
-### Scripts that can't be compiled:
+### Scripts that cannot be compiled:
 
 The optimizer does not compile scripts that include "when" statements or lambda expressions.  These will take substantial work to support.
 It also will not inline such scripts, nor will it inline scripts that are either directly or indirectly recursive.

@@ -22,5 +22,5 @@ redef PacketAnalyzer::config_map += {
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x88A8, $analyzer=PacketAnalyzer::ANALYZER_VLAN),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x9100, $analyzer=PacketAnalyzer::ANALYZER_VLAN),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x8864, $analyzer=PacketAnalyzer::ANALYZER_PPPOE),
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $analyzer=PacketAnalyzer::ANALYZER_DEFAULTANALYZER)
+	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $analyzer=PacketAnalyzer::ANALYZER_IP)
 };

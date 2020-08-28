@@ -121,7 +121,7 @@ protected:
 	 *
 	 * @return The outcome of the analysis.
 	 */
-	virtual AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
+	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
 	                                          uint32_t identifier) const;
 
 	/**

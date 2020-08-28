@@ -6,5 +6,5 @@ export {
 }
 
 redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_SKIP, $analyzer=PacketAnalyzer::ANALYZER_DEFAULTANALYZER)
+	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_SKIP, $analyzer=PacketAnalyzer::ANALYZER_IP)
 };

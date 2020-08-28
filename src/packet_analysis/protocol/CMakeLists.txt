@@ -1,4 +1,3 @@
-add_subdirectory(default)
 add_subdirectory(skip)
 
 add_subdirectory(wrapper)
@@ -15,5 +14,6 @@ add_subdirectory(mpls)
 add_subdirectory(linux_sll)
 
 add_subdirectory(arp)
+add_subdirectory(ip)
 add_subdirectory(ipv4)
 add_subdirectory(ipv6)

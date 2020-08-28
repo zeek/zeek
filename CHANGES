@@ -1,4 +1,8 @@
 
+3.3.0-dev.211 | 2020-08-27 18:00:55 -0700
+
+  * Potentially improve intel/remove-item-cluster btest (Jon Siwek, Corelight)
+
 3.3.0-dev.210 | 2020-08-27 15:34:14 -0700
 
   * GH-158: Ensure packet-filter framework is loaded if -f option is passed (Tim Wojtulewicz, Corelight)

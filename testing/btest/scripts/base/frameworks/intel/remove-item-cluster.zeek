@@ -22,14 +22,6 @@ module Intel;
 
 redef Log::default_rotation_interval=0sec;
 
-event test_manager()
-	{
-	Intel::remove([$indicator="192.168.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
-	Intel::seen([$host=192.168.0.1, $where=Intel::IN_ANYWHERE]);
-	Intel::remove([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]], T);
-	Intel::seen([$host=192.168.0.2, $where=Intel::IN_ANYWHERE]);
-	}
-
 event test_worker()
 	{
 	Intel::remove([$indicator="192.168.1.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
@@ -37,6 +29,16 @@ event test_worker()
 	Intel::seen([$host=192.168.1.2, $where=Intel::IN_ANYWHERE]);
 	# Trigger shutdown by matching data that should be present
 	Intel::seen([$host=10.10.10.10, $where=Intel::IN_ANYWHERE]);
+	}
+
+event test_manager()
+	{
+	Intel::remove([$indicator="192.168.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
+	Intel::seen([$host=192.168.0.1, $where=Intel::IN_ANYWHERE]);
+	Intel::remove([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]], T);
+	Intel::seen([$host=192.168.0.2, $where=Intel::IN_ANYWHERE]);
+
+	Broker::publish(Cluster::worker_topic, test_worker);
 	}
 
 event ready()
@@ -58,32 +60,37 @@ event Cluster::node_up(name: string, id: string)
 		Broker::publish(Cluster::manager_topic, ready);
 	}
 
-global worker_data = 0;
-event Intel::insert_indicator(item: Intel::Item)
-	{
-	# Run test on worker-1 when all items have been inserted
-	if ( Cluster::node == "worker-1" )
-		{
-		++worker_data;
-		if ( worker_data == 4 )
-			event test_worker();
-		}
-	}
-
 event Intel::remove_item(item: Item, purge_indicator: bool)
 	{
 	print fmt("Removing %s (source: %s).", item$indicator, item$meta$source);
 	}
 
+global purge_count = 0;
+global got_intel_hit = F;
+
+function check_termination_condition()
+	{
+	if ( Cluster::node == "worker-1" && purge_count == 3 && got_intel_hit )
+		terminate();
+	}
+
+event set_intel_hit()
+	{
+	got_intel_hit = T;
+	check_termination_condition();
+	}
+
 event remove_indicator(item: Item)
 	{
+	++purge_count;
 	print fmt("Purging %s.", item$indicator);
+	check_termination_condition();
 	}
 
 event Intel::log_intel(rec: Intel::Info)
 	{
 	print "Logging intel hit!";
-	terminate();
+	Broker::publish(Cluster::worker_topic, set_intel_hit);
 	}
 
 event Cluster::node_down(name: string, id: string)

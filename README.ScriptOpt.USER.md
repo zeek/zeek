@@ -49,6 +49,8 @@ Here we list various issues with using script optimization, including both defic
 
 ### Deficiencies to eventually fix:
 
+* Building the branch requires a modern `awk`, such as `gawk` or `mawk`.  `gawk` is currently hardwired into `src/gen-compiler-templates.sh` because I lack the CMake skillz to configure this appropriately.
+
 * [As noted below](#ZAM-Save-Files), you need to have write permission in the directories where any scripts reside in order to create `.ZAM` files in them.  See the discussion there for workarounds.
 
 * Error messages in compiled scripts often lack important identifying information.

@@ -12,7 +12,7 @@ public:
 	IPAnalyzer();
 	~IPAnalyzer() override = default;
 
-	AnalyzerResult AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{

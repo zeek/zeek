@@ -57,7 +57,7 @@ AnalyzerPtr Analyzer::Lookup(uint32_t identifier) const
 	return dispatcher.Lookup(identifier);
 	}
 
-AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
+bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 		uint32_t identifier) const
 	{
 	auto inner_analyzer = Lookup(identifier);
@@ -69,7 +69,7 @@ AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* 
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
 				GetAnalyzerName(), identifier);
 		packet->Weird("no_suitable_analyzer_found");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
@@ -77,7 +77,7 @@ AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* 
 	return inner_analyzer->AnalyzePacket(len, data, packet);
 	}
 
-AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const
+bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const
 	{
 	if ( default_analyzer )
 		return default_analyzer->AnalyzePacket(len, data, packet);
@@ -85,7 +85,7 @@ AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
 			GetAnalyzerName());
 	packet->Weird("no_suitable_analyzer_found");
-	return AnalyzerResult::Terminate;
+	return true;
 	}
 
 }

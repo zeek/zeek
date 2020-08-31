@@ -8,15 +8,8 @@
 namespace zeek::packet_analysis {
 
 /**
- * Result of packet analysis.
+ * Main packet analyzer interface.
  */
-enum class AnalyzerResult {
-	Failed,   // Analysis failed
-	Terminate // Analysis succeeded and there is no further analysis to do
-};
-
-using AnalysisResultTuple = std::tuple<AnalyzerResult, uint32_t>;
-
 class Analyzer {
 public:
 	/**
@@ -93,9 +86,9 @@ public:
 	 * @param data Pointer to the input to process.
 	 * @param packet Object that maintains the packet's meta data.
 	 *
-	 * @return The outcome of the analysis.
+	 * @return false if the analysis failed, else true.
 	 */
-	virtual AnalyzerResult AnalyzePacket(size_t len, const uint8_t* data,
+	virtual bool AnalyzePacket(size_t len, const uint8_t* data,
 			Packet* packet) = 0;
 
 protected:
@@ -119,9 +112,9 @@ protected:
 	 * @param data Reference to the payload pointer into the raw packet.
 	 * @param identifier The identifier of the encapsulated protocol.
 	 *
-	 * @return The outcome of the analysis.
+	 * @return false if the analysis failed, else true.
 	 */
-	AnalyzerResult ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
+	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 	                                          uint32_t identifier) const;
 
 	/**
@@ -131,9 +124,9 @@ protected:
 	 * @param packet The packet to analyze.
 	 * @param data Reference to the payload pointer into the raw packet.
 	 *
-	 * @return The outcome of the analysis.
+	 * @return false if the analysis failed, else true.
 	 */
-	AnalyzerResult ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const;
+	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const;
 
 private:
 	Tag tag;

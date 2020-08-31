@@ -9,8 +9,7 @@ MPLSAnalyzer::MPLSAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool MPLSAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	// Skip the MPLS label stack.
 	bool end_of_stack = false;
@@ -20,7 +19,7 @@ zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::AnalyzePacket(size_t len,
 		if ( 4 >= len )
 			{
 			packet->Weird("truncated_link_header");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		end_of_stack = *(data + 2u) & 0x01;
@@ -34,7 +33,7 @@ zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::AnalyzePacket(size_t len,
 	if ( sizeof(struct ip) >= len )
 		{
 		packet->Weird("no_ip_in_mpls_payload");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	auto ip = (const struct ip*)data;
@@ -47,9 +46,10 @@ zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::AnalyzePacket(size_t len,
 		{
 		// Neither IPv4 nor IPv6.
 		packet->Weird("no_ip_in_mpls_payload");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	packet->hdr_size = (data - packet->data);
-	return AnalyzerResult::Terminate;
+	packet->session_analysis = true;
+	return true;
 	}

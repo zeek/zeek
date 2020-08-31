@@ -31,15 +31,14 @@ zeek::packet_analysis::AnalyzerPtr EthernetAnalyzer::LoadAnalyzer(const std::str
 	return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 	}
 
-zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	// Make sure that we actually got an entire ethernet header before trying
 	// to pull bytes out of it.
 	if ( 16 >= len )
 		{
 		packet->Weird("truncated_ethernet_frame");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Skip past Cisco FabricPath to encapsulated ethernet frame.
@@ -50,7 +49,7 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::AnalyzePacket(size_t len
 		if ( cfplen + 14 >= len )
 			{
 			packet->Weird("truncated_link_header_cfp");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		data += cfplen;
@@ -74,7 +73,7 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::AnalyzePacket(size_t len
 		if ( 16 >= len )
 			{
 			packet->Weird("truncated_ethernet_frame");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		// Let specialized analyzers take over for non Ethernet II frames.
@@ -95,10 +94,10 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::AnalyzePacket(size_t len
 		if ( eth_analyzer )
 			return eth_analyzer->AnalyzePacket(len, data, packet);
 
-		return AnalyzerResult::Terminate;
+		return true;
 		}
 
 	// Undefined (1500 < EtherType < 1536)
 	packet->Weird("undefined_ether_type");
-	return AnalyzerResult::Failed;
+	return false;
 	}

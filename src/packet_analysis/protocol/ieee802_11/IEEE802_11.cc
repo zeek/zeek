@@ -10,26 +10,25 @@ IEEE802_11Analyzer::IEEE802_11Analyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	u_char len_80211 = 24; // minimal length of data frames
 
 	if ( len_80211 >= len )
 		{
 		packet->Weird("truncated_802_11_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	u_char fc_80211 = data[0]; // Frame Control field
 
 	// Skip non-data frame types (management & control).
 	if ( ! ((fc_80211 >> 2) & 0x02) )
-		return AnalyzerResult::Failed;
+		return false;
 
 	// Skip subtypes without data.
 	if ( (fc_80211 >> 4) & 0x04 )
-		return AnalyzerResult::Failed;
+		return false;
 
 	// 'To DS' and 'From DS' flags set indicate use of the 4th
 	// address field.
@@ -42,7 +41,7 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::AnalyzePacket(size_t l
 		// Skip in case of A-MSDU subframes indicated by QoS
 		// control field.
 		if ( data[len_80211] & 0x80 )
-			return AnalyzerResult::Failed;
+			return false;
 
 		len_80211 += 2;
 		}
@@ -50,7 +49,7 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::AnalyzePacket(size_t l
 	if ( len_80211 >= len )
 		{
 		packet->Weird("truncated_802_11_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Determine link-layer addresses based
@@ -85,7 +84,7 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::AnalyzePacket(size_t l
 	if ( len_80211 >= len )
 		{
 		packet->Weird("truncated_802_11_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Check that the DSAP and SSAP are both SNAP and that the control
@@ -102,7 +101,7 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::AnalyzePacket(size_t l
 		// If this is a logical link control frame without the
 		// possibility of having a protocol we care about, we'll
 		// just skip it for now.
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	uint32_t protocol = (data[0] << 8) + data[1];

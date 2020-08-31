@@ -10,7 +10,7 @@ public:
 	Bar();
 	~Bar() override = default;
 
-	AnalyzerResult AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static AnalyzerPtr Instantiate()
 		{

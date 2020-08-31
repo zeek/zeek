@@ -10,13 +10,12 @@ PPPSerialAnalyzer::PPPSerialAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult PPPSerialAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool PPPSerialAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	if ( 4 >= len )
 		{
 		packet->Weird("truncated_ppp_serial_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Extract protocol identifier

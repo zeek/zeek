@@ -61,8 +61,8 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 
 	if ( data )
 		{
-		// From here we assume that layer 2 is valid. If a packet analyzer encounters
-		// an issue, it will call Packet::Weird(), which sets l2_valid to false.
+		// From here we assume that layer 2 is valid. If the packet analysis fails,
+		// the packet manager will invalidate the packet.
 		l2_valid = true;
 		packet_mgr->ProcessPacket(this);
 		}
@@ -76,7 +76,6 @@ const IP_Hdr Packet::IP() const
 void Packet::Weird(const char* name)
 	{
 	sessions->Weird(name, this);
-	l2_valid = false;
 	}
 
 IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
@@ -99,6 +98,7 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	else if ( l3_proto == L3_ARP )
 		l3 = BifEnum::L3_ARP;
 
+	// TODO: Get rid of hardcoded l3 protocols.
 	// l2_hdr layout:
 	//      encap: link_encap;      ##< L2 link encapsulation
 	//      len: count;		##< Total frame length on wire
@@ -167,34 +167,6 @@ ValPtr Packet::FmtEUI48(const u_char* mac) const
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
 		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	return make_intrusive<StringVal>(buf);
-	}
-
-void Packet::Describe(ODesc* d) const
-	{
-	switch ( l3_proto )
-		{
-		case L3_ARP:
-			d->Add("ARP");
-			break;
-		case L3_IPV4:
-			d->Add("IPv4");
-			break;
-		case L3_IPV6:
-			d->Add("IPv6");
-			break;
-		default:
-			d->Add("Unknown L3 protocol");
-		}
-
-	// Add IP-specific information
-	if ( l3_proto == L3_IPV4 || l3_proto == L3_IPV6 )
-		{
-		const IP_Hdr ip = IP();
-		d->Add(": ");
-		d->Add(ip.SrcAddr());
-		d->Add("->");
-		d->Add(ip.DstAddr());
-		}
 	}
 
 } // namespace zeek

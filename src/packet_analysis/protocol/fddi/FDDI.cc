@@ -10,15 +10,14 @@ FDDIAnalyzer::FDDIAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult FDDIAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool FDDIAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	size_t hdr_size = 13 + 8; // FDDI header + LLC
 
 	if ( hdr_size >= len )
 		{
 		packet->Weird("FDDI_analyzer_failed");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// We just skip the header and hope for default analysis

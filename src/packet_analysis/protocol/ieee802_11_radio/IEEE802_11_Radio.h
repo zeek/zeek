@@ -12,7 +12,7 @@ public:
 	IEEE802_11_RadioAnalyzer();
 	~IEEE802_11_RadioAnalyzer() override = default;
 
-	AnalyzerResult AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{

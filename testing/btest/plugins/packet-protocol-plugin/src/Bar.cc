@@ -10,14 +10,14 @@ Bar::Bar()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult Bar::AnalyzePacket(size_t len,
+bool Bar::AnalyzePacket(size_t len,
 		const uint8_t* data, Packet* packet)
 	{
 	// Rudimentary parsing of 802.2 LLC
 	if ( 17 >= len )
 		{
 		packet->Weird("truncated_llc_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	auto dsap = data[14];
@@ -29,5 +29,5 @@ zeek::packet_analysis::AnalyzerResult Bar::AnalyzePacket(size_t len,
 		val_mgr->Count(ssap),
 		val_mgr->Count(control));
 
-	return AnalyzerResult::Terminate;
+	return true;
 	}

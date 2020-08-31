@@ -126,6 +126,14 @@ public:
 		}
 
 	/**
+	 * Signals that the processing of layer 2 failed.
+	 */
+	void InvalidateLayer2()
+		{
+		l2_valid = false;
+		}
+
+	/**
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * corresponding object.
 	 */
@@ -139,11 +147,6 @@ public:
 
 	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
-
-	/**
-	 * Describes the packet, with standard signature.
-	 */
-	void Describe(ODesc* d) const;
 
 	/**
 	 * Maximal length of a layer 2 address.
@@ -220,6 +223,17 @@ public:
 	 * hardware/kernel before being received by zeek.
 	 */
 	bool l3_checksummed;
+
+	/**
+	 * Indicates whether the packet should be processed by zeek's
+	 * session analysis in NetSessions.
+	 */
+	bool session_analysis = false;
+
+	/**
+	 * Indicates whether this packet should be recorded.
+	 */
+	mutable bool dump_packet = false;
 
 	// Wrapper to generate a packet-level weird. Has to be public for packet analyzers to use it.
 	void Weird(const char* name);

@@ -128,7 +128,8 @@ void Manager::ProcessPacket(Packet* packet)
 		return;
 		}
 
-	auto result = analyzer->AnalyzePacket(packet->cap_len, packet->data, packet);
+	if ( ! analyzer->AnalyzePacket(packet->cap_len, packet->data, packet) )
+		packet->InvalidateLayer2();
 	}
 
 AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)

@@ -81,8 +81,7 @@ ARPAnalyzer::ARPAnalyzer()
 #define ARPOP_INVREPLY ARPOP_InREPLY
 #endif
 
-zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	packet->l3_proto = L3_ARP;
 
@@ -90,7 +89,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 	if ( sizeof(struct arp_pkthdr) > len )
 		{
 		packet->Weird("truncated_ARP");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Check whether the packet is OK ("inspired" in tcpdump's print-arp.c).
@@ -101,7 +100,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 	if ( min_length > len )
 		{
 		packet->Weird("truncated_ARP");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Check the address description fields.
@@ -112,7 +111,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 				// don't know how to handle the opcode
 				BadARPEvent(ah, "corrupt-arp-header (hrd=%i, hln=%i)",
 						ntohs(ah->ar_hrd), ah->ar_hln);
-				return AnalyzerResult::Failed;
+				return false;
 				}
 			break;
 
@@ -120,7 +119,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 			{
 			// don't know how to proceed
 			BadARPEvent(ah, "unknown-arp-hw-address (hrd=%i)", ntohs(ah->ar_hrd));
-			return AnalyzerResult::Failed;
+			return false;
 			}
 		}
 
@@ -132,7 +131,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 				// don't know how to handle the opcode
 				BadARPEvent(ah,"corrupt-arp-header (pro=%i, pln=%i)",
 						ntohs(ah->ar_pro), ah->ar_pln);
-				return AnalyzerResult::Failed;
+				return false;
 				}
 			break;
 
@@ -140,7 +139,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 			{
 			// don't know how to proceed
 			BadARPEvent(ah,"unknown-arp-proto-address (pro=%i)", ntohs(ah->ar_pro));
-			return AnalyzerResult::Failed;
+			return false;
 			}
 		}
 
@@ -149,7 +148,7 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 	if ( memcmp(packet->l2_src, ar_sha(ah), ah->ar_hln) != 0 )
 		{
 		BadARPEvent(ah, "weird-arp-sha");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Check the code is supported.
@@ -171,20 +170,20 @@ zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
 			{
 			// don't know how to handle the opcode
 			BadARPEvent(ah, "unimplemented-arp-opcode (%i)", ntohs(ah->ar_op));
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		default:
 			{
 			// invalid opcode
 			BadARPEvent(ah, "invalid-arp-opcode (opcode=%i)", ntohs(ah->ar_op));
-			return AnalyzerResult::Failed;
+			return false;
 			}
 		}
 
 
 	// Leave packet analyzer land
-	return AnalyzerResult::Terminate;
+	return true;
 	}
 
 zeek::AddrValPtr ARPAnalyzer::ToAddrVal(const void* addr)

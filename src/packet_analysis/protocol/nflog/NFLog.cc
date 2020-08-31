@@ -10,13 +10,12 @@ NFLogAnalyzer::NFLogAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool NFLogAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	if ( 4 >= len )
 		{
 		packet->Weird("truncated_nflog_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
@@ -26,7 +25,7 @@ zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::AnalyzePacket(size_t len,
 	if ( version != 0 )
 		{
 		packet->Weird("unknown_nflog_version");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Skip to TLVs.
@@ -41,7 +40,7 @@ zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::AnalyzePacket(size_t len,
 		if ( 4 >= len )
 			{
 			packet->Weird("nflog_no_pcap_payload");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		// TLV Type and Length values are specified in host byte order
@@ -69,7 +68,7 @@ zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::AnalyzePacket(size_t len,
 			if ( tlv_len < 4 )
 				{
 				packet->Weird("nflog_bad_tlv_len");
-				return AnalyzerResult::Failed;
+				return false;
 				}
 			else
 				{

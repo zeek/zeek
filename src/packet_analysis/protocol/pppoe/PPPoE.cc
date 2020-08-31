@@ -10,13 +10,12 @@ PPPoEAnalyzer::PPPoEAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult PPPoEAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool PPPoEAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	if ( 8 >= len )
 		{
 		packet->Weird("truncated_pppoe_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	// Extract protocol identifier

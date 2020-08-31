@@ -9,14 +9,13 @@ LinuxSLLAnalyzer::LinuxSLLAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult LinuxSLLAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool LinuxSLLAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	auto len_sll_hdr = sizeof(SLLHeader);
 	if ( len_sll_hdr >= len )
 		{
 		packet->Weird("truncated_Linux_SLL_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	//TODO: Handle different ARPHRD_types

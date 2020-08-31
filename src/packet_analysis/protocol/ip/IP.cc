@@ -10,14 +10,13 @@ IPAnalyzer::IPAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult IPAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	// Assume we're pointing at IP. Just figure out which version.
 	if ( sizeof(struct ip) >= len )
 		{
 		packet->Weird("packet_analyzer_truncated_header");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	auto ip = (const struct ip *)data;
@@ -29,7 +28,7 @@ zeek::packet_analysis::AnalyzerResult IPAnalyzer::AnalyzePacket(size_t len,
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
 				GetAnalyzerName(), protocol);
 		packet->Weird("no_suitable_analyzer_found");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",

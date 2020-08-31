@@ -19,8 +19,7 @@ void SkipAnalyzer::Initialize()
 	skip_bytes = skip_val->AsCount();
 	}
 
-zeek::packet_analysis::AnalyzerResult SkipAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool SkipAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	return ForwardPacket(len - skip_bytes, data + skip_bytes, packet);
 	}

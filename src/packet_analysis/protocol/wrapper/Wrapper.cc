@@ -10,7 +10,7 @@ WrapperAnalyzer::WrapperAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
 	// Unfortunately some packets on the link might have MPLS labels
 	// while others don't. That means we need to ask the link-layer if
@@ -27,7 +27,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 		if ( data + cfplen + 14 >= end_of_data )
 			{
 			packet->Weird("truncated_link_header_cfp");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		data += cfplen;
@@ -57,7 +57,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 				if ( data + 4 >= end_of_data )
 					{
 					packet->Weird("truncated_link_header");
-					return AnalyzerResult::Failed;
+					return false;
 					}
 
 				auto& vlan_ref = saw_vlan ? packet->inner_vlan : packet->vlan;
@@ -75,7 +75,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 				if ( data + 8 >= end_of_data )
 					{
 					packet->Weird("truncated_link_header");
-					return AnalyzerResult::Failed;
+					return false;
 					}
 
 				protocol = (data[6] << 8u) + data[7];
@@ -89,7 +89,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 					{
 					// Neither IPv4 nor IPv6.
 					packet->Weird("non_ip_packet_in_pppoe_encapsulation");
-					return AnalyzerResult::Failed;
+					return false;
 					}
 				}
 			break;
@@ -113,7 +113,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 			{
 			// Neither IPv4 nor IPv6.
 			packet->Weird("non_ip_packet_in_ethernet");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 		}
 
@@ -127,7 +127,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 			if ( data + 4 >= end_of_data )
 				{
 				packet->Weird("truncated_link_header");
-				return AnalyzerResult::Failed;
+				return false;
 				}
 
 			end_of_stack = *(data + 2u) & 0x01;
@@ -138,7 +138,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 		if ( data + sizeof(struct ip) >= end_of_data )
 			{
 			packet->Weird("no_ip_in_mpls_payload");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 
 		const struct ip* ip = (const struct ip*)data;
@@ -151,7 +151,7 @@ zeek::packet_analysis::AnalyzerResult WrapperAnalyzer::Analyze(Packet* packet, c
 			{
 			// Neither IPv4 nor IPv6.
 			packet->Weird("no_ip_in_mpls_payload");
-			return AnalyzerResult::Failed;
+			return false;
 			}
 		}
 

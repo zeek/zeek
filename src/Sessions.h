@@ -239,7 +239,6 @@ protected:
 	detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
 	detail::PacketProfiler* pkt_profiler;
-	bool dump_this_packet;	// if true, current packet should be recorded
 };
 
 namespace detail {

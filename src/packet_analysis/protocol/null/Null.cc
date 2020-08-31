@@ -10,13 +10,12 @@ NullAnalyzer::NullAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult NullAnalyzer::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool NullAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	if ( 4 >= len )
 		{
 		packet->Weird("null_analyzer_failed");
-		return AnalyzerResult::Failed;
+		return false;
 		}
 
 	uint32_t protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];

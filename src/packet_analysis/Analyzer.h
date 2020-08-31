@@ -10,7 +10,6 @@ namespace zeek::packet_analysis {
 /**
  * Result of packet analysis.
  */
- //TODO: Replace with bool?
 enum class AnalyzerResult {
 	Failed,   // Analysis failed
 	Terminate // Analysis succeeded and there is no further analysis to do
@@ -85,18 +84,19 @@ public:
 	void RegisterDefaultAnalyzer(AnalyzerPtr default_analyzer);
 
 	/**
-	 * Analyzes the given packet. The data reference points to the part of the
-	 * raw packet to be analyzed. If the analyzed protocol encapsulates another
-	 * protocol, the data reference should be updated to point to that payload.
+	 * Analyzes the given packet. A common case is that the analyzed protocol
+	 * encapsulates another protocol, which can be determined by an identifier
+	 * in the header. In this case, derived classes may use ForwardPacket() to
+	 * forward the payload to the corresponding analyzer.
 	 *
-	 * @param packet The packet to analyze.
-	 * @param data Reference to the payload pointer into the raw packet.
+	 * @param len The number of bytes passed in.
+	 * @param data Pointer to the input to process.
+	 * @param packet Object that maintains the packet's meta data.
 	 *
-	 * @return A tuple of analysis result and identifier. The result indicates
-	 * how to proceed. If analysis can continue, the identifier determines the
-	 * encapsulated protocol.
+	 * @return The outcome of the analysis.
 	 */
-	virtual AnalyzerResult Analyze(Packet* packet, const uint8_t*& data) = 0;
+	virtual AnalyzerResult AnalyzePacket(size_t len, const uint8_t* data,
+			Packet* packet) = 0;
 
 protected:
 	friend class Manager;
@@ -121,7 +121,7 @@ protected:
 	 *
 	 * @return The outcome of the analysis.
 	 */
-	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data,
+	AnalyzerResult ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 	                                          uint32_t identifier) const;
 
 	/**
@@ -133,7 +133,7 @@ protected:
 	 *
 	 * @return The outcome of the analysis.
 	 */
-	AnalyzerResult AnalyzeInnerPacket(Packet* packet, const uint8_t*& data) const;
+	AnalyzerResult ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const;
 
 private:
 	Tag tag;

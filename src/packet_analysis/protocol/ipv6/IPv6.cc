@@ -9,9 +9,11 @@ IPv6Analyzer::IPv6Analyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult IPv6Analyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult IPv6Analyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
 	packet->l3_proto = L3_IPV6;
+	packet->hdr_size = static_cast<uint32_t>(data - packet->data);
 
 	// Leave packet analyzer land
 	return AnalyzerResult::Terminate;

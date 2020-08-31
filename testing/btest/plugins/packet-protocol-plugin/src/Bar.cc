@@ -10,12 +10,11 @@ Bar::Bar()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult Bar::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult Bar::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	auto end_of_data = packet->GetEndOfData();
-
 	// Rudimentary parsing of 802.2 LLC
-	if ( data + 17 >= end_of_data )
+	if ( 17 >= len )
 		{
 		packet->Weird("truncated_llc_header");
 		return AnalyzerResult::Failed;

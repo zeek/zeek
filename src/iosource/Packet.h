@@ -141,13 +141,6 @@ public:
 	RecordVal* BuildPktHdrVal() const;
 
 	/**
-	 * Returns the end of the captured data for bound checking.
-	 *
-	 * @return End of the packet data.
-	 */
-	const u_char* const GetEndOfData() const;
-
-	/**
 	 * Describes the packet, with standard signature.
 	 */
 	void Describe(ODesc* d) const;
@@ -228,7 +221,7 @@ public:
 	 */
 	bool l3_checksummed;
 
-	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
+	// Wrapper to generate a packet-level weird. Has to be public for packet analyzers to use it.
 	void Weird(const char* name);
 
 private:

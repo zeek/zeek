@@ -10,11 +10,17 @@ PPPSerialAnalyzer::PPPSerialAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult PPPSerialAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult PPPSerialAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
+	if ( 4 >= len )
+		{
+		packet->Weird("truncated_ppp_serial_header");
+		return AnalyzerResult::Failed;
+		}
+
 	// Extract protocol identifier
 	uint32_t protocol = (data[2] << 8) + data[3];
-	data += 4; // skip link header
-
-	return AnalyzeInnerPacket(packet, data, protocol);
+	// skip link header
+	return ForwardPacket(len - 4, data + 4, packet, protocol);
 	}

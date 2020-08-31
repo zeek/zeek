@@ -31,13 +31,12 @@ zeek::packet_analysis::AnalyzerPtr EthernetAnalyzer::LoadAnalyzer(const std::str
 	return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 	}
 
-zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	auto end_of_data = packet->GetEndOfData();
-
 	// Make sure that we actually got an entire ethernet header before trying
 	// to pull bytes out of it.
-	if ( data + 16 >= end_of_data )
+	if ( 16 >= len )
 		{
 		packet->Weird("truncated_ethernet_frame");
 		return AnalyzerResult::Failed;
@@ -48,13 +47,14 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, 
 		{
 		auto constexpr cfplen = 16;
 
-		if ( data + cfplen + 14 >= end_of_data )
+		if ( cfplen + 14 >= len )
 			{
 			packet->Weird("truncated_link_header_cfp");
 			return AnalyzerResult::Failed;
 			}
 
 		data += cfplen;
+		len -= cfplen;
 		}
 
 	// Get protocol being carried from the ethernet frame.
@@ -66,15 +66,12 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, 
 
 	// Ethernet II frames
 	if ( protocol >= 1536 )
-		{
-		data += 14;
-		return AnalyzeInnerPacket(packet, data, protocol);
-		}
+		return ForwardPacket(len - 14, data + 14, packet, protocol);
 
 	// Other ethernet frame types
 	if ( protocol <= 1500 )
 		{
-		if ( data + 16 >= end_of_data )
+		if ( 16 >= len )
 			{
 			packet->Weird("truncated_ethernet_frame");
 			return AnalyzerResult::Failed;
@@ -96,7 +93,7 @@ zeek::packet_analysis::AnalyzerResult EthernetAnalyzer::Analyze(Packet* packet, 
 			eth_analyzer = LLCAnalyzer;
 
 		if ( eth_analyzer )
-			return eth_analyzer->Analyze(packet, data);
+			return eth_analyzer->AnalyzePacket(len, data, packet);
 
 		return AnalyzerResult::Terminate;
 		}

@@ -57,8 +57,8 @@ AnalyzerPtr Analyzer::Lookup(uint32_t identifier) const
 	return dispatcher.Lookup(identifier);
 	}
 
-AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
-		const uint8_t*& data, uint32_t identifier) const
+AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
+		uint32_t identifier) const
 	{
 	auto inner_analyzer = Lookup(identifier);
 	if ( ! inner_analyzer )
@@ -74,13 +74,13 @@ AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet,
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 			GetAnalyzerName(), identifier);
-	return inner_analyzer->Analyze(packet, data);
+	return inner_analyzer->AnalyzePacket(len, data, packet);
 	}
 
-AnalyzerResult Analyzer::AnalyzeInnerPacket(Packet* packet, const uint8_t*& data) const
+AnalyzerResult Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const
 	{
 	if ( default_analyzer )
-		return default_analyzer->Analyze(packet, data);
+		return default_analyzer->AnalyzePacket(len, data, packet);
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
 			GetAnalyzerName());

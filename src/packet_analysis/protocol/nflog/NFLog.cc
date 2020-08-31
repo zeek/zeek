@@ -10,8 +10,14 @@ NFLogAnalyzer::NFLogAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::Analyze(Packet* packet, const uint8_t*& data) {
-	auto end_of_data = packet->GetEndOfData();
+zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
+	{
+	if ( 4 >= len )
+		{
+		packet->Weird("truncated_nflog_header");
+		return AnalyzerResult::Failed;
+		}
 
 	// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
 	uint32_t protocol = data[0];
@@ -25,13 +31,14 @@ zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::Analyze(Packet* packet, con
 
 	// Skip to TLVs.
 	data += 4;
+	len -= 4;
 
 	uint16_t tlv_len;
 	uint16_t tlv_type;
 
 	while ( true )
 		{
-		if ( data + 4 >= end_of_data )
+		if ( 4 >= len )
 			{
 			packet->Weird("nflog_no_pcap_payload");
 			return AnalyzerResult::Failed;
@@ -49,6 +56,7 @@ zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::Analyze(Packet* packet, con
 			{
 			// The raw packet payload follows this TLV.
 			data += 4;
+			len -= 4;
 			break;
 			}
 		else
@@ -72,8 +80,9 @@ zeek::packet_analysis::AnalyzerResult NFLogAnalyzer::Analyze(Packet* packet, con
 				}
 
 			data += tlv_len;
+			len -= tlv_len;
 			}
 		}
 
-	return AnalyzeInnerPacket(packet, data, protocol);
+	return ForwardPacket(len, data, packet, protocol);
 	}

@@ -9,16 +9,15 @@ MPLSAnalyzer::MPLSAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	auto end_of_data = packet->GetEndOfData();
-
 	// Skip the MPLS label stack.
 	bool end_of_stack = false;
 
 	while ( ! end_of_stack )
 		{
-		if ( data + 4 >= end_of_data )
+		if ( 4 >= len )
 			{
 			packet->Weird("truncated_link_header");
 			return AnalyzerResult::Failed;
@@ -26,11 +25,13 @@ zeek::packet_analysis::AnalyzerResult MPLSAnalyzer::Analyze(Packet* packet, cons
 
 		end_of_stack = *(data + 2u) & 0x01;
 		data += 4;
+		len -= 4;
 		}
 
 	// According to RFC3032 the encapsulated protocol is not encoded.
 	// We assume that what remains is IP.
-	if ( data + sizeof(struct ip) >= end_of_data )
+	//TODO: Make that configurable
+	if ( sizeof(struct ip) >= len )
 		{
 		packet->Weird("no_ip_in_mpls_payload");
 		return AnalyzerResult::Failed;

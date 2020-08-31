@@ -10,9 +10,10 @@ VLANAnalyzer::VLANAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult VLANAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult VLANAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	if ( data + 4 >= packet->GetEndOfData() )
+	if ( 4 >= len )
 		{
 		packet->Weird("truncated_VLAN_header");
 		return AnalyzerResult::Failed;
@@ -23,7 +24,6 @@ zeek::packet_analysis::AnalyzerResult VLANAnalyzer::Analyze(Packet* packet, cons
 
 	uint32_t protocol = ((data[2] << 8u) + data[3]);
 	packet->eth_type = protocol;
-	data += 4; // Skip the VLAN header
-
-	return AnalyzeInnerPacket(packet, data, protocol);
+	// Skip the VLAN header
+	return ForwardPacket(len - 4, data + 4, packet, protocol);
 	}

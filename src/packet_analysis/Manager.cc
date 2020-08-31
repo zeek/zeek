@@ -120,8 +120,6 @@ void Manager::ProcessPacket(Packet* packet)
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
 	// Start packet analysis
-	const uint8_t* data = packet->data;
-
 	auto root_analyzer = root_dispatcher.Lookup(packet->link_type);
 	auto analyzer = root_analyzer ? root_analyzer : default_analyzer;
 	if ( !analyzer )
@@ -130,10 +128,7 @@ void Manager::ProcessPacket(Packet* packet)
 		return;
 		}
 
-	auto result = analyzer->Analyze(packet, data);
-
-	// Calculate header size after processing packet layers.
-	packet->hdr_size = static_cast<uint32_t>(data - packet->data);
+	auto result = analyzer->AnalyzePacket(packet->cap_len, packet->data, packet);
 	}
 
 AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)

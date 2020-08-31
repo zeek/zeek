@@ -12,7 +12,7 @@ public:
 	NFLogAnalyzer();
 	~NFLogAnalyzer() override = default;
 
-	AnalyzerResult Analyze(Packet* packet, const uint8_t*& data) override;
+	AnalyzerResult AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static AnalyzerPtr Instantiate()
 		{

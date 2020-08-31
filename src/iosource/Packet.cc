@@ -79,11 +79,6 @@ void Packet::Weird(const char* name)
 	l2_valid = false;
 	}
 
-const u_char* const Packet::GetEndOfData() const
-	{
-	return data + cap_len;
-	}
-
 IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	{
 	static auto raw_pkt_hdr_type = id::find_type<RecordType>("raw_pkt_hdr");

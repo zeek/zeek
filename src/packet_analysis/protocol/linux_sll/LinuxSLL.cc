@@ -9,9 +9,11 @@ LinuxSLLAnalyzer::LinuxSLLAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult LinuxSLLAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult LinuxSLLAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	if ( data + sizeof(SLLHeader) >= packet->GetEndOfData() )
+	auto len_sll_hdr = sizeof(SLLHeader);
+	if ( len_sll_hdr >= len )
 		{
 		packet->Weird("truncated_Linux_SLL_header");
 		return AnalyzerResult::Failed;
@@ -27,6 +29,5 @@ zeek::packet_analysis::AnalyzerResult LinuxSLLAnalyzer::Analyze(Packet* packet, 
 	// here will cause crashes elsewhere.
 	packet->l2_dst = Packet::L2_EMPTY_ADDR;
 
-	data += sizeof(SLLHeader);
-	return AnalyzeInnerPacket(packet, data, protocol);
+	return ForwardPacket(len - len_sll_hdr, data + len_sll_hdr, packet, protocol);
 	}

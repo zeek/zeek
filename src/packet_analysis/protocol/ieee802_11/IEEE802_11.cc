@@ -10,13 +10,12 @@ IEEE802_11Analyzer::IEEE802_11Analyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	auto end_of_data = packet->GetEndOfData();
-
 	u_char len_80211 = 24; // minimal length of data frames
 
-	if ( data + len_80211 >= end_of_data )
+	if ( len_80211 >= len )
 		{
 		packet->Weird("truncated_802_11_header");
 		return AnalyzerResult::Failed;
@@ -48,7 +47,7 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::Analyze(Packet* packet
 		len_80211 += 2;
 		}
 
-	if ( data + len_80211 >= end_of_data )
+	if ( len_80211 >= len )
 		{
 		packet->Weird("truncated_802_11_header");
 		return AnalyzerResult::Failed;
@@ -82,7 +81,8 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::Analyze(Packet* packet
 	// skip 802.11 data header
 	data += len_80211;
 
-	if ( data + 8 >= end_of_data )
+	len_80211 += 8;
+	if ( len_80211 >= len )
 		{
 		packet->Weird("truncated_802_11_header");
 		return AnalyzerResult::Failed;
@@ -108,5 +108,5 @@ zeek::packet_analysis::AnalyzerResult IEEE802_11Analyzer::Analyze(Packet* packet
 	uint32_t protocol = (data[0] << 8) + data[1];
 	data += 2;
 
-	return AnalyzeInnerPacket(packet, data, protocol);
+	return ForwardPacket(len - len_80211, data, packet, protocol);
 	}

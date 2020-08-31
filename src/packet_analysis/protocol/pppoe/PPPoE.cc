@@ -10,9 +10,10 @@ PPPoEAnalyzer::PPPoEAnalyzer()
 	{
 	}
 
-zeek::packet_analysis::AnalyzerResult PPPoEAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult PPPoEAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
-	if ( data + 8 >= packet->GetEndOfData() )
+	if ( 8 >= len )
 		{
 		packet->Weird("truncated_pppoe_header");
 		return AnalyzerResult::Failed;
@@ -20,7 +21,6 @@ zeek::packet_analysis::AnalyzerResult PPPoEAnalyzer::Analyze(Packet* packet, con
 
 	// Extract protocol identifier
 	uint32_t protocol = (data[6] << 8u) + data[7];
-	data += 8; // Skip the PPPoE session and PPP header
-
-	return AnalyzeInnerPacket(packet, data, protocol);
+	// Skip the PPPoE session and PPP header
+	return ForwardPacket(len - 8, data + 8, packet, protocol);
 	}

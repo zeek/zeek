@@ -81,18 +81,24 @@ ARPAnalyzer::ARPAnalyzer()
 #define ARPOP_INVREPLY ARPOP_InREPLY
 #endif
 
-zeek::packet_analysis::AnalyzerResult ARPAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
+zeek::packet_analysis::AnalyzerResult ARPAnalyzer::AnalyzePacket(size_t len,
+		const uint8_t* data, Packet* packet)
 	{
 	packet->l3_proto = L3_ARP;
+
+	// Check whether the header is complete.
+	if ( sizeof(struct arp_pkthdr) > len )
+		{
+		packet->Weird("truncated_ARP");
+		return AnalyzerResult::Failed;
+		}
 
 	// Check whether the packet is OK ("inspired" in tcpdump's print-arp.c).
 	auto ah = (const struct arp_pkthdr*) data;
 
 	// Check the size.
-	auto min_length = (ar_tpa(ah) - (char*) data) + ah->ar_pln;
-	auto pkt_hdr_len = data - packet->data;
-	auto real_length = packet->cap_len - pkt_hdr_len;
-	if ( min_length > real_length )
+	size_t min_length = (ar_tpa(ah) - (char*) data) + ah->ar_pln;
+	if ( min_length > len )
 		{
 		packet->Weird("truncated_ARP");
 		return AnalyzerResult::Failed;

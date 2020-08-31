@@ -1,4 +1,8 @@
 
+3.3.0-dev.216 | 2020-08-31 14:57:57 -0700
+
+  * Simplify a broker btest (Jon Siwek, Corelight)
+
 3.3.0-dev.215 | 2020-08-28 16:51:40 -0700
 
   * GH-926: Improve type-checking for ternary conditional operator (Jon Siwek, Corelight)

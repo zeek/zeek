@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2020-08-28-15-37-31
+#open	2020-09-01-11-19-11
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -44,6 +44,8 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/pppoe/main.zeek
     scripts/base/packet-protocols/vlan/__load__.zeek
       scripts/base/packet-protocols/vlan/main.zeek
+    scripts/base/packet-protocols/mpls/__load__.zeek
+      scripts/base/packet-protocols/mpls/main.zeek
 scripts/base/init-frameworks-and-bifs.zeek
   scripts/base/frameworks/logging/__load__.zeek
     scripts/base/frameworks/logging/main.zeek
@@ -212,4 +214,4 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
 scripts/policy/misc/loaded-scripts.zeek
   scripts/base/utils/paths.zeek
-#close	2020-08-28-15-37-31
+#close	2020-09-01-11-19-11

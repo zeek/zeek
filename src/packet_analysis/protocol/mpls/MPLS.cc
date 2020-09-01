@@ -28,28 +28,6 @@ bool MPLSAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 		}
 
 	// According to RFC3032 the encapsulated protocol is not encoded.
-	// We assume that what remains is IP.
-	//TODO: Make that configurable
-	if ( sizeof(struct ip) >= len )
-		{
-		packet->Weird("no_ip_in_mpls_payload");
-		return false;
-		}
-
-	auto ip = (const struct ip*)data;
-
-	if ( ip->ip_v == 4 )
-		packet->l3_proto = L3_IPV4;
-	else if ( ip->ip_v == 6 )
-		packet->l3_proto = L3_IPV6;
-	else
-		{
-		// Neither IPv4 nor IPv6.
-		packet->Weird("no_ip_in_mpls_payload");
-		return false;
-		}
-
-	packet->hdr_size = (data - packet->data);
-	packet->session_analysis = true;
-	return true;
+	// We use the configured default analyzer.
+	return ForwardPacket(len, data, packet);
 	}

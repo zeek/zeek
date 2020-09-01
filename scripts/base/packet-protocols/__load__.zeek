@@ -10,3 +10,4 @@
 @load base/packet-protocols/ppp_serial
 @load base/packet-protocols/pppoe
 @load base/packet-protocols/vlan
+@load base/packet-protocols/mpls

@@ -1,4 +1,12 @@
 
+3.3.0-dev.221 | 2020-08-31 17:31:21 -0700
+
+  * GH-174: Treat ambiguous attribute duplication as an error (Tim Wojtulewicz, Corelight)
+
+    For example, a &default=1 and a &default=2 attribute are not valid when
+    used together, but two duplicate &log attributes together are acceptable
+    although redundant.
+
 3.3.0-dev.216 | 2020-08-31 14:57:57 -0700
 
   * Simplify a broker btest (Jon Siwek, Corelight)

@@ -193,8 +193,35 @@ Attributes::Attributes(std::vector<AttrPtr> a,
 		AddAttr(std::move(attr));
 	}
 
-void Attributes::AddAttr(AttrPtr attr)
+void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	{
+	auto acceptable_duplicate_attr = [](const AttrPtr& attr, const AttrPtr& existing) -> bool
+		{
+		AttrTag new_tag = attr->Tag();
+
+		if ( new_tag == ATTR_DEPRECATED )
+			{
+			if ( ! attr->DeprecationMessage().empty() ||
+			     ( existing && ! existing->DeprecationMessage().empty() ) )
+				return false;
+
+			return true;
+			}
+
+		return new_tag == ATTR_LOG || new_tag == ATTR_OPTIONAL || new_tag == ATTR_REDEF ||
+			new_tag == ATTR_BROKER_STORE_ALLOW_COMPLEX || new_tag == ATTR_RAW_OUTPUT ||
+			new_tag == ATTR_ERROR_HANDLER;
+		};
+
+	// A `redef` is allowed to overwrite an existing attribute instead of
+	// flagging it as ambiguous.
+	if ( ! is_redef )
+		{
+		auto existing = Find(attr->Tag());
+		if ( existing && ! acceptable_duplicate_attr(attr, existing) )
+			reporter->Error("Duplicate %s attribute is ambiguous", attr_name(attr->Tag()));
+		}
+
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
 	attrs_list.push_back(attr.get());
@@ -224,16 +251,16 @@ void Attributes::AddAttr(AttrPtr attr)
 		}
 	}
 
-void Attributes::AddAttrs(const AttributesPtr& a)
+void Attributes::AddAttrs(const AttributesPtr& a, bool is_redef)
 	{
 	for ( const auto& attr : a->GetAttrs() )
-		AddAttr(attr);
+		AddAttr(attr, is_redef);
 	}
 
-void Attributes::AddAttrs(Attributes* a)
+void Attributes::AddAttrs(Attributes* a, bool is_redef)
 	{
 	for ( const auto& attr : a->GetAttrs() )
-		AddAttr(attr);
+		AddAttr(attr, is_redef);
 
 	Unref(a);
 	}

@@ -115,12 +115,12 @@ public:
 
 	~Attributes() override = default;
 
-	void AddAttr(AttrPtr a);
+	void AddAttr(AttrPtr a, bool is_redef = false);
 
-	void AddAttrs(const AttributesPtr& a);
+	void AddAttrs(const AttributesPtr& a, bool is_redef = false);
 
 	[[deprecated("Remove in v4.1. Pass IntrusivePtr instead.")]]
-	void AddAttrs(Attributes* a);	// Unref's 'a' when done
+	void AddAttrs(Attributes* a, bool is_redef = false);	// Unref's 'a' when done
 
 	[[deprecated("Remove in v4.1. Use Find().")]]
 	Attr* FindAttr(AttrTag t) const;

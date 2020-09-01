@@ -207,7 +207,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(make_intrusive<Attributes>(std::move(*attr), t, false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<Attributes>(std::move(*attr), t, false, id->IsGlobal()), dt == VAR_REDEF);
 
 	if ( init )
 		{

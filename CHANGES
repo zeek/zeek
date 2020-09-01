@@ -1,4 +1,8 @@
 
+3.3.0-dev.224 | 2020-09-01 11:57:44 -0700
+
+  * Reformat strings.bif Zeekygen comments to fix Sphinx warnings (Jon Siwek, Corelight)
+
 3.3.0-dev.221 | 2020-08-31 17:31:21 -0700
 
   * GH-174: Treat ambiguous attribute duplication as an error (Tim Wojtulewicz, Corelight)

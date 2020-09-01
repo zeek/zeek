@@ -1218,35 +1218,38 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
 
 %%}
 
-## Finds a string within another string, starting from the beginning. This works by taking a substring within
-## the provided indexes and searching for the sub argument. This means that ranges shorter than the string in
-## the sub argument will always return a failure.
+## Finds a string within another string, starting from the beginning. This works
+## by taking a substring within the provided indexes and searching for the sub
+## argument. This means that ranges shorter than the string in the sub argument
+## will always return a failure.
 ##
 ## str: The string to search in.
 ## substr: The string to search for.
 ## start: An optional position for the start of the substring.
-## end: An optional position for the end of the substring. A value less than zero (such as the default -1)
-##      means a search until the end of the string.
+## end: An optional position for the end of the substring. A value less than
+##      zero (such as the default -1) means a search until the end of the
+##      string.
 ##
-## Returns: The position of the substring. Returns -1 if the string wasn't found. Prints an error if the
-## starting position is after the ending position.
-##
+## Returns: The position of the substring. Returns -1 if the string wasn't
+##          found. Prints an error if the starting position is after the ending
+##          position.
 function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
 	%{
 	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false));
 	%}
 
-## The same as find(), but returns the highest index matching the substring instead of the smallest.
+## The same as find(), but returns the highest index matching the substring
+## instead of the smallest.
 ##
 ## str: The string to search in.
 ## substr: The string to search for.
 ## start: An optional position for the start of the substring.
-## end: An optional position for the end of the substring. A value less than zero (such as the default -1)
-##      means a search from the end of the string.
+## end: An optional position for the end of the substring. A value less than
+##      zero (such as the default -1) means a search from the end of the string.
 ##
-## Returns: The position of the substring. Returns -1 if the string wasn't found. Prints an error if the
-## starting position is after the ending position.
-##
+## Returns: The position of the substring. Returns -1 if the string wasn't
+##          found. Prints an error if the starting position is after the ending
+##          position.
 function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
 	%{
 	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true));
@@ -1311,15 +1314,18 @@ function is_alnum%(str: string%) : bool
 	return zeek::val_mgr->True();
 	%}
 
-## Returns a left-justified version of the string, padded to a specific length with a specified character.
+## Returns a left-justified version of the string, padded to a specific length
+## with a specified character.
 ##
 ## str: The string to left-justify.
-## count: The length of the returned string. If this value is less than or equal to the length of str, a
-## copy of str is returned.
-## fill: The character used to fill in any extra characters in the resulting string. If a string longer than
-## one character is passed, an error is reported. This defaults to the space character.
+## count: The length of the returned string. If this value is less than or
+##        equal to the length of str, a copy of str is returned.
+## fill: The character used to fill in any extra characters in the resulting
+##       string. If a string longer than one character is passed, an error is
+##       reported. This defaults to the space character.
 ##
-## Returns: A left-justified version of a string, padded with characters to a specific length.
+## Returns: A left-justified version of a string, padded with characters to a
+##          specific length.
 ##
 function ljust%(str: string, width: count, fill: string &default=" "%) : string
 	%{
@@ -1353,15 +1359,18 @@ static zeek::StringValPtr do_rjust(zeek::StringVal* str, uint64_t width, char fi
 
 %%}
 
-## Returns a right-justified version of the string, padded to a specific length with a specified character.
+## Returns a right-justified version of the string, padded to a specific length
+## with a specified character.
 ##
 ## str: The string to right-justify.
-## count: The length of the returned string. If this value is less than or equal to the length of str, a
-## copy of str is returned.
-## fill: The character used to fill in any extra characters in the resulting string. If a string longer than
-## one character is passed, an error is reported. This defaults to the space character.
+## count: The length of the returned string. If this value is less than or
+##        equal to the length of str, a copy of str is returned.
+## fill: The character used to fill in any extra characters in the resulting
+##       string. If a string longer than one character is passed, an error is
+##       reported. This defaults to the space character.
 ##
-## Returns: A right-justified version of a string, padded with characters to a specific length.
+## Returns: A right-justified version of a string, padded with characters to a
+##          specific length.
 ##
 function rjust%(str: string, width: count, fill: string &default=" "%) : string
 	%{

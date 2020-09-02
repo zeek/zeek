@@ -2,7 +2,7 @@ name: Generate Documentation
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 0 * * *'
 
 jobs:
   generate:
@@ -22,17 +22,6 @@ jobs:
           git -c "http.extraheader=$auth_header" -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
           ( cd doc && git checkout master )
-
-      - name: Update zeek-docs Submodule
-        run: |
-          echo "*** Update zeek/doc Submodule ***"
-          git config --global user.name zeek-bot
-          git config --global user.email info@zeek.org
-          git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
-          git add doc
-          git status
-          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true
-          exit 1
 
       - name: Fetch Dependencies
         run: |
@@ -93,3 +82,13 @@ jobs:
           git status
           git commit -m "Generate docs" && git push || /bin/true
           cd ..
+
+      - name: Update zeek-docs Submodule
+        run: |
+          echo "*** Update zeek/doc Submodule ***"
+          git config --global user.name zeek-bot
+          git config --global user.email info@zeek.org
+          git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
+          git add doc
+          git status
+          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true

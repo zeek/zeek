@@ -1,4 +1,8 @@
 
+3.3.0-dev.236 | 2020-09-01 22:33:05 -0700
+
+  * Fix/finalize the generate-docs Github Action (Jon Siwek, Corelight)
+
 3.3.0-dev.230 | 2020-09-01 20:32:01 -0700
 
   * Fix generate-docs action to not fail when there's no changes (Jon Siwek, Corelight)

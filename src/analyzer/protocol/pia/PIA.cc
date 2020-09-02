@@ -230,21 +230,29 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 			ip4_hdr = new IP_Hdr(ip4, false);
 			}
 
+		// Locals used to avoid potentil alignment problems
+		// with some archs/compilers when grabbing the address
+		// of the struct member directly in the following.
+		in_addr tmp_src;
+		in_addr tmp_dst;
+
 		if ( is_orig )
 			{
-			Conn()->OrigAddr().CopyIPv4(&ip4->ip_src);
-			Conn()->RespAddr().CopyIPv4(&ip4->ip_dst);
+			Conn()->OrigAddr().CopyIPv4(&tmp_src);
+			Conn()->RespAddr().CopyIPv4(&tmp_dst);
 			tcp4->th_sport = htons(Conn()->OrigPort());
 			tcp4->th_dport = htons(Conn()->RespPort());
 			}
 		else
 			{
-			Conn()->RespAddr().CopyIPv4(&ip4->ip_src);
-			Conn()->OrigAddr().CopyIPv4(&ip4->ip_dst);
+			Conn()->RespAddr().CopyIPv4(&tmp_src);
+			Conn()->OrigAddr().CopyIPv4(&tmp_dst);
 			tcp4->th_sport = htons(Conn()->RespPort());
 			tcp4->th_dport = htons(Conn()->OrigPort());
 			}
 
+		ip4->ip_src = tmp_src;
+		ip4->ip_dst = tmp_dst;
 		ip = ip4_hdr;
 		}
 

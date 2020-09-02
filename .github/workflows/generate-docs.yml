@@ -48,6 +48,9 @@ jobs:
           # support and explicitly use `python3` for all invocations.
           sudo ln -sf /usr/bin/python3 /usr/local/bin/python
 
+      - name: Configure
+        run: ./configure
+
       - name: Build
         run: |
           ( cd build && make -j 3 )

@@ -1,4 +1,8 @@
 
+3.3.0-dev.227 | 2020-09-01 17:58:22 -0700
+
+  * Add missing configure step for doc-generation action (Jon Siwek, Corelight)
+
 3.3.0-dev.226 | 2020-09-01 17:53:55 -0700
 
   * Improve documentation for rfind_str() (Jon Siwek, Corelight)

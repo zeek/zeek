@@ -1238,8 +1238,8 @@ function find_str%(str: string, sub: string, start: count &default=0, end: int &
 	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false));
 	%}
 
-## The same as find(), but returns the highest index matching the substring
-## instead of the smallest.
+## The same as :zeek:see:`find_str`, but returns the highest index matching
+## the substring instead of the smallest.
 ##
 ## str: The string to search in.
 ## substr: The string to search for.

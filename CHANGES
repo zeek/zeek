@@ -1,4 +1,10 @@
 
+3.3.0-dev.226 | 2020-09-01 17:53:55 -0700
+
+  * Improve documentation for rfind_str() (Jon Siwek, Corelight)
+
+  * GH-1149: Add GitHub Action to automate generation of zeek-docs (Jon Siwek, Corelight)
+
 3.3.0-dev.224 | 2020-09-01 11:57:44 -0700
 
   * Reformat strings.bif Zeekygen comments to fix Sphinx warnings (Jon Siwek, Corelight)

@@ -24,6 +24,8 @@ jobs:
       - name: Update zeek-docs Submodule
         run: |
           echo "*** Update zeek/doc Submodule ***"
+          git config --global user.name zeek-bot
+          git config --global user.email info@zeek.org
           git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
           git add doc
           git status

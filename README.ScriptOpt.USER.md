@@ -53,6 +53,8 @@ Here we list various issues with using script optimization, including both defic
 
 * [As noted below](#ZAM-Save-Files), you need to have write permission in the directories where any scripts reside in order to create `.ZAM` files in them.  See the discussion there for workarounds.
 
+* If you run concurrent `zeek`'s, either via a cluster/zeekctl or parallelized btests, there's a race in which multiple `zeek` instances can try to write the same `.ZAM` file concurrently, or where one instance reads a `.ZAM` file that's only been partially written.  The workaround for this is to run a single `zeek` instance first to do the compilation; or use `-O no-load`.
+
 * Error messages in compiled scripts often lack important identifying information.
 
 * Related in part to the above, about 5% of the test suite fails when using script optimization.

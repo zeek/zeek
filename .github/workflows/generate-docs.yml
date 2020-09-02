@@ -1,0 +1,81 @@
+name: Generate Documentation
+
+on: push
+# on:
+#   schedule:
+#     - cron: '0 0 * * *'
+
+jobs:
+  generate:
+    if: github.repository == 'zeek/zeek'
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update Submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+          ( cd doc && git checkout master )
+
+      - name: Fetch Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install \
+            git \
+            cmake \
+            make \
+            gcc \
+            g++ \
+            flex \
+            bison \
+            libpcap-dev \
+            libssl-dev \
+            python3 \
+            python3-dev \
+            python3-pip\
+            swig \
+            zlib1g-dev \
+            libkrb5-dev \
+            bsdmainutils \
+            sqlite3
+          # Many distros adhere to PEP 394's recommendation for `python` =
+          # `python2` so this is a simple workaround until we drop Python 2
+          # support and explicitly use `python3` for all invocations.
+          sudo ln -sf /usr/bin/python3 /usr/local/bin/python
+
+      - name: Build
+        run: |
+          ( cd build && make -j 3 )
+
+      - name: Generate Docs
+        shell: bash
+        run: |
+          git config --global user.name zeek-bot
+          git config --global user.email info@zeek.org
+
+          echo "*** Generating Zeekygen Docs ***"
+          ./ci/update-zeekygen-docs.sh || exit 1
+          cd doc
+          echo "*** Generating Sphinx Docs ***"
+          make > make.out 2>&1
+          make_status=$?
+          cat make.out
+          test ${make_status} -ne 0 && exit 1
+          grep -q WARNING make.out && exit 1
+          rm make.out
+          echo "*** Pushing zeek-docs Changes ***"
+          git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek-docs"
+          git add scripts/
+          git commit -m "Generate docs"
+          git push
+          cd ..
+
+          echo "*** Update zeek/doc Submodule ***"
+          git add doc
+          git commit -m 'Update doc submodule [nomail] [skip ci]'
+          git push

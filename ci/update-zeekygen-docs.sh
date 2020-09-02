@@ -9,7 +9,7 @@ unset ZEEK_DEFAULT_LISTEN_RETRY;
 unset ZEEK_DEFAULT_CONNECT_RETRY;
 
 dir="$( cd "$( dirname "$0" )" && pwd )"
-source_dir="$( cd $dir/../.. && pwd )"
+source_dir="$( cd $dir/.. && pwd )"
 build_dir=$source_dir/build
 conf_file=$build_dir/zeekygen-test.conf
 output_dir=$source_dir/doc

@@ -1,0 +1,6 @@
+  10 conn_weird, global_listed_conn_weird
+  20 conn_weird, my_conn_weird
+  10 flow_weird, global_listed_flow_weird
+  20 flow_weird, my_flow_weird
+  10 net_weird, global_listed_net_weird
+  10 net_weird, my_net_weird

@@ -72,20 +72,27 @@ void Reporter::InitOptions()
 	weird_sampling_rate = id::find_val("Weird::sampling_rate")->AsCount();
 	weird_sampling_threshold = id::find_val("Weird::sampling_threshold")->AsCount();
 	weird_sampling_duration = id::find_val("Weird::sampling_duration")->AsInterval();
-	auto wl_val = id::find_val("Weird::sampling_whitelist")->AsTableVal();
-	auto wl_table = wl_val->AsTable();
 
-	detail::HashKey* k;
-	IterCookie* c = wl_table->InitForIteration();
-	TableEntryVal* v;
-
-	while ( (v = wl_table->NextEntry(k, c)) )
+	auto init_weird_set = [](auto* set, const char* name)
 		{
-		auto index = wl_val->RecreateIndex(*k);
-		std::string key = index->Idx(0)->AsString()->CheckString();
-		weird_sampling_whitelist.emplace(move(key));
-		delete k;
-		}
+		auto wl_val = zeek::id::find_val(name)->AsTableVal();
+		auto wl_table = wl_val->AsTable();
+
+		zeek::detail::HashKey* k;
+		zeek::IterCookie* c = wl_table->InitForIteration();
+		zeek::TableEntryVal* v;
+
+		while ( (v = wl_table->NextEntry(k, c)) )
+			{
+			auto index = wl_val->RecreateIndex(*k);
+			std::string key = index->Idx(0)->AsString()->CheckString();
+			set->emplace(move(key));
+			delete k;
+			}
+		};
+
+	init_weird_set(&weird_sampling_whitelist, "Weird::sampling_whitelist");
+	init_weird_set(&weird_sampling_global_list, "Weird::sampling_global_list");
 	}
 
 void Reporter::Info(const char* fmt, ...)
@@ -307,6 +314,18 @@ void Reporter::ResetExpiredConnWeird(const ConnTuple& id)
 	expired_conn_weird_state.erase(id);
 	}
 
+Reporter::PermitWeird Reporter::CheckGlobalWeirdLists(const char* name)
+	{
+	if ( WeirdOnSamplingWhiteList(name) )
+		return PermitWeird::Allow;
+
+	if ( WeirdOnGlobalList(name) )
+		// We track weirds on the global list through the "net_weird" table.
+		return PermitNetWeird(name) ? PermitWeird::Allow : PermitWeird::Deny;
+
+	return PermitWeird::Unknown;
+	}
+
 bool Reporter::PermitNetWeird(const char* name)
 	{
 	auto& count = net_weird_state[name];
@@ -395,12 +414,16 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
-	if ( ! WeirdOnSamplingWhiteList(name) )
-		{
+	switch ( CheckGlobalWeirdLists(name) ) {
+	case PermitWeird::Allow:
+		break;
+	case PermitWeird::Deny:
+		return;
+	case PermitWeird::Unknown:
 		if ( ! f->PermitWeird(name, weird_sampling_threshold,
 		                      weird_sampling_rate, weird_sampling_duration) )
 			return;
-		}
+	}
 
 	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
@@ -410,12 +433,16 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
-	if ( ! WeirdOnSamplingWhiteList(name) )
-		{
+	switch ( CheckGlobalWeirdLists(name) ) {
+	case PermitWeird::Allow:
+		break;
+	case PermitWeird::Deny:
+		return;
+	case PermitWeird::Unknown:
 		if ( ! conn->PermitWeird(name, weird_sampling_threshold,
 		                         weird_sampling_rate, weird_sampling_duration) )
 			return;
-		}
+	}
 
 	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
@@ -426,11 +453,13 @@ void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
 	{
 	UpdateWeirdStats(name);
 
-	if ( ! WeirdOnSamplingWhiteList(name) )
-		{
+	switch ( CheckGlobalWeirdLists(name) ) {
+	case PermitWeird::Allow: break;
+	case PermitWeird::Deny: return;
+	case PermitWeird::Unknown:
 		if ( ! PermitExpiredConnWeird(name, *conn_id) )
 			return;
-		}
+	}
 
 	WeirdHelper(expired_conn_weird,
 	            {conn_id.release(), uid.release(), new StringVal(addl)},
@@ -441,11 +470,15 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, c
 	{
 	UpdateWeirdStats(name);
 
-	if ( ! WeirdOnSamplingWhiteList(name) )
-		{
+	switch ( CheckGlobalWeirdLists(name) ) {
+	case PermitWeird::Allow:
+		break;
+	case PermitWeird::Deny:
+		return;
+	case PermitWeird::Unknown:
 		if ( ! PermitFlowWeird(name, orig, resp) )
 			 return;
-		}
+	}
 
 	WeirdHelper(flow_weird,
 	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},

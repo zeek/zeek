@@ -198,6 +198,46 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 	return zeek::val_mgr->True();
 %}
 
+## Gets the weird sampling global list
+##
+## Returns: Current weird sampling global list
+function Reporter::get_weird_sampling_global_list%(%): string_set
+	%{
+	auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
+	for ( auto el : reporter->GetWeirdSamplingGlobalList() )
+		{
+		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
+		set->Assign(std::move(idx), nullptr);
+		}
+	return set;
+	%}
+
+## Sets the weird sampling global list
+##
+## global_list: New weird sampling rate.
+##
+## Returns: Always true.
+function Reporter::set_weird_sampling_global_list%(weird_sampling_global_list: string_set%) : bool
+%{
+	auto wl_val = weird_sampling_global_list->AsTableVal();
+	auto wl_table = wl_val->AsTable();
+	std::unordered_set<std::string> global_list_set;
+
+	zeek::detail::HashKey* k;
+	IterCookie* c = wl_table->InitForIteration();
+	TableEntryVal* v;
+
+	while ( (v = wl_table->NextEntry(k, c)) )
+		{
+		auto index = wl_val->RecreateIndex(*k);
+		string key = index->Idx(0)->AsString()->CheckString();
+		global_list_set.emplace(move(key));
+		delete k;
+		}
+	reporter->SetWeirdSamplingGlobalList(global_list_set);
+	return zeek::val_mgr->True();
+%}
+
 ## Gets the current weird sampling threshold
 ##
 ## Returns: current weird sampling threshold.

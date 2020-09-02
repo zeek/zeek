@@ -5263,6 +5263,9 @@ export {
 	## Prevents rate-limiting sampling of any weirds named in the table.
 	option sampling_whitelist: set[string] = {};
 
+	## Rate-limits named in the table globally (instead of per connection/flow)
+	option sampling_global_list: set[string] = {};
+
 	## How many weirds of a given type to tolerate before sampling begins.
 	## I.e. this many consecutive weirds of a given type will be allowed to
 	## raise events for script-layer handling before being rate-limited.

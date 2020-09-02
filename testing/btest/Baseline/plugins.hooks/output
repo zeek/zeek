@@ -282,7 +282,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -463,7 +463,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -535,6 +535,7 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::ignore_hosts, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::weird_option_change_interval{ if (Weird::sampling_duration == Config::ID) { Reporter::set_weird_sampling_duration(Config::new_value)}return (Config::new_value)}, 5)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_global_list, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_rate, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_rate, Config::weird_option_change_count{ if (Weird::sampling_threshold == Config::ID) { Reporter::set_weird_sampling_threshold(Config::new_value)}elseif (Weird::sampling_rate == Config::ID) { Reporter::set_weird_sampling_rate(Config::new_value)}return (Config::new_value)}, 5)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_threshold, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
@@ -1207,7 +1208,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1388,7 +1389,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1460,6 +1461,7 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::ignore_hosts, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::weird_option_change_interval{ if (Weird::sampling_duration == Config::ID) { Reporter::set_weird_sampling_duration(Config::new_value)}return (Config::new_value)}, 5))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_global_list, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_rate, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_rate, Config::weird_option_change_count{ if (Weird::sampling_threshold == Config::ID) { Reporter::set_weird_sampling_threshold(Config::new_value)}elseif (Weird::sampling_rate == Config::ID) { Reporter::set_weird_sampling_rate(Config::new_value)}return (Config::new_value)}, 5))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_threshold, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
@@ -2131,7 +2133,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2312,7 +2314,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2384,6 +2386,7 @@
 0.000000 | HookCallFunction Option::set_change_handler(Weird::ignore_hosts, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_duration, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_duration, Config::weird_option_change_interval{ if (Weird::sampling_duration == Config::ID) { Reporter::set_weird_sampling_duration(Config::new_value)}return (Config::new_value)}, 5)
+0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_global_list, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_rate, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_rate, Config::weird_option_change_count{ if (Weird::sampling_threshold == Config::ID) { Reporter::set_weird_sampling_threshold(Config::new_value)}elseif (Weird::sampling_rate == Config::ID) { Reporter::set_weird_sampling_rate(Config::new_value)}return (Config::new_value)}, 5)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_threshold, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
@@ -2768,7 +2771,7 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1598558690.596616, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1599463847.746249, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

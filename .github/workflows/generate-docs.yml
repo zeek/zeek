@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{ secrets.ZEEK_BOT_TOKEN }
+          token: ${{ secrets.ZEEK_BOT_TOKEN }}
 
       - name: Sync Submodules
         shell: bash

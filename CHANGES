@@ -1,4 +1,8 @@
 
+3.3.0-dev.228 | 2020-09-01 18:37:33 -0700
+
+  * Update generate-docs action to install Sphinx dependency (Jon Siwek, Corelight)
+
 3.3.0-dev.227 | 2020-09-01 17:58:22 -0700
 
   * Add missing configure step for doc-generation action (Jon Siwek, Corelight)

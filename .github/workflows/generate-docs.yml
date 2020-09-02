@@ -47,6 +47,7 @@ jobs:
           # `python2` so this is a simple workaround until we drop Python 2
           # support and explicitly use `python3` for all invocations.
           sudo ln -sf /usr/bin/python3 /usr/local/bin/python
+          sudo pip3 install -r doc/requirements.txt
 
       - name: Configure
         run: ./configure
@@ -63,12 +64,15 @@ jobs:
 
           echo "*** Generating Zeekygen Docs ***"
           ./ci/update-zeekygen-docs.sh || exit 1
-          cd doc
+
           echo "*** Generating Sphinx Docs ***"
+          cd doc
           make > make.out 2>&1
           make_status=$?
+          echo "*** Sphinx Build Output ***"
           cat make.out
           test ${make_status} -ne 0 && exit 1
+          echo "*** Check for Sphinx Warnings ***"
           grep -q WARNING make.out && exit 1
           rm make.out
           echo "*** Pushing zeek-docs Changes ***"

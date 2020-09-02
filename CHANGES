@@ -1,4 +1,8 @@
 
+3.3.0-dev.238 | 2020-09-02 11:39:25 -0700
+
+  * GH-955: Prohibit `fallthrough` in typecasting `switch` cases (Jon Siwek, Corelight)
+
 3.3.0-dev.236 | 2020-09-01 22:33:05 -0700
 
   * Fix/finalize the generate-docs Github Action (Jon Siwek, Corelight)

@@ -484,6 +484,23 @@ static StmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
+class FallthroughFinder : public TraversalCallback {
+	TraversalCode PreStmt(const Stmt* stmt) override
+		{
+		if ( stmt->Tag() == STMT_SWITCH )
+			// Don't search within nested switch-statements.
+			return TC_ABORTSTMT;
+
+		if ( stmt->Tag() != STMT_FALLTHROUGH )
+			return TC_CONTINUE;
+
+		reporter->PushLocation(stmt->GetLocationInfo());
+		reporter->Error("invalid 'fallthrough' in type-casting 'case' block");
+		reporter->PopLocation();
+		return TC_CONTINUE;
+		}
+};
+
 Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases,
            StmtPtr arg_s)
 	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases),
@@ -493,14 +510,26 @@ Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases,
 
 	if ( t != STMT_BREAK && t != STMT_FALLTHROUGH && t != STMT_RETURN )
 		Error("case block must end in break/fallthrough/return statement");
+
+	if ( type_cases && Body() )
+		for ( const auto& id : *type_cases )
+			if ( id->Name() )
+				{
+				FallthroughFinder ff;
+				Body()->Traverse(&ff);
+				break;
+				}
 	}
 
 Case::~Case()
 	{
-	for ( const auto& id : *type_cases )
-		Unref(id);
+	if ( type_cases )
+		{
+		for ( const auto& id : *type_cases )
+			Unref(id);
 
-	delete type_cases;
+		delete type_cases;
+		}
 	}
 
 void Case::Describe(ODesc* d) const

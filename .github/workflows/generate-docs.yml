@@ -78,12 +78,12 @@ jobs:
           echo "*** Pushing zeek-docs Changes ***"
           git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek-docs"
           git add scripts/
-          git commit -m "Generate docs"
-          git push
+          git status
+          git commit -m "Generate docs" && git push || /bin/true
           cd ..
 
           echo "*** Update zeek/doc Submodule ***"
           git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
           git add doc
-          git commit -m 'Update doc submodule [nomail] [skip ci]'
-          git push
+          git status
+          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push || /bin/true

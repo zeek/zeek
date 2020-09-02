@@ -1,4 +1,8 @@
 
+3.3.0-dev.230 | 2020-09-01 20:32:01 -0700
+
+  * Fix generate-docs action to not fail when there's no changes (Jon Siwek, Corelight)
+
 3.3.0-dev.229 | 2020-09-01 19:49:36 -0700
 
   * Update generate-docs action to use access token for submodule update (Jon Siwek, Corelight)

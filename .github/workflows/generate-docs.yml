@@ -83,6 +83,7 @@ jobs:
           cd ..
 
           echo "*** Update zeek/doc Submodule ***"
+          git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
           git add doc
           git commit -m 'Update doc submodule [nomail] [skip ci]'
           git push

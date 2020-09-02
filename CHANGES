@@ -1,4 +1,8 @@
 
+3.3.0-dev.229 | 2020-09-01 19:49:36 -0700
+
+  * Update generate-docs action to use access token for submodule update (Jon Siwek, Corelight)
+
 3.3.0-dev.228 | 2020-09-01 18:37:33 -0700
 
   * Update generate-docs action to install Sphinx dependency (Jon Siwek, Corelight)

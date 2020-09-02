@@ -1,9 +1,8 @@
 name: Generate Documentation
 
-on: push
-# on:
-#   schedule:
-#     - cron: '0 0 * * *'
+on:
+  schedule:
+    - cron: '*/5 * * * *'
 
 jobs:
   generate:
@@ -13,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Update Submodules
+      - name: Sync Submodules
         shell: bash
         run: |
           auth_header="$(git config --local --get http.https://github.com/.extraheader)"
@@ -21,6 +20,15 @@ jobs:
           git -c "http.extraheader=$auth_header" -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
           ( cd doc && git checkout master )
+
+      - name: Update zeek-docs Submodule
+        run: |
+          echo "*** Update zeek/doc Submodule ***"
+          git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
+          git add doc
+          git status
+          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true
+          exit 1
 
       - name: Fetch Dependencies
         run: |
@@ -81,9 +89,3 @@ jobs:
           git status
           git commit -m "Generate docs" && git push || /bin/true
           cd ..
-
-          echo "*** Update zeek/doc Submodule ***"
-          git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
-          git add doc
-          git status
-          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push || /bin/true

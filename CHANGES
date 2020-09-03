@@ -1,4 +1,8 @@
 
+3.3.0-dev.241 | 2020-09-03 15:02:29 -0700
+
+  * Change a script comment to use "code-block" directive (Jon Siwek, Corelight)
+
 3.3.0-dev.240 | 2020-09-02 20:51:13 -0700
 
   * Improve CI benchmark script's error handling/messaging (Jon Siwek, Corelight)

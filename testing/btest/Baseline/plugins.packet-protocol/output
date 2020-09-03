@@ -1,9 +1,0 @@
-PacketDemo::Bar - A Bar packet analyzer. (dynamic, version 1.0.0)
-    [Packet Analyzer] Bar (ANALYZER_BAR)
-    [Event] bar_message
-
-===
-bar_message (DSAP = 42, SSAP = 42, Control = 3)
-bar_message (DSAP = 42, SSAP = 42, Control = 3)
-bar_message (DSAP = 42, SSAP = 42, Control = 3)
-bar_message (DSAP = 42, SSAP = 42, Control = 3)

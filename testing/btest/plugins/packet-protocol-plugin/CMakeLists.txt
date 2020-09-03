@@ -1,5 +1,5 @@
 
-project(Zeek-Packet-Plugin-Demo-Bar)
+project(Zeek-Packet-Plugin-Demo)
 
 cmake_minimum_required(VERSION 2.6.3)
 
@@ -13,6 +13,7 @@ include(ZeekPlugin)
 
 zeek_plugin_begin(PacketDemo Bar)
 zeek_plugin_cc(src/Plugin.cc)
-zeek_plugin_cc(src/Bar.cc)
+zeek_plugin_cc(src/RawLayer.cc)
+zeek_plugin_cc(src/LLCDemo.cc)
 zeek_plugin_bif(src/events.bif)
 zeek_plugin_end()

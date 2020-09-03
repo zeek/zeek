@@ -5,16 +5,16 @@
 
 namespace zeek::packet_analysis::PacketDemo {
 
-class Bar : public Analyzer {
+class LLCDemo : public Analyzer {
 public:
-	Bar();
-	~Bar() override = default;
+	LLCDemo();
+	~LLCDemo() override = default;
 
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static AnalyzerPtr Instantiate()
 		{
-		return std::make_shared<Bar>();
+		return std::make_shared<LLCDemo>();
 		}
 };
 

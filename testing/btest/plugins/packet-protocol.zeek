@@ -1,14 +1,32 @@
+# @TEST-EXEC: zeek -r $TRACES/raw_layer.pcap
+# @TEST-EXEC: cat conn.log > output_orig
+# @TEST-EXEC: cat weird.log >> output_orig
+# @TEST-EXEC: btest-diff output_orig
+# @TEST-EXEC: rm -f *.log
+#
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . PacketDemo Bar
 # @TEST-EXEC: cp -r %DIR/packet-protocol-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -NN PacketDemo::Bar >>output
-# @TEST-EXEC: echo === >>output
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/raw_packets.trace %INPUT >>output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -NN PacketDemo::Bar > output_build
+# @TEST-EXEC: btest-diff output_build
+#
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/raw_layer.pcap %INPUT > output_raw
+# @TEST-EXEC: cat conn.log >> output_raw
+# @TEST-EXEC: test ! -e weird.log
+# @TEST-EXEC: btest-diff output_raw
+# @TEST-EXEC: rm -f *.log
+#
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/raw_packets.trace %INPUT > output_llc
+# @TEST-EXEC: btest-diff output_llc
 
-event bar_message(dsap: count, ssap: count, control: count)
+event raw_layer_message(msg: string, protocol: count)
 	{
-	print fmt("bar_message (DSAP = %x, SSAP = %x, Control = %x)",
+	print fmt("raw_layer_message (Message = '%s', Protocol = %x)", msg, protocol);
+	}
+
+event llc_demo_message(dsap: count, ssap: count, control: count)
+	{
+	print fmt("llc_demo_message (DSAP = %x, SSAP = %x, Control = %x)",
 	 dsap, ssap, control);
 	}
 

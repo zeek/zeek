@@ -1,17 +1,16 @@
-#include "Bar.h"
+#include "LLCDemo.h"
 #include "Event.h"
 #include "Val.h"
 #include "events.bif.h"
 
 using namespace zeek::packet_analysis::PacketDemo;
 
-Bar::Bar()
-	: zeek::packet_analysis::Analyzer("Bar")
+LLCDemo::LLCDemo()
+	: zeek::packet_analysis::Analyzer("LLCDemo")
 	{
 	}
 
-bool Bar::AnalyzePacket(size_t len,
-		const uint8_t* data, Packet* packet)
+bool LLCDemo::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	// Rudimentary parsing of 802.2 LLC
 	if ( 17 >= len )
@@ -24,7 +23,7 @@ bool Bar::AnalyzePacket(size_t len,
 	auto ssap = data[15];
 	auto control = data[16];
 
-	mgr.Enqueue(bar_message,
+	event_mgr.Enqueue(llc_demo_message,
 		val_mgr->Count(dsap),
 		val_mgr->Count(ssap),
 		val_mgr->Count(control));

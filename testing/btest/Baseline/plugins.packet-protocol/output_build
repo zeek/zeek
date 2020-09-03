@@ -1,0 +1,6 @@
+PacketDemo::Bar - Demo packet analyzers (RawLayer, LLC). (dynamic, version 1.0.0)
+    [Packet Analyzer] LLCDemo (ANALYZER_LLCDEMO)
+    [Packet Analyzer] RawLayer (ANALYZER_RAWLAYER)
+    [Event] raw_layer_message
+    [Event] llc_demo_message
+

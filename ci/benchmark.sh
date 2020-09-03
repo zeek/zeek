@@ -12,6 +12,11 @@ if [ "${CIRRUS_USER_PERMISSION}" != "admin" -a "${CIRRUS_USER_PERMISSION}" != "w
     exit 0
 fi
 
+if [ "${CIRRUS_REPO_FULL_NAME}" != "zeek/zeek" ]; then
+    echo "Benchmarks skipped for non-zeek repo"
+    exit 0
+fi
+
 BUILD_URL="https://api.cirrus-ci.com/v1/artifact/build/${CIRRUS_BUILD_ID}/${CIRRUS_TASK_NAME}/upload_binary/build.tgz"
 
 # Generate an md5 hash of the build file. We can do this here because the path to the

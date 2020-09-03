@@ -1,4 +1,8 @@
 
+3.3.0-dev.240 | 2020-09-02 20:51:13 -0700
+
+  * Improve CI benchmark script's error handling/messaging (Jon Siwek, Corelight)
+
 3.3.0-dev.238 | 2020-09-02 11:39:25 -0700
 
   * GH-955: Prohibit `fallthrough` in typecasting `switch` cases (Jon Siwek, Corelight)

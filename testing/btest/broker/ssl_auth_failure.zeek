@@ -1,3 +1,5 @@
+# @TEST-GROUP: broker
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
@@ -118,6 +120,7 @@ redef Broker::ssl_certificate = "../cert.1.pem";
 event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	schedule 15secs { do_terminate()   };
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

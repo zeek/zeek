@@ -1,3 +1,5 @@
+# @TEST-GROUP: broker
+#
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"
@@ -7,7 +9,7 @@
 
 # @TEST-EXEC: btest-bg-run recv2 "zeek -b ../recv.zeek >recv2.out"
 # @TEST-EXEC: btest-bg-wait 45
-
+#
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff recv2/recv2.out
@@ -33,10 +35,6 @@ event zeek_init()
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer lost", msg;
-	system("touch lost");
-
-	if ( peers == 2 )
-		terminate();
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -44,6 +42,20 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	++peers;
 	print "peer added", msg;
 	Broker::publish(test_topic, my_event, peers);
+	}
+
+event Broker::endpoint_discovered(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	print "endpoint discovered", msg;
+	}
+
+event Broker::endpoint_unreachable(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	print "endpoint unreachable", msg;
+	system("touch lost");
+
+	if ( peers == 2 )
+		terminate();
 	}
 
 @TEST-END-FILE
@@ -75,6 +87,16 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer added", msg;
+	}
+
+event Broker::endpoint_discovered(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	print "endpoint discovered", msg;
+	}
+
+event Broker::endpoint_unreachable(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	print "endpoint unreachable", msg;
 	}
 
 @TEST-END-FILE

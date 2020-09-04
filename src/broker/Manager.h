@@ -8,10 +8,6 @@
 #include <broker/endpoint_info.hh>
 #include <broker/error.hh>
 #include <broker/peer_info.hh>
-#include <broker/publisher_id.hh>
-#include <broker/status.hh>
-#include <broker/store.hh>
-#include <broker/topic.hh>
 #include <broker/zeek.hh>
 #include <memory>
 #include <string>

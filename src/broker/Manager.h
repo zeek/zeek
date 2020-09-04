@@ -12,7 +12,6 @@
 #include <broker/endpoint.hh>
 #include <broker/endpoint_info.hh>
 #include <broker/peer_info.hh>
-#include <broker/publisher_id.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>

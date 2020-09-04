@@ -7,6 +7,9 @@
 #include <broker/broker.hh>
 #include <broker/zeek.hh>
 
+#include <caf/config_value.hpp>
+#include <caf/telemetry/metric_registry.hpp>
+
 #include "zeek/Func.h"
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Store.h"
@@ -172,7 +175,6 @@ void Manager::InitPostScript()
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
-	options.forward = get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = use_real_time;
 
 	BrokerConfig config{std::move(options)};
@@ -363,8 +365,8 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	if ( bstate->endpoint.is_shutdown() )
 		return;
 
-	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
-		addr.c_str(), port);
+	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16 " (retry: %fs)",
+		addr.c_str(), port, retry);
 
 	auto e = getenv("ZEEK_DEFAULT_CONNECT_RETRY");
 
@@ -1439,6 +1441,14 @@ void Manager::ProcessStatus(broker::status_view stat)
 	case broker::sc::peer_lost:
 		--peer_count;
 		event = ::Broker::peer_lost;
+		break;
+
+	case broker::sc::endpoint_discovered:
+		event = ::Broker::endpoint_discovered;
+		break;
+
+	case broker::sc::endpoint_unreachable:
+		event = ::Broker::endpoint_unreachable;
 		break;
 
 	default:

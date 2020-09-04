@@ -126,7 +126,7 @@ public:
 
 	broker::store store;
 	broker::store::proxy proxy;
-	broker::publisher_id store_pid;
+	broker::entity_id store_pid;
 	// Zeek table that events are forwarded to.
 	TableValPtr forward_to;
 	bool have_store = false;

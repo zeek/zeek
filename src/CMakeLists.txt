@@ -466,6 +466,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         PATTERN "*.h"
         PATTERN "*.pac"
         PATTERN "3rdparty/*" EXCLUDE
+        # The "zeek -> ." symlink isn't needed in the install-tree
+        REGEX "^${CMAKE_CURRENT_SOURCE_DIR}/zeek$" EXCLUDE
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/

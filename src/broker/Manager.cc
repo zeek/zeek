@@ -167,7 +167,6 @@ void Manager::InitPostScript()
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
-	options.forward = get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = use_real_time;
 
 	BrokerConfig config{std::move(options)};

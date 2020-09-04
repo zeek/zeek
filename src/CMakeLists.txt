@@ -441,9 +441,13 @@ set(MAIN_SRCS
     digest.h
 )
 
-set(THIRD_PARTY_SRCS
-    3rdparty/sqlite3.c
-)
+# When building broker statically, we will have all sqlite symbols defined by
+# libbroker.a.
+if ( NOT BUILD_STATIC_BROKER )
+  set(THIRD_PARTY_SRCS
+      3rdparty/sqlite3.c
+  )
+endif ()
 
 set(GEN_ZAM_SRCS
     script_opt/ZAM/Gen-ZAM.cc

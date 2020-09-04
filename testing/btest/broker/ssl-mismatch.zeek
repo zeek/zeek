@@ -1,3 +1,7 @@
+# @TEST-GROUP: broker
+#
+# @TEST-KNOWN-FAILURE: ALM broker currently does not implement SSL transport
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run listen "zeek -b %INPUT connect=F Broker::disable_ssl=T"

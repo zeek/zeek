@@ -1,6 +1,8 @@
+# @TEST-GROUP: broker
+#
 # @TEST-EXEC: zeek -b send.zeek >send.out
 # @TEST-EXEC: btest-diff send.out
-# 
+#
 
 @TEST-START-FILE send.zeek
 

@@ -125,7 +125,12 @@ event dump_tables()
 
 event check_all_set()
 	{
-	if ( "whatever" in t && "hi" in s && "b" in r )
+	# Note: 'a' gets inserted first into 'r'. However, we may still observe 'r'
+	#       with 'b' but without 'a'. This may happen if the clone completes
+	#       its handshake with the server after 'a' and 'b' are already in 'r'.
+	#       In this case, the master sends a snapshot of its state and the
+	#       insertion events for 'a' and 'b' they may trigger in any order.
+	if ( "whatever" in t && "hi" in s && "a" in r && "b" in r )
 		event dump_tables();
 	else
 		schedule 0.1sec { check_all_set() };

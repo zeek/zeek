@@ -189,15 +189,19 @@ public:
 	// type.  This isn't necessary for the case where 'v' has been
 	// newly constructed, but is necessary if we're copying an
 	// existing 'v'.
-	void CopyElement(unsigned int n, const ZAMValUnion& v)
+	//
+	// Returns true on success, false if 'v' has never been set to
+	// a value (which we can only tell for managed types).
+	bool CopyElement(unsigned int n, const ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
 
 		if ( managed_yt )
-			SetManagedElement(n, v);
-		else
-			zvec[n] = v;
+			return SetManagedElement(n, v);
+
+		zvec[n] = v;
+		return true;
 		}
 
 	void Insert(unsigned int index, ZAMValUnion& element)
@@ -231,7 +235,7 @@ public:
 		}
 
 protected:
-	void SetManagedElement(int n, const ZAMValUnion& v);
+	bool SetManagedElement(int n, const ZAMValUnion& v);
 	void GrowVector(int size);
 
 	void DeleteMembers();

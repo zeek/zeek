@@ -906,7 +906,7 @@ type VVV
 eval auto ind = frame[z.v2].uint_val
 eval auto vv = frame[z.v1].vector_val->RawVector()
 eval vv->SetYieldType(z.t)
-eval vv->CopyElement(ind, frame[z.v3])
+eval if ( ! vv->CopyElement(ind, frame[z.v3]) ) ZAM_run_time_error(z.loc, "value used but not set")
 
 op Vector-Elem-Assign-Any
 op1-read
@@ -924,7 +924,7 @@ type VVC
 eval auto ind = frame[z.v2].uint_val
 eval auto vv = frame[z.v1].vector_val->RawVector()
 eval vv->SetYieldType(z.t)
-eval vv->CopyElement(ind, z.c)
+eval (void) vv->CopyElement(ind, z.c)
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
@@ -932,7 +932,7 @@ op1-read
 type VVi
 eval auto vv = frame[z.v1].vector_val->RawVector()
 eval vv->SetYieldType(z.t)
-eval vv->CopyElement(z.v3, frame[z.v2])
+eval if ( ! vv->CopyElement(z.v3, frame[z.v2]) ) ZAM_run_time_error(z.loc, "value used but not set")
 
 op Vector-Elem-Assign-Any
 op1-read

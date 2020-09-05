@@ -268,14 +268,18 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	}
 
 
-void ZAM_vector::SetManagedElement(int n, const ZAMValUnion& v)
+bool ZAM_vector::SetManagedElement(int n, const ZAMValUnion& v)
 	{
 	auto& zn = zvec[n];
 
 	switch ( managed_yt->Tag() ) {
 
 #define MANAGE_VIA_REF(accessor) \
-	Unref(zn.accessor); zn = v; Ref(zn.accessor);
+	Unref(zn.accessor); \
+	zn = v; \
+	if ( ! zn.accessor ) \
+		return false; \
+	Ref(zn.accessor);
 
 	case TYPE_ADDR: 	MANAGE_VIA_REF(addr_val); break;
 	case TYPE_ANY:		MANAGE_VIA_REF(any_val); break;
@@ -294,6 +298,8 @@ void ZAM_vector::SetManagedElement(int n, const ZAMValUnion& v)
 	default:
 		reporter->InternalError("bad type tag in ZAM_vector::SetManagedElement");
 	}
+
+	return true;
 	}
 
 void ZAM_vector::GrowVector(int new_size)

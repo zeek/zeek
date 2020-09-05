@@ -756,7 +756,10 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 const ConstExpr* Reducer::CheckForConst(const IntrusivePtr<ID>& id,
 						const DefPoints* dps) const
 	{
-	ASSERT(dps && dps->length() > 0);
+	if ( ! dps || dps->length() == 0 )
+		// This can happen for access to uninitialized values.
+		return nullptr;
+
 	if ( dps->length() != 1 )
 		// Multiple definitions of the variable reach to this
 		// location.  In theory we could check whether they *all*

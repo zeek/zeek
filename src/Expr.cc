@@ -1560,6 +1560,17 @@ void BinaryExpr::PromoteType(TypeTag t, bool is_vector)
 		SetType(base_type(t));
 	}
 
+void BinaryExpr::PromoteForInterval(IntrusivePtr<Expr>& op)
+	{
+	if ( is_vector(op1.get()) || is_vector(op2.get()) )
+		SetType(make_intrusive<VectorType>(base_type(TYPE_INTERVAL)));
+	else
+		SetType(base_type(TYPE_INTERVAL));
+
+	if ( op->Type()->Tag() != TYPE_DOUBLE )
+		op = make_intrusive<ArithCoerceExpr>(op, TYPE_DOUBLE);
+	}
+
 CloneExpr::CloneExpr(IntrusivePtr<Expr> arg_op)
 	: UnaryExpr(EXPR_CLONE, std::move(arg_op))
 	{
@@ -2515,7 +2526,7 @@ TimesExpr::TimesExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1.get()) || is_vector(op2.get()) );
+			PromoteForInterval(IsArithmetic(bt1) ? op1 : op2);
 		else
 			ExprError("multiplication with interval requires arithmetic operand");
 		}
@@ -2584,7 +2595,7 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1.get()) || is_vector(op2.get()));
+			PromoteForInterval(IsArithmetic(bt1) ? op1 : op2);
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
 			if ( is_vector(op1.get()) || is_vector(op2.get()) )

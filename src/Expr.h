@@ -580,6 +580,11 @@ protected:
 	// operands and also set expression's type).
 	void PromoteType(TypeTag t, bool is_vector);
 
+	// Promote one of the operands to be "double" (if not already),
+	// to make it suitable for combining with the other "interval"
+	// operand, yielding an "interval" type.
+	void PromoteForInterval(IntrusivePtr<Expr>& op);
+
 	void ExprDescribe(ODesc* d) const override;
 
 	IntrusivePtr<Expr> op1;

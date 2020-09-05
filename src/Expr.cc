@@ -5974,7 +5974,11 @@ void FieldAssignExpr::ExprDescribe(ODesc* d) const
 	d->Add("$");
 	d->Add(FieldName());
 	d->Add("=");
-	op->Describe(d);
+
+	if ( op )
+		op->Describe(d);
+	else
+		d->Add("<error>");
 	}
 
 ArithCoerceExpr::ArithCoerceExpr(IntrusivePtr<Expr> arg_op, TypeTag t)

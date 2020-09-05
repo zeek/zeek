@@ -3383,7 +3383,11 @@ void describe_vals(const val_list* vals, ODesc* d, int offset)
 		if ( i > offset && d->IsReadable() && d->Style() != RAW_STYLE )
 			d->Add(", ");
 
-		(*vals)[i]->Describe(d);
+		auto v = (*vals)[i];
+		if ( v )
+			v->Describe(d);
+		else
+			d->Add("<missing>");
 		}
 	}
 
@@ -3401,7 +3405,11 @@ void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
 		if ( i > offset && d->IsReadable() && d->Style() != RAW_STYLE )
 			d->Add(", ");
 
-		vals[i]->Describe(d);
+		auto& v = vals[i];
+		if ( v )
+			v->Describe(d);
+		else
+			d->Add("<missing>");
 		}
 	}
 

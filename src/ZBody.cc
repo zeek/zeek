@@ -56,6 +56,12 @@ void report_ZOP_profile()
 	}
 
 
+void ZAM_run_time_error(const char* msg)
+	{
+	fprintf(stderr, "%s\n", msg);
+	ZAM_error = true;
+	}
+
 void ZAM_run_time_error(const Location* loc, const char* msg)
 	{
 	reporter->RuntimeError(loc, "%s", msg);

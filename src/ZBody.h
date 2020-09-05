@@ -136,6 +136,7 @@ extern BroType* log_ID_enum_type;
 
 extern void report_ZOP_profile();
 
+extern void ZAM_run_time_error(const char* msg);
 extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);
 extern void ZAM_run_time_error(const char* msg, const BroObj* o);
 

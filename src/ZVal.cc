@@ -227,35 +227,74 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	Val* v;
 
 	switch ( t->Tag() ) {
-	case TYPE_INT:		v = new Val(int_val, TYPE_INT); break;
-	case TYPE_BOOL:		v = Val::MakeBool(int_val); break;
-	case TYPE_COUNT:	v = new Val(uint_val, TYPE_COUNT); break;
-	case TYPE_COUNTER:	v = new Val(uint_val, TYPE_COUNTER); break;
-	case TYPE_DOUBLE:	v = new Val(double_val, TYPE_DOUBLE); break;
-	case TYPE_INTERVAL:	v = new IntervalVal(double_val, 1.0); break;
-	case TYPE_TIME:		v = new Val(double_val, TYPE_TIME); break;
-	case TYPE_FUNC:		Ref(func_val); v = new Val(func_val); break;
-	case TYPE_FILE:		Ref(file_val); v = new Val(file_val); break;
+	case TYPE_INT:
+		// We can't use make_intrusive directly because this
+		// constructor is protected, sigh.
+		v = new Val(int_val, TYPE_INT);
+		return {AdoptRef{}, v};
 
-	case TYPE_ENUM:		return t->AsEnumType()->GetVal(int_val);
+	case TYPE_BOOL:	
+		return {AdoptRef{}, Val::MakeBool(int_val)};
 
-	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
+	case TYPE_PORT:
+		return {AdoptRef{}, val_mgr->GetPort(uint_val)};
 
-	case TYPE_ANY:		return {NewRef{}, any_val};
+	case TYPE_COUNT:
+		v = new Val(uint_val, TYPE_COUNT);
+		return {AdoptRef{}, v};
 
-	case TYPE_TYPE:		v = new Val(type_val); break;
+	case TYPE_COUNTER:
+		v = new Val(uint_val, TYPE_COUNTER);
+		return {AdoptRef{}, v};
 
-	case TYPE_ADDR:		v = addr_val; v->Ref(); break;
-	// Damned if I know why Clang won't allow this one particular
-	// v->Ref():
-	case TYPE_SUBNET:	v = subnet_val; ::Ref(v); break;
-	case TYPE_STRING:	v = string_val; v->Ref(); break;
-	case TYPE_LIST:		v = list_val; v->Ref(); break;
-	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
-	case TYPE_TABLE:	v = table_val; v->Ref(); break;
-	case TYPE_RECORD:	v = record_val; v->Ref(); break;
-	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
-	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
+	case TYPE_DOUBLE:
+		return make_intrusive<Val>(double_val, TYPE_DOUBLE);
+
+	case TYPE_INTERVAL:
+		return make_intrusive<IntervalVal>(double_val, 1.0);
+
+	case TYPE_TIME:
+		return make_intrusive<Val>(double_val, TYPE_TIME);
+
+	case TYPE_ENUM:
+		return t->AsEnumType()->GetVal(int_val);
+
+	case TYPE_ANY:
+		return {NewRef{}, any_val};
+
+	case TYPE_TYPE:
+		v =  new Val(type_val);
+		return {AdoptRef{}, v};
+
+	case TYPE_FUNC:
+		if ( func_val )
+			{
+			Ref(func_val);
+			return make_intrusive<Val>(func_val);
+			}
+
+		v = nullptr;
+		break;
+
+	case TYPE_FILE:
+		if ( file_val )
+			{
+			Ref(file_val);
+			return make_intrusive<Val>(file_val);
+			}
+
+		v = nullptr;
+		break;
+
+	case TYPE_ADDR:		v = addr_val; break;
+	case TYPE_SUBNET:	v = subnet_val; break;
+	case TYPE_STRING:	v = string_val; break;
+	case TYPE_LIST:		v = list_val; break;
+	case TYPE_OPAQUE:	v = opaque_val; break;
+	case TYPE_TABLE:	v = table_val; break;
+	case TYPE_RECORD:	v = record_val; break;
+	case TYPE_VECTOR:	v = vector_val; break;
+	case TYPE_PATTERN:	v = re_val; break;
 
 	case TYPE_ERROR:
 	case TYPE_TIMER:
@@ -264,7 +303,11 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 		reporter->InternalError("bad ret type return tag");
 	}
 
-	return {AdoptRef{}, v};
+	if ( v )
+		return {NewRef{}, v};
+
+	ZAM_run_time_error("value used but not set");
+	return nullptr;
 	}
 
 

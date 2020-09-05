@@ -846,10 +846,17 @@ void NameExpr::ExprDescribe(ODesc* d) const
 ConstExpr::ConstExpr(IntrusivePtr<Val> arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
-	if ( val->Type()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
-		val = {NewRef{}, val->AsListVal()->Index(0)};
+	if ( val )
+		{
+		if ( val->Type()->Tag() == TYPE_LIST &&
+		     val->AsListVal()->Length() == 1 )
+			val = {NewRef{}, val->AsListVal()->Index(0)};
 
-	SetType({NewRef{}, val->Type()});
+		SetType({NewRef{}, val->Type()});
+		}
+
+	else
+		SetError();
 	}
 
 void ConstExpr::ExprDescribe(ODesc* d) const
@@ -5285,19 +5292,10 @@ RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<RecordType> known_rt,
 			continue;
 			}
 
-		auto field_type = field->Type();
-
-		// We could consider factoring out the check-and-promote
-		// code in RecordCoerceExpr so we don't have to insist
-		// on direct type equivalence here, but for now we keep
-		// things simple.
 		auto known_ft = known_rt->FieldType(index);
 
-		if ( ! same_type(field_type.get(), known_ft) )
-			{
-			Error("incompatible field type", e);
+		if ( ! field->PromoteTo(known_ft) )
 			SetError();
-			}
 
 		map[i++] = index;
 		}
@@ -5898,6 +5896,12 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name,
 	SetType(op->Type());
 	}
 
+bool FieldAssignExpr::PromoteTo(BroType* t)
+	{
+	op = check_and_promote_expr(op.get(), t);
+	return op != nullptr;
+	}
+
 void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 	const
 	{
@@ -5991,22 +5995,9 @@ ArithCoerceExpr::ArithCoerceExpr(IntrusivePtr<Expr> arg_op, TypeTag t)
 		ExprError("bad coercion value");
 	}
 
-IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
+IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(IntrusivePtr<Val> v) const
 	{
-	switch ( t ) {
-	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<Val>(v->CoerceToDouble(), TYPE_DOUBLE);
-
-	case TYPE_INTERNAL_INT:
-		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
-
-	default:
-		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
-		return nullptr;
-	}
+	return check_and_promote(v, type.get(), false, location);
 	}
 
 IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
@@ -6021,7 +6012,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 		if ( type->Tag() == TYPE_VECTOR )
 			t = Type()->AsVectorType()->YieldType()->InternalType();
 
-		return FoldSingleVal(v, t);
+		return FoldSingleVal({NewRef{}, v});
 		}
 
 	t = Type()->AsVectorType()->YieldType()->InternalType();
@@ -6032,7 +6023,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		if ( auto elt = vv->Lookup(i) )
-			result->Assign(i, FoldSingleVal(elt.get(), t));
+			result->Assign(i, FoldSingleVal(elt));
 		else
 			result->Assign(i, 0);
 		}
@@ -6060,10 +6051,10 @@ Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( op->Tag() == EXPR_CONST )
 		{
-		auto c = op->AsConstExpr()->Value();
+		auto c = op->AsConstExpr()->ValuePtr();
 
 		if ( IsArithmetic(c->Type()->Tag()) )
-			return new ConstExpr(FoldSingleVal(c, t));
+			return new ConstExpr(FoldSingleVal(c));
 		}
 
 	if ( c->Optimizing() )

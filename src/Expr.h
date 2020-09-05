@@ -1197,6 +1197,14 @@ public:
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
+	// When these are first constructed, we don't know the type.
+	// The following method coerces/promotes the assignment expression
+	// as needed, once we do know the type.
+	//
+	// Returns true on success, false if the types were incompatible
+	// (in which case an error is reported).
+	bool PromoteTo(BroType* t);
+
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
 	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
@@ -1216,7 +1224,7 @@ public:
 	ArithCoerceExpr(IntrusivePtr<Expr> op, TypeTag t);
 
 protected:
-	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
+	IntrusivePtr<Val> FoldSingleVal(IntrusivePtr<Val> v) const;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	IntrusivePtr<Expr> Duplicate() override;
@@ -1577,9 +1585,8 @@ IntrusivePtr<Expr> get_temp_assign_expr(IntrusivePtr<Expr> op1,
 					   IntrusivePtr<Expr> op2);
 
 // Type-check the given expression(s) against the given type(s).  Complain
-// if the expression cannot match the given type, returning 0.  If it can
-// match, promote it as necessary (modifying the ref parameter accordingly)
-// and return 1.
+// if the expression cannot match the given type, returning nullptr;
+// otherwise, returns an expression reflecting the promotion.
 //
 // The second, third, and fourth forms are for promoting a list of
 // expressions (which is updated in place) to either match a list of

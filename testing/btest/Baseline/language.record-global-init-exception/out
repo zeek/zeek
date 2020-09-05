@@ -1,0 +1,2 @@
+expression error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.record-global-init-exception/record-global-init-exception.zeek, line 7: value used but not set (my_count)
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.record-global-init-exception/record-global-init-exception.zeek, line 14: initialization failed (my_record)

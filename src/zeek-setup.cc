@@ -62,6 +62,7 @@ extern "C" {
 #include "broker/Manager.h"
 
 #include "binpac_zeek.h"
+#include "module_util.h"
 
 #include "3rdparty/sqlite3.h"
 
@@ -388,8 +389,7 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
-SetupResult setup(int argc, char** argv,
-                                Options* zopts)
+SetupResult setup(int argc, char** argv, Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();
 	std::set_new_handler(bro_new_handler);
@@ -631,6 +631,19 @@ SetupResult setup(int argc, char** argv,
 	HeapLeakChecker::Disabler disabler;
 #endif
 
+	auto ipbid = install_ID("__init_primary_bifs", GLOBAL_MODULE_NAME,
+	                        true, true);
+	auto ipbft = make_intrusive<FuncType>(make_intrusive<RecordType>(nullptr),
+	                                      base_type(TYPE_BOOL),
+	                                      FUNC_FLAVOR_FUNCTION);
+	ipbid->SetType(std::move(ipbft));
+	auto init_bifs = [](Frame* frame, const Args* args) -> BifReturnVal
+		{
+		init_primary_bifs();
+		return val_mgr->True();
+		};
+	auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
+
 	run_state::is_parsing = true;
 	yyparse();
 	run_state::is_parsing = false;
@@ -640,7 +653,7 @@ SetupResult setup(int argc, char** argv,
 
 	init_general_global_var();
 	init_net_var();
-	init_builtin_funcs_subdirs();
+	run_bif_initializers();
 
 	// Must come after plugin activation (and also after hash
 	// initialization).

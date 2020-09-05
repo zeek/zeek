@@ -2886,7 +2886,22 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 		{
 		detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
 		detail::Attr* def_attr = a ? a->Find(detail::ATTR_DEFAULT).get() : nullptr;
-		auto def = def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
+		ValPtr def;
+
+		if ( def_attr )
+			try
+				{
+				def = def_attr->GetExpr()->Eval(nullptr);
+				}
+			catch ( InterpreterException& )
+				{
+				if ( run_state::is_parsing )
+					parse_time_records[rt].pop_back();
+
+				delete AsNonConstRecord();
+				throw;
+				}
+
 		const auto& type = rt->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&

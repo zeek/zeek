@@ -1,4 +1,14 @@
 
+3.3.0-dev.247 | 2020-09-04 17:24:28 -0700
+
+  * GH-165: Fix global initializations that indirectly use builtin types (Jon Siwek, Corelight)
+
+  * Improve how primary/top-level BIFs get initialized (Jon Siwek, Corelight)
+
+  * GH-1122: Allow initializing globals with calls to subdir BIFs (Jon Siwek, Corelight)
+
+  * GH-1122: Improve error for global record initialization exceptions (Jon Siwek, Corelight)
+
 3.3.0-dev.241 | 2020-09-03 15:02:29 -0700
 
   * Change a script comment to use "code-block" directive (Jon Siwek, Corelight)

@@ -207,9 +207,13 @@ static void bif_init_event_handlers()
 static void bif_init_net_var()
 	{
 #include "const.bif.netvar_init"
-#include "types.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
+	}
+
+static void init_bif_types()
+	{
+#include "types.bif.netvar_init"
 	}
 
 #include "const.bif.netvar_def"
@@ -240,11 +244,16 @@ void init_general_global_var()
 
 extern void zeek_legacy_netvar_init();
 
+void init_builtin_types()
+	{
+	init_bif_types();
+	id::detail::init_types();
+	}
+
 void init_net_var()
 	{
 	bif_init_net_var();
 
-	id::detail::init();
 	zeek_legacy_netvar_init();
 
 	ignore_checksums = id::find_val("ignore_checksums")->AsBool();

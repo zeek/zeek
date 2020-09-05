@@ -5331,3 +5331,13 @@ const digest_salt = "Please change this value." &redef;
 global done_with_network = F;
 event net_done(t: time)
 	{ done_with_network = T; }
+
+# This sets up primary BIFs such that they can be used by any
+# further scripts within their global initializations and is intended to be
+# the last thing done within this script.  It's called within @if simply so
+# that it executes at parse-time.  An alternative way to do that is to call
+# it during a global variable assignment/initialization.  Formally adding a
+# @run directive to the language whose sole purpose is parse-time code
+# execution would be another idea.
+@if ( __init_primary_bifs() )
+@endif

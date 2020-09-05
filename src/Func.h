@@ -276,6 +276,16 @@ extern std::vector<CallInfo> call_stack;
 
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
+extern std::vector<void (*)()> bif_initializers;
+extern void init_primary_bifs();
+
+inline void run_bif_initializers()
+	{
+	for ( const auto& bi : bif_initializers )
+		bi();
+
+	bif_initializers = {};
+	}
 
 extern void emit_builtin_exception(const char* msg);
 extern void emit_builtin_exception(const char* msg, const ValPtr& arg);
@@ -300,12 +310,6 @@ using function_ingredients [[deprecated("Remove in v4.1. Use zeek::detail::funct
 
 constexpr auto check_built_in_call [[deprecated("Remove in v4.1. Use zeek::detail::check_built_in_call.")]] = zeek::detail::check_built_in_call;
 constexpr auto render_call_stack [[deprecated("Remove in v4.1. Use zeek::render_call_stack.")]] = zeek::render_call_stack;
-
-// TODO: these are still here because of how all of the bif code gets included in Func.c. There could be a
-// renamed version inside the namespace, but the way that the code gets included complicates the matter. It
-// might need to be revisited after everything is namespaced everywhere else.
-void init_builtin_funcs();
-void init_builtin_funcs_subdirs();
 
 // TODO: do call_stack and did_builtin_init need to be aliased?
 

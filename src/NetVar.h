@@ -103,6 +103,7 @@ extern void init_general_global_var();
 
 extern void init_event_handlers();
 extern void init_net_var();
+extern void init_builtin_types();
 
 } // namespace zeek::detail
 

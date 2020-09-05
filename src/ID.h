@@ -272,7 +272,7 @@ extern VectorTypePtr index_vec;
 
 namespace detail {
 
-void init();
+void init_types();
 
 } // namespace detail
 } // namespace zeek::id

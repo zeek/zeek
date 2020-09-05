@@ -252,7 +252,15 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 			if ( t->Tag() == TYPE_RECORD )
 				{
-				aggr = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
+				try
+					{
+					aggr = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
+					}
+				catch ( InterpreterException& )
+					{
+					id->Error("initialization failed");
+					return;
+					}
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.

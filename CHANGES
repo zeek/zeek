@@ -1,4 +1,11 @@
 
+3.3.0-dev.249 | 2020-09-04 18:30:19 -0700
+
+  * Exclude installing "zeek -> ." include dir symlink (Jon Siwek, Corelight)
+
+    The symlink only exists for use within the source-tree and isn't needed
+    for the install-tree.
+
 3.3.0-dev.247 | 2020-09-04 17:24:28 -0700
 
   * GH-165: Fix global initializations that indirectly use builtin types (Jon Siwek, Corelight)

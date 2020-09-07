@@ -364,7 +364,7 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Stmt> Duplicate() override
-		{ return make_intrusive<NextStmt>(); }
+		{ return SetSucc(new NextStmt()); }
 
 	bool IsPure() const override;
 
@@ -387,7 +387,7 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Stmt> Duplicate() override
-		{ return make_intrusive<BreakStmt>(); }
+		{ return SetSucc(new BreakStmt()); }
 
 	bool IsPure() const override;
 
@@ -410,7 +410,7 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Stmt> Duplicate() override
-		{ return make_intrusive<FallthroughStmt>(); }
+		{ return SetSucc(new FallthroughStmt()); }
 
 	bool IsPure() const override;
 
@@ -569,7 +569,7 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Stmt> Duplicate() override
-		{ return make_intrusive<NullStmt>(); }
+		{ return SetSucc(new NullStmt()); }
 
 	bool IsPure() const override;
 

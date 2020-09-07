@@ -622,7 +622,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 				// Treat as a return.
 				CreateEmptyPostRDs(s);
 			else
-				s->Error("\"break\" in a non-break context");
+				s->Original()->Error("\"break\" in a non-break context");
 			break;
 			}
 

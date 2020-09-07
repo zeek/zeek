@@ -377,9 +377,6 @@ RecordVal* Connection::BuildConnVal()
 			resp_endp->SetField(5).string_val =
 				new StringVal(fmt_mac(resp_l2_addr, l2_len));
 
-		// 3 and 4 are set below.
-		cdr->SetField(5).table_val = new TableVal(IntrusivePtr{NewRef{}, string_set});	// service
-
 		// The code used to do the equivalent of this, but it
 		// gets immediately reassigned below.
 		// cdr->SetField(6).string_val = val_mgr->GetEmptyString();	// history

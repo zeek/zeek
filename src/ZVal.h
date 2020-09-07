@@ -293,8 +293,6 @@ public:
 		is_in_record |= (1UL << field);
 		return zvec[field];
 		}
-	void ClearField(unsigned int field)
-		{ is_in_record &= ~(1UL << field); }
 
 	// Used for a slight speed gain in RecordType::Create().
 	void RefField(unsigned int field)

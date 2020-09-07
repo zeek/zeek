@@ -1934,6 +1934,7 @@ internal-op Analyzer--Name
 type VV
 eval auto atype = frame[z.v2].ToVal(z.t)
 eval auto& name = analyzer_mgr->GetComponentName(atype->AsEnumVal())
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = new StringVal(name)
 
 internal-op Files--Enable-Reassembly

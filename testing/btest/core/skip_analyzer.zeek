@@ -8,7 +8,7 @@
 @load base/frameworks/tunnels
 
 redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($identifier=1, $analyzer=PacketAnalyzer::ANALYZER_SKIP)
+	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ROOT, $identifier=1, $analyzer=PacketAnalyzer::ANALYZER_SKIP)
 };
 
 redef PacketAnalyzer::SkipAnalyzer::skip_bytes: count = 38;

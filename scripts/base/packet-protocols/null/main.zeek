@@ -5,7 +5,7 @@ const AF_INET : count = 2;
 const AF_INET6 : count = 10;
 
 redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($identifier=DLT_NULL, $analyzer=PacketAnalyzer::ANALYZER_NULL),
+	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ROOT, $identifier=DLT_NULL, $analyzer=PacketAnalyzer::ANALYZER_NULL),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_NULL, $identifier=AF_INET, $analyzer=PacketAnalyzer::ANALYZER_IPV4),
 	
 	## From the Wireshark Wiki: AF_INET6ANALYZER, unfortunately, has different values in

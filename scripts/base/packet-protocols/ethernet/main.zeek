@@ -12,7 +12,7 @@ export {
 const DLT_EN10MB : count = 1;
 
 redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($identifier=DLT_EN10MB, $analyzer=PacketAnalyzer::ANALYZER_ETHERNET),
+	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ROOT, $identifier=DLT_EN10MB, $analyzer=PacketAnalyzer::ANALYZER_ETHERNET),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x8847, $analyzer=PacketAnalyzer::ANALYZER_MPLS),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x0800, $analyzer=PacketAnalyzer::ANALYZER_IPV4),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x86DD, $analyzer=PacketAnalyzer::ANALYZER_IPV6),

@@ -2,6 +2,8 @@
 
 #include "Analyzer.h"
 
+#include "DebugLogger.h"
+
 namespace zeek::packet_analysis {
 
 Analyzer::Analyzer(std::string name)
@@ -86,6 +88,14 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
 			GetAnalyzerName());
 	packet->Weird("no_suitable_analyzer_found");
 	return true;
+	}
+
+void Analyzer::DumpDebug() const
+	{
+#ifdef DEBUG
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Debug info for %s", this->GetAnalyzerName());
+	dispatcher.DumpDebug();
+#endif
 	}
 
 }

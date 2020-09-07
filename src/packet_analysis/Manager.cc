@@ -36,7 +36,7 @@ void Manager::InitPostScript()
 		//TODO: Make that field a string for usability reasons
 		//TODO: Check error handling when fields are omitted
 		auto& parent_val = rv->GetField("parent");
-		std::string parent_name = parent_val ? Lookup(parent_val->AsEnumVal())->Name() : "ROOT";
+		std::string parent_name = Lookup(parent_val->AsEnumVal())->Name();
 		auto& identifier_val = rv->GetField("identifier");
 		auto analyzer_tag = rv->GetField("analyzer")->AsEnumVal();
 		auto analyzer_name = Lookup(analyzer_tag)->Name();
@@ -48,15 +48,6 @@ void Manager::InitPostScript()
 			continue;
 			}
 		auto& analyzer = analyzer_it->second;
-
-		if ( parent_name == "ROOT" )
-			{
-			if ( identifier_val )
-				root_dispatcher.Register(identifier_val->AsCount(), analyzer);
-			else
-				default_analyzer = analyzer;
-			continue;
-			}
 
 		auto parent_analyzer_it = analyzers.find(parent_name);
 		if ( parent_analyzer_it == analyzers.end() )
@@ -75,6 +66,8 @@ void Manager::InitPostScript()
 	// Initialize all analyzers
 	for ( auto& [name, analyzer] : analyzers )
 		analyzer->Initialize();
+
+	root_analyzer = analyzers["Root"];
 	}
 
 void Manager::Done()
@@ -91,7 +84,7 @@ void Manager::DumpDebug()
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Root dispatcher:");
-	root_dispatcher.DumpDebug();
+	root_analyzer->DumpDebug();
 #endif
 	}
 
@@ -120,15 +113,7 @@ void Manager::ProcessPacket(Packet* packet)
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
 	// Start packet analysis
-	auto root_analyzer = root_dispatcher.Lookup(packet->link_type);
-	auto analyzer = root_analyzer ? root_analyzer : default_analyzer;
-	if ( !analyzer )
-		{
-		reporter->InternalWarning("No analyzer for link type %#x", packet->link_type);
-		return;
-		}
-
-	if ( ! analyzer->AnalyzePacket(packet->cap_len, packet->data, packet) )
+	if ( ! root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type) )
 		packet->InvalidateLayer2();
 	}
 

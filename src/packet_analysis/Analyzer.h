@@ -91,6 +91,11 @@ public:
 	virtual bool AnalyzePacket(size_t len, const uint8_t* data,
 			Packet* packet) = 0;
 
+	/**
+	 * Dumps out debug information to the \c analyzer debug stream.
+	 */
+	void DumpDebug() const;
+
 protected:
 	friend class Manager;
 

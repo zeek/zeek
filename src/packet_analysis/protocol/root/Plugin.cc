@@ -1,21 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IP.h"
+#include "Root.h"
 #include "plugin/Plugin.h"
 #include "packet_analysis/Component.h"
 
-namespace zeek::plugin::Zeek_IP {
+namespace zeek::plugin::Zeek_Root {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::packet_analysis::Component("IP",
-		                 zeek::packet_analysis::IP::IPAnalyzer::Instantiate));
+		AddComponent(new zeek::packet_analysis::Component("Root",
+		                 zeek::packet_analysis::Root::RootAnalyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
-		config.name = "Zeek::IP";
-		config.description = "Packet analyzer for IP fallback (v4 or v6)";
+		config.name = "Zeek::Root";
+		config.description = "Root packet analyzer";
 		return config;
 		}
 

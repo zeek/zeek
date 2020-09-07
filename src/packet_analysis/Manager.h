@@ -90,8 +90,7 @@ private:
 	AnalyzerPtr InstantiateAnalyzer(const std::string& name);
 
 	std::map<std::string, AnalyzerPtr> analyzers;
-	Dispatcher root_dispatcher;
-	AnalyzerPtr default_analyzer = nullptr;
+	AnalyzerPtr root_analyzer = nullptr;
 };
 
 }

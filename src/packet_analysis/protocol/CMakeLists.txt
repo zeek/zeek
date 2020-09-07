@@ -1,3 +1,4 @@
+add_subdirectory(root)
 add_subdirectory(skip)
 
 add_subdirectory(null)

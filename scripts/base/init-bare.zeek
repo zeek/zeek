@@ -5350,7 +5350,7 @@ export {
         ## If it is not included, the identifier will attach to the "root" analyzer. The
         ## root analyzer uses the link layer identifier provided by the packet source to
         ## determine the protocol for the initial packet header.
-        parent : PacketAnalyzer::Tag &optional;
+        parent : PacketAnalyzer::Tag;
 
         ## A numeric identifier, which can be found in the packet data, that denotes the
         ## encapsulated protocol. This field is optional. If it is not included, the

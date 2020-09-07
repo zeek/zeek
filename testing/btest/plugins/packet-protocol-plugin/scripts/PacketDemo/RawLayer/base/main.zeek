@@ -1,6 +1,14 @@
-module Packet_Raw_Layer;
+module PacketAnalyzer::RAW_LAYER;
 
-redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x88B5, $analyzer=PacketAnalyzer::ANALYZER_RAWLAYER),
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_RAWLAYER, $identifier=0x4950, $analyzer=PacketAnalyzer::ANALYZER_IP)
+export {
+	## Identifier mapping
+	const dispatch_map: PacketAnalyzer::DispatchMap = {} &redef;
+}
+
+redef PacketAnalyzer::ETHERNET::dispatch_map += {
+	[0x88B5] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_RAW_LAYER)
+};
+
+redef dispatch_map += {
+	[0x4950] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IP)
 };

@@ -64,21 +64,6 @@ public:
 	bool IsAnalyzer(const char* name);
 
 	/**
-	 * Registers an analyzer to be dispatched for the given identifier.
-	 *
-	 * @param identifier The identifier an analyzer should be called for.
-	 * @param analyzer The analyzer that should be called.
-	 */
-	void RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer);
-
-	/**
-	 * Registers a default analyzer.
-	 *
-	 * @param default_analyzer The analyzer to use as default.
-	 */
-	void RegisterDefaultAnalyzer(AnalyzerPtr default_analyzer);
-
-	/**
 	 * Analyzes the given packet. A common case is that the analyzed protocol
 	 * encapsulates another protocol, which can be determined by an identifier
 	 * in the header. In this case, derived classes may use ForwardPacket() to
@@ -118,6 +103,15 @@ protected:
 	 * @return The defined analyzer if available, else nullptr.
 	 */
 	AnalyzerPtr LoadAnalyzer(const std::string& name);
+
+	/**
+	 * Returns the module name corresponding to the analyzer, i.e. its script-land
+	 * namespace. Configuration values for the analyzer are expected in this module.
+	 * @return Analyzer's module name.
+	 */
+	std::string GetModuleName() const {
+		return util::fmt("PacketAnalyzer::%s::", GetAnalyzerName());
+	};
 
 	/**
 	 * Triggers analysis of the encapsulated packet. The encapsulated protocol

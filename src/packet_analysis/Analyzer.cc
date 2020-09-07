@@ -29,14 +29,37 @@ void Analyzer::Init(const Tag& _tag)
 
 void Analyzer::Initialize()
 	{
-	std::string ns = util::fmt("PacketAnalyzer::%s::", GetAnalyzerName());
+	default_analyzer = LoadAnalyzer("default_analyzer");
 
-	default_analyzer = LoadAnalyzer(ns +"default_analyzer");
+	// Create dispatcher based on configuration
+	auto& mapping_id = zeek::id::find(GetModuleName() + "dispatch_map");
+	if ( ! mapping_id )
+		return;
+
+	auto mapping_val = mapping_id->GetVal()->AsTableVal();
+	auto mapping_tbl = mapping_val->AsTable();
+	auto c = mapping_tbl->InitForIteration();
+
+	zeek::detail::HashKey* k = nullptr;
+	TableEntryVal* v;
+	while ( (v = mapping_tbl->NextEntry(k, c)) )
+		{
+		auto key = mapping_val->RecreateIndex(*k);
+		delete k;
+
+		auto identifier = key->Idx(0)->AsCount();
+		auto config_entry_val = v->GetVal()->AsRecordVal();
+
+		auto mapped_tag = config_entry_val->GetField("analyzer")->AsEnumVal();
+		auto mapped_analyzer = packet_mgr->GetAnalyzer(mapped_tag);
+
+		dispatcher.Register(identifier, std::move(mapped_analyzer));
+		}
 	}
 
 zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string &name)
 	{
-	auto& analyzer = zeek::id::find(name);
+	auto& analyzer = zeek::id::find(GetModuleName() + name);
 	if ( ! analyzer )
 		return nullptr;
 
@@ -63,16 +86,6 @@ bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
 	return packet_mgr->GetComponentName(tag) == name;
-	}
-
-void Analyzer::RegisterAnalyzerMapping(uint32_t identifier, AnalyzerPtr analyzer)
-	{
-	dispatcher.Register(identifier, std::move(analyzer));
-	}
-
-void Analyzer::RegisterDefaultAnalyzer(AnalyzerPtr default_analyzer)
-	{
-	this->default_analyzer = std::move(default_analyzer);
 	}
 
 AnalyzerPtr Analyzer::Lookup(uint32_t identifier) const
@@ -114,7 +127,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
 void Analyzer::DumpDebug() const
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Debug info for %s", this->GetAnalyzerName());
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Dispatcher for %s", this->GetAnalyzerName());
 	dispatcher.DumpDebug();
 #endif
 	}

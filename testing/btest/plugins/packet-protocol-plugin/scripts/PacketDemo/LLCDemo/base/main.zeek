@@ -1,3 +1,3 @@
-module Packet_LLC_Demo;
+module PacketAnalyzer::LLC_DEMO;
 
-redef PacketAnalyzer::Ethernet::llc_analyzer = PacketAnalyzer::ANALYZER_LLCDEMO;
+redef PacketAnalyzer::ETHERNET::llc_analyzer = PacketAnalyzer::ANALYZER_LLC_DEMO;

@@ -7,8 +7,8 @@
 @load base/protocols/conn
 @load base/frameworks/tunnels
 
-redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ROOT, $identifier=1, $analyzer=PacketAnalyzer::ANALYZER_SKIP)
+redef PacketAnalyzer::ROOT::dispatch_map += {
+	[1] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_SKIP)
 };
 
 redef PacketAnalyzer::SKIP::skip_bytes: count = 38;

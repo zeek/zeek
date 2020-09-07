@@ -21,48 +21,6 @@ void Manager::InitPostScript()
 			analyzers.emplace(analyzerComponent->Name(), newAnalyzer);
 		}
 
-	// Read in analyzer map and create dispatchers
-	auto& analyzer_mapping = zeek::id::find("PacketAnalyzer::config_map");
-	if ( ! analyzer_mapping )
-		return;
-
-	auto mapping_val = analyzer_mapping->GetVal()->AsVectorVal();
-	if ( mapping_val->Size() == 0 )
-		return;
-
-	for ( unsigned int i = 0; i < mapping_val->Size(); i++ )
-		{
-		auto* rv = mapping_val->At(i)->AsRecordVal();
-		//TODO: Make that field a string for usability reasons
-		//TODO: Check error handling when fields are omitted
-		auto& parent_val = rv->GetField("parent");
-		std::string parent_name = Lookup(parent_val->AsEnumVal())->Name();
-		auto& identifier_val = rv->GetField("identifier");
-		auto analyzer_tag = rv->GetField("analyzer")->AsEnumVal();
-		auto analyzer_name = Lookup(analyzer_tag)->Name();
-
-		auto analyzer_it = analyzers.find(analyzer_name);
-		if ( analyzer_it == analyzers.end() )
-			{
-			reporter->InternalWarning("Mapped analyzer %s not found.", analyzer_name.c_str());
-			continue;
-			}
-		auto& analyzer = analyzer_it->second;
-
-		auto parent_analyzer_it = analyzers.find(parent_name);
-		if ( parent_analyzer_it == analyzers.end() )
-			{
-			reporter->InternalWarning("Parent analyzer %s not found.", parent_name.c_str());
-			continue;
-			}
-		auto& parent_analyzer = parent_analyzer_it->second;
-
-		if ( identifier_val )
-			parent_analyzer->RegisterAnalyzerMapping(identifier_val->AsCount(), analyzer);
-		else
-			parent_analyzer->RegisterDefaultAnalyzer(analyzer);
-		}
-
 	// Initialize all analyzers
 	for ( auto& [name, analyzer] : analyzers )
 		analyzer->Initialize();
@@ -79,12 +37,11 @@ void Manager::DumpDebug()
 #ifdef DEBUG
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Available packet analyzers after zeek_init():");
 	for ( auto& current : GetComponents() )
-		{
 		DBG_LOG(DBG_PACKET_ANALYSIS, "    %s", current->Name().c_str());
-		}
 
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Root dispatcher:");
-	root_analyzer->DumpDebug();
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Packet analyzer debug information:");
+	for ( auto& [name, analyzer] : analyzers )
+		analyzer->DumpDebug();
 #endif
 	}
 

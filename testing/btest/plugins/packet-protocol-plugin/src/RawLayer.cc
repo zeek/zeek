@@ -6,7 +6,7 @@
 using namespace zeek::packet_analysis::PacketDemo;
 
 RawLayer::RawLayer()
-	: zeek::packet_analysis::Analyzer("RawLayer")
+	: zeek::packet_analysis::Analyzer("Raw_Layer")
 	{
 	}
 

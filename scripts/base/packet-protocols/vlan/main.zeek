@@ -1,11 +1,16 @@
 module PacketAnalyzer::VLAN;
 
-redef PacketAnalyzer::config_map += {
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x8847, $analyzer=PacketAnalyzer::ANALYZER_MPLS),
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x0800, $analyzer=PacketAnalyzer::ANALYZER_IPV4),
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x86DD, $analyzer=PacketAnalyzer::ANALYZER_IPV6),
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x0806, $analyzer=PacketAnalyzer::ANALYZER_ARP),
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x8035, $analyzer=PacketAnalyzer::ANALYZER_ARP),
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x8100, $analyzer=PacketAnalyzer::ANALYZER_VLAN),
-   PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_VLAN, $identifier=0x8864, $analyzer=PacketAnalyzer::ANALYZER_PPPOE)
+export {
+	## Identifier mappings based on EtherType
+	const dispatch_map: PacketAnalyzer::DispatchMap = {} &redef;
+}
+
+redef dispatch_map += {
+   [0x8847] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_MPLS),
+   [0x0800] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPV4),
+   [0x86DD] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPV6),
+   [0x0806] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_ARP),
+   [0x8035] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_ARP),
+   [0x8100] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_VLAN),
+   [0x8864] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_PPPOE)
 };

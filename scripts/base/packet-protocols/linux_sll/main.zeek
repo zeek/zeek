@@ -1,12 +1,14 @@
-module PacketAnalyzer::LINUX_SLL;
+module PacketAnalyzer::LINUXSLL;
 
-const DLT_LINUX_SLL : count = 113;
+export {
+	## Identifier mappings based on EtherType
+	const dispatch_map: PacketAnalyzer::DispatchMap = {} &redef;
+}
 
-redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ROOT, $identifier=DLT_LINUX_SLL, $analyzer=PacketAnalyzer::ANALYZER_LINUXSLL),
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_LINUXSLL, $identifier=0x0800, $analyzer=PacketAnalyzer::ANALYZER_IPV4),
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_LINUXSLL, $identifier=0x86DD, $analyzer=PacketAnalyzer::ANALYZER_IPV6),
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_LINUXSLL, $identifier=0x0806, $analyzer=PacketAnalyzer::ANALYZER_ARP),
+redef dispatch_map += {
+	[0x0800] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPV4),
+	[0x86DD] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPV6),
+	[0x0806] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_ARP),
 	# RARP
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_LINUXSLL, $identifier=0x8035, $analyzer=PacketAnalyzer::ANALYZER_ARP)
+	[0x8035] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_ARP)
 };

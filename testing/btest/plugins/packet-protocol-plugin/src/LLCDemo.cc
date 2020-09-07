@@ -6,7 +6,7 @@
 using namespace zeek::packet_analysis::PacketDemo;
 
 LLCDemo::LLCDemo()
-	: zeek::packet_analysis::Analyzer("LLCDemo")
+	: zeek::packet_analysis::Analyzer("LLC_Demo")
 	{
 	}
 

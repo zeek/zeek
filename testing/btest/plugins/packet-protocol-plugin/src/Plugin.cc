@@ -10,9 +10,9 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::packet_analysis::Component("RawLayer",
+		AddComponent(new zeek::packet_analysis::Component("Raw_Layer",
 		                 zeek::packet_analysis::PacketDemo::RawLayer::Instantiate));
-		AddComponent(new zeek::packet_analysis::Component("LLCDemo",
+		AddComponent(new zeek::packet_analysis::Component("LLC_Demo",
 		                 zeek::packet_analysis::PacketDemo::LLCDemo::Instantiate));
 
 		zeek::plugin::Configuration config;

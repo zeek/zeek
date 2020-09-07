@@ -15,9 +15,9 @@ void EthernetAnalyzer::Initialize()
 	{
 	Analyzer::Initialize();
 
-	SNAPAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::snap_analyzer");
-	NovellRawAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::novell_raw_analyzer");
-	LLCAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::llc_analyzer");
+	SNAPAnalyzer = LoadAnalyzer("snap_analyzer");
+	NovellRawAnalyzer = LoadAnalyzer("novell_raw_analyzer");
+	LLCAnalyzer = LoadAnalyzer("llc_analyzer");
 	}
 
 bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)

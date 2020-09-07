@@ -2,6 +2,7 @@
 
 #include "Analyzer.h"
 
+#include "Dict.h"
 #include "DebugLogger.h"
 
 namespace zeek::packet_analysis {
@@ -24,6 +25,26 @@ Analyzer::Analyzer(const Tag& tag)
 void Analyzer::Init(const Tag& _tag)
 	{
 	tag = _tag;
+	}
+
+void Analyzer::Initialize()
+	{
+	std::string ns = util::fmt("PacketAnalyzer::%s::", GetAnalyzerName());
+
+	default_analyzer = LoadAnalyzer(ns +"default_analyzer");
+	}
+
+zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string &name)
+	{
+	auto& analyzer = zeek::id::find(name);
+	if ( ! analyzer )
+		return nullptr;
+
+	auto& analyzer_val = analyzer->GetVal();
+	if ( ! analyzer_val )
+		return nullptr;
+
+	return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 	}
 
 const Tag Analyzer::GetAnalyzerTag() const

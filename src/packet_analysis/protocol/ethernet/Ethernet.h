@@ -24,8 +24,6 @@ private:
 	AnalyzerPtr SNAPAnalyzer = nullptr;
 	AnalyzerPtr NovellRawAnalyzer = nullptr;
 	AnalyzerPtr LLCAnalyzer = nullptr;
-
-	AnalyzerPtr LoadAnalyzer(const std::string& name);
 };
 
 }

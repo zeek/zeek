@@ -11,4 +11,4 @@ redef PacketAnalyzer::config_map += {
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ROOT, $identifier=1, $analyzer=PacketAnalyzer::ANALYZER_SKIP)
 };
 
-redef PacketAnalyzer::SkipAnalyzer::skip_bytes: count = 38;
+redef PacketAnalyzer::SKIP::skip_bytes: count = 38;

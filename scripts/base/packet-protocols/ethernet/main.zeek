@@ -1,6 +1,9 @@
-module PacketAnalyzer::Ethernet;
+module PacketAnalyzer::ETHERNET;
 
 export {
+	## Default analyzer
+	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
+
 	## IEEE 802.2 SNAP analyzer
 	const snap_analyzer: PacketAnalyzer::Tag &redef;
 	## Novell raw IEEE 802.3 analyzer
@@ -22,5 +25,4 @@ redef PacketAnalyzer::config_map += {
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x88A8, $analyzer=PacketAnalyzer::ANALYZER_VLAN),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x9100, $analyzer=PacketAnalyzer::ANALYZER_VLAN),
 	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $identifier=0x8864, $analyzer=PacketAnalyzer::ANALYZER_PPPOE),
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_ETHERNET, $analyzer=PacketAnalyzer::ANALYZER_IP)
 };

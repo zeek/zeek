@@ -13,22 +13,11 @@ EthernetAnalyzer::EthernetAnalyzer()
 
 void EthernetAnalyzer::Initialize()
 	{
+	Analyzer::Initialize();
+
 	SNAPAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::snap_analyzer");
 	NovellRawAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::novell_raw_analyzer");
 	LLCAnalyzer = LoadAnalyzer("PacketAnalyzer::Ethernet::llc_analyzer");
-	}
-
-zeek::packet_analysis::AnalyzerPtr EthernetAnalyzer::LoadAnalyzer(const std::string &name)
-	{
-	auto& analyzer = zeek::id::find(name);
-	if ( ! analyzer )
-		return nullptr;
-
-	auto& analyzer_val = analyzer->GetVal();
-	if ( ! analyzer_val )
-		return nullptr;
-
-	return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 	}
 
 bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)

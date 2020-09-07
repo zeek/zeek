@@ -12,7 +12,9 @@ SkipAnalyzer::SkipAnalyzer()
 
 void SkipAnalyzer::Initialize()
 	{
-	auto& skip_val = zeek::id::find_val("PacketAnalyzer::SkipAnalyzer::skip_bytes");
+	Analyzer::Initialize();
+
+	auto& skip_val = zeek::id::find_val("PacketAnalyzer::SKIP::skip_bytes");
 	if ( ! skip_val )
 		return;
 

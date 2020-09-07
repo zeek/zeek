@@ -37,8 +37,10 @@ public:
 	 * Initialize the analyzer. This method is called after the configuration
 	 * was read. Derived classes can override this method to implement custom
 	 * initialization.
+	 * When overriding this methods, always make sure to call the base-class
+	 * version to ensure proper initialization.
 	 */
-	virtual void Initialize() { };
+	virtual void Initialize();
 
 	/**
 	 * Returns the tag associated with the analyzer's type.
@@ -108,6 +110,14 @@ protected:
 	 * nullptr if no analyzer is registered.
 	 */
 	AnalyzerPtr Lookup(uint32_t identifier) const;
+
+	/**
+	 * Returns an analyzer based on a script-land definition.
+	 *
+	 * @param name The script-land identifier for a PacketAnalyzer::Tag value.
+	 * @return The defined analyzer if available, else nullptr.
+	 */
+	AnalyzerPtr LoadAnalyzer(const std::string& name);
 
 	/**
 	 * Triggers analysis of the encapsulated packet. The encapsulated protocol

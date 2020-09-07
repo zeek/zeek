@@ -1,10 +1,9 @@
-module PacketAnalyzer::SkipAnalyzer;
+module PacketAnalyzer::SKIP;
 
 export {
+	## Default analyzer
+	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
+
 	## Bytes to skip.
 	const skip_bytes: count = 0 &redef;
 }
-
-redef PacketAnalyzer::config_map += {
-	PacketAnalyzer::ConfigEntry($parent=PacketAnalyzer::ANALYZER_SKIP, $analyzer=PacketAnalyzer::ANALYZER_IP)
-};

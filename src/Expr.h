@@ -1108,7 +1108,7 @@ public:
 	explicit RecordConstructorExpr(IntrusivePtr<RecordType> known_rt,
 				IntrusivePtr<ListExpr> constructor_list);
 
-	~RecordConstructorExpr() override	{ delete map; }
+	~RecordConstructorExpr() override	{ delete [] map; }
 
 	int* Map() const	{ return map; }
 

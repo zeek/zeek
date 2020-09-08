@@ -468,7 +468,7 @@ RE_Matcher::~RE_Matcher()
 	{
 	delete re_anywhere;
 	delete re_exact;
-	delete orig_text;
+	delete [] orig_text;
 	}
 
 void RE_Matcher::AddPat(const char* new_pat)

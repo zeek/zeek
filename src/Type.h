@@ -538,7 +538,7 @@ public:
 	// have types managed by the compiler.
 	ZRM_flags ManagedFields() const		{ return managed_fields; }
 
-	int NumFields() const			{ return num_fields; }
+	unsigned int NumFields() const		{ return num_fields; }
 
 	/**
 	 * Returns a "record_field_table" value for introspection purposes.
@@ -576,9 +576,9 @@ public:
 protected:
 	RecordType() { types = 0; }
 
-	void AddField(int field, const TypeDecl* td);
+	void AddField(unsigned int field, const TypeDecl* td);
 
-	int num_fields;
+	unsigned int num_fields;
 	type_decl_list* types;
 	ZRM_flags managed_fields;
 

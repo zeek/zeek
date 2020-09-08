@@ -659,7 +659,7 @@ RecordType::~RecordType()
 		}
 	}
 
-void RecordType::AddField(int field, const TypeDecl* td)
+void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	{
 	ASSERT(field == field_inits.size());
 

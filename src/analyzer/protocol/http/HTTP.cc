@@ -691,8 +691,11 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f: end entity (%d)\n", network_time, is_orig);
 
-	body_length += ((HTTP_Entity*) entity)->BodyLength();
-	header_length += ((HTTP_Entity*) entity)->HeaderLength();
+	if ( entity == top_level )
+		{
+		body_length += ((HTTP_Entity*) entity)->BodyLength();
+		header_length += ((HTTP_Entity*) entity)->HeaderLength();
+		}
 
 	if ( http_end_entity )
 		{

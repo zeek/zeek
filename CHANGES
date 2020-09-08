@@ -1,4 +1,42 @@
 
+3.2.1 | 2020-09-08 14:48:20 -0700
+
+  * Release 3.2.1.
+
+  * Fix memory leak caused by re-entering AYIYA parsing (Jon Siwek, Corelight)
+
+    If the inner packet of a decapsulated AYIYA frame maps to the same
+    Connection as the outer packet and also contains another AYIYA
+    encapsulation, the same AYIYA analyzer attempts to parse the inner
+    packet.  In the process, the inner parsing method overwrites pointers to
+    memory resources the outer parsing method has not yet released and
+    results in a memory leak.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=25256
+
+  * Fix memory leak caused by re-entering GTPv1 parsing (Jon Siwek, Corelight)
+
+    If the inner packet of a decapsulated GTPv1 frame maps to the same
+    Connection as the outer packet and also contains another GTPv1
+    encapsulation, the same GTPv1 analyzer attempts to parse the inner
+    packet.  In the process, the inner parsing method overwrites pointers to
+    memory resources the outer parsing method has not yet released and
+    results in a memory leak.
+
+  * Exclude installing "zeek -> ." include dir symlink (Jon Siwek, Corelight)
+
+    The symlink only exists for use within the source-tree and isn't needed
+    for the install-tree.
+
+  * Fix build for PowerPC architecture (Johanna Amann, Corelight)
+
+  * Fix closing timestamp of rotated log files in supervised-cluster mode (Jon Siwek, Corelight)
+
+  * Fix issue with canonical names not printing for file analyzers (Tim Wojtulewicz, Corelight)
+
+  * GH-1120: Fix minimize_info in ftp/main not returning a value (Johanna Amann, Corelight)
+
 3.2.0 | 2020-08-10 10:08:59 -0700
 
   * Release 3.2.0.

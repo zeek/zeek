@@ -3,6 +3,40 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.2.1
+==========
+
+This release fixes the following security issues:
+
+* The AYIYA and GTPv1 parsing/decapsulation logic may leak memory if the inner
+  packet uses the same connection tuple as the outer packet while also having
+  another level of encapsulation within the inner packet using the same
+  tunneling protocol, respectively (AYIYA or GTPv1).  These leaks have
+  potential for remote exploitation to cause Denial of Service via resource
+  exhaustion.
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=25256
+
+This release fixes the following bugs:
+
+* Exclude installing "zeek -> ." include-dir symlink
+  https://github.com/zeek/zeek/commit/bc3df067376ea80232f57393e69c84a6e045212d
+
+* Fix build for PowerPC architecture
+  https://github.com/zeek/zeek/issues/1150
+  https://github.com/zeek/zeek/commit/e8efab541b49e8202c3896f9219334788e45d40e
+  https://github.com/zeek/zeek/commit/05f7e3fa4353a30a8b105c551f5cacb4f7ff49aa
+
+* Fix ftp data-channel minimization function not returning a value
+  https://github.com/zeek/zeek/issues/1120
+
+* Fix `zeek -NN` not printing canonical file analyzer names
+  https://github.com/zeek/zeek/pull/1136
+
+* Fix closing timestamp of rotated log files in supervised-cluster mode
+  https://github.com/zeek/zeek/commit/99d9a3a48c9c2469d6bc8f58add43901ab901901
+
 Zeek 3.2.0
 ==========
 

@@ -988,7 +988,6 @@ void RecordType::Create(ZAM_record* r) const
 				if ( init.def_coerce )
 					v = v->AsRecordVal()->CoerceTo(init.def_type->AsRecordType());
 				r->SetField(i) = ZAMValUnion(v, init.def_type);
-				r->RefField(i);
 				}
 			else
 				reporter->Error("failed &default in record creation");

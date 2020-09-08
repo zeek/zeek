@@ -1,4 +1,38 @@
 
+3.0.9 | 2020-09-08 14:48:30 -0700
+
+  * Release 3.0.9.
+
+  * Fix memory leak caused by re-entering AYIYA parsing (Jon Siwek, Corelight)
+
+    If the inner packet of a decapsulated AYIYA frame maps to the same
+    Connection as the outer packet and also contains another AYIYA
+    encapsulation, the same AYIYA analyzer attempts to parse the inner
+    packet.  In the process, the inner parsing method overwrites pointers to
+    memory resources the outer parsing method has not yet released and
+    results in a memory leak.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=25256
+
+  * Fix memory leak caused by re-entering GTPv1 parsing (Jon Siwek, Corelight)
+
+    If the inner packet of a decapsulated GTPv1 frame maps to the same
+    Connection as the outer packet and also contains another GTPv1
+    encapsulation, the same GTPv1 analyzer attempts to parse the inner
+    packet.  In the process, the inner parsing method overwrites pointers to
+    memory resources the outer parsing method has not yet released and
+    results in a memory leak.
+
+  * GH-1083: Fix Input Framework 'change' events for 'set' destinations (Jon Siwek, Corelight)
+
+  * GH-1100: Fix reported body-length of HTTP messages w/ sub-entities (Jon Siwek, Corelight)
+
+    The body-lengths of sub-entities, like multipart messages, got counted
+    twice by mistake: once upon the end of the sub-entity and then again
+    upon the end of the top-level entity that contains all sub-entities.
+    The size of just the top-level entity is the correct one to use.
+
 3.0.8 | 2020-07-27 12:20:15 -0700
 
   * Release 3.0.8.

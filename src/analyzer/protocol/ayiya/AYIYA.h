@@ -3,7 +3,7 @@
 
 #include "ayiya_pac.h"
 
-namespace binpac::AYIYA { class AYIYA_Conn; }
+namespace binpac { namespace AYIYA { class AYIYA_Conn; } }
 
 namespace analyzer { namespace ayiya {
 

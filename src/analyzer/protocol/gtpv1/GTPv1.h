@@ -3,7 +3,7 @@
 
 #include "gtpv1_pac.h"
 
-namespace binpac::GTPv1 { class GTPv1_Conn; }
+namespace binpac { namespace GTPv1 { class GTPv1_Conn; } }
 
 namespace analyzer { namespace gtpv1 {
 

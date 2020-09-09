@@ -3,6 +3,13 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.0.10
+===========
+
+This release only fixes the v3.0.9 build on some platforms due to the use
+of nested namespaces: some compilers are strict about the use of that
+C++17 feature since Zeek v3.0.x version explicitly target C++11.
+
 Zeek 3.0.9
 ==========
 

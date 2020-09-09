@@ -1,4 +1,11 @@
 
+3.3.0-dev.252 | 2020-09-08 17:04:19 -0700
+
+  * GH-623: Extend weird sampling with option to track selected weirds globally. (Robin Sommer, Corelight)
+
+    The new set "sampling_global_list" lists weirds to rate-limit
+    globally instead of per connection/flow.
+
 3.3.0-dev.249 | 2020-09-04 18:30:19 -0700
 
   * Exclude installing "zeek -> ." include dir symlink (Jon Siwek, Corelight)

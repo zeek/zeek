@@ -191,6 +191,24 @@ public:
 		}
 
 	/**
+	 * Gets the weird sampling global list.
+	 */
+	WeirdSet GetWeirdSamplingGlobalList() const
+		{
+		return weird_sampling_global_list;
+		}
+
+	/**
+	 * Sets the weird sampling global list.
+	 *
+	 * @param weird_sampling_global list New weird sampling global list.
+	 */
+	void SetWeirdSamplingGlobalList(const WeirdSet& weird_sampling_global_list)
+		{
+		this->weird_sampling_global_list = weird_sampling_global_list;
+		}
+
+	/**
 	 * Gets the current weird sampling threshold.
 	 *
 	 * @return weird sampling threshold.
@@ -269,9 +287,14 @@ private:
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
+	inline bool WeirdOnGlobalList(const char* name)
+		{ return weird_sampling_global_list.find(name) != weird_sampling_global_list.end(); }
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
 	bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
+
+	enum class PermitWeird { Allow, Deny, Unknown };
+	PermitWeird CheckGlobalWeirdLists(const char* name);
 
 	bool EmitToStderr(bool flag)
 		{ return flag || ! after_zeek_init; }
@@ -294,6 +317,7 @@ private:
 	WeirdConnTupleMap expired_conn_weird_state;
 
 	WeirdSet weird_sampling_whitelist;
+	WeirdSet weird_sampling_global_list;
 	uint64_t weird_sampling_threshold;
 	uint64_t weird_sampling_rate;
 	double weird_sampling_duration;

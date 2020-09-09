@@ -24,7 +24,6 @@ using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(SteppingStoneManager, zeek, analyzer::stepping_stone);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ARP_Analyzer, zeek, analyzer::arp);
 
 namespace zeek {
 

@@ -12,5 +12,5 @@ RootAnalyzer::RootAnalyzer()
 
 bool RootAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	reporter->InternalError("AnalysisPacket() was called for the root analyzer.");
+	reporter->InternalError("AnalyzePacket() was called for the root analyzer.");
 	}

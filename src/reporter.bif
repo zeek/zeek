@@ -164,7 +164,7 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
 	auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
-	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
+	for ( const auto& el : reporter->GetWeirdSamplingWhitelist() )
 		{
 		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
@@ -194,7 +194,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 		whitelist_set.emplace(move(key));
 		delete k;
 		}
-	reporter->SetWeirdSamplingWhitelist(whitelist_set);
+	reporter->SetWeirdSamplingWhitelist(std::move(whitelist_set));
 	return zeek::val_mgr->True();
 	%}
 
@@ -204,7 +204,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 function Reporter::get_weird_sampling_global_list%(%): string_set
 	%{
 	auto set = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
-	for ( auto el : reporter->GetWeirdSamplingGlobalList() )
+	for ( const auto& el : reporter->GetWeirdSamplingGlobalList() )
 		{
 		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
@@ -234,7 +234,7 @@ function Reporter::set_weird_sampling_global_list%(weird_sampling_global_list: s
 		global_list_set.emplace(move(key));
 		delete k;
 		}
-	reporter->SetWeirdSamplingGlobalList(global_list_set);
+	reporter->SetWeirdSamplingGlobalList(std::move(global_list_set));
 	return zeek::val_mgr->True();
 	%}
 

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2020-04-30-00-46-48
+#open	2020-09-07-08-39-48
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1354328870.191989	CHhAvVGS1DHFjwGM9	128.2.6.136	46562	173.194.75.103	80	1	OPTIONS	www.google.com	*	-	1.1	-	-	0	962	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FNHaqE4UoY2x5hHRul	-	text/html
@@ -16,8 +16,15 @@
 1354328882.928027	C37jN32gN3y3AZzyf6	128.2.6.136	46569	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fv4CUw2OVTa5d90Fh5	-	text/html
 1354328882.968948	C3eiCBGOLw3VtHfOj	128.2.6.136	46570	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FpKdCS1VswPP57cOE9	-	text/html
 1354328882.990373	CwjjYJ2WqgTbAqiHl6	128.2.6.136	46571	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43913	200	OK	-	-	(empty)	-	-	-	-	-	-	FKce9H2mSI6H6yHKzg	-	text/html
+1354328887.114613	C0LAHyvtKSQHyJxIl	128.2.6.136	46572	173.194.75.103	80	1	-	-	-	-	1.1	-	-	0	961	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FnwThTkiAjzMOp15d	-	text/html
+1354328891.161077	CFLRIC3zaTU1loLGxh	128.2.6.136	46573	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FNmezC4DkmM3sleGfk	-	text/html
+1354328891.204740	C9rXSW3KSpTYvPrlI1	128.2.6.136	46574	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FTBROX2JadJfHpHwyf	-	text/html
+1354328891.245592	Ck51lg1bScffFj34Ri	128.2.6.136	46575	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FGHZXz1oh7AvmEq9i4	-	text/html
+1354328891.287655	C9mvWx3ezztgzcexV7	128.2.6.136	46576	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fgqofp246KRqF7D9sc	-	text/html
 1354328891.309065	CNnMIj2QSd84NKf7U3	128.2.6.136	46577	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	1.1	-	-	0	963	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FsrHvh4vRpg5AYSB8	-	text/html
 1354328895.355012	C7fIlMZDuRiqjpYbb	128.2.6.136	46578	173.194.75.103	80	1	CCM_POST	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FTq0Uy1Ug7VB8q6CY7	-	text/html
+1354328895.416133	CykQaM33ztNt0csB9a	128.2.6.136	46579	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FukPcH2neOquJJLf8g	-	text/html
+1354328895.459490	CtxTCR2Yer0FR1tIBg	128.2.6.136	46580	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FOo9cxBIsa3iJ5qN4	-	text/html
 1354328895.480865	CpmdRlaUoJLN3uIRa	128.2.6.136	46581	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	1.1	-	-	0	963	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FnYYzruLUTCbaQpR9	-	text/html
 1354328899.526682	C1Xkzz2MaGtLrc1Tla	128.2.6.136	46582	173.194.75.103	80	1	CONNECT	www.google.com	/	-	1.1	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FG8LG51VfiVSWb3jJ4	-	text/html
 1354328903.572533	CqlVyW1YwZ15RhTBc4	128.2.6.136	46583	173.194.75.103	80	1	CONNECT	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FmY2JP1uFMzpih2T5k	-	text/html
@@ -48,4 +55,4 @@
 1354328932.692706	CudMuD3jKHCaCU5CE	128.2.6.136	46608	173.194.75.103	80	1	HEAD	www.google.com	/HTTP/1.1	-	1.0	-	-	0	0	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	-	-	-
 1354328932.754657	CRJ9x54IaE7bkVEpad	128.2.6.136	46609	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FXonC02oI6E6ZT4pi4	-	text/html
 1354328932.796568	CAvUKGaEgLlR4i6t2	128.2.6.136	46610	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F8h50j2nZJ3Oloni53	-	text/html
-#close	2020-04-30-00-46-49
+#close	2020-09-07-08-39-48

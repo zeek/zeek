@@ -1,4 +1,13 @@
 
+3.3.0-dev.254 | 2020-09-08 17:21:16 -0700
+
+  * GH-343: Change HTTP DPD signatures to trigger analyzer independent of peer state. (Robin Sommer, Corelight)
+
+    This is to avoid missing large sessions where a single side exceeds
+    the DPD buffer size. It comes with the trade-off that now the analyzer
+    can be triggered by anybody controlling one of the endpoints (instead
+    of both).
+
 3.3.0-dev.252 | 2020-09-08 17:04:19 -0700
 
   * GH-623: Extend weird sampling with option to track selected weirds globally. (Robin Sommer, Corelight)

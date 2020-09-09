@@ -175,7 +175,7 @@ public:
 	/**
 	 * Gets the weird sampling whitelist.
 	 */
-	WeirdSet GetWeirdSamplingWhitelist() const
+	const WeirdSet& GetWeirdSamplingWhitelist() const
 		{
 		return weird_sampling_whitelist;
 		}
@@ -185,15 +185,15 @@ public:
 	 *
 	 * @param weird_sampling_whitelist New weird sampling whitelist.
 	 */
-	void SetWeirdSamplingWhitelist(const WeirdSet& weird_sampling_whitelist)
+	void SetWeirdSamplingWhitelist(WeirdSet weird_sampling_whitelist)
 		{
-		this->weird_sampling_whitelist = weird_sampling_whitelist;
+		this->weird_sampling_whitelist = std::move(weird_sampling_whitelist);
 		}
 
 	/**
 	 * Gets the weird sampling global list.
 	 */
-	WeirdSet GetWeirdSamplingGlobalList() const
+	const WeirdSet& GetWeirdSamplingGlobalList() const
 		{
 		return weird_sampling_global_list;
 		}
@@ -203,9 +203,9 @@ public:
 	 *
 	 * @param weird_sampling_global list New weird sampling global list.
 	 */
-	void SetWeirdSamplingGlobalList(const WeirdSet& weird_sampling_global_list)
+	void SetWeirdSamplingGlobalList(WeirdSet weird_sampling_global_list)
 		{
-		this->weird_sampling_global_list = weird_sampling_global_list;
+		this->weird_sampling_global_list = std::move(weird_sampling_global_list);
 		}
 
 	/**

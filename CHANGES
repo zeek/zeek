@@ -1,4 +1,33 @@
 
+3.3.0-dev.258 | 2020-09-09 10:46:37 -0700
+
+  * Improve Reporter weird-sampling-whitelist getters/setters (Jon Siwek, Corelight)
+
+    - getter methods return const-ref
+    - setter methods pass by value and std::move()
+    - ranged-for loops over the whitelists access by const-ref
+
+  * Fix memory leak caused by re-entering GTPv1 parsing (Jon Siwek, Corelight)
+
+    If the inner packet of a decapsulated GTPv1 frame maps to the same
+    Connection as the outer packet and also contains another GTPv1
+    encapsulation, the same GTPv1 analyzer attempts to parse the inner
+    packet.  In the process, the inner parsing method overwrites pointers to
+    memory resources the outer parsing method has not yet released and
+    results in a memory leak.
+
+  * Fix memory leak caused by re-entering AYIYA parsing (Jon Siwek, Corelight)
+
+    If the inner packet of a decapsulated AYIYA frame maps to the same
+    Connection as the outer packet and also contains another AYIYA
+    encapsulation, the same AYIYA analyzer attempts to parse the inner
+    packet.  In the process, the inner parsing method overwrites pointers to
+    memory resources the outer parsing method has not yet released and
+    results in a memory leak.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=25256
+
 3.3.0-dev.254 | 2020-09-08 17:21:16 -0700
 
   * GH-343: Change HTTP DPD signatures to trigger analyzer independent of peer state. (Robin Sommer, Corelight)

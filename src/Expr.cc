@@ -5342,7 +5342,7 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	for ( int i = 0; i < lv->Length(); ++i )
 		{
 		int ind = map ? map[i] : i;
-		rv->Assign(ind, lv->Index(i)->Ref());
+		rv->Assign(ind, lv->Index(i));
 		}
 
 	return rv;

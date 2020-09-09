@@ -18,7 +18,7 @@ Script Optimization: User's Guide
 Overview
 --------
 
-Zeek's _script optimization_ is an experimental feature that changes the basic execution model for Zeek scripts in an effort to gain hhigher performance.   Normally, Zeek parses scripts into _Abstract Syntax Trees_ that are then executed by recursively interpretating each node in a given tree.  With script optimization, Zeek compiles the trees into a low-level form that can generally be executed more efficiently.
+Zeek's _script optimization_ is an experimental feature that changes the basic execution model for Zeek scripts in an effort to gain higher performance.   Normally, Zeek parses scripts into _Abstract Syntax Trees_ that are then executed by recursively interpretating each node in a given tree.  With script optimization, Zeek compiles the trees into a low-level form that can generally be executed more efficiently.
 
 You specify use of this feature by including `--optimize` on the command line.  The first time you invoke it, start-up will take a while due to the compilation phase.  After compiling the scripts, Zeek will generate [`.ZAM` files](#ZAM-save-files) representing the compiled program.  Future executions will load the files rather than recompiling the corresponding scripts, leading to faster startup. 
 

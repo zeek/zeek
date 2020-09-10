@@ -118,7 +118,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response)
 	fill_in_subjects(c);
 	}
 
-event successful_connection_remove(c: connection)
+event connection_state_remove(c: connection)
 	{
 	fill_in_subjects(c);
 	}

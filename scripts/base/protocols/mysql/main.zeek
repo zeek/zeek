@@ -122,7 +122,7 @@ event mysql_ok(c: connection, affected_rows: count) &priority=-5
 		}
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$mysql )
 		{

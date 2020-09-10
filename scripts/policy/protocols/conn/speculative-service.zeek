@@ -25,7 +25,7 @@ event protocol_late_match(c: connection, atype: Analyzer::Tag)
 	add c$speculative_service[analyzer];
 	}
 
-event successful_connection_remove(c: connection)
+event connection_state_remove(c: connection)
 	{
 	local sp_service = "";
 	for ( s in c$speculative_service )

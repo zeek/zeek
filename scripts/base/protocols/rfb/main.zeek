@@ -151,7 +151,7 @@ event rfb_share_flag(c: connection, flag: bool) &priority=5
 	c$rfb$share_flag = flag;
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$rfb )
 		{

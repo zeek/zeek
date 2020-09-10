@@ -124,7 +124,7 @@ event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 		add c$service["irc-dcc-data"];
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( [c$id$resp_h, c$id$resp_p] in dcc_expected_transfers )
 		{

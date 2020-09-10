@@ -452,11 +452,6 @@ type connection: record {
 
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
-
-	## Flag that will be true if :zeek:see:`connection_successful` has
-	## already been generated for the connection. See the documentation of
-	## that event for a definition of what makes a connection "succesful".
-	successful: bool;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

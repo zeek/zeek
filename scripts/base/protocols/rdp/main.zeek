@@ -274,7 +274,7 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 		write_log(c);
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	# If the connection is removed, then log the record immediately.
 	if ( c?$rdp )

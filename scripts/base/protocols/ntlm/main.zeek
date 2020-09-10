@@ -106,7 +106,7 @@ event gssapi_neg_result(c: connection, state: count) &priority=-3
 		}
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$ntlm && ! c$ntlm$done )
 		{

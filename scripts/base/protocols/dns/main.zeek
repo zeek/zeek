@@ -582,7 +582,7 @@ event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 		c$dns$rejected = T;
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( ! c?$dns_state )
 		return;

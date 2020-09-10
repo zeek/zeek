@@ -182,7 +182,7 @@ event ProtocolDetector::check_connection(c: connection)
 		}
 	}
 
-event successful_connection_remove(c: connection)
+event connection_state_remove(c: connection)
 	{
 	if ( c$id !in conns )
 		{

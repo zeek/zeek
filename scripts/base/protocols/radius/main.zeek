@@ -138,7 +138,7 @@ event radius_message(c: connection, result: RADIUS::Message) &priority=-5
 		}
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$radius && ! c$radius$logged )
 		{

@@ -123,9 +123,6 @@ public:
 
 	TransportProto ConnTransport() const { return proto; }
 
-	bool IsSuccessful() const	{ return is_successful; };
-	void SetSuccessful()	{ is_successful = true; }
-
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still
 	// record subsequent SYN/FIN/RST, regardless of how this is set.
@@ -370,7 +367,6 @@ protected:
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int record_current_packet:1, record_current_content:1;
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
-	unsigned int is_successful:1;
 
 	// Count number of connections.
 	static uint64_t total_connections;

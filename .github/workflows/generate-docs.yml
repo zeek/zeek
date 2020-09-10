@@ -78,7 +78,7 @@ jobs:
           rm make.out
           echo "*** Pushing zeek-docs Changes ***"
           git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek-docs"
-          git add scripts/
+          git add scripts/ script-reference/
           git status
           git commit -m "Generate docs" && git push || /bin/true
           cd ..

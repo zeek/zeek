@@ -13,14 +13,28 @@ export {
 	global enable: bool = T &redef;
 }
 
+function should_detect(): bool
+	{
+	local args = zeek_args();
+
+	for ( i in args )
+		{
+		local arg = args[i];
+
+		if ( arg == "-r" || arg == "--readfile" )
+			return T;
+		}
+
+	return F;
+	}
+
+@if ( should_detect() )
+
 global saw_tcp_conn_with_data: bool = F;
 global saw_a_tcp_conn: bool = F;
 
 event connection_state_remove(c: connection)
 	{
-	if ( ! reading_traces() )
-		return;
-
 	if ( ! enable )
 		return;
 
@@ -47,3 +61,5 @@ event zeek_done()
 	if ( ! saw_tcp_conn_with_data )
 		Reporter::warning("The analyzed trace file was determined to contain only TCP control packets, which may indicate it's been pre-filtered.  By default, Zeek reports the missing segments for this type of trace, but the 'detect_filtered_trace' option may be toggled if that's not desired.");
 	}
+
+@endif

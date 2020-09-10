@@ -192,6 +192,7 @@
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SMB, [get_file_handle=SMB::get_file_handle{ if (!(SMB::c$smb_state?$current_file && (SMB::c$smb_state$current_file?$name || SMB::c$smb_state$current_file?$path))) { return ()}SMB::current_file = SMB::c$smb_state$current_fileSMB::path_name = SMB::current_file?$path ? SMB::current_file$path : SMB::file_name = SMB::current_file?$name ? SMB::current_file$name : SMB::last_mod = cat(SMB::current_file?$times ? SMB::current_file$times$modified : double_to_time(0.0))return (hexdump(cat(Analyzer::ANALYZER_SMB, SMB::c$id$orig_h, SMB::c$id$resp_h, SMB::path_name, SMB::file_name, SMB::last_mod)))}, describe=SMB::describe_file{ <init> SMB::cid, SMB::c{ if (SMB::f$source != SMB) return ()for ([SMB::cid] in SMB::f$conns) { if (SMB::c?$smb_state && SMB::c$smb_state?$current_file && SMB::c$smb_state$current_file?$name) return (SMB::c$smb_state$current_file$name)}return ()}}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SMTP, [get_file_handle=SMTP::get_file_handle{ return (cat(Analyzer::ANALYZER_SMTP, SMTP::c$start_time, SMTP::c$smtp$trans_depth, SMTP::c$smtp_state$mime_depth))}, describe=SMTP::describe_file{ <init> SMTP::cid, SMTP::c{ if (SMTP::f$source != SMTP) return ()for ([SMTP::cid] in SMTP::f$conns) { return (SMTP::describe(SMTP::c$smtp))}return ()}}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid, SSL::c{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::c?$ssl) { return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(FilteredTraceDetection::should_detect, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -282,7 +283,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -463,7 +464,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -585,6 +586,7 @@
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(x509_set_certificate_cache, <frame>, ({})) -> <no result>
 0.000000   MetaHookPost  CallFunction(x509_set_certificate_cache_hit_callback, <frame>, (X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}})) -> <no result>
+0.000000   MetaHookPost  CallFunction(zeek_args, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(0, ..<...>/main.zeek) -> -1
@@ -1118,6 +1120,7 @@
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SMB, [get_file_handle=SMB::get_file_handle{ if (!(SMB::c$smb_state?$current_file && (SMB::c$smb_state$current_file?$name || SMB::c$smb_state$current_file?$path))) { return ()}SMB::current_file = SMB::c$smb_state$current_fileSMB::path_name = SMB::current_file?$path ? SMB::current_file$path : SMB::file_name = SMB::current_file?$name ? SMB::current_file$name : SMB::last_mod = cat(SMB::current_file?$times ? SMB::current_file$times$modified : double_to_time(0.0))return (hexdump(cat(Analyzer::ANALYZER_SMB, SMB::c$id$orig_h, SMB::c$id$resp_h, SMB::path_name, SMB::file_name, SMB::last_mod)))}, describe=SMB::describe_file{ <init> SMB::cid, SMB::c{ if (SMB::f$source != SMB) return ()for ([SMB::cid] in SMB::f$conns) { if (SMB::c?$smb_state && SMB::c$smb_state?$current_file && SMB::c$smb_state$current_file?$name) return (SMB::c$smb_state$current_file$name)}return ()}}]))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SMTP, [get_file_handle=SMTP::get_file_handle{ return (cat(Analyzer::ANALYZER_SMTP, SMTP::c$start_time, SMTP::c$smtp$trans_depth, SMTP::c$smtp_state$mime_depth))}, describe=SMTP::describe_file{ <init> SMTP::cid, SMTP::c{ if (SMTP::f$source != SMTP) return ()for ([SMTP::cid] in SMTP::f$conns) { return (SMTP::describe(SMTP::c$smtp))}return ()}}]))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid, SSL::c{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::c?$ssl) { return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}]))
+0.000000   MetaHookPre   CallFunction(FilteredTraceDetection::should_detect, <null>, ())
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1208,7 +1211,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1389,7 +1392,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1511,6 +1514,7 @@
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
 0.000000   MetaHookPre   CallFunction(x509_set_certificate_cache, <frame>, ({}))
 0.000000   MetaHookPre   CallFunction(x509_set_certificate_cache_hit_callback, <frame>, (X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}}))
+0.000000   MetaHookPre   CallFunction(zeek_args, <frame>, ())
 0.000000   MetaHookPre   CallFunction(zeek_init, <null>, ())
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(0, ..<...>/main.zeek)
@@ -2043,6 +2047,7 @@
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_SMB, [get_file_handle=SMB::get_file_handle{ if (!(SMB::c$smb_state?$current_file && (SMB::c$smb_state$current_file?$name || SMB::c$smb_state$current_file?$path))) { return ()}SMB::current_file = SMB::c$smb_state$current_fileSMB::path_name = SMB::current_file?$path ? SMB::current_file$path : SMB::file_name = SMB::current_file?$name ? SMB::current_file$name : SMB::last_mod = cat(SMB::current_file?$times ? SMB::current_file$times$modified : double_to_time(0.0))return (hexdump(cat(Analyzer::ANALYZER_SMB, SMB::c$id$orig_h, SMB::c$id$resp_h, SMB::path_name, SMB::file_name, SMB::last_mod)))}, describe=SMB::describe_file{ <init> SMB::cid, SMB::c{ if (SMB::f$source != SMB) return ()for ([SMB::cid] in SMB::f$conns) { if (SMB::c?$smb_state && SMB::c$smb_state?$current_file && SMB::c$smb_state$current_file?$name) return (SMB::c$smb_state$current_file$name)}return ()}}])
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_SMTP, [get_file_handle=SMTP::get_file_handle{ return (cat(Analyzer::ANALYZER_SMTP, SMTP::c$start_time, SMTP::c$smtp$trans_depth, SMTP::c$smtp_state$mime_depth))}, describe=SMTP::describe_file{ <init> SMTP::cid, SMTP::c{ if (SMTP::f$source != SMTP) return ()for ([SMTP::cid] in SMTP::f$conns) { return (SMTP::describe(SMTP::c$smtp))}return ()}}])
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid, SSL::c{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::c?$ssl) { return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])
+0.000000 | HookCallFunction FilteredTraceDetection::should_detect()
 0.000000 | HookCallFunction Log::__add_filter(Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -2133,7 +2138,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2314,7 +2319,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2436,6 +2441,7 @@
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
 0.000000 | HookCallFunction x509_set_certificate_cache({})
 0.000000 | HookCallFunction x509_set_certificate_cache_hit_callback(X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}})
+0.000000 | HookCallFunction zeek_args()
 0.000000 | HookCallFunction zeek_init()
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ..<...>/main.zeek
@@ -2771,7 +2777,7 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1599764383.286831, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1599767390.051653, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()
@@ -3239,7 +3245,6 @@
 1362692527.080972   MetaHookPost  CallFunction(id_string, <frame>, ([orig_h=141.142.228.5, orig_p=59856<...>/tcp])) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(is_tcp_port, <frame>, (59856/tcp)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(net_done, <null>, (1362692527.080972)) -> <no result>
-1362692527.080972   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(set_file_handle, <frame>, (Analyzer::ANALYZER_HTTP1362692526.869344T11141.142.228.5:59856 > 192.150.187.43:80)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(sub_bytes, <frame>, (HTTP, 0, 1)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(to_lower, <frame>, (HTTP)) -> <no result>
@@ -3276,7 +3281,6 @@
 1362692527.080972   MetaHookPre   CallFunction(id_string, <frame>, ([orig_h=141.142.228.5, orig_p=59856<...>/tcp]))
 1362692527.080972   MetaHookPre   CallFunction(is_tcp_port, <frame>, (59856/tcp))
 1362692527.080972   MetaHookPre   CallFunction(net_done, <null>, (1362692527.080972))
-1362692527.080972   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 1362692527.080972   MetaHookPre   CallFunction(set_file_handle, <frame>, (Analyzer::ANALYZER_HTTP1362692526.869344T11141.142.228.5:59856 > 192.150.187.43:80))
 1362692527.080972   MetaHookPre   CallFunction(sub_bytes, <frame>, (HTTP, 0, 1))
 1362692527.080972   MetaHookPre   CallFunction(to_lower, <frame>, (HTTP))
@@ -3314,7 +3318,6 @@
 1362692527.080972 | HookCallFunction id_string([orig_h=141.142.228.5, orig_p=59856<...>/tcp])
 1362692527.080972 | HookCallFunction is_tcp_port(59856/tcp)
 1362692527.080972 | HookCallFunction net_done(1362692527.080972)
-1362692527.080972 | HookCallFunction reading_traces()
 1362692527.080972 | HookCallFunction set_file_handle(Analyzer::ANALYZER_HTTP1362692526.869344T11141.142.228.5:59856 > 192.150.187.43:80)
 1362692527.080972 | HookCallFunction sub_bytes(HTTP, 0, 1)
 1362692527.080972 | HookCallFunction to_lower(HTTP)

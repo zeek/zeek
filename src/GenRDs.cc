@@ -43,7 +43,7 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 	func_flavor = f->Flavor();
 
 	auto args = scope->OrderedVars();
-        int nparam = f->FType()->Args()->NumFields();
+	int nparam = f->FType()->Args()->NumFields();
 
 	mgr.SetEmptyPre(f);
 
@@ -99,12 +99,12 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		}
 
 	switch ( s->Tag() ) {
-        case STMT_EXPR:
-        case STMT_EVENT:
-        case STMT_ADD:
-        case STMT_DELETE:
-        case STMT_RETURN:
-        case STMT_CHECK_ANY_LEN:
+	case STMT_EXPR:
+	case STMT_EVENT:
+	case STMT_ADD:
+	case STMT_DELETE:
+	case STMT_RETURN:
+	case STMT_CHECK_ANY_LEN:
 		{
 		// Can't use AsExprStmt() since it doesn't know about
 		// the tags of its subclasses.
@@ -113,14 +113,14 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		break;
 		}
 
-        case STMT_PRINT:
+	case STMT_PRINT:
 		{
 		auto l = s->AsPrintStmt()->ExprList();
 		mgr.SetPreFromPre(l, s);
 		break;
 		}
 
-        case STMT_CATCH_RETURN:
+	case STMT_CATCH_RETURN:
 		{
 		auto cr = s->AsCatchReturnStmt();
 		auto block = cr->Block().get();
@@ -569,7 +569,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	DefinitionPoint ds(s);
 
 	switch ( s->Tag() ) {
-        case STMT_EXPR:
+	case STMT_EXPR:
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
 		mgr.CreatePostRDsFromPost(s, e);
@@ -743,7 +743,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		return true;
 		}
 
-        case EXPR_FIELD:
+	case EXPR_FIELD:
 		{
 		auto f = lhs->AsFieldExpr();
 		auto r = f->Op();
@@ -776,7 +776,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		return true;
 		}
 
-        case EXPR_INDEX:
+	case EXPR_INDEX:
 		{
 		auto i_e = lhs->AsIndexExpr();
 		auto aggr = i_e->Op1();
@@ -830,7 +830,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	mgr.SetPostFromPre(e);
 
 	switch ( e->Tag() ) {
-        case EXPR_NAME:
+	case EXPR_NAME:
 		{
 		auto n = e->AsNameExpr();
 		auto id = n->Id();
@@ -860,8 +860,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
-        case EXPR_INCR:
-        case EXPR_DECR:
+	case EXPR_INCR:
+	case EXPR_DECR:
 		{
 		auto lval = e->GetOp1();
 		auto lhs = lval->AsRefExpr()->Op();
@@ -873,7 +873,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
-        case EXPR_ADD_TO:
+	case EXPR_ADD_TO:
 		{
 		auto a_t = e->AsAddToExpr();
 		auto lhs = a_t->Op1();
@@ -899,7 +899,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
-        case EXPR_ASSIGN:
+	case EXPR_ASSIGN:
 		{
 		auto a = e->AsAssignExpr();
 		auto lhs = a->Op1();
@@ -930,7 +930,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
-        case EXPR_INDEX_ASSIGN:
+	case EXPR_INDEX_ASSIGN:
 		{
 		auto a = e->AsIndexAssignExpr();
 		auto aggr = a->Op1();
@@ -958,7 +958,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		return TC_ABORTSTMT;
 		}
 
-        case EXPR_FIELD_LHS_ASSIGN:
+	case EXPR_FIELD_LHS_ASSIGN:
 		{
 		auto f = e->AsFieldLHSAssignExpr();
 		auto aggr = f->Op1();

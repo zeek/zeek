@@ -622,7 +622,7 @@ void ZAM::ReMapInterpreterFrame()
 	// if we decide to alter the calling sequence for compiled
 	// functions.
 	auto args = scope->OrderedVars();
-	auto nparam = func->FType()->Args()->NumFields();
+	int nparam = func->FType()->Args()->NumFields();
 	int next_interp_slot = 0;
 
 	for ( const auto& a : args )

@@ -291,7 +291,7 @@ void ZAM::Init()
 	{
 	auto uds = ud->HasUsage(body) ? ud->GetUsage(body) : nullptr;
 	auto args = scope->OrderedVars();
-	auto nparam = func->FType()->Args()->NumFields();
+	int nparam = func->FType()->Args()->NumFields();
 
 	for ( auto g : pf->globals )
 		{

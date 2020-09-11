@@ -43,7 +43,7 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 	func_flavor = f->Flavor();
 
 	auto args = scope->OrderedVars();
-        auto nparam = f->FType()->Args()->NumFields();
+        int nparam = f->FType()->Args()->NumFields();
 
 	mgr.SetEmptyPre(f);
 

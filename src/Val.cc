@@ -2739,7 +2739,7 @@ void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 
 void RecordVal::Assign(int field, Val* new_val)
 	{
-	Assign(field, {NewRef{}, new_val});
+	Assign(field, {AdoptRef{}, new_val});
 	}
 
 IntrusivePtr<Val> RecordVal::Lookup(int field) const

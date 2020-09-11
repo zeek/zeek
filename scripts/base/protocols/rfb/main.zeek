@@ -1,3 +1,5 @@
+@load base/protocols/conn/removal-hooks
+
 module RFB;
 
 export {
@@ -41,6 +43,9 @@ export {
 	};
 
 	global log_rfb: event(rec: Info);
+
+	## RFB finalization hook.  Remaining RFB info may get logged when it's called.
+	global finalize_rfb: Conn::RemovalHook;
 }
 
 function friendly_auth_name(auth: count): string
@@ -103,6 +108,7 @@ function set_session(c: connection)
 		info$id  = c$id;
 
 		c$rfb = info;
+		Conn::register_removal_hook(c, finalize_rfb);
 		}
 	}
 
@@ -151,7 +157,7 @@ event rfb_share_flag(c: connection, flag: bool) &priority=5
 	c$rfb$share_flag = flag;
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_rfb(c: connection)
 	{
 	if ( c?$rfb )
 		{

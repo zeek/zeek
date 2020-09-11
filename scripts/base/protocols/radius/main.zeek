@@ -1,9 +1,10 @@
 ##! Implements base functionality for RADIUS analysis. Generates the radius.log file.
 
-module RADIUS;
-
 @load ./consts
 @load base/utils/addrs
+@load base/protocols/conn/removal-hooks
+
+module RADIUS;
 
 export {
 	redef enum Log::ID += { LOG };
@@ -48,6 +49,9 @@ export {
 	## Event that can be handled to access the RADIUS record as it is sent on
 	## to the logging framework.
 	global log_radius: event(rec: Info);
+
+	## RADIUS finalization hook.  Remaining RADIUS info may get logged when it's called.
+	global finalize_radius: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -70,6 +74,7 @@ event radius_message(c: connection, result: RADIUS::Message) &priority=5
 		c$radius = Info($ts  = network_time(),
 		                $uid = c$uid,
 		                $id  = c$id);
+		Conn::register_removal_hook(c, finalize_radius);
 		}
 
 	switch ( RADIUS::msg_types[result$code] )
@@ -138,7 +143,7 @@ event radius_message(c: connection, result: RADIUS::Message) &priority=-5
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_radius(c: connection)
 	{
 	if ( c?$radius && ! c$radius$logged )
 		{

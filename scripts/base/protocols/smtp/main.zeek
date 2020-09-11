@@ -1,6 +1,7 @@
 @load base/utils/addrs
 @load base/utils/directions-and-hosts
 @load base/utils/email
+@load base/protocols/conn/removal-hooks
 
 module SMTP;
 
@@ -82,6 +83,9 @@ export {
 	global describe: function(rec: Info): string;
 
 	global log_smtp: event(rec: Info);
+
+	## SMTP finalization hook.  Remaining SMTP info may get logged when it's called.
+	global finalize_smtp: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -129,6 +133,7 @@ function new_smtp_log(c: connection): Info
 	# The lower values in the vector are the end of the path.
 	l$path = vector(c$id$resp_h, c$id$orig_h);
 
+	Conn::register_removal_hook(c, finalize_smtp);
 	return l;
 	}
 
@@ -298,7 +303,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 		c$smtp$path += ip;
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_smtp(c: connection)
 	{
 	if ( c?$smtp )
 		smtp_message(c);

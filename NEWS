@@ -49,6 +49,14 @@ Removed Functionality
   macros. Use the PRIdPTR and PRIuPTR macros from the standard library
   instead.
 
+- The  ``successful_connection_remove`` and ``connection_successful`` events
+  as well as ``connection$successful`` field that were added in Zeek v3.1.0 are
+  now removed.  They were found to be unintuitive along with having unresolved
+  corner cases.  The original goal/intent to avoid the overhead and scalability
+  issues with every new protocol-analysis adding a new
+  ``connection_state_remove`` handler can now be resolved with a less-confusing
+  approach: see the ``Conn::register_removal_hook`` function.
+
 Deprecated Functionality
 ------------------------
 

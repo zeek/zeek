@@ -1,4 +1,5 @@
 @load base/frameworks/dpd
+@load base/protocols/conn/removal-hooks
 
 module NTLM;
 
@@ -34,6 +35,9 @@ export {
 		## has already been logged.
 		done: bool  &default=F;
 	};
+
+	## NTLM finalization hook.  Remaining NTLM info may get logged when it's called.
+	global finalize_ntlm: Conn::RemovalHook;
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_NTLM };
@@ -50,7 +54,10 @@ event zeek_init() &priority=5
 function set_session(c: connection)
 	{
 	if ( ! c?$ntlm )
+		{
 		c$ntlm = NTLM::Info($ts=network_time(), $uid=c$uid, $id=c$id);
+		Conn::register_removal_hook(c, finalize_ntlm);
+		}
 	}
 
 event ntlm_negotiate(c: connection, request: NTLM::Negotiate) &priority=5
@@ -106,7 +113,7 @@ event gssapi_neg_result(c: connection, state: count) &priority=-3
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_ntlm(c: connection)
 	{
 	if ( c?$ntlm && ! c$ntlm$done )
 		{

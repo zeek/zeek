@@ -1,5 +1,7 @@
 ##! Enables analysis and logging of SNMP datagrams.
 
+@load base/protocols/conn/removal-hooks
+
 module SNMP;
 
 export {
@@ -54,6 +56,9 @@ export {
 	## Event that can be handled to access the SNMP record as it is sent on
 	## to the logging framework.
 	global log_snmp: event(rec: Info);
+
+	## SNMP finalization hook.  Remaining SNMP info may get logged when it's called.
+	global finalize_snmp: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -76,6 +81,7 @@ function init_state(c: connection, h: SNMP::Header): Info
 		c$snmp = Info($ts=network_time(),
 		              $uid=c$uid, $id=c$id,
 		              $version=version_map[h$version]);
+		Conn::register_removal_hook(c, finalize_snmp);
 		}
 
 	local s = c$snmp;
@@ -92,8 +98,7 @@ function init_state(c: connection, h: SNMP::Header): Info
 	return s;
 	}
 
-
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_snmp(c: connection)
 	{
 	if ( c?$snmp )
 		Log::write(LOG, c$snmp);

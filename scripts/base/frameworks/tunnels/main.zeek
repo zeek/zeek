@@ -5,6 +5,8 @@
 ##! encapsulating tunnels is also found in the *tunnel* field of
 ##! :zeek:type:`connection`.
 
+@load base/protocols/conn/removal-hooks
+
 module Tunnel;
 
 export {
@@ -80,6 +82,9 @@ export {
 	## encapsulated connections have been seen in the interval indicated by
 	## :zeek:see:`Tunnel::expiration_interval`.
 	global active: table[conn_id] of Info = table() &read_expire=expiration_interval &expire_func=expire;
+
+	## Tunnel finalization hook.  Remaining Tunnel info may get logged when it's called.
+	global finalize_tunnel: Conn::RemovalHook;
 }
 
 const ayiya_ports = { 5072/udp };
@@ -103,6 +108,12 @@ function register_all(ecv: EncapsulatingConnVector)
 		register(ecv[i]);
 	}
 
+hook finalize_tunnel(c: connection)
+	{
+	if ( c$id in active )
+		close(active[c$id], CLOSE);
+	}
+
 function register(ec: EncapsulatingConn)
 	{
 	if ( ec$cid !in active )
@@ -115,6 +126,10 @@ function register(ec: EncapsulatingConn)
 		tunnel$action = DISCOVER;
 		tunnel$tunnel_type = ec$tunnel_type;
 		active[ec$cid] = tunnel;
+
+		if ( connection_exists(ec$cid) )
+			Conn::register_removal_hook(lookup_connection(ec$cid), finalize_tunnel);
+
 		Log::write(LOG, tunnel);
 		}
 	}
@@ -142,10 +157,4 @@ event new_connection(c: connection) &priority=5
 event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
 	register_all(e);
-	}
-
-event connection_state_remove(c: connection) &priority=-5
-	{
-	if ( c$id in active )
-		close(active[c$id], CLOSE);
 	}

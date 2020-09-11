@@ -1,8 +1,9 @@
 ##! Implements base functionality for MySQL analysis. Generates the mysql.log file.
 
-module MySQL;
-
 @load ./consts
+@load base/protocols/conn/removal-hooks
+
+module MySQL;
 
 export {
 	redef enum Log::ID += { mysql::LOG };
@@ -29,6 +30,9 @@ export {
 	## Event that can be handled to access the MySQL record as it is sent on
 	## to the logging framework.
 	global log_mysql: event(rec: Info);
+
+	## MySQL finalization hook.  Remaining MySQL info may get logged when it's called.
+	global finalize_mysql: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -54,6 +58,7 @@ event mysql_handshake(c: connection, username: string)
 		info$cmd = "login";
 		info$arg = username;
 		c$mysql = info;
+		Conn::register_removal_hook(c, finalize_mysql);
 		}
 	}
 
@@ -74,6 +79,7 @@ event mysql_command_request(c: connection, command: count, arg: string) &priorit
 	info$cmd = commands[command];
 	info$arg = sub(arg, /\0$/, "");
 	c$mysql = info;
+	Conn::register_removal_hook(c, finalize_mysql);
 	}
 
 event mysql_command_request(c: connection, command: count, arg: string) &priority=-5
@@ -122,7 +128,7 @@ event mysql_ok(c: connection, affected_rows: count) &priority=-5
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_mysql(c: connection)
 	{
 	if ( c?$mysql )
 		{

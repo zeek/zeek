@@ -1,5 +1,6 @@
 @load base/frameworks/tunnels
 @load ./consts
+@load base/protocols/conn/removal-hooks
 
 module SOCKS;
 
@@ -42,6 +43,9 @@ export {
 	## Event that can be handled to access the SOCKS
 	## record as it is sent on to the logging framework.
 	global log_socks: event(rec: Info);
+
+	## SOCKS finalization hook.  Remaining SOCKS info may get logged when it's called.
+	global finalize_socks: Conn::RemovalHook;
 }
 
 const ports = { 1080/tcp };
@@ -60,7 +64,10 @@ redef record connection += {
 function set_session(c: connection, version: count)
 	{
 	if ( ! c?$socks )
+		{
 		c$socks = [$ts=network_time(), $id=c$id, $uid=c$uid, $version=version];
+		Conn::register_removal_hook(c, finalize_socks);
+		}
 	}
 
 event socks_request(c: connection, version: count, request_type: count,
@@ -111,7 +118,7 @@ event socks_login_userpass_reply(c: connection, code: count) &priority=5
 	c$socks$status = v5_status[code];
 	}
 
-event connection_state_remove(c: connection)
+hook finalize_socks(c: connection)
 	{
 	# This will handle the case where the analyzer failed in some way and was
 	# removed.  We probably  don't want to log these connections.

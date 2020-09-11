@@ -3,6 +3,7 @@
 
 @load base/utils/queue
 @load ./consts
+@load base/protocols/conn/removal-hooks
 
 module DNS;
 
@@ -143,6 +144,9 @@ export {
 		## replies that haven't been matched with a query yet.
 		pending_replies: PendingMessages &optional;
 	};
+
+	## DNS finalization hook.  Remaining DNS info may get logged when it's called.
+	global finalize_dns: Conn::RemovalHook;
 }
 
 
@@ -233,6 +237,7 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		{
 		local state: State;
 		c$dns_state = state;
+		Conn::register_removal_hook(c, finalize_dns);
 		}
 
 	if ( is_query )
@@ -582,7 +587,7 @@ event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 		c$dns$rejected = T;
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_dns(c: connection)
 	{
 	if ( ! c?$dns_state )
 		return;

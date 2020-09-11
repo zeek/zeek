@@ -4,6 +4,7 @@
 
 @load base/utils/numbers
 @load base/utils/files
+@load base/protocols/conn/removal-hooks
 
 module SIP;
 
@@ -87,6 +88,9 @@ export {
 	## Event that can be handled to access the SIP record as it is sent on
 	## to the logging framework.
 	global log_sip: event(rec: Info);
+
+	## SIP finalization hook.  Remaining SIP info may get logged when it's called.
+	global finalize_sip: Conn::RemovalHook;
 }
 
 # Add the sip state tracking fields to the connection record.
@@ -126,6 +130,7 @@ function set_state(c: connection, is_request: bool)
 		{
 		local s: State;
 		c$sip_state = s;
+		Conn::register_removal_hook(c, finalize_sip);
 		}
 
 	if ( is_request )
@@ -189,6 +194,7 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		{
 		local s: State;
 		c$sip_state = s;
+		Conn::register_removal_hook(c, finalize_sip);
 		}
 
 	if ( is_request ) # from client
@@ -289,7 +295,7 @@ event sip_end_entity(c: connection, is_request: bool) &priority = -5
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook finalize_sip(c: connection)
 	{
 	if ( c?$sip_state )
 		{

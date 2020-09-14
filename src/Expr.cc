@@ -1414,7 +1414,12 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2) );
+			{
+			if ( is_vector(op1) && is_vector(op2) )
+				SetType(make_intrusive<VectorType>(base_type(TYPE_INTERVAL)));
+			else
+				PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2) );
+			}
 		else
 			ExprError("multiplication with interval requires arithmetic operand");
 		}
@@ -1450,7 +1455,12 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2));
+			{
+			if ( is_vector(op1) && is_vector(op2) )
+				SetType(make_intrusive<VectorType>(base_type(TYPE_INTERVAL)));
+			else
+				PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2));
+			}
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
 			if ( is_vector(op1) || is_vector(op2) )

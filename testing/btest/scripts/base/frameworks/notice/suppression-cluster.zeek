@@ -33,26 +33,15 @@ event Cluster::node_down(name: string, id: string)
 	terminate();
 	}
 
+global proceed: event();
+
 event do_notice()
 	{
 	NOTICE([$note=Test_Notice,
 	        $msg="test notice!",
 	        $identifier="this identifier is static"]);
-	}
-
-event ready()
-	{
-	print "ready";
-
-	if ( Cluster::node == "manager-1" )
-		Broker::publish(Cluster::node_topic("worker-1"), ready);
-	if ( Cluster::node == "worker-1" )
-		schedule 1sec { do_notice() };
-	if ( Cluster::node == "worker-2" )
-		{
-		event do_notice();
-		Broker::publish(Cluster::node_topic("manager-1"), ready);
-		}
+	Broker::flush_logs();
+	Broker::publish(Cluster::node_topic("manager-1"), proceed);
 	}
 
 event Notice::suppressed(n: Notice::Info)
@@ -67,7 +56,9 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Notice::
 								identifier: string)
 	{
 	print "begin suppression", suppress_for, note, identifier;
-	Broker::publish(Cluster::node_topic("manager-1"), ready);
+
+	if ( Cluster::node == "worker-1" )
+		Broker::publish(Cluster::node_topic("manager-1"), proceed);
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
@@ -79,7 +70,16 @@ event Cluster::node_up(name: string, id: string)
 	peer_count = peer_count + 1;
 
 	if ( peer_count == 3 )
-		Broker::publish(Cluster::node_topic("worker-2"), ready);
+		Broker::publish(Cluster::node_topic("worker-2"), do_notice);
+	}
+
+global proceed_count = 0;
+event proceed()
+	{
+	++proceed_count;
+
+	if ( proceed_count == 2 )
+		Broker::publish(Cluster::node_topic("worker-1"), do_notice);
 	}
 
 @endif

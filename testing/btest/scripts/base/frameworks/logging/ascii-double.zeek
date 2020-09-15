@@ -2,10 +2,13 @@
 #
 # @TEST-EXEC: zeek -b %INPUT test-json.zeek
 # @TEST-EXEC: mv test.log json.log
+# @TEST-EXEC: zeek -b %INPUT test-higher-prec.zeek
+# @TEST-EXEC: mv test.log higher-prec.log
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff test.log
 # @TEST-EXEC: btest-diff json.log
-# 
+# @TEST-EXEC: btest-diff higher-prec.log
+#
 # Make sure  we do not write out scientific notation for doubles.
 
 module Test;
@@ -83,3 +86,10 @@ event zeek_init()
 redef LogAscii::use_json = T;
 
 # @TEST-END-FILE
+
+# @TEST-START-FILE test-higher-prec.zeek
+
+# Validate that setting this doesn't affect non-timestamp double formatting.
+redef Log::timestamp_precision = 9;
+
+# @TEST-END_FILE

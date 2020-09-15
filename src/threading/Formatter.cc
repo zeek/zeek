@@ -7,11 +7,16 @@
 
 #include "MsgThread.h"
 #include "bro_inet_ntop.h"
+#include "NetVar.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;
 
 namespace zeek::threading {
+
+// This gets re-initialized by log_mgr at startup using a value from the
+// logging framework.
+int Formatter::timestamp_precision = 6;
 
 Formatter::Formatter(threading::MsgThread* t)
 	{
@@ -107,10 +112,13 @@ std::string Formatter::Render(const threading::Value::subnet_t& subnet)
 	return s;
 	}
 
-std::string Formatter::Render(double d)
+std::string Formatter::Render(double d, bool timestamp)
 	{
 	char buf[256];
-	modp_dtoa(d, buf, 6);
+	if ( timestamp )
+		modp_dtoa(d, buf, timestamp_precision);
+	else
+		modp_dtoa(d, buf, 6);
 	return buf;
 	}
 

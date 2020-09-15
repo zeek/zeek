@@ -17,6 +17,7 @@
 #include "broker/Manager.h"
 #include "threading/Manager.h"
 #include "threading/SerialTypes.h"
+#include "threading/Formatter.h"
 
 #include "Desc.h"
 #include "WriterFrontend.h"
@@ -146,6 +147,7 @@ Manager::~Manager()
 void Manager::InitPostScript()
 	{
 	rotation_format_func = id::find_func("Log::rotation_format_func");
+	threading::Formatter::timestamp_precision = id::find_val("Log::timestamp_precision")->AsCount();
 	}
 
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)

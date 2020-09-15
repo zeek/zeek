@@ -114,7 +114,7 @@ public:
 	 *
 	 * @return An ASCII representation of the double.
 	 */
-	static std::string Render(double d);
+	static std::string Render(double d, bool timestamp=false);
 
 	/**
 	 * Convert a transport protocol into a string.
@@ -152,6 +152,12 @@ public:
 	 */
 	Value::addr_t ParseAddr(const std::string &addr) const;
 
+	/**
+	 * Sets the precision of timestamps returned from Render(double). This
+	 * is initialized by log_mgr at startup.
+	 */
+	static int timestamp_precision;
+
 protected:
 	/**
 	 * Returns the thread associated with the formatter via the
@@ -160,6 +166,7 @@ protected:
 	MsgThread* GetThread() const	{ return thread; }
 
 private:
+
 	MsgThread* thread;
 };
 

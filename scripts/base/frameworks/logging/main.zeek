@@ -521,6 +521,9 @@ export {
 	## This table is not meant to be modified by users!  Only use it for
 	## examining which streams are active.
 	global active_streams: table[ID] of Stream = table();
+
+	## The precision of timestamps in log output.
+	const timestamp_precision = 6 &redef;
 }
 
 global all_streams: table[ID] of Stream = table();

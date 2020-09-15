@@ -118,7 +118,7 @@ bool Ascii::Describe(ODesc* desc, Value* val, const string& name) const
 		// Rendering via Render() keeps trailing 0s after the decimal
 		// point. The difference with DOUBLE is mainly to keep the
 		// log format consistent.
-		desc->Add(Render(val->val.double_val));
+		desc->Add(Render(val->val.double_val, true));
 		break;
 
 	case TYPE_ENUM:

@@ -50,6 +50,15 @@ public:
 	IntrusivePtr<NameExpr> PushInlineBlock(IntrusivePtr<BroType> type);
 	void PopInlineBlock();
 
+	// Whether it's okay to split a statement into two copies for if-else
+	// expansion.  We only allow this to a particular depth because
+	// beyond that a function body can get too large to analyze.
+	bool BifurcationOkay() const	{ return bifurcation_level <= 12; }
+	int BifurcationLevel() const	{ return bifurcation_level; }
+
+	void PushBifurcation()		{ ++bifurcation_level; }
+	void PopBifurcation()		{ --bifurcation_level; }
+
 	int NumTemps() const		{ return temps.length(); }
 	bool IsTemporary(const ID* id) const
 		{ return FindTemporary(id) != nullptr; }
@@ -184,6 +193,12 @@ protected:
 	// Tracks whether we're inside an inline block, and if so then
 	// how deeply.
 	int inline_block_level = 0;
+
+	// Tracks how deeply we are in "bifurcation", i.e., duplicating
+	// code for if-else cascades.  We need to cap this at a certain
+	// depth or else we can get functions whose size blows up
+	// exponentially.
+	int bifurcation_level = 0;
 
 	// For a given usage of a variable's value, return the definition
 	// points associated with its use at that point.  We use this

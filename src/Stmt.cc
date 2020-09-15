@@ -649,8 +649,10 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 		e = e->GetOp1();
 		}
 
-	if ( e->Tag() == EXPR_OR_OR )
+	if ( e->Tag() == EXPR_OR_OR && c->BifurcationOkay() )
 		{
+		c->PushBifurcation();
+
 		// Expand "if ( a || b ) s1 else s2" to
 		// "if ( a ) s1 else { if ( b ) s1 else s2 }"
 		auto a = e->GetOp1();
@@ -660,11 +662,15 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 		s2 = make_intrusive<IfStmt>(b, s1_dup, s2);
 		e = a;
 
-		return DoReduce(c);
+		auto res = DoReduce(c);
+		c->PopBifurcation();
+		return res;
 		}
 
-	if ( e->Tag() == EXPR_AND_AND )
+	if ( e->Tag() == EXPR_AND_AND && c->BifurcationOkay() )
 		{
+		c->PushBifurcation();
+
 		// Expand "if ( a && b ) s1 else s2" to
 		// "if ( a ) { if ( b ) s1 else s2 } else s2"
 		auto a = e->GetOp1();
@@ -674,7 +680,9 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 		s1 = make_intrusive<IfStmt>(b, s1, s2_dup);
 		e = a;
 
-		return DoReduce(c);
+		auto res = DoReduce(c);
+		c->PopBifurcation();
+		return res;
 		}
 
 	s1 = {AdoptRef{}, s1->Reduce(c)};

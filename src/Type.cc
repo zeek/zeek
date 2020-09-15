@@ -441,6 +441,65 @@ bool IndexType::IsSubNetIndex() const
 	return false;
 	}
 
+static bool is_supported_index_type(const TypePtr& t, const char** tname)
+	{
+	if ( t->InternalType() != TYPE_INTERNAL_OTHER )
+		return true;
+
+	auto tag = t->Tag();
+
+	switch ( tag ) {
+	// Allow functions, since they can be compared for Func* pointer equality.
+	case TYPE_FUNC:
+		return true;
+
+	case TYPE_PATTERN:
+		return true;
+
+	case TYPE_RECORD:
+		{
+		auto rt = t->AsRecordType();
+
+		for ( auto i = 0; i < rt->NumFields(); ++i )
+			if ( ! is_supported_index_type(rt->GetFieldType(i), tname) )
+				return false;
+
+		return true;
+		}
+
+	case TYPE_LIST:
+		{
+		for ( const auto& type : t->AsTypeList()->GetTypes() )
+			if ( ! is_supported_index_type(type, tname) )
+				return false;
+
+		return true;
+		}
+
+	case TYPE_TABLE:
+		{
+		auto tt = t->AsTableType();
+
+		if ( ! is_supported_index_type(tt->GetIndices(), tname) )
+			return false;
+
+		const auto& yt = tt->Yield();
+
+		if ( ! yt )
+			return true;
+
+		return is_supported_index_type(yt, tname);
+		}
+
+	case TYPE_VECTOR:
+		return is_supported_index_type(t->AsVectorType()->Yield(), tname);
+
+	default:
+		*tname = type_name(tag);
+		return false;
+	}
+	}
+
 TableType::TableType(TypeListPtr ind, TypePtr yield)
 	: IndexType(TYPE_TABLE, std::move(ind), std::move(yield))
 	{
@@ -448,6 +507,7 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 		return;
 
 	const auto& tl = indices->GetTypes();
+	const char* unsupported_type_name = nullptr;
 
 	for ( const auto& tli : tl )
 		{
@@ -456,12 +516,11 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 		if ( t == TYPE_INTERNAL_ERROR )
 			break;
 
-		// Allow functions, since they can be compared
-		// for Func* pointer equality.
-		if ( t == TYPE_INTERNAL_OTHER && tli->Tag() != TYPE_FUNC &&
-		     tli->Tag() != TYPE_RECORD && tli->Tag() != TYPE_PATTERN )
+		if ( ! is_supported_index_type(tli, &unsupported_type_name) )
 			{
-			tli->Error("bad index type");
+			auto msg = util::fmt("index type containing '%s' is not supported",
+			                     unsupported_type_name);
+			Error(msg, tli.get());
 			SetError();
 			break;
 			}

@@ -56,24 +56,6 @@ TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr)
 		break;
 		};
 
-	case EXPR_INDEX:
-		{
-		const auto* e = static_cast<const IndexExpr*>(expr);
-		Obj::SuppressErrors no_errors;
-
-		try
-			{
-			auto v = e->Eval(trigger->frame);
-
-			if ( v )
-				trigger->Register(v.get());
-			}
-		catch ( InterpreterException& )
-			{ /* Already reported */ }
-
-		break;
-		}
-
 	default:
 		// All others are uninteresting.
 		break;
@@ -217,12 +199,15 @@ Trigger::~Trigger()
 	// point.
 	}
 
-void Trigger::Init()
+void Trigger::Init(std::vector<ValPtr> index_expr_results)
 	{
 	assert(! disabled);
 	UnregisterAll();
 	TriggerTraversalCallback cb(this);
 	cond->Traverse(&cb);
+
+	for ( const auto& v : index_expr_results )
+		Register(v.get());
 	}
 
 bool Trigger::Eval()
@@ -265,6 +250,7 @@ bool Trigger::Eval()
 	f->SetTrigger({NewRef{}, this});
 
 	ValPtr v;
+	IndexExprWhen::StartEval();
 
 	try
 		{
@@ -272,6 +258,9 @@ bool Trigger::Eval()
 		}
 	catch ( InterpreterException& )
 		{ /* Already reported */ }
+
+	IndexExprWhen::EndEval();
+	auto index_expr_results = IndexExprWhen::TakeAllResults();
 
 	f->ClearTrigger();
 
@@ -288,7 +277,7 @@ bool Trigger::Eval()
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
 		Unref(f);
-		Init();
+		Init(std::move(index_expr_results));
 		return false;
 		}
 

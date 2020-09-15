@@ -1,0 +1,9 @@
+running myevent, 1
+running myevent, 2
+running myevent, 3
+running myevent, 4
+running myevent, 5
+triggered when condition against 'x'
+running myevent, 6
+triggered when condition against 'y'
+running myevent, 7

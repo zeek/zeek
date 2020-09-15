@@ -58,7 +58,7 @@
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init anonymous_function lambda_body index_slice opt_deprecated
+%type <expr> expr opt_expr init anonymous_function lambda_body index_slice opt_deprecated when_condition
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -126,6 +126,7 @@ extern zeek::detail::Expr* g_curr_debug_expr;
 extern bool in_debug;
 extern const char* g_curr_debug_error;
 
+static int in_when_cond = 0;
 static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
@@ -288,6 +289,11 @@ opt_expr:
 	|
 			{ $$ = 0; }
 	;
+
+when_condition:
+		{ ++in_when_cond; } expr { --in_when_cond; }
+			{ $$ = $2; }
+		;
 
 expr:
 		'(' expr ')'
@@ -474,7 +480,10 @@ expr:
 	|	expr '[' expr_list ']'
 			{
 			zeek::detail::set_location(@1, @4);
-			$$ = new zeek::detail::IndexExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
+			if ( in_when_cond > 0 )
+				$$ = new zeek::detail::IndexExprWhen({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
+			else
+				$$ = new zeek::detail::IndexExpr({zeek::AdoptRef{}, $1}, {zeek::AdoptRef{}, $3});
 			}
 
 	|	index_slice
@@ -1328,7 +1337,11 @@ index_slice:
 
 			auto le = zeek::make_intrusive<zeek::detail::ListExpr>(std::move(low));
 			le->Append(std::move(high));
-			$$ = new zeek::detail::IndexExpr({zeek::AdoptRef{}, $1}, std::move(le), true);
+
+			if ( in_when_cond > 0  )
+				$$ = new zeek::detail::IndexExprWhen({zeek::AdoptRef{}, $1}, std::move(le), true);
+			else
+				$$ = new zeek::detail::IndexExpr({zeek::AdoptRef{}, $1}, std::move(le), true);
 			}
 
 opt_attr:
@@ -1535,14 +1548,14 @@ stmt:
 			    zeek::detail::script_coverage_mgr.AddStmt($$);
 			}
 
-	|	TOK_WHEN '(' expr ')' stmt
+	|	TOK_WHEN '(' when_condition ')' stmt
 			{
 			zeek::detail::set_location(@3, @5);
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5},
 			                                  nullptr, nullptr, false);
 			}
 
-	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+	|	TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			zeek::detail::set_location(@3, @9);
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $3}, {zeek::AdoptRef{}, $5},
@@ -1552,14 +1565,14 @@ stmt:
 			}
 
 
-	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt
+	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt
 			{
 			zeek::detail::set_location(@4, @6);
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $4}, {zeek::AdoptRef{}, $6}, nullptr,
 			                  nullptr, true);
 			}
 
-	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			zeek::detail::set_location(@4, @10);
 			$$ = new zeek::detail::WhenStmt({zeek::AdoptRef{}, $4}, {zeek::AdoptRef{}, $6},

@@ -27,7 +27,7 @@ type mystring: string;
 type cr: record {
      a: set[double];
      b: set[double, string];
-     c: set[double, r];
+     c: set[double, tt];
      d: table[double, string] of table[string] of vector of string;
      e: vector of vector of string;
 };

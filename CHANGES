@@ -1,3 +1,17 @@
+
+3.3.0-dev.269 | 2020-09-17 11:42:38 -0700
+
+  * GH-1155: Recursively check table index for unsupported types
+
+    Previously, container types used within a table/set index were not
+    deeply checked to ensure all constituents could be part of an index. (Jon Siwek, Corelight)
+
+  * GH-1159: Fix vector-of-interval multiplication/division arithmetic
+
+    Those operations done between a vector-of-interval and a
+    vector-of-arithmetic-type previously threw a runtime expression error
+    due to an incorrect coercion being used internally. (Jon Siwek, Corelight)
+
 3.3.0-dev.265 | 2020-09-17 11:24:42 -0700
 
   * Avoid passing address of member in packed struct #1074

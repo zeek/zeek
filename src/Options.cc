@@ -168,6 +168,7 @@ static void set_analysis_option(const char* opt)
 		fprintf(stderr, "    no-ZAM-opt	turn off low-level ZAM optimization\n");
 		fprintf(stderr, "    overwrite	overwrite saved ZAM code\n");
 		fprintf(stderr, "    profile	generate to stdout a ZAM execution profile\n");
+		fprintf(stderr, "		  (requires --enable-debug)\n");
 		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
 		fprintf(stderr, "    uncompilable	report on uncompilable functions and exit\n");
 		fprintf(stderr, "    unused	report on unused functions and events, and exit\n");
@@ -205,7 +206,14 @@ static void set_analysis_option(const char* opt)
 	else if ( streq(opt, "overwrite") )
 		analysis_options.overwrite_save_files = true;
 	else if ( streq(opt, "profile") )
+		{
+#ifdef DEBUG
 		analysis_options.report_profile = true;
+#else
+		fprintf(stderr, "zeek: --optimize=profile only supported when configuration includes --enable-debug\n");
+		exit(1);
+#endif
+		}
 	else if ( streq(opt, "recursive") )
 		analysis_options.inliner =
 			analysis_options.report_recursive = true;

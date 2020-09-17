@@ -140,7 +140,7 @@ Users will generally simply use `--optimize` to invoke the script optimizer.  Th
 |`no-save`	|	Do not save ZAM code.|
 |`no-ZAM-opt`	|	Turn off low-level ZAM optimization.|
 |`overwrite`	|	Overwrite saved ZAM code.|
-|`profile`	|	Generate to _stdout_ a ZAM execution profile.|
+|`profile`	|	Generate to _stdout_ a ZAM execution profile. (Requires configuring with --enable-debug.)|
 |`recursive`	|	Report on recursive functions and exit.|
 |`uncompilable`	|	Report on uncompilable functions and exit.|
 |`unused`		|	Report on unused functions and events, and exit.|

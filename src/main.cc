@@ -769,6 +769,15 @@ int main(int argc, char** argv)
 			}
 		}
 
+	analyze_scripts();
+
+	if ( analysis_options.usage_issues ||
+	     analysis_options.report_orphans ||
+	     analysis_options.report_recursive ||
+	     analysis_options.report_uncompilable )
+		// These options are report-and-exit.
+		return 0;
+
 	if ( dns_type != DNS_PRIME )
 		net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
@@ -820,15 +829,6 @@ int main(int argc, char** argv)
 		if ( segment_profiling )
 			segment_logger = profiling_logger;
 		}
-
-	analyze_scripts();
-
-	if ( analysis_options.usage_issues ||
-	     analysis_options.report_orphans ||
-	     analysis_options.report_recursive ||
-	     analysis_options.report_uncompilable )
-		// These options are report-and-exit.
-		return 0;
 
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since

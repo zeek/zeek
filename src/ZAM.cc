@@ -910,10 +910,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 
 		else
 			{ // Both are constants, assign first to temporary.
-			auto slot = NewSlot(c0->Type());
-			z = ZInstI(OP_ASSIGN_CONST_VC, slot, c0);
-			z.CheckIfManaged(c0);
-			(void) AddInst(z);
+			auto slot = TempForConst(c0);
 
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VVVC,
 					slot, FrameSlot(op2), 0, c1);
@@ -1104,14 +1101,9 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	int slot = v ? FrameSlot(v) : 0;
 
 	if ( c )
-		{
 		// Weird to have a constant switch expression, enough
 		// so that it doesn't seem worth optimizing.
-		slot = NewSlot(c->Type());
-		auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, c);
-		z.CheckIfManaged(c);
-		(void) AddInst(z);
-		}
+		slot = TempForConst(c);
 
 	// Figure out which jump table we're using.
 	auto t = v ? v->Type() : c->Type();
@@ -1470,11 +1462,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		// Turn into a VVC assignment by assigning the index to
 		// a temporary.
 		auto c = op2->AsConstExpr();
-		auto tmp = NewSlot(c->Type());
-		auto z = ZInstI(OP_ASSIGN_CONST_VC, tmp, c);
-		z.CheckIfManaged(c);
-
-		AddInst(z);
+		auto tmp = TempForConst(c);
 
 		auto zop = OP_VECTOR_ELEM_ASSIGN_VVC;
 
@@ -2243,11 +2231,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			{
 			// Ugh, both are constants.  Assign first to
 			// a temporary. 
-			auto slot = NewSlot(l_e0_c->Type());
-			auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, l_e0_c);
-			z.CheckIfManaged(l_e0_c);
-			(void) AddInst(z);
-
+			auto slot = TempForConst(l_e0_c);
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_VVVC, FrameSlot(n1),
 					slot, FrameSlot(n2), l_e1_c);
 			z.op_type = OP_VVVC;
@@ -2281,10 +2265,23 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l)
 	{
+	return CompileIndex(n1, FrameSlot(n2), n2->Type(), l);
+	}
+
+const CompiledStmt ZAM::CompileIndex(const NameExpr* n, const ConstExpr* c,
+					const ListExpr* l)
+	{
+	auto tmp = TempForConst(c);
+	return CompileIndex(n, tmp, c->Type(), l);
+	}
+
+const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
+					IntrusivePtr<BroType> n2t,
+					const ListExpr* l)
+	{
 	ZInstI z;
 
 	int n = l->Exprs().length();
-	auto n2t = n2->Type();
 	auto n2tag = n2t->Tag();
 
 	if ( n == 1 )
@@ -2294,8 +2291,6 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		auto n3 = var_ind ? ind->AsNameExpr() : nullptr;
 		auto c3 = var_ind ? nullptr : ind->AsConstExpr();
 		bro_uint_t c = 0;
-
-		int n2_slot = FrameSlot(n2);
 
 		if ( ! var_ind )
 			{
@@ -2374,7 +2369,6 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		}
 
 	auto indexes = l->Exprs();
-	int n2_slot = FrameSlot(n2);
 
 	ZOp op;
 
@@ -2382,7 +2376,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 	case TYPE_VECTOR:
 		op = OP_INDEX_VEC_SLICE_VV;
 		z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
-		z.SetType(n2->Type());
+		z.SetType(n2t);
 		break;
 
 	case TYPE_TABLE:
@@ -2769,4 +2763,14 @@ int ZAM::NewSlot(bool is_managed)
 	internal_reg->SetType(base_type(tag));
 
 	return AddToFrame(internal_reg);
+	}
+
+int ZAM::TempForConst(const ConstExpr* c)
+	{
+	auto slot = NewSlot(c->Type());
+	auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, c);
+	z.CheckIfManaged(c);
+	(void) AddInst(z);
+
+	return slot;
 	}

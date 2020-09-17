@@ -64,6 +64,7 @@ BEGIN	{
 	args["VLV"] = "(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)"
 	args["VLC"] = "(const NameExpr* n, const ListExpr* l, const ConstExpr* c)"
 	args["VVL"] = "(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)"
+	args["VCL"] = "(const NameExpr* n, const ConstExpr* c, const ListExpr* l)"
 	args["ViHL"] = "(const NameExpr* n, int i, EventHandler* h, const ListExpr* l)"
 	args["CiHL"] = "(const ConstExpr* c, int i, EventHandler* h, const ListExpr* l)"
 

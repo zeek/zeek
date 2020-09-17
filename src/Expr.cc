@@ -4276,7 +4276,8 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 	auto rhs = op2.get();
 	auto r1 = rhs->GetOp1();
 
-	if ( rhs->Tag() == EXPR_INDEX && r1->Tag() == EXPR_NAME )
+	if ( rhs->Tag() == EXPR_INDEX &&
+	     (r1->Tag() == EXPR_NAME || r1->Tag() == EXPR_CONST) )
 		return CompileAssignToIndex(c, lhs, rhs->AsIndexExpr());
 
 	switch ( rhs->Tag() ) {
@@ -4366,16 +4367,13 @@ const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
 						const IndexExpr* rhs) const
 	{
 	auto aggr_ptr = rhs->GetOp1();
+	auto const_aggr = aggr_ptr->Tag() == EXPR_CONST;
+
 	auto indexes_expr = rhs->GetOp2()->AsListExpr();
 	auto indexes = indexes_expr->Exprs();
 
-	if ( aggr_ptr->Tag() == EXPR_CONST )
-		{
-		Error("constant aggregates not supported for compiling");
-		return c->ErrorStmt();
-		}
-
-	auto aggr = aggr_ptr->AsNameExpr();
+	auto n = const_aggr ? nullptr : aggr_ptr->AsNameExpr();
+	auto con = const_aggr ? aggr_ptr->AsConstExpr() : nullptr;
 
 	if ( indexes.length() == 1 && indexes[0]->Type()->Tag() == TYPE_VECTOR )
 		{
@@ -4390,13 +4388,16 @@ const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
 		auto ind_t = index->Type()->AsVectorType();
 
 		if ( IsBool(ind_t->YieldType()->Tag()) )
-			return c->IndexVecBoolSelectVVV(lhs, aggr, index);
-		else
-			return c->IndexVecIntSelectVVV(lhs, aggr, index);
+			return const_aggr ?
+				c->IndexVecBoolSelectVCV(lhs, con, index) :
+				c->IndexVecBoolSelectVVV(lhs, n, index);
+
+		return const_aggr ? c->IndexVecIntSelectVCV(lhs, con, index) :
+					c->IndexVecIntSelectVVV(lhs, n, index);
 		}
 
-	else
-		return c->IndexVVL(lhs, aggr, indexes_expr);
+	return const_aggr ? c->IndexVCL(lhs, con, indexes_expr) :
+				c->IndexVVL(lhs, n, indexes_expr);
 	}
 
 IntrusivePtr<Expr> AssignExpr::Duplicate()

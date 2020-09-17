@@ -168,6 +168,12 @@ protected:
 
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
+	const CompiledStmt CompileIndex(const NameExpr* n, const ConstExpr* c,
+					const ListExpr* l);
+
+	const CompiledStmt CompileIndex(const NameExpr* n1, int n2_slot,
+					IntrusivePtr<BroType> n2_type,
+					const ListExpr* l);
 
 #include "ZBuiltIn.h"
 
@@ -290,6 +296,8 @@ protected:
 	int NewSlot(const IntrusivePtr<BroType>& t)
 		{ return NewSlot(IsManagedType(t)); }
 	int NewSlot(bool is_managed);
+
+	int TempForConst(const ConstExpr* c);
 
 	void SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o);
 

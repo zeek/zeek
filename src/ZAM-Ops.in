@@ -574,6 +574,19 @@ eval auto v = vector_bool_select(vt, v2, v3)
 eval Unref(frame[z.v1].vector_val)
 eval frame[z.v1].vector_val = v.release()
 
+op IndexVecBoolSelect
+type VCV
+set-type $1
+eval if ( z.c.vector_val->Size() != frame[z.v2].vector_val->Size() ) {
+eval	ZAM_run_time_error(z.loc, "size mismatch, boolean index and vector")
+eval	break; }
+eval auto vt = z.t->AsVectorType()
+eval auto v2 = z.c.vector_val
+eval auto v3 = frame[z.v2].vector_val
+eval auto v = vector_bool_select(vt, v2, v3)
+eval Unref(frame[z.v1].vector_val)
+eval frame[z.v1].vector_val = v.release()
+
 op IndexVecIntSelect
 type VVV
 set-type $1
@@ -584,9 +597,23 @@ eval auto v = vector_int_select(vt, v2, v3)
 eval Unref(frame[z.v1].vector_val)
 eval frame[z.v1].vector_val = v.release()
 
+op IndexVecIntSelect
+type VCV
+set-type $1
+eval auto vt = z.t->AsVectorType()
+eval auto v2 = z.c.vector_val
+eval auto v3 = frame[z.v2].vector_val
+eval auto v = vector_int_select(vt, v2, v3)
+eval Unref(frame[z.v1].vector_val)
+eval frame[z.v1].vector_val = v.release()
+
 op Index
 type VVL
 custom-method return CompileIndex(n1, n2, l);
+
+op Index
+type VCL
+custom-method return CompileIndex(n, c, l);
 
 internal-op Index-Vec
 type VVV

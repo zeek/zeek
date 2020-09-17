@@ -1,24 +1,25 @@
-FROM fedora:30
+FROM fedora:32
 
 RUN yum -y install \
-    git \
+    bison \
     cmake \
-    make \
+    diffutils \
+    findutils \
+    flex \
+    git \
     gcc \
     gcc-c++ \
-    flex \
-    bison \
-    swig \
+    libpcap-devel \
+    make \
     openssl \
     openssl-devel \
-    libpcap-devel \
     python3 \
     python3-devel \
     python3-pip\
-    zlib-devel \
     sqlite \
-    findutils \
+    swig \
     which \
+    zlib-devel \
   && yum clean all && rm -rf /var/cache/yum
 
 # Many distros adhere to PEP 394's recommendation for `python` = `python2` so

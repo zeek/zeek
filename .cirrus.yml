@@ -56,10 +56,10 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
-fedora30_task:
+fedora32_task:
   container:
-    # Fedora 30 EOL: Around June 2020
-    dockerfile: ci/fedora-30/Dockerfile
+    # Fedora 32 EOL: Around May 2021
+    dockerfile: ci/fedora-32/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 

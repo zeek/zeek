@@ -136,7 +136,7 @@ void RandTest::end(double* r_ent, double* r_chisq,
 
 	/* Calculate Monte Carlo value for PI from percentage of hits
 	   within the circle */
-	montepi = 4.0 * (((double) inmont) / mcount);
+	montepi = mcount == 0 ? 0 : 4.0 * (((double) inmont) / mcount);
 
 	/* Return results through arguments */
 	*r_ent = ent;

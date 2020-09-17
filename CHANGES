@@ -1,4 +1,13 @@
 
+3.3.0-dev.275 | 2020-09-17 13:39:46 -0700
+
+  * GH-1164: Fix incorrect RSTOS0 conn_state determinations
+
+    The RSTOS0 `conn_state` label is documented as "Originator sent a SYN
+    followed by a RST, never saw SYN-ACK from responder", but was previously
+    applied to cases where no originator SYN exists, like a single RST-only
+    packet. (Jon Siwek, Corelight)
+
 3.3.0-dev.273 | 2020-09-17 13:11:44 -0700
 
   * GH-1119: add base/protcols/conn/removal-hooks.zeek

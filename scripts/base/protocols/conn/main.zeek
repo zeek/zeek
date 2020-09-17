@@ -72,8 +72,8 @@ export {
 		## * SHR: Responder sent a SYN ACK followed by a FIN, we never saw a
 		##   SYN from the originator.
 		##
-		## * OTH: No SYN seen, just midstream traffic (a "partial connection"
-		##   that was not later closed).
+		## * OTH: No SYN seen, just midstream traffic (one example of this
+		##   is a "partial connection" that was not later closed).
 		conn_state:   string          &log &optional;
 
 		## If the connection is originated locally, this value will be T.
@@ -183,7 +183,17 @@ function conn_state(c: connection, trans: transport_proto): string
 				return "RSTR";
 			}
 		else if ( os == TCP_RESET )
-			return r_inactive ? "RSTOS0" : "RSTO";
+			{
+			if ( r_inactive )
+				{
+				if ( /\^?S[^HAFGIQ]*R.*/ == c$history )
+					return "RSTOS0";
+
+				return "OTH";
+				}
+
+			return "RSTO";
+			}
 		else if ( rs == TCP_CLOSED && os == TCP_CLOSED )
 			return "SF";
 		else if ( os == TCP_CLOSED )

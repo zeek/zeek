@@ -1,3 +1,9 @@
+3.3.0-dev.265 | 2020-09-17 11:24:42 -0700
+
+  * Avoid passing address of member in packed struct #1074
+
+    This appeases -Waddress-of-packed-member warnings in some
+    compiler/platform combinations via use of local variables. (Christian Kreibich, Corelight)
 
 3.3.0-dev.262 | 2020-09-14 12:27:52 -0700
 

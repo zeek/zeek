@@ -1,6 +1,7 @@
 ##! Implements base functionality for RDP analysis. Generates the rdp.log file.
 
 @load ./consts
+@load base/protocols/conn/removal-hooks
 
 module RDP;
 
@@ -69,6 +70,9 @@ export {
 	## Event that can be handled to access the rdp record as it is sent on
 	## to the logging framework.
 	global log_rdp: event(rec: Info);
+
+	## RDP finalization hook.  Remaining RDP info may get logged when it's called.
+	global finalize_rdp: Conn::RemovalHook;
 }
 
 # Internal fields that aren't useful externally
@@ -149,6 +153,7 @@ function set_session(c: connection)
 	if ( ! c?$rdp )
 		{
 		c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
+		Conn::register_removal_hook(c, finalize_rdp);
 		# The RDP session is scheduled to be logged from
 		# the time it is first initiated.
 		schedule rdp_check_interval { check_record(c) };
@@ -274,7 +279,7 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 		write_log(c);
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+hook finalize_rdp(c: connection)
 	{
 	# If the connection is removed, then log the record immediately.
 	if ( c?$rdp )

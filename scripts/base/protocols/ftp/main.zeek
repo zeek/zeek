@@ -10,6 +10,7 @@
 @load base/utils/numbers
 @load base/utils/addrs
 @load base/frameworks/cluster
+@load base/protocols/conn/removal-hooks
 
 module FTP;
 
@@ -40,6 +41,13 @@ export {
 	## Event that can be handled to access the :zeek:type:`FTP::Info`
 	## record as it is sent on to the logging framework.
 	global log_ftp: event(rec: Info);
+
+	## FTP finalization hook.  Remaining FTP info may get logged when it's called.
+	global finalize_ftp: Conn::RemovalHook;
+
+	## FTP data finalization hook.  Expected FTP data channel state may
+	## get purged when called.
+	global finalize_ftp_data: hook(c: connection);
 }
 
 # Add the state tracking information variable to the connection record
@@ -127,6 +135,7 @@ function set_ftp_session(c: connection)
 		s$uid=c$uid;
 		s$id=c$id;
 		c$ftp=s;
+		Conn::register_removal_hook(c, finalize_ftp);
 
 		# Add a shim command so the server can respond with some init response.
 		add_pending_cmd(c$ftp$pending_commands, "<init>", "");
@@ -317,7 +326,10 @@ event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
+		{
 		add c$service["ftp-data"];
+		Conn::register_removal_hook(c, finalize_ftp_data);
+		}
 	}
 
 event file_transferred(c: connection, prefix: string, descr: string,
@@ -337,7 +349,7 @@ event connection_reused(c: connection) &priority=5
 		c$ftp_data_reuse = T;
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+hook finalize_ftp_data(c: connection)
 	{
 	if ( c$ftp_data_reuse ) return;
 	if ( [c$id$resp_h, c$id$resp_p] in ftp_data_expected )
@@ -349,8 +361,8 @@ event successful_connection_remove(c: connection) &priority=-5
 		}
 	}
 
-# Use remove event to cover connections terminated by RST.
-event successful_connection_remove(c: connection) &priority=-5
+# Covers connections terminated by RST.
+hook finalize_ftp(c: connection)
 	{
 	if ( ! c?$ftp ) return;
 

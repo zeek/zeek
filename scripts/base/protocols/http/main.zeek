@@ -5,6 +5,7 @@
 @load base/utils/numbers
 @load base/utils/files
 @load base/frameworks/tunnels
+@load base/protocols/conn/removal-hooks
 
 module HTTP;
 
@@ -124,6 +125,9 @@ export {
 	## Event that can be handled to access the HTTP record as it is sent on
 	## to the logging framework.
 	global log_http: event(rec: Info);
+
+	## HTTP finalization hook.  Remaining HTTP info may get logged when it's called.
+	global finalize_http: Conn::RemovalHook;
 }
 
 # Add the http state tracking fields to the connection record.
@@ -166,6 +170,7 @@ function set_state(c: connection, is_orig: bool)
 		{
 		local s: State;
 		c$http_state = s;
+		Conn::register_removal_hook(c, finalize_http);
 		}
 
 	# These deal with new requests and responses.
@@ -192,6 +197,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		local s: State;
 		c$http_state = s;
+		Conn::register_removal_hook(c, finalize_http);
 		}
 
 	++c$http_state$current_request;
@@ -210,6 +216,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		{
 		local s: State;
 		c$http_state = s;
+		Conn::register_removal_hook(c, finalize_http);
 		}
 
 	# If the last response was an informational 1xx, we're still expecting
@@ -321,7 +328,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+hook finalize_http(c: connection)
 	{
 	# Flush all pending but incomplete request/response pairs.
 	if ( c?$http_state )

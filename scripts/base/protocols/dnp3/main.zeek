@@ -1,8 +1,9 @@
 ##! A very basic DNP3 analysis script that just logs requests and replies.
 
-module DNP3;
-
 @load ./consts
+@load base/protocols/conn/removal-hooks
+
+module DNP3;
 
 export {
 	redef enum Log::ID += { LOG };
@@ -25,6 +26,9 @@ export {
 	## Event that can be handled to access the DNP3 record as it is sent on
 	## to the logging framework.
 	global log_dnp3: event(rec: Info);
+
+	## DNP3 finalization hook.  Remaining DNP3 info may get logged when it's called.
+	global finalize_dnp3: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -43,7 +47,10 @@ event zeek_init() &priority=5
 event dnp3_application_request_header(c: connection, is_orig: bool, application_control: count, fc: count)
 	{
 	if ( ! c?$dnp3 )
+		{
 		c$dnp3 = [$ts=network_time(), $uid=c$uid, $id=c$id];
+		Conn::register_removal_hook(c, finalize_dnp3);
+		}
 
 	c$dnp3$ts = network_time();
 	c$dnp3$fc_request = function_codes[fc];
@@ -52,7 +59,10 @@ event dnp3_application_request_header(c: connection, is_orig: bool, application_
 event dnp3_application_response_header(c: connection, is_orig: bool, application_control: count, fc: count, iin: count)
 	{
 	if ( ! c?$dnp3 )
+		{
 		c$dnp3 = [$ts=network_time(), $uid=c$uid, $id=c$id];
+		Conn::register_removal_hook(c, finalize_dnp3);
+		}
 
 	c$dnp3$ts = network_time();
 	c$dnp3$fc_reply = function_codes[fc];
@@ -63,7 +73,7 @@ event dnp3_application_response_header(c: connection, is_orig: bool, application
 	delete c$dnp3;
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+hook finalize_dnp3(c: connection)
 	{
 	if ( ! c?$dnp3 )
 		return;

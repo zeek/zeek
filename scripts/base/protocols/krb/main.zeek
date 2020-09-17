@@ -1,9 +1,10 @@
 ##! Implements base functionality for KRB analysis. Generates the kerberos.log
 ##! file.
 
-module KRB;
-
 @load ./consts
+@load base/protocols/conn/removal-hooks
+
+module KRB;
 
 export {
 	redef enum Log::ID += { LOG };
@@ -63,6 +64,9 @@ export {
 	## Event that can be handled to access the KRB record as it is sent on
 	## to the logging framework.
 	global log_krb: event(rec: Info);
+
+	## Kerberos finalization hook.  Remaining Kerberos info may get logged when it's called.
+	global finalize_krb: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -87,6 +91,7 @@ function set_session(c: connection): bool
 		c$krb = Info($ts  = network_time(),
 		             $uid = c$uid,
 		             $id  = c$id);
+		Conn::register_removal_hook(c, finalize_krb);
 		}
 	
 	return c$krb$logged;
@@ -228,7 +233,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=-5
 	do_log(c);
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+hook finalize_krb(c: connection)
 	{
 	do_log(c);
 	}

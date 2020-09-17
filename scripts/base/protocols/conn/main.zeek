@@ -300,11 +300,5 @@ event connection_state_remove(c: connection) &priority=5
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( ! c$successful )
-		Log::write(Conn::LOG, c$conn);
-	}
-
-event successful_connection_remove(c: connection) &priority=-5
-	{
 	Log::write(Conn::LOG, c$conn);
 	}

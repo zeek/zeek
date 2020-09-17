@@ -12,6 +12,7 @@
 @load ./main
 @load base/utils/files
 @load base/frameworks/cluster
+@load base/protocols/conn/removal-hooks
 
 module IRC;
 
@@ -24,6 +25,10 @@ export {
 		## Sniffed mime type of the file.
 		dcc_mime_type:         string &log &optional;
 	};
+
+	## IRC DCC data finalization hook.  Remaining expected IRC DCC state may be
+	## purged when it's called.
+	global finalize_irc_data: Conn::RemovalHook;
 }
 
 global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
@@ -121,10 +126,13 @@ event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in dcc_expected_transfers )
+		{
 		add c$service["irc-dcc-data"];
+		Conn::register_removal_hook(c, finalize_irc_data);
+		}
 	}
 
-event successful_connection_remove(c: connection) &priority=-5
+hook finalize_irc_data(c: connection)
 	{
 	if ( [c$id$resp_h, c$id$resp_p] in dcc_expected_transfers )
 		{

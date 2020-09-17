@@ -1,4 +1,21 @@
 
+3.3.0-dev.273 | 2020-09-17 13:11:44 -0700
+
+  * GH-1119: add base/protcols/conn/removal-hooks.zeek
+
+    This adds two new functions: `Conn::register_removal_hook()` and
+    `Conn::unregister_removal_hook()` for registering a hook function to be
+    called back during `connection_state_remove`.  The benefit of using hook
+    callback approach is better scalability: the overhead of unrelated
+    protocols having to dispatch no-op `connection_state_remove` handlers is
+    avoided. (Jon Siwek, Corelight)
+
+  * Avoid run-time cost of find-filtered-trace.zeek for live traffic (Jon Siwek, Corelight)
+
+  * Remove connection_successful and successful_connection_remove events
+
+    Related to https://github.com/zeek/zeek/issues/1119 (Jon Siwek, Corelight)
+
 3.3.0-dev.269 | 2020-09-17 11:42:38 -0700
 
   * GH-1155: Recursively check table index for unsupported types

@@ -1,6 +1,7 @@
 ##! Implements base functionality for SSH analysis. Generates the ssh.log file.
 
 @load base/utils/directions-and-hosts
+@load base/protocols/conn/removal-hooks
 
 module SSH;
 
@@ -60,6 +61,9 @@ export {
 	## Event that can be handled to access the SSH record as it is sent on
 	## to the logging framework.
 	global log_ssh: event(rec: Info);
+
+	## SSH finalization hook.  Remaining SSH info may get logged when it's called.
+	global finalize_ssh: Conn::RemovalHook;
 }
 
 module GLOBAL;
@@ -155,6 +159,7 @@ function set_session(c: connection)
 		if ( Site::is_local_addr(c$id$orig_h) != Site::is_local_addr(c$id$resp_h) )
 			info$direction = Site::is_local_addr(c$id$orig_h) ? OUTBOUND: INBOUND;
 		c$ssh = info;
+		Conn::register_removal_hook(c, finalize_ssh);
 		}
 	}
 
@@ -247,26 +252,29 @@ event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities
 	                                 server_caps$server_host_key_algorithms);
 	}
 
-event successful_connection_remove(c: connection)
+hook finalize_ssh(c: connection)
 	{
-	if ( c?$ssh && !c$ssh$logged )
-		{
-		# Do we have enough information to make a determination about auth success?
-		if ( c$ssh?$client && c$ssh?$server && c$ssh?$auth_success )
-			{
-			# Successes get logged immediately. To protect against a race condition, we'll double check:
-			if ( c$ssh$auth_success )
-				return;
+	if ( ! c?$ssh )
+		return;
 
-			# Now that we know it's a failure, we'll raise the event.
-			event ssh_auth_failed(c);
-			}
-		# If not, we'll just log what we have
-		else
-			{
-			c$ssh$logged = T;
-			Log::write(SSH::LOG, c$ssh);
-			}
+	if ( c$ssh$logged )
+		return;
+
+	# Do we have enough information to make a determination about auth success?
+	if ( c$ssh?$client && c$ssh?$server && c$ssh?$auth_success )
+		{
+		# Successes get logged immediately. To protect against a race condition, we'll double check:
+		if ( c$ssh$auth_success )
+			return;
+
+		# Now that we know it's a failure, we'll raise the event.
+		event ssh_auth_failed(c);
+		}
+	# If not, we'll just log what we have
+	else
+		{
+		c$ssh$logged = T;
+		Log::write(SSH::LOG, c$ssh);
 		}
 	}
 

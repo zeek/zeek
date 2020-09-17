@@ -3,6 +3,7 @@
 @load base/frameworks/notice
 @load base/utils/site
 @load base/utils/conn-ids
+@load base/protocols/conn/removal-hooks
 
 module ProtocolDetector;
 
@@ -67,6 +68,9 @@ export {
 	# reported sub-protocols).
 	global servers: table[addr, port, string] of set[string]
 				&read_expire = 14 days;
+
+	## Non-standard protocol port detection finalization hook.
+	global finalize_protocol_detection: Conn::RemovalHook;
 }
 
 # Table that tracks currently active dynamic analyzers per connection.
@@ -182,7 +186,7 @@ event ProtocolDetector::check_connection(c: connection)
 		}
 	}
 
-event successful_connection_remove(c: connection)
+hook finalize_protocol_detection(c: connection)
 	{
 	if ( c$id !in conns )
 		{
@@ -208,6 +212,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
 	else
 		{
 		conns[c$id] = set(atype);
+		Conn::register_removal_hook(c, finalize_protocol_detection);
 
 		local delay = min_interval(minimum_duration, check_interval);
 		schedule delay { ProtocolDetector::check_connection(c) };
@@ -224,4 +229,5 @@ function found_protocol(c: connection, atype: Analyzer::Tag, protocol: string)
 		protocols[c$id] = set();
 
 	add protocols[c$id][protocol];
+	Conn::register_removal_hook(c, finalize_protocol_detection);
 	}

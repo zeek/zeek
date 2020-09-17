@@ -118,7 +118,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response)
 	fill_in_subjects(c);
 	}
 
-event successful_connection_remove(c: connection)
+hook finalize_krb(c: connection) &priority=+5
 	{
 	fill_in_subjects(c);
 	}

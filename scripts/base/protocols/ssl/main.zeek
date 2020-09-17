@@ -3,6 +3,7 @@
 
 @load base/frameworks/notice/weird
 @load ./consts
+@load base/protocols/conn/removal-hooks
 
 module SSL;
 
@@ -113,6 +114,13 @@ export {
 	# Hook that can be used to perform actions right before the log record
 	# is written.
 	global ssl_finishing: hook(c: connection);
+
+	## SSL finalization hook.  Remaining SSL info may get logged when it's called.
+	## The :zeek:see:`SSL::ssl_finishing` hook may either
+	## be called before this finalization hook for established SSL connections
+	## or during this finalization hook for SSL connections may have info still
+	## left to log.
+	global finalize_ssl: Conn::RemovalHook;
 }
 
 redef record connection += {
@@ -147,7 +155,10 @@ event zeek_init() &priority=5
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
+		{
 		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id];
+		Conn::register_removal_hook(c, finalize_ssl);
+		}
 	}
 
 function delay_log(info: Info, token: string)
@@ -329,17 +340,16 @@ event ssl_established(c: connection) &priority=-5
 	finish(c, T);
 	}
 
-event successful_connection_remove(c: connection) &priority=20
+hook finalize_ssl(c: connection)
 	{
-	if ( c?$ssl && ! c$ssl$logged )
-		hook ssl_finishing(c);
-	}
+	if ( ! c?$ssl )
+		return;
 
-event successful_connection_remove(c: connection) &priority=-5
-	{
-	if ( c?$ssl )
-		# called in case a SSL connection that has not been established terminates
-		finish(c, F);
+	if ( ! c$ssl$logged )
+		hook ssl_finishing(c);
+
+	# called in case a SSL connection that has not been established terminates
+	finish(c, F);
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5

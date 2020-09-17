@@ -1,5 +1,6 @@
 @load ./consts
 @load base/frameworks/dpd
+@load base/protocols/conn/removal-hooks
 
 module DCE_RPC;
 
@@ -46,6 +47,9 @@ export {
 		info: Info;
 		state: State;
 	};
+
+	## DCE_RPC finalization hook.  Remaining DCE_RPC info may get logged when it's called.
+	global finalize_dce_rpc: Conn::RemovalHook;
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_DCE_RPC };
@@ -83,6 +87,8 @@ function set_state(c: connection, state_x: BackingState)
 		c$dce_rpc$endpoint = uuid_endpoint_map[c$dce_rpc_state$uuid];
 	if ( c$dce_rpc_state?$named_pipe )
 		c$dce_rpc$named_pipe = c$dce_rpc_state$named_pipe;
+
+	Conn::register_removal_hook(c, finalize_dce_rpc);
 	}
 
 function set_session(c: connection, fid: count)
@@ -209,7 +215,7 @@ event dce_rpc_response(c: connection, fid: count, ctx_id: count, opnum: count, s
 		}
 	}
 
-event successful_connection_remove(c: connection)
+hook finalize_dce_rpc(c: connection)
 	{
 	if ( ! c?$dce_rpc )
 		return;

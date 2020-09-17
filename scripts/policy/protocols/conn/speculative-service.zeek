@@ -19,13 +19,7 @@ redef record connection += {
 redef dpd_match_only_beginning = F;
 redef dpd_late_match_stop = T;
 
-event protocol_late_match(c: connection, atype: Analyzer::Tag)
-	{
-	local analyzer = Analyzer::name(atype);
-	add c$speculative_service[analyzer];
-	}
-
-event successful_connection_remove(c: connection)
+hook finalize_speculative_service(c: connection)
 	{
 	local sp_service = "";
 	for ( s in c$speculative_service )
@@ -33,4 +27,11 @@ event successful_connection_remove(c: connection)
 
 	if ( sp_service != "" )
 		c$conn$speculative_service = to_lower(sp_service);
+	}
+
+event protocol_late_match(c: connection, atype: Analyzer::Tag)
+	{
+	local analyzer = Analyzer::name(atype);
+	add c$speculative_service[analyzer];
+	Conn::register_removal_hook(c, finalize_speculative_service);
 	}

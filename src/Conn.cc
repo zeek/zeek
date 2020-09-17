@@ -80,7 +80,6 @@ Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
 	resp_flow_label = 0;
 	saw_first_orig_packet = 1;
 	saw_first_resp_packet = 0;
-	is_successful = false;
 
 	if ( pkt->l2_src )
 		memcpy(orig_l2_addr, pkt->l2_src, sizeof(orig_l2_addr));
@@ -202,18 +201,11 @@ void Connection::NextPacket(double t, bool is_orig,
 
 	if ( root_analyzer )
 		{
-		auto was_successful = is_successful;
 		record_current_packet = record_packet;
 		record_current_content = record_content;
 		root_analyzer->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
-
-		if ( ConnTransport() != TRANSPORT_TCP )
-			is_successful = true;
-
-		if ( ! was_successful && is_successful && connection_successful )
-			EnqueueEvent(connection_successful, nullptr, ConnVal());
 		}
 	else
 		last_time = t;
@@ -410,7 +402,6 @@ const RecordValPtr& Connection::ConnVal()
 	conn_val->Assign(3, make_intrusive<TimeVal>(start_time));	// ###
 	conn_val->Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
 	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
-	conn_val->Assign(11, val_mgr->Bool(is_successful));
 
 	conn_val->SetOrigin(this);
 
@@ -466,9 +457,6 @@ void Connection::RemovalEvent()
 	{
 	if ( connection_state_remove )
 		EnqueueEvent(connection_state_remove, nullptr, ConnVal());
-
-	if ( is_successful && successful_connection_remove )
-		EnqueueEvent(successful_connection_remove, nullptr, ConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)

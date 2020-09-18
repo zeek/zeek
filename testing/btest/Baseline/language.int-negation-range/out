@@ -1,0 +1,2 @@
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.int-negation-range/int-negation-range.zeek, line 8: literal is outside range of 'int' values (-9223372036854775809)
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.int-negation-range/int-negation-range.zeek, line 9: literal is outside range of 'int' values (-9223372036854775810)

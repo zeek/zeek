@@ -719,7 +719,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 		v = {NewRef{}, f->GetElement(id.get())};
 
 	else
-		// No frame - evaluating for Simplify() purposes
+		// No frame - evaluating for folding purposes
 		return nullptr;
 
 	if ( v )

@@ -39,6 +39,11 @@
 %}
 
 refine connection SMB_Conn += {
+	function join_pid_bits(hi: uint16, lo: uint16): uint32
+		%{
+		return (static_cast<uint32_t>(hi) << 16) | static_cast<uint32_t>(lo);
+		%}
+
 	function proc_smb_message(h: SMB_Header, is_orig: bool): bool
 		%{
 		if ( smb1_message )
@@ -306,7 +311,7 @@ type SMB_Header(is_orig: bool) = record {
 } &let {
 	err_status_type = (flags2 >> 14) & 1;
 	unicode         = (flags2 >> 15) & 1;
-	pid             = (pid_high * 0x10000) + pid_low;
+	pid: uint32     = $context.connection.join_pid_bits(pid_high, pid_low);
 	is_pipe: bool   = $context.connection.get_tree_is_pipe(tid);
 	proc : bool     = $context.connection.proc_smb_message(this, is_orig);
 } &byteorder=littleendian;

@@ -2846,8 +2846,80 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 	return result;
 	}
 
+// Returns true if the given Expr is either of the form "/pat/ in var" or a
+// (possibly extended) "||" disjunction of such nodes, for which "var" is
+// always the same.  If true, returns the ID* corresponding to "var", and
+// collects the associated pattern constants in "patterns".
+//
+// Note that for an initial (non-recursive) call, "id" should be set to
+// nullptr, and the caller should have ensured that the starting point is
+// a disjunction (since a bare "/pat/ in var" by itself isn't a "cascade"
+// and doesn't present a potential optimization opportunity.
+static bool is_pattern_cascade(Expr* e, ID*& id,
+				std::vector<ConstExpr*>& patterns)
+	{
+	auto lhs = e->GetOp1();
+	auto rhs = e->GetOp2();
+
+	if ( e->Tag() == EXPR_IN )
+		{
+		if ( lhs->Tag() != EXPR_CONST ||
+		     lhs->Type()->Tag() != TYPE_PATTERN ||
+		     rhs->Tag() != EXPR_NAME )
+			return false;
+
+		auto rhs_id = rhs->AsNameExpr()->Id();
+
+		if ( id && rhs_id != id )
+			return false;
+
+		id = rhs_id;
+		patterns.push_back(lhs->AsConstExpr());
+
+		return true;
+		}
+
+	if ( e->Tag() != EXPR_OR_OR )
+		return false;
+
+	return is_pattern_cascade(lhs.get(), id, patterns) &&
+		is_pattern_cascade(rhs.get(), id, patterns);
+	}
+
+// Given a set of pattern constants, returns a disjunction that
+// includes all of them.
+static IntrusivePtr<Expr> BuildDisjunction(std::vector<ConstExpr*>& patterns)
+	{
+	ASSERT(patterns.size() > 1);
+
+	IntrusivePtr<Expr> e = {NewRef{}, patterns[0]};
+
+	for ( unsigned int i = 1; i < patterns.size(); ++i )
+		{
+		IntrusivePtr<Expr> e_i = {NewRef{}, patterns[i]};
+		e = make_intrusive<BitExpr>(EXPR_OR, e, e_i);
+		}
+
+	return e;
+	}
+
 Expr* BoolExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	// First, look for a common idiom of "/foo/ in x || /bar/ in x"
+	// and translate it to "(/foo/ | /bar) in x", which is more
+	// efficient to match.
+	ID* common_id = nullptr;
+	std::vector<ConstExpr*> patterns;
+	if ( tag == EXPR_OR_OR &&
+	     is_pattern_cascade(this, common_id, patterns) )
+		{
+		auto new_pat = BuildDisjunction(patterns);
+		IntrusivePtr<ID> common_id_ptr = {NewRef{}, common_id};
+		auto new_id = make_intrusive<NameExpr>(common_id_ptr);
+		auto new_node = make_intrusive<InExpr>(new_pat, new_id);
+		return new_node->Reduce(c, red_stmt);
+		}
+
 	// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 	bool is_and = (tag == EXPR_AND_AND);
 

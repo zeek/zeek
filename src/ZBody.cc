@@ -296,7 +296,7 @@ IntrusivePtr<Val> ZBody::Exec(Frame* f, stmt_flow_type& flow) const
 	}
 
 IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
-						stmt_flow_type& flow) const
+				stmt_flow_type& flow) const
 	{
 	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
 						nullptr;

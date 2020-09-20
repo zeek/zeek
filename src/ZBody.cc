@@ -328,7 +328,9 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	// Type of the return value.  If nil, then we don't have a value.
 	BroType* ret_type = nullptr;
 
+#ifdef DEBUG
 	bool do_profile = analysis_options.report_profile;
+#endif
 
 	// All globals start out unloaded.
 	for ( auto i = 0; i < num_globals; ++i )

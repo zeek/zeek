@@ -272,13 +272,16 @@ void ZBody::InitProfile()
 
 IntrusivePtr<Val> ZBody::Exec(Frame* f, stmt_flow_type& flow) const
 	{
+#ifdef DEBUG
 	auto nv = num_Vals;
 	auto ndv = num_del_Vals;
 
 	double t = analysis_options.report_profile ? curr_CPU_time() : 0.0;
+#endif
 
 	auto val = DoExec(f, 0, flow);
 
+#ifdef DEBUG
 	if ( analysis_options.report_profile )
 		*CPU_time += curr_CPU_time() - t;
 
@@ -287,6 +290,7 @@ IntrusivePtr<Val> ZBody::Exec(Frame* f, stmt_flow_type& flow) const
 
 	if ( /* dnv || dndv */ 0 )
 		printf("%s vals: +%d -%d\n", func_name, dnv, dndv);
+#endif
 
 	return val;
 	}

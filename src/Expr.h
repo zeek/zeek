@@ -246,6 +246,10 @@ public:
 	// of an assignment.
 	virtual bool WillTransform(Reducer* c) const	{ return false; }
 
+	// The same, but for the expression used in a conditional context.
+	virtual bool WillTransformInConditional(Reducer* c) const
+		{ return false; }
+
 	// True if the expression is in error (to alleviate error propagation).
 	bool IsError() const;
 
@@ -778,6 +782,7 @@ public:
 	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
 
 	bool WillTransform(Reducer* c) const override	{ return true; }
+	bool WillTransformInConditional(Reducer* c) const override;;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Expr> Duplicate() override;

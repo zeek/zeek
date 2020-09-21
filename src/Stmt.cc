@@ -639,6 +639,11 @@ bool IfStmt::IsReduced(Reducer* c) const
 
 Stmt* IfStmt::DoReduce(Reducer* c)
 	{
+	IntrusivePtr<Stmt> red_e_stmt;
+
+	if ( e->WillTransformInConditional(c) )
+		e = {AdoptRef{}, e->ReduceToConditional(c, red_e_stmt)};
+
 	// First, assess some fundamental transformations.
 	if ( e->Tag() == EXPR_NOT )
 		{
@@ -691,12 +696,19 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 	if ( s1->Tag() == STMT_NULL && s2->Tag() == STMT_NULL )
 		return TransformMe(new NullStmt, c);
 
-	IntrusivePtr<Stmt> red_e_stmt;
-
 	if ( c->Optimizing() )
 		e = c->OptExpr(e);
 	else
-		e = {AdoptRef{}, e->ReduceToConditional(c, red_e_stmt)};
+		{
+		IntrusivePtr<Stmt> cond_red_stmt;
+		e = {AdoptRef{}, e->ReduceToConditional(c, cond_red_stmt)};
+
+		if ( red_e_stmt && cond_red_stmt )
+			red_e_stmt = make_intrusive<StmtList>(red_e_stmt,
+								cond_red_stmt);
+		else if ( cond_red_stmt )
+			red_e_stmt = cond_red_stmt;
+		}
 
 	if ( e->IsConst() )
 		{

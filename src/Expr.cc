@@ -2855,7 +2855,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 // nullptr, and the caller should have ensured that the starting point is
 // a disjunction (since a bare "/pat/ in var" by itself isn't a "cascade"
 // and doesn't present a potential optimization opportunity.
-static bool is_pattern_cascade(Expr* e, ID*& id,
+static bool is_pattern_cascade(const Expr* e, ID*& id,
 				std::vector<ConstExpr*>& patterns)
 	{
 	auto lhs = e->GetOp1();
@@ -2901,6 +2901,14 @@ static IntrusivePtr<Expr> BuildDisjunction(std::vector<ConstExpr*>& patterns)
 		}
 
 	return e;
+	}
+
+bool BoolExpr::WillTransformInConditional(Reducer* c) const
+	{
+	ID* common_id = nullptr;
+	std::vector<ConstExpr*> patterns;
+	return tag == EXPR_OR_OR &&
+		is_pattern_cascade(this, common_id, patterns);
 	}
 
 Expr* BoolExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)

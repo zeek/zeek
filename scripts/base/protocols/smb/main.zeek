@@ -10,6 +10,9 @@ export {
 		MAPPING_LOG,
 		FILES_LOG
 	};
+
+	global log_policy_files: Log::PolicyHook;
+	global log_policy_mapping: Log::PolicyHook;
 	
 	## Abstracted actions for SMB file actions.
 	type Action: enum {
@@ -179,8 +182,8 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files"]);
-	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping"]);
+	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files", $policy=log_policy_files]);
+	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping", $policy=log_policy_mapping]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}

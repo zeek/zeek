@@ -12,6 +12,8 @@ module DHCP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the column fields of the DHCP log.
 	type Info: record {
 		## The earliest time at which a DHCP message over the
@@ -122,7 +124,7 @@ redef likely_server_ports += { 67/udp };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp, $path="dhcp"]);
+	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp, $path="dhcp", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 

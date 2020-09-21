@@ -10,6 +10,8 @@ module Known;
 
 export {
 	redef enum Log::ID += { CERTS_LOG };
+
+	global log_policy_certs: Log::PolicyHook;
 	
 	type CertsInfo: record {
 		## The timestamp when the certificate was detected.
@@ -195,5 +197,5 @@ event ssl_established(c: connection) &priority=3
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs"]);
+	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs", $policy=log_policy_certs]);
 	}

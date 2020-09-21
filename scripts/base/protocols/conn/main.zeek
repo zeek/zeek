@@ -13,6 +13,9 @@ export {
 	## The connection logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains column fields of the connection log.
 	type Info: record {
 		## This is the time of the first packet.
@@ -158,7 +161,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn"]);
+	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn", $policy=log_policy]);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string

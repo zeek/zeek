@@ -7,6 +7,8 @@ module Stats;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## How often stats are reported.
 	option report_interval = 5min;
 
@@ -84,7 +86,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
+	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats", $policy=log_policy]);
 	}
 
 event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats, last_ds: DNSStats)

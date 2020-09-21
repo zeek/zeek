@@ -7,6 +7,8 @@ module NetControl;
 export {
 	redef enum Log::ID += { SHUNT };
 
+	global log_policy_shunt: Log::PolicyHook;
+
 	## Stops forwarding a uni-directional flow's packets to Zeek.
 	##
 	## f: The flow to shunt.
@@ -38,7 +40,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::SHUNT, [$columns=ShuntInfo, $ev=log_netcontrol_shunt, $path="netcontrol_shunt"]);
+	Log::create_stream(NetControl::SHUNT, [$columns=ShuntInfo, $ev=log_netcontrol_shunt, $path="netcontrol_shunt", $policy=log_policy_shunt]);
 	}
 
 function shunt_flow(f: flow_id, t: interval, location: string &default="") : string

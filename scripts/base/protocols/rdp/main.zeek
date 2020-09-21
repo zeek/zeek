@@ -8,6 +8,8 @@ module RDP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts:                    time    &log;
@@ -95,7 +97,7 @@ redef likely_server_ports += { rdp_ports, rdpeudp_ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp"]);
+	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDPEUDP, rdpeudp_ports);
 	}

@@ -14,6 +14,8 @@ module CaptureLoss;
 export {
 	redef enum Log::ID += { LOG };
 	
+	global log_policy: Log::PolicyHook;
+
 	redef enum Notice::Type += {
 		## Report if the detected capture loss exceeds the percentage
 		## threshold.
@@ -76,7 +78,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="capture_loss"]);
+	Log::create_stream(LOG, [$columns=Info, $path="capture_loss", $policy=log_policy]);
 
 	# We only schedule the event if we are capturing packets.
 	if ( reading_live_traffic() || reading_traces() )

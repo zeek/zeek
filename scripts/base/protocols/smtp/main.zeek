@@ -8,6 +8,8 @@ module SMTP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Time when the message was first seen.
 		ts:                time            &log;
@@ -98,7 +100,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp, $path="smtp"]);
+	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp, $path="smtp", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
 	}
 

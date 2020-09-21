@@ -35,6 +35,9 @@ export {
 	## The signature logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## These are the default actions you can apply to signature matches.
 	## All of them write the signature record to the logging stream unless
 	## declared otherwise.
@@ -142,7 +145,7 @@ global did_sig_log: set[string] &read_expire = 1 hr;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures"]);
+	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures", $policy=log_policy]);
 	}
 		
 # Returns true if the given signature has already been triggered for the given

@@ -14,6 +14,9 @@ export {
 	## The software logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## Scripts detecting new types of software need to redef this enum to add
 	## their own specific software types which would then be used when they 
 	## create :zeek:type:`Software::Info` records.
@@ -123,7 +126,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
+	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software", $policy=log_policy]);
 	}
 	
 type Description: record {

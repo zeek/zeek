@@ -35,6 +35,7 @@ struct Manager::Filter {
 	Val* fval;
 	string name;
 	EnumVal* id;
+	Func* policy;
 	Func* pred;
 	Func* path_func;
 	string path;
@@ -81,6 +82,7 @@ struct Manager::Stream {
 	string name;
 	RecordType* columns;
 	EventHandlerPtr event;
+	Func* policy;
 	list<Filter*> filters;
 
 	typedef pair<int, string> WriterPathPair;
@@ -272,6 +274,9 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	const auto& event_val = sval->GetField("ev");
 	Func* event = event_val ? event_val->AsFunc() : nullptr;
 
+	const auto& policy_val = sval->GetField("policy");
+	Func* policy = policy_val ? policy_val->AsFunc() : nullptr;
+
 	if ( event )
 		{
 		// Make sure the event is prototyped as expected.
@@ -316,6 +321,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->enabled = true;
 	streams[idx]->name = id->GetType()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
+	streams[idx]->policy = policy;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
 	streams[idx]->enable_remote = id::find_val("Log::enable_remote_logging")->AsBool();
@@ -550,6 +556,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	// Create a new Filter instance.
 
 	auto name = fval->GetFieldOrDefault("name");
+	auto policy = fval->GetFieldOrDefault("policy");
 	auto pred = fval->GetFieldOrDefault("pred");
 	auto path_func = fval->GetFieldOrDefault("path_func");
 	auto log_local = fval->GetFieldOrDefault("log_local");
@@ -566,6 +573,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->fval = fval->Ref();
 	filter->name = name->AsString()->CheckString();
 	filter->id = id->Ref()->AsEnumVal();
+	filter->policy = policy ? policy->AsFunc() : stream->policy;
 	filter->pred = pred ? pred->AsFunc() : nullptr;
 	filter->path_func = path_func ? path_func->AsFunc() : nullptr;
 	filter->writer = writer->Ref()->AsEnumVal();
@@ -648,6 +656,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	DBG_LOG(DBG_LOGGING, "   writer    : %s", desc.Description());
 	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
 	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
+	DBG_LOG(DBG_LOGGING, "   policy    : %s", (filter->policy ? "set" : "not set"));
 	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
 
 	for ( int i = 0; i < filter->num_fields; i++ )
@@ -721,17 +730,29 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		Filter* filter = *i;
 		string path = filter->path;
 
+		// Policy hooks may veto the logging or alter the log
+		// record if really necessary. Potential optimization:
+		// don't invoke the hook at all when it has no
+		// handlers/bodies. Doing this skips sampling and
+		// plugin hooks, though, so for now we do invoke.
+		if ( filter->policy )
+			{
+			auto v = filter->policy->Invoke(columns,
+							IntrusivePtr{NewRef{}, id},
+							IntrusivePtr{NewRef{}, filter->fval});
+			if ( v  && ! v->AsBool() )
+				continue;
+			}
+
+		// $pred is deprecated and will get removed in 4.1.
+		// This block can go when that time comes.
 		if ( filter->pred )
 			{
-			// See whether the predicates indicates that we want
+			// See whether the predicate indicates that we want
 			// to log this record.
-			int result = 1;
 			auto v = filter->pred->Invoke(columns);
 
-			if ( v )
-				result = v->AsBool();
-
-			if ( ! result )
+			if ( v && ! v->AsBool() )
 				continue;
 			}
 

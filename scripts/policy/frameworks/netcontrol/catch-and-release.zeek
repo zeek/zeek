@@ -9,6 +9,8 @@ export {
 
 	redef enum Log::ID += { CATCH_RELEASE };
 
+	global log_policy_catch_release: Log::PolicyHook;
+
 	## This record is used for storing information about current blocks that are
 	## part of catch and release.
 	type BlockInfo: record {
@@ -164,7 +166,7 @@ global catch_release_recently_notified: set[addr] &create_expire=30secs;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::CATCH_RELEASE, [$columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release"]);
+	Log::create_stream(NetControl::CATCH_RELEASE, [$columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release", $policy=log_policy_catch_release]);
 	}
 
 function get_watch_interval(current_interval: count): interval

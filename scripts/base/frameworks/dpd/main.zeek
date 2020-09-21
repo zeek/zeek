@@ -7,6 +7,9 @@ export {
 	## Add the DPD logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## The record type defining the columns to log in the DPD logging stream.
 	type Info: record {
 		## Timestamp for when protocol analysis failed.
@@ -47,7 +50,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd"]);
+	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd", $policy=log_policy]);
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=10

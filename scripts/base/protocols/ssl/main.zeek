@@ -10,6 +10,8 @@ module SSL;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the fields of the SSL log.
 	type Info: record {
 		## Time when the SSL connection was first detected.
@@ -147,7 +149,7 @@ redef likely_server_ports += { ssl_ports, dtls_ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl"]);
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}

@@ -8,6 +8,8 @@ module Syslog;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the fields of the syslog log.
 	type Info: record {
 		## Timestamp when the syslog message was seen.
@@ -36,7 +38,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Syslog::LOG, [$columns=Info, $path="syslog"]);
+	Log::create_stream(Syslog::LOG, [$columns=Info, $path="syslog", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, ports);
 	}
 

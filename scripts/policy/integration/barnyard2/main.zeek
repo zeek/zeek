@@ -9,6 +9,8 @@ module Barnyard2;
 export {
 	redef enum Log::ID += { LOG };
 	
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Timestamp of the alert.
 		ts:                 time      &log;
@@ -26,7 +28,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Barnyard2::LOG, [$columns=Info, $path="barnyard2"]);
+	Log::create_stream(Barnyard2::LOG, [$columns=Info, $path="barnyard2", $policy=log_policy]);
 	}
 
 

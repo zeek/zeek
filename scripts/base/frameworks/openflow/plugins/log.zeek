@@ -13,6 +13,8 @@ export {
 
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## Log controller constructor.
 	##
 	## dpid: OpenFlow switch datapath id.
@@ -48,7 +50,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(OpenFlow::LOG, [$columns=Info, $ev=log_openflow, $path="openflow"]);
+	Log::create_stream(OpenFlow::LOG, [$columns=Info, $ev=log_openflow, $path="openflow", $policy=log_policy]);
 	}
 
 function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool

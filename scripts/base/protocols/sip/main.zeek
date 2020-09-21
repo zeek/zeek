@@ -11,6 +11,8 @@ module SIP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the fields of the SIP log.
 	type Info: record {
 		## Timestamp for when the request happened.
@@ -104,7 +106,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SIP::LOG, [$columns=Info, $ev=log_sip, $path="sip"]);
+	Log::create_stream(SIP::LOG, [$columns=Info, $ev=log_sip, $path="sip", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SIP, ports);
 	}
 

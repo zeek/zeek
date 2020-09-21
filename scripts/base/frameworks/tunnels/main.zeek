@@ -13,6 +13,9 @@ export {
 	## The tunnel logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## Types of interesting activity that can occur with a tunnel.
 	type Action: enum {
 		## A new tunnel (encapsulating "connection") has been seen.
@@ -94,7 +97,7 @@ redef likely_server_ports += { ayiya_ports, teredo_ports, gtpv1_ports, vxlan_por
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Tunnel::LOG, [$columns=Info, $path="tunnel"]);
+	Log::create_stream(Tunnel::LOG, [$columns=Info, $path="tunnel", $policy=log_policy]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_AYIYA, ayiya_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, teredo_ports);

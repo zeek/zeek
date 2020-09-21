@@ -7,6 +7,8 @@ module SNMP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## Information tracked per SNMP session.
 	type Info: record {
 		## Timestamp of first packet belonging to the SNMP session.
@@ -71,7 +73,7 @@ redef likely_server_ports += { ports };
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SNMP, ports);
-	Log::create_stream(SNMP::LOG, [$columns=SNMP::Info, $ev=log_snmp, $path="snmp"]);
+	Log::create_stream(SNMP::LOG, [$columns=SNMP::Info, $ev=log_snmp, $path="snmp", $policy=log_policy]);
 	}
 
 function init_state(c: connection, h: SNMP::Header): Info

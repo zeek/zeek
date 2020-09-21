@@ -10,6 +10,8 @@ module Intel;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## Enum type to represent various types of intelligence data.
 	type Type: enum {
 		## An IP address.
@@ -225,7 +227,7 @@ global min_data_store: MinDataStore &redef;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel"]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel", $policy=log_policy]);
 	}
 
 # Function that abstracts expiration of different types.

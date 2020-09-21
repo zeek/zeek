@@ -43,21 +43,6 @@ export {
 	## Individual writers can use a different value.
 	const unset_field = "-" &redef;
 
-	## Type defining the content of a logging stream.
-	type Stream: record {
-		## A record type defining the log's columns.
-		columns: any;
-
-		## Event that will be raised once for each log entry.
-		## The event receives a single same parameter, an instance of
-		## type ``columns``.
-		ev: any &optional;
-
-		## A path that will be inherited by any filters added to the
-		## stream which do not already specify their own path.
-		path: string &optional;
-	};
-
 	## Builds the default path values for log filters if not otherwise
 	## specified by a filter. The default implementation uses *id*
 	## to derive a name.  Upon adding a filter to a stream, if neither
@@ -232,7 +217,8 @@ export {
 		##      fields set to the values to be logged.
 		##
 		## Returns: True if the entry is to be recorded.
-		pred: function(rec: any): bool &optional;
+		pred: function(rec: any): bool &optional
+			&deprecated="Remove in 4.1. PolicyHooks will replace the $pred function.";
 
 		## Output path for recording entries matching this
 		## filter.
@@ -320,6 +306,60 @@ export {
 		## Interpretation of the values is left to the writer, but
 		## usually they will be used for configuration purposes.
 		config: table[string] of string &default=table();
+	};
+
+	## A hook type to implement filtering policy. Hook handlers can
+	## veto the logging of a record or alter it prior to logging.
+	## You can pass arbitrary state into the hook via the
+	## filter argument and its config member.
+	##
+	## rec: An instance of the stream's ``columns`` type with its
+	##      fields set to the values to be logged.
+	##
+	## id: The ID associated with the logging stream the filter
+	##     belongs to.
+	##
+	## filter: The :zeek:type:`Log::Filter` instance that controls
+	##         the fate of the given log record.
+	type PolicyHook: hook(rec: any, id: ID, filter: Filter);
+
+	# To allow Filters to have a policy hook that refers to
+	# Filters, the Filter type must exist. So redef now to add the
+	# hook to the record.
+	redef record Filter += {
+		## Policy hooks can adjust log entry values and veto
+		## the writing of a log entry for the record passed
+		## into it. Any hook that breaks from its body signals
+		## that Zeek won't log the entry passed into it.
+		##
+		## When no policy hook is defined, the filter inherits
+		## the hook from the stream it's associated with.
+		policy: PolicyHook &optional;
+	};
+
+	## Type defining the content of a logging stream.
+	type Stream: record {
+		## A record type defining the log's columns.
+		columns: any;
+
+		## Event that will be raised once for each log entry.
+		## The event receives a single same parameter, an instance of
+		## type ``columns``.
+		ev: any &optional;
+
+		## A path that will be inherited by any filters added to the
+		## stream which do not already specify their own path.
+		path: string &optional;
+
+		## Policy hooks can adjust log records and veto their
+		## writing. Any hook handler that breaks from its body
+		## signals that Zeek won't log the entry passed into
+		## it. You can pass arbitrary state into the hook via
+		## the filter instance and its config table.
+		##
+		## New Filters created for this stream will inherit
+		## this policy hook, unless they provide their own.
+		policy: PolicyHook &optional;
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.

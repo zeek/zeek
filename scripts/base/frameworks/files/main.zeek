@@ -14,6 +14,9 @@ export {
 		LOG
 	};
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## A structure which parameterizes a type of file analysis.
 	type AnalyzerArgs: record {
 		## An event which will be generated for all new file contents,
@@ -318,7 +321,7 @@ global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: A
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files, $path="files"]);
+	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files, $path="files", $policy=log_policy]);
 	}
 
 function set_info(f: fa_file)

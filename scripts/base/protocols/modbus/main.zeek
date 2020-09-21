@@ -7,6 +7,8 @@ module Modbus;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Time of the request.
 		ts:        time           &log;
@@ -34,7 +36,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Modbus::LOG, [$columns=Info, $ev=log_modbus, $path="modbus"]);
+	Log::create_stream(Modbus::LOG, [$columns=Info, $ev=log_modbus, $path="modbus", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MODBUS, ports);
 	}
 

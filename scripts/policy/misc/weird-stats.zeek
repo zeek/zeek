@@ -8,6 +8,8 @@ module WeirdStats;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## How often stats are reported.
 	const weird_stat_interval = 15min &redef;
 
@@ -55,7 +57,7 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(WeirdStats::LOG,
 	                   [$columns = Info, $ev = log_weird_stats,
-	                    $path="weird_stats"]);
+	                    $path="weird_stats", $policy=log_policy]);
 	local r1 = SumStats::Reducer($stream = "weirds.encountered",
 	                             $apply = set(SumStats::SUM));
 	SumStats::create([$name = "weirds.statistics",

@@ -19,6 +19,9 @@ export {
 	## The framework's logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	# ###
 	# ###  Generic functions and events.
 	# ###
@@ -366,7 +369,7 @@ global rule_entities: table[Entity, RuleType] of Rule;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::LOG, [$columns=Info, $ev=log_netcontrol, $path="netcontrol"]);
+	Log::create_stream(NetControl::LOG, [$columns=Info, $ev=log_netcontrol, $path="netcontrol", $policy=log_policy]);
 	}
 
 function entity_to_info(info: Info, e: Entity)

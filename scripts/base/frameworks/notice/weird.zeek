@@ -17,6 +17,9 @@ export {
 	## The weird logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	redef enum Notice::Type += {
 		## Generic unusual but notice-worthy weird activity.
 		Activity,
@@ -298,7 +301,7 @@ const notice_actions = {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird, $path="weird"]);
+	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird, $path="weird", $policy=log_policy]);
 	}
 
 function flow_id_string(src: addr, dst: addr): string

@@ -5,6 +5,8 @@ module PE;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Current timestamp.
 		ts:                  time              &log;
@@ -58,7 +60,7 @@ const pe_mime_types = { "application/x-dosexec" };
 event zeek_init() &priority=5
 	{
 	Files::register_for_mime_types(Files::ANALYZER_PE, pe_mime_types);
-	Log::create_stream(LOG, [$columns=Info, $ev=log_pe, $path="pe"]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_pe, $path="pe", $policy=log_policy]);
 	}
 
 hook set_file(f: fa_file) &priority=5

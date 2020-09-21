@@ -1,4 +1,10 @@
 
+3.3.0-dev.279 | 2020-09-21 15:22:45 -0700
+
+  * CI: Move to Fedora 32 (Christian Kreibich, Corelight)
+
+    Fedora 30 is EOL.
+
 3.3.0-dev.275 | 2020-09-17 13:39:46 -0700
 
   * GH-1164: Fix incorrect RSTOS0 conn_state determinations

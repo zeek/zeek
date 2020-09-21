@@ -1917,7 +1917,7 @@ eval (void) broker_mgr->FlushLogBuffers()
 internal-op Get-Port-Transport-Proto
 type VV
 eval auto mask = frame[z.v2].uint_val & PORT_SPACE_MASK
-eval auto v = 0; /* TRANPORT_UNKNOWN */
+eval auto v = 0; /* TRANSPORT_UNKNOWN */
 eval if ( mask == TCP_PORT_MASK ) v = 1
 eval else if ( mask == UDP_PORT_MASK ) v = 2
 eval else if ( mask == ICMP_PORT_MASK ) v = 3

@@ -519,7 +519,7 @@ public:
 	ValPtr Eval(Frame* f) const override;
 };
 
-class IndexExpr final : public BinaryExpr {
+class IndexExpr : public BinaryExpr {
 public:
 	IndexExpr(ExprPtr op1,
 	          ListExprPtr op2, bool is_slice = false);
@@ -547,6 +547,39 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	bool is_slice;
+};
+
+class IndexExprWhen final : public IndexExpr {
+public:
+	static inline std::vector<ValPtr> results = {};
+	static inline int evaluating = 0;
+
+	static void StartEval()
+		{ ++evaluating; }
+
+	static void EndEval()
+		{ --evaluating; }
+
+	static std::vector<ValPtr> TakeAllResults()
+		{
+		auto rval = std::move(results);
+		results = {};
+		return rval;
+		}
+
+	IndexExprWhen(ExprPtr op1, ListExprPtr op2, bool is_slice = false)
+	    : IndexExpr(std::move(op1), std::move(op2), is_slice)
+		{ }
+
+	ValPtr Eval(Frame* f) const override
+		{
+		auto v = IndexExpr::Eval(f);
+
+		if ( v && evaluating > 0 )
+			results.emplace_back(v);
+
+		return v;
+		}
 };
 
 class FieldExpr final : public UnaryExpr {

@@ -1,4 +1,8 @@
 
+3.3.0-dev.282 | 2020-09-22 11:08:56 -0700
+
+  * GH-927: Fix circumvention of evaluation order in 'when' conditions (Jon Siwek, Corelight)
+
 3.3.0-dev.279 | 2020-09-21 15:22:45 -0700
 
   * CI: Move to Fedora 32 (Christian Kreibich, Corelight)

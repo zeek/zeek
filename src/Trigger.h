@@ -91,7 +91,7 @@ private:
 	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
 
-	void Init();
+	void Init(std::vector<IntrusivePtr<Val>> index_expr_results);
 	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();

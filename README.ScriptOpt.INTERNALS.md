@@ -1145,7 +1145,7 @@ to
     ZAM_vector* vector_val;
 ```
 Both `ZAM_record` and `ZAM_vector` (likewise defined in `ZVal.h`/`ZVal.cc`)
-use as their underlying representation `std:vector<ZAMValUnion>`.  For
+use as their underlying representation `std::vector<ZAMValUnion>`.  For
 `ZAM_record`, the vector has a fixed size, and the class tracks which
 elements are present (and whether those elements require memory management).
 For `ZAM_vector`, the vector grows dynamically.  Unlike for the original
@@ -1213,6 +1213,7 @@ Here's a summary of new files added to `src/`:
 <br>
 The sizes are as of this writing and not meant to be frequently updated.
 
+<br>
 <br>
 
 `Expr.{h,cc}` and `Stmt.{h,cc}` also have extensive changes to support

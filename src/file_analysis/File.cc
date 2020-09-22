@@ -393,11 +393,10 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
-	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
+	for ( const auto& entry : analyzers )
 		{
+		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+
 		DBG_LOG(DBG_FILE_ANALYSIS, "stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->GotStreamDelivery() )
 			{
@@ -497,11 +496,10 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
-	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
+	for ( const auto& entry : analyzers )
 		{
+		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+
 		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->Skipping() )
 			{
@@ -561,11 +559,10 @@ void File::EndOfFile()
 
 	done = true;
 
-	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
+	for ( const auto& entry : analyzers )
 		{
+		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+
 		if ( ! a->EndOfFile() )
 			analyzers.QueueRemove(a->Tag(), a->GetArgs());
 		}
@@ -594,11 +591,10 @@ void File::Gap(uint64_t offset, uint64_t len)
 		DeliverStream((const u_char*) "", 0);
 		}
 
-	file_analysis::Analyzer* a = nullptr;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
+	for ( const auto& entry : analyzers )
 		{
+		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+
 		if ( ! a->Undelivered(offset, len) )
 			analyzers.QueueRemove(a->Tag(), a->GetArgs());
 		}

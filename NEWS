@@ -343,6 +343,11 @@ Deprecated Functionality
   *e* and *p*, were named in misleading way (*e* is the modulus)
   and now deprecated in favor of the new *modulus* and *exponent* parameters.
 
+- The ``IterCookie`` version of iteration over ``Dictionary`` and ``PDict``
+  objects wars marked as deprecated. It was replaced by standard-library
+  compatible iterators. This enables the use of standard constructs such
+  as ranged-for loops to iterate over those objects.
+
 Zeek 3.2.0
 ==========
 

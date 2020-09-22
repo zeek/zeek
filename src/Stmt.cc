@@ -1266,13 +1266,11 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 		if ( ! loop_vals->Length() )
 			return nullptr;
 
-		HashKey* k;
-		TableEntryVal* current_tev;
-		IterCookie* c = loop_vals->InitForIteration();
-		while ( (current_tev = loop_vals->NextEntry(k, c)) )
+		for ( const auto& lve : *loop_vals )
 			{
+			auto k = lve.GetHashKey();
+			auto* current_tev = lve.GetValue<TableEntryVal*>();
 			auto ind_lv = tv->RecreateIndex(*k);
-			delete k;
 
 			if ( value_var )
 				f->SetElement(value_var, current_tev->GetVal());
@@ -1281,24 +1279,10 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 				f->SetElement((*loop_vars)[i], ind_lv->Idx(i));
 
 			flow = FLOW_NEXT;
-
-			try
-				{
-				ret = body->Exec(f, flow);
-				}
-			catch ( InterpreterException& )
-				{
-				loop_vals->StopIteration(c);
-				throw;
-				}
+			ret = body->Exec(f, flow);
 
 			if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
-				{
-				// If we broke or returned from inside a for loop,
-				// the cookie may still exist.
-				loop_vals->StopIteration(c);
 				break;
-				}
 			}
 		}
 

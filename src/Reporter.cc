@@ -77,16 +77,12 @@ void Reporter::InitOptions()
 		auto wl_val = id::find_val(name)->AsTableVal();
 		auto wl_table = wl_val->AsTable();
 
-		detail::HashKey* k;
-		IterCookie* c = wl_table->InitForIteration();
-		TableEntryVal* v;
-
-		while ( (v = wl_table->NextEntry(k, c)) )
+		for ( const auto& wle : *wl_table )
 			{
+			auto k = wle.GetHashKey();
 			auto index = wl_val->RecreateIndex(*k);
 			std::string key = index->Idx(0)->AsString()->CheckString();
 			set->emplace(move(key));
-			delete k;
 			}
 		};
 

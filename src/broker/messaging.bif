@@ -34,14 +34,13 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 		if ( tbl->Length() == 0 )
 			return rval;
 
-		zeek::IterCookie* c = tbl->InitForIteration();
-		zeek::detail::HashKey* k;
-
-		while ( tbl->NextEntry(k, c) )
+		for ( const auto& te : *tbl )
 			{
+			auto k = te.GetHashKey();
+			auto* v = te.GetValue<zeek::TableEntryVal*>();
+
 			auto index = val->AsTableVal()->RecreateIndex(*k);
 			rval.emplace(index->Idx(0)->AsString()->CheckString());
-			delete k;
 			}
 		}
 

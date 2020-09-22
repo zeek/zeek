@@ -19,5 +19,9 @@ redef test_var = "This is the value from the controllee";
 event Control::id_value_response(id: string, val: string)
 	{
 	print fmt("Got an id_value_response(%s, %s) event", id, val);
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
 	terminate();
 	}

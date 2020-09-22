@@ -1,4 +1,8 @@
 
+3.3.0-dev.284 | 2020-09-22 14:10:36 -0700
+
+  * Avoid race condition in control/id_value btest (Jon Siwek, Corelight)
+
 3.3.0-dev.282 | 2020-09-22 11:08:56 -0700
 
   * GH-927: Fix circumvention of evaluation order in 'when' conditions (Jon Siwek, Corelight)

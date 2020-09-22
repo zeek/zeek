@@ -520,7 +520,8 @@ isn't explicitly mentioned here.
 From this simple 4-line specification, the templater generates 12 separate
 operations (for combinations of `int`/`double`, direct assignment /
 assignment to record field, vectorized / not vectorized
-[doesn't apply to field assignments]).  Those operations then populate
+[doesn't apply to field assignments], and variable operand / constant
+operand).  Those operations then populate
 _thirteen_ C++ files for inclusion, which we sketch here (with light
 formatting edits for clarity):
 

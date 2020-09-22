@@ -1,4 +1,8 @@
 
+3.3.0-dev.285 | 2020-09-22 16:01:51 -0700
+
+  * Improve fa_file/fa_metadata documentation (Duffy O'Craven, Corelight)
+
 3.3.0-dev.284 | 2020-09-22 14:10:36 -0700
 
   * Avoid race condition in control/id_value btest (Jon Siwek, Corelight)

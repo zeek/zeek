@@ -463,12 +463,13 @@ option default_file_timeout_interval: interval = 2 mins;
 ## matching or later, will receive a copy of this buffer.
 option default_file_bof_buffer_size: count = 4096;
 
-## A file that Zeek is analyzing.  This is Zeek's type for describing the basic
-## internal metadata collected about a "file", which is essentially just a
-## byte stream that is e.g. pulled from a network connection or possibly
-## some other input source.
+## File Analysis handle for a file that Zeek is analyzing. This holds
+## information about, but not the content of, a conceptual "file";
+## essentially any byte stream that is e.g. pulled from a network connection
+## or possibly some other input source. Note that fa_file is also used in
+## cases where there isn't a filename to be had.
 type fa_file: record {
-	## An identifier associated with a single file.
+	## A hash serving as the identifier associated with a single file.
 	id: string;
 
 	## Identifier associated with a container file from which this one was
@@ -477,8 +478,9 @@ type fa_file: record {
 
 	## An identification of the source of the file data. E.g. it may be
 	## a network protocol over which it was transferred, or a local file
-	## path which was read, or some other input source.
-	## Examples are: "HTTP", "SMTP", "IRC_DATA", or the file path.
+	## path including filename which was read, or some other input source.
+	## Examples are: "HTTP", "SMTP", "IRC_DATA", or the filename, or even
+	## the full path and filename.
 	source: string;
 
 	## If the source of this file is a network connection, this field
@@ -527,7 +529,7 @@ type fa_file: record {
 ##    directly and then remove this alias.
 type string_any_file_hook: hook(f: fa_file, e: any, str: string);
 
-## Metadata that's been inferred about a particular file.
+## File Analysis metadata that's been inferred about a particular file.
 type fa_metadata: record {
 	## The strongest matching MIME type if one was discovered.
 	mime_type: string &optional;

@@ -70,8 +70,8 @@ void Manager::ProcessPacket(Packet* packet)
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
 	// Start packet analysis
-	if ( ! root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type) )
-		packet->InvalidateLayer2();
+	packet->l2_valid = root_analyzer->ForwardPacket(packet->cap_len, packet->data,
+			packet, packet->link_type);
 	}
 
 AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)

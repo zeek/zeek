@@ -189,7 +189,7 @@ void PktSrc::Process()
 	if ( ! ExtractNextPacketInternal() )
 		return;
 
-	if ( current_packet.Layer2Valid() )
+	if ( current_packet.l2_valid )
 		{
 		if ( run_state::pseudo_realtime )
 			{

@@ -78,7 +78,7 @@ void Packet::Weird(const char* name)
 	sessions->Weird(name, this);
 	}
 
-IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
+RecordValPtr Packet::ToRawPktHdrVal() const
 	{
 	static auto raw_pkt_hdr_type = id::find_type<RecordType>("raw_pkt_hdr");
 	static auto l2_hdr_type = id::find_type<RecordType>("l2_hdr");

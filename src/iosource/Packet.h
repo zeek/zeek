@@ -117,23 +117,6 @@ public:
 		std::string tag = std::string(""));
 
 	/**
-	 * Returns true if parsing the layer 2 fields failed, including when
-	 * no data was passed into the constructor in the first place.
-	 */
-	bool Layer2Valid() const
-		{
-		return l2_valid;
-		}
-
-	/**
-	 * Signals that the processing of layer 2 failed.
-	 */
-	void InvalidateLayer2()
-		{
-		l2_valid = false;
-		}
-
-	/**
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * corresponding object.
 	 */
@@ -169,46 +152,47 @@ public:
 	uint32_t cap_len;		/// Captured packet length
 	uint32_t link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
+	// True if L2 processing succeeded. If data is set on initialization of
+	// the packet, L2 is assumed to be valid. The packet manager will then
+	// process the packet and set l2_valid to False if the analysis failed.
+	bool l2_valid;
+
 	// These are computed from Layer 2 data. These fields are only valid if
-	// Layer2Valid() returns true.
+	// l2_valid returns true.
 
 	/**
-	 * Layer 2 header size. Valid iff Layer2Valid() returns true.
+	 * Layer 2 header size. Valid iff l2_valid is true.
 	 */
 	uint32_t hdr_size;
 
 	/**
-	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
-	 * returns true.
+	 * Layer 3 protocol identified (if any). Valid iff l2_valid is true.
 	 */
 	Layer3Proto l3_proto;
 
 	/**
 	 * If layer 2 is Ethernet, innermost ethertype field. Valid iff
-	 * Layer2Valid() returns true.
+	 * l2_valid is true.
 	 */
 	uint32_t eth_type;
 
 	/**
-	 * Layer 2 source address. Valid iff Layer2Valid() returns true.
+	 * Layer 2 source address. Valid iff l2_valid is true.
 	 */
 	const u_char* l2_src;
 
 	/**
-	 * Layer 2 destination address. Valid iff Layer2Valid() returns
-	 * true.
+	 * Layer 2 destination address. Valid iff l2_valid is true.
 	 */
 	const u_char* l2_dst;
 
 	/**
-	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
-	 * returns true.
+	 * (Outermost) VLAN tag if any, else 0. Valid iff l2_valid is true.
 	 */
 	uint32_t vlan;
 
 	/**
-	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
-	 * returns true.
+	 * (Innermost) VLAN tag if any, else 0. Valid iff l2_valid is true.
 	 */
 	uint32_t inner_vlan;
 
@@ -245,9 +229,6 @@ private:
 	// True if we need to delete associated packet memory upon
 	// destruction.
 	bool copy;
-
-	// True if L2 processing succeeded.
-	bool l2_valid;
 };
 
 } // namespace zeek

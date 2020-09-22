@@ -18,7 +18,8 @@ bool LinuxSLLAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		return false;
 		}
 
-	//TODO: Handle different ARPHRD_types
+	// Note: We assume to see an Ethertype and don't consider different ARPHRD_types
+	// (see https://www.tcpdump.org/linktypes/LINKTYPE_LINUX_SLL.html)
 	auto hdr = (const SLLHeader*)data;
 
 	uint32_t protocol = ntohs(hdr->protocol_type);

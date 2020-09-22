@@ -802,7 +802,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	Packet p;
 	p.Init(link_type, &ts, caplen, len, data, false, "");
 
-	if ( p.Layer2Valid() && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
+	if ( p.l2_valid && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
 		{
 		auto inner = p.IP();
 		DoNextPacket(t, &p, &inner, outer);

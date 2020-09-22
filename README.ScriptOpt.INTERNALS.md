@@ -719,6 +719,7 @@ specifies how to deal with `EXPR_HAS_FIELD` expressions, but here the first
 operand is a record (`R`) and the second is an integer (`i`), representing
 the field offset.
 
+<a id="custom-method"></a>
 Other operations require their own boutique methods:
 ```
 expr-op In
@@ -781,14 +782,14 @@ eval else @v
 Here, `@v` indicates that the value to assign is given by the expression
 `v`.  The templater set a range of corresponding instructions, one for
 each type of value.  For example, here's what it generates for assigning
-a constant subnet value to a record field:
+a subnet value to a record field:
 ```
-case OP_FIELD_VCi_N:
+case OP_FIELD_VVi_N:
     {
-    auto rv = z.c.record_val->RawFields();
+    auto rv = frame[z.v2].record_val->RawFields();
     auto v = rv->Lookup(z.v3, ZAM_error);
     if ( ZAM_error ) ZAM_run_time_error(z.loc, fmt("field value missing: $%s",
-                    z.c.record_val->Type()->AsRecordType()->FieldName(z.v3)));
+                    frame[z.v2].record_val->Type()->AsRecordType()->FieldName(z.v3)));
     else {
         ::Ref(v.subnet_val);
         Unref(frame[z.v1].subnet_val);
@@ -812,7 +813,9 @@ is in a `set` or `table`, such as `if ( "foo" in my_strings ) ..."`.  The
 templater uses this specification to define a ZAM `OP_VAL_IS_IN_TABLE_COND_VVV`
 op-code.  It does not provide hooks for automatically translating `EXPR_IN`
 nodes to this form.  Instead, the ZAM compiler has explicit code to generate
-the instruction as needed.  The second line of the specification, `op1-read`,
+the instruction as needed
+(see the discussion above of [`custom-method`](#custom-method)).
+The second line of the specification, `op1-read`,
 informs the ZAM compiler that the `v1` frame slot is read to, rather than
 assigned to (see the [discussion of `ZAM-Op1FlavorsDefs.h`](#flavors)
 above).
@@ -850,7 +853,7 @@ eval global_state[z.v1] = GS_DIRTY
 ```
 provides a low-level `OP_DIRTY_GLOBAL_V` instruction that marks a given
 global (as specified by a `v1` index into the internal `global_state`
-array.  A companion internal operation:
+array).  A companion internal operation:
 ```
 op Sync-Globals
 type X
@@ -906,13 +909,14 @@ Replacing BiFs
 --------
 
 As mentioned above, the compiler recognizes a number of Zeek built-in
-functions and replaces them with custom instructions.  The associated log
+functions and replaces them with custom instructions.  The associated logic
 is in `ZBuiltIn.h`/`ZBuiltIn.cc` (although the corresponding instructions
 are defined in `ZAM-Ops.in`).
 
 Good candidates for such replacement are BiFs that (1) do not involve
-significant execution, and (2) are executed frequently, such that the
-performance gain by avoiding function call overhead to invoke them outweighs
+significant processing, so that the gain by avoiding function call overhead
+matters, and (2) are executed frequently, such that the
+gain by avoiding function call overhead to invoke them outweighs
 the maintenance cost of having two separate implementations for the BiF.
 A better strategic solution would be to modify `bifcl` to generate versions
 of BiFs that can be directly integrated into compiled code.  This however
@@ -1000,10 +1004,10 @@ If the function is non-recursive, then the compiler allocates both the ZAM
 frame and the interpreter `Frame` _statically_: they are built once and
 do not require tear-down upon function exit because the next time the
 function is invoked, the natural process of re-using the frame slots will
-recover the previous memory.  Recursive functions, however, require dynamic
-frames for reentrancy.  This change extends the lifetime of local variables
+recover the previous memory.  (Recursive functions, however, require dynamic
+frames for reentrancy.)  This change extends the lifetime of local variables
 somewhat, but comes with a significant performance benefit.  It helps here
-that the frames are quite small due to the previous optimization step.
+that the frames are often quite small due to the previous optimization step.
 
 
 <br>
@@ -1025,7 +1029,8 @@ where `1853` reflects the line number and `648e554a7f2ba77b` the hash.
 Hashing is meant to ensure that if a source file changes in a semantically
 significant way, stale `.ZAM` files for its functions won't get loaded.
 If there's any doubt (or if any change has been made to the compiler
-itself), it's always safe to delete all `.ZAM` files and start over.
+itself), it's always prudent (and safe)
+to delete all `.ZAM` files and start over.
 However, since script optimization can take an appreciably amount of time,
 they're in general handy for providing speedier execution in the common
 case of scripts not changing, or only a few functions changing.
@@ -1065,7 +1070,7 @@ on its op-code in order to execute its C++ implementation.  In the normal
 case, after the `switch` case `break`s, `pc` is incremented.  However,
 some instructions may instead _branch_ by assigning `pc` to a new location;
 or set the `ZAM_error` flag, which will terminate execution.  Execution
-also terminates if the `pc` advances (or is set) to a value beyond the
+also terminates when the `pc` advances (or is set) to a value beyond the
 end of the `ZInst` array.
 
 Once execution completes, the dynamic state regarding globals is recovered,
@@ -1097,12 +1102,13 @@ union BroValUnion {
 ```
 This design works well for the interpreter, but for ZAM some of the
 representations are at too high of a level, and others at too low of a
-level.  First, the fields of records and the elements of vectors are
-pointers to `Val` objects rather than the direct representations of those
-objects.  Second, most of the elements that are pointers to objects point
+level.  First, most of the elements that are pointers to objects point
 to lower-level representations of those objects (e.g., `BroString` rather
 than `StringVal`) which lack reference-counting and thus complicate
 memory management.
+Second, the fields of records and the elements of vectors are
+pointers to `Val` objects rather than the direct representations of those
+objects.
 
 To address these issues, script optimization introduces a new low-level form
 (defined in `ZVal.h`/`ZVal.cc`), with these corresponding elements:
@@ -1124,9 +1130,9 @@ union ZAMValUnion {
 }
 ```
 (It also includes other elements used for ZAM execution.)
-This representation overtly addresses the second concern above, as now the
+This representation overtly addresses the first concern above, as now the
 previously lower-level forms are represented using the corresponding `Val`
-objects, which provide reference-counting.  The first concern is addressed
+objects, which provide reference-counting.  The second concern is addressed
 by modifying the representation of records and vectors in `BroValUnion`
 itself, changing
 ```
@@ -1157,7 +1163,7 @@ ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 i.e., given a `Val` object `v` and a type `t`, it constructs the corresponding
 ZAM representation.  The constructor explicitly includes the type rather
 than taking it from `v` because sometimes the two differ, for example
-when `t` is `any` and `v` has a concrete type.  (ZAMValUnion represents
+when `t` is `any` and `v` has a concrete type.  (`ZAMValUnion` represents
 `any`-typed values using `Val*`.)
 
 The inverse transformation is provided by the method:
@@ -1166,9 +1172,9 @@ IntrusivePtr<Val> ToVal(BroType* t) const
 ```
 Here the type is passed in because `ZAMValUnion`s do _not_ directly track
 the type associated with the underlying value.  Not tracking the type
-both reduces the memory required and improves performance because assigning
+both reduces the memory required and improves performance, because assigning
 `ZAMValUnion`s does not require propagating the associated type, which
-can include memory management issues too.  However, it also means that the
+can also include memory management overhead.  However, it also means that the
 compiler must be very careful to itself associate the correct type information
 wherever it's needed.
 
@@ -1181,36 +1187,38 @@ New Source Files
 Here's a summary of new files added to `src/`:
 |Source(s)|LOC|Role|
 |---|--:|:--|
-|Compile.{cc,h}|136|Abstract compiler class, to hide (some) ZAM specifics.|
-|DefItem.{cc,h}|239|Used for tracking Reaching Defs.|
+|Compile.{h,cc}|136|Abstract compiler class, to hide (some) ZAM specifics.|
+|DefItem.{h,cc}|239|Used for tracking Reaching Defs.|
 |DefPoint.h|92|Used for tracking Reaching Defs.|
-|DefSetsMgr.{cc,h}|242|Used for tracking Reaching Defs.|
-|GenRDs.{cc,h}|1,419|Generation of Reaching Defs.|
-|Inline.{cc,h}|279|Logic for implementing inlining.|
-|ProfileFunc.{cc,h}|299|Static analysis of scripting ASTs.|
-|ReachingDefs.{cc,h}|442|Main support for tracking Reaching Defs.|
-|Reduce.{cc,h}|1,341|Transformation of original AST to reduced form.|
-|ScriptAnaly.{cc,h}|590|Driver for script optimization process.|
+|DefSetsMgr.{h,cc}|242|Used for tracking Reaching Defs.|
+|GenRDs.{h,cc}|1,419|Generation of Reaching Defs.|
+|Inline.{h,cc}|279|Logic for implementing inlining.|
+|ProfileFunc.{h,cc}|299|Static analysis of scripting ASTs.|
+|ReachingDefs.{h,cc}|442|Main support for tracking Reaching Defs.|
+|Reduce.{h,cc}|1,341|Transformation of original AST to reduced form.|
+|ScriptAnaly.{h,cc}|590|Driver for script optimization process.|
 |StmtBase.h|185|Factored out from Stmt.h, to break some cross-referential #include's.|
-|TempVar.{cc,h}|94|Management of temporary variables.|
-|UseDefs.{cc,h}|827|Tracking and employing Use-Defs.|
+|TempVar.{h,cc}|94|Management of temporary variables.|
+|UseDefs.{h,cc}|827|Tracking and employing Use-Defs.|
 |ZAM-Ops.in|1,983|Templates for ZAM instructions.|
-|ZAM.{cc,h}|3,201|Main compiler functions, pre-ZAM-optimization.|
-|ZBody.{cc,h}|1,463|Final ZAM function bodies; includes save-to-file functionality.|
-|ZBuiltIn.{cc,h}|461|Substitution of ZAM instructions for certain BiFs.|
-|ZGen.{cc,h}|197|Helper functions for generating ZAM instructions.|
-|ZInst.{cc,h}|1,196|Individual ZAM instructions, along with intermediary form.|
-|ZOpt.{cc,h}|1,069|Low-level ZAM optimization.|
-|ZVal.{cc,h}|828|Representations of script values.|
+|ZAM.{h,cc}|3,201|Main compiler functions, pre-ZAM-optimization.|
+|ZBody.{h,cc}|1,463|Final ZAM function bodies; includes save-to-file functionality.|
+|ZBuiltIn.{h,cc}|461|Substitution of ZAM instructions for certain BiFs.|
+|ZGen.{h,cc}|197|Helper functions for generating ZAM instructions.|
+|ZInst.{h,cc}|1,196|Individual ZAM instructions, along with intermediary form.|
+|ZOpt.{h,cc}|1,069|Low-level ZAM optimization.|
+|ZVal.{h,cc}|828|Representations of script values.|
 |gen-compiler-templates.sh|1,704|Generates C++ files from `ZAM-Ops.in`.|
 
 <br>
 The sizes are as of this writing and not meant to be frequently updated.
 
-`Expr.{cc,h}` and `Stmt.{cc,h}` also have extensive changes to support
+<br>
+
+`Expr.{h,cc}` and `Stmt.{h,cc}` also have extensive changes to support
 transformation-to-reduced form, exposure of operands, inlining, compiling,
 and optimizing.  Numerous other files have more modest changes, such as
 to support changes to the internal representations for records and vectors,
-parseable `Describe()` representation, parsing of ZAM save files, a more
+parseable `Describe()` representations, parsing of ZAM save files, a more
 streamlined approach for initializing record values, and event engine changes
 to directly manipulate `ZAM_record` objects.

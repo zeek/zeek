@@ -174,7 +174,9 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
-	else
+	// Check that it wasn't set to L3_ARP here, or there's a bunch of extra weirds
+	// that get reported.
+	else if ( pkt->l3_proto != L3_ARP)
 		{
 		Weird("unknown_packet_type", pkt);
 		return;

@@ -7,6 +7,7 @@
 #include "Sessions.h"
 #include "ZeekString.h"
 #include "RunState.h"
+#include "packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 #include "events.bif.h"
 
@@ -233,7 +234,8 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
-	sessions->DoNextInnerPacket(run_state::network_time, nullptr, inner, e, ec);
+	packet_analysis::IPTunnel::ip_tunnel_analyzer->ProcessEncapsulatedPacket(
+		run_state::network_time, nullptr, inner, e, ec);
 	}
 
 } // namespace zeek::analyzer::teredo

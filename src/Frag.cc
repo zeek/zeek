@@ -297,6 +297,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		struct ip* reassem4 = (struct ip*) pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
 		reassembled_pkt = new IP_Hdr(reassem4, true);
+		reassembled_pkt->reassembled = true;
 		DeleteTimer();
 		}
 
@@ -306,6 +307,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
 		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
 		reassembled_pkt = new IP_Hdr(reassem6, true, n, chain);
+		reassembled_pkt->reassembled = true;
 		DeleteTimer();
 		}
 
@@ -323,7 +325,7 @@ void FragReassembler::Expire(double t)
 	expire_timer->ClearReassembler();
 	expire_timer = nullptr;	// timer manager will delete it
 
-	sessions->Remove(this);
+	fragment_mgr->Remove(this);
 	}
 
 void FragReassembler::DeleteTimer()
@@ -334,6 +336,58 @@ void FragReassembler::DeleteTimer()
 		timer_mgr->Cancel(expire_timer);
 		expire_timer = nullptr;	// timer manager will delete it
 		}
+	}
+
+FragmentManager::~FragmentManager()
+	{
+	Clear();
+	}
+
+FragReassembler* FragmentManager::NextFragment(double t, const IP_Hdr* ip, const u_char* pkt)
+	{
+	uint32_t frag_id = ip->ID();
+	FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);
+
+	FragReassembler* f = nullptr;
+	auto it = fragments.find(key);
+	if ( it != fragments.end() )
+		f = it->second;
+
+	if ( ! f )
+		{
+		f = new FragReassembler(sessions, ip, pkt, key, t);
+		fragments[key] = f;
+		if ( fragments.size() > max_fragments )
+			max_fragments = fragments.size();
+		return f;
+		}
+
+	f->AddFragment(t, ip, pkt);
+	return f;
+	}
+
+void FragmentManager::Clear()
+	{
+	for ( const auto& entry : fragments )
+		Unref(entry.second);
+
+	fragments.clear();
+	}
+
+void FragmentManager::Remove(detail::FragReassembler* f)
+	{
+	if ( ! f )
+		return;
+
+	if ( fragments.erase(f->Key()) == 0 )
+		reporter->InternalWarning("fragment reassembler not in dict");
+
+	Unref(f);
+	}
+
+uint32_t FragmentManager::MemoryAllocation() const
+	{
+	return fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type));
 	}
 
 } // namespace zeek::detail

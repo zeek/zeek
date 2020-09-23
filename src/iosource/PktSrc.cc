@@ -162,22 +162,7 @@ void PktSrc::Process()
 	if ( ! ExtractNextPacketInternal() )
 		return;
 
-	// This is set here to avoid having to pass the packet source down into the processing
-	// methods unnecessarily.
-	run_state::detail::current_iosrc = this;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	run_state::detail::current_pktsrc = this;
-#pragma GCC diagnostic pop
-
-	packet_mgr->ProcessPacket(&current_packet);
-	run_state::detail::dispatch_packet(&current_packet);
-
-	run_state::detail::current_iosrc = nullptr;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	run_state::detail::current_pktsrc = nullptr;
-#pragma GCC diagnostic pop
+	run_state::detail::dispatch_packet(&current_packet, this);
 
 	have_packet = false;
 	DoneWithPacket();

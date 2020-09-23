@@ -554,6 +554,11 @@ public:
 	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
+	/**
+	 * Denotes whether this header is from a set of packet fragments.
+	 */
+	bool reassembled = false;
+
 private:
 	const struct ip* ip4 = nullptr;
 	const struct ip6_hdr* ip6 = nullptr;

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2019-06-07-01-59-22
+#open	2020-09-10-22-34-02
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1500557630.000000	-	b100:7265::6904:2aff	0	3bbf:ff00:40:21:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
@@ -15,7 +15,7 @@
 1500557630.000000	-	b100:7265:6374:6929::6904:ff	0	3b1e:400:ff:0:6929:0:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557630.000000	-	b100:7265:6374:6929::6904:ff	0	3bbf:ff00:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557630.000000	-	b100:6500:72:6369:2a29:0:690a:ff	0	3bbf:ff00:40:0:ffef:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
-1500557630.000000	-	255.255.0.0	0	255.255.255.223	0	invalid_inner_IP_version	-	F	zeek
+1500557630.000000	-	-	-	-	-	unknown_ip_version	-	F	zeek
 1500557631.000000	-	b100:7265:6300:69:7429:0:6904:ff	0	3bbf:ff00:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	9c00:7265:6374:6929::6927:ff	0	3bbf:ff00:40:0:ffff:ffff:fbfd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	b100:7265:6374:6929::6904:ff	0	3b00:40:ffbf:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
@@ -89,7 +89,6 @@
 1500557631.000000	-	9c00:7265:6374:6929:600:0:6904:ff	0	3bbf:ff00:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	9c00:7463:2a72:6929:400:0:6904:ff	0	3bbf:ff00:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	b000:7265:6374:6929::8004:ff	0	3bbf:ff80:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
-1500557631.000000	-	255.255.0.0	0	255.255.255.237	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	0:7265:6374:6929:ff:27:a800:ff	0	100:0:143:4f4e:5445:4e54:535f:524c	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	b100:7265:6374:6929::6904:ff	0	3bbf:f9fe:ffbf:ffff:0:ff28:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557631.000000	-	-	-	-	-	ip_hdr_len_zero	-	F	zeek
@@ -300,7 +299,6 @@
 1500557632.000000	-	b100:7200:400:65:ffff:ffff:ffff:ffff	0	ffff:0:ffff:ff3a:2000:82b:0:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557632.000000	-	b100:7265:6300:69:7429:0:6904:ff	0	3bbf:ff00:40:0:ffff:fdff:ffff:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557632.000000	-	9c00:7265:6374:6929::6127:fb	0	3bbf:6500:6fd:188:4747:4747:61fd:f7ff	0	invalid_inner_IP_version	-	F	zeek
-1500557632.000000	-	0.0.0.255	0	11.0.255.0	0	invalid_IP_header_size_in_tunnel	-	F	zeek
 1500557632.000000	-	b100:7265:63ce:69:7429:0:690a:ff	0	3bbf:ff00:40:0:7fff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557632.000000	-	b100:7265:6374:2a29::6904:2aff	0	3bbf:ff00:40:21:27ff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557632.000000	-	b100:7265:6374:6929::6904:ff	0	3bbf:ff00:40:0:ffff:ff4e:5654:f7ff	0	invalid_inner_IP_version	-	F	zeek
@@ -462,4 +460,4 @@
 1500557634.000000	-	b100:7265:6374:6929:ff:ffff:ff04:ff	0	3bbf:ff00:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557634.000000	-	b100:7265:0:ff00:69:2980:0:69	0	c4ff:bf00:ff00:3b:40ff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
 1500557634.000000	-	9c00:7265:6374:69d1::6904:ff	0	3bbf:ff00:40:0:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	zeek
-#close	2019-06-07-01-59-22
+#close	2020-09-10-22-34-02

@@ -6,6 +6,7 @@ export {
 }
 
 redef dispatch_map += {
-	[4] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPV4),
-	[6] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPV6)
+	[4] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPTUNNEL),    # IPv4 tunnel
+	[41] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPTUNNEL),   # IPv6 tunnel
+	[47] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_GRE)
 };

@@ -32,7 +32,7 @@ public:
 	void DeleteTimer();
 	void ClearTimer()	{ expire_timer = nullptr; }
 
-	const IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
+	IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
 	const FragReassemblerKey& Key() const	{ return key; }
 
 protected:
@@ -65,6 +65,42 @@ public:
 
 protected:
 	FragReassembler* f;
+};
+
+class FragmentManager {
+public:
+
+	FragmentManager() = default;
+	~FragmentManager();
+
+	FragReassembler* NextFragment(double t, const IP_Hdr* ip, const u_char* pkt);
+	void Clear();
+	void Remove(detail::FragReassembler* f);
+
+	size_t Size() const	{ return fragments.size(); }
+	size_t MaxFragments() const 	{ return max_fragments; }
+	uint32_t MemoryAllocation() const;
+
+private:
+
+	using FragmentMap = std::map<detail::FragReassemblerKey, detail::FragReassembler*>;
+	FragmentMap fragments;
+	size_t max_fragments = 0;
+};
+
+extern FragmentManager* fragment_mgr;
+
+class FragReassemblerTracker {
+public:
+	FragReassemblerTracker(FragReassembler* f)
+		: frag_reassembler(f)
+		{ }
+
+	~FragReassemblerTracker()
+		{ fragment_mgr->Remove(frag_reassembler); }
+
+private:
+	FragReassembler* frag_reassembler;
 };
 
 } // namespace zeek::detail

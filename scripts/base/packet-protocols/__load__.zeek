@@ -12,3 +12,5 @@
 @load base/packet-protocols/pppoe
 @load base/packet-protocols/vlan
 @load base/packet-protocols/mpls
+@load base/packet-protocols/gre
+@load base/packet-protocols/iptunnel

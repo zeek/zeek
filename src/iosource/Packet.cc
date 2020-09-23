@@ -45,7 +45,6 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	else
 		data = arg_data;
 
-	session_analysis = false;
 	dump_packet = false;
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
@@ -75,9 +74,9 @@ const IP_Hdr Packet::IP() const
 	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
-void Packet::Weird(const char* name)
+void Packet::Weird(const char* name, const EncapsulationStack* encap)
 	{
-	sessions->Weird(name, this);
+	sessions->Weird(name, this, encap);
 	}
 
 RecordValPtr Packet::ToRawPktHdrVal() const

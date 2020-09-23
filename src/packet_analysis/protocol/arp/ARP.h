@@ -5,6 +5,7 @@
 #include <packet_analysis/Analyzer.h>
 #include <packet_analysis/Component.h>
 
+#include <sys/socket.h>
 #include <net/if_arp.h>
 
 #ifndef arp_pkthdr

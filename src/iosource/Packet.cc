@@ -45,6 +45,9 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	else
 		data = arg_data;
 
+	session_analysis = false;
+	dump_packet = false;
+
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
 	hdr_size = 0;
 	eth_type = 0;

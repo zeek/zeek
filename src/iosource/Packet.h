@@ -212,12 +212,12 @@ public:
 	 * Indicates whether the packet should be processed by zeek's
 	 * session analysis in NetSessions.
 	 */
-	bool session_analysis = false;
+	bool session_analysis;
 
 	/**
 	 * Indicates whether this packet should be recorded.
 	 */
-	mutable bool dump_packet = false;
+	mutable bool dump_packet;
 
 	// Wrapper to generate a packet-level weird. Has to be public for packet analyzers to use it.
 	void Weird(const char* name);

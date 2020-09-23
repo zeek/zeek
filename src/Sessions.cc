@@ -174,9 +174,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
-	// Check that it wasn't set to L3_ARP here, or there's a bunch of extra weirds
-	// that get reported.
-	else if ( pkt->l3_proto != L3_ARP)
+	else
 		{
 		Weird("unknown_packet_type", pkt);
 		return;
@@ -340,7 +338,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// last if present.
 	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
-		dump_this_packet = true;
+		pkt->dump_packet = true;
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{

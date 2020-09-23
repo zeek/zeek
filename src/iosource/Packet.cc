@@ -67,7 +67,6 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 		// From here we assume that layer 2 is valid. If the packet analysis fails,
 		// the packet manager will invalidate the packet.
 		l2_valid = true;
-		packet_mgr->ProcessPacket(this);
 		}
 	}
 

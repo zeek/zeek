@@ -66,8 +66,7 @@ public:
 	 */
 	Packet(int link_type, pkt_timeval *ts, uint32_t caplen,
 	       uint32_t len, const u_char *data, bool copy = false,
-	       std::string tag = std::string(""))
-	           : data(nullptr), l2_src(nullptr), l2_dst(nullptr)
+	       std::string tag = "")
 	       {
 	       Init(link_type, ts, caplen, len, data, copy, tag);
 	       }
@@ -75,7 +74,7 @@ public:
 	/**
 	 * Default constructor. For internal use only.
 	 */
-	Packet() : data(nullptr), l2_src(nullptr), l2_dst(nullptr)
+	Packet()
 		{
 		pkt_timeval ts = {0, 0};
 		Init(0, &ts, 0, 0, nullptr);
@@ -113,8 +112,8 @@ public:
 	 * differentiating the input streams.
 	 */
 	void Init(int link_type, pkt_timeval *ts, uint32_t caplen,
-		uint32_t len, const u_char *data, bool copy = false,
-		std::string tag = std::string(""));
+	          uint32_t len, const u_char *data, bool copy = false,
+	          std::string tag = "");
 
 	/**
 	 * Interprets the Layer 3 of the packet as IP and returns a
@@ -144,13 +143,13 @@ public:
 	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = { 0 };
 
 	// These are passed in through the constructor.
-	std::string tag;		/// Used in serialization
-	double time;			/// Timestamp reconstituted as float
-	pkt_timeval ts;			/// Capture timestamp
-	const u_char* data;		/// Packet data.
-	uint32_t len;			/// Actual length on wire
-	uint32_t cap_len;		/// Captured packet length
-	uint32_t link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
+	std::string tag;				/// Used in serialization
+	double time;					/// Timestamp reconstituted as float
+	pkt_timeval ts;					/// Capture timestamp
+	const u_char* data = nullptr;	/// Packet data.
+	uint32_t len;					/// Actual length on wire
+	uint32_t cap_len;				/// Captured packet length
+	uint32_t link_type;				/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
 	// True if L2 processing succeeded. If data is set on initialization of
 	// the packet, L2 is assumed to be valid. The packet manager will then
@@ -179,12 +178,12 @@ public:
 	/**
 	 * Layer 2 source address. Valid iff l2_valid is true.
 	 */
-	const u_char* l2_src;
+	const u_char* l2_src = nullptr;
 
 	/**
 	 * Layer 2 destination address. Valid iff l2_valid is true.
 	 */
-	const u_char* l2_dst;
+	const u_char* l2_dst = nullptr;
 
 	/**
 	 * (Outermost) VLAN tag if any, else 0. Valid iff l2_valid is true.

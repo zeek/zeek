@@ -2050,12 +2050,11 @@ double current_time(bool real)
 	iosource::PktSrc* src = iosource_mgr->GetPktSrc();
 
 	if ( run_state::is_processing_suspended() )
-		return src->CurrentPacketTimestamp();
+		return run_state::current_packet_timestamp();
 
 	// We don't scale with pseudo_realtime here as that would give us a
 	// jumping real-time.
-	return src->CurrentPacketTimestamp() +
-		(t - src->CurrentPacketWallClock());
+	return run_state::current_packet_timestamp() + (t - run_state::current_packet_wallclock());
 	}
 
 struct timeval double_to_timeval(double t)

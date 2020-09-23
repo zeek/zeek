@@ -30,6 +30,7 @@
 #include "analyzer/Manager.h"
 #include "iosource/IOSource.h"
 #include "iosource/PktDumper.h"
+#include "packet_analysis/Manager.h"
 
 #include "pcap.h"
 
@@ -770,6 +771,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	// Construct fake packet for DoNextPacket
 	Packet p;
 	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
+	packet_mgr->ProcessPacket(&p);
 
 	DoNextPacket(t, &p, inner, outer);
 
@@ -801,6 +803,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	// Construct fake packet for DoNextPacket
 	Packet p;
 	p.Init(link_type, &ts, caplen, len, data, false, "");
+	packet_mgr->ProcessPacket(&p);
 
 	if ( p.l2_valid && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
 		{

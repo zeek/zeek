@@ -9,6 +9,7 @@
 #include "RunState.h"
 #include "Sessions.h"
 #include "Reporter.h"
+#include "packet_analysis/Manager.h"
 
 #include "events.bif.h"
 
@@ -64,6 +65,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ts.tv_sec = (time_t) run_state::current_timestamp;
 	ts.tv_usec = (suseconds_t) ((run_state::current_timestamp - (double)ts.tv_sec) * 1000000);
 	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
+	packet_mgr->ProcessPacket(&pkt);
 
 	if ( ! pkt.l2_valid )
 		{

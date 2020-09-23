@@ -65,7 +65,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ts.tv_usec = (suseconds_t) ((run_state::current_timestamp - (double)ts.tv_sec) * 1000000);
 	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
 
-	if ( ! pkt.Layer2Valid() )
+	if ( ! pkt.l2_valid )
 		{
 		ProtocolViolation("VXLAN invalid inner ethernet frame",
 		                  (const char*) data, len);

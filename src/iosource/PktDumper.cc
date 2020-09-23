@@ -53,11 +53,6 @@ const char* PktDumper::ErrorMsg() const
 	return errmsg.size() ? errmsg.c_str() : nullptr;
 	}
 
-int PktDumper::HdrSize() const
-	{
-	return is_open ? props.hdr_size : -1;
-	}
-
 void PktDumper::Opened(const Properties& arg_props)
 	{
 	is_open = true;

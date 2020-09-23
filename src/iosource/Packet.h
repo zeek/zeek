@@ -117,17 +117,8 @@ public:
 		std::string tag = std::string(""));
 
 	/**
-	 * Returns true if parsing the layer 2 fields failed, including when
-	 * no data was passed into the constructor in the first place.
-	 */
-	bool Layer2Valid() const
-		{
-		return l2_valid;
-		}
-
-	/**
 	 * Interprets the Layer 3 of the packet as IP and returns a
-	 * correspondign object.
+	 * corresponding object.
 	 */
 	const IP_Hdr IP() const;
 
@@ -141,24 +132,16 @@ public:
 	RecordVal* BuildPktHdrVal() const;
 
 	/**
-	 * Static method returning the link-layer header size for a given
-	 * link type.
-	 *
-	 * @param link_type The link tyoe.
-	 *
-	 * @return The header size in bytes, or -1 if not known.
-	 */
-	static int GetLinkHeaderSize(int link_type);
-
-	/**
-	 * Describes the packet, with standard signature.
-	 */
-	void Describe(ODesc* d) const;
-
-	/**
 	 * Maximal length of a layer 2 address.
 	 */
-	static const int l2_addr_len = 6;
+	static const int L2_ADDR_LEN = 6;
+
+	/**
+	 * Empty layer 2 address to be used as default value. For example, the
+	 * LinuxSLL packet analyzer doesn't have a destination address in the
+	 * header and thus sets it to this default address.
+	 */
+	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = { 0 };
 
 	// These are passed in through the constructor.
 	std::string tag;		/// Used in serialization
@@ -166,49 +149,50 @@ public:
 	pkt_timeval ts;			/// Capture timestamp
 	const u_char* data;		/// Packet data.
 	uint32_t len;			/// Actual length on wire
-	uint32_t cap_len;			/// Captured packet length
+	uint32_t cap_len;		/// Captured packet length
 	uint32_t link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
+	// True if L2 processing succeeded. If data is set on initialization of
+	// the packet, L2 is assumed to be valid. The packet manager will then
+	// process the packet and set l2_valid to False if the analysis failed.
+	bool l2_valid;
+
 	// These are computed from Layer 2 data. These fields are only valid if
-	// Layer2Valid() returns true.
+	// l2_valid returns true.
 
 	/**
-	 * Layer 2 header size. Valid iff Layer2Valid() returns true.
+	 * Layer 2 header size. Valid iff l2_valid is true.
 	 */
 	uint32_t hdr_size;
 
 	/**
-	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
-	 * returns true.
+	 * Layer 3 protocol identified (if any). Valid iff l2_valid is true.
 	 */
 	Layer3Proto l3_proto;
 
 	/**
 	 * If layer 2 is Ethernet, innermost ethertype field. Valid iff
-	 * Layer2Valid() returns true.
+	 * l2_valid is true.
 	 */
 	uint32_t eth_type;
 
 	/**
-	 * Layer 2 source address. Valid iff Layer2Valid() returns true.
+	 * Layer 2 source address. Valid iff l2_valid is true.
 	 */
 	const u_char* l2_src;
 
 	/**
-	 * Layer 2 destination address. Valid iff Layer2Valid() returns
-	 * true.
+	 * Layer 2 destination address. Valid iff l2_valid is true.
 	 */
 	const u_char* l2_dst;
 
 	/**
-	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
-	 * returns true.
+	 * (Outermost) VLAN tag if any, else 0. Valid iff l2_valid is true.
 	 */
 	uint32_t vlan;
 
 	/**
-	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
-	 * returns true.
+	 * (Innermost) VLAN tag if any, else 0. Valid iff l2_valid is true.
 	 */
 	uint32_t inner_vlan;
 
@@ -224,22 +208,27 @@ public:
 	 */
 	bool l3_checksummed;
 
-private:
-	// Calculate layer 2 attributes.
-	void ProcessLayer2();
+	/**
+	 * Indicates whether the packet should be processed by zeek's
+	 * session analysis in NetSessions.
+	 */
+	bool session_analysis;
 
-	// Wrapper to generate a packet-level weird.
+	/**
+	 * Indicates whether this packet should be recorded.
+	 */
+	mutable bool dump_packet;
+
+	// Wrapper to generate a packet-level weird. Has to be public for packet analyzers to use it.
 	void Weird(const char* name);
 
+private:
 	// Renders an MAC address into its ASCII representation.
 	ValPtr FmtEUI48(const u_char* mac) const;
 
 	// True if we need to delete associated packet memory upon
 	// destruction.
 	bool copy;
-
-	// True if L2 processing succeeded.
-	bool l2_valid;
 };
 
 } // namespace zeek

@@ -4,7 +4,7 @@ tmp
 
 # Configuration and build directories for CLion
 .idea
-cmake-build-debug
+cmake-build-*
 
 # skip DS Store for MacOS
 .DS_Store

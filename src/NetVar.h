@@ -17,8 +17,6 @@ extern int partial_connection_ok;
 extern int tcp_SYN_ack_ok;
 extern int tcp_match_undelivered;
 
-extern int encap_hdr_size;
-
 extern double frag_timeout;
 
 extern double tcp_SYN_timeout;
@@ -117,7 +115,6 @@ extern int& ignore_checksums [[deprecated("Remove in v4.1. Use zeek::detail::ign
 extern int& partial_connection_ok [[deprecated("Remove in v4.1. Use zeek::detail::partial_connection_ok.")]];
 extern int& tcp_SYN_ack_ok [[deprecated("Remove in v4.1. Use zeek::detail::tcp_SYN_ack_ok.")]];
 extern int& tcp_match_undelivered [[deprecated("Remove in v4.1. Use zeek::detail::tcp_match_undelivered.")]];
-extern int& encap_hdr_size [[deprecated("Remove in v4.1. Use zeek::detail::encap_hdr_size.")]];
 extern double& frag_timeout [[deprecated("Remove in v4.1. Use zeek::detail::frag_timeout.")]];
 extern double& tcp_SYN_timeout [[deprecated("Remove in v4.1. Use zeek::detail::tcp_SYN_timeout.")]];
 extern double& tcp_session_timer [[deprecated("Remove in v4.1. Use zeek::detail::tcp_session_timer.")]];

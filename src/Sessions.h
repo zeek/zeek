@@ -24,7 +24,6 @@ using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(SteppingStoneManager, zeek, analyzer::stepping_stone);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ARP_Analyzer, zeek, analyzer::arp);
 
 namespace zeek {
 
@@ -234,14 +233,11 @@ protected:
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
-	analyzer::arp::ARP_Analyzer* arp_analyzer;
-
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	detail::Discarder* discarder;
 	detail::PacketFilter* packet_filter;
 	uint64_t num_packets_processed;
 	detail::PacketProfiler* pkt_profiler;
-	bool dump_this_packet;	// if true, current packet should be recorded
 };
 
 namespace detail {

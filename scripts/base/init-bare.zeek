@@ -1225,10 +1225,6 @@ const rpc_timeout = 24 sec &redef;
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 0.0 sec &redef;
 
-## If positive, indicates the encapsulation header size that should
-## be skipped. This applies to all packets.
-const encap_hdr_size = 0 &redef;
-
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transferred by each endpoint. If true, these values are
 ## returned in the connection's :zeek:see:`endpoint` record value.
@@ -5341,3 +5337,19 @@ event net_done(t: time)
 # execution would be another idea.
 @if ( __init_primary_bifs() )
 @endif
+
+module PacketAnalyzer;
+
+export {
+	type DispatchEntry : record {
+		## The analyzer to dispatch.
+		analyzer : PacketAnalyzer::Tag;
+	};
+
+	## A packet analyzer may extract a numeric identifier, which can be found in the
+	## packet data and denotes the encapsulated protocol. A DispatchMap allows to map
+	## the identifier to a child analyzer, which is defined using a DispatchEntry.
+	type DispatchMap : table[count] of DispatchEntry;
+}
+
+@load base/packet-protocols

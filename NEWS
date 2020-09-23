@@ -11,6 +11,11 @@ New Functionality
 
 - Added support for EDNS0 Cookie and Keep-Alive options.
 
+- Added new Packet Analysis plugin architecture for parsing packet headers
+  at layers below the existing Session analysis plugins. This allows
+  writing plugins to parse the various parts of a packet header separately,
+  chaining down into other plugins as needed.
+
 Changed Functionality
 ---------------------
 

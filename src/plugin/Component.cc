@@ -46,6 +46,10 @@ void Component::Describe(ODesc* d) const
 		d->Add("Analyzer");
 		break;
 
+	case component::PACKET_ANALYZER:
+		d->Add("Packet Analyzer");
+		break;
+
 	case component::FILE_ANALYZER:
 		d->Add("File Analyzer");
 		break;

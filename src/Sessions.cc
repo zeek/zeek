@@ -22,8 +22,6 @@
 
 #include "analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "analyzer/protocol/stepping-stone/events.bif.h"
-#include "analyzer/protocol/arp/ARP.h"
-#include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
 
@@ -32,6 +30,8 @@
 #include "analyzer/Manager.h"
 #include "iosource/IOSource.h"
 #include "iosource/PktDumper.h"
+
+#include "pcap.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -85,7 +85,6 @@ NetSessions::NetSessions()
 
 	packet_filter = nullptr;
 
-	dump_this_packet = false;
 	num_packets_processed = 0;
 	static auto pkt_profile_file = id::find_val("pkt_profile_file");
 
@@ -96,11 +95,6 @@ NetSessions::NetSessions()
 	else
 		pkt_profiler = nullptr;
 
-	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new analyzer::arp::ARP_Analyzer();
-	else
-		arp_analyzer = nullptr;
-
 	memset(&stats, 0, sizeof(SessionStats));
 	}
 
@@ -108,7 +102,6 @@ NetSessions::~NetSessions()
 	{
 	delete packet_filter;
 	delete pkt_profiler;
-	Unref(arp_analyzer);
 	delete discarder;
 	delete stp_manager;
 
@@ -138,10 +131,15 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 	++num_packets_processed;
 
-	dump_this_packet = false;
-
-	if ( zeek::detail::record_all_packets )
+	bool dumped_packet = false;
+	if ( pkt->dump_packet || zeek::detail::record_all_packets )
+		{
 		DumpPacket(pkt);
+		dumped_packet = true;
+		}
+
+	if ( ! pkt->session_analysis )
+		return;
 
 	if ( pkt->hdr_size > pkt->cap_len )
 		{
@@ -159,7 +157,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 			return;
 			}
 
-		const struct ip* ip = (const struct ip*) (pkt->data + pkt->hdr_size);
+		auto ip = (const struct ip*) (pkt->data + pkt->hdr_size);
 		IP_Hdr ip_hdr(ip, false);
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
@@ -176,20 +174,14 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
-	else if ( pkt->l3_proto == L3_ARP )
-		{
-		if ( arp_analyzer )
-			arp_analyzer->NextPacket(t, pkt);
-		}
-
 	else
 		{
 		Weird("unknown_packet_type", pkt);
 		return;
 		}
 
-
-	if ( dump_this_packet && ! zeek::detail::record_all_packets )
+	// Check whether packet should be recorded based on session analysis
+	if ( pkt->dump_packet && ! dumped_packet )
 		DumpPacket(pkt);
 	}
 
@@ -290,7 +282,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	if ( ip_hdr->IsFragment() )
 		{
-		dump_this_packet = true;	// always record fragments
+		pkt->dump_packet = true;	// always record fragments
 
 		if ( caplen < len )
 			{
@@ -333,7 +325,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// there, it's always the last.
 	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
-		dump_this_packet = true;
+		pkt->dump_packet = true;
 		if ( esp_packet )
 			event_mgr.Enqueue(esp_packet, ip_hdr->ToPktHdrVal());
 
@@ -346,7 +338,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// last if present.
 	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
-		dump_this_packet = true;
+		pkt->dump_packet = true;
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
@@ -735,7 +727,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	else if ( record_packet )
 		{
 		if ( record_content )
-			dump_this_packet = true;	// save the whole thing
+			pkt->dump_packet = true;	// save the whole thing
 
 		else
 			{
@@ -810,7 +802,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	Packet p;
 	p.Init(link_type, &ts, caplen, len, data, false, "");
 
-	if ( p.Layer2Valid() && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
+	if ( p.l2_valid && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
 		{
 		auto inner = p.IP();
 		DoNextPacket(t, &p, &inner, outer);
@@ -1329,7 +1321,7 @@ void NetSessions::Weird(const char* name, const Packet* pkt,
                         const EncapsulationStack* encap, const char* addl)
 	{
 	if ( pkt )
-		dump_this_packet = true;
+		pkt->dump_packet = true;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		reporter->Weird(util::fmt("%s_in_tunnel", name), addl);

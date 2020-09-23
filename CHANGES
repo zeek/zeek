@@ -1,3 +1,113 @@
+3.3.0-dev.329 | 2020-09-23 11:32:06 -0700
+
+  * Update NEWS (Tim Wojtulewicz, Corelight)
+
+  * Fix build on FreeBSD, which was missing full definition of sockaddr for ARP (Tim Wojtulewicz, Corelight)
+
+  * Update hashes for external testing repos (Tim Wojtulewicz, Corelight)
+
+  * Fix handling of session analysis.
+
+    This reverts commit 0e51be18ac59d7a176f18780f1f8df85561449b9. (Jan Grashoefer)
+
+  * Fix Sessions::DoNextPacket to ignore ARP packets and not report weirds for them (Tim Wojtulewicz, Corelight)
+
+  * Packet analysis cleanup. (Jan Grashoefer)
+
+  * Minor cleanup (Tim Wojtulewicz, Corelight)
+
+  * Simplify packet analyzer config. (Jan Grashoefer)
+
+  * Make default packet analyzer definition explicit. (Jan Grashoefer)
+
+  * Add explicit root analyzer for packet analysis. (Jan Grashoefer)
+
+  * Extend packet analysis test. (Jan Grashoefer)
+
+  * Simplify MPLS analysis. (Jan Grashoefer)
+
+  * Improve packet analysis data flow. (Jan Grashoefer)
+
+  * Improve packet analyzer API. (Jan Grashoefer)
+
+  * Rename DefaultAnalyzer to IP. (Jan Grashoefer)
+
+  * Move ARP analysis into packet analyzer. (Jan Grashoefer)
+
+  * Small cleanup of packet analysis. (Jan Grashoefer)
+
+  * Fix some build issues from the rebase (Tim Wojtulewicz, Corelight)
+
+  * Remove encap_hdr_size (replaced by skip analyzer). (Jan Grashoefer)
+
+  * Add skip analyzer test and update baselines. (Jan Grashoefer)
+
+  * Allow to overwrite packet analysis mappings. (Jan Grashoefer)
+
+  * Add SkipAnalyzer.
+
+    This is WIP: The test case would require a new pcap or the possibility
+    to overwrite analyzer mappings. The CustomEncapsulationSkip method and
+    the corresponding options need to be removed. (Jan Grashoefer)
+
+  * Suggested code improvements for packet analysis. (Jan Grashoefer)
+
+  * Improve naming in packet analysis. (Jan Grashoefer)
+
+  * Migrate all packet analyzers to new API. (Jan Grashoefer)
+
+  * Remove magic identifiers from Ethernet analyzer. (Jan Grashoefer)
+
+  * Bring back default packet analysis.
+
+    Default analyzers can be configured per packet analyzer by omitting the
+    identifier in the ConfigEntry. (Jan Grashoefer)
+
+  * Further simplified the packet analysis API.
+
+    This is still WIP and includes the following changes:
+    * Dispatchers are now part of analyzers (moving dispatching logic from
+      the manager to the analyzers)
+    * All available analyzers are instantiated on start up
+    * Removal of configuration class (Jan Grashoefer)
+
+  * Move dispatching into packet analyzers.
+
+    WIP that updates only the Ethernet analyzer. (Jan Grashoefer)
+
+  * Move cur_pos from packet into packet manager loop. (Jan Grashoefer)
+
+  * Remove packet_analysis/Defines.h
+
+    - Replace uses of identifier_t with uint32_t
+    - Replace repeated usage of tuple type for Analysis results with type alias (Tim Wojtulewicz, Corelight)
+
+  * Move VectorDispatcher to be the only dispatcher (Tim Wojtulewicz, Corelight)
+
+  * Remove Manager::Reset() method (Tim Wojtulewicz, Corelight)
+
+  * Remove enabled state from Components, ability to enable/disable from Manager (Tim Wojtulewicz, Corelight)
+
+  * Use shared_ptr instead of raw pointers in packet_analysis for analyzers and dispatchers (Tim Wojtulewicz, Corelight)
+
+  * Whitespace fixes from review (Tim Wojtulewicz, Corelight)
+
+  * Reorganize some pointer handling (Tim Wojtulewicz, Corelight)
+
+  * Fix ordering of debug logger strings to match the enum (Tim Wojtulewicz, Corelight)
+
+  * Fixes for various btest issues
+
+    - Fix handling of truncated ethernet headers, fix core.truncation test output
+    - Update commit hashes for external private test repo (Tim Wojtulewicz, Corelight)
+
+  * Merge ProtocolAnalyzerSet into Manager, remove AnalyzerSet base class (Tim Wojtulewicz, Corelight)
+
+  * Minor fixes for packet analyzer renaming. (Jan Grashoefer)
+
+  * Renamed LL-Analyzers to Packet Analyzers. (Jan Grashoefer)
+
+  * Initial implementation of Lower-Level analyzers (Peter Oettig)
 
 3.3.0-dev.285 | 2020-09-22 16:01:51 -0700
 

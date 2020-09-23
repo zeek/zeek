@@ -121,6 +121,12 @@ refine connection DCE_RPC_Conn += {
 			                                  ${req.context_id},
 			                                  ${req.opnum},
 			                                  ${req.stub}.length());
+			zeek::BifEvent::enqueue_dce_rpc_request_stub(zeek_analyzer(),
+			                                  zeek_analyzer()->Conn(),
+			                                  fid,
+			                                  ${req.context_id},
+			                                  ${req.opnum},
+			                                  binpac::to_stringval(${req.stub}));
 			}
 
 		set_cont_id_opnum_map(${req.context_id},
@@ -138,6 +144,12 @@ refine connection DCE_RPC_Conn += {
 			                                   ${resp.context_id},
 			                                   get_cont_id_opnum_map(${resp.context_id}),
 			                                   ${resp.stub}.length());
+			zeek::BifEvent::enqueue_dce_rpc_response_stub(zeek_analyzer(),
+			                                   zeek_analyzer()->Conn(),
+			                                   fid,
+			                                   ${resp.context_id},
+			                                   get_cont_id_opnum_map(${resp.context_id}),
+			                                   binpac::to_stringval(${resp.stub}));
 			}
 
 		return true;

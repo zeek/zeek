@@ -260,22 +260,9 @@ void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
 
 bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	{
-	uint32_t sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum(ip->SrcAddr(), sum);
-	sum = ones_complement_checksum(ip->DstAddr(), sum);
-	// Note, for IPv6, strictly speaking the protocol and length fields are
-	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
-	// we get the same checksum either way.
-	sum += htons(IPPROTO_UDP);
-	sum += htons((unsigned short) len);
-	sum = ones_complement_checksum((void*) up, len, sum);
+	auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(),
+	                               IPPROTO_UDP,
+	                               reinterpret_cast<const uint8_t*>(up), len);
 
 	return sum == 0xffff;
 	}

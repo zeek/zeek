@@ -16,8 +16,49 @@
 
 namespace zeek {
 
-// - adapted from tcpdump
-// Returns the ones-complement checksum of a chunk of b short-aligned bytes.
+uint16_t detail::ip4_in_cksum(const IPAddr& src, const IPAddr& dst,
+                              uint8_t next_proto, const uint8_t* data, int len)
+	{
+	constexpr auto nblocks = 2;
+	detail::checksum_block blocks[nblocks];
+
+	ipv4_pseudo_hdr ph;
+	memset(&ph, 0, sizeof(ph));
+
+	src.CopyIPv4(&ph.src);
+	dst.CopyIPv4(&ph.dst);
+	ph.len = htons(static_cast<uint16_t>(len));
+	ph.next_proto = next_proto;
+	blocks[0].block = reinterpret_cast<const uint8_t*>(&ph);
+	blocks[0].len = sizeof(ph);
+	blocks[1].block = data;
+	blocks[1].len = len;
+
+	return in_cksum(blocks, nblocks);
+	}
+
+uint16_t detail::ip6_in_cksum(const IPAddr& src, const IPAddr& dst,
+                              uint8_t next_proto, const uint8_t* data, int len)
+	{
+	constexpr auto nblocks = 2;
+	detail::checksum_block blocks[nblocks];
+
+	ipv6_pseudo_hdr ph;
+	memset(&ph, 0, sizeof(ph));
+
+	src.CopyIPv6(&ph.src);
+	dst.CopyIPv6(&ph.dst);
+	ph.len = htonl(static_cast<uint32_t>(len));
+	ph.next_proto = next_proto;
+	blocks[0].block = reinterpret_cast<const uint8_t*>(&ph);
+	blocks[0].len = sizeof(ph);
+	blocks[1].block = data;
+	blocks[1].len = len;
+
+	return in_cksum(blocks, nblocks);
+	}
+
+// Returns the ones-complement checksum of a chunk of 'b' bytes.
 int ones_complement_checksum(const void* p, int b, uint32_t sum)
 	{
 	const unsigned char* sp = (unsigned char*) p;
@@ -46,17 +87,7 @@ int ones_complement_checksum(const IPAddr& a, uint32_t sum)
 
 int icmp_checksum(const struct icmp* icmpp, int len)
 	{
-	uint32_t sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) icmpp, len, sum);
-
-	return sum;
+	return detail::in_cksum(reinterpret_cast<const uint8_t*>(icmpp), len);
 	}
 
 #ifdef ENABLE_MOBILE_IPV6
@@ -89,26 +120,8 @@ int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	{
 	// ICMP6 uses the same checksum function as ICMP4 but a different
 	// pseudo-header over which it is computed.
-	uint32_t sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
-	else
-		sum = 0;
-
-	// Pseudo-header as for UDP over IPv6 above.
-	sum = ones_complement_checksum(ip->SrcAddr(), sum);
-	sum = ones_complement_checksum(ip->DstAddr(), sum);
-	uint32_t l = htonl(len);
-	sum = ones_complement_checksum((void*) &l, 4, sum);
-
-	uint32_t addl_pseudo = htons(IPPROTO_ICMPV6);
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-
-	sum = ones_complement_checksum((void*) icmpp, len, sum);
-
-	return sum;
+	return detail::ip6_in_cksum(ip->SrcAddr(), ip->DstAddr(), IPPROTO_ICMPV6,
+	                            reinterpret_cast<const uint8_t*>(icmpp), len);
 	}
 
 

@@ -8,7 +8,8 @@
 #include "iosource/Packet.h"
 #include "Dispatcher.h"
 
-namespace zeek::packet_analysis {
+namespace zeek {
+namespace packet_analysis {
 
 class Analyzer;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
@@ -93,6 +94,8 @@ private:
 	AnalyzerPtr root_analyzer = nullptr;
 };
 
-}
+} // namespace packet_analysis
 
 extern zeek::packet_analysis::Manager* packet_mgr;
+
+} // namespace zeek

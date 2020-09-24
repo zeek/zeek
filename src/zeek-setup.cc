@@ -93,7 +93,7 @@ zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::ValManager*& val_mgr = zeek::val_mgr;
 zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
 zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
-zeek::packet_analysis::Manager* packet_mgr = nullptr;
+zeek::packet_analysis::Manager* zeek::packet_mgr = nullptr;
 zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
 

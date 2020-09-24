@@ -50,7 +50,7 @@ public:
 
 	// Main entry point for packet processing.
 	[[deprecated("Remove in v4.1. Do not call this method directly. Packet processing should start with a call to packet_mgr->ProcessPacket().")]]
-	void NextPacket(double t, const Packet* pkt);
+	void NextPacket(double t, Packet* pkt);
 
 	void Done();	// call to drain events before destructing
 

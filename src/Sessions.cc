@@ -77,87 +77,9 @@ void NetSessions::Done()
 	{
 	}
 
-void NetSessions::NextPacket(double t, const Packet* pkt)
+void NetSessions::NextPacket(double t, Packet* pkt)
 	{
-	EncapsulationStack* encapsulation = nullptr;
-	auto it = pkt->key_store.find("encap");
-	if ( it != pkt->key_store.end() )
-		encapsulation = std::any_cast<EncapsulationStack*>(*it);
-
-	bool dumped_packet = false;
-
-	if ( pkt->hdr_size > pkt->cap_len )
-		{
-		Weird("truncated_link_frame", pkt);
-		return;
-		}
-
-	uint32_t caplen = pkt->cap_len - pkt->hdr_size;
-
-	if ( pkt->l3_proto == L3_IPV4 )
-		{
-		if ( caplen < sizeof(struct ip) )
-			{
-			Weird("truncated_IP", pkt);
-			return;
-			}
-
-		if ( ! encapsulation )
-			{
-			const struct ip* ip = (const struct ip*) (pkt->data + pkt->hdr_size);
-			IP_Hdr ip_hdr(ip, false);
-			DoNextPacket(t, pkt, &ip_hdr, encapsulation);
-			}
-		else
-			{
-			const IP_Hdr* ip_hdr;
-			auto it = pkt->key_store.find("encap_inner_ip");
-			if ( it != pkt->key_store.end() )
-				ip_hdr = std::any_cast<IP_Hdr*>(*it);
-			else
-				{
-				IP_Hdr pkt_ip = pkt->IP();
-				ip_hdr = &pkt_ip;
-				}
-
-			DoNextPacket(t, pkt, ip_hdr, encapsulation);
-			}
-		}
-
-	else if ( pkt->l3_proto == L3_IPV6 )
-		{
-		if ( caplen < sizeof(struct ip6_hdr) )
-			{
-			Weird("truncated_IP", pkt);
-			return;
-			}
-
-		if ( ! encapsulation )
-			{
-			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt->data + pkt->hdr_size), false, caplen);
-			DoNextPacket(t, pkt, &ip_hdr, encapsulation);
-			}
-		else
-			{
-			const IP_Hdr* ip_hdr = nullptr;
-			auto it = pkt->key_store.find("encap_inner_ip");
-			if ( it != pkt->key_store.end() )
-				ip_hdr = std::any_cast<IP_Hdr*>(*it);
-			else
-				{
-				IP_Hdr pkt_ip = pkt->IP();
-				ip_hdr = &pkt_ip;
-				}
-
-			DoNextPacket(t, pkt, ip_hdr, encapsulation);
-			}
-		}
-
-	else
-		{
-		Weird("unknown_packet_type", pkt);
-		return;
-		}
+	packet_mgr->ProcessPacket(pkt);
 	}
 
 void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr,

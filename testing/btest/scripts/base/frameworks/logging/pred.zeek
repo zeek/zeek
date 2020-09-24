@@ -31,7 +31,7 @@ event zeek_init()
 	Log::add_filter(Test::LOG, [$name="f1", $path="test.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
 	Log::add_filter(Test::LOG, [$name="f2", $path="test.failure", $pred=fail]);
 
-    local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
+	local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 	local r: Log = [$t=network_time(), $id=cid, $status="success"];
 	Log::write(Test::LOG, r);
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="US"]);

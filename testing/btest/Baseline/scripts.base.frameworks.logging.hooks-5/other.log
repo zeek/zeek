@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	other
+#open	2020-09-24-06-42-48
+#fields	t	status
+#types	time	string
+1600929768.810574	baz
+#close	2020-09-24-06-42-48

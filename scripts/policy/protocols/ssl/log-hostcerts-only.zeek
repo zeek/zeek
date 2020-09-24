@@ -26,17 +26,10 @@ redef record fa_file += {
 	logcert: bool &default=T;
 };
 
-function host_certs_only(rec: X509::Info): bool
+hook X509::log_policy(rec: X509::Info, id: Log::ID, filter: Log::Filter)
 	{
-	return rec$logcert;
-	}
-
-event zeek_init() &priority=2
-	{
-	local f = Log::get_filter(X509::LOG, "default");
-	Log::remove_filter(X509::LOG, "default"); # disable default logging
-	f$pred=host_certs_only; # and add our predicate
-	Log::add_filter(X509::LOG, f);
+	if ( ! rec$logcert )
+		break;
 	}
 
 event file_sniff(f: fa_file, meta: fa_metadata) &priority=4

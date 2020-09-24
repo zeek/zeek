@@ -1,3 +1,58 @@
+
+3.3.0-dev.341 | 2020-09-24 08:16:45 -0700
+
+  * Fix negative-value-left-shift undefined behavior in patricia trie (Jon Siwek, Corelight)
+
+  * Improve negation of ConstExpr (Jon Siwek, Corelight)
+
+    * Instead of creating a NegExpr for negation of a literal/constant,
+      a ConstExpr is now created directly.
+
+    * For negation of integer literals, there's now an additional check
+      for whether the integer would be outside the range of possible 'int'
+      values.  This can also help prevent the undefined behavior due to
+      overflow as a result of trying to represent the minimum 'int' value of
+      -9223372036854775808 as a literal in a script -- the unsigned value is
+      cast to signed yielding INT64_MIN, then INT64_MIN is negated.
+
+  * Avoid signed integer overflow when combining SMB header PID bits (Jon Siwek, Corelight)
+
+    Such an overflow invokes undefined behavior.
+
+  * Avoid unary negation of INT64_MIN in modp_litoa10 (Jon Siwek, Corelight)
+
+    Overlow can occur in that case, which is undefined behavior.
+
+  * Avoid double-to-int conversion overflows in modp_dtoa functions (Jon Siwek, Corelight)
+
+    Those methods already had a fallback to use sprintf() for large values
+    except:
+
+    * The check-for-large-value was unnecessarily done after many
+      operations that aren't relevant to the check and those operations can
+      result in a conversion overflow (undefined behavior).
+
+    * The check-for-large-value was using the literal value for a
+      32-bit INT_MAX instead of just using INT_MAX.  For a platform where
+      `int` is less than 32-bits, the same conversion overflow from the
+      previous point could still occur (undefined behavior).
+
+    * The check-for-large-value was not inclusive of INT_MAX.
+      In a case where the conversion of INT_MAX itself to a double
+      can't be represented exactly, it's implementation-defined whether
+      the closest higher or closest lower representable-value is selected.
+      If the higher value is selected, then a `double` value comparing equal
+      to INT_MAX-as-converted-to-double would cause an overflow of an `int`
+      upon conversion (undefined behavior).
+
+  * Fix divide-by-zero in Entropy analyzer (Jon Siwek, Corelight)
+
+  * Fix divide-by-zero in stats/profiling memory usage calculation (Jon Siwek, Corelight)
+
+  * Fix uninitialized field in POP3 fuzzer (Jon Siwek, Corelight)
+
+  * Add framework for running UndefinedBehaviorSanitizer in CI (Jon Siwek, Corelight)
+
 3.3.0-dev.329 | 2020-09-23 11:32:06 -0700
 
   * Update NEWS (Tim Wojtulewicz, Corelight)

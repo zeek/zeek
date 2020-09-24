@@ -336,6 +336,36 @@ expr:
 			{
 			zeek::detail::set_location(@1, @2);
 			$$ = new zeek::detail::NegExpr({zeek::AdoptRef{}, $2});
+
+			if ( ! $$->IsError() && $2->IsConst() )
+				{
+				auto v = $2->ExprVal();
+				auto tag = v->GetType()->Tag();
+
+				if ( tag == zeek::TYPE_COUNT )
+					{
+					auto c = v->AsCount();
+					uint64_t int_max = static_cast<uint64_t>(INT64_MAX) + 1;
+
+					if ( c <= int_max )
+						{
+						auto ce = new zeek::detail::ConstExpr(zeek::val_mgr->Int(-c));
+						Unref($$);
+						$$ = ce;
+						}
+					else
+						{
+						$$->Error("literal is outside range of 'int' values");
+						$$->SetError();
+						}
+					}
+				else
+					{
+					auto ce = new zeek::detail::ConstExpr($$->Eval(nullptr));
+					Unref($$);
+					$$ = ce;
+					}
+				}
 			}
 
 	|	'+' expr	%prec '!'

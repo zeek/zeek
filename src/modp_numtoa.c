@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 
 // other interesting references on num to string convesion
 // http://www.jb.man.ac.uk/~slowe/cpp/itoa.html
@@ -56,7 +57,7 @@ void modp_uitoa10(uint32_t value, char* str)
 void modp_litoa10(int64_t value, char* str)
 {
     char* wstr=str;
-    uint64_t uvalue = (value < 0) ? -value : value;
+    uint64_t uvalue = (value < 0) ? (value == INT64_MIN ? (uint64_t)(INT64_MAX) + 1 : -value) : value;
 
     // Conversion. Number is reversed.
     do *wstr++ = (char)(48 + (uvalue % 10)); while(uvalue /= 10);
@@ -88,8 +89,28 @@ void modp_dtoa(double value, char* str, int prec)
         str[0] = 'n'; str[1] = 'a'; str[2] = 'n'; str[3] = '\0';
         return;
     }
+
+    /* we'll work in positive values and deal with the
+       negative sign issue later */
+    int neg = 0;
+    if (value < 0) {
+        neg = 1;
+        value = -value;
+    }
+
     /* if input is larger than thres_max, revert to exponential */
-    const double thres_max = (double)(0x7FFFFFFF);
+    const double thres_max = (double)(INT_MAX);
+
+    /* for very large numbers switch back to native sprintf for exponentials.
+       anyone want to write code to replace this? */
+    /*
+      normal printf behavior is to print EVERY whole number digit
+      which can be 100s of characters overflowing your buffers == bad
+    */
+    if (value >= thres_max) {
+        sprintf(str, "%e", neg ? -value : value);
+        return;
+    }
 
     double diff = 0.0;
     char* wstr = str;
@@ -100,16 +121,6 @@ void modp_dtoa(double value, char* str, int prec)
         /* precision of >= 10 can lead to overflow errors */
         prec = 9;
     }
-
-
-    /* we'll work in positive values and deal with the
-       negative sign issue later */
-    int neg = 0;
-    if (value < 0) {
-        neg = 1;
-        value = -value;
-    }
-
 
     int whole = (int) value;
     double tmp = (value - whole) * _pow10[prec];
@@ -127,17 +138,6 @@ void modp_dtoa(double value, char* str, int prec)
         /* if halfway, round up if odd, OR
            if last digit is 0.  That last part is strange */
         ++frac;
-    }
-
-    /* for very large numbers switch back to native sprintf for exponentials.
-       anyone want to write code to replace this? */
-    /*
-      normal printf behavior is to print EVERY whole number digit
-      which can be 100s of characters overflowing your buffers == bad
-    */
-    if (value > thres_max) {
-        sprintf(str, "%e", neg ? -value : value);
-        return;
     }
 
     if (prec == 0) {
@@ -189,8 +189,27 @@ void modp_dtoa2(double value, char* str, int prec)
         return;
     }
 
+    /* we'll work in positive values and deal with the
+       negative sign issue later */
+    int neg = 0;
+    if (value < 0) {
+        neg = 1;
+        value = -value;
+    }
+
     /* if input is larger than thres_max, revert to exponential */
-    const double thres_max = (double)(0x7FFFFFFF);
+    const double thres_max = (double)(INT_MAX);
+
+    /* for very large numbers switch back to native sprintf for exponentials.
+       anyone want to write code to replace this? */
+    /*
+      normal printf behavior is to print EVERY whole number digit
+      which can be 100s of characters overflowing your buffers == bad
+    */
+    if (value >= thres_max) {
+        sprintf(str, "%e", neg ? -value : value);
+        return;
+    }
 
     int count;
     double diff = 0.0;
@@ -202,16 +221,6 @@ void modp_dtoa2(double value, char* str, int prec)
         /* precision of >= 10 can lead to overflow errors */
         prec = 9;
     }
-
-
-    /* we'll work in positive values and deal with the
-       negative sign issue later */
-    int neg = 0;
-    if (value < 0) {
-        neg = 1;
-        value = -value;
-    }
-
 
     int whole = (int) value;
     double tmp = (value - whole) * _pow10[prec];
@@ -229,17 +238,6 @@ void modp_dtoa2(double value, char* str, int prec)
         /* if halfway, round up if odd, OR
            if last digit is 0.  That last part is strange */
         ++frac;
-    }
-
-    /* for very large numbers switch back to native sprintf for exponentials.
-       anyone want to write code to replace this? */
-    /*
-      normal printf behavior is to print EVERY whole number digit
-      which can be 100s of characters overflowing your buffers == bad
-    */
-    if (value > thres_max) {
-        sprintf(str, "%e", neg ? -value : value);
-        return;
     }
 
     if (prec == 0) {
@@ -301,21 +299,6 @@ void modp_dtoa3(double value, char* str, int n, int prec)
         return;
     }
 
-    /* if input is larger than thres_max, revert to exponential */
-    const double thres_max = (double)(0x7FFFFFFF);
-
-    int count;
-    double diff = 0.0;
-    char* wstr = str;
-
-    if (prec < 0) {
-        prec = 0;
-    } else if (prec > 9) {
-        /* precision of >= 10 can lead to overflow errors */
-        prec = 9;
-    }
-
-
     /* we'll work in positive values and deal with the
        negative sign issue later */
     int neg = 0;
@@ -324,24 +307,15 @@ void modp_dtoa3(double value, char* str, int n, int prec)
         value = -value;
     }
 
-
-    int whole = (int) value;
-    double tmp = (value - whole) * _pow10[prec];
-    uint32_t frac = (uint32_t)(tmp);
-    diff = tmp - frac;
-
-    if (diff > 0.5) {
-        ++frac;
-        /* handle rollover, e.g.  case 0.99 with prec 1 is 1.0  */
-        if (frac >= _pow10[prec]) {
-            frac = 0;
-            ++whole;
-        }
-    } else if (diff == 0.5 && ((frac == 0) || (frac & 1))) {
-        /* if halfway, round up if odd, OR
-           if last digit is 0.  That last part is strange */
-        ++frac;
+    if (prec < 0) {
+        prec = 0;
+    } else if (prec > 9) {
+        /* precision of >= 10 can lead to overflow errors */
+        prec = 9;
     }
+
+    /* if input is larger than thres_max, revert to exponential */
+    const double thres_max = (double)(INT_MAX);
 
     /* for very large numbers switch back to native sprintf for exponentials.
        anyone want to write code to replace this? */
@@ -349,7 +323,7 @@ void modp_dtoa3(double value, char* str, int n, int prec)
       normal printf behavior is to print EVERY whole number digit
       which can be 100s of characters overflowing your buffers == bad
     */
-    if (value > thres_max) {
+    if (value >= thres_max) {
         /* ---- Modified part, compared to modp_dtoa3. */
         int i = snprintf(str, n, "%.*f", prec, neg ? -value : value);
 
@@ -371,6 +345,28 @@ void modp_dtoa3(double value, char* str, int n, int prec)
         return;
 
         /* ---- End of modified part.. */
+    }
+
+    int count;
+    double diff = 0.0;
+    char* wstr = str;
+
+    int whole = (int) value;
+    double tmp = (value - whole) * _pow10[prec];
+    uint32_t frac = (uint32_t)(tmp);
+    diff = tmp - frac;
+
+    if (diff > 0.5) {
+        ++frac;
+        /* handle rollover, e.g.  case 0.99 with prec 1 is 1.0  */
+        if (frac >= _pow10[prec]) {
+            frac = 0;
+            ++whole;
+        }
+    } else if (diff == 0.5 && ((frac == 0) || (frac & 1))) {
+        /* if halfway, round up if odd, OR
+           if last digit is 0.  That last part is strange */
+        ++frac;
     }
 
     if (prec == 0) {

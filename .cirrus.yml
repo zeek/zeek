@@ -4,7 +4,7 @@ btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 4GB
 
 config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address --enable-fuzzers
+sanitizer_config: &SANITIZER_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -151,7 +151,7 @@ freebsd_task:
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
 
-memcheck_task:
+sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
@@ -161,4 +161,6 @@ memcheck_task:
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
-    ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS: *SANITIZER_CONFIG
+    ZEEK_TAILORED_UB_CHECKS: 1
+    UBSAN_OPTIONS: print_stacktrace=1

@@ -24,6 +24,7 @@ static zeek::Connection* add_connection()
 	conn_id.dst_addr = zeek::IPAddr("5.6.7.8");
 	conn_id.src_port = htons(23132);
 	conn_id.dst_port = htons(80);
+	conn_id.is_one_way = false;
 	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(conn_id);
 	zeek::Connection* conn = new zeek::Connection(zeek::sessions, key, network_time_start,
 	                                  &conn_id, 1, &p, nullptr);

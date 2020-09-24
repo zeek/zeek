@@ -134,7 +134,71 @@ if ( ZEEK_SANITIZERS )
     # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not
     # include -lpthread when it should.
     find_package(Threads)
+
+    string(REPLACE "," " " _sanitizer_args "${ZEEK_SANITIZERS}")
+    separate_arguments(_sanitizer_args)
+    set(ZEEK_SANITIZERS "")
+
+    foreach ( _sanitizer ${_sanitizer_args} )
+        if ( ZEEK_SANITIZERS )
+            set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS},")
+        endif ()
+
+        if ( NOT _sanitizer STREQUAL "undefined" )
+            set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${_sanitizer}")
+            continue()
+        endif ()
+
+        if ( NOT DEFINED ZEEK_SANITIZER_UB_CHECKS )
+            if ( DEFINED ENV{ZEEK_TAILORED_UB_CHECKS} )
+                # list(APPEND _check_list "alignment") # TODO: fix associated errors
+                list(APPEND _check_list "bool")
+                # list(APPEND _check_list "builtin") # Not implemented in older GCCs
+                list(APPEND _check_list "bounds") # Covers both array/local bounds options below
+                # list(APPEND _check_list "array-bounds") # Not implemented by GCC
+                # list(APPEND _check_list "local-bounds") # Not normally part of "undefined"
+                list(APPEND _check_list "enum")
+                list(APPEND _check_list "float-cast-overflow")
+                list(APPEND _check_list "float-divide-by-zero")
+                # list(APPEND _check_list "function") # Not implemented by GCC
+                # list(APPEND _check_list "implicit-unsigned-integer-truncation") # Not truly UB
+                # list(APPEND _check_list "implicit-signed-integer-truncation") # Not truly UB
+                # list(APPEND _check_list "implicit-integer-sign-change") # Not truly UB
+                list(APPEND _check_list "integer-divide-by-zero")
+                list(APPEND _check_list "nonnull-attribute")
+                # list(APPEND _check_list "null") # TODO: fix associated errors
+                # list(APPEND _check_list "nullability-arg") # Not normally part of "undefined"
+                # list(APPEND _check_list "nullability-assign") # Not normally part of "undefined"
+                # list(APPEND _check_list "nullability-return") # Not normally part of "undefined"
+                # list(APPEND _check_list "objc-cast") # Not truly UB
+                list(APPEND _check_list "object-size")
+                # list(APPEND _check_list "pointer-overflow") # Not implemented in older GCCs
+                list(APPEND _check_list "return")
+                list(APPEND _check_list "returns-nonnull-attribute")
+                list(APPEND _check_list "shift")
+                # list(APPEND _check_list "unsigned-shift-base") # Not implemented by GCC
+                list(APPEND _check_list "signed-integer-overflow")
+                list(APPEND _check_list "unreachable")
+                # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
+                list(APPEND _check_list "vla-bound")
+                # list(APPEND _check_list "vptr") # TODO: fix associated errors
+
+                string(REPLACE ";" "," _ub_checks "${_check_list}")
+                set(ZEEK_SANITIZER_UB_CHECKS "${_ub_checks}" CACHE INTERNAL "" FORCE)
+            else ()
+                set(ZEEK_SANITIZER_UB_CHECKS "undefined" CACHE INTERNAL "" FORCE)
+            endif ()
+        endif ()
+
+        set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${ZEEK_SANITIZER_UB_CHECKS}")
+    endforeach ()
+
     set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
+
+    if ( ZEEK_SANITIZER_UB_CHECKS )
+        set(_sanitizer_flags "${_sanitizer_flags} -fno-sanitize-recover=${ZEEK_SANITIZER_UB_CHECKS}")
+    endif ()
+
     set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
     set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
 

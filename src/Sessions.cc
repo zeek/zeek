@@ -28,7 +28,6 @@
 
 #include "analyzer/Manager.h"
 #include "iosource/IOSource.h"
-#include "iosource/PktDumper.h"
 #include "packet_analysis/Manager.h"
 
 #include "pcap.h"
@@ -233,7 +232,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		else
 			{
 			int hdr_len = data - pkt->data;
-			DumpPacket(pkt, hdr_len);	// just save the header
+			packet_mgr->DumpPacket(pkt, hdr_len);	// just save the header
 			}
 		}
 	}
@@ -677,22 +676,6 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 			! IsLikelyServerPort(dst_port, TRANSPORT_UDP);
 
 	return true;
-	}
-
-void NetSessions::DumpPacket(const Packet *pkt, int len)
-	{
-	if ( ! run_state::detail::pkt_dumper )
-		return;
-
-	if ( len != 0 )
-		{
-		if ( (uint32_t)len > pkt->cap_len )
-			reporter->Warning("bad modified caplen");
-		else
-			const_cast<Packet *>(pkt)->cap_len = len;
-		}
-
-	run_state::detail::pkt_dumper->Dump(pkt);
 	}
 
 void NetSessions::Weird(const char* name, const Packet* pkt,

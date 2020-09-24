@@ -128,11 +128,6 @@ public:
 	unsigned int MemoryAllocation();
 	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
-	// Record the given packet (if a dumper is active).  If len=0
-	// then the whole packet is recorded, otherwise just the first
-	// len bytes.
-	void DumpPacket(const Packet *pkt, int len=0);
-
 protected:
 	friend class ConnCompressor;
 

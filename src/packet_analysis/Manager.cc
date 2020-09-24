@@ -8,6 +8,7 @@
 #include "Stats.h"
 #include "zeek/Sessions.h"
 #include "zeek/RunState.h"
+#include "iosource/PktDumper.h"
 
 using namespace zeek::packet_analysis;
 
@@ -95,8 +96,7 @@ void Manager::ProcessPacket(Packet* packet)
 	bool dumped_packet = false;
 	if ( packet->dump_packet || zeek::detail::record_all_packets )
 		{
-		// TODO: should this stay in Session?
-		sessions->DumpPacket(packet);
+		DumpPacket(packet);
 		dumped_packet = true;
 		}
 
@@ -109,8 +109,7 @@ void Manager::ProcessPacket(Packet* packet)
 
 	// Check whether packet should be recorded based on session analysis
 	if ( packet->dump_packet && ! dumped_packet )
-		// TODO: should this stay in Session?
-		sessions->DumpPacket(packet);
+		DumpPacket(packet);
 	}
 
 bool Manager::ProcessInnerPacket(Packet* packet)
@@ -155,4 +154,20 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const std::string& name)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag) : nullptr;
+	}
+
+void Manager::DumpPacket(const Packet *pkt, int len)
+	{
+	if ( ! run_state::detail::pkt_dumper )
+		return;
+
+	if ( len != 0 )
+		{
+		if ( (uint32_t)len > pkt->cap_len )
+			reporter->Warning("bad modified caplen");
+		else
+			const_cast<Packet *>(pkt)->cap_len = len;
+		}
+
+	run_state::detail::pkt_dumper->Dump(pkt);
 	}

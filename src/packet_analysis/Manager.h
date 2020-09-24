@@ -83,6 +83,15 @@ public:
 
 	uint64_t PacketsProcessed() const	{ return num_packets_processed; }
 
+	/**
+	 * Records the given packet if a dumper is active.
+	 *
+	 * @param pkt The packet to record.
+	 * @param len The number of bytes to record. If set to zero, the whole
+	 * packet is recorded.
+	 */
+	void DumpPacket(const Packet *pkt, int len=0);
+
 private:
 	/**
 	 * Instantiates a new analyzer instance.

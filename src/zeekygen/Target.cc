@@ -12,6 +12,7 @@
 #include "analyzer/Manager.h"
 #include "analyzer/Component.h"
 #include "file_analysis/Manager.h"
+#include "packet_analysis/Manager.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,6 +46,17 @@ static void write_analyzer_component(FILE* f, const analyzer::Component* c)
 	fprintf(f, ":zeek:enum:`Analyzer::%s`\n\n", tag.c_str());
 	}
 
+static void write_analyzer_component(FILE* f, const packet_analysis::Component* c)
+	{
+	const auto& atag = packet_mgr->GetTagType();
+	string tag = util::fmt("ANALYZER_%s", c->CanonicalName().c_str());
+
+	if ( atag->Lookup("PacketAnalyzer", tag.c_str()) < 0 )
+		reporter->InternalError("missing packet analyzer tag for %s", tag.c_str());
+
+	fprintf(f, ":zeek:enum:`PacketAnalyzer::%s`\n\n", tag.c_str());
+	}
+
 static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
 	{
 	const auto& atag = file_mgr->GetTagType();
@@ -70,6 +82,18 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 			{
 			const analyzer::Component* c =
 				dynamic_cast<const analyzer::Component*>(component);
+
+			if ( c )
+				write_analyzer_component(f, c);
+			else
+				reporter->InternalError("component type mismatch");
+			}
+			break;
+
+		case plugin::component::PACKET_ANALYZER:
+			{
+			const packet_analysis::Component* c =
+				dynamic_cast<const packet_analysis::Component*>(component);
 
 			if ( c )
 				write_analyzer_component(f, c);
@@ -272,6 +296,32 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	for ( it = plugins.begin(); it != plugins.end(); ++it )
 		{
 		if ( ! ComponentsMatch(*it, plugin::component::ANALYZER, true) )
+			continue;
+
+		write_plugin_section_heading(f, *it);
+		write_plugin_components(f, *it);
+		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT,
+		                       "Options/Constants");
+		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
+		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
+		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
+		write_plugin_bif_items(f, *it, plugin::BifItem::FUNCTION, "Functions");
+		}
+	}
+
+void PacketAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
+	{
+	fprintf(f, "Packet Analyzers\n");
+	fprintf(f, "================\n\n");
+
+	WriteAnalyzerTagDefn(f, "PacketAnalyzer");
+
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	plugin::Manager::plugin_list::const_iterator it;
+
+	for ( it = plugins.begin(); it != plugins.end(); ++it )
+		{
+		if ( ! ComponentsMatch(*it, plugin::component::PACKET_ANALYZER) )
 			continue;
 
 		write_plugin_section_heading(f, *it);

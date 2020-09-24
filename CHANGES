@@ -1,3 +1,10 @@
+3.3.0-dev.346 | 2020-09-24 16:03:28 -0700
+
+  * Fix a Sphinx warning about misformatted packet analyzer comment (Jon Siwek, Corelight)
+
+  * Add Zeekygen documentation support for packet analyzers (Jon Siwek, Corelight)
+
+  * Move packet_mgr to the zeek namespace (Tim Wojtulewicz, Corelight)
 
 3.3.0-dev.341 | 2020-09-24 08:16:45 -0700
 

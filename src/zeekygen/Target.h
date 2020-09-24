@@ -234,6 +234,26 @@ private:
 };
 
 /**
+ * Target to build packet analyzer documentation.
+ */
+class PacketAnalyzerTarget : public AnalyzerTarget {
+public:
+
+	/**
+	 * Ctor.
+	 * @param name Output file name.
+	 * @param pattern Dependency pattern.
+	 */
+	PacketAnalyzerTarget(const std::string& name, const std::string& pattern)
+		: AnalyzerTarget(name, pattern)
+		{ }
+
+private:
+
+	void DoCreateAnalyzerDoc(FILE* f) const override;
+};
+
+/**
  * Target to build package documentation.
  */
 class PackageTarget : public Target {

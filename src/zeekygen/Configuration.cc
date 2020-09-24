@@ -21,6 +21,7 @@ static TargetFactory create_target_factory()
 	rval.Register<PackageTarget>("package");
 	rval.Register<ProtoAnalyzerTarget>("proto_analyzer");
 	rval.Register<FileAnalyzerTarget>("file_analyzer");
+	rval.Register<PacketAnalyzerTarget>("packet_analyzer");
 	rval.Register<ScriptSummaryTarget>("script_summary");
 	rval.Register<ScriptIndexTarget>("script_index");
 	rval.Register<ScriptTarget>("script");

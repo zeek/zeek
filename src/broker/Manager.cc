@@ -2,6 +2,7 @@
 
 #include <broker/broker.hh>
 #include <broker/zeek.hh>
+#include <caf/config.hpp>
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
@@ -23,6 +24,27 @@
 #include "iosource/Manager.h"
 #include "SerializationFormat.h"
 #include "RunState.h"
+
+#if CAF_VERSION < 1800
+#define CAF_ATOM(str) caf::atom(str)
+#define IS_BROKER_ERROR(err) err.category() == caf::atom("broker")
+#define FMT_CAF_ERROR(err)                                                     \
+	util::fmt("[%s] %s", caf::to_string(err.category()).c_str(),               \
+	          caf::to_string(err.context()).c_str());
+#else
+#define CAF_ATOM(str) str
+#define IS_BROKER_ERROR(err) err.category() == caf::type_id_v<broker::ec>
+#define FMT_CAF_ERROR(err)                                                     \
+	[](const caf::error& what)                                                 \
+		{                                                                      \
+		/* string_view-ish type without null terminator */                     \
+		auto sv = caf::query_type_name(what.category());                       \
+		std::string category{sv.begin(), sv.end()};                            \
+		return util::fmt("[%s] %s", category.c_str(),                          \
+		                 caf::to_string(what.context()).c_str());              \
+		}                                                                      \
+	(err)
+#endif
 
 using namespace std;
 
@@ -174,9 +196,9 @@ void Manager::InitPostScript()
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 
 	if ( util::streq(scheduler_policy, "sharing") )
-		config.set("scheduler.policy", caf::atom("sharing"));
+		config.set("scheduler.policy", CAF_ATOM("sharing"));
 	else if ( util::streq(scheduler_policy, "stealing") )
-		config.set("scheduler.policy", caf::atom("stealing"));
+		config.set("scheduler.policy", CAF_ATOM("stealing"));
 	else
 		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
 
@@ -1481,7 +1503,7 @@ void Manager::ProcessError(broker::error err)
 	BifEnum::Broker::ErrorCode ec;
 	std::string msg;
 
-	if ( err.category() == caf::atom("broker") )
+	if ( IS_BROKER_ERROR(err) )
 		{
 		static auto enum_type = id::find_type<EnumType>("Broker::ErrorCode");
 
@@ -1498,7 +1520,7 @@ void Manager::ProcessError(broker::error err)
 	else
 		{
 		ec = BifEnum::Broker::ErrorCode::CAF_ERROR;
-		msg = util::fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
+		msg = FMT_CAF_ERROR(err);
 		}
 
 	event_mgr.Enqueue(::Broker::error,

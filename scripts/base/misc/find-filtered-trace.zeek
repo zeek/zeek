@@ -32,6 +32,7 @@ function should_detect(): bool
 
 global saw_tcp_conn_with_data: bool = F;
 global saw_a_tcp_conn: bool = F;
+global saw_a_non_tcp_conn: bool = F;
 
 event connection_state_remove(c: connection)
 	{
@@ -42,7 +43,10 @@ event connection_state_remove(c: connection)
 		return;
 
 	if ( ! is_tcp_port(c$id$orig_p) )
+		{
+		saw_a_non_tcp_conn = T;
 		return;
+		}
 
 	saw_a_tcp_conn = T;
 
@@ -56,6 +60,9 @@ event zeek_done()
 		return;
 
 	if ( ! saw_a_tcp_conn )
+		return;
+
+	if ( saw_a_non_tcp_conn )
 		return;
 
 	if ( ! saw_tcp_conn_with_data )

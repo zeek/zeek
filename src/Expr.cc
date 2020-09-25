@@ -813,7 +813,7 @@ IntrusivePtr<Expr> NameExpr::Duplicate()
 bool NameExpr::FoldableGlobal() const
 	{
 	return id->IsGlobal() && id->IsConst() && is_atomic_type(id->Type()) &&
-		// Make sure constant can be changed on the command line
+		// Make sure constant can't be changed on the command line
 		// or such.
 		! id->FindAttr(ATTR_REDEF);
 	}

@@ -175,13 +175,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			ip_hdr_len = ip_hdr->HdrLen();
 			packet->cap_len = total_len + packet->hdr_size;
 
-			// TODO: in the old code, the data pointer is updated to point at the IP header's
-			// payload, so it contains all of the data when it's processed. This isn't a big
-			// deal for when we pass it down into the session analyzers, since that does the
-			// same itself. should it be updated here for the case where a fragmented packet
-			// is actually tunneled? is that a thing that can happen? Does updating the data
-			// pointer without also updating the one in packet cause any problems?
-
 			if ( ip_hdr_len > total_len )
 				{
 				sessions->Weird("invalid_IP_header_size", ip_hdr.get(), encapsulation);
@@ -227,8 +220,9 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		}
 #endif
 
-	// Advance the data pointer past the IP header based on the header length
-	data += ip_hdr_len;
+	// Set the data pointer to match the payload from the IP header. This makes sure that it's also pointing
+	// at the reassembled data for a fragmented packet.
+	data = ip_hdr->Payload();
 	len -= ip_hdr_len;
 
 	bool return_val = true;

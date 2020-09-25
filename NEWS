@@ -16,6 +16,9 @@ New Functionality
   writing plugins to parse the various parts of a packet header separately,
   chaining down into other plugins as needed.
 
+- Add ``dce_rpc_request_stub`` and ``dce_rpc_response_stub`` events for
+  accessing the contents of DCE-RPC request/response stub data.
+
 Changed Functionality
 ---------------------
 

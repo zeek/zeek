@@ -275,7 +275,7 @@ _common subexpressions_ (CSEs), and to perform _constant propagation_.
 Aliasing refers to determining that two local variables track the same
 exact value, and thus we can eliminate one of them and replace any references
 to it with the other.  The reduction process often introduces such aliasing,
-so for efficiency its important to identify and eliminate it.
+so for efficiency it's important to identify and eliminate it.
 
 CSE refers to determining that the computation of an subexpression
 (e.g., `x + 3`) can be replaced using a variable whose value reflects an

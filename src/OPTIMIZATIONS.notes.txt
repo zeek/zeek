@@ -2,12 +2,6 @@ could change basic calling coupling to be ZAMValUnion-based
 	- helps if compiler supports "when" and lambdas, so that *everything*
 	  can be inlined/compiled
 
-could propagate non-&redef'able const globals more deeply, not just atomic types
-	- this becomes a headache since lots of ZAM compilation assumes
-	  aggregates are NameExpr's not ever ConstExpr's
-	- could do this only in contexts where Fold()'ing can happen;
-		basically, replace IsConst() to with IsConstantValue()
-
 could omit some load-globals if there's not been a call since the last one
 
 implement /foo/ !in x && /bar/ !in x ... cascade analogous to current one

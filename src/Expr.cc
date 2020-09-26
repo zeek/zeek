@@ -705,6 +705,15 @@ NameExpr::NameExpr(IntrusivePtr<ID> arg_id, bool const_init)
 		h->SetUsed();
 	}
 
+IntrusivePtr<Val> NameExpr::FoldVal() const
+	{
+	if ( ! id->IsConst() || id->FindAttr(ATTR_REDEF) ||
+	     id->Type()->Tag() == TYPE_FUNC )
+		return nullptr;
+
+	return {NewRef{}, id->ID_Val()};
+	}
+
 IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 	{
 	IntrusivePtr<Val> v;
@@ -960,10 +969,10 @@ Expr* UnaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( ! op->IsSingleton(c) )
 		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
 
-	if ( op->IsConst() )
+	auto op_val = op->FoldVal();
+	if ( op_val )
 		{
-		auto c_op = op->AsConstExpr();
-		auto fold = Fold(c_op->Value());
+		auto fold = Fold(op_val.get());
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 
@@ -1148,11 +1157,11 @@ Expr* BinaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = MergeStmts(red_stmt, red2_stmt);
 
-	if ( op1->IsConst() && op2->IsConst() )
+	auto op1_fold_val = op1->FoldVal();
+	auto op2_fold_val = op2->FoldVal();
+	if ( op1_fold_val && op2_fold_val )
 		{
-		auto c1 = op1->AsConstExpr();
-		auto c2 = op2->AsConstExpr();
-		auto fold = Fold(c1->Value(), c2->Value());
+		auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 

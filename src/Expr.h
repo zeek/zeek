@@ -231,6 +231,10 @@ public:
 	// True if the expression is a constant, false otherwise.
 	bool IsConst() const	{ return tag == EXPR_CONST; }
 
+	// If the expression always evaluates to the same value, returns
+	// that value.  Otherwise, returns nullptr.
+	virtual IntrusivePtr<Val> FoldVal() const	{ return nullptr; }
+
 	bool HasConstantOps() const
 		{
 		return GetOp1() && GetOp1()->IsConst() &&
@@ -445,6 +449,7 @@ public:
 	ID* Id() const			{ return id.get(); }
 	IntrusivePtr<ID> IdPtr() const	{ return id; }
 
+	IntrusivePtr<Val> FoldVal() const override;
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
@@ -478,6 +483,8 @@ public:
 
 	Val* Value() const	{ return val.get(); }
 	IntrusivePtr<Val> ValuePtr() const	{ return val; }
+
+	IntrusivePtr<Val> FoldVal() const override	{ return val; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 

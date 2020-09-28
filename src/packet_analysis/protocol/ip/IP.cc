@@ -234,9 +234,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	bool return_val = true;
 	int proto = ip_hdr->NextProto();
 
-	packet->key_store["ip_hdr"] = ip_hdr.get();
-	packet->key_store["proto"] = proto;
-
 	switch ( proto ) {
 	case IPPROTO_TCP:
 	case IPPROTO_UDP:
@@ -256,6 +253,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			}
 		break;
 	default:
+		// The tunnel analyzer needs this data.
+		packet->key_store["ip_hdr"] = ip_hdr.get();
+		packet->key_store["proto"] = proto;
+
 		// For everything else, pass it on to another analyzer. If there's no one to handle that,
 		// it'll report a Weird.
 		return_val = ForwardPacket(len, data, packet, proto);

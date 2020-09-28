@@ -1,3 +1,5 @@
+# @TEST-GROUP: broker
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
@@ -107,7 +109,7 @@ event zeek_init()
     {
     Broker::subscribe("zeek/event/my_topic");
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
-    schedule 5secs { do_terminate()   };
+    schedule 15secs { do_terminate()   };
     }
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -135,7 +137,7 @@ event Broker::error(code: Broker::ErrorCode, msg: string)
 redef exit_only_after_terminate = T;
 
 # No cert here.
-# 
+#
 # redef Broker::ssl_cafile = "../ca.pem";
 # redef Broker::ssl_keyfile = "../key.2.pem";
 # redef Broker::ssl_certificate = "../cert.2.pem";

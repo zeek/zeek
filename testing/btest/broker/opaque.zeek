@@ -1,3 +1,5 @@
+# @TEST-GROUP: broker
+#
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr

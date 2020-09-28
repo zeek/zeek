@@ -19,6 +19,12 @@ event Broker::peer_removed%(endpoint: EndpointInfo, msg: string%);
 ## Generated when an existing peering has been lost.
 event Broker::peer_lost%(endpoint: EndpointInfo, msg: string%);
 
+## Generated when a new Broker endpoint appeared.
+event Broker::endpoint_discovered%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when the last path to a Broker endpoint has been lost.
+event Broker::endpoint_unreachable%(endpoint: EndpointInfo, msg: string%);
+
 ## Generated when an error occurs in the Broker sub-system.
 event Broker::error%(code: ErrorCode, msg: string%);
 

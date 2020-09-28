@@ -387,8 +387,8 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	if ( bstate->endpoint.is_shutdown() )
 		return;
 
-	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
-		addr.c_str(), port);
+	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16 " (retry: %fs)",
+		addr.c_str(), port, retry);
 
 	auto e = util::zeekenv("ZEEK_DEFAULT_CONNECT_RETRY");
 
@@ -1452,6 +1452,14 @@ void Manager::ProcessStatus(broker::status stat)
 	case broker::sc::peer_lost:
 		--peer_count;
 		event = ::Broker::peer_lost;
+		break;
+
+	case broker::sc::endpoint_discovered:
+		event = ::Broker::endpoint_discovered;
+		break;
+
+	case broker::sc::endpoint_unreachable:
+		event = ::Broker::endpoint_unreachable;
 		break;
 
 	default:

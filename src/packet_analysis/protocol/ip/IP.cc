@@ -225,6 +225,12 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	data = ip_hdr->Payload();
 	len -= ip_hdr_len;
 
+	// Session analysis assumes that the header size stored in the packet does not include the IP header
+	// size. There are two reasons for this: 1) Packet::ToRawPktHdrVal() wants to look at the IP header for
+	// reporting, and 2) The VXLAN analyzer uses the header position to create the next packet in the tunnel
+	// chain. Once the TCP/UDP work is done and the VXLAN analyzer can move into packet analysis, this can
+	// change, but for now we leave it as it is.
+
 	bool return_val = true;
 	int proto = ip_hdr->NextProto();
 

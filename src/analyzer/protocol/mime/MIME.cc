@@ -679,7 +679,8 @@ void MIME_Entity::NewDataLine(int len, const char* data, bool trailing_CRLF)
 			case MULTIPART_BOUNDARY:
 				if ( current_child_entity != nullptr )
 					EndChildEntity();
-				BeginChildEntity();
+				if ( ! end_of_data )
+					BeginChildEntity();
 				return;
 
 			case MULTIPART_CLOSING_BOUNDARY:

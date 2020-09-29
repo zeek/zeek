@@ -107,7 +107,7 @@ event zeek_init()
 
 # Verify that the stream-level policy gets inherited into additional
 # filters.  The single hook handler should get invoked for both of the
-# log filters., and alters them depending on the filter.
+# log filters, and alters them depending on the filter.
 
 hook Test::log_policy(rec: Test::Info, id: Log::ID, filter: Log::Filter)
 	{

@@ -1,4 +1,13 @@
 
+3.3.0-dev.355 | 2020-09-29 17:08:44 -0700
+
+  * Improve broker/ssl_auth_failure.zeek test (Jon Siwek, Corelight)
+
+    There was a race that previously may cause it to not truly test
+    whether the connecting-process exited due to SSL authentication
+    failure or just because the listening-process wasn't available yet
+    (e.g. due to process scheduling variability).
+
 3.3.0-dev.352 | 2020-09-25 15:09:29 -0700
 
   * GH-160: change find-filtered-trace to ignore pcaps with any non-TCP traffic (Robin Sommer, Corelight)

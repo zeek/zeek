@@ -1,10 +1,15 @@
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
+# @TEST-EXEC: btest-bg-run send-check1 "zeek -B broker -b ../send-check.zeek >send.out"
+# @TEST-EXEC: $SCRIPTS/wait-for-file recv/listen-ready 20 || (btest-bg-wait -k 1 && false)
+#
 # @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
+# @TEST-EXEC: $SCRIPTS/wait-for-file send/failed 20 || (btest-bg-wait -k 1 && false)
+#
+# @TEST-EXEC: btest-bg-run send-check2 "zeek -B broker -b ../send-check.zeek >send.out"
 #
 # @TEST-EXEC: btest-bg-wait 45
-# @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
 @TEST-START-FILE ca.pem
@@ -86,79 +91,86 @@ BTdqMbieumB/zL97iK5baHUFEJ4VRtLQhh/SOXgew/BF8ccpilI=
 -----END RSA PRIVATE KEY-----
 @TEST-END-FILE
 
+@TEST-START-FILE send-check.zeek
+# This script just confirms the process running recv.zeek has listen()'d
+
+event zeek_init()
+	{
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
+	}
+
+@TEST-END-FILE
+
 @TEST-START-FILE send.zeek
 
-redef exit_only_after_terminate = T;
+# This is expected to generate the error condition and be unable to connect
+# do to SSL authentication failure.
 
 redef Broker::ssl_cafile = "../ca.pem";
 redef Broker::ssl_keyfile = "../key.1.pem";
 redef Broker::ssl_certificate = "../cert.1.pem";
 
-global event_count = 0;
-
-global ping: event(msg: string, c: count);
-
-event do_terminate()
+event zeek_init()
 	{
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	print fmt("sender added peer: endpoint=%s msg=%s", endpoint$network$address, msg);
 	terminate();
 	}
 
-event zeek_init()
-    {
-    Broker::subscribe("zeek/event/my_topic");
-    Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
-    schedule 5secs { do_terminate()   };
-    }
-
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-    {
-    print fmt("sender added peer: endpoint=%s msg=%s", endpoint$network$address, msg);
-    }
-
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-    {
-    print fmt("sender lost peer: endpoint=%s msg=%s", endpoint$network$address, msg);
-    terminate();
-    }
+	{
+	print fmt("sender lost peer: endpoint=%s msg=%s", endpoint$network$address, msg);
+	terminate();
+	}
 
 event Broker::error(code: Broker::ErrorCode, msg: string)
-    {
-    print fmt("sender error: code=%s msg=%s", code, gsub(msg, /127.0.0.1:[0-9]+/, "<endpoint addr:port>"));
-    terminate();
-    }
+	{
+		system("touch failed");
+	print fmt("sender error: code=%s msg=%s", code, gsub(msg, /127.0.0.1:[0-9]+/, "<endpoint addr:port>"));
+	terminate();
+	}
 
 @TEST-END-FILE
 
-
 @TEST-START-FILE recv.zeek
 
-redef exit_only_after_terminate = T;
-
 # No cert here.
-# 
+#
 # redef Broker::ssl_cafile = "../ca.pem";
 # redef Broker::ssl_keyfile = "../key.2.pem";
 # redef Broker::ssl_certificate = "../cert.2.pem";
 
-event do_terminate()
+event zeek_init()
 	{
-	terminate();
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
-event zeek_init()
-        {
-        Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
-        schedule 10secs { do_terminate()   };
-        }
+global peer_count = 0;
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-        {
-        print fmt("receiver added peer: endpoint=%s msg=%s", endpoint$network$address, msg);
-        }
+	{
+	print fmt("receiver added peer: endpoint=%s msg=%s", endpoint$network$address, msg);
+
+	++peer_count;
+
+	if ( peer_count == 1 )
+		system("touch listen-ready");
+	else if ( peer_count == 2 )
+		terminate();
+	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-        {
-        print fmt("receiver lost peer: endpoint=%s msg=%s", endpoint$network$address, msg);
-        }
+	{
+	print fmt("receiver lost peer: endpoint=%s msg=%s", endpoint$network$address, msg);
+	}
 
 @TEST-END-FILE

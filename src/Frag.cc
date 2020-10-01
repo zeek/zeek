@@ -71,7 +71,6 @@ FragReassembler::~FragReassembler()
 	{
 	DeleteTimer();
 	delete [] proto_hdr;
-	delete reassembled_pkt;
 	}
 
 void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)

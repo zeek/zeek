@@ -51,10 +51,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	uint32_t protocol = ip->ip_v;
 
 	// This is a unique pointer because of the mass of early returns from this method.
-	std::unique_ptr<IP_Hdr> ip_hdr = nullptr;
+	IP_Hdr* ip_hdr = nullptr;
 	if ( protocol == 4 )
 		{
-		ip_hdr = std::make_unique<IP_Hdr>(ip, false);
+		ip_hdr = new IP_Hdr(ip, false);
 		packet->l3_proto = L3_IPV4;
 		}
 	else if ( protocol == 6 )
@@ -65,7 +65,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			return false;
 			}
 
-		ip_hdr = std::make_unique<IP_Hdr>((const struct ip6_hdr*) data, false, len);
+		ip_hdr = new IP_Hdr((const struct ip6_hdr*) data, false, len);
 		packet->l3_proto = L3_IPV6;
 		}
 	else
@@ -73,6 +73,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		packet->Weird("unknown_ip_version");
 		return false;
 		}
+
+	// Store this with the packet, since it's potentially used in other places
+	// and it makes sense to not have to parse it out a second time.
+	packet->ip_hdr = ip_hdr;
 
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
 
@@ -98,13 +102,13 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	uint16_t ip_hdr_len = ip_hdr->HdrLen();
 	if ( ip_hdr_len > total_len )
 		{
-		sessions->Weird("invalid_IP_header_size", ip_hdr.get(), encapsulation);
+		sessions->Weird("invalid_IP_header_size", ip_hdr, encapsulation);
 		return false;
 		}
 
 	if ( ip_hdr_len > len )
 		{
-		sessions->Weird("internally_truncated_header", ip_hdr.get(), encapsulation);
+		sessions->Weird("internally_truncated_header", ip_hdr, encapsulation);
 		return false;
 		}
 
@@ -127,7 +131,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	// Ignore if packet matches packet filter.
 	detail::PacketFilter* packet_filter = sessions->GetPacketFilter(false);
-	if ( packet_filter && packet_filter->Match(ip_hdr.get(), total_len, len) )
+	if ( packet_filter && packet_filter->Match(ip_hdr, total_len, len) )
 		 return false;
 
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
@@ -137,7 +141,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	if ( discarder && discarder->NextPacket(ip_hdr.get(), total_len, len) )
+	if ( discarder && discarder->NextPacket(ip_hdr, total_len, len) )
 		return false;
 
 	detail::FragReassembler* f = nullptr;
@@ -148,7 +152,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		if ( len < total_len )
 			{
-			sessions->Weird("incompletely_captured_fragment", ip_hdr.get(), encapsulation);
+			sessions->Weird("incompletely_captured_fragment", ip_hdr, encapsulation);
 
 			// Don't try to reassemble, that's doomed.
 			// Discard all except the first fragment (which
@@ -158,7 +162,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			}
 		else
 			{
-			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, ip_hdr.get(), packet->data + packet->hdr_size);
+			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, ip_hdr, packet->data + packet->hdr_size);
 			IP_Hdr* ih = f->ReassembledPkt();
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
@@ -166,16 +170,19 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 			ip4 = ih->IP4_Hdr();
 
-			// Delete the old ip_hdr and replace it with this one.
-			ip_hdr.reset(ih);
+			// Switch the stored ip header over to the one from the
+			// fragmented packet.
+			delete ip_hdr;
+			ip_hdr = ih;
 
 			len = total_len = ip_hdr->TotalLen();
 			ip_hdr_len = ip_hdr->HdrLen();
 			packet->cap_len = total_len + packet->hdr_size;
+			packet->ip_hdr = ih;
 
 			if ( ip_hdr_len > total_len )
 				{
-				sessions->Weird("invalid_IP_header_size", ip_hdr.get(), encapsulation);
+				sessions->Weird("invalid_IP_header_size", ip_hdr, encapsulation);
 				return false;
 				}
 			}
@@ -232,12 +239,14 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	bool return_val = true;
 	int proto = ip_hdr->NextProto();
 
+	packet->proto = proto;
+
 	switch ( proto ) {
 	case IPPROTO_TCP:
 	case IPPROTO_UDP:
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:
-		sessions->DoNextPacket(run_state::processing_start_time, packet, ip_hdr.get(), encapsulation);
+		sessions->DoNextPacket(run_state::processing_start_time, packet, ip_hdr, encapsulation);
 		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and
@@ -251,8 +260,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			}
 		break;
 	default:
-		// The tunnel analyzer needs this data.
-		packet->ip_hdr = ip_hdr.get();
 		packet->proto = proto;
 
 		// For everything else, pass it on to another analyzer. If there's no one to handle that,
@@ -262,12 +269,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	}
 
 	if ( f )
-		{
-		// If this was a fragment, we need to release the pointer here so that it doesn't get
-		// deleted. Deleting this one will be the responsibility of the fragment tracker.
-		ip_hdr.release();
 		f->DeleteTimer();
-		}
 
 	return return_val;
 	}

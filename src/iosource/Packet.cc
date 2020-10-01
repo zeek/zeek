@@ -5,6 +5,7 @@
 #include "iosource/Manager.h"
 #include "packet_analysis/Manager.h"
 #include "Var.h"
+#include "TunnelEncapsulation.h"
 
 extern "C" {
 #include <pcap.h>
@@ -61,12 +62,30 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	l3_proto = L3_UNKNOWN;
 	l3_checksummed = false;
 
+	delete encap;
+	encap = nullptr;
+	delete ip_hdr;
+	ip_hdr = nullptr;
+
+	proto = -1;
+	tunnel_type = BifEnum::Tunnel::IP;
+	gre_version = -1;
+	gre_link_type = DLT_RAW;
+
 	if ( data )
 		{
 		// From here we assume that layer 2 is valid. If the packet analysis fails,
 		// the packet manager will invalidate the packet.
 		l2_valid = true;
 		}
+	}
+
+Packet::~Packet()
+	{
+	if ( copy )
+		delete [] data;
+
+	delete ip_hdr;
 	}
 
 const IP_Hdr Packet::IP() const
@@ -141,18 +160,10 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 
 	pkt_hdr->Assign(0, std::move(l2_hdr));
 
-	if ( l3_proto == L3_IPV4 )
-		{
-		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
-		return ip_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
-		}
-
-	else if ( l3_proto == L3_IPV6 )
-		{
-		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
-		return ip6_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
-		}
-
+	if ( l3_proto == L3_IPV4 || l3_proto == L3_IPV6 )
+		// Packet analysis will have stored the IP header in the packet, so we can use
+		// that to build the output.
+		return ip_hdr->ToPktHdrVal(std::move(pkt_hdr), 1);
 	else
 		return pkt_hdr;
 	}

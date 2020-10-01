@@ -95,23 +95,8 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	len -= pkt.hdr_size;
 	caplen -= pkt.hdr_size;
 
-	IP_Hdr* inner_hdr = nullptr;
-	int res = 0;
-
-	switch ( pkt.l3_proto ) {
-		case L3_IPV4:
-			res = sessions->ParseIPPacket(len, data, IPPROTO_IPV4, inner_hdr);
-			break;
-		case L3_IPV6:
-			res = sessions->ParseIPPacket(len, data, IPPROTO_IPV6, inner_hdr);
-			break;
-		default:
-			return;
-	}
-
-	if ( res < 0 )
+	if ( ! pkt.ip_hdr )
 		{
-		delete inner_hdr;
 		if ( delete_outer )
 			delete outer;
 
@@ -124,7 +109,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( vxlan_packet )
 		Conn()->EnqueueEvent(vxlan_packet, nullptr, ConnVal(),
-		                     inner_hdr->ToPktHdrVal(), val_mgr->Count(vni));
+		                     pkt.ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
 
 	if ( delete_outer )
 		delete outer;

@@ -88,11 +88,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Packet()
-		{
-		if ( copy )
-			delete [] data;
-		}
+	~Packet();
 
 	/**
 	 * (Re-)initialize from packet data.
@@ -134,6 +130,9 @@ public:
 
 	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
+
+	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
+	void Weird(const char* name, const EncapsulationStack* encap = nullptr);
 
 	/**
 	 * Maximal length of a layer 2 address.
@@ -226,9 +225,6 @@ public:
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
 	int gre_version = -1;
 	int gre_link_type = DLT_RAW;
-
-	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
-	void Weird(const char* name, const EncapsulationStack* encap = nullptr);
 
 private:
 	// Renders an MAC address into its ASCII representation.

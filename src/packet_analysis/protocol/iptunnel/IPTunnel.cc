@@ -20,39 +20,15 @@ IPTunnelAnalyzer::IPTunnelAnalyzer()
 
 bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	EncapsulationStack* encapsulation = nullptr;
-	auto it = packet->key_store.find("encap");
-	if ( it != packet->key_store.end() )
-		encapsulation = std::any_cast<EncapsulationStack*>(it->second);
+	EncapsulationStack* encapsulation = packet->encap;
 
-	it = packet->key_store.find("ip_hdr");
-	if ( it == packet->key_store.end() )
+	if ( ! packet->ip_hdr )
 		{
 		reporter->InternalError("IPTunnelAnalyzer: ip_hdr not found in packet keystore");
 		return false;
 		}
 
-	IP_Hdr* ip_hdr = std::any_cast<IP_Hdr*>(it->second);
-
-	int proto = -1;
-	it = packet->key_store.find("proto");
-	if ( it != packet->key_store.end() )
-		proto = std::any_cast<int>(it->second);
-
-	int gre_version = -1;
-	it = packet->key_store.find("gre_version");
-	if ( it != packet->key_store.end() )
-		gre_version = std::any_cast<int>(it->second);
-
-	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
-	it = packet->key_store.find("tunnel_type");
-	if ( it != packet->key_store.end() )
-		tunnel_type = std::any_cast<BifEnum::Tunnel::Type>(it->second);
-
-	int gre_link_type = DLT_RAW;
-	it = packet->key_store.find("gre_link_type");
-	if ( it != packet->key_store.end() )
-		gre_link_type = std::any_cast<int>(it->second);
+	IP_Hdr* ip_hdr = packet->ip_hdr;
 
 	if ( ! BifConst::Tunnel::enable_ip )
 		{
@@ -66,6 +42,11 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		sessions->Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
 		return false;
 		}
+
+	int proto = packet->proto;
+	int gre_version = packet->gre_version;
+	BifEnum::Tunnel::Type tunnel_type = packet->tunnel_type;
+	int gre_link_type = packet->gre_link_type;
 
 	IP_Hdr* inner = nullptr;
 
@@ -154,8 +135,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	// Construct fake packet for DoNextPacket
 	Packet p;
 	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
-	p.key_store["encap"] = outer;
-	p.key_store["encap_inner_ip"] = inner;
+	p.encap = outer;
 
 	// Forward the packet back to the IP analyzer.
 	bool return_val = ForwardPacket(len, data, &p);
@@ -193,7 +173,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	// Construct fake packet for DoNextPacket
 	Packet p;
 	p.Init(link_type, &ts, caplen, len, data, false, "");
-	p.key_store["encap"] = outer;
+	p.encap = outer;
 
 	// Process the packet as if it was a brand new packet by passing it back
 	// to the packet manager.

@@ -15,6 +15,9 @@ typedef struct bpf_timeval pkt_timeval;
 typedef struct timeval pkt_timeval;
 #endif
 
+#include "pcap.h" // For DLT_ constants
+#include "NetVar.h" // For BifEnum::Tunnel
+
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
@@ -214,10 +217,15 @@ public:
 	 */
 	mutable bool dump_packet;
 
-	/**
-	 * Key/value store for use by the packet analyzers to pass information between them.
-	 */
-	std::map<std::string, std::any> key_store;
+	// These are fields passed between various packet analyzers. They're best
+	// stored with the packet so they stay available as the packet is passed
+	// around.
+	EncapsulationStack* encap = nullptr;
+	IP_Hdr* ip_hdr = nullptr;
+	int proto = -1;
+	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
+	int gre_version = -1;
+	int gre_link_type = DLT_RAW;
 
 	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
 	void Weird(const char* name, const EncapsulationStack* encap = nullptr);

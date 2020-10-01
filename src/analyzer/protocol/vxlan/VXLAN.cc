@@ -77,7 +77,8 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ts.tv_sec = (time_t) run_state::current_timestamp;
 	ts.tv_usec = (suseconds_t) ((run_state::current_timestamp - (double)ts.tv_sec) * 1000000);
 	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
-	pkt.key_store["encap"] = outer;
+	pkt.encap = outer;
+
 	packet_mgr->ProcessPacket(&pkt);
 
 	if ( ! pkt.l2_valid )

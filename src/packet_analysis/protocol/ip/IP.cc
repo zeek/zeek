@@ -30,10 +30,7 @@ IPAnalyzer::~IPAnalyzer()
 
 bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	EncapsulationStack* encapsulation = nullptr;
-	auto it = packet->key_store.find("encap");
-	if ( it != packet->key_store.end() )
-		encapsulation = std::any_cast<EncapsulationStack*>(it->second);
+	EncapsulationStack* encapsulation = packet->encap;
 
 	// Check to make sure we have enough data left for an IP header to be here. Note we only
 	// check ipv4 here. We'll check ipv6 later once we determine we have an ipv6 header.
@@ -53,6 +50,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	auto ip = (const struct ip *)data;
 	uint32_t protocol = ip->ip_v;
 
+	// This is a unique pointer because of the mass of early returns from this method.
 	std::unique_ptr<IP_Hdr> ip_hdr = nullptr;
 	if ( protocol == 4 )
 		{
@@ -254,8 +252,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		break;
 	default:
 		// The tunnel analyzer needs this data.
-		packet->key_store["ip_hdr"] = ip_hdr.get();
-		packet->key_store["proto"] = proto;
+		packet->ip_hdr = ip_hdr.get();
+		packet->proto = proto;
 
 		// For everything else, pass it on to another analyzer. If there's no one to handle that,
 		// it'll report a Weird.

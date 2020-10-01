@@ -42,24 +42,15 @@ GREAnalyzer::GREAnalyzer()
 
 bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	EncapsulationStack* encapsulation = nullptr;
-	auto it = packet->key_store.find("encap");
-	if ( it != packet->key_store.end() )
-		encapsulation = std::any_cast<EncapsulationStack*>(it->second);
+	EncapsulationStack* encapsulation = packet->encap;
 
-	it = packet->key_store.find("ip_hdr");
-	if ( it == packet->key_store.end() )
+	if ( ! packet->ip_hdr )
 		{
 		reporter->InternalError("GREAnalyzer: ip_hdr not found in packet keystore");
 		return false;
 		}
 
-	IP_Hdr* ip_hdr = std::any_cast<IP_Hdr*>(it->second);
-
-	int proto = -1;
-	it = packet->key_store.find("proto");
-	if ( it != packet->key_store.end() )
-		proto = std::any_cast<int>(proto);
+	IP_Hdr* ip_hdr = packet->ip_hdr;
 
 	if ( ! BifConst::Tunnel::enable_gre )
 		{
@@ -67,6 +58,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
+	int proto = packet->proto;
 	int gre_link_type = DLT_RAW;
 
 	uint16_t flags_ver = ntohs(*((uint16_t*)(data + 0)));
@@ -205,12 +197,10 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 	// that GRE header is stripped and only payload packet remains.
 	// The only thing different is the tunnel type enum value to use.
-	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::GRE;
-
-	packet->key_store["tunnel_type"] = tunnel_type;
-	packet->key_store["gre_version"] = gre_version;
-	packet->key_store["gre_link_type"] = gre_link_type;
-	packet->key_store["proto"] = proto;
+	packet->tunnel_type = BifEnum::Tunnel::GRE;
+	packet->gre_version = gre_version;
+	packet->gre_link_type = gre_link_type;
+	packet->proto = proto;
 
 	ForwardPacket(len, data, packet);
 

@@ -26,6 +26,12 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const use_json = F &redef;
 
+	## If true, enable leftover log rotation using .shadow files.
+	##
+	## This requires a positive rotation_interval to be configued
+	## to have an effect.
+	const enable_leftover_log_rotation = F &redef;
+
 	## If true, valid UTF-8 sequences will pass through unescaped and be
 	## written into logs.
 	##

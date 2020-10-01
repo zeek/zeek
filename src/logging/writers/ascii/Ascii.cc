@@ -16,7 +16,6 @@
 
 #include "Func.h"
 #include "RunState.h"
-#include "supervisor/Supervisor.h"
 #include "logging/Manager.h"
 #include "threading/SerialTypes.h"
 
@@ -450,7 +449,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 		fname += ext;
 
-		bool use_shadow = Supervisor::ThisNode() && info.rotation_interval > 0;
+		bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
 
 		if ( use_shadow )
 			{
@@ -667,7 +666,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 		return false;
 		}
 
-	bool use_shadow = Supervisor::ThisNode() && Info().rotation_interval > 0;
+	bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
 
 	if ( use_shadow )
 		{
@@ -744,7 +743,7 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 void Ascii::RotateLeftoverLogs()
 	{
-	if ( ! Supervisor::ThisNode() )
+	if ( ! BifConst::LogAscii::enable_leftover_log_rotation )
 		return;
 
 	// Log file crash recovery: if there's still leftover shadow files from the

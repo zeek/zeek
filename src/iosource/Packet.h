@@ -155,11 +155,6 @@ public:
 	uint32_t cap_len;				/// Captured packet length
 	uint32_t link_type;				/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
-	// True if L2 processing succeeded. If data is set on initialization of
-	// the packet, L2 is assumed to be valid. The packet manager will then
-	// process the packet and set l2_valid to False if the analysis failed.
-	bool l2_valid;
-
 	// These are computed from Layer 2 data. These fields are only valid if
 	// l2_valid returns true.
 
@@ -198,6 +193,13 @@ public:
 	 * (Innermost) VLAN tag if any, else 0. Valid iff l2_valid is true.
 	 */
 	uint32_t inner_vlan;
+
+	/**
+	 * True if L2 processing succeeded. If data is set on initialization of
+	 * the packet, L2 is assumed to be valid. The packet manager will then
+	 * process the packet and set l2_valid to False if the analysis failed.
+	 */
+	bool l2_valid;
 
 	/**
 	 * Indicates whether the layer 2 checksum was validated by the

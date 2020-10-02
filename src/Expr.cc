@@ -3758,6 +3758,9 @@ ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 ValPtr RecordCoerceExpr::Fold(Val* v) const
 	{
+	if ( same_type(GetType(), Op()->GetType()) )
+		return IntrusivePtr{NewRef{}, v};
+
 	auto val = make_intrusive<RecordVal>(GetType<RecordType>());
 	RecordType* val_type = val->GetType()->AsRecordType();
 

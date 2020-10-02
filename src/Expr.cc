@@ -3055,7 +3055,7 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 	}
 
 RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
-	: UnaryExpr(EXPR_RECORD_CONSTRUCTOR, std::move(constructor_list))
+	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
 	{
 	if ( IsError() )
 		return;
@@ -3108,20 +3108,28 @@ ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	return nullptr;
 	}
 
-ValPtr RecordConstructorExpr::Fold(Val* v) const
+ValPtr RecordConstructorExpr::Eval(Frame* f) const
 	{
-	ListVal* lv = v->AsListVal();
+	if ( IsError() )
+		return nullptr;
+
+	const auto& exprs = op->Exprs();
 	auto rt = cast_intrusive<RecordType>(type);
 
-	if ( lv->Length() != rt->NumFields() )
+	if ( exprs.length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
 	auto rv = make_intrusive<RecordVal>(std::move(rt));
 
-	for ( int i = 0; i < lv->Length(); ++i )
-		rv->Assign(i, lv->Idx(i));
+	for ( int i = 0; i < exprs.length(); ++i )
+		rv->Assign(i, exprs[i]->Eval(f));
 
 	return rv;
+	}
+
+bool RecordConstructorExpr::IsPure() const
+	{
+	return op->IsPure();
 	}
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3129,6 +3137,18 @@ void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("[");
 	op->Describe(d);
 	d->Add("]");
+	}
+
+TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
 	}
 
 TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,

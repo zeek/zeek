@@ -296,6 +296,7 @@ set(MAIN_SRCS
     legacy-netvar-init.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
+    in_cksum.cc
     patricia.c
     setsignal.c
     strsep.c

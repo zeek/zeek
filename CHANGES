@@ -1,4 +1,16 @@
 
+3.3.0-dev.357 | 2020-10-02 10:26:11 -0700
+
+  * Switch one's complement checksum implementation (Jon Siwek, Corelight)
+
+    Borrows the `in_cksum` code from tcpdump, which borrowed from FreeBSD.
+    It handles unaligned data better and also unrolls the inner loop to
+    process 16 two-byte values at a time versus 2 one-byte values at a time
+    in the previous version.  Generally measured as ~1.5x faster in a
+    release build.  The new API should generally be more amenable to any
+    future optimization explorations since all relevant data blocks are
+    available within a single call rather than spread across multiple.
+
 3.3.0-dev.355 | 2020-09-29 17:08:44 -0700
 
   * Improve broker/ssl_auth_failure.zeek test (Jon Siwek, Corelight)

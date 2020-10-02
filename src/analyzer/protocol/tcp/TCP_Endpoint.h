@@ -165,7 +165,7 @@ public:
 	// WARNING: this is an O(n) operation and potentially very slow.
 	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack);
 
-	bool ValidChecksum(const struct tcphdr* tp, int len) const;
+	bool ValidChecksum(const struct tcphdr* tp, int len, bool ipv4) const;
 
 	// Called to inform endpoint that it has generated a checksum error.
 	void ChecksumError();
@@ -211,7 +211,6 @@ public:
 	TCP_Reassembler* contents_processor;
 	TCP_Analyzer* tcp_analyzer;
 	FilePtr contents_file;
-	uint32_t checksum_base;
 
 	double start_time, last_time;
 	IPAddr src_addr; // the other endpoint

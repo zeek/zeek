@@ -269,7 +269,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		 return;
 
 	if ( ! pkt->l2_checksummed && ! zeek::detail::ignore_checksums && ip4 &&
-	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
+	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
 		Weird("bad_IP_checksum", pkt, encapsulation);
 		return;

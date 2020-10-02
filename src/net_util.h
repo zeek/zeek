@@ -121,7 +121,54 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
 
-// Returns the ones-complement checksum of a chunk of b short-aligned bytes.
+namespace detail {
+
+struct checksum_block {
+	const uint8_t* block;
+	int len;
+};
+
+struct ipv4_pseudo_hdr {
+	in_addr  src;
+	in_addr  dst;
+	uint8_t  zero;
+	uint8_t  next_proto;
+	uint16_t len;
+};
+
+struct ipv6_pseudo_hdr {
+	in6_addr src;
+	in6_addr dst;
+	uint32_t len;
+	uint8_t  zero[3];
+	uint8_t  next_proto;
+};
+
+extern uint16_t in_cksum(const checksum_block* blocks, int num_blocks);
+
+inline uint16_t in_cksum(const uint8_t* data, int len)
+	{
+	checksum_block cb{data, len};
+	return in_cksum(&cb, 1);
+	}
+
+extern uint16_t ip4_in_cksum(const IPAddr& src, const IPAddr& dst,
+                             uint8_t next_proto, const uint8_t* data, int len);
+
+extern uint16_t ip6_in_cksum(const IPAddr& src, const IPAddr& dst,
+                             uint8_t next_proto, const uint8_t* data, int len);
+
+inline uint16_t ip_in_cksum(bool is_ipv4, const IPAddr& src, const IPAddr& dst,
+                            uint8_t next_proto, const uint8_t* data, int len)
+	{
+	if ( is_ipv4 )
+		return ip4_in_cksum(src, dst, next_proto, data, len);
+	return ip6_in_cksum(src, dst, next_proto, data, len);
+	}
+
+} // namespace zeek::detail
+
+// Returns the ones-complement checksum of a chunk of 'b' bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32_t sum);
 
 extern int ones_complement_checksum(const IPAddr& a, uint32_t sum);

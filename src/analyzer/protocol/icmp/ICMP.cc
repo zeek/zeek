@@ -346,7 +346,8 @@ RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 		bad_hdr_len = 0;
 		ip_len = ip_hdr->TotalLen();
 		bad_checksum = ! run_state::current_pkt->l3_checksummed &&
-			(ones_complement_checksum((void*) ip_hdr->IP4_Hdr(), ip_hdr_len, 0) != 0xffff);
+		  (detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
+		                    ip_hdr_len) != 0xffff);
 
 		src_addr = ip_hdr->SrcAddr();
 		dst_addr = ip_hdr->DstAddr();

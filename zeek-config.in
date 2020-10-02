@@ -17,6 +17,12 @@ binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@
 caf_root=@ZEEK_CONFIG_CAF_ROOT_DIR@
 broker_root=@ZEEK_CONFIG_BROKER_ROOT_DIR@
 
+include_dir=${include_dir}:@ZEEK_CONFIG_PCAP_INCLUDE_DIR@
+include_dir=${include_dir}:@ZEEK_CONFIG_ZLIB_INCLUDE_DIR@
+include_dir=${include_dir}:@ZEEK_CONFIG_OPENSSL_INCLUDE_DIR@
+include_dir=${include_dir}:@ZEEK_CONFIG_LibKrb5_INCLUDE_DIR@
+include_dir=${include_dir}:@ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR@
+
 usage="\
 Usage: zeek-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
 

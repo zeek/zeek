@@ -1,4 +1,12 @@
 
+3.3.0-dev.359 | 2020-10-02 10:49:35 -0700
+
+  * GH-1180: Add external dependency include paths to `zeek-config --include_dir` (Jon Siwek, Corelight)
+
+    This helps ensure successful compilation of a plugin that includes a
+    Zeek header which includes an external dependency header even if the
+    plugin itself doesn't necessarily depend on that external library.
+
 3.3.0-dev.357 | 2020-10-02 10:26:11 -0700
 
   * Switch one's complement checksum implementation (Jon Siwek, Corelight)

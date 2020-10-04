@@ -504,6 +504,11 @@ public:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
 	bool IsPure() const override;
 
+	void SetOp2(ExprPtr e)
+		{
+		op2 = e;
+		}
+
 protected:
 	bool TypeCheck(const AttributesPtr& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);

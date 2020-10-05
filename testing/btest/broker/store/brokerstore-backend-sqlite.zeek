@@ -33,6 +33,7 @@ type testrec: record {
 global t: table[string] of count &backend=Broker::SQLITE;
 global s: set[string] &backend=Broker::SQLITE;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
+global rt: table[string, count, count] of count &backend=Broker::SQLITE;
 
 event zeek_init()
 	{
@@ -48,9 +49,14 @@ event zeek_init()
 	r["a"] = testrec($a=1, $b="b", $c=set("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
+	rt["a", 1, 2] = 1;
+	rt["a", 1, 2] += 1;
+	rt["a", 1, 3] = 2;
+	delete rt["a", 1, 3];
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
+	print rt;
 	}
 
 @TEST-END-FILE
@@ -71,6 +77,7 @@ function change_function(t: table[string] of count, tpe: TableChange, idxa: stri
 global t: table[string] of count &backend=Broker::SQLITE &on_change=change_function;
 global s: set[string] &backend=Broker::SQLITE;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
+global rt: table[string, count, count] of count &backend=Broker::SQLITE;
 
 redef Broker::table_store_db_directory = "..";
 
@@ -79,6 +86,7 @@ event zeek_init()
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
+	print rt;
 	}
 
 global peers_lost = 0;
@@ -102,12 +110,16 @@ redef Log::default_rotation_interval = 0secs;
 global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
+# This _should_ work with both SQLITE and MEMORY, since Zeek should figure out itself that
+# the manager has the main copy.
+global rt: table[string, count, count] of count &backend=Broker::SQLITE;
 
 event dump_tables()
 	{
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
+	print rt;
 	terminate();
 	}
 

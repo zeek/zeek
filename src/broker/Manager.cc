@@ -1031,8 +1031,12 @@ void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table,
 			}
 
 		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
-		assert( its.size() == 1 );
-		auto zeek_key = detail::data_to_val(key, its[0].get());
+		ValPtr zeek_key;
+		if ( its.size() == 1 )
+			zeek_key = detail::data_to_val(key, its[0].get());
+		else
+			zeek_key = detail::data_to_val(key, table->GetType()->AsTableType()->GetIndices().get());
+
 		if ( ! zeek_key )
 			{
 			reporter->Error("ProcessStoreEvent %s: could not convert key \"%s\" for store \"%s\" while receiving remote data. This probably means the tables have different types on different nodes.", type, to_string(key).c_str(), store_id.c_str());
@@ -1625,14 +1629,18 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const detail::Stor
 	auto table = handle->forward_to;
 	const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 	bool is_set = table->GetType()->IsSet();
-	assert( its.size() == 1 );
 
 	// disable &on_change notifications while filling the table.
 	table->DisableChangeNotifications();
 
 	for ( const auto& key : *set )
 		{
-		auto zeek_key = detail::data_to_val(key, its[0].get());
+		ValPtr zeek_key;
+		if ( its.size() == 1 )
+			zeek_key = detail::data_to_val(key, its[0].get());
+		else
+			zeek_key = detail::data_to_val(key, table->GetType()->AsTableType()->GetIndices().get());
+
 		if ( ! zeek_key )
 			{
 			reporter->Error("Failed to convert key \"%s\" while importing broker store to table for store \"%s\". Aborting import.", to_string(key).c_str(), name.c_str());

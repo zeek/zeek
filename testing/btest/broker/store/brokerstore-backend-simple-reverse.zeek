@@ -36,6 +36,7 @@ type testrec: record {
 global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
+global rt: table[string, testrec] of count &backend=Broker::MEMORY;
 
 event go_away()
 	{
@@ -61,6 +62,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
+	print rt;
 	terminate();
 	}
 
@@ -82,9 +84,12 @@ event dump_tables()
 	r["a"] = testrec($a=1, $b="b", $c=vector("elem1", "elem2"));
 	r["a"] = testrec($a=1, $b="c", $c=vector("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=vector("elem1", "elem2"));
+	rt["a", testrec($a=1, $b="b", $c=vector("elem1", "elem2"))] = 1;
+	rt["a", testrec($a=1, $b="b", $c=vector("elem1", "elem2"))] += 1;
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
+	print rt;
 	}
 
 event Cluster::node_up(name: string, id: string)
@@ -110,6 +115,7 @@ event dump_tables()
 	print sort_table(t);
 	print sort_set(s);
 	print sort_table(r);
+	print rt;
 	terminate();
 	}
 

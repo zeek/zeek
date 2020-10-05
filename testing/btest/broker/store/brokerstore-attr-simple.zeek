@@ -20,7 +20,7 @@ type testrec: record {
 };
 
 global t: table[string] of count &broker_store="table";
-global s: set[string] &broker_store="set";
+global s: set[string, string] &broker_store="set";
 global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
 @TEST-END-FILE
 
@@ -38,7 +38,7 @@ event insert_stuff()
 	print "Inserting stuff";
 	t["a"] = 5;
 	delete t["a"];
-	add s["hi"];
+	add s["hi", "there"];
 	t["a"] = 2;
 	t["a"] = 3;
 	t["b"] = 3;
@@ -49,7 +49,7 @@ event insert_stuff()
 	r["a"] = testrec($a=1, $b="c", $c=set("elem1", "elem2"));
 	r["b"] = testrec($a=2, $b="d", $c=set("elem1", "elem2"));
 	print sort_table(t);
-	print sort_set(s);
+	print s;
 	print sort_table(r);
 	}
 
@@ -75,14 +75,14 @@ event zeek_init()
 event dump_tables()
 	{
 	print sort_table(t);
-	print sort_set(s);
+	print s;
 	print sort_table(r);
 	terminate();
 	}
 
 event check_all_set()
 	{
-	if ( "whatever" in t && "hi" in s && "b" in r )
+	if ( "whatever" in t && ["hi", "there"] in s && "b" in r )
 		event dump_tables();
 	else
 		schedule 0.1sec { check_all_set() };

@@ -2172,23 +2172,14 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		if ( ! handle )
 			return;
 
-		// we either get passed the raw index_val - or a ListVal with exactly one element.
-		// Since Broker does not support ListVals, we have to unoll this in the second case.
+		// For simple indexes, we either get passed the raw index_val - or a ListVal with exactly one element.
+		// We unoll this in the second case.
+		// For complex indexes, we just pass the ListVal.
 		const Val* index_val;
-		if ( index->GetType()->Tag() == TYPE_LIST )
-			{
-			if ( index->AsListVal()->Length() != 1 )
-				{
-				emit_builtin_error("table with complex index not supported for &broker_store");
-				return;
-				}
-
+		if ( index->GetType()->Tag() == TYPE_LIST && index->AsListVal()->Length() == 1)
 			index_val = index->AsListVal()->Idx(0).get();
-			}
 		else
-			{
 			index_val = index;
-			}
 
 		auto broker_index = Broker::detail::val_to_data(index_val);
 

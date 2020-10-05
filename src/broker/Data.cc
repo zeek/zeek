@@ -345,6 +345,34 @@ struct val_converter {
 
 			return rval;
 			}
+		else if ( type->Tag() == TYPE_LIST )
+			{
+			// lists are just treated as vectors on the broker side.
+			auto lt = type->AsTypeList();
+			auto rval = make_intrusive<ListVal>(TYPE_ANY);
+			auto types = lt->GetTypes();
+			auto pure = lt->IsPure();
+
+			if ( pure )
+				// ListVal doesn't have a type constructor :)
+				rval = make_intrusive<ListVal>(lt->GetPureType()->Tag());
+
+			unsigned int pos = 0;
+			for ( auto& item : a )
+				{
+				if ( ! pure && pos >= types.size() )
+					return nullptr;
+
+				auto item_val = data_to_val(move(item), pure ? lt->GetPureType().get() : types.at(pos).get() );
+				pos++;
+
+				if ( ! item_val )
+					return nullptr;
+
+				rval->Append(std::move(item_val));
+				}
+			return rval;
+			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
 			if ( a.size() < 1 || a.size() > 2 )
@@ -943,6 +971,31 @@ broker::expected<broker::data> val_to_data(const Val* v)
 		for ( auto i = 0u; i < vec->Size(); ++i )
 			{
 			const auto& item_val = vec->At(i);
+
+			if ( ! item_val )
+				continue;
+
+			auto item = val_to_data(item_val.get());
+
+			if ( ! item )
+				return broker::ec::invalid_data;
+
+			rval.emplace_back(move(*item));
+			}
+
+		return {std::move(rval)};
+		}
+	case TYPE_LIST:
+		{
+		// We don't really support lists on the broker side.
+		// So we just pretend that it is a vector instead.
+		auto list = v->AsListVal();
+		broker::vector rval;
+		rval.reserve(list->Length());
+
+		for ( auto i = 0u; i < list->Length(); ++i )
+			{
+			const auto& item_val = list->Idx(i);
 
 			if ( ! item_val )
 				continue;

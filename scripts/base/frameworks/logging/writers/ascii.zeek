@@ -26,6 +26,14 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const use_json = F &redef;
 
+	## If true, detect log files that did not get properly rotated
+	## by a previous Zeek process (e.g. due to crash) and rotate them.
+	##
+	## This requires a positive rotation interval to be configured
+	## to have an effect.  E.g. via :zeek:see:`Log::default_rotation_interval`
+	## or the *interv* field of a :zeek:see:`Log::Filter`.
+	const enable_leftover_log_rotation = F &redef;
+
 	## If true, valid UTF-8 sequences will pass through unescaped and be
 	## written into logs.
 	##

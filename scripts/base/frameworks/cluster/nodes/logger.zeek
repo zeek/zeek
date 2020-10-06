@@ -37,6 +37,8 @@ function supervisor_rotation_format_func(ri: Log::RotationFmtInfo): Log::Rotatio
 
 redef Log::rotation_format_func = supervisor_rotation_format_func;
 
+redef LogAscii::enable_leftover_log_rotation = T;
+
 @else
 
 ## Use the cluster's archive logging script.

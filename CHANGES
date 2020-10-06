@@ -1,4 +1,12 @@
 
+3.3.0-dev.361 | 2020-10-06 10:13:37 -0700
+
+  * logging/ascii: Support leftover log rotation in non-supervisor setups (Arne Welzel, Corelight)
+
+    Allow enabling leftover log rotation through
+    LogAscii::enable_leftover_log_rotation and redef this for the
+    logger node in a supervisor setup individually.
+
 3.3.0-dev.359 | 2020-10-02 10:49:35 -0700
 
   * GH-1180: Add external dependency include paths to `zeek-config --include_dir` (Jon Siwek, Corelight)

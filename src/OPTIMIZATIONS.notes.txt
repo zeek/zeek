@@ -2,6 +2,9 @@ could change basic calling coupling to be ZAMValUnion-based
 	- helps if compiler supports "when" and lambdas, so that *everything*
 	  can be inlined/compiled
 
+could figure out that a given function is potentially the target of an
+indirect call and generate a ZAM body for it in case that happens
+
 could omit some load-globals if there's not been a call since the last one
 
 implement /foo/ !in x && /bar/ !in x ... cascade analogous to current one

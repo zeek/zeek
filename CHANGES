@@ -1,4 +1,26 @@
 
+3.3.0-dev.365 | 2020-10-06 12:19:49 -0700
+
+  * GH-425: Avoid temporary value while coercing records already of the right type. (Robin Sommer, Corelight)
+
+    The combination of this commit with the previous one now lets the examples
+    in GH-425 all execute with the same performance.
+
+  * GH-425: Optimize record constructor expression. (Robin Sommer, Corelight)
+
+    We remove the inheritance from UnaryExpr because we know the type of the
+    operand precisely and can skip a temporary when evaluating the expression.
+
+  * Unify type comparisions for records. (Robin Sommer, Corelight)
+
+    For records, same_type(r1, r2) would not check if the fields'
+    attributes match as well. That seems like an oversight, and some
+    callers of same_type() did indeed add that check on their end. This
+    commit moves the check into same_type() itself. That generally doesn't
+    seem make any differences except for a couple of places validating
+    code, which we update a bit. That in turn leans to slightly different
+    (better?) error messages for a couple of test cases.
+
 3.3.0-dev.361 | 2020-10-06 10:13:37 -0700
 
   * logging/ascii: Support leftover log rotation in non-supervisor setups (Arne Welzel, Corelight)

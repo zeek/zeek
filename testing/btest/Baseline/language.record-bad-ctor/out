@@ -1,2 +1,2 @@
-error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.zeek, line 6: no type given (asdfasdf)
-expression error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.zeek, line 7: uninitialized list value ($ports=asdfasdf)
+error in /Users/robin/bro/topic/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.zeek, line 6: no type given (asdfasdf)
+error in /Users/robin/bro/topic/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.zeek, line 7: non-optional field "ports" missing in initialization ([ports=<uninitialized>])

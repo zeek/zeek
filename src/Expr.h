@@ -504,6 +504,11 @@ public:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
 	bool IsPure() const override;
 
+	void SetOp2(ExprPtr e)
+		{
+		op2 = std::move(e);
+		}
+
 protected:
 	bool TypeCheck(const AttributesPtr& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
@@ -625,16 +630,25 @@ protected:
 	int field;
 };
 
-class RecordConstructorExpr final : public UnaryExpr {
+class RecordConstructorExpr final : public Expr {
 public:
 	explicit RecordConstructorExpr(ListExprPtr constructor_list);
 	~RecordConstructorExpr() override;
 
+	ListExpr* Op() const	{ return op.get(); }
+
+	ValPtr Eval(Frame* f) const override;
+
+	bool IsPure() const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
-	ValPtr Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
+
+	ListExprPtr op;
 };
 
 class TableConstructorExpr final : public UnaryExpr {

@@ -1690,6 +1690,9 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 			if ( (match_record_field_names && ! util::streq(td1->id, td2->id)) ||
 			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return false;
+
+			if ( ! same_attrs(td1->attrs.get(), td2->attrs.get()) )
+				return false;
 			}
 
 		return true;

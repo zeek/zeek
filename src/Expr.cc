@@ -2164,26 +2164,16 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 		if ( attrs )
 			attr_copy = std::make_unique<std::vector<AttrPtr>>(attrs->GetAttrs());
 
-		bool empty_list_assignment = (op2->AsListExpr()->Exprs().empty());
-
 		if ( op1->GetType()->IsSet() )
 			op2 = make_intrusive<SetConstructorExpr>(
-			        cast_intrusive<ListExpr>(op2), std::move(attr_copy));
+			        cast_intrusive<ListExpr>(op2), std::move(attr_copy), op1->GetType());
 		else
 			op2 = make_intrusive<TableConstructorExpr>(
-			        cast_intrusive<ListExpr>(op2), std::move(attr_copy));
+			        cast_intrusive<ListExpr>(op2), std::move(attr_copy), op1->GetType());
 
-		if ( ! empty_list_assignment && ! same_type(op1->GetType(), op2->GetType()) )
-			{
-			if ( op1->GetType()->IsSet() )
-				ExprError("set type mismatch in assignment");
-			else
-				ExprError("table type mismatch in assignment");
-
-			return false;
-			}
-
-		return true;
+		// The constructor expressions are performing the type
+		// checking and will set op2 to an error state on failure.
+		return ! op2->IsError();
 		}
 
 	if ( bt1 == TYPE_VECTOR )
@@ -2207,21 +2197,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 	     op2->GetType()->Tag() == TYPE_RECORD )
 		{
 		if ( same_type(op1->GetType(), op2->GetType()) )
-			{
-			RecordType* rt1 = op1->GetType()->AsRecordType();
-			RecordType* rt2 = op2->GetType()->AsRecordType();
-
-			// Make sure the attributes match as well.
-			for ( int i = 0; i < rt1->NumFields(); ++i )
-				{
-				const TypeDecl* td1 = rt1->FieldDecl(i);
-				const TypeDecl* td2 = rt2->FieldDecl(i);
-
-				if ( same_attrs(td1->attrs.get(), td2->attrs.get()) )
-					// Everything matches.
-					return true;
-				}
-			}
+			return true;
 
 		// Need to coerce.
 		op2 = make_intrusive<RecordCoerceExpr>(std::move(op2), op1->GetType<RecordType>());
@@ -3077,7 +3053,7 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 	}
 
 RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
-	: UnaryExpr(EXPR_RECORD_CONSTRUCTOR, std::move(constructor_list))
+	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
 	{
 	if ( IsError() )
 		return;
@@ -3130,20 +3106,28 @@ ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	return nullptr;
 	}
 
-ValPtr RecordConstructorExpr::Fold(Val* v) const
+ValPtr RecordConstructorExpr::Eval(Frame* f) const
 	{
-	ListVal* lv = v->AsListVal();
+	if ( IsError() )
+		return nullptr;
+
+	const auto& exprs = op->Exprs();
 	auto rt = cast_intrusive<RecordType>(type);
 
-	if ( lv->Length() != rt->NumFields() )
+	if ( exprs.length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
 	auto rv = make_intrusive<RecordVal>(std::move(rt));
 
-	for ( int i = 0; i < lv->Length(); ++i )
-		rv->Assign(i, lv->Idx(i));
+	for ( int i = 0; i < exprs.length(); ++i )
+		rv->Assign(i, exprs[i]->Eval(f));
 
 	return rv;
+	}
+
+bool RecordConstructorExpr::IsPure() const
+	{
+	return op->IsPure();
 	}
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3151,6 +3135,18 @@ void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("[");
 	op->Describe(d);
 	d->Add("]");
+	}
+
+TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
 	}
 
 TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
@@ -3195,17 +3191,18 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	const ExprPList& cle = op->AsListExpr()->Exprs();
 
-	// check and promote all index expressions in ctor list
+	// check and promote all assign expressions in ctor list
 	for ( const auto& expr : cle )
 		{
 		if ( expr->Tag() != EXPR_ASSIGN )
 			continue;
 
-		Expr* idx_expr = expr->AsAssignExpr()->Op1();
+		auto idx_expr = expr->AsAssignExpr()->Op1();
+		auto val_expr = expr->AsAssignExpr()->Op2();
+		auto yield_type = GetType()->AsTableType()->Yield().get();
 
-		if ( idx_expr->Tag() != EXPR_LIST )
-			continue;
-
+		// Promote LHS
+		assert(idx_expr->Tag() == EXPR_LIST);
 		ExprPList& idx_exprs = idx_expr->AsListExpr()->Exprs();
 
 		if ( idx_exprs.length() != static_cast<int>(indices.size()) )
@@ -3229,6 +3226,19 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 				}
 
 			ExprError("inconsistent types in table constructor");
+			return;
+			}
+
+		// Promote RHS
+		if ( auto promoted_val = check_and_promote_expr(val_expr, yield_type) )
+			{
+			if ( promoted_val != val_expr )
+				expr->AsAssignExpr()->SetOp2(promoted_val);
+			}
+		else
+			{
+			ExprError("inconsistent types in table constructor");
+			return;
 			}
 		}
 	}
@@ -3328,8 +3338,8 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 			Expr* ce = cle[i];
 			ListExpr* le = ce->AsListExpr();
 
-			if ( ce->Tag() == EXPR_LIST &&
-			     check_and_promote_exprs(le, type->AsTableType()->GetIndices().get()) )
+			assert(ce->Tag() == EXPR_LIST);
+			if ( check_and_promote_exprs(le, type->AsTableType()->GetIndices().get()) )
 				{
 				if ( le != cle[i] )
 					cle.replace(i, le);
@@ -3746,6 +3756,9 @@ ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 ValPtr RecordCoerceExpr::Fold(Val* v) const
 	{
+	if ( same_type(GetType(), Op()->GetType()) )
+		return IntrusivePtr{NewRef{}, v};
+
 	auto val = make_intrusive<RecordVal>(GetType<RecordType>());
 	RecordType* val_type = val->GetType()->AsRecordType();
 
@@ -4985,18 +4998,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* et_r = et->AsRecordType();
 
 		if ( same_type(t, et) )
-			{
-			// Make sure the attributes match as well.
-			for ( int i = 0; i < t_r->NumFields(); ++i )
-				{
-				const TypeDecl* td1 = t_r->FieldDecl(i);
-				const TypeDecl* td2 = et_r->FieldDecl(i);
-
-				if ( same_attrs(td1->attrs.get(), td2->attrs.get()) )
-					// Everything matches perfectly.
-					return {NewRef{}, e};
-				}
-			}
+			return {NewRef{}, e};
 
 		if ( record_promotion_compatible(t_r, et_r) )
 			return make_intrusive<RecordCoerceExpr>(

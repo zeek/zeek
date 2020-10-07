@@ -1,4 +1,46 @@
 
+3.2.2 | 2020-10-07 10:14:47 -0700
+
+  * Release 3.2.2.
+
+  * Fix multipart MIME leak of sub-part found after closing-boundary (Jon Siwek, Corelight)
+
+    After detecting a closing-boundary for a given multipart MIME entity, it
+    enters into an "end of data" state, however any subsequent boundary
+    delimiter could still cause the allocation of a sub-entity object that
+    is never released due to cleanup logic being bypassed upon finding the
+    "end of data" state already reached.
+
+    This change prevents allocation/processing of sub-entities after the
+    "end of data" state is reached (e.g. from detecting a multipart
+    closing-boundary).  This new behavior still aligns with RFC 2046
+    expectations:
+
+    "There appears to be room for additional information prior to the first
+    boundary delimiter line and following the final boundary delimiter line.
+    These areas should generally be left blank, and implementations must
+    ignore anything that appears before the first boundary delimiter line or
+    after the last one."
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=26027
+    (Link to details becomes public 30 days after patch release)
+
+  * Improve CI benchmark script's error handling/messaging (Jon Siwek, Corelight)
+
+  * GH-1164: Fix incorrect RSTOS0 conn_state determinations (Jon Siwek, Corelight)
+
+    The RSTOS0 `conn_state` label is documented as "Originator sent a SYN
+    followed by a RST, never saw SYN-ACK from responder", but was previously
+    applied to cases where no originator SYN exists, like a single RST-only
+    packet.
+
+  * CI: Move to Fedora 32 (Christian Kreibich, Corelight)
+
+    Fedora 30 is EOL. For Fedora 32, we need to add the diffutils RPM to
+    the installation list, since cmp and diff aren't automatically
+    available in the base image. (Also, sort the RPMs alphabetically.)
+
 3.2.1 | 2020-09-08 14:48:20 -0700
 
   * Release 3.2.1.

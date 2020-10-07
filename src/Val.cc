@@ -2192,7 +2192,10 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			case ELEMENT_NEW:
 			case ELEMENT_CHANGED:
 				{
+				#pragma GCC diagnostic push
+				#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 				broker::optional<broker::timespan> expiry;
+				#pragma GCC diagnostic pop
 
 				auto expire_time = GetExpireTime();
 				if ( expire_time == 0 )

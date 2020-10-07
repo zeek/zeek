@@ -1,3 +1,4 @@
+
 @load base/frameworks/files
 @load base/files/hash
 
@@ -5,6 +6,8 @@ module X509;
 
 export {
 	redef enum Log::ID += { LOG };
+
+	global log_policy: Log::PolicyHook;
 
 	## How often do you have to encounter a certificate before
 	## caching it. Set to 0 to disable caching of certificates.
@@ -91,7 +94,7 @@ redef record Files::Info += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509, $path="x509"]);
+	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509, $path="x509", $policy=log_policy]);
 
 	# We use MIME types internally to distinguish between user and CA certificates.
 	# The first certificate in a connection always gets tagged as user-cert, all

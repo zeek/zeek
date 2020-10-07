@@ -11,6 +11,8 @@ module Known;
 export {
 	redef enum Log::ID += { MODBUS_LOG };
 
+	global log_policy_modbus: Log::PolicyHook;
+
 	type ModbusDeviceType: enum {
 		MODBUS_MASTER,
 		MODBUS_SLAVE,
@@ -35,7 +37,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::MODBUS_LOG, [$columns=ModbusInfo, $ev=log_known_modbus, $path="known_modbus"]);
+	Log::create_stream(Known::MODBUS_LOG, [$columns=ModbusInfo, $ev=log_known_modbus, $path="known_modbus", $policy=log_policy_modbus]);
 	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)

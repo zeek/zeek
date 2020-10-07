@@ -17,6 +17,9 @@ export {
 	## The reporter logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the column fields of the reporter log.
 	type Info: record {
 		## The network time at which the reporter event was generated.
@@ -37,7 +40,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Reporter::LOG, [$columns=Info, $path="reporter"]);
+	Log::create_stream(Reporter::LOG, [$columns=Info, $path="reporter", $policy=log_policy]);
 	}
 
 event reporter_info(t: time, msg: string, location: string) &priority=-5

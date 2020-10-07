@@ -7,6 +7,8 @@ module SOCKS;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## Whether passwords are captured or not.
 	option default_capture_password = F;
 
@@ -53,7 +55,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks, $path="socks"]);
+	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks, $path="socks", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SOCKS, ports);
 	}
 

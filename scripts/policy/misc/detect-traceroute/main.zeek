@@ -14,6 +14,8 @@ module Traceroute;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	redef enum Notice::Type += {
 		## Indicates that a host was seen running traceroutes.  For more
 		## detail about specific traceroutes that we run, refer to the
@@ -55,7 +57,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute, $path="traceroute"]);
+	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute, $path="traceroute", $policy=log_policy]);
 
 	local r1: SumStats::Reducer = [$stream="traceroute.time_exceeded", $apply=set(SumStats::UNIQUE)];
 	local r2: SumStats::Reducer = [$stream="traceroute.low_ttl_packet", $apply=set(SumStats::SUM)];

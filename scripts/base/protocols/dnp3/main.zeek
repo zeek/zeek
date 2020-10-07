@@ -8,6 +8,8 @@ module DNP3;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Time of the request.
 		ts:         time           &log;
@@ -40,7 +42,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DNP3::LOG, [$columns=Info, $ev=log_dnp3, $path="dnp3"]);
+	Log::create_stream(DNP3::LOG, [$columns=Info, $ev=log_dnp3, $path="dnp3", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_TCP, ports);
 	}
 

@@ -14,6 +14,9 @@ export {
 	## Add the packet filter logging stream.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## Add notice types related to packet filter errors.
 	redef enum Notice::Type += {
 		## This notice is generated if a packet filter cannot be compiled.
@@ -159,7 +162,7 @@ event filter_change_tracking()
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter"]);
+	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter", $policy=log_policy]);
 
 	# Preverify the capture and restrict filters to give more granular failure messages.
 	for ( id, cf in capture_filters )

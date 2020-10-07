@@ -11,6 +11,9 @@ export {
 	## The DNS logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the column fields of the DNS log.
 	type Info: record {
 		## The earliest time at which a DNS protocol message over the
@@ -160,7 +163,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns"]);
+	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 

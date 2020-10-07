@@ -11,6 +11,8 @@ module Modbus;
 export {
 	redef enum Log::ID += { Modbus::REGISTER_CHANGE_LOG };
 
+	global log_policy_register_change: Log::PolicyHook;
+
 	## The hosts that should have memory mapping enabled.
 	option track_memmap: Host = ALL_HOSTS;
 
@@ -54,7 +56,7 @@ redef record Modbus::Info += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, [$columns=MemmapInfo, $path="modbus_register_change"]);
+	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, [$columns=MemmapInfo, $path="modbus_register_change", $policy=log_policy_register_change]);
 	}
 
 event modbus_read_holding_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)

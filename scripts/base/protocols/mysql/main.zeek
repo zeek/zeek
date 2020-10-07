@@ -8,6 +8,8 @@ module MySQL;
 export {
 	redef enum Log::ID += { mysql::LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts:     time    &log;
@@ -43,7 +45,7 @@ const ports = { 1434/tcp, 3306/tcp };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(mysql::LOG, [$columns=Info, $ev=log_mysql, $path="mysql"]);
+	Log::create_stream(mysql::LOG, [$columns=Info, $ev=log_mysql, $path="mysql", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MYSQL, ports);
 	}
 

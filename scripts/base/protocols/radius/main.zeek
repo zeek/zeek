@@ -9,6 +9,8 @@ module RADIUS;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts           : time     &log;
@@ -63,7 +65,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(RADIUS::LOG, [$columns=Info, $ev=log_radius, $path="radius"]);
+	Log::create_stream(RADIUS::LOG, [$columns=Info, $ev=log_radius, $path="radius", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RADIUS, ports);
 	}
 

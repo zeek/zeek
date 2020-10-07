@@ -5,6 +5,8 @@ module RFB;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the fields of the RFB log.
 	type Info: record {
 		## Timestamp for when the event happened.
@@ -83,7 +85,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(RFB::LOG, [$columns=Info, $ev=log_rfb, $path="rfb"]);
+	Log::create_stream(RFB::LOG, [$columns=Info, $ev=log_rfb, $path="rfb", $policy=log_policy]);
 	}
 
 function write_log(c:connection)

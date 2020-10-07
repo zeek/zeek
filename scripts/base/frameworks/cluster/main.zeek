@@ -115,6 +115,9 @@ export {
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the column fields of the cluster log.
 	type Info: record {
 		## The time at which a cluster message was generated.
@@ -374,7 +377,7 @@ event zeek_init() &priority=5
 		terminate();
 		}
 
-	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
+	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster", $policy=log_policy]);
 	}
 
 function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo

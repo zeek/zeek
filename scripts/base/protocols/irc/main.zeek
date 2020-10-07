@@ -8,6 +8,8 @@ export {
 	
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Timestamp when the command was seen.
 		ts:       time        &log;
@@ -43,7 +45,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc"]);
+	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);
 	}
 	

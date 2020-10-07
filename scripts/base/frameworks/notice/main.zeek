@@ -16,6 +16,10 @@ export {
 		ALARM_LOG,
 	};
 
+	## Default logging policy hooks for the streams.
+	global log_policy: Log::PolicyHook;
+	global log_policy_alarm: Log::PolicyHook;
+
 	## Scripts creating new notices need to redef this enum to add their
 	## own specific notice types which would then get used when they call
 	## the :zeek:id:`NOTICE` function.  The convention is to give a general
@@ -388,9 +392,9 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice"]);
+	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice", $policy=log_policy]);
 
-	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info, $path="notice_alarm"]);
+	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info, $path="notice_alarm", $policy=log_policy_alarm]);
 	# If Zeek is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.

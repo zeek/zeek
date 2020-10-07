@@ -12,6 +12,10 @@ export {
 		PUBLISH_LOG,
 	};
 
+	global log_policy_connect: Log::PolicyHook;
+	global log_policy_subscribe: Log::PolicyHook;
+	global log_policy_publish: Log::PolicyHook;
+
 	type MQTT::SubUnsub: enum {
 		MQTT::SUBSCRIBE,
 		MQTT::UNSUBSCRIBE,
@@ -146,9 +150,9 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(MQTT::CONNECT_LOG, [$columns=ConnectInfo, $ev=log_mqtt, $path="mqtt_connect"]);
-	Log::create_stream(MQTT::SUBSCRIBE_LOG, [$columns=SubscribeInfo, $path="mqtt_subscribe"]);
-	Log::create_stream(MQTT::PUBLISH_LOG, [$columns=PublishInfo, $path="mqtt_publish"]);
+	Log::create_stream(MQTT::CONNECT_LOG, [$columns=ConnectInfo, $ev=log_mqtt, $path="mqtt_connect", $policy=log_policy_connect]);
+	Log::create_stream(MQTT::SUBSCRIBE_LOG, [$columns=SubscribeInfo, $path="mqtt_subscribe", $policy=log_policy_subscribe]);
+	Log::create_stream(MQTT::PUBLISH_LOG, [$columns=PublishInfo, $path="mqtt_publish", $policy=log_policy_publish]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MQTT, ports);
 	}

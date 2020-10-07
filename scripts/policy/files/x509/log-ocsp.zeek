@@ -8,6 +8,8 @@ module OCSP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## The record type which contains the fields of the OCSP log.
 	type Info: record {
 		## Time when the OCSP reply was encountered.
@@ -41,7 +43,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_ocsp, $path="ocsp"]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_ocsp, $path="ocsp", $policy=log_policy]);
 	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");
 	}
 

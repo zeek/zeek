@@ -10,6 +10,8 @@ export {
 		CMD_LOG,
 	};
 
+	global log_policy: Log::PolicyHook;
+
 	## The server response statuses which are *not* logged.
 	option ignored_command_statuses: set[string] = {
 		"MORE_PROCESSING_REQUIRED",
@@ -27,7 +29,7 @@ const deferred_logging_cmds: set[string] = {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd"]);
+	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd", $policy=log_policy]);
 	}
 
 event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=-5

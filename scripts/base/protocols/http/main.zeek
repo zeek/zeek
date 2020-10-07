@@ -12,6 +12,8 @@ module HTTP;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## Indicate a type of attack or compromise in the record to be logged.
 	type Tags: enum {
 		## Placeholder.
@@ -145,7 +147,7 @@ redef likely_server_ports += { ports };
 # Initialize the HTTP logging stream and ports.
 event zeek_init() &priority=5
 	{
-	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http, $path="http"]);
+	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http, $path="http", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, ports);
 	}
 

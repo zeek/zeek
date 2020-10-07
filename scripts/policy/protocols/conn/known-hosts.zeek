@@ -12,6 +12,9 @@ export {
 	## The known-hosts logging stream identifier.
 	redef enum Log::ID += { HOSTS_LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy_hosts: Log::PolicyHook;
+
 	## The record type which contains the column fields of the known-hosts log.
 	type HostsInfo: record {
 		## The timestamp at which the host was detected.
@@ -147,7 +150,7 @@ event Known::host_found(info: HostsInfo)
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
+	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts", $policy=log_policy_hosts]);
 	}
 
 event connection_established(c: connection) &priority=5

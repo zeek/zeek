@@ -6,6 +6,9 @@ export {
 	## The Broker logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## The type of a Broker activity being logged.
 	type Type: enum {
 		## An informational status update.
@@ -32,7 +35,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Broker::LOG, [$columns=Info, $path="broker"]);
+	Log::create_stream(Broker::LOG, [$columns=Info, $path="broker", $policy=log_policy]);
 	}
 
 function log_status(ev: string, endpoint: EndpointInfo, msg: string)

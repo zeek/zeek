@@ -10,6 +10,9 @@ export {
 	## The config logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## Represents the data in config.log.
 	type Info: record {
 		## Timestamp at which the configuration change occured.
@@ -152,7 +155,7 @@ function config_option_changed(ID: string, new_value: any, location: string): an
 
 event zeek_init() &priority=10
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_config, $path="config"]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_config, $path="config", $policy=log_policy]);
 
 	# Limit logging to the manager - everyone else just feeds off it.
 @if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )

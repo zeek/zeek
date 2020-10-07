@@ -19,6 +19,21 @@ New Functionality
 - Add ``dce_rpc_request_stub`` and ``dce_rpc_response_stub`` events for
   accessing the contents of DCE-RPC request/response stub data.
 
+- Add support for log filter policy hooks, which supersede the current
+  log predicates. The hook signature is as follows:
+
+        hook(rec: any, id: Log::ID, filter: Log::Filter);
+
+  The logging manager invokes hooks on each log record. Hooks can veto
+  log records via a break, and modify them if necessary. Log filters
+  inherit the stream-level hook, but can override or remove the hook
+  as needed. The distribution's existing log streams now come with
+  pre-defined hooks that users can add handlers to. The existing
+  predicates are deprecated for removal in 4.1 but continue to work.
+
+  See https://docs.zeek.org/en/master/frameworks/logging.html#filter-log-records
+  for more details.
+
 Changed Functionality
 ---------------------
 

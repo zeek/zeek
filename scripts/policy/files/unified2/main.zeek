@@ -7,6 +7,8 @@ module Unified2;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	## File to watch for Unified2 files.
 	const watch_file = "" &redef;
 
@@ -195,7 +197,7 @@ event Input::end_of_data(name: string, source: string)
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2, $path="unified2"]);
+	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2, $path="unified2", $policy=log_policy]);
 
 	if ( sid_msg == "" )
 		{

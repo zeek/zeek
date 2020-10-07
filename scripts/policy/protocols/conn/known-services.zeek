@@ -15,6 +15,9 @@ export {
 	## The known-services logging stream identifier.
 	redef enum Log::ID += { SERVICES_LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy_services: Log::PolicyHook;
+
 	## The record type which contains the column fields of the known-services
 	## log.
 	type ServicesInfo: record {
@@ -308,6 +311,7 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
 	                                         $ev=log_known_services,
-	                                         $path="known_services"]);
+	                                         $path="known_services",
+						 $policy=log_policy_services]);
 	}
 

@@ -6,6 +6,8 @@ module NTLM;
 export {
 	redef enum Log::ID += { LOG };
 
+	global log_policy: Log::PolicyHook;
+
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts         : time     &log;
@@ -48,7 +50,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NTLM::LOG, [$columns=Info, $path="ntlm"]);
+	Log::create_stream(NTLM::LOG, [$columns=Info, $path="ntlm", $policy=log_policy]);
 	}
 
 function set_session(c: connection)

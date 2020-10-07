@@ -18,6 +18,9 @@ export {
 	## The FTP protocol logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+
 	## List of commands that should have their command/response pairs logged.
 	option logged_commands = {
 		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT", "PORT", "PASV", "EPRT",
@@ -61,7 +64,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp"]);
+	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
 

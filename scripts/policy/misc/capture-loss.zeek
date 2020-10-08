@@ -18,7 +18,7 @@ export {
 
 	redef enum Notice::Type += {
 		## Report if the detected capture loss exceeds the percentage
-		## threshold.
+		## threshold defined in :zeek:id:`CaptureLoss::too_much_loss`.
 		Too_Much_Loss
 	};
 

@@ -19,7 +19,10 @@ export {
 	redef enum Notice::Type += {
 		## Report if the detected capture loss exceeds the percentage
 		## threshold defined in :zeek:id:`CaptureLoss::too_much_loss`.
-		Too_Much_Loss
+		Too_Much_Loss,
+		## Report if the traffic seen by a peer within a given watch
+		## interval is less than :zeek:id:`CaptureLoss::minimum_acks`.
+		Too_Little_Traffic,
 	};
 
 	type Info: record {
@@ -52,6 +55,11 @@ export {
 	## generated. The value is expressed as a double between 0 and 1 with 1
 	## being 100%.
 	option too_much_loss: double = 0.1;
+
+	## The minimum number of ACKs expected for a single peer in a
+	## watch interval. If the number seen is less than this,
+	## :zeek:enum:`CaptureLoss::Too_Little_Traffic` is raised.
+	option minimum_acks: count = 1;
 }
 
 event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: count)
@@ -76,6 +84,10 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	if ( pct_lost >= too_much_loss*100 )
 		NOTICE([$note=Too_Much_Loss,
 		        $msg=fmt("The capture loss script detected an estimated loss rate above %.3f%%", pct_lost)]);
+
+	if ( acks < minimum_acks )
+		NOTICE([$note=Too_Little_Traffic,
+		        $msg=fmt("The worker only observed %d ACKs and was expecting at least %d.", acks, minimum_acks)]);
 
 	Log::write(LOG, info);
 	schedule watch_interval { CaptureLoss::take_measurement(now, g$ack_events, g$gap_events) };

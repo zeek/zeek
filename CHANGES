@@ -1,4 +1,8 @@
 
+3.3.0-dev.377 | 2020-10-08 12:07:42 -0700
+
+  * GH-1200: ignore a maybe-uninitialized warning (Jon Siwek, Corelight)
+
 3.3.0-dev.374 | 2020-10-07 10:44:11 -0700
 
   * Fix multipart MIME leak of sub-part found after closing-boundary (Jon Siwek, Corelight)

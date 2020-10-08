@@ -6,6 +6,7 @@
 
 #include "ZAM.h"
 #include "ZGen.h"
+#include "ZIterInfo.h"
 #include "CompHash.h"
 #include "RE.h"
 #include "Frame.h"

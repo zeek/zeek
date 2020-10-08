@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ZVal.h"
+#include "ZIterInfo.h"
 #include "Compile.h"
 
 class Expr;

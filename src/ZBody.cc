@@ -121,6 +121,24 @@ double curr_CPU_time()
 	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
 	}
 
+
+bool IsAny(const BroType* t)
+	{
+	return t->Tag() == TYPE_ANY;
+	}
+
+bool IsAnyVec(const BroType* t)
+	{
+	if ( t->Tag() != TYPE_VECTOR )
+		return false;
+
+	auto vt = t->AsVectorType();
+	auto yt = vt->YieldType();
+
+	return yt->Tag() == TYPE_ANY;
+	}
+
+
 StringVal* ZAM_to_lower(const StringVal* sv)
 	{
 	auto bs = sv->AsString();

@@ -87,6 +87,7 @@
 #include "IntrusivePtr.h"
 #include "input.h"
 #include "ZBody.h"
+#include "ZIterInfo.h"
 #include "BroList.h"
 #include "Desc.h"
 #include "EventRegistry.h"

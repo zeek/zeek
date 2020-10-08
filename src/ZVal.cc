@@ -10,22 +10,6 @@
 #include "Reporter.h"
 
 
-bool IsAny(const BroType* t)
-	{
-	return t->Tag() == TYPE_ANY;
-	}
-
-bool IsAnyVec(const BroType* t)
-	{
-	if ( t->Tag() != TYPE_VECTOR )
-		return false;
-
-	auto vt = t->AsVectorType();
-	auto yt = vt->YieldType();
-
-	return yt->Tag() == TYPE_ANY;
-	}
-
 bool IsManagedType(const BroType* t)
 	{
 	switch ( t->Tag() ) {

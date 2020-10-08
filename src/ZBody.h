@@ -130,6 +130,23 @@ protected:
 	int xfer_pc = 0;
 };
 
+
+// Helper functions that need a home somewhere.  We declare them here
+// as the simplest place to do so, given where they're used.
+
+// True if a given type is one that we treat internally as an "any" type.
+extern bool IsAny(const BroType* t);
+// Same for vector-of-any.
+extern bool IsAnyVec(const BroType* t);
+
+// Convenience functions for getting to these.
+inline bool IsAny(const IntrusivePtr<BroType>& t) { return IsAny(t.get()); }
+inline bool IsAny(const Expr* e) { return IsAny(e->Type()); }
+
+inline bool IsAnyVec(const IntrusivePtr<BroType>& t) { return IsAnyVec(t.get()); }
+inline bool IsAnyVec(const Expr* e) { return IsAnyVec(e->Type()); }
+
+
 // Needed for logging built-in.  Exported so that ZAM can make sure it's
 // defined when compiling.
 extern BroType* log_ID_enum_type;

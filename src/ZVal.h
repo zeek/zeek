@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// Values used in ZAM execution.
+// Values used in ZAM execution, and also for representing records and
+// vectors during interpreter execution.
 
 #pragma once
 
@@ -9,6 +10,7 @@
 #include <unordered_set>
 
 
+// Only needed for compiled code.
 class IterInfo;
 
 typedef std::vector<IntrusivePtr<Val>> val_vec;
@@ -19,8 +21,13 @@ typedef std::vector<IntrusivePtr<Val>> val_vec;
 //
 // Ideally we'd use IntrusivePtr's for memory management, but we can't
 // given we have a union and thus on destruction C++ doesn't know which
-// member flavor to destruct.  See the comment below re shadowing in
-// the ZAM frame.
+// member flavor to destruct.
+//
+// Note that a ZAMValUnion by itself is ambiguous: it doesn't track its
+// type.  This makes them consume less memory and cheaper to copy.  It
+// does however require a separate way to determine the type.  Generally
+// this is doable using surrounding context, or can be statically determined
+// in the case of optimization/compilation.
 union ZAMValUnion {
 	// Constructor for hand-populating the values.
 	ZAMValUnion() { managed_val = nullptr; }
@@ -35,18 +42,17 @@ union ZAMValUnion {
 	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
 
-	// Used for bool, int.
+	// Used for bool, int, enum.
 	bro_int_t int_val;
 
-	// Used for count, counter.
+	// Used for count, counter, port.
 	bro_uint_t uint_val;
 
-	// Used for double, time, interval.  While IntervalVal's are
-	// distinct, we can readily recover them given type information.
+	// Used for double, time, interval.
 	double double_val;
 
-	// The types are all variants of Val (or BroType).  For memory
-	// management, we use Ref/Unref.
+	// The types are all variants of Val, BroType, or more fundamentally
+	// BroObj.  For memory management, we use Ref/Unref.
 	StringVal* string_val;
 	AddrVal* addr_val;
 	SubNetVal* subnet_val;
@@ -67,24 +73,13 @@ union ZAMValUnion {
 	// is explicit in the operations accessing it.
 	val_vec* vvec;
 
-	// Used for managing "for" loops.  Implicit memory management.
+	// Used by the compiler for managing "for" loops.  Implicit
+	// memory management.
 	IterInfo* iter_info;
 
-	// Used for generic access to managed objects.
+	// Used for generic access to managed (reference-counted) objects.
 	BroObj* managed_val;
 };
-
-// True if a given type is one that we treat internally as an "any" type.
-extern bool IsAny(const BroType* t);
-// Same for vector-of-any.
-extern bool IsAnyVec(const BroType* t);
-
-// Convenience functions for getting to these.
-inline bool IsAny(const IntrusivePtr<BroType>& t) { return IsAny(t.get()); }
-inline bool IsAny(const Expr* e) { return IsAny(e->Type()); }
-
-inline bool IsAnyVec(const IntrusivePtr<BroType>& t) { return IsAnyVec(t.get()); }
-inline bool IsAnyVec(const Expr* e) { return IsAnyVec(e->Type()); }
 
 // True if a given type is one for which we manage the associated
 // memory internally.
@@ -94,12 +89,11 @@ inline bool IsManagedType(const IntrusivePtr<BroType>& t)
 inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 
 // Deletes a managed value.
-// extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
-inline void DeleteManagedType(ZAMValUnion& v, const BroType* t)
+inline void DeleteManagedType(ZAMValUnion& v, const BroType* /* t */)
 	{
 	Unref(v.managed_val);
 	}
-inline void DeleteAndZeroManagedType(ZAMValUnion& v, const BroType* t)
+inline void DeleteAndZeroManagedType(ZAMValUnion& v, const BroType* /* t */)
 	{
 	Unref(v.managed_val);
 	v.managed_val = nullptr;
@@ -278,7 +272,6 @@ public:
 		{
 		if ( IsInRecord(field) && IsManaged(field) )
 			Unref(zvec[field].managed_val);
-			// Delete(field);
 
 		zvec[field] = v;
 
@@ -377,49 +370,4 @@ protected:
 
 	// Whether a given field requires explicit memory management.
 	ZRM_flags is_managed;
-};
-
-
-// Information used to iterate over aggregates.  It's a hodge-podge since
-// it's meant to support every type of aggregate & loop.
-class IterInfo {
-public:
-	IterInfo()	{ c = nullptr; }
-	~IterInfo()	{ if ( c ) loop_vals->StopIteration(c); }
-
-	// If we're looping over a table:
-	const TableVal* tv = nullptr;
-
-	// The raw values being looped over
-	const PDict<TableEntryVal>* loop_vals = nullptr;
-
-	// Iterator status.  Always gets deleted, so non-table/set
-	// iteration instructions need to set it to nil.
-	IterCookie* c = nullptr;
-
-	// Frame slots of iteration variables, such as "[v1, v2, v3] in aggr".
-	// These are used for iterating over vectors and strings, too
-	// (well, the first slot is).
-	vector<int> loop_vars;
-
-	// Their types.
-	vector<BroType*> loop_var_types;
-
-	// Type associated with the "value" entry, for "k, v in aggr"
-	// iteration.
-	BroType* value_var_type = nullptr;
-
-	// If we're iterating over vectors, points to the raw vector ...
-	ZAM_vector* vv = nullptr;
-
-	// The vector's type & yield.
-	VectorType* vec_type = nullptr;
-	BroType* yield_type = nullptr;
-
-	// String we're iterating over.
-	const BroString* s = nullptr;
-
-	// Counter of where we are in the iteration.
-	bro_uint_t iter;
-	bro_uint_t n;	// we loop from 0 ... n-1
 };

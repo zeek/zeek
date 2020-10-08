@@ -200,23 +200,23 @@ Options parse_cmdline(int argc, char** argv)
 				zeek_args.emplace_back(argv[i]);
 				}
 
-			// If a script is invoked with Zeek as the interpreter, the arguments provided
-			// directly in the interpreter line of the script won't be broken apart in the 
-			// argv on Linux so we split it up here.
-			if ( endsWith(argv[i], "--") && zeek_args.size() == 1 )
-				{
-				std::istringstream iss(argv[i]);
-				for ( std::string s; iss >> s; )
-					{
-					if ( ! endsWith(s, "--") )
-						{
-						zeek_args.emplace_back(s);
-						}
-					}
-				}
-
 			if ( i < argc )
 				{
+				// If a script is invoked with Zeek as the interpreter, the arguments provided
+				// directly in the interpreter line of the script won't be broken apart in the 
+				// argv on Linux so we split it up here.
+				if ( endsWith(argv[i], "--") && zeek_args.size() == 1 )
+					{
+					std::istringstream iss(argv[i]);
+					for ( std::string s; iss >> s; )
+						{
+						if ( ! endsWith(s, "--") )
+							{
+							zeek_args.emplace_back(s);
+							}
+						}
+					}
+
 				// There is an additional increment here to skip over the "--" if it was found.
 				if ( endsWith(argv[i], "--") )
 					++i;

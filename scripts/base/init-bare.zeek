@@ -454,6 +454,18 @@ type connection: record {
 	inner_vlan: int &optional;
 };
 
+## Arguments given to Zeek from the command line. In order to use this, Zeek
+## must use the "--" command line argument, then give the script name immediately
+## after the double hyphens and the provide the arguments after that. For example:
+## 
+##   zeek --bare-mode -- myscript.zeek -a -b -c
+## 
+## To use Zeek as an executable interpreter, include a line at the top of a script
+## like the following and make the script executable:
+## 
+##   #!/usr/local/zeek/bin/zeek -- 
+const zeek_script_args: vector of string = vector();
+
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
 option default_file_timeout_interval: interval = 2 mins;

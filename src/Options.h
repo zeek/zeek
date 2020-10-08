@@ -74,6 +74,8 @@ struct Options {
 	std::set<std::string> plugins_to_load;
 	std::vector<std::string> scripts_to_load;
 	std::vector<std::string> script_options_to_set;
+
+	std::vector<std::string> script_args;
 };
 
 /**

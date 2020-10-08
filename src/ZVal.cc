@@ -34,36 +34,6 @@ bool IsManagedType(const BroType* t)
 	}
 	}
 
-#if 0
-void DeleteManagedType(ZAMValUnion& v, const BroType* t)
-	{
-	switch ( t->Tag() ) {
-	case TYPE_ADDR:	Unref(v.addr_val); v.addr_val = nullptr; break;
-	case TYPE_ANY:	Unref(v.any_val); v.any_val = nullptr; break;
-	case TYPE_FILE:	Unref(v.file_val); v.file_val = nullptr; break;
-	case TYPE_FUNC:	Unref(v.func_val); v.func_val = nullptr; break;
-	case TYPE_LIST:	Unref(v.list_val); v.list_val = nullptr; break;
-	case TYPE_OPAQUE:
-			Unref(v.opaque_val); v.opaque_val = nullptr; break;
-	case TYPE_PATTERN:
-			Unref(v.re_val); v.re_val = nullptr; break;
-	case TYPE_RECORD:
-			Unref(v.record_val); v.record_val = nullptr; break;
-	case TYPE_STRING:
-			Unref(v.string_val); v.string_val = nullptr; break;
-	case TYPE_SUBNET:
-			Unref(v.subnet_val); v.subnet_val = nullptr; break;
-	case TYPE_TABLE:
-			Unref(v.table_val); v.table_val = nullptr; break;
-	case TYPE_TYPE:	Unref(v.type_val); v.type_val = nullptr; break;
-	case TYPE_VECTOR: Unref(v.vector_val); v.vector_val = nullptr; break;
-
-	default:
-		reporter->InternalError("type inconsistency in DeleteManagedType");
-	}
-	}
-#endif
-
 
 ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 	{

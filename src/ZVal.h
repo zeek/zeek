@@ -316,7 +316,6 @@ public:
 		{
 		if ( IsInRecord(field) && IsManaged(field) )
 			Unref(zvec[field].managed_val);
-			// DeleteManagedType(zvec[field], FieldType(field));
 
 		auto mask = 1UL << field;
 		is_in_record &= ~mask;
@@ -347,11 +346,11 @@ protected:
 		zvec.resize(new_size);
 		}
 
-	// Removes the given field.
-	// The current definition takes advantage of the fact that
-	// we know that DeleteManagedType() ignores the type provided to it.
+	// Removes the given field.  The current definition takes advantage
+	// of the fact that we know that DeleteManagedType() ignores the type
+	// provided to it, so we don't bother calling FieldType(field) to
+	// determine it.
 	void Delete(unsigned int field)
-		// { DeleteManagedType(zvec[field], FieldType(field)); }
 		{ DeleteManagedType(zvec[field], nullptr); }
 
 	void DeleteManagedMembers();

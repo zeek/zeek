@@ -39,8 +39,13 @@ export {
 		percent_lost: double   &log;
 	};
 
-	## The interval at which capture loss reports are created.
+	## The interval at which capture loss reports are created in a
+	## running cluster (that is, after the first report).
 	option watch_interval = 15mins;
+
+	## For faster feedback on cluster health, the first capture loss
+	## report is generated this many minutes after startup.
+	option initial_watch_interval = 1mins;
 
 	## The percentage of missed data that is considered "too much"
 	## when the :zeek:enum:`CaptureLoss::Too_Much_Loss` notice should be
@@ -82,5 +87,5 @@ event zeek_init() &priority=5
 
 	# We only schedule the event if we are capturing packets.
 	if ( reading_live_traffic() || reading_traces() )
-		schedule watch_interval { CaptureLoss::take_measurement(network_time(), 0, 0) };
+		schedule initial_watch_interval { CaptureLoss::take_measurement(network_time(), 0, 0) };
 	}

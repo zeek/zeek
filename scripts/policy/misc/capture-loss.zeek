@@ -66,7 +66,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	{
 	if ( last_ts == 0 )
 		{
-		schedule watch_interval { CaptureLoss::take_measurement(network_time(), 0, 0) };
+		schedule initial_watch_interval { CaptureLoss::take_measurement(network_time(), 0, 0) };
 		return;
 		}
 

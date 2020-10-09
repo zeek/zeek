@@ -75,22 +75,22 @@ true	{ rules_lval.val = true; return TOK_BOOL; }
 false	{ rules_lval.val = false; return TOK_BOOL; }
 
 established	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ESTABLISHED;
+		rules_lval.val = zeek::detail::RULE_STATE_ESTABLISHED;
 		return TOK_STATE_SYM;
 		}
 
 originator	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ORIG;
+		rules_lval.val = zeek::detail::RULE_STATE_ORIG;
 		return TOK_STATE_SYM;
 		}
 
 responder	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_RESP;
+		rules_lval.val = zeek::detail::RULE_STATE_RESP;
 		return TOK_STATE_SYM;
 		}
 
 stateless	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_STATELESS;
+		rules_lval.val = zeek::detail::RULE_STATE_STATELESS;
 		return TOK_STATE_SYM;
 		}
 

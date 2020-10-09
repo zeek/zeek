@@ -22,16 +22,16 @@ public:
 	virtual void PrintDebug() = 0;
 };
 
+enum RuleStateKind {
+	RULE_STATE_ESTABLISHED = 1,
+	RULE_STATE_ORIG = 2,
+	RULE_STATE_RESP = 4,
+	RULE_STATE_STATELESS = 8
+};
+
 // Implements the "tcp-state" keyword.
 class RuleConditionTCPState : public RuleCondition {
 public:
-	enum TCPState {
-		STATE_ESTABLISHED = 1,
-		STATE_ORIG = 2,
-		STATE_RESP = 4,
-		STATE_STATELESS = 8
-	};
-
 	explicit RuleConditionTCPState(int arg_tcpstates)
 		{ tcpstates = arg_tcpstates; }
 

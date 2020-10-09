@@ -54,6 +54,31 @@ void RuleConditionTCPState::PrintDebug()
 	fprintf(stderr, "	RuleConditionTCPState: 0x%x\n", tcpstates);
 	}
 
+bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state,
+                                    const u_char* data, int len)
+	{
+	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+
+	if ( ! root || ! root->IsAnalyzer("UDP") )
+		return false;
+
+	if ( states & RULE_STATE_STATELESS )
+		return true;
+
+	if ( (states & RULE_STATE_ORIG) && ! state->IsOrig() )
+		return false;
+
+	if ( (states & RULE_STATE_RESP) && state->IsOrig() )
+		return false;
+
+	return true;
+	}
+
+void RuleConditionUDPState::PrintDebug()
+	{
+	fprintf(stderr, "	RuleConditionUDPState: 0x%x\n", states);
+	}
+
 void RuleConditionIPOptions::PrintDebug()
 	{
 	fprintf(stderr, "	RuleConditionIPOptions: 0x%x\n", options);

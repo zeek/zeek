@@ -58,6 +58,7 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 %token TOK_SRC_IP
 %token TOK_SRC_PORT
 %token TOK_TCP_STATE
+%token TOK_UDP_STATE
 %token TOK_STRING
 %token TOK_STATE_SYM
 %token TOK_ACTIVE
@@ -249,6 +250,14 @@ rule_attr:
 	|	TOK_TCP_STATE state_list
 			{
 			current_rule->AddCondition(new zeek::detail::RuleConditionTCPState($2));
+			}
+
+	|	TOK_UDP_STATE state_list
+			{
+			if ( $2 & zeek::detail::RULE_STATE_ESTABLISHED )
+				rules_error("'established' is not a valid 'udp-state'");
+
+			current_rule->AddCondition(new zeek::detail::RuleConditionUDPState($2));
 			}
 
 	|	TOK_ACTIVE TOK_BOOL

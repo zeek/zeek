@@ -132,6 +132,7 @@ same-ip		return TOK_SAME_IP;
 src-ip		return TOK_SRC_IP;
 src-port	return TOK_SRC_PORT;
 tcp-state	return TOK_TCP_STATE;
+udp-state	return TOK_UDP_STATE;
 active		return TOK_ACTIVE;
 
 file-magic { rules_lval.val = zeek::detail::Rule::FILE_MAGIC; return TOK_PATTERN_TYPE; }

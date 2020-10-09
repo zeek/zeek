@@ -46,6 +46,20 @@ private:
 	int tcpstates;
 };
 
+// Implements the "udp-state" keyword.
+class RuleConditionUDPState : public RuleCondition {
+public:
+	explicit RuleConditionUDPState(int arg_states)
+		{ states = arg_states; }
+
+	bool DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
+	             int len) override;
+
+	void PrintDebug() override;
+
+private:
+	int states;
+};
 
 // Implements "ip-options".
 class RuleConditionIPOptions : public RuleCondition {

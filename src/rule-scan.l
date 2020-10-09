@@ -76,22 +76,22 @@ false	{ rules_lval.val = false; return TOK_BOOL; }
 
 established	{
 		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ESTABLISHED;
-		return TOK_TCP_STATE_SYM;
+		return TOK_STATE_SYM;
 		}
 
 originator	{
 		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ORIG;
-		return TOK_TCP_STATE_SYM;
+		return TOK_STATE_SYM;
 		}
 
 responder	{
 		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_RESP;
-		return TOK_TCP_STATE_SYM;
+		return TOK_STATE_SYM;
 		}
 
 stateless	{
 		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_STATELESS;
-		return TOK_TCP_STATE_SYM;
+		return TOK_STATE_SYM;
 		}
 
 lsrr		{

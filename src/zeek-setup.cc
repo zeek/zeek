@@ -664,9 +664,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( ! options.script_args.empty() )
 		{
 		auto script_args_val = zeek::id::find_val("zeek_script_args")->AsVectorVal();
-		for ( const string& script_arg: options.script_args )
+		for ( const string& script_arg : options.script_args )
 			{
-			script_args_val->Assign(script_args_val->Size(), zeek::make_intrusive<zeek::StringVal>(script_arg));
+			script_args_val->Assign(script_args_val->Size(), make_intrusive<StringVal>(script_arg));
 			}
 		}
 

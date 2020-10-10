@@ -237,7 +237,7 @@ BEGIN	{
 	# For an assign-to-any, then we will need the instruction
 	# type field set to the type of the RHS.  It does no harm
 	# to just always do that.
-	method_extra_suffix["R"] = "z.SetType($2->Type()->AsRecordType()->FieldType(field));"
+	method_extra_suffix["R"] = "z.SetType({NewRef{}, $2->Type()->AsRecordType()->FieldType(field)});"
 	method_extra_suffix["X"] = "z.SetType(t);"
 
 	# Whether for generated statements to take their type from the
@@ -788,7 +788,7 @@ function build_assignment_dispatch3(op, type, is_var, is_field)
 		}
 	else
 		{
-		custom_method = "auto t = " type_base "->Type().get();\n\t"
+		custom_method = "auto t = " type_base "->Type();\n\t"
 		any_cond_targ = targ "->Type()"
 		}
 
@@ -1458,7 +1458,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		part2c = ""
 
 		if ( is_vec && ary_op == 2 )
-			part2c = indent "z.SetType(yt1);\n" part2c
+			part2c = indent "z.SetType({NewRef{}, yt1});\n" part2c
 
 		# Provide access to the individual variables.
 		split(args2[mt], vars, /, /)
@@ -1479,7 +1479,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 			sub(/\$/, "", set_type2)
 
 			part2b = part2b indent "z.t2 = " vars[set_type2] \
-				"->Type().get();\n"
+				"->Type();\n"
 			}
 
 		part2 = part2a part2b part2c
@@ -1518,11 +1518,11 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 					test_var = "n1"
 				}
 
-			print ("\tauto t = " test_var "->Type().get();") >methods_f
+			print ("\tauto t = " test_var "->Type();") >methods_f
 
 			if ( is_vec )
 				{
-				print ("\tt = t->AsVectorType()->YieldType();") >methods_f
+				print ("\tt = {NewRef{}, t->AsVectorType()->YieldType()};") >methods_f
 				if ( ary_op == 2 )
 					print ("\tauto yt1 = n1->Type()->AsVectorType()->YieldType();") >methods_f
 				}

@@ -1410,7 +1410,7 @@ bool indirect_unsigned_sort_function(size_t a, size_t b)
 
 // Yuck, we need a variable to hold the type.  Luckily, this won't be
 // invoked concurrently for two different types.
-BroType* zsort_type;
+IntrusivePtr<BroType> zsort_type;
 bool zsort_type_is_managed = false;
 
 bool zsort_function(ZAMValUnion& a, ZAMValUnion& b)
@@ -1505,7 +1505,7 @@ function sort%(v: any, ...%) : any
 
 	auto& vv = v->AsVectorVal()->RawVector()->ModVec();
 
-	zsort_type = elt_type;
+	zsort_type = {NewRef{}, elt_type};
 	zsort_type_is_managed = IsManagedType(zsort_type);
 
 	if ( comp )
@@ -1560,7 +1560,7 @@ function order%(v: any, ...%) : index_vec
 		return result_v;
 		}
 
-	BroType* elt_type = v->Type()->YieldType();
+	IntrusivePtr<BroType> elt_type = {NewRef{}, v->Type()->YieldType()};
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1601,7 +1601,7 @@ function order%(v: any, ...%) : index_vec
 		{
 		FuncType* comp_type = comp->FType()->AsFuncType();
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+		     ! comp_type->ArgTypes()->AllMatch(elt_type.get(), 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");
 			return v;

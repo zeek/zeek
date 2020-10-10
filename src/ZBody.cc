@@ -22,7 +22,8 @@
 #include "logging/Manager.h"
 
 
-BroType* log_ID_enum_type;
+IntrusivePtr<BroType> log_ID_enum_type;
+IntrusivePtr<BroType> any_base_type;
 
 
 // Count of how often each top of ZOP executed, and how much CPU it
@@ -88,8 +89,8 @@ void ZAM_run_time_error(const Location* loc, const char* msg, const BroObj* o)
 static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
 
 // Binary ones *can* have managed types (strings).
-static void vec_exec(ZOp op, BroType* t, VectorVal*& v1, VectorVal* v2,
-			const VectorVal* v3);
+static void vec_exec(ZOp op, const IntrusivePtr<BroType>& t,
+			VectorVal*& v1, VectorVal* v2, const VectorVal* v3);
 
 // Vector coercion.
 //
@@ -215,8 +216,11 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		{
 		auto log_ID_type = lookup_ID("ID", "Log");
 		ASSERT(log_ID_type);
-		log_ID_enum_type = log_ID_type->Type()->AsEnumType();
+		log_ID_enum_type = {NewRef{}, log_ID_type->Type()->AsEnumType()};
 		}
+
+	if ( ! any_base_type )
+		any_base_type = base_type(TYPE_ANY);
 	}
 
 ZBody::~ZBody()
@@ -227,7 +231,7 @@ ZBody::~ZBody()
 		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			{
 			auto& v = fixed_frame[managed_slots[i]];
-			DeleteManagedType(v, nullptr);
+			DeleteManagedType(v);
 			}
 
 		delete[] fixed_frame;
@@ -331,7 +335,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		/* It's important to hold a reference to v here prior \
 		   to the deletion in case frame[z.v1] points to v. */ \
 		auto v2 = v; \
-		DeleteManagedType(frame[z.v1], t); \
+		DeleteManagedType(frame[z.v1]); \
 		frame[z.v1] = v2; \
 		} \
 	else \
@@ -344,7 +348,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	const ZAMValUnion* ret_u;
 
 	// Type of the return value.  If nil, then we don't have a value.
-	BroType* ret_type = nullptr;
+	IntrusivePtr<BroType> ret_type = nullptr;
 
 #ifdef DEBUG
 	bool do_profile = analysis_options.report_profile;
@@ -412,7 +416,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			{
 			auto& v = frame[managed_slots[i]];
-			DeleteManagedType(v, nullptr);
+			DeleteManagedType(v);
 			}
 
 		delete [] frame;
@@ -815,11 +819,11 @@ void AuxTracker::AddItem(const ZInstAux* item)
 	if ( ii )
 		{
 		for ( auto t : ii->loop_var_types )
-			tt.AddItem(t);
+			tt.AddItem(t.get());
 
-		tt.AddItem(ii->value_var_type);
-		tt.AddItem(ii->vec_type);
-		tt.AddItem(ii->yield_type);
+		tt.AddItem(ii->value_var_type.get());
+		tt.AddItem(ii->vec_type.get());
+		tt.AddItem(ii->yield_type.get());
 		}
 
 	// Now that we've added all of our components, we can render
@@ -898,26 +902,26 @@ RepType AuxTracker::ItemRep(const ZInstAux* item) const
 
 		for ( auto t : ii->loop_var_types )
 			{
-			d.Add(tt.FindItem(t));
+			d.Add(tt.FindItem(t.get()));
 			d.AddSP(",");
 			}
 
 		if ( ii->value_var_type )
-			d.Add(tt.FindItem(ii->value_var_type));
+			d.Add(tt.FindItem(ii->value_var_type.get()));
 		else
 			d.Add(NA);
 
 		d.AddSP(",");
 
 		if ( ii->vec_type )
-			d.Add(tt.FindItem(ii->vec_type));
+			d.Add(tt.FindItem(ii->vec_type.get()));
 		else
 			d.Add(NA);
 
 		d.AddSP(",");
 
 		if ( ii->yield_type )
-			d.Add(tt.FindItem(ii->yield_type));
+			d.Add(tt.FindItem(ii->yield_type.get()));
 		else
 			d.Add(NA);
 
@@ -960,8 +964,8 @@ void ZBody::SaveTo(FILE* f, int interp_frame_size) const
 		if ( i->e )
 			reporter->InternalError("ZAM save file needs support for expressions");
 
-		types.AddItem(i->t);
-		types.AddItem(i->t2);
+		types.AddItem(i->t.get());
+		types.AddItem(i->t2.get());
 		vals.AddItem(i->ConstVal().get());
 
 		if ( i->aux && i->aux->iter_info )
@@ -1055,11 +1059,11 @@ void ZBody::SaveTo(FILE* f, int interp_frame_size) const
 			fprintf(f, SP_NA);
 
 		if ( i->t )
-			fprintf(f, " %d", types.FindItem(i->t));
+			fprintf(f, " %d", types.FindItem(i->t.get()));
 		else
 			fprintf(f, SP_NA);
 		if ( i->t2 )
-			fprintf(f, " %d", types.FindItem(i->t2));
+			fprintf(f, " %d", types.FindItem(i->t2.get()));
 		else
 			fprintf(f, SP_NA);
 
@@ -1306,7 +1310,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
+static void vec_exec(ZOp op, const IntrusivePtr<BroType>& yt, VectorVal*& v1,
 			VectorVal* v2, const VectorVal* v3)
 	{
 	// See comment above re further speed-up.
@@ -1315,8 +1319,7 @@ static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
 	auto& vec2 = v2->RawVector()->ConstVec();
 	auto& vec3 = v3->RawVector()->ConstVec();
 
-	IntrusivePtr<BroType> yt_ptr = {NewRef{}, yt};
-	auto vt = new VectorType(yt_ptr);
+	auto vt = new VectorType(yt);
 	v1 = new VectorVal(vt);
 
 	v1->RawVector()->Resize(vec2.size());

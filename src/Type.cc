@@ -672,7 +672,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	init.attrs = td->attrs;
 	auto a = init.attrs;
 
-	BroType* type = td->type.get();
+	auto type = td->type;
 
 	Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
 	auto def_expr = def_attr ? def_attr->AttrExpr() : nullptr;
@@ -681,7 +681,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 		{
 		if ( type->Tag() == TYPE_RECORD &&
 		     def_expr->Type()->Tag() == TYPE_RECORD &&
-		     ! same_type(def_expr->Type().get(), type) )
+		     ! same_type(def_expr->Type().get(), type.get()) )
 			init.def_coerce = true;
 
 		if ( def_expr->Tag() == EXPR_CONST )
@@ -705,7 +705,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 				init.init_type = FieldInit::R_INIT_DEF;
 
 			init.def_expr = def_expr->Ref();
-			init.def_type = def_expr->Type().get();
+			init.def_type = def_expr->Type();
 			}
 		}
 

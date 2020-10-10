@@ -346,7 +346,7 @@ void ZAM::Init()
 		{
 		// Look for locals with values of types for which
 		// we do explicit memory management on (re)assignment.
-		auto t = slot.first->Type();
+		auto t = slot.first->TypePtr();
 		if ( IsManagedType(t) )
 			managed_slotsI.push_back(slot.second);
 		}
@@ -427,7 +427,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 				z = ZInstI(OP_CALL1_C, c0);
 			}
 
-		z.t = arg0->Type().get();
+		z.t = arg0->Type();
 		}
 
 	else
@@ -525,7 +525,7 @@ const CompiledStmt ZAM::ConstructTable(const NameExpr* n, const Expr* e)
 
 	auto z = GenInst(this, OP_CONSTRUCT_TABLE_VV, n, width);
 	z.aux = InternalBuildVals(con, width + 1);
-	z.t = tt;
+	z.t = {NewRef{}, tt};
 	z.attrs = e->AsTableConstructorExpr()->Attrs();
 
 	return AddInst(z);
@@ -539,7 +539,7 @@ const CompiledStmt ZAM::ConstructSet(const NameExpr* n, const Expr* e)
 
 	auto z = GenInst(this, OP_CONSTRUCT_SET_VV, n, width);
 	z.aux = InternalBuildVals(con, width);
-	z.t = e->Type().get();
+	z.t = e->Type();
 	z.attrs = e->AsSetConstructorExpr()->Attrs();
 
 	return AddInst(z);
@@ -565,7 +565,7 @@ const CompiledStmt ZAM::ConstructRecord(const NameExpr* n, const Expr* e)
 		z.aux = InternalBuildVals(con);
 		}
 
-	z.t = e->Type().get();
+	z.t = e->Type();
 
 	return AddInst(z);
 	}
@@ -576,7 +576,7 @@ const CompiledStmt ZAM::ConstructVector(const NameExpr* n, const Expr* e)
 
 	auto z = GenInst(this, OP_CONSTRUCT_VECTOR_V, n);
 	z.aux = InternalBuildVals(con);
-	z.t = e->Type().get();
+	z.t = e->Type();
 
 	return AddInst(z);
 	}
@@ -701,7 +701,7 @@ const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
 	int op_slot = FrameSlot(op);
 
 	ZInstI z(OP_IS_VV, Frame1Slot(n, OP_IS_VV), op_slot);
-	z.t2 = op->Type().get();
+	z.t2 = op->Type();
 	z.SetType(is->TestType());
 
 	return AddInst(z);
@@ -850,7 +850,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			{
 			auto z = GenInst(this, OP_VAL_IS_IN_TABLE_COND_VVV,
 						op1->AsNameExpr(), op2, 0);
-			z.t = op1->Type().release();
+			z.t = op1->Type();
 			branch_v = 3;
 			return AddInst(z);
 			}
@@ -859,7 +859,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			{
 			auto z = GenInst(this, OP_CONST_IS_IN_TABLE_COND_VVC,
 						op2, op1->AsConstExpr(), 0);
-			z.t = op1->Type().release();
+			z.t = op1->Type();
 			branch_v = 2;
 			return AddInst(z);
 			}
@@ -890,7 +890,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVV,
 					n0, n1, op2, 0);
 			branch_v = 4;
-			z.t2 = n0->Type().release();
+			z.t2 = n0->Type();
 			}
 
 		else if ( name0 )
@@ -898,7 +898,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVC,
 					n0, op2, c1, 0);
 			branch_v = 3;
-			z.t2 = n0->Type().release();
+			z.t2 = n0->Type();
 			}
 
 		else if ( name1 )
@@ -906,7 +906,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVCV,
 					n1, op2, c0, 0);
 			branch_v = 3;
-			z.t2 = n1->Type().release();
+			z.t2 = n1->Type();
 			}
 
 		else
@@ -917,7 +917,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 					slot, FrameSlot(op2), 0, c1);
 			z.op_type = OP_VVVC_I3;
 			branch_v = 3;
-			z.t2 = c0->Type().release();
+			z.t2 = c0->Type();
 			}
 
 		return AddInst(z);
@@ -1313,7 +1313,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 	for ( auto& i : *type_map )
 		{
 		auto id = i.first;
-		auto type = id->Type();
+		IntrusivePtr<BroType> type = {NewRef{}, id->Type()};
 
 		ZInstI z;
 
@@ -1486,7 +1486,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
 							op3->AsConstExpr());
 
-		TopMainInst()->t = op3->Type().get();
+		TopMainInst()->t = op3->Type();
 		return inst;
 		}
 
@@ -1500,7 +1500,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 					Vector_Elem_AssignVVi(lhs,
 						op3->AsNameExpr(), index);
 
-		TopMainInst()->t = op3->Type().get();
+		TopMainInst()->t = op3->Type();
 		return inst;
 		}
 	}
@@ -1523,7 +1523,7 @@ const CompiledStmt ZAM::AssignTableElem(const Expr* e)
 				op1, op3->AsConstExpr());
 
 	z.aux = InternalBuildVals(op2);
-	z.t = op3->Type().get();
+	z.t = op3->Type();
 
 	return AddInst(z);
 	}
@@ -1576,7 +1576,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 			++num_unused;
 
 		ii->loop_vars.push_back(FrameSlot(id));
-		ii->loop_var_types.push_back(id->Type());
+		ii->loop_var_types.push_back({NewRef{}, id->Type()});
 		}
 
 	bool no_loop_vars = (num_unused == loop_vars->length());
@@ -1593,7 +1593,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	auto info = NewSlot(false);	// false <- IterInfo isn't managed
 	auto z = ZInstI(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
 	z.op_type = OP_VV;
-	z.SetType(value_var ? value_var->Type() : nullptr);
+	z.SetType({NewRef{}, value_var ? value_var->Type() : nullptr});
 	z.aux = aux;
 
 	auto init_end = AddInst(z);
@@ -1604,7 +1604,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV :
 					OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
 		z = ZInstI(op, FrameSlot(value_var), info, 0);
-		z.CheckIfManaged(value_var->Type());
+		z.CheckIfManaged(value_var->TypePtr());
 		z.op_type = OP_VVV_I3;
 		z.aux = aux;	// so ZOpt.cc can get to it
 		}
@@ -1626,8 +1626,8 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto loop_var = (*loop_vars)[0];
 
 	auto ii = new IterInfo();
-	ii->vec_type = val->Type()->AsVectorType();
-	ii->yield_type = ii->vec_type->YieldType();
+	ii->vec_type = {NewRef{}, val->Type()->AsVectorType()};
+	ii->yield_type = {NewRef{}, ii->vec_type->YieldType()};
 
 	auto info = NewSlot(false);
 	auto z = ZInstI(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
@@ -1661,7 +1661,7 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	auto iter_head = StartingBlock();
 
 	z = ZInstI(OP_NEXT_STRING_ITER_VVV, FrameSlot(loop_var), info, 0);
-	z.CheckIfManaged(loop_var->Type());
+	z.CheckIfManaged(loop_var->TypePtr());
 	z.op_type = OP_VVV_I3;
 
 	return FinishLoop(iter_head, z, f->LoopBody(), info);
@@ -1691,21 +1691,21 @@ const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
 const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
 	{
 	auto z = ZInstI(OP_INIT_RECORD_V, FrameSlot(id));
-	z.SetType(rt);
+	z.SetType({NewRef{}, rt});
 	return AddInst(z);
 	}
 
 const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 	{
 	auto z = ZInstI(OP_INIT_VECTOR_V, FrameSlot(id));
-	z.SetType(vt);
+	z.SetType({NewRef{}, vt});
 	return AddInst(z);
 	}
 
 const CompiledStmt ZAM::InitTable(ID* id, TableType* tt, Attributes* attrs)
 	{
 	auto z = ZInstI(OP_INIT_TABLE_V, FrameSlot(id));
-	z.SetType(tt);
+	z.SetType({NewRef{}, tt});
 	z.attrs = attrs;
 	return AddInst(z);
 	}
@@ -1960,7 +1960,7 @@ void ZAM::LoadParam(ID* id)
 	int slot = AddToFrame(id);
 
 	ZInstI z(op, slot, id->Offset());
-	z.SetType(id->Type());
+	z.SetType({NewRef{}, id->Type()});
 	z.op_type = OP_VV_FRAME;
 
 	(void) AddInst(z);
@@ -1980,7 +1980,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 	auto slot = RawSlot(id);
 
 	ZInstI z(op, slot, global_id_to_info[id]);
-	z.SetType(id->Type());
+	z.SetType({NewRef{}, id->Type()});
 	z.op_type = OP_VV_I2;
 
 	z.aux = new ZInstAux(0);
@@ -2140,17 +2140,14 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 	else
 		z = ZInstI(a, s1, s3, c2);
 
-	BroType* stmt_type =
-		c2 ? c2->Type().get() : (c3 ? c3->Type().get() : nullptr);
-
-	BroType* zt;
+	IntrusivePtr<BroType> zt;
 
 	if ( c2 )
-		zt = c2->Type().get();
+		zt = c2->Type();
 	else if ( c3 )
-		zt = c3->Type().get();
+		zt = c3->Type();
 	else
-		zt = n2->Type().get();
+		zt = n2->Type();
 
 	z.SetType(zt);
 
@@ -2186,7 +2183,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			z = GenInst(this, op, n1, l_e0_c, n2);
 			}
 
-		z.t = l_e[0]->Type().release();
+		z.t = l_e[0]->Type();
 		return AddInst(z);
 		}
 
@@ -2211,21 +2208,21 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVV,
 					n1, l_e0_n, l_e1_n, n2);
-			z.t2 = l_e0_n->Type().release();
+			z.t2 = l_e0_n->Type();
 			}
 
 		else if ( l_e0_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVC,
 					n1, l_e0_n, n2, l_e1_c);
-			z.t2 = l_e0_n->Type().release();
+			z.t2 = l_e0_n->Type();
 			}
 
 		else if ( l_e1_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVCV,
 					n1, l_e1_n, n2, l_e0_c);
-			z.t2 = l_e1_n->Type().release();
+			z.t2 = l_e1_n->Type();
 			}
 
 		else
@@ -2236,7 +2233,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_VVVC, FrameSlot(n1),
 					slot, FrameSlot(n2), l_e1_c);
 			z.op_type = OP_VVVC;
-			z.t2 = l_e0_c->Type().release();
+			z.t2 = l_e0_c->Type();
 			}
 
 		return AddInst(z);
@@ -2397,7 +2394,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 	}
 
 	z.aux = InternalBuildVals(l);
-	z.CheckIfManaged(n1);
+	z.CheckIfManaged(n1->Type());
 
 	return AddInst(z);
 	}
@@ -2471,7 +2468,7 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 		{
 		auto n0 = exprs[0]->AsNameExpr();
 		z.v1 = FrameSlot(n0);
-		z.t = n0->Type().get();
+		z.t = n0->Type();
 
 		if ( n == 1 )
 			{
@@ -2483,7 +2480,7 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 			{
 			auto n1 = exprs[1]->AsNameExpr();
 			z.v2 = FrameSlot(n1);
-			z.t2 = n1->Type().get();
+			z.t2 = n1->Type();
 
 			if ( n == 2 )
 				{
@@ -2770,7 +2767,7 @@ int ZAM::TempForConst(const ConstExpr* c)
 	{
 	auto slot = NewSlot(c->Type());
 	auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, c);
-	z.CheckIfManaged(c);
+	z.CheckIfManaged(c->Type());
 	(void) AddInst(z);
 
 	return slot;

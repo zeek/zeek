@@ -1057,7 +1057,7 @@ public:
 protected:
 	// For a vector with yield type void, concretizes it to instead
 	// be of type t.
-	void Concretize(BroType* yt);
+	void Concretize(IntrusivePtr<BroType> yt);
 
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;

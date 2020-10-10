@@ -655,7 +655,7 @@ void ZAM::ReMapVar(ID* id, int slot, int inst)
 	// powerful allocation method like graph coloring.  However, far and
 	// away the bulk of our variables are short-lived temporaries,
 	// for which greedy should work fine.
-	bool is_managed = IsManagedType(id->Type());
+	bool is_managed = IsManagedType(id->TypePtr());
 
 	int apt_slot = -1;
 	for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )

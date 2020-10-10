@@ -608,7 +608,7 @@ protected:
 		// The following is not an IntrusivePtr just so we don't
 		// get circular dependencies between with Expr.h.
 		Expr* def_expr = nullptr;
-		BroType* def_type;
+		IntrusivePtr<BroType> def_type;
 		bool def_coerce = false;
 
 		RecordType* r_type;	// for R_INIT_RECORD

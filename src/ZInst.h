@@ -138,8 +138,8 @@ public:
 	// Meta-data associated with the execution.
 
 	// Type, usually for interpreting the constant.
-	BroType* t = nullptr;
-	BroType* t2 = nullptr;	// just a few operations need two types
+	IntrusivePtr<BroType> t = nullptr;
+	IntrusivePtr<BroType> t2 = nullptr;	// just a few ops need two types
 
 	Expr* e = nullptr;	// only needed for "when" expressions
 
@@ -282,21 +282,15 @@ public:
 			return IsGlobalLoad();
 		}
 
-	void CheckIfManaged(const Expr* e)
-		{ if ( IsManagedType(e) ) is_managed = true; }
-
-	void CheckIfManaged(const BroType* t)
+	void CheckIfManaged(const IntrusivePtr<BroType>& t)
 		{ if ( IsManagedType(t) ) is_managed = true; }
 
-	void SetType(BroType* _t)
+	void SetType(IntrusivePtr<BroType> _t)
 		{
-		t = _t;
+		t = std::move(_t);
 		if ( t )
 			CheckIfManaged(t);
 		}
-
-	void SetType(const IntrusivePtr<BroType>& _t)
-		{ SetType(_t.get()); }
 
 	// Whether the instruction should be included in final code
 	// generation.
@@ -365,7 +359,7 @@ public:
 		if ( constants[i] )
 			return constants[i];
 		else
-			return frame[slots[i]].ToVal(types[i].get());
+			return frame[slots[i]].ToVal(types[i]);
 		}
 
 	IntrusivePtr<ListVal> ToListVal(const ZAMValUnion* frame) const

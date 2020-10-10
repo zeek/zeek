@@ -149,7 +149,10 @@ inline bool IsAnyVec(const Expr* e) { return IsAnyVec(e->Type()); }
 
 // Needed for logging built-in.  Exported so that ZAM can make sure it's
 // defined when compiling.
-extern BroType* log_ID_enum_type;
+extern IntrusivePtr<BroType> log_ID_enum_type;
+
+// Needed for a slight performance gain when dealing with "any" types.
+extern IntrusivePtr<BroType> any_base_type;
 
 extern void report_ZOP_profile();
 

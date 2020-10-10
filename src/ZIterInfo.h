@@ -30,18 +30,18 @@ public:
 	vector<int> loop_vars;
 
 	// Their types.
-	vector<BroType*> loop_var_types;
+	vector<IntrusivePtr<BroType>> loop_var_types;
 
 	// Type associated with the "value" entry, for "k, v in aggr"
 	// iteration.
-	BroType* value_var_type = nullptr;
+	IntrusivePtr<BroType> value_var_type = nullptr;
 
 	// If we're iterating over a vector, points to the raw vector.
 	ZAM_vector* vv = nullptr;
 
 	// The vector's type & yield.
-	VectorType* vec_type = nullptr;
-	BroType* yield_type = nullptr;
+	IntrusivePtr<VectorType> vec_type = nullptr;
+	IntrusivePtr<BroType> yield_type = nullptr;
 
 	// String we're iterating over.
 	const BroString* s = nullptr;

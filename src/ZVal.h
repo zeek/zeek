@@ -33,14 +33,14 @@ union ZAMValUnion {
 	ZAMValUnion() { managed_val = nullptr; }
 
 	// Construct from a given Bro value with a given type.
-	ZAMValUnion(IntrusivePtr<Val> v, BroType* t);
+	ZAMValUnion(IntrusivePtr<Val> v, const IntrusivePtr<BroType>& t);
 
 	// True if when interpreting the value as having the given type,
 	// it's a nil pointer.
-	bool IsNil(const BroType* t) const;
+	bool IsNil(const IntrusivePtr<BroType>& t) const;
 
 	// Convert to a Bro value.
-	IntrusivePtr<Val> ToVal(BroType* t) const;
+	IntrusivePtr<Val> ToVal(const IntrusivePtr<BroType>& t) const;
 
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -52,7 +52,9 @@ union ZAMValUnion {
 	double double_val;
 
 	// The types are all variants of Val, BroType, or more fundamentally
-	// BroObj.  For memory management, we use Ref/Unref.
+	// BroObj.  They are raw pointers rather than IntrusivePtr's because
+	// unions can't contain the latter.  For memory management, we use
+	// Ref/Unref.
 	StringVal* string_val;
 	AddrVal* addr_val;
 	SubNetVal* subnet_val;
@@ -83,20 +85,14 @@ union ZAMValUnion {
 
 // True if a given type is one for which we manage the associated
 // memory internally.
-bool IsManagedType(const BroType* t);
-inline bool IsManagedType(const IntrusivePtr<BroType>& t)
-	{ return IsManagedType(t.get()); }
+bool IsManagedType(const IntrusivePtr<BroType>& t);
+
 inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 
 // Deletes a managed value.
-inline void DeleteManagedType(ZAMValUnion& v, const BroType* /* t */)
+inline void DeleteManagedType(ZAMValUnion& v)
 	{
 	Unref(v.managed_val);
-	}
-inline void DeleteAndZeroManagedType(ZAMValUnion& v, const BroType* /* t */)
-	{
-	Unref(v.managed_val);
-	v.managed_val = nullptr;
 	}
 
 
@@ -104,15 +100,15 @@ typedef vector<ZAMValUnion> ZVU_vec;
 
 class ZAM_vector {
 public:
-	ZAM_vector(VectorVal* _vv, BroType* yt, int n = 0)
+	ZAM_vector(VectorVal* _vv, IntrusivePtr<BroType> yt, int n = 0)
 	: zvec(n)
 		{
 		vv = _vv;
 
 		if ( yt )
 			{
-			general_yt = yt->Ref();
 			managed_yt = IsManagedType(yt) ? yt : nullptr;
+			general_yt = std::move(yt);
 			}
 		else
 			general_yt = managed_yt = nullptr;
@@ -122,22 +118,17 @@ public:
 		{
 		if ( managed_yt )
 			DeleteMembers();
-
-		Unref(general_yt);
 		}
 
-	BroType* YieldType() const	{ return general_yt; }
+	BroType* YieldType() const	{ return general_yt.get(); }
 
-	void SetYieldType(BroType* yt)
+	void SetYieldType(IntrusivePtr<BroType> yt)
 		{
 		if ( ! general_yt || general_yt->Tag() == TYPE_ANY ||
 		     general_yt->Tag() == TYPE_VOID )
 			{
-			general_yt = yt->Ref();
-			if ( IsManagedType(yt) )
-				managed_yt = yt;
-			else
-				managed_yt = nullptr;
+			managed_yt = IsManagedType(yt) ? yt : nullptr;
+			general_yt = std::move(yt);
 			}
 		}
 
@@ -172,7 +163,7 @@ public:
 			GrowVector(n + 1);
 
 		if ( managed_yt )
-			DeleteManagedType(zvec[n], managed_yt);
+			DeleteManagedType(zvec[n]);
 
 		zvec[n] = v;
 		}
@@ -238,7 +229,7 @@ protected:
 	void DeleteIfManaged(int n)
 		{
 		if ( managed_yt )
-			DeleteManagedType(zvec[n], managed_yt);
+			DeleteManagedType(zvec[n]);
 		}
 
 	// The underlying set of ZAM values.
@@ -249,12 +240,12 @@ protected:
 
 	// The yield type of the vector elements.  Only non-nil if they
 	// are managed types.
-	BroType* managed_yt;
+	IntrusivePtr<BroType> managed_yt;
 
 	// The yield type of the vector elements, whether or not it's
 	// managed.  We use a lengthier name to make sure we never
 	// confuse this with managed_yt.
-	BroType* general_yt;
+	IntrusivePtr<BroType> general_yt;
 };
 
 class ZAM_record {
@@ -337,7 +328,8 @@ public:
 protected:
 	friend class RecordVal;
 
-	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
+	IntrusivePtr<BroType> FieldType(int field) const
+		{ return {NewRef{}, rt->FieldType(field)}; }
 
 	bool SetToDefault(unsigned int field);
 
@@ -346,12 +338,9 @@ protected:
 		zvec.resize(new_size);
 		}
 
-	// Removes the given field.  The current definition takes advantage
-	// of the fact that we know that DeleteManagedType() ignores the type
-	// provided to it, so we don't bother calling FieldType(field) to
-	// determine it.
+	// Removes the given field.
 	void Delete(unsigned int field)
-		{ DeleteManagedType(zvec[field], nullptr); }
+		{ DeleteManagedType(zvec[field]); }
 
 	void DeleteManagedMembers();
 

@@ -719,8 +719,7 @@ bool ZInstI::IsGlobalLoad() const
 void ZInstI::InitConst(const ConstExpr* ce)
 	{
 	auto v = ce->ValuePtr();
-	auto ct = ce->Type().get();
-	t = ct;
+	t = ce->Type();
 	c = ZAMValUnion(v, t);
 
 	if ( ZAM_error )

@@ -10,7 +10,7 @@
 #include "Reporter.h"
 
 
-bool IsManagedType(const BroType* t)
+bool IsManagedType(const IntrusivePtr<BroType>& t)
 	{
 	switch ( t->Tag() ) {
 	case TYPE_ADDR:
@@ -35,7 +35,7 @@ bool IsManagedType(const BroType* t)
 	}
 
 
-ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
+ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, const IntrusivePtr<BroType>& t)
 	{
 	if ( ! v )
 		{
@@ -156,7 +156,7 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 	}
 	}
 
-bool ZAMValUnion::IsNil(const BroType* t) const
+bool ZAMValUnion::IsNil(const IntrusivePtr<BroType>& t) const
 	{
 	switch ( t->Tag() ) {
 	case TYPE_ADDR:		return ! addr_val;
@@ -176,7 +176,7 @@ bool ZAMValUnion::IsNil(const BroType* t) const
 	}
 	}
 
-IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
+IntrusivePtr<Val> ZAMValUnion::ToVal(const IntrusivePtr<BroType>& t) const
 	{
 	Val* v;
 
@@ -313,7 +313,7 @@ void ZAM_vector::GrowVector(int new_size)
 void ZAM_vector::DeleteMembers()
 	{
 	for ( auto& z : zvec )
-		DeleteManagedType(z, managed_yt);
+		DeleteManagedType(z);
 	}
 
 
@@ -336,7 +336,7 @@ bool ZAM_record::SetToDefault(unsigned int field)
 	auto td = rt->FieldDecl(field);
 	auto t = td->type;
 
-	ZAMValUnion zvu(v, t.get());
+	ZAMValUnion zvu(v, t);
 	Assign(field, zvu);
 
 	return true;
@@ -349,9 +349,7 @@ void ZAM_record::DeleteManagedMembers()
 		if ( IsInRecord(i) && IsManaged(i) )
 			{
 			auto& zvi = zvec[i];
-			DeleteManagedType(zvi, nullptr);
-			// auto rti = FieldType(i);
-			// DeleteManagedType(zvi, rti);
+			DeleteManagedType(zvi);
 			}
 		}
 	}

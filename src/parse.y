@@ -2280,19 +2280,20 @@ ZAM_aux_iter_info:
 			while ( n-- > 0 )
 				{
 				auto t = zt[iv[ind++]];
-				ii->loop_var_types.push_back(t);
+				ii->loop_var_types.push_back({NewRef{}, t});
 				}
 
 			auto t = iv[ind] >= 0 ? zt[iv[ind]] : nullptr;
-			ii->value_var_type = t;
+			ii->value_var_type = {NewRef{}, t};
 			++ind;
 
 			t = iv[ind] >= 0 ? zt[iv[ind]] : nullptr;
-			ii->vec_type = t ? t->AsVectorType() : nullptr;
+			ii->vec_type = {NewRef{},
+					t ? t->AsVectorType() : nullptr};
 			++ind;
 
 			t = iv[ind] >= 0 ? zt[iv[ind]] : nullptr;
-			ii->yield_type = t;
+			ii->yield_type = {NewRef{}, t};
 
 			curr_ZAM_aux->iter_info = ii;
 			}
@@ -2362,14 +2363,14 @@ ZAM_inst:	ZAM_ind ZAM_ind ZAM_ind TOK_OP_NAME
 			if ( $9 >= 0 )
 				{
 				IntrusivePtr<Val> v = {NewRef{}, ZAM_vals[$9]};
-				z->c = ZAMValUnion(v, v->Type());
+				z->c = ZAMValUnion(v, {NewRef{}, v->Type()});
 				}
 			else
 				z->c = ZAMValUnion();
 
 			auto& zt = *ZAM_types;
-			z->t = $10 >= 0 ? zt[$10] : nullptr;
-			z->t2 = $11 >= 0 ? zt[$11] : nullptr;
+			z->t = {NewRef{}, $10 >= 0 ? zt[$10] : nullptr};
+			z->t2 = {NewRef{}, $11 >= 0 ? zt[$11] : nullptr};
 
 			z->aux = $12 >= 0 ? ZAM_auxes[$12] : nullptr;
 			z->attrs = $13 >= 0 ? ZAM_attr_sets[$13] : nullptr;

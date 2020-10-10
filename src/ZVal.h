@@ -87,8 +87,6 @@ union ZAMValUnion {
 // memory internally.
 bool IsManagedType(const IntrusivePtr<BroType>& t);
 
-inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
-
 // Deletes a managed value.
 inline void DeleteManagedType(ZAMValUnion& v)
 	{
@@ -100,6 +98,10 @@ typedef vector<ZAMValUnion> ZVU_vec;
 
 class ZAM_vector {
 public:
+	// In the following, we use a bare pointer for the VectorVal
+	// due to tricky memory management concerns, namely that ZAM_vector's
+	// point to their VectorVal's and VectorVal's point to their
+	// ZAM_vector's.
 	ZAM_vector(VectorVal* _vv, IntrusivePtr<BroType> yt, int n = 0)
 	: zvec(n)
 		{
@@ -120,7 +122,8 @@ public:
 			DeleteMembers();
 		}
 
-	BroType* YieldType() const	{ return general_yt.get(); }
+	IntrusivePtr<BroType> YieldType() 		{ return general_yt; }
+	const IntrusivePtr<BroType>& YieldType() const	{ return general_yt; }
 
 	void SetYieldType(IntrusivePtr<BroType> yt)
 		{

@@ -629,7 +629,7 @@ eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
-eval auto v = vec[ind].ToVal({NewRef{}, vv->YieldType()})
+eval auto v = vec[ind].ToVal(vv->YieldType())
 eval Unref(frame[z.v1].any_val)
 eval frame[z.v1].any_val = v.release()
 
@@ -647,7 +647,7 @@ eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval unsigned int ind = z.v3
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.loc, "no such index")
-eval auto v = vec[ind].ToVal({NewRef{}, vv->YieldType()})
+eval auto v = vec[ind].ToVal(vv->YieldType())
 eval Unref(frame[z.v1].any_val)
 eval frame[z.v1].any_val = v.release()
 
@@ -1771,7 +1771,7 @@ eval auto any_vec = frame[z.v1].vector_val->RawVector()
 eval auto at = any_vec->YieldType()
 eval if ( ! at ) break
 eval if ( at->Tag() == TYPE_ANY && any_vec->ConstVec().size() > 0 ) reporter->InternalError("non-concrete vector-of-any")
-eval if ( ! CheckAnyType(at, z.t.get(), z.loc) ) ZAM_error = true
+eval if ( ! CheckAnyType(at.get(), z.t.get(), z.loc) ) ZAM_error = true
 
 # Transform the given vector-of-any to a concrete internal type.
 internal-op Transform-Any-Vec
@@ -1795,7 +1795,7 @@ eval auto at = any_vec->YieldType()
 eval if ( ! at || at->Tag() == TYPE_ANY ) {
 eval	if ( at && any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
 eval	any_vec->SetYieldType({NewRef{}, vt})
-eval } else if ( ! same_type(at, vt) ) {
+eval } else if ( ! same_type(at.get(), vt) ) {
 eval	reporter->Error("inconsistent types for vector-of-any: %s vs. %s", type_name(at->Tag()), type_name(vt->Tag()))
 eval	ZAM_error = true
 eval }

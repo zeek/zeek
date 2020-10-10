@@ -3044,7 +3044,7 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	{
 	auto yt = val.vector_val->YieldType();
 
-	if ( element && ! same_type(element->Type(), yt, false) )
+	if ( element && ! same_type(element->Type(), yt.get(), false) )
 		return false;
 
 	if ( yt->Tag() == TYPE_VOID || yt->Tag() == TYPE_ANY )
@@ -3053,7 +3053,7 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 		Concretize(yt);
 		}
 
-        ZAMValUnion elem(element, {NewRef{}, yt});
+        ZAMValUnion elem(element, yt);
 
 	val.vector_val->SetElement(index, elem);
 
@@ -3089,7 +3089,7 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 	{
 	auto yt = val.vector_val->YieldType();
 
-	if ( element && ! same_type(element->Type(), yt, false) )
+	if ( element && ! same_type(element->Type(), yt.get(), false) )
 		{
 		Unref(element);
 		return false;
@@ -3103,7 +3103,7 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 
 	auto& vv = val.vector_val;
 
-        ZAMValUnion elem({NewRef{}, element}, {NewRef{}, vv->YieldType()});
+        ZAMValUnion elem({NewRef{}, element}, vv->YieldType());
 
 	vv->Insert(index, elem);
 
@@ -3157,7 +3157,7 @@ IntrusivePtr<Val> VectorVal::Lookup(unsigned int index) const
 		// The vector is has a hole that we know how to report.
 		return nullptr;
 
-	return raw_v.ToVal({NewRef{}, val.vector_val->YieldType()});
+	return raw_v.ToVal(val.vector_val->YieldType());
 	}
 
 unsigned int VectorVal::Size() const
@@ -3183,7 +3183,7 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	{
-	IntrusivePtr<BroType> yt = {NewRef{}, val.vector_val->YieldType()};
+	IntrusivePtr<BroType> yt = val.vector_val->YieldType();
 	auto vt = new VectorType(yt);
 	auto vv = make_intrusive<VectorVal>(vt, val.vector_val->Size());
 	state->NewClone(this, vv);

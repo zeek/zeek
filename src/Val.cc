@@ -2700,7 +2700,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	origin = nullptr;
 	int n = t->NumFields();
 
-	val.record_val = new ZAM_record(this, t);
+	val.record_val = new ZAM_record(this, {NewRef {}, t});
 
 	if ( is_parsing )
 		parse_time_records[t].emplace_back(NewRef{}, this);

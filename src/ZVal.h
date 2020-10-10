@@ -28,6 +28,11 @@ typedef std::vector<IntrusivePtr<Val>> val_vec;
 // does however require a separate way to determine the type.  Generally
 // this is doable using surrounding context, or can be statically determined
 // in the case of optimization/compilation.
+//
+// An alternative would be to use std::variant, but (1) it tracks the
+// variant type, and (2) it won't allow access to the managed_val member,
+// which not only simplifies memory management but also is required for
+// sharing of ZAM frame slots.
 union ZAMValUnion {
 	// Constructor for hand-populating the values.
 	ZAMValUnion() { managed_val = nullptr; }
@@ -238,7 +243,8 @@ protected:
 	// The underlying set of ZAM values.
 	ZVU_vec zvec;
 
-	// The associated main value.
+	// The associated main value.  A raw pointer for reasons explained
+	// above.
 	VectorVal* vv;
 
 	// The yield type of the vector elements.  Only non-nil if they
@@ -253,7 +259,9 @@ protected:
 
 class ZAM_record {
 public:
-	ZAM_record(RecordVal* _v, RecordType* _rt);
+	// Similarly to ZAM_vector, we use a bare pointer for the RecordVal
+	// to simplify the memory management given the pointer cycle.
+	ZAM_record(RecordVal* _v, const IntrusivePtr<RecordType>& _rt);
 
 	~ZAM_record()
 		{
@@ -354,7 +362,7 @@ protected:
 	RecordVal* rv;
 
 	// And a handy pointer to its type.
-	RecordType* rt;
+	const IntrusivePtr<RecordType>& rt;
 
 	// Whether a given field exists (for optional fields).
 	ZRM_flags is_in_record;

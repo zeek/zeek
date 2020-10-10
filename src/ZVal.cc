@@ -317,11 +317,10 @@ void ZAM_vector::DeleteMembers()
 	}
 
 
-ZAM_record::ZAM_record(RecordVal* _rv, RecordType* _rt)
-	: zvec(_rt->NumFields())
+ZAM_record::ZAM_record(RecordVal* _rv, const IntrusivePtr<RecordType>& _rt)
+	: zvec(_rt->NumFields()), rt(_rt)
 	{
 	rv = _rv;
-	rt = _rt;
 
 	is_in_record = 0;
 	is_managed = rt->ManagedFields();

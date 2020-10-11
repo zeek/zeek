@@ -98,6 +98,12 @@ inline void DeleteManagedType(ZAMValUnion& v)
 	Unref(v.managed_val);
 	}
 
+// The following can be set to point to a boolean that will be set
+// to true if a run-time error associated with ZAMValUnion's occurs.
+//
+// We use this somewhat clunky coupling to enable isolating ZVal from
+// ZAM compiler specifics.
+extern bool* zval_error_addr;
 
 typedef vector<ZAMValUnion> ZVU_vec;
 

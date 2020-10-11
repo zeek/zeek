@@ -22,6 +22,7 @@
 #include "logging/Manager.h"
 
 
+static bool did_init = false;
 IntrusivePtr<BroType> log_ID_enum_type;
 IntrusivePtr<BroType> any_base_type;
 
@@ -212,15 +213,18 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 	// It's a little weird doing this in the constructor, but unless
 	// we add a general "initialize for ZAM" function, this is as good
 	// a place as any.
-	if ( ! log_ID_enum_type )
+	if ( ! did_init )
 		{
 		auto log_ID_type = lookup_ID("ID", "Log");
 		ASSERT(log_ID_type);
 		log_ID_enum_type = {NewRef{}, log_ID_type->Type()->AsEnumType()};
-		}
 
-	if ( ! any_base_type )
 		any_base_type = base_type(TYPE_ANY);
+
+		zval_error_addr = &ZAM_error;
+
+		did_init = false;
+		}
 	}
 
 ZBody::~ZBody()

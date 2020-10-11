@@ -1,13 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// Include ZAM.h, not ZVal.h, so we get ZAM_run_time_error.
-#include "ZAM.h"
+#include "ZVal.h"
 
 #include "OpaqueVal.h"
 #include "BroString.h"
 #include "File.h"
 #include "Func.h"
 #include "Reporter.h"
+#include "Desc.h"
+
+
+bool* zval_error_addr = nullptr;
 
 
 bool IsManagedType(const IntrusivePtr<BroType>& t)
@@ -115,10 +118,11 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, const IntrusivePtr<BroType>& t)
 			// which for example can allow a function to return
 			// a concrete vector-of-X that's assigned to a local
 			// with a concrete vector-of-Y type.
-			char msg[8192];
-			snprintf(msg, sizeof msg, "vector type clash: %s vs. %s",
-					type_name(my_ytag), type_name(v_ytag));
-			ZAM_run_time_error(msg, v.get());
+			reporter->Error("vector type clash: %s vs. %s (%s)",
+					type_name(my_ytag), type_name(v_ytag),
+					obj_desc(v));
+			if ( zval_error_addr )
+				*zval_error_addr = true;
 			}
 
 		break;
@@ -260,7 +264,10 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(const IntrusivePtr<BroType>& t) const
 	if ( v )
 		return {NewRef{}, v};
 
-	ZAM_run_time_error("value used but not set");
+	reporter->Error("value used but not set");
+	if ( zval_error_addr )
+		*zval_error_addr = true;
+
 	return nullptr;
 	}
 

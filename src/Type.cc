@@ -620,11 +620,6 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	types = arg_types;
 	num_fields = types ? types->length() : 0;
 
-	// Ideally we'd only do the following assertion if compiling.
-	ASSERT(num_fields <= sizeof(ZRM_flags) * 8);
-
-	managed_fields = 0;
-
 	if ( ! types )
 		return;
 
@@ -662,9 +657,9 @@ RecordType::~RecordType()
 void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	{
 	ASSERT(field == field_inits.size());
+	ASSERT(field == managed_fields.size());
 
-	if ( IsManagedType(td->type) )
-		managed_fields |= (1UL << field);
+	managed_fields.push_back(IsManagedType(td->type));
 
 	FieldInit init;
 	init.init_type = FieldInit::R_INIT_NONE;
@@ -928,9 +923,6 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 
 			td->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 			}
-
-		if ( IsManagedType(td->type) )
-			managed_fields |= (1UL << types->size());
 
 		int field = types->size();
 		types->push_back(td);

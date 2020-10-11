@@ -261,7 +261,7 @@ class ZAM_record {
 public:
 	// Similarly to ZAM_vector, we use a bare pointer for the RecordVal
 	// to simplify the memory management given the pointer cycle.
-	ZAM_record(RecordVal* _v, const IntrusivePtr<RecordType>& _rt);
+	ZAM_record(RecordVal* _v, IntrusivePtr<RecordType> _rt);
 
 	~ZAM_record()
 		{
@@ -276,16 +276,14 @@ public:
 			Unref(zvec[field].managed_val);
 
 		zvec[field] = v;
-
-		auto mask = 1UL << field;
-		is_in_record |= mask;
+		is_in_record[field] = true;
 		}
 
-	// Direct access to fields for assignment or clearing.  *The caller
+	// Direct access to fields for assignment.  *The caller
 	// is expected to deal with memory management.*
 	ZAMValUnion& SetField(unsigned int field)
 		{
-		is_in_record |= (1UL << field);
+		is_in_record[field] = true;
 		return zvec[field];
 		}
 
@@ -319,8 +317,7 @@ public:
 		if ( IsInRecord(field) && IsManaged(field) )
 			Unref(zvec[field].managed_val);
 
-		auto mask = 1UL << field;
-		is_in_record &= ~mask;
+		is_in_record[field] = false;
 		}
 
 	bool HasField(unsigned int field)
@@ -328,13 +325,10 @@ public:
 		return IsInRecord(field);
 		}
 
-	ZRM_flags OffsetMask(unsigned int offset) const
-		{ return 1UL << offset; }
-
 	bool IsInRecord(unsigned int offset) const
-		{ return (is_in_record & OffsetMask(offset)) != 0; }
+		{ return is_in_record[offset]; }
 	bool IsManaged(unsigned int offset) const
-		{ return (is_managed & OffsetMask(offset)) != 0; }
+		{ return is_managed[offset]; }
 
 protected:
 	friend class RecordVal;
@@ -362,11 +356,11 @@ protected:
 	RecordVal* rv;
 
 	// And a handy pointer to its type.
-	const IntrusivePtr<RecordType>& rt;
+	IntrusivePtr<RecordType> rt;
 
 	// Whether a given field exists (for optional fields).
-	ZRM_flags is_in_record;
+	std::vector<bool> is_in_record;
 
 	// Whether a given field requires explicit memory management.
-	ZRM_flags is_managed;
+	const std::vector<bool>& is_managed;
 };

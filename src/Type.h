@@ -140,10 +140,6 @@ const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
 const int MATCHES_INDEX_VECTOR = 2;
 
-// Needed by the compiler, but we define it here so RecordType can use it
-// in its declaration.
-typedef unsigned long ZRM_flags;
-
 class BroType : public BroObj {
 public:
 	explicit BroType(TypeTag tag, bool base_type = false);
@@ -535,8 +531,10 @@ public:
 	TypeDecl* FieldDecl(int field);
 
 	// Returns flags corresponding to which fields in the record
-	// have types managed by the compiler.
-	ZRM_flags ManagedFields() const		{ return managed_fields; }
+	// have types requiring memory management (reference counting).
+	// Primarily used by the compiler.
+	const std::vector<bool>& ManagedFields() const
+		{ return managed_fields; }
 
 	unsigned int NumFields() const		{ return num_fields; }
 
@@ -580,7 +578,10 @@ protected:
 
 	unsigned int num_fields;
 	type_decl_list* types;
-	ZRM_flags managed_fields;
+
+	// If we were willing to bound the size of records, then we could
+	// use std::bitset here instead.
+	std::vector<bool> managed_fields;
 
 	// The following tracks how to initialize any given field,
 	// for fast execution of Create().

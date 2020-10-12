@@ -32,16 +32,16 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 
 	auto* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(root);
 
-	if ( tcpstates & STATE_STATELESS )
+	if ( tcpstates & RULE_STATE_STATELESS )
 		return true;
 
-	if ( (tcpstates & STATE_ORIG) && ! state->IsOrig() )
+	if ( (tcpstates & RULE_STATE_ORIG) && ! state->IsOrig() )
 		return false;
 
-	if ( (tcpstates & STATE_RESP) && state->IsOrig() )
+	if ( (tcpstates & RULE_STATE_RESP) && state->IsOrig() )
 		return false;
 
-	if ( (tcpstates & STATE_ESTABLISHED ) &&
+	if ( (tcpstates & RULE_STATE_ESTABLISHED ) &&
 		! (is_established(ta->Orig()) &&
 		   is_established(ta->Resp())))
 		return false;
@@ -52,6 +52,31 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 void RuleConditionTCPState::PrintDebug()
 	{
 	fprintf(stderr, "	RuleConditionTCPState: 0x%x\n", tcpstates);
+	}
+
+bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state,
+                                    const u_char* data, int len)
+	{
+	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+
+	if ( ! root || ! root->IsAnalyzer("UDP") )
+		return false;
+
+	if ( states & RULE_STATE_STATELESS )
+		return true;
+
+	if ( (states & RULE_STATE_ORIG) && ! state->IsOrig() )
+		return false;
+
+	if ( (states & RULE_STATE_RESP) && state->IsOrig() )
+		return false;
+
+	return true;
+	}
+
+void RuleConditionUDPState::PrintDebug()
+	{
+	fprintf(stderr, "	RuleConditionUDPState: 0x%x\n", states);
 	}
 
 void RuleConditionIPOptions::PrintDebug()

@@ -1,0 +1,10 @@
+signature_match [orig_h=192.168.17.58, orig_p=58755/udp, resp_h=8.8.8.8, resp_p=53/udp] - my_sig_udp_orig
+0000  35 5e 01 00 00 01 00 00  00 00 00 00 06 67 6f 6f  5^...... .....goo
+0010  67 6c 65 03 63 6f 6d 00  01 01 00 01              gle.com. ....
+
+signature_match [orig_h=192.168.17.58, orig_p=58755/udp, resp_h=8.8.8.8, resp_p=53/udp] - my_sig_udp_resp
+0000  35 5e 81 80 00 01 00 01  00 00 00 00 06 67 6f 6f  5^...... .....goo
+0010  67 6c 65 03 63 6f 6d 00  01 01 00 01 c0 0c 01 01  gle.com. ........
+0020  00 01 00 00 54 49 00 13  00 05 69 73 73 75 65 73  ....TI.. ..issues
+0030  79 6d 61 6e 74 65 63 2e  63 6f 6d                 ymantec. com
+

@@ -34,6 +34,9 @@ New Functionality
   See https://docs.zeek.org/en/master/frameworks/logging.html#filter-log-records
   for more details.
 
+- Added a ``udp-state`` signature condition to enforce matching against
+  either "originator" or "responder" flow direction of UDP packets.
+
 Changed Functionality
 ---------------------
 

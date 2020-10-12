@@ -58,15 +58,16 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 %token TOK_SRC_IP
 %token TOK_SRC_PORT
 %token TOK_TCP_STATE
+%token TOK_UDP_STATE
 %token TOK_STRING
-%token TOK_TCP_STATE_SYM
+%token TOK_STATE_SYM
 %token TOK_ACTIVE
 %token TOK_BOOL
 %token TOK_POLICY_SYMBOL
 
 %type <str> TOK_STRING TOK_IDENT TOK_POLICY_SYMBOL TOK_PATTERN pattern string
-%type <val> TOK_INT TOK_TCP_STATE_SYM TOK_IP_OPTION_SYM TOK_COMP
-%type <val> integer ipoption_list tcpstate_list opt_strength
+%type <val> TOK_INT TOK_STATE_SYM TOK_IP_OPTION_SYM TOK_COMP
+%type <val> integer ipoption_list state_list opt_strength
 %type <rule> rule
 %type <bl> TOK_BOOL opt_negate
 %type <hdr_test> hdr_expr
@@ -246,9 +247,17 @@ rule_attr:
 				(zeek::detail::RuleHdrTest::Comp) $2, $3));
 			}
 
-	|	TOK_TCP_STATE tcpstate_list
+	|	TOK_TCP_STATE state_list
 			{
 			current_rule->AddCondition(new zeek::detail::RuleConditionTCPState($2));
+			}
+
+	|	TOK_UDP_STATE state_list
+			{
+			if ( $2 & zeek::detail::RULE_STATE_ESTABLISHED )
+				rules_error("'established' is not a valid 'udp-state'");
+
+			current_rule->AddCondition(new zeek::detail::RuleConditionUDPState($2));
 			}
 
 	|	TOK_ACTIVE TOK_BOOL
@@ -382,10 +391,10 @@ ipoption_list:
 			{ $$ = $1; }
 	;
 
-tcpstate_list:
-		tcpstate_list ',' TOK_TCP_STATE_SYM
+state_list:
+		state_list ',' TOK_STATE_SYM
 			{ $$ = $1 | $3; }
-	|	TOK_TCP_STATE_SYM
+	|	TOK_STATE_SYM
 			{ $$ = $1; }
 	;
 

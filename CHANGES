@@ -1,4 +1,17 @@
 
+3.3.0-dev.381 | 2020-10-12 11:15:29 -0700
+
+  * GH-779: Add "udp-state" signature condition (Jon Siwek, Corelight)
+
+    It accepts "originator" or "responder" states as a way to enforce that
+    the signature only matches packets in the associated direction.
+    The "established" state is rejected as an error since it doesn't
+    have a useful meaning like it does for the "tcp-state" condition.
+
+  * Rename RuleConditionTCPState::TCPState enum values (Jon Siwek, Corelight)
+
+  * Rename "tcp-state" signature parser tokens to not be TCP-specific (Jon Siwek, Corelight)
+
 3.3.0-dev.377 | 2020-10-08 12:07:42 -0700
 
   * GH-1200: ignore a maybe-uninitialized warning (Jon Siwek, Corelight)

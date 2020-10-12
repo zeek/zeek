@@ -1,4 +1,4 @@
-##! A framework for establishing and controlling a cluster of Zeek instances.
+#hh#! A framework for establishing and controlling a cluster of Zeek instances.
 ##! In order to use the cluster framework, a script named
 ##! ``cluster-layout.zeek`` must exist somewhere in Zeek's script search path
 ##! which has a cluster definition of the :zeek:id:`Cluster::nodes` variable.
@@ -162,7 +162,7 @@ export {
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id:      string      &default="";
 		## The port that this node will listen on for peer connections.
-		p:            port;
+		p:            port        &optional;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
 		## Name of the manager node this node uses.  For workers and proxies.

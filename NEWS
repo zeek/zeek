@@ -37,6 +37,23 @@ New Functionality
 - Added a ``udp-state`` signature condition to enforce matching against
   either "originator" or "responder" flow direction of UDP packets.
 
+- Improvements to catpure-loss.zeek:
+
+  - A new option, ``CaptureLoss::initial_watch_interval``.  When restarting a
+    Zeek cluster, one usually wants some immediate feedback as to the health of
+    the monitoring via capture loss. However, you previously needed to wait a
+    full ``CaptureLoss::watch_interval``, which defaults to 15 minutes.  The
+    new option specifies the interval for the first-time report.  So the new
+    default behavior provides stats after 1 minute and then after
+    15 minutes afterward.
+
+  - A new notice type, ``CaptureLoss::Too_Little_Traffic``.
+    If a Zeek process sees less than ``CaptureLoss::minimum_acks`` ACKs in a
+    given interval, this notice gets raised.  This can be a useful diagnostic
+    if, for whatever reason, a Zeek process stops seeing traffic, but
+    capture-loss.zeek would have previously only reported that "0 gaps and 0
+    ACKs is 0% loss".
+
 Changed Functionality
 ---------------------
 

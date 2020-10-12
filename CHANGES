@@ -1,4 +1,14 @@
 
+3.3.0-dev.388 | 2020-10-12 17:02:20 -0700
+
+  * Add CaptureLoss::Too_Little_Traffic notice (Vlad Grigorescu)
+
+  * Add CaptureLoss::initial_watch_interval for a quick read on cluster health after startup. (Vlad Grigorescu)
+
+  * Improve capture-loss.zeek documentation. (Vlad Grigorescu)
+
+  * Fix whitespace in capture-loss.zek (Vlad Grigorescu)
+
 3.3.0-dev.381 | 2020-10-12 11:15:29 -0700
 
   * GH-779: Add "udp-state" signature condition (Jon Siwek, Corelight)

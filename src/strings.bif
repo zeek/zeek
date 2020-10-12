@@ -706,12 +706,12 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 ## .. zeek:see:: split_string split_string1 split_string_all split_string_n
 function str_split%(s: string, idx: index_vec%): string_vec &deprecated="Remove in v4.1. Use str_split_indices."
 	%{
-	auto idx_v = idx->AsVector();
-	zeek::String::IdxVec indices(idx_v->size());
+	auto idx_v = idx->AsVector()->ConstVec();
+	zeek::String::IdxVec indices(idx_v.size());
 	unsigned int i;
 
-	for ( i = 0; i < idx_v->size(); i++ )
-		indices[i] = (*idx_v)[i]->AsCount();
+	for ( i = 0; i < idx_v.size(); i++ )
+		indices[i] = idx_v[i].uint_val;
 
 	zeek::String::Vec* result = s->AsString()->Split(indices);
 	auto result_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
@@ -744,12 +744,12 @@ function str_split%(s: string, idx: index_vec%): string_vec &deprecated="Remove 
 ## .. zeek:see:: split_string split_string1 split_string_all split_string_n
 function str_split_indices%(s: string, idx: index_vec%): string_vec
 	%{
-	auto idx_v = idx->AsVector();
-	zeek::String::IdxVec indices(idx_v->size());
+	auto idx_v = idx->AsVector()->ConstVec();
+	zeek::String::IdxVec indices(idx_v.size());
 	unsigned int i;
 
-	for ( i = 0; i < idx_v->size(); i++ )
-		indices[i] = (*idx_v)[i]->AsCount();
+	for ( i = 0; i < idx_v.size(); i++ )
+		indices[i] = idx_v[i].uint_val;
 
 	zeek::String::Vec* result = s->AsString()->Split(indices);
 	auto result_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);

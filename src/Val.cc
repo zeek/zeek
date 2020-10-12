@@ -2873,13 +2873,13 @@ RecordVal::RecordVal(RecordType* t, bool init_fields)
 	: RecordVal({NewRef{}, t}, init_fields)
 	{}
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t)
 	{
 	origin = nullptr;
 	auto rt = GetType()->AsRecordType();
 	int n = rt->NumFields();
-	auto vl = val.record_val = new std::vector<ValPtr>;
-	vl->reserve(n);
+
+	auto vl = val.record_val = new ZAM_record(this, std::move(t));
 
 	if ( run_state::is_parsing )
 		parse_time_records[rt].emplace_back(NewRef{}, this);
@@ -2905,7 +2905,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				if ( run_state::is_parsing )
 					parse_time_records[rt].pop_back();
 
-				delete AsNonConstRecord();
+				delete val.record_val;
 				throw;
 				}
 
@@ -2936,13 +2936,14 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
-		vl->emplace_back(std::move(def));
+		if ( def )
+			vl->SetField(i) = ZAMValUnion(def, def->GetType());
 		}
 	}
 
 RecordVal::~RecordVal()
 	{
-	delete AsNonConstRecord();
+	delete val.record_val;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -2952,7 +2953,19 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	(*AsNonConstRecord())[field] = std::move(new_val);
+	auto zr = RawFields();
+
+	if ( ! new_val )
+		{
+		zr->DeleteField(field);
+		return;
+		}
+
+	auto rt = GetType()->AsRecordType();
+	auto zvu = ZAMValUnion(new_val, rt->GetFieldType(field));
+
+	zr->Assign(field, zvu);
+
 	Modified();
 	}
 
@@ -2963,7 +2976,7 @@ void RecordVal::Assign(int field, Val* new_val)
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
 	{
-	const auto& val = (*AsRecord())[field];
+	auto val = GetField(field);
 
 	if ( val )
 		return val;
@@ -2982,16 +2995,24 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		auto vs = rv->val.record_val;
-		int current_length = vs->size();
+		auto vs = rv->RawFields();
+		int current_length = vs->Size();
 		auto required_length = rt->NumFields();
 
 		if ( required_length > current_length )
 			{
-			vs->reserve(required_length);
+			vs->Grow(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				vs->emplace_back(rt->FieldDefault(i));
+				{
+				auto v = rt->FieldDefault(i);
+
+				if ( ! v )
+					continue;
+
+				auto zvu = ZAMValUnion(v, v->GetType());
+				vs->Assign(i, zvu);
+				}
 			}
 		}
 	}
@@ -3001,7 +3022,20 @@ void RecordVal::DoneParsing()
 	parse_time_records.clear();
 	}
 
-const ValPtr& RecordVal::GetField(const char* field) const
+Val* RecordVal::Lookup(int field) const
+	{
+	// With ZAM_record's, there's no way to support this call without
+	// leaking :-(.  Here we staunch the bleeding by only leaking for
+	// non-managed types.
+	auto f = GetField(field);
+	auto ft = GetType()->AsRecordType()->GetFieldType(field);
+	if ( IsManagedType(ft) )
+		return f.get();
+	else
+		return f.release();	// ### leak
+	}
+
+ValPtr RecordVal::GetField(const char* field) const
 	{
 	int idx = GetType()->AsRecordType()->FieldOffset(field);
 
@@ -3100,8 +3134,8 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto vl = AsRecord();
-	auto n = vl->size();
+	auto vl = RawFields();
+	auto n = vl->Size();
 	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -3124,7 +3158,7 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		const auto& v = (*vl)[i];
+		auto v = vl->NthField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -3138,8 +3172,8 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto vl = AsRecord();
-	auto n = vl->size();
+	auto vl = RawFields();
+	auto n = vl->Size();
 	auto record_type = GetType()->AsRecordType();
 
 	d->Add("{");
@@ -3153,7 +3187,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 		d->Add(record_type->FieldName(i));
 		d->Add("=");
 
-		const auto& v = (*vl)[i];
+		auto v = vl->NthField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -3176,10 +3210,14 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *val.record_val)
+	auto r = RawFields();
+	int n = r->Size();
+
+	for ( int i = 0; i < n; ++i )
 		{
-		auto v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.record_val->emplace_back(std::move(v));
+		auto v = r->NthField(i);
+		if ( v )
+			rv->Assign(i, v->Clone(state));
 		}
 
 	return rv;
@@ -3187,17 +3225,21 @@ ValPtr RecordVal::DoClone(CloneState* state)
 
 unsigned int RecordVal::MemoryAllocation() const
 	{
-	unsigned int size = 0;
-	const auto& vl = *AsRecord();
+	// ### The following isn't all that correct, since it instantiates
+	// ZAM vals and computes off of those.  Need to decide if we care.
 
-	for ( const auto& v : vl )
+	auto vl = RawFields();
+	int n = vl->Size();
+
+	unsigned int size = 0;
+
+	for ( int i = 0; i < n; ++i )
 		{
-		if ( v )
-		    size += v->MemoryAllocation();
+		if ( vl->HasField(i) )
+			size += vl->NthField(i)->MemoryAllocation();
 		}
 
-	size += util::pad_size(vl.capacity() * sizeof(ValPtr));
-	size += padded_sizeof(vl);
+	size += padded_sizeof(*vl);
 	return size + padded_sizeof(*this);
 	}
 
@@ -3227,7 +3269,14 @@ VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
 	{
-	val.vector_val = new vector<ValPtr>();
+	auto yt = type->AsVectorType()->Yield();
+	val.vector_val = new ZAM_vector(this, yt);
+	}
+
+VectorVal::VectorVal(VectorTypePtr t, unsigned int n) : Val(std::move(t))
+	{
+	auto yt = type->AsVectorType()->Yield();
+	val.vector_val = new ZAM_vector(this, yt, n);
 	}
 
 VectorVal::~VectorVal()
@@ -3237,22 +3286,32 @@ VectorVal::~VectorVal()
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return val_mgr->Count(uint32_t(val.vector_val->size()));
+	return val_mgr->Count(uint32_t(val.vector_val->Size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
+	auto yt = val.vector_val->YieldType();
+
+	if ( element && ! same_type(element->GetType(), yt, false) )
 		return false;
 
-	if ( index >= val.vector_val->size() )
-		val.vector_val->resize(index + 1);
+	if ( yt->Tag() == TYPE_VOID || yt->Tag() == TYPE_ANY )
+		Concretize(element->GetType());
 
-	(*val.vector_val)[index] = std::move(element);
+        ZAMValUnion elem(element, yt);
+
+	val.vector_val->SetElement(index, elem);
 
 	Modified();
 	return true;
+	}
+
+void VectorVal::Concretize(IntrusivePtr<zeek::Type> yt)
+	{
+	ASSERT(Size() == 0);
+	type = make_intrusive<VectorType>(yt);
+	val.vector_val->SetYieldType(yt);
 	}
 
 bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
@@ -3269,20 +3328,22 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 bool VectorVal::Insert(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
-		{
+	auto yt = val.vector_val->YieldType();
+
+	if ( element && ! same_type(element->GetType(), yt, false) )
 		return false;
+
+	if ( yt->Tag() == TYPE_VOID || yt->Tag() == TYPE_ANY )
+		{
+		Concretize(element->GetType());
+		yt = val.vector_val->YieldType();
 		}
 
-	vector<ValPtr>::iterator it;
+	auto& vv = val.vector_val;
 
-	if ( index < val.vector_val->size() )
-		it = std::next(val.vector_val->begin(), index);
-	else
-		it = val.vector_val->end();
+        ZAMValUnion elem(element, yt);
 
-	val.vector_val->insert(it, std::move(element));
+	vv->Insert(index, elem);
 
 	Modified();
 	return true;
@@ -3290,11 +3351,10 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 bool VectorVal::Remove(unsigned int index)
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= val.vector_val->Size() )
 		return false;
 
-	auto it = std::next(val.vector_val->begin(), index);
-	val.vector_val->erase(it);
+	val.vector_val->Remove(index);
 
 	Modified();
 	return true;
@@ -3324,25 +3384,30 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	return true;
 	}
 
-const ValPtr& VectorVal::At(unsigned int index) const
+ValPtr VectorVal::At(unsigned int index) const
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= val.vector_val->Size() )
 		return Val::nil;
 
-	return (*val.vector_val)[index];
+	auto raw_v = val.vector_val->Lookup(index);
+
+	if ( ! raw_v.managed_val && val.vector_val->IsManagedYieldType() )
+		// The vector has a hole that we know how to report.
+		return Val::nil;
+
+	return raw_v.ToVal(val.vector_val->YieldType());
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
-	unsigned int oldsize = val.vector_val->size();
-	val.vector_val->reserve(new_num_elements);
-	val.vector_val->resize(new_num_elements);
+	unsigned int oldsize = val.vector_val->Size();
+	val.vector_val->Resize(new_num_elements);
 	return oldsize;
 	}
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	 {
-	 unsigned int old_size = val.vector_val->size();
+	 unsigned int old_size = val.vector_val->Size();
 	 if ( new_num_elements <= old_size )
 		 return old_size;
 
@@ -3351,14 +3416,19 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
-	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
-	vv->val.vector_val->reserve(val.vector_val->size());
+	auto yt = val.vector_val->YieldType();
+	int n = val.vector_val->Size();
+
+	auto vv = make_intrusive<VectorVal>(GetType<VectorType>(), n);
 	state->NewClone(this, vv);
 
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
+	auto& zvu1 = val.vector_val->ConstVec();
+	auto& zvu2 = vv->val.vector_val->InitVec(n);
+
+	for ( unsigned int i = 0; i < n; ++i )
 		{
-		auto v = (*val.vector_val)[i]->Clone(state);
-		vv->val.vector_val->push_back(std::move(v));
+		auto v = zvu1[i].ToVal(yt)->Clone(state);
+		zvu2[i] = ZAMValUnion(v, yt);
 		}
 
 	return vv;
@@ -3368,17 +3438,20 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	if ( val.vector_val->size() > 0 )
-		for ( unsigned int i = 0; i < (val.vector_val->size() - 1); ++i )
-			{
-			if ( (*val.vector_val)[i] )
-				(*val.vector_val)[i]->Describe(d);
-			d->Add(", ");
-			}
+	auto n = val.vector_val->Size();
+	auto vv = val.vector_val->ConstVec();
+	auto yt = val.vector_val->YieldType();
 
-	if ( val.vector_val->size() &&
-	     (*val.vector_val)[val.vector_val->size() - 1] )
-		(*val.vector_val)[val.vector_val->size() - 1]->Describe(d);
+	if ( n > 0 )
+		for ( unsigned int i = 0; i < n; ++i )
+			{
+			auto v = At(i);
+			if ( v )
+				v->Describe(d);
+
+			if ( i < n - 1 )
+				d->Add(", ");
+			}
 
 	d->Add("]");
 	}

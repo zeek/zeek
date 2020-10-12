@@ -33,10 +33,9 @@ Extract::~Extract()
 		util::safe_close(fd);
 	}
 
-static const ValPtr& get_extract_field_val(const RecordValPtr& args,
-                                           const char* name)
+static ValPtr get_extract_field_val(const RecordValPtr& args, const char* name)
 	{
-	const auto& rval = args->GetField(name);
+	auto rval = args->GetField(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);
@@ -47,8 +46,8 @@ static const ValPtr& get_extract_field_val(const RecordValPtr& args,
 file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args,
                                               file_analysis::File* file)
 	{
-	const auto& fname = get_extract_field_val(args, "extract_filename");
-	const auto& limit = get_extract_field_val(args, "extract_limit");
+	auto fname = get_extract_field_val(args, "extract_filename");
+	auto limit = get_extract_field_val(args, "extract_limit");
 
 	if ( ! fname || ! limit )
 		return nullptr;

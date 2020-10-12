@@ -11,6 +11,6 @@ function check(a: any)
 
 event zeek_init()
 	{
-	local sv = string_vec("one", "two", "three");
-	check(sv);
+	local v = myvec("one", "two", 3);
+	check(v);
 	}

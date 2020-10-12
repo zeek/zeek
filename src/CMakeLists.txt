@@ -293,6 +293,7 @@ set(MAIN_SRCS
     WeirdState.cc
     ZeekArgs.cc
     ZeekString.cc
+    ZVal.cc
     legacy-netvar-init.cc
     bsd-getopt-long.c
     bro_inet_ntop.c

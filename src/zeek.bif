@@ -19,6 +19,7 @@
 #include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "ZVal.h"
 #include "util.h"
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
@@ -1330,61 +1331,71 @@ function all_set%(v: any%) : bool
 
 %%{
 static zeek::Func* sort_function_comp = nullptr;
-static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
 
-bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
+// Used for indirect sorting to support order().
+static std::vector<zeek::ZAMValUnion> index_map;
+
+// Yuck, we need a variable to hold the type.  Luckily, this won't be
+// invoked concurrently for two different types.
+static zeek::IntrusivePtr<zeek::Type> sort_type;
+static bool sort_type_is_managed = false;
+
+bool sort_function(zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
 	{
-	// Sort missing values as "high".
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
+	// Unable to fully do this:
+	//	Sort missing values as "high".
+	// But we can for managed types.
 
-	auto result = sort_function_comp->Invoke(a, b);
+	if ( sort_type_is_managed )
+		{
+		if ( ! a.managed_val )
+			return 0;
+		if ( ! b.managed_val )
+			return 1;
+		}
+
+	auto a_v = a.ToVal(sort_type);
+	auto b_v = b.ToVal(sort_type);
+
+	auto result = sort_function_comp->Invoke(a_v, b_v);
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;
 	}
 
+bool signed_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	return a.int_val < b.int_val;
+	}
+
+bool unsigned_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	return a.uint_val < b.uint_val;
+	}
+
+bool double_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	return a.double_val < b.double_val;
+	}
+
 bool indirect_sort_function(size_t a, size_t b)
 	{
-	return sort_function(*index_map[a], *index_map[b]);
-	}
-
-bool signed_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToInt();
-	auto ib = b->CoerceToInt();
-
-	return ia < ib;
-	}
-
-bool unsigned_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToUnsigned();
-	auto ib = b->CoerceToUnsigned();
-
-	return ia < ib;
+	return sort_function(index_map[a], index_map[b]);
 	}
 
 bool indirect_signed_sort_function(size_t a, size_t b)
 	{
-	return signed_sort_function(*index_map[a], *index_map[b]);
+	return signed_sort_function(index_map[a], index_map[b]);
 	}
 
 bool indirect_unsigned_sort_function(size_t a, size_t b)
 	{
-	return unsigned_sort_function(*index_map[a], *index_map[b]);
+	return unsigned_sort_function(index_map[a], index_map[b]);
+	}
+
+bool indirect_double_sort_function(size_t a, size_t b)
+	{
+	return double_sort_function(index_map[a], index_map[b]);
 	}
 %%}
 
@@ -1429,10 +1440,16 @@ function sort%(v: any, ...%) : any
 		comp = comp_val->AsFunc();
 		}
 
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+	auto eit = elt_type->InternalType();
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) &&
+	     eit != TYPE_INTERNAL_DOUBLE )
 		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
 
-	auto& vv = *v->AsVector();
+	auto& vv = v->AsVectorVal()->RawVector()->ModVec();
+
+	sort_type = elt_type;
+	sort_type_is_managed = IsManagedType(sort_type);
 
 	if ( comp )
 		{
@@ -1451,10 +1468,15 @@ function sort%(v: any, ...%) : any
 		}
 	else
 		{
-		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
+		if ( eit == TYPE_INTERNAL_UNSIGNED )
 			sort(vv.begin(), vv.end(), unsigned_sort_function);
-		else
+		else if ( eit == TYPE_INTERNAL_INT )
 			sort(vv.begin(), vv.end(), signed_sort_function);
+		else if ( eit == TYPE_INTERNAL_DOUBLE )
+			sort(vv.begin(), vv.end(), double_sort_function);
+
+		// else ... it was a type that needed a comparison function
+		// but didn't provide one.
 		}
 
 	return rval;
@@ -1499,11 +1521,14 @@ function order%(v: any, ...%) : index_vec
 		comp = comp_val->AsFunc();
 		}
 
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+	auto eit = elt_type->InternalType();
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) &&
+	     eit != TYPE_INTERNAL_DOUBLE )
 		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
 
-	auto& vv = *v->AsVector();
-	auto n = vv.size();
+	auto vv = v->AsVectorVal()->RawVector();
+	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
@@ -1513,8 +1538,11 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map.emplace_back(&vv[i]);
+		index_map.emplace_back(vv->Lookup(i));
 		}
+
+	sort_type = elt_type;
+	sort_type_is_managed = IsManagedType(sort_type);
 
 	if ( comp )
 		{
@@ -1532,10 +1560,18 @@ function order%(v: any, ...%) : index_vec
 		}
 	else
 		{
-		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			sort(ind_vv.begin(), ind_vv.end(), indirect_unsigned_sort_function);
-		else
-			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
+		if ( eit == TYPE_INTERNAL_UNSIGNED )
+			sort(ind_vv.begin(), ind_vv.end(),
+				indirect_unsigned_sort_function);
+		else if ( eit == TYPE_INTERNAL_INT )
+			sort(ind_vv.begin(), ind_vv.end(),
+				indirect_signed_sort_function);
+		else if ( eit == TYPE_INTERNAL_DOUBLE )
+			sort(ind_vv.begin(), ind_vv.end(),	
+				indirect_double_sort_function);
+
+		// else ... it was a type that needed a comparison function
+		// but didn't provide one.
 		}
 
 	index_map = {};
@@ -2284,15 +2320,16 @@ function addr_to_counts%(a: addr%): index_vec
 ## .. zeek:see:: addr_to_counts
 function counts_to_addr%(v: index_vec%): addr
 	%{
-	if ( v->AsVector()->size() == 1 )
+	auto vv = v->AsVector()->ConstVec();
+	if ( vv.size() == 1 )
 		{
-		return zeek::make_intrusive<zeek::AddrVal>(htonl((*v->AsVector())[0]->AsCount()));
+		return zeek::make_intrusive<zeek::AddrVal>(htonl(vv[0].uint_val));
 		}
-	else if ( v->AsVector()->size() == 4 )
+	else if ( vv.size() == 4 )
 		{
 		uint32_t bytes[4];
 		for ( int i = 0; i < 4; ++i )
-			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
+			bytes[i] = htonl(vv[i].uint_val);
 		return zeek::make_intrusive<zeek::AddrVal>(bytes);
 		}
 	else
@@ -3376,16 +3413,18 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(zeek::Val* c)
 	{
-	const auto& id = (*(c->AsRecord()))[0];
-	auto vl = id->AsRecord();
+	auto crec = c->AsRecordVal()->RawFields();
+	bool error;
+	auto id = crec->Lookup(0, error).record_val->RawFields();
 
-	const zeek::IPAddr& orig_h = (*vl)[0]->AsAddr();
-	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
-	const zeek::IPAddr& resp_h = (*vl)[2]->AsAddr();
-	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
+	auto& orig_h = *id->Lookup(0, error).addr_val;
+	uint32_t orig_p = id->Lookup(1, error).uint_val;
+	auto& resp_h = *id->Lookup(2, error).addr_val;
+	uint32_t resp_p = id->Lookup(3, error).uint_val;
 
-	return zeek::util::fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
-	                       resp_h.AsString().c_str(), resp_p);
+	return zeek::util::fmt("%s/%u -> %s/%u\n",
+				orig_h.AsAddr().AsString().c_str(), orig_p,
+				resp_h.AsAddr().AsString().c_str(), resp_p);
 	}
 %%}
 
@@ -3502,14 +3541,15 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		auto pkt_vl = pkt->AsRecord();
+		auto pkt_vl = pkt->AsRecordVal()->RawFields();
+		bool error;
 
-		ts.tv_sec = (*pkt_vl)[0]->AsCount();
-		ts.tv_usec = (*pkt_vl)[1]->AsCount();
-		caplen = (*pkt_vl)[2]->AsCount();
-		len = (*pkt_vl)[3]->AsCount();
-		data = (*pkt_vl)[4]->AsString()->Bytes();
-		link_type = (*pkt_vl)[5]->AsEnum();
+		ts.tv_sec = pkt_vl->Lookup(0, error).uint_val;
+		ts.tv_usec = pkt_vl->Lookup(1, error).uint_val;
+		caplen = pkt_vl->Lookup(2, error).uint_val;
+		len = pkt_vl->Lookup(3, error).uint_val;
+		data = pkt_vl->Lookup(4, error).string_val->AsString()->Bytes();
+		link_type = pkt_vl->Lookup(5, error).int_val;
 		Packet p(link_type, &ts, caplen, len, data, true);
 
 		addl_pkt_dumper->Dump(&p);

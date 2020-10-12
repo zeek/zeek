@@ -316,7 +316,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
-	auto vl = v->AsRecord();
+	ZAM_record& vl = *v->AsRecordVal()->RawFields();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;
@@ -344,11 +344,19 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
-	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
+	bool error;
+	const IPAddr& orig_addr = vl.Lookup(orig_h, error).addr_val->AsAddr();
+	const IPAddr& resp_addr = vl.Lookup(resp_h, error).addr_val->AsAddr();
 
-	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
-	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
+	auto raw_orig_port_v = vl.Lookup(orig_p, error);
+	auto raw_resp_port_v = vl.Lookup(resp_p, error);
+
+	static IntrusivePtr<Type> port_type = nullptr;
+	if ( ! port_type )
+		port_type = base_type(TYPE_PORT);
+
+	PortVal* orig_portv = raw_orig_port_v.ToVal(port_type)->AsPortVal();
+	PortVal* resp_portv = raw_resp_port_v.ToVal(port_type)->AsPortVal();
 
 	ConnID id;
 

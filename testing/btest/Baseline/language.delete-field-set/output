@@ -1,1 +1,8 @@
-[a=<uninitialized>, b=<uninitialized>, c=<uninitialized>]
+T, T, T
+F, F, F
+[a={
+
+}, b={
+
+}, c=[]]
+T, T, T

@@ -427,4 +427,18 @@ bool ODesc::FindType(const Type* type)
 	return false;
 	}
 
+const char* obj_desc(const Obj* o)
+	{
+	static ODesc d;
+
+	d.Clear();
+	// The following is used for compiler debugging.
+	// d.SetDoOrig(false);
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	return d.Description();
+	}
+
 } // namespace zeek

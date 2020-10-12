@@ -30,7 +30,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	Broker::publish("test", bar, 1);
 	Broker::publish("test", bar, "two");
-	Broker::publish("test", bar, myvec("one", "two", 3));
+	Broker::publish("test", bar, myvec("one", "two", "three"));
 	Broker::publish("test", bar, myrec($a = "bye"));
 	}
 

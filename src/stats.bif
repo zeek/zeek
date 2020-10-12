@@ -147,9 +147,9 @@ function get_proc_stats%(%): ProcStats
 		double(ru.ru_stime.tv_sec) + double(ru.ru_stime.tv_usec) / 1e6;
 
 #ifdef DEBUG
-	r->Assign(n++, zeek::val_mgr->Count(1));
+	r->Assign(n++, zeek::val_mgr->Bool(true));
 #else
-	r->Assign(n++, zeek::val_mgr->Count(0));
+	r->Assign(n++, zeek::val_mgr->Bool(false));
 #endif
 
 	r->Assign(n++, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::zeek_start_time));

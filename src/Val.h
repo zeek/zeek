@@ -6,6 +6,7 @@
 #include "Type.h"
 #include "Timer.h"
 #include "Notifier.h"
+#include "ZVal.h"
 #include "net_util.h"
 
 #include <vector>
@@ -78,6 +79,9 @@ class EnumVal;
 class OpaqueVal;
 class VectorVal;
 class TableEntryVal;
+class ZAM_record;
+class ZAM_vector;
+union ZAMValUnion;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -110,8 +114,9 @@ union BroValUnion {
 	File* file_val;
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
-	std::vector<ValPtr>* record_val;
-	std::vector<ValPtr>* vector_val;
+
+	ZAM_record* record_val;
+	ZAM_vector* vector_val;
 
 	BroValUnion() = default;
 
@@ -247,10 +252,9 @@ public:
 	CONST_ACCESSOR(TYPE_STRING, String*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
+	CONST_ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -284,7 +288,7 @@ public:
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
+	ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsVector)
 
 	FuncPtr AsFuncPtr() const;
 
@@ -368,6 +372,7 @@ protected:
 	friend class VectorVal;
 	friend class ValManager;
 	friend class TableEntryVal;
+	friend union ZAMValUnion;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
@@ -391,7 +396,6 @@ protected:
 		{}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -1140,16 +1144,18 @@ public:
 		{ Assign(field, ValPtr{}); }
 
 	[[deprecated("Remove in v4.1.  Use GetField().")]]
-	Val* Lookup(int field) const	// Does not Ref() value.
-		{ return (*AsRecord())[field].get(); }
+	Val* Lookup(int field) const;	// Does not Ref() value - leaks.
 
 	/**
 	 * Returns the value of a given field index.
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index.
 	 */
-	const ValPtr& GetField(int field) const
-		{ return (*AsRecord())[field]; }
+	ValPtr GetField(int field) const
+		{
+		auto zr = RawFields();
+		return zr->HasField(field) ? zr->NthField(field) : nullptr;
+		}
 
 	/**
 	 * Returns the value of a given field index as cast to type @c T.
@@ -1180,7 +1186,7 @@ public:
 	 * @return  The value of the given field.  If no such field name exists,
 	 * a fatal error occurs.
 	 */
-	const ValPtr& GetField(const char* field) const;
+	ValPtr GetField(const char* field) const;
 
 	/**
 	 * Returns the value of a given field name as cast to type @c T.
@@ -1225,6 +1231,12 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetField() or GetFieldOrDefault().")]]
 	Val* Lookup(const char* field, bool with_default = false) const
 		{ return with_default ? GetFieldOrDefault(field).release() : GetField(field).get(); }
+
+	/**
+	 * Returns the underlying ZAM_record for fast raw access to
+	 * the records fields.
+	 */
+	ZAM_record* RawFields() const	{ return val.record_val; }
 
 	void Describe(ODesc* d) const override;
 
@@ -1299,7 +1311,12 @@ class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit VectorVal(VectorType* t);
+
 	explicit VectorVal(VectorTypePtr t);
+
+	// Used for cloning, where the size is already known:
+	explicit VectorVal(VectorTypePtr t, unsigned int n);
+
 	~VectorVal() override;
 
 	ValPtr SizeVal() const override;
@@ -1353,7 +1370,7 @@ public:
 	 * @return  The element at the given index or nullptr if the index
 	 * does not exist (it's greater than or equal to vector's current size).
 	 */
-	const ValPtr& At(unsigned int index) const;
+	ValPtr At(unsigned int index) const;
 
 	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(unsigned int index) const
@@ -1366,7 +1383,9 @@ public:
 		return At(static_cast<unsigned int>(i)).get();
 		}
 
-	unsigned int Size() const { return val.vector_val->size(); }
+	ZAM_vector* RawVector() const	{ return val.vector_val; }
+
+	unsigned int Size() const { return val.vector_val->Size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.
@@ -1395,6 +1414,10 @@ public:
 	bool Remove(unsigned int index);
 
 protected:
+	// For a vector with yield type void/any, concretizes it to instead
+	// be of type yt.
+	void Concretize(IntrusivePtr<zeek::Type> yt);
+
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 };

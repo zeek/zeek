@@ -9,8 +9,12 @@ type FooBar: record {
 
 global test: FooBar;
 
+print test?$a, test?$b, test?$c;
+
 delete test$a;
 delete test$b;
 delete test$c;
 
+print test?$a, test?$b, test?$c;
 print test;
+print test?$a, test?$b, test?$c;

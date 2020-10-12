@@ -4976,6 +4976,23 @@ export {
 	## Number of Mbytes to provide as buffer space when capturing from live
 	## interfaces.
 	const bufsize = 128 &redef;
+
+	## The definition of a "pcap interface".
+	type Interface: record {
+		name: string;
+		description: string &optional;
+		addrs: set[addr];
+		is_loopback: bool;
+		
+		extended_flags: bool &default=F;
+		# If the "extended_flags" field is set to T, then these next two 
+		# flags will have valid settings.  Otherwise, the following
+		# two fields are explicitly false.
+		is_up: bool &default=F;
+		is_running: bool &default=F;
+	};
+
+	type Interfaces: set[Pcap::Interface];
 } # end export
 
 module DCE_RPC;

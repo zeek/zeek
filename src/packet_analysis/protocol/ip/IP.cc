@@ -93,7 +93,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( packet->len < total_len + packet->hdr_size )
 		{
-		packet->Weird("truncated_IP", encapsulation);
+		packet->Weird("truncated_IPv6", encapsulation);
 		return false;
 		}
 
@@ -246,6 +246,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	case IPPROTO_UDP:
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
+		        GetAnalyzerName(), proto);
 		sessions->DoNextPacket(run_state::processing_start_time, packet, ip_hdr, encapsulation);
 		break;
 	case IPPROTO_NONE:

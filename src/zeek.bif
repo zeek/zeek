@@ -3399,7 +3399,7 @@ const char* conn_id_string(zeek::Val* c)
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
-	auto* pkt_src = static_cast<zeek::iosource::PktSrc*>(zeek::run_state::detail::current_iosrc);
+	auto* pkt_src = dynamic_cast<zeek::iosource::PktSrc*>(zeek::run_state::detail::current_iosrc);
 
 	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&pkt) )
 		return zeek::val_mgr->False();
@@ -3432,7 +3432,7 @@ function get_current_packet%(%) : pcap_packet
 	static auto pcap_packet = zeek::id::find_type<zeek::RecordType>("pcap_packet");
 	const Packet* p;
 	auto pkt = zeek::make_intrusive<zeek::RecordVal>(pcap_packet);
-	auto* pkt_src = static_cast<zeek::iosource::PktSrc*>(zeek::run_state::detail::current_iosrc);
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
 
 	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&p) )
 		{
@@ -3464,7 +3464,7 @@ function get_current_packet%(%) : pcap_packet
 function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;
-	auto* pkt_src = static_cast<zeek::iosource::PktSrc*>(zeek::run_state::detail::current_iosrc);
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
 
 	if ( pkt_src && pkt_src->GetCurrentPacket(&p) )
 		{

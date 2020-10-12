@@ -16,7 +16,7 @@ typedef struct timeval pkt_timeval;
 #endif
 
 #include "pcap.h" // For DLT_ constants
-#include "NetVar.h" // For BifEnum::Tunnel
+#include "zeek/NetVar.h" // For BifEnum::Tunnel
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
@@ -221,11 +221,45 @@ public:
 	// These are fields passed between various packet analyzers. They're best
 	// stored with the packet so they stay available as the packet is passed
 	// around.
+
+	/**
+	 * The stack of encapsulations this packet belongs to, if any. This is
+	 * used by the tunnel analyzers to keep track of the encapsulations as
+	 * processing occurs.
+	 */
 	EncapsulationStack* encap = nullptr;
+
+	/**
+	 * The IP header for this packet. This is filled in by the IP analyzer
+	 * during processing if the packet contains an IP header.
+	 */
 	IP_Hdr* ip_hdr = nullptr;
+
+	/**
+	 * The protocol of the packet. This is used by the tunnel analyzers to
+	 * pass outer protocol from one level to the next.
+	 */
 	int proto = -1;
+
+	/**
+	 * If the packet contains a tunnel, this field will be filled in with
+	 * the type of tunnel. It is used to pass the tunnel type between the
+	 * packet analyzers during analysis.
+	 */
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
+
+	/**
+	 * If the packet contains a GRE tunnel, this field will contain the
+	 * GRE version. It is used to pass this information from the GRE
+	 * analyzer to the IPTunnel analyzer.
+	 */
 	int gre_version = -1;
+
+	/**
+	 * If the packet contains a GRE tunnel, this field will contain the
+	 * GRE link type. It is used to pass this information from the GRE
+	 * analyzer to the IPTunnel analyzer.
+	 */
 	int gre_link_type = DLT_RAW;
 
 private:

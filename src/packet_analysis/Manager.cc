@@ -37,7 +37,7 @@ void Manager::InitPostScript()
 
 	root_analyzer = analyzers["Root"];
 
-	static auto pkt_profile_file = id::find_val("pkt_profile_file");
+	auto pkt_profile_file = id::find_val("pkt_profile_file");
 
 	if ( detail::pkt_profile_mode && detail::pkt_profile_freq > 0 && pkt_profile_file )
 		pkt_profiler = new detail::PacketProfiler(detail::pkt_profile_mode,

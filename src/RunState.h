@@ -28,9 +28,15 @@ extern void dispatch_packet(zeek::Packet* pkt, zeek::iosource::PktSrc* pkt_src);
 extern void expire_timers();
 extern void zeek_terminate_loop(const char* reason);
 
+/**
+ * Returns the packet source for the packet currently being processed. This will
+ * return null if some other iosrc is currently active.
+ */
+extern zeek::iosource::PktSrc* current_packet_source();
+
 extern double check_pseudo_time(const Packet *pkt);
 
-extern zeek::iosource::PktSrc* current_pktsrc [[deprecated("Remove in v4.1. Use static_cast<zeek::iosource::PktSrc>(zeek::detail::iosource.)")]];
+extern zeek::iosource::PktSrc* current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_current_pktsrc().")]];
 extern zeek::iosource::IOSource* current_iosrc;
 extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
 
@@ -107,7 +113,7 @@ constexpr auto net_update_time [[deprecated("Remove in v4.1. Use zeek::run_state
 constexpr auto net_packet_dispatch [[deprecated("Remove in v4.1. Use zeek::run_state::detail::dispatch_packet.")]] = zeek::run_state::detail::dispatch_packet;
 constexpr auto expire_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::expire_timers.")]] = zeek::run_state::detail::expire_timers;
 constexpr auto zeek_terminate_loop [[deprecated("Remove in v4.1. Use zeek::run_state::detail::zeek_terminate_loop.")]] = zeek::run_state::detail::zeek_terminate_loop;
-extern zeek::iosource::PktSrc*& current_pktsrc [[deprecated("Remove in v4.1. Use static_cast<zeek::iosource::PktSrc>(zeek::detail::iosource).")]];
+extern zeek::iosource::PktSrc*& current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_current_pktsrc().")]];
 extern zeek::iosource::IOSource*& current_iosrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::current_iosrc.")]];
 extern zeek::iosource::PktDumper*& pkt_dumper [[deprecated("Remove in v4.1. Use zeek::run_state::detail::pkt_dumper.")]];
 extern bool& have_pending_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::have_pending_timers.")]];

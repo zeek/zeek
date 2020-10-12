@@ -145,7 +145,7 @@ function findalldevs%(%): Pcap::Interfaces
 		r->Assign(2, addrs->ToSetVal());
 		r->Assign(3, val_mgr->Bool(d->flags & PCAP_IF_LOOPBACK));
 #ifdef PCAP_IF_UP
-		r->Assign(4, val_mgr->True(); // <-- "extended" vals set.
+		r->Assign(4, val_mgr->True()); // <-- "extended" vals set.
 		r->Assign(5, val_mgr->Bool(d->flags & PCAP_IF_UP));
 		r->Assign(6, val_mgr->Bool(d->flags & PCAP_IF_RUNNING));
 #endif

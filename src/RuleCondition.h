@@ -35,8 +35,6 @@ public:
 	explicit RuleConditionTCPState(int arg_tcpstates)
 		{ tcpstates = arg_tcpstates; }
 
-	~RuleConditionTCPState() override { }
-
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
 
@@ -73,9 +71,6 @@ public:
 
 	explicit RuleConditionIPOptions(int arg_options)	{ options = arg_options; }
 
-	~RuleConditionIPOptions() override
-		{ }
-
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
 
@@ -89,7 +84,6 @@ private:
 class RuleConditionSameIP : public RuleCondition {
 public:
 	RuleConditionSameIP()	{ }
-	~RuleConditionSameIP() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
@@ -105,8 +99,6 @@ public:
 	RuleConditionPayloadSize(uint32_t arg_val, Comp arg_comp)
 		{ val = arg_val; comp = arg_comp; }
 
-	~RuleConditionPayloadSize() override {}
-
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
 
@@ -121,7 +113,6 @@ private:
 class RuleConditionEval : public RuleCondition {
 public:
 	explicit RuleConditionEval(const char* func);
-	~RuleConditionEval() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;

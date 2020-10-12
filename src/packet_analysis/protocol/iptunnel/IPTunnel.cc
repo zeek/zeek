@@ -20,8 +20,6 @@ IPTunnelAnalyzer::IPTunnelAnalyzer()
 
 bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	EncapsulationStack* encapsulation = packet->encap;
-
 	if ( ! packet->ip_hdr )
 		{
 		reporter->InternalError("IPTunnelAnalyzer: ip_hdr not found in packet keystore");
@@ -32,14 +30,14 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
 	if ( ! BifConst::Tunnel::enable_ip )
 		{
-		sessions->Weird("IP_tunnel", ip_hdr, encapsulation);
+		sessions->Weird("IP_tunnel", ip_hdr, packet->encap);
 		return false;
 		}
 
-	if ( encapsulation &&
-	     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
+	if ( packet->encap &&
+	     packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
-		sessions->Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
+		sessions->Weird("exceeded_tunnel_max_depth", ip_hdr, packet->encap);
 		return false;
 		}
 
@@ -55,11 +53,11 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		// Check for a valid inner packet first.
 		int result = sessions->ParseIPPacket(len, data, proto, inner);
 		if ( result == -2 )
-			sessions->Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
+			sessions->Weird("invalid_inner_IP_version", ip_hdr, packet->encap);
 		else if ( result < 0 )
-			sessions->Weird("truncated_inner_IP", ip_hdr, encapsulation);
+			sessions->Weird("truncated_inner_IP", ip_hdr, packet->encap);
 		else if ( result > 0 )
-			sessions->Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
+			sessions->Weird("inner_IP_payload_length_mismatch", ip_hdr, packet->encap);
 
 		if ( result != 0 )
 			{
@@ -91,9 +89,9 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
 	if ( gre_version == 0 )
 		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, len, len, data, gre_link_type,
-		                          encapsulation, ip_tunnels[tunnel_idx].first);
+		                          packet->encap, ip_tunnels[tunnel_idx].first);
 	else
-		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, inner, encapsulation,
+		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, inner, packet->encap,
 		                          ip_tunnels[tunnel_idx].first);
 
 	return true;
@@ -103,7 +101,8 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
  * Handles a packet that contains an IP header directly after the tunnel header.
  */
 bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
-                                                 const IP_Hdr* inner, const EncapsulationStack* prev,
+                                                 const IP_Hdr* inner,
+                                                 std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec)
 	{
 	uint32_t caplen, len;
@@ -128,8 +127,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	else
 		data = (const u_char*) inner->IP6_Hdr();
 
-	EncapsulationStack* outer = prev ?
-		new EncapsulationStack(*prev) : new EncapsulationStack();
+	auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
 	outer->Add(ec);
 
 	// Construct fake packet for DoNextPacket
@@ -141,7 +139,6 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	bool return_val = ForwardPacket(len, data, &p);
 
 	delete inner;
-	delete outer;
 
 	return return_val;
 	}
@@ -152,7 +149,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
                                                  uint32_t caplen, uint32_t len,
                                                  const u_char* data, int link_type,
-                                                 const EncapsulationStack* prev,
+                                                 std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec)
 	{
 	pkt_timeval ts;
@@ -166,8 +163,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 		    ((run_state::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
-	EncapsulationStack* outer = prev ?
-		new EncapsulationStack(*prev) : new EncapsulationStack();
+	auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
 	outer->Add(ec);
 
 	// Construct fake packet for DoNextPacket
@@ -178,8 +174,6 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	// Process the packet as if it was a brand new packet by passing it back
 	// to the packet manager.
 	bool return_val = packet_mgr->ProcessInnerPacket(&p);
-
-	delete outer;
 
 	return return_val;
 	}

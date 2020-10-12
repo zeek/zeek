@@ -62,8 +62,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	l3_proto = L3_UNKNOWN;
 	l3_checksummed = false;
 
-	delete encap;
-	encap = nullptr;
+	encap.reset();
 	delete ip_hdr;
 	ip_hdr = nullptr;
 
@@ -93,7 +92,7 @@ const IP_Hdr Packet::IP() const
 	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
-void Packet::Weird(const char* name, const EncapsulationStack* encap)
+void Packet::Weird(const char* name, const std::shared_ptr<EncapsulationStack>& encap)
 	{
 	sessions->Weird(name, this, encap);
 	}

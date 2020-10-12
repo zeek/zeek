@@ -158,7 +158,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	const EncapsulationStack* e = Conn()->GetEncapsulation();
+	std::shared_ptr<EncapsulationStack> e = Conn()->GetEncapsulation();
 
 	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
 		{

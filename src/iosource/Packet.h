@@ -17,12 +17,12 @@ typedef struct timeval pkt_timeval;
 
 #include "pcap.h" // For DLT_ constants
 #include "zeek/NetVar.h" // For BifEnum::Tunnel
+#include "zeek/TunnelEncapsulation.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 
 namespace zeek {
 
@@ -132,7 +132,7 @@ public:
 	RecordVal* BuildPktHdrVal() const;
 
 	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
-	void Weird(const char* name, const EncapsulationStack* encap = nullptr);
+	void Weird(const char* name, const std::shared_ptr<EncapsulationStack>& encap = nullptr);
 
 	/**
 	 * Maximal length of a layer 2 address.
@@ -227,7 +227,7 @@ public:
 	 * used by the tunnel analyzers to keep track of the encapsulations as
 	 * processing occurs.
 	 */
-	EncapsulationStack* encap = nullptr;
+	std::shared_ptr<EncapsulationStack> encap = nullptr;
 
 	/**
 	 * The IP header for this packet. This is filled in by the IP analyzer

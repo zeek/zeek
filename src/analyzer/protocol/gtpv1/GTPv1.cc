@@ -62,7 +62,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 			                                     std::move(gtp_hdr_val),
 			                                     inner->ToPktHdrVal());
 
-		const zeek::EncapsulationStack* e = Conn()->GetEncapsulation();
+		std::shared_ptr<zeek::EncapsulationStack> e = Conn()->GetEncapsulation();
 		EncapsulatingConn ec(Conn(), BifEnum::Tunnel::GTPv1);
 		zeek::packet_analysis::IPTunnel::ip_tunnel_analyzer->ProcessEncapsulatedPacket(
 			run_state::network_time, nullptr, inner, e, ec);

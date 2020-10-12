@@ -13,7 +13,6 @@
 #include <sys/types.h> // for u_char
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulatingConn, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 class ConnCompressor;
@@ -72,9 +71,11 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	           const EncapsulationStack* encap = nullptr, const char* addl = "");
+	           const std::shared_ptr<EncapsulationStack>& encap = nullptr,
+	           const char* addl = "");
 	void Weird(const char* name, const IP_Hdr* ip,
-	           const EncapsulationStack* encap = nullptr, const char* addl = "");
+	           const std::shared_ptr<EncapsulationStack>& encap = nullptr,
+	           const char* addl = "");
 
 	detail::PacketFilter* GetPacketFilter(bool init=true)
 		{
@@ -95,8 +96,7 @@ public:
 	 * method is called by the packet analysis manager when after it has processed
 	 * an IP-based packet, and shouldn't be called directly from other places.
 	 */
-	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr,
-	                  const EncapsulationStack* encapsulation);
+	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -134,8 +134,8 @@ protected:
 	using ConnectionMap = std::map<detail::ConnIDKey, Connection*>;
 
 	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
-			const u_char* data, int proto, uint32_t flow_label,
-			const Packet* pkt, const EncapsulationStack* encapsulation);
+	                    const u_char* data, int proto, uint32_t flow_label,
+	                    const Packet* pkt);
 
 	Connection* LookupConn(const ConnectionMap& conns, const detail::ConnIDKey& key);
 
@@ -145,8 +145,7 @@ protected:
 	// generally a likely server port, false otherwise.
 	//
 	// Note, port is in host order.
-	bool IsLikelyServerPort(uint32_t port,
-				TransportProto transport_proto) const;
+	bool IsLikelyServerPort(uint32_t port, TransportProto transport_proto) const;
 
 	// Upon seeing the first packet of a connection, checks whether
 	// we want to analyze it (e.g., we may not want to look at partial
@@ -154,14 +153,13 @@ protected:
 	// originator and responder (based on known ports or such).
 	// Use tcp_flags=0 for non-TCP.
 	bool WantConnection(uint16_t src_port, uint16_t dest_port,
-				TransportProto transport_proto,
-				uint8_t tcp_flags, bool& flip_roles);
+	                    TransportProto transport_proto,
+	                    uint8_t tcp_flags, bool& flip_roles);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
-	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-	                      const Packet *pkt, const EncapsulationStack* encap);
+	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen, const Packet *pkt);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by

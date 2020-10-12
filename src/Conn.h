@@ -63,8 +63,12 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 
 class Connection final : public Obj {
 public:
+
+	[[deprecated("Remove in v4.1. Store encapsulation in the packet and use the other version of the constructor instead.")]]
 	Connection(NetSessions* s, const detail::ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);
+	Connection(NetSessions* s, const detail::ConnIDKey& k, double t, const ConnID* id,
+	           uint32_t flow, const Packet* pkt);
 	~Connection() override;
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -72,7 +76,7 @@ public:
 	// event if it's different from the previous encapsulation (or the
 	// first encountered). encap can be null to indicate no
 	// encapsulation.
-	void CheckEncapsulation(const EncapsulationStack* encap);
+	void CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -306,7 +310,7 @@ public:
 
 	UID GetUID() const { return uid; }
 
-	EncapsulationStack* GetEncapsulation() const
+	std::shared_ptr<EncapsulationStack> GetEncapsulation() const
 		{ return encapsulation; }
 
 	void CheckFlowLabel(bool is_orig, uint32_t flow_label);
@@ -351,7 +355,7 @@ protected:
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordValPtr conn_val;
-	EncapsulationStack* encapsulation; // tunnels
+	std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;

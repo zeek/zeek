@@ -81,8 +81,7 @@ void NetSessions::NextPacket(double t, Packet* pkt)
 	packet_mgr->ProcessPacket(pkt);
 	}
 
-void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr,
-                               const EncapsulationStack* encapsulation)
+void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr)
 	{
 	uint32_t caplen = pkt->cap_len - pkt->hdr_size;
 	uint32_t len = ip_hdr->TotalLen();
@@ -93,7 +92,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	int proto = ip_hdr->NextProto();
 
-	if ( CheckHeaderTrunc(proto, len, caplen, pkt, encapsulation) )
+	if ( CheckHeaderTrunc(proto, len, caplen, pkt) )
 		return;
 
 	const u_char* data = ip_hdr->Payload();
@@ -158,7 +157,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		}
 
 	default:
-		Weird("unknown_protocol", pkt, encapsulation, util::fmt("%d", proto));
+		Weird("unknown_protocol", pkt, pkt->encap, util::fmt("%d", proto));
 		return;
 	}
 
@@ -173,7 +172,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	if ( ! conn )
 		{
-		conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
+		conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt);
 		if ( conn )
 			InsertConnection(d, key, conn);
 		}
@@ -185,13 +184,13 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			conn->Event(connection_reused, nullptr);
 
 			Remove(conn);
-			conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
+			conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt);
 			if ( conn )
 				InsertConnection(d, key, conn);
 			}
 		else
 			{
-			conn->CheckEncapsulation(encapsulation);
+			conn->CheckEncapsulation(pkt->encap);
 			}
 		}
 
@@ -275,7 +274,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	}
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-                                   const Packet* p, const EncapsulationStack* encap)
+                                   const Packet* p)
 	{
 	uint32_t min_hdr_len = 0;
 	switch ( proto ) {
@@ -295,13 +294,13 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
 
 	if ( len < min_hdr_len )
 		{
-		Weird("truncated_header", p, encap);
+		Weird("truncated_header", p, p->encap);
 		return true;
 		}
 
 	if ( caplen < min_hdr_len )
 		{
-		Weird("internally_truncated_header", p, encap);
+		Weird("internally_truncated_header", p, p->encap);
 		return true;
 		}
 
@@ -537,7 +536,7 @@ void NetSessions::GetStats(SessionStats& s) const
 
 Connection* NetSessions::NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
                                  const u_char* data, int proto, uint32_t flow_label,
-                                 const Packet* pkt, const EncapsulationStack* encapsulation)
+                                 const Packet* pkt)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -576,7 +575,7 @@ Connection* NetSessions::NewConn(const detail::ConnIDKey& k, double t, const Con
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
 		return nullptr;
 
-	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
+	Connection* conn = new Connection(this, k, t, id, flow_label, pkt);
 	conn->SetTransport(tproto);
 
 	if ( flip )
@@ -632,8 +631,8 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 	}
 
 bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
-					TransportProto transport_proto,
-					uint8_t tcp_flags, bool& flip_roles)
+                                 TransportProto transport_proto,
+                                 uint8_t tcp_flags, bool& flip_roles)
 	{
 	flip_roles = false;
 
@@ -679,7 +678,8 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 	}
 
 void NetSessions::Weird(const char* name, const Packet* pkt,
-                        const EncapsulationStack* encap, const char* addl)
+                        const std::shared_ptr<EncapsulationStack>& encap,
+                        const char* addl)
 	{
 	if ( pkt )
 		pkt->dump_packet = true;
@@ -691,7 +691,8 @@ void NetSessions::Weird(const char* name, const Packet* pkt,
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip,
-                        const EncapsulationStack* encap, const char* addl)
+                        const std::shared_ptr<EncapsulationStack>& encap,
+                        const char* addl)
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),

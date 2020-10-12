@@ -48,7 +48,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	EncapsulationStack* outer = Conn()->GetEncapsulation();
+	std::shared_ptr<EncapsulationStack> outer = Conn()->GetEncapsulation();
 
 	if ( outer && outer->Depth() >= BifConst::Tunnel::max_depth )
 		{
@@ -56,12 +56,8 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	bool delete_outer = false;
 	if ( ! outer )
-		{
-		outer = new EncapsulationStack();
-		delete_outer = true;
-		}
+		outer = std::make_shared<EncapsulationStack>();
 
 	EncapsulatingConn inner(Conn(), BifEnum::Tunnel::VXLAN);
 	outer->Add(inner);
@@ -83,9 +79,6 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( ! pkt.l2_valid )
 		{
-		if ( delete_outer )
-			delete outer;
-
 		ProtocolViolation("VXLAN invalid inner ethernet frame",
 		                  (const char*) data, len);
 		return;
@@ -97,9 +90,6 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( ! pkt.ip_hdr )
 		{
-		if ( delete_outer )
-			delete outer;
-
 		ProtocolViolation("Truncated VXLAN or invalid inner IP",
 		                  (const char*) data, len);
 		return;
@@ -110,9 +100,6 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	if ( vxlan_packet )
 		Conn()->EnqueueEvent(vxlan_packet, nullptr, ConnVal(),
 		                     pkt.ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
-
-	if ( delete_outer )
-		delete outer;
 	}
 
 } // namespace zeek::analyzer::vxlan

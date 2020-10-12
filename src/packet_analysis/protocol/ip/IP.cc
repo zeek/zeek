@@ -30,8 +30,6 @@ IPAnalyzer::~IPAnalyzer()
 
 bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	EncapsulationStack* encapsulation = packet->encap;
-
 	// Check to make sure we have enough data left for an IP header to be here. Note we only
 	// check ipv4 here. We'll check ipv6 later once we determine we have an ipv6 header.
 	if ( len < sizeof(struct ip) )
@@ -85,7 +83,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( total_len == 0 )
 		{
 		// TCP segmentation offloading can zero out the ip_len field.
-		packet->Weird("ip_hdr_len_zero", encapsulation);
+		packet->Weird("ip_hdr_len_zero", packet->encap);
 
 		// Cope with the zero'd out ip_len field by using the caplen.
 		total_len = packet->cap_len - packet->hdr_size;
@@ -93,7 +91,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( packet->len < total_len + packet->hdr_size )
 		{
-		packet->Weird("truncated_IPv6", encapsulation);
+		packet->Weird("truncated_IPv6", packet->encap);
 		return false;
 		}
 
@@ -102,13 +100,13 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	uint16_t ip_hdr_len = ip_hdr->HdrLen();
 	if ( ip_hdr_len > total_len )
 		{
-		sessions->Weird("invalid_IP_header_size", ip_hdr, encapsulation);
+		sessions->Weird("invalid_IP_header_size", ip_hdr, packet->encap);
 		return false;
 		}
 
 	if ( ip_hdr_len > len )
 		{
-		sessions->Weird("internally_truncated_header", ip_hdr, encapsulation);
+		sessions->Weird("internally_truncated_header", ip_hdr, packet->encap);
 		return false;
 		}
 
@@ -137,7 +135,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
-		sessions->Weird("bad_IP_checksum", packet, encapsulation);
+		sessions->Weird("bad_IP_checksum", packet, packet->encap);
 		return false;
 		}
 
@@ -152,7 +150,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		if ( len < total_len )
 			{
-			sessions->Weird("incompletely_captured_fragment", ip_hdr, encapsulation);
+			sessions->Weird("incompletely_captured_fragment", ip_hdr, packet->encap);
 
 			// Don't try to reassemble, that's doomed.
 			// Discard all except the first fragment (which
@@ -162,7 +160,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			}
 		else
 			{
-			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, ip_hdr, packet->data + packet->hdr_size);
+			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, ip_hdr,
+			                                       packet->data + packet->hdr_size);
 			IP_Hdr* ih = f->ReassembledPkt();
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
@@ -182,7 +181,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 			if ( ip_hdr_len > total_len )
 				{
-				sessions->Weird("invalid_IP_header_size", ip_hdr, encapsulation);
+				sessions->Weird("invalid_IP_header_size", ip_hdr, packet->encap);
 				return false;
 				}
 			}
@@ -211,7 +210,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
-			sessions->Weird("bad_MH_checksum", packet, encapsulation);
+			sessions->Weird("bad_MH_checksum", packet, packet->encap);
 			return false;
 			}
 
@@ -219,7 +218,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			event_mgr.Enqueue(mobile_ipv6_message, ip_hdr->ToPktHdrVal());
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
-			sessions->Weird("mobility_piggyback", packet, encapsulation);
+			sessions->Weird("mobility_piggyback", packet, packet->encap);
 
 		return true;
 		}
@@ -248,14 +247,14 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	case IPPROTO_ICMPV6:
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 		        GetAnalyzerName(), proto);
-		sessions->DoNextPacket(run_state::processing_start_time, packet, ip_hdr, encapsulation);
+		sessions->DoNextPacket(run_state::processing_start_time, packet, ip_hdr);
 		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and
 		// the Teredo analyzer may have raised an event for that, else we're
 		// not sure the reason for the No Next header in the packet.
-		if ( ! ( encapsulation &&
-		         encapsulation->LastType() == BifEnum::Tunnel::TEREDO ) )
+		if ( ! ( packet->encap &&
+		         packet->encap->LastType() == BifEnum::Tunnel::TEREDO ) )
 			{
 			sessions->Weird("ipv6_no_next", packet);
 			return_val = false;

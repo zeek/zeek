@@ -649,7 +649,7 @@ flow GTPv1_Flow(is_orig: bool)
 		%{
 		ZeekAnalyzer a = connection()->zeek_analyzer();
 		zeek::Connection* c = a->Conn();
-		const zeek::EncapsulationStack* e = c->GetEncapsulation();
+		const std::shared_ptr<zeek::EncapsulationStack> e = c->GetEncapsulation();
 
 		connection()->set_valid(is_orig(), false);
 

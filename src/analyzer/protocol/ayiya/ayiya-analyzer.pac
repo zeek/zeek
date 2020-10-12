@@ -17,7 +17,7 @@ flow AYIYA_Flow
 	function process_ayiya(pdu: PDU): bool
 		%{
 		zeek::Connection* c = connection()->zeek_analyzer()->Conn();
-		const zeek::EncapsulationStack* e = c->GetEncapsulation();
+		std:shared_ptr<zeek::EncapsulationStack> e = c->GetEncapsulation();
 
 		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{

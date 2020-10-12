@@ -21,11 +21,14 @@ void Manager::InitPostScript()
 			analyzers.emplace(analyzerComponent->Name(), newAnalyzer);
 		}
 
+	root_analyzer = analyzers["Root"];
+	}
+
+void Manager::ZeekInitDone()
+	{
 	// Initialize all analyzers
 	for ( auto& [name, analyzer] : analyzers )
 		analyzer->Initialize();
-
-	root_analyzer = analyzers["Root"];
 	}
 
 void Manager::Done()

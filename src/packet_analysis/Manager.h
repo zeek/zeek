@@ -32,6 +32,8 @@ public:
 	 */
 	void InitPostScript();
 
+	void ZeekInitDone();
+
 	/**
 	 * Finished the manager's operations.
 	 */

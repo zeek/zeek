@@ -1,7 +1,6 @@
 
 module Pcap;
 
-type Interface: record;
 
 const snaplen: count;
 const bufsize: count;
@@ -156,4 +155,3 @@ function findalldevs%(%): Pcap::Interfaces
 	pcap_freealldevs(alldevs);
 	return pcap_interfaces;
 	%}
-

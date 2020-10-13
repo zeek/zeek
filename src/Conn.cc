@@ -94,8 +94,6 @@ Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	login_conn = nullptr;
-
 	is_active = 1;
 	skip = 0;
 	weird = 0;
@@ -610,7 +608,6 @@ unsigned int Connection::MemoryAllocation() const
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
 		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
-		// login_conn is just a casted 'this'.
 		// primary_PIA is already contained in the analyzer tree.
 		;
 	}

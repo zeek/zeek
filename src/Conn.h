@@ -24,7 +24,6 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ConnectionTimer, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
-class LoginConn;
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
@@ -172,8 +171,6 @@ public:
 	const RecordValPtr& ConnVal();
 
 	void AppendAddl(const char* str);
-
-	LoginConn* AsLoginConn()		{ return login_conn; }
 
 	void Match(detail::Rule::PatternType type, const u_char* data, int len,
 	           bool is_orig, bool bol, bool eol, bool clear_state);
@@ -354,7 +351,6 @@ protected:
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordValPtr conn_val;
-	LoginConn* login_conn;	// either nil, or this
 	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 

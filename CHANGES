@@ -1,4 +1,8 @@
 
+3.3.0-dev.411 | 2020-10-13 13:38:38 -0700
+
+  * Remove unused LoginConn type and variable in Conn.h (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.409 | 2020-10-13 13:32:18 -0700
 
   * Make it possible to pass command line options through to scripts. (Seth Hall, Corelight)

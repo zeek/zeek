@@ -111,10 +111,16 @@ function findalldevs%(%): Pcap::Interfaces
 	pcap_if_t *alldevs, *d;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	int ret = pcap_findalldevs(&alldevs, errbuf);
-
 	static auto ifaces_type = id::find_type<TableType>("Pcap::Interfaces");
 	auto pcap_interfaces = make_intrusive<TableVal>(ifaces_type);
+
+	int ret = pcap_findalldevs(&alldevs, errbuf);
+	if ( ret == PCAP_ERROR )
+		{
+		emit_builtin_error(util::fmt("Error calling pcap_findalldevs: %s", errbuf));
+		// Return an empty set in case of failure.
+		return pcap_interfaces;
+		}
 
 	static auto iface_type = id::find_type<RecordType>("Pcap::Interface");
 	for ( d=alldevs; d; d=d->next )
@@ -142,9 +148,9 @@ function findalldevs%(%): Pcap::Interfaces
 		r->Assign(2, addrs->ToSetVal());
 		r->Assign(3, val_mgr->Bool(d->flags & PCAP_IF_LOOPBACK));
 #ifdef PCAP_IF_UP
-		r->Assign(4, val_mgr->True()); // <-- "extended" vals set.
-		r->Assign(5, val_mgr->Bool(d->flags & PCAP_IF_UP));
-		r->Assign(6, val_mgr->Bool(d->flags & PCAP_IF_RUNNING));
+		// These didn't become available until libpcap 1.6.1
+		r->Assign(4, val_mgr->Bool(d->flags & PCAP_IF_UP));
+		r->Assign(5, val_mgr->Bool(d->flags & PCAP_IF_RUNNING));
 #endif
 		
 		pcap_interfaces->Assign(std::move(r), nullptr);

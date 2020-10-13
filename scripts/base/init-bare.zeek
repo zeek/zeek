@@ -4989,12 +4989,10 @@ export {
 		## of ``127.0.0.1`` or ``[::1]`` are used by loopback interfaces.
 		is_loopback: bool;
 		
-		extended_flags: bool &default=F;
-		# If the "extended_flags" field is set to T, then these next two 
-		# flags will have valid settings.  Otherwise, the following
-		# two fields are explicitly false.
-		is_up: bool &default=F;
-		is_running: bool &default=F;
+		## Whether the device is up.  Not set when that info is unavailable.
+		is_up: bool &optional;
+		## Whether the device is running.  Not set when that info is unavailable.
+		is_running: bool &optional;
 	};
 
 	type Interfaces: set[Pcap::Interface];

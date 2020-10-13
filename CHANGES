@@ -1,4 +1,8 @@
 
+3.3.0-dev.422 | 2020-10-13 16:26:24 -0700
+
+  * GH-1208: Use Dictionary validity assertions only during CI (Jon Siwek, Corelight)
+
 3.3.0-dev.420 | 2020-10-13 15:34:02 -0700
 
   * Change "Cluster::Node$p" field to use "&default=0/unknown" (Seth Hall, Corelight)

@@ -455,15 +455,15 @@ type connection: record {
 };
 
 ## Arguments given to Zeek from the command line. In order to use this, Zeek
-## must use the "--" command line argument, then give the script name immediately
-## after the double hyphens and the provide the arguments after that. For example:
-## 
+## must use a ``--`` command line argument immediately followed by a script
+## file and additional arguments after that. For example::
+##
 ##   zeek --bare-mode -- myscript.zeek -a -b -c
-## 
+##
 ## To use Zeek as an executable interpreter, include a line at the top of a script
-## like the following and make the script executable:
-## 
-##   #!/usr/local/zeek/bin/zeek -- 
+## like the following and make the script executable::
+##
+##   #!/usr/local/zeek/bin/zeek --
 const zeek_script_args: vector of string = vector();
 
 ## Default amount of time a file can be inactive before the file analysis

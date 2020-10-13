@@ -663,7 +663,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// Assign the script_args for command line processing in Zeek scripts.
 	if ( ! options.script_args.empty() )
 		{
-		auto script_args_val = zeek::id::find_val("zeek_script_args")->AsVectorVal();
+		auto script_args_val = id::find_val<VectorVal>("zeek_script_args");
 		for ( const string& script_arg : options.script_args )
 			{
 			script_args_val->Assign(script_args_val->Size(), make_intrusive<StringVal>(script_arg));

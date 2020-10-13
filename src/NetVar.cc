@@ -30,8 +30,6 @@ zeek::VectorType* index_vec;
 zeek::VectorType* mime_matches;
 zeek::RecordType* mime_match;
 
-zeek::VectorVal* zeek_script_args;
-
 zeek::RecordType* socks_address;
 
 zeek::TableVal* tcp_reassembler_ports_orig;

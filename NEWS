@@ -34,6 +34,13 @@ New Functionality
   See https://docs.zeek.org/en/master/frameworks/logging.html#filter-log-records
   for more details.
 
+- A new ``zeek_script_args`` variable contains a list of arguments passed
+  to a script.  E.g. either when explicitly executing Zeek like
+  ``zeek -- myscript.zeek -arg1 -arg2``, or when using Zeek as to interpret
+  executable scripts that contain a hashbang line at the top like::
+
+    #!/usr/local/zeek/bin/zeek --
+
 Changed Functionality
 ---------------------
 

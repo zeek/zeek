@@ -1,4 +1,4 @@
-#hh#! A framework for establishing and controlling a cluster of Zeek instances.
+##! A framework for establishing and controlling a cluster of Zeek instances.
 ##! In order to use the cluster framework, a script named
 ##! ``cluster-layout.zeek`` must exist somewhere in Zeek's script search path
 ##! which has a cluster definition of the :zeek:id:`Cluster::nodes` variable.

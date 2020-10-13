@@ -44,7 +44,8 @@
 ##    artifact of that is that any timer installed in a ``zeek_init`` handler,
 ##    like with :zeek:keyword:`schedule`, will fire immediately with the first
 ##    packet. The standard way to work around that is to ignore the first time
-##    the timer fires and immediately reschedule.
+##    the timer fires and immediately reschedule or to instead schedule the
+##    first event from with the :zeek:see:`network_time_init` event.
 ##
 event zeek_init%(%);
 

@@ -1,4 +1,8 @@
 
+3.3.0-dev.390 | 2020-10-12 17:43:15 -0700
+
+  * Improve documentation for zeek_init event scheduling pitfalls (Jon Siwek, Corelight)
+
 3.3.0-dev.388 | 2020-10-12 17:02:20 -0700
 
   * Add CaptureLoss::Too_Little_Traffic notice (Vlad Grigorescu)

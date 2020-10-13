@@ -1,4 +1,15 @@
 
+3.3.0-dev.409 | 2020-10-13 13:32:18 -0700
+
+  * Make it possible to pass command line options through to scripts. (Seth Hall, Corelight)
+
+    A new ``zeek_script_args`` variable contains a list of arguments passed
+    to a script.  E.g. either when explicitly executing Zeek like
+    ``zeek -- myscript.zeek -arg1 -arg2``, or when using Zeek to interpret
+    executable scripts that contain a hashbang line at the top like::
+
+      #!/usr/local/zeek/bin/zeek --
+
 3.3.0-dev.403 | 2020-10-13 10:50:12 -0700
 
   * Add new Pcap::findalldevs() BIF (Seth Hall, Corelight)

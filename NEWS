@@ -37,7 +37,7 @@ New Functionality
 - Added a ``udp-state`` signature condition to enforce matching against
   either "originator" or "responder" flow direction of UDP packets.
 
-- Improvements to catpure-loss.zeek:
+- Improvements to capture-loss.zeek:
 
   - A new option, ``CaptureLoss::initial_watch_interval``.  When restarting a
     Zeek cluster, one usually wants some immediate feedback as to the health of
@@ -53,6 +53,13 @@ New Functionality
     if, for whatever reason, a Zeek process stops seeing traffic, but
     capture-loss.zeek would have previously only reported that "0 gaps and 0
     ACKs is 0% loss".
+
+- A new ``zeek_script_args`` variable contains a list of arguments passed
+  to a script.  E.g. either when explicitly executing Zeek like
+  ``zeek -- myscript.zeek -arg1 -arg2``, or when using Zeek to interpret
+  executable scripts that contain a hashbang line at the top like::
+
+    #!/usr/local/zeek/bin/zeek --
 
 Changed Functionality
 ---------------------

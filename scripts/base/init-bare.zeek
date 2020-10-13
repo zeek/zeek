@@ -4976,6 +4976,26 @@ export {
 	## Number of Mbytes to provide as buffer space when capturing from live
 	## interfaces.
 	const bufsize = 128 &redef;
+
+	## The definition of a "pcap interface".
+	type Interface: record {
+		## The interface/device name.
+		name: string;
+		## A human-readable description of the device.
+		description: string &optional;
+		## The network addresses associated with the device.
+		addrs: set[addr];
+		## Whether the device is a loopback interface.  E.g. addresses
+		## of ``127.0.0.1`` or ``[::1]`` are used by loopback interfaces.
+		is_loopback: bool;
+
+		## Whether the device is up.  Not set when that info is unavailable.
+		is_up: bool &optional;
+		## Whether the device is running.  Not set when that info is unavailable.
+		is_running: bool &optional;
+	};
+
+	type Interfaces: set[Pcap::Interface];
 } # end export
 
 module DCE_RPC;

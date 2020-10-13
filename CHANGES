@@ -1,4 +1,14 @@
 
+3.3.0-dev.403 | 2020-10-13 10:50:12 -0700
+
+  * Add new Pcap::findalldevs() BIF (Seth Hall, Corelight)
+
+  * Remove superfluous RuleCondition destructors (Jon Siwek, Corelight)
+
+  * Silence Clang's warning about ignoring GCC's maybe-uninitialized warning (Jon Siwek, Corelight)
+
+  * Add reference to network_time_init from zeek_init docs (Jon Siwek, Corelight)
+
 3.3.0-dev.390 | 2020-10-12 17:43:15 -0700
 
   * Improve documentation for zeek_init event scheduling pitfalls (Jon Siwek, Corelight)

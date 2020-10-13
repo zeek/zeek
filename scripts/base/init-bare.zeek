@@ -4979,9 +4979,14 @@ export {
 
 	## The definition of a "pcap interface".
 	type Interface: record {
+		## The interface/device name.
 		name: string;
+		## A human-readable description of the device.
 		description: string &optional;
+		## The network addresses associated with the device.
 		addrs: set[addr];
+		## Whether the device is a loopback interface.  E.g. addresses
+		## of ``127.0.0.1`` or ``[::1]`` are used by loopback interfaces.
 		is_loopback: bool;
 		
 		extended_flags: bool &default=F;

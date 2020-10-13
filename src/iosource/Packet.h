@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <sys/types.h> // for u_char
 #include <string>
-#include <map>
-#include <any>
 
 #if defined(__OpenBSD__)
 #include <net/bpf.h>

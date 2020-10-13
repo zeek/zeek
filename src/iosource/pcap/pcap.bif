@@ -116,8 +116,6 @@ function findalldevs%(%): Pcap::Interfaces
 	static auto ifaces_type = id::find_type<TableType>("Pcap::Interfaces");
 	auto pcap_interfaces = make_intrusive<TableVal>(ifaces_type);
 
-	int i=0;
-	RecordVal *r;
 	static auto iface_type = id::find_type<RecordType>("Pcap::Interface");
 	for ( d=alldevs; d; d=d->next )
 		{

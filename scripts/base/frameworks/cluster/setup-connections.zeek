@@ -89,7 +89,7 @@ event zeek_init() &priority=-10
 	Broker::subscribe(nodeid_topic(Broker::node_id()));
 	Broker::subscribe(node_topic(node));
 
-	if ( self?$p )
+	if ( self$p != 0/unknown )
 		{
 		Broker::listen(Broker::default_listen_address,
 		               self$p,

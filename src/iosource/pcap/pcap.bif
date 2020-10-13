@@ -149,7 +149,7 @@ function findalldevs%(%): Pcap::Interfaces
 		r->Assign(6, val_mgr->Bool(d->flags & PCAP_IF_RUNNING));
 #endif
 		
-		pcap_interfaces->Assign(std::move(r), 0);
+		pcap_interfaces->Assign(std::move(r), nullptr);
 		}
 
 	pcap_freealldevs(alldevs);

@@ -1,3 +1,12 @@
+
+3.3.0-dev.420 | 2020-10-13 15:34:02 -0700
+
+  * Change "Cluster::Node$p" field to use "&default=0/unknown" (Seth Hall, Corelight)
+
+    This effectively makes defining the listening port optional in the cluster
+    node layout config, with "0/unknown" meaning the node is not pre-configured
+    to listen for incoming connections from other cluster nodes.
+
 3.3.0-dev.414 | 2020-10-13 13:49:05 -0700
 
   * Update cmake submodule to pull in fix for building libkqueue (Tim Wojtulewicz, Corelight)

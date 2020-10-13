@@ -88,6 +88,11 @@ Changed Functionality
   than the previous one.  A detailed explanation of the implementation is here:
   https://jasonlue.github.io/algo/2019/08/20/clustered-hashing.html
 
+- The ``p`` fields of ``Cluster::Node`` records now use a
+  ``&default=0/unknown`` attribute with ``0/unknown`` meaning that the node is
+  not pre-configured to listen for incoming connections from other cluster
+  nodes.
+
 Removed Functionality
 ---------------------
 

@@ -96,7 +96,7 @@ public:
 	 * method is called by the packet analysis manager when after it has processed
 	 * an IP-based packet, and shouldn't be called directly from other places.
 	 */
-	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr);
+	void DoNextPacket(double t, const Packet *pkt);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4

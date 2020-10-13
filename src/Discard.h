@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <memory>
 
 #include "IntrusivePtr.h"
 
@@ -22,7 +23,7 @@ public:
 
 	bool IsActive();
 
-	bool NextPacket(const IP_Hdr* ip, int len, int caplen);
+	bool NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen);
 
 protected:
 	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);

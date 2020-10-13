@@ -81,8 +81,10 @@ void NetSessions::NextPacket(double t, Packet* pkt)
 	packet_mgr->ProcessPacket(pkt);
 	}
 
-void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr)
+void NetSessions::DoNextPacket(double t, const Packet* pkt)
 	{
+	const std::unique_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
+
 	uint32_t caplen = pkt->cap_len - pkt->hdr_size;
 	uint32_t len = ip_hdr->TotalLen();
 	uint16_t ip_hdr_len = ip_hdr->HdrLen();
@@ -218,7 +220,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
 		                   std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
-	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
+	conn->NextPacket(t, is_orig, ip_hdr.get(), len, caplen, data,
 	                 record_packet, record_content, pkt);
 
 	// We skip this block for reassembled packets because the pointer

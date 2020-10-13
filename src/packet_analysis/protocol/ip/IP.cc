@@ -49,10 +49,9 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	uint32_t protocol = ip->ip_v;
 
 	// This is a unique pointer because of the mass of early returns from this method.
-	IP_Hdr* ip_hdr = nullptr;
 	if ( protocol == 4 )
 		{
-		ip_hdr = new IP_Hdr(ip, false);
+		packet->ip_hdr = std::make_unique<IP_Hdr>(ip, false);
 		packet->l3_proto = L3_IPV4;
 		}
 	else if ( protocol == 6 )
@@ -63,7 +62,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			return false;
 			}
 
-		ip_hdr = new IP_Hdr((const struct ip6_hdr*) data, false, len);
+		packet->ip_hdr = std::make_unique<IP_Hdr>((const struct ip6_hdr*) data, false, len);
 		packet->l3_proto = L3_IPV6;
 		}
 	else
@@ -72,14 +71,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	// Store this with the packet, since it's potentially used in other places
-	// and it makes sense to not have to parse it out a second time.
-	packet->ip_hdr = ip_hdr;
-
-	const struct ip* ip4 = ip_hdr->IP4_Hdr();
+	const struct ip* ip4 = packet->ip_hdr->IP4_Hdr();
 
 	// total_len is the length of the packet minus all of the headers so far, including IP
-	uint32_t total_len = ip_hdr->TotalLen();
+	uint32_t total_len = packet->ip_hdr->TotalLen();
 	if ( total_len == 0 )
 		{
 		// TCP segmentation offloading can zero out the ip_len field.
@@ -97,20 +92,20 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	// For both of these it is safe to pass ip_hdr because the presence
 	// is guaranteed for the functions that pass data to us.
-	uint16_t ip_hdr_len = ip_hdr->HdrLen();
+	uint16_t ip_hdr_len = packet->ip_hdr->HdrLen();
 	if ( ip_hdr_len > total_len )
 		{
-		sessions->Weird("invalid_IP_header_size", ip_hdr, packet->encap);
+		sessions->Weird("invalid_IP_header_size", packet->ip_hdr.get(), packet->encap);
 		return false;
 		}
 
 	if ( ip_hdr_len > len )
 		{
-		sessions->Weird("internally_truncated_header", ip_hdr, packet->encap);
+		sessions->Weird("internally_truncated_header", packet->ip_hdr.get(), packet->encap);
 		return false;
 		}
 
-	if ( ip_hdr->IP4_Hdr() )
+	if ( packet->ip_hdr->IP4_Hdr() )
 		{
 		if ( ip_hdr_len < sizeof(struct ip) )
 			{
@@ -129,7 +124,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	// Ignore if packet matches packet filter.
 	detail::PacketFilter* packet_filter = sessions->GetPacketFilter(false);
-	if ( packet_filter && packet_filter->Match(ip_hdr, total_len, len) )
+	if ( packet_filter && packet_filter->Match(packet->ip_hdr, total_len, len) )
 		 return false;
 
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
@@ -139,30 +134,31 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	if ( discarder && discarder->NextPacket(ip_hdr, total_len, len) )
+	if ( discarder && discarder->NextPacket(packet->ip_hdr, total_len, len) )
 		return false;
 
 	detail::FragReassembler* f = nullptr;
 
-	if ( ip_hdr->IsFragment() )
+	if ( packet->ip_hdr->IsFragment() )
 		{
 		packet->dump_packet = true;	// always record fragments
 
 		if ( len < total_len )
 			{
-			sessions->Weird("incompletely_captured_fragment", ip_hdr, packet->encap);
+			sessions->Weird("incompletely_captured_fragment", packet->ip_hdr.get(), packet->encap);
 
 			// Don't try to reassemble, that's doomed.
 			// Discard all except the first fragment (which
 			// is useful in analyzing header-only traces)
-			if ( ip_hdr->FragOffset() != 0 )
+			if ( packet->ip_hdr->FragOffset() != 0 )
 				return false;
 			}
 		else
 			{
-			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, ip_hdr,
+			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, packet->ip_hdr,
 			                                       packet->data + packet->hdr_size);
-			IP_Hdr* ih = f->ReassembledPkt();
+			std::unique_ptr<IP_Hdr> ih = f->ReassembledPkt();
+
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
 				return true;
@@ -171,17 +167,15 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 			// Switch the stored ip header over to the one from the
 			// fragmented packet.
-			delete ip_hdr;
-			ip_hdr = ih;
+			packet->ip_hdr = std::move(ih);
 
-			len = total_len = ip_hdr->TotalLen();
-			ip_hdr_len = ip_hdr->HdrLen();
+			len = total_len = packet->ip_hdr->TotalLen();
+			ip_hdr_len = packet->ip_hdr->HdrLen();
 			packet->cap_len = total_len + packet->hdr_size;
-			packet->ip_hdr = ih;
 
 			if ( ip_hdr_len > total_len )
 				{
-				sessions->Weird("invalid_IP_header_size", ip_hdr, packet->encap);
+				sessions->Weird("invalid_IP_header_size", packet->ip_hdr.get(), packet->encap);
 				return false;
 				}
 			}
@@ -191,11 +185,11 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	// We stop building the chain when seeing IPPROTO_ESP so if it's
 	// there, it's always the last.
-	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
+	if ( packet->ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
 		packet->dump_packet = true;
 		if ( esp_packet )
-			event_mgr.Enqueue(esp_packet, ip_hdr->ToPktHdrVal());
+			event_mgr.Enqueue(esp_packet, packet->ip_hdr->ToPktHdrVal());
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return true;
@@ -204,20 +198,20 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 #ifdef ENABLE_MOBILE_IPV6
 	// We stop building the chain when seeing IPPROTO_MOBILITY so it's always
 	// last if present.
-	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
+	if ( packet->ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
 		dump_this_packet = true;
 
-		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
+		if ( ! ignore_checksums && mobility_header_checksum(packet->ip_hdr) != 0xffff )
 			{
 			sessions->Weird("bad_MH_checksum", packet, packet->encap);
 			return false;
 			}
 
 		if ( mobile_ipv6_message )
-			event_mgr.Enqueue(mobile_ipv6_message, ip_hdr->ToPktHdrVal());
+			event_mgr.Enqueue(mobile_ipv6_message, packet->ip_hdr->ToPktHdrVal());
 
-		if ( ip_hdr->NextProto() != IPPROTO_NONE )
+		if ( packet->ip_hdr->NextProto() != IPPROTO_NONE )
 			sessions->Weird("mobility_piggyback", packet, packet->encap);
 
 		return true;
@@ -226,7 +220,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	// Set the data pointer to match the payload from the IP header. This makes sure that it's also pointing
 	// at the reassembled data for a fragmented packet.
-	data = ip_hdr->Payload();
+	data = packet->ip_hdr->Payload();
 	len -= ip_hdr_len;
 
 	// Session analysis assumes that the header size stored in the packet does not include the IP header
@@ -236,7 +230,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// change, but for now we leave it as it is.
 
 	bool return_val = true;
-	int proto = ip_hdr->NextProto();
+	int proto = packet->ip_hdr->NextProto();
 
 	packet->proto = proto;
 
@@ -247,7 +241,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	case IPPROTO_ICMPV6:
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 		        GetAnalyzerName(), proto);
-		sessions->DoNextPacket(run_state::processing_start_time, packet, ip_hdr);
+		sessions->DoNextPacket(run_state::processing_start_time, packet);
 		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and

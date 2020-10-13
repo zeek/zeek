@@ -80,7 +80,7 @@ bool PacketFilter::RemoveDst(Val* dst)
 	return f != nullptr;
 	}
 
-bool PacketFilter::Match(const IP_Hdr* ip, int len, int caplen)
+bool PacketFilter::Match(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen)
 	{
 	Filter* f = (Filter*) src_filter.Lookup(ip->SrcAddr(), 128);
 	if ( f )

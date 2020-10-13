@@ -16,11 +16,11 @@ typedef struct timeval pkt_timeval;
 #include "pcap.h" // For DLT_ constants
 #include "zeek/NetVar.h" // For BifEnum::Tunnel
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/IP.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 
 namespace zeek {
 
@@ -231,7 +231,7 @@ public:
 	 * The IP header for this packet. This is filled in by the IP analyzer
 	 * during processing if the packet contains an IP header.
 	 */
-	IP_Hdr* ip_hdr = nullptr;
+	std::unique_ptr<IP_Hdr> ip_hdr = nullptr;
 
 	/**
 	 * The protocol of the packet. This is used by the tunnel analyzers to

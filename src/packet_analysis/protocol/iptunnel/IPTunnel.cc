@@ -26,18 +26,16 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		return false;
 		}
 
-	IP_Hdr* ip_hdr = packet->ip_hdr;
-
 	if ( ! BifConst::Tunnel::enable_ip )
 		{
-		sessions->Weird("IP_tunnel", ip_hdr, packet->encap);
+		sessions->Weird("IP_tunnel", packet->ip_hdr.get(), packet->encap);
 		return false;
 		}
 
 	if ( packet->encap &&
 	     packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
-		sessions->Weird("exceeded_tunnel_max_depth", ip_hdr, packet->encap);
+		sessions->Weird("exceeded_tunnel_max_depth", packet->ip_hdr.get(), packet->encap);
 		return false;
 		}
 
@@ -53,11 +51,11 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		// Check for a valid inner packet first.
 		int result = sessions->ParseIPPacket(len, data, proto, inner);
 		if ( result == -2 )
-			sessions->Weird("invalid_inner_IP_version", ip_hdr, packet->encap);
+			sessions->Weird("invalid_inner_IP_version", packet->ip_hdr.get(), packet->encap);
 		else if ( result < 0 )
-			sessions->Weird("truncated_inner_IP", ip_hdr, packet->encap);
+			sessions->Weird("truncated_inner_IP", packet->ip_hdr.get(), packet->encap);
 		else if ( result > 0 )
-			sessions->Weird("inner_IP_payload_length_mismatch", ip_hdr, packet->encap);
+			sessions->Weird("inner_IP_payload_length_mismatch", packet->ip_hdr.get(), packet->encap);
 
 		if ( result != 0 )
 			{
@@ -70,16 +68,16 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	// by the pair of IP addresses, so that we can always associate the
 	// same UID with it.
 	IPPair tunnel_idx;
-	if ( ip_hdr->SrcAddr() < ip_hdr->DstAddr() )
-		tunnel_idx = IPPair(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
+	if ( packet->ip_hdr->SrcAddr() < packet->ip_hdr->DstAddr() )
+		tunnel_idx = IPPair(packet->ip_hdr->SrcAddr(), packet->ip_hdr->DstAddr());
 	else
-		tunnel_idx = IPPair(ip_hdr->DstAddr(), ip_hdr->SrcAddr());
+		tunnel_idx = IPPair(packet->ip_hdr->DstAddr(), packet->ip_hdr->SrcAddr());
 
 	IPTunnelMap::iterator tunnel_it = ip_tunnels.find(tunnel_idx);
 
 	if ( tunnel_it == ip_tunnels.end() )
 		{
-		EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+		EncapsulatingConn ec(packet->ip_hdr->SrcAddr(), packet->ip_hdr->DstAddr(),
 		                     tunnel_type);
 		ip_tunnels[tunnel_idx] = TunnelActivity(ec, run_state::network_time);
 		zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(run_state::network_time, tunnel_idx, this));

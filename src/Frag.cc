@@ -30,7 +30,7 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 	}
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
-                                 const IP_Hdr* ip, const u_char* pkt,
+                                 const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt,
                                  const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
@@ -73,7 +73,8 @@ FragReassembler::~FragReassembler()
 	delete [] proto_hdr;
 	}
 
-void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
+void FragReassembler::AddFragment(double t, const std::unique_ptr<IP_Hdr>& ip,
+                                  const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
@@ -85,19 +86,19 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		// don't check TOS, there's at least one stack that actually
 		// uses different values, and it's hard to see an associated
 		// attack.
-		s->Weird("fragment_protocol_inconsistency", ip);
+		s->Weird("fragment_protocol_inconsistency", ip.get());
 		}
 	else
 		{
 		if ( ip->NextProto() != next_proto ||
 		     ip->HdrLen() - 8 != proto_hdr_len )
-			s->Weird("fragment_protocol_inconsistency", ip);
+			s->Weird("fragment_protocol_inconsistency", ip.get());
 		// TODO: more detailed unfrag header consistency checks?
 		}
 
 	if ( ip->DF() )
 		// Linux MTU discovery for UDP can do this, for example.
-		s->Weird("fragment_with_DF", ip);
+		s->Weird("fragment_with_DF", ip.get());
 
 	uint16_t offset = ip->FragOffset();
 	uint32_t len = ip->TotalLen();
@@ -105,7 +106,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 
 	if ( len < hdr_len )
 		{
-		s->Weird("fragment_protocol_inconsistency", ip);
+		s->Weird("fragment_protocol_inconsistency", ip.get());
 		return;
 		}
 
@@ -123,7 +124,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 
 		else if ( upper_seq != frag_size )
 			{
-			s->Weird("fragment_size_inconsistency", ip);
+			s->Weird("fragment_size_inconsistency", ip.get());
 
 			if ( upper_seq > frag_size )
 				frag_size = upper_seq;
@@ -131,10 +132,10 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		}
 
 	else if ( len < MIN_ACCEPTABLE_FRAG_SIZE )
-		s->Weird("excessively_small_fragment", ip);
+		s->Weird("excessively_small_fragment", ip.get());
 
 	if ( upper_seq > MAX_ACCEPTABLE_FRAG_SIZE )
-		s->Weird("excessively_large_fragment", ip);
+		s->Weird("excessively_large_fragment", ip.get());
 
 	if ( frag_size && upper_seq > frag_size )
 		{
@@ -143,7 +144,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		// larger than the size we derived from a previously-seen
 		// "last fragment".
 
-		s->Weird("fragment_size_inconsistency", ip);
+		s->Weird("fragment_size_inconsistency", ip.get());
 		frag_size = upper_seq;
 		}
 
@@ -286,8 +287,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		memcpy(&pkt[b.seq], b.block, b.upper - b.seq);
 		}
 
-	delete reassembled_pkt;
-	reassembled_pkt = nullptr;
+	reassembled_pkt.reset();
 
 	unsigned int version = ((const struct ip*)pkt_start)->ip_v;
 
@@ -295,7 +295,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		{
 		struct ip* reassem4 = (struct ip*) pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
-		reassembled_pkt = new IP_Hdr(reassem4, true);
+		reassembled_pkt = std::make_unique<IP_Hdr>(reassem4, true);
 		reassembled_pkt->reassembled = true;
 		DeleteTimer();
 		}
@@ -305,7 +305,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
 		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
-		reassembled_pkt = new IP_Hdr(reassem6, true, n, chain);
+		reassembled_pkt = std::make_unique<IP_Hdr>(reassem6, true, n, chain);
 		reassembled_pkt->reassembled = true;
 		DeleteTimer();
 		}
@@ -342,7 +342,8 @@ FragmentManager::~FragmentManager()
 	Clear();
 	}
 
-FragReassembler* FragmentManager::NextFragment(double t, const IP_Hdr* ip, const u_char* pkt)
+FragReassembler* FragmentManager::NextFragment(double t, const std::unique_ptr<IP_Hdr>& ip,
+                                               const u_char* pkt)
 	{
 	uint32_t frag_id = ip->ID();
 	FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);

@@ -63,8 +63,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	l3_checksummed = false;
 
 	encap.reset();
-	delete ip_hdr;
-	ip_hdr = nullptr;
+	ip_hdr.reset();
 
 	proto = -1;
 	tunnel_type = BifEnum::Tunnel::IP;
@@ -83,8 +82,6 @@ Packet::~Packet()
 	{
 	if ( copy )
 		delete [] data;
-
-	delete ip_hdr;
 	}
 
 const IP_Hdr Packet::IP() const

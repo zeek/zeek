@@ -1,3 +1,8 @@
+3.3.0-dev.414 | 2020-10-13 13:49:05 -0700
+
+  * Update cmake submodule to pull in fix for building libkqueue (Tim Wojtulewicz, Corelight)
+
+  * GH-1063: Update libkqueue to fix pf_ring-zc failures (Tim Wojtulewicz, Corelight)
 
 3.3.0-dev.411 | 2020-10-13 13:38:38 -0700
 

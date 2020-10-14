@@ -159,7 +159,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt)
 		}
 
 	default:
-		Weird("unknown_protocol", pkt, pkt->encap, util::fmt("%d", proto));
+		Weird("unknown_protocol", pkt, util::fmt("%d", proto));
 		return;
 	}
 
@@ -296,13 +296,13 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
 
 	if ( len < min_hdr_len )
 		{
-		Weird("truncated_header", p, p->encap);
+		Weird("truncated_header", p);
 		return true;
 		}
 
 	if ( caplen < min_hdr_len )
 		{
-		Weird("internally_truncated_header", p, p->encap);
+		Weird("internally_truncated_header", p);
 		return true;
 		}
 
@@ -679,28 +679,26 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-void NetSessions::Weird(const char* name, const Packet* pkt,
-                        const std::shared_ptr<EncapsulationStack>& encap,
-                        const char* addl)
+void NetSessions::Weird(const char* name, const Packet* pkt, const char* addl)
 	{
 	if ( pkt )
 		pkt->dump_packet = true;
 
-	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		reporter->Weird(util::fmt("%s_in_tunnel", name), addl);
+	const char* weird_name;
+	if ( pkt->encap && pkt->encap->LastType() != BifEnum::Tunnel::NONE )
+		weird_name = util::fmt("%s_in_tunnel", name);
 	else
-		reporter->Weird(name, addl);
+		weird_name = name;
+
+	if ( pkt->ip_hdr )
+		reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl);
+	else
+		reporter->Weird(weird_name, addl);
 	}
 
-void NetSessions::Weird(const char* name, const IP_Hdr* ip,
-                        const std::shared_ptr<EncapsulationStack>& encap,
-                        const char* addl)
+void NetSessions::Weird(const char* name, const IP_Hdr* ip, const char* addl)
 	{
-	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
-		                      util::fmt("%s_in_tunnel", name), addl);
-	else
-		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
+	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

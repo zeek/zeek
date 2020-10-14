@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2020-09-15-17-17-50
+#open	2020-10-14-18-44-54
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1333663011.602839	-	-	-	-	-	no_suitable_analyzer_found	-	F	zeek
-#close	2020-09-15-17-17-50
+1333663011.602839	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:4f8:4:7:2e0:81ff:fe52:9a6b	0	no_suitable_analyzer_found	-	F	zeek
+#close	2020-10-14-18-44-54

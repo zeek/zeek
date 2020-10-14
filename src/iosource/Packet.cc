@@ -89,9 +89,9 @@ const IP_Hdr Packet::IP() const
 	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
-void Packet::Weird(const char* name, const std::shared_ptr<EncapsulationStack>& encap)
+void Packet::Weird(const char* name)
 	{
-	sessions->Weird(name, this, encap);
+	sessions->Weird(name, this);
 	}
 
 RecordValPtr Packet::ToRawPktHdrVal() const

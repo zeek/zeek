@@ -130,7 +130,7 @@ public:
 	RecordVal* BuildPktHdrVal() const;
 
 	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
-	void Weird(const char* name, const std::shared_ptr<EncapsulationStack>& encap = nullptr);
+	void Weird(const char* name);
 
 	/**
 	 * Maximal length of a layer 2 address.

@@ -71,10 +71,8 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	           const std::shared_ptr<EncapsulationStack>& encap = nullptr,
 	           const char* addl = "");
 	void Weird(const char* name, const IP_Hdr* ip,
-	           const std::shared_ptr<EncapsulationStack>& encap = nullptr,
 	           const char* addl = "");
 
 	detail::PacketFilter* GetPacketFilter(bool init=true)

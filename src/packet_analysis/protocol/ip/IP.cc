@@ -34,7 +34,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// check ipv4 here. We'll check ipv6 later once we determine we have an ipv6 header.
 	if ( len < sizeof(struct ip) )
 		{
-		packet->Weird("truncated_IP");
+		sessions->Weird("truncated_IP", packet);
 		return false;
 		}
 
@@ -58,7 +58,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		{
 		if ( len < sizeof(struct ip6_hdr) )
 			{
-			packet->Weird("truncated_IP");
+			sessions->Weird("truncated_IP", packet);
 			return false;
 			}
 
@@ -67,7 +67,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		}
 	else
 		{
-		packet->Weird("unknown_ip_version");
+		sessions->Weird("unknown_ip_version", packet);
 		return false;
 		}
 
@@ -78,7 +78,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( total_len == 0 )
 		{
 		// TCP segmentation offloading can zero out the ip_len field.
-		packet->Weird("ip_hdr_len_zero", packet->encap);
+		sessions->Weird("ip_hdr_len_zero", packet);
 
 		// Cope with the zero'd out ip_len field by using the caplen.
 		total_len = packet->cap_len - packet->hdr_size;
@@ -86,7 +86,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( packet->len < total_len + packet->hdr_size )
 		{
-		packet->Weird("truncated_IPv6", packet->encap);
+		sessions->Weird("truncated_IPv6", packet);
 		return false;
 		}
 
@@ -95,13 +95,13 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	uint16_t ip_hdr_len = packet->ip_hdr->HdrLen();
 	if ( ip_hdr_len > total_len )
 		{
-		sessions->Weird("invalid_IP_header_size", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("invalid_IP_header_size", packet);
 		return false;
 		}
 
 	if ( ip_hdr_len > len )
 		{
-		sessions->Weird("internally_truncated_header", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("internally_truncated_header", packet);
 		return false;
 		}
 
@@ -109,7 +109,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		{
 		if ( ip_hdr_len < sizeof(struct ip) )
 			{
-			packet->Weird("IPv4_min_header_size");
+			sessions->Weird("IPv4_min_header_size", packet);
 			return false;
 			}
 		}
@@ -117,7 +117,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		{
 		if ( ip_hdr_len < sizeof(struct ip6_hdr) )
 			{
-			packet->Weird("IPv6_min_header_size");
+			sessions->Weird("IPv6_min_header_size", packet);
 			return false;
 			}
 		}
@@ -130,7 +130,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
-		sessions->Weird("bad_IP_checksum", packet, packet->encap);
+		sessions->Weird("bad_IP_checksum", packet);
 		return false;
 		}
 
@@ -145,7 +145,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		if ( len < total_len )
 			{
-			sessions->Weird("incompletely_captured_fragment", packet->ip_hdr.get(), packet->encap);
+			sessions->Weird("incompletely_captured_fragment", packet);
 
 			// Don't try to reassemble, that's doomed.
 			// Discard all except the first fragment (which
@@ -175,7 +175,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 			if ( ip_hdr_len > total_len )
 				{
-				sessions->Weird("invalid_IP_header_size", packet->ip_hdr.get(), packet->encap);
+				sessions->Weird("invalid_IP_header_size", packet);
 				return false;
 				}
 			}
@@ -204,7 +204,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		if ( ! ignore_checksums && mobility_header_checksum(packet->ip_hdr) != 0xffff )
 			{
-			sessions->Weird("bad_MH_checksum", packet, packet->encap);
+			sessions->Weird("bad_MH_checksum", packet);
 			return false;
 			}
 
@@ -212,7 +212,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			event_mgr.Enqueue(mobile_ipv6_message, packet->ip_hdr->ToPktHdrVal());
 
 		if ( packet->ip_hdr->NextProto() != IPPROTO_NONE )
-			sessions->Weird("mobility_piggyback", packet, packet->encap);
+			sessions->Weird("mobility_piggyback", packet);
 
 		return true;
 		}

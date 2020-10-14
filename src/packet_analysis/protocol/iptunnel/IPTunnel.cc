@@ -28,14 +28,14 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
 	if ( ! BifConst::Tunnel::enable_ip )
 		{
-		sessions->Weird("IP_tunnel", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("IP_tunnel", packet);
 		return false;
 		}
 
 	if ( packet->encap &&
 	     packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
-		sessions->Weird("exceeded_tunnel_max_depth", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("exceeded_tunnel_max_depth", packet);
 		return false;
 		}
 
@@ -51,11 +51,11 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		// Check for a valid inner packet first.
 		int result = sessions->ParseIPPacket(len, data, proto, inner);
 		if ( result == -2 )
-			sessions->Weird("invalid_inner_IP_version", packet->ip_hdr.get(), packet->encap);
+			sessions->Weird("invalid_inner_IP_version", packet);
 		else if ( result < 0 )
-			sessions->Weird("truncated_inner_IP", packet->ip_hdr.get(), packet->encap);
+			sessions->Weird("truncated_inner_IP", packet);
 		else if ( result > 0 )
-			sessions->Weird("inner_IP_payload_length_mismatch", packet->ip_hdr.get(), packet->encap);
+			sessions->Weird("inner_IP_payload_length_mismatch", packet);
 
 		if ( result != 0 )
 			{

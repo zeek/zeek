@@ -50,7 +50,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( ! BifConst::Tunnel::enable_gre )
 		{
-		sessions->Weird("GRE_tunnel", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("GRE_tunnel", packet);
 		return false;
 		}
 
@@ -68,8 +68,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( gre_version != 0 && gre_version != 1 )
 		{
-		sessions->Weird("unknown_gre_version", packet->ip_hdr.get(), packet->encap,
-		                util::fmt("%d", gre_version));
+		sessions->Weird("unknown_gre_version", packet, util::fmt("%d", gre_version));
 		return false;
 		}
 
@@ -86,7 +85,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				}
 			else
 				{
-				sessions->Weird("truncated_GRE", packet->ip_hdr.get(), packet->encap);
+				sessions->Weird("truncated_GRE", packet);
 				return false;
 				}
 			}
@@ -103,7 +102,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				}
 			else
 				{
-				sessions->Weird("truncated_GRE", packet->ip_hdr.get(), packet->encap);
+				sessions->Weird("truncated_GRE", packet);
 				return false;
 				}
 			}
@@ -126,7 +125,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 						erspan_len += 8;
 					else
 						{
-						sessions->Weird("truncated_GRE", packet->ip_hdr.get(), packet->encap);
+						sessions->Weird("truncated_GRE", packet);
 						return false;
 						}
 					}
@@ -135,7 +134,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				}
 			else
 				{
-				sessions->Weird("truncated_GRE", packet->ip_hdr.get(), packet->encap);
+				sessions->Weird("truncated_GRE", packet);
 				return false;
 				}
 			}
@@ -146,8 +145,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		if ( proto_typ != 0x880b )
 			{
 			// Enhanced GRE payload must be PPP.
-			sessions->Weird("egre_protocol_type", packet->ip_hdr.get(), packet->encap,
-			      util::fmt("%d", proto_typ));
+			sessions->Weird("egre_protocol_type", packet, util::fmt("%d", proto_typ));
 			return false;
 			}
 		}
@@ -157,20 +155,20 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		// RFC 2784 deprecates the variable length routing field
 		// specified by RFC 1701. It could be parsed here, but easiest
 		// to just skip for now.
-		sessions->Weird("gre_routing", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("gre_routing", packet);
 		return false;
 		}
 
 	if ( flags_ver & 0x0078 )
 		{
 		// Expect last 4 bits of flags are reserved, undefined.
-		sessions->Weird("unknown_gre_flags", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("unknown_gre_flags", packet);
 		return false;
 		}
 
 	if ( len < gre_len + ppp_len + eth_len + erspan_len )
 		{
-		sessions->Weird("truncated_GRE", packet->ip_hdr.get(), packet->encap);
+		sessions->Weird("truncated_GRE", packet);
 		return false;
 		}
 
@@ -180,8 +178,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
 			{
-			sessions->Weird("non_ip_packet_in_encap", packet->ip_hdr.get(),
-			                packet->encap);
+			sessions->Weird("non_ip_packet_in_encap", packet);
 			return false;
 			}
 

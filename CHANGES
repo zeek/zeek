@@ -1,4 +1,8 @@
 
+3.3.0-dev.426 | 2020-10-14 10:47:37 -0700
+
+  * GH-1211: Improve error message for already-defined functions (Jon Siwek, Corelight)
+
 3.3.0-dev.422 | 2020-10-13 16:26:24 -0700
 
   * GH-1208: Use Dictionary validity assertions only during CI (Jon Siwek, Corelight)

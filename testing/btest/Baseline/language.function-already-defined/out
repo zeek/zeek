@@ -1,0 +1,2 @@
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.function-already-defined/function-already-defined.zeek, line 4 and /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.function-already-defined/function-already-defined.zeek, line 7: already defined (foo)
+fatal error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.function-already-defined/function-already-defined.zeek, line 8: invalid definition of 'foo' (see previous errors)

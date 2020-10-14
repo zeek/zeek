@@ -583,7 +583,7 @@ void begin_func(IDPtr id, const char* module_name,
 
 		case FUNC_FLAVOR_FUNCTION:
 			if ( ! id->IsRedefinable() )
-				id->Error("already defined");
+				id->Error("already defined", t.get());
 			break;
 
 		default:
@@ -593,6 +593,10 @@ void begin_func(IDPtr id, const char* module_name,
 		}
 	else
 		id->SetType(t);
+
+	if ( IsErrorType(id->GetType()->Tag()) )
+		reporter->FatalError("invalid definition of '%s' (see previous errors)",
+		                     id->Name());
 
 	const auto& args = t->Params();
 	const auto& canon_args = id->GetType()->AsFuncType()->Params();

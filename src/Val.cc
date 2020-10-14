@@ -1993,7 +1993,7 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 
 bool TableVal::Contains(const IPAddr& addr)
 	{
-	return subnets ? subnets->Lookup(addr, true) : false;
+	return subnets ? subnets->Lookup(addr, true) != 0 : false;
 	}
 
 Val* TableVal::Lookup(Val* index, bool use_default_val)

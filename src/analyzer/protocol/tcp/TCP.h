@@ -94,8 +94,8 @@ protected:
 
 	// Returns true if the checksum is valid, false if not (and in which
 	// case also updates the status history of the endpoint).
-	bool ValidateChecksum(const struct tcphdr* tp, TCP_Endpoint* endpoint,
-				int len, int caplen, bool ipv4);
+	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp, TCP_Endpoint* endpoint,
+				int len, int caplen);
 
 	void SetPartialStatus(TCP_Flags flags, bool is_orig);
 

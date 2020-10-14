@@ -906,6 +906,10 @@ public:
 	[[deprecated("Remove in v4.1.  Use Find() or FindOrDefault().")]]
 	Val* Lookup(Val* index, bool use_default_val = true);
 
+	// Returns true if this is a table[subnet]/set[subnet] and the
+	// given address was found in the table. Otherwise returns false.
+	bool Contains(const IPAddr& addr);
+
 	// For a table[subnet]/set[subnet], return all subnets that cover
 	// the given subnet.
 	// Causes an internal error if called for any other kind of table.

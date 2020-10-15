@@ -3399,9 +3399,9 @@ const char* conn_id_string(zeek::Val* c)
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
+	auto* pkt_src = dynamic_cast<zeek::iosource::PktSrc*>(zeek::run_state::detail::current_iosrc);
 
-	if ( ! zeek::run_state::detail::current_pktsrc ||
-	     ! zeek::run_state::detail::current_pktsrc->GetCurrentPacket(&pkt) )
+	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&pkt) )
 		return zeek::val_mgr->False();
 
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
@@ -3432,9 +3432,9 @@ function get_current_packet%(%) : pcap_packet
 	static auto pcap_packet = zeek::id::find_type<zeek::RecordType>("pcap_packet");
 	const Packet* p;
 	auto pkt = zeek::make_intrusive<zeek::RecordVal>(pcap_packet);
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
 
-	if ( ! zeek::run_state::detail::current_pktsrc ||
-	     ! zeek::run_state::detail::current_pktsrc->GetCurrentPacket(&p) )
+	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&p) )
 		{
 		pkt->Assign(0, zeek::val_mgr->Count(0));
 		pkt->Assign(1, zeek::val_mgr->Count(0));
@@ -3464,9 +3464,9 @@ function get_current_packet%(%) : pcap_packet
 function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
 
-	if ( zeek::run_state::detail::current_pktsrc &&
-	     zeek::run_state::detail::current_pktsrc->GetCurrentPacket(&p) )
+	if ( pkt_src && pkt_src->GetCurrentPacket(&p) )
 		{
 		return p->ToRawPktHdrVal();
 		}

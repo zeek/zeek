@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <memory>
 #include "IPAddr.h"
 #include "PrefixTable.h"
 
@@ -31,7 +32,7 @@ public:
 	bool RemoveDst(Val* dst);
 
 	// Returns true if packet matches a drop filter
-	bool Match(const IP_Hdr* ip, int len, int caplen);
+	bool Match(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen);
 
 private:
 	struct Filter {

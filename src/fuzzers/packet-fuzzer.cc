@@ -2,7 +2,7 @@
 
 #include "iosource/Packet.h"
 #include "Event.h"
-#include "Sessions.h"
+#include "packet_analysis/Manager.h"
 
 #include "FuzzBuffer.h"
 #include "fuzzer-setup.h"
@@ -32,7 +32,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
 		try
 			{
-			zeek::sessions->NextPacket(timestamp, &pkt);
+			zeek::packet_mgr->ProcessPacket(&pkt);
 			}
 		catch ( binpac::Exception const &e )
 			{

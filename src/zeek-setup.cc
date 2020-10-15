@@ -47,6 +47,7 @@ extern "C" {
 #include "Hash.h"
 #include "Func.h"
 #include "ScannedFile.h"
+#include "Frag.h"
 
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
@@ -136,6 +137,9 @@ zeek::detail::ProfileLogger* zeek::detail::segment_logger = nullptr;
 zeek::detail::ProfileLogger*& segment_logger = zeek::detail::segment_logger;
 zeek::detail::SampleLogger* zeek::detail::sample_logger = nullptr;
 zeek::detail::SampleLogger*& sample_logger = zeek::detail::sample_logger;
+
+zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
+
 int signal_val = 0;
 extern char version[];
 const char* zeek::detail::command_line_policy = nullptr;
@@ -347,6 +351,7 @@ static void terminate_bro()
 	delete reporter;
 	delete plugin_mgr;
 	delete val_mgr;
+	delete fragment_mgr;
 
 	// free the global scope
 	pop_scope();
@@ -486,6 +491,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
 	plugin_mgr = new plugin::Manager();
+	fragment_mgr = new detail::FragmentManager();
 
 #ifdef DEBUG
 	if ( options.debug_log_streams )

@@ -35,7 +35,7 @@ bool Discarder::IsActive()
 	return check_ip || check_tcp || check_udp || check_icmp;
 	}
 
-bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
+bool Discarder::NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen)
 	{
 	bool discard_packet = false;
 

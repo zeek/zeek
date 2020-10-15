@@ -69,14 +69,16 @@ public:
 	 * in the header. In this case, derived classes may use ForwardPacket() to
 	 * forward the payload to the corresponding analyzer.
 	 *
-	 * @param len The number of bytes passed in.
+	 * @param len The number of bytes passed in. As we move along the chain of
+	 * analyzers, this is the number of bytes we have left of the packet to
+	 * process.
 	 * @param data Pointer to the input to process.
 	 * @param packet Object that maintains the packet's meta data.
 	 *
 	 * @return false if the analysis failed, else true.
 	 */
 	virtual bool AnalyzePacket(size_t len, const uint8_t* data,
-			Packet* packet) = 0;
+	                           Packet* packet) = 0;
 
 	/**
 	 * Dumps out debug information to the \c analyzer debug stream.
@@ -124,7 +126,7 @@ protected:
 	 * @return false if the analysis failed, else true.
 	 */
 	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
-	                                          uint32_t identifier) const;
+	                   uint32_t identifier) const;
 
 	/**
 	 * Triggers default analysis of the encapsulated packet if the default analyzer

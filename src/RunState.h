@@ -24,12 +24,19 @@ extern void get_final_stats();
 extern void finish_run(int drain_events);
 extern void delete_run();	// Reclaim all memory, etc.
 extern void update_network_time(double new_network_time);
-extern void dispatch_packet(double t, const zeek::Packet* pkt,
-                            zeek::iosource::PktSrc* src_ps);
-extern void expire_timers(zeek::iosource::PktSrc* src_ps = nullptr);
+extern void dispatch_packet(zeek::Packet* pkt, zeek::iosource::PktSrc* pkt_src);
+extern void expire_timers();
 extern void zeek_terminate_loop(const char* reason);
 
-extern zeek::iosource::PktSrc* current_pktsrc;
+/**
+ * Returns the packet source for the packet currently being processed. This will
+ * return null if some other iosrc is currently active.
+ */
+extern zeek::iosource::PktSrc* current_packet_source();
+
+extern double check_pseudo_time(const Packet *pkt);
+
+extern zeek::iosource::PktSrc* current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_current_pktsrc().")]];
 extern zeek::iosource::IOSource* current_iosrc;
 extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
 
@@ -40,6 +47,13 @@ extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
 // on future timers).
 extern bool have_pending_timers;
 
+extern double first_wallclock;
+
+// Only set in pseudo-realtime mode.
+extern double first_timestamp;
+extern double current_wallclock;
+extern double current_pseudo;
+
 } // namespace detail
 
 // Functions to temporarily suspend processing of live input (network packets
@@ -47,6 +61,9 @@ extern bool have_pending_timers;
 extern void suspend_processing();
 extern void continue_processing();
 bool is_processing_suspended();
+
+extern double current_packet_timestamp();
+extern double current_packet_wallclock();
 
 // Whether we're reading live traffic.
 extern bool reading_live;
@@ -96,7 +113,7 @@ constexpr auto net_update_time [[deprecated("Remove in v4.1. Use zeek::run_state
 constexpr auto net_packet_dispatch [[deprecated("Remove in v4.1. Use zeek::run_state::detail::dispatch_packet.")]] = zeek::run_state::detail::dispatch_packet;
 constexpr auto expire_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::expire_timers.")]] = zeek::run_state::detail::expire_timers;
 constexpr auto zeek_terminate_loop [[deprecated("Remove in v4.1. Use zeek::run_state::detail::zeek_terminate_loop.")]] = zeek::run_state::detail::zeek_terminate_loop;
-extern zeek::iosource::PktSrc*& current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::current_pktsrc.")]];
+extern zeek::iosource::PktSrc*& current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_current_pktsrc().")]];
 extern zeek::iosource::IOSource*& current_iosrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::current_iosrc.")]];
 extern zeek::iosource::PktDumper*& pkt_dumper [[deprecated("Remove in v4.1. Use zeek::run_state::detail::pkt_dumper.")]];
 extern bool& have_pending_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::have_pending_timers.")]];

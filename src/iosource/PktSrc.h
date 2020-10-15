@@ -96,6 +96,7 @@ public:
 	 * In pseudo-realtime mode, returns the logical timestamp of the
 	 * current packet. Undefined if not running pseudo-realtime mode.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::run_state::current_packet_timestamp().")]]
 	double CurrentPacketTimestamp();
 
 	/**
@@ -103,13 +104,8 @@ public:
 	 * with current packet. Undefined if not running pseudo-realtime
 	 * mode.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::run_state::current_wallclock().")]]
 	double CurrentPacketWallClock();
-
-	/**
-	 * Signals packet source that processing is going to be continued
-	 * after previous suspension.
-	 */
-	void ContinueAfterSuspend();
 
 	/**
 	 * Precompiles a BPF filter and associates the given index with it.
@@ -349,9 +345,6 @@ protected:
 	virtual void DoneWithPacket() = 0;
 
 private:
-	// Checks if the current packet has a pseudo-time <= current_time. If
-	// yes, returns pseudo-time, otherwise 0.
-	double CheckPseudoTime();
 
 	// Internal helper for ExtractNextPacket().
 	bool ExtractNextPacketInternal();
@@ -369,13 +362,6 @@ private:
 
 	// For BPF filtering support.
 	std::vector<detail::BPF_Program *> filters;
-
-	// Only set in pseudo-realtime mode.
-	double first_timestamp;
-	double first_wallclock;
-	double current_wallclock;
-	double current_pseudo;
-	double next_sync_point; // For trace synchronziation in pseudo-realtime
 
 	std::string errbuf;
 };

@@ -1,23 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "GRE.h"
 #include "plugin/Plugin.h"
-#include "IPv6.h"
 #include "packet_analysis/Component.h"
 
-namespace zeek::plugin::Zeek_IPv6 {
+namespace zeek::plugin::Zeek_GRE {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::packet_analysis::Component("IPv6",
-		             zeek::packet_analysis::IPv6::IPv6Analyzer::Instantiate));
+		AddComponent(new zeek::packet_analysis::Component("GRE",
+		                 zeek::packet_analysis::GRE::GREAnalyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
-		config.name = "Zeek::IPv6";
-		config.description = "IPv6 packet analyzer";
+		config.name = "Zeek::GRE";
+		config.description = "GRE packet analyzer";
 		return config;
 		}
+
 } plugin;
 
 }

@@ -1,3 +1,41 @@
+3.3.0-dev.444 | 2020-10-15 13:25:12 -0700
+
+  * Rework Sessions::Weird (Tim Wojtulewicz, Corelight)
+
+  * Prevent String::Set from crashing if passed a nullptr (Tim Wojtulewicz, Corelight)
+
+  * Store packet's ip header as unique_ptr (Tim Wojtulewicz, Corelight)
+
+  * Remove some unused includes from Packet.h (Tim Wojtulewicz, Corelight)
+
+  * Use shared_ptr for encapsulation data instead of raw pointer (Tim Wojtulewicz, Corelight)
+
+  * Review cleanup (Tim Wojtulewicz, Corelight)
+
+  * Update external testing repo hashes (Tim Wojtulewicz, Corelight)
+
+  * Reorder Packet member variables slightly for better packing (Tim Wojtulewicz, Corelight)
+
+  * Store the ip header in the packet after processing, reuse other places (Tim Wojtulewicz, Corelight)
+
+  * Change to store data in packet directly instead of keystore (Tim Wojtulewicz, Corelight)
+
+  * Don't always insert data into keystore for tunnels (Tim Wojtulewicz, Corelight)
+
+  * Add comment about packet header size and session analysis (Tim Wojtulewicz, Corelight)
+
+  * Set data to ip header's payload instead of advancing the pointer (Tim Wojtulewicz, Corelight)
+
+  * Move packet dumping to packet_mgr (Tim Wojtulewicz, Corelight)
+
+  * Make Sessions::NextPacket call packet_mgr, fix fuzzer code to do the same (Tim Wojtulewicz, Corelight)
+
+  * Move IP and IP tunnel code from Sessions into packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Prep work for IP changes
+
+    - Move all of the time handling code out of PktSrc into RunState
+    - Call packet_mgr->ProcessPacket() from various places to setup layer 2 data in packets (Tim Wojtulewicz, Corelight)
 
 3.3.0-dev.426 | 2020-10-14 10:47:37 -0700
 

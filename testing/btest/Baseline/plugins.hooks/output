@@ -283,7 +283,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -464,7 +464,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -555,7 +555,7 @@
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::install, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketFilter::log_policy, <null>, ([ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketFilter::log_policy, <null>, ([ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Pcap::install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Pcap::precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip)) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::STD_DEV, SumStats::VARIANCE)) -> <no result>
@@ -847,6 +847,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/find-filtered-trace.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ftp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/geoip-distance.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/gre) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash_hrw.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/http) -> -1
@@ -859,6 +860,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/input.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/intel) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ip) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/iptunnel) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/irc) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/krb) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/linux_sll) -> -1
@@ -1229,7 +1231,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1410,7 +1412,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1501,7 +1503,7 @@
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, ))
 0.000000   MetaHookPre   CallFunction(PacketFilter::install, <frame>, ())
-0.000000   MetaHookPre   CallFunction(PacketFilter::log_policy, <null>, ([ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(PacketFilter::log_policy, <null>, ([ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Pcap::install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter))
 0.000000   MetaHookPre   CallFunction(Pcap::precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip))
 0.000000   MetaHookPre   CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::STD_DEV, SumStats::VARIANCE))
@@ -1793,6 +1795,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/find-filtered-trace.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ftp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/geoip-distance.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/gre)
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash)
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash_hrw.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/http)
@@ -1805,6 +1808,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/intel)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ip)
+0.000000   MetaHookPre   LoadFile(0, base<...>/iptunnel)
 0.000000   MetaHookPre   LoadFile(0, base<...>/irc)
 0.000000   MetaHookPre   LoadFile(0, base<...>/krb)
 0.000000   MetaHookPre   LoadFile(0, base<...>/linux_sll)
@@ -2174,7 +2178,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2355,7 +2359,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2446,7 +2450,7 @@
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )
 0.000000 | HookCallFunction PacketFilter::install()
-0.000000 | HookCallFunction PacketFilter::log_policy([ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
+0.000000 | HookCallFunction PacketFilter::log_policy([ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Pcap::install_pcap_filter(PacketFilter::DefaultPcapFilter)
 0.000000 | HookCallFunction Pcap::precompile_pcap_filter(PacketFilter::DefaultPcapFilter, ip or not ip)
 0.000000 | HookCallFunction SumStats::add_observe_plugin_dependency(SumStats::STD_DEV, SumStats::VARIANCE)
@@ -2750,6 +2754,7 @@
 0.000000 | HookLoadFile  base<...>/find-filtered-trace.zeek
 0.000000 | HookLoadFile  base<...>/ftp
 0.000000 | HookLoadFile  base<...>/geoip-distance.zeek
+0.000000 | HookLoadFile  base<...>/gre
 0.000000 | HookLoadFile  base<...>/hash
 0.000000 | HookLoadFile  base<...>/hash_hrw.zeek
 0.000000 | HookLoadFile  base<...>/http
@@ -2762,6 +2767,7 @@
 0.000000 | HookLoadFile  base<...>/input.bif.zeek
 0.000000 | HookLoadFile  base<...>/intel
 0.000000 | HookLoadFile  base<...>/ip
+0.000000 | HookLoadFile  base<...>/iptunnel
 0.000000 | HookLoadFile  base<...>/irc
 0.000000 | HookLoadFile  base<...>/krb
 0.000000 | HookLoadFile  base<...>/linux_sll
@@ -2831,7 +2837,7 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1601496515.916419, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1602789493.024881, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

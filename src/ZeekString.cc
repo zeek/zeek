@@ -132,11 +132,14 @@ void String::Set(const char* str)
 	{
 	Reset();
 
-	n = strlen(str);
-	b = new u_char[n+1];
-	memcpy(b, str, n+1);
-	final_NUL = true;
-	use_free_to_delete = false;
+	if ( str )
+		{
+		n = strlen(str);
+		b = new u_char[n+1];
+		memcpy(b, str, n+1);
+		final_NUL = true;
+		use_free_to_delete = false;
+		}
 	}
 
 void String::Set(const std::string& str)

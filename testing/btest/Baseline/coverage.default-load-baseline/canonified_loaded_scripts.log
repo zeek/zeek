@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2020-09-22-17-14-48
+#open	2020-09-23-19-37-26
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -48,6 +48,10 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/vlan/main.zeek
     scripts/base/packet-protocols/mpls/__load__.zeek
       scripts/base/packet-protocols/mpls/main.zeek
+    scripts/base/packet-protocols/gre/__load__.zeek
+      scripts/base/packet-protocols/gre/main.zeek
+    scripts/base/packet-protocols/iptunnel/__load__.zeek
+      scripts/base/packet-protocols/iptunnel/main.zeek
 scripts/base/init-frameworks-and-bifs.zeek
   scripts/base/frameworks/logging/__load__.zeek
     scripts/base/frameworks/logging/main.zeek
@@ -412,4 +416,4 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2020-09-22-17-14-48
+#close	2020-09-23-19-37-26

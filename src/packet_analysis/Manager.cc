@@ -4,12 +4,22 @@
 
 #include "Analyzer.h"
 #include "Dispatcher.h"
+#include "zeek-bif.h"
+#include "Stats.h"
+#include "zeek/Sessions.h"
+#include "zeek/RunState.h"
+#include "iosource/PktDumper.h"
 
 using namespace zeek::packet_analysis;
 
 Manager::Manager()
 	: plugin::ComponentManager<packet_analysis::Tag, packet_analysis::Component>("PacketAnalyzer", "Tag")
 	{
+	}
+
+Manager::~Manager()
+	{
+	delete pkt_profiler;
 	}
 
 void Manager::InitPostScript()
@@ -26,6 +36,13 @@ void Manager::InitPostScript()
 		analyzer->Initialize();
 
 	root_analyzer = analyzers["Root"];
+
+	auto pkt_profile_file = id::find_val("pkt_profile_file");
+
+	if ( detail::pkt_profile_mode && detail::pkt_profile_freq > 0 && pkt_profile_file )
+		pkt_profiler = new detail::PacketProfiler(detail::pkt_profile_mode,
+		                                          detail::pkt_profile_freq,
+		                                          pkt_profile_file->AsFile());
 	}
 
 void Manager::Done()
@@ -69,9 +86,35 @@ void Manager::ProcessPacket(Packet* packet)
 	static size_t counter = 0;
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
+
+	zeek::detail::SegmentProfiler prof(detail::segment_logger, "dispatching-packet");
+	if ( pkt_profiler )
+		pkt_profiler->ProfilePkt(zeek::run_state::processing_start_time, packet->cap_len);
+
+	++num_packets_processed;
+
+	bool dumped_packet = false;
+	if ( packet->dump_packet || zeek::detail::record_all_packets )
+		{
+		DumpPacket(packet);
+		dumped_packet = true;
+		}
+
 	// Start packet analysis
 	packet->l2_valid = root_analyzer->ForwardPacket(packet->cap_len, packet->data,
 			packet, packet->link_type);
+
+	if ( raw_packet )
+		event_mgr.Enqueue(raw_packet, packet->ToRawPktHdrVal());
+
+	// Check whether packet should be recorded based on session analysis
+	if ( packet->dump_packet && ! dumped_packet )
+		DumpPacket(packet);
+	}
+
+bool Manager::ProcessInnerPacket(Packet* packet)
+	{
+	return root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type);
 	}
 
 AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
@@ -111,4 +154,20 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const std::string& name)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag) : nullptr;
+	}
+
+void Manager::DumpPacket(const Packet *pkt, int len)
+	{
+	if ( ! run_state::detail::pkt_dumper )
+		return;
+
+	if ( len != 0 )
+		{
+		if ( (uint32_t)len > pkt->cap_len )
+			reporter->Warning("bad modified caplen");
+		else
+			const_cast<Packet *>(pkt)->cap_len = len;
+		}
+
+	run_state::detail::pkt_dumper->Dump(pkt);
 	}

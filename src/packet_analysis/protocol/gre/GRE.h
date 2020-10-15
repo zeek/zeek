@@ -5,18 +5,18 @@
 #include <packet_analysis/Analyzer.h>
 #include <packet_analysis/Component.h>
 
-namespace zeek::packet_analysis::IPv4 {
+namespace zeek::packet_analysis::GRE {
 
-class IPv4Analyzer : public Analyzer {
+class GREAnalyzer : public Analyzer {
 public:
-	IPv4Analyzer();
-	~IPv4Analyzer() override = default;
+	GREAnalyzer();
+	~GREAnalyzer() override = default;
 
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{
-		return std::make_shared<IPv4Analyzer>();
+		return std::make_shared<GREAnalyzer>();
 		}
 };
 

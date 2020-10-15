@@ -8,6 +8,8 @@
 #include "iosource/Packet.h"
 #include "Dispatcher.h"
 
+ZEEK_FORWARD_DECLARE_NAMESPACED(PacketProfiler, zeek::detail);
+
 namespace zeek {
 namespace packet_analysis {
 
@@ -24,7 +26,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Manager() = default;
+	~Manager();
 
 	/**
 	 * Second-stage initialization of the manager. This is called late
@@ -69,6 +71,27 @@ public:
 	 */
 	void ProcessPacket(Packet* packet);
 
+	/**
+	 * Process the inner packet of an encapsulation. This can be used by tunnel
+	 * analyzers to process a inner packet from the "beginning" directly through
+	 * the root analyzer. This short-circuits some of the additional processing
+	 * that happens in ProcessPacket().
+	 *
+	 * @param packet The packet to process.
+	 */
+	bool ProcessInnerPacket(Packet* packet);
+
+	uint64_t PacketsProcessed() const	{ return num_packets_processed; }
+
+	/**
+	 * Records the given packet if a dumper is active.
+	 *
+	 * @param pkt The packet to record.
+	 * @param len The number of bytes to record. If set to zero, the whole
+	 * packet is recorded.
+	 */
+	void DumpPacket(const Packet *pkt, int len=0);
+
 private:
 	/**
 	 * Instantiates a new analyzer instance.
@@ -92,6 +115,9 @@ private:
 
 	std::map<std::string, AnalyzerPtr> analyzers;
 	AnalyzerPtr root_analyzer = nullptr;
+
+	uint64_t num_packets_processed = 0;
+	detail::PacketProfiler* pkt_profiler = nullptr;
 };
 
 } // namespace packet_analysis

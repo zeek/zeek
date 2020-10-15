@@ -178,7 +178,7 @@ event zeek_init() &priority=5
 		}
 	}
 
-event zeek_init() &priority=-5
+event zeek_init() &priority=-6
 	{
 	install();
 

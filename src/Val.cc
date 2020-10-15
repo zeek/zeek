@@ -1993,9 +1993,9 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 
 const bool TableVal::Contains(const IPAddr& addr)
 	{
-        if ( ! subnets )
+	if ( ! subnets )
 		{
-                reporter->InternalError("LookupSubnets called on wrong table type");
+		reporter->InternalError("'Contains' called on wrong table/set type");
 		return false;
 		}
 

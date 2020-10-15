@@ -996,7 +996,7 @@ const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 const ignore_checksums = F &redef;
 
 ## Checksums are ignored for all packets with a src address within this set of
-## addresses. Useful for cases where a host might be seeing packets collected 
+## networks. Useful for cases where a host might be seeing packets collected 
 ## from local hosts before checksums were applied by hardware. This frequently 
 ## manifests when sniffing a local management interface on a host and Zeek sees
 ## packets before the hardware has had a chance to apply the checksums.

@@ -1991,9 +1991,15 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 	return Default(index);
 	}
 
-bool TableVal::Contains(const IPAddr& addr)
+const bool TableVal::Contains(const IPAddr& addr)
 	{
-	return subnets ? subnets->Lookup(addr, true) != 0 : false;
+        if ( ! subnets )
+		{
+                reporter->InternalError("LookupSubnets called on wrong table type");
+		return false;
+		}
+
+	return (subnets->Lookup(addr, true) != 0);
 	}
 
 Val* TableVal::Lookup(Val* index, bool use_default_val)

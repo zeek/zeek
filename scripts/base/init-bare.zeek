@@ -454,6 +454,18 @@ type connection: record {
 	inner_vlan: int &optional;
 };
 
+## Arguments given to Zeek from the command line. In order to use this, Zeek
+## must use a ``--`` command line argument immediately followed by a script
+## file and additional arguments after that. For example::
+##
+##   zeek --bare-mode -- myscript.zeek -a -b -c
+##
+## To use Zeek as an executable interpreter, include a line at the top of a script
+## like the following and make the script executable::
+##
+##   #!/usr/local/zeek/bin/zeek --
+const zeek_script_args: vector of string = vector();
+
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
 option default_file_timeout_interval: interval = 2 mins;
@@ -4976,6 +4988,26 @@ export {
 	## Number of Mbytes to provide as buffer space when capturing from live
 	## interfaces.
 	const bufsize = 128 &redef;
+
+	## The definition of a "pcap interface".
+	type Interface: record {
+		## The interface/device name.
+		name: string;
+		## A human-readable description of the device.
+		description: string &optional;
+		## The network addresses associated with the device.
+		addrs: set[addr];
+		## Whether the device is a loopback interface.  E.g. addresses
+		## of ``127.0.0.1`` or ``[::1]`` are used by loopback interfaces.
+		is_loopback: bool;
+
+		## Whether the device is up.  Not set when that info is unavailable.
+		is_up: bool &optional;
+		## Whether the device is running.  Not set when that info is unavailable.
+		is_running: bool &optional;
+	};
+
+	type Interfaces: set[Pcap::Interface];
 } # end export
 
 module DCE_RPC;

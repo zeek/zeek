@@ -161,6 +161,7 @@ sanitizer_task:
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
+    CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1

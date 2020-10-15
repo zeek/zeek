@@ -89,11 +89,15 @@ event zeek_init() &priority=-10
 	Broker::subscribe(nodeid_topic(Broker::node_id()));
 	Broker::subscribe(node_topic(node));
 
-	Broker::listen(Broker::default_listen_address,
-	               self$p,
-	               Broker::default_listen_retry);
+	if ( self$p != 0/unknown )
+		{
+		Broker::listen(Broker::default_listen_address,
+		               self$p,
+		               Broker::default_listen_retry);
 
-	Cluster::log(fmt("listening on %s:%s", Broker::default_listen_address, self$p));
+		Cluster::log(fmt("listening on %s:%s", Broker::default_listen_address, self$p));
+		}
+
 
 	switch ( self$node_type ) {
 	case MANAGER:

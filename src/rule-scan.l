@@ -75,23 +75,23 @@ true	{ rules_lval.val = true; return TOK_BOOL; }
 false	{ rules_lval.val = false; return TOK_BOOL; }
 
 established	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ESTABLISHED;
-		return TOK_TCP_STATE_SYM;
+		rules_lval.val = zeek::detail::RULE_STATE_ESTABLISHED;
+		return TOK_STATE_SYM;
 		}
 
 originator	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_ORIG;
-		return TOK_TCP_STATE_SYM;
+		rules_lval.val = zeek::detail::RULE_STATE_ORIG;
+		return TOK_STATE_SYM;
 		}
 
 responder	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_RESP;
-		return TOK_TCP_STATE_SYM;
+		rules_lval.val = zeek::detail::RULE_STATE_RESP;
+		return TOK_STATE_SYM;
 		}
 
 stateless	{
-		rules_lval.val = zeek::detail::RuleConditionTCPState::STATE_STATELESS;
-		return TOK_TCP_STATE_SYM;
+		rules_lval.val = zeek::detail::RULE_STATE_STATELESS;
+		return TOK_STATE_SYM;
 		}
 
 lsrr		{
@@ -132,6 +132,7 @@ same-ip		return TOK_SAME_IP;
 src-ip		return TOK_SRC_IP;
 src-port	return TOK_SRC_PORT;
 tcp-state	return TOK_TCP_STATE;
+udp-state	return TOK_UDP_STATE;
 active		return TOK_ACTIVE;
 
 file-magic { rules_lval.val = zeek::detail::Rule::FILE_MAGIC; return TOK_PATTERN_TYPE; }

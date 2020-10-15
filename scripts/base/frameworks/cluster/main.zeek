@@ -162,7 +162,8 @@ export {
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id:      string      &default="";
 		## The port that this node will listen on for peer connections.
-		p:            port;
+		## A value of ``0/unknown`` means the node is not pre-configured to listen.
+		p:            port        &default=0/unknown;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
 		## Name of the manager node this node uses.  For workers and proxies.

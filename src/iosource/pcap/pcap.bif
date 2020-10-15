@@ -1,10 +1,13 @@
 
 module Pcap;
 
+
 const snaplen: count;
 const bufsize: count;
 
 %%{
+#include "pcap.h"
+
 #include "iosource/Manager.h"
 %%}
 
@@ -101,4 +104,58 @@ function error%(%): string
 		}
 
 	return zeek::make_intrusive<zeek::StringVal>("no error");
+	%}
+
+function findalldevs%(%): Pcap::Interfaces
+	%{
+	pcap_if_t* alldevs;
+	char errbuf[PCAP_ERRBUF_SIZE];
+
+	static auto ifaces_type = id::find_type<TableType>("Pcap::Interfaces");
+	auto pcap_interfaces = make_intrusive<TableVal>(ifaces_type);
+
+	int ret = pcap_findalldevs(&alldevs, errbuf);
+	if ( ret == PCAP_ERROR )
+		{
+		emit_builtin_error(util::fmt("Error calling pcap_findalldevs: %s", errbuf));
+		// Return an empty set in case of failure.
+		return pcap_interfaces;
+		}
+
+	static auto iface_type = id::find_type<RecordType>("Pcap::Interface");
+	for ( auto d = alldevs; d; d = d->next )
+		{
+		auto r = make_intrusive<RecordVal>(iface_type);
+
+		r->Assign(0, make_intrusive<StringVal>(d->name));
+		if ( d->description )
+			r->Assign(1, make_intrusive<StringVal>(d->description));
+
+		auto addrs = make_intrusive<ListVal>(TYPE_ADDR);
+		for ( auto addr = d->addresses; addr != NULL; addr = addr->next )
+			{
+			if ( addr->addr->sa_family == AF_INET )
+				{
+				IPAddr a(reinterpret_cast<struct sockaddr_in *>(addr->addr)->sin_addr);
+				addrs->Append(make_intrusive<AddrVal>(a));
+				}
+			else if ( addr->addr->sa_family == AF_INET6 )
+				{
+				IPAddr a(reinterpret_cast<struct sockaddr_in6 *>(addr->addr)->sin6_addr);
+				addrs->Append(make_intrusive<AddrVal>(a));
+				}
+			}
+		r->Assign(2, addrs->ToSetVal());
+		r->Assign(3, val_mgr->Bool(d->flags & PCAP_IF_LOOPBACK));
+#ifdef PCAP_IF_UP
+		// These didn't become available until libpcap 1.6.1
+		r->Assign(4, val_mgr->Bool(d->flags & PCAP_IF_UP));
+		r->Assign(5, val_mgr->Bool(d->flags & PCAP_IF_RUNNING));
+#endif
+
+		pcap_interfaces->Assign(std::move(r), nullptr);
+		}
+
+	pcap_freealldevs(alldevs);
+	return pcap_interfaces;
 	%}

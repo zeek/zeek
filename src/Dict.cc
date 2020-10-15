@@ -17,7 +17,7 @@
 
 #include "3rdparty/doctest.h"
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
 #define ASSERT_VALID(o)	o->AssertValid()
 #else
 #define ASSERT_VALID(o)

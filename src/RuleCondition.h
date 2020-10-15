@@ -22,20 +22,18 @@ public:
 	virtual void PrintDebug() = 0;
 };
 
+enum RuleStateKind {
+	RULE_STATE_ESTABLISHED = 1,
+	RULE_STATE_ORIG = 2,
+	RULE_STATE_RESP = 4,
+	RULE_STATE_STATELESS = 8
+};
+
 // Implements the "tcp-state" keyword.
 class RuleConditionTCPState : public RuleCondition {
 public:
-	enum TCPState {
-		STATE_ESTABLISHED = 1,
-		STATE_ORIG = 2,
-		STATE_RESP = 4,
-		STATE_STATELESS = 8
-	};
-
 	explicit RuleConditionTCPState(int arg_tcpstates)
 		{ tcpstates = arg_tcpstates; }
-
-	~RuleConditionTCPState() override { }
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
@@ -46,6 +44,20 @@ private:
 	int tcpstates;
 };
 
+// Implements the "udp-state" keyword.
+class RuleConditionUDPState : public RuleCondition {
+public:
+	explicit RuleConditionUDPState(int arg_states)
+		{ states = arg_states; }
+
+	bool DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
+	             int len) override;
+
+	void PrintDebug() override;
+
+private:
+	int states;
+};
 
 // Implements "ip-options".
 class RuleConditionIPOptions : public RuleCondition {
@@ -58,9 +70,6 @@ public:
 	};
 
 	explicit RuleConditionIPOptions(int arg_options)	{ options = arg_options; }
-
-	~RuleConditionIPOptions() override
-		{ }
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
@@ -75,7 +84,6 @@ private:
 class RuleConditionSameIP : public RuleCondition {
 public:
 	RuleConditionSameIP()	{ }
-	~RuleConditionSameIP() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
@@ -91,8 +99,6 @@ public:
 	RuleConditionPayloadSize(uint32_t arg_val, Comp arg_comp)
 		{ val = arg_val; comp = arg_comp; }
 
-	~RuleConditionPayloadSize() override {}
-
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;
 
@@ -107,7 +113,6 @@ private:
 class RuleConditionEval : public RuleCondition {
 public:
 	explicit RuleConditionEval(const char* func);
-	~RuleConditionEval() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
 				const u_char* data, int len) override;

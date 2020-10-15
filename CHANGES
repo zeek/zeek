@@ -1,4 +1,78 @@
 
+3.3.0-dev.426 | 2020-10-14 10:47:37 -0700
+
+  * GH-1211: Improve error message for already-defined functions (Jon Siwek, Corelight)
+
+3.3.0-dev.422 | 2020-10-13 16:26:24 -0700
+
+  * GH-1208: Use Dictionary validity assertions only during CI (Jon Siwek, Corelight)
+
+3.3.0-dev.420 | 2020-10-13 15:34:02 -0700
+
+  * Change "Cluster::Node$p" field to use "&default=0/unknown" (Seth Hall, Corelight)
+
+    This effectively makes defining the listening port optional in the cluster
+    node layout config, with "0/unknown" meaning the node is not pre-configured
+    to listen for incoming connections from other cluster nodes.
+
+3.3.0-dev.414 | 2020-10-13 13:49:05 -0700
+
+  * Update cmake submodule to pull in fix for building libkqueue (Tim Wojtulewicz, Corelight)
+
+  * GH-1063: Update libkqueue to fix pf_ring-zc failures (Tim Wojtulewicz, Corelight)
+
+3.3.0-dev.411 | 2020-10-13 13:38:38 -0700
+
+  * Remove unused LoginConn type and variable in Conn.h (Tim Wojtulewicz, Corelight)
+
+3.3.0-dev.409 | 2020-10-13 13:32:18 -0700
+
+  * Make it possible to pass command line options through to scripts. (Seth Hall, Corelight)
+
+    A new ``zeek_script_args`` variable contains a list of arguments passed
+    to a script.  E.g. either when explicitly executing Zeek like
+    ``zeek -- myscript.zeek -arg1 -arg2``, or when using Zeek to interpret
+    executable scripts that contain a hashbang line at the top like::
+
+      #!/usr/local/zeek/bin/zeek --
+
+3.3.0-dev.403 | 2020-10-13 10:50:12 -0700
+
+  * Add new Pcap::findalldevs() BIF (Seth Hall, Corelight)
+
+  * Remove superfluous RuleCondition destructors (Jon Siwek, Corelight)
+
+  * Silence Clang's warning about ignoring GCC's maybe-uninitialized warning (Jon Siwek, Corelight)
+
+  * Add reference to network_time_init from zeek_init docs (Jon Siwek, Corelight)
+
+3.3.0-dev.390 | 2020-10-12 17:43:15 -0700
+
+  * Improve documentation for zeek_init event scheduling pitfalls (Jon Siwek, Corelight)
+
+3.3.0-dev.388 | 2020-10-12 17:02:20 -0700
+
+  * Add CaptureLoss::Too_Little_Traffic notice (Vlad Grigorescu)
+
+  * Add CaptureLoss::initial_watch_interval for a quick read on cluster health after startup. (Vlad Grigorescu)
+
+  * Improve capture-loss.zeek documentation. (Vlad Grigorescu)
+
+  * Fix whitespace in capture-loss.zek (Vlad Grigorescu)
+
+3.3.0-dev.381 | 2020-10-12 11:15:29 -0700
+
+  * GH-779: Add "udp-state" signature condition (Jon Siwek, Corelight)
+
+    It accepts "originator" or "responder" states as a way to enforce that
+    the signature only matches packets in the associated direction.
+    The "established" state is rejected as an error since it doesn't
+    have a useful meaning like it does for the "tcp-state" condition.
+
+  * Rename RuleConditionTCPState::TCPState enum values (Jon Siwek, Corelight)
+
+  * Rename "tcp-state" signature parser tokens to not be TCP-specific (Jon Siwek, Corelight)
+
 3.3.0-dev.377 | 2020-10-08 12:07:42 -0700
 
   * GH-1200: ignore a maybe-uninitialized warning (Jon Siwek, Corelight)

@@ -1991,7 +1991,7 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 	return Default(index);
 	}
 
-const bool TableVal::Contains(const IPAddr& addr)
+bool TableVal::Contains(const IPAddr& addr) const
 	{
 	if ( ! subnets )
 		{

@@ -1,6 +1,6 @@
          0.000000 zeek_init
-         0.000000 NetControl::init
          0.000000 filter_change_tracking
+         0.000000 NetControl::init
 1254722767.492060 Broker::log_flush
 1254722767.492060 ChecksumOffloading::check
 1254722767.492060 filter_change_tracking

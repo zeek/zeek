@@ -51,7 +51,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	if ( ! zeek::detail::ignore_checksums && 
 	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
-	     !caplen >= len )
+	     caplen >= len )
 		{
 		int chksum = 0;
 

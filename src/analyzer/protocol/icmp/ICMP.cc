@@ -762,7 +762,7 @@ zeek::VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* da
 			}
 
 		uint8_t type = *((const uint8_t*)data);
-		uint8_t length = *((const uint8_t*)(data + 1));
+		uint16_t length = *((const uint8_t*)(data + 1));
 
 		if ( length == 0 )
 			{

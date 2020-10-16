@@ -1,4 +1,11 @@
 
+3.3.0-dev.454 | 2020-10-16 10:34:53 -0700
+
+  * Change ICMP Neighbor Discovery option length storage to a uint16 (Vlad Grigorescu)
+
+    This fixes an overflow in the calculation of option lengths in
+    ICMP Neighbor Discovery messages.
+
 3.3.0-dev.451 | 2020-10-16 07:09:43 +0000
 
   * Make event ordering deterministic

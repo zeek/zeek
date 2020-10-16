@@ -745,7 +745,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			}
 
 		uint8 type = *((const uint8*)data);
-		uint8 length = *((const uint8*)(data + 1));
+		uint16 length = *((const uint8*)(data + 1));
 
 		if ( length == 0 )
 			{

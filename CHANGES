@@ -1,4 +1,8 @@
 
+3.3.0-dev.456 | 2020-10-16 12:41:58 -0700
+
+  * Avoid passing null pointers to memcmp in ZeekString comparison methods (Jon Siwek, Corelight)
+
 3.3.0-dev.454 | 2020-10-16 10:34:53 -0700
 
   * Change ICMP Neighbor Discovery option length storage to a uint16 (Vlad Grigorescu)

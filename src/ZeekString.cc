@@ -411,13 +411,19 @@ int Bstr_eq(const String* s1, const String* s2)
 	if ( s1->Len() != s2->Len() )
 		return 0;
 
+	if ( ! s1->Bytes() || ! s2->Bytes() )
+		// memcmp() arguments should never be null, so help avoid that
+		return s1->Bytes() == s2->Bytes();
+
 	return memcmp(s1->Bytes(), s2->Bytes(), s1->Len()) == 0;
 	}
 
 int Bstr_cmp(const String* s1, const String* s2)
 	{
 	int n = std::min(s1->Len(), s2->Len());
-	int cmp = memcmp(s1->Bytes(), s2->Bytes(), n);
+	// memcmp() arguments should never be null, so help avoid that
+	// (assuming that we only ever have null pointers when lengths are zero).
+	int cmp = n == 0 ? 0 : memcmp(s1->Bytes(), s2->Bytes(), n);
 
 	if ( cmp || s1->Len() == s2->Len() )
 		return cmp;

@@ -61,6 +61,11 @@ New Functionality
 
     #!/usr/local/zeek/bin/zeek --
 
+- Added a new ``generate_all_events`` bif, which can be used to always raise
+  events, even when they are not used by scripts. This can be used by the
+  ``dump-events.zeek`` script to log all events that happen; the script
+  got a new option to enable this behavior.
+
 Changed Functionality
 ---------------------
 

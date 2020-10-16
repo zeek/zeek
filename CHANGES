@@ -1,3 +1,19 @@
+
+3.3.0-dev.451 | 2020-10-16 07:09:43 +0000
+
+  * Make event ordering deterministic
+
+    NetControl::init and filter_change_tracking could basically be raised in
+    random order. (Johanna Amann, Corelight)
+
+  * Introduce generate_all_events bif and add option to misc/dump-events
+
+    generate_all_events causes all events to be raised internally; this
+    makes it possible for dump_events to really capture all events (and not
+    just those that were handled).
+
+    Addresses GH-169 (Johanna Amann, Corelight)
+
 3.3.0-dev.444 | 2020-10-15 13:25:12 -0700
 
   * Rework Sessions::Weird (Tim Wojtulewicz, Corelight)

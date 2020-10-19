@@ -1,4 +1,10 @@
 
+3.3.0-dev.461 | 2020-10-19 11:54:23 -0700
+
+  * Fix deprecation warning in POP3 fuzzer (Jon Siwek, Corelight)
+
+  * Add header length check to GRE packet analyzer (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.456 | 2020-10-16 12:41:58 -0700
 
   * Avoid passing null pointers to memcmp in ZeekString comparison methods (Jon Siwek, Corelight)

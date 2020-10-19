@@ -89,6 +89,18 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt)
 	uint32_t len = ip_hdr->TotalLen();
 	uint16_t ip_hdr_len = ip_hdr->HdrLen();
 
+	if ( len < ip_hdr_len )
+		{
+		sessions->Weird("bogus_IP_header_lengths", pkt);
+		return;
+		}
+
+	if ( caplen < ip_hdr_len )
+		{
+		sessions->Weird("bogus_IP_header_lengths", pkt);
+		return;
+		}
+
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;	// remove IP header
 

@@ -4,7 +4,7 @@ btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 4GB
 
 config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-sanitizer_config: &SANITIZER_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers
+sanitizer_config: &SANITIZER_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers --enable-coverage
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -66,6 +66,9 @@ env:
   # encrypted as a security measure to avoid leaking the host's information.
   ZEEK_BENCHMARK_HOST: ENCRYPTED[62ecdc93e839800d754d09d9a9070e9cb9b209e7d7dd2472ba38648f786ff272d0e0ea71233d0910025f2c6f3771259c]
   ZEEK_BENCHMARK_PORT: ENCRYPTED[fb34ae2d51bac798fc01da052f3772154e17bbe2c1c5615509e82935248e748053fda399a0caf909632b6272cebff9f4]
+
+  # The repo token used for uploading data to Coveralls.io
+  ZEEK_COVERALLS_REPO_TOKEN: ENCRYPTED[7ffd1e041f848f02b62f5abc7fda8a5a8a1561fbb2b46d88cefb67c74408ddeef6ea6f3b279c7953ca14ae9b4d050e2d]
 
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
@@ -160,6 +163,7 @@ sanitizer_task:
     memory: 12GB
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
+  coverage_script: ./ci/upload-coverage.sh
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *SANITIZER_CONFIG

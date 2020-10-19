@@ -76,18 +76,33 @@ void finalize_functions(const std::vector<FuncInfo*>& funcs)
 		if ( f->body->Tag() == STMT_COMPILED && f->save_file )
 			{
 			auto zb = f->body->AsZBody();
-			auto sf = fopen(f->save_file, "w");
+
+			// We first generate to a temporary file, and then
+			// rename() to the final file.  Doing so allows
+			// concurrent Zeek invocations to all be compiling
+			// the same scripts without potentially leaving
+			// the .ZAM file in a corrupted state.
+
+			char tmp_fn[8192];
+			snprintf(tmp_fn, sizeof tmp_fn,
+					"%s.tmp.XXXXXX", f->save_file);
+
+			auto tmp_fd = mkstemp(tmp_fn);
+
+			if ( tmp_fd < 0 )
+				reporter->InternalError("cannot create temp file %s: %s", tmp_fn, strerror(errno));
+
+			auto sf = fdopen(tmp_fd, "w");
 			if ( ! sf )
-				{
-				fprintf(stderr, "cannot create ZAM save file %s: %s\n",
-					f->save_file, strerror(errno));
-				exit(1);
-				}
-			else
-				{
-				zb->SaveTo(sf, func->FrameSize());
-				fclose(sf);
-				}
+				reporter->InternalError("cannot open ZAM save file %s: %s",
+						tmp_fn, strerror(errno));
+
+			zb->SaveTo(sf, func->FrameSize());
+			fclose(sf);
+
+			if ( rename(tmp_fn, f->save_file) < 0 )
+				reporter->InternalError("cannot finalize ZAM save file %s (%s)",
+							f->save_file, tmp_fn);
 			}
 		}
 	}

@@ -184,7 +184,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				auto rv_i = rv->GetField(i).get();
+				auto rv_i = rv->GetField(i);
 
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->Find(ATTR_OPTIONAL));
@@ -194,7 +194,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 				if ( ! (kp = SingleValHash(type_check, kp,
 							   rt->GetFieldType(i).get(),
-							   rv_i, optional)) )
+							   rv_i.get(), optional)) )
 					return nullptr;
 				}
 

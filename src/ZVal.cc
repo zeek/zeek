@@ -12,10 +12,7 @@
 using namespace zeek;
 
 
-bool* zeek::zval_error_addr = nullptr;
-
-
-bool zeek::IsManagedType(const IntrusivePtr<Type>& t)
+bool zeek::IsManagedType(const TypePtr& t)
 	{
 	switch ( t->Tag() ) {
 	case zeek::TYPE_ADDR:
@@ -40,7 +37,7 @@ bool zeek::IsManagedType(const IntrusivePtr<Type>& t)
 	}
 
 
-ZAMValUnion::ZAMValUnion(IntrusivePtr<zeek::Val> v, const IntrusivePtr<Type>& t)
+ZAMValUnion::ZAMValUnion(ValPtr v, const TypePtr& t)
 	{
 	if ( ! v )
 		{
@@ -161,7 +158,7 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<zeek::Val> v, const IntrusivePtr<Type>& t)
 	}
 	}
 
-bool ZAMValUnion::IsNil(const IntrusivePtr<Type>& t) const
+bool ZAMValUnion::IsNil(const TypePtr& t) const
 	{
 	switch ( t->Tag() ) {
 	case zeek::TYPE_ADDR:		return ! addr_val;
@@ -181,7 +178,7 @@ bool ZAMValUnion::IsNil(const IntrusivePtr<Type>& t) const
 	}
 	}
 
-IntrusivePtr<zeek::Val> ZAMValUnion::ToVal(const IntrusivePtr<Type>& t) const
+ValPtr ZAMValUnion::ToVal(const TypePtr& t) const
 	{
 	Val* v;
 
@@ -321,7 +318,7 @@ void ZAM_vector::DeleteMembers()
 	}
 
 
-ZAM_record::ZAM_record(RecordVal* _rv, IntrusivePtr<RecordType> _rt)
+ZAM_record::ZAM_record(RecordVal* _rv, RecordTypePtr _rt)
 	: zvec(_rt->NumFields()), is_in_record(_rt->NumFields(), false),
 	is_managed(_rt->ManagedFields())
 	{

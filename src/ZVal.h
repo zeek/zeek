@@ -30,7 +30,7 @@ namespace zeek {
 // Only needed for compiled code.
 class IterInfo;
 
-typedef std::vector<zeek::IntrusivePtr<zeek::Val>> val_vec;
+typedef std::vector<zeek::ValPtr> val_vec;
 
 // A bit of this mirrors BroValUnion, but BroValUnion captures low-level
 // representation whereas we aim to keep Val structure for more complex
@@ -52,20 +52,28 @@ typedef std::vector<zeek::IntrusivePtr<zeek::Val>> val_vec;
 // sharing of ZAM frame slots.
 union ZAMValUnion {
 	// Constructor for hand-populating the values.
-	ZAMValUnion() { managed_val = nullptr; }
+	ZAMValUnion() { double_val = 0.0; }
 
 	// Construct from a given Val with a given type.  The type
 	// is separate to accommodate "any" values.
-	ZAMValUnion(zeek::IntrusivePtr<zeek::Val> v,
-			const zeek::IntrusivePtr<zeek::Type>& t);
+	ZAMValUnion(zeek::ValPtr v, const zeek::TypePtr& t);
 
-	// True if when interpreting the value as having the given type,
-	// it's a nil pointer.
-	bool IsNil(const zeek::IntrusivePtr<zeek::Type>& t) const;
+	/**
+	 * Tests whether, when interpreting the value as having the given
+	 * type, it's a nil pointer.
+	 * @param t  the type to use in interpreting the ZAMValUnion.
+	 * @return  True if the value is nil given that type, false otherwise.
+	 */
+	bool IsNil(const zeek::TypePtr& t) const;
 
-	// Convert to a Bro value.
-	zeek::IntrusivePtr<zeek::Val>
-		ToVal(const zeek::IntrusivePtr<zeek::Type>& t) const;
+	/**
+	 * Return a Val object corresponding to this ZAMValUnion.  If
+	 * the value is managed, then the result is the same underlying
+	 * value.  If not managed, then the result is newly constructed.
+	 * @param t  the type to use in interpreting the ZAMValUnion.
+	 * @return  a ValPtr reflecting the value.
+	 */
+	zeek::ValPtr ToVal(const zeek::TypePtr& t) const;
 
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -108,11 +116,18 @@ union ZAMValUnion {
 	zeek::Obj* managed_val;
 };
 
-// True if a given type is one for which we manage the associated
-// memory internally.
-bool IsManagedType(const zeek::IntrusivePtr<zeek::Type>& t);
+/**
+ * Tests whether a given type is one for which we manage the associated
+ * memory internally.
+ * @param t  the type we want to test for management.
+ * @return  true if the type is managed, false otherwise.
+ */
+bool IsManagedType(const zeek::TypePtr& t);
 
-// Deletes a managed value.
+/**
+ * Deletes a managed value.
+ * @param v  The ZAMValUnion who's managed value should be deleted.
+ */
 inline void DeleteManagedType(ZAMValUnion& v)
 	{
 	Unref(v.managed_val);
@@ -123,7 +138,7 @@ inline void DeleteManagedType(ZAMValUnion& v)
 //
 // We use this somewhat clunky coupling to enable isolating ZVal from
 // ZAM compiler specifics.
-extern bool* zval_error_addr;
+inline bool* zval_error_addr = nullptr;
 
 typedef std::vector<ZAMValUnion> ZVU_vec;
 
@@ -133,8 +148,7 @@ public:
 	// due to tricky memory management concerns, namely that ZAM_vector's
 	// point to their VectorVal's and VectorVal's point to their
 	// ZAM_vector's.
-	ZAM_vector(zeek::VectorVal* _vv, zeek::IntrusivePtr<zeek::Type> yt,
-			int n = 0)
+	ZAM_vector(zeek::VectorVal* _vv, zeek::TypePtr yt, int n = 0)
 	: zvec(n)
 		{
 		vv = _vv;
@@ -154,11 +168,15 @@ public:
 			DeleteMembers();
 		}
 
-	zeek::IntrusivePtr<zeek::Type> YieldType() 	{ return general_yt; }
-	const zeek::IntrusivePtr<zeek::Type>& YieldType() const
-		{ return general_yt; }
+	zeek::TypePtr YieldType() 		{ return general_yt; }
+	const zeek::TypePtr& YieldType() const	{ return general_yt; }
 
-	void SetYieldType(zeek::IntrusivePtr<zeek::Type> yt)
+	/**
+	 * Sets the vector's yield type to be the given type, unless the
+	 * vector already has a concrete yield type.
+	 * @param yt  The yield type to set for the vector.
+	 */
+	void SetYieldType(zeek::TypePtr yt)
 		{
 		if ( ! general_yt || general_yt->Tag() == zeek::TYPE_ANY ||
 		     general_yt->Tag() == zeek::TYPE_VOID )
@@ -168,13 +186,35 @@ public:
 			}
 		}
 
+	/**
+	 * Returns whether the yield type of the vector is managed.
+	 * @return  True if the yield type of the vector is managed.
+	 */
 	bool IsManagedYieldType() const	{ return managed_yt != nullptr; }
 
+	/**
+	 * Returns the number of elements in the vector.
+	 * @return  The number of elements in the vector.
+	 */
 	unsigned int Size() const	{ return zvec.size(); }
 
+	/**
+	 * Provides immutable access to the underlying vector.
+	 * @return  A constant reference to the underlying vector.
+	 */
 	const ZVU_vec& ConstVec() const	{ return zvec; }
+	/**
+	 * Provides mutable access to the underlying vector.
+	 * @return  A reference to the underlying vector.
+	 */
 	ZVU_vec& ModVec()		{ return zvec; }
 
+	/**
+	 * Obtains mutable access to the underlying vector, in the context
+	 * of first initializing it.
+	 * @param size  How many elements the vector will initially hold.
+	 * @return  A mutable reference to the underlying vector.
+	 */
 	// Used when access to the underlying vector is for initialization.
 	ZVU_vec& InitVec(unsigned int size)
 		{
@@ -187,12 +227,22 @@ public:
 		return zvec;
 		}
 
+	/**
+	 * Provides mutable access to a given element of the vector.
+	 * @param n  Which element in the vector (0-based).
+	 * @return  A mutable reference to the given element.
+	 */
 	ZAMValUnion& Lookup(int n)
 		{
 		return zvec[n];
 		}
 
-	// Sets the given element, with accompanying memory management.
+	/**
+	 * Sets the given vector element to the given value, with
+	 * accompanying memory management.
+	 * @param n  Which element in the vector (0-based).
+	 * @param v  The value to set the element to.
+	 */
 	void SetElement(unsigned int n, ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
@@ -204,15 +254,18 @@ public:
 		zvec[n] = v;
 		}
 
-	// Sets the given element to a copy of the given ZAMValUnion.
-	// The difference between this and SetElement() is that here
-	// we do Ref()'ing of the underlying value if it's a managed
-	// type.  This isn't necessary for the case where 'v' has been
-	// newly constructed, but is necessary if we're copying an
-	// existing 'v'.
-	//
-	// Returns true on success, false if 'v' has never been set to
-	// a value (which we can only tell for managed types).
+	/**
+	 * Sets the given element to a copy of the given ZAMValUnion.
+	 * The difference between this and SetElement() is that here
+	 * we do Ref()'ing of the underlying value if it's a managed
+	 * type.  This isn't necessary for the case where 'v' has been
+	 * newly constructed, but is necessary if we're copying an
+	 * existing 'v'.
+	 * @param n  Which element in the vector (0-based).
+	 * @param v  The value to set the element to, with manual Ref()'ing.
+	 * @return  True on success, false if 'v' has never been set to
+	 * a value (which we can only tell for managed types).
+	 */
 	bool CopyElement(unsigned int n, const ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
@@ -225,6 +278,11 @@ public:
 		return true;
 		}
 
+	/**
+	 * Inserts the given value at the given index in the vector.
+	 * @param index  Which element in the vector (0-based).
+	 * @param element  The value to set the element to.
+	 */
 	void Insert(unsigned int index, ZAMValUnion& element)
 		{
 		ZVU_vec::iterator it;
@@ -241,6 +299,10 @@ public:
 		zvec.insert(it, element);
 		}
 
+	/**
+	 * Removes the given element from the vector.
+	 * @param index  Which element in the vector (0-based).
+	 */
 	void Remove(unsigned int index)
 		{
 		if ( managed_yt )
@@ -250,6 +312,10 @@ public:
 		zvec.erase(it);
 		}
 
+	/**
+	 * Resizes the vector to contain the given number of elements.
+	 * @param new_num_elements  Number of elements the vector should have.
+	 */
 	void Resize(unsigned int new_num_elements)
 		{
 		zvec.resize(new_num_elements);
@@ -277,28 +343,36 @@ protected:
 
 	// The yield type of the vector elements.  Only non-nil if they
 	// are managed types.
-	zeek::IntrusivePtr<zeek::Type> managed_yt;
+	zeek::TypePtr managed_yt;
 
 	// The yield type of the vector elements, whether or not it's
 	// managed.  We use a lengthier name to make sure we never
 	// confuse this with managed_yt.
-	zeek::IntrusivePtr<zeek::Type> general_yt;
+	zeek::TypePtr general_yt;
 };
 
 class ZAM_record {
 public:
 	// Similarly to ZAM_vector, we use a bare pointer for the RecordVal
 	// to simplify the memory management given the pointer cycle.
-	ZAM_record(zeek::RecordVal* _v,
-			zeek::IntrusivePtr<zeek::RecordType> _rt);
+	ZAM_record(zeek::RecordVal* _v, zeek::RecordTypePtr _rt);
 
 	~ZAM_record()
 		{
 		DeleteManagedMembers();
 		}
 
+	/**
+	 * Returns the number of fields in the record.
+	 * @return  The number of fields in the record.
+	 */
 	unsigned int Size() const	{ return zvec.size(); }
 
+	/**
+	 * Assigns the given record field to the given value.
+	 * @param field  Which field in the record to assign to.
+	 * @param v  The value to set the element to.
+	 */
 	void Assign(unsigned int field, ZAMValUnion v)
 		{
 		if ( IsInRecord(field) && IsManaged(field) )
@@ -308,18 +382,35 @@ public:
 		is_in_record[field] = true;
 		}
 
-	// Direct access to fields for assignment.  *The caller
-	// is expected to deal with memory management.*
+	/**
+	 * Provides direct raw access to one of the record's fields
+	 * for assignment purposes.  *The caller is expected to deal
+	 * with memory management.*
+	 * @param field  Which field in the record to access.
+	 * @return  A mutable reference to the given field.
+	 */
 	ZAMValUnion& SetField(unsigned int field)
 		{
 		is_in_record[field] = true;
 		return zvec[field];
 		}
 
-	// Used for a slight speed gain in RecordType::Create().
+	/**
+	 * Increases the reference count for the given field.  Included
+	 * as it provides a slight speed gain in RecordType::Create()
+	 * (a pending change).
+	 * @param field  Which field in the record to reference.
+	 */
 	void RefField(unsigned int field)
 		{ zeek::Ref(zvec[field].managed_val); }
 
+	/**
+	 * Returns (access to) the given record field, if available.
+	 * @param field  Which field in the record to access.
+	 * @param error  A boolean reference used to indicate an error
+	 *               if the field does not exist in the record.
+	 * @return  A mutable reference to the given field.
+	 */
 	ZAMValUnion& Lookup(unsigned int field, bool& error)
 		{
 		error = false;
@@ -330,7 +421,14 @@ public:
 		return zvec[field];
 		}
 
-	zeek::IntrusivePtr<zeek::Val> NthField(unsigned int field)
+	/**
+	 * Returns a ValPtr corresponding to value of the given record field,
+	 * if available.
+	 * @param field  Which field in the record to access.
+	 * @return  A ValPtr corresponding to the given field, or a nil
+	 *          if the field is not set in the record.
+	 */
+	zeek::ValPtr NthField(unsigned int field)
 		{
 		bool error;
 		auto f = Lookup(field, error);
@@ -341,6 +439,10 @@ public:
 		return f.ToVal(FieldType(field));
 		}
 
+	/**
+	 * Deletes the given field from the record.
+	 * @param field  Which field in the record to access.
+	 */
 	void DeleteField(unsigned int field)
 		{
 		if ( IsInRecord(field) && IsManaged(field) )
@@ -349,20 +451,25 @@ public:
 		is_in_record[field] = false;
 		}
 
+	/**
+	 * Tests whether the given field is present in the record.
+	 * @param field  Which field in the record to access.
+	 * @return  True if the field is present, false if not.
+	 */
 	bool HasField(unsigned int field)
 		{
 		return IsInRecord(field);
 		}
+
+protected:
+	friend class zeek::RecordVal;
 
 	bool IsInRecord(unsigned int offset) const
 		{ return is_in_record[offset]; }
 	bool IsManaged(unsigned int offset) const
 		{ return is_managed[offset]; }
 
-protected:
-	friend class zeek::RecordVal;
-
-	zeek::IntrusivePtr<zeek::Type> FieldType(int field) const
+	zeek::TypePtr FieldType(int field) const
 		{ return rt->GetFieldType(field); }
 
 	bool SetToDefault(unsigned int field);
@@ -385,7 +492,7 @@ protected:
 	zeek::RecordVal* rv;
 
 	// And a handy pointer to its type.
-	zeek::IntrusivePtr<zeek::RecordType> rt;
+	zeek::RecordTypePtr rt;
 
 	// Whether a given field exists (for optional fields).
 	std::vector<bool> is_in_record;

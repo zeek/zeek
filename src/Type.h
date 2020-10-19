@@ -605,9 +605,11 @@ public:
 	const TypeDecl* FieldDecl(int field) const;
 	TypeDecl* FieldDecl(int field);
 
-	// Returns flags corresponding to which fields in the record
-	// have types requiring memory management (reference counting).
-	// Primarily used by the compiler.
+	/**
+	 * Returns flags corresponding to which fields in the record
+	 * have types requiring memory management (reference counting).
+	 * Primarily used by the compiler.
+	 */
 	const std::vector<bool>& ManagedFields() const
 		{ return managed_fields; }
 

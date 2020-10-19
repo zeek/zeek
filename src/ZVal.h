@@ -54,7 +54,8 @@ union ZAMValUnion {
 	// Constructor for hand-populating the values.
 	ZAMValUnion() { managed_val = nullptr; }
 
-	// Construct from a given Bro value with a given type.
+	// Construct from a given Val with a given type.  The type
+	// is separate to accommodate "any" values.
 	ZAMValUnion(zeek::IntrusivePtr<zeek::Val> v,
 			const zeek::IntrusivePtr<zeek::Type>& t);
 

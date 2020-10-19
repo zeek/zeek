@@ -1383,6 +1383,10 @@ public:
 		return At(static_cast<unsigned int>(i)).get();
 		}
 
+	/**
+	 * Returns the underlying ZAM_vector for fast raw access to
+	 * vector elements.
+	 */
 	ZAM_vector* RawVector() const	{ return val.vector_val; }
 
 	unsigned int Size() const { return val.vector_val->Size(); }

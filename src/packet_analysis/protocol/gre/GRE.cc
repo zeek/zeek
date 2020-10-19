@@ -10,7 +10,7 @@
 
 using namespace zeek::packet_analysis::GRE;
 
-static unsigned int gre_header_len(uint16_t flags)
+static unsigned int gre_header_len(uint16_t flags=0)
 	{
 	unsigned int len = 4;  // Always has 2 byte flags and 2 byte protocol type.
 
@@ -44,13 +44,19 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	if ( ! packet->ip_hdr )
 		{
-		reporter->InternalError("GREAnalyzer: ip_hdr not found in packet keystore");
+		reporter->InternalError("GREAnalyzer: ip_hdr not provided from earlier analyzer");
 		return false;
 		}
 
 	if ( ! BifConst::Tunnel::enable_gre )
 		{
 		sessions->Weird("GRE_tunnel", packet);
+		return false;
+		}
+
+	if ( len < gre_header_len() )
+		{
+		sessions->Weird("truncated_GRE", packet);
 		return false;
 		}
 

@@ -681,19 +681,23 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 
 void NetSessions::Weird(const char* name, const Packet* pkt, const char* addl)
 	{
+	const char* weird_name = name;
+
 	if ( pkt )
+		{
 		pkt->dump_packet = true;
 
-	const char* weird_name;
-	if ( pkt->encap && pkt->encap->LastType() != BifEnum::Tunnel::NONE )
-		weird_name = util::fmt("%s_in_tunnel", name);
-	else
-		weird_name = name;
+		if ( pkt->encap && pkt->encap->LastType() != BifEnum::Tunnel::NONE )
+			weird_name = util::fmt("%s_in_tunnel", name);
 
-	if ( pkt->ip_hdr )
-		reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl);
-	else
-		reporter->Weird(weird_name, addl);
+		if ( pkt->ip_hdr )
+			{
+			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl);
+			return;
+			}
+		}
+
+	reporter->Weird(weird_name, addl);
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip, const char* addl)

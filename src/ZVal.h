@@ -477,6 +477,7 @@ protected:
 	void Grow(unsigned int new_size)
 		{
 		zvec.resize(new_size);
+		is_in_record.resize(new_size);
 		}
 
 	// Removes the given field.

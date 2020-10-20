@@ -1,4 +1,9 @@
 
+3.3.0-dev.464 | 2020-10-20 08:43:40 +0000
+
+  * Update BTest to 0.63. New test baselines will now be store
+    canonified. (Robin Sommer, Corelight)
+
 3.3.0-dev.463 | 2020-10-19 18:57:00 -0700
 
   * Add length checks for IP header values before parsing TCP/UDP (Tim Wojtulewicz, Corelight)

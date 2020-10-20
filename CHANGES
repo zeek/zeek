@@ -1,4 +1,8 @@
 
+3.3.0-dev.463 | 2020-10-19 18:57:00 -0700
+
+  * Add length checks for IP header values before parsing TCP/UDP (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.461 | 2020-10-19 11:54:23 -0700
 
   * Fix deprecation warning in POP3 fuzzer (Jon Siwek, Corelight)

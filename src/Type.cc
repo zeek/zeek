@@ -1271,7 +1271,7 @@ EnumType::~EnumType() = default;
 // location in the error message, rather than the one where the type was
 // originally defined.
 void EnumType::AddName(const string& module_name, const char* name, bool is_export,
-                       detail::Expr* deprecation)
+                       detail::Expr* deprecation, bool from_redef)
 	{
 	/* implicit, auto-increment */
 	if ( counter < 0)
@@ -1280,12 +1280,12 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 		SetError();
 		return;
 		}
-	CheckAndAddName(module_name, name, counter, is_export, deprecation);
+	CheckAndAddName(module_name, name, counter, is_export, deprecation, from_redef);
 	counter++;
 	}
 
 void EnumType::AddName(const string& module_name, const char* name, bro_int_t val,
-                       bool is_export, detail::Expr* deprecation)
+                       bool is_export, detail::Expr* deprecation, bool from_redef)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
@@ -1295,11 +1295,12 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		return;
 		}
 	counter = -1;
-	CheckAndAddName(module_name, name, val, is_export, deprecation);
+	CheckAndAddName(module_name, name, val, is_export, deprecation, from_redef);
 	}
 
 void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export, detail::Expr* deprecation)
+                               bro_int_t val, bool is_export, detail::Expr* deprecation,
+                               bool from_redef)
 	{
 	if ( Lookup(val) )
 		{
@@ -1320,7 +1321,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		if ( deprecation )
 			id->MakeDeprecated({NewRef{}, deprecation});
 
-		detail::zeekygen_mgr->Identifier(std::move(id));
+		detail::zeekygen_mgr->Identifier(std::move(id), from_redef);
 		}
 	else
 		{

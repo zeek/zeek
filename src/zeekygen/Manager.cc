@@ -219,11 +219,12 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierInfo* Manager::CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script, bool from_redef)
 	{
 	const auto& id_name = id->Name();
 	auto prev = identifiers.GetInfo(id_name);
-	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(std::move(id), script);
+	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(std::move(id), script,
+	                                                        from_redef);
 
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
@@ -281,7 +282,7 @@ static bool IsEnumType(zeek::detail::ID* id)
 	return id->IsType() ? id->GetType()->Tag() == TYPE_ENUM : false;
 	}
 
-void Manager::Identifier(zeek::detail::IDPtr id)
+void Manager::Identifier(zeek::detail::IDPtr id, bool from_redef)
 	{
 	if ( disabled )
 		return;
@@ -322,7 +323,7 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 		// Handled specially since they don't have a script location.
 		DBG_LOG(DBG_ZEEKYGEN, "Made internal IdentifierInfo %s",
 		        id->Name());
-		CreateIdentifierInfo(id, nullptr);
+		CreateIdentifierInfo(id, nullptr, from_redef);
 		return;
 		}
 
@@ -337,11 +338,11 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 
 	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo %s, in script %s",
 	        id->Name(), script.c_str());
-	CreateIdentifierInfo(std::move(id), script_info);
+	CreateIdentifierInfo(std::move(id), script_info, from_redef);
 	}
 
 void Manager::RecordField(const zeek::detail::ID* id, const TypeDecl* field,
-                          const string& path)
+                          const string& path, bool from_redef)
 	{
 	if ( disabled )
 		return;
@@ -357,7 +358,7 @@ void Manager::RecordField(const zeek::detail::ID* id, const TypeDecl* field,
 		}
 
 	string script = NormalizeScriptPath(path);
-	idd->AddRecordField(field, script, comment_buffer);
+	idd->AddRecordField(field, script, comment_buffer, from_redef);
 	comment_buffer.clear();
 	DBG_LOG(DBG_ZEEKYGEN, "Document record field %s, identifier %s, script %s",
 	        field->id, id->Name(), script.c_str());

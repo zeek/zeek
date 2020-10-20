@@ -31,8 +31,11 @@ public:
 	 * @param id The script-level identifier.
 	 * @param script The info object associated with the script in which \a id
 	 * is declared.
+	 * @param from_redef  Whether the identifier was create as part of a
+	 * redefinition (e.g. an enum).
 	 */
-	IdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script);
+	IdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script,
+	               bool from_redef = false);
 
 	/**
 	 * Dtor.  Releases any references to script-level objects.
@@ -81,9 +84,10 @@ public:
 	 * @param script The script in which the field was declared.  This may
 	 * differ from the script in which a record type is declared due to redefs.
 	 * @param comments Comments associated with the record field.
+	 * @param from_redef  The field is from a record redefinition.
 	 */
 	void AddRecordField(const TypeDecl* field, const std::string& script,
-	                    std::vector<std::string>& comments);
+	                    std::vector<std::string>& comments, bool from_redef);
 
 	/**
 	 * Signals that a record type has been completely parsed.  This resets
@@ -110,6 +114,19 @@ public:
 	 * @return The script which declared the record field name.
 	 */
 	std::string GetDeclaringScriptForField(const std::string& field) const;
+
+	/**
+	 * @return True if the identifier was created as part of a redefinition
+	 * (e.g. an enum).
+	 */
+	bool IsFromRedef() const
+		{ return from_redef; }
+
+	/**
+	 * @param field A record field name.
+	 * @return True if the field name was added to a record as part of a redef.
+	 */
+	bool FieldIsFromRedef(const std::string& field) const;
 
 	/**
 	 * @return All Zeekygen comments associated with the identifier.
@@ -168,6 +185,7 @@ private:
 		TypeDecl* field;
 		std::string from_script;
 		std::vector<std::string> comments;
+		bool from_redef;
 	};
 
 	typedef std::list<Redefinition*> redef_list;
@@ -180,6 +198,7 @@ private:
 	record_field_map fields;
 	RecordField* last_field_seen;
 	ScriptInfo* declaring_script;
+	bool from_redef = false;
 };
 
 } // namespace zeek::zeekygen::detail

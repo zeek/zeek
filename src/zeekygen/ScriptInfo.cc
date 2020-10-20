@@ -116,7 +116,106 @@ static string make_redef_summary(const string& heading, char underline,
 
 		for ( redef_list::const_iterator iit = redefs.begin();
 		      iit != redefs.end(); ++iit )
+			{
 			add_summary_rows(d, summary_comment(iit->comments), &table);
+
+			if ( ! id->IsType() )
+				continue;
+
+			if ( id->GetType()->Tag() == TYPE_ENUM )
+				{
+				for ( const auto& [enum_name, v] : id->GetType()->AsEnumType()->Names() )
+					{
+					auto info = zeek::detail::zeekygen_mgr->GetIdentifierInfo(enum_name);
+
+					if ( ! info )
+						continue;
+
+					if ( ! info->IsFromRedef() )
+						continue;
+
+					if ( ! info->GetDeclaringScript() )
+						continue;
+
+					if ( info->GetDeclaringScript()->Name() != from_script )
+						continue;
+
+					vector<string> row;
+					row.emplace_back("");
+					row.emplace_back("");
+					table.AddRow(row);
+
+					auto comments = info->GetComments();
+					auto summary_comments = summary_comment(comments);
+					auto enum_id = info->GetID();
+
+					auto colon = summary_comments.empty() ? "" : ":";
+					row[1] = util::fmt("* :zeek:enum:`%s`%s", enum_id->Name(), colon);
+					table.AddRow(row);
+
+					for ( auto& sc : summary_comments )
+						{
+						row[1] = util::fmt("  %s", sc.data());
+						table.AddRow(row);
+						}
+					}
+				}
+				else if ( id->GetType()->Tag() == TYPE_RECORD )
+					{
+					auto info = zeek::detail::zeekygen_mgr->GetIdentifierInfo(id->Name());
+
+					if ( ! info || ! info->GetDeclaringScript() )
+						continue;
+
+					auto rt = id->GetType()->AsRecordType();
+					bool added_new_field_docs = false;
+
+					for ( auto i = 0; i < rt->NumFields(); ++i )
+						{
+						auto field_name = rt->FieldName(i);
+
+						if ( ! info->FieldIsFromRedef(field_name) )
+							continue;
+
+						auto declaring_script = info->GetDeclaringScriptForField(field_name);
+
+						if ( declaring_script != from_script )
+							continue;
+
+						vector<string> row;
+						row.emplace_back("");
+						row.emplace_back("");
+						table.AddRow(row);
+
+						if ( ! added_new_field_docs )
+							{
+							added_new_field_docs = true;
+							row[1] = util::fmt(":New Fields: :zeek:type:`%s`", id->Name());
+							table.AddRow(row);
+							row[1] = "";
+							table.AddRow(row);
+							}
+
+						auto td = rt->FieldDecl(i);
+
+						ODesc fd;
+						fd.SetQuotes(true);
+						td->DescribeReST(&fd, true);
+
+						row[1] = util::fmt("  %s", fd.Description());
+						table.AddRow(row);
+
+						auto comments = info->GetFieldComments(field_name);
+						auto summary_comments = summary_comment(comments);
+
+						for ( auto& sc : summary_comments )
+							{
+							row[1] = util::fmt("    %s", sc.data());
+							table.AddRow(row);
+							}
+						}
+					}
+			}
 		}
 
 	return make_heading(heading, underline) + table.AsString(border)

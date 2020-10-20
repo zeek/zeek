@@ -130,6 +130,8 @@ static int in_when_cond = 0;
 static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
+static int in_record_redef = 0;
+static int in_enum_redef = 0;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
@@ -842,7 +844,8 @@ enum_body_elem:
 				zeek::reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(zeek::detail::current_module, $1,
-				                       $3->InternalUnsigned(), is_export, $4);
+				                       $3->InternalUnsigned(), is_export, $4,
+				                       in_enum_redef != 0);
 			}
 
 	|	TOK_ID '=' '-' TOK_CONSTANT
@@ -858,7 +861,8 @@ enum_body_elem:
 			{
 			zeek::detail::set_location(@1);
 			assert(cur_enum_type);
-			cur_enum_type->AddName(zeek::detail::current_module, $1, is_export, $2);
+			cur_enum_type->AddName(zeek::detail::current_module, $1, is_export, $2,
+			                       in_enum_redef != 0);
 			}
 	;
 
@@ -1070,7 +1074,8 @@ type_decl:
 			$$ = new zeek::TypeDecl($1, {zeek::AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
-				zeek::detail::zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
+				zeek::detail::zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename,
+				                                        in_record_redef != 0);
 			}
 	;
 
@@ -1149,18 +1154,19 @@ decl:
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ parser_redef_enum($3); zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
+			{ ++in_enum_redef; parser_redef_enum($3); zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
 		enum_body '}' ';'
 			{
+			--in_enum_redef;
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id
 			{ cur_decl_type_id = $3; zeek::detail::zeekygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
-			{ ++in_record; }
+			{ ++in_record; ++in_record_redef; }
 		type_decl_list
-			{ --in_record; }
+			{ --in_record; --in_record_redef; }
 		'}' opt_attr ';'
 			{
 			cur_decl_type_id = 0;

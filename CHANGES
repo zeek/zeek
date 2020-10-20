@@ -1,4 +1,8 @@
 
+3.3.0-dev.465 | 2020-10-20 13:34:20 +0000
+
+  * Bump BTest to 0.64.
+
 3.3.0-dev.464 | 2020-10-20 08:43:40 +0000
 
   * Update BTest to 0.63. New test baselines will now be store

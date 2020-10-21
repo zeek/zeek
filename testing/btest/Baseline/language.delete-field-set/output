@@ -1,1 +1,5 @@
-[a=<uninitialized>, b=<uninitialized>, c=<uninitialized>]
+[a={
+
+}, b={
+
+}, c=[]]

@@ -1,1 +1,1 @@
-error in ./double_convert_failure1.zeek, line 7 and double: type clash for field "cc" ((coerce [$cc=5.0] to myrecord) and double)
+error in count and ./double_convert_failure1.zeek, line 7: over-promotion of arithmetic value (count and 5.0)

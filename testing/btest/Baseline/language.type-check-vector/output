@@ -1,4 +1,1 @@
-T
-[one, two, 3]
-T
-[one, two, three]
+expression error in /Users/vern/warehouse/zeek-script-opt/testing/btest/.tmp/language.type-check-vector/type-check-vector.zeek, line 14: type mismatch at index 2 (vector(one, two, 3))

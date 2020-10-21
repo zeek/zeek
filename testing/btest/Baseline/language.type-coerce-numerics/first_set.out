@@ -1,4 +1,5 @@
-error in int: overflow promoting from unsigned/double to signed arithmetic value (int and 9223372036854775808)
+error in int and ./first_set.zeek, line 46: overflow promoting from unsigned/double to signed arithmetic value (int and 9223372036854775808)
+expression error in ./first_set.zeek, line 46: uninitialized list value ($ii=(coerce 9223372036854775808 to int))
 3
 int
 4

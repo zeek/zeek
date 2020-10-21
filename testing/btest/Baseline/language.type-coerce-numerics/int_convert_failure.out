@@ -1,1 +1,1 @@
-error in ./int_convert_failure.zeek, line 7 and int: type clash for field "cc" ((coerce [$cc=-5] to myrecord) and int)
+error in count and ./int_convert_failure.zeek, line 7: over-promotion of arithmetic value (count and -5)

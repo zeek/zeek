@@ -7059,16 +7059,24 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 
 		if ( has_any_arg )
 			{
+			// Need to do dynamic type-checking for "any" values.
 			auto func_type = func->Type()->AsFuncType();
 			auto& f_arg_types = *func_type->ArgTypes()->Types();
 			auto& args_e = args->Exprs();
-			for ( unsigned int i = 0; i < args_e.size(); ++i )
+
+			// We might have more arguments than argument types
+			// due to calling a variadic function.  Only compare
+			// through the range that's meaningful.
+			auto n = std::min(args_e.size(), f_arg_types.size());
+
+			for ( unsigned int i = 0; i < n; ++i )
 				{
 				auto tag = args_e[i]->Type()->Tag();
 
 				if ( tag != TYPE_ANY &&
 				     (tag != TYPE_VECTOR ||
 				      args_e[i]->Type()->AsVectorType()->YieldType()->Tag() != TYPE_ANY) )
+					// This one isn't interesting.
 					continue;
 
 				auto vi_t = (*v)[i]->Type();

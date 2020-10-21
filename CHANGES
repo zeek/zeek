@@ -1,4 +1,8 @@
 
+3.3.0-dev.467 | 2020-10-21 11:06:18 -0700
+
+  * Fix a couple of Coverity findings (1433618, 1433619) (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.465 | 2020-10-20 13:34:20 +0000
 
   * Bump BTest to 0.64.

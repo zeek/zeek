@@ -26,6 +26,7 @@ IPAnalyzer::IPAnalyzer()
 
 IPAnalyzer::~IPAnalyzer()
 	{
+	delete discarder;
 	}
 
 bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)

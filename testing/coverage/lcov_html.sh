@@ -115,8 +115,8 @@ verify_run "which lcov" \
 	"lcov installed on system, continue" \
 	"lcov not installed, abort"
 
-# 4. Create a "tracefile" through lcov, which is necessary to create html files later on.
-echo -n "Creating tracefile for html generation... "
+# 4. Create a "tracefile" through lcov, which is necessary to create output later on.
+echo -n "Creating tracefile for output generation... "
 verify_run "lcov --no-external --capture --directory . --output-file $COVERAGE_FILE"
 
 # 5. Remove a number of 3rdparty and "extra" files that shoudln't be included in the
@@ -132,5 +132,16 @@ if [ $HTML_REPORT -eq 1 ]; then
     verify_run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
 else
     echo -n "Reporting to Coveralls..."
-    verify_run "coveralls-lcov -t ${COVERALLS_REPO_TOKEN} ${COVERAGE_FILE}"
+    coveralls_cmd="coveralls-lcov -t ${COVERALLS_REPO_TOKEN}"
+
+    # If we're being called by Cirrus, add some additional information to the output.
+    if [ -n "${CIRRUS_BUILD_ID}" ]; then
+	coveralls_cmd="${coveralls_cmd} --service-name=cirrus --service-job-id=${CIRRUS_BUILD_ID}"
+    else
+	coveralls_cmd="${coveralls_cmd} --service-name=local"
+    fi
+
+    coveralls_cmd="${coveralls_cmd} ${COVERAGE_FILE}"
+
+    verify_run "${coveralls_cmd}"
 fi

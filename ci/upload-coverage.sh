@@ -11,9 +11,9 @@ if [ "${CIRRUS_REPO_FULL_NAME}" != "zeek/zeek" ]; then
     exit 0
 fi
 
-if [ "${CIRRUS_BRANCH}" != "master" ] then
-   echo "Coverage upload skipped for non-master branches"
-   exit 0
+if [ "${CIRRUS_BRANCH}" != "master" ]; then
+    echo "Coverage upload skipped for non-master branches"
+    exit 0
 fi
 
 cd testing/coverage

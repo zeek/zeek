@@ -1,9 +1,6 @@
 module PacketAnalyzer::ETHERNET;
 
 export {
-	## Default analyzer
-	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
-
 	## IEEE 802.2 SNAP analyzer
 	global snap_analyzer: PacketAnalyzer::Tag &redef;
 	## Novell raw IEEE 802.3 analyzer

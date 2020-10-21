@@ -100,9 +100,6 @@ for how to find such instances.
 * Certain complex "when" expressions may fail to reevaluate when elements
 of the expression are modified by compiled scripts.
 
-* Executing multiple instances of the same "for" loop concurrently (due
-to recursion) will lead to incorrect results.
-
 * Compiling produces the following warning (which is of no concern):
       ```
       ../src/ReachingDefs.cc:194:16: warning: format specifies type 'unsigned int' but the argument has type 'const BroObj *' [-Wformat]

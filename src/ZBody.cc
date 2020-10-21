@@ -175,7 +175,8 @@ StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
 
 ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		std::vector<int>& _managed_slots,
-		std::vector<GlobalInfo>& _globals, bool non_recursive,
+		std::vector<GlobalInfo>& _globals,
+		int _num_iters, bool non_recursive,
 		CaseMaps<bro_int_t>& _int_cases, 
 		CaseMaps<bro_uint_t>& _uint_cases,
 		CaseMaps<double>& _double_cases, 
@@ -196,6 +197,8 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 
 	globals = _globals;
 	num_globals = globals.size();
+
+	num_iters = _num_iters;
 
 	int_cases = _int_cases;
 	uint_cases = _uint_cases;
@@ -363,15 +366,22 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		global_state[i] = GS_UNLOADED;
 
 	ZAMValUnion* frame;
+	std::vector<IterInfo>* iters = nullptr;
 
 	if ( fixed_frame )
+		{
 		frame = fixed_frame;
+		iters = nullptr;
+		}
 	else
 		{
 		frame = new ZAMValUnion[frame_size];
 		// Clear slots for which we do explicit memory management.
 		for ( auto s : managed_slots )
 			frame[s].managed_val = nullptr;
+
+		if ( num_iters > 0 )
+			iters = new std::vector<IterInfo>(num_iters);
 		}
 
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
@@ -424,6 +434,8 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 			}
 
 		delete [] frame;
+
+		delete iters;
 		}
 
 	delete [] global_state;
@@ -980,8 +992,8 @@ void ZBody::SaveTo(FILE* f, int interp_frame_size) const
 		locs.AddItem(i->loc);
 		}
 
-	fprintf(f, "<ZAM-file> %s %d %d\n",
-		func_name, interp_frame_size, ! fixed_frame);
+	fprintf(f, "<ZAM-file> %s %d %d %d\n",
+		func_name, interp_frame_size, num_iters, ! fixed_frame);
 
 	if ( frame_size > 0 )
 		{

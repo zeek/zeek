@@ -17,6 +17,8 @@ hoist loop invariants
 
 unroll loops
 
+can return_type in ZBody::DoExec be statically determined?
+
 suppress sync-globals that are straight-line code from previous ones
 	for which no global was modified
 

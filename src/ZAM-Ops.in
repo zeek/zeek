@@ -1432,6 +1432,19 @@ eval ii->c = ii->loop_vals->InitForIteration()
 eval ii->value_var_type = z.t
 eval frame[z.v1].iter_info = ii
 
+internal-op Init-Table-Loop-Recursive
+type VVV
+eval auto ii = z.aux->iter_info
+eval auto& nii = (*iters)[z.v3]
+eval nii.loop_vars = ii->loop_vars
+eval nii.loop_var_types = ii->loop_var_types
+eval ii = &nii
+eval ii->tv = frame[z.v2].table_val
+eval ii->loop_vals = ii->tv->AsTable()
+eval ii->c = ii->loop_vals->InitForIteration()
+eval ii->value_var_type = z.t
+eval frame[z.v1].iter_info = ii
+
 internal-op Next-Table-Iter
 op1-read
 # v1 = iteration info
@@ -1504,6 +1517,18 @@ eval ii->n = ii->vv->Size()
 eval ii->iter = 0
 eval frame[z.v1].iter_info = ii
 
+internal-op Init-Vector-Loop-Recursive
+type VVV
+eval auto ii = z.aux->iter_info
+eval auto& nii = (*iters)[z.v3]
+eval nii.vec_type = ii->vec_type
+eval nii.yield_type = ii->yield_type
+eval ii = &nii
+eval ii->vv = frame[z.v2].vector_val->RawVector()
+eval ii->n = ii->vv->Size()
+eval ii->iter = 0
+eval frame[z.v1].iter_info = ii
+
 internal-op Next-Vector-Iter
 # v1 = iteration variable
 # v2 = iteration info
@@ -1519,6 +1544,14 @@ eval ++ii->iter
 internal-op Init-String-Loop
 type VV
 eval auto ii = z.aux->iter_info
+eval ii->s = frame[z.v2].string_val->AsString()
+eval ii->iter = 0
+eval ii->n = ii->s->Len()
+eval frame[z.v1].iter_info = ii
+
+internal-op Init-String-Loop-Recursive
+type VVV
+eval auto ii = &(*iters)[z.v3]
 eval ii->s = frame[z.v2].string_val->AsString()
 eval ii->iter = 0
 eval ii->n = ii->s->Len()

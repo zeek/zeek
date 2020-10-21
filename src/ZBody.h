@@ -26,7 +26,8 @@ public:
 
 	ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		std::vector<int>& _managed_slots,
-		std::vector<GlobalInfo>& _globals, bool non_recursive,
+		std::vector<GlobalInfo>& _globals,
+		int num_iters, bool non_recursive,
 		CaseMaps<bro_int_t>& _int_cases,
 		CaseMaps<bro_uint_t>& _uint_cases,
 		CaseMaps<double>& _double_cases,
@@ -85,6 +86,9 @@ protected:
 	int frame_size;
 
 	std::vector<int> managed_slots;
+
+	// Number of iteration loops, for recursive functions.
+	int num_iters;
 
 	// This is non-nil if the function is (asserted to be) non-recursive,
 	// in which case we pre-allocate this.

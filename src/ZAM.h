@@ -409,6 +409,10 @@ protected:
 
 	int frame_sizeI;
 
+	// Number of iteration loops in the body.  Used to size the
+	// vector of IterInfo's used for recursive functions.
+	int num_iters = 0;
+
 	bool non_recursive = false;
 
 	// Most recent instruction, other than for housekeeping.

@@ -281,7 +281,8 @@ Stmt* ZAM::CompileBody()
 		func->UseStaticFrame();
 
 	auto zb = new ZBody(func->Name(), shared_frame_denizens_final,
-				managed_slotsI, globalsI, non_recursive,
+				managed_slotsI, globalsI,
+				num_iters, non_recursive,
 				int_cases, uint_cases, double_cases, str_cases);
 	zb->SetInsts(insts2);
 
@@ -1591,8 +1592,21 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	aux->iter_info = ii;
 
 	auto info = NewSlot(false);	// false <- IterInfo isn't managed
-	auto z = ZInstI(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
-	z.op_type = OP_VV;
+
+	ZInstI z;
+
+	if ( non_recursive )
+		{
+		z = ZInstI(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
+		z.op_type = OP_VV;
+		}
+	else
+		{
+		z = ZInstI(OP_INIT_TABLE_LOOP_RECURSIVE_VVV, info,
+				FrameSlot(val), num_iters++);
+		z.op_type = OP_VVV_I3;
+		}
+
 	z.SetType({NewRef{}, value_var ? value_var->Type() : nullptr});
 	z.aux = aux;
 
@@ -1630,8 +1644,21 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	ii->yield_type = {NewRef{}, ii->vec_type->YieldType()};
 
 	auto info = NewSlot(false);
-	auto z = ZInstI(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
-	z.op_type = OP_VV;
+
+	ZInstI z;
+
+	if ( non_recursive )
+		{
+		z = ZInstI(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
+		z.op_type = OP_VV;
+		}
+	else
+		{
+		z = ZInstI(OP_INIT_VECTOR_LOOP_RECURSIVE_VVV, info,
+				FrameSlot(val), num_iters++);
+		z.op_type = OP_VVV_I3;
+		}
+
 	z.aux = new ZInstAux(0);
 	z.aux->iter_info = ii;
 
@@ -1651,8 +1678,21 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	auto loop_var = (*loop_vars)[0];
 
 	auto info = NewSlot(false);
-	auto z = ZInstI(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
-	z.op_type = OP_VV;
+
+	ZInstI z;
+
+	if ( non_recursive )
+		{
+		z = ZInstI(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
+		z.op_type = OP_VV;
+		}
+	else
+		{
+		z = ZInstI(OP_INIT_STRING_LOOP_RECURSIVE_VVV, info,
+				FrameSlot(val), num_iters++);
+		z.op_type = OP_VVV_I3;
+		}
+
 	z.aux = new ZInstAux(0);
 	z.aux->iter_info = new IterInfo();
 

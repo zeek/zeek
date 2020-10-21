@@ -1978,7 +1978,7 @@ ZAM_init:
 		}
 	;
 
-ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT TOK_CONSTANT
+ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT TOK_CONSTANT TOK_CONSTANT
 		ZAM_frame ZAM_globals ZAM_cases_set ZAM_types ZAM_vals
 		ZAM_auxes ZAM_attrs ZAM_loc_files ZAM_locs ZAM_insts
 			{
@@ -2004,7 +2004,7 @@ ZAM_info:	ZAM_init TOK_ID TOK_CONSTANT TOK_CONSTANT
 
 			ZAM_body = make_intrusive<ZBody>($2, ZAM_frame_layout,
 						managed_slots, ZAM_globals,
-						! $4->AsCount(),
+						$4->AsCount(), ! $5->AsCount(),
 						ZAM_int_cases_set,
 						ZAM_uint_cases_set,
 						ZAM_double_cases_set,

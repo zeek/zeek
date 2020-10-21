@@ -7,7 +7,7 @@
 #pragma once
 
 
-// The information ist a hodge-podge since it's meant to support every
+// The information is a hodge-podge since it's meant to support every
 // type of aggregate & loop.
 class IterInfo {
 public:

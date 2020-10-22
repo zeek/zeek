@@ -289,7 +289,8 @@ void analyze_scripts()
 		did_init = true;
 		}
 
-	if ( ! analysis_options.activate && ! analysis_options.usage_issues )
+	if ( ! analysis_options.activate && ! analysis_options.usage_issues &&
+	     ! analysis_options.inliner )
 		return;
 
 	// Now that everything's parsed and BiF's have been initialized,
@@ -364,6 +365,14 @@ void analyze_scripts()
 		}
 
 	Inliner* inl = analysis_options.inliner ? new Inliner(funcs) : nullptr;
+
+	if ( ! analysis_options.activate && ! analysis_options.usage_issues )
+		{
+		// We only got here due to wanting to inline, but not
+		// wanting to otherwise analyze/transform.
+		delete inl;
+		return;
+		}
 
 	for ( auto& f : funcs )
 		{

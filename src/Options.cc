@@ -519,7 +519,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		}
 
 	if ( analysis_options.compile || analysis_options.optimize ||
-	     analysis_options.inliner || analysis_options.only_func )
+	     analysis_options.only_func )
 		analysis_options.activate = true;
 
 	if ( analysis_options.report_recursive )

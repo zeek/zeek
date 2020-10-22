@@ -64,9 +64,14 @@ print fmt("Boolean %s: %d", b, |b|);
 # Size of count: identity.
 print fmt("Count %s: %d", c, |c|);
 
-# Size of integral arithmetic expression should coerce to int before absolute
-# value operation to help prevent common unsigned int overflow situations.
+# Integer literals that lack a "+" or "-" modifier are of the unsigned "count"
+# type, so this wraps to a very large number.  It may be more intuitive if it
+# were to coerce to a signed integer, but it can also be more favorable to
+# simply have consistent behavior across arbitrary arithmetic expressions even
+# if that may result in occassional, unintended overflow/wrapping.
 print fmt("Expr: %d", |5 - 9|);
+# Same arithmetic on signed integers is likely what's originally intended.
+print fmt("Signed Expr: %d", |+5 - +9|);
 
 # Size of double: returns absolute value.
 print fmt("Double %s: %f", d, |d|);

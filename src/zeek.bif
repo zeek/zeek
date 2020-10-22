@@ -227,6 +227,15 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 		v->Describe(&s);
 		break;
 
+	case 'S':
+		{
+		auto curr_orig = s.DoOrig();
+		s.SetDoOrig(false);
+		v->Describe(&s);
+		s.SetDoOrig(curr_orig);
+		break;
+		}
+
 	case 'e':
 	case 'f':
 	case 'g':

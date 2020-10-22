@@ -1,4 +1,15 @@
 
+3.3.0-dev.476 | 2020-10-22 15:59:56 -0400
+
+  * Add an option to ignore packets sourced from particular subnets.
+
+    It's implemented with a new set[subnet] option named ignore_checksums_nets.
+    If you populate this set with subnets, any packet with a src address within
+    that set of subnets will not have it's checksum validated. (Seth Hall, Corelight)
+
+  * Update submodule(s) [nomail] (Jon Siwek, Corelight)
+
+
 3.3.0-dev.467 | 2020-10-21 11:06:18 -0700
 
   * Fix a couple of Coverity findings (1433618, 1433619) (Tim Wojtulewicz, Corelight)

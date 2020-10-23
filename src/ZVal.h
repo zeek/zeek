@@ -142,6 +142,13 @@ inline bool* zval_error_addr = nullptr;
 
 typedef std::vector<ZAMValUnion> ZVU_vec;
 
+// We need to declare here the external functions that need low-level
+// ZAM_vector access.
+namespace BifFunc {
+extern zeek::detail::BifReturnVal
+		sort_bif(zeek::detail::Frame* frame, const zeek::Args*);
+}
+
 class ZAM_vector {
 public:
 	// In the following, we use a bare pointer for the VectorVal
@@ -203,11 +210,12 @@ public:
 	 * @return  A constant reference to the underlying vector.
 	 */
 	const ZVU_vec& ConstVec() const	{ return zvec; }
+
 	/**
-	 * Provides mutable access to the underlying vector.
-	 * @return  A reference to the underlying vector.
+	 * Appends the given value to the end of the vector.
+	 * @param v  The value to append.
 	 */
-	ZVU_vec& ModVec()		{ return zvec; }
+	void Append(ZAMValUnion v)	{ zvec.push_back(v); }
 
 	/**
 	 * Obtains mutable access to the underlying vector, in the context
@@ -322,6 +330,17 @@ public:
 		}
 
 protected:
+	// Direct, mutable access to the underlying vector.  Used to provide
+	// low-level functions (sorting, compiled vectorized arithmetic
+	// operations) with fast access.
+
+	friend zeek::detail::BifReturnVal
+		zeek::BifFunc::sort_bif(zeek::detail::Frame* frame,
+					const zeek::Args*);
+
+	ZVU_vec& ModVec()		{ return zvec; }
+
+
 	bool SetManagedElement(int n, const ZAMValUnion& v);
 	void GrowVector(int size);
 

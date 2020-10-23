@@ -45,8 +45,8 @@ export {
 		## variable.
 		ACTION_EMAIL,
 		## Indicates that the notice should be alarmed.  A readable
-		## ASCII version of the alarm log is emailed in bulk to the
-		## address(es) configured in :zeek:id:`Notice::mail_dest`.
+		## ASCII version is saved in notice_alarm log, and emailed
+		## in bulk to the address(es) configured in :zeek:id:`Notice::mail_dest`.
 		ACTION_ALARM,
 		## Indicates that the notice should result in a drop action.
 		## The exact action taken depends on loaded policy scripts;

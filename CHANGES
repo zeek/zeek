@@ -1,3 +1,8 @@
+3.3.0-dev.490 | 2020-10-27 13:41:27 -0700
+
+  * updated to mention notice_alarm.log by name. That has taken the place of the
+    file formerly named alarm.log (Duffy O'Craven)
+
 3.3.0-dev.488 | 2020-10-26 11:03:51 -0700
 
   * Improve how Zeekygen generated record/enum redefinition docs
@@ -25033,5 +25038,3 @@ v0.2 Sat Oct 25 11:22:37 PDT 1997
 - Better usage() information (again thanks to Scott), -h and -v flags.
 
 - README, CHANGES files created.
-
-

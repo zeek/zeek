@@ -218,24 +218,6 @@ public:
 	void Append(ZAMValUnion v)	{ zvec.push_back(v); }
 
 	/**
-	 * Obtains mutable access to the underlying vector, in the context
-	 * of first initializing it.
-	 * @param size  How many elements the vector will initially hold.
-	 * @return  A mutable reference to the underlying vector.
-	 */
-	// Used when access to the underlying vector is for initialization.
-	ZVU_vec& InitVec(unsigned int size)
-		{
-		// Note, could use reserve() here to avoid pre-initializing
-		// the elements.  It's not clear to me whether that suffices
-		// for being able to safely assign to elements beyond the
-		// nominal end of the vector rather than having to use
-		// push_back.  Seems it ought to ...
-		zvec.resize(size);
-		return zvec;
-		}
-
-	/**
 	 * Provides mutable access to a given element of the vector.
 	 * @param n  Which element in the vector (0-based).
 	 * @return  A mutable reference to the given element.

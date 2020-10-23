@@ -841,8 +841,8 @@ RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	if ( ! types )
 		return;
 
-	loop_over_list(*types, i)
-		AddField(i, (*types)[i]);
+	for ( const auto& type : *types )
+		AppendField(type);
 	}
 
 // in this case the clone is actually not so shallow, since
@@ -1039,9 +1039,8 @@ const char* RecordType::AddFields(const type_decl_list& others,
 			td->attrs->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_LOG));
 			}
 
-		int field = types->size();
 		types->push_back(td);
-		AddField(field, td);
+		AppendField(td);
 		}
 
 	num_fields = types->length();
@@ -1050,9 +1049,8 @@ const char* RecordType::AddFields(const type_decl_list& others,
 	return nullptr;
 	}
 
-void RecordType::AddField(unsigned int field, const TypeDecl* td)
+void RecordType::AppendField(const TypeDecl* td)
 	{
-	ASSERT(field == managed_fields.size());
 	managed_fields.push_back(IsManagedType(td->type));
 	}
 

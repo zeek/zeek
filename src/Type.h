@@ -648,10 +648,10 @@ public:
 protected:
 	RecordType() { types = nullptr; }
 
-	// Does management associated with adding a record field.  Currently
-	// this isn't much, but there's a pending optimization that will
-	// add more.
-	void AddField(unsigned int field, const TypeDecl* td);
+	// Does management associated with appending a record field.
+	// Currently this isn't much, but there's a pending optimization
+	// that will add more.
+	void AppendField(const TypeDecl* td);
 
 	int num_fields;
 	type_decl_list* types;

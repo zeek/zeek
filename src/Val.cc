@@ -3339,11 +3339,8 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		yt = val.vector_val->YieldType();
 		}
 
-	auto& vv = val.vector_val;
-
         ZAMValUnion elem(element, yt);
-
-	vv->Insert(index, elem);
+	val.vector_val->Insert(index, elem);
 
 	Modified();
 	return true;

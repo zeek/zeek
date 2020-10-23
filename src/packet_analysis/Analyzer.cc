@@ -80,7 +80,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 		{
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
 				GetAnalyzerName(), identifier);
-		packet->Weird("no_suitable_analyzer_found");
+		packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
 		return false;
 		}
 

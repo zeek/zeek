@@ -92,6 +92,25 @@ public:
 	 */
 	void DumpPacket(const Packet *pkt, int len=0);
 
+	/**
+	 * Attempts to write an entry to unknown_protocols.log, rate-limited to avoid
+	 * spamming the log with duplicates.
+	 *
+	 * @param analyzer The name of the analyzer that was trying to forward the packet.
+	 * @param protocol The protocol of the next header that couldn't be forwarded.
+	 * @param data A pointer to the data of the next header being processed. If this
+	 * is passed as a nullptr, the first_bytes log column will be blank.
+	 * @param len The remaining length of the data in the packet being processed.
+	 */
+	void ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol,
+	                           const uint8_t* data=nullptr, size_t len=0);
+
+	/**
+	 * Callback method for UnknownProtocolTimer to remove an analyzer/protocol
+	 * pair from the map so that it can be logged again.
+	 */
+	void ResetUnknownProtocolTimer(const std::string& analyzer, uint32_t protocol);
+
 private:
 	/**
 	 * Instantiates a new analyzer instance.
@@ -113,11 +132,21 @@ private:
 	 */
 	AnalyzerPtr InstantiateAnalyzer(const std::string& name);
 
+	bool PermitUnknownProtocol(const std::string& analyzer, uint32_t protocol);
+
 	std::map<std::string, AnalyzerPtr> analyzers;
 	AnalyzerPtr root_analyzer = nullptr;
 
 	uint64_t num_packets_processed = 0;
 	detail::PacketProfiler* pkt_profiler = nullptr;
+
+	using UnknownProtocolPair = std::pair<std::string, uint32_t>;
+	std::map<UnknownProtocolPair, uint64_t> unknown_protocols;
+
+	uint64_t unknown_sampling_threshold;
+	uint64_t unknown_sampling_rate;
+	double unknown_sampling_duration;
+	uint64_t unknown_first_bytes_count;
 };
 
 } // namespace packet_analysis

@@ -47,6 +47,7 @@ const char* TimerNames[] = {
 	"ParentProcessIDCheck",
 	"TimerMgrExpireTimer",
 	"ThreadHeartbeat",
+	"UnknownProtocolExpire",
 };
 
 const char* timer_type_to_string(TimerType type)

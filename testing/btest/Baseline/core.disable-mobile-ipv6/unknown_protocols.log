@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	analyzer	protocol_id	first_bytes
 #types	time	string	string	string
-XXXXXXXXXX.XXXXXX	ETHERNET	0x88b5	4920616d20656e636170
+XXXXXXXXXX.XXXXXX	IP	0x87	3b010600d1da0080002a
 #close XXXX-XX-XX-XX-XX-XX

@@ -1,6 +1,6 @@
-# @TEST-EXEC: zeek -r $TRACES/raw_layer.pcap
+# @TEST-EXEC: zeek -r $TRACES/raw_layer.pcap -e "@load policy/misc/unknown-protocols"
 # @TEST-EXEC: cat conn.log > output_orig
-# @TEST-EXEC: cat weird.log >> output_orig
+# @TEST-EXEC: cat unknown_protocols.log > output_orig
 # @TEST-EXEC: btest-diff output_orig
 # @TEST-EXEC: rm -f *.log
 #
@@ -12,12 +12,14 @@
 #
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/raw_layer.pcap %INPUT > output_raw
 # @TEST-EXEC: cat conn.log >> output_raw
-# @TEST-EXEC: test ! -e weird.log
+# @TEST-EXEC: test ! -e unknown_protocols.log
 # @TEST-EXEC: btest-diff output_raw
 # @TEST-EXEC: rm -f *.log
 #
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/raw_packets.trace %INPUT > output_llc
 # @TEST-EXEC: btest-diff output_llc
+
+@load policy/misc/unknown-protocols
 
 event raw_layer_message(msg: string, protocol: count)
 	{
@@ -29,4 +31,3 @@ event llc_demo_message(dsap: count, ssap: count, control: count)
 	print fmt("llc_demo_message (DSAP = %x, SSAP = %x, Control = %x)",
 	 dsap, ssap, control);
 	}
-

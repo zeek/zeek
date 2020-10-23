@@ -1,7 +1,9 @@
 # @TEST-REQUIRES: grep -q "#undef ENABLE_MOBILE_IPV6" $BUILD/zeek-config.h
 #
 # @TEST-EXEC: zeek -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT
-# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff unknown_protocols.log
+
+@load policy/misc/unknown-protocols
 
 event mobile_ipv6_message(p: pkt_hdr)
 	{

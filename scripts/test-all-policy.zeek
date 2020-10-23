@@ -1,7 +1,7 @@
 # This file loads ALL policy scripts that are part of the Zeek distribution.
-# 
+#
 # This is rarely makes sense, and is for testing only.
-# 
+#
 # Note that we have a unit test that makes sure that all policy files shipped are
 # actually loaded here. If we have files that are part of the distribution yet
 # can't be loaded here,  these must still be listed here with their load command
@@ -62,6 +62,7 @@
 @load misc/stats.zeek
 @load misc/weird-stats.zeek
 @load misc/trim-trace-file.zeek
+@load misc/unknown-protocols.zeek
 @load protocols/conn/known-hosts.zeek
 @load protocols/conn/known-services.zeek
 @load protocols/conn/mac-logging.zeek

@@ -876,3 +876,15 @@ event anonymization_mapping%(orig: addr, mapped: addr%);
 ##
 ## path: the filesystem path of the pcap file
 event Pcap::file_done%(path: string%);
+
+## Generated when a packet analyzer attempts to forward a protocol that it doesn't
+## know how to handle.
+##
+## analzyer_name: The string name of the analyzer attempting to forward the protocol
+##
+## protocol: The identifier of the protocol being forwarded
+##
+## first_bytes: A certain number of bytes at the start of the unknown protocol's header.
+##
+## .. zeek:see:: UnknownProtocol::first_bytes_count
+event unknown_protocol%(analyzer_name: string, protocol: count, first_bytes: string%);

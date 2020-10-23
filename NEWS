@@ -66,6 +66,12 @@ New Functionality
   ``dump-events.zeek`` script to log all events that happen; the script
   got a new option to enable this behavior.
 
+- Added new unknown_protocols.log that will log analyzer and protocol pairs
+  via the packet analysis framework for packet protocols that aren't
+  supported by Zeek. It can be enabled by loading the
+  ``policy/misc/unknown-protocols`` script. The script adds a new
+  ``unknown_protocol`` event.
+
 Changed Functionality
 ---------------------
 

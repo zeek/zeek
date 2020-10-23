@@ -22,6 +22,9 @@ RUN apt-get update && apt-get -y install \
     curl \
     wget \
     unzip \
+    ruby \
+    bc \
+    lcov \
   && rm -rf /var/lib/apt/lists/*
 
 # Many distros adhere to PEP 394's recommendation for `python` = `python2` so
@@ -31,3 +34,4 @@ RUN ln -sf /usr/bin/python3 /usr/local/bin/python
 RUN ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 RUN pip install junit2html
+RUN gem install coveralls-lcov

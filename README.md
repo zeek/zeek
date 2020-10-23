@@ -17,7 +17,10 @@ traffic analysis and security monitoring.
 
 Follow us on Twitter at [@zeekurity](https://twitter.com/zeekurity).
 
+[![Coverage Status](https://coveralls.io/repos/github/zeek/zeek/badge.svg?branch=master)](https://coveralls.io/github/zeek/zeek?branch=master)
+
 </h4>
+
 
 Key Features
 --------------

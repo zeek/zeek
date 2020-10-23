@@ -767,10 +767,6 @@ expr:
 			{
 			zeek::detail::set_location(@1, @3);
 			zeek::detail::ExprPtr e{zeek::AdoptRef{}, $2};
-
-			if ( zeek::IsIntegral(e->GetType()->Tag()) )
-				e = zeek::make_intrusive<zeek::detail::ArithCoerceExpr>(std::move(e), zeek::TYPE_INT);
-
 			$$ = new zeek::detail::SizeExpr(std::move(e));
 			}
 

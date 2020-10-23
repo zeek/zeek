@@ -98,6 +98,17 @@ Changed Functionality
   not pre-configured to listen for incoming connections from other cluster
   nodes.
 
+- The ``|x|`` operator, where ``x`` is an expression with an integral result,
+  no longer performs an implicit coercion of that result into a signed
+  ``int`` type.  This was actually the behavior before Zeek 3.0 as well, but
+  the attempt to prevent mistakes that easily result from integer literals in
+  Zeek being unsigned like ``|5 - 9|`` causing an overflow/wraparound and
+  yielding a very large number is not generally consistent since overflows
+  are still generally able to happen in other ways and also in other contexts
+  besides just the absolute-value operator.  So the preference was to revert
+  to a behavior that favors consistency.  For reference, see
+  https://github.com/zeek/zeek/pull/251#issuecomment-713956976
+
 Removed Functionality
 ---------------------
 

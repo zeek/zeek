@@ -3433,7 +3433,7 @@ ValPtr VectorVal::DoClone(CloneState* state)
 		{
 		if ( any_types1 )
 			{
-			auto t = any_types1 ? (*any_types1)[i] : yt;
+			auto t = (*any_types1)[i];
 			auto v = zvu1[i].ToVal(t)->Clone(state);
 			zvu2->Append(ZAMValUnion(v, t), t);
 			}

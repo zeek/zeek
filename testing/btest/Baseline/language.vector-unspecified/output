@@ -1,2 +1,1 @@
-expression error in /Users/vern/warehouse/zeek-bvu-change/testing/btest/.tmp/language.vector-unspecified/vector-unspecified.zeek, line 8: vector index assignment failed for invalid type 'string', value: Hi (a[1])
-fatal error: failed to execute script statements at top-level scope
+[5, Hi, 127.0.0.1]

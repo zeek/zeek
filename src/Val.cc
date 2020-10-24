@@ -3291,17 +3291,21 @@ ValPtr VectorVal::SizeVal() const
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
 	{
-	auto yt = val.vector_val->YieldType();
+	auto& vv = val.vector_val;
+	auto yt = vv->YieldType();
 
 	if ( element && ! same_type(element->GetType(), yt, false) )
 		return false;
 
-	if ( yt->Tag() == TYPE_VOID || yt->Tag() == TYPE_ANY )
+	if ( yt->Tag() == TYPE_VOID )
 		Concretize(element->GetType());
 
         ZAMValUnion elem(element, yt);
 
-	val.vector_val->SetElement(index, elem);
+	if ( vv->AnyTypes() )
+		vv->SetElement(index, elem, element->GetType());
+	else
+		vv->SetElement(index, elem);
 
 	Modified();
 	return true;
@@ -3333,7 +3337,7 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	if ( element && ! same_type(element->GetType(), yt, false) )
 		return false;
 
-	if ( yt->Tag() == TYPE_VOID || yt->Tag() == TYPE_ANY )
+	if ( yt->Tag() == TYPE_VOID )
 		{
 		Concretize(element->GetType());
 		yt = val.vector_val->YieldType();
@@ -3383,16 +3387,18 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 ValPtr VectorVal::At(unsigned int index) const
 	{
-	if ( index >= val.vector_val->Size() )
+	auto& vv = val.vector_val;
+
+	if ( index >= vv->Size() )
 		return Val::nil;
 
-	auto raw_v = val.vector_val->Lookup(index);
+	auto raw_v = vv->Lookup(index);
 
-	if ( ! raw_v.managed_val && val.vector_val->IsManagedYieldType() )
+	if ( ! raw_v.managed_val && vv->IsManagedYieldType(index) )
 		// The vector has a hole that we know how to report.
 		return Val::nil;
 
-	return raw_v.ToVal(val.vector_val->YieldType());
+	return raw_v.ToVal(vv->YieldType());
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
@@ -3416,16 +3422,27 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	auto yt = val.vector_val->YieldType();
 	int n = val.vector_val->Size();
 
-	auto vv = make_intrusive<VectorVal>(GetType<VectorType>(), n);
+	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
 	state->NewClone(this, vv);
 
 	auto& zvu1 = val.vector_val->ConstVec();
+	auto any_types1 = val.vector_val->AnyTypes();
 	auto& zvu2 = vv->val.vector_val;
 
 	for ( unsigned int i = 0; i < n; ++i )
 		{
-		auto v = zvu1[i].ToVal(yt)->Clone(state);
-		zvu2->Append(ZAMValUnion(v, yt));
+		if ( any_types1 )
+			{
+			auto t = any_types1 ? (*any_types1)[i] : yt;
+			auto v = zvu1[i].ToVal(t)->Clone(state);
+			zvu2->Append(ZAMValUnion(v, t), t);
+			}
+
+		else
+			{
+			auto v = zvu1[i].ToVal(yt)->Clone(state);
+			zvu2->Append(ZAMValUnion(v, yt));
+			}
 		}
 
 	return vv;
@@ -3436,8 +3453,6 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("[");
 
 	auto n = val.vector_val->Size();
-	auto vv = val.vector_val->ConstVec();
-	auto yt = val.vector_val->YieldType();
 
 	if ( n > 0 )
 		for ( unsigned int i = 0; i < n; ++i )

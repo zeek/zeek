@@ -162,7 +162,14 @@ public:
 
 		if ( yt )
 			{
-			managed_yt = IsManagedType(yt) ? yt : nullptr;
+			if ( yt->Tag() == TYPE_ANY )
+				{
+				managed_yt = yt;
+				any_types = new std::vector<TypePtr>(n);
+				}
+			else
+				managed_yt = IsManagedType(yt) ? yt : nullptr;
+
 			general_yt = std::move(yt);
 			}
 		else
@@ -171,7 +178,13 @@ public:
 
 	~ZAM_vector()
 		{
-		if ( managed_yt )
+		if ( any_types )
+			{
+			DeleteAnyMembers();
+			delete any_types;
+			}
+
+		else if ( managed_yt )
 			DeleteMembers();
 		}
 
@@ -185,19 +198,37 @@ public:
 	 */
 	void SetYieldType(zeek::TypePtr yt)
 		{
-		if ( ! general_yt || general_yt->Tag() == zeek::TYPE_ANY ||
-		     general_yt->Tag() == zeek::TYPE_VOID )
+		if ( ! general_yt || general_yt->Tag() == zeek::TYPE_VOID )
 			{
-			managed_yt = IsManagedType(yt) ? yt : nullptr;
+			if ( yt->Tag() == TYPE_ANY )
+				{
+				managed_yt = yt;
+				any_types = new std::vector<TypePtr>(Size());
+				}
+			else
+				managed_yt = IsManagedType(yt) ? yt : nullptr;
+
 			general_yt = std::move(yt);
 			}
 		}
 
 	/**
 	 * Returns whether the yield type of the vector is managed.
+	 * @param index  Which element in the vector (0-based).  Only germane
+	 *               for vector-of-any.
 	 * @return  True if the yield type of the vector is managed.
 	 */
-	bool IsManagedYieldType() const	{ return managed_yt != nullptr; }
+	bool IsManagedYieldType(unsigned int index) const
+		{
+		if ( any_types )
+			{
+			ASSERT(index < any_types->size());
+			auto& a_i = (*any_types)[index];
+			return a_i ? IsManagedType(a_i) : false;
+			}
+		else
+			return managed_yt != nullptr;
+		}
 
 	/**
 	 * Returns the number of elements in the vector.
@@ -212,17 +243,42 @@ public:
 	const ZVU_vec& ConstVec() const	{ return zvec; }
 
 	/**
+	 * Returns the types associated with each element of a
+	 * vector-of-any.
+	 * @return  A parallel vector of the types, or nil if the vector
+	 *          is not a vector-of-any.
+	 */
+	const std::vector<TypePtr>* AnyTypes() const	{ return any_types; }
+
+	/**
 	 * Appends the given value to the end of the vector.
 	 * @param v  The value to append.
 	 */
-	void Append(ZAMValUnion v)	{ zvec.push_back(v); }
+	void Append(ZAMValUnion v)
+		{
+		ASSERT(! any_types);
+		zvec.push_back(v);
+		}
 
 	/**
-	 * Provides mutable access to a given element of the vector.
-	 * @param n  Which element in the vector (0-based).
-	 * @return  A mutable reference to the given element.
+	 * Appends the given value to the end of a vector-of-any.
+	 * @param v  The value to append.
+	 * @param t  The concrete type associated with v.
 	 */
-	ZAMValUnion& Lookup(int n)
+	void Append(ZAMValUnion v, TypePtr t)
+		{
+		ASSERT(any_types);
+		zvec.push_back(v);
+		any_types->push_back(std::move(t));
+		}
+
+	/**
+	 * Returns the given element of the vector.  The caller must know
+	 * the corresponding type in order to interpret the result correctly.
+	 * @param n  Which element in the vector (0-based).
+	 * @return  The low-level value of the given element.
+	 */
+	ZAMValUnion Lookup(int n)
 		{
 		return zvec[n];
 		}
@@ -235,6 +291,8 @@ public:
 	 */
 	void SetElement(unsigned int n, ZAMValUnion& v)
 		{
+		ASSERT(! any_types);
+
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
 
@@ -242,6 +300,29 @@ public:
 			DeleteManagedType(zvec[n]);
 
 		zvec[n] = v;
+		}
+
+	/**
+	 * Sets the given vector-of-any element to the given value and
+	 * type.  Takes care of memory management.
+	 * @param n  Which element in the vector (0-based).
+	 * @param v  The value to set the element to.
+	 * @param t  The value's type.
+	 */
+	void SetElement(unsigned int n, ZAMValUnion& v, TypePtr t)
+		{
+		ASSERT(any_types);
+
+		if ( n < zvec.size() )
+			{
+			if ( IsManagedYieldType(n) )
+				DeleteManagedType(zvec[n]);
+			}
+		else
+			GrowVector(n + 1);
+
+		zvec[n] = v;
+		(*any_types)[n] = std::move(t);
 		}
 
 	/**
@@ -254,14 +335,40 @@ public:
 	 * @param n  Which element in the vector (0-based).
 	 * @param v  The value to set the element to, with manual Ref()'ing.
 	 * @return  True on success, false if 'v' has never been set to
-	 * a value (which we can only tell for managed types).
+	 *          a value (which we can only tell for managed types).
 	 */
 	bool CopyElement(unsigned int n, const ZAMValUnion& v)
 		{
+		ASSERT(! any_types);
+
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
 
 		if ( managed_yt )
+			return SetManagedElement(n, v);
+
+		zvec[n] = v;
+		return true;
+		}
+
+	/**
+	 * A variant of CopyElement used for vector-of-any.
+	 * @param n  Which element in the vector (0-based).
+	 * @param v  The value to set the element to, with manual Ref()'ing.
+	 * @param t  The value's type.
+	 * @return  True on success, false if 'v' has never been set to
+	 *          a value (which we can only tell for managed types).
+	 */
+	bool CopyElement(unsigned int n, const ZAMValUnion& v, TypePtr t)
+		{
+		ASSERT(any_types);
+
+		if ( zvec.size() <= n )
+			GrowVector(n + 1);
+
+		(*any_types)[n] = std::move(t);
+
+		if ( IsManagedYieldType(n) )
 			return SetManagedElement(n, v);
 
 		zvec[n] = v;
@@ -275,13 +382,15 @@ public:
 	 */
 	void Insert(unsigned int index, ZAMValUnion& element)
 		{
+		ASSERT(! any_types);
+
 		ZVU_vec::iterator it;
 
 		if ( index < zvec.size() )
 			{
 			it = std::next(zvec.begin(), index);
 			if ( managed_yt )
-				DeleteIfManaged(index);
+				DeleteManagedType(zvec[index]);
 			}
 		else
 			it = zvec.end();
@@ -290,13 +399,52 @@ public:
 		}
 
 	/**
+	 * A version of Insert for vector-of-any.
+	 * @param index  Which element in the vector (0-based).
+	 * @param element  The value to set the element to.
+	 * @param t  The value's type.
+	 */
+	void Insert(unsigned int index, ZAMValUnion& element, TypePtr t)
+		{
+		ASSERT(any_types);
+
+		ZVU_vec::iterator it;
+		std::vector<TypePtr>::iterator type_it;
+
+		if ( index < zvec.size() )
+			{
+			it = std::next(zvec.begin(), index);
+			type_it = std::next(any_types->begin(), index);
+			if ( IsManagedYieldType(index) )
+				DeleteManagedType(zvec[index]);
+			}
+		else
+			{
+			it = zvec.end();
+			type_it = any_types->end();
+			}
+
+		zvec.insert(it, element);
+		any_types->insert(type_it, t);
+		}
+
+	/**
 	 * Removes the given element from the vector.
 	 * @param index  Which element in the vector (0-based).
 	 */
 	void Remove(unsigned int index)
 		{
-		if ( managed_yt )
-			DeleteIfManaged(index);
+		if ( any_types )
+			{
+			if ( IsManagedYieldType(index) )
+				DeleteManagedType(zvec[index]);
+
+			auto type_it = std::next(any_types->begin(), index);
+			any_types->erase(type_it);
+			}
+
+		else if ( managed_yt )
+			DeleteManagedType(zvec[index]);
 
 		auto it = std::next(zvec.begin(), index);
 		zvec.erase(it);
@@ -309,6 +457,9 @@ public:
 	void Resize(unsigned int new_num_elements)
 		{
 		zvec.resize(new_num_elements);
+
+		if ( any_types )
+			any_types->resize(new_num_elements);
 		}
 
 protected:
@@ -326,17 +477,18 @@ protected:
 	bool SetManagedElement(int n, const ZAMValUnion& v);
 	void GrowVector(int size);
 
+	// Only gets called for managed types.
 	void DeleteMembers();
 
-	// Deletes the given element if necessary.
-	void DeleteIfManaged(int n)
-		{
-		if ( managed_yt )
-			DeleteManagedType(zvec[n]);
-		}
+	// Used to delete vector-of-any members.
+	void DeleteAnyMembers();
 
 	// The underlying set of ZAM values.
 	ZVU_vec zvec;
+
+	// If non-nil, then the types of those values.  Only used for
+	// vector-of-any.
+	std::vector<TypePtr>* any_types = nullptr;
 
 	// The associated main value.  A raw pointer for reasons explained
 	// above.

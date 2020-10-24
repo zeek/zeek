@@ -1,1 +1,2 @@
-expression error in /Users/vern/warehouse/zeek-val-change/testing/btest/.tmp/language.type-check-vector-error/type-check-vector-error.zeek, line 14: type mismatch at index 2 (vector(one, two, 3))
+T
+[one, two, 3]

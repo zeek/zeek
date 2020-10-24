@@ -43,7 +43,7 @@ export {
 		## All extensions in the order they were raised.
 		## This is used for caching certificates that are commonly
 		## encountered and should not be relied on in user scripts.
-		extensions_cache: table[count] of any;
+		extensions_cache: vector of any &default=vector();
 	};
 
 	## This record is used to store information about the SCTs that are
@@ -156,8 +156,7 @@ hook x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: string)
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
-	local empty_cache: table[count] of any;
-	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref, $extensions_cache=empty_cache];
+	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref];
 	}
 
 event x509_extension(f: fa_file, ext: X509::Extension) &priority=5
@@ -165,7 +164,7 @@ event x509_extension(f: fa_file, ext: X509::Extension) &priority=5
 	if ( f$info?$x509 )
 		{
 		f$info$x509$extensions += ext;
-		f$info$x509$extensions_cache[|f$info$x509$extensions_cache|] = ext;
+		f$info$x509$extensions_cache += ext;
 		}
 	}
 
@@ -174,7 +173,7 @@ event x509_ext_basic_constraints(f: fa_file, ext: X509::BasicConstraints) &prior
 	if ( f$info?$x509 )
 		{
 		f$info$x509$basic_constraints = ext;
-		f$info$x509$extensions_cache[|f$info$x509$extensions_cache|] = ext;
+		f$info$x509$extensions_cache += ext;
 		}
 	}
 
@@ -183,14 +182,14 @@ event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativ
 	if ( f$info?$x509 )
 		{
 		f$info$x509$san = ext;
-		f$info$x509$extensions_cache[|f$info$x509$extensions_cache|] = ext;
+		f$info$x509$extensions_cache += ext;
 		}
 	}
 
 event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string) &priority=5
 	{
 	if ( f$info?$x509 )
-		f$info$x509$extensions_cache[|f$info$x509$extensions_cache|] = SctInfo($version=version, $logid=logid, $timestamp=timestamp, $hash_alg=hash_algorithm, $sig_alg=signature_algorithm, $signature=signature);
+		f$info$x509$extensions_cache += SctInfo($version=version, $logid=logid, $timestamp=timestamp, $hash_alg=hash_algorithm, $sig_alg=signature_algorithm, $signature=signature);
 	}
 
 event file_state_remove(f: fa_file) &priority=5

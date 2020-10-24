@@ -305,6 +305,9 @@ void ZAM_vector::GrowVector(int new_size)
 	int old_size = zvec.size();
 	zvec.resize(new_size);
 
+	if ( any_types )
+		any_types->resize(new_size);
+
 	for ( int i = old_size; i < new_size; ++i )
 		// Strictly speaking, we should know the particular type of
 		// vector and zero it accordingly.
@@ -315,6 +318,13 @@ void ZAM_vector::DeleteMembers()
 	{
 	for ( auto& z : zvec )
 		DeleteManagedType(z);
+	}
+
+void ZAM_vector::DeleteAnyMembers()
+	{
+	for ( unsigned int i = 0; i < zvec.size(); ++i )
+		if ( IsManagedYieldType(i) )
+			DeleteManagedType(zvec[i]);
 	}
 
 

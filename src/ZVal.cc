@@ -184,20 +184,16 @@ ValPtr ZAMValUnion::ToVal(const TypePtr& t) const
 
 	switch ( t->Tag() ) {
 	case zeek::TYPE_INT:
-		// We can't use make_intrusive directly because this
-		// constructor is protected, sigh.
-		v = new Val(int_val, zeek::TYPE_INT);
-		return {AdoptRef{}, v};
+		return val_mgr->Int(int_val);
 
 	case zeek::TYPE_BOOL:	
-		return Val::MakeBool(int_val);
+		return val_mgr->Bool(int_val);
 
 	case zeek::TYPE_PORT:
 		return val_mgr->Port(uint_val);
 
 	case zeek::TYPE_COUNT:
-		v = new Val(uint_val, zeek::TYPE_COUNT);
-		return {AdoptRef{}, v};
+		return val_mgr->Count(uint_val);
 
 	case zeek::TYPE_DOUBLE:
 		return make_intrusive<zeek::DoubleVal>(double_val);

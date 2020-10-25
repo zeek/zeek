@@ -3024,18 +3024,24 @@ void RecordVal::DoneParsing()
 
 Val* RecordVal::Lookup(int field) const
 	{
-	// With ZAM_record's, there's no way to support this call without
-	// leaking :-(.  Here we staunch the bleeding by only leaking for
-	// non-managed types.
 	auto f = GetField(field);
 	auto ft = GetType()->AsRecordType()->GetFieldType(field);
 	if ( IsManagedType(ft) )
+		// We can safely return the pointer without a concern
+		// of leaking.
 		return f.get();
-	else
-		return f.release();	// ### leak
+
+	// If we return f.release(), that will leak.  Instead, we hold on
+	// to f so it will be released when the RecordVal is destructed.
+	// It's tempting to track a single value for each record field,
+	// but that's unsound in the face of multiple calls to Lookup for
+	// the same field, if the first caller holds on to the returned
+	// pointer up through the second call.
+	vals_ptr->push_back(f);
+	return f.get();
 	}
 
-ValPtr RecordVal::GetField(const char* field) const
+zeek::ValPtr RecordVal::GetField(const char* field) const
 	{
 	int idx = GetType()->AsRecordType()->FieldOffset(field);
 

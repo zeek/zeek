@@ -1144,7 +1144,9 @@ public:
 		{ Assign(field, ValPtr{}); }
 
 	[[deprecated("Remove in v4.1.  Use GetField().")]]
-	Val* Lookup(int field) const;	// Does not Ref() value - leaks.
+	// When removing this function, also get rid of "vals" member
+	// variable and the code that manipulates it.
+	Val* Lookup(int field) const;	// Does not Ref() value
 
 	/**
 	 * Returns the value of a given field index.
@@ -1154,7 +1156,18 @@ public:
 	ValPtr GetField(int field) const
 		{
 		auto zr = RawFields();
-		return zr->HasField(field) ? zr->NthField(field) : nullptr;
+		auto f = zr->HasField(field) ? zr->NthField(field) : nullptr;
+
+		// The following is available for testing the code path
+		// used by the deprecated Lookup() method, given that
+		// the current code base doesn't employ that method.
+#if 0
+		auto ft = GetType()->AsRecordType()->GetFieldType(field);
+		if ( ! IsManagedType(ft) )
+			vals_ptr->push_back(f);
+#endif
+
+		return f;
 		}
 
 	/**
@@ -1283,6 +1296,14 @@ protected:
 	ValPtr DoClone(CloneState* state) override;
 
 	Obj* origin;
+
+	// The following is temporary until the deprecated Lookup() method
+	// is removed.  It's used to avoid leaks.  If Lookup() is not used,
+	// then the vector will remain empty.
+	std::vector<ValPtr> vals;
+
+	// The following is just to provide access in "const" member functions.
+	std::vector<ValPtr>* vals_ptr = &vals;
 
 	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;

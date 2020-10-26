@@ -115,8 +115,9 @@ public:
 	 * Register a script-level identifier for which information/documentation
 	 * will be gathered.
 	 * @param id The script-level identifier.
+	 * @param from_redef  The identifier was created from a redef (e.g. an enum).
 	 */
-	void Identifier(zeek::detail::IDPtr id);
+	void Identifier(zeek::detail::IDPtr id, bool from_redef = false);
 
 	/**
 	 * Register a record-field for which information/documentation will be
@@ -126,9 +127,10 @@ public:
 	 * @param path Absolute path to a Bro script in which this field is
 	 * declared.  This can be different from the place where the record type
 	 * is declared due to redefs.
+	 * @param from_redef  The field is from a record redefinition.
 	 */
 	void RecordField(const zeek::detail::ID* id, const TypeDecl* field,
-	                 const std::string& path);
+	                 const std::string& path, bool from_redef);
 
 	/**
 	 * Register a redefinition of a particular identifier.
@@ -216,7 +218,8 @@ private:
 	typedef std::vector<std::string> comment_buffer_t;
 	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
 
-	IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script);
+	IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script,
+	                                     bool from_redef = false);
 
 	bool disabled;
 	comment_buffer_t comment_buffer; // For whatever next identifier comes in.

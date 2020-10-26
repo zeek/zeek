@@ -12,10 +12,11 @@ using namespace std;
 
 namespace zeek::zeekygen::detail {
 
-IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script)
+IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script,
+                               bool redef)
 	: Info(),
 	  comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
-	  last_field_seen(), declaring_script(script)
+	  last_field_seen(), declaring_script(script), from_redef(redef)
 	{
 	if ( id->GetVal() && (id->IsOption() || id->IsRedefinable()) )
 		initial_val = id->GetVal()->Clone();
@@ -41,12 +42,14 @@ void IdentifierInfo::AddRedef(const string& script, zeek::detail::InitClass ic,
 
 void IdentifierInfo::AddRecordField(const TypeDecl* field,
                                     const string& script,
-                                    vector<string>& comments)
+                                    vector<string>& comments,
+                                    bool from_redef)
 	{
 	RecordField* rf = new RecordField();
 	rf->field = new TypeDecl(*field);
 	rf->from_script = script;
 	rf->comments = comments;
+	rf->from_redef = from_redef;
 
 	auto [it, inserted] = fields.emplace(rf->field->id, rf);
 
@@ -97,6 +100,16 @@ string IdentifierInfo::GetDeclaringScriptForField(const string& field) const
 		return "";
 
 	return it->second->from_script;
+	}
+
+bool IdentifierInfo::FieldIsFromRedef(const std::string& field) const
+	{
+	auto it = fields.find(field);
+
+	if ( it == fields.end() )
+		return false;
+
+	return it->second->from_redef;
 	}
 
 string IdentifierInfo::DoReStructuredText(bool roles_only) const

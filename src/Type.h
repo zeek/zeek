@@ -693,12 +693,12 @@ public:
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
-	void AddName(const std::string& module_name, const char* name, bool is_export, detail::Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bool is_export, detail::Expr* deprecation = nullptr, bool from_redef = false);
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, detail::Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, detail::Expr* deprecation = nullptr, bool from_redef = false);
 
 	// -1 indicates not found.
 	bro_int_t Lookup(const std::string& module_name, const char* name) const;
@@ -721,7 +721,8 @@ protected:
 
 	void CheckAndAddName(const std::string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,
-	                     detail::Expr* deprecation = nullptr);
+	                     detail::Expr* deprecation = nullptr,
+	                     bool from_redef = false);
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;

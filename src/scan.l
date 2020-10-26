@@ -142,6 +142,7 @@ FILE	[^ \t\n]+
 PREFIX	[^ \t\n]+
 FLOAT	(({D}*"."?{D})|({D}"."?{D}*))([eE][-+]?{D})?
 H	[A-Za-z0-9][A-Za-z0-9\-]*
+HTLD	[A-Za-z][A-Za-z0-9\-]*
 ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 %%
@@ -502,7 +503,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 "0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
-{H}("."{H})+		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
+({H}".")+{HTLD}		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;

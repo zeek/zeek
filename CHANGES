@@ -1,3 +1,7 @@
+3.3.0-dev.486 | 2020-10-26 10:41:48 -0700
+
+  * GH-1245: require TLD of hostname literals to start with a letter (Jon Siwek, Corelight)
+
 3.3.0-dev.484 | 2020-10-23 14:47:44 -0700
 
   * Add coveralls badge to README.md (Tim Wojtulewicz)

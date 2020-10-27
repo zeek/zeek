@@ -39,10 +39,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	// TODO: i feel like this could be generated as we move along the header hierarchy.
-	// TODO: the sessions code expects that the header size does not include the ip header. Should
-	// this change?
-	packet->hdr_size = static_cast<int32_t>(data - packet->data);
+	int32_t hdr_size = static_cast<int32_t>(data - packet->data);
 
 	// Cast the current data pointer to an IP header pointer so we can use it to get some
 	// data about the header.
@@ -82,10 +79,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		sessions->Weird("ip_hdr_len_zero", packet);
 
 		// Cope with the zero'd out ip_len field by using the caplen.
-		total_len = packet->cap_len - packet->hdr_size;
+		total_len = packet->cap_len - hdr_size;
 		}
 
-	if ( packet->len < total_len + packet->hdr_size )
+	if ( packet->len < total_len + hdr_size )
 		{
 		sessions->Weird("truncated_IPv6", packet);
 		return false;
@@ -158,7 +155,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		else
 			{
 			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, packet->ip_hdr,
-			                                       packet->data + packet->hdr_size);
+			                                       packet->data + hdr_size);
 			std::unique_ptr<IP_Hdr> ih = f->ReassembledPkt();
 
 			if ( ! ih )
@@ -173,7 +170,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 			len = total_len = packet->ip_hdr->TotalLen();
 			ip_hdr_len = packet->ip_hdr->HdrLen();
-			packet->cap_len = total_len + packet->hdr_size;
+			packet->cap_len = total_len + hdr_size;
 
 			if ( ip_hdr_len > total_len )
 				{
@@ -243,7 +240,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	case IPPROTO_ICMPV6:
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 		        GetAnalyzerName(), proto);
-		sessions->DoNextPacket(run_state::processing_start_time, packet);
+		sessions->ProcessTransportLayer(run_state::processing_start_time, packet, len);
 		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and

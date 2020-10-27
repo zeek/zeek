@@ -318,7 +318,7 @@ public:
 	 * already checked that the static IPv6 header is not truncated.  If
 	 * the packet contains extension headers and they are truncated, that can
 	 * be checked afterwards by comparing \a len with \a TotalLen.  E.g.
-	 * NetSessions::DoNextPacket does this to skip truncated packets.
+	 * The IP packet analyzer does this to skip truncated packets.
 	 * @param arg_ip6 pointer to memory containing an IPv6 packet.
 	 * @param arg_del whether to take ownership of \a arg_ip6 pointer's memory.
 	 * @param len the packet's length in bytes.

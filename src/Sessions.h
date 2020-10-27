@@ -93,8 +93,13 @@ public:
 	 * Main entry point for processing packets destined for session analyzers. This
 	 * method is called by the packet analysis manager when after it has processed
 	 * an IP-based packet, and shouldn't be called directly from other places.
+	 *
+	 * @param t The timestamp for this packet.
+	 * @param pkt The packet being processed.
+	 * @param len The number of bytes that haven't been processed yet by packet
+	 * analysis.
 	 */
-	void DoNextPacket(double t, const Packet *pkt);
+	void ProcessTransportLayer(double t, const Packet *pkt, size_t len);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4

@@ -115,12 +115,6 @@ public:
 	          std::string tag = "");
 
 	/**
-	 * Interprets the Layer 3 of the packet as IP and returns a
-	 * corresponding object.
-	 */
-	const IP_Hdr IP() const;
-
-	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
 	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
@@ -155,11 +149,6 @@ public:
 
 	// These are computed from Layer 2 data. These fields are only valid if
 	// l2_valid returns true.
-
-	/**
-	 * Layer 2 header size. Valid iff l2_valid is true.
-	 */
-	uint32_t hdr_size;
 
 	/**
 	 * Layer 3 protocol identified (if any). Valid iff l2_valid is true.

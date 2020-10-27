@@ -155,8 +155,5 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 			}
 		}
 
-	// Calculate how much header we've used up.
-	packet->hdr_size = (data - packet->data);
-
 	return AnalyzeInnerPacket(packet, data, protocol);
 	}

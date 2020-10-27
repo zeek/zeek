@@ -703,6 +703,43 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 
 void end_func(StmtPtr body)
 	{
+	// Comment the following in to test Stmt/Expr duplication.
+	//
+	// Expect 5 tests to fail, for the following reasons:
+	//
+	// language.deprecated
+	//	Some deprecation messages get reported twice, once when
+	//	constructing the original AST node, once when duplicating it.
+	//
+	// scripts.base.frameworks.input.reread
+	// plugins.hooks
+	//	When lambdas are duplicated they get a new UID, which differs
+	//	from the original.
+	//
+	// broker.store.invalid-handle
+	//	Line numbers in some error messages differ.  The duplicated
+	//	ones are "wider" (entire function) than the originals.
+	//	While I tracked down most places where this happens, this
+	//	one is a bit puzzling; doesn't seem worth trying to fix.
+	//
+	// coverage.zeek-profiler-file
+	//	I don't understand this test so am not sure what's going
+	//	on, but I'm guessing the problem is that the coverage
+	//	tracking is looking for execution of the original statements
+	//	and is not able to associate the duplicated statements
+	//	with these.
+#if 0
+	if ( reporter->Errors() == 0 )
+		// Only try duplication in the absence of errors.  If errors
+		// have occurred, they can be re-generated during the
+		// duplication process, leading to regression failures due
+		// to duplicated error messages.
+		//
+		// We duplicate twice to make sure that the AST produced
+		// by duplicating can itself be correctly duplicated.
+		body = body->Duplicate()->Duplicate();
+#endif
+
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( ingredients->id->HasVal() )

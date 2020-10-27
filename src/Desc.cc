@@ -41,6 +41,7 @@ ODesc::ODesc(DescType t, File* arg_f)
 	is_short = false;
 	want_quotes = false;
 	do_flush = true;
+	do_orig = false;
 	include_stats = false;
 	indent_with_spaces = 0;
 	escape = false;
@@ -433,7 +434,7 @@ const char* obj_desc(const Obj* o)
 
 	d.Clear();
 	// The following is used for compiler debugging.
-	// d.SetDoOrig(false);
+	d.SetDoOrig(false);
 	o->Describe(&d);
 	d.SP();
 	o->GetLocationInfo()->Describe(&d);

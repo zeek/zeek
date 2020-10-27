@@ -1,9 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Analyzer.h"
+#include "zeek/packet_analysis/Analyzer.h"
 
-#include "Dict.h"
-#include "DebugLogger.h"
+#include "zeek/Dict.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/RunState.h"
 
 namespace zeek::packet_analysis {
 
@@ -30,31 +31,6 @@ void Analyzer::Init(const Tag& _tag)
 void Analyzer::Initialize()
 	{
 	default_analyzer = LoadAnalyzer("default_analyzer");
-
-	// Create dispatcher based on configuration
-	auto& mapping_id = zeek::id::find(GetModuleName() + "dispatch_map");
-	if ( ! mapping_id )
-		return;
-
-	auto mapping_val = mapping_id->GetVal()->AsTableVal();
-	auto mapping_tbl = mapping_val->AsTable();
-	auto c = mapping_tbl->InitForIteration();
-
-	zeek::detail::HashKey* k = nullptr;
-	TableEntryVal* v;
-	while ( (v = mapping_tbl->NextEntry(k, c)) )
-		{
-		auto key = mapping_val->RecreateIndex(*k);
-		delete k;
-
-		auto identifier = key->Idx(0)->AsCount();
-		auto config_entry_val = v->GetVal()->AsRecordVal();
-
-		auto mapped_tag = config_entry_val->GetField("analyzer")->AsEnumVal();
-		auto mapped_analyzer = packet_mgr->GetAnalyzer(mapped_tag);
-
-		dispatcher.Register(identifier, std::move(mapped_analyzer));
-		}
 	}
 
 zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string &name)
@@ -130,6 +106,14 @@ void Analyzer::DumpDebug() const
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Dispatcher for %s", this->GetAnalyzerName());
 	dispatcher.DumpDebug();
 #endif
+	}
+
+void Analyzer::RegisterProtocol(uint32_t identifier, AnalyzerPtr child)
+	{
+	if ( run_state::detail::zeek_init_done )
+		reporter->FatalError("Packet protocols cannot be registered after zeek_init has finished.");
+
+	dispatcher.Register(identifier, std::move(child));
 	}
 
 }

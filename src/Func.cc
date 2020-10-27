@@ -61,6 +61,7 @@
 #include "strings.bif.func_h"
 #include "option.bif.func_h"
 #include "supervisor.bif.func_h"
+#include "packet_analysis.bif.func_h"
 
 #include "zeek.bif.func_def"
 #include "stats.bif.func_def"
@@ -68,6 +69,7 @@
 #include "strings.bif.func_def"
 #include "option.bif.func_def"
 #include "supervisor.bif.func_def"
+#include "packet_analysis.bif.func_def"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -929,6 +931,7 @@ void init_primary_bifs()
 #include "strings.bif.func_init"
 #include "option.bif.func_init"
 #include "supervisor.bif.func_init"
+#include "packet_analysis.bif.func_init"
 
 	init_builtin_types();
 	did_builtin_init = true;

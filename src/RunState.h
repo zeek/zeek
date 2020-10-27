@@ -54,6 +54,8 @@ extern double first_timestamp;
 extern double current_wallclock;
 extern double current_pseudo;
 
+extern bool zeek_init_done;
+
 } // namespace detail
 
 // Functions to temporarily suspend processing of live input (network packets

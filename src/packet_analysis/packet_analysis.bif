@@ -1,0 +1,49 @@
+module PacketAnalyzer;
+
+%%{
+
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/Manager.h"
+
+%%}
+
+## Add an entry to parent's dispatcher that maps a protocol/index to a next-stage child analyzer.
+##
+## parent: The parent analyzer being modified
+## identifier: The identifier for the protocol being registered
+## child: The analyzer that will be called for the identifier
+##
+function register_packet_analyzer%(parent: PacketAnalyzer::Tag, identifier: count, child: PacketAnalyzer::Tag%): bool
+	%{
+	packet_analysis::AnalyzerPtr parent_analyzer = packet_mgr->GetAnalyzer(parent->AsEnumVal());
+	if ( ! parent_analyzer )
+		return zeek::val_mgr->False();
+
+	packet_analysis::AnalyzerPtr child_analyzer = packet_mgr->GetAnalyzer(child->AsEnumVal());
+	if ( ! child_analyzer )
+		return zeek::val_mgr->False();
+
+	parent_analyzer->RegisterProtocol(identifier, child_analyzer);
+	return zeek::val_mgr->True();
+	%}
+
+## Attempts to add an entry to `parent`'s dispatcher that maps a protocol/index to a next-stage `child` analyzer.
+## This may fail if either of the two names does not respond to a known analyzer.
+##
+## parent: The parent analyzer being modified
+## identifier: The identifier for the protocol being registered
+## child: The analyzer that will be called for the identifier
+##
+function try_register_packet_analyzer_by_name%(parent: string, identifier: count, child: string%):  bool
+	%{
+	packet_analysis::AnalyzerPtr parent_analyzer = packet_mgr->GetAnalyzer(parent->ToStdString());
+	if ( ! parent_analyzer )
+		return zeek::val_mgr->False();
+
+	packet_analysis::AnalyzerPtr child_analyzer = packet_mgr->GetAnalyzer(child->ToStdString());
+	if ( ! child_analyzer )
+		return zeek::val_mgr->False();
+
+	parent_analyzer->RegisterProtocol(identifier, child_analyzer);
+	return zeek::val_mgr->True();
+	%}

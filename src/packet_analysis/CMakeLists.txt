@@ -14,7 +14,7 @@ set(packet_analysis_SRCS
     Manager.cc
     Component.cc
     Tag.cc
-)
+    )
 
 bro_add_subdir_library(packet_analysis ${packet_analysis_SRCS})
 add_dependencies(bro_packet_analysis generate_outputs)

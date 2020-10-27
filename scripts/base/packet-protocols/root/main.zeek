@@ -3,9 +3,6 @@ module PacketAnalyzer::ROOT;
 export {
 	## Default analyzer (if we don't know the link type, we assume raw IP)
 	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
-
-	## Identifier mappings based on link type
-	const dispatch_map: PacketAnalyzer::DispatchMap = {} &redef;
 }
 
 const DLT_EN10MB : count = 1;
@@ -15,12 +12,12 @@ const DLT_IEEE802_11_RADIO : count = 127;
 const DLT_LINUX_SLL : count = 113;
 const DLT_NFLOG : count = 239;
 
-redef dispatch_map += {
-	[DLT_EN10MB] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_ETHERNET),
-	[DLT_FDDI] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_FDDI),
-	[DLT_IEEE802_11] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IEEE802_11),
-	[DLT_IEEE802_11_RADIO] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IEEE802_11_RADIO),
-	[DLT_LINUX_SLL] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_LINUXSLL),
-	[DLT_NFLOG] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_NFLOG)
-
-};
+event zeek_init() &priority=20
+	{
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, DLT_EN10MB, PacketAnalyzer::ANALYZER_ETHERNET);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, DLT_FDDI, PacketAnalyzer::ANALYZER_FDDI);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, DLT_IEEE802_11, PacketAnalyzer::ANALYZER_IEEE802_11);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, DLT_IEEE802_11_RADIO, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, DLT_LINUX_SLL, PacketAnalyzer::ANALYZER_LINUXSLL);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, DLT_NFLOG, PacketAnalyzer::ANALYZER_NFLOG);
+	}

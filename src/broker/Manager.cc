@@ -129,7 +129,6 @@ Manager::Manager(bool arg_use_real_time)
 	{
 	bound_port = 0;
 	use_real_time = arg_use_real_time;
-	after_zeek_init = false;
 	peer_count = 0;
 	log_batch_size = 0;
 	log_topic_func = nullptr;
@@ -828,14 +827,14 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 bool Manager::Subscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-	bstate->subscriber.add_topic(topic_prefix, ! after_zeek_init);
+	bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
 
 	// For backward compatibility, we also may receive messages on
 	// "bro/" topic prefixes in addition to "zeek/".
 	if ( strncmp(topic_prefix.data(), "zeek/", 5) == 0 )
 		{
 		std::string alt_topic = "bro/" + topic_prefix.substr(5);
-		bstate->subscriber.add_topic(std::move(alt_topic), ! after_zeek_init);
+		bstate->subscriber.add_topic(std::move(alt_topic), ! run_state::detail::zeek_init_done);
 		}
 
 	return true;
@@ -864,7 +863,7 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 			}
 
 	DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-	bstate->subscriber.remove_topic(topic_prefix, ! after_zeek_init);
+	bstate->subscriber.remove_topic(topic_prefix, ! run_state::detail::zeek_init_done);
 	return true;
 	}
 

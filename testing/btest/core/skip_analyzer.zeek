@@ -7,8 +7,9 @@
 @load base/protocols/conn
 @load base/frameworks/tunnels
 
-redef PacketAnalyzer::ROOT::dispatch_map += {
-	[1] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_SKIP)
-};
-
 redef PacketAnalyzer::SKIP::skip_bytes: count = 38;
+
+event zeek_init()
+	{
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 1, PacketAnalyzer::ANALYZER_SKIP);
+	}

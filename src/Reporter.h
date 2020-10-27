@@ -269,13 +269,6 @@ public:
 		this->weird_sampling_duration = weird_sampling_duration;
 		}
 
-	/**
-	 * Called after zeek_init() and toggles whether messages may stop being
-	 * emitted to stderr.
-	 */
-	void ZeekInitDone()
-		{ after_zeek_init = true; }
-
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, ValPList* addl, bool location, bool time,
@@ -296,8 +289,7 @@ private:
 	enum class PermitWeird { Allow, Deny, Unknown };
 	PermitWeird CheckGlobalWeirdLists(const char* name);
 
-	bool EmitToStderr(bool flag)
-		{ return flag || ! after_zeek_init; }
+	bool EmitToStderr(bool flag);
 
 	int errors;
 	bool via_events;
@@ -305,7 +297,6 @@ private:
 	bool info_to_stderr;
 	bool warnings_to_stderr;
 	bool errors_to_stderr;
-	bool after_zeek_init;
 	bool abort_on_scripting_errors = false;
 
 	std::list<std::pair<const detail::Location*, const detail::Location*> > locations;

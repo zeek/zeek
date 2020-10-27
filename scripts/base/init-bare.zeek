@@ -996,8 +996,8 @@ const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 const ignore_checksums = F &redef;
 
 ## Checksums are ignored for all packets with a src address within this set of
-## networks. Useful for cases where a host might be seeing packets collected 
-## from local hosts before checksums were applied by hardware. This frequently 
+## networks. Useful for cases where a host might be seeing packets collected
+## from local hosts before checksums were applied by hardware. This frequently
 ## manifests when sniffing a local management interface on a host and Zeek sees
 ## packets before the hardware has had a chance to apply the checksums.
 option ignore_checksums_nets: set[subnet] = set();
@@ -1914,6 +1914,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/bif/option.bif
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
+@load base/bif/packet_analysis.bif
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string
@@ -5376,19 +5377,5 @@ event net_done(t: time)
 # execution would be another idea.
 @if ( __init_primary_bifs() )
 @endif
-
-module PacketAnalyzer;
-
-export {
-	type DispatchEntry : record {
-		## The analyzer to dispatch.
-		analyzer : PacketAnalyzer::Tag;
-	};
-
-	## A packet analyzer may extract a numeric identifier, which can be found in the
-	## packet data and denotes the encapsulated protocol. A DispatchMap allows to map
-	## the identifier to a child analyzer, which is defined using a DispatchEntry.
-	type DispatchMap : table[count] of DispatchEntry;
-}
 
 @load base/packet-protocols

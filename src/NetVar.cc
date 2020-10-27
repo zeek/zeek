@@ -207,6 +207,7 @@ static void bif_init_net_var()
 #include "const.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
+#include "packet_analysis.bif.netvar_init"
 	}
 
 static void init_bif_types()
@@ -219,6 +220,7 @@ static void init_bif_types()
 #include "event.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 #include "supervisor.bif.netvar_def"
+#include "packet_analysis.bif.netvar_def"
 
 // Re-open the namespace now that the bif headers are all included.
 namespace zeek::detail {

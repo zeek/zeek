@@ -129,6 +129,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		 return false;
 
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
+	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
 		sessions->Weird("bad_IP_checksum", packet);

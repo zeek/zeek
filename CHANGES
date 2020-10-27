@@ -1,3 +1,51 @@
+3.3.0-dev.488 | 2020-10-26 11:03:51 -0700
+
+  * Improve how Zeekygen generated record/enum redefinition docs
+
+    It now provides a summary of the new fields/enums added by any given
+    redefinition along with associated commentary. (Jon Siwek, Corelight)
+
+3.3.0-dev.486 | 2020-10-26 10:41:48 -0700
+
+  * GH-1245: require TLD of hostname literals to start with a letter (Jon Siwek, Corelight)
+
+3.3.0-dev.484 | 2020-10-23 14:47:44 -0700
+
+  * Add coveralls badge to README.md (Tim Wojtulewicz)
+
+  * Remove the entire auxil directory from the results (Tim Wojtulewicz)
+
+  * Prevent non-master builds, add cirrus information to upload (Tim Wojtulewicz)
+
+  * Add support for sending data to coveralls with lcov_html.sh via Cirrus (Tim Wojtulewicz, Corelight)
+
+3.3.0-dev.479 | 2020-10-23 12:25:15 -0700
+
+  * GH-251 (revert): remove coercion-to-signed-integer for |x| expressions (Jon Siwek, Corelight)
+
+    For `|x|`, where `x` is an expression with an integral result, an
+    implicit coercion of that result into signed `int` type no longer takes
+    place.
+
+    This was actually the behavior before Zeek 3.0 as well, but the attempt
+    to prevent mistakes that easily result from integer literals in Zeek
+    being unsigned like `|5 - 9|` causing an overflow/wraparound and
+    yielding a very large number is not generally consistent since overflows
+    are still generally able to happen in other ways and also in other
+    contexts besides just absolute-values.  So the preference was to revert
+    to a behavior that favors consistency.  For reference, see
+    https://github.com/zeek/zeek/pull/251#issuecomment-713956976
+
+3.3.0-dev.476 | 2020-10-22 15:59:56 -0400
+
+  * Add an option to ignore packets sourced from particular subnets.
+
+    It's implemented with a new set[subnet] option named ignore_checksums_nets.
+    If you populate this set with subnets, any packet with a src address within
+    that set of subnets will not have it's checksum validated. (Seth Hall, Corelight)
+
+  * Update submodule(s) [nomail] (Jon Siwek, Corelight)
+
 
 3.3.0-dev.467 | 2020-10-21 11:06:18 -0700
 

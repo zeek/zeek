@@ -995,6 +995,13 @@ const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 ## variable.
 const ignore_checksums = F &redef;
 
+## Checksums are ignored for all packets with a src address within this set of
+## networks. Useful for cases where a host might be seeing packets collected 
+## from local hosts before checksums were applied by hardware. This frequently 
+## manifests when sniffing a local management interface on a host and Zeek sees
+## packets before the hardware has had a chance to apply the checksums.
+option ignore_checksums_nets: set[subnet] = set();
+
 ## If true, instantiate connection state when a partial connection
 ## (one missing its initial establishment negotiation) is seen.
 const partial_connection_ok = T &redef;

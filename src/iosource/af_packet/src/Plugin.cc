@@ -16,6 +16,6 @@ plugin::Configuration Plugin::Configure()
 	config.description = "Packet acquisition via AF_Packet";
 	config.version.major = 2;
 	config.version.minor = 1;
-	config.version.patch = 0;
+	config.version.patch = 1;
 	return config;
 	}

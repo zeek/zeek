@@ -59,7 +59,7 @@ function split_mime_email_addresses(line: string): set[string]
 	{
 	local output = string_set();
 
-	local addrs = find_all(line, /(\"[^"]*\")?[^,]+/);
+	local addrs = find_all(line, /(\"[^"]*\")?[^,]+@[^,]+/);
 	for ( part in addrs )
 		{
 		add output[strip(part)];

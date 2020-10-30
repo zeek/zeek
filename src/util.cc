@@ -2165,7 +2165,9 @@ bool safe_write(int fd, const char* data, int len)
 			if ( errno == EINTR )
 				continue;
 
-			fprintf(stderr, "safe_write error: %d\n", errno);
+			char buf[128];
+			zeek_strerror_r(errno, buf, sizeof(buf));
+			fprintf(stderr, "safe_write error: %d (%s)\n", errno, buf);
 			abort();
 
 			return false;
@@ -2189,7 +2191,9 @@ bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
 			if ( errno == EINTR )
 				continue;
 
-			fprintf(stderr, "safe_write error: %d\n", errno);
+			char buf[128];
+			zeek_strerror_r(errno, buf, sizeof(buf));
+			fprintf(stderr, "safe_write error: %d (%s)\n", errno, buf);
 			abort();
 
 			return false;

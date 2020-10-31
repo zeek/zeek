@@ -1,0 +1,15 @@
+[source=wc -l ../input.log |, reader=Input::READER_RAW, mode=Input::MANUAL, name=input, fields=Val, want_record=F, ev=line
+{ 
+print outfile, description;
+print outfile, tpe;
+print outfile, s;
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+8 ../input.log

@@ -1,0 +1,5 @@
+runtime error in /Users/vern/warehouse/zeek-bvu-change/scripts/base/utils/queue.zeek, line 152: vector index assignment failed for invalid type 'myrec', value: [a=T, b=hi, c=<uninitialized>], expression: Queue::ret[Queue::j], call stack: 
+ #0 zeek_init() 
+
+
+

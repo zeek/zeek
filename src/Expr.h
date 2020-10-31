@@ -10,6 +10,7 @@
 
 #include "ZeekList.h"
 #include "IntrusivePtr.h"
+#include "StmtBase.h"
 #include "Timer.h"
 #include "Type.h"
 #include "EventHandler.h"
@@ -66,13 +67,18 @@ enum BroExprTag : int {
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
-#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
+
+	// For script optimization:
+	EXPR_INLINE,
+
+#define NUM_EXPRS (int(EXPR_INLINE) + 1)
 };
 
 extern const char* expr_name(BroExprTag t);
 
 class ListExpr;
 class NameExpr;
+class ConstExpr;
 class IndexExpr;
 class AssignExpr;
 class CallExpr;
@@ -82,7 +88,7 @@ class Stmt;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 using EventExprPtr = IntrusivePtr<EventExpr>;
-using ListExprPtr = IntrusivePtr<ListExpr>;
+using StmtPtr = IntrusivePtr<Stmt>;
 
 class Expr : public Obj {
 public:
@@ -99,6 +105,7 @@ public:
 	BroExprTag Tag() const	{ return tag; }
 
 	Expr* Ref()			{ zeek::Ref(this); return this; }
+	ExprPtr ThisPtr()		{ return {NewRef{}, this}; }
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
@@ -179,6 +186,8 @@ public:
 
 	ACCESSORS(ListExpr)
 	ACCESSORS(NameExpr)
+	ACCESSORS(ConstExpr)
+	ACCESSORS(CallExpr)
 	ACCESSORS(AssignExpr)
 	ACCESSORS(IndexExpr)
 	ACCESSORS(EventExpr)
@@ -197,7 +206,10 @@ public:
 	// (due to inline-ing), and that won't have Reaching Definitions
 	// tied to an individual copy, we can return just a reference, per the
 	// default here.
-	virtual ExprPtr Duplicate()	{ return {NewRef{}, this}; }
+	virtual ExprPtr Duplicate()		{ return ThisPtr(); }
+
+	// Recursively traverses the AST to inline eligible function calls.
+	virtual ExprPtr Inline(Inliner* inl)	{ return ThisPtr(); }
 
 	// Access to the original expression from which this one is derived,
 	// or this one if we don't have an original.  Returns a bare pointer
@@ -221,7 +233,7 @@ public:
 	// into an ExprPtr.
 	virtual ExprPtr SetSucc(Expr* succ)
 		{
-		succ->SetOriginal({NewRef{}, this});
+		succ->SetOriginal(ThisPtr());
 		if ( IsParen() )
 			succ->MarkParen();
 		return {AdoptRef{}, succ};
@@ -301,6 +313,7 @@ public:
 	explicit ConstExpr(ValPtr val);
 
 	Val* Value() const	{ return val.get(); }
+	ValPtr ValuePtr() const	{ return val; }
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -323,6 +336,9 @@ public:
 	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op);
@@ -348,6 +364,9 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	BinaryExpr(BroExprTag arg_tag,
@@ -597,6 +616,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -967,6 +987,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1003,6 +1024,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1029,6 +1051,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1054,6 +1077,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1088,6 +1112,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	ValPtr AddSetInit(const zeek::Type* t, ValPtr aggr) const;
@@ -1129,6 +1154,42 @@ protected:
 private:
 	TypePtr t;
 };
+
+
+//
+// BEGINNING of Expr subclasses relating to script optimization.
+//
+
+class InlineExpr : public Expr {
+public:
+	InlineExpr(ListExprPtr arg_args, IDPList* params, StmtPtr body,
+			int frame_offset, TypePtr ret_type);
+
+	bool IsPure() const override;
+
+	ListExprPtr Args() const	{ return args; }
+	StmtPtr Body() const		{ return body; }
+
+	ValPtr Eval(Frame* f) const override;
+
+	ExprPtr Duplicate() override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+	IDPList* params;
+	int frame_offset;
+	ListExprPtr args;
+	StmtPtr body;
+};
+
+//
+// END of member variables and protected methods
+// relating to script optimization.
+//
+
 
 inline Val* Expr::ExprVal() const
 	{

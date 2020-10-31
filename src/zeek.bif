@@ -228,6 +228,15 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 		v->Describe(&s);
 		break;
 
+	case 'S':
+		{
+		auto curr_orig = s.DoOrig();
+		s.SetDoOrig(false);
+		v->Describe(&s);
+		s.SetDoOrig(curr_orig);
+		break;
+		}
+
 	case 'e':
 	case 'f':
 	case 'g':

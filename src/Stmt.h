@@ -2,152 +2,27 @@
 
 #pragma once
 
-// BRO statements.
+// Zeek statements.
+
+#include "StmtBase.h"
 
 #include "ZeekList.h"
 #include "Dict.h"
 #include "ID.h"
-#include "Obj.h"
-
-#include "StmtEnums.h"
-
-#include "TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-
-namespace zeek::run_state { extern double network_time; }
 
 namespace zeek::detail {
 
-class StmtList;
-class ForStmt;
-class EventExpr;
-class ListExpr;
-
-using EventExprPtr = IntrusivePtr<EventExpr>;
-using ListExprPtr = IntrusivePtr<ListExpr>;
-
-class Stmt;
-using StmtPtr = IntrusivePtr<Stmt>;
-
-class Stmt : public Obj {
-public:
-	StmtTag Tag() const	{ return tag; }
-
-	~Stmt() override;
-
-	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) const = 0;
-
-	Stmt* Ref()			{ zeek::Ref(this); return this; }
-
-	bool SetLocationInfo(const Location* loc) override
-		{ return Stmt::SetLocationInfo(loc, loc); }
-	bool SetLocationInfo(const Location* start, const Location* end) override;
-
-	// True if the statement has no side effects, false otherwise.
-	virtual bool IsPure() const;
-
-	StmtList* AsStmtList();
-	const StmtList* AsStmtList() const;
-
-	ForStmt* AsForStmt();
-
-	void RegisterAccess() const	{ last_access = run_state::network_time; access_count++; }
-	void AccessStats(ODesc* d) const;
-	uint32_t GetAccessCount() const { return access_count; }
-
-	void Describe(ODesc* d) const final;
-
-	virtual void IncrBPCount()	{ ++breakpoint_count; }
-	virtual void DecrBPCount();
-
-	virtual unsigned int BPCount() const	{ return breakpoint_count; }
-
-	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
-
-
-	//
-	// BEGINNING of methods relating to script optimization.
-	//
-
-	// Returns a duplicate of the statement so that modifications
-	// can be made to statements from inlining function bodies - or
-	// to the originals - without affecting other instances.
-	//
-	// It's tempting to think that there are some statements that
-	// are safe to share across multiple functions and could just
-	// return references to themselves - but since we associate
-	// information such as reaching-defs with statements, even these
-	// need to be duplicated.
-	virtual StmtPtr Duplicate() = 0;
-
-	// Access to the original statement from which this one is derived,
-	// or this one if we don't have an original.  Returns a bare pointer
-	// rather than a StmtPtr to emphasize that the access is read-only.
-	const Stmt* Original() const
-		{ return original ? original->Original() : this; }
-
-	// Designate the given Stmt node as the original for this one.
-	void SetOriginal(StmtPtr _orig)
-		{
-		if ( ! original )
-			original = std::move(_orig);
-		}
-
-	// A convenience function for taking a newly-created Stmt,
-	// making it point to us as the successor, and returning it.
-	//
-	// Takes a Stmt* rather than a StmtPtr to de-clutter the calling
-	// code, which is always passing in "new XyzStmt(...)".  This
-	// call, as a convenient side effect, transforms that bare pointer
-	// into a StmtPtr.
-	virtual StmtPtr SetSucc(Stmt* succ)
-		{
-		succ->SetOriginal({NewRef{}, this});
-		return {AdoptRef{}, succ};
-		}
-
-	//
-	// END of methods relating to script optimization.
-	//
-
-protected:
-	explicit Stmt(StmtTag arg_tag);
-
-	void AddTag(ODesc* d) const;
-	virtual void StmtDescribe(ODesc* d) const;
-	void DescribeDone(ODesc* d) const;
-
-	StmtTag tag;
-	int breakpoint_count;	// how many breakpoints on this statement
-
-	// FIXME: Learn the exact semantics of mutable.
-	mutable double last_access;	// time of last execution
-	mutable uint32_t access_count;	// number of executions
-
-
-	//
-	// BEGINNING of member variables and protected methods
-	// relating to script optimization.
-	//
-
-        // The original statement from which this statement was
-        // derived, if any.  Used as an aid for generating meaningful
-	// and correctly-localized error messages.
-	StmtPtr original = nullptr;
-
-	//
-	// END of member variables and protected methods
-	// relating to script optimization.
-	//
-};
 
 class ExprListStmt : public Stmt {
 public:
 	const ListExpr* ExprList() const	{ return l.get(); }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	void Inline(Inliner* inl) override;
 
 protected:
 	ExprListStmt(StmtTag t, ListExprPtr arg_l);
@@ -191,6 +66,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	ExprStmt(StmtTag t, ExprPtr e);
@@ -216,6 +92,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
@@ -267,6 +144,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
@@ -352,13 +230,22 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	const Stmt* CondStmt() const
+		{ return loop_cond_stmt ? loop_cond_stmt.get() : nullptr; }
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	ExprPtr loop_condition;
 	StmtPtr body;
+
+	// Optimization-related member variables.
+
+	// When in reduced form, the following holds a statement (which
+	// might be a block) for evaluating the loop's conditional.
+	IntrusivePtr<Stmt> loop_cond_stmt = nullptr;
 };
 
 class ForStmt final : public ExprStmt {
@@ -370,7 +257,8 @@ public:
 
 	void AddBody(StmtPtr arg_body)	{ body = std::move(arg_body); }
 
-	const IDPList* LoopVar() const	{ return loop_vars; }
+	const IDPList* LoopVars() const	{ return loop_vars; }
+	IDPtr ValueVar() const		{ return value_var; }
 	const Expr* LoopExpr() const	{ return e.get(); }
 	const Stmt* LoopBody() const	{ return body.get(); }
 
@@ -382,6 +270,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
@@ -457,9 +346,9 @@ public:
 	// Optimization-related:
 	StmtPtr Duplicate() override;
 
-        // Constructor used for duplication, when we've already done
-        // all of the type-checking.
-        ReturnStmt(ExprPtr e, bool ignored);
+	// Constructor used for duplication, when we've already done
+	// all of the type-checking.
+	ReturnStmt(ExprPtr e, bool ignored);
 };
 
 class StmtList : public Stmt {
@@ -478,6 +367,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	bool IsPure() const override;
@@ -560,6 +450,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
+	void Inline(Inliner* inl) override;
 
 protected:
 	ExprPtr cond;
@@ -571,7 +462,6 @@ protected:
 
 } // namespace zeek::detail
 
-using Stmt [[deprecated("Remove in v4.1. Use zeek::detail::Stmt instead.")]] = zeek::detail::Stmt;
 using ExprListStmt [[deprecated("Remove in v4.1. Use zeek::detail::ExprListStmt instead.")]] = zeek::detail::ExprListStmt;
 using PrintStmt [[deprecated("Remove in v4.1. Use zeek::detail::PrintStmt instead.")]] = zeek::detail::PrintStmt;
 using ExprStmt [[deprecated("Remove in v4.1. Use zeek::detail::ExprStmt instead.")]] = zeek::detail::ExprStmt;

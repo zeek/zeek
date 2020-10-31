@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_INLINE}" != "1"
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 

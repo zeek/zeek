@@ -9,6 +9,14 @@
 namespace zeek::detail {
 
 
+void ExprListStmt::Inline(Inliner* inl)
+	{
+	auto& e = l->Exprs();
+	for ( auto i = 0; i < e.length(); ++i )
+		e.replace(i, e[i]->Inline(inl).release());
+	}
+
+
 IntrusivePtr<Stmt> PrintStmt::Duplicate()
 	{
 	return SetSucc(new PrintStmt(l->Duplicate()->AsListExprPtr()));
@@ -20,11 +28,27 @@ IntrusivePtr<Stmt> ExprStmt::Duplicate()
 	return SetSucc(new ExprStmt(e ? e->Duplicate() : nullptr));
 	}
 
+void ExprStmt::Inline(Inliner* inl)
+	{
+	if ( e )
+		e = e->Inline(inl);
+	}
+
 
 IntrusivePtr<Stmt> IfStmt::Duplicate()
 	{
 	return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(),
 					s2->Duplicate()));
+	}
+
+void IfStmt::Inline(Inliner* inl)
+	{
+	ExprStmt::Inline(inl);
+
+	if ( s1 )
+		s1->Inline(inl);
+	if ( s2 )
+		s2->Inline(inl);
 	}
 
 
@@ -49,6 +73,17 @@ IntrusivePtr<Stmt> SwitchStmt::Duplicate()
 		new_cases->append((*cases)[i]->Duplicate().release());
 
 	return SetSucc(new SwitchStmt(e->Duplicate(), new_cases));
+	}
+
+void SwitchStmt::Inline(Inliner* inl)
+	{
+	ExprStmt::Inline(inl);
+
+	for ( auto c : *cases )
+		// In principle this can do the operation multiple times
+		// for a given body, but that's no big deal as repeated
+		// calls won't do anything.
+		c->Body()->Inline(inl);
 	}
 
 
@@ -76,6 +111,16 @@ IntrusivePtr<Stmt> WhileStmt::Duplicate()
 					body->Duplicate()));
 	}
 
+void WhileStmt::Inline(Inliner* inl)
+	{
+	loop_condition = loop_condition->Inline(inl);
+
+	if ( loop_cond_stmt )
+		loop_cond_stmt->Inline(inl);
+	if ( body )
+		body->Inline(inl);
+	}
+
 
 IntrusivePtr<Stmt> ForStmt::Duplicate()
 	{
@@ -100,6 +145,12 @@ IntrusivePtr<Stmt> ForStmt::Duplicate()
 	return SetSucc(f);
 	}
 
+void ForStmt::Inline(Inliner* inl)
+	{
+	ExprStmt::Inline(inl);
+	body->Inline(inl);
+	}
+
 
 IntrusivePtr<Stmt> ReturnStmt::Duplicate()
 	{
@@ -120,6 +171,12 @@ IntrusivePtr<Stmt> StmtList::Duplicate()
 		new_sl->Stmts().push_back(stmt->Duplicate().release());
 
 	return SetSucc(new_sl);
+	}
+
+void StmtList::Inline(Inliner* inl)
+	{
+	for ( const auto& stmt : Stmts() )
+		stmt->Inline(inl);
 	}
 
 
@@ -143,6 +200,12 @@ IntrusivePtr<Stmt> WhenStmt::Duplicate()
 	auto timeout_d = timeout ? timeout->Duplicate() : nullptr;
 
 	return SetSucc(new WhenStmt(cond_d, s1_d, s2_d, timeout_d, is_return));
+	}
+
+void WhenStmt::Inline(Inliner* inl)
+	{
+	// Don't inline, since we currently don't correctly capture
+	// the frames of closures.
 	}
 
 

@@ -1,0 +1,3 @@
+expression error in <no location>: invalid Broker store handle (0), during call: (Broker::__is_closed(Broker::h))
+error in /Users/vern/warehouse/zeek-bvu-change/testing/btest/.tmp/broker.store.invalid-handle-inline/invalid-handle-inline.zeek, line 7: invalid Broker store handle (Broker::keys(a) and 0)
+keys, [status=Broker::FAILURE, result=[data=<uninitialized>]]

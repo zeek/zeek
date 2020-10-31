@@ -69,6 +69,30 @@ ForStmt* Stmt::AsForStmt()
 	return (ForStmt*) this;
 	}
 
+const ForStmt* Stmt::AsForStmt() const
+	{
+	CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
+	return (const ForStmt*) this;
+	}
+
+const InitStmt* Stmt::AsInitStmt() const
+	{
+	CHECK_TAG(tag, STMT_INIT, "Stmt::AsInitStmt", stmt_name)
+	return (const InitStmt*) this;
+	}
+
+const WhenStmt* Stmt::AsWhenStmt() const
+	{
+	CHECK_TAG(tag, STMT_WHEN, "Stmt::AsWhenStmt", stmt_name)
+	return (const WhenStmt*) this;
+	}
+
+const SwitchStmt* Stmt::AsSwitchStmt() const
+	{
+	CHECK_TAG(tag, STMT_SWITCH, "Stmt::AsSwitchStmt", stmt_name)
+	return (const SwitchStmt*) this;
+	}
+
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
 	if ( ! Obj::SetLocationInfo(start, end) )

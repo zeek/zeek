@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_INLINE}" != "1"
 # @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT 2>&1
 # @TEST-EXEC: btest-diff .stdout
 

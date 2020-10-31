@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "Options.h"
+#include "script_opt/ScriptOpt.h"
 
 #include <algorithm>
 #include <sstream>
@@ -104,6 +105,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
+	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help for options)\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
@@ -140,6 +142,120 @@ void usage(const char* prog, int code)
 
 	exit(code);
 	}
+
+namespace detail {
+
+static void set_analysis_option(const char* opt, Options& opts)
+	{
+	if ( ! opt /* || util::streq(opt, "all") */ )
+		{
+		opts.analysis_options.inliner = true;
+
+#ifdef NOT_YET
+		opts.analysis_options.activate = true;
+		opts.analysis_options.compile = true;
+		opts.analysis_options.optimize = true;
+#endif // NOT_YET
+		return;
+		}
+
+	if ( util::streq(opt, "help") )
+		{
+		fprintf(stderr, "--optimize options:\n");
+#ifdef NOT_YET
+		fprintf(stderr, "    all		turns on compile, inline, xform-opt\n");
+		fprintf(stderr, "    compile	compile scripts to ZAM code; implies xform\n");
+		fprintf(stderr, "    delete	delete saved ZAM code\n");
+		fprintf(stderr, "    dump-code	dump ZAM code to stdout\n");
+		fprintf(stderr, "    dump-max-rds	dump maximal reaching-defs to stdout\n");
+		fprintf(stderr, "    dump-min-rds	dump minimal reaching-defs to stdout\n");
+		fprintf(stderr, "    dump-uds	dump use-defs to stdout\n");
+		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout\n");
+#endif // NOT_YET
+		fprintf(stderr, "    help	print this list\n");
+		fprintf(stderr, "    inline	inline function calls\n");
+#ifdef NOT_YET
+		fprintf(stderr, "    no-load	do not load saved ZAM code\n");
+		fprintf(stderr, "    no-save	do not save ZAM code\n");
+		fprintf(stderr, "    no-ZAM-opt	turn off low-level ZAM optimization\n");
+		fprintf(stderr, "    overwrite	overwrite saved ZAM code\n");
+		fprintf(stderr, "    profile	generate to stdout a ZAM execution profile\n");
+		fprintf(stderr, "		  (requires --enable-debug)\n");
+#endif // NOT_YET
+		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
+#ifdef NOT_YET
+		fprintf(stderr, "    uncompilable	report on uncompilable functions and exit\n");
+		fprintf(stderr, "    unused	report on unused functions and events, and exit\n");
+		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
+		fprintf(stderr, "    xform-opt	optimize \"reduced\" form scripts; implies xform\n");
+		fprintf(stderr, "\n");
+		fprintf(stderr, "--optimize-only=func	apply options to only the given function\n");
+#endif // NOT_YET
+		exit(0);
+		}
+
+#ifdef NOT_YET
+	if ( util:: streq(opt, "compile") )
+		opts.analysis_options.compile = true;
+	else if ( util:: streq(opt, "delete") )
+		opts.analysis_options.delete_save_files = true;
+	else if ( util:: streq(opt, "dump-code") )
+		opts.analysis_options.dump_code = true;
+	else if ( util:: streq(opt, "dump-max-rds") )
+		opts.analysis_options.max_rd_trace = true;
+	else if ( util:: streq(opt, "dump-min-rds") )
+		opts.analysis_options.min_rd_trace = true;
+	else if ( util:: streq(opt, "dump-uds") )
+		opts.analysis_options.ud_dump = true;
+	else if ( util:: streq(opt, "dump-xform") )
+		opts.analysis_options.dump_xform = true;
+	else
+#endif // NOT_YET
+	     if ( util::streq(opt, "inline") )
+		opts.analysis_options.inliner = true;
+#ifdef NOT_YET
+	else if ( util:: streq(opt, "no-load") )
+		opts.analysis_options.no_load = true;
+	else if ( util:: streq(opt, "no-save") )
+		opts.analysis_options.no_save = true;
+	else if ( util:: streq(opt, "no-ZAM-opt") )
+		opts.analysis_options.no_ZAM_opt = true;
+	else if ( util:: streq(opt, "overwrite") )
+		opts.analysis_options.overwrite_save_files = true;
+	else if ( util:: streq(opt, "profile") )
+		{
+#ifdef DEBUG
+		opts.analysis_options.report_profile = true;
+#else
+		fprintf(stderr, "zeek: --optimize=profile only supported when configuration includes --enable-debug\n");
+		exit(1);
+#endif // DEBUG
+		}
+#endif // NOT_YET
+	else if ( util::streq(opt, "recursive") )
+		opts.analysis_options.inliner =
+			opts.analysis_options.report_recursive = true;
+#ifdef NOT_YET
+	else if ( util:: streq(opt, "uncompilable") )
+		opts.analysis_options.activate =
+			opts.analysis_options.report_uncompilable = true;
+	else if ( util:: streq(opt, "unused") )
+		opts.analysis_options.activate =
+			opts.analysis_options.report_orphans = true;
+	else if ( util:: streq(opt, "xform") )
+		opts.analysis_options.activate = true;
+	else if ( util:: streq(opt, "xform-opt") )
+		opts.analysis_options.optimize = true;
+#endif // NOT_YET
+
+	else
+		{
+		fprintf(stderr,"zeek: unrecognized --optimize option: %s\n", opt);
+		exit(1);
+		}
+	}
+
+} // namespace detail
 
 Options parse_cmdline(int argc, char** argv)
 	{
@@ -252,6 +368,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"load-seeds",		required_argument,	nullptr,	'G'},
 		{"save-seeds",		required_argument,	nullptr,	'H'},
 		{"print-plugins",	no_argument,		nullptr,	'N'},
+		{"optimize",		required_argument,	nullptr,	'O'},
 		{"prime-dns",		no_argument,		nullptr,	'P'},
 		{"time",		no_argument,		nullptr,	'Q'},
 		{"debug-rules",		no_argument,		nullptr,	'S'},
@@ -279,7 +396,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
 	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -400,6 +517,9 @@ Options parse_cmdline(int argc, char** argv)
 			break;
 		case 'N':
 			++rval.print_plugins;
+			break;
+		case 'O':
+			detail::set_analysis_option(optarg, rval);
 			break;
 		case 'P':
 			if ( rval.dns_mode != detail::DNS_DEFAULT )

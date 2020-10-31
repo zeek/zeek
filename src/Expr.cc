@@ -39,7 +39,10 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "cast", "is", "[:]="
+		"sizeof", "cast", "is", "[:]=",
+
+		// Script optimization:
+		"inline()",
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -92,6 +95,18 @@ NameExpr* Expr::AsNameExpr()
 	return (NameExpr*) this;
 	}
 
+const ConstExpr* Expr::AsConstExpr() const
+	{
+	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
+	return (const ConstExpr*) this;
+	}
+
+const CallExpr* Expr::AsCallExpr() const
+	{
+	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+	return (const CallExpr*) this;
+	}
+
 const AssignExpr* Expr::AsAssignExpr() const
 	{
 	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
@@ -114,6 +129,12 @@ IndexExpr* Expr::AsIndexExpr()
 	{
 	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
 	return (IndexExpr*) this;
+	}
+
+const EventExpr* Expr::AsEventExpr() const
+	{
+	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
+	return (const EventExpr*) this;
 	}
 
 IntrusivePtr<EventExpr> Expr::AsEventExprPtr()

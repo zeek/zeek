@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_INLINE}" != "1"
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out

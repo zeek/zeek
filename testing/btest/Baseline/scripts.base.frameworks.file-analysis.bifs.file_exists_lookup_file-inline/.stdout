@@ -1,0 +1,8 @@
+error: file ID asdf not a known file
+This should produce an error, but not also a run-time warning
+This should return F
+F
+lookup fid: FMnxxt3xjVcWNS2141
+We should have found the file id: FMnxxt3xjVcWNS2141
+This should return T
+T

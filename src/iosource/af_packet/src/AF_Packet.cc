@@ -183,10 +183,13 @@ inline uint32_t AF_PacketSource::GetFanoutMode(bool defrag)
 
 	switch ( BifConst::AF_Packet::fanout_mode->AsEnum() ) {
 		case BifEnum::AF_Packet::FANOUT_CPU: fanout_mode = PACKET_FANOUT_CPU;
+		                                     break;
 	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
 		case BifEnum::AF_Packet::FANOUT_QM: fanout_mode = PACKET_FANOUT_QM;
+		                                    break;
 	#endif
 		default: fanout_mode = PACKET_FANOUT_HASH;
+		         break;
 	}
 
 	if ( defrag )

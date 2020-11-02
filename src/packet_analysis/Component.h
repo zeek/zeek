@@ -17,7 +17,7 @@ using AnalyzerPtr = std::shared_ptr<Analyzer>;
 class Component : public plugin::Component,
                   public plugin::TaggedComponent<packet_analysis::Tag> {
 public:
-	typedef AnalyzerPtr (*factory_callback)();
+	using factory_callback = std::function<AnalyzerPtr ()>;
 
 	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0);
 	~Component() override = default;

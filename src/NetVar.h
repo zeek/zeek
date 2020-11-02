@@ -345,3 +345,4 @@ extern zeek::StringVal* global_hash_seed;
 #include "event.bif.netvar_h"
 #include "reporter.bif.netvar_h"
 #include "supervisor.bif.netvar_h"
+#include "packet_analysis.bif.netvar_h"

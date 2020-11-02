@@ -56,6 +56,7 @@ double first_wallclock = 0.0;
 double first_timestamp = 0.0;
 double current_wallclock = 0.0;
 double current_pseudo = 0.0;
+bool zeek_init_done = false;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{

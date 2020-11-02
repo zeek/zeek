@@ -908,8 +908,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( reporter->Errors() > 0 && ! util::zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
 		reporter->FatalError("errors occurred while initializing");
 
-	broker_mgr->ZeekInitDone();
-	reporter->ZeekInitDone();
+	run_state::detail::zeek_init_done = true;
 	analyzer_mgr->DumpDebug();
 	packet_mgr->DumpDebug();
 

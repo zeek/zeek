@@ -1,12 +1,8 @@
 module PacketAnalyzer::IP;
 
-export {
-	## Identifier mappings based on IP version (4 or 6)
-	const dispatch_map: PacketAnalyzer::DispatchMap = {} &redef;
-}
-
-redef dispatch_map += {
-	[4] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPTUNNEL),    # IPv4 tunnel
-	[41] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IPTUNNEL),   # IPv6 tunnel
-	[47] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_GRE)
-};
+event zeek_init() &priority=20
+	{
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE);
+	}

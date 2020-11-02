@@ -112,6 +112,10 @@ set(BIF_SRCS
     # subdirectory BIFs are treated differently and don't support being called
     # *during* parsing (e.g. within an @if directive).
     supervisor/supervisor.bif
+    # The packet analysis BIF is treated like other top-level BIFs because
+    # it's needed before parsing the packet protocol scripts, which happen
+    # very near to the start of parsing.
+    packet_analysis/packet_analysis.bif
 )
 
 foreach (bift ${BIF_SRCS})

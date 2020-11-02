@@ -1,0 +1,1 @@
+fatal error: Packet protocols cannot be registered after zeek_init has finished.

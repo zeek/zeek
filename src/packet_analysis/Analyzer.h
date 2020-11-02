@@ -85,6 +85,15 @@ public:
 	 */
 	void DumpDebug() const;
 
+	/**
+	 * Adds a protocol to this analyzer's dispatcher.
+	 *
+	 * @param idenfitier The identifier for the protocol being added.
+	 * @param child The analyzer that will be called for the new protocol during
+	 * forwarding.
+	 */
+	void RegisterProtocol(uint32_t identifier, AnalyzerPtr child);
+
 protected:
 	friend class Manager;
 

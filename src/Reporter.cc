@@ -49,7 +49,6 @@ Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	info_to_stderr = true;
 	warnings_to_stderr = true;
 	errors_to_stderr = true;
-	after_zeek_init = false;
 
 	weird_count = 0;
 	weird_sampling_rate = 0;
@@ -661,5 +660,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( alloced )
 		free(alloced);
 	}
+
+bool Reporter::EmitToStderr(bool flag)
+	{
+	return flag || ! run_state::detail::zeek_init_done;
+	}
+
 
 } // namespace zeek

@@ -88,9 +88,6 @@ public:
 	 */
 	void InitPostScript();
 
-	void ZeekInitDone()
-		{ after_zeek_init = true; }
-
 	/**
 	 * Shuts Broker down at termination.
 	 */
@@ -424,7 +421,6 @@ private:
 
 	uint16_t bound_port;
 	bool use_real_time;
-	bool after_zeek_init;
 	int peer_count;
 
 	size_t log_batch_size;

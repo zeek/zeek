@@ -1,3 +1,6 @@
+3.3.0-dev.495 | 2020-11-02 12:03:52 -0700
+
+  * GH-1215: Remove dispatch_map from packet analysis, replace with BIF methods for registering dispatches (Tim Wojtulewicz, Corelight)
 
 3.3.0-dev.493 | 2020-11-02 09:51:03 -0800
 

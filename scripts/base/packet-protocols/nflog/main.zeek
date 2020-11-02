@@ -1,14 +1,10 @@
 module PacketAnalyzer::NFLOG;
 
-export {
-	## Identifier mappings
-	const dispatch_map: PacketAnalyzer::DispatchMap = {} &redef;
-}
-
 const AF_INET : count = 2;
 const AF_INET6 : count = 10;
 
-redef dispatch_map += {
-	[AF_INET] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IP),
-	[AF_INET6] = PacketAnalyzer::DispatchEntry($analyzer=PacketAnalyzer::ANALYZER_IP)
-};
+event zeek_init() &priority=20
+	{
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NFLOG, AF_INET, PacketAnalyzer::ANALYZER_IP);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NFLOG, AF_INET6, PacketAnalyzer::ANALYZER_IP);
+	}

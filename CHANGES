@@ -1,3 +1,8 @@
+
+3.3.0-dev.493 | 2020-11-02 09:51:03 -0800
+
+  * GH-1256: Write out strerror when writing errno during safe_write (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.490 | 2020-10-27 13:41:27 -0700
 
   * updated to mention notice_alarm.log by name. That has taken the place of the

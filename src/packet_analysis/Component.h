@@ -3,6 +3,9 @@
 #pragma once
 
 #include "zeek-config.h"
+
+#include <functional>
+
 #include "util.h"
 #include "Tag.h"
 

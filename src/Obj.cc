@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Obj.h"
+#include "zeek/Obj.h"
 
 #include <stdlib.h>
 
-#include "Desc.h"
-#include "Func.h"
-#include "File.h"
-#include "plugin/Manager.h"
+#include "zeek/Desc.h"
+#include "zeek/Func.h"
+#include "zeek/File.h"
+#include "zeek/plugin/Manager.h"
 
 namespace zeek {
 namespace detail {

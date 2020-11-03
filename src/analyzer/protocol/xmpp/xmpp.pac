@@ -8,14 +8,15 @@
 
 
 %extern{
-#include "Reporter.h"
-#include "events.bif.h"
 
 namespace zeek::analyzer::xmpp { class XMPP_Analyzer; }
 namespace binpac { namespace XMPP { class XMPP_Conn; } }
 using XMPPAnalyzer = zeek::analyzer::xmpp::XMPP_Analyzer*;
 
-#include "XMPP.h"
+#include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/xmpp/XMPP.h"
+
+#include "events.bif.h"
 %}
 
 extern type XMPPAnalyzer;

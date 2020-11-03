@@ -1,17 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Hasher.h"
+#include "zeek/probabilistic/Hasher.h"
 
 #include <typeinfo>
-
 #include <openssl/evp.h>
-
-#include "NetVar.h"
-#include "Var.h"
-#include "digest.h"
-#include "highwayhash/sip_hash.h"
-
 #include <broker/data.hh>
+#include <highwayhash/sip_hash.h>
+
+#include "zeek/NetVar.h"
+#include "zeek/Var.h"
+#include "zeek/digest.h"
 
 namespace zeek::probabilistic::detail {
 

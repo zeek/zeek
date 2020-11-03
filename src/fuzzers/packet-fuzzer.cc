@@ -1,15 +1,15 @@
-#include "binpac.h"
-
-#include "iosource/Packet.h"
-#include "Event.h"
-#include "packet_analysis/Manager.h"
-
-#include "FuzzBuffer.h"
-#include "fuzzer-setup.h"
-
 extern "C" {
 #include <pcap.h>
 }
+
+#include "binpac.h"
+
+#include "zeek/iosource/Packet.h"
+#include "zeek/Event.h"
+#include "zeek/packet_analysis/Manager.h"
+
+#include "zeek/fuzzers/FuzzBuffer.h"
+#include "zeek/fuzzers/fuzzer-setup.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	{

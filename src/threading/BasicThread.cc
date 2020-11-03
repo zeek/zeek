@@ -1,11 +1,11 @@
+#include "zeek-config.h"
+#include "zeek/threading/BasicThread.h"
 
 #include <signal.h>
 #include <pthread.h>
 
-#include "zeek-config.h"
-#include "BasicThread.h"
-#include "Manager.h"
-#include "util.h"
+#include "zeek/threading/Manager.h"
+#include "zeek/util.h"
 
 namespace zeek::threading {
 

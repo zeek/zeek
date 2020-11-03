@@ -6,11 +6,11 @@
 
 #include <map>
 
-#include "Component.h"
-#include "EventHandler.h"
-#include "plugin/ComponentManager.h"
-#include "threading/SerialTypes.h"
-#include "Tag.h"
+#include "zeek/input/Component.h"
+#include "zeek/EventHandler.h"
+#include "zeek/plugin/ComponentManager.h"
+#include "zeek/threading/SerialTypes.h"
+#include "zeek/input/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek, input);

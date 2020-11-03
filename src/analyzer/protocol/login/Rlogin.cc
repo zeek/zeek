@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/login/Rlogin.h"
 
-#include "Rlogin.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "Reporter.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
 
 #include "events.bif.h"
 

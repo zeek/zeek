@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "Tag.h"
-#include "Component.h"
-#include "plugin/ComponentManager.h"
-#include "iosource/Packet.h"
-#include "Dispatcher.h"
+#include "zeek/packet_analysis/Tag.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/plugin/ComponentManager.h"
+#include "zeek/iosource/Packet.h"
+#include "zeek/packet_analysis/Dispatcher.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PacketProfiler, zeek::detail);
 

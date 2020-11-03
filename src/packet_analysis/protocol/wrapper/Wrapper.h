@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <packet_analysis/Analyzer.h>
-#include <packet_analysis/Component.h>
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::Wrapper {
 

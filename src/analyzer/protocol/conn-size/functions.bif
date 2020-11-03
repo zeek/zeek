@@ -1,7 +1,7 @@
 %%{
-#include "analyzer/protocol/conn-size/ConnSize.h"
-#include "Reporter.h"
-#include "Sessions.h"
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/Reporter.h"
+#include "zeek/Sessions.h"
 
 static zeek::analyzer::Analyzer* GetConnsizeAnalyzer(zeek::Val* cid)
 	{

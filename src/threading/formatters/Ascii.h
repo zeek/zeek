@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Formatter.h"
+#include "zeek/threading/Formatter.h"
 
 namespace zeek::threading::formatter {
 

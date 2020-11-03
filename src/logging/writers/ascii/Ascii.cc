@@ -1,11 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <ctime>
-#include <cstdio>
-#include <string>
-#include <vector>
-#include <memory>
-#include <optional>
+#include "zeek/logging/writers/ascii/Ascii.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -14,12 +9,18 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#include "Func.h"
-#include "RunState.h"
-#include "logging/Manager.h"
-#include "threading/SerialTypes.h"
+#include <ctime>
+#include <cstdio>
+#include <string>
+#include <vector>
+#include <memory>
+#include <optional>
 
-#include "Ascii.h"
+#include "zeek/Func.h"
+#include "zeek/RunState.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/threading/SerialTypes.h"
+
 #include "ascii.bif.h"
 
 using namespace std;

@@ -3,8 +3,9 @@
 #pragma once
 
 #include <memory>
-#include "IPAddr.h"
-#include "PrefixTable.h"
+
+#include "zeek/IPAddr.h"
+#include "zeek/PrefixTable.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);

@@ -2,8 +2,11 @@
 
 #pragma once
 
-#include "analyzer/Analyzer.h"
-#include <netinet/udp.h>
+// This will include netinet/udp.h for us, plus set up some defines that make it work on all
+// of the CI platforms.
+#include "zeek/net_util.h"
+
+#include "zeek/analyzer/Analyzer.h"
 
 namespace zeek::analyzer::udp {
 

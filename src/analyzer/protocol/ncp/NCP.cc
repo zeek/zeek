@@ -1,20 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/ncp/NCP.h"
 
 #include <stdlib.h>
 #include <string>
 #include <map>
 
-#include "NCP.h"
+#include "zeek/Sessions.h"
 
 #include "events.bif.h"
 #include "consts.bif.h"
 
 using namespace std;
-
-#include "NCP.h"
-#include "Sessions.h"
 
 #define xbyte(b, n) (((const u_char*) (b))[n])
 #define extract_uint16(little_endian, bytes) \

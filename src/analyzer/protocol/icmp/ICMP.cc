@@ -1,22 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ICMP.h"
-
-#include <algorithm>
-
 #include "zeek-config.h"
-
-#include "IP.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "Conn.h"
-#include "Desc.h"
-#include "Reporter.h"
-
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/icmp/ICMP.h"
 
 #include <netinet/icmp6.h>
+#include <algorithm>
+
+#include "zeek/IP.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Conn.h"
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+
+#include "events.bif.h"
 
 namespace zeek::analyzer::icmp {
 
@@ -49,7 +47,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	const struct icmp* icmpp = (const struct icmp*) data;
 
-	if ( ! zeek::detail::ignore_checksums && 
+	if ( ! zeek::detail::ignore_checksums &&
 	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
 	     caplen >= len )
 		{

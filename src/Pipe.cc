@@ -1,11 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Pipe.h"
-#include "Reporter.h"
+#include "zeek/Pipe.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <cstdio>
+
+#include "zeek/Reporter.h"
 
 namespace zeek::detail {
 

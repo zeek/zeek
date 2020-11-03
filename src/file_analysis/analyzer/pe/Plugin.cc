@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "PE.h"
-#include "plugin/Plugin.h"
-#include "file_analysis/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/file_analysis/Component.h"
+#include "zeek/file_analysis/analyzer/pe/PE.h"
 
 namespace zeek::plugin::detail::Zeek_PE {
 

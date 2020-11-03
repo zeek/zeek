@@ -3,9 +3,9 @@
 module Files;
 
 %%{
-#include "file_analysis/Manager.h"
-#include "file_analysis/File.h"
-#include "Reporter.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/Reporter.h"
 %%}
 
 type AnalyzerArgs: record;

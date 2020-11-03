@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ScriptInfo.h"
-#include "IdentifierInfo.h"
-#include "ReStructuredTextTable.h"
-#include "utils.h"
-#include "Manager.h"
-#include "Scope.h"
-#include "DebugLogger.h"
+#include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/ReStructuredTextTable.h"
+#include "zeek/zeekygen/utils.h"
+#include "zeek/zeekygen/Manager.h"
 
-#include "Reporter.h"
-#include "Desc.h"
-#include "Type.h"
+#include "zeek/Scope.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/Reporter.h"
+#include "zeek/Desc.h"
+#include "zeek/Type.h"
 
 using namespace std;
 

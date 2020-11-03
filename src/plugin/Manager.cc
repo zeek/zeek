@@ -1,22 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <optional>
-#include <sstream>
-#include <fstream>
+#include "zeek/plugin/Manager.h"
+
 #include <dirent.h>
 #include <glob.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <optional>
+#include <sstream>
+#include <fstream>
 
-#include "Manager.h"
-
-#include "../Reporter.h"
-#include "../Func.h"
-#include "../Event.h"
-#include "../Val.h"
-#include "../util.h"
-#include "../input.h"
+#include "zeek/Reporter.h"
+#include "zeek/Func.h"
+#include "zeek/Event.h"
+#include "zeek/Val.h"
+#include "zeek/util.h"
+#include "zeek/input.h"
 
 using namespace std;
 

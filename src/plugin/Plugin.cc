@@ -1,21 +1,18 @@
-// See the file  in the main distribution directory for copyright.
-
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Plugin.h"
+#include "zeek/plugin/Plugin.h"
 
 #include <cassert>
 
-#include "Manager.h"
-#include "Component.h"
-#include "Val.h"
-
-#include "../Desc.h"
-#include "../Event.h"
-#include "../Func.h"
-#include "../Conn.h"
-#include "../input.h"
-#include "threading/SerialTypes.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/Val.h"
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/Func.h"
+#include "zeek/Conn.h"
+#include "zeek/input.h"
+#include "zeek/threading/SerialTypes.h"
 
 namespace zeek::plugin {
 

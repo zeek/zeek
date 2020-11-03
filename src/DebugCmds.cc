@@ -2,7 +2,7 @@
 // implementation of most commands.
 
 #include "zeek-config.h"
-#include "DebugCmds.h"
+#include "zeek/DebugCmds.h"
 
 #include <sys/types.h>
 
@@ -10,19 +10,19 @@
 #include <string.h>
 #include <assert.h>
 
-#include "DebugCmdInfoConstants.cc"
-#include "Debug.h"
-#include "Desc.h"
-#include "DbgBreakpoint.h"
-#include "ID.h"
-#include "Frame.h"
-#include "Func.h"
-#include "Stmt.h"
-#include "Scope.h"
-#include "Reporter.h"
-#include "PolicyFile.h"
-#include "Val.h"
-#include "util.h"
+#include "zeek/DebugCmdInfoConstants.cc"
+#include "zeek/Debug.h"
+#include "zeek/Desc.h"
+#include "zeek/DbgBreakpoint.h"
+#include "zeek/ID.h"
+#include "zeek/Frame.h"
+#include "zeek/Func.h"
+#include "zeek/Stmt.h"
+#include "zeek/Scope.h"
+#include "zeek/Reporter.h"
+#include "zeek/PolicyFile.h"
+#include "zeek/Val.h"
+#include "zeek/util.h"
 
 using namespace std;
 

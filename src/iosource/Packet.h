@@ -13,7 +13,8 @@ typedef struct bpf_timeval pkt_timeval;
 typedef struct timeval pkt_timeval;
 #endif
 
-#include "pcap.h" // For DLT_ constants
+#include <pcap.h> // For DLT_ constants
+
 #include "zeek/NetVar.h" // For BifEnum::Tunnel
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/IP.h"

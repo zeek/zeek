@@ -48,7 +48,7 @@ init_str = '''
 // DO NOT EDIT.
 //
 
-#include "util.h"
+#include "zeek/util.h"
 namespace zeek::detail {\n
 void init_global_dbg_constants () {
 ''' % inputfile

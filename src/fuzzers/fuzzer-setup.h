@@ -3,12 +3,12 @@
 #include <unistd.h>
 #include <cstdlib>
 
-#include "zeek-setup.h"
+#include "zeek/zeek-setup.h"
 
-#include "Event.h"
-#include "Sessions.h"
-#include "broker/Manager.h"
-#include "file_analysis/Manager.h"
+#include "zeek/Event.h"
+#include "zeek/Sessions.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/file_analysis/Manager.h"
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	{

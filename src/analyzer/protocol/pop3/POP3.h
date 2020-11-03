@@ -8,10 +8,10 @@
 #include <string>
 #include <algorithm>
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
-#include "analyzer/protocol/login/NVT.h"
-#include "analyzer/protocol/mime/MIME.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/analyzer/protocol/login/NVT.h"
+#include "zeek/analyzer/protocol/mime/MIME.h"
 
 #undef POP3_CMD_DEF
 #define POP3_CMD_DEF(cmd)	POP3_CMD_##cmd,

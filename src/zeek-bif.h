@@ -1,10 +1,10 @@
 #pragma once
 
 // Headers to include by generated BiF code.
-#include "Conn.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "Reporter.h"
-#include "ID.h"
-#include "EventRegistry.h"
-#include "BifReturnVal.h"
+#include "zeek/Conn.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
+#include "zeek/ID.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/BifReturnVal.h"

@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include "util.h" // for bro_uint_t
-#include "IPAddr.h"
-#include "Reassem.h"
-#include "Timer.h"
-
+#include <sys/types.h> // for u_char
 #include <tuple>
 
-#include <sys/types.h> // for u_char
+#include "zeek/util.h" // for bro_uint_t
+#include "zeek/IPAddr.h"
+#include "zeek/Reassem.h"
+#include "zeek/Timer.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);

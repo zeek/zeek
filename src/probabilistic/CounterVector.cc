@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "CounterVector.h"
+#include "zeek/probabilistic/CounterVector.h"
 
 #include <cassert>
 #include <limits>
@@ -8,8 +8,8 @@
 #include <broker/data.hh>
 #include <broker/error.hh>
 
-#include "BitVector.h"
-#include "util.h"
+#include "zeek/probabilistic/BitVector.h"
+#include "zeek/util.h"
 
 namespace zeek::probabilistic::detail {
 

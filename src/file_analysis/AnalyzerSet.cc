@@ -1,11 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "AnalyzerSet.h"
-#include "File.h"
-#include "Analyzer.h"
-#include "Manager.h"
-#include "CompHash.h"
-#include "Val.h"
+#include "zeek/file_analysis/AnalyzerSet.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/CompHash.h"
+#include "zeek/Val.h"
+
 #include "file_analysis/file_analysis.bif.h"
 
 namespace zeek::file_analysis::detail {

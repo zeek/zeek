@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "MPLS.h"
+#include "zeek/packet_analysis/protocol/mpls/MPLS.h"
 
 using namespace zeek::packet_analysis::MPLS;
 

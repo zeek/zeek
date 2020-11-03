@@ -2,8 +2,8 @@
 
 #include "zeek-config.h"
 
-#include "Telnet.h"
-#include "NVT.h"
+#include "zeek/analyzer/protocol/login/Telnet.h"
+#include "zeek/analyzer/protocol/login/NVT.h"
 
 #include "events.bif.h"
 

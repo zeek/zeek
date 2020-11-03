@@ -6,11 +6,11 @@
 
 #include <functional>
 
-#include "util.h"
-#include "Tag.h"
+#include "zeek/util.h"
+#include "zeek/packet_analysis/Tag.h"
 
-#include "plugin/Component.h"
-#include "plugin/TaggedComponent.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/plugin/TaggedComponent.h"
 
 namespace zeek::packet_analysis {
 

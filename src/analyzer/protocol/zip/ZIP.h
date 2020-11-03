@@ -4,8 +4,9 @@
 
 #include "zeek-config.h"
 
-#include "zlib.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include <zlib.h>
+
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::zip {
 

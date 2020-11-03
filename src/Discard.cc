@@ -2,17 +2,17 @@
 
 #include "zeek-config.h"
 
-#include "Discard.h"
+#include "zeek/Discard.h"
 
 #include <algorithm>
 
-#include "ZeekString.h"
-#include "RunState.h"
-#include "Func.h"
-#include "Var.h"
-#include "Val.h"
-#include "IP.h"
-#include "Reporter.h" // for InterpreterException
+#include "zeek/ZeekString.h"
+#include "zeek/RunState.h"
+#include "zeek/Func.h"
+#include "zeek/Var.h"
+#include "zeek/Val.h"
+#include "zeek/IP.h"
+#include "zeek/Reporter.h" // for InterpreterException
 
 namespace zeek::detail {
 

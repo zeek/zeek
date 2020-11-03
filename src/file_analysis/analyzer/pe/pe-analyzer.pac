@@ -1,6 +1,7 @@
 %extern{
-#include "Event.h"
-#include "file_analysis/File.h"
+#include "zeek/Event.h"
+#include "zeek/file_analysis/File.h"
+
 #include "events.bif.h"
 %}
 

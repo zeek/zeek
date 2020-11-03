@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "ZeekList.h" // for typedef val_list
-#include "Obj.h"
-#include "IntrusivePtr.h"
-#include "ZeekArgs.h"
-
 #include <unordered_map>
 #include <string>
 #include <utility>
@@ -15,6 +10,11 @@
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
+
+#include "zeek/ZeekList.h" // for typedef val_list
+#include "zeek/Obj.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/ZeekArgs.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);

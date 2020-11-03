@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/zip/ZIP.h"
-#include "analyzer/protocol/mime/MIME.h"
-#include "binpac_zeek.h"
-#include "IPAddr.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/zip/ZIP.h"
+#include "zeek/analyzer/protocol/mime/MIME.h"
+#include "zeek/binpac_zeek.h"
+#include "zeek/IPAddr.h"
+
 #include "analyzer/protocol/http/events.bif.h"
 
 namespace zeek::analyzer::http {

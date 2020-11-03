@@ -1,17 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/Hash.h"
 
-#include "Hash.h"
-#include "digest.h"
-#include "Reporter.h"
-#include "ZeekString.h"
-#include "Val.h" // needed for const.bif
+#include <highwayhash/sip_hash.h>
+#include <highwayhash/highwayhash_target.h>
+#include <highwayhash/instruction_sets.h>
+
+#include "zeek/digest.h"
+#include "zeek/Reporter.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Val.h" // needed for const.bif
+
 #include "const.bif.netvar_h"
-
-#include "highwayhash/sip_hash.h"
-#include "highwayhash/highwayhash_target.h"
-#include "highwayhash/instruction_sets.h"
 
 namespace zeek::detail {
 

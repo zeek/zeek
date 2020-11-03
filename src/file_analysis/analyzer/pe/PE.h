@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "Val.h"
-#include "../File.h"
+#include "zeek/Val.h"
+#include "zeek/File.h"
 #include "pe_pac.h"
 
 namespace zeek::file_analysis::detail {

@@ -2,12 +2,11 @@
 
 #pragma once
 
+#include <sys/types.h> // for u_char
 #include <vector>
 
-#include "IOSource.h"
-#include "Packet.h"
-
-#include <sys/types.h> // for u_char
+#include "zeek/iosource/IOSource.h"
+#include "zeek/iosource/Packet.h"
 
 struct pcap_pkthdr;
 ZEEK_FORWARD_DECLARE_NAMESPACED(BPF_Program, zeek::iosource::detail);

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "analyzer/protocol/udp/UDP.h"
+#include "events.bif.h"
 #include "sip_pac.h"
 
 namespace zeek::analyzer::sip{

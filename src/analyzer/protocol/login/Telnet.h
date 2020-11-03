@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Login.h"
+#include "zeek/analyzer/protocol/login/Login.h"
 
 namespace zeek::analyzer::login {
 

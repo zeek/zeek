@@ -1,12 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IPTunnel.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
+
+#include <pcap.h> // For DLT_ constants
+
 #include "zeek/Sessions.h"
 #include "zeek/RunState.h"
 #include "zeek/IP.h"
 #include "zeek/TunnelEncapsulation.h"
-
-#include "pcap.h" // For DLT_ constants
 
 namespace zeek::packet_analysis::IPTunnel {
 

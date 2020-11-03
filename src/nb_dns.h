@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <stdint.h>
+#include <sys/socket.h>
+
 /* Private data */
 struct nb_dns_info;
 

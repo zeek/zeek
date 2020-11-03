@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "events.bif.h"
 #include "ssh_pac.h"
 
 namespace zeek::analyzer::ssh {

@@ -1,6 +1,6 @@
 
 %%{
-#include "analyzer/protocol/http/HTTP.h"
+#include "zeek/analyzer/protocol/http/HTTP.h"
 %%}
 
 ## Skips the data of the HTTP entity.

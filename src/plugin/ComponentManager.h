@@ -4,13 +4,13 @@
 #include <list>
 #include <string>
 
-#include "Type.h"
-#include "Var.h" // for add_type()
-#include "Val.h"
-#include "Reporter.h"
-#include "Scope.h"
-#include "zeekygen/Manager.h"
-#include "DebugLogger.h"
+#include "zeek/Type.h"
+#include "zeek/Var.h" // for add_type()
+#include "zeek/Val.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/DebugLogger.h"
 
 namespace zeek::plugin {
 

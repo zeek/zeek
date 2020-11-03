@@ -3,7 +3,7 @@
 #pragma once
 
 #include <string>
-#include "Timer.h"
+#include "zeek/Timer.h"
 
 namespace zeek::file_analysis::detail {
 

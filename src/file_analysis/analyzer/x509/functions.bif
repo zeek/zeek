@@ -1,14 +1,15 @@
 %%{
-#include "file_analysis/analyzer/x509/X509.h"
-#include "types.bif.h"
-#include "net_util.h"
-
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
 #include <openssl/x509_vfy.h>
 #include <openssl/ocsp.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
+
+#include "zeek/file_analysis/analyzer/x509/X509.h"
+#include "zeek/net_util.h"
+
+#include "types.bif.h"
 
 // construct an error record
 static zeek::RecordValPtr x509_result_record(uint64_t num, const char* reason, zeek::ValPtr chainVector = nullptr)

@@ -1,28 +1,28 @@
 
 #include "zeek-config.h"
-#include "RuleMatcher.h"
+#include "zeek/RuleMatcher.h"
 
 #include <algorithm>
 #include <functional>
 
-#include "RuleAction.h"
-#include "RuleCondition.h"
-#include "ZeekString.h"
-#include "ID.h"
-#include "IntrusivePtr.h"
-#include "IntSet.h"
-#include "IP.h"
-#include "analyzer/Analyzer.h"
-#include "DFA.h"
-#include "DebugLogger.h"
-#include "NetVar.h"
-#include "Scope.h"
-#include "File.h"
-#include "Reporter.h"
-#include "module_util.h"
-#include "Var.h"
-#include "IPAddr.h"
-#include "RunState.h"
+#include "zeek/RuleAction.h"
+#include "zeek/RuleCondition.h"
+#include "zeek/ZeekString.h"
+#include "zeek/ID.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/IntSet.h"
+#include "zeek/IP.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/DFA.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/NetVar.h"
+#include "zeek/Scope.h"
+#include "zeek/File.h"
+#include "zeek/Reporter.h"
+#include "zeek/module_util.h"
+#include "zeek/Var.h"
+#include "zeek/IPAddr.h"
+#include "zeek/RunState.h"
 
 using namespace std;
 

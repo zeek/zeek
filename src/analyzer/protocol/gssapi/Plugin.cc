@@ -1,8 +1,7 @@
 // See the file in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
-#include "GSSAPI.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/protocol/gssapi/GSSAPI.h"
 
 namespace zeek::plugin::detail::Zeek_GSSAPI {
 

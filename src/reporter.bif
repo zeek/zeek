@@ -10,7 +10,7 @@
 module Reporter;
 
 %%{
-#include "NetVar.h"
+#include "zeek/NetVar.h"
 %%}
 
 ## Generates an informational message.

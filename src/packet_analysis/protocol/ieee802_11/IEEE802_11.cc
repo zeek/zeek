@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IEEE802_11.h"
-#include "NetVar.h"
+#include "zeek/packet_analysis/protocol/ieee802_11/IEEE802_11.h"
+#include "zeek/NetVar.h"
 
 using namespace zeek::packet_analysis::IEEE802_11;
 

@@ -1,15 +1,15 @@
 #include "binpac.h"
 
-#include "RunState.h"
-#include "Conn.h"
-#include "Sessions.h"
-#include "analyzer/Analyzer.h"
-#include "analyzer/Manager.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/RunState.h"
+#include "zeek/Conn.h"
+#include "zeek/Sessions.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "FuzzBuffer.h"
-#include "fuzzer-setup.h"
+#include "zeek/fuzzers/FuzzBuffer.h"
+#include "zeek/fuzzers/fuzzer-setup.h"
 
 static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 

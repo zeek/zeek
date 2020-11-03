@@ -1,8 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "GSSAPI.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/gssapi/GSSAPI.h"
+
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/Reporter.h"
+
 #include "events.bif.h"
 
 namespace zeek::analyzer::gssapi {

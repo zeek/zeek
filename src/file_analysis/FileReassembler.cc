@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "FileReassembler.h"
-#include "File.h"
+#include "zeek/file_analysis/FileReassembler.h"
+#include "zeek/file_analysis/File.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 

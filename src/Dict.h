@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "Hash.h"
+#include "zeek/Hash.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(DictEntry, zeek::detail);

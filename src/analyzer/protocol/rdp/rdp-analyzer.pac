@@ -1,6 +1,7 @@
 %extern{
-#include "Desc.h"
-#include "file_analysis/Manager.h"
+#include "zeek/Desc.h"
+#include "zeek/file_analysis/Manager.h"
+
 #include "types.bif.h"
 %}
 

@@ -1,5 +1,5 @@
-#include "PacketFilter.h"
-#include "IP.h"
+#include "zeek/PacketFilter.h"
+#include "zeek/IP.h"
 
 namespace zeek::detail {
 

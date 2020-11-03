@@ -1,16 +1,17 @@
 #include <broker/error.hh>
-#include "broker/data.bif.h"
-#include "3rdparty/doctest.h"
+#include "zeek/3rdparty/doctest.h"
 
-#include "Data.h"
-#include "File.h"
-#include "Desc.h"
-#include "IntrusivePtr.h"
-#include "RE.h"
-#include "ID.h"
-#include "Scope.h"
-#include "Func.h"
-#include "module_util.h"
+#include "zeek/broker/Data.h"
+#include "zeek/File.h"
+#include "zeek/Desc.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/RE.h"
+#include "zeek/ID.h"
+#include "zeek/Scope.h"
+#include "zeek/Func.h"
+#include "zeek/module_util.h"
+
+#include "broker/data.bif.h"
 
 using namespace std;
 

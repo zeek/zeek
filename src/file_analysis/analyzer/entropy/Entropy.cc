@@ -1,11 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/file_analysis/analyzer/entropy/Entropy.h"
+
 #include <string>
 
-#include "Entropy.h"
-#include "util.h"
-#include "Event.h"
-#include "file_analysis/Manager.h"
+#include "zeek/util.h"
+#include "zeek/Event.h"
+#include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail {
 

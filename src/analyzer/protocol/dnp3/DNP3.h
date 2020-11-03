@@ -1,8 +1,7 @@
-
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
 #include "dnp3_pac.h"
 

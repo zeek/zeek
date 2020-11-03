@@ -1,21 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Var.h"
+#include "zeek/Var.h"
 
 #include <memory>
 
-#include "Val.h"
-#include "Expr.h"
-#include "Func.h"
-#include "IntrusivePtr.h"
-#include "Stmt.h"
-#include "Scope.h"
-#include "Reporter.h"
-#include "EventRegistry.h"
-#include "Traverse.h"
-#include "module_util.h"
-#include "ID.h"
+#include "zeek/Val.h"
+#include "zeek/Expr.h"
+#include "zeek/Func.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Scope.h"
+#include "zeek/Reporter.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/Traverse.h"
+#include "zeek/module_util.h"
+#include "zeek/ID.h"
 
 namespace zeek::detail {
 

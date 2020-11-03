@@ -5,8 +5,9 @@
 %include zeek.pac
 
 %extern{
+#include "zeek/file_analysis/File.h"
+
 #include "types.bif.h"
-#include "file_analysis/File.h"
 #include "events.bif.h"
 %}
 

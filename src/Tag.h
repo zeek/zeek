@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <string>
 
-#include "IntrusivePtr.h"
-#include "util.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);

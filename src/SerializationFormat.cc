@@ -1,11 +1,11 @@
-#include "SerializationFormat.h"
+#include "zeek/SerializationFormat.h"
 
 #include <ctype.h>
 
-#include "DebugLogger.h"
-#include "Reporter.h"
-#include "net_util.h"
-#include "IPAddr.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/Reporter.h"
+#include "zeek/net_util.h"
+#include "zeek/IPAddr.h"
 
 namespace zeek::detail {
 

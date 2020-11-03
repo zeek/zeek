@@ -1,9 +1,8 @@
 #pragma once
 
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+
 #include "events.bif.h"
-
-#include "analyzer/protocol/tcp/TCP.h"
-
 #include "rfb_pac.h"
 
 namespace zeek::analyzer::rfb {

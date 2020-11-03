@@ -16,18 +16,18 @@
 #include <cstdio>
 #include <time.h>
 
-#include "digest.h"
-#include "Reporter.h"
-#include "IPAddr.h"
-#include "util.h"
-#include "file_analysis/Manager.h"
-#include "iosource/Manager.h"
-#include "iosource/Packet.h"
-#include "iosource/PktSrc.h"
-#include "iosource/PktDumper.h"
-#include "IntrusivePtr.h"
-#include "input.h"
-#include "Hash.h"
+#include "zeek/digest.h"
+#include "zeek/Reporter.h"
+#include "zeek/IPAddr.h"
+#include "zeek/util.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/Packet.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/iosource/PktDumper.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/input.h"
+#include "zeek/Hash.h"
 
 using namespace std;
 
@@ -541,7 +541,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	%}
 
 %%{
-#include "OpaqueVal.h"
+#include "zeek/OpaqueVal.h"
 %%}
 
 ## Computes the MD5 hash value of the provided list of arguments.
@@ -3519,8 +3519,8 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%}
 
 %%{
-#include "DNS_Mgr.h"
-#include "Trigger.h"
+#include "zeek/DNS_Mgr.h"
+#include "zeek/Trigger.h"
 
 class LookupHostCallback : public zeek::detail::DNS_Mgr::LookupCallback {
 public:
@@ -4302,7 +4302,7 @@ function file_mode%(mode: count%): string
 # ===========================================================================
 
 %%{
-#include "analyzer/Manager.h"
+#include "zeek/analyzer/Manager.h"
 %%}
 
 ## Disables the analyzer which raised the current event (if the analyzer
@@ -5095,7 +5095,7 @@ function __init_secondary_bifs%(%): bool
 
 
 %%{
-#include "Anon.h"
+#include "zeek/Anon.h"
 %%}
 
 ## Preserves the prefix of an IP address in anonymization.

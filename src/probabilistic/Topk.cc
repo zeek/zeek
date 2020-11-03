@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "probabilistic/Topk.h"
+#include "zeek/probabilistic/Topk.h"
 
 #include <broker/error.hh>
 
-#include "broker/Data.h"
-#include "CompHash.h"
-#include "Reporter.h"
-#include "Dict.h"
+#include "zeek/broker/Data.h"
+#include "zeek/CompHash.h"
+#include "zeek/Reporter.h"
+#include "zeek/Dict.h"
 
 namespace zeek::probabilistic::detail {
 

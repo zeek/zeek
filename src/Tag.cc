@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Tag.h"
-#include "Val.h"
+#include "zeek/Tag.h"
+#include "zeek/Val.h"
 
 namespace zeek {
 

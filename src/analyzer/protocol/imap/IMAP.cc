@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IMAP.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "analyzer/Manager.h"
+#include "zeek/analyzer/protocol/imap/IMAP.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/Manager.h"
 
 namespace zeek::analyzer::imap {
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Reassem.h"
+#include "zeek/Reassem.h"
 
 namespace zeek { class File; }
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;

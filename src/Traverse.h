@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "TraverseTypes.h"
+#include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);

@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Component.h"
+#include "zeek/plugin/Component.h"
 
-#include "../Desc.h"
-#include "../Reporter.h"
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::plugin {
 

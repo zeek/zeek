@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "Modbus.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/modbus/Modbus.h"
 
 namespace zeek::plugin::detail::Zeek_Modbus {
 

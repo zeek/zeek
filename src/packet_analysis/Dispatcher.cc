@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
-#include "Dispatcher.h"
-#include "Analyzer.h"
-#include "Reporter.h"
-#include "DebugLogger.h"
+#include "zeek/packet_analysis/Dispatcher.h"
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/Reporter.h"
+#include "zeek/DebugLogger.h"
 
 namespace zeek::packet_analysis {
 

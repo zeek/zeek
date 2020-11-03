@@ -1,9 +1,9 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "BitTorrent.h"
-#include "BitTorrentTracker.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/bittorrent/BitTorrent.h"
+#include "zeek/analyzer/protocol/bittorrent/BitTorrentTracker.h"
 
 namespace zeek::plugin::plugin::Zeek_BitTorrent {
 

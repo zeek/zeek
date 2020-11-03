@@ -1,5 +1,5 @@
 %extern{
-#include "binpac_zeek.h"
+#include "zeek/binpac_zeek.h"
 %}
 
 extern type ZeekAnalyzer;

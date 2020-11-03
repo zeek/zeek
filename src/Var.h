@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "IntrusivePtr.h"
-#include "ID.h"
-#include "Type.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/ID.h"
+#include "zeek/Type.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);

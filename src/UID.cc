@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "UID.h"
-#include "Reporter.h"
-#include "util.h"
+#include "zeek/UID.h"
 
 #include <cstdlib>
+
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
 using namespace std;
 

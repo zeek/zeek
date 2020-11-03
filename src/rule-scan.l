@@ -5,10 +5,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "RuleMatcher.h"
-#include "RuleCondition.h"
-#include "IPAddr.h"
-#include "util.h"
+
+#include "zeek/RuleMatcher.h"
+#include "zeek/RuleCondition.h"
+#include "zeek/IPAddr.h"
+#include "zeek/util.h"
+
 #include "rule-parse.h"
 
 int rules_line_number = 0;

@@ -2,10 +2,11 @@
 ##! Functions for peering and various messaging patterns.
 
 %%{
-#include "broker/Manager.h"
-#include "logging/Manager.h"
 #include <set>
 #include <string>
+
+#include "zeek/broker/Manager.h"
+#include "zeek/logging/Manager.h"
 
 static bool is_string_set(const zeek::Type* type)
 	{

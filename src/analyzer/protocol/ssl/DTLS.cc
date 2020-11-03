@@ -1,12 +1,10 @@
+#include "zeek/analyzer/protocol/ssl/DTLS.h"
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
-#include "DTLS.h"
-#include "Reporter.h"
-#include "util.h"
-
-#include "events.bif.h"
-
-#include "dtls_pac.h"
-#include "tls-handshake_pac.h"
+#include "analyzer/protocol/ssl/events.bif.h"
+#include "analyzer/protocol/ssl/dtls_pac.h"
+#include "analyzer/protocol/ssl/tls-handshake_pac.h"
 
 namespace zeek::analyzer::dtls {
 

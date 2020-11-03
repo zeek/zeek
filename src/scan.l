@@ -15,31 +15,32 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#include "input.h"
-#include "util.h"
-#include "Scope.h"
-#include "ZeekString.h"
-#include "DNS_Mgr.h"
-#include "Expr.h"
-#include "Func.h"
-#include "Stmt.h"
-#include "IntrusivePtr.h"
-#include "Val.h"
-#include "Var.h"
-#include "Debug.h"
-#include "PolicyFile.h"
+#include "zeek/input.h"
+#include "zeek/util.h"
+#include "zeek/Scope.h"
+#include "zeek/ZeekString.h"
+#include "zeek/DNS_Mgr.h"
+#include "zeek/Expr.h"
+#include "zeek/Func.h"
+#include "zeek/Stmt.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Val.h"
+#include "zeek/Var.h"
+#include "zeek/Debug.h"
+#include "zeek/PolicyFile.h"
+#include "zeek/Reporter.h"
+#include "zeek/RE.h"
+#include "zeek/RunState.h"
+#include "zeek/Traverse.h"
+#include "zeek/module_util.h"
+#include "zeek/ScannedFile.h"
+
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/zeekygen/Manager.h"
+
+#include "zeek/plugin/Manager.h"
+
 #include "broparse.h"
-#include "Reporter.h"
-#include "RE.h"
-#include "RunState.h"
-#include "Traverse.h"
-#include "module_util.h"
-#include "ScannedFile.h"
-
-#include "analyzer/Analyzer.h"
-#include "zeekygen/Manager.h"
-
-#include "plugin/Manager.h"
 
 using namespace zeek::detail;
 

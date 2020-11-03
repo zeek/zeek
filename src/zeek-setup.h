@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Options.h"
+#include "zeek/Options.h"
 
 namespace zeek::detail {
 

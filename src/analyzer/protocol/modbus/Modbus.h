@@ -1,6 +1,7 @@
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+
 #include "modbus_pac.h"
 
 namespace zeek::analyzer::modbus {

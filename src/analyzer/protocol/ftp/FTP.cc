@@ -1,19 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "FTP.h"
+#include "zeek/analyzer/protocol/ftp/FTP.h"
 
 #include <stdlib.h>
 
-#include "ZeekString.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "Base64.h"
-#include "analyzer/Manager.h"
-#include "analyzer/protocol/login/NVT.h"
-#include "RuleMatcher.h"
+#include "zeek/ZeekString.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Base64.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/login/NVT.h"
+#include "zeek/RuleMatcher.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/ftp/events.bif.h"
 
 namespace zeek::analyzer::ftp {
 

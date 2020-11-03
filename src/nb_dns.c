@@ -12,6 +12,7 @@
  */
 
 #include "zeek-config.h"			/* must appear before first ifdef */
+#include "zeek/nb_dns.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -41,8 +42,6 @@
 #include "os-proto.h"
 #endif
 #endif
-
-#include "nb_dns.h"
 
 #if PACKETSZ > 1024
 #define MAXPACKET	PACKETSZ

@@ -8,8 +8,8 @@
 #include <vector>
 #include <map>
 
-#include "IOSource.h"
-#include "Flare.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/Flare.h"
 
 struct timespec;
 struct kevent;

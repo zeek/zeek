@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "VLAN.h"
-#include "plugin/Plugin.h"
-#include "packet_analysis/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/packet_analysis/protocol/vlan/VLAN.h"
 
 namespace zeek::plugin::Zeek_VLAN {
 

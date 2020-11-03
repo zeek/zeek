@@ -1,8 +1,9 @@
 // An IRC analyzer contributed by Roland Gruber.
 
 #pragma once
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
+
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
 namespace zeek::analyzer::irc {
 

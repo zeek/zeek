@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "GTPv1.h"
-#include "packet_analysis/protocol/iptunnel/IPTunnel.h"
+#include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 #include "events.bif.h"
 

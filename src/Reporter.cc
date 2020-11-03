@@ -3,24 +3,24 @@
 //
 
 #include "zeek-config.h"
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 
 #include <unistd.h>
 #include <syslog.h>
 
-#include "Desc.h"
-#include "Event.h"
-#include "Expr.h"
-#include "NetVar.h"
-#include "RunState.h"
-#include "Conn.h"
-#include "Timer.h"
-#include "ID.h"
-#include "EventHandler.h"
-#include "plugin/Plugin.h"
-#include "plugin/Manager.h"
-#include "input.h"
-#include "file_analysis/File.h"
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/Expr.h"
+#include "zeek/NetVar.h"
+#include "zeek/RunState.h"
+#include "zeek/Conn.h"
+#include "zeek/Timer.h"
+#include "zeek/ID.h"
+#include "zeek/EventHandler.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/input.h"
+#include "zeek/file_analysis/File.h"
 
 #ifdef SYSLOG_INT
 extern "C" {

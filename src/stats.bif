@@ -1,8 +1,8 @@
 
 %%{ // C segment
-#include "util.h"
-#include "threading/Manager.h"
-#include "broker/Manager.h"
+#include "zeek/util.h"
+#include "zeek/threading/Manager.h"
+#include "zeek/broker/Manager.h"
 
 zeek::RecordTypePtr ProcStats;
 zeek::RecordTypePtr NetStats;

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "krb_TCP_pac.h"
 

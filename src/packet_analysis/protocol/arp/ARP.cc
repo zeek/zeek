@@ -1,11 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ARP.h"
-#include "Event.h"
-
-#include "events.bif.h"
-
 #include "zeek-config.h"
+#include "zeek/packet_analysis/protocol/arp/ARP.h"
+
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
 #elif defined(HAVE_SYS_ETHERNET_H)
@@ -15,6 +12,10 @@
 #elif defined(HAVE_NET_ETHERTYPES_H)
 #include <net/ethertypes.h>
 #endif
+
+#include "zeek/Event.h"
+
+#include "events.bif.h"
 
 using namespace zeek::packet_analysis::ARP;
 

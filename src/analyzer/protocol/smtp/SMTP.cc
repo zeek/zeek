@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/smtp/SMTP.h"
 
 #include <stdlib.h>
 
-#include "NetVar.h"
-#include "SMTP.h"
-#include "Event.h"
-#include "Reporter.h"
-#include "analyzer/Manager.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
+#include "zeek/analyzer/Manager.h"
 
 #include "events.bif.h"
 

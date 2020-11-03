@@ -5,7 +5,7 @@
 #include <list>
 #include <string>
 
-#include "util.h"
+#include "zeek/util.h"
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 namespace zeek::detail {

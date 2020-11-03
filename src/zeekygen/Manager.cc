@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "zeek/zeekygen/Manager.h"
 
 #include <utility>
 #include <cstdlib>
 
-#include "plugin/Manager.h"
-#include "util.h"
-#include "Info.h"
-#include "PackageInfo.h"
-#include "ScriptInfo.h"
-#include "IdentifierInfo.h"
-#include "Expr.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/util.h"
+#include "zeek/zeekygen/Info.h"
+#include "zeek/zeekygen/PackageInfo.h"
+#include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/Expr.h"
 
 using namespace std;
 

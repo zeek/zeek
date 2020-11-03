@@ -2,22 +2,22 @@
 
 #include "zeek-config.h"
 
-#include "DbgBreakpoint.h"
+#include "zeek/DbgBreakpoint.h"
 
 #include <assert.h>
 
-#include "Desc.h"
-#include "ID.h"
-#include "Queue.h"
-#include "Debug.h"
-#include "Scope.h"
-#include "Frame.h"
-#include "Func.h"
-#include "Val.h"
-#include "Stmt.h"
-#include "Timer.h"
-#include "Reporter.h"
-#include "module_util.h"
+#include "zeek/Desc.h"
+#include "zeek/ID.h"
+#include "zeek/Queue.h"
+#include "zeek/Debug.h"
+#include "zeek/Scope.h"
+#include "zeek/Frame.h"
+#include "zeek/Func.h"
+#include "zeek/Val.h"
+#include "zeek/Stmt.h"
+#include "zeek/Timer.h"
+#include "zeek/Reporter.h"
+#include "zeek/module_util.h"
 
 namespace zeek::detail {
 

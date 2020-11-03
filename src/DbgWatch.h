@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "util.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 namespace zeek { class Obj; }

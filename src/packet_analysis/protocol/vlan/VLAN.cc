@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "VLAN.h"
-#include "NetVar.h"
+#include "zeek/packet_analysis/protocol/vlan/VLAN.h"
+#include "zeek/NetVar.h"
 
 using namespace zeek::packet_analysis::VLAN;
 

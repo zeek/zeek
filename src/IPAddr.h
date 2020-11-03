@@ -8,7 +8,7 @@
 #include <string>
 #include <memory>
 
-#include "threading/SerialTypes.h"
+#include "zeek/threading/SerialTypes.h"
 
 namespace zeek { class String; }
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;

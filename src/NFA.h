@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "List.h"
+#include "zeek/Obj.h"
+#include "zeek/List.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CCL, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EquivClass, zeek::detail);

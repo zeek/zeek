@@ -1,8 +1,8 @@
+#include "zeek/logging/writers/none/None.h"
 
 #include <algorithm>
 #include <iostream>
 
-#include "None.h"
 #include "none.bif.h"
 
 namespace zeek::logging::writer::detail {

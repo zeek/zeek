@@ -2,7 +2,7 @@
 %include zeek.pac
 
 %extern{
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 #include "types.bif.h"
 #include "events.bif.h"
 %}

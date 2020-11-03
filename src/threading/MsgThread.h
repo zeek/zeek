@@ -1,12 +1,10 @@
-
 #pragma once
 
-#include "DebugLogger.h"
-
-#include "BasicThread.h"
-#include "Queue.h"
-#include "iosource/IOSource.h"
-#include "Flare.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/threading/BasicThread.h"
+#include "zeek/threading/Queue.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/Flare.h"
 
 namespace zeek::threading {
 	struct Value;

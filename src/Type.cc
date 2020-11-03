@@ -1,24 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "Type.h"
-#include "Attr.h"
-#include "Desc.h"
-#include "Expr.h"
-#include "Scope.h"
-#include "Val.h"
-#include "Var.h"
-#include "Reporter.h"
-#include "zeekygen/Manager.h"
-#include "zeekygen/IdentifierInfo.h"
-#include "zeekygen/ScriptInfo.h"
-#include "zeekygen/utils.h"
-#include "module_util.h"
+#include "zeek/Type.h"
 
 #include <string>
 #include <list>
 #include <map>
+
+#include "zeek/Attr.h"
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/Scope.h"
+#include "zeek/Val.h"
+#include "zeek/Var.h"
+#include "zeek/Reporter.h"
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/zeekygen/utils.h"
+#include "zeek/module_util.h"
 
 using namespace std;
 

@@ -13,14 +13,14 @@
 #include <chrono>
 #include <map>
 
-#include "iosource/IOSource.h"
-#include "Timer.h"
-#include "Pipe.h"
-#include "Flare.h"
-#include "Func.h"
-#include "NetVar.h"
-#include "IntrusivePtr.h"
-#include "Options.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/Timer.h"
+#include "zeek/Pipe.h"
+#include "zeek/Flare.h"
+#include "zeek/Func.h"
+#include "zeek/NetVar.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Options.h"
 
 namespace zeek {
 namespace detail {

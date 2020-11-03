@@ -4,7 +4,7 @@
 // DO NOT EDIT.
 //
 
-#include "util.h"
+#include "zeek/util.h"
 namespace zeek::detail {
 
 void init_global_dbg_constants () {
@@ -280,7 +280,7 @@ void init_global_dbg_constants () {
 		                                      false);
 		g_DebugCmdInfos.push_back(info);
 	}
-	
+
 }
 
 } // namespace zeek::detail

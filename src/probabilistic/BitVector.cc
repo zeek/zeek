@@ -1,14 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "BitVector.h"
+#include "zeek/probabilistic/BitVector.h"
 
-#include <broker/data.hh>
-
-#include <openssl/sha.h>
 #include <cassert>
 #include <limits>
+#include <openssl/sha.h>
+#include <broker/data.hh>
 
-#include "digest.h"
+#include "zeek/digest.h"
 
 namespace zeek::probabilistic::detail {
 

@@ -4,9 +4,9 @@
 
 #include <string>
 
-#include "Val.h"
-#include "File.h"
-#include "Analyzer.h"
+#include "zeek/Val.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Analyzer.h"
 #include "unified2_pac.h"
 
 namespace zeek::file_analysis::detail {

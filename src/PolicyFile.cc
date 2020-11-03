@@ -1,19 +1,19 @@
 #include "zeek-config.h"
+#include "zeek/PolicyFile.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <assert.h>
-
-#include <map>
 #include <stdio.h>
 #include <errno.h>
+
 #include <string>
 #include <vector>
+#include <map>
 
-#include "Debug.h"
-#include "util.h"
-#include "PolicyFile.h"
-#include "Reporter.h"
+#include "zeek/Debug.h"
+#include "zeek/util.h"
+#include "zeek/Reporter.h"
 
 using namespace std;
 

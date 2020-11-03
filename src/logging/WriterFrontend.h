@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "WriterBackend.h"
+#include "zeek/logging/WriterBackend.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, logging);
 

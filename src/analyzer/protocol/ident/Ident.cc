@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/ident/Ident.h"
 
 #include <ctype.h>
 
-#include "ZeekString.h"
-#include "NetVar.h"
-#include "Ident.h"
-#include "Event.h"
+#include "zeek/ZeekString.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
 
 #include "events.bif.h"
 

@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ReaderBackend.h"
-#include "ReaderFrontend.h"
-#include "Manager.h"
+#include "zeek/input/ReaderBackend.h"
+#include "zeek/input/ReaderFrontend.h"
+#include "zeek/input/Manager.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

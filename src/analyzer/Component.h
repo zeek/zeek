@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include "Tag.h"
-#include "plugin/Component.h"
-#include "plugin/TaggedComponent.h"
+#include "zeek-config.h"
 
-#include "../zeek-config.h"
-#include "../util.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/plugin/TaggedComponent.h"
+
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);

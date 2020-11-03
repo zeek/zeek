@@ -1,11 +1,10 @@
 #include "zeek-config.h"
+#include "zeek/IntSet.h"
 
 #ifdef HAVE_MEMORY_H
 #include <memory.h>
 #endif
 #include <stdlib.h>
-
-#include "IntSet.h"
 
 namespace zeek::detail {
 

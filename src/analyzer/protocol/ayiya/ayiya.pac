@@ -3,9 +3,9 @@
 %include zeek.pac
 
 %extern{
-#include "IP.h"
-#include "Reporter.h"
-#include "TunnelEncapsulation.h"
+#include "zeek/IP.h"
+#include "zeek/Reporter.h"
+#include "zeek/TunnelEncapsulation.h"
 %}
 
 analyzer AYIYA withcontext {

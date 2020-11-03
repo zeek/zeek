@@ -1,6 +1,6 @@
-#include "NTP.h"
+#include "zeek/analyzer/protocol/ntp/NTP.h"
 
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 
 #include "events.bif.h"
 

@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/Timer.h"
 
-#include "util.h"
-#include "Timer.h"
-#include "Desc.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "broker/Manager.h"
-#include "iosource/Manager.h"
-#include "iosource/PktSrc.h"
+#include "zeek/util.h"
+#include "zeek/Desc.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktSrc.h"
 
 namespace zeek::detail {
 

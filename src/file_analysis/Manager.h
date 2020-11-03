@@ -6,13 +6,13 @@
 #include <set>
 #include <map>
 
-#include "Component.h"
-#include "RunState.h"
-#include "RuleMatcher.h"
+#include "zeek/file_analysis/Component.h"
+#include "zeek/RunState.h"
+#include "zeek/RuleMatcher.h"
 
-#include "plugin/ComponentManager.h"
-#include "analyzer/Tag.h"
-#include "FileTimer.h"
+#include "zeek/plugin/ComponentManager.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/file_analysis/FileTimer.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);

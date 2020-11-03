@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sys/types.h>
 
-#include "input/ReaderBackend.h"
+#include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input::reader::detail {
 

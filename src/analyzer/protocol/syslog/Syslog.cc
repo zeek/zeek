@@ -1,6 +1,5 @@
-
-#include "Syslog.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/syslog/Syslog.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "events.bif.h"
 

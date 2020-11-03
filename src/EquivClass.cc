@@ -2,9 +2,9 @@
 
 #include "zeek-config.h"
 
-#include "EquivClass.h"
-#include "CCL.h"
-#include "util.h"
+#include "zeek/EquivClass.h"
+#include "zeek/CCL.h"
+#include "zeek/util.h"
 
 namespace zeek::detail {
 

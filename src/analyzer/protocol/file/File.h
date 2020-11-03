@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
-
 #include <string>
+
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::file {
 

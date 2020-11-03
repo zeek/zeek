@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "threading/formatters/Ascii.h"
 
-#include "Ascii.h"
-#include "Desc.h"
-#include "threading/MsgThread.h"
-
-#include <sstream>
 #include <errno.h>
+#include <sstream>
+
+#include "zeek/Desc.h"
+#include "zeek/threading/MsgThread.h"
 
 using namespace std;
 

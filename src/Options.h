@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "DNS_Mgr.h"
+#include "zeek/DNS_Mgr.h"
 
 namespace zeek {
 

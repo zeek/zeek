@@ -2,10 +2,10 @@
 
 #include "zeek-config.h"
 
-#include "DFA.h"
-#include "EquivClass.h"
-#include "Desc.h"
-#include "Hash.h"
+#include "zeek/DFA.h"
+#include "zeek/EquivClass.h"
+#include "zeek/Desc.h"
+#include "zeek/Hash.h"
 
 namespace zeek::detail {
 

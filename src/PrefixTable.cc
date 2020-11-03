@@ -1,6 +1,6 @@
-#include "PrefixTable.h"
-#include "Reporter.h"
-#include "Val.h"
+#include "zeek/PrefixTable.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
 
 namespace zeek::detail {
 

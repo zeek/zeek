@@ -1,13 +1,12 @@
 #pragma once
 
-#include "List.h"
-#include "Obj.h"
-
+#include <limits.h>
+#include <stdint.h>
 #include <map>
 #include <string>
 
-#include <limits.h>
-#include <stdint.h>
+#include "zeek/List.h"
+#include "zeek/Obj.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleCondition, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleAction, zeek::detail);

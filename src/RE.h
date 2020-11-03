@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include "List.h"
-#include "CCL.h"
-#include "EquivClass.h"
-
+#include <sys/types.h> // for u_char
+#include <ctype.h>
 #include <set>
 #include <map>
 #include <string>
 
-#include <sys/types.h> // for u_char
-#include <ctype.h>
+#include "zeek/List.h"
+#include "zeek/CCL.h"
+#include "zeek/EquivClass.h"
+
 typedef int (*cce_func)(int);
 
 namespace zeek { class String; }

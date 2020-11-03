@@ -3,8 +3,9 @@
 // TODO: This is preliminary code that's not yet functional and not
 // activated. We don't yet support SIP-over-TCP.
 
-#include "SIP_TCP.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/sip/SIP_TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+
 #include "events.bif.h"
 
 namespace zeek::analyzer::sip_tcp {

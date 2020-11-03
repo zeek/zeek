@@ -1,10 +1,11 @@
 
 %extern{
-#include "Event.h"
-#include "file_analysis/File.h"
+#include "zeek/Event.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/IPAddr.h"
+
 #include "events.bif.h"
 #include "types.bif.h"
-#include "IPAddr.h"
 %}
 
 %code{

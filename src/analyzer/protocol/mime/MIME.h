@@ -6,9 +6,9 @@
 #include <vector>
 #include <queue>
 
-#include "ZeekString.h"
-#include "Reporter.h"
-#include "analyzer/Analyzer.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Reporter.h"
+#include "zeek/analyzer/Analyzer.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);

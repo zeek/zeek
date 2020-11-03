@@ -4,7 +4,8 @@
 %include zeek.pac
 
 %extern{
-#include "Desc.h"
+#include "zeek/Desc.h"
+
 #include "types.bif.h"
 #include "events.bif.h"
 %}

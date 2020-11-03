@@ -1,11 +1,10 @@
-
 #pragma once
-
-#include "MsgThread.h"
-#include "Timer.h"
 
 #include <list>
 #include <utility>
+
+#include "zeek/threading/MsgThread.h"
+#include "zeek/Timer.h"
 
 namespace zeek {
 namespace threading {

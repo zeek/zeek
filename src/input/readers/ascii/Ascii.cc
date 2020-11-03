@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <sstream>
+#include "zeek/input/readers/ascii/Ascii.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sstream>
 
-#include "Ascii.h"
+#include "zeek/threading/SerialTypes.h"
+
 #include "ascii.bif.h"
-
-#include "threading/SerialTypes.h"
 
 using namespace std;
 using zeek::threading::Value;

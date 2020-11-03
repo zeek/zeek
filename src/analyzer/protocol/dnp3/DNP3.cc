@@ -96,8 +96,9 @@
 //                                                   \/
 //                                            Binpac DNP3 Analyzer
 
-#include "DNP3.h"
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/dnp3/DNP3.h"
+#include "zeek/Reporter.h"
+
 #include "events.bif.h"
 
 constexpr unsigned int PSEUDO_LENGTH_INDEX = 2;		// index of len field of DNP3 Pseudo Link Layer

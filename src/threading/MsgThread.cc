@@ -1,13 +1,13 @@
+#include "zeek/threading/MsgThread.h"
+
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
 
-#include "DebugLogger.h"
-
-#include "MsgThread.h"
-#include "Manager.h"
-#include "iosource/Manager.h"
-#include "RunState.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/threading/Manager.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/RunState.h"
 
 // Set by Zeek's main signal handler.
 extern int signal_val;

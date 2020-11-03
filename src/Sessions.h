@@ -2,15 +2,14 @@
 
 #pragma once
 
-#include "Frag.h"
-#include "PacketFilter.h"
-#include "NetVar.h"
-#include "analyzer/protocol/tcp/Stats.h"
-
+#include <sys/types.h> // for u_char
 #include <map>
 #include <utility>
 
-#include <sys/types.h> // for u_char
+#include "zeek/Frag.h"
+#include "zeek/PacketFilter.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/tcp/Stats.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);

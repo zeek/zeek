@@ -3,9 +3,8 @@
 module Analyzer;
 
 %%{
-#include "NetVar.h"
-
-#include "analyzer/Manager.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/Manager.h"
 %%}
 
 function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool

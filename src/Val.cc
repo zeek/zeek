@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Val.h"
+#include "zeek/Val.h"
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -16,31 +16,31 @@
 #include <cmath>
 #include <set>
 
-#include "Attr.h"
-#include "ZeekString.h"
-#include "CompHash.h"
-#include "Dict.h"
-#include "RunState.h"
-#include "File.h"
-#include "Func.h"
-#include "Desc.h"
-#include "IntrusivePtr.h"
-#include "ID.h"
-#include "RE.h"
-#include "Scope.h"
-#include "NetVar.h"
-#include "Expr.h"
-#include "PrefixTable.h"
-#include "Conn.h"
-#include "Reporter.h"
-#include "IPAddr.h"
-#include "ID.h"
+#include "zeek/Attr.h"
+#include "zeek/ZeekString.h"
+#include "zeek/CompHash.h"
+#include "zeek/Dict.h"
+#include "zeek/RunState.h"
+#include "zeek/File.h"
+#include "zeek/Func.h"
+#include "zeek/Desc.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/ID.h"
+#include "zeek/RE.h"
+#include "zeek/Scope.h"
+#include "zeek/NetVar.h"
+#include "zeek/Expr.h"
+#include "zeek/PrefixTable.h"
+#include "zeek/Conn.h"
+#include "zeek/Reporter.h"
+#include "zeek/IPAddr.h"
+#include "zeek/ID.h"
 
-#include "broker/Data.h"
-#include "broker/Store.h"
-#include "broker/Manager.h"
+#include "zeek/broker/Data.h"
+#include "zeek/broker/Store.h"
+#include "zeek/broker/Manager.h"
 
-#include "threading/formatters/JSON.h"
+#include "zeek/threading/formatters/JSON.h"
 
 using namespace std;
 

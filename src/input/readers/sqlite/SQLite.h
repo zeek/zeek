@@ -6,10 +6,10 @@
 
 #include <iostream>
 #include <vector>
+#include "zeek/3rdparty/sqlite3.h"
 
-#include "input/ReaderBackend.h"
-#include "threading/formatters/Ascii.h"
-#include "3rdparty/sqlite3.h"
+#include "zeek/input/ReaderBackend.h"
+#include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::input::reader::detail {
 

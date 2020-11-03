@@ -2,18 +2,17 @@
 
 #pragma once
 
-#include "IntrusivePtr.h"
-#include "Type.h"
-#include "Timer.h"
-#include "Notifier.h"
-#include "net_util.h"
-
+#include <sys/types.h> // for u_char
 #include <vector>
 #include <list>
 #include <array>
 #include <unordered_map>
 
-#include <sys/types.h> // for u_char
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Type.h"
+#include "zeek/Timer.h"
+#include "zeek/Notifier.h"
+#include "zeek/net_util.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -911,7 +910,7 @@ public:
 	 * given address was found in the table. Otherwise returns false.
 	 * @param addr  The address to look for.
 	 * @return  Boolean value to indicate if addr is in the table or set. If
-	 * self is not a table[subnet]/set[subnet] an internal error will be 
+	 * self is not a table[subnet]/set[subnet] an internal error will be
 	 * generated and false will be returned.
 	 */
 	bool Contains(const IPAddr& addr) const;

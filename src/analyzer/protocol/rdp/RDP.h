@@ -1,8 +1,9 @@
 #pragma once
 
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+
 #include "events.bif.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/pia/PIA.h"
 #include "rdp_pac.h"
 
 namespace zeek::analyzer::rdp {

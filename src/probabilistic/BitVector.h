@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include <broker/expected.hh>
-
 #include <iterator>
 #include <memory>
 #include <vector>
+
+#include <broker/expected.hh>
 
 namespace broker { class data; }
 

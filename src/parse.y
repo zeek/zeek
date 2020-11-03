@@ -81,21 +81,21 @@
 #include <set>
 #include <string>
 
-#include "input.h"
-#include "ZeekList.h"
-#include "Desc.h"
-#include "Expr.h"
-#include "Func.h"
-#include "Stmt.h"
-#include "Val.h"
-#include "Var.h"
-#include "RE.h"
-#include "Scope.h"
-#include "Reporter.h"
-#include "ScriptCoverageManager.h"
-#include "zeekygen/Manager.h"
-#include "module_util.h"
-#include "IntrusivePtr.h"
+#include "zeek/input.h"
+#include "zeek/ZeekList.h"
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/Func.h"
+#include "zeek/Stmt.h"
+#include "zeek/Val.h"
+#include "zeek/Var.h"
+#include "zeek/RE.h"
+#include "zeek/Scope.h"
+#include "zeek/Reporter.h"
+#include "zeek/ScriptCoverageManager.h"
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/module_util.h"
+#include "zeek/IntrusivePtr.h"
 
 extern const char* filename;  // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.

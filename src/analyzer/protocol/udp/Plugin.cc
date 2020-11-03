@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "analyzer/protocol/udp/UDP.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
 namespace zeek::plugin::detail::Zeek_UDP {
 

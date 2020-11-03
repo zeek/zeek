@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/finger/Finger.h"
 
 #include <ctype.h>
 
-#include "NetVar.h"
-#include "Finger.h"
-#include "Event.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
 #include "events.bif.h"
 

@@ -1,18 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/threading/SerialTypes.h"
 
-#include "SerialTypes.h"
-#include "SerializationFormat.h"
-#include "Reporter.h"
+#include "zeek/SerializationFormat.h"
+#include "zeek/Reporter.h"
 // The following are required for ValueToVal.
-#include "Val.h"
-#include "ZeekString.h"
-#include "RE.h"
-#include "module_util.h"
-#include "ID.h"
-#include "Expr.h"
-#include "Scope.h"
-#include "IPAddr.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekString.h"
+#include "zeek/RE.h"
+#include "zeek/module_util.h"
+#include "zeek/ID.h"
+#include "zeek/Expr.h"
+#include "zeek/Scope.h"
+#include "zeek/IPAddr.h"
 
 namespace zeek::threading {
 

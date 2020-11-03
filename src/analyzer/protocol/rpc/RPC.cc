@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "RPC.h"
+#include "zeek/analyzer/protocol/rpc/RPC.h"
 
 #include <stdlib.h>
 #include <string>
 
-#include "NetVar.h"
-#include "XDR.h"
-#include "Reporter.h"
-#include "Sessions.h"
-#include "RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/rpc/XDR.h"
+#include "zeek/Reporter.h"
+#include "zeek/Sessions.h"
+#include "zeek/RunState.h"
 
 #include "events.bif.h"
 

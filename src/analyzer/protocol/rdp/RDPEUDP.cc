@@ -1,5 +1,7 @@
-#include "RDPEUDP.h"
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/rdp/RDPEUDP.h"
+
+#include "zeek/Reporter.h"
+
 #include "events.bif.h"
 #include "rdpeudp_pac.h"
 

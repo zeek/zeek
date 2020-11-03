@@ -12,7 +12,7 @@
 	Modified for Bro by Seth Hall - July 2010
 */
 
-#include "RandTest.h"
+#include "zeek/RandTest.h"
 
 #include <math.h>
 

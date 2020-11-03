@@ -1,6 +1,6 @@
 %extern{
 #warning "bro.pac is deprecated and will be removed in v4.1. Use zeek.pac instead."
-#include "binpac_bro.h"
+#include "zeek/binpac_bro.h"
 %}
 
 extern type BroAnalyzer;

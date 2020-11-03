@@ -2,15 +2,15 @@
 %include zeek.pac
 
 %extern{
-#include "zeek-config.h"
-#include "types.bif.h"
-#include "events.bif.h"
-
 namespace zeek::analyzer::krb { class KRB_Analyzer; }
 namespace binpac { namespace KRB { class KRB_Conn; } }
 using KRBAnalyzer = zeek::analyzer::krb::KRB_Analyzer*;
 
-#include "KRB.h"
+#include "zeek-config.h"
+#include "zeek/analyzer/protocol/krb/KRB.h"
+
+#include "types.bif.h"
+#include "events.bif.h"
 %}
 
 extern type KRBAnalyzer;

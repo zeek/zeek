@@ -6,10 +6,10 @@
 
 #include <vector>
 
-#include "NetVar.h"
-#include "IPAddr.h"
-#include "ID.h"
-#include "UID.h"
+#include "zeek/NetVar.h"
+#include "zeek/IPAddr.h"
+#include "zeek/ID.h"
+#include "zeek/UID.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 

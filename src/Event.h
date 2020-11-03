@@ -2,15 +2,15 @@
 
 #pragma once
 
-#include "ZeekList.h"
-#include "analyzer/Analyzer.h"
-#include "iosource/IOSource.h"
-#include "Flare.h"
-#include "ZeekArgs.h"
-#include "IntrusivePtr.h"
-
 #include <tuple>
 #include <type_traits>
+
+#include "zeek/ZeekList.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/Flare.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventMgr, zeek);
 

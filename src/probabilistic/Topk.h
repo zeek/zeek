@@ -3,8 +3,8 @@
 #pragma once
 
 #include <list>
-#include "Val.h"
-#include "OpaqueVal.h"
+#include "zeek/Val.h"
+#include "zeek/OpaqueVal.h"
 
 // This class implements the top-k algorithm. Or - to be more precise - an
 // interpretation of it.

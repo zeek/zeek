@@ -1,16 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
+
 #include <errno.h>
 
-#include "RunState.h"
-#include "NetVar.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "TCP_Reassembler.h"
-#include "Reporter.h"
-#include "Sessions.h"
-#include "Event.h"
-#include "File.h"
-#include "Val.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/Reporter.h"
+#include "zeek/Sessions.h"
+#include "zeek/Event.h"
+#include "zeek/File.h"
+#include "zeek/Val.h"
 
 #include "events.bif.h"
 

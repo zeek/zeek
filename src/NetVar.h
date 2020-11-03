@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "Val.h"
-#include "EventRegistry.h"
-#include "Stats.h"
+#include "zeek/Val.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/Stats.h"
 
 namespace zeek::detail {
 

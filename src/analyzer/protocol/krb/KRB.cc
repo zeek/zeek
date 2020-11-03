@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "KRB.h"
+#include "zeek/analyzer/protocol/krb/KRB.h"
 
 #include <unistd.h>
 

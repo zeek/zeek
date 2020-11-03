@@ -1,26 +1,27 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "zeek/input/Manager.h"
 
 #include <string>
 #include <utility>
 
-#include "ReaderFrontend.h"
-#include "ReaderBackend.h"
-#include "Desc.h"
-#include "module_util.h"
-#include "input.bif.h"
+#include "zeek/input/ReaderFrontend.h"
+#include "zeek/input/ReaderBackend.h"
+#include "zeek/Desc.h"
+#include "zeek/module_util.h"
 
-#include "Expr.h"
-#include "Event.h"
-#include "EventHandler.h"
-#include "NetVar.h"
-#include "RunState.h"
-#include "CompHash.h"
-#include "Func.h"
+#include "zeek/Expr.h"
+#include "zeek/Event.h"
+#include "zeek/EventHandler.h"
+#include "zeek/NetVar.h"
+#include "zeek/RunState.h"
+#include "zeek/CompHash.h"
+#include "zeek/Func.h"
 
-#include "../file_analysis/Manager.h"
-#include "../threading/SerialTypes.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/threading/SerialTypes.h"
+
+#include "input/input.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

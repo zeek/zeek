@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
 #ifndef __STDC_FORMAT_MACROS
@@ -12,6 +14,12 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <libgen.h>
+
 #include <cinttypes>
 #include <cstdint>
 
@@ -19,14 +27,7 @@
 #include <string_view>
 #include <array>
 #include <vector>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <libgen.h>
 #include <memory> // std::unique_ptr
-
-#include "zeek-config.h"
 
 #ifdef DEBUG
 
@@ -94,7 +95,7 @@ typedef int32_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::intptr_t")
 
 extern "C"
 	{
-	#include "modp_numtoa.h"
+	#include "zeek/modp_numtoa.h"
 	}
 
 using bro_int_t = int64_t;

@@ -1,19 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <memory>
+#include "zeek/OpaqueVal.h"
 
-#include "OpaqueVal.h"
-#include "CompHash.h"
-#include "NetVar.h"
-#include "Reporter.h"
-#include "Scope.h"
-#include "Desc.h"
-#include "Var.h"
-#include "probabilistic/BloomFilter.h"
-#include "probabilistic/CardinalityCounter.h"
+#include <memory>
 
 #include <broker/data.hh>
 #include <broker/error.hh>
+
+#include "zeek/CompHash.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Desc.h"
+#include "zeek/Var.h"
+#include "zeek/probabilistic/BloomFilter.h"
+#include "zeek/probabilistic/CardinalityCounter.h"
 
 namespace zeek {
 

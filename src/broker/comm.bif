@@ -2,7 +2,7 @@
 ##! Functions and events regarding broker communication mechanisms.
 
 %%{
-#include "broker/Manager.h"
+#include "zeek/broker/Manager.h"
 %%}
 
 module Broker;

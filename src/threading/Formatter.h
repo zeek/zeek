@@ -4,8 +4,8 @@
 
 #include <string>
 
-#include "Type.h"
-#include "SerialTypes.h"
+#include "zeek/Type.h"
+#include "zeek/threading/SerialTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(MsgThread, zeek, threading);
 

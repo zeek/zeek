@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Supervisor.h"
+#include "zeek-config.h"
+#include "zeek/supervisor/Supervisor.h"
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -15,28 +16,27 @@
 #include <variant>
 #include <utility>
 
-#include "iosource/Manager.h"
-#include "ZeekString.h"
-#include "Dict.h"
-#include "RE.h"
-#include "Reporter.h"
-#include "Scope.h"
-#include "DebugLogger.h"
-#include "ID.h"
-#include "Val.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "zeek-config.h"
-#include "util.h"
-#include "input.h"
-#include "zeek-affinity.h"
-
 #define RAPIDJSON_HAS_STDSTRING 1
-#include "rapidjson/document.h"
+#include <rapidjson/document.h>
 
 extern "C" {
-#include "setsignal.h"
+#include "zeek/setsignal.h"
 }
+
+#include "zeek/iosource/Manager.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Dict.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/ID.h"
+#include "zeek/Val.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/util.h"
+#include "zeek/input.h"
+#include "zeek/zeek-affinity.h"
 
 #ifdef DEBUG
 #define DBG_STEM(args...) stem->LogDebug(args);

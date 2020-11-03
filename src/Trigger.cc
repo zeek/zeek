@@ -1,19 +1,18 @@
-#include "Trigger.h"
-
-#include <algorithm>
+#include "zeek/Trigger.h"
 
 #include <assert.h>
+#include <algorithm>
 
-#include "Traverse.h"
-#include "Expr.h"
-#include "Frame.h"
-#include "ID.h"
-#include "Val.h"
-#include "Stmt.h"
-#include "Reporter.h"
-#include "Desc.h"
-#include "DebugLogger.h"
-#include "iosource/Manager.h"
+#include "zeek/Traverse.h"
+#include "zeek/Expr.h"
+#include "zeek/Frame.h"
+#include "zeek/ID.h"
+#include "zeek/Val.h"
+#include "zeek/Stmt.h"
+#include "zeek/Reporter.h"
+#include "zeek/Desc.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/iosource/Manager.h"
 
 using namespace zeek::detail;
 using namespace zeek::detail::trigger;

@@ -1,23 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "File.h"
+#include "zeek/file_analysis/File.h"
 
 #include <utility>
 
-#include "FileReassembler.h"
-#include "FileTimer.h"
-#include "Analyzer.h"
-#include "Manager.h"
-#include "Reporter.h"
-#include "Val.h"
-#include "Type.h"
-#include "Event.h"
-#include "RuleMatcher.h"
+#include "zeek/file_analysis/FileReassembler.h"
+#include "zeek/file_analysis/FileTimer.h"
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
+#include "zeek/Type.h"
+#include "zeek/Event.h"
+#include "zeek/RuleMatcher.h"
 
-#include "analyzer/Analyzer.h"
-#include "analyzer/Manager.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/Manager.h"
 
-#include "analyzer/extract/Extract.h"
+#include "zeek/file_analysis/analyzer/extract/Extract.h"
 
 namespace zeek::file_analysis {
 

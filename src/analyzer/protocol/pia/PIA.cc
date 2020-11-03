@@ -1,13 +1,14 @@
-#include "PIA.h"
-#include "RuleMatcher.h"
-#include "Event.h"
-#include "NetVar.h"
-#include "IP.h"
-#include "DebugLogger.h"
-#include "Reporter.h"
-#include "RunState.h"
-#include "analyzer/protocol/tcp/TCP_Flags.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+
+#include "zeek/RuleMatcher.h"
+#include "zeek/Event.h"
+#include "zeek/NetVar.h"
+#include "zeek/IP.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::pia {
 

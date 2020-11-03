@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "MPLS.h"
-#include "plugin/Plugin.h"
-#include "packet_analysis/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/packet_analysis/protocol/mpls/MPLS.h"
 
 namespace zeek::plugin::Zeek_MPLS {
 

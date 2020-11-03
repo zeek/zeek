@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Frame.h"
+#include "zeek/Frame.h"
 
 #include <broker/error.hh>
-#include "broker/Data.h"
 
-#include "Func.h"
-#include "Desc.h"
-#include "Trigger.h"
-#include "Val.h"
-#include "ID.h"
+#include "zeek/broker/Data.h"
+#include "zeek/Func.h"
+#include "zeek/Desc.h"
+#include "zeek/Trigger.h"
+#include "zeek/Val.h"
+#include "zeek/ID.h"
 
 std::vector<zeek::detail::Frame*> g_frame_stack;
 

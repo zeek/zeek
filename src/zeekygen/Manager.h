@@ -9,11 +9,10 @@
 #include <map>
 #include <ctime>
 
-#include "Configuration.h"
-
-#include "Reporter.h"
-#include "ID.h"
-#include "util.h"
+#include "zeek/zeekygen/Configuration.h"
+#include "zeek/Reporter.h"
+#include "zeek/ID.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PackageInfo, zeek, zeekygen, detail);

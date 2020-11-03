@@ -9,12 +9,12 @@
 #include <tuple>
 #include <type_traits>
 
-#include "Tag.h"
+#include "zeek/analyzer/Tag.h"
 
-#include "../Obj.h"
-#include "../EventHandler.h"
-#include "../Timer.h"
-#include "../IntrusivePtr.h"
+#include "zeek/Obj.h"
+#include "zeek/EventHandler.h"
+#include "zeek/Timer.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);

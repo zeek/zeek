@@ -3,7 +3,7 @@
 module Log;
 
 %%{
-#include "logging/Manager.h"
+#include "zeek/logging/Manager.h"
 %%}
 
 type Filter: record;

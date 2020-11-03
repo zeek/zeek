@@ -1,11 +1,12 @@
 #ifdef DEBUG
 
+#include "zeek/DebugLogger.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "DebugLogger.h"
-#include "RunState.h"
-#include "plugin/Plugin.h"
+#include "zeek/RunState.h"
+#include "zeek/plugin/Plugin.h"
 
 zeek::detail::DebugLogger zeek::detail::debug_logger;
 zeek::detail::DebugLogger& debug_logger = zeek::detail::debug_logger;

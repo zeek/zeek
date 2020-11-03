@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "NFA.h"
-#include "Desc.h"
-#include "EquivClass.h"
-#include "IntSet.h"
+#include "zeek/NFA.h"
 
 #include <algorithm>
+
+#include "zeek/Desc.h"
+#include "zeek/EquivClass.h"
+#include "zeek/IntSet.h"
 
 namespace zeek::detail {
 

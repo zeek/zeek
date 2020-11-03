@@ -1,6 +1,6 @@
 #pragma once
 
-#include "analyzer/protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
 #include "dhcp_pac.h"
 

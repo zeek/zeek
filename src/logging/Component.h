@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "Tag.h"
-#include "plugin/Component.h"
-#include "plugin/TaggedComponent.h"
+#include "zeek/logging/Tag.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/plugin/TaggedComponent.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
 ZEEK_FORWARD_DECLARE_NAMESPACED(WriterBackend, zeek, logging);

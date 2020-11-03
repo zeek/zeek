@@ -1,10 +1,10 @@
 // Implementation of watches
 
 #include "zeek-config.h"
+#include "zeek/DbgWatch.h"
 
-#include "Debug.h"
-#include "DbgWatch.h"
-#include "Reporter.h"
+#include "zeek/Debug.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::detail {
 

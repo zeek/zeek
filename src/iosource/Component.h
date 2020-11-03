@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "plugin/Component.h"
+#include "zeek/plugin/Component.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);

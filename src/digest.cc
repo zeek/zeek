@@ -4,9 +4,9 @@
  * Wrapper and helper functions for MD5/SHA digest algorithms.
  */
 
-#include "digest.h"
+#include "zeek/digest.h"
 
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::detail {
 

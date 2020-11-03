@@ -1,9 +1,9 @@
 #include "zeek-config.h"
 
-#include "Rule.h"
-#include "RuleAction.h"
-#include "RuleCondition.h"
-#include "RuleMatcher.h"
+#include "zeek/Rule.h"
+#include "zeek/RuleAction.h"
+#include "zeek/RuleCondition.h"
+#include "zeek/RuleMatcher.h"
 
 namespace zeek::detail {
 

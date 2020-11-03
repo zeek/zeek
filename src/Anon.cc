@@ -1,19 +1,19 @@
-#include "Anon.h"
+#include "zeek/Anon.h"
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
 #include <sys/time.h>
 
-#include "util.h"
-#include "net_util.h"
-#include "Val.h"
-#include "NetVar.h"
-#include "Reporter.h"
-#include "Scope.h"
-#include "ID.h"
-#include "IPAddr.h"
-#include "Event.h"
+#include "zeek/util.h"
+#include "zeek/net_util.h"
+#include "zeek/Val.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/ID.h"
+#include "zeek/IPAddr.h"
+#include "zeek/Event.h"
 
 namespace zeek::detail {
 

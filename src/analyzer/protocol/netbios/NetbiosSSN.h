@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "analyzer/protocol/udp/UDP.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::netbios_ssn {
 namespace detail {

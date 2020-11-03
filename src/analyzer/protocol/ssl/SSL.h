@@ -1,8 +1,8 @@
 #pragma once
 
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/ssl/events.bif.h"
 
 namespace binpac { namespace SSL { class SSL_Conn; } }
 

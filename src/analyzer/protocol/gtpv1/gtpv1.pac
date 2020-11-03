@@ -2,9 +2,10 @@
 %include zeek.pac
 
 %extern{
-#include "IP.h"
-#include "TunnelEncapsulation.h"
-#include "Reporter.h"
+#include "zeek/IP.h"
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/Reporter.h"
+
 #include "events.bif.h"
 %}
 

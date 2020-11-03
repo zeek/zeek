@@ -5,7 +5,7 @@
 #include <string.h>
 #include <string>
 
-#include "util.h" // for bro_int_t
+#include "zeek/util.h" // for bro_int_t
 
 #define BRO_UID_LEN 2
 

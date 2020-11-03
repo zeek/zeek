@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/gnutella/Gnutella.h"
 
 #include <ctype.h>
 
 #include <algorithm>
 
-#include "NetVar.h"
-#include "Gnutella.h"
-#include "Event.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/Manager.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/Manager.h"
 
 #include "events.bif.h"
 

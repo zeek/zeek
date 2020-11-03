@@ -4,7 +4,7 @@
 %include zeek.pac
 
 %extern{
-	#include "MQTT.h"
+	#include "zeek/analyzer/protocol/mqtt/MQTT.h"
 	#include "events.bif.h"
 	#include "types.bif.h"
 %}

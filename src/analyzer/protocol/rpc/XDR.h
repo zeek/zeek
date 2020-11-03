@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
-#include "util.h"
+#include "zeek/util.h"
 
 namespace zeek::analyzer::rpc {
 

@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Notifier.h"
-#include "DebugLogger.h"
-
 #include <set>
+
+#include "zeek/Notifier.h"
+#include "zeek/DebugLogger.h"
 
 zeek::notifier::detail::Registry zeek::notifier::detail::registry;
 zeek::notifier::detail::Registry& notifier::registry = zeek::notifier::detail::registry;

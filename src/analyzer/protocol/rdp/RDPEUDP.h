@@ -1,7 +1,8 @@
 #pragma once
 
+#include "zeek/analyzer/protocol/udp/UDP.h"
+
 #include "events.bif.h"
-#include "analyzer/protocol/udp/UDP.h"
 #include "rdpeudp_pac.h"
 
 namespace zeek::analyzer::rdpeudp {

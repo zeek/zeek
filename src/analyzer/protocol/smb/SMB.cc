@@ -1,4 +1,4 @@
-#include "SMB.h"
+#include "zeek/analyzer/protocol/smb/SMB.h"
 
 namespace zeek::analyzer::smb {
 

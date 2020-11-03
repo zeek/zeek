@@ -6,7 +6,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-#include "../PktDumper.h"
+#include "zeek/iosource/PktDumper.h"
 
 namespace zeek::iosource::pcap {
 

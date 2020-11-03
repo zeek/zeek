@@ -1,4 +1,4 @@
-#include "DHCP.h"
+#include "zeek/analyzer/protocol/dhcp/DHCP.h"
 
 #include "events.bif.h"
 #include "types.bif.h"

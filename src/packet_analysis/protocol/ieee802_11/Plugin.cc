@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IEEE802_11.h"
-#include "plugin/Plugin.h"
-#include "packet_analysis/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/packet_analysis/protocol/ieee802_11/IEEE802_11.h"
 
 namespace zeek::plugin::Zeek_IEEE802_11 {
 

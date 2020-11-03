@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "XDR.h"
+#include "zeek/analyzer/protocol/rpc/XDR.h"
 
 #include <string.h>
 #include <algorithm>

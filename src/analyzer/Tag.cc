@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Tag.h"
-#include "Manager.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/analyzer/Manager.h"
 
 namespace zeek::analyzer {
 

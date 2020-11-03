@@ -1,6 +1,6 @@
-#include "RFB.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/rfb/RFB.h"
 
 namespace zeek::plugin::detail::Zeek_RFB {
 

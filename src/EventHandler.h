@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "ZeekList.h"
-#include "ZeekArgs.h"
-#include "Type.h"
-
 #include <unordered_set>
 #include <string>
+
+#include "zeek/ZeekList.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/Type.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 

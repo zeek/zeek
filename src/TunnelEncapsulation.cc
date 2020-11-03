@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "TunnelEncapsulation.h"
-#include "util.h"
-#include "Conn.h"
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/util.h"
+#include "zeek/Conn.h"
 
 namespace zeek {
 

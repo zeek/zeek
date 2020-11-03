@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Configuration.h"
-#include "utils.h"
+#include "zeek/zeekygen/Configuration.h"
 
-#include "Reporter.h"
-
+#include <errno.h>
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include <errno.h>
+
+#include "zeek/zeekygen/utils.h"
+#include "zeek/Reporter.h"
 
 using namespace std;
 

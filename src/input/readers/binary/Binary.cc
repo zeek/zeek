@@ -1,11 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/input/readers/binary/Binary.h"
+
 #include <sys/stat.h>
 
-#include "Binary.h"
-#include "binary.bif.h"
+#include "zeek/threading/SerialTypes.h"
 
-#include "threading/SerialTypes.h"
+#include "input/readers/binary/binary.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

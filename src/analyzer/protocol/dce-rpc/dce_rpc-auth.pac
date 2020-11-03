@@ -1,5 +1,5 @@
 %extern{
-#include "analyzer/Manager.h"
+#include "zeek/analyzer/Manager.h"
 %}
 
 refine connection DCE_RPC_Conn += {

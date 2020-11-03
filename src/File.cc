@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "File.h"
+#include "zeek/File.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -21,15 +21,15 @@
 
 #include <algorithm>
 
-#include "Attr.h"
-#include "Type.h"
-#include "Expr.h"
-#include "NetVar.h"
-#include "RunState.h"
-#include "Event.h"
-#include "Reporter.h"
-#include "Desc.h"
-#include "Var.h"
+#include "zeek/Attr.h"
+#include "zeek/Type.h"
+#include "zeek/Expr.h"
+#include "zeek/NetVar.h"
+#include "zeek/RunState.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
+#include "zeek/Desc.h"
+#include "zeek/Var.h"
 
 namespace zeek {
 

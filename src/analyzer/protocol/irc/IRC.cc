@@ -1,11 +1,13 @@
 // An IRC analyzer contributed by Roland Gruber.
 
+#include "zeek/analyzer/protocol/irc/IRC.h"
+
 #include <iostream>
-#include "IRC.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "analyzer/protocol/zip/ZIP.h"
-#include "analyzer/Manager.h"
+
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/analyzer/protocol/zip/ZIP.h"
+#include "zeek/analyzer/Manager.h"
 
 #include "events.bif.h"
 

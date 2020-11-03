@@ -2,19 +2,19 @@
 
 #pragma once
 
+#include <fcntl.h>
+
 #include <list>
 #include <string>
 #include <utility>
-
-#include <fcntl.h>
 
 #ifdef NEED_KRB5_H
 #include <krb5.h>
 #endif // NEED_KRB5_H
 
-#include "Obj.h"
-#include "IntrusivePtr.h"
-#include "util.h"
+#include "zeek/Obj.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);

@@ -2,7 +2,7 @@
 type ftp_port: record;
 
 %%{
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 
 static zeek::ValPtr parse_port(const char* line)
 	{

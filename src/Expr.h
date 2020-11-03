@@ -8,14 +8,14 @@
 #include <utility>
 #include <optional>
 
-#include "ZeekList.h"
-#include "IntrusivePtr.h"
-#include "Timer.h"
-#include "Type.h"
-#include "EventHandler.h"
-#include "TraverseTypes.h"
-#include "Val.h"
-#include "ZeekArgs.h"
+#include "zeek/ZeekList.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Timer.h"
+#include "zeek/Type.h"
+#include "zeek/EventHandler.h"
+#include "zeek/TraverseTypes.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekArgs.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);

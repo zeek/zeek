@@ -2,7 +2,7 @@
 ##! Functions for inspecting and manipulating broker data.
 
 %%{
-#include "broker/Data.h"
+#include "zeek/broker/Data.h"
 %%}
 
 module Broker;

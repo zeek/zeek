@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Portmap.h"
-#include "NetVar.h"
-#include "XDR.h"
-#include "Event.h"
+#include "zeek-config.h"
+#include "zeek/analyzer/protocol/rpc/Portmap.h"
+
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/analyzer/protocol/rpc/XDR.h"
 
 #include "events.bif.h"
-
-#include "zeek-config.h"
 
 #define PMAPPROC_NULL 0
 #define PMAPPROC_SET 1

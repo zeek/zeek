@@ -1,10 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "SSH.h"
+#include "zeek/analyzer/protocol/ssh/SSH.h"
 
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/Reporter.h"
 
 #include "types.bif.h"
 #include "events.bif.h"

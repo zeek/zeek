@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-#include "ZeekString.h"
+#include "zeek/ZeekString.h"
 
 namespace zeek::detail {
 

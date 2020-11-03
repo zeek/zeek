@@ -4,8 +4,8 @@
 
 #include "zeek-config.h"
 
-#include <string>
 #include <stdint.h>
+#include <string>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);

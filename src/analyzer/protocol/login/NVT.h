@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
 #define TELNET_OPTION_BINARY 0
 #define TELNET_OPTION_TERMINAL 24

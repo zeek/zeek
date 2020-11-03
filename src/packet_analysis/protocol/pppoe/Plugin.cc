@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "PPPoE.h"
-#include "plugin/Plugin.h"
-#include "packet_analysis/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/packet_analysis/protocol/pppoe/PPPoE.h"
 
 namespace zeek::plugin::Zeek_PPPoE {
 

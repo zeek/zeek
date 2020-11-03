@@ -6,11 +6,10 @@
 #include <map>
 #include <string_view>
 
-#include "Plugin.h"
-#include "Component.h"
-
-#include "../Reporter.h"
-#include "../ZeekArgs.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/Reporter.h"
+#include "zeek/ZeekArgs.h"
 
 namespace zeek {
 namespace plugin {

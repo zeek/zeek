@@ -1,8 +1,7 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
-#include "Binary.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/input/readers/binary/Binary.h"
 
 namespace zeek::plugin::detail::Zeek_BinaryReader {
 

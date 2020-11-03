@@ -1,7 +1,7 @@
 ##! Functions to probabilistically determine top-k elements.
 
 %%{
-#include "probabilistic/Topk.h"
+#include "zeek/probabilistic/Topk.h"
 %%}
 
 ## Creates a top-k data structure which tracks *size* elements.

@@ -6,10 +6,10 @@
 
 #include "zeek-config.h"
 
-#include "logging/WriterBackend.h"
-#include "threading/formatters/Ascii.h"
-#include "3rdparty/sqlite3.h"
-#include "Desc.h"
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/threading/formatters/Ascii.h"
+#include "zeek/3rdparty/sqlite3.h"
+#include "zeek/Desc.h"
 
 namespace zeek::logging::writer::detail {
 

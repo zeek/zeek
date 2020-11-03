@@ -8,7 +8,6 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
 namespace zeek::plugin {
-
 namespace component {
 
 /**

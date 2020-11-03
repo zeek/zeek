@@ -3,7 +3,8 @@
 module FileExtract;
 
 %%{
-#include "file_analysis/Manager.h"
+#include "zeek/zeek/file_analysis/Manager.h"
+
 #include "file_analysis/file_analysis.bif.h"
 %%}
 

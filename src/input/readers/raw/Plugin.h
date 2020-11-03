@@ -4,9 +4,8 @@
 
 #include <mutex>
 
-#include "plugin/Plugin.h"
-
-#include "Raw.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/input/readers/raw/Raw.h"
 
 namespace zeek::plugin::detail::Zeek_RawReader {
 

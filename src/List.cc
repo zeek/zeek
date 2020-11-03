@@ -1,5 +1,5 @@
-#include <List.h>
-#include <3rdparty/doctest.h>
+#include "zeek/List.h"
+#include "zeek/3rdparty/doctest.h"
 
 TEST_CASE("list construction")
 	{

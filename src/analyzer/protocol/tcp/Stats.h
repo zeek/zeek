@@ -1,7 +1,6 @@
-
 #pragma once
 
-#include "TCP_Endpoint.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 
 namespace zeek::analyzer::tcp {
 

@@ -1,9 +1,9 @@
 //See the file in the main distribution directory for copyright.
 
-#include "KRB.h"
-#include "KRB_TCP.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/krb/KRB.h"
+#include "zeek/analyzer/protocol/krb/KRB_TCP.h"
 
 namespace zeek::plugin::detail::Zeek_KRB {
 

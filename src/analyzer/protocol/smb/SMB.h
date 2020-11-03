@@ -1,6 +1,6 @@
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "smb_pac.h"
 
 namespace zeek::analyzer::smb {

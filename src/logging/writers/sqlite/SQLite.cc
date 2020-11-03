@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/logging/writers/sqlite/SQLite.h"
 
-#include <string>
 #include <errno.h>
+#include <string>
 #include <vector>
 
-#include "threading/SerialTypes.h"
+#include "zeek/threading/SerialTypes.h"
 
-#include "SQLite.h"
 #include "sqlite.bif.h"
 
 using namespace std;

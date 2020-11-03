@@ -2,15 +2,14 @@
 
 #pragma once
 
-#include "IntrusivePtr.h"
-#include "RandTest.h"
-#include "Val.h"
-#include "digest.h"
-#include "paraglob/paraglob.h"
-
-#include <broker/expected.hh>
-
 #include <sys/types.h> // for u_char
+#include <broker/expected.hh>
+#include <paraglob/paraglob.h>
+
+#include "zeek/IntrusivePtr.h"
+#include "zeek/RandTest.h"
+#include "zeek/Val.h"
+#include "zeek/digest.h"
 
 namespace broker { class data; }
 

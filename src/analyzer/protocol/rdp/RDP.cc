@@ -1,6 +1,7 @@
-#include "RDP.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/rdp/RDP.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/Reporter.h"
+
 #include "events.bif.h"
 #include "types.bif.h"
 

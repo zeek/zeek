@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "../PktSrc.h"
+#include <sys/types.h> // for u_char
 
 extern "C" {
 #include <pcap.h>
 }
 
-#include <sys/types.h> // for u_char
+#include "zeek/iosource/PktSrc.h"
 
 namespace zeek::iosource::pcap {
 

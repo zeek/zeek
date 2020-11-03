@@ -9,7 +9,7 @@
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Analyzer.h"
 
-#include "events.bif.h"
+#include "file_analysis/analyzer/hash/events.bif.h"
 
 namespace zeek::file_analysis::detail {
 

@@ -10,7 +10,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer::tcp {
 

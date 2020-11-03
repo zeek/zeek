@@ -8,7 +8,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/bittorrent/events.bif.h"
 
 # define FMT_INT "%" PRId64
 # define FMT_UINT "%" PRIu64

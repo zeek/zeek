@@ -9,7 +9,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/Event.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/ident/events.bif.h"
 
 namespace zeek::analyzer::ident {
 

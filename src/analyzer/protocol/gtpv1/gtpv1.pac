@@ -6,7 +6,7 @@
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/Reporter.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/gtpv1/events.bif.h"
 %}
 
 analyzer GTPv1 withcontext {

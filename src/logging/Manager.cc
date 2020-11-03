@@ -26,7 +26,7 @@
 #include "zeek/plugin/Plugin.h"
 #include "zeek/plugin/Manager.h"
 
-#include "logging.bif.h"
+#include "logging/logging.bif.h"
 
 using namespace std;
 

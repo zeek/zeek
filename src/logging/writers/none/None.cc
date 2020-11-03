@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "none.bif.h"
+#include "logging/writers/none/none.bif.h"
 
 namespace zeek::logging::writer::detail {
 

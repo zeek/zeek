@@ -2,8 +2,8 @@
 
 #include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "events.bif.h"
-#include "radius_pac.h"
+#include "analyzer/protocol/radius/events.bif.h"
+#include "analyzer/protocol/radius/radius_pac.h"
 
 namespace zeek::analyzer::radius {
 

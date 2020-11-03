@@ -4,7 +4,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "krb_TCP_pac.h"
+#include "analyzer/protocol/krb/krb_TCP_pac.h"
 
 namespace zeek::analyzer::krb_tcp {
 

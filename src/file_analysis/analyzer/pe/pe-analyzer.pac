@@ -2,7 +2,7 @@
 #include "zeek/Event.h"
 #include "zeek/file_analysis/File.h"
 
-#include "events.bif.h"
+#include "file_analysis/analyzer/pe/events.bif.h"
 %}
 
 %header{

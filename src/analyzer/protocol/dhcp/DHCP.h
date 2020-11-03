@@ -2,7 +2,7 @@
 
 #include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "dhcp_pac.h"
+#include "analyzer/protocol/dhcp/dhcp_pac.h"
 
 namespace zeek::analyzer::dhcp {
 

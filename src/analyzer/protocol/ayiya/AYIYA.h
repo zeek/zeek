@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ayiya_pac.h"
+#include "analyzer/protocol/ayiya/ayiya_pac.h"
 
 namespace binpac::AYIYA { class AYIYA_Conn; }
 

@@ -1,7 +1,7 @@
 #include "zeek/analyzer/protocol/dhcp/DHCP.h"
 
-#include "events.bif.h"
-#include "types.bif.h"
+#include "analyzer/protocol/dhcp/events.bif.h"
+#include "analyzer/protocol/dhcp/types.bif.h"
 
 namespace zeek::analyzer::dhcp {
 

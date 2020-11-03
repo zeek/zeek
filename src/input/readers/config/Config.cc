@@ -13,7 +13,7 @@
 #include "zeek/input/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "config.bif.h"
+#include "input/readers/config/config.bif.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

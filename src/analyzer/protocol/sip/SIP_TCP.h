@@ -7,7 +7,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "sip_TCP_pac.h"
+#include "analyzer/protocol/sip/sip_TCP_pac.h"
 
 namespace zeek::analyzer::sip_tcp {
 

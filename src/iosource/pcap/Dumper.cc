@@ -8,7 +8,7 @@
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/RunState.h"
 
-#include "pcap.bif.h"
+#include "iosource/pcap/pcap.bif.h"
 
 namespace zeek::iosource::pcap {
 

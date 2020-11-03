@@ -4,8 +4,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "events.bif.h"
-#include "mysql_pac.h"
+#include "analyzer/protocol/mysql/events.bif.h"
+#include "analyzer/protocol/mysql/mysql_pac.h"
 
 namespace zeek::analyzer::mysql {
 

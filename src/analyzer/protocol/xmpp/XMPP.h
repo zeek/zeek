@@ -4,7 +4,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "xmpp_pac.h"
+#include "analyzer/protocol/xmpp/xmpp_pac.h"
 
 namespace zeek::analyzer::xmpp {
 

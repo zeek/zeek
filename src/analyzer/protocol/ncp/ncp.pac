@@ -3,7 +3,7 @@
 %include zeek.pac
 
 %extern{
-#include "events.bif.h"
+#include "analyzer/protocol/ncp/events.bif.h"
 %}
 
 analyzer NCP withcontext {};

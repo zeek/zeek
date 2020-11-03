@@ -6,8 +6,8 @@
 %extern{
 #include "zeek/Desc.h"
 
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/ssl/types.bif.h"
+#include "analyzer/protocol/ssl/events.bif.h"
 %}
 
 analyzer TLSHandshake withcontext {

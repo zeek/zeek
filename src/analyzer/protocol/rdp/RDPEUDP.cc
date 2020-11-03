@@ -2,8 +2,8 @@
 
 #include "zeek/Reporter.h"
 
-#include "events.bif.h"
-#include "rdpeudp_pac.h"
+#include "analyzer/protocol/rdp/events.bif.h"
+#include "analyzer/protocol/rdp/rdpeudp_pac.h"
 
 namespace zeek::analyzer::rdpeudp {
 

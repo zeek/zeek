@@ -2,8 +2,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "events.bif.h"
-#include "rfb_pac.h"
+#include "analyzer/protocol/rfb/events.bif.h"
+#include "analyzer/protocol/rfb/rfb_pac.h"
 
 namespace zeek::analyzer::rfb {
 

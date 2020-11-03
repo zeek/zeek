@@ -7,7 +7,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "imap_pac.h"
+#include "analyzer/protocol/imap/imap_pac.h"
 
 namespace zeek::analyzer::imap {
 

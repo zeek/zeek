@@ -12,7 +12,7 @@
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/Manager.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/gnutella/events.bif.h"
 
 namespace zeek::analyzer::gnutella {
 

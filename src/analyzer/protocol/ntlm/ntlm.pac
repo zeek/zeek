@@ -5,8 +5,8 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/Analyzer.h"
 
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/ntlm/types.bif.h"
+#include "analyzer/protocol/ntlm/events.bif.h"
 %}
 
 analyzer NTLM withcontext {

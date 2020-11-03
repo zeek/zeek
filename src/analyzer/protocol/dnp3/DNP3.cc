@@ -99,7 +99,7 @@
 #include "zeek/analyzer/protocol/dnp3/DNP3.h"
 #include "zeek/Reporter.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/dnp3/events.bif.h"
 
 constexpr unsigned int PSEUDO_LENGTH_INDEX = 2;		// index of len field of DNP3 Pseudo Link Layer
 constexpr unsigned int PSEUDO_CONTROL_FIELD_INDEX = 3;	// index of ctrl field of DNP3 Pseudo Link Layer

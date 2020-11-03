@@ -2,7 +2,7 @@
 
 #include "zeek/Reporter.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/radius/events.bif.h"
 
 namespace zeek::analyzer::radius {
 

@@ -2,8 +2,8 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
 
-#include "events.bif.h"
-#include "types.bif.h"
+#include "analyzer/protocol/rdp/events.bif.h"
+#include "analyzer/protocol/rdp/types.bif.h"
 
 namespace zeek::analyzer::rdp {
 

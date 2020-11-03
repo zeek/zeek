@@ -7,7 +7,7 @@
 #include "zeek/Event.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/rpc/events.bif.h"
 
 #define PMAPPROC_NULL 0
 #define PMAPPROC_SET 1

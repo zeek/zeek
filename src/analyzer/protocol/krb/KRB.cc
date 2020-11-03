@@ -4,8 +4,8 @@
 
 #include <unistd.h>
 
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/krb/types.bif.h"
+#include "analyzer/protocol/krb/events.bif.h"
 
 namespace zeek::analyzer::krb {
 

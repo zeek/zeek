@@ -3,8 +3,8 @@
 
 %extern{
 #include "zeek/Reporter.h"
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/snmp/types.bif.h"
+#include "analyzer/protocol/snmp/events.bif.h"
 %}
 
 analyzer SNMP withcontext {

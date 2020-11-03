@@ -3,7 +3,7 @@
 %include zeek.pac
 
 %extern{
-#include "events.bif.h"
+#include "analyzer/protocol/dnp3/events.bif.h"
 %}
 
 analyzer DNP3 withcontext {

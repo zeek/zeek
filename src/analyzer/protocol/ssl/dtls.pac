@@ -10,8 +10,8 @@ using DTLSAnalyzer = zeek::analyzer::dtls::DTLS_Analyzer*;
 
 #include "zeek/analyzer/protocol/ssl/DTLS.h"
 
-#include "events.bif.h"
-#include "consts.bif.h"
+#include "analyzer/protocol/ssl/events.bif.h"
+#include "analyzer/protocol/ssl/consts.bif.h"
 %}
 
 extern type DTLSAnalyzer;

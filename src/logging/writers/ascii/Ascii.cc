@@ -21,7 +21,7 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "ascii.bif.h"
+#include "logging/writers/ascii/ascii.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

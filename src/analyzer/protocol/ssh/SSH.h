@@ -4,8 +4,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "events.bif.h"
-#include "ssh_pac.h"
+#include "analyzer/protocol/ssh/events.bif.h"
+#include "analyzer/protocol/ssh/ssh_pac.h"
 
 namespace zeek::analyzer::ssh {
 

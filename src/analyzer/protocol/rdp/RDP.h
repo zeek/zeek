@@ -3,8 +3,8 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 
-#include "events.bif.h"
-#include "rdp_pac.h"
+#include "analyzer/protocol/rdp/events.bif.h"
+#include "analyzer/protocol/rdp/rdp_pac.h"
 
 namespace zeek::analyzer::rdp {
 

@@ -20,7 +20,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "ncp_pac.h"
+#include "analyzer/protocol/ncp/ncp_pac.h"
 
 namespace zeek::analyzer::ncp {
 namespace detail {

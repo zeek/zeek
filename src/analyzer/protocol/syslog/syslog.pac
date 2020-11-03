@@ -3,7 +3,7 @@
 %include zeek.pac
 
 %extern{
-#include "events.bif.h"
+#include "analyzer/protocol/syslog/events.bif.h"
 %}
 
 analyzer Syslog withcontext {

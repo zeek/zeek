@@ -9,7 +9,7 @@
 #include <krb5.h>
 #endif
 
-#include "krb_pac.h"
+#include "analyzer/protocol/krb/krb_pac.h"
 
 namespace zeek::analyzer::krb {
 

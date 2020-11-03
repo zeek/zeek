@@ -4,8 +4,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "events.bif.h"
-#include "ntlm_pac.h"
+#include "analyzer/protocol/ntlm/events.bif.h"
+#include "analyzer/protocol/ntlm/ntlm_pac.h"
 
 namespace zeek::analyzer::ntlm {
 

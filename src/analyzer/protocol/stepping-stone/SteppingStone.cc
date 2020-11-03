@@ -12,7 +12,7 @@
 #include "zeek/Sessions.h"
 #include "zeek/util.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/stepping-stone/events.bif.h"
 
 namespace zeek::analyzer::stepping_stone {
 

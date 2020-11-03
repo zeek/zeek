@@ -2,8 +2,8 @@
 %include zeek.pac
 
 %extern{
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/dhcp/types.bif.h"
+#include "analyzer/protocol/dhcp/events.bif.h"
 %}
 
 analyzer DHCP withcontext {

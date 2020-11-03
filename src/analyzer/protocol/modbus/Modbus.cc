@@ -1,7 +1,7 @@
 #include "zeek/analyzer/protocol/modbus/Modbus.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/modbus/events.bif.h"
 
 namespace zeek::analyzer::modbus {
 

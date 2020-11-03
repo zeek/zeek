@@ -2,7 +2,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "modbus_pac.h"
+#include "analyzer/protocol/modbus/modbus_pac.h"
 
 namespace zeek::analyzer::modbus {
 

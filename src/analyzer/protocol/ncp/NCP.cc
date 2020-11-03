@@ -9,8 +9,8 @@
 
 #include "zeek/Sessions.h"
 
-#include "events.bif.h"
-#include "consts.bif.h"
+#include "analyzer/protocol/ncp/events.bif.h"
+#include "analyzer/protocol/ncp/consts.bif.h"
 
 using namespace std;
 

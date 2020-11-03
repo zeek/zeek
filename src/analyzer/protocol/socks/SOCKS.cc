@@ -2,8 +2,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "socks_pac.h"
-#include "events.bif.h"
+#include "analyzer/protocol/socks/socks_pac.h"
+#include "analyzer/protocol/socks/events.bif.h"
 
 namespace zeek::analyzer::socks {
 

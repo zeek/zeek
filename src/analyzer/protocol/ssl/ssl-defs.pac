@@ -87,9 +87,9 @@ function version_ok(vers : uint16) : bool
 
 %extern{
 #include <string>
-using std::string;
+#include "analyzer/protocol/ssl/events.bif.h"
 
-#include "events.bif.h"
+using std::string;
 %}
 
 # a maximum of 100k for one record seems safe

@@ -15,7 +15,7 @@
 
 #include "zeek/Event.h"
 
-#include "events.bif.h"
+#include "packet_analysis/protocol/arp/events.bif.h"
 
 using namespace zeek::packet_analysis::ARP;
 

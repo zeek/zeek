@@ -2,7 +2,7 @@
 
 #include "zeek/File.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer::tcp {
 

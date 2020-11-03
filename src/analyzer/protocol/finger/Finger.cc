@@ -9,7 +9,7 @@
 #include "zeek/Event.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/finger/events.bif.h"
 
 namespace zeek::analyzer::finger {
 

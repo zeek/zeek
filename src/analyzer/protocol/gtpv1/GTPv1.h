@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gtpv1_pac.h"
+#include "analyzer/protocol/gtpv1/gtpv1_pac.h"
 
 namespace binpac::GTPv1 { class GTPv1_Conn; }
 

@@ -14,7 +14,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/icmp/events.bif.h"
 
 namespace zeek::analyzer::icmp {
 

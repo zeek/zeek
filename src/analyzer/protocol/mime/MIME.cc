@@ -7,7 +7,7 @@
 #include "zeek/digest.h"
 #include "zeek/file_analysis/Manager.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/mime/events.bif.h"
 
 // Here are a few things to do:
 //

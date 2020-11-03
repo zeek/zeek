@@ -14,7 +14,7 @@
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/iosource/BPF_Program.h"
 
-#include "pcap/pcap.bif.h"
+#include "iosource/pcap/pcap.bif.h"
 
 namespace zeek::iosource {
 

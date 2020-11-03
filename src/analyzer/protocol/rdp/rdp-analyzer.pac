@@ -2,7 +2,7 @@
 #include "zeek/Desc.h"
 #include "zeek/file_analysis/Manager.h"
 
-#include "types.bif.h"
+#include "analyzer/protocol/rdp/types.bif.h"
 %}
 
 refine flow RDP_Flow += {

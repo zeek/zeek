@@ -4,7 +4,7 @@
 
 #include "zeek/Reporter.h"
 
-#include "mqtt_pac.h"
+#include "analyzer/protocol/mqtt/mqtt_pac.h"
 
 namespace zeek::analyzer::mqtt {
 

@@ -2,7 +2,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-#include "binpac.h"
+#include <binpac.h>
 
 #include "zeek/iosource/Packet.h"
 #include "zeek/Event.h"

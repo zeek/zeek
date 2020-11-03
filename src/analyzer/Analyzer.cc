@@ -3,7 +3,7 @@
 #include "zeek/analyzer/Analyzer.h"
 
 #include <algorithm>
-#include "binpac.h"
+#include <binpac.h>
 
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"

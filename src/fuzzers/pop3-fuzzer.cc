@@ -1,4 +1,4 @@
-#include "binpac.h"
+#include <binpac.h>
 
 #include "zeek/RunState.h"
 #include "zeek/Conn.h"

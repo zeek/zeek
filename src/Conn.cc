@@ -4,6 +4,7 @@
 #include "zeek/Conn.h"
 
 #include <ctype.h>
+#include <binpac.h>
 
 #include "zeek/Desc.h"
 #include "zeek/RunState.h"
@@ -18,8 +19,6 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/iosource/IOSource.h"
-
-#include "binpac.h"
 
 namespace zeek {
 namespace detail {

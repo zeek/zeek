@@ -4,8 +4,6 @@
 
 #include <pcap.h>
 
-#include "zeek/NetVar.h"
-
 using namespace zeek::packet_analysis::IEEE802_11_Radio;
 
 IEEE802_11_RadioAnalyzer::IEEE802_11_RadioAnalyzer()

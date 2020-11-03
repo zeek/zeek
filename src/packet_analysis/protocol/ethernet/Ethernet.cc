@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/ethernet/Ethernet.h"
-#include "zeek/NetVar.h"
 #include "zeek/packet_analysis/Manager.h"
 
 using namespace zeek::packet_analysis::Ethernet;

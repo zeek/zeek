@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/null/Null.h"
-#include "zeek/NetVar.h"
 
 using namespace zeek::packet_analysis::Null;
 

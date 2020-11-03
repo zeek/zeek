@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/wrapper/Wrapper.h"
-#include "zeek/NetVar.h"
 
 using namespace zeek::packet_analysis::Wrapper;
 

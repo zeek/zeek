@@ -10,7 +10,6 @@
 #include <ctype.h>
 
 #include <string>
-using namespace std;
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
@@ -34,6 +33,8 @@ using namespace std;
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/input.h"
+
+using namespace std;
 
 bool zeek::detail::g_policy_debug = false;
 bool& g_policy_debug = zeek::detail::g_policy_debug;

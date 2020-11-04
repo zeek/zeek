@@ -1,3 +1,14 @@
+
+3.3.0-dev.501 | 2020-11-04 10:41:56 -0800
+
+  * GH-1252: rename files with colons for Windows compatibility (Jon Siwek, Corelight)
+
+    A short-term measure so that the Zeek source tree can simply exist on a
+    Windows filesystem.  For true support, the logic that decides/generates
+    the filename format will need to change.
+
+  * Use std::function instead of a function pointer in packet_analysis::Component (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.495 | 2020-11-02 12:03:52 -0700
 
   * GH-1215: Remove dispatch_map from packet analysis, replace with BIF methods for registering dispatches (Tim Wojtulewicz, Corelight)

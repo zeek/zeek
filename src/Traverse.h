@@ -24,6 +24,10 @@ public:
 	virtual TraversalCode PostStmt(const Stmt*) { return TC_CONTINUE; }
 
 	virtual TraversalCode PreExpr(const Expr*) { return TC_CONTINUE; }
+	virtual TraversalCode PreExpr(const Expr* e1, const Expr* e2)
+		{ return PreExpr(e1); }
+	virtual TraversalCode PreExpr(const Expr* e1, const Expr* e2,
+					const Expr* e3) { return PreExpr(e1); }
 	virtual TraversalCode PostExpr(const Expr*) { return TC_CONTINUE; }
 
 	virtual TraversalCode PreID(const ID*) { return TC_CONTINUE; }

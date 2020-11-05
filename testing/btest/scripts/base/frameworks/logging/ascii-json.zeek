@@ -1,4 +1,4 @@
-#
+# @TEST-REQUIRES: test "${ZEEK_XFORM}" != "1"
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 #

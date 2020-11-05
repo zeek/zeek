@@ -18,6 +18,9 @@ enum StmtTag {
 	STMT_INIT,
 	STMT_FALLTHROUGH,
 	STMT_WHILE,
+
+#include "script_opt/StmtOpt-Enums.h"
+
 	STMT_NULL
 #define NUM_STMTS (int(STMT_NULL) + 1)
 };

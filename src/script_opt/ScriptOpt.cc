@@ -1,9 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Options.h"
+#include "Reporter.h"
+#include "Desc.h"
+
 #include "script_opt/ScriptOpt.h"
 #include "script_opt/ProfileFunc.h"
 #include "script_opt/Inline.h"
+#include "script_opt/Reduce.h"
 
 
 namespace zeek::detail {
@@ -14,10 +18,11 @@ std::unordered_set<const Func*> non_recursive_funcs;
 
 #ifdef NOT_YET
 bool in_ZAM_file = false;
+#endif
 
 
-void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
-			IntrusivePtr<Stmt>& body, AnalyOpt& analysis_options)
+void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
+			StmtPtr& body, AnalyOpt& analysis_options)
 	{
 	if ( reporter->Errors() > 0 )
 		return;
@@ -26,10 +31,10 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 		return;
 
 	if ( analysis_options.only_func &&
-	     ! streq(f->Name(), analysis_options.only_func) )
+	     ! util::streq(f->Name(), analysis_options.only_func) )
 		return;
 
-	if ( analysis_options.only_func )
+	if ( analysis_options.only_func || util::streq(f->Name(), "file_new2"))
 		printf("Original: %s\n", obj_desc(body));
 
 	if ( pf->num_when_stmts > 0 || pf->num_lambdas > 0 )
@@ -37,6 +42,7 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 		if ( analysis_options.only_func )
 			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
 
+#ifdef NOT_YET
 		if ( analysis_options.report_uncompilable &&
 		     // We already reported skipping-due-to-when
 		     pf->num_lambdas > 0 )
@@ -46,16 +52,15 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 			printf("%s cannot be compiled due to use of lambda expressions (%s)\n",
 				f->Name(), d.Description());
 			}
+#endif	// NOT_YET
 		return;
 		}
 
-	auto scope = scope_ptr.get();
-
-	::Ref(scope);
+	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
 	auto rc = new Reducer(scope);
-	auto new_body = rc->Reduce(body.get());
+	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )
 		{
@@ -74,10 +79,8 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 	if ( analysis_options.only_func || analysis_options.dump_xform )
 		printf("Transformed: %s\n", obj_desc(new_body));
 
-	IntrusivePtr<Stmt> new_body_ptr = {AdoptRef{}, new_body};
-
-	f->ReplaceBody(body, new_body_ptr);
-	body = new_body_ptr;
+	f->ReplaceBody(body, new_body);
+	body = new_body;
 
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
@@ -85,6 +88,7 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 	if ( new_frame_size > f->FrameSize() )
 		f->SetFrameSize(new_frame_size);
 
+#ifdef NOT_YET
 	if ( analysis_options.optimize )
 		{
 		ProfileFunc pf_red;
@@ -110,13 +114,11 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 			return;
 			}
 
-		new_body_ptr = {AdoptRef{}, new_body};
-
 		if ( analysis_options.only_func || analysis_options.dump_xform )
 			printf("Optimized: %s\n", obj_desc(new_body));
 
-		f->ReplaceBody(body, new_body_ptr);
-		body = new_body_ptr;
+		f->ReplaceBody(body, new_body);
+		body = new_body;
 
 		// See comment below about leaking cb.
 		// delete cb;
@@ -149,13 +151,11 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 		if ( analysis_options.only_func || analysis_options.dump_code )
 			zam->Dump();
 
-		new_body_ptr = {AdoptRef{}, new_body};
-		f->ReplaceBody(body, new_body_ptr);
-		body = new_body_ptr;
+		f->ReplaceBody(body, new_body);
+		body = new_body;
 		}
 
 	delete ud;
-	delete rc;
 	delete pf_red;
 
 	// We can actually speed up our analysis by 10+% by skipping this.
@@ -163,9 +163,12 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 	// opt for expediency.
 	// delete cb;
 
+#endif	// NOT_YET
+
+	delete rc;
+
 	pop_scope();
 	}
-#endif	// NOT_YET
 
 
 FuncInfo::~FuncInfo()
@@ -266,39 +269,38 @@ void analyze_scripts(Options& opts)
 
 	if ( ! did_init )
 		{
+		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
+		check_env_opt("ZEEK_XFORM", analysis_options.activate);
+		check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
 #ifdef NOT_YET
-		check_env_opt("ZEEK_ANALY", analysis_options.activate);
 		check_env_opt("ZEEK_ZAM_PROFILE", analysis_options.report_profile);
 		check_env_opt("ZEEK_MIN_RD_TRACE", analysis_options.min_rd_trace);
 		check_env_opt("ZEEK_MAX_RD_TRACE", analysis_options.max_rd_trace);
 		check_env_opt("ZEEK_UD_DUMP", analysis_options.ud_dump);
-#endif	// NOT_YET
-		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
-#ifdef NOT_YET
 		check_env_opt("ZEEK_OPTIMIZE", analysis_options.optimize);
 		check_env_opt("ZEEK_COMPILE", analysis_options.compile);
 		check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
 		check_env_opt("ZEEK_DUMP_CODE", analysis_options.dump_code);
-		check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
+#endif	// NOT_YET
 
+#ifdef NOT_YET
 		if ( getenv("ZEEK_USAGE_ISSUES") )
 			analysis_options.usage_issues = 1;
 		if ( getenv("ZEEK_DEEP_USAGE_ISSUES") )
 			analysis_options.usage_issues = 2;
+#endif	// NOT_YET
 
 		if ( ! analysis_options.only_func )
 			analysis_options.only_func = getenv("ZEEK_ONLY");
 
 		if ( analysis_options.only_func )
 			analysis_options.activate = true;
-#endif	// NOT_YET
 
 		did_init = true;
 		}
 
-	if ( /*** Not Yet
-	     ! analysis_options.activate && ! analysis_options.usage_issues &&
-	     ***/
+	if ( ! analysis_options.activate &&
+	     /*** ! analysis_options.usage_issues && ***/
 	     ! analysis_options.inliner )
 		return;
 
@@ -381,15 +383,13 @@ void analyze_scripts(Options& opts)
 	if ( analysis_options.inliner )
 		inl = new Inliner(funcs, analysis_options.report_recursive);
 
-#ifdef NOT_YET
-	if ( ! analysis_options.activate && ! analysis_options.usage_issues )
+	if ( ! analysis_options.activate
+	     /*** && ! analysis_options.usage_issues ***/ )
 		{
 		// We only got here due to wanting to inline, but not
 		// wanting to otherwise analyze/transform.
-#endif	// NOT_YET
 		delete inl;
 		return;
-#ifdef NOTYET
 		}
 
 	for ( auto& f : funcs )
@@ -402,10 +402,11 @@ void analyze_scripts(Options& opts)
 			// We don't try to compile these.
 			continue;
 
+#ifdef NOT_YET
 		// Construct the associated compiled-ZAM filename.
 		auto l = f->body->GetLocationInfo();
 
-		if ( ! l->filename || streq(l->filename, "<stdin>") ||
+		if ( ! l->filename || util::streq(l->filename, "<stdin>") ||
 		     analysis_options.usage_issues > 0 )
 			{
 			// Don't bother looking for prior compilation,
@@ -458,14 +459,20 @@ void analyze_scripts(Options& opts)
 			     ! analysis_options.delete_save_files )
 				f->save_file = copy_string(fn);
 
-			optimize_func(f->func, f->pf, f->scope, f->body);
+			optimize_func(f->func, f->pf, f->scope, f->body,
+					analysis_options);
 			}
+#else	// ! NOT_YET
+		optimize_func(f->func, f->pf, f->scope, f->body,
+				analysis_options);
+#endif	// NOT_YET
 		}
 
+#ifdef NOT_YET
 	finalize_functions(funcs);
+#endif	// NOT_YET
 
 	delete inl;
-#endif	// NOT_YET
 	}
 
 #ifdef NOT_YET

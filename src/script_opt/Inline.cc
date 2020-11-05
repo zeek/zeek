@@ -158,7 +158,7 @@ void Inliner::InlineFunction(FuncInfo* f)
 		printf("%s body after inlining:\n%s\n", f->func->Name(), obj_desc(f->body));
 	}
 
-ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
+ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	{
 	auto f = c->Func();
 
@@ -183,7 +183,7 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 	if ( inline_ables.count(func_vf) == 0 )
 		return std::move(c);
 
-	IntrusivePtr<ListExpr> args = {NewRef{}, c->Args()};
+	ListExprPtr args = {NewRef{}, c->Args()};
 	auto body = func_vf->GetBodies()[0].stmts;
 	auto t = c->GetType();
 

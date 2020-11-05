@@ -14,13 +14,13 @@ namespace zeek::detail {
 // Flags controlling what sorts of analysis to do.
 
 struct AnalyOpt {
-#ifdef NOT_YET
 	// Whether to analyze scripts.
 	bool activate = false;
 
 	// If non-nil, then only analyze the given function/event/hook.
 	const char* only_func = nullptr;
 
+#ifdef NOT_YET
 	// If true, then generate a detailed dynamic execution profile
 	// for generate code.  A huge volume of output and slows down
 	// executation roughly 2x.
@@ -70,12 +70,14 @@ struct AnalyOpt {
 	// If true, dump out the ZAM code.  This is always done if
 	// only_func is set (and compile is set).
 	bool dump_code = false;
+#endif // NOT_YET
 
 	// If true, dump out transformed code: the results of reducing
 	// interpreted scripts, and, if optimize is set, of then optimizing
 	// them.  Always done if only_func is set.
 	bool dump_xform = false;
 
+#ifdef NOT_YET
 	// If true, do not load saved ZAM code.
 	bool no_load = false;
 

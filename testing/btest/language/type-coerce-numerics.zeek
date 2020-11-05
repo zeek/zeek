@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_XFORM}" != "1"
 # @TEST-EXEC: zeek -b first_set.zeek >first_set.out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff first_set.out
 

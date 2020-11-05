@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_XFORM}" != "1"
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Log Hooks
 # @TEST-EXEC: cp -r %DIR/logging-hooks-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make

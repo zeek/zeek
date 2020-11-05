@@ -322,8 +322,10 @@ set(MAIN_SRCS
     script_opt/Expr.cc
     script_opt/Inline.cc
     script_opt/ProfileFunc.cc
+    script_opt/Reduce.cc
     script_opt/ScriptOpt.cc
     script_opt/Stmt.cc
+    script_opt/TempVar.cc
 
     nb_dns.c
     digest.h

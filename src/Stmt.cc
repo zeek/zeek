@@ -31,6 +31,10 @@ const char* stmt_name(StmtTag t)
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
 		"<init>", "fallthrough", "while",
+
+		"catch-return",
+		"check-any-length",
+
 		"null",
 	};
 
@@ -91,6 +95,18 @@ const SwitchStmt* Stmt::AsSwitchStmt() const
 	{
 	CHECK_TAG(tag, STMT_SWITCH, "Stmt::AsSwitchStmt", stmt_name)
 	return (const SwitchStmt*) this;
+	}
+
+const ExprStmt* Stmt::AsExprStmt() const
+	{
+	CHECK_TAG(tag, STMT_EXPR, "Stmt::AsExprStmt", stmt_name)
+	return (const ExprStmt*) this;
+	}
+
+const ReturnStmt* Stmt::AsReturnStmt() const
+	{
+	CHECK_TAG(tag, STMT_RETURN, "Stmt::AsReturnStmt", stmt_name)
+	return (const ReturnStmt*) this;
 	}
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
@@ -356,6 +372,11 @@ ExprStmt::ExprStmt(StmtTag t, ExprPtr arg_e) : Stmt(t), e(std::move(arg_e))
 	}
 
 ExprStmt::~ExprStmt() = default;
+
+ExprPtr ExprStmt::StmtExprPtr() const
+	{
+	return e;
+	}
 
 ValPtr ExprStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
@@ -964,15 +985,35 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-AddStmt::AddStmt(ExprPtr arg_e) : ExprStmt(STMT_ADD, std::move(arg_e))
+
+AddDelStmt::AddDelStmt(StmtTag t, ExprPtr arg_e)
+: ExprStmt(t, std::move(arg_e))
+	{
+	}
+
+bool AddDelStmt::IsPure() const
+	{
+	return false;
+	}
+
+TraversalCode AddDelStmt::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	// Argument is stored in base class's "e" field.
+	tc = e->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+
+AddStmt::AddStmt(ExprPtr arg_e) : AddDelStmt(STMT_ADD, std::move(arg_e))
 	{
 	if ( ! e->CanAdd() )
 		Error("illegal add statement");
-	}
-
-bool AddStmt::IsPure() const
-	{
-	return false;
 	}
 
 ValPtr AddStmt::Exec(Frame* f, StmtFlowType& flow) const
@@ -984,20 +1025,7 @@ ValPtr AddStmt::Exec(Frame* f, StmtFlowType& flow) const
 	}
 
 
-TraversalCode AddStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	// Argument is stored in base class's "e" field.
-	tc = e->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-DelStmt::DelStmt(ExprPtr arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
+DelStmt::DelStmt(ExprPtr arg_e) : AddDelStmt(STMT_DELETE, std::move(arg_e))
 	{
 	if ( e->IsError() )
 		return;
@@ -1006,30 +1034,12 @@ DelStmt::DelStmt(ExprPtr arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
 		Error("illegal delete statement");
 	}
 
-bool DelStmt::IsPure() const
-	{
-	return false;
-	}
-
 ValPtr DelStmt::Exec(Frame* f, StmtFlowType& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 	e->Delete(f);
 	return nullptr;
-	}
-
-TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	// Argument is stored in base class's "e" field.
-	tc = e->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
 	}
 
 EventStmt::EventStmt(EventExprPtr arg_e)
@@ -1063,10 +1073,10 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhileStmt::WhileStmt(ExprPtr arg_loop_condition,
-                     StmtPtr arg_body)
+WhileStmt::WhileStmt(ExprPtr arg_loop_condition, StmtPtr arg_body)
 	: Stmt(STMT_WHILE),
-	  loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
+	  loop_condition(std::move(arg_loop_condition)),
+	  body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->GetType()->Tag()) )
@@ -1122,6 +1132,9 @@ ValPtr WhileStmt::Exec(Frame* f, StmtFlowType& flow) const
 
 	for ( ; ; )
 		{
+		if ( loop_cond_pred_stmt )
+			loop_cond_pred_stmt->Exec(f, flow);
+
 		auto cond = loop_condition->Eval(f);
 
 		if ( ! cond )
@@ -1571,12 +1584,15 @@ void ReturnStmt::StmtDescribe(ODesc* d) const
 
 StmtList::StmtList() : Stmt(STMT_LIST)
 	{
+	stmts = new StmtPList;
 	}
 
 StmtList::~StmtList()
 	{
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		Unref(stmt);
+
+	delete stmts;
 	}
 
 ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) const
@@ -1584,7 +1600,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		{
 		f->SetNextStmt(stmt);
 
@@ -1607,7 +1623,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) const
 
 bool StmtList::IsPure() const
 	{
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		if ( ! stmt->IsPure() )
 			return false;
 	return true;
@@ -1618,10 +1634,10 @@ void StmtList::StmtDescribe(ODesc* d) const
 	if ( ! d->IsReadable() )
 		{
 		AddTag(d);
-		d->AddCount(stmts.length());
+		d->AddCount(stmts->length());
 		}
 
-	if ( stmts.length() == 0 )
+	if ( stmts->length() == 0 )
 		DescribeDone(d);
 
 	else
@@ -1632,7 +1648,7 @@ void StmtList::StmtDescribe(ODesc* d) const
 			d->NL();
 			}
 
-		for ( const auto& stmt : stmts )
+		for ( const auto& stmt : Stmts() )
 			{
 			stmt->Describe(d);
 			d->NL();
@@ -1648,7 +1664,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		{
 		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -1656,64 +1672,6 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-ValPtr EventBodyList::Exec(Frame* f, StmtFlowType& flow) const
-	{
-	RegisterAccess();
-	flow = FLOW_NEXT;
-
-	for ( const auto& stmt : stmts )
-		{
-		f->SetNextStmt(stmt);
-
-		// Ignore the return value, since there shouldn't be
-		// any; and ignore the flow, since we still execute
-		// all of the event bodies even if one of them does
-		// a FLOW_RETURN.
-		if ( ! pre_execute_stmt(stmt, f) )
-			{ // ### Abort or something
-			}
-
-		auto result = stmt->Exec(f, flow);
-
-		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
-			{ // ### Abort or something
-			}
-		}
-
-	// Simulate a return so the hooks operate properly.
-	StmtFlowType ft = FLOW_RETURN;
-	(void) post_execute_stmt(f->GetNextStmt(), f, nullptr, &ft);
-
-	return nullptr;
-	}
-
-void EventBodyList::StmtDescribe(ODesc* d) const
-	{
-	if ( d->IsReadable() && stmts.length() > 0 )
-		{
-		for ( const auto& stmt : stmts )
-			{
-			if ( ! d->IsBinary() )
-				{
-				d->Add("{");
-				d->PushIndent();
-				stmt->AccessStats(d);
-				}
-
-			stmt->Describe(d);
-
-			if ( ! d->IsBinary() )
-				{
-				d->Add("}");
-				d->PopIndent();
-				}
-			}
-		}
-
-	else
-		StmtList::StmtDescribe(d);
 	}
 
 InitStmt::InitStmt(std::vector<IDPtr> arg_inits) : Stmt(STMT_INIT)

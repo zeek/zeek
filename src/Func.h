@@ -208,6 +208,8 @@ public:
 	             const std::vector<IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
+	void ReplaceBody(const StmtPtr& old_body, StmtPtr new_body);
+
 	StmtPtr CurrentBody() const		{ return current_body; }
 
 	/**

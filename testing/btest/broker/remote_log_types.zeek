@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_XFORM}" != "1"
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"

@@ -1,4 +1,5 @@
 #
+# @TEST-REQUIRES: test "${ZEEK_XFORM}" != "1"
 # @TEST-REQUIRES: which sqlite3
 # @TEST-REQUIRES: has-writer Zeek::SQLiteWriter
 # @TEST-GROUP: sqlite

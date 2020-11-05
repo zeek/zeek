@@ -1,4 +1,5 @@
 #
+# @TEST-REQUIRES: test "${ZEEK_XFORM}" != "1"
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: mv ssh.log.gzip ssh.log.gz
 # @TEST-EXEC: gunzip ssh.log.gz

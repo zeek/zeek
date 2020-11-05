@@ -3782,13 +3782,27 @@ type dns_nsec3_rr: record {
 	query: string;			##< Query.
 	answer_type: count;		##< Ans type.
 	nsec_flags: count;		##< flags field.
-	nsec_hash_algo: count;	##< Hash algorithm.
+	nsec_hash_algo: count;		##< Hash algorithm.
 	nsec_iter: count;		##< Iterations.
-	nsec_salt_len: count; 	##< Salt length.
+	nsec_salt_len: count; 		##< Salt length.
 	nsec_salt: string;		##< Salt value
 	nsec_hlen: count;		##< Hash length.
 	nsec_hash: string;		##< Hash value.
-	bitmaps: string_vec;	##< Type Bit Maps.
+	bitmaps: string_vec;		##< Type Bit Maps.
+	is_query: count;		##< The RR is a query/Response.
+};
+
+## A DNSSEC NSEC3PARAM record.
+##
+## .. zeek:see:: dns_NSEC3PARAM
+type dns_nsec3param_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	nsec_flags: count;		##< flags field.
+	nsec_hash_algo: count;		##< Hash algorithm.
+	nsec_iter: count;		##< Iterations.
+	nsec_salt_len: count; 		##< Salt length.
+	nsec_salt: string;		##< Salt value
 	is_query: count;		##< The RR is a query/Response.
 };
 
@@ -3802,6 +3816,35 @@ type dns_ds_rr: record {
 	algorithm: count;	##< Algorithm for Public Key.
 	digest_type: count;	##< Digest Type.
 	digest_val: string;	##< Digest Value.
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A Private RR type BINDS record.
+##
+## .. zeek:see:: dns_BINDS
+type dns_binds_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	algorithm: count;	##< Algorithm for Public Key.
+	key_id: count;		##< key tag.
+	removal_flag: count;	##< rm flag.
+	complte_flag: string;	##< complete flag.
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A Private RR type LOC record.
+##
+## .. zeek:see:: dns_LOC
+type dns_loc_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	version: count;		##< version number of the representation.
+	size: count;		##< Diameter of a sphere enclosing the entity.
+	horiz_pre: count;	##< The horizontal precision of the data, in centimeters.
+	vert_pre: count;	##< The vertical precision of the data, in centimeters.
+	latitude: count;	##< The latitude of the center of the sphere.
+	longitude: count;	##< The longitude of the center of the sphere.
+	altitude: count;	##< The altitude of the center of the sphere. 
 	is_query: count;	##< The RR is a query/Response.
 };
 

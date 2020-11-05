@@ -45,7 +45,8 @@ enum RR_Type {
 	TYPE_SIG = 24,		///< digital signature (RFC 2535)
 	TYPE_KEY = 25,		///< public key (RFC 2535)
 	TYPE_PX = 26,		///< pointer to X.400/RFC822 mapping info (RFC 1664)
-	TYPE_AAAA = 28,		///< IPv6 address (RFC 1886
+	TYPE_AAAA = 28,		///< IPv6 address (RFC 1886)
+	TYPE_LOC = 29,		///< Location information about hosts (RFC 1876)
 	TYPE_NBS = 32,		///< Netbios name (RFC 1002)
 	TYPE_SRV = 33,		///< service location (RFC 2052)
 	TYPE_NAPTR = 35,	///< naming authority pointer (RFC 2168)
@@ -54,6 +55,7 @@ enum RR_Type {
 	TYPE_A6 = 38,		///< IPv6 address with indirection (RFC 2874)
 	TYPE_DNAME = 39,	///< Non-terminal DNS name redirection (RFC 2672)
 	TYPE_EDNS = 41,		///< OPT pseudo-RR (RFC 2671)
+	TYPE_SSHFP = 44,	///< SSH Public Key Fingerprint (RFC 4255)
 	TYPE_TKEY = 249,	///< Transaction Key (RFC 2930)
 	TYPE_TSIG = 250,	///< Transaction Signature (RFC 2845)
 	TYPE_CAA = 257,		///< Certification Authority Authorization (RFC 6844)
@@ -63,6 +65,7 @@ enum RR_Type {
 	TYPE_DNSKEY = 48,	///< DNS Key record (RFC 4034)
 	TYPE_DS = 43,		///< Delegation signer (RFC 4034)
 	TYPE_NSEC3 = 50,
+	TYPE_NSEC3PARAM = 51,	///< Contains the NSEC3 parameters (RFC 5155)
 	// Obsoleted
 	TYPE_SPF = 99,          ///< Alternative: storing SPF data in TXT records, using the same format (RFC 4408). Support for it was discontinued in RFC 7208
 	// The following are only valid in queries.
@@ -70,6 +73,8 @@ enum RR_Type {
 	TYPE_ALL = 255,
 	TYPE_WINS = 65281,	///< Microsoft's WINS RR
 	TYPE_WINSR = 65282,	///< Microsoft's WINS-R RR
+	// Private use RR TYPE range: 65280 - 65534
+	TYPE_BINDS = 65534,  ///< Bind9's Private Type Rec for signaling state of signing process
 };
 
 #define DNS_CLASS_IN 1
@@ -179,10 +184,10 @@ struct TSIG_DATA {
 };
 
 struct RRSIG_DATA {
-	unsigned short type_covered;	// 16 : ExtractShort(data, len)
+	unsigned short type_covered;		// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short labels;			// 8
-	uint32_t orig_ttl;				// 32
+	uint32_t orig_ttl;			// 32
 	unsigned long sig_exp;			// 32
 	unsigned long sig_incep;		// 32
 	unsigned short key_tag;			//16
@@ -208,11 +213,36 @@ struct NSEC3_DATA {
 	VectorValPtr bitmaps;
 };
 
+struct NSEC3PARAM_DATA {
+	unsigned short nsec_flags;		// 8
+	unsigned short nsec_hash_algo;		// 8
+	unsigned short nsec_iter;		// 16 : ExtractShort(data, len)
+	unsigned short nsec_salt_len;		// 8
+	String* nsec_salt;			// Variable length salt
+};
+
 struct DS_DATA {
 	unsigned short key_tag;			// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short digest_type;		// 8
 	String* digest_val;			// Variable lenght Digest of DNSKEY RR
+};
+
+struct BINDS_DATA {
+	unsigned short algorithm;		// 8 
+	unsigned short key_id;			// 16 : ExtractShort(data, len)
+	unsigned short removal_flag;		// 8
+	String* complete_flag;			// 8
+};
+
+struct LOC_DATA {
+	unsigned short version;		// 8
+	unsigned short size;		// 8
+	unsigned short horiz_pre;	// 8
+	unsigned short vert_pre;	// 8
+	unsigned long latitude;		// 32
+	unsigned long longitude;	// 32
+	unsigned long altitude;		// 32
 };
 
 class DNS_MsgInfo {
@@ -229,7 +259,10 @@ public:
 	RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
 	RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
 	RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
+	RecordValPtr BuildNSEC3PARAM_Val(struct NSEC3PARAM_DATA*);
 	RecordValPtr BuildDS_Val(struct DS_DATA*);
+	RecordValPtr BuildBINDS_Val(struct BINDS_DATA*);
+	RecordValPtr BuildLOC_Val(struct LOC_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -349,7 +382,19 @@ protected:
 	bool ParseRR_NSEC3(detail::DNS_MsgInfo* msg,
 	                   const u_char*& data, int& len, int rdlength,
 	                   const u_char* msg_start);
+	bool ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
+	                   const u_char*& data, int& len, int rdlength,
+	                   const u_char* msg_start);
 	bool ParseRR_DS(detail::DNS_MsgInfo* msg,
+	                const u_char*& data, int& len, int rdlength,
+	                const u_char* msg_start);
+	bool ParseRR_BINDS(detail::DNS_MsgInfo* msg,
+	                const u_char*& data, int& len, int rdlength,
+	                const u_char* msg_start);
+	bool ParseRR_SSHFP(detail::DNS_MsgInfo* msg,
+	                const u_char*& data, int& len, int rdlength,
+	                const u_char* msg_start);
+	bool ParseRR_LOC(detail::DNS_MsgInfo* msg,
 	                const u_char*& data, int& len, int rdlength,
 	                const u_char* msg_start);
 	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,

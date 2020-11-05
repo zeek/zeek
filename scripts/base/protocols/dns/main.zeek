@@ -577,10 +577,34 @@ event dns_NSEC3(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_r
 	hook DNS::do_reply(c, msg, ans, "NSEC3");
 	}
 
+event dns_NSEC3PARAM(c: connection, msg: dns_msg, ans: dns_answer, nsec3param: dns_nsec3param_rr) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, "NSEC3PARAM");
+	}
+
 event dns_DS(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr) &priority=5
 	{
 	local s: string;
 	s = fmt("DS %s %s", ds$algorithm, ds$digest_type);
+	hook DNS::do_reply(c, msg, ans, s);
+	}
+
+event dns_BINDS(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_rr) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, "BIND9 signing signal");
+	}
+
+event dns_SSHFP(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string) &priority=5
+	{
+	local s: string;
+	s = fmt("SSHFP: %s", bytestring_to_hexstr(fingerprint));
+	hook DNS::do_reply(c, msg, ans, s);
+	}
+
+event dns_LOC(c: connection, msg: dns_msg, ans: dns_answer, loc: dns_loc_rr) &priority=5
+	{
+	local s: string;
+	s = fmt("LOC:  %d %d %d", loc$size, loc$horiz_pre, loc$vert_pre);
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 

@@ -21,7 +21,7 @@ flow AYIYA_Flow
 
 		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
-			zeek::reporter->Weird(c, "tunnel_depth");
+			connection()->zeek_analyzer()->Weird("tunnel_depth");
 			return false;
 			}
 
@@ -34,7 +34,7 @@ flow AYIYA_Flow
 		if ( ${pdu.next_header} != IPPROTO_IPV6 &&
 		     ${pdu.next_header} != IPPROTO_IPV4 )
 			{
-			zeek::reporter->Weird(c, "ayiya_tunnel_non_ip");
+			connection()->zeek_analyzer()->Weird("ayiya_tunnel_non_ip");
 			return false;
 			}
 

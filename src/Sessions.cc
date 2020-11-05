@@ -681,7 +681,7 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-void NetSessions::Weird(const char* name, const Packet* pkt, const char* addl)
+void NetSessions::Weird(const char* name, const Packet* pkt, const char* addl, const char* source)
 	{
 	const char* weird_name = name;
 
@@ -694,12 +694,12 @@ void NetSessions::Weird(const char* name, const Packet* pkt, const char* addl)
 
 		if ( pkt->ip_hdr )
 			{
-			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl);
+			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl, source);
 			return;
 			}
 		}
 
-	reporter->Weird(weird_name, addl);
+	reporter->Weird(weird_name, addl, source);
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip, const char* addl)

@@ -15,7 +15,7 @@ bool IEEE802_11_RadioAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Pa
 	{
 	if ( 3 >= len )
 		{
-		packet->Weird("truncated_radiotap_header");
+		Weird("truncated_radiotap_header", packet);
 		return false;
 		}
 
@@ -24,7 +24,7 @@ bool IEEE802_11_RadioAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Pa
 
 	if ( rtheader_len >= len )
 		{
-		packet->Weird("truncated_radiotap_header");
+		Weird("truncated_radiotap_header", packet);
 		return false;
 		}
 

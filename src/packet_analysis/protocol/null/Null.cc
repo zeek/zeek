@@ -13,7 +13,7 @@ bool NullAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 	{
 	if ( 4 >= len )
 		{
-		packet->Weird("null_analyzer_failed");
+		Weird("null_analyzer_failed", packet);
 		return false;
 		}
 

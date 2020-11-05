@@ -119,6 +119,8 @@ void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
 void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bittorrent_peer_weird )
+
+		// TODO: why does bittorrent have a different set of weirds?
 		EnqueueConnEvent(bittorrent_peer_weird,
 		                 ConnVal(),
 		                 val_mgr->Bool(orig),

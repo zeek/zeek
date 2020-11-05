@@ -33,7 +33,7 @@ refine connection IMAP_Conn += {
 		if ( is_orig && commands == "starttls" )
 			{
 			if ( !client_starttls_id.empty() )
-				zeek::reporter->Weird(zeek_analyzer()->Conn(), "IMAP: client sent duplicate StartTLS");
+				zeek_analyzer()->Weird("IMAP: client sent duplicate StartTLS");
 
 			client_starttls_id = tags;
 			}
@@ -48,7 +48,7 @@ refine connection IMAP_Conn += {
 					zeek::BifEvent::enqueue_imap_starttls(zeek_analyzer(), zeek_analyzer()->Conn());
 				}
 			else
-				zeek::reporter->Weird(zeek_analyzer()->Conn(), "IMAP: server refused StartTLS");
+				zeek_analyzer()->Weird("IMAP: server refused StartTLS");
 			}
 
 		return true;

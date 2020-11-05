@@ -14,7 +14,7 @@ bool LinuxSLLAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	auto len_sll_hdr = sizeof(SLLHeader);
 	if ( len_sll_hdr >= len )
 		{
-		packet->Weird("truncated_Linux_SLL_header");
+		Weird("truncated_Linux_SLL_header", packet);
 		return false;
 		}
 

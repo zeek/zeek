@@ -124,9 +124,6 @@ public:
 	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
 
-	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
-	void Weird(const char* name);
-
 	/**
 	 * Maximal length of a layer 2 address.
 	 */

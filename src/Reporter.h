@@ -95,12 +95,15 @@ public:
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
-	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
-	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
-	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
+	void Weird(const char* name, const char* addl = "", const char* source = "");	// Raises net_weird().
+	void Weird(file_analysis::File* f, const char* name,
+	           const char* addl = "", const char* source = "");	// Raises file_weird().
+	void Weird(Connection* conn, const char* name,
+	           const char* addl = "", const char* source = "");	// Raises conn_weird().
 	void Weird(RecordValPtr conn_id, StringValPtr uid,
-	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
-	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
+	           const char* name, const char* addl = "", const char* source = "");	// Raises expired_conn_weird().
+	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name,
+	           const char* addl = "", const char* source = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.

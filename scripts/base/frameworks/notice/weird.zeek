@@ -54,6 +54,10 @@ export {
 		## trouble to help identify which node is having trouble.
 		peer:   string  &log &optional &default=peer_description;
 
+		## The source of the weird. When reported by an analyzer, this
+		## should be the name of the analyzer.
+		source: string  &log &optional;
+
 		## This field is to be provided when a weird is generated for
 		## the purpose of deduplicating weirds. The identifier string
 		## should be unique for a single instance of the weird. This field
@@ -257,7 +261,7 @@ export {
 
 	## This table is used to track identifier and name pairs that should be
 	## temporarily ignored because the problem has already been reported.
-	## This helps reduce the volume of high volume weirds by only allowing 
+	## This helps reduce the volume of high volume weirds by only allowing
 	## a unique weird every ``create_expire`` interval.
 	global weird_ignore: set[string, string] &create_expire=10min &redef;
 
@@ -400,16 +404,19 @@ function weird(w: Weird::Info)
 	}
 
 # The following events come from core generated weirds typically.
-event conn_weird(name: string, c: connection, addl: string)
+event conn_weird(name: string, c: connection, addl: string, source: string)
 	{
 	local i = Info($ts=network_time(), $name=name, $conn=c, $identifier=id_string(c$id));
 	if ( addl != "" )
 		i$addl = addl;
 
+	if ( source != "" )
+		i$source = source;
+
 	weird(i);
 	}
 
-event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string)
+event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string, source: string)
 	{
 	local i = Info($ts=network_time(), $name=name, $uid=uid, $id=id,
 	               $identifier=id_string(id));
@@ -417,10 +424,13 @@ event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string)
 	if ( addl != "" )
 		i$addl = addl;
 
+	if ( source != "" )
+		i$source = source;
+
 	weird(i);
 	}
 
-event flow_weird(name: string, src: addr, dst: addr, addl: string)
+event flow_weird(name: string, src: addr, dst: addr, addl: string, source: string)
 	{
 	# We add the source and destination as port 0/unknown because that is
 	# what fits best here.
@@ -432,25 +442,34 @@ event flow_weird(name: string, src: addr, dst: addr, addl: string)
 	if ( addl != "" )
 		i$addl = addl;
 
+	if ( source != "" )
+		i$source = source;
+
 	weird(i);
 	}
 
-event net_weird(name: string, addl: string)
+event net_weird(name: string, addl: string, source: string)
 	{
 	local i = Info($ts=network_time(), $name=name);
 
 	if ( addl != "" )
 		i$addl = addl;
 
+	if ( source != "" )
+		i$source = source;
+
 	weird(i);
 	}
 
-event file_weird(name: string, f: fa_file, addl: string)
+event file_weird(name: string, f: fa_file, addl: string, source: string)
 	{
 	local i = Info($ts=network_time(), $name=name, $addl=f$id);
 
 	if ( addl != "" )
 		i$addl += fmt(": %s", addl);
+
+	if ( source != "" )
+		i$source = source;
 
 	weird(i);
 	}

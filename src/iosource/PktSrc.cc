@@ -135,7 +135,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p, nullptr);
+	sessions->Weird(msg.c_str(), p);
 	}
 
 void PktSrc::InternalError(const std::string& msg)

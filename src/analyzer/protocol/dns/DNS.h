@@ -70,6 +70,8 @@ enum RR_Type {
 	TYPE_ALL = 255,
 	TYPE_WINS = 65281,	///< Microsoft's WINS RR
 	TYPE_WINSR = 65282,	///< Microsoft's WINS-R RR
+	// Private use RR TYPE range: 65280 - 65534
+	TYPE_BINDS = 65534,  ///< Bind9's Private Type Rec for signaling state of signing process
 };
 
 #define DNS_CLASS_IN 1
@@ -215,6 +217,13 @@ struct DS_DATA {
 	String* digest_val;			// Variable lenght Digest of DNSKEY RR
 };
 
+struct BINDS_DATA {
+	unsigned short algorithm;		// 8 
+	unsigned short key_id;			// 16 : ExtractShort(data, len)
+	unsigned short removal_flag;	// 8
+	String* complete_flag;			// 8
+};
+
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
@@ -230,6 +239,7 @@ public:
 	RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
 	RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
 	RecordValPtr BuildDS_Val(struct DS_DATA*);
+	RecordValPtr BuildBINDS_Val(struct BINDS_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -352,6 +362,9 @@ protected:
 	bool ParseRR_DS(detail::DNS_MsgInfo* msg,
 	                const u_char*& data, int& len, int rdlength,
 	                const u_char* msg_start);
+	bool ParseRR_BINDS(detail::DNS_MsgInfo* msg,
+	                const u_char*& data, int& len, int rdlength,
+	                const u_char* msg_start);
 	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
 	                            const u_char*& data, int& len,
 	                            String* question_name,
@@ -467,6 +480,7 @@ constexpr auto TYPE_RRSIG [[deprecated("Remove in v4.1. Use zeek::analyzer::dns:
 constexpr auto TYPE_NSEC [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC.")]] = zeek::analyzer::dns::detail::TYPE_NSEC;
 constexpr auto TYPE_DNSKEY [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_DNSKEY.")]] = zeek::analyzer::dns::detail::TYPE_DNSKEY;
 constexpr auto TYPE_DS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_DS.")]] = zeek::analyzer::dns::detail::TYPE_DS;
+constexpr auto TYPE_BINDS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_BINDS.")]] = zeek::analyzer::dns::detail::TYPE_BINDS;
 constexpr auto TYPE_NSEC3 [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3;
 constexpr auto TYPE_SPF [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_SPF.")]] = zeek::analyzer::dns::detail::TYPE_SPF;
 constexpr auto TYPE_AXFR [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_AXFR.")]] = zeek::analyzer::dns::detail::TYPE_AXFR;
@@ -532,6 +546,7 @@ using RRSIG_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::
 using DNSKEY_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNSKEY_DATA.")]] = zeek::analyzer::dns::detail::DNSKEY_DATA;
 using NSEC3_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::NSEC3_DATA.")]] = zeek::analyzer::dns::detail::NSEC3_DATA;
 using DS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DS_DATA.")]] = zeek::analyzer::dns::detail::DS_DATA;
+using BINDS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::BINDS_DATA.")]] = zeek::analyzer::dns::detail::BINDS_DATA;
 using DNS_MsgInfo [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNS_MsgInfo.")]] = zeek::analyzer::dns::detail::DNS_MsgInfo;
 
 using TCP_DNS_state [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TCP_DNS_state.")]] = zeek::analyzer::dns::detail::TCP_DNS_state;

@@ -50,6 +50,7 @@ void zeek_legacy_netvar_init()
 	::dns_dnskey_rr = id::find_type("dns_dnskey_rr")->AsRecordType();
 	::dns_nsec3_rr = id::find_type("dns_nsec3_rr")->AsRecordType();
 	::dns_ds_rr = id::find_type("dns_ds_rr")->AsRecordType();
+	::dns_binds_rr = id::find_type("dns_binds_rr")->AsRecordType();
 	::rotate_info = id::find_type("rotate_info")->AsRecordType();
 	::irc_join_list = id::find_type("irc_join_list")->AsTableType();
 	::irc_join_info = id::find_type("irc_join_info")->AsRecordType();

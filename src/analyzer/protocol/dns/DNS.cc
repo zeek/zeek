@@ -342,7 +342,11 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 		case detail::TYPE_DS:
 			status = ParseRR_DS(msg, data, len, rdlength, msg_start);
 			break;
-
+		
+		case detail::TYPE_BINDS:
+			status = ParseRR_BINDS(msg, data, len, rdlength, msg_start);
+			break;
+		
 		default:
 
 			if ( dns_unknown_reply && ! msg->skip_event )
@@ -1333,6 +1337,50 @@ bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg,
 	return true;
 	}
 
+bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg,
+                                 const u_char*& data, int& len, int rdlength,
+                                 const u_char* msg_start)
+	{
+	if ( ! dns_BINDS || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 5 )
+		return false;
+
+	uint32_t algo_keyid_rflag = ExtractLong(data, len);
+
+	unsigned int algo = (algo_keyid_rflag >> 24) & 0xff;
+	unsigned int keyid1 = (algo_keyid_rflag >> 16) & 0xff;
+	unsigned int keyid2 = (algo_keyid_rflag >> 8) & 0xff;
+	unsigned int rmflag = algo_keyid_rflag & 0xff;
+
+	unsigned int keyid = (keyid1 << 8) | keyid2;
+
+	String* completeflag = ExtractStream(data, len, rdlength - 4);
+
+	if ( dns_BINDS )
+		{
+		detail::BINDS_DATA binds;
+		binds.algorithm = algo;
+		binds.key_id = keyid;
+		binds.removal_flag = rmflag;
+		binds.complete_flag = completeflag;
+
+		analyzer->EnqueueConnEvent(dns_BINDS,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildBINDS_Val(&binds)
+		);
+		}
+
+	return true;
+	}
+
 bool DNS_Interpreter::ParseRR_A(detail::DNS_MsgInfo* msg,
                                 const u_char*& data, int& len, int rdlength)
 	{
@@ -1791,6 +1839,22 @@ RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	r->Assign(3, val_mgr->Count(ds->algorithm));
 	r->Assign(4, val_mgr->Count(ds->digest_type));
 	r->Assign(5, make_intrusive<StringVal>(ds->digest_val));
+	r->Assign(6, val_mgr->Count(is_query));
+
+	return r;
+	}
+
+RecordValPtr DNS_MsgInfo::BuildBINDS_Val(BINDS_DATA* binds)
+	{
+	static auto dns_binds_rr = id::find_type<RecordType>("dns_binds_rr");
+	auto r = make_intrusive<RecordVal>(dns_binds_rr);
+
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(binds->algorithm));
+	r->Assign(3, val_mgr->Count(binds->key_id));
+	r->Assign(4, val_mgr->Count(binds->removal_flag));
+	r->Assign(5, make_intrusive<StringVal>(binds->complete_flag));
 	r->Assign(6, val_mgr->Count(is_query));
 
 	return r;

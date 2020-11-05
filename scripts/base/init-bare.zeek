@@ -3805,6 +3805,19 @@ type dns_ds_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+## A Private RR type BINDS record.
+##
+## .. zeek:see:: dns_BINDS
+type dns_binds_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	algorithm: count;	##< Algorithm for Public Key.
+	key_id: count;		##< key tag.
+	removal_flag: count;	##< rm flag.
+	complte_flag: string;	##< complete flag.
+	is_query: count;	##< The RR is a query/Response.
+};
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answerr

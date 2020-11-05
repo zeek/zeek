@@ -584,6 +584,11 @@ event dns_DS(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr) &prior
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 
+event dns_BINDS(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_rr) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, "BIND9 signing signal");
+	}
+
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
 	if ( c?$dns )

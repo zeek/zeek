@@ -1983,6 +1983,13 @@ function lookup_ID%(id: string%) : any
 	if ( ! i )
 		return zeek::make_intrusive<zeek::StringVal>("<unknown id>");
 
+	if ( i->IsEnumConst() )
+		{
+		auto et = i->GetType()->AsEnumType();
+		auto idx = et->Lookup(detail::GLOBAL_MODULE_NAME, i->Name());
+		return et->GetEnumVal(idx);
+		}
+
 	if ( ! i->GetVal() )
 		return zeek::make_intrusive<zeek::StringVal>("<no ID value>");
 

@@ -73,10 +73,24 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora33_task:
+  container:
+    # Fedora 33 EOL: Around November 2022
+    dockerfile: ci/fedora-33/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora32_task:
   container:
     # Fedora 32 EOL: Around May 2021
     dockerfile: ci/fedora-32/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+fedora31_task:
+  container:
+    # Fedora 31 EOL: Nov 24 2021
+    dockerfile: ci/fedora-31/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -113,6 +127,13 @@ debian9_32bit_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+ubuntu20_task:
+  container:
+    # Ubuntu 20.04 EOL: April 2025
+    dockerfile: ci/ubuntu-20.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 ubuntu18_task:
   container:
     # Ubuntu 18.04 EOL: April 2023
@@ -144,10 +165,20 @@ macos_task:
     CIRRUS_WORKING_DIR: /tmp/zeek
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
-freebsd_task:
+freebsd12_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-1
+    cpu: 8
+    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+    memory: 8GB
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+
+freebsd11_task:
+  freebsd_instance:
+    # FreeBSD 11 EOL: September 30, 2021
+    image_family: freebsd-11-4
     cpu: 8
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB

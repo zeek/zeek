@@ -1,5 +1,7 @@
 FROM ubuntu:18.04
 
+ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
+
 RUN apt-get update && apt-get -y install \
     git \
     cmake \

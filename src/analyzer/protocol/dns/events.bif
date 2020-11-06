@@ -694,6 +694,19 @@ event dns_DS%(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr%);
 ## binds: The parsed RDATA of BIND-Signeing state record.
 event dns_BINDS%(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_rr%);
 
+## Generated for DNS replies of type *BINDS*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## binds: The parsed RDATA of BIND-Signeing state record.
+event dns_SSHFP%(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string%);
+
 ## Generated at the end of processing a DNS packet. This event is the last
 ## ``dns_*`` event that will be raised for a DNS query/reply and signals that
 ## all resource records have been passed on.

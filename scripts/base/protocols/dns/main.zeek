@@ -594,6 +594,13 @@ event dns_BINDS(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_r
 	hook DNS::do_reply(c, msg, ans, "BIND9 signing signal");
 	}
 
+event dns_SSHFP(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string) &priority=5
+	{
+	local s: string;
+	s = fmt("SSHFP :  %s", fingerprint);
+	hook DNS::do_reply(c, msg, ans, s);
+	}
+
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
 	if ( c?$dns )

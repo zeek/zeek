@@ -350,6 +350,10 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 		case detail::TYPE_BINDS:
 			status = ParseRR_BINDS(msg, data, len, rdlength, msg_start);
 			break;
+
+		case detail::TYPE_SSHFP:
+			status = ParseRR_SSHFP(msg, data, len, rdlength, msg_start);
+			break;
 		
 		default:
 
@@ -1313,11 +1317,11 @@ bool DNS_Interpreter::ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
 
 	if ( static_cast<int>(salt_len) != 0)
 		{
-		auto salt_val = ExtractStream(data, len, static_cast<int>(salt_len));
+		auto salt_value = ExtractStream(data, len, static_cast<int>(salt_len));
 		}
 	else
 		{
-		auto salt_val = "";
+		auto salt_value = "";
 		}
 
 	if ( dns_NSEC3PARAM )
@@ -1327,7 +1331,7 @@ bool DNS_Interpreter::ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
 		nsec3param.nsec_hash_algo = hash_algo;
 		nsec3param.nsec_iter = iter;
 		nsec3param.nsec_salt_len = salt_len;
-		nsec3param.nsec_salt = salt_val;
+		nsec3param.nsec_salt = salt_value;
 
 		analyzer->EnqueueConnEvent(dns_NSEC3PARAM,
 			analyzer->ConnVal(),
@@ -1436,6 +1440,41 @@ bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg,
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			msg->BuildBINDS_Val(&binds)
+		);
+		}
+
+	return true;
+	}
+
+bool DNS_Interpreter::ParseRR_SSHFP(detail::DNS_MsgInfo* msg,
+                                 const u_char*& data, int& len, int rdlength,
+                                 const u_char* msg_start)
+	{
+	if ( ! dns_SSHFP || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 2 )
+		return false;
+
+	uint32_t algo_fptype = ExtractShort(data, len);
+	unsigned int algo = (algo_fptype >> 8) & 0xff;
+	unsigned int fptype = algo_fptype & 0xff;
+
+	String* fingerprint = ExtractStream(data, len, rdlength - 2);
+
+	if ( dns_SSHFP )
+		{
+		analyzer->EnqueueConnEvent(dns_SSHFP,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			val_mgr->Count(algo),
+			val_mgr->Count(fptype),
+			make_intrusive<StringVal>(fingerprint)
 		);
 		}
 

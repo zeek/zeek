@@ -57,6 +57,7 @@ enum RR_Type {
 	TYPE_TKEY = 249,	///< Transaction Key (RFC 2930)
 	TYPE_TSIG = 250,	///< Transaction Signature (RFC 2845)
 	TYPE_CAA = 257,		///< Certification Authority Authorization (RFC 6844)
+	TYPE_SSHFP = 44,	///< SSH Public Key Fingerprint (4255)
 	// DNSSEC RR's
 	TYPE_RRSIG = 46,	///< RR Signature record type (RFC4043)
 	TYPE_NSEC = 47,		///< Next Secure record (RFC4043)
@@ -378,6 +379,9 @@ protected:
 	bool ParseRR_BINDS(detail::DNS_MsgInfo* msg,
 	                const u_char*& data, int& len, int rdlength,
 	                const u_char* msg_start);
+	bool ParseRR_SSHFP(detail::DNS_MsgInfo* msg,
+	                const u_char*& data, int& len, int rdlength,
+	                const u_char* msg_start);
 	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
 	                            const u_char*& data, int& len,
 	                            String* question_name,
@@ -489,6 +493,7 @@ constexpr auto TYPE_EDNS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::
 constexpr auto TYPE_TKEY [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_TKEY.")]] = zeek::analyzer::dns::detail::TYPE_TKEY;
 constexpr auto TYPE_TSIG [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_TSIG.")]] = zeek::analyzer::dns::detail::TYPE_TSIG;
 constexpr auto TYPE_CAA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_CAA.")]] = zeek::analyzer::dns::detail::TYPE_CAA;
+constexpr auto TYPE_SSHFP [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_SSHFP.")]] = zeek::analyzer::dns::detail::TYPE_SSHFP;
 constexpr auto TYPE_RRSIG [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_RRSIG.")]] = zeek::analyzer::dns::detail::TYPE_RRSIG;
 constexpr auto TYPE_NSEC [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC.")]] = zeek::analyzer::dns::detail::TYPE_NSEC;
 constexpr auto TYPE_DNSKEY [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_DNSKEY.")]] = zeek::analyzer::dns::detail::TYPE_DNSKEY;

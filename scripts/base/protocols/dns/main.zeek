@@ -577,6 +577,11 @@ event dns_NSEC3(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_r
 	hook DNS::do_reply(c, msg, ans, "NSEC3");
 	}
 
+event dns_NSEC3PARAM(c: connection, msg: dns_msg, ans: dns_answer, nsec3param: dns_nsec3param_rr) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, "NSEC3PARAM");
+	}
+
 event dns_DS(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr) &priority=5
 	{
 	local s: string;

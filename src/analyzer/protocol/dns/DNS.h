@@ -63,6 +63,7 @@ enum RR_Type {
 	TYPE_DNSKEY = 48,	///< DNS Key record (RFC 4034)
 	TYPE_DS = 43,		///< Delegation signer (RFC 4034)
 	TYPE_NSEC3 = 50,
+	TYPE_NSEC3PARAM = 51,	///< Contains the NSEC3 parameters (RFC 5155)
 	// Obsoleted
 	TYPE_SPF = 99,          ///< Alternative: storing SPF data in TXT records, using the same format (RFC 4408). Support for it was discontinued in RFC 7208
 	// The following are only valid in queries.
@@ -210,6 +211,14 @@ struct NSEC3_DATA {
 	VectorValPtr bitmaps;
 };
 
+struct NSEC3PARAM_DATA {
+	unsigned short nsec_flags;		// 8
+	unsigned short nsec_hash_algo;	// 8
+	unsigned short nsec_iter;		// 16 : ExtractShort(data, len)
+	unsigned short nsec_salt_len;	// 8
+	String* nsec_salt;				// Variable length salt
+};
+
 struct DS_DATA {
 	unsigned short key_tag;			// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
@@ -238,6 +247,7 @@ public:
 	RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
 	RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
 	RecordValPtr BuildNSEC3_Val(struct NSEC3_DATA*);
+	RecordValPtr BuildNSEC3PARAM_Val(struct NSEC3PARAM_DATA*);
 	RecordValPtr BuildDS_Val(struct DS_DATA*);
 	RecordValPtr BuildBINDS_Val(struct BINDS_DATA*);
 
@@ -357,6 +367,9 @@ protected:
 	                  const u_char*& data, int& len, int rdlength,
 	                  const u_char* msg_start);
 	bool ParseRR_NSEC3(detail::DNS_MsgInfo* msg,
+	                   const u_char*& data, int& len, int rdlength,
+	                   const u_char* msg_start);
+	bool ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
 	                   const u_char*& data, int& len, int rdlength,
 	                   const u_char* msg_start);
 	bool ParseRR_DS(detail::DNS_MsgInfo* msg,
@@ -482,6 +495,7 @@ constexpr auto TYPE_DNSKEY [[deprecated("Remove in v4.1. Use zeek::analyzer::dns
 constexpr auto TYPE_DS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_DS.")]] = zeek::analyzer::dns::detail::TYPE_DS;
 constexpr auto TYPE_BINDS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_BINDS.")]] = zeek::analyzer::dns::detail::TYPE_BINDS;
 constexpr auto TYPE_NSEC3 [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3;
+constexpr auto TYPE_NSEC3PARAM [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3PARAM.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3PARAM;
 constexpr auto TYPE_SPF [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_SPF.")]] = zeek::analyzer::dns::detail::TYPE_SPF;
 constexpr auto TYPE_AXFR [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_AXFR.")]] = zeek::analyzer::dns::detail::TYPE_AXFR;
 constexpr auto TYPE_ALL [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_ALL.")]] = zeek::analyzer::dns::detail::TYPE_ALL;
@@ -545,6 +559,7 @@ using TSIG_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::T
 using RRSIG_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::RRSIG_DATA.")]] = zeek::analyzer::dns::detail::RRSIG_DATA;
 using DNSKEY_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNSKEY_DATA.")]] = zeek::analyzer::dns::detail::DNSKEY_DATA;
 using NSEC3_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::NSEC3_DATA.")]] = zeek::analyzer::dns::detail::NSEC3_DATA;
+using NSEC3PARAM_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::NSEC3PARAM_DATA.")]] = zeek::analyzer::dns::detail::NSEC3PARAM_DATA;
 using DS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DS_DATA.")]] = zeek::analyzer::dns::detail::DS_DATA;
 using BINDS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::BINDS_DATA.")]] = zeek::analyzer::dns::detail::BINDS_DATA;
 using DNS_MsgInfo [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNS_MsgInfo.")]] = zeek::analyzer::dns::detail::DNS_MsgInfo;

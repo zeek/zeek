@@ -3792,6 +3792,20 @@ type dns_nsec3_rr: record {
 	is_query: count;		##< The RR is a query/Response.
 };
 
+## A DNSSEC NSEC3PARAM record.
+##
+## .. zeek:see:: dns_NSEC3PARAM
+type dns_nsec3param_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	nsec_flags: count;		##< flags field.
+	nsec_hash_algo: count;	##< Hash algorithm.
+	nsec_iter: count;		##< Iterations.
+	nsec_salt_len: count; 	##< Salt length.
+	nsec_salt: string;		##< Salt value
+	is_query: count;		##< The RR is a query/Response.
+};
+
 ## A DNSSEC DS record.
 ##
 ## .. zeek:see:: dns_DS

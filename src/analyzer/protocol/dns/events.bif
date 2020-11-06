@@ -655,6 +655,19 @@ event dns_NSEC%(c: connection, msg: dns_msg, ans: dns_answer, next_name: string,
 ## nsec3: The parsed RDATA of Nsec3 record.
 event dns_NSEC3%(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_rr%);
 
+## Generated for DNS replies of type *NSEC3PARAM*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## nsec3param: The parsed RDATA of NSEC3PARAM record.
+event dns_NSEC3PARAM%(c: connection, msg: dns_msg, ans: dns_answer, nsec3param: dns_nsec3param_rr%);
+
 ## Generated for DNS replies of type *DS*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##

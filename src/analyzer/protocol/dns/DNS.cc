@@ -339,6 +339,10 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 			status = ParseRR_NSEC3(msg, data, len, rdlength, msg_start);
 			break;
 
+		case detail::TYPE_NSEC3PARAM:
+			status = ParseRR_NSEC3PARAM(msg, data, len, rdlength, msg_start);
+			break;
+
 		case detail::TYPE_DS:
 			status = ParseRR_DS(msg, data, len, rdlength, msg_start);
 			break;
@@ -1279,6 +1283,63 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg,
 	return true;
 	}
 
+bool DNS_Interpreter::ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start)
+	{
+	if ( ! dns_NSEC3PARAM || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 5 )
+		return false;
+
+	uint32_t halgo_flags = ExtractShort(data, len);
+	unsigned int hash_algo = (halgo_flags >> 8) & 0xff;
+	unsigned int nsec_flags = halgo_flags & 0xff;
+	unsigned int iter = ExtractShort(data, len);
+
+	uint8_t salt_len = 0;
+
+	if ( len > 0 )
+		{
+		salt_len = data[0];
+		++data;
+		--len;
+		}
+
+	if ( static_cast<int>(salt_len) != 0)
+		{
+		auto salt_val = ExtractStream(data, len, static_cast<int>(salt_len));
+		}
+	else
+		{
+		auto salt_val = "";
+		}
+
+	if ( dns_NSEC3PARAM )
+		{
+		detail::NSEC3PARAM_DATA nsec3param;
+		nsec3param.nsec_flags = nsec_flags;
+		nsec3param.nsec_hash_algo = hash_algo;
+		nsec3param.nsec_iter = iter;
+		nsec3param.nsec_salt_len = salt_len;
+		nsec3param.nsec_salt = salt_val;
+
+		analyzer->EnqueueConnEvent(dns_NSEC3PARAM,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildNSEC3PARAM_Val(&nsec3param)
+		);
+		}
+
+	return true;
+	}
+
 bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg,
                                  const u_char*& data, int& len, int rdlength,
                                  const u_char* msg_start)
@@ -1824,6 +1885,23 @@ RecordValPtr DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	r->Assign(8, make_intrusive<StringVal>(nsec3->nsec_hash));
 	r->Assign(9, std::move(nsec3->bitmaps));
 	r->Assign(10, val_mgr->Count(is_query));
+
+	return r;
+	}
+
+RecordValPtr DNS_MsgInfo::BuildNSEC3PARAM_Val(NSEC3PARAM_DATA* nsec3param)
+	{
+	static auto dns_nsec3param_rr = id::find_type<RecordType>("dns_nsec3param_rr");
+	auto r = make_intrusive<RecordVal>(dns_nsec3param_rr);
+
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(nsec3param->nsec_flags));
+	r->Assign(3, val_mgr->Count(nsec3param->nsec_hash_algo));
+	r->Assign(4, val_mgr->Count(nsec3param->nsec_iter));
+	r->Assign(5, val_mgr->Count(nsec3param->nsec_salt_len));
+	r->Assign(6, make_intrusive<StringVal>(nsec3param->nsec_salt));
+	r->Assign(7, val_mgr->Count(is_query));
 
 	return r;
 	}

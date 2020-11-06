@@ -1315,14 +1315,7 @@ bool DNS_Interpreter::ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
 		--len;
 		}
 
-	if ( static_cast<int>(salt_len) != 0)
-		{
 		auto salt_value = ExtractStream(data, len, static_cast<int>(salt_len));
-		}
-	else
-		{
-		auto salt_value = "";
-		}
 
 	if ( dns_NSEC3PARAM )
 		{

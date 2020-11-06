@@ -101,8 +101,8 @@ void Manager::ProcessPacket(Packet* packet)
 		}
 
 	// Start packet analysis
-	packet->l2_valid = root_analyzer->ForwardPacket(packet->cap_len, packet->data,
-			packet, packet->link_type);
+	root_analyzer->ForwardPacket(packet->cap_len, packet->data,
+	                             packet, packet->link_type);
 
 	if ( raw_packet )
 		event_mgr.Enqueue(raw_packet, packet->ToRawPktHdrVal());

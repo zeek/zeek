@@ -110,6 +110,11 @@ event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB
 
 event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB2::TreeConnectResponse) &priority=-5
 	{
+	local log_tree = copy(c$smb_state$current_tree);
+	if( !log_tree?$ts ){
+		log_tree$ts = network_time();
+	}
+	
 	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
 	}
 

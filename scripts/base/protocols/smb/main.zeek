@@ -225,7 +225,12 @@ function write_file_log(state: State)
 			else
 				add state$recent_files[file_ident];
 			}
-		
+
+		local log_f = copy(f);
+		if (!log_f?$ts){
+			log_f$ts = network_time()
+		}
+	
 		Log::write(FILES_LOG, f);
 		}
 	}

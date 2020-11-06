@@ -175,58 +175,6 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
 
-	// Add the "scripts" and "bif" directories to ZEEKPATH.
-	std::string scripts = dir + "scripts";
-
-	if ( util::is_dir(scripts) )
-		{
-		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
-		util::detail::add_to_zeek_path(scripts);
-		}
-
-	string init;
-
-	// First load {scripts}/__preload__.zeek automatically.
-	for (const string& ext : util::detail::script_extensions)
-		{
-		init = dir + "scripts/__preload__" + ext;
-
-		if ( util::is_file(init) )
-			{
-			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-			util::detail::warn_if_legacy_script(init);
-			scripts_to_load.push_back(init);
-			break;
-			}
-		}
-
-	// Load {bif,scripts}/__load__.zeek automatically.
-	for (const string& ext : util::detail::script_extensions)
-		{
-		init = dir + "lib/bif/__load__" + ext;
-
-		if ( util::is_file(init) )
-			{
-			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-			util::detail::warn_if_legacy_script(init);
-			scripts_to_load.push_back(init);
-			break;
-			}
-		}
-
-	for (const string& ext : util::detail::script_extensions)
-		{
-		init = dir + "scripts/__load__" + ext;
-
-		if ( util::is_file(init) )
-			{
-			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-			util::detail::warn_if_legacy_script(init);
-			scripts_to_load.push_back(init);
-			break;
-			}
-		}
-
 	// Load shared libraries.
 
 	string dypattern = dir + "/lib/*." + HOST_ARCHITECTURE + DYNAMIC_PLUGIN_SUFFIX;
@@ -286,6 +234,58 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	else
 		{
 		DBG_LOG(DBG_PLUGINS, "  No shared library found");
+		}
+
+	// Add the "scripts" and "bif" directories to ZEEKPATH.
+	std::string scripts = dir + "scripts";
+
+	if ( util::is_dir(scripts) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
+		util::detail::add_to_zeek_path(scripts);
+		}
+
+	string init;
+
+	// First load {scripts}/__preload__.zeek automatically.
+	for (const string& ext : util::detail::script_extensions)
+		{
+		init = dir + "scripts/__preload__" + ext;
+
+		if ( util::is_file(init) )
+			{
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			util::detail::warn_if_legacy_script(init);
+			scripts_to_load.push_back(init);
+			break;
+			}
+		}
+
+	// Load {bif,scripts}/__load__.zeek automatically.
+	for (const string& ext : util::detail::script_extensions)
+		{
+		init = dir + "lib/bif/__load__" + ext;
+
+		if ( util::is_file(init) )
+			{
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			util::detail::warn_if_legacy_script(init);
+			scripts_to_load.push_back(init);
+			break;
+			}
+		}
+
+	for (const string& ext : util::detail::script_extensions)
+		{
+		init = dir + "scripts/__load__" + ext;
+
+		if ( util::is_file(init) )
+			{
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			util::detail::warn_if_legacy_script(init);
+			scripts_to_load.push_back(init);
+			break;
+			}
 		}
 
 	// Mark this plugin as activated by clearing the path.

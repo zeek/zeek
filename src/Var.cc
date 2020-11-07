@@ -382,10 +382,10 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr)
 		// Clone the type to preserve type name aliasing.
 		tnew = t->ShallowClone();
 
-	Type::AddAlias(new_type_name, tnew.get());
+	Type::RegisterAlias(new_type_name, tnew);
 
 	if ( new_type_name != old_type_name && ! old_type_name.empty() )
-		Type::AddAlias(old_type_name, tnew.get());
+		Type::RegisterAlias(old_type_name, tnew);
 
 	tnew->SetName(id->Name());
 

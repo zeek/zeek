@@ -1348,13 +1348,11 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	if ( vals.find(val) == vals.end() )
 		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 
-	set<Type*> types = Type::GetAliases(GetName());
-	set<Type*>::const_iterator it;
+	const auto& types = Type::Aliases(GetName());
 
-	for ( it = types.begin(); it != types.end(); ++it )
-		if ( *it != this )
-			(*it)->AsEnumType()->AddNameInternal(module_name, name, val,
-							     is_export);
+	for ( const auto& t : types )
+		if ( t.get() != this )
+			t->AsEnumType()->AddNameInternal(module_name, name, val, is_export);
 	}
 
 void EnumType::AddNameInternal(const string& module_name, const char* name,

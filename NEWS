@@ -134,6 +134,9 @@ Deprecated Functionality
 - Marked the Continuation.h and PacketDumper.h files as deprecated. The code
   contained within them is unused by Zeek.
 
+- ``Type::GetAliases()`` and ``Type::AddAlias()`` are deprecated, use
+  ``Type::Aliases()`` and ``Type::RegisterAlias()``.
+
 Zeek 3.2.0
 ==========
 

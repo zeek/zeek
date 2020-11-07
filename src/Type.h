@@ -270,13 +270,64 @@ public:
 	void SetName(const std::string& arg_name) { name = arg_name; }
 	const std::string& GetName() const { return name; }
 
-	typedef std::map<std::string, std::set<Type*> > TypeAliasMap;
+	struct TypePtrComparer {
+		bool operator()(const TypePtr& a, const TypePtr& b) const
+			{ return a.get() < b.get(); }
+	};
+	using TypePtrSet = std::set<TypePtr, TypePtrComparer>;
+	using TypeAliasMap = std::map<std::string, TypePtrSet, std::less<>>;
 
+	/**
+	 * Returns a mapping of type-name to all other type names declared as
+	 * an alias to it.
+	 */
+	static const TypeAliasMap& GetAliasMap()
+		{ return type_aliases; }
+
+	/**
+	 * Returns true if the given type name has any declared aliases
+	 */
+	static bool HasAliases(std::string_view type_name)
+		{ return Type::type_aliases.find(type_name) != Type::type_aliases.end(); }
+
+	/**
+	 * Returns the set of all type names declared as an aliases to the given
+	 * type name.  A static empty set is returned if there are no aliases.
+	 */
+	static const TypePtrSet& Aliases(std::string_view type_name)
+		{
+		static TypePtrSet empty;
+		auto it = Type::type_aliases.find(type_name);
+		return it == Type::type_aliases.end() ? empty : it->second;
+		}
+
+	[[deprecated("Remove in v4.1. Use zeek::Type::Aliases() instead.")]]
 	static std::set<Type*> GetAliases(const std::string& type_name)
-		{ return Type::type_aliases[type_name]; }
+		{
+		std::set<Type*> rval;
+		for ( const auto& t : Type::type_aliases[type_name] )
+			rval.emplace(t.get());
+		return rval;
+		}
 
+	/**
+	 * Registers a new type alias.
+	 * @param type_name  the name of the type to register a new alias for.
+	 * @param type  the associated alias type of *type_name*.
+	 * @return  true if the alias is now registered or false if the alias was
+	 * already previously registered.
+	 */
+	static bool RegisterAlias(std::string_view type_name, TypePtr type)
+		{
+		auto it = Type::type_aliases.find(type_name);
+		if ( it == Type::type_aliases.end() )
+			it = Type::type_aliases.emplace(std::string{type_name}, TypePtrSet{}).first;
+		return it->second.emplace(std::move(type)).second;
+		}
+
+	[[deprecated("Remove in v4.1. Use zeek::Type::RegisterAlias().")]]
 	static void AddAlias(const std::string &type_name, Type* type)
-		{ Type::type_aliases[type_name].insert(type); }
+		{ Type::type_aliases[type_name].insert({NewRef{}, type}); }
 
 protected:
 	Type() = default;

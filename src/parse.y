@@ -171,7 +171,7 @@ static void parser_redef_enum (zeek::detail::ID *id)
 static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_list> fields,
                           std::unique_ptr<std::vector<zeek::detail::AttrPtr>> attrs)
 	{
-	std::set<zeek::Type*> types = zeek::Type::GetAliases(id->Name());
+	const auto& types = zeek::Type::Aliases(id->Name());
 
 	if ( types.empty() )
 		{
@@ -189,7 +189,7 @@ static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_
 				break;
 				}
 
-	for ( auto t : types )
+	for ( const auto& t : types )
 		{
 		auto error = t->AsRecordType()->AddFields(*fields, add_log_attr);
 

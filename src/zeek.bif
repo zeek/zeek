@@ -1853,6 +1853,99 @@ function type_name%(t: any%): string
 	return zeek::make_intrusive<zeek::StringVal>(s);
 	%}
 
+%%{
+static std::map<std::string, std::set<std::string>> build_complete_alias_map()
+	{
+	std::map<std::string, std::set<std::string>> rval;
+
+	for ( const auto& [name, alias_types] : zeek::Type::GetAliasMap() )
+		{
+		rval[name].emplace(name);
+
+		for ( const auto& alias_type : alias_types )
+			{
+			const auto& alias_name = alias_type->GetName();
+			rval[name].emplace(alias_name);
+			rval[alias_name].emplace(name);
+			}
+		}
+
+	for ( const auto& [name, aliases] : rval )
+		{
+		std::map<std::string, bool> more;
+
+		for ( const auto& alias_name : aliases )
+			if ( alias_name != name )
+				more.emplace(alias_name, false);
+
+		for ( ; ; )
+			{
+			auto prev_size = more.size();
+
+			for ( auto& [alias_name, checked] : more )
+				{
+				if ( checked ) continue;
+
+				for ( const auto& alias_alias : rval[alias_name] )
+					more.emplace(alias_alias, false);
+
+				checked = true;
+				}
+
+			if ( prev_size == more.size() )
+				break;
+			}
+
+		for ( const auto& [alias_name, checked] : more )
+			rval[name].emplace(alias_name);
+		}
+
+	return rval;
+	}
+%%}
+
+## Returns all type name aliases of a value or type.
+##
+## x: An arbitrary value or type.
+##
+## Returns: The set of all type name aliases of *x* (or the type of *x*
+##          if it's a value instead of a type).  For primitive values
+##          and types like :zeek:type:`string` or :zeek:type:`count`,
+##          this returns an empty set.  For types with user-defined
+##          names like :zeek:type:`record` or :zeek:type:`enum`, the
+##          returned set contains the original user-defined name for the
+##          type along with all aliases.  For other compound types, like
+##          :zeek:type:`table`, the returned set is empty unless
+##          explicitly requesting aliases for a user-defined type alias
+##          or a value that was explicitly created using a type alias
+##          (as opposed to originating from an "anonymous" constructor
+##          or initializer for that compound type).
+function type_aliases%(x: any%): string_set
+	%{
+	auto rval = make_intrusive<zeek::TableVal>(zeek::id::string_set);
+
+	auto t = x->GetType();
+
+	if ( t->Tag() == TYPE_TYPE )
+		t = t->AsTypeType()->GetType();
+
+	const auto& tname = t->GetName();
+
+	if ( tname.empty() )
+		return rval;
+
+	static auto all_aliases = build_complete_alias_map();
+	auto it = all_aliases.find(tname);
+
+	if ( it == all_aliases.end() )
+		return rval;
+
+	for ( const auto& name : it->second )
+		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
+
+	return rval;
+	%}
+
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
 function zeek_args%(%): string_vec
 	%{

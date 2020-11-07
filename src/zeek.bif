@@ -1946,6 +1946,32 @@ function type_aliases%(x: any%): string_set
 	return rval;
 	%}
 
+## Returns all value names associated with an enum type.
+##
+## et: An enum type.
+##
+## Returns: All enum value names associated with enum type *et*.
+##          If *et* is not an enum type, an empty set is returned.
+function enum_names%(et: any%): string_set
+	%{
+	auto rval = make_intrusive<zeek::TableVal>(zeek::id::string_set);
+
+	if ( et->GetType()->Tag() != TYPE_TYPE )
+		return rval;
+
+	const auto& t = et->GetType()->AsTypeType()->GetType();
+
+	if ( t->Tag() != TYPE_ENUM )
+		return rval;
+
+	auto enum_type = t->AsEnumType();
+
+	for ( const auto& [name, i] : enum_type->Names() )
+		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
+
+	return rval;
+	%}
+
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
 function zeek_args%(%): string_vec
 	%{

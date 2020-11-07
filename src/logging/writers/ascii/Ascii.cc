@@ -710,6 +710,21 @@ static std::vector<LeftoverLog> find_leftover_logs()
 	auto d = opendir(".");
 	struct dirent* dp;
 
+	if ( ! d )
+		{
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			cwd[0] = '.';
+			cwd[1] = '\0';
+			}
+
+		reporter->Error("failed to open directory '%s' in search of leftover logs: %s",
+		                cwd, strerror(errno));
+		return rval;
+		}
+
 	while ( (dp = readdir(d)) )
 		{
 		if ( strncmp(dp->d_name, shadow_file_prefix, prefix_len) != 0 )

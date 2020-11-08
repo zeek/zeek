@@ -1523,7 +1523,6 @@ void Manager::ProcessError(broker::error_view err)
 		return;
 
 	BifEnum::Broker::ErrorCode ec;
-	std::string msg;
 
 	static auto enum_type = id::find_type<EnumType>("Broker::ErrorCode");
 
@@ -1537,7 +1536,16 @@ void Manager::ProcessError(broker::error_view err)
 		ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
 		}
 
-	msg = caf::to_string(err.context());
+	std::string msg;
+	msg += '(';
+	if ( auto ctx = err.context() )
+		msg += to_string(*ctx);
+	else
+		msg += "nil";
+	msg += ", \"";
+	if ( auto msg_str = err.message() )
+		msg += *msg_str;
+	msg += "\")";
 
 	event_mgr.Enqueue(::Broker::error,
 	                  BifType::Enum::Broker::ErrorCode->GetEnumVal(ec),

@@ -355,6 +355,10 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 			status = ParseRR_SSHFP(msg, data, len, rdlength, msg_start);
 			break;
 		
+		case detail::TYPE_SSHFP:
+			status = ParseRR_LOC(msg, data, len, rdlength, msg_start);
+			break;
+
 		default:
 
 			if ( dns_unknown_reply && ! msg->skip_event )
@@ -1474,6 +1478,57 @@ bool DNS_Interpreter::ParseRR_SSHFP(detail::DNS_MsgInfo* msg,
 	return true;
 	}
 
+bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start)
+	{
+	if ( ! dns_LOC || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 15 )
+		return false;
+
+	String* version = ExtractStream(data, len, 1);
+	String* size = ExtractStream(data, len, 1);
+	String* horiz_pre = ExtractStream(data, len, 1);
+	String* vert_pre = ExtractStream(data, len, 1);
+
+	uint32_t latitude = ExtractLong(data, len);
+	uint32_t longitude = ExtractLong(data, len);
+	uint32_t altitude = ExtractLong(data, len);
+
+	if ( version != "00" )
+			{
+			analyzer->Weird("LOC_version_unrecognized", util::fmt("%s", version));
+			break;
+			}
+
+	if ( dns_LOC )
+		{
+		detail::LOC_DATA loc;
+		loc.version = version;
+		loc.size = size;
+		loc.horiz_pre = horiz_pre;
+		loc.vert_pre = vert_pre;
+		loc.latitude = latitude;
+		loc.longitude = longitude;
+		loc.altitude = altitude;
+
+		analyzer->EnqueueConnEvent(dns_LOC,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildLOC_Val(&loc)
+		);
+		}
+
+	return true;
+	}
+
 bool DNS_Interpreter::ParseRR_A(detail::DNS_MsgInfo* msg,
                                 const u_char*& data, int& len, int rdlength)
 	{
@@ -1966,6 +2021,25 @@ RecordValPtr DNS_MsgInfo::BuildBINDS_Val(BINDS_DATA* binds)
 	r->Assign(4, val_mgr->Count(binds->removal_flag));
 	r->Assign(5, make_intrusive<StringVal>(binds->complete_flag));
 	r->Assign(6, val_mgr->Count(is_query));
+
+	return r;
+	}
+
+RecordValPtr DNS_MsgInfo::BuildLOC_Val(LOC_DATA* loc)
+	{
+	static auto dns_loc_rr = id::find_type<RecordType>("dns_loc_rr");
+	auto r = make_intrusive<RecordVal>(dns_loc_rr);
+
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, make_intrusive<StringVal>(loc->version));
+	r->Assign(3, make_intrusive<StringVal>(loc->size));
+	r->Assign(4, make_intrusive<StringVal>(loc->horiz_pre));
+	r->Assign(5, make_intrusive<StringVal>(loc->vert_pre));
+	r->Assign(6, val_mgr->Count(loc->latitude));
+	r->Assign(7, val_mgr->Count(loc->longitude));
+	r->Assign(8, val_mgr->Count(loc->altitude));
+	r->Assign(9, val_mgr->Count(is_query));
 
 	return r;
 	}

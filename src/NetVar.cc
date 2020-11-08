@@ -69,6 +69,7 @@ zeek::RecordType* dns_nsec3_rr;
 zeek::RecordType* dns_nsec3param_rr;
 zeek::RecordType* dns_ds_rr;
 zeek::RecordType* dns_binds_rr;
+zeek::RecordType* dns_loc_rr;
 zeek::TableVal* dns_skip_auth;
 zeek::TableVal* dns_skip_addl;
 

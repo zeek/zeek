@@ -3832,6 +3832,22 @@ type dns_binds_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+## A Private RR type LOC record.
+##
+## .. zeek:see:: dns_LOC
+type dns_loc_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	version: string;	##< version number of the representation.
+	size: string;		##< Diameter of a sphere enclosing the entity.
+	horiz_pre: string;	##< The horizontal precision of the data, in centimeters.
+	vert_pre: string;	##< The vertical precision of the data, in centimeters.
+	latitude: count;	##< The latitude of the center of the sphere.
+	longitude: count;	##< The longitude of the center of the sphere.
+	altitude: count;	##< The altitude of the center of the sphere. 
+	is_query: count;	##< The RR is a query/Response.
+};
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answerr

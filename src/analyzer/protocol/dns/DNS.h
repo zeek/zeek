@@ -57,7 +57,8 @@ enum RR_Type {
 	TYPE_TKEY = 249,	///< Transaction Key (RFC 2930)
 	TYPE_TSIG = 250,	///< Transaction Signature (RFC 2845)
 	TYPE_CAA = 257,		///< Certification Authority Authorization (RFC 6844)
-	TYPE_SSHFP = 44,	///< SSH Public Key Fingerprint (4255)
+	TYPE_SSHFP = 44,	///< SSH Public Key Fingerprint (RFC 4255)
+	TYPE_LOC = 29,		///< Location information about hosts (RFC 1876)
 	// DNSSEC RR's
 	TYPE_RRSIG = 46,	///< RR Signature record type (RFC4043)
 	TYPE_NSEC = 47,		///< Next Secure record (RFC4043)
@@ -234,6 +235,16 @@ struct BINDS_DATA {
 	String* complete_flag;			// 8
 };
 
+struct LOC_DATA {
+	String* version;	// 8
+	String* size;		// 8
+	String* horiz_pre;	// 8
+	String* vert_pre;	// 8
+	unsigned long latitide;		// 32
+	unsigned long longitude;	// 32
+	unsigned long altitude;		// 32
+};
+
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
@@ -251,6 +262,7 @@ public:
 	RecordValPtr BuildNSEC3PARAM_Val(struct NSEC3PARAM_DATA*);
 	RecordValPtr BuildDS_Val(struct DS_DATA*);
 	RecordValPtr BuildBINDS_Val(struct BINDS_DATA*);
+	RecordValPtr BuildLOC_Val(struct LOC_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -382,6 +394,9 @@ protected:
 	bool ParseRR_SSHFP(detail::DNS_MsgInfo* msg,
 	                const u_char*& data, int& len, int rdlength,
 	                const u_char* msg_start);
+	bool ParseRR_LOC(detail::DNS_MsgInfo* msg,
+	                const u_char*& data, int& len, int rdlength,
+	                const u_char* msg_start);
 	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
 	                            const u_char*& data, int& len,
 	                            String* question_name,
@@ -501,6 +516,7 @@ constexpr auto TYPE_DS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::de
 constexpr auto TYPE_BINDS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_BINDS.")]] = zeek::analyzer::dns::detail::TYPE_BINDS;
 constexpr auto TYPE_NSEC3 [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3;
 constexpr auto TYPE_NSEC3PARAM [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3PARAM.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3PARAM;
+constexpr auto TYPE_LOC [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_LOC.")]] = zeek::analyzer::dns::detail::TYPE_LOC;
 constexpr auto TYPE_SPF [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_SPF.")]] = zeek::analyzer::dns::detail::TYPE_SPF;
 constexpr auto TYPE_AXFR [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_AXFR.")]] = zeek::analyzer::dns::detail::TYPE_AXFR;
 constexpr auto TYPE_ALL [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_ALL.")]] = zeek::analyzer::dns::detail::TYPE_ALL;
@@ -567,6 +583,7 @@ using NSEC3_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::
 using NSEC3PARAM_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::NSEC3PARAM_DATA.")]] = zeek::analyzer::dns::detail::NSEC3PARAM_DATA;
 using DS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DS_DATA.")]] = zeek::analyzer::dns::detail::DS_DATA;
 using BINDS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::BINDS_DATA.")]] = zeek::analyzer::dns::detail::BINDS_DATA;
+using LOC_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::LOC_DATA.")]] = zeek::analyzer::dns::detail::LOC_DATA;
 using DNS_MsgInfo [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNS_MsgInfo.")]] = zeek::analyzer::dns::detail::DNS_MsgInfo;
 
 using TCP_DNS_state [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TCP_DNS_state.")]] = zeek::analyzer::dns::detail::TCP_DNS_state;

@@ -27,7 +27,6 @@
 
 #if CAF_VERSION < 1800
 #define CAF_ATOM(str) caf::atom(str)
-#define IS_BROKER_ERROR(err) err.category() == caf::atom("broker")
 #define FMT_CAF_ERROR(err)                                                     \
 	util::fmt("[%s] %s", caf::to_string(err.category()).c_str(),               \
 	          caf::to_string(err.context()).c_str());
@@ -77,14 +76,14 @@ class BrokerState {
 public:
 	BrokerState(BrokerConfig config, size_t congestion_queue_size)
 		: endpoint(std::move(config)),
-		  subscriber(endpoint.make_subscriber({}, congestion_queue_size)),
-		  status_subscriber(endpoint.make_status_subscriber(true))
+		  subscriber(endpoint.make_subscriber({broker::topics::statuses,
+		                                       broker::topics::errors},
+		                                      congestion_queue_size))
 		{
 		}
 
 	broker::endpoint endpoint;
 	broker::subscriber subscriber;
-	broker::status_subscriber status_subscriber;
 };
 
 const broker::endpoint_info Manager::NoPeer{{}, {}};
@@ -139,10 +138,21 @@ static std::string RenderMessage(const broker::status& s)
 	return broker::to_string(s.code());
 	}
 
+static std::string RenderMessage(broker::status_view s)
+	{
+	return broker::to_string(s.code());
+	}
+
 static std::string RenderMessage(const broker::error& e)
 	{
 	return util::fmt("%s (%s)", broker::to_string(e.code()).c_str(),
 		   caf::to_string(e.context()).c_str());
+	}
+
+static std::string RenderMessage(broker::error_view e)
+	{
+	return util::fmt("%s (%s)", broker::to_string(e.code()),
+	                 caf::to_string(e.context()).c_str());
 	}
 
 #endif
@@ -233,8 +243,6 @@ void Manager::InitPostScript()
 
 	if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
 		reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
-	if ( ! iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this) )
-		reporter->FatalError("Failed to register broker status subscriber with iosource_mgr");
 
 	bstate->subscriber.add_topic(broker::topics::store_events, true);
 
@@ -290,7 +298,6 @@ void Manager::Terminate()
 	FlushLogBuffers();
 
 	iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
-	iosource_mgr->UnregisterFd(bstate->status_subscriber.fd(), this);
 
 	vector<string> stores_to_close;
 
@@ -946,36 +953,43 @@ void Manager::Process()
 	if ( use_real_time )
 		run_state::detail::update_network_time(util::current_time());
 
-	bool had_input = false;
-
-	auto status_msgs = bstate->status_subscriber.poll();
-
-	for ( auto& status_msg : status_msgs )
-		{
-		had_input = true;
-
-		if ( auto stat = caf::get_if<broker::status>(&status_msg) )
-			{
-			ProcessStatus(std::move(*stat));
-			continue;
-			}
-
-		if ( auto err = caf::get_if<broker::error>(&status_msg) )
-			{
-			ProcessError(std::move(*err));
-			continue;
-			}
-
-		reporter->InternalWarning("ignoring status_subscriber message with unexpected type");
-		}
-
 	auto messages = bstate->subscriber.poll();
+
+	bool had_input = ! messages.empty();
 
 	for ( auto& message : messages )
 		{
-		had_input = true;
-
 		auto& topic = broker::get_topic(message);
+
+		if ( broker::topics::statuses.prefix_of(topic) )
+			{
+			if ( auto stat = broker::make_status_view(get_data(message)) )
+				{
+				ProcessStatus(stat);
+				}
+			else
+				{
+				auto str = to_string(message);
+				reporter->Warning("ignoring malformed Broker status event: %s",
+				                  str.c_str());
+				}
+			continue;
+			}
+
+		if ( broker::topics::errors.prefix_of(topic) )
+			{
+			if ( auto err = broker::make_error_view(get_data(message)) )
+				{
+				ProcessError(err);
+				}
+			else
+				{
+				auto str = to_string(message);
+				reporter->Warning("ignoring malformed Broker error event: %s",
+				                  str.c_str());
+				}
+			continue;
+			}
 
 		if ( broker::topics::store_events.prefix_of(topic) )
 			{
@@ -1425,11 +1439,11 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	return true;
 	}
 
-void Manager::ProcessStatus(broker::status stat)
+void Manager::ProcessStatus(broker::status_view stat)
 	{
 	DBG_LOG(DBG_BROKER, "Received status message: %s", RenderMessage(stat).c_str());
 
-	auto ctx = stat.context<broker::endpoint_info>();
+	auto ctx = stat.context();
 
 	EventHandlerPtr event;
 	switch (stat.code()) {
@@ -1501,7 +1515,7 @@ void Manager::ProcessStatus(broker::status stat)
 	event_mgr.Enqueue(event, std::move(endpoint_info), std::move(msg));
 	}
 
-void Manager::ProcessError(broker::error err)
+void Manager::ProcessError(broker::error_view err)
 	{
 	DBG_LOG(DBG_BROKER, "Received error message: %s", RenderMessage(err).c_str());
 
@@ -1511,25 +1525,19 @@ void Manager::ProcessError(broker::error err)
 	BifEnum::Broker::ErrorCode ec;
 	std::string msg;
 
-	if ( IS_BROKER_ERROR(err) )
-		{
-		static auto enum_type = id::find_type<EnumType>("Broker::ErrorCode");
+	static auto enum_type = id::find_type<EnumType>("Broker::ErrorCode");
 
-		if ( enum_type->Lookup(err.code()) )
-			ec = static_cast<BifEnum::Broker::ErrorCode>(err.code());
-		else
-			{
-			reporter->Warning("Unknown Broker error code %u: mapped to unspecificed enum value ", err.code());
-			ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
-			}
+	unsigned code = static_cast<uint8_t>(err.code());
 
-		msg = caf::to_string(err.context());
-		}
+	if ( enum_type->Lookup(code) )
+		ec = static_cast<BifEnum::Broker::ErrorCode>(code);
 	else
 		{
-		ec = BifEnum::Broker::ErrorCode::CAF_ERROR;
-		msg = FMT_CAF_ERROR(err);
+		reporter->Warning("Unknown Broker error code %u: mapped to unspecificed enum value ", code);
+		ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
 		}
+
+	msg = caf::to_string(err.context());
 
 	event_mgr.Enqueue(::Broker::error,
 	                  BifType::Enum::Broker::ErrorCode->GetEnumVal(ec),

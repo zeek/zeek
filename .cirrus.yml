@@ -144,7 +144,7 @@ macos_task:
 freebsd_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
-    image_family: freebsd-12-1
+    image_family: freebsd-12-2
     cpu: 8
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB

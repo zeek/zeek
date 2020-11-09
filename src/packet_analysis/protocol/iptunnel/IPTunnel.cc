@@ -128,7 +128,8 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
 	outer->Add(ec);
 
-	// Construct fake packet for DoNextPacket
+	// Construct fake packet containing the inner packet so it can be processed
+	// like a normal one.
 	Packet p;
 	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
 	p.encap = outer;
@@ -164,7 +165,8 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
 	outer->Add(ec);
 
-	// Construct fake packet for DoNextPacket
+	// Construct fake packet containing the inner packet so it can be processed
+	// like a normal one.
 	Packet p;
 	p.Init(link_type, &ts, caplen, len, data, false, "");
 	p.encap = outer;

@@ -30,9 +30,9 @@ public:
 	 *
 	 * @param t Network time.
 	 * @param pkt If the outer pcap header is available, this pointer can be set
-	 *        so that the fake pcap header passed to DoNextPacket will use
-	 *        the same timeval.  The caplen and len fields of the fake pcap
-	 *        header are always set to the TotalLength() of \a inner.
+	 *        so the fake pcap header passed to the next analyzer will use the
+	 *        same timeval. The caplen and len fields of the fake pcap header
+	 *        are always set to the TotalLength() of \a inner.
 	 * @param inner Pointer to IP header wrapper of the inner packet, ownership
 	 *        of the pointer's memory is assumed by this function.
 	 * @param prev Any previous encapsulation stack of the caller, not including
@@ -48,15 +48,15 @@ public:
 	 * Wrapper that handles encapsulated Ethernet/IP packets and passes them back into
 	 * packet analysis.
 	 *
-	 * @param t  Network time.
-	 * @param pkt  If the outer pcap header is available, this pointer can be
-	 *        set so that the fake pcap header passed to DoNextPacket will use
-	 *        the same timeval.
-	 * @param caplen  number of captured bytes remaining
-	 * @param len  number of bytes remaining as claimed by outer framing
-	 * @param data  the remaining packet data
-	 * @param link_type  layer 2 link type used for initializing inner packet
-	 * @param prev  Any previous encapsulation stack of the caller, not
+	 * @param t Network time.
+	 * @param pkt If the outer pcap header is available, this pointer can be set
+	 *        so the fake pcap header passed to the next analyzer will use the
+	 *        same timeval.
+	 * @param caplen Number of captured bytes remaining
+	 * @param len Number of bytes remaining as claimed by outer framing
+	 * @param data The remaining packet data
+	 * @param link_type Layer 2 link type used for initializing inner packet
+	 * @param prev Any previous encapsulation stack of the caller, not
 	 *        including the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */

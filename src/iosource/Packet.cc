@@ -49,14 +49,12 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	dump_packet = false;
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
-	hdr_size = 0;
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
 
 	l2_src = nullptr;
 	l2_dst = nullptr;
-	l2_valid = false;
 	l2_checksummed = false;
 
 	l3_proto = L3_UNKNOWN;
@@ -69,24 +67,12 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	tunnel_type = BifEnum::Tunnel::IP;
 	gre_version = -1;
 	gre_link_type = DLT_RAW;
-
-	if ( data )
-		{
-		// From here we assume that layer 2 is valid. If the packet analysis fails,
-		// the packet manager will invalidate the packet.
-		l2_valid = true;
-		}
 	}
 
 Packet::~Packet()
 	{
 	if ( copy )
 		delete [] data;
-	}
-
-const IP_Hdr Packet::IP() const
-	{
-	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)

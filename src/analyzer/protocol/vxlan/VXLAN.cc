@@ -75,25 +75,16 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
 	pkt.encap = outer;
 
-	packet_mgr->ProcessPacket(&pkt);
-
-	if ( ! pkt.l2_valid )
+	if ( ! packet_mgr->ProcessInnerPacket(&pkt) )
 		{
-		ProtocolViolation("VXLAN invalid inner ethernet frame",
-		                  (const char*) data, len);
+		ProtocolViolation("VXLAN invalid inner packet");
 		return;
 		}
 
-	data += pkt.hdr_size;
-	len -= pkt.hdr_size;
-	caplen -= pkt.hdr_size;
-
+	// This isn't really an error. It's just that the inner packet wasn't an IP packet (like ARP).
+	// Just return without reporting a violation.
 	if ( ! pkt.ip_hdr )
-		{
-		ProtocolViolation("Truncated VXLAN or invalid inner IP",
-		                  (const char*) data, len);
 		return;
-		}
 
 	ProtocolConfirmation();
 

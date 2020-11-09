@@ -1,3 +1,11 @@
+3.3.0-dev.504 | 2020-11-09 10:56:09 -0700
+
+  * Remove now-unused Packet::l2_valid field (Tim Wojtulewicz, Corelight)
+
+  * GH-1186: Remove Packet::hdr_size and uses of it.
+
+    This change also removes Packet::IP(), since Packet now contains an ip_hdr member
+    that points at the IP header if it exists. (Tim Wojtulewicz, Corelight)
 
 3.3.0-dev.501 | 2020-11-04 10:41:56 -0800
 

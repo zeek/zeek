@@ -1503,7 +1503,7 @@ bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg,
 
 	if ( make_intrusive<StringVal>(version) != make_intrusive<StringVal>("00") )
 			{
-			analyzer->Weird("LOC_version_unrecognized", util::fmt("%s", version));
+			analyzer->Weird("DNS_LOC_version_unrecognized");
 			break;
 			}
 

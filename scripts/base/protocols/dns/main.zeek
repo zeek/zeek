@@ -597,7 +597,7 @@ event dns_BINDS(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_r
 event dns_SSHFP(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string) &priority=5
 	{
 	local s: string;
-	s = fmt("SSHFP:  %s", fingerprint);
+	s = fmt("SSHFP: %s", bytestring_to_hexstr(fingerprint));
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 

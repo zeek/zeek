@@ -368,13 +368,17 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
 	case TYPE_INTERNAL_DOUBLE:	d->Add(AsDouble()); break;
 	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
-	case TYPE_INTERNAL_ADDR:	d->Add(val.addr_val->AsString().c_str()); break;
+
+	case TYPE_INTERNAL_ADDR:
+		d->Add(AsAddr().AsString().c_str());
+		break;
 
 	case TYPE_INTERNAL_SUBNET:
-		d->Add(val.subnet_val->AsString().c_str());
+		d->Add(AsSubNet().AsString().c_str());
 		break;
 
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
+
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
 			AsFunc()->Describe(d);
@@ -857,40 +861,44 @@ ValPtr PortVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-AddrVal::AddrVal(const char* text) : Val(new IPAddr(text), TYPE_ADDR)
+AddrVal::AddrVal(const char* text) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(text);
 	}
 
 AddrVal::AddrVal(const std::string& text) : AddrVal(text.c_str())
 	{
 	}
 
-AddrVal::AddrVal(uint32_t addr) : Val(new IPAddr(IPv4, &addr, IPAddr::Network), TYPE_ADDR)
+AddrVal::AddrVal(uint32_t addr) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(IPv4, &addr, IPAddr::Network);
 	// ### perhaps do gethostbyaddr here?
 	}
 
-AddrVal::AddrVal(const uint32_t addr[4]) : Val(new IPAddr(IPv6, addr, IPAddr::Network), TYPE_ADDR)
+AddrVal::AddrVal(const uint32_t addr[4]) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(IPv6, addr, IPAddr::Network);
 	}
 
-AddrVal::AddrVal(const IPAddr& addr) : Val(new IPAddr(addr), TYPE_ADDR)
+AddrVal::AddrVal(const IPAddr& addr) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(addr);
 	}
 
 AddrVal::~AddrVal()
 	{
-	delete val.addr_val;
+	delete addr_val;
 	}
 
 unsigned int AddrVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.addr_val->MemoryAllocation();
+	return padded_sizeof(*this) + addr_val->MemoryAllocation();
 	}
 
 ValPtr AddrVal::SizeVal() const
 	{
-	if ( val.addr_val->GetFamily() == IPv4 )
+	if ( addr_val->GetFamily() == IPv4 )
 		return val_mgr->Count(32);
 	else
 		return val_mgr->Count(128);
@@ -902,14 +910,17 @@ ValPtr AddrVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text) : Val(base_type(TYPE_SUBNET))
 	{
-	if ( ! IPPrefix::ConvertString(text, val.subnet_val) )
+	subnet_val = new IPPrefix();
+
+	if ( ! IPPrefix::ConvertString(text, subnet_val) )
 		reporter->Error("Bad string in SubNetVal ctor: %s", text);
 	}
 
-SubNetVal::SubNetVal(const char* text, int width) : Val(new IPPrefix(text, width), TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text, int width) : Val(base_type(TYPE_SUBNET))
 	{
+	subnet_val = new IPPrefix(text, width);
 	}
 
 SubNetVal::SubNetVal(uint32_t addr, int width) : SubNetVal(IPAddr{IPv4, &addr, IPAddr::Network}, width)
@@ -920,48 +931,50 @@ SubNetVal::SubNetVal(const uint32_t* addr, int width) : SubNetVal(IPAddr{IPv6, a
 	{
 	}
 
-SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(new IPPrefix(addr, width), TYPE_SUBNET)
+SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(base_type(TYPE_SUBNET))
 	{
+	subnet_val = new IPPrefix(addr, width);
 	}
 
-SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(new IPPrefix(prefix), TYPE_SUBNET)
+SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(base_type(TYPE_SUBNET))
 	{
+	subnet_val = new IPPrefix(prefix);
 	}
 
 SubNetVal::~SubNetVal()
 	{
-	delete val.subnet_val;
+	delete subnet_val;
 	}
 
 const IPAddr& SubNetVal::Prefix() const
 	{
-	return val.subnet_val->Prefix();
+	return subnet_val->Prefix();
 	}
 
 int SubNetVal::Width() const
 	{
-	return val.subnet_val->Length();
+	return subnet_val->Length();
 	}
 
 unsigned int SubNetVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.subnet_val->MemoryAllocation();
+	return padded_sizeof(*this) + subnet_val->MemoryAllocation();
 	}
 
 ValPtr SubNetVal::SizeVal() const
 	{
-	int retained = 128 - val.subnet_val->LengthIPv6();
+	int retained = 128 - subnet_val->LengthIPv6();
 	return make_intrusive<DoubleVal>(pow(2.0, double(retained)));
 	}
 
 void SubNetVal::ValDescribe(ODesc* d) const
 	{
-	d->Add(string(*val.subnet_val).c_str());
+	d->Add(string(*subnet_val).c_str());
 	}
 
 IPAddr SubNetVal::Mask() const
 	{
-	if ( val.subnet_val->Length() == 0 )
+	if ( subnet_val->Length() == 0 )
 		{
 		// We need to special-case a mask width of zero, since
 		// the compiler doesn't guarantee that 1 << 32 yields 0.
@@ -976,7 +989,7 @@ IPAddr SubNetVal::Mask() const
 	uint32_t* mp = m;
 
 	uint32_t w;
-	for ( w = val.subnet_val->Length(); w >= 32; w -= 32 )
+	for ( w = subnet_val->Length(); w >= 32; w -= 32 )
 		   *(mp++) = 0xffffffff;
 
 	*mp = ~((1 << (32 - w)) - 1);
@@ -990,7 +1003,7 @@ IPAddr SubNetVal::Mask() const
 
 bool SubNetVal::Contains(const IPAddr& addr) const
 	{
-	return val.subnet_val->Contains(addr);
+	return subnet_val->Contains(addr);
 	}
 
 ValPtr SubNetVal::DoClone(CloneState* state)
@@ -3542,9 +3555,9 @@ bool same_atomic_val(const Val* v1, const Val* v2)
 	case TYPE_INTERNAL_STRING:
 		return Bstr_eq(v1->AsString(), v2->AsString());
 	case TYPE_INTERNAL_ADDR:
-		return v1->AsAddr() == v2->AsAddr();
+		return &v1->AsAddr() == &v2->AsAddr();
 	case TYPE_INTERNAL_SUBNET:
-		return v1->AsSubNet() == v2->AsSubNet();
+		return &v1->AsSubNet() == &v2->AsSubNet();
 
 	default:
 		reporter->InternalWarning("same_atomic_val called for non-atomic value");

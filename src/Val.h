@@ -96,13 +96,13 @@ union BroValUnion {
 	// Used for count, counter, port.
 	bro_uint_t uint_val;
 
+#ifdef DEPRECATED
 	// Used for addr
 	IPAddr* addr_val;
 
 	// Used for subnet
 	IPPrefix* subnet_val;
 
-#ifdef DEPRECATED
 	// Used for double, time, interval.
 	double double_val;
 #endif
@@ -123,13 +123,13 @@ union BroValUnion {
 	constexpr BroValUnion(bro_uint_t value) noexcept
 		: uint_val(value) {}
 
+#ifdef DEPRECATED
 	constexpr BroValUnion(IPAddr* value) noexcept
 		: addr_val(value) {}
 
 	constexpr BroValUnion(IPPrefix* value) noexcept
 		: subnet_val(value) {}
 
-#ifdef DEPRECATED
 	constexpr BroValUnion(double value) noexcept
 		: double_val(value) {}
 #endif
@@ -261,24 +261,13 @@ public:
 UNDERLYING_ACCESSOR_DECL(DoubleVal, double, AsDouble)
 UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
-
-	const IPPrefix& AsSubNet() const
-		{
-		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return *val.subnet_val;
-		}
+UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
+UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
 
 	zeek::Type* AsType() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
 		return type.get();
-		}
-
-	const IPAddr& AsAddr() const
-		{
-		if ( type->Tag() != TYPE_ADDR )
-			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return *val.addr_val;
 		}
 
 #define ACCESSOR(tag, ctype, accessor, name) \
@@ -297,19 +286,6 @@ UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
 	ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 	FuncPtr AsFuncPtr() const;
-
-	const IPPrefix& AsSubNet()
-		{
-		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return *val.subnet_val;
-		}
-
-	const IPAddr& AsAddr()
-		{
-		if ( type->Tag() != TYPE_ADDR )
-			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return *val.addr_val;
-		}
 
 	// Gives fast access to the bits of something that is one of
 	// bool, int, count, or counter.
@@ -606,10 +582,15 @@ public:
 	explicit AddrVal(const uint32_t addr[4]); // IPv6.
 	explicit AddrVal(const IPAddr& addr);
 
+	const IPAddr& UnderlyingVal() const	{ return *addr_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	IPAddr* addr_val;
 };
 
 class SubNetVal final : public Val {
@@ -630,11 +611,16 @@ public:
 
 	bool Contains(const IPAddr& addr) const;
 
+	const IPPrefix& UnderlyingVal() const	{ return *subnet_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	IPPrefix* subnet_val;
 };
 
 class StringVal final : public Val {
@@ -1436,6 +1422,8 @@ protected:
 UNDERLYING_ACCESSOR_DEF(DoubleVal, double, AsDouble)
 UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)
+UNDERLYING_ACCESSOR_DEF(SubNetVal, const IPPrefix&, AsSubNet)
+UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
 
 
 // Checks the given value for consistency with the given type.  If an

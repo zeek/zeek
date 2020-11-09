@@ -111,8 +111,8 @@ struct Value {
 	struct subnet_t { addr_t prefix; uint8_t length; };
 
 	/**
-	 * This union is a subset of BroValUnion, including only the types we
-	 * can log directly. See IsCompatibleType().
+	 * This union is a subset of the "underlying" values in Val subclasses,
+	 * including only the types we can log directly. See IsCompatibleType().
 	 */
 	union _val {
 		bro_int_t int_val;

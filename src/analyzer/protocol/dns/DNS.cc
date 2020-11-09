@@ -1509,7 +1509,6 @@ bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg,
 	if ( version != 0 )
 			{
 			analyzer->Weird("DNS_LOC_version_unrecognized", util::fmt("%d", version));
-			break;
 			}
 
 	if ( dns_LOC )

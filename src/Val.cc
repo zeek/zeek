@@ -72,10 +72,7 @@ Val::Val(FilePtr f)
 
 Val::~Val()
 	{
-	if ( type->InternalType() == TYPE_INTERNAL_STRING )
-		delete val.string_val;
-
-	else if ( type->Tag() == TYPE_FUNC )
+	if ( type->Tag() == TYPE_FUNC )
 		Unref(val.func_val);
 
 	else if ( type->Tag() == TYPE_FILE )
@@ -367,7 +364,7 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_INT:		d->Add(val.int_val); break;
 	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
 	case TYPE_INTERNAL_DOUBLE:	d->Add(AsDouble()); break;
-	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
+	case TYPE_INTERNAL_STRING:	d->AddBytes(AsString()); break;
 
 	case TYPE_INTERNAL_ADDR:
 		d->Add(AsAddr().AsString().c_str());
@@ -1012,8 +1009,9 @@ ValPtr SubNetVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-StringVal::StringVal(String* s) : Val(s, TYPE_STRING)
+StringVal::StringVal(String* s) : Val(base_type(TYPE_STRING))
 	{
+	string_val = s;
 	}
 
 // The following adds a NUL at the end.
@@ -1030,9 +1028,14 @@ StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 	{
 	}
 
+StringVal::~StringVal()
+	{
+	delete string_val;
+	}
+
 ValPtr StringVal::SizeVal() const
 	{
-	return val_mgr->Count(val.string_val->Len());
+	return val_mgr->Count(string_val->Len());
 	}
 
 int StringVal::Len()
@@ -1058,7 +1061,7 @@ string StringVal::ToStdString() const
 
 StringVal* StringVal::ToUpper()
 	{
-	val.string_val->ToUpper();
+	string_val->ToUpper();
 	return this;
 	}
 
@@ -1067,14 +1070,14 @@ void StringVal::ValDescribe(ODesc* d) const
 	// Should reintroduce escapes ? ###
 	if ( d->WantQuotes() )
 		d->Add("\"");
-	d->AddBytes(val.string_val);
+	d->AddBytes(string_val);
 	if ( d->WantQuotes() )
 		d->Add("\"");
 	}
 
 unsigned int StringVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
+	return padded_sizeof(*this) + string_val->MemoryAllocation();
 	}
 
 StringValPtr StringVal::Replace(
@@ -1168,19 +1171,19 @@ ValPtr StringVal::DoClone(CloneState* state)
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
 	return state->NewClone(this, make_intrusive<StringVal>(
-	        new String((u_char*) val.string_val->Bytes(),
-	                   val.string_val->Len(), true)));
+	        new String((u_char*) string_val->Bytes(),
+	                   string_val->Len(), true)));
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)
 	: Val(base_type(TYPE_PATTERN))
 	{
-	val.re_val = re;
+	re_val = re;
 	}
 
 PatternVal::~PatternVal()
 	{
-	delete AsPattern();
+	delete re_val;
 	}
 
 bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const
@@ -1205,7 +1208,7 @@ bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const
 void PatternVal::SetMatcher(RE_Matcher* re)
 	{
 	delete AsPattern();
-	val.re_val = re;
+	re_val = re;
 	}
 
 void PatternVal::ValDescribe(ODesc* d) const
@@ -1217,7 +1220,7 @@ void PatternVal::ValDescribe(ODesc* d) const
 
 unsigned int PatternVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.re_val->MemoryAllocation();
+	return padded_sizeof(*this) + re_val->MemoryAllocation();
 	}
 
 ValPtr PatternVal::DoClone(CloneState* state)
@@ -1225,8 +1228,8 @@ ValPtr PatternVal::DoClone(CloneState* state)
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
-	auto re = new RE_Matcher(val.re_val->PatternText(),
-	                         val.re_val->AnywherePatternText());
+	auto re = new RE_Matcher(re_val->PatternText(),
+	                         re_val->AnywherePatternText());
 	re->Compile();
 	return state->NewClone(this, make_intrusive<PatternVal>(re));
 	}

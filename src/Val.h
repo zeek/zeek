@@ -105,12 +105,12 @@ union BroValUnion {
 
 	// Used for double, time, interval.
 	double double_val;
-#endif
 
 	String* string_val;
+	RE_Matcher* re_val;
+#endif
 	Func* func_val;
 	File* file_val;
-	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
 	std::vector<ValPtr>* vector_val;
@@ -132,19 +132,19 @@ union BroValUnion {
 
 	constexpr BroValUnion(double value) noexcept
 		: double_val(value) {}
-#endif
 
 	constexpr BroValUnion(String* value) noexcept
 		: string_val(value) {}
+
+	constexpr BroValUnion(RE_Matcher* value) noexcept
+		: re_val(value) {}
+#endif
 
 	constexpr BroValUnion(Func* value) noexcept
 		: func_val(value) {}
 
 	constexpr BroValUnion(File* value) noexcept
 		: file_val(value) {}
-
-	constexpr BroValUnion(RE_Matcher* value) noexcept
-		: re_val(value) {}
 
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
@@ -247,12 +247,10 @@ public:
 	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
 	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(TYPE_STRING, String*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
@@ -263,6 +261,8 @@ UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
 UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
+UNDERLYING_ACCESSOR_DECL(StringVal, String*, AsString)
+UNDERLYING_ACCESSOR_DECL(PatternVal, RE_Matcher*, AsPattern)
 
 	zeek::Type* AsType() const
 		{
@@ -279,10 +279,8 @@ UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
 
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
-	// ACCESSOR(TYPE_STRING, String*, string_val, AsString)
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 	FuncPtr AsFuncPtr() const;
@@ -629,6 +627,7 @@ public:
 	explicit StringVal(const char* s);
 	explicit StringVal(const std::string& s);
 	StringVal(int length, const char* s);
+	~StringVal() override;
 
 	ValPtr SizeVal() const override;
 
@@ -644,6 +643,8 @@ public:
 	std::string ToStdString() const;
 	StringVal* ToUpper();
 
+	String* UnderlyingVal() const	{ return string_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 	StringValPtr Replace(RE_Matcher* re, const String& repl,
@@ -656,6 +657,9 @@ public:
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	String* string_val;
 };
 
 class PatternVal final : public Val {
@@ -667,11 +671,16 @@ public:
 
 	void SetMatcher(RE_Matcher* re);
 
+	RE_Matcher* UnderlyingVal() const	{ return re_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	RE_Matcher* re_val;
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -1424,6 +1433,8 @@ UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)
 UNDERLYING_ACCESSOR_DEF(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
+UNDERLYING_ACCESSOR_DEF(StringVal, String*, AsString)
+UNDERLYING_ACCESSOR_DEF(PatternVal, RE_Matcher*, AsPattern)
 
 
 // Checks the given value for consistency with the given type.  If an

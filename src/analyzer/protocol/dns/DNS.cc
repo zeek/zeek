@@ -1492,18 +1492,23 @@ bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg,
 	if ( len < 15 )
 		return false;
 
-	String* version = ExtractStream(data, len, 1);
-	String* size = ExtractStream(data, len, 1);
-	String* horiz_pre = ExtractStream(data, len, 1);
-	String* vert_pre = ExtractStream(data, len, 1);
+	// split the two bytes for version and size extraction
+	uint32_t ver_size = ExtractShort(data, len);
+	unsigned int version = (ver_size >> 8) & 0xff;
+	unsigned int size = ver_size & 0xff;
+
+	// split the two bytes for horizontal and vertical precision extraction
+	uint32_t horiz_vert = ExtractShort(data, len);
+	unsigned int horiz_pre = (horiz_vert >> 8) & 0xff;
+	unsigned int vert_pre= horiz_vert & 0xff;
 
 	uint32_t latitude = ExtractLong(data, len);
 	uint32_t longitude = ExtractLong(data, len);
 	uint32_t altitude = ExtractLong(data, len);
 
-	if ( make_intrusive<StringVal>(version) != make_intrusive<StringVal>("00") )
+	if ( version != 0 )
 			{
-			analyzer->Weird("DNS_LOC_version_unrecognized");
+			analyzer->Weird("DNS_LOC_version_unrecognized", util::fmt("%d", version));
 			break;
 			}
 
@@ -2032,10 +2037,10 @@ RecordValPtr DNS_MsgInfo::BuildLOC_Val(LOC_DATA* loc)
 
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->Count(int(answer_type)));
-	r->Assign(2, make_intrusive<StringVal>(loc->version));
-	r->Assign(3, make_intrusive<StringVal>(loc->size));
-	r->Assign(4, make_intrusive<StringVal>(loc->horiz_pre));
-	r->Assign(5, make_intrusive<StringVal>(loc->vert_pre));
+	r->Assign(2, val_mgr->Count(loc->version));
+	r->Assign(3, val_mgr->Count(loc->size));
+	r->Assign(4, val_mgr->Count(loc->horiz_pre));
+	r->Assign(5, val_mgr->Count(loc->vert_pre));
 	r->Assign(6, val_mgr->Count(loc->latitude));
 	r->Assign(7, val_mgr->Count(loc->longitude));
 	r->Assign(8, val_mgr->Count(loc->altitude));

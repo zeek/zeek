@@ -236,10 +236,10 @@ struct BINDS_DATA {
 };
 
 struct LOC_DATA {
-	String* version;	// 8
-	String* size;		// 8
-	String* horiz_pre;	// 8
-	String* vert_pre;	// 8
+	unsigned short version;	// 8
+	unsigned short size;		// 8
+	unsigned short horiz_pre;	// 8
+	unsigned short vert_pre;	// 8
 	unsigned long latitude;		// 32
 	unsigned long longitude;	// 32
 	unsigned long altitude;		// 32

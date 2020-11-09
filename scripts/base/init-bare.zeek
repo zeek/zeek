@@ -3838,10 +3838,10 @@ type dns_binds_rr: record {
 type dns_loc_rr: record {
 	query: string;		##< Query.
 	answer_type: count;	##< Ans type.
-	version: string;	##< version number of the representation.
-	size: string;		##< Diameter of a sphere enclosing the entity.
-	horiz_pre: string;	##< The horizontal precision of the data, in centimeters.
-	vert_pre: string;	##< The vertical precision of the data, in centimeters.
+	version: count;	##< version number of the representation.
+	size: count;		##< Diameter of a sphere enclosing the entity.
+	horiz_pre: count;	##< The horizontal precision of the data, in centimeters.
+	vert_pre: count;	##< The vertical precision of the data, in centimeters.
 	latitude: count;	##< The latitude of the center of the sphere.
 	longitude: count;	##< The longitude of the center of the sphere.
 	altitude: count;	##< The altitude of the center of the sphere. 

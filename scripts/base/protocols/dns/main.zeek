@@ -604,7 +604,7 @@ event dns_SSHFP(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptyp
 event dns_LOC(c: connection, msg: dns_msg, ans: dns_answer, loc: dns_loc_rr) &priority=5
 	{
 	local s: string;
-	s = fmt("LOC:  %s %s %s", loc$size, loc$horiz_pre, loc$vert_pre);
+	s = fmt("LOC:  %d %d %d", loc$size, loc$horiz_pre, loc$vert_pre);
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 

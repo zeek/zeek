@@ -355,7 +355,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 			status = ParseRR_SSHFP(msg, data, len, rdlength, msg_start);
 			break;
 		
-		case detail::TYPE_SSHFP:
+		case detail::TYPE_LOC:
 			status = ParseRR_LOC(msg, data, len, rdlength, msg_start);
 			break;
 
@@ -1501,7 +1501,7 @@ bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg,
 	uint32_t longitude = ExtractLong(data, len);
 	uint32_t altitude = ExtractLong(data, len);
 
-	if ( version != "00" )
+	if ( make_intrusive<StringVal>(version) != make_intrusive<StringVal>("00") )
 			{
 			analyzer->Weird("LOC_version_unrecognized", util::fmt("%s", version));
 			break;

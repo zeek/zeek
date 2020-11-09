@@ -240,7 +240,7 @@ struct LOC_DATA {
 	String* size;		// 8
 	String* horiz_pre;	// 8
 	String* vert_pre;	// 8
-	unsigned long latitide;		// 32
+	unsigned long latitude;		// 32
 	unsigned long longitude;	// 32
 	unsigned long altitude;		// 32
 };

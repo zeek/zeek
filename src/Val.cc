@@ -198,7 +198,7 @@ bool Val::IsZero() const
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:		return val.int_val == 0;
 	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 0;
-	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 0.0;
+	case TYPE_INTERNAL_DOUBLE:	return AsDouble() == 0.0;
 
 	default:			return false;
 	}
@@ -209,7 +209,7 @@ bool Val::IsOne() const
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:		return val.int_val == 1;
 	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 1;
-	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 1.0;
+	case TYPE_INTERNAL_DOUBLE:	return AsDouble() == 1.0;
 
 	default:			return false;
 	}
@@ -241,7 +241,7 @@ bro_uint_t Val::InternalUnsigned() const
 double Val::InternalDouble() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return val.double_val;
+		return AsDouble();
 	else
 		InternalWarning("bad request for InternalDouble");
 
@@ -255,7 +255,7 @@ bro_int_t Val::CoerceToInt() const
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		return static_cast<bro_int_t>(val.uint_val);
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return static_cast<bro_int_t>(val.double_val);
+		return static_cast<bro_int_t>(AsDouble());
 	else
 		InternalWarning("bad request for CoerceToInt");
 
@@ -269,7 +269,7 @@ bro_uint_t Val::CoerceToUnsigned() const
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
 		return static_cast<bro_uint_t>(val.int_val);
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return static_cast<bro_uint_t>(val.double_val);
+		return static_cast<bro_uint_t>(AsDouble());
 	else
 		InternalWarning("bad request for CoerceToUnsigned");
 
@@ -279,7 +279,7 @@ bro_uint_t Val::CoerceToUnsigned() const
 double Val::CoerceToDouble() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return val.double_val;
+		return AsDouble();
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
 		return static_cast<double>(val.int_val);
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
@@ -305,7 +305,7 @@ ValPtr Val::SizeVal() const
 		return val_mgr->Count(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<DoubleVal>(fabs(val.double_val));
+		return make_intrusive<DoubleVal>(fabs(AsDouble()));
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
@@ -366,7 +366,7 @@ void Val::ValDescribe(ODesc* d) const
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:		d->Add(val.int_val); break;
 	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
-	case TYPE_INTERNAL_DOUBLE:	d->Add(val.double_val); break;
+	case TYPE_INTERNAL_DOUBLE:	d->Add(AsDouble()); break;
 	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
 	case TYPE_INTERNAL_ADDR:	d->Add(val.addr_val->AsString().c_str()); break;
 
@@ -710,7 +710,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 		unit_word{ Microseconds, "usec" },
 	};
 
-	double v = val.double_val;
+	double v = AsDouble();
 
 	if ( v == 0.0 )
 		{

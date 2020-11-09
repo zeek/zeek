@@ -102,8 +102,10 @@ union BroValUnion {
 	// Used for subnet
 	IPPrefix* subnet_val;
 
+#ifdef DEPRECATED
 	// Used for double, time, interval.
 	double double_val;
+#endif
 
 	String* string_val;
 	Func* func_val;
@@ -127,8 +129,10 @@ union BroValUnion {
 	constexpr BroValUnion(IPPrefix* value) noexcept
 		: subnet_val(value) {}
 
+#ifdef DEPRECATED
 	constexpr BroValUnion(double value) noexcept
 		: double_val(value) {}
+#endif
 
 	constexpr BroValUnion(String* value) noexcept
 		: string_val(value) {}
@@ -150,10 +154,12 @@ class Val : public Obj {
 public:
 	static inline const ValPtr nil;
 
+#ifdef DEPRECATED
 	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
 	Val(double d, TypeTag t)
 		: val(d), type(base_type(t))
 		{}
+#endif
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(Func* f);
@@ -240,9 +246,6 @@ public:
 	CONST_ACCESSOR2(TYPE_BOOL, bool, int_val, AsBool)
 	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
 	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
-	CONST_ACCESSOR2(TYPE_DOUBLE, double, double_val, AsDouble)
-	CONST_ACCESSOR2(TYPE_TIME, double, double_val, AsTime)
-	CONST_ACCESSOR2(TYPE_INTERVAL, double, double_val, AsInterval)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(TYPE_STRING, String*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
@@ -251,6 +254,13 @@ public:
 	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
+
+#define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
+	ctype name() const;
+
+UNDERLYING_ACCESSOR_DECL(DoubleVal, double, AsDouble)
+UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
+UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -513,27 +523,37 @@ extern ValManager* val_mgr;
 #define Hours (60*Minutes)
 #define Days (24*Hours)
 
-class IntervalVal final : public Val {
+class DoubleVal : public Val {
+public:
+	DoubleVal(double v)
+		: Val(base_type(TYPE_DOUBLE)), double_val(v)
+		{}
+
+	double UnderlyingVal() const	{ return double_val; }
+
+protected:
+	DoubleVal(double v, TypePtr t)
+		: Val(std::move(t)), double_val(v)
+		{}
+
+private:
+	double double_val;
+};
+
+class IntervalVal final : public DoubleVal {
 public:
 	IntervalVal(double quantity, double units = Seconds)
-		: Val(quantity * units, base_type(TYPE_INTERVAL))
+		: DoubleVal(quantity * units, base_type(TYPE_INTERVAL))
 		{}
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 };
 
-class TimeVal final : public Val {
+class TimeVal final : public DoubleVal {
 public:
 	TimeVal(double t)
-		: Val(t, base_type(TYPE_TIME))
-		{}
-};
-
-class DoubleVal final : public Val {
-public:
-	DoubleVal(double v)
-		: Val(v, base_type(TYPE_DOUBLE))
+		: DoubleVal(t, base_type(TYPE_TIME))
 		{}
 };
 
@@ -1408,6 +1428,15 @@ protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 };
+
+#define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \
+	inline ctype Val::name() const \
+		{ return dynamic_cast<const ztype*>(this)->UnderlyingVal(); }
+
+UNDERLYING_ACCESSOR_DEF(DoubleVal, double, AsDouble)
+UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
+UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)
+
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version.

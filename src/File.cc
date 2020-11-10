@@ -331,7 +331,7 @@ void File::RaiseOpenEvent()
 		return;
 
 	FilePtr bf{NewRef{}, this};
-	auto* event = new Event(::file_opened, {make_intrusive<Val>(std::move(bf))});
+	auto* event = new Event(::file_opened, {make_intrusive<FileVal>(std::move(bf))});
 	event_mgr.Dispatch(event, true);
 	}
 

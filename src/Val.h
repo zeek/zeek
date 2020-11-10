@@ -109,10 +109,7 @@ union BroValUnion {
 	String* string_val;
 	RE_Matcher* re_val;
 	Func* func_val;
-#endif
 	File* file_val;
-
-#ifdef DEPRECATED
 	PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
 	std::vector<ValPtr>* vector_val;
@@ -144,12 +141,10 @@ union BroValUnion {
 
 	constexpr BroValUnion(Func* value) noexcept
 		: func_val(value) {}
-#endif
 
 	constexpr BroValUnion(File* value) noexcept
 		: file_val(value) {}
 
-#ifdef DEPRECATED
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
 #endif
@@ -168,13 +163,13 @@ public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(Func* f);
 	explicit Val(FuncPtr f);
-#endif
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(File* f);
 	// Note, the file will be closed after this Val is destructed if there's
 	// no other remaining references.
 	explicit Val(FilePtr f);
+#endif
 
 	// Extra arg to differentiate from protected version.
 	Val(TypePtr t, bool type_type)
@@ -252,7 +247,6 @@ public:
 	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
 	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
 
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
 	ctype name() const;
@@ -264,7 +258,7 @@ UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
 UNDERLYING_ACCESSOR_DECL(FuncVal, Func*, AsFunc)
-// UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
+UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
 UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 
@@ -280,10 +274,6 @@ UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", type_name) \
 		return val.accessor; \
 		}
-
-	// Accessors for mutable values are called AsNonConst* and
-	// are protected to avoid external state changes.
-	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
 
 	// Gives fast access to the bits of something that is one of
 	// bool, int, count, or counter.
@@ -663,7 +653,6 @@ private:
 class FuncVal final : public Val {
 public:
 	explicit FuncVal(FuncPtr f);
-	~FuncVal() override;
 
 	FuncPtr AsFuncPtr() const;
 
@@ -677,6 +666,22 @@ protected:
 
 private:
 	FuncPtr func_val;
+};
+
+class FileVal final : public Val {
+public:
+	explicit FileVal(FilePtr f);
+
+	ValPtr SizeVal() const override;
+
+	File* UnderlyingVal() const	{ return file_val.get(); }
+
+protected:
+	void ValDescribe(ODesc* d) const override;
+	ValPtr DoClone(CloneState* state) override;
+
+private:
+	FilePtr file_val;
 };
 
 class PatternVal final : public Val {
@@ -1533,7 +1538,7 @@ UNDERLYING_ACCESSOR_DEF(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DEF(StringVal, const String*, AsString)
 UNDERLYING_ACCESSOR_DEF(FuncVal, Func*, AsFunc)
-// UNDERLYING_ACCESSOR_DEF(FileVal, File*, AsFile)
+UNDERLYING_ACCESSOR_DEF(FileVal, File*, AsFile)
 UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
 

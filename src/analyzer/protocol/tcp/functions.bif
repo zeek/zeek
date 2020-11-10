@@ -127,7 +127,7 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
 
 		if ( cf )
-			return zeek::make_intrusive<zeek::Val>(std::move(cf));
+			return zeek::make_intrusive<zeek::FileVal>(std::move(cf));
 		}
 
 	// Return some sort of error value.
@@ -136,5 +136,5 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	else
 		zeek::emit_builtin_error("no contents file for given direction");
 
-	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(stderr, "-", "w"));
+	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(stderr, "-", "w"));
 	%}

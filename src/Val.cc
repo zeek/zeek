@@ -53,15 +53,6 @@ Val::Val(Func* f) : Val({NewRef{}, f})
 Val::Val(FuncPtr f)
 	: val(f.release()), type(val.func_val->GetType())
 	{}
-#endif
-
-static const FileTypePtr& GetStringFileType() noexcept
-	{
-	static auto string_file_type
-		= make_intrusive<FileType>(base_type(TYPE_STRING));
-
-	return string_file_type;
-	}
 
 Val::Val(File* f) : Val({AdoptRef{}, f})
 	{}
@@ -71,12 +62,10 @@ Val::Val(FilePtr f)
 	{
 	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
 	}
+#endif
 
 Val::~Val()
 	{
-	if ( type->Tag() == TYPE_FILE )
-		Unref(val.file_val);
-
 #ifdef DEBUG
 	delete [] bound_id;
 #endif
@@ -149,22 +138,8 @@ ValPtr Val::DoClone(CloneState* state)
 		return {NewRef{}, this};
 
 	case TYPE_INTERNAL_OTHER:
-		// Derived classes are responsible for this. Exception:
-		// files. There aren't any derived classes.
-		if ( type->Tag() == TYPE_FILE )
-			{
-			// I think we can just ref the file here - it is unclear what else
-			// to do.  In the case of cached files, I think this is equivalent
-			// to what happened before - serialization + unserialization just
-			// have you the same pointer that you already had.  In the case of
-			// non-cached files, the behavior now is different; in the past,
-			// serialize + unserialize gave you a new file object because the
-			// old one was not in the list anymore. This object was
-			// automatically opened. This does not happen anymore - instead you
-			// get the non-cached pointer back which is brought back into the
-			// cache when written too.
-			return {NewRef{}, this};
-			}
+		// Derived classes are responsible for this, other than
+		// the weirdo "type" pseudo-value.
 
 		if ( type->Tag() == TYPE_TYPE )
 			// These are immutable, essentially.
@@ -294,11 +269,6 @@ ValPtr Val::SizeVal() const
 	case TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<DoubleVal>(fabs(AsDouble()));
 
-	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FILE )
-			return make_intrusive<DoubleVal>(val.file_val->Size());
-		break;
-
 	default:
 		break;
 	}
@@ -364,9 +334,7 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
 
 	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FILE )
-			AsFile()->Describe(d);
-		else if ( type->Tag() == TYPE_TYPE )
+		if ( type->Tag() == TYPE_TYPE )
 			d->Add(type->AsTypeType()->GetType()->GetName());
 		else
 			d->Add("<no value description>");
@@ -1165,10 +1133,6 @@ FuncVal::FuncVal(FuncPtr f) : Val(base_type(TYPE_FUNC))
 	func_val = std::move(f);
 	}
 
-FuncVal::~FuncVal()
-	{
-	}
-
 FuncPtr FuncVal::AsFuncPtr() const
 	{
 	return func_val;
@@ -1187,6 +1151,38 @@ void FuncVal::ValDescribe(ODesc* d) const
 ValPtr FuncVal::DoClone(CloneState* state)
 	{
 	return make_intrusive<FuncVal>(func_val->DoClone());
+	}
+
+FileVal::FileVal(FilePtr f)
+: Val(make_intrusive<FileType>(base_type(TYPE_STRING)))
+	{
+	file_val = std::move(f);
+	assert(file_val->GetType()->Tag() == TYPE_STRING);
+	}
+
+ValPtr FileVal::SizeVal() const
+	{
+	return make_intrusive<DoubleVal>(file_val->Size());
+	}
+
+void FileVal::ValDescribe(ODesc* d) const
+	{
+	file_val->Describe(d);
+	}
+
+ValPtr FileVal::DoClone(CloneState* state)
+	{
+	// I think we can just ref the file here - it is unclear what else
+	// to do.  In the case of cached files, I think this is equivalent
+	// to what happened before - serialization + unserialization just
+	// have you the same pointer that you already had.  In the case of
+	// non-cached files, the behavior now is different; in the past,
+	// serialize + unserialize gave you a new file object because the
+	// old one was not in the list anymore. This object was
+	// automatically opened. This does not happen anymore - instead you
+	// get the non-cached pointer back which is brought back into the
+	// cache when written too.
+	return {NewRef{}, this};
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)

@@ -1,4 +1,11 @@
 
+3.3.0-dev.514 | 2020-11-10 14:05:51 -0700
+
+  * GH-1269: Fix LogAscii::enable_leftover_log_rotation crash in bad dirs
+
+    Running with that option enabled inside a bad directory (e.g. lack of
+    permissions) crashed due to not checking for failure of opendir(). (Jon Siwek, Corelight)
+
 3.3.0-dev.512 | 2020-11-10 13:55:33 -0700
 
   * Change Debian 10 CI config to use GCC (Jon Siwek, Corelight)

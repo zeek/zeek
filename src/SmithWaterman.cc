@@ -109,19 +109,19 @@ Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 		if ( ! v )
 			continue;
 
-		const String* str = v->AsRecordVal()->GetField(0)->AsString();
+		const String* str = v->AsRecordVal()->GetStringField(0);
 		auto* substr = new Substring(*str);
 
 		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
 			const RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
-			const String* str = align->GetField(0)->AsString();
-			int index = align->GetField(1)->AsCount();
+			const String* str = align->GetStringField(0);
+			int index = align->GetCountField(1);
 			substr->AddAlignment(str, index);
 			}
 
-		bool new_alignment = v->AsRecordVal()->GetField(2)->AsBool();
+		bool new_alignment = v->AsRecordVal()->GetBoolField(2);
 		substr->MarkNewAlignment(new_alignment);
 
 		result->push_back(substr);

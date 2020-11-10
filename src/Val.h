@@ -1272,6 +1272,27 @@ public:
 	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
 		{ return cast_intrusive<T>(GetField(field)); }
 
+	// The following return the given field converted to a particular
+	// underlying value.  We provide these to enable efficient
+	// access to record fields (without requiring an intermediary Val)
+	// if we change the underlying representation of records.
+#define GET_FIELD_AS(ctype, name ) \
+	ctype Get ## name ## Field(int field) const \
+		{ return GetField(field)->As ## name(); } \
+	ctype Get ## name ## Field(const char* field) const \
+		{ return GetField(field)->As ## name(); }
+
+	GET_FIELD_AS(bool, Bool)
+	GET_FIELD_AS(int, Enum)
+	GET_FIELD_AS(bro_int_t, Int)
+	GET_FIELD_AS(bro_uint_t, Count)
+	GET_FIELD_AS(double, Double)
+	GET_FIELD_AS(double, Time)
+	GET_FIELD_AS(double, Interval)
+	GET_FIELD_AS(const PortVal*, PortVal)
+	GET_FIELD_AS(const IPAddr&, Addr)
+	GET_FIELD_AS(const String*, String)
+
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
 	 * exist in the record type, it's an internal error: abort.

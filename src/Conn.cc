@@ -432,7 +432,7 @@ void Connection::AppendAddl(const char* str)
 	{
 	const auto& cv = ConnVal();
 
-	const char* old = cv->GetField(6)->AsString()->CheckString();
+	const char* old = cv->GetStringField(6)->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
 	cv->Assign(6, make_intrusive<StringVal>(util::fmt(format, old, str)));

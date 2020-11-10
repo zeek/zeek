@@ -356,11 +356,11 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	const IPAddr& orig_addr = vl->GetField(orig_h)->AsAddr();
-	const IPAddr& resp_addr = vl->GetField(resp_h)->AsAddr();
+	const IPAddr& orig_addr = vl->GetAddrField(orig_h);
+	const IPAddr& resp_addr = vl->GetAddrField(resp_h);
 
-	PortVal* orig_portv = vl->GetField(orig_p)->AsPortVal();
-	PortVal* resp_portv = vl->GetField(resp_p)->AsPortVal();
+	const PortVal* orig_portv = vl->GetPortValField(orig_p);
+	const PortVal* resp_portv = vl->GetPortValField(resp_p);
 
 	ConnID id;
 

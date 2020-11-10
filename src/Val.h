@@ -266,7 +266,6 @@ UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
 UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
-UNDERLYING_ACCESSOR_DECL(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 	zeek::Type* AsType() const
 		{
@@ -1437,6 +1436,16 @@ public:
 	 */
 	const ValPtr& At(unsigned int index) const;
 
+	/**
+	 * Returns the given element treated as a Count type, to efficiently
+	 * support a common type of vector access if we change the underlying
+	 * vector representation.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element's value, as a Count underlying representation.
+	 */
+	bro_uint_t CountAt(unsigned int index) const
+		{ return At(index)->AsCount(); }
+
 	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(unsigned int index) const
 		{ return At(index).get(); }
@@ -1508,7 +1517,6 @@ UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DEF(StringVal, const String*, AsString)
 UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
-UNDERLYING_ACCESSOR_DEF(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 
 // Checks the given value for consistency with the given type.  If an

@@ -1502,8 +1502,8 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
 
-	auto& vv = *v->AsVector();
-	auto n = vv.size();
+	auto vv = dynamic_cast<VectorVal*>(v);
+	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
@@ -1513,7 +1513,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map.emplace_back(&vv[i]);
+		index_map.emplace_back(&vv->At(i));
 		}
 
 	if ( comp )
@@ -2284,15 +2284,17 @@ function addr_to_counts%(a: addr%): index_vec
 ## .. zeek:see:: addr_to_counts
 function counts_to_addr%(v: index_vec%): addr
 	%{
-	if ( v->AsVector()->size() == 1 )
+	auto vv = dynamic_cast<VectorVal*>(v);
+
+	if ( vv->Size() == 1 )
 		{
-		return zeek::make_intrusive<zeek::AddrVal>(htonl((*v->AsVector())[0]->AsCount()));
+		return zeek::make_intrusive<zeek::AddrVal>(htonl(vv->CountAt(0)));
 		}
-	else if ( v->AsVector()->size() == 4 )
+	else if ( vv->Size() == 4 )
 		{
 		uint32_t bytes[4];
 		for ( int i = 0; i < 4; ++i )
-			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
+			bytes[i] = htonl(vv->CountAt(i));
 		return zeek::make_intrusive<zeek::AddrVal>(bytes);
 		}
 	else

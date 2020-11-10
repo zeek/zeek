@@ -46,12 +46,14 @@ using namespace std;
 
 namespace zeek {
 
+#ifdef DEPRECATED
 Val::Val(Func* f) : Val({NewRef{}, f})
 	{}
 
 Val::Val(FuncPtr f)
 	: val(f.release()), type(val.func_val->GetType())
 	{}
+#endif
 
 static const FileTypePtr& GetStringFileType() noexcept
 	{
@@ -72,10 +74,7 @@ Val::Val(FilePtr f)
 
 Val::~Val()
 	{
-	if ( type->Tag() == TYPE_FUNC )
-		Unref(val.func_val);
-
-	else if ( type->Tag() == TYPE_FILE )
+	if ( type->Tag() == TYPE_FILE )
 		Unref(val.file_val);
 
 #ifdef DEBUG
@@ -151,10 +150,7 @@ ValPtr Val::DoClone(CloneState* state)
 
 	case TYPE_INTERNAL_OTHER:
 		// Derived classes are responsible for this. Exception:
-		// Functions and files. There aren't any derived classes.
-		if ( type->Tag() == TYPE_FUNC )
-			return make_intrusive<Val>(AsFunc()->DoClone());
-
+		// files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FILE )
 			{
 			// I think we can just ref the file here - it is unclear what else
@@ -183,12 +179,6 @@ ValPtr Val::DoClone(CloneState* state)
 	reporter->InternalError("cannot be reached");
 	return nullptr;
  	}
-
-FuncPtr Val::AsFuncPtr() const
-	{
-	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
-	return {NewRef{}, val.func_val};
-	}
 
 bool Val::IsZero() const
 	{
@@ -305,9 +295,6 @@ ValPtr Val::SizeVal() const
 		return make_intrusive<DoubleVal>(fabs(AsDouble()));
 
 	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
-
 		if ( type->Tag() == TYPE_FILE )
 			return make_intrusive<DoubleVal>(val.file_val->Size());
 		break;
@@ -377,9 +364,7 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
 
 	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FUNC )
-			AsFunc()->Describe(d);
-		else if ( type->Tag() == TYPE_FILE )
+		if ( type->Tag() == TYPE_FILE )
 			AsFile()->Describe(d);
 		else if ( type->Tag() == TYPE_TYPE )
 			d->Add(type->AsTypeType()->GetType()->GetName());
@@ -1173,6 +1158,35 @@ ValPtr StringVal::DoClone(CloneState* state)
 	return state->NewClone(this, make_intrusive<StringVal>(
 	        new String((u_char*) string_val->Bytes(),
 	                   string_val->Len(), true)));
+	}
+
+FuncVal::FuncVal(FuncPtr f) : Val(base_type(TYPE_FUNC))
+	{
+	func_val = std::move(f);
+	}
+
+FuncVal::~FuncVal()
+	{
+	}
+
+FuncPtr FuncVal::AsFuncPtr() const
+	{
+	return func_val;
+	}
+
+ValPtr FuncVal::SizeVal() const
+	{
+	return val_mgr->Count(func_val->GetType()->ParamList()->GetTypes().size());
+	}
+
+void FuncVal::ValDescribe(ODesc* d) const
+	{
+	func_val->Describe(d);
+	}
+
+ValPtr FuncVal::DoClone(CloneState* state)
+	{
+	return make_intrusive<FuncVal>(func_val->DoClone());
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)

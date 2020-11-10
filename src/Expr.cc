@@ -4333,7 +4333,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<Val>(std::move(dummy_func));
+	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
 	id->SetVal(std::move(v));
 	id->SetType(ingredients->id->GetType());
 	id->SetConst();
@@ -4359,7 +4359,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 
-	return make_intrusive<Val>(std::move(lamb));
+	return make_intrusive<FuncVal>(std::move(lamb));
 	}
 
 void LambdaExpr::ExprDescribe(ODesc* d) const

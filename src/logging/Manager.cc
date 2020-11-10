@@ -1531,7 +1531,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer,
 	ri->Assign<TimeVal>(2, open);
 	ri->Assign<TimeVal>(3, close);
 	ri->Assign(4, val_mgr->Bool(terminating));
-	ri->Assign<Val>(5, std::move(postprocessor));
+	ri->Assign<FuncVal>(5, std::move(postprocessor));
 
 	std::string rval;
 

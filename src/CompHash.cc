@@ -855,7 +855,7 @@ const char* CompositeHash::RecoverOneVal(
 			if ( ! f )
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
-			*pval = make_intrusive<Val>(f);
+			*pval = make_intrusive<FuncVal>(f);
 			const auto& pvt = (*pval)->GetType();
 
 			if ( ! pvt )

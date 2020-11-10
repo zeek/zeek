@@ -108,8 +108,8 @@ union BroValUnion {
 
 	String* string_val;
 	RE_Matcher* re_val;
-#endif
 	Func* func_val;
+#endif
 	File* file_val;
 
 #ifdef DEPRECATED
@@ -141,10 +141,10 @@ union BroValUnion {
 
 	constexpr BroValUnion(RE_Matcher* value) noexcept
 		: re_val(value) {}
-#endif
 
 	constexpr BroValUnion(Func* value) noexcept
 		: func_val(value) {}
+#endif
 
 	constexpr BroValUnion(File* value) noexcept
 		: file_val(value) {}
@@ -164,11 +164,11 @@ public:
 	Val(double d, TypeTag t)
 		: val(d), type(base_type(t))
 		{}
-#endif
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(Func* f);
 	explicit Val(FuncPtr f);
+#endif
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(File* f);
@@ -252,7 +252,6 @@ public:
 	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
 	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
 
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
@@ -264,6 +263,8 @@ UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
 UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
+UNDERLYING_ACCESSOR_DECL(FuncVal, Func*, AsFunc)
+// UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
 UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 
@@ -282,10 +283,7 @@ UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
-	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-
-	FuncPtr AsFuncPtr() const;
 
 	// Gives fast access to the bits of something that is one of
 	// bool, int, count, or counter.
@@ -660,6 +658,25 @@ protected:
 
 private:
 	String* string_val;
+};
+
+class FuncVal final : public Val {
+public:
+	explicit FuncVal(FuncPtr f);
+	~FuncVal() override;
+
+	FuncPtr AsFuncPtr() const;
+
+	ValPtr SizeVal() const override;
+
+	Func* UnderlyingVal() const	{ return func_val.get(); }
+
+protected:
+	void ValDescribe(ODesc* d) const override;
+	ValPtr DoClone(CloneState* state) override;
+
+private:
+	FuncPtr func_val;
 };
 
 class PatternVal final : public Val {
@@ -1515,6 +1532,8 @@ UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)
 UNDERLYING_ACCESSOR_DEF(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DEF(StringVal, const String*, AsString)
+UNDERLYING_ACCESSOR_DEF(FuncVal, Func*, AsFunc)
+// UNDERLYING_ACCESSOR_DEF(FileVal, File*, AsFile)
 UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
 

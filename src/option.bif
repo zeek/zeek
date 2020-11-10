@@ -209,6 +209,7 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return zeek::val_mgr->False();
 		}
 
-	i->AddOptionHandler(on_change->AsFuncPtr(), -priority);
+	auto func = dynamic_cast<FuncVal*>(on_change)->AsFuncPtr();
+	i->AddOptionHandler(func, -priority);
 	return zeek::val_mgr->True();
 	%}

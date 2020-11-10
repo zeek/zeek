@@ -1128,7 +1128,7 @@ ValPtr StringVal::DoClone(CloneState* state)
 	                   string_val->Len(), true)));
 	}
 
-FuncVal::FuncVal(FuncPtr f) : Val(base_type(TYPE_FUNC))
+FuncVal::FuncVal(FuncPtr f) : Val(f->GetType())
 	{
 	func_val = std::move(f);
 	}

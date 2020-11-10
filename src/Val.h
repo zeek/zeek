@@ -89,70 +89,21 @@ using TableValPtr = IntrusivePtr<TableVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
-#ifdef DEPRECATED
-union BroValUnion {
-	// Used for bool, int, enum.
-	bro_int_t int_val;
-
-	// Used for count, counter, port.
-	bro_uint_t uint_val;
-
-	// Used for addr
-	IPAddr* addr_val;
-
-	// Used for subnet
-	IPPrefix* subnet_val;
-
-	// Used for double, time, interval.
-	double double_val;
-
-	String* string_val;
-	RE_Matcher* re_val;
-	Func* func_val;
-	File* file_val;
-	PDict<TableEntryVal>* table_val;
-	std::vector<ValPtr>* record_val;
-	std::vector<ValPtr>* vector_val;
-
-	BroValUnion() = default;
-
-	constexpr BroValUnion(bro_int_t value) noexcept
-		: int_val(value) {}
-
-	constexpr BroValUnion(bro_uint_t value) noexcept
-		: uint_val(value) {}
-
-	constexpr BroValUnion(IPAddr* value) noexcept
-		: addr_val(value) {}
-
-	constexpr BroValUnion(IPPrefix* value) noexcept
-		: subnet_val(value) {}
-
-	constexpr BroValUnion(double value) noexcept
-		: double_val(value) {}
-
-	constexpr BroValUnion(String* value) noexcept
-		: string_val(value) {}
-
-	constexpr BroValUnion(RE_Matcher* value) noexcept
-		: re_val(value) {}
-
-	constexpr BroValUnion(Func* value) noexcept
-		: func_val(value) {}
-
-	constexpr BroValUnion(File* value) noexcept
-		: file_val(value) {}
-
-	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
-		: table_val(value) {}
-};
-#endif
-
 class Val : public Obj {
 public:
 	static inline const ValPtr nil;
 
 #ifdef DEPRECATED
+	// We need to decide whether to keep these.  It will be a pain
+	// since it's no longer possible to build these as Val objects.
+	// Instead, we'd need to (1) extend Val's to include an optional
+	// pointer-to-another-Val, (2) implement these constructors by
+	// constructing the proper Val subclass in addition, tracking
+	// it using the pointer, (3) redirect calls to the dependent methods
+	// to go to the subclass instead (tricky to get right), (4) destruct
+	// the additional subclass (easy), and (5) figure out how to test
+	// whether all the surgery works (seems quite hard).
+
 	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
 	Val(double d, TypeTag t)
 		: val(d), type(base_type(t))
@@ -320,18 +271,6 @@ protected:
 	static ValPtr MakeBool(bool b);
 	static ValPtr MakeInt(bro_int_t i);
 	static ValPtr MakeCount(bro_uint_t u);
-
-#ifdef DEPRECATED
-	template<typename V>
-	Val(V&& v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t))
-		{}
-
-	template<typename V>
-	Val(V&& v, TypePtr t) noexcept
-		: val(std::forward<V>(v)), type(std::move(t))
-		{}
-#endif
 
 	explicit Val(TypePtr t) noexcept
 		: type(std::move(t))

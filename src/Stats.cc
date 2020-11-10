@@ -324,7 +324,7 @@ void ProfileLogger::Log()
 	if ( profiling_update )
 		{
 		event_mgr.Dispatch(new Event(profiling_update, {
-					make_intrusive<Val>(IntrusivePtr{NewRef{}, file}),
+					make_intrusive<FileVal>(IntrusivePtr{NewRef{}, file}),
 					val_mgr->Bool(expensive),
 					}));
 		}

@@ -369,11 +369,11 @@ bool Reporter::PermitFlowWeird(const char* name,
 
 bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
 	{
-	auto conn_tuple = std::make_tuple(conn_id.GetField("orig_h")->AsAddr(),
-	                                  conn_id.GetField("resp_h")->AsAddr(),
-	                                  conn_id.GetField("orig_p")->AsPortVal()->Port(),
-	                                  conn_id.GetField("resp_p")->AsPortVal()->Port(),
-	                                  conn_id.GetField("resp_p")->AsPortVal()->PortType());
+	auto conn_tuple = std::make_tuple(conn_id.GetAddrField("orig_h"),
+	                                  conn_id.GetAddrField("resp_h"),
+	                                  conn_id.GetPortValField("orig_p")->Port(),
+	                                  conn_id.GetPortValField("resp_p")->Port(),
+	                                  conn_id.GetPortValField("resp_p")->PortType());
 
 	auto& map = expired_conn_weird_state[conn_tuple];
 

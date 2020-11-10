@@ -436,7 +436,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( ! args->GetField(0) )
 		return false;
 
-	auto event_name = args->GetField(0)->AsString()->CheckString();
+	auto event_name = args->GetStringField(0)->CheckString();
 	auto vv = args->GetField(1)->AsVectorVal();
 	broker::vector xs;
 	xs.reserve(vv->Size());

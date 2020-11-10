@@ -1432,7 +1432,7 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
 
-	auto& vv = *v->AsVector();
+	auto vv = dynamic_cast<VectorVal*>(v);
 
 	if ( comp )
 		{
@@ -1447,14 +1447,14 @@ function sort%(v: any, ...%) : any
 
 		sort_function_comp = comp;
 
-		sort(vv.begin(), vv.end(), sort_function);
+		vv->Sort(sort_function);
 		}
 	else
 		{
 		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			sort(vv.begin(), vv.end(), unsigned_sort_function);
+			vv->Sort(unsigned_sort_function);
 		else
-			sort(vv.begin(), vv.end(), signed_sort_function);
+			vv->Sort(signed_sort_function);
 		}
 
 	return rval;
@@ -1502,8 +1502,8 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
 
-	auto& vv = *v->AsVector();
-	auto n = vv.size();
+	auto vv = dynamic_cast<VectorVal*>(v);
+	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
@@ -1513,7 +1513,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map.emplace_back(&vv[i]);
+		index_map.emplace_back(&vv->At(i));
 		}
 
 	if ( comp )
@@ -2410,15 +2410,17 @@ function addr_to_counts%(a: addr%): index_vec
 ## .. zeek:see:: addr_to_counts
 function counts_to_addr%(v: index_vec%): addr
 	%{
-	if ( v->AsVector()->size() == 1 )
+	auto vv = dynamic_cast<VectorVal*>(v);
+
+	if ( vv->Size() == 1 )
 		{
-		return zeek::make_intrusive<zeek::AddrVal>(htonl((*v->AsVector())[0]->AsCount()));
+		return zeek::make_intrusive<zeek::AddrVal>(htonl(vv->CountAt(0)));
 		}
-	else if ( v->AsVector()->size() == 4 )
+	else if ( vv->Size() == 4 )
 		{
 		uint32_t bytes[4];
 		for ( int i = 0; i < 4; ++i )
-			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
+			bytes[i] = htonl(vv->CountAt(i));
 		return zeek::make_intrusive<zeek::AddrVal>(bytes);
 		}
 	else
@@ -3526,13 +3528,13 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(zeek::Val* c)
 	{
-	const auto& id = (*(c->AsRecord()))[0];
-	auto vl = id->AsRecord();
+	auto id = dynamic_cast<const zeek::RecordVal*>(c)->GetField(0);
+	auto id_r = dynamic_cast<const zeek::RecordVal*>(id.get());
 
-	const zeek::IPAddr& orig_h = (*vl)[0]->AsAddr();
-	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
-	const zeek::IPAddr& resp_h = (*vl)[2]->AsAddr();
-	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
+	const zeek::IPAddr& orig_h = id_r->GetAddrField(0);
+	uint32_t orig_p = id_r->GetPortValField(1)->Port();
+	const zeek::IPAddr& resp_h = id_r->GetAddrField(2);
+	uint32_t resp_p = id_r->GetPortValField(3)->Port();
 
 	return zeek::util::fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
 	                       resp_h.AsString().c_str(), resp_p);
@@ -3652,14 +3654,14 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		auto pkt_vl = pkt->AsRecord();
+		auto pkt_r = dynamic_cast<RecordVal*>(pkt);
 
-		ts.tv_sec = (*pkt_vl)[0]->AsCount();
-		ts.tv_usec = (*pkt_vl)[1]->AsCount();
-		caplen = (*pkt_vl)[2]->AsCount();
-		len = (*pkt_vl)[3]->AsCount();
-		data = (*pkt_vl)[4]->AsString()->Bytes();
-		link_type = (*pkt_vl)[5]->AsEnum();
+		ts.tv_sec = pkt_r->GetCountField(0);
+		ts.tv_usec = pkt_r->GetCountField(1);
+		caplen = pkt_r->GetCountField(2);
+		len = pkt_r->GetCountField(3);
+		data = pkt_r->GetStringField(4)->Bytes();
+		link_type = pkt_r->GetEnumField(5);
 		Packet p(link_type, &ts, caplen, len, data, true);
 
 		addl_pkt_dumper->Dump(&p);
@@ -4592,9 +4594,9 @@ function open%(f: string%): file
 	const char* file = f->CheckString();
 
 	if ( zeek::util::streq(file, "-") )
-		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
+		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
 	else
-		return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(file, "w"));
+		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(file, "w"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4609,7 +4611,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return zeek::make_intrusive<zeek::Val>(zeek::make_intrusive<zeek::File>(f->CheckString(), "a"));
+	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(f->CheckString(), "a"));
 	%}
 
 ## Closes an open file and flushes any buffered content.

@@ -1225,7 +1225,7 @@ static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)
 Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	{
 	Supervisor::NodeConfig rval;
-	rval.name = node->GetField("name")->AsString()->CheckString();
+	rval.name = node->GetStringField("name")->CheckString();
 	const auto& iface_val = node->GetField("interface");
 
 	if ( iface_val )
@@ -1273,9 +1273,9 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		auto rv = v->GetVal()->AsRecordVal();
 
 		Supervisor::ClusterEndpoint ep;
-		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->GetField("role")->AsEnum());
-		ep.host = rv->GetField("host")->AsAddr().AsString();
-		ep.port = rv->GetField("p")->AsPortVal()->Port();
+		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->GetEnumField("role"));
+		ep.host = rv->GetAddrField("host").AsString();
+		ep.port = rv->GetPortValField("p")->Port();
 
 		const auto& iface = rv->GetField("interface");
 

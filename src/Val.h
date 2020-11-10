@@ -88,66 +88,20 @@ using TableValPtr = IntrusivePtr<TableVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
-union BroValUnion {
-	// Used for bool, int, enum.
-	bro_int_t int_val;
-
-	// Used for count, counter, port.
-	bro_uint_t uint_val;
-
-	// Used for addr
-	IPAddr* addr_val;
-
-	// Used for subnet
-	IPPrefix* subnet_val;
-
-	// Used for double, time, interval.
-	double double_val;
-
-	String* string_val;
-	Func* func_val;
-	File* file_val;
-	RE_Matcher* re_val;
-	PDict<TableEntryVal>* table_val;
-	std::vector<ValPtr>* record_val;
-	std::vector<ValPtr>* vector_val;
-
-	BroValUnion() = default;
-
-	constexpr BroValUnion(bro_int_t value) noexcept
-		: int_val(value) {}
-
-	constexpr BroValUnion(bro_uint_t value) noexcept
-		: uint_val(value) {}
-
-	constexpr BroValUnion(IPAddr* value) noexcept
-		: addr_val(value) {}
-
-	constexpr BroValUnion(IPPrefix* value) noexcept
-		: subnet_val(value) {}
-
-	constexpr BroValUnion(double value) noexcept
-		: double_val(value) {}
-
-	constexpr BroValUnion(String* value) noexcept
-		: string_val(value) {}
-
-	constexpr BroValUnion(Func* value) noexcept
-		: func_val(value) {}
-
-	constexpr BroValUnion(File* value) noexcept
-		: file_val(value) {}
-
-	constexpr BroValUnion(RE_Matcher* value) noexcept
-		: re_val(value) {}
-
-	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
-		: table_val(value) {}
-};
-
 class Val : public Obj {
 public:
 	static inline const ValPtr nil;
+
+#ifdef DEPRECATED
+	// We need to decide whether to keep these.  It will be a pain
+	// since it's no longer possible to build these as Val objects.
+	// Instead, we'd need to (1) extend Val's to include an optional
+	// pointer-to-another-Val, (2) implement these constructors by
+	// constructing the proper Val subclass in addition, tracking
+	// it using the pointer, (3) redirect calls to the dependent methods
+	// to go to the subclass instead (tricky to get right), (4) destruct
+	// the additional subclass (easy), and (5) figure out how to test
+	// whether all the surgery works (seems quite hard).
 
 	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
 	Val(double d, TypeTag t)
@@ -163,6 +117,7 @@ public:
 	// Note, the file will be closed after this Val is destructed if there's
 	// no other remaining references.
 	explicit Val(FilePtr f);
+#endif
 
 	// Extra arg to differentiate from protected version.
 	Val(TypePtr t, bool type_type)
@@ -174,7 +129,7 @@ public:
 		{}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
+		: type(base_type(TYPE_ERROR))
 		{}
 
 	~Val() override;
@@ -221,89 +176,29 @@ public:
 	IntrusivePtr<T> GetType() const
 		{ return cast_intrusive<T>(type); }
 
-#define CONST_ACCESSOR(tag, ctype, accessor, name) \
-	const ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
-		return val.accessor; \
-		}
+#define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
+	ctype name() const;
 
-	// Needed for g++ 4.3's pickiness.
-#define CONST_ACCESSOR2(tag, ctype, accessor, name) \
-	ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
-		return val.accessor; \
-		}
-
-	CONST_ACCESSOR2(TYPE_BOOL, bool, int_val, AsBool)
-	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
-	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
-	CONST_ACCESSOR2(TYPE_DOUBLE, double, double_val, AsDouble)
-	CONST_ACCESSOR2(TYPE_TIME, double, double_val, AsTime)
-	CONST_ACCESSOR2(TYPE_INTERVAL, double, double_val, AsInterval)
-	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(TYPE_STRING, String*, string_val, AsString)
-	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
-	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
-	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
-
-	const IPPrefix& AsSubNet() const
-		{
-		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return *val.subnet_val;
-		}
+UNDERLYING_ACCESSOR_DECL(IntVal, bro_int_t, AsInt)
+UNDERLYING_ACCESSOR_DECL(BoolVal, bool, AsBool)
+UNDERLYING_ACCESSOR_DECL(EnumVal, int, AsEnum)
+UNDERLYING_ACCESSOR_DECL(CountVal, bro_uint_t, AsCount)
+UNDERLYING_ACCESSOR_DECL(DoubleVal, double, AsDouble)
+UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
+UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
+UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
+UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
+UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
+UNDERLYING_ACCESSOR_DECL(FuncVal, Func*, AsFunc)
+UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
+UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
+UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 
 	zeek::Type* AsType() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
 		return type.get();
 		}
-
-	const IPAddr& AsAddr() const
-		{
-		if ( type->Tag() != TYPE_ADDR )
-			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return *val.addr_val;
-		}
-
-#define ACCESSOR(tag, ctype, accessor, name) \
-	ctype name() \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", type_name) \
-		return val.accessor; \
-		}
-
-	// Accessors for mutable values are called AsNonConst* and
-	// are protected to avoid external state changes.
-	// ACCESSOR(TYPE_STRING, String*, string_val, AsString)
-	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
-	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
-
-	FuncPtr AsFuncPtr() const;
-
-	const IPPrefix& AsSubNet()
-		{
-		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return *val.subnet_val;
-		}
-
-	const IPAddr& AsAddr()
-		{
-		if ( type->Tag() != TYPE_ADDR )
-			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return *val.addr_val;
-		}
-
-	// Gives fast access to the bits of something that is one of
-	// bool, int, count, or counter.
-	bro_int_t ForceAsInt() const		{ return val.int_val; }
-	bro_uint_t ForceAsUInt() const		{ return val.uint_val; }
 
 	PatternVal* AsPatternVal();
 	const PatternVal* AsPatternVal() const;
@@ -361,6 +256,7 @@ public:
 
 protected:
 
+	// Friends with access to Clone().
 	friend class EnumType;
 	friend class ListVal;
 	friend class RecordVal;
@@ -375,22 +271,9 @@ protected:
 	static ValPtr MakeInt(bro_int_t i);
 	static ValPtr MakeCount(bro_uint_t u);
 
-	template<typename V>
-	Val(V&& v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t))
-		{}
-
-	template<typename V>
-	Val(V&& v, TypePtr t) noexcept
-		: val(std::forward<V>(v)), type(std::move(t))
-		{}
-
 	explicit Val(TypePtr t) noexcept
 		: type(std::move(t))
 		{}
-
-	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -405,7 +288,6 @@ protected:
 	ValPtr Clone(CloneState* state);
 	virtual ValPtr DoClone(CloneState* state);
 
-	BroValUnion val;
 	TypePtr type;
 
 #ifdef DEBUG
@@ -505,6 +387,67 @@ private:
 
 extern ValManager* val_mgr;
 
+class IntVal : public Val {
+public:
+	IntVal(bro_int_t v)
+		: Val(base_type(TYPE_INT)), int_val(v)
+		{}
+
+	bro_int_t UnderlyingVal() const	{ return int_val; }
+
+protected:
+	IntVal(bro_int_t v, TypePtr t)
+		: Val(std::move(t)), int_val(v)
+		{}
+
+	bro_int_t int_val;
+};
+
+class BoolVal final : public IntVal {
+public:
+	BoolVal(bro_int_t v)
+		: IntVal(v, base_type(TYPE_BOOL))
+		{}
+	BoolVal(bool b)
+		: BoolVal(bro_int_t(b))
+		{}
+
+	bool UnderlyingVal() const	{ return int_val; }
+};
+
+class CountVal : public Val {
+public:
+	CountVal(bro_uint_t v)
+		: Val(base_type(TYPE_COUNT)), uint_val(v)
+		{}
+
+	bro_uint_t UnderlyingVal() const	{ return uint_val; }
+
+protected:
+	CountVal(bro_uint_t v, TypePtr t)
+		: Val(std::move(t)), uint_val(v)
+		{}
+
+	bro_int_t uint_val;
+};
+
+class DoubleVal : public Val {
+public:
+	DoubleVal(double v)
+		: Val(base_type(TYPE_DOUBLE)), double_val(v)
+		{}
+
+	double UnderlyingVal() const	{ return double_val; }
+
+protected:
+	DoubleVal(double v, TypePtr t)
+		: Val(std::move(t)), double_val(v)
+		{}
+
+private:
+	double double_val;
+};
+
 #define Microseconds 1e-6
 #define Milliseconds 1e-3
 #define Seconds 1.0
@@ -512,31 +455,24 @@ extern ValManager* val_mgr;
 #define Hours (60*Minutes)
 #define Days (24*Hours)
 
-class IntervalVal final : public Val {
+class IntervalVal final : public DoubleVal {
 public:
 	IntervalVal(double quantity, double units = Seconds)
-		: Val(quantity * units, base_type(TYPE_INTERVAL))
+		: DoubleVal(quantity * units, base_type(TYPE_INTERVAL))
 		{}
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 };
 
-class TimeVal final : public Val {
+class TimeVal final : public DoubleVal {
 public:
 	TimeVal(double t)
-		: Val(t, base_type(TYPE_TIME))
+		: DoubleVal(t, base_type(TYPE_TIME))
 		{}
 };
 
-class DoubleVal final : public Val {
-public:
-	DoubleVal(double v)
-		: Val(v, base_type(TYPE_DOUBLE))
-		{}
-};
-
-class PortVal final : public Val {
+class PortVal final : public CountVal {
 public:
 	ValPtr SizeVal() const override;
 
@@ -585,10 +521,15 @@ public:
 	explicit AddrVal(const uint32_t addr[4]); // IPv6.
 	explicit AddrVal(const IPAddr& addr);
 
+	const IPAddr& UnderlyingVal() const	{ return *addr_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	IPAddr* addr_val;
 };
 
 class SubNetVal final : public Val {
@@ -609,11 +550,16 @@ public:
 
 	bool Contains(const IPAddr& addr) const;
 
+	const IPPrefix& UnderlyingVal() const	{ return *subnet_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	IPPrefix* subnet_val;
 };
 
 class StringVal final : public Val {
@@ -622,6 +568,7 @@ public:
 	explicit StringVal(const char* s);
 	explicit StringVal(const std::string& s);
 	StringVal(int length, const char* s);
+	~StringVal() override;
 
 	ValPtr SizeVal() const override;
 
@@ -637,6 +584,8 @@ public:
 	std::string ToStdString() const;
 	StringVal* ToUpper();
 
+	const String* UnderlyingVal() const	{ return string_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 	StringValPtr Replace(RE_Matcher* re, const String& repl,
@@ -649,6 +598,43 @@ public:
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	String* string_val;
+};
+
+class FuncVal final : public Val {
+public:
+	explicit FuncVal(FuncPtr f);
+
+	FuncPtr AsFuncPtr() const;
+
+	ValPtr SizeVal() const override;
+
+	Func* UnderlyingVal() const	{ return func_val.get(); }
+
+protected:
+	void ValDescribe(ODesc* d) const override;
+	ValPtr DoClone(CloneState* state) override;
+
+private:
+	FuncPtr func_val;
+};
+
+class FileVal final : public Val {
+public:
+	explicit FileVal(FilePtr f);
+
+	ValPtr SizeVal() const override;
+
+	File* UnderlyingVal() const	{ return file_val.get(); }
+
+protected:
+	void ValDescribe(ODesc* d) const override;
+	ValPtr DoClone(CloneState* state) override;
+
+private:
+	FilePtr file_val;
 };
 
 class PatternVal final : public Val {
@@ -660,11 +646,19 @@ public:
 
 	void SetMatcher(RE_Matcher* re);
 
+	bool MatchExactly(const String* s) const;
+	bool MatchAnywhere(const String* s) const;
+
+	const RE_Matcher* UnderlyingVal() const	{ return re_val; }
+
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	RE_Matcher* re_val;
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -754,7 +748,7 @@ protected:
 
 	ValPtr val;
 
-	// The next entry stores seconds since Bro's start.  We use ints here
+	// The next entry stores seconds since Zeek's start.  We use ints here
 	// to save a few bytes, as we do not need a high resolution for these
 	// anyway.
 	int expire_access_time;
@@ -997,6 +991,9 @@ public:
 	const detail::AttributesPtr& GetAttrs() const
 		{ return attrs; }
 
+	const PDict<TableEntryVal>* UnderlyingVal() const
+		{ return table_val; }
+
 	// Returns the size of the table.
 	int Size() const;
 	int RecursiveSize() const;
@@ -1104,6 +1101,9 @@ protected:
 	// Sends data on to backing Broker Store
 	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
 
+	// Low-level insertion, not publicly available.
+	void Insert(detail::HashKey* k, TableEntryVal* tev);
+
 	ValPtr DoClone(CloneState* state) override;
 
 	TableTypePtr table_type;
@@ -1122,6 +1122,9 @@ protected:
 
 	static TableRecordDependencies parse_time_table_record_dependencies;
 	static ParseTimeTableStates parse_time_table_states;
+
+private:
+	PDict<TableEntryVal>* table_val;
 };
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
@@ -1158,9 +1161,29 @@ public:
 	void Assign(int field, std::nullptr_t)
 		{ Assign(field, ValPtr{}); }
 
-	[[deprecated("Remove in v4.1.  Use GetField().")]]
-	Val* Lookup(int field) const	// Does not Ref() value.
-		{ return (*AsRecord())[field].get(); }
+	/**
+	 * Appends a value to the record's fields.  The caller is responsible
+	 * for ensuring that fields are appended in the correct orer and
+	 * with the correct type.
+	 * @param v  The value to append.
+	 */
+	void AppendField(ValPtr v)
+		{ record_val->emplace_back(std::move(v)); }
+
+	/**
+	 * Ensures that the record has enough internal storage for the
+	 * given number of fields.
+	 * @param n  The number of fields.
+	 */
+	void Reserve(unsigned int n)
+		{ record_val->reserve(n); }
+
+	/**
+	 * Returns the number of fields in the record.
+	 * @return  The number of fields in the record.
+	 */
+	unsigned int NumFields()
+		{ return record_val->size(); }
 
 	/**
 	 * Returns the value of a given field index.
@@ -1168,7 +1191,7 @@ public:
 	 * @return  The value at the given field index.
 	 */
 	const ValPtr& GetField(int field) const
-		{ return (*AsRecord())[field]; }
+		{ return (*record_val)[field]; }
 
 	/**
 	 * Returns the value of a given field index as cast to type @c T.
@@ -1233,6 +1256,27 @@ public:
 	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
 		{ return cast_intrusive<T>(GetField(field)); }
 
+	// The following return the given field converted to a particular
+	// underlying value.  We provide these to enable efficient
+	// access to record fields (without requiring an intermediary Val)
+	// if we change the underlying representation of records.
+#define GET_FIELD_AS(ctype, name ) \
+	ctype Get ## name ## Field(int field) const \
+		{ return GetField(field)->As ## name(); } \
+	ctype Get ## name ## Field(const char* field) const \
+		{ return GetField(field)->As ## name(); }
+
+	GET_FIELD_AS(bool, Bool)
+	GET_FIELD_AS(int, Enum)
+	GET_FIELD_AS(bro_int_t, Int)
+	GET_FIELD_AS(bro_uint_t, Count)
+	GET_FIELD_AS(double, Double)
+	GET_FIELD_AS(double, Time)
+	GET_FIELD_AS(double, Interval)
+	GET_FIELD_AS(const PortVal*, PortVal)
+	GET_FIELD_AS(const IPAddr&, Addr)
+	GET_FIELD_AS(const String*, String)
+
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
 	 * exist in the record type, it's an internal error: abort.
@@ -1293,11 +1337,16 @@ protected:
 
 	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;
+
+private:
+	std::vector<ValPtr>* record_val;
 };
 
-class EnumVal final : public Val {
+class EnumVal final : public IntVal {
 public:
 	ValPtr SizeVal() const override;
+
+	int UnderlyingVal() const	{ return int_val; }
 
 protected:
 	friend class Val;
@@ -1306,7 +1355,7 @@ protected:
 	template<class T, class... Ts>
 	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(EnumTypePtr t, bro_int_t i) : Val(i, std::move(t))
+	EnumVal(EnumTypePtr t, bro_int_t i) : IntVal(i, std::move(t))
 		{}
 
 	void ValDescribe(ODesc* d) const override;
@@ -1374,6 +1423,16 @@ public:
 	 */
 	const ValPtr& At(unsigned int index) const;
 
+	/**
+	 * Returns the given element treated as a Count type, to efficiently
+	 * support a common type of vector access if we change the underlying
+	 * vector representation.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element's value, as a Count underlying representation.
+	 */
+	bro_uint_t CountAt(unsigned int index) const
+		{ return At(index)->AsCount(); }
+
 	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(unsigned int index) const
 		{ return At(index).get(); }
@@ -1385,7 +1444,7 @@ public:
 		return At(static_cast<unsigned int>(i)).get();
 		}
 
-	unsigned int Size() const { return val.vector_val->size(); }
+	unsigned int Size() const { return vector_val->size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.
@@ -1393,6 +1452,9 @@ public:
 
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
+
+	// Reserves storage for at least the number of elements.
+	void Reserve(unsigned int num_elements);
 
 	notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
@@ -1413,10 +1475,42 @@ public:
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);
 
+	/**
+	 * Sorts the vector in place, using the given comparison function.
+	 * @param cmp_func  Comparison function for vector elements.
+	 */
+	void Sort(bool cmp_func(const ValPtr& a, const ValPtr& b));
+
+	const std::vector<ValPtr>* UnderlyingVal() const
+		{ return vector_val; }
+
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	std::vector<ValPtr>* vector_val;
 };
+
+#define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \
+	inline ctype Val::name() const \
+		{ return dynamic_cast<const ztype*>(this)->UnderlyingVal(); }
+
+UNDERLYING_ACCESSOR_DEF(IntVal, bro_int_t, AsInt)
+UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)
+UNDERLYING_ACCESSOR_DEF(EnumVal, int, AsEnum)
+UNDERLYING_ACCESSOR_DEF(CountVal, bro_uint_t, AsCount)
+UNDERLYING_ACCESSOR_DEF(DoubleVal, double, AsDouble)
+UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
+UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)
+UNDERLYING_ACCESSOR_DEF(SubNetVal, const IPPrefix&, AsSubNet)
+UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
+UNDERLYING_ACCESSOR_DEF(StringVal, const String*, AsString)
+UNDERLYING_ACCESSOR_DEF(FuncVal, Func*, AsFunc)
+UNDERLYING_ACCESSOR_DEF(FileVal, File*, AsFile)
+UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
+UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
+
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version.

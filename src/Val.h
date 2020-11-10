@@ -266,7 +266,6 @@ UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
 UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
-UNDERLYING_ACCESSOR_DECL(RecordVal, const std::vector<ValPtr>*, AsRecord)
 UNDERLYING_ACCESSOR_DECL(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 	zeek::Type* AsType() const
@@ -350,6 +349,7 @@ UNDERLYING_ACCESSOR_DECL(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 protected:
 
+	// Friends with access to Clone().
 	friend class EnumType;
 	friend class ListVal;
 	friend class RecordVal;
@@ -1189,10 +1189,17 @@ public:
 	/**
 	 * Ensures that the record has enough internal storage for the
 	 * given number of fields.
-	 * param n  The number of fields.
+	 * @param n  The number of fields.
 	 */
 	void Reserve(unsigned int n)
 		{ record_val->reserve(n); }
+
+	/**
+	 * Returns the number of fields in the record.
+	 * @return  The number of fields in the record.
+	 */
+	unsigned int NumFields()
+		{ return record_val->size(); }
 
 	/**
 	 * Returns the value of a given field index.
@@ -1200,7 +1207,7 @@ public:
 	 * @return  The value at the given field index.
 	 */
 	const ValPtr& GetField(int field) const
-		{ return (*AsRecord())[field]; }
+		{ return (*record_val)[field]; }
 
 	/**
 	 * Returns the value of a given field index as cast to type @c T.
@@ -1305,9 +1312,6 @@ public:
 	                      bool allow_orphaning = false) const;
 	RecordValPtr CoerceTo(RecordTypePtr other,
 	                      bool allow_orphaning = false);
-
-	const std::vector<ValPtr>* UnderlyingVal() const
-		{ return record_val; }
 
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
@@ -1483,7 +1487,6 @@ UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DEF(StringVal, const String*, AsString)
 UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
-UNDERLYING_ACCESSOR_DEF(RecordVal, const std::vector<ValPtr>*, AsRecord)
 UNDERLYING_ACCESSOR_DEF(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 

@@ -1478,7 +1478,7 @@ TableVal::~TableVal()
 		detail::timer_mgr->Cancel(timer);
 
 	delete table_hash;
-	delete AsTable();
+	delete table_val;
 	delete subnets;
 	}
 
@@ -1492,12 +1492,12 @@ void TableVal::RemoveAll()
 
 int TableVal::Size() const
 	{
-	return AsTable()->Length();
+	return table_val->Length();
 	}
 
 int TableVal::RecursiveSize() const
 	{
-	int n = AsTable()->Length();
+	int n = table_val->Length();
 
 	if ( GetType()->IsSet() ||
 	     GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
@@ -1676,12 +1676,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 		return false;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	detail::HashKey* k;
 	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( (v = table_val->NextEntry(k, c)) )
 		{
 		std::unique_ptr<detail::HashKey> hk{k};
 
@@ -1724,11 +1723,10 @@ bool TableVal::RemoveFrom(Val* val) const
 		return false;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	detail::HashKey* k;
-	while ( tbl->NextEntry(k, c) )
+	while ( table_val->NextEntry(k, c) )
 		{
 		// Not sure that this is 100% sound, since the HashKey
 		// comes from one table but is being used in another.
@@ -1746,7 +1744,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 	{
 	auto result = make_intrusive<TableVal>(table_type);
 
-	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t0 = table_val;
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	// Figure out which is smaller; assign it to t1.
@@ -1774,7 +1772,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 
 bool TableVal::EqualTo(const TableVal& tv) const
 	{
-	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t0 = table_val;
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() != t1->Length() )
@@ -1801,7 +1799,7 @@ bool TableVal::EqualTo(const TableVal& tv) const
 
 bool TableVal::IsSubsetOf(const TableVal& tv) const
 	{
-	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t0 = table_val;
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() > t1->Length() )
@@ -1981,15 +1979,13 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 		return Val::nil;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-
-	if ( tbl->Length() > 0 )
+	if ( table_val->Length() > 0 )
 		{
 		auto k = MakeHashKey(*index);
 
 		if ( k )
 			{
-			TableEntryVal* v = AsTable()->Lookup(k.get());
+			TableEntryVal* v = table_val->Lookup(k.get());
 
 			if ( v )
 				{
@@ -2097,7 +2093,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 		if ( ! k )
 			return false;
 
-		v = AsTable()->Lookup(k.get());
+		v = table_val->Lookup(k.get());
 		}
 
 	if ( ! v )
@@ -2368,11 +2364,10 @@ ListValPtr TableVal::ToListVal(TypeTag t) const
 	{
 	auto l = make_intrusive<ListVal>(t);
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	detail::HashKey* k;
-	while ( tbl->NextEntry(k, c) )
+	while ( table_val->NextEntry(k, c) )
 		{
 		auto index = table_hash->RecoverVals(*k);
 
@@ -2422,8 +2417,7 @@ const detail::AttrPtr& TableVal::GetAttr(detail::AttrTag t) const
 
 void TableVal::Describe(ODesc* d) const
 	{
-	const PDict<TableEntryVal>* tbl = AsTable();
-	int n = tbl->Length();
+	int n = table_val->Length();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
@@ -2439,12 +2433,12 @@ void TableVal::Describe(ODesc* d) const
 		d->PushIndent();
 		}
 
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	for ( int i = 0; i < n; ++i )
 		{
 		detail::HashKey* k;
-		TableEntryVal* v = tbl->NextEntry(k, c);
+		TableEntryVal* v = table_val->NextEntry(k, c);
 
 		if ( ! v )
 			reporter->InternalError("hash table underflow in TableVal::Describe");
@@ -2496,7 +2490,7 @@ void TableVal::Describe(ODesc* d) const
 			}
 		}
 
-	if ( tbl->NextEntry(c) )
+	if ( table_val->NextEntry(c) )
 		reporter->InternalError("hash table overflow in TableVal::Describe");
 
 	if ( d->IsPortable() || d->IsReadable() )
@@ -2779,12 +2773,11 @@ ValPtr TableVal::DoClone(CloneState* state)
 	auto tv = make_intrusive<TableVal>(table_type);
 	state->NewClone(this, tv);
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* cookie = tbl->InitForIteration();
+	IterCookie* cookie = table_val->InitForIteration();
 
 	detail::HashKey* key;
 	TableEntryVal* val;
-	while ( (val = tbl->NextEntry(key, cookie)) )
+	while ( (val = table_val->NextEntry(key, cookie)) )
 		{
 		TableEntryVal* nval = val->Clone(state);
 		tv->Insert(key, nval);
@@ -2873,15 +2866,14 @@ void TableVal::DoneParsing()
 
 TableVal::ParseTimeTableState TableVal::DumpTableState()
 	{
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* cookie = tbl->InitForIteration();
+	IterCookie* cookie = table_val->InitForIteration();
 
 	detail::HashKey* key;
 	TableEntryVal* val;
 
 	ParseTimeTableState rval;
 
-	while ( (val = tbl->NextEntry(key, cookie)) )
+	while ( (val = table_val->NextEntry(key, cookie)) )
 		{
 		rval.emplace_back(RecreateIndex(*key), val->GetVal());
 		delete key;
@@ -3000,7 +2992,7 @@ void RecordVal::Assign(int field, Val* new_val)
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
 	{
-	const auto& val = (*AsRecord())[field];
+	const auto& val = (*record_val)[field];
 
 	if ( val )
 		return val;
@@ -3019,7 +3011,7 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		int current_length = rv->AsRecord()->size();
+		int current_length = rv->NumFields();
 		auto required_length = rt->NumFields();
 
 		if ( required_length > current_length )
@@ -3136,8 +3128,7 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto vl = AsRecord();
-	auto n = vl->size();
+	auto n = record_val->size();
 	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -3160,7 +3151,7 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		const auto& v = (*vl)[i];
+		const auto& v = (*record_val)[i];
 
 		if ( v )
 			v->Describe(d);
@@ -3174,8 +3165,7 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto vl = AsRecord();
-	auto n = vl->size();
+	auto n = record_val->size();
 	auto record_type = GetType()->AsRecordType();
 
 	d->Add("{");
@@ -3189,7 +3179,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 		d->Add(record_type->FieldName(i));
 		d->Add("=");
 
-		const auto& v = (*vl)[i];
+		const auto& v = (*record_val)[i];
 
 		if ( v )
 			v->Describe(d);
@@ -3224,7 +3214,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	const auto& vl = *AsRecord();
+	const auto& vl = *record_val;
 
 	for ( const auto& v : vl )
 		{

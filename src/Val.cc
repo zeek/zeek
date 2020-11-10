@@ -158,8 +158,8 @@ ValPtr Val::DoClone(CloneState* state)
 bool Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		return val.int_val == 0;
-	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 0;
+	case TYPE_INTERNAL_INT:		return AsInt() == 0;
+	case TYPE_INTERNAL_UNSIGNED:	return AsCount() == 0;
 	case TYPE_INTERNAL_DOUBLE:	return AsDouble() == 0.0;
 
 	default:			return false;
@@ -169,8 +169,8 @@ bool Val::IsZero() const
 bool Val::IsOne() const
 	{
 	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		return val.int_val == 1;
-	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 1;
+	case TYPE_INTERNAL_INT:		return AsInt() == 1;
+	case TYPE_INTERNAL_UNSIGNED:	return AsCount() == 1;
 	case TYPE_INTERNAL_DOUBLE:	return AsDouble() == 1.0;
 
 	default:			return false;
@@ -180,10 +180,10 @@ bool Val::IsOne() const
 bro_int_t Val::InternalInt() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return val.int_val;
+		return AsInt();
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		// ### should check here for overflow
-		return static_cast<bro_int_t>(val.uint_val);
+		return static_cast<bro_int_t>(AsCount());
 	else
 		InternalWarning("bad request for InternalInt");
 
@@ -193,7 +193,7 @@ bro_int_t Val::InternalInt() const
 bro_uint_t Val::InternalUnsigned() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return val.uint_val;
+		return AsCount();
 	else
 		InternalWarning("bad request for InternalUnsigned");
 
@@ -213,9 +213,9 @@ double Val::InternalDouble() const
 bro_int_t Val::CoerceToInt() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return val.int_val;
+		return AsInt();
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return static_cast<bro_int_t>(val.uint_val);
+		return static_cast<bro_int_t>(AsCount());
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
 		return static_cast<bro_int_t>(AsDouble());
 	else
@@ -227,9 +227,9 @@ bro_int_t Val::CoerceToInt() const
 bro_uint_t Val::CoerceToUnsigned() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return val.uint_val;
+		return AsCount();
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return static_cast<bro_uint_t>(val.int_val);
+		return static_cast<bro_uint_t>(AsInt());
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
 		return static_cast<bro_uint_t>(AsDouble());
 	else
@@ -243,9 +243,9 @@ double Val::CoerceToDouble() const
 	if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
 		return AsDouble();
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return static_cast<double>(val.int_val);
+		return static_cast<double>(AsInt());
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return static_cast<double>(val.uint_val);
+		return static_cast<double>(AsCount());
 	else
 		InternalWarning("bad request for CoerceToDouble");
 
@@ -258,13 +258,13 @@ ValPtr Val::SizeVal() const
 	case TYPE_INTERNAL_INT:
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
-		if ( val.int_val < 0 )
-			return val_mgr->Count(-val.int_val);
+		if ( AsInt() < 0 )
+			return val_mgr->Count(-AsInt());
 		else
-			return val_mgr->Count(val.int_val);
+			return val_mgr->Count(AsInt());
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(val.uint_val);
+		return val_mgr->Count(AsCount());
 
 	case TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<DoubleVal>(fabs(AsDouble()));
@@ -318,8 +318,8 @@ void Val::ValDescribe(ODesc* d) const
 		}
 
 	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		d->Add(val.int_val); break;
-	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
+	case TYPE_INTERNAL_INT:		d->Add(AsInt()); break;
+	case TYPE_INTERNAL_UNSIGNED:	d->Add(AsCount()); break;
 	case TYPE_INTERNAL_DOUBLE:	d->Add(AsDouble()); break;
 	case TYPE_INTERNAL_STRING:	d->AddBytes(AsString()); break;
 
@@ -726,7 +726,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 
 ValPtr PortVal::SizeVal() const
 	{
-	return val_mgr->Int(val.uint_val);
+	return val_mgr->Int(uint_val);
 	}
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
@@ -760,13 +760,13 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p) : Val(bro_uint_t(p), TYPE_PORT)
+PortVal::PortVal(uint32_t p) : CountVal(bro_uint_t(p), base_type(TYPE_PORT))
 	{
 	}
 
 uint32_t PortVal::Port() const
 	{
-	uint32_t p = static_cast<uint32_t>(val.uint_val);
+	uint32_t p = static_cast<uint32_t>(uint_val);
 	return p & ~PORT_SPACE_MASK;
 	}
 
@@ -784,22 +784,22 @@ string PortVal::Protocol() const
 
 bool PortVal::IsTCP() const
 	{
-	return (val.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
+	return (uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
 	}
 
 bool PortVal::IsUDP() const
 	{
-	return (val.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
+	return (uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
 	}
 
 bool PortVal::IsICMP() const
 	{
-	return (val.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
+	return (uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
 	}
 
 void PortVal::ValDescribe(ODesc* d) const
 	{
-	uint32_t p = static_cast<uint32_t>(val.uint_val);
+	uint32_t p = static_cast<uint32_t>(uint_val);
 	d->Add(p & ~PORT_SPACE_MASK);
 	d->Add("/");
 	d->Add(Protocol());
@@ -3239,12 +3239,12 @@ unsigned int RecordVal::MemoryAllocation() const
 
 ValPtr EnumVal::SizeVal() const
 	{
-	return val_mgr->Int(val.int_val);
+	return val_mgr->Int(AsInt());
 	}
 
 void EnumVal::ValDescribe(ODesc* d) const
 	{
-	const char* ename = type->AsEnumType()->Lookup(val.int_val);
+	const char* ename = type->AsEnumType()->Lookup(int_val);
 
 	if ( ! ename )
 		ename = "<undefined>";
@@ -3707,17 +3707,17 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 
 ValPtr Val::MakeBool(bool b)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(bro_int_t(b), TYPE_BOOL)};
+	return make_intrusive<BoolVal>(b);
 	}
 
 ValPtr Val::MakeInt(bro_int_t i)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(i, TYPE_INT)};
+	return make_intrusive<IntVal>(i);
 	}
 
 ValPtr Val::MakeCount(bro_uint_t u)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(u, TYPE_COUNT)};
+	return make_intrusive<CountVal>(u);
 	}
 
 ValManager::ValManager()

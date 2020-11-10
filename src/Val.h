@@ -89,6 +89,7 @@ using TableValPtr = IntrusivePtr<TableVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
+#ifdef DEPRECATED
 union BroValUnion {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -96,7 +97,6 @@ union BroValUnion {
 	// Used for count, counter, port.
 	bro_uint_t uint_val;
 
-#ifdef DEPRECATED
 	// Used for addr
 	IPAddr* addr_val;
 
@@ -113,7 +113,6 @@ union BroValUnion {
 	PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
 	std::vector<ValPtr>* vector_val;
-#endif
 
 	BroValUnion() = default;
 
@@ -123,7 +122,6 @@ union BroValUnion {
 	constexpr BroValUnion(bro_uint_t value) noexcept
 		: uint_val(value) {}
 
-#ifdef DEPRECATED
 	constexpr BroValUnion(IPAddr* value) noexcept
 		: addr_val(value) {}
 
@@ -147,8 +145,8 @@ union BroValUnion {
 
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
-#endif
 };
+#endif
 
 class Val : public Obj {
 public:
@@ -181,7 +179,7 @@ public:
 		{}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
+		: type(base_type(TYPE_ERROR))
 		{}
 
 	~Val() override;
@@ -228,29 +226,13 @@ public:
 	IntrusivePtr<T> GetType() const
 		{ return cast_intrusive<T>(type); }
 
-#define CONST_ACCESSOR(tag, ctype, accessor, name) \
-	const ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
-		return val.accessor; \
-		}
-
-	// Needed for g++ 4.3's pickiness.
-#define CONST_ACCESSOR2(tag, ctype, accessor, name) \
-	ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
-		return val.accessor; \
-		}
-
-	CONST_ACCESSOR2(TYPE_BOOL, bool, int_val, AsBool)
-	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
-	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
-	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
-
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
 	ctype name() const;
 
+UNDERLYING_ACCESSOR_DECL(IntVal, bro_int_t, AsInt)
+UNDERLYING_ACCESSOR_DECL(BoolVal, bool, AsBool)
+UNDERLYING_ACCESSOR_DECL(EnumVal, int, AsEnum)
+UNDERLYING_ACCESSOR_DECL(CountVal, bro_uint_t, AsCount)
 UNDERLYING_ACCESSOR_DECL(DoubleVal, double, AsDouble)
 UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
@@ -267,18 +249,6 @@ UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
 		return type.get();
 		}
-
-#define ACCESSOR(tag, ctype, accessor, name) \
-	ctype name() \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", type_name) \
-		return val.accessor; \
-		}
-
-	// Gives fast access to the bits of something that is one of
-	// bool, int, count, or counter.
-	bro_int_t ForceAsInt() const		{ return val.int_val; }
-	bro_uint_t ForceAsUInt() const		{ return val.uint_val; }
 
 	PatternVal* AsPatternVal();
 	const PatternVal* AsPatternVal() const;
@@ -351,6 +321,7 @@ protected:
 	static ValPtr MakeInt(bro_int_t i);
 	static ValPtr MakeCount(bro_uint_t u);
 
+#ifdef DEPRECATED
 	template<typename V>
 	Val(V&& v, TypeTag t) noexcept
 		: val(std::forward<V>(v)), type(base_type(t))
@@ -360,6 +331,7 @@ protected:
 	Val(V&& v, TypePtr t) noexcept
 		: val(std::forward<V>(v)), type(std::move(t))
 		{}
+#endif
 
 	explicit Val(TypePtr t) noexcept
 		: type(std::move(t))
@@ -378,7 +350,6 @@ protected:
 	ValPtr Clone(CloneState* state);
 	virtual ValPtr DoClone(CloneState* state);
 
-	BroValUnion val;
 	TypePtr type;
 
 #ifdef DEBUG
@@ -478,12 +449,49 @@ private:
 
 extern ValManager* val_mgr;
 
-#define Microseconds 1e-6
-#define Milliseconds 1e-3
-#define Seconds 1.0
-#define Minutes (60*Seconds)
-#define Hours (60*Minutes)
-#define Days (24*Hours)
+class IntVal : public Val {
+public:
+	IntVal(bro_int_t v)
+		: Val(base_type(TYPE_INT)), int_val(v)
+		{}
+
+	bro_int_t UnderlyingVal() const	{ return int_val; }
+
+protected:
+	IntVal(bro_int_t v, TypePtr t)
+		: Val(std::move(t)), int_val(v)
+		{}
+
+	bro_int_t int_val;
+};
+
+class BoolVal final : public IntVal {
+public:
+	BoolVal(bro_int_t v)
+		: IntVal(v, base_type(TYPE_BOOL))
+		{}
+	BoolVal(bool b)
+		: BoolVal(bro_int_t(b))
+		{}
+
+	bool UnderlyingVal() const	{ return int_val; }
+};
+
+class CountVal : public Val {
+public:
+	CountVal(bro_uint_t v)
+		: Val(base_type(TYPE_COUNT)), uint_val(v)
+		{}
+
+	bro_uint_t UnderlyingVal() const	{ return uint_val; }
+
+protected:
+	CountVal(bro_uint_t v, TypePtr t)
+		: Val(std::move(t)), uint_val(v)
+		{}
+
+	bro_int_t uint_val;
+};
 
 class DoubleVal : public Val {
 public:
@@ -502,6 +510,13 @@ private:
 	double double_val;
 };
 
+#define Microseconds 1e-6
+#define Milliseconds 1e-3
+#define Seconds 1.0
+#define Minutes (60*Seconds)
+#define Hours (60*Minutes)
+#define Days (24*Hours)
+
 class IntervalVal final : public DoubleVal {
 public:
 	IntervalVal(double quantity, double units = Seconds)
@@ -519,7 +534,7 @@ public:
 		{}
 };
 
-class PortVal final : public Val {
+class PortVal final : public CountVal {
 public:
 	ValPtr SizeVal() const override;
 
@@ -1379,9 +1394,11 @@ private:
 	std::vector<ValPtr>* record_val;
 };
 
-class EnumVal final : public Val {
+class EnumVal final : public IntVal {
 public:
 	ValPtr SizeVal() const override;
+
+	int UnderlyingVal() const	{ return int_val; }
 
 protected:
 	friend class Val;
@@ -1390,7 +1407,7 @@ protected:
 	template<class T, class... Ts>
 	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(EnumTypePtr t, bro_int_t i) : Val(i, std::move(t))
+	EnumVal(EnumTypePtr t, bro_int_t i) : IntVal(i, std::move(t))
 		{}
 
 	void ValDescribe(ODesc* d) const override;
@@ -1531,6 +1548,10 @@ private:
 	inline ctype Val::name() const \
 		{ return dynamic_cast<const ztype*>(this)->UnderlyingVal(); }
 
+UNDERLYING_ACCESSOR_DEF(IntVal, bro_int_t, AsInt)
+UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)
+UNDERLYING_ACCESSOR_DEF(EnumVal, int, AsEnum)
+UNDERLYING_ACCESSOR_DEF(CountVal, bro_uint_t, AsCount)
 UNDERLYING_ACCESSOR_DEF(DoubleVal, double, AsDouble)
 UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)

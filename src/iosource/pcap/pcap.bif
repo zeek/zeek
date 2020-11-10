@@ -44,7 +44,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	bool success = true;
 
 	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
-	if ( ps && ! ps->PrecompileFilter(id->ForceAsInt(), s->CheckString()) )
+	if ( ps && ! ps->PrecompileFilter(id->AsInt(), s->CheckString()) )
 		success = false;
 
 	return zeek::val_mgr->Bool(success);
@@ -73,7 +73,7 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 	bool success = true;
 
 	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
-	if ( ps && ! ps->SetFilter(id->ForceAsInt()) )
+	if ( ps && ! ps->SetFilter(id->AsInt()) )
 		success = false;
 
 	return zeek::val_mgr->Bool(success);

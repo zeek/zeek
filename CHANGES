@@ -1,4 +1,10 @@
 
+3.3.0-dev.509 | 2020-11-10 08:41:54 -0700
+
+  * GH-1221: Add unknown_protocols.log for logging packet analyzer lookup failures (Tim Wojtulewicz, Corelight)
+
+  * Remove default_analyzer for Ethernet packet analzyer (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.506 | 2020-11-09 16:27:04 -0800
 
   * Add CI support for Debian 10, Fedora 31 & 33, FreeBSD 11, Ubuntu 20.04 (Christian Kreibich, Corelight)

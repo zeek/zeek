@@ -1,4 +1,10 @@
 
+3.3.0-dev.512 | 2020-11-10 13:55:33 -0700
+
+  * Change Debian 10 CI config to use GCC (Jon Siwek, Corelight)
+
+  * Update external testing repo hashes for canonification updates (Tim Wojtulewicz, Corelight)
+
 3.3.0-dev.509 | 2020-11-10 08:41:54 -0700
 
   * GH-1221: Add unknown_protocols.log for logging packet analyzer lookup failures (Tim Wojtulewicz, Corelight)

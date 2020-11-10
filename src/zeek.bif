@@ -1432,7 +1432,7 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
 
-	auto& vv = *v->AsVector();
+	auto vv = dynamic_cast<VectorVal*>(v);
 
 	if ( comp )
 		{
@@ -1447,14 +1447,14 @@ function sort%(v: any, ...%) : any
 
 		sort_function_comp = comp;
 
-		sort(vv.begin(), vv.end(), sort_function);
+		vv->Sort(sort_function);
 		}
 	else
 		{
 		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			sort(vv.begin(), vv.end(), unsigned_sort_function);
+			vv->Sort(unsigned_sort_function);
 		else
-			sort(vv.begin(), vv.end(), signed_sort_function);
+			vv->Sort(signed_sort_function);
 		}
 
 	return rval;

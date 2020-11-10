@@ -1211,6 +1211,16 @@ void PatternVal::SetMatcher(RE_Matcher* re)
 	re_val = re;
 	}
 
+bool PatternVal::MatchExactly(const String* s) const
+	{
+	return re_val->MatchExactly(s);
+	}
+
+bool PatternVal::MatchAnywhere(const String* s) const
+	{
+	return re_val->MatchAnywhere(s);
+	}
+
 void PatternVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("/");
@@ -1458,8 +1468,8 @@ void TableVal::Init(TableTypePtr t)
 		subnets = nullptr;
 
 	table_hash = new detail::CompositeHash(table_type->GetIndices());
-	val.table_val = new PDict<TableEntryVal>;
-	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
+	table_val = new PDict<TableEntryVal>;
+	table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
 TableVal::~TableVal()
@@ -1475,9 +1485,9 @@ TableVal::~TableVal()
 void TableVal::RemoveAll()
 	{
 	// Here we take the brute force approach.
-	delete AsTable();
-	val.table_val = new PDict<TableEntryVal>;
-	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
+	delete table_val;
+	table_val = new PDict<TableEntryVal>;
+	table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
 int TableVal::Size() const
@@ -1493,11 +1503,10 @@ int TableVal::RecursiveSize() const
 	     GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
 		return n;
 
-	PDict<TableEntryVal>* v = val.table_val;
-	IterCookie* c = v->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	TableEntryVal* tv;
-	while ( (tv = v->NextEntry(c)) )
+	while ( (tv = table_val->NextEntry(c)) )
 		{
 		if ( tv->GetVal() )
 			n += tv->GetVal()->AsTableVal()->RecursiveSize();
@@ -1592,7 +1601,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
 	detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
-	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
+	TableEntryVal* old_entry_val = table_val->Insert(k.get(), new_entry_val);
 
 	// If the dictionary index already existed, the insert may free up the
 	// memory allocated to the key bytes, so have to assume k is invalid
@@ -1739,7 +1748,6 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 
 	const PDict<TableEntryVal>* t0 = AsTable();
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
-	PDict<TableEntryVal>* t2 = result->AsNonConstTable();
 
 	// Figure out which is smaller; assign it to t1.
 	if ( t1->Length() > t0->Length() )
@@ -1756,7 +1764,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		// Here we leverage the same assumption about consistent
 		// hashes as in TableVal::RemoveFrom above.
 		if ( t0->Lookup(k) )
-			t2->Insert(k, new TableEntryVal(nullptr));
+			result->Insert(k, new TableEntryVal(nullptr));
 
 		delete k;
 		}
@@ -2288,11 +2296,16 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		}
 	}
 
+void TableVal::Insert(detail::HashKey* k, TableEntryVal* tev)
+	{
+	table_val->Insert(k, tev);
+	}
+
 ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	{
 	auto k = MakeHashKey(index);
 
-	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
+	TableEntryVal* v = k ? table_val->RemoveEntry(k.get()) : nullptr;
 	ValPtr va;
 
 	if ( v )
@@ -2320,7 +2333,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 
 ValPtr TableVal::Remove(const detail::HashKey& k)
 	{
-	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
+	TableEntryVal* v = table_val->RemoveEntry(k);
 	ValPtr va;
 
 	if ( v )
@@ -2571,8 +2584,6 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
-	PDict<TableEntryVal>* tbl = AsNonConstTable();
-
 	double timeout = GetExpireTime();
 
 	if ( timeout < 0 )
@@ -2582,8 +2593,8 @@ void TableVal::DoExpire(double t)
 
 	if ( ! expire_cookie )
 		{
-		expire_cookie = tbl->InitForIteration();
-		tbl->MakeRobustCookie(expire_cookie);
+		expire_cookie = table_val->InitForIteration();
+		table_val->MakeRobustCookie(expire_cookie);
 		}
 
 	detail::HashKey* k = nullptr;
@@ -2592,7 +2603,7 @@ void TableVal::DoExpire(double t)
 	bool modified = false;
 
 	for ( int i = 0; i < zeek::detail::table_incremental_step &&
-		      (v = tbl->NextEntry(k, expire_cookie)); ++i )
+		      (v = table_val->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2616,7 +2627,7 @@ void TableVal::DoExpire(double t)
 				// function modified or deleted the table
 				// value, so look it up again.
 				v_saved = v;
-				v = tbl->Lookup(k);
+				v = table_val->Lookup(k);
 
 				if ( ! v )
 					{ // user-provided function deleted it
@@ -2644,7 +2655,7 @@ void TableVal::DoExpire(double t)
 					reporter->InternalWarning("index not in prefix table");
 				}
 
-			tbl->RemoveEntry(k);
+			table_val->RemoveEntry(k);
 			if ( change_func )
 				{
 				if ( ! idx )
@@ -2776,7 +2787,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
 		TableEntryVal* nval = val->Clone(state);
-		tv->AsNonConstTable()->Insert(key, nval);
+		tv->Insert(key, nval);
 
 		if ( subnets )
 			{
@@ -2812,18 +2823,17 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
-	PDict<TableEntryVal>* v = val.table_val;
-	IterCookie* c = v->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	TableEntryVal* tv;
-	while ( (tv = v->NextEntry(c)) )
+	while ( (tv = table_val->NextEntry(c)) )
 		{
 		if ( tv->GetVal() )
 			size += tv->GetVal()->MemoryAllocation();
 		size += padded_sizeof(TableEntryVal);
 		}
 
-	return size + padded_sizeof(*this) + val.table_val->MemoryAllocation()
+	return size + padded_sizeof(*this) + table_val->MemoryAllocation()
 		+ table_hash->MemoryAllocation();
 	}
 
@@ -2905,7 +2915,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	origin = nullptr;
 	auto rt = GetType()->AsRecordType();
 	int n = rt->NumFields();
-	auto vl = val.record_val = new std::vector<ValPtr>;
+	auto vl = record_val = new std::vector<ValPtr>;
 	vl->reserve(n);
 
 	if ( run_state::is_parsing )
@@ -2932,7 +2942,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				if ( run_state::is_parsing )
 					parse_time_records[rt].pop_back();
 
-				delete AsNonConstRecord();
+				delete record_val;
 				throw;
 				}
 
@@ -2969,7 +2979,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 
 RecordVal::~RecordVal()
 	{
-	delete AsNonConstRecord();
+	delete record_val;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -2979,7 +2989,7 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	(*AsNonConstRecord())[field] = std::move(new_val);
+	(*record_val)[field] = std::move(new_val);
 	Modified();
 	}
 
@@ -3009,16 +3019,15 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		auto vs = rv->val.record_val;
-		int current_length = vs->size();
+		int current_length = rv->AsRecord()->size();
 		auto required_length = rt->NumFields();
 
 		if ( required_length > current_length )
 			{
-			vs->reserve(required_length);
+			rv->Reserve(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				vs->emplace_back(rt->FieldDefault(i));
+				rv->AppendField(rt->FieldDefault(i));
 			}
 		}
 	}
@@ -3203,10 +3212,10 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *val.record_val)
+	for ( const auto& vlv : *record_val)
 		{
 		auto v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.record_val->emplace_back(std::move(v));
+  		rv->AppendField(std::move(v));
 		}
 
 	return rv;
@@ -3254,17 +3263,17 @@ VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
 	{
-	val.vector_val = new vector<ValPtr>();
+	vector_val = new vector<ValPtr>();
 	}
 
 VectorVal::~VectorVal()
 	{
-	delete val.vector_val;
+	delete vector_val;
 	}
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return val_mgr->Count(uint32_t(val.vector_val->size()));
+	return val_mgr->Count(uint32_t(vector_val->size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
@@ -3273,10 +3282,10 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
 		return false;
 
-	if ( index >= val.vector_val->size() )
-		val.vector_val->resize(index + 1);
+	if ( index >= vector_val->size() )
+		vector_val->resize(index + 1);
 
-	(*val.vector_val)[index] = std::move(element);
+	(*vector_val)[index] = std::move(element);
 
 	Modified();
 	return true;
@@ -3304,12 +3313,12 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 	vector<ValPtr>::iterator it;
 
-	if ( index < val.vector_val->size() )
-		it = std::next(val.vector_val->begin(), index);
+	if ( index < vector_val->size() )
+		it = std::next(vector_val->begin(), index);
 	else
-		it = val.vector_val->end();
+		it = vector_val->end();
 
-	val.vector_val->insert(it, std::move(element));
+	vector_val->insert(it, std::move(element));
 
 	Modified();
 	return true;
@@ -3317,11 +3326,11 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 bool VectorVal::Remove(unsigned int index)
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= vector_val->size() )
 		return false;
 
-	auto it = std::next(val.vector_val->begin(), index);
-	val.vector_val->erase(it);
+	auto it = std::next(vector_val->begin(), index);
+	vector_val->erase(it);
 
 	Modified();
 	return true;
@@ -3353,39 +3362,49 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 const ValPtr& VectorVal::At(unsigned int index) const
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= vector_val->size() )
 		return Val::nil;
 
-	return (*val.vector_val)[index];
+	return (*vector_val)[index];
+	}
+
+void VectorVal::Sort(bool cmp_func(const ValPtr& a, const ValPtr& b))
+	{
+	sort(vector_val->begin(), vector_val->end(), cmp_func);
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
-	unsigned int oldsize = val.vector_val->size();
-	val.vector_val->reserve(new_num_elements);
-	val.vector_val->resize(new_num_elements);
+	unsigned int oldsize = vector_val->size();
+	vector_val->reserve(new_num_elements);
+	vector_val->resize(new_num_elements);
 	return oldsize;
 	}
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	 {
-	 unsigned int old_size = val.vector_val->size();
+	 unsigned int old_size = vector_val->size();
 	 if ( new_num_elements <= old_size )
 		 return old_size;
 
 	 return Resize(new_num_elements);
 	 }
 
+void VectorVal::Reserve(unsigned int num_elements)
+	{
+	vector_val->reserve(num_elements);
+	}
+
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
-	vv->val.vector_val->reserve(val.vector_val->size());
+	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
+	for ( unsigned int i = 0; i < vector_val->size(); ++i )
 		{
-		auto v = (*val.vector_val)[i]->Clone(state);
-		vv->val.vector_val->push_back(std::move(v));
+		auto v = (*vector_val)[i]->Clone(state);
+		vv->Assign(vv->Size(), std::move(v));
 		}
 
 	return vv;
@@ -3395,17 +3414,17 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	if ( val.vector_val->size() > 0 )
-		for ( unsigned int i = 0; i < (val.vector_val->size() - 1); ++i )
+	if ( vector_val->size() > 0 )
+		for ( unsigned int i = 0; i < (vector_val->size() - 1); ++i )
 			{
-			if ( (*val.vector_val)[i] )
-				(*val.vector_val)[i]->Describe(d);
+			if ( (*vector_val)[i] )
+				(*vector_val)[i]->Describe(d);
 			d->Add(", ");
 			}
 
-	if ( val.vector_val->size() &&
-	     (*val.vector_val)[val.vector_val->size() - 1] )
-		(*val.vector_val)[val.vector_val->size() - 1]->Describe(d);
+	if ( vector_val->size() &&
+	     (*vector_val)[vector_val->size() - 1] )
+		(*vector_val)[vector_val->size() - 1]->Describe(d);
 
 	d->Add("]");
 	}

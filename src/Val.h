@@ -111,9 +111,12 @@ union BroValUnion {
 #endif
 	Func* func_val;
 	File* file_val;
+
+#ifdef DEPRECATED
 	PDict<TableEntryVal>* table_val;
 	std::vector<ValPtr>* record_val;
 	std::vector<ValPtr>* vector_val;
+#endif
 
 	BroValUnion() = default;
 
@@ -146,8 +149,10 @@ union BroValUnion {
 	constexpr BroValUnion(File* value) noexcept
 		: file_val(value) {}
 
+#ifdef DEPRECATED
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
+#endif
 };
 
 class Val : public Obj {
@@ -248,10 +253,7 @@ public:
 	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
-	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-	CONST_ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
 	ctype name() const;
@@ -261,8 +263,11 @@ UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
 UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
 UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
-UNDERLYING_ACCESSOR_DECL(StringVal, String*, AsString)
-UNDERLYING_ACCESSOR_DECL(PatternVal, RE_Matcher*, AsPattern)
+UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
+UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
+UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
+UNDERLYING_ACCESSOR_DECL(RecordVal, const std::vector<ValPtr>*, AsRecord)
+UNDERLYING_ACCESSOR_DECL(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 	zeek::Type* AsType() const
 		{
@@ -281,7 +286,6 @@ UNDERLYING_ACCESSOR_DECL(PatternVal, RE_Matcher*, AsPattern)
 	// are protected to avoid external state changes.
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, File*, file_val, AsFile)
-	ACCESSOR(TYPE_VECTOR, std::vector<ValPtr>*, vector_val, AsVector)
 
 	FuncPtr AsFuncPtr() const;
 
@@ -373,9 +377,6 @@ protected:
 	explicit Val(TypePtr t) noexcept
 		: type(std::move(t))
 		{}
-
-	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, std::vector<ValPtr>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -643,7 +644,7 @@ public:
 	std::string ToStdString() const;
 	StringVal* ToUpper();
 
-	String* UnderlyingVal() const	{ return string_val; }
+	const String* UnderlyingVal() const	{ return string_val; }
 
 	unsigned int MemoryAllocation() const override;
 
@@ -671,7 +672,10 @@ public:
 
 	void SetMatcher(RE_Matcher* re);
 
-	RE_Matcher* UnderlyingVal() const	{ return re_val; }
+	bool MatchExactly(const String* s) const;
+	bool MatchAnywhere(const String* s) const;
+
+	const RE_Matcher* UnderlyingVal() const	{ return re_val; }
 
 	unsigned int MemoryAllocation() const override;
 
@@ -770,7 +774,7 @@ protected:
 
 	ValPtr val;
 
-	// The next entry stores seconds since Bro's start.  We use ints here
+	// The next entry stores seconds since Zeek's start.  We use ints here
 	// to save a few bytes, as we do not need a high resolution for these
 	// anyway.
 	int expire_access_time;
@@ -1003,6 +1007,9 @@ public:
 	const detail::AttributesPtr& GetAttrs() const
 		{ return attrs; }
 
+	const PDict<TableEntryVal>* UnderlyingVal() const
+		{ return table_val; }
+
 	// Returns the size of the table.
 	int Size() const;
 	int RecursiveSize() const;
@@ -1110,6 +1117,9 @@ protected:
 	// Sends data on to backing Broker Store
 	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
 
+	// Low-level insertion, not publicly available.
+	void Insert(detail::HashKey* k, TableEntryVal* tev);
+
 	ValPtr DoClone(CloneState* state) override;
 
 	TableTypePtr table_type;
@@ -1128,6 +1138,9 @@ protected:
 
 	static TableRecordDependencies parse_time_table_record_dependencies;
 	static ParseTimeTableStates parse_time_table_states;
+
+private:
+	PDict<TableEntryVal>* table_val;
 };
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
@@ -1164,9 +1177,22 @@ public:
 	void Assign(int field, std::nullptr_t)
 		{ Assign(field, ValPtr{}); }
 
-	[[deprecated("Remove in v4.1.  Use GetField().")]]
-	Val* Lookup(int field) const	// Does not Ref() value.
-		{ return (*AsRecord())[field].get(); }
+	/**
+	 * Appends a value to the record's fields.  The caller is responsible
+	 * for ensuring that fields are appended in the correct orer and
+	 * with the correct type.
+	 * @param v  The value to append.
+	 */
+	void AppendField(ValPtr v)
+		{ record_val->emplace_back(std::move(v)); }
+
+	/**
+	 * Ensures that the record has enough internal storage for the
+	 * given number of fields.
+	 * param n  The number of fields.
+	 */
+	void Reserve(unsigned int n)
+		{ record_val->reserve(n); }
 
 	/**
 	 * Returns the value of a given field index.
@@ -1280,6 +1306,9 @@ public:
 	RecordValPtr CoerceTo(RecordTypePtr other,
 	                      bool allow_orphaning = false);
 
+	const std::vector<ValPtr>* UnderlyingVal() const
+		{ return record_val; }
+
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
@@ -1299,6 +1328,9 @@ protected:
 
 	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;
+
+private:
+	std::vector<ValPtr>* record_val;
 };
 
 class EnumVal final : public Val {
@@ -1391,7 +1423,7 @@ public:
 		return At(static_cast<unsigned int>(i)).get();
 		}
 
-	unsigned int Size() const { return val.vector_val->size(); }
+	unsigned int Size() const { return vector_val->size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.
@@ -1399,6 +1431,9 @@ public:
 
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
+
+	// Reserves storage for at least the number of elements.
+	void Reserve(unsigned int num_elements);
 
 	notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
@@ -1419,9 +1454,21 @@ public:
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);
 
+	/**
+	 * Sorts the vector in place, using the given comparison function.
+	 * @param cmp_func  Comparison function for vector elements.
+	 */
+	void Sort(bool cmp_func(const ValPtr& a, const ValPtr& b));
+
+	const std::vector<ValPtr>* UnderlyingVal() const
+		{ return vector_val; }
+
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	std::vector<ValPtr>* vector_val;
 };
 
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \
@@ -1433,8 +1480,11 @@ UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)
 UNDERLYING_ACCESSOR_DEF(SubNetVal, const IPPrefix&, AsSubNet)
 UNDERLYING_ACCESSOR_DEF(AddrVal, const IPAddr&, AsAddr)
-UNDERLYING_ACCESSOR_DEF(StringVal, String*, AsString)
-UNDERLYING_ACCESSOR_DEF(PatternVal, RE_Matcher*, AsPattern)
+UNDERLYING_ACCESSOR_DEF(StringVal, const String*, AsString)
+UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
+UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
+UNDERLYING_ACCESSOR_DEF(RecordVal, const std::vector<ValPtr>*, AsRecord)
+UNDERLYING_ACCESSOR_DEF(VectorVal, const std::vector<ValPtr>*, AsVector)
 
 
 // Checks the given value for consistency with the given type.  If an

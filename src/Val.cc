@@ -46,24 +46,6 @@ using namespace std;
 
 namespace zeek {
 
-#ifdef DEPRECATED
-Val::Val(Func* f) : Val({NewRef{}, f})
-	{}
-
-Val::Val(FuncPtr f)
-	: val(f.release()), type(val.func_val->GetType())
-	{}
-
-Val::Val(File* f) : Val({AdoptRef{}, f})
-	{}
-
-Val::Val(FilePtr f)
-	: val(f.release()), type(GetStringFileType())
-	{
-	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
-	}
-#endif
-
 Val::~Val()
 	{
 #ifdef DEBUG

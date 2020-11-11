@@ -45,7 +45,8 @@ enum RR_Type {
 	TYPE_SIG = 24,		///< digital signature (RFC 2535)
 	TYPE_KEY = 25,		///< public key (RFC 2535)
 	TYPE_PX = 26,		///< pointer to X.400/RFC822 mapping info (RFC 1664)
-	TYPE_AAAA = 28,		///< IPv6 address (RFC 1886
+	TYPE_AAAA = 28,		///< IPv6 address (RFC 1886)
+	TYPE_LOC = 29,		///< Location information about hosts (RFC 1876)
 	TYPE_NBS = 32,		///< Netbios name (RFC 1002)
 	TYPE_SRV = 33,		///< service location (RFC 2052)
 	TYPE_NAPTR = 35,	///< naming authority pointer (RFC 2168)
@@ -54,11 +55,10 @@ enum RR_Type {
 	TYPE_A6 = 38,		///< IPv6 address with indirection (RFC 2874)
 	TYPE_DNAME = 39,	///< Non-terminal DNS name redirection (RFC 2672)
 	TYPE_EDNS = 41,		///< OPT pseudo-RR (RFC 2671)
+	TYPE_SSHFP = 44,	///< SSH Public Key Fingerprint (RFC 4255)
 	TYPE_TKEY = 249,	///< Transaction Key (RFC 2930)
 	TYPE_TSIG = 250,	///< Transaction Signature (RFC 2845)
 	TYPE_CAA = 257,		///< Certification Authority Authorization (RFC 6844)
-	TYPE_SSHFP = 44,	///< SSH Public Key Fingerprint (RFC 4255)
-	TYPE_LOC = 29,		///< Location information about hosts (RFC 1876)
 	// DNSSEC RR's
 	TYPE_RRSIG = 46,	///< RR Signature record type (RFC4043)
 	TYPE_NSEC = 47,		///< Next Secure record (RFC4043)
@@ -184,10 +184,10 @@ struct TSIG_DATA {
 };
 
 struct RRSIG_DATA {
-	unsigned short type_covered;	// 16 : ExtractShort(data, len)
+	unsigned short type_covered;		// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short labels;			// 8
-	uint32_t orig_ttl;				// 32
+	uint32_t orig_ttl;			// 32
 	unsigned long sig_exp;			// 32
 	unsigned long sig_incep;		// 32
 	unsigned short key_tag;			//16
@@ -215,10 +215,10 @@ struct NSEC3_DATA {
 
 struct NSEC3PARAM_DATA {
 	unsigned short nsec_flags;		// 8
-	unsigned short nsec_hash_algo;	// 8
+	unsigned short nsec_hash_algo;		// 8
 	unsigned short nsec_iter;		// 16 : ExtractShort(data, len)
-	unsigned short nsec_salt_len;	// 8
-	String* nsec_salt;				// Variable length salt
+	unsigned short nsec_salt_len;		// 8
+	String* nsec_salt;			// Variable length salt
 };
 
 struct DS_DATA {
@@ -231,12 +231,12 @@ struct DS_DATA {
 struct BINDS_DATA {
 	unsigned short algorithm;		// 8 
 	unsigned short key_id;			// 16 : ExtractShort(data, len)
-	unsigned short removal_flag;	// 8
+	unsigned short removal_flag;		// 8
 	String* complete_flag;			// 8
 };
 
 struct LOC_DATA {
-	unsigned short version;	// 8
+	unsigned short version;		// 8
 	unsigned short size;		// 8
 	unsigned short horiz_pre;	// 8
 	unsigned short vert_pre;	// 8
@@ -508,15 +508,11 @@ constexpr auto TYPE_EDNS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::
 constexpr auto TYPE_TKEY [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_TKEY.")]] = zeek::analyzer::dns::detail::TYPE_TKEY;
 constexpr auto TYPE_TSIG [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_TSIG.")]] = zeek::analyzer::dns::detail::TYPE_TSIG;
 constexpr auto TYPE_CAA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_CAA.")]] = zeek::analyzer::dns::detail::TYPE_CAA;
-constexpr auto TYPE_SSHFP [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_SSHFP.")]] = zeek::analyzer::dns::detail::TYPE_SSHFP;
 constexpr auto TYPE_RRSIG [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_RRSIG.")]] = zeek::analyzer::dns::detail::TYPE_RRSIG;
 constexpr auto TYPE_NSEC [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC.")]] = zeek::analyzer::dns::detail::TYPE_NSEC;
 constexpr auto TYPE_DNSKEY [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_DNSKEY.")]] = zeek::analyzer::dns::detail::TYPE_DNSKEY;
 constexpr auto TYPE_DS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_DS.")]] = zeek::analyzer::dns::detail::TYPE_DS;
-constexpr auto TYPE_BINDS [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_BINDS.")]] = zeek::analyzer::dns::detail::TYPE_BINDS;
 constexpr auto TYPE_NSEC3 [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3;
-constexpr auto TYPE_NSEC3PARAM [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_NSEC3PARAM.")]] = zeek::analyzer::dns::detail::TYPE_NSEC3PARAM;
-constexpr auto TYPE_LOC [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_LOC.")]] = zeek::analyzer::dns::detail::TYPE_LOC;
 constexpr auto TYPE_SPF [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_SPF.")]] = zeek::analyzer::dns::detail::TYPE_SPF;
 constexpr auto TYPE_AXFR [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_AXFR.")]] = zeek::analyzer::dns::detail::TYPE_AXFR;
 constexpr auto TYPE_ALL [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TYPE_ALL.")]] = zeek::analyzer::dns::detail::TYPE_ALL;
@@ -580,10 +576,7 @@ using TSIG_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::T
 using RRSIG_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::RRSIG_DATA.")]] = zeek::analyzer::dns::detail::RRSIG_DATA;
 using DNSKEY_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNSKEY_DATA.")]] = zeek::analyzer::dns::detail::DNSKEY_DATA;
 using NSEC3_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::NSEC3_DATA.")]] = zeek::analyzer::dns::detail::NSEC3_DATA;
-using NSEC3PARAM_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::NSEC3PARAM_DATA.")]] = zeek::analyzer::dns::detail::NSEC3PARAM_DATA;
 using DS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DS_DATA.")]] = zeek::analyzer::dns::detail::DS_DATA;
-using BINDS_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::BINDS_DATA.")]] = zeek::analyzer::dns::detail::BINDS_DATA;
-using LOC_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::LOC_DATA.")]] = zeek::analyzer::dns::detail::LOC_DATA;
 using DNS_MsgInfo [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::DNS_MsgInfo.")]] = zeek::analyzer::dns::detail::DNS_MsgInfo;
 
 using TCP_DNS_state [[deprecated("Remove in v4.1. Use zeek::analyzer::dns::detail::TCP_DNS_state.")]] = zeek::analyzer::dns::detail::TCP_DNS_state;

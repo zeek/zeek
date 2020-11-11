@@ -5367,6 +5367,28 @@ export {
 	option sampling_duration = 10min;
 }
 
+module UnknownProtocol;
+export {
+	## How many reports for an analyzer/protocol pair will be allowed to
+	## raise events before becoming rate-limited.
+	const sampling_threshold : count = 3 &redef;
+
+	## The rate-limiting sampling rate. One out of every of this number of
+	## rate-limited pairs of a given type will be allowed to raise events
+	## for further script-layer handling. Setting the sampling rate to 0
+	## will disable all output of rate-limited pairs.
+	const sampling_rate : count = 100000 &redef;
+
+	## How long an analyzer/protocol pair is allowed to keep state/counters in
+	## in memory. Once the threshold has been hit, this is the amount of time
+	## before the rate-limiting for a pair expires and is reset.
+	const sampling_duration = 1hr &redef;
+
+	## The number of bytes to extract from the next header and log in the
+	## first bytes field.
+	const first_bytes_count = 10 &redef;
+}
+
 module BinPAC;
 export {
 	## Maximum capacity, in bytes, that the BinPAC flowbuffer is allowed to

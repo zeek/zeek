@@ -143,10 +143,10 @@ private:
 	using UnknownProtocolPair = std::pair<std::string, uint32_t>;
 	std::map<UnknownProtocolPair, uint64_t> unknown_protocols;
 
-	uint64_t unknown_sampling_threshold;
-	uint64_t unknown_sampling_rate;
-	double unknown_sampling_duration;
-	uint64_t unknown_first_bytes_count;
+	uint64_t unknown_sampling_threshold = 0;
+	uint64_t unknown_sampling_rate = 0;
+	double unknown_sampling_duration = 0;
+	uint64_t unknown_first_bytes_count = 0;
 };
 
 } // namespace packet_analysis

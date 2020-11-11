@@ -166,21 +166,65 @@ function set_session(c: connection)
 		}
 	}
 
+function set_version(c: connection, version: string)
+    {
+    if ( c$ssh?$server && c$ssh?$client && |c$ssh$client| > 4 && |c$ssh$server| > 4 )
+        {
+        if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "2" )
+            {
+            # SSH199 vs SSH2 -> 2
+            if ( ( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ) )
+                c$ssh$version = 2;
+            # SSH1 vs SSH2 -> Undefined
+            else
+                c$ssh$version = 0;
+            }
+        else if ( c$ssh$client[4] == "2" && c$ssh$server[4] == "1" )
+            {
+            # SSH2 vs SSH199 -> 2
+            if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
+                c$ssh$version = 2;
+            else
+            # SSH2 vs SSH1 -> Undefined
+                c$ssh$version = 0;
+            }
+        else if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "1" )
+            {
+            # SSH1 vs SSH199 -> 1
+            if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
+                {
+                # SSH199 vs SSH199
+                if (( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ))
+                    c$ssh$version = 2;
+                else
+                    c$ssh$version = 1;
+                }
+            else
+                {
+                # SSH1 vs SSH1 -> 1
+                c$ssh$version = 1;
+                }
+            }
+        # SSH2 vs SSH2
+        else if (c$ssh$client[4] == "2" && c$ssh$server[4] == "2" )
+            {
+            c$ssh$version = 2;
+            }
+        }
+    }
+
 event ssh_server_version(c: connection, version: string)
 	{
 	set_session(c);
 	c$ssh$server = version;
+	set_version(c, version);
 	}
 
 event ssh_client_version(c: connection, version: string)
 	{
 	set_session(c);
 	c$ssh$client = version;
-
-	if ( ( |version| > 3 ) && ( version[4] == "1" ) )
-		c$ssh$version = 1;
-	if ( ( |version| > 3 ) && ( version[4] == "2" ) )
-		c$ssh$version = 2;
+	set_version(c, version);
 	}
 
 event ssh_auth_attempted(c: connection, authenticated: bool) &priority=5

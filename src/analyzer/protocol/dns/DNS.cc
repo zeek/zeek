@@ -339,8 +339,24 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 			status = ParseRR_NSEC3(msg, data, len, rdlength, msg_start);
 			break;
 
+		case detail::TYPE_NSEC3PARAM:
+			status = ParseRR_NSEC3PARAM(msg, data, len, rdlength, msg_start);
+			break;
+
 		case detail::TYPE_DS:
 			status = ParseRR_DS(msg, data, len, rdlength, msg_start);
+			break;
+		
+		case detail::TYPE_BINDS:
+			status = ParseRR_BINDS(msg, data, len, rdlength, msg_start);
+			break;
+
+		case detail::TYPE_SSHFP:
+			status = ParseRR_SSHFP(msg, data, len, rdlength, msg_start);
+			break;
+		
+		case detail::TYPE_LOC:
+			status = ParseRR_LOC(msg, data, len, rdlength, msg_start);
 			break;
 
 		default:
@@ -1275,6 +1291,56 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg,
 	return true;
 	}
 
+bool DNS_Interpreter::ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start)
+	{
+	if ( ! dns_NSEC3PARAM || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 5 )
+		return false;
+
+	uint32_t halgo_flags = ExtractShort(data, len);
+	unsigned int hash_algo = (halgo_flags >> 8) & 0xff;
+	unsigned int nsec_flags = halgo_flags & 0xff;
+	unsigned int iter = ExtractShort(data, len);
+
+	uint8_t salt_len = 0;
+
+	if ( len > 0 )
+		{
+		salt_len = data[0];
+		++data;
+		--len;
+		}
+
+		auto salt_value = ExtractStream(data, len, static_cast<int>(salt_len));
+
+	if ( dns_NSEC3PARAM )
+		{
+		detail::NSEC3PARAM_DATA nsec3param;
+		nsec3param.nsec_flags = nsec_flags;
+		nsec3param.nsec_hash_algo = hash_algo;
+		nsec3param.nsec_iter = iter;
+		nsec3param.nsec_salt_len = salt_len;
+		nsec3param.nsec_salt = salt_value;
+
+		analyzer->EnqueueConnEvent(dns_NSEC3PARAM,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildNSEC3PARAM_Val(&nsec3param)
+		);
+		}
+
+	return true;
+	}
+
 bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg,
                                  const u_char*& data, int& len, int rdlength,
                                  const u_char* msg_start)
@@ -1327,6 +1393,140 @@ bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg,
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			msg->BuildDS_Val(&ds)
+		);
+		}
+
+	return true;
+	}
+
+bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg,
+                                 const u_char*& data, int& len, int rdlength,
+                                 const u_char* msg_start)
+	{
+	if ( ! dns_BINDS || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 5 )
+		return false;
+
+	uint32_t algo_keyid_rflag = ExtractLong(data, len);
+
+	unsigned int algo = (algo_keyid_rflag >> 24) & 0xff;
+	unsigned int keyid1 = (algo_keyid_rflag >> 16) & 0xff;
+	unsigned int keyid2 = (algo_keyid_rflag >> 8) & 0xff;
+	unsigned int rmflag = algo_keyid_rflag & 0xff;
+
+	unsigned int keyid = (keyid1 << 8) | keyid2;
+
+	String* completeflag = ExtractStream(data, len, rdlength - 4);
+
+	if ( dns_BINDS )
+		{
+		detail::BINDS_DATA binds;
+		binds.algorithm = algo;
+		binds.key_id = keyid;
+		binds.removal_flag = rmflag;
+		binds.complete_flag = completeflag;
+
+		analyzer->EnqueueConnEvent(dns_BINDS,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildBINDS_Val(&binds)
+		);
+		}
+
+	return true;
+	}
+
+bool DNS_Interpreter::ParseRR_SSHFP(detail::DNS_MsgInfo* msg,
+                                 const u_char*& data, int& len, int rdlength,
+                                 const u_char* msg_start)
+	{
+	if ( ! dns_SSHFP || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 2 )
+		return false;
+
+	uint32_t algo_fptype = ExtractShort(data, len);
+	unsigned int algo = (algo_fptype >> 8) & 0xff;
+	unsigned int fptype = algo_fptype & 0xff;
+
+	String* fingerprint = ExtractStream(data, len, rdlength - 2);
+
+	if ( dns_SSHFP )
+		{
+		analyzer->EnqueueConnEvent(dns_SSHFP,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			val_mgr->Count(algo),
+			val_mgr->Count(fptype),
+			make_intrusive<StringVal>(fingerprint)
+		);
+		}
+
+	return true;
+	}
+
+bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start)
+	{
+	if ( ! dns_LOC || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	if ( len < 15 )
+		return false;
+
+	// split the two bytes for version and size extraction
+	uint32_t ver_size = ExtractShort(data, len);
+	unsigned int version = (ver_size >> 8) & 0xff;
+	unsigned int size = ver_size & 0xff;
+
+	// split the two bytes for horizontal and vertical precision extraction
+	uint32_t horiz_vert = ExtractShort(data, len);
+	unsigned int horiz_pre = (horiz_vert >> 8) & 0xff;
+	unsigned int vert_pre= horiz_vert & 0xff;
+
+	uint32_t latitude = ExtractLong(data, len);
+	uint32_t longitude = ExtractLong(data, len);
+	uint32_t altitude = ExtractLong(data, len);
+
+	if ( version != 0 )
+			{
+			analyzer->Weird("DNS_LOC_version_unrecognized", util::fmt("%d", version));
+			}
+
+	if ( dns_LOC )
+		{
+		detail::LOC_DATA loc;
+		loc.version = version;
+		loc.size = size;
+		loc.horiz_pre = horiz_pre;
+		loc.vert_pre = vert_pre;
+		loc.latitude = latitude;
+		loc.longitude = longitude;
+		loc.altitude = altitude;
+
+		analyzer->EnqueueConnEvent(dns_LOC,
+			analyzer->ConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildLOC_Val(&loc)
 		);
 		}
 
@@ -1780,6 +1980,23 @@ RecordValPtr DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	return r;
 	}
 
+RecordValPtr DNS_MsgInfo::BuildNSEC3PARAM_Val(NSEC3PARAM_DATA* nsec3param)
+	{
+	static auto dns_nsec3param_rr = id::find_type<RecordType>("dns_nsec3param_rr");
+	auto r = make_intrusive<RecordVal>(dns_nsec3param_rr);
+
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(nsec3param->nsec_flags));
+	r->Assign(3, val_mgr->Count(nsec3param->nsec_hash_algo));
+	r->Assign(4, val_mgr->Count(nsec3param->nsec_iter));
+	r->Assign(5, val_mgr->Count(nsec3param->nsec_salt_len));
+	r->Assign(6, make_intrusive<StringVal>(nsec3param->nsec_salt));
+	r->Assign(7, val_mgr->Count(is_query));
+
+	return r;
+	}
+
 RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	{
 	static auto dns_ds_rr = id::find_type<RecordType>("dns_ds_rr");
@@ -1792,6 +2009,41 @@ RecordValPtr DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	r->Assign(4, val_mgr->Count(ds->digest_type));
 	r->Assign(5, make_intrusive<StringVal>(ds->digest_val));
 	r->Assign(6, val_mgr->Count(is_query));
+
+	return r;
+	}
+
+RecordValPtr DNS_MsgInfo::BuildBINDS_Val(BINDS_DATA* binds)
+	{
+	static auto dns_binds_rr = id::find_type<RecordType>("dns_binds_rr");
+	auto r = make_intrusive<RecordVal>(dns_binds_rr);
+
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(binds->algorithm));
+	r->Assign(3, val_mgr->Count(binds->key_id));
+	r->Assign(4, val_mgr->Count(binds->removal_flag));
+	r->Assign(5, make_intrusive<StringVal>(binds->complete_flag));
+	r->Assign(6, val_mgr->Count(is_query));
+
+	return r;
+	}
+
+RecordValPtr DNS_MsgInfo::BuildLOC_Val(LOC_DATA* loc)
+	{
+	static auto dns_loc_rr = id::find_type<RecordType>("dns_loc_rr");
+	auto r = make_intrusive<RecordVal>(dns_loc_rr);
+
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(loc->version));
+	r->Assign(3, val_mgr->Count(loc->size));
+	r->Assign(4, val_mgr->Count(loc->horiz_pre));
+	r->Assign(5, val_mgr->Count(loc->vert_pre));
+	r->Assign(6, val_mgr->Count(loc->latitude));
+	r->Assign(7, val_mgr->Count(loc->longitude));
+	r->Assign(8, val_mgr->Count(loc->altitude));
+	r->Assign(9, val_mgr->Count(is_query));
 
 	return r;
 	}

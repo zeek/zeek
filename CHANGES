@@ -1,3 +1,6 @@
+3.3.0-dev.516 | 2020-11-11 12:53:02 -0700
+
+  * Support for additional DNS RR Type: LOC[29], SSHFP[44], NSEC3PARAM[51], custom BIND9 signaling[65534] (Fatema BW)
 
 3.3.0-dev.514 | 2020-11-10 14:05:51 -0700
 

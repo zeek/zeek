@@ -72,6 +72,14 @@ New Functionality
   ``policy/misc/unknown-protocols`` script. The script adds a new
   ``unknown_protocol`` event.
 
+- Added support for DNS resource records LOC, SSHFP, NSEC3PARAM, and custom
+  BIND9 signaling. The associated events are:
+
+  - dns_LOC
+  - dns_SSHFP
+  - dns_NSEC3PARAM
+  - dns_BINDS
+
 Changed Functionality
 ---------------------
 

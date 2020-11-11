@@ -487,7 +487,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			}
 
 		// If include fields are specified, only include if explicitly listed.
-		if ( include )
+		// Exception: extension fields provided by the filter's ext_func remain.
+		if ( j >= num_ext_fields && include )
 			{
 			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
 			bool result = (bool)include->FindOrDefault(new_path_val);
@@ -497,7 +498,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			}
 
 		// If exclude fields are specified, do not only include if listed.
-		if ( exclude )
+		// Here too, extension fields always remain.
+		if ( j >= num_ext_fields && exclude )
 			{
 			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
 			bool result = (bool)exclude->FindOrDefault(new_path_val);

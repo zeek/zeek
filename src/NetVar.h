@@ -280,13 +280,7 @@ extern zeek::RecordType* dns_dnskey_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* dns_nsec3_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern zeek::RecordType* dns_nsec3param_rr;
-[[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::RecordType* dns_ds_rr;
-[[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern zeek::RecordType* dns_binds_rr;
-[[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern zeek::RecordType* dns_loc_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern zeek::TableVal* dns_skip_auth;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]

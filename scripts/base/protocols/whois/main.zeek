@@ -10,7 +10,7 @@ export {
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
-	## The record type which contains the column fields of the DHCP log.
+	## The record type which contains the column fields of the WHOIS log.
 	type Info: record {
 		## The earliest time a whois request or response was seen.
 		ts:    time    &log;
@@ -41,4 +41,3 @@ event finger_request(c: connection, full: bool, username: string, hostname: stri
 	add c$service["whois"];
 	Log::write(Whois::LOG, [$ts=network_time(), $uid=c$uid, $id=c$id, $query=username]);
 	}
-

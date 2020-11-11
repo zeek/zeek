@@ -3782,13 +3782,13 @@ type dns_nsec3_rr: record {
 	query: string;			##< Query.
 	answer_type: count;		##< Ans type.
 	nsec_flags: count;		##< flags field.
-	nsec_hash_algo: count;	##< Hash algorithm.
+	nsec_hash_algo: count;		##< Hash algorithm.
 	nsec_iter: count;		##< Iterations.
-	nsec_salt_len: count; 	##< Salt length.
+	nsec_salt_len: count; 		##< Salt length.
 	nsec_salt: string;		##< Salt value
 	nsec_hlen: count;		##< Hash length.
 	nsec_hash: string;		##< Hash value.
-	bitmaps: string_vec;	##< Type Bit Maps.
+	bitmaps: string_vec;		##< Type Bit Maps.
 	is_query: count;		##< The RR is a query/Response.
 };
 
@@ -3799,9 +3799,9 @@ type dns_nsec3param_rr: record {
 	query: string;			##< Query.
 	answer_type: count;		##< Ans type.
 	nsec_flags: count;		##< flags field.
-	nsec_hash_algo: count;	##< Hash algorithm.
+	nsec_hash_algo: count;		##< Hash algorithm.
 	nsec_iter: count;		##< Iterations.
-	nsec_salt_len: count; 	##< Salt length.
+	nsec_salt_len: count; 		##< Salt length.
 	nsec_salt: string;		##< Salt value
 	is_query: count;		##< The RR is a query/Response.
 };
@@ -3838,7 +3838,7 @@ type dns_binds_rr: record {
 type dns_loc_rr: record {
 	query: string;		##< Query.
 	answer_type: count;	##< Ans type.
-	version: count;	##< version number of the representation.
+	version: count;		##< version number of the representation.
 	size: count;		##< Diameter of a sphere enclosing the entity.
 	horiz_pre: count;	##< The horizontal precision of the data, in centimeters.
 	vert_pre: count;	##< The vertical precision of the data, in centimeters.

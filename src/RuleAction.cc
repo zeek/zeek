@@ -1,16 +1,16 @@
-#include <string>
-using std::string;
-
 #include "zeek-config.h"
+#include "zeek/RuleAction.h"
 
-#include "RuleAction.h"
-#include "RuleMatcher.h"
-#include "Conn.h"
-#include "Event.h"
-#include "NetVar.h"
-#include "analyzer/protocol/pia/PIA.h"
+#include <string>
 
-#include "analyzer/Manager.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/Conn.h"
+#include "zeek/Event.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/Manager.h"
+
+using std::string;
 
 namespace zeek::detail {
 

@@ -12,8 +12,8 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "ZeekList.h"
-#include "net_util.h"
+#include "zeek/ZeekList.h"
+#include "zeek/net_util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);

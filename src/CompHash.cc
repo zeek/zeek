@@ -1,19 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/CompHash.h"
 
 #include <cstring>
 #include <vector>
 #include <map>
 
-#include "CompHash.h"
-#include "ZeekString.h"
-#include "Dict.h"
-#include "Val.h"
-#include "RE.h"
-#include "Reporter.h"
-#include "Func.h"
-#include "IPAddr.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Dict.h"
+#include "zeek/Val.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/Func.h"
+#include "zeek/IPAddr.h"
 
 namespace zeek::detail {
 

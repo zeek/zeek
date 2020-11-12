@@ -2,8 +2,8 @@
 
 // SOCKS v4 analyzer.
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
 
 namespace binpac  {
    namespace SOCKS {

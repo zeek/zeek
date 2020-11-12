@@ -24,7 +24,7 @@
 #include <iterator>
 #include <utility>
 #include <cassert>
-#include "util.h"
+#include "zeek/util.h"
 
 namespace zeek {
 

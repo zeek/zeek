@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IP.h"
+#include "zeek/IP.h"
 
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/icmp6.h>
 
-#include "IPAddr.h"
-#include "Type.h"
-#include "Val.h"
-#include "Var.h"
-#include "ZeekString.h"
-#include "Reporter.h"
+#include "zeek/IPAddr.h"
+#include "zeek/Type.h"
+#include "zeek/Val.h"
+#include "zeek/Var.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Reporter.h"
 
 namespace zeek {
 

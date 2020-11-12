@@ -1,31 +1,32 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "zeek/logging/Manager.h"
 
 #include <utility>
 
-#include "Event.h"
-#include "EventHandler.h"
-#include "NetVar.h"
-#include "RunState.h"
-#include "Type.h"
-#include "File.h"
-#include "input.h"
-#include "IntrusivePtr.h"
-#include "Func.h"
-
-#include "broker/Manager.h"
-#include "threading/Manager.h"
-#include "threading/SerialTypes.h"
-
-#include "Desc.h"
-#include "WriterFrontend.h"
-#include "WriterBackend.h"
-#include "logging.bif.h"
-#include "plugin/Plugin.h"
-#include "plugin/Manager.h"
-
 #include <broker/endpoint_info.hh>
+
+#include "zeek/Event.h"
+#include "zeek/EventHandler.h"
+#include "zeek/NetVar.h"
+#include "zeek/RunState.h"
+#include "zeek/Type.h"
+#include "zeek/File.h"
+#include "zeek/input.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Func.h"
+#include "zeek/Desc.h"
+
+#include "zeek/broker/Manager.h"
+#include "zeek/threading/Manager.h"
+#include "zeek/threading/SerialTypes.h"
+
+#include "zeek/logging/WriterFrontend.h"
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/plugin/Manager.h"
+
+#include "logging/logging.bif.h"
 
 using namespace std;
 

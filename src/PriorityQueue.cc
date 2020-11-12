@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/PriorityQueue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "PriorityQueue.h"
-#include "Reporter.h"
-#include "util.h"
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
 namespace zeek::detail {
 

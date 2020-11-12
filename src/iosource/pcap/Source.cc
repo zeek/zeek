@@ -1,18 +1,17 @@
 // See the file  in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "Source.h"
-#include "iosource/Packet.h"
-#include "iosource/BPF_Program.h"
-
-#include "Event.h"
-
-#include "pcap.bif.h"
+#include "zeek/iosource/pcap/Source.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
 #endif
+
+#include "zeek/iosource/Packet.h"
+#include "zeek/iosource/BPF_Program.h"
+#include "zeek/Event.h"
+
+#include "iosource/pcap/pcap.bif.h"
 
 namespace zeek::iosource::pcap {
 

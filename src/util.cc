@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "util.h"
 #include "util-config.h"
+
+#include "zeek/util.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -39,34 +40,34 @@
 # include <malloc.h>
 #endif
 
-#include <string>
-#include <array>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-
-#include "Desc.h"
-#include "Dict.h"
-#include "digest.h"
-#include "input.h"
-#include "Obj.h"
-#include "Val.h"
-#include "NetVar.h"
-#include "RunState.h"
-#include "Reporter.h"
-#include "iosource/Manager.h"
-#include "iosource/PktSrc.h"
-#include "ConvertUTF.h"
-#include "Hash.h"
-
-#include "3rdparty/doctest.h"
-
 #ifdef __linux__
 #if __has_include(<sys/random.h>)
 #define HAVE_GETRANDOM
 #include <sys/random.h>
 #endif
 #endif
+
+#include <string>
+#include <array>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+#include "zeek/3rdparty/doctest.h"
+
+#include "zeek/Desc.h"
+#include "zeek/Dict.h"
+#include "zeek/digest.h"
+#include "zeek/input.h"
+#include "zeek/Obj.h"
+#include "zeek/Val.h"
+#include "zeek/NetVar.h"
+#include "zeek/RunState.h"
+#include "zeek/Reporter.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/ConvertUTF.h"
+#include "zeek/Hash.h"
 
 using namespace std;
 

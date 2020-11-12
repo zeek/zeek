@@ -3,7 +3,7 @@
 #pragma once
 
 #include <string>
-#include "util.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ParseLocationRec, zeek::detail);

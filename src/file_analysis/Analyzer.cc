@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Analyzer.h"
-#include "Manager.h"
-#include "Val.h"
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/Val.h"
 
 namespace zeek::file_analysis {
 

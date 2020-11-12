@@ -1,19 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Login.h"
+#include "zeek/analyzer/protocol/login/Login.h"
 
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "ZeekString.h"
-#include "NetVar.h"
-#include "RE.h"
-#include "Reporter.h"
-#include "Event.h"
-#include "Var.h"
+#include "zeek/ZeekString.h"
+#include "zeek/NetVar.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/Event.h"
+#include "zeek/Var.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/login/events.bif.h"
 
 namespace zeek::analyzer::login {
 

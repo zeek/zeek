@@ -1,7 +1,7 @@
-#include "RDP.h"
-#include "RDPEUDP.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/rdp/RDP.h"
+#include "zeek/analyzer/protocol/rdp/RDPEUDP.h"
 
 namespace zeek::plugin::detail::Zeek_RDP {
 

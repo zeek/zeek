@@ -3,7 +3,7 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "../Tag.h"
+#include "zeek/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 

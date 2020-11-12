@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "XDR.h"
+#include "zeek/analyzer/protocol/rpc/XDR.h"
 
 #include <string.h>
 #include <algorithm>
 
-#include "events.bif.h"
+#include "analyzer/protocol/rpc/events.bif.h"
 
 uint32_t zeek::analyzer::rpc::extract_XDR_uint32(const u_char*& buf, int& len)
 	{

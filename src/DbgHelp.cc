@@ -2,4 +2,4 @@
 
 #include "zeek-config.h"
 
-#include "Debug.h"
+#include "zeek/Debug.h"

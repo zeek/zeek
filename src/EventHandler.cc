@@ -1,14 +1,15 @@
-#include "EventHandler.h"
-#include "Event.h"
-#include "Desc.h"
-#include "Func.h"
-#include "Scope.h"
-#include "NetVar.h"
-#include "ID.h"
-#include "Var.h"
+#include "zeek/EventHandler.h"
 
-#include "broker/Manager.h"
-#include "broker/Data.h"
+#include "zeek/Event.h"
+#include "zeek/Desc.h"
+#include "zeek/Func.h"
+#include "zeek/Scope.h"
+#include "zeek/NetVar.h"
+#include "zeek/ID.h"
+#include "zeek/Var.h"
+
+#include "zeek/broker/Manager.h"
+#include "zeek/broker/Data.h"
 
 namespace zeek {
 

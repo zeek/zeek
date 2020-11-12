@@ -2,13 +2,13 @@
 
 #include "zeek-config.h"
 
-#include "Attr.h"
-#include "Expr.h"
-#include "Desc.h"
-#include "Val.h"
-#include "IntrusivePtr.h"
-#include "input/Manager.h"
-#include "threading/SerialTypes.h"
+#include "zeek/Attr.h"
+#include "zeek/Expr.h"
+#include "zeek/Desc.h"
+#include "zeek/Val.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/input/Manager.h"
+#include "zeek/threading/SerialTypes.h"
 
 namespace zeek::detail {
 

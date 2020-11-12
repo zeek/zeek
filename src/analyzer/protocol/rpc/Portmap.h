@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "RPC.h"
+#include "zeek/analyzer/protocol/rpc/RPC.h"
 
 namespace zeek::analyzer::rpc {
 namespace detail {

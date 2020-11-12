@@ -2,11 +2,11 @@
 
 #include "zeek-config.h"
 
-#include "NetVar.h"
-#include "Var.h"
-#include "EventHandler.h"
-#include "Val.h"
-#include "ID.h"
+#include "zeek/NetVar.h"
+#include "zeek/Var.h"
+#include "zeek/EventHandler.h"
+#include "zeek/Val.h"
+#include "zeek/ID.h"
 
 zeek::RecordType* conn_id;
 zeek::RecordType* endpoint;

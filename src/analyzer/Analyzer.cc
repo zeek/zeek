@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/analyzer/Analyzer.h"
+
 #include <algorithm>
+#include <binpac.h>
 
-#include "Analyzer.h"
-#include "Manager.h"
-#include "binpac.h"
-
-#include "analyzer/protocol/pia/PIA.h"
-#include "../ZeekString.h"
-#include "../Event.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Event.h"
 
 namespace zeek::analyzer {
 

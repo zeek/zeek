@@ -2,10 +2,10 @@
 ##! Functions to interface with broker's distributed data store.
 
 %%{
-#include "broker/Manager.h"
-#include "broker/Store.h"
-#include "broker/Data.h"
-#include "Trigger.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/broker/Store.h"
+#include "zeek/broker/Data.h"
+#include "zeek/Trigger.h"
 
 static zeek::Broker::detail::StoreHandleVal* to_store_handle(zeek::Val* h)
 	{ return dynamic_cast<zeek::Broker::detail::StoreHandleVal*>(h); }

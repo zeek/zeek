@@ -1,9 +1,9 @@
 #pragma once
 
-#include "OpaqueVal.h"
-#include "Reporter.h"
-#include "Frame.h"
-#include "Expr.h"
+#include "zeek/OpaqueVal.h"
+#include "zeek/Reporter.h"
+#include "zeek/Frame.h"
+#include "zeek/Expr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 namespace zeek::threading {

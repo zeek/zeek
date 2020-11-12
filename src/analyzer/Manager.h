@@ -23,14 +23,14 @@
 #include <queue>
 #include <vector>
 
-#include "Analyzer.h"
-#include "Component.h"
-#include "Tag.h"
-#include "plugin/ComponentManager.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/plugin/ComponentManager.h"
 
-#include "../Dict.h"
-#include "../net_util.h"
-#include "../IP.h"
+#include "zeek/Dict.h"
+#include "zeek/net_util.h"
+#include "zeek/IP.h"
 
 #include "analyzer/analyzer.bif.h"
 

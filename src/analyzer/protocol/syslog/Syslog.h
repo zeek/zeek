@@ -1,10 +1,9 @@
-
 #pragma once
 
-#include "analyzer/protocol/udp/UDP.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "syslog_pac.h"
+#include "analyzer/protocol/syslog/syslog_pac.h"
 
 namespace zeek::analyzer::syslog {
 

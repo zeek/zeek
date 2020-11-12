@@ -2,14 +2,14 @@
 //
 // See ConnSize.h for more extensive comments.
 
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 
-#include "ConnSize.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "IP.h"
-#include "Reporter.h"
-#include "RunState.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/IP.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/conn-size/events.bif.h"
 
 namespace zeek::analyzer::conn_size {
 

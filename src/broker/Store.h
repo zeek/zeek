@@ -1,14 +1,15 @@
 #pragma once
 
-#include "broker/store.bif.h"
-#include "broker/data.bif.h"
-#include "OpaqueVal.h"
-#include "Trigger.h"
-
 #include <broker/store.hh>
 #include <broker/store_event.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
+
+#include "zeek/OpaqueVal.h"
+#include "zeek/Trigger.h"
+
+#include "broker/store.bif.h"
+#include "broker/data.bif.h"
 
 namespace zeek::Broker::detail {
 

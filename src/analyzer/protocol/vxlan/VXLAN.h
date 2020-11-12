@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "analyzer/Analyzer.h"
+#include "zeek/analyzer/Analyzer.h"
 
 namespace zeek::analyzer::vxlan {
 

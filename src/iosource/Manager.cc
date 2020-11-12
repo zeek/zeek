@@ -1,22 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/iosource/Manager.h"
+
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
 
-#include "Manager.h"
-#include "Component.h"
-#include "IOSource.h"
-#include "RunState.h"
-#include "PktSrc.h"
-#include "PktDumper.h"
-#include "plugin/Manager.h"
-#include "broker/Manager.h"
-#include "NetVar.h"
-
-#include "util.h"
+#include "zeek/iosource/Component.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/iosource/PktDumper.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/NetVar.h"
+#include "zeek/RunState.h"
+#include "zeek/util.h"
 
 #define DEFAULT_PREFIX "pcap"
 

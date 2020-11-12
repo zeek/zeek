@@ -1,11 +1,4 @@
-#include "Packet.h"
-#include "Sessions.h"
-#include "Desc.h"
-#include "IP.h"
-#include "iosource/Manager.h"
-#include "packet_analysis/Manager.h"
-#include "Var.h"
-#include "TunnelEncapsulation.h"
+#include "zeek/iosource/Packet.h"
 
 extern "C" {
 #include <pcap.h>
@@ -20,6 +13,14 @@ extern "C" {
 #include <net/ethertypes.h>
 #endif
 }
+
+#include "zeek/Sessions.h"
+#include "zeek/Desc.h"
+#include "zeek/IP.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/Var.h"
+#include "zeek/TunnelEncapsulation.h"
 
 namespace zeek {
 

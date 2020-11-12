@@ -1,8 +1,7 @@
-
-#include "NetVar.h"
-#include "Var.h"
-#include "ID.h"
-#include "Scope.h"
+#include "zeek/NetVar.h"
+#include "zeek/Var.h"
+#include "zeek/ID.h"
+#include "zeek/Scope.h"
 
 namespace zeek::detail {
 

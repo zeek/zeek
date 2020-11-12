@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/input/readers/benchmark/Benchmark.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 
-#include "Benchmark.h"
-#include "benchmark.bif.h"
+#include "zeek/threading/SerialTypes.h"
+#include "zeek/threading/Manager.h"
 
-#include "threading/SerialTypes.h"
-#include "threading/Manager.h"
+#include "input/readers/benchmark/benchmark.bif.h"
 
 using threading::Value;
 using threading::Field;

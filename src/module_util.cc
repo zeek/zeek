@@ -1,13 +1,13 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "module_util.h"
+#include "zeek/module_util.h"
 
 #include <string.h>
 #include <iostream>
 #include <string>
 
-#include "3rdparty/doctest.h"
+#include "zeek/3rdparty/doctest.h"
 
 using namespace std;
 

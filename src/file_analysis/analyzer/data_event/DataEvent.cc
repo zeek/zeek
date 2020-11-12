@@ -2,12 +2,12 @@
 
 #include <string>
 
-#include "DataEvent.h"
-#include "EventRegistry.h"
-#include "Event.h"
-#include "Func.h"
-#include "util.h"
-#include "file_analysis/Manager.h"
+#include "zeek/file_analysis/analyzer/data_event/DataEvent.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/Event.h"
+#include "zeek/Func.h"
+#include "zeek/util.h"
+#include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail {
 

@@ -1,17 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
-#include "File.h"
-#include "Analyzer.h"
-#include "Event.h"
-#include "UID.h"
-#include "digest.h"
-
-#include "plugin/Manager.h"
-#include "analyzer/Manager.h"
-#include "file_analysis/file_analysis.bif.h"
+#include "zeek/file_analysis/Manager.h"
 
 #include <openssl/md5.h>
+
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/Event.h"
+#include "zeek/UID.h"
+#include "zeek/digest.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/analyzer/Manager.h"
+
+#include "file_analysis/file_analysis.bif.h"
 
 using namespace std;
 

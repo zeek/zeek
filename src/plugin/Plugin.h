@@ -2,13 +2,14 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <list>
 #include <string>
 #include <utility>
 
-#include "zeek-config.h"
-#include "logging/WriterBackend.h"
-#include "ZeekArgs.h"
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/ZeekArgs.h"
 
 // Increase this when making incompatible changes to the plugin API. Note
 // that the constant is never used in C code. It's picked up on by CMake.

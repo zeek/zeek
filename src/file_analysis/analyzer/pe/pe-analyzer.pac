@@ -1,7 +1,8 @@
 %extern{
-#include "Event.h"
-#include "file_analysis/File.h"
-#include "events.bif.h"
+#include "zeek/Event.h"
+#include "zeek/file_analysis/File.h"
+
+#include "file_analysis/analyzer/pe/events.bif.h"
 %}
 
 %header{

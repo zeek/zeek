@@ -1,8 +1,8 @@
 
 %%{
-#include "Login.h"
-#include "Reporter.h"
-#include "Sessions.h"
+#include "zeek/analyzer/protocol/login/Login.h"
+#include "zeek/Reporter.h"
+#include "zeek/Sessions.h"
 %%}
 
 ## Returns the state of the given login (Telnet or Rlogin) connection.

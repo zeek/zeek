@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "MOUNT.h"
+#include "zeek/analyzer/protocol/rpc/MOUNT.h"
 
 #include <algorithm>
 #include <vector>
 
-#include "ZeekString.h"
-#include "NetVar.h"
-#include "XDR.h"
-#include "Event.h"
+#include "zeek/ZeekString.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/rpc/XDR.h"
+#include "zeek/Event.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/rpc/events.bif.h"
 
 namespace zeek::analyzer::rpc {
 namespace detail {

@@ -9,9 +9,9 @@
 #include <set>
 #include <string>
 
-#include "Rule.h"
-#include "RE.h"
-#include "CCL.h"
+#include "zeek/Rule.h"
+#include "zeek/RE.h"
+#include "zeek/CCL.h"
 
 //#define MATCHER_PRINT_STATS
 

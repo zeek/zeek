@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Func.h"
+#include "zeek/Func.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -33,27 +33,27 @@
 
 #include <broker/error.hh>
 
-#include "Base64.h"
-#include "Debug.h"
-#include "Desc.h"
-#include "Expr.h"
-#include "Stmt.h"
-#include "Scope.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "File.h"
-#include "Frame.h"
-#include "Var.h"
-#include "analyzer/protocol/login/Login.h"
-#include "Sessions.h"
-#include "RE.h"
-#include "Event.h"
-#include "Traverse.h"
-#include "Reporter.h"
-#include "plugin/Manager.h"
-#include "module_util.h"
-#include "iosource/PktSrc.h"
-#include "iosource/PktDumper.h"
+#include "zeek/Base64.h"
+#include "zeek/Debug.h"
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Scope.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/File.h"
+#include "zeek/Frame.h"
+#include "zeek/Var.h"
+#include "zeek/analyzer/protocol/login/Login.h"
+#include "zeek/Sessions.h"
+#include "zeek/RE.h"
+#include "zeek/Event.h"
+#include "zeek/Traverse.h"
+#include "zeek/Reporter.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/module_util.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/iosource/PktDumper.h"
 
 #include "zeek.bif.func_h"
 #include "stats.bif.func_h"

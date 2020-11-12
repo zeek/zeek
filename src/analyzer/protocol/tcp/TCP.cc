@@ -1,23 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include <vector>
 
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
 
-#include "IP.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "File.h"
-#include "Event.h"
-#include "Reporter.h"
-#include "Sessions.h"
-#include "DebugLogger.h"
+#include "zeek/IP.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/File.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
+#include "zeek/Sessions.h"
+#include "zeek/DebugLogger.h"
 
-#include "events.bif.h"
-#include "types.bif.h"
+#include "analyzer/protocol/tcp/events.bif.h"
+#include "analyzer/protocol/tcp/types.bif.h"
 
 namespace { // local namespace
 	const bool DEBUG_tcp_data_sent = false;
@@ -276,7 +276,7 @@ bool TCP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, int len, int caplen)
 	{
 	if ( ! run_state::current_pkt->l3_checksummed &&
-	     ! detail::ignore_checksums && 
+	     ! detail::ignore_checksums &&
 	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
 	     caplen >= len && ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
 		{

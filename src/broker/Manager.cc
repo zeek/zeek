@@ -1,28 +1,30 @@
-#include "Manager.h"
+#include "zeek/broker/Manager.h"
 
-#include <broker/broker.hh>
-#include <broker/zeek.hh>
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
 
-#include "Func.h"
-#include "Data.h"
-#include "Store.h"
-#include "util.h"
-#include "Var.h"
-#include "Desc.h"
-#include "Reporter.h"
-#include "IntrusivePtr.h"
+#include <broker/broker.hh>
+#include <broker/zeek.hh>
+
+#include "zeek/Func.h"
+#include "zeek/broker/Data.h"
+#include "zeek/broker/Store.h"
+#include "zeek/util.h"
+#include "zeek/Var.h"
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/SerializationFormat.h"
+#include "zeek/RunState.h"
+
 #include "broker/comm.bif.h"
 #include "broker/data.bif.h"
 #include "broker/messaging.bif.h"
 #include "broker/store.bif.h"
-#include "logging/Manager.h"
-#include "DebugLogger.h"
-#include "iosource/Manager.h"
-#include "SerializationFormat.h"
-#include "RunState.h"
 
 using namespace std;
 

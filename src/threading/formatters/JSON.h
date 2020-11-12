@@ -3,10 +3,10 @@
 #pragma once
 
 #define RAPIDJSON_HAS_STDSTRING 1
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 
-#include "../Formatter.h"
+#include "zeek/threading/Formatter.h"
 
 namespace zeek::threading::formatter {
 

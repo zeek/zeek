@@ -4,9 +4,10 @@
 
 // for std::transform
 #include <algorithm>
-#include "analyzer/protocol/tcp/TCP.h"
 
-#include "imap_pac.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+
+#include "analyzer/protocol/imap/imap_pac.h"
 
 namespace zeek::analyzer::imap {
 

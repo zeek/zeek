@@ -1,14 +1,14 @@
 // This code contributed by Nadi Sarrar.
 
-#include "BitTorrentTracker.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/bittorrent/BitTorrentTracker.h"
 
 #include <sys/types.h>
 #include <regex.h>
-
 #include <algorithm>
+
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+
+#include "analyzer/protocol/bittorrent/events.bif.h"
 
 # define FMT_INT "%" PRId64
 # define FMT_UINT "%" PRIu64

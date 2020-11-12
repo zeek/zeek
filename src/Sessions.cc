@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-
 #include "zeek-config.h"
-#include "Sessions.h"
+#include "zeek/Sessions.h"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -10,27 +9,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "Desc.h"
-#include "RunState.h"
-#include "Event.h"
-#include "Timer.h"
-#include "NetVar.h"
-#include "Reporter.h"
+#include <pcap.h>
 
-#include "analyzer/protocol/icmp/ICMP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "zeek/Desc.h"
+#include "zeek/RunState.h"
+#include "zeek/Event.h"
+#include "zeek/Timer.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/TunnelEncapsulation.h"
 
-#include "analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "zeek/analyzer/protocol/icmp/ICMP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "zeek/analyzer/Manager.h"
+
+#include "zeek/iosource/IOSource.h"
+#include "zeek/packet_analysis/Manager.h"
+
 #include "analyzer/protocol/stepping-stone/events.bif.h"
-#include "RuleMatcher.h"
-
-#include "TunnelEncapsulation.h"
-
-#include "analyzer/Manager.h"
-#include "iosource/IOSource.h"
-#include "packet_analysis/Manager.h"
-
-#include "pcap.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server

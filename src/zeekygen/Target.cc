@@ -1,23 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Target.h"
-#include "Manager.h"
-#include "IdentifierInfo.h"
-#include "PackageInfo.h"
-#include "ScriptInfo.h"
-
-#include "util.h"
-#include "Reporter.h"
-#include "plugin/Manager.h"
-#include "analyzer/Manager.h"
-#include "analyzer/Component.h"
-#include "file_analysis/Manager.h"
-#include "packet_analysis/Manager.h"
+#include "zeek/zeekygen/Target.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fts.h>
 #include <unistd.h>
+
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/PackageInfo.h"
+#include "zeek/zeekygen/ScriptInfo.h"
+
+#include "zeek/util.h"
+#include "zeek/Reporter.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
 
 using namespace std;
 

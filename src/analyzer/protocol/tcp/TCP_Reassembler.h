@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Reassem.h"
-#include "TCP_Endpoint.h"
-#include "TCP_Flags.h"
-#include "File.h"
+#include "zeek/Reassem.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
+#include "zeek/File.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);

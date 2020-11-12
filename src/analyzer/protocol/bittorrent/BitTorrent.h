@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "bittorrent_pac.h"
+#include "analyzer/protocol/bittorrent/bittorrent_pac.h"
 
 namespace zeek::analyzer::bittorrent {
 

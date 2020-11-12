@@ -1,19 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <sstream>
-#include <unordered_set>
+#include "zeek/input/readers/config/Config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <regex.h>
+#include <sstream>
+#include <unordered_set>
 
-#include "Config.h"
-#include "config.bif.h"
+#include "zeek/input/Manager.h"
+#include "zeek/threading/SerialTypes.h"
 
-#include "input/Manager.h"
-#include "threading/SerialTypes.h"
+#include "input/readers/config/config.bif.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

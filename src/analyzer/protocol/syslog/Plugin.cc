@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "Syslog.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/syslog/Syslog.h"
 
 namespace zeek::plugin::detail::Zeek_Syslog {
 

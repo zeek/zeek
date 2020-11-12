@@ -1,9 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <pcap.h>
+#include "zeek/packet_analysis/protocol/ieee802_11_radio/IEEE802_11_Radio.h"
 
-#include "IEEE802_11_Radio.h"
-#include "NetVar.h"
+#include <pcap.h>
 
 using namespace zeek::packet_analysis::IEEE802_11_Radio;
 

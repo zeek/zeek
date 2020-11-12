@@ -1,10 +1,9 @@
-#include "RFB.h"
+#include "zeek/analyzer/protocol/rfb/RFB.h"
 
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/Reporter.h"
 
-#include "Reporter.h"
-
-#include "events.bif.h"
+#include "analyzer/protocol/rfb/events.bif.h"
 
 namespace zeek::analyzer::rfb {
 

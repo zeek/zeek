@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "XMPP.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "analyzer/Manager.h"
+#include "zeek/analyzer/protocol/xmpp/XMPP.h"
+
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/Manager.h"
 
 namespace zeek::analyzer::xmpp {
 

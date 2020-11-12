@@ -1,8 +1,8 @@
 ##! Functions to create and manipulate probabilistic cardinality counters.
 
 %%{
-#include "probabilistic/CardinalityCounter.h"
-#include "OpaqueVal.h"
+#include "zeek/probabilistic/CardinalityCounter.h"
+#include "zeek/OpaqueVal.h"
 
 using namespace probabilistic;
 %%}

@@ -2,9 +2,9 @@
 %include zeek.pac
 
 %extern{
-#include "consts.bif.h"
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/dce-rpc/consts.bif.h"
+#include "analyzer/protocol/dce-rpc/types.bif.h"
+#include "analyzer/protocol/dce-rpc/events.bif.h"
 %}
 
 analyzer DCE_RPC withcontext {

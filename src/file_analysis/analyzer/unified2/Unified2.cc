@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Unified2.h"
-#include "file_analysis/Manager.h"
+#include "zeek/file_analysis/analyzer/unified2/Unified2.h"
+#include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail {
 

@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "NetVar.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/dce-rpc/events.bif.h"
-#include "IPAddr.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/IPAddr.h"
 
-#include "dce_rpc_pac.h"
+#include "analyzer/protocol/dce-rpc/events.bif.h"
+#include "analyzer/protocol/dce-rpc/dce_rpc_pac.h"
 
 namespace zeek::analyzer::dce_rpc {
 

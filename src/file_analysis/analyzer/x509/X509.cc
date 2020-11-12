@@ -1,15 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/file_analysis/analyzer/x509/X509.h"
+
 #include <string>
-
-#include "X509.h"
-#include "Event.h"
-
-#include "events.bif.h"
-#include "types.bif.h"
-
-#include "file_analysis/File.h"
-#include "file_analysis/Manager.h"
 
 #include <broker/error.hh>
 #include <broker/expected.hh>
@@ -20,6 +13,13 @@
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
+
+#include "zeek/Event.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
+
+#include "file_analysis/analyzer/x509/events.bif.h"
+#include "file_analysis/analyzer/x509/types.bif.h"
 
 namespace zeek::file_analysis::detail {
 

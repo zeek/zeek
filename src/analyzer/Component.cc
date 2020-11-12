@@ -1,10 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Component.h"
-#include "Manager.h"
+#include "zeek/analyzer/Component.h"
 
-#include "../Desc.h"
-#include "../util.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/Desc.h"
+#include "zeek/util.h"
 
 namespace zeek::analyzer {
 

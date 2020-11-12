@@ -1,13 +1,13 @@
 #pragma once
 
-#include "util.h"
-#include "Val.h"
-#include "IntrusivePtr.h"
-#include "analyzer/Analyzer.h"
-#include "file_analysis/Analyzer.h"
-#include "event.bif.func_h"
+#include <binpac.h>
 
-#include "binpac.h"
+#include "zeek/util.h"
+#include "zeek/Val.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/file_analysis/Analyzer.h"
+#include "event.bif.func_h"
 
 namespace binpac {
 

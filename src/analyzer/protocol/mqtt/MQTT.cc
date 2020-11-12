@@ -1,11 +1,10 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
+#include "zeek/analyzer/protocol/mqtt/MQTT.h"
 
-#include "MQTT.h"
-#include "Reporter.h"
-#include "Scope.h"
-#include "mqtt_pac.h"
+#include "zeek/Reporter.h"
+
+#include "analyzer/protocol/mqtt/mqtt_pac.h"
 
 namespace zeek::analyzer::mqtt {
 

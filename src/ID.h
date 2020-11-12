@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include "IntrusivePtr.h"
-#include "Obj.h"
-#include "Attr.h"
-#include "Notifier.h"
-#include "TraverseTypes.h"
-
 #include <map>
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
+#include "zeek/Attr.h"
+#include "zeek/Notifier.h"
+#include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);

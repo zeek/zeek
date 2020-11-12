@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek-setup.h"
+#include "zeek/zeek-setup.h"
 
-#include "iosource/Manager.h"
-#include "supervisor/Supervisor.h"
-#include "RunState.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/supervisor/Supervisor.h"
+#include "zeek/RunState.h"
 
 int main(int argc, char** argv)
 	{

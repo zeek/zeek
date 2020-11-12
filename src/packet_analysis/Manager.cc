@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "zeek/packet_analysis/Manager.h"
 
-#include "Analyzer.h"
-#include "Dispatcher.h"
-#include "zeek-bif.h"
-#include "Stats.h"
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/Dispatcher.h"
+#include "zeek/zeek-bif.h"
+#include "zeek/Stats.h"
 #include "zeek/Sessions.h"
 #include "zeek/RunState.h"
-#include "iosource/PktDumper.h"
+#include "zeek/iosource/PktDumper.h"
 
 using namespace zeek::packet_analysis;
 

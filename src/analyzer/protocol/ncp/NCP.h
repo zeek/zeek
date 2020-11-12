@@ -17,10 +17,10 @@
 //
 //	http://faydoc.tripod.com/structures/21/2149.htm
 
-#include "NetVar.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "ncp_pac.h"
+#include "analyzer/protocol/ncp/ncp_pac.h"
 
 namespace zeek::analyzer::ncp {
 namespace detail {

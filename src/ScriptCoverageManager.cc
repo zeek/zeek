@@ -1,17 +1,17 @@
-#include "ScriptCoverageManager.h"
+#include "zeek/ScriptCoverageManager.h"
 
+#include <sys/stat.h>
 #include <cstdio>
 #include <cstring>
 #include <sstream>
 #include <fstream>
 #include <utility>
 #include <algorithm>
-#include <sys/stat.h>
 
-#include "Stmt.h"
-#include "Desc.h"
-#include "Reporter.h"
-#include "util.h"
+#include "zeek/Stmt.h"
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
 using namespace std;
 

@@ -1,9 +1,7 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
-#include "DCE_RPC.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/protocol/dce-rpc/DCE_RPC.h"
 
 namespace zeek::plugin::detail::Zeek_DCE_RPC {
 

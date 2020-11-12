@@ -2,14 +2,14 @@
 
 #include "zeek-config.h"
 
-#include <algorithm>
 #include <ctype.h>
+#include <algorithm>
 
-#include "SmithWaterman.h"
-#include "Var.h"
-#include "util.h"
-#include "Reporter.h"
-#include "Val.h"
+#include "zeek/SmithWaterman.h"
+#include "zeek/Var.h"
+#include "zeek/util.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
 
 namespace zeek::detail {
 

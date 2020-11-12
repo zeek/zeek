@@ -7,7 +7,9 @@
 #include <string>
 #include <vector>
 
-#include "Queue.h"
+#include "zeek/Queue.h"
+
+// This file is generated during the build.
 #include "DebugCmdConstants.h"
 
 namespace zeek::detail {

@@ -1,8 +1,8 @@
-#include "EventRegistry.h"
-#include "EventHandler.h"
-#include "Func.h"
-#include "RE.h"
-#include "Reporter.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/EventHandler.h"
+#include "zeek/Func.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
 
 namespace zeek {
 

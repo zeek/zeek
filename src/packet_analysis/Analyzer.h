@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
-#include "Manager.h"
-#include "Tag.h"
-#include <iosource/Packet.h>
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/Tag.h"
+#include "zeek/iosource/Packet.h"
 
 namespace zeek::packet_analysis {
 

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "IPAddr.h"
-#include "File.h"
+#include "zeek/IPAddr.h"
+#include "zeek/File.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "analyzer/Analyzer.h"
-#include "NetVar.h"
-#include "Reporter.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::analyzer::teredo {
 

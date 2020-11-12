@@ -1,15 +1,16 @@
-#include "TCP_Reassembler.h"
-#include "TCP_Endpoint.h"
-#include "File.h"
-#include "analyzer/Analyzer.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "ZeekString.h"
-#include "Reporter.h"
-#include "RuleMatcher.h"
-
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include <algorithm>
+
+#include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
+#include "zeek/File.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Reporter.h"
+#include "zeek/RuleMatcher.h"
+
+#include "analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer::tcp {
 

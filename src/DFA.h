@@ -3,15 +3,14 @@
 
 #pragma once
 
+#include <assert.h>
+#include <sys/types.h> // for u_char
 #include <map>
 #include <string>
 
-#include <assert.h>
-#include <sys/types.h> // for u_char
-
-#include "NFA.h"
-#include "RE.h" // for typedef AcceptingSet
-#include "Obj.h"
+#include "zeek/NFA.h"
+#include "zeek/RE.h" // for typedef AcceptingSet
+#include "zeek/Obj.h"
 
 namespace zeek::detail {
 

@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "SNMP.h"
-#include "Func.h"
-#include "Reporter.h"
-#include "types.bif.h"
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/snmp/SNMP.h"
+#include "zeek/Func.h"
+#include "zeek/Reporter.h"
+
+#include "analyzer/protocol/snmp/types.bif.h"
+#include "analyzer/protocol/snmp/events.bif.h"
 
 namespace zeek::analyzer::snmp {
 

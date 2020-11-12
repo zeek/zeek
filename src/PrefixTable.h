@@ -1,12 +1,12 @@
 #pragma once
 
 extern "C" {
-	#include "patricia.h"
+	#include "zeek/patricia.h"
 }
 
 #include <list>
 
-#include "IPAddr.h"
+#include "zeek/IPAddr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(SubNetVal, zeek);

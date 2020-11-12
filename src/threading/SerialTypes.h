@@ -6,8 +6,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "Type.h"
-#include "net_util.h"
+#include "zeek/Type.h"
+#include "zeek/net_util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
 

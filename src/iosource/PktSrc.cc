@@ -1,20 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "PktSrc.h"
+#include "zeek/iosource/PktSrc.h"
 
 #include <sys/stat.h>
 
-#include "util.h"
-#include "Hash.h"
-#include "RunState.h"
-#include "Sessions.h"
-#include "broker/Manager.h"
-#include "iosource/Manager.h"
-#include "packet_analysis/Manager.h"
-#include "BPF_Program.h"
+#include "zeek/util.h"
+#include "zeek/Hash.h"
+#include "zeek/RunState.h"
+#include "zeek/Sessions.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/iosource/BPF_Program.h"
 
-#include "pcap/pcap.bif.h"
+#include "iosource/pcap/pcap.bif.h"
 
 namespace zeek::iosource {
 

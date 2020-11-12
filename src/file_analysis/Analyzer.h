@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "Tag.h"
-
 #include <sys/types.h> // for u_char
+
+#include "zeek/file_analysis/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 namespace zeek {

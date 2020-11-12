@@ -5,7 +5,7 @@
 #include <string>
 #include <openssl/ocsp.h>
 
-#include "X509Common.h"
+#include "zeek/file_analysis/analyzer/x509/X509Common.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 

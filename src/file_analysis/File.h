@@ -6,12 +6,12 @@
 #include <string>
 #include <utility>
 
-#include "analyzer/Tag.h"
-#include "AnalyzerSet.h"
-#include "ZeekString.h"
-#include "ZeekList.h" // for ValPList
-#include "ZeekArgs.h"
-#include "WeirdState.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/file_analysis/AnalyzerSet.h"
+#include "zeek/ZeekString.h"
+#include "zeek/ZeekList.h" // for ValPList
+#include "zeek/ZeekArgs.h"
+#include "zeek/WeirdState.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);

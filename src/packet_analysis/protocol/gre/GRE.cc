@@ -1,12 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "GRE.h"
+#include "zeek/packet_analysis/protocol/gre/GRE.h"
+
+#include <pcap.h> // For DLT_ constants
+
 #include "zeek/Sessions.h"
 #include "zeek/RunState.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
-
-#include "pcap.h" // For DLT_ constants
 
 using namespace zeek::packet_analysis::GRE;
 

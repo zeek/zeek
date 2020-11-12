@@ -5,9 +5,9 @@
 #include <string>
 #include <map>
 
-#include "OpaqueVal.h"
-#include "X509Common.h"
-#include "Func.h"
+#include "zeek/OpaqueVal.h"
+#include "zeek/file_analysis/analyzer/x509/X509Common.h"
+#include "zeek/Func.h"
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
 

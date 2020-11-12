@@ -3,7 +3,7 @@
 #pragma once
 
 #include <vector>
-#include "ZeekList.h"
+#include "zeek/ZeekList.h"
 
 namespace zeek {
 

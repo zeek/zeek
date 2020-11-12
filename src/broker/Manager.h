@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 #include <broker/topic.hh>
 #include <broker/data.hh>
 #include <broker/store.hh>
@@ -14,13 +18,9 @@
 #include <broker/detail/hash.hh>
 #include <broker/zeek.hh>
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-
-#include "IntrusivePtr.h"
-#include "iosource/IOSource.h"
-#include "logging/WriterBackend.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/logging/WriterBackend.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);

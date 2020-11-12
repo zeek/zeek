@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "ID.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/ID.h"
 
 namespace binpac { namespace MQTT { class MQTT_Conn; } }
 

@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "AYIYA.h"
-#include "Func.h"
-#include "packet_analysis/protocol/iptunnel/IPTunnel.h"
+#include "zeek/analyzer/protocol/ayiya/AYIYA.h"
+
+#include "zeek/Func.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 namespace zeek::analyzer::ayiya {
 

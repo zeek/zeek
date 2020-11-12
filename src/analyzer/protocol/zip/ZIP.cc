@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ZIP.h"
+#include "zeek/analyzer/protocol/zip/ZIP.h"
 
 namespace zeek::analyzer::zip {
 

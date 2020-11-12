@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Dict.h"
-
 #include "zeek-config.h"
+#include "zeek/Dict.h"
 
 #ifdef HAVE_MEMORY_H
 #include <memory.h>
@@ -12,10 +11,10 @@
 #include <climits>
 #include <fstream>
 
-#include "Reporter.h"
-#include "util.h"
+#include "zeek/3rdparty/doctest.h"
 
-#include "3rdparty/doctest.h"
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
 #if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
 #define ASSERT_VALID(o)	o->AssertValid()

@@ -1,22 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "zeek/analyzer/Manager.h"
 
-#include "Hash.h"
-#include "Val.h"
-#include "IntrusivePtr.h"
-#include "RunState.h"
+#include "zeek/Hash.h"
+#include "zeek/Val.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/RunState.h"
 
-#include "protocol/conn-size/ConnSize.h"
-#include "protocol/icmp/ICMP.h"
-#include "protocol/pia/PIA.h"
-#include "protocol/stepping-stone/SteppingStone.h"
-#include "protocol/tcp/TCP.h"
-#include "protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/analyzer/protocol/icmp/ICMP.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "plugin/Manager.h"
+#include "zeek/plugin/Manager.h"
 
-#include "protocol/tcp/events.bif.h"
+#include "analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer {
 

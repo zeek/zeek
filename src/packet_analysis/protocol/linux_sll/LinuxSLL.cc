@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "LinuxSLL.h"
+#include "zeek/packet_analysis/protocol/linux_sll/LinuxSLL.h"
 
 using namespace zeek::packet_analysis::LinuxSLL;
 

@@ -5,8 +5,8 @@
 #include <queue>
 #include <memory>
 
-#include "Dict.h"
-#include "Tag.h"
+#include "zeek/Dict.h"
+#include "zeek/file_analysis/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);

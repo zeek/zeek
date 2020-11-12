@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "BloomFilter.h"
+#include "zeek/probabilistic/BloomFilter.h"
 
 #include <cmath>
 #include <limits>
@@ -8,10 +8,9 @@
 #include <broker/data.hh>
 #include <broker/error.hh>
 
-#include "CounterVector.h"
-
-#include "../util.h"
-#include "../Reporter.h"
+#include "zeek/probabilistic/CounterVector.h"
+#include "zeek/util.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::probabilistic {
 

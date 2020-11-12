@@ -1,22 +1,21 @@
 // See the file  in the main distribution directory for copyright.
 
-#include <pcap.h>	// for the DLT_EN10MB constant definition
-
-#include "VXLAN.h"
-#include "TunnelEncapsulation.h"
-#include "Conn.h"
-#include "IP.h"
-#include "RunState.h"
-#include "Sessions.h"
-#include "Reporter.h"
-#include "packet_analysis/Manager.h"
-#include "packet_analysis/protocol/iptunnel/IPTunnel.h"
-
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/vxlan/VXLAN.h"
 
 extern "C" {
-#include <pcap.h>
+#include <pcap.h>	// for the DLT_EN10MB constant definition
 }
+
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/Conn.h"
+#include "zeek/IP.h"
+#include "zeek/RunState.h"
+#include "zeek/Sessions.h"
+#include "zeek/Reporter.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
+
+#include "analyzer/protocol/vxlan/events.bif.h"
 
 namespace zeek::analyzer::vxlan {
 

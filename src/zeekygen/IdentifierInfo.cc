@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IdentifierInfo.h"
-#include "ScriptInfo.h"
-#include "utils.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/zeekygen/utils.h"
 
-#include "Desc.h"
-#include "Val.h"
-#include "Expr.h"
+#include "zeek/Desc.h"
+#include "zeek/Val.h"
+#include "zeek/Expr.h"
 
 using namespace std;
 

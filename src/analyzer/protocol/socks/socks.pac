@@ -2,10 +2,10 @@
 %include zeek.pac
 
 %extern{
-#include "SOCKS.h"
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/socks/SOCKS.h"
+#include "zeek/Reporter.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/socks/events.bif.h"
 %}
 
 analyzer SOCKS withcontext {

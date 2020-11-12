@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "analyzer/Analyzer.h"
-#include "IPAddr.h"
-#include "TCP_Endpoint.h"
-#include "TCP_Flags.h"
-#include "Conn.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/IPAddr.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
+#include "zeek/Conn.h"
 
 // We define two classes here:
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.

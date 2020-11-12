@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::gnutella {
 

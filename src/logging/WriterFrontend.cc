@@ -1,11 +1,10 @@
+#include "zeek/logging/WriterFrontend.h"
 
-#include "RunState.h"
-#include "threading/SerialTypes.h"
-#include "broker/Manager.h"
-
-#include "Manager.h"
-#include "WriterFrontend.h"
-#include "WriterBackend.h"
+#include "zeek/RunState.h"
+#include "zeek/threading/SerialTypes.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/logging/WriterBackend.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

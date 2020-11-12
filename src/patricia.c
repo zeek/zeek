@@ -69,7 +69,7 @@ static char copyright[] =
 #include <sys/types.h> /* for u_short, etc. */
 #include <stdbool.h>
 
-#include "patricia.h"
+#include "zeek/patricia.h"
 
 #define Delete free
 

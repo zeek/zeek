@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "bro_inet_ntop.h"
+#include "zeek/bro_inet_ntop.h"
 
 #include <sys/param.h>
 #include <sys/types.h>

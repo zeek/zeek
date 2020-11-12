@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include "krb_pac.h"
+#include "zeek-config.h"
+#include <mutex>
 
 #ifdef USE_KRB5
 #include <krb5.h>
 #endif
 
-#include <mutex>
+#include "analyzer/protocol/krb/krb_pac.h"
 
 namespace zeek::analyzer::krb {
 

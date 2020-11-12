@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Skip.h"
-#include "NetVar.h"
+#include "zeek/packet_analysis/protocol/skip/Skip.h"
 
 using namespace zeek::packet_analysis::Skip;
 

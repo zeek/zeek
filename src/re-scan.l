@@ -5,10 +5,10 @@
  */
 
 %{
-#include "RE.h"
-#include "CCL.h"
-#include "NFA.h"
-#include "util.h"
+#include "zeek/RE.h"
+#include "zeek/CCL.h"
+#include "zeek/NFA.h"
+#include "zeek/util.h"
 
 #define yylval RE_lval
 

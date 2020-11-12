@@ -1,10 +1,10 @@
-#include "ScannedFile.h"
+#include "zeek/ScannedFile.h"
 
 #include <sys/errno.h>
 #include <limits.h> // for PATH_MAX
 
-#include "DebugLogger.h"
-#include "Reporter.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::detail {
 

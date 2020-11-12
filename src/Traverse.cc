@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Scope.h"
-#include "Traverse.h"
-#include "Stmt.h"
-#include "input.h"
+#include "zeek/Traverse.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
+#include "zeek/input.h"
 
 namespace zeek::detail {
 

@@ -7,11 +7,11 @@
 #include <queue>
 #include <utility>
 
-#include "List.h"
-#include "EventHandler.h"
-#include "iosource/IOSource.h"
-#include "IPAddr.h"
-#include "util.h"
+#include "zeek/List.h"
+#include "zeek/EventHandler.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/IPAddr.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(DNS_Mgr_Request, zeek::detail);

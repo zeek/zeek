@@ -10,8 +10,8 @@
 
 #include <broker/expected.hh>
 
-#include "BitVector.h"
-#include "Hasher.h"
+#include "zeek/probabilistic/BitVector.h"
+#include "zeek/probabilistic/Hasher.h"
 
 namespace broker { class data; }
 

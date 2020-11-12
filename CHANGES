@@ -1,3 +1,38 @@
+3.3.0-dev.524 | 2020-11-12 12:16:00 -0700
+
+  * Move 'using namespace' declaration after other includes (Tim Wojtulewicz, Corelight)
+
+  * Use binpac.h as if it was an external dependency (Tim Wojtulewicz, Corelight)
+
+  * Fix includes of bif.h and _pac.h files to use full paths inside build directory (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary include of NetVar.h from packet analysis plugins (Tim Wojtulewicz, Corelight)
+
+  * GH-1079: Use full paths starting with zeek/ when including files (Tim Wojtulewicz, Corelight)
+
+  * Fix type clash fatal error with log filters that use $ext_func and $include/$exclude
+
+    The logging manager's Manager::TraverseRecord(), called when adding a
+    log filter to a stream, skipped any fields intoduced by a filter's
+    $ext_func when such fields weren't mentioned in a $include restriction
+    or mentioned in an $exclude restriction. This was inconsistent with
+    Manager::RecordToFilterVals, used when actually writing log entries,
+    which does include those values.
+
+    The result was that the record indices descent in Manager::RecordToFilterVals
+    expects to find only record values, when in fact only the record
+    provided by ext_func is present. This leads to type mismatches and
+    hard Zeek exits like this one:
+
+    1300475173.475401 fatal error in zeek/share/zeek//base/init-bare.zeek, line 4810: Val::CONVERTER (string/record) (zeek)
+
+    The fix makes ext_func's field additions decisive, meaning the
+    filter's include/exclude lists don't apply to it. If a user really
+    wants to override this, they can reset the filter's ext_func back to
+    our no-op default.
+
+    The included btest produces the above error when the fix is not present. (Christian Kreibich, Corelight)
+
 3.3.0-dev.516 | 2020-11-11 12:53:02 -0700
 
   * Support for additional DNS RR Type: LOC[29], SSHFP[44], NSEC3PARAM[51], custom BIND9 signaling[65534] (Fatema BW)

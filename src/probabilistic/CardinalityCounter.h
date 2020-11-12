@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include <broker/expected.hh>
+#include <stdint.h>
 
 #include <memory>
 #include <vector>
 
-#include <stdint.h>
+#include <broker/expected.hh>
 
 namespace broker { class data; }
 

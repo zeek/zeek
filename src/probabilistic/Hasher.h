@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "Hash.h"
-
+#include <memory>
 #include <broker/expected.hh>
 
-#include <memory>
+#include "zeek/Hash.h"
 
 namespace broker { class data; }
 

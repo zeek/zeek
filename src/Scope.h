@@ -7,10 +7,10 @@
 #include <string_view>
 #include <map>
 
-#include "Obj.h"
-#include "ZeekList.h"
-#include "IntrusivePtr.h"
-#include "TraverseTypes.h"
+#include "zeek/Obj.h"
+#include "zeek/ZeekList.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Type, zeek);
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;

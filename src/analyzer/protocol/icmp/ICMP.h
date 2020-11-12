@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "RuleMatcher.h"
-#include "analyzer/Analyzer.h"
-#include "net_util.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/net_util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
 namespace zeek {

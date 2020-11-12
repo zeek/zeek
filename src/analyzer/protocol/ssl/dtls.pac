@@ -4,13 +4,14 @@
 %include zeek.pac
 
 %extern{
-#include "events.bif.h"
 
 namespace zeek::analyzer::dtls { class DTLS_Analyzer; }
 using DTLSAnalyzer = zeek::analyzer::dtls::DTLS_Analyzer*;
 
-#include "DTLS.h"
-#include "consts.bif.h"
+#include "zeek/analyzer/protocol/ssl/DTLS.h"
+
+#include "analyzer/protocol/ssl/events.bif.h"
+#include "analyzer/protocol/ssl/consts.bif.h"
 %}
 
 extern type DTLSAnalyzer;

@@ -1,6 +1,6 @@
-#include "WeirdState.h"
-#include "RunState.h"
-#include "util.h"
+#include "zeek/WeirdState.h"
+#include "zeek/RunState.h"
+#include "zeek/util.h"
 
 namespace zeek::detail {
 

@@ -1,15 +1,15 @@
+#include "zeek/analyzer/protocol/teredo/Teredo.h"
 
-#include "Teredo.h"
-#include "TunnelEncapsulation.h"
-#include "Conn.h"
-#include "IP.h"
-#include "Reporter.h"
-#include "Sessions.h"
-#include "ZeekString.h"
-#include "RunState.h"
-#include "packet_analysis/protocol/iptunnel/IPTunnel.h"
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/Conn.h"
+#include "zeek/IP.h"
+#include "zeek/Reporter.h"
+#include "zeek/Sessions.h"
+#include "zeek/ZeekString.h"
+#include "zeek/RunState.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/teredo/events.bif.h"
 
 namespace zeek::analyzer::teredo {
 

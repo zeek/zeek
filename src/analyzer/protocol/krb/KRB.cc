@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "KRB.h"
+#include "zeek/analyzer/protocol/krb/KRB.h"
 
 #include <unistd.h>
 
-#include "types.bif.h"
-#include "events.bif.h"
+#include "analyzer/protocol/krb/types.bif.h"
+#include "analyzer/protocol/krb/events.bif.h"
 
 namespace zeek::analyzer::krb {
 

@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "DNS.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/dns/DNS.h"
 
 namespace zeek::plugin::detail::Zeek_DNS {
 

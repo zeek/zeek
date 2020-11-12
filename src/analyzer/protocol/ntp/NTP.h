@@ -1,11 +1,10 @@
 #pragma once
 
-#include "events.bif.h"
-#include "types.bif.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "analyzer/protocol/udp/UDP.h"
-
-#include "ntp_pac.h"
+#include "analyzer/protocol/ntp/events.bif.h"
+#include "analyzer/protocol/ntp/types.bif.h"
+#include "analyzer/protocol/ntp/ntp_pac.h"
 
 namespace zeek::analyzer::ntp {
 

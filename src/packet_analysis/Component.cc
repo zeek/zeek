@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Component.h"
-#include "Desc.h"
-#include "Manager.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/Desc.h"
+#include "zeek/packet_analysis/Manager.h"
 
 using namespace zeek::packet_analysis;
 

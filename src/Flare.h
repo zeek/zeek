@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Pipe.h"
+#include "zeek/Pipe.h"
 
 namespace zeek::detail {
 

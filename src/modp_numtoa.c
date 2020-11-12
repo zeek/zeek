@@ -1,7 +1,7 @@
 /* -*- mode: c; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 4 -*- */
 /* vi: set expandtab shiftwidth=4 tabstop=4: */
 
-#include "modp_numtoa.h"
+#include "zeek/modp_numtoa.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -413,6 +413,3 @@ void modp_dtoa3(double value, char* str, int n, int prec)
     *wstr='\0';
     strreverse(str, wstr-1);
 }
-
-
-

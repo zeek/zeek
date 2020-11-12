@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "util.h" // for bro_int_t
-
 #include <stdlib.h>
 
+#include "zeek/util.h" // for bro_int_t
+
 // to allow bro_md5_hmac access to the hmac seed
-#include "ZeekArgs.h"
+#include "zeek/ZeekArgs.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(BifReturnVal, zeek::detail);

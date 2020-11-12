@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "ZeekString.h"
+#include "zeek/ZeekString.h"
 
+#include <ctype.h>
 #include <algorithm>
 #include <iostream>
-#include <ctype.h>
 
-#include "Val.h"
-#include "ID.h"
-#include "Reporter.h"
-#include "util.h"
+#include "zeek/Val.h"
+#include "zeek/ID.h"
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(zeek::DBG_STRING, msg)

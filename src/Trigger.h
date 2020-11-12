@@ -4,11 +4,11 @@
 #include <vector>
 #include <map>
 
-#include "Obj.h"
-#include "Notifier.h"
-#include "iosource/IOSource.h"
-#include "util.h"
-#include "IntrusivePtr.h"
+#include "zeek/Obj.h"
+#include "zeek/Notifier.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/util.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);

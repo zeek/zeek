@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <sys/time.h>
 
-#include "Reporter.h"
-#include "BasicThread.h"
+#include "zeek/Reporter.h"
+#include "zeek/threading/BasicThread.h"
 
 #undef Queue // Defined elsewhere unfortunately.
 

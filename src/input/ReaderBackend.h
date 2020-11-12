@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "ZeekString.h"
+#include "zeek/ZeekString.h"
 
-#include "threading/SerialTypes.h"
-#include "threading/MsgThread.h"
+#include "zeek/threading/SerialTypes.h"
+#include "zeek/threading/MsgThread.h"
 
-#include "Component.h"
+#include "zeek/input/Component.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek::input);
 

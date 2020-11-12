@@ -1,8 +1,7 @@
 // See the file in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
-#include "NTLM.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/protocol/ntlm/NTLM.h"
 
 namespace zeek::plugin::detail::Zeek_NTLM {
 

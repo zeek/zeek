@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "logging/WriterBackend.h"
-#include "threading/formatters/Ascii.h"
-#include "threading/formatters/JSON.h"
-#include "Desc.h"
-#include "zlib.h"
+#include <zlib.h>
+
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/threading/formatters/Ascii.h"
+#include "zeek/threading/formatters/JSON.h"
+#include "zeek/Desc.h"
 
 namespace zeek::plugin::detail::Zeek_AsciiWriter { class Plugin; }
 

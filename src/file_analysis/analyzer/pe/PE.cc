@@ -1,5 +1,5 @@
-#include "PE.h"
-#include "file_analysis/Manager.h"
+#include "zeek/file_analysis/analyzer/pe/PE.h"
+#include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail {
 

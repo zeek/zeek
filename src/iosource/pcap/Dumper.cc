@@ -1,13 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/iosource/pcap/Dumper.h"
+
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "Dumper.h"
-#include "../PktSrc.h"
-#include "../../RunState.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/RunState.h"
 
-#include "pcap.bif.h"
+#include "iosource/pcap/pcap.bif.h"
 
 namespace zeek::iosource::pcap {
 

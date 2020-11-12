@@ -1,25 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "Conn.h"
+#include "zeek/Conn.h"
 
 #include <ctype.h>
+#include <binpac.h>
 
-#include "Desc.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "Sessions.h"
-#include "Reporter.h"
-#include "Timer.h"
-#include "iosource/IOSource.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "binpac.h"
-#include "TunnelEncapsulation.h"
-#include "analyzer/Analyzer.h"
-#include "analyzer/Manager.h"
-#include "iosource/IOSource.h"
+#include "zeek/Desc.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Sessions.h"
+#include "zeek/Reporter.h"
+#include "zeek/Timer.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/iosource/IOSource.h"
 
 namespace zeek {
 namespace detail {

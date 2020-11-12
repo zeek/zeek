@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "List.h"
+#include "zeek/List.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);

@@ -1,20 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "JSON.h"
-#include "rapidjson/internal/ieee754.h"
-#include "Desc.h"
-#include "threading/MsgThread.h"
+#include "zeek/threading/formatters/JSON.h"
 
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
 
-#include <sstream>
 #include <errno.h>
 #include <math.h>
 #include <stdint.h>
+#include <sstream>
+
+#include <rapidjson/internal/ieee754.h>
+
+#include "zeek/Desc.h"
+#include "zeek/threading/MsgThread.h"
 
 namespace zeek::threading::formatter {
 

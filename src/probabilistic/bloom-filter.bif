@@ -5,8 +5,8 @@
 // TODO: This is currently included from the top-level src directory, hence
 // paths are relative to there. We need a better mechanisms to pull in
 // BiFs defined in sub directories.
-#include "probabilistic/BloomFilter.h"
-#include "OpaqueVal.h"
+#include "zeek/probabilistic/BloomFilter.h"
+#include "zeek/OpaqueVal.h"
 
 using namespace probabilistic;
 

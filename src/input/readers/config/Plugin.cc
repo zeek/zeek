@@ -1,8 +1,7 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
-#include "Config.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/input/readers/config/Config.h"
 
 namespace zeek::plugin::detail::Zeek_ConfigReader {
 

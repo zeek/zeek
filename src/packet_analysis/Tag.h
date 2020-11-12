@@ -3,7 +3,7 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "../Tag.h"
+#include "zeek/Tag.h"
 
 namespace zeek::plugin {
 	template <class T> class TaggedComponent;

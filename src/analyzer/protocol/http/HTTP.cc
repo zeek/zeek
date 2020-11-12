@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/http/HTTP.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -8,13 +9,12 @@
 #include <string>
 #include <algorithm>
 
-#include "NetVar.h"
-#include "HTTP.h"
-#include "Event.h"
-#include "analyzer/protocol/mime/MIME.h"
-#include "file_analysis/Manager.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/analyzer/protocol/mime/MIME.h"
+#include "zeek/file_analysis/Manager.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/http/events.bif.h"
 
 namespace zeek::analyzer::http {
 

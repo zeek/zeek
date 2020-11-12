@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "IP.h"
+#include "zeek/packet_analysis/protocol/ip/IP.h"
 #include "zeek/NetVar.h"
 #include "zeek/IP.h"
 #include "zeek/Discard.h"

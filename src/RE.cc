@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "RE.h"
+#include "zeek/RE.h"
 
 #include <stdlib.h>
 #include <utility>
 
-#include "DFA.h"
-#include "CCL.h"
-#include "EquivClass.h"
-#include "Reporter.h"
-#include "ZeekString.h"
+#include "zeek/DFA.h"
+#include "zeek/CCL.h"
+#include "zeek/EquivClass.h"
+#include "zeek/Reporter.h"
+#include "zeek/ZeekString.h"
 
 zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
 zeek::detail::CCL*& curr_ccl = zeek::detail::curr_ccl;

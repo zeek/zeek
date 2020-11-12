@@ -1,8 +1,7 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
-#include "SQLite.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/input/readers/sqlite/SQLite.h"
 
 namespace zeek::plugin::detail::Zeek_SQLiteReader {
 

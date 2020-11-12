@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "net_util.h"
-#include "util.h"
+#include "zeek/net_util.h"
+#include "zeek/util.h"
 %}
 
 %header{

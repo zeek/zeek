@@ -3,11 +3,11 @@
 ##! Functions for querying script, package, or variable documentation.
 
 %%{
-#include "zeekygen/Manager.h"
-#include "zeekygen/IdentifierInfo.h"
-#include "zeekygen/PackageInfo.h"
-#include "zeekygen/ScriptInfo.h"
-#include "util.h"
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/PackageInfo.h"
+#include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/util.h"
 
 static zeek::StringValPtr comments_to_val(const vector<string>& comments)
 	{

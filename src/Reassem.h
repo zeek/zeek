@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include <map>
-
-#include "Obj.h"
-
 #include <assert.h>
 #include <string.h>
 #include <sys/types.h> // for u_char
 #include <cstdint>
+#include <map>
+
+#include "zeek/Obj.h"
 
 namespace zeek {
 

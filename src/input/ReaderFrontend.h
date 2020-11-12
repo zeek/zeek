@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "ReaderBackend.h"
-#include "threading/SerialTypes.h"
+#include "zeek/input/ReaderBackend.h"
+#include "zeek/threading/SerialTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, input);

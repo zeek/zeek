@@ -1,7 +1,7 @@
 %extern{
-#include "Sessions.h"
-#include "ZeekString.h"
-#include "GTPv1.h"
+#include "zeek/Sessions.h"
+#include "zeek/ZeekString.h"
+#include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
 %}
 
 %code{

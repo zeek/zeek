@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "FileTimer.h"
-#include "File.h"
-#include "Manager.h"
+#include "zeek/file_analysis/FileTimer.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail {
 

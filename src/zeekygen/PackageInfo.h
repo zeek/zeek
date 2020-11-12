@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "Info.h"
-
+#include <time.h> // for time_t
 #include <string>
 #include <vector>
 
-#include <time.h> // for time_t
+#include "zeek/zeekygen/Info.h"
 
 namespace zeek::zeekygen::detail {
 

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "NFLog.h"
-#include "NetVar.h"
+#include "zeek/packet_analysis/protocol/nflog/NFLog.h"
 
 using namespace zeek::packet_analysis::NFLog;
 

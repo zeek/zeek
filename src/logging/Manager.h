@@ -6,13 +6,13 @@
 
 #include <string_view>
 
-#include "../Val.h"
-#include "../Tag.h"
-#include "../EventHandler.h"
-#include "../plugin/ComponentManager.h"
+#include "zeek/Val.h"
+#include "zeek/Tag.h"
+#include "zeek/EventHandler.h"
+#include "zeek/plugin/ComponentManager.h"
 
-#include "Component.h"
-#include "WriterBackend.h"
+#include "zeek/logging/Component.h"
+#include "zeek/logging/WriterBackend.h"
 
 namespace broker { struct endpoint_info; }
 ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);

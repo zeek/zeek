@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include "file_analysis/Analyzer.h"
-
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
+
+#include "zeek/file_analysis/Analyzer.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);

@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "Queue.h"
-#include "StmtEnums.h"
-#include "util.h"
-
 #include <vector>
 #include <map>
 #include <string>
+
+#include "zeek/Obj.h"
+#include "zeek/Queue.h"
+#include "zeek/StmtEnums.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);

@@ -1,25 +1,23 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/file_analysis/analyzer/x509/OCSP.h"
+
 #include <string>
-
-#include "OCSP.h"
-#include "X509.h"
-#include "Event.h"
-#include "Reporter.h"
-
-#include "types.bif.h"
-#include "ocsp_events.bif.h"
-
-#include "file_analysis/File.h"
-#include "file_analysis/Manager.h"
 
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
 
-#include "file_analysis/analyzer/x509/X509.h"
+#include "zeek/file_analysis/analyzer/x509/X509.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
+
+#include "file_analysis/analyzer/x509/types.bif.h"
+#include "file_analysis/analyzer/x509/ocsp_events.bif.h"
 
 // helper function of sk_X509_value to avoid namespace problem
 // sk_X509_value(X,Y) = > SKM_sk_value(X509,X,Y)

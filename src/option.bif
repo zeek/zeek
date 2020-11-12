@@ -4,8 +4,8 @@
 module Option;
 
 %%{
-#include "NetVar.h"
-#include "broker/Data.h"
+#include "zeek/NetVar.h"
+#include "zeek/broker/Data.h"
 
 static bool call_option_handlers_and_set_value(zeek::StringVal* name, const zeek::detail::IDPtr& i,
                                                zeek::ValPtr val, zeek::StringVal* location)

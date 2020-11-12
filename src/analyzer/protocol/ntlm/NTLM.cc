@@ -1,9 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "NTLM.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "Reporter.h"
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/ntlm/NTLM.h"
+
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/Reporter.h"
+
+#include "analyzer/protocol/ntlm/events.bif.h"
 
 namespace zeek::analyzer::ntlm {
 

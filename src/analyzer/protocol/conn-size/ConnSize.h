@@ -1,10 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
-//
 
 #pragma once
 
-#include "analyzer/Analyzer.h"
-#include "NetVar.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/NetVar.h"
 
 namespace zeek::analyzer::conn_size {
 

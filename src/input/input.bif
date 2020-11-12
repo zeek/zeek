@@ -3,7 +3,7 @@
 module Input;
 
 %%{
-#include "input/Manager.h"
+#include "zeek/input/Manager.h"
 %%}
 
 enum Event %{

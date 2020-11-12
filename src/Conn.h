@@ -8,18 +8,18 @@
 #include <tuple>
 #include <type_traits>
 
-#include "Dict.h"
-#include "Timer.h"
-#include "Rule.h"
-#include "IPAddr.h"
-#include "UID.h"
-#include "WeirdState.h"
-#include "ZeekArgs.h"
-#include "IntrusivePtr.h"
-#include "iosource/Packet.h"
+#include "zeek/Dict.h"
+#include "zeek/Timer.h"
+#include "zeek/Rule.h"
+#include "zeek/IPAddr.h"
+#include "zeek/UID.h"
+#include "zeek/WeirdState.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/iosource/Packet.h"
 
-#include "analyzer/Tag.h"
-#include "analyzer/Analyzer.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/analyzer/Analyzer.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ConnectionTimer, zeek::detail);

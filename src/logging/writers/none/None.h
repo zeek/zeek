@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "logging/WriterBackend.h"
+#include "zeek/logging/WriterBackend.h"
 
 namespace zeek::logging::writer::detail {
 

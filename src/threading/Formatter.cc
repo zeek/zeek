@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Formatter.h"
+#include "zeek/threading/Formatter.h"
 
 #include <errno.h>
 
-#include "MsgThread.h"
-#include "bro_inet_ntop.h"
+#include "zeek/threading/MsgThread.h"
+#include "zeek/bro_inet_ntop.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek-config.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
+
 #include <algorithm>
 
-#include "zeek-config.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/Reporter.h"
+#include "zeek/Conn.h"
 
-#include "RunState.h"
-#include "NetVar.h"
-#include "analyzer/protocol/udp/UDP.h"
-#include "analyzer/Manager.h"
-#include "Reporter.h"
-#include "Conn.h"
-
-#include "events.bif.h"
+#include "analyzer/protocol/udp/events.bif.h"
 
 namespace zeek::analyzer::udp {
 
@@ -62,9 +62,9 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = 
-		! run_state::current_pkt->l3_checksummed && 
-		! zeek::detail::ignore_checksums && 
+	auto validate_checksum =
+		! run_state::current_pkt->l3_checksummed &&
+		! zeek::detail::ignore_checksums &&
 		! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
 		caplen >=len;
 

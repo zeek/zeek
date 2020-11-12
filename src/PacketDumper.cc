@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "PacketDumper.h"
-#include "Reporter.h"
-#include "util.h"
-#include "iosource/PktDumper.h"
+#include "zeek/PacketDumper.h"
+
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
+#include "zeek/iosource/PktDumper.h"
 
 namespace zeek::detail {
 

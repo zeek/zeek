@@ -1,13 +1,13 @@
+#include "zeek/analyzer/protocol/file/File.h"
+
 #include <algorithm>
 
-#include "File.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/Reporter.h"
+#include "zeek/util.h"
 
-#include "file_analysis/Manager.h"
-#include "RuleMatcher.h"
-#include "Reporter.h"
-#include "util.h"
-
-#include "events.bif.h"
+#include "analyzer/protocol/file/events.bif.h"
 
 namespace zeek::analyzer::file {
 

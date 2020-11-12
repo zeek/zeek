@@ -1,5 +1,5 @@
 %extern{
-#include "../dce-rpc/DCE_RPC.h"
+#include "zeek/analyzer/protocol/dce-rpc/DCE_RPC.h"
 %}
 
 refine connection SMB_Conn += {

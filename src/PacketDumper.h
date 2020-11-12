@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <pcap.h>
-
 #include <sys/types.h> // for u_char
+#include <pcap.h>
 
 namespace zeek::detail {
 

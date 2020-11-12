@@ -1,13 +1,13 @@
-#include "Manager.h"
+#include "zeek/threading/Manager.h"
 
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "NetVar.h"
-#include "iosource/Manager.h"
-#include "Event.h"
-#include "IPAddr.h"
-#include "RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/Event.h"
+#include "zeek/IPAddr.h"
+#include "zeek/RunState.h"
 
 namespace zeek::threading {
 namespace detail {

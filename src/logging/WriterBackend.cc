@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/logging/WriterBackend.h"
+
 #include <broker/data.hh>
 
-#include "util.h"
-#include "threading/SerialTypes.h"
-
-#include "Manager.h"
-#include "WriterBackend.h"
-#include "WriterFrontend.h"
+#include "zeek/util.h"
+#include "zeek/threading/SerialTypes.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/logging/WriterFrontend.h"
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
 

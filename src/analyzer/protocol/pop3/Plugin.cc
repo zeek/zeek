@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "POP3.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/pop3/POP3.h"
 
 namespace zeek::plugin::detail::Zeek_POP3 {
 

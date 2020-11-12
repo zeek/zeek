@@ -4,9 +4,9 @@
 
 #include <list>
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
-#include "analyzer/protocol/mime/MIME.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/analyzer/protocol/mime/MIME.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	SMTP_CMD_##cmd,

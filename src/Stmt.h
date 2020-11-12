@@ -2,16 +2,12 @@
 
 #pragma once
 
-// BRO statements.
-
-#include "ZeekList.h"
-#include "Dict.h"
-#include "ID.h"
-#include "Obj.h"
-
-#include "StmtEnums.h"
-
-#include "TraverseTypes.h"
+#include "zeek/ZeekList.h"
+#include "zeek/Dict.h"
+#include "zeek/ID.h"
+#include "zeek/Obj.h"
+#include "zeek/StmtEnums.h"
+#include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);

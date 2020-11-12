@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "Reassem.h"
+#include "zeek/Reassem.h"
 
 #include <algorithm>
 
-#include "Desc.h"
+#include "zeek/Desc.h"
 
 using std::min;
 

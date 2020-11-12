@@ -5,9 +5,9 @@
 #include <vector>
 #include <string>
 
-#include "Obj.h"
-#include "ZeekList.h"
-#include "IntrusivePtr.h"
+#include "zeek/Obj.h"
+#include "zeek/ZeekList.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 

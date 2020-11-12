@@ -1,10 +1,9 @@
 #pragma once
 
-#include "analyzer/Tag.h"
-
-#include <string>
+#include "zeek/analyzer/Tag.h"
 
 #include <sys/types.h> // for u_char
+#include <string>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);

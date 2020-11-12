@@ -2,17 +2,17 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "Attr.h"
-#include "ZeekList.h"
-#include "IntrusivePtr.h"
-
 #include <string>
 #include <set>
 #include <unordered_map>
 #include <map>
 #include <list>
 #include <optional>
+
+#include "zeek/Obj.h"
+#include "zeek/Attr.h"
+#include "zeek/ZeekList.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);

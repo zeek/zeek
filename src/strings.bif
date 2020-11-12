@@ -6,9 +6,10 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
-using namespace std;
 
-#include "SmithWaterman.h"
+#include "zeek/SmithWaterman.h"
+
+using namespace std;
 %%}
 
 ## Calculates the Levenshtein distance between the two strings. See `Wikipedia

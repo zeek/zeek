@@ -3,15 +3,15 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "Info.h"
 
+#include <time.h> // for time_t
 #include <set>
 #include <list>
 #include <string>
 #include <vector>
 #include <map>
 
-#include <time.h> // for time_t
+#include "zeek/zeekygen/Info.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IdentifierInfo, zeek, zeekygen, detail);
 

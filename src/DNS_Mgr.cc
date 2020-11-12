@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "DNS_Mgr.h"
+#include "zeek/DNS_Mgr.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -31,24 +30,23 @@
 
 #include <algorithm>
 
-#include "ZeekString.h"
-#include "Expr.h"
-#include "Event.h"
-#include "RunState.h"
-#include "Val.h"
-#include "NetVar.h"
-#include "ID.h"
-#include "Reporter.h"
-#include "IntrusivePtr.h"
-#include "iosource/Manager.h"
-#include "Hash.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Expr.h"
+#include "zeek/Event.h"
+#include "zeek/RunState.h"
+#include "zeek/Val.h"
+#include "zeek/NetVar.h"
+#include "zeek/ID.h"
+#include "zeek/Reporter.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/Hash.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
 #include <netdb.h>
-
-#include "nb_dns.h"
+#include "zeek/nb_dns.h"
 }
 
 using namespace std;

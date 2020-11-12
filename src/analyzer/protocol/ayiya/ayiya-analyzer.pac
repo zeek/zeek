@@ -1,7 +1,7 @@
 %extern{
-#include "Sessions.h"
-#include "Conn.h"
-#include "AYIYA.h"
+#include "zeek/Sessions.h"
+#include "zeek/Conn.h"
+#include "zeek/analyzer/protocol/ayiya/AYIYA.h"
 %}
 
 connection AYIYA_Conn(zeek_analyzer: ZeekAnalyzer)

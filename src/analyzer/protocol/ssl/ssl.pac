@@ -9,13 +9,14 @@
 %include zeek.pac
 
 %extern{
-#include "Desc.h"
-#include "events.bif.h"
 
 namespace zeek::analyzer::ssl { class SSL_Analyzer; }
 using SSLAnalyzer = zeek::analyzer::ssl::SSL_Analyzer*;
 
-#include "SSL.h"
+#include "zeek/Desc.h"
+#include "zeek/analyzer/protocol/ssl/SSL.h"
+
+#include "analyzer/protocol/ssl/events.bif.h"
 %}
 
 extern type SSLAnalyzer;

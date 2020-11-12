@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#include "FuzzBuffer.h"
+#include "zeek/fuzzers/FuzzBuffer.h"
 
 namespace zeek::detail {
 

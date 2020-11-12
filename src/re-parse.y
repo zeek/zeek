@@ -3,11 +3,11 @@
 %{
 #include <stdlib.h>
 
-#include "RE.h"
-#include "CCL.h"
-#include "NFA.h"
-#include "EquivClass.h"
-#include "Reporter.h"
+#include "zeek/RE.h"
+#include "zeek/CCL.h"
+#include "zeek/NFA.h"
+#include "zeek/EquivClass.h"
+#include "zeek/Reporter.h"
 
 int csize = 256;
 int syntax_error = 0;

@@ -6,9 +6,8 @@
 #include <iostream>
 #include <iterator>
 
-#include "util.h"
-
-#include "file_analysis/Manager.h"
+#include "zeek/util.h"
+#include "zeek/file_analysis/Manager.h"
 %}
 
 %header{

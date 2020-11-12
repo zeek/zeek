@@ -14,7 +14,7 @@
 
 #include <vector>
 
-#include "IntrusivePtr.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);

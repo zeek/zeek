@@ -1,11 +1,11 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "RPC.h"
-#include "NFS.h"
-#include "MOUNT.h"
-#include "Portmap.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/rpc/RPC.h"
+#include "zeek/analyzer/protocol/rpc/NFS.h"
+#include "zeek/analyzer/protocol/rpc/MOUNT.h"
+#include "zeek/analyzer/protocol/rpc/Portmap.h"
 
 namespace zeek::plugin::detail::Zeek_RPC {
 

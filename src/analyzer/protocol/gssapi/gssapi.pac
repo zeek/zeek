@@ -2,10 +2,10 @@
 %include zeek.pac
 
 %extern{
-#include "analyzer/Manager.h"
-#include "analyzer/Analyzer.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/Analyzer.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/gssapi/events.bif.h"
 %}
 
 analyzer GSSAPI withcontext {

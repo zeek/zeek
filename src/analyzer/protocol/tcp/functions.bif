@@ -1,9 +1,9 @@
 
 %%{
-#include "File.h"
-#include "Sessions.h"
-#include "Reporter.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/File.h"
+#include "zeek/Sessions.h"
+#include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 %%}
 
 ## Get the originator sequence number of a TCP connection. Sequence numbers

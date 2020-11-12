@@ -2,7 +2,7 @@
 
 #include "zeek-config.h"
 
-#include "Debug.h"
+#include "zeek/Debug.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -10,30 +10,31 @@
 #include <ctype.h>
 
 #include <string>
-using namespace std;
-
-#include "util.h"
-#include "DebugCmds.h"
-#include "DbgBreakpoint.h"
-#include "ID.h"
-#include "IntrusivePtr.h"
-#include "Expr.h"
-#include "Stmt.h"
-#include "Frame.h"
-#include "Func.h"
-#include "IntrusivePtr.h"
-#include "Scope.h"
-#include "PolicyFile.h"
-#include "Desc.h"
-#include "Reporter.h"
-#include "Val.h"
-#include "module_util.h"
-#include "input.h"
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
+
+#include "zeek/util.h"
+#include "zeek/DebugCmds.h"
+#include "zeek/DbgBreakpoint.h"
+#include "zeek/ID.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Frame.h"
+#include "zeek/Func.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Scope.h"
+#include "zeek/PolicyFile.h"
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
+#include "zeek/module_util.h"
+#include "zeek/input.h"
+
+using namespace std;
 
 bool zeek::detail::g_policy_debug = false;
 bool& g_policy_debug = zeek::detail::g_policy_debug;

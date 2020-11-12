@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "threading/MsgThread.h"
-
-#include "Component.h"
+#include "zeek/threading/MsgThread.h"
+#include "zeek/logging/Component.h"
 
 namespace broker { class data; }
 

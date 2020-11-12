@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "CardinalityCounter.h"
+#include "zeek/probabilistic/CardinalityCounter.h"
 
 #include <math.h>
 #include <stdint.h>
@@ -8,7 +8,7 @@
 
 #include <broker/data.hh>
 
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::probabilistic::detail {
 

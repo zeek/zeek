@@ -1,7 +1,6 @@
 %extern{
 #include <string.h>
-
-#include "binpac_bytestring.h"
+#include <binpac_bytestring.h>
 %}
 
 function bytestring_casecmp(s1: const_bytestring, s2: const_charptr): int

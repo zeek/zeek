@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
-#include "ReaderFrontend.h"
-#include "ReaderBackend.h"
+#include "zeek/input/ReaderFrontend.h"
+
+#include "zeek/input/Manager.h"
+#include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input {
 

@@ -1,14 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-
-#include "BPF_Program.h"
+#include "zeek/iosource/BPF_Program.h"
 
 #include <string.h>
 
 #ifdef DONT_HAVE_LIBPCAP_PCAP_FREECODE
 extern "C" {
-#include "pcap-int.h"
+#include <pcap-int.h>
 
 int pcap_freecode(pcap_t* unused, struct bpf_program* program)
 	{

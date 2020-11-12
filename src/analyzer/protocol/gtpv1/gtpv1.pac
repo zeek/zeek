@@ -2,10 +2,11 @@
 %include zeek.pac
 
 %extern{
-#include "IP.h"
-#include "TunnelEncapsulation.h"
-#include "Reporter.h"
-#include "events.bif.h"
+#include "zeek/IP.h"
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/Reporter.h"
+
+#include "analyzer/protocol/gtpv1/events.bif.h"
 %}
 
 analyzer GTPv1 withcontext {

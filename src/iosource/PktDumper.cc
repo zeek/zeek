@@ -3,8 +3,8 @@
 
 #include "zeek-config.h"
 
-#include "PktDumper.h"
-#include "DebugLogger.h"
+#include "zeek/iosource/PktDumper.h"
+#include "zeek/DebugLogger.h"
 
 namespace zeek::iosource {
 

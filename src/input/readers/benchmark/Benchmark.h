@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "input/ReaderBackend.h"
-#include "threading/formatters/Ascii.h"
+#include "zeek/input/ReaderBackend.h"
+#include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::input::reader::detail {
 

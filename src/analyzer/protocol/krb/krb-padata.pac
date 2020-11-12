@@ -2,8 +2,8 @@
 # so we're splitting this off
 
 %extern{
-#include "file_analysis/Manager.h"
-#include "Desc.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/Desc.h"
 %}
 
 %header{

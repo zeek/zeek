@@ -2,7 +2,8 @@
 
 #include <stdint.h> // for u_char
 #include <sys/types.h> // for u_char
-#include "util.h"
+
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);

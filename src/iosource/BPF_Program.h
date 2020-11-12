@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include <stdint.h>
+
 extern "C" {
 #include <pcap.h>
 }
-
-#include <stdint.h>
 
 namespace zeek::iosource::detail {
 

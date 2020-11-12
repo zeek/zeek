@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/input/readers/raw/Raw.h"
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
@@ -10,14 +12,13 @@
 #include <signal.h>
 #include <stdlib.h>
 
-#include "Raw.h"
-#include "Plugin.h"
-#include "raw.bif.h"
+#include "zeek/input/readers/raw/Plugin.h"
+#include "zeek/threading/SerialTypes.h"
 
-#include "threading/SerialTypes.h"
+#include "input/readers/raw/raw.bif.h"
 
 extern "C" {
-#include "setsignal.h"
+#include "zeek/setsignal.h"
 }
 
 using zeek::threading::Value;

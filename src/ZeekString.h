@@ -4,11 +4,11 @@
 
 #include "zeek-config.h"
 
+#include <sys/types.h>
+
 #include <vector>
 #include <string>
 #include <iosfwd>
-
-#include <sys/types.h>
 
 // Forward declaration, for helper functions that convert (sub)string vectors
 // to and from policy-level representations.

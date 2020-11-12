@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "GTPv1.h"
-#include "plugin/Plugin.h"
-#include "analyzer/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
 
 namespace zeek::plugin::detail::Zeek_GTPv1 {
 

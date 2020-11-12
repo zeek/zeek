@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include "Type.h"
-#include "IntrusivePtr.h"
+#include "zeek/Type.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);

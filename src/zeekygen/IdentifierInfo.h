@@ -8,10 +8,10 @@
 #include <list>
 #include <map>
 
-#include "Info.h"
-#include "IntrusivePtr.h"
-#include "ID.h"
-#include "util.h"
+#include "zeek/zeekygen/Info.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/ID.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
 

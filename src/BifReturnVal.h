@@ -3,7 +3,7 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "IntrusivePtr.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 namespace zeek {

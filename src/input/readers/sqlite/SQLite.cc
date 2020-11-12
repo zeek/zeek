@@ -1,19 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/input/readers/sqlite/SQLite.h"
 
-#include <fstream>
-#include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fstream>
+#include <sstream>
 
-#include "SQLite.h"
-#include "sqlite.bif.h"
+#include "zeek/threading/SerialTypes.h"
+
+#include "input/readers/sqlite/sqlite.bif.h"
 #include "logging/writers/sqlite/sqlite.bif.h"
 #include "logging/writers/ascii/ascii.bif.h"
-
-#include "threading/SerialTypes.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

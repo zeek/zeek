@@ -1,14 +1,15 @@
 %{
+#include "zeek-config.h"
 #include <stdio.h>
 #include <netinet/in.h>
 #include <vector>
-#include "zeek-config.h"
-#include "RuleAction.h"
-#include "RuleCondition.h"
-#include "RuleMatcher.h"
-#include "Reporter.h"
-#include "IPAddr.h"
-#include "net_util.h"
+
+#include "zeek/RuleAction.h"
+#include "zeek/RuleCondition.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/Reporter.h"
+#include "zeek/IPAddr.h"
+#include "zeek/net_util.h"
 
 using namespace zeek::detail;
 

@@ -1,5 +1,5 @@
 %extern{
-#include "file_analysis/Manager.h"
+#include "zeek/file_analysis/Manager.h"
 %}
 
 %header{

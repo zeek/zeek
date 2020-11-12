@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Flare.h"
-#include "Reporter.h"
+#include "zeek/Flare.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+
+#include "zeek/Reporter.h"
 
 namespace zeek::detail {
 

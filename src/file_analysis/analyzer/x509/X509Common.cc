@@ -1,18 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "X509Common.h"
-#include "x509-extension_pac.h"
-#include "Reporter.h"
-
-#include "events.bif.h"
-#include "ocsp_events.bif.h"
-#include "types.bif.h"
+#include "zeek/file_analysis/analyzer/x509/X509Common.h"
 
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
+
+#include "zeek/Reporter.h"
+
+#include "file_analysis/analyzer/x509/x509-extension_pac.h"
+#include "file_analysis/analyzer/x509/events.bif.h"
+#include "file_analysis/analyzer/x509/ocsp_events.bif.h"
+#include "file_analysis/analyzer/x509/types.bif.h"
 
 namespace zeek::file_analysis::detail {
 

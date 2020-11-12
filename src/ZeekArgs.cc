@@ -1,8 +1,8 @@
-#include "ZeekArgs.h"
-#include "Val.h"
-#include "Type.h"
-#include "ID.h"
-#include "Desc.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/Val.h"
+#include "zeek/Type.h"
+#include "zeek/ID.h"
+#include "zeek/Desc.h"
 
 namespace zeek {
 

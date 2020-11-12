@@ -1,9 +1,9 @@
 // This code contributed by Nadi Sarrar.
 
-#include "BitTorrent.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/bittorrent/BitTorrent.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/bittorrent/events.bif.h"
 
 namespace zeek::analyzer::bittorrent {
 

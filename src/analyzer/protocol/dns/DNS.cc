@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "DNS.h"
+#include "zeek/analyzer/protocol/dns/DNS.h"
 
 #include <ctype.h>
 #include <sys/types.h>
@@ -9,13 +9,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "ZeekString.h"
-#include "NetVar.h"
-#include "Sessions.h"
-#include "Event.h"
-#include "RunState.h"
+#include "zeek/ZeekString.h"
+#include "zeek/NetVar.h"
+#include "zeek/Sessions.h"
+#include "zeek/Event.h"
+#include "zeek/RunState.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/dns/events.bif.h"
 
 namespace zeek::analyzer::dns {
 

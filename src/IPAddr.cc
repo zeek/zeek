@@ -3,14 +3,14 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include "IPAddr.h"
-#include "Reporter.h"
-#include "ZeekString.h"
-#include "Conn.h"
-#include "Hash.h"
-#include "bro_inet_ntop.h"
 
-#include "analyzer/Manager.h"
+#include "zeek/IPAddr.h"
+#include "zeek/Reporter.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Conn.h"
+#include "zeek/Hash.h"
+#include "zeek/bro_inet_ntop.h"
+#include "zeek/analyzer/Manager.h"
 
 namespace zeek {
 

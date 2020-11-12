@@ -14,7 +14,7 @@
 #include <string.h>
 #endif
 
-#include "setsignal.h"
+#include "zeek/setsignal.h"
 
 /*
  * An os independent signal() with BSD semantics, e.g. the signal
@@ -50,4 +50,3 @@ RETSIGTYPE
 #endif
 #endif
 }
-

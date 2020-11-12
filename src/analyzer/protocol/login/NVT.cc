@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "NVT.h"
+#include "zeek/analyzer/protocol/login/NVT.h"
 
 #include <stdlib.h>
 
-#include "ZeekString.h"
-#include "NetVar.h"
-#include "Event.h"
-#include "Reporter.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/ZeekString.h"
+#include "zeek/NetVar.h"
+#include "zeek/Event.h"
+#include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "events.bif.h"
+#include "analyzer/protocol/login/events.bif.h"
 
 #define IS_3_BYTE_OPTION(c) (c >= 251 && c <= 254)
 

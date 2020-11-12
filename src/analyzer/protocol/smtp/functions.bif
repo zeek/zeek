@@ -1,6 +1,6 @@
 
 %%{
-#include "analyzer/protocol/smtp/SMTP.h"
+#include "zeek/analyzer/protocol/smtp/SMTP.h"
 %%}
 
 ## Skips SMTP data until the next email in a connection.

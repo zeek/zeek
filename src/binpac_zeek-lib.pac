@@ -1,10 +1,10 @@
 %extern{
-#include "binpac_zeek.h"
-#include "util.h"
-#include "Reporter.h"
-#include "Val.h"
-#include "ConvertUTF.h"
-#include "RunState.h"
+#include "zeek/binpac_zeek.h"
+#include "zeek/util.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
+#include "zeek/ConvertUTF.h"
+#include "zeek/RunState.h"
 %}
 
 %code{

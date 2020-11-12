@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/CCL.h"
 
 #include <algorithm>
 
-#include "CCL.h"
-#include "RE.h"
-#include "DFA.h"
+#include "zeek/RE.h"
+#include "zeek/DFA.h"
 
 namespace zeek::detail {
 

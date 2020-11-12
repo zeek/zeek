@@ -1,8 +1,9 @@
-#include "ContentLine.h"
-#include "TCP.h"
-#include "Reporter.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
-#include "events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/Reporter.h"
+
+#include "analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer::tcp {
 

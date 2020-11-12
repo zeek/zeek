@@ -2,9 +2,9 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Unified2.h"
-#include "plugin/Plugin.h"
-#include "file_analysis/Component.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/file_analysis/Component.h"
+#include "zeek/file_analysis/analyzer/unified2/Unified2.h"
 
 namespace zeek::plugin::detail::Zeek_Unified2 {
 

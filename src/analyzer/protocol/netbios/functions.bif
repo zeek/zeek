@@ -1,5 +1,5 @@
 %%{
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 %%}
 
 ## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.

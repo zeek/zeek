@@ -1,7 +1,7 @@
-#include "broker/Store.h"
-#include "Desc.h"
-#include "ID.h"
-#include "broker/Manager.h"
+#include "zeek/broker/Store.h"
+#include "zeek/Desc.h"
+#include "zeek/ID.h"
+#include "zeek/broker/Manager.h"
 
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_store_handle;
 zeek::OpaqueTypePtr& bro_broker::opaque_of_store_handle = zeek::Broker::detail::opaque_of_store_handle;

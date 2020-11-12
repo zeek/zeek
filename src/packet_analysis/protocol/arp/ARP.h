@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include <packet_analysis/Analyzer.h>
-#include <packet_analysis/Component.h>
-
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <net/if_arp.h>
+
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/Component.h"
 
 #ifndef arp_pkthdr
 #define arp_pkthdr arphdr

@@ -5,7 +5,7 @@
 #include <sys/types.h> // for u_char
 #include <memory>
 
-#include "IntrusivePtr.h"
+#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);

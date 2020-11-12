@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(NVT_Analyzer, zeek, analyzer::login);
 

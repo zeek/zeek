@@ -1,10 +1,9 @@
-
 #pragma once
 
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "dnp3_pac.h"
+#include "analyzer/protocol/dnp3/dnp3_pac.h"
 
 namespace zeek::analyzer::dnp3 {
 

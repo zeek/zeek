@@ -1,17 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "SteppingStone.h"
+#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 
 #include <stdlib.h>
 
-#include "Event.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "Sessions.h"
-#include "util.h"
-#include "events.bif.h"
+#include "zeek/Event.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/Sessions.h"
+#include "zeek/util.h"
+
+#include "analyzer/protocol/stepping-stone/events.bif.h"
 
 namespace zeek::analyzer::stepping_stone {
 

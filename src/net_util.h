@@ -26,7 +26,7 @@ typedef enum { IPv4, IPv6 } IPFamily;
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
 
-#include "util.h"
+#include "zeek/util.h"
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>

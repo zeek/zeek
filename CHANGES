@@ -1,3 +1,30 @@
+
+3.3.0-dev.534 | 2020-11-12 14:31:10 -0800
+
+  * Move UnknownProtocol options to init-bare.zeek (Jon Siwek, Corelight)
+
+    Otherwise the `unknown_protocol` event cannot be used independently
+    from `policy/mic/unknown-protocols.zeek`.
+
+  * Coverity 1436183: Initialize packet_analysis::Manager fields (Jon Siwek, Corelight)
+
+  * GH-1273: Change SizeExpr to yield "any" type when operating on "any" (Jon Siwek, Corelight)
+
+  * Add enum_names() BIF to return names of an enum type's values (Jon Siwek, Corelight)
+
+  * Add type_aliases() BIF for introspecting type-names of types/values (Jon Siwek, Corelight)
+
+  * Change Type::type_aliases map to store IntrusivePtr (Jon Siwek, Corelight)
+
+    And deprecate Type::GetAliases() and Type::AddAlias() since they
+    took raw pointers.  Now replaced with Type::Aliases() and
+    Type::RegisterAlias().
+
+  * Fix lookup_ID() BIF to return enum values (Jon Siwek, Corelight)
+
+    Looking up an enum value from a string equal to its name previously
+    returned "<no ID value>".
+
 3.3.0-dev.524 | 2020-11-12 12:16:00 -0700
 
   * Move 'using namespace' declaration after other includes (Tim Wojtulewicz, Corelight)

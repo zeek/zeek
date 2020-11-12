@@ -44,13 +44,10 @@ void Manager::InitPostScript()
 		                                          detail::pkt_profile_freq,
 		                                          pkt_profile_file->AsFile());
 
-	if ( unknown_protocol )
-		{
-		unknown_sampling_rate = id::find_val("UnknownProtocol::sampling_rate")->AsCount();
-		unknown_sampling_threshold = id::find_val("UnknownProtocol::sampling_threshold")->AsCount();
-		unknown_sampling_duration = id::find_val("UnknownProtocol::sampling_duration")->AsInterval();
-		unknown_first_bytes_count = id::find_val("UnknownProtocol::first_bytes_count")->AsCount();
-		}
+	unknown_sampling_rate = id::find_val("UnknownProtocol::sampling_rate")->AsCount();
+	unknown_sampling_threshold = id::find_val("UnknownProtocol::sampling_threshold")->AsCount();
+	unknown_sampling_duration = id::find_val("UnknownProtocol::sampling_duration")->AsInterval();
+	unknown_first_bytes_count = id::find_val("UnknownProtocol::first_bytes_count")->AsCount();
 	}
 
 void Manager::Done()

@@ -701,8 +701,20 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
+static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
+
 void end_func(StmtPtr body)
 	{
+	if ( duplicate_ASTs && reporter->Errors() == 0 )
+		// Only try duplication in the absence of errors.  If errors
+		// have occurred, they can be re-generated during the
+		// duplication process, leading to regression failures due
+		// to duplicated error messages.
+		//
+		// We duplicate twice to make sure that the AST produced
+		// by duplicating can itself be correctly duplicated.
+		body = body->Duplicate()->Duplicate();
+
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( ingredients->id->HasVal() )

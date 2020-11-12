@@ -40,6 +40,7 @@ public:
 	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) const = 0;
 
 	Stmt* Ref()			{ zeek::Ref(this); return this; }
+	StmtPtr ThisPtr()		{ return {NewRef{}, this}; }
 
 	bool SetLocationInfo(const Location* loc) override
 		{ return Stmt::SetLocationInfo(loc, loc); }
@@ -57,7 +58,7 @@ public:
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 
-	void Describe(ODesc* d) const override;
+	void Describe(ODesc* d) const final;
 
 	virtual void IncrBPCount()	{ ++breakpoint_count; }
 	virtual void DecrBPCount();
@@ -66,10 +67,13 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
+#include "script_opt/StmtOpt-Public.h"
+
 protected:
 	explicit Stmt(StmtTag arg_tag);
 
 	void AddTag(ODesc* d) const;
+	virtual void StmtDescribe(ODesc* d) const;
 	void DescribeDone(ODesc* d) const;
 
 	StmtTag tag;
@@ -78,6 +82,8 @@ protected:
 	// FIXME: Learn the exact semantics of mutable.
 	mutable double last_access;	// time of last execution
 	mutable uint32_t access_count;	// number of executions
+
+#include "script_opt/StmtOpt-Private.h"
 };
 
 class ExprListStmt : public Stmt {
@@ -95,7 +101,7 @@ protected:
 	virtual ValPtr DoExec(std::vector<ValPtr> vals,
 	                      StmtFlowType& flow) const = 0;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	ListExprPtr l;
 };
@@ -104,6 +110,9 @@ class PrintStmt final : public ExprListStmt {
 public:
 	template<typename L>
 	explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) { }
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ValPtr DoExec(std::vector<ValPtr> vals,
@@ -119,9 +128,12 @@ public:
 
 	const Expr* StmtExpr() const	{ return e.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ExprStmt(StmtTag t, ExprPtr e);
@@ -141,9 +153,12 @@ public:
 	const Stmt* TrueBranch() const	{ return s1.get(); }
 	const Stmt* FalseBranch() const	{ return s2.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
@@ -171,6 +186,9 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
+	// Optimization-related:
+	IntrusivePtr<Case> Duplicate();
+
 protected:
 	ListExprPtr expr_cases;
 	IDPList* type_cases;
@@ -186,9 +204,12 @@ public:
 
 	const case_list* Cases() const	{ return cases; }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
@@ -228,6 +249,9 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 };
 
 class DelStmt final : public ExprStmt {
@@ -238,6 +262,9 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 };
 
 class EventStmt final : public ExprStmt {
@@ -247,6 +274,9 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	EventExprPtr event_expr;
@@ -260,9 +290,12 @@ public:
 
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
@@ -286,9 +319,12 @@ public:
 
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) const override;
@@ -307,10 +343,13 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return SetSucc(new NextStmt()); }
 protected:
 };
 
@@ -321,9 +360,13 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return SetSucc(new BreakStmt()); }
 
 protected:
 };
@@ -335,9 +378,13 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return SetSucc(new FallthroughStmt()); }
 
 protected:
 };
@@ -348,7 +395,14 @@ public:
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
+
+        // Constructor used for duplication, when we've already done
+        // all of the type-checking.
+        ReturnStmt(ExprPtr e, bool ignored);
 };
 
 class StmtList : public Stmt {
@@ -361,9 +415,12 @@ public:
 	const StmtPList& Stmts() const	{ return stmts; }
 	StmtPList& Stmts()		{ return stmts; }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	bool IsPure() const override;
@@ -378,7 +435,7 @@ public:
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	// "Topmost" means that this is the main body of a function or event.
 	// void SetTopmost(bool is_topmost)	{ topmost = is_topmost; }
@@ -397,9 +454,12 @@ public:
 	const std::vector<IDPtr>& Inits() const
 		{ return inits; }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	std::vector<IDPtr> inits;
@@ -412,9 +472,13 @@ public:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	IntrusivePtr<Stmt> Duplicate() override
+		{ return SetSucc(new NullStmt()); }
 };
 
 class WhenStmt final : public Stmt {
@@ -433,9 +497,12 @@ public:
 	const Expr* TimeoutExpr() const	{ return timeout.get(); }
 	const Stmt* TimeoutBody() const	{ return s2.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
 
 protected:
 	ExprPtr cond;

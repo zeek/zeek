@@ -91,6 +91,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-rocksdb=PATH    path to RocksDB installation, implies --enable-rocksdb
                            (an optional Broker dependency)
 
+  Options for bundled packages:
+    --max-broker-log-lvl   maximum log verbosity for Broker
+
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
     --ignore-dirs=PATHS    paths to ignore when creating source package
@@ -341,6 +344,9 @@ while [ $# -ne 0 ]; do
         --with-rocksdb=*)
             append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
+            ;;
+        --max-broker-log-lvl=*)
+            append_cache_entry CAF_LOG_LEVEL STRING $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

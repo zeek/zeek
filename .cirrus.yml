@@ -3,7 +3,7 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 4GB
 
-config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
+config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --max-broker-log-lvl=TRACE
 memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address --enable-fuzzers
 
 resources_template: &RESOURCES_TEMPLATE
@@ -49,6 +49,7 @@ ci_template: &CI_TEMPLATE
 
 env:
   CIRRUS_WORKING_DIR: /zeek
+  BROKER_FILE_VERBOSITY: trace
   ZEEK_CI_CPUS: *CPUS
   ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
   ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
@@ -70,75 +71,75 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
-fedora30_task:
-  container:
-    # Fedora 30 EOL: Around June 2020
-    dockerfile: ci/fedora-30/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-centos7_task:
-  container:
-    # CentOS 7 EOL: June 30, 2024
-    dockerfile: ci/centos-7/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-centos8_task:
-  container:
-    # CentOS 8 EOL: May 31, 2029
-    dockerfile: ci/centos-8/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  env:
-    ZEEK_CI_CREATE_ARTIFACT: 1
-  << : *CI_TEMPLATE
-  upload_binary_artifacts:
-    path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
-
-debian9_task:
-  container:
-    # Debian 9 EOL: June 2022
-    dockerfile: ci/debian-9/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-debian9_32bit_task:
-  container:
-    # Debian 9 EOL: June 2022
-    dockerfile: ci/debian-9-32bit/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-ubuntu18_task:
-  container:
-    # Ubuntu 18.04 EOL: April 2023
-    dockerfile: ci/ubuntu-18.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-ubuntu16_task:
-  container:
-    # Ubuntu 16.04 EOL: April 2021
-    dockerfile: ci/ubuntu-16.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-# Apple doesn't publish official long-term support timelines, so easiest
-# option is to only support the latest macOS release or whatever latest
-# image is available.
-macos_task:
-  osx_instance:
-    image: catalina-base
-    # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
-    # trying to set it explicitly results in an error.
-  prepare_script: ./ci/macos/prepare.sh
-  << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CPUS: 4
-    ZEEK_CI_BTEST_JOBS: 4
-    # No permission to write to default location of /zeek
-    CIRRUS_WORKING_DIR: /tmp/zeek
+# fedora30_task:
+#   container:
+#     # Fedora 30 EOL: Around June 2020
+#     dockerfile: ci/fedora-30/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#
+# centos7_task:
+#   container:
+#     # CentOS 7 EOL: June 30, 2024
+#     dockerfile: ci/centos-7/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#
+# centos8_task:
+#   container:
+#     # CentOS 8 EOL: May 31, 2029
+#     dockerfile: ci/centos-8/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   env:
+#     ZEEK_CI_CREATE_ARTIFACT: 1
+#   << : *CI_TEMPLATE
+#   upload_binary_artifacts:
+#     path: build.tgz
+#   benchmark_script: ./ci/benchmark.sh
+#
+# debian9_task:
+#   container:
+#     # Debian 9 EOL: June 2022
+#     dockerfile: ci/debian-9/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#
+# debian9_32bit_task:
+#   container:
+#     # Debian 9 EOL: June 2022
+#     dockerfile: ci/debian-9-32bit/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#
+# ubuntu18_task:
+#   container:
+#     # Ubuntu 18.04 EOL: April 2023
+#     dockerfile: ci/ubuntu-18.04/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#
+# ubuntu16_task:
+#   container:
+#     # Ubuntu 16.04 EOL: April 2021
+#     dockerfile: ci/ubuntu-16.04/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#
+# # Apple doesn't publish official long-term support timelines, so easiest
+# # option is to only support the latest macOS release or whatever latest
+# # image is available.
+# macos_task:
+#   osx_instance:
+#     image: catalina-base
+#     # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
+#     # trying to set it explicitly results in an error.
+#   prepare_script: ./ci/macos/prepare.sh
+#   << : *CI_TEMPLATE
+#   env:
+#     ZEEK_CI_CPUS: 4
+#     ZEEK_CI_BTEST_JOBS: 4
+#     # No permission to write to default location of /zeek
+#     CIRRUS_WORKING_DIR: /tmp/zeek
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
 freebsd_task:
@@ -151,14 +152,24 @@ freebsd_task:
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
 
-memcheck_task:
-  container:
-    # Just uses a recent/common distro to run memory error/leak checks.
-    dockerfile: ci/ubuntu-18.04/Dockerfile
-    cpu: 4
-    # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 12GB
+freebsd11_task:
+  freebsd_instance:
+    # FreeBSD 11 EOL: September 30, 2021
+    image_family: freebsd-11-4
+    cpu: 8
+    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+    memory: 8GB
+  prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
-  test_fuzzers_script: ./ci/test-fuzzers.sh
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG
+
+# memcheck_task:
+#   container:
+#     # Just uses a recent/common distro to run memory error/leak checks.
+#     dockerfile: ci/ubuntu-18.04/Dockerfile
+#     cpu: 4
+#     # AddressSanitizer uses a lot more memory than a typical config.
+#     memory: 12GB
+#   << : *CI_TEMPLATE
+#   test_fuzzers_script: ./ci/test-fuzzers.sh
+#   env:
+#     ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG

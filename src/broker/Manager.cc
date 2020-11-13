@@ -206,36 +206,36 @@ void Manager::InitPostScript()
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 
 	if ( util::streq(scheduler_policy, "sharing") )
-		config.set("scheduler.policy", CAF_ATOM("sharing"));
+		config.set("caf.scheduler.policy", CAF_ATOM("sharing"));
 	else if ( util::streq(scheduler_policy, "stealing") )
-		config.set("scheduler.policy", CAF_ATOM("stealing"));
+		config.set("caf.scheduler.policy", CAF_ATOM("stealing"));
 	else
 		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
 
 	auto max_threads_env = util::zeekenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )
-		config.set("scheduler.max-threads", atoi(max_threads_env));
+		config.set("caf.scheduler.max-threads", atoi(max_threads_env));
 	else
-		config.set("scheduler.max-threads",
+		config.set("caf.scheduler.max-threads",
 		           get_option("Broker::max_threads")->AsCount());
 
-	config.set("work-stealing.moderate-sleep-duration", caf::timespan(
+	config.set("caf.work-stealing.moderate-sleep-duration", caf::timespan(
 	    static_cast<unsigned>(get_option("Broker::moderate_sleep")->AsInterval() * 1e9)));
 
-	config.set("work-stealing.relaxed-sleep-duration", caf::timespan(
+	config.set("caf.work-stealing.relaxed-sleep-duration", caf::timespan(
 	    static_cast<unsigned>(get_option("Broker::relaxed_sleep")->AsInterval() * 1e9)));
 
-	config.set("work-stealing.aggressive-poll-attempts",
+	config.set("caf.work-stealing.aggressive-poll-attempts",
 	           get_option("Broker::aggressive_polls")->AsCount());
-	config.set("work-stealing.moderate-poll-attempts",
+	config.set("caf.work-stealing.moderate-poll-attempts",
 	           get_option("Broker::moderate_polls")->AsCount());
 
-	config.set("work-stealing.aggressive-steal-interval",
+	config.set("caf.work-stealing.aggressive-steal-interval",
 	           get_option("Broker::aggressive_interval")->AsCount());
-	config.set("work-stealing.moderate-steal-interval",
+	config.set("caf.work-stealing.moderate-steal-interval",
 	           get_option("Broker::moderate_interval")->AsCount());
-	config.set("work-stealing.relaxed-steal-interval",
+	config.set("caf.work-stealing.relaxed-steal-interval",
 	           get_option("Broker::relaxed_interval")->AsCount());
 
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();

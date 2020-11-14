@@ -2,10 +2,12 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include "zeek/digest.h"
 %}
 
 %header{
 zeek::VectorValPtr name_list_to_vector(const bytestring& nl);
+const char* fingerprint_md5(const unsigned char* d);
 %}
 
 %code{
@@ -44,6 +46,14 @@ zeek::VectorValPtr name_list_to_vector(const bytestring& nl)
 		vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(word));
 		}
 	return vv;
+	}
+
+const char* fingerprint_md5(const unsigned char* d)
+	{
+	return zeek::util::fmt("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:"
+												 "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+												 d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
+												 d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
 	}
 %}
 
@@ -153,6 +163,17 @@ refine flow SSH_Flow += {
 				connection()->zeek_analyzer()->Conn(),
 				to_stringval(${key}));
 			}
+
+		if ( ssh_server_host_key )
+			{
+			unsigned char digest[MD5_DIGEST_LENGTH];
+			zeek::detail::internal_md5(${key}.data(), ${key}.length(), digest);
+
+			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				zeek::make_intrusive<zeek::StringVal>(fingerprint_md5(digest)));
+			}
+
 		return true;
 		%}
 
@@ -165,6 +186,23 @@ refine flow SSH_Flow += {
 				to_stringval(${p}),
 				to_stringval(${e}));
 			}
+
+		if ( ssh_server_host_key )
+			{
+			unsigned char digest[MD5_DIGEST_LENGTH];
+			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_MD5);
+			// Note: the 'p' and 'e' parameters actually have swapped meanings with
+			//       'p' actually being the exponent.
+			// Fingerprint is calculated over concatenation of modulus + exponent.
+			zeek::detail::hash_update(ctx, ${e}.data(), ${e}.length());
+			zeek::detail::hash_update(ctx, ${p}.data(), ${p}.length());
+			zeek::detail::hash_final(ctx, digest);
+
+			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				zeek::make_intrusive<zeek::StringVal>(fingerprint_md5(digest)));
+			}
+
 		return true;
 		%}
 

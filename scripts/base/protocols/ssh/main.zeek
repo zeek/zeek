@@ -111,17 +111,6 @@ export {
 	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 	##    ssh2_gss_error ssh2_ecc_key
 	global ssh_auth_result: event(c: connection, result: bool, auth_attempts: count);
-
-	## Event that can be handled when the analyzer sees an SSH server host
-	## key. This abstracts :zeek:id:`ssh1_server_host_key` and
-	## :zeek:id:`ssh2_server_host_key`.
-	##
-	## .. zeek:see:: ssh_server_version ssh_client_version
-	##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-	##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-	##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-	##    ssh2_gss_error ssh2_ecc_key
-	global ssh_server_host_key: event(c: connection, hash: string);
 }
 
 module SSH;

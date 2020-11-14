@@ -68,6 +68,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 @TEST-START-FILE clone.zeek
 
+global has_node_up: bool = F;
+global has_announce_masters: bool = F;
+
 event dump_tables()
 	{
 	t["a"] = 5;
@@ -90,7 +93,9 @@ event dump_tables()
 event Cluster::node_up(name: string, id: string)
 	{
 	Reporter::info(fmt("Node Up: %s", name));
-	event dump_tables();
+	has_node_up = T;
+	if ( has_announce_masters )
+		event dump_tables();
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -101,6 +106,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 event Broker::announce_masters(masters: set[string])
 	{
 	Reporter::info(fmt("Received announce_masters: %s", cat(masters)));
+	has_announce_masters = T;
+	if ( has_node_up )
+		event dump_tables();
 	}
 @TEST-END-FILE
 

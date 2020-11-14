@@ -151,6 +151,10 @@ Deprecated Functionality
 - ``Type::GetAliases()`` and ``Type::AddAlias()`` are deprecated, use
   ``Type::Aliases()`` and ``Type::RegisterAlias()``.
 
+- The ``ssh1_server_host_key`` event's modulus and exponent parameters,
+  *e* and *p*, were named in misleading way (*e* is the modulus)
+  and now deprecated in favor of the new *modulus* and *exponent* parameters.
+
 Zeek 3.2.0
 ==========
 

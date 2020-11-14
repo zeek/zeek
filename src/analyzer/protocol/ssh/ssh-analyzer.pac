@@ -177,25 +177,25 @@ refine flow SSH_Flow += {
 		return true;
 		%}
 
-	function proc_ssh1_server_host_key(p: bytestring, e: bytestring): bool
+	function proc_ssh1_server_host_key(exp: bytestring, mod: bytestring): bool
 		%{
 		if ( ssh1_server_host_key )
 			{
 			zeek::BifEvent::enqueue_ssh1_server_host_key(connection()->zeek_analyzer(),
 				connection()->zeek_analyzer()->Conn(),
-				to_stringval(${p}),
-				to_stringval(${e}));
+				to_stringval(${exp}),
+				to_stringval(${mod}),
+				to_stringval(${mod}),
+				to_stringval(${exp}));
 			}
 
 		if ( ssh_server_host_key )
 			{
 			unsigned char digest[MD5_DIGEST_LENGTH];
 			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_MD5);
-			// Note: the 'p' and 'e' parameters actually have swapped meanings with
-			//       'p' actually being the exponent.
 			// Fingerprint is calculated over concatenation of modulus + exponent.
-			zeek::detail::hash_update(ctx, ${e}.data(), ${e}.length());
-			zeek::detail::hash_update(ctx, ${p}.data(), ${p}.length());
+			zeek::detail::hash_update(ctx, ${mod}.data(), ${mod}.length());
+			zeek::detail::hash_update(ctx, ${exp}.data(), ${exp}.length());
 			zeek::detail::hash_final(ctx, digest);
 
 			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
@@ -267,5 +267,5 @@ refine typeattr SSH2_ECC_INIT += &let {
 };
 
 refine typeattr SSH1_PUBLIC_KEY += &let {
-	proc:  bool = $context.flow.proc_ssh1_server_host_key(host_key_p.val, host_key_e.val);
+	proc:  bool = $context.flow.proc_ssh1_server_host_key(host_key_exp.val, host_key_mod.val);
 };

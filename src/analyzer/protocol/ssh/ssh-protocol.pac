@@ -60,11 +60,11 @@ type SSH1_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_typ
 type SSH1_PUBLIC_KEY(length: uint32) = record {
 	cookie            : bytestring &length=8;
 	server_key        : uint32;
-	server_key_p      : ssh1_mp_int;
-	server_key_e      : ssh1_mp_int;
+	server_key_exp    : ssh1_mp_int;
+	server_key_mod    : ssh1_mp_int;
 	host_key          : uint32;
-	host_key_p        : ssh1_mp_int;
-	host_key_e        : ssh1_mp_int;
+	host_key_exp      : ssh1_mp_int;
+	host_key_mod      : ssh1_mp_int;
 	flags             : uint32;
 	supported_ciphers : uint32;
 	supported_auths   : uint32;

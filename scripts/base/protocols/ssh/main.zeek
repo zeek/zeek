@@ -292,9 +292,9 @@ function generate_fingerprint(c: connection, key: string)
 	c$ssh$host_key = join_string_vec(lx, ":");
 	}
 
-event ssh1_server_host_key(c: connection, p: string, e: string) &priority=5
+event ssh1_server_host_key(c: connection, modulus: string, exponent: string) &priority=5
 	{
-	generate_fingerprint(c, e + p);
+	generate_fingerprint(c, modulus + exponent);
 	}
 
 event ssh2_server_host_key(c: connection, key: string) &priority=5

@@ -157,13 +157,6 @@ refine flow SSH_Flow += {
 
 	function proc_ssh2_server_host_key(key: bytestring): bool
 		%{
-		if ( ssh2_server_host_key )
-			{
-			zeek::BifEvent::enqueue_ssh2_server_host_key(connection()->zeek_analyzer(),
-				connection()->zeek_analyzer()->Conn(),
-				to_stringval(${key}));
-			}
-
 		if ( ssh_server_host_key )
 			{
 			unsigned char digest[MD5_DIGEST_LENGTH];
@@ -174,21 +167,18 @@ refine flow SSH_Flow += {
 				zeek::make_intrusive<zeek::StringVal>(fingerprint_md5(digest)));
 			}
 
+		if ( ssh2_server_host_key )
+			{
+			zeek::BifEvent::enqueue_ssh2_server_host_key(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				to_stringval(${key}));
+			}
+
 		return true;
 		%}
 
 	function proc_ssh1_server_host_key(exp: bytestring, mod: bytestring): bool
 		%{
-		if ( ssh1_server_host_key )
-			{
-			zeek::BifEvent::enqueue_ssh1_server_host_key(connection()->zeek_analyzer(),
-				connection()->zeek_analyzer()->Conn(),
-				to_stringval(${exp}),
-				to_stringval(${mod}),
-				to_stringval(${mod}),
-				to_stringval(${exp}));
-			}
-
 		if ( ssh_server_host_key )
 			{
 			unsigned char digest[MD5_DIGEST_LENGTH];
@@ -201,6 +191,16 @@ refine flow SSH_Flow += {
 			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
 				connection()->zeek_analyzer()->Conn(),
 				zeek::make_intrusive<zeek::StringVal>(fingerprint_md5(digest)));
+			}
+
+		if ( ssh1_server_host_key )
+			{
+			zeek::BifEvent::enqueue_ssh1_server_host_key(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				to_stringval(${exp}),
+				to_stringval(${mod}),
+				to_stringval(${mod}),
+				to_stringval(${exp}));
 			}
 
 		return true;

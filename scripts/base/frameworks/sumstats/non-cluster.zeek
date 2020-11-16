@@ -43,9 +43,15 @@ event SumStats::finish_epoch(ss: SumStat)
 				if ( ss?$epoch_finished )
 					ss$epoch_finished(now);
 				}
-			else if ( |data| > 0 )
+			else
 				{
-				event SumStats::process_epoch_result(ss, now, copy(data));
+				if ( |data| > 0 )
+					event SumStats::process_epoch_result(ss, now, copy(data));
+				else
+					{
+					if ( ss?$epoch_finished )
+						ss$epoch_finished(now);
+					}
 				}
 			}
 		

@@ -4,14 +4,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(Zeek C CXX)
 
-if ( NOT CMAKE_INSTALL_LIBDIR )
-    # Currently, some sub-projects may use GNUInstallDirs.cmake to choose the
-    # library install dir, while others just default to "lib".  For sake of
-    # consistency, this just overrides the former to always use "lib" in case
-    # it would have chosen something else, like "lib64", but a thing for the
-    # future may be to standardize all sub-projects to use GNUInstallDirs.
-    set(CMAKE_INSTALL_LIBDIR lib)
-endif ()
+include(GNUInstallDirs)
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
@@ -60,7 +53,8 @@ endif ()
 get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
-set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/zeek/plugins CACHE STRING "Installation path for plugins" FORCE)
+set(BRO_PLUGIN_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/zeek/plugins CACHE STRING "Installation path for plugins" FORCE)
+set(PY_MOD_INSTALL_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/zeekctl CACHE STRING "Installation path for Python modules" FORCE)
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
@@ -126,7 +120,7 @@ if ( NOT BINARY_PACKAGING_MODE )
     # before Zeek 3.0.
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/include/bro" "${CMAKE_INSTALL_PREFIX}/include/zeek")
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/share/bro" "${CMAKE_INSTALL_PREFIX}/share/zeek")
-    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_PREFIX}/lib/zeek")
+    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_LIBDIR}/zeek")
 endif ()
 
 if ( ZEEK_SANITIZERS )
@@ -513,6 +507,23 @@ include(CheckOptionalBuildSources)
 CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
+
+########################################################################
+## Transitions and cleanups
+
+if ( NOT BINARY_PACKAGING_MODE )
+    # Remove pre-existing libdir of the old hardwired name if it is not
+    # the name we're now installing under.
+    set(_old_libdir ${CMAKE_INSTALL_PREFIX}/lib)
+
+    install(CODE "
+        if ( EXISTS \"${_old_libdir}\" AND IS_DIRECTORY \"${_old_libdir}\"
+             AND NOT \"${_old_libdir}\" STREQUAL \"${CMAKE_INSTALL_FULL_LIBDIR}\" )
+            message(STATUS \"WARNING: removing old library directory ${_old_libdir}\")
+            execute_process(COMMAND \"${CMAKE_COMMAND}\" -E remove_directory \"${_old_libdir}\")
+        endif ()
+    ")
+endif ()
 
 ########################################################################
 ## Packaging Setup

@@ -1,4 +1,18 @@
 
+3.3.0-dev.541 | 2020-11-16 11:22:00 -0800
+
+  * Simplify ssh/main.zeek by using "ssh_server_host_key" for fingerprinting (Jon Siwek, Corelight)
+
+  * Deprecate "ssh1_server_host_key" parameters *e* and *p* (Jon Siwek, Corelight)
+
+    They are named such that *e* is actually the modulus, not the exponent.
+    The replacement parameters are named *exponent* and *modulus* for
+    clarity.
+
+  * GH-1264: Implement "ssh_server_host_key" event (Jon Siwek, Corelight)
+
+    This event provides host key fingerprints for both SSH1 and SSH2.
+
 3.3.0-dev.537 | 2020-11-16 11:03:05 +0000
 
   * [SSH] Handle SSH version 1.99

@@ -30,7 +30,8 @@ export {
 		USER_NAME,
 		## Certificate SHA-1 hash.
 		CERT_HASH,
-		## Public key MD5 hash. (SSH server host keys are a good example.)
+		## Public key MD5 hash, formatted as hexadecimal digits delimited by colons.
+		## (SSH server host keys are a good example.)
 		PUBKEY_HASH,
 	};
 

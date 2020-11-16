@@ -111,17 +111,6 @@ export {
 	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 	##    ssh2_gss_error ssh2_ecc_key
 	global ssh_auth_result: event(c: connection, result: bool, auth_attempts: count);
-
-	## Event that can be handled when the analyzer sees an SSH server host
-	## key. This abstracts :zeek:id:`ssh1_server_host_key` and
-	## :zeek:id:`ssh2_server_host_key`.
-	##
-	## .. zeek:see:: ssh_server_version ssh_client_version
-	##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-	##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-	##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-	##    ssh2_gss_error ssh2_ecc_key
-	global ssh_server_host_key: event(c: connection, hash: string);
 }
 
 module SSH;
@@ -337,24 +326,12 @@ event ssh_auth_failed(c: connection) &priority=-5
 	event ssh_auth_result(c, F, c$ssh$auth_attempts);
 	}
 
-
-function generate_fingerprint(c: connection, key: string)
+event ssh_server_host_key(c: connection, hash: string) &priority=5
 	{
-	if ( !c?$ssh )
+	if ( ! c?$ssh )
 		return;
 
-	local lx = str_split_indices(md5_hash(key), vector(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30));
-	c$ssh$host_key = join_string_vec(lx, ":");
-	}
-
-event ssh1_server_host_key(c: connection, p: string, e: string) &priority=5
-	{
-	generate_fingerprint(c, e + p);
-	}
-
-event ssh2_server_host_key(c: connection, key: string) &priority=5
-	{
-	generate_fingerprint(c, key);
+	c$ssh$host_key = hash;
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=20

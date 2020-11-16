@@ -54,14 +54,15 @@ event SumStats::finish_epoch(ss: SumStat)
 					}
 				}
 			}
-		
+
 		# We can reset here because we know that the reference
 		# to the data will be maintained by the process_epoch_result
 		# event.
 		reset(ss);
 		}
 
-	schedule ss$epoch { SumStats::finish_epoch(ss) };
+	if ( ss$epoch != 0secs )
+		schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
 
 function data_added(ss: SumStat, key: Key, result: Result)

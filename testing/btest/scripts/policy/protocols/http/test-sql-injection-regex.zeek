@@ -88,9 +88,13 @@ event zeek_init()
 	add negative_matches["/index.cfm?filename=32423411.GP4&ip=1.2.3.4&id_num=0063&proj_num=2906&sheet_name=2 AND 3 FLR&sheet_num=2E&path=L:\ARF\DATA\13000\95013889.GP4"];
 	add negative_matches["/index.pl\?supersite=stations&station=ABCD&path='+location.pathname+'&'+location.search.substring(1)+'\\\"\\"];
 	add negative_matches["/ntpagetag.gif?js=1&ts=123412341234.568&lc=http://a.b.org/default.aspx?mode=js#&rs=1440x900&cd=32&ln=en&tz=GMT -04:00&jv=1&ets=123412341234.623&select_challenge_from_gallery=1&ci=RCC00000000"];
-	
+	add negative_matches["my.server.com/api/find?tag=hello&SELECT0=true"];
+	add negative_matches["/api/datasources/proxy/1/query?db=telegraf&q=SELECT sum(\"gauge\") FROM \"boomd_indexer_memory_index_bytes_total\" WHERE (\"space\" =~ /^(corelight|wrccdc)$/) AND time >= 1561410802000ms and time <= 1561416568000ms GROUP BY time(1s)&epoch=ms"];
+	add negative_matches["/api/datasources/proxy/1/query?db=telegraf&q=SELECT derivative(sum(\"counter\"), 1s) FROM \"boomd_indexer_slabs_processed_total\" WHERE (\"space\" =~ /^(corelight|wrccdc)$/) AND time >= 1561410802000ms and time <= 1561416568000ms GROUP BY time(1s)&epoch=ms"];
+	add negative_matches["/A-B-C-D/inc/foobar.php?img=1179681280a b c d arf union.jpg"];
+
 	# These are still being matched accidentally.
-	#add negative_matches["/A-B-C-D/inc/foobar.php?img=1179681280a b c d arf union.jpg"];
+	#add negative_matches["/api/datasources/proxy/1/query?db=telegraf&q=SELECT mean(\"0.5\") AS \"0.5\", mean(\"0.9\") AS \"0.9\", mean(\"0.99\") AS \"0.99\" FROM \"boomd_indexer_write_size_bytes\" WHERE (\"type\" = 'key' AND \"space\" =~ /^(corelight|wrccdc)$/) AND time >= 1561410802000ms and time <= 1561416568000ms GROUP BY time(1s);SELECT derivative(sum(\"sum\"), 1s) FROM \"boomd_indexer_write_size_bytes\" WHERE (\"type\" = 'key' AND \"space\" =~ /^(corelight|wrccdc)$/) AND time >= 1561410802000ms and time <= 1561416568000ms GROUP BY time(1s)&epoch=ms"];
 	#add negative_matches["/test,+soviet+union&searchscope=7&SORT=DZ/test,+soviet+union&foobar=7"];
 	#add negative_matches["/search?hl=en&q=fee union western"];
 	#add negative_matches["/search?hl=en&q=ceiling drop tile"];

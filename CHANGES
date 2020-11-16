@@ -1,4 +1,12 @@
 
+3.3.0-dev.543 | 2020-11-16 11:50:49 -0800
+
+  * GH-352: Improve HTTP::match_sql_injection_uri regex (Jon Siwek, Corelight)
+
+    Changes \x00-\x37 ranges to \x00-\x1f with assumption that the former
+    was attempting to match ASCII control characters, but mistook an octal
+    range for hex.  This change reduces some false positives.
+
 3.3.0-dev.541 | 2020-11-16 11:22:00 -0800
 
   * Simplify ssh/main.zeek by using "ssh_server_host_key" for fingerprinting (Jon Siwek, Corelight)

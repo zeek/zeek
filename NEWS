@@ -80,6 +80,10 @@ New Functionality
   - dns_NSEC3PARAM
   - dns_BINDS
 
+- Zeek now supports SSH clients/servers that advertise SSH version 1.99, which
+  is a special version indicating that the server/client supports both SSH2 and
+	SSH1.
+
 Changed Functionality
 ---------------------
 

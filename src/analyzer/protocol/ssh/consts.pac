@@ -2,6 +2,7 @@ enum version {
 	SSH1 = 1,
 	SSH2 = 2,
 	UNK  = 3,
+	SSH199 = 4,
 };
 
 enum state {

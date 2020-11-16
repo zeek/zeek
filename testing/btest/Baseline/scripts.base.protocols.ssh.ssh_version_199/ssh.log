@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssh
+#open	2019-12-06-09-53-13
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key
+#types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
+1213964540.292082	CHhAvVGS1DHFjwGM9	10.0.0.1	59139	10.0.0.2	22	2	T	1	-	SSH-1.99-Cisco-1.25	SSH-2.0-Cisco-1.25	aes128-cbc	hmac-sha1	none	diffie-hellman-group1-sha1	ssh-rsa	91:0a:ed:3f:79:71:22:f9:97:66:71:f8:c9:a5:b4:10
+#close	2019-12-06-09-53-13

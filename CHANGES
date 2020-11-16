@@ -1,4 +1,17 @@
 
+3.3.0-dev.537 | 2020-11-16 11:03:05 +0000
+
+  * [SSH] Handle SSH version 1.99
+    SSH can set in its identification a version 1.99 (SSH-1.99-xxx).
+    That means the client/server is compatible with SSHv1 and SSHv2.
+    So the version choice depends of the both side.
+
+    1.99 : 1.99 => 2.0
+    1.99 : 1.x  => 1.x
+    1.99 : 2.0  => 2.O
+
+    (see "Compatibility With Old SSH Versions" in RFC 4253) (Brevet Vivien)
+
 3.3.0-dev.534 | 2020-11-12 14:31:10 -0800
 
   * Move UnknownProtocol options to init-bare.zeek (Jon Siwek, Corelight)

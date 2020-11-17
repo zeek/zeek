@@ -816,6 +816,7 @@ void Analyzer::Event(EventHandlerPtr f, zeek::Val* v1, zeek::Val* v2)
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 	{
 	auto args = zeek::val_list_to_args(*vl);
+	delete vl;
 
 	if ( f )
 		conn->EnqueueEvent(f, this, std::move(args));

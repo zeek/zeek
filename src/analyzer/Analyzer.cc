@@ -811,6 +811,7 @@ void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList* vl)
 	{
 	auto args = val_list_to_args(*vl);
+	delete vl;
 
 	if ( f )
 		conn->EnqueueEvent(f, this, std::move(args));

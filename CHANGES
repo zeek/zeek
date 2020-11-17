@@ -1,4 +1,8 @@
 
+3.3.0-dev.546 | 2020-11-17 11:50:47 +0000
+
+  * Fix memory leak in deprecated Analyzer::ConnectionEvent() (Jon Siwek, Corelight)
+
 3.3.0-dev.543 | 2020-11-16 11:50:49 -0800
 
   * GH-352: Improve HTTP::match_sql_injection_uri regex (Jon Siwek, Corelight)

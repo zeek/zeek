@@ -15,3 +15,7 @@ s = "ieje one@example.com, eifj two@example.com, asdf three@example.com, one@exa
 print extract_first_email_addr(s);
 print extract_email_addrs_vec(s);
 print extract_email_addrs_set(s);
+s = "\"Smith, John\" <john.smith@email.com>, \"Doe, Jane\" <jane.doe@email.com>";
+print extract_first_email_addr(s);
+print extract_email_addrs_vec(s);
+print extract_email_addrs_set(s);

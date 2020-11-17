@@ -19,3 +19,9 @@ three@example.com,
 one@example.com,
 two@example.com
 }
+john.smith@email.com
+[john.smith@email.com, jane.doe@email.com]
+{
+john.smith@email.com
+jane.doe@email.com
+}

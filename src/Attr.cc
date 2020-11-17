@@ -674,11 +674,6 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		// Temporary since Broker does not support ListVals - and we
-		// cannot easily convert to set/vector
-		if ( type->AsTableType()->GetIndexTypes().size() != 1 )
-			Error("&backend only supports one-element set/table indexes");
-
 		// Only support atomic types for the moment, unless
 		// explicitly overriden
 		if ( ! type->AsTableType()->IsSet() &&
@@ -713,11 +708,6 @@ void Attributes::CheckAttr(Attr* a)
 			Error("&broker_store must take a string argument");
 			break;
 			}
-
-		// Temporary since Broker does not support ListVals - and we
-		// cannot easily convert to set/vector
-		if ( type->AsTableType()->GetIndexTypes().size() != 1 && ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
-			Error("&broker_store only supports one-element set/table indexes");
 
 		// Only support atomic types for the moment, unless
 		// explicitly overriden

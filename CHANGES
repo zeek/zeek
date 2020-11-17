@@ -1,4 +1,16 @@
 
+3.3.0-dev.548 | 2020-11-17 13:32:57 -0800
+
+  * GH-1033: BrokerStore <-> Zeek Tables: support complex indices (Johanna Amann, Corelight)
+
+    This change adds support for complex indexes for sets and tables. With
+    this change, sets with indexes like:
+
+    set[string, count, count]
+
+    will function. Before this change, Zeek raised an error message in these
+    cases.
+
 3.3.0-dev.546 | 2020-11-17 11:50:47 +0000
 
   * Fix memory leak in deprecated Analyzer::ConnectionEvent() (Jon Siwek, Corelight)

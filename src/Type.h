@@ -458,7 +458,7 @@ public:
 
 	TypePtr ShallowClone() override;
 
-	[[deprecated("Remove in v4.1.  Use Elements() isntead.")]]
+	[[deprecated("Remove in v4.1.  Use Elements() instead.")]]
 	detail::ListExpr* SetElements() const	{ return elements.get(); }
 
 	const detail::ListExprPtr& Elements() const

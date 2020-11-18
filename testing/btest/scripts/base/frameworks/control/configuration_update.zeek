@@ -30,7 +30,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-event Control::configuration_update_request()
+event Control::configuration_update_request(node_id: string)
 	{
 	Reporter::info("handle Control::configuration_update_request");
 	}

@@ -12,31 +12,26 @@
 
 module Control;
 
+function make_controller_topic(node_id: string, resp_event_name: string): string
+	{ return fmt("%s/%s/%s", Control::topic_prefix, node_id, resp_event_name); }
+
 event zeek_init() &priority=-10
 	{
 	Broker::subscribe(Control::topic_prefix + "/" + Broker::node_id());
-	Broker::auto_publish(Control::topic_prefix + "/id_value_response",
-		                 Control::id_value_response);
-	Broker::auto_publish(Control::topic_prefix + "/peer_status_response",
-		                 Control::peer_status_response);
-	Broker::auto_publish(Control::topic_prefix + "/net_stats_response",
-		                 Control::net_stats_response);
-	Broker::auto_publish(Control::topic_prefix + "/configuration_update_response",
-		                 Control::configuration_update_response);
-	Broker::auto_publish(Control::topic_prefix + "/shutdown_response",
-		                 Control::shutdown_response);
 
 	if ( Control::controllee_listen )
 		Broker::listen();
 	}
 
-event Control::id_value_request(id: string)
+event Control::id_value_request(id: string, node_id: string)
 	{
 	local val = lookup_ID(id);
 	event Control::id_value_response(id, fmt("%s", val));
+	Broker::publish(make_controller_topic(node_id, "id_value_response"),
+	                Control::id_value_response, id, fmt("%s", val));
 	}
 
-event Control::peer_status_request()
+event Control::peer_status_request(node_id: string)
 	{
 	local status = "";
 
@@ -54,17 +49,21 @@ event Control::peer_status_request()
 		}
 
 	event Control::peer_status_response(status);
+	Broker::publish(make_controller_topic(node_id, "peer_status_response"),
+	                Control::peer_status_response, status);
 	}
 
-event Control::net_stats_request()
+event Control::net_stats_request(node_id: string)
 	{
 	local ns = get_net_stats();
 	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(),
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
 	event Control::net_stats_response(reply);
+	Broker::publish(make_controller_topic(node_id, "net_stats_response"),
+	                Control::net_stats_response, reply);
 	}
 
-event Control::configuration_update_request()
+event Control::configuration_update_request(node_id: string)
 	{
 	# Generate the alias event.
 	event Control::configuration_update();
@@ -74,12 +73,16 @@ event Control::configuration_update_request()
 	# by other scripts if they need to do some ancilliary processing if
 	# redef-able consts are modified at runtime.
 	event Control::configuration_update_response();
+	Broker::publish(make_controller_topic(node_id, "configuration_update_response"),
+	                Control::configuration_update_response);
 	}
 
-event Control::shutdown_request()
+event Control::shutdown_request(node_id: string)
 	{
 	# Send the acknowledgement event.
 	event Control::shutdown_response();
+	Broker::publish(make_controller_topic(node_id, "shutdown_response"),
+	                Control::shutdown_response);
 	# Schedule the shutdown to let the current event queue flush itself first.
 	schedule 1sec { terminate_event() };
 	}

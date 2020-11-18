@@ -23,7 +23,7 @@ event zeek_init() &priority=5
 		terminate();
 		}
 
-	Broker::subscribe(Control::topic_prefix);
+	Broker::subscribe(Control::topic_prefix + "/" + Broker::node_id());
 	Broker::peer(cat(host), host_port);
 	}
 
@@ -85,23 +85,23 @@ function send_control_request(topic: string)
 		if ( arg == "" )
 			Reporter::fatal("The Control::id_value command requires that Control::arg also has some value.");
 
-		Broker::publish(topic, Control::id_value_request, arg);
+		Broker::publish(topic, Control::id_value_request, arg, Broker::node_id());
 		break;
 
 	case "peer_status":
-		Broker::publish(topic, Control::peer_status_request);
+		Broker::publish(topic, Control::peer_status_request, Broker::node_id());
 		break;
 
 	case "net_stats":
-		Broker::publish(topic, Control::net_stats_request);
+		Broker::publish(topic, Control::net_stats_request, Broker::node_id());
 		break;
 
 	case "shutdown":
-		Broker::publish(topic, Control::shutdown_request);
+		Broker::publish(topic, Control::shutdown_request, Broker::node_id());
 		break;
 
 	case "configuration_update":
-		Broker::publish(topic, Control::configuration_update_request);
+		Broker::publish(topic, Control::configuration_update_request, Broker::node_id());
 		break;
 
 	default:

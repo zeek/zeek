@@ -43,25 +43,25 @@ export {
 	const ignore_ids: set[string] = { };
 
 	## Event for requesting the value of an ID (a variable).
-	global id_value_request: event(id: string);
+	global id_value_request: event(id: string, node_id: string);
 	## Event for returning the value of an ID after an
 	## :zeek:id:`Control::id_value_request` event.
 	global id_value_response: event(id: string, val: string);
 
 	## Requests the current communication status.
-	global peer_status_request: event();
+	global peer_status_request: event(node_id: string);
 	## Returns the current communication status.
 	global peer_status_response: event(s: string);
 
 	## Requests the current net_stats.
-	global net_stats_request: event();
+	global net_stats_request: event(node_id: string);
 	## Returns the current net_stats.
 	global net_stats_response: event(s: string);
 
 	## Inform the remote Zeek instance that it's configuration may have been
 	## updated.
-	global configuration_update_request: event();
-	## This event is a wrapper and alias for the
+	global configuration_update_request: event(node_id: string);
+	## This event is generically raised whenever a controllee receives a
 	## :zeek:id:`Control::configuration_update_request` event.
 	## This event is also a primary hooking point for the control framework.
 	global configuration_update: event();
@@ -69,7 +69,7 @@ export {
 	global configuration_update_response: event();
 
 	## Requests that the Zeek instance begins shutting down.
-	global shutdown_request: event();
+	global shutdown_request: event(node_id: string);
 	## Message in response to a shutdown request.
 	global shutdown_response: event();
 }

@@ -10,6 +10,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
+#include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);

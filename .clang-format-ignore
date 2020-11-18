@@ -1,0 +1,17 @@
+# Ignore everything 3rdparty
+src/3rdparty/*
+
+# These are files that are technically sourced from other places but aren't in 3rdparty
+# and shouldn't be reformatted.
+src/ConvertUTF.*
+src/bro_inet_ntop.*
+src/bsd-getopt-long.*
+src/in_cksum.*
+src/nb_dns.*
+src/modp_numtoa.*
+src/patricia.*
+src/strsep.c
+src/setsignal.c
+
+# These files are generated code
+src/DebugCmdInfoConstants.*

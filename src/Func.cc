@@ -55,6 +55,9 @@
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/iosource/PktDumper.h"
 
+// Ignore clang-format's reordering of include files here so that it doesn't
+// break what symbols are available when, which keeps the build from breaking.
+// clang-format off
 #include "zeek.bif.func_h"
 #include "stats.bif.func_h"
 #include "reporter.bif.func_h"
@@ -72,6 +75,7 @@
 #include "supervisor.bif.func_def"
 #include "packet_analysis.bif.func_def"
 #include "CPP-load.bif.func_def"
+// clang-format on
 
 extern	RETSIGTYPE sig_handler(int signo);
 

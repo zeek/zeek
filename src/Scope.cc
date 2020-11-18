@@ -188,6 +188,7 @@ IDPtr install_ID(const char* name, const char* module_name,
 
 void push_existing_scope(Scope* scope)
 	{
+	top_scope = scope;
 	scopes.push_back(scope);
 	}
 

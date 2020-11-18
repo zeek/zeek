@@ -310,6 +310,7 @@ ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body,
 		{
 		Body b;
 		b.stmts = AddInits(std::move(arg_body), aggr_inits);
+		current_body = b.stmts;
 		b.priority = priority;
 		bodies.push_back(b);
 		}
@@ -497,6 +498,8 @@ void ScriptFunc::AddBody(StmtPtr new_body,
 	b.stmts = new_body;
 	b.priority = priority;
 
+	current_body = new_body;
+
 	bodies.push_back(b);
 	sort(bodies.begin(), bodies.end());
 	}
@@ -627,6 +630,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	type = id->GetType<FuncType>();
 	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
+	id->SetConst();
 	}
 
 BuiltinFunc::~BuiltinFunc()

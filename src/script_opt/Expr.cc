@@ -5,8 +5,12 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Func.h"
+#include "Frame.h"
 #include "Scope.h"
 #include "Desc.h"
+#include "Traverse.h"
+#include "Reporter.h"
+#include "script_opt/Inline.h"
 
 
 namespace zeek::detail {
@@ -21,6 +25,22 @@ ExprPtr NameExpr::Duplicate()
 ExprPtr ConstExpr::Duplicate()
 	{
 	return SetSucc(new ConstExpr(val));
+	}
+
+  
+ExprPtr UnaryExpr::Inline(Inliner* inl)
+	{
+	op = op->Inline(inl);
+	return ThisPtr();
+	}
+
+
+ExprPtr BinaryExpr::Inline(Inliner* inl)
+	{
+	op1 = op1->Inline(inl);
+	op2 = op2->Inline(inl);
+
+	return ThisPtr();
 	}
 
 
@@ -163,6 +183,15 @@ ExprPtr CondExpr::Duplicate()
 	return SetSucc(new CondExpr(op1_d, op2_d, op3_d));
 	}
 
+ExprPtr CondExpr::Inline(Inliner* inl)
+	{
+	op1 = op1->Inline(inl);
+	op2 = op2->Inline(inl);
+	op3 = op3->Inline(inl);
+
+	return ThisPtr();
+	}
+
 
 ExprPtr RefExpr::Duplicate()
 	{
@@ -217,15 +246,7 @@ ExprPtr HasFieldExpr::Duplicate()
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-
-	// Leaving the code here for later when we add record construction
-	// maps, so hopefully it won't be overlooked.
-#if NOT_YET
-	if ( map )
-		return SetSucc(new RecordConstructorExpr(rt, op_l));
-	else
-#endif
-		return SetSucc(new RecordConstructorExpr(op_l));
+	return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
 
@@ -330,6 +351,14 @@ ExprPtr ScheduleExpr::Duplicate()
 	return SetSucc(new ScheduleExpr(when_d, event_d));
 	}
 
+ExprPtr ScheduleExpr::Inline(Inliner* inl)
+	{
+	when = when->Inline(inl);
+	event = event->Inline(inl)->AsEventExprPtr();
+
+	return ThisPtr();
+	}
+
 
 ExprPtr InExpr::Duplicate()
 	{
@@ -349,6 +378,22 @@ ExprPtr CallExpr::Duplicate()
 	return SetSucc(new CallExpr(func_d, args_d, in_hook));
 	}
 
+ExprPtr CallExpr::Inline(Inliner* inl)
+	{
+	auto new_me = inl->CheckForInlining({NewRef{}, this});
+
+	if ( new_me.get() != this )
+		return new_me;
+
+	// We're not inlining, but perhaps our elements should be.
+	func = func->Inline(inl);
+
+	auto new_args = args->Inline(inl);
+	args = {NewRef{}, new_args->AsListExpr()};
+
+	return ThisPtr();
+	}
+
 
 ExprPtr LambdaExpr::Duplicate()
 	{
@@ -357,11 +402,25 @@ ExprPtr LambdaExpr::Duplicate()
 	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
 	}
 
+ExprPtr LambdaExpr::Inline(Inliner* inl)
+	{
+	// Don't inline these, we currently don't get the closure right.
+	return ThisPtr();
+	}
+
 
 ExprPtr EventExpr::Duplicate()
 	{
 	auto args_d = args->Duplicate()->AsListExprPtr();
 	return SetSucc(new EventExpr(name.c_str(), args_d));
+	}
+
+ExprPtr EventExpr::Inline(Inliner* inl)
+	{
+	auto el = args->Inline(inl)->AsListExpr();
+	args = {NewRef{}, el};
+
+	return ThisPtr();
 	}
 
 
@@ -375,6 +434,14 @@ ExprPtr ListExpr::Duplicate()
 	return SetSucc(new_l);
 	}
 
+ExprPtr ListExpr::Inline(Inliner* inl)
+	{
+	loop_over_list(exprs, i)
+		exprs[i] = exprs[i]->Inline(inl).release();
+
+	return ThisPtr();
+	}
+
 
 ExprPtr CastExpr::Duplicate()
 	{
@@ -386,5 +453,95 @@ ExprPtr IsExpr::Duplicate()
 	{
 	return SetSucc(new IsExpr(op->Duplicate(), t));
 	}
+
+
+InlineExpr::InlineExpr(ListExprPtr arg_args, IDPList* arg_params,
+			StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
+: Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
+	{
+	params = arg_params;
+	frame_offset = _frame_offset;
+	type = ret_type;
+	}
+
+bool InlineExpr::IsPure() const
+	{
+	return args->IsPure() && body->IsPure();
+	}
+
+ValPtr InlineExpr::Eval(Frame* f) const
+	{
+	auto v = eval_list(f, args.get());
+
+	if ( ! v )
+		return nullptr;
+
+	int nargs = args->Exprs().length();
+
+	f->Reset(frame_offset + nargs);
+	f->IncreaseOffset(frame_offset);
+
+	// Assign the arguments.
+	for ( auto i = 0; i < nargs; ++i )
+		f->SetElement(i, (*v)[i]);
+
+	auto flow = FLOW_NEXT;
+	ValPtr result;
+	try
+		{
+		result = body->Exec(f, flow);
+		}
+
+	catch ( InterpreterException& e )
+		{
+		f->IncreaseOffset(-frame_offset);
+		throw;
+		}
+
+	f->IncreaseOffset(-frame_offset);
+
+	return result;
+	}
+
+ExprPtr InlineExpr::Duplicate()
+	{
+	auto args_d = args->Duplicate()->AsListExprPtr();
+	auto body_d = body->Duplicate();
+	return SetSucc(new InlineExpr(args_d, params, body_d, frame_offset,
+					type));
+	}
+
+TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = args->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = body->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
+void InlineExpr::ExprDescribe(ODesc* d) const
+	{
+	if ( d->IsReadable() || d->IsPortable() )
+		{
+		d->Add("inline(");
+		args->Describe(d);
+		d->Add("){");
+		body->Describe(d);
+		d->Add("}");
+		}
+	else
+		{
+		args->Describe(d);
+		body->Describe(d);
+		}
+	}
+
 
 } // namespace zeek::detail

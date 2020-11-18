@@ -49,6 +49,8 @@ extern "C" {
 #include "ScannedFile.h"
 #include "Frag.h"
 
+#include "script_opt/ScriptOpt.h"
+
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
 #include "input/Manager.h"
@@ -787,6 +789,14 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			delete [] interfaces_str;
 			}
 		}
+
+	analyze_scripts(options);
+
+	auto& analysis_options = options.analysis_options;
+
+	if ( analysis_options.report_recursive )
+		// This option is report-and-exit.
+		return {0, std::move(options), true};
 
 	if ( dns_type != DNS_PRIME )
 		run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "DNS_Mgr.h"
+#include "script_opt/ScriptOpt.h"
 
 namespace zeek {
 
@@ -76,6 +77,9 @@ struct Options {
 	std::vector<std::string> script_options_to_set;
 
 	std::vector<std::string> script_args;
+
+	// For script optimization:
+	detail::AnalyOpt analysis_options;
 };
 
 /**

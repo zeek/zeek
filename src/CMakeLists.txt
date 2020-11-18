@@ -323,6 +323,9 @@ set(MAIN_SRCS
     plugin/Plugin.cc
 
     script_opt/Expr.cc
+    script_opt/Inline.cc
+    script_opt/ProfileFunc.cc
+    script_opt/ScriptOpt.cc
     script_opt/Stmt.cc
 
     nb_dns.c

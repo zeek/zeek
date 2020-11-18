@@ -4,16 +4,11 @@
 // See script_opt/ExprOpt-public.h for why these aren't factored into a
 // separate class.
 
-	// Returns a duplicate of the statement so that modifications
-	// can be made to statements from inlining function bodies - or
-	// to the originals - without affecting other instances.
-	//
-	// It's tempting to think that there are some statements that
-	// are safe to share across multiple functions and could just
-	// return references to themselves - but since we associate
-	// information such as reaching-defs with statements, even these
-	// need to be duplicated.
+	// Returns a duplicate of the statement.
 	virtual StmtPtr Duplicate() = 0;
+
+	// Recursively traverses the AST to inline eligible function calls.
+	virtual void Inline(Inliner* inl)	{ }
 
 	// Access to the original statement from which this one is derived,
 	// or this one if we don't have an original.  Returns a bare pointer

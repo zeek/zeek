@@ -12,6 +12,9 @@
 	// Returns a duplicate of the expression.
 	virtual ExprPtr Duplicate() = 0;
 
+	// Recursively traverses the AST to inline eligible function calls.
+	virtual ExprPtr Inline(Inliner* inl)	{ return ThisPtr(); }
+
 	// Access to the original expression from which this one is derived,
 	// or this one if we don't have an original.  Returns a bare pointer
 	// rather than an ExprPtr to emphasize that the access is read-only.

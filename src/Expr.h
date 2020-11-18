@@ -10,6 +10,7 @@
 
 #include "ZeekList.h"
 #include "IntrusivePtr.h"
+#include "StmtBase.h"
 #include "Timer.h"
 #include "Type.h"
 #include "EventHandler.h"
@@ -66,13 +67,19 @@ enum BroExprTag : int {
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
-#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
+
+#include "script_opt/ExprOpt-Enums.h"
+
+	EXPR_NOP,
+
+#define NUM_EXPRS (int(EXPR_NOP) + 1)
 };
 
 extern const char* expr_name(BroExprTag t);
 
 class ListExpr;
 class NameExpr;
+class ConstExpr;
 class IndexExpr;
 class AssignExpr;
 class CallExpr;
@@ -82,7 +89,7 @@ class Stmt;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 using EventExprPtr = IntrusivePtr<EventExpr>;
-using ListExprPtr = IntrusivePtr<ListExpr>;
+using StmtPtr = IntrusivePtr<Stmt>;
 
 class Expr : public Obj {
 public:
@@ -180,6 +187,8 @@ public:
 
 	ACCESSORS(ListExpr)
 	ACCESSORS(NameExpr)
+	ACCESSORS(ConstExpr)
+	ACCESSORS(CallExpr)
 	ACCESSORS(AssignExpr)
 	ACCESSORS(IndexExpr)
 	ACCESSORS(EventExpr)
@@ -246,6 +255,7 @@ public:
 	explicit ConstExpr(ValPtr val);
 
 	Val* Value() const	{ return val.get(); }
+	ValPtr ValuePtr() const	{ return val; }
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -272,6 +282,9 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	ExprPtr Inline(Inliner* inl) override;
+
 protected:
 	UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op);
 
@@ -296,6 +309,9 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	BinaryExpr(BroExprTag arg_tag,
@@ -545,6 +561,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -915,6 +932,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -951,6 +969,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -977,6 +996,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1002,6 +1022,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1036,6 +1057,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	ValPtr AddSetInit(const zeek::Type* t, ValPtr aggr) const;
@@ -1077,6 +1099,10 @@ protected:
 private:
 	TypePtr t;
 };
+
+
+#include "script_opt/ExprOpt-Subclasses.h"
+
 
 inline Val* Expr::ExprVal() const
 	{

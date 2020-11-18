@@ -17,6 +17,8 @@
 #include "module_util.h"
 #include "ID.h"
 
+#include "script_opt/ScriptOpt.h"
+
 namespace zeek::detail {
 
 static ValPtr init_val(Expr* init, const Type* t, ValPtr aggr)
@@ -736,7 +738,11 @@ void end_func(StmtPtr body)
 		ingredients->id->SetConst();
 		}
 
-	ingredients->id->GetVal()->AsFunc()->SetScope(ingredients->scope);
+	auto func = ingredients->id->GetVal()->AsFunc()->AsScriptFunc();
+	func->SetScope(ingredients->scope);
+
+	analyze_func({NewRef{}, func});
+
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the
 	// lifetime of the process at the moment, so ok to "leak" it.

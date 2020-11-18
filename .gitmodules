@@ -46,3 +46,6 @@
 [submodule "auxil/package-manager"]
 	path = auxil/package-manager
 	url = https://github.com/zeek/package-manager
+[submodule "auxil/run-clang-format"]
+	path = auxil/run-clang-format
+	url = https://github.com/Sarcasm/run-clang-format

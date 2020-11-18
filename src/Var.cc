@@ -17,7 +17,7 @@
 #include "module_util.h"
 #include "ID.h"
 
-#include "script_opt/ScriptOpt.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail {
 

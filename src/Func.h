@@ -9,14 +9,14 @@
 #include <tuple>
 #include <type_traits>
 
-#include "ZeekList.h"
-#include "Stmt.h"
-#include "Obj.h"
-#include "IntrusivePtr.h"
-#include "Type.h" /* for function_flavor */
-#include "TraverseTypes.h"
-#include "ZeekArgs.h"
-#include "BifReturnVal.h"
+#include "zeek/ZeekList.h"
+#include "zeek/Stmt.h"
+#include "zeek/Obj.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Type.h" /* for function_flavor */
+#include "zeek/TraverseTypes.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/BifReturnVal.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);

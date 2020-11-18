@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "DNS_Mgr.h"
-#include "script_opt/ScriptOpt.h"
+#include "zeek/DNS_Mgr.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek {
 

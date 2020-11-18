@@ -6,11 +6,10 @@
 // the bulk of Stmt.h to allow Expr.h to include it, necessary for
 // Expr.h to use StmtPtr.
 
-#include "Obj.h"
-#include "IntrusivePtr.h"
-#include "StmtEnums.h"
-#include "TraverseTypes.h"
-#include "util.h"
+#include "zeek/Obj.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/StmtEnums.h"
+#include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
@@ -81,7 +80,7 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
-#include "script_opt/StmtOpt-Public.h"
+#include "zeek/script_opt/StmtOpt-Public.h"
 
 protected:
 	explicit Stmt(StmtTag arg_tag);
@@ -97,7 +96,7 @@ protected:
 	mutable double last_access;	// time of last execution
 	mutable uint32_t access_count;	// number of executions
 
-#include "script_opt/StmtOpt-Private.h"
+#include "zeek/script_opt/StmtOpt-Private.h"
 };
 
 } // namespace zeek::detail

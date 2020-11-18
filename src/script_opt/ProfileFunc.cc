@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "script_opt/ProfileFunc.h"
-#include "Desc.h"
-#include "Stmt.h"
-#include "Func.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/Desc.h"
+#include "zeek/Stmt.h"
+#include "zeek/Func.h"
 
 
 namespace zeek::detail {

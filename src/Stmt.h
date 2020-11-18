@@ -4,11 +4,11 @@
 
 // Zeek statements.
 
-#include "StmtBase.h"
+#include "zeek/StmtBase.h"
 
-#include "ZeekList.h"
-#include "Dict.h"
-#include "ID.h"
+#include "zeek/ZeekList.h"
+#include "zeek/Dict.h"
+#include "zeek/ID.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 

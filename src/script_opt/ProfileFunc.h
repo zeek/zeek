@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include "Expr.h"
-#include "Stmt.h"
-#include "Traverse.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Traverse.h"
 
 namespace zeek::detail {
 

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Func.h"
-#include "Expr.h"
-#include "Scope.h"
+#include "zeek/Func.h"
+#include "zeek/Expr.h"
+#include "zeek/Scope.h"
 
 namespace zeek { struct Options; }
 

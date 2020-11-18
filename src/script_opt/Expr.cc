@@ -2,15 +2,15 @@
 
 // Optimization-related methods for Expr classes.
 
-#include "Expr.h"
-#include "Stmt.h"
-#include "Func.h"
-#include "Frame.h"
-#include "Scope.h"
-#include "Desc.h"
-#include "Traverse.h"
-#include "Reporter.h"
-#include "script_opt/Inline.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Func.h"
+#include "zeek/Frame.h"
+#include "zeek/Scope.h"
+#include "zeek/Desc.h"
+#include "zeek/Traverse.h"
+#include "zeek/Reporter.h"
+#include "zeek/script_opt/Inline.h"
 
 
 namespace zeek::detail {

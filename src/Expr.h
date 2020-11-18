@@ -8,15 +8,15 @@
 #include <utility>
 #include <optional>
 
-#include "ZeekList.h"
-#include "IntrusivePtr.h"
-#include "StmtBase.h"
-#include "Timer.h"
-#include "Type.h"
-#include "EventHandler.h"
-#include "TraverseTypes.h"
-#include "Val.h"
-#include "ZeekArgs.h"
+#include "zeek/ZeekList.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/StmtBase.h"
+#include "zeek/Timer.h"
+#include "zeek/Type.h"
+#include "zeek/EventHandler.h"
+#include "zeek/TraverseTypes.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekArgs.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
@@ -68,7 +68,7 @@ enum BroExprTag : int {
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
 
-#include "script_opt/ExprOpt-Enums.h"
+#include "zeek/script_opt/ExprOpt-Enums.h"
 
 	EXPR_NOP,
 
@@ -197,7 +197,7 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
-#include "script_opt/ExprOpt-Public.h"
+#include "zeek/script_opt/ExprOpt-Public.h"
 
 protected:
 	Expr() = default;
@@ -224,7 +224,7 @@ protected:
 	TypePtr type;
 	bool paren;
 
-#include "script_opt/ExprOpt-Private.h"
+#include "zeek/script_opt/ExprOpt-Private.h"
 };
 
 class NameExpr final : public Expr {
@@ -1101,7 +1101,7 @@ private:
 };
 
 
-#include "script_opt/ExprOpt-Subclasses.h"
+#include "zeek/script_opt/ExprOpt-Subclasses.h"
 
 
 inline Val* Expr::ExprVal() const

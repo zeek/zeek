@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Options.h"
-#include "script_opt/ScriptOpt.h"
-#include "script_opt/ProfileFunc.h"
-#include "script_opt/Inline.h"
+#include "zeek/Options.h"
+#include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/Inline.h"
 
 
 namespace zeek::detail {

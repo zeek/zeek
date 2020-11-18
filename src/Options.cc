@@ -2,11 +2,8 @@
 
 #include "zeek-config.h"
 
-#include "Options.h"
-#include "script_opt/ScriptOpt.h"
-
-#include <algorithm>
-#include <sstream>
+#include "zeek/Options.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 #include <unistd.h>
 
@@ -14,8 +11,11 @@
 #include <getopt.h>
 #endif
 
-#include "bsd-getopt-long.h"
-#include "logging/writers/ascii/Ascii.h"
+#include <algorithm>
+#include <sstream>
+
+#include "zeek/bsd-getopt-long.h"
+#include "zeek/logging/writers/ascii/Ascii.h"
 
 namespace zeek {
 
@@ -229,7 +229,7 @@ Options parse_cmdline(int argc, char** argv)
 			if ( i < argc )
 				{
 				// If a script is invoked with Zeek as the interpreter, the arguments provided
-				// directly in the interpreter line of the script won't be broken apart in the 
+				// directly in the interpreter line of the script won't be broken apart in the
 				// argv on Linux so we split it up here.
 				if ( endsWith(argv[i], "--") && zeek_args.size() == 1 )
 					{

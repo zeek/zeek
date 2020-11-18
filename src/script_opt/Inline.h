@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Func.h"
-#include "Scope.h"
+#include "zeek/Func.h"
+#include "zeek/Scope.h"
 
 #include <unordered_set>
 

@@ -2,8 +2,8 @@
 
 // Optimization-related methods for Stmt classes.
 
-#include "Stmt.h"
-#include "Expr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Expr.h"
 
 
 namespace zeek::detail {

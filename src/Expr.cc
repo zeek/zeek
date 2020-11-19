@@ -317,7 +317,7 @@ ValPtr NameExpr::Eval(Frame* f) const
 	ValPtr v;
 
 	if ( id->IsType() )
-		return make_intrusive<Val>(id->GetType(), true);
+		return make_intrusive<TypeVal>(id->GetType(), true);
 
 	if ( id->IsGlobal() )
 		v = id->GetVal();

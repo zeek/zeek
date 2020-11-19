@@ -120,7 +120,6 @@ public:
 protected:
 	friend class Val;
 	friend class OpaqueMgr;
-	OpaqueVal() { }
 
 	/**
 	 * Must be overridden to provide a serialized version of the derived
@@ -187,8 +186,6 @@ public:
 protected:
 	static void digest_one(EVP_MD_CTX* h, const Val* v);
 	static void digest_one(EVP_MD_CTX* h, const ValPtr& v);
-
-	HashVal()	{ valid = false; }
 
 	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
 	explicit HashVal(OpaqueType* t);

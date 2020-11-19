@@ -119,16 +119,6 @@ ValPtr Val::DoClone(CloneState* state)
 	 	// Immutable.
 		return {NewRef{}, this};
 
-	case TYPE_INTERNAL_OTHER:
-		// Derived classes are responsible for this, other than
-		// the weirdo "type" pseudo-value.
-
-		if ( type->Tag() == TYPE_TYPE )
-			// These are immutable, essentially.
-			return {NewRef{}, this};
-
-		// Fall-through.
-
 	default:
 		reporter->InternalError("cloning illegal base type");
 	}
@@ -316,10 +306,7 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
 
 	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_TYPE )
-			d->Add(type->AsTypeType()->GetType()->GetName());
-		else
-			d->Add("<no value description>");
+		d->Add("<no value description>");
 		break;
 
 	case TYPE_INTERNAL_VOID:
@@ -742,7 +729,8 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p) : CountVal(bro_uint_t(p), base_type(TYPE_PORT))
+PortVal::PortVal(uint32_t p)
+	: UnsignedValImplementation(base_type(TYPE_PORT), bro_uint_t(p))
 	{
 	}
 
@@ -1755,7 +1743,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		// Here we leverage the same assumption about consistent
 		// hashes as in TableVal::RemoveFrom above.
 		if ( t0->Lookup(k) )
-			result->Insert(k, new TableEntryVal(nullptr));
+			result->table_val->Insert(k, new TableEntryVal(nullptr));
 
 		delete k;
 		}
@@ -2276,11 +2264,6 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		}
 	}
 
-void TableVal::Insert(detail::HashKey* k, TableEntryVal* tev)
-	{
-	table_val->Insert(k, tev);
-	}
-
 ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_invalidated)
 	{
 	auto k = MakeHashKey(index);
@@ -2764,7 +2747,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 	while ( (val = table_val->NextEntry(key, cookie)) )
 		{
 		TableEntryVal* nval = val->Clone(state);
-		tv->Insert(key, nval);
+		tv->table_val->Insert(key, nval);
 
 		if ( subnets )
 			{
@@ -3227,6 +3210,17 @@ void EnumVal::ValDescribe(ODesc* d) const
 	}
 
 ValPtr EnumVal::DoClone(CloneState* state)
+	{
+	// Immutable.
+	return {NewRef{}, this};
+	}
+
+void TypeVal::ValDescribe(ODesc* d) const
+	{
+	d->Add(type->AsTypeType()->GetType()->GetName());
+	}
+
+ValPtr TypeVal::DoClone(CloneState* state)
 	{
 	// Immutable.
 	return {NewRef{}, this};

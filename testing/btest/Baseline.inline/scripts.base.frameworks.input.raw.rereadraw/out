@@ -1,0 +1,320 @@
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+DSF"DFKJ"SDFKLh304yrsdkfj@#(*U$34jfDJup3UF
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+q3r3057fdf
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+sdfs\d
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+dfsdf
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+sdf
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+3rw43wRRERLlL#RWERERERE.
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+DSF"DFKJ"SDFKLh304yrsdkfj@#(*U$34jfDJup3UF
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+q3r3057fdf
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+sdfs\d
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+dfsdf
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+sdf
+[source=../input.log, reader=Input::READER_RAW, mode=Input::REREAD, name=input, fields=A::Val, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (16 == try) 
+{ 
+inline(input){{ 
+return (Input::__remove_stream(Input::id));
+}};
+close(outfile);
+terminate();
+}
+
+}, error_ev=<uninitialized>, config={
+
+}]
+Input::EVENT_NEW
+3rw43wRRERLlL#RWERERERE.

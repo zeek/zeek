@@ -17,6 +17,8 @@
 #include "zeek/module_util.h"
 #include "zeek/ID.h"
 
+#include "zeek/script_opt/ScriptOpt.h"
+
 namespace zeek::detail {
 
 static ValPtr init_val(Expr* init, const Type* t, ValPtr aggr)
@@ -701,8 +703,20 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
+static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
+
 void end_func(StmtPtr body)
 	{
+	if ( duplicate_ASTs && reporter->Errors() == 0 )
+		// Only try duplication in the absence of errors.  If errors
+		// have occurred, they can be re-generated during the
+		// duplication process, leading to regression failures due
+		// to duplicated error messages.
+		//
+		// We duplicate twice to make sure that the AST produced
+		// by duplicating can itself be correctly duplicated.
+		body = body->Duplicate()->Duplicate();
+
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( ingredients->id->HasVal() )
@@ -724,7 +738,11 @@ void end_func(StmtPtr body)
 		ingredients->id->SetConst();
 		}
 
-	ingredients->id->GetVal()->AsFunc()->SetScope(ingredients->scope);
+	auto func = ingredients->id->GetVal()->AsFunc()->AsScriptFunc();
+	func->SetScope(ingredients->scope);
+
+	analyze_func({NewRef{}, func});
+
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the
 	// lifetime of the process at the moment, so ok to "leak" it.

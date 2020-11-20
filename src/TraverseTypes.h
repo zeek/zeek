@@ -16,8 +16,10 @@ enum TraversalCode {
 
 #define HANDLE_TC_STMT_PRE(code) \
 	{ \
-	if ( (code) == zeek::detail::TC_ABORTALL || (code) == zeek::detail::TC_ABORTSTMT ) \
+	if ( (code) == zeek::detail::TC_ABORTALL ) \
 		return (code); \
+	else if ( (code) == zeek::detail::TC_ABORTSTMT ) \
+		return zeek::detail::TC_CONTINUE; \
 	}
 
 #define HANDLE_TC_STMT_POST(code) \
@@ -32,8 +34,10 @@ enum TraversalCode {
 
 #define HANDLE_TC_EXPR_PRE(code) \
 	{ \
-	if ( (code) != zeek::detail::TC_CONTINUE ) \
+	if ( (code) == zeek::detail::TC_ABORTALL ) \
 		return (code); \
+	else if ( (code) == zeek::detail::TC_ABORTSTMT ) \
+		return zeek::detail::TC_CONTINUE; \
 	}
 
 #define HANDLE_TC_EXPR_POST(code) \

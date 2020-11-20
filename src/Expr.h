@@ -10,6 +10,7 @@
 
 #include "zeek/ZeekList.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/StmtBase.h"
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/EventHandler.h"
@@ -66,13 +67,19 @@ enum BroExprTag : int {
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
-#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
+
+#include "zeek/script_opt/ExprOpt-Enums.h"
+
+	EXPR_NOP,
+
+#define NUM_EXPRS (int(EXPR_NOP) + 1)
 };
 
 extern const char* expr_name(BroExprTag t);
 
 class ListExpr;
 class NameExpr;
+class ConstExpr;
 class IndexExpr;
 class AssignExpr;
 class CallExpr;
@@ -82,7 +89,7 @@ class Stmt;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 using EventExprPtr = IntrusivePtr<EventExpr>;
-using ListExprPtr = IntrusivePtr<ListExpr>;
+using StmtPtr = IntrusivePtr<Stmt>;
 
 class Expr : public Obj {
 public:
@@ -99,6 +106,7 @@ public:
 	BroExprTag Tag() const	{ return tag; }
 
 	Expr* Ref()			{ zeek::Ref(this); return this; }
+	ExprPtr ThisPtr()		{ return {NewRef{}, this}; }
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
@@ -171,21 +179,25 @@ public:
 	void MarkParen()		{ paren = true; }
 	bool IsParen() const		{ return paren; }
 
-	const ListExpr* AsListExpr() const;
-	ListExpr* AsListExpr();
+#undef ACCESSORS
+#define ACCESSORS(ctype) \
+	const ctype* As ## ctype () const; \
+	ctype* As ## ctype (); \
+	IntrusivePtr<ctype> As ## ctype ## Ptr ();
 
-	const NameExpr* AsNameExpr() const;
-	NameExpr* AsNameExpr();
-
-	const AssignExpr* AsAssignExpr() const;
-	AssignExpr* AsAssignExpr();
-
-	const IndexExpr* AsIndexExpr() const;
-	IndexExpr* AsIndexExpr();
+	ACCESSORS(ListExpr)
+	ACCESSORS(NameExpr)
+	ACCESSORS(ConstExpr)
+	ACCESSORS(CallExpr)
+	ACCESSORS(AssignExpr)
+	ACCESSORS(IndexExpr)
+	ACCESSORS(EventExpr)
 
 	void Describe(ODesc* d) const override final;
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
+
+#include "zeek/script_opt/ExprOpt-Public.h"
 
 protected:
 	Expr() = default;
@@ -211,6 +223,8 @@ protected:
 	BroExprTag tag;
 	TypePtr type;
 	bool paren;
+
+#include "zeek/script_opt/ExprOpt-Private.h"
 };
 
 class NameExpr final : public Expr {
@@ -226,6 +240,9 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
@@ -238,10 +255,14 @@ public:
 	explicit ConstExpr(ValPtr val);
 
 	Val* Value() const	{ return val.get(); }
+	ValPtr ValuePtr() const	{ return val; }
 
 	ValPtr Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -260,6 +281,9 @@ public:
 	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op);
@@ -285,6 +309,9 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	BinaryExpr(BroExprTag arg_tag,
@@ -325,6 +352,11 @@ protected:
 	// operands and also set expression's type).
 	void PromoteType(TypeTag t, bool is_vector);
 
+	// Promote one of the operands to be "double" (if not already),
+	// to make it suitable for combining with the other "interval"
+	// operand, yielding an "interval" type.
+	void PromoteForInterval(ExprPtr& op);
+
 	void ExprDescribe(ODesc* d) const override;
 
 	ExprPtr op1;
@@ -335,6 +367,9 @@ class CloneExpr final : public UnaryExpr {
 public:
 	explicit CloneExpr(ExprPtr op);
 	ValPtr Eval(Frame* f) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v) const override;
@@ -347,11 +382,17 @@ public:
 	ValPtr Eval(Frame* f) const override;
 	ValPtr DoSingleEval(Frame* f, Val* v) const;
 	bool IsPure() const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class ComplementExpr final : public UnaryExpr {
 public:
 	explicit ComplementExpr(ExprPtr op);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v) const override;
@@ -361,6 +402,9 @@ class NotExpr final : public UnaryExpr {
 public:
 	explicit NotExpr(ExprPtr op);
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 };
@@ -369,6 +413,9 @@ class PosExpr final : public UnaryExpr {
 public:
 	explicit PosExpr(ExprPtr op);
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 };
@@ -376,6 +423,9 @@ protected:
 class NegExpr final : public UnaryExpr {
 public:
 	explicit NegExpr(ExprPtr op);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v) const override;
@@ -386,6 +436,9 @@ public:
 	explicit SizeExpr(ExprPtr op);
 	ValPtr Eval(Frame* f) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 };
@@ -394,34 +447,52 @@ class AddExpr final : public BinaryExpr {
 public:
 	AddExpr(ExprPtr op1, ExprPtr op2);
 	void Canonicize() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class AddToExpr final : public BinaryExpr {
 public:
 	AddToExpr(ExprPtr op1, ExprPtr op2);
 	ValPtr Eval(Frame* f) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class RemoveFromExpr final : public BinaryExpr {
 public:
 	RemoveFromExpr(ExprPtr op1, ExprPtr op2);
 	ValPtr Eval(Frame* f) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class SubExpr final : public BinaryExpr {
 public:
 	SubExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class TimesExpr final : public BinaryExpr {
 public:
 	TimesExpr(ExprPtr op1, ExprPtr op2);
 	void Canonicize() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class DivideExpr final : public BinaryExpr {
 public:
 	DivideExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr AddrFold(Val* v1, Val* v2) const override;
@@ -430,6 +501,9 @@ protected:
 class ModExpr final : public BinaryExpr {
 public:
 	ModExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class BoolExpr final : public BinaryExpr {
@@ -438,17 +512,26 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 	ValPtr DoSingleEval(Frame* f, ValPtr v1, Expr* op2) const;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class BitExpr final : public BinaryExpr {
 public:
 	BitExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class EqExpr final : public BinaryExpr {
 public:
 	EqExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
 	void Canonicize() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
@@ -458,6 +541,9 @@ class RelExpr final : public BinaryExpr {
 public:
 	RelExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
 	void Canonicize() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class CondExpr final : public Expr {
@@ -473,6 +559,10 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
@@ -487,6 +577,9 @@ public:
 
 	void Assign(Frame* f, ValPtr v) override;
 	ExprPtr MakeLvalue() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class AssignExpr : public BinaryExpr {
@@ -509,6 +602,9 @@ public:
 		op2 = std::move(e);
 		}
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	bool TypeCheck(const AttributesPtr& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
@@ -522,6 +618,9 @@ public:
 	IndexSliceAssignExpr(ExprPtr op1,
 	                     ExprPtr op2, bool is_init);
 	ValPtr Eval(Frame* f) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class IndexExpr : public BinaryExpr {
@@ -545,6 +644,9 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	bool IsSlice() const { return is_slice; }
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
@@ -585,6 +687,9 @@ public:
 
 		return v;
 		}
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 };
 
 class FieldExpr final : public UnaryExpr {
@@ -601,6 +706,9 @@ public:
 	void Delete(Frame* f) override;
 
 	ExprPtr MakeLvalue() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v) const override;
@@ -620,6 +728,9 @@ public:
 	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v) const override;
@@ -643,6 +754,9 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
 
@@ -655,7 +769,8 @@ class TableConstructorExpr final : public UnaryExpr {
 public:
 	TableConstructorExpr(ListExprPtr constructor_list,
 	                     std::unique_ptr<std::vector<AttrPtr>> attrs,
-	                     TypePtr arg_type = nullptr);
+	                     TypePtr arg_type = nullptr,
+			     AttributesPtr arg_attrs = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
@@ -664,6 +779,9 @@ public:
 		{ return attrs; }
 
 	ValPtr Eval(Frame* f) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
@@ -677,7 +795,8 @@ class SetConstructorExpr final : public UnaryExpr {
 public:
 	SetConstructorExpr(ListExprPtr constructor_list,
 	                   std::unique_ptr<std::vector<AttrPtr>> attrs,
-	                   TypePtr arg_type = nullptr);
+	                   TypePtr arg_type = nullptr,
+			   AttributesPtr arg_attrs = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
@@ -686,6 +805,9 @@ public:
 		{ return attrs; }
 
 	ValPtr Eval(Frame* f) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
@@ -702,6 +824,9 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
 
@@ -717,6 +842,9 @@ public:
 	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
@@ -727,6 +855,9 @@ class ArithCoerceExpr final : public UnaryExpr {
 public:
 	ArithCoerceExpr(ExprPtr op, TypeTag t);
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr FoldSingleVal(Val* v, InternalTypeTag t) const;
 	ValPtr Fold(Val* v) const override;
@@ -736,6 +867,9 @@ class RecordCoerceExpr final : public UnaryExpr {
 public:
 	RecordCoerceExpr(ExprPtr op, RecordTypePtr r);
 	~RecordCoerceExpr() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
@@ -752,6 +886,9 @@ public:
 	TableCoerceExpr(ExprPtr op, TableTypePtr r);
 	~TableCoerceExpr() override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 };
@@ -760,6 +897,9 @@ class VectorCoerceExpr final : public UnaryExpr {
 public:
 	VectorCoerceExpr(ExprPtr op, VectorTypePtr v);
 	~VectorCoerceExpr() override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v) const override;
@@ -790,6 +930,10 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
@@ -800,6 +944,9 @@ protected:
 class InExpr final : public BinaryExpr {
 public:
 	InExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
@@ -819,6 +966,10 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -843,6 +994,10 @@ public:
 
 	Scope* GetScope() const;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
@@ -864,6 +1019,10 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -896,6 +1055,10 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
+
 protected:
 	ValPtr AddSetInit(const zeek::Type* t, ValPtr aggr) const;
 
@@ -914,6 +1077,9 @@ class CastExpr final : public UnaryExpr {
 public:
 	CastExpr(ExprPtr op, TypePtr t);
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr Eval(Frame* f) const override;
 	void ExprDescribe(ODesc* d) const override;
@@ -923,6 +1089,9 @@ class IsExpr final : public UnaryExpr {
 public:
 	IsExpr(ExprPtr op, TypePtr t);
 
+	// Optimization-related:
+	ExprPtr Duplicate() override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
@@ -930,6 +1099,10 @@ protected:
 private:
 	TypePtr t;
 };
+
+
+#include "zeek/script_opt/ExprOpt-Subclasses.h"
+
 
 inline Val* Expr::ExprVal() const
 	{

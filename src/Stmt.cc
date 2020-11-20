@@ -70,6 +70,30 @@ ForStmt* Stmt::AsForStmt()
 	return (ForStmt*) this;
 	}
 
+const ForStmt* Stmt::AsForStmt() const
+	{
+	CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
+	return (const ForStmt*) this;
+	}
+
+const InitStmt* Stmt::AsInitStmt() const
+	{
+	CHECK_TAG(tag, STMT_INIT, "Stmt::AsInitStmt", stmt_name)
+	return (const InitStmt*) this;
+	}
+
+const WhenStmt* Stmt::AsWhenStmt() const
+	{
+	CHECK_TAG(tag, STMT_WHEN, "Stmt::AsWhenStmt", stmt_name)
+	return (const WhenStmt*) this;
+	}
+
+const SwitchStmt* Stmt::AsSwitchStmt() const
+	{
+	CHECK_TAG(tag, STMT_SWITCH, "Stmt::AsSwitchStmt", stmt_name)
+	return (const SwitchStmt*) this;
+	}
+
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
 	if ( ! Obj::SetLocationInfo(start, end) )
@@ -83,7 +107,8 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 
 	Filemap& map = *(map_iter->second);
 
-	StmtLocMapping* new_mapping = new StmtLocMapping(GetLocationInfo(), this);
+	StmtLocMapping* new_mapping =
+		new StmtLocMapping(Original()->GetLocationInfo(), this);
 
 	// Optimistically just put it at the end.
 	map.push_back(new_mapping);
@@ -111,6 +136,11 @@ bool Stmt::IsPure() const
 	}
 
 void Stmt::Describe(ODesc* d) const
+	{
+	StmtDescribe(d);
+	}
+
+void Stmt::StmtDescribe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
 		AddTag(d);
@@ -163,7 +193,7 @@ ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l)
 			Error("value of type void illegal");
 		}
 
-	SetLocationInfo(l->GetLocationInfo());
+	SetLocationInfo(l->Original()->GetLocationInfo());
 	}
 
 ExprListStmt::~ExprListStmt() = default;
@@ -181,9 +211,9 @@ ValPtr ExprListStmt::Exec(Frame* f, StmtFlowType& flow) const
 	return nullptr;
 	}
 
-void ExprListStmt::Describe(ODesc* d) const
+void ExprListStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	l->Describe(d);
 	DescribeDone(d);
 	}
@@ -314,13 +344,13 @@ ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	if ( e && e->IsPure() )
 		Warn("expression value ignored");
 
-	SetLocationInfo(e->GetLocationInfo());
+	SetLocationInfo(e->Original()->GetLocationInfo());
 	}
 
 ExprStmt::ExprStmt(StmtTag t, ExprPtr arg_e) : Stmt(t), e(std::move(arg_e))
 	{
 	if ( e )
-		SetLocationInfo(e->GetLocationInfo());
+		SetLocationInfo(e->Original()->GetLocationInfo());
 	}
 
 ExprStmt::~ExprStmt() = default;
@@ -348,9 +378,9 @@ bool ExprStmt::IsPure() const
 	return ! e || e->IsPure();
 	}
 
-void ExprStmt::Describe(ODesc* d) const
+void ExprStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() && Tag() == STMT_IF )
 		d->Add("(");
@@ -393,8 +423,8 @@ IfStmt::IfStmt(ExprPtr test,
 	if ( ! e->IsError() && ! IsBool(e->GetType()->Tag()) )
 		e->Error("conditional in test must be boolean");
 
-	const Location* loc1 = s1->GetLocationInfo();
-	const Location* loc2 = s2->GetLocationInfo();
+	const Location* loc1 = s1->Original()->GetLocationInfo();
+	const Location* loc2 = s2->Original()->GetLocationInfo();
 	SetLocationInfo(loc1, loc2);
 	}
 
@@ -425,9 +455,9 @@ bool IfStmt::IsPure() const
 	return e->IsPure() && s1->IsPure() && s2->IsPure();
 	}
 
-void IfStmt::Describe(ODesc* d) const
+void IfStmt::StmtDescribe(ODesc* d) const
 	{
-	ExprStmt::Describe(d);
+	ExprStmt::StmtDescribe(d);
 
 	d->PushIndent();
 	s1->AccessStats(d);
@@ -775,7 +805,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 
 	if ( ! hk )
 		{
-		reporter->PushLocation(e->GetLocationInfo());
+		reporter->PushLocation(e->Original()->GetLocationInfo());
 		reporter->InternalError("switch expression type mismatch (%s/%s)",
 		                        type_name(v->GetType()->Tag()),
 		                        type_name(e->GetType()->Tag()));
@@ -816,7 +846,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 
 		if ( ! hk )
 			{
-			reporter->PushLocation(e->GetLocationInfo());
+			reporter->PushLocation(e->Original()->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
 			                type_name(v->GetType()->Tag()),
 			                type_name(e->GetType()->Tag()));
@@ -895,9 +925,9 @@ bool SwitchStmt::IsPure() const
 	return true;
 	}
 
-void SwitchStmt::Describe(ODesc* d) const
+void SwitchStmt::StmtDescribe(ODesc* d) const
 	{
-	ExprStmt::Describe(d);
+	ExprStmt::StmtDescribe(d);
 
 	if ( ! d->IsBinary() )
 		d->Add("{");
@@ -1048,9 +1078,9 @@ bool WhileStmt::IsPure() const
 	return loop_condition->IsPure() && body->IsPure();
 	}
 
-void WhileStmt::Describe(ODesc* d) const
+void WhileStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() )
 		d->Add("(");
@@ -1326,9 +1356,9 @@ bool ForStmt::IsPure() const
 	return e->IsPure() && body->IsPure();
 	}
 
-void ForStmt::Describe(ODesc* d) const
+void ForStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() )
 		d->Add("(");
@@ -1395,9 +1425,9 @@ bool NextStmt::IsPure() const
 	return true;
 	}
 
-void NextStmt::Describe(ODesc* d) const
+void NextStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	Stmt::DescribeDone(d);
 	}
 
@@ -1422,9 +1452,9 @@ bool BreakStmt::IsPure() const
 	return true;
 	}
 
-void BreakStmt::Describe(ODesc* d) const
+void BreakStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	Stmt::DescribeDone(d);
 	}
 
@@ -1449,9 +1479,9 @@ bool FallthroughStmt::IsPure() const
 	return false;
 	}
 
-void FallthroughStmt::Describe(ODesc* d) const
+void FallthroughStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	Stmt::DescribeDone(d);
 	}
 
@@ -1519,9 +1549,9 @@ ValPtr ReturnStmt::Exec(Frame* f, StmtFlowType& flow) const
 		return nullptr;
 	}
 
-void ReturnStmt::Describe(ODesc* d) const
+void ReturnStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	if ( ! d->IsReadable() )
 		d->Add(e != nullptr);
 
@@ -1581,7 +1611,7 @@ bool StmtList::IsPure() const
 	return true;
 	}
 
-void StmtList::Describe(ODesc* d) const
+void StmtList::StmtDescribe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() )
 		{
@@ -1657,7 +1687,7 @@ ValPtr EventBodyList::Exec(Frame* f, StmtFlowType& flow) const
 	return nullptr;
 	}
 
-void EventBodyList::Describe(ODesc* d) const
+void EventBodyList::StmtDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() && stmts.length() > 0 )
 		{
@@ -1681,7 +1711,7 @@ void EventBodyList::Describe(ODesc* d) const
 		}
 
 	else
-		StmtList::Describe(d);
+		StmtList::StmtDescribe(d);
 	}
 
 InitStmt::InitStmt(std::vector<IDPtr> arg_inits) : Stmt(STMT_INIT)
@@ -1724,7 +1754,7 @@ ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow) const
 	return nullptr;
 	}
 
-void InitStmt::Describe(ODesc* d) const
+void InitStmt::StmtDescribe(ODesc* d) const
 	{
 	AddTag(d);
 
@@ -1769,7 +1799,7 @@ bool NullStmt::IsPure() const
 	return true;
 	}
 
-void NullStmt::Describe(ODesc* d) const
+void NullStmt::StmtDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		DescribeDone(d);
@@ -1831,9 +1861,9 @@ bool WhenStmt::IsPure() const
 	return cond->IsPure() && s1->IsPure() && (! s2 || s2->IsPure());
 	}
 
-void WhenStmt::Describe(ODesc* d) const
+void WhenStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() )
 		d->Add("(");

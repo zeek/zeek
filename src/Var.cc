@@ -19,8 +19,6 @@
 
 #include "zeek/script_opt/ScriptOpt.h"
 
-#include "zeek/script_opt/ScriptOpt.h"
-
 namespace zeek::detail {
 
 static ValPtr init_val(Expr* init, const Type* t, ValPtr aggr)

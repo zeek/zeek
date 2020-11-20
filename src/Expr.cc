@@ -39,7 +39,12 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "cast", "is", "[:]="
+		"sizeof", "cast", "is", "[:]=",
+
+#include "zeek/script_opt/ExprOpt-Names.h"
+
+		"nop",
+
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -74,6 +79,12 @@ ListExpr* Expr::AsListExpr()
 	return (ListExpr*) this;
 	}
 
+ListExprPtr Expr::AsListExprPtr()
+	{
+	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
+	return {NewRef{}, (ListExpr*) this};
+	}
+
 const NameExpr* Expr::AsNameExpr() const
 	{
 	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
@@ -84,6 +95,18 @@ NameExpr* Expr::AsNameExpr()
 	{
 	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
 	return (NameExpr*) this;
+	}
+
+const ConstExpr* Expr::AsConstExpr() const
+	{
+	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
+	return (const ConstExpr*) this;
+	}
+
+const CallExpr* Expr::AsCallExpr() const
+	{
+	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+	return (const CallExpr*) this;
 	}
 
 const AssignExpr* Expr::AsAssignExpr() const
@@ -108,6 +131,18 @@ IndexExpr* Expr::AsIndexExpr()
 	{
 	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
 	return (IndexExpr*) this;
+	}
+
+const EventExpr* Expr::AsEventExpr() const
+	{
+	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
+	return (const EventExpr*) this;
+	}
+
+EventExprPtr Expr::AsEventExprPtr()
+	{
+	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
+	return {NewRef{}, (EventExpr*) this};
 	}
 
 bool Expr::CanAdd() const
@@ -244,7 +279,7 @@ void Expr::ExprError(const char msg[])
 
 void Expr::RuntimeError(const std::string& msg) const
 	{
-	reporter->ExprRuntimeError(this, "%s", msg.data());
+	reporter->ExprRuntimeError(Original(), "%s", msg.data());
 	}
 
 void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
@@ -252,14 +287,15 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 	auto rcs = render_call_stack();
 
 	if ( rcs.empty() )
-		reporter->ExprRuntimeError(this, "%s", msg.data());
+		reporter->ExprRuntimeError(Original(), "%s", msg.data());
 	else
 		{
 		ODesc d;
 		d.SetShort();
 		Describe(&d);
-		reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s",
-		                             msg.data(), d.Description(), rcs.data());
+		reporter->RuntimeError(Original()->GetLocationInfo(),
+					"%s, expression: %s, call stack: %s",
+					msg.data(), d.Description(), rcs.data());
 		}
 	}
 
@@ -928,10 +964,21 @@ void BinaryExpr::PromoteType(TypeTag t, bool is_vector)
 	{
 	PromoteOps(t);
 
-	if ( is_vector)
+	if ( is_vector )
 		SetType(make_intrusive<VectorType>(base_type(t)));
 	else
 		SetType(base_type(t));
+	}
+
+void BinaryExpr::PromoteForInterval(ExprPtr& op)
+	{
+	if ( is_vector(op1) || is_vector(op2) )
+		SetType(make_intrusive<VectorType>(base_type(TYPE_INTERVAL)));
+	else
+		SetType(base_type(TYPE_INTERVAL));
+
+	if ( op->GetType()->Tag() != TYPE_DOUBLE )
+		op = make_intrusive<ArithCoerceExpr>(op, TYPE_DOUBLE);
 	}
 
 CloneExpr::CloneExpr(ExprPtr arg_op)
@@ -1414,12 +1461,7 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			{
-			if ( is_vector(op1) && is_vector(op2) )
-				SetType(make_intrusive<VectorType>(base_type(TYPE_INTERVAL)));
-			else
-				PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2) );
-			}
+			PromoteForInterval(IsArithmetic(bt1) ? op1 : op2);
 		else
 			ExprError("multiplication with interval requires arithmetic operand");
 		}
@@ -1455,12 +1497,7 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			{
-			if ( is_vector(op1) && is_vector(op2) )
-				SetType(make_intrusive<VectorType>(base_type(TYPE_INTERVAL)));
-			else
-				PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2));
-			}
+			PromoteForInterval(IsArithmetic(bt1) ? op1 : op2);
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
 			if ( is_vector(op1) || is_vector(op2) )
@@ -3151,7 +3188,8 @@ TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
 
 TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
                                            std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
-                                           TypePtr arg_type)
+                                           TypePtr arg_type,
+                                           AttributesPtr arg_attrs2)
 	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3187,6 +3225,8 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 
 	if ( arg_attrs )
 		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
+	else
+		attrs = arg_attrs2;
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	const ExprPList& cle = op->AsListExpr()->Exprs();
@@ -3286,7 +3326,8 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
                                        std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
-                                       TypePtr arg_type)
+                                       TypePtr arg_type,
+                                       AttributesPtr arg_attrs2)
 	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3319,6 +3360,8 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 
 	if ( arg_attrs )
 		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
+	else
+		attrs = arg_attrs2;
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	ExprPList& cle = op->AsListExpr()->Exprs();

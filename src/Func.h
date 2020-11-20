@@ -9,13 +9,14 @@
 #include <tuple>
 #include <type_traits>
 
-#include "ZeekList.h"
-#include "Obj.h"
-#include "IntrusivePtr.h"
-#include "Type.h" /* for function_flavor */
-#include "TraverseTypes.h"
-#include "ZeekArgs.h"
-#include "BifReturnVal.h"
+#include "zeek/ZeekList.h"
+#include "zeek/Stmt.h"
+#include "zeek/Obj.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Type.h" /* for function_flavor */
+#include "zeek/TraverseTypes.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/BifReturnVal.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
@@ -43,6 +44,8 @@ using ScopePtr = IntrusivePtr<Scope>;
 using IDPtr = IntrusivePtr<ID>;
 using StmtPtr = IntrusivePtr<Stmt>;
 
+class ScriptFunc;
+
 } // namespace detail
 
 class Func;
@@ -59,6 +62,18 @@ public:
 	explicit Func(Kind arg_kind);
 
 	~Func() override;
+
+        zeek::detail::ScriptFunc* AsScriptFunc()
+                {
+		return GetKind() == SCRIPT_FUNC ?
+				(zeek::detail::ScriptFunc*) this : nullptr;
+		}
+
+        const zeek::detail::ScriptFunc* AsScriptFunc() const
+                {
+		return GetKind() == SCRIPT_FUNC ?
+				(zeek::detail::ScriptFunc*) this : nullptr;
+		}
 
 	virtual bool IsPure() const = 0;
 	FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
@@ -193,6 +208,22 @@ public:
 	             const std::vector<IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
+	StmtPtr CurrentBody() const		{ return current_body; }
+
+	/**
+	 * Returns the function's frame size.
+	 * @return  The number of ValPtr slots in the function's frame.
+	 */
+	int FrameSize() const			{ return frame_size; }
+
+	/**
+	 * Changes the function's frame size to a new size - used for
+	 * script optimization/compilation.
+	 * 
+	 * @param new_size  The frame size the function should use.
+	 */
+	void SetFrameSize(int new_size)		{ frame_size = new_size; }
+
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(IDPList ids)
 		{ outer_ids = std::move(ids); }
@@ -226,6 +257,9 @@ private:
 	// The frame the ScriptFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
+
+	// The most recently added/updated body.
+	StmtPtr current_body;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);

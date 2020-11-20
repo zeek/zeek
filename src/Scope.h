@@ -44,9 +44,14 @@ public:
 		{ return Find(name).get(); }
 
 	template<typename N, typename I>
-	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
+	void Insert(N&& name, I&& id)
+		{
+		local[std::forward<N>(name)] = std::forward<I>(id);
+		ordered_vars.push_back(std::forward<I>(id));
+		}
 
 	IDPtr Remove(std::string_view name);
+	[[deprecated("Remove in v4.1 as an unused API call.")]]
 
 	[[deprecated("Remove in v4.1.  Use GetID().")]]
 	ID* ScopeID() const		{ return scope_id.get(); }
@@ -64,7 +69,8 @@ public:
 		{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
-	const auto& Vars()	{ return local; }
+	const auto& Vars() const	{ return local; }
+	const auto& OrderedVars() const	{ return ordered_vars; }
 
 	IDPtr GenerateTemporary(const char* name);
 
@@ -86,6 +92,13 @@ protected:
 	TypePtr return_type;
 	std::map<std::string, IDPtr, std::less<>> local;
 	std::vector<IDPtr> inits;
+
+	// We keep track of identifiers in the order that they're added.
+	// This is necessary for script optimization to be able to find
+	// event/hook parameters for instances where the declaration of
+	// an additional handler uses different names for the parameters
+	// than the original declaration.
+	std::vector<IntrusivePtr<ID>> ordered_vars;
 };
 
 // If no_global is true, don't search in the default "global" namespace.

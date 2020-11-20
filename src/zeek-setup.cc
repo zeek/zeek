@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek-setup.h"
+#include "zeek/zeek-setup.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,55 +21,61 @@ extern "C" {
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#include "Options.h"
-#include "input.h"
-#include "DNS_Mgr.h"
-#include "Frame.h"
-#include "Scope.h"
-#include "Event.h"
-#include "File.h"
-#include "Reporter.h"
-#include "RunState.h"
-#include "NetVar.h"
-#include "Var.h"
-#include "Timer.h"
-#include "Stmt.h"
-#include "Desc.h"
-#include "Debug.h"
-#include "DFA.h"
-#include "RuleMatcher.h"
-#include "Anon.h"
-#include "EventRegistry.h"
-#include "Stats.h"
-#include "ScriptCoverageManager.h"
-#include "Traverse.h"
-#include "Trigger.h"
-#include "Hash.h"
-#include "Func.h"
-#include "ScannedFile.h"
-#include "Frag.h"
-
-#include "supervisor/Supervisor.h"
-#include "threading/Manager.h"
-#include "input/Manager.h"
-#include "logging/Manager.h"
-#include "input/readers/raw/Raw.h"
-#include "analyzer/Manager.h"
-#include "analyzer/Tag.h"
-#include "packet_analysis/Manager.h"
-#include "plugin/Manager.h"
-#include "file_analysis/Manager.h"
-#include "zeekygen/Manager.h"
-#include "iosource/Manager.h"
-#include "broker/Manager.h"
-
-#include "binpac_zeek.h"
-#include "module_util.h"
-
-#include "3rdparty/sqlite3.h"
+#include "zeek/3rdparty/sqlite3.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "3rdparty/doctest.h"
+#include "zeek/3rdparty/doctest.h"
+
+#include "zeek/Options.h"
+#include "zeek/input.h"
+#include "zeek/DNS_Mgr.h"
+#include "zeek/Frame.h"
+#include "zeek/Scope.h"
+#include "zeek/Event.h"
+#include "zeek/File.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/NetVar.h"
+#include "zeek/Var.h"
+#include "zeek/Timer.h"
+#include "zeek/Stmt.h"
+#include "zeek/Desc.h"
+#include "zeek/Debug.h"
+#include "zeek/DFA.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/Anon.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/Stats.h"
+#include "zeek/ScriptCoverageManager.h"
+#include "zeek/Traverse.h"
+#include "zeek/Trigger.h"
+#include "zeek/Hash.h"
+#include "zeek/Func.h"
+#include "zeek/ScannedFile.h"
+#include "zeek/Frag.h"
+
+#include "zeek/script_opt/ScriptOpt.h"
+
+#include "zeek/supervisor/Supervisor.h"
+#include "zeek/threading/Manager.h"
+#include "zeek/input/Manager.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/input/readers/raw/Raw.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/broker/Manager.h"
+
+#include "zeek/binpac_zeek.h"
+#include "zeek/module_util.h"
+
+extern "C" {
+#include "zeek/setsignal.h"
+};
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
 zeek::detail::ScriptCoverageManager& brofiler = zeek::detail::script_coverage_mgr;
@@ -79,10 +85,6 @@ extern "C" {
 char* strsep(char**, const char*);
 };
 #endif
-
-extern "C" {
-#include "setsignal.h"
-};
 
 #ifdef USE_PERFTOOLS_DEBUG
 HeapLeakChecker* heap_checker = 0;
@@ -787,6 +789,14 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			delete [] interfaces_str;
 			}
 		}
+
+	analyze_scripts(options);
+
+	auto& analysis_options = options.analysis_options;
+
+	if ( analysis_options.report_recursive )
+		// This option is report-and-exit.
+		return {0, std::move(options), true};
 
 	if ( dns_type != DNS_PRIME )
 		run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);

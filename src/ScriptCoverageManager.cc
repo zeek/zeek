@@ -133,7 +133,7 @@ bool ScriptCoverageManager::WriteStats()
 	      it != stmts.end(); ++it )
 		{
 		ODesc location_info;
-		(*it)->GetLocationInfo()->Describe(&location_info);
+		(*it)->Original()->GetLocationInfo()->Describe(&location_info);
 		ODesc desc_info;
 		(*it)->Describe(&desc_info);
 		string desc(desc_info.Description());

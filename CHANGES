@@ -1,3 +1,11 @@
+
+3.3.0-dev.554 | 2020-11-19 18:09:01 -0800
+
+  * Reverts the SMTP regex change in dead3226a545e264072ced40284f86ac41528ba8. (Tim Wojtulewicz, Corelight)
+
+    The regex change broke some of the external tests. I added some more cases
+    to the regular email btest to hopefully cover all of the cases better.
+
 3.3.0-dev.551 | 2020-11-17 15:01:04 -0700
 
   * Added unit tests for regex fix (christina23)

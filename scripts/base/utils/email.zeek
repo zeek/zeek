@@ -19,7 +19,7 @@ function extract_email_addrs_vec(str: string): string_vec
 ##
 ## str: A string potentially containing email addresses.
 ##
-## Returns: A set of extracted email addresses.  An empty set is returned 
+## Returns: A set of extracted email addresses.  An empty set is returned
 ##          if no email addresses are discovered.
 function extract_email_addrs_set(str: string): set[string]
 	{
@@ -58,8 +58,7 @@ function extract_first_email_addr(str: string): string
 function split_mime_email_addresses(line: string): set[string]
 	{
 	local output = string_set();
-
-	local addrs = find_all(line, /(\"[^"]*\")?[^,]+@[^,]+/);
+	local addrs = find_all(line, /(\"[^"]*\")?[^,]+/);
 	for ( part in addrs )
 		{
 		add output[strip(part)];

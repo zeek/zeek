@@ -8,3 +8,6 @@ cmake-build-*
 
 # skip DS Store for MacOS
 .DS_Store
+
+# ignore pyenv local settings
+.python-version

@@ -2,4 +2,4 @@
 error in <...>/brokerstore-backend-invalid.zeek, line 12: &backend only supports atomic types as table value (&backend=Broker::MEMORY)
 error in <...>/brokerstore-backend-invalid.zeek, line 13: &backend and &read_expire cannot be used simultaneously (&read_expire=5.0 secs, &backend=Broker::MEMORY)
 error in <...>/brokerstore-backend-invalid.zeek, line 14: &backend and &broker_store cannot be used simultaneously (&broker_store=store, &backend=Broker::MEMORY)
-error in <...>/tables (&backend=Broker::MEMORY)
+error in <...>/brokerstore-backend-invalid.zeek, line 15: &backend only applicable to global sets/tables (&backend=Broker::MEMORY)

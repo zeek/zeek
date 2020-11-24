@@ -1,4 +1,19 @@
 
+3.3.0-dev.564 | 2020-11-24 15:23:50 -0800
+
+  * Improve support for custom libdir locations (Christian Kreibich, Corelight)
+
+    - Remove hardwiring of $ZEEK_ROOT/lib throughout the three and
+      defaults the name of Zeek's library directory to the default on the
+      given platform (e.g. lib64), via GNUInstallDirs.
+
+    - Consistently use that lib directory, instead of two lib folders
+      resulting when using a custom libdir.
+
+    - Remove the old lib directory in the installation prefix, if one exists
+
+    - Add --lib_dir to zeek-config (and sort its options a bit).
+
 3.3.0-dev.561 | 2020-11-23 21:50:19 -0800
 
   * Move implementation of internal_{type,var,etc} methods back into global namespace.

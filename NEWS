@@ -127,6 +127,15 @@ Changed Functionality
   to a behavior that favors consistency.  For reference, see
   https://github.com/zeek/zeek/pull/251#issuecomment-713956976
 
+- The Zeek installation tree is now more consistent in using a ``lib64/``
+  (rather than ``lib/``) subdirectory for platforms where that's the common
+  convention.  If the old hardcoded ``lib/`` path exists while installing Zeek
+  4.0 and the new subdirectory differs, then the old ``lib/`` will be removed.
+  This potentially wipes out binary plugins that have already been installed
+  there, but Zeek plugins generally have to be re-built/re-installed upon any
+  Zeek upgrade anyway, so no part of the usual upgrade process is expected to
+  be complicated by this cleanup operation.
+
 Removed Functionality
 ---------------------
 

@@ -315,8 +315,6 @@ void Manager::Terminate()
 		if ( p.peer.network )
 			bstate->endpoint.unpeer(p.peer.network->address,
 			                        p.peer.network->port);
-
-	bstate->endpoint.shutdown();
 	}
 
 bool Manager::Active()

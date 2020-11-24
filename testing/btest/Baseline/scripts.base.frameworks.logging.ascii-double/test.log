@@ -4,7 +4,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	test
-#open	2020-11-24-05-07-03
+#open XXXX-XX-XX-XX-XX-XX
 #fields	d
 #types	double
 2153226000.0
@@ -29,4 +29,4 @@ inf
 -inf
 0.0
 nan
-#close	2020-11-24-05-07-03
+#close XXXX-XX-XX-XX-XX-XX

@@ -3,8 +3,11 @@
 # @TEST-EXEC: zeek -b %INPUT test-json.zeek
 # @TEST-EXEC: mv test.log json.log
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: btest-diff test.log
-# @TEST-EXEC: btest-diff json.log
+#
+# Override the canonifiers in the following: we don't want to canonify
+# the double-format numbers themselves:
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-openclose-timestamps btest-diff test.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff json.log
 # 
 # Make sure  we do not write out scientific notation for doubles.
 

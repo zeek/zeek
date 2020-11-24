@@ -330,7 +330,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry BROKER_ROOT_DIR      PATH   $optarg
             ;;
         --with-caf=*)
-            append_cache_entry CAF_ROOT_DIR      PATH   $optarg
+            append_cache_entry CAF_ROOT             PATH   $optarg
             ;;
         --with-libkqueue=*)
             append_cache_entry LIBKQUEUE_ROOT_DIR      PATH   $optarg

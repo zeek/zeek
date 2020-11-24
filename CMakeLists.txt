@@ -186,6 +186,80 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
+set(CAF_VERSION_MIN_REQUIRED 0.18.0)
+
+if ( BROKER_ROOT_DIR )
+
+  # TODO: implement proper exporting of Broker targets via CMake and use CONFIG
+  #       mode. This way, Broker will also pull in its dependencies (CAF)
+  #       and we no longer need to repeat this step here. Also, we no longer
+  #       need all this manual Broker setup.
+  if ( CAF_ROOT AND CMAKE_VERSION VERSION_LESS 3.12 )
+    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED CONFIG
+                 COMPONENTS openssl io core
+                 PATHS "${CAF_ROOT}")
+  else ()
+    cmake_policy(SET CMP0074 NEW)
+    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED CONFIG
+                 COMPONENTS openssl io core)
+  endif ()
+  find_package(Broker REQUIRED)
+  add_library(broker UNKNOWN IMPORTED GLOBAL)
+  set(broker_target broker)
+  set_property(TARGET broker
+               PROPERTY IMPORTED_LOCATION ${BROKER_LIBRARY})
+  target_include_directories(broker INTERFACE ${BROKER_INCLUDE_DIR})
+  target_link_libraries(broker INTERFACE CAF::openssl)
+
+else ()
+
+  if ( ZEEK_SANITIZERS )
+    set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
+  endif ()
+
+  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+
+  if ( BUILD_STATIC_BROKER )
+    set(ENABLE_STATIC_ONLY true)
+  endif()
+
+  add_subdirectory(auxil/broker)
+  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+  if ( BUILD_STATIC_BROKER )
+    set(broker_target broker_static)
+  else()
+    set(broker_target broker)
+  endif()
+
+  # TODO: Zeek should just use targets properly and let CMake propagate
+  #       dependencies transitively
+  get_target_property(BROKER_INCLUDE_DIR
+                       ${broker_target} INTERFACE_INCLUDE_DIRECTORIES)
+endif ()
+
+set(zeekdeps ${zeekdeps} ${broker_target})
+
+# TODO: Zeek should just use targets properly and let CMake propagate
+#       dependencies transitively
+get_target_property(BROKER_INCLUDE_DIR
+                     ${broker_target} INTERFACE_INCLUDE_DIRECTORIES)
+foreach(comp core io openssl)
+  get_target_property("zeek_caf_${comp}_include_dirs"
+                      "CAF::${comp}" INTERFACE_INCLUDE_DIRECTORIES)
+endforeach()
+set(CAF_INCLUDE_DIRS
+  "${zeek_caf_core_include_dirs}"
+  "${zeek_caf_io_include_dirs}"
+  "${zeek_caf_openssl_include_dirs}")
+list(REMOVE_DUPLICATES CAF_INCLUDE_DIRS)
+
+message(STATUS "BROKER_INCLUDE_DIR: ${BROKER_INCLUDE_DIR}")
+message(STATUS "CAF_INCLUDE_DIRS: ${CAF_INCLUDE_DIRS}")
+
+include_directories(BEFORE ${BROKER_INCLUDE_DIR})
+include_directories(BEFORE ${CAF_INCLUDE_DIRS})
+
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
@@ -224,49 +298,10 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
-if ( CAF_ROOT_DIR )
-  find_package(CAF COMPONENTS core io openssl REQUIRED)
-endif ()
-
 add_subdirectory(auxil/paraglob)
 set(zeekdeps ${zeekdeps} paraglob)
 
-if ( BROKER_ROOT_DIR )
-  # Avoid calling find_package(CAF) twice.
-  if ( NOT CAF_ROOT_DIR )
-    find_package(CAF COMPONENTS core io openssl REQUIRED)
-  endif ()
-  find_package(Broker REQUIRED)
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
-  set(broker_includes ${BROKER_INCLUDE_DIR})
-else ()
-  if ( ZEEK_SANITIZERS )
-    set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
-  endif ()
-
-  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-
-  if ( BUILD_STATIC_BROKER )
-    set(ENABLE_STATIC_ONLY true)
-  endif()
-
-  add_subdirectory(auxil/broker)
-  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-  if ( BUILD_STATIC_BROKER )
-    set(zeekdeps ${zeekdeps} broker_static)
-  else()
-    set(zeekdeps ${zeekdeps} broker)
-  endif()
-  set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
-endif ()
-
-# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
-# find_package(CAF) or by calling add_subdirectory(auxil/broker). In either case,
-# we have to care about CAF here because Broker headers can pull in CAF
-# headers.
-set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
-include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
+set(zeekdeps ${zeekdeps})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
 include_directories(BEFORE
@@ -390,7 +425,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
 
-if ( CAF_ROOT_DIR )
+if ( CAF_ROOT )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
 else ()
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${ZEEK_ROOT_DIR})

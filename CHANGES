@@ -1,4 +1,10 @@
 
+3.3.0-dev.559 | 2020-11-23 21:39:29 -0800
+
+  * Simplify Debian/Ubuntu CI dependencies and setup (Dominik Charousset, Corelight)
+
+  * Update .gitignore to ignore pyenv .python-version (Otto Fowler)
+
 3.3.0-dev.554 | 2020-11-19 18:09:01 -0800
 
   * Reverts the SMTP regex change in dead3226a545e264072ced40284f86ac41528ba8. (Tim Wojtulewicz, Corelight)

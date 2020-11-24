@@ -51,7 +51,7 @@ EOF
 cat >src/foo.bif <<EOF
 function hello_plugin_world%(%): string
         %{
-        return new StringVal("Hello from the plugin!");
+        return make_intrusive<StringVal>("Hello from the plugin!");
         %}
 
 event plugin_event%(foo: count%);

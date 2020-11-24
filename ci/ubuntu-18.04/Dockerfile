@@ -4,8 +4,9 @@ RUN apt-get update && apt-get -y install \
     git \
     cmake \
     make \
-    gcc \
-    g++ \
+    clang-8 \
+    libc++-8-dev \
+    libc++abi-8-dev \
     flex \
     bison \
     libpcap-dev \
@@ -31,3 +32,7 @@ RUN ln -sf /usr/bin/python3 /usr/local/bin/python
 RUN ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 RUN pip install junit2html
+
+ENV CC=/usr/bin/clang-8
+ENV CXX=/usr/bin/clang++-8
+ENV CXXFLAGS=-stdlib=libc++

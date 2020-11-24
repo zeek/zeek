@@ -162,14 +162,9 @@ enum smb2_share_types {
 
 type SMB2_PDU(is_orig: bool) = record {
 	header     : SMB2_Header(is_orig);
-	message    : case header.status of {
-		# Status 0 indicates success.  In the case of a
-		# request this should just happen to work out due to
-		# how the fields are set.
-		0                               -> msg                      : SMB2_Message(header, is_orig);
-		STATUS_BUFFER_OVERFLOW          -> buffer_overflow          : SMB2_Message(header, is_orig);
-		STATUS_MORE_PROCESSING_REQUIRED -> more_processing_required : SMB2_Message(header, is_orig);
-		default                         -> err                      : SMB2_error_response(header);
+	message    : case $context.connection.is_error_response(header, is_orig) of {
+		true  -> err : SMB2_error_response(header);
+		false -> msg : SMB2_Message(header, is_orig);
 	};
 };
 
@@ -265,6 +260,60 @@ refine connection SMB_Conn += {
 			return 0;
 
 		return it->second;
+		%}
+
+	function is_error_response(header: SMB2_Header, is_orig: bool): bool
+		%{
+		// In an request, we ignore this field. Relevant documentation is
+		// at [MS-SMB2] 2.2.1.1 SMB2 Packet Header
+
+		// For SMB 3.x, it's the ChannelSequence field, followed by
+		// the reserved field. In older dialects, the client MUST set
+		// it to 0, and the server MUST ignore it.
+
+		// I don't believe that we care about the ChannelSequence,
+		// since that seems inconsequential to our parsing.
+
+		if ( is_orig )
+			return false;
+
+		// In a response, this is parsed as the status of the request.
+
+		// Zero means no error:
+		if ( ${header.status} == 0 )
+			return false;
+
+		// Non-zero USUALLY means an error, except for the specific cases detailed in
+		// [MS-SMB2] 3.3.4.4 Sending an Error Response
+
+		// Short-circuit: skip the rest if it's a status that's not special-cased.
+		if ( ${header.status} != STATUS_BUFFER_OVERFLOW &&
+		     ${header.status} != STATUS_INVALID_PARAMETER &&
+		     ${header.status} != STATUS_MORE_PROCESSING_REQUIRED &&
+		     ${header.status} != STATUS_NOTIFY_ENUM_DIR )
+			return true;
+
+		if ( ${header.status} == STATUS_MORE_PROCESSING_REQUIRED )
+			// Return true (is_error) if it does NOT match this command
+			return ${header.command} != SMB2_SESSION_SETUP;
+
+		// This is a bit loose, as it's only acceptable if the IOCTL
+		// CtlCode is {FSCTL_SRV_COPYCHUNK or
+		// FSCTL_SRV_COPYCHUNK_WRITE}, but we haven't parsed that yet.
+		if ( ${header.status} == STATUS_INVALID_PARAMETER )
+			return ${header.command} != SMB2_IOCTL;
+
+		if ( ${header.status} == STATUS_NOTIFY_ENUM_DIR )
+			return ${header.command} != SMB2_CHANGE_NOTIFY;
+
+		// At this point, ${header.status} == STATUS_BUFFER_OVERFLOW
+
+		// SMB2_IOCTL is a bit loose, as it's only acceptable if the IOCTL
+		// CtlCode is {FSCTL_PIPE_TRANSCEIVE, FSCTL_PIPE_PEEK, or
+		// FSCTL_DFS_GETREFERRALS}, but we haven't parsed that yet.
+		return ( ${header.command} != SMB2_IOCTL &&
+		         ${header.command} != SMB2_QUERY_INFO &&
+		         ${header.command} != SMB2_READ );
 		%}
 };
 

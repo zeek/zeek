@@ -1,4 +1,13 @@
 
+3.3.0-dev.561 | 2020-11-23 21:50:19 -0800
+
+  * Move implementation of internal_{type,var,etc} methods back into global namespace.
+    (Tim Wojtulewicz, Corelight)
+
+    This fixes an unknown symbol error if using those methods. They're defined
+    as extern in the global namespace in Var.h, but Var.cc had their
+    implementations defined in the zeek::detail namespace.
+
 3.3.0-dev.559 | 2020-11-23 21:39:29 -0800
 
   * Simplify Debian/Ubuntu CI dependencies and setup (Dominik Charousset, Corelight)

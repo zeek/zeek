@@ -23,6 +23,7 @@ RUN dnf -y update && dnf -y install \
     zlib-devel \
     libsqlite3x-devel \
     findutils \
+    diffutils \
     which \
   && dnf clean all && rm -rf /var/cache/dnf
 

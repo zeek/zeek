@@ -5,7 +5,7 @@ FROM centos:7
 RUN yum -y install \
     https://repo.ius.io/ius-release-el7.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-  && yum -y install git2u \
+  && yum -y install git224 \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \

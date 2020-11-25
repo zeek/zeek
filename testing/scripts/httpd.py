@@ -1,11 +1,6 @@
 #! /usr/bin/env python3
 
-try:
-    # Python 2
-    import BaseHTTPServer
-except ImportError:
-    # Python 3
-    import http.server as BaseHTTPServer
+import http.server as BaseHTTPServer
 
 class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 

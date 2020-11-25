@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 # This script aggregates many files containing Zeek script coverage information
 # into a single file and reports the overall coverage information. Usage:

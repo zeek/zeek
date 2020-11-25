@@ -155,6 +155,8 @@ Removed Functionality
   ``connection_state_remove`` handler can now be resolved with a less-confusing
   approach: see the ``Conn::register_removal_hook`` function.
 
+- Python 2 is no longer supported.  Python 3.5 is the new minimum requirement.
+
 Deprecated Functionality
 ------------------------
 

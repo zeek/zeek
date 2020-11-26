@@ -236,6 +236,7 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
+list(APPEND Python_ADDITIONAL_VERSIONS 3)
 FindRequiredPackage(PythonInterp)
 FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
@@ -280,6 +281,12 @@ if (MISSING_PREREQS)
         message(SEND_ERROR ${prereq})
     endforeach ()
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
+endif ()
+
+set(ZEEK_PYTHON_MIN 3.5.0)
+
+if ( PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN} )
+    message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
 if ( CAF_ROOT_DIR )
@@ -530,7 +537,7 @@ endif ()
 
 if (INSTALL_ZEEKCTL)
     # CPack RPM Generator may not automatically detect this
-    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.6.0")
+    set(CPACK_RPM_PACKAGE_REQUIRES "python >= ${ZEEK_PYTHON_MIN}")
 endif ()
 
 # If this CMake project is a sub-project of another, we will not

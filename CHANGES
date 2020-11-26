@@ -1,4 +1,14 @@
 
+3.3.0-dev.576 | 2020-11-26 18:16:07 +0000
+
+  * Remove Python2 compatibility logic. We now require at least Python 3.5.
+    This includes script changes, improves the cmake logic to find python3,
+    makes scripts explicitly call python3 and documentation updates.
+
+    (Jon Siwek, Corelight)
+
+  * Remove Fedora 31 (EOL) from CI (Jon Siwek, Corelight)
+
 3.3.0-dev.564 | 2020-11-24 15:23:50 -0800
 
   * Improve support for custom libdir locations (Christian Kreibich, Corelight)

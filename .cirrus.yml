@@ -87,13 +87,6 @@ fedora32_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora31_task:
-  container:
-    # Fedora 31 EOL: Nov 24 2020
-    dockerfile: ci/fedora-31/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 centos8_task:
   container:
     # CentOS 8 EOL: May 31, 2029

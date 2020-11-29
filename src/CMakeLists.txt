@@ -320,9 +320,13 @@ set(MAIN_SRCS
     digest.h
 )
 
-set(THIRD_PARTY_SRCS
-    3rdparty/sqlite3.c
-)
+# When building broker statically, we will have all sqlite symbols defined by
+# libbroker.a.
+if ( NOT BUILD_STATIC_BROKER )
+  set(THIRD_PARTY_SRCS
+      3rdparty/sqlite3.c
+  )
+endif ()
 
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
 

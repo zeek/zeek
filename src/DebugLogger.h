@@ -12,15 +12,15 @@
 #include <set>
 
 #define DBG_LOG(stream, args...) \
-	if ( zeek::detail::debug_logger.IsEnabled(stream) ) \
-		zeek::detail::debug_logger.Log(stream, args)
+	if ( ::zeek::detail::debug_logger.IsEnabled(stream) ) \
+		::zeek::detail::debug_logger.Log(stream, args)
 #define DBG_LOG_VERBOSE(stream, args...) \
-	if ( zeek::detail::debug_logger.IsVerbose() && zeek::detail::debug_logger.IsEnabled(stream) ) \
-		zeek::detail::debug_logger.Log(stream, args)
-#define DBG_PUSH(stream) zeek::detail::debug_logger.PushIndent(stream)
-#define DBG_POP(stream) zeek::detail::debug_logger.PopIndent(stream)
+	if ( ::zeek::detail::debug_logger.IsVerbose() && ::zeek::detail::debug_logger.IsEnabled(stream) ) \
+		::zeek::detail::debug_logger.Log(stream, args)
+#define DBG_PUSH(stream) ::zeek::detail::debug_logger.PushIndent(stream)
+#define DBG_POP(stream) ::zeek::detail::debug_logger.PopIndent(stream)
 
-#define PLUGIN_DBG_LOG(plugin, args...) zeek::detail::debug_logger.Log(plugin, args)
+#define PLUGIN_DBG_LOG(plugin, args...) ::zeek::detail::debug_logger.Log(plugin, args)
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Plugin, zeek, plugin);
 

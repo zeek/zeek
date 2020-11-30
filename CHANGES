@@ -1,3 +1,14 @@
+3.3.0-dev.580 | 2020-11-30 14:07:39 -0700
+
+  * Find correct zeek namespace in debug logger macros.
+
+    These macros forward to functionality in `zeek::detail::debug_logger`
+    and are not intended for customization. This patch fixes the macros to
+    always use `::zeek::detail::debug_logger` as without the leading `::`
+    lookup could happen in any potentially local namespace `zeek` which does
+    not need to provide this symbol.
+
+    This closes zeek/spicy#597. (Benjamin Bannier, Corelight)
 
 3.3.0-dev.576 | 2020-11-26 18:16:07 +0000
 

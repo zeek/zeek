@@ -1,3 +1,9 @@
+
+3.3.0-dev.585 | 2020-12-01 14:42:54 +0000
+
+  * Retry loading plugins on failure to resolve to dependencies.
+    Closes #1179. (Robin Sommer, Corelight)
+
 3.3.0-dev.580 | 2020-11-30 14:07:39 -0700
 
   * Find correct zeek namespace in debug logger macros.

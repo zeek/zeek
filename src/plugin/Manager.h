@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include <utility>
 #include <map>
+#include <set>
 #include <string_view>
+#include <utility>
 
 #include "zeek/plugin/Plugin.h"
 #include "zeek/plugin/Component.h"
@@ -79,28 +80,25 @@ public:
 	 * Activating a plugin involves loading its dynamic module, making its
 	 * bifs available, and adding its script paths to ZEEKPATH.
 	 *
+	 * This attempts to activate the plugin immediately. If that fails for
+	 * some reason, we schedule it to be retried later with
+	 * ActivateDynamicPlugins().
+	 *
 	 * @param name The name of the plugin, as found previously by
-	 * SearchPlugin().
-	 *
-	 * @return True if the plugin has been loaded successfully.
-	 *
+	·* SearchPlugin().
 	 */
-	bool ActivateDynamicPlugin(const std::string& name);
+	void ActivateDynamicPlugin(const std::string& name);
 
 	/**
-	 * Activates plugins that SearchDynamicPlugins() has previously discovered.
-	 * The effect is the same all calling \a ActivePlugin(name) for each plugin.
+	 * Activates plugins that SearchDynamicPlugins() has previously discovered,
+	 * including any that have failed to load in prior calls to
+	 * ActivateDynamicPlugin(). Aborts if any plugins fails to activate.
 	 *
 	 * @param all If true, activates all plugins that are found. If false,
 	 * activates only those that should always be activated unconditionally,
-	 * as specified via the ZEEK_PLUGIN_ACTIVATE enviroment variable. In other
-	 * words, it's \c true in standard mode and \c false in bare mode.
-	 *
-	 * @return True if all plugins have been loaded successfully. If one
-	 * fails to load, the method stops there without loading any further ones
-	 * and returns false.
+	 * as specified via the ZEEK_PLUGIN_ACTIVATE environment variable.
 	 */
-	bool ActivateDynamicPlugins(bool all);
+	void ActivateDynamicPlugins(bool all);
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
@@ -413,10 +411,14 @@ public:
 	static void RegisterBifFile(const char* plugin, bif_init_func c);
 
 private:
-	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found = false);
+	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors);
 	void UpdateInputFiles();
 	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
 	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const;
+
+	// Plugins that were explicitly requested to be activated, but failed to
+	// load at first.
+	std::set<std::string> requested_plugins;
 
 	 // All found dynamic plugins, mapping their names to base directory.
 	using dynamic_plugin_map = std::map<std::string, std::string>;

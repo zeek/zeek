@@ -17,4 +17,11 @@ event zeek_init()
 
 	local f = current_time();
 	print time_to_double(f);
+
+	local g = 0;
+	print count_to_double(g);
+	local h = 10000;
+	print count_to_double(h);
+	local i = -41;
+	print int_to_double(i);
 	}

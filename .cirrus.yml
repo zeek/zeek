@@ -3,7 +3,8 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 4GB
 
-config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
+config: &CONFIG --build-type=release --enable-cpp-tests --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
+static_config: &STATIC_CONFIG --build-type=release --enable-cpp-tests --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install
 sanitizer_config: &SANITIZER_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers --enable-coverage
 
 resources_template: &RESOURCES_TEMPLATE
@@ -112,6 +113,16 @@ debian10_task:
     dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+
+debian10_static_task:
+  container:
+    # Just uses a recent/common distro to run a static compile test.
+    # Debian 10 EOL: June 2024
+    dockerfile: ci/debian-10-static/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
 
 debian9_task:
   container:

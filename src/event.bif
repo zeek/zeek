@@ -453,12 +453,16 @@ event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 ##
 ## addl: Optional additional context further describing the situation.
 ##
+## source: Optional source for the weird. When called by analyzers, this should
+##         be filled in with the name of the analyzer.
+##
 ## .. zeek:see:: flow_weird net_weird file_weird expired_conn_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
+event conn_weird%(name: string, c: connection, addl: string, source: string%);
 event conn_weird%(name: string, c: connection, addl: string%);
 
 ## Generated for unexpected activity related to a specific connection whose
@@ -482,12 +486,16 @@ event conn_weird%(name: string, c: connection, addl: string%);
 ##
 ## addl: Optional additional context further describing the situation.
 ##
+## source: Optional source for the weird. When called by analyzers, this should
+##         be filled in with the name of the analyzer.
+##
 ## .. zeek:see:: flow_weird net_weird file_weird conn_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
+event expired_conn_weird%(name: string, id: conn_id, uid: string, addl: string, source: string%);
 event expired_conn_weird%(name: string, id: conn_id, uid: string, addl: string%);
 
 ## Generated for unexpected activity related to a pair of hosts, but independent
@@ -507,12 +515,16 @@ event expired_conn_weird%(name: string, id: conn_id, uid: string, addl: string%)
 ##
 ## addl: Optional additional context further describing the situation.
 ##
+## source: Optional source for the weird. When called by analyzers, this should
+##         be filled in with the name of the analyzer.
+##
 ## .. zeek:see:: conn_weird net_weird file_weird expired_conn_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
+event flow_weird%(name: string, src: addr, dst: addr, addl: string, source: string%);
 event flow_weird%(name: string, src: addr, dst: addr, addl: string%);
 
 ## Generated for unexpected activity that is not tied to a specific connection
@@ -527,12 +539,16 @@ event flow_weird%(name: string, src: addr, dst: addr, addl: string%);
 ##
 ## addl: Optional additional context further describing the situation.
 ##
+## source: Optional source for the weird. When called by analyzers, this should
+##         be filled in with the name of the analyzer.
+##
 ## .. zeek:see:: flow_weird file_weird conn_weird expired_conn_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
+event net_weird%(name: string, addl: string, source: string%);
 event net_weird%(name: string, addl: string%);
 
 ## Generated for unexpected activity that is tied to a file.
@@ -548,12 +564,15 @@ event net_weird%(name: string, addl: string%);
 ##
 ## addl: Additional information related to the weird.
 ##
+## source: The name of the file analyzer that generated the weird.
+##
 ## .. zeek:see:: flow_weird net_weird conn_weird expired_conn_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
+event file_weird%(name: string, f: fa_file, addl: string, source: string%);
 event file_weird%(name: string, f: fa_file, addl: string%);
 
 ## Generated regularly for the purpose of profiling Zeek's processing. This event

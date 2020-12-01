@@ -167,6 +167,9 @@ protected:
 	static int get_segment_len(int payload_len, TCP_Flags flags);
 
 private:
+
+	void SynWeirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len) const;
+
 	TCP_Endpoint* orig;
 	TCP_Endpoint* resp;
 

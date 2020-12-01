@@ -96,7 +96,7 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 		case RSH_PRESUMED_REJECTED:
 			if ( state == RSH_PRESUMED_REJECTED )
 				{
-				Conn()->Weird("rsh_text_after_rejected");
+				Weird("rsh_text_after_rejected");
 				state = RSH_UNKNOWN;
 				}
 
@@ -140,7 +140,7 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 
 void Contents_Rsh_Analyzer::BadProlog()
 	{
-	Conn()->Weird("bad_rsh_prolog");
+	Weird("bad_rsh_prolog");
 	state = RSH_UNKNOWN;
 	}
 

@@ -51,7 +51,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( outer && outer->Depth() >= BifConst::Tunnel::max_depth )
 		{
-		reporter->Weird(Conn(), "tunnel_depth");
+		Weird("tunnel_depth");
 		return;
 		}
 

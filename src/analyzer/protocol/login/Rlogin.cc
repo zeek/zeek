@@ -161,7 +161,7 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			if ( state == RLOGIN_LINE_MODE &&
 			     peer->state == RLOGIN_PRESUMED_REJECTED )
 				{
-				Conn()->Weird("rlogin_text_after_rejected");
+				Weird("rlogin_text_after_rejected");
 				state = RLOGIN_UNKNOWN;
 				}
 
@@ -203,7 +203,7 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 
 void Contents_Rlogin_Analyzer::BadProlog()
 	{
-	Conn()->Weird("bad_rlogin_prolog");
+	Weird("bad_rlogin_prolog");
 	state = RLOGIN_UNKNOWN;
 	}
 

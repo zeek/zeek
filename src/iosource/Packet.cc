@@ -76,11 +76,6 @@ Packet::~Packet()
 		delete [] data;
 	}
 
-void Packet::Weird(const char* name)
-	{
-	sessions->Weird(name, this);
-	}
-
 RecordValPtr Packet::ToRawPktHdrVal() const
 	{
 	static auto raw_pkt_hdr_type = id::find_type<RecordType>("raw_pkt_hdr");

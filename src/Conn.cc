@@ -530,10 +530,10 @@ void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
 	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
-void Connection::Weird(const char* name, const char* addl)
+void Connection::Weird(const char* name, const char* addl, const char* source)
 	{
 	weird = 1;
-	reporter->Weird(this, name, addl ? addl : "");
+	reporter->Weird(this, name, addl ? addl : "", source ? source : "");
 	}
 
 void Connection::AddTimer(timer_func timer, double t, bool do_expire,

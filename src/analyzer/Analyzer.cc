@@ -838,7 +838,7 @@ void Analyzer::EnqueueConnEvent(EventHandlerPtr f, Args args)
 
 void Analyzer::Weird(const char* name, const char* addl)
 	{
-	conn->Weird(name, addl);
+	conn->Weird(name, addl, GetAnalyzerName());
 	}
 
 SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const

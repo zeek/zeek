@@ -13,7 +13,7 @@ bool PPPoEAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
 	{
 	if ( 8 >= len )
 		{
-		packet->Weird("truncated_pppoe_header");
+		Weird("truncated_pppoe_header", packet);
 		return false;
 		}
 

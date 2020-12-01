@@ -13,7 +13,7 @@ bool PPPSerialAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* p
 	{
 	if ( 4 >= len )
 		{
-		packet->Weird("truncated_ppp_serial_header");
+		Weird("truncated_ppp_serial_header", packet);
 		return false;
 		}
 

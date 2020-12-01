@@ -70,7 +70,7 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	           const char* addl = "");
+	           const char* addl = "", const char* source = "");
 	void Weird(const char* name, const IP_Hdr* ip,
 	           const char* addl = "");
 

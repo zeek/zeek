@@ -1,6 +1,8 @@
 #include "RawLayer.h"
-#include "Event.h"
-#include "Val.h"
+#include "zeek/Event.h"
+#include "zeek/Val.h"
+#include "zeek/Sessions.h"
+
 #include "events.bif.h"
 
 using namespace zeek::packet_analysis::PacketDemo;
@@ -15,7 +17,7 @@ bool RawLayer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	constexpr auto layer_size = 21;
 	if ( layer_size >= len )
 		{
-		packet->Weird("truncated_raw_layer");
+		sessions->Weird("truncated_raw_layer", packet);
 		return false;
 		}
 

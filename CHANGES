@@ -1,3 +1,6 @@
+3.3.0-dev.587 | 2020-12-01 10:17:42 -0700
+
+  * GH-1184: Add 'source' field to weird log denoting where the weird was reported (Tim Wojtulewicz, Corelight)
 
 3.3.0-dev.585 | 2020-12-01 14:42:54 +0000
 

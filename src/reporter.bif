@@ -91,9 +91,9 @@ function Reporter::fatal_error_with_core%(msg: string%): bool
 ## name: the name of the weird.
 ##
 ## Returns: Always true.
-function Reporter::net_weird%(name: string%): bool
+function Reporter::net_weird%(name: string, addl: string &default="", source: string &default=""%): bool
 	%{
-	reporter->Weird(name->CheckString());
+	reporter->Weird(name->CheckString(), addl->CheckString(), source->CheckString());
 	return zeek::val_mgr->True();
 	%}
 
@@ -106,9 +106,9 @@ function Reporter::net_weird%(name: string%): bool
 ## resp: the responder host associated with the weird.
 ##
 ## Returns: Always true.
-function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
+function Reporter::flow_weird%(name: string, orig: addr, resp: addr, addl: string &default="", source: string &default=""%): bool
 	%{
-	reporter->Weird(orig->AsAddr(), resp->AsAddr(), name->CheckString());
+	reporter->Weird(orig->AsAddr(), resp->AsAddr(), name->CheckString(), addl->CheckString(), source->CheckString());
 	return zeek::val_mgr->True();
 	%}
 
@@ -121,17 +121,17 @@ function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
 ## addl: additional information to accompany the weird.
 ##
 ## Returns: Always true.
-function Reporter::conn_weird%(name: string, c: connection, addl: string &default=""%): bool
+function Reporter::conn_weird%(name: string, c: connection, addl: string &default="", source: string &default=""%): bool
 	%{
 	if ( c )
-		reporter->Weird(c, name->CheckString(), addl->CheckString());
+		reporter->Weird(c, name->CheckString(), addl->CheckString(), source->CheckString());
 	else
 		{
 		auto connection_record = @ARG@[1]->AsRecordVal();
 		auto conn_id_val = connection_record->GetField<RecordVal>("id");
 		auto uid_val = connection_record->GetField<StringVal>("uid");
 		reporter->Weird(conn_id_val, uid_val,
-		                name->CheckString(), addl->CheckString());
+		                name->CheckString(), addl->CheckString(), source->CheckString());
 		}
 
 	return zeek::val_mgr->True();
@@ -146,7 +146,7 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 ## addl: additional information to accompany the weird.
 ##
 ## Returns: true if the file was still valid, else false.
-function Reporter::file_weird%(name: string, f: fa_file, addl: string &default=""%): bool
+function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="", source: string&default=""%): bool
 	%{
 	auto fuid = f->AsRecordVal()->GetField(0)->AsStringVal();
 	auto file = zeek::file_mgr->LookupFile(fuid->CheckString());
@@ -154,7 +154,7 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 	if ( ! file )
 		return zeek::val_mgr->False();
 
-	reporter->Weird(file, name->CheckString(), addl->CheckString());
+	reporter->Weird(file, name->CheckString(), addl->CheckString(), source->CheckString());
 	return zeek::val_mgr->True();
 	%}
 

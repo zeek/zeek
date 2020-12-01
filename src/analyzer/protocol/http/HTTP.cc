@@ -1262,11 +1262,11 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	return 1;
 
 bad_http_request_with_version:
-	reporter->Weird(Conn(), "bad_HTTP_request_with_version");
+	Weird("bad_HTTP_request_with_version");
 	return 0;
 
 error:
-	reporter->Weird(Conn(), "bad_HTTP_request");
+	Weird("bad_HTTP_request");
 	return 0;
 	}
 

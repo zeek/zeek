@@ -263,7 +263,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 			else
 				{
 				if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_LF) )
-					Conn()->Weird("line_terminated_with_single_LF");
+					Weird("line_terminated_with_single_LF");
 				buf[offset++] = c;
 				}
 			break;
@@ -282,7 +282,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 
 		if ( last_char == '\r' )
 			if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_CR) )
-				Conn()->Weird("line_terminated_with_single_CR");
+				Weird("line_terminated_with_single_CR");
 
 		last_char = c;
 		}
@@ -312,7 +312,7 @@ void ContentLine_Analyzer::CheckNUL()
 		else
 			{
 			if ( ! suppress_weirds && Conn()->FlagEvent(NUL_IN_LINE) )
-				Conn()->Weird("NUL_in_line");
+				Weird("NUL_in_line");
 			flag_NULs = false;
 			}
 		}

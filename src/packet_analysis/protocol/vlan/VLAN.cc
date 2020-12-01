@@ -13,7 +13,7 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 	{
 	if ( 4 >= len )
 		{
-		packet->Weird("truncated_VLAN_header");
+		Weird("truncated_VLAN_header", packet);
 		return false;
 		}
 

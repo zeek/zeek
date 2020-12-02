@@ -528,6 +528,8 @@ Type *Expr::DataType(Env *env) const
 				{
 				Type *type1 = 
 					cases_->front()->value()->DataType(env);
+				Type* numeric_with_largest_width = 0;
+
 				foreach(i, CaseExprList, cases_)
 					{
 					Type *type2 = 
@@ -541,8 +543,34 @@ Type *Expr::DataType(Env *env) const
 						}
 					if ( type1 == extern_type_nullptr )
 						type1 = type2;
+
+					if ( type2 && type2->IsNumericType() )
+						{
+						if ( numeric_with_largest_width )
+							{
+							int largest;
+							int contender;
+
+							// External C++ types like "int", "bool", "enum" use "int"
+							// storage internally.
+							if ( numeric_with_largest_width->tot() == Type::EXTERN )
+								largest = sizeof(int);
+							else
+								largest = numeric_with_largest_width->StaticSize(env);
+
+							if ( type2->tot() == Type::EXTERN )
+								contender = sizeof(int);
+							else
+								contender = type2->StaticSize(env);
+
+							if ( contender > largest )
+								numeric_with_largest_width = type2;
+							}
+						else
+							numeric_with_largest_width = type2;
+						}
 					}
-				data_type = type1;
+				data_type = numeric_with_largest_width ? numeric_with_largest_width : type1;
 				}
 			else
 				data_type = 0;

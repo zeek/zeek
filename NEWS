@@ -157,6 +157,8 @@ Removed Functionality
 
 - Python 2 is no longer supported.  Python 3.5 is the new minimum requirement.
 
+- CMake versions less than 3.5 are no longer supported.
+
 Deprecated Functionality
 ------------------------
 

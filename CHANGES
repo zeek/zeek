@@ -1,3 +1,13 @@
+
+3.3.0-dev.590 | 2020-12-02 11:11:26 -0800
+
+  * Update minimum required CMake to 3.5 (Jon Siwek, Corelight)
+
+    Also now uses CMake's ENABLE_EXPORTS target property for the zeek
+    executable to ensure symbols are visible to plugins.  Prior to CMake
+    3.4, the policy was to export symbols by default for certain platforms,
+    but later versions need either the explicit target property or policy.
+
 3.3.0-dev.587 | 2020-12-01 10:17:42 -0700
 
   * GH-1184: Add 'source' field to weird log denoting where the weird was reported (Tim Wojtulewicz, Corelight)

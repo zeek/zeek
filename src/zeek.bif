@@ -2537,6 +2537,30 @@ function interval_to_double%(i: interval%): double
 	return zeek::make_intrusive<zeek::DoubleVal>(i);
 	%}
 
+## Converts a :zeek:type:`count` to a :zeek:type:`double`.
+##
+## c: The :zeek:type:`count` to convert.
+##
+## Returns: The :zeek:type:`count` *c* as :zeek:type:`double`.
+##
+## .. zeek:see:: int_to_double double_to_count
+function count_to_double%(c: count%): double
+	%{
+	return zeek::make_intrusive<zeek::DoubleVal>(c);
+	%}
+
+## Converts an :zeek:type:`int` to a :zeek:type:`double`.
+##
+## i: The :zeek:type:`int` to convert.
+##
+## Returns: The :zeek:type:`int` *i* as :zeek:type:`double`.
+##
+## .. zeek:see:: count_to_double double_to_count
+function int_to_double%(i: int%): double
+	%{
+	return zeek::make_intrusive<zeek::DoubleVal>(i);
+	%}
+
 ## Converts a :zeek:type:`time` value to a :zeek:type:`double`.
 ##
 ## t: The :zeek:type:`time` to convert.

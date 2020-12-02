@@ -1,4 +1,8 @@
 
+3.3.0-dev.593 | 2020-12-02 12:53:04 -0800
+
+  * Add `count_to_double` and `int_to_double` bif functions (Yacin Nadji, Corelight)
+
 3.3.0-dev.590 | 2020-12-02 11:11:26 -0800
 
   * Update minimum required CMake to 3.5 (Jon Siwek, Corelight)

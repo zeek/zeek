@@ -84,6 +84,8 @@ New Functionality
   is a special version indicating that the server/client supports both SSH2 and
 	SSH1.
 
+- Added ``count_to_double()`` and ``int_to_double()`` type-conversion BIFs.
+
 Changed Functionality
 ---------------------
 

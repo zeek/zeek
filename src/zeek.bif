@@ -1432,7 +1432,7 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
 
-	auto vv = dynamic_cast<VectorVal*>(v);
+	auto vv = v->As<zeek::VectorVal*>();
 
 	if ( comp )
 		{
@@ -1502,7 +1502,7 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
 
-	auto vv = dynamic_cast<VectorVal*>(v);
+	auto vv = v->As<zeek::VectorVal*>();
 	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding
@@ -2410,7 +2410,7 @@ function addr_to_counts%(a: addr%): index_vec
 ## .. zeek:see:: addr_to_counts
 function counts_to_addr%(v: index_vec%): addr
 	%{
-	auto vv = dynamic_cast<VectorVal*>(v);
+	auto vv = v->As<zeek::VectorVal*>();
 
 	if ( vv->Size() == 1 )
 		{
@@ -3528,8 +3528,8 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(zeek::Val* c)
 	{
-	auto id = dynamic_cast<const zeek::RecordVal*>(c)->GetField(0);
-	auto id_r = dynamic_cast<const zeek::RecordVal*>(id.get());
+	auto id = c->As<zeek::RecordVal*>()->GetField(0);
+	auto id_r = id->As<zeek::RecordVal*>();
 
 	const zeek::IPAddr& orig_h = id_r->GetAddrField(0);
 	uint32_t orig_p = id_r->GetPortValField(1)->Port();
@@ -3654,7 +3654,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		auto pkt_r = dynamic_cast<RecordVal*>(pkt);
+		auto pkt_r = pkt->As<zeek::RecordVal*>();
 
 		ts.tv_sec = pkt_r->GetCountField(0);
 		ts.tv_usec = pkt_r->GetCountField(1);

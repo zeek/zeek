@@ -318,7 +318,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
-	auto vl = dynamic_cast<RecordVal*>(v);
+	auto vl = v->As<RecordVal*>();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;

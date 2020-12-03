@@ -1853,7 +1853,7 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( op1->GetType()->Tag() == TYPE_PATTERN )
 		{
-		auto re = dynamic_cast<PatternVal*>(v1);
+		auto re = v1->As<PatternVal*>();
 		const String* s = v2->AsString();
 		if ( tag == EXPR_EQ )
 			return val_mgr->Bool(re->MatchExactly(s));
@@ -4151,7 +4151,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( v1->GetType()->Tag() == TYPE_PATTERN )
 		{
-		auto re = dynamic_cast<PatternVal*>(v1);
+		auto re = v1->As<PatternVal*>();
 		const String* s = v2->AsString();
 		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
 		}

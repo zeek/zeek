@@ -12,6 +12,7 @@
 #include "zeek/Type.h"
 #include "zeek/Timer.h"
 #include "zeek/Notifier.h"
+#include "zeek/Reporter.h"
 #include "zeek/net_util.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
@@ -208,6 +209,19 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 	TableValPtr GetRecordFields();
 
 	StringValPtr ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
+
+	template<typename T>
+	T As()
+		{
+		// Since we're converting from "this", make sure the type requested is a pointer.
+		static_assert(std::is_pointer<T>());
+
+		auto v = dynamic_cast<T>(this);
+		if ( ! v )
+			reporter->InternalError("Failed dynamic_cast between Val types");
+
+		return v;
+		}
 
 protected:
 

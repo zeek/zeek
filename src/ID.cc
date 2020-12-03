@@ -87,7 +87,7 @@ FuncPtr id::find_func(std::string_view name)
 		reporter->InternalError("Expected variable '%s' to be a function",
 		                              std::string(name).data());
 
-	return dynamic_cast<FuncVal*>(v.get())->AsFuncPtr();
+	return v.get()->As<FuncVal*>()->AsFuncPtr();
 	}
 
 void id::detail::init_types()
@@ -162,7 +162,7 @@ void ID::SetVal(ValPtr v)
 	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 		{
 		EventHandler* handler = event_registry->Lookup(name);
-		auto func = dynamic_cast<FuncVal*>(val.get())->AsFuncPtr();
+		auto func = val.get()->As<FuncVal*>()->AsFuncPtr();
 		if ( ! handler )
 			{
 			handler = new EventHandler(name);

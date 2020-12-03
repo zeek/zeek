@@ -148,10 +148,22 @@ ubuntu16_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-# Apple doesn't publish official long-term support timelines, so easiest
-# option is to only support the latest macOS release or whatever latest
-# image is available.
-macos_task:
+# Apple doesn't publish official long-term support timelines.
+# We aim to support both the current and previous macOS release.
+macos_big_sur_task:
+  osx_instance:
+    image: big-sur-base
+    # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
+    # trying to set it explicitly results in an error.
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CPUS: 4
+    ZEEK_CI_BTEST_JOBS: 4
+    # No permission to write to default location of /zeek
+    CIRRUS_WORKING_DIR: /tmp/zeek
+
+macos_catalina_task:
   osx_instance:
     image: catalina-base
     # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and

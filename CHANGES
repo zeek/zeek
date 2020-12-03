@@ -1,3 +1,10 @@
+3.3.0-dev.596 | 2020-12-03 09:35:42 -0700
+
+  * Fix a couple of life-time issues when plugin loading fails.
+
+    Reported by Coverity.
+
+    Follow-up to #1179. (Robin Sommer, Corelight)
 
 3.3.0-dev.593 | 2020-12-02 12:53:04 -0800
 

@@ -142,6 +142,8 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors)
 	{
+	errors->clear(); // caller should pass it in empty, but just to be sure
+
 	dynamic_plugin_map::iterator m = dynamic_plugins.find(util::strtolower(name));
 
 	if ( m == dynamic_plugins.end() )
@@ -193,17 +195,19 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			current_dir = dir.c_str();
 			current_sopath = path;
 			void* hdl = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+			current_dir = nullptr;
+			current_sopath = nullptr;
 
 			if ( ! hdl )
 				{
 				const char* err = dlerror();
 				errors->push_back(util::fmt("cannot load plugin library %s: %s", path, err ? err : "<unknown error>"));
-				return false;
+				continue;
 				}
 
 			if ( ! current_plugin ) {
 				errors->push_back(util::fmt("load plugin library %s did not instantiate a plugin", path));
-				return false;
+				continue;
 			}
 
 			current_plugin->SetDynamic(true);
@@ -223,17 +227,17 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			if ( util::strtolower(current_plugin->Name()) != util::strtolower(name) ) {
 				errors->push_back(util::fmt("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str()));
-				return false;
+				continue;
 			}
 
-			current_dir = nullptr;
-			current_sopath = nullptr;
 			current_plugin = nullptr;
-
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
 
 		globfree(&gl);
+
+		if ( ! errors->empty() )
+			return false;
 		}
 
 	else

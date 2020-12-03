@@ -403,7 +403,7 @@ public:
 		: BoolVal(bro_int_t(b))
 		{}
 
-	bool Get() const	{ return int_val; }
+	bool Get() const	{ return static_cast<bool>(int_val); }
 };
 
 class CountVal : public UnsignedValImplementation {
@@ -438,7 +438,7 @@ public:
 						quantity * units)
 		{}
 
-	double Get() const	{ return double_val; }
+	// Same as for IntVal: no Get() method needed.
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -449,7 +449,7 @@ public:
 	TimeVal(double t) : DoubleValImplementation(base_type(TYPE_TIME), t)
 		{}
 
-	double Get() const	{ return double_val; }
+	// Same as for IntVal: no Get() method needed.
 };
 
 class PortVal final : public UnsignedValImplementation {
@@ -1328,8 +1328,6 @@ class EnumVal final : public IntValImplementation {
 public:
 	ValPtr SizeVal() const override;
 
-	int Get() const	{ return int_val; }
-
 protected:
 	friend class Val;
 	friend class EnumType;
@@ -1471,6 +1469,15 @@ public:
 	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]]
 	bool Insert(unsigned int index, Val* element)
 		{ return Insert(index, {AdoptRef{}, element}); }
+
+	/**
+	 * Inserts an element at the end of the vector.
+	 * @param element  The value to insert into the vector.
+	 * @return  True if the element was inserted or false if the element was
+	 * the wrong type.
+	 */
+	bool Append(ValPtr element)
+		{ return Insert(Size(), element); }
 
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);

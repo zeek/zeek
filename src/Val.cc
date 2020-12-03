@@ -1145,13 +1145,13 @@ ValPtr FileVal::DoClone(CloneState* state)
 	// I think we can just ref the file here - it is unclear what else
 	// to do.  In the case of cached files, I think this is equivalent
 	// to what happened before - serialization + unserialization just
-	// have you the same pointer that you already had.  In the case of
+	// gave you the same pointer that you already had.  In the case of
 	// non-cached files, the behavior now is different; in the past,
 	// serialize + unserialize gave you a new file object because the
 	// old one was not in the list anymore. This object was
 	// automatically opened. This does not happen anymore - instead you
 	// get the non-cached pointer back which is brought back into the
-	// cache when written too.
+	// cache when written to.
 	return {NewRef{}, this};
 	}
 
@@ -3369,10 +3369,10 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	for ( unsigned int i = 0; i < vector_val->size(); ++i )
+	for ( const auto& e : *vector_val )
 		{
-		auto v = (*vector_val)[i]->Clone(state);
-		vv->Assign(vv->Size(), std::move(v));
+		auto vc = e->Clone(state);
+		vv->Append(std::move(vc));
 		}
 
 	return vv;
@@ -3382,17 +3382,20 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	if ( vector_val->size() > 0 )
-		for ( unsigned int i = 0; i < (vector_val->size() - 1); ++i )
+	size_t vector_size = vector_val->size();
+
+	if ( vector_size != 0)
+		{
+		for ( unsigned int i = 0; i < (vector_size - 1); ++i )
 			{
-			if ( (*vector_val)[i] )
-				(*vector_val)[i]->Describe(d);
+			if ( vector_val->at(i) )
+				vector_val->at(i)->Describe(d);
 			d->Add(", ");
 			}
+		}
 
-	if ( vector_val->size() &&
-	     (*vector_val)[vector_val->size() - 1] )
-		(*vector_val)[vector_val->size() - 1]->Describe(d);
+	if ( vector_size != 0 && vector_val->back() )
+		vector_val->back()->Describe(d);
 
 	d->Add("]");
 	}

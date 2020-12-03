@@ -118,7 +118,7 @@ debian10_static_task:
   container:
     # Just uses a recent/common distro to run a static compile test.
     # Debian 10 EOL: June 2024
-    dockerfile: ci/debian-10-static/Dockerfile
+    dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   env:

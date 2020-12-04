@@ -1,4 +1,8 @@
 
+3.3.0-dev.607 | 2020-12-04 11:16:09 -0800
+
+  * Fix the CMake 'dist' target of Zeek plugins to only run when outdated (Benjamin Bannier, Corelight)
+
 3.3.0-dev.604 | 2020-12-04 18:40:03 +0000
 
   * Sumstats: allow users to manage epoch manually

@@ -1,4 +1,24 @@
 
+3.3.0-dev.604 | 2020-12-04 18:40:03 +0000
+
+  * Sumstats: allow users to manage epoch manually
+
+    This change allows users to specify an epoch length of 0, which means
+    that the user manually has to finish the epochs. A new next_epoch
+    function is introduced to allow users to manually end epochs.
+
+    Addresses GH-348 (Johanna Amann, Corelight)
+
+  * Sumstats: epoch_finished was not called under certain circumstances
+
+    In non-clustered mode, epoch_finished was not called when there was no
+    data during the epoch.
+
+    This behavior does not fit the documentation, and also is different in
+    cluster-mode, where epoch_finished is, indeed, called after every epoch.
+
+    This small change fixes this behavior. (Johanna Amann, Corelight)
+
 3.3.0-dev.600 | 2020-12-03 18:02:22 -0800
 
   * Add a CI task for compiling with static broker/binpac (Johanna Amann, Corelight)

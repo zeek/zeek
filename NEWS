@@ -116,6 +116,10 @@ New Functionality
 - Added composite-index support for ``&backend`` (Broker-backed tables).
   An example of a set with composite index is ``set[string, count, count]``.
 
+- Sumstats now allows manual epochs. If an ``epoch`` interval of 0 is specified,
+  epochs will have to be manually ended by callis ``SumStats::next_epoch``. This
+  can be convenient because epochs can be synced to other events.
+
 Changed Functionality
 ---------------------
 

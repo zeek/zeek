@@ -86,6 +86,36 @@ New Functionality
 
 - Added ``count_to_double()`` and ``int_to_double()`` type-conversion BIFs.
 
+- Added these string-processing BIFs:
+
+  - count_substr
+  - find_str
+  - rfind_str
+  - starts_with
+  - ends_with
+  - is_num
+  - is_alpha
+  - is_alnum
+  - ljust
+  - rjust
+  - swap_case
+  - to_title
+  - zfill
+  - remove_prefix
+  - remove_suffix
+
+- Added a new ``Weird::sampling_global_list`` option to configure global
+  rate-limiting of certain weirds instead of per connection/flow.
+
+- Added a ``Pcap::findalldevs()`` for obtaining available network devices.
+
+- Added ``enum_names()`` BIF to return names of an enum type's values
+
+- Added ``type_aliases`` BIF for introspecting type-names of types/values
+
+- Added composite-index support for ``&backend`` (Broker-backed tables).
+  An example of a set with composite index is ``set[string, count, count]``.
+
 Changed Functionality
 ---------------------
 
@@ -137,6 +167,18 @@ Changed Functionality
   there, but Zeek plugins generally have to be re-built/re-installed upon any
   Zeek upgrade anyway, so no part of the usual upgrade process is expected to
   be complicated by this cleanup operation.
+
+- Continued renaming/namespacing of many classes into either ``zeek`` or
+  ``zeek::detail`` namespaces as already explained in Zeek 3.2's release notes.
+  Deprecation warnings should generally help notify plugin developers of these
+  changes.
+
+- Changed HTTP DPD signatures to trigger analyzer independent of peer state.
+
+  This is to avoid missing large sessions where a single side exceeds
+  the DPD buffer size. It comes with the trade-off that now the analyzer
+  can be triggered by anybody controlling one of the endpoints (instead
+  of both).  For discussion, see https://github.com/zeek/zeek/issues/343.
 
 Removed Functionality
 ---------------------

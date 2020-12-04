@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/http/post.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff 1-file
-# @TEST-EXEC: btest-diff 2-file
+# @TEST-EXEC: env -u TEST_DIFF_CANONIFIER btest-diff 1-file
+# @TEST-EXEC: env -u TEST_DIFF_CANONIFIER btest-diff 2-file
 
 @load base/protocols/http
 

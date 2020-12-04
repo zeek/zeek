@@ -9,5 +9,6 @@ else
    sed="sed -E"
 fi
 
-$sed 's/(^|[^0-9])([0-9]{9,10}\.[0-9]{1,8})/\1XXXXXXXXXX.XXXXXX/g' | \
-$sed 's/^ *#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g'
+# $a\ adds a newline to the end of the file if it does not exist.
+# This unifies the behavior of BSD and GNU sed
+$sed -e 's/(^|[^0-9])([0-9]{9,10}\.[0-9]{1,8})/\1XXXXXXXXXX.XXXXXX/g' -e  's/^ *#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g' -e '$a\'

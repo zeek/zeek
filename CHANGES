@@ -1,3 +1,8 @@
+
+3.3.0-dev.600 | 2020-12-03 18:02:22 -0800
+
+  * Add a CI task for compiling with static broker/binpac (Johanna Amann, Corelight)
+
 3.3.0-dev.596 | 2020-12-03 09:35:42 -0700
 
   * Fix a couple of life-time issues when plugin loading fails.

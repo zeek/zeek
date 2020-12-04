@@ -263,7 +263,10 @@ refine connection KRB_Conn += {
 			rv->Assign(1, zeek::val_mgr->Bool(${msg.ap_options.mutual_required}));
 
 			auto rvticket = proc_ticket(${msg.ticket});
-			auto authenticationinfo = zeek_analyzer()->GetAuthenticationInfo(rvticket->GetStringField(2), rvticket->GetStringField(4), rvticket->GetCountField(3));
+			auto authenticationinfo = zeek_analyzer()->GetAuthenticationInfo(
+				rvticket->GetFieldAs<zeek::StringVal>(2),
+				rvticket->GetFieldAs<zeek::StringVal>(4),
+				rvticket->GetFieldAs<zeek::CountVal>(3));
 
 			if ( authenticationinfo )
 				rvticket->Assign(5, authenticationinfo);

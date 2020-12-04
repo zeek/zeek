@@ -684,8 +684,8 @@ function string_to_ascii_hex%(s: string%): string
 function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_substring_vec
 	%{
 	zeek::detail::SWParams sw_params(
-            params->AsRecordVal()->GetCountField(0),
-	    zeek::detail::SWVariant(params->AsRecordVal()->GetCountField(1)));
+            params->AsRecordVal()->GetFieldAs<zeek::CountVal>(0),
+	    zeek::detail::SWVariant(params->AsRecordVal()->GetFieldAs<zeek::CountVal>(1)));
 
 	auto* subseq = zeek::detail::smith_waterman(s1->AsString(), s2->AsString(), sw_params);
 	auto result = zeek::VectorValPtr{zeek::AdoptRef{}, zeek::detail::Substring::VecToPolicy(subseq)};

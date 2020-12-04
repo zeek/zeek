@@ -120,7 +120,7 @@ void File::UpdateLastActivityTime()
 
 double File::GetLastActivityTime() const
 	{
-	return val->GetTimeField(last_active_idx);
+	return val->GetFieldAs<TimeVal>(last_active_idx);
 	}
 
 bool File::UpdateConnectionFields(Connection* conn, bool is_orig)

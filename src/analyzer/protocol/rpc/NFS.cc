@@ -176,7 +176,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 	case BifEnum::NFS3::PROC_READ:
 		bro_uint_t offset;
-		offset = c->RequestVal()->AsRecordVal()->GetCountField(1);
+		offset = c->RequestVal()->AsRecordVal()->GetFieldAs<CountVal>(1);
 		reply = nfs3_read_reply(buf, n, nfs_status, offset);
 		event = nfs_proc_read;
 		break;

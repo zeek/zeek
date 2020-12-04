@@ -1543,7 +1543,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer,
 		auto res = rotation_format_func->Invoke(ri);
 		auto rp_val = res->AsRecordVal();
 		auto dir_val = rp_val->GetFieldOrDefault(0);
-		auto prefix = rp_val->GetStringField(1)->CheckString();
+		auto prefix = rp_val->GetFieldAs<StringVal>(1)->CheckString();
 		auto dir = dir_val->AsString()->CheckString();
 
 		if ( ! util::streq(dir, "") && ! util::detail::ensure_intermediate_dirs(dir) )

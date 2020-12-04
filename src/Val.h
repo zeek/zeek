@@ -497,7 +497,7 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-	bro_uint_t Get() const	{ return uint_val; }
+	const PortVal* Get() const	{ return AsPortVal(); }
 
 protected:
 	friend class ValManager;
@@ -1259,22 +1259,27 @@ public:
 	// underlying value.  We provide these to enable efficient
 	// access to record fields (without requiring an intermediary Val)
 	// if we change the underlying representation of records.
-#define GET_FIELD_AS(ctype, name ) \
-	ctype Get ## name ## Field(int field) const \
-		{ return GetField(field)->As ## name(); } \
-	ctype Get ## name ## Field(const char* field) const \
-		{ return GetField(field)->As ## name(); }
+	template <typename T>
+    auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
+		{
+		auto& field_ptr = GetField(field);
+		auto field_val_ptr = dynamic_cast<T*>(field_ptr.get());
+		if ( ! field_val_ptr )
+			reporter->InternalError("Typecast failed in TableVal::GetFieldAs");
 
-	GET_FIELD_AS(bool, Bool)
-	GET_FIELD_AS(int, Enum)
-	GET_FIELD_AS(bro_int_t, Int)
-	GET_FIELD_AS(bro_uint_t, Count)
-	GET_FIELD_AS(double, Double)
-	GET_FIELD_AS(double, Time)
-	GET_FIELD_AS(double, Interval)
-	GET_FIELD_AS(const PortVal*, PortVal)
-	GET_FIELD_AS(const IPAddr&, Addr)
-	GET_FIELD_AS(const String*, String)
+		return field_val_ptr->Get();
+		}
+
+	template <typename T>
+    auto GetFieldAs(const char* field) const -> std::invoke_result_t<decltype(&T::Get), T>
+		{
+		auto& field_ptr = GetField(field);
+		auto field_val_ptr = dynamic_cast<T*>(field_ptr.get());
+		if ( ! field_val_ptr )
+			reporter->InternalError("Typecast failed in TableVal::GetFieldAs");
+
+		return field_val_ptr->Get();
+		}
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't

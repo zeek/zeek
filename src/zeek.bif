@@ -3531,10 +3531,10 @@ const char* conn_id_string(zeek::Val* c)
 	auto id = c->As<zeek::RecordVal*>()->GetField(0);
 	auto id_r = id->As<zeek::RecordVal*>();
 
-	const zeek::IPAddr& orig_h = id_r->GetAddrField(0);
-	uint32_t orig_p = id_r->GetPortValField(1)->Port();
-	const zeek::IPAddr& resp_h = id_r->GetAddrField(2);
-	uint32_t resp_p = id_r->GetPortValField(3)->Port();
+	const zeek::IPAddr& orig_h = id_r->GetFieldAs<zeek::AddrVal>(0);
+	uint32_t orig_p = id_r->GetFieldAs<zeek::PortVal>(1)->Port();
+	const zeek::IPAddr& resp_h = id_r->GetFieldAs<zeek::AddrVal>(2);
+	uint32_t resp_p = id_r->GetFieldAs<zeek::PortVal>(3)->Port();
 
 	return zeek::util::fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
 	                       resp_h.AsString().c_str(), resp_p);
@@ -3656,12 +3656,12 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 		auto pkt_r = pkt->As<zeek::RecordVal*>();
 
-		ts.tv_sec = pkt_r->GetCountField(0);
-		ts.tv_usec = pkt_r->GetCountField(1);
-		caplen = pkt_r->GetCountField(2);
-		len = pkt_r->GetCountField(3);
-		data = pkt_r->GetStringField(4)->Bytes();
-		link_type = pkt_r->GetEnumField(5);
+		ts.tv_sec = pkt_r->GetFieldAs<zeek::CountVal>(0);
+		ts.tv_usec = pkt_r->GetFieldAs<zeek::CountVal>(1);
+		caplen = pkt_r->GetFieldAs<zeek::CountVal>(2);
+		len = pkt_r->GetFieldAs<zeek::CountVal>(3);
+		data = pkt_r->GetFieldAs<zeek::StringVal>(4)->Bytes();
+		link_type = pkt_r->GetFieldAs<zeek::EnumVal>(5);
 		Packet p(link_type, &ts, caplen, len, data, true);
 
 		addl_pkt_dumper->Dump(&p);

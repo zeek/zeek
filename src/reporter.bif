@@ -148,7 +148,7 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 ## Returns: true if the file was still valid, else false.
 function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="", source: string&default=""%): bool
 	%{
-	auto fuid = f->AsRecordVal()->GetStringField(0);
+	auto fuid = f->AsRecordVal()->GetFieldAs<zeek::StringVal>(0);
 	auto file = zeek::file_mgr->LookupFile(fuid->CheckString());
 
 	if ( ! file )

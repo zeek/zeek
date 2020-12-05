@@ -1,7 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: btest-diff test.txt
-
+# @TEST-EXEC: btest-diff --binary test.txt
 
 global cmds = "print \"hello world\";";
 cmds = string_cat(cmds, "\nprint \"foobar\";");

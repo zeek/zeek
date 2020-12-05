@@ -149,19 +149,24 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	zeek::detail::zeekygen_mgr->SummaryComment(::filename, yytext + 3);
+	if ( zeek::detail::current_scope() == zeek::detail::global_scope() )
+		zeek::detail::zeekygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
 ##<.* {
-	std::string hint(cur_enum_type && last_id_tok ?
-	            zeek::detail::make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
+	if ( zeek::detail::current_scope() == zeek::detail::global_scope() )
+		{
+		std::string hint(cur_enum_type && last_id_tok ?
+		            zeek::detail::make_full_var_name(zeek::detail::current_module.c_str(), last_id_tok) : "");
 
-	zeek::detail::zeekygen_mgr->PostComment(yytext + 3, hint);
+		zeek::detail::zeekygen_mgr->PostComment(yytext + 3, hint);
+		}
 }
 
 ##.* {
-	if ( yytext[2] != '#' )
-		zeek::detail::zeekygen_mgr->PreComment(yytext + 2);
+	if ( zeek::detail::current_scope() == zeek::detail::global_scope() )
+		if ( yytext[2] != '#' )
+			zeek::detail::zeekygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;

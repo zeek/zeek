@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -r $TRACES/http/content-range-gap.trace %INPUT
-# @TEST-EXEC: env -u TEST_DIFF_CANONIFIER btest-diff extract_files/thefile
+# @TEST-EXEC: btest-diff --binary extract_files/thefile
 
 @load base/protocols/http
 @load base/files/extract

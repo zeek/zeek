@@ -1,6 +1,6 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: env -u TEST_DIFF_CANONIFIER btest-diff test.txt
+# @TEST-EXEC: btest-diff --binary test.txt
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 redef exit_only_after_terminate = T;

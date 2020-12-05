@@ -1,4 +1,8 @@
 
+3.3.0-dev.609 | 2020-12-04 19:20:39 -0800
+
+  * Remove an extraneous Zeekygen-style comment (Jon Siwek, Corelight)
+
 3.3.0-dev.607 | 2020-12-04 11:16:09 -0800
 
   * Fix the CMake 'dist' target of Zeek plugins to only run when outdated (Benjamin Bannier, Corelight)

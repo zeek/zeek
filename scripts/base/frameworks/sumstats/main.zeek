@@ -431,7 +431,7 @@ function create(ss: SumStat)
 
 	reset(ss);
 
-	## do not schedule epoch if this is set to manual epochs.
+	# do not schedule epoch if this is set to manual epochs.
 	if ( ss$epoch != 0secs )
 		schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}

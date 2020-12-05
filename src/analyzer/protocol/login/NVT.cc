@@ -539,7 +539,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 			else
 				{
 				if ( Conn()->FlagEvent(SINGULAR_LF) )
-					Conn()->Weird("line_terminated_with_single_LF");
+					Weird("line_terminated_with_single_LF");
 				buf[offset++] = c;
 				}
 			break;

@@ -461,20 +461,20 @@ static void update_window(TCP_Endpoint* endpoint, unsigned int window,
 		}
 	}
 
-static void syn_weirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len)
+void TCP_Analyzer::SynWeirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len) const
 	{
 	if ( flags.RST() )
-		endpoint->Conn()->Weird("TCP_christmas");
+		endpoint->Conn()->Weird("TCP_christmas", "", GetAnalyzerName());
 
 	if ( flags.URG() )
-		endpoint->Conn()->Weird("baroque_SYN");
+		endpoint->Conn()->Weird("baroque_SYN", "", GetAnalyzerName());
 
 	if ( data_len > 0 )
 		// Not technically wrong according to RFC 793, but the other side
 		// would be forced to buffer data until the handshake succeeds, and
 		// that could be bad in some cases, e.g. SYN floods.
 		// T/TCP definitely complicates this.
-		endpoint->Conn()->Weird("SYN_with_data");
+		endpoint->Conn()->Weird("SYN_with_data", "", GetAnalyzerName());
 	}
 
 void TCP_Analyzer::UpdateInactiveState(double t,
@@ -1097,7 +1097,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( flags.SYN() )
 		{
-		syn_weirds(flags, endpoint, len);
+		SynWeirds(flags, endpoint, len);
 		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
 		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
 		            base_seq, ack_seq);

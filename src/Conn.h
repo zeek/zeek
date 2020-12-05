@@ -238,7 +238,7 @@ public:
 	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
 		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
-	void Weird(const char* name, const char* addl = "");
+	void Weird(const char* name, const char* addl = "", const char* source = "");
 	bool DidWeird() const	{ return weird != 0; }
 
 	// Cancel all associated timers.

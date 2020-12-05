@@ -148,6 +148,18 @@ protected:
 	 */
 	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const;
 
+	/**
+	 * Reports a Weird with the analyzer's name included in the addl field.
+	 *
+	 * @param name The name of the weird.
+	 * @param packet An optional pointer to a packet to be used for additional
+	 * information in the weird output.
+	 * @param addl An optional string containing additional information about
+	 * the weird. If this is passed, the analyzer's name will be prepended to
+	 * it before output.
+	 */
+	void Weird(const char* name, Packet* packet=nullptr, const char* addl="") const;
+
 private:
 	Tag tag;
 	Dispatcher dispatcher;

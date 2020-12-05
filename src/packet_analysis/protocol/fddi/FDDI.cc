@@ -15,7 +15,7 @@ bool FDDIAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 
 	if ( hdr_size >= len )
 		{
-		packet->Weird("FDDI_analyzer_failed");
+		Weird("FDDI_analyzer_failed");
 		return false;
 		}
 

@@ -5,6 +5,7 @@ build_type=@CMAKE_BUILD_TYPE_LOWER@
 prefix=@CMAKE_INSTALL_PREFIX@
 script_dir=@ZEEK_SCRIPT_INSTALL_PATH@
 site_dir=@ZEEK_SCRIPT_INSTALL_PATH@/site
+lib_dir=@CMAKE_INSTALL_FULL_LIBDIR@
 plugin_dir=@BRO_PLUGIN_INSTALL_PATH@
 config_dir=@ZEEK_ETC_INSTALL_DIR@
 python_dir=@PY_MOD_INSTALL_DIR@
@@ -24,7 +25,7 @@ include_dir=${include_dir}:@ZEEK_CONFIG_LibKrb5_INCLUDE_DIR@
 include_dir=${include_dir}:@ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR@
 
 usage="\
-Usage: zeek-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
+Usage: zeek-config [--version] [--build_type] [--prefix] [--lib_dir] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
 
 if [ $# -eq 0 ] ; then
       echo "${usage}" 1>&2
@@ -38,14 +39,44 @@ while [ $# -ne 0 ]; do
   esac
 
   case $1 in
-    --version)
-      echo $version
+    --binpac_root)
+      echo $binpac_root
+      ;;
+    --bro_dist)  # For compatibility with legacy Bro plugins.
+      echo $zeek_dist
+      ;;
+    --broker_root)
+      echo $broker_root
+      ;;
+    --bropath)   # For compatibility with legacy Bro plugins.
+      echo $zeekpath
+      ;;
+    --build_type)
+      echo $build_type
+      ;;
+    --caf_root)
+      echo $caf_root
+      ;;
+    --cmake_dir)
+      echo $cmake_dir
+      ;;
+    --config_dir)
+      echo $config_dir
+      ;;
+    --include_dir)
+      echo $include_dir
+      ;;
+    --lib_dir)
+      echo $lib_dir
+      ;;
+    --plugin_dir)
+      echo $plugin_dir
       ;;
     --prefix)
       echo $prefix
       ;;
-    --build_type)
-      echo $build_type
+    --python_dir)
+      echo $python_dir
       ;;
     --script_dir)
       echo $script_dir
@@ -53,41 +84,14 @@ while [ $# -ne 0 ]; do
     --site_dir)
       echo $site_dir
       ;;
-    --plugin_dir)
-      echo $plugin_dir
-      ;;
-    --config_dir)
-      echo $config_dir
-      ;;
-    --python_dir)
-      echo $python_dir
-      ;;
-    --cmake_dir)
-      echo $cmake_dir
-      ;;
-    --include_dir)
-      echo $include_dir
-      ;;
-    --bropath)   # For compatibility with legacy Bro plugins.
-      echo $zeekpath
-      ;;
-    --zeekpath)
-      echo $zeekpath
-      ;;
-    --bro_dist)  # For compatibility with legacy Bro plugins.
-      echo $zeek_dist
+    --version)
+      echo $version
       ;;
     --zeek_dist)
       echo $zeek_dist
       ;;
-    --binpac_root)
-      echo $binpac_root
-      ;;
-    --caf_root)
-      echo $caf_root
-      ;;
-    --broker_root)
-      echo $broker_root
+    --zeekpath)
+      echo $zeekpath
       ;;
     *)
       echo "${usage}" 1>&2

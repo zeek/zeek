@@ -4,7 +4,7 @@
 #
 # If this test fails, then the "Log Files" documentation page should be updated.
 
-# @TEST-REQUIRES: which python
+# @TEST-REQUIRES: which python3
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: btest-diff out
 
@@ -15,7 +15,7 @@ if [ ! -d "${BROSCRIPTS}" ]; then
     exit 1
 fi
 
-python find_logs.py "${BROSCRIPTS}" | sort > out
+python3 find_logs.py "${BROSCRIPTS}" | sort > out
 
 @TEST-START-FILE find_logs.py
 import os, sys

@@ -25,7 +25,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 
 		if ( data + cfplen + 14 >= end_of_data )
 			{
-			packet->Weird("truncated_link_header_cfp");
+			Weird("truncated_link_header_cfp", packet);
 			return false;
 			}
 
@@ -55,7 +55,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 				{
 				if ( data + 4 >= end_of_data )
 					{
-					packet->Weird("truncated_link_header");
+					Weird("truncated_link_header", packet);
 					return false;
 					}
 
@@ -73,7 +73,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 				{
 				if ( data + 8 >= end_of_data )
 					{
-					packet->Weird("truncated_link_header");
+					Weird("truncated_link_header", packet);
 					return false;
 					}
 
@@ -87,7 +87,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 				else
 					{
 					// Neither IPv4 nor IPv6.
-					packet->Weird("non_ip_packet_in_pppoe_encapsulation");
+					Weird("non_ip_packet_in_pppoe_encapsulation", packet);
 					return false;
 					}
 				}
@@ -111,7 +111,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 		else
 			{
 			// Neither IPv4 nor IPv6.
-			packet->Weird("non_ip_packet_in_ethernet");
+			Weird("non_ip_packet_in_ethernet", packet);
 			return false;
 			}
 		}
@@ -125,7 +125,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 			{
 			if ( data + 4 >= end_of_data )
 				{
-				packet->Weird("truncated_link_header");
+				Weird("truncated_link_header", packet);
 				return false;
 				}
 
@@ -136,7 +136,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 		// We assume that what remains is IP
 		if ( data + sizeof(struct ip) >= end_of_data )
 			{
-			packet->Weird("no_ip_in_mpls_payload");
+			Weird("no_ip_in_mpls_payload", packet);
 			return false;
 			}
 
@@ -149,7 +149,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 		else
 			{
 			// Neither IPv4 nor IPv6.
-			packet->Weird("no_ip_in_mpls_payload");
+			Weird("no_ip_in_mpls_payload", packet);
 			return false;
 			}
 		}

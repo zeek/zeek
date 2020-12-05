@@ -272,7 +272,8 @@ event SumStats::finish_epoch(ss: SumStat)
 		}
 
 	# Schedule the next finish_epoch event.
-	schedule ss$epoch { SumStats::finish_epoch(ss) };
+	if ( ss$epoch != 0secs )
+		schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
 
 # This is unlikely to be called often, but it's here in

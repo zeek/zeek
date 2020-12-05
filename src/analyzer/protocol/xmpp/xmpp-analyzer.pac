@@ -36,7 +36,7 @@ refine connection XMPP_Conn += {
 				zeek::BifEvent::enqueue_xmpp_starttls(zeek_analyzer(), zeek_analyzer()->Conn());
 			}
 		else if ( !is_orig && token == "proceed" )
-			zeek::reporter->Weird(zeek_analyzer()->Conn(), "XMPP: proceed without starttls");
+			zeek_analyzer()->Weird("XMPP: proceed without starttls");
 
 		// printf("Processed: %d %s %s %s \n", is_orig, c_str(name), c_str(rest), token_no_ns.c_str());
 

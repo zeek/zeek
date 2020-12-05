@@ -31,7 +31,7 @@ public:
 	void Weird(const char* name, bool force = false) const
 		{
 		if ( ProtocolConfirmed() || force )
-			reporter->Weird(Conn(), name);
+			reporter->Weird(Conn(), name, "", GetAnalyzerName());
 		}
 
 	/**

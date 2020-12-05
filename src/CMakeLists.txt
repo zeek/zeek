@@ -406,10 +406,8 @@ add_executable(zeek main.cc
                ${bro_PLUGIN_LIBS}
 )
 target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-
-if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
-    set_target_properties(zeek PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")
-endif ()
+# Export symbols from zeek executable for use by plugins
+set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 
 install(TARGETS zeek DESTINATION bin)
 

@@ -396,7 +396,7 @@ bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id
 		return false;
 	}
 
-void Reporter::Weird(const char* name, const char* addl)
+void Reporter::Weird(const char* name, const char* addl, const char* source)
 	{
 	UpdateWeirdStats(name);
 
@@ -406,10 +406,10 @@ void Reporter::Weird(const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
+	WeirdHelper(net_weird, {new StringVal(addl), new StringVal(source)}, "%s", name);
 	}
 
-void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
+void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl, const char* source)
 	{
 	UpdateWeirdStats(name);
 
@@ -424,11 +424,11 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 	}
 
-	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(Connection* conn, const char* name, const char* addl)
+void Reporter::Weird(Connection* conn, const char* name, const char* addl, const char* source)
 	{
 	UpdateWeirdStats(name);
 
@@ -443,12 +443,12 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 	}
 
-	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
-                     const char* name, const char* addl)
+void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid, const char* name,
+                     const char* addl, const char* source)
 	{
 	UpdateWeirdStats(name);
 
@@ -463,11 +463,11 @@ void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid,
 	}
 
 	WeirdHelper(expired_conn_weird,
-	            {conn_id.release(), uid.release(), new StringVal(addl)},
+	            {conn_id.release(), uid.release(), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl, const char* source)
 	{
 	UpdateWeirdStats(name);
 
@@ -482,7 +482,7 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, c
 	}
 
 	WeirdHelper(flow_weird,
-	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
+	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 

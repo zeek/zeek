@@ -1,3 +1,121 @@
+
+3.3.0-dev.607 | 2020-12-04 11:16:09 -0800
+
+  * Fix the CMake 'dist' target of Zeek plugins to only run when outdated (Benjamin Bannier, Corelight)
+
+3.3.0-dev.604 | 2020-12-04 18:40:03 +0000
+
+  * Sumstats: allow users to manage epoch manually
+
+    This change allows users to specify an epoch length of 0, which means
+    that the user manually has to finish the epochs. A new next_epoch
+    function is introduced to allow users to manually end epochs.
+
+    Addresses GH-348 (Johanna Amann, Corelight)
+
+  * Sumstats: epoch_finished was not called under certain circumstances
+
+    In non-clustered mode, epoch_finished was not called when there was no
+    data during the epoch.
+
+    This behavior does not fit the documentation, and also is different in
+    cluster-mode, where epoch_finished is, indeed, called after every epoch.
+
+    This small change fixes this behavior. (Johanna Amann, Corelight)
+
+3.3.0-dev.600 | 2020-12-03 18:02:22 -0800
+
+  * Add a CI task for compiling with static broker/binpac (Johanna Amann, Corelight)
+
+3.3.0-dev.596 | 2020-12-03 09:35:42 -0700
+
+  * Fix a couple of life-time issues when plugin loading fails.
+
+    Reported by Coverity.
+
+    Follow-up to #1179. (Robin Sommer, Corelight)
+
+3.3.0-dev.593 | 2020-12-02 12:53:04 -0800
+
+  * Add `count_to_double` and `int_to_double` bif functions (Yacin Nadji, Corelight)
+
+3.3.0-dev.590 | 2020-12-02 11:11:26 -0800
+
+  * Update minimum required CMake to 3.5 (Jon Siwek, Corelight)
+
+    Also now uses CMake's ENABLE_EXPORTS target property for the zeek
+    executable to ensure symbols are visible to plugins.  Prior to CMake
+    3.4, the policy was to export symbols by default for certain platforms,
+    but later versions need either the explicit target property or policy.
+
+3.3.0-dev.587 | 2020-12-01 10:17:42 -0700
+
+  * GH-1184: Add 'source' field to weird log denoting where the weird was reported (Tim Wojtulewicz, Corelight)
+
+3.3.0-dev.585 | 2020-12-01 14:42:54 +0000
+
+  * Retry loading plugins on failure to resolve to dependencies.
+    Closes #1179. (Robin Sommer, Corelight)
+
+3.3.0-dev.580 | 2020-11-30 14:07:39 -0700
+
+  * Find correct zeek namespace in debug logger macros.
+
+    These macros forward to functionality in `zeek::detail::debug_logger`
+    and are not intended for customization. This patch fixes the macros to
+    always use `::zeek::detail::debug_logger` as without the leading `::`
+    lookup could happen in any potentially local namespace `zeek` which does
+    not need to provide this symbol.
+
+    This closes zeek/spicy#597. (Benjamin Bannier, Corelight)
+
+3.3.0-dev.576 | 2020-11-26 18:16:07 +0000
+
+  * Remove Python2 compatibility logic. We now require at least Python 3.5.
+    This includes script changes, improves the cmake logic to find python3,
+    makes scripts explicitly call python3 and documentation updates.
+
+    (Jon Siwek, Corelight)
+
+  * Remove Fedora 31 (EOL) from CI (Jon Siwek, Corelight)
+
+3.3.0-dev.564 | 2020-11-24 15:23:50 -0800
+
+  * Improve support for custom libdir locations (Christian Kreibich, Corelight)
+
+    - Remove hardwiring of $ZEEK_ROOT/lib throughout the three and
+      defaults the name of Zeek's library directory to the default on the
+      given platform (e.g. lib64), via GNUInstallDirs.
+
+    - Consistently use that lib directory, instead of two lib folders
+      resulting when using a custom libdir.
+
+    - Remove the old lib directory in the installation prefix, if one exists
+
+    - Add --lib_dir to zeek-config (and sort its options a bit).
+
+3.3.0-dev.561 | 2020-11-23 21:50:19 -0800
+
+  * Move implementation of internal_{type,var,etc} methods back into global namespace.
+    (Tim Wojtulewicz, Corelight)
+
+    This fixes an unknown symbol error if using those methods. They're defined
+    as extern in the global namespace in Var.h, but Var.cc had their
+    implementations defined in the zeek::detail namespace.
+
+3.3.0-dev.559 | 2020-11-23 21:39:29 -0800
+
+  * Simplify Debian/Ubuntu CI dependencies and setup (Dominik Charousset, Corelight)
+
+  * Update .gitignore to ignore pyenv .python-version (Otto Fowler)
+
+3.3.0-dev.554 | 2020-11-19 18:09:01 -0800
+
+  * Reverts the SMTP regex change in dead3226a545e264072ced40284f86ac41528ba8. (Tim Wojtulewicz, Corelight)
+
+    The regex change broke some of the external tests. I added some more cases
+    to the regular email btest to hopefully cover all of the cases better.
+
 3.3.0-dev.551 | 2020-11-17 15:01:04 -0700
 
   * Added unit tests for regex fix (christina23)

@@ -749,11 +749,6 @@ void end_func(StmtPtr body)
 	ingredients.release();
 	}
 
-Val* internal_val(const char* name)
-	{
-	return id::find_val(name).get();
-	}
-
 IDPList gather_outer_ids(Scope* scope, Stmt* body)
 	{
 	OuterIDBindingFinder cb(scope);
@@ -774,20 +769,27 @@ IDPList gather_outer_ids(Scope* scope, Stmt* body)
 	return idl;
 	}
 
-Val* internal_const_val(const char* name)
+} // namespace zeek::detail
+
+zeek::Val* internal_val(const char* name)
 	{
-	return id::find_const(name).get();
+	return zeek::id::find_val(name).get();
 	}
 
-Val* opt_internal_val(const char* name)
+zeek::Val* internal_const_val(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	return zeek::id::find_const(name).get();
+	}
+
+zeek::Val* opt_internal_val(const char* name)
+	{
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	return id ? id->GetVal().get() : nullptr;
 	}
 
 double opt_internal_double(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	if ( ! id ) return 0.0;
 	const auto& v = id->GetVal();
 	return v ? v->InternalDouble() : 0.0;
@@ -795,7 +797,7 @@ double opt_internal_double(const char* name)
 
 bro_int_t opt_internal_int(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	if ( ! id ) return 0;
 	const auto& v = id->GetVal();
 	return v ? v->InternalInt() : 0;
@@ -803,63 +805,63 @@ bro_int_t opt_internal_int(const char* name)
 
 bro_uint_t opt_internal_unsigned(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	if ( ! id ) return 0;
 	const auto& v = id->GetVal();
 	return v ? v->InternalUnsigned() : 0;
 	}
 
-StringVal* opt_internal_string(const char* name)
+zeek::StringVal* opt_internal_string(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	if ( ! id ) return nullptr;
 	const auto& v = id->GetVal();
 	return v ? v->AsStringVal() : nullptr;
 	}
 
-TableVal* opt_internal_table(const char* name)
+zeek::TableVal* opt_internal_table(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	if ( ! id ) return nullptr;
 	const auto& v = id->GetVal();
 	return v ? v->AsTableVal() : nullptr;
 	}
 
-ListVal* internal_list_val(const char* name)
+zeek::ListVal* internal_list_val(const char* name)
 	{
-	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = zeek::detail::lookup_ID(name, zeek::detail::GLOBAL_MODULE_NAME);
 	if ( ! id )
 		return nullptr;
 
-	Val* v = id->GetVal().get();
+	zeek::Val* v = id->GetVal().get();
 
 	if ( v )
 		{
-		if ( v->GetType()->Tag() == TYPE_LIST )
-			return (ListVal*) v;
+		if ( v->GetType()->Tag() == zeek::TYPE_LIST )
+			return (zeek::ListVal*) v;
 
 		else if ( v->GetType()->IsSet() )
 			{
-			TableVal* tv = v->AsTableVal();
+			zeek::TableVal* tv = v->AsTableVal();
 			auto lv = tv->ToPureListVal();
 			return lv.release();
 			}
 
 		else
-			reporter->InternalError("internal variable %s is not a list", name);
+			zeek::reporter->InternalError("internal variable %s is not a list", name);
 		}
 
 	return nullptr;
 	}
 
-Type* internal_type(const char* name)
+zeek::Type* internal_type(const char* name)
 	{
-	return id::find_type(name).get();
+	return zeek::id::find_type(name).get();
 	}
 
-Func* internal_func(const char* name)
+zeek::Func* internal_func(const char* name)
 	{
-	const auto& v = id::find_val(name);
+	const auto& v = zeek::id::find_val(name);
 
 	if ( v )
 		return v->AsFunc();
@@ -867,9 +869,7 @@ Func* internal_func(const char* name)
 		return nullptr;
 	}
 
-EventHandlerPtr internal_handler(const char* name)
+zeek::EventHandlerPtr internal_handler(const char* name)
 	{
 	return event_registry->Register(name);
 	}
-
-} // namespace zeek::detail

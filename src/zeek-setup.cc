@@ -606,17 +606,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
 
-	bool missing_plugin = false;
-
-	for ( set<string>::const_iterator i = requested_plugins.begin();
-	      i != requested_plugins.end(); i++ )
-		{
-		if ( ! plugin_mgr->ActivateDynamicPlugin(*i) )
-			missing_plugin = true;
-		}
-
-	if ( missing_plugin )
-		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
+	for ( const auto& x : requested_plugins )
+		plugin_mgr->ActivateDynamicPlugin(std::move(x));
 
 	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 

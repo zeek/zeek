@@ -5,7 +5,7 @@ FROM centos:7
 RUN yum -y install \
     https://repo.ius.io/ius-release-el7.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-  && yum -y install git2u \
+  && yum -y install git224 \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \
@@ -38,13 +38,7 @@ RUN yum -y install \
     which \
   && yum clean all && rm -rf /var/cache/yum
 
-# Many distros adhere to PEP 394's recommendation for `python` = `python2` so
-# this is a simple workaround until we drop Python 2 support and explicitly
-# use `python3` for all invocations (e.g. in shebangs).
-RUN ln -sf /usr/bin/python3 /usr/local/bin/python
-RUN ln -sf /usr/bin/pip3 /usr/local/bin/pip
-
-RUN pip install junit2html
+RUN pip3 install junit2html
 
 RUN echo 'unset BASH_ENV PROMPT_COMMAND ENV' > /usr/bin/zeek-ci-env && \
     echo 'source /opt/rh/devtoolset-7/enable' >> /usr/bin/zeek-ci-env

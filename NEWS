@@ -84,6 +84,42 @@ New Functionality
   is a special version indicating that the server/client supports both SSH2 and
 	SSH1.
 
+- Added ``count_to_double()`` and ``int_to_double()`` type-conversion BIFs.
+
+- Added these string-processing BIFs:
+
+  - count_substr
+  - find_str
+  - rfind_str
+  - starts_with
+  - ends_with
+  - is_num
+  - is_alpha
+  - is_alnum
+  - ljust
+  - rjust
+  - swap_case
+  - to_title
+  - zfill
+  - remove_prefix
+  - remove_suffix
+
+- Added a new ``Weird::sampling_global_list`` option to configure global
+  rate-limiting of certain weirds instead of per connection/flow.
+
+- Added a ``Pcap::findalldevs()`` for obtaining available network devices.
+
+- Added ``enum_names()`` BIF to return names of an enum type's values
+
+- Added ``type_aliases`` BIF for introspecting type-names of types/values
+
+- Added composite-index support for ``&backend`` (Broker-backed tables).
+  An example of a set with composite index is ``set[string, count, count]``.
+
+- Sumstats now allows manual epochs. If an ``epoch`` interval of 0 is specified,
+  epochs will have to be manually ended by callis ``SumStats::next_epoch``. This
+  can be convenient because epochs can be synced to other events.
+
 Changed Functionality
 ---------------------
 
@@ -127,6 +163,27 @@ Changed Functionality
   to a behavior that favors consistency.  For reference, see
   https://github.com/zeek/zeek/pull/251#issuecomment-713956976
 
+- The Zeek installation tree is now more consistent in using a ``lib64/``
+  (rather than ``lib/``) subdirectory for platforms where that's the common
+  convention.  If the old hardcoded ``lib/`` path exists while installing Zeek
+  4.0 and the new subdirectory differs, then the old ``lib/`` will be removed.
+  This potentially wipes out binary plugins that have already been installed
+  there, but Zeek plugins generally have to be re-built/re-installed upon any
+  Zeek upgrade anyway, so no part of the usual upgrade process is expected to
+  be complicated by this cleanup operation.
+
+- Continued renaming/namespacing of many classes into either ``zeek`` or
+  ``zeek::detail`` namespaces as already explained in Zeek 3.2's release notes.
+  Deprecation warnings should generally help notify plugin developers of these
+  changes.
+
+- Changed HTTP DPD signatures to trigger analyzer independent of peer state.
+
+  This is to avoid missing large sessions where a single side exceeds
+  the DPD buffer size. It comes with the trade-off that now the analyzer
+  can be triggered by anybody controlling one of the endpoints (instead
+  of both).  For discussion, see https://github.com/zeek/zeek/issues/343.
+
 Removed Functionality
 ---------------------
 
@@ -145,6 +202,10 @@ Removed Functionality
   issues with every new protocol-analysis adding a new
   ``connection_state_remove`` handler can now be resolved with a less-confusing
   approach: see the ``Conn::register_removal_hook`` function.
+
+- Python 2 is no longer supported.  Python 3.5 is the new minimum requirement.
+
+- CMake versions less than 3.5 are no longer supported.
 
 Deprecated Functionality
 ------------------------

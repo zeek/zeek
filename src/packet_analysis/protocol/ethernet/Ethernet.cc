@@ -25,7 +25,7 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	// to pull bytes out of it.
 	if ( 16 >= len )
 		{
-		packet->Weird("truncated_ethernet_frame");
+		Weird("truncated_ethernet_frame", packet);
 		return false;
 		}
 
@@ -36,7 +36,7 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
 		if ( cfplen + 14 >= len )
 			{
-			packet->Weird("truncated_link_header_cfp");
+			Weird("truncated_link_header_cfp", packet);
 			return false;
 			}
 
@@ -60,7 +60,7 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		{
 		if ( 16 >= len )
 			{
-			packet->Weird("truncated_ethernet_frame");
+			Weird("truncated_ethernet_frame", packet);
 			return false;
 			}
 
@@ -86,6 +86,6 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		}
 
 	// Undefined (1500 < EtherType < 1536)
-	packet->Weird("undefined_ether_type");
+	Weird("undefined_ether_type", packet);
 	return false;
 	}

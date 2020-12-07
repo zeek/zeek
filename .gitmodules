@@ -43,3 +43,6 @@
 [submodule "auxil/zeek-archiver"]
 	path = auxil/zeek-archiver
 	url = https://github.com/zeek/zeek-archiver
+[submodule "auxil/package-manager"]
+	path = auxil/package-manager
+	url = https://github.com/zeek/package-manager

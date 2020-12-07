@@ -742,9 +742,12 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg,
 			case detail::TYPE_ECS:
 				{
 				// must be 4 bytes + variable number of octets for address
-				if ( option_len <= 4 ) {
+				if ( option_len <= 4 )
+					{
+					analyzer->Weird("EDNS_ECS_invalid_option_len");
+					data += option_len;
 					break;
-				}
+					}
 
 				detail::EDNS_ECS opt{};
 				uint16_t ecs_family = ExtractShort(data, option_len);
@@ -758,27 +761,73 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg,
 				// padding with 0 bits to pad to the end of the last octet needed.
 				if ( ecs_family == L3_IPV4 )
 					{
+					if ( opt.ecs_src_pfx_len > 32 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v4_prefix",
+						                util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
+						data += option_len;
+						break;
+						}
+
+					if ( opt.ecs_src_pfx_len > option_len * 8 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v4",
+						                util::fmt("need %" PRIu16 " bits, have %d bits",
+						                          opt.ecs_src_pfx_len, option_len * 8));
+						data += option_len;
+						break;
+						}
+
 					opt.ecs_family = make_intrusive<StringVal>("v4");
 					uint32_t addr = 0;
-					for (uint16_t shift_factor = 3; option_len > 0; option_len--)
+					uint16_t shift_factor = 3;
+					int bits_left = opt.ecs_src_pfx_len;
+
+					while ( bits_left > 0 )
 						{
 						addr |= data[0] << (shift_factor * 8);
 						data++;
 						shift_factor--;
+						option_len--;
+						bits_left -= 8;
 						}
+
 					addr = htonl(addr);
 					opt.ecs_addr = make_intrusive<AddrVal>(addr);
 					}
 				else if ( ecs_family == L3_IPV6 )
 					{
+					if ( opt.ecs_src_pfx_len > 128 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v6_prefix",
+						                util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
+						data += option_len;
+						break;
+						}
+
+					if ( opt.ecs_src_pfx_len > option_len * 8 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v6",
+						                util::fmt("need %" PRIu16 " bits, have %d bits",
+						                          opt.ecs_src_pfx_len, option_len * 8));
+						data += option_len;
+						break;
+						}
+
 					opt.ecs_family = make_intrusive<StringVal>("v6");
 					uint32_t addr[4] = { 0 };
-					for (uint16_t i = 0, shift_factor = 15; option_len > 0; option_len--)
+					uint16_t shift_factor = 15;
+					int bits_left = opt.ecs_src_pfx_len;
+					int i = 0;
+
+					while ( bits_left > 0 )
 						{
 						addr[i / 4] |= data[0] << ((shift_factor % 4) * 8);
 						data++;
 						i++;
 						shift_factor--;
+						option_len--;
+						bits_left -= 8;
 						}
 
 					for (uint8_t i = 0; i < 4; i++)
@@ -799,6 +848,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg,
 					msg->BuildHdrVal(),
 					msg->BuildEDNS_ECS_Val(&opt)
 				);
+				data += option_len;
 				break;
 				} // END EDNS ECS
 

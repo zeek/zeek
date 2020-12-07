@@ -1,4 +1,11 @@
 
+3.3.0-dev.611 | 2020-12-07 09:42:37 -0800
+
+  * Fix misassociation of Zeekygen-style comments within function scopes (Jon Siwek, Corelight)
+
+    All Zeekygen-style comments relate to entities at global scope, so those
+    found within functions are now ignored instead of misassociated.
+
 3.3.0-dev.609 | 2020-12-04 19:20:39 -0800
 
   * Remove an extraneous Zeekygen-style comment (Jon Siwek, Corelight)

@@ -176,36 +176,36 @@ void Manager::InitPostScript()
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 
 	if ( util::streq(scheduler_policy, "sharing") )
-		config.set("scheduler.policy", caf::atom("sharing"));
+		config.set("caf.scheduler.policy", "sharing");
 	else if ( util::streq(scheduler_policy, "stealing") )
-		config.set("scheduler.policy", caf::atom("stealing"));
+		config.set("caf.scheduler.policy", "stealing");
 	else
 		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
 
 	auto max_threads_env = util::zeekenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )
-		config.set("scheduler.max-threads", atoi(max_threads_env));
+		config.set("caf.scheduler.max-threads", atoi(max_threads_env));
 	else
-		config.set("scheduler.max-threads",
+		config.set("caf.scheduler.max-threads",
 		           get_option("Broker::max_threads")->AsCount());
 
-	config.set("work-stealing.moderate-sleep-duration", caf::timespan(
+	config.set("caf.work-stealing.moderate-sleep-duration", caf::timespan(
 	    static_cast<unsigned>(get_option("Broker::moderate_sleep")->AsInterval() * 1e9)));
 
-	config.set("work-stealing.relaxed-sleep-duration", caf::timespan(
+	config.set("caf.work-stealing.relaxed-sleep-duration", caf::timespan(
 	    static_cast<unsigned>(get_option("Broker::relaxed_sleep")->AsInterval() * 1e9)));
 
-	config.set("work-stealing.aggressive-poll-attempts",
+	config.set("caf.work-stealing.aggressive-poll-attempts",
 	           get_option("Broker::aggressive_polls")->AsCount());
-	config.set("work-stealing.moderate-poll-attempts",
+	config.set("caf.work-stealing.moderate-poll-attempts",
 	           get_option("Broker::moderate_polls")->AsCount());
 
-	config.set("work-stealing.aggressive-steal-interval",
+	config.set("caf.work-stealing.aggressive-steal-interval",
 	           get_option("Broker::aggressive_interval")->AsCount());
-	config.set("work-stealing.moderate-steal-interval",
+	config.set("caf.work-stealing.moderate-steal-interval",
 	           get_option("Broker::moderate_interval")->AsCount());
-	config.set("work-stealing.relaxed-steal-interval",
+	config.set("caf.work-stealing.relaxed-steal-interval",
 	           get_option("Broker::relaxed_interval")->AsCount());
 
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
@@ -1487,7 +1487,7 @@ void Manager::ProcessError(broker::error err)
 	BifEnum::Broker::ErrorCode ec;
 	std::string msg;
 
-	if ( err.category() == caf::atom("broker") )
+	if ( err.category() == caf::type_id_v<broker::ec> )
 		{
 		static auto enum_type = id::find_type<EnumType>("Broker::ErrorCode");
 
@@ -1504,7 +1504,9 @@ void Manager::ProcessError(broker::error err)
 	else
 		{
 		ec = BifEnum::Broker::ErrorCode::CAF_ERROR;
-		msg = util::fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
+		auto sv = caf::query_type_name(err.category());
+		std::string category{sv.begin(), sv.end()};
+		msg = util::fmt("[%s] %s", category.c_str(), caf::to_string(err.context()).c_str());
 		}
 
 	event_mgr.Enqueue(::Broker::error,

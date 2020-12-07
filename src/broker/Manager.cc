@@ -1499,7 +1499,20 @@ void Manager::ProcessError(broker::error err)
 			ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
 			}
 
-		msg = caf::to_string(err.context());
+		// Note: we could also use to_string, but that change the log output
+		// and we would have to update all baselines relying on this format.
+		if ( auto mv = caf::make_const_typed_message_view<broker::endpoint_info, std::string>(err.context()) )
+			{
+			msg += '(';
+			msg += to_string(get<0>(mv).node);
+			msg += ", ";
+			msg += caf::deep_to_string(get<0>(mv).network);
+			msg += ", ";
+			msg += caf::deep_to_string(get<1>(mv));
+			msg += ')';
+			}
+		else
+			msg = caf::to_string(err.context());
 		}
 	else
 		{

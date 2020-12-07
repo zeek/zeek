@@ -1,12 +1,12 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ftp/retr.trace %INPUT max_extract=3000 efname=1
-# @TEST-EXEC: btest-diff extract_files/1
+# @TEST-EXEC: btest-diff --binary extract_files/1
 # @TEST-EXEC: btest-diff 1.out
 # @TEST-EXEC: zeek -b -r $TRACES/ftp/retr.trace %INPUT max_extract=3000 efname=2 double_it=T
-# @TEST-EXEC: btest-diff extract_files/2
+# @TEST-EXEC: btest-diff --binary extract_files/2
 # @TEST-EXEC: btest-diff 2.out
 # @TEST-EXEC: btest-diff files.log
 # @TEST-EXEC: zeek -b -r $TRACES/ftp/retr.trace %INPUT max_extract=7000 efname=3 unlimit_it=T
-# @TEST-EXEC: btest-diff extract_files/3
+# @TEST-EXEC: btest-diff --binary extract_files/3
 # @TEST-EXEC: btest-diff 3.out
 
 @load base/files/extract

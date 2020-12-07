@@ -2,8 +2,8 @@
 # @TEST-EXEC: zeek -b -r $TRACES/http/get-gzip.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=2 >get-gzip.out
 # @TEST-EXEC: btest-diff get.out
 # @TEST-EXEC: btest-diff get-gzip.out
-# @TEST-EXEC: btest-diff 1-file
-# @TEST-EXEC: btest-diff 2-file
+# @TEST-EXEC: btest-diff --binary 1-file
+# @TEST-EXEC: btest-diff --binary 2-file
 
 @load base/protocols/http
 

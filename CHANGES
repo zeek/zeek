@@ -1,4 +1,20 @@
 
+3.3.0-dev.621 | 2020-12-07 18:04:07 +0000
+
+  * Switch test baselines to canonified baselines
+
+    All baselines are now using the new btest feature to save baselines in the canonified
+    form (after the canonifiers are run). This should, hopefully, lead to less changes in
+    the future - that are easier to diff.
+
+    In addition, this cleans up a few small problems of the canonifiers which were over-eager
+    in identifying some numerical and path values.
+
+    We also use the new btest-diff --binary flag to identify binary files on which no
+    canonifier (not even the default canonifier) is applied.
+
+    (Christian Kreibich, Corelight with tiny additions by Johanna Amann, Corelight)
+
 3.3.0-dev.609 | 2020-12-04 19:20:39 -0800
 
   * Remove an extraneous Zeekygen-style comment (Jon Siwek, Corelight)

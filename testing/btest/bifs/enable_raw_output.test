@@ -3,7 +3,7 @@
 
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: tr '\000' 'X' <myfile >output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff --binary output
 
 event zeek_init()
     {

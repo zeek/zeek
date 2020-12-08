@@ -1,0 +1,14 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open XXXX-XX-XX-XX-XX-XX
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	74.125.47.13	57157	192.168.90.10	53	EDNS_ECS_invalid_addr_v4	need 32 bits, have 24 bits	F	zeek
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	74.125.73.76	55744	192.168.90.10	53	EDNS_ECS_invalid_addr_v4_prefix	255 bits	F	zeek
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	2a00:1450:4013:c03::10a	46433	2001:470:765b::a25:53	53	EDNS_ECS_invalid_addr_v6_prefix	255 bits	F	zeek
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	2a00:1450:4013:c06::105	63369	2001:470:765b::a25:53	53	EDNS_ECS_invalid_addr_v6	need 66 bits, have 56 bits	F	zeek
+XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	2a00:1450:400c:c00::106	54430	2001:470:765b::a25:53	53	EDNS_ECS_invalid_option_len	-	F	zeek
+#close XXXX-XX-XX-XX-XX-XX

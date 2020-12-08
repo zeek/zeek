@@ -1,4 +1,8 @@
 
+3.3.0-dev.630 | 2020-12-07 16:52:52 -0800
+
+  * Fix narrowing conversion compiler error in SMB error-response logic (Jon Siwek, Corelight)
+
 3.3.0-dev.629 | 2020-12-07 16:03:25 -0800
 
   * Add tests for new SMB3 multichannel support (Vlad Grigorescu)

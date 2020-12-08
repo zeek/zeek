@@ -282,7 +282,9 @@ refine connection SMB_Conn += {
 		// Non-zero USUALLY means an error, except for the specific cases detailed in
 		// [MS-SMB2] 3.3.4.4 Sending an Error Response
 
-		switch ( ${header.status} ) {
+		auto status = static_cast<SMB_Status>(${header.status});
+
+		switch ( status ) {
 		case 0:
 			// No error.
 			return false;

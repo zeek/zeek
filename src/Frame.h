@@ -217,8 +217,7 @@ public:
 
 	/**
 	 * Captures *c* as this frame's closure and Refs all of the values
-	 * corresponding to outer_ids in that closure. This also Refs *c* as
-	 * the frame will unref it upon deconstruction. When calling this,
+	 * corresponding to outer_ids in that closure.  When calling this,
 	 * the frame's closure must not have been set yet.
 	 */
 	void CaptureClosure(Frame* c, id_list outer_ids);

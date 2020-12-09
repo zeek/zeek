@@ -3008,8 +3008,8 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 	// The new trigger object will take care of its own deletion.
 	//
-	// ### I don't see how these .release()'s can be right given the
-	// statement can execute multiple times. -VP
+	// The following peculiar idiom is a way of Ref'ing each of the
+	// trigger elements.
 	new trigger::Trigger(IntrusivePtr{cond}.release(),
 	                     IntrusivePtr{s1}.release(),
 	                     IntrusivePtr{s2}.release(),

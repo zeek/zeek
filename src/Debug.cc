@@ -34,6 +34,10 @@
 #include "zeek/module_util.h"
 #include "zeek/input.h"
 
+extern "C" {
+#include "zeek/setsignal.h"
+}
+
 using namespace std;
 
 bool zeek::detail::g_policy_debug = false;
@@ -477,8 +481,8 @@ int dbg_init_debugger(const char* cmdfile)
 	init_readline();
 #endif
 
-	signal(SIGINT, &break_signal);
-	signal(SIGTERM, break_signal);
+	setsignal(SIGINT, break_signal);
+	setsignal(SIGTERM, break_signal);
 
 	return 1;
 	}
@@ -858,8 +862,8 @@ int dbg_handle_debug_input()
 	g_debugger_state.curr_frame_idx = 0;
 	g_debugger_state.already_did_list = false;
 
-	signal(SIGINT, &break_signal);
-	signal(SIGTERM, &break_signal);
+	setsignal(SIGINT, break_signal);
+	setsignal(SIGTERM, break_signal);
 
 	return 0;
 	}

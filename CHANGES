@@ -1,4 +1,18 @@
 
+3.3.0-dev.634 | 2020-12-09 10:51:49 -0800
+
+  * GH-1321: Prevent compounding of `connection_status_update` event timers (Jon Siwek, Corelight)
+
+    Particularly for ICMP connections, a new timer got added every time a
+    `connection` record was updated even if there was still a pending timer
+    for that connection.
+
+  * Update Debug.cc to use setsignal() wrapper (Jon Siwek, Corelight)
+
+    So as to prefer sigaction() over either sigset() or signal(), which are
+    less favorable due to underspecification issues and some treating them
+    as obsolete/deprecated.
+
 3.3.0-dev.630 | 2020-12-07 16:52:52 -0800
 
   * Fix narrowing conversion compiler error in SMB error-response logic (Jon Siwek, Corelight)

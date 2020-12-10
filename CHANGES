@@ -1,4 +1,8 @@
 
+3.3.0-dev.638 | 2020-12-09 17:29:03 -0800
+
+  * Update Mozilla Root Store (Johanna Amann, Corelight)
+
 3.3.0-dev.634 | 2020-12-09 10:51:49 -0800
 
   * GH-1321: Prevent compounding of `connection_status_update` event timers (Jon Siwek, Corelight)

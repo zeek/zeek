@@ -1,4 +1,21 @@
 
+3.3.0-dev.645 | 2020-12-10 14:14:12 -0800
+
+  * Fix message ordering of Broker messages (Dominik Charousset, Corelight)
+
+    Using two separate Broker subscribers for status events and regular
+    messages introduces a race on the two objects. Even if Broker sends all
+    messages in a particular (deterministic) order, Zeek may still process
+    them in a different order as a result. Since several tests rely on a
+    strict ordering of Broker events, these tests could fail sporadically.
+
+    Using only a single subscriber for all Broker messages makes sure that
+    Zeek observes all messages in the same order as Broker emits them.
+
+  * Fix UB in shutdown of Broker manager (Dominik Charousset, Corelight)
+
+  * Migrate to CAF 0.18 (Dominik Charousset, Corelight)
+
 3.3.0-dev.638 | 2020-12-09 17:29:03 -0800
 
   * Update Mozilla Root Store (Johanna Amann, Corelight)

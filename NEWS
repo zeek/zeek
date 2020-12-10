@@ -207,6 +207,10 @@ Removed Functionality
 
 - CMake versions less than 3.5 are no longer supported.
 
+- CAF version 0.18 is now required and, by default, that is bundled with
+  the Zeek distribution and will get built unless overridden with the
+  ``--with-caf=`` configuration option.
+
 Deprecated Functionality
 ------------------------
 

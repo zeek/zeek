@@ -217,6 +217,77 @@ TEST_CASE("dict iteration")
 	delete key2;
 	}
 
+TEST_CASE("dict iterator invalidation")
+	{
+	PDict<uint32_t> dict;
+
+	uint32_t val = 15;
+	uint32_t key_val = 5;
+	auto key = new detail::HashKey(key_val);
+
+	uint32_t val2 = 10;
+	uint32_t key_val2 = 25;
+	auto key2 = new detail::HashKey(key_val2);
+
+	uint32_t val3 = 42;
+	uint32_t key_val3 = 37;
+	auto key3 = new detail::HashKey(key_val3);
+
+	dict.Insert(key, &val);
+	dict.Insert(key2, &val2);
+
+	detail::HashKey* it_key;
+	bool iterators_invalidated = false;
+	IterCookie* it = dict.InitForIteration();
+	CHECK(it != nullptr);
+
+	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
+		{
+		iterators_invalidated = false;
+		dict.Remove(key3, &iterators_invalidated);
+		// Key doesn't exist, nothing to remove, iteration not invalidated.
+		CHECK(!iterators_invalidated);
+
+		iterators_invalidated = false;
+		dict.Insert(key, &val2, &iterators_invalidated);
+		// Key exists, value gets overwritten, iteration not invalidated.
+		CHECK(!iterators_invalidated);
+
+		iterators_invalidated = false;
+		dict.Remove(key2, &iterators_invalidated);
+		// Key exists, gets removed, iteration is invalidated.
+		CHECK(iterators_invalidated);
+
+		delete it_key;
+		dict.StopIteration(it);
+		break;
+		}
+
+	it = dict.InitForIteration();
+	CHECK(it != nullptr);
+
+	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
+		{
+		iterators_invalidated = false;
+		dict.Insert(key3, &val3, &iterators_invalidated);
+		// Key doesn't exist, gets inserted, iteration is invalidated.
+		CHECK(iterators_invalidated);
+
+		delete it_key;
+		dict.StopIteration(it);
+		break;
+		}
+
+	CHECK(dict.Length() == 2);
+	CHECK(*static_cast<uint32_t*>(dict.Lookup(key)) == val2);
+	CHECK(*static_cast<uint32_t*>(dict.Lookup(key3)) == val3);
+	CHECK(static_cast<uint32_t*>(dict.Lookup(key2)) == nullptr);
+
+	delete key;
+	delete key2;
+	delete key3;
+	}
+
 TEST_SUITE_END();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -718,12 +789,9 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash, 
 // Insert
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key)
+void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key, bool* iterators_invalidated)
 	{
 	ASSERT_VALID(this);
-
-	// Allow insertions only if there's no active non-robust iterations.
-	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators));
 
 	// Initialize the table if it hasn't been done yet. This saves memory storing a bunch
 	// of empty dicts.
@@ -762,6 +830,14 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 		}
 	else
 		{
+		if ( ! HaveOnlyRobustIterators() )
+			{
+			if ( iterators_invalidated )
+				*iterators_invalidated = true;
+			else
+				reporter->InternalWarning("Dictionary::Insert() possibly caused iterator invalidation");
+			}
+
 		// Allocate memory for key if necesary. Key is updated to reflect internal key if necessary.
 		detail::DictEntry entry(key, key_size, hash, val, insert_distance, copy_key);
 		InsertRelocateAndAdjust(entry, insert_position);
@@ -879,15 +955,23 @@ void Dictionary::SizeUp()
 // Remove
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* Dictionary::Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete)
+void* Dictionary::Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete, bool* iterators_invalidated)
 	{//cookie adjustment: maintain inserts here. maintain next in lower level version.
 	ASSERT_VALID(this);
-	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators)); //only robust iterators exist.
+
 	ASSERT(! dont_delete); //this is a poorly designed flag. if on, the internal has nowhere to return and memory is lost.
 
 	int position = LookupIndex(key, key_size, hash);
 	if ( position < 0 )
 		return nullptr;
+
+	if ( ! HaveOnlyRobustIterators() )
+		{
+		if ( iterators_invalidated )
+			*iterators_invalidated = true;
+		else
+			reporter->InternalWarning("Dictionary::Remove() possibly caused iterator invalidation");
+		}
 
 	detail::DictEntry entry = RemoveRelocateAndAdjust(position);
 	num_entries--;

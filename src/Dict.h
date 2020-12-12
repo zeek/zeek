@@ -164,20 +164,26 @@ public:
 	void* Lookup(const void* key, int key_size, detail::hash_t h) const;
 
 	// Returns previous value, or 0 if none.
-	void* Insert(detail::HashKey* key, void* val)
-		{ return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false); }
+	// If iterators_invalidated is supplied, its value is set to true
+	// if the removal may have invalidated any existing iterators.
+	void* Insert(detail::HashKey* key, void* val, bool* iterators_invalidated = nullptr)
+		{ return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false, iterators_invalidated); }
 
 	// If copy_key is true, then the key is copied, otherwise it's assumed
 	// that it's a heap pointer that now belongs to the Dictionary to
 	// manage as needed.
-	void* Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key);
+	// If iterators_invalidated is supplied, its value is set to true
+	// if the removal may have invalidated any existing iterators.
+	void* Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key, bool* iterators_invalidated = nullptr);
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
 	// If dontdelete is true, the key's bytes will not be deleted.
-	void* Remove(const detail::HashKey* key)
-		{ return Remove(key->Key(), key->Size(), key->Hash()); }
-	void* Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete = false);
+	// If iterators_invalidated is supplied, its value is set to true
+	// if the removal may have invalidated any existing iterators.
+	void* Remove(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
+		{ return Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated); }
+	void* Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete = false, bool* iterators_invalidated = nullptr);
 
 	// Number of entries.
 	int Length() const
@@ -337,6 +343,9 @@ private:
 
 	void SizeUp();
 
+	bool HaveOnlyRobustIterators() const
+		{ return num_iterators == 0 || (cookies && cookies->size() == num_iterators); }
+
 	//alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
 
 	// when sizeup but the current mapping is in progress. the current mapping will be ignored
@@ -380,13 +389,13 @@ public:
 		}
 	T* Lookup(const detail::HashKey* key) const
 		{ return (T*) Dictionary::Lookup(key); }
-	T* Insert(const char* key, T* val)
+	T* Insert(const char* key, T* val, bool* iterators_invalidated = nullptr)
 		{
 		detail::HashKey h(key);
-		return (T*) Dictionary::Insert(&h, (void*) val);
+		return (T*) Dictionary::Insert(&h, (void*) val, iterators_invalidated);
 		}
-	T* Insert(detail::HashKey* key, T* val)
-		{ return (T*) Dictionary::Insert(key, (void*) val); }
+	T* Insert(detail::HashKey* key, T* val, bool* iterators_invalidated = nullptr)
+		{ return (T*) Dictionary::Insert(key, (void*) val, iterators_invalidated); }
 	T* NthEntry(int n) const
 		{ return (T*) Dictionary::NthEntry(n); }
 	T* NthEntry(int n, const char*& key) const
@@ -401,10 +410,10 @@ public:
 		}
 	T* NextEntry(detail::HashKey*& h, IterCookie*& cookie) const
 		{ return (T*) Dictionary::NextEntry(h, cookie, true); }
-	T* RemoveEntry(const detail::HashKey* key)
-		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
-	T* RemoveEntry(const detail::HashKey& key)
-		{ return (T*) Remove(key.Key(), key.Size(), key.Hash()); }
+	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
+		{ return (T*) Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated); }
+	T* RemoveEntry(const detail::HashKey& key, bool* iterators_invalidated = nullptr)
+		{ return (T*) Remove(key.Key(), key.Size(), key.Hash(), false, iterators_invalidated); }
 };
 
 } // namespace zeek

@@ -1,4 +1,11 @@
 
+3.3.0-dev.648 | 2020-12-12 13:39:28 -0800
+
+  * Update Coverity Scan GitHub Action (Jon Siwek, Corelight)
+
+    * Remove old Python 2 vs. 3 workaround
+    * Build CAF separately to prevent internal errors in Coverity tools
+
 3.3.0-dev.645 | 2020-12-10 14:14:12 -0800
 
   * Fix message ordering of Broker messages (Dominik Charousset, Corelight)

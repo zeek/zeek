@@ -120,6 +120,49 @@ New Functionality
   epochs will have to be manually ended by callis ``SumStats::next_epoch``. This
   can be convenient because epochs can be synced to other events.
 
+- The Zeek distribution now includes Zeek's package manager, zkg. Its
+  code, configuration, and state reside in Zeek's installation tree,
+  as follows:
+
+  - The toplevel script, ``zkg``, installs alongside ``zeek`` in the
+    distribution's ``$prefix/bin`` folder.
+
+  - The config file installs into ``$prefix/etc/zkg/config``. The
+    distribution's zkg command uses it by default, but you can switch
+    to a different one via the ``ZKG_CONFIG_FILE`` environment
+    variable or the ``--configfile`` command-line flag.
+
+  - zkg's package state resides in ``$prefix/var/lib/zkg``. This
+    implies that parallel Zeek installations now automatically
+    separate their package installations.
+
+  These folders have the same ownership and access permissions as the
+  rest of the installation, , meaning that in order to manage zkg
+  packages you need to run zkg as a user with corresponding access.
+  Apart from these location overrides, the bundled zkg installation
+  behaves as usual.
+
+  local.zeek now contains a (commented out) ``@load`` statement you
+  can use to source zkg's package state automatically.
+
+  zkg's own Python module resides in ``zeek/python/zeekpkg`, in the
+  installation tree's library folder. See below for additional changes
+  around the library folder.
+
+  zkg has external Python module dependencies. The Zeek configuration
+  does not verify whether these dependencies are met. A new warning
+  message at zkg launch flags missing packages and how to install them
+  (e.g. via pip).
+
+  Configuring with ``--disable-zkg`` disables the zkg inclusion. You
+  can continue to install and use zkg independently. You're also free
+  to use the config file in ``$prefix/etc/zkg/config`` with other zkg
+  installations. 
+
+  The zkg source tree resides in ``auxil/package-manager`` as an
+  additional Git submodule.
+
+
 Changed Functionality
 ---------------------
 
@@ -166,11 +209,25 @@ Changed Functionality
 - The Zeek installation tree is now more consistent in using a ``lib64/``
   (rather than ``lib/``) subdirectory for platforms where that's the common
   convention.  If the old hardcoded ``lib/`` path exists while installing Zeek
-  4.0 and the new subdirectory differs, then the old ``lib/`` will be removed.
-  This potentially wipes out binary plugins that have already been installed
-  there, but Zeek plugins generally have to be re-built/re-installed upon any
-  Zeek upgrade anyway, so no part of the usual upgrade process is expected to
-  be complicated by this cleanup operation.
+  4.0 and the new subdirectory differs, the old ``lib/`` remains untouched.
+  This clutters the installation but is safe: the new installation does not
+  require the old location, and any files you might require still in the old
+  tree (e.g. ZeekControl plugins) remain available.
+
+  Due to Zeek 4's reorganization of the installation tree we recommend
+  a clean-slate install when possible.
+
+- Python modules installed with the Zeek distribution now reside in a
+  common ``zeek/python`` directory below the library path (such as
+  ``lib64/zeek/python``) and no longer assume ZeekControl. The
+  ``zeek/python/zeekctl`` folder now contains only ZeekControl's own
+  functionality, ``zeek/python/zeekpkg`` contains zkg's Python module, and
+  Broker's Python bindings live in ``zeek/python/broker``. ``zeek-config
+  --python_dir`` now reports this new ``zeek/python`` folder. Several
+  new configure options allow you to customize the Python folder location,
+  depending on your needs.
+
+  As with the new libdir, no cleanup of the existing Python tree occurs.
 
 - Continued renaming/namespacing of many classes into either ``zeek`` or
   ``zeek::detail`` namespaces as already explained in Zeek 3.2's release notes.
@@ -206,6 +263,10 @@ Removed Functionality
 - Python 2 is no longer supported.  Python 3.5 is the new minimum requirement.
 
 - CMake versions less than 3.5 are no longer supported.
+
+- CAF version 0.18 is now required and, by default, that is bundled with
+  the Zeek distribution and will get built unless overridden with the
+  ``--with-caf=`` configuration option.
 
 Deprecated Functionality
 ------------------------

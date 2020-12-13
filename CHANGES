@@ -1,4 +1,106 @@
 
+3.3.0-dev.650 | 2020-12-12 20:24:19 -0800
+
+  * Install zkg as part of the Zeek distribution. (Christian Kreibich, Corelight)
+
+    - Add auxil/package-manager submodule as an optional build
+      source. When the submodule is present, zkg gets installed into the
+      Zeek installation's bin directory, its config file into etc/zkg, and
+      its state into var/lib/zkg. Like zeekctl, zkg finds its own module
+      independently of any PYTHONPATH. Installation via pip remains
+      supported. You can skip zkg explicitly via --disable-zkg. See the
+      NEWS update for details.
+
+    - Establish a "zeek/python" subdirectory under libdir as the common place
+      for Python modules in the Zeek distribution. This now separates out
+      the Broker Python bindings, ZeekControl, and zkg's Python module.
+
+    - Add configure flags to allow customizing this Python folder, in
+      three ways: --python-dir, --python-prefix, and --python-home. These
+      differ in the logic they automatically add to the path, and build on
+      the logic already used in Broker.
+
+    - Include a (commented-out) @load for zkg's packages folder in local.zeek.
+
+3.3.0-dev.648 | 2020-12-12 13:39:28 -0800
+
+  * Update Coverity Scan GitHub Action (Jon Siwek, Corelight)
+
+    * Remove old Python 2 vs. 3 workaround
+    * Build CAF separately to prevent internal errors in Coverity tools
+
+3.3.0-dev.645 | 2020-12-10 14:14:12 -0800
+
+  * Fix message ordering of Broker messages (Dominik Charousset, Corelight)
+
+    Using two separate Broker subscribers for status events and regular
+    messages introduces a race on the two objects. Even if Broker sends all
+    messages in a particular (deterministic) order, Zeek may still process
+    them in a different order as a result. Since several tests rely on a
+    strict ordering of Broker events, these tests could fail sporadically.
+
+    Using only a single subscriber for all Broker messages makes sure that
+    Zeek observes all messages in the same order as Broker emits them.
+
+  * Fix UB in shutdown of Broker manager (Dominik Charousset, Corelight)
+
+  * Migrate to CAF 0.18 (Dominik Charousset, Corelight)
+
+3.3.0-dev.638 | 2020-12-09 17:29:03 -0800
+
+  * Update Mozilla Root Store (Johanna Amann, Corelight)
+
+3.3.0-dev.634 | 2020-12-09 10:51:49 -0800
+
+  * GH-1321: Prevent compounding of `connection_status_update` event timers (Jon Siwek, Corelight)
+
+    Particularly for ICMP connections, a new timer got added every time a
+    `connection` record was updated even if there was still a pending timer
+    for that connection.
+
+  * Update Debug.cc to use setsignal() wrapper (Jon Siwek, Corelight)
+
+    So as to prefer sigaction() over either sigset() or signal(), which are
+    less favorable due to underspecification issues and some treating them
+    as obsolete/deprecated.
+
+3.3.0-dev.630 | 2020-12-07 16:52:52 -0800
+
+  * Fix narrowing conversion compiler error in SMB error-response logic (Jon Siwek, Corelight)
+
+3.3.0-dev.629 | 2020-12-07 16:03:25 -0800
+
+  * Add tests for new SMB3 multichannel support (Vlad Grigorescu)
+
+  * Fix SMB2 response status parsing. Fixes #1286 (Vlad Grigorescu)
+
+3.3.0-dev.624 | 2020-12-07 18:17:34 +0000
+
+  * Switch test baselines to canonified baselines
+
+    All baselines are now using the new btest feature to save baselines in the canonified
+    form (after the canonifiers are run). This should, hopefully, lead to less changes in
+    the future - that are easier to diff.
+
+    In addition, this cleans up a few small problems of the canonifiers which were over-eager
+    in identifying some numerical and path values.
+
+    We also use the new btest-diff --binary flag to identify binary files on which no
+    canonifier (not even the default canonifier) is applied.
+
+    (Christian Kreibich, Corelight with tiny additions by Johanna Amann, Corelight)
+
+3.3.0-dev.611 | 2020-12-07 09:42:37 -0800
+
+  * Fix misassociation of Zeekygen-style comments within function scopes (Jon Siwek, Corelight)
+
+    All Zeekygen-style comments relate to entities at global scope, so those
+    found within functions are now ignored instead of misassociated.
+
+3.3.0-dev.609 | 2020-12-04 19:20:39 -0800
+
+  * Remove an extraneous Zeekygen-style comment (Jon Siwek, Corelight)
+
 3.3.0-dev.607 | 2020-12-04 11:16:09 -0800
 
   * Fix the CMake 'dist' target of Zeek plugins to only run when outdated (Benjamin Bannier, Corelight)

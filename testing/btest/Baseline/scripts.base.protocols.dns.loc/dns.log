@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
 #types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	79.141.82.250	57483	192.188.22.52	53	udp	33295	0.000195	sunn-pt1.es.net	1	C_INTERNET	255	*	0	NOERROR	T	F	F	F	0	LOC:  18 21 19,RRSIG 29 es.net	60XXXXXXXXXX.XXXXXX,60XXXXXXXXXX.XXXXXX	F
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	79.141.82.250	57483	192.188.22.52	53	udp	33295	0.000195	sunn-pt1.es.net	1	C_INTERNET	255	*	0	NOERROR	T	F	F	F	0	LOC:  18 21 19,RRSIG 29 es.net	600.000000,600.000000	F
 #close XXXX-XX-XX-XX-XX-XX

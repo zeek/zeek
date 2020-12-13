@@ -322,6 +322,9 @@ void Connection::SetInactivityTimeout(double timeout)
 
 void Connection::EnableStatusUpdateTimer()
 	{
+	if ( installed_status_timer )
+		return;
+
 	if ( connection_status_update && zeek::detail::connection_status_update_interval )
 		{
 		ADD_TIMER(&Connection::StatusUpdateTimer,

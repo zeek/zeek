@@ -199,12 +199,14 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 	// the function, *using the knowledge that the parameters are
 	// declared first*.
 	auto scope = func_vf->GetScope();
-	auto vars = scope->OrderedVars();
+	auto& vars = scope->OrderedVars();
 	int nparam = func_vf->GetType()->Params()->NumFields();
 
-	auto params = new IDPList;
+	std::vector<IDPtr> params;
+	params.reserve(nparam);
+
 	for ( int i = 0; i < nparam; ++i )
-		params->append(vars[i].get());
+		params.emplace_back(vars[i]);
 
 	auto body_dup = body->Duplicate();
 
@@ -229,8 +231,8 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 	else
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
-	auto ie = make_intrusive<InlineExpr>(args, params, body_dup,
-						curr_frame_size, t);
+	auto ie = make_intrusive<InlineExpr>(args, std::move(params), body_dup,
+	                                     curr_frame_size, t);
 	ie->SetOriginal(c);
 
 	return ie;

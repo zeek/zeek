@@ -445,13 +445,13 @@ ExprPtr IsExpr::Duplicate()
 	}
 
 
-InlineExpr::InlineExpr(ListExprPtr arg_args, IDPList* arg_params,
+InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params,
 			StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
 : Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
 	{
-	params = arg_params;
+	params = std::move(arg_params);
 	frame_offset = _frame_offset;
-	type = ret_type;
+	type = std::move(ret_type);
 	}
 
 bool InlineExpr::IsPure() const
@@ -497,8 +497,7 @@ ExprPtr InlineExpr::Duplicate()
 	{
 	auto args_d = args->Duplicate()->AsListExprPtr();
 	auto body_d = body->Duplicate();
-	return SetSucc(new InlineExpr(args_d, params, body_d, frame_offset,
-					type));
+	return SetSucc(new InlineExpr(args_d, params, body_d, frame_offset, type));
 	}
 
 TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const

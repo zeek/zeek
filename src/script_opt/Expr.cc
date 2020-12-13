@@ -479,7 +479,7 @@ ValPtr InlineExpr::Eval(Frame* f) const
 	int nargs = args->Exprs().length();
 
 	f->Reset(frame_offset + nargs);
-	f->IncreaseOffset(frame_offset);
+	f->AdjustOffset(frame_offset);
 
 	// Assign the arguments.
 	for ( auto i = 0; i < nargs; ++i )
@@ -494,11 +494,11 @@ ValPtr InlineExpr::Eval(Frame* f) const
 
 	catch ( InterpreterException& e )
 		{
-		f->IncreaseOffset(-frame_offset);
+		f->AdjustOffset(-frame_offset);
 		throw;
 		}
 
-	f->IncreaseOffset(-frame_offset);
+	f->AdjustOffset(-frame_offset);
 
 	return result;
 	}

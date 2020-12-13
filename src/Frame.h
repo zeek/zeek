@@ -99,13 +99,13 @@ public:
 		{ return GetElementByID(id).get(); }
 
 	/**
-	 * Increases the current offset being used for frame accesses.
+	 * Adjusts the current offset being used for frame accesses.
 	 * This is in support of inlined functions.
 	 *
 	 * @param incr  Amount by which to increase the frame offset.
 	 *              Use a negative value to shrink the offset.
 	 */
-	void IncreaseOffset(int incr)   { current_offset += incr; }
+	void AdjustOffset(int incr)   { current_offset += incr; }
 
 	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in

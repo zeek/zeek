@@ -40,9 +40,7 @@ const char* expr_name(BroExprTag t)
 		"()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
 		"sizeof", "cast", "is", "[:]=",
-
-#include "zeek/script_opt/ExprOpt-Names.h"
-
+		"inline()",
 		"nop",
 
 	};

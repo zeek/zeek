@@ -67,9 +67,7 @@ enum BroExprTag : int {
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
-
-#include "zeek/script_opt/ExprOpt-Enums.h"
-
+	EXPR_INLINE,
 	EXPR_NOP,
 
 #define NUM_EXPRS (int(EXPR_NOP) + 1)
@@ -196,7 +194,39 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
-#include "zeek/script_opt/ExprOpt-Public.h"
+	// Returns a duplicate of the expression.
+	virtual ExprPtr Duplicate() = 0;
+
+	// Recursively traverses the AST to inline eligible function calls.
+	virtual ExprPtr Inline(Inliner* inl)	{ return ThisPtr(); }
+
+	// Access to the original expression from which this one is derived,
+	// or this one if we don't have an original.  Returns a bare pointer
+	// rather than an ExprPtr to emphasize that the access is read-only.
+	const Expr* Original() const
+		{ return original ? original->Original() : this; }
+
+	// Designate the given Expr node as the original for this one.
+	void SetOriginal(ExprPtr _orig)
+		{
+		if ( ! original )
+			original = std::move(_orig);
+		}
+
+	// A convenience function for taking a newly-created Expr,
+	// making it point to us as the successor, and returning it.
+	//
+	// Takes an Expr* rather than a ExprPtr to de-clutter the calling
+	// code, which is always passing in "new XyzExpr(...)".  This
+	// call, as a convenient side effect, transforms that bare pointer
+	// into an ExprPtr.
+	virtual ExprPtr SetSucc(Expr* succ)
+		{
+		succ->SetOriginal(ThisPtr());
+		if ( IsParen() )
+			succ->MarkParen();
+		return {AdoptRef{}, succ};
+		}
 
 protected:
 	Expr() = default;
@@ -223,7 +253,10 @@ protected:
 	TypePtr type;
 	bool paren;
 
-#include "zeek/script_opt/ExprOpt-Private.h"
+	// The original expression from which this statement was
+	// derived, if any.  Used as an aid for generating meaningful
+	// and correctly-localized error messages.
+	ExprPtr original = nullptr;
 };
 
 class NameExpr final : public Expr {
@@ -1100,7 +1133,30 @@ private:
 };
 
 
-#include "zeek/script_opt/ExprOpt-Subclasses.h"
+class InlineExpr : public Expr {
+public:
+	InlineExpr(ListExprPtr arg_args, IDPList* params, StmtPtr body,
+	           int frame_offset, TypePtr ret_type);
+
+	bool IsPure() const override;
+
+	ListExprPtr Args() const	{ return args; }
+	StmtPtr Body() const		{ return body; }
+
+	ValPtr Eval(Frame* f) const override;
+
+	ExprPtr Duplicate() override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+	IDPList* params;
+	int frame_offset;
+	ListExprPtr args;
+	StmtPtr body;
+};
 
 
 inline Val* Expr::ExprVal() const

@@ -159,8 +159,8 @@ StmtPtr ReturnStmt::Duplicate()
 
 ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored)
 	: ExprStmt(STMT_RETURN, std::move(arg_e))
-        {
-        }
+	{
+	}
 
 
 StmtPtr StmtList::Duplicate()

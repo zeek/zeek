@@ -50,9 +50,6 @@ public:
 		ordered_vars.push_back(std::forward<I>(id));
 		}
 
-	IDPtr Remove(std::string_view name);
-	[[deprecated("Remove in v4.1 as an unused API call.")]]
-
 	[[deprecated("Remove in v4.1.  Use GetID().")]]
 	ID* ScopeID() const		{ return scope_id.get(); }
 

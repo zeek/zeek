@@ -105,7 +105,7 @@ public:
 	 * @param incr  Amount by which to increase the frame offset.
 	 *              Use a negative value to shrink the offset.
 	 */
-	void IncreaseOffset(int incr)   { current_offset += incr; } 
+	void IncreaseOffset(int incr)   { current_offset += incr; }
 
 	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in
@@ -325,7 +325,8 @@ private:
 	/** Associates ID's offsets with values. */
 	std::unique_ptr<Element[]> frame;
 
-	/** The offset we're currently using for references into the frame.
+	/**
+	 * The offset we're currently using for references into the frame.
 	 * This is how we support inlined functions without having to
 	 * alter the offsets associated with their local variables.
 	 */

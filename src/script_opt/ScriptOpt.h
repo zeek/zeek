@@ -34,9 +34,9 @@ class FuncInfo {
 public:
 	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body)
 		{
-		func = _func;
-		scope = _scope;
-		body = _body;
+		func = std::move(_func);
+		scope = std::move(_scope);
+		body = std::move(_body);
 		}
 
 	~FuncInfo();

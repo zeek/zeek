@@ -20,7 +20,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 
 	if ( tag == STMT_INIT )
 		{
-		for ( auto id : s->AsInitStmt()->Inits() )
+		for ( const auto& id : s->AsInitStmt()->Inits() )
 			inits.insert(id.get());
 
 		// Don't recurse into these, as we don't want to consider

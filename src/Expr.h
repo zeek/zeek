@@ -179,19 +179,18 @@ public:
 	void MarkParen()		{ paren = true; }
 	bool IsParen() const		{ return paren; }
 
-#undef ACCESSORS
-#define ACCESSORS(ctype) \
+#define ZEEK_EXPR_ACCESSOR_DECLS(ctype) \
 	const ctype* As ## ctype () const; \
 	ctype* As ## ctype (); \
 	IntrusivePtr<ctype> As ## ctype ## Ptr ();
 
-	ACCESSORS(ListExpr)
-	ACCESSORS(NameExpr)
-	ACCESSORS(ConstExpr)
-	ACCESSORS(CallExpr)
-	ACCESSORS(AssignExpr)
-	ACCESSORS(IndexExpr)
-	ACCESSORS(EventExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(ConstExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(CallExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(EventExpr)
 
 	void Describe(ODesc* d) const override final;
 
@@ -770,7 +769,7 @@ public:
 	TableConstructorExpr(ListExprPtr constructor_list,
 	                     std::unique_ptr<std::vector<AttrPtr>> attrs,
 	                     TypePtr arg_type = nullptr,
-			     AttributesPtr arg_attrs = nullptr);
+	                     AttributesPtr arg_attrs = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }

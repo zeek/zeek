@@ -171,7 +171,7 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 	if ( ! func->IsGlobal() )
 		return std::move(c);
 
-	auto func_v = func->GetVal();
+	const auto& func_v = func->GetVal();
 	if ( ! func_v )
 		return std::move(c);
 

@@ -63,12 +63,6 @@ public:
 
 	~Func() override;
 
-	zeek::detail::ScriptFunc* AsScriptFunc()
-		{ return GetKind() == SCRIPT_FUNC ? (detail::ScriptFunc*) this : nullptr; }
-
-	const zeek::detail::ScriptFunc* AsScriptFunc() const
-		{ return GetKind() == SCRIPT_FUNC ? (detail::ScriptFunc*) this : nullptr; }
-
 	virtual bool IsPure() const = 0;
 	FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
 

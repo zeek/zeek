@@ -146,10 +146,10 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		if ( func_v )
 			{
 			auto func_vf = func_v->AsFunc();
-			auto bf = func_vf->AsScriptFunc();
 
-			if ( bf )
+			if ( func_vf->GetKind() == Func::SCRIPT_FUNC )
 				{
+				auto bf = static_cast<ScriptFunc*>(func_vf);
 				script_calls.insert(bf);
 
 				if ( in_when )

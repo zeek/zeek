@@ -738,10 +738,10 @@ void end_func(StmtPtr body)
 		ingredients->id->SetConst();
 		}
 
-	auto func = ingredients->id->GetVal()->AsFunc()->AsScriptFunc();
+	auto func = cast_intrusive<ScriptFunc>(ingredients->id->GetVal()->AsFuncPtr());
 	func->SetScope(ingredients->scope);
 
-	analyze_func({NewRef{}, func});
+	analyze_func(std::move(func));
 
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the

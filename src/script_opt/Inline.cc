@@ -175,10 +175,12 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 	if ( ! func_v )
 		return c;
 
-	auto func_vf = func_v->AsFunc()->AsScriptFunc();
+	auto function = func_v->AsFunc();
 
-	if ( ! func_vf )
+	if ( function->GetKind() != Func::SCRIPT_FUNC )
 		return c;
+
+	auto func_vf = static_cast<ScriptFunc*>(function);
 
 	if ( inline_ables.count(func_vf) == 0 )
 		return c;

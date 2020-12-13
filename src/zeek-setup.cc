@@ -787,7 +787,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	if ( analysis_options.report_recursive )
 		// This option is report-and-exit.
-		return {0, std::move(options), true};
+		exit(0);
 
 	if ( dns_type != DNS_PRIME )
 		run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);

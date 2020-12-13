@@ -15,9 +15,6 @@ int main(int argc, char** argv)
 	if ( setup_result.code )
 		return setup_result.code;
 
-	if ( setup_result.parse_only )
-		return 0;
-
 	auto& options = setup_result.options;
 	auto do_net_run = zeek::iosource_mgr->Size() > 0 ||
 	                  zeek::run_state::detail::have_pending_timers ||

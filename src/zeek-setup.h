@@ -9,7 +9,6 @@ namespace zeek::detail {
 struct SetupResult {
 	int code = 0;
 	Options options;
-	bool parse_only = false;
 };
 
 /**

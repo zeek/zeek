@@ -163,25 +163,25 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 
 	if ( f->Tag() != EXPR_NAME )
 		// We don't inline indirect calls.
-		return std::move(c);
+		return c;
 
 	auto n = f->AsNameExpr();
 	auto func = n->Id();
 
 	if ( ! func->IsGlobal() )
-		return std::move(c);
+		return c;
 
 	const auto& func_v = func->GetVal();
 	if ( ! func_v )
-		return std::move(c);
+		return c;
 
 	auto func_vf = func_v->AsFunc()->AsScriptFunc();
 
 	if ( ! func_vf )
-		return std::move(c);
+		return c;
 
 	if ( inline_ables.count(func_vf) == 0 )
-		return std::move(c);
+		return c;
 
 	ListExprPtr args = {NewRef{}, c->Args()};
 	auto body = func_vf->GetBodies()[0].stmts;	// there's only 1 body

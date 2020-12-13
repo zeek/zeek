@@ -320,27 +320,21 @@ ExprPtr ArithCoerceExpr::Duplicate()
 ExprPtr RecordCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
-	auto rt = GetType()->AsRecordType();
-	RecordTypePtr rt_p = {NewRef{}, rt};
-	return SetSucc(new RecordCoerceExpr(op_dup, rt_p));
+	return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 	}
 
 
 ExprPtr TableCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
-	auto tt = GetType()->AsTableType();
-	TableTypePtr tt_p = {NewRef{}, tt};
-	return SetSucc(new TableCoerceExpr(op_dup, tt_p));
+	return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
 	}
 
 
 ExprPtr VectorCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
-	auto vt = GetType()->AsVectorType();
-	VectorTypePtr vt_p = {NewRef{}, vt};
-	return SetSucc(new VectorCoerceExpr(op_dup, vt_p));
+	return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
 	}
 
 
@@ -387,9 +381,7 @@ ExprPtr CallExpr::Inline(Inliner* inl)
 
 	// We're not inlining, but perhaps our elements should be.
 	func = func->Inline(inl);
-
-	auto new_args = args->Inline(inl);
-	args = {NewRef{}, new_args->AsListExpr()};
+	args = cast_intrusive<ListExpr>(args->Inline(inl));
 
 	return ThisPtr();
 	}
@@ -417,9 +409,7 @@ ExprPtr EventExpr::Duplicate()
 
 ExprPtr EventExpr::Inline(Inliner* inl)
 	{
-	auto el = args->Inline(inl)->AsListExpr();
-	args = {NewRef{}, el};
-
+	args = cast_intrusive<ListExpr>(args->Inline(inl));
 	return ThisPtr();
 	}
 

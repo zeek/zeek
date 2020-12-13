@@ -1,4 +1,27 @@
 
+3.3.0-dev.650 | 2020-12-12 20:24:19 -0800
+
+  * Install zkg as part of the Zeek distribution. (Christian Kreibich, Corelight)
+
+    - Add auxil/package-manager submodule as an optional build
+      source. When the submodule is present, zkg gets installed into the
+      Zeek installation's bin directory, its config file into etc/zkg, and
+      its state into var/lib/zkg. Like zeekctl, zkg finds its own module
+      independently of any PYTHONPATH. Installation via pip remains
+      supported. You can skip zkg explicitly via --disable-zkg. See the
+      NEWS update for details.
+
+    - Establish a "zeek/python" subdirectory under libdir as the common place
+      for Python modules in the Zeek distribution. This now separates out
+      the Broker Python bindings, ZeekControl, and zkg's Python module.
+
+    - Add configure flags to allow customizing this Python folder, in
+      three ways: --python-dir, --python-prefix, and --python-home. These
+      differ in the logic they automatically add to the path, and build on
+      the logic already used in Broker.
+
+    - Include a (commented-out) @load for zkg's packages folder in local.zeek.
+
 3.3.0-dev.648 | 2020-12-12 13:39:28 -0800
 
   * Update Coverity Scan GitHub Action (Jon Siwek, Corelight)

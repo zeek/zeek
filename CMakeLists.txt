@@ -53,8 +53,11 @@ endif ()
 get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
-set(BRO_PLUGIN_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/zeek/plugins CACHE STRING "Installation path for plugins" FORCE)
-set(PY_MOD_INSTALL_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/zeekctl CACHE STRING "Installation path for Python modules" FORCE)
+# A folder for library-like Zeek-specific things: Python modules, Zeek
+# plugins, etc.
+set(ZEEK_LIBDIR_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/zeek)
+set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_LIBDIR_PATH}/plugins
+    CACHE STRING "Installation path for plugins" FORCE)
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
@@ -244,6 +247,25 @@ FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
+
+# Installation directory for the distribution's Python modules. An
+# override via configure's --python-dir wins, specifying a directory
+# explicitly. Next is --python-prefix, which includes a versioned
+# Python folder as the --prefix option in distutils does. Next
+# consider a distutils --home style override via --python-home, and
+# finally default to "zeek/python" in our libdir.
+if (ZEEK_PYTHON_DIR)
+    set(py_mod_install_dir ${ZEEK_PYTHON_DIR})
+elseif (ZEEK_PYTHON_PREFIX)
+    set(pyver ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
+    set(py_mod_install_dir ${ZEEK_PYTHON_PREFIX}/lib/python${pyver}/site-packages)
+elseif (ZEEK_PYTHON_HOME)
+    set(py_mod_install_dir ${ZEEK_PYTHON_HOME}/lib/python)
+else ()
+    set(py_mod_install_dir ${ZEEK_LIBDIR_PATH}/python)
+endif ()
+set(PY_MOD_INSTALL_DIR ${py_mod_install_dir}
+    CACHE STRING "Installation path for Python modules" FORCE)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
 
@@ -520,6 +542,24 @@ InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
 InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
 
 ########################################################################
+## zkg configuration
+
+if ( INSTALL_ZKG )
+    # An etc/zkg directory for zkg's config file simplifies zkg's
+    # config file code.
+    set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
+    set(ZEEK_ZKG_STATE_DIR "${ZEEK_ROOT_DIR}/var/lib/zkg")
+
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in
+        ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
+
+    install(DIRECTORY DESTINATION var/lib/zkg)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config
+        DESTINATION ${ZEEK_ZKG_CONFIG_DIR} RENAME config)
+endif ()
+
+########################################################################
 ## Recurse on sub-directories
 
 add_subdirectory(src)
@@ -528,31 +568,15 @@ add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 
+CheckOptionalBuildSources(auxil/package-manager ZKG INSTALL_ZKG)
 CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 
 ########################################################################
-## Transitions and cleanups
-
-if ( NOT BINARY_PACKAGING_MODE )
-    # Remove pre-existing libdir of the old hardwired name if it is not
-    # the name we're now installing under.
-    set(_old_libdir ${CMAKE_INSTALL_PREFIX}/lib)
-
-    install(CODE "
-        if ( EXISTS \"${_old_libdir}\" AND IS_DIRECTORY \"${_old_libdir}\"
-             AND NOT \"${_old_libdir}\" STREQUAL \"${CMAKE_INSTALL_FULL_LIBDIR}\" )
-            message(STATUS \"WARNING: removing old library directory ${_old_libdir}\")
-            execute_process(COMMAND \"${CMAKE_COMMAND}\" -E remove_directory \"${_old_libdir}\")
-        endif ()
-    ")
-endif ()
-
-########################################################################
 ## Packaging Setup
 
-if (INSTALL_ZEEKCTL)
+if ( INSTALL_ZEEKCTL OR INSTALL_ZKG )
     # CPack RPM Generator may not automatically detect this
     set(CPACK_RPM_PACKAGE_REQUIRES "python >= ${ZEEK_PYTHON_MIN}")
 endif ()
@@ -578,6 +602,8 @@ message(
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
     "\nBuild dir:         ${CMAKE_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nPlugin dir:        ${BRO_PLUGIN_INSTALL_PATH}"
+    "\nPython module dir: ${PY_MOD_INSTALL_DIR}"
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
@@ -590,6 +616,7 @@ message(
     "\n"
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
+    "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"

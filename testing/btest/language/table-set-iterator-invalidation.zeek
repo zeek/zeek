@@ -9,7 +9,7 @@
 local t = table([1] = "one", [2] = "two", [3] = "three");
 
 for ( i in t )
-	# Modifying an existing element is not qualified an modifying membership,
+	# Modifying an existing element is not qualified as modifying membership,
 	# so this doesn't trigger a warning.
 	t[i] = cat(i);
 

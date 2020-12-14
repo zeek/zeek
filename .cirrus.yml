@@ -1,9 +1,9 @@
-##########################################################################
-# Please note:                                                           #
-#                                                                        #
-# After updating this file, please also update the support matrix at     #
-# https://github.com/zeek/zeek/wiki/Zeek-Operating-System-Support-Matrix #
-##########################################################################
+##################################################################################
+# Please note:                                                                   #
+#                                                                                #
+# After updating this file, please also update CI column of  the support matrix  #
+# at https://github.com/zeek/zeek/wiki/Zeek-Operating-System-Support-Matrix      #
+##################################################################################
 
 cpus: &CPUS 4
 btest_jobs: &BTEST_JOBS 4

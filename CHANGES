@@ -1,4 +1,17 @@
 
+3.3.0-dev.663 | 2020-12-14 14:27:45 -0800
+
+  * Rename a 'do_net_run' variable to 'do_run_loop'
+
+    For clarity, since the net_run() function was renamed to run_loop(). (Jon Siwek, Corelight)
+
+  * GH-1329: call Zeek's cleanup function from standalone fuzzer driver (Jon Siwek, Corelight)
+
+    Otherwise, the global Broker manager object containing CAF/threading
+    logic is never destructed and can result in a heap-use-after-free if it
+    tries to access other global objects after they're cleaned up from
+    __cxa_finalize().
+
 3.3.0-dev.660 | 2020-12-14 10:55:15 -0800
 
   * Fix typo in table iterator invalidation test comment (Tim Wojtulewicz, Corelight)

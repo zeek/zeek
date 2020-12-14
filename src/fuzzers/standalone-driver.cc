@@ -6,6 +6,8 @@
 #include <memory>
 #include <chrono>
 
+#include "zeek/zeek-setup.h"
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size);
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv);
 
@@ -64,4 +66,5 @@ int main(int argc, char** argv)
 	auto fuzz_dt = duration<double>(agg_stop - fuzz_start).count();
 	printf("Processed %d inputs in %fs (%fs w/ initialization), avg = %fs\n",
 	       num_inputs, fuzz_dt, agg_dt, fuzz_dt / num_inputs);
+	return zeek::detail::cleanup(false);
 	}

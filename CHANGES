@@ -1,4 +1,22 @@
 
+3.3.0-dev.660 | 2020-12-14 10:55:15 -0800
+
+  * Fix typo in table iterator invalidation test comment (Tim Wojtulewicz, Corelight)
+
+  * GH-1328: Improve behavior of Dictionary iterator invalidation (Jon Siwek, Corelight)
+
+    Previously, an assertion was triggered in debug builds upon any attempt
+    to insert or remove a Dictionary entry while any iteration of that
+    Dictionary is underway and also even in cases where Dictionary membership
+    was not actually modified (and thus invalidates a loop).
+
+    Now, it emits run-time warnings regardless of build-type and only when
+    insert/remove operations truly change the Dictionary membership.  In the
+    context of a Zeek script causing an invalidation, the warning message
+    also now helps pinpoint the exact expression that causes it.
+
+  * Add a note about aligning .cirrus.yml to platform support matrix wiki page (Johanna Amann, Corelight)
+
 3.3.0-dev.650 | 2020-12-12 20:24:19 -0800
 
   * Install zkg as part of the Zeek distribution. (Christian Kreibich, Corelight)

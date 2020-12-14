@@ -19,7 +19,7 @@ public:
 	// First argument is a collection of information about *all* of
 	// the script functions.  Second argument states whether to report
 	// recursive functions (of interest as they're not in-lineable).
-	Inliner(std::vector<FuncInfo*>& _funcs, bool _report_recursive)
+	Inliner(std::vector<FuncInfo>& _funcs, bool _report_recursive)
 	: funcs(_funcs), report_recursive(_report_recursive)
 		{ Analyze(); }
 
@@ -40,7 +40,7 @@ protected:
 
 	// Information about all of the functions (and events/hooks) in
 	// the full set of scripts.
-	std::vector<FuncInfo*>& funcs;
+	std::vector<FuncInfo>& funcs;
 
 	// Functions that we've determined to be suitable for inlining.
 	std::unordered_set<Func*> inline_ables;

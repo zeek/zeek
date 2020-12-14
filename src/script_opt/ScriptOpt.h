@@ -32,34 +32,27 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 // Info we need for tracking an instance of a function.
 class FuncInfo {
 public:
-	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body)
-		{
-		func = std::move(_func);
-		scope = std::move(_scope);
-		body = std::move(_body);
-		}
-
-	~FuncInfo();
+	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body);
 
 	ScriptFunc* Func()	{ return func.get(); }
 	ScriptFuncPtr FuncPtr()	{ return func; }
 	ScopePtr Scope()	{ return scope; }
 	StmtPtr Body()		{ return body; }
-	ProfileFunc* Profile()	{ return pf; }
-	const char* SaveFile()	{ return save_file; }
+	ProfileFunc* Profile()	{ return pf.get(); }
+	const std::string& SaveFile()	{ return save_file; }
 
-	void SetProfile(ProfileFunc* _pf)	{ pf = _pf; }
-	void SetSaveFile(const char* _sf);
+	void SetProfile(std::unique_ptr<ProfileFunc> _pf);
+	void SetSaveFile(std::string _sf)	{ save_file = std::move(_sf); }
 
 protected:
 	ScriptFuncPtr func;
 	ScopePtr scope;
 	StmtPtr body;
-	ProfileFunc* pf = nullptr;
+	std::unique_ptr<ProfileFunc> pf;
 
 	// If we're saving this function in a file, this is the name
 	// of the file to use.
-	char* save_file = nullptr;
+	std::string save_file;
 };
 
 

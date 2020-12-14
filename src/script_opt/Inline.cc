@@ -24,13 +24,13 @@ void Inliner::Analyze()
 		std::unordered_set<const Func*> cs;
 
 		// Aspirational ....
-		non_recursive_funcs.insert(f->Func());
+		non_recursive_funcs.insert(f.Func());
 
-		for ( auto& func : f->Profile()->ScriptCalls() )
+		for ( auto& func : f.Profile()->ScriptCalls() )
 			{
 			cs.insert(func);
 
-			if ( func == f->Func() )
+			if ( func == f.Func() )
 				{
 				if ( report_recursive )
 					printf("%s is directly recursive\n",
@@ -40,7 +40,7 @@ void Inliner::Analyze()
 				}
 			}
 
-		call_set[f->Func()] = cs;
+		call_set[f.Func()] = cs;
 		}
 
 	// Transitive closure.  If we had any self-respect, we'd implement
@@ -118,11 +118,11 @@ void Inliner::Analyze()
 		// sizes for them correctly, and more fundamentally since
 		// we don't compile them and hence inlining them will
 		// make the parent non-compilable.
-		if ( f->Func()->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     non_recursive_funcs.count(f->Func()) > 0 &&
-		     f->Profile()->NumLambdas() == 0 &&
-		     f->Profile()->NumWhenStmts() == 0 )
-			inline_ables.insert(f->Func());
+		if ( f.Func()->Flavor() == FUNC_FLAVOR_FUNCTION &&
+		     non_recursive_funcs.count(f.Func()) > 0 &&
+		     f.Profile()->NumLambdas() == 0 &&
+		     f.Profile()->NumWhenStmts() == 0 )
+			inline_ables.insert(f.Func());
 
 	for ( auto& f : funcs )
 		{
@@ -134,8 +134,8 @@ void Inliner::Analyze()
 		// circumstances in which a Zeek function can be called
 		// not ultimately stemming from an event (such as global
 		// scripting, or expiration functions).
-		if ( inline_ables.count(f->Func()) == 0 )
-			InlineFunction(f);
+		if ( inline_ables.count(f.Func()) == 0 )
+			InlineFunction(&f);
 		}
 	}
 

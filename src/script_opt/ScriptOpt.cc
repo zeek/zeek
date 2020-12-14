@@ -12,19 +12,19 @@ namespace zeek::detail {
 std::unordered_set<const Func*> non_recursive_funcs;
 
 // Tracks all of the loaded functions (including event handlers and hooks).
-static std::vector<FuncInfo*> funcs;
+static std::vector<FuncInfo> funcs;
 
 
-FuncInfo::~FuncInfo()
-	{
-	delete pf;
-	delete save_file;
-	}
+FuncInfo::FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body)
+		: func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body))
+	{}
+
+void FuncInfo::SetProfile(std::unique_ptr<ProfileFunc> _pf)
+	{ pf = std::move(_pf); }
 
 void analyze_func(ScriptFuncPtr f)
 	{
-	auto info = new FuncInfo(f, {NewRef{}, f->GetScope()}, f->CurrentBody());
-	funcs.push_back(info);
+	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()}, f->CurrentBody());
 	}
 
 static void check_env_opt(const char* opt, bool& opt_flag)
@@ -50,8 +50,8 @@ void analyze_scripts(Options& opts)
 
 	for ( auto& f : funcs )
 		{
-		f->SetProfile(new ProfileFunc(true));
-		f->Body()->Traverse(f->Profile());
+		f.SetProfile(std::make_unique<ProfileFunc>(true));
+		f.Body()->Traverse(f.Profile());
 		}
 
 	Inliner* inl = nullptr;

@@ -16,11 +16,11 @@ int main(int argc, char** argv)
 		return setup_result.code;
 
 	auto& options = setup_result.options;
-	auto do_net_run = zeek::iosource_mgr->Size() > 0 ||
-	                  zeek::run_state::detail::have_pending_timers ||
-	                  zeek::BifConst::exit_only_after_terminate;
+	auto do_run_loop = zeek::iosource_mgr->Size() > 0 ||
+	                   zeek::run_state::detail::have_pending_timers ||
+	                   zeek::BifConst::exit_only_after_terminate;
 
-	if ( do_net_run )
+	if ( do_run_loop )
 		{
 		if ( zeek::detail::profiling_logger )
 			zeek::detail::profiling_logger->Log();
@@ -78,5 +78,5 @@ int main(int argc, char** argv)
 			}
 		}
 
-	return zeek::detail::cleanup(do_net_run);
+	return zeek::detail::cleanup(do_run_loop);
 	}

@@ -795,9 +795,13 @@ type SupportedVersions(rec: HandshakeRecord) = record {
 	versions: uint16[] &until($input.length() == 0);
 } &length=length+1;
 
+# If the server sends it, this is the authorative version. Set it.
 type OneSupportedVersion(rec: HandshakeRecord) = record {
 	version: uint16;
+} &let {
+	version_set : bool = $context.connection.set_version(version);
 };
+
 
 type PSKKeyExchangeModes(rec: HandshakeRecord) = record {
 	length: uint8;
@@ -944,6 +948,7 @@ refine connection Handshake_Conn += {
 	%init{
 		chosen_cipher_ = NO_CHOSEN_CIPHER;
 		chosen_version_ = UNKNOWN_VERSION;
+
 		record_version_ = 0;
 	%}
 
@@ -955,10 +960,18 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function chosen_version() : int %{ return chosen_version_; %}
+	function chosen_version() : uint16 %{ return chosen_version_; %}
 
+	# This function is called several times in certain circumstances.
+	# If it is called twice, it is first called due to the supported_versions
+	# field in the server hello - and then again due to the outer version in
+	# the server hello. So - once we have a version here, let's just stick
+	# with it.
 	function set_version(version: uint16) : bool
 		%{
+		if ( chosen_version_ != UNKNOWN_VERSION )
+			return false;
+
 		chosen_version_ = version;
 		return true;
 		%}

@@ -30,10 +30,10 @@ type SSLRecord(is_orig: bool) = record {
 		UNKNOWN_VERSION -> 0;
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
 		default -> (head3 << 8) | head4;
-	};
+	} &requires(version);
 };
 
-type RecordText(rec: SSLRecord) = case $context.connection.state(rec.is_orig) of {
+type RecordText(rec: SSLRecord) = case $context.connection.determine_state(rec.is_orig, rec.content_type) of {
 	STATE_ENCRYPTED
 		-> ciphertext : CiphertextRecord(rec);
 	default
@@ -136,6 +136,49 @@ type SSLPDU(is_orig: bool) = record {
 ######################################################################
 
 refine connection SSL_Conn += {
+
+	## So - this falls a bit under the envelope of dirty hack - but I don't
+	## really have a better idea. This function determines if a packet should
+	## be handled as an encrypted or as a plaintext packet.
+	##
+	## For TLS 1.2 and below - this is relatively straightforward. Everything
+	## that arrives before CCS (Change Cipher Spec) is a plaintext record. And
+	## everything that arrives after CCS will be encrypted.
+	##
+	## TLS 1.3, however, messes this up a bunch. Some clients still choose to
+	## send a CCS message. The message, however, is pretty much meaningless
+	## from a protocol perspective - and just ignored by the other side. Also -
+	## it is not necessary to send it and some implementations just don't.
+	##
+	## So - what we do here is that we enable the encrypted flag when we get
+	## the first application data in a connection that negotiated TLS 1.3.
+	##
+	## This is correct insofar as the packet will be encrypted. We sadly loose
+	## a bit of context here - we can't really say when we get the first packet
+	## that uses the final cryptographic key material - and will contain content
+	## data. We just don't have that information available in TLS 1.3 anymore.
+	function determine_state(is_orig: bool, content_type: int) : int
+		%{
+		int current_state = state(is_orig);
+		if ( current_state == STATE_ENCRYPTED || content_type != APPLICATION_DATA )
+			return current_state;
+
+		// state = STATE_CLEAR && content_type == APPLICATION_DATA
+		uint16_t negotiated_version = zeek_analyzer()->GetNegotiatedVersion();
+
+		// in theory, we should check for TLS13 or draft-TLS13 instead of doing the reverse.
+		// But - people use weird version numbers. And all of those weird version numbers are
+		// some sort of TLS1.3. So - let's do it this way round instead.
+		if ( negotiated_version != SSLv20 && negotiated_version != SSLv30 && negotiated_version != TLSv10 && negotiated_version != TLSv11 && negotiated_version != TLSv12 )
+			{
+			// well, it seems like this is a TLS 1.3 (or equivalent) applicatio data packet. Let's enable encryption
+			// and handle it as encrypted.
+			startEncryption(is_orig);
+			return STATE_ENCRYPTED;
+			}
+
+		return current_state; // has to be STATE_CLEAR
+		%}
 
 	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
 					head2 : uint8, head3: uint8, head4: uint8, is_orig: bool) : int

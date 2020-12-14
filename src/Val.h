@@ -792,9 +792,12 @@ public:
 	 * must be nullptr.
 	 * @param broker_forward Controls if the value will be forwarded to attached
 	 *        Broker stores.
+	 * @param iterators_invalidated  if supplied, gets set to true if the operation
+	 *        may have invalidated existing iterators.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(ValPtr index, ValPtr new_val, bool broker_forward = true);
+	bool Assign(ValPtr index, ValPtr new_val, bool broker_forward = true,
+	            bool* iterators_invalidated = nullptr);
 
 	/**
 	 * Assigns a value at an associated index in the table (or in the
@@ -803,13 +806,16 @@ public:
 	 * (if needed, the index val can be recovered from the hash key).
 	 * @param k  A precomputed hash key to use.
 	 * @param new_val  The value to assign at the index.  For a set, this
+	 * @param iterators_invalidated  if supplied, gets set to true if the operation
+	 *        may have invalidated existing iterators.
 	 * must be nullptr.
 	 * @param broker_forward Controls if the value will be forwarded to attached
 	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
 	bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
-	            ValPtr new_val, bool broker_forward = true);
+	            ValPtr new_val, bool broker_forward = true,
+	            bool* iterators_invalidated = nullptr);
 
 	// Returns true if the assignment typechecked, false if not. The
 	// methods take ownership of new_val, but not of the index.  If we're
@@ -943,19 +949,23 @@ public:
 	 * @param index  The index to remove.
 	 * @param broker_forward Controls if the remove operation will be forwarded to attached
 	 *        Broker stores.
+	 * @param iterators_invalidated  if supplied, gets set to true if the operation
+	 *        may have invalidated existing iterators.
 	 * @return  The value associated with the index if it exists, else nullptr.
 	 * For a sets that don't really contain associated values, a placeholder
 	 * value is returned to differentiate it from non-existent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
-	ValPtr Remove(const Val& index, bool broker_forward = true);
+	ValPtr Remove(const Val& index, bool broker_forward = true, bool* iterators_invalidated = nullptr);
 
 	/**
 	 * Same as Remove(const Val&), but uses a precomputed hash key.
 	 * @param k  The hash key to lookup.
+	 * @param iterators_invalidated  if supplied, gets set to true if the operation
+	 *        may have invalidated existing iterators.
 	 * @return  Same as Remove(const Val&).
 	 */
-	ValPtr Remove(const detail::HashKey& k);
+	ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const Val* index)

@@ -559,7 +559,7 @@ event ssl_plaintext_data%(c: connection, is_orig: bool, record_version: count, c
 ## length: length of the entire message.
 ##
 ## .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    ssl_alert ssl_heartbeat
+##    ssl_alert ssl_heartbeat ssl_probable_encrypted_handshake_message
 event ssl_encrypted_data%(c: connection, is_orig: bool, record_version: count, content_type: count, length: count%);
 
 ## This event is generated for application data records of TLS 1.3 connections of which

@@ -46,6 +46,10 @@ export {
 		## by the client. This value is used to determine if a session
 		## is being resumed. It's not logged.
 		client_key_exchange_seen: bool     &default=F;
+		## Track if the client sent a pre-shared-key extension.
+		## Used to determine if a TLS 1.3 session is being resumed.
+		## Not logged.
+		client_psk_seen: bool     &default=F;
 
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
@@ -231,7 +235,7 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 		}
 	c$ssl$cipher = cipher_desc[cipher];
 
-	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) )
+	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) && c$ssl$version_num/0xFF != 0x7F && c$ssl$version_num != TLSv13 )
 		c$ssl$resumed = T;
 	}
 
@@ -299,10 +303,16 @@ event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &pri
 	{
 	set_session(c);
 
-	if ( is_orig && SSL::extensions[code] == "SessionTicket TLS" && |val| > 0 )
+	if ( is_orig && code == 35 && |val| > 0 ) # 35 == SessionTicket TLS
 		# In this case, we might have an empty ID. Set back to F in client_hello event
 		# if it is not empty after all.
 		c$ssl$client_ticket_empty_session_seen = T;
+	else if ( is_orig && code == 41 ) # 41 == pre_shared_key
+		# In this case, the client sent a PSK extension which can be used for resumption
+		c$ssl$client_psk_seen = T;
+	else if ( ! is_orig && code == 41 && c$ssl$client_psk_seen )
+		# In this case, the server accepted the PSK offered by the client.
+		c$ssl$resumed = T;
 	}
 
 event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=5

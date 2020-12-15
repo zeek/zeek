@@ -1,4 +1,32 @@
 
+4.1.0-dev.4 | 2020-12-15 08:00:44 -0800
+
+  * Add test case to cover weird EDNS ECS parsing situations (Jon Siwek, Corelight)
+
+  * Fix EDNS ECS option parsing bugs (Jon Siwek, Corelight)
+
+    * The parsing of IPv6 addresses tried to fill a stack-buffer with as
+      much data as supplied in the Option even if it was in excess of the
+      desired prefix or maximum IPv6 address size.  This could result in an
+      overflow of that stack-buffer.
+
+    * The parsing of IPv4 addresses would overwrite the storage used for
+      that address as many times as there were bytes in the Option in excess
+      of the desired prefix length or maximum IPv4 address size.  This could
+      cause the resulting IPv4 address to be derived from the incorrect
+      data.
+
+    * Upon encountering unexpected/excessive option-length or source-prefix
+      parameters, the data pointer used for parsing was also not always
+      advanced to the start of the next alleged option's data.  Assuming all
+      other parsing code correctly guards against invalid input, there's no
+      further harm from that other than the subsequent parsing being more
+      likely to encounter unexpected values and emitting more Weirds.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=28336
+    (Link to details becomes public 30 days after patch release)
+
 4.1.0-dev.1 | 2020-12-14 22:27:57 -0800
 
   * Fix local.zeek compatibility test (Jon Siwek, Corelight)

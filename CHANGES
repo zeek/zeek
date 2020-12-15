@@ -1,4 +1,16 @@
 
+3.0.12 | 2020-12-14 19:13:58 -0800
+
+  * GH-1286: Fix SMB2 response status parsing. (Vlad Grigorescu)
+
+  * GH-1321: Prevent compounding of `connection_status_update` event timers (Jon Siwek, Corelight)
+
+    Particularly for ICMP connections, a new timer got added every time a
+    `connection` record was updated even if there was still a pending timer
+    for that connection.
+
+  * Fix incorrect ICMP Neighbor Discovery Option length calculation (Vlad Grigorescu)
+
 3.0.11 | 2020-10-07 10:14:20 -0700
 
   * Release 3.0.11.

@@ -3,6 +3,23 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.0.12
+===========
+
+This release fixes the following bugs:
+
+* Incorrect ICMP Neighbor Discovery Option length calculation
+  https://github.com/zeek/zeek/issues/1225
+  https://github.com/zeek/zeek/pull/1228
+
+* Fix SMB2 response status parsing
+  https://github.com/zeek/zeek/pull/1311
+  https://github.com/zeek/zeek/commit/0b8535b879f1028d556b415ddccded27762e47c2
+  https://github.com/zeek/zeek/commit/07c4662dc4552ecd4d5b237de331c7b9ab369080
+
+* Fix excessive `connection_status_update` events for ICMP connections
+  https://github.com/zeek/zeek/pull/1322
+
 Zeek 3.0.11
 ===========
 

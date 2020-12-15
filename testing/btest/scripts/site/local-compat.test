@@ -15,7 +15,7 @@
 # # simply update this test's TEST-START-FILE with the latest contents
 # site/local.zeek.
 
-@TEST-START-FILE local-3.3.zeek
+@TEST-START-FILE local-4.0.zeek
 ##! Local site policy. Customize as appropriate.
 ##!
 ##! This file will not be overwritten when upgrading or reinstalling!
@@ -122,4 +122,7 @@ redef digest_salt = "Please change this value.";
 # Uncomment the following line to enable logging of link-layer addresses. Enabling
 # this adds the link-layer address for each connection endpoint to the conn.log file.
 # @load policy/protocols/conn/mac-logging
+
+# Uncomment this to source zkg's package state
+# @load packages
 @TEST-END-FILE

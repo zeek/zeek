@@ -44,8 +44,15 @@ enum AnalyzerState {
 type ChangeCipherSpec(rec: SSLRecord) = record {
 	type : uint8;
 } &length = 1, &let {
-	state_changed : bool =
-		$context.connection.startEncryption(rec.is_orig);
+	# I know this looks a bit weird. Basically - in TLS 1.3, CCS is meaningless
+	# fluff that just is used to pretend to TLS 1.2 devices listening in that
+	# yes, this is TLS. Since we want to know which packets come after this,
+	# and since we do have special handling for TLS 1.3 - let's ignore it in
+	# that case.
+	state_changed : bool = case $context.connection.determine_tls13() of {
+		1 -> false;
+		0 -> $context.connection.startEncryption(rec.is_orig);
+	};
 };
 
 
@@ -129,5 +136,15 @@ refine connection SSL_Conn += {
 		else
 			server_state_ = STATE_ENCRYPTED;
 		return true;
+		%}
+
+	function determine_tls13() : int
+		%{
+		// let's be conservative and only return yes if it has a valid TLS 1.3 version number here.
+		uint16_t negotiated_version = zeek_analyzer()->GetNegotiatedVersion();
+		if ( negotiated_version == TLSv13 || negotiated_version/0xFF == 0x7F )
+			return 1;
+
+		return 0;
 		%}
 };

@@ -1,4 +1,8 @@
 
+3.3.0-dev.664 | 2020-12-14 21:23:01 -0800
+
+  * Update submodules (Jon Siwek, Corelight)
+
 3.3.0-dev.663 | 2020-12-14 14:27:45 -0800
 
   * Rename a 'do_net_run' variable to 'do_run_loop'

@@ -562,6 +562,38 @@ event ssl_plaintext_data%(c: connection, is_orig: bool, record_version: count, c
 ##    ssl_alert ssl_heartbeat
 event ssl_encrypted_data%(c: connection, is_orig: bool, record_version: count, content_type: count, length: count%);
 
+## This event is generated for application data records of TLS 1.3 connections of which
+## we suspect that they contain handshake messages.
+##
+## In TLS 1.3, large parts of the handshake are encrypted; the only cleartext packets
+## typically exchanged are the client hello and the server hello. The first few packets
+## after the client and server hello, however, are a continuation of the handshake and
+## still include handshake data.
+##
+## This event is raised for these packets of which we suspect that they are handshake records,
+## including the finished record.
+##
+## The heuristic for this is: all application data record after the server hello are
+## handshake records until at least one application data record has been received
+## from both the server and the client. Typically, the server will send more records
+## before the client sends the first application data record; and the first application
+## data record of the client will typically include the finished message.
+##
+## Given the encrypted nature of the protocol, in some cases this determination is
+## not correct; the client can send more handshake packets before the finished message, e.g.,
+## when client certificates are used.
+##
+## Note that :zeek:see:SSL::ssl_encrypted_data is also raised for these messages.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## length: length of the entire message.
+## .. zeek:see::  ssl_client_hello ssl_established ssl_server_hello
+##    ssl_encrypted_data
+event ssl_probable_encrypted_handshake_message%(c: connection, is_orig: bool, length: count%);
+
 ## This event contains the OCSP response contained in a Certificate Status Request
 ## message, when the client requested OCSP stapling and the server supports it.
 ## See description in :rfc:`6066`.

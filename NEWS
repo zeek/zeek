@@ -3,6 +3,51 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.2.3
+==========
+
+This release fixes the following security issues:
+
+* In the parsing of IPv6 addresses within EDNS ECS options, data was written
+  to a stack-buffer using as many bytes as supplied in the option even if it
+  was in excess of the desired address prefix or maximum IPv6 address size.
+  This could result in an overflow of that stack-buffer.  This may be
+  remotely exploitable by anyone creating such a DNS message.
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=28336
+  (Link to details becomes public 30 days after patch release)
+
+This release fixes the following bugs:
+
+* The parsing of IPv4 addresses within EDNS ECS options would overwrite the
+  storage used for that address as many times as there were bytes in the option
+  in excess of the desired address prefix length or maximum IPv4 address size.
+  This could cause the resulting IPv4 address to be derived from the incorrect
+  data.
+
+* In parsing EDNS ECS options, upon encountering unexpected/excessive
+  option-length or source-prefix parameters, the data pointer used for parsing
+  was also not always advanced to the start of the next alleged option's data.
+  Assuming all other parsing code correctly guards against invalid input,
+  there's no further harm from that other than the subsequent parsing being
+  more likely to encounter unexpected values and emitting more Weirds.
+
+* Incorrect ICMP Neighbor Discovery Option length calculation
+  https://github.com/zeek/zeek/issues/1225
+  https://github.com/zeek/zeek/pull/1228
+
+* Fix memory leak in deprecated Analyzer::ConnectionEvent()
+  https://github.com/zeek/zeek/pull/1294
+
+* Fix SMB2 response status parsing
+  https://github.com/zeek/zeek/pull/1311
+  https://github.com/zeek/zeek/commit/0b8535b879f1028d556b415ddccded27762e47c2
+  https://github.com/zeek/zeek/commit/07c4662dc4552ecd4d5b237de331c7b9ab369080
+
+* Fix excessive `connection_status_update` events for ICMP connections
+  https://github.com/zeek/zeek/pull/1322
+
 Zeek 3.2.2
 ==========
 

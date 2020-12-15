@@ -1,0 +1,22 @@
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls13_wolfssl.pcap %INPUT
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
+
+redef SSL::disable_analyzer_after_detection=F;
+
+event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
+	{
+	print "encrypted", c$id, is_orig, SSL::version_strings[record_version], content_type;
+	}
+
+event ssl_established(c: connection)
+	{
+	print "Established!";
+	}
+
+event ssl_probable_encrypted_handshake_message(c: connection, is_orig: bool, length: count)
+	{
+	print "Probable handshake", is_orig, length;
+	}

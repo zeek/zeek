@@ -157,11 +157,13 @@ New Functionality
   Configuring with ``--disable-zkg`` disables the zkg inclusion. You
   can continue to install and use zkg independently. You're also free
   to use the config file in ``$prefix/etc/zkg/config`` with other zkg
-  installations. 
+  installations.
 
   The zkg source tree resides in ``auxil/package-manager`` as an
   additional Git submodule.
 
+- Addad a new ``ssl_probable_encrypted_handshake_message`` event, which
+  is raised for encrypted TLS 1.3 handshake messages.
 
 Changed Functionality
 ---------------------
@@ -240,6 +242,31 @@ Changed Functionality
   the DPD buffer size. It comes with the trade-off that now the analyzer
   can be triggered by anybody controlling one of the endpoints (instead
   of both).  For discussion, see https://github.com/zeek/zeek/issues/343.
+
+- TLS 1.3 support was improved in several ways:
+
+  * In the past, some TLS 1.3 sessions were misidentified as using session
+    resumption when, in fact, they were not resumed. This was caused by
+    the TLS session ID which no longer has any meaning in TLS 1.3. This was
+    fixed.
+
+  * Similarly, in the past, TLS 1.3 sessions that use TLS 1.3 PSKs for
+    session resumption were not marked as resumed. This also was fixed.
+
+  * The way in which session establishment for TLS 1.3 is performed was
+    rewritten. This causes the ``ssl_encrypted_data`` event to be correctly
+    raised; in the past this did not work for some sessions. A new
+    ``ssl_probable_encrypted_handshake_message`` event was added that is
+    raised for encrypted TLS 1.3 handshake packets.
+
+  * In the same vein, hello retry requests in TLS 1.3 should now always
+    be handled correctly; in the past this only happened in some cases.
+
+    Please note: When a connection uses Hello Retry requests you will see
+    two client hello and two server hello events in a single connection.
+
+    This happened in the past, but may become more common now; this might
+    trigger unexpected behavior in your scripts.
 
 Removed Functionality
 ---------------------

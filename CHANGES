@@ -1,4 +1,8 @@
 
+4.1.0-dev.1 | 2020-12-14 22:27:57 -0800
+
+  * Fix local.zeek compatibility test (Jon Siwek, Corelight)
+
 3.3.0-dev.664 | 2020-12-14 21:23:01 -0800
 
   * Update submodules (Jon Siwek, Corelight)

@@ -115,7 +115,7 @@ event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB
 		log_tree$ts = network_time();
 	}
 	
-	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
+	Log::write(SMB::MAPPING_LOG, log_tree);
 	}
 
 event smb2_tree_disconnect_request(c: connection, hdr: SMB2::Header) &priority=5

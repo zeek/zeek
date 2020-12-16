@@ -133,7 +133,7 @@ event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service:
 		log_tree$ts = network_time();
 	}
 	
-	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
+	Log::write(SMB::MAPPING_LOG, log_tree);
 	}
 
 event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string) &priority=5

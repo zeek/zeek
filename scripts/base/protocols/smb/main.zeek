@@ -231,7 +231,7 @@ function write_file_log(state: State)
 			log_f$ts = network_time()
 		}
 	
-		Log::write(FILES_LOG, f);
+		Log::write(FILES_LOG, log_f);
 		}
 	}
 

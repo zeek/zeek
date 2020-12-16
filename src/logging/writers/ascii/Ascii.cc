@@ -455,7 +455,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 		if ( use_shadow )
 			{
 			auto sfname = shadow_file_prefix + fname;
-			auto sfd = open(sfname.data(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+			auto tmp_sfname = ".tmp" + sfname;
+			auto sfd = open(tmp_sfname.data(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 			if ( sfd < 0 )
 				{
@@ -474,6 +475,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			util::safe_write(sfd, "\n", 1);
 
 			util::safe_close(sfd);
+
+			if ( rename(tmp_sfname.data(), sfname.data()) == -1 )
+				{
+				Error(Fmt("Unable to rename %s to %s: %s",
+					  tmp_sfname.data(), sfname.data(),
+					  Strerror(errno)));
+
+				unlink(tmp_sfname.data());
+
+				return false;
+				}
 			}
 		}
 

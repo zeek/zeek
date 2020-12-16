@@ -1,4 +1,12 @@
 
+4.1.0-dev.7 | 2020-12-16 15:10:04 -0800
+
+  * logging/ascii: Atomically create .shadow files using rename() (Arne Welzel, Corelight)
+
+    A logger process being terminated/killed while in the process of creating
+    a new .shadow file may leave an empty (invalid) one around. This in turn
+    causes the logger to error and exit during startup.
+
 4.1.0-dev.4 | 2020-12-15 08:00:44 -0800
 
   * Add test case to cover weird EDNS ECS parsing situations (Jon Siwek, Corelight)

@@ -1,4 +1,12 @@
 
+4.0.0-rc1.2 | 2020-12-16 15:27:21 -0800
+
+  * logging/ascii: Atomically create .shadow files using rename() (Arne Welzel, Corelight)
+
+    A logger process being terminated/killed while in the process of creating
+    a new .shadow file may leave an empty (invalid) one around. This in turn
+    causes the logger to error and exit during startup.
+
 4.0.0-rc1 | 2020-12-14 22:22:29 -0800
 
   * Update local.zeek compatibility test (Jon Siwek, Corelight)

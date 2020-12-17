@@ -104,7 +104,14 @@ void Frame::SetElement(const ID* id, ValPtr v)
 			}
 		}
 
-	SetElement(id->Offset(), std::move(v));
+	if (id == nullptr)
+		{
+		emit_builtin_error("Type Error", (Obj *)id);
+		}
+	else
+		{
+		SetElement(id->Offset(), std::move(v));
+		}
 	}
 
 const ValPtr& Frame::GetElementByID(const ID* id) const

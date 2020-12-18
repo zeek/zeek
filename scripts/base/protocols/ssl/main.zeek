@@ -303,14 +303,14 @@ event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &pri
 	{
 	set_session(c);
 
-	if ( is_orig && code == 35 && |val| > 0 ) # 35 == SessionTicket TLS
+	if ( is_orig && code == SSL_EXTENSION_SESSIONTICKET_TLS && |val| > 0 )
 		# In this case, we might have an empty ID. Set back to F in client_hello event
 		# if it is not empty after all.
 		c$ssl$client_ticket_empty_session_seen = T;
-	else if ( is_orig && code == 41 ) # 41 == pre_shared_key
+	else if ( is_orig && code == SSL_EXTENSION_PRE_SHARED_KEY )
 		# In this case, the client sent a PSK extension which can be used for resumption
 		c$ssl$client_psk_seen = T;
-	else if ( ! is_orig && code == 41 && c$ssl$client_psk_seen )
+	else if ( ! is_orig && code == SSL_EXTENSION_PRE_SHARED_KEY && c$ssl$client_psk_seen )
 		# In this case, the server accepted the PSK offered by the client.
 		c$ssl$resumed = T;
 	}

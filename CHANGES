@@ -1,4 +1,8 @@
 
+4.1.0-dev.10 | 2020-12-17 16:11:10 -0800
+
+  * Remove explicit use of config mode for finding CAF (Dominik Charousset, Corelight)
+
 4.1.0-dev.7 | 2020-12-16 15:10:04 -0800
 
   * logging/ascii: Atomically create .shadow files using rename() (Arne Welzel, Corelight)

@@ -18,6 +18,13 @@ resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
   memory: *MEMORY
 
+macos_resources_template: &MACOS_RESOURCES_TEMPLATE
+  env:
+    ZEEK_CI_CPUS: 4
+    ZEEK_CI_BTEST_JOBS: 4
+    # No permission to write to default location of /zeek
+    CIRRUS_WORKING_DIR: /tmp/zeek
+
 ci_template: &CI_TEMPLATE
   only_if: >
     $CIRRUS_PR != '' ||
@@ -169,18 +176,21 @@ ubuntu16_task:
 # Apple doesn't publish official long-term support timelines, so easiest
 # option is to only support the latest macOS release or whatever latest
 # image is available.
-macos_task:
+macos_catalina_task:
   osx_instance:
     image: catalina-base
     # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
     # trying to set it explicitly results in an error.
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CPUS: 4
-    ZEEK_CI_BTEST_JOBS: 4
-    # No permission to write to default location of /zeek
-    CIRRUS_WORKING_DIR: /tmp/zeek
+  << : *MACOS_RESOURCES_TEMPLATE
+
+macos_big_sur_task:
+  osx_instance:
+    image: big-sur-base
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  << : *MACOS_RESOURCES_TEMPLATE
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
 freebsd12_task:

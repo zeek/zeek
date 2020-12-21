@@ -1,4 +1,8 @@
 
+4.0.0-rc1.4 | 2020-12-21 11:02:55 -0800
+
+  * Add MacOS Big Sur to CI (Christian Kreibich, Corelight)
+
 4.0.0-rc1.2 | 2020-12-16 15:27:21 -0800
 
   * logging/ascii: Atomically create .shadow files using rename() (Arne Welzel, Corelight)

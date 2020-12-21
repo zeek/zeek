@@ -1,4 +1,8 @@
 
+4.1.0-dev.12 | 2020-12-21 10:55:13 -0800
+
+  * Add MacOS Big Sur to CI (Christian Kreibich, Corelight)
+
 4.1.0-dev.10 | 2020-12-17 16:11:10 -0800
 
   * Remove explicit use of config mode for finding CAF (Dominik Charousset, Corelight)

@@ -48,6 +48,11 @@ void SSL_Analyzer::StartEncryption()
 	interp->setEstablished();
 	}
 
+uint16_t SSL_Analyzer::GetNegotiatedVersion() const
+	{
+	return handshake_interp->chosen_version();
+	}
+
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);

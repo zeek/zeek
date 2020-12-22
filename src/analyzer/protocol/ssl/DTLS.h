@@ -21,7 +21,8 @@ public:
 	void EndOfData(bool is_orig) override;
 
 	void SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, uint32_t length, const u_char* begin, const u_char* end, bool orig);
-
+	// Get the TLS version that the server chose. 0 if not yet known.
+	uint16_t GetNegotiatedVersion() const;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DTLS_Analyzer(conn); }

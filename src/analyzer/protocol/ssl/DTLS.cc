@@ -48,6 +48,10 @@ void DTLS_Analyzer::EndOfData(bool is_orig)
 	handshake_interp->FlowEOF(is_orig);
 	}
 
+uint16_t DTLS_Analyzer::GetNegotiatedVersion() const
+  {
+  return handshake_interp->chosen_version();
+  }
 
 void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, uint32_t length, const u_char* begin, const u_char* end, bool orig)
 	{

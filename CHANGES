@@ -1,4 +1,44 @@
 
+4.1.0-dev.19 | 2020-12-22 10:58:13 -0800
+
+  * Add new TLS 1.3 constants. (Johanna Amann)
+
+  * Fix TLS 1.3 session resumption detection. (Johanna Amann)
+
+    Now we detect TLS 1.3 session resumption by looking if both sides have
+    the PSK extension set, which is much more exact than the previous
+    approach.
+
+  * Introduce ssl_probable_encrypted_handshake_message event (Johanna Amann)
+
+    This event is raised for messages that (probably) are TLS 1.3 handshake
+    messages, including finished. This allows scripts to examine handshake
+    messages without having to handle all encrypted messages.
+
+  * SSL Analyzer: ignore CCS for TLS 1.3 (Johanna Amann)
+
+    In TLS 1.3, the ChangeCipherSpec message is meaningless; it only is
+    included to convince middleboxes that the devices actually are speaking
+    TLS 1.2. Nowadays some TLS 1.3 implementations also just don't send the
+    packet.
+
+    In a push to unify our handling of TLS 1.3 connections - ignore CCS and
+    always go with application data packet counting to determine if
+    connections are or are not encrypted.
+
+  * GH-1323: TLS analyzer: change logic to track TLS 1.3 connection establishment (Johanna Amann)
+
+    This commit changes the logic that is used to tracks connection
+    establishment - and moves it from scriptland into the core.
+
+    TLS 1.3 connection establishment is much more finnicky for us than the
+    establishment of earlier versions - since we cannot rely on the CCS
+    message anymore (which is meaningless and not sent in a lot of cases).
+
+    With this commit, the ssl_encrypted_data message gets raised for
+    encrypted TLS 1.3 handshake messages - which is much more correct than
+    the behavior before that just interpreted them as plaintext messages.
+
 4.1.0-dev.12 | 2020-12-21 10:55:13 -0800
 
   * Add MacOS Big Sur to CI (Christian Kreibich, Corelight)

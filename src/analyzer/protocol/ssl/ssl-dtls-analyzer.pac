@@ -45,9 +45,16 @@ refine connection SSL_Conn += {
 
 	function proc_ciphertext_record(rec : SSLRecord) : bool
 		%{
-		 if ( client_state_ == STATE_ENCRYPTED &&
-		      server_state_ == STATE_ENCRYPTED &&
-		      established_ == false )
+		if ( established_ == false && determine_tls13() == 1 )
+			{
+			if ( ssl_probable_encrypted_handshake_message )
+				zeek::BifEvent::enqueue_ssl_probable_encrypted_handshake_message(zeek_analyzer(),
+					zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
+			}
+
+		if ( client_state_ == STATE_ENCRYPTED &&
+		     server_state_ == STATE_ENCRYPTED &&
+		     established_ == false )
 			{
 			established_ = true;
 			if ( ssl_established )

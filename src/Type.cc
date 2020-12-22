@@ -658,7 +658,7 @@ FuncType::~FuncType() = default;
 
 int FuncType::MatchesIndex(detail::ListExpr* const index) const
 	{
-	return check_and_promote_args(index, args.get()) ?
+	return check_and_promote_args(index, args.get(), false) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
@@ -1579,15 +1579,26 @@ static bool is_init_compat(const Type& t1, const Type& t2)
 	}
 
 bool same_type(const Type& arg_t1, const Type& arg_t2,
-               bool is_init, bool match_record_field_names)
+               bool is_init, bool match_record_field_names, bool flatten)
 	{
 	if ( &arg_t1 == &arg_t2 ||
 	     arg_t1.Tag() == TYPE_ANY ||
 	     arg_t2.Tag() == TYPE_ANY )
 		return true;
 
-	auto t1 = flatten_type(&arg_t1);
-	auto t2 = flatten_type(&arg_t2);
+	const Type* t1;
+	const Type* t2;
+
+	if (flatten)
+		{
+		t1 = flatten_type(&arg_t1);
+		t2 = flatten_type(&arg_t2);
+		}
+	else
+		{
+		t1 = &arg_t1;
+		t2 = &arg_t2;
+		}
 
 	if ( t1 == t2 )
 		return true;
@@ -1639,7 +1650,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 
 		if ( tl1 || tl2 )
 			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
+			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names, flatten) )
 				return false;
 			}
 
@@ -1648,7 +1659,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 
 		if ( y1 || y2 )
 			{
-			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names) )
+			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names, flatten) )
 				return false;
 			}
 
@@ -1666,7 +1677,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		if ( t1->Yield() || t2->Yield() )
 			{
 			if ( ! t1->Yield() || ! t2->Yield() ||
-			     ! same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names) )
+			     ! same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names, flatten) )
 				return false;
 			}
 
@@ -1687,7 +1698,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
 			if ( (match_record_field_names && ! util::streq(td1->id, td2->id)) ||
-			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
+			     ! same_type(td1->type, td2->type, is_init, match_record_field_names, flatten) )
 				return false;
 
 			if ( ! same_attrs(td1->attrs.get(), td2->attrs.get()) )
@@ -1706,7 +1717,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 			return false;
 
 		for ( auto i = 0u; i < tl1.size(); ++i )
-			if ( ! same_type(tl1[i], tl2[i], is_init, match_record_field_names) )
+			if ( ! same_type(tl1[i], tl2[i], is_init, match_record_field_names, flatten) )
 				return false;
 
 		return true;
@@ -1714,7 +1725,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names);
+		return same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names, flatten);
 
 	case TYPE_OPAQUE:
 		{
@@ -1728,7 +1739,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		auto tt1 = t1->AsTypeType();
 		auto tt2 = t2->AsTypeType();
 		return same_type(tt1->GetType(), tt1->GetType(),
-		                 is_init, match_record_field_names);
+		                 is_init, match_record_field_names, flatten);
 		}
 
 	case TYPE_UNION:

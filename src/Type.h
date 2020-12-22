@@ -815,19 +815,19 @@ protected:
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
 extern bool same_type(const Type& t1, const Type& t2,
-                      bool is_init=false, bool match_record_field_names=true);
+                      bool is_init=false, bool match_record_field_names=true, bool flatten=true);
 inline bool same_type(const TypePtr& t1, const TypePtr& t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+                      bool is_init=false, bool match_record_field_names=true, bool flatten=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names, flatten); }
 inline bool same_type(const Type* t1, const Type* t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+                      bool is_init=false, bool match_record_field_names=true, bool flatten=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names, flatten); }
 inline bool same_type(const TypePtr& t1, const Type* t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+                      bool is_init=false, bool match_record_field_names=true, bool flatten=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names, flatten); }
 inline bool same_type(const Type* t1, const TypePtr& t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+                      bool is_init=false, bool match_record_field_names=true, bool flatten=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names, flatten); }
 
 // True if the two attribute lists are equivalent.
 extern bool same_attrs(const detail::Attributes* a1, const detail::Attributes* a2);

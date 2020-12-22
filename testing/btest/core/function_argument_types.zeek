@@ -1,6 +1,5 @@
-# @TEST-EXEC: zeek -b %INPUT 1> my_output 2> my_error
-# @TEST-EXEC: btest-diff my_output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff my_error
+# @TEST-EXEC: zeek -b %INPUT 2>&1 | grep -o "argument type mismatch in function call" > out
+# @TEST-EXEC: btest-diff out
 
 global s: set[string, string];
 

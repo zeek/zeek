@@ -958,10 +958,10 @@ ExprPtr get_assign_expr(
  * Returns nullptr if the expression cannot match or a promoted
  * expression.
  */
-extern ExprPtr check_and_promote_expr(Expr* e, Type* t);
+extern ExprPtr check_and_promote_expr(Expr* e, Type* t, bool flatten = true);
 
-extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
-extern bool check_and_promote_args(ListExpr* args, RecordType* types);
+extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types, bool flatten = true);
+extern bool check_and_promote_args(ListExpr* args, RecordType* types, bool flatten = true);
 extern bool check_and_promote_exprs_to_type(ListExpr* elements, Type* type);
 
 // Returns a ListExpr simplified down to a list a values, or nil

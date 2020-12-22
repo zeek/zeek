@@ -4997,7 +4997,7 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 			std::move(op1), std::move(op2), is_init);
 	}
 
-ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
+ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t, bool flatten)
 	{
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
@@ -5032,7 +5032,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* t_r = t->AsRecordType();
 		RecordType* et_r = et->AsRecordType();
 
-		if ( same_type(t, et) )
+		if ( same_type(t, et, false, true, flatten) )
 			return {NewRef{}, e};
 
 		if ( record_promotion_compatible(t_r, et_r) )
@@ -5045,7 +5045,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		}
 
 
-	if ( ! same_type(t, et) )
+	if ( ! same_type(t, et, false, true, flatten) )
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
@@ -5066,7 +5066,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 	return {NewRef{}, e};
 	}
 
-bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
+bool check_and_promote_exprs(ListExpr* const elements, TypeList* types, bool flatten)
 	{
 	ExprPList& el = elements->Exprs();
 	const auto& tl = types->GetTypes();
@@ -5083,7 +5083,7 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	loop_over_list(el, i)
 		{
 		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, tl[i].get());
+		auto promoted_e = check_and_promote_expr(e, tl[i].get(), flatten);
 
 		if ( ! promoted_e )
 			{
@@ -5101,7 +5101,7 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	return true;
 	}
 
-bool check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, RecordType* types, bool flatten)
 	{
 	ExprPList& el = args->Exprs();
 	int ntypes = types->NumFields();
@@ -5139,7 +5139,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	for ( int i = 0; i < types->NumFields(); ++i )
 		tl->Append(types->GetFieldType(i));
 
-	int rval = check_and_promote_exprs(args, tl);
+	int rval = check_and_promote_exprs(args, tl, flatten);
 	Unref(tl);
 
 	return rval;

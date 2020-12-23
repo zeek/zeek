@@ -37,7 +37,11 @@ event zeek_init()
 	}
 
 # Send the auto masters we created to the newly connected node
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=1
+# Note: this is specifically chosen to be higher priority than the
+# Broker::peer_added event in cluster/main.zeek which sends the
+# Cluster::hello event to prevent a race on whether that Cluster::hello
+# ends up generating Cluster::node_up before Broker::announce_masters.
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=11
 	{
 	if ( ! Cluster::is_enabled() )
 		return;

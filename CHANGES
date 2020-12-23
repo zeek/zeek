@@ -1,4 +1,8 @@
 
+4.1.0-dev.23 | 2020-12-23 10:36:22 -0800
+
+  * Fix subtle race on data store initialization (Dominik Charousset, Corelight)
+
 4.1.0-dev.19 | 2020-12-22 10:58:13 -0800
 
   * Add new TLS 1.3 constants. (Johanna Amann)

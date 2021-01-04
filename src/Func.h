@@ -161,7 +161,39 @@ public:
 	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
 
 	/**
-	 * Adds adds a closure to the function. Closures are cloned and
+	 * Creates a separate frame for captures and initializes its
+	 * elements.  The list of captures comes from the ScriptFunc's
+	 * type, so doesn't need to be passed in, just the frame to
+	 * use in evaluating the identifiers.
+	 *
+	 * @param f  the frame used for evaluating the captured identifiers
+	 */
+	void CreateCaptures(Frame* f);
+
+	/**
+	 * Returns the frame associated with this function for tracking
+	 * captures, or nil if there isn't one.
+	 *
+	 * @return internal frame kept by the function for persisting captures
+	 */
+	Frame* GetCapturesFrame() const	{ return captures_frame; }
+
+	// Same definition as in Frame.h.
+	using OffsetMap = std::unordered_map<std::string, int>;
+
+	/**
+	 * Returns the mapping of captures to slots in the captures frame.
+	 *
+	 * @return pointer to mapping of captures to slots
+	 */
+	const OffsetMap* GetCapturesOffsetMap() const
+		{ return captures_offset_mapping; }
+
+	// The following "Closure" methods implement the deprecated
+	// capture-by-reference functionality.
+
+	/**
+	 * Adds a closure to the function. Closures are cloned and
 	 * future calls to ScriptFunc methods will not modify *f*.
 	 *
 	 * @param ids IDs that are captured by the closure.
@@ -218,14 +250,32 @@ protected:
 	 */
 	void SetClosureFrame(Frame* f);
 
+	/**
+	 * Uses the given frame for captures, and generates the
+	 * mapping from captured variables to offsets in the frame.
+	 *
+	 * @param f  the frame holding the values of capture variables
+	 */
+	void SetCaptures(Frame* f);
+
 private:
 	size_t frame_size;
 
 	// List of the outer IDs used in the function.
 	IDPList outer_ids;
+
+	// The following is used for deprecated capture-by-reference
+	// closures:
 	// The frame the ScriptFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
+
+	// Used for capture-by-copy closures.  These persist over the
+	// function's lifetime, providing quasi-globals that maintain
+	// state across individual calls to the function.
+	Frame* captures_frame = nullptr;
+
+	OffsetMap* captures_offset_mapping = nullptr;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);

@@ -4329,6 +4329,8 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 	SetType(ingredients->id->GetType());
 
+	CheckCaptures();
+
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
 	auto dummy_func = make_intrusive<ScriptFunc>(
@@ -4375,6 +4377,66 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	id->SetConst();
 	}
 
+void LambdaExpr::CheckCaptures()
+	{
+	auto ft = type->AsFuncType();
+	auto captures = ft->GetCaptures();
+
+	capture_by_ref = false;
+
+	if ( ! captures )
+		{
+		if ( outer_ids.size() > 0 )
+			{
+			reporter->Warning("use of outer identifiers in lambdas without [] captures is deprecated: %s%s",
+				outer_ids.size() > 1 ? "e.g., " : "",
+				outer_ids[0]->Name());
+			capture_by_ref = true;
+			}
+
+		return;
+		}
+
+	std::set<const ID*> outer_is_matched;
+	std::set<const ID*> capture_is_matched;
+
+	for ( auto c : *captures )
+		{
+		auto cid = c->id.get();
+
+		if ( ! cid )
+			// This happens for undefined/inappropriate
+			// identifiers listed in captures.  There's
+			// already been an error message.
+			continue;
+
+		if ( capture_is_matched.count(cid) > 0 )
+			{
+			ExprError(util::fmt("%s listed multiple times in capture", cid->Name()));
+			continue;
+			}
+
+		for ( auto id : outer_ids )
+			if ( cid == id )
+				{
+				outer_is_matched.insert(id);
+				capture_is_matched.insert(cid);
+				break;
+				}
+		}
+
+	for ( auto id : outer_ids )
+		if ( outer_is_matched.count(id) == 0 )
+			ExprError(util::fmt("%s is used inside lambda but not captured", id->Name()));
+
+	for ( auto c : *captures )
+		{
+		auto cid = c->id.get();
+		if ( cid && capture_is_matched.count(cid) == 0 )
+			ExprError(util::fmt("%s is captured but not used inside lambda", cid->Name()));
+		}
+	}
+
 Scope* LambdaExpr::GetScope() const
 	{
 	return ingredients->scope.get();
@@ -4389,7 +4451,10 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 		ingredients->frame_size,
 		ingredients->priority);
 
-	lamb->AddClosure(outer_ids, f);
+	if ( capture_by_ref )
+		lamb->AddClosure(outer_ids, f);
+	else
+		lamb->CreateCaptures(f);
 
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
@@ -5060,7 +5125,9 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 				IntrusivePtr{NewRef{}, e},
 				IntrusivePtr{NewRef{}, t->AsVectorType()});
 
-		t->Error("type clash", e);
+		if ( t->Tag() != TYPE_ERROR && et->Tag() != TYPE_ERROR )
+			t->Error("type clash", e);
+
 		return nullptr;
 		}
 

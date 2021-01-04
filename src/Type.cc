@@ -622,6 +622,8 @@ FuncType::FuncType(RecordTypePtr arg_args,
 		}
 
 	prototypes.emplace_back(Prototype{false, "", args, std::move(offsets)});
+
+	captures = nullptr;
 	}
 
 TypePtr FuncType::ShallowClone()
@@ -632,6 +634,7 @@ TypePtr FuncType::ShallowClone()
 	f->yield = yield;
 	f->flavor = flavor;
 	f->prototypes = prototypes;
+	f->captures = captures;
 	return f;
 	}
 
@@ -654,7 +657,15 @@ string FuncType::FlavorString() const
 	}
 	}
 
-FuncType::~FuncType() = default;
+FuncType::~FuncType()
+	{
+	if ( captures )
+		{
+		for ( auto c : *captures )
+			delete c;
+		delete captures;
+		}
+	}
 
 int FuncType::MatchesIndex(detail::ListExpr* const index) const
 	{
@@ -696,6 +707,11 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 			}
 
 	return success;
+	}
+
+void FuncType::SetCaptures(std::vector<Capture*>* _captures)
+	{
+	captures = _captures;
 	}
 
 void FuncType::Describe(ODesc* d) const

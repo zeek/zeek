@@ -51,9 +51,9 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END
+%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep
 %type <str> TOK_ID TOK_PATTERN_TEXT
-%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func case_type
+%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <expr> opt_init
@@ -72,6 +72,8 @@
 %type <case_l> case_list
 %type <attr> attr
 %type <attr_l> attr_list opt_attr
+%type <capture> capture
+%type <captures> capture_list opt_captures
 
 %{
 #include <stdlib.h>
@@ -254,6 +256,8 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::Attr* attr;
 	std::vector<zeek::detail::AttrPtr>* attr_l;
 	zeek::detail::AttrTag attrtag;
+	zeek::FuncType::Capture* capture;
+	std::vector<zeek::FuncType::Capture*>* captures;
 }
 
 %%
@@ -532,14 +536,10 @@ expr:
 			$$ = new zeek::detail::FieldAssignExpr($2, {zeek::AdoptRef{}, $4});
 			}
 
-	|	'$' TOK_ID func_params '='
+	|	'$' TOK_ID begin_lambda '='
 			{
 			func_hdr_location = @1;
-			auto func_id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
-			func_id->SetInferReturnType(true);
-			zeek::detail::begin_func(std::move(func_id), zeek::detail::current_module.c_str(),
-			                         zeek::FUNC_FLAVOR_FUNCTION, false,
-			                         {zeek::AdoptRef{}, $3});
+			$3->SetInferReturnType(true);
 			}
 		 lambda_body
 			{
@@ -1306,17 +1306,69 @@ lambda_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION begin_func lambda_body
+		TOK_FUNCTION begin_lambda lambda_body
 			{ $$ = $3; }
 	;
 
-begin_func:
-		func_params
+begin_lambda:
+		opt_captures func_params
 			{
 			auto id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
-			zeek::detail::begin_func(id, zeek::detail::current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::AdoptRef{}, $1});
+			zeek::detail::begin_func(id, zeek::detail::current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, false, {zeek::AdoptRef{}, $2});
+			$2->SetCaptures($1);
 			$$ = id.release();
 			}
+	;
+
+opt_captures:
+		'[' capture_list ']'
+			{ $$ = $2; }
+	|
+			{ $$ = nullptr; }
+	;
+
+capture_list:
+		capture_list ',' capture
+			{ $1->push_back($3); }
+	|	capture
+			{
+			$$ = new std::vector<zeek::FuncType::Capture*>;
+			$$->push_back($1);
+			}
+	;
+
+capture:
+		opt_deep TOK_ID
+			{
+			zeek::detail::set_location(@2);
+			auto id = zeek::detail::lookup_ID($2,
+					zeek::detail::current_module.c_str());
+
+			if ( ! id )
+				zeek::reporter->Error("no such local identifier: %s", $2);
+			else if ( id->IsType() )
+				{
+				zeek::reporter->Error("cannot specify type in capture: %s", $2);
+				id = nullptr;
+				}
+			else if ( id->IsGlobal() )
+				{
+				zeek::reporter->Error("cannot specify global in capture: %s", $2);
+				id = nullptr;
+				}
+
+			delete [] $2;
+
+			$$ = new zeek::FuncType::Capture;
+			$$->id = id;
+			$$->deep_copy = $1;
+			}
+	;
+
+opt_deep:	TOK_COPY
+			{ $$ = true; }
+	|
+			{ $$ = false; }
 	;
 
 func_params:

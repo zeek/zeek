@@ -10,6 +10,7 @@
 #include <optional>
 
 #include "zeek/Obj.h"
+#include "zeek/ID.h"
 #include "zeek/Attr.h"
 #include "zeek/ZeekList.h"
 #include "zeek/IntrusivePtr.h"
@@ -540,6 +541,29 @@ public:
 	const std::vector<Prototype>& Prototypes() const
 		{ return prototypes; }
 
+	/**
+	 * A single lambda "capture" (outer variable used in a lambda's body).
+	 */
+	struct Capture {
+		detail::IDPtr id;
+		bool deep_copy;
+	};
+
+	/**
+	 * Sets this function's set of captures.  Only valid for lambdas.
+	 *
+	 * @param captures  if non-nil, a list of the lambda's captures
+	 */
+	void SetCaptures(std::vector<Capture*>* captures);
+
+	/**
+	 * Returns the captures declared for this function, or nil if none.
+	 *
+	 * @return a vector giving the captures
+	 */
+	const std::vector<Capture*>* GetCaptures() const
+		{ return captures; }
+
 protected:
 	friend FuncTypePtr make_intrusive<FuncType>();
 
@@ -549,6 +573,8 @@ protected:
 	TypePtr yield;
 	FunctionFlavor flavor;
 	std::vector<Prototype> prototypes;
+
+	std::vector<Capture*>* captures; // if nil then no captures specified
 };
 
 class TypeType final : public Type {

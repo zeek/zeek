@@ -1214,7 +1214,7 @@ func_hdr:
 			{
 			zeek::IntrusivePtr id{zeek::AdoptRef{}, $2};
 			zeek::detail::begin_func(id, zeek::detail::current_module.c_str(),
-				                     zeek::FUNC_FLAVOR_FUNCTION, 0, {zeek::NewRef{}, $3},
+				                     zeek::FUNC_FLAVOR_FUNCTION, false, {zeek::NewRef{}, $3},
 			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
@@ -1229,7 +1229,7 @@ func_hdr:
 				}
 
 			zeek::detail::begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
-				                     zeek::FUNC_FLAVOR_EVENT, 0, {zeek::NewRef{}, $3},
+				                     zeek::FUNC_FLAVOR_EVENT, false, {zeek::NewRef{}, $3},
 			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
@@ -1238,14 +1238,14 @@ func_hdr:
 			$3->ClearYieldType(zeek::FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(zeek::base_type(zeek::TYPE_BOOL));
 			zeek::detail::begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
-				                     zeek::FUNC_FLAVOR_HOOK, 0, {zeek::NewRef{}, $3},
+				                     zeek::FUNC_FLAVOR_HOOK, false, {zeek::NewRef{}, $3},
 			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			zeek::detail::begin_func({zeek::NewRef{}, $3}, zeek::detail::current_module.c_str(),
-				                     zeek::FUNC_FLAVOR_EVENT, 1, {zeek::NewRef{}, $4},
+				                     zeek::FUNC_FLAVOR_EVENT, true, {zeek::NewRef{}, $4},
 			                         std::unique_ptr<std::vector<zeek::detail::AttrPtr>>{$5});
 			$$ = $4;
 			}

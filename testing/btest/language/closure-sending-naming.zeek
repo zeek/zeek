@@ -33,7 +33,7 @@ function send_event()
     local log : myfunctype = function(c: count) : function(d: count) : count
         {
         # print fmt("inside: %s | outside: %s | global: %s", c, event_count, global_with_same_name);
-        return function(d: count) : count { return d + c; };
+        return function[c](d: count) : count { return d + c; };
         };
 
         local e2 = Broker::make_event(ping, "function 1", log);
@@ -85,7 +85,7 @@ function my_funcs()
     local l : myfunctype = function(c: count) : function(d: count) : count
     {
     print fmt("dogs");
-    return function(d: count) : count { return d + c; };
+    return function[c](d: count) : count { return d + c; };
     };
     }
 

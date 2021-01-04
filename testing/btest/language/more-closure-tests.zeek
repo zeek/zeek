@@ -17,7 +17,7 @@ function map_1 (f: function(a: count): count, v: vector of count) : vector of co
 # stacks two functions
 function stacker (one : function(a: count): count, two: function (b: count): count): function(c: count): count
     {
-    return function (c: count): count
+    return function [one,two](c: count): count
         {
         return one(two(c));
         };
@@ -25,7 +25,7 @@ function stacker (one : function(a: count): count, two: function (b: count): cou
 
 function make_dog(name: string, weight: count) : function(i: string, item: string)
     {
-    return function(i: string, item: string)
+    return function[name, weight](i: string, item: string)
         {
         switch i
             {
@@ -69,7 +69,7 @@ event zeek_init()
 
     local make_laster = function(start: count) : function(i: count): count
         {
-        return function(i: count): count
+        return function[start](i: count): count
             {
             local temp = i;
             i += start;
@@ -111,7 +111,7 @@ event zeek_init()
     local vs = vector("dog", "cat", "fish");
     for (i in vs)
         {
-        mfs += function() { print i, vs[i]; };
+        mfs += function[i, vs]() { print i, vs[i]; };
         }
     for ( i in mfs)
         mfs[i]();

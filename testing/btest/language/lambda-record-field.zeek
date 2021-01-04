@@ -8,6 +8,6 @@ type myrec: record {
 event zeek_init()
 	{
 	local w = "world";
-	local mr = myrec($foo(a: string) = { print a + w; });
+	local mr = myrec($foo[w](a: string) = { print a + w; });
 	mr$foo("hello");
 	}

@@ -9,7 +9,7 @@ function bar(b: string, c: string)
 	{
 	local f: Foo;
 	local d = 8;
-	f = [$x=function(a: string) : string
+	f = [$x=function[b, c, d](a: string) : string
 			{
 			local x = 0;
 			# Fail here: we've captured the closure.

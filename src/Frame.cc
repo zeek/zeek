@@ -583,7 +583,7 @@ broker::expected<broker::data> Frame::SerializeIDList(const IDPList& in)
 	}
 
 broker::expected<broker::data>
-Frame::SerializeOffsetMap(const std::unordered_map<std::string, int>& in)
+Frame::SerializeOffsetMap(const OffsetMap& in)
 	{
 	broker::vector rval;
 
@@ -638,7 +638,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 std::pair<bool, std::unordered_map<std::string, int>>
 Frame::UnserializeOffsetMap(const broker::vector& data)
 	{
-	std::unordered_map<std::string, int> rval;
+	OffsetMap rval;
 
 	for ( broker::vector::size_type i = 0; i < data.size(); i += 2 )
 		{

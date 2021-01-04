@@ -679,7 +679,7 @@ public:
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<Scope*> scopes;
-	std::vector<const NameExpr*> outer_id_references;
+	std::unordered_set<const NameExpr*> outer_id_references;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
@@ -705,7 +705,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 			// not something we have to worry about also being at outer scope.
 			return TC_CONTINUE;
 
-	outer_id_references.push_back(e);
+	outer_id_references.insert(e);
 	return TC_CONTINUE;
 	}
 
@@ -752,17 +752,10 @@ IDPList gather_outer_ids(Scope* scope, Stmt* body)
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);
 
-	IDPList idl ( cb.outer_id_references.size() );
+	IDPList idl;
 
-	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-		{
-		auto id = cb.outer_id_references[i]->Id();
-
-		if ( idl.is_member(id) )
-			continue;
-
-		idl.append(id);
-		}
+	for ( auto ne : cb.outer_id_references )
+		idl.append(ne->Id());
 
 	return idl;
 	}

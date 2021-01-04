@@ -286,8 +286,11 @@ private:
 	 */
 	void ClearElement(int n);
 
-	/** Have we captured this id? */
+	/** Have we captured this id?  Version for deprecated semantics. */
 	bool IsOuterID(const ID* in) const;
+
+	/** Have we captured this id?  Version for current semantics. */
+	bool IsCaptureID(const ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
@@ -316,10 +319,12 @@ private:
 	/** Associates ID's offsets with values. */
 	std::unique_ptr<Element[]> frame;
 
-	/** The enclosing frame of this frame. */
+	/** The enclosing frame of this frame. Used for reference semantics. */
 	Frame* closure;
 
-	/** ID's used in this frame from the enclosing frame. */
+	/** ID's used in this frame from the enclosing frame, when using
+	 * reference semantics (closure != nullptr).
+	 */
 	IDPList outer_ids;
 
 	/**
@@ -328,8 +333,22 @@ private:
 	 */
 	std::unique_ptr<OffsetMap> offset_map;
 
+	/** Frame used for captures (if any) with copy semantics. */
+	Frame* captures;
+
+	/** Maps IDs to offsets into the "captures" frame.  If the ID
+	 * isn't present, then it's not a capture.
+	 *
+	 * We keep this separate from offset_map to help ensure we don't
+	 * confuse code from the deprecated semantics with the current
+	 * semantics.
+	 */
+	const OffsetMap* captures_offset_map;
+
 	/** The function this frame is associated with. */
 	const ScriptFunc* function;
+
+	// The following is only needed for the debugger.
 	/** The arguments to the function that this Frame is associated with. */
 	const zeek::Args* func_args;
 

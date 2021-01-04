@@ -30,6 +30,15 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 	delayed = false;
 
 	closure = nullptr;
+
+	// We could Ref()/Unref() the captures frame, but there's really
+	// no need because by definition this current frame exists to
+	// enable execution of the function, and its captures frame won't
+	// go away until the function itself goes away, which can only be
+	// after this frame does.
+	captures = function ? function->GetCapturesFrame() : nullptr;
+	captures_offset_map =
+		function ? function->GetCapturesOffsetMap() : nullptr;
 	}
 
 Frame::~Frame()
@@ -80,11 +89,18 @@ void Frame::SetElementWeak(int n, Val* v)
 
 void Frame::SetElement(const ID* id, ValPtr v)
 	{
-	if ( closure )
+	if ( closure && IsOuterID(id) )
 		{
-		if ( IsOuterID(id) )
+		closure->SetElement(id, std::move(v));
+		return;
+		}
+
+	if ( captures )
+		{
+		auto cap_off = captures_offset_map->find(id->Name());
+		if ( cap_off != captures_offset_map->end() )
 			{
-			closure->SetElement(id, std::move(v));
+			captures->SetElement(cap_off->second, std::move(v));
 			return;
 			}
 		}
@@ -109,10 +125,14 @@ void Frame::SetElement(const ID* id, ValPtr v)
 
 const ValPtr& Frame::GetElementByID(const ID* id) const
 	{
-	if ( closure )
+	if ( closure && IsOuterID(id) )
+		return closure->GetElementByID(id);
+
+	if ( captures )
 		{
-		if ( IsOuterID(id) )
-			return closure->GetElementByID(id);
+		auto cap_off = captures_offset_map->find(id->Name());
+		if ( cap_off != captures_offset_map->end() )
+			return captures->GetElement(cap_off->second);
 		}
 
 	// do we have an offset for it?
@@ -184,6 +204,9 @@ Frame* Frame::Clone() const
 	for ( int i = 0; i < size; i++ )
 		if ( frame[i].val )
 			other->frame[i].val = frame[i].val->Clone();
+
+	// Note, there's no need to clone "captures" or "captures_offset_map"
+	// since those get created fresh when constructing "other".
 
 	return other;
 	}

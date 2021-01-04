@@ -263,7 +263,7 @@ Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 	// 	other->closure = closure->SelectiveClone(them);
 	// other->outer_ids = outer_ids;
 
-	if( closure )
+	if ( closure )
 		other->CaptureClosure(closure, outer_ids);
 
 	if ( offset_map )

@@ -292,7 +292,8 @@ ValPtr NameExpr::Eval(Frame* f) const
 		v = f->GetElementByID(id);
 
 	else
-		// No frame - evaluating for Simplify() purposes
+		// No frame - evaluating for purposes of resolving a
+		// compile-time constant.
 		return nullptr;
 
 	if ( v )
@@ -4353,10 +4354,10 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 		const auto& id = global_scope()->Find(fullname);
 
 		if ( id )
-			// Just try again to make a unique lambda name.  If two peer
-			// processes need to agree on the same lambda name, this assumes
-			// they're loading the same scripts and thus have the same hash
-			// collisions.
+			// Just try again to make a unique lambda name.
+			// If two peer processes need to agree on the same
+			// lambda name, this assumes they're loading the same
+			// scripts and thus have the same hash collisions.
 			d.Add(" ");
 		else
 			break;

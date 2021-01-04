@@ -1288,11 +1288,14 @@ lambda_body:
 			{
 			zeek::detail::set_location(@1, @5);
 
-			// Code duplication here is sad but needed. end_func actually instantiates the function
-			// and associates it with an ID. We perform that association later and need to return
-			// a lambda expression.
+			// Code duplication here is sad but needed.
+			// end_func actually instantiates the function
+			// and associates it with an ID. We perform that
+			// association later and need to return a lambda
+			// expression.
 
-			// Gather the ingredients for a BroFunc from the current scope
+			// Gather the ingredients for a Func from the
+			// current scope.
 			auto ingredients = std::make_unique<zeek::detail::function_ingredients>(
 				zeek::IntrusivePtr{zeek::NewRef{}, zeek::detail::current_scope()},
 				zeek::IntrusivePtr{zeek::AdoptRef{}, $3});

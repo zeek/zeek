@@ -596,7 +596,7 @@ void ScriptFunc::SetClosureFrame(Frame* f)
 
 bool ScriptFunc::UpdateClosure(const broker::vector& data)
 	{
-	auto result = Frame::Unserialize(data);
+	auto result = Frame::Unserialize(data, nullptr);
 
 	if ( ! result.first )
 		return false;
@@ -615,6 +615,17 @@ bool ScriptFunc::UpdateClosure(const broker::vector& data)
 	return true;
 	}
 
+bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
+	{
+	auto result = Frame::Unserialize(data, GetType()->GetCaptures());
+
+ASSERT(result.first);
+
+	SetCaptures(result.second.release());
+
+	return true;
+	}
+
 
 FuncPtr ScriptFunc::DoClone()
 	{
@@ -629,12 +640,22 @@ FuncPtr ScriptFunc::DoClone()
 	other->weak_closure_ref = false;
 	other->outer_ids = outer_ids;
 
+	if ( captures_frame )
+		{
+		other->captures_frame = captures_frame->Clone();
+		other->captures_offset_mapping = new OffsetMap;
+		*other->captures_offset_mapping = *captures_offset_mapping;
+		}
+
 	return other;
 	}
 
 broker::expected<broker::data> ScriptFunc::SerializeClosure() const
 	{
-	return Frame::Serialize(closure, outer_ids);
+	if ( captures_frame )
+		return captures_frame->SerializeCopyFrame();
+	else
+		return closure->SerializeClosureFrame(outer_ids);
 	}
 
 void ScriptFunc::Describe(ODesc* d) const

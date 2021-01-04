@@ -215,11 +215,18 @@ public:
 	bool StrengthenClosureReference(Frame* f);
 
 	/**
-	 * Serializes this function's closure.
+	 * Serializes this function's closure or capture frame.
 	 *
-	 * @return a serialized version of the function's closure.
+	 * @return a serialized version of the function's closure/capture frame.
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
+
+	/**
+	 * Sets the captures frame to one built from *data*.
+	 *
+	 * @param data a serialized frame
+	 */
+	bool DeserializeCaptures(const broker::vector& data);
 
 	void AddBody(StmtPtr new_body,
 	             const std::vector<IDPtr>& new_inits,

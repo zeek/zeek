@@ -1,3 +1,8 @@
+
+4.1.0-dev.27 | 2021-01-06 20:42:35 -0800
+
+  * GH-1347: Update cmake module to fix ZeekPluginDynamic's find_package(CAF) (Jon Siwek, Corelight)
+
 4.1.0-dev.25 | 2020-12-28 15:37:20 -0700
 
   * Add LGTM config file (Jon Siwek, Corelight)

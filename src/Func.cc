@@ -115,7 +115,7 @@ std::string render_call_stack()
 
 		if ( ci.call )
 			{
-			auto loc = ci.call->Original()->GetLocationInfo();
+			auto loc = ci.call->GetLocationInfo();
 			rval += util::fmt(" at %s:%d", loc->filename, loc->first_line);
 			}
 
@@ -385,8 +385,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	for ( const auto& body : bodies )
 		{
 		if ( sample_logger )
-			sample_logger->LocationSeen(
-				body.stmts->Original()->GetLocationInfo());
+			sample_logger->LocationSeen(body.stmts->GetLocationInfo());
 
 		// Fill in the rest of the frame with the function's arguments.
 		for ( auto j = 0u; j < args->size(); ++j )

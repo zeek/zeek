@@ -107,8 +107,7 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 
 	Filemap& map = *(map_iter->second);
 
-	StmtLocMapping* new_mapping =
-		new StmtLocMapping(Original()->GetLocationInfo(), this);
+	StmtLocMapping* new_mapping = new StmtLocMapping(GetLocationInfo(), this);
 
 	// Optimistically just put it at the end.
 	map.push_back(new_mapping);
@@ -193,7 +192,7 @@ ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l)
 			Error("value of type void illegal");
 		}
 
-	SetLocationInfo(l->Original()->GetLocationInfo());
+	SetLocationInfo(l->GetLocationInfo());
 	}
 
 ExprListStmt::~ExprListStmt() = default;
@@ -344,13 +343,13 @@ ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	if ( e && e->IsPure() )
 		Warn("expression value ignored");
 
-	SetLocationInfo(e->Original()->GetLocationInfo());
+	SetLocationInfo(e->GetLocationInfo());
 	}
 
 ExprStmt::ExprStmt(StmtTag t, ExprPtr arg_e) : Stmt(t), e(std::move(arg_e))
 	{
 	if ( e )
-		SetLocationInfo(e->Original()->GetLocationInfo());
+		SetLocationInfo(e->GetLocationInfo());
 	}
 
 ExprStmt::~ExprStmt() = default;
@@ -423,8 +422,8 @@ IfStmt::IfStmt(ExprPtr test,
 	if ( ! e->IsError() && ! IsBool(e->GetType()->Tag()) )
 		e->Error("conditional in test must be boolean");
 
-	const Location* loc1 = s1->Original()->GetLocationInfo();
-	const Location* loc2 = s2->Original()->GetLocationInfo();
+	const Location* loc1 = s1->GetLocationInfo();
+	const Location* loc2 = s2->GetLocationInfo();
 	SetLocationInfo(loc1, loc2);
 	}
 
@@ -805,7 +804,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 
 	if ( ! hk )
 		{
-		reporter->PushLocation(e->Original()->GetLocationInfo());
+		reporter->PushLocation(e->GetLocationInfo());
 		reporter->InternalError("switch expression type mismatch (%s/%s)",
 		                        type_name(v->GetType()->Tag()),
 		                        type_name(e->GetType()->Tag()));
@@ -846,7 +845,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 
 		if ( ! hk )
 			{
-			reporter->PushLocation(e->Original()->GetLocationInfo());
+			reporter->PushLocation(e->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
 			                type_name(v->GetType()->Tag()),
 			                type_name(e->GetType()->Tag()));

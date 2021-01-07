@@ -2333,7 +2333,7 @@ function backtrace%(%): Backtrace
 
 		if ( ci.call )
 			{
-			auto loc = ci.call->Original()->GetLocationInfo();
+			auto loc = ci.call->GetLocationInfo();
 			elem->Assign<StringVal>(file_location_idx, loc->filename);
 			elem->Assign(line_location_idx, val_mgr->Count(loc->first_line));
 			}

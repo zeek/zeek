@@ -277,7 +277,7 @@ void Expr::ExprError(const char msg[])
 
 void Expr::RuntimeError(const std::string& msg) const
 	{
-	reporter->ExprRuntimeError(Original(), "%s", msg.data());
+	reporter->ExprRuntimeError(this, "%s", msg.data());
 	}
 
 void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
@@ -285,13 +285,13 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 	auto rcs = render_call_stack();
 
 	if ( rcs.empty() )
-		reporter->ExprRuntimeError(Original(), "%s", msg.data());
+		reporter->ExprRuntimeError(this, "%s", msg.data());
 	else
 		{
 		ODesc d;
 		d.SetShort();
 		Describe(&d);
-		reporter->RuntimeError(Original()->GetLocationInfo(),
+		reporter->RuntimeError(GetLocationInfo(),
 					"%s, expression: %s, call stack: %s",
 					msg.data(), d.Description(), rcs.data());
 		}

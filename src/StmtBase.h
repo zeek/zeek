@@ -113,6 +113,14 @@ public:
 		return {AdoptRef{}, succ};
 		}
 
+	const detail::Location* GetLocationInfo() const override
+		{
+		if ( original )
+			return original->GetLocationInfo();
+		else
+			return Obj::GetLocationInfo();
+		}
+
 protected:
 	explicit Stmt(StmtTag arg_tag);
 

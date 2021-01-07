@@ -108,9 +108,6 @@ void Inliner::Analyze()
 			}
 		}
 
-	// Functions that are candidates for inlining.
-	std::unordered_set<FuncInfo*> candidates;
-
 	for ( auto& f : funcs )
 		// Candidates are non-event, non-hook, non-recursive
 		// functions ... that don't use lambdas or when's,

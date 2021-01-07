@@ -918,9 +918,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	return {0, std::move(options)};
 	}
 
-int cleanup(bool did_net_run)
+int cleanup(bool did_run_loop )
 	{
-	if ( did_net_run )
+	if ( did_run_loop )
 		done_with_network();
 
 	run_state::detail::delete_run();

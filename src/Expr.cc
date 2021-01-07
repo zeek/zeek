@@ -2654,7 +2654,17 @@ void IndexExpr::Add(Frame* f)
 	if ( ! v2 )
 		return;
 
-	v1->AsTableVal()->Assign(std::move(v2), nullptr);
+	bool iterators_invalidated = false;
+	v1->AsTableVal()->Assign(std::move(v2), nullptr, true, &iterators_invalidated);
+
+	if ( iterators_invalidated )
+		{
+		ODesc d;
+		Describe(&d);
+		reporter->PushLocation(GetLocationInfo());
+		reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+		reporter->PopLocation();
+		}
 	}
 
 void IndexExpr::Delete(Frame* f)
@@ -2672,7 +2682,17 @@ void IndexExpr::Delete(Frame* f)
 	if ( ! v2 )
 		return;
 
-	v1->AsTableVal()->Remove(*v2);
+	bool iterators_invalidated = false;
+	v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
+
+	if ( iterators_invalidated )
+		{
+		ODesc d;
+		Describe(&d);
+		reporter->PushLocation(GetLocationInfo());
+		reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+		reporter->PopLocation();
+		}
 	}
 
 ExprPtr IndexExpr::MakeLvalue()
@@ -2893,7 +2913,10 @@ void IndexExpr::Assign(Frame* f, ValPtr v)
 		}
 
 	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v)) )
+		{
+		bool iterators_invalidated = false;
+
+		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v), true, &iterators_invalidated) )
 			{
 			v = std::move(v_extra);
 
@@ -2911,6 +2934,16 @@ void IndexExpr::Assign(Frame* f, ValPtr v)
 			else
 				RuntimeErrorWithCallStack("assignment failed with null value");
 			}
+
+		if ( iterators_invalidated )
+			{
+			ODesc d;
+			Describe(&d);
+			reporter->PushLocation(GetLocationInfo());
+			reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+			reporter->PopLocation();
+			}
+		}
 		break;
 
 	case TYPE_STRING:

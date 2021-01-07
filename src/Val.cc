@@ -1548,7 +1548,8 @@ void TableVal::CheckExpireAttr(detail::AttrTag at)
 		}
 	}
 
-bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward)
+bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward,
+                      bool* iterators_invalidated)
 	{
 	auto k = MakeHashKey(*index);
 
@@ -1558,7 +1559,7 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward)
 		return false;
 		}
 
-	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward);
+	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
 	}
 
 bool TableVal::Assign(Val* index, Val* new_val)
@@ -1567,7 +1568,7 @@ bool TableVal::Assign(Val* index, Val* new_val)
 	}
 
 bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
-                      ValPtr new_val, bool broker_forward)
+                      ValPtr new_val, bool broker_forward, bool* iterators_invalidated)
 	{
 	bool is_set = table_type->IsSet();
 
@@ -1576,7 +1577,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
 	detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
-	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
+	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val, iterators_invalidated);
 
 	// If the dictionary index already existed, the insert may free up the
 	// memory allocated to the key bytes, so have to assume k is invalid
@@ -2263,11 +2264,11 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		}
 	}
 
-ValPtr TableVal::Remove(const Val& index, bool broker_forward)
+ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_invalidated)
 	{
 	auto k = MakeHashKey(index);
 
-	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
+	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get(), iterators_invalidated) : nullptr;
 	ValPtr va;
 
 	if ( v )
@@ -2293,9 +2294,9 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward)
 	return va;
 	}
 
-ValPtr TableVal::Remove(const detail::HashKey& k)
+ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated)
 	{
-	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
+	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k, iterators_invalidated);
 	ValPtr va;
 
 	if ( v )

@@ -24,8 +24,8 @@ SetupResult setup(int argc, char** argv, Options* options = nullptr);
 
 /**
  * Cleans up Zeek's global state.
- * @param did_net_run  whether the net_run() was called.
+ * @param did_run_loop  whether the run_loop() function was called.
  */
-int cleanup(bool did_net_run);
+int cleanup(bool did_run_loop);
 
 } // namespace zeek::detail

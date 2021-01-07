@@ -24,6 +24,8 @@ public:
 
 	// Tell the analyzer that encryption has started.
 	void StartEncryption();
+	// Get the TLS version that the server chose. 0 if not yet known.
+	uint16_t GetNegotiatedVersion() const;
 
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;

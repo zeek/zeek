@@ -314,11 +314,11 @@ endif ()
 if ( CAF_ROOT OR BROKER_ROOT_DIR )
   # TODO: drop < 3.12 compatibility check when raising the minimum CMake version
   if ( CAF_ROOT AND CMAKE_VERSION VERSION_LESS 3.12 )
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED CONFIG
+    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED
                  COMPONENTS openssl test io core
                  PATHS "${CAF_ROOT}")
   else ()
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED CONFIG
+    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED
                  COMPONENTS openssl test io core)
   endif ()
   message(STATUS "Using system CAF version ${CAF_VERSION}")

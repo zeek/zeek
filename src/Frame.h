@@ -58,7 +58,12 @@ public:
 	 * @return the value at index *n* of the underlying array.
 	 */
 	const ValPtr& GetElement(int n) const
-		{ return frame[n].val; }
+		{
+		// Note: technically this may want to adjust by current_offset, but
+		// in practice, this method is never called from anywhere other than
+		// function call invocation, where current_offset should be zero.
+		return frame[n].val;
+		}
 
 	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
 	Val* NthElement(int n) const	{ return frame[n].val.get(); }

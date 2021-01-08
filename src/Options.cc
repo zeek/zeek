@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "zeek/Options.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 #include <unistd.h>
 
@@ -104,6 +105,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
+	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help for options)\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
@@ -139,6 +141,30 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "\n");
 
 	exit(code);
+	}
+
+static void set_analysis_option(const char* opt, Options& opts)
+	{
+	if ( util::streq(opt, "help") )
+		{
+		fprintf(stderr, "--optimize options:\n");
+		fprintf(stderr, "    help	print this list\n");
+		fprintf(stderr, "    inline	inline function calls\n");
+		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
+		exit(0);
+		}
+
+	if ( util::streq(opt, "inline") )
+		opts.analysis_options.inliner = true;
+	else if ( util::streq(opt, "recursive") )
+		opts.analysis_options.inliner =
+			opts.analysis_options.report_recursive = true;
+
+	else
+		{
+		fprintf(stderr,"zeek: unrecognized --optimize option: %s\n", opt);
+		exit(1);
+		}
 	}
 
 Options parse_cmdline(int argc, char** argv)
@@ -252,6 +278,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"load-seeds",		required_argument,	nullptr,	'G'},
 		{"save-seeds",		required_argument,	nullptr,	'H'},
 		{"print-plugins",	no_argument,		nullptr,	'N'},
+		{"optimize",		required_argument,	nullptr,	'O'},
 		{"prime-dns",		no_argument,		nullptr,	'P'},
 		{"time",		no_argument,		nullptr,	'Q'},
 		{"debug-rules",		no_argument,		nullptr,	'S'},
@@ -279,7 +306,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
 	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -400,6 +427,9 @@ Options parse_cmdline(int argc, char** argv)
 			break;
 		case 'N':
 			++rval.print_plugins;
+			break;
+		case 'O':
+			set_analysis_option(optarg, rval);
 			break;
 		case 'P':
 			if ( rval.dns_mode != detail::DNS_DEFAULT )

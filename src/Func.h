@@ -10,6 +10,7 @@
 #include <type_traits>
 
 #include "zeek/ZeekList.h"
+#include "zeek/Stmt.h"
 #include "zeek/Obj.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Type.h" /* for function_flavor */
@@ -42,6 +43,8 @@ namespace detail {
 using ScopePtr = IntrusivePtr<Scope>;
 using IDPtr = IntrusivePtr<ID>;
 using StmtPtr = IntrusivePtr<Stmt>;
+
+class ScriptFunc;
 
 } // namespace detail
 
@@ -193,6 +196,22 @@ public:
 	             const std::vector<IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
+	StmtPtr CurrentBody() const		{ return current_body; }
+
+	/**
+	 * Returns the function's frame size.
+	 * @return  The number of ValPtr slots in the function's frame.
+	 */
+	int FrameSize() const			{ return frame_size; }
+
+	/**
+	 * Changes the function's frame size to a new size - used for
+	 * script optimization/compilation.
+	 * 
+	 * @param new_size  The frame size the function should use.
+	 */
+	void SetFrameSize(int new_size)		{ frame_size = new_size; }
+
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(IDPList ids)
 		{ outer_ids = std::move(ids); }
@@ -226,6 +245,9 @@ private:
 	// The frame the ScriptFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
+
+	// The most recently added/updated body.
+	StmtPtr current_body;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);

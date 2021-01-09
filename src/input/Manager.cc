@@ -833,7 +833,12 @@ bool Manager::IsCompatibleType(Type* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
+		const auto& indices = t->AsSetType()->GetIndices();
+
+		if ( indices->GetTypes().size() != 1 )
+			return false;
+
+		return IsCompatibleType(indices->GetPureType().get(), true);
 		}
 
 	case TYPE_VECTOR:

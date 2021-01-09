@@ -124,8 +124,13 @@ function format_value(value: any) : string
 	{
 	local tn = type_name(value);
 	local part: string_vec = vector();
-	if ( /^set/ in tn )
+
+	if ( /^set/ in tn && strstr(tn, ",") == 0 )
 		{
+		# The conversion to set here is tricky and assumes
+		# that the set isn't indexed via a tuple of types.
+		# The above check for commas in the type name
+		# ensures this.
 		local it: set[bool] = value;
 		for ( sv in it )
 			part += cat(sv);

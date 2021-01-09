@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "zeek/analyzer/protocol/icmp/ICMP.h"
 
 #include <netinet/icmp6.h>
 #include <algorithm>
@@ -12,7 +13,6 @@
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
-#include "zeek/analyzer/protocol/icmp/ICMP.h"
 
 #include "analyzer/protocol/icmp/events.bif.h"
 

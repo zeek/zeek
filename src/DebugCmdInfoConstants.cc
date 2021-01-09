@@ -4,7 +4,9 @@
 // DO NOT EDIT.
 //
 
+#include "zeek/DebugCmds.h"
 #include "zeek/util.h"
+
 namespace zeek::detail
 {
 

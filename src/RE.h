@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <ctype.h>
 #include <sys/types.h> // for u_char
 #include <map>

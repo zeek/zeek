@@ -2,52 +2,54 @@
 
 #pragma once
 
-#include "zeek/IPAddr.h"
 #include "zeek/File.h"
+#include "zeek/IPAddr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Analyzer, zeek, analyzer::tcp);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Reassembler, zeek, analyzer::tcp);
 
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+{
 
-enum EndpointState {
-	TCP_ENDPOINT_INACTIVE,	// no SYN (or other packets) seen for this side
-	TCP_ENDPOINT_SYN_SENT,	// SYN seen, but no ack
-	TCP_ENDPOINT_SYN_ACK_SENT,	// SYN ack seen, no initial SYN
-	TCP_ENDPOINT_PARTIAL,	// data seen, but no SYN
-	TCP_ENDPOINT_ESTABLISHED,	// SYN ack seen (implicit for SYN
-					// sent by responder)
-	TCP_ENDPOINT_CLOSED,	// FIN seen
-	TCP_ENDPOINT_RESET	// RST seen
-};
+enum EndpointState
+	{
+	TCP_ENDPOINT_INACTIVE, // no SYN (or other packets) seen for this side
+	TCP_ENDPOINT_SYN_SENT, // SYN seen, but no ack
+	TCP_ENDPOINT_SYN_ACK_SENT, // SYN ack seen, no initial SYN
+	TCP_ENDPOINT_PARTIAL, // data seen, but no SYN
+	TCP_ENDPOINT_ESTABLISHED, // SYN ack seen (implicit for SYN
+	                          // sent by responder)
+	TCP_ENDPOINT_CLOSED, // FIN seen
+	TCP_ENDPOINT_RESET // RST seen
+	};
 
 // One endpoint of a TCP connection.
-class TCP_Endpoint {
+class TCP_Endpoint
+	{
 public:
 	TCP_Endpoint(TCP_Analyzer* analyzer, bool is_orig);
 	~TCP_Endpoint();
 
 	void Done();
 
-	TCP_Analyzer* TCP()	{ return tcp_analyzer; }
+	TCP_Analyzer* TCP() { return tcp_analyzer; }
 
 	void SetPeer(TCP_Endpoint* p);
 
-	EndpointState State() const 	{ return state; }
+	EndpointState State() const { return state; }
 	void SetState(EndpointState new_state);
 	uint64_t Size() const;
-	bool IsActive() const
-		{ return state != TCP_ENDPOINT_INACTIVE && ! did_close; }
+	bool IsActive() const { return state != TCP_ENDPOINT_INACTIVE && ! did_close; }
 
-	double StartTime() const	{ return start_time; }
-	double LastTime() const		{ return last_time; }
+	double StartTime() const { return start_time; }
+	double LastTime() const { return last_time; }
 
 	/**
 	 * @return The starting TCP sequence number for this endpoint.
 	 */
-	uint32_t StartSeq() const		{ return static_cast<uint32_t>(start_seq); }
+	uint32_t StartSeq() const { return static_cast<uint32_t>(start_seq); }
 
 	/**
 	 * @return The starting TCP sequence number for this endpoint, in terms
@@ -60,32 +62,31 @@ public:
 	 * @return The sequence number after the last TCP sequence number seen
 	 *         from this endpoint.
 	 */
-	uint32_t LastSeq() const		{ return last_seq; }
+	uint32_t LastSeq() const { return last_seq; }
 
 	/**
 	 * @return The last TCP acknowledgement number seen from this endpoint.
 	 */
-	uint32_t AckSeq() const		{ return ack_seq; }
+	uint32_t AckSeq() const { return ack_seq; }
 
 	/**
 	 * @return The number of times the TCP sequence has wrapped around
 	 *         for this endpoint (i.e. overflowed a uint32_t).
 	 */
-	uint32_t SeqWraps() const		{ return seq_wraps; }
+	uint32_t SeqWraps() const { return seq_wraps; }
 
 	/**
 	 * @return The number of times the TCP acknowledgement sequence has
 	 *         wrapped around for this endpoint (i.e. overflowed a uint32_t).
 	 */
-	uint32_t AckWraps() const		{ return ack_wraps; }
+	uint32_t AckWraps() const { return ack_wraps; }
 
 	/**
 	 * @param wraps Number of times a 32-bit sequence space has wrapped.
 	 * @return A 64-bit sequence space number it would take to overflow
 	 *         a 32-bit sequence space \a wraps number of times.
 	 */
-	static uint64_t ToFullSeqSpace(uint32_t wraps)
-		{ return (uint64_t(wraps) << 32); }
+	static uint64_t ToFullSeqSpace(uint32_t wraps) { return (uint64_t(wraps) << 32); }
 
 	/**
 	 * @param tcp_seq_num A 32-bit TCP sequence space number.
@@ -94,7 +95,9 @@ public:
 	 *         accounting for the number of times the 32-bit space overflowed.
 	 */
 	static uint64_t ToFullSeqSpace(uint32_t tcp_seq_num, uint32_t wraparounds)
-		{ return ToFullSeqSpace(wraparounds) + tcp_seq_num; }
+		{
+		return ToFullSeqSpace(wraparounds) + tcp_seq_num;
+		}
 
 	/**
 	 * @param tcp_seq_num A 32-bit TCP sequence space number.
@@ -108,9 +111,9 @@ public:
 		return ToFullSeqSpace(tcp_seq_num, wraparounds) - StartSeqI64();
 		}
 
-	void InitStartSeq(int64_t seq) 	{ start_seq = seq; }
-	void InitLastSeq(uint32_t seq) 	{ last_seq = seq; }
-	void InitAckSeq(uint32_t seq) 	{ ack_seq = seq; }
+	void InitStartSeq(int64_t seq) { start_seq = seq; }
+	void InitLastSeq(uint32_t seq) { last_seq = seq; }
+	void InitAckSeq(uint32_t seq) { ack_seq = seq; }
 
 	void UpdateLastSeq(uint32_t seq)
 		{
@@ -140,12 +143,12 @@ public:
 
 	Connection* Conn() const;
 
-	bool HasContents() const		{ return contents_processor != nullptr; }
+	bool HasContents() const { return contents_processor != nullptr; }
 	bool HadGap() const;
 
-	inline bool IsOrig() const		{ return is_orig; }
+	inline bool IsOrig() const { return is_orig; }
 
-	bool HasDoneSomething() const	{ return last_time != 0.0; }
+	bool HasDoneSomething() const { return last_time != 0.0; }
 
 	void AddReassembler(TCP_Reassembler* contents_processor);
 
@@ -181,13 +184,13 @@ public:
 
 	// Returns true if the data was used (and hence should be recorded
 	// in the save file), false otherwise.
-	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-	              const IP_Hdr* ip, const struct tcphdr* tp);
+	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data, const IP_Hdr* ip,
+	              const struct tcphdr* tp);
 
 	void AckReceived(uint64_t seq);
 
 	void SetContentsFile(FilePtr f);
-	const FilePtr& GetContentsFile() const	{ return contents_file; }
+	const FilePtr& GetContentsFile() const { return contents_file; }
 
 	// Codes used for tracking history.  For responders, we shift these
 	// over by 16 bits in order to fit both originator and responder
@@ -216,13 +219,13 @@ public:
 	IPAddr src_addr; // the other endpoint
 	IPAddr dst_addr; // this endpoint
 	uint32_t window; // current advertised window (*scaled*, not pre-scaling)
-	int window_scale;  // from the TCP option
+	int window_scale; // from the TCP option
 	uint32_t window_ack_seq; // at which ack_seq number did we record 'window'
 	uint32_t window_seq; // at which sending sequence number did we record 'window'
-	uint64_t contents_start_seq;	// relative seq # where contents file starts
-	uint64_t FIN_seq;		// relative seq # to start_seq
+	uint64_t contents_start_seq; // relative seq # where contents file starts
+	uint64_t FIN_seq; // relative seq # to start_seq
 	int SYN_cnt, FIN_cnt, RST_cnt;
-	bool did_close;		// whether we've reported it closing
+	bool did_close; // whether we've reported it closing
 	bool is_orig;
 
 	// Relative sequence numbers associated with last control packets.
@@ -231,20 +234,20 @@ public:
 	uint64_t hist_last_SYN, hist_last_FIN, hist_last_RST;
 
 protected:
-	int64_t start_seq;	// Initial TCP sequence number in host order.
-				// Signed 64-bit to detect initial sequence wrapping.
-				// Use StartSeq() accessor if need it in terms of
-				// an absolute TCP sequence number.
-	uint32_t last_seq, ack_seq;	// in host order
-	uint32_t seq_wraps, ack_wraps;	// Number of times 32-bit TCP sequence space
-					// has wrapped around (overflowed).
+	int64_t start_seq; // Initial TCP sequence number in host order.
+	                   // Signed 64-bit to detect initial sequence wrapping.
+	                   // Use StartSeq() accessor if need it in terms of
+	                   // an absolute TCP sequence number.
+	uint32_t last_seq, ack_seq; // in host order
+	uint32_t seq_wraps, ack_wraps; // Number of times 32-bit TCP sequence space
+	                               // has wrapped around (overflowed).
 
 	// Performance history accounting.
 	uint32_t chk_cnt, chk_thresh;
 	uint32_t rxmt_cnt, rxmt_thresh;
 	uint32_t win0_cnt, win0_thresh;
 	uint32_t gap_cnt, gap_thresh;
-};
+	};
 
 #define ENDIAN_UNKNOWN 0
 #define ENDIAN_LITTLE 1
@@ -253,17 +256,34 @@ protected:
 
 } // namespace zeek::analyzer::tcp
 
-namespace analyzer::tcp {
+namespace analyzer::tcp
+{
 
-using EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::EndpointState.")]] = zeek::analyzer::tcp::EndpointState;
-constexpr auto TCP_ENDPOINT_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE;
-constexpr auto TCP_ENDPOINT_SYN_SENT [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT;
-constexpr auto TCP_ENDPOINT_SYN_ACK_SENT [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
-constexpr auto TCP_ENDPOINT_PARTIAL [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL;
-constexpr auto TCP_ENDPOINT_ESTABLISHED [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
-constexpr auto TCP_ENDPOINT_CLOSED [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED;
-constexpr auto TCP_ENDPOINT_RESET [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_RESET.")]] = zeek::analyzer::tcp::TCP_ENDPOINT_RESET;
+using EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::EndpointState.")]] =
+	zeek::analyzer::tcp::EndpointState;
+constexpr auto TCP_ENDPOINT_INACTIVE
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE;
+constexpr auto TCP_ENDPOINT_SYN_SENT
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT;
+constexpr auto TCP_ENDPOINT_SYN_ACK_SENT
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
+constexpr auto TCP_ENDPOINT_PARTIAL
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_PARTIAL;
+constexpr auto TCP_ENDPOINT_ESTABLISHED
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
+constexpr auto TCP_ENDPOINT_CLOSED
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_CLOSED;
+constexpr auto TCP_ENDPOINT_RESET
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ENDPOINT_RESET.")]] =
+		zeek::analyzer::tcp::TCP_ENDPOINT_RESET;
 
-using TCP_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Endpoint.")]] = zeek::analyzer::tcp::TCP_Endpoint;
+using TCP_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Endpoint.")]] =
+	zeek::analyzer::tcp::TCP_Endpoint;
 
 } // namespace analyzer::tcp

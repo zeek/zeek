@@ -1,30 +1,26 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/Sessions.h"
 
-#include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <netinet/in.h>
+#include <pcap.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <pcap.h>
-
 #include "zeek/Desc.h"
-#include "zeek/RunState.h"
 #include "zeek/Event.h"
-#include "zeek/Timer.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/RunState.h"
+#include "zeek/Sessions.h"
+#include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
-
-#include "zeek/analyzer/protocol/icmp/ICMP.h"
-#include "zeek/analyzer/protocol/udp/UDP.h"
-#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/Manager.h"
-
+#include "zeek/analyzer/protocol/icmp/ICMP.h"
+#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/Manager.h"
 
@@ -33,15 +29,17 @@
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
 // port or one of these.
-enum NetBIOS_Service {
-	NETBIOS_SERVICE_START = 0x10000L,	// larger than any port
+enum NetBIOS_Service
+	{
+	NETBIOS_SERVICE_START = 0x10000L, // larger than any port
 	NETBIOS_SERVICE_DCE_RPC,
-};
+	};
 
 zeek::NetSessions* zeek::sessions;
 zeek::NetSessions*& sessions = zeek::sessions;
 
-namespace zeek {
+namespace zeek
+{
 
 NetSessions::NetSessions()
 	{
@@ -70,9 +68,7 @@ NetSessions::~NetSessions()
 	detail::fragment_mgr->Clear();
 	}
 
-void NetSessions::Done()
-	{
-	}
+void NetSessions::Done() { }
 
 void NetSessions::NextPacket(double t, Packet* pkt)
 	{
@@ -92,7 +88,7 @@ void NetSessions::ProcessTransportLayer(double t, const Packet* pkt, size_t rema
 		return;
 		}
 
-	len -= ip_hdr_len;	// remove IP header
+	len -= ip_hdr_len; // remove IP header
 
 	int proto = ip_hdr->NextProto();
 
@@ -107,63 +103,62 @@ void NetSessions::ProcessTransportLayer(double t, const Packet* pkt, size_t rema
 	ConnectionMap* d = nullptr;
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
 
-	switch ( proto ) {
-	case IPPROTO_TCP:
+	switch ( proto )
 		{
-		const struct tcphdr* tp = (const struct tcphdr *) data;
-		id.src_port = tp->th_sport;
-		id.dst_port = tp->th_dport;
-		id.is_one_way = false;
-		d = &tcp_conns;
-		break;
+		case IPPROTO_TCP:
+			{
+			const struct tcphdr* tp = (const struct tcphdr*)data;
+			id.src_port = tp->th_sport;
+			id.dst_port = tp->th_dport;
+			id.is_one_way = false;
+			d = &tcp_conns;
+			break;
+			}
+
+		case IPPROTO_UDP:
+			{
+			const struct udphdr* up = (const struct udphdr*)data;
+			id.src_port = up->uh_sport;
+			id.dst_port = up->uh_dport;
+			id.is_one_way = false;
+			d = &udp_conns;
+			break;
+			}
+
+		case IPPROTO_ICMP:
+			{
+			const struct icmp* icmpp = (const struct icmp*)data;
+
+			id.src_port = icmpp->icmp_type;
+			id.dst_port = analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code,
+			                                                id.is_one_way);
+
+			id.src_port = htons(id.src_port);
+			id.dst_port = htons(id.dst_port);
+
+			d = &icmp_conns;
+			break;
+			}
+
+		case IPPROTO_ICMPV6:
+			{
+			const struct icmp* icmpp = (const struct icmp*)data;
+
+			id.src_port = icmpp->icmp_type;
+			id.dst_port = analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code,
+			                                                id.is_one_way);
+
+			id.src_port = htons(id.src_port);
+			id.dst_port = htons(id.dst_port);
+
+			d = &icmp_conns;
+			break;
+			}
+
+		default:
+			Weird("unknown_protocol", pkt, util::fmt("%d", proto));
+			return;
 		}
-
-	case IPPROTO_UDP:
-		{
-		const struct udphdr* up = (const struct udphdr *) data;
-		id.src_port = up->uh_sport;
-		id.dst_port = up->uh_dport;
-		id.is_one_way = false;
-		d = &udp_conns;
-		break;
-		}
-
-	case IPPROTO_ICMP:
-		{
-		const struct icmp* icmpp = (const struct icmp *) data;
-
-		id.src_port = icmpp->icmp_type;
-		id.dst_port = analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
-		                                                icmpp->icmp_code,
-		                                                id.is_one_way);
-
-		id.src_port = htons(id.src_port);
-		id.dst_port = htons(id.dst_port);
-
-		d = &icmp_conns;
-		break;
-		}
-
-	case IPPROTO_ICMPV6:
-		{
-		const struct icmp* icmpp = (const struct icmp *) data;
-
-		id.src_port = icmpp->icmp_type;
-		id.dst_port = analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
-		                                                icmpp->icmp_code,
-		                                                id.is_one_way);
-
-		id.src_port = htons(id.src_port);
-		id.dst_port = htons(id.dst_port);
-
-		d = &icmp_conns;
-		break;
-		}
-
-	default:
-		Weird("unknown_protocol", pkt, util::fmt("%d", proto));
-		return;
-	}
 
 	detail::ConnIDKey key = detail::BuildConnIDKey(id);
 	Connection* conn = nullptr;
@@ -201,11 +196,10 @@ void NetSessions::ProcessTransportLayer(double t, const Packet* pkt, size_t rema
 	if ( ! conn )
 		return;
 
-	int record_packet = 1;	// whether to record the packet at all
-	int record_content = 1;	// whether to record its data
+	int record_packet = 1; // whether to record the packet at all
+	int record_content = 1; // whether to record its data
 
-	bool is_orig = (id.src_addr == conn->OrigAddr()) &&
-			(id.src_port == conn->OrigPort());
+	bool is_orig = (id.src_addr == conn->OrigAddr()) && (id.src_port == conn->OrigPort());
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
@@ -214,43 +208,41 @@ void NetSessions::ProcessTransportLayer(double t, const Packet* pkt, size_t rema
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->ToPktHdrVal();
-		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(),
-		                   pkt_hdr_val);
+		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(), pkt_hdr_val);
 		}
 
 	if ( new_packet )
-		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
-		                   std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
+		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(),
+		                   pkt_hdr_val ? std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
-	conn->NextPacket(t, is_orig, ip_hdr.get(), len, remaining, data,
-	                 record_packet, record_content, pkt);
+	conn->NextPacket(t, is_orig, ip_hdr.get(), len, remaining, data, record_packet, record_content,
+	                 pkt);
 
 	// We skip this block for reassembled packets because the pointer
 	// math wouldn't work.
 	if ( ! ip_hdr->reassembled && record_packet )
 		{
 		if ( record_content )
-			pkt->dump_packet = true;	// save the whole thing
+			pkt->dump_packet = true; // save the whole thing
 
 		else
 			{
 			int hdr_len = data - pkt->data;
-			packet_mgr->DumpPacket(pkt, hdr_len);	// just save the header
+			packet_mgr->DumpPacket(pkt, hdr_len); // just save the header
 			}
 		}
 	}
 
-int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-                               IP_Hdr*& inner)
+int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto, IP_Hdr*& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )
 		{
 		if ( caplen < (int)sizeof(struct ip6_hdr) )
 			return -1;
 
-		const struct ip6_hdr* ip6 = (const struct ip6_hdr*) pkt;
+		const struct ip6_hdr* ip6 = (const struct ip6_hdr*)pkt;
 		inner = new IP_Hdr(ip6, false, caplen);
-		if ( ( ip6->ip6_ctlun.ip6_un2_vfc & 0xF0 ) != 0x60 )
+		if ( (ip6->ip6_ctlun.ip6_un2_vfc & 0xF0) != 0x60 )
 			return -2;
 		}
 
@@ -259,7 +251,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		if ( caplen < (int)sizeof(struct ip) )
 			return -1;
 
-		const struct ip* ip4 = (const struct ip*) pkt;
+		const struct ip* ip4 = (const struct ip*)pkt;
 		inner = new IP_Hdr(ip4, false);
 		if ( ip4->ip_v != 4 )
 			return -2;
@@ -277,24 +269,24 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	return 0;
 	}
 
-bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-                                   const Packet* p)
+bool NetSessions::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen, const Packet* p)
 	{
 	uint32_t min_hdr_len = 0;
-	switch ( proto ) {
-	case IPPROTO_TCP:
-		min_hdr_len = sizeof(struct tcphdr);
-		break;
-	case IPPROTO_UDP:
-		min_hdr_len = sizeof(struct udphdr);
-		break;
-	case IPPROTO_ICMP:
-	case IPPROTO_ICMPV6:
-	default:
-		// Use for all other packets.
-		min_hdr_len = ICMP_MINLEN;
-		break;
-	}
+	switch ( proto )
+		{
+		case IPPROTO_TCP:
+			min_hdr_len = sizeof(struct tcphdr);
+			break;
+		case IPPROTO_UDP:
+			min_hdr_len = sizeof(struct udphdr);
+			break;
+		case IPPROTO_ICMP:
+		case IPPROTO_ICMPV6:
+		default:
+			// Use for all other packets.
+			min_hdr_len = ICMP_MINLEN;
+			break;
+		}
 
 	if ( len < min_hdr_len )
 		{
@@ -320,7 +312,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	RecordType* vr = vt->AsRecordType();
 	auto vl = v->AsRecord();
 
-	int orig_h, orig_p;	// indices into record's value list
+	int orig_h, orig_p; // indices into record's value list
 	int resp_h, resp_p;
 
 	if ( vr == id::conn_id )
@@ -357,10 +349,10 @@ Connection* NetSessions::FindConnection(Val* v)
 	id.src_addr = orig_addr;
 	id.dst_addr = resp_addr;
 
-	id.src_port = htons((unsigned short) orig_portv->Port());
-	id.dst_port = htons((unsigned short) resp_portv->Port());
+	id.src_port = htons((unsigned short)orig_portv->Port());
+	id.dst_port = htons((unsigned short)resp_portv->Port());
 
-	id.is_one_way = false;	// ### incorrect for ICMP connections
+	id.is_one_way = false; // ### incorrect for ICMP connections
 
 	detail::ConnIDKey key = detail::BuildConnIDKey(id);
 	ConnectionMap* d;
@@ -412,26 +404,27 @@ void NetSessions::Remove(Connection* c)
 		// longer in the dictionary.
 		c->ClearKey();
 
-		switch ( c->ConnTransport() ) {
-		case TRANSPORT_TCP:
-			if ( tcp_conns.erase(key) == 0 )
-				reporter->InternalWarning("connection missing");
-			break;
+		switch ( c->ConnTransport() )
+			{
+			case TRANSPORT_TCP:
+				if ( tcp_conns.erase(key) == 0 )
+					reporter->InternalWarning("connection missing");
+				break;
 
-		case TRANSPORT_UDP:
-			if ( udp_conns.erase(key) == 0 )
-				reporter->InternalWarning("connection missing");
-			break;
+			case TRANSPORT_UDP:
+				if ( udp_conns.erase(key) == 0 )
+					reporter->InternalWarning("connection missing");
+				break;
 
-		case TRANSPORT_ICMP:
-			if ( icmp_conns.erase(key) == 0 )
-				reporter->InternalWarning("connection missing");
-			break;
+			case TRANSPORT_ICMP:
+				if ( icmp_conns.erase(key) == 0 )
+					reporter->InternalWarning("connection missing");
+				break;
 
-		case TRANSPORT_UNKNOWN:
-			reporter->InternalWarning("unknown transport when removing connection");
-			break;
-		}
+			case TRANSPORT_UNKNOWN:
+				reporter->InternalWarning("unknown transport when removing connection");
+				break;
+			}
 
 		Unref(c);
 		}
@@ -443,33 +436,34 @@ void NetSessions::Insert(Connection* c)
 
 	Connection* old = nullptr;
 
-	switch ( c->ConnTransport() ) {
-	// Remove first. Otherwise the map would still reference the old key for
-	// already existing connections.
+	switch ( c->ConnTransport() )
+		{
+			// Remove first. Otherwise the map would still reference the old key for
+			// already existing connections.
 
-	case TRANSPORT_TCP:
-		old = LookupConn(tcp_conns, c->Key());
-		tcp_conns.erase(c->Key());
-		InsertConnection(&tcp_conns, c->Key(), c);
-		break;
+		case TRANSPORT_TCP:
+			old = LookupConn(tcp_conns, c->Key());
+			tcp_conns.erase(c->Key());
+			InsertConnection(&tcp_conns, c->Key(), c);
+			break;
 
-	case TRANSPORT_UDP:
-		old = LookupConn(udp_conns, c->Key());
-		udp_conns.erase(c->Key());
-		InsertConnection(&udp_conns, c->Key(), c);
-		break;
+		case TRANSPORT_UDP:
+			old = LookupConn(udp_conns, c->Key());
+			udp_conns.erase(c->Key());
+			InsertConnection(&udp_conns, c->Key(), c);
+			break;
 
-	case TRANSPORT_ICMP:
-		old = LookupConn(icmp_conns, c->Key());
-		icmp_conns.erase(c->Key());
-		InsertConnection(&icmp_conns, c->Key(), c);
-		break;
+		case TRANSPORT_ICMP:
+			old = LookupConn(icmp_conns, c->Key());
+			icmp_conns.erase(c->Key());
+			InsertConnection(&icmp_conns, c->Key(), c);
+			break;
 
-	default:
-		reporter->InternalWarning("unknown connection type");
-		Unref(c);
-		return;
-	}
+		default:
+			reporter->InternalWarning("unknown connection type");
+			Unref(c);
+			return;
+		}
 
 	if ( old && old != c )
 		{
@@ -550,7 +544,8 @@ Connection* NetSessions::NewConn(const detail::ConnIDKey& k, double t, const Con
 
 	// Hmm... This is not great.
 	TransportProto tproto = TRANSPORT_UNKNOWN;
-	switch ( proto ) {
+	switch ( proto )
+		{
 		case IPPROTO_ICMP:
 			tproto = TRANSPORT_ICMP;
 			break;
@@ -566,11 +561,11 @@ Connection* NetSessions::NewConn(const detail::ConnIDKey& k, double t, const Con
 		default:
 			reporter->InternalWarning("unknown transport protocol");
 			return nullptr;
-	};
+		};
 
 	if ( tproto == TRANSPORT_TCP )
 		{
-		const struct tcphdr* tp = (const struct tcphdr*) data;
+		const struct tcphdr* tp = (const struct tcphdr*)data;
 		flags = tp->th_flags;
 		}
 
@@ -635,8 +630,8 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 	}
 
 bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
-                                 TransportProto transport_proto,
-                                 uint8_t tcp_flags, bool& flip_roles)
+                                 TransportProto transport_proto, uint8_t tcp_flags,
+                                 bool& flip_roles)
 	{
 	flip_roles = false;
 
@@ -674,9 +669,8 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 		}
 
 	else if ( transport_proto == TRANSPORT_UDP )
-		flip_roles =
-			IsLikelyServerPort(src_port, TRANSPORT_UDP) &&
-			! IsLikelyServerPort(dst_port, TRANSPORT_UDP);
+		flip_roles = IsLikelyServerPort(src_port, TRANSPORT_UDP) &&
+		             ! IsLikelyServerPort(dst_port, TRANSPORT_UDP);
 
 	return true;
 	}
@@ -694,7 +688,8 @@ void NetSessions::Weird(const char* name, const Packet* pkt, const char* addl, c
 
 		if ( pkt->ip_hdr )
 			{
-			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl, source);
+			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl,
+			                source);
 			return;
 			}
 		}
@@ -753,14 +748,16 @@ unsigned int NetSessions::MemoryAllocation()
 		// Connections have been flushed already.
 		return 0;
 
-	return ConnectionMemoryUsage()
-		+ padded_sizeof(*this)
-		+ (tcp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ (udp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ (icmp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ detail::fragment_mgr->MemoryAllocation();
-		// FIXME: MemoryAllocation() not implemented for rest.
-		;
+	return ConnectionMemoryUsage() + padded_sizeof(*this) +
+	       (tcp_conns.size() *
+	        (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type))) +
+	       (udp_conns.size() *
+	        (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type))) +
+	       (icmp_conns.size() *
+	        (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type))) +
+	       detail::fragment_mgr->MemoryAllocation();
+	// FIXME: MemoryAllocation() not implemented for rest.
+	;
 	}
 
 void NetSessions::InsertConnection(ConnectionMap* m, const detail::ConnIDKey& key, Connection* conn)
@@ -784,7 +781,8 @@ void NetSessions::InsertConnection(ConnectionMap* m, const detail::ConnIDKey& ke
 			if ( m->size() > stats.max_ICMP_conns )
 				stats.max_ICMP_conns = m->size();
 			break;
-		default: break;
+		default:
+			break;
 		}
 	}
 

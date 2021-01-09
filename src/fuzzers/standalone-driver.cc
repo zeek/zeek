@@ -1,10 +1,10 @@
-#include <cstdio>
 #include <cerrno>
+#include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <chrono>
 
 #include "zeek/zeek-setup.h"
 
@@ -47,8 +47,7 @@ int main(int argc, char** argv)
 
 		if ( bytes_read != static_cast<size_t>(input_length) )
 			{
-			printf(" failed to read full file: %zu/%ld\n",
-			       bytes_read, input_length);
+			printf(" failed to read full file: %zu/%ld\n", bytes_read, input_length);
 			abort();
 			}
 
@@ -64,7 +63,7 @@ int main(int argc, char** argv)
 	auto agg_stop = high_resolution_clock::now();
 	auto agg_dt = duration<double>(agg_stop - agg_start).count();
 	auto fuzz_dt = duration<double>(agg_stop - fuzz_start).count();
-	printf("Processed %d inputs in %fs (%fs w/ initialization), avg = %fs\n",
-	       num_inputs, fuzz_dt, agg_dt, fuzz_dt / num_inputs);
+	printf("Processed %d inputs in %fs (%fs w/ initialization), avg = %fs\n", num_inputs, fuzz_dt,
+	       agg_dt, fuzz_dt / num_inputs);
 	return zeek::detail::cleanup(false);
 	}

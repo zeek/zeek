@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::MPLS;
 
-MPLSAnalyzer::MPLSAnalyzer()
-	: zeek::packet_analysis::Analyzer("MPLS")
-	{
-	}
+MPLSAnalyzer::MPLSAnalyzer() : zeek::packet_analysis::Analyzer("MPLS") { }
 
 bool MPLSAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

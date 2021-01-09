@@ -4,56 +4,62 @@
 #pragma once
 
 #include "zeek-config.h"
+
 #include "zeek/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 
-namespace zeek::plugin {
-	template <class T> class TaggedComponent;
-	template <class T, class C> class ComponentManager;
+namespace zeek::plugin
+{
+template <class T> class TaggedComponent;
+template <class T, class C> class ComponentManager;
 }
-namespace plugin {
-	template <class T>
-	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
-		zeek::plugin::TaggedComponent<T>;
-	template <class T, class C>
-	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
+namespace plugin
+{
+template <class T>
+using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
+	zeek::plugin::TaggedComponent<T>;
+template <class T, class C>
+using ComponentManager
+	[[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
 		zeek::plugin::ComponentManager<T, C>;
 }
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, analyzer);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, analyzer);
 
-namespace zeek::analyzer {
+namespace zeek::analyzer
+{
 
 /**
  * Class to identify a protocol analyzer type.
  *
  * The script-layer analogue is Analyzer::Tag.
  */
-class Tag : public zeek::Tag  {
+class Tag : public zeek::Tag
+	{
 public:
 	/*
 	 * Copy constructor.
 	 */
-	Tag(const Tag& other) : zeek::Tag(other) {}
+	Tag(const Tag& other) : zeek::Tag(other) { }
 
 	/**
 	 * Default constructor. This initializes the tag with an error value
 	 * that will make \c operator \c bool return false.
 	 */
-	Tag() : zeek::Tag() {}
+	Tag() : zeek::Tag() { }
 
 	/**
 	 * Destructor.
 	 */
-	~Tag() {}
+	~Tag() { }
 
 	/**
 	 * Returns false if the tag represents an error value rather than a
 	 * legal analyzer type.
 	 */
-	explicit operator bool() const	{ return *this != Error; }
+	explicit operator bool() const { return *this != Error; }
 
 	/**
 	 * Assignment operator.
@@ -63,26 +69,17 @@ public:
 	/**
 	 * Compares two tags for equality.
 	 */
-	bool operator==(const Tag& other) const
-		{
-		return zeek::Tag::operator==(other);
-		}
+	bool operator==(const Tag& other) const { return zeek::Tag::operator==(other); }
 
 	/**
 	 * Compares two tags for inequality.
 	 */
-	bool operator!=(const Tag& other) const
-		{
-		return zeek::Tag::operator!=(other);
-		}
+	bool operator!=(const Tag& other) const { return zeek::Tag::operator!=(other); }
 
 	/**
 	 * Compares two tags for less-than relationship.
 	 */
-	bool operator<(const Tag& other) const
-		{
-		return zeek::Tag::operator<(other);
-		}
+	bool operator<(const Tag& other) const { return zeek::Tag::operator<(other); }
 
 	/**
 	 * Returns the \c Analyzer::Tag enum that corresponds to this tag.
@@ -92,8 +89,7 @@ public:
 	 */
 	const EnumValPtr& AsVal() const;
 
-	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal() const;
+	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]] EnumVal* AsEnumVal() const;
 
 	static const Tag Error;
 
@@ -121,12 +117,13 @@ protected:
 	 */
 	explicit Tag(EnumValPtr val);
 
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead")]]
-	explicit Tag(EnumVal* val);
-};
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead")]] explicit Tag(
+		EnumVal* val);
+	};
 
 } // namespace zeek::analyzer
 
-namespace analyzer {
-	using Tag [[deprecated("Remove in v4.1. Use zeek::analyzer::Tag")]] = zeek::analyzer::Tag;
+namespace analyzer
+{
+using Tag [[deprecated("Remove in v4.1. Use zeek::analyzer::Tag")]] = zeek::analyzer::Tag;
 } // namespace analyzer

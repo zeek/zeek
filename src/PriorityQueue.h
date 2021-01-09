@@ -9,27 +9,30 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PriorityQueue, zeek::detail);
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-class PQ_Element {
+class PQ_Element
+	{
 public:
-	explicit PQ_Element(double t) : time(t) 	{}
+	explicit PQ_Element(double t) : time(t) { }
 	virtual ~PQ_Element() = default;
 
-	double Time() const	{ return time; }
+	double Time() const { return time; }
 
-	int Offset() const	{ return offset; }
-	void SetOffset(int off)	{ offset = off; }
+	int Offset() const { return offset; }
+	void SetOffset(int off) { offset = off; }
 
-	void MinimizeTime()	{ time = -HUGE_VAL; }
+	void MinimizeTime() { time = -HUGE_VAL; }
 
 protected:
 	PQ_Element() = default;
 	double time = 0.0;
 	int offset = -1;
-};
+	};
 
-class PriorityQueue {
+class PriorityQueue
+	{
 public:
 	explicit PriorityQueue(int initial_size = 16);
 	~PriorityQueue();
@@ -55,8 +58,8 @@ public:
 	// memory to add the element), true on success.
 	bool Add(PQ_Element* e);
 
-	int Size() const	{ return heap_size; }
-	int PeakSize() const	{ return peak_heap_size; }
+	int Size() const { return heap_size; }
+	int PeakSize() const { return peak_heap_size; }
 	uint64_t CumulativeNum() const { return cumulative_num; }
 
 protected:
@@ -65,20 +68,11 @@ protected:
 	void BubbleUp(int bin);
 	void BubbleDown(int bin);
 
-	int Parent(int bin) const
-		{
-		return bin >> 1;
-		}
+	int Parent(int bin) const { return bin >> 1; }
 
-	int LeftChild(int bin) const
-		{
-		return bin << 1;
-		}
+	int LeftChild(int bin) const { return bin << 1; }
 
-	int RightChild(int bin) const
-		{
-		return LeftChild(bin) + 1;
-		}
+	int RightChild(int bin) const { return LeftChild(bin) + 1; }
 
 	void SetElement(int bin, PQ_Element* e)
 		{
@@ -98,9 +92,11 @@ protected:
 	int peak_heap_size = 0;
 	int max_heap_size = 0;
 	uint64_t cumulative_num = 0;
-};
+	};
 
 } // namespace zeek::detail
 
-using PQ_Element [[deprecated("Remove in v4.1. Use zeek::detail::PQ_Element.")]] = zeek::detail::PQ_Element;
-using PriorityQueue [[deprecated("Remove in v4.1. Use zeek::detail::PriorityQueue.")]] = zeek::detail::PriorityQueue;
+using PQ_Element [[deprecated("Remove in v4.1. Use zeek::detail::PQ_Element.")]] =
+	zeek::detail::PQ_Element;
+using PriorityQueue [[deprecated("Remove in v4.1. Use zeek::detail::PriorityQueue.")]] =
+	zeek::detail::PriorityQueue;

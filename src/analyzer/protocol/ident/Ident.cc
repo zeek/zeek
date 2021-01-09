@@ -1,20 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/analyzer/protocol/ident/Ident.h"
 
 #include <ctype.h>
 
-#include "zeek/ZeekString.h"
-#include "zeek/NetVar.h"
 #include "zeek/Event.h"
+#include "zeek/NetVar.h"
+#include "zeek/ZeekString.h"
+#include "zeek/analyzer/protocol/ident/Ident.h"
 
 #include "analyzer/protocol/ident/events.bif.h"
 
-namespace zeek::analyzer::ident {
+namespace zeek::analyzer::ident
+{
 
 Ident_Analyzer::Ident_Analyzer(Connection* conn)
-: analyzer::tcp::TCP_ApplicationAnalyzer("IDENT", conn)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("IDENT", conn)
 	{
 	did_bad_reply = did_deliver = false;
 
@@ -48,7 +49,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 
 	int remote_port, local_port;
-	const char* line = (const char*) data;
+	const char* line = (const char*)data;
 	const char* orig_line = line;
 	const char* end_of_line = line + length;
 
@@ -84,11 +85,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			Weird("ident_request_addendum", s.CheckString());
 			}
 
-		EnqueueConnEvent(ident_request,
-			ConnVal(),
-			val_mgr->Port(local_port, TRANSPORT_TCP),
-			val_mgr->Port(remote_port, TRANSPORT_TCP)
-		);
+		EnqueueConnEvent(ident_request, ConnVal(), val_mgr->Port(local_port, TRANSPORT_TCP),
+		                 val_mgr->Port(remote_port, TRANSPORT_TCP));
 
 		did_deliver = true;
 		}
@@ -145,19 +143,17 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		if ( is_error )
 			{
 			if ( ident_error )
-				EnqueueConnEvent(ident_error,
-					ConnVal(),
-					val_mgr->Port(local_port, TRANSPORT_TCP),
-					val_mgr->Port(remote_port, TRANSPORT_TCP),
-					make_intrusive<StringVal>(end_of_line - line, line)
-				);
+				EnqueueConnEvent(ident_error, ConnVal(), val_mgr->Port(local_port, TRANSPORT_TCP),
+				                 val_mgr->Port(remote_port, TRANSPORT_TCP),
+				                 make_intrusive<StringVal>(end_of_line - line, line));
 			}
 
 		else
 			{
 			const char* sys_type = line;
 			assert(line <= end_of_line);
-			size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.
+			size_t n = end_of_line >= line ? end_of_line - line
+			                               : 0; // just to be sure if assertions aren't on.
 			const char* colon = reinterpret_cast<const char*>(memchr(line, ':', n));
 			const char* comma = reinterpret_cast<const char*>(memchr(line, ',', n));
 			if ( ! colon )
@@ -166,30 +162,24 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 				return;
 				}
 
-			const char* sys_end = (comma && comma < colon) ?
-						comma : colon;
+			const char* sys_end = (comma && comma < colon) ? comma : colon;
 
 			while ( --sys_end > sys_type && isspace(*sys_end) )
 				;
 
-			String* sys_type_s =
-				new String((const u_char*) sys_type,
-				                    sys_end - sys_type + 1, true);
+			String* sys_type_s = new String((const u_char*)sys_type, sys_end - sys_type + 1, true);
 
 			line = util::skip_whitespace(colon + 1, end_of_line);
 
-			EnqueueConnEvent(ident_reply,
-				ConnVal(),
-				val_mgr->Port(local_port, TRANSPORT_TCP),
-				val_mgr->Port(remote_port, TRANSPORT_TCP),
-				make_intrusive<StringVal>(end_of_line - line, line),
-				make_intrusive<StringVal>(sys_type_s)
-			);
+			EnqueueConnEvent(ident_reply, ConnVal(), val_mgr->Port(local_port, TRANSPORT_TCP),
+			                 val_mgr->Port(remote_port, TRANSPORT_TCP),
+			                 make_intrusive<StringVal>(end_of_line - line, line),
+			                 make_intrusive<StringVal>(sys_type_s));
 			}
 		}
 	}
 
-const char* Ident_Analyzer::ParsePair(const char* line, const char* end_of_line, int & p1, int& p2)
+const char* Ident_Analyzer::ParsePair(const char* line, const char* end_of_line, int& p1, int& p2)
 	{
 	line = ParsePort(line, end_of_line, p1);
 	if ( ! line )
@@ -209,8 +199,7 @@ const char* Ident_Analyzer::ParsePair(const char* line, const char* end_of_line,
 	return line;
 	}
 
-const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
-				int& pn)
+const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line, int& pn)
 	{
 	int n = 0;
 
@@ -224,8 +213,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 		{
 		n = n * 10 + (*line - '0');
 		++line;
-		}
-	while ( line < end_of_line && isdigit(*line) );
+		} while ( line < end_of_line && isdigit(*line) );
 
 	line = util::skip_whitespace(line, end_of_line);
 

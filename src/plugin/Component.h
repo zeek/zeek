@@ -3,25 +3,29 @@
 #pragma once
 
 #include "zeek-config.h"
+
 #include <string>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
-namespace zeek::plugin {
-namespace component {
+namespace zeek::plugin
+{
+namespace component
+{
 
 /**
  * Component types.
  */
-enum Type {
-	READER,    /// An input reader (not currently used).
-	WRITER,    /// A logging writer (not currently used).
-	ANALYZER,  /// A protocol analyzer.
-	PACKET_ANALYZER,  /// A packet analyzer.
-	FILE_ANALYZER,    /// A file analyzer.
-	IOSOURCE,  /// An I/O source, excluding packet sources.
-	PKTSRC,	   /// A packet source.
-	PKTDUMPER  /// A packet dumper.
+enum Type
+	{
+	READER, /// An input reader (not currently used).
+	WRITER, /// A logging writer (not currently used).
+	ANALYZER, /// A protocol analyzer.
+	PACKET_ANALYZER, /// A packet analyzer.
+	FILE_ANALYZER, /// A file analyzer.
+	IOSOURCE, /// An I/O source, excluding packet sources.
+	PKTSRC, /// A packet source.
+	PKTDUMPER /// A packet dumper.
 	};
 
 } // namespace component
@@ -32,7 +36,7 @@ enum Type {
  * writer.
  */
 class Component
-{
+	{
 public:
 	/**
 	 * Constructor.
@@ -54,7 +58,7 @@ public:
 	 * plugin component functionality is used; it commonly is used to add the
 	 * plugin component to the list of components and to initialize tags
 	 */
-	virtual void Initialize() {}
+	virtual void Initialize() { }
 
 	/**
 	 * Returns the compoment's type.
@@ -72,7 +76,7 @@ public:
 	 * upper-cased and transformed to allow being part of a script-level
 	 * ID.
 	 */
-	const std::string& CanonicalName() const	{ return canon_name; }
+	const std::string& CanonicalName() const { return canon_name; }
 
 	/**
 	 * Returns a textual representation of the component. This goes into
@@ -92,8 +96,8 @@ protected:
 	 * The default version does nothing.
 	 *
 	 * @param d The description object to use.
-	  */
-	virtual void DoDescribe(ODesc* d) const	{ }
+	 */
+	virtual void DoDescribe(ODesc* d) const { }
 
 private:
 	// Disable.
@@ -103,32 +107,40 @@ private:
 	component::Type type;
 	std::string name;
 	std::string canon_name;
-};
+	};
 
 } // namespace zeek::plugin
 
 namespace plugin
 {
-using Component [[deprecated("Remove in v4.1. Use zeek::plugin::Component instead.")]] = zeek::plugin::Component;
+using Component [[deprecated("Remove in v4.1. Use zeek::plugin::Component instead.")]] =
+	zeek::plugin::Component;
 
 namespace component
 {
 
-using Type [[deprecated("Remove in v4.1. Use zeek::plugin::component::Type instead.")]] = zeek::plugin::component::Type;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::READER instead.")]]
-constexpr auto READER = zeek::plugin::component::READER;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::WRITER instead.")]]
-constexpr auto WRITER = zeek::plugin::component::WRITER;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::ANALYZER instead.")]]
-constexpr auto ANALYZER = zeek::plugin::component::ANALYZER;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::FILE_ANALYZER instead.")]]
-constexpr auto FILE_ANALYZER = zeek::plugin::component::FILE_ANALYZER;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::IOSOURCE instead.")]]
-constexpr auto IOSOURCE = zeek::plugin::component::IOSOURCE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::PKTSRC instead.")]]
-constexpr auto PKTSRC = zeek::plugin::component::PKTSRC;
-[[deprecated("Remove in v4.1. Use zeek::plugin::component::PKTDUMPER instead.")]]
-constexpr auto PKTDUMPER = zeek::plugin::component::PKTDUMPER;
+using Type [[deprecated("Remove in v4.1. Use zeek::plugin::component::Type instead.")]] =
+	zeek::plugin::component::Type;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::component::READER instead.")]] constexpr auto READER =
+	zeek::plugin::component::READER;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::component::WRITER instead.")]] constexpr auto WRITER =
+	zeek::plugin::component::WRITER;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::component::ANALYZER instead.")]] constexpr auto ANALYZER =
+	zeek::plugin::component::ANALYZER;
+[[deprecated("Remove in v4.1. Use zeek::plugin::component::FILE_ANALYZER instead.")]] constexpr auto
+	FILE_ANALYZER = zeek::plugin::component::FILE_ANALYZER;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::component::IOSOURCE instead.")]] constexpr auto IOSOURCE =
+	zeek::plugin::component::IOSOURCE;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::component::PKTSRC instead.")]] constexpr auto PKTSRC =
+	zeek::plugin::component::PKTSRC;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::component::PKTDUMPER instead.")]] constexpr auto PKTDUMPER =
+	zeek::plugin::component::PKTDUMPER;
 
 } // namespace component
 } // namespace plugin

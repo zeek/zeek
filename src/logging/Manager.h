@@ -6,31 +6,35 @@
 
 #include <string_view>
 
-#include "zeek/Val.h"
-#include "zeek/Tag.h"
 #include "zeek/EventHandler.h"
-#include "zeek/plugin/ComponentManager.h"
-
+#include "zeek/Tag.h"
+#include "zeek/Val.h"
 #include "zeek/logging/Component.h"
 #include "zeek/logging/WriterBackend.h"
+#include "zeek/plugin/ComponentManager.h"
 
-namespace broker { struct endpoint_info; }
+namespace broker
+{
+struct endpoint_info;
+}
 ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RotationFinishedMessage, zeek, logging);
 
-namespace zeek {
-namespace logging {
+namespace zeek
+{
+namespace logging
+{
 
 class RotationTimer;
 
 /**
  * Singleton class for managing log streams.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component>
+	{
 public:
-
 	/**
 	 * Constructor.
 	 */
@@ -54,10 +58,8 @@ public:
 	 * @param rotation_info  The fields of a Log::RotationFmtInfo record
 	 *                       to create and pass to Log::rotation_format_func.
 	 */
-	std::string FormatRotationPath(EnumValPtr writer,
-	                               std::string_view path, double open,
-	                               double close, bool terminating,
-	                               FuncPtr postprocesor);
+	std::string FormatRotationPath(EnumValPtr writer, std::string_view path, double open,
+	                               double close, bool terminating, FuncPtr postprocesor);
 
 	/**
 	 * Creates a new log stream.
@@ -188,8 +190,8 @@ public:
 	 * @param vals An array of log values to write, of size num_fields.
 	 * The method takes ownership of the array.
 	 */
-	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, const std::string& path,
-	                     int num_fields, threading::Value** vals);
+	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, const std::string& path, int num_fields,
+	                     threading::Value** vals);
 
 	/**
 	 * Announces all instantiated writers to a given Broker peer.
@@ -263,9 +265,9 @@ protected:
 
 	// Takes ownership of fields and info.
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-	                             int num_fields, const threading::Field* const* fields,
-	                             bool local, bool remote, bool from_remote,
-	                             const std::string& instantiating_filter="");
+	                             int num_fields, const threading::Field* const* fields, bool local,
+	                             bool remote, bool from_remote,
+	                             const std::string& instantiating_filter = "");
 
 	// Signals that a file has been rotated.
 	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
@@ -279,12 +281,10 @@ private:
 	struct Stream;
 	struct WriterInfo;
 
-	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
-	                    TableVal* include, TableVal* exclude,
-	                    const std::string& path, const std::list<int>& indices);
+	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include,
+	                    TableVal* exclude, const std::string& path, const std::list<int>& indices);
 
-	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
-	                                      RecordVal* columns);
+	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter, RecordVal* columns);
 
 	threading::Value* ValToLogVal(Val* val, Type* ty = nullptr);
 	Stream* FindStream(EnumVal* id);
@@ -295,10 +295,10 @@ private:
 	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
 	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
-	std::vector<Stream *> streams;	// Indexed by stream enum.
-	int rotations_pending;	// Number of rotations not yet finished.
+	std::vector<Stream*> streams; // Indexed by stream enum.
+	int rotations_pending; // Number of rotations not yet finished.
 	FuncPtr rotation_format_func;
-};
+	};
 
 } // namespace logging;
 
@@ -308,8 +308,10 @@ extern logging::Manager* log_mgr;
 
 extern zeek::logging::Manager*& log_mgr [[deprecated("Remove in v4.1. Use zeek::log_mgr.")]];
 
-namespace logging {
+namespace logging
+{
 
-using Manager [[deprecated("Remove in v4.1. Use zeek::logging::Manager.")]] = zeek::logging::Manager;
+using Manager [[deprecated("Remove in v4.1. Use zeek::logging::Manager.")]] =
+	zeek::logging::Manager;
 
 } // namespace logging

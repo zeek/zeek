@@ -4,12 +4,14 @@
 
 #include "zeek/Options.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-struct SetupResult {
+struct SetupResult
+	{
 	int code = 0;
 	Options options;
-};
+	};
 
 /**
  * Initializes Zeek's global state.

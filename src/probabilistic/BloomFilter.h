@@ -4,28 +4,36 @@
 
 #include "zeek-config.h"
 
-#include <memory>
-#include <vector>
-#include <string>
-
 #include <broker/expected.hh>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/probabilistic/Hasher.h"
 
-namespace broker { class data; }
+namespace broker
+{
+class data;
+}
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CounterVector, zeek, probabilistic, detail);
 
-namespace zeek::probabilistic {
+namespace zeek::probabilistic
+{
 
 /** Types of derived BloomFilter classes. */
-enum BloomFilterType { Basic, Counting };
+enum BloomFilterType
+	{
+	Basic,
+	Counting
+	};
 
 /**
  * The abstract base class for Bloom filters.
  */
-class BloomFilter {
+class BloomFilter
+	{
 public:
 	/**
 	 * Destructor.
@@ -103,12 +111,13 @@ protected:
 	virtual BloomFilterType Type() const = 0;
 
 	const detail::Hasher* hasher;
-};
+	};
 
 /**
  * A basic Bloom filter.
  */
-class BasicBloomFilter : public BloomFilter {
+class BasicBloomFilter : public BloomFilter
+	{
 public:
 	/**
 	 * Constructs a basic Bloom filter with a given number of cells. The
@@ -174,17 +183,17 @@ protected:
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
-	BloomFilterType Type() const override
-		{ return BloomFilterType::Basic; }
+	BloomFilterType Type() const override { return BloomFilterType::Basic; }
 
 private:
 	detail::BitVector* bits;
-};
+	};
 
 /**
  * A counting Bloom filter.
  */
-class CountingBloomFilter : public BloomFilter {
+class CountingBloomFilter : public BloomFilter
+	{
 public:
 	/**
 	 * Constructs a counting Bloom filter.
@@ -223,23 +232,31 @@ protected:
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
-	BloomFilterType Type() const override
-		{ return BloomFilterType::Counting; }
+	BloomFilterType Type() const override { return BloomFilterType::Counting; }
 
 private:
 	detail::CounterVector* cells;
-};
+	};
 
 } // namespace zeek::probabilistic
 
-namespace probabilistic {
+namespace probabilistic
+{
 
-using BloomFilterType [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilterType.")]] = zeek::probabilistic::BloomFilterType;
-constexpr auto Basic [[deprecated("Remove in v4.1. Use zeek::probabilistic::Basic.")]] = zeek::probabilistic::Basic;
-constexpr auto Counting [[deprecated("Remove in v4.1. Use zeek::probabilistic::Counting.")]] = zeek::probabilistic::Counting;
+using BloomFilterType [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilterType.")]] =
+	zeek::probabilistic::BloomFilterType;
+constexpr auto Basic [[deprecated("Remove in v4.1. Use zeek::probabilistic::Basic.")]] =
+	zeek::probabilistic::Basic;
+constexpr auto Counting [[deprecated("Remove in v4.1. Use zeek::probabilistic::Counting.")]] =
+	zeek::probabilistic::Counting;
 
-using BloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilter.")]] = zeek::probabilistic::BloomFilter;
-using BasicBloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BasicBloomFilter.")]] = zeek::probabilistic::BasicBloomFilter;
-using CountingBloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::CountingBloomFilter.")]] = zeek::probabilistic::CountingBloomFilter;
+using BloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilter.")]] =
+	zeek::probabilistic::BloomFilter;
+using BasicBloomFilter
+	[[deprecated("Remove in v4.1. Use zeek::probabilistic::BasicBloomFilter.")]] =
+		zeek::probabilistic::BasicBloomFilter;
+using CountingBloomFilter
+	[[deprecated("Remove in v4.1. Use zeek::probabilistic::CountingBloomFilter.")]] =
+		zeek::probabilistic::CountingBloomFilter;
 
 } // namespace probabilistic

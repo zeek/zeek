@@ -1,24 +1,26 @@
 #pragma once
 
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+{
 
-class TCP_Flags {
+class TCP_Flags
+	{
 public:
-	TCP_Flags(const struct tcphdr* tp)	{ flags = tp->th_flags; }
-	TCP_Flags()	{ flags = 0; }
+	TCP_Flags(const struct tcphdr* tp) { flags = tp->th_flags; }
+	TCP_Flags() { flags = 0; }
 
-	bool SYN() const	{ return flags & TH_SYN; }
-	bool FIN() const	{ return flags & TH_FIN; }
-	bool RST() const	{ return flags & TH_RST; }
-	bool ACK() const	{ return flags & TH_ACK; }
-	bool URG() const	{ return flags & TH_URG; }
-	bool PUSH() const	{ return flags & TH_PUSH; }
+	bool SYN() const { return flags & TH_SYN; }
+	bool FIN() const { return flags & TH_FIN; }
+	bool RST() const { return flags & TH_RST; }
+	bool ACK() const { return flags & TH_ACK; }
+	bool URG() const { return flags & TH_URG; }
+	bool PUSH() const { return flags & TH_PUSH; }
 
 	std::string AsString() const;
 
 protected:
 	u_char flags;
-};
+	};
 
 inline std::string TCP_Flags::AsString() const
 	{
@@ -49,8 +51,10 @@ inline std::string TCP_Flags::AsString() const
 
 } // namespace zeek::analyzer::tcp
 
-namespace analyzer::tcp {
+namespace analyzer::tcp
+{
 
-using TCP_Flags [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Flags.")]] = zeek::analyzer::tcp::TCP_Flags;
+using TCP_Flags [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Flags.")]] =
+	zeek::analyzer::tcp::TCP_Flags;
 
 } // namespace analyzer::tcp

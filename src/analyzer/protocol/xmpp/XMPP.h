@@ -6,9 +6,11 @@
 
 #include "analyzer/protocol/xmpp/xmpp_pac.h"
 
-namespace zeek::analyzer::xmpp {
+namespace zeek::analyzer::xmpp
+{
 
-class XMPP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class XMPP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit XMPP_Analyzer(Connection* conn);
 	~XMPP_Analyzer() override;
@@ -22,20 +24,21 @@ public:
 
 	void StartTLS();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new XMPP_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new XMPP_Analyzer(conn); }
 
 protected:
 	std::unique_ptr<binpac::XMPP::XMPP_Conn> interp;
 	bool had_gap;
 
 	bool tls_active;
-};
+	};
 
 } // namespace zeek::analyzer::xmpp
 
-namespace analyzer::xmpp {
+namespace analyzer::xmpp
+{
 
-using XMPP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::xmpp::XMPP_Analyzer.")]] = zeek::analyzer::xmpp::XMPP_Analyzer;
+using XMPP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::xmpp::XMPP_Analyzer.")]] =
+	zeek::analyzer::xmpp::XMPP_Analyzer;
 
 } // namespace analyzer::xmpp

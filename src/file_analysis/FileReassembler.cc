@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/file_analysis/FileReassembler.h"
+
 #include "zeek/file_analysis/File.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
-namespace zeek::file_analysis {
+namespace zeek::file_analysis
+{
 
-FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
+FileReassembler::FileReassembler(File* f, uint64_t starting_offset)
 	: Reassembler(starting_offset, REASSEM_FILE), the_file(f), flushing(false)
 	{
 	}
@@ -45,8 +47,7 @@ void FileReassembler::BlockInserted(DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
 
-	if ( start_block.seq > last_reassem_seq ||
-	     start_block.upper <= last_reassem_seq )
+	if ( start_block.seq > last_reassem_seq || start_block.upper <= last_reassem_seq )
 		return;
 
 	while ( it != block_list.End() )

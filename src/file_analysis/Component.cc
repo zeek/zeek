@@ -3,10 +3,11 @@
 #include "zeek/file_analysis/Component.h"
 
 #include "zeek/Desc.h"
-#include "zeek/util.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/util.h"
 
-namespace zeek::file_analysis {
+namespace zeek::file_analysis
+{
 
 Component::Component(const std::string& name, factory_callback arg_factory, Tag::subtype_t subtype)
 	: plugin::Component(plugin::component::FILE_ANALYZER, name),
@@ -30,9 +31,7 @@ void Component::Initialize()
 	file_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 
-Component::~Component()
-	{
-	}
+Component::~Component() { }
 
 void Component::DoDescribe(ODesc* d) const
 	{

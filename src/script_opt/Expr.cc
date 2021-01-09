@@ -3,37 +3,34 @@
 // Optimization-related methods for Expr classes.
 
 #include "zeek/Expr.h"
-#include "zeek/Stmt.h"
-#include "zeek/Func.h"
-#include "zeek/Frame.h"
-#include "zeek/Scope.h"
+
 #include "zeek/Desc.h"
-#include "zeek/Traverse.h"
+#include "zeek/Frame.h"
+#include "zeek/Func.h"
 #include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
+#include "zeek/Traverse.h"
 #include "zeek/script_opt/Inline.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+{
 
 ExprPtr NameExpr::Duplicate()
 	{
 	return SetSucc(new NameExpr(id, in_const_init));
 	}
 
-
 ExprPtr ConstExpr::Duplicate()
 	{
 	return SetSucc(new ConstExpr(val));
 	}
 
-  
 ExprPtr UnaryExpr::Inline(Inliner* inl)
 	{
 	op = op->Inline(inl);
 	return ThisPtr();
 	}
-
 
 ExprPtr BinaryExpr::Inline(Inliner* inl)
 	{
@@ -43,49 +40,41 @@ ExprPtr BinaryExpr::Inline(Inliner* inl)
 	return ThisPtr();
 	}
 
-
 ExprPtr CloneExpr::Duplicate()
 	{
 	// oh the irony
 	return SetSucc(new CloneExpr(op->Duplicate()));
 	}
 
-
 ExprPtr IncrExpr::Duplicate()
 	{
 	return SetSucc(new IncrExpr(tag, op->Duplicate()));
 	}
-
 
 ExprPtr ComplementExpr::Duplicate()
 	{
 	return SetSucc(new ComplementExpr(op->Duplicate()));
 	}
 
-
 ExprPtr NotExpr::Duplicate()
 	{
 	return SetSucc(new NotExpr(op->Duplicate()));
 	}
-
 
 ExprPtr PosExpr::Duplicate()
 	{
 	return SetSucc(new PosExpr(op->Duplicate()));
 	}
 
-
 ExprPtr NegExpr::Duplicate()
 	{
 	return SetSucc(new NegExpr(op->Duplicate()));
 	}
 
-
 ExprPtr SizeExpr::Duplicate()
 	{
 	return SetSucc(new SizeExpr(op->Duplicate()));
 	}
-
 
 ExprPtr AddExpr::Duplicate()
 	{
@@ -94,14 +83,12 @@ ExprPtr AddExpr::Duplicate()
 	return SetSucc(new AddExpr(op1_d, op2_d));
 	}
 
-
 ExprPtr AddToExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new AddToExpr(op1_d, op2_d));
 	}
-
 
 ExprPtr SubExpr::Duplicate()
 	{
@@ -110,14 +97,12 @@ ExprPtr SubExpr::Duplicate()
 	return SetSucc(new SubExpr(op1_d, op2_d));
 	}
 
-
 ExprPtr RemoveFromExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new RemoveFromExpr(op1_d, op2_d));
 	}
-
 
 ExprPtr TimesExpr::Duplicate()
 	{
@@ -126,14 +111,12 @@ ExprPtr TimesExpr::Duplicate()
 	return SetSucc(new TimesExpr(op1_d, op2_d));
 	}
 
-
 ExprPtr DivideExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new DivideExpr(op1_d, op2_d));
 	}
-
 
 ExprPtr ModExpr::Duplicate()
 	{
@@ -142,14 +125,12 @@ ExprPtr ModExpr::Duplicate()
 	return SetSucc(new ModExpr(op1_d, op2_d));
 	}
 
-
 ExprPtr BoolExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new BoolExpr(tag, op1_d, op2_d));
 	}
-
 
 ExprPtr BitExpr::Duplicate()
 	{
@@ -158,7 +139,6 @@ ExprPtr BitExpr::Duplicate()
 	return SetSucc(new BitExpr(tag, op1_d, op2_d));
 	}
 
-
 ExprPtr EqExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -166,14 +146,12 @@ ExprPtr EqExpr::Duplicate()
 	return SetSucc(new EqExpr(tag, op1_d, op2_d));
 	}
 
-
 ExprPtr RelExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new RelExpr(tag, op1_d, op2_d));
 	}
-
 
 ExprPtr CondExpr::Duplicate()
 	{
@@ -192,12 +170,10 @@ ExprPtr CondExpr::Inline(Inliner* inl)
 	return ThisPtr();
 	}
 
-
 ExprPtr RefExpr::Duplicate()
 	{
 	return SetSucc(new RefExpr(op->Duplicate()));
 	}
-
 
 ExprPtr AssignExpr::Duplicate()
 	{
@@ -206,14 +182,12 @@ ExprPtr AssignExpr::Duplicate()
 	return SetSucc(new AssignExpr(op1_d, op2_d, is_init, val));
 	}
 
-
 ExprPtr IndexSliceAssignExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new IndexSliceAssignExpr(op1_d, op2_d, is_init));
 	}
-
 
 ExprPtr IndexExpr::Duplicate()
 	{
@@ -222,7 +196,6 @@ ExprPtr IndexExpr::Duplicate()
 	return SetSucc(new IndexExpr(op1_d, op2_l, is_slice));
 	}
 
-
 ExprPtr IndexExprWhen::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -230,18 +203,15 @@ ExprPtr IndexExprWhen::Duplicate()
 	return SetSucc(new IndexExprWhen(op1_d, op2_l, is_slice));
 	}
 
-
 ExprPtr FieldExpr::Duplicate()
 	{
 	return SetSucc(new FieldExpr(op->Duplicate(), field_name));
 	}
 
-
 ExprPtr HasFieldExpr::Duplicate()
 	{
 	return SetSucc(new HasFieldExpr(op->Duplicate(), field_name));
 	}
-
 
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
@@ -249,14 +219,12 @@ ExprPtr RecordConstructorExpr::Duplicate()
 	return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
-
 ExprPtr TableConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
 
 	TypePtr t;
-	if ( (type && type->GetName().size() > 0) ||
-	     ! op->AsListExpr()->Exprs().empty() )
+	if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
 		t = type;
 	else
 		// Use a null type rather than the one inferred, to instruct
@@ -266,14 +234,12 @@ ExprPtr TableConstructorExpr::Duplicate()
 	return SetSucc(new TableConstructorExpr(op_l, nullptr, t, attrs));
 	}
 
-
 ExprPtr SetConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
 
 	TypePtr t;
-	if ( (type && type->GetName().size() > 0) ||
-	     ! op->AsListExpr()->Exprs().empty() )
+	if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
 		t = type;
 	else
 		// Use a null type rather than the one inferred, to instruct
@@ -282,7 +248,6 @@ ExprPtr SetConstructorExpr::Duplicate()
 
 	return SetSucc(new SetConstructorExpr(op_l, nullptr, t, attrs));
 	}
-
 
 ExprPtr VectorConstructorExpr::Duplicate()
 	{
@@ -294,13 +259,11 @@ ExprPtr VectorConstructorExpr::Duplicate()
 		return SetSucc(new VectorConstructorExpr(op_l, type));
 	}
 
-
 ExprPtr FieldAssignExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new FieldAssignExpr(field_name.c_str(), op_dup));
 	}
-
 
 ExprPtr ArithCoerceExpr::Duplicate()
 	{
@@ -316,13 +279,11 @@ ExprPtr ArithCoerceExpr::Duplicate()
 	return SetSucc(new ArithCoerceExpr(op_dup, tag));
 	}
 
-
 ExprPtr RecordCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 	}
-
 
 ExprPtr TableCoerceExpr::Duplicate()
 	{
@@ -330,13 +291,11 @@ ExprPtr TableCoerceExpr::Duplicate()
 	return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
 	}
 
-
 ExprPtr VectorCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
 	}
-
 
 ExprPtr ScheduleExpr::Duplicate()
 	{
@@ -353,14 +312,12 @@ ExprPtr ScheduleExpr::Inline(Inliner* inl)
 	return ThisPtr();
 	}
 
-
 ExprPtr InExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new InExpr(op1_d, op2_d));
 	}
-
 
 ExprPtr CallExpr::Duplicate()
 	{
@@ -374,7 +331,7 @@ ExprPtr CallExpr::Duplicate()
 
 ExprPtr CallExpr::Inline(Inliner* inl)
 	{
-	auto new_me = inl->CheckForInlining({NewRef{}, this});
+	auto new_me = inl->CheckForInlining({NewRef {}, this});
 
 	if ( new_me.get() != this )
 		return new_me;
@@ -385,7 +342,6 @@ ExprPtr CallExpr::Inline(Inliner* inl)
 
 	return ThisPtr();
 	}
-
 
 ExprPtr LambdaExpr::Duplicate()
 	{
@@ -400,7 +356,6 @@ ExprPtr LambdaExpr::Inline(Inliner* inl)
 	return ThisPtr();
 	}
 
-
 ExprPtr EventExpr::Duplicate()
 	{
 	auto args_d = args->Duplicate()->AsListExprPtr();
@@ -413,41 +368,35 @@ ExprPtr EventExpr::Inline(Inliner* inl)
 	return ThisPtr();
 	}
 
-
 ExprPtr ListExpr::Duplicate()
 	{
 	auto new_l = new ListExpr();
 
-	loop_over_list(exprs, i)
-		new_l->Append(exprs[i]->Duplicate());
+	loop_over_list(exprs, i) new_l->Append(exprs[i]->Duplicate());
 
 	return SetSucc(new_l);
 	}
 
 ExprPtr ListExpr::Inline(Inliner* inl)
 	{
-	loop_over_list(exprs, i)
-		exprs[i] = exprs[i]->Inline(inl).release();
+	loop_over_list(exprs, i) exprs[i] = exprs[i]->Inline(inl).release();
 
 	return ThisPtr();
 	}
-
 
 ExprPtr CastExpr::Duplicate()
 	{
 	return SetSucc(new CastExpr(op->Duplicate(), type));
 	}
 
-
 ExprPtr IsExpr::Duplicate()
 	{
 	return SetSucc(new IsExpr(op->Duplicate(), t));
 	}
 
-
-InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params,
-			StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
-: Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
+InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, StmtPtr arg_body,
+                       int _frame_offset, TypePtr ret_type)
+	: Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
 	{
 	params = std::move(arg_params);
 	frame_offset = _frame_offset;
@@ -531,6 +480,5 @@ void InlineExpr::ExprDescribe(ODesc* d) const
 		body->Describe(d);
 		}
 	}
-
 
 } // namespace zeek::detail

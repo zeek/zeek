@@ -9,9 +9,11 @@
 
 #include "analyzer/protocol/imap/imap_pac.h"
 
-namespace zeek::analyzer::imap {
+namespace zeek::analyzer::imap
+{
 
-class IMAP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class IMAP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit IMAP_Analyzer(Connection* conn);
 	~IMAP_Analyzer() override;
@@ -25,20 +27,21 @@ public:
 
 	void StartTLS();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new IMAP_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new IMAP_Analyzer(conn); }
 
 protected:
 	binpac::IMAP::IMAP_Conn* interp;
 	bool had_gap;
 
 	bool tls_active;
-};
+	};
 
 } // namespace zeek::analyzer::imap
 
-namespace analyzer::imap {
+namespace analyzer::imap
+{
 
-using IMAP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::imap::IMAP_Analyzer.")]] = zeek::analyzer::imap::IMAP_Analyzer;
+using IMAP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::imap::IMAP_Analyzer.")]] =
+	zeek::analyzer::imap::IMAP_Analyzer;
 
 } // namespace analyzer::imap

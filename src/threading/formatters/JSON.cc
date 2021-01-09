@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+
 #include "zeek/threading/formatters/JSON.h"
 
 #ifndef __STDC_LIMIT_MACROS
@@ -9,15 +10,15 @@
 
 #include <errno.h>
 #include <math.h>
+#include <rapidjson/internal/ieee754.h>
 #include <stdint.h>
 #include <sstream>
-
-#include <rapidjson/internal/ieee754.h>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
 
-namespace zeek::threading::formatter {
+namespace zeek::threading::formatter
+{
 
 bool JSON::NullDoubleWriter::Double(double d)
 	{
@@ -32,12 +33,9 @@ JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
 	timestamps = tf;
 	}
 
-JSON::~JSON()
-	{
-	}
+JSON::~JSON() { }
 
-bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
-                    Value** vals) const
+bool JSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const
 	{
 	rapidjson::StringBuffer buffer;
 	NullDoubleWriter writer(buffer);
@@ -79,8 +77,8 @@ bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
 	return true;
 	}
 
-Value* JSON::ParseValue(const std::string& s, const std::string& name,
-                        TypeTag type, TypeTag subtype) const
+Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag type,
+                        TypeTag subtype) const
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return nullptr;
@@ -140,7 +138,8 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 				if ( ! gmtime_r(&the_time, &t) ||
 				     ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) )
 					{
-					GetThread()->Error(GetThread()->Fmt("json formatter: failure getting time: (%lf)", val->val.double_val));
+					GetThread()->Error(GetThread()->Fmt(
+						"json formatter: failure getting time: (%lf)", val->val.double_val));
 					// This was a failure, doesn't really matter what gets put here
 					// but it should probably stand out...
 					writer.String("2000-01-01T00:00:00.000000");
@@ -164,7 +163,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			else if ( timestamps == TS_MILLIS )
 				{
 				// ElasticSearch uses milliseconds for timestamps
-				writer.Uint64((uint64_t) (val->val.double_val * 1000));
+				writer.Uint64((uint64_t)(val->val.double_val * 1000));
 				}
 
 			break;
@@ -176,7 +175,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 		case TYPE_FUNC:
 			{
 			writer.String(util::json_escape_utf8(
-				              std::string(val->val.string_val.data, val->val.string_val.length)));
+				std::string(val->val.string_val.data, val->val.string_val.length)));
 			break;
 			}
 

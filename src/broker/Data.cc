@@ -1,14 +1,15 @@
-#include <broker/error.hh>
-#include "zeek/3rdparty/doctest.h"
-
 #include "zeek/broker/Data.h"
-#include "zeek/File.h"
+
+#include <broker/error.hh>
+
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/Desc.h"
+#include "zeek/File.h"
+#include "zeek/Func.h"
+#include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RE.h"
-#include "zeek/ID.h"
 #include "zeek/Scope.h"
-#include "zeek/Func.h"
 #include "zeek/module_util.h"
 
 #include "broker/data.bif.h"
@@ -18,56 +19,61 @@ using namespace std;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_data_type;
 zeek::OpaqueTypePtr& bro_broker::opaque_of_data_type = zeek::Broker::detail::opaque_of_data_type;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_set_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_set_iterator = zeek::Broker::detail::opaque_of_set_iterator;
+zeek::OpaqueTypePtr& bro_broker::opaque_of_set_iterator =
+	zeek::Broker::detail::opaque_of_set_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_table_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_table_iterator = zeek::Broker::detail::opaque_of_table_iterator;
+zeek::OpaqueTypePtr& bro_broker::opaque_of_table_iterator =
+	zeek::Broker::detail::opaque_of_table_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_vector_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_vector_iterator = zeek::Broker::detail::opaque_of_vector_iterator;
+zeek::OpaqueTypePtr& bro_broker::opaque_of_vector_iterator =
+	zeek::Broker::detail::opaque_of_vector_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_record_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_record_iterator = zeek::Broker::detail::opaque_of_record_iterator;
+zeek::OpaqueTypePtr& bro_broker::opaque_of_record_iterator =
+	zeek::Broker::detail::opaque_of_record_iterator;
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
-	switch ( tp ) {
-	case TRANSPORT_TCP:
-		return broker::port::protocol::tcp;
-	case TRANSPORT_UDP:
-		return broker::port::protocol::udp;
-	case TRANSPORT_ICMP:
-		return broker::port::protocol::icmp;
-	case TRANSPORT_UNKNOWN:
-	default:
-		return broker::port::protocol::unknown;
-	}
+	switch ( tp )
+		{
+		case TRANSPORT_TCP:
+			return broker::port::protocol::tcp;
+		case TRANSPORT_UDP:
+			return broker::port::protocol::udp;
+		case TRANSPORT_ICMP:
+			return broker::port::protocol::icmp;
+		case TRANSPORT_UNKNOWN:
+		default:
+			return broker::port::protocol::unknown;
+		}
 	}
 
 TEST_CASE("converting Zeek to Broker protocol constants")
 	{
 	CHECK_EQ(to_broker_port_proto(TRANSPORT_TCP), broker::port::protocol::tcp);
 	CHECK_EQ(to_broker_port_proto(TRANSPORT_UDP), broker::port::protocol::udp);
-	CHECK_EQ(to_broker_port_proto(TRANSPORT_ICMP),
-	         broker::port::protocol::icmp);
-	CHECK_EQ(to_broker_port_proto(TRANSPORT_UNKNOWN),
-	         broker::port::protocol::unknown);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_ICMP), broker::port::protocol::icmp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UNKNOWN), broker::port::protocol::unknown);
 	}
 
-namespace zeek::Broker::detail {
+namespace zeek::Broker::detail
+{
 
 static bool data_type_check(const broker::data& d, Type* t);
 
 TransportProto to_zeek_port_proto(broker::port::protocol tp)
 	{
-	switch ( tp ) {
-	case broker::port::protocol::tcp:
-		return TRANSPORT_TCP;
-	case broker::port::protocol::udp:
-		return TRANSPORT_UDP;
-	case broker::port::protocol::icmp:
-		return TRANSPORT_ICMP;
-	case broker::port::protocol::unknown:
-	default:
-		return TRANSPORT_UNKNOWN;
-	}
+	switch ( tp )
+		{
+		case broker::port::protocol::tcp:
+			return TRANSPORT_TCP;
+		case broker::port::protocol::udp:
+			return TRANSPORT_UDP;
+		case broker::port::protocol::icmp:
+			return TRANSPORT_ICMP;
+		case broker::port::protocol::unknown:
+		default:
+			return TRANSPORT_UNKNOWN;
+		}
 	}
 
 TEST_CASE("converting Broker to Zeek protocol constants")
@@ -75,19 +81,16 @@ TEST_CASE("converting Broker to Zeek protocol constants")
 	CHECK_EQ(to_zeek_port_proto(broker::port::protocol::tcp), TRANSPORT_TCP);
 	CHECK_EQ(to_zeek_port_proto(broker::port::protocol::udp), TRANSPORT_UDP);
 	CHECK_EQ(to_zeek_port_proto(broker::port::protocol::icmp), TRANSPORT_ICMP);
-	CHECK_EQ(to_zeek_port_proto(broker::port::protocol::unknown),
-	         TRANSPORT_UNKNOWN);
+	CHECK_EQ(to_zeek_port_proto(broker::port::protocol::unknown), TRANSPORT_UNKNOWN);
 	}
 
-struct val_converter {
+struct val_converter
+	{
 	using result_type = ValPtr;
 
 	Type* type;
 
-	result_type operator()(broker::none)
-		{
-		return nullptr;
-		}
+	result_type operator()(broker::none) { return nullptr; }
 
 	result_type operator()(bool a)
 		{
@@ -119,21 +122,22 @@ struct val_converter {
 
 	result_type operator()(std::string& a)
 		{
-		switch ( type->Tag() ) {
-		case TYPE_STRING:
-			return make_intrusive<StringVal>(a.size(), a.data());
-		case TYPE_FILE:
+		switch ( type->Tag() )
 			{
-			auto file = File::Get(a.data());
+			case TYPE_STRING:
+				return make_intrusive<StringVal>(a.size(), a.data());
+			case TYPE_FILE:
+				{
+				auto file = File::Get(a.data());
 
-			if ( file )
-				return make_intrusive<Val>(std::move(file));
+				if ( file )
+					return make_intrusive<Val>(std::move(file));
 
-			return nullptr;
+				return nullptr;
+				}
+			default:
+				return nullptr;
 			}
-		default:
-			return nullptr;
-		}
 		}
 
 	result_type operator()(broker::address& a)
@@ -209,7 +213,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+		auto rval = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, tt});
 
 		for ( auto& item : a )
 			{
@@ -222,8 +226,8 @@ struct val_converter {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+						expected_index_types[0]->Tag() == TYPE_RECORD ||
+						expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						{
@@ -246,15 +250,13 @@ struct val_converter {
 
 			for ( size_t i = 0; i < indices->size(); ++i )
 				{
-				auto index_val = data_to_val(move((*indices)[i]),
-				                             expected_index_types[i].get());
+				auto index_val = data_to_val(move((*indices)[i]), expected_index_types[i].get());
 
 				if ( ! index_val )
 					return nullptr;
 
 				list_val->Append(std::move(index_val));
 				}
-
 
 			rval->Assign(std::move(list_val), nullptr);
 			}
@@ -268,7 +270,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+		auto rval = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, tt});
 
 		for ( auto& item : a )
 			{
@@ -281,8 +283,8 @@ struct val_converter {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+						expected_index_types[0]->Tag() == TYPE_RECORD ||
+						expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						{
@@ -305,8 +307,7 @@ struct val_converter {
 
 			for ( size_t i = 0; i < indices->size(); ++i )
 				{
-				auto index_val = data_to_val(move((*indices)[i]),
-				                             expected_index_types[i].get());
+				auto index_val = data_to_val(move((*indices)[i]), expected_index_types[i].get());
 
 				if ( ! index_val )
 					return nullptr;
@@ -314,8 +315,7 @@ struct val_converter {
 				list_val->Append(std::move(index_val));
 				}
 
-			auto value_val = data_to_val(move(item.second),
-			                             tt->Yield().get());
+			auto value_val = data_to_val(move(item.second), tt->Yield().get());
 
 			if ( ! value_val )
 				return nullptr;
@@ -331,7 +331,7 @@ struct val_converter {
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
+			auto rval = make_intrusive<VectorVal>(IntrusivePtr {NewRef {}, vt});
 
 			for ( auto& item : a )
 				{
@@ -361,7 +361,8 @@ struct val_converter {
 			unsigned int pos = 0;
 			for ( auto& item : a )
 				{
-				auto item_val = data_to_val(move(item), pure ? lt->GetPureType().get() : types[pos].get());
+				auto item_val =
+					data_to_val(move(item), pure ? lt->GetPureType().get() : types[pos].get());
 				pos++;
 
 				if ( ! item_val )
@@ -414,7 +415,7 @@ struct val_converter {
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+			auto rval = make_intrusive<RecordVal>(IntrusivePtr {NewRef {}, rt});
 			auto idx = 0u;
 
 			for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i )
@@ -451,8 +452,7 @@ struct val_converter {
 			if ( ! exact_text || ! anywhere_text )
 				return nullptr;
 
-			auto* re = new RE_Matcher(exact_text->c_str(),
-			                          anywhere_text->c_str());
+			auto* re = new RE_Matcher(exact_text->c_str(), anywhere_text->c_str());
 
 			if ( ! re->Compile() )
 				{
@@ -470,17 +470,15 @@ struct val_converter {
 
 		return nullptr;
 		}
-};
+	};
 
-struct type_checker {
+struct type_checker
+	{
 	using result_type = bool;
 
 	Type* type;
 
-	result_type operator()(broker::none)
-		{
-		return false;
-		}
+	result_type operator()(broker::none) { return false; }
 
 	result_type operator()(bool a)
 		{
@@ -512,14 +510,15 @@ struct type_checker {
 
 	result_type operator()(const std::string& a)
 		{
-		switch ( type->Tag() ) {
-		case TYPE_STRING:
-			return true;
-		case TYPE_FILE:
-			return true;
-		default:
-			return false;
-		}
+		switch ( type->Tag() )
+			{
+			case TYPE_STRING:
+				return true;
+			case TYPE_FILE:
+				return true;
+			default:
+				return false;
+			}
 		}
 
 	result_type operator()(const broker::address& a)
@@ -592,8 +591,8 @@ struct type_checker {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+						expected_index_types[0]->Tag() == TYPE_RECORD ||
+						expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						// Disambiguate from composite key w/ multiple vals.
@@ -651,8 +650,8 @@ struct type_checker {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+						expected_index_types[0]->Tag() == TYPE_RECORD ||
+						expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						// Disambiguate from composite key w/ multiple vals.
@@ -675,7 +674,6 @@ struct type_checker {
 				}
 			else
 				indices_to_check.emplace_back(&item.first);
-
 
 			if ( expected_index_types.size() != indices_to_check.size() )
 				{
@@ -773,15 +771,14 @@ struct type_checker {
 			if ( ! exact_text || ! anywhere_text )
 				return false;
 
-			auto* re = new RE_Matcher(exact_text->c_str(),
-			                          anywhere_text->c_str());
+			auto* re = new RE_Matcher(exact_text->c_str(), anywhere_text->c_str());
 			auto compiled = re->Compile();
 			delete re;
 
 			if ( ! compiled )
 				{
-				reporter->Error("failed compiling pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				reporter->Error("failed compiling pattern: %s, %s", exact_text->c_str(),
+				                anywhere_text->c_str());
 				return false;
 				}
 
@@ -797,14 +794,14 @@ struct type_checker {
 
 		return false;
 		}
-};
+	};
 
 static bool data_type_check(const broker::data& d, Type* t)
 	{
 	if ( t->Tag() == TYPE_ANY )
 		return true;
 
-	return caf::visit(type_checker{t}, d);
+	return caf::visit(type_checker {t}, d);
 	}
 
 ValPtr data_to_val(broker::data d, Type* type)
@@ -812,251 +809,251 @@ ValPtr data_to_val(broker::data d, Type* type)
 	if ( type->Tag() == TYPE_ANY )
 		return make_data_val(move(d));
 
-	return caf::visit(val_converter{type}, std::move(d));
+	return caf::visit(val_converter {type}, std::move(d));
 	}
 
 broker::expected<broker::data> val_to_data(const Val* v)
 	{
-	switch ( v->GetType()->Tag() ) {
-	case TYPE_BOOL:
-		return {v->AsBool()};
-	case TYPE_INT:
-		return {v->AsInt()};
-	case TYPE_COUNT:
-		return {v->AsCount()};
-	case TYPE_PORT:
+	switch ( v->GetType()->Tag() )
 		{
-		auto p = v->AsPortVal();
-		return {broker::port(p->Port(), to_broker_port_proto(p->PortType()))};
-		}
-	case TYPE_ADDR:
-		{
-		auto a = v->AsAddr();
-		in6_addr tmp;
-		a.CopyIPv6(&tmp);
-		return {broker::address(reinterpret_cast<const uint32_t*>(&tmp),
-			                    broker::address::family::ipv6,
-			                    broker::address::byte_order::network)};
-		}
-		break;
-	case TYPE_SUBNET:
-		{
-		auto s = v->AsSubNet();
-		in6_addr tmp;
-		s.Prefix().CopyIPv6(&tmp);
-		auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
-		                         broker::address::family::ipv6,
-		                         broker::address::byte_order::network);
-		return {broker::subnet(std::move(a), s.Length())};
-		}
-		break;
-	case TYPE_DOUBLE:
-		return {v->AsDouble()};
-	case TYPE_TIME:
-		{
-		auto secs = broker::fractional_seconds{v->AsTime()};
-		auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
-		return {broker::timestamp{since_epoch}};
-		}
-	case TYPE_INTERVAL:
-		{
-		auto secs = broker::fractional_seconds{v->AsInterval()};
-		return {std::chrono::duration_cast<broker::timespan>(secs)};
-		}
-	case TYPE_ENUM:
-		{
-		auto enum_type = v->GetType()->AsEnumType();
-		auto enum_name = enum_type->Lookup(v->AsEnum());
-		return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
-		}
-	case TYPE_STRING:
-		{
-		auto s = v->AsString();
-		return {string(reinterpret_cast<const char*>(s->Bytes()), s->Len())};
-		}
-	case TYPE_FILE:
-		return {string(v->AsFile()->Name())};
-	case TYPE_FUNC:
-		{
-		const Func* f = v->AsFunc();
-		std::string name(f->Name());
-
-		broker::vector rval;
-		rval.push_back(name);
-
-		if ( name.find("lambda_<") == 0 )
+		case TYPE_BOOL:
+			return {v->AsBool()};
+		case TYPE_INT:
+			return {v->AsInt()};
+		case TYPE_COUNT:
+			return {v->AsCount()};
+		case TYPE_PORT:
 			{
-			// Only ScriptFuncs have closures.
-			if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) )
-				{
-				auto bc = b->SerializeClosure();
-				if ( ! bc )
-					return broker::ec::invalid_data;
-
-				rval.emplace_back(std::move(*bc));
-				}
-			else
-				{
-				reporter->InternalWarning("Closure with non-ScriptFunc");
-				return broker::ec::invalid_data;
-				}
+			auto p = v->AsPortVal();
+			return {broker::port(p->Port(), to_broker_port_proto(p->PortType()))};
 			}
-
-		return {std::move(rval)};
-		}
-	case TYPE_TABLE:
-		{
-		auto is_set = v->GetType()->IsSet();
-		auto table = v->AsTable();
-		auto table_val = v->AsTableVal();
-		broker::data rval;
-
-		if ( is_set )
-			rval = broker::set();
-		else
-			rval = broker::table();
-
-		zeek::detail::HashKey* hk;
-		TableEntryVal* entry;
-		auto c = table->InitForIteration();
-
-		while ( (entry = table->NextEntry(hk, c)) )
+		case TYPE_ADDR:
 			{
-			auto vl = table_val->RecreateIndex(*hk);
-			delete hk;
+			auto a = v->AsAddr();
+			in6_addr tmp;
+			a.CopyIPv6(&tmp);
+			return {broker::address(reinterpret_cast<const uint32_t*>(&tmp),
+			                        broker::address::family::ipv6,
+			                        broker::address::byte_order::network)};
+			}
+			break;
+		case TYPE_SUBNET:
+			{
+			auto s = v->AsSubNet();
+			in6_addr tmp;
+			s.Prefix().CopyIPv6(&tmp);
+			auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
+			                         broker::address::family::ipv6,
+			                         broker::address::byte_order::network);
+			return {broker::subnet(std::move(a), s.Length())};
+			}
+			break;
+		case TYPE_DOUBLE:
+			return {v->AsDouble()};
+		case TYPE_TIME:
+			{
+			auto secs = broker::fractional_seconds {v->AsTime()};
+			auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
+			return {broker::timestamp {since_epoch}};
+			}
+		case TYPE_INTERVAL:
+			{
+			auto secs = broker::fractional_seconds {v->AsInterval()};
+			return {std::chrono::duration_cast<broker::timespan>(secs)};
+			}
+		case TYPE_ENUM:
+			{
+			auto enum_type = v->GetType()->AsEnumType();
+			auto enum_name = enum_type->Lookup(v->AsEnum());
+			return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
+			}
+		case TYPE_STRING:
+			{
+			auto s = v->AsString();
+			return {string(reinterpret_cast<const char*>(s->Bytes()), s->Len())};
+			}
+		case TYPE_FILE:
+			return {string(v->AsFile()->Name())};
+		case TYPE_FUNC:
+			{
+			const Func* f = v->AsFunc();
+			std::string name(f->Name());
 
-			broker::vector composite_key;
-			composite_key.reserve(vl->Length());
+			broker::vector rval;
+			rval.push_back(name);
 
-			for ( auto k = 0; k < vl->Length(); ++k )
+			if ( name.find("lambda_<") == 0 )
 				{
-				auto key_part = val_to_data(vl->Idx(k).get());
+				// Only ScriptFuncs have closures.
+				if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) )
+					{
+					auto bc = b->SerializeClosure();
+					if ( ! bc )
+						return broker::ec::invalid_data;
 
-				if ( ! key_part )
+					rval.emplace_back(std::move(*bc));
+					}
+				else
+					{
+					reporter->InternalWarning("Closure with non-ScriptFunc");
 					return broker::ec::invalid_data;
-
-				composite_key.emplace_back(move(*key_part));
+					}
 				}
 
-			broker::data key;
-
-			if ( composite_key.size() == 1 )
-				key = move(composite_key[0]);
-			else
-				key = move(composite_key);
+			return {std::move(rval)};
+			}
+		case TYPE_TABLE:
+			{
+			auto is_set = v->GetType()->IsSet();
+			auto table = v->AsTable();
+			auto table_val = v->AsTableVal();
+			broker::data rval;
 
 			if ( is_set )
-				caf::get<broker::set>(rval).emplace(move(key));
+				rval = broker::set();
 			else
-				{
-				auto val = val_to_data(entry->GetVal().get());
+				rval = broker::table();
 
-				if ( ! val )
+			zeek::detail::HashKey* hk;
+			TableEntryVal* entry;
+			auto c = table->InitForIteration();
+
+			while ( (entry = table->NextEntry(hk, c)) )
+				{
+				auto vl = table_val->RecreateIndex(*hk);
+				delete hk;
+
+				broker::vector composite_key;
+				composite_key.reserve(vl->Length());
+
+				for ( auto k = 0; k < vl->Length(); ++k )
+					{
+					auto key_part = val_to_data(vl->Idx(k).get());
+
+					if ( ! key_part )
+						return broker::ec::invalid_data;
+
+					composite_key.emplace_back(move(*key_part));
+					}
+
+				broker::data key;
+
+				if ( composite_key.size() == 1 )
+					key = move(composite_key[0]);
+				else
+					key = move(composite_key);
+
+				if ( is_set )
+					caf::get<broker::set>(rval).emplace(move(key));
+				else
+					{
+					auto val = val_to_data(entry->GetVal().get());
+
+					if ( ! val )
+						return broker::ec::invalid_data;
+
+					caf::get<broker::table>(rval).emplace(move(key), move(*val));
+					}
+				}
+
+			return {std::move(rval)};
+			}
+		case TYPE_VECTOR:
+			{
+			auto vec = v->AsVectorVal();
+			broker::vector rval;
+			rval.reserve(vec->Size());
+
+			for ( auto i = 0u; i < vec->Size(); ++i )
+				{
+				const auto& item_val = vec->At(i);
+
+				if ( ! item_val )
+					continue;
+
+				auto item = val_to_data(item_val.get());
+
+				if ( ! item )
 					return broker::ec::invalid_data;
 
-				caf::get<broker::table>(rval).emplace(move(key), move(*val));
+				rval.emplace_back(move(*item));
 				}
+
+			return {std::move(rval)};
 			}
-
-		return {std::move(rval)};
-		}
-	case TYPE_VECTOR:
-		{
-		auto vec = v->AsVectorVal();
-		broker::vector rval;
-		rval.reserve(vec->Size());
-
-		for ( auto i = 0u; i < vec->Size(); ++i )
+		case TYPE_LIST:
 			{
-			const auto& item_val = vec->At(i);
+			// We don't really support lists on the broker side.
+			// So we just pretend that it is a vector instead.
+			auto list = v->AsListVal();
+			broker::vector rval;
+			rval.reserve(list->Length());
 
-			if ( ! item_val )
-				continue;
-
-			auto item = val_to_data(item_val.get());
-
-			if ( ! item )
-				return broker::ec::invalid_data;
-
-			rval.emplace_back(move(*item));
-			}
-
-		return {std::move(rval)};
-		}
-	case TYPE_LIST:
-		{
-		// We don't really support lists on the broker side.
-		// So we just pretend that it is a vector instead.
-		auto list = v->AsListVal();
-		broker::vector rval;
-		rval.reserve(list->Length());
-
-		for ( auto i = 0; i < list->Length(); ++i )
-			{
-			const auto& item_val = list->Idx(i);
-
-			if ( ! item_val )
-				continue;
-
-			auto item = val_to_data(item_val.get());
-
-			if ( ! item )
-				return broker::ec::invalid_data;
-
-			rval.emplace_back(move(*item));
-			}
-
-		return {std::move(rval)};
-		}
-	case TYPE_RECORD:
-		{
-		auto rec = v->AsRecordVal();
-		broker::vector rval;
-		size_t num_fields = v->GetType()->AsRecordType()->NumFields();
-		rval.reserve(num_fields);
-
-		for ( size_t i = 0; i < num_fields; ++i )
-			{
-			auto item_val = rec->GetFieldOrDefault(i);
-
-			if ( ! item_val )
+			for ( auto i = 0; i < list->Length(); ++i )
 				{
-				rval.emplace_back(broker::nil);
-				continue;
+				const auto& item_val = list->Idx(i);
+
+				if ( ! item_val )
+					continue;
+
+				auto item = val_to_data(item_val.get());
+
+				if ( ! item )
+					return broker::ec::invalid_data;
+
+				rval.emplace_back(move(*item));
 				}
 
-			auto item = val_to_data(item_val.get());
-
-			if ( ! item )
-				return broker::ec::invalid_data;
-
-			rval.emplace_back(move(*item));
+			return {std::move(rval)};
 			}
-
-		return {std::move(rval)};
-		}
-	case TYPE_PATTERN:
-		{
-		const RE_Matcher* p = v->AsPattern();
-		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
-		return {std::move(rval)};
-		}
-	case TYPE_OPAQUE:
-		{
-		auto c = v->AsOpaqueVal()->Serialize();
-		if ( ! c )
+		case TYPE_RECORD:
 			{
-			reporter->Error("unsupported opaque type for serialization");
-			break;
-			}
+			auto rec = v->AsRecordVal();
+			broker::vector rval;
+			size_t num_fields = v->GetType()->AsRecordType()->NumFields();
+			rval.reserve(num_fields);
 
-		return {c};
+			for ( size_t i = 0; i < num_fields; ++i )
+				{
+				auto item_val = rec->GetFieldOrDefault(i);
+
+				if ( ! item_val )
+					{
+					rval.emplace_back(broker::nil);
+					continue;
+					}
+
+				auto item = val_to_data(item_val.get());
+
+				if ( ! item )
+					return broker::ec::invalid_data;
+
+				rval.emplace_back(move(*item));
+				}
+
+			return {std::move(rval)};
+			}
+		case TYPE_PATTERN:
+			{
+			const RE_Matcher* p = v->AsPattern();
+			broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
+			return {std::move(rval)};
+			}
+		case TYPE_OPAQUE:
+			{
+			auto c = v->AsOpaqueVal()->Serialize();
+			if ( ! c )
+				{
+				reporter->Error("unsupported opaque type for serialization");
+				break;
+				}
+
+			return {c};
+			}
+		default:
+			reporter->Error("unsupported Broker::Data type: %s", type_name(v->GetType()->Tag()));
+			break;
 		}
-	default:
-		reporter->Error("unsupported Broker::Data type: %s",
-		                type_name(v->GetType()->Tag()));
-		break;
-	}
 
 	return broker::ec::invalid_data;
 	}
@@ -1066,7 +1063,7 @@ RecordValPtr make_data_val(Val* v)
 	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
 
-	if  ( data )
+	if ( data )
 		rval->Assign(0, make_intrusive<DataVal>(move(*data)));
 	else
 		reporter->Warning("did not get a value from val_to_data");
@@ -1081,7 +1078,8 @@ RecordValPtr make_data_val(broker::data d)
 	return rval;
 	}
 
-struct data_type_getter {
+struct data_type_getter
+	{
 	using result_type = EnumValPtr;
 
 	result_type operator()(broker::none)
@@ -1161,11 +1159,11 @@ struct data_type_getter {
 		// with a Bro record.
 		return BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::VECTOR);
 		}
-};
+	};
 
 EnumValPtr get_data_type(RecordVal* v, zeek::detail::Frame* frame)
 	{
-	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
+	return caf::visit(data_type_getter {}, opaque_field_to_data(v, frame));
 	}
 
 broker::data& opaque_field_to_data(RecordVal* v, zeek::detail::Frame* f)
@@ -1174,7 +1172,7 @@ broker::data& opaque_field_to_data(RecordVal* v, zeek::detail::Frame* f)
 
 	if ( ! d )
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
-		                             "Broker::Data's opaque field is not set");
+		                       "Broker::Data's opaque field is not set");
 
 	// RuntimeError throws an exception which causes this line to never exceute.
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
@@ -1221,7 +1219,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
 
 broker::expected<broker::data> SetIterator::DoSerialize() const
 	{
-	return broker::vector{dat, *it};
+	return broker::vector {dat, *it};
 	}
 
 bool SetIterator::DoUnserialize(const broker::data& data)
@@ -1236,7 +1234,7 @@ bool SetIterator::DoUnserialize(const broker::data& data)
 	// This is not perfect, as there's no guarantee that the restored
 	// container will list the elements in the same order. But it's as
 	// good as we can do, and it should generally work out.
-	if( x->find((*v)[1]) == x->end() )
+	if ( x->find((*v)[1]) == x->end() )
 		return false;
 
 	dat = *x;
@@ -1248,7 +1246,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
 
 broker::expected<broker::data> TableIterator::DoSerialize() const
 	{
-	return broker::vector{dat, it->first};
+	return broker::vector {dat, it->first};
 	}
 
 bool TableIterator::DoUnserialize(const broker::data& data)
@@ -1263,7 +1261,7 @@ bool TableIterator::DoUnserialize(const broker::data& data)
 	// This is not perfect, as there's no guarantee that the restored
 	// container will list the elements in the same order. But it's as
 	// good as we can do, and it should generally work out.
-	if( x->find((*v)[1]) == x->end() )
+	if ( x->find((*v)[1]) == x->end() )
 		return false;
 
 	dat = *x;
@@ -1276,7 +1274,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
 broker::expected<broker::data> VectorIterator::DoSerialize() const
 	{
 	broker::integer difference = it - dat.begin();
-	return broker::vector{dat, difference};
+	return broker::vector {dat, difference};
 	}
 
 bool VectorIterator::DoUnserialize(const broker::data& data)
@@ -1301,7 +1299,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 broker::expected<broker::data> RecordIterator::DoSerialize() const
 	{
 	broker::integer difference = it - dat.begin();
-	return broker::vector{dat, difference};
+	return broker::vector {dat, difference};
 	}
 
 bool RecordIterator::DoUnserialize(const broker::data& data)
@@ -1354,11 +1352,10 @@ threading::Field* data_to_threading_field(broker::data d)
 	if ( secondary != broker::nil && ! caf::holds_alternative<std::string>(secondary) )
 		return nullptr;
 
-	return new threading::Field(name->c_str(),
-	                            secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
-	                            static_cast<TypeTag>(*type),
-	                            static_cast<TypeTag>(*subtype),
-	                            *optional);
+	return new threading::Field(
+		name->c_str(),
+		secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
+		static_cast<TypeTag>(*type), static_cast<TypeTag>(*subtype), *optional);
 	}
 
 } // namespace zeek::Broker::detail

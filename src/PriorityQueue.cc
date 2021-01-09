@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/PriorityQueue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "zeek/PriorityQueue.h"
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 PriorityQueue::PriorityQueue(int initial_size) : max_heap_size(initial_size)
 	{
@@ -21,7 +22,7 @@ PriorityQueue::~PriorityQueue()
 	for ( int i = 0; i < heap_size; ++i )
 		delete heap[i];
 
-	delete [] heap;
+	delete[] heap;
 	}
 
 PQ_Element* PriorityQueue::Remove()
@@ -35,15 +36,14 @@ PQ_Element* PriorityQueue::Remove()
 	SetElement(0, heap[heap_size]);
 	BubbleDown(0);
 
-	top->SetOffset(-1);	// = not in heap
+	top->SetOffset(-1); // = not in heap
 	return top;
 	}
 
 PQ_Element* PriorityQueue::Remove(PQ_Element* e)
 	{
-	if ( e->Offset() < 0 || e->Offset() >= heap_size ||
-	     heap[e->Offset()] != e )
-		return nullptr;	// not in heap
+	if ( e->Offset() < 0 || e->Offset() >= heap_size || heap[e->Offset()] != e )
+		return nullptr; // not in heap
 
 	e->MinimizeTime();
 	BubbleUp(e->Offset());
@@ -79,7 +79,7 @@ bool PriorityQueue::Resize(int new_size)
 	for ( int i = 0; i < max_heap_size; ++i )
 		tmp[i] = heap[i];
 
-	delete [] heap;
+	delete[] heap;
 	heap = tmp;
 
 	max_heap_size = new_size;
@@ -108,7 +108,7 @@ void PriorityQueue::BubbleDown(int bin)
 	int r = RightChild(bin);
 
 	if ( l >= heap_size )
-		return;		// No children.
+		return; // No children.
 
 	if ( r >= heap_size )
 		{ // Just a left child.

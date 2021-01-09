@@ -1,30 +1,30 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/Conn.h"
 
-#include <ctype.h>
 #include <binpac.h>
+#include <ctype.h>
 
+#include "zeek/Conn.h"
 #include "zeek/Desc.h"
-#include "zeek/RunState.h"
-#include "zeek/NetVar.h"
 #include "zeek/Event.h"
-#include "zeek/Sessions.h"
+#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/Sessions.h"
 #include "zeek/Timer.h"
-#include "zeek/iosource/IOSource.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/iosource/IOSource.h"
 
-namespace zeek {
-namespace detail {
+namespace zeek
+{
+namespace detail
+{
 
-void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
-                           bool arg_do_expire)
+void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer, bool arg_do_expire)
 	{
 	conn = arg_conn;
 	timer = arg_timer;
@@ -61,9 +61,8 @@ void ConnectionTimer::Dispatch(double t, bool is_expire)
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const Packet* pkt,
-                       const EncapsulationStack* arg_encap)
+Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t, const ConnID* id,
+                       uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -125,13 +124,12 @@ Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const Packet* pkt)
+Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t, const ConnID* id,
+                       uint32_t flow, const Packet* pkt)
 	: Connection(s, k, t, id, flow, pkt, pkt->encap.get())
 	{
 	}
 #pragma GCC diagnostic pop
-
 
 Connection::~Connection()
 	{
@@ -155,8 +153,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		if ( *encapsulation != *arg_encap )
 			{
 			if ( tunnel_changed )
-				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-				             arg_encap->ToVal());
+				EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
 
 			encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
 			}
@@ -190,12 +187,10 @@ void Connection::Done()
 		root_analyzer->Done();
 	}
 
-void Connection::NextPacket(double t, bool is_orig,
-                            const IP_Hdr* ip, int len, int caplen,
-                            const u_char*& data,
-                            int& record_packet, int& record_content,
+void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, int caplen,
+                            const u_char*& data, int& record_packet, int& record_content,
                             // arguments for reproducing packets
-                            const Packet *pkt)
+                            const Packet* pkt)
 	{
 	run_state::current_timestamp = t;
 	run_state::current_pkt = pkt;
@@ -229,8 +224,7 @@ bool Connection::IsReuse(double t, const u_char* pkt)
 	return root_analyzer && root_analyzer->IsReuse(t, pkt);
 	}
 
-bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
-                                    uint32_t& scaling_threshold,
+bool Connection::ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scaling_threshold,
                                     uint32_t scaling_base)
 	{
 	if ( ++counter == scaling_threshold )
@@ -254,8 +248,7 @@ bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
 	return false;
 	}
 
-void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
-                                       uint32_t threshold)
+void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold)
 	{
 	if ( ! e )
 		return;
@@ -265,11 +258,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		// and at this stage it's not a *multiple* instance.
 		return;
 
-	EnqueueEvent(e, nullptr,
-		ConnVal(),
-		val_mgr->Bool(is_orig),
-		val_mgr->Count(threshold)
-	);
+	EnqueueEvent(e, nullptr, ConnVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
 	}
 
 void Connection::DeleteTimer(double /* t */)
@@ -289,8 +278,7 @@ void Connection::InactivityTimer(double t)
 		++detail::killed_by_inactivity;
 		}
 	else
-		ADD_TIMER(&Connection::InactivityTimer,
-		          last_time + inactivity_timeout, 0,
+		ADD_TIMER(&Connection::InactivityTimer, last_time + inactivity_timeout, 0,
 		          detail::TIMER_CONN_INACTIVITY);
 	}
 
@@ -314,8 +302,8 @@ void Connection::SetInactivityTimeout(double timeout)
 			}
 
 	if ( timeout )
-		ADD_TIMER(&Connection::InactivityTimer,
-		          last_time + timeout, 0, detail::TIMER_CONN_INACTIVITY);
+		ADD_TIMER(&Connection::InactivityTimer, last_time + timeout, 0,
+		          detail::TIMER_CONN_INACTIVITY);
 
 	inactivity_timeout = timeout;
 	}
@@ -367,7 +355,7 @@ const RecordValPtr& Connection::ConnVal()
 		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
-		char null[l2_len]{};
+		char null[l2_len] {};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
 			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
@@ -384,8 +372,8 @@ const RecordValPtr& Connection::ConnVal()
 		conn_val->Assign(1, std::move(orig_endp));
 		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(id::string_set));	// service
-		conn_val->Assign(6, val_mgr->EmptyString());	// history
+		conn_val->Assign(5, make_intrusive<TableVal>(id::string_set)); // service
+		conn_val->Assign(6, val_mgr->EmptyString()); // history
 
 		if ( ! uid )
 			uid.Set(zeek::detail::bits_per_uid);
@@ -400,13 +388,12 @@ const RecordValPtr& Connection::ConnVal()
 
 		if ( inner_vlan != 0 )
 			conn_val->Assign(10, val_mgr->Int(inner_vlan));
-
 		}
 
 	if ( root_analyzer )
 		root_analyzer->UpdateConnVal(conn_val.get());
 
-	conn_val->Assign(3, make_intrusive<TimeVal>(start_time));	// ###
+	conn_val->Assign(3, make_intrusive<TimeVal>(start_time)); // ###
 	conn_val->Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
 	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
 
@@ -445,16 +432,15 @@ static inline bool is_version_sep(const char* s, const char* end)
 	{
 	return
 		// foo-1.2.3
-			(s < end - 1 && ispunct(s[0]) && isdigit(s[1])) ||
+		(s < end - 1 && ispunct(s[0]) && isdigit(s[1])) ||
 		// foo-v1.2.3
-			(s < end - 2 && ispunct(s[0]) &&
-			 tolower(s[1]) == 'v' && isdigit(s[2])) ||
+		(s < end - 2 && ispunct(s[0]) && tolower(s[1]) == 'v' && isdigit(s[2])) ||
 		// foo 1.2.3
-			isspace(s[0]);
+		isspace(s[0]);
 	}
 
-void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len,
-                       bool is_orig, bool bol, bool eol, bool clear_state)
+void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig,
+                       bool bol, bool eol, bool clear_state)
 	{
 	if ( primary_PIA )
 		primary_PIA->Match(type, data, len, is_orig, bol, eol, clear_state);
@@ -487,14 +473,10 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 		}
 
 	if ( v2 )
-		EnqueueEvent(f, analyzer,
-		             ConnVal(),
-		             IntrusivePtr{AdoptRef{}, v1},
-		             IntrusivePtr{AdoptRef{}, v2});
+		EnqueueEvent(f, analyzer, ConnVal(), IntrusivePtr {AdoptRef {}, v1},
+		             IntrusivePtr {AdoptRef {}, v2});
 	else
-		EnqueueEvent(f, analyzer,
-		             ConnVal(),
-		             IntrusivePtr{AdoptRef{}, v1});
+		EnqueueEvent(f, analyzer, ConnVal(), IntrusivePtr {AdoptRef {}, v1});
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)
@@ -513,8 +495,8 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPL
 void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)
 	{
 	// "this" is passed as a cookie for the event
-	event_mgr.Enqueue(f, val_list_to_args(vl), util::detail::SOURCE_LOCAL,
-	                        a ? a->GetID() : 0, this);
+	event_mgr.Enqueue(f, val_list_to_args(vl), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0,
+	                  this);
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList* vl)
@@ -526,8 +508,7 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPL
 		EnqueueEvent(f, a, std::move(args));
 	}
 
-void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
-                              Args args)
+void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a, Args args)
 	{
 	// "this" is passed as a cookie for the event
 	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
@@ -539,8 +520,7 @@ void Connection::Weird(const char* name, const char* addl, const char* source)
 	reporter->Weird(this, name, addl ? addl : "", source ? source : "");
 	}
 
-void Connection::AddTimer(timer_func timer, double t, bool do_expire,
-                          detail::TimerType type)
+void Connection::AddTimer(timer_func timer, double t, bool do_expire, detail::TimerType type)
 	{
 	if ( timers_canceled )
 		return;
@@ -613,10 +593,9 @@ void Connection::FlipRoles()
 
 unsigned int Connection::MemoryAllocation() const
 	{
-	return padded_sizeof(*this)
-		+ (timers.MemoryAllocation() - padded_sizeof(timers))
-		+ (conn_val ? conn_val->MemoryAllocation() : 0)
-		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
+	return padded_sizeof(*this) + (timers.MemoryAllocation() - padded_sizeof(timers)) +
+	       (conn_val ? conn_val->MemoryAllocation() : 0) +
+	       (root_analyzer ? root_analyzer->MemoryAllocation() : 0)
 		// primary_PIA is already contained in the analyzer tree.
 		;
 	}
@@ -633,7 +612,8 @@ void Connection::Describe(ODesc* d) const
 	d->Add(last_time);
 	d->AddSP(")");
 
-	switch ( proto ) {
+	switch ( proto )
+		{
 		case TRANSPORT_TCP:
 			d->Add("TCP");
 			break;
@@ -648,14 +628,12 @@ void Connection::Describe(ODesc* d) const
 
 		case TRANSPORT_UNKNOWN:
 			d->Add("unknown");
-			reporter->InternalWarning(
-				"unknown transport in Connction::Describe()");
+			reporter->InternalWarning("unknown transport in Connction::Describe()");
 
 			break;
 
 		default:
-			reporter->InternalError(
-				"unhandled transport type in Connection::Describe");
+			reporter->InternalError("unhandled transport type in Connection::Describe");
 		}
 
 	d->SP();
@@ -706,12 +684,8 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
-			EnqueueEvent(connection_flow_label_changed, nullptr,
-				ConnVal(),
-				val_mgr->Bool(is_orig),
-				val_mgr->Count(my_flow_label),
-				val_mgr->Count(flow_label)
-			);
+			EnqueueEvent(connection_flow_label_changed, nullptr, ConnVal(), val_mgr->Bool(is_orig),
+			             val_mgr->Count(my_flow_label), val_mgr->Count(flow_label));
 			}
 
 		my_flow_label = flow_label;
@@ -723,8 +697,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		saw_first_resp_packet = 1;
 	}
 
-bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
-                             double duration)
+bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration)
 	{
 	return detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}

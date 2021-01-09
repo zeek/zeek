@@ -6,10 +6,10 @@
 
 #include "analyzer/protocol/mqtt/mqtt_pac.h"
 
-namespace zeek::analyzer::mqtt {
+namespace zeek::analyzer::mqtt
+{
 
-MQTT_Analyzer::MQTT_Analyzer(Connection* c)
-	: analyzer::tcp::TCP_ApplicationAnalyzer("MQTT", c)
+MQTT_Analyzer::MQTT_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("MQTT", c)
 	{
 	interp = new binpac::MQTT::MQTT_Conn(this);
 	}

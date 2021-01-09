@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/analyzer/protocol/krb/KRB_TCP.h"
+
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "analyzer/protocol/krb/types.bif.h"
 #include "analyzer/protocol/krb/events.bif.h"
+#include "analyzer/protocol/krb/types.bif.h"
 
-namespace zeek::analyzer::krb_tcp {
+namespace zeek::analyzer::krb_tcp
+{
 
 KRB_Analyzer::KRB_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("KRB_TCP", conn)

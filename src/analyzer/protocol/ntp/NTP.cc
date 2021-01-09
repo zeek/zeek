@@ -4,10 +4,10 @@
 
 #include "analyzer/protocol/ntp/events.bif.h"
 
-namespace zeek::analyzer::ntp {
+namespace zeek::analyzer::ntp
+{
 
-NTP_Analyzer::NTP_Analyzer(Connection* c)
-	: analyzer::Analyzer("NTP", c)
+NTP_Analyzer::NTP_Analyzer(Connection* c) : analyzer::Analyzer("NTP", c)
 	{
 	interp = new binpac::NTP::NTP_Conn(this);
 	}
@@ -23,8 +23,8 @@ NTP_Analyzer::~NTP_Analyzer()
 	delete interp;
 	}
 
-void NTP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                 uint64_t seq, const IP_Hdr* ip, int caplen)
+void NTP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                 const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

@@ -10,12 +10,14 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-class TraversalCallback {
+class TraversalCallback
+	{
 public:
-	TraversalCallback()	{ current_scope = nullptr; }
-	virtual ~TraversalCallback() {}
+	TraversalCallback() { current_scope = nullptr; }
+	virtual ~TraversalCallback() { }
 
 	virtual TraversalCode PreFunction(const Func*) { return TC_CONTINUE; }
 	virtual TraversalCode PostFunction(const Func*) { return TC_CONTINUE; }
@@ -36,11 +38,13 @@ public:
 	virtual TraversalCode PostDecl(const ID*) { return TC_CONTINUE; }
 
 	Scope* current_scope;
-};
+	};
 
 TraversalCode traverse_all(TraversalCallback* cb);
 
 } // namespace zeek::detail
 
-using TraversalCallback [[deprecated("Remove in v4.1. Use zeek::detail::TraversalCallback.")]] = zeek::detail::TraversalCallback;
-constexpr auto traverse_all [[deprecated("Remove in v4.1. Use zeek::detail::traverse_all.")]] = zeek::detail::traverse_all;
+using TraversalCallback [[deprecated("Remove in v4.1. Use zeek::detail::TraversalCallback.")]] =
+	zeek::detail::TraversalCallback;
+constexpr auto traverse_all [[deprecated("Remove in v4.1. Use zeek::detail::traverse_all.")]] =
+	zeek::detail::traverse_all;

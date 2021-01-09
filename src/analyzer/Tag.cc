@@ -1,16 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/analyzer/Tag.h"
+
 #include "zeek/analyzer/Manager.h"
 
-namespace zeek::analyzer {
+namespace zeek::analyzer
+{
 
 const Tag Tag::Error;
 
-Tag::Tag(type_t type, subtype_t subtype)
-	: zeek::Tag(analyzer_mgr->GetTagType(), type, subtype)
-	{
-	}
+Tag::Tag(type_t type, subtype_t subtype) : zeek::Tag(analyzer_mgr->GetTagType(), type, subtype) { }
 
 Tag& Tag::operator=(const Tag& other)
 	{
@@ -28,12 +27,8 @@ EnumVal* Tag::AsEnumVal() const
 	return AsVal().get();
 	}
 
-Tag::Tag(EnumValPtr val)
-	: zeek::Tag(std::move(val))
-	{ }
+Tag::Tag(EnumValPtr val) : zeek::Tag(std::move(val)) { }
 
-Tag::Tag(EnumVal* val)
-	: zeek::Tag({NewRef{}, val})
-	{ }
+Tag::Tag(EnumVal* val) : zeek::Tag({NewRef {}, val}) { }
 
 } // namespace zeek::analyzer

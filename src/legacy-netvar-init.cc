@@ -1,9 +1,10 @@
-#include "zeek/NetVar.h"
-#include "zeek/Var.h"
 #include "zeek/ID.h"
+#include "zeek/NetVar.h"
 #include "zeek/Scope.h"
+#include "zeek/Var.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 // Compiled separately to avoid deprecation warnings at the assignment sites.
 void zeek_legacy_netvar_init()
@@ -62,14 +63,18 @@ void zeek_legacy_netvar_init()
 	::log_rotate_base_time = id::find_val("log_rotate_base_time")->AsStringVal();
 	::pkt_profile_file = id::find_val("pkt_profile_file").get();
 	::likely_server_ports = id::find_val("likely_server_ports")->AsTableVal();
-	::tcp_content_delivery_ports_orig = id::find_val("tcp_content_delivery_ports_orig")->AsTableVal();
-	::tcp_content_delivery_ports_resp = id::find_val("tcp_content_delivery_ports_resp")->AsTableVal();
+	::tcp_content_delivery_ports_orig =
+		id::find_val("tcp_content_delivery_ports_orig")->AsTableVal();
+	::tcp_content_delivery_ports_resp =
+		id::find_val("tcp_content_delivery_ports_resp")->AsTableVal();
 	::stp_skip_src = id::find_val("stp_skip_src")->AsTableVal();
 	::dns_skip_auth = id::find_val("dns_skip_auth")->AsTableVal();
 	::dns_skip_addl = id::find_val("dns_skip_addl")->AsTableVal();
 	::udp_content_ports = id::find_val("udp_content_ports")->AsTableVal();
-	::udp_content_delivery_ports_orig = id::find_val("udp_content_delivery_ports_orig")->AsTableVal();
-	::udp_content_delivery_ports_resp = id::find_val("udp_content_delivery_ports_resp")->AsTableVal();
+	::udp_content_delivery_ports_orig =
+		id::find_val("udp_content_delivery_ports_orig")->AsTableVal();
+	::udp_content_delivery_ports_resp =
+		id::find_val("udp_content_delivery_ports_resp")->AsTableVal();
 	::profiling_file = id::find_val("profiling_file").get();
 	::global_hash_seed = id::find_val("global_hash_seed")->AsStringVal();
 	::tcp_reassembler_ports_orig = id::find_val("tcp_reassembler_ports_orig")->AsTableVal();

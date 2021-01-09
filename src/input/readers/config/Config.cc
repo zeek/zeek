@@ -2,11 +2,11 @@
 
 #include "zeek/input/readers/config/Config.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <errno.h>
 #include <regex.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <sstream>
 #include <unordered_set>
 
@@ -15,12 +15,13 @@
 
 #include "input/readers/config/config.bif.h"
 
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::input::reader::detail {
+namespace zeek::input::reader::detail
+{
 
-Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
+Config::Config(ReaderFrontend* frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
@@ -53,27 +54,23 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		}
 	}
 
-Config::~Config()
-	{
-	}
+Config::~Config() { }
 
-void Config::DoClose()
-	{
-	}
+void Config::DoClose() { }
 
 bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	fail_on_file_problem = BifConst::InputConfig::fail_on_file_problem;
 
-	set_separator.assign( (const char*) BifConst::InputConfig::set_separator->Bytes(),
+	set_separator.assign((const char*)BifConst::InputConfig::set_separator->Bytes(),
 	                     BifConst::InputConfig::set_separator->Len());
 
-	empty_field.assign( (const char*) BifConst::InputConfig::empty_field->Bytes(),
+	empty_field.assign((const char*)BifConst::InputConfig::empty_field->Bytes(),
 	                   BifConst::InputConfig::empty_field->Len());
 
 	threading::formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
-	formatter = std::unique_ptr<threading::Formatter>(
-		new threading::formatter::Ascii(this, sep_info));
+	formatter =
+		std::unique_ptr<threading::Formatter>(new threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -118,14 +115,16 @@ bool Config::DoUpdate()
 	if ( ! OpenFile() )
 		return ! fail_on_file_problem;
 
-	switch ( Info().mode ) {
+	switch ( Info().mode )
+		{
 		case MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
 			if ( stat(Info().source, &sb) == -1 )
 				{
-				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source), true);
+				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source),
+				         true);
 
 				file.close();
 				return ! fail_on_file_problem;
@@ -183,7 +182,8 @@ bool Config::DoUpdate()
 		}
 
 	regex_t re;
-	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]])?)?[[:blank:]]*$", REG_EXTENDED) )
+	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]])?)?[[:blank:]]*$",
+	             REG_EXTENDED) )
 		{
 		Error(Fmt("Failed to compile regex."));
 		return true;
@@ -194,7 +194,8 @@ bool Config::DoUpdate()
 		regmatch_t match[3];
 		if ( regexec(&re, line.c_str(), 3, match, 0) )
 			{
-			Warning(Fmt("Could not parse '%s'; line has invalid format. Ignoring line.", line.c_str()));
+			Warning(
+				Fmt("Could not parse '%s'; line has invalid format. Ignoring line.", line.c_str()));
 			continue;
 			}
 
@@ -212,12 +213,14 @@ bool Config::DoUpdate()
 
 		if ( std::get<0>((*typeit).second) == TYPE_ERROR )
 			{
-			Warning(Fmt("Option '%s' has type '%s', which is not supported for file input. Ignoring line.",
-			            key.c_str(), type_name(std::get<1>((*typeit).second))));
+			Warning(Fmt(
+				"Option '%s' has type '%s', which is not supported for file input. Ignoring line.",
+				key.c_str(), type_name(std::get<1>((*typeit).second))));
 			continue;
 			}
 
-		Value* eventval = formatter->ParseValue(value, key, std::get<0>((*typeit).second), std::get<1>((*typeit).second));
+		Value* eventval = formatter->ParseValue(value, key, std::get<0>((*typeit).second),
+		                                        std::get<1>((*typeit).second));
 		if ( ! eventval )
 			{
 			Warning(Fmt("Could not convert line '%s' to value. Ignoring line.", line.c_str()));
@@ -255,7 +258,7 @@ bool Config::DoUpdate()
 			val->val.string_val.data = util::copy_string(value.c_str());
 			fields[1] = val;
 
-			if ( Info().mode  == MODE_STREAM )
+			if ( Info().mode == MODE_STREAM )
 				Put(fields);
 			else
 				SendEntry(fields);
@@ -301,7 +304,7 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 		case MODE_REREAD:
 		case MODE_STREAM:
 			Update(); // Call Update, not DoUpdate, because Update
-				  // checks the "disabled" flag.
+			          // checks the "disabled" flag.
 			break;
 
 		default:

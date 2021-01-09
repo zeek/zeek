@@ -4,17 +4,21 @@
 
 #include "zeek/Reassem.h"
 
-namespace zeek { class File; }
+namespace zeek
+{
+class File;
+}
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
-namespace zeek::file_analysis {
+namespace zeek::file_analysis
+{
 
-class FileReassembler final : public Reassembler {
+class FileReassembler final : public Reassembler
+	{
 public:
-
 	FileReassembler(File* f, uint64_t starting_offset);
 	~FileReassembler() override = default;
 
@@ -45,23 +49,23 @@ public:
 	 * @return whether the reassembler is currently is the process of flushing
 	 * out the contents of its buffer.
 	 */
-	bool IsCurrentlyFlushing() const
-		{ return flushing; }
+	bool IsCurrentlyFlushing() const { return flushing; }
 
 protected:
-
 	void Undelivered(uint64_t up_to_seq) override;
 	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	File* the_file = nullptr;
 	bool flushing = false;
-};
+	};
 
 } // namespace zeek::file_analysis
 
-namespace file_analysis {
+namespace file_analysis
+{
 
-using FileReassembler [[deprecated("Remove in v4.1. Use zeek::file_analysis::FileReassembler.")]] = zeek::file_analysis::FileReassembler;
+using FileReassembler [[deprecated("Remove in v4.1. Use zeek::file_analysis::FileReassembler.")]] =
+	zeek::file_analysis::FileReassembler;
 
 } // namespace file_analysis

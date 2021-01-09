@@ -8,8 +8,8 @@
 #include <string>
 #include <utility>
 
-#include "zeek/logging/WriterBackend.h"
 #include "zeek/ZeekArgs.h"
+#include "zeek/logging/WriterBackend.h"
 
 // Increase this when making incompatible changes to the plugin API. Note
 // that the constant is never used in C code. It's picked up on by CMake.
@@ -22,14 +22,17 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Event, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
-namespace zeek::threading {
-	struct Field;
+namespace zeek::threading
+{
+struct Field;
 }
-namespace threading {
-	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
+namespace threading
+{
+using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
 }
 
-namespace zeek {
+namespace zeek
+{
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
 class Obj;
@@ -37,7 +40,8 @@ class Obj;
 
 using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
 
-namespace zeek::plugin  {
+namespace zeek::plugin
+{
 
 class Manager;
 class Component;
@@ -47,26 +51,27 @@ class Plugin;
  * Hook types that a plugin may define. Each label maps to the corresponding
  * virtual method in \a Plugin.
  */
-enum HookType {
+enum HookType
+	{
 	// Note: when changing this table, update hook_name() in Plugin.cc.
-	HOOK_LOAD_FILE,			//< Activates Plugin::HookLoadFile().
-	HOOK_CALL_FUNCTION,		//< Activates Plugin::HookCallFunction().
-	HOOK_QUEUE_EVENT,		//< Activates Plugin::HookQueueEvent().
-	HOOK_DRAIN_EVENTS,		//< Activates Plugin::HookDrainEvents()
-	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
-	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
-	HOOK_SETUP_ANALYZER_TREE,	//< Activates Plugin::HookAddToAnalyzerTree
-	HOOK_LOG_INIT,			//< Activates Plugin::HookLogInit
-	HOOK_LOG_WRITE,			//< Activates Plugin::HookLogWrite
-	HOOK_REPORTER,			//< Activates Plugin::HookReporter
+	HOOK_LOAD_FILE, //< Activates Plugin::HookLoadFile().
+	HOOK_CALL_FUNCTION, //< Activates Plugin::HookCallFunction().
+	HOOK_QUEUE_EVENT, //< Activates Plugin::HookQueueEvent().
+	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents()
+	HOOK_UPDATE_NETWORK_TIME, //< Activates Plugin::HookUpdateNetworkTime.
+	HOOK_BRO_OBJ_DTOR, //< Activates Plugin::HookBroObjDtor.
+	HOOK_SETUP_ANALYZER_TREE, //< Activates Plugin::HookAddToAnalyzerTree
+	HOOK_LOG_INIT, //< Activates Plugin::HookLogInit
+	HOOK_LOG_WRITE, //< Activates Plugin::HookLogWrite
+	HOOK_REPORTER, //< Activates Plugin::HookReporter
 
 	// Meta hooks.
-	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
-	META_HOOK_POST,			//< Activates Plugin::MetaHookPost().
+	META_HOOK_PRE, //< Activates Plugin::MetaHookPre().
+	META_HOOK_POST, //< Activates Plugin::MetaHookPost().
 
 	// End marker.
 	NUM_HOOKS,
-};
+	};
 
 /**
  * Converts a hook type into a readable hook name.
@@ -76,53 +81,60 @@ extern const char* hook_name(HookType h);
 /**
  * Helper class to capture a plugin's version.
  * */
-struct VersionNumber {
+struct VersionNumber
+	{
 	int major = -1; //< Major version number.
 	int minor = -1; //< Minor version number.
-	int patch = 0;  //< Patch version number (available since Zeek 3.0).
+	int patch = 0; //< Patch version number (available since Zeek 3.0).
 
 	/**
 	 *  Returns true if the version is set to a non-negative value.
 	 */
 	explicit operator bool() const { return major >= 0 && minor >= 0 && patch >= 0; }
-};
+	};
 
 /**
  * A class defining a plugin's static configuration parameters.
  */
-class Configuration {
+class Configuration
+	{
 public:
-	std::string name = "";			//< The plugin's name, including a namespace. Mandatory.
-	std::string description= "";	//< A short textual description of the plugin. Mandatory.
-	VersionNumber version;			//< THe plugin's version. Optional.
+	std::string name = ""; //< The plugin's name, including a namespace. Mandatory.
+	std::string description = ""; //< A short textual description of the plugin. Mandatory.
+	VersionNumber version; //< THe plugin's version. Optional.
 
 	// We force this to inline so that the API version gets hardcoded
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
-	inline Configuration() __attribute__((always_inline))
-		{
-		bro_version = BRO_PLUGIN_BRO_VERSION;
-		}
+	inline Configuration() __attribute__((always_inline)) { bro_version = BRO_PLUGIN_BRO_VERSION; }
 
-        /**
-         * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
-         * version mismatches at link(!) time.
-         */
+	/**
+	 * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
+	 * version mismatches at link(!) time.
+	 */
 	const char* (*bro_version)();
 
 private:
 	friend class Plugin;
-};
+	};
 
 /**
  * A class describing an item defined in \c *.bif file.
  */
-class BifItem {
+class BifItem
+	{
 public:
 	/**
 	 * Type of the item.
 	 */
-	enum Type { FUNCTION = 1, EVENT = 2, CONSTANT = 3, GLOBAL = 4, TYPE = 5 };
+	enum Type
+		{
+		FUNCTION = 1,
+		EVENT = 2,
+		CONSTANT = 3,
+		GLOBAL = 4,
+		TYPE = 5
+		};
 
 	/**
 	 * Constructor.
@@ -152,211 +164,350 @@ public:
 	/**
 	 * Returns the script-level ID as passed into the constructor.
 	 */
-	const std::string& GetID() const	{ return id; }
+	const std::string& GetID() const { return id; }
 
 	/**
 	 * Returns the type as passed into the constructor.
 	 */
-	Type GetType() const	{ return type; }
+	Type GetType() const { return type; }
 
 private:
 	std::string id;
 	Type type;
-};
+	};
 
 /**
  * A class encapsulating an event argument to then pass along with a meta hook.
  */
 class HookArgument
-{
+	{
 public:
 	/**
 	 * Type of the argument.
 	 */
-	enum Type {
-		BOOL, DOUBLE, EVENT, FRAME, FUNC, FUNC_RESULT, INT, STRING, VAL,
-		VAL_LIST, VOID, VOIDP, WRITER_INFO, CONN, THREAD_FIELDS, LOCATION,
+	enum Type
+		{
+		BOOL,
+		DOUBLE,
+		EVENT,
+		FRAME,
+		FUNC,
+		FUNC_RESULT,
+		INT,
+		STRING,
+		VAL,
+		VAL_LIST,
+		VOID,
+		VOIDP,
+		WRITER_INFO,
+		CONN,
+		THREAD_FIELDS,
+		LOCATION,
 		ARG_LIST
-	};
+		};
 
 	/**
 	 * Default constructor initialized the argument with type VOID.
 	 */
-	HookArgument()	{ type = VOID; }
+	HookArgument() { type = VOID; }
 
 	/**
 	 * Constructor with a boolean argument.
 	 */
-	explicit HookArgument(bool a)	{ type = BOOL; arg.bool_ = a; }
+	explicit HookArgument(bool a)
+		{
+		type = BOOL;
+		arg.bool_ = a;
+		}
 
 	/**
 	 * Constructor with a double argument.
 	 */
-	explicit HookArgument(double a)	{ type = DOUBLE; arg.double_ = a; }
+	explicit HookArgument(double a)
+		{
+		type = DOUBLE;
+		arg.double_ = a;
+		}
 
 	/**
 	 * Constructor with an event argument.
 	 */
-	explicit HookArgument(const Event* a)	{ type = EVENT; arg.event = a; }
+	explicit HookArgument(const Event* a)
+		{
+		type = EVENT;
+		arg.event = a;
+		}
 
 	/**
 	 * Constructor with an connection argument.
 	 */
-	explicit HookArgument(const Connection* c)	{ type = CONN; arg.conn = c; }
+	explicit HookArgument(const Connection* c)
+		{
+		type = CONN;
+		arg.conn = c;
+		}
 
 	/**
 	 * Constructor with a function argument.
 	 */
-	explicit HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
+	explicit HookArgument(const Func* a)
+		{
+		type = FUNC;
+		arg.func = a;
+		}
 
 	/**
 	 * Constructor with an integer  argument.
 	 */
-	explicit HookArgument(int a)	{ type = INT; arg.int_ = a; }
+	explicit HookArgument(int a)
+		{
+		type = INT;
+		arg.int_ = a;
+		}
 
 	/**
 	 * Constructor with a string argument.
 	 */
-	explicit HookArgument(const std::string& a)	{ type = STRING; arg_string = a; }
+	explicit HookArgument(const std::string& a)
+		{
+		type = STRING;
+		arg_string = a;
+		}
 
 	/**
 	 * Constructor with a Bro value argument.
 	 */
-	explicit HookArgument(const Val* a)	{ type = VAL; arg.val = a; }
+	explicit HookArgument(const Val* a)
+		{
+		type = VAL;
+		arg.val = a;
+		}
 
 	/**
 	 * Constructor with a list of Bro values argument.
 	 */
-	explicit HookArgument(const ValPList* a)	{ type = VAL_LIST; arg.vals = a; }
+	explicit HookArgument(const ValPList* a)
+		{
+		type = VAL_LIST;
+		arg.vals = a;
+		}
 
 	/**
 	 * Constructor with a void pointer argument.
 	 */
-	explicit HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
+	explicit HookArgument(void* p)
+		{
+		type = VOIDP;
+		arg.voidp = p;
+		}
 
 	/**
 	 * Constructor with a function result argument.
 	 */
-	explicit HookArgument(std::pair<bool, Val*> fresult)	{ type = FUNC_RESULT; func_result = fresult; }
+	explicit HookArgument(std::pair<bool, Val*> fresult)
+		{
+		type = FUNC_RESULT;
+		func_result = fresult;
+		}
 
 	/**
 	 * Constructor with a Frame argument.
 	 */
-	explicit HookArgument(detail::Frame* f)	{ type = FRAME; arg.frame = f; }
+	explicit HookArgument(detail::Frame* f)
+		{
+		type = FRAME;
+		arg.frame = f;
+		}
 
 	/**
 	 * Constructor with a WriterInfo argument.
 	 */
-	explicit HookArgument(const logging::WriterBackend::WriterInfo* i)	{ type = WRITER_INFO; arg.winfo = i; }
+	explicit HookArgument(const logging::WriterBackend::WriterInfo* i)
+		{
+		type = WRITER_INFO;
+		arg.winfo = i;
+		}
 
 	/**
 	 * Constructor with a threading field argument.
 	 */
-	explicit HookArgument(const std::pair<int, const threading::Field* const*> fpair)	{ type = THREAD_FIELDS; tfields = fpair; }
+	explicit HookArgument(const std::pair<int, const threading::Field* const*> fpair)
+		{
+		type = THREAD_FIELDS;
+		tfields = fpair;
+		}
 
 	/**
 	 * Constructor with a location argument.
 	 */
-	explicit HookArgument(const zeek::detail::Location* location)	{ type = LOCATION; arg.loc = location; }
+	explicit HookArgument(const zeek::detail::Location* location)
+		{
+		type = LOCATION;
+		arg.loc = location;
+		}
 
 	/**
 	 * Constructor with a zeek::Args argument.
 	 */
-	explicit HookArgument(const Args* args)	{ type = ARG_LIST; arg.args = args; }
+	explicit HookArgument(const Args* args)
+		{
+		type = ARG_LIST;
+		arg.args = args;
+		}
 
 	/**
 	 * Returns the value for a boolen argument. The argument's type must
 	 * match accordingly.
 	 */
-	bool AsBool() const	{ assert(type == BOOL); return arg.bool_; }
+	bool AsBool() const
+		{
+		assert(type == BOOL);
+		return arg.bool_;
+		}
 
 	/**
 	 * Returns the value for a double argument. The argument's type must
 	 * match accordingly.
 	 */
-	double AsDouble() const	{ assert(type == DOUBLE); return arg.double_; }
+	double AsDouble() const
+		{
+		assert(type == DOUBLE);
+		return arg.double_;
+		}
 
 	/**
 	 * Returns the value for an event argument. The argument's type must
 	 * match accordingly.
 	 */
-	const Event* AsEvent() const	{ assert(type == EVENT); return arg.event; }
+	const Event* AsEvent() const
+		{
+		assert(type == EVENT);
+		return arg.event;
+		}
 
 	/**
 	 * Returns the value for an connection argument. The argument's type must
 	 * match accordingly.
 	 */
-	const Connection* AsConnection() const	{ assert(type == CONN); return arg.conn; }
+	const Connection* AsConnection() const
+		{
+		assert(type == CONN);
+		return arg.conn;
+		}
 
 	/**
 	 * Returns the value for a function argument. The argument's type must
 	 * match accordingly.
 	 */
-	const Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
+	const Func* AsFunc() const
+		{
+		assert(type == FUNC);
+		return arg.func;
+		}
 
 	/**
 	 * Returns the value for an integer argument. The argument's type must
 	 * match accordingly.
 	 */
-	double AsInt() const	{ assert(type == INT); return arg.int_; }
+	double AsInt() const
+		{
+		assert(type == INT);
+		return arg.int_;
+		}
 
 	/**
 	 * Returns the value for a string argument. The argument's type must
 	 * match accordingly.
 	 */
-	const std::string& AsString() const	{ assert(type == STRING); return arg_string; }
+	const std::string& AsString() const
+		{
+		assert(type == STRING);
+		return arg_string;
+		}
 
 	/**
 	 * Returns the value for a Bro value argument. The argument's type must
 	 * match accordingly.
 	 */
-	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
+	const Val* AsVal() const
+		{
+		assert(type == VAL);
+		return arg.val;
+		}
 
 	/**
 	 * Returns the value for a Bro wrapped value argument.  The argument's type must
 	 * match accordingly.
 	 */
-	const std::pair<bool, Val*> AsFuncResult() const { assert(type == FUNC_RESULT); return func_result; }
+	const std::pair<bool, Val*> AsFuncResult() const
+		{
+		assert(type == FUNC_RESULT);
+		return func_result;
+		}
 
 	/**
 	 * Returns the value for a Bro frame argument.  The argument's type must
 	 * match accordingly.
 	 */
-	const zeek::detail::Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
+	const zeek::detail::Frame* AsFrame() const
+		{
+		assert(type == FRAME);
+		return arg.frame;
+		}
 
 	/**
 	 * Returns the value for a logging WriterInfo argument.  The argument's type must
 	 * match accordingly.
 	 */
-	const logging::WriterBackend::WriterInfo* AsWriterInfo() const { assert(type == WRITER_INFO); return arg.winfo; }
+	const logging::WriterBackend::WriterInfo* AsWriterInfo() const
+		{
+		assert(type == WRITER_INFO);
+		return arg.winfo;
+		}
 
 	/**
 	 * Returns the value for a threading fields argument.  The argument's type must
 	 * match accordingly.
 	 */
-	const std::pair<int, const threading::Field* const*> AsThreadFields() const { assert(type == THREAD_FIELDS); return tfields; }
+	const std::pair<int, const threading::Field* const*> AsThreadFields() const
+		{
+		assert(type == THREAD_FIELDS);
+		return tfields;
+		}
 
 	/**
 	 * Returns the value for a list of Bro values argument. The argument's type must
 	 * match accordingly.
 	 */
-	const ValPList* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
+	const ValPList* AsValList() const
+		{
+		assert(type == VAL_LIST);
+		return arg.vals;
+		}
 
 	/**
 	 * Returns the value as a Args.
 	 */
-	const Args* AsArgList() const	{ assert(type == ARG_LIST); return arg.args; }
+	const Args* AsArgList() const
+		{
+		assert(type == ARG_LIST);
+		return arg.args;
+		}
 
 	/**
 	 * Returns the value for a vod pointer argument. The argument's type
 	 * must match accordingly.
 	 */
-	const void* AsVoidPtr() const	{ assert(type == VOIDP); return arg.voidp; }
+	const void* AsVoidPtr() const
+		{
+		assert(type == VOIDP);
+		return arg.voidp;
+		}
 
 	/**
 	 * Returns the argument's type.
 	 */
-	Type GetType() const	{ return type; }
+	Type GetType() const { return type; }
 
 	/**
 	 * Returns a textual representation of the argument.
@@ -367,7 +518,7 @@ public:
 
 private:
 	Type type;
-	union {
+		union {
 		bool bool_;
 		double double_;
 		const Event* event;
@@ -381,13 +532,13 @@ private:
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
 		const detail::Location* loc;
-	} arg;
+		} arg;
 
 	// Outside union because these have dtors.
 	std::pair<bool, Val*> func_result;
 	std::pair<int, const threading::Field* const*> tfields;
 	std::string arg_string;
-};
+	};
 
 using HookArgumentList = std::list<HookArgument>;
 
@@ -418,18 +569,22 @@ using HookArgumentList = std::list<HookArgument>;
  * virtual methods.
  *
  */
-class Plugin {
+class Plugin
+	{
 public:
-	typedef std::list<Component *> component_list;
+	typedef std::list<Component*> component_list;
 	typedef std::list<BifItem> bif_item_list;
-	typedef std::list<std::pair<HookType, int> > hook_list;
+	typedef std::list<std::pair<HookType, int>> hook_list;
 
 	/**
 	 * The different types of @loads supported by HookLoadFile.
 	 */
-	enum LoadType {
-		SCRIPT, SIGNATURES, PLUGIN
-	};
+	enum LoadType
+		{
+		SCRIPT,
+		SIGNATURES,
+		PLUGIN
+		};
 
 	/**
 	 * Constructor.
@@ -655,7 +810,8 @@ protected:
 	 * have printed an error message); and -1 if the plugin wasn't
 	 * interested in the file at all.
 	 */
-	virtual int HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved);
+	virtual int HookLoadFile(const LoadType type, const std::string& file,
+	                         const std::string& resolved);
 
 	/**
 	 * Hook into executing a script-level function/event/hook. Whenever
@@ -679,11 +835,11 @@ protected:
 	 * interpreter. If the plugin did not handle the call, it must return a
 	 * pair with the first member set to 'false' and null result value.
 	 */
-	virtual std::pair<bool, ValPtr>
-	HookFunctionCall(const Func* func, zeek::detail::Frame* parent, Args* args);
+	virtual std::pair<bool, ValPtr> HookFunctionCall(const Func* func, zeek::detail::Frame* parent,
+	                                                 Args* args);
 
-	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]
-	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, zeek::detail::Frame *parent, ValPList* args);
+	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]] virtual std::pair<bool, Val*>
+	HookCallFunction(const Func* func, zeek::detail::Frame* parent, ValPList* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
@@ -726,7 +882,7 @@ protected:
 	 *
 	 * @param conn The connection.
 	 */
-	virtual void HookSetupAnalyzerTree(Connection *conn);
+	virtual void HookSetupAnalyzerTree(Connection* conn);
 
 	/**
 	 * Hook for destruction of objects registered with
@@ -765,11 +921,9 @@ protected:
 	 *
 	 * @param fields threading::Field description of the fields being logged.
 	 */
-	virtual void HookLogInit(const std::string& writer,
-	                         const std::string& instantiating_filter,
+	virtual void HookLogInit(const std::string& writer, const std::string& instantiating_filter,
 	                         bool local, bool remote,
-	                         const logging::WriterBackend::WriterInfo& info,
-	                         int num_fields,
+	                         const logging::WriterBackend::WriterInfo& info, int num_fields,
 	                         const threading::Field* const* fields);
 
 	/**
@@ -798,12 +952,9 @@ protected:
 	 * @return true if log line should be written, false if log line should be
 	 *         skipped and not passed on to the writer.
 	 */
-	virtual bool HookLogWrite(const std::string& writer,
-	                          const std::string& filter,
-	                          const logging::WriterBackend::WriterInfo& info,
-	                          int num_fields,
-	                          const threading::Field* const* fields,
-	                          threading::Value** vals);
+	virtual bool HookLogWrite(const std::string& writer, const std::string& filter,
+	                          const logging::WriterBackend::WriterInfo& info, int num_fields,
+	                          const threading::Field* const* fields, threading::Value** vals);
 
 	/**
 	 * Hook into reporting. This method will be called for each reporter call
@@ -835,15 +986,15 @@ protected:
 	 */
 	virtual bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
 	                          const Connection* conn, const ValPList* addl, bool location,
-	                          const zeek::detail::Location* location1, const zeek::detail::Location* location2,
-	                          bool time, const std::string& message);
+	                          const zeek::detail::Location* location1,
+	                          const zeek::detail::Location* location2, bool time,
+	                          const std::string& message);
 
 	// Meta hooks.
 	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
 	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
 
 private:
-
 	/**
 	 * A function called when the plugin is instantiated to query basic
 	 * configuration parameters.
@@ -886,53 +1037,68 @@ private:
 
 	Configuration config;
 
-	std::string base_dir;	// The plugin's base directory.
-	std::string sopath;	// For dynamic plugins, the full path to the shared library.
-	bool dynamic;	// True if a dynamic plugin.
+	std::string base_dir; // The plugin's base directory.
+	std::string sopath; // For dynamic plugins, the full path to the shared library.
+	bool dynamic; // True if a dynamic plugin.
 
-	component_list components;	// Components the plugin provides.
-	bif_item_list bif_items;	// BiF items the plugin provides.
-};
+	component_list components; // Components the plugin provides.
+	bif_item_list bif_items; // BiF items the plugin provides.
+	};
 
 } // namespace zeek::plugin
 
-namespace plugin {
+namespace plugin
+{
 
-[[deprecated("Remove in v4.1. Use zeek::plugin::hook_name().")]]
-constexpr auto hook_name = zeek::plugin::hook_name;
+[[deprecated("Remove in v4.1. Use zeek::plugin::hook_name().")]] constexpr auto hook_name =
+	zeek::plugin::hook_name;
 
-using VersionNumber [[deprecated("Remove in v4.1. Use zeek::plugin::VersionNumber instead")]] = zeek::plugin::VersionNumber;
-using Configuration [[deprecated("Remove in v4.1. Use zeek::plugin::Configuration instead")]] = zeek::plugin::Configuration;
-using BifItem [[deprecated("Remove in v4.1. Use zeek::plugin::BifItem instead")]] = zeek::plugin::BifItem;
-using HookArgument [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgument instead")]] = zeek::plugin::HookArgument;
-using HookArgumentList [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgumentList instead")]] = zeek::plugin::HookArgumentList;
-using Plugin [[deprecated("Remove in v4.1. Use zeek::plugin::Plugin instead")]] = zeek::plugin::Plugin;
+using VersionNumber [[deprecated("Remove in v4.1. Use zeek::plugin::VersionNumber instead")]] =
+	zeek::plugin::VersionNumber;
+using Configuration [[deprecated("Remove in v4.1. Use zeek::plugin::Configuration instead")]] =
+	zeek::plugin::Configuration;
+using BifItem [[deprecated("Remove in v4.1. Use zeek::plugin::BifItem instead")]] =
+	zeek::plugin::BifItem;
+using HookArgument [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgument instead")]] =
+	zeek::plugin::HookArgument;
+using HookArgumentList
+	[[deprecated("Remove in v4.1. Use zeek::plugin::HookArgumentList instead")]] =
+		zeek::plugin::HookArgumentList;
+using Plugin [[deprecated("Remove in v4.1. Use zeek::plugin::Plugin instead")]] =
+	zeek::plugin::Plugin;
 
-using HookType [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] = zeek::plugin::HookType;
+using HookType [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] =
+	zeek::plugin::HookType;
 
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOAD_FILE instead.")]]
-constexpr auto HOOK_LOAD_FILE = zeek::plugin::HOOK_LOAD_FILE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_CALL_FUNCTION instead.")]]
-constexpr auto HOOK_CALL_FUNCTION = zeek::plugin::HOOK_CALL_FUNCTION;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_QUEUE_EVENT instead.")]]
-constexpr auto HOOK_QUEUE_EVENT = zeek::plugin::HOOK_QUEUE_EVENT;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_DRAIN_EVENTS instead.")]]
-constexpr auto HOOK_DRAIN_EVENTS = zeek::plugin::HOOK_DRAIN_EVENTS;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_UPDATE_NETWORK_TIME instead.")]]
-constexpr auto HOOK_UPDATE_NETWORK_TIME = zeek::plugin::HOOK_UPDATE_NETWORK_TIME;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_BRO_OBJ_DTOR instead.")]]
-constexpr auto HOOK_BRO_OBJ_DTOR = zeek::plugin::HOOK_BRO_OBJ_DTOR;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_SETUP_ANALYZER_TREE instead.")]]
-constexpr auto HOOK_SETUP_ANALYZER_TREE = zeek::plugin::HOOK_SETUP_ANALYZER_TREE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOG_INIT instead.")]]
-constexpr auto HOOK_LOG_INIT = zeek::plugin::HOOK_LOG_INIT;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOG_WRITE instead.")]]
-constexpr auto HOOK_LOG_WRITE = zeek::plugin::HOOK_LOG_WRITE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_REPORTER instead.")]]
-constexpr auto HOOK_REPORTER = zeek::plugin::HOOK_REPORTER;
-[[deprecated("Remove in v4.1. Use zeek::plugin::META_HOOK_PRE instead.")]]
-constexpr auto META_HOOK_PRE = zeek::plugin::META_HOOK_PRE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::META_HOOK_POST instead.")]]
-constexpr auto META_HOOK_POST = zeek::plugin::META_HOOK_POST;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::HOOK_LOAD_FILE instead.")]] constexpr auto HOOK_LOAD_FILE =
+	zeek::plugin::HOOK_LOAD_FILE;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_CALL_FUNCTION instead.")]] constexpr auto
+	HOOK_CALL_FUNCTION = zeek::plugin::HOOK_CALL_FUNCTION;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_QUEUE_EVENT instead.")]] constexpr auto
+	HOOK_QUEUE_EVENT = zeek::plugin::HOOK_QUEUE_EVENT;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_DRAIN_EVENTS instead.")]] constexpr auto
+	HOOK_DRAIN_EVENTS = zeek::plugin::HOOK_DRAIN_EVENTS;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_UPDATE_NETWORK_TIME instead.")]] constexpr auto
+	HOOK_UPDATE_NETWORK_TIME = zeek::plugin::HOOK_UPDATE_NETWORK_TIME;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_BRO_OBJ_DTOR instead.")]] constexpr auto
+	HOOK_BRO_OBJ_DTOR = zeek::plugin::HOOK_BRO_OBJ_DTOR;
+[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_SETUP_ANALYZER_TREE instead.")]] constexpr auto
+	HOOK_SETUP_ANALYZER_TREE = zeek::plugin::HOOK_SETUP_ANALYZER_TREE;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::HOOK_LOG_INIT instead.")]] constexpr auto HOOK_LOG_INIT =
+	zeek::plugin::HOOK_LOG_INIT;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::HOOK_LOG_WRITE instead.")]] constexpr auto HOOK_LOG_WRITE =
+	zeek::plugin::HOOK_LOG_WRITE;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::HOOK_REPORTER instead.")]] constexpr auto HOOK_REPORTER =
+	zeek::plugin::HOOK_REPORTER;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::META_HOOK_PRE instead.")]] constexpr auto META_HOOK_PRE =
+	zeek::plugin::META_HOOK_PRE;
+[[deprecated(
+	"Remove in v4.1. Use zeek::plugin::META_HOOK_POST instead.")]] constexpr auto META_HOOK_POST =
+	zeek::plugin::META_HOOK_POST;
 
 } // namespace plugin

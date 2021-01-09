@@ -5,21 +5,22 @@
 #include "zeek-config.h"
 
 #include <sys/types.h>
-
-#include <vector>
-#include <string>
 #include <iosfwd>
+#include <string>
+#include <vector>
 
 // Forward declaration, for helper functions that convert (sub)string vectors
 // to and from policy-level representations.
 //
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
 
-namespace zeek {
+namespace zeek
+{
 
 typedef u_char* byte_vec;
 
-class String {
+class String
+	{
 public:
 	typedef std::vector<String*> Vec;
 	typedef Vec::iterator VecIt;
@@ -44,14 +45,14 @@ public:
 	String(bool arg_final_NUL, byte_vec str, int arg_n);
 
 	String();
-	~String()	{ Reset(); }
+	~String() { Reset(); }
 
 	const String& operator=(const String& bs);
 	bool operator==(const String& bs) const;
 	bool operator<(const String& bs) const;
 
-	byte_vec Bytes() const	{ return b; }
-	int Len() const	{ return n; }
+	byte_vec Bytes() const { return b; }
+	int Len() const { return n; }
 
 	// Releases the string's current contents, if any, and
 	// adopts the byte vector of given length.  The string will
@@ -63,31 +64,31 @@ public:
 	// current contents, if any, and then set the string's
 	// contents to a copy of the string given by the arguments.
 	//
-	void Set(const u_char* str, int len, bool add_NUL=true);
+	void Set(const u_char* str, int len, bool add_NUL = true);
 	void Set(const char* str);
 	void Set(const std::string& str);
-	void Set(const String &str);
+	void Set(const String& str);
 
-	void SetUseFreeToDelete(int use_it)
-		{ use_free_to_delete = use_it; }
+	void SetUseFreeToDelete(int use_it) { use_free_to_delete = use_it; }
 
 	const char* CheckString() const;
 
-	enum render_style {
+	enum render_style
+		{
 		ESC_NONE = 0,
-		ESC_ESC  = (1 << 1),	// '\' -> "\\"
-		ESC_QUOT = (1 << 2),	// '"' -> "\"", ''' -> "\'"
-		ESC_HEX  = (1 << 3),	// Not in [32, 126]? -> "\xXX"
-		ESC_DOT  = (1 << 4),	// Not in [32, 126]? -> "."
+		ESC_ESC = (1 << 1), // '\' -> "\\"
+		ESC_QUOT = (1 << 2), // '"' -> "\"", ''' -> "\'"
+		ESC_HEX = (1 << 3), // Not in [32, 126]? -> "\xXX"
+		ESC_DOT = (1 << 4), // Not in [32, 126]? -> "."
 
 		// For serialization: '<string len> <string>'
-		ESC_SER  = (1 << 7),
-	};
+		ESC_SER = (1 << 7),
+		};
 
-	static constexpr int EXPANDED_STRING =	// the original style
+	static constexpr int EXPANDED_STRING = // the original style
 		ESC_HEX;
 
-	static constexpr int BRO_STRING_LITERAL =	// as in a Bro string literal
+	static constexpr int BRO_STRING_LITERAL = // as in a Bro string literal
 		ESC_ESC | ESC_QUOT | ESC_HEX;
 
 	// Renders a string into a newly allocated character array that
@@ -147,22 +148,23 @@ protected:
 
 	byte_vec b;
 	int n;
-	bool final_NUL;	// whether we have added a final NUL
-	bool use_free_to_delete;	// free() vs. operator delete
-};
+	bool final_NUL; // whether we have added a final NUL
+	bool use_free_to_delete; // free() vs. operator delete
+	};
 
 // A comparison class that sorts pointers to String's according to
 // the length of the pointed-to strings. Sort order can be specified
 // through the constructor.
 //
-class StringLenCmp {
+class StringLenCmp
+	{
 public:
 	explicit StringLenCmp(bool increasing = true) { _increasing = increasing; }
-	bool operator()(String*const& bst1, String*const& bst2);
+	bool operator()(String* const& bst1, String* const& bst2);
 
- private:
+private:
 	unsigned int _increasing;
-};
+	};
 
 // Default output stream operator, using rendering mode EXPANDED_STRING.
 std::ostream& operator<<(std::ostream& os, const String& bs);
@@ -177,10 +179,11 @@ extern int Bstr_cmp(const String* s1, const String* s2);
 //
 // "BroConstString" might be a better name here.
 
-struct data_chunk_t {
+struct data_chunk_t
+	{
 	int length;
 	const char* data;
-};
+	};
 
 extern String* concatenate(std::vector<data_chunk_t>& v);
 extern String* concatenate(String::Vec& v);
@@ -190,6 +193,8 @@ extern void delete_strings(std::vector<const String*>& v);
 } // namespace zeek
 
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
-using BroStringLenCmp [[deprecated("Remove in v4.1. Use zeek::StringLenCmp instead.")]] = zeek::StringLenCmp;
+using BroStringLenCmp [[deprecated("Remove in v4.1. Use zeek::StringLenCmp instead.")]] =
+	zeek::StringLenCmp;
 using byte_vec [[deprecated("Remove in v4.1. Use zeek::byte_vec instead.")]] = zeek::byte_vec;
-using data_chunk_t [[deprecated("Remove in v4.1. Use zeek::data_chunk_t instead.")]] = zeek::data_chunk_t;
+using data_chunk_t [[deprecated("Remove in v4.1. Use zeek::data_chunk_t instead.")]] =
+	zeek::data_chunk_t;

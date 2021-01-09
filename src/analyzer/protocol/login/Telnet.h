@@ -4,21 +4,25 @@
 
 #include "zeek/analyzer/protocol/login/Login.h"
 
-namespace zeek::analyzer::login {
+namespace zeek::analyzer::login
+{
 
-class Telnet_Analyzer : public Login_Analyzer {
+class Telnet_Analyzer : public Login_Analyzer
+	{
 public:
 	explicit Telnet_Analyzer(Connection* conn);
-	~Telnet_Analyzer() override {}
+	~Telnet_Analyzer() override { }
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new Telnet_Analyzer(conn); }
-};
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new Telnet_Analyzer(conn); }
+	};
 
 } // namespace zeek::analyzer::login
 
-namespace analyzer::login {
+namespace analyzer::login
+{
 
-using Telnet_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Telnet_Analyzer.")]] = zeek::analyzer::login::Telnet_Analyzer;
+using Telnet_Analyzer
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::login::Telnet_Analyzer.")]] =
+		zeek::analyzer::login::Telnet_Analyzer;
 
 } // namespace analyzer::login

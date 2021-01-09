@@ -1,26 +1,30 @@
 #pragma once
 
 #include "zeek/DebugLogger.h"
+#include "zeek/Flare.h"
+#include "zeek/iosource/IOSource.h"
 #include "zeek/threading/BasicThread.h"
 #include "zeek/threading/Queue.h"
-#include "zeek/iosource/IOSource.h"
-#include "zeek/Flare.h"
 
-namespace zeek::threading {
-	struct Value;
-	struct Field;
+namespace zeek::threading
+{
+struct Value;
+struct Field;
 }
-namespace threading {
-	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
-	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
+namespace threading
+{
+using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
+using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
 }
 
-namespace zeek::threading {
+namespace zeek::threading
+{
 
 class BasicInputMessage;
 class BasicOutputMessage;
 
-namespace detail {
+namespace detail
+{
 
 // These classes are marked as friends later so they need to be forward declared.
 class HeartbeatMessage;
@@ -42,7 +46,7 @@ class KillMeMessage;
  * processes all remaining ones still in the queue, and then exits.
  */
 class MsgThread : public BasicThread, public iosource::IOSource
-{
+	{
 public:
 	/**
 	 * Constructor. It automatically registers the thread with the
@@ -65,7 +69,7 @@ public:
 	 *
 	 * @param msg The message.
 	 */
-	void SendIn(BasicInputMessage* msg)	{ return SendIn(msg, false); }
+	void SendIn(BasicInputMessage* msg) { return SendIn(msg, false); }
 
 	/**
 	 * Sends a message from the child thread to the main thread.
@@ -74,7 +78,7 @@ public:
 	 *
 	 * @param msg The mesasge.
 	 */
-	void SendOut(BasicOutputMessage* msg)	{ return SendOut(msg, false); }
+	void SendOut(BasicOutputMessage* msg) { return SendOut(msg, false); }
 
 	/**
 	 * Allows the child thread to send a specified Zeek event. The given Vals
@@ -86,7 +90,7 @@ public:
 	 *
 	 * @param vals the values to be given to the event
 	 */
-	void SendEvent(const char* name, const int num_vals, Value* *vals);
+	void SendEvent(const char* name, const int num_vals, Value** vals);
 
 	/**
 	 * Reports an informational message from the child thread. The main
@@ -192,14 +196,15 @@ public:
 	 */
 	struct Stats
 		{
-		uint64_t sent_in;	//! Number of messages sent to the child thread.
-		uint64_t sent_out;	//! Number of messages sent from the child thread to the main thread
-		uint64_t pending_in;	//! Number of messages sent to the child but not yet processed.
-		uint64_t pending_out;	//! Number of messages sent from the child but not yet processed by the main thread.
+		uint64_t sent_in; //! Number of messages sent to the child thread.
+		uint64_t sent_out; //! Number of messages sent from the child thread to the main thread
+		uint64_t pending_in; //! Number of messages sent to the child but not yet processed.
+		uint64_t pending_out; //! Number of messages sent from the child but not yet processed by
+		                      //! the main thread.
 
 		/// Statistics from our queues.
-		Queue<BasicInputMessage *>::Stats  queue_in_stats;
-		Queue<BasicOutputMessage *>::Stats queue_out_stats;
+		Queue<BasicInputMessage*>::Stats queue_in_stats;
+		Queue<BasicOutputMessage*>::Stats queue_out_stats;
 		};
 
 	/**
@@ -248,9 +253,9 @@ protected:
 	virtual void Heartbeat();
 
 	/** Returns true if a child command has reported a failure. In that case, we'll
-	  * be in the process of killing this thread and no further activity
-	  * should carried out. To be called only from this child thread.
-	  */
+	 * be in the process of killing this thread and no further activity
+	 * should carried out. To be called only from this child thread.
+	 */
 	bool Failed() const { return failed; }
 
 	/**
@@ -319,13 +324,13 @@ private:
 	 * Returns true if there's at least one message pending for the child
 	 * thread.
 	 */
-	bool HasIn()	{ return queue_in.Ready(); }
+	bool HasIn() { return queue_in.Ready(); }
 
 	/**
 	 * Returns true if there's at least one message pending for the main
 	 * thread.
 	 */
-	bool HasOut()	{ return queue_out.Ready(); }
+	bool HasOut() { return queue_out.Ready(); }
 
 	/**
 	 * Returns true if there might be at least one message pending for
@@ -339,25 +344,26 @@ private:
 	 */
 	void Finished();
 
-	Queue<BasicInputMessage *> queue_in;
-	Queue<BasicOutputMessage *> queue_out;
+	Queue<BasicInputMessage*> queue_in;
+	Queue<BasicOutputMessage*> queue_out;
 
-	uint64_t cnt_sent_in;	// Counts message sent to child.
-	uint64_t cnt_sent_out;	// Counts message sent by child.
+	uint64_t cnt_sent_in; // Counts message sent to child.
+	uint64_t cnt_sent_out; // Counts message sent by child.
 
-	bool main_finished;	// Main thread is finished, meaning child_finished propagated back through message queue.
-	bool child_finished;	// Child thread is finished.
+	bool main_finished; // Main thread is finished, meaning child_finished propagated back through
+	                    // message queue.
+	bool child_finished; // Child thread is finished.
 	bool child_sent_finish; // Child thread asked to be finished.
-	bool failed;	// Set to true when a command failed.
+	bool failed; // Set to true when a command failed.
 
 	zeek::detail::Flare flare;
-};
+	};
 
 /**
  * Base class for all message between Bro's main process and a MsgThread.
  */
 class Message
-{
+	{
 public:
 	/**
 	 * Destructor.
@@ -383,18 +389,17 @@ protected:
 	 * @param arg_name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	explicit Message(const char* arg_name)
-		{ name = util::copy_string(arg_name); }
+	explicit Message(const char* arg_name) { name = util::copy_string(arg_name); }
 
 private:
 	const char* name;
-};
+	};
 
 /**
  * Base class for messages sent from Bro's main thread to a child MsgThread.
  */
 class BasicInputMessage : public Message
-{
+	{
 protected:
 	/**
 	 * Constructor.
@@ -402,14 +407,14 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	explicit BasicInputMessage(const char* name) : Message(name)	{}
-};
+	explicit BasicInputMessage(const char* name) : Message(name) { }
+	};
 
 /**
  * Base class for messages sent from a child MsgThread to Bro's main thread.
  */
 class BasicOutputMessage : public Message
-{
+	{
 protected:
 	/**
 	 * Constructor.
@@ -417,16 +422,15 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	explicit BasicOutputMessage(const char* name) : Message(name)	{}
-};
+	explicit BasicOutputMessage(const char* name) : Message(name) { }
+	};
 
 /**
  * A parameterized InputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
-template<typename O>
-class InputMessage : public BasicInputMessage
-{
+template <typename O> class InputMessage : public BasicInputMessage
+	{
 public:
 	/**
 	 * Returns the objects passed to the constructor.
@@ -442,20 +446,18 @@ protected:
 	 *
 	 * @param arg_object: An object to store with the message.
 	 */
-	InputMessage(const char* name, O* arg_object) : BasicInputMessage(name)
-		{ object = arg_object; }
+	InputMessage(const char* name, O* arg_object) : BasicInputMessage(name) { object = arg_object; }
 
 private:
 	O* object;
-};
+	};
 
 /**
  * A parameterized OutputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
-template<typename O>
-class OutputMessage : public BasicOutputMessage
-{
+template <typename O> class OutputMessage : public BasicOutputMessage
+	{
 public:
 	/**
 	 * Returns the objects passed to the constructor.
@@ -472,21 +474,33 @@ protected:
 	 * @param arg_object An object to store with the message.
 	 */
 	OutputMessage(const char* name, O* arg_object) : BasicOutputMessage(name)
-		{ object = arg_object; }
+		{
+		object = arg_object;
+		}
 
 private:
 	O* object;
-};
+	};
 
 } // namespace zeek::threading
 
-namespace threading {
+namespace threading
+{
 
-using MsgThread [[deprecated("Remove in v4.1. Use zeek::threading::MsgThread.")]] = zeek::threading::MsgThread;
-using Message [[deprecated("Remove in v4.1. Use zeek::threading::Message.")]] = zeek::threading::Message;
-using BasicInputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicInputMessage.")]] = zeek::threading::BasicInputMessage;
-using BasicOutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicOutputMessage.")]] = zeek::threading::BasicOutputMessage;
-template<typename O> using InputMessage [[deprecated("Remove in v4.1. Use zeek::threading::InputMessage.")]] = zeek::threading::InputMessage<O>;
-template<typename O> using OutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::OutputMessage.")]] = zeek::threading::OutputMessage<O>;
+using MsgThread [[deprecated("Remove in v4.1. Use zeek::threading::MsgThread.")]] =
+	zeek::threading::MsgThread;
+using Message [[deprecated("Remove in v4.1. Use zeek::threading::Message.")]] =
+	zeek::threading::Message;
+using BasicInputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicInputMessage.")]] =
+	zeek::threading::BasicInputMessage;
+using BasicOutputMessage
+	[[deprecated("Remove in v4.1. Use zeek::threading::BasicOutputMessage.")]] =
+		zeek::threading::BasicOutputMessage;
+template <typename O>
+using InputMessage [[deprecated("Remove in v4.1. Use zeek::threading::InputMessage.")]] =
+	zeek::threading::InputMessage<O>;
+template <typename O>
+using OutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::OutputMessage.")]] =
+	zeek::threading::OutputMessage<O>;
 
 } // namespace threading

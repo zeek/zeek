@@ -6,12 +6,11 @@
 
 #pragma once
 
-#include <sys/types.h> // for u_char
-#include <cstdint>
-
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-#include <openssl/evp.h>
+#include <sys/types.h> // for u_char
+#include <cstdint>
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #define EVP_MD_CTX_new EVP_MD_CTX_create
@@ -23,11 +22,20 @@ inline void* EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
 	}
 #endif
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 // if you add something here, note that you might have to make sure that the
 // static_out member in calculate_digest is still long enough.
-enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
+enum HashAlgorithm
+	{
+	Hash_MD5,
+	Hash_SHA1,
+	Hash_SHA224,
+	Hash_SHA256,
+	Hash_SHA384,
+	Hash_SHA512
+	};
 
 inline const char* digest_print(const u_char* digest, size_t n)
 	{
@@ -68,24 +76,45 @@ unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsign
  * @param out Buffer to write data to. If set to nullptr, a static buffer will be used
  * @return Buffer that the hash was written to. Length is deoendent on the chosen hash function.
  */
-unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out);
+unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len,
+                                unsigned char* out);
 
 } // namespace zeek::detail
 
-using HashAlgorithm [[deprecated("Remove in v4.1. Use zeek::detail::HashAlgorithm.")]] = zeek::detail::HashAlgorithm;
-constexpr auto Hash_MD5 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_MD5.")]] = zeek::detail::Hash_MD5;
-constexpr auto Hash_SHA1 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA1.")]] = zeek::detail::Hash_SHA1;
-constexpr auto Hash_SHA224 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA224.")]] = zeek::detail::Hash_SHA224;
-constexpr auto Hash_SHA256 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA256.")]] = zeek::detail::Hash_SHA256;
-constexpr auto Hash_SHA384 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA384.")]] = zeek::detail::Hash_SHA384;
-constexpr auto Hash_SHA512 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA512.")]] = zeek::detail::Hash_SHA512;
+using HashAlgorithm [[deprecated("Remove in v4.1. Use zeek::detail::HashAlgorithm.")]] =
+	zeek::detail::HashAlgorithm;
+constexpr auto Hash_MD5 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_MD5.")]] =
+	zeek::detail::Hash_MD5;
+constexpr auto Hash_SHA1 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA1.")]] =
+	zeek::detail::Hash_SHA1;
+constexpr auto Hash_SHA224 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA224.")]] =
+	zeek::detail::Hash_SHA224;
+constexpr auto Hash_SHA256 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA256.")]] =
+	zeek::detail::Hash_SHA256;
+constexpr auto Hash_SHA384 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA384.")]] =
+	zeek::detail::Hash_SHA384;
+constexpr auto Hash_SHA512 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA512.")]] =
+	zeek::detail::Hash_SHA512;
 
-constexpr auto digest_print [[deprecated("Remove in v4.1. Use zeek::detail::digest_print.")]] = zeek::detail::digest_print;
-constexpr auto md5_digest_print [[deprecated("Remove in v4.1. Use zeek::detail::md5_digest_print.")]] = zeek::detail::md5_digest_print;
-constexpr auto sha1_digest_print [[deprecated("Remove in v4.1. Use zeek::detail::sha1_digest_print.")]] = zeek::detail::sha1_digest_print;
-constexpr auto sha256_digest_print [[deprecated("Remove in v4.1. Use zeek::detail::sha256_digest_print.")]] = zeek::detail::sha256_digest_print;
-constexpr auto hash_init [[deprecated("Remove in v4.1. Use zeek::detail::hash_init.")]] = zeek::detail::hash_init;
-constexpr auto hash_update [[deprecated("Remove in v4.1. Use zeek::detail::hash_update.")]] = zeek::detail::hash_update;
-constexpr auto hash_final [[deprecated("Remove in v4.1. Use zeek::detail::hash_final.")]] = zeek::detail::hash_final;
-constexpr auto internal_md5 [[deprecated("Remove in v4.1. Use zeek::detail::internal_md5.")]] = zeek::detail::internal_md5;
-constexpr auto calculate_digest [[deprecated("Remove in v4.1. Use zeek::detail::calculate_digest.")]] = zeek::detail::calculate_digest;
+constexpr auto digest_print [[deprecated("Remove in v4.1. Use zeek::detail::digest_print.")]] =
+	zeek::detail::digest_print;
+constexpr auto md5_digest_print
+	[[deprecated("Remove in v4.1. Use zeek::detail::md5_digest_print.")]] =
+		zeek::detail::md5_digest_print;
+constexpr auto sha1_digest_print
+	[[deprecated("Remove in v4.1. Use zeek::detail::sha1_digest_print.")]] =
+		zeek::detail::sha1_digest_print;
+constexpr auto sha256_digest_print
+	[[deprecated("Remove in v4.1. Use zeek::detail::sha256_digest_print.")]] =
+		zeek::detail::sha256_digest_print;
+constexpr auto hash_init [[deprecated("Remove in v4.1. Use zeek::detail::hash_init.")]] =
+	zeek::detail::hash_init;
+constexpr auto hash_update [[deprecated("Remove in v4.1. Use zeek::detail::hash_update.")]] =
+	zeek::detail::hash_update;
+constexpr auto hash_final [[deprecated("Remove in v4.1. Use zeek::detail::hash_final.")]] =
+	zeek::detail::hash_final;
+constexpr auto internal_md5 [[deprecated("Remove in v4.1. Use zeek::detail::internal_md5.")]] =
+	zeek::detail::internal_md5;
+constexpr auto calculate_digest
+	[[deprecated("Remove in v4.1. Use zeek::detail::calculate_digest.")]] =
+		zeek::detail::calculate_digest;

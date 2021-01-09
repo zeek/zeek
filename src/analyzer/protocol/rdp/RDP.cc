@@ -1,14 +1,15 @@
 #include "zeek/analyzer/protocol/rdp/RDP.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "analyzer/protocol/rdp/events.bif.h"
 #include "analyzer/protocol/rdp/types.bif.h"
 
-namespace zeek::analyzer::rdp {
+namespace zeek::analyzer::rdp
+{
 
-RDP_Analyzer::RDP_Analyzer(Connection* c)
-	: analyzer::tcp::TCP_ApplicationAnalyzer("RDP", c)
+RDP_Analyzer::RDP_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);
 
@@ -61,8 +62,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! AddChildAnalyzer(pia) )
 					{
-					reporter->AnalyzerError(this,
-					                              "failed to add TCP child analyzer "
+					reporter->AnalyzerError(this, "failed to add TCP child analyzer "
 					                              "to RDP analyzer: already exists");
 					return;
 					}
@@ -77,8 +77,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			if ( rdp_native_encrypted_data )
 				BifEvent::enqueue_rdp_native_encrypted_data(
-				        interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(),
-				        orig, len);
+					interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(), orig, len);
 			}
 		}
 	else // if not encrypted

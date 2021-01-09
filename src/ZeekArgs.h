@@ -3,9 +3,11 @@
 #pragma once
 
 #include <vector>
+
 #include "zeek/ZeekList.h"
 
-namespace zeek {
+namespace zeek
+{
 
 class VectorVal;
 class RecordType;

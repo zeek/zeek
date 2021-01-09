@@ -2,23 +2,23 @@
 
 #include "zeek-config.h"
 
-#include "zeek/Scope.h"
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Val.h"
 #include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Val.h"
 #include "zeek/module_util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 using scope_list = PList<Scope>;
 
 static scope_list scopes;
 static Scope* top_scope;
 
-Scope::Scope(IDPtr id,
-             std::unique_ptr<std::vector<AttrPtr>> al)
+Scope::Scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> al)
 	: scope_id(std::move(id)), attrs(std::move(al))
 	{
 	return_type = nullptr;
@@ -106,16 +106,14 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	return TC_CONTINUE;
 	}
 
-
-const IDPtr& lookup_ID(const char* name, const char* curr_module,
-                       bool no_global, bool same_module_only,
-                       bool check_export)
+const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global,
+                       bool same_module_only, bool check_export)
 	{
 	std::string fullname = make_full_var_name(curr_module, name);
 
 	std::string ID_module = extract_module_name(fullname.c_str());
-	bool need_export = check_export && (ID_module != GLOBAL_MODULE_NAME &&
-	                                    ID_module != curr_module);
+	bool need_export =
+		check_export && (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
 
 	for ( int i = scopes.length() - 1; i >= 0; --i )
 		{
@@ -124,15 +122,13 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module,
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				reporter->Error("identifier is not exported: %s",
-				                fullname.c_str());
+				reporter->Error("identifier is not exported: %s", fullname.c_str());
 
 			return id;
 			}
 		}
 
-	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
-	                     ! same_module_only) )
+	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 || ! same_module_only) )
 		{
 		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		return global_scope()->Find(globalname);
@@ -141,16 +137,14 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module,
 	return ID::nil;
 	}
 
-IDPtr install_ID(const char* name, const char* module_name,
-                 bool is_global, bool is_export)
+IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export)
 	{
 	if ( scopes.empty() && ! is_global )
 		reporter->InternalError("local identifier in global scope");
 
 	IDScope scope;
 	if ( is_export || ! module_name ||
-	     (is_global &&
-	      normalized_module_name(module_name) == GLOBAL_MODULE_NAME) )
+	     (is_global && normalized_module_name(module_name) == GLOBAL_MODULE_NAME) )
 		scope = SCOPE_GLOBAL;
 	else if ( is_global )
 		scope = SCOPE_MODULE;
@@ -178,8 +172,7 @@ void push_existing_scope(Scope* scope)
 	scopes.push_back(scope);
 	}
 
-void push_scope(IDPtr id,
-                std::unique_ptr<std::vector<AttrPtr>> attrs)
+void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs)
 	{
 	top_scope = new Scope(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);
@@ -195,7 +188,7 @@ ScopePtr pop_scope()
 
 	top_scope = scopes.empty() ? nullptr : scopes.back();
 
-	return {AdoptRef{}, old_top};
+	return {AdoptRef {}, old_top};
 	}
 
 Scope* current_scope()
@@ -210,11 +203,8 @@ Scope* global_scope()
 
 } // namespace zeek::detail
 
-zeek::detail::ID* lookup_ID(
-	const char* name, const char* module,
-	bool no_global,
-	bool same_module_only,
-	bool check_export)
+zeek::detail::ID* lookup_ID(const char* name, const char* module, bool no_global,
+                            bool same_module_only, bool check_export)
 	{
 	return zeek::detail::lookup_ID(name, module, no_global, same_module_only, check_export).get();
 	}

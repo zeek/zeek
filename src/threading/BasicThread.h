@@ -4,13 +4,13 @@
 #include "zeek-config.h"
 
 #include <stdint.h>
-
 #include <iosfwd>
 #include <thread>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, threading);
 
-namespace zeek::threading {
+namespace zeek::threading
+{
 
 /**
  * Base class for all threads.
@@ -21,7 +21,7 @@ namespace zeek::threading {
  * manually).
  */
 class BasicThread
-{
+	{
 public:
 	/**
 	 * Creates a new thread object. Instantiating the object does however
@@ -35,7 +35,7 @@ public:
 	BasicThread();
 
 	BasicThread(BasicThread const&) = delete;
-	BasicThread& operator =(BasicThread const&) = delete;
+	BasicThread& operator=(BasicThread const&) = delete;
 
 	/**
 	 * Returns a descriptive name for the thread. If not set via
@@ -46,13 +46,13 @@ public:
 	const char* Name() const { return name; }
 
 	/**
-	* Sets a descriptive name for the thread. This should be a string
-	* that's useful in output presented to the user and uniquely
-	* identifies the thread.
-	*
-	* This method must be called only from main thread at initialization
-	* time.
-	*/
+	 * Sets a descriptive name for the thread. This should be a string
+	 * that's useful in output presented to the user and uniquely
+	 * identifies the thread.
+	 *
+	 * This method must be called only from main thread at initialization
+	 * time.
+	 */
 	void SetName(const char* name);
 
 	/**
@@ -103,14 +103,14 @@ public:
 	 *
 	 * This method is safe to call from any thread.
 	 */
-	bool Terminating()  const { return terminating; }
+	bool Terminating() const { return terminating; }
 
 	/**
 	 * Returns true if Kill() has been called.
 	 *
 	 * This method is safe to call from any thread.
 	 */
-	bool Killed()  const { return killed; }
+	bool Killed() const { return killed; }
 
 	/**
 	 * A version of zeek::util::fmt() that the thread can safely use.
@@ -118,7 +118,8 @@ public:
 	 * This is safe to call from Run() but must not be used from any
 	 * other thread than the current one.
 	 */
-	const char* Fmt(const char* format, ...)  __attribute__((format(printf, 2, 3)));;
+	const char* Fmt(const char* format, ...) __attribute__((format(printf, 2, 3)));
+	;
 
 	/**
 	 * A version of strerror() that the thread can safely use. This is
@@ -145,14 +146,14 @@ protected:
 	 * will be called from Bro's main thread after the OS thread has been
 	 * started.
 	 */
-	virtual void OnStart()	{}
+	virtual void OnStart() { }
 
 	/**
 	 * Executed with SignalStop(). This is a hook into preparing the
 	 * thread for stopping. It will be called from Bro's main thread
 	 * before the thread has been signaled to stop.
 	 */
-	virtual void OnSignalStop()	{}
+	virtual void OnSignalStop() { }
 
 	/**
 	 * Executed with WaitForStop(). This is a hook into waiting for the
@@ -165,7 +166,7 @@ protected:
 	/**
 	 * Executed with Kill(). This is a hook into killing the thread.
 	 */
-	virtual void OnKill()	{}
+	virtual void OnKill() { }
 
 	/**
 	 * Destructor. This will be called by the manager.
@@ -195,13 +196,13 @@ protected:
 
 private:
 	// thread entry function.
-	static void* launcher(void *arg);
+	static void* launcher(void* arg);
 
 	const char* name;
 	std::thread thread;
-	bool started; 		// Set to to true once running.
-	bool terminating;	// Set to to true to signal termination.
-	bool killed;	// Set to true once forcefully killed.
+	bool started; // Set to to true once running.
+	bool terminating; // Set to to true to signal termination.
+	bool killed; // Set to true once forcefully killed.
 
 	// For implementing Fmt().
 	char* buf;
@@ -211,12 +212,14 @@ private:
 	char* strerr_buffer;
 
 	static uint64_t thread_counter;
-};
+	};
 
 } // namespace zeek::threading
 
-namespace threading {
+namespace threading
+{
 
-using BasicThread [[deprecated("Remove in v4.1. Use zeek::threading::BasicThread.")]] = zeek::threading::BasicThread;
+using BasicThread [[deprecated("Remove in v4.1. Use zeek::threading::BasicThread.")]] =
+	zeek::threading::BasicThread;
 
 } // namespace threading

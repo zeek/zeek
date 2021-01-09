@@ -3,7 +3,6 @@
 #pragma once
 
 #include <fcntl.h>
-
 #include <list>
 #include <string>
 #include <utility>
@@ -12,22 +11,24 @@
 #include <krb5.h>
 #endif // NEED_KRB5_H
 
-#include "zeek/Obj.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
 #include "zeek/util.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
-namespace zeek {
+namespace zeek
+{
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 
 class File;
 using FilePtr = IntrusivePtr<File>;
 
-class File final : public Obj {
+class File final : public Obj
+	{
 public:
 	explicit File(FILE* arg_f);
 	File(FILE* arg_f, const char* filename, const char* access);
@@ -39,22 +40,20 @@ public:
 	// Returns false if an error occured.
 	bool Write(const char* data, int len = 0);
 
-	void Flush()	{ fflush(f); }
+	void Flush() { fflush(f); }
 
-	FILE* Seek(long position);	// seek to absolute position
+	FILE* Seek(long position); // seek to absolute position
 
-	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
+	void SetBuf(bool buffered); // false=line buffered, true=fully buffered
 
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	Type* FType() const	{ return t.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]] Type* FType() const { return t.get(); }
 
-	const TypePtr& GetType() const
-		{ return t; }
+	const TypePtr& GetType() const { return t; }
 
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of
 	// a finite number of FDs.
-	bool IsOpen() const	{ return is_open; }
+	bool IsOpen() const { return is_open; }
 
 	// Returns true if the close made sense, false if it was already
 	// closed, not active, or whatever.
@@ -76,18 +75,18 @@ public:
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
 	static FilePtr Get(const char* name);
-	[[deprecated("Remove in v4.1.  Use File::Get().")]]
-	static File* GetFile(const char* name)
-		{ return Get(name).release(); }
+	[[deprecated("Remove in v4.1.  Use File::Get().")]] static File* GetFile(const char* name)
+		{
+		return Get(name).release();
+		}
 
-	void EnableRawOutput()		{ raw_output = true; }
-	bool IsRawOutput() const	{ return raw_output; }
+	void EnableRawOutput() { raw_output = true; }
+	bool IsRawOutput() const { return raw_output; }
 
 protected:
-
 	friend class detail::PrintStmt;
 
-	File()	{ Init(); }
+	File() { Init(); }
 	void Init();
 
 	/**
@@ -114,7 +113,7 @@ protected:
 	char* access;
 	detail::Attributes* attrs;
 	double open_time;
-	bool is_open;	// whether the file is open in a general sense
+	bool is_open; // whether the file is open in a general sense
 	bool buffered;
 	bool raw_output;
 
@@ -122,7 +121,7 @@ protected:
 
 private:
 	static std::list<std::pair<std::string, File*>> open_files;
-};
+	};
 
 } // namespace zeek
 

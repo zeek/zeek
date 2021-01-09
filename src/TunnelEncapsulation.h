@@ -6,14 +6,15 @@
 
 #include <vector>
 
-#include "zeek/NetVar.h"
-#include "zeek/IPAddr.h"
 #include "zeek/ID.h"
+#include "zeek/IPAddr.h"
+#include "zeek/NetVar.h"
 #include "zeek/UID.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 
-namespace zeek {
+namespace zeek
+{
 
 /**
  * Represents various types of tunnel "connections", that is, a pair of
@@ -22,15 +23,16 @@ namespace zeek {
  * transport layer protocol.  EncapsulatingConn's are assigned a UID, which can
  * be shared with Connection's in the case the tunnel uses a transport-layer.
  */
-class EncapsulatingConn {
+class EncapsulatingConn
+	{
 public:
 	/**
 	 * Default tunnel connection constructor.
 	 */
 	EncapsulatingConn()
-		: src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN),
-		  type(BifEnum::Tunnel::NONE), uid()
-		{}
+		: src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN), type(BifEnum::Tunnel::NONE), uid()
+		{
+		}
 
 	/**
 	 * Construct an IP tunnel "connection" with its own UID.
@@ -44,8 +46,7 @@ public:
 	 */
 	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
-		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
-		  proto(TRANSPORT_UNKNOWN), type(t),
+		: src_addr(s), dst_addr(d), src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN), type(t),
 		  uid(UID(detail::bits_per_uid))
 		{
 		}
@@ -65,59 +66,54 @@ public:
 	 * Copy constructor.
 	 */
 	EncapsulatingConn(const EncapsulatingConn& other)
-		: src_addr(other.src_addr), dst_addr(other.dst_addr),
-		  src_port(other.src_port), dst_port(other.dst_port),
-		  proto(other.proto), type(other.type), uid(other.uid)
-		{}
+		: src_addr(other.src_addr), dst_addr(other.dst_addr), src_port(other.src_port),
+		  dst_port(other.dst_port), proto(other.proto), type(other.type), uid(other.uid)
+		{
+		}
 
 	/**
 	 * Destructor.
 	 */
-	~EncapsulatingConn()
-		{}
+	~EncapsulatingConn() { }
 
-	BifEnum::Tunnel::Type Type() const
-		{ return type; }
+	BifEnum::Tunnel::Type Type() const { return type; }
 
 	/**
 	 * Returns record value of type "EncapsulatingConn" representing the tunnel.
 	 */
 	RecordValPtr ToVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	RecordVal* GetRecordVal() const
-		{ return ToVal().release(); }
+	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]] RecordVal* GetRecordVal() const
+		{
+		return ToVal().release();
+		}
 
-	friend bool operator==(const EncapsulatingConn& ec1,
-	                       const EncapsulatingConn& ec2)
+	friend bool operator==(const EncapsulatingConn& ec1, const EncapsulatingConn& ec2)
 		{
 		if ( ec1.type != ec2.type )
 			return false;
 
-		if ( ec1.type == BifEnum::Tunnel::IP ||
-		     ec1.type == BifEnum::Tunnel::GRE )
+		if ( ec1.type == BifEnum::Tunnel::IP || ec1.type == BifEnum::Tunnel::GRE )
 			// Reversing endpoints is still same tunnel.
 			return ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
-			  ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
-			   (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
+			       ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
+			        (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
 
 		if ( ec1.type == BifEnum::Tunnel::VXLAN )
 			// Reversing endpoints is still same tunnel, destination port is
 			// always the same.
-			return ec1.dst_port == ec2.dst_port &&
-			       ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
-			  ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
-			   (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
+			return ec1.dst_port == ec2.dst_port && ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
+			       ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
+			        (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
 
 		return ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr &&
-		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port &&
-		       ec1.uid == ec2.uid && ec1.proto == ec2.proto;
+		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port && ec1.uid == ec2.uid &&
+		       ec1.proto == ec2.proto;
 		}
 
-	friend bool operator!=(const EncapsulatingConn& ec1,
-	                       const EncapsulatingConn& ec2)
+	friend bool operator!=(const EncapsulatingConn& ec1, const EncapsulatingConn& ec2)
 		{
-		return ! ( ec1 == ec2 );
+		return ! (ec1 == ec2);
 		}
 
 protected:
@@ -128,15 +124,15 @@ protected:
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
 	UID uid;
-};
+	};
 
 /**
  * Abstracts an arbitrary amount of nested tunneling.
  */
-class EncapsulationStack {
+class EncapsulationStack
+	{
 public:
-	EncapsulationStack() : conns(nullptr)
-		{}
+	EncapsulationStack() : conns(nullptr) { }
 
 	EncapsulationStack(const EncapsulationStack& other)
 		{
@@ -180,17 +176,14 @@ public:
 	 * Return how many nested tunnels are involved in a encapsulation, zero
 	 * meaning no tunnels are present.
 	 */
-	size_t Depth() const
-		{
-		return conns ? conns->size() : 0;
-		}
+	size_t Depth() const { return conns ? conns->size() : 0; }
 
 	/**
 	 * Return the tunnel type of the inner-most tunnel.
 	 */
 	BifEnum::Tunnel::Type LastType() const
 		{
-		return conns ? (*conns)[conns->size()-1].Type() : BifEnum::Tunnel::NONE;
+		return conns ? (*conns)[conns->size() - 1].Type() : BifEnum::Tunnel::NONE;
 		}
 
 	/**
@@ -199,8 +192,7 @@ public:
 	 */
 	VectorValPtr ToVal() const
 		{
-		auto vv = make_intrusive<VectorVal>(
-		    id::find_type<VectorType>("EncapsulatingConnVector"));
+		auto vv = make_intrusive<VectorVal>(id::find_type<VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
 			{
@@ -211,21 +203,20 @@ public:
 		return vv;
 		}
 
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	VectorVal* GetVectorVal() const
-		{ return ToVal().release(); }
-
-	friend bool operator==(const EncapsulationStack& e1,
-	                       const EncapsulationStack& e2);
-
-	friend bool operator!=(const EncapsulationStack& e1,
-	                       const EncapsulationStack& e2)
+	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]] VectorVal* GetVectorVal() const
 		{
-		return ! ( e1 == e2 );
+		return ToVal().release();
+		}
+
+	friend bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2);
+
+	friend bool operator!=(const EncapsulationStack& e1, const EncapsulationStack& e2)
+		{
+		return ! (e1 == e2);
 		}
 
 protected:
 	std::vector<EncapsulatingConn>* conns;
-};
+	};
 
 } // namespace zeek

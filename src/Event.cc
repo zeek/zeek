@@ -2,30 +2,26 @@
 
 #include "zeek-config.h"
 
-#include "zeek/Event.h"
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/NetVar.h"
+#include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
-#include "zeek/plugin/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
-#include "zeek/RunState.h"
+#include "zeek/plugin/Manager.h"
 
 zeek::EventMgr zeek::event_mgr;
 zeek::EventMgr& mgr = zeek::event_mgr;
 
-namespace zeek {
+namespace zeek
+{
 
-	Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             util::detail::SourceID arg_src, analyzer::ID arg_aid,
-             Obj* arg_obj)
-	: handler(arg_handler),
-	  args(std::move(arg_args)),
-	  src(arg_src),
-	  aid(arg_aid),
-	  obj(arg_obj),
+Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
+             analyzer::ID arg_aid, Obj* arg_obj)
+	: handler(arg_handler), args(std::move(arg_args)), src(arg_src), aid(arg_aid), obj(arg_obj),
 	  next_event(nullptr)
 	{
 	if ( obj )
@@ -94,16 +90,14 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
-void EventMgr::QueueEventFast(const EventHandlerPtr &h, ValPList vl,
-                              util::detail::SourceID src, analyzer::ID aid, detail::TimerMgr* mgr,
-                              Obj* obj)
+void EventMgr::QueueEventFast(const EventHandlerPtr& h, ValPList vl, util::detail::SourceID src,
+                              analyzer::ID aid, detail::TimerMgr* mgr, Obj* obj)
 	{
 	QueueEvent(new Event(h, val_list_to_args(vl), src, aid, obj));
 	}
 
-void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList vl,
-                          util::detail::SourceID src, analyzer::ID aid,
-                          detail::TimerMgr* mgr, Obj* obj)
+void EventMgr::QueueEvent(const EventHandlerPtr& h, ValPList vl, util::detail::SourceID src,
+                          analyzer::ID aid, detail::TimerMgr* mgr, Obj* obj)
 	{
 	auto args = val_list_to_args(vl);
 
@@ -111,9 +105,8 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList vl,
 		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
-void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList* vl,
-                          util::detail::SourceID src, analyzer::ID aid,
-                          detail::TimerMgr* mgr, Obj* obj)
+void EventMgr::QueueEvent(const EventHandlerPtr& h, ValPList* vl, util::detail::SourceID src,
+                          analyzer::ID aid, detail::TimerMgr* mgr, Obj* obj)
 	{
 	auto args = val_list_to_args(*vl);
 	delete vl;
@@ -122,8 +115,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList* vl,
 		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
-void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl,
-                       util::detail::SourceID src,
+void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src,
                        analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
@@ -160,7 +152,7 @@ void EventMgr::Dispatch(Event* event, bool no_remote)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		Enqueue(event_queue_flush_point, Args{});
+		Enqueue(event_queue_flush_point, Args {});
 
 	detail::SegmentProfiler prof(detail::segment_logger, "draining-events");
 

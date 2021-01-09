@@ -4,40 +4,40 @@
 
 // This will include netinet/udp.h for us, plus set up some defines that make it work on all
 // of the CI platforms.
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/net_util.h"
 
-#include "zeek/analyzer/Analyzer.h"
+namespace zeek::analyzer::udp
+{
 
-namespace zeek::analyzer::udp {
+enum UDP_EndpointState
+	{
+	UDP_INACTIVE, // no packet seen
+	UDP_ACTIVE, // packets seen
+	};
 
-enum UDP_EndpointState {
-	UDP_INACTIVE,	// no packet seen
-	UDP_ACTIVE,	// packets seen
-};
-
-class UDP_Analyzer final : public analyzer::TransportLayerAnalyzer {
+class UDP_Analyzer final : public analyzer::TransportLayerAnalyzer
+	{
 public:
 	explicit UDP_Analyzer(Connection* conn);
 	~UDP_Analyzer() override;
 
 	void Init() override;
-	void UpdateConnVal(RecordVal *conn_val) override;
+	void UpdateConnVal(RecordVal* conn_val) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new UDP_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new UDP_Analyzer(conn); }
 
 protected:
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig,
-	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 
 	void ChecksumEvent(bool is_orig, uint32_t threshold);
 
 	// Returns true if the checksum is valid, false if not
-	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
-	                             int len);
+	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up, int len);
 
 	bro_int_t request_len, reply_len;
 
@@ -52,16 +52,23 @@ private:
 	// For tracking checksum history.
 	uint32_t req_chk_cnt, req_chk_thresh;
 	uint32_t rep_chk_cnt, rep_chk_thresh;
-};
+	};
 
 } // namespace zeek::analyzer::udp
 
-namespace analyzer::udp {
+namespace analyzer::udp
+{
 
-using UDP_EndpointState [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_EndpointState.")]] = zeek::analyzer::udp::UDP_EndpointState;
-constexpr auto UDP_INACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_INACTIVE.")]] = zeek::analyzer::udp::UDP_INACTIVE;
-constexpr auto UDP_ACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_ACTIVE.")]] = zeek::analyzer::udp::UDP_ACTIVE;
+using UDP_EndpointState
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_EndpointState.")]] =
+		zeek::analyzer::udp::UDP_EndpointState;
+constexpr auto UDP_INACTIVE
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_INACTIVE.")]] =
+		zeek::analyzer::udp::UDP_INACTIVE;
+constexpr auto UDP_ACTIVE [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_ACTIVE.")]] =
+	zeek::analyzer::udp::UDP_ACTIVE;
 
-using UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_Analyzer.")]] = zeek::analyzer::udp::UDP_Analyzer;
+using UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::udp::UDP_Analyzer.")]] =
+	zeek::analyzer::udp::UDP_Analyzer;
 
 } // namespace analyzer::udp

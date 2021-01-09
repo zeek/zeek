@@ -1,13 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+
 #include "zeek/PacketDumper.h"
-
 #include "zeek/Reporter.h"
-#include "zeek/util.h"
 #include "zeek/iosource/PktDumper.h"
+#include "zeek/util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 PacketDumper::PacketDumper(pcap_dumper_t* arg_pkt_dump)
 	{
@@ -18,8 +19,7 @@ PacketDumper::PacketDumper(pcap_dumper_t* arg_pkt_dump)
 		reporter->InternalError("PacketDumper: nil dump file");
 	}
 
-void PacketDumper::DumpPacket(const struct pcap_pkthdr* hdr,
-				const u_char* pkt, int len)
+void PacketDumper::DumpPacket(const struct pcap_pkthdr* hdr, const u_char* pkt, int len)
 	{
 	if ( pkt_dump )
 		{
@@ -28,7 +28,7 @@ void PacketDumper::DumpPacket(const struct pcap_pkthdr* hdr,
 		if ( h.caplen > hdr->caplen )
 			reporter->InternalError("bad modified caplen");
 
-		pcap_dump((u_char*) pkt_dump, &h, pkt);
+		pcap_dump((u_char*)pkt_dump, &h, pkt);
 		}
 	}
 

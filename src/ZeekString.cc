@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/ZeekString.h"
 
 #include <ctype.h>
 #include <algorithm>
 #include <iostream>
 
-#include "zeek/Val.h"
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekString.h"
 #include "zeek/util.h"
 
 #ifdef DEBUG
@@ -18,7 +18,8 @@
 #define DEBUG_STR(msg)
 #endif
 
-namespace zeek {
+namespace zeek
+{
 
 constexpr int String::EXPANDED_STRING;
 constexpr int String::BRO_STRING_LITERAL;
@@ -46,7 +47,7 @@ String::String(const char* str) : String()
 	Set(str);
 	}
 
-String::String(const std::string &str) : String()
+String::String(const std::string& str) : String()
 	{
 	Set(str);
 	}
@@ -69,7 +70,7 @@ void String::Reset()
 	if ( use_free_to_delete )
 		free(b);
 	else
-		delete [] b;
+		delete[] b;
 
 	b = nullptr;
 	n = 0;
@@ -77,11 +78,11 @@ void String::Reset()
 	use_free_to_delete = false;
 	}
 
-const String& String::operator=(const String &bs)
+const String& String::operator=(const String& bs)
 	{
 	Reset();
 	n = bs.n;
-	b = new u_char[n+1];
+	b = new u_char[n + 1];
 
 	memcpy(b, bs.b, n);
 	b[n] = '\0';
@@ -91,12 +92,12 @@ const String& String::operator=(const String &bs)
 	return *this;
 	}
 
-bool String::operator==(const String &bs) const
+bool String::operator==(const String& bs) const
 	{
 	return Bstr_eq(this, &bs);
 	}
 
-bool String::operator<(const String &bs) const
+bool String::operator<(const String& bs) const
 	{
 	return Bstr_cmp(this, &bs) < 0;
 	}
@@ -109,7 +110,7 @@ void String::Adopt(byte_vec bytes, int len)
 
 	// Check if the string ends with a NUL.  If so, mark it as having
 	// a final NUL and adjust the length accordingly.
-	final_NUL = (b[len-1] == '\0');
+	final_NUL = (b[len - 1] == '\0');
 	n = len - final_NUL;
 	}
 
@@ -135,8 +136,8 @@ void String::Set(const char* str)
 	if ( str )
 		{
 		n = strlen(str);
-		b = new u_char[n+1];
-		memcpy(b, str, n+1);
+		b = new u_char[n + 1];
+		memcpy(b, str, n + 1);
 		final_NUL = true;
 		use_free_to_delete = false;
 		}
@@ -147,8 +148,8 @@ void String::Set(const std::string& str)
 	Reset();
 
 	n = str.size();
-	b = new u_char[n+1];
-	memcpy(b, str.c_str(), n+1);
+	b = new u_char[n + 1];
+	memcpy(b, str.c_str(), n + 1);
 	final_NUL = true;
 	use_free_to_delete = false;
 	}
@@ -160,7 +161,7 @@ void String::Set(const String& str)
 
 const char* String::CheckString() const
 	{
-	void *nulTerm;
+	void* nulTerm;
 	if ( n == 0 )
 		return "";
 
@@ -174,17 +175,17 @@ const char* String::CheckString() const
 		else
 			reporter->Error("string without NUL terminator: \"%s\"", exp_s);
 
-		delete [] exp_s;
+		delete[] exp_s;
 		return "<string-with-NUL>";
 		}
 
-	return (const char*) b;
+	return (const char*)b;
 	}
 
 char* String::Render(int format, int* len) const
 	{
 	// Maxmimum character expansion is as \xHH, so a factor of 4.
-	char* s = new char[n*4 + 1];	// +1 is for final '\0'
+	char* s = new char[n * 4 + 1]; // +1 is for final '\0'
 	char* sp = s;
 	int tmp_len;
 
@@ -192,21 +193,25 @@ char* String::Render(int format, int* len) const
 		{
 		if ( b[i] == '\\' && (format & ESC_ESC) )
 			{
-			*sp++ = '\\'; *sp++ = '\\';
+			*sp++ = '\\';
+			*sp++ = '\\';
 			}
 
 		else if ( (b[i] == '\'' || b[i] == '"') && (format & ESC_QUOT) )
 			{
-			*sp++ = '\\'; *sp++ = b[i];
+			*sp++ = '\\';
+			*sp++ = b[i];
 			}
 
 		else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_HEX) )
 			{
 			char hex_fmt[16];
 
-			*sp++ = '\\'; *sp++ = 'x';
+			*sp++ = '\\';
+			*sp++ = 'x';
 			sprintf(hex_fmt, "%02x", b[i]);
-			*sp++ = hex_fmt[0]; *sp++ = hex_fmt[1];
+			*sp++ = hex_fmt[0];
+			*sp++ = hex_fmt[1];
 			}
 
 		else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_DOT) )
@@ -220,7 +225,7 @@ char* String::Render(int format, int* len) const
 			}
 		}
 
-	*sp++ = '\0';	// NUL-terminate.
+	*sp++ = '\0'; // NUL-terminate.
 	tmp_len = sp - s;
 
 	if ( (format & ESC_SER) )
@@ -229,7 +234,7 @@ char* String::Render(int format, int* len) const
 		snprintf(result, tmp_len + 16, "%u ", tmp_len - 1);
 		tmp_len += strlen(result);
 		memcpy(result + strlen(result), s, sp - s);
-		delete [] s;
+		delete[] s;
 		s = result;
 		}
 
@@ -239,29 +244,29 @@ char* String::Render(int format, int* len) const
 	return s;
 	}
 
-std::ostream& String::Render(std::ostream &os, int format) const
+std::ostream& String::Render(std::ostream& os, int format) const
 	{
 	char* tmp = Render(format);
 	os << tmp;
-	delete [] tmp;
+	delete[] tmp;
 	return os;
 	}
 
-std::istream& String::Read(std::istream &is, int format)
+std::istream& String::Read(std::istream& is, int format)
 	{
 	if ( (format & String::ESC_SER) )
 		{
 		int len;
-		is >> len;	// Get the length of the string
+		is >> len; // Get the length of the string
 
 		char c;
-		is.read(&c, 1);	// Eat single whitespace
+		is.read(&c, 1); // Eat single whitespace
 
-		char* buf = new char[len+1];
+		char* buf = new char[len + 1];
 		is.read(buf, len);
-		buf[len] = '\0';	// NUL-terminate just for safety
+		buf[len] = '\0'; // NUL-terminate just for safety
 
-		Adopt((u_char*) buf, len+1);
+		Adopt((u_char*)buf, len + 1);
 		}
 	else
 		{
@@ -343,16 +348,15 @@ String::Vec* String::Split(const String::IdxVec& indices) const
 	return result;
 	}
 
-VectorVal* String:: VecToPolicy(Vec* vec)
+VectorVal* String::VecToPolicy(Vec* vec)
 	{
 	auto result = make_intrusive<VectorVal>(id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
 		String* string = (*vec)[i];
-		auto val = make_intrusive<StringVal>(string->Len(),
-		                                     (const char*) string->Bytes());
-		result->Assign(i+1, std::move(val));
+		auto val = make_intrusive<StringVal>(string->Len(), (const char*)string->Bytes());
+		result->Assign(i + 1, std::move(val));
 		}
 
 	return result.release();
@@ -365,7 +369,7 @@ String::Vec* String::VecFromPolicy(VectorVal* vec)
 	// VectorVals start at index 1!
 	for ( unsigned int i = 1; i <= vec->Size(); ++i )
 		{
-		const auto& v = vec->At(i);	// get the RecordVal
+		const auto& v = vec->At(i); // get the RecordVal
 		if ( ! v )
 			continue;
 
@@ -391,18 +395,16 @@ char* String::VecToString(const Vec* vec)
 	return strdup(result.c_str());
 	}
 
-bool StringLenCmp::operator()(String * const& bst1,
-				 String * const& bst2)
+bool StringLenCmp::operator()(String* const& bst1, String* const& bst2)
 	{
-	return _increasing ? (bst1->Len() < bst2->Len()) :
-				(bst1->Len() > bst2->Len());
+	return _increasing ? (bst1->Len() < bst2->Len()) : (bst1->Len() > bst2->Len());
 	}
 
 std::ostream& operator<<(std::ostream& os, const String& bs)
 	{
 	char* tmp = bs.Render(String::EXPANDED_STRING);
 	os << tmp;
-	delete [] tmp;
+	delete[] tmp;
 	return os;
 	}
 
@@ -444,7 +446,7 @@ String* concatenate(std::vector<data_chunk_t>& v)
 	for ( i = 0; i < n; ++i )
 		len += v[i].length;
 
-	char* data = new char[len+1];
+	char* data = new char[len + 1];
 
 	char* b = data;
 	for ( i = 0; i < n; ++i )
@@ -455,7 +457,7 @@ String* concatenate(std::vector<data_chunk_t>& v)
 
 	*b = '\0';
 
-	return new String(true, (byte_vec) data, len);
+	return new String(true, (byte_vec)data, len);
 	}
 
 String* concatenate(String::CVec& v)
@@ -466,7 +468,7 @@ String* concatenate(String::CVec& v)
 	for ( i = 0; i < n; ++i )
 		len += v[i]->Len();
 
-	char* data = new char[len+1];
+	char* data = new char[len + 1];
 
 	char* b = data;
 	for ( i = 0; i < n; ++i )
@@ -476,7 +478,7 @@ String* concatenate(String::CVec& v)
 		}
 	*b = '\0';
 
-	return new String(true, (byte_vec) data, len);
+	return new String(true, (byte_vec)data, len);
 	}
 
 String* concatenate(String::Vec& v)

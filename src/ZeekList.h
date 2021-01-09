@@ -8,12 +8,16 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-namespace zeek { class Type; }
+namespace zeek
+{
+class Type;
+}
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Timer, zeek::detail);
 
-namespace zeek {
+namespace zeek
+{
 
 using ValPList = PList<Val>;
 using ExprPList = PList<detail::Expr>;

@@ -2,12 +2,13 @@
 
 #include "zeek/analyzer/protocol/gssapi/GSSAPI.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "analyzer/protocol/gssapi/events.bif.h"
 
-namespace zeek::analyzer::gssapi {
+namespace zeek::analyzer::gssapi
+{
 
 GSSAPI_Analyzer::GSSAPI_Analyzer(Connection* c)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("GSSAPI", c)

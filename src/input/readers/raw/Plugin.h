@@ -4,12 +4,14 @@
 
 #include <mutex>
 
-#include "zeek/plugin/Plugin.h"
 #include "zeek/input/readers/raw/Raw.h"
+#include "zeek/plugin/Plugin.h"
 
-namespace zeek::plugin::detail::Zeek_RawReader {
+namespace zeek::plugin::detail::Zeek_RawReader
+{
 
-class Plugin : public plugin::Plugin {
+class Plugin : public plugin::Plugin
+	{
 public:
 	Plugin();
 
@@ -22,8 +24,7 @@ public:
 
 private:
 	std::mutex fork_mutex;
-
-};
+	};
 
 extern Plugin plugin;
 

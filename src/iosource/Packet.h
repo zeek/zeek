@@ -15,15 +15,16 @@ typedef struct timeval pkt_timeval;
 
 #include <pcap.h> // For DLT_ constants
 
+#include "zeek/IP.h"
 #include "zeek/NetVar.h" // For BifEnum::Tunnel
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/IP.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 
-namespace zeek {
+namespace zeek
+{
 
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
@@ -34,17 +35,19 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
  * This enum is sized as an int32_t to make the Packet structure align
  * correctly.
  */
-enum Layer3Proto : int32_t {
-	L3_UNKNOWN = -1,	/// Layer 3 type could not be determined.
-	L3_IPV4 = 1,		/// Layer 3 is IPv4.
-	L3_IPV6 = 2,		/// Layer 3 is IPv6.
-	L3_ARP = 3,			/// Layer 3 is ARP.
-};
+enum Layer3Proto : int32_t
+	{
+	L3_UNKNOWN = -1, /// Layer 3 type could not be determined.
+	L3_IPV4 = 1, /// Layer 3 is IPv4.
+	L3_IPV6 = 2, /// Layer 3 is IPv6.
+	L3_ARP = 3, /// Layer 3 is ARP.
+	};
 
 /**
  * A link-layer packet.
  */
-class Packet {
+class Packet
+	{
 public:
 	/**
 	 * Construct and initialize from packet data.
@@ -68,12 +71,11 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	Packet(int link_type, pkt_timeval *ts, uint32_t caplen,
-	       uint32_t len, const u_char *data, bool copy = false,
-	       std::string tag = "")
-	       {
-	       Init(link_type, ts, caplen, len, data, copy, tag);
-	       }
+	Packet(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data,
+	       bool copy = false, std::string tag = "")
+		{
+		Init(link_type, ts, caplen, len, data, copy, tag);
+		}
 
 	/**
 	 * Default constructor. For internal use only.
@@ -111,9 +113,8 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	void Init(int link_type, pkt_timeval *ts, uint32_t caplen,
-	          uint32_t len, const u_char *data, bool copy = false,
-	          std::string tag = "");
+	void Init(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data,
+	          bool copy = false, std::string tag = "");
 
 	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
@@ -121,8 +122,8 @@ public:
 	 */
 	RecordValPtr ToRawPktHdrVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
-	RecordVal* BuildPktHdrVal() const;
+	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]] RecordVal*
+	BuildPktHdrVal() const;
 
 	/**
 	 * Maximal length of a layer 2 address.
@@ -134,16 +135,16 @@ public:
 	 * LinuxSLL packet analyzer doesn't have a destination address in the
 	 * header and thus sets it to this default address.
 	 */
-	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = { 0 };
+	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 
 	// These are passed in through the constructor.
-	std::string tag;				/// Used in serialization
-	double time;					/// Timestamp reconstituted as float
-	pkt_timeval ts;					/// Capture timestamp
-	const u_char* data = nullptr;	/// Packet data.
-	uint32_t len;					/// Actual length on wire
-	uint32_t cap_len;				/// Captured packet length
-	uint32_t link_type;				/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
+	std::string tag; /// Used in serialization
+	double time; /// Timestamp reconstituted as float
+	pkt_timeval ts; /// Capture timestamp
+	const u_char* data = nullptr; /// Packet data.
+	uint32_t len; /// Actual length on wire
+	uint32_t cap_len; /// Captured packet length
+	uint32_t link_type; /// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
 	/**
 	 * Layer 3 protocol identified (if any).
@@ -243,7 +244,7 @@ private:
 	// True if we need to delete associated packet memory upon
 	// destruction.
 	bool copy;
-};
+	};
 
 } // namespace zeek
 

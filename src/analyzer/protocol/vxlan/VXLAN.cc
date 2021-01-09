@@ -2,22 +2,24 @@
 
 #include "zeek/analyzer/protocol/vxlan/VXLAN.h"
 
-extern "C" {
-#include <pcap.h>	// for the DLT_EN10MB constant definition
-}
+extern "C"
+	{
+#include <pcap.h> // for the DLT_EN10MB constant definition
+	}
 
-#include "zeek/TunnelEncapsulation.h"
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
+#include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/Sessions.h"
-#include "zeek/Reporter.h"
+#include "zeek/TunnelEncapsulation.h"
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 #include "analyzer/protocol/vxlan/events.bif.h"
 
-namespace zeek::analyzer::vxlan {
+namespace zeek::analyzer::vxlan
+{
 
 void VXLAN_Analyzer::Done()
 	{
@@ -25,8 +27,8 @@ void VXLAN_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                   uint64_t seq, const IP_Hdr* ip, int caplen)
+void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                   const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -37,13 +39,13 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( len < vxlan_len )
 		{
-		ProtocolViolation("VXLAN header truncation", (const char*) data, len);
+		ProtocolViolation("VXLAN header truncation", (const char*)data, len);
 		return;
 		}
 
 	if ( (data[0] & 0x08) == 0 )
 		{
-		ProtocolViolation("VXLAN 'I' flag not set", (const char*) data, len);
+		ProtocolViolation("VXLAN 'I' flag not set", (const char*)data, len);
 		return;
 		}
 
@@ -69,8 +71,8 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	len -= vxlan_len;
 
 	pkt_timeval ts;
-	ts.tv_sec = (time_t) run_state::current_timestamp;
-	ts.tv_usec = (suseconds_t) ((run_state::current_timestamp - (double)ts.tv_sec) * 1000000);
+	ts.tv_sec = (time_t)run_state::current_timestamp;
+	ts.tv_usec = (suseconds_t)((run_state::current_timestamp - (double)ts.tv_sec) * 1000000);
 	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
 	pkt.encap = outer;
 
@@ -88,8 +90,8 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ProtocolConfirmation();
 
 	if ( vxlan_packet )
-		Conn()->EnqueueEvent(vxlan_packet, nullptr, ConnVal(),
-		                     pkt.ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
+		Conn()->EnqueueEvent(vxlan_packet, nullptr, ConnVal(), pkt.ip_hdr->ToPktHdrVal(),
+		                     val_mgr->Count(vni));
 	}
 
 } // namespace zeek::analyzer::vxlan

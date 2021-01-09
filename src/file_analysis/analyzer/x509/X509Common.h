@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <openssl/x509.h>
 #include <openssl/asn1.h>
+#include <openssl/x509.h>
 
 #include "zeek/file_analysis/Analyzer.h"
 
@@ -16,14 +16,17 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
 
-namespace zeek {
+namespace zeek
+{
 template <class T> class IntrusivePtr;
 using StringValPtr = IntrusivePtr<StringVal>;
 }
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+{
 
-class X509Common : public file_analysis::Analyzer {
+class X509Common : public file_analysis::Analyzer
+	{
 public:
 	~X509Common() override {};
 
@@ -44,19 +47,20 @@ public:
 	                              Reporter* reporter);
 
 protected:
-	X509Common(const file_analysis::Tag& arg_tag,
-	           RecordValPtr arg_args,
+	X509Common(const file_analysis::Tag& arg_tag, RecordValPtr arg_args,
 	           file_analysis::File* arg_file);
 
 	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
-};
+	};
 
 } // namespace zeek::file_analysis
 
-namespace file_analysis {
+namespace file_analysis
+{
 
-using X509Common [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509Common.")]] = zeek::file_analysis::detail::X509Common;
+using X509Common [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509Common.")]] =
+	zeek::file_analysis::detail::X509Common;
 
 } // namespace file_analysis

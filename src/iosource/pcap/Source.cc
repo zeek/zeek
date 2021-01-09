@@ -1,19 +1,21 @@
 // See the file  in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+
 #include "zeek/iosource/pcap/Source.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
 #endif
 
-#include "zeek/iosource/Packet.h"
-#include "zeek/iosource/BPF_Program.h"
 #include "zeek/Event.h"
+#include "zeek/iosource/BPF_Program.h"
+#include "zeek/iosource/Packet.h"
 
 #include "iosource/pcap/pcap.bif.h"
 
-namespace zeek::iosource::pcap {
+namespace zeek::iosource::pcap
+{
 
 PcapSource::~PcapSource()
 	{
@@ -156,7 +158,7 @@ void PcapSource::OpenLive()
 #endif
 
 #ifdef HAVE_PCAP_INT_H
-	Info(util::fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
+	Info(util::fmt("pcap bufsize = %d\n", ((struct pcap*)pd)->bufsize));
 #endif
 
 	props.selectable_fd = pcap_get_selectable_fd(pd);
@@ -200,31 +202,32 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 
 	int res = pcap_next_ex(pd, &header, &data);
 
-	switch ( res ) {
-	case PCAP_ERROR_BREAK: // -2
-		// Exhausted pcap file, no more packets to read.
-		assert(! props.is_live);
-		Close();
-		return false;
-	case PCAP_ERROR: // -1
-		// Error occurred while reading the packet.
-		if ( props.is_live )
-			reporter->Error("failed to read a packet from %s: %s",
-			                props.path.data(), pcap_geterr(pd));
-		else
-			reporter->FatalError("failed to read a packet from %s: %s",
-			                     props.path.data(), pcap_geterr(pd));
-		return false;
-	case 0:
-		// Read from live interface timed out (ok).
-		return false;
-	case 1:
-		// Read a packet without problem.
-		break;
-	default:
-		reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
-		return false;
-	}
+	switch ( res )
+		{
+		case PCAP_ERROR_BREAK: // -2
+			// Exhausted pcap file, no more packets to read.
+			assert(! props.is_live);
+			Close();
+			return false;
+		case PCAP_ERROR: // -1
+			// Error occurred while reading the packet.
+			if ( props.is_live )
+				reporter->Error("failed to read a packet from %s: %s", props.path.data(),
+				                pcap_geterr(pd));
+			else
+				reporter->FatalError("failed to read a packet from %s: %s", props.path.data(),
+				                     pcap_geterr(pd));
+			return false;
+		case 0:
+			// Read from live interface timed out (ok).
+			return false;
+		case 1:
+			// Read a packet without problem.
+			break;
+		default:
+			reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
+			return false;
+		}
 
 	pkt->Init(props.link_type, &header->ts, header->caplen, header->len, data);
 
@@ -261,9 +264,7 @@ bool PcapSource::SetFilter(int index)
 
 	if ( ! code )
 		{
-		snprintf(errbuf, sizeof(errbuf),
-			      "No precompiled pcap filter for index %d",
-			      index);
+		snprintf(errbuf, sizeof(errbuf), "No precompiled pcap filter for index %d", index);
 		Error(errbuf);
 		return false;
 		}

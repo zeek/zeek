@@ -4,12 +4,12 @@
 
 #include "zeek-config.h"
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
-#include "zeek/iosource/IOSource.h"
 #include "zeek/Flare.h"
+#include "zeek/iosource/IOSource.h"
 
 struct timespec;
 struct kevent;
@@ -17,14 +17,17 @@ struct kevent;
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
 
-namespace zeek {
-namespace iosource {
+namespace zeek
+{
+namespace iosource
+{
 
 /**
  * Manager class for IO sources. This handles all of the polling of sources
  * in the main loop.
  */
-class Manager {
+class Manager
+	{
 public:
 	/**
 	 * Constructor.
@@ -60,24 +63,24 @@ public:
 	 * Returns the number of registered and still active sources,
 	 * excluding those that are registered as \a dont_count.
 	 */
-	int Size() const	{ return sources.size() - dont_counts; }
+	int Size() const { return sources.size() - dont_counts; }
 
 	/**
 	 * Returns total number of sources including dont_counts;
 	 */
-	int TotalSize() const	{ return sources.size(); }
+	int TotalSize() const { return sources.size(); }
 
 	/**
 	 * Returns the registered PktSrc. If not source is registered yet,
 	 * returns a nullptr.
 	 */
-	PktSrc* GetPktSrc() const	{ return pkt_src; }
+	PktSrc* GetPktSrc() const { return pkt_src; }
 
 	/**
 	 * Terminate all processing immediately by removing all sources (and
 	 * therefore now returning a Size() of zero).
 	 */
-	void Terminate()	{ RemoveAll(); }
+	void Terminate() { RemoveAll(); }
 
 	/**
 	 * Opens a new packet source.
@@ -97,7 +100,7 @@ public:
 	 * @param path The file name to dump into.
 	 *
 	 * @param append True to append if \a path already exists.
- 	 *
+	 *
 	 * @return The new packet dumper, or null if an error occured.
 	 */
 	PktDumper* OpenPktDumper(const std::string& path, bool append);
@@ -132,7 +135,6 @@ public:
 	void Wakeup(const std::string& where);
 
 private:
-
 	/**
 	 * Calls the appropriate poll method to gather a set of IOSources that are
 	 * ready for processing.
@@ -160,7 +162,8 @@ private:
 
 	void RemoveAll();
 
-	class WakeupHandler final : public IOSource {
+	class WakeupHandler final : public IOSource
+		{
 	public:
 		WakeupHandler();
 		~WakeupHandler();
@@ -175,18 +178,19 @@ private:
 
 		// IOSource API methods
 		void Process() override;
-		const char* Tag() override	{ return "WakeupHandler"; }
-		double GetNextTimeout() override	{ return -1; }
+		const char* Tag() override { return "WakeupHandler"; }
+		double GetNextTimeout() override { return -1; }
 
 	private:
 		zeek::detail::Flare flare;
 		};
 
-	struct Source {
+	struct Source
+		{
 		IOSource* src = nullptr;
 		bool dont_count = false;
 		bool manage_lifetime = false;
-	};
+		};
 
 	using SourceList = std::vector<Source*>;
 	SourceList sources;
@@ -208,7 +212,7 @@ private:
 	// This is only used for the output of the call to kqueue in FindReadySources().
 	// The actual events are stored as part of the queue.
 	std::vector<struct kevent> events;
-};
+	};
 
 } // namespace iosource
 
@@ -216,10 +220,13 @@ extern iosource::Manager* iosource_mgr;
 
 } // namespace zeek
 
-extern zeek::iosource::Manager*& iosource_mgr [[deprecated("Remove in v4.1. Use zeek::iosource_mgr.")]];
+extern zeek::iosource::Manager*& iosource_mgr
+	[[deprecated("Remove in v4.1. Use zeek::iosource_mgr.")]];
 
-namespace iosource {
+namespace iosource
+{
 
-using Manager [[deprecated("Remove in v4.1. Use zeek::iosource::Manager.")]] = zeek::iosource::Manager;
+using Manager [[deprecated("Remove in v4.1. Use zeek::iosource::Manager.")]] =
+	zeek::iosource::Manager;
 
 } // namespace iosource

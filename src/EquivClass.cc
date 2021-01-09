@@ -2,11 +2,12 @@
 
 #include "zeek-config.h"
 
-#include "zeek/EquivClass.h"
 #include "zeek/CCL.h"
+#include "zeek/EquivClass.h"
 #include "zeek/util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 EquivClass::EquivClass(int arg_size)
 	{
@@ -38,11 +39,11 @@ EquivClass::EquivClass(int arg_size)
 
 EquivClass::~EquivClass()
 	{
-	delete [] fwd;
-	delete [] bck;
-	delete [] equiv_class;
-	delete [] rep;
-	delete [] ccl_flags;
+	delete[] fwd;
+	delete[] bck;
+	delete[] equiv_class;
+	delete[] rep;
+	delete[] ccl_flags;
 	}
 
 void EquivClass::ConvertCCL(CCL* ccl)
@@ -163,7 +164,6 @@ void EquivClass::CCL_Use(CCL* ccl)
 		}
 	}
 
-
 void EquivClass::UniqueChar(int sym)
 	{
 	// If until now the character has been a proper subset of
@@ -183,7 +183,7 @@ void EquivClass::Dump(FILE* f)
 	{
 	fprintf(f, "%d symbols in EC yielded %d ecs\n", size, num_ecs);
 	for ( int i = 0; i < size; ++i )
-		if ( SymEquivClass(i) != 0 )	// skip usually huge default ec
+		if ( SymEquivClass(i) != 0 ) // skip usually huge default ec
 			fprintf(f, "map %d ('%c') -> %d\n", i, i, SymEquivClass(i));
 	}
 

@@ -1,26 +1,26 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/analyzer/protocol/udp/UDP.h"
 
 #include <algorithm>
 
-#include "zeek/RunState.h"
-#include "zeek/NetVar.h"
-#include "zeek/analyzer/Manager.h"
-#include "zeek/Reporter.h"
 #include "zeek/Conn.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/udp/UDP.h"
 
 #include "analyzer/protocol/udp/events.bif.h"
 
-namespace zeek::analyzer::udp {
+namespace zeek::analyzer::udp
+{
 
-UDP_Analyzer::UDP_Analyzer(Connection* conn)
-	: analyzer::TransportLayerAnalyzer("UDP", conn)
+UDP_Analyzer::UDP_Analyzer(Connection* conn) : analyzer::TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();
 	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
-	request_len = reply_len = -1;	// -1 means "haven't seen any activity"
+	request_len = reply_len = -1; // -1 means "haven't seen any activity"
 
 	req_chk_cnt = rep_chk_cnt = 0;
 	req_chk_thresh = rep_chk_thresh = 1;
@@ -32,23 +32,21 @@ UDP_Analyzer::~UDP_Analyzer()
 	// delete src_pkt_writer;
 	}
 
-void UDP_Analyzer::Init()
-	{
-	}
+void UDP_Analyzer::Init() { }
 
 void UDP_Analyzer::Done()
 	{
 	Analyzer::Done();
 	}
 
-void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-                                 uint64_t seq, const IP_Hdr* ip, int caplen)
+void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                                 const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
-	const struct udphdr* up = (const struct udphdr*) data;
+	const struct udphdr* up = (const struct udphdr*)data;
 
 	// Increment data before checksum check so that data will
 	// point to UDP payload even if checksum fails. Particularly,
@@ -63,22 +61,20 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int chksum = up->uh_sum;
 
 	auto validate_checksum =
-		! run_state::current_pkt->l3_checksummed &&
-		! zeek::detail::ignore_checksums &&
+		! run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums &&
 		! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
-		caplen >=len;
+		caplen >= len;
 
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
-	if ( validate_checksum &&
-	     len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
+	if ( validate_checksum && len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
 	     (data[0] & 0x08) == 0x08 )
 		{
 		auto& vxlan_ports = analyzer_mgr->GetVxlanPorts();
 
-		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(),
-		               ntohs(up->uh_dport)) != vxlan_ports.end() )
+		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(), ntohs(up->uh_dport)) !=
+		     vxlan_ports.end() )
 			{
 			// Looks like VXLAN on a well-known port, so the checksum should be
 			// transmitted as zero, and we should accept that.  If not
@@ -111,15 +107,13 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			if ( is_orig )
 				{
 				uint32_t t = req_chk_thresh;
-				if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt,
-				                                req_chk_thresh) )
+				if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt, req_chk_thresh) )
 					ChecksumEvent(is_orig, t);
 				}
 			else
 				{
 				uint32_t t = rep_chk_thresh;
-				if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt,
-				                                rep_chk_thresh) )
+				if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt, rep_chk_thresh) )
 					ChecksumEvent(is_orig, t);
 				}
 
@@ -140,8 +134,10 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( udp_contents )
 		{
 		static auto udp_content_ports = id::find_val<TableVal>("udp_content_ports");
-		static auto udp_content_delivery_ports_orig = id::find_val<TableVal>("udp_content_delivery_ports_orig");
-		static auto udp_content_delivery_ports_resp = id::find_val<TableVal>("udp_content_delivery_ports_resp");
+		static auto udp_content_delivery_ports_orig =
+			id::find_val<TableVal>("udp_content_delivery_ports_orig");
+		static auto udp_content_delivery_ports_resp =
+			id::find_val<TableVal>("udp_content_delivery_ports_resp");
 		bool do_udp_contents = false;
 		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
 		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
@@ -172,10 +168,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			}
 
 		if ( do_udp_contents )
-			EnqueueConnEvent(udp_contents,
-			                 ConnVal(),
-			                 val_mgr->Bool(is_orig),
-			                 make_intrusive<StringVal>(len, (const char*) data));
+			EnqueueConnEvent(udp_contents, ConnVal(), val_mgr->Bool(is_orig),
+			                 make_intrusive<StringVal>(len, (const char*)data));
 		}
 
 	if ( is_orig )
@@ -259,14 +253,12 @@ unsigned int UDP_Analyzer::MemoryAllocation() const
 
 void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
 	{
-	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors,
-	                              is_orig, threshold);
+	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors, is_orig, threshold);
 	}
 
 bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	{
-	auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(),
-	                               IPPROTO_UDP,
+	auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(), IPPROTO_UDP,
 	                               reinterpret_cast<const uint8_t*>(up), len);
 
 	return sum == 0xffff;

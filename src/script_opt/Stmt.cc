@@ -3,11 +3,11 @@
 // Optimization-related methods for Stmt classes.
 
 #include "zeek/Stmt.h"
+
 #include "zeek/Expr.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+{
 
 void ExprListStmt::Inline(Inliner* inl)
 	{
@@ -16,12 +16,10 @@ void ExprListStmt::Inline(Inliner* inl)
 		e.replace(i, e[i]->Inline(inl).release());
 	}
 
-
 StmtPtr PrintStmt::Duplicate()
 	{
 	return SetSucc(new PrintStmt(l->Duplicate()->AsListExprPtr()));
 	}
-
 
 StmtPtr ExprStmt::Duplicate()
 	{
@@ -34,11 +32,9 @@ void ExprStmt::Inline(Inliner* inl)
 		e = e->Inline(inl);
 	}
 
-
 StmtPtr IfStmt::Duplicate()
 	{
-	return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(),
-					s2->Duplicate()));
+	return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(), s2->Duplicate()));
 	}
 
 void IfStmt::Inline(Inliner* inl)
@@ -50,7 +46,6 @@ void IfStmt::Inline(Inliner* inl)
 	if ( s2 )
 		s2->Inline(inl);
 	}
-
 
 IntrusivePtr<Case> Case::Duplicate()
 	{
@@ -64,13 +59,11 @@ IntrusivePtr<Case> Case::Duplicate()
 		return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());
 	}
 
-
 StmtPtr SwitchStmt::Duplicate()
 	{
 	auto new_cases = new case_list;
 
-	loop_over_list(*cases, i)
-		new_cases->append((*cases)[i]->Duplicate().release());
+	loop_over_list(*cases, i) new_cases->append((*cases)[i]->Duplicate().release());
 
 	return SetSucc(new SwitchStmt(e->Duplicate(), new_cases));
 	}
@@ -86,29 +79,24 @@ void SwitchStmt::Inline(Inliner* inl)
 		c->Body()->Inline(inl);
 	}
 
-
 StmtPtr AddStmt::Duplicate()
 	{
 	return SetSucc(new AddStmt(e->Duplicate()));
 	}
-
 
 StmtPtr DelStmt::Duplicate()
 	{
 	return SetSucc(new DelStmt(e->Duplicate()));
 	}
 
-
 StmtPtr EventStmt::Duplicate()
 	{
 	return SetSucc(new EventStmt(e->Duplicate()->AsEventExprPtr()));
 	}
 
-
 StmtPtr WhileStmt::Duplicate()
 	{
-	return SetSucc(new WhileStmt(loop_condition->Duplicate(),
-					body->Duplicate()));
+	return SetSucc(new WhileStmt(loop_condition->Duplicate(), body->Duplicate()));
 	}
 
 void WhileStmt::Inline(Inliner* inl)
@@ -120,7 +108,6 @@ void WhileStmt::Inline(Inliner* inl)
 	if ( body )
 		body->Inline(inl);
 	}
-
 
 StmtPtr ForStmt::Duplicate()
 	{
@@ -151,17 +138,12 @@ void ForStmt::Inline(Inliner* inl)
 	body->Inline(inl);
 	}
 
-
 StmtPtr ReturnStmt::Duplicate()
 	{
 	return SetSucc(new ReturnStmt(e ? e->Duplicate() : nullptr, true));
 	}
 
-ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored)
-	: ExprStmt(STMT_RETURN, std::move(arg_e))
-	{
-	}
-
+ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored) : ExprStmt(STMT_RETURN, std::move(arg_e)) { }
 
 StmtPtr StmtList::Duplicate()
 	{
@@ -179,7 +161,6 @@ void StmtList::Inline(Inliner* inl)
 		stmt->Inline(inl);
 	}
 
-
 StmtPtr InitStmt::Duplicate()
 	{
 	// Need to duplicate the initializer list since later reductions
@@ -190,7 +171,6 @@ StmtPtr InitStmt::Duplicate()
 
 	return SetSucc(new InitStmt(new_inits));
 	}
-
 
 StmtPtr WhenStmt::Duplicate()
 	{
@@ -207,6 +187,5 @@ void WhenStmt::Inline(Inliner* inl)
 	// Don't inline, since we currently don't correctly capture
 	// the frames of closures.
 	}
-
 
 } // namespace zeek::detail

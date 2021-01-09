@@ -8,13 +8,14 @@
 
 #if defined(__linux__)
 
-#if !defined(_GNU_SOURCE)
+#if ! defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 
 #include <sched.h>
 
-namespace zeek {
+namespace zeek
+{
 bool set_affinity(int core_number)
 	{
 	cpu_set_t cpus;
@@ -27,17 +28,17 @@ bool set_affinity(int core_number)
 
 #elif defined(__FreeBSD__)
 
-#include <sys/param.h>
 #include <sys/cpuset.h>
+#include <sys/param.h>
 
-namespace zeek {
+namespace zeek
+{
 bool set_affinity(int core_number)
 	{
 	cpuset_t cpus;
 	CPU_ZERO(&cpus);
 	CPU_SET(core_number, &cpus);
-	auto res = cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1,
-	                              sizeof(cpus), &cpus);
+	auto res = cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1, sizeof(cpus), &cpus);
 	return res == 0;
 	}
 } // namespace zeek
@@ -46,7 +47,8 @@ bool set_affinity(int core_number)
 
 #include <cerrno>
 
-namespace zeek {
+namespace zeek
+{
 bool set_affinity(int core_number)
 	{
 	errno = ENOTSUP;

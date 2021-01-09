@@ -7,8 +7,8 @@
 #include <utility>
 
 #include "zeek/Frag.h"
-#include "zeek/PacketFilter.h"
 #include "zeek/NetVar.h"
+#include "zeek/PacketFilter.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
@@ -16,14 +16,19 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 class ConnCompressor;
 
-namespace zeek { struct ConnID; }
+namespace zeek
+{
+struct ConnID;
+}
 using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(SteppingStoneManager, zeek, analyzer::stepping_stone);
 
-namespace zeek {
+namespace zeek
+{
 
-struct SessionStats {
+struct SessionStats
+	{
 	size_t num_TCP_conns;
 	size_t max_TCP_conns;
 	uint64_t cumulative_TCP_conns;
@@ -39,18 +44,20 @@ struct SessionStats {
 	size_t num_fragments;
 	size_t max_fragments;
 	uint64_t num_packets;
-};
+	};
 
-class NetSessions {
+class NetSessions
+	{
 public:
 	NetSessions();
 	~NetSessions();
 
 	// Main entry point for packet processing.
-	[[deprecated("Remove in v4.1. Do not call this method directly. Packet processing should start with a call to packet_mgr->ProcessPacket().")]]
-	void NextPacket(double t, Packet* pkt);
+	[[deprecated("Remove in v4.1. Do not call this method directly. Packet processing should start "
+	             "with a call to packet_mgr->ProcessPacket().")]] void
+	NextPacket(double t, Packet* pkt);
 
-	void Done();	// call to drain events before destructing
+	void Done(); // call to drain events before destructing
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
@@ -69,19 +76,17 @@ public:
 
 	void GetStats(SessionStats& s) const;
 
-	void Weird(const char* name, const Packet* pkt,
-	           const char* addl = "", const char* source = "");
-	void Weird(const char* name, const IP_Hdr* ip,
-	           const char* addl = "");
+	void Weird(const char* name, const Packet* pkt, const char* addl = "", const char* source = "");
+	void Weird(const char* name, const IP_Hdr* ip, const char* addl = "");
 
-	detail::PacketFilter* GetPacketFilter(bool init=true)
+	detail::PacketFilter* GetPacketFilter(bool init = true)
 		{
 		if ( ! packet_filter && init )
 			packet_filter = new detail::PacketFilter(detail::packet_filter_default);
 		return packet_filter;
 		}
 
-	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
+	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager() { return stp_manager; }
 
 	unsigned int CurrentConnections()
 		{
@@ -98,7 +103,7 @@ public:
 	 * @param len The number of bytes that haven't been processed yet by packet
 	 * analysis.
 	 */
-	void ProcessTransportLayer(double t, const Packet *pkt, size_t len);
+	void ProcessTransportLayer(double t, const Packet* pkt, size_t len);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -122,22 +127,20 @@ public:
 	 *         long enough to be an IP header, and \a inner is always non-null
 	 *         for other return values.
 	 */
-	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-	                  IP_Hdr*& inner);
+	int ParseIPPacket(int caplen, const u_char* const pkt, int proto, IP_Hdr*& inner);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
 	unsigned int MemoryAllocation();
-	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
+	analyzer::tcp::TCPStateStats tcp_stats; // keeps statistics on TCP states
 
 protected:
 	friend class ConnCompressor;
 
 	using ConnectionMap = std::map<detail::ConnIDKey, Connection*>;
 
-	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
-	                    const u_char* data, int proto, uint32_t flow_label,
-	                    const Packet* pkt);
+	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id, const u_char* data,
+	                    int proto, uint32_t flow_label, const Packet* pkt);
 
 	Connection* LookupConn(const ConnectionMap& conns, const detail::ConnIDKey& key);
 
@@ -154,14 +157,13 @@ protected:
 	// connections), and, if yes, whether we should flip the roles of
 	// originator and responder (based on known ports or such).
 	// Use tcp_flags=0 for non-TCP.
-	bool WantConnection(uint16_t src_port, uint16_t dest_port,
-	                    TransportProto transport_proto,
+	bool WantConnection(uint16_t src_port, uint16_t dest_port, TransportProto transport_proto,
 	                    uint8_t tcp_flags, bool& flip_roles);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
-	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen, const Packet *pkt);
+	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen, const Packet* pkt);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by
@@ -178,7 +180,7 @@ protected:
 
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	detail::PacketFilter* packet_filter;
-};
+	};
 
 // Manager for the currently active sessions.
 extern NetSessions* sessions;
@@ -187,6 +189,8 @@ extern NetSessions* sessions;
 
 using SessionStats [[deprecated("Remove in v4.1. Use zeek::SessionStats.")]] = zeek::SessionStats;
 using NetSessions [[deprecated("Remove in v4.1. Use zeek::NetSessions.")]] = zeek::NetSessions;
-using FragReassemblerTracker [[deprecated("Remove in v4.1. Use zeek::detail::FragReassemblerTracker.")]] = zeek::detail::FragReassemblerTracker;
+using FragReassemblerTracker
+	[[deprecated("Remove in v4.1. Use zeek::detail::FragReassemblerTracker.")]] =
+		zeek::detail::FragReassemblerTracker;
 
 extern zeek::NetSessions*& sessions [[deprecated("Remove in v4.1. Use zeek:sessions.")]];

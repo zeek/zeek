@@ -6,18 +6,19 @@
 #include <string>
 #include <utility>
 
+#include "zeek/WeirdState.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/ZeekList.h" // for ValPList
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/Tag.h"
 #include "zeek/file_analysis/AnalyzerSet.h"
-#include "zeek/ZeekString.h"
-#include "zeek/ZeekList.h" // for ValPList
-#include "zeek/ZeekArgs.h"
-#include "zeek/WeirdState.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
-namespace zeek {
+namespace zeek
+{
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
 }
@@ -25,14 +26,15 @@ using RecordTypePtr = IntrusivePtr<RecordType>;
 ZEEK_FORWARD_DECLARE_NAMESPACED(FileReassembler, zeek, file_analysis);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
 
-namespace zeek::file_analysis {
+namespace zeek::file_analysis
+{
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
  */
-class File {
+class File
+	{
 public:
-
 	/**
 	 * Destructor.  Nothing fancy, releases a reference to the wrapped
 	 * \c fa_file value.
@@ -42,12 +44,9 @@ public:
 	/**
 	 * @return the wrapped \c fa_file record value, #val.
 	 */
-	const RecordValPtr& ToVal() const
-		{ return val; }
+	const RecordValPtr& ToVal() const { return val; }
 
-	[[deprecated("Remove in v4.1.  Use ToVal().")]]
-	RecordVal* GetVal() const
-		{ return val.get(); }
+	[[deprecated("Remove in v4.1.  Use ToVal().")]] RecordVal* GetVal() const { return val.get(); }
 
 	/**
 	 * @return the value of the "source" field from #val record or an empty
@@ -80,8 +79,8 @@ public:
 	 */
 	bool SetExtractionLimit(RecordValPtr args, uint64_t bytes);
 
-	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
+	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]] bool
+	SetExtractionLimit(RecordVal* args, uint64_t bytes);
 
 	/**
 	 * @return value of the "id" field from #val record.
@@ -128,8 +127,8 @@ public:
 	 */
 	bool AddAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
-	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
+	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]] bool
+	AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
@@ -139,8 +138,8 @@ public:
 	 */
 	bool RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
-	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
+	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]] bool
+	RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Signal that this analyzer can be deleted once it's safe to do so.
@@ -192,16 +191,16 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
-	[[deprecated("Remove in v4.1. Use Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, ValPList* vl);
+	[[deprecated("Remove in v4.1. Use Args overload instead.")]] void FileEvent(EventHandlerPtr h,
+	                                                                            ValPList* vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
-	[[deprecated("Remove in v4.1. Use Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, ValPList vl);
+	[[deprecated("Remove in v4.1. Use Args overload instead.")]] void FileEvent(EventHandlerPtr h,
+	                                                                            ValPList vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -234,8 +233,7 @@ public:
 	 * Whether to permit a weird to carry on through the full reporter/weird
 	 * framework.
 	 */
-	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
-	                 double duration);
+	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration);
 
 protected:
 	friend class Manager;
@@ -342,7 +340,9 @@ protected:
 	 */
 	static int Idx(const std::string& field_name, const RecordType* type);
 	static int Idx(const std::string& field_name, const RecordTypePtr& type)
-		{ return Idx(field_name, type.get()); }
+		{
+		return Idx(field_name, type.get());
+		}
 
 	/**
 	 * Initializes static member.
@@ -350,27 +350,32 @@ protected:
 	static void StaticInit();
 
 protected:
-	std::string id;                 /**< A pretty hash that likely identifies file */
-	RecordValPtr val;            /**< \c fa_file from script layer. */
+	std::string id; /**< A pretty hash that likely identifies file */
+	RecordValPtr val; /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
-	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
-	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
-	bool did_metadata_inference;        /**< Whether the metadata inference has already been attempted. */
-	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
-	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
-	bool done;                 /**< If this object is about to be deleted. */
-	detail::AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
-	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they can be safely deleted. */
+	uint64_t stream_offset; /**< The offset of the file which has been forwarded. */
+	uint64_t reassembly_max_buffer; /**< Maximum allowed buffer for reassembly. */
+	bool did_metadata_inference; /**< Whether the metadata inference has already been attempted. */
+	bool reassembly_enabled; /**< Whether file stream reassembly is needed. */
+	bool postpone_timeout; /**< Whether postponing timeout is requested. */
+	bool done; /**< If this object is about to be deleted. */
+	detail::AnalyzerSet analyzers; /**< A set of attached file analyzers. */
+	std::list<Analyzer*> done_analyzers; /**< Analyzers we're done with, remembered here until they
+	                                        can be safely deleted. */
 
-	struct BOF_Buffer {
-		BOF_Buffer() : full(false), size(0) {}
+	struct BOF_Buffer
+		{
+		BOF_Buffer() : full(false), size(0) { }
 		~BOF_Buffer()
-			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
+			{
+			for ( size_t i = 0; i < chunks.size(); ++i )
+				delete chunks[i];
+			}
 
 		bool full;
 		uint64_t size;
 		String::CVec chunks;
-	} bof_buffer;              /**< Beginning of file buffer. */
+		} bof_buffer; /**< Beginning of file buffer. */
 
 	zeek::detail::WeirdStateMap weird_state;
 
@@ -393,12 +398,14 @@ protected:
 
 	static int meta_mime_type_idx;
 	static int meta_mime_types_idx;
-};
+	};
 
 } // namespace file_analysis
 
-namespace file_analysis {
+namespace file_analysis
+{
 
-using File [[deprecated("Remove in v4.1. Use zeek::file_analysis::File.")]] = zeek::file_analysis::File;
+using File [[deprecated("Remove in v4.1. Use zeek::file_analysis::File.")]] =
+	zeek::file_analysis::File;
 
 } // namespace zeek::file_analysis

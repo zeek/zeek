@@ -1,20 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/ip/IP.h"
-#include "zeek/NetVar.h"
-#include "zeek/IP.h"
+
 #include "zeek/Discard.h"
-#include "zeek/PacketFilter.h"
-#include "zeek/Sessions.h"
-#include "zeek/RunState.h"
-#include "zeek/Frag.h"
 #include "zeek/Event.h"
+#include "zeek/Frag.h"
+#include "zeek/IP.h"
+#include "zeek/NetVar.h"
+#include "zeek/PacketFilter.h"
+#include "zeek/RunState.h"
+#include "zeek/Sessions.h"
 #include "zeek/TunnelEncapsulation.h"
 
 using namespace zeek::packet_analysis::IP;
 
-IPAnalyzer::IPAnalyzer()
-	: zeek::packet_analysis::Analyzer("IP")
+IPAnalyzer::IPAnalyzer() : zeek::packet_analysis::Analyzer("IP")
 	{
 	discarder = new detail::Discarder();
 	if ( ! discarder->IsActive() )
@@ -43,7 +43,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	// Cast the current data pointer to an IP header pointer so we can use it to get some
 	// data about the header.
-	auto ip = (const struct ip *)data;
+	auto ip = (const struct ip*)data;
 	uint32_t protocol = ip->ip_v;
 
 	// This is a unique pointer because of the mass of early returns from this method.
@@ -60,7 +60,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			return false;
 			}
 
-		packet->ip_hdr = std::make_unique<IP_Hdr>((const struct ip6_hdr*) data, false, len);
+		packet->ip_hdr = std::make_unique<IP_Hdr>((const struct ip6_hdr*)data, false, len);
 		packet->l3_proto = L3_IPV6;
 		}
 	else
@@ -123,10 +123,11 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// Ignore if packet matches packet filter.
 	detail::PacketFilter* packet_filter = sessions->GetPacketFilter(false);
 	if ( packet_filter && packet_filter->Match(packet->ip_hdr, total_len, len) )
-		 return false;
+		return false;
 
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
-	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
+	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")
+	           ->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
 		Weird("bad_IP_checksum", packet);
@@ -140,7 +141,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( packet->ip_hdr->IsFragment() )
 		{
-		packet->dump_packet = true;	// always record fragments
+		packet->dump_packet = true; // always record fragments
 
 		if ( len < total_len )
 			{
@@ -217,50 +218,50 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		}
 #endif
 
-	// Set the data pointer to match the payload from the IP header. This makes sure that it's also pointing
-	// at the reassembled data for a fragmented packet.
+	// Set the data pointer to match the payload from the IP header. This makes sure that it's also
+	// pointing at the reassembled data for a fragmented packet.
 	data = packet->ip_hdr->Payload();
 	len -= ip_hdr_len;
 
-	// Session analysis assumes that the header size stored in the packet does not include the IP header
-	// size. There are two reasons for this: 1) Packet::ToRawPktHdrVal() wants to look at the IP header for
-	// reporting, and 2) The VXLAN analyzer uses the header position to create the next packet in the tunnel
-	// chain. Once the TCP/UDP work is done and the VXLAN analyzer can move into packet analysis, this can
-	// change, but for now we leave it as it is.
+	// Session analysis assumes that the header size stored in the packet does not include the IP
+	// header size. There are two reasons for this: 1) Packet::ToRawPktHdrVal() wants to look at the
+	// IP header for reporting, and 2) The VXLAN analyzer uses the header position to create the
+	// next packet in the tunnel chain. Once the TCP/UDP work is done and the VXLAN analyzer can
+	// move into packet analysis, this can change, but for now we leave it as it is.
 
 	bool return_val = true;
 	int proto = packet->ip_hdr->NextProto();
 
 	packet->proto = proto;
 
-	switch ( proto ) {
-	case IPPROTO_TCP:
-	case IPPROTO_UDP:
-	case IPPROTO_ICMP:
-	case IPPROTO_ICMPV6:
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
-		        GetAnalyzerName(), proto);
-		sessions->ProcessTransportLayer(run_state::processing_start_time, packet, len);
-		break;
-	case IPPROTO_NONE:
-		// If the packet is encapsulated in Teredo, then it was a bubble and
-		// the Teredo analyzer may have raised an event for that, else we're
-		// not sure the reason for the No Next header in the packet.
-		if ( ! ( packet->encap &&
-		         packet->encap->LastType() == BifEnum::Tunnel::TEREDO ) )
-			{
-			Weird("ipv6_no_next", packet);
-			return_val = false;
-			}
-		break;
-	default:
-		packet->proto = proto;
+	switch ( proto )
+		{
+		case IPPROTO_TCP:
+		case IPPROTO_UDP:
+		case IPPROTO_ICMP:
+		case IPPROTO_ICMPV6:
+			DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
+			        GetAnalyzerName(), proto);
+			sessions->ProcessTransportLayer(run_state::processing_start_time, packet, len);
+			break;
+		case IPPROTO_NONE:
+			// If the packet is encapsulated in Teredo, then it was a bubble and
+			// the Teredo analyzer may have raised an event for that, else we're
+			// not sure the reason for the No Next header in the packet.
+			if ( ! (packet->encap && packet->encap->LastType() == BifEnum::Tunnel::TEREDO) )
+				{
+				Weird("ipv6_no_next", packet);
+				return_val = false;
+				}
+			break;
+		default:
+			packet->proto = proto;
 
-		// For everything else, pass it on to another analyzer. If there's no one to handle that,
-		// it'll report a Weird.
-		return_val = ForwardPacket(len, data, packet, proto);
-		break;
-	}
+			// For everything else, pass it on to another analyzer. If there's no one to handle
+			// that, it'll report a Weird.
+			return_val = ForwardPacket(len, data, packet, proto);
+			break;
+		}
 
 	if ( f )
 		f->DeleteTimer();

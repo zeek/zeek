@@ -3,16 +3,19 @@
 #pragma once
 
 #include "zeek-config.h"
+
 #include <string>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 
-namespace zeek::iosource {
+namespace zeek::iosource
+{
 
 /**
  * Base class for packet dumpers.
  */
-class PktDumper {
+class PktDumper
+	{
 public:
 	/**
 	 * Constructor.
@@ -90,10 +93,11 @@ protected:
 	 * Structure to pass back information about the packet dumper to the
 	 * base class. Derived class pass an instance of this to \a Opened().
 	 */
-	struct Properties {
+	struct Properties
+		{
 		std::string path;
 		double open_time;
-	};
+		};
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
@@ -131,12 +135,14 @@ private:
 	Properties props;
 
 	std::string errmsg;
-};
+	};
 
 } // namespace zeek::iosource
 
-namespace iosource {
+namespace iosource
+{
 
-using PktDumper [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumper.")]] = zeek::iosource::PktDumper;
+using PktDumper [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumper.")]] =
+	zeek::iosource::PktDumper;
 
 } // namespace iosource

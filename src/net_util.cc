@@ -1,21 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
+#include "zeek/IP.h"
+#include "zeek/IPAddr.h"
+#include "zeek/Reporter.h"
 #include "zeek/net_util.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+namespace zeek
+{
 
-#include "zeek/Reporter.h"
-#include "zeek/IPAddr.h"
-#include "zeek/IP.h"
-
-namespace zeek {
-
-uint16_t detail::ip4_in_cksum(const IPAddr& src, const IPAddr& dst,
-                              uint8_t next_proto, const uint8_t* data, int len)
+uint16_t detail::ip4_in_cksum(const IPAddr& src, const IPAddr& dst, uint8_t next_proto,
+                              const uint8_t* data, int len)
 	{
 	constexpr auto nblocks = 2;
 	detail::checksum_block blocks[nblocks];
@@ -35,8 +36,8 @@ uint16_t detail::ip4_in_cksum(const IPAddr& src, const IPAddr& dst,
 	return in_cksum(blocks, nblocks);
 	}
 
-uint16_t detail::ip6_in_cksum(const IPAddr& src, const IPAddr& dst,
-                              uint8_t next_proto, const uint8_t* data, int len)
+uint16_t detail::ip6_in_cksum(const IPAddr& src, const IPAddr& dst, uint8_t next_proto,
+                              const uint8_t* data, int len)
 	{
 	constexpr auto nblocks = 2;
 	detail::checksum_block blocks[nblocks];
@@ -59,14 +60,14 @@ uint16_t detail::ip6_in_cksum(const IPAddr& src, const IPAddr& dst,
 // Returns the ones-complement checksum of a chunk of 'b' bytes.
 int ones_complement_checksum(const void* p, int b, uint32_t sum)
 	{
-	const unsigned char* sp = (unsigned char*) p;
+	const unsigned char* sp = (unsigned char*)p;
 
-	b /= 2;	// convert to count of short's
+	b /= 2; // convert to count of short's
 
 	/* No need for endian conversions. */
 	while ( --b >= 0 )
 		{
-		sum += *sp + (*(sp+1) << 8);
+		sum += *sp + (*(sp + 1) << 8);
 		sp += 2;
 		}
 
@@ -80,7 +81,7 @@ int ones_complement_checksum(const IPAddr& a, uint32_t sum)
 	{
 	const uint32_t* bytes;
 	int len = a.GetBytes(&bytes);
-	return ones_complement_checksum(bytes, len*4, sum);
+	return ones_complement_checksum(bytes, len * 4, sum);
 	}
 
 int icmp_checksum(const struct icmp* icmpp, int len)
@@ -93,7 +94,8 @@ int mobility_header_checksum(const IP_Hdr* ip)
 	{
 	const ip6_mobility* mh = ip->MobilityHeader();
 
-	if ( ! mh ) return 0;
+	if ( ! mh )
+		return 0;
 
 	uint32_t sum = 0;
 	uint8_t mh_len = 8 + 8 * mh->ip6mob_len;
@@ -122,14 +124,13 @@ int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	                            reinterpret_cast<const uint8_t*>(icmpp), len);
 	}
 
-
 #define CLASS_A 0x00000000
 #define CLASS_B 0x80000000
 #define CLASS_C 0xc0000000
 #define CLASS_D 0xe0000000
 #define CLASS_E 0xf0000000
 
-#define CHECK_CLASS(addr,class) (((addr) & (class)) == (class))
+#define CHECK_CLASS(addr, class) (((addr) & (class)) == (class))
 char addr_to_class(uint32_t addr)
 	{
 	if ( CHECK_CLASS(addr, CLASS_E) )
@@ -144,20 +145,19 @@ char addr_to_class(uint32_t addr)
 		return 'A';
 	}
 
-const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
-                        const IPAddr& dst_addr, uint32_t dst_port)
+const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port, const IPAddr& dst_addr,
+                        uint32_t dst_port)
 	{
 	static char buffer[512];
 
-	snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
-	         std::string(src_addr).c_str(), src_port,
+	snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d", std::string(src_addr).c_str(), src_port,
 	         std::string(dst_addr).c_str(), dst_port);
 
 	return buffer;
 	}
 
-const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port,
-                        const uint32_t* dst_addr, uint32_t dst_port)
+const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port, const uint32_t* dst_addr,
+                        uint32_t dst_port)
 	{
 	IPAddr src(IPv6, src_addr, IPAddr::Network);
 	IPAddr dst(IPv6, dst_addr, IPAddr::Network);
@@ -175,11 +175,11 @@ std::string fmt_mac(const unsigned char* m, int len)
 		}
 
 	if ( (len == 6) || (m[6] == 0 && m[7] == 0) ) // EUI-48
-		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
-			 m[0], m[1], m[2], m[3], m[4], m[5]);
+		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", m[0], m[1], m[2], m[3], m[4],
+		         m[5]);
 	else
-		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-			 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]);
+		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x", m[0], m[1], m[2],
+		         m[3], m[4], m[5], m[6], m[7]);
 
 	return buf;
 	}

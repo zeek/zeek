@@ -10,12 +10,14 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-class PacketFilter {
+class PacketFilter
+	{
 public:
 	explicit PacketFilter(bool arg_default);
-	~PacketFilter()	{}
+	~PacketFilter() { }
 
 	// Drops all packets from a particular source (which may be given
 	// as an AddrVal or a SubnetVal) which hasn't any of TCP flags set
@@ -36,10 +38,11 @@ public:
 	bool Match(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen);
 
 private:
-	struct Filter {
+	struct Filter
+		{
 		uint32_t tcp_flags;
 		double probability;
-	};
+		};
 
 	static void DeleteFilter(void* data);
 
@@ -48,8 +51,9 @@ private:
 	bool default_match;
 	PrefixTable src_filter;
 	PrefixTable dst_filter;
-};
+	};
 
 } // namespace zeek::detail
 
-using PacketFilter [[deprecated("Remove in v4.1. Use zeek::detail::PacketFilter.")]] = zeek::detail::PacketFilter;
+using PacketFilter [[deprecated("Remove in v4.1. Use zeek::detail::PacketFilter.")]] =
+	zeek::detail::PacketFilter;

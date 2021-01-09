@@ -13,18 +13,24 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(DictEntry, zeek::detail);
 // Type for function to be called when deleting elements.
 typedef void (*dict_delete_func)(void*);
 
-namespace zeek {
+namespace zeek
+{
 
-enum DictOrder { ORDERED, UNORDERED };
+enum DictOrder
+	{
+	ORDERED,
+	UNORDERED
+	};
 
 // A dict_delete_func that just calls delete.
 extern void generic_delete_func(void*);
 
-namespace detail {
+namespace detail
+{
 
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.
-constexpr uint32_t HASH_MASK = 0xFFFFFFFF; //only lower 32 bits.
+constexpr uint32_t HASH_MASK = 0xFFFFFFFF; // only lower 32 bits.
 
 // These four variables can be used to build different targets with -Dxxx for performance
 // or for debugging purposes.
@@ -51,9 +57,9 @@ constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
 /**
  * An entry stored in the dictionary.
  */
-class DictEntry {
+class DictEntry
+	{
 public:
-
 #ifdef DEBUG
 	int bucket = 0;
 #endif
@@ -69,10 +75,10 @@ public:
 	uint32_t hash = 0;
 
 	void* value = nullptr;
-	union{
-		char key_here[8]; //hold key len<=8. when over 8, it's a pointer to real keys.
+		union {
+		char key_here[8]; // hold key len<=8. when over 8, it's a pointer to real keys.
 		char* key;
-	};
+		};
 
 	DictEntry(void* arg_key, int key_size = 0, hash_t hash = 0, void* value = nullptr,
 	          int16_t d = TOO_FAR_TO_REACH, bool copy_key = false)
@@ -82,7 +88,7 @@ public:
 			{
 			memcpy(key_here, arg_key, key_size);
 			if ( ! copy_key )
-				delete [] (char*)arg_key; //own the arg_key, now don't need it.
+				delete[](char*) arg_key; // own the arg_key, now don't need it.
 			}
 		else
 			{
@@ -98,7 +104,7 @@ public:
 			}
 		}
 
-	bool Empty() const	{ return distance == TOO_FAR_TO_REACH; }
+	bool Empty() const { return distance == TOO_FAR_TO_REACH; }
 	void SetEmpty()
 		{
 		distance = TOO_FAR_TO_REACH;
@@ -109,32 +115,26 @@ public:
 		value = nullptr;
 		key_size = 0;
 		bucket = 0;
-#endif//DEBUG
+#endif // DEBUG
 		}
 
 	void Clear()
 		{
-		if( key_size > 8 )
-			delete [] key;
+		if ( key_size > 8 )
+			delete[] key;
 		SetEmpty();
 		}
 
 	const char* GetKey() const { return key_size <= 8 ? key_here : key; }
 
 	bool Equal(const char* arg_key, int arg_key_size, hash_t arg_hash) const
-		{//only 40-bit hash comparison.
-		return ( 0 == ((hash ^ arg_hash) & HASH_MASK) )
-			&& key_size == arg_key_size && 0 == memcmp(GetKey(), arg_key, key_size);
+		{ // only 40-bit hash comparison.
+		return (0 == ((hash ^ arg_hash) & HASH_MASK)) && key_size == arg_key_size &&
+		       0 == memcmp(GetKey(), arg_key, key_size);
 		}
-	bool operator==(const DictEntry& r) const
-		{
-		return Equal(r.GetKey(), r.key_size, r.hash);
-		}
-	bool operator!=(const DictEntry& r) const
-		{
-		return ! Equal(r.GetKey(), r.key_size, r.hash);
-		}
-};
+	bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
+	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
+	};
 
 } // namespace detail
 
@@ -150,16 +150,18 @@ public:
  * the keys but not the values. The dictionary size will be bounded at around 100K. 1M
  * entries is the absolute limit. Only Connections use that many entries, and that is rare.
  */
-class Dictionary {
+class Dictionary
+	{
 public:
-	explicit Dictionary(DictOrder ordering = UNORDERED, int initial_size = detail::DEFAULT_DICT_SIZE);
+	explicit Dictionary(DictOrder ordering = UNORDERED,
+	                    int initial_size = detail::DEFAULT_DICT_SIZE);
 	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
 	// which takes a zeek::detail::HashKey, and the other which takes a raw key,
 	// its size, and its (unmodulated) hash.
-	//lookup may move the key to right place if in the old zone to speed up the next lookup.
+	// lookup may move the key to right place if in the old zone to speed up the next lookup.
 	void* Lookup(const detail::HashKey* key) const;
 	void* Lookup(const void* key, int key_size, detail::hash_t h) const;
 
@@ -167,14 +169,17 @@ public:
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
 	void* Insert(detail::HashKey* key, void* val, bool* iterators_invalidated = nullptr)
-		{ return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false, iterators_invalidated); }
+		{
+		return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false, iterators_invalidated);
+		}
 
 	// If copy_key is true, then the key is copied, otherwise it's assumed
 	// that it's a heap pointer that now belongs to the Dictionary to
 	// manage as needed.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
-	void* Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key, bool* iterators_invalidated = nullptr);
+	void* Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key,
+	             bool* iterators_invalidated = nullptr);
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
@@ -182,23 +187,23 @@ public:
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
 	void* Remove(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
-		{ return Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated); }
-	void* Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete = false, bool* iterators_invalidated = nullptr);
+		{
+		return Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated);
+		}
+	void* Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete = false,
+	             bool* iterators_invalidated = nullptr);
 
 	// Number of entries.
-	int Length() const
-		{ return num_entries; }
+	int Length() const { return num_entries; }
 
 	// Largest it's ever been.
-	int MaxLength() const
-		{ return max_entries; }
+	int MaxLength() const { return max_entries; }
 
 	// Total number of entries ever.
-	uint64_t NumCumulativeInserts() const
-		{ return cum_entries; }
+	uint64_t NumCumulativeInserts() const { return cum_entries; }
 
 	// True if the dictionary is ordered, false otherwise.
-	int IsOrdered() const	{ return order != nullptr; }
+	int IsOrdered() const { return order != nullptr; }
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted
@@ -231,7 +236,7 @@ public:
 	void* NextEntry(detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const;
 	void StopIteration(IterCookie* cookie) const;
 
-	void SetDeleteFunc(dict_delete_func f)		{ delete_func = f; }
+	void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
 
 	// With a robust cookie, it is safe to change the dictionary while
 	// iterating. This means that (i) we will eventually visit all
@@ -249,11 +254,11 @@ public:
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity(bool expected = false) const;
 
-	//Debugging
+	// Debugging
 #ifdef DEBUG
 	void AssertValid() const;
-#endif//DEBUG
-	void Dump(int level=0) const;
+#endif // DEBUG
+	void Dump(int level = 0) const;
 	void DistanceStats(int& max_distance, int* distances = 0, int num_distances = 0) const;
 	void DumpKeys() const;
 
@@ -263,7 +268,7 @@ private:
 	/// Buckets of the table, not including overflow size.
 	int Buckets(bool expected = false) const;
 
-	//bucket math
+	// bucket math
 	int Log2(int num) const;
 	int ThresholdEntries() const;
 
@@ -301,39 +306,42 @@ private:
 
 	void Init();
 
-	//Iteration
+	// Iteration
 	IterCookie* InitForIterationNonConst();
 	void* NextEntryNonConst(detail::HashKey*& h, IterCookie*& cookie, bool return_hash);
 	void StopIterationNonConst(IterCookie* cookie);
 
-	//Lookup
+	// Lookup
 	int LinearLookupIndex(const void* key, int key_size, detail::hash_t hash) const;
-	int LookupIndex(const void* key, int key_size, detail::hash_t hash, int* insert_position = nullptr,
-		int* insert_distance = nullptr);
+	int LookupIndex(const void* key, int key_size, detail::hash_t hash,
+	                int* insert_position = nullptr, int* insert_distance = nullptr);
 	int LookupIndex(const void* key, int key_size, detail::hash_t hash, int begin, int end,
-		int* insert_position = nullptr, int* insert_distance  = nullptr);
+	                int* insert_position = nullptr, int* insert_distance = nullptr);
 
 	/// Insert entry, Adjust cookies when necessary.
 	void InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position);
 
 	/// insert entry into position, relocate other entries when necessary.
-	void InsertAndRelocate(detail::DictEntry& entry, int insert_position, int* last_affected_position = nullptr);
+	void InsertAndRelocate(detail::DictEntry& entry, int insert_position,
+	                       int* last_affected_position = nullptr);
 
 	/// Adjust Cookies on Insert.
-	void AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position, int last_affected_position);
+	void AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position,
+	                    int last_affected_position);
 
-	///Remove, Relocate & Adjust cookies.
+	/// Remove, Relocate & Adjust cookies.
 	detail::DictEntry RemoveRelocateAndAdjust(int position);
 
-	///Remove & Relocate
+	/// Remove & Relocate
 	detail::DictEntry RemoveAndRelocate(int position, int* last_affected_position = nullptr);
 
-	///Adjust safe cookies after Removal of entry at position.
-	void AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position, int last_affected_position);
+	/// Adjust safe cookies after Removal of entry at position.
+	void AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position,
+	                    int last_affected_position);
 
-	bool Remapping() const { return remap_end >= 0;} //remap in reverse order.
+	bool Remapping() const { return remap_end >= 0; } // remap in reverse order.
 
-	///One round of remap.
+	/// One round of remap.
 	void Remap();
 
 	// Remap an item in position to a new position. Returns true if the relocation was
@@ -344,9 +352,11 @@ private:
 	void SizeUp();
 
 	bool HaveOnlyRobustIterators() const
-		{ return num_iterators == 0 || (cookies && cookies->size() == num_iterators); }
+		{
+		return num_iterators == 0 || (cookies && cookies->size() == num_iterators);
+		}
 
-	//alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
+	// alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
 
 	// when sizeup but the current mapping is in progress. the current mapping will be ignored
 	// as it will be remapped to new dict size anyway. however, the missed count is recorded
@@ -372,51 +382,60 @@ private:
 
 	// Order means the order of insertion. means no deletion until exit. will be inefficient.
 	std::vector<detail::DictEntry>* order = nullptr;
-};
+	};
 
 /*
  * Template specialization of Dictionary that stores pointers for values.
  */
-template<typename T>
-class PDict : public Dictionary {
+template <typename T> class PDict : public Dictionary
+	{
 public:
-	explicit PDict(DictOrder ordering = UNORDERED, int initial_size = 0) :
-		Dictionary(ordering, initial_size) {}
+	explicit PDict(DictOrder ordering = UNORDERED, int initial_size = 0)
+		: Dictionary(ordering, initial_size)
+		{
+		}
 	T* Lookup(const char* key) const
 		{
 		detail::HashKey h(key);
-		return (T*) Dictionary::Lookup(&h);
+		return (T*)Dictionary::Lookup(&h);
 		}
-	T* Lookup(const detail::HashKey* key) const
-		{ return (T*) Dictionary::Lookup(key); }
+	T* Lookup(const detail::HashKey* key) const { return (T*)Dictionary::Lookup(key); }
 	T* Insert(const char* key, T* val, bool* iterators_invalidated = nullptr)
 		{
 		detail::HashKey h(key);
-		return (T*) Dictionary::Insert(&h, (void*) val, iterators_invalidated);
+		return (T*)Dictionary::Insert(&h, (void*)val, iterators_invalidated);
 		}
 	T* Insert(detail::HashKey* key, T* val, bool* iterators_invalidated = nullptr)
-		{ return (T*) Dictionary::Insert(key, (void*) val, iterators_invalidated); }
-	T* NthEntry(int n) const
-		{ return (T*) Dictionary::NthEntry(n); }
+		{
+		return (T*)Dictionary::Insert(key, (void*)val, iterators_invalidated);
+		}
+	T* NthEntry(int n) const { return (T*)Dictionary::NthEntry(n); }
 	T* NthEntry(int n, const char*& key) const
 		{
 		int key_len;
-		return (T*) Dictionary::NthEntry(n, (const void*&) key, key_len);
+		return (T*)Dictionary::NthEntry(n, (const void*&)key, key_len);
 		}
 	T* NextEntry(IterCookie*& cookie) const
 		{
 		detail::HashKey* h;
-		return (T*) Dictionary::NextEntry(h, cookie, false);
+		return (T*)Dictionary::NextEntry(h, cookie, false);
 		}
 	T* NextEntry(detail::HashKey*& h, IterCookie*& cookie) const
-		{ return (T*) Dictionary::NextEntry(h, cookie, true); }
+		{
+		return (T*)Dictionary::NextEntry(h, cookie, true);
+		}
 	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
-		{ return (T*) Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated); }
+		{
+		return (T*)Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated);
+		}
 	T* RemoveEntry(const detail::HashKey& key, bool* iterators_invalidated = nullptr)
-		{ return (T*) Remove(key.Key(), key.Size(), key.Hash(), false, iterators_invalidated); }
-};
+		{
+		return (T*)Remove(key.Key(), key.Size(), key.Hash(), false, iterators_invalidated);
+		}
+	};
 
 } // namespace zeek
 
 using Dictionary [[deprecated("Remove in v4.1. Use zeek::Dictionary instead.")]] = zeek::Dictionary;
-template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
+template <typename T>
+using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;

@@ -2,15 +2,17 @@
 
 #pragma once
 
+#include "zeek/Frag.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
-#include "zeek/Frag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
 
-namespace zeek::packet_analysis::IP {
+namespace zeek::packet_analysis::IP
+{
 
-class IPAnalyzer : public Analyzer {
+class IPAnalyzer : public Analyzer
+	{
 public:
 	IPAnalyzer();
 	~IPAnalyzer() override;
@@ -23,13 +25,11 @@ public:
 		}
 
 private:
-
 	// Returns a reassembled packet, or nil if there are still
 	// some missing fragments.
-	zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip,
-	                                            const u_char* pkt);
+	zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
 	zeek::detail::Discarder* discarder = nullptr;
-};
+	};
 
 }

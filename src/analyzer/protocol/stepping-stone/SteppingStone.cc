@@ -1,22 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 
 #include <stdlib.h>
 
 #include "zeek/Event.h"
-#include "zeek/RunState.h"
 #include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/RunState.h"
 #include "zeek/Sessions.h"
+#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/util.h"
 
 #include "analyzer/protocol/stepping-stone/events.bif.h"
 
-namespace zeek::analyzer::stepping_stone {
+namespace zeek::analyzer::stepping_stone
+{
 
-SteppingStoneEndpoint::SteppingStoneEndpoint(analyzer::tcp::TCP_Endpoint* e, SteppingStoneManager* m)
+SteppingStoneEndpoint::SteppingStoneEndpoint(analyzer::tcp::TCP_Endpoint* e,
+                                             SteppingStoneManager* m)
 	{
 	endp = e;
 	stp_max_top_seq = 0;
@@ -75,7 +77,7 @@ bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen
 
 	while ( stp_manager->OrderedEndpoints().length() > 0 )
 		{
-	    auto e = stp_manager->OrderedEndpoints().front();
+		auto e = stp_manager->OrderedEndpoints().front();
 
 		if ( e->stp_resume_time < tmin )
 			{
@@ -146,11 +148,8 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 	if ( ! stp_create_endp )
 		return;
 
-	endp->TCP()->EnqueueConnEvent(stp_create_endp,
-		endp->TCP()->ConnVal(),
-		val_mgr->Int(stp_id),
-		val_mgr->Bool(is_orig)
-	);
+	endp->TCP()->EnqueueConnEvent(stp_create_endp, endp->TCP()->ConnVal(), val_mgr->Int(stp_id),
+	                              val_mgr->Bool(is_orig));
 	}
 
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
@@ -171,12 +170,10 @@ void SteppingStone_Analyzer::Init()
 	resp_endp = new SteppingStoneEndpoint(TCP()->Resp(), stp_manager);
 	}
 
-void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
-                                           bool is_orig, uint64_t seq,
+void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
                                            const IP_Hdr* ip, int caplen)
 	{
-	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
-	                                                            ip, caplen);
+	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
 		orig_endp->DataSent(run_state::network_time, seq, len, caplen, data, nullptr, nullptr);
@@ -184,22 +181,21 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 		resp_endp->DataSent(run_state::network_time, seq, len, caplen, data, nullptr, nullptr);
 	}
 
-void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
-                                           bool is_orig)
+void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( is_orig )
 		{
-		orig_endp->DataSent(run_state::network_time, orig_stream_pos, len, len,
-		                    data, nullptr, nullptr);
+		orig_endp->DataSent(run_state::network_time, orig_stream_pos, len, len, data, nullptr,
+		                    nullptr);
 		orig_stream_pos += len;
 		}
 
 	else
 		{
-		resp_endp->DataSent(run_state::network_time, resp_stream_pos, len, len,
-		                    data, nullptr, nullptr);
+		resp_endp->DataSent(run_state::network_time, resp_stream_pos, len, len, data, nullptr,
+		                    nullptr);
 		resp_stream_pos += len;
 		}
 	}

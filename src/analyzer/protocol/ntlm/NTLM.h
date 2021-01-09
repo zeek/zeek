@@ -7,9 +7,11 @@
 #include "analyzer/protocol/ntlm/events.bif.h"
 #include "analyzer/protocol/ntlm/ntlm_pac.h"
 
-namespace zeek::analyzer::ntlm {
+namespace zeek::analyzer::ntlm
+{
 
-class NTLM_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class NTLM_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 
 public:
 	explicit NTLM_Analyzer(Connection* conn);
@@ -24,17 +26,18 @@ public:
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new NTLM_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new NTLM_Analyzer(conn); }
 
 protected:
 	binpac::NTLM::NTLM_Conn* interp;
-};
+	};
 
 } // namespace zeek::analyzer::ntlm
 
-namespace analyzer::ntlm {
+namespace analyzer::ntlm
+{
 
-using NTLM_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ntlm::NTLM_Analyzer.")]] = zeek::analyzer::ntlm::NTLM_Analyzer;
+using NTLM_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ntlm::NTLM_Analyzer.")]] =
+	zeek::analyzer::ntlm::NTLM_Analyzer;
 
 } // namespace analyzer::ntlm

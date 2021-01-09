@@ -7,10 +7,10 @@
 #include <string_view>
 #include <vector>
 
-#include "zeek/IntrusivePtr.h"
-#include "zeek/Obj.h"
 #include "zeek/Attr.h"
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
+#include "zeek/Obj.h"
 #include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
@@ -20,7 +20,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TableType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
-namespace zeek {
+namespace zeek
+{
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
@@ -33,19 +34,32 @@ using FuncPtr = IntrusivePtr<Func>;
 
 using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 class Attributes;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
-enum InitClass { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
-enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
+enum InitClass
+	{
+	INIT_NONE,
+	INIT_FULL,
+	INIT_EXTRA,
+	INIT_REMOVE,
+	};
+enum IDScope
+	{
+	SCOPE_FUNCTION,
+	SCOPE_MODULE,
+	SCOPE_GLOBAL
+	};
 
 class ID;
 using IDPtr = IntrusivePtr<ID>;
 
-class ID final : public Obj, public notifier::detail::Modifiable {
+class ID final : public Obj, public notifier::detail::Modifiable
+	{
 public:
 	static inline const IDPtr nil;
 
@@ -53,70 +67,68 @@ public:
 
 	~ID() override;
 
-	const char* Name() const	{ return name; }
+	const char* Name() const { return name; }
 
-	int Scope() const		{ return scope; }
-	bool IsGlobal() const           { return scope != SCOPE_FUNCTION; }
+	int Scope() const { return scope; }
+	bool IsGlobal() const { return scope != SCOPE_FUNCTION; }
 
-	bool IsExport() const           { return is_export; }
-	void SetExport()                { is_export = true; }
+	bool IsExport() const { return is_export; }
+	void SetExport() { is_export = true; }
 
 	std::string ModuleName() const;
 
 	void SetType(TypePtr t);
-	[[deprecated("Remove in v4.1.  Use version that takes IntrusivePtr.")]]
-	void SetType(zeek::Type* t);
+	[[deprecated("Remove in v4.1.  Use version that takes IntrusivePtr.")]] void
+	SetType(zeek::Type* t);
 
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::Type* Type()			{ return type.get(); }
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const zeek::Type* Type() const	{ return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]] zeek::Type* Type() { return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]] const zeek::Type* Type() const
+		{
+		return type.get();
+		}
 
-	const TypePtr& GetType() const
-		{ return type; }
+	const TypePtr& GetType() const { return type; }
 
-	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	template <class T> IntrusivePtr<T> GetType() const { return cast_intrusive<T>(type); }
 
-	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	zeek::Type* AsType()		{ return is_type ? GetType().get() : nullptr; }
-	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	const zeek::Type* AsType() const	{ return is_type ? GetType().get() : nullptr; }
+	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]] zeek::Type* AsType()
+		{
+		return is_type ? GetType().get() : nullptr;
+		}
+	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]] const zeek::Type* AsType() const
+		{
+		return is_type ? GetType().get() : nullptr;
+		}
 
-	bool IsType() const
-		{ return is_type; }
+	bool IsType() const { return is_type; }
 
-	void MakeType()			{ is_type = true; }
+	void MakeType() { is_type = true; }
 
 	void SetVal(ValPtr v);
 
 	void SetVal(ValPtr v, InitClass c);
 	void SetVal(ExprPtr ev, InitClass c);
 
-	bool HasVal() const		{ return val != nullptr; }
+	bool HasVal() const { return val != nullptr; }
 
-	[[deprecated("Remove in v4.1.  Use GetVal().")]]
-	Val* ID_Val()			{ return val.get(); }
-	[[deprecated("Remove in v4.1.  Use GetVal().")]]
-	const Val* ID_Val() const	{ return val.get(); }
+	[[deprecated("Remove in v4.1.  Use GetVal().")]] Val* ID_Val() { return val.get(); }
+	[[deprecated("Remove in v4.1.  Use GetVal().")]] const Val* ID_Val() const { return val.get(); }
 
-	const ValPtr& GetVal() const
-		{ return val; }
+	const ValPtr& GetVal() const { return val; }
 
 	void ClearVal();
 
-	void SetConst()			{ is_const = true; }
-	bool IsConst() const		{ return is_const; }
+	void SetConst() { is_const = true; }
+	bool IsConst() const { return is_const; }
 
 	void SetOption();
-	bool IsOption() const		{ return is_option; }
+	bool IsOption() const { return is_option; }
 
-	void SetEnumConst()		{ is_enum_const = true; }
-	bool IsEnumConst() const		{ return is_enum_const; }
+	void SetEnumConst() { is_enum_const = true; }
+	bool IsEnumConst() const { return is_enum_const; }
 
-	void SetOffset(int arg_offset)	{ offset = arg_offset; }
-	int Offset() const		{ return offset; }
+	void SetOffset(int arg_offset) { offset = arg_offset; }
+	int Offset() const { return offset; }
 
 	bool IsRedefinable() const;
 
@@ -125,11 +137,12 @@ public:
 	void RemoveAttr(AttrTag a);
 	void UpdateValAttrs();
 
-	const AttributesPtr& GetAttrs() const
-		{ return attrs; }
+	const AttributesPtr& GetAttrs() const { return attrs; }
 
-	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
-	Attributes* Attrs() const	{ return attrs.get(); }
+	[[deprecated("Remove in 4.1.  Use GetAttrs().")]] Attributes* Attrs() const
+		{
+		return attrs.get();
+		}
 
 	const AttrPtr& GetAttr(AttrTag t) const;
 
@@ -148,15 +161,12 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 	void DescribeReSTShort(ODesc* d) const;
 
-	bool DoInferReturnType() const
-		{ return infer_return_type; }
-	void SetInferReturnType(bool infer)
-		{ infer_return_type = infer; }
+	bool DoInferReturnType() const { return infer_return_type; }
+	void SetInferReturnType(bool infer) { infer_return_type = infer; }
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
-	bool HasOptionHandlers() const
-		{ return !option_handlers.empty(); }
+	bool HasOptionHandlers() const { return ! option_handlers.empty(); }
 
 	void AddOptionHandler(FuncPtr callback, int priority);
 	std::vector<Func*> GetOptionHandlers() const;
@@ -179,14 +189,14 @@ protected:
 	AttributesPtr attrs;
 	// contains list of functions that are called when an option changes
 	std::multimap<int, FuncPtr> option_handlers;
-
-};
+	};
 
 } // namespace zeek::detail
 
 using ID [[deprecated("Remove in v4.1. Use zeek::detail::ID instead.")]] = zeek::detail::ID;
 
-namespace zeek::id {
+namespace zeek::id
+{
 
 /**
  * Lookup an ID in the global module and return it, if one exists;
@@ -210,9 +220,10 @@ const TypePtr& find_type(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The type of the identifier.
  */
-template<class T>
-IntrusivePtr<T> find_type(std::string_view name)
-	{ return cast_intrusive<T>(find_type(name)); }
+template <class T> IntrusivePtr<T> find_type(std::string_view name)
+	{
+	return cast_intrusive<T>(find_type(name));
+	}
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -228,9 +239,10 @@ const ValPtr& find_val(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier.
  */
-template<class T>
-IntrusivePtr<T> find_val(std::string_view name)
-	{ return cast_intrusive<T>(find_val(name)); }
+template <class T> IntrusivePtr<T> find_val(std::string_view name)
+	{
+	return cast_intrusive<T>(find_val(name));
+	}
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -246,9 +258,10 @@ const ValPtr& find_const(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier.
  */
-template<class T>
-IntrusivePtr<T> find_const(std::string_view name)
-	{ return cast_intrusive<T>(find_const(name)); }
+template <class T> IntrusivePtr<T> find_const(std::string_view name)
+	{
+	return cast_intrusive<T>(find_const(name));
+	}
 
 /**
  * Lookup an ID by its name and return the function it references.
@@ -270,7 +283,8 @@ extern TableTypePtr count_set;
 extern VectorTypePtr string_vec;
 extern VectorTypePtr index_vec;
 
-namespace detail {
+namespace detail
+{
 
 void init_types();
 
@@ -279,20 +293,26 @@ void init_types();
 
 using ID [[deprecated("Remove in v4.1 Use zeek::detail::ID instead.")]] = zeek::detail::ID;
 
-using init_class [[deprecated("Remove in v4.1. Use zeek::detail::InitClass instead.")]] = zeek::detail::InitClass;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_NONE instead.")]]
-constexpr auto INIT_NONE = zeek::detail::INIT_NONE;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_FULL instead.")]]
-constexpr auto INIT_FULL = zeek::detail::INIT_FULL;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_EXTRA instead.")]]
-constexpr auto INIT_EXTRA = zeek::detail::INIT_EXTRA;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_REMOVE instead.")]]
-constexpr auto INIT_REMOVE = zeek::detail::INIT_REMOVE;
+using init_class [[deprecated("Remove in v4.1. Use zeek::detail::InitClass instead.")]] =
+	zeek::detail::InitClass;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_NONE instead.")]] constexpr auto INIT_NONE =
+	zeek::detail::INIT_NONE;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_FULL instead.")]] constexpr auto INIT_FULL =
+	zeek::detail::INIT_FULL;
+[[deprecated("Remove in v4.1. Use zeek::detail::INIT_EXTRA instead.")]] constexpr auto INIT_EXTRA =
+	zeek::detail::INIT_EXTRA;
+[[deprecated(
+	"Remove in v4.1. Use zeek::detail::INIT_REMOVE instead.")]] constexpr auto INIT_REMOVE =
+	zeek::detail::INIT_REMOVE;
 
-using IDScope [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] = zeek::detail::IDScope;
-[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_FUNCTION instead.")]]
-constexpr auto SCOPE_FUNCTION = zeek::detail::SCOPE_FUNCTION;
-[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_MODULE instead.")]]
-constexpr auto SCOPE_MODULE = zeek::detail::SCOPE_MODULE;
-[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_GLOBAL instead.")]]
-constexpr auto SCOPE_GLOBAL = zeek::detail::SCOPE_GLOBAL;
+using IDScope [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] =
+	zeek::detail::IDScope;
+[[deprecated(
+	"Remove in v4.1. Use zeek::detail::SCOPE_FUNCTION instead.")]] constexpr auto SCOPE_FUNCTION =
+	zeek::detail::SCOPE_FUNCTION;
+[[deprecated(
+	"Remove in v4.1. Use zeek::detail::SCOPE_MODULE instead.")]] constexpr auto SCOPE_MODULE =
+	zeek::detail::SCOPE_MODULE;
+[[deprecated(
+	"Remove in v4.1. Use zeek::detail::SCOPE_GLOBAL instead.")]] constexpr auto SCOPE_GLOBAL =
+	zeek::detail::SCOPE_GLOBAL;

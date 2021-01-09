@@ -8,11 +8,17 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::zip {
+namespace zeek::analyzer::zip
+{
 
-class ZIP_Analyzer final : public analyzer::tcp::TCP_SupportAnalyzer {
+class ZIP_Analyzer final : public analyzer::tcp::TCP_SupportAnalyzer
+	{
 public:
-	enum Method { GZIP, DEFLATE };
+	enum Method
+		{
+		GZIP,
+		DEFLATE
+		};
 
 	ZIP_Analyzer(Connection* conn, bool orig, Method method = GZIP);
 	~ZIP_Analyzer() override;
@@ -22,16 +28,23 @@ public:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 protected:
-	enum { NONE, ZIP_OK, ZIP_FAIL };
+	enum
+		{
+		NONE,
+		ZIP_OK,
+		ZIP_FAIL
+		};
 	z_stream* zip;
 	int zip_status;
 	Method method;
-};
+	};
 
 } // namespace zeek::analyzer::zip
 
-namespace analyzer::zip {
+namespace analyzer::zip
+{
 
-using ZIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::zip::ZIP_Analyzer.")]] = zeek::analyzer::zip::ZIP_Analyzer;
+using ZIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::zip::ZIP_Analyzer.")]] =
+	zeek::analyzer::zip::ZIP_Analyzer;
 
 } // namespace analyzer::zip

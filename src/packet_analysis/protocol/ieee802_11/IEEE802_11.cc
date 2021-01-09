@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::IEEE802_11;
 
-IEEE802_11Analyzer::IEEE802_11Analyzer()
-	: zeek::packet_analysis::Analyzer("IEEE802_11")
-	{
-	}
+IEEE802_11Analyzer::IEEE802_11Analyzer() : zeek::packet_analysis::Analyzer("IEEE802_11") { }
 
 bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
@@ -90,8 +87,8 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	// field indicates that this is an unnumbered frame.
 	// The organization code (24bits) needs to also be zero to
 	// indicate that this is encapsulated ethernet.
-	if ( data[0] == 0xAA && data[1] == 0xAA && data[2] == 0x03 &&
-	     data[3] == 0 && data[4] == 0 && data[5] == 0 )
+	if ( data[0] == 0xAA && data[1] == 0xAA && data[2] == 0x03 && data[3] == 0 && data[4] == 0 &&
+	     data[5] == 0 )
 		{
 		data += 6;
 		}

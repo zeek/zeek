@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "zeek/ZeekList.h"
 
@@ -36,14 +36,15 @@ extern const char* filename;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 extern int zeek_argc;
 extern char** zeek_argv;
 extern const char* prog;
 
-extern std::vector<std::string> zeek_script_prefixes;	// -p flag
-extern const char* command_line_policy;	// -e flag
+extern std::vector<std::string> zeek_script_prefixes; // -p flag
+extern const char* command_line_policy; // -e flag
 extern std::vector<std::string> params;
 
 extern Stmt* stmts; // global statements
@@ -54,8 +55,10 @@ extern int& bro_argc [[deprecated("Remove in v4.1. Use zeek::detail::zeek_argc."
 extern char**& bro_argv [[deprecated("Remove in v4.1. Use zeek::detail::zeek_argv.")]];
 extern const char*& prog [[deprecated("Remove in v4.1. Use zeek::detail::prog.")]];
 
-extern std::vector<std::string>& zeek_script_prefixes [[deprecated("Remove in v4.1. Use zeek::detail::zeek_script_prefixes.")]];
-extern const char*& command_line_policy [[deprecated("Remove in v4.1. Use zeek::detail::command_line_policy.")]];
+extern std::vector<std::string>& zeek_script_prefixes
+	[[deprecated("Remove in v4.1. Use zeek::detail::zeek_script_prefixes.")]];
+extern const char*& command_line_policy
+	[[deprecated("Remove in v4.1. Use zeek::detail::command_line_policy.")]];
 extern std::vector<std::string>& params [[deprecated("Remove in v4.1. Use zeek::detail::params.")]];
 
 extern zeek::detail::Stmt*& stmts [[deprecated("Remove in v4.1. Use zeek::detail::stmts.")]];

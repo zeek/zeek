@@ -9,30 +9,31 @@
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-class ProfileFunc : public TraversalCallback {
+class ProfileFunc : public TraversalCallback
+	{
 public:
 	// If the argument is true, then we compute a hash over the function's
 	// AST to (pseudo-)uniquely identify it.
-	ProfileFunc(bool _compute_hash = false)
-		{ compute_hash = _compute_hash; }
+	ProfileFunc(bool _compute_hash = false) { compute_hash = _compute_hash; }
 
-	std::unordered_set<const ID*>& Globals()	{ return globals; }
-	std::unordered_set<const ID*>& Locals()		{ return locals; }
-	std::unordered_set<const ID*>& Inits()		{ return inits; }
-	std::unordered_set<ScriptFunc*>& ScriptCalls()	{ return script_calls; }
-	std::unordered_set<Func*>& BiFCalls()		{ return BiF_calls; }
-	std::unordered_set<ScriptFunc*>& WhenCalls()	{ return when_calls; }
-	std::unordered_set<const char*>& Events()	{ return events; }
-	bool DoesIndirectCalls()		{ return does_indirect_calls; }
+	std::unordered_set<const ID*>& Globals() { return globals; }
+	std::unordered_set<const ID*>& Locals() { return locals; }
+	std::unordered_set<const ID*>& Inits() { return inits; }
+	std::unordered_set<ScriptFunc*>& ScriptCalls() { return script_calls; }
+	std::unordered_set<Func*>& BiFCalls() { return BiF_calls; }
+	std::unordered_set<ScriptFunc*>& WhenCalls() { return when_calls; }
+	std::unordered_set<const char*>& Events() { return events; }
+	bool DoesIndirectCalls() { return does_indirect_calls; }
 
-	std::size_t HashVal()	{ return hash_val; }
+	std::size_t HashVal() { return hash_val; }
 
-	int NumStmts()		{ return num_stmts; }
-	int NumWhenStmts()	{ return num_when_stmts; }
-	int NumExprs()		{ return num_exprs; }
-	int NumLambdas()	{ return num_lambdas; }
+	int NumStmts() { return num_stmts; }
+	int NumWhenStmts() { return num_when_stmts; }
+	int NumExprs() { return num_exprs; }
+	int NumLambdas() { return num_lambdas; }
 
 protected:
 	TraversalCode PreStmt(const Stmt*) override;
@@ -94,7 +95,7 @@ protected:
 
 	void UpdateHash(int val)
 		{
-		auto h = std::hash<int>{}(val);
+		auto h = std::hash<int> {}(val);
 		MergeInHash(h);
 		}
 
@@ -117,7 +118,6 @@ protected:
 	// sub-records but also records that have no names.
 	std::unordered_set<std::string> seen_types;
 	std::unordered_set<const Type*> seen_type_ptrs;
-};
-
+	};
 
 } // namespace zeek::detail

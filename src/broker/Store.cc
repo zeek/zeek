@@ -1,12 +1,15 @@
 #include "zeek/broker/Store.h"
+
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/broker/Manager.h"
 
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_store_handle;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_store_handle = zeek::Broker::detail::opaque_of_store_handle;
+zeek::OpaqueTypePtr& bro_broker::opaque_of_store_handle =
+	zeek::Broker::detail::opaque_of_store_handle;
 
-namespace zeek::Broker::detail {
+namespace zeek::Broker::detail
+{
 
 EnumValPtr query_status(bool success)
 	{
@@ -27,27 +30,27 @@ EnumValPtr query_status(bool success)
 
 void StoreHandleVal::ValDescribe(ODesc* d) const
 	{
-	//using BifEnum::Broker::BackendType;
+	// using BifEnum::Broker::BackendType;
 	d->Add("broker::store::");
 
-	//switch ( store_type ) {
-  //  case broker::frontend::FRONTEND:
+	// switch ( store_type ) {
+	//  case broker::frontend::FRONTEND:
 	//	d->Add("frontend");
 	//	break;
-  //  case broker::frontend::MASTER:
+	//  case broker::frontend::MASTER:
 	//	d->Add("master");
 	//	break;
-  //  case broker::frontend::CLONE:
+	//  case broker::frontend::CLONE:
 	//	d->Add("clone");
 	//	break;
-	//default:
+	// default:
 	//	d->Add("unknown");
 	//	}
 
 	d->Add("{");
 	d->Add(store.name());
 
-	//if ( backend_type )
+	// if ( backend_type )
 	//	{
 	//	d->Add(", ");
 
@@ -85,43 +88,44 @@ bool StoreHandleVal::DoUnserialize(const broker::data& data)
 
 broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
-	switch ( type ) {
-	case BifEnum::Broker::MEMORY:
-		return broker::backend::memory;
+	switch ( type )
+		{
+		case BifEnum::Broker::MEMORY:
+			return broker::backend::memory;
 
-	case BifEnum::Broker::SQLITE:
-		return broker::backend::sqlite;
+		case BifEnum::Broker::SQLITE:
+			return broker::backend::sqlite;
 
-	case BifEnum::Broker::ROCKSDB:
-		return broker::backend::rocksdb;
-	}
+		case BifEnum::Broker::ROCKSDB:
+			return broker::backend::rocksdb;
+		}
 
 	throw std::runtime_error("unknown broker backend");
 	}
 
-broker::backend_options to_backend_options(broker::backend backend,
-                                           RecordVal* options)
+broker::backend_options to_backend_options(broker::backend backend, RecordVal* options)
 	{
-	switch ( backend ) {
-	case broker::backend::sqlite:
+	switch ( backend )
 		{
-		auto path = options->GetField(0)->AsRecordVal()
-			->GetField(0)->AsStringVal()->CheckString();
-		return {{"path", path}};
+		case broker::backend::sqlite:
+			{
+			auto path =
+				options->GetField(0)->AsRecordVal()->GetField(0)->AsStringVal()->CheckString();
+			return {{"path", path}};
+			}
+
+		case broker::backend::rocksdb:
+			{
+			auto path =
+				options->GetField(1)->AsRecordVal()->GetField(0)->AsStringVal()->CheckString();
+			return {{"path", path}};
+			}
+
+		default:
+			break;
 		}
 
-	case broker::backend::rocksdb:
-		{
-		auto path = options->GetField(1)->AsRecordVal()
-			->GetField(0)->AsStringVal()->CheckString();
-		return {{"path", path}};
-		}
-
-	default:
-		break;
-	}
-
-	return broker::backend_options{};
+	return broker::backend_options {};
 	}
 
 } // namespace zeek::Broker

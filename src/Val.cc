@@ -1,71 +1,60 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/Val.h"
 
-#include <sys/types.h>
-#include <sys/param.h>
-
-#include <netinet/in.h>
 #include <netdb.h>
-#include <unistd.h>
-
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <sys/param.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <cmath>
 #include <set>
 
 #include "zeek/Attr.h"
-#include "zeek/ZeekString.h"
 #include "zeek/CompHash.h"
+#include "zeek/Conn.h"
+#include "zeek/Desc.h"
 #include "zeek/Dict.h"
-#include "zeek/RunState.h"
+#include "zeek/Expr.h"
 #include "zeek/File.h"
 #include "zeek/Func.h"
-#include "zeek/Desc.h"
-#include "zeek/IntrusivePtr.h"
 #include "zeek/ID.h"
-#include "zeek/RE.h"
-#include "zeek/Scope.h"
-#include "zeek/NetVar.h"
-#include "zeek/Expr.h"
-#include "zeek/PrefixTable.h"
-#include "zeek/Conn.h"
-#include "zeek/Reporter.h"
 #include "zeek/IPAddr.h"
-#include "zeek/ID.h"
-
+#include "zeek/IntrusivePtr.h"
+#include "zeek/NetVar.h"
+#include "zeek/PrefixTable.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/Scope.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekString.h"
 #include "zeek/broker/Data.h"
-#include "zeek/broker/Store.h"
 #include "zeek/broker/Manager.h"
-
+#include "zeek/broker/Store.h"
 #include "zeek/threading/formatters/JSON.h"
 
 using namespace std;
 
-namespace zeek {
+namespace zeek
+{
 
-Val::Val(Func* f) : Val({NewRef{}, f})
-	{}
+Val::Val(Func* f) : Val({NewRef {}, f}) { }
 
-Val::Val(FuncPtr f)
-	: val(f.release()), type(val.func_val->GetType())
-	{}
+Val::Val(FuncPtr f) : val(f.release()), type(val.func_val->GetType()) { }
 
 static const FileTypePtr& GetStringFileType() noexcept
 	{
-	static auto string_file_type
-		= make_intrusive<FileType>(base_type(TYPE_STRING));
+	static auto string_file_type = make_intrusive<FileType>(base_type(TYPE_STRING));
 
 	return string_file_type;
 	}
 
-Val::Val(File* f) : Val({AdoptRef{}, f})
-	{}
+Val::Val(File* f) : Val({AdoptRef {}, f}) { }
 
-Val::Val(FilePtr f)
-	: val(f.release()), type(GetStringFileType())
+Val::Val(FilePtr f) : val(f.release()), type(GetStringFileType())
 	{
 	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
 	}
@@ -82,26 +71,26 @@ Val::~Val()
 		Unref(val.file_val);
 
 #ifdef DEBUG
-	delete [] bound_id;
+	delete[] bound_id;
 #endif
 	}
 
-#define CONVERTER(tag, ctype, name) \
-	ctype name() \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name) \
-		return (ctype)(this); \
+#define CONVERTER(tag, ctype, name)                                                                \
+	ctype name()                                                                                   \
+		{                                                                                          \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                   \
+		return (ctype)(this);                                                                      \
 		}
 
-#define CONST_CONVERTER(tag, ctype, name) \
-	const ctype name() const \
-		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name) \
-		return (const ctype)(this); \
+#define CONST_CONVERTER(tag, ctype, name)                                                          \
+	const ctype name() const                                                                       \
+		{                                                                                          \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                   \
+		return (const ctype)(this);                                                                \
 		}
 
-#define CONVERTERS(tag, ctype, name) \
-	CONVERTER(tag, ctype, name) \
+#define CONVERTERS(tag, ctype, name)                                                               \
+	CONVERTER(tag, ctype, name)                                                                    \
 	CONST_CONVERTER(tag, ctype, name)
 
 CONVERTERS(TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
@@ -133,7 +122,7 @@ ValPtr Val::Clone(CloneState* state)
 	auto i = state->clones.find(this);
 
 	if ( i != state->clones.end() )
-		return {NewRef{}, i->second};
+		return {NewRef {}, i->second};
 
 	auto c = DoClone(state);
 
@@ -145,74 +134,85 @@ ValPtr Val::Clone(CloneState* state)
 
 ValPtr Val::DoClone(CloneState* state)
 	{
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-	case TYPE_INTERNAL_UNSIGNED:
-	case TYPE_INTERNAL_DOUBLE:
-	 	// Immutable.
-		return {NewRef{}, this};
+	switch ( type->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+		case TYPE_INTERNAL_UNSIGNED:
+		case TYPE_INTERNAL_DOUBLE:
+			// Immutable.
+			return {NewRef {}, this};
 
-	case TYPE_INTERNAL_OTHER:
-		// Derived classes are responsible for this. Exception:
-		// Functions and files. There aren't any derived classes.
-		if ( type->Tag() == TYPE_FUNC )
-			return make_intrusive<Val>(AsFunc()->DoClone());
+		case TYPE_INTERNAL_OTHER:
+			// Derived classes are responsible for this. Exception:
+			// Functions and files. There aren't any derived classes.
+			if ( type->Tag() == TYPE_FUNC )
+				return make_intrusive<Val>(AsFunc()->DoClone());
 
-		if ( type->Tag() == TYPE_FILE )
-			{
-			// I think we can just ref the file here - it is unclear what else
-			// to do.  In the case of cached files, I think this is equivalent
-			// to what happened before - serialization + unserialization just
-			// have you the same pointer that you already had.  In the case of
-			// non-cached files, the behavior now is different; in the past,
-			// serialize + unserialize gave you a new file object because the
-			// old one was not in the list anymore. This object was
-			// automatically opened. This does not happen anymore - instead you
-			// get the non-cached pointer back which is brought back into the
-			// cache when written too.
-			return {NewRef{}, this};
-			}
+			if ( type->Tag() == TYPE_FILE )
+				{
+				// I think we can just ref the file here - it is unclear what else
+				// to do.  In the case of cached files, I think this is equivalent
+				// to what happened before - serialization + unserialization just
+				// have you the same pointer that you already had.  In the case of
+				// non-cached files, the behavior now is different; in the past,
+				// serialize + unserialize gave you a new file object because the
+				// old one was not in the list anymore. This object was
+				// automatically opened. This does not happen anymore - instead you
+				// get the non-cached pointer back which is brought back into the
+				// cache when written too.
+				return {NewRef {}, this};
+				}
 
-		if ( type->Tag() == TYPE_TYPE )
-			// These are immutable, essentially.
-			return {NewRef{}, this};
+			if ( type->Tag() == TYPE_TYPE )
+				// These are immutable, essentially.
+				return {NewRef {}, this};
 
-		// Fall-through.
+			// Fall-through.
 
-	default:
-		reporter->InternalError("cloning illegal base type");
-	}
+		default:
+			reporter->InternalError("cloning illegal base type");
+		}
 
 	reporter->InternalError("cannot be reached");
 	return nullptr;
- 	}
+	}
 
 FuncPtr Val::AsFuncPtr() const
 	{
 	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
-	return {NewRef{}, val.func_val};
+	return {NewRef {}, val.func_val};
 	}
 
 bool Val::IsZero() const
 	{
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		return val.int_val == 0;
-	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 0;
-	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 0.0;
+	switch ( type->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			return val.int_val == 0;
+		case TYPE_INTERNAL_UNSIGNED:
+			return val.uint_val == 0;
+		case TYPE_INTERNAL_DOUBLE:
+			return val.double_val == 0.0;
 
-	default:			return false;
-	}
+		default:
+			return false;
+		}
 	}
 
 bool Val::IsOne() const
 	{
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		return val.int_val == 1;
-	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 1;
-	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 1.0;
+	switch ( type->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			return val.int_val == 1;
+		case TYPE_INTERNAL_UNSIGNED:
+			return val.uint_val == 1;
+		case TYPE_INTERNAL_DOUBLE:
+			return val.double_val == 1.0;
 
-	default:			return false;
-	}
+		default:
+			return false;
+		}
 	}
 
 bro_int_t Val::InternalInt() const
@@ -292,32 +292,33 @@ double Val::CoerceToDouble() const
 
 ValPtr Val::SizeVal() const
 	{
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-		// Return abs value. However abs() only works on ints and llabs
-		// doesn't work on Mac OS X 10.5. So we do it by hand
-		if ( val.int_val < 0 )
-			return val_mgr->Count(-val.int_val);
-		else
-			return val_mgr->Count(val.int_val);
+	switch ( type->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			// Return abs value. However abs() only works on ints and llabs
+			// doesn't work on Mac OS X 10.5. So we do it by hand
+			if ( val.int_val < 0 )
+				return val_mgr->Count(-val.int_val);
+			else
+				return val_mgr->Count(val.int_val);
 
-	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(val.uint_val);
+		case TYPE_INTERNAL_UNSIGNED:
+			return val_mgr->Count(val.uint_val);
 
-	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<DoubleVal>(fabs(val.double_val));
+		case TYPE_INTERNAL_DOUBLE:
+			return make_intrusive<DoubleVal>(fabs(val.double_val));
 
-	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
+		case TYPE_INTERNAL_OTHER:
+			if ( type->Tag() == TYPE_FUNC )
+				return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
 
-		if ( type->Tag() == TYPE_FILE )
-			return make_intrusive<DoubleVal>(val.file_val->Size());
-		break;
+			if ( type->Tag() == TYPE_FILE )
+				return make_intrusive<DoubleVal>(val.file_val->Size());
+			break;
 
-	default:
-		break;
-	}
+		default:
+			break;
+		}
 
 	return val_mgr->Count(0);
 	}
@@ -363,54 +364,67 @@ void Val::ValDescribe(ODesc* d) const
 		return;
 		}
 
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		d->Add(val.int_val); break;
-	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
-	case TYPE_INTERNAL_DOUBLE:	d->Add(val.double_val); break;
-	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
-	case TYPE_INTERNAL_ADDR:	d->Add(val.addr_val->AsString().c_str()); break;
+	switch ( type->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			d->Add(val.int_val);
+			break;
+		case TYPE_INTERNAL_UNSIGNED:
+			d->Add(val.uint_val);
+			break;
+		case TYPE_INTERNAL_DOUBLE:
+			d->Add(val.double_val);
+			break;
+		case TYPE_INTERNAL_STRING:
+			d->AddBytes(val.string_val);
+			break;
+		case TYPE_INTERNAL_ADDR:
+			d->Add(val.addr_val->AsString().c_str());
+			break;
 
-	case TYPE_INTERNAL_SUBNET:
-		d->Add(val.subnet_val->AsString().c_str());
-		break;
+		case TYPE_INTERNAL_SUBNET:
+			d->Add(val.subnet_val->AsString().c_str());
+			break;
 
-	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
-	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FUNC )
-			AsFunc()->Describe(d);
-		else if ( type->Tag() == TYPE_FILE )
-			AsFile()->Describe(d);
-		else if ( type->Tag() == TYPE_TYPE )
-			d->Add(type->AsTypeType()->GetType()->GetName());
-		else
-			d->Add("<no value description>");
-		break;
+		case TYPE_INTERNAL_ERROR:
+			d->AddCS("error");
+			break;
+		case TYPE_INTERNAL_OTHER:
+			if ( type->Tag() == TYPE_FUNC )
+				AsFunc()->Describe(d);
+			else if ( type->Tag() == TYPE_FILE )
+				AsFile()->Describe(d);
+			else if ( type->Tag() == TYPE_TYPE )
+				d->Add(type->AsTypeType()->GetType()->GetName());
+			else
+				d->Add("<no value description>");
+			break;
 
-	case TYPE_INTERNAL_VOID:
-		d->Add("<void value description>");
-		break;
+		case TYPE_INTERNAL_VOID:
+			d->Add("<void value description>");
+			break;
 
-	default:
-		reporter->InternalWarning("Val description unavailable");
-		d->Add("<value description unavailable>");
-		break;
-	}
+		default:
+			reporter->InternalWarning("Val description unavailable");
+			d->Add("<value description unavailable>");
+			break;
+		}
 	}
 
 void Val::ValDescribeReST(ODesc* d) const
 	{
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_OTHER:
-		Describe(d);
-		break;
+	switch ( type->InternalType() )
+		{
+		case TYPE_INTERNAL_OTHER:
+			Describe(d);
+			break;
 
-	default:
-		d->Add("``");
-		ValDescribe(d);
-		d->Add("``");
+		default:
+			d->Add("``");
+			ValDescribe(d);
+			d->Add("``");
+		}
 	}
-	}
-
 
 #ifdef DEBUG
 detail::ID* Val::GetID() const
@@ -420,14 +434,14 @@ detail::ID* Val::GetID() const
 
 void Val::SetID(detail::ID* id)
 	{
-	delete [] bound_id;
+	delete[] bound_id;
 	bound_id = id ? util::copy_string(id->Name()) : nullptr;
 	}
 #endif
 
 bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
 	{
-	if ( !to_type || !from_type )
+	if ( ! to_type || ! from_type )
 		return true;
 	else if ( same_type(to_type, from_type) )
 		return false;
@@ -437,7 +451,8 @@ bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, 
 	else if ( to_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		{
 		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
-			return (val->InternalDouble() < 0.0 || val->InternalDouble() > static_cast<double>(UINT64_MAX));
+			return (val->InternalDouble() < 0.0 ||
+			        val->InternalDouble() > static_cast<double>(UINT64_MAX));
 		else if ( from_type->InternalType() == TYPE_INTERNAL_INT )
 			return (val->InternalInt() < 0);
 		}
@@ -488,11 +503,12 @@ TableValPtr Val::GetRecordFields()
 	return rt->GetRecordFieldsVal(rv);
 	}
 
-// This is a static method in this file to avoid including rapidjson's headers in Val.h because they're huge.
+// This is a static method in this file to avoid including rapidjson's headers in Val.h because
+// they're huge.
 static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val* val,
-                      bool only_loggable=false, RE_Matcher* re=nullptr, const string& key="")
+                      bool only_loggable = false, RE_Matcher* re = nullptr, const string& key = "")
 	{
-	if ( !key.empty() )
+	if ( ! key.empty() )
 		writer.Key(key);
 
 	// If the value wasn't set, write a null into the stream and return.
@@ -558,7 +574,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			writer.String(util::json_escape_utf8(std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			writer.String(util::json_escape_utf8(
+				std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
 			break;
 			}
 
@@ -590,8 +607,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 					BuildJSON(key_writer, entry_key, only_loggable, re);
 					string key_str = buffer.GetString();
 
-					if ( key_str.length() >= 2 &&
-					     key_str[0] == '"' &&
+					if ( key_str.length() >= 2 && key_str[0] == '"' &&
 					     key_str[key_str.length() - 1] == '"' )
 						// Strip quotes.
 						key_str = key_str.substr(1, key_str.length() - 2);
@@ -619,7 +635,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				{
 				auto value = rval->GetFieldOrDefault(i);
 
-				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, detail::ATTR_LOG) ) )
+				if ( value && (! only_loggable || rt->FieldHasAttr(i, detail::ATTR_LOG)) )
 					{
 					string key_str;
 					auto field_name = rt->FieldName(i);
@@ -649,7 +665,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 
 			auto* lval = val->AsListVal();
 			size_t size = lval->Length();
-			for (size_t i = 0; i < size; i++)
+			for ( size_t i = 0; i < size; i++ )
 				BuildJSON(writer, lval->Idx(i).get(), only_loggable, re);
 
 			writer.EndArray();
@@ -662,7 +678,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
-			for (size_t i = 0; i < size; i++)
+			for ( size_t i = 0; i < size; i++ )
 				BuildJSON(writer, vval->At(i).get(), only_loggable, re);
 
 			writer.EndArray();
@@ -682,8 +698,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			}
 
 		default:
-		  writer.Null();
-		  break;
+			writer.Null();
+			break;
 		}
 	}
 
@@ -702,12 +718,9 @@ void IntervalVal::ValDescribe(ODesc* d) const
 	using unit_word = std::pair<double, const char*>;
 
 	constexpr std::array<unit_word, 6> units = {
-		unit_word{ Days, "day" },
-		unit_word{ Hours, "hr" },
-		unit_word{ Minutes, "min" },
-		unit_word{ Seconds, "sec" },
-		unit_word{ Milliseconds, "msec" },
-		unit_word{ Microseconds, "usec" },
+		unit_word {Days, "day"},          unit_word {Hours, "hr"},
+		unit_word {Minutes, "min"},       unit_word {Seconds, "sec"},
+		unit_word {Milliseconds, "msec"}, unit_word {Microseconds, "usec"},
 	};
 
 	double v = val.double_val;
@@ -722,10 +735,10 @@ void IntervalVal::ValDescribe(ODesc* d) const
 	constexpr auto last_idx = units.size() - 1;
 
 	auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool
-		{
+	{
 		auto v = a - b;
 		return v < 0 ? -v < tolerance : v < tolerance;
-		};
+	};
 
 	for ( size_t i = 0; i < units.size(); ++i )
 		{
@@ -786,29 +799,28 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 		port_num = 0;
 		}
 
-	switch ( port_type ) {
-	case TRANSPORT_TCP:
-		port_num |= TCP_PORT_MASK;
-		break;
+	switch ( port_type )
+		{
+		case TRANSPORT_TCP:
+			port_num |= TCP_PORT_MASK;
+			break;
 
-	case TRANSPORT_UDP:
-		port_num |= UDP_PORT_MASK;
-		break;
+		case TRANSPORT_UDP:
+			port_num |= UDP_PORT_MASK;
+			break;
 
-	case TRANSPORT_ICMP:
-		port_num |= ICMP_PORT_MASK;
-		break;
+		case TRANSPORT_ICMP:
+			port_num |= ICMP_PORT_MASK;
+			break;
 
-	default:
-		break;	// "unknown/other"
-	}
+		default:
+			break; // "unknown/other"
+		}
 
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p) : Val(bro_uint_t(p), TYPE_PORT)
-	{
-	}
+PortVal::PortVal(uint32_t p) : Val(bro_uint_t(p), TYPE_PORT) { }
 
 uint32_t PortVal::Port() const
 	{
@@ -854,16 +866,12 @@ void PortVal::ValDescribe(ODesc* d) const
 ValPtr PortVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef{}, this};
+	return {NewRef {}, this};
 	}
 
-AddrVal::AddrVal(const char* text) : Val(new IPAddr(text), TYPE_ADDR)
-	{
-	}
+AddrVal::AddrVal(const char* text) : Val(new IPAddr(text), TYPE_ADDR) { }
 
-AddrVal::AddrVal(const std::string& text) : AddrVal(text.c_str())
-	{
-	}
+AddrVal::AddrVal(const std::string& text) : AddrVal(text.c_str()) { }
 
 AddrVal::AddrVal(uint32_t addr) : Val(new IPAddr(IPv4, &addr, IPAddr::Network), TYPE_ADDR)
 	{
@@ -874,9 +882,7 @@ AddrVal::AddrVal(const uint32_t addr[4]) : Val(new IPAddr(IPv6, addr, IPAddr::Ne
 	{
 	}
 
-AddrVal::AddrVal(const IPAddr& addr) : Val(new IPAddr(addr), TYPE_ADDR)
-	{
-	}
+AddrVal::AddrVal(const IPAddr& addr) : Val(new IPAddr(addr), TYPE_ADDR) { }
 
 AddrVal::~AddrVal()
 	{
@@ -899,7 +905,7 @@ ValPtr AddrVal::SizeVal() const
 ValPtr AddrVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef{}, this};
+	return {NewRef {}, this};
 	}
 
 SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
@@ -908,25 +914,22 @@ SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
 		reporter->Error("Bad string in SubNetVal ctor: %s", text);
 	}
 
-SubNetVal::SubNetVal(const char* text, int width) : Val(new IPPrefix(text, width), TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text, int width) : Val(new IPPrefix(text, width), TYPE_SUBNET) { }
+
+SubNetVal::SubNetVal(uint32_t addr, int width)
+	: SubNetVal(IPAddr {IPv4, &addr, IPAddr::Network}, width)
 	{
 	}
 
-SubNetVal::SubNetVal(uint32_t addr, int width) : SubNetVal(IPAddr{IPv4, &addr, IPAddr::Network}, width)
+SubNetVal::SubNetVal(const uint32_t* addr, int width)
+	: SubNetVal(IPAddr {IPv6, addr, IPAddr::Network}, width)
 	{
 	}
 
-SubNetVal::SubNetVal(const uint32_t* addr, int width) : SubNetVal(IPAddr{IPv6, addr, IPAddr::Network}, width)
-	{
-	}
+SubNetVal::SubNetVal(const IPAddr& addr, int width)
+	: Val(new IPPrefix(addr, width), TYPE_SUBNET) { }
 
-SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(new IPPrefix(addr, width), TYPE_SUBNET)
-	{
-	}
-
-SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(new IPPrefix(prefix), TYPE_SUBNET)
-	{
-	}
+SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(new IPPrefix(prefix), TYPE_SUBNET) { }
 
 SubNetVal::~SubNetVal()
 	{
@@ -977,12 +980,12 @@ IPAddr SubNetVal::Mask() const
 
 	uint32_t w;
 	for ( w = val.subnet_val->Length(); w >= 32; w -= 32 )
-		   *(mp++) = 0xffffffff;
+		*(mp++) = 0xffffffff;
 
 	*mp = ~((1 << (32 - w)) - 1);
 
 	while ( ++mp < m + 4 )
-		   *mp = 0;
+		*mp = 0;
 
 	IPAddr rval(IPv6, m, IPAddr::Host);
 	return rval;
@@ -996,12 +999,10 @@ bool SubNetVal::Contains(const IPAddr& addr) const
 ValPtr SubNetVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef{}, this};
+	return {NewRef {}, this};
 	}
 
-StringVal::StringVal(String* s) : Val(s, TYPE_STRING)
-	{
-	}
+StringVal::StringVal(String* s) : Val(s, TYPE_STRING) { }
 
 // The following adds a NUL at the end.
 StringVal::StringVal(int length, const char* s)
@@ -1009,13 +1010,9 @@ StringVal::StringVal(int length, const char* s)
 	{
 	}
 
-StringVal::StringVal(const char* s) : StringVal(new String(s))
-	{
-	}
+StringVal::StringVal(const char* s) : StringVal(new String(s)) { }
 
-StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
-	{
-	}
+StringVal::StringVal(const string& s) : StringVal(s.length(), s.data()) { }
 
 ValPtr StringVal::SizeVal() const
 	{
@@ -1064,8 +1061,7 @@ unsigned int StringVal::MemoryAllocation() const
 	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
 	}
 
-StringValPtr StringVal::Replace(
-	RE_Matcher* re, const String& repl, bool do_all)
+StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 	{
 	const u_char* s = Bytes();
 	int offset = 0;
@@ -1076,14 +1072,13 @@ StringValPtr StringVal::Replace(
 	// at offset x, up to but not including offset y".
 	vector<std::pair<int, int>> cut_points;
 
-	int size = 0;	// size of result
+	int size = 0; // size of result
 
 	while ( n > 0 )
 		{
 		// Find next match offset.
 		int end_of_match;
-		while ( n > 0 &&
-		        (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
+		while ( n > 0 && (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
 			{
 			// This character is going to be copied to the result.
 			++size;
@@ -1154,13 +1149,12 @@ ValPtr StringVal::DoClone(CloneState* state)
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
-	return state->NewClone(this, make_intrusive<StringVal>(
-	        new String((u_char*) val.string_val->Bytes(),
-	                   val.string_val->Len(), true)));
+	return state->NewClone(this,
+	                       make_intrusive<StringVal>(new String((u_char*)val.string_val->Bytes(),
+	                                                            val.string_val->Len(), true)));
 	}
 
-PatternVal::PatternVal(RE_Matcher* re)
-	: Val(base_type(TYPE_PATTERN))
+PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN))
 	{
 	val.re_val = re;
 	}
@@ -1212,21 +1206,17 @@ ValPtr PatternVal::DoClone(CloneState* state)
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
-	auto re = new RE_Matcher(val.re_val->PatternText(),
-	                         val.re_val->AnywherePatternText());
+	auto re = new RE_Matcher(val.re_val->PatternText(), val.re_val->AnywherePatternText());
 	re->Compile();
 	return state->NewClone(this, make_intrusive<PatternVal>(re));
 	}
 
-ListVal::ListVal(TypeTag t)
-	: Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t)))
+ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t)))
 	{
 	tag = t;
 	}
 
-ListVal::~ListVal()
-	{
-	}
+ListVal::~ListVal() { }
 
 ValPtr ListVal::SizeVal() const
 	{
@@ -1241,7 +1231,7 @@ RE_Matcher* ListVal::BuildRE() const
 	RE_Matcher* re = new RE_Matcher();
 	for ( const auto& val : vals )
 		{
-		const char* vs = (const char*) (val->AsString()->Bytes());
+		const char* vs = (const char*)(val->AsString()->Bytes());
 		re->AddPat(vs);
 		}
 
@@ -1263,7 +1253,7 @@ void ListVal::Append(ValPtr v)
 
 void ListVal::Append(Val* v)
 	{
-	Append({AdoptRef{}, v});
+	Append({AdoptRef {}, v});
 	}
 
 TableValPtr ListVal::ToSetVal() const
@@ -1363,7 +1353,7 @@ void TableValTimer::Dispatch(double t, bool is_expire)
 
 static void table_entry_val_delete_func(void* val)
 	{
-	TableEntryVal* tv = (TableEntryVal*) val;
+	TableEntryVal* tv = (TableEntryVal*)val;
 	delete tv;
 	}
 
@@ -1372,39 +1362,40 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
 	if ( ! t )
 		return;
 
-	switch ( t->Tag() ) {
-	case TYPE_RECORD:
+	switch ( t->Tag() )
 		{
-		auto rt = t->AsRecordType();
-		found->emplace(rt);
+		case TYPE_RECORD:
+			{
+			auto rt = t->AsRecordType();
+			found->emplace(rt);
 
-		for ( auto i = 0; i < rt->NumFields(); ++i )
-			find_nested_record_types(rt->FieldDecl(i)->type, found);
+			for ( auto i = 0; i < rt->NumFields(); ++i )
+				find_nested_record_types(rt->FieldDecl(i)->type, found);
+			}
+			return;
+		case TYPE_TABLE:
+			find_nested_record_types(t->AsTableType()->GetIndices(), found);
+			find_nested_record_types(t->AsTableType()->Yield(), found);
+			return;
+		case TYPE_LIST:
+			{
+			for ( const auto& type : t->AsTypeList()->GetTypes() )
+				find_nested_record_types(type, found);
+			}
+			return;
+		case TYPE_FUNC:
+			find_nested_record_types(t->AsFuncType()->Params(), found);
+			find_nested_record_types(t->AsFuncType()->Yield(), found);
+			return;
+		case TYPE_VECTOR:
+			find_nested_record_types(t->AsVectorType()->Yield(), found);
+			return;
+		case TYPE_TYPE:
+			find_nested_record_types(t->AsTypeType()->GetType(), found);
+			return;
+		default:
+			return;
 		}
-		return;
-	case TYPE_TABLE:
-		find_nested_record_types(t->AsTableType()->GetIndices(), found);
-		find_nested_record_types(t->AsTableType()->Yield(), found);
-		return;
-	case TYPE_LIST:
-		{
-		for ( const auto& type : t->AsTypeList()->GetTypes() )
-			find_nested_record_types(type, found);
-		}
-		return;
-	case TYPE_FUNC:
-		find_nested_record_types(t->AsFuncType()->Params(), found);
-		find_nested_record_types(t->AsFuncType()->Yield(), found);
-		return;
-	case TYPE_VECTOR:
-		find_nested_record_types(t->AsVectorType()->Yield(), found);
-		return;
-	case TYPE_TYPE:
-		find_nested_record_types(t->AsTypeType()->GetType(), found);
-		return;
-	default:
-		return;
-	}
 	}
 
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
@@ -1423,7 +1414,7 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 		find_nested_record_types(t, &found);
 
 		for ( auto rt : found )
-			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);
+			parse_time_table_record_dependencies[rt].emplace_back(NewRef {}, this);
 		}
 	}
 
@@ -1473,8 +1464,7 @@ int TableVal::RecursiveSize() const
 	{
 	int n = AsTable()->Length();
 
-	if ( GetType()->IsSet() ||
-	     GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
+	if ( GetType()->IsSet() || GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
 		return n;
 
 	PDict<TableEntryVal>* v = val.table_val;
@@ -1518,7 +1508,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 		assert(c);
 		assert(c->GetType()->Tag() == TYPE_STRING);
 		broker_store = c->AsStringVal()->AsString()->CheckString();
-		broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
+		broker_mgr->AddForwardedStore(broker_store, {NewRef {}, this});
 		}
 	}
 
@@ -1559,16 +1549,17 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward,
 		return false;
 		}
 
-	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
+	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward,
+	              iterators_invalidated);
 	}
 
 bool TableVal::Assign(Val* index, Val* new_val)
 	{
-	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
+	return Assign({NewRef {}, index}, {AdoptRef {}, new_val});
 	}
 
-bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
-                      ValPtr new_val, bool broker_forward, bool* iterators_invalidated)
+bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val,
+                      bool broker_forward, bool* iterators_invalidated)
 	{
 	bool is_set = table_type->IsSet();
 
@@ -1577,7 +1568,8 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
 	detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
-	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val, iterators_invalidated);
+	TableEntryVal* old_entry_val =
+		AsNonConstTable()->Insert(k.get(), new_entry_val, iterators_invalidated);
 
 	// If the dictionary index already existed, the insert may free up the
 	// memory allocated to the key bytes, so have to assume k is invalid
@@ -1601,13 +1593,13 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 
 	Modified();
 
-	if ( change_func || ( broker_forward && ! broker_store.empty() ) )
+	if ( change_func || (broker_forward && ! broker_store.empty()) )
 		{
-		auto change_index = index ? std::move(index)
-		                          : RecreateIndex(k_copy);
+		auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 
 		if ( broker_forward && ! broker_store.empty() )
-			SendToStore(change_index.get(), new_entry_val, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			SendToStore(change_index.get(), new_entry_val,
+			            old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 
 		if ( change_func )
 			{
@@ -1623,7 +1615,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 
 bool TableVal::Assign(Val* index, detail::HashKey* k, Val* new_val)
 	{
-	return Assign({NewRef{}, index}, std::unique_ptr<detail::HashKey>{k}, {AdoptRef{}, new_val});
+	return Assign({NewRef {}, index}, std::unique_ptr<detail::HashKey> {k}, {AdoptRef {}, new_val});
 	}
 
 ValPtr TableVal::SizeVal() const
@@ -1659,7 +1651,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	TableEntryVal* v;
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
-		std::unique_ptr<detail::HashKey> hk{k};
+		std::unique_ptr<detail::HashKey> hk {k};
 
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
@@ -1672,12 +1664,12 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 		if ( type->IsSet() )
 			{
 			if ( ! t->Assign(v->GetVal(), std::move(hk), nullptr) )
-				 return false;
+				return false;
 			}
 		else
 			{
 			if ( ! t->Assign(nullptr, std::move(hk), v->GetVal()) )
-				 return false;
+				return false;
 			}
 		}
 
@@ -1854,7 +1846,6 @@ bool TableVal::ExpandAndInit(ValPtr index, ValPtr new_val)
 		}
 	}
 
-
 ValPtr TableVal::Default(const ValPtr& index)
 	{
 	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
@@ -1869,12 +1860,11 @@ ValPtr TableVal::Default(const ValPtr& index)
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
 		     ! same_type(dtype, ytype) &&
-		     record_promotion_compatible(dtype->AsRecordType(),
-						 ytype->AsRecordType()) )
+		     record_promotion_compatible(dtype->AsRecordType(), ytype->AsRecordType()) )
 			{
 			auto rt = cast_intrusive<RecordType>(ytype);
-			auto coerce = make_intrusive<detail::RecordCoerceExpr>(
-				def_attr->GetExpr(), std::move(rt));
+			auto coerce =
+				make_intrusive<detail::RecordCoerceExpr>(def_attr->GetExpr(), std::move(rt));
 
 			def_val = coerce->Eval(nullptr);
 			}
@@ -1900,7 +1890,8 @@ ValPtr TableVal::Default(const ValPtr& index)
 			return def_val->Clone();
 			}
 		catch ( InterpreterException& e )
-			{ /* Already reported. */ }
+			{ /* Already reported. */
+			}
 
 		Error("&default value for table is not clone-able");
 		return nullptr;
@@ -1928,7 +1919,8 @@ ValPtr TableVal::Default(const ValPtr& index)
 		}
 
 	catch ( InterpreterException& e )
-		{ /* Already reported. */ }
+		{ /* Already reported. */
+		}
 
 	if ( ! result )
 		{
@@ -1943,7 +1935,7 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 	{
 	if ( subnets )
 		{
-		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index.get());
+		TableEntryVal* v = (TableEntryVal*)subnets->Lookup(index.get());
 		if ( v )
 			{
 			if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
@@ -2007,7 +1999,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 	{
 	static ValPtr last_default;
 	last_default = nullptr;
-	ValPtr idx{NewRef{}, index};
+	ValPtr idx {NewRef {}, index};
 
 	if ( const auto& rval = Find(idx) )
 		return rval.get();
@@ -2066,7 +2058,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 	TableEntryVal* v;
 
 	if ( subnets )
-		v = (TableEntryVal*) subnets->Lookup(index);
+		v = (TableEntryVal*)subnets->Lookup(index);
 	else
 		{
 		auto k = MakeHashKey(*index);
@@ -2090,9 +2082,7 @@ ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const
 	return table_hash->RecoverVals(k);
 	}
 
-void TableVal::CallChangeFunc(const ValPtr& index,
-                              const ValPtr& old_value,
-                              OnChangeType tpe)
+void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe)
 	{
 	if ( ! change_func || ! index || in_change_func )
 		return;
@@ -2122,23 +2112,26 @@ void TableVal::CallChangeFunc(const ValPtr& index,
 		else
 			vl.reserve(3 + table_type->IsTable());
 
-		vl.emplace_back(NewRef{}, this);
+		vl.emplace_back(NewRef {}, this);
 
 		switch ( tpe )
 			{
 			case ELEMENT_NEW:
-				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_NEW));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(
+					BifEnum::TableChange::TABLE_ELEMENT_NEW));
 				break;
 			case ELEMENT_CHANGED:
-				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(
+					BifEnum::TableChange::TABLE_ELEMENT_CHANGED));
 				break;
 			case ELEMENT_REMOVED:
-				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(
+					BifEnum::TableChange::TABLE_ELEMENT_REMOVED));
 				break;
 			case ELEMENT_EXPIRED:
-				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
+				vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(
+					BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
-
 
 		if ( index->GetType()->Tag() == TYPE_LIST )
 			{
@@ -2173,11 +2166,11 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		if ( ! handle )
 			return;
 
-		// For simple indexes, we either get passed the raw index_val - or a ListVal with exactly one element.
-		// We unoll this in the second case.
-		// For complex indexes, we just pass the ListVal.
+		// For simple indexes, we either get passed the raw index_val - or a ListVal with exactly
+		// one element. We unoll this in the second case. For complex indexes, we just pass the
+		// ListVal.
 		const Val* index_val;
-		if ( index->GetType()->Tag() == TYPE_LIST && index->AsListVal()->Length() == 1)
+		if ( index->GetType()->Tag() == TYPE_LIST && index->AsListVal()->Length() == 1 )
 			index_val = index->AsListVal()->Idx(0).get();
 		else
 			index_val = index;
@@ -2195,14 +2188,14 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			case ELEMENT_NEW:
 			case ELEMENT_CHANGED:
 				{
-				#ifndef __clang__
-				#pragma GCC diagnostic push
-				#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-				#endif
+#ifndef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 				broker::optional<broker::timespan> expiry;
-				#ifndef __clang__
-				#pragma GCC diagnostic pop
-				#endif
+#ifndef __clang__
+#pragma GCC diagnostic pop
+#endif
 
 				auto expire_time = GetExpireTime();
 				if ( expire_time == 0 )
@@ -2213,8 +2206,10 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) )
 						{
-						// for create expiry, we have to substract the already elapsed time from the expiry.
-						auto e = expire_time - (run_state::network_time - new_entry_val->ExpireAccessTime());
+						// for create expiry, we have to substract the already elapsed time from the
+						// expiry.
+						auto e = expire_time -
+						         (run_state::network_time - new_entry_val->ExpireAccessTime());
 						if ( e <= 0 )
 							// element already expired? Let's not insert it.
 							break;
@@ -2231,7 +2226,8 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( ! new_entry_val )
 						{
-						emit_builtin_error("did not receive new value for Broker datastore send operation");
+						emit_builtin_error(
+							"did not receive new value for Broker datastore send operation");
 						return;
 						}
 
@@ -2260,7 +2256,9 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 		}
 	catch ( InterpreterException& e )
 		{
-		emit_builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
+		emit_builtin_error("The previous error was encountered while trying to resolve the "
+		                   "&broker_store attribute of the set/table. Potentially the "
+		                   "Broker::Store has not been initialized before being used.");
 		}
 	}
 
@@ -2272,7 +2270,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
 	ValPtr va;
 
 	if ( v )
-		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
+		va = v->GetVal() ? v->GetVal() : IntrusivePtr {NewRef {}, this};
 
 	if ( subnets && ! subnets->Remove(&index) )
 		reporter->InternalWarning("index not in prefix table");
@@ -2300,7 +2298,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated)
 	ValPtr va;
 
 	if ( v )
-		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
+		va = v->GetVal() ? v->GetVal() : IntrusivePtr {NewRef {}, this};
 
 	if ( subnets )
 		{
@@ -2314,7 +2312,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated)
 
 	Modified();
 
-	if ( va && ( change_func || ! broker_store.empty() ) )
+	if ( va && (change_func || ! broker_store.empty()) )
 		{
 		auto index = table_hash->RecoverVals(k);
 		if ( ! broker_store.empty() )
@@ -2472,9 +2470,8 @@ void TableVal::Describe(ODesc* d) const
 bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val)
 	{
 	Val* ind_k_v = lv->Idx(k).get();
-	auto ind_k = ind_k_v->GetType()->IsSet() ?
-	      ind_k_v->AsTableVal()->ToListVal() :
-	      ListValPtr{NewRef{}, ind_k_v->AsListVal()};
+	auto ind_k = ind_k_v->GetType()->IsSet() ? ind_k_v->AsTableVal()->ToListVal()
+	                                         : ListValPtr {NewRef {}, ind_k_v->AsListVal()};
 
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
@@ -2503,7 +2500,7 @@ bool TableVal::CheckAndAssign(ValPtr index, ValPtr new_val)
 	Val* v = nullptr;
 	if ( subnets )
 		// We need an exact match here.
-		v = (Val*) subnets->Lookup(index.get(), true);
+		v = (Val*)subnets->Lookup(index.get(), true);
 	else
 		v = Find(index).get();
 
@@ -2527,10 +2524,8 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 	const auto& ytype = GetType()->Yield();
 	const auto& dtype = def_attr->GetExpr()->GetType();
 
-	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-	     ! same_type(dtype, ytype) &&
-	     record_promotion_compatible(dtype->AsRecordType(),
-					 ytype->AsRecordType()) )
+	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD && ! same_type(dtype, ytype) &&
+	     record_promotion_compatible(dtype->AsRecordType(), ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
 
 	def_val = def_attr->GetExpr()->Eval(f);
@@ -2567,8 +2562,8 @@ void TableVal::DoExpire(double t)
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
-	for ( int i = 0; i < zeek::detail::table_incremental_step &&
-		      (v = tbl->NextEntry(k, expire_cookie)); ++i )
+	for ( int i = 0;
+	      i < zeek::detail::table_incremental_step && (v = tbl->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2609,7 +2604,6 @@ void TableVal::DoExpire(double t)
 					delete k;
 					continue;
 					}
-
 				}
 
 			if ( subnets )
@@ -2708,7 +2702,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 			{
 			auto lv = idx->AsListVal();
 			vl.reserve(1 + lv->Length());
-			vl.emplace_back(NewRef{}, this);
+			vl.emplace_back(NewRef {}, this);
 
 			for ( const auto& v : lv->Vals() )
 				vl.emplace_back(v);
@@ -2716,7 +2710,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 		else
 			{
 			vl.reserve(2);
-			vl.emplace_back(NewRef{}, this);
+			vl.emplace_back(NewRef {}, this);
 
 			ListVal* idx_list = idx->AsListVal();
 			// Flatten if only one element
@@ -2799,12 +2793,14 @@ unsigned int TableVal::MemoryAllocation() const
 		size += padded_sizeof(TableEntryVal);
 		}
 
-	return size + padded_sizeof(*this) + val.table_val->MemoryAllocation()
-		+ table_hash->MemoryAllocation();
+	return size + padded_sizeof(*this) + val.table_val->MemoryAllocation() +
+	       table_hash->MemoryAllocation();
 	}
 
 detail::HashKey* TableVal::ComputeHash(const Val* index) const
-	{ return MakeHashKey(*index).release(); }
+	{
+	return MakeHashKey(*index).release();
+	}
 
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
@@ -2872,9 +2868,7 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t, bool init_fields)
-	: RecordVal({NewRef{}, t}, init_fields)
-	{}
+RecordVal::RecordVal(RecordType* t, bool init_fields) : RecordVal({NewRef {}, t}, init_fields) { }
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	{
@@ -2885,7 +2879,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	vl->reserve(n);
 
 	if ( run_state::is_parsing )
-		parse_time_records[rt].emplace_back(NewRef{}, this);
+		parse_time_records[rt].emplace_back(NewRef {}, this);
 
 	if ( ! init_fields )
 		return;
@@ -2914,8 +2908,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 
 		const auto& type = rt->FieldDecl(i)->type;
 
-		if ( def && type->Tag() == TYPE_RECORD &&
-		     def->GetType()->Tag() == TYPE_RECORD &&
+		if ( def && type->Tag() == TYPE_RECORD && def->GetType()->Tag() == TYPE_RECORD &&
 		     ! same_type(def->GetType(), type) )
 			{
 			auto tmp = def->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(type));
@@ -2932,8 +2925,8 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				def = make_intrusive<RecordVal>(cast_intrusive<RecordType>(type));
 
 			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
-				                                     IntrusivePtr{NewRef{}, a});
+				def = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, type->AsTableType()},
+				                               IntrusivePtr {NewRef {}, a});
 
 			else if ( tag == TYPE_VECTOR )
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
@@ -2961,7 +2954,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 void RecordVal::Assign(int field, Val* new_val)
 	{
-	Assign(field, {AdoptRef{}, new_val});
+	Assign(field, {AdoptRef {}, new_val});
 	}
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
@@ -3024,9 +3017,7 @@ ValPtr RecordVal::GetFieldOrDefault(const char* field) const
 	return GetFieldOrDefault(idx);
 	}
 
-RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
-                                 RecordValPtr aggr,
-                                 bool allow_orphaning) const
+RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, RecordValPtr aggr, bool allow_orphaning) const
 	{
 	if ( ! record_promotion_compatible(t.get(), GetType()->AsRecordType()) )
 		return nullptr;
@@ -3048,9 +3039,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 				continue;
 
 			char buf[512];
-			snprintf(buf, sizeof(buf),
-					"orphan field \"%s\" in initialization",
-					rv_t->FieldName(i));
+			snprintf(buf, sizeof(buf), "orphan field \"%s\" in initialization", rv_t->FieldName(i));
 			Error(buf);
 			break;
 			}
@@ -3066,8 +3055,8 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft, v->GetType()) )
 			{
 			auto rhs = make_intrusive<detail::ConstExpr>(v);
-			auto e = make_intrusive<detail::RecordCoerceExpr>(
-				std::move(rhs), cast_intrusive<RecordType>(ft));
+			auto e = make_intrusive<detail::RecordCoerceExpr>(std::move(rhs),
+			                                                  cast_intrusive<RecordType>(ft));
 			aggr->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}
@@ -3076,12 +3065,11 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
-		if ( ! aggr->GetField(i) &&
-		     ! ar_t->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL) )
+		if ( ! aggr->GetField(i) && ! ar_t->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL) )
 			{
 			char buf[512];
-			snprintf(buf, sizeof(buf),
-					"non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
+			snprintf(buf, sizeof(buf), "non-optional field \"%s\" missing in initialization",
+			         ar_t->FieldName(i));
 			Error(buf);
 			}
 
@@ -3091,7 +3079,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, bool allow_orphaning)
 	{
 	if ( same_type(GetType(), t) )
-		return {NewRef{}, this};
+		return {NewRef {}, this};
 
 	return CoerceTo(std::move(t), nullptr, allow_orphaning);
 	}
@@ -3179,10 +3167,10 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *val.record_val)
+	for ( const auto& vlv : *val.record_val )
 		{
 		auto v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.record_val->emplace_back(std::move(v));
+		rv->val.record_val->emplace_back(std::move(v));
 		}
 
 	return rv;
@@ -3196,7 +3184,7 @@ unsigned int RecordVal::MemoryAllocation() const
 	for ( const auto& v : vl )
 		{
 		if ( v )
-		    size += v->MemoryAllocation();
+			size += v->MemoryAllocation();
 		}
 
 	size += util::pad_size(vl.capacity() * sizeof(ValPtr));
@@ -3222,11 +3210,10 @@ void EnumVal::ValDescribe(ODesc* d) const
 ValPtr EnumVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef{}, this};
+	return {NewRef {}, this};
 	}
 
-VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
-	{ }
+VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef {}, t}) { }
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
 	{
@@ -3245,8 +3232,7 @@ ValPtr VectorVal::SizeVal() const
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
+	if ( element && ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
 		return false;
 
 	if ( index >= val.vector_val->size() )
@@ -3258,8 +3244,7 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	return true;
 	}
 
-bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
-                             ValPtr element)
+bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many, ValPtr element)
 	{
 	ResizeAtLeast(index + how_many);
 
@@ -3272,8 +3257,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 bool VectorVal::Insert(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
+	if ( element && ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
 		{
 		return false;
 		}
@@ -3344,13 +3328,13 @@ unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	}
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
-	 {
-	 unsigned int old_size = val.vector_val->size();
-	 if ( new_num_elements <= old_size )
-		 return old_size;
+	{
+	unsigned int old_size = val.vector_val->size();
+	if ( new_num_elements <= old_size )
+		return old_size;
 
-	 return Resize(new_num_elements);
-	 }
+	return Resize(new_num_elements);
+	}
 
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
@@ -3379,16 +3363,13 @@ void VectorVal::ValDescribe(ODesc* d) const
 			d->Add(", ");
 			}
 
-	if ( val.vector_val->size() &&
-	     (*val.vector_val)[val.vector_val->size() - 1] )
+	if ( val.vector_val->size() && (*val.vector_val)[val.vector_val->size() - 1] )
 		(*val.vector_val)[val.vector_val->size() - 1]->Describe(d);
 
 	d->Add("]");
 	}
 
-ValPtr check_and_promote(ValPtr v,
-                         const Type* t,
-                         bool is_init,
+ValPtr check_and_promote(ValPtr v, const Type* t, bool is_init,
                          const detail::Location* expr_location)
 	{
 	if ( ! v )
@@ -3448,60 +3429,66 @@ ValPtr check_and_promote(ValPtr v,
 
 	ValPtr promoted_v;
 
-	switch ( it ) {
-	case TYPE_INTERNAL_INT:
-		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v.get()) )
-			{
-			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v.get(), false, expr_location);
-			return nullptr;
-			}
-		else if ( t_tag == TYPE_INT )
-			promoted_v = val_mgr->Int(v->CoerceToInt());
-		else // enum
-			{
-			reporter->InternalError("bad internal type in check_and_promote()");
-			return nullptr;
-			}
+	switch ( it )
+		{
+		case TYPE_INTERNAL_INT:
+			if ( (vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE) &&
+			     Val::WouldOverflow(vt, t, v.get()) )
+				{
+				t->Error("overflow promoting from unsigned/double to signed arithmetic value",
+				         v.get(), false, expr_location);
+				return nullptr;
+				}
+			else if ( t_tag == TYPE_INT )
+				promoted_v = val_mgr->Int(v->CoerceToInt());
+			else // enum
+				{
+				reporter->InternalError("bad internal type in check_and_promote()");
+				return nullptr;
+				}
 
-		break;
-
-	case TYPE_INTERNAL_UNSIGNED:
-		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v.get()) )
-			{
-			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v.get(), false, expr_location);
-			return nullptr;
-			}
-		else if ( t_tag == TYPE_COUNT )
-			promoted_v = val_mgr->Count(v->CoerceToUnsigned());
-		else // port
-			{
-			reporter->InternalError("bad internal type in check_and_promote()");
-			return nullptr;
-			}
-
-		break;
-
-	case TYPE_INTERNAL_DOUBLE:
-		switch ( t_tag ) {
-		case TYPE_DOUBLE:
-			promoted_v = make_intrusive<DoubleVal>(v->CoerceToDouble());
 			break;
-		case TYPE_INTERVAL:
-			promoted_v = make_intrusive<IntervalVal>(v->CoerceToDouble());
+
+		case TYPE_INTERNAL_UNSIGNED:
+			if ( (vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) &&
+			     Val::WouldOverflow(vt, t, v.get()) )
+				{
+				t->Error("overflow promoting from signed/double to unsigned arithmetic value",
+				         v.get(), false, expr_location);
+				return nullptr;
+				}
+			else if ( t_tag == TYPE_COUNT )
+				promoted_v = val_mgr->Count(v->CoerceToUnsigned());
+			else // port
+				{
+				reporter->InternalError("bad internal type in check_and_promote()");
+				return nullptr;
+				}
+
 			break;
-		case TYPE_TIME:
-			promoted_v = make_intrusive<TimeVal>(v->CoerceToDouble());
+
+		case TYPE_INTERNAL_DOUBLE:
+			switch ( t_tag )
+				{
+				case TYPE_DOUBLE:
+					promoted_v = make_intrusive<DoubleVal>(v->CoerceToDouble());
+					break;
+				case TYPE_INTERVAL:
+					promoted_v = make_intrusive<IntervalVal>(v->CoerceToDouble());
+					break;
+				case TYPE_TIME:
+					promoted_v = make_intrusive<TimeVal>(v->CoerceToDouble());
+					break;
+				default:
+					reporter->InternalError("bad internal type in check_and_promote()");
+					return nullptr;
+				}
 			break;
+
 		default:
 			reporter->InternalError("bad internal type in check_and_promote()");
 			return nullptr;
 		}
-		break;
-
-	default:
-		reporter->InternalError("bad internal type in check_and_promote()");
-		return nullptr;
-	}
 
 	return promoted_v;
 	}
@@ -3524,24 +3511,25 @@ bool same_atomic_val(const Val* v1, const Val* v2)
 	if ( v1->GetType()->Tag() != v2->GetType()->Tag() )
 		return false;
 
-	switch ( v1->GetType()->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-		return v1->InternalInt() == v2->InternalInt();
-	case TYPE_INTERNAL_UNSIGNED:
-		return v1->InternalUnsigned() == v2->InternalUnsigned();
-	case TYPE_INTERNAL_DOUBLE:
-		return v1->InternalDouble() == v2->InternalDouble();
-	case TYPE_INTERNAL_STRING:
-		return Bstr_eq(v1->AsString(), v2->AsString());
-	case TYPE_INTERNAL_ADDR:
-		return v1->AsAddr() == v2->AsAddr();
-	case TYPE_INTERNAL_SUBNET:
-		return v1->AsSubNet() == v2->AsSubNet();
+	switch ( v1->GetType()->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			return v1->InternalInt() == v2->InternalInt();
+		case TYPE_INTERNAL_UNSIGNED:
+			return v1->InternalUnsigned() == v2->InternalUnsigned();
+		case TYPE_INTERNAL_DOUBLE:
+			return v1->InternalDouble() == v2->InternalDouble();
+		case TYPE_INTERNAL_STRING:
+			return Bstr_eq(v1->AsString(), v2->AsString());
+		case TYPE_INTERNAL_ADDR:
+			return v1->AsAddr() == v2->AsAddr();
+		case TYPE_INTERNAL_SUBNET:
+			return v1->AsSubNet() == v2->AsSubNet();
 
-	default:
-		reporter->InternalWarning("same_atomic_val called for non-atomic value");
-		return false;
-	}
+		default:
+			reporter->InternalWarning("same_atomic_val called for non-atomic value");
+			return false;
+		}
 
 	return false;
 	}
@@ -3563,8 +3551,7 @@ void describe_vals(const ValPList* vals, ODesc* d, int offset)
 		}
 	}
 
-void describe_vals(const std::vector<ValPtr>& vals,
-                   ODesc* d, size_t offset)
+void describe_vals(const std::vector<ValPtr>& vals, ODesc* d, size_t offset)
 	{
 	if ( ! d->IsReadable() )
 		{
@@ -3602,7 +3589,7 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
 	if ( same_type(v->GetType(), t) )
-		return {NewRef{}, v};
+		return {NewRef {}, v};
 
 	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) )
 		{
@@ -3637,7 +3624,7 @@ bool can_cast_value_to_type(const Val* v, Type* t)
 		if ( ! dv )
 			return false;
 
-		return static_cast<const Broker::detail::DataVal *>(dv.get())->canCastTo(t);
+		return static_cast<const Broker::detail::DataVal*>(dv.get())->canCastTo(t);
 		}
 
 	return false;
@@ -3664,17 +3651,17 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 
 ValPtr Val::MakeBool(bool b)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(bro_int_t(b), TYPE_BOOL)};
+	return IntrusivePtr {AdoptRef {}, new Val(bro_int_t(b), TYPE_BOOL)};
 	}
 
 ValPtr Val::MakeInt(bro_int_t i)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(i, TYPE_INT)};
+	return IntrusivePtr {AdoptRef {}, new Val(i, TYPE_INT)};
 	}
 
 ValPtr Val::MakeCount(bro_uint_t u)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(u, TYPE_COUNT)};
+	return IntrusivePtr {AdoptRef {}, new Val(u, TYPE_COUNT)};
 	}
 
 ValManager::ValManager()
@@ -3695,7 +3682,7 @@ ValManager::ValManager()
 		auto port_type = (TransportProto)i;
 
 		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(j, port_type))};
+			arr[j] = IntrusivePtr {AdoptRef {}, new PortVal(PortVal::Mask(j, port_type))};
 		}
 	}
 

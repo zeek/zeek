@@ -9,9 +9,11 @@
 
 #include "analyzer/protocol/sip/sip_TCP_pac.h"
 
-namespace zeek::analyzer::sip_tcp {
+namespace zeek::analyzer::sip_tcp
+{
 
-class SIP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class SIP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;
@@ -23,18 +25,19 @@ public:
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new SIP_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new SIP_Analyzer(conn); }
 
 protected:
 	binpac::SIP_TCP::SIP_Conn* interp;
 	bool had_gap;
-};
+	};
 
 } // namespace zeek::analyzer::sip_tcp
 
-namespace analyzer::sip_tcp {
+namespace analyzer::sip_tcp
+{
 
-using SIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::sip_tcp::SIP_Analyzer.")]] = zeek::analyzer::sip_tcp::SIP_Analyzer;
+using SIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::sip_tcp::SIP_Analyzer.")]] =
+	zeek::analyzer::sip_tcp::SIP_Analyzer;
 
 } // namespace analyzer::sip_tcp

@@ -8,29 +8,31 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 
-namespace zeek {
-namespace detail {
+namespace zeek
+{
+namespace detail
+{
 
-class Location final {
+class Location final
+	{
 public:
-
-	constexpr Location(const char* fname, int line_f, int line_l,
-			   int col_f, int col_l) noexcept
-		:filename(fname), first_line(line_f), last_line(line_l),
-		 first_column(col_f), last_column(col_l) {}
+	constexpr Location(const char* fname, int line_f, int line_l, int col_f, int col_l) noexcept
+		: filename(fname), first_line(line_f), last_line(line_l), first_column(col_f),
+		  last_column(col_l)
+		{
+		}
 
 	Location() = default;
 
 	void Describe(ODesc* d) const;
 
 	bool operator==(const Location& l) const;
-	bool operator!=(const Location& l) const
-		{ return ! (*this == l); }
+	bool operator!=(const Location& l) const { return ! (*this == l); }
 
 	const char* filename = nullptr;
 	int first_line = 0, last_line = 0;
 	int first_column = 0, last_column = 0;
-};
+	};
 
 #define YYLTYPE zeek::detail::yyltype
 typedef Location yyltype;
@@ -57,7 +59,8 @@ inline void set_location(const Location start, const Location end)
 
 } // namespace detail
 
-class Obj {
+class Obj
+	{
 public:
 	Obj()
 		{
@@ -82,39 +85,39 @@ public:
 	virtual ~Obj();
 
 	/* disallow copying */
-	Obj(const Obj &) = delete;
-	Obj &operator=(const Obj &) = delete;
+	Obj(const Obj&) = delete;
+	Obj& operator=(const Obj&) = delete;
 
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,
 	// then obj2 is only used to pinpoint the location.
-	void Warn(const char* msg, const Obj* obj2 = nullptr,
-			bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
-	void Error(const char* msg, const Obj* obj2 = nullptr,
-			bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
+	void Warn(const char* msg, const Obj* obj2 = nullptr, bool pinpoint_only = false,
+	          const detail::Location* expr_location = nullptr) const;
+	void Error(const char* msg, const Obj* obj2 = nullptr, bool pinpoint_only = false,
+	           const detail::Location* expr_location = nullptr) const;
 
 	// Report internal errors.
-	void BadTag(const char* msg, const char* t1 = nullptr,
-			const char* t2 = nullptr) const;
-#define CHECK_TAG(t1, t2, text, tag_to_text_func) \
-	{ \
-	if ( t1 != t2 ) \
-		BadTag(text, tag_to_text_func(t1), tag_to_text_func(t2)); \
-	}
+	void BadTag(const char* msg, const char* t1 = nullptr, const char* t2 = nullptr) const;
+#define CHECK_TAG(t1, t2, text, tag_to_text_func)                                                  \
+		{                                                                                          \
+		if ( t1 != t2 )                                                                            \
+			BadTag(text, tag_to_text_func(t1), tag_to_text_func(t2));                              \
+		}
 
 	[[noreturn]] void Internal(const char* msg) const;
 	void InternalWarning(const char* msg) const;
 
-	virtual void Describe(ODesc* d) const { /* FIXME: Add code */ };
+	virtual void Describe(ODesc* d) const {/* FIXME: Add code */};
 
 	void AddLocation(ODesc* d) const;
 
 	// Get location info for debugging.
 	virtual const detail::Location* GetLocationInfo() const
-		{ return location ? location : &detail::no_location; }
+		{
+		return location ? location : &detail::no_location;
+		}
 
-	virtual bool SetLocationInfo(const detail::Location* loc)
-		{ return SetLocationInfo(loc, loc); }
+	virtual bool SetLocationInfo(const detail::Location* loc) { return SetLocationInfo(loc, loc); }
 
 	// Location = range from start to end.
 	virtual bool SetLocationInfo(const detail::Location* start, const detail::Location* end);
@@ -124,30 +127,30 @@ public:
 	virtual void UpdateLocationEndInfo(const detail::Location& end);
 
 	// Enable notification of plugins when this objects gets destroyed.
-	void NotifyPluginsOnDtor()	{ notify_plugins = true; }
+	void NotifyPluginsOnDtor() { notify_plugins = true; }
 
-	int RefCnt() const	{ return ref_cnt; }
+	int RefCnt() const { return ref_cnt; }
 
 	// Helper class to temporarily suppress errors
 	// as long as there exist any instances.
-	class SuppressErrors {
+	class SuppressErrors
+		{
 	public:
-		SuppressErrors()	{ ++Obj::suppress_errors; }
-		~SuppressErrors()	{ --Obj::suppress_errors; }
-	};
+		SuppressErrors() { ++Obj::suppress_errors; }
+		~SuppressErrors() { --Obj::suppress_errors; }
+		};
 
 	void Print() const;
 
 protected:
-	detail::Location* location;	// all that matters in real estate
+	detail::Location* location; // all that matters in real estate
 
 private:
 	friend class SuppressErrors;
 
-	void DoMsg(ODesc* d, const char s1[], const Obj* obj2 = nullptr,
-	           bool pinpoint_only = false, const detail::Location* expr_location = nullptr) const;
-	void PinPoint(ODesc* d, const Obj* obj2 = nullptr,
-	              bool pinpoint_only = false) const;
+	void DoMsg(ODesc* d, const char s1[], const Obj* obj2 = nullptr, bool pinpoint_only = false,
+	           const detail::Location* expr_location = nullptr) const;
+	void PinPoint(ODesc* d, const Obj* obj2 = nullptr, bool pinpoint_only = false) const;
 
 	friend inline void Ref(Obj* o);
 	friend inline void Unref(Obj* o);
@@ -158,7 +161,7 @@ private:
 	// If non-zero, do not print runtime errors.  Useful for
 	// speculative evaluation.
 	static int suppress_errors;
-};
+	};
 
 // Sometimes useful when dealing with Obj subclasses that have their
 // own (protected) versions of Error.
@@ -195,21 +198,23 @@ extern void obj_delete_func(void* v);
 
 } // namespace zeek
 
-using Location [[deprecated("Remove in v4.1. Use zeek::detail::Location instead.")]] = zeek::detail::Location;
-using yyltype [[deprecated("Remove in v4.1. Use zeek::detail::yyltype instead.")]] = zeek::detail::yyltype;
+using Location [[deprecated("Remove in v4.1. Use zeek::detail::Location instead.")]] =
+	zeek::detail::Location;
+using yyltype [[deprecated("Remove in v4.1. Use zeek::detail::yyltype instead.")]] =
+	zeek::detail::yyltype;
 using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
 
-[[deprecated("Remove in v4.1. Use zeek::Obj::Print instead.")]]
-extern void print(const zeek::Obj* obj);
+[[deprecated("Remove in v4.1. Use zeek::Obj::Print instead.")]] extern void
+print(const zeek::Obj* obj);
 
-[[deprecated("Remove in v4.1. Use zeek::detail::set_location instead.")]]
-inline void set_location(const zeek::detail::Location loc)
+[[deprecated("Remove in v4.1. Use zeek::detail::set_location instead.")]] inline void
+set_location(const zeek::detail::Location loc)
 	{
 	zeek::detail::set_location(loc);
 	}
 
-[[deprecated("Remove in v4.1. Use zeek::detail::set_location instead.")]]
-inline void set_location(const zeek::detail::Location start, const zeek::detail::Location end)
+[[deprecated("Remove in v4.1. Use zeek::detail::set_location instead.")]] inline void
+set_location(const zeek::detail::Location start, const zeek::detail::Location end)
 	{
 	zeek::detail::set_location(start, end);
 	}

@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::LinuxSLL;
 
-LinuxSLLAnalyzer::LinuxSLLAnalyzer()
-	: zeek::packet_analysis::Analyzer("LinuxSLL")
-	{
-	}
+LinuxSLLAnalyzer::LinuxSLLAnalyzer() : zeek::packet_analysis::Analyzer("LinuxSLL") { }
 
 bool LinuxSLLAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
@@ -23,7 +20,7 @@ bool LinuxSLLAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	auto hdr = (const SLLHeader*)data;
 
 	uint32_t protocol = ntohs(hdr->protocol_type);
-	packet->l2_src = (u_char*) &(hdr->addr);
+	packet->l2_src = (u_char*)&(hdr->addr);
 
 	// SLL doesn't include a destination address in the header, but not setting l2_dst to something
 	// here will cause crashes elsewhere.

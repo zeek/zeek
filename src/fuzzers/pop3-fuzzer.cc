@@ -1,13 +1,12 @@
 #include <binpac.h>
 
-#include "zeek/RunState.h"
 #include "zeek/Conn.h"
+#include "zeek/RunState.h"
 #include "zeek/Sessions.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-
 #include "zeek/fuzzers/FuzzBuffer.h"
 #include "zeek/fuzzers/fuzzer-setup.h"
 
@@ -26,8 +25,8 @@ static zeek::Connection* add_connection()
 	conn_id.dst_port = htons(80);
 	conn_id.is_one_way = false;
 	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(conn_id);
-	zeek::Connection* conn = new zeek::Connection(zeek::sessions, key, network_time_start,
-	                                  &conn_id, 1, &p);
+	zeek::Connection* conn =
+		new zeek::Connection(zeek::sessions, key, network_time_start, &conn_id, 1, &p);
 	conn->SetTransport(TRANSPORT_TCP);
 	zeek::sessions->Insert(conn);
 	return conn;
@@ -46,7 +45,7 @@ static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	{
-	zeek::detail::FuzzBuffer fb{data, size};
+	zeek::detail::FuzzBuffer fb {data, size};
 
 	if ( ! fb.Valid() )
 		return 0;
@@ -54,7 +53,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	auto conn = add_connection();
 	auto a = add_analyzer(conn);
 
-	for ( ; ;  )
+	for ( ;; )
 		{
 		auto chunk = fb.Next();
 

@@ -1,26 +1,24 @@
 #include "zeek/ScriptCoverageManager.h"
 
 #include <sys/stat.h>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 #include <utility>
-#include <algorithm>
 
-#include "zeek/Stmt.h"
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/Stmt.h"
 #include "zeek/util.h"
 
 using namespace std;
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-ScriptCoverageManager::ScriptCoverageManager()
-	: ignoring(0), delim('\t')
-	{
-	}
+ScriptCoverageManager::ScriptCoverageManager() : ignoring(0), delim('\t') { }
 
 ScriptCoverageManager::~ScriptCoverageManager()
 	{
@@ -94,7 +92,7 @@ bool ScriptCoverageManager::WriteStats()
 	if ( ! bf )
 		return false;
 
-	util::SafeDirname dirname{bf};
+	util::SafeDirname dirname {bf};
 
 	if ( ! util::detail::ensure_intermediate_dirs(dirname.result.data()) )
 		{
@@ -129,15 +127,14 @@ bool ScriptCoverageManager::WriteStats()
 		return false;
 		}
 
-	for ( list<Stmt*>::const_iterator it = stmts.begin();
-	      it != stmts.end(); ++it )
+	for ( list<Stmt*>::const_iterator it = stmts.begin(); it != stmts.end(); ++it )
 		{
 		ODesc location_info;
 		(*it)->GetLocationInfo()->Describe(&location_info);
 		ODesc desc_info;
 		(*it)->Describe(&desc_info);
 		string desc(desc_info.Description());
-		canonicalize_desc cd{delim};
+		canonicalize_desc cd {delim};
 		for_each(desc.begin(), desc.end(), cd);
 		pair<string, string> location_desc(location_info.Description(), desc);
 		if ( usage_map.find(location_desc) != usage_map.end() )
@@ -146,11 +143,11 @@ bool ScriptCoverageManager::WriteStats()
 			usage_map[location_desc] = (*it)->GetAccessCount();
 		}
 
-	map<pair<string, string>, uint64_t >::const_iterator it;
+	map<pair<string, string>, uint64_t>::const_iterator it;
 	for ( it = usage_map.begin(); it != usage_map.end(); ++it )
 		{
-		fprintf(f, "%" PRIu64"%c%s%c%s\n", it->second, delim,
-				it->first.first.c_str(), delim, it->first.second.c_str());
+		fprintf(f, "%" PRIu64 "%c%s%c%s\n", it->second, delim, it->first.first.c_str(), delim,
+		        it->first.second.c_str());
 		}
 
 	fclose(f);

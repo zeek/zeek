@@ -1,14 +1,14 @@
 #include "zeek/analyzer/protocol/rfb/RFB.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "analyzer/protocol/rfb/events.bif.h"
 
-namespace zeek::analyzer::rfb {
+namespace zeek::analyzer::rfb
+{
 
-RFB_Analyzer::RFB_Analyzer(Connection* c)
-	: analyzer::tcp::TCP_ApplicationAnalyzer("RFB", c)
+RFB_Analyzer::RFB_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("RFB", c)
 	{
 	interp = new binpac::RFB::RFB_Conn(this);
 	had_gap = false;
@@ -26,7 +26,6 @@ void RFB_Analyzer::Done()
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
-
 	}
 
 void RFB_Analyzer::EndpointEOF(bool is_orig)

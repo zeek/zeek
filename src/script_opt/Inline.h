@@ -4,31 +4,34 @@
 
 #pragma once
 
+#include <unordered_set>
+
 #include "zeek/Func.h"
 #include "zeek/Scope.h"
 
-#include <unordered_set>
-
-
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 class FuncInfo;
 
-class Inliner {
+class Inliner
+	{
 public:
 	// First argument is a collection of information about *all* of
 	// the script functions.  Second argument states whether to report
 	// recursive functions (of interest as they're not in-lineable).
 	Inliner(std::vector<FuncInfo>& _funcs, bool _report_recursive)
-	: funcs(_funcs), report_recursive(_report_recursive)
-		{ Analyze(); }
+		: funcs(_funcs), report_recursive(_report_recursive)
+		{
+		Analyze();
+		}
 
 	// Either returns the original CallExpr if it's not inline-able,
 	// or an InlineExpr if it is.
 	ExprPtr CheckForInlining(IntrusivePtr<CallExpr> c);
 
 	// True if the given function has been inlined.
-	bool WasInlined(Func* f)	{ return inline_ables.count(f) > 0; }
+	bool WasInlined(Func* f) { return inline_ables.count(f) > 0; }
 
 protected:
 	// Driver routine that analyzes all of the script functions and
@@ -56,7 +59,6 @@ protected:
 	// Whether to generate a report about functions either directly and
 	// indirectly recursive.
 	bool report_recursive;
-};
-
+	};
 
 } // namespace zeek::detail

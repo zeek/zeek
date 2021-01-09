@@ -20,24 +20,29 @@
 //	sizeof(data) <= sizeof(void*).
 
 #include <stdarg.h>
+#include <cassert>
 #include <initializer_list>
 #include <iterator>
 #include <utility>
-#include <cassert>
+
 #include "zeek/util.h"
 
-namespace zeek {
+namespace zeek
+{
 
-enum class ListOrder : int { ORDERED, UNORDERED };
+enum class ListOrder : int
+	{
+	ORDERED,
+	UNORDERED
+	};
 
-template<typename T, ListOrder Order = ListOrder::ORDERED>
-class List {
+template <typename T, ListOrder Order = ListOrder::ORDERED> class List
+	{
 public:
-
 	constexpr static int DEFAULT_LIST_SIZE = 10;
 	constexpr static int LIST_GROWTH_FACTOR = 2;
 
-	~List()		{ free(entries); }
+	~List() { free(entries); }
 	explicit List(int size = 0)
 		{
 		num_entries = 0;
@@ -51,7 +56,7 @@ public:
 
 		max_entries = size;
 
-		entries = (T*) util::safe_malloc(max_entries * sizeof(T));
+		entries = (T*)util::safe_malloc(max_entries * sizeof(T));
 		}
 
 	List(const List& b)
@@ -60,7 +65,7 @@ public:
 		num_entries = b.num_entries;
 
 		if ( max_entries )
-			entries = (T*) util::safe_malloc(max_entries * sizeof(T));
+			entries = (T*)util::safe_malloc(max_entries * sizeof(T));
 		else
 			entries = nullptr;
 
@@ -81,11 +86,11 @@ public:
 	List(const T* arr, int n)
 		{
 		num_entries = max_entries = n;
-		entries = (T*) util::safe_malloc(max_entries * sizeof(T));
+		entries = (T*)util::safe_malloc(max_entries * sizeof(T));
 		memcpy(entries, arr, n * sizeof(T));
 		}
 
-	List(std::initializer_list<T> il) : List(il.begin(), il.size()) {}
+	List(std::initializer_list<T> il) : List(il.begin(), il.size()) { }
 
 	List& operator=(const List& b)
 		{
@@ -98,7 +103,7 @@ public:
 		num_entries = b.num_entries;
 
 		if ( max_entries )
-			entries = (T *) util::safe_malloc(max_entries * sizeof(T));
+			entries = (T*)util::safe_malloc(max_entries * sizeof(T));
 		else
 			entries = nullptr;
 
@@ -124,12 +129,9 @@ public:
 		}
 
 	// Return nth ent of list (do not remove).
-	T& operator[](int i) const
-		{
-		return entries[i];
-		}
+	T& operator[](int i) const { return entries[i]; }
 
-	void clear()		// remove all entries
+	void clear() // remove all entries
 		{
 		free(entries);
 		entries = nullptr;
@@ -139,16 +141,16 @@ public:
 	bool empty() const noexcept { return num_entries == 0; }
 	size_t size() const noexcept { return num_entries; }
 
-	int length() const	{ return num_entries; }
-	int max() const		{ return max_entries; }
-	int resize(int new_size = 0)	// 0 => size to fit current number of entries
+	int length() const { return num_entries; }
+	int max() const { return max_entries; }
+	int resize(int new_size = 0) // 0 => size to fit current number of entries
 		{
 		if ( new_size < num_entries )
-			new_size = num_entries;	// do not lose any entries
+			new_size = num_entries; // do not lose any entries
 
 		if ( new_size != max_entries )
 			{
-			entries = (T*) util::safe_realloc((void*) entries, sizeof(T) * new_size);
+			entries = (T*)util::safe_realloc((void*)entries, sizeof(T) * new_size);
 			if ( entries )
 				max_entries = new_size;
 			else
@@ -159,7 +161,9 @@ public:
 		}
 
 	int MemoryAllocation() const
-		{ return padded_sizeof(*this) + util::pad_size(max_entries * sizeof(T)); }
+		{
+		return padded_sizeof(*this) + util::pad_size(max_entries * sizeof(T));
+		}
 
 	void push_front(const T& a)
 		{
@@ -167,7 +171,7 @@ public:
 			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
 
 		for ( int i = num_entries; i > 0; --i )
-			entries[i] = entries[i-1];	// move all pointers up one
+			entries[i] = entries[i - 1]; // move all pointers up one
 
 		++num_entries;
 		entries[0] = a;
@@ -181,20 +185,20 @@ public:
 		entries[num_entries++] = a;
 		}
 
-	void pop_front()	{ remove_nth(0); }
-	void pop_back()	{ remove_nth(num_entries-1); }
+	void pop_front() { remove_nth(0); }
+	void pop_back() { remove_nth(num_entries - 1); }
 
-	T& front()	 { return entries[0]; }
-	T& back()	 { return entries[num_entries-1]; }
+	T& front() { return entries[0]; }
+	T& back() { return entries[num_entries - 1]; }
 
 	// The append method is maintained for historical/compatibility reasons.
 	// (It's commonly used in the event generation API)
-	void append(const T& a)	// add to end of list
+	void append(const T& a) // add to end of list
 		{
 		push_back(a);
 		}
 
-	bool remove(const T& a)	// delete entry from list
+	bool remove(const T& a) // delete entry from list
 		{
 		int pos = member_pos(a);
 		if ( pos != -1 )
@@ -206,9 +210,9 @@ public:
 		return false;
 		}
 
-	T remove_nth(int n)	// delete nth entry from list
+	T remove_nth(int n) // delete nth entry from list
 		{
-		assert(n >=0 && n < num_entries);
+		assert(n >= 0 && n < num_entries);
 
 		T old_ent = entries[n];
 
@@ -220,7 +224,7 @@ public:
 			--num_entries;
 
 			for ( ; n < num_entries; ++n )
-				entries[n] = entries[n+1];
+				entries[n] = entries[n + 1];
 			}
 		else
 			{
@@ -248,19 +252,19 @@ public:
 		return (i == length()) ? -1 : i;
 		}
 
-	T replace(int ent_index, const T& new_ent)	// replace entry #i with a new value
+	T replace(int ent_index, const T& new_ent) // replace entry #i with a new value
 		{
 		if ( ent_index < 0 )
-			return T{};
+			return T {};
 
-		T old_ent{};
+		T old_ent {};
 
 		if ( ent_index > num_entries - 1 )
 			{ // replacement beyond the end of the list
 			resize(ent_index + 1);
 
 			for ( int i = num_entries; i < max_entries; ++i )
-				entries[i] = T{};
+				entries[i] = T {};
 			num_entries = max_entries;
 			}
 		else
@@ -289,15 +293,14 @@ public:
 	const_iterator cbegin() const { return entries; }
 	const_iterator cend() const { return entries + num_entries; }
 
-	reverse_iterator rbegin() { return reverse_iterator{end()}; }
-	reverse_iterator rend() { return reverse_iterator{begin()}; }
-	const_reverse_iterator rbegin() const { return const_reverse_iterator{end()}; }
-	const_reverse_iterator rend() const { return const_reverse_iterator{begin()}; }
+	reverse_iterator rbegin() { return reverse_iterator {end()}; }
+	reverse_iterator rend() { return reverse_iterator {begin()}; }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator {end()}; }
+	const_reverse_iterator rend() const { return const_reverse_iterator {begin()}; }
 	const_reverse_iterator crbegin() const { return rbegin(); }
 	const_reverse_iterator crend() const { return rend(); }
 
 protected:
-
 	// This could essentially be an std::vector if we wanted.  Some
 	// reasons to maybe not refactor to use std::vector ?
 	//
@@ -327,10 +330,8 @@ protected:
 	int num_entries;
 	};
 
-
 // Specialization of the List class to store pointers of a type.
-template<typename T, ListOrder Order = ListOrder::ORDERED>
-using PList = List<T*, Order>;
+template <typename T, ListOrder Order = ListOrder::ORDERED> using PList = List<T*, Order>;
 
 // Popular type of list: list of strings.
 using name_list = PList<char>;
@@ -340,6 +341,6 @@ using name_list = PList<char>;
 using ListOrder [[deprecated("Remove in v4.1. Use zeek::ListOrder instead.")]] = zeek::ListOrder;
 
 // Macro to visit each list element in turn.
-#define loop_over_list(list, iterator)  \
-	int iterator;	\
+#define loop_over_list(list, iterator)                                                             \
+	int iterator;                                                                                  \
 	for ( iterator = 0; iterator < (list).length(); ++iterator )

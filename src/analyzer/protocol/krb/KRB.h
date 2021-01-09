@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek-config.h"
+
 #include <mutex>
 
 #ifdef USE_KRB5
@@ -11,27 +12,26 @@
 
 #include "analyzer/protocol/krb/krb_pac.h"
 
-namespace zeek::analyzer::krb {
+namespace zeek::analyzer::krb
+{
 
-class KRB_Analyzer final : public analyzer::Analyzer {
+class KRB_Analyzer final : public analyzer::Analyzer
+	{
 
 public:
 	explicit KRB_Analyzer(Connection* conn);
 	virtual ~KRB_Analyzer();
 
 	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-							   uint64_t seq, const IP_Hdr* ip, int caplen);
+	virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+	                           const IP_Hdr* ip, int caplen);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new KRB_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new KRB_Analyzer(conn); }
 
-	StringValPtr GetAuthenticationInfo(const String* principal,
-	                                   const String* ciphertext,
+	StringValPtr GetAuthenticationInfo(const String* principal, const String* ciphertext,
 	                                   const bro_uint_t enctype);
 
 protected:
-
 	binpac::KRB::KRB_Conn* interp;
 
 private:
@@ -42,12 +42,14 @@ private:
 	static krb5_context krb_context;
 	static krb5_keytab krb_keytab;
 #endif
-};
+	};
 
 } // namespace zeek::analyzer::krb
 
-namespace analyzer::krb {
+namespace analyzer::krb
+{
 
-using KRB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::krb::KRB_Analyzer.")]] = zeek::analyzer::krb::KRB_Analyzer;
+using KRB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::krb::KRB_Analyzer.")]] =
+	zeek::analyzer::krb::KRB_Analyzer;
 
 } // namespace analyzer::krb

@@ -13,7 +13,8 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
-namespace zeek {
+namespace zeek
+{
 
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -36,7 +37,8 @@ using EnumValPtr = IntrusivePtr<EnumVal>;
  * The Tag class supports all operations necessary to act as an index in a
  * \c std::map.
  */
-class Tag  {
+class Tag
+	{
 public:
 	/**
 	 * Type for the analyzer's main type.
@@ -51,12 +53,12 @@ public:
 	/**
 	 * Returns the tag's main type.
 	 */
-	type_t Type() const 	{ return type; }
+	type_t Type() const { return type; }
 
 	/**
 	 * Returns the tag's subtype.
 	 */
-	subtype_t Subtype() const 	{ return subtype; }
+	subtype_t Subtype() const { return subtype; }
 
 	/**
 	 * Returns the numerical values for main and subtype inside a string
@@ -123,8 +125,8 @@ protected:
 	 */
 	const EnumValPtr& AsVal(const EnumTypePtr& etype) const;
 
-	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal(EnumType* etype) const;
+	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]] EnumVal*
+	AsEnumVal(EnumType* etype) const;
 
 	/**
 	 * Constructor.
@@ -139,8 +141,8 @@ protected:
 	 */
 	Tag(const EnumTypePtr& etype, type_t type, subtype_t subtype = 0);
 
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr& instead.")]]
-	Tag(EnumType* etype, type_t type, subtype_t subtype = 0);
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr& instead.")]] Tag(
+		EnumType* etype, type_t type, subtype_t subtype = 0);
 
 	/**
 	 * Constructor.
@@ -149,14 +151,14 @@ protected:
 	 */
 	explicit Tag(EnumValPtr val);
 
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Tag(EnumVal* val);
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]] explicit Tag(
+		EnumVal* val);
 
 private:
-	type_t type;            // Main type.
-	subtype_t subtype;      // Subtype.
-	mutable EnumValPtr val;   // Script-layer value.
-};
+	type_t type; // Main type.
+	subtype_t subtype; // Subtype.
+	mutable EnumValPtr val; // Script-layer value.
+	};
 
 } // namespace zeek
 

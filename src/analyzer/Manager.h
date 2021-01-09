@@ -23,19 +23,20 @@
 #include <queue>
 #include <vector>
 
+#include "zeek/Dict.h"
+#include "zeek/IP.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Component.h"
 #include "zeek/analyzer/Tag.h"
-#include "zeek/plugin/ComponentManager.h"
-
-#include "zeek/Dict.h"
 #include "zeek/net_util.h"
-#include "zeek/IP.h"
+#include "zeek/plugin/ComponentManager.h"
 
 #include "analyzer/analyzer.bif.h"
 
-namespace zeek {
-namespace analyzer {
+namespace zeek
+{
+namespace analyzer
+{
 
 /**
  * Class maintaining and scheduling available protocol analyzers.
@@ -47,7 +48,8 @@ namespace analyzer {
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component>
+	{
 public:
 	/**
 	 * Constructor.
@@ -294,8 +296,7 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-	                      TransportProto proto, const char* analyzer,
-	                      double timeout);
+	                      TransportProto proto, const char* analyzer, double timeout);
 
 	/**
 	 * Searched for analyzers scheduled to be attached to a given connection
@@ -334,17 +335,15 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
-	                      Val* analyzer, double timeout);
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p, Val* analyzer,
+	                      double timeout);
 
 	/**
 	 * @return the UDP port numbers to be associated with VXLAN traffic.
 	 */
-	const std::vector<uint16_t>& GetVxlanPorts() const
-		{ return vxlan_ports; }
+	const std::vector<uint16_t>& GetVxlanPorts() const { return vxlan_ports; }
 
 private:
-
 	using tag_set = std::set<Tag>;
 	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 
@@ -364,41 +363,43 @@ private:
 	//// Data structures to track analyzed scheduled for future connections.
 
 	// The index for a scheduled connection.
-	struct ConnIndex {
+	struct ConnIndex
+		{
 		IPAddr orig;
 		IPAddr resp;
 		uint16_t resp_p;
 		uint16_t proto;
 
-		ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-			     uint16_t _resp_p, uint16_t _proto);
+		ConnIndex(const IPAddr& _orig, const IPAddr& _resp, uint16_t _resp_p, uint16_t _proto);
 		ConnIndex();
 
 		bool operator<(const ConnIndex& other) const;
-	};
+		};
 
 	// Information associated with a scheduled connection.
-	struct ScheduledAnalyzer {
+	struct ScheduledAnalyzer
+		{
 		ConnIndex conn;
 		Tag analyzer;
 		double timeout;
 
-		struct Comparator {
-			bool operator() (ScheduledAnalyzer* a, ScheduledAnalyzer* b) {
+		struct Comparator
+			{
+			bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b)
+				{
 				return a->timeout > b->timeout;
-			}
+				}
+			};
 		};
-	};
 
 	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
-	using conns_queue = std::priority_queue<ScheduledAnalyzer*,
-	                                        std::vector<ScheduledAnalyzer*>,
+	using conns_queue = std::priority_queue<ScheduledAnalyzer*, std::vector<ScheduledAnalyzer*>,
 	                                        ScheduledAnalyzer::Comparator>;
 
 	conns_map conns;
 	conns_queue conns_by_timeout;
 	std::vector<uint16_t> vxlan_ports;
-};
+	};
 
 } // namespace analyzer
 
@@ -406,24 +407,28 @@ extern analyzer::Manager* analyzer_mgr;
 
 } // namespace zeek
 
-namespace analyzer {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::analyzer::Manager instead.")]] = zeek::analyzer::Manager;
+namespace analyzer
+{
+using Manager [[deprecated("Remove in v4.1. Use zeek::analyzer::Manager instead.")]] =
+	zeek::analyzer::Manager;
 } // namespace analyzer
 
-extern zeek::analyzer::Manager*& analyzer_mgr [[deprecated("Remove in v4.1. Use zeek::analyzer_mgr instead.")]];
+extern zeek::analyzer::Manager*& analyzer_mgr
+	[[deprecated("Remove in v4.1. Use zeek::analyzer_mgr instead.")]];
 
 // Macros for anayzer debug logging which include the connection id into the
 // message.
 #ifdef DEBUG
-# define DBG_ANALYZER(conn, txt) \
-	DBG_LOG(zeek::DBG_ANALYZER, "%s " txt, \
-		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
-		conn->RespAddr(), ntohs(conn->RespPort())));
-# define DBG_ANALYZER_ARGS(conn, fmt, args...) \
-	DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt, \
-		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
-		conn->RespAddr(), ntohs(conn->RespPort())), ##args);
+#define DBG_ANALYZER(conn, txt)                                                                    \
+	DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                         \
+	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
+	                    ntohs(conn->RespPort())));
+#define DBG_ANALYZER_ARGS(conn, fmt, args...)                                                      \
+	DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt,                                                         \
+	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
+	                    ntohs(conn->RespPort())),                                                  \
+	        ##args);
 #else
-# define DBG_ANALYZER(conn, txt)
-# define DBG_ANALYZER_ARGS(conn, fmt, args...)
+#define DBG_ANALYZER(conn, txt)
+#define DBG_ANALYZER_ARGS(conn, fmt, args...)
 #endif

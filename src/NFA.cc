@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/NFA.h"
 
 #include <algorithm>
 
 #include "zeek/Desc.h"
 #include "zeek/EquivClass.h"
 #include "zeek/IntSet.h"
+#include "zeek/NFA.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 static int nfa_state_id = 0;
 
@@ -157,9 +158,8 @@ void NFA_State::Dump(FILE* f)
 
 unsigned int NFA_State::TotalMemoryAllocation() const
 	{
-	return padded_sizeof(*this)
-		+ xtions.MemoryAllocation() - padded_sizeof(xtions)
-		+ (epsclosure ? epsclosure->MemoryAllocation() : 0);
+	return padded_sizeof(*this) + xtions.MemoryAllocation() - padded_sizeof(xtions) +
+	       (epsclosure ? epsclosure->MemoryAllocation() : 0);
 	}
 
 NFA_Machine::NFA_Machine(NFA_State* first, NFA_State* final)
@@ -216,7 +216,7 @@ void NFA_Machine::LinkCopies(int n)
 	for ( i = 0; i < n; ++i )
 		AppendMachine(copies[i]);
 
-	delete [] copies;
+	delete[] copies;
 	}
 
 NFA_Machine* NFA_Machine::DuplicateMachine()
@@ -240,7 +240,7 @@ void NFA_Machine::AppendMachine(NFA_Machine* m)
 	final_state->AddXtion(m->FirstState());
 	final_state = m->FinalState();
 
-	Ref(m->FirstState());	// so states stay around after the following
+	Ref(m->FirstState()); // so states stay around after the following
 	Unref(m);
 	}
 
@@ -328,7 +328,6 @@ NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2)
 
 	return new NFA_Machine(first, last);
 	}
-
 
 NFA_state_list* epsilon_closure(NFA_state_list* states)
 	{

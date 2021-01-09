@@ -5,17 +5,17 @@
 #include <fcntl.h>
 #include <string>
 
-#include "zeek/util.h"
 #include "zeek/Event.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/util.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+{
 
-Extract::Extract(RecordValPtr args, file_analysis::File* file,
-                 const std::string& arg_filename, uint64_t arg_limit)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
-                              std::move(args), file),
-      filename(arg_filename), limit(arg_limit), depth(0)
+Extract::Extract(RecordValPtr args, file_analysis::File* file, const std::string& arg_filename,
+                 uint64_t arg_limit)
+	: file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), std::move(args), file),
+	  filename(arg_filename), limit(arg_limit), depth(0)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666);
 
@@ -34,8 +34,7 @@ Extract::~Extract()
 		util::safe_close(fd);
 	}
 
-static const ValPtr& get_extract_field_val(const RecordValPtr& args,
-                                           const char* name)
+static const ValPtr& get_extract_field_val(const RecordValPtr& args, const char* name)
 	{
 	const auto& rval = args->GetField(name);
 
@@ -45,8 +44,7 @@ static const ValPtr& get_extract_field_val(const RecordValPtr& args,
 	return rval;
 	}
 
-file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args,
-                                              file_analysis::File* file)
+file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args, file_analysis::File* file)
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
@@ -54,8 +52,7 @@ file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args,
 	if ( ! fname || ! limit )
 		return nullptr;
 
-	return new Extract(std::move(args), file, fname->AsString()->CheckString(),
-	                   limit->AsCount());
+	return new Extract(std::move(args), file, fname->AsString()->CheckString(), limit->AsCount());
 	}
 
 static bool check_limit_exceeded(uint64_t lim, uint64_t depth, uint64_t len, uint64_t* n)
@@ -95,12 +92,8 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 	if ( limit_exceeded && file_extraction_limit )
 		{
 		file_analysis::File* f = GetFile();
-		f->FileEvent(file_extraction_limit, {
-			f->ToVal(),
-			GetArgs(),
-			val_mgr->Count(limit),
-			val_mgr->Count(len)
-		});
+		f->FileEvent(file_extraction_limit,
+		             {f->ToVal(), GetArgs(), val_mgr->Count(limit), val_mgr->Count(len)});
 
 		// Limit may have been modified by a BIF, re-check it.
 		limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);
@@ -112,7 +105,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		depth += towrite;
 		}
 
-	return ( ! limit_exceeded );
+	return (! limit_exceeded);
 	}
 
 bool Extract::Undelivered(uint64_t offset, uint64_t len)
@@ -121,7 +114,7 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 		{
 		char* tmp = new char[len]();
 		util::safe_write(fd, tmp, len);
-		delete [] tmp;
+		delete[] tmp;
 		depth += len;
 		}
 

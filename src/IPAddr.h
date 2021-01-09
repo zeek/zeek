@@ -2,29 +2,41 @@
 
 #pragma once
 
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <string.h>
-#include <string>
 #include <memory>
+#include <string>
 
 #include "zeek/threading/SerialTypes.h"
 
-namespace zeek { class String; }
+namespace zeek
+{
+class String;
+}
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
-namespace zeek { struct ConnID; }
+namespace zeek
+{
+struct ConnID;
+}
 using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
-namespace analyzer { class ExpectedConn; }
+namespace analyzer
+{
+class ExpectedConn;
+}
 
 typedef in_addr in4_addr;
 
-namespace zeek {
-namespace detail {
+namespace zeek
+{
+namespace detail
+{
 
-struct ConnIDKey {
+struct ConnIDKey
+	{
 	in6_addr ip1;
 	in6_addr ip2;
 	uint16_t port1;
@@ -37,7 +49,10 @@ struct ConnIDKey {
 		}
 
 	bool operator<(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) < 0; }
-	bool operator==(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0; }
+	bool operator==(const ConnIDKey& rhs) const
+		{
+		return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0;
+		}
 
 	ConnIDKey& operator=(const ConnIDKey& rhs)
 		{
@@ -46,7 +61,7 @@ struct ConnIDKey {
 
 		return *this;
 		}
-};
+	};
 
 /**
  * Returns a map key for a given ConnID.
@@ -58,7 +73,8 @@ ConnIDKey BuildConnIDKey(const ConnID& id);
 /**
  * Class storing both IPv4 and IPv6 addresses.
  */
-class IPAddr {
+class IPAddr
+	{
 public:
 	/**
 	 * Address family.
@@ -68,15 +84,16 @@ public:
 	/**
 	 * Byte order.
 	 */
-	enum ByteOrder { Host, Network };
+	enum ByteOrder
+		{
+		Host,
+		Network
+		};
 
 	/**
 	 * Constructs the unspecified IPv6 address (all 128 bits zeroed).
 	 */
-	IPAddr()
-		{
-		memset(in6.s6_addr, 0, sizeof(in6.s6_addr));
-		}
+	IPAddr() { memset(in6.s6_addr, 0, sizeof(in6.s6_addr)); }
 
 	/**
 	 * Constructs an address instance from an IPv4 address.
@@ -102,10 +119,7 @@ public:
 	 * @param s String containing an IP address as either a dotted IPv4
 	 * address or a hex IPv6 address.
 	 */
-	IPAddr(const std::string& s)
-		{
-		Init(s.data());
-		}
+	IPAddr(const std::string& s) { Init(s.data()); }
 
 	/**
 	 * Constructs an address instance from a string representation.
@@ -113,10 +127,7 @@ public:
 	 * @param s ASCIIZ string containing an IP address as either a
 	 * dotted IPv4 address or a hex IPv6 address.
 	 */
-	IPAddr(const char* s)
-		{
-		Init(s);
-		}
+	IPAddr(const char* s) { Init(s); }
 
 	/**
 	 * Constructs an address instance from a string representation.
@@ -143,7 +154,7 @@ public:
 	/**
 	 * Copy constructor.
 	 */
-	IPAddr(const IPAddr& other) : in6(other.in6) { };
+	IPAddr(const IPAddr& other) : in6(other.in6) {};
 
 	/**
 	 * Destructor.
@@ -183,8 +194,8 @@ public:
 	bool IsBroadcast() const
 		{
 		if ( GetFamily() == IPv4 )
-			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff)
-				&& (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
+			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff) &&
+			        (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
 
 		return false;
 		}
@@ -205,12 +216,12 @@ public:
 		{
 		if ( GetFamily() == IPv4 )
 			{
-			*bytes = (uint32_t*) &in6.s6_addr[12];
+			*bytes = (uint32_t*)&in6.s6_addr[12];
 			return 1;
 			}
 		else
 			{
-			*bytes = (uint32_t*) in6.s6_addr;
+			*bytes = (uint32_t*)in6.s6_addr;
 			return 4;
 			}
 		}
@@ -264,8 +275,7 @@ public:
 	 */
 	std::unique_ptr<detail::HashKey> MakeHashKey() const;
 
-	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	detail::HashKey* GetHashKey() const;
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]] detail::HashKey* GetHashKey() const;
 
 	/**
 	 * Masks out lower bits of the address.
@@ -359,10 +369,7 @@ public:
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) == 0;
 		}
 
-	friend bool operator!=(const IPAddr& addr1, const IPAddr& addr2)
-		{
-		return ! (addr1 == addr2);
-		}
+	friend bool operator!=(const IPAddr& addr1, const IPAddr& addr2) { return ! (addr1 == addr2); }
 
 	/**
 	 * Comparison operator IP addresses. This defines a well-defined order for
@@ -379,19 +386,13 @@ public:
 		return addr1 < addr2 || addr1 == addr2;
 		}
 
-	friend bool operator>=(const IPAddr& addr1, const IPAddr& addr2)
-		{
-		return ! ( addr1 < addr2 );
-		}
+	friend bool operator>=(const IPAddr& addr1, const IPAddr& addr2) { return ! (addr1 < addr2); }
 
-	friend bool operator>(const IPAddr& addr1, const IPAddr& addr2)
-		{
-		return ! ( addr1 <= addr2 );
-		}
+	friend bool operator>(const IPAddr& addr1, const IPAddr& addr2) { return ! (addr1 <= addr2); }
 
 	/** Converts the address into the type used internally by the
-	  * inter-thread communication.
-	  */
+	 * inter-thread communication.
+	 */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
 	friend detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id);
@@ -460,10 +461,8 @@ private:
 	in6_addr in6; // IPv6 or v4-to-v6-mapped address
 
 	// Top 96 bits of a v4-mapped-addr.
-	static constexpr uint8_t v4_mapped_prefix[12] = { 0, 0, 0, 0,
-	                                                  0, 0, 0, 0,
-	                                                  0, 0, 0xff, 0xff };
-};
+	static constexpr uint8_t v4_mapped_prefix[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
+	};
 
 inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order)
 	{
@@ -474,7 +473,7 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order)
 
 		if ( order == Host )
 			{
-			uint32_t* p = (uint32_t*) &in6.s6_addr[12];
+			uint32_t* p = (uint32_t*)&in6.s6_addr[12];
 			*p = htonl(*p);
 			}
 		}
@@ -485,9 +484,9 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order)
 
 		if ( order == Host )
 			{
-			for ( unsigned int i = 0; i < 4; ++ i)
+			for ( unsigned int i = 0; i < 4; ++i )
 				{
-				uint32_t* p = (uint32_t*) &in6.s6_addr[i*4];
+				uint32_t* p = (uint32_t*)&in6.s6_addr[i * 4];
 				*p = htonl(*p);
 				}
 			}
@@ -500,33 +499,32 @@ inline bool IPAddr::IsLoopback() const
 		return in6.s6_addr[12] == 127;
 
 	else
-		return ((in6.s6_addr[0] == 0) && (in6.s6_addr[1] == 0)
-			&& (in6.s6_addr[2] == 0) && (in6.s6_addr[3] == 0)
-			&& (in6.s6_addr[4] == 0) && (in6.s6_addr[5] == 0)
-			&& (in6.s6_addr[6] == 0) && (in6.s6_addr[7] == 0)
-			&& (in6.s6_addr[8] == 0) && (in6.s6_addr[9] == 0)
-			&& (in6.s6_addr[10] == 0) && (in6.s6_addr[11] == 0)
-			&& (in6.s6_addr[12] == 0) && (in6.s6_addr[13] == 0)
-			&& (in6.s6_addr[14] == 0) && (in6.s6_addr[15] == 1));
+		return ((in6.s6_addr[0] == 0) && (in6.s6_addr[1] == 0) && (in6.s6_addr[2] == 0) &&
+		        (in6.s6_addr[3] == 0) && (in6.s6_addr[4] == 0) && (in6.s6_addr[5] == 0) &&
+		        (in6.s6_addr[6] == 0) && (in6.s6_addr[7] == 0) && (in6.s6_addr[8] == 0) &&
+		        (in6.s6_addr[9] == 0) && (in6.s6_addr[10] == 0) && (in6.s6_addr[11] == 0) &&
+		        (in6.s6_addr[12] == 0) && (in6.s6_addr[13] == 0) && (in6.s6_addr[14] == 0) &&
+		        (in6.s6_addr[15] == 1));
 	}
 
 inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
 	{
 	v->family = GetFamily();
 
-	switch ( v->family ) {
+	switch ( v->family )
+		{
 
-	case IPv4:
-		CopyIPv4(&v->in.in4);
-		return;
+		case IPv4:
+			CopyIPv4(&v->in.in4);
+			return;
 
-	case IPv6:
-		CopyIPv6(&v->in.in6);
-		return;
+		case IPv6:
+			CopyIPv6(&v->in.in6);
+			return;
 
-	// Can't be reached.
-	abort();
-	}
+			// Can't be reached.
+			abort();
+		}
 	}
 
 /**
@@ -534,9 +532,8 @@ inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
  * (i.e., \c 192.168.1.1/16 and \c FD00::/8.
  */
 class IPPrefix
-{
+	{
 public:
-
 	/**
 	 * Constructs a prefix 0/0.
 	 */
@@ -575,14 +572,12 @@ public:
 	 * \a length is expected to range from 0 to 128 even if \a addr is IPv4,
 	 * meaning that the mask is to apply to the IPv4-mapped-IPv6 representation.
 	 */
-	IPPrefix(const IPAddr& addr, uint8_t length,
-	         bool len_is_v6_relative = false);
+	IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative = false);
 
 	/**
 	 * Copy constructor.
 	 */
-	IPPrefix(const IPPrefix& other)
-		: prefix(other.prefix), length(other.length) { }
+	IPPrefix(const IPPrefix& other) : prefix(other.prefix), length(other.length) { }
 
 	/**
 	 * Destructor.
@@ -599,10 +594,7 @@ public:
 	 * Returns the bit length of the prefix, relative to the 32 bits
 	 * of an IPv4 prefix or relative to the 128 bits of an IPv6 prefix.
 	 */
-	uint8_t Length() const
-		{
-		return prefix.GetFamily() == IPv4 ? length - 96 : length;
-		}
+	uint8_t Length() const { return prefix.GetFamily() == IPv4 ? length - 96 : length; }
 
 	/**
 	 * Returns the bit length of the prefix always relative to a full
@@ -618,7 +610,7 @@ public:
 		{
 		IPAddr p(addr);
 		p.Mask(length);
-		return p  == prefix;
+		return p == prefix;
 		}
 	/**
 	 * Assignment operator.
@@ -639,19 +631,18 @@ public:
 	 */
 	std::string AsString() const;
 
-	operator std::string() const	{ return AsString(); }
+	operator std::string() const { return AsString(); }
 
 	/**
 	 * Returns a key that can be used to lookup the IP Prefix in a hash table.
 	 */
 	std::unique_ptr<detail::HashKey> MakeHashKey() const;
 
-	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	detail::HashKey* GetHashKey() const;
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]] detail::HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the
-	  * inter-thread communication.
-	  */
+	 * inter-thread communication.
+	 */
 	void ConvertToThreadingValue(threading::Value::subnet_t* v) const
 		{
 		v->length = length;
@@ -668,10 +659,7 @@ public:
 		return net1.Prefix() == net2.Prefix() && net1.Length() == net2.Length();
 		}
 
-	friend bool operator!=(const IPPrefix& net1, const IPPrefix& net2)
-		{
-		return ! (net1 == net2);
-		}
+	friend bool operator!=(const IPPrefix& net1, const IPPrefix& net2) { return ! (net1 == net2); }
 
 	/**
 	 * Comparison operator IP prefixes. This defines a well-defined order for
@@ -695,15 +683,9 @@ public:
 		return net1 < net2 || net1 == net2;
 		}
 
-	friend bool operator>=(const IPPrefix& net1, const IPPrefix& net2)
-		{
-		return ! (net1 < net2 );
-		}
+	friend bool operator>=(const IPPrefix& net1, const IPPrefix& net2) { return ! (net1 < net2); }
 
-	friend bool operator>(const IPPrefix& net1, const IPPrefix& net2)
-		{
-		return ! ( net1 <= net2 );
-		}
+	friend bool operator>(const IPPrefix& net1, const IPPrefix& net2) { return ! (net1 <= net2); }
 
 	/**
 	 * Converts an IPv4 or IPv6 prefix string into a network address prefix structure.
@@ -728,14 +710,16 @@ public:
 		}
 
 private:
-	IPAddr prefix;	// We store it as an address with the non-prefix bits masked out via Mask().
-	uint8_t length = 0;	// The bit length of the prefix relative to full IPv6 addr.
-};
+	IPAddr prefix; // We store it as an address with the non-prefix bits masked out via Mask().
+	uint8_t length = 0; // The bit length of the prefix relative to full IPv6 addr.
+	};
 
 } // namespace zeek
 
-using ConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::ConnIDKey.")]] = zeek::detail::ConnIDKey;
+using ConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::ConnIDKey.")]] =
+	zeek::detail::ConnIDKey;
 using IPAddr [[deprecated("Remove in v4.1. Use zeek::IPAddr.")]] = zeek::IPAddr;
 using IPPrefix [[deprecated("Remove in v4.1. Use zeek::IPPrefix.")]] = zeek::IPPrefix;
 
-constexpr auto BuildConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::BuildConnIDKey.")]] = zeek::detail::BuildConnIDKey;
+constexpr auto BuildConnIDKey [[deprecated("Remove in v4.1. Use zeek::detail::BuildConnIDKey.")]] =
+	zeek::detail::BuildConnIDKey;

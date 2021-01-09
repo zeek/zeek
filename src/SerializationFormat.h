@@ -13,10 +13,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
 struct in_addr;
 struct in6_addr;
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 // Abstract base class.
-class SerializationFormat {
+class SerializationFormat
+	{
 public:
 	SerializationFormat();
 	virtual ~SerializationFormat();
@@ -40,7 +42,7 @@ public:
 	virtual bool Read(in6_addr* addr, const char* tag) = 0;
 
 	// Returns number of raw bytes read since last call to StartRead().
-	int BytesRead() const	{ return bytes_read; }
+	int BytesRead() const { return bytes_read; }
 
 	// Passes ownership of string.
 	virtual bool Read(char** str, int* len, const char* tag) = 0;
@@ -78,7 +80,7 @@ public:
 	virtual bool WriteSeparator() = 0;
 
 	// Returns number of raw bytes written since last call to StartWrite().
-	int BytesWritten() const	{ return bytes_written; }
+	int BytesWritten() const { return bytes_written; }
 
 protected:
 	bool ReadData(void* buf, size_t count);
@@ -96,9 +98,10 @@ protected:
 
 	int bytes_written;
 	int bytes_read;
-};
+	};
 
-class BinarySerializationFormat final : public SerializationFormat {
+class BinarySerializationFormat final : public SerializationFormat
+	{
 public:
 	BinarySerializationFormat();
 	~BinarySerializationFormat() override;
@@ -135,9 +138,12 @@ public:
 	bool WriteOpenTag(const char* tag) override;
 	bool WriteCloseTag(const char* tag) override;
 	bool WriteSeparator() override;
-};
+	};
 
 } // namespace zeek::detail
 
-using SerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::SerializationFormat.")]] = zeek::detail::SerializationFormat;
-using BinarySerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::BinarySerializationFormat.")]] = zeek::detail::BinarySerializationFormat;
+using SerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::SerializationFormat.")]] =
+	zeek::detail::SerializationFormat;
+using BinarySerializationFormat
+	[[deprecated("Remove in v4.1. Use zeek::detail::BinarySerializationFormat.")]] =
+		zeek::detail::BinarySerializationFormat;

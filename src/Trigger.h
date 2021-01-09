@@ -1,14 +1,14 @@
 #pragma once
 
 #include <list>
-#include <vector>
 #include <map>
+#include <vector>
 
-#include "zeek/Obj.h"
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
+#include "zeek/Obj.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/util.h"
-#include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
@@ -18,9 +18,10 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
-namespace zeek::detail {
-namespace trigger {
-
+namespace zeek::detail
+{
+namespace trigger
+{
 
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
@@ -28,14 +29,15 @@ namespace trigger {
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger final : public Obj, public notifier::detail::Receiver {
+class Trigger final : public Obj, public notifier::detail::Receiver
+	{
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
-		Frame* f, bool is_return, const Location* loc);
+	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout, Frame* f, bool is_return,
+	        const Location* loc);
 	~Trigger() override;
 
 	// Evaluates the condition. If true, executes the body and deletes
@@ -48,15 +50,14 @@ public:
 	void Timeout();
 
 	// Return the timeout interval (negative if none was specified).
-	double TimeoutValue() const
-		{ return timeout_value; }
+	double TimeoutValue() const { return timeout_value; }
 
 	// Called if another entity needs to complete its operations first
 	// in any case before this trigger can proceed.
-	void Hold()	{ delayed = true; }
+	void Hold() { delayed = true; }
 
 	// Complement of Hold().
-	void Release()	{ delayed = false; }
+	void Release() { delayed = false; }
 
 	// If we evaluate to true, our return value will be passed on
 	// to the given trigger.  Note, automatically calls Hold().
@@ -111,17 +112,17 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	std::vector<std::pair<Obj *, notifier::detail::Modifiable*>> objs;
+	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;
 
 	using ValCache = std::map<const CallExpr*, Val*>;
 	ValCache cache;
-};
+	};
 
 using TriggerPtr = IntrusivePtr<Trigger>;
 
-class Manager final : public iosource::IOSource {
+class Manager final : public iosource::IOSource
+	{
 public:
-
 	Manager();
 	~Manager();
 
@@ -131,15 +132,15 @@ public:
 
 	void Queue(Trigger* trigger);
 
-	struct Stats {
+	struct Stats
+		{
 		unsigned long total;
 		unsigned long pending;
-	};
+		};
 
 	void GetStats(Stats* stats);
 
 private:
-
 	using TriggerList = std::list<Trigger*>;
 	TriggerList* pending;
 	unsigned long total_triggers = 0;
@@ -151,11 +152,15 @@ extern trigger::Manager* trigger_mgr;
 
 } // namespace zeek::detail
 
-namespace trigger {
+namespace trigger
+{
 
-using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger.")]] = zeek::detail::trigger::Trigger;
-using Manager [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Manager.")]] = zeek::detail::trigger::Manager;
+using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger.")]] =
+	zeek::detail::trigger::Trigger;
+using Manager [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Manager.")]] =
+	zeek::detail::trigger::Manager;
 
 } // namespace trigger
 
-extern zeek::detail::trigger::Manager*& trigger_mgr [[deprecated("Remove in v4.1. Use zeek::detail::trigger_mgr.")]];
+extern zeek::detail::trigger::Manager*& trigger_mgr
+	[[deprecated("Remove in v4.1. Use zeek::detail::trigger_mgr.")]];

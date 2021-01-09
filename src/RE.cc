@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/RE.h"
 
 #include <stdlib.h>
 #include <utility>
 
-#include "zeek/DFA.h"
 #include "zeek/CCL.h"
+#include "zeek/DFA.h"
 #include "zeek/EquivClass.h"
+#include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
 
@@ -25,11 +25,13 @@ extern int RE_parse(void);
 extern void RE_set_input(const char* str);
 extern void RE_done_with_scan();
 
-namespace zeek {
-namespace detail {
+namespace zeek
+{
+namespace detail
+{
 
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
-: equiv_class(NUM_SYM)
+	: equiv_class(NUM_SYM)
 	{
 	mt = arg_mt;
 	multiline = arg_multiline;
@@ -46,7 +48,7 @@ Specific_RE_Matcher::~Specific_RE_Matcher()
 		delete ccl_list[i];
 
 	Unref(dfa);
-	delete [] pattern_text;
+	delete[] pattern_text;
 	delete accepted;
 	}
 
@@ -88,8 +90,7 @@ void Specific_RE_Matcher::AddExactPat(const char* new_pat)
 	AddPat(new_pat, "^?(%s)$?", "(%s)|(^?(%s)$?)");
 	}
 
-void Specific_RE_Matcher::AddPat(const char* new_pat,
-				const char* orig_fmt, const char* app_fmt)
+void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, const char* app_fmt)
 	{
 	int n = strlen(new_pat);
 
@@ -105,7 +106,7 @@ void Specific_RE_Matcher::AddPat(const char* new_pat,
 	else
 		sprintf(s, orig_fmt, new_pat);
 
-	delete [] pattern_text;
+	delete[] pattern_text;
 	pattern_text = s;
 	}
 
@@ -118,7 +119,7 @@ void Specific_RE_Matcher::MakeCaseInsensitive()
 
 	snprintf(s, n + 5, fmt, pattern_text);
 
-	delete [] pattern_text;
+	delete[] pattern_text;
 	pattern_text = s;
 	}
 
@@ -190,7 +191,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 	nfa = new NFA_Machine(new NFA_State(SYM_BOL, rem->EC()));
 	nfa->MakeOptional();
 	if ( set_nfa )
-		nfa->AppendMachine( set_nfa );
+		nfa->AppendMachine(set_nfa);
 
 	EC()->BuildECs();
 	ConvertCCLs();
@@ -266,7 +267,6 @@ bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 	return d && d->Accept() != nullptr;
 	}
 
-
 int Specific_RE_Matcher::Match(const u_char* bv, int n)
 	{
 	if ( ! dfa )
@@ -276,7 +276,8 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n)
 	DFA_State* d = dfa->StartState();
 
 	d = d->Xtion(ecs[SYM_BOL], dfa);
-	if ( ! d ) return 0;
+	if ( ! d )
+		return 0;
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -293,20 +294,18 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n)
 		{
 		d = d->Xtion(ecs[SYM_EOL], dfa);
 		if ( d && d->Accept() )
-			return n > 0 ? n : 1;	// we can't return 0 here for match...
+			return n > 0 ? n : 1; // we can't return 0 here for match...
 		}
 
 	return 0;
 	}
-
 
 void Specific_RE_Matcher::Dump(FILE* f)
 	{
 	dfa->Dump(f);
 	}
 
-inline void RE_Match_State::AddMatches(const AcceptingSet& as,
-                                       MatchPos position)
+inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position)
 	{
 	typedef std::pair<AcceptIdx, MatchPos> am_idx;
 
@@ -314,8 +313,7 @@ inline void RE_Match_State::AddMatches(const AcceptingSet& as,
 		accepted_matches.insert(am_idx(*it, position));
 	}
 
-bool RE_Match_State::Match(const u_char* bv, int n,
-				bool bol, bool eol, bool clear)
+bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool clear)
 	{
 	if ( current_pos == -1 )
 		{
@@ -356,7 +354,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		else
 			ec = ecs[*(bv++)];
 
-		DFA_State* next_state = current_state->Xtion(ec,dfa);
+		DFA_State* next_state = current_state->Xtion(ec, dfa);
 
 		if ( ! next_state )
 			{
@@ -426,39 +424,40 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 	size += util::pad_size(sizeof(CCL*) * ccl_dict.size());
 	for ( const auto& entry : ccl_dict )
 		{
-		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) +
+		        util::pad_size(sizeof(std::string::value_type) * entry.first.size());
 		size += entry.second->MemoryAllocation();
 		}
 
 	for ( const auto& entry : defs )
 		{
-		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.first.size());
-		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.second.size());
+		size += padded_sizeof(std::string) +
+		        util::pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) +
+		        util::pad_size(sizeof(std::string::value_type) * entry.second.size());
 		}
 
-	return size + padded_sizeof(*this)
-		+ (pattern_text ? util::pad_size(strlen(pattern_text) + 1) : 0)
-		+ ccl_list.MemoryAllocation() - padded_sizeof(ccl_list)
-		+ equiv_class.Size() - padded_sizeof(EquivClass)
-		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
-		+ padded_sizeof(*any_ccl)
-		+ padded_sizeof(*accepted) // NOLINT(bugprone-sizeof-container)
-		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
+	return size + padded_sizeof(*this) +
+	       (pattern_text ? util::pad_size(strlen(pattern_text) + 1) : 0) +
+	       ccl_list.MemoryAllocation() - padded_sizeof(ccl_list) + equiv_class.Size() -
+	       padded_sizeof(EquivClass) +
+	       (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
+	       + padded_sizeof(*any_ccl) + padded_sizeof(*accepted) // NOLINT(bugprone-sizeof-container)
+	       + accepted->size() * padded_sizeof(AcceptingSet::key_type);
 	}
 
-static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
-				const char* merge_op)
+static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2, const char* merge_op)
 	{
 	const char* text1 = re1->PatternText();
 	const char* text2 = re2->PatternText();
 
-	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */ ;
+	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */;
 
 	char* merge_text = new char[n];
 	snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
 
 	RE_Matcher* merge = new RE_Matcher(merge_text);
-	delete [] merge_text;
+	delete[] merge_text;
 
 	merge->Compile();
 

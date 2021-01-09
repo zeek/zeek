@@ -2,22 +2,24 @@
 
 #pragma once
 
-#include <queue>
 #include <memory>
+#include <queue>
 
 #include "zeek/Dict.h"
 #include "zeek/file_analysis/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-namespace zeek {
+namespace zeek
+{
 using RecordValPtr = IntrusivePtr<RecordVal>;
 }
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, file_analysis);
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+{
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -25,9 +27,9 @@ namespace zeek::file_analysis::detail {
  * modifications can happen at well-defined times (e.g. to make sure a loop
  * iterator isn't invalidated).
  */
-class AnalyzerSet {
+class AnalyzerSet
+	{
 public:
-
 	/**
 	 * Constructor.  Nothing special.
 	 * @param arg_file the file to which all analyzers in the set are attached.
@@ -63,8 +65,7 @@ public:
 	 * @return if successful, a pointer to a newly instantiated analyzer else
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
-	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag,
-	                                  RecordValPtr args);
+	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -92,8 +93,7 @@ public:
 	 * @see Dictionary#InitForIteration
 	 * @return an iterator that may be used to loop over analyzers in the set.
 	 */
-	IterCookie* InitForIteration() const
-		{ return analyzer_map.InitForIteration(); }
+	IterCookie* InitForIteration() const { return analyzer_map.InitForIteration(); }
 
 	/**
 	 * Get next entry in the analyzer set.
@@ -102,11 +102,9 @@ public:
 	 * @return the next analyzer in the set or a null pointer if there is no
 	 *         more left (in that case the cookie is also deleted).
 	 */
-	file_analysis::Analyzer* NextEntry(IterCookie* c)
-		{ return analyzer_map.NextEntry(c); }
+	file_analysis::Analyzer* NextEntry(IterCookie* c) { return analyzer_map.NextEntry(c); }
 
 protected:
-
 	/**
 	 * Get a hash key which represents an analyzer instance.
 	 * @param tag the file analyzer tag.
@@ -141,17 +139,17 @@ protected:
 	bool Remove(const file_analysis::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key);
 
 private:
-
-	File* file;                                  /**< File which owns the set */
-	zeek::detail::CompositeHash* analyzer_hash;  /**< AnalyzerArgs hashes. */
+	File* file; /**< File which owns the set */
+	zeek::detail::CompositeHash* analyzer_hash; /**< AnalyzerArgs hashes. */
 	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**
 	 * Abstract base class for analyzer set modifications.
 	 */
-	class Modification {
+	class Modification
+		{
 	public:
-		virtual ~Modification() {}
+		virtual ~Modification() { }
 
 		/**
 		 * Perform the modification on an analyzer set.
@@ -164,12 +162,13 @@ private:
 		 * Don't perform the modification on the analyzer set and clean up.
 		 */
 		virtual void Abort() = 0;
-	};
+		};
 
 	/**
 	 * Represents a request to add an analyzer to an analyzer set.
 	 */
-	class AddMod final : public Modification {
+	class AddMod final : public Modification
+		{
 	public:
 		/**
 		 * Construct request which can add an analyzer to an analyzer set.
@@ -177,20 +176,23 @@ private:
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
 		AddMod(file_analysis::Analyzer* arg_a, std::unique_ptr<zeek::detail::HashKey> arg_key)
-			: Modification(), a(arg_a), key(std::move(arg_key)) {}
-		~AddMod() override {}
+			: Modification(), a(arg_a), key(std::move(arg_key))
+			{
+			}
+		~AddMod() override { }
 		bool Perform(AnalyzerSet* set) override;
 		void Abort() override;
 
 	protected:
 		file_analysis::Analyzer* a;
 		std::unique_ptr<zeek::detail::HashKey> key;
-	};
+		};
 
 	/**
 	 * Represents a request to remove an analyzer from an analyzer set.
 	 */
-	class RemoveMod final : public Modification {
+	class RemoveMod final : public Modification
+		{
 	public:
 		/**
 		 * Construct request which can remove an analyzer from an analyzer set.
@@ -198,24 +200,28 @@ private:
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
 		RemoveMod(const file_analysis::Tag& arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
-			: Modification(), tag(arg_tag), key(std::move(arg_key)) {}
-		~RemoveMod() override {}
+			: Modification(), tag(arg_tag), key(std::move(arg_key))
+			{
+			}
+		~RemoveMod() override { }
 		bool Perform(AnalyzerSet* set) override;
-		void Abort() override {}
+		void Abort() override { }
 
 	protected:
 		file_analysis::Tag tag;
 		std::unique_ptr<zeek::detail::HashKey> key;
-	};
+		};
 
 	using ModQueue = std::queue<Modification*>;
-	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
-};
+	ModQueue mod_queue; /**< A queue of analyzer additions/removals requests. */
+	};
 
 } // namespace zeek::file_analysis::detail
 
-namespace file_analysis {
+namespace file_analysis
+{
 
-using AnalyzerSet [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::AnalyzerSet.")]] = zeek::file_analysis::detail::AnalyzerSet;
+using AnalyzerSet [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::AnalyzerSet.")]] =
+	zeek::file_analysis::detail::AnalyzerSet;
 
 } // namespace file_analysis

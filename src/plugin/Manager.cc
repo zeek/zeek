@@ -3,24 +3,25 @@
 #include "zeek/plugin/Manager.h"
 
 #include <dirent.h>
-#include <glob.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <glob.h>
 #include <sys/stat.h>
+#include <fstream>
 #include <optional>
 #include <sstream>
-#include <fstream>
 
-#include "zeek/Reporter.h"
-#include "zeek/Func.h"
 #include "zeek/Event.h"
+#include "zeek/Func.h"
+#include "zeek/Reporter.h"
 #include "zeek/Val.h"
-#include "zeek/util.h"
 #include "zeek/input.h"
+#include "zeek/util.h"
 
 using namespace std;
 
-namespace zeek::plugin {
+namespace zeek::plugin
+{
 
 Plugin* Manager::current_plugin = nullptr;
 const char* Manager::current_dir = nullptr;
@@ -42,7 +43,7 @@ Manager::~Manager()
 	for ( int i = 0; i < NUM_HOOKS; i++ )
 		delete hooks[i];
 
-	delete [] hooks;
+	delete[] hooks;
 	}
 
 void Manager::SearchDynamicPlugins(const std::string& dir)
@@ -92,7 +93,8 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 		if ( dynamic_plugins.find(lower_name) != dynamic_plugins.end() )
 			{
-			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(), dir.c_str());
+			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(),
+			        dir.c_str());
 			return;
 			}
 
@@ -115,19 +117,18 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	bool found = false;
 
-	struct dirent *dp;
+	struct dirent* dp;
 
 	while ( (dp = readdir(d)) )
 		{
 		struct stat st;
 
-		if ( strcmp(dp->d_name, "..") == 0
-		     || strcmp(dp->d_name, ".") == 0 )
+		if ( strcmp(dp->d_name, "..") == 0 || strcmp(dp->d_name, ".") == 0 )
 			continue;
 
 		string path = dir + "/" + dp->d_name;
 
-		if( stat(path.c_str(), &st) < 0 )
+		if ( stat(path.c_str(), &st) < 0 )
 			{
 			DBG_LOG(DBG_PLUGINS, "Cannot stat %s: %s", path.c_str(), strerror(errno));
 			continue;
@@ -140,7 +141,8 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	closedir(d);
 	}
 
-bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors)
+bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
+                                            std::vector<std::string>* errors)
 	{
 	errors->clear(); // caller should pass it in empty, but just to be sure
 
@@ -156,7 +158,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		// this should be rare to begin with.
 		plugin_list* all_plugins = Manager::ActivePluginsInternal();
 
-		for ( Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
+		for ( Manager::plugin_list::const_iterator i = all_plugins->begin();
+		      i != all_plugins->end(); i++ )
 			{
 			if ( (*i)->Name() == name )
 				return true;
@@ -201,21 +204,25 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			if ( ! hdl )
 				{
 				const char* err = dlerror();
-				errors->push_back(util::fmt("cannot load plugin library %s: %s", path, err ? err : "<unknown error>"));
+				errors->push_back(util::fmt("cannot load plugin library %s: %s", path,
+				                            err ? err : "<unknown error>"));
 				continue;
 				}
 
-			if ( ! current_plugin ) {
-				errors->push_back(util::fmt("load plugin library %s did not instantiate a plugin", path));
+			if ( ! current_plugin )
+				{
+				errors->push_back(
+					util::fmt("load plugin library %s did not instantiate a plugin", path));
 				continue;
-			}
+				}
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
 			DBG_LOG(DBG_PLUGINS, "  InitialzingComponents");
 			current_plugin->InitializeComponents();
 
-			plugins_by_path.insert(std::make_pair(util::detail::normalize_path(dir), current_plugin));
+			plugins_by_path.insert(
+				std::make_pair(util::detail::normalize_path(dir), current_plugin));
 
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
@@ -224,11 +231,12 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			// Make sure the name the plugin reports is consistent with
 			// what we expect from its magic file.
-			if ( util::strtolower(current_plugin->Name()) != util::strtolower(name) ) {
+			if ( util::strtolower(current_plugin->Name()) != util::strtolower(name) )
+				{
 				errors->push_back(util::fmt("inconsistent plugin name: %s vs %s",
-						     current_plugin->Name().c_str(), name.c_str()));
+				                            current_plugin->Name().c_str(), name.c_str()));
 				continue;
-			}
+				}
 
 			current_plugin = nullptr;
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
@@ -257,7 +265,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	string init;
 
 	// First load {scripts}/__preload__.zeek automatically.
-	for (const string& ext : util::detail::script_extensions)
+	for ( const string& ext : util::detail::script_extensions )
 		{
 		init = dir + "scripts/__preload__" + ext;
 
@@ -271,7 +279,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		}
 
 	// Load {bif,scripts}/__load__.zeek automatically.
-	for (const string& ext : util::detail::script_extensions)
+	for ( const string& ext : util::detail::script_extensions )
 		{
 		init = dir + "lib/bif/__load__" + ext;
 
@@ -284,7 +292,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			}
 		}
 
-	for (const string& ext : util::detail::script_extensions)
+	for ( const string& ext : util::detail::script_extensions )
 		{
 		init = dir + "scripts/__load__" + ext;
 
@@ -313,7 +321,8 @@ void Manager::ActivateDynamicPlugin(const std::string& name)
 		requested_plugins.insert(std::move(name));
 	}
 
-void Manager::ActivateDynamicPlugins(bool all) {
+void Manager::ActivateDynamicPlugins(bool all)
+	{
 	// Tracks plugins we need to activate as pairs of their names and booleans
 	// indicating whether an activation failure is to be deemed a fatal error.
 	std::set<std::pair<std::string, bool>> plugins_to_activate;
@@ -340,7 +349,8 @@ void Manager::ActivateDynamicPlugins(bool all) {
 	// long as we're successful for at least one further of them each round.
 	// Doing so ensures that we can resolve (non-cyclic) load dependencies
 	// independent of any particular order.
-	while ( ! plugins_to_activate.empty() ) {
+	while ( ! plugins_to_activate.empty() )
+		{
 		std::vector<std::string> errors;
 		auto plugins_left = plugins_to_activate;
 
@@ -379,7 +389,7 @@ static bool plugin_cmp(const Plugin* a, const Plugin* b)
 	return util::strtolower(a->Name()) < util::strtolower(b->Name());
 	}
 
-void Manager::RegisterPlugin(Plugin *plugin)
+void Manager::RegisterPlugin(Plugin* plugin)
 	{
 	Manager::ActivePluginsInternal()->push_back(plugin);
 
@@ -441,7 +451,8 @@ void Manager::InitBifs()
 
 		if ( b != bifs->end() )
 			{
-			for ( bif_init_func_list::const_iterator j = b->second->begin(); j != b->second->end(); ++j )
+			for ( bif_init_func_list::const_iterator j = b->second->begin(); j != b->second->end();
+			      ++j )
 				(**j)(*i);
 			}
 		}
@@ -480,7 +491,8 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 
 	inactive_plugin_list inactives;
 
-	for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin(); i != dynamic_plugins.end(); i++ )
+	for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin();
+	      i != dynamic_plugins.end(); i++ )
 		{
 		bool found = false;
 
@@ -554,9 +566,9 @@ static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)
 	return a.first > b.first;
 	}
 
-std::list<std::pair<HookType, int> > Manager::HooksEnabledForPlugin(const Plugin* plugin) const
+std::list<std::pair<HookType, int>> Manager::HooksEnabledForPlugin(const Plugin* plugin) const
 	{
-	std::list<std::pair<HookType, int> > enabled;
+	std::list<std::pair<HookType, int>> enabled;
 
 	for ( int i = 0; i < NUM_HOOKS; i++ )
 		{
@@ -612,8 +624,7 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
-	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",
-	        plugin->Name().c_str(), handler->Name());
+	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s", plugin->Name().c_str(), handler->Name());
 	handler->SetGenerateAlways();
 	}
 
@@ -655,9 +666,8 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
-std::pair<bool, ValPtr>
-Manager::HookCallFunction(const Func* func, zeek::detail::Frame* parent,
-                          Args* vecargs) const
+std::pair<bool, ValPtr> Manager::HookCallFunction(const Func* func, zeek::detail::Frame* parent,
+                                                  Args* vecargs) const
 	{
 	HookArgumentList args;
 	ValPList vargs;
@@ -677,7 +687,7 @@ Manager::HookCallFunction(const Func* func, zeek::detail::Frame* parent,
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	std::pair<bool, ValPtr> rval{false, nullptr};
+	std::pair<bool, ValPtr> rval {false, nullptr};
 
 	if ( l )
 		{
@@ -749,10 +759,9 @@ void Manager::HookDrainEvents() const
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_DRAIN_EVENTS, args, HookArgument());
-
 	}
 
-void Manager::HookSetupAnalyzerTree(Connection *conn) const
+void Manager::HookSetupAnalyzerTree(Connection* conn) const
 	{
 	HookArgumentList args;
 
@@ -762,13 +771,13 @@ void Manager::HookSetupAnalyzerTree(Connection *conn) const
 		MetaHookPre(HOOK_SETUP_ANALYZER_TREE, args);
 		}
 
-	hook_list *l = hooks[HOOK_SETUP_ANALYZER_TREE];
+	hook_list* l = hooks[HOOK_SETUP_ANALYZER_TREE];
 
 	if ( l )
 		{
-		for (hook_list::iterator i = l->begin() ; i != l->end(); ++i)
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
-			Plugin *p = (*i).second;
+			Plugin* p = (*i).second;
 			p->HookSetupAnalyzerTree(conn);
 			}
 		}
@@ -825,12 +834,9 @@ void Manager::HookBroObjDtor(void* obj) const
 		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
 	}
 
-void Manager::HookLogInit(const std::string& writer,
-                          const std::string& instantiating_filter,
-                          bool local, bool remote,
-                          const logging::WriterBackend::WriterInfo& info,
-                          int num_fields,
-                          const threading::Field* const* fields) const
+void Manager::HookLogInit(const std::string& writer, const std::string& instantiating_filter,
+                          bool local, bool remote, const logging::WriterBackend::WriterInfo& info,
+                          int num_fields, const threading::Field* const* fields) const
 	{
 	HookArgumentList args;
 
@@ -852,20 +858,16 @@ void Manager::HookLogInit(const std::string& writer,
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
-			p->HookLogInit(writer, instantiating_filter, local, remote, info,
-			               num_fields, fields);
+			p->HookLogInit(writer, instantiating_filter, local, remote, info, num_fields, fields);
 			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_LOG_INIT, args, HookArgument());
 	}
 
-bool Manager::HookLogWrite(const std::string& writer,
-                           const std::string& filter,
-                           const logging::WriterBackend::WriterInfo& info,
-                           int num_fields,
-                           const threading::Field* const* fields,
-                           threading::Value** vals) const
+bool Manager::HookLogWrite(const std::string& writer, const std::string& filter,
+                           const logging::WriterBackend::WriterInfo& info, int num_fields,
+                           const threading::Field* const* fields, threading::Value** vals) const
 	{
 	HookArgumentList args;
 
@@ -889,8 +891,7 @@ bool Manager::HookLogWrite(const std::string& writer,
 			{
 			Plugin* p = (*i).second;
 
-			if ( ! p->HookLogWrite(writer, filter, info, num_fields, fields,
-			                       vals) )
+			if ( ! p->HookLogWrite(writer, filter, info, num_fields, fields, vals) )
 				{
 				result = false;
 				break;
@@ -906,8 +907,8 @@ bool Manager::HookLogWrite(const std::string& writer,
 bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr event,
                            const Connection* conn, const ValPList* addl, bool location,
                            const zeek::detail::Location* location1,
-                           const zeek::detail::Location* location2,
-                           bool time, const std::string& message)
+                           const zeek::detail::Location* location2, bool time,
+                           const std::string& message)
 
 	{
 	HookArgumentList args;
@@ -935,7 +936,8 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 			{
 			Plugin* p = (*i).second;
 
-			if ( ! p->HookReporter(prefix, event, conn, addl, location, location1, location2, time, message) )
+			if ( ! p->HookReporter(prefix, event, conn, addl, location, location1, location2, time,
+			                       message) )
 				{
 				result = false;
 				break;
@@ -948,7 +950,6 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 
 	return result;
 	}
-
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
 	{

@@ -5,10 +5,10 @@
 #include "zeek/Func.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-namespace zeek::analyzer::ayiya {
+namespace zeek::analyzer::ayiya
+{
 
-AYIYA_Analyzer::AYIYA_Analyzer(Connection* conn)
-: Analyzer("AYIYA", conn)
+AYIYA_Analyzer::AYIYA_Analyzer(Connection* conn) : Analyzer("AYIYA", conn)
 	{
 	interp = new binpac::AYIYA::AYIYA_Conn(this);
 	}
@@ -24,7 +24,8 @@ void AYIYA_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                   const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -51,7 +52,8 @@ void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	if ( result == 0 )
 		{
 		ProtocolConfirmation();
-		std:shared_ptr<EncapsulationStack> e = Conn()->GetEncapsulation();
+	std:
+		shared_ptr<EncapsulationStack> e = Conn()->GetEncapsulation();
 		EncapsulatingConn ec(Conn(), BifEnum::Tunnel::AYIYA);
 		packet_analysis::IPTunnel::ip_tunnel_analyzer->ProcessEncapsulatedPacket(
 			run_state::network_time, nullptr, inner, e, ec);
@@ -60,11 +62,9 @@ void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		ProtocolViolation("AYIYA next header internal mismatch",
 		                  reinterpret_cast<const char*>(data), len);
 	else if ( result < 0 )
-		ProtocolViolation("Truncated AYIYA",
-		                  reinterpret_cast<const char*>(data), len);
+		ProtocolViolation("Truncated AYIYA", reinterpret_cast<const char*>(data), len);
 	else
-		ProtocolViolation("AYIYA payload length",
-		                  reinterpret_cast<const char*>(data), len);
+		ProtocolViolation("AYIYA payload length", reinterpret_cast<const char*>(data), len);
 
 	if ( result != 0 )
 		delete inner;

@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "zeek/analyzer/Analyzer.h"
+#include "zeek/Conn.h"
 #include "zeek/IPAddr.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
-#include "zeek/Conn.h"
 
 // We define two classes here:
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.
@@ -19,9 +19,11 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Endpoint, zeek, analyzer::tcp);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Reassembler, zeek, analyzer::tcp);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_ApplicationAnalyzer, zeek, analyzer::tcp);
 
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+{
 
-class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer {
+class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer
+	{
 public:
 	explicit TCP_Analyzer(Connection* conn);
 	~TCP_Analyzer() override;
@@ -37,21 +39,21 @@ public:
 	bool RemoveChildAnalyzer(analyzer::ID id) override;
 
 	// True if the connection has closed in some sense, false otherwise.
-	bool IsClosed() const	{ return orig->did_close || resp->did_close; }
-	bool BothClosed() const	{ return orig->did_close && resp->did_close; }
+	bool IsClosed() const { return orig->did_close || resp->did_close; }
+	bool BothClosed() const { return orig->did_close && resp->did_close; }
 
-	bool IsPartial() const	{ return is_partial; }
+	bool IsPartial() const { return is_partial; }
 
 	bool HadGap(bool orig) const;
 
-	TCP_Endpoint* Orig() const	{ return orig; }
-	TCP_Endpoint* Resp() const	{ return resp; }
-	int OrigState() const	{ return orig->state; }
-	int RespState() const	{ return resp->state; }
-	int OrigPrevState() const	{ return orig->prev_state; }
-	int RespPrevState() const	{ return resp->prev_state; }
-	uint32_t OrigSeq() const	{ return orig->LastSeq(); }
-	uint32_t RespSeq() const	{ return resp->LastSeq(); }
+	TCP_Endpoint* Orig() const { return orig; }
+	TCP_Endpoint* Resp() const { return resp; }
+	int OrigState() const { return orig->state; }
+	int RespState() const { return resp->state; }
+	int OrigPrevState() const { return orig->prev_state; }
+	int RespPrevState() const { return resp->prev_state; }
+	uint32_t OrigSeq() const { return orig->LastSeq(); }
+	uint32_t RespSeq() const { return resp->LastSeq(); }
 
 	// True if either endpoint still has pending data.  closing_endp
 	// is an endpoint that has indicated it is closing (i.e., for
@@ -64,12 +66,11 @@ public:
 	FilePtr GetContentsFile(unsigned int direction) const override;
 
 	// From Analyzer.h
-	void UpdateConnVal(RecordVal *conn_val) override;
+	void UpdateConnVal(RecordVal* conn_val) override;
 
 	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new TCP_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new TCP_Analyzer(conn); }
 
 protected:
 	friend class TCP_ApplicationAnalyzer;
@@ -79,8 +80,8 @@ protected:
 	// Analyzer interface.
 	void Init() override;
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
-	                   const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void FlipRoles() override;
@@ -89,13 +90,12 @@ protected:
 	// Returns the TCP header pointed to by data (which we assume is
 	// aligned), updating data, len & caplen.  Returns nil if the header
 	// isn't fully present.
-	const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len,
-						int& caplen);
+	const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len, int& caplen);
 
 	// Returns true if the checksum is valid, false if not (and in which
 	// case also updates the status history of the endpoint).
 	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp, TCP_Endpoint* endpoint,
-				int len, int caplen);
+	                      int len, int caplen);
 
 	void SetPartialStatus(TCP_Flags flags, bool is_orig);
 
@@ -105,38 +105,30 @@ protected:
 	// On return, do_close is true if we should consider the connection
 	// as closed, and gen_event if we shouuld generate an event about
 	// this fact.
-	void UpdateStateMachine(double t,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32_t base_seq, uint32_t ack_seq,
-			int len, int32_t delta_last, bool is_orig, TCP_Flags flags,
-			bool& do_close, bool& gen_event);
+	void UpdateStateMachine(double t, TCP_Endpoint* endpoint, TCP_Endpoint* peer, uint32_t base_seq,
+	                        uint32_t ack_seq, int len, int32_t delta_last, bool is_orig,
+	                        TCP_Flags flags, bool& do_close, bool& gen_event);
 
-	void UpdateInactiveState(double t,
-				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32_t base_seq, uint32_t ack_seq,
-				int len, bool is_orig, TCP_Flags flags,
-				bool& do_close, bool& gen_event);
+	void UpdateInactiveState(double t, TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+	                         uint32_t base_seq, uint32_t ack_seq, int len, bool is_orig,
+	                         TCP_Flags flags, bool& do_close, bool& gen_event);
 
-	void UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				 int len, bool is_orig, TCP_Flags flags,
-				 bool& do_close, bool& gen_event);
+	void UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer, int len, bool is_orig,
+	                         TCP_Flags flags, bool& do_close, bool& gen_event);
 
-	void UpdateEstablishedState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				    TCP_Flags flags, bool& do_close, bool& gen_event);
+	void UpdateEstablishedState(TCP_Endpoint* endpoint, TCP_Endpoint* peer, TCP_Flags flags,
+	                            bool& do_close, bool& gen_event);
 
-	void UpdateClosedState(double t, TCP_Endpoint* endpoint,
-				int32_t delta_last, TCP_Flags flags,
-				bool& do_close);
+	void UpdateClosedState(double t, TCP_Endpoint* endpoint, int32_t delta_last, TCP_Flags flags,
+	                       bool& do_close);
 
 	void UpdateResetState(int len, TCP_Flags flags);
 
-	void GeneratePacketEvent(uint64_t rel_seq, uint64_t rel_ack,
-				 const u_char* data, int len, int caplen,
-				 bool is_orig, TCP_Flags flags);
+	void GeneratePacketEvent(uint64_t rel_seq, uint64_t rel_ack, const u_char* data, int len,
+	                         int caplen, bool is_orig, TCP_Flags flags);
 
-	bool DeliverData(double t, const u_char* data, int len, int caplen,
-	                 const IP_Hdr* ip, const struct tcphdr* tp,
-	                 TCP_Endpoint* endpoint, uint64_t rel_data_seq,
+	bool DeliverData(double t, const u_char* data, int len, int caplen, const IP_Hdr* ip,
+	                 const struct tcphdr* tp, TCP_Endpoint* endpoint, uint64_t rel_data_seq,
 	                 bool is_orig, TCP_Flags flags);
 
 	void CheckRecording(bool need_contents, TCP_Flags flags);
@@ -151,8 +143,7 @@ protected:
 	void ConnDeleteTimer(double t);
 
 	void EndpointEOF(TCP_Reassembler* endp);
-	void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, bool gen_event);
+	void ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer, bool gen_event);
 	void ConnectionFinished(bool half_finished);
 	void ConnectionReset();
 	void PacketWithRST();
@@ -160,14 +151,12 @@ protected:
 	void SetReassembler(tcp::TCP_Reassembler* rorig, tcp::TCP_Reassembler* rresp);
 
 	// A couple utility functions that may also be useful to derived analyzers.
-	static uint64_t get_relative_seq(const TCP_Endpoint* endpoint,
-	                               uint32_t cur_base, uint32_t last,
-	                               uint32_t wraps, bool* underflow = nullptr);
+	static uint64_t get_relative_seq(const TCP_Endpoint* endpoint, uint32_t cur_base, uint32_t last,
+	                                 uint32_t wraps, bool* underflow = nullptr);
 
 	static int get_segment_len(int payload_len, TCP_Flags flags);
 
 private:
-
 	void SynWeirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len) const;
 
 	TCP_Endpoint* orig;
@@ -176,30 +165,31 @@ private:
 	using analyzer_list = std::list<analyzer::Analyzer*>;
 	analyzer_list packet_children;
 
-	unsigned int first_packet_seen: 2;
-	unsigned int reassembling: 1;
-	unsigned int is_partial: 1;
-	unsigned int is_active: 1;
-	unsigned int finished: 1;
+	unsigned int first_packet_seen : 2;
+	unsigned int reassembling : 1;
+	unsigned int is_partial : 1;
+	unsigned int is_active : 1;
+	unsigned int finished : 1;
 
 	// Whether we're waiting on final data delivery before closing
 	// this connection.
-	unsigned int close_deferred: 1;
+	unsigned int close_deferred : 1;
 
 	// Whether to generate an event when we finally do close it.
-	unsigned int deferred_gen_event: 1;
+	unsigned int deferred_gen_event : 1;
 
 	// Whether we have seen the first ACK from the originator.
-	unsigned int seen_first_ACK: 1;
-};
+	unsigned int seen_first_ACK : 1;
+	};
 
-class TCP_ApplicationAnalyzer : public analyzer::Analyzer {
+class TCP_ApplicationAnalyzer : public analyzer::Analyzer
+	{
 public:
-	TCP_ApplicationAnalyzer(const char* name, Connection* conn)
-		: Analyzer(name, conn), tcp(nullptr) { }
+	TCP_ApplicationAnalyzer(const char* name, Connection* conn) : Analyzer(name, conn), tcp(nullptr)
+		{
+		}
 
-	explicit TCP_ApplicationAnalyzer(Connection* conn)
-		: Analyzer(conn), tcp(nullptr) { }
+	explicit TCP_ApplicationAnalyzer(Connection* conn) : Analyzer(conn), tcp(nullptr) { }
 
 	~TCP_ApplicationAnalyzer() override { }
 
@@ -207,12 +197,10 @@ public:
 	// analyzer (e.g., we're part of a tunnel decapsulation pipeline).
 	TCP_Analyzer* TCP()
 		{
-		return tcp ?
-			tcp :
-			static_cast<TCP_Analyzer*>(Conn()->FindAnalyzer("TCP"));
+		return tcp ? tcp : static_cast<TCP_Analyzer*>(Conn()->FindAnalyzer("TCP"));
 		}
 
-	void SetTCP(TCP_Analyzer* arg_tcp)	{ tcp = arg_tcp; }
+	void SetTCP(TCP_Analyzer* arg_tcp) { tcp = arg_tcp; }
 
 	// The given endpoint's data delivery is complete.
 	virtual void EndpointEOF(bool is_orig);
@@ -222,7 +210,7 @@ public:
 	// is now fully closed, a connection_finished event will be
 	// generated; otherwise not.
 	virtual void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
-				      analyzer::tcp::TCP_Endpoint* peer, bool gen_event);
+	                              analyzer::tcp::TCP_Endpoint* peer, bool gen_event);
 	virtual void ConnectionFinished(bool half_finished);
 	virtual void ConnectionReset();
 
@@ -230,14 +218,13 @@ public:
 	// of ConnectionReset is delayed.
 	virtual void PacketWithRST();
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
-	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 	void Init() override;
 
 	// This suppresses violations if the TCP connection wasn't
 	// fully established.
-	void ProtocolViolation(const char* reason,
-					const char* data = nullptr, int len = 0) override;
+	void ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0) override;
 
 	// "name" and "val" both now belong to this object, which needs to
 	//  delete them when done with them.
@@ -245,31 +232,33 @@ public:
 
 private:
 	TCP_Analyzer* tcp;
-};
+	};
 
-class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer {
+class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer
+	{
 public:
 	TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
-		: analyzer::SupportAnalyzer(name, conn, arg_orig)	{ }
+		: analyzer::SupportAnalyzer(name, conn, arg_orig)
+		{
+		}
 
-	~TCP_SupportAnalyzer() override {}
+	~TCP_SupportAnalyzer() override { }
 
 	// These are passed on from TCP_Analyzer.
-	virtual void EndpointEOF(bool is_orig)	{ }
-	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, bool gen_event) 	{ }
-	virtual void ConnectionFinished(bool half_finished)	{ }
-	virtual void ConnectionReset()	{ }
-	virtual void PacketWithRST()	{ }
-};
+	virtual void EndpointEOF(bool is_orig) { }
+	virtual void ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer, bool gen_event) { }
+	virtual void ConnectionFinished(bool half_finished) { }
+	virtual void ConnectionReset() { }
+	virtual void PacketWithRST() { }
+	};
 
-
-class TCPStats_Endpoint {
+class TCPStats_Endpoint
+	{
 public:
 	explicit TCPStats_Endpoint(TCP_Endpoint* endp);
 
-	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
-	              const IP_Hdr* ip, const struct tcphdr* tp);
+	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data, const IP_Hdr* ip,
+	              const struct tcphdr* tp);
 
 	RecordVal* BuildStats();
 
@@ -284,9 +273,10 @@ protected:
 	uint64_t max_top_seq;
 	int last_id;
 	int endian_type;
-};
+	};
 
-class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit TCPStats_Analyzer(Connection* c);
 	~TCPStats_Analyzer() override;
@@ -294,25 +284,34 @@ public:
 	void Init() override;
 	void Done() override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new TCPStats_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new TCPStats_Analyzer(conn); }
 
 protected:
-	void DeliverPacket(int len, const u_char* data, bool is_orig,
-	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;
-};
+	};
 
 } // namespace zeek::analyzer::tcp
 
-namespace analyzer::tcp {
+namespace analyzer::tcp
+{
 
-using TCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Analyzer.")]] = zeek::analyzer::tcp::TCP_Analyzer;
-using TCP_ApplicationAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ApplicationAnalyzer.")]] = zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
-using TCP_SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_SupportAnalyzer.")]] = zeek::analyzer::tcp::TCP_SupportAnalyzer;
-using TCPStats_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Endpoint.")]] = zeek::analyzer::tcp::TCPStats_Endpoint;
-using TCPStats_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Analyzer.")]] = zeek::analyzer::tcp::TCPStats_Analyzer;
+using TCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Analyzer.")]] =
+	zeek::analyzer::tcp::TCP_Analyzer;
+using TCP_ApplicationAnalyzer
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ApplicationAnalyzer.")]] =
+		zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
+using TCP_SupportAnalyzer
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_SupportAnalyzer.")]] =
+		zeek::analyzer::tcp::TCP_SupportAnalyzer;
+using TCPStats_Endpoint
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Endpoint.")]] =
+		zeek::analyzer::tcp::TCPStats_Endpoint;
+using TCPStats_Analyzer
+	[[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Analyzer.")]] =
+		zeek::analyzer::tcp::TCPStats_Analyzer;
 
 } // namespace analyzer::tcp

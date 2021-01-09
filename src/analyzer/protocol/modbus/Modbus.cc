@@ -1,12 +1,13 @@
 #include "zeek/analyzer/protocol/modbus/Modbus.h"
+
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "analyzer/protocol/modbus/events.bif.h"
 
-namespace zeek::analyzer::modbus {
+namespace zeek::analyzer::modbus
+{
 
-ModbusTCP_Analyzer::ModbusTCP_Analyzer(Connection* c)
-	: TCP_ApplicationAnalyzer("MODBUS", c)
+ModbusTCP_Analyzer::ModbusTCP_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("MODBUS", c)
 	{
 	interp = new binpac::ModbusTCP::ModbusTCP_Conn(this);
 	}

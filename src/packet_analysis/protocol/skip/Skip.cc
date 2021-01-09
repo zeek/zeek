@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::Skip;
 
-SkipAnalyzer::SkipAnalyzer()
-	: zeek::packet_analysis::Analyzer("Skip")
-	{
-	}
+SkipAnalyzer::SkipAnalyzer() : zeek::packet_analysis::Analyzer("Skip") { }
 
 void SkipAnalyzer::Initialize()
 	{

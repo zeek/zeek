@@ -1,17 +1,18 @@
 #pragma once
 
-#include <broker/store.hh>
-#include <broker/store_event.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
+#include <broker/store.hh>
+#include <broker/store_event.hh>
 
 #include "zeek/OpaqueVal.h"
 #include "zeek/Trigger.h"
 
-#include "broker/store.bif.h"
 #include "broker/data.bif.h"
+#include "broker/store.bif.h"
 
-namespace zeek::Broker::detail {
+namespace zeek::Broker::detail
+{
 
 extern OpaqueTypePtr opaque_of_store_handle;
 
@@ -69,19 +70,17 @@ static broker::optional<broker::timespan> convert_expiry(double e)
 /**
  * Used for asynchronous data store queries which use "when" statements.
  */
-class StoreQueryCallback {
+class StoreQueryCallback
+	{
 public:
-	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
-	                   broker::store store)
+	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger,
+	                   const zeek::detail::CallExpr* arg_call, broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(std::move(store))
 		{
 		Ref(trigger);
 		}
 
-	~StoreQueryCallback()
-		{
-		Unref(trigger);
-		}
+	~StoreQueryCallback() { Unref(trigger); }
 
 	void Result(const RecordValPtr& result)
 		{
@@ -96,27 +95,27 @@ public:
 		trigger->Release();
 		}
 
-	bool Disabled() const
-		{ return trigger->Disabled(); }
+	bool Disabled() const { return trigger->Disabled(); }
 
-	const broker::store& Store() const
-		{ return store; }
+	const broker::store& Store() const { return store; }
 
 private:
-
 	zeek::detail::trigger::Trigger* trigger;
 	const zeek::detail::CallExpr* call;
 	broker::store store;
-};
+	};
 
 /**
  * An opaque handle which wraps a Broker data store.
  */
-class StoreHandleVal : public OpaqueVal {
+class StoreHandleVal : public OpaqueVal
+	{
 public:
 	StoreHandleVal(broker::store s)
-		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{s}, proxy{store}, store_pid{store.frontend_id()}
-		{ }
+		: OpaqueVal(Broker::detail::opaque_of_store_handle), store {s}, proxy {store},
+		  store_pid {store.frontend_id()}
+		{
+		}
 
 	void ValDescribe(ODesc* d) const override;
 
@@ -127,47 +126,53 @@ public:
 	TableValPtr forward_to;
 
 protected:
+	IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef {}, this}; }
 
-	IntrusivePtr<Val> DoClone(CloneState* state) override
-		{ return { NewRef{}, this }; }
-
-	StoreHandleVal()
-		: OpaqueVal(Broker::detail::opaque_of_store_handle)
-		{}
+	StoreHandleVal() : OpaqueVal(Broker::detail::opaque_of_store_handle) { }
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
-};
+	};
 
 // Helper function to construct a broker backend type from script land.
 broker::backend to_backend_type(BifEnum::Broker::BackendType type);
 
 // Helper function to construct broker backend options from script land.
-broker::backend_options to_backend_options(broker::backend backend,
-                                           RecordVal* options);
+broker::backend_options to_backend_options(broker::backend backend, RecordVal* options);
 
 } // namespace zeek::Broker
 
-namespace bro_broker {
+namespace bro_broker
+{
 
-extern zeek::OpaqueTypePtr& opaque_of_store_handle [[deprecated("Remove in v4.1. Use zeek::Broker::detail::opaque_of_store_handle.")]];
+extern zeek::OpaqueTypePtr& opaque_of_store_handle
+	[[deprecated("Remove in v4.1. Use zeek::Broker::detail::opaque_of_store_handle.")]];
 
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::query_result.")]]
-inline zeek::RecordValPtr query_result()
+[[deprecated("Remove in v4.1. Use zeek::Broker::detail::query_result.")]] inline zeek::RecordValPtr
+query_result()
 	{
 	return zeek::Broker::detail::query_result();
 	}
 
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::query_result.")]]
-inline zeek::RecordValPtr query_result(zeek::RecordValPtr data)
+[[deprecated("Remove in v4.1. Use zeek::Broker::detail::query_result.")]] inline zeek::RecordValPtr
+query_result(zeek::RecordValPtr data)
 	{
 	return zeek::Broker::detail::query_result();
 	}
 
-constexpr auto convert_expiry [[deprecated("Remove in v4.1. Use zeek::Broker::detail::convert_expiry.")]] = zeek::Broker::detail::convert_expiry;
-using StoreQueryCallback [[deprecated("Remove in v4.1. Use zeek::Broker::detail::StoreQueryCallback.")]] = zeek::Broker::detail::StoreQueryCallback;
-using StoreHandleVal [[deprecated("Remove in v4.1. Use zeek::Broker::detail::StoreHandleVal.")]] = zeek::Broker::detail::StoreHandleVal;
+constexpr auto convert_expiry
+	[[deprecated("Remove in v4.1. Use zeek::Broker::detail::convert_expiry.")]] =
+		zeek::Broker::detail::convert_expiry;
+using StoreQueryCallback
+	[[deprecated("Remove in v4.1. Use zeek::Broker::detail::StoreQueryCallback.")]] =
+		zeek::Broker::detail::StoreQueryCallback;
+using StoreHandleVal [[deprecated("Remove in v4.1. Use zeek::Broker::detail::StoreHandleVal.")]] =
+	zeek::Broker::detail::StoreHandleVal;
 
-constexpr auto to_backend_type [[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_backend_type.")]] = zeek::Broker::detail::to_backend_type;
-constexpr auto to_backend_options [[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_backend_options.")]] = zeek::Broker::detail::to_backend_options;
+constexpr auto to_backend_type
+	[[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_backend_type.")]] =
+		zeek::Broker::detail::to_backend_type;
+constexpr auto to_backend_options
+	[[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_backend_options.")]] =
+		zeek::Broker::detail::to_backend_options;
 
 } // namespace bro_broker

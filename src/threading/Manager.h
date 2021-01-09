@@ -3,24 +3,27 @@
 #include <list>
 #include <utility>
 
-#include "zeek/threading/MsgThread.h"
 #include "zeek/Timer.h"
+#include "zeek/threading/MsgThread.h"
 
-namespace zeek {
-namespace threading {
-namespace detail {
+namespace zeek
+{
+namespace threading
+{
+namespace detail
+{
 
-class HeartbeatTimer final : public zeek::detail::Timer {
+class HeartbeatTimer final : public zeek::detail::Timer
+	{
 public:
-	HeartbeatTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_THREAD_HEARTBEAT) {}
-	virtual ~HeartbeatTimer() {}
+	HeartbeatTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_THREAD_HEARTBEAT) { }
+	virtual ~HeartbeatTimer() { }
 
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
-
 	void Init();
-};
+	};
 
 } // namespace detail
 
@@ -35,7 +38,7 @@ protected:
  * the rest of Bro. It also triggers the regular heartbeats.
  */
 class Manager
-{
+	{
 public:
 	/**
 	 * Constructor. Only a single instance of the manager must be
@@ -60,9 +63,9 @@ public:
 	 * Returns True if we are currently in Terminate() waiting for
 	 * threads to exit.
 	 */
-	bool Terminating() const	{ return terminating; }
+	bool Terminating() const { return terminating; }
 
-	typedef std::list<std::pair<std::string, MsgThread::Stats> > msg_stats_list;
+	typedef std::list<std::pair<std::string, MsgThread::Stats>> msg_stats_list;
 
 	/**
 	 * Returns statistics from all current MsgThread instances.
@@ -101,7 +104,8 @@ public:
 	 * @param vals Values passed to the event
 	 * @returns True on success false on failure.
 	 */
-	bool SendEvent(MsgThread* thread, const std::string& name, const int num_vals, Value* *vals) const;
+	bool SendEvent(MsgThread* thread, const std::string& name, const int num_vals,
+	               Value** vals) const;
 
 protected:
 	friend class BasicThread;
@@ -145,14 +149,14 @@ private:
 	typedef std::list<MsgThread*> msg_thread_list;
 	msg_thread_list msg_threads;
 
-	bool did_process;	// True if the last Process() found some work to do.
-	double next_beat;	// Timestamp when the next heartbeat will be sent.
-	bool terminating;	// True if we are in Terminate().
+	bool did_process; // True if the last Process() found some work to do.
+	double next_beat; // Timestamp when the next heartbeat will be sent.
+	bool terminating; // True if we are in Terminate().
 
 	msg_stats_list stats;
 
 	bool heartbeat_timer_running = false;
-};
+	};
 
 } // namespace threading
 
@@ -164,15 +168,21 @@ extern threading::Manager* thread_mgr;
 
 } // namespace zeek
 
-extern zeek::threading::Manager*& thread_mgr [[deprecated("Remove in v4.1. Use zeek::thread_mgr.")]];
+extern zeek::threading::Manager*& thread_mgr
+	[[deprecated("Remove in v4.1. Use zeek::thread_mgr.")]];
 
-namespace threading {
+namespace threading
+{
 
-using Manager [[deprecated("Remove in v4.1. Use zeek::threading::Manager.")]] = zeek::threading::Manager;
+using Manager [[deprecated("Remove in v4.1. Use zeek::threading::Manager.")]] =
+	zeek::threading::Manager;
 
-namespace detail {
+namespace detail
+{
 
-using HeartbeatTimer [[deprecated("Remove in v4.1. Use zeek::threading::detail::HeartbeatTimer.")]] = zeek::threading::detail::HeartbeatTimer;
+using HeartbeatTimer
+	[[deprecated("Remove in v4.1. Use zeek::threading::detail::HeartbeatTimer.")]] =
+		zeek::threading::detail::HeartbeatTimer;
 
 } // namespace detail
 } // namespace threading

@@ -1,24 +1,24 @@
-extern "C" {
+extern "C"
+	{
 #include <pcap.h>
-}
+	}
 
 #include <binpac.h>
 
-#include "zeek/iosource/Packet.h"
 #include "zeek/Event.h"
-#include "zeek/packet_analysis/Manager.h"
-
 #include "zeek/fuzzers/FuzzBuffer.h"
 #include "zeek/fuzzers/fuzzer-setup.h"
+#include "zeek/iosource/Packet.h"
+#include "zeek/packet_analysis/Manager.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	{
-	zeek::detail::FuzzBuffer fb{data, size};
+	zeek::detail::FuzzBuffer fb {data, size};
 
 	if ( ! fb.Valid() )
 		return 0;
 
-	for ( ; ;  )
+	for ( ;; )
 		{
 		auto chunk = fb.Next();
 
@@ -34,7 +34,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 			{
 			zeek::packet_mgr->ProcessPacket(&pkt);
 			}
-		catch ( binpac::Exception const &e )
+		catch ( binpac::Exception const& e )
 			{
 			}
 

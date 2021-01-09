@@ -8,7 +8,8 @@
 
 #include "zeek/zeekygen/Target.h"
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+{
 
 class Info;
 
@@ -18,10 +19,10 @@ class Info;
  * is a simple list of one target per line, with the target format being
  * a tab-delimited list of target-type, target-pattern, and target-output-file.
  */
-class Config {
+class Config
+	{
 
 public:
-
 	/**
 	 * Read a Zeekygen configuration file, parsing all targets in it.
 	 * @param file The file containing a list of Zeekygen targets.  If it's
@@ -31,8 +32,8 @@ public:
 	explicit Config(const std::string& file, const std::string& delim = "\t");
 
 	/**
-	  * Destructor, cleans up targets created when parsing config file.
-	  */
+	 * Destructor, cleans up targets created when parsing config file.
+	 */
 	~Config();
 
 	/**
@@ -53,17 +54,19 @@ public:
 	time_t GetModificationTime() const;
 
 private:
-
 	std::string file;
 	std::vector<Target*> targets;
 	TargetFactory target_factory;
-};
+	};
 
 } // namespace zeek::zeekygen::detail
 
-namespace zeekygen {
+namespace zeekygen
+{
 
-using Config [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Config.")]] = zeek::zeekygen::detail::Config;
-using Info [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Info.")]] = zeek::zeekygen::detail::Info;
+using Config [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Config.")]] =
+	zeek::zeekygen::detail::Config;
+using Info [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Info.")]] =
+	zeek::zeekygen::detail::Info;
 
 } // namespace zeekygen

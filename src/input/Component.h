@@ -2,20 +2,21 @@
 
 #pragma once
 
+#include "zeek/input/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
-#include "zeek/input/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek, input);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderBackend, zeek, input);
 
-namespace zeek::input {
+namespace zeek::input
+{
 
 /**
  * Component description for plugins providing log readers.
  */
-class Component : public plugin::Component,
-                  public plugin::TaggedComponent<Tag> {
+class Component : public plugin::Component, public plugin::TaggedComponent<Tag>
+	{
 public:
 	typedef ReaderBackend* (*factory_callback)(ReaderFrontend* frontend);
 
@@ -48,22 +49,24 @@ public:
 	/**
 	 * Returns the reader's factory function.
 	 */
-	factory_callback Factory() const	{ return factory; }
+	factory_callback Factory() const { return factory; }
 
 protected:
 	/**
-	  * Overriden from plugin::Component.
-	  */
+	 * Overriden from plugin::Component.
+	 */
 	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;
-};
+	};
 
 } // namespace zeek::input
 
-namespace input {
+namespace input
+{
 
-using Component [[deprecated("Remove in v4.1. Use zeek::input::Component.")]] = zeek::input::Component;
+using Component [[deprecated("Remove in v4.1. Use zeek::input::Component.")]] =
+	zeek::input::Component;
 
 } // namespace input

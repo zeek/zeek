@@ -2,25 +2,26 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/ID.h"
 
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
-#include "zeek/Expr.h"
 #include "zeek/Dict.h"
 #include "zeek/EventRegistry.h"
-#include "zeek/Func.h"
-#include "zeek/Scope.h"
-#include "zeek/Type.h"
+#include "zeek/Expr.h"
 #include "zeek/File.h"
+#include "zeek/Func.h"
+#include "zeek/ID.h"
+#include "zeek/Scope.h"
 #include "zeek/Traverse.h"
+#include "zeek/Type.h"
 #include "zeek/Val.h"
-#include "zeek/zeekygen/Manager.h"
-#include "zeek/zeekygen/IdentifierInfo.h"
-#include "zeek/zeekygen/ScriptInfo.h"
 #include "zeek/module_util.h"
+#include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/Manager.h"
+#include "zeek/zeekygen/ScriptInfo.h"
 
-namespace zeek {
+namespace zeek
+{
 
 RecordTypePtr id::conn_id;
 RecordTypePtr id::endpoint;
@@ -44,8 +45,7 @@ const TypePtr& id::find_type(std::string_view name)
 	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find type named: %s",
-		                              std::string(name).data());
+		reporter->InternalError("Failed to find type named: %s", std::string(name).data());
 
 	return id->GetType();
 	}
@@ -55,8 +55,7 @@ const ValPtr& id::find_val(std::string_view name)
 	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s",
-		                              std::string(name).data());
+		reporter->InternalError("Failed to find variable named: %s", std::string(name).data());
 
 	return id->GetVal();
 	}
@@ -66,12 +65,11 @@ const ValPtr& id::find_const(std::string_view name)
 	auto id = zeek::detail::global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s",
-		                              std::string(name).data());
+		reporter->InternalError("Failed to find variable named: %s", std::string(name).data());
 
 	if ( ! id->IsConst() )
 		reporter->InternalError("Variable is not 'const', but expected to be: %s",
-		                              std::string(name).data());
+		                        std::string(name).data());
 
 	return id->GetVal();
 	}
@@ -85,7 +83,7 @@ FuncPtr id::find_func(std::string_view name)
 
 	if ( ! IsFunc(v->GetType()->Tag()) )
 		reporter->InternalError("Expected variable '%s' to be a function",
-		                              std::string(name).data());
+		                        std::string(name).data());
 
 	return v->AsFuncPtr();
 	}
@@ -105,7 +103,8 @@ void id::detail::init_types()
 	index_vec = id::find_type<VectorType>("index_vec");
 	}
 
-namespace detail {
+namespace detail
+{
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -125,7 +124,7 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 
 ID::~ID()
 	{
-	delete [] name;
+	delete[] name;
 	}
 
 std::string ID::ModuleName() const
@@ -157,8 +156,7 @@ void ID::SetVal(ValPtr v)
 	UpdateValID();
 #endif
 
-	if ( type && val &&
-	     type->Tag() == TYPE_FUNC &&
+	if ( type && val && type->Tag() == TYPE_FUNC &&
 	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 		{
 		EventHandler* handler = event_registry->Lookup(name);
@@ -185,9 +183,8 @@ void ID::SetVal(ValPtr v, InitClass c)
 		return;
 		}
 
-	if ( type->Tag() != TYPE_TABLE &&
-	     (type->Tag() != TYPE_PATTERN || c == INIT_REMOVE) &&
-	     (type->Tag() != TYPE_VECTOR  || c == INIT_REMOVE) )
+	if ( type->Tag() != TYPE_TABLE && (type->Tag() != TYPE_PATTERN || c == INIT_REMOVE) &&
+	     (type->Tag() != TYPE_VECTOR || c == INIT_REMOVE) )
 		{
 		if ( c == INIT_EXTRA )
 			Error("+= initializer only applies to tables, sets, vectors and patterns", v.get());
@@ -225,7 +222,8 @@ void ID::SetVal(ExprPtr ev, InitClass c)
 	if ( ! val )
 		{
 		Error(zeek::util::fmt("%s initializer applied to ID without value",
-		                      c == INIT_EXTRA ? "+=" : "-="), this);
+		                      c == INIT_EXTRA ? "+=" : "-="),
+		      this);
 		return;
 		}
 
@@ -298,7 +296,7 @@ void ID::MakeDeprecated(ExprPtr deprecation)
 	if ( IsDeprecated() )
 		return;
 
-	std::vector<AttrPtr> attrv{make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
+	std::vector<AttrPtr> attrv {make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
 	AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 	}
 
@@ -342,7 +340,7 @@ void ID::SetOption()
 	// option implied redefinable
 	if ( ! IsRedefinable() )
 		{
-		std::vector<AttrPtr> attrv{make_intrusive<Attr>(ATTR_REDEF)};
+		std::vector<AttrPtr> attrv {make_intrusive<Attr>(ATTR_REDEF)};
 		AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 		}
 	}
@@ -372,8 +370,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 		}
 
 	// FIXME: Perhaps we should be checking at other than global scope.
-	else if ( val && IsFunc(val->GetType()->Tag()) &&
-		  cb->current_scope == detail::global_scope() )
+	else if ( val && IsFunc(val->GetType()->Tag()) && cb->current_scope == detail::global_scope() )
 		{
 		tc = val->AsFunc()->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -447,26 +444,27 @@ void ID::DescribeReSTShort(ODesc* d) const
 			{
 			TypeTag t = type->Tag();
 
-			switch ( t ) {
-			case TYPE_TABLE:
-				d->Add(type->IsSet() ? "set" : type_name(t));
-				break;
+			switch ( t )
+				{
+				case TYPE_TABLE:
+					d->Add(type->IsSet() ? "set" : type_name(t));
+					break;
 
-			case TYPE_FUNC:
-				d->Add(type->AsFuncType()->FlavorString().c_str());
-				break;
+				case TYPE_FUNC:
+					d->Add(type->AsFuncType()->FlavorString().c_str());
+					break;
 
-			case TYPE_ENUM:
-				if ( is_type )
+				case TYPE_ENUM:
+					if ( is_type )
+						d->Add(type_name(t));
+					else
+						d->Add(zeekygen_mgr->GetEnumTypeName(Name()).c_str());
+					break;
+
+				default:
 					d->Add(type_name(t));
-				else
-					d->Add(zeekygen_mgr->GetEnumTypeName(Name()).c_str());
-				break;
-
-			default:
-				d->Add(type_name(t));
-				break;
-			}
+					break;
+				}
 			}
 
 		d->Add("`");
@@ -520,8 +518,7 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 				{
 				auto ft = type->AsFuncType();
 
-				if ( ft->Flavor() == FUNC_FLAVOR_EVENT ||
-				     ft->Flavor() == FUNC_FLAVOR_HOOK )
+				if ( ft->Flavor() == FUNC_FLAVOR_EVENT || ft->Flavor() == FUNC_FLAVOR_HOOK )
 					{
 					const auto& protos = ft->Prototypes();
 
@@ -559,42 +556,40 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 		d->NL();
 		}
 
-	if ( val && type &&
-	     type->Tag() != TYPE_FUNC &&
-	     type->InternalType() != TYPE_INTERNAL_VOID &&
+	if ( val && type && type->Tag() != TYPE_FUNC && type->InternalType() != TYPE_INTERNAL_VOID &&
 	     // Values within Version module are likely to include a
 	     // constantly-changing version number and be a frequent
 	     // source of error/desynchronization, so don't include them.
-		 ModuleName() != "Version" )
+	     ModuleName() != "Version" )
 		{
 		d->Add(":Default:");
 		auto ii = zeekygen_mgr->GetIdentifierInfo(Name());
 		auto redefs = ii->GetRedefs();
-		const auto& iv = ! redefs.empty() && ii->InitialVal() ? ii->InitialVal()
-			                                                  : val;
+		const auto& iv = ! redefs.empty() && ii->InitialVal() ? ii->InitialVal() : val;
 
 		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
 			{
-			switch ( type->Tag() ) {
-			case TYPE_TABLE:
-				if ( iv->AsTable()->Length() == 0 )
-					{
-					d->Add(" ``{}``");
-					d->NL();
-					break;
-					}
-				// Fall-through.
+			switch ( type->Tag() )
+				{
+				case TYPE_TABLE:
+					if ( iv->AsTable()->Length() == 0 )
+						{
+						d->Add(" ``{}``");
+						d->NL();
+						break;
+						}
+					// Fall-through.
 
-			default:
-				d->NL();
-				d->PushIndent();
-				d->Add("::");
-				d->NL();
-				d->PushIndent();
-				iv->DescribeReST(d);
-				d->PopIndent();
-				d->PopIndent();
-			}
+				default:
+					d->NL();
+					d->PushIndent();
+					d->Add("::");
+					d->NL();
+					d->PushIndent();
+					iv->DescribeReST(d);
+					d->PopIndent();
+					d->PopIndent();
+				}
 			}
 
 		else

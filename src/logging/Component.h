@@ -9,13 +9,14 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
 ZEEK_FORWARD_DECLARE_NAMESPACED(WriterBackend, zeek, logging);
 
-namespace zeek::logging {
+namespace zeek::logging
+{
 
 /**
  * Component description for plugins providing log writers.
  */
-class Component : public plugin::Component,
-                  public plugin::TaggedComponent<logging::Tag> {
+class Component : public plugin::Component, public plugin::TaggedComponent<logging::Tag>
+	{
 public:
 	typedef WriterBackend* (*factory_callback)(WriterFrontend* frontend);
 
@@ -48,16 +49,16 @@ public:
 	/**
 	 * Returns the writer's factory function.
 	 */
-	factory_callback Factory() const	{ return factory; }
+	factory_callback Factory() const { return factory; }
 
 protected:
 	/**
-	  * Overriden from plugin::Component.
-	  */
+	 * Overriden from plugin::Component.
+	 */
 	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;
-};
+	};
 
 } // namespace zeek::logging

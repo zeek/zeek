@@ -4,21 +4,22 @@
 
 #include <string>
 
-#include "zeek/Val.h"
 #include "zeek/OpaqueVal.h"
-#include "zeek/file_analysis/File.h"
+#include "zeek/Val.h"
 #include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/File.h"
 
 #include "file_analysis/analyzer/hash/events.bif.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+{
 
 /**
  * An analyzer to produce a hash of file contents.
  */
-class Hash : public file_analysis::Analyzer {
+class Hash : public file_analysis::Analyzer
+	{
 public:
-
 	/**
 	 * Destructor.
 	 */
@@ -48,7 +49,6 @@ public:
 	bool Undelivered(uint64_t offset, uint64_t len) override;
 
 protected:
-
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -68,14 +68,14 @@ private:
 	HashVal* hash;
 	bool fed;
 	const char* kind;
-};
+	};
 
 /**
  * An analyzer to produce an MD5 hash of file contents.
  */
-class MD5 : public Hash {
+class MD5 : public Hash
+	{
 public:
-
 	/**
 	 * Create a new instance of the MD5 hashing file analyzer.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -83,12 +83,12 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
-	                                            file_analysis::File* file)
-		{ return file_hash ? new MD5(std::move(args), file) : nullptr; }
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
+		{
+		return file_hash ? new MD5(std::move(args), file) : nullptr;
+		}
 
 protected:
-
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -96,15 +96,16 @@ protected:
 	 */
 	MD5(RecordValPtr args, file_analysis::File* file)
 		: Hash(std::move(args), file, new MD5Val(), "md5")
-		{}
-};
+		{
+		}
+	};
 
 /**
  * An analyzer to produce a SHA1 hash of file contents.
  */
-class SHA1 : public Hash {
+class SHA1 : public Hash
+	{
 public:
-
 	/**
 	 * Create a new instance of the SHA1 hashing file analyzer.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -112,12 +113,12 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
-	                                            file_analysis::File* file)
-		{ return file_hash ? new SHA1(std::move(args), file) : nullptr; }
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
+		{
+		return file_hash ? new SHA1(std::move(args), file) : nullptr;
+		}
 
 protected:
-
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -125,15 +126,16 @@ protected:
 	 */
 	SHA1(RecordValPtr args, file_analysis::File* file)
 		: Hash(std::move(args), file, new SHA1Val(), "sha1")
-		{}
-};
+		{
+		}
+	};
 
 /**
  * An analyzer to produce a SHA256 hash of file contents.
  */
-class SHA256 : public Hash {
+class SHA256 : public Hash
+	{
 public:
-
 	/**
 	 * Create a new instance of the SHA256 hashing file analyzer.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -141,12 +143,12 @@ public:
 	 * @return the new MD5 analyzer instance or a null pointer if there's no
 	 *         handler for the "file_hash" event.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
-	                                            file_analysis::File* file)
-		{ return file_hash ? new SHA256(std::move(args), file) : nullptr; }
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
+		{
+		return file_hash ? new SHA256(std::move(args), file) : nullptr;
+		}
 
 protected:
-
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -154,16 +156,22 @@ protected:
 	 */
 	SHA256(RecordValPtr args, file_analysis::File* file)
 		: Hash(std::move(args), file, new SHA256Val(), "sha256")
-		{}
-};
+		{
+		}
+	};
 
 } // namespace zeek::file_analysis
 
-namespace file_analysis {
+namespace file_analysis
+{
 
-using Hash [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Hash.")]] = zeek::file_analysis::detail::Hash;
-using MD5 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::MD5.")]] = zeek::file_analysis::detail::MD5;
-using SHA1 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA1.")]] = zeek::file_analysis::detail::SHA1;
-using SHA256 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA256.")]] = zeek::file_analysis::detail::SHA256;
+using Hash [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Hash.")]] =
+	zeek::file_analysis::detail::Hash;
+using MD5 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::MD5.")]] =
+	zeek::file_analysis::detail::MD5;
+using SHA1 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA1.")]] =
+	zeek::file_analysis::detail::SHA1;
+using SHA256 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::SHA256.")]] =
+	zeek::file_analysis::detail::SHA256;
 
 } // namespace file_analysis

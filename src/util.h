@@ -14,28 +14,26 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#include <libgen.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <libgen.h>
-
+#include <array>
 #include <cinttypes>
 #include <cstdint>
-
+#include <memory> // std::unique_ptr
 #include <string>
 #include <string_view>
-#include <array>
 #include <vector>
-#include <memory> // std::unique_ptr
 
 #ifdef DEBUG
 
 #include <assert.h>
 
-#define ASSERT(x)	assert(x)
-#define DEBUG_MSG(x...)	fprintf(stderr, x)
-#define DEBUG_fputs	fputs
+#define ASSERT(x) assert(x)
+#define DEBUG_MSG(x...) fprintf(stderr, x)
+#define DEBUG_fputs fputs
 
 #else
 
@@ -61,23 +59,15 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
-[[deprecated("Remove in v4.1. Use uint64_t instead.")]]
-typedef uint64_t uint64;
-[[deprecated("Remove in v4.1. Use uint32_t instead.")]]
-typedef uint32_t uint32;
-[[deprecated("Remove in v4.1. Use uint16_t instead.")]]
-typedef uint16_t uint16;
-[[deprecated("Remove in v4.1. Use uint8_t instead.")]]
-typedef uint8_t uint8;
+[[deprecated("Remove in v4.1. Use uint64_t instead.")]] typedef uint64_t uint64;
+[[deprecated("Remove in v4.1. Use uint32_t instead.")]] typedef uint32_t uint32;
+[[deprecated("Remove in v4.1. Use uint16_t instead.")]] typedef uint16_t uint16;
+[[deprecated("Remove in v4.1. Use uint8_t instead.")]] typedef uint8_t uint8;
 
-[[deprecated("Remove in v4.1. Use int64_t instead.")]]
-typedef int64_t int64;
-[[deprecated("Remove in v4.1. Use int32_t instead.")]]
-typedef int32_t int32;
-[[deprecated("Remove in v4.1. Use int16_t instead.")]]
-typedef int16_t int16;
-[[deprecated("Remove in v4.1. Use int8_t instead.")]]
-typedef int8_t int8;
+[[deprecated("Remove in v4.1. Use int64_t instead.")]] typedef int64_t int64;
+[[deprecated("Remove in v4.1. Use int32_t instead.")]] typedef int32_t int32;
+[[deprecated("Remove in v4.1. Use int16_t instead.")]] typedef int16_t int16;
+[[deprecated("Remove in v4.1. Use int8_t instead.")]] typedef int8_t int8;
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
@@ -90,12 +80,12 @@ typedef int64_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::intptr_t."
 typedef uint32_t ptr_compat_uint [[deprecated("Remove in v4.1. Use std::uintptr_t")]];
 typedef int32_t ptr_compat_int [[deprecated("Remove in v4.1. Use std::intptr_t")]];
 #else
-# error "Unsupported pointer size."
+#error "Unsupported pointer size."
 #endif
 
 extern "C"
 	{
-	#include "zeek/modp_numtoa.h"
+#include "zeek/modp_numtoa.h"
 	}
 
 using bro_int_t = int64_t;
@@ -114,31 +104,33 @@ extern char* strcasestr(const char* s, const char* find);
 // gettimeofday().
 extern double& network_time [[deprecated("Remove in v4.1. Use zeek::run_state::network_time.")]];
 
-[[deprecated("Remove in v4.1: Use system snprintf instead")]]
-inline int safe_snprintf(char* str, size_t size, const char* format, ...)
+[[deprecated("Remove in v4.1: Use system snprintf instead")]] inline int
+safe_snprintf(char* str, size_t size, const char* format, ...)
 	{
 	va_list al;
 	va_start(al, format);
 	int result = vsnprintf(str, size, format, al);
 	va_end(al);
-	str[size-1] = '\0';
+	str[size - 1] = '\0';
 
 	return result;
 	}
 
-[[deprecated("Remove in v4.1: Use system vsnprintf instead")]]
-inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
+[[deprecated("Remove in v4.1: Use system vsnprintf instead")]] inline int
+safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
 	{
 	int result = vsnprintf(str, size, format, al);
-	str[size-1] = '\0';
+	str[size - 1] = '\0';
 	return result;
 	}
 
 // This is used by the patricia code and so it remains outside of hte namespace.
 extern "C" void out_of_memory(const char* where);
 
-namespace zeek::util {
-namespace detail {
+namespace zeek::util
+{
+namespace detail
+{
 
 std::string extract_ip(const std::string& i);
 std::string extract_ip_and_len(const std::string& i, int* len);
@@ -151,18 +143,16 @@ extern int expand_escape(const char*& s);
 extern const char* fmt_access_time(double time);
 
 extern bool ensure_intermediate_dirs(const char* dirname);
-extern bool ensure_dir(const char *dirname);
+extern bool ensure_dir(const char* dirname);
 
-extern void hmac_md5(size_t size, const unsigned char* bytes,
-                     unsigned char digest[16]);
+extern void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
 
 // Initializes RNGs for zeek::random_number() and MD5 usage.  If load_file is given,
 // the seeds (both random & MD5) are loaded from that file.  This takes
 // precedence over the "use_empty_seeds" argument, which just
 // zero-initializes all seed values.  If write_file is given, the seeds are
 // written to that file.
-extern void init_random_seed(const char* load_file, const char* write_file,
-                             bool use_empty_seeds);
+extern void init_random_seed(const char* load_file, const char* write_file, bool use_empty_seeds);
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect
@@ -245,21 +235,17 @@ extern void add_to_zeek_path(const std::string& dir);
  * Wrapper class for functions like dirname(3) or basename(3) that won't
  * modify the path argument and may optionally abort execution on error.
  */
-class SafePathOp {
+class SafePathOp
+	{
 public:
-
 	std::string result;
 	bool error;
 
 protected:
-
-	SafePathOp()
-		: result(), error()
-		{ }
+	SafePathOp() : result(), error() { }
 
 	void CheckValid(const char* result, const char* path, bool error_aborts);
-
-};
+	};
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
@@ -268,8 +254,7 @@ protected:
  * @param prefix A string to prepend to the flattened script name.
  * @return The flattened script name.
  */
-std::string flatten_script_name(const std::string& name,
-                                const std::string& prefix = "");
+std::string flatten_script_name(const std::string& name, const std::string& prefix = "");
 
 /**
  * Return a canonical/shortened path string by removing superfluous elements
@@ -338,8 +323,7 @@ double calc_next_rotate(double current, double rotate_interval, double base);
 
 } // namespace detail
 
-template <class T>
-void delete_each(T* t)
+template <class T> void delete_each(T* t)
 	{
 	typedef typename T::iterator iterator;
 	for ( iterator it = t->begin(); it != t->end(); ++it )
@@ -355,8 +339,7 @@ inline void bytetohex(unsigned char byte, char* hex_out)
 
 std::string get_unescaped_string(const std::string& str);
 
-ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
-                          bool escape_all);
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len, bool escape_all);
 std::string get_escaped_string(const char* str, size_t len, bool escape_all);
 
 inline std::string get_escaped_string(const std::string& str, bool escape_all)
@@ -364,9 +347,8 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 	return get_escaped_string(str.data(), str.length(), escape_all);
 	}
 
-std::vector<std::string>* tokenize_string(std::string_view input,
-					  std::string_view delim,
-					  std::vector<std::string>* rval = nullptr, int limit = 0);
+std::vector<std::string>* tokenize_string(std::string_view input, std::string_view delim,
+                                          std::vector<std::string>* rval = nullptr, int limit = 0);
 
 std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
@@ -384,11 +366,11 @@ extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
 extern int decode_hex(char ch);
 extern unsigned char encode_hex(int h);
-template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
-extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=nullptr);
+template <class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
+extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix = nullptr);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
-int strstr_n(const int big_len, const unsigned char* big,
-             const int little_len, const unsigned char* little);
+int strstr_n(const int big_len, const unsigned char* big, const int little_len,
+             const unsigned char* little);
 
 // Replaces all occurences of *o* in *s* with *n*.
 extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
@@ -407,8 +389,7 @@ extern const char* fmt_bytes(const char* data, int len);
 // Note: returns a pointer into a shared buffer.
 extern const char* vfmt(const char* format, va_list args);
 // Note: returns a pointer into a shared buffer.
-extern const char* fmt(const char* format, ...)
-	__attribute__((format (printf, 1, 2)));
+extern const char* fmt(const char* format, ...) __attribute__((format(printf, 1, 2)));
 
 // Returns true if path exists and is a directory.
 bool is_dir(const std::string& path);
@@ -423,27 +404,25 @@ extern const char* zeek_plugin_path();
 extern const char* zeek_plugin_activate();
 extern std::string zeek_prefixes();
 
-class SafeDirname : public detail::SafePathOp {
+class SafeDirname : public detail::SafePathOp
+	{
 public:
-
 	explicit SafeDirname(const char* path, bool error_aborts = true);
 	explicit SafeDirname(const std::string& path, bool error_aborts = true);
 
 private:
-
 	void DoFunc(const std::string& path, bool error_aborts = true);
-};
+	};
 
-class SafeBasename : public detail::SafePathOp {
+class SafeBasename : public detail::SafePathOp
+	{
 public:
-
 	explicit SafeBasename(const char* path, bool error_aborts = true);
 	explicit SafeBasename(const std::string& path, bool error_aborts = true);
 
 private:
-
 	void DoFunc(const std::string& path, bool error_aborts = true);
-};
+	};
 
 std::string implode_string_vector(const std::vector<std::string>& v,
                                   const std::string& delim = "\n");
@@ -473,7 +452,7 @@ FILE* open_file(const std::string& path, const std::string& mode = "r");
 // (In pseudo-realtime mode this is faked to be the start time of the
 // trace plus the time interval Zeek has been running. To avoid this,
 // call with real=true).
-extern double current_time(bool real=false);
+extern double current_time(bool real = false);
 
 // Convert a time represented as a double to a timeval struct.
 extern struct timeval double_to_timeval(double t);
@@ -486,31 +465,29 @@ extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 // when the random number generator is seeded to be deterministic. In that
 // case, the same sequence of integers is generated per pool.
 #define UID_POOL_DEFAULT_INTERNAL 1
-#define UID_POOL_DEFAULT_SCRIPT   2
-#define UID_POOL_CUSTOM_SCRIPT    10 // First available custom script level pool.
+#define UID_POOL_DEFAULT_SCRIPT 2
+#define UID_POOL_CUSTOM_SCRIPT 10 // First available custom script level pool.
 extern uint64_t calculate_unique_id();
 extern uint64_t calculate_unique_id(const size_t pool);
 
 // Use for map's string keys.
-struct ltstr {
-	bool operator()(const char* s1, const char* s2) const
+struct ltstr
 	{
-	return strcmp(s1, s2) < 0;
-	}
-};
+	bool operator()(const char* s1, const char* s2) const { return strcmp(s1, s2) < 0; }
+	};
 
 constexpr size_t pad_size(size_t size)
 	{
 	// We emulate glibc here (values measured on Linux i386).
 	// FIXME: We should better copy the portable value definitions from glibc.
 	if ( size == 0 )
-		return 0;	// glibc allocated 16 bytes anyway.
+		return 0; // glibc allocated 16 bytes anyway.
 
 	const int pad = 8;
 	if ( size < 12 )
 		return 2 * pad;
 
-	return ((size+3) / pad + 1) * pad;
+	return ((size + 3) / pad + 1) * pad;
 	}
 
 #define padded_sizeof(x) (zeek::util::pad_size(sizeof(x)))
@@ -521,8 +498,7 @@ constexpr size_t pad_size(size_t size)
 extern bool safe_write(int fd, const char* data, int len);
 
 // Same as safe_write(), but for pwrite().
-extern bool safe_pwrite(int fd, const unsigned char* data, size_t len,
-                        size_t offset);
+extern bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset);
 
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);
@@ -551,8 +527,8 @@ inline void* safe_malloc(size_t size)
 
 inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	{
-	char* result = strncpy(dest, src, n-1);
-	dest[n-1] = '\0';
+	char* result = strncpy(dest, src, n - 1);
+	dest[n - 1] = '\0';
 	return result;
 	}
 
@@ -565,10 +541,7 @@ extern void get_memory_usage(uint64_t* total, uint64_t* malloced);
 // the actual string values.
 struct CompareString
 	{
-	bool operator()(char const *a, char const *b) const
-		{
-		return strcmp(a, b) < 0;
-		}
+	bool operator()(char const* a, char const* b) const { return strcmp(a, b) < 0; }
 	};
 
 /**
@@ -603,179 +576,274 @@ std::string json_escape_utf8(const std::string& val);
 
 // A simple linear congruence PRNG. It takes its state as argument and
 // returns a new random value, which can serve as state for subsequent calls.
-[[deprecated("Remove in v4.1.  Use zeek::util::prng()")]]
-unsigned int bro_prng(unsigned int state);
+[[deprecated("Remove in v4.1.  Use zeek::util::prng()")]] unsigned int bro_prng(unsigned int state);
 
 // Replacement for the system random(), to which is normally falls back
 // except when a seed has been given. In that case, the function bro_prng.
-[[deprecated("Remove in v4.1.  Use zeek::util::random_number()")]]
-long int bro_random();
+[[deprecated("Remove in v4.1.  Use zeek::util::random_number()")]] long int bro_random();
 
 // Calls the system srandom() function with the given seed if not running
 // in deterministic mode, else it updates the state of the deterministic PRNG.
-[[deprecated("Remove in v4.1.  Use zeek::util::seed_random()")]]
-void bro_srandom(unsigned int seed);
+[[deprecated("Remove in v4.1.  Use zeek::util::seed_random()")]] void
+bro_srandom(unsigned int seed);
 
-template<class T>
-[[ deprecated("Remove in v4.1. Use zeek::util::delete_each.")]]
-void delete_each(T* t) { zeek::util::delete_each<T>(t); }
+template <class T>
+[[deprecated("Remove in v4.1. Use zeek::util::delete_each.")]] void delete_each(T* t)
+	{
+	zeek::util::delete_each<T>(t);
+	}
 
-constexpr auto extract_ip [[deprecated("Remove in v4.1. Use zeek::util::detail::extract_ip.")]] = zeek::util::detail::extract_ip;
-constexpr auto extract_ip_and_len [[deprecated("Remove in v4.1. Use zeek::util::detail::extract_ip_and_len.")]] = zeek::util::detail::extract_ip_and_len;
-constexpr auto bytetohex [[deprecated("Remove in v4.1. Use zeek::util::bytetohex.")]] = zeek::util::bytetohex;
-constexpr auto get_unescaped_string [[deprecated("Remove in v4.1. Use zeek::util::get_unescaped_string.")]] = zeek::util::get_unescaped_string;
+constexpr auto extract_ip [[deprecated("Remove in v4.1. Use zeek::util::detail::extract_ip.")]] =
+	zeek::util::detail::extract_ip;
+constexpr auto extract_ip_and_len
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::extract_ip_and_len.")]] =
+		zeek::util::detail::extract_ip_and_len;
+constexpr auto bytetohex [[deprecated("Remove in v4.1. Use zeek::util::bytetohex.")]] =
+	zeek::util::bytetohex;
+constexpr auto get_unescaped_string
+	[[deprecated("Remove in v4.1. Use zeek::util::get_unescaped_string.")]] =
+		zeek::util::get_unescaped_string;
 
-[[deprecated("Remove in v4.1. Use zeek::util::get_escaped_string.")]]
-extern zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len, bool escape_all);
-[[deprecated("Remove in v4.1. Use zeek::util::get_escaped_string.")]]
-extern std::string get_escaped_string(const char* str, size_t len, bool escape_all);
-[[deprecated("Remove in v4.1. Use zeek::util::get_escaped_string.")]]
-extern std::string get_escaped_string(const std::string& str, bool escape_all);
-[[deprecated("Remove in v4.1. Use zeek::util::tokenize_string.")]]
-extern std::vector<std::string>* tokenize_string(std::string_view input,
-                                                 std::string_view delim,
-                                                 std::vector<std::string>* rval = nullptr, int limit = 0);
-[[deprecated("Remove in v4.1. Use zeek::util::tokenize_string.")]]
-std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
+[[deprecated("Remove in v4.1. Use zeek::util::get_escaped_string.")]] extern zeek::ODesc*
+get_escaped_string(zeek::ODesc* d, const char* str, size_t len, bool escape_all);
+[[deprecated("Remove in v4.1. Use zeek::util::get_escaped_string.")]] extern std::string
+get_escaped_string(const char* str, size_t len, bool escape_all);
+[[deprecated("Remove in v4.1. Use zeek::util::get_escaped_string.")]] extern std::string
+get_escaped_string(const std::string& str, bool escape_all);
+[[deprecated("Remove in v4.1. Use zeek::util::tokenize_string.")]] extern std::vector<std::string>*
+tokenize_string(std::string_view input, std::string_view delim,
+                std::vector<std::string>* rval = nullptr, int limit = 0);
+[[deprecated("Remove in v4.1. Use zeek::util::tokenize_string.")]] std::vector<std::string_view>
+tokenize_string(std::string_view input, const char delim) noexcept;
 
-constexpr auto copy_string [[deprecated("Remove in v4.1. Use zeek::util::copy_string.")]] = zeek::util::copy_string;
+constexpr auto copy_string [[deprecated("Remove in v4.1. Use zeek::util::copy_string.")]] =
+	zeek::util::copy_string;
 constexpr auto streq [[deprecated("Remove in v4.1. Use zeek::util::streq.")]] = zeek::util::streq;
-constexpr auto expand_escape [[deprecated("Remove in v4.1. Use zeek::util::detail::expand_escape.")]] = zeek::util::detail::expand_escape;
-constexpr auto skip_digits [[deprecated("Remove in v4.1. Use zeek::util::skip_digits.")]] = zeek::util::skip_digits;
+constexpr auto expand_escape
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::expand_escape.")]] =
+		zeek::util::detail::expand_escape;
+constexpr auto skip_digits [[deprecated("Remove in v4.1. Use zeek::util::skip_digits.")]] =
+	zeek::util::skip_digits;
 
-[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]]
-extern char* skip_whitespace(char* s);
-[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]]
-extern const char* skip_whitespace(const char* s);
-[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]]
-extern char* skip_whitespace(char* s, char* end_of_s);
-[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]]
-extern const char* skip_whitespace(const char* s, const char* end_of_s);
+[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]] extern char*
+skip_whitespace(char* s);
+[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]] extern const char*
+skip_whitespace(const char* s);
+[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]] extern char*
+skip_whitespace(char* s, char* end_of_s);
+[[deprecated("Remove in v4.1. Use zeek::util::skip_whitespace.")]] extern const char*
+skip_whitespace(const char* s, const char* end_of_s);
 
-[[deprecated("Remove in v4.1. Use zeek::util::get_word.")]]
-extern char* get_word(char*& s);
-[[deprecated("Remove in v4.1. Use zeek::util::get_word.")]]
-extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
-[[deprecated("Remove in v4.1. Use zeek::util::to_upper.")]]
-extern void to_upper(char* s);
-[[deprecated("Remove in v4.1. Use zeek::util::to_upper.")]]
-extern std::string to_upper(const std::string& s);
+[[deprecated("Remove in v4.1. Use zeek::util::get_word.")]] extern char* get_word(char*& s);
+[[deprecated("Remove in v4.1. Use zeek::util::get_word.")]] extern void
+get_word(int length, const char* s, int& pwlen, const char*& pw);
+[[deprecated("Remove in v4.1. Use zeek::util::to_upper.")]] extern void to_upper(char* s);
+[[deprecated("Remove in v4.1. Use zeek::util::to_upper.")]] extern std::string
+to_upper(const std::string& s);
 
-constexpr auto decode_hex [[deprecated("Remove in v4.1. Use zeek::util::decode_hex.")]] = zeek::util::decode_hex;
-constexpr auto encode_hex [[deprecated("Remove in v4.1. Use zeek::util::encode_hex.")]] = zeek::util::encode_hex;
-constexpr auto strpbrk_n [[deprecated("Remove in v4.1. Use zeek::util::strpbrk_n.")]] = zeek::util::strpbrk_n;
-constexpr auto strstr_n [[deprecated("Remove in v4.1. Use zeek::util::strstr_n.")]] = zeek::util::strstr_n;
-constexpr auto strreplace [[deprecated("Remove in v4.1. Use zeek::util::strreplace.")]] = zeek::util::strreplace;
-constexpr auto strstrip [[deprecated("Remove in v4.1. Use zeek::util::strstrip.")]] = zeek::util::strstrip;
+constexpr auto decode_hex [[deprecated("Remove in v4.1. Use zeek::util::decode_hex.")]] =
+	zeek::util::decode_hex;
+constexpr auto encode_hex [[deprecated("Remove in v4.1. Use zeek::util::encode_hex.")]] =
+	zeek::util::encode_hex;
+constexpr auto strpbrk_n [[deprecated("Remove in v4.1. Use zeek::util::strpbrk_n.")]] =
+	zeek::util::strpbrk_n;
+constexpr auto strstr_n [[deprecated("Remove in v4.1. Use zeek::util::strstr_n.")]] =
+	zeek::util::strstr_n;
+constexpr auto strreplace [[deprecated("Remove in v4.1. Use zeek::util::strreplace.")]] =
+	zeek::util::strreplace;
+constexpr auto strstrip [[deprecated("Remove in v4.1. Use zeek::util::strstrip.")]] =
+	zeek::util::strstrip;
 
-template<class T>
-[[deprecated("Remove in v4.1. Use zeek::util::atoi_n.")]]
-int atoi_n(int len, const char* s, const char** end, int base, T& result)
-	{ return zeek::util::atoi_n<T>(len, s, end, base, result); }
+template <class T>
+[[deprecated("Remove in v4.1. Use zeek::util::atoi_n.")]] int
+atoi_n(int len, const char* s, const char** end, int base, T& result)
+	{
+	return zeek::util::atoi_n<T>(len, s, end, base, result);
+	}
 
-[[deprecated("Remove in v4.1. Use zeek::util::uitoa_n.")]]
-extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=nullptr);
+[[deprecated("Remove in v4.1. Use zeek::util::uitoa_n.")]] extern char*
+uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix = nullptr);
 
-[[deprecated("Remove in v4.1. Use zeek::util::fputs.")]]
-extern int fputs(int len, const char* s, FILE* fp);
+[[deprecated("Remove in v4.1. Use zeek::util::fputs.")]] extern int fputs(int len, const char* s,
+                                                                          FILE* fp);
 
-constexpr auto is_printable [[deprecated("Remove in v4.1. Use zeek::util::is_printable.")]] = zeek::util::is_printable;
-constexpr auto strtolower [[deprecated("Remove in v4.1. Use zeek::util::strtolower.")]] = zeek::util::strtolower;
-constexpr auto fmt_bytes [[deprecated("Remove in v4.1. Use zeek::util::fmt_bytes.")]] = zeek::util::fmt_bytes;
+constexpr auto is_printable [[deprecated("Remove in v4.1. Use zeek::util::is_printable.")]] =
+	zeek::util::is_printable;
+constexpr auto strtolower [[deprecated("Remove in v4.1. Use zeek::util::strtolower.")]] =
+	zeek::util::strtolower;
+constexpr auto fmt_bytes [[deprecated("Remove in v4.1. Use zeek::util::fmt_bytes.")]] =
+	zeek::util::fmt_bytes;
 constexpr auto vfmt [[deprecated("Remove in v4.1. Use zeek::util::vfmt.")]] = zeek::util::vfmt;
 constexpr auto fmt [[deprecated("Remove in v4.1. Use zeek::util::fmt.")]] = zeek::util::fmt;
-constexpr auto fmt_access_time [[deprecated("Remove in v4.1. Use zeek::util::detail::fmt_access_time.")]] = zeek::util::detail::fmt_access_time;
-constexpr auto ensure_intermediate_dirs [[deprecated("Remove in v4.1. Use zeek::util::detail::ensure_intermediate_dirs.")]] = zeek::util::detail::ensure_intermediate_dirs;
-constexpr auto ensure_dir [[deprecated("Remove in v4.1. Use zeek::util::detail::ensure_dir.")]] = zeek::util::detail::ensure_dir;
-constexpr auto is_dir [[deprecated("Remove in v4.1. Use zeek::util::is_dir.")]] = zeek::util::is_dir;
-constexpr auto is_file [[deprecated("Remove in v4.1. Use zeek::util::is_file.")]] = zeek::util::is_file;
-constexpr auto hmac_md5 [[deprecated("Remove in v4.1. Use zeek::util::detail::hmac_md5.")]] = zeek::util::detail::hmac_md5;
-constexpr auto init_random_seed [[deprecated("Remove in v4.1. Use zeek::util::detail::init_random_seed.")]] = zeek::util::detail::init_random_seed;
-constexpr auto initial_seed [[deprecated("Remove in v4.1. Use zeek::util::detail::initial_seed.")]] = zeek::util::detail::initial_seed;
-constexpr auto have_random_seed [[deprecated("Remove in v4.1. Use zeek::util::detail::have_random_seed.")]] = zeek::util::detail::have_random_seed;
-constexpr auto rand64bit [[deprecated("Remove in v4.1. Use zeek::util::detail::rand64bit.")]] = zeek::util::detail::rand64bit;
+constexpr auto fmt_access_time
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::fmt_access_time.")]] =
+		zeek::util::detail::fmt_access_time;
+constexpr auto ensure_intermediate_dirs
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::ensure_intermediate_dirs.")]] =
+		zeek::util::detail::ensure_intermediate_dirs;
+constexpr auto ensure_dir [[deprecated("Remove in v4.1. Use zeek::util::detail::ensure_dir.")]] =
+	zeek::util::detail::ensure_dir;
+constexpr auto is_dir [[deprecated("Remove in v4.1. Use zeek::util::is_dir.")]] =
+	zeek::util::is_dir;
+constexpr auto is_file [[deprecated("Remove in v4.1. Use zeek::util::is_file.")]] =
+	zeek::util::is_file;
+constexpr auto hmac_md5 [[deprecated("Remove in v4.1. Use zeek::util::detail::hmac_md5.")]] =
+	zeek::util::detail::hmac_md5;
+constexpr auto init_random_seed
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::init_random_seed.")]] =
+		zeek::util::detail::init_random_seed;
+constexpr auto initial_seed
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::initial_seed.")]] =
+		zeek::util::detail::initial_seed;
+constexpr auto have_random_seed
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::have_random_seed.")]] =
+		zeek::util::detail::have_random_seed;
+constexpr auto rand64bit [[deprecated("Remove in v4.1. Use zeek::util::detail::rand64bit.")]] =
+	zeek::util::detail::rand64bit;
 
-using SourceID [[deprecated("Remove in v4.1. Use zeek::util::detail::SourceID.")]] = zeek::util::detail::SourceID;
-static const zeek::util::detail::SourceID SOURCE_LOCAL [[deprecated("Remove in v4.1. Use zeek::util::detail::SOURCE_LOCAL.")]] = zeek::util::detail::SOURCE_LOCAL;
-static const zeek::util::detail::SourceID SOURCE_BROKER [[deprecated("Remove in v4.1. Use zeek::util::detail::SOURCE_BROKER.")]] = zeek::util::detail::SOURCE_BROKER;
+using SourceID [[deprecated("Remove in v4.1. Use zeek::util::detail::SourceID.")]] =
+	zeek::util::detail::SourceID;
+static const zeek::util::detail::SourceID SOURCE_LOCAL
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::SOURCE_LOCAL.")]] =
+		zeek::util::detail::SOURCE_LOCAL;
+static const zeek::util::detail::SourceID SOURCE_BROKER
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::SOURCE_BROKER.")]] =
+		zeek::util::detail::SOURCE_BROKER;
 
-constexpr auto int_list_cmp [[deprecated("Remove in v4.1. Use zeek::util::int_list_cmp.")]] = zeek::util::int_list_cmp;
-constexpr auto bro_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_path.")]] = zeek::util::zeek_path;
-constexpr auto bro_plugin_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_plugin_path.")]] = zeek::util::zeek_plugin_path;
-constexpr auto bro_plugin_activate [[deprecated("Remove in v4.1. Use zeek::util::zeek_plugin_activate.")]] = zeek::util::zeek_plugin_activate;
-constexpr auto bro_prefixes [[deprecated("Remove in v4.1. Use zeek::util::zeek_prefixes.")]] = zeek::util::zeek_prefixes;
+constexpr auto int_list_cmp [[deprecated("Remove in v4.1. Use zeek::util::int_list_cmp.")]] =
+	zeek::util::int_list_cmp;
+constexpr auto bro_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_path.")]] =
+	zeek::util::zeek_path;
+constexpr auto bro_plugin_path [[deprecated("Remove in v4.1. Use zeek::util::zeek_plugin_path.")]] =
+	zeek::util::zeek_plugin_path;
+constexpr auto bro_plugin_activate
+	[[deprecated("Remove in v4.1. Use zeek::util::zeek_plugin_activate.")]] =
+		zeek::util::zeek_plugin_activate;
+constexpr auto bro_prefixes [[deprecated("Remove in v4.1. Use zeek::util::zeek_prefixes.")]] =
+	zeek::util::zeek_prefixes;
 
-extern const std::array<std::string, 2>& script_extensions [[deprecated("Remove in v4.1. Use zeek::util::detail::script_extensions.")]];
+extern const std::array<std::string, 2>& script_extensions
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::script_extensions.")]];
 
-constexpr auto warn_if_legacy_script [[deprecated("Remove in v4.1. Use zeek::util::detail::warn_if_legacy_script.")]] = zeek::util::detail::warn_if_legacy_script;
-constexpr auto is_package_loader [[deprecated("Remove in v4.1. Use zeek::util::detail::is_package_loader.")]] = zeek::util::detail::is_package_loader;
-constexpr auto add_to_bro_path [[deprecated("Remove in v4.1. Use zeek::util::detail::add_to_zeek_path.")]] = zeek::util::detail::add_to_zeek_path;
+constexpr auto warn_if_legacy_script
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::warn_if_legacy_script.")]] =
+		zeek::util::detail::warn_if_legacy_script;
+constexpr auto is_package_loader
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::is_package_loader.")]] =
+		zeek::util::detail::is_package_loader;
+constexpr auto add_to_bro_path
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::add_to_zeek_path.")]] =
+		zeek::util::detail::add_to_zeek_path;
 
-using SafePathOp [[deprecated("Remove in v4.1. Use zeek::util::detail::SafePathOp.")]] = zeek::util::detail::SafePathOp;
-using SafeDirname [[deprecated("Remove in v4.1. Use zeek::util::SafeDirname.")]] = zeek::util::SafeDirname;
-using SafeBasename [[deprecated("Remove in v4.1. Use zeek::util::SafeBasename.")]] = zeek::util::SafeBasename;
+using SafePathOp [[deprecated("Remove in v4.1. Use zeek::util::detail::SafePathOp.")]] =
+	zeek::util::detail::SafePathOp;
+using SafeDirname [[deprecated("Remove in v4.1. Use zeek::util::SafeDirname.")]] =
+	zeek::util::SafeDirname;
+using SafeBasename [[deprecated("Remove in v4.1. Use zeek::util::SafeBasename.")]] =
+	zeek::util::SafeBasename;
 
-[[deprecated("Remove in v4.1. Use zeek::util::implode_string_vector.")]]
-std::string implode_string_vector(const std::vector<std::string>& v,
-                                  const std::string& delim = "\n");
-[[deprecated("Remove in v4.1. Use zeek::util::flatten_script_name.")]]
-std::string flatten_script_name(const std::string& name,
-                                const std::string& prefix = "");
+[[deprecated("Remove in v4.1. Use zeek::util::implode_string_vector.")]] std::string
+implode_string_vector(const std::vector<std::string>& v, const std::string& delim = "\n");
+[[deprecated("Remove in v4.1. Use zeek::util::flatten_script_name.")]] std::string
+flatten_script_name(const std::string& name, const std::string& prefix = "");
 
-constexpr auto normalize_path [[deprecated("Remove in v4.1. Use zeek::util::detail::normalize_path.")]] = zeek::util::detail::normalize_path;
-constexpr auto without_bropath_component [[deprecated("Remove in v4.1. Use zeek::util::detail::without_zeekpath_component.")]] = zeek::util::detail::without_zeekpath_component;
-constexpr auto get_exe_path [[deprecated("Remove in v4.1. Use zeek::util::detail::get_exe_path.")]] = zeek::util::detail::get_exe_path;
-constexpr auto find_script_file [[deprecated("Remove in v4.1. Use zeek::util::find_script_file.")]] = zeek::util::find_script_file;
+constexpr auto normalize_path
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::normalize_path.")]] =
+		zeek::util::detail::normalize_path;
+constexpr auto without_bropath_component
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::without_zeekpath_component.")]] =
+		zeek::util::detail::without_zeekpath_component;
+constexpr auto get_exe_path
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::get_exe_path.")]] =
+		zeek::util::detail::get_exe_path;
+constexpr auto find_script_file
+	[[deprecated("Remove in v4.1. Use zeek::util::find_script_file.")]] =
+		zeek::util::find_script_file;
 
-[[deprecated("Remove in v4.1. Use zeek::util::find_file.")]]
-std::string find_file(const std::string& filename, const std::string& path_set,
-                      const std::string& opt_ext = "");
-[[deprecated("Remove in v4.1. Use zeek::util::open_file.")]]
-FILE* open_file(const std::string& path, const std::string& mode = "r");
-[[deprecated("Remove in v4.1. Use zeek::util::open_package.")]]
-FILE* open_package(std::string& path, const std::string& mode = "r");
+[[deprecated("Remove in v4.1. Use zeek::util::find_file.")]] std::string
+find_file(const std::string& filename, const std::string& path_set,
+          const std::string& opt_ext = "");
+[[deprecated("Remove in v4.1. Use zeek::util::open_file.")]] FILE*
+open_file(const std::string& path, const std::string& mode = "r");
+[[deprecated("Remove in v4.1. Use zeek::util::open_package.")]] FILE*
+open_package(std::string& path, const std::string& mode = "r");
 
-constexpr auto rotate_file [[deprecated("Remove in v4.1. Use zeek::util::detail::rotate_file.")]] = zeek::util::detail::rotate_file;
-constexpr auto log_file_name [[deprecated("Remove in v4.1. Use zeek::util::detail::log_file_name.")]] = zeek::util::detail::log_file_name;
-constexpr auto parse_rotate_base_time [[deprecated("Remove in v4.1. Use zeek::util::detail::parse_rotate_base_time.")]] = zeek::util::detail::parse_rotate_base_time;
-constexpr auto calc_next_rotate [[deprecated("Remove in v4.1. Use zeek::util::detail::calc_next_rotate.")]] = zeek::util::detail::calc_next_rotate;
-constexpr auto terminate_processing [[deprecated("Remove in v4.1. Use zeek::util::detail::terminate_processing.")]] = zeek::util::detail::terminate_processing;
-constexpr auto set_processing_status [[deprecated("Remove in v4.1. Use zeek::util::detail::set_processing_status.")]] = zeek::util::detail::set_processing_status;
+constexpr auto rotate_file [[deprecated("Remove in v4.1. Use zeek::util::detail::rotate_file.")]] =
+	zeek::util::detail::rotate_file;
+constexpr auto log_file_name
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::log_file_name.")]] =
+		zeek::util::detail::log_file_name;
+constexpr auto parse_rotate_base_time
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::parse_rotate_base_time.")]] =
+		zeek::util::detail::parse_rotate_base_time;
+constexpr auto calc_next_rotate
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::calc_next_rotate.")]] =
+		zeek::util::detail::calc_next_rotate;
+constexpr auto terminate_processing
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::terminate_processing.")]] =
+		zeek::util::detail::terminate_processing;
+constexpr auto set_processing_status
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::set_processing_status.")]] =
+		zeek::util::detail::set_processing_status;
 
-[[deprecated("Remove in v4.1. Use zeek::util::current_time.")]]
-extern double current_time(bool real=false);
+[[deprecated("Remove in v4.1. Use zeek::util::current_time.")]] extern double
+current_time(bool real = false);
 
-constexpr auto double_to_timeval [[deprecated("Remove in v4.1. Use zeek::util::double_to_timeval.")]] = zeek::util::double_to_timeval;
-constexpr auto time_compare [[deprecated("Remove in v4.1. Use zeek::util::time_compare.")]] = zeek::util::time_compare;
+constexpr auto double_to_timeval
+	[[deprecated("Remove in v4.1. Use zeek::util::double_to_timeval.")]] =
+		zeek::util::double_to_timeval;
+constexpr auto time_compare [[deprecated("Remove in v4.1. Use zeek::util::time_compare.")]] =
+	zeek::util::time_compare;
 
-[[deprecated("Remove in v4.1. Use zeek::util::calculate_unique_id.")]]
-extern uint64_t calculate_unique_id();
-[[deprecated("Remove in v4.1. Use zeek::util::calculate_unique_id.")]]
-extern uint64_t calculate_unique_id(const size_t pool);
+[[deprecated("Remove in v4.1. Use zeek::util::calculate_unique_id.")]] extern uint64_t
+calculate_unique_id();
+[[deprecated("Remove in v4.1. Use zeek::util::calculate_unique_id.")]] extern uint64_t
+calculate_unique_id(const size_t pool);
 
 using ltstr [[deprecated("Remove in v4.1. Use zeek::util::ltstr.")]] = zeek::util::ltstr;
-constexpr auto pad_size [[deprecated("Remove in v4.1. Use zeek::util::pad_size.")]] = zeek::util::pad_size;
-constexpr auto safe_write [[deprecated("Remove in v4.1. Use zeek::util::safe_write.")]] = zeek::util::safe_write;
-constexpr auto safe_pwrite [[deprecated("Remove in v4.1. Use zeek::util::safe_pwrite.")]] = zeek::util::safe_pwrite;
-constexpr auto safe_close [[deprecated("Remove in v4.1. Use zeek::util::safe_close.")]] = zeek::util::safe_close;
-constexpr auto safe_realloc [[deprecated("Remove in v4.1. Use zeek::util::safe_realloc.")]] = zeek::util::safe_realloc;
-constexpr auto safe_malloc [[deprecated("Remove in v4.1. Use zeek::util::safe_malloc.")]] = zeek::util::safe_malloc;
-constexpr auto safe_strncpy [[deprecated("Remove in v4.1. Use zeek::util::safe_strncpy.")]] = zeek::util::safe_strncpy;
-constexpr auto get_memory_usage [[deprecated("Remove in v4.1. Use zeek::util::get_memory_usage.")]] = zeek::util::get_memory_usage;
-using CompareString [[deprecated("Remove in v4.1. Use zeek::util::CompareString.")]] = zeek::util::CompareString;
-constexpr auto canonify_name [[deprecated("Remove in v4.1. Use zeek::util::canonify_name.")]] = zeek::util::canonify_name;
-constexpr auto bro_strerror_r [[deprecated("Remove in v4.1. Use zeek::util::zeek_strerror_r.")]] = zeek::util::zeek_strerror_r;
-constexpr auto zeekenv [[deprecated("Remove in v4.1. Use zeek::util::zeekenv.")]] = zeek::util::zeekenv;
-constexpr auto json_escape_utf8 [[deprecated("Remove in v4.1. Use zeek::util::json_escape_utf8.")]] = zeek::util::json_escape_utf8;
+constexpr auto pad_size [[deprecated("Remove in v4.1. Use zeek::util::pad_size.")]] =
+	zeek::util::pad_size;
+constexpr auto safe_write [[deprecated("Remove in v4.1. Use zeek::util::safe_write.")]] =
+	zeek::util::safe_write;
+constexpr auto safe_pwrite [[deprecated("Remove in v4.1. Use zeek::util::safe_pwrite.")]] =
+	zeek::util::safe_pwrite;
+constexpr auto safe_close [[deprecated("Remove in v4.1. Use zeek::util::safe_close.")]] =
+	zeek::util::safe_close;
+constexpr auto safe_realloc [[deprecated("Remove in v4.1. Use zeek::util::safe_realloc.")]] =
+	zeek::util::safe_realloc;
+constexpr auto safe_malloc [[deprecated("Remove in v4.1. Use zeek::util::safe_malloc.")]] =
+	zeek::util::safe_malloc;
+constexpr auto safe_strncpy [[deprecated("Remove in v4.1. Use zeek::util::safe_strncpy.")]] =
+	zeek::util::safe_strncpy;
+constexpr auto get_memory_usage
+	[[deprecated("Remove in v4.1. Use zeek::util::get_memory_usage.")]] =
+		zeek::util::get_memory_usage;
+using CompareString [[deprecated("Remove in v4.1. Use zeek::util::CompareString.")]] =
+	zeek::util::CompareString;
+constexpr auto canonify_name [[deprecated("Remove in v4.1. Use zeek::util::canonify_name.")]] =
+	zeek::util::canonify_name;
+constexpr auto bro_strerror_r [[deprecated("Remove in v4.1. Use zeek::util::zeek_strerror_r.")]] =
+	zeek::util::zeek_strerror_r;
+constexpr auto zeekenv [[deprecated("Remove in v4.1. Use zeek::util::zeekenv.")]] =
+	zeek::util::zeekenv;
+constexpr auto json_escape_utf8
+	[[deprecated("Remove in v4.1. Use zeek::util::json_escape_utf8.")]] =
+		zeek::util::json_escape_utf8;
 
-namespace zeek {
+namespace zeek
+{
 
-[[deprecated("Remove in v4.1. Use zeek::util::set_thread_name.")]]
-void set_thread_name(const char* name, pthread_t tid = pthread_self());
+[[deprecated("Remove in v4.1. Use zeek::util::set_thread_name.")]] void
+set_thread_name(const char* name, pthread_t tid = pthread_self());
 
-constexpr auto prng [[deprecated("Remove in v4.1. Use zeek::util::detail::prng.")]] = zeek::util::detail::prng;
-constexpr auto random_number [[deprecated("Remove in v4.1. Use zeek::util::detail::random_number.")]] = zeek::util::detail::random_number;
-constexpr auto max_random [[deprecated("Remove in v4.1. Use zeek::util::detail::max_random.")]] = zeek::util::detail::max_random;
-constexpr auto seed_random [[deprecated("Remove in v4.1. Use zeek::util::detail::seed_random.")]] = zeek::util::detail::seed_random;
+constexpr auto prng [[deprecated("Remove in v4.1. Use zeek::util::detail::prng.")]] =
+	zeek::util::detail::prng;
+constexpr auto random_number
+	[[deprecated("Remove in v4.1. Use zeek::util::detail::random_number.")]] =
+		zeek::util::detail::random_number;
+constexpr auto max_random [[deprecated("Remove in v4.1. Use zeek::util::detail::max_random.")]] =
+	zeek::util::detail::max_random;
+constexpr auto seed_random [[deprecated("Remove in v4.1. Use zeek::util::detail::seed_random.")]] =
+	zeek::util::detail::seed_random;
 
 } // namespace zeek

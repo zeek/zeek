@@ -1,11 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/Traverse.h"
+
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/input.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 TraversalCode traverse_all(TraversalCallback* cb)
 	{

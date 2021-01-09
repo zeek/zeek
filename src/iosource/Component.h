@@ -11,12 +11,14 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
 ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
 
-namespace zeek::iosource {
+namespace zeek::iosource
+{
 
 /**
  * Component description for plugins providing IOSources.
  */
-class Component : public plugin::Component {
+class Component : public plugin::Component
+	{
 public:
 	typedef IOSource* (*factory_callback)();
 
@@ -34,7 +36,6 @@ public:
 	~Component() override;
 
 protected:
-
 	/**
 	 * Constructor to use by derived classes.
 	 *
@@ -44,21 +45,23 @@ protected:
 	 * be unique across all components of this type.
 	 */
 	Component(plugin::component::Type type, const std::string& name);
-};
+	};
 
 /**
  * Component description for plugins providing a PktSrc for packet input.
  */
-class PktSrcComponent : public Component {
+class PktSrcComponent : public Component
+	{
 public:
 	/**
 	 * Type of input a packet source supports.
 	 */
-	enum InputType {
-		LIVE,	///< Live input.
-		TRACE,		///< Offline input from trace file.
-		BOTH	///< Live input as well as offline.
-	};
+	enum InputType
+		{
+		LIVE, ///< Live input.
+		TRACE, ///< Offline input from trace file.
+		BOTH ///< Live input as well as offline.
+		};
 
 	typedef PktSrc* (*factory_callback)(const std::string& path, bool is_live);
 
@@ -75,7 +78,8 @@ public:
 	 *
 	 * @param factor Factory function to instantiate component.
 	 */
-	PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory);
+	PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type,
+	                factory_callback factory);
 
 	/**
 	 * Destructor.
@@ -119,7 +123,7 @@ private:
 	std::vector<std::string> prefixes;
 	InputType type;
 	factory_callback factory;
-};
+	};
 
 /**
  * Component description for plugins providing a PktDumper for packet output.
@@ -127,14 +131,16 @@ private:
  * PktDumpers aren't IOSurces but we locate them here to keep them along with
  * the PktSrc.
  */
-class PktDumperComponent : public plugin::Component  {
+class PktDumperComponent : public plugin::Component
+	{
 public:
 	typedef PktDumper* (*factory_callback)(const std::string& path, bool append);
 
 	/**
 	 * XXX
 	 */
-	PktDumperComponent(const std::string& name, const std::string& prefixes, factory_callback factory);
+	PktDumperComponent(const std::string& name, const std::string& prefixes,
+	                   factory_callback factory);
 
 	/**
 	 * Destructor.
@@ -165,14 +171,18 @@ public:
 private:
 	std::vector<std::string> prefixes;
 	factory_callback factory;
-};
+	};
 
 } // namespace zeek::iosource
 
-namespace iosource {
+namespace iosource
+{
 
-using Component [[deprecated("Remove in v4.1. Use zeek::iosource::Component.")]] = zeek::iosource::Component;
-using PktSrcComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrcComponent.")]] = zeek::iosource::PktSrcComponent;
-using PktDumperComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumperComponent.")]] = zeek::iosource::PktDumperComponent;
+using Component [[deprecated("Remove in v4.1. Use zeek::iosource::Component.")]] =
+	zeek::iosource::Component;
+using PktSrcComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrcComponent.")]] =
+	zeek::iosource::PktSrcComponent;
+using PktDumperComponent [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumperComponent.")]] =
+	zeek::iosource::PktDumperComponent;
 
 } // namespace iosource

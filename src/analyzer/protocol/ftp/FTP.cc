@@ -1,24 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
-#include "zeek/analyzer/protocol/ftp/FTP.h"
 
 #include <stdlib.h>
 
-#include "zeek/ZeekString.h"
-#include "zeek/NetVar.h"
-#include "zeek/Event.h"
 #include "zeek/Base64.h"
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/login/NVT.h"
+#include "zeek/Event.h"
+#include "zeek/NetVar.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/ZeekString.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/ftp/FTP.h"
+#include "zeek/analyzer/protocol/login/NVT.h"
 
 #include "analyzer/protocol/ftp/events.bif.h"
 
-namespace zeek::analyzer::ftp {
+namespace zeek::analyzer::ftp
+{
 
-FTP_Analyzer::FTP_Analyzer(Connection* conn)
-: analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn)
+FTP_Analyzer::FTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
 
@@ -68,7 +68,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		return;
 
 	// const char* orig_line = line;
-	const char* line = (const char*) data;
+	const char* line = (const char*)data;
 	const char* end_of_line = line + length;
 
 	if ( length == 0 )
@@ -98,20 +98,19 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		vl = {
 			ConnVal(),
-			IntrusivePtr{AdoptRef{}, cmd_str},
+			IntrusivePtr {AdoptRef {}, cmd_str},
 			make_intrusive<StringVal>(end_of_line - line, line),
 		};
 
 		f = ftp_request;
 		ProtocolConfirmation();
 
-		if ( strncmp((const char*) cmd_str->Bytes(),
-			     "AUTH", cmd_len) == 0 )
+		if ( strncmp((const char*)cmd_str->Bytes(), "AUTH", cmd_len) == 0 )
 			auth_requested = std::string(line, end_of_line - line);
 
 		if ( detail::rule_matcher )
-			Conn()->Match(zeek::detail::Rule::FTP, (const u_char *) cmd,
-			              end_of_line - cmd, true, true, true, true);
+			Conn()->Match(zeek::detail::Rule::FTP, (const u_char*)cmd, end_of_line - cmd, true,
+			              true, true, true);
 		}
 	else
 		{
@@ -121,8 +120,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		if ( pending_reply )
 			{
-			if ( reply_code == pending_reply &&
-			     length > 3 && line[3] == ' ' )
+			if ( reply_code == pending_reply && length > 3 && line[3] == ' ' )
 				{
 				// This is the end of the reply.
 				line = util::skip_whitespace(line + 3, end_of_line);
@@ -131,8 +129,8 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			else
 				{
-				cont_resp = 1;	// not the end
-				reply_code = 0;	// flag as intermediary
+				cont_resp = 1; // not the end
+				reply_code = 0; // flag as intermediary
 				}
 			}
 		else
@@ -148,8 +146,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				if ( reply_code > 0 )
 					line += 3;
 				else
-					ProtocolViolation("non-numeric reply code",
-						(const char*) data, length);
+					ProtocolViolation("non-numeric reply code", (const char*)data, length);
 
 				if ( line < end_of_line )
 					line = util::skip_whitespace(line, end_of_line);
@@ -160,8 +157,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			}
 
-		if ( reply_code == 334 && auth_requested.size() > 0 &&
-		     auth_requested == "GSSAPI" )
+		if ( reply_code == 334 && auth_requested.size() > 0 && auth_requested == "GSSAPI" )
 			{
 			// Server wants to proceed with an ADAT exchange and we
 			// know how to analyze the GSI mechanism, so attach analyzer
@@ -175,12 +171,8 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			}
 
-		vl = {
-			ConnVal(),
-			val_mgr->Count(reply_code),
-			make_intrusive<StringVal>(end_of_line - line, line),
-			val_mgr->Bool(cont_resp)
-		};
+		vl = {ConnVal(), val_mgr->Count(reply_code),
+		      make_intrusive<StringVal>(end_of_line - line, line), val_mgr->Bool(cont_resp)};
 
 		f = ftp_reply;
 		}
@@ -201,7 +193,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 
 	bool done = false;
-	const char* line = (const char*) data;
+	const char* line = (const char*)data;
 	const char* end_of_line = line + len;
 
 	String* decoded_adat = nullptr;
@@ -263,63 +255,64 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		uint32_t reply_code = get_reply_code(len, line);
 
-		switch ( reply_code ) {
-		case 232:
-		case 234:
-			// Indicates security data exchange is complete, but nothing
-			// more to decode in replies.
-			done = true;
-			break;
+		switch ( reply_code )
+			{
+			case 232:
+			case 234:
+				// Indicates security data exchange is complete, but nothing
+				// more to decode in replies.
+				done = true;
+				break;
 
-		case 235:
-			// Security data exchange complete, but may have more to decode
-			// in the reply (same format at 334 and 335).
-			done = true;
+			case 235:
+				// Security data exchange complete, but may have more to decode
+				// in the reply (same format at 334 and 335).
+				done = true;
 
-			// Fall-through.
+				// Fall-through.
 
-		case 334:
-		case 335:
-			// Security data exchange still in progress, and there could be data
-			// to decode in the reply.
-			line += 3;
-			if ( len > 3 && line[0] == '-' )
-				line++;
+			case 334:
+			case 335:
+				// Security data exchange still in progress, and there could be data
+				// to decode in the reply.
+				line += 3;
+				if ( len > 3 && line[0] == '-' )
+					line++;
 
-			line = util::skip_whitespace(line, end_of_line);
+				line = util::skip_whitespace(line, end_of_line);
 
-			if ( end_of_line - line >= 5 && strncmp(line, "ADAT=", 5) == 0 )
-				{
-				line += 5;
-				StringVal encoded(end_of_line - line, line);
-				decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
-				}
+				if ( end_of_line - line >= 5 && strncmp(line, "ADAT=", 5) == 0 )
+					{
+					line += 5;
+					StringVal encoded(end_of_line - line, line);
+					decoded_adat = zeek::detail::decode_base64(encoded.AsString(), nullptr, Conn());
+					}
 
-			break;
+				break;
 
-		case 421:
-		case 431:
-		case 500:
-		case 501:
-		case 503:
-		case 535:
-			// Server isn't going to accept named security mechanism.
-			// Client has to restart back at the AUTH.
-			done = true;
-			break;
+			case 421:
+			case 431:
+			case 500:
+			case 501:
+			case 503:
+			case 535:
+				// Server isn't going to accept named security mechanism.
+				// Client has to restart back at the AUTH.
+				done = true;
+				break;
 
-		case 631:
-		case 632:
-		case 633:
-			// If the server is sending protected replies, the security
-			// data exchange must have already succeeded.  It does have
-			// encoded data in the reply, but 632 and 633 are also encrypted.
-			done = true;
-			break;
+			case 631:
+			case 632:
+			case 633:
+				// If the server is sending protected replies, the security
+				// data exchange must have already succeeded.  It does have
+				// encoded data in the reply, but 632 and 633 are also encrypted.
+				done = true;
+				break;
 
-		default:
-			break;
-		}
+			default:
+				break;
+			}
 		}
 
 	if ( decoded_adat )

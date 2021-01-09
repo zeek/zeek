@@ -1,8 +1,9 @@
 #pragma once
 
-extern "C" {
-	#include "zeek/patricia.h"
-}
+extern "C"
+	{
+#include "zeek/patricia.h"
+	}
 
 #include <list>
 
@@ -11,20 +12,27 @@ extern "C" {
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(SubNetVal, zeek);
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
-class PrefixTable {
+class PrefixTable
+	{
 private:
-	struct iterator {
-		patricia_node_t* Xstack[PATRICIA_MAXBITS+1];
+	struct iterator
+		{
+		patricia_node_t* Xstack[PATRICIA_MAXBITS + 1];
 		patricia_node_t** Xsp;
 		patricia_node_t* Xrn;
 		patricia_node_t* Xnode;
-	};
+		};
 
 public:
-	PrefixTable()	{ tree = New_Patricia(128); delete_function = nullptr; }
-	~PrefixTable()	{ Destroy_Patricia(tree, delete_function); }
+	PrefixTable()
+		{
+		tree = New_Patricia(128);
+		delete_function = nullptr;
+		}
+	~PrefixTable() { Destroy_Patricia(tree, delete_function); }
 
 	// Addr in network byte order. If data is zero, acts like a set.
 	// Returns ptr to old data if already existing.
@@ -48,10 +56,10 @@ public:
 	void* Remove(const IPAddr& addr, int width);
 	void* Remove(const Val* value);
 
-	void Clear()	{ Clear_Patricia(tree, delete_function); }
+	void Clear() { Clear_Patricia(tree, delete_function); }
 
 	// Sets a function to call for each node when table is cleared/destroyed.
-	void SetDeleteFunction(data_fn_t del_fn)	{ delete_function = del_fn; }
+	void SetDeleteFunction(data_fn_t del_fn) { delete_function = del_fn; }
 
 	iterator InitIterator();
 	void* GetNext(iterator* i);
@@ -62,8 +70,9 @@ private:
 
 	patricia_tree_t* tree;
 	data_fn_t delete_function;
-};
+	};
 
 } // namespace zeek::detail
 
-using PrefixTable [[deprecated("Remove in v4.1. Use zeek::detail::PrefixTable.")]] = zeek::detail::PrefixTable;
+using PrefixTable [[deprecated("Remove in v4.1. Use zeek::detail::PrefixTable.")]] =
+	zeek::detail::PrefixTable;

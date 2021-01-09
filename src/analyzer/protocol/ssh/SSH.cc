@@ -2,16 +2,16 @@
 
 #include "zeek/analyzer/protocol/ssh/SSH.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "analyzer/protocol/ssh/types.bif.h"
 #include "analyzer/protocol/ssh/events.bif.h"
+#include "analyzer/protocol/ssh/types.bif.h"
 
-namespace zeek::analyzer::ssh {
+namespace zeek::analyzer::ssh
+{
 
-SSH_Analyzer::SSH_Analyzer(Connection* c)
-	: analyzer::tcp::TCP_ApplicationAnalyzer("SSH", c)
+SSH_Analyzer::SSH_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("SSH", c)
 	{
 	interp = new binpac::SSH::SSH_Conn(this);
 	had_gap = false;
@@ -91,8 +91,7 @@ void SSH_Analyzer::ProcessEncryptedSegment(int len, bool orig)
 	{
 	if ( ssh_encrypted_packet )
 		BifEvent::enqueue_ssh_encrypted_packet(interp->zeek_analyzer(),
-		                                       interp->zeek_analyzer()->Conn(),
-		                                       orig, len);
+		                                       interp->zeek_analyzer()->Conn(), orig, len);
 
 	if ( ! auth_decision_made )
 		ProcessEncrypted(len, orig);
@@ -131,9 +130,11 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 			{
 			auth_decision_made = true;
 			if ( ssh_auth_attempted )
-				BifEvent::enqueue_ssh_auth_attempted(interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(), true);
+				BifEvent::enqueue_ssh_auth_attempted(interp->zeek_analyzer(),
+				                                     interp->zeek_analyzer()->Conn(), true);
 			if ( ssh_auth_successful )
-				BifEvent::enqueue_ssh_auth_successful(interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(), true);
+				BifEvent::enqueue_ssh_auth_successful(interp->zeek_analyzer(),
+				                                      interp->zeek_analyzer()->Conn(), true);
 			return;
 			}
 
@@ -158,7 +159,8 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 		if ( len == userauth_failure_size )
 			{
 			if ( ssh_auth_attempted )
-				BifEvent::enqueue_ssh_auth_attempted(interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(), false);
+				BifEvent::enqueue_ssh_auth_attempted(interp->zeek_analyzer(),
+				                                     interp->zeek_analyzer()->Conn(), false);
 			return;
 			}
 
@@ -167,9 +169,11 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 			{
 			auth_decision_made = true;
 			if ( ssh_auth_attempted )
-				BifEvent::enqueue_ssh_auth_attempted(interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(), true);
+				BifEvent::enqueue_ssh_auth_attempted(interp->zeek_analyzer(),
+				                                     interp->zeek_analyzer()->Conn(), true);
 			if ( ssh_auth_successful )
-				BifEvent::enqueue_ssh_auth_successful(interp->zeek_analyzer(), interp->zeek_analyzer()->Conn(), false);
+				BifEvent::enqueue_ssh_auth_successful(interp->zeek_analyzer(),
+				                                      interp->zeek_analyzer()->Conn(), false);
 			return;
 			}
 		}

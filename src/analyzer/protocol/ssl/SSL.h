@@ -4,13 +4,27 @@
 
 #include "analyzer/protocol/ssl/events.bif.h"
 
-namespace binpac { namespace SSL { class SSL_Conn; } }
+namespace binpac
+{
+namespace SSL
+{
+class SSL_Conn;
+}
+}
 
-namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
+namespace binpac
+{
+namespace TLSHandshake
+{
+class Handshake_Conn;
+}
+}
 
-namespace zeek::analyzer::ssl {
+namespace zeek::analyzer::ssl
+{
 
-class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit SSL_Analyzer(Connection* conn);
 	~SSL_Analyzer() override;
@@ -30,20 +44,20 @@ public:
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new SSL_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new SSL_Analyzer(conn); }
 
 protected:
 	binpac::SSL::SSL_Conn* interp;
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
-
-};
+	};
 
 } // namespace zeek::analyzer::ssl
 
-namespace analyzer::ssl {
+namespace analyzer::ssl
+{
 
-using SSL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ssl::SSL_Analyzer.")]] = zeek::analyzer::ssl::SSL_Analyzer;
+using SSL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ssl::SSL_Analyzer.")]] =
+	zeek::analyzer::ssl::SSL_Analyzer;
 
 } // namespace analyzer::ssl

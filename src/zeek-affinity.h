@@ -2,7 +2,8 @@
 
 #pragma once
 
-namespace zeek {
+namespace zeek
+{
 
 /**
  * Set the process affinity to a given CPU.  Currently only supported on

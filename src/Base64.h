@@ -1,17 +1,23 @@
 #pragma once
 
 #include "zeek-config.h"
+
 #include <string>
 
-namespace zeek { class String; }
+namespace zeek
+{
+class String;
+}
 using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 // Maybe we should have a base class for generic decoders?
-class Base64Converter {
+class Base64Converter
+	{
 public:
 	// <conn> is used for error reporting. If it is set to zero (as,
 	// e.g., done by the built-in functions decode_base64() and
@@ -38,9 +44,9 @@ public:
 	bool HasData() const { return base64_group_next != 0; }
 
 	// True if an error has occurred.
-	int Errored() const	{ return errored; }
+	int Errored() const { return errored; }
 
-	const char* ErrorMsg() const	{ return error_msg; }
+	const char* ErrorMsg() const { return error_msg; }
 	void IllegalEncoding(const char* msg);
 
 protected:
@@ -57,20 +63,22 @@ protected:
 	int base64_padding;
 	int base64_after_padding;
 	int* base64_table;
-	int errored;	// if true, we encountered an error - skip further processing
+	int errored; // if true, we encountered an error - skip further processing
 	Connection* conn;
-
-};
+	};
 
 String* decode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 String* encode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 
 } // namespace zeek::detail
 
-using Base64Converter [[deprecated("Remove in v4.1. Use zeek::detail::Base64Converter.")]] = zeek::detail::Base64Converter;
+using Base64Converter [[deprecated("Remove in v4.1. Use zeek::detail::Base64Converter.")]] =
+	zeek::detail::Base64Converter;
 
 // These can't be constexpr auto definitions due to the default parameters.
-[[deprecated("Remove in v4.1. Use zeek::detail::decode_base64.")]]
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
-[[deprecated("Remove in v4.1. Use zeek::detail::encode_base64.")]]
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a = nullptr, zeek::Connection* conn = nullptr);
+[[deprecated("Remove in v4.1. Use zeek::detail::decode_base64.")]] zeek::String*
+decode_base64(const zeek::String* s, const zeek::String* a = nullptr,
+              zeek::Connection* conn = nullptr);
+[[deprecated("Remove in v4.1. Use zeek::detail::encode_base64.")]] zeek::String*
+encode_base64(const zeek::String* s, const zeek::String* a = nullptr,
+              zeek::Connection* conn = nullptr);

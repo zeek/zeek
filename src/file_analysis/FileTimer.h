@@ -3,16 +3,18 @@
 #pragma once
 
 #include <string>
+
 #include "zeek/Timer.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+{
 
 /**
  * Timer to periodically check if file analysis for a given file is inactive.
  */
-class FileTimer final : public zeek::detail::Timer {
+class FileTimer final : public zeek::detail::Timer
+	{
 public:
-
 	/**
 	 * Constructor, nothing interesting about it.
 	 * @param t unix time at which the timer should start ticking.
@@ -31,12 +33,14 @@ public:
 
 private:
 	std::string file_id;
-};
+	};
 
 } // namespace zeek::file_analysis::detail
 
-namespace file_analysis {
+namespace file_analysis
+{
 
-using FileTimer [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::FileTimer.")]] = zeek::file_analysis::detail::FileTimer;
+using FileTimer [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::FileTimer.")]] =
+	zeek::file_analysis::detail::FileTimer;
 
 } // namespace file_analysis

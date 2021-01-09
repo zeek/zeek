@@ -1,16 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/logging/Tag.h"
+
 #include "zeek/logging/Manager.h"
 
-namespace zeek::logging {
+namespace zeek::logging
+{
 
 const Tag Tag::Error;
 
-Tag::Tag(type_t type, subtype_t subtype)
-	: zeek::Tag(log_mgr->GetTagType(), type, subtype)
-	{
-	}
+Tag::Tag(type_t type, subtype_t subtype) : zeek::Tag(log_mgr->GetTagType(), type, subtype) { }
 
 Tag& Tag::operator=(const Tag& other)
 	{
@@ -34,12 +33,8 @@ EnumVal* Tag::AsEnumVal() const
 	return AsVal().get();
 	}
 
-Tag::Tag(EnumValPtr val)
-	: zeek::Tag(std::move(val))
-	{ }
+Tag::Tag(EnumValPtr val) : zeek::Tag(std::move(val)) { }
 
-Tag::Tag(EnumVal* val)
-	: zeek::Tag({NewRef{}, val})
-	{ }
+Tag::Tag(EnumVal* val) : zeek::Tag({NewRef {}, val}) { }
 
 } // namespace zeek::logging

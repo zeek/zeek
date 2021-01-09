@@ -2,13 +2,14 @@
 
 #include "zeek/packet_analysis/Analyzer.h"
 
-#include "zeek/Dict.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Dict.h"
 #include "zeek/RunState.h"
 #include "zeek/Sessions.h"
 #include "zeek/util.h"
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis
+{
 
 Analyzer::Analyzer(std::string name)
 	{
@@ -35,7 +36,7 @@ void Analyzer::Initialize()
 	default_analyzer = LoadAnalyzer("default_analyzer");
 	}
 
-zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string &name)
+zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string& name)
 	{
 	auto& analyzer = zeek::id::find(GetModuleName() + name);
 	if ( ! analyzer )
@@ -80,14 +81,15 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 
 	if ( inner_analyzer == nullptr )
 		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
-				GetAnalyzerName(), identifier);
+		DBG_LOG(DBG_PACKET_ANALYSIS,
+		        "Analysis in %s failed, could not find analyzer for identifier %#x.",
+		        GetAnalyzerName(), identifier);
 		packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
 		return false;
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
-			GetAnalyzerName(), identifier);
+	        GetAnalyzerName(), identifier);
 	return inner_analyzer->AnalyzePacket(len, data, packet);
 	}
 
@@ -97,7 +99,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
 		return default_analyzer->AnalyzePacket(len, data, packet);
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
-			GetAnalyzerName());
+	        GetAnalyzerName());
 
 	Weird("no_suitable_analyzer_found", packet);
 	return true;

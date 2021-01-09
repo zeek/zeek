@@ -4,17 +4,17 @@
 
 #include <pcap.h> // For DLT_ constants
 
-#include "zeek/Sessions.h"
-#include "zeek/RunState.h"
 #include "zeek/IP.h"
+#include "zeek/RunState.h"
+#include "zeek/Sessions.h"
 #include "zeek/TunnelEncapsulation.h"
 
-namespace zeek::packet_analysis::IPTunnel {
+namespace zeek::packet_analysis::IPTunnel
+{
 
 IPTunnelAnalyzer* ip_tunnel_analyzer;
 
-IPTunnelAnalyzer::IPTunnelAnalyzer()
-	: zeek::packet_analysis::Analyzer("IPTunnel")
+IPTunnelAnalyzer::IPTunnelAnalyzer() : zeek::packet_analysis::Analyzer("IPTunnel")
 	{
 	ip_tunnel_analyzer = this;
 	}
@@ -33,8 +33,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		return false;
 		}
 
-	if ( packet->encap &&
-	     packet->encap->Depth() >= BifConst::Tunnel::max_depth )
+	if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		Weird("exceeded_tunnel_max_depth", packet);
 		return false;
@@ -78,17 +77,17 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
 	if ( tunnel_it == ip_tunnels.end() )
 		{
-		EncapsulatingConn ec(packet->ip_hdr->SrcAddr(), packet->ip_hdr->DstAddr(),
-		                     tunnel_type);
+		EncapsulatingConn ec(packet->ip_hdr->SrcAddr(), packet->ip_hdr->DstAddr(), tunnel_type);
 		ip_tunnels[tunnel_idx] = TunnelActivity(ec, run_state::network_time);
-		zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(run_state::network_time, tunnel_idx, this));
+		zeek::detail::timer_mgr->Add(
+			new detail::IPTunnelTimer(run_state::network_time, tunnel_idx, this));
 		}
 	else
 		tunnel_it->second.second = zeek::run_state::network_time;
 
 	if ( gre_version == 0 )
-		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, len, len, data, gre_link_type,
-		                          packet->encap, ip_tunnels[tunnel_idx].first);
+		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, len, len, data,
+		                          gre_link_type, packet->encap, ip_tunnels[tunnel_idx].first);
 	else
 		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, inner, packet->encap,
 		                          ip_tunnels[tunnel_idx].first);
@@ -99,8 +98,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 /**
  * Handles a packet that contains an IP header directly after the tunnel header.
  */
-bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
-                                                 const IP_Hdr* inner,
+bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, const IP_Hdr* inner,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec)
 	{
@@ -114,17 +112,16 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 		ts = pkt->ts;
 	else
 		{
-		ts.tv_sec = (time_t) run_state::network_time;
-		ts.tv_usec = (suseconds_t)
-		    ((run_state::network_time - (double)ts.tv_sec) * 1000000);
+		ts.tv_sec = (time_t)run_state::network_time;
+		ts.tv_usec = (suseconds_t)((run_state::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
 	const u_char* data = nullptr;
 
 	if ( inner->IP4_Hdr() )
-		data = (const u_char*) inner->IP4_Hdr();
+		data = (const u_char*)inner->IP4_Hdr();
 	else
-		data = (const u_char*) inner->IP6_Hdr();
+		data = (const u_char*)inner->IP6_Hdr();
 
 	auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
 	outer->Add(ec);
@@ -146,9 +143,8 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 /**
  * Handles a packet that contains a physical-layer header after the tunnel header.
  */
-bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
-                                                 uint32_t caplen, uint32_t len,
-                                                 const u_char* data, int link_type,
+bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, uint32_t caplen,
+                                                 uint32_t len, const u_char* data, int link_type,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec)
 	{
@@ -158,9 +154,8 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 		ts = pkt->ts;
 	else
 		{
-		ts.tv_sec = (time_t) run_state::network_time;
-		ts.tv_usec = (suseconds_t)
-		    ((run_state::network_time - (double)ts.tv_sec) * 1000000);
+		ts.tv_sec = (time_t)run_state::network_time;
+		ts.tv_usec = (suseconds_t)((run_state::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
 	auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
@@ -179,19 +174,18 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	return return_val;
 	}
 
-namespace detail {
+namespace detail
+{
 
 IPTunnelTimer::IPTunnelTimer(double t, IPTunnelAnalyzer::IPPair p, IPTunnelAnalyzer* analyzer)
-	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
-	        zeek::detail::TIMER_IP_TUNNEL_INACTIVITY),
+	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout, zeek::detail::TIMER_IP_TUNNEL_INACTIVITY),
 	  tunnel_idx(p), analyzer(analyzer)
 	{
 	}
 
 void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	{
-	IPTunnelAnalyzer::IPTunnelMap::const_iterator it =
-		analyzer->ip_tunnels.find(tunnel_idx);
+	IPTunnelAnalyzer::IPTunnelMap::const_iterator it = analyzer->ip_tunnels.find(tunnel_idx);
 
 	if ( it == analyzer->ip_tunnels.end() )
 		return;

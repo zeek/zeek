@@ -14,10 +14,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 
-namespace zeek {
+namespace zeek
+{
 
 // The registry keeps track of all events that we provide or handle.
-class EventRegistry {
+class EventRegistry
+	{
 public:
 	EventRegistry();
 	~EventRegistry() noexcept;
@@ -53,11 +55,12 @@ public:
 
 private:
 	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
-};
+	};
 
 extern EventRegistry* event_registry;
 
 } // namespace zeek
 
-using EventRegistry [[deprecated("Remove in v4.1. Use zeek::EventRegistry.")]] = zeek::EventRegistry;
+using EventRegistry [[deprecated("Remove in v4.1. Use zeek::EventRegistry.")]] =
+	zeek::EventRegistry;
 extern zeek::EventRegistry*& event_registry;

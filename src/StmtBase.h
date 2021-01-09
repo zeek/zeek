@@ -6,8 +6,8 @@
 // the bulk of Stmt.h to allow Expr.h to include it, necessary for
 // Expr.h to use StmtPtr.
 
-#include "zeek/Obj.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
 #include "zeek/util.h"
@@ -15,14 +15,19 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 
-namespace zeek::run_state { extern double network_time; }
+namespace zeek::run_state
+{
+extern double network_time;
+}
 
-namespace zeek {
+namespace zeek
+{
 class Val;
 using ValPtr = IntrusivePtr<Val>;
 }
 
-namespace zeek::detail {
+namespace zeek::detail
+{
 
 class StmtList;
 class ForStmt;
@@ -41,18 +46,22 @@ class Inliner;
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
 
-class Stmt : public Obj {
+class Stmt : public Obj
+	{
 public:
-	StmtTag Tag() const	{ return tag; }
+	StmtTag Tag() const { return tag; }
 
 	~Stmt() override;
 
 	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) const = 0;
 
-	Stmt* Ref()			{ zeek::Ref(this); return this; }
+	Stmt* Ref()
+		{
+		zeek::Ref(this);
+		return this;
+		}
 
-	bool SetLocationInfo(const Location* loc) override
-		{ return Stmt::SetLocationInfo(loc, loc); }
+	bool SetLocationInfo(const Location* loc) override { return Stmt::SetLocationInfo(loc, loc); }
 	bool SetLocationInfo(const Location* start, const Location* end) override;
 
 	// True if the statement has no side effects, false otherwise.
@@ -68,16 +77,20 @@ public:
 	const WhenStmt* AsWhenStmt() const;
 	const SwitchStmt* AsSwitchStmt() const;
 
-	void RegisterAccess() const	{ last_access = run_state::network_time; access_count++; }
+	void RegisterAccess() const
+		{
+		last_access = run_state::network_time;
+		access_count++;
+		}
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 
 	void Describe(ODesc* d) const final;
 
-	virtual void IncrBPCount()	{ ++breakpoint_count; }
+	virtual void IncrBPCount() { ++breakpoint_count; }
 	virtual void DecrBPCount();
 
-	virtual unsigned int BPCount() const	{ return breakpoint_count; }
+	virtual unsigned int BPCount() const { return breakpoint_count; }
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
@@ -85,13 +98,12 @@ public:
 	virtual StmtPtr Duplicate() = 0;
 
 	// Recursively traverses the AST to inline eligible function calls.
-	virtual void Inline(Inliner* inl)	{ }
+	virtual void Inline(Inliner* inl) { }
 
 	// Access to the original statement from which this one is derived,
 	// or this one if we don't have an original.  Returns a bare pointer
 	// rather than a StmtPtr to emphasize that the access is read-only.
-	const Stmt* Original() const
-		{ return original ? original->Original() : this; }
+	const Stmt* Original() const { return original ? original->Original() : this; }
 
 	// Designate the given Stmt node as the original for this one.
 	void SetOriginal(StmtPtr _orig)
@@ -109,8 +121,8 @@ public:
 	// into a StmtPtr.
 	virtual StmtPtr SetSucc(Stmt* succ)
 		{
-		succ->SetOriginal({NewRef{}, this});
-		return {AdoptRef{}, succ};
+		succ->SetOriginal({NewRef {}, this});
+		return {AdoptRef {}, succ};
 		}
 
 	const detail::Location* GetLocationInfo() const override
@@ -129,17 +141,17 @@ protected:
 	void DescribeDone(ODesc* d) const;
 
 	StmtTag tag;
-	int breakpoint_count;	// how many breakpoints on this statement
+	int breakpoint_count; // how many breakpoints on this statement
 
 	// FIXME: Learn the exact semantics of mutable.
-	mutable double last_access;	// time of last execution
-	mutable uint32_t access_count;	// number of executions
+	mutable double last_access; // time of last execution
+	mutable uint32_t access_count; // number of executions
 
 	// The original statement from which this statement was
 	// derived, if any.  Used as an aid for generating meaningful
 	// and correctly-localized error messages.
 	StmtPtr original = nullptr;
-};
+	};
 
 } // namespace zeek::detail
 

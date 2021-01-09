@@ -1,16 +1,17 @@
 #include "zeek/analyzer/protocol/pia/PIA.h"
 
-#include "zeek/RuleMatcher.h"
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
-#include "zeek/IP.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Event.h"
+#include "zeek/IP.h"
+#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
+#include "zeek/RuleMatcher.h"
 #include "zeek/RunState.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::pia {
+namespace zeek::analyzer::pia
+{
 
 PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
 	: state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
@@ -29,7 +30,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 		{
 		next = b->next;
 		delete b->ip;
-		delete [] b->data;
+		delete[] b->data;
 		delete b;
 		}
 
@@ -37,8 +38,8 @@ void PIA::ClearBuffer(Buffer* buffer)
 	buffer->size = 0;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
-                      bool is_orig, const IP_Hdr* ip)
+void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data, bool is_orig,
+                      const IP_Hdr* ip)
 	{
 	u_char* tmp = nullptr;
 
@@ -67,8 +68,7 @@ void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 	buffer->size += len;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,
-                      const IP_Hdr* ip)
+void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig, const IP_Hdr* ip)
 	{
 	AddToBuffer(buffer, -1, len, data, is_orig, ip);
 	}
@@ -102,13 +102,11 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	if ( pkt_buffer.state == INIT )
 		new_state = BUFFERING;
 
-	if ( (pkt_buffer.state == BUFFERING || new_state == BUFFERING) &&
-	     len > 0 )
+	if ( (pkt_buffer.state == BUFFERING || new_state == BUFFERING) && len > 0 )
 		{
 		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
 		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size )
-			new_state = zeek::detail::dpd_match_only_beginning ?
-						SKIPPING : MATCHING_ONLY;
+			new_state = zeek::detail::dpd_match_only_beginning ? SKIPPING : MATCHING_ONLY;
 		}
 
 	// FIXME: I'm not sure why it does not work with eol=true...
@@ -122,8 +120,8 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	current_packet.data = nullptr;
 	}
 
-void PIA::Match(zeek::detail::Rule::PatternType type, const u_char* data, int len,
-                bool is_orig, bool bol, bool eol, bool clear_state)
+void PIA::Match(zeek::detail::Rule::PatternType type, const u_char* data, int len, bool is_orig,
+                bool bol, bool eol, bool clear_state)
 	{
 	if ( ! MatcherInitialized(is_orig) )
 		InitEndpointMatcher(AsAnalyzer(), nullptr, 0, is_orig, this);
@@ -131,8 +129,8 @@ void PIA::Match(zeek::detail::Rule::PatternType type, const u_char* data, int le
 	zeek::detail::RuleMatcherState::Match(type, data, len, is_orig, bol, eol, clear_state);
 	}
 
-void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
-                  bool clear_state, const IP_Hdr* ip)
+void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol, bool clear_state,
+                  const IP_Hdr* ip)
 	{
 	if ( ! zeek::detail::rule_matcher )
 		return;
@@ -143,8 +141,8 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 	if ( ! MatcherInitialized(is_orig) )
 		InitEndpointMatcher(AsAnalyzer(), ip, len, is_orig, this);
 
-	zeek::detail::RuleMatcherState::Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig,
-	                                      bol, eol, clear_state);
+	zeek::detail::RuleMatcherState::Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig, bol, eol,
+	                                      clear_state);
 	}
 
 void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule)
@@ -220,9 +218,8 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 		// else would be *really* ugly ...
 		if ( ! ip4_hdr )
 			{
-			ip4 = (struct ip*) dummy_packet;
-			tcp4 = (struct tcphdr*)
-				(dummy_packet + sizeof(struct ip));
+			ip4 = (struct ip*)dummy_packet;
+			tcp4 = (struct tcphdr*)(dummy_packet + sizeof(struct ip));
 			ip4->ip_len = sizeof(struct ip) + sizeof(struct tcphdr);
 			ip4->ip_hl = sizeof(struct ip) >> 2;
 			ip4->ip_p = IPPROTO_TCP;
@@ -282,8 +279,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 		{
 		AddToBuffer(&stream_buffer, len, data, is_orig);
 		if ( stream_buffer.size > zeek::detail::dpd_buffer_size )
-			new_state = zeek::detail::dpd_match_only_beginning ?
-						SKIPPING : MATCHING_ONLY;
+			new_state = zeek::detail::dpd_match_only_beginning ? SKIPPING : MATCHING_ONLY;
 		}
 
 	DoMatch(data, len, is_orig, false, false, false, nullptr);
@@ -370,20 +366,18 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 		// we have been inserted somewhere further down in the
 		// analyzer tree.  In this case, we will never have seen
 		// any input at this point (because we don't get packets).
-		assert(!pkt_buffer.head);
-		assert(!stream_buffer.head);
+		assert(! pkt_buffer.head);
+		assert(! stream_buffer.head);
 		return;
 		}
 
-	tcp::TCP_Analyzer* tcp = (tcp::TCP_Analyzer*) Parent();
+	tcp::TCP_Analyzer* tcp = (tcp::TCP_Analyzer*)Parent();
 
 	tcp::TCP_Reassembler* reass_orig =
-		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					tcp->Orig());
+		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct, tcp->Orig());
 
 	tcp::TCP_Reassembler* reass_resp =
-		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					tcp->Resp());
+		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct, tcp->Resp());
 
 	uint64_t orig_seq = 0;
 	uint64_t resp_seq = 0;
@@ -395,11 +389,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 		// worth the effort.
 
 		if ( b->is_orig )
-			reass_orig->DataSent(run_state::network_time, orig_seq = b->seq,
-			                     b->len, b->data, tcp::TCP_Flags(), true);
+			reass_orig->DataSent(run_state::network_time, orig_seq = b->seq, b->len, b->data,
+			                     tcp::TCP_Flags(), true);
 		else
-			reass_resp->DataSent(run_state::network_time, resp_seq = b->seq,
-			                     b->len, b->data, tcp::TCP_Flags(), true);
+			reass_resp->DataSent(run_state::network_time, resp_seq = b->seq, b->len, b->data,
+			                     tcp::TCP_Flags(), true);
 		}
 
 	// We also need to pass the current packet on.
@@ -407,13 +401,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 	if ( current->data )
 		{
 		if ( current->is_orig )
-			reass_orig->DataSent(run_state::network_time,
-					orig_seq = current->seq,
-					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
+			reass_orig->DataSent(run_state::network_time, orig_seq = current->seq, current->len,
+			                     current->data, analyzer::tcp::TCP_Flags(), true);
 		else
-			reass_resp->DataSent(run_state::network_time,
-					resp_seq = current->seq,
-					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
+			reass_resp->DataSent(run_state::network_time, resp_seq = current->seq, current->len,
+			                     current->data, analyzer::tcp::TCP_Flags(), true);
 		}
 
 	ClearBuffer(&pkt_buffer);

@@ -7,15 +7,17 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <cstdint>
+#include <unordered_map>
 
-namespace zeek::notifier::detail  {
+namespace zeek::notifier::detail
+{
 
 class Modifiable;
 
 /** Interface class for receivers of notifications. */
-class Receiver {
+class Receiver
+	{
 public:
 	Receiver();
 	virtual ~Receiver();
@@ -32,10 +34,11 @@ public:
 	 * no further modifications can possibly occur.
 	 */
 	virtual void Terminate() { }
-};
+	};
 
 /** Singleton class tracking all notification requests globally. */
-class Registry {
+class Registry
+	{
 public:
 	~Registry();
 
@@ -86,7 +89,7 @@ private:
 
 	typedef std::unordered_multimap<Modifiable*, Receiver*> ModifiableMap;
 	ModifiableMap registrations;
-};
+	};
 
 /**
  * Singleton object tracking all global notification requests.
@@ -97,7 +100,8 @@ extern Registry registry;
  * Base class for objects that can trigger notifications to receivers when
  * modified.
  */
-class Modifiable {
+class Modifiable
+	{
 public:
 	/**
 	 * Calling this method signals to all registered receivers that the
@@ -116,16 +120,21 @@ protected:
 
 	// Number of currently registered receivers.
 	uint64_t num_receivers = 0;
-};
+	};
 
 } // namespace zeek::notifier::detail
 
-namespace notifier {
+namespace notifier
+{
 
-using Receiver [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Receiver.")]] = zeek::notifier::detail::Receiver;
-using Registry [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Registry.")]] = zeek::notifier::detail::Registry;
-using Modifiable [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Modifiable.")]] = zeek::notifier::detail::Modifiable;
+using Receiver [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Receiver.")]] =
+	zeek::notifier::detail::Receiver;
+using Registry [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Registry.")]] =
+	zeek::notifier::detail::Registry;
+using Modifiable [[deprecated("Remove in v4.1. Use zeek::notifier::detail::Modifiable.")]] =
+	zeek::notifier::detail::Modifiable;
 
-extern zeek::notifier::detail::Registry& registry [[deprecated("Remove from v4.1. Use zeek::notifier::detail::registry.")]];
+extern zeek::notifier::detail::Registry& registry
+	[[deprecated("Remove from v4.1. Use zeek::notifier::detail::registry.")]];
 
 } // namespace notifier

@@ -2,40 +2,47 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <string>
-#include <utility>
-#include <vector>
-#include <memory>
-
 #include <broker/data.hh>
 #include <broker/expected.hh>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "zeek/ZeekList.h" // for typedef val_list
-#include "zeek/Obj.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
 #include "zeek/ZeekArgs.h"
+#include "zeek/ZeekList.h" // for typedef val_list
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
 
-namespace zeek::detail { class ScriptFunc; }
-using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
+namespace zeek::detail
+{
+class ScriptFunc;
+}
+using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] =
+	zeek::detail::ScriptFunc;
 
-namespace zeek {
+namespace zeek
+{
 using ValPtr = IntrusivePtr<Val>;
 
-namespace detail {
+namespace detail
+{
 using IDPtr = IntrusivePtr<ID>;
 
-namespace trigger {
+namespace trigger
+{
 using TriggerPtr = IntrusivePtr<Trigger>;
 }
 
 class Frame;
 using FramePtr = IntrusivePtr<Frame>;
 
-class Frame :  public Obj {
+class Frame : public Obj
+	{
 public:
 	/**
 	 * Constructs a new frame belonging to *func* with *fn_args*
@@ -65,8 +72,10 @@ public:
 		return frame[n].val;
 		}
 
-	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
-	Val* NthElement(int n) const	{ return frame[n].val.get(); }
+	[[deprecated("Remove in v4.1.  Use GetElement(int).")]] Val* NthElement(int n) const
+		{
+		return frame[n].val.get();
+		}
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*.
@@ -75,8 +84,7 @@ public:
 	 */
 	void SetElement(int n, ValPtr v);
 
-	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]]
-	void SetElement(int n, Val* v);
+	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]] void SetElement(int n, Val* v);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -86,8 +94,7 @@ public:
 	 * @param v the value to associate it with
 	 */
 	void SetElement(const ID* id, ValPtr v);
-	void SetElement(const IDPtr& id, ValPtr v)
-		{ SetElement(id.get(), std::move(v)); }
+	void SetElement(const IDPtr& id, ValPtr v) { SetElement(id.get(), std::move(v)); }
 
 	/**
 	 * Gets the value associated with *id* and returns it. Returns
@@ -96,12 +103,12 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	const ValPtr& GetElementByID(const IDPtr& id) const
-		{ return GetElementByID(id.get()); }
+	const ValPtr& GetElementByID(const IDPtr& id) const { return GetElementByID(id.get()); }
 
-	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
-	Val* GetElement(const ID* id) const
-		{ return GetElementByID(id).get(); }
+	[[deprecated("Remove in v4.1.  Use GetElementByID().")]] Val* GetElement(const ID* id) const
+		{
+		return GetElementByID(id).get();
+		}
 
 	/**
 	 * Adjusts the current offset being used for frame accesses.
@@ -110,7 +117,7 @@ public:
 	 * @param incr  Amount by which to increase the frame offset.
 	 *              Use a negative value to shrink the offset.
 	 */
-	void AdjustOffset(int incr)   { current_offset += incr; }
+	void AdjustOffset(int incr) { current_offset += incr; }
 
 	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in
@@ -127,43 +134,40 @@ public:
 	/**
 	 * @return the function that the frame is associated with.
 	 */
-	const ScriptFunc* GetFunction() const	{ return function; }
+	const ScriptFunc* GetFunction() const { return function; }
 
 	/**
 	 * @return the arguments passed to the function that this frame
 	 * is associated with.
 	 */
-	const Args* GetFuncArgs() const	{ return func_args; }
+	const Args* GetFuncArgs() const { return func_args; }
 
 	/**
 	 * Change the function that the frame is associated with.
 	 *
 	 * @param func the function for the frame to be associated with.
 	 */
-	void SetFunction(ScriptFunc* func)	{ function = func; }
+	void SetFunction(ScriptFunc* func) { function = func; }
 
 	/**
 	 * Sets the next statement to be executed in the context of the frame.
 	 *
 	 * @param stmt the statement to set it to.
 	 */
-	void SetNextStmt(Stmt* stmt)	{ next_stmt = stmt; }
+	void SetNextStmt(Stmt* stmt) { next_stmt = stmt; }
 
 	/**
 	 * @return the next statement to be executed in the context of the frame.
 	 */
-	Stmt* GetNextStmt() const	{ return next_stmt; }
+	Stmt* GetNextStmt() const { return next_stmt; }
 
 	/** Used to implement "next" command in debugger. */
-	void BreakBeforeNextStmt(bool should_break)
-		{ break_before_next_stmt = should_break; }
-	bool BreakBeforeNextStmt() const
-		{ return break_before_next_stmt; }
+	void BreakBeforeNextStmt(bool should_break) { break_before_next_stmt = should_break; }
+	bool BreakBeforeNextStmt() const { return break_before_next_stmt; }
 
 	/** Used to implement "finish" command in debugger. */
-	void BreakOnReturn(bool should_break)
-		{ break_on_return = should_break; }
-	bool BreakOnReturn() const	{ return break_on_return; }
+	void BreakOnReturn(bool should_break) { break_on_return = should_break; }
+	bool BreakOnReturn() const { return break_on_return; }
 
 	/**
 	 * Performs a deep copy of all the values in the current frame. If
@@ -246,14 +250,14 @@ public:
 	// the trigger needs to be registered.
 	void SetTrigger(trigger::TriggerPtr arg_trigger);
 	void ClearTrigger();
-	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
+	trigger::Trigger* GetTrigger() const { return trigger.get(); }
 
-	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
-	void ClearCall()			{ call = nullptr; }
-	const CallExpr* GetCall() const		{ return call; }
+	void SetCall(const CallExpr* arg_call) { call = arg_call; }
+	void ClearCall() { call = nullptr; }
+	const CallExpr* GetCall() const { return call; }
 
-	void SetDelayed()	{ delayed = true; }
-	bool HasDelayed() const	{ return delayed; }
+	void SetDelayed() { delayed = true; }
+	bool HasDelayed() const { return delayed; }
 
 	/**
 	 * Track a new function that refers to this frame for use as a closure.
@@ -265,15 +269,15 @@ public:
 	void AddFunctionWithClosureRef(ScriptFunc* func);
 
 private:
-
 	using OffsetMap = std::unordered_map<std::string, int>;
 
-	struct Element {
+	struct Element
+		{
 		ValPtr val;
 		// Weak reference is used to prevent circular reference memory leaks
 		// in lambdas/closures.
 		bool weak_ref;
-	};
+		};
 
 	const ValPtr& GetElementByID(const ID* id) const;
 
@@ -304,20 +308,17 @@ private:
 	bool IsOuterID(const ID* in) const;
 
 	/** Serializes an offset_map */
-	static broker::expected<broker::data>
-	SerializeOffsetMap(const OffsetMap& in);
+	static broker::expected<broker::data> SerializeOffsetMap(const OffsetMap& in);
 
 	/** Serializes an IDPList */
-	static broker::expected<broker::data>
-	SerializeIDList(const IDPList& in);
+	static broker::expected<broker::data> SerializeIDList(const IDPList& in);
 
 	/** Unserializes an offset map. */
 	static std::pair<bool, std::unordered_map<std::string, int>>
 	UnserializeOffsetMap(const broker::vector& data);
 
 	/** Unserializes an IDPList. */
-	static std::pair<bool, IDPList>
-	UnserializeIDList(const broker::vector& data);
+	static std::pair<bool, IDPList> UnserializeIDList(const broker::vector& data);
 
 	/** The number of vals that can be stored in this frame. */
 	int size;
@@ -361,12 +362,13 @@ private:
 	const CallExpr* call;
 
 	std::unique_ptr<std::vector<ScriptFunc*>> functions_with_closure_frame_reference;
-};
+	};
 
 } // namespace detail
 } // namespace zeek
 
-using Frame [[deprecated("Remove in v4.1. Use zeek::detail::Frame instead.")]] = zeek::detail::Frame;
+using Frame [[deprecated("Remove in v4.1. Use zeek::detail::Frame instead.")]] =
+	zeek::detail::Frame;
 
 /**
  * If we stopped using this and instead just made a struct of the information

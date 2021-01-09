@@ -10,6 +10,6 @@ warning: Value 'unknown' for source 'thread ../configfile/Input::READER_CONFIG' 
 error: SendEvent for event InputConfig::new_value failed
 warning: ../configfile/Input::READER_CONFIG: Option 'testbooool' does not exist. Ignoring line.
 warning: ../configfile/Input::READER_CONFIG: Option 'test_any' has type 'any', which is not supported for file input. Ignoring line.
-warning: ../configfile/Input::READER_CONFIG: Option 'test_table' has type 'table', which is not supported for file input. Ignoring line.
+warning: ../configfile/Input::READER_CONFIG: Option 'test_table' has type 'table[string] of string', which is not supported for file input. Ignoring line.
 received termination signal
 >>>

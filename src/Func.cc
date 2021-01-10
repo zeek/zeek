@@ -503,6 +503,21 @@ void ScriptFunc::AddBody(StmtPtr new_body,
 	sort(bodies.begin(), bodies.end());
 	}
 
+void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
+	{
+	bool found_it = false;
+
+	for ( auto& body : bodies )
+		if ( body.stmts.get() == old_body.get() )
+			{
+			body.stmts = new_body;
+			found_it = true;
+			}
+
+	ASSERT(found_it);
+	current_body = new_body;
+	}
+
 void ScriptFunc::AddClosure(IDPList ids, Frame* f)
 	{
 	if ( ! f )

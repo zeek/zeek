@@ -18,13 +18,20 @@ public:
 	ProfileFunc(bool _compute_hash = false)
 		{ compute_hash = _compute_hash; }
 
-	std::unordered_set<const ID*>& Globals()	{ return globals; }
-	std::unordered_set<const ID*>& Locals()		{ return locals; }
-	std::unordered_set<const ID*>& Inits()		{ return inits; }
-	std::unordered_set<ScriptFunc*>& ScriptCalls()	{ return script_calls; }
-	std::unordered_set<Func*>& BiFCalls()		{ return BiF_calls; }
-	std::unordered_set<ScriptFunc*>& WhenCalls()	{ return when_calls; }
-	std::unordered_set<const char*>& Events()	{ return events; }
+	const std::unordered_set<const ID*>& Globals() const
+		{ return globals; }
+	const std::unordered_set<const ID*>& Locals() const
+		{ return locals; }
+	const std::unordered_set<const ID*>& Inits() const
+		{ return inits; }
+	const std::unordered_set<ScriptFunc*>& ScriptCalls() const
+		{ return script_calls; }
+	const std::unordered_set<Func*>& BiFCalls() const
+		{ return BiF_calls; }
+	const std::unordered_set<ScriptFunc*>& WhenCalls() const
+		{ return when_calls; }
+	const std::unordered_set<const char*>& Events() const
+		{ return events; }
 	bool DoesIndirectCalls()		{ return does_indirect_calls; }
 
 	std::size_t HashVal()	{ return hash_val; }

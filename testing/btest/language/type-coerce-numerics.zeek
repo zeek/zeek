@@ -5,7 +5,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure1.out
 
 # @TEST-EXEC-FAIL: zeek -b double_convert_failure2.zeek >double_convert_failure2.out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure1.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure2.out
 
 # @TEST-EXEC-FAIL: zeek -b int_convert_failure.zeek >int_convert_failure.out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff int_convert_failure.out

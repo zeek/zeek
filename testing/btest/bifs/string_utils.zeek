@@ -10,12 +10,10 @@ event zeek_init()
 	print fmt("ljust: '%s'", ljust(s1, 3, " "));   # 'abc'
 	print fmt("ljust: '%s'", ljust(s1, 5));        # 'abc  '
 	print fmt("ljust: '%s'", ljust(s1, 5, "-"));   # 'abc--'
-	print fmt("ljust: '%s'", ljust(s1, 2, "--"));  # This should return an error
 	print fmt("rjust: '%s'", rjust(s1, 2, " "));   # 'abc'
 	print fmt("rjust: '%s'", rjust(s1, 3, " "));   # 'abc'
 	print fmt("rjust: '%s'", rjust(s1, 5));        # '  abc'
 	print fmt("rjust: '%s'", rjust(s1, 5, "-"));   # '--abc'
-	print fmt("rjust: '%s'", rjust(s1, 2, "--"));  # This should return an error
 	print fmt("zfill: '%s'", zfill(s1, 2));        # 'abc'
 	print fmt("zfill: '%s'", zfill(s1, 3));        # 'abc'
 	print fmt("zfill: '%s'", zfill(s1, 5));        # '00abc'
@@ -71,12 +69,10 @@ event zeek_init()
 	print fmt("find_str: %d", find_str(s3, "abcd", 0, 2));
 	print fmt("find_str: %d", find_str(s3, "efg"));
 	print fmt("find_str: %d", find_str(s3, "efg", 2, 6));
-	print fmt("find_str: %d", find_str(s3, "efg", 6, 2));
 	print fmt("find_str: %d", rfind_str(s3, "abcd"));
 	print fmt("find_str: %d", rfind_str(s3, "abcd", 1));
 	print fmt("find_str: %d", rfind_str(s3, "abcd", 0, 2));
 	print fmt("find_str: %d", rfind_str(s3, "efg"));
 	print fmt("find_str: %d", rfind_str(s3, "efg", 2, 6));
-	print fmt("find_str: %d", rfind_str(s3, "efg", 6, 2));
 	print "";
 	}

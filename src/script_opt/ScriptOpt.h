@@ -52,6 +52,7 @@ public:
 	ProfileFunc* Profile()	{ return pf.get(); }
 	const std::string& SaveFile()	{ return save_file; }
 
+	void SetBody(StmtPtr new_body)	{ body = std::move(new_body); }
 	void SetProfile(std::unique_ptr<ProfileFunc> _pf);
 	void SetSaveFile(std::string _sf)	{ save_file = std::move(_sf); }
 

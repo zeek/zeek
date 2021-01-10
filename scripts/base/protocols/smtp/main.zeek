@@ -62,6 +62,8 @@ export {
 		process_received_from: bool        &default=T;
 		## Indicates if client activity has been seen, but not yet logged.
 		has_client_activity:  bool            &default=F;
+		## Indicates if the SMTP headers should still be processed.
+		process_smtp_headers: bool 			&default=T;
 	};
 
 	type State: record {
@@ -219,7 +221,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 
 event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 	{
-	if ( ! c?$smtp ) return;
+	if ( ! c?$smtp || ! c$smtp$process_smtp_headers) return;
 
 	if ( h$name == "MESSAGE-ID" )
 		c$smtp$msg_id = h$value;
@@ -288,7 +290,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 	# If we've decided that we're done watching the received headers for
 	# whatever reason, we're done.  Could be due to only watching until
 	# local addresses are seen in the received from headers.
-	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from )
+	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from || ! c$smtp$process_smtp_headers)
 		return;
 
 	local text_ip = find_address_in_smtp_header(h$value);
@@ -318,6 +320,12 @@ event smtp_starttls(c: connection) &priority=5
 		c$smtp$tls = T;
 		c$smtp$has_client_activity = T;
 		}
+	}
+
+event mime_end_entity(c: connection) &priority=5
+	{
+	if (c?$smtp && c$smtp$process_smtp_headers)
+		c$smtp$process_smtp_headers = F;
 	}
 
 function describe(rec: Info): string

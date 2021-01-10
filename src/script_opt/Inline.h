@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Func.h"
+#include "zeek/Expr.h"
 #include "zeek/Scope.h"
 
 #include <unordered_set>
@@ -25,7 +26,7 @@ public:
 
 	// Either returns the original CallExpr if it's not inline-able,
 	// or an InlineExpr if it is.
-	ExprPtr CheckForInlining(IntrusivePtr<CallExpr> c);
+	ExprPtr CheckForInlining(CallExprPtr c);
 
 	// True if the given function has been inlined.
 	bool WasInlined(Func* f)	{ return inline_ables.count(f) > 0; }

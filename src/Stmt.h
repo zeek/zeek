@@ -372,23 +372,6 @@ protected:
 	StmtPList stmts;
 };
 
-class EventBodyList final : public StmtList {
-public:
-	EventBodyList() : StmtList()
-		{ topmost = false; tag = STMT_EVENT_BODY_LIST; }
-
-	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
-
-	void StmtDescribe(ODesc* d) const override;
-
-	// "Topmost" means that this is the main body of a function or event.
-	// void SetTopmost(bool is_topmost)	{ topmost = is_topmost; }
-	// bool IsTopmost()	{ return topmost; }
-
-protected:
-	bool topmost;
-};
-
 class InitStmt final : public Stmt {
 public:
 	explicit InitStmt(std::vector<IDPtr> arg_inits);
@@ -474,7 +457,6 @@ using BreakStmt [[deprecated("Remove in v4.1. Use zeek::detail::BreakStmt instea
 using FallthroughStmt [[deprecated("Remove in v4.1. Use zeek::detail::FallthroughStmt instead.")]] = zeek::detail::FallthroughStmt;
 using ReturnStmt [[deprecated("Remove in v4.1. Use zeek::detail::ReturnStmt instead.")]] = zeek::detail::ReturnStmt;
 using StmtList [[deprecated("Remove in v4.1. Use zeek::detail::StmtList instead.")]] = zeek::detail::StmtList;
-using EventBodyList [[deprecated("Remove in v4.1. Use zeek::detail::EventBodyList instead.")]] = zeek::detail::EventBodyList;
 using InitStmt [[deprecated("Remove in v4.1. Use zeek::detail::InitStmt instead.")]] = zeek::detail::InitStmt;
 using NullStmt [[deprecated("Remove in v4.1. Use zeek::detail::NullStmt instead.")]] = zeek::detail::NullStmt;
 using WhenStmt [[deprecated("Remove in v4.1. Use zeek::detail::WhenStmt instead.")]] = zeek::detail::WhenStmt;

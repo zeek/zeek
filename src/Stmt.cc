@@ -1655,64 +1655,6 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr EventBodyList::Exec(Frame* f, StmtFlowType& flow) const
-	{
-	RegisterAccess();
-	flow = FLOW_NEXT;
-
-	for ( const auto& stmt : stmts )
-		{
-		f->SetNextStmt(stmt);
-
-		// Ignore the return value, since there shouldn't be
-		// any; and ignore the flow, since we still execute
-		// all of the event bodies even if one of them does
-		// a FLOW_RETURN.
-		if ( ! pre_execute_stmt(stmt, f) )
-			{ // ### Abort or something
-			}
-
-		auto result = stmt->Exec(f, flow);
-
-		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
-			{ // ### Abort or something
-			}
-		}
-
-	// Simulate a return so the hooks operate properly.
-	StmtFlowType ft = FLOW_RETURN;
-	(void) post_execute_stmt(f->GetNextStmt(), f, nullptr, &ft);
-
-	return nullptr;
-	}
-
-void EventBodyList::StmtDescribe(ODesc* d) const
-	{
-	if ( d->IsReadable() && stmts.length() > 0 )
-		{
-		for ( const auto& stmt : stmts )
-			{
-			if ( ! d->IsBinary() )
-				{
-				d->Add("{");
-				d->PushIndent();
-				stmt->AccessStats(d);
-				}
-
-			stmt->Describe(d);
-
-			if ( ! d->IsBinary() )
-				{
-				d->Add("}");
-				d->PopIndent();
-				}
-			}
-		}
-
-	else
-		StmtList::StmtDescribe(d);
-	}
-
 InitStmt::InitStmt(std::vector<IDPtr> arg_inits) : Stmt(STMT_INIT)
 	{
 	inits = std::move(arg_inits);

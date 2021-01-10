@@ -5,8 +5,8 @@
 // Class for managing temporary variables created during statement reduction
 // for compilation.
 
-#include "ID.h"
-#include "Expr.h"
+#include "zeek/ID.h"
+#include "zeek/Expr.h"
 
 
 namespace zeek::detail {

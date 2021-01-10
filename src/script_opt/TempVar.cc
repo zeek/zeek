@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "TempVar.h"
-#include "Reporter.h"
+#include "zeek/script_opt/TempVar.h"
+#include "zeek/Reporter.h"
 
 
 namespace zeek::detail {

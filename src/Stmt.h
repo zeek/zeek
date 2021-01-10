@@ -11,8 +11,11 @@
 #include "zeek/ID.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(NameExpr, zeek::detail);
 
 namespace zeek::detail {
+
+using NameExprPtr = IntrusivePtr<zeek::detail::NameExpr>;
 
 class ExprListStmt : public Stmt {
 public:
@@ -366,6 +369,11 @@ public:
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
+	// Idioms commonly used in reduction.
+	StmtList(StmtPtr s1, Stmt* s2);
+	StmtList(StmtPtr s1, StmtPtr s2);
+	StmtList(StmtPtr s1, StmtPtr s2, StmtPtr s3);
+
 protected:
 	bool IsPure() const override;
 
@@ -437,6 +445,74 @@ protected:
 	StmtPtr s2;
 	ExprPtr timeout;
 	bool is_return;
+};
+
+
+// Internal statement used for inlining.  Executes a block and stops
+// the propagation of any "return" inside the block.  Generated in
+// an already-reduced state.
+class CatchReturnStmt : public Stmt {
+public:
+	explicit CatchReturnStmt(StmtPtr block, NameExprPtr ret_var);
+
+	StmtPtr Block() const	{ return block; }
+
+	// This returns a bare pointer rather than a NameExprPtr only
+	// because we don't want to have to include Expr.h in this header.
+	const NameExpr* RetVar() const		{ return ret_var.get(); }
+
+	// The assignment statement this statement transformed into,
+	// or nil if it hasn't (the common case).
+	StmtPtr AssignStmt() const	{ return assign_stmt; }
+
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
+
+	bool IsPure() const override;
+
+	// Even though these objects are generated in reduced form, we still
+	// have a reduction method to support the subsequent optimizer pass.
+	StmtPtr DoReduce(Reducer* c) override;
+
+	// Note, no need for a NoFlowAfter() method because anything that
+	// has "NoFlowAfter" inside the body still gets caught and we
+	// continue afterwards.
+
+	StmtPtr Duplicate() override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	// The inlined function body.
+	StmtPtr block;
+
+	// Expression that holds the return value.  Only used for compiling.
+	NameExprPtr ret_var;
+
+	// If this statement transformed into an assignment, that
+	// corresponding statement.
+	StmtPtr assign_stmt;
+};
+
+// Statement that makes sure at run-time that an "any" type has the
+// correct number of (list) entries to enable sub-assigning to it via
+// statements like "[a, b, c] = x;".  Generated in an already-reduced state.
+class CheckAnyLenStmt : public ExprStmt {
+public:
+	explicit CheckAnyLenStmt(ExprPtr e, int expected_len);
+
+	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;
+
+	StmtPtr Duplicate() override;
+
+	bool IsReduced(Reducer* c) const override;
+	StmtPtr DoReduce(Reducer* c) override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+protected:
+	int expected_len;
 };
 
 } // namespace zeek::detail

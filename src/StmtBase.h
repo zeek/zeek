@@ -24,11 +24,13 @@ using ValPtr = IntrusivePtr<Val>;
 
 namespace zeek::detail {
 
-class StmtList;
+class ExprStmt;
 class ForStmt;
 class InitStmt;
-class WhenStmt;
+class ReturnStmt;
+class StmtList;
 class SwitchStmt;
+class WhenStmt;
 
 class EventExpr;
 class ListExpr;
@@ -37,6 +39,7 @@ using EventExprPtr = IntrusivePtr<EventExpr>;
 using ListExprPtr = IntrusivePtr<ListExpr>;
 
 class Inliner;
+class Reducer;
 
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
@@ -50,6 +53,7 @@ public:
 	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) const = 0;
 
 	Stmt* Ref()			{ zeek::Ref(this); return this; }
+	StmtPtr ThisPtr()		{ return {NewRef{}, this}; }
 
 	bool SetLocationInfo(const Location* loc) override
 		{ return Stmt::SetLocationInfo(loc, loc); }
@@ -64,7 +68,9 @@ public:
 	ForStmt* AsForStmt();
 	const ForStmt* AsForStmt() const;
 
+	const ExprStmt* AsExprStmt() const;
 	const InitStmt* AsInitStmt() const;
+	const ReturnStmt* AsReturnStmt() const;
 	const WhenStmt* AsWhenStmt() const;
 	const SwitchStmt* AsSwitchStmt() const;
 
@@ -81,11 +87,36 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
-	// Returns a duplicate of the statement.
+	// Returns a duplicate of the statement so that modifications
+	// can be made to statements from inlining function bodies - or
+	// to the originals - without affecting other instances.
+	//
+	// It's tempting to think that there are some statements that
+	// are safe to share across multiple functions and could just
+	// return references to themselves - but since we associate
+	// information for script optimization with individual statements
+	// nodes, even these need to be duplicated.
 	virtual StmtPtr Duplicate() = 0;
 
 	// Recursively traverses the AST to inline eligible function calls.
 	virtual void Inline(Inliner* inl)	{ }
+
+	// True if the statement is in reduced form.
+	virtual bool IsReduced(Reducer* c) const;
+
+	// Returns a reduced version of the statement, as managed by
+	// the given Reducer.
+	StmtPtr Reduce(Reducer* c);
+	virtual StmtPtr DoReduce(Reducer* c)	{ return ThisPtr(); }
+
+	// True if there's definitely no control flow past the statement.
+	// The argument governs whether to ignore "break" statements, given
+	// they mean two different things depending on whether they're in
+	// a loop or a switch.  Also, if we want to know whether flow reaches
+	// the *end* of a loop, then we also want to ignore break's, as
+	// in that case, they do lead to flow reaching the end.
+	virtual bool NoFlowAfter(bool ignore_break) const
+		{ return false; }
 
 	// Access to the original statement from which this one is derived,
 	// or this one if we don't have an original.  Returns a bare pointer
@@ -123,6 +154,11 @@ public:
 
 protected:
 	explicit Stmt(StmtTag arg_tag);
+
+	// Helper function called after reductions to perform canonical
+	// actions.  Takes a bare pointer for new_me because usually
+	// it's been newly new'd, so this keeps down code clutter.
+	StmtPtr TransformMe(Stmt* new_me, Reducer* c);
 
 	void AddTag(ODesc* d) const;
 	virtual void StmtDescribe(ODesc* d) const;

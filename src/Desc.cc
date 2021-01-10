@@ -427,4 +427,17 @@ bool ODesc::FindType(const Type* type)
 	return false;
 	}
 
+
+std::string obj_desc(const Obj* o)
+	{
+	static ODesc d;
+
+	d.Clear();
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	return std::string(d.Description());
+	}
+
 } // namespace zeek

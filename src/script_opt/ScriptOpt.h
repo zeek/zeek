@@ -16,6 +16,17 @@ namespace zeek::detail {
 // Flags controlling what sorts of analysis to do.
 
 struct AnalyOpt {
+	// Whether to analyze scripts.
+	bool activate = false;
+
+	// If true, dump out transformed code: the results of reducing
+	// interpreted scripts, and, if optimize is set, of then optimizing
+	// them.  Always done if only_func is set.
+	bool dump_xform = false;
+
+	// If non-nil, then only analyze the given function/event/hook.
+	const char* only_func = nullptr;
+
 	// If true, do global inlining.
 	bool inliner = false;
 

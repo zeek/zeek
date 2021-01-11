@@ -2488,19 +2488,28 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		auto index = op1->InitVal(tt->GetIndices().get(), nullptr);
 
-		if ( ! same_type(*yt, *op2->GetType(), true) )
+		if ( yt->Tag() == TYPE_RECORD )
 			{
-			if ( yt->Tag() == TYPE_RECORD && op2->GetType()->Tag() == TYPE_RECORD )
+			if ( op2->GetType()->Tag() != TYPE_RECORD )
 				{
-				if ( ! record_promotion_compatible(yt->AsRecordType(),
-				                                   op2->GetType()->AsRecordType()) )
-					{
-					Error("type mismatch in table value initialization: "
-					      "incompatible record types");
-					return nullptr;
-					}
+				Error(util::fmt("type mismatch in table value initialization: "
+				                "assigning '%s' to table with values of type '%s'",
+				                type_name(op2->GetType()->Tag()), type_name(yt->Tag())));
+				return nullptr;
 				}
-			else
+
+			if ( ! same_type(*yt, *op2->GetType()) &&
+			     ! record_promotion_compatible(yt->AsRecordType(),
+			                                   op2->GetType()->AsRecordType()) )
+				{
+				Error("type mismatch in table value initialization: "
+				      "incompatible record types");
+				return nullptr;
+				}
+			}
+		else
+			{
+			if ( ! same_type(*yt, *op2->GetType(), true) )
 				{
 				Error(util::fmt("type mismatch in table value initialization: "
 				                "assigning '%s' to table with values of type '%s'",
@@ -4084,29 +4093,6 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 			}
 		else
 			SetType(base_type(TYPE_BOOL));
-		}
-
-	else if ( op1->GetType()->Tag() == TYPE_RECORD )
-		{
-		if ( op2->GetType()->Tag() != TYPE_TABLE )
-			{
-			op2->GetType()->Error("table/set required");
-			SetError();
-			}
-
-		else
-			{
-			const auto& t1 = op1->GetType();
-			const auto& it = op2->GetType()->AsTableType()->GetIndices();
-
-			if ( ! same_type(t1, it) )
-				{
-				t1->Error("indexing mismatch", op2->GetType().get());
-				SetError();
-				}
-			else
-				SetType(base_type(TYPE_BOOL));
-			}
 		}
 
 	else if ( op1->GetType()->Tag() == TYPE_STRING &&

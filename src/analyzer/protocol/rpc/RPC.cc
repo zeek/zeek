@@ -658,8 +658,9 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 					last_frag = (marker & 0x80000000) != 0;
 					marker &= 0x7fffffff;
 					// printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <> processed=
-					// %llu <> len = %d\n", 		run_state::network_time, IsOrig(), marker, last_frag,
-					//msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
+					// %llu <> len = %d\n", 		run_state::network_time, IsOrig(), marker,
+					// last_frag,
+					// msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
 
 					if ( ! msg_buf.AddToExpected(marker) )
 						Conn()->Weird("RPC_message_too_long",

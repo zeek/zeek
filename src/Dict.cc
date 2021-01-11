@@ -890,7 +890,7 @@ void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_po
 	// range if the changed range straddles over remap_end.
 	if ( Remapping() && insert_position <= remap_end && remap_end < last_affected_position )
 		{ //[i,j] range changed. if map_end in between. then possibly old entry pushed down across
-		  //map_end.
+		  // map_end.
 		remap_end = last_affected_position; // adjust to j on the conservative side.
 		}
 
@@ -1095,7 +1095,7 @@ void Dictionary::Remap()
 		if ( ! table[remap_end].Empty() && Remap(remap_end) )
 			left--;
 		else //< successful Remap may increase remap_end in the case of SizeUp due to insert. if so,
-		     //remap_end need to be worked on again.
+		     // remap_end need to be worked on again.
 			remap_end--;
 		}
 	if ( remap_end < 0 )

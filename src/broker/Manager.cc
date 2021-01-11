@@ -1033,7 +1033,7 @@ void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std:
 		{
 		reporter->Error(
 			"ProcessStoreEvent %s: could not convert key \"%s\" for store \"%s\" while receiving "
-		    "remote data. This probably means the tables have different types on different nodes.",
+			"remote data. This probably means the tables have different types on different nodes.",
 			type, to_string(key).c_str(), store_id.c_str());
 		return;
 		}

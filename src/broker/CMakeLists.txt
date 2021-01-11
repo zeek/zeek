@@ -5,11 +5,6 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-if ( ROCKSDB_INCLUDE_DIR )
-    add_definitions(-DHAVE_ROCKSDB)
-    include_directories(BEFORE ${ROCKSDB_INCLUDE_DIR})
-endif ()
-
 set(comm_SRCS
     Data.cc
     Manager.cc

@@ -27,44 +27,10 @@ EnumValPtr query_status(bool success)
 
 void StoreHandleVal::ValDescribe(ODesc* d) const
 	{
-	//using BifEnum::Broker::BackendType;
 	d->Add("broker::store::");
-
-	//switch ( store_type ) {
-  //  case broker::frontend::FRONTEND:
-	//	d->Add("frontend");
-	//	break;
-  //  case broker::frontend::MASTER:
-	//	d->Add("master");
-	//	break;
-  //  case broker::frontend::CLONE:
-	//	d->Add("clone");
-	//	break;
-	//default:
-	//	d->Add("unknown");
-	//	}
 
 	d->Add("{");
 	d->Add(store.name());
-
-	//if ( backend_type )
-	//	{
-	//	d->Add(", ");
-
-	//	switch ( *backend_type ) {
-	//	case BackendType::MEMORY:
-	//		d->Add("memory");
-	//		break;
-	//	case BackendType::SQLITE:
-	//		d->Add("sqlite");
-	//		break;
-	//	case BackendType::ROCKSDB:
-	//		d->Add("rocksdb");
-	//		break;
-	//	default:
-	//		d->Add("unknown");
-	//		}
-	//	}
 
 	d->Add("}");
 	}
@@ -91,9 +57,6 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 
 	case BifEnum::Broker::SQLITE:
 		return broker::backend::sqlite;
-
-	case BifEnum::Broker::ROCKSDB:
-		return broker::backend::rocksdb;
 	}
 
 	throw std::runtime_error("unknown broker backend");
@@ -106,13 +69,6 @@ broker::backend_options to_backend_options(broker::backend backend,
 	case broker::backend::sqlite:
 		{
 		auto path = options->GetField(0)->AsRecordVal()
-			->GetField(0)->AsStringVal()->CheckString();
-		return {{"path", path}};
-		}
-
-	case broker::backend::rocksdb:
-		{
-		auto path = options->GetField(1)->AsRecordVal()
 			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}

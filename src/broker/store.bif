@@ -20,7 +20,6 @@ type Broker::BackendOptions: record;
 enum BackendType %{
 	MEMORY,
 	SQLITE,
-	ROCKSDB,
 %}
 
 function Broker::__create_master%(id: string, b: BackendType,

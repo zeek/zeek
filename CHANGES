@@ -1,4 +1,11 @@
 
+4.1.0-dev.52 | 2021-01-11 11:11:13 -0800
+
+  * Remove unusable/broken RocksDB code and options (Jon Siwek, Corelight)
+
+    The Broker RockSDB data store backend was previously unusable
+    and broken, so all code and options related to it are now removed.
+
 4.1.0-dev.51 | 2021-01-07 17:02:28 -0800
 
   * Virtualize Obj::GetLocationInfo() (Vern Paxson, Corelight)

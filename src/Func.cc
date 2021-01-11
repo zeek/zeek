@@ -484,6 +484,8 @@ void ScriptFunc::CreateCaptures(Frame* f)
 
 	// Create a private Frame to hold the values of captured variables,
 	// and a mapping from those variables to their offsets in the Frame.
+	delete captures_frame;
+	delete captures_offset_mapping;
 	captures_frame = new Frame(captures->size(), this, nullptr);
 	captures_offset_mapping = new OffsetMap;
 
@@ -497,10 +499,8 @@ void ScriptFunc::CreateCaptures(Frame* f)
 			{
 			if ( c->deep_copy || ! v->Modifiable() )
 				v = v->Clone();
-			else
-				v->Ref();
 
-			captures_frame->SetElement(offset, v);
+			captures_frame->SetElement(offset, std::move(v));
 			}
 
 		(*captures_offset_mapping)[cid->Name()] = offset;
@@ -513,6 +513,8 @@ void ScriptFunc::SetCaptures(Frame* f)
 	auto captures = type->GetCaptures();
 	ASSERT(captures);
 
+	delete captures_frame;
+	delete captures_offset_mapping;
 	captures_frame = f;
 	captures_offset_mapping = new OffsetMap;
 

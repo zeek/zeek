@@ -4421,7 +4421,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 void LambdaExpr::CheckCaptures()
 	{
 	auto ft = type->AsFuncType();
-	auto captures = ft->GetCaptures();
+	const auto& captures = ft->GetCaptures();
 
 	capture_by_ref = false;
 
@@ -4441,9 +4441,9 @@ void LambdaExpr::CheckCaptures()
 	std::set<const ID*> outer_is_matched;
 	std::set<const ID*> capture_is_matched;
 
-	for ( auto c : *captures )
+	for ( const auto& c : *captures )
 		{
-		auto cid = c->id.get();
+		auto cid = c.id.get();
 
 		if ( ! cid )
 			// This happens for undefined/inappropriate
@@ -4470,9 +4470,9 @@ void LambdaExpr::CheckCaptures()
 		if ( outer_is_matched.count(id) == 0 )
 			ExprError(util::fmt("%s is used inside lambda but not captured", id->Name()));
 
-	for ( auto c : *captures )
+	for ( const auto& c : *captures )
 		{
-		auto cid = c->id.get();
+		auto cid = c.id.get();
 		if ( cid && capture_is_matched.count(cid) == 0 )
 			ExprError(util::fmt("%s is captured but not used inside lambda", cid->Name()));
 		}

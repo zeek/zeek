@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <optional>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -242,7 +243,7 @@ public:
 	 * reference semantics.
 	 */
 	static std::pair<bool, FramePtr> Unserialize(const broker::vector& data,
-			const std::vector<FuncType::Capture*>* captures);
+			const std::optional<FuncType::CaptureList>& captures);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will

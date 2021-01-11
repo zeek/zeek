@@ -1315,7 +1315,24 @@ begin_lambda:
 			{
 			auto id = zeek::detail::current_scope()->GenerateTemporary("anonymous-function");
 			zeek::detail::begin_func(id, zeek::detail::current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, false, {zeek::AdoptRef{}, $2});
-			$2->SetCaptures($1);
+
+			std::optional<zeek::FuncType::CaptureList> captures;
+
+			if ( $1 )
+				{
+				captures = zeek::FuncType::CaptureList{};
+				captures->reserve($1->size());
+
+				for ( auto c : *$1 )
+					{
+					captures->emplace_back(*c);
+					delete c;
+					}
+
+				delete $1;
+				}
+
+			$2->SetCaptures(std::move(captures));
 			$$ = id.release();
 			}
 	;

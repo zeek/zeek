@@ -405,8 +405,7 @@ struct val_converter {
 				if ( ! b )
 					return nullptr;
 
-				auto copy_semantics =
-					b->GetType()->GetCaptures() != nullptr;
+				auto copy_semantics = b->GetType()->GetCaptures().has_value();
 
 				if ( copy_semantics )
 					{

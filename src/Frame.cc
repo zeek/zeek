@@ -419,7 +419,7 @@ broker::expected<broker::data> Frame::SerializeCopyFrame()
 	}
 
 std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
-				const std::vector<FuncType::Capture*>* captures)
+				const std::optional<FuncType::CaptureList>& captures)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
@@ -505,7 +505,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
 
 		std::advance(where, 1);
 
-		auto closure_pair = Frame::Unserialize(*has_vec, nullptr);
+		auto closure_pair = Frame::Unserialize(*has_vec, {});
 		if ( ! closure_pair.first )
 			{
 			for ( auto& i : outer_ids )

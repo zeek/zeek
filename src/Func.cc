@@ -477,7 +477,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 
 void ScriptFunc::CreateCaptures(Frame* f)
 	{
-	auto captures = type->GetCaptures();
+	const auto& captures = type->GetCaptures();
 
 	if ( ! captures )
 		return;
@@ -490,27 +490,26 @@ void ScriptFunc::CreateCaptures(Frame* f)
 	captures_offset_mapping = new OffsetMap;
 
 	int offset = 0;
-	for ( auto c : *captures )
+	for ( const auto& c : *captures )
 		{
-		auto cid = c->id;
-		auto v = f->GetElementByID(cid);
+		auto v = f->GetElementByID(c.id);
 
 		if ( v )
 			{
-			if ( c->deep_copy || ! v->Modifiable() )
+			if ( c.deep_copy || ! v->Modifiable() )
 				v = v->Clone();
 
 			captures_frame->SetElement(offset, std::move(v));
 			}
 
-		(*captures_offset_mapping)[cid->Name()] = offset;
+		(*captures_offset_mapping)[c.id->Name()] = offset;
 		++offset;
 		}
 	}
 
 void ScriptFunc::SetCaptures(Frame* f)
 	{
-	auto captures = type->GetCaptures();
+	const auto& captures = type->GetCaptures();
 	ASSERT(captures);
 
 	delete captures_frame;
@@ -519,10 +518,9 @@ void ScriptFunc::SetCaptures(Frame* f)
 	captures_offset_mapping = new OffsetMap;
 
 	int offset = 0;
-	for ( auto c : *captures )
+	for ( const auto& c : *captures )
 		{
-		auto cid = c->id;
-		(*captures_offset_mapping)[cid->Name()] = offset;
+		(*captures_offset_mapping)[c.id->Name()] = offset;
 		++offset;
 		}
 	}
@@ -600,7 +598,7 @@ void ScriptFunc::SetClosureFrame(Frame* f)
 
 bool ScriptFunc::UpdateClosure(const broker::vector& data)
 	{
-	auto result = Frame::Unserialize(data, nullptr);
+	auto result = Frame::Unserialize(data, {});
 
 	if ( ! result.first )
 		return false;

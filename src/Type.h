@@ -492,8 +492,6 @@ public:
 
 	TypePtr ShallowClone() override;
 
-	~FuncType() override;
-
 	[[deprecated("Remove in v4.1.  Use Params().")]]
 	RecordType* Args() const	{ return args.get(); }
 
@@ -549,19 +547,21 @@ public:
 		bool deep_copy;
 	};
 
+	using CaptureList = std::vector<Capture>;
+
 	/**
 	 * Sets this function's set of captures.  Only valid for lambdas.
 	 *
 	 * @param captures  if non-nil, a list of the lambda's captures
 	 */
-	void SetCaptures(std::vector<Capture*>* captures);
+	void SetCaptures(std::optional<CaptureList> captures);
 
 	/**
 	 * Returns the captures declared for this function, or nil if none.
 	 *
 	 * @return a vector giving the captures
 	 */
-	const std::vector<Capture*>* GetCaptures() const
+	const std::optional<CaptureList>& GetCaptures() const
 		{ return captures; }
 
 protected:
@@ -574,7 +574,7 @@ protected:
 	FunctionFlavor flavor;
 	std::vector<Prototype> prototypes;
 
-	std::vector<Capture*>* captures; // if nil then no captures specified
+	std::optional<CaptureList> captures; // if nil then no captures specified
 };
 
 class TypeType final : public Type {

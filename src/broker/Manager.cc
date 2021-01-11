@@ -252,9 +252,6 @@ void Manager::InitializeBrokerStoreForwarding()
 			case broker::backend::sqlite:
 				suffix = ".sqlite";
 				break;
-			case broker::backend::rocksdb:
-				suffix = ".rocksdb";
-				break;
 			default:
 				break;
 			}
@@ -1595,9 +1592,6 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
 		switch ( type ) {
 		case broker::backend::sqlite:
 			suffix = ".sqlite";
-			break;
-		case broker::backend::rocksdb:
-			suffix = ".rocksdb";
 			break;
 		default:
 			break;

@@ -6,6 +6,9 @@
 event zeek_init()
 	{
 	print "This should fail but not crash";
+	# The following produces a run-time warning, "non-void function
+	# returning without a value" ... but not when inlined, since then
+	# there's no call to a script function occurring.
 	print Files::lookup_file("asdf");
 
 	print "This should return F";

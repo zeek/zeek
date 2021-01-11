@@ -59,7 +59,12 @@ public:
 	 * @return the value at index *n* of the underlying array.
 	 */
 	const ValPtr& GetElement(int n) const
-		{ return frame[n].val; }
+		{
+		// Note: technically this may want to adjust by current_offset, but
+		// in practice, this method is never called from anywhere other than
+		// function call invocation, where current_offset should be zero.
+		return frame[n].val;
+		}
 
 	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
 	Val* NthElement(int n) const	{ return frame[n].val.get(); }
@@ -98,6 +103,15 @@ public:
 	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
 	Val* GetElement(const ID* id) const
 		{ return GetElementByID(id).get(); }
+
+	/**
+	 * Adjusts the current offset being used for frame accesses.
+	 * This is in support of inlined functions.
+	 *
+	 * @param incr  Amount by which to increase the frame offset.
+	 *              Use a negative value to shrink the offset.
+	 */
+	void AdjustOffset(int incr)   { current_offset += incr; }
 
 	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in
@@ -337,6 +351,13 @@ private:
 
 	/** Associates ID's offsets with values. */
 	std::unique_ptr<Element[]> frame;
+
+	/**
+	 * The offset we're currently using for references into the frame.
+	 * This is how we support inlined functions without having to
+	 * alter the offsets associated with their local variables.
+	 */
+	int current_offset;
 
 	/** The enclosing frame of this frame. Used for reference semantics. */
 	Frame* closure;

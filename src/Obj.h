@@ -110,7 +110,7 @@ public:
 	void AddLocation(ODesc* d) const;
 
 	// Get location info for debugging.
-	const detail::Location* GetLocationInfo() const
+	virtual const detail::Location* GetLocationInfo() const
 		{ return location ? location : &detail::no_location; }
 
 	virtual bool SetLocationInfo(const detail::Location* loc)

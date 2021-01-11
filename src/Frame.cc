@@ -39,6 +39,7 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 	captures = function ? function->GetCapturesFrame() : nullptr;
 	captures_offset_map =
 		function ? function->GetCapturesOffsetMap() : nullptr;
+	current_offset = 0;
 	}
 
 Frame::~Frame()
@@ -77,12 +78,16 @@ void Frame::SetElement(int n, Val* v)
 
 void Frame::SetElement(int n, ValPtr v)
 	{
+	n += current_offset;
+
 	ClearElement(n);
 	frame[n] = {std::move(v), false};
 	}
 
 void Frame::SetElementWeak(int n, Val* v)
 	{
+	n += current_offset;
+
 	ClearElement(n);
 	frame[n] = {{AdoptRef{}, v}, true};
 	}
@@ -140,10 +145,10 @@ const ValPtr& Frame::GetElementByID(const ID* id) const
 		{
 		auto where = offset_map->find(std::string(id->Name()));
 		if ( where != offset_map->end() )
-			return frame[where->second].val;
+			return frame[where->second + current_offset].val;
 		}
 
-	return frame[id->Offset()].val;
+	return frame[id->Offset() + current_offset].val;
 	}
 
 void Frame::Reset(int startIdx)
@@ -162,7 +167,7 @@ void Frame::Reset(int startIdx)
 		functions_with_closure_frame_reference.reset();
 		}
 
-	for ( int i = startIdx; i < size; ++i )
+	for ( int i = startIdx + current_offset; i < size; ++i )
 		ClearElement(i);
 	}
 
@@ -267,7 +272,7 @@ Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 				}
 			}
 
-		if ( ! frame[id->Offset()].val )
+		if ( ! frame[id->Offset() + current_offset].val )
 			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
 		CloneNonFuncElement(id->Offset(), func, other);

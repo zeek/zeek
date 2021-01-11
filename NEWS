@@ -15,6 +15,9 @@ Changed Functionality
 Removed Functionality
 ---------------------
 
+- Support for the RocksDB Broker data store was previously broken and unusable,
+  so all code/options related to it are now removed.
+
 Deprecated Functionality
 ------------------------
 

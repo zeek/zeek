@@ -1,0 +1,10 @@
+non_recursiveA\x0a{ \x0areturn (x + (coerce 2 to double) * y);\x0a}
+non_recursiveB\x0a{ \x0areturn (x + (coerce 3 to double) * non_recursiveA(y, x));\x0a}
+recursive\x0a{ \x0aif (0 < n) \x0a\x09return (recursive(n - 1, k + 1) * n);\x0aelse\x0a\x09return (k);\x0a\x0a}
+mutually_recursiveA\x0a{ \x0aif (0 < n) \x0a\x09return (mutually_recursiveB(n - 1, k + 1) * n);\x0aelse\x0a\x09return (k);\x0a\x0a}
+mutually_recursiveB\x0a{ \x0areturn (mutually_recursiveA(n, k + 1));\x0a}
+my_handler\x0a{ \x0aprint inline((coerce -3 to double), (coerce 2 to double)){{ \x0areturn (x + (coerce 2 to double) * y);\x0a}};\x0aprint inline((coerce -3 to double), (coerce 2 to double)){{ \x0areturn (x + (coerce 3 to double) * inline(y, x){{ \x0areturn (x + (coerce 2 to double) * y);\x0a}});\x0a}};\x0aprint recursive(5, 7);\x0aprint mutually_recursiveA(6, 4);\x0a}
+1.0
+-15.0
+1440
+11520

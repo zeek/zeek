@@ -47,20 +47,6 @@ const IDPtr& Scope::Find(std::string_view name) const
 	return ID::nil;
 	}
 
-IDPtr Scope::Remove(std::string_view name)
-	{
-	auto entry = local.find(name);
-
-	if ( entry != local.end() )
-		{
-		auto id = std::move(entry->second);
-		local.erase(entry);
-		return id;
-		}
-
-	return nullptr;
-	}
-
 IDPtr Scope::GenerateTemporary(const char* name)
 	{
 	return make_intrusive<ID>(name, SCOPE_FUNCTION, false);
@@ -188,6 +174,7 @@ IDPtr install_ID(const char* name, const char* module_name,
 
 void push_existing_scope(Scope* scope)
 	{
+	top_scope = scope;
 	scopes.push_back(scope);
 	}
 

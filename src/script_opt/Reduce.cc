@@ -113,11 +113,7 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type)
 	if ( ! type || type->Tag() == TYPE_VOID )
 		return nullptr;
 
-	char buf[8192];
-	int n = new_locals.size();
-	snprintf(buf, sizeof buf, "@retvar");
-
-	IDPtr ret_id = install_ID(buf, "<internal>", false, false);
+	IDPtr ret_id = install_ID("@retvar", "<internal>", false, false);
 	ret_id->SetType(type);
 
 	// Track this as a new local *if* we're in the outermost inlining

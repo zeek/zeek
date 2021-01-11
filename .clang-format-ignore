@@ -9,3 +9,6 @@ src/nb_dns.*
 src/modp_numtoa.*
 src/patricia.*
 src/strsep.c
+
+# These files are generated code
+src/DebugCmdInfoConstants.*

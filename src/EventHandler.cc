@@ -52,7 +52,7 @@ void EventHandler::SetFunc(FuncPtr f)
 
 void EventHandler::SetLocalHandler(Func* f)
 	{
-	SetFunc({NewRef {}, f});
+	SetFunc({NewRef{}, f});
 	}
 
 void EventHandler::Call(Args* vl, bool no_remote)

@@ -154,7 +154,7 @@ public:
 	/**
 	 * Copy constructor.
 	 */
-	IPAddr(const IPAddr& other) : in6(other.in6) {};
+	IPAddr(const IPAddr& other) : in6(other.in6){};
 
 	/**
 	 * Destructor.

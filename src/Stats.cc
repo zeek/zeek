@@ -311,7 +311,7 @@ void ProfileLogger::Log()
 		{
 		event_mgr.Dispatch(
 			new Event(profiling_update, {
-											make_intrusive<Val>(IntrusivePtr {NewRef {}, file}),
+											make_intrusive<Val>(IntrusivePtr{NewRef{}, file}),
 											val_mgr->Bool(expensive),
 										}));
 		}
@@ -338,7 +338,7 @@ SampleLogger::SampleLogger()
 	if ( ! load_sample_info )
 		load_sample_info = id::find_type("load_sample_info")->AsTableType();
 
-	load_samples = new TableVal({NewRef {}, load_sample_info});
+	load_samples = new TableVal({NewRef{}, load_sample_info});
 	}
 
 SampleLogger::~SampleLogger()
@@ -362,7 +362,7 @@ void SampleLogger::SegmentProfile(const char* /* name */, const Location* /* loc
                                   int dmem)
 	{
 	if ( load_sample )
-		event_mgr.Enqueue(load_sample, IntrusivePtr {NewRef {}, load_samples},
+		event_mgr.Enqueue(load_sample, IntrusivePtr{NewRef{}, load_samples},
 		                  make_intrusive<IntervalVal>(dtime, Seconds), val_mgr->Int(dmem));
 	}
 

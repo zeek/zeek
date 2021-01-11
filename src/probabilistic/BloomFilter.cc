@@ -41,7 +41,7 @@ broker::expected<broker::data> BloomFilter::Serialize() const
 	if ( ! d )
 		return broker::ec::invalid_data; // Cannot serialize
 
-	return {broker::vector {static_cast<uint64_t>(Type()), std::move(*h), std::move(*d)}};
+	return {broker::vector{static_cast<uint64_t>(Type()), std::move(*h), std::move(*d)}};
 	}
 
 std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)

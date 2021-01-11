@@ -196,7 +196,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state, const u_ch
 	// Call function with a signature_state value as argument.
 	Args args;
 	args.reserve(2);
-	args.emplace_back(AdoptRef {}, rule_matcher->BuildRuleStateValue(rule, state));
+	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
 		args.emplace_back(make_intrusive<StringVal>(len, (const char*)data));

@@ -1151,7 +1151,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 
 			else
 				{
-				add_local({NewRef {}, lv}, ind_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+				add_local({NewRef{}, lv}, ind_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
@@ -1167,7 +1167,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({NewRef {}, (*loop_vars)[0]}, base_type(TYPE_COUNT), INIT_NONE, nullptr,
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT), INIT_NONE, nullptr,
 			          nullptr, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1188,7 +1188,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({NewRef {}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_NONE, nullptr,
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_NONE, nullptr,
 			          nullptr, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
@@ -1820,9 +1820,9 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow) const
 	flow = FLOW_NEXT;
 
 	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(IntrusivePtr {cond}.release(), IntrusivePtr {s1}.release(),
-	                     IntrusivePtr {s2}.release(), IntrusivePtr {timeout}.release(), f,
-	                     is_return, location);
+	new trigger::Trigger(IntrusivePtr{cond}.release(), IntrusivePtr{s1}.release(),
+	                     IntrusivePtr{s2}.release(), IntrusivePtr{timeout}.release(), f, is_return,
+	                     location);
 	return nullptr;
 	}
 

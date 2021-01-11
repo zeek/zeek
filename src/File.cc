@@ -331,7 +331,7 @@ void File::RaiseOpenEvent()
 	if ( ! ::file_opened )
 		return;
 
-	FilePtr bf {NewRef {}, this};
+	FilePtr bf{NewRef{}, this};
 	auto* event = new Event(::file_opened, {make_intrusive<Val>(std::move(bf))});
 	event_mgr.Dispatch(event, true);
 	}
@@ -353,7 +353,7 @@ FilePtr File::Get(const char* name)
 	{
 	for ( const auto& el : open_files )
 		if ( el.first == name )
-			return {NewRef {}, el.second};
+			return {NewRef{}, el.second};
 
 	return make_intrusive<File>(name, "w");
 	}

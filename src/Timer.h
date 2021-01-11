@@ -69,7 +69,7 @@ public:
 	void Describe(ODesc* d) const;
 
 protected:
-	TimerType type {};
+	TimerType type{};
 	};
 
 class TimerMgr : public iosource::IOSource

@@ -46,7 +46,7 @@ class SteppingStone_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
 	{
 public:
 	explicit SteppingStone_Analyzer(Connection* c);
-	~SteppingStone_Analyzer() override {};
+	~SteppingStone_Analyzer() override{};
 
 	void Init() override;
 	void Done() override;

@@ -932,7 +932,7 @@ void Stem::Log(std::string_view type, const char* format, va_list args) const
 		return;
 		}
 
-	std::string msg {type.data(), type.size()};
+	std::string msg{type.data(), type.size()};
 	msg += " ";
 	msg += raw_msg;
 	util::safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
@@ -1162,7 +1162,7 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
 		ss.pipe = std::make_unique<detail::PipePair>(FD_CLOEXEC, O_NONBLOCK, fds);
 		ss.parent_pid = stem_ppid;
 
-		Stem stem {std::move(ss)};
+		Stem stem{std::move(ss)};
 		supervised_node = stem.Run();
 		return {};
 		}
@@ -1184,7 +1184,7 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
 
 	if ( pid == 0 )
 		{
-		Stem stem {std::move(ss)};
+		Stem stem{std::move(ss)};
 		supervised_node = stem.Run();
 		return {};
 		}

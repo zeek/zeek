@@ -179,7 +179,7 @@ ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
 	if ( inline_ables.count(func_vf) == 0 )
 		return c;
 
-	ListExprPtr args = {NewRef {}, c->Args()};
+	ListExprPtr args = {NewRef{}, c->Args()};
 	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
 	auto t = c->GetType();
 

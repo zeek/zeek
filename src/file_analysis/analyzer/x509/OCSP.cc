@@ -217,7 +217,7 @@ static StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp, BIO* bi
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
-	ASN1Seq bseq {&const_der_basic_resp_dat, der_basic_resp_len};
+	ASN1Seq bseq{&const_der_basic_resp_dat, der_basic_resp_len};
 
 	if ( ! bseq )
 		{
@@ -244,7 +244,7 @@ static StringValPtr parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp, BIO* bi
 	auto aseq_len = ASN1_STRING_length(aseq_str);
 	auto aseq_dat = ASN1_STRING_get0_data(aseq_str);
 
-	ASN1Seq aseq {&aseq_dat, aseq_len};
+	ASN1Seq aseq{&aseq_dat, aseq_len};
 
 	if ( ! aseq )
 		{
@@ -289,7 +289,7 @@ static ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
-	ASN1Seq bseq {&const_der_basic_resp_dat, der_basic_resp_len};
+	ASN1Seq bseq{&const_der_basic_resp_dat, der_basic_resp_len};
 
 	if ( ! bseq )
 		{
@@ -316,7 +316,7 @@ static ValPtr parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	auto dseq_len = ASN1_STRING_length(dseq_str);
 	auto dseq_dat = ASN1_STRING_get0_data(dseq_str);
 
-	ASN1Seq dseq {&dseq_dat, dseq_len};
+	ASN1Seq dseq{&dseq_dat, dseq_len};
 
 	if ( ! dseq )
 		{
@@ -363,7 +363,7 @@ static uint64_t parse_request_version(OCSP_REQUEST* req)
 	if ( ! der_req_dat )
 		return -1;
 
-	ASN1Seq rseq {&const_der_req_dat, der_req_len};
+	ASN1Seq rseq{&const_der_req_dat, der_req_len};
 
 	if ( ! rseq )
 		{
@@ -612,7 +612,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp)
 	// BIO_reset(bio);
 
 	certs_vector = new VectorVal(id::find_type<VectorType>("x509_opaque_vector"));
-	vl.emplace_back(AdoptRef {}, certs_vector);
+	vl.emplace_back(AdoptRef{}, certs_vector);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	certs = basic_resp->certs;

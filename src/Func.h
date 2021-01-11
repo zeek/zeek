@@ -107,7 +107,7 @@ public:
 	                 ValPtr>
 	Invoke(Args&&... args) const
 		{
-		auto zargs = zeek::Args {std::forward<Args>(args)...};
+		auto zargs = zeek::Args{std::forward<Args>(args)...};
 		return Invoke(&zargs);
 		}
 

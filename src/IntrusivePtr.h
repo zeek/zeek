@@ -99,7 +99,7 @@ public:
 		// nop
 		}
 
-	IntrusivePtr(const IntrusivePtr& other) noexcept : IntrusivePtr(NewRef {}, other.get()) { }
+	IntrusivePtr(const IntrusivePtr& other) noexcept : IntrusivePtr(NewRef{}, other.get()) { }
 
 	template <class U, class = std::enable_if_t<std::is_convertible_v<U*, T*>>>
 	IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.release())
@@ -159,7 +159,7 @@ private:
 template <class T, class... Ts> IntrusivePtr<T> make_intrusive(Ts&&... args)
 	{
 	// Assumes that objects start with a reference count of 1!
-	return {AdoptRef {}, new T(std::forward<Ts>(args)...)};
+	return {AdoptRef{}, new T(std::forward<Ts>(args)...)};
 	}
 
 /**
@@ -170,7 +170,7 @@ template <class T, class... Ts> IntrusivePtr<T> make_intrusive(Ts&&... args)
  */
 template <class T, class U> IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) noexcept
 	{
-	return {AdoptRef {}, static_cast<T*>(p.release())};
+	return {AdoptRef{}, static_cast<T*>(p.release())};
 	}
 
 } // namespace zeek

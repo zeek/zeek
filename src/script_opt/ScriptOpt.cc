@@ -26,7 +26,7 @@ void FuncInfo::SetProfile(std::unique_ptr<ProfileFunc> _pf)
 
 void analyze_func(ScriptFuncPtr f)
 	{
-	funcs.emplace_back(f, ScopePtr {NewRef {}, f->GetScope()}, f->CurrentBody());
+	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()}, f->CurrentBody());
 	}
 
 static void check_env_opt(const char* opt, bool& opt_flag)

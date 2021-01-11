@@ -92,7 +92,7 @@ bool ScriptCoverageManager::WriteStats()
 	if ( ! bf )
 		return false;
 
-	util::SafeDirname dirname {bf};
+	util::SafeDirname dirname{bf};
 
 	if ( ! util::detail::ensure_intermediate_dirs(dirname.result.data()) )
 		{
@@ -134,7 +134,7 @@ bool ScriptCoverageManager::WriteStats()
 		ODesc desc_info;
 		(*it)->Describe(&desc_info);
 		string desc(desc_info.Description());
-		canonicalize_desc cd {delim};
+		canonicalize_desc cd{delim};
 		for_each(desc.begin(), desc.end(), cd);
 		pair<string, string> location_desc(location_info.Description(), desc);
 		if ( usage_map.find(location_desc) != usage_map.end() )

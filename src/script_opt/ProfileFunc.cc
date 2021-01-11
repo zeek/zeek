@@ -117,7 +117,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 
 			if ( compute_hash )
 				{
-				UpdateHash({NewRef {}, id});
+				UpdateHash({NewRef{}, id});
 				CheckType(e->GetType());
 				}
 
@@ -136,7 +136,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 				}
 
 			auto n = f->AsNameExpr();
-			IDPtr func = {NewRef {}, n->Id()};
+			IDPtr func = {NewRef{}, n->Id()};
 
 			if ( ! func->IsGlobal() )
 				{
@@ -212,7 +212,7 @@ void ProfileFunc::UpdateHash(const IntrusivePtr<zeek::Obj>& o)
 	ODesc d;
 	o->Describe(&d);
 	std::string desc(d.Description());
-	auto h = std::hash<std::string> {}(desc);
+	auto h = std::hash<std::string>{}(desc);
 	MergeInHash(h);
 	}
 

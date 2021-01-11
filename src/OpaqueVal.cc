@@ -40,7 +40,7 @@ OpaqueMgr* OpaqueMgr::mgr()
 	return &mgr;
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : OpaqueVal({NewRef {}, t}) { }
+OpaqueVal::OpaqueVal(OpaqueType* t) : OpaqueVal({NewRef{}, t}) { }
 
 OpaqueVal::OpaqueVal(OpaqueTypePtr t) : Val(std::move(t)) { }
 
@@ -71,7 +71,7 @@ broker::expected<broker::data> OpaqueVal::Serialize() const
 	if ( ! d )
 		return d.error();
 
-	return {broker::vector {std::move(type), std::move(*d)}};
+	return {broker::vector{std::move(type), std::move(*d)}};
 	}
 
 OpaqueValPtr OpaqueVal::Unserialize(const broker::data& data)
@@ -104,11 +104,11 @@ broker::expected<broker::data> OpaqueVal::SerializeType(const TypePtr& t)
 		{
 		// Serialize by name.
 		assert(t->GetName().size());
-		return {broker::vector {true, t->GetName()}};
+		return {broker::vector{true, t->GetName()}};
 		}
 
 	// A base type.
-	return {broker::vector {false, static_cast<uint64_t>(t->Tag())}};
+	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
 TypePtr OpaqueVal::UnserializeType(const broker::data& data)
@@ -210,7 +210,7 @@ HashVal::HashVal(OpaqueTypePtr t) : OpaqueVal(std::move(t))
 	valid = false;
 	}
 
-HashVal::HashVal(OpaqueType* t) : HashVal({NewRef {}, t}) { }
+HashVal::HashVal(OpaqueType* t) : HashVal({NewRef{}, t}) { }
 
 MD5Val::MD5Val() : HashVal(md5_type) { }
 
@@ -286,7 +286,7 @@ IMPLEMENT_OPAQUE_VALUE(MD5Val)
 broker::expected<broker::data> MD5Val::DoSerialize() const
 	{
 	if ( ! IsValid() )
-		return {broker::vector {false}};
+		return {broker::vector{false}};
 
 	MD5_CTX* md = (MD5_CTX*)EVP_MD_CTX_md_data(ctx);
 
@@ -402,7 +402,7 @@ IMPLEMENT_OPAQUE_VALUE(SHA1Val)
 broker::expected<broker::data> SHA1Val::DoSerialize() const
 	{
 	if ( ! IsValid() )
-		return {broker::vector {false}};
+		return {broker::vector{false}};
 
 	SHA_CTX* md = (SHA_CTX*)EVP_MD_CTX_md_data(ctx);
 
@@ -521,7 +521,7 @@ IMPLEMENT_OPAQUE_VALUE(SHA256Val)
 broker::expected<broker::data> SHA256Val::DoSerialize() const
 	{
 	if ( ! IsValid() )
-		return {broker::vector {false}};
+		return {broker::vector{false}};
 
 	SHA256_CTX* md = (SHA256_CTX*)EVP_MD_CTX_md_data(ctx);
 

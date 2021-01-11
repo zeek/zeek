@@ -118,7 +118,7 @@ ListExpr* Expr::AsListExpr()
 ListExprPtr Expr::AsListExprPtr()
 	{
 	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-	return {NewRef {}, (ListExpr*)this};
+	return {NewRef{}, (ListExpr*)this};
 	}
 
 const NameExpr* Expr::AsNameExpr() const
@@ -178,7 +178,7 @@ const EventExpr* Expr::AsEventExpr() const
 EventExprPtr Expr::AsEventExprPtr()
 	{
 	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
-	return {NewRef {}, (EventExpr*)this};
+	return {NewRef{}, (EventExpr*)this};
 	}
 
 bool Expr::CanAdd() const
@@ -206,7 +206,7 @@ ExprPtr Expr::MakeLvalue()
 	if ( ! IsError() )
 		ExprError("can't be assigned to");
 
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
 void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */, Frame* /* f */) const
@@ -382,7 +382,7 @@ ExprPtr NameExpr::MakeLvalue()
 	if ( id->IsOption() && ! in_const_init )
 		ExprError("option is not a modifiable lvalue");
 
-	return make_intrusive<RefExpr>(IntrusivePtr {NewRef {}, this});
+	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
 	}
 
 void NameExpr::Assign(Frame* f, ValPtr v)
@@ -438,7 +438,7 @@ void ConstExpr::ExprDescribe(ODesc* d) const
 
 ValPtr ConstExpr::Eval(Frame* /* f */) const
 	{
-	return {NewRef {}, Value()};
+	return {NewRef{}, Value()};
 	}
 
 TraversalCode ConstExpr::Traverse(TraversalCallback* cb) const
@@ -511,7 +511,7 @@ TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 
 ValPtr UnaryExpr::Fold(Val* v) const
 	{
-	return {NewRef {}, v};
+	return {NewRef{}, v};
 	}
 
 void UnaryExpr::ExprDescribe(ODesc* d) const
@@ -1128,7 +1128,7 @@ ValPtr IncrExpr::Eval(Frame* f) const
 
 	if ( is_vector(v) )
 		{
-		VectorValPtr v_vec {NewRef {}, v->AsVectorVal()};
+		VectorValPtr v_vec{NewRef{}, v->AsVectorVal()};
 
 		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
@@ -1222,7 +1222,7 @@ ValPtr PosExpr::Fold(Val* v) const
 	TypeTag t = v->GetType()->Tag();
 
 	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
-		return {NewRef {}, v};
+		return {NewRef{}, v};
 	else
 		return val_mgr->Int(v->CoerceToInt());
 	}
@@ -1704,12 +1704,12 @@ ValPtr BoolExpr::Eval(Frame* f) const
 		if ( is_vec1 )
 			{
 			scalar_v = op2->Eval(f);
-			vector_v = {AdoptRef {}, v1.release()->AsVectorVal()};
+			vector_v = {AdoptRef{}, v1.release()->AsVectorVal()};
 			}
 		else
 			{
 			scalar_v = std::move(v1);
-			vector_v = {AdoptRef {}, op2->Eval(f).release()->AsVectorVal()};
+			vector_v = {AdoptRef{}, op2->Eval(f).release()->AsVectorVal()};
 			}
 
 		if ( ! scalar_v || ! vector_v )
@@ -2170,7 +2170,7 @@ RefExpr::RefExpr(ExprPtr arg_op) : UnaryExpr(EXPR_REF, std::move(arg_op))
 
 ExprPtr RefExpr::MakeLvalue()
 	{
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
 void RefExpr::Assign(Frame* f, ValPtr v)
@@ -2271,7 +2271,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 		if ( op2->Tag() == EXPR_LIST )
 			{
 			op2 = make_intrusive<VectorConstructorExpr>(
-				IntrusivePtr {AdoptRef {}, op2.release()->AsListExpr()}, op1->GetType());
+				IntrusivePtr{AdoptRef{}, op2.release()->AsListExpr()}, op1->GetType());
 			return true;
 			}
 		}
@@ -2320,7 +2320,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 					}
 
 				int errors_before = reporter->Errors();
-				op2 = make_intrusive<SetConstructorExpr>(IntrusivePtr {NewRef {}, ctor_list},
+				op2 = make_intrusive<SetConstructorExpr>(IntrusivePtr{NewRef{}, ctor_list},
 				                                         std::move(attr_copy), op1->GetType());
 				int errors_after = reporter->Errors();
 
@@ -2414,7 +2414,7 @@ TypePtr AssignExpr::InitType() const
 	if ( tl->Tag() != TYPE_LIST )
 		Internal("inconsistent list expr in AssignExpr::InitType");
 
-	return make_intrusive<TableType>(IntrusivePtr {NewRef {}, tl->AsTypeList()}, op2->GetType());
+	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()}, op2->GetType());
 	}
 
 void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const
@@ -2740,7 +2740,7 @@ ExprPtr IndexExpr::MakeLvalue()
 	if ( IsString(op1->GetType()->Tag()) )
 		ExprError("cannot assign to string index expression");
 
-	return make_intrusive<RefExpr>(IntrusivePtr {NewRef {}, this});
+	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
 	}
 
 ValPtr IndexExpr::Eval(Frame* f) const
@@ -2844,7 +2844,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 
 		case TYPE_TABLE:
 			v = v1->AsTableVal()->FindOrDefault(
-				{NewRef {}, v2}); // Then, we jump into the TableVal here.
+				{NewRef{}, v2}); // Then, we jump into the TableVal here.
 			break;
 
 		case TYPE_STRING:
@@ -3061,7 +3061,7 @@ FieldExpr::~FieldExpr()
 
 ExprPtr FieldExpr::MakeLvalue()
 	{
-	return make_intrusive<RefExpr>(IntrusivePtr {NewRef {}, this});
+	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
 	}
 
 bool FieldExpr::CanDel() const
@@ -3206,7 +3206,7 @@ ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		{
 		RecordVal* rv = v->AsRecordVal();
 		auto bt = const_cast<zeek::Type*>(t);
-		RecordTypePtr rt {NewRef {}, bt->AsRecordType()};
+		RecordTypePtr rt{NewRef{}, bt->AsRecordType()};
 		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
 		auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec));
 
@@ -3380,7 +3380,7 @@ ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 	auto tt = GetType<TableType>();
 
-	auto tval = aggr ? TableValPtr {AdoptRef {}, aggr.release()->AsTableVal()}
+	auto tval = aggr ? TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()}
 	                 : make_intrusive<TableVal>(std::move(tt), attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
@@ -3472,7 +3472,7 @@ ValPtr SetConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto aggr = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, type->AsTableType()}, attrs);
+	auto aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()}, attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3491,7 +3491,7 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 	const auto& index_type = t->AsTableType()->GetIndices();
 	auto tt = GetType<TableType>();
-	auto tval = aggr ? TableValPtr {AdoptRef {}, aggr.release()->AsTableVal()}
+	auto tval = aggr ? TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()}
 	                 : make_intrusive<TableVal>(std::move(tt), attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
@@ -3585,7 +3585,7 @@ ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		return nullptr;
 
 	auto vt = GetType<VectorType>();
-	auto vec = aggr ? VectorValPtr {AdoptRef {}, aggr.release()->AsVectorVal()}
+	auto vec = aggr ? VectorValPtr{AdoptRef{}, aggr.release()->AsVectorVal()}
 	                : make_intrusive<VectorVal>(std::move(vt));
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
@@ -3848,7 +3848,7 @@ ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		{
 		RecordVal* rv = v->AsRecordVal();
 		auto bt = const_cast<zeek::Type*>(t);
-		RecordTypePtr rt {NewRef {}, bt->AsRecordType()};
+		RecordTypePtr rt{NewRef{}, bt->AsRecordType()};
 		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
 
 		if ( auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec)) )
@@ -3862,7 +3862,7 @@ ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 ValPtr RecordCoerceExpr::Fold(Val* v) const
 	{
 	if ( same_type(GetType(), Op()->GetType()) )
-		return IntrusivePtr {NewRef {}, v};
+		return IntrusivePtr{NewRef{}, v};
 
 	auto val = make_intrusive<RecordVal>(GetType<RecordType>());
 	RecordType* val_type = val->GetType()->AsRecordType();
@@ -4191,7 +4191,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	if ( is_vector(v2) )
 		res = (bool)v2->AsVectorVal()->At(v1->AsListVal()->Idx(0)->CoerceToUnsigned());
 	else
-		res = (bool)v2->AsTableVal()->Find({NewRef {}, v1});
+		res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
 
 	return val_mgr->Bool(res);
 	}
@@ -4320,7 +4320,7 @@ ValPtr CallExpr::Eval(Frame* f) const
 			if ( Val* v = trigger->Lookup(this) )
 				{
 				DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
-				return {NewRef {}, v};
+				return {NewRef{}, v};
 				}
 			}
 		}
@@ -4638,7 +4638,7 @@ TypePtr ListExpr::InitType() const
 					ti->IsSet() ? ti->AsSetType()->GetIndices().get() : ti->AsTypeList();
 
 				if ( ! til->IsPure() || ! til->AllMatch(til->GetPureType(), true) )
-					tl->Append({NewRef {}, til});
+					tl->Append({NewRef{}, til});
 				else
 					tl->Append(til->GetPureType());
 				}
@@ -4865,7 +4865,7 @@ ExprPtr ListExpr::MakeLvalue()
 		if ( expr->Tag() != EXPR_NAME )
 			ExprError("can only assign to list of identifiers");
 
-	return make_intrusive<RefExpr>(IntrusivePtr {NewRef {}, this});
+	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
 	}
 
 void ListExpr::Assign(Frame* f, ValPtr v)
@@ -4919,7 +4919,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
 					{
 					auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
 					auto fe_rhs =
-						make_intrusive<FieldExpr>(IntrusivePtr {NewRef {}, init}, field_name);
+						make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name);
 					Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
 					}
 				}
@@ -4934,7 +4934,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
 			if ( lhs->HasField(field_name) )
 				{
 				auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
-				ExprPtr fe_rhs = {NewRef {}, rf->Op()};
+				ExprPtr fe_rhs = {NewRef{}, rf->Op()};
 				Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
 				}
 			else
@@ -5041,12 +5041,12 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 	TypeTag t_tag = t->Tag();
 
 	if ( t->Tag() == TYPE_ANY )
-		return {NewRef {}, e};
+		return {NewRef{}, e};
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return {NewRef {}, e};
+			return {NewRef{}, e};
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
@@ -5061,7 +5061,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 			return nullptr;
 			}
 
-		return make_intrusive<ArithCoerceExpr>(IntrusivePtr {NewRef {}, e}, t_tag);
+		return make_intrusive<ArithCoerceExpr>(IntrusivePtr{NewRef{}, e}, t_tag);
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5070,11 +5070,11 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* et_r = et->AsRecordType();
 
 		if ( same_type(t, et) )
-			return {NewRef {}, e};
+			return {NewRef{}, e};
 
 		if ( record_promotion_compatible(t_r, et_r) )
-			return make_intrusive<RecordCoerceExpr>(IntrusivePtr {NewRef {}, e},
-			                                        IntrusivePtr {NewRef {}, t_r});
+			return make_intrusive<RecordCoerceExpr>(IntrusivePtr{NewRef{}, e},
+			                                        IntrusivePtr{NewRef{}, t_r});
 
 		t->Error("incompatible record types", e);
 		return nullptr;
@@ -5084,19 +5084,19 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 		     et->AsTableType()->IsUnspecifiedTable() )
-			return make_intrusive<TableCoerceExpr>(IntrusivePtr {NewRef {}, e},
-			                                       IntrusivePtr {NewRef {}, t->AsTableType()});
+			return make_intrusive<TableCoerceExpr>(IntrusivePtr{NewRef{}, e},
+			                                       IntrusivePtr{NewRef{}, t->AsTableType()});
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
-			return make_intrusive<VectorCoerceExpr>(IntrusivePtr {NewRef {}, e},
-			                                        IntrusivePtr {NewRef {}, t->AsVectorType()});
+			return make_intrusive<VectorCoerceExpr>(IntrusivePtr{NewRef{}, e},
+			                                        IntrusivePtr{NewRef{}, t->AsVectorType()});
 
 		t->Error("type clash", e);
 		return nullptr;
 		}
 
-	return {NewRef {}, e};
+	return {NewRef{}, e};
 	}
 
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)

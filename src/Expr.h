@@ -134,7 +134,7 @@ public:
 		zeek::Ref(this);
 		return this;
 		}
-	ExprPtr ThisPtr() { return {NewRef {}, this}; }
+	ExprPtr ThisPtr() { return {NewRef{}, this}; }
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
@@ -254,7 +254,7 @@ public:
 		succ->SetOriginal(ThisPtr());
 		if ( IsParen() )
 			succ->MarkParen();
-		return {AdoptRef {}, succ};
+		return {AdoptRef{}, succ};
 		}
 
 	const detail::Location* GetLocationInfo() const override

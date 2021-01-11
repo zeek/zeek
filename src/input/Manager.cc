@@ -1078,11 +1078,11 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType*
 			{
 			if ( type->GetFieldType(j)->Tag() == TYPE_RECORD )
 				l->Append(
-					{AdoptRef {}, ValueToRecordVal(i, vals, type->GetFieldType(j)->AsRecordType(),
-				                                   &position, have_error)});
+					{AdoptRef{}, ValueToRecordVal(i, vals, type->GetFieldType(j)->AsRecordType(),
+				                                  &position, have_error)});
 			else
 				{
-				l->Append({AdoptRef {},
+				l->Append({AdoptRef{},
 				           ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error)});
 				position++;
 				}
@@ -1280,7 +1280,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 		{
 		assert(stream->num_val_fields > 0);
 		// in that case, we need the old value to send the event (if we send an event).
-		oldval = stream->tab->Find({NewRef {}, idxval});
+		oldval = stream->tab->Find({NewRef{}, idxval});
 		}
 
 	auto k = stream->tab->MakeHashKey(*idxval);
@@ -1292,7 +1292,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 	ih->idxkey = new zeek::detail::HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
-	stream->tab->Assign({AdoptRef {}, idxval}, std::move(k), {AdoptRef {}, valval});
+	stream->tab->Assign({AdoptRef{}, idxval}, std::move(k), {AdoptRef{}, valval});
 
 	if ( predidx != nullptr )
 		Unref(predidx);
@@ -1380,7 +1380,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			assert(idx != nullptr);
 			val = stream->tab->FindOrDefault(idx);
 			assert(val != nullptr);
-			predidx = {AdoptRef {}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
+			predidx = {AdoptRef{}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
 			ev = BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
 			}
 
@@ -1590,7 +1590,7 @@ int Manager::PutTable(Stream* i, const Value* const* vals)
 		if ( stream->num_val_fields > 0 )
 			{
 			// in that case, we need the old value to send the event (if we send an event).
-			oldval = stream->tab->Find({NewRef {}, idxval});
+			oldval = stream->tab->Find({NewRef{}, idxval});
 			}
 
 		if ( oldval != nullptr )
@@ -1635,7 +1635,7 @@ int Manager::PutTable(Stream* i, const Value* const* vals)
 				}
 			}
 
-		stream->tab->Assign({NewRef {}, idxval}, {AdoptRef {}, valval});
+		stream->tab->Assign({NewRef{}, idxval}, {AdoptRef{}, valval});
 
 		if ( stream->event )
 			{
@@ -1672,7 +1672,7 @@ int Manager::PutTable(Stream* i, const Value* const* vals)
 		}
 
 	else // no predicates or other stuff
-		stream->tab->Assign({NewRef {}, idxval}, {AdoptRef {}, valval});
+		stream->tab->Assign({NewRef{}, idxval}, {AdoptRef{}, valval});
 
 	Unref(idxval); // not consumed by assign
 
@@ -1730,7 +1730,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals)
 
 		if ( stream->pred || stream->event )
 			{
-			auto val = stream->tab->FindOrDefault({NewRef {}, idxval});
+			auto val = stream->tab->FindOrDefault({NewRef{}, idxval});
 
 			if ( stream->pred )
 				{
@@ -1745,7 +1745,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals)
 						BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
 
 					streamresult = CallPred(stream->pred, 3, ev.release(), predidx,
-					                        IntrusivePtr {val}.release());
+					                        IntrusivePtr{val}.release());
 
 					if ( streamresult == false )
 						{
@@ -1766,7 +1766,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals)
 					SendEvent(stream->event, 3, stream->description->Ref(), ev.release(), idxval);
 				else
 					SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval,
-					          IntrusivePtr {val}.release());
+					          IntrusivePtr{val}.release());
 				}
 			}
 
@@ -1810,7 +1810,7 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.emplace_back(AdoptRef {}, va_arg(lP, Val*));
+		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
@@ -1834,7 +1834,7 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.emplace_back(AdoptRef {}, va_arg(lP, Val*));
+		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
@@ -1852,7 +1852,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 #endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-		vl.emplace_back(AdoptRef {}, *i);
+		vl.emplace_back(AdoptRef{}, *i);
 
 	if ( ev )
 		event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
@@ -1864,7 +1864,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType* request_type, 
 	{
 	assert(position != nullptr); // we need the pointer to point to data;
 
-	auto* rec = new RecordVal({NewRef {}, request_type});
+	auto* rec = new RecordVal({NewRef{}, request_type});
 
 	assert(list != nullptr);
 	int maxpos = list->Length();
@@ -1883,7 +1883,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType* request_type, 
 			(*position)++;
 			}
 
-		rec->Assign(i, {NewRef {}, fieldVal});
+		rec->Assign(i, {NewRef{}, fieldVal});
 		}
 
 	return rec;
@@ -1896,7 +1896,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
 	{
 	assert(position != nullptr); // we need the pointer to point to data.
 
-	auto* rec = new RecordVal({NewRef {}, request_type});
+	auto* rec = new RecordVal({NewRef{}, request_type});
 	for ( int i = 0; i < request_type->NumFields(); i++ )
 		{
 		Val* fieldVal = nullptr;
@@ -1923,7 +1923,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
 			}
 
 		if ( fieldVal )
-			rec->Assign(i, {AdoptRef {}, fieldVal});
+			rec->Assign(i, {AdoptRef{}, fieldVal});
 		}
 
 	return rec;
@@ -2317,7 +2317,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type,
 				{
 				Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
 
-				t->Assign({AdoptRef {}, assignval}, nullptr);
+				t->Assign({AdoptRef{}, assignval}, nullptr);
 				}
 
 			return t;
@@ -2333,7 +2333,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type,
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
 				{
 				auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
-				v->Assign(j, {AdoptRef {}, el});
+				v->Assign(j, {AdoptRef{}, el});
 				}
 
 			return v.release();

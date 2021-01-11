@@ -705,7 +705,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	if ( ! stream->enabled )
 		return true;
 
-	auto columns = columns_arg->CoerceTo({NewRef {}, stream->columns});
+	auto columns = columns_arg->CoerceTo({NewRef{}, stream->columns});
 
 	if ( ! columns )
 		{
@@ -730,8 +730,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		// plugin hooks, though, so for now we do invoke.
 		if ( filter->policy )
 			{
-			auto v = filter->policy->Invoke(columns, IntrusivePtr {NewRef {}, id},
-			                                IntrusivePtr {NewRef {}, filter->fval});
+			auto v = filter->policy->Invoke(columns, IntrusivePtr{NewRef{}, id},
+			                                IntrusivePtr{NewRef{}, filter->fval});
 			if ( v && ! v->AsBool() )
 				continue;
 			}
@@ -753,7 +753,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			ValPtr path_arg;
 
 			if ( filter->path_val )
-				path_arg = {NewRef {}, filter->path_val};
+				path_arg = {NewRef{}, filter->path_val};
 			else
 				path_arg = val_mgr->EmptyString();
 
@@ -766,7 +766,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				// Can be TYPE_ANY here.
 				rec_arg = columns;
 
-			auto v = filter->path_func->Invoke(IntrusivePtr {NewRef {}, id}, std::move(path_arg),
+			auto v = filter->path_func->Invoke(IntrusivePtr{NewRef{}, id}, std::move(path_arg),
 			                                   std::move(rec_arg));
 
 			if ( ! v )
@@ -1068,10 +1068,10 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter, R
 
 	if ( filter->num_ext_fields > 0 )
 		{
-		auto res = filter->ext_func->Invoke(IntrusivePtr {NewRef {}, filter->path_val});
+		auto res = filter->ext_func->Invoke(IntrusivePtr{NewRef{}, filter->path_val});
 
 		if ( res )
-			ext_rec = {AdoptRef {}, res.release()->AsRecordVal()};
+			ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
@@ -1553,12 +1553,12 @@ void Manager::Rotate(WriterInfo* winfo)
 	FuncPtr ppf;
 
 	if ( winfo->postprocessor )
-		ppf = {NewRef {}, winfo->postprocessor};
+		ppf = {NewRef{}, winfo->postprocessor};
 	else
 		ppf = default_ppf;
 
 	auto rotation_path =
-		FormatRotationPath({NewRef {}, winfo->type}, winfo->writer->Info().path, winfo->open_time,
+		FormatRotationPath({NewRef{}, winfo->type}, winfo->writer->Info().path, winfo->open_time,
 	                       run_state::network_time, run_state::terminating, std::move(ppf));
 
 	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, run_state::network_time,
@@ -1589,7 +1589,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		return true;
 
 	auto info = make_intrusive<RecordVal>(BifType::Record::Log::RotationInfo);
-	info->Assign(0, {NewRef {}, winfo->type});
+	info->Assign(0, {NewRef{}, winfo->type});
 	info->Assign(1, make_intrusive<StringVal>(new_name));
 	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
 	info->Assign(3, make_intrusive<TimeVal>(open));

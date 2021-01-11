@@ -784,8 +784,8 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 
 void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	{
-	IntrusivePtr val1 {AdoptRef {}, v1};
-	IntrusivePtr val2 {AdoptRef {}, v2};
+	IntrusivePtr val1{AdoptRef{}, v1};
+	IntrusivePtr val2{AdoptRef{}, v2};
 
 	if ( f )
 		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));

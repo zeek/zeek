@@ -121,8 +121,8 @@ public:
 	// into a StmtPtr.
 	virtual StmtPtr SetSucc(Stmt* succ)
 		{
-		succ->SetOriginal({NewRef {}, this});
-		return {AdoptRef {}, succ};
+		succ->SetOriginal({NewRef{}, this});
+		return {AdoptRef{}, succ};
 		}
 
 	const detail::Location* GetLocationInfo() const override

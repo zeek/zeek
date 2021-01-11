@@ -316,7 +316,7 @@ static void terminate_bro()
 	script_coverage_mgr.WriteStats();
 
 	if ( zeek_done )
-		event_mgr.Enqueue(zeek_done, Args {});
+		event_mgr.Enqueue(zeek_done, Args{});
 
 	timer_mgr->Expire();
 	event_mgr.Drain();
@@ -847,7 +847,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			run_state::detail::update_network_time(util::current_time());
 
 		if ( zeek_init )
-			event_mgr.Enqueue(zeek_init, Args {});
+			event_mgr.Enqueue(zeek_init, Args{});
 
 		EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
 

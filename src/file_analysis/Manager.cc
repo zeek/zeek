@@ -78,7 +78,7 @@ void Manager::SetHandle(const string& handle)
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
 		{
-		String tmp {handle};
+		String tmp{handle};
 		auto rendered = tmp.Render();
 		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
 		delete[] rendered;
@@ -255,7 +255,7 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args, uint64_t n) const
 	{
-	return SetExtractionLimit(file_id, {NewRef {}, args}, n);
+	return SetExtractionLimit(file_id, {NewRef{}, args}, n);
 	}
 
 bool Manager::SetExtractionLimit(const string& file_id, RecordValPtr args, uint64_t n) const
@@ -271,7 +271,7 @@ bool Manager::SetExtractionLimit(const string& file_id, RecordValPtr args, uint6
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                           RecordVal* args) const
 	{
-	return AddAnalyzer(file_id, tag, {NewRef {}, args});
+	return AddAnalyzer(file_id, tag, {NewRef{}, args});
 	}
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
@@ -288,7 +288,7 @@ bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                              RecordVal* args) const
 	{
-	return RemoveAnalyzer(file_id, tag, {NewRef {}, args});
+	return RemoveAnalyzer(file_id, tag, {NewRef{}, args});
 	}
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
@@ -450,7 +450,7 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const
 	{
-	return InstantiateAnalyzer(tag, {NewRef {}, args}, f);
+	return InstantiateAnalyzer(tag, {NewRef{}, args}, f);
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* f) const

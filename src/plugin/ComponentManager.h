@@ -192,7 +192,7 @@ const std::string& ComponentManager<T, C>::GetComponentName(EnumValPtr val) cons
 template <class T, class C>
 const std::string& ComponentManager<T, C>::GetComponentName(Val* val) const
 	{
-	return GetComponentName(T({NewRef {}, val->AsEnumVal()}));
+	return GetComponentName(T({NewRef{}, val->AsEnumVal()}));
 	}
 
 template <class T, class C> T ComponentManager<T, C>::GetComponentTag(const std::string& name) const

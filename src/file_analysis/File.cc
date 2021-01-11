@@ -201,7 +201,7 @@ void File::SetTimeoutInterval(double interval)
 
 bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
 	{
-	return SetExtractionLimit({NewRef {}, args}, bytes);
+	return SetExtractionLimit({NewRef{}, args}, bytes);
 	}
 
 bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes)
@@ -253,7 +253,7 @@ void File::ScheduleInactivityTimer() const
 
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return AddAnalyzer(tag, {NewRef {}, args});
+	return AddAnalyzer(tag, {NewRef{}, args});
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
@@ -269,7 +269,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return RemoveAnalyzer(tag, {NewRef {}, args});
+	return RemoveAnalyzer(tag, {NewRef{}, args});
 	}
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args)
@@ -618,7 +618,7 @@ void File::FileEvent(EventHandlerPtr h)
 	if ( ! FileEventAvailable(h) )
 		return;
 
-	FileEvent(h, Args {val});
+	FileEvent(h, Args{val});
 	}
 
 void File::FileEvent(EventHandlerPtr h, ValPList* vl)

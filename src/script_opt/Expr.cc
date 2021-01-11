@@ -331,7 +331,7 @@ ExprPtr CallExpr::Duplicate()
 
 ExprPtr CallExpr::Inline(Inliner* inl)
 	{
-	auto new_me = inl->CheckForInlining({NewRef {}, this});
+	auto new_me = inl->CheckForInlining({NewRef{}, this});
 
 	if ( new_me.get() != this )
 		return new_me;

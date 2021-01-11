@@ -67,7 +67,7 @@ public:
 	broker::subscriber subscriber;
 	};
 
-const broker::endpoint_info Manager::NoPeer {{}, {}};
+const broker::endpoint_info Manager::NoPeer{{}, {}};
 
 int Manager::script_scope = 0;
 
@@ -171,7 +171,7 @@ void Manager::InitPostScript()
 	options.forward = get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = use_real_time;
 
-	BrokerConfig config {std::move(options)};
+	BrokerConfig config{std::move(options)};
 
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 
@@ -261,7 +261,7 @@ void Manager::InitializeBrokerStoreForwarding()
 
 			auto path = zeek_table_db_directory + "/" + storename + suffix;
 
-			MakeMaster(storename, backend, broker::backend_options {{"path", path}});
+			MakeMaster(storename, backend, broker::backend_options{{"path", path}});
 			}
 		}
 	}
@@ -310,7 +310,7 @@ void Manager::AdvanceTime(double seconds_since_unix_epoch)
 
 	auto secs = std::chrono::duration<double>(seconds_since_unix_epoch);
 	auto span = std::chrono::duration_cast<broker::timespan>(secs);
-	broker::timestamp next_time {span};
+	broker::timestamp next_time{span};
 	bstate->endpoint.advance_time(next_time);
 	}
 
@@ -597,7 +597,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	free(data);
 
 	auto v =
-		log_topic_func->Invoke(IntrusivePtr {NewRef {}, stream}, make_intrusive<StringVal>(path));
+		log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream}, make_intrusive<StringVal>(path));
 
 	if ( ! v )
 		{
@@ -745,7 +745,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 	auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = nullptr;
-	scoped_reporter_location srl {frame};
+	scoped_reporter_location srl{frame};
 
 	for ( auto i = 0; i < args->length(); ++i )
 		{
@@ -795,7 +795,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 		RecordValPtr data_val;
 
 		if ( same_type(got_type, detail::DataVal::ScriptDataType()) )
-			data_val = {NewRef {}, (*args)[i]->AsRecordVal()};
+			data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
 		else
 			data_val = detail::make_data_val((*args)[i]);
 
@@ -1617,7 +1617,7 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
 		return nullptr;
 		}
 
-	auto handle = new detail::StoreHandleVal {*result};
+	auto handle = new detail::StoreHandleVal{*result};
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
@@ -1722,7 +1722,7 @@ detail::StoreHandleVal* Manager::MakeClone(const string& name, double resync_int
 		return nullptr;
 		}
 
-	auto handle = new detail::StoreHandleVal {*result};
+	auto handle = new detail::StoreHandleVal{*result};
 	Ref(handle);
 
 	data_stores.emplace(name, handle);

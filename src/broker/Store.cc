@@ -125,7 +125,7 @@ broker::backend_options to_backend_options(broker::backend backend, RecordVal* o
 			break;
 		}
 
-	return broker::backend_options {};
+	return broker::backend_options{};
 	}
 
 } // namespace zeek::Broker

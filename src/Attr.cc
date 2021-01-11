@@ -177,13 +177,13 @@ Attributes::Attributes(AttrPList* a, TypePtr t, bool arg_in_record, bool is_glob
 	// the necessary checking gets done.
 
 	for ( const auto& attr : *a )
-		AddAttr({NewRef {}, attr});
+		AddAttr({NewRef{}, attr});
 
 	delete a;
 	}
 
 Attributes::Attributes(TypePtr t, bool arg_in_record, bool is_global)
-	: Attributes(std::vector<AttrPtr> {}, std::move(t), arg_in_record, is_global)
+	: Attributes(std::vector<AttrPtr>{}, std::move(t), arg_in_record, is_global)
 	{
 	}
 

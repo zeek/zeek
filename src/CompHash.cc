@@ -348,7 +348,7 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_c
 		// re-introduce const on the recursive call, it should
 		// be okay; the only thing is that the ListVal unref's it.
 		Val* ncv = (Val*)v;
-		lv.Append({NewRef {}, ncv});
+		lv.Append({NewRef{}, ncv});
 		return MakeHashKey(lv, type_check);
 		}
 
@@ -938,7 +938,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0, cons
 
 					ASSERT(int(values.size()) == num_fields);
 
-					auto rv = make_intrusive<RecordVal>(IntrusivePtr {NewRef {}, rt});
+					auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
 
 					for ( int i = 0; i < num_fields; ++i )
 						rv->Assign(i, std::move(values[i]));
@@ -955,7 +955,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0, cons
 					n = *kp;
 					kp1 = reinterpret_cast<const char*>(kp + 1);
 					TableType* tt = t->AsTableType();
-					auto tv = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, tt});
+					auto tv = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 					for ( int i = 0; i < n; ++i )
 						{
@@ -983,7 +983,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0, cons
 					n = *kp;
 					kp1 = reinterpret_cast<const char*>(kp + 1);
 					VectorType* vt = t->AsVectorType();
-					auto vv = make_intrusive<VectorVal>(IntrusivePtr {NewRef {}, vt});
+					auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
 
 					for ( unsigned int i = 0; i < n; ++i )
 						{

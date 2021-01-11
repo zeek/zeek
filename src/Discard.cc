@@ -39,7 +39,7 @@ bool Discarder::NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caple
 
 	if ( check_ip )
 		{
-		zeek::Args args {ip->ToPktHdrVal()};
+		zeek::Args args{ip->ToPktHdrVal()};
 
 		try
 			{
@@ -89,9 +89,9 @@ bool Discarder::NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caple
 			const struct tcphdr* tp = (const struct tcphdr*)data;
 			int th_len = tp->th_off * 4;
 
-			zeek::Args args {
+			zeek::Args args{
 				ip->ToPktHdrVal(),
-				{AdoptRef {}, BuildData(data, th_len, len, caplen)},
+				{AdoptRef{}, BuildData(data, th_len, len, caplen)},
 			};
 
 			try
@@ -113,9 +113,9 @@ bool Discarder::NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caple
 			const struct udphdr* up = (const struct udphdr*)data;
 			int uh_len = sizeof(struct udphdr);
 
-			zeek::Args args {
+			zeek::Args args{
 				ip->ToPktHdrVal(),
-				{AdoptRef {}, BuildData(data, uh_len, len, caplen)},
+				{AdoptRef{}, BuildData(data, uh_len, len, caplen)},
 			};
 
 			try
@@ -136,7 +136,7 @@ bool Discarder::NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caple
 			{
 			const struct icmp* ih = (const struct icmp*)data;
 
-			zeek::Args args {ip->ToPktHdrVal()};
+			zeek::Args args{ip->ToPktHdrVal()};
 
 			try
 				{

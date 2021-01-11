@@ -1059,7 +1059,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint
 		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(), base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
-			EnqueueConnEvent(connection_SYN_packet, ConnVal(), IntrusivePtr {NewRef {}, SYN_vals});
+			EnqueueConnEvent(connection_SYN_packet, ConnVal(), IntrusivePtr{NewRef{}, SYN_vals});
 
 		Unref(SYN_vals);
 		}
@@ -2027,9 +2027,8 @@ void TCPStats_Analyzer::Done()
 	TCP_ApplicationAnalyzer::Done();
 
 	if ( conn_stats )
-		EnqueueConnEvent(conn_stats, ConnVal(),
-		                 IntrusivePtr {AdoptRef {}, orig_stats->BuildStats()},
-		                 IntrusivePtr {AdoptRef {}, resp_stats->BuildStats()});
+		EnqueueConnEvent(conn_stats, ConnVal(), IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
+		                 IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()});
 	}
 
 void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,

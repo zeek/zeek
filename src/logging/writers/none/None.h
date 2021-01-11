@@ -13,7 +13,7 @@ class None : public WriterBackend
 	{
 public:
 	explicit None(WriterFrontend* frontend) : WriterBackend(frontend) { }
-	~None() override {};
+	~None() override{};
 
 	static WriterBackend* Instantiate(WriterFrontend* frontend) { return new None(frontend); }
 

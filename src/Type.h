@@ -335,14 +335,14 @@ public:
 		{
 		auto it = Type::type_aliases.find(type_name);
 		if ( it == Type::type_aliases.end() )
-			it = Type::type_aliases.emplace(std::string {type_name}, TypePtrSet {}).first;
+			it = Type::type_aliases.emplace(std::string{type_name}, TypePtrSet{}).first;
 		return it->second.emplace(std::move(type)).second;
 		}
 
 	[[deprecated("Remove in v4.1. Use zeek::Type::RegisterAlias().")]] static void
 	AddAlias(const std::string& type_name, Type* type)
 		{
-		Type::type_aliases[type_name].insert({NewRef {}, type});
+		Type::type_aliases[type_name].insert({NewRef{}, type});
 		}
 
 protected:
@@ -747,7 +747,7 @@ class OpaqueType final : public Type
 public:
 	explicit OpaqueType(const std::string& name);
 	TypePtr ShallowClone() override { return make_intrusive<OpaqueType>(name); }
-	~OpaqueType() override {};
+	~OpaqueType() override{};
 
 	const std::string& Name() const { return name; }
 

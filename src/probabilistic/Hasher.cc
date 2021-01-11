@@ -54,8 +54,8 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed)
 
 broker::expected<broker::data> Hasher::Serialize() const
 	{
-	return {broker::vector {static_cast<uint64_t>(Type()), static_cast<uint64_t>(k), seed.h[0],
-	                        seed.h[1]}};
+	return {broker::vector{static_cast<uint64_t>(Type()), static_cast<uint64_t>(k), seed.h[0],
+	                       seed.h[1]}};
 	}
 
 std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)

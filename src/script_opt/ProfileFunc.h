@@ -95,7 +95,7 @@ protected:
 
 	void UpdateHash(int val)
 		{
-		auto h = std::hash<int> {}(val);
+		auto h = std::hash<int>{}(val);
 		MergeInHash(h);
 		}
 

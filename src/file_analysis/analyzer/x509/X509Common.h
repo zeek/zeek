@@ -28,7 +28,7 @@ namespace zeek::file_analysis::detail
 class X509Common : public file_analysis::Analyzer
 	{
 public:
-	~X509Common() override {};
+	~X509Common() override{};
 
 	/**
 	 * Retrieve an X509 extension value from an OpenSSL BIO to which it was

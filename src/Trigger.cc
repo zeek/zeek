@@ -249,7 +249,7 @@ bool Trigger::Eval()
 		return false;
 		}
 
-	f->SetTrigger({NewRef {}, this});
+	f->SetTrigger({NewRef{}, this});
 
 	ValPtr v;
 	IndexExprWhen::StartEval();
@@ -340,7 +340,7 @@ void Trigger::Timeout()
 	if ( timeout_stmts )
 		{
 		StmtFlowType flow;
-		FramePtr f {AdoptRef {}, frame->Clone()};
+		FramePtr f{AdoptRef{}, frame->Clone()};
 		ValPtr v;
 
 		try

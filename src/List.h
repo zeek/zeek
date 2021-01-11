@@ -255,16 +255,16 @@ public:
 	T replace(int ent_index, const T& new_ent) // replace entry #i with a new value
 		{
 		if ( ent_index < 0 )
-			return T {};
+			return T{};
 
-		T old_ent {};
+		T old_ent{};
 
 		if ( ent_index > num_entries - 1 )
 			{ // replacement beyond the end of the list
 			resize(ent_index + 1);
 
 			for ( int i = num_entries; i < max_entries; ++i )
-				entries[i] = T {};
+				entries[i] = T{};
 			num_entries = max_entries;
 			}
 		else
@@ -293,10 +293,10 @@ public:
 	const_iterator cbegin() const { return entries; }
 	const_iterator cend() const { return entries + num_entries; }
 
-	reverse_iterator rbegin() { return reverse_iterator {end()}; }
-	reverse_iterator rend() { return reverse_iterator {begin()}; }
-	const_reverse_iterator rbegin() const { return const_reverse_iterator {end()}; }
-	const_reverse_iterator rend() const { return const_reverse_iterator {begin()}; }
+	reverse_iterator rbegin() { return reverse_iterator{end()}; }
+	reverse_iterator rend() { return reverse_iterator{begin()}; }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator{end()}; }
+	const_reverse_iterator rend() const { return const_reverse_iterator{begin()}; }
 	const_reverse_iterator crbegin() const { return rbegin(); }
 	const_reverse_iterator crend() const { return rend(); }
 

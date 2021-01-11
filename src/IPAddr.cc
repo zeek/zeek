@@ -16,7 +16,7 @@
 namespace zeek
 {
 
-const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr {});
+const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
 
 const IPAddr IPAddr::v6_unspecified = IPAddr();
 

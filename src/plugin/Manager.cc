@@ -687,7 +687,7 @@ std::pair<bool, ValPtr> Manager::HookCallFunction(const Func* func, zeek::detail
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	std::pair<bool, ValPtr> rval {false, nullptr};
+	std::pair<bool, ValPtr> rval{false, nullptr};
 
 	if ( l )
 		{

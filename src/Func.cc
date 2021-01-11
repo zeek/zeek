@@ -133,13 +133,13 @@ std::string render_call_stack()
 Func::Func()
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back({NewRef {}, this});
+	unique_ids.push_back({NewRef{}, this});
 	}
 
 Func::Func(Kind arg_kind) : kind(arg_kind)
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back({NewRef {}, this});
+	unique_ids.push_back({NewRef{}, this});
 	}
 
 Func::~Func() = default;
@@ -160,7 +160,7 @@ FuncPtr Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
 	// that is different across instances.
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
 void Func::DescribeDebug(ODesc* d, const Args* args) const
@@ -367,13 +367,13 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	// Hand down any trigger.
 	if ( parent )
 		{
-		f->SetTrigger({NewRef {}, parent->GetTrigger()});
+		f->SetTrigger({NewRef{}, parent->GetTrigger()});
 		f->SetCall(parent->GetCall());
 		}
 
 	g_frame_stack.push_back(f.get()); // used for backtracing
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-	call_stack.emplace_back(CallInfo {call_expr, this, *args});
+	call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
 	if ( g_trace_state.DoTrace() )
 		{
@@ -570,7 +570,7 @@ FuncPtr ScriptFunc::DoClone()
 	{
 	// ScriptFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	auto other = IntrusivePtr {AdoptRef {}, new ScriptFunc()};
+	auto other = IntrusivePtr{AdoptRef{}, new ScriptFunc()};
 
 	CopyStateInto(other.get());
 
@@ -626,7 +626,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name, bool arg_
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->GetType<FuncType>();
-	id->SetVal(make_intrusive<Val>(IntrusivePtr {NewRef {}, this}));
+	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
 	id->SetConst();
 	}
 
@@ -664,7 +664,7 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const
 		}
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-	call_stack.emplace_back(CallInfo {call_expr, this, *args});
+	call_stack.emplace_back(CallInfo{call_expr, this, *args});
 	auto result = std::move(func(parent, args).rval);
 	call_stack.pop_back();
 

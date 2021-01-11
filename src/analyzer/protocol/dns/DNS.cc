@@ -707,7 +707,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 					break;
 					}
 
-				detail::EDNS_ECS opt {};
+				detail::EDNS_ECS opt{};
 				uint16_t ecs_family = ExtractShort(data, option_len);
 				uint16_t source_scope = ExtractShort(data, option_len);
 				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
@@ -809,8 +809,8 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
 			case TYPE_TCP_KA:
 				{
-				EDNS_TCP_KEEPALIVE edns_tcp_keepalive {.keepalive_timeout_omitted = true,
-				                                       .keepalive_timeout = 0};
+				EDNS_TCP_KEEPALIVE edns_tcp_keepalive{.keepalive_timeout_omitted = true,
+				                                      .keepalive_timeout = 0};
 				if ( option_len == 0 || option_len == 2 )
 					{
 					// 0 bytes is permitted by RFC 7828, showing that the timeout value is omitted.
@@ -843,7 +843,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
 			case TYPE_COOKIE:
 				{
-				EDNS_COOKIE cookie {};
+				EDNS_COOKIE cookie{};
 				if ( option_len != 8 && ! (option_len >= 16 && option_len <= 40) )
 					{
 					/*

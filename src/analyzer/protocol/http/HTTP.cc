@@ -476,7 +476,7 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h)
 
 		data_chunk_t vt = h->get_value_token();
 		if ( analyzer::mime::istrequal(vt, "chunked") &&
-		     http_version == HTTP_Analyzer::HTTP_VersionNumber {1, 1} )
+		     http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
@@ -1310,7 +1310,7 @@ HTTP_Analyzer::HTTP_VersionNumber HTTP_Analyzer::HTTP_Version(int len, const cha
 
 void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber new_version)
 	{
-	if ( *version == HTTP_VersionNumber {} )
+	if ( *version == HTTP_VersionNumber{} )
 		*version = new_version;
 
 	else if ( *version != new_version )

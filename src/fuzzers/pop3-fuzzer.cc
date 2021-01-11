@@ -45,7 +45,7 @@ static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	{
-	zeek::detail::FuzzBuffer fb {data, size};
+	zeek::detail::FuzzBuffer fb{data, size};
 
 	if ( ! fb.Valid() )
 		return 0;

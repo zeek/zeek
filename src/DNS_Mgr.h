@@ -83,8 +83,8 @@ public:
 		LookupCallback() { }
 		virtual ~LookupCallback() { }
 
-		virtual void Resolved(const char* name) {};
-		virtual void Resolved(TableVal* addrs) {};
+		virtual void Resolved(const char* name){};
+		virtual void Resolved(TableVal* addrs){};
 		virtual void Timeout() = 0;
 		};
 

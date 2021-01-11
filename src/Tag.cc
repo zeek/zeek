@@ -18,7 +18,7 @@ Tag::Tag(const EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
 	}
 
 Tag::Tag(EnumType* etype, type_t arg_type, subtype_t arg_subtype)
-	: Tag({NewRef {}, etype}, arg_type, arg_subtype)
+	: Tag({NewRef{}, etype}, arg_type, arg_subtype)
 	{
 	}
 
@@ -33,7 +33,7 @@ Tag::Tag(EnumValPtr arg_val)
 	subtype = (i >> 31) & 0xffffffff;
 	}
 
-Tag::Tag(EnumVal* arg_val) : Tag({NewRef {}, arg_val}) { }
+Tag::Tag(EnumVal* arg_val) : Tag({NewRef{}, arg_val}) { }
 
 Tag::Tag(const Tag& other)
 	{
@@ -88,7 +88,7 @@ const EnumValPtr& Tag::AsVal(const EnumTypePtr& etype) const
 
 EnumVal* Tag::AsEnumVal(EnumType* etype) const
 	{
-	return AsVal({NewRef {}, etype}).get();
+	return AsVal({NewRef{}, etype}).get();
 	}
 
 std::string Tag::AsString() const

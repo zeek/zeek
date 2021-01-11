@@ -111,7 +111,7 @@ public:
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	Enqueue(const EventHandlerPtr& h, Args&&... args)
 		{
-		return Enqueue(h, zeek::Args {std::forward<Args>(args)...});
+		return Enqueue(h, zeek::Args{std::forward<Args>(args)...});
 		}
 
 	void Dispatch(Event* event, bool no_remote = false);

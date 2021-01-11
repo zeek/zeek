@@ -98,7 +98,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		vl = {
 			ConnVal(),
-			IntrusivePtr {AdoptRef {}, cmd_str},
+			IntrusivePtr{AdoptRef{}, cmd_str},
 			make_intrusive<StringVal>(end_of_line - line, line),
 		};
 

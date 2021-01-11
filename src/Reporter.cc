@@ -617,7 +617,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
 		if ( addl )
 			for ( auto v : *addl )
-				vl.emplace_back(AdoptRef {}, v);
+				vl.emplace_back(AdoptRef{}, v);
 
 		if ( conn )
 			conn->EnqueueEvent(event, nullptr, std::move(vl));

@@ -112,8 +112,8 @@ class StoreHandleVal : public OpaqueVal
 	{
 public:
 	StoreHandleVal(broker::store s)
-		: OpaqueVal(Broker::detail::opaque_of_store_handle), store {s}, proxy {store},
-		  store_pid {store.frontend_id()}
+		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{s}, proxy{store},
+		  store_pid{store.frontend_id()}
 		{
 		}
 
@@ -126,7 +126,7 @@ public:
 	TableValPtr forward_to;
 
 protected:
-	IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef {}, this}; }
+	IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
 
 	StoreHandleVal() : OpaqueVal(Broker::detail::opaque_of_store_handle) { }
 

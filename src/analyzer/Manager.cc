@@ -578,7 +578,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
                                Val* analyzer, double timeout)
 	{
-	EnumValPtr ev {NewRef {}, analyzer->AsEnumVal()};
+	EnumValPtr ev{NewRef{}, analyzer->AsEnumVal()};
 	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(), Tag(std::move(ev)),
 	                        timeout);
 	}

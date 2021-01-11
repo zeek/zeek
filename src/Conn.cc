@@ -355,7 +355,7 @@ const RecordValPtr& Connection::ConnVal()
 		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
-		char null[l2_len] {};
+		char null[l2_len]{};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
 			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
@@ -473,10 +473,10 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 		}
 
 	if ( v2 )
-		EnqueueEvent(f, analyzer, ConnVal(), IntrusivePtr {AdoptRef {}, v1},
-		             IntrusivePtr {AdoptRef {}, v2});
+		EnqueueEvent(f, analyzer, ConnVal(), IntrusivePtr{AdoptRef{}, v1},
+		             IntrusivePtr{AdoptRef{}, v2});
 	else
-		EnqueueEvent(f, analyzer, ConnVal(), IntrusivePtr {AdoptRef {}, v1});
+		EnqueueEvent(f, analyzer, ConnVal(), IntrusivePtr{AdoptRef{}, v1});
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)

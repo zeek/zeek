@@ -29,6 +29,6 @@ EnumVal* Tag::AsEnumVal() const
 
 Tag::Tag(EnumValPtr val) : zeek::Tag(std::move(val)) { }
 
-Tag::Tag(EnumVal* val) : zeek::Tag({NewRef {}, val}) { }
+Tag::Tag(EnumVal* val) : zeek::Tag({NewRef{}, val}) { }
 
 } // namespace zeek::analyzer

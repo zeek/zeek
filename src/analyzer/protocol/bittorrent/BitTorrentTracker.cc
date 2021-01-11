@@ -335,8 +335,8 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_request )
-		EnqueueConnEvent(bt_tracker_request, ConnVal(), IntrusivePtr {AdoptRef {}, req_val_uri},
-		                 IntrusivePtr {AdoptRef {}, req_val_headers});
+		EnqueueConnEvent(bt_tracker_request, ConnVal(), IntrusivePtr{AdoptRef{}, req_val_uri},
+		                 IntrusivePtr{AdoptRef{}, req_val_headers});
 
 	req_val_uri = nullptr;
 	req_val_headers = nullptr;
@@ -388,7 +388,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 					if ( bt_tracker_response_not_ok )
 						EnqueueConnEvent(bt_tracker_response_not_ok, ConnVal(),
 						                 val_mgr->Count(res_status),
-						                 IntrusivePtr {AdoptRef {}, res_val_headers});
+						                 IntrusivePtr{AdoptRef{}, res_val_headers});
 					res_val_headers = nullptr;
 					res_buf_pos = res_buf + res_buf_len;
 					res_state = detail::BTT_RES_DONE;
@@ -778,9 +778,9 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 
 	if ( bt_tracker_response )
 		EnqueueConnEvent(bt_tracker_response, ConnVal(), val_mgr->Count(res_status),
-		                 IntrusivePtr {AdoptRef {}, res_val_headers},
-		                 IntrusivePtr {AdoptRef {}, res_val_peers},
-		                 IntrusivePtr {AdoptRef {}, res_val_benc});
+		                 IntrusivePtr{AdoptRef{}, res_val_headers},
+		                 IntrusivePtr{AdoptRef{}, res_val_peers},
+		                 IntrusivePtr{AdoptRef{}, res_val_benc});
 
 	res_val_headers = nullptr;
 	res_val_peers = nullptr;

@@ -54,7 +54,7 @@ PointerAlignment: Left
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: true
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeCpp11BracedList: true
+SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements

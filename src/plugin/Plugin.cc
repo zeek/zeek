@@ -382,9 +382,9 @@ std::pair<bool, ValPtr> Plugin::HookFunctionCall(const Func* func, zeek::detail:
 #pragma GCC diagnostic pop
 
 	for ( auto i = 0u; i < args->size(); ++i )
-		(*args)[i] = {AdoptRef {}, vlargs[i]};
+		(*args)[i] = {AdoptRef{}, vlargs[i]};
 
-	return {handled, {AdoptRef {}, result}};
+	return {handled, {AdoptRef{}, result}};
 	}
 
 std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, zeek::detail::Frame* parent,

@@ -560,7 +560,7 @@ SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
 
 			else if ( tl.size() == 1 )
 				{
-				TypePtr ft {NewRef {}, flatten_type(tl[0].get())};
+				TypePtr ft{NewRef{}, flatten_type(tl[0].get())};
 				indices = make_intrusive<TypeList>(ft);
 				indices->Append(std::move(ft));
 				}
@@ -620,7 +620,7 @@ FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg
 		offsets[i] = i;
 		}
 
-	prototypes.emplace_back(Prototype {false, "", args, std::move(offsets)});
+	prototypes.emplace_back(Prototype{false, "", args, std::move(offsets)});
 	}
 
 TypePtr FuncType::ShallowClone()
@@ -667,7 +667,7 @@ bool FuncType::CheckArgs(const TypePList* args, bool is_init) const
 	as.reserve(args->length());
 
 	for ( auto a : *args )
-		as.emplace_back(NewRef {}, a);
+		as.emplace_back(NewRef{}, a);
 
 	return CheckArgs(as, is_init);
 	}
@@ -1300,11 +1300,11 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, bro_
 	if ( ! id )
 		{
 		id = detail::install_ID(name, module_name.c_str(), true, is_export);
-		id->SetType({NewRef {}, this});
+		id->SetType({NewRef{}, this});
 		id->SetEnumConst();
 
 		if ( deprecation )
-			id->MakeDeprecated({NewRef {}, deprecation});
+			id->MakeDeprecated({NewRef{}, deprecation});
 
 		detail::zeekygen_mgr->Identifier(std::move(id), from_redef);
 		}
@@ -1330,7 +1330,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, bro_
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = make_intrusive<EnumVal>(IntrusivePtr {NewRef {}, this}, val);
+		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 
 	const auto& types = Type::Aliases(GetName());
 
@@ -1381,7 +1381,7 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 
 	if ( it == vals.end() )
 		{
-		auto ev = make_intrusive<EnumVal>(IntrusivePtr {NewRef {}, this}, i);
+		auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
 		return vals.emplace(i, std::move(ev)).first->second;
 		}
 
@@ -2176,7 +2176,7 @@ TypePtr init_type(detail::Expr* init)
 	auto t = e0->InitType();
 
 	if ( t )
-		t = {NewRef {}, reduce_type(t.get())};
+		t = {NewRef{}, reduce_type(t.get())};
 
 	if ( ! t )
 		return nullptr;
@@ -2187,7 +2187,7 @@ TypePtr init_type(detail::Expr* init)
 		TypePtr ti;
 
 		if ( el_t )
-			ti = {NewRef {}, reduce_type(el_t.get())};
+			ti = {NewRef{}, reduce_type(el_t.get())};
 
 		if ( ! ti )
 			return nullptr;

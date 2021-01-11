@@ -152,7 +152,7 @@ void EventMgr::Dispatch(Event* event, bool no_remote)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		Enqueue(event_queue_flush_point, Args {});
+		Enqueue(event_queue_flush_point, Args{});
 
 	detail::SegmentProfiler prof(detail::segment_logger, "draining-events");
 

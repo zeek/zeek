@@ -213,7 +213,7 @@ struct val_converter
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, tt});
+		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 		for ( auto& item : a )
 			{
@@ -270,7 +270,7 @@ struct val_converter
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, tt});
+		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 		for ( auto& item : a )
 			{
@@ -331,7 +331,7 @@ struct val_converter
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = make_intrusive<VectorVal>(IntrusivePtr {NewRef {}, vt});
+			auto rval = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
 
 			for ( auto& item : a )
 				{
@@ -415,7 +415,7 @@ struct val_converter
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = make_intrusive<RecordVal>(IntrusivePtr {NewRef {}, rt});
+			auto rval = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
 			auto idx = 0u;
 
 			for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i )
@@ -801,7 +801,7 @@ static bool data_type_check(const broker::data& d, Type* t)
 	if ( t->Tag() == TYPE_ANY )
 		return true;
 
-	return caf::visit(type_checker {t}, d);
+	return caf::visit(type_checker{t}, d);
 	}
 
 ValPtr data_to_val(broker::data d, Type* type)
@@ -809,7 +809,7 @@ ValPtr data_to_val(broker::data d, Type* type)
 	if ( type->Tag() == TYPE_ANY )
 		return make_data_val(move(d));
 
-	return caf::visit(val_converter {type}, std::move(d));
+	return caf::visit(val_converter{type}, std::move(d));
 	}
 
 broker::expected<broker::data> val_to_data(const Val* v)
@@ -852,13 +852,13 @@ broker::expected<broker::data> val_to_data(const Val* v)
 			return {v->AsDouble()};
 		case TYPE_TIME:
 			{
-			auto secs = broker::fractional_seconds {v->AsTime()};
+			auto secs = broker::fractional_seconds{v->AsTime()};
 			auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
-			return {broker::timestamp {since_epoch}};
+			return {broker::timestamp{since_epoch}};
 			}
 		case TYPE_INTERVAL:
 			{
-			auto secs = broker::fractional_seconds {v->AsInterval()};
+			auto secs = broker::fractional_seconds{v->AsInterval()};
 			return {std::chrono::duration_cast<broker::timespan>(secs)};
 			}
 		case TYPE_ENUM:
@@ -1163,7 +1163,7 @@ struct data_type_getter
 
 EnumValPtr get_data_type(RecordVal* v, zeek::detail::Frame* frame)
 	{
-	return caf::visit(data_type_getter {}, opaque_field_to_data(v, frame));
+	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}
 
 broker::data& opaque_field_to_data(RecordVal* v, zeek::detail::Frame* f)
@@ -1219,7 +1219,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
 
 broker::expected<broker::data> SetIterator::DoSerialize() const
 	{
-	return broker::vector {dat, *it};
+	return broker::vector{dat, *it};
 	}
 
 bool SetIterator::DoUnserialize(const broker::data& data)
@@ -1246,7 +1246,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
 
 broker::expected<broker::data> TableIterator::DoSerialize() const
 	{
-	return broker::vector {dat, it->first};
+	return broker::vector{dat, it->first};
 	}
 
 bool TableIterator::DoUnserialize(const broker::data& data)
@@ -1274,7 +1274,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
 broker::expected<broker::data> VectorIterator::DoSerialize() const
 	{
 	broker::integer difference = it - dat.begin();
-	return broker::vector {dat, difference};
+	return broker::vector{dat, difference};
 	}
 
 bool VectorIterator::DoUnserialize(const broker::data& data)
@@ -1299,7 +1299,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 broker::expected<broker::data> RecordIterator::DoSerialize() const
 	{
 	broker::integer difference = it - dat.begin();
-	return broker::vector {dat, difference};
+	return broker::vector{dat, difference};
 	}
 
 bool RecordIterator::DoUnserialize(const broker::data& data)

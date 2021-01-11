@@ -14,7 +14,7 @@ Args val_list_to_args(const ValPList& vl)
 	rval.reserve(vl.length());
 
 	for ( auto& v : vl )
-		rval.emplace_back(AdoptRef {}, v);
+		rval.emplace_back(AdoptRef{}, v);
 
 	return rval;
 	}

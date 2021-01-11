@@ -169,7 +169,7 @@ extern uint16_t in_cksum(const checksum_block* blocks, int num_blocks);
 
 inline uint16_t in_cksum(const uint8_t* data, int len)
 	{
-	checksum_block cb {data, len};
+	checksum_block cb{data, len};
 	return in_cksum(&cb, 1);
 	}
 

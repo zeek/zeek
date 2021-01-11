@@ -154,8 +154,8 @@ Pipe& Pipe::operator=(const Pipe& other)
 	}
 
 PipePair::PipePair(int flags, int status_flags, int* fds)
-	: pipes {Pipe(flags, flags, status_flags, status_flags, fds ? fds + 0 : nullptr),
-             Pipe(flags, flags, status_flags, status_flags, fds ? fds + 2 : nullptr)}
+	: pipes{Pipe(flags, flags, status_flags, status_flags, fds ? fds + 0 : nullptr),
+            Pipe(flags, flags, status_flags, status_flags, fds ? fds + 2 : nullptr)}
 	{
 	}
 

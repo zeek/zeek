@@ -41,7 +41,7 @@ using namespace std;
 namespace zeek
 {
 
-Val::Val(Func* f) : Val({NewRef {}, f}) { }
+Val::Val(Func* f) : Val({NewRef{}, f}) { }
 
 Val::Val(FuncPtr f) : val(f.release()), type(val.func_val->GetType()) { }
 
@@ -52,7 +52,7 @@ static const FileTypePtr& GetStringFileType() noexcept
 	return string_file_type;
 	}
 
-Val::Val(File* f) : Val({AdoptRef {}, f}) { }
+Val::Val(File* f) : Val({AdoptRef{}, f}) { }
 
 Val::Val(FilePtr f) : val(f.release()), type(GetStringFileType())
 	{
@@ -122,7 +122,7 @@ ValPtr Val::Clone(CloneState* state)
 	auto i = state->clones.find(this);
 
 	if ( i != state->clones.end() )
-		return {NewRef {}, i->second};
+		return {NewRef{}, i->second};
 
 	auto c = DoClone(state);
 
@@ -140,7 +140,7 @@ ValPtr Val::DoClone(CloneState* state)
 		case TYPE_INTERNAL_UNSIGNED:
 		case TYPE_INTERNAL_DOUBLE:
 			// Immutable.
-			return {NewRef {}, this};
+			return {NewRef{}, this};
 
 		case TYPE_INTERNAL_OTHER:
 			// Derived classes are responsible for this. Exception:
@@ -160,12 +160,12 @@ ValPtr Val::DoClone(CloneState* state)
 				// automatically opened. This does not happen anymore - instead you
 				// get the non-cached pointer back which is brought back into the
 				// cache when written too.
-				return {NewRef {}, this};
+				return {NewRef{}, this};
 				}
 
 			if ( type->Tag() == TYPE_TYPE )
 				// These are immutable, essentially.
-				return {NewRef {}, this};
+				return {NewRef{}, this};
 
 			// Fall-through.
 
@@ -180,7 +180,7 @@ ValPtr Val::DoClone(CloneState* state)
 FuncPtr Val::AsFuncPtr() const
 	{
 	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
-	return {NewRef {}, val.func_val};
+	return {NewRef{}, val.func_val};
 	}
 
 bool Val::IsZero() const
@@ -718,9 +718,8 @@ void IntervalVal::ValDescribe(ODesc* d) const
 	using unit_word = std::pair<double, const char*>;
 
 	constexpr std::array<unit_word, 6> units = {
-		unit_word {Days, "day"},          unit_word {Hours, "hr"},
-		unit_word {Minutes, "min"},       unit_word {Seconds, "sec"},
-		unit_word {Milliseconds, "msec"}, unit_word {Microseconds, "usec"},
+		unit_word{Days, "day"},    unit_word{Hours, "hr"},          unit_word{Minutes, "min"},
+		unit_word{Seconds, "sec"}, unit_word{Milliseconds, "msec"}, unit_word{Microseconds, "usec"},
 	};
 
 	double v = val.double_val;
@@ -866,7 +865,7 @@ void PortVal::ValDescribe(ODesc* d) const
 ValPtr PortVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
 AddrVal::AddrVal(const char* text) : Val(new IPAddr(text), TYPE_ADDR) { }
@@ -905,7 +904,7 @@ ValPtr AddrVal::SizeVal() const
 ValPtr AddrVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
 SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
@@ -917,12 +916,12 @@ SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
 SubNetVal::SubNetVal(const char* text, int width) : Val(new IPPrefix(text, width), TYPE_SUBNET) { }
 
 SubNetVal::SubNetVal(uint32_t addr, int width)
-	: SubNetVal(IPAddr {IPv4, &addr, IPAddr::Network}, width)
+	: SubNetVal(IPAddr{IPv4, &addr, IPAddr::Network}, width)
 	{
 	}
 
 SubNetVal::SubNetVal(const uint32_t* addr, int width)
-	: SubNetVal(IPAddr {IPv6, addr, IPAddr::Network}, width)
+	: SubNetVal(IPAddr{IPv6, addr, IPAddr::Network}, width)
 	{
 	}
 
@@ -999,7 +998,7 @@ bool SubNetVal::Contains(const IPAddr& addr) const
 ValPtr SubNetVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
 StringVal::StringVal(String* s) : Val(s, TYPE_STRING) { }
@@ -1253,7 +1252,7 @@ void ListVal::Append(ValPtr v)
 
 void ListVal::Append(Val* v)
 	{
-	Append({AdoptRef {}, v});
+	Append({AdoptRef{}, v});
 	}
 
 TableValPtr ListVal::ToSetVal() const
@@ -1414,7 +1413,7 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 		find_nested_record_types(t, &found);
 
 		for ( auto rt : found )
-			parse_time_table_record_dependencies[rt].emplace_back(NewRef {}, this);
+			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);
 		}
 	}
 
@@ -1508,7 +1507,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 		assert(c);
 		assert(c->GetType()->Tag() == TYPE_STRING);
 		broker_store = c->AsStringVal()->AsString()->CheckString();
-		broker_mgr->AddForwardedStore(broker_store, {NewRef {}, this});
+		broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
 		}
 	}
 
@@ -1555,7 +1554,7 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward,
 
 bool TableVal::Assign(Val* index, Val* new_val)
 	{
-	return Assign({NewRef {}, index}, {AdoptRef {}, new_val});
+	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
 	}
 
 bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val,
@@ -1615,7 +1614,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 
 bool TableVal::Assign(Val* index, detail::HashKey* k, Val* new_val)
 	{
-	return Assign({NewRef {}, index}, std::unique_ptr<detail::HashKey> {k}, {AdoptRef {}, new_val});
+	return Assign({NewRef{}, index}, std::unique_ptr<detail::HashKey>{k}, {AdoptRef{}, new_val});
 	}
 
 ValPtr TableVal::SizeVal() const
@@ -1651,7 +1650,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	TableEntryVal* v;
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
-		std::unique_ptr<detail::HashKey> hk {k};
+		std::unique_ptr<detail::HashKey> hk{k};
 
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
@@ -1999,7 +1998,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 	{
 	static ValPtr last_default;
 	last_default = nullptr;
-	ValPtr idx {NewRef {}, index};
+	ValPtr idx{NewRef{}, index};
 
 	if ( const auto& rval = Find(idx) )
 		return rval.get();
@@ -2112,7 +2111,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
 		else
 			vl.reserve(3 + table_type->IsTable());
 
-		vl.emplace_back(NewRef {}, this);
+		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
 			{
@@ -2270,7 +2269,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
 	ValPtr va;
 
 	if ( v )
-		va = v->GetVal() ? v->GetVal() : IntrusivePtr {NewRef {}, this};
+		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
 	if ( subnets && ! subnets->Remove(&index) )
 		reporter->InternalWarning("index not in prefix table");
@@ -2298,7 +2297,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated)
 	ValPtr va;
 
 	if ( v )
-		va = v->GetVal() ? v->GetVal() : IntrusivePtr {NewRef {}, this};
+		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
 	if ( subnets )
 		{
@@ -2471,7 +2470,7 @@ bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val)
 	{
 	Val* ind_k_v = lv->Idx(k).get();
 	auto ind_k = ind_k_v->GetType()->IsSet() ? ind_k_v->AsTableVal()->ToListVal()
-	                                         : ListValPtr {NewRef {}, ind_k_v->AsListVal()};
+	                                         : ListValPtr{NewRef{}, ind_k_v->AsListVal()};
 
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
@@ -2702,7 +2701,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 			{
 			auto lv = idx->AsListVal();
 			vl.reserve(1 + lv->Length());
-			vl.emplace_back(NewRef {}, this);
+			vl.emplace_back(NewRef{}, this);
 
 			for ( const auto& v : lv->Vals() )
 				vl.emplace_back(v);
@@ -2710,7 +2709,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 		else
 			{
 			vl.reserve(2);
-			vl.emplace_back(NewRef {}, this);
+			vl.emplace_back(NewRef{}, this);
 
 			ListVal* idx_list = idx->AsListVal();
 			// Flatten if only one element
@@ -2868,7 +2867,7 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t, bool init_fields) : RecordVal({NewRef {}, t}, init_fields) { }
+RecordVal::RecordVal(RecordType* t, bool init_fields) : RecordVal({NewRef{}, t}, init_fields) { }
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	{
@@ -2879,7 +2878,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	vl->reserve(n);
 
 	if ( run_state::is_parsing )
-		parse_time_records[rt].emplace_back(NewRef {}, this);
+		parse_time_records[rt].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
 		return;
@@ -2925,8 +2924,8 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				def = make_intrusive<RecordVal>(cast_intrusive<RecordType>(type));
 
 			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<TableVal>(IntrusivePtr {NewRef {}, type->AsTableType()},
-				                               IntrusivePtr {NewRef {}, a});
+				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
+				                               IntrusivePtr{NewRef{}, a});
 
 			else if ( tag == TYPE_VECTOR )
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
@@ -2954,7 +2953,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 void RecordVal::Assign(int field, Val* new_val)
 	{
-	Assign(field, {AdoptRef {}, new_val});
+	Assign(field, {AdoptRef{}, new_val});
 	}
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
@@ -3079,7 +3078,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, RecordValPtr aggr, bool allow_
 RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, bool allow_orphaning)
 	{
 	if ( same_type(GetType(), t) )
-		return {NewRef {}, this};
+		return {NewRef{}, this};
 
 	return CoerceTo(std::move(t), nullptr, allow_orphaning);
 	}
@@ -3210,10 +3209,10 @@ void EnumVal::ValDescribe(ODesc* d) const
 ValPtr EnumVal::DoClone(CloneState* state)
 	{
 	// Immutable.
-	return {NewRef {}, this};
+	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef {}, t}) { }
+VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t}) { }
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
 	{
@@ -3589,7 +3588,7 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
 	if ( same_type(v->GetType(), t) )
-		return {NewRef {}, v};
+		return {NewRef{}, v};
 
 	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) )
 		{
@@ -3651,17 +3650,17 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 
 ValPtr Val::MakeBool(bool b)
 	{
-	return IntrusivePtr {AdoptRef {}, new Val(bro_int_t(b), TYPE_BOOL)};
+	return IntrusivePtr{AdoptRef{}, new Val(bro_int_t(b), TYPE_BOOL)};
 	}
 
 ValPtr Val::MakeInt(bro_int_t i)
 	{
-	return IntrusivePtr {AdoptRef {}, new Val(i, TYPE_INT)};
+	return IntrusivePtr{AdoptRef{}, new Val(i, TYPE_INT)};
 	}
 
 ValPtr Val::MakeCount(bro_uint_t u)
 	{
-	return IntrusivePtr {AdoptRef {}, new Val(u, TYPE_COUNT)};
+	return IntrusivePtr{AdoptRef{}, new Val(u, TYPE_COUNT)};
 	}
 
 ValManager::ValManager()
@@ -3682,7 +3681,7 @@ ValManager::ValManager()
 		auto port_type = (TransportProto)i;
 
 		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = IntrusivePtr {AdoptRef {}, new PortVal(PortVal::Mask(j, port_type))};
+			arr[j] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(j, port_type))};
 		}
 	}
 

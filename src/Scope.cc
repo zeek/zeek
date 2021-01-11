@@ -188,7 +188,7 @@ ScopePtr pop_scope()
 
 	top_scope = scopes.empty() ? nullptr : scopes.back();
 
-	return {AdoptRef {}, old_top};
+	return {AdoptRef{}, old_top};
 	}
 
 Scope* current_scope()

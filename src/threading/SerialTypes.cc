@@ -569,7 +569,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
 				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
-				t->Assign({AdoptRef {}, assignval}, nullptr);
+				t->Assign({AdoptRef{}, assignval}, nullptr);
 				}
 
 			return t;
@@ -597,7 +597,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
 				{
 				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
-				v->Assign(j, {AdoptRef {}, el});
+				v->Assign(j, {AdoptRef{}, el});
 				}
 
 			return v.release();

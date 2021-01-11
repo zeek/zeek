@@ -296,7 +296,7 @@ void ID::MakeDeprecated(ExprPtr deprecation)
 	if ( IsDeprecated() )
 		return;
 
-	std::vector<AttrPtr> attrv {make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
+	std::vector<AttrPtr> attrv{make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
 	AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 	}
 
@@ -340,7 +340,7 @@ void ID::SetOption()
 	// option implied redefinable
 	if ( ! IsRedefinable() )
 		{
-		std::vector<AttrPtr> attrv {make_intrusive<Attr>(ATTR_REDEF)};
+		std::vector<AttrPtr> attrv{make_intrusive<Attr>(ATTR_REDEF)};
 		AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 		}
 	}

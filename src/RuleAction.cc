@@ -26,7 +26,7 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state, con
 	if ( signature_match )
 		event_mgr.Enqueue(
 			signature_match,
-			IntrusivePtr {AdoptRef {}, rule_matcher->BuildRuleStateValue(parent, state)},
+			IntrusivePtr{AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
 			make_intrusive<StringVal>(msg),
 			data ? make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString());
 	}

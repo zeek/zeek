@@ -274,7 +274,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 				if ( init && t )
 					// Have an initialization and type is not deduced.
 					init = make_intrusive<RecordCoerceExpr>(
-						std::move(init), IntrusivePtr {NewRef {}, t->AsRecordType()});
+						std::move(init), IntrusivePtr{NewRef{}, t->AsRecordType()});
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
@@ -413,7 +413,7 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 
 		if ( ! recv_i->attrs )
 			{
-			std::vector<AttrPtr> a {def};
+			std::vector<AttrPtr> a{def};
 			recv_i->attrs = make_intrusive<Attributes>(std::move(a), recv_i->type, true, false);
 			}
 

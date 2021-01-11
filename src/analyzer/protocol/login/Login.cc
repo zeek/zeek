@@ -418,9 +418,9 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line, bool no_use
 
 	Val* password = HaveTypeahead() ? PopUserTextVal() : new StringVal("<none>");
 
-	EnqueueConnEvent(f, ConnVal(), IntrusivePtr {NewRef {}, username},
-	                 client_name ? IntrusivePtr {NewRef {}, client_name} : val_mgr->EmptyString(),
-	                 IntrusivePtr {AdoptRef {}, password}, make_intrusive<StringVal>(line));
+	EnqueueConnEvent(f, ConnVal(), IntrusivePtr{NewRef{}, username},
+	                 client_name ? IntrusivePtr{NewRef{}, client_name} : val_mgr->EmptyString(),
+	                 IntrusivePtr{AdoptRef{}, password}, make_intrusive<StringVal>(line));
 	}
 
 const char* Login_Analyzer::GetUsername(const char* line) const

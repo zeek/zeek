@@ -220,7 +220,7 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 		zeek_start_network_time = t;
 
 		if ( network_time_init )
-			event_mgr.Enqueue(network_time_init, Args {});
+			event_mgr.Enqueue(network_time_init, Args{});
 		}
 
 	current_iosrc = pkt_src;

@@ -23,7 +23,7 @@ namespace zeek::detail
 class BifReturnVal
 	{
 public:
-	template <typename T> BifReturnVal(IntrusivePtr<T> v) noexcept : rval(AdoptRef {}, v.release())
+	template <typename T> BifReturnVal(IntrusivePtr<T> v) noexcept : rval(AdoptRef{}, v.release())
 		{
 		}
 

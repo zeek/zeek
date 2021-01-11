@@ -171,7 +171,7 @@ public:
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]] Val(zeek::Type* t,
 	                                                                            bool type_type)
-		: Val({NewRef {}, t}, type_type)
+		: Val({NewRef{}, t}, type_type)
 		{
 		}
 
@@ -794,7 +794,7 @@ public:
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]] explicit TableVal(
 		TableType* t, detail::Attributes* attrs = nullptr)
-		: TableVal({NewRef {}, t}, {NewRef {}, attrs})
+		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
 		{
 		}
 
@@ -1188,7 +1188,7 @@ public:
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]] void Assign(int field,
 	                                                                               Val* new_val);
 	// Note: the following nullptr method can also go upon removing the above.
-	void Assign(int field, std::nullptr_t) { Assign(field, ValPtr {}); }
+	void Assign(int field, std::nullptr_t) { Assign(field, ValPtr{}); }
 
 	[[deprecated("Remove in v4.1.  Use GetField().")]] Val*
 	Lookup(int field) const // Does not Ref() value.
@@ -1374,15 +1374,15 @@ public:
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]] bool
 	Assign(unsigned int index, Val* element)
 		{
-		return Assign(index, {AdoptRef {}, element});
+		return Assign(index, {AdoptRef{}, element});
 		}
 	// Note: the following nullptr method can also go upon removing the above.
-	void Assign(unsigned int index, std::nullptr_t) { Assign(index, ValPtr {}); }
+	void Assign(unsigned int index, std::nullptr_t) { Assign(index, ValPtr{}); }
 
 	[[deprecated("Remove in v4.1.  Assign using integer index and IntrusivePtr element.")]] bool
 	Assign(Val* index, Val* element)
 		{
-		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(), {AdoptRef {}, element});
+		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(), {AdoptRef{}, element});
 		}
 
 	/**
@@ -1397,7 +1397,7 @@ public:
 	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]] bool
 	AssignRepeat(unsigned int index, unsigned int how_many, Val* element)
 		{
-		return AssignRepeat(index, how_many, {NewRef {}, element});
+		return AssignRepeat(index, how_many, {NewRef{}, element});
 		}
 
 	// Add this value to the given value (if appropriate).
@@ -1447,7 +1447,7 @@ public:
 	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]] bool
 	Insert(unsigned int index, Val* element)
 		{
-		return Insert(index, {AdoptRef {}, element});
+		return Insert(index, {AdoptRef{}, element});
 		}
 
 	// Removes an element at a specific position.

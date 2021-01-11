@@ -233,7 +233,7 @@ public:
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
 		{
-		return EnqueueEvent(h, analyzer, zeek::Args {std::forward<Args>(args)...});
+		return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...});
 		}
 
 	void Weird(const char* name, const char* addl = "", const char* source = "");

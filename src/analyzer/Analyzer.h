@@ -611,7 +611,7 @@ public:
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
 		{
-		return EnqueueConnEvent(h, zeek::Args {std::forward<Args>(args)...});
+		return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...});
 		}
 
 	/**

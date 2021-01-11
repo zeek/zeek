@@ -321,7 +321,7 @@ RecordValPtr IPv6_Hdr::ToVal() const
 
 RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	{
-	return ToVal({AdoptRef {}, chain}).release();
+	return ToVal({AdoptRef{}, chain}).release();
 	}
 
 IPAddr IP_Hdr::IPHeaderSrcAddr() const
@@ -471,7 +471,7 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 
 RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 	{
-	return ToPktHdrVal({AdoptRef {}, pkt_hdr}, sindex).release();
+	return ToPktHdrVal({AdoptRef{}, pkt_hdr}, sindex).release();
 	}
 
 static inline bool isIPv6ExtHeader(uint8_t type)

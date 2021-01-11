@@ -68,7 +68,7 @@ void Frame::AddFunctionWithClosureRef(ScriptFunc* func)
 
 void Frame::SetElement(int n, Val* v)
 	{
-	SetElement(n, {AdoptRef {}, v});
+	SetElement(n, {AdoptRef{}, v});
 	}
 
 void Frame::SetElement(int n, ValPtr v)
@@ -84,7 +84,7 @@ void Frame::SetElementWeak(int n, Val* v)
 	n += current_offset;
 
 	ClearElement(n);
-	frame[n] = {{AdoptRef {}, v}, true};
+	frame[n] = {{AdoptRef{}, v}, true};
 	}
 
 void Frame::SetElement(const ID* id, ValPtr v)
@@ -365,7 +365,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 		if ( ! expected )
 			return broker::ec::invalid_data;
 
-		broker::vector val_tuple {std::move(*expected), static_cast<broker::integer>(tag)};
+		broker::vector val_tuple{std::move(*expected), static_cast<broker::integer>(tag)};
 		body[location] = val_tuple;
 		}
 
@@ -603,7 +603,7 @@ std::pair<bool, IDPList> Frame::UnserializeIDList(const broker::vector& data)
 			for ( auto& i : rval )
 				Unref(i);
 
-			rval = IDPList {};
+			rval = IDPList{};
 			return std::make_pair(false, std::move(rval));
 			}
 
@@ -615,7 +615,7 @@ std::pair<bool, IDPList> Frame::UnserializeIDList(const broker::vector& data)
 			for ( auto& i : rval )
 				Unref(i);
 
-			rval = IDPList {};
+			rval = IDPList{};
 			return std::make_pair(false, std::move(rval));
 			}
 

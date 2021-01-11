@@ -84,7 +84,7 @@ bool X509::EndOfFile()
 
 	// and send the record on to scriptland
 	if ( x509_certificate )
-		event_mgr.Enqueue(x509_certificate, GetFile()->ToVal(), IntrusivePtr {NewRef {}, cert_val},
+		event_mgr.Enqueue(x509_certificate, GetFile()->ToVal(), IntrusivePtr{NewRef{}, cert_val},
 		                  cert_record);
 
 	// after parsing the certificate - parse the extensions...

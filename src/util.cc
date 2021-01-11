@@ -1900,7 +1900,7 @@ TEST_CASE("util tokenize_string")
 	CHECK(v2.size() == 1);
 
 	auto svs = tokenize_string("one,two,three,four,", ',');
-	std::vector<std::string_view> expect {"one", "two", "three", "four", ""};
+	std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
 	CHECK(svs == expect);
 
 	auto letters = tokenize_string("a--b--c--d", "--");

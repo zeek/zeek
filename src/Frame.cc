@@ -409,11 +409,10 @@ broker::expected<broker::data> Frame::SerializeCopyFrame()
 		TypeTag tag = val->GetType()->Tag();
 		broker::vector val_tuple {std::move(*expected),
 				static_cast<broker::integer>(tag)};
-		body.emplace_back(broker::none());
-		body[i] = val_tuple;
+		body.emplace_back(std::move(val_tuple));
 		}
 
-	rval.emplace_back(body);
+	rval.emplace_back(std::move(body));
 
 	return {std::move(rval)};
 	}
